@@ -3286,8 +3286,8 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
 // ⚔️ 25/10 (Diego, carreira organizada): o que vai LOGO EMBAIXO DOS GOLS no placar (a tática, na aba Jogos + Tabela). Quem
 // monta o placar não precisa saber de nada — quem quer pôr algo ali só embrulha o placar neste contexto.
 export const AbaixoDosGolsCtx = createContext<ReactNode>(null)
-export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
-  { disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+export function LiveScoreCard({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
+  { /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3661,7 +3661,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
   const falaMem = useRef<{ key: number; privateField: boolean; atual: FalaRadio | null; anterior: FalaRadio | null }>({ key: roundKey, privateField, atual: null, anterior: null })
   void iAmHome
 
-  const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => {
+  const Team = ({ name, color, you, flash, neutro: neu }: { name: string; color: string; you: boolean; flash?: boolean; neutro?: boolean }) => {
     const perk = you ? myApoioPerk() : null
     // lado SÓLIDO na cor do time: você = tier (com brilho); rival/amigo = a cor
     // que o jogo deu (rival = marrom único · amigo = tier dele). Texto em contraste.
@@ -3676,7 +3676,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
           foi aprovado). */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: flash ? 'coBump .6s ease' : undefined, ...(basket ? { width: 32, height: 32, borderRadius: 9, border: `2px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 15, ...OSWALD } : null) }}>{basket ? ini(name) : <Escudo nome={name} size={40} />}</div>
       <div style={{ position: 'relative', fontSize: 12, fontWeight: 900, ...OSWALD, color: ink, lineHeight: 1.05, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{perk ? apoioName(name) : name}</div>
-      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{you ? tr('você', 'you') : tr('rival', 'rival')}</div>
+      <div style={{ position: 'relative', fontSize: 9, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: ink, opacity: 0.72 }}>{neu ? tr('finalista', 'finalist') : you ? tr('você', 'you') : tr('rival', 'rival')}</div>
     </div>
     )
   }
@@ -3727,7 +3727,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     const n = shown.length
     if (n > golsOuvidosRef.current) {
       const ultimo = shown[n - 1]
-      const meu = ultimo ? (ultimo.home === youIsHome) : false
+      const meu = ultimo && !neutro ? (ultimo.home === youIsHome) : false
       // ⏱️ o `roundMs` vai junto: é o próprio placar que sabe quanto dura a rodada
       // na tela, e o som usa isso pra cortar o gol antes do próximo jogo começar
       // (e pra ficar SÓ no ambiente no ⚡4×, onde gol nenhum caberia).
@@ -3753,7 +3753,7 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
     : meusGols < delesGols
       ? (emIngles ? [`📢 Final whistle — defeat, ${meusGols} to ${delesGols}. On to the next one 😤`, '📢 It\'s over — lost this one. The crowd went home quiet 😤', '📢 Full time — not our night. Heads up 😤', '📢 The referee ends it: defeat. Next round we go again 😤'] : [`📢 Apito final — derrota por ${meusGols} a ${delesGols}. Bola pra frente 😤`, '📢 Acabou — perdemos essa. A torcida saiu calada 😤', '📢 Fim de jogo — não foi a nossa noite. Cabeça erguida 😤', '📢 O juiz encerrou: derrota. Na próxima a gente volta 😤'])
       : (emIngles ? ['📢 Final whistle — a draw, one point each 🤝', '📢 It\'s over — all square. Nobody left happy 🤝', '📢 Full time — a draw, and it felt like less 🤝', '📢 The referee ends it: even on the night 🤝'] : ['📢 Apito final — empate, um ponto pra cada 🤝', '📢 Acabou — tudo igual. Ninguém saiu feliz 🤝', '📢 Fim de jogo — empate, com gosto de pouco 🤝', '📢 O juiz encerrou: igualdade na noite 🤝'])
-  const fimTxt = grande && ritual === 'end' ? FIM_RES[rk % FIM_RES.length] : null
+  const fimTxt = grande && ritual === 'end' && !neutro ? FIM_RES[rk % FIM_RES.length] : null
   const lado2d = (nome: string, cor: string, mascote: string | undefined, cartas: CartaRadio[] | undefined, emblema: ReactNode, formacao?: string, cartas2?: CartaRadio[]) => ({
     nome, cor, cartas: cartas as never, formacao, cartas2: cartas2 as never, mascote: carimboDoTime(newestTeamName(nomeLimpo(mascote ?? nome))),
     escudo: emblema ?? <Escudo nome={nome} size={110} />, tecnico: c2dX.tecnicoDe?.(nome) ?? null,
@@ -3877,13 +3877,13 @@ export function LiveScoreCard({ pausado, homeName, awayName, homeColor, awayColo
           <span style={{ width: 7, height: 7, borderRadius: 999, background: fechado ? GREEN : '#ff5b4d', animation: fechado ? 'none' : 'coPulse 1.4s infinite' }} /> {fechado ? (basket ? 'FINAL' : tr('FIM', 'FT')) : minLabel}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
-          <Team name={homeName} color={homeCol} you={youIsHome} flash={golSide === 'h'} />
+          <Team name={homeName} color={homeCol} you={!neutro && youIsHome} neutro={neutro} flash={golSide === 'h'} />
           {/* placar central limpo (sem tarja preta) — número grande no creme; cada
               número dá um "bump" quando MUDA (key = valor → remonta e reanima) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '22px 6px 8px', minWidth: 84, ...OSWALD, fontWeight: 900, fontSize: 30, color: INK, lineHeight: 1 }}>
             <span key={'h' + hg} style={{ padding: '0 7px', display: 'inline-block', animation: 'coBump .55s ease' }}>{hg}</span><span style={{ color: '#b8b0a0', fontSize: 15 }}>×</span><span key={'a' + ag} style={{ padding: '0 7px', display: 'inline-block', animation: 'coBump .55s ease' }}>{ag}</span>
           </div>
-          <Team name={awayName} color={awayCol} you={!youIsHome} flash={golSide === 'a'} />
+          <Team name={awayName} color={awayCol} you={!neutro && !youIsHome} neutro={neutro} flash={golSide === 'a'} />
         </div>
         {/* ⚽🎉 CARIMBO DO CLUBE (15/08): quem marcou é batizado? a carinha dele
             carimba o placar e some sozinha junto com o selo de gol (~1,7s). Só de
@@ -7176,10 +7176,10 @@ export function posicaoCopaNoCampo(legIndex:number,minute:number,nLegs:number){
   return Math.min(legs*90,leg*90+min*90/93)
 }
 type MinutoCopaCampo=(legIndex:number,minute:number)=>void
-export function MyCopaMatch(props: { pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+export function MyCopaMatch(props: { neutro?: boolean; pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
-function MyCopaMatchInner({ pensOrcamento, stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatchInner({ neutro, pensOrcamento, stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { /** 🏆 08/11: a final de quem já caiu (nenhum lado é você) */ neutro?: boolean; pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   // 🔓 19/09: o visual novo da Copa da carreira também saiu da prévia (mesma chave)
   const privateMatch = useOnlinePreview() || CAREER_VISUAL_RELEASED
   const presidentFieldAccount=usePresidentPreview()
@@ -7249,7 +7249,7 @@ function MyCopaMatchInner({ pensOrcamento, stadiumContext, onFieldMinute, onPena
           via escudo genérico e gol sem mascote NA COPA, enquanto na liga (que
           passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
           embaixo do nome sozinho, então o sufixo era só ruído. */}
-      <LiveScoreCard estadoPenaltis={penaltisCampo.estado} disputaPenaltis={penaltisCampo.sessao} enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
+      <LiveScoreCard neutro={neutro} estadoPenaltis={penaltisCampo.estado} disputaPenaltis={penaltisCampo.sessao} enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
         youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} elencos={{ casa: homeT.xi, fora: awayT.xi, fCasa: homeT.formation, fFora: awayT.formation, m2: tie.legM2?.[legIdx] }} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
       {showDone && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
@@ -11959,6 +11959,11 @@ export function PyramidSeasonScreen() {
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
         {copaPlaying && myCopaTie && <MyCopaMatch pensOrcamento={state.onlineMode === 'online' && copaPenMs ? copaPenMs / 1000 : undefined} onPenaltiesComplete={concluiuPensCampo} pausado={pausaCentral||pausaFesta} onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
+        {/* 🏆 08/11 (Diego: *"a final deveria sempre aparecer no placar cinema ou no campo 2D… quando o usuário não tá participando"*):
+            FINAL e SUPERCOPA de quem não está nelas — o mesmo placar grande/2D, neutro (sem "você"), no mesmo relógio da fase.
+            Sem estádio/mapa e sem segurar o avanço (isso é só do SEU jogo). */}
+        {copaPlaying && !myCopaTie && copaFase && (copaFase.name === 'Final' || copaFase.name === 'Supercopa') && copaFase.ties.length === 1 && <MyCopaMatch neutro pausado={pausaCentral||pausaFesta} final={privateCareer} tie={copaFase.ties[0]} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
+          footTint={copaFase.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
             sozinha (só aparece o botão de ativar o manual). */}

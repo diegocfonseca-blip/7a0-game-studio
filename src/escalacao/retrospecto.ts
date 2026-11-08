@@ -14,7 +14,16 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-export type Retro = { v: number; e: number; d: number }
+export type Retro = { v: number; e: number; d: number; /** 🆚 08/11: últimos até 10 jogos, do MEU lado: V/E/D, o mais novo no fim */ seq?: string }
+/** 🔥 a sequência que está valendo agora (do fim pra trás): `{ tipo: 'V', n: 3 }` = 3 vitórias seguidas. Menos de 2 = nada. */
+export function sequenciaAtual(r: Retro | undefined): { tipo: 'V' | 'E' | 'D'; n: number } | null {
+  const s = r?.seq ?? ''
+  if (s.length < 2) return null
+  const t = s[s.length - 1] as 'V' | 'E' | 'D'
+  let n = 0
+  for (let i = s.length - 1; i >= 0 && s[i] === t; i--) n++
+  return n >= 2 ? { tipo: t, n } : null
+}
 export type JogoRetro = { a: string; b: string; ga: number; gb: number }
 
 /** grava os jogos de gente × gente de UMA rodada (só o dono da sala consegue; o banco ignora repetição da mesma chave) */
@@ -31,13 +40,15 @@ export function useRetrospecto(eu: string | null | undefined, rivais: string[], 
     if (!eu || !lista) { setMapa({}); return }
     let vivo = true
     const ids = lista.split(',')
-    supabase.from('esc_retrospecto').select('a,b,vit_a,empates,vit_b').or(`and(a.eq.${eu},b.in.(${ids.join(',')})),and(b.eq.${eu},a.in.(${ids.join(',')}))`)
+    supabase.from('esc_retrospecto').select('a,b,vit_a,empates,vit_b,ultimos').or(`and(a.eq.${eu},b.in.(${ids.join(',')})),and(b.eq.${eu},a.in.(${ids.join(',')}))`)
       .then(({ data }) => {
         if (!vivo || !Array.isArray(data)) return
         const m: Record<string, Retro> = {}
-        for (const r of data as { a: string; b: string; vit_a: number; empates: number; vit_b: number }[]) {
-          if (r.a === eu) m[r.b] = { v: r.vit_a, e: r.empates, d: r.vit_b }
-          else m[r.a] = { v: r.vit_b, e: r.empates, d: r.vit_a }
+        for (const r of data as { a: string; b: string; vit_a: number; empates: number; vit_b: number; ultimos?: string }[]) {
+          // 'A' = a venceu · 'B' = b venceu (gravado do lado de `a`) → vira V/E/D do MEU lado
+          const meu = (euSouA: boolean) => (r.ultimos ?? '').split('').map(c => c === 'E' ? 'E' : (c === 'A') === euSouA ? 'V' : 'D').join('')
+          if (r.a === eu) m[r.b] = { v: r.vit_a, e: r.empates, d: r.vit_b, seq: meu(true) }
+          else m[r.a] = { v: r.vit_b, e: r.empates, d: r.vit_a, seq: meu(false) }
         }
         setMapa(m)
       }, () => { /* sem rede: fica o que tinha */ })

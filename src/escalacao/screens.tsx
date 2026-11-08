@@ -85,7 +85,10 @@ import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
-import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto' // 🆚 retrospecto entre amigos (13/10)
+import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto'
+import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
+import { CaminhoDraft } from './draft-favoritos'
+import { chaveNome as chaveNomeDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
@@ -94,7 +97,7 @@ import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-reg
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
-import { BannerInstagram } from './banner-instagram'
+import { BannerIndicacao } from './banner-indicacao'
 import { PainelDonoLiga } from './painel-dono-liga'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -2359,7 +2362,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
-        <BannerInstagram />{/* 📸 04/11: faltam 200 seguidores pro Campo 2D (fechou = não volta) */}
+        <BannerIndicacao />{/* 🎥 08/11: indique um streamer (no lugar da faixa dos 3 mil seguidores) */}
         {amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}{/* 🤝⚔️ 27/10: pedidos em cima dos modos, com aceitar ali mesmo */}
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">
@@ -4311,8 +4314,8 @@ export function EscAuction() {
 // `duplaPodeAgir` — a mesma que o reducer usa pra recusar (regra contra botão mudo).
 function HolandesDupla({ pos, posName }: { pos: Sector; posName: string }) {
   const v = useDuplaVez(pos)
-  if (v.minhaVez) return null
-  return <div className="mt-2"><CaixaDuplaTrava quem={v.quem} parceiroSumiu={v.parceiroSumiu} assumir={v.assumir}
+  if (v.minhaVez) return <div className="mt-2"><PainelDupla destaque={pos} /></div>
+  return <div className="mt-2"><PainelDupla destaque={pos} /><div className="h-2" /><CaixaDuplaTrava quem={v.quem} parceiroSumiu={v.parceiroSumiu} assumir={v.assumir}
     titulo={tr(`🔒 Quem pega ${posName.toUpperCase()} é ${v.quem || 'seu parceiro'}`, `🔒 ${v.quem || 'Your partner'} takes the ${posName.toUpperCase()}`)}
     texto={tr('⏳ Você vê o preço caindo, mas nesta leva quem aperta PEGAR é ele. Na leva da SUA posição é você que manda.', '⏳ You see the price dropping, but in this round your partner is the one who taps TAKE. In YOUR position\'s round, you call the shots.')} /></div>
 }
@@ -4326,6 +4329,46 @@ export function useDuplaVez(cat: DuplaCat) {
   const parceiroSumiu = !!donoUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(donoUid)
   const assumir = () => { if (you) dispatch({ type: 'DUPLA_SOLO', mgrId: you.id, ficouUid: state.youUid ?? '' }) }
   return { minhaVez, quem, parceiroSumiu, assumir }
+}
+// 🤝 08/11 (mockup aprovado, Diego: *"pode fazer tudo"*): PAINEL DA DUPLA no leilão — quem cuida de cada posição (e do Monte) e o
+// que ainda falta no time, dizendo de quem é. Só lê `duplas[].cats` e `openSlots` (as MESMAS réguas do motor); não muda regra nenhuma.
+export function PainelDupla({ destaque }: { destaque?: Sector }) {
+  const { state } = useEsc()
+  const you = state.managers[state.youIdx]
+  const d = you ? state.duplas?.[you.id] : undefined
+  if (!you || !d || !d.partnerUid || state.espectador) return null
+  const eu = state.youUid
+  const nomeDe = (uid?: string) => stripEmoji((uid === d.ownerUid ? d.ownerName : d.partnerName) ?? '').trim()
+  const parceiroUid = eu === d.ownerUid ? d.partnerUid : d.ownerUid
+  const donoDa = (c: DuplaCat) => d.soloUid ?? d.cats?.[c]
+  const minhas = (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA', 'MONTE'] as DuplaCat[]).filter(c => donoDa(c) === eu)
+  const dele = (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA', 'MONTE'] as DuplaCat[]).filter(c => donoDa(c) && donoDa(c) !== eu)
+  const falta = SECTORS.map(p => ({ p, n: openSlots(you, p) })).filter(x => x.n > 0)
+  const completos = SECTORS.filter(p => openSlots(you, p) === 0)
+  const nomeP = (p: Sector, n: number) => { const pt: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goleiros'], LAT: ['lateral', 'laterais'], ZAG: ['zagueiro', 'zagueiros'], MEI: ['meia', 'meias'], ATA: ['atacante', 'atacantes'] }; const en: Record<Sector, [string, string]> = { GOL: ['keeper', 'keepers'], LAT: ['full-back', 'full-backs'], ZAG: ['centre-back', 'centre-backs'], MEI: ['midfielder', 'midfielders'], ATA: ['forward', 'forwards'] }; return tr(`${n} ${pt[p][n > 1 ? 1 : 0]}`, `${n} ${en[p][n > 1 ? 1 : 0]}`) }
+  const chip = (c: DuplaCat) => <span key={c} className="text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSWALD, fontWeight: 900, background: c === destaque ? GOLD : '#fff' }}>{c === 'MONTE' ? tr('MONTE', 'PILE') : c}</span>
+  return (
+    <Box className="p-3 space-y-2">
+      <p className="font-black text-xs uppercase" style={OSWALD}>🤝 {tr('Quem cuida de quê', 'Who handles what')}{d.soloUid ? tr(' · você assumiu tudo', ' · you took over everything') : ''}</p>
+      {!d.soloUid && <>
+        <div className="flex items-center gap-1.5 flex-wrap"><b className="text-[12px] mr-1" style={OSWALD}>🫵 {tr('Você', 'You')}</b>{minhas.length ? minhas.map(chip) : <span className="text-[11px] font-bold text-black/50">{tr('ainda não dividiram', 'not split yet')}</span>}</div>
+        <div className="flex items-center gap-1.5 flex-wrap"><b className="text-[12px] mr-1" style={OSWALD}>🤝 {nomeDe(parceiroUid) || tr('Parceiro', 'Partner')}</b>{dele.length ? dele.map(chip) : <span className="text-[11px] font-bold text-black/50">—</span>}</div>
+      </>}
+      <div className="space-y-1 pt-1 border-t-2 border-black/10">
+        {falta.map(({ p, n }) => {
+          const meu = donoDa(p) === eu || !donoDa(p)
+          return (
+            <div key={p} className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1" style={{ background: meu ? '#FFE3DD' : '#FFF3CF' }}>
+              <span>{meu ? '🔴' : '🟡'}</span>
+              <span className="flex-1 text-[12px] font-black" style={OSWALD}>{tr(`Falta${n > 1 ? 'm' : ''} ${nomeP(p, n)}`, `${nomeP(p, n)} missing`)}</span>
+              <span className="text-[11px] font-bold text-black/60">{meu ? tr('é com você', "it's on you") : tr(`é com ${nomeDe(donoDa(p))}`, `on ${nomeDe(donoDa(p))}`)}</span>
+            </div>
+          )
+        })}
+        {completos.length > 0 && <div className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1" style={{ background: '#DFF6E8' }}><span>🟢</span><span className="text-[12px] font-black" style={OSWALD}>{completos.join(' · ')} {tr(completos.length > 1 ? 'completos' : 'completo', 'done')}</span></div>}
+      </div>
+    </Box>
+  )
 }
 export function CaixaDuplaTrava({ titulo, texto, quem, parceiroSumiu, assumir }: { titulo: string; texto: string; quem: string; parceiroSumiu: boolean; assumir: () => void }) {
   return (
@@ -5186,6 +5229,8 @@ function Envelope() {
         </AuctionSlot>
       </div>
       </AuctionSlot>
+
+      <PainelDupla destaque={pos} />{/* 🤝 08/11: quem cuida de quê + o que falta (só aparece em dupla) */}
 
       {!canBid && (
         <Box bg={state.espectador ? '#E7E1F7' : !minhaVez ? '#EDE4FF' : '#FFE9B0'} className="p-3">
@@ -7524,7 +7569,10 @@ export function EscSeason() {
   // (Copa dos 8, Liberta, Champions/repescão, Relâmpago, copa da Liga da Turma/Draft, Partida Rápida, revanche) acontece no
   // campinho. Sai SÓ do que já está no estado (placar + `pensSeq` + nomes): todo aparelho da sala vê a mesma sequência. A cena cabe
   // no tempo que a fase já segura pra disputa (`pensRevealDelay`) — relógio, motor e canal não mudam.
-  const meuTiePen = c2d && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id) && !!t.pens && !t.ot && t.winner != null && t.legs.length > 0) : undefined
+  // 🏆 08/11 (Diego: *"a final deveria sempre aparecer no placar cinema ou no campo 2D… quando o usuário não tá participando"*): quem
+  // já caiu (ou nem entrou) vê a FINAL no placar grande, igual a quem joga. Só a final — nas outras fases segue a lista dos jogos.
+  const finalAlheiaQ = copaLive && qc && qc.phase === 'final' && qc.ties.length === 1 && !qc.ties.some(t => t.aId === you.id || t.bId === you.id) ? qc.ties[0] : undefined
+  const meuTiePen = c2d && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id || t === finalAlheiaQ) && !!t.pens && !t.ot && t.winner != null && t.legs.length > 0) : undefined
   const penCampo = usePenaltisCampo(meuTiePen?.pens ? {
     id: `copa:${qc?.phase}:${meuTiePen.aId}:${meuTiePen.bId}:${meuTiePen.legs.length}`, pens: meuTiePen.pens, seqReal: meuTiePen.pensSeq,
     aName: meuTiePen.aName, bName: meuTiePen.bName, invertido: meuTiePen.legs.length === 2,
@@ -7918,7 +7966,22 @@ export function EscSeason() {
                   <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
                 </Box>
               )
-            ) : (
+            ) : finalAlheiaQ && finalAlheiaQ.legs.length > 0 ? (() => {
+              // 🏆 a FINAL de quem não está nela: o mesmo placar grande/2D, sem lado "você" (neutro). Dono humano = nome e cor do tier
+              // dele; bot = o azul neutro. Jogo único em campo neutro: casa = a, fora = b (igual à linha da lista).
+              const ft = finalAlheiaQ
+              const corDe = (id: number) => state.managers.some(m => m.id === id && m.isHuman) ? (perkFromSelo(state.managers.find(m => m.id === id)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
+              const donoDe = (id: number) => { const m = state.managers.find(mm => mm.id === id && mm.isHuman); return m ? (m.name || m.teamName) : LS('FINALISTA', 'FINALIST') }
+              const lastIdx = ft.legs.length - 1
+              const hId = lastIdx === 0 ? ft.aId : ft.bId, aId = lastIdx === 0 ? ft.bId : ft.aId
+              const goals = (ft.lastHighlights ?? []).filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === hId }))
+              return (
+                <LiveScoreCard neutro enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
+                  homeName={nameOf(hId)} awayName={nameOf(aId)} homeColor={corDe(hId)} awayColor={corDe(aId)} homeOwner={donoDe(hId)} awayOwner={donoDe(aId)}
+                  youIsHome={false} goals={goals} roundKey={ft.legs.length + 20} roundMs={Math.round(copaLegMs / copaSf)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+                  footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === hId)?.squad, fora: state.managers.find(m => m.id === aId)?.squad, fCasa: state.managers.find(m => m.id === hId)?.formation, fFora: state.managers.find(m => m.id === aId)?.formation }} />
+              )
+            })() : (
               <Box bg="#fff" className="p-4" shadow={6}>
                 <p className="text-center font-black text-sm" style={OSWALD}>{chS && qc.phase === 'repescao' && state.champions ? ((championsTabela(state.champions).findIndex(tt => tt.id === you.id) + 1) <= 8 && championsTabela(state.champions).some(tt => tt.id === you.id)
                   ? LS('✅ Você já está nas OITAVAS — não joga o repescão, está aguardando saber quem te pega.', '✅ You are already in the ROUND OF 16 — you skip the playoff and wait to see who you get.')
@@ -8145,6 +8208,34 @@ export function EscSeason() {
               Copa nunca teve isso e ficava mais poluído aqui). */}
         </Box>
       )}
+
+      {/* 🆚 08/11: PRATELEIRA DE RIVALIDADES (mockup aprovado) — próximo encontro com um AMIGO + retrospecto contra cada amigo da sala */}
+      {retroOn && !copaLive && (() => {
+        const amigos: AmigoRival[] = state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => ({ m, uid: uidDo(m.id) })).filter((x): x is { m: typeof x.m; uid: string } => !!x.uid && x.uid !== meuUidRetro)
+          .map(({ m, uid }) => ({ uid, nome: m.name, time: m.teamName || m.name, temporada: (() => { const r = rivalryOf(state.rivalries, you.id, m.id); return { w: r.w, d: r.d, l: r.l } })(), id: m.id }))
+        if (amigos.length === 0) return null
+        let proximo: ProximoEncontro | null = null
+        for (let r = state.round; r < totalRounds && !proximo; r++) {
+          const f = state.fixtures[r]?.find(([h, a]) => h === you.id || a === you.id)
+          if (!f) continue
+          const oppId = f[0] === you.id ? f[1] : f[0]
+          const amigo = amigos.find(a => (a as AmigoRival & { id: number }).id === oppId)
+          if (amigo) proximo = { amigo, rodada: r + 1, daqui: r - state.round }
+        }
+        return naDireita(<PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />)
+      })()}
+
+      {/* 📋 08/11: LIGA DRAFT — o caminho até a próxima temporada + ⭐ favoritos (mockup aprovado). Só mostra; a ordem é a da tabela (campeão primeiro). */}
+      {(state.ligaDraft || state.minhaLigaDraft) && state.onlineMode === 'online' && !copaLive && state.round < totalRounds && (() => {
+        const humanos = table.filter(t => state.managers.some(m => m.id === t.id && m.isHuman))
+        const idx = humanos.findIndex(t => t.id === you.id)
+        const temCopa = !!state.copaMode && state.copaMode !== 'liga'
+        const etapas = [{ id: 'liga', pt: 'Liga', en: 'League' }, ...(temCopa ? [{ id: 'copa', pt: 'Copa', en: 'Cup' }] : []), { id: 'draft', pt: '📋 Draft', en: '📋 Draft' }, { id: 'prox', pt: `Temp. ${(state.seasonNo ?? 1) + 1}`, en: `Season ${(state.seasonNo ?? 1) + 1}` }]
+        const donoDe = new Map<string, { time: string; bot: boolean }>()
+        for (const m of state.managers) for (const c of m.squad) if (!c.fake) donoDe.set(chaveNomeDraft(c.name), { time: m.teamName, bot: !m.isHuman })
+        return naDireita(<CaminhoDraft etapas={etapas} atual="liga" faltam={totalRounds - state.round} minhaVez={idx >= 0 ? idx + 1 : null} total={humanos.length}
+          temporadaQueVem={(state.seasonNo ?? 1) + 1} deck={state.minhaLigaDraft ? state.deckLeague : undefined} regras={state.minhaLigaDraft ? state.draftRegras : undefined} donoDe={donoDe} />)
+      })()}
 
       {/* 🛋️ FOLGA: liga com nº ímpar de times — nesta rodada você não tem jogo. Só
           aparece na Liga Fechada ímpar (numa tabela par todo mundo joga toda rodada). */}

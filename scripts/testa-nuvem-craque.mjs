@@ -21,7 +21,7 @@ try {
   const ps = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
   assert.ok(ps.includes("'salvo_7d'") && ps.includes('esc-nuvem1d-visto'), 'a tela avisa do prazo no 1º salvamento')
   assert.ok(readFileSync('src/escalacao/nuvem-planos.tsx', 'utf8').includes('1 dia sem você salvar'), 'a janela explica o prazo de 1 dia (07/11)')
-  const sql = readFileSync('supabase/migrations/20261026020000_nuvem_gratis_7_dias.sql', 'utf8')
-  assert.ok(sql.includes("interval '7 days'") && sql.includes("->> 'pago'"), 'o banco só tira da nuvem quem NÃO tem plano, depois de 7 dias')
+  const sql = readFileSync('docs/sql/nuvem-gratis-1-dia.sql', 'utf8')
+  assert.ok(sql.includes("interval '1 day'") && sql.includes("->> 'pago'"), 'o banco só tira da nuvem quem NÃO tem plano, depois de 7 dias')
   console.log('✅ nuvem: grátis sobe (prazo de 7 dias, avisado no 1º salvamento) · pagante sem prazo · banco mudo = como sempre')
 } finally { await vite.close() }

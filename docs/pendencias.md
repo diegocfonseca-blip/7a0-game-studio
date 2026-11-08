@@ -30,7 +30,7 @@
   tá ótimo", 1 carreira só, 1 dia sem salvar = apagada da nuvem) + planos — foto `scripts/mockups/salvar-gratis-aviso.png`, fecha uma vez
   (`nuvem-1d`); 2D grátis na CARREIRA (`useCampo2DLigado`/`Botao2D` com `careerOnline`; o cadeado vira só do Manual; Partida Rápida segue
   paga); 2D da carreira padrão **1,5×** (`VEL2D_CARREIRA_PADRAO`), sem Manual cravado em 1,5× (`vel2dDoContexto`).
-- ⏳ BANCO (só depois do OK): `docs/sql/nuvem-gratis-1-dia.sql` — 1 dia, toda conta sem plano, relógio começa na hora de aplicar, de hora em
+- ✅ BANCO APLICADO 07/11 22:50 UTC: `docs/sql/nuvem-gratis-1-dia.sql` — 1 dia, toda conta sem plano, relógio começa na hora de aplicar, de hora em
   hora. Apaga só a NUVEM (o aparelho guarda e sobe de novo no próximo Salvar). Ficha grátis já era 1 (`careerSlotLimit`, quem tinha mais ficou).
 
 ## 📺🎁 07/11 — Campo 2D de benefício na SALA RÁPIDA (PUBLICADO 07/11)
@@ -12837,3 +12837,21 @@ Não retomar sem ele pedir.
 ### 05/11 — Carreira: ajuste de força (bônus v9) DESFEITO por ordem do Diego ("deixa como tá")
 A régua nova das cartas deixou a carreira MAIS FÁCIL na C (sobe 42%→80%) e na B (24%→33%); o ajuste v9 (cd8d6a3) que voltava a 01/11
 foi revertido no branch. A carreira fica como está. As salas online seguem com a correção publicada (escalaBots).
+
+## 🎥 08/11 — Banner de indicação de streamer (aprovado)
+- Na home, no lugar da faixa "3 mil seguidores → Mapa virtual": faixa roxa "Indicou um streamer? Você e ele ganham um plano",
+  botão "💬 Direct" que abre o direct do @leilaolegendscom (`banner-indicacao.tsx`). Tirar: `BANNER_INDICACAO_LIGADO = false`.
+  A faixa velha (`banner-instagram.tsx`) ficou no repo, desligada da home.
+- 🎮 08/11: criar **Liga da Turma / Liga Draft** já vem com o **Manual marcado** (quem tem Manual; dá pra desmarcar). Ligas que já
+  estão rodando no Auto (ex.: "Eu e eu" JWKSLQ) NÃO mudam — trocar Auto→Manual no meio pararia a sala esperando o dono apertar.
+- 🏆 08/11: **a FINAL aparece no placar grande/2D pra quem já caiu** (Copa dos 8, Liberta, Champions, Relâmpago, Kings — `finalAlheiaQ`
+  em screens.tsx; `LiveScoreCard neutro`: sem "você", dono humano no lugar de VOCÊ/RIVAL, bot = "FINALISTA", sem apito de vitória/derrota).
+  Copa do Mundo, Eurocopa e regionais JÁ mostravam a final grande pra todos. Depois (mesmo dia, *"são todas competições"*): Copa do
+  Brasil/Legends e Supercopa da carreira (em sala e solo) também — `MyCopaMatch neutro`, sem estádio e sem segurar o avanço. Pênaltis da final no campinho 2D valem pra quem assiste também.
+  Foto: `scripts/mockups/final-neutra.png`. Aguardando OK do Diego.
+- 🆚⭐🤝 08/11 (mockup `scripts/mockups/rivalidade-draft-duplas.png`, *"pode fazer tudo"*):
+  · **Rivalidades** (`rivalidades-sala.tsx`): próximo encontro com amigo + V·E·D de sempre + sequência; banco ganhou a coluna
+    `esc_retrospecto.ultimos` (últimos 10, `docs/sql/retrospecto-sequencia.sql`, APLICADO 08/11). Sequência só conta jogos de 08/11 em diante.
+  · **Liga Draft** (`draft-favoritos.tsx`): faixa Liga → (Copa) → Draft → Temp. N+1, faltam N rodadas, sua vez pela tabela; ⭐ favoritos
+    (aparelho, chave única `esc-draft-favs`, máx 30) aparecem em cima na noite do draft.
+  · **Duplas** (`PainelDupla`, screens.tsx): quem cuida de cada posição + o que falta e de quem é (envelope e Tocaia).

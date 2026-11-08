@@ -805,6 +805,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🎽 **Camisa de time do personagem: PARADA (15/10)** — duas versões pintadas por cima da camiseta reprovadas (*"tá muito ruim"*);
   só volta com arte de verdade, quando ele pedir.
 
+- **💾 07/11: REVOGADO o "sem plano não salva" (logo abaixo).** Palavras dele: *"acho que a gente tem que liberar novamente salvar… ficou um dia
+  sem jogar, quem não tem plano pode apagar o save… só tem direito a um save"*. Agora: grátis SALVA (aparelho e nuvem), **1 carreira só**, e
+  **1 dia sem salvar = a carreira sai da NUVEM** (`esc_nuvem_gratis_limpa`, de hora em hora; o aparelho guarda). No 1º salvamento abre o aviso
+  curto (o jogo que ele fez pro filho, mais gente = mais caro; **sem falar de "ficar rico"**) só com o ⭐ Craque Completo + "Ver todos os planos".
+  **Campo 2D é GRÁTIS na carreira** (o cadeado é só do Manual) e a carreira anda a **1,5× por padrão** (`VEL2D_CARREIRA_PADRAO`; sem Manual fica
+  cravada). **Sala rápida: o dono escolhe/troca o 2D sem plano** (até na sala grátis do dia); Liga Draft/Liga da Turma seguem do plano.
 - **🔒 SEM PLANO NÃO SALVA CARREIRA (04/11, regra permanente — REVOGA o "nunca bloquear o save no APARELHO" de 07/10 e o prazo de 7 dias de 26/10).**
   Palavras dele: *"a partir de agora quem não tem plano não pode salvar de jeito nenhum… nada, nem no celular… só lá onde seria sair e salvar
   vai ter um botão de salvar com cadeado… aparece os planos… deve poder salvar desde o primeiro plano, que é o Craque Salas, até todos"* e
