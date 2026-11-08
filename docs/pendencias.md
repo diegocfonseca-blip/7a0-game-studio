@@ -12866,3 +12866,14 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
 - 🏷️ 08/11: sala JWKSLQ ("Eu e eu") aparece na lista como **"Eu"** (ordem do Diego). Feito no gatilho `esc_sala_nome_ofensivo`
   (`if new.code = 'JWKSLQ' then new.ls_name := 'Eu'`) — o dono regrava o estado a cada poucos segundos, então só o update não segurava.
   Dentro da partida o nome continua o do estado do dono (não mexi no jogo rolando). Desfazer = tirar a linha do gatilho.
+
+## 🚪 08/11 — Sala 8QQPWZ (Liga Draft do Reffattifc): partida velha gravando por cima da sala de espera
+- O banco mostrou: das 14h21 às 14h58 (Brasília) a sala nova 8QQPWZ, ainda na SALA DE ESPERA (11 pessoas), recebeu gravação de PARTIDA do
+  aparelho do dono a cada 0,5–3 s — no mesmo ritmo da liga antiga dele (PB8HW2), que parou de ser gravada no minuto em que a nova nasceu.
+  Os convidados ficaram presos esperando e apertaram F5 várias vezes (caixa-preta: recargas em massa 14h58–15h01). Às 15h01 o dono apagou
+  as DUAS ligas (a antiga, com temporadas, não volta; os títulos ficam em game_champions).
+- TRAVA (branch, esperando "publica"): o save de partida do dono (`store.tsx`, efeito do batimento de 3 s) lê o `status` da sala ao começar; se o
+  banco diz `waiting`, NÃO grava e solta sozinho quando a sala vira `started` (re-checa a cada 5 s). Leitura que falha = grava como sempre.
+  Toda largada marca `started` ANTES do `triggerStart`, então nunca barra jogo de verdade. Anota `save_em_sala_de_espera` na caixa-preta
+  (`esc_travas`, extra com tela/fase/temporada/rodada) pra achar o caminho exato que deixa a partida velha apontando pra sala nova — ainda NÃO achado.
+- [ ] Depois de publicado: olhar `esc_travas` com `extra->>'quando' = 'save_em_sala_de_espera'` e fechar a causa.

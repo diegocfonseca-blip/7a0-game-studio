@@ -16105,11 +16105,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // reescreve o `game_state` INTEIRO a cada 3s, e escrevia só o que vem do estado da
   // partida. Resultado: a identidade era apagada assim que a bola rolava.
   const salaFixaRef = useRef<Record<string, unknown>>({})
+  const esperaRef = useRef(false) // 🚪 08/11: a sala está na sala de ESPERA no banco → nada de save de partida (ver abaixo)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const save = () => {
       const st = stateRef.current
       if (st.screen === 'intro' || st.screen === 'lobby' || !st.roomId) return
+      // 🚪 08/11 (sala 8QQPWZ do Reffattifc): sala de ESPERA nunca recebe gravação de partida — ver `esperaRef` abaixo
+      if (esperaRef.current) return
       // 🤫 posse humilde: enquanto não confirmei que a sala está SEM ninguém
       // tocando, não escrevo por cima do save de quem estiver — é o que fazia
       // duas abas da mesma conta se atropelarem (23/08).
@@ -16164,9 +16167,29 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // teria apagado a identidade da sala — e aí não haveria o que preservar.
     let vivo = true
     let iv: ReturnType<typeof setInterval> | null = null
+    let ivEspera: ReturnType<typeof setInterval> | null = null
+    esperaRef.current = false
     ;(async () => {
       try {
-        const { data } = await supabase.from('game_rooms').select('game_state').eq('id', state.roomId!).maybeSingle()
+        const { data } = await supabase.from('game_rooms').select('game_state, status').eq('id', state.roomId!).maybeSingle()
+        // 🚪 08/11 (sala 8QQPWZ, Liga Draft do Reffattifc): o aparelho do dono gravou uma partida rodando, a cada 0,5–3s, por
+        // 37 minutos dentro de uma sala que estava na SALA DE ESPERA (status 'waiting', 11 pessoas esperando) — a liga antiga dele
+        // continuava viva na memória e passou a escrever por cima da sala nova. Trava: sala que o banco diz que está ESPERANDO não
+        // recebe save de partida. Toda largada de verdade marca 'started' ANTES de montar o jogo, então ela nunca é barrada; e a
+        // trava se solta sozinha se a sala começar depois. Leitura que falhou = salva como sempre (nunca tira o save de ninguém).
+        // Fica anotado na caixa-preta pra achar o caminho exato que deixou a partida velha apontando pra sala nova.
+        if (data && (data as { status?: string }).status === 'waiting') {
+          esperaRef.current = true
+          const st0 = stateRef.current
+          anotaTrava({ room_id: st0.roomId, sala: st0.roomCode || null, papel: 'host', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
+            extra: { quando: 'save_em_sala_de_espera', tela: st0.screen, fase: st0.phase, temporada: st0.seasonNo ?? null, rodada: st0.round } }, true)
+          ivEspera = setInterval(async () => {
+            try {
+              const { data: d2 } = await supabase.from('game_rooms').select('status').eq('id', state.roomId!).maybeSingle()
+              if (d2 && (d2 as { status?: string }).status !== 'waiting') { esperaRef.current = false; if (ivEspera) clearInterval(ivEspera); ivEspera = null }
+            } catch { /* tenta de novo */ }
+          }, 5000)
+        }
         const gs = (data?.game_state ?? {}) as Record<string, unknown>
         const guarda: Record<string, unknown> = {}
         // 🌍 `mundoNaLiga` entra na lista (01/09): é a marca de "esta sala joga a
@@ -16193,7 +16216,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
       iv = setInterval(save, 3000)
     })()
-    return () => { vivo = false; save(); if (iv) clearInterval(iv) }
+    return () => { vivo = false; save(); if (iv) clearInterval(iv); if (ivEspera) clearInterval(ivEspera) }
   }, [state.onlineMode, state.isHost, state.roomId])
 
   // ─── analytics: registra cada partida e mantém o "ao vivo" ───
