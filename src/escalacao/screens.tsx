@@ -94,7 +94,7 @@ import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-reg
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
-import { BannerInstagram } from './banner-instagram'
+import { BannerIndicacao } from './banner-indicacao'
 import { PainelDonoLiga } from './painel-dono-liga'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -2359,7 +2359,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         {solo && <><button onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
       </div>}
       <section className="ll-choices" aria-label="Escolha como jogar">
-        <BannerInstagram />{/* 📸 04/11: faltam 200 seguidores pro Campo 2D (fechou = não volta) */}
+        <BannerIndicacao />{/* 🎥 08/11: indique um streamer (no lugar da faixa dos 3 mil seguidores) */}
         {amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}{/* 🤝⚔️ 27/10: pedidos em cima dos modos, com aceitar ali mesmo */}
         <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
         <div className="ll-modes">

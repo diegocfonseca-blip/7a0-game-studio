@@ -12822,3 +12822,8 @@ Não retomar sem ele pedir.
 ### 05/11 — Carreira: ajuste de força (bônus v9) DESFEITO por ordem do Diego ("deixa como tá")
 A régua nova das cartas deixou a carreira MAIS FÁCIL na C (sobe 42%→80%) e na B (24%→33%); o ajuste v9 (cd8d6a3) que voltava a 01/11
 foi revertido no branch. A carreira fica como está. As salas online seguem com a correção publicada (escalaBots).
+
+## 🎥 08/11 — Banner de indicação de streamer (aprovado)
+- Na home, no lugar da faixa "3 mil seguidores → Mapa virtual": faixa roxa "Indicou um streamer? Você e ele ganham um plano",
+  botão "💬 Direct" que abre o direct do @leilaolegendscom (`banner-indicacao.tsx`). Tirar: `BANNER_INDICACAO_LIGADO = false`.
+  A faixa velha (`banner-instagram.tsx`) ficou no repo, desligada da home.
