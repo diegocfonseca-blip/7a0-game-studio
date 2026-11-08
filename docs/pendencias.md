@@ -12856,3 +12856,6 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   ⚠️ Brecha conhecida: quem NUNCA aperta Salvar continua com o salvamento automático do aparelho (o teste só começa no toque).
 - 🕵️ 08/11: **Ice Nugets × Gabiru FC LIGADOS** (grupo `icenugets`, desde 08/11 06:58 UTC, não retroativo) — ordem do Diego. Gabiru criado 07/11,
   100 temporadas só os dois na Liga Draft "Eu e eu" (94 × 5). Título deles jogando só os dois não conta mais pro ranking; os de antes ficam.
+- 🏷️ 08/11: sala JWKSLQ ("Eu e eu") aparece na lista como **"Eu"** (ordem do Diego). Feito no gatilho `esc_sala_nome_ofensivo`
+  (`if new.code = 'JWKSLQ' then new.ls_name := 'Eu'`) — o dono regrava o estado a cada poucos segundos, então só o update não segurava.
+  Dentro da partida o nome continua o do estado do dono (não mexi no jogo rolando). Desfazer = tirar a linha do gatilho.
