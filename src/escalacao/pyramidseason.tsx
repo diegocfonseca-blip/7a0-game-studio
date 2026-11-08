@@ -7176,10 +7176,10 @@ export function posicaoCopaNoCampo(legIndex:number,minute:number,nLegs:number){
   return Math.min(legs*90,leg*90+min*90/93)
 }
 type MinutoCopaCampo=(legIndex:number,minute:number)=>void
-export function MyCopaMatch(props: { pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+export function MyCopaMatch(props: { neutro?: boolean; pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
-function MyCopaMatchInner({ pensOrcamento, stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatchInner({ neutro, pensOrcamento, stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { /** 🏆 08/11: a final de quem já caiu (nenhum lado é você) */ neutro?: boolean; pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   // 🔓 19/09: o visual novo da Copa da carreira também saiu da prévia (mesma chave)
   const privateMatch = useOnlinePreview() || CAREER_VISUAL_RELEASED
   const presidentFieldAccount=usePresidentPreview()
@@ -7249,7 +7249,7 @@ function MyCopaMatchInner({ pensOrcamento, stadiumContext, onFieldMinute, onPena
           via escudo genérico e gol sem mascote NA COPA, enquanto na liga (que
           passa o nome cru) estava tudo certo. O card já escreve "VOCÊ"
           embaixo do nome sozinho, então o sufixo era só ruído. */}
-      <LiveScoreCard estadoPenaltis={penaltisCampo.estado} disputaPenaltis={penaltisCampo.sessao} enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
+      <LiveScoreCard neutro={neutro} estadoPenaltis={penaltisCampo.estado} disputaPenaltis={penaltisCampo.sessao} enhancedCareer stadiumMatch={stadiumMatch} displayMinute={!fieldClock&&privateMatch ? (done ? 93 : Math.round(pos - legIdx * 90)) : undefined} homeName={homeT.name} awayName={awayT.name} homeColor={colOf(homeT)} awayColor={colOf(awayT)}
         youIsHome={!!homeT.you} goals={goals} roundKey={phase * 10 + legIdx} roundMs={roundMs} elencos={{ casa: homeT.xi, fora: awayT.xi, fCasa: homeT.formation, fFora: awayT.formation, m2: tie.legM2?.[legIdx] }} finished={done&&!presenting} onMinuteChange={presenting||fieldClock?reportFieldMinute:undefined} footTint={footTint} />
       {showDone && (
         <div style={{ ...box('#fff'), padding: '6px 10px', marginTop: -4, textAlign: 'center' }}>
@@ -11959,6 +11959,11 @@ export function PyramidSeasonScreen() {
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
         {copaPlaying && myCopaTie && <MyCopaMatch pensOrcamento={state.onlineMode === 'online' && copaPenMs ? copaPenMs / 1000 : undefined} onPenaltiesComplete={concluiuPensCampo} pausado={pausaCentral||pausaFesta} onFieldMinute={copaCampo?reportMinuteCopaCampo:undefined} stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
+        {/* 🏆 08/11 (Diego: *"a final deveria sempre aparecer no placar cinema ou no campo 2D… quando o usuário não tá participando"*):
+            FINAL e SUPERCOPA de quem não está nelas — o mesmo placar grande/2D, neutro (sem "você"), no mesmo relógio da fase.
+            Sem estádio/mapa e sem segurar o avanço (isso é só do SEU jogo). */}
+        {copaPlaying && !myCopaTie && copaFase && (copaFase.name === 'Final' || copaFase.name === 'Supercopa') && copaFase.ties.length === 1 && <MyCopaMatch neutro pausado={pausaCentral||pausaFesta} final={privateCareer} tie={copaFase.ties[0]} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={speedFactor} legMs={copaLegMs}
+          footTint={copaFase.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
             sozinha (só aparece o botão de ativar o manual). */}
