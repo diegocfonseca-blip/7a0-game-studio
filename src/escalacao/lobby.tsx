@@ -134,7 +134,10 @@ const PURPLE_DARK = '#5B21B6'
 const RED = '#E8503A'
 const CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
-function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase() }
+// 🔑 08/11 (live do Reffatti, chat: *"é LETRA O e não zero"*): código novo sem os pares que confundem lendo da tela
+// (0/O · 1/I/L). Salas que já existem mantêm o código que têm.
+const CODIGO_LETRAS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+function randCode() { let c = ''; for (let i = 0; i < 6; i++) c += CODIGO_LETRAS[Math.floor(Math.random() * CODIGO_LETRAS.length)]; return c }
 // cor por usuário (estável pelo nome) — diferencia as mensagens de cada um.
 // tons escuros o suficiente pra ler no balão branco.
 const CHAT_COLORS = ['#7C3AED', '#E8503A', '#1B7A3D', '#2E6FB0', '#C77800', '#B23B8E', '#0E8A8A', '#B8860B']
@@ -1973,12 +1976,15 @@ export function EscLobby() {
       ? linhas.filter((l): l is string => l !== null).join('\n')
       : getLang() === 'en' ? `🔨 I challenge you on Leilão Legends! Join room ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}` : `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
-    if (typeof nav.share === 'function') {
+    // 🖥️ 08/11 (live do Reffatti): no PC o Chrome abre a janela de compartilhar do Windows, que não tem "copiar" —
+    // o dono ficava sem o convite. Com mouse (PC) copia direto; o compartilhar nativo fica só no celular.
+    const pc = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches
+    if (!pc && typeof nav.share === 'function') {
       try { await nav.share(liga ? { title: 'Leilão Legends', text } : { title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
     }
     // sem share nativo (PC): copia. Na liga copia a MENSAGEM INTEIRA — o link
     // sozinho não abre a porta, que é o furo que estamos consertando.
-    try { await navigator.clipboard.writeText(liga ? text : url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+    if (await copiaTexto(liga ? text : url)) { setShareOk('link'); setTimeout(() => setShareOk(null), 2500) }
   }
   // 🔓 REABRIR A LIGA PRA CHAMAR GENTE NOVA (31/08 — relato que chegou pro Diego:
   // *"começou um dia o jogo… e dps em outro dia, se quiser mandar convite pra uma
@@ -2010,7 +2016,7 @@ export function EscLobby() {
     erro: tr('Não consegui abrir a sala agora. Tenta de novo em instantes.', 'Couldn\'t open the room right now. Try again in a moment.'),
   }
   async function copyCode(code: string) {
-    try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+    if (await copiaTexto(code)) { setShareOk('code'); setTimeout(() => setShareOk(null), 2500) }
   }
 
   // selo de apoio (👑/⭐/💎) entra colado no nome — aparece pra TODO MUNDO na
@@ -5267,6 +5273,12 @@ export function EscLobby() {
     const caixaConvite = (
       <div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>
+        {/* 🔑 08/11 (live do Reffatti): o CÓDIGO grande, à vista — quem está do outro lado da live digita lendo da tela */}
+        <button onClick={() => copyCode(room.code)} className="w-full rounded-xl border-[3px] border-black bg-white text-black px-2 py-1.5 active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}
+          aria-label={tr('Copiar código', 'Copy code')}>
+          <span className="block text-[9px] font-black uppercase tracking-wider text-black/55" style={OSWALD}>{tr('Código da sala · toque pra copiar', 'Room code · tap to copy')}</span>
+          <span className="block font-black text-[30px] leading-none tracking-[4px]" style={OSWALD}>{room.code}</span>
+        </button>
         <p className="text-white/80 text-[11px] font-medium leading-snug">
           {tr('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — whoever has an account lands straight in the room; whoever doesn\'t signs up and ends up here.')}
         </p>
@@ -6262,4 +6274,13 @@ function ContaNova24h({ fim, onVerSalas }: { fim: number; onVerSalas: () => void
       </div>
     </div>
   )
+}
+
+// 📋 copia com reserva: a área de transferência moderna falha em alguns navegadores/abas sem foco — aí vai pelo jeito antigo
+async function copiaTexto(txt: string): Promise<boolean> {
+  try { await navigator.clipboard.writeText(txt); return true } catch { /* tenta o jeito antigo */ }
+  try {
+    const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'
+    document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok
+  } catch { return false }
 }
