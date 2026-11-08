@@ -14275,6 +14275,16 @@ async function iniciaTesteSalvar(uid: string): Promise<number | null> {
     return ate
   } catch { return null }
 }
+/** 🎁 08/11 (Diego: *"faça tudo"*): a carreira gravando no APARELHO também começa os 5 dias — senão quem nunca aperta Salvar
+ *  guardaria o jogo sem prazo. Só conta logada, sem plano, que ainda não começou; uma vez por visita. */
+let testeAparelhoPedido = false
+export function comecaTesteNoAparelho(): void {
+  if (!SALVAR_TESTE_5D || testeAparelhoPedido || !authUidSalvar || pagoPeloCodigo()) return
+  if (regraCache?.uid !== authUidSalvar || regraCache.r.pago) return
+  if (testeCache?.uid === authUidSalvar && testeCache.ate != null) return
+  testeAparelhoPedido = true
+  void iniciaTesteSalvar(authUidSalvar)
+}
 /** 🎁 dias que faltam no teste (null = sem teste correndo: tem plano, ainda não apertou Salvar, ou não sabe) */
 export function diasTesteSalvar(): number | null {
   if (!SALVAR_TESTE_5D || pagoPeloCodigo() || !authUidSalvar || testeCache?.uid !== authUidSalvar || testeCache.ate == null) return null
@@ -15558,6 +15568,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // 📱 cota cheia: antes era ignorado calado (e o jogo abria a cópia velha depois). Agora avisa (13/10).
     // 🔒 04/11: sem plano a carreira não grava no aparelho — fica só na memória desta aba (o "Continuar" da mesma visita funciona)
     if (salvarBloqueado()) { carreiraEmMemoria = { ...state }; return }
+    comecaTesteNoAparelho() // 🎁 08/11: o 1º salvamento automático também começa os 5 dias (fecha a brecha de nunca apertar Salvar)
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())); avisaSemEspaco(false) } catch { avisaSemEspaco(true) }
     // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])

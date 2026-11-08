@@ -805,6 +805,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🎽 **Camisa de time do personagem: PARADA (15/10)** — duas versões pintadas por cima da camiseta reprovadas (*"tá muito ruim"*);
   só volta com arte de verdade, quando ele pedir.
 
+- **🎁 08/11: TESTE DE 5 DIAS PRA SALVAR A CARREIRA (substitui o "1 dia sem salvar apaga" de 07/11).** Texto dele: *"🎁 Seus primeiros
+  5 dias salvando a carreira são grátis! … Depois do teste, você pode continuar jogando gratuitamente. Para salvar novos avanços, é
+  necessário um plano"*. Os 5 dias começam no 1º salvamento (botão OU automático do aparelho) de quem não tem plano, contados por CONTA
+  (`esc_salvar_teste`). Acabou: joga de graça, o que foi salvo abre, progresso novo não grava (`salvarBloqueado`, `SALVAR_TESTE_5D`).
+  Sem conta = sem teste. **Nada é apagado** (o cron `esc-nuvem-gratis-1d` foi desligado). No cadeado: Craque Salas e Craque Completo
+  (mensais) + todos os planos. Manual segue com cadeado. Trava: `npm run nuvem-craque`.
 - **💾 07/11: REVOGADO o "sem plano não salva" (logo abaixo).** Palavras dele: *"acho que a gente tem que liberar novamente salvar… ficou um dia
   sem jogar, quem não tem plano pode apagar o save… só tem direito a um save"*. Agora: grátis SALVA (aparelho e nuvem), **1 carreira só**, e
   **1 dia sem salvar = a carreira sai da NUVEM** (`esc_nuvem_gratis_limpa`, de hora em hora; o aparelho guarda). No 1º salvamento abre o aviso
