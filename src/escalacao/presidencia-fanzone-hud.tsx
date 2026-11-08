@@ -73,6 +73,7 @@ function Arrasto({ fan, children }: { fan: Controle; children: ReactNode }) {
 }
 
 function Joystick({ fan }: { fan: Controle }) {
+  const t = useT()
   const caixa = useRef<HTMLDivElement | null>(null)
   const [p, setP] = useState({ x: 0, y: 0 })
   const R = 40
@@ -84,7 +85,7 @@ function Joystick({ fan }: { fan: Controle }) {
   }
   const solta = () => { setP({ x: 0, y: 0 }); fan.input.x = 0; fan.input.y = 0 }
   return (
-    <div ref={caixa} role="slider" aria-label="Controle de andar" aria-valuenow={0}
+    <div ref={caixa} role="slider" aria-label={t('Controle de andar', 'Walk control')} aria-valuenow={0}
       onPointerDown={e => { e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); move(e) }} onPointerMove={e => { if (e.buttons || e.pointerType === 'touch') move(e) }} onPointerUp={solta} onPointerCancel={solta}
       style={{ position: 'absolute', left: 16, bottom: 18, width: 112, height: 112, borderRadius: '50%', background: 'rgba(255,255,255,.4)', border: `3px solid rgba(0,0,0,.65)`, touchAction: 'none', pointerEvents: 'auto', zIndex: 2 }}>
       <i style={{ position: 'absolute', left: 56 - 22 + p.x, top: 56 - 22 + p.y, width: 44, height: 44, borderRadius: '50%', background: GOLD, border: `3px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}`, boxSizing: 'border-box' }} />

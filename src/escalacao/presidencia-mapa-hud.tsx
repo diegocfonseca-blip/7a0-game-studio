@@ -16,7 +16,9 @@ const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 900, 
 const RESET: CSSProperties = { minHeight: 0, minWidth: 0, height: 'auto', margin: 0, boxShadow: 'none', lineHeight: 1.15 }
 const sigla = (n: string) => (n.replace(/[^A-Za-zÀ-ú0-9 ]/g, '').trim().split(/\s+/).find(w => w.length > 2) ?? n).slice(0, 3).toUpperCase()
 
-export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio | null | undefined; /** 🎟️ público do jogo (lotação × lugares construídos) */ torcedores?: number }) {
+export function MapaHud({ match, torcedores = 0, replay = false }: { match: EstadoPartidaEstadio | null | undefined; /** 🎟️ público do jogo (lotação × lugares construídos) */ torcedores?: number
+  /** 🔁 08/11: é o REPLAY de um jogo já encerrado ("Rever jogo salvo no mapa") — nada de "ao vivo" nem de substituir/tática */
+  replay?: boolean }) {
   const t = useT(), ctl = useControleMapa(), ritmo = useRitmoCampo(),[controlsOpen,setControlsOpen]=useState(false)
   // ⚽ 04/11 (Diego: *"o gol na aba do mapa também não está aparecendo as coisas do mascote, nome do jogador que fez gol"*): a MESMA
   // festa do campinho da aba Jogos (GOOOOL + mascote/escudo + autor, minuto e 🅰️ assistência), por cima do 3D, e a faixa do
@@ -34,6 +36,7 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
   }, () => '')
   const penaltis = resumoPenaltis ? JSON.parse(resumoPenaltis) as {score:[number,number];finished:boolean;narration:string} : undefined
   const vivo = !!match && (!match.finished || !!penaltis && !penaltis.finished)
+  const aoVivo = vivo && !replay // replay rola o relógio, mas o jogo já acabou: nada de bolinha vermelha nem de mexer no time
   if (!match && !ctl) return null
   const [nh, na] = match?.officialTeams ?? [t('Casa', 'Home'), t('Fora', 'Away')]
   const chip = (on: boolean): CSSProperties => ({ ...RESET, font: 'inherit', fontSize: 10.5, fontWeight: 800, padding: '4px 7px', border: 0, background: on ? GOLD : 'transparent', color: on ? INK : '#fff', cursor: 'pointer', pointerEvents: 'auto' })
@@ -42,18 +45,19 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
       <span style={{ background: INK, color: '#fffaf0', padding: '5px 8px', fontSize: 16, display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 10, height: 10, borderRadius: '50%', background: match.homeColor, border: '1.5px solid #fffaf0' }} />{sigla(nh)}</span>
       <span style={{ background: INK, color: '#fff', padding: '4px 10px', fontSize: 20 }}>{match.homeScore} – {match.awayScore}</span>
       <span style={{ background: INK, color: '#fffaf0', padding: '5px 8px', fontSize: 16, display: 'flex', alignItems: 'center', gap: 4 }}>{sigla(na)}<i style={{ width: 10, height: 10, borderRadius: '50%', background: match.awayColor, border: '1.5px solid #fffaf0' }} /></span>
-      <span style={{ background: match.finished ? '#ddd' : GOLD, color: INK, padding: '4px 8px', fontSize: 14, display: 'flex', alignItems: 'center' }}>{penaltis ? `${t('PÊN', 'PENS')} ${penaltis.score[0]}–${penaltis.score[1]}` : match.finished ? t('FIM', 'FT') : <>{!match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{Math.min(93, Math.max(0, Math.floor(match.minute)))}'</>}</span>
+      <span style={{ background: match.finished ? '#ddd' : replay ? '#E8E0CC' : GOLD, color: INK, padding: '4px 8px', fontSize: 14, display: 'flex', alignItems: 'center' }}>{penaltis ? `${t('PÊN', 'PENS')} ${penaltis.score[0]}–${penaltis.score[1]}` : match.finished ? t('FIM', 'FT') : <>{replay ? <span style={{ marginRight: 4 }} aria-hidden="true">🔁</span> : !match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{Math.min(93, Math.max(0, Math.floor(match.minute)))}'</>}</span>
     </span>
   return <>{festa && <div className="pc3-match-festa" aria-live="polite"><FestaGolCampo2D festa={festa} larg={Math.min(typeof window !== 'undefined' ? window.innerWidth : 390, 520)} /></div>}
    <div className="pc3-match-score">
     <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
       {placar}
       {telao && !festa && <TelaoGolMapa telao={telao} />}
-      {vivo && !penaltis && ctl?.tatica && <button type="button" onClick={ctl.tatica} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '2px solid #fff', background: INK, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('🔁 Substituir / tática', '🔁 Subs / tactics')}</button>}
-      {!vivo && ctl?.dia && <span style={{ ...OSW, fontSize: 11.5, color: GOLD, flex: 'none' }}>{ctl.dia}</span>}
-      {!vivo && ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', flex: 'none' }}>{t('🏟️ Dia de jogo! A torcida está chegando — apito às 16h', '🏟️ Match day! The fans are arriving — kick-off at 4pm')}</span>}
+      {replay && <span className="pc3-hud-selo" style={{ ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '2px solid #fff', background: '#E8503A', color: '#fff', flex: 'none' }}>{t('🔁 Replay · jogo encerrado', '🔁 Replay · match over')}</span>}
+      {aoVivo && !penaltis && ctl?.tatica && <button type="button" onClick={ctl.tatica} style={{ ...RESET, ...OSW, fontSize: 11, padding: '4px 8px', borderRadius: 8, border: '2px solid #fff', background: INK, color: '#fff', cursor: 'pointer', flex: 'none' }}>{t('🔁 Substituir / tática', '🔁 Subs / tactics')}</button>}
+      {!vivo && !replay && ctl?.dia && <span className="pc3-hud-data" style={{ ...OSW, fontSize: 11.5, color: GOLD, flex: 'none', background: INK, border: '2px solid #fffaf0', borderRadius: 8, padding: '3px 7px', boxShadow: '2px 2px 0 #0c0c0c' }}>{ctl.dia}</span>}
+      {!vivo && !replay && ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', flex: 'none', background: '#0c0c0cd9', borderRadius: 7, padding: '3px 7px' }}>{t('🏟️ Dia de jogo! A torcida está chegando — apito às 16h', '🏟️ Match day! The fans are arriving — kick-off at 4pm')}</span>}
     </div>
-    {vivo && torcedores > 0 && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', marginTop: 3 }}>👥 {torcedores.toLocaleString(t('pt-BR', 'en-US'))} {t('torcedores', 'fans')}</div>}
+    {aoVivo && torcedores > 0 && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', marginTop: 3, background: '#0c0c0cbb', borderRadius: 5, padding: '2px 7px' }}>👥 {torcedores.toLocaleString(t('pt-BR', 'en-US'))} {t('torcedores', 'fans')}</div>}
     {penaltis ? <div className="pc3-match-narration">🥅 {penaltis.narration}</div> : vivo && festa ? <div key={`g${festa.lado}|${festa.autor}|${festa.min}`} className="pc3-match-narration ll44-gol-pisca" style={estiloPisca()}><span className="ll44-grito">{gritoGol((match?.officialTeams ?? [nh, na])[festa.lado], t('pt', 'en') === 'en', festa.autor, festa.min)}</span></div>
       : vivo && quase ? <><style>{QUASE_CSS}</style><div key={'q' + quase.k} className="pc3-match-narration" data-quase-campo2d={quase.tipo} style={estiloQuase()}>😱 {quase.txt}</div></>
       : vivo && match?.officialNarration && <div className="pc3-match-narration">🎙️ {match.officialNarration}</div>}
@@ -62,7 +66,7 @@ export function MapaHud({ match, torcedores = 0 }: { match: EstadoPartidaEstadio
       {apito.resumo && !apito.replay?.na && <ResumoApitoCampo2D resumo={apito.resumo} casa={apito.casa} fora={apito.fora} compacto />}
     </div>}
    </div>
-   {(ctl||ritmo)&&<div className="pc3-match-controls">
+   {(ctl||ritmo)&&!replay&&<div className="pc3-match-controls">
     <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{controlsOpen?t('Fechar controles','Close controls'):t('Controles','Controls')}{ritmo&&vivo&&<span>{rotuloVelocidadeCampo(ritmo.speed)}</span>}</button>
     {controlsOpen&&<div className="pc3-match-controls-panel" role="group" aria-label={t('Controles da partida','Match controls')}>
     {(ctl?.manualOk || (ritmo && vivo)) && <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

@@ -1,3 +1,18 @@
+## 🗺️ 08/11 — Mapa 3D da carreira: a INTERFACE por cima do mapa arrumada antes de lançar (branch, esperando OK; mapa segue só na conta dele)
+- Replay ("Rever jogo salvo no mapa"): selo "🔁 Replay · jogo encerrado", minuto com 🔁 (sem bolinha vermelha), sem "Substituir/tática" e sem
+  o painel de Controles (eles mexem no jogo de verdade). `MapaHud replay`.
+- Menu Locais: a linha da placa de vídeo + quadros/s só aparece com `?diag=1` no endereço (o aviso vermelho "sem placa de vídeo" continua).
+  No PC o menu usa a altura do mapa, rola por dentro e fica à esquerda de +/−/Ver tudo/Girar.
+- Feira, padaria, praça (dominó) e espetinho fora do horário aparecem TRAVADOS no menu dizendo quando funcionam. Tela e 3D leem a MESMA
+  conta (`contextoBairroDoMapa` → `vidaDoBairro`, em `presidencia-bairro-tradicoes.ts`).
+- "Ver partida" só aparece com jogo rolando ou replay tocando (antes abria campo vazio).
+- Textos do mapa em PT/EN (câmeras, ajuda, +/−, Girar, rótulos de leitura de tela).
+- Cartões dos lugares: no celular viram painel baixo embaixo do mapa (rolam por dentro, ✕ fecha; os botões do mapa saem enquanto ele
+  está aberto); no PC não passam por cima dos controles. No celular, fora da tela cheia, os controles e o menu deixam livre o canto do 🔇.
+- Campo 2D no mapa (regra 21): marcadores e bola com tamanho mínimo de TELA (número legível no celular) e o nome dos times atrás de cada gol.
+- PC: na aba Clube o mapa usa a largura de 1320px também antes/depois da temporada (antes caía pra 900px). Data "📅" do placar com fundo.
+- Falta: o Diego VER as fotos e aprovar o visual (regra 2). Fotos antes/depois no scratchpad da sessão (`mapa-ui/`).
+
 ## 🚩📸📺 07/11 — Campo 2D: bandeirinhas, fotógrafos e telão (FEITO, liberado pra TODOS)
 - Diego escolheu da lista de ideias (*"Ok faça p todos"*): bandeirinhas na lateral (linha do penúltimo defensor, cada um numa metade, bandeira
   apontando no lateral/escanteio/tiro de meta), 4 fotógrafos atrás de cada gol com flash no gol e em chute perigoso, e o 📺 telão na

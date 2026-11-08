@@ -12,7 +12,7 @@ import type {BotecoBairro} from './presidencia-boteco-bairro'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
 import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import type {CidadeViva} from './presidencia-cidade-viva'
-import {lugaresDoBairro,mancheteDaBanca,vidaDoBairro,type LugaresBairro,type VidaBairro} from './presidencia-bairro-tradicoes'
+import {contextoBairroDoMapa,lugaresDoBairro,mancheteDaBanca,vidaDoBairro,type LugaresBairro,type VidaBairro} from './presidencia-bairro-tradicoes'
 import {getLang} from './lang'
 import {criarDiaDoBairro,type VistaDiaBairro} from './presidencia-bairro-dia-3d'
 
@@ -229,11 +229,10 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  let vida:VidaBairro=vidaDoBairro(),enabled=false,mobile=false,cfgKey=''
  function configure(cidade:CidadeViva|undefined,journey:JornadaComplexo|undefined,opts:{mobile:boolean;enabled:boolean}){
   enabled=opts.enabled;mobile=opts.mobile
-  const jogo=journey?.hosting&&journey.phase!=='idle'&&journey.kickoffTime?Number(journey.kickoffTime.slice(0,2)):undefined
-  const emCasa=!!journey?.hosting&&journey.phase!=='idle'
-  const key=JSON.stringify([cidade?.dia,cidade?.hora,jogo,journey?.period,cidade?.temporada,cidade?.rodada,cidade?.placar,getLang(),emCasa,enabled,mobile,cidade?.cor,cidade?.cor2])
+  const ctx=contextoBairroDoMapa(cidade,journey) // 🗺️ a MESMA conta que o menu "Locais" usa pra dizer se o lugar está aberto
+  const key=JSON.stringify([ctx,cidade?.placar,getLang(),enabled,mobile,cidade?.cor,cidade?.cor2])
   if(key===cfgKey)return;cfgKey=key
-  vida=vidaDoBairro({dia:cidade?.dia,hora:jogo??cidade?.hora,luz:journey?.period,temporada:cidade?.temporada,rodada:cidade?.rodada,jogoEmCasa:emCasa})
+  vida=vidaDoBairro(ctx)
   diaConfigure(vida,{enabled,mobile,cor:cidade?.cor,cor2:cidade?.cor2})
   feira.visible=vida.feira
   ultimoCapa=cidade?.placar??null;desenhaCapa(ultimoCapa)
