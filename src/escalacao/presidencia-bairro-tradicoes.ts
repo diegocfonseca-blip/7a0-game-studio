@@ -66,6 +66,32 @@ export function vidaDoBairro(c:ContextoBairro={}):VidaBairro{
   padaria:manha,entregas:manha,varal:tarde,praca:tarde,espetinho:noite,cadeiras:noite,tv:noite,jogoEmCasa:c.jogoEmCasa===true}
 }
 
+/** 🗺️ O contexto do bairro A PARTIR DO QUE O MAPA RECEBE (cidade viva + jornada do dia + partida). É a ÚNICA conta: o 3D desenha a
+ *  feira/padaria/espetinho por ela e o menu "Locais" decide por ela se o lugar está aberto agora (regra contra botão mudo). */
+export function contextoBairroDoMapa(
+ cidade:{dia?:number;hora?:number;temporada?:number;rodada?:number}|undefined,
+ jornada:{hosting?:boolean;phase?:string;kickoffTime?:string;period?:'day'|'night';fixtureId?:string}|undefined,
+ partida?:{context:{id:string}}|null):ContextoBairro{
+ // a partida da jornada em andamento: o dia já não está 'idle' (é a mesma troca que o mapa faz pra torcida)
+ const j=jornada&&partida&&partida.context.id===jornada.fixtureId?{...jornada,phase:'playing'}:jornada
+ const emCasa=!!j?.hosting&&j.phase!=='idle'
+ const jogo=emCasa&&j?.kickoffTime?Number(j.kickoffTime.slice(0,2)):undefined
+ return {dia:cidade?.dia,hora:jogo??cidade?.hora,luz:j?.period,temporada:cidade?.temporada,rodada:cidade?.rodada,jogoEmCasa:emCasa}
+}
+
+export type LugarDeHorario='feira'|'padaria'|'praca-bairro'|'espetinho'
+/** 🕐 Os lugares do menu que só têm movimento em certo dia/hora. `aberto` sai da MESMA vida do bairro que o 3D desenha. */
+export function lugarDoBairroAberto(lugar:LugarDeHorario,v:VidaBairro):boolean{
+ return lugar==='feira'?v.feira:lugar==='padaria'?v.padaria:lugar==='praca-bairro'?v.praca:v.espetinho
+}
+/** O aviso curto de quando o lugar funciona (PT e EN na mesma posição). */
+export const HORARIO_LUGAR_BAIRRO:Record<LugarDeHorario,readonly [string,string]>={
+ feira:['🍅 Só sábado e domingo de manhã','🍅 Only Saturday and Sunday mornings'],
+ padaria:['🥖 Movimento só de manhã','🥖 Busy only in the morning'],
+ 'praca-bairro':['👴 Dominó e carrinhos só à tarde','👴 Dominoes and carts only in the afternoon'],
+ espetinho:['🍢 Só à noite','🍢 Only at night'],
+}
+
 export type MancheteMartelo={chapeu:string;titulo:string;linha:string}
 /** 📰 A capa d'O MARTELO na banca. `ultimo` é o MESMO dado que a cidade viva já recebe (só jogo apitado — quem chama
  *  passa `null` enquanto o placar não apareceu na tela). Sem dado válido, a manchete genérica do pregão. */

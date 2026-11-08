@@ -1,0 +1,123 @@
+/* Approved social screens. All rules scoped to the social window. */
+.ll-social-window,.ll-social-window *{box-sizing:border-box}
+.ll-social-window{position:fixed;inset:0;z-index:99990;overflow:auto;overscroll-behavior:contain;background:#14150f;color:#f4ecd6;font:14px/1.5 Arial,sans-serif;-webkit-overflow-scrolling:touch}
+.ll-social-window[inert]{pointer-events:none}
+.social-wrap{width:min(1200px,calc(100% - 64px));margin:auto}
+.social-top{position:sticky;top:0;z-index:8;background:#0c100e;border-bottom:1px solid #f4ecd625}
+.social-top>.social-wrap{height:76px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.social-brand{display:flex;gap:10px;align-items:center}
+.social-brand>span{display:grid;place-items:center;width:37px;height:42px;border:2px solid #ffc400;border-radius:6px;color:#ffc400;font:700 23px Oswald,sans-serif;letter-spacing:-2px}
+.social-brand strong{font:700 22px Oswald,sans-serif}.social-brand small{display:block;font-size:8px;letter-spacing:2px;color:#a5ab9e;margin-top:3px}
+.social-top-actions{display:flex;gap:8px}
+.ll-social-window button{cursor:pointer;min-height:44px}
+.ll-social-window button:disabled{cursor:default}
+.ll-social-window button:focus-visible,.ll-social-window a:focus-visible,.ll-social-window input:focus-visible,.ll-social-window summary:focus-visible{outline:3px solid #a88aff;outline-offset:3px}
+.social-button{background:#f4ecd6;color:#0c0c0c;border:2px solid #000;border-radius:8px;box-shadow:2px 3px #000;padding:10px 14px;font:700 12px Oswald,sans-serif;text-transform:uppercase}
+.social-close{min-width:44px;font-size:19px}
+.social-hero{padding:28px 0;background:linear-gradient(90deg,#14150ff5 15%,#14150fe3 55%,#14150f80),url('./img/home-leilao-v07.webp') 70% 49%/cover}
+.social-hero>.social-wrap{display:flex;align-items:end;justify-content:space-between;gap:18px}
+.social-kicker{font:700 10px Oswald,sans-serif;letter-spacing:1.6px;color:#ffc400}
+.social-hero h1{font:700 37px/1.1 Oswald,sans-serif;margin:8px 0}
+.social-hero p{font-size:12px;color:#c4c7ba;line-height:1.6;margin:0}
+.social-summary{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.social-summary>span{font:700 12px Oswald,sans-serif;border:1px solid #777761;border-radius:6px;padding:8px 10px;background:#151b11}
+.social-summary .social-mobile-profile{display:none}
+.social-body{padding-top:12px;padding-bottom:36px}
+.social-members-layout{display:grid;grid-template-columns:218px minmax(0,1fr);gap:28px;align-items:start}
+.social-sidebar{position:sticky;top:96px;min-width:0}
+.social-my-profile{margin:0 0 18px!important;padding:14px!important;flex-wrap:wrap;position:relative;overflow:hidden}
+.social-my-profile>span{position:relative}
+.social-my-profile b{font-family:Oswald,sans-serif}
+.social-navigation{display:flex;flex-direction:column;gap:7px}
+.social-navigation button{display:flex;align-items:center;gap:8px;background:transparent;color:#cdd0c4;border:2px solid transparent;border-radius:9px;padding:10px 12px;font:700 14px Oswald,sans-serif;text-align:left;white-space:nowrap;min-height:49px}
+.social-navigation button[aria-pressed=true]{background:#f4ecd6;color:#0c0c0c;border-color:#000;box-shadow:3px 4px #000}
+.social-navigation button small{font:700 10px Arial,sans-serif;background:#e9d6a2;color:#392d16;border-radius:4px;padding:3px 5px;margin-left:auto}
+.social-sidebar-community{margin-top:24px;padding-top:14px;border-top:1px solid #f4ecd625}
+.social-sidebar-community>button{font-size:12px!important}
+.social-main{min-width:0}
+.social-section-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}
+.social-section-heading h2{font:700 25px/1.1 Oswald,sans-serif;margin:0;color:#f4ecd6}
+.social-section-heading small{font-size:10px;color:#bdc4ae}
+.social-search{margin:0 0 20px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.social-search>p{color:#bdc4ae!important;font-size:11px!important}
+.social-search>input{background:#f4ecd6!important;border:3px solid #000!important;border-radius:10px!important;padding:14px 16px!important;box-shadow:3px 4px #000;font-size:14px!important;min-height:48px}
+.social-search-results{background:#f4ecd6;color:#0c0c0c;border:3px solid #000;border-radius:10px;padding:12px;margin-top:10px}
+.social-search-results:empty{display:none}
+.social-friend-columns{display:grid;grid-template-columns:minmax(0,1fr) 272px;gap:20px;align-items:start}
+.social-friend-main,.social-friend-secondary{min-width:0}
+.social-panel{background:#f4ecd6!important;color:#0c0c0c;border:3px solid #000;border-radius:13px;padding:17px!important;box-shadow:3px 4px #000;margin-top:0!important;min-width:0}
+.social-panel+.social-panel{margin-top:18px!important}
+.social-panel>p:first-child{font:700 17px Oswald,sans-serif!important;margin-bottom:11px!important}
+.social-row{padding:14px 0!important;gap:11px!important;border-top:1px solid #d3cbb8!important;min-width:0}
+.social-row>button{gap:11px!important;min-height:44px}
+.social-row>button>span:last-child{flex:1}
+.social-row>button b{font:700 18px/1.2 Oswald,sans-serif!important}
+.social-row>button+button{padding:9px 10px!important;font-size:11px!important}
+.social-requests{background:#fff3c4!important}
+.social-requests .social-row{flex-wrap:wrap;gap:10px!important}
+.social-requests .social-row>button{flex-basis:100%!important}
+.social-requests .social-row>span{width:100%;display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
+.social-requests .social-row>span>button{font-size:11px!important}
+.social-mobile-requests{display:none}
+.social-friend-main>p,.social-privacy{font-size:11px!important;color:#bdc4ae!important;line-height:1.8!important}
+.social-mobile-community{display:none}
+.social-content-card{background:#f4ecd6!important;color:#0c0c0c;border:3px solid #000;border-radius:13px;padding:17px!important;box-shadow:3px 4px #000;min-width:0}
+.social-content-card>p:first-child{font-size:17px!important}
+.social-ranking-row{min-height:66px;padding:10px 6px!important}
+.social-ranking-row>b{font:700 19px Oswald,sans-serif!important}
+.social-album{background:#f4ecd6!important;color:#0c0c0c}
+.social-album-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.social-album-cards{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(135px,1fr))!important;max-height:none!important;overflow:visible!important;gap:12px!important}
+.social-profile-body{max-width:1060px;margin:auto}
+.social-profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;color:#0c0c0c}
+.social-profile-grid>*{grid-column:1/-1;min-width:0;margin-top:0!important}
+.social-profile-identity{padding:22px!important;gap:17px!important;min-height:140px}
+.social-profile-identity>div:last-child>div:first-child{font:700 30px/1.1 Oswald,sans-serif!important;overflow-wrap:anywhere}
+.social-profile-ranks{gap:14px!important}
+.social-profile-ranks>div{padding:14px!important}
+.social-profile-ranks>div>span:first-child{font-size:30px!important}
+.social-profile-career,.social-profile-online{grid-column:auto}
+.social-profile-career,.social-profile-online,.social-profile-friends,.social-profile-rival{padding:17px!important;border-radius:13px!important;background:#f4ecd6!important}
+.social-profile-career>p:first-child,.social-profile-online>p:first-child,.social-profile-friends>p:first-child{font-size:18px!important;margin-bottom:12px!important}
+.social-trophies{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.social-trophy{position:relative;border:2px solid #0c0c0c;border-radius:10px;text-align:center;padding:10px 4px 8px;background:#fff8e7;min-width:0}
+.social-trophy-art{height:68px;display:flex;align-items:center;justify-content:center}
+.social-trophy-art img,.social-trophy-art svg{max-width:100%;object-fit:contain}
+.social-trophy-art[data-owned=false]{filter:grayscale(1);opacity:.4}
+.social-trophy-count{display:block;font:700 23px/1.2 Oswald,sans-serif;margin:5px 0 4px;color:#0c0c0c}
+.social-trophy-name{font-size:10px;line-height:1.3;color:#505444;overflow-wrap:anywhere}
+.social-profile-actions{display:flex;flex-wrap:wrap;gap:8px!important}
+.social-profile-actions>*{min-width:0}
+.social-profile-actions button{white-space:normal!important}
+.social-avisos .social-body{max-width:860px;color:#0c0c0c}
+.social-avisos .social-body>div{background:#f4ecd6!important;padding:18px!important;border-radius:13px!important}
+.social-avisos .social-row{flex-wrap:wrap}
+.social-notification-heading{font:700 19px Oswald,sans-serif;margin:18px 0 8px;color:#0c0c0c}
+.social-notification-heading:first-child{margin-top:0}
+body:has(.ll-social-window) #root>button[aria-label="Ligar som"],body:has(.ll-social-window) #root>button[aria-label="Desligar som"]{display:none}
+@media(max-width:1050px){.social-wrap{width:calc(100% - 32px)}.social-members-layout{grid-template-columns:185px minmax(0,1fr);gap:18px}.social-friend-columns{grid-template-columns:minmax(0,1fr) 230px}.social-profile-grid{gap:14px}}
+@media(max-width:900px) and (min-width:761px){.social-friend-columns{grid-template-columns:1fr}.social-friend-secondary{display:grid;grid-template-columns:1fr 1fr;gap:14px}.social-friend-secondary>.social-panel+.social-panel{margin-top:0!important}}
+@media(max-width:760px){
+ .social-top>.social-wrap{height:64px}.social-brand{gap:7px}.social-brand>span{width:29px;height:34px;font-size:19px}.social-brand strong{font-size:17px}.social-brand small{font-size:7px;letter-spacing:1px}.social-top .social-button{font-size:10px;padding:8px 10px}.social-close{min-width:44px}
+ .social-hero{padding:19px 0 20px}.social-hero>.social-wrap{display:block}.social-kicker{font-size:9px}.social-hero h1{font-size:30px}.social-hero p{font-size:11px}.social-summary{margin-top:12px;gap:7px}.social-summary>span{font-size:10px;padding:6px 8px}.social-summary .social-mobile-profile{display:inline-flex;align-items:center;background:transparent;color:#d5daca;border:1px solid #777761;box-shadow:none;font:700 10px Oswald,sans-serif;border-radius:6px;padding:5px 9px}
+ .social-body{padding-top:0}.social-members-layout{display:block}.social-sidebar{position:sticky;top:64px;z-index:7;background:#14150ff5;margin:0 -16px 20px;padding:8px 16px 12px;border-bottom:1px solid #f4ecd625}.social-my-profile,.social-sidebar-community{display:none!important}
+ .social-navigation{flex-direction:row;gap:7px;overflow-x:auto;padding-bottom:5px;scrollbar-width:thin}.social-navigation button{flex-shrink:0;min-height:44px;font-size:12px;padding:8px 11px;gap:6px}.social-navigation button small{font-size:9px;margin-left:2px}
+ .social-section-heading{margin-bottom:12px}.social-section-heading h2{font-size:23px}.social-section-heading small{display:none}.social-search{margin-bottom:16px!important}.social-search>input{padding:13px!important;font-size:13px!important}
+ .social-friend-columns{display:block}.social-friend-secondary{display:none}.social-panel{padding:14px!important}.social-row{padding:13px 0!important;gap:9px!important}.social-row>button{gap:9px!important}.social-row>button b{font-size:18px!important}
+ .social-mobile-requests{display:block;color:#0c0c0c;background:#fff3c4;border:3px solid #000;border-radius:10px;box-shadow:3px 4px #000;padding:0 12px;margin-bottom:16px}.social-mobile-requests>summary{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:48px;cursor:pointer;font:700 14px Oswald,sans-serif}.social-mobile-requests>summary small{font:700 10px Arial,sans-serif;text-decoration:underline}.social-mobile-requests .social-requests{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}.social-mobile-requests .social-requests>p:first-child{display:none}
+ .social-mobile-community{display:block;margin-top:18px}.social-content-card{padding:14px!important}.social-profile-body{padding-top:20px}.social-profile-grid{grid-template-columns:1fr;gap:14px}.social-profile-career,.social-profile-online{grid-column:1}.social-profile-identity{padding:15px!important;gap:12px!important}.social-profile-identity>div:last-child>div:first-child{font-size:25px!important}.social-profile-ranks{gap:8px!important}.social-profile-ranks>div{padding:10px!important;flex-wrap:wrap}.social-profile-ranks>div>span:first-child{font-size:26px!important}
+ .social-trophies{gap:6px}.social-trophy{padding:8px 2px}.social-trophy-art{height:64px}.social-trophy-name{font-size:9px}.social-trophy-count{font-size:22px}.social-profile-career,.social-profile-online,.social-profile-friends,.social-profile-rival{padding:14px!important}.social-avisos .social-body{padding-top:18px}
+}
+@media(prefers-reduced-motion:reduce){.ll-social-window *{scroll-behavior:auto!important}}
+
+.social-mobile-sent{display:none}.social-profile-grid>p{color:#f4ecd6}.social-search-results>div>button{min-width:0}
+@media(max-width:760px){.social-mobile-sent{display:block;margin-top:18px}.social-album-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}}
+.social-convite{display:flex;align-items:center;justify-content:center;padding:16px;background:#0009}
+.social-invite-sheet{width:min(460px,100%);max-height:calc(100dvh - 32px);overflow:auto;border:3px solid #000;border-radius:15px;background:#f4ecd6;color:#0c0c0c;box-shadow:4px 5px #000}
+.social-invite-sheet>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#0c0c0c;color:#ffc400}
+.social-invite-sheet h1{font:700 18px Oswald,sans-serif;margin:0}
+.social-invite-content{padding:14px}
+.social-invite-content button{white-space:normal!important}
+
+.social-trophy-art{height:48px}.social-trophy-illustration{width:40px;height:48px;display:block;flex:none}
+@media(max-width:760px){.social-trophy-art{height:48px}}

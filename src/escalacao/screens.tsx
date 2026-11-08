@@ -7580,7 +7580,7 @@ export function EscSeason() {
   const uidDo = (id: number) => (retroOn && state.managers.some(m => m.id === id && m.isHuman) ? state.seatUids?.[id] : undefined) || undefined
   const meuUidRetro = uidDo(you.id)
   const uidsHumanos = retroOn ? state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => uidDo(m.id)).filter((u): u is string => !!u) : []
-  const retroMapa = useRetrospecto(meuUidRetro, uidsHumanos, `${state.seed}|${state.seasonNo}|${state.round}|${copaTieKey}`)
+  const retroMapa = useRetrospecto(meuUidRetro, uidsHumanos, `${state.seed}|${state.seasonNo}|${state.round}|${copaTieKey}`, state.espectador ? state.roomId : null)
   const retroDe = (oppId: number) => { const u = uidDo(oppId); if (!u || !meuUidRetro || u === meuUidRetro) return null; return { rival: state.managers.find(m => m.id === oppId)?.name || state.managers.find(m => m.id === oppId)?.teamName || '?', r: retroMapa[u] } }
   // ✍️ o DONO da sala grava a rodada quando o resultado JÁ revelou (nunca antes: anti-spoiler); o banco ignora repetição
   useEffect(() => {

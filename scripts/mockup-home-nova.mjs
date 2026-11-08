@@ -1,230 +1,78 @@
-// ─── 🏠 MOCKUP: HOME NOVA (o jogo se explicando em 10 segundos) ─────────────
-//
-// Reclamação do Diego (20/08), e ele está certo nas três:
-//   *"o visual da home ainda acho que não tá legal, ainda acho que tá poluído, e
-//   ainda acho que tá desorganizado! e ainda acho que o jogo não está claro as
-//   regras dele... as pessoas começam o jogo e não entendem o que tem que fazer
-//   no leilão, moedas que tem pra completar 11, a disputa... e que depois tem uma
-//   simulação, não está muito claro isso também"*
-//
-// 🔎 O DIAGNÓSTICO (medido na home de hoje, não é achismo):
-//  1. A primeira tela tem **11 botões** e a explicação do jogo vem DEPOIS deles.
-//     A pessoa escolhe antes de saber o que está escolhendo.
-//  2. As 4 cartas gigantes comem uma tela inteira de altura — no lugar exato onde
-//     deveria estar "como se joga". Carta é PRÊMIO, não explicação.
-//  3. Os 4 quadros (Pregão · Níveis ocultos · Pirâmide · Vale o auge) são um
-//     GLOSSÁRIO. Falta o CAMINHO, na ordem em que as coisas acontecem.
-//  4. "O que mudou por aqui" é o maior bloco da página — e é o único que não
-//     interessa a quem chegou agora. Tamanho errado pro público errado.
-//  5. Dois botões "em breve" ocupam espaço nobre sem fazer nada.
-//
-// 💡 A PROPOSTA: a home responde 3 perguntas, nesta ordem —
-//    (1) o que é isso · (2) como se joga · (3) por onde começo.
-// Álbum, ranking, cartas e novidades DESCEM. Um botão principal, só um.
-//
-//   node scripts/mockup-home-nova.mjs [--saida x.png]
 import { readFileSync, writeFileSync } from 'node:fs'
-import { chromium } from 'playwright-core'
-
-const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d }
-const SAIDA = arg('--saida', 'home-nova.png')
-const b64 = w => readFileSync(`scripts/fonts/oswald-latin-${w}-normal.woff2`).toString('base64')
-const FONTES = [400, 500, 600, 700].map(w =>
-  `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(w)}) format('woff2');font-weight:${w};font-display:block}`).join('')
-
-const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F', PURPLE = '#7C3AED'
-const OSW = 'font-family:Oswald,sans-serif;font-weight:700'
-const CREME = '#F4ECD6'
-
-// ── telefone (a home é vista no celular; é assim que ela precisa fechar) ─────
-const fone = (inner, rot, cor) => `
-<div style="flex:0 0 372px">
-  <div style="${OSW};font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:${cor};margin-bottom:9px">${rot}</div>
-  <div style="width:372px;border:5px solid ${INK};border-radius:26px;background:${CREME};box-shadow:6px 6px 0 ${INK};
-    overflow:hidden;padding:13px 12px 16px">${inner}</div>
-</div>`
-
-const btn = (txt, bg, cor, sub, alt = 13) => `
-  <div style="border:3px solid ${INK};border-radius:13px;background:${bg};color:${cor};box-shadow:3px 3px 0 ${INK};
-    padding:${alt}px 11px;margin-bottom:7px;text-align:center">
-    <div style="${OSW};font-size:15px;text-transform:uppercase;line-height:1.05">${txt}</div>
-    ${sub ? `<div style="font-family:system-ui;font-weight:600;font-size:10px;opacity:.72;margin-top:2px">${sub}</div>` : ''}
-  </div>`
-
-const mini = txt => `<div style="flex:1;border:2.5px solid ${INK};border-radius:10px;background:#fff;padding:7px 2px;text-align:center;${OSW};font-size:10px">${txt}</div>`
-
-// ── 🔴 A HOME DE HOJE, com os problemas apontados ───────────────────────────
-const marca = n => `<span style="display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:999px;
-  background:${RED};color:#fff;${OSW};font-size:11px;vertical-align:middle;margin-right:5px">${n}</span>`
-
-const hoje = `
-  <div style="border:3px solid ${INK};border-radius:13px;background:${PURPLE};color:#fff;padding:8px 10px;margin-bottom:7px">
-    <div style="${OSW};font-size:11px">🪜 Carreira offline em andamento</div>
-    <div style="font-family:system-ui;font-size:9px;opacity:.8;margin-bottom:5px">Neymarzetti · Temporada 11</div>
-    <div style="border:2px solid ${INK};border-radius:8px;background:#fff;color:${INK};${OSW};font-size:10px;text-align:center;padding:5px;margin-bottom:4px">▶️ Continuar carreira</div>
-    <div style="border:2px solid ${INK};border-radius:8px;background:#fff;color:${INK};${OSW};font-size:10px;text-align:center;padding:5px">🗂️ Minhas carreiras · trocar de save</div>
-  </div>
-  <div style="text-align:center;margin:9px 0 3px">
-    <span style="background:${GOLD};border:2.5px solid ${INK};border-radius:999px;padding:3px 11px;${OSW};font-size:9px">⚽ LEILÃO ÀS CEGAS DE LENDAS</span>
-    <div style="${OSW};font-size:29px;margin-top:6px;letter-spacing:-.5px">LEILÃO LEGENDS</div>
-    <div style="font-family:system-ui;font-weight:600;font-size:10.5px;color:rgba(12,12,12,.65);line-height:1.35;margin-top:5px">
-      Dê lance no <b>nome</b>, sem ver o nível. Monte o time no pregão, ganhe o campeonato e colecione os craques no seu álbum.</div>
-  </div>
-  ${btn('🪜 Nova carreira', PURPLE, '#fff', 'Comece na Várzea e suba até a Série A')}
-  ${btn('👥 Jogar com amigos (online)', GREEN, '#fff', 'Crie a sala, mande o código no zap')}
-  ${btn('⚡ Só uma partida rápida (vs CPU)', '#fff', INK, '')}
-  <div style="display:flex;gap:5px;margin-bottom:7px">${mini('📖<br>ÁLBUM')}${mini('🏆<br>RANKING')}${mini('📘<br>MANUAL')}${mini('💛<br>APOIAR')}</div>
-  <div style="border:2.5px solid rgba(12,12,12,.25);border-radius:10px;background:rgba(0,0,0,.05);padding:6px;text-align:center;${OSW};font-size:10px;color:rgba(12,12,12,.4);margin-bottom:4px">🌐 Carreira Online · 4 divisões (em breve)</div>
-  <div style="border:2.5px solid rgba(12,12,12,.25);border-radius:10px;background:rgba(0,0,0,.05);padding:6px;text-align:center;${OSW};font-size:10px;color:rgba(12,12,12,.4);margin-bottom:9px">🏆 Liga Fechada · só com amigos (em breve)</div>
-  <div style="position:relative;border:2px dashed ${RED};border-radius:12px;padding:7px;margin-bottom:8px">
-    <div style="position:absolute;top:-9px;left:8px;background:${RED};color:#fff;${OSW};font-size:9px;padding:1px 7px;border-radius:5px">${'11 BOTÕES ANTES DE EXPLICAR O JOGO'}</div>
-    <div style="display:flex;gap:6px;margin-top:4px">
-      <div style="flex:1;height:118px;border:2.5px solid ${INK};border-radius:10px;background:linear-gradient(160deg,#FFD34D,#F0A500);display:flex;align-items:flex-end;padding:6px"><span style="${OSW};font-size:10px">Pelé</span></div>
-      <div style="flex:1;height:118px;border:2.5px solid ${INK};border-radius:10px;background:linear-gradient(160deg,#E9E9E9,#B9B9B9);display:flex;align-items:flex-end;padding:6px"><span style="${OSW};font-size:10px">Gabigol</span></div>
-    </div>
-    <div style="font-family:system-ui;font-weight:700;font-size:9.5px;color:${RED};margin-top:6px;line-height:1.3">
-      ${marca(2)}As cartas comem uma TELA INTEIRA aqui — no lugar exato onde deveria estar "como se joga".</div>
-  </div>
-  <div style="display:flex;gap:5px;margin-bottom:6px">
-    <div style="flex:1;border:2.5px solid ${INK};border-radius:10px;background:#fff;padding:6px"><div style="${OSW};font-size:9.5px">🔨 O PREGÃO</div></div>
-    <div style="flex:1;border:2.5px solid ${INK};border-radius:10px;background:#fff;padding:6px"><div style="${OSW};font-size:9.5px">🎭 NÍVEIS OCULTOS</div></div>
-  </div>
-  <div style="display:flex;gap:5px;margin-bottom:6px">
-    <div style="flex:1;border:2.5px solid ${INK};border-radius:10px;background:#fff;padding:6px"><div style="${OSW};font-size:9.5px">🪜 PIRÂMIDE</div></div>
-    <div style="flex:1;border:2.5px solid ${INK};border-radius:10px;background:#fff;padding:6px"><div style="${OSW};font-size:9.5px">💎 VALE O AUGE</div></div>
-  </div>
-  <div style="font-family:system-ui;font-weight:700;font-size:9.5px;color:${RED};margin-bottom:9px;line-height:1.3">
-    ${marca(3)}Isto é um <b>glossário</b>, não um passo a passo. Não diz a ORDEM em que as coisas acontecem.</div>
-  <div style="border:3px solid ${INK};border-radius:12px;background:#F1E7FB;padding:8px;margin-bottom:5px">
-    <div style="${OSW};font-size:10px">📣 O que mudou por aqui</div>
-    <div style="font-family:system-ui;font-size:8px;color:rgba(12,12,12,.55);line-height:1.45;margin-top:3px">
-      🌎 Libertadores — No Rápido…<br>🏅 Ranking agora é por pontos…<br>🌍 Copa do Mundo com 24 seleções…<br>🏠 Home nova…<br>🆓 Carreira sem cadastro…<br>
-      <b>NO BARALHO</b> · Nelinho: craque→lenda · Ashley Cole… <br><b>RECÉM-CHEGADOS</b> · Marcelo Lomba, Lucas Arcanjo, Milagres…</div>
-  </div>
-  <div style="font-family:system-ui;font-weight:700;font-size:9.5px;color:${RED};line-height:1.3">
-    ${marca(4)}O <b>maior bloco da página</b> — e o único que não interessa a quem chegou agora.</div>`
-
-// ── 🟢 A PROPOSTA ───────────────────────────────────────────────────────────
-const passo = (n, emoji, titulo, texto, cor) => `
-  <div style="display:flex;gap:9px;align-items:flex-start;border:3px solid ${INK};border-radius:13px;background:#fff;
-    box-shadow:3px 3px 0 ${INK};padding:9px 10px;margin-bottom:6px">
-    <div style="flex:0 0 34px;height:34px;border:2.5px solid ${INK};border-radius:10px;background:${cor};color:#fff;
-      display:flex;align-items:center;justify-content:center;${OSW};font-size:17px">${emoji}</div>
-    <div style="min-width:0">
-      <div style="${OSW};font-size:12.5px;text-transform:uppercase;line-height:1.05">
-        <span style="color:rgba(12,12,12,.32)">${n}.</span> ${titulo}</div>
-      <div style="font-family:system-ui;font-weight:600;font-size:10px;color:rgba(12,12,12,.7);line-height:1.38;margin-top:2px">${texto}</div>
-    </div>
-  </div>`
-
-const proposta = `
-  <div style="text-align:center;margin-bottom:10px">
-    <span style="background:${GOLD};border:2.5px solid ${INK};border-radius:999px;padding:3px 11px;${OSW};font-size:9px">⚽ LEILÃO ÀS CEGAS DE LENDAS</span>
-    <div style="${OSW};font-size:31px;margin-top:6px;letter-spacing:-.5px">LEILÃO LEGENDS</div>
-    <div style="font-family:system-ui;font-weight:600;font-size:11.5px;color:rgba(12,12,12,.72);line-height:1.4;margin-top:6px;padding:0 6px">
-      Você dá lance <b>no nome</b> do jogador — <b>sem ver o nível dele</b>. Monta um time às cegas e coloca pra jogar.</div>
-  </div>
-
-  <div style="border:3px solid ${INK};border-radius:14px;background:#FFF6D6;box-shadow:3px 3px 0 ${INK};padding:9px 10px 4px;margin-bottom:9px">
-    <div style="${OSW};font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;text-align:center">▶️ Como funciona uma partida</div>
-    ${passo(1, '🪙', 'Você tem 100 moedas', 'O baralho vem por posição: goleiro, lateral, zaga, meio e ataque. Você <b>só vê o nome</b>.', GOLD)}
-    ${passo(2, '✉️', 'Lance secreto', 'Escreve quanto vale cada nome e <b>lacra o envelope</b>. Ninguém vê o lance de ninguém.', PURPLE)}
-    ${passo(3, '🔨', 'O martelo revela', 'Quem pagou mais leva. <b>Só aí</b> aparece se era craque ou perna-de-pau — e todo mundo vê junto.', RED)}
-    ${passo(4, '👕', 'Fecha os 11', 'Faltou posição? O <b>Monte</b> tem as sobras: na sua vez você pega de graça.', GREEN)}
-    ${passo(5, '⚽', 'O campeonato roda', '38 rodadas em <b>3 minutos</b>, com o placar subindo ao vivo. Campeão leva <b>uma carta</b> pro álbum.', '#1B2A5B')}
-  </div>
-
-  <div style="border:3px solid ${INK};border-radius:13px;background:${GREEN};color:#fff;box-shadow:4px 4px 0 ${INK};padding:15px 11px;text-align:center;margin-bottom:6px">
-    <div style="${OSW};font-size:19px;text-transform:uppercase;line-height:1">▶️ Jogar agora</div>
-    <div style="font-family:system-ui;font-weight:600;font-size:10px;opacity:.85;margin-top:3px">Uma partida contra a CPU · uns 6 minutos · não precisa de conta</div>
-  </div>
-  <div style="display:flex;gap:6px;margin-bottom:9px">
-    <div style="flex:1;border:2.5px solid ${INK};border-radius:11px;background:#fff;padding:8px 4px;text-align:center;${OSW};font-size:10.5px">👥 COM AMIGOS</div>
-    <div style="flex:1;border:2.5px solid ${INK};border-radius:11px;background:#fff;padding:8px 4px;text-align:center;${OSW};font-size:10.5px">🪜 CARREIRA</div>
-  </div>
-
-  <div style="border:3px solid ${INK};border-radius:12px;background:${PURPLE};color:#fff;padding:8px 10px;margin-bottom:9px">
-    <div style="${OSW};font-size:11px">🪜 Sua carreira · Neymarzetti · T11</div>
-    <div style="border:2px solid ${INK};border-radius:8px;background:#fff;color:${INK};${OSW};font-size:10.5px;text-align:center;padding:6px;margin-top:5px">▶️ Continuar de onde parei</div>
-  </div>
-
-  <div style="display:flex;gap:5px;margin-bottom:9px">${mini('📖<br>ÁLBUM')}${mini('🏆<br>RANKING')}${mini('📘<br>MANUAL')}${mini('💛<br>APOIAR')}</div>
-
-  <div style="border:2.5px solid rgba(12,12,12,.2);border-radius:11px;background:rgba(0,0,0,.04);padding:7px 9px;margin-bottom:9px">
-    <div style="font-family:system-ui;font-weight:700;font-size:9.5px;color:rgba(12,12,12,.5);line-height:1.4">
-      🔜 <b>Em breve:</b> Carreira Online · Liga Fechada — <i>os dois "em breve" viram UMA linha</i></div>
-  </div>
-
-  <div style="border:2.5px solid ${INK};border-radius:11px;background:#fff;padding:8px 10px;margin-bottom:9px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="${OSW};font-size:10.5px">📣 O que mudou por aqui <span style="color:rgba(12,12,12,.4)">· 5 novidades</span></div>
-      <div style="${OSW};font-size:12px;color:rgba(12,12,12,.4)">▾</div>
-    </div>
-    <div style="font-family:system-ui;font-weight:600;font-size:9px;color:rgba(12,12,12,.5);margin-top:3px">fechado por padrão — abre em quem quiser ver</div>
-  </div>
-
-  <div style="display:flex;gap:6px">
-    <div style="flex:1;height:86px;border:2.5px solid ${INK};border-radius:10px;background:linear-gradient(160deg,#FFD34D,#F0A500);display:flex;align-items:flex-end;padding:5px"><span style="${OSW};font-size:9px">Pelé</span></div>
-    <div style="flex:1;height:86px;border:2.5px solid ${INK};border-radius:10px;background:linear-gradient(160deg,#E9E9E9,#B9B9B9);display:flex;align-items:flex-end;padding:5px"><span style="${OSW};font-size:9px">Gabigol</span></div>
-    <div style="flex:1;height:86px;border:2.5px solid ${INK};border-radius:10px;background:linear-gradient(160deg,#C9A9FF,#8B5CF6);display:flex;align-items:flex-end;padding:5px"><span style="${OSW};font-size:9px">Rayan</span></div>
-  </div>
-  <div style="font-family:system-ui;font-weight:700;font-size:9.5px;color:${GREEN};margin-top:6px;line-height:1.3">
-    ✅ As cartas viram uma <b>tirinha no rodapé</b>: continuam bonitas, mas não roubam mais o lugar da explicação.</div>`
-
-const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
-  *{box-sizing:border-box}body{margin:0;background:#EDE3C9;color:${INK};font-family:system-ui,-apple-system,sans-serif;padding:32px 30px}</style></head><body>
-  <div style="display:inline-block;background:${GOLD};border:3px solid ${INK};border-radius:999px;box-shadow:3px 3px 0 ${INK};
-    padding:5px 15px;${OSW};font-size:12.5px;letter-spacing:.08em">🏠 MOCKUP · HOME</div>
-  <h1 style="${OSW};text-transform:uppercase;font-size:44px;margin:14px 0 6px;line-height:1">
-    O JOGO PRECISA SE <span style="color:${RED}">EXPLICAR</span> ANTES DE PEDIR ESCOLHA</h1>
-  <p style="font-size:15px;font-weight:600;max-width:1000px;line-height:1.5;margin:0 0 26px">
-    Hoje a pessoa passa por <b>11 botões</b> antes de qualquer explicação, e o que explica é um <b>glossário</b> —
-    não diz a ordem em que as coisas acontecem. A proposta troca a ordem: <b>o que é</b> → <b>como se joga</b> →
-    <b>por onde começo</b>. Nada é apagado; o que não serve pra quem chegou agora só <b>desce</b>.</p>
-
-  <div style="display:flex;gap:46px;align-items:flex-start">
-    ${fone(hoje, '🔴 Como está hoje', RED)}
-    ${fone(proposta, '🟢 A proposta', GREEN)}
-    <div style="flex:1;min-width:300px;max-width:460px">
-      <div style="border:4px solid ${INK};border-radius:18px;background:#fff;box-shadow:4px 4px 0 ${INK};padding:15px 17px;margin-bottom:16px">
-        <div style="${OSW};font-size:17px;text-transform:uppercase;margin-bottom:10px">O que muda de verdade</div>
-        ${[['A explicação sobe', 'Os 5 passos vêm ANTES dos botões. Quem chegou agora entende o jogo sem clicar em nada.'],
-           ['Um botão principal, só um', '"Jogar agora" — a partida rápida, sem conta, que é o caminho mais curto pra entender. Amigos e Carreira ficam menores do lado.'],
-           ['A dúvida que o Diego apontou vira passo', 'As moedas, o lance secreto, o martelo, fechar os 11 e o campeonato rodando: cada uma virou um passo numerado, na ordem real.'],
-           ['As cartas descem', 'Viram uma tirinha no rodapé. Continuam bonitas, mas param de roubar a tela da explicação.'],
-           ['As novidades fecham', 'Vira uma linha que abre no toque. Quem volta acha; quem chegou agora não tromba.'],
-           ['Os "em breve" viram uma linha', 'Dois botões apagados ocupando espaço nobre viram um aviso pequeno.']]
-          .map(([t, d]) => `<div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:9px">
-            <span style="color:${GREEN};${OSW};font-size:15px;line-height:1.1">✓</span>
-            <p style="font-size:12.5px;font-weight:600;line-height:1.45;margin:0"><b style="${OSW};text-transform:uppercase;font-size:13px">${t}</b><br>${d}</p></div>`).join('')}
-      </div>
-      <div style="border:4px solid ${INK};border-radius:18px;background:#FFF6D6;box-shadow:4px 4px 0 ${INK};padding:15px 17px;margin-bottom:16px">
-        <div style="${OSW};font-size:15px;text-transform:uppercase;margin-bottom:8px">🤔 A pergunta que sobra</div>
-        <p style="font-size:12.5px;font-weight:600;line-height:1.5;margin:0">
-          A home explicando resolve <b>metade</b>. A outra metade é <b>dentro do jogo</b>: no primeiro pregão da pessoa,
-          o jogo precisa dizer o que fazer <b>na hora</b> — e depois avisar que o campeonato vai rodar sozinho.
-          Hoje isso existe em pedaços (o "COMO FUNCIONA" do pregão), mas não como um caminho.<br><br>
-          <b>Isso é um segundo passo</b>, e eu não faria junto: primeiro a home, você joga, e aí a gente vê se ainda falta.</p>
-      </div>
-      <div style="border:4px solid ${INK};border-radius:18px;background:#F1EDE0;box-shadow:4px 4px 0 ${INK};padding:15px 17px">
-        <div style="${OSW};font-size:15px;text-transform:uppercase;margin-bottom:8px">🛡️ Nada quebra</div>
-        <p style="font-size:12.5px;font-weight:600;line-height:1.5;margin:0">
-          É <b>só a tela de abertura</b>. Nenhum botão some, nenhum modo muda, o motor do jogo não é tocado —
-          muda a <b>ordem</b> e o <b>tamanho</b> das coisas. Dá pra voltar atrás num commit só.</p>
-      </div>
-    </div>
-  </div>
-  <p style="margin-top:26px;${OSW};font-size:15px">⚽ Leilão <span style="color:${RED}">Legends</span>
-    <span style="float:right;font-weight:700;font-size:12px;opacity:.45">leilaolegends.com</span></p>
-</body></html>`
-
-const tmp = `/tmp/mockup-home-${process.pid}.html`
-writeFileSync(tmp, html)
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-const p = await b.newPage({ viewport: { width: 1560, height: 1000 }, deviceScaleFactor: 2 })
-await p.goto('file://' + tmp)
-await p.evaluate(() => document.fonts.ready)
-await p.waitForTimeout(600)
-await p.screenshot({ path: SAIDA, fullPage: true })
-await b.close()
-console.log(SAIDA)
+import { createRequire } from 'node:module'
+const R = '/home/user/7a0-game-studio/'
+const b64 = f => readFileSync(R + f).toString('base64')
+const F = [500, 700].map(w => `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}) format('woff2');font-weight:${w}}`).join('')
+const ART = `data:image/webp;base64,${b64('src/escalacao/img/home-leilao-v07.webp')}`
+const av = n => `data:image/webp;base64,${b64('public/avatars/lendas-v1/' + n + '.webp')}`
+const FACES = ['romario-vasco-2000', 'ronaldinho-gaucho-barcelona-2005', 'kaka-milan-2007', 'neymar-santos-2011', 'cafu-milan-2004'].map(av)
+const rosto = FACES.map((f, i) => `<img src="${f}" style="z-index:${9 - i}">`).join('')
+const css = `${F}*{box-sizing:border-box;margin:0}body{background:#0c0c0c;font-family:system-ui,Arial,sans-serif;color:#fff}
+.pg{width:390px;position:relative;overflow:hidden;background:#0c0c0c}
+.art{position:absolute;left:0;right:0;top:0;height:640px;background:url(${ART}) center 18%/cover}
+.art:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#000a 0,#0000 22%,#0000 48%,#0c0c0c 100%)}
+.top{position:relative;display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0}
+.brand{font:700 22px/1 Oswald;letter-spacing:.3px;text-shadow:0 2px #000}.brand small{display:block;font:700 9px Arial;letter-spacing:2px;color:#F4ECD6;margin-bottom:4px}.brand:after{content:'';display:block;width:60px;height:3px;background:#FFC400;margin-top:6px;border-radius:2px}
+.acts{display:flex;gap:6px;align-items:center}.pill{font:700 12px Oswald;background:#0c0c0cc0;border:2px solid #F4ECD6;border-radius:999px;padding:5px 10px}.conta{font:700 13px Oswald;background:#F4ECD6;color:#0c0c0c;border:2px solid #000;border-radius:10px;box-shadow:2px 2px 0 #000;padding:6px 10px}
+.hero{position:relative;padding:150px 18px 0;text-align:center}
+.hero h1{font:700 40px/1.02 Oswald;text-shadow:0 3px 10px #000,0 2px #000}
+.hero p{margin:12px auto 0;max-width:330px;font:600 15px/1.35 system-ui;color:#F4ECD6;text-shadow:0 2px 6px #000}
+.hero p b{color:#FFC400}
+.cta{display:flex;flex-direction:column;gap:10px;margin:22px 0 0}
+.b1{font:700 26px Oswald;background:#FFC400;color:#0c0c0c;border:4px solid #000;border-radius:16px;box-shadow:4px 4px 0 #000;padding:12px}
+.b1 small{display:block;font:600 12px system-ui;margin-top:2px}
+.b2{font:700 17px Oswald;background:#0c0c0cd0;color:#fff;border:3px solid #F4ECD6;border-radius:14px;padding:10px}
+.vivo{position:relative;margin:16px auto 0;display:flex;justify-content:center;gap:8px;font:700 12px Oswald;letter-spacing:.5px;color:#F4ECD6}
+.vivo i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2fd36b;box-shadow:0 0 8px #2fd36b;margin-right:5px}
+.sec{position:relative;padding:26px 16px 0}.eye{font:700 13px Oswald;letter-spacing:2px;color:#FFC400;margin-bottom:12px}
+.card{border:3px solid #000;border-radius:18px;box-shadow:4px 4px 0 #000;padding:16px;margin-bottom:14px;color:#fff;position:relative}
+.card h3{font:700 27px/1 Oswald;display:flex;gap:9px;align-items:center}.card p{font:500 14px/1.35 system-ui;margin-top:6px;opacity:.92}
+.faces{display:flex;align-items:center;margin-top:12px}.faces img{width:38px;height:38px;border-radius:50%;border:2px solid #fff;background:#F4ECD6;margin-left:-9px;object-fit:cover;object-position:top}.faces img:first-child{margin-left:0}.faces span{font:600 12.5px system-ui;margin-left:10px;opacity:.9}
+.row{display:flex;gap:8px;margin-top:14px}.bt{flex:1;text-align:center;font:700 16px Oswald;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;padding:9px 6px;background:#fff;color:#0c0c0c}.bt.o{background:transparent;color:#fff;border-color:#fff;box-shadow:none}
+.r{background:linear-gradient(135deg,#232323,#121212)}.r .bt{background:#FFC400}
+.on{background:linear-gradient(135deg,#8B4DF5,#5B21B6)}
+.ca{background:linear-gradient(135deg,#22914A,#135C2C)}
+.tag{position:absolute;right:12px;top:12px;font:700 11px Oswald;background:#FFC400;color:#000;border:2px solid #000;border-radius:999px;padding:2px 8px}
+.passos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ps{background:#F4ECD6;color:#0c0c0c;border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;padding:10px 8px;text-align:center}
+.ps .e{font-size:28px}.ps b{display:block;font:700 15px/1.05 Oswald;text-transform:uppercase;margin-top:4px}.ps small{display:block;font:500 11px/1.3 system-ui;margin-top:4px;opacity:.8}
+.ps .n{display:inline-block;width:20px;height:20px;border-radius:50%;background:#1B7A3D;color:#fff;font:700 12px/20px Oswald;margin-bottom:2px}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.mi{background:#1a1a1a;border:2px solid #3a3a3a;border-radius:12px;padding:10px 4px;text-align:center;font:700 12px Oswald;letter-spacing:.3px}.mi .e{font-size:22px;display:block;margin-bottom:3px}.mi.g{background:#FFC400;color:#000;border-color:#000}
+.rod{position:relative;padding:22px 16px 96px;text-align:center;font:500 12px system-ui;color:#a5a394}.rod .soc{display:flex;gap:8px;justify-content:center;margin-bottom:12px}.rod .soc span{font:700 12px Oswald;color:#fff;border:2px solid #444;border-radius:999px;padding:5px 12px}
+.selo{position:absolute;left:12px;top:12px;font:700 10px Oswald;letter-spacing:1px;background:#C2452F;color:#fff;border-radius:6px;padding:3px 7px;z-index:5}.varzea{position:relative;height:96px;margin-top:12px;border:3px solid #000;border-radius:12px;overflow:hidden;background:repeating-linear-gradient(90deg,#9a7444 0 22px,#a17b49 22px 44px)}
+.varzea:before{content:'';position:absolute;inset:8px 12px;border:2px solid #f4ecd6a0;border-radius:2px}.varzea .meio{position:absolute;left:50%;top:8px;bottom:8px;border-left:2px solid #f4ecd6a0}.varzea .meio:after{content:'';position:absolute;left:-15px;top:50%;width:26px;height:26px;margin-top:-13px;border:2px solid #f4ecd6a0;border-radius:50%}
+.varzea .trave{position:absolute;top:30px;width:10px;height:36px;border:3px solid #fff;background:#fff3}.varzea .trave.l{left:4px;border-left:0}.varzea .trave.r{right:4px;border-right:0}
+.varzea .bola{position:absolute;left:62%;top:44px;font-size:16px}.varzea .seta{position:absolute;left:8px;bottom:6px;font:700 11px Oswald;background:#0c0c0cd0;border-radius:6px;padding:2px 7px;letter-spacing:.5px}.varzea .seta b{color:#FFC400}
+.sala{margin-top:12px;background:#0c0c0c66;border:2px solid #0006;border-radius:12px;padding:8px 10px}.sala .lb{font:700 11px Oswald;letter-spacing:.6px}.chips{display:flex;gap:5px;margin-top:6px}.chips i{font:700 11px Oswald;font-style:normal;color:#fff;border:2px solid #000;border-radius:8px;padding:4px 6px}.chips .mais{background:#0c0c0c}
+.coracao{display:flex;flex-direction:column;gap:10px}.cl{display:flex;gap:10px;align-items:flex-start;background:#F4ECD6;color:#0c0c0c;border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;padding:12px}
+.cl .n{flex:none;width:26px;height:26px;border-radius:50%;background:#1B7A3D;color:#fff;font:700 15px/26px Oswald;text-align:center}.cl .e{font-size:26px;line-height:1}.cl b{display:block;font:700 18px/1.05 Oswald;text-transform:uppercase}.cl small{display:block;font:500 12.5px/1.3 system-ui;margin-top:3px;opacity:.8}
+.modos{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.modos span{font:700 11.5px Oswald;background:#fff;border:2px solid #000;border-radius:8px;padding:2px 7px}
+.nav{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;background:#0c0c0c;border-top:3px solid #FFC400;padding:8px 4px 12px}.nav span{position:relative;display:flex;flex-direction:column;align-items:center;font:700 11px Oswald;color:#cfc8b4;letter-spacing:.4px}.nav i{font-style:normal;font-size:22px;margin-bottom:2px}.nav .on1{color:#FFC400}.nav .lj{color:#FFC400}.nav em{position:absolute;top:-4px;right:-6px;font:700 10px/16px Arial;font-style:normal;background:#C2452F;color:#fff;border-radius:50%;width:16px;height:16px;text-align:center}
+`
+const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body><div class="pg"><div class="art"></div>
+<div class="top"><div class="brand"><small>O LEILÃO DAS LENDAS</small>LEILÃO LEGENDS</div><div class="acts"><span class="pill">🇧🇷 BR</span><span class="pill">🔇</span><span class="conta">👤 Conta</span></div></div>
+<div class="hero"><h1>O PREGÃO<br>ESTÁ ABERTO.</h1>
+<p>Dispute as <b>lendas do futebol no leilão</b>, monte seu time e prove no campeonato que você entende de bola.</p>
+<div class="cta"><div class="b1">▶ JOGAR AGORA<small>partida rápida contra a máquina</small></div><div class="b2">🔑 Entrar numa sala com código</div></div>
+<div class="vivo"><span><i></i>SALAS ROLANDO AGORA</span><span>·</span><span>2.400+ CARTAS DE LENDAS</span></div></div>
+<div class="sec"><p class="eye">ESCOLHA COMO JOGAR</p>
+<div class="card r"><h3>⚡ Partida rápida</h3><p>Você contra os bots. Leilão, revelação e campeonato numa sentada.</p>
+<div class="faces">${rosto}<span>Romário, Ronaldinho e +2.400</span></div><div class="row"><span class="bt">JOGAR</span></div></div>
+<div class="card on"><span class="tag">AO VIVO</span><h3>🌐 Jogar online</h3><p>A galera toda no mesmo pregão. Quem lê melhor o leilão leva a taça.</p>
+<div class="sala"><span class="lb">🔨 SALA DO PEDRÃO · 8/20</span><div class="chips"><i style="background:#FFC400">FAB</i><i style="background:#2B6CFF">CHE</i><i style="background:#C2452F">ARR</i><i style="background:#1B7A3D">K9</i><i style="background:#fff;color:#000">MON</i><i class="mais">+3</i></div></div>
+<div class="row"><span class="bt">CRIAR SALA</span><span class="bt o">SALAS ABERTAS</span></div></div>
+<div class="card ca"><h3>⭐ Modo carreira</h3><p>Comece no campinho de terra da Várzea e suba até a Série A: estádio, patrocínio, copas e Mundial.</p>
+<div class="varzea"><div class="trave l"></div><div class="trave r"></div><div class="meio"></div><span class="bola">⚽</span><span class="seta">VÁRZEA → D → C → B → <b>A</b> 🏆</span></div>
+<div class="row"><span class="bt">CONTINUAR CARREIRA</span></div></div></div>
+<div class="sec"><p class="eye">O CORAÇÃO DO JOGO: O LEILÃO</p><div class="coracao">
+<div class="cl"><span class="n">1</span><span class="e">💰</span><div><b>Todo mundo começa com 100 moedas</b><small>o mesmo dinheiro pra cada técnico</small></div></div>
+<div class="cl"><span class="n">2</span><span class="e">🔨</span><div><b>Dispute as lendas no lance</b><small>escolha o jeito da sala:</small><div class="modos"><span>✉️ Envelope</span><span>🐊 Tocaia</span><span>🔨 Pregão aberto</span><span>⚡ Envelope único</span></div></div></div>
+<div class="cl"><span class="n">3</span><span class="e">🏆</span><div><b>Monte o time e jogue</b><small>no fim, o campeonato mostra quem gastou melhor</small></div></div></div></div>
+<div class="rod"><div class="soc"><span>💬 Comunidade</span><span>📸 Instagram</span><span>💛 Planos</span></div>leilaolegends.com · Seu clube. Sua história.</div>
+<nav class="nav"><span class="on1"><i>🏠</i>Início</span><span class="lj"><i>🛒</i>Loja</span><span><i>👥</i>Amigos<em>2</em></span><span><i>🏛️</i>Salão</span><span><i>📜</i>Regras</span></nav>
+</div></body></html>`
+writeFileSync('/tmp/claude-0/home/proposta2.html', html)
+const { chromium } = createRequire(import.meta.url)('playwright')
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 390, height: 800 }, deviceScaleFactor: 2 })
+await p.goto('file:///tmp/claude-0/home/proposta2.html'); await p.waitForTimeout(500)
+await p.locator('.pg').screenshot({ path: '/tmp/claude-0/home/proposta2-cel.png' }); await b.close()

@@ -94,3 +94,26 @@
 .pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation{flex-direction:row;bottom:max(16px,env(safe-area-inset-bottom))}
 .pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-navigation button{width:48px;min-height:44px}
 .pc3-review[data-watching-match=true][data-camera-mode=field2d] .pc3-match-narration{font-size:12px;max-width:min(520px,100%)}
+
+/* 🗺️ 08/11 — interface por cima do mapa (antes do lançamento) */
+/* 🕐 lugar do bairro fora do horário: travado, dizendo quando funciona (a mesma regra que o 3D usa pra desenhar) */
+.pc3-places button.pc3-place-off{flex-direction:column;align-items:flex-start;gap:3px;cursor:not-allowed;opacity:.62;background:#efe6cf}
+.pc3-places button.pc3-place-off small{font:600 11.5px/1.25 system-ui,sans-serif}
+/* 🃏 cartões dos lugares: medem pela borda (não passam do limite e não tampam +/−/Ver tudo) e rolam por dentro */
+.pc3-review .pc3-club-place{box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;max-height:calc(100% - 140px)}
+@media(max-width:600px){
+ /* no celular o cartão vira um painel baixo embaixo do mapa (o lugar continua à vista em cima); os controles do mapa
+    saem enquanto ele está aberto e voltam no ✕ ou tocando no mapa */
+ .pc3-review .pc3-club-place,.pc3-review .pc3-luca-card,.pc3-review .pc3-shopping-card,.pc3-review .pc3-sponsor-card{left:8px;right:8px;bottom:46px;width:auto;max-width:none;max-height:min(46%,380px);padding:10px}
+ .pc3-review[data-card-open=true] .pc3-navigation{display:none}
+ .pc3-review .pc3-luca-card>strong{font-size:18px}
+ .pc3-review .pc3-luca-card>p{font-size:12.5px}
+ .pc3-review .pc3-luca-card .pc3-luca-bloco{margin-top:9px;padding:8px}
+ .pc3-review .pc3-luca-card .pc3-luca-valores button{min-height:44px;font-size:17px}
+ .pc3-review .pc3-sponsor-card .pc3-sponsor-logo{height:48px}
+ /* 🔇 o botão de som do jogo fica fixo no canto direito da tela: fora da tela cheia, os controles e o menu do mapa
+    deixam esse canto livre (o som continua igual) */
+ .pc3-review:not(.pc3-expanded) .pc3-navigation{right:30px}
+ .pc3-review:not(.pc3-expanded) .pc3-places{width:min(310px,calc(100% - 104px))}
+ .pc3-review:not(.pc3-expanded) .pc3-club-place{right:30px}
+}

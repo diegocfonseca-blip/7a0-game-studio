@@ -93,6 +93,11 @@
     display: block;
     max-width: 900px !important;
   }
+  /* 🗺️ 08/11: na aba Clube com o MAPA, a coluna única não volta pros 900px — o mapa usa a mesma largura de quando o jogo
+     está rolando (1320px), em vez de deixar sobra dos dois lados. Só a largura; a ordem da aba não muda. */
+  .ll25-career.ll25-tab-estadio > .max-w-xl.mx-auto.ll-cx.ll-cx-fim:has([data-presidencia-complexo-carreira]) {
+    max-width: 1320px !important;
+  }
   .ll29-career > .ll-cx.ll-cx-fim > .ll-cx-conta { margin-top: 0; }
   .ll29-career > .ll-cx.ll-cx-fim > .ll-cx-sair { margin-top: 16px !important; }
 }

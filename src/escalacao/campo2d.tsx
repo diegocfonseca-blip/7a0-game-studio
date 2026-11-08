@@ -938,7 +938,7 @@ function Telao2D({ deitado, larg, gol, casa, fora }: { deitado: boolean; larg: n
   const t = useT()
   const S0 = deitado ? larg / (L + PADL * 2) : larg / (W + PADX * 2)
   const box = deitado
-    ? { left: larg * 0.15, top: S0 * 0.7, width: larg * 0.22, height: (PADT - 3.2) * S0 - S0 * 1.4 }
+    ? { left: larg * 0.74, top: S0 * 0.7, width: larg * 0.22, height: (PADT - 3.2) * S0 - S0 * 1.4 }
     : { left: (50 + PADX) * S0, top: 2, width: larg - (50 + PADX) * S0 - 3, height: PAD * S0 - 3 }
   const h = box.height - 6
   const esc = (n: ReactNode, k: number) => n ? (

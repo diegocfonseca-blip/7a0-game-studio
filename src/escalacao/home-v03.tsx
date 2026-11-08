@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { useT } from './lang'
 import { legendAvatar } from './legend-avatars'
 import type { OnlineDestination } from './desktop-online-navigation'
@@ -51,11 +51,12 @@ function ExtraIcon({ kind }: { kind: 'friends' | 'hall' }) {
 export function HomeV03(p: HomeProps) {
   const t = useT()
   const id = useId()
+  const shortcuts = useRef<HTMLDivElement>(null)
   const howId = `${id}-how`, communityId = `${id}-community`
   return <><div className="ll-home home-v03">
     <header className="hv3-top"><div className="hv3-wrap">
       <div className="hv3-brand"><span className="hv3-monogram" aria-hidden="true">LL</span><span><strong>LEILÃO LEGENDS</strong><small>{t('SEU CLUBE. SUA HISTÓRIA.', 'YOUR CLUB. YOUR STORY.')}</small></span></div>
-      <nav aria-label={t('Atalhos da home', 'Home shortcuts')}><a href={`#${howId}`}>{t('Como jogar', 'How to play')}</a><a href={`#${communityId}`}>{t('Comunidade', 'Community')}</a><a href={`#${communityId}`}>{t('Loja do clube', 'Club shop')}</a></nav>
+      <nav aria-label={t('Atalhos da home', 'Home shortcuts')}><a href={`#${howId}`}>{t('Como jogar', 'How to play')}</a><a href={`#${communityId}`}>{t('Comunidade', 'Community')}</a><a href={`#${communityId}`} onClick={e => { const button = shortcuts.current?.querySelector<HTMLButtonElement>('button.hv3-shop'); if (button) { e.preventDefault(); button.click() } }}>{t('Loja do clube', 'Club shop')}</a></nav>
       <div className="hv3-account"><div className="hv3-language">{p.language}</div><HomeSound /><button type="button" onClick={p.onAccount}>{t('MINHA CONTA', 'MY ACCOUNT')} <span aria-hidden="true">→</span></button></div>
     </div></header>
     {(p.sportSwitcher || p.notifications) && <div className="hv3-utilities hv3-wrap">{p.sportSwitcher}{p.notifications}</div>}
@@ -69,7 +70,7 @@ export function HomeV03(p: HomeProps) {
         <article className="hv3-mode hv3-career"><div className="hv3-topline"><VillageIcon /><span className="hv3-flag">{t('SUA HISTÓRIA', 'YOUR STORY')}</span></div><h3>{t('MODO CARREIRA', 'CAREER MODE')}</h3><p>{t('Comece na várzea e leve seu clube', 'Start at grassroots and take your club')}<br />{t('até as grandes conquistas.', 'all the way to the big trophies.')}</p><button type="button" className="hv3-primary" onClick={p.onCareer}>{t('JOGAR CARREIRA', 'PLAY CAREER')}<span aria-hidden="true">→</span></button><div className="hv3-links"><button type="button" onClick={p.onCareers}>{t('Minhas carreiras', 'My careers')} →</button><button type="button" onClick={p.onManual}>{t('Como funciona', 'How it works')}</button></div></article>
         <article className="hv3-mode hv3-quick"><div className="hv3-topline"><span className="hv3-icon" aria-hidden="true">ϟ</span><span className="hv3-flag">{t('CONTRA A CPU', 'VS THE CPU')}</span></div><h3>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</h3><p>{t('Monte seu time no leilão e enfrente', 'Build your team at auction and face')}<br />{t('a máquina. Sem marcar horário.', 'the CPU. No scheduling needed.')}</p><button type="button" className="hv3-primary" onClick={p.onQuick}>{t('JOGAR AGORA', 'PLAY NOW')}<span aria-hidden="true">→</span></button><div className="hv3-links"><button type="button" onClick={p.onManual}>{t('Bom para conhecer o jogo', 'A good place to learn')} →</button></div></article>
       </div>
-      <div className="hv3-others" id={communityId}>{p.shop}
+      <div className="hv3-others" id={communityId} ref={shortcuts}>{p.shop}
         {p.onFriends ? <button type="button" className="hv3-extra" onClick={p.onFriends}><ExtraIcon kind="friends" /><span className="hv3-text"><strong>{t('AMIGOS', 'FRIENDS')}</strong><small>{t('Clã, álbum e trocas.', 'Clan, album and trades.')}</small></span><span aria-hidden="true">→</span></button> : <button type="button" className="hv3-extra" onClick={p.onAlbum}><span aria-hidden="true">▤</span><span className="hv3-text"><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas.', 'Cards, collections and trades.')}</small></span><span aria-hidden="true">→</span></button>}
         <button type="button" className="hv3-extra" onClick={p.onHall}><ExtraIcon kind="hall" /><span className="hv3-text"><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Os clubes da nossa comunidade.', 'Clubs from our community.')}</small></span><span aria-hidden="true">→</span></button>
       </div>
