@@ -12840,3 +12840,9 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   · **Liga Draft** (`draft-favoritos.tsx`): faixa Liga → (Copa) → Draft → Temp. N+1, faltam N rodadas, sua vez pela tabela; ⭐ favoritos
     (aparelho, chave única `esc-draft-favs`, máx 30) aparecem em cima na noite do draft.
   · **Duplas** (`PainelDupla`, screens.tsx): quem cuida de cada posição + o que falta e de quem é (envelope e Tocaia).
+- 🎁 08/11: **TESTE DE 5 DIAS PRA SALVAR A CARREIRA** (sem plano). Os 5 dias começam no 1º toque em Salvar a partir de 08/11
+  (`esc_salvar_teste` + `esc_salvar_teste_inicia`, por conta). Acabou: continua jogando de graça e o que foi salvo abre; progresso
+  novo não grava (aparelho e nuvem) — régua `salvarBloqueado` (`SALVAR_TESTE_5D`). Sem conta = sem teste (bloqueado). Aviso no 1º
+  salvamento com o texto do Diego e só "Conhecer os planos". Foto `scripts/mockups/salvar-teste-5-dias.png`.
+  ⚠️ NA HORA DE PUBLICAR: desligar o cron `esc-nuvem-gratis-1d` (senão, sem poder salvar, a carreira seria apagada 1 dia depois).
+  ⚠️ Brecha conhecida: quem NUNCA aperta Salvar continua com o salvamento automático do aparelho (o teste só começa no toque).

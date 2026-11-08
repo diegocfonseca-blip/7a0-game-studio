@@ -14230,7 +14230,9 @@ export async function nuvemRegra(uid: string, fresca = false): Promise<NuvemRegr
     if (error || !data || typeof data !== 'object') return null
     const d = data as { pago?: boolean; seeds?: unknown[] }
     const r: NuvemRegra = { pago: !!d.pago, seeds: (d.seeds ?? []).map(Number).filter(Number.isFinite) }
-    regraCache = { uid, r }; regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
+    regraCache = { uid, r }
+    if (SALVAR_TESTE_5D && !r.pago) await leTesteSalvar(uid)
+    regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
     return r
   } catch { return null }
 }
@@ -14245,6 +14247,40 @@ const pagoPeloCodigo = () => souBarao() || myApoioPerk()?.tier === 'ouro' || myA
 // 🔁 07/11 (Diego): REVOGADO — *"acho que a gente tem que liberar novamente salvar"*. O grátis voltou a salvar (aparelho e nuvem), com o
 // aviso no 1º salvamento e o prazo de 1 DIA sem salvar na nuvem (`esc_nuvem_gratis_limpa`). Uma carreira só (`careerSlotLimit`).
 export const SALVAR_SO_COM_PLANO = false
+// 🎁 08/11 (Diego): *"🎁 Seus primeiros 5 dias salvando a carreira são grátis! … Depois do teste, você pode continuar jogando
+// gratuitamente. Para salvar novos avanços, é necessário um plano"* + *"comece de agora a contar pra quem não tem plano e aperta salvar"*.
+// Os 5 dias começam no 1º toque em SALVAR de quem não tem plano (banco: `esc_salvar_teste`, `esc_salvar_teste_inicia`, por CONTA —
+// celular e PC contam junto). Acabou o teste: a carreira continua abrindo do jeito que foi salva (nada é apagado — o "apaga em 1 dia"
+// saiu junto), o jogo segue de graça, só o progresso NOVO não grava (aparelho e nuvem), igual à régua de 04/11. Desligar = `false`.
+export const SALVAR_TESTE_5D = true
+export const TESTE_SALVAR_DIAS = 5
+let testeCache: { uid: string; ate: number | null } | null = null
+async function leTesteSalvar(uid: string): Promise<void> {
+  try {
+    const { data, error } = await supabase.from('esc_salvar_teste').select('inicio').eq('uid', uid).maybeSingle()
+    if (error) return
+    const i = data?.inicio ? Date.parse(data.inicio as string) : NaN
+    testeCache = { uid, ate: Number.isFinite(i) ? i + TESTE_SALVAR_DIAS * 86_400_000 : null }
+  } catch { /* sem rede: segue sem saber (não bloqueia) */ }
+}
+/** 🎁 começa (ou lê) o teste de 5 dias da conta — só no toque em Salvar de quem não tem plano. Devolve o fim do teste (ms) */
+async function iniciaTesteSalvar(uid: string): Promise<number | null> {
+  try {
+    const { data, error } = await supabase.rpc('esc_salvar_teste_inicia')
+    if (error || !data) return testeCache?.uid === uid ? testeCache.ate : null
+    const ate = Date.parse(data as string)
+    if (!Number.isFinite(ate)) return null
+    testeCache = { uid, ate }
+    regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
+    return ate
+  } catch { return null }
+}
+/** 🎁 dias que faltam no teste (null = sem teste correndo: tem plano, ainda não apertou Salvar, ou não sabe) */
+export function diasTesteSalvar(): number | null {
+  if (!SALVAR_TESTE_5D || pagoPeloCodigo() || !authUidSalvar || testeCache?.uid !== authUidSalvar || testeCache.ate == null) return null
+  if (regraCache?.uid === authUidSalvar && regraCache.r.pago) return null
+  return Math.max(0, Math.ceil((testeCache.ate - Date.now()) / 86_400_000))
+}
 let authUidSalvar: string | null | undefined = undefined
 try {
   supabase.auth.onAuthStateChange((_e, sessao) => {
@@ -14254,6 +14290,14 @@ try {
   })
 } catch { /* sem cliente (bancada): segue salvando */ }
 export function salvarBloqueado(): boolean {
+  if (SALVAR_TESTE_5D && !SALVAR_SO_COM_PLANO) {
+    if (pagoPeloCodigo()) return false
+    if (authUidSalvar === null) return true // sem conta não tem teste (precisa de conta pra contar os 5 dias)
+    if (!authUidSalvar) return false // ainda não sabe
+    if (regraCache?.uid === authUidSalvar && regraCache.r.pago) return false
+    if (testeCache?.uid === authUidSalvar && testeCache.ate != null && Date.now() > testeCache.ate) return true
+    return false // teste correndo, ou ainda não apertou Salvar (o 1º toque começa a contar)
+  }
   if (!SALVAR_SO_COM_PLANO) return false
   if (pagoPeloCodigo()) return false
   if (authUidSalvar === null) return true // sem conta
@@ -14292,7 +14336,12 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
     const uid = data.user.id
-    if (isCareerSave(state)) { await nuvemRegra(uid, true); if (salvarBloqueado()) return 'bloqueado' } // 🔒 04/11: sem plano não salva
+    if (isCareerSave(state)) {
+      const rg = await nuvemRegra(uid, true)
+      // 🎁 08/11: conta sem plano — o 1º toque em Salvar começa os 5 dias; passou, não grava mais
+      if (SALVAR_TESTE_5D && rg && !rg.pago && !pagoPeloCodigo()) { const ate = await iniciaTesteSalvar(uid); if (ate != null && Date.now() > ate) return 'bloqueado' }
+      if (salvarBloqueado()) return 'bloqueado'
+    } // 🔒 04/11: sem plano não salva
     ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
     // ☁️⭐ conta grátis: só as carreiras que JÁ estavam na nuvem continuam subindo (ver `nuvemRegra`)
     const regra = isCareerSave(state) ? await nuvemRegra(uid, true) : null
