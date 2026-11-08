@@ -1,3 +1,12 @@
+## 🧭🛍️ 08/11 — Início visível e Loja no final do Online (AJUSTE DO VISUAL APROVADO)
+
+- Diego apontou o banner antigo de apoio no final de Salas abertas e a dificuldade de descobrir o retorno à Home/Modo Carreira. Pediu manter o padrão novo, usar a Loja no final e tornar o retorno evidente no topo.
+- `online-lobby-layout.tsx/css`: navegação explícita “← INÍCIO”, visível durante a rolagem, com orientação sobre Carreira e Partida Rápida; reaproveita a ação anterior de voltar ao início. Loja do Clube substitui a chamada antiga de apoio no menu Online, com acesso ao catálogo já existente. Contato permanece disponível. Sem nova arte, preços ou benefícios.
+- O rodapé global era acrescentado por `GameFooter`, fora de `EscLobby`. A supressão do banner antigo é CSS e vale apenas com `.ll-online-hub[data-online-phase=menu]`; o código do rodapé global e os outros modos ficam intactos. Não remove links antigos de planos.
+- Controles de Carreira Online v2 e Painel do Criador ficam em “Testes e ferramentas”, somente para as contas já autorizadas; conteúdo permanece montado e acessível ao expandir. Saves de carreiras online continuam visíveis separadamente. Sem alterar permissões ou funcionamento.
+- `travaVisitante` não intercepta cliques de diálogos portaled fora do próprio menu: a Loja aplica suas próprias regras, como na Home. O visitante pode consultar suas categorias; continua precisando de login para criar sala. Não modifica compra, pagamento ou liberação.
+- Validado em 320/393/768/1440/1920 px: retorno real à Home/Carreira, botão durante rolagem, Loja/abas/Escape para visitante e usuário, ferramentas privadas, login para criar e rodapé original fora do novo menu; sem overflow ou erros de página. Build de produção obrigatório antes da publicação. Evidências e antes/depois em `/workspace/shared/online-navegacao-loja-v02/`.
+
 ## 🛠️ 08/11 — Criar sala V01 (APROVADA + IMPLEMENTADA; PUBLICAÇÃO AUTORIZADA)
 
 - Diego aprovou os mockups e pediu “Pode publicar Tb já”. Publicação inclui a Online V01 já implementada, preservando o restante do jogo.

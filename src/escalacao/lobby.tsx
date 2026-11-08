@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import './online-visual.css'
 import {DesktopHeader} from './desktop-layout'
 import { OnlineCreateContext, OnlineCreateSection, OnlineCreateLayout } from './online-create-layout'
-import { OnlineLobbyBrand, OnlineRoomMain, OnlineLeagueManage, OnlineLobbyFooter } from './online-lobby-layout'
+import { OnlineLobbyBrand, OnlineLobbyReturn, OnlineLobbyTools, OnlineRoomMain, OnlineLeagueManage, OnlineLobbyFooter } from './online-lobby-layout'
 import {peekOnlineDestination,clearOnlineDestination} from './desktop-online-navigation'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
@@ -3401,6 +3401,8 @@ export function EscLobby() {
   const travaVisitante = (e: React.MouseEvent) => {
     if (!visitante) return
     const alvo = e.target as HTMLElement
+    // Portaled dialogs enforce their own account rules, as they do on Home.
+    if (!e.currentTarget.contains(alvo)) return
     if (!alvo.closest('button') || alvo.closest('[data-livre]')) return
     e.preventDefault(); e.stopPropagation(); pedeConta()
   }
@@ -3479,13 +3481,14 @@ export function EscLobby() {
       if (filtroSala === 'clubes') return !!g?.clubes
       return !!g?.duplasMode
     })
+    const painelCarreiraTeste = co2On ? <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} /> : null
     const blocoCarreiras = (<>
       {/* 🌐 CARREIRA ONLINE v2 (19/10) — só nas contas do Diego; caminho PRÓPRIO, nada das salas daqui */}
-      {co2On && <Co2Painel nomeClube={stripEmoji(nameOf()).trim()} />}
+      {!onlineHub && painelCarreiraTeste}
       {/* Minhas carreiras (saves do host) — só aparece pra quem tem carreira em andamento */}
       {canCareer && myCareers.length > 0 && (
-        <div className="rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{tr('🪜 Minhas carreiras', '🪜 My careers')}</p>
+        <div className="ll-hub-career-saves rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: '#EDE3FF', boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{onlineHub ? tr('🪜 Suas carreiras online', '🪜 Your online careers') : tr('🪜 Minhas carreiras', '🪜 My careers')}</p>
           {myCareers.map(r => {
             const gs = r.game_state as GS & { seasonNo?: number; careerOnline?: boolean }
             const nm = gs?.roomName ?? r.code
@@ -3587,6 +3590,7 @@ export function EscLobby() {
         </div>
       </div>
 
+      {onlineHub && <OnlineLobbyReturn onBack={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} />}
       {onlineHub && <section className="ll-hub-hero"><div><p>{tr('LEILÃO AO VIVO COM A GALERA', 'LIVE AUCTIONS WITH YOUR CREW')}</p><h1>{tab === 'create' ? tr('CRIE ', 'CREATE ') : 'ONLINE. '}<em>{tab === 'create' ? tr('A SUA SALA.', 'YOUR ROOM.') : tr('O LANCE É SEU.', 'YOUR BID. YOUR GAME.')}</em></h1><span>{tr('Entre numa sala, monte seu time e dispute a taça.', 'Join a room, build your team and compete for the trophy.')}</span></div></section>}
       {/* partida em andamento: pergunta se quer voltar ou sair */}
       {/* 🏆 06/11 (Diego): se a partida é de uma LIGA que já está em "🏆 Suas ligas", a faixa verde some — o VOLTAR mora no card da liga */}
@@ -5200,10 +5204,10 @@ export function EscLobby() {
         </div>
       )}
       {salasNovo && <div className="space-y-5">{blocoCarreiras}</div>}
-      <AdminButton />
+      {onlineHub ? (co2On || souCriador) && <OnlineLobbyTools>{painelCarreiraTeste}<AdminButton /></OnlineLobbyTools> : <AdminButton />}
       <OnlineLobbyFooter enabled={onlineHub}>
       {!visitante && <button onClick={() => { if (!window.confirm(tr('Sair da conta? Você vai precisar entrar de novo (e-mail/senha ou Google) da próxima vez.', 'Sign out? You will need to sign in again (e-mail/password or Google) next time.'))) return; clearSavedRoom(); logout() }} className="text-white/30 text-xs underline w-full text-center">{tr('Sair da conta', 'Sign out')}</button>}
-      <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">{tr('← Menu inicial', '← Main menu')}</button>
+      {!onlineHub && <button onClick={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} className="text-white/40 text-sm underline w-full text-center">{tr('← Menu inicial', '← Main menu')}</button>}
       </OnlineLobbyFooter>
     </>, () => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) })
   }
