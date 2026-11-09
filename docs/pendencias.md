@@ -699,6 +699,15 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 🕵️ 09/11 — OLIVEIRA FC 30 × PRIME FC LIGADOS, sem valer nem sozinho (ordem do Diego: "tire todos C prime")
+- Oliveira (pietro.oliveira23061721) criava a sala, o Prime (pietrinhajaoliveira, criada 24/09) entrava pela MESMA internet 5–15 s depois,
+  saía quando começava e ele jogava sozinho contra 19 robôs (~3–4 min por temporada) e apagava a sala. ~30 salas só em 09/11; às 0h38 o
+  aparelho trocou Oliveira → Prime → Oliveira em 1 min. Era 1º da semana com 39 (2º tinha 11).
+- Tirados: os 50 títulos jogando sozinho desde 12/10 (39 provados no registro de 09/11; 11 antigos com o mesmo jeito, sem registro).
+  Os 34 títulos com gente na sala continuam. Banco: coluna nova `esc_contas_ligadas.solo_nao_vale` (só esse grupo usa).
+  Voltar os 11 antigos: `update esc_contas_ligadas set desde='2026-11-09 03:00+00' where grupo='oliveira30'`.
+- ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 09/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **wislleyrc12 × wislley427** — mesmo nome "wislley" nos dois e-mails, as duas criadas 31/08, logins com 13 min, 9 temporadas
   só os dois, 0 × 4 ligas. ⚠️ A perdedora (wislleyrc12) jogou 33 salas cheias — é conta ATIVA dele, não conta morta de apoio.
