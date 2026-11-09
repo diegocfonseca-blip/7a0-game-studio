@@ -1,3 +1,8 @@
+## 🌐 09/11 — Repaginação online liberada para todos
+
+- Diego ampliou a autorização: “publique na conta de todos já as mudanças também visuais todas”. O padrão aprovado de salas, leilões, competições e chat passa pela chave pública de apresentação, separada das prévias autenticadas.
+- Mantidos personagens, mascotes, crachás de plano e permissões. Mapa oculto para TODAS as contas, inclusive a principal, por nova ordem do Diego; 2D/3D e outras funções privadas mantêm as regras atuais. Detalhes: [online-chat-publico-20261109.md](online-chat-publico-20261109.md).
+
 ## 💬 09/11 — Chat privado no celular e desktop
 
 - Aplicado o mockup aprovado somente à conta principal verificada, preservando personagens de 40 px, crachás, respostas e figurinhas nativas. Gaveta acompanha o teclado; novas mensagens respeitam a leitura do histórico.

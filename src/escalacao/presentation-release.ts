@@ -1,7 +1,12 @@
-import { useOnlinePreview } from './online-preview'
+import { useOnlinePreview, useOwnerPresentation } from './online-preview'
+import { ONLINE_ROOM_VISUAL_RELEASED } from './online-release'
 import { CAREER_VISUAL_RELEASED, LEGEND_AVATARS_RELEASED, PENALTY_ART_RELEASED } from './career-feature-release'
 
 // Separate from account/auth gates; never enable unfinished private features.
+export function useOnlineRoomPresentation() {
+  const preview = useOwnerPresentation()
+  return ONLINE_ROOM_VISUAL_RELEASED || preview
+}
 export function useCareerPresentation() {
   const preview = useOnlinePreview()
   return CAREER_VISUAL_RELEASED || preview

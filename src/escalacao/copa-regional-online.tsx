@@ -37,7 +37,7 @@ import './online-match-visual.css'
 import { Penaltis2D } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import type { ConfigPenaltisCampo, DisputaPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { ChatWidget, GiroDaRodada, TrocaCampo2DSala } from './screens'
+import { ChatWidget, GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from './screens'
 import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
@@ -810,6 +810,9 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       ))}
       {step > P.CHAVE && <details className="ll26-bracket-history"><summary>{tr('FASE DE CLASSIFICAÇÃO · AS DUAS TABELAS', 'QUALIFYING STAGE · BOTH TABLES')}</summary>{tabela(0)}{tabela(1)}</details>}
       {/* CERIMÔNIA */}
+      {finalVista && isYou(mundo.campeao) && <CardCollectPrompt
+        motivo={`${tr('🏆 Campeão da','🏆 Champion of')} ${nomeCopa(copa)}`}
+        seasonKey={`regional:${roomId}:${ficha.seed}:${ficha.edicao}:${copa}`} origin="online" />}
       {done && !festaRegVista && <FestaCampeao comp={copa} nome={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={150} />}
         mascote={ownerVisual?MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']:undefined} lendas={ownerVisual?entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year})):undefined} souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }}
         artilheiro={(() => { const r = artilhariaRegional(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}

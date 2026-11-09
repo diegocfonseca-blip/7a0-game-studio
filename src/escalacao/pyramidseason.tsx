@@ -8429,7 +8429,7 @@ export function PyramidSeasonScreen() {
   const [planosSalvar, setPlanosSalvar] = useState(false)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
-  const presidentPending = usePresidentPreviewPending() // ⏳ 24/10: conta liberada ainda sendo conferida → espera em vez de piscar a maquete
+  const presidentPending = usePresidentPreviewPending() && PRESIDENCY_STADIUM_RELEASED // mapa oculto também não exibe sua espera de carregamento
   const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.

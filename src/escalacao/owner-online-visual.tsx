@@ -1,6 +1,6 @@
 import {createContext,useCallback,useContext,useEffect,useId,useMemo,useRef,useState,type ReactNode} from 'react'
 import {createPortal} from 'react-dom'
-import {useOwnerPresentation} from './online-preview'
+import {useOnlineRoomPresentation as useOwnerPresentation} from './presentation-release'
 import {tr} from './lang'
 import {APOIO_PERKS,myApoioPerk} from './apoio'
 import type {Tactic,EscState} from './types'

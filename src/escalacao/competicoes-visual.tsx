@@ -196,7 +196,7 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   const pc = useTelaPC()
   if(owner)return createPortal(<div className="ov3-celebration" role="dialog" aria-label={tr('Comemoração do título','Title celebration')} onClick={onDone}><OwnerChampionBanner title={tr(c.nome[0],c.nome[1])} name={nome} crest={crest} trophy={<Trofeu comp={comp} size={210}/>} mascot={mascote} legends={lendas} own={souCampeao} line={linha} extra={<>{penaltis&&<span>{tr('NOS PÊNALTIS!','ON PENALTIES!')}</span>}{artilheiro&&<span>⚽ {artilheiro.nome} · {artilheiro.n} {tr('gols','goals')}</span>}{garcom&&<span>🅰 {garcom.nome} · {garcom.n} {tr('passes','assists')}</span>}</>}/><button type="button" onClick={e=>{e.stopPropagation();onDone()}}>{tr('Continuar','Continue')}</button></div>,document.body)
   return createPortal(
-    <div onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: 99970, display: 'flex', justifyContent: 'center', background: '#000', animation: saindo ? 'fcSai .45s both' : undefined, cursor: 'pointer' }}>
+    <div role="dialog" aria-label={tr('Comemoração do título','Title celebration')} onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: 100040, display: 'flex', justifyContent: 'center', background: '#000', animation: saindo ? 'fcSai .45s both' : undefined, cursor: 'pointer' }}>
       <style>{css}</style>
       <div style={{ position: 'relative', width: '100%', maxWidth: pc ? '100%' : 480, height: '100%', overflow: 'hidden', background: `${c.bg}, url(${estadioArt}) center / cover`, color: '#fff', zoom: pc ? 1.35 : undefined } as CSSProperties}>
         <div style={{ position: 'absolute', inset: 0, background: `url(${estadioArt}) center / cover`, opacity: .35, mixBlendMode: 'overlay' }} />
