@@ -1,3 +1,4 @@
+import {useOwnerLayout,OwnerRoomNavigation} from './owner-online-visual'
 // ─── 🏆 LIGA HUB — a liga inteira num lugar só, em pílulas ──────────────────
 //
 // Desenho aprovado pelo Diego em 23/08 (`scripts/mockup-liga-pilulas.mjs`).
@@ -428,6 +429,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
   }
   aoExcluir?: () => void            // o que fazer depois de excluir a liga (sair da sala)
 }) {
+  const ownerVisual=useOwnerLayout()
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
   const [membros, setMembros] = useState<MembroSala[]>([])
   const [sala, setSala] = useState<{ ehLiga: boolean; nome: string; regras: LigaRegras; ligaAt?: string; semBots: boolean } | null>(null)
@@ -619,7 +621,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
       {/* 🔁 28/10 (Diego: *"só fazer visualmente igual ao do carreira"*, sem mudar nome nenhum): a barra ganhou a cara
           da barra da CARREIRA no celular (`career-abas.css`) — fundo claro com linha preta grossa, aba aberta num
           botão preto com o ícone dourado. Vale com e sem o visual novo (o `ll31-bottom-nav` dourado saiu daqui). */}
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
+      <OwnerRoomNavigation><div className={ownerVisual?'ov3-hub-nav':undefined} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
         {abas.map(t => {
           // ⚽📊👥 abas da PARTIDA: elas trocam o conteúdo da PÁGINA (não abrem
           // painel nenhum), então acendem quando são a aba da vez — e tocar numa
@@ -647,7 +649,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
             </button>
           )
         })}
-      </div>
+      </div></OwnerRoomNavigation>
       </>, document.body)}
     </>
   )

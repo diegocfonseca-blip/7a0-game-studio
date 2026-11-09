@@ -1,3 +1,4 @@
+import {useOwnerLayout,OwnerChampionBanner} from './owner-online-visual'
 // 🏆 A CARA DE CADA CAMPEONATO (23/10, mockups `campeonatos-paletas-trofeus.png` e `tunel-final-cores.png`, Diego:
 // *"cor do campeonato, pode fazer o túnel da final e o campeão"*). Cada competição tem paleta, frase e troféu
 // próprios, inspirados na de verdade (sem logo oficial) — Liga Legends e Copa dos 8 são nossas.
@@ -178,6 +179,7 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
    * A festa já só abre depois da disputa aparecer; aqui é só o selo, nunca a cobrança. */
   penaltis?: boolean
 }) {
+  const owner=useOwnerLayout()
   const c = nomeComp ? { ...COMPS[comp], nome: nomeComp } : COMPS[comp]
   const DUR = 5600
   const [saindo, setSaindo] = useState(false)
@@ -192,6 +194,7 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   const vis = lendas.slice(0, 3)
   // 🖥️ 23/10: no computador a festa ocupa a tela inteira (antes era a coluna de celular no meio)
   const pc = useTelaPC()
+  if(owner)return createPortal(<div className="ov3-celebration" role="dialog" aria-label={tr('Comemoração do título','Title celebration')} onClick={onDone}><OwnerChampionBanner title={tr(c.nome[0],c.nome[1])} name={nome} crest={crest} trophy={<Trofeu comp={comp} size={210}/>} mascot={mascote} legends={lendas} own={souCampeao} line={linha} extra={<>{penaltis&&<span>{tr('NOS PÊNALTIS!','ON PENALTIES!')}</span>}{artilheiro&&<span>⚽ {artilheiro.nome} · {artilheiro.n} {tr('gols','goals')}</span>}{garcom&&<span>🅰 {garcom.nome} · {garcom.n} {tr('passes','assists')}</span>}</>}/><button type="button" onClick={e=>{e.stopPropagation();onDone()}}>{tr('Continuar','Continue')}</button></div>,document.body)
   return createPortal(
     <div onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: 99970, display: 'flex', justifyContent: 'center', background: '#000', animation: saindo ? 'fcSai .45s both' : undefined, cursor: 'pointer' }}>
       <style>{css}</style>

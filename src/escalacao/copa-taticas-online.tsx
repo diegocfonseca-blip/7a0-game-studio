@@ -1,3 +1,4 @@
+import {useOwnerLayout,OwnerTactics} from './owner-online-visual'
 // ─── ⚔️ A TÁTICA NA SALA: Copa do Mundo e regionais (23/10) ──────────────────
 // O lado do APARELHO da regra de `copa-taticas.ts`:
 //   · lê do banco SÓ as linhas congeladas (`esc_copa_taticas`) a cada virada do relógio da copa;
@@ -70,6 +71,8 @@ const INK = '#0C0C0C', GOLD = '#FFC400'
 
 /** o MESMO cartão de tática da liga/Champions, com a regra da copa escrita embaixo */
 export function CartaoTaticaCopa({ minha, podeEscolher, aviso, onEscolher }: { minha: TaticaCopa; podeEscolher: boolean; aviso?: string; onEscolher: (t: TaticaCopa) => void }) {
+  const owner=useOwnerLayout()
+  if(owner)return <OwnerTactics value={minha} disabled={!podeEscolher} note={aviso} onChange={onEscolher}/>
   return <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, padding: 12, margin: '0 0 10px' }}>
     <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>
       ⚔️ {tr('Tática do próximo jogo', 'Tactic for the next match')}

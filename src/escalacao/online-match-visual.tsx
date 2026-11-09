@@ -1,3 +1,5 @@
+import {useOwnerLayout,useOwnerState,OwnerChampionBanner,OwnerMatchNavigation} from './owner-online-visual'
+import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 import type { EstadoPenaltisCampo } from './campo2d-penaltis'
 import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef, useMemo } from 'react'
@@ -163,6 +165,8 @@ export function OnlineRhythm(p: { manual: boolean; onToggle: () => void; speed: 
 }
 export type OnlineMatchTab = 'jogos' | 'tabela' | 'estatisticas' | 'elenco'
 export function OnlineMatchTabs({ value, onChange }: { value: OnlineMatchTab; onChange: (tab: OnlineMatchTab) => void }) {
+  const owner=useOwnerLayout()
+  if(owner)return <OwnerMatchNavigation value={value} onChange={onChange}/>
   return <nav className="ll25-tabs" aria-label="Conteúdo da partida">{([['jogos', tr('JOGOS + TABELA', 'MATCHES + TABLE')], ['estatisticas', tr('ESTATÍSTICAS', 'STATS')], ['elenco', tr('ELENCO', 'SQUAD')]] as const).map(([tab, label]) =>
     <button key={tab} className="ll25-button" aria-pressed={value === tab} onClick={() => onChange(tab)}>{label}</button>)}</nav>
 }
@@ -503,6 +507,9 @@ export function ResumoFase({ titulo, passaram, cairam, proxima, seg, total, cor,
 // ─── 🏆 CAMPEÃO + 🥇 ARTILHEIRO NO FIM DA COPA (mockup nº 3) ───
 // Dourado só pra QUEM GANHOU (regra de tier: nunca dourado fixo pra todos); pros outros, branco.
 export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu, trofeu }: { titulo: string; nome: string; crest?: ReactNode; sub?: ReactNode; final?: ReactNode; meu: boolean; /** 🏆 o troféu DESTA copa ao lado do escudo (23/10) */ trofeu?: ReactNode }) {
+  const owner=useOwnerLayout(),state=useOwnerState()
+  const team=state?.managers.find(m=>m.teamName===nome||m.name===nome)
+  if(owner&&trofeu)return <OwnerChampionBanner title={titulo} name={nome} crest={crest} trophy={trofeu} own={meu} legends={(team?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(nome)??'']} line={final??sub} extra={final&&sub?<span>{sub}</span>:undefined}/>
   return <div className={`ll41-campeao${meu ? ' meu' : ''}`}>
     <small>🏆 {titulo}</small>
     <div className="ll41-campeao-escudo">{crest}{trofeu && <span className="ll41-campeao-trofeu">{trofeu}</span>}</div>

@@ -1,3 +1,5 @@
+import {useOwnerLayout,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand} from './owner-online-visual'
+import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 // ─── 🌍 COPA DO MUNDO LEGENDS (v1 · carreira SOLO) ───────────────────────────
 // O endgame dos veteranos: desbloqueia na TEMPORADA 100, rola de 10 em 10.
 // Vaga e ordem de escolha = TOP 32 do RANKING DE CLUBES (o mural do Rank).
@@ -594,13 +596,14 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
 // REMONTAVA a árvore inteira (CupScreen voltava pra rodada 1, convocação sumia,
 // e o prêmio re-disparava em loop). Movido pra fora: identidade estável, fim do
 // reinício. NADA visual mudou.
-export const CMModal = ({ children, wide = false, cinematic = false, onlineBroadcast = false }: { children: React.ReactNode; wide?: boolean; cinematic?: boolean; /** aplica a mesma pele aprovada da liga, somente na Copa online */ onlineBroadcast?: boolean }) => createPortal(
-  <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
+export const CMModal = ({ children, wide = false, cinematic = false, onlineBroadcast = false }: { children: React.ReactNode; wide?: boolean; cinematic?: boolean; /** aplica a mesma pele aprovada da liga, somente na Copa online */ onlineBroadcast?: boolean }) => {const owner=useOwnerLayout();return createPortal(
+  <div className={owner?'ov3-modal-overlay':undefined} style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
     <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-    <div className={`${cinematic ? 'll26-world-modal' : ''}${onlineBroadcast ? ' ll31-cinema ll31-world-online' : ''}`.trim() || undefined} style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: cinematic ? 1000 : wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
+    <div className={`${owner?'ov3 ':''}${cinematic ? 'll26-world-modal' : ''}${onlineBroadcast ? ' ll31-cinema ll31-world-online' : ''}`.trim() || undefined} style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: cinematic ? 1000 : wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
+      {owner&&<OwnerModalBrand/>}
       {children}
     </div>
-  </div>, document.body)
+  </div>, document.body)}
 
 function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, onClose, motor2 = false, versaoM2 }: { motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
@@ -1160,6 +1163,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
+  const ownerVisual=useOwnerLayout()
   const [allGroups, setAllGroups] = useState(!!online)
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
@@ -1431,10 +1435,10 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   // A Copa do Mundo é um modal próprio, por isso não herdava a ordem da Liga e
   // MANUAL/AUTO terminava no rodapé. O relógio sincronizado continua o mesmo.
   const onlineWorldControls = privateOnline && !done ? (
-    <section className="ll27-world-controls ll31-tournament-controls" aria-label="Ritmo da Copa">
+    <section className={ownerVisual?'ov3-clock-controls':'ll27-world-controls ll31-tournament-controls'} aria-label="Ritmo da Copa">
       {!synced ? <p>{tr('Conectando ao ritmo da sala…', 'Connecting to the room\'s pace…')}</p> : <>
         {synced.error && <p role="status">{synced.error}</p>}
-        {!synced.row ? <p>{tr('Conectando ao ritmo da sala…', 'Connecting to the room\'s pace…')}</p> : synced.isHost ? <>
+        {!synced.row ? <p>{tr('Conectando ao ritmo da sala…', 'Connecting to the room\'s pace…')}</p> : ownerVisual&&synced.isHost ? <OwnerPlayback manual={manual} onToggle={()=>void synced.command(manual?'auto':'manual')} speed={c2d?vel2dBanco(true,synced.row.vel2d):synced.row.speed} onSpeed={v=>void synced.command(c2d?'vel2d':'speed',v)} opts={c2d?VEL2D_SALA_OPTS:undefined} canNext={liveDone&&!synced.busy} onNext={next} onSkip={skip} nextLabel={nextLabel} busy={synced.busy} speedDisabled={synced.row.running} allowAutoSpeed/> : synced.isHost ? <>
           <div className="ll27-world-rhythm">
             <button className={manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('manual')}>MANUAL</button>
             <button className={!manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('auto')}>AUTO</button>
@@ -1731,12 +1735,13 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
       {tunelMundo != null && tunelMundo > 0 && <div style={{ display: 'none' }}><TunelFinal comp={comp} seg={tunelMundo} total={4} onFechar={fechaTunelMundo}
         casa={{ nome: entrants[world.final.h].pais, crest: <NationalCrest country={entrants[world.final.h].pais} size={92} /> }} fora={{ nome: entrants[world.final.a].pais, crest: <NationalCrest country={entrants[world.final.a].pais} size={92} /> }} /></div>}
       {done && (online || isYou(world.final.champion)) && !festaMundoVista && <FestaCampeao comp={comp} nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
-        souCampeao={isYou(world.final.champion)} linha={`${tr('final', 'final')}: ${nm(world.final.h)} ${world.final.g[0]}×${world.final.g[1]} ${nm(world.final.a)}`}
+        mascote={ownerVisual?MASCOTES[mascoteKeyDoTime(entrants[world.final.champion].club)??'']:undefined} lendas={ownerVisual?entrants[world.final.champion].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year})):undefined} souCampeao={isYou(world.final.champion)} linha={`${tr('final', 'final')}: ${nm(world.final.h)} ${world.final.g[0]}×${world.final.g[1]} ${nm(world.final.a)}`}
         artilheiro={(() => { const r = artilhariaDaCopa(world)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = [...copaStats(world, step, liveDone).assists].sort((x, y) => y.total - x.total || x.name.localeCompare(y.name))[0]; return r && r.total > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.total } : null })()}
         onDone={() => { setFestaMundoVista(true); try { sessionStorage.setItem(festaMundoKey, '1') } catch { /* segue */ } }} />}
       {/* CERIMÔNIA */}
       {done && (
+        ownerVisual ? <OwnerChampionBanner title={comp==='euro'?tr('Eurocopa','Euro'):tr('Copa do Mundo','World Cup')} name={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={52}/>} trophy={<Trofeu comp={comp} size={210}/>} own={isYou(world.final.champion)} legends={entrants[world.final.champion].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[world.final.champion].club)??'']} line={`${tr('Final','Final')}: ${nm(world.final.h)} ${world.final.g[0]} × ${world.final.g[1]} ${nm(world.final.a)}`}/> : (
         <div style={{ ...box(isYou(world.final.champion) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), padding: 14, marginBottom: 10, borderRadius: 14, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           {isYou(world.final.champion) && <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />}
           <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}><Trofeu comp={comp} size={64} /></div>
@@ -1748,6 +1753,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
             : jaGravada ? (getLang() === 'en' ? <>⚠️ This edition had ALREADY been decided — what counts is the result on the board. This tournament was just practice: <b>no title, no prize</b>.</> : <>⚠️ Esta edição JÁ tinha sido decidida antes — o que vale é o resultado que está no mural. Este torneio foi só um treino: <b>não conta título nem prêmio</b>.</>) : isYou(world.final.champion) ? (getLang() === 'en' ? <>YOU ({club(world.final.champion)}) made history: ⭐ eternal star on the board{onPrize ? ' + 💰 100 COINS in the club\'s till' : ''}. 🎉</> : <>VOCÊ ({club(world.final.champion)}) entrou pra história: ⭐ estrela eterna no mural{onPrize ? ' + 💰 100 MOEDAS no caixa do clube' : ''}. 🎉</>) : (getLang() === 'en' ? <>Title for {club(world.final.champion)}. The next Cup is in season {seasonNo + 10} — get your finger ready. 😤</> : <>Título de {club(world.final.champion)}. A próxima Copa é na temporada {seasonNo + 10} — treina o dedo. 😤</>)}</p>
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>{tr('final', 'final')}: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (${tr('pên.', 'pens')} ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
         </div>
+        )
       )}
       {/* 🎴 CARTA DO CAMPEÃO DO MUNDO — só pra quem venceu (privada). Igual às
           outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}

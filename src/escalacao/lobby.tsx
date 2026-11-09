@@ -1,3 +1,5 @@
+import {useOwnerPresentation} from './online-preview'
+import {OwnerOnlineHeader} from './owner-online-visual'
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react'
 import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
@@ -800,6 +802,7 @@ export function plataformaDaLive(url: string | undefined | null): string | null 
 }
 
 export function EscLobby() {
+  const ownerAccount=useOwnerPresentation()
   const privateOnline = ONLINE_VISUAL_RELEASED
   const { state: escState, dispatch, addEmote } = useEsc()
   // 👑 retrato do estado do JOGO, lido na hora dentro do `triggerStart` (async):
@@ -3434,15 +3437,16 @@ export function EscLobby() {
     e.preventDefault(); e.stopPropagation(); pedeConta()
   }
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${onlineHub && phase === 'menu' && !estreito && !recovering ? ' ll-online-hub' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
+    <div className={`${ownerAccount&&!nbaSala&&phase==='waiting'?'ov3 ov3-waiting ':''}tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${onlineHub && phase === 'menu' && !estreito && !recovering ? ' ll-online-hub' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
+      {ownerAccount&&!nbaSala&&phase==='waiting'&&<OwnerOnlineHeader name={nameOf()} online onHome={onBack??(()=>setPhase('menu'))} onRooms={()=>{setTab('open');setPhase('menu')}}/>}
       {temaSala && <TemaFundo tema={temaSala} />}
-      {!nbaSala&&!estreito&&!recovering&&!(onlineHub&&phase==='menu')&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
+      {!(ownerAccount&&phase==='waiting')&&!nbaSala&&!estreito&&!recovering&&!(onlineHub&&phase==='menu')&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
         {label:tr('Salas abertas','Open rooms'),active:tab==='open'&&!showLeagues,onClick:()=>{setRoomError('');setShowLeagues(false);setTab('open')}},
         {label:tr('Criar sala','Create room'),free:false,active:tab==='create',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('create')}},
         ...(ligaOn?[{label:tr('Suas ligas','Your leagues'),active:tab==='open'&&showLeagues,onClick:()=>{setTab('open');setShowLeagues(true)}}]:[]),
         {label:tr('Entrar por código','Join by code'),active:tab==='join',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('join')}},
       ]:[]}/>}
-      {onBack && !(onlineHub && phase === 'menu' && !estreito && !recovering) && (
+      {onBack && !(ownerAccount&&!nbaSala&&phase==='waiting') && !(onlineHub && phase === 'menu' && !estreito && !recovering) && (
         <button onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
           <span className="text-xl leading-none">←</span> Home

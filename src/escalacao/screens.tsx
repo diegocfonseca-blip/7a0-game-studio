@@ -1,3 +1,4 @@
+import {useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
 import {careerVisualV2,CareerVisualProvider} from './career-visual-v2'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
@@ -933,8 +934,9 @@ export function GameFooter() {
 }
 
 export function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
+  const ownerVisual=useOwnerLayout()
   return (
-    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
+    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, ...(ownerVisual?{color:INK}:{}), boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
       {children}
     </div>
   )
@@ -992,6 +994,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
+  const ownerVisual = useOwnerOnlineVisual(state)
   const visualV2 = careerVisualV2(state)
   const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
@@ -1038,15 +1041,15 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const matchDesktop = desktopWidth && state.sport !== 'basquete' && ['season','liberta','champions'].includes(state.screen)
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
-    <CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
-    <div className={`min-h-screen pb-16 palco ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
-      {(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
+    <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
+    <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+      {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
         <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
           {isReserveAuction && (
             <p className="text-center text-[10px] font-black uppercase tracking-wide mb-1.5" style={{ ...OSWALD, color: PURPLE }}>{reserveLabel}</p>
           )}
-          {auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={state.phase === 'pregao' ? undefined : <CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
+          {!ownerVisual&&auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={state.phase === 'pregao' ? undefined : <CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
           {bar}
         </div>
       )}
@@ -1101,7 +1104,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
         </div>
       )}
     </div>
-    </MobileAuctionHeaderContext.Provider></CareerVisualProvider>
+    </MobileAuctionHeaderContext.Provider></CareerVisualProvider></OwnerOnlineProvider>
   )
 }
 
@@ -6730,6 +6733,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
+  const ownerVisual=useOwnerLayout()
   // 💳 o 2D vem junto do Manual (o mesmo direito): conferido aqui, lembrado no aparelho (`marcaPago2D`)
   const pagou2d = useTem2D() // 05/11: do ⭐ Craque Salas pra cima (o Manual é só do Completo pra cima)
   const temDireito = pagou2d || !!state.careerOnline // 🏆 07/11: na carreira o 2D é de graça (o Manual segue pago)
@@ -6749,6 +6753,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
       </button>
     )} />
   )
+  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={ligado?'campo':'placar'} onChange={e=>{if((e.target.value==='campo')!==ligado)trocaCampo2D()}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo">{t('Campo 2D','2D pitch')}</option></select></label></OwnerSlot>
   return (
     <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
       {ligado ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
@@ -6775,10 +6780,12 @@ export function TrocaCampo2DSala() {
 /** o desenho do botão (separado pra bancada `scripts/teste-troca-2d` mostrar os 3 estados sem conta logada) */
 export function TrocaCampo2DVisual({ agora, pendente, podeLigar, onTroca }: { agora: boolean; pendente: boolean; podeLigar: boolean; onTroca: (on: boolean) => void }) {
   const t = useT()
+  const ownerVisual=useOwnerLayout()
   const alvo = pendente ? !agora : agora // o que vai valer no próximo jogo
   if (!agora && !alvo && !podeLigar) return null // sala rápida e dono sem o 2D: nada a oferecer
   const quer = !alvo // apertar leva pro outro lado do que vai valer
   const podeApertar = !quer || podeLigar || pendente // ligar exige o 2D liberado; desmarcar/voltar pro rápido, sempre
+  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={alvo?'campo':'placar'} onChange={e=>{const on=e.target.value==='campo';if(on!==alvo&&(!on||podeLigar||pendente))onTroca(on)}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo" disabled={!podeLigar&&!agora}>{t('Campo 2D','2D pitch')}</option></select>{pendente&&<small>{t('Marcado para o próximo jogo','Scheduled for the next match')}</small>}</label></OwnerSlot>
   return (
     <div style={{ marginBottom: 8 }}>
       <button onClick={() => podeApertar && onTroca(quer)} disabled={!podeApertar}
@@ -6802,6 +6809,7 @@ export function SimControls(props: { manual: boolean; onToggle: () => void; onNe
 }
 function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerLayout()
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
@@ -6811,6 +6819,7 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   if (lock) return <>{lock}</>
   // ⏩📺 05/11: teste "sem botão Manual" (Partida Rápida com 2D, conta do Diego) — some o Manual, fica o automático 2×
   if (r2d.semManual) return <p style={{ margin: '0 0 8px', textAlign: 'center', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>{t('⚡ Automático 2× · sem botão Manual', '⚡ Auto 2× · no Manual button')}</p>
+  if(ownerVisual) return <OwnerPlayback manual={manual} onToggle={onToggle} speed={c2dCtl?c2dCtl.cur:state.simSpeed??1} onSpeed={v=>{if(c2dCtl)c2dCtl.set(v);else dispatch({type:'SET_SIM_SPEED',speed:v})}} opts={c2dCtl?.opts} canNext={canNext} onNext={onNext} onSkip={onSkip} nextLabel={nextLabel}/>
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return <>
     <OnlineRhythm manual={manual} onToggle={onToggle} speed={c2dCtl ? c2dCtl.cur : state.simSpeed ?? 1} onSpeed={speed => { if (c2dCtl) c2dCtl.set(speed); else dispatch({ type: 'SET_SIM_SPEED', speed }) }} opts={c2dCtl?.opts} />
     {manual && <div className="ll25-actions">
@@ -7169,6 +7178,7 @@ export function EscSeason() {
   const [dirCol, setDirCol] = useState<HTMLDivElement | null>(null)
   useTitulosNaHora() // 🏆 18/10: campeão apareceu = título e carta contam na hora (mesmo que a sala pare antes do fim)
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerOnlineVisual(state)
   // 🎬 VISUAL DE TRANSMISSÃO APROVADO (21/09): agora é público no online
   // normal de futebol. Carreira online e basquete continuam com suas peles próprias.
   const cinemaPreview = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete'
@@ -7637,7 +7647,7 @@ export function EscSeason() {
       </div>
     }>
       {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
-      {desk2 && <div className="ll-dir"><div className="ll-dir-in" ref={setDirCol} /></div>}
+      {desk2 && <div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setDirCol} /></div>}
       {faixaProxAtiva && <FaixaProximaCompeticao lista={proximasCompeticoes(copasDaSala)} />}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →
@@ -7966,7 +7976,7 @@ export function EscSeason() {
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
             {myTie && (!privateVisual || visualTab === 'jogos') && naDireita(
-              <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
+              ownerVisual ? <OwnerTactics value={myTactic} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg="#fff" className="p-4 space-y-3" shadow={4}>
                 <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{enS ? `🎯 Your tactic ${libS ? 'in the Libertadores' : 'in the Cup'}` : `🎯 Sua tática ${libS ? 'na Libertadores' : 'na Copa'}`}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
@@ -7981,7 +7991,7 @@ export function EscSeason() {
                     equilíbrio…". Palavras dele: *"não precisa escrever o que é retranca,
                     equilíbrio e ataque, só bote"*. Ele mexe na tática toda rodada — a
                     explicação virou ruído fixo na tela. A regra continua a mesma no jogo. */}
-              </Box>
+              </Box>)
             )}
             {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && naDireita(
               <div className={privateVisual ? 'll26-phase-matches' : undefined}>
@@ -8124,7 +8134,7 @@ export function EscSeason() {
       )}
 
       {fixture && opp && naDireita(
-        <Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
+        ownerVisual ? <OwnerTactics value={myTactic} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
           {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
               De manhã (18/09) eles viraram uma PÍLULA que abria no toque, a pedido
               dele (*"tem que diminuir esse modal aí de equilíbrio, ataque, defesa nos
@@ -8169,11 +8179,11 @@ export function EscSeason() {
           {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
               progresso + o textão "temporada rolando sozinha" (decorativo, a
               Copa nunca teve isso e ficava mais poluído aqui). */}
-        </Box>
+        </Box>)
       )}
 
       {/* 🆚 08/11: PRATELEIRA DE RIVALIDADES (mockup aprovado) — próximo encontro com um AMIGO + retrospecto contra cada amigo da sala */}
-      {retroOn && !copaLive && (() => {
+      {retroOn && (!copaLive||ownerVisual) && (() => {
         const amigos: AmigoRival[] = state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => ({ m, uid: uidDo(m.id) })).filter((x): x is { m: typeof x.m; uid: string } => !!x.uid && x.uid !== meuUidRetro)
           .map(({ m, uid }) => ({ uid, nome: m.name, time: m.teamName || m.name, temporada: (() => { const r = rivalryOf(state.rivalries, you.id, m.id); return { w: r.w, d: r.d, l: r.l } })(), id: m.id }))
         if (amigos.length === 0) return null
@@ -8185,7 +8195,7 @@ export function EscSeason() {
           const amigo = amigos.find(a => (a as AmigoRival & { id: number }).id === oppId)
           if (amigo) proximo = { amigo, rodada: r + 1, daqui: r - state.round }
         }
-        return naDireita(<PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />)
+        return naDireita(<section className={ownerVisual?'ov3-rivalries':undefined}><PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} /></section>)
       })()}
 
       {/* 📋 08/11: LIGA DRAFT — o caminho até a próxima temporada + ⭐ favoritos (mockup aprovado). Só mostra; a ordem é a da tabela (campeão primeiro). */}
@@ -8628,6 +8638,7 @@ function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }
 }
 export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean; exemplos?: AnuncioGiro[]; mb?: number; /** o telão que mora EMBAIXO do campinho 2D */ doCampo?: boolean }) {
   // 📺 com o campinho 2D na tela, o telão é o dele (embaixo do jogo); o da página some — nunca dois
+  const ownerVisual=useOwnerLayout()
   const campoNaTela = useCampoNaTela()
   const escondido = !doCampo && !exemplos && campoNaTela
   // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
@@ -8643,12 +8654,12 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
     return () => clearInterval(iv)
   }, [])
   const idx = slot % itens.length
-  const ad = itens[idx]
+  const ad = ownerVisual ? {...itens[idx],foto:undefined} : itens[idx]
   const { marca, oferta } = partesDoAnuncio(ad.texto)
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   if (escondido) return null
   return (
-    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
+    <OwnerSlot name="ad"><div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
       <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
 .placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
 .placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}
@@ -8686,7 +8697,7 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
         </>}
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
-    </div>
+    </div></OwnerSlot>
   )
 }
 
@@ -9179,6 +9190,7 @@ export function EscLiberta() {
   const LB = useT() // 🌐 BR/EN
   const enL = getLang() === 'en'
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerOnlineVisual(state)
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [groupView, setGroupView] = useState<'meu' | 'todos'>(()=>typeof window!=='undefined'&&window.innerWidth>=1100?'meu':'todos')
   const continentalDesk=useDesktopNovo()
@@ -9293,7 +9305,7 @@ export function EscLiberta() {
         )}
       </div>
     }>
-      {continentalDesk&&<div className="ll-dir"><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
+      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
 {privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? LB('Grupos encerrados', 'Groups over') : LB(`Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`, `Group stage · round ${Math.max(1, lb.rodada)}/6`)} detail={LB('32 clubes · 8 grupos · os dois primeiros avançam às oitavas', '32 clubs · 8 groups · the top two reach the round of 16')} status={meuTime ? LB(`Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}`, `Your club is in group ${GRUPO_LETRA[meuGrupo]}`) : LB('Acompanhe os clubes classificados da sala', 'Follow the room\'s qualified clubs')} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
         <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{LB('🌎 LIBERTADORES · FASE DE GRUPOS', '🌎 LIBERTADORES · GROUP STAGE')}</p>
@@ -9349,7 +9361,7 @@ export function EscLiberta() {
         const classico = humano(oppId)
         const minhaTatica = state.tactics[you.id] ?? 'equilibrio'
         return (
-          <Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
+          ownerVisual ? <OwnerTactics value={state.tactics[you.id]??'equilibrio'} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
             <div className="ll-linha-tatica">
               <p className="font-black text-[10px] uppercase tracking-[1.4px] text-black/45" style={OSWALD}>
                 {classico ? LB('🔥 Clássico', '🔥 Derby') : LB('Próximo jogo', 'Next match')} · {prox[0] === you.id ? LB('em casa', 'home') : LB('fora', 'away')}
@@ -9367,7 +9379,7 @@ export function EscLiberta() {
                 </button>
               ))}
             </div>
-          </Box>
+          </Box>)
         )
       })()}
 
@@ -9476,6 +9488,7 @@ export function EscChampions() {
   const { state, dispatch } = useEsc()
   const T = useT()
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerOnlineVisual(state)
   // 🎨 "TUDO IGUAL" (Diego 25/09: *"visual segue padrões do q já tem nos modo hj seja
   // placar botões cores tabelas… outros jogos e tudo mais"*). Esta tela é montada com
   // as MESMAS peças e na MESMA ordem da tela da liga (`EscSeason`): barra do topo com
@@ -9675,7 +9688,7 @@ export function EscChampions() {
         {minhaPos > 0 && <span className="font-black text-sm" style={OSWALD}>{ordinal(minhaPos, getLang() === 'en' ? 'en' : 'pt')} · {tabela[minhaPos - 1]?.pts ?? 0} pts</span>}
       </div>
     }>
-      {continentalDesk&&<div className="ll-dir"><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
+      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
       {/* ⭐ o MESMO palco cinematográfico da Copa do Mundo e da Liberta */}
       <CompetitionStage kind="champions" title="CHAMPIONS LEAGUE" phase={ch.rodada === 0 && ch.fase === 'tabela' ? T('A tabela de 36', 'The table of 36') : fase}
         // 🚪 nos PORTÕES o próprio banner é o que separa as fases (um teatro só na tela):
@@ -9753,7 +9766,7 @@ export function EscChampions() {
           const oppId = proximo[0] === you.id ? proximo[1] : proximo[0]
           const classico = humanoId(oppId)
           return (
-            <Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
+            ownerVisual ? <OwnerTactics value={state.tactics[you.id]??'equilibrio'} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
               <div className="ll-linha-tatica">
                 <p className="font-black text-[10px] uppercase tracking-[1.4px] text-black/45" style={OSWALD}>
                   {classico ? T('🔥 Clássico', '🔥 Derby') : T('Próximo jogo', 'Next match')} · {proximo[0] === you.id ? T('em casa', 'home') : T('fora', 'away')}
@@ -9771,7 +9784,7 @@ export function EscChampions() {
                   </button>
                 ))}
               </div>
-            </Box>
+            </Box>)
           )
         })()}
 
@@ -12226,6 +12239,7 @@ function BafoCascata() {
 export function EscEnd() {
   const { state, dispatch, kickPlayer } = useEsc()
   const previewEnd = useOnlinePreview()
+  const ownerVisual=useOwnerOnlineVisual(state)
   const privateEnd = (previewEnd || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [manualPref] = useSimMode()
   const [streamManual] = useStreamSimMode()
@@ -12672,6 +12686,7 @@ export function EscEnd() {
   return (
     <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
       {festaNode}
+      {ownerVisual&&!semLiga&&<OwnerChampionBanner title={LE('Liga Legends','Liga Legends')} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={`${champ.pts} ${LE('pontos','points')}`}/>}
       <RankResultWriter />
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
           Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}

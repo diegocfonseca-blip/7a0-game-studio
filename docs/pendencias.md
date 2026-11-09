@@ -1,3 +1,11 @@
+## 🎨 09/11 — Online e Partida Rápida: prévia privada aprovada
+
+- Diego aprovou os mockups de todas as competições para desktop e celular e autorizou publicar **somente na conta principal**. A ativação usa o e-mail retornado por `auth.getUser()`, no cache já existente. A segunda conta de testes e o público conservam a apresentação anterior; o flag não entra no estado da sala.
+- Últimas decisões: **Velocidade** em vez de Ajustes; Manual/Auto e ritmo no diálogo; tática em linha própria; Próxima rodada principal e Pular secundário; telão somente texto abaixo dos controles. O placar termina na narração, com autores dos gols acima. Campo 2D e cena de gol mantêm dimensões nativas.
+- Liga, Liga da Turma, Liga Draft, leilões, Copa dos 8, Libertadores, Champions, relâmpago, Mundo, Euro e três regionais usam a mesma apresentação. Campeão maior com troféu da competição, escudo, lendas do elenco real e mascote quando cadastrado. Todos os confrontos continuam na lista, inclusive o do usuário.
+- Não modifica motor, resultado, relógios sincronizados, host, prêmios, planos, banco ou regras de acesso ao mapa/2D/3D. Os callbacks e as travas existentes continuam responsáveis pelas ações.
+- Entrega e validação: [online-privado-aprovado-20261109.md](online-privado-aprovado-20261109.md). Sem novidade pública: é uma prévia privada.
+
 ## 🎽 09/11 — Loja "Seu clube": mantos (1ª/2ª camisa), mascote, escudo e entrada de gala (FEITO no branch, esperando publicar)
 - Mockup aprovado (`scripts/mockups/loja-mantos-mascote-gala.png`, *"pode aprovar tudo já"*). Preços: camisa R$ 9,90 cada · as duas
   R$ 14,90 · mascote R$ 29,90 · escudo R$ 19,90 (escolhi eu, ele não deu número) · gala R$ 49,90. 🔒 Gala SÓ com mascote (banco devolve preço nulo).

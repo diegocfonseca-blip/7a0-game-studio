@@ -1,3 +1,4 @@
+import {OwnerPrimary} from './owner-online-visual'
 import { careerVisualV2, CareerVisualProvider, CareerBrand, CareerHeading, CareerMarketSteps, CareerSection, CareerSectionLinks, CareerBalance, useCareerVisualV2 } from './career-visual-v2'
 import { climaDoJogo } from './campo2d-clima'
 import { expectativaBotsCarreira } from './calibracao-bots-carreira'
@@ -3299,7 +3300,13 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
 // ⚔️ 25/10 (Diego, carreira organizada): o que vai LOGO EMBAIXO DOS GOLS no placar (a tática, na aba Jogos + Tabela). Quem
 // monta o placar não precisa saber de nada — quem quer pôr algo ali só embrulha o placar neste contexto.
 export const AbaixoDosGolsCtx = createContext<ReactNode>(null)
-export function LiveScoreCard({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
+export function LiveScoreCard(props: Parameters<typeof LiveScoreCardBody>[0]) {
+  const {state}=useEsc(),club=state.managers[state.youIdx]?.teamName
+  const field=useCampo2DLigado()
+  const mine=!!club&&!props.neutro&&[props.homeName,props.awayName,props.homeOwner,props.awayOwner].includes(club)
+  return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props}/></OwnerPrimary>
+}
+function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
   { /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
