@@ -85,3 +85,25 @@
  background:#d4d9ce!important;color:#4d5545!important;box-shadow:none!important;cursor:not-allowed;
 }
 #root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start):disabled span{color:#4d5545!important}
+/* Invitation actions belong to the room heading, next to its single room code. */
+.ow-heading{border-radius:14px;overflow:hidden;background:linear-gradient(90deg,#08130eeb,#08130e99),url('./img/online-estadio-v25.webp') center 48%/cover}
+#root .ov3-waiting .ow-heading .ll-wait-heading{min-height:110px;padding:20px 22px 12px!important;border:0;background:transparent!important;border-radius:0}
+#root .ov3-waiting .online-invite.ow-invite-inline{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0 22px 18px!important;background:transparent!important;border:0!important;border-radius:0;box-shadow:none!important;color:#f4ecd6}
+#root .ov3-waiting .online-invite.ow-invite-inline>*{margin:0!important}
+#root .ov3-waiting .online-invite.ow-invite-inline .ow-invite-actions{flex:0 1 auto;min-width:0}
+#root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions>button,
+#root .ov3-waiting .online-invite.ow-invite-inline>button{width:auto;min-height:44px;padding:7px 11px!important;font:700 12px/1.25 Oswald,sans-serif!important;text-transform:none;box-shadow:none;background:#f4ecd6;color:#0c0c0c;border:1px solid #a9b39b;border-radius:8px}
+#root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions>button{background:transparent;color:#f4ecd6}
+.ow-invite-password{order:3;flex-basis:100%;text-align:right;font:11px/1.5 Arial,sans-serif}
+.ow-invite-password>summary{cursor:pointer;min-height:32px;color:#d9e3cd}
+#root .ov3-waiting .ow-invite-password>div{background:#f4ecd6!important;color:#0c0c0c;text-align:left;margin-top:8px}
+#root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-status{order:4;flex-basis:100%;color:#d9e3cd!important;font:700 11px/1.5 Arial,sans-serif;text-align:right}
+.ow-aside:empty{display:none}.ow-grid:has(>.ow-aside:empty){grid-template-columns:minmax(0,1fr)}
+@media(max-width:760px){
+ #root .ov3-waiting .ow-heading .ll-wait-heading{min-height:104px;padding:16px 14px 10px!important}
+ #root .ov3-waiting .online-invite.ow-invite-inline{padding:0 14px 14px!important;gap:7px;justify-content:stretch}
+ #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions,
+ #root .ov3-waiting .online-invite.ow-invite-inline>button{flex:1 1 0;min-width:0}
+ #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions>button{width:100%}
+ #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-status{text-align:left}
+}

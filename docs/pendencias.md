@@ -13027,3 +13027,7 @@ Os prints do Diego revelaram creme sobre branco em pacotes, lances e lendas, al�
 ### 09/11 — Código repetido, início do pregão e faixas da liga (prévia privada)
 
 Atendidos os novos prints do Diego: só um código grande na espera; botão de início destacado independente do tema branco/prata; retirada da notícia de entrada no G4/G8 e da faixa “A Liga Lendária” na conta principal. Controles de convite, mascote e permissões de começo preservados. Validação direcionada e capturas em `docs/ajustes-espera-e-faixas-privadas-20261109.md`; confirmação de publicação acompanhada separadamente.
+
+### 09/11 — Convites compactos junto do código (prévia privada)
+
+Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do código. Retirada a seção separada. Campo de senha das ligas fica recolhido; copiar código continua no próprio código. Apenas a conta principal recebe o ajuste. Build, isolamento, 11 casos de layout e duas conferências funcionais passaram; detalhes em `docs/convites-no-cabecalho-privado-20261109.md`.

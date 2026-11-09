@@ -48,7 +48,7 @@ export function OwnerWaitingLayout({children,canTheme,chatEnabled,hasRules}:{chi
  const theme=useRef<HTMLDetailsElement>(null)
  const showTheme=()=>{if(!theme.current)return;theme.current.open=true;theme.current.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});theme.current.querySelector('summary')?.focus()}
  return <div className="ow-layout">
-  <WaitingTarget name="wait-heading"/>
+  <header className="ow-heading"><WaitingTarget name="wait-heading"/><WaitingTarget name="wait-invite"/></header>
   <div className="ow-grid">
    <main className="ow-main">
     <WaitingTarget name="wait-people"/>
@@ -59,7 +59,6 @@ export function OwnerWaitingLayout({children,canTheme,chatEnabled,hasRules}:{chi
     </section>}
    </main>
    <aside className="ow-aside">
-    <WaitingTarget name="wait-invite"/>
     {hasRules&&<section className="ow-rules"><h2>{tr('REGRAS COMBINADAS','ROOM RULES')}</h2><WaitingTarget name="wait-rules"/></section>}
     {canTheme&&<details ref={theme} className="ow-themes"><summary>{tr('PERSONALIZE A SALA','PERSONALIZE THE ROOM')}<span aria-hidden="true">＋</span></summary><WaitingTarget name="wait-themes"/></details>}
    </aside>

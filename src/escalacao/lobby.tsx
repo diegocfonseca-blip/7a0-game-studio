@@ -5295,24 +5295,8 @@ export function EscLobby() {
     //     no celular, mais de uma tela de rolagem. Quem não rolou, não achou.
     //   · RÁPIDA → onde sempre esteve. Lá o código já basta e a tela é curta.
     const ehLigaSala = room.game_state?.mode === 'liga'
-    const caixaConvite = (
-      <OwnerSlot name="wait-invite"><div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>
-        {/* Na prévia privada o cabeçalho já exibe o código; o botão compacto de copiar fica abaixo. */}
-        {/* 🔑 08/11 (live do Reffatti): o CÓDIGO grande, à vista — quem está do outro lado da live digita lendo da tela */}
-        {(!ownerAccount || nbaSala) && <button onClick={() => copyCode(room.code)} className="w-full rounded-xl border-[3px] border-black bg-white text-black px-2 py-1.5 active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}
-          aria-label={tr('Copiar código', 'Copy code')}>
-          <span className="block text-[9px] font-black uppercase tracking-wider text-black/55" style={OSWALD}>{tr('Código da sala · toque pra copiar', 'Room code · tap to copy')}</span>
-          <span className="block font-black text-[30px] leading-none tracking-[4px]" style={OSWALD}>{room.code}</span>
-        </button>}
-        <p className="text-white/80 text-[11px] font-medium leading-snug">
-          {tr('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — whoever has an account lands straight in the room; whoever doesn\'t signs up and ends up here.')}
-        </p>
-        {/* 🔒 a senha entra NO CONVITE, e só. Ninguém consegue LER a senha da liga
-            (o banco guarda ela embaralhada), então o dono escreve aqui qual é pra
-            ela viajar junto com o código. Nada fica guardado: fechou a tela,
-            sumiu. Esqueceu qual era? Troca em "🏆 Minhas ligas › ✏️ Editar". */}
-        {ehLigaSala && isHost && (
+    const conviteCompacto = ownerAccount && !nbaSala
+    const conviteSenha = ehLigaSala && isHost ? (
           <div className="rounded-xl border-2 border-black px-2.5 py-2" style={{ background: 'rgba(255,255,255,.14)' }}>
             <p className="text-white/70 text-[9px] font-black uppercase tracking-wider" style={OSWALD}>{tr('🔒 senha da liga (vai junto no convite)', '🔒 league password (goes with the invite)')}</p>
             <input value={convitePw} maxLength={24} onChange={e => setConvitePw(e.target.value)}
@@ -5322,17 +5306,35 @@ export function EscLobby() {
               {getLang() === 'en' ? <>Without the password your friend hits a locked door. Forgot it? Change it in <b>🏆 My leagues › ✏️ Edit</b>.</> : <>Sem a senha o amigo bate na porta trancada. Esqueceu qual é? Troque em <b>🏆 Minhas ligas › ✏️ Editar</b>.</>}
             </p>
           </div>
-        )}
-        <div className="flex gap-2">
+        ) : null
+    const caixaConvite = (
+      <OwnerSlot name="wait-invite"><div className={`online-invite rounded-2xl border-[3px] border-black p-3 space-y-2${conviteCompacto ? ' ow-invite-inline' : ''}`} style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+        {!conviteCompacto && <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>}
+        {/* Na prévia privada o código e a ação de copiar ficam só no cabeçalho. */}
+        {/* 🔑 08/11 (live do Reffatti): o CÓDIGO grande, à vista — quem está do outro lado da live digita lendo da tela */}
+        {(!ownerAccount || nbaSala) && <button onClick={() => copyCode(room.code)} className="w-full rounded-xl border-[3px] border-black bg-white text-black px-2 py-1.5 active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}
+          aria-label={tr('Copiar código', 'Copy code')}>
+          <span className="block text-[9px] font-black uppercase tracking-wider text-black/55" style={OSWALD}>{tr('Código da sala · toque pra copiar', 'Room code · tap to copy')}</span>
+          <span className="block font-black text-[30px] leading-none tracking-[4px]" style={OSWALD}>{room.code}</span>
+        </button>}
+        {!conviteCompacto && <p className="text-white/80 text-[11px] font-medium leading-snug">
+          {tr('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — whoever has an account lands straight in the room; whoever doesn\'t signs up and ends up here.')}
+        </p>}
+        {/* 🔒 a senha entra NO CONVITE, e só. Ninguém consegue LER a senha da liga
+            (o banco guarda ela embaralhada), então o dono escreve aqui qual é pra
+            ela viajar junto com o código. Nada fica guardado: fechou a tela,
+            sumiu. Esqueceu qual era? Troca em "🏆 Minhas ligas › ✏️ Editar". */}
+        {conviteSenha && (conviteCompacto ? <details className="ow-invite-password"><summary>{tr('🔒 Incluir senha no convite', '🔒 Include password in invite')}</summary>{conviteSenha}</details> : conviteSenha)}
+        <div className="ow-invite-actions flex gap-2">
           <button onClick={() => shareInvite(room.code, room.game_state?.roomName, ehLigaSala ? { at: (room.game_state as GS)?.ligaAt, senha: convitePw } : undefined)}
             className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
             {tr('📤 Compartilhar convite', '📤 Share invite')}
           </button>
-          <button onClick={() => copyCode(room.code)}
+          {!conviteCompacto && <button onClick={() => copyCode(room.code)}
             className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
             aria-label={tr('Copiar código', 'Copy code')}>
             📋
-          </button>
+          </button>}
         </div>
         {amigosOn && (
           <button onClick={() => setVerAmigos(true)}
@@ -5342,7 +5344,7 @@ export function EscLobby() {
         )}
         {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
         {shareOk && (
-          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
+          <p className="ow-invite-status text-white text-[11px] font-black text-center" style={OSWALD}>
             ✓ {shareOk === 'code' ? tr('Código copiado', 'Code copied') : ehLigaSala ? tr('Convite copiado — cola no zap', 'Invite copied — paste it in the chat') : tr('Link copiado — cola no zap', 'Link copied — paste it in the chat')}
           </p>
         )}
