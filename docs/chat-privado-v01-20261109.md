@@ -20,3 +20,7 @@ Bancada nativa com Supabase substituído apenas no build de teste; nenhum envio 
 - Larguras de 320, 393, 760, 1099 e 1440 px; campo 2D mantém as dimensões ao abrir o chat. Teste de teclado usa visualViewport simulado no Chromium, sem substituir validação em aparelho físico.
 - Segunda conta e outro usuário mantêm a tela anterior. `node scripts/testa-online-visual-privado.mjs` aprovado.
 - Build de produção e publicação registrados na entrega; sem novidade pública, por ser prévia privada.
+
+## Nova publicação solicitada
+
+Duas tentativas ficaram em `syncing_files` até o cancelamento automático do `actions/deploy-pages@v4` aos 10 minutos. O action admite prazo em milissegundos; a publicação passa a aguardar até 30 minutos, com job limitado a 35. A alteração é somente no fluxo de publicação e não modifica acesso à prévia privada, jogos ou retenção das versões anteriores. Confirmar sucesso de Pages antes de anunciar que entrou no ar.
