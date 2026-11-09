@@ -1,3 +1,9 @@
+## 🎨 09/11 — Complemento da espera privada e rodapé geral
+
+- Diego mostrou a espera antiga como convidado. Faltava implementar o corpo aprovado e incluir o GameFooter externo na conferência. Corrigidos os painéis, convite/regras, provocações/áudios, mascote visível também no celular, temas e Loja no rodapé.
+- Continua somente na conta principal. Convidado conserva as permissões originais; público/segunda conta mantêm o visual atual. Nenhuma alteração de banco, RPC, motor ou regra de início.
+- Detalhes e validação: [correcao-espera-privada-20261109.md](correcao-espera-privada-20261109.md). Conferir a composição completa do aplicativo, incluindo o rodapé fora do Router, antes de anunciar fidelidade de uma tela.
+
 ## 🎨 09/11 — Online e Partida Rápida: prévia privada aprovada
 
 - Diego aprovou os mockups de todas as competições para desktop e celular e autorizou publicar **somente na conta principal**. A ativação usa o e-mail retornado por `auth.getUser()`, no cache já existente. A segunda conta de testes e o público conservam a apresentação anterior; o flag não entra no estado da sala.

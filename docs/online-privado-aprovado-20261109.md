@@ -28,6 +28,10 @@ Diego pediu a classificação acima das rivalidades no desktop e o indicador dis
 
 Os pontos de integração abrangem Liga Legends, Liga da Turma, Liga Draft, leilões (envelope, Tocaia, pregão e envelope único), Copa dos 8, Libertadores, Champions (incluindo repescagem), mata-mata relâmpago, Copa do Mundo, Eurocopa e Rio–São Paulo, Sul–Minas–Paraná e Nordeste. As taças mantêm suas identidades próprias. Não altera seleção de cartas, regras dos campeonatos, simulação ou pagamentos.
 
+## Complemento da espera
+
+A imagem enviada depois da publicação revelou que a sala de espera estava incompleta e o rodapé geral ainda trazia o apoio antigo. A matriz anterior verificava componentes e etapas, sem comprovar a fidelidade do corpo inteiro dessa sala ou incluir o rodapé externo. Correção e nova bancada: [correcao-espera-privada-20261109.md](correcao-espera-privada-20261109.md).
+
 ## Validação
 
 - `node scripts/testa-online-visual-privado.mjs`: isolamento de conta, troca de sessão, erro de autenticação, resposta atrasada e escopo. Passou.

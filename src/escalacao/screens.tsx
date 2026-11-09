@@ -1,4 +1,4 @@
-import {useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
+import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
 import {careerVisualV2,CareerVisualProvider} from './career-visual-v2'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
@@ -82,7 +82,7 @@ import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { EscalacaoMinha } from './minha-escalacao' // 📋🏆 Minha Liga Draft (01/11)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
-import { useOnlinePreview } from './online-preview'
+import { useOnlinePreview, useOwnerPresentation } from './online-preview'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
 import { useLegendPresentation } from './presentation-release'
@@ -878,15 +878,29 @@ export function ChatWidget() {
 export function GameFooter() {
   const { state, dispatch } = useEsc()
   const privatePreview = useOnlinePreview()
+  const ownerAccount = useOwnerPresentation()
   // 🛟 SAÍDA DE EMERGÊNCIA: o rodapé é a ÚNICA coisa que continua na tela mesmo se
   // uma tela renderizar vazia (troca de fase, estado incompleto, save travado). Um
   // link discreto aqui garante que NINGUÉM fica preso num "tela em branco" — volta
   // pro início e limpa o save da partida em andamento (pra o refresh não recarregar
   // o mesmo estado ruim). Só aparece fora do início (lá já é o próprio início).
   const canEscape = state.screen !== 'intro'
+  const goHome = () => {
+    if (!window.confirm(tr('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.', 'Back to the home screen? If you got stuck on a blank screen, this fixes it. A match in progress (on this screen) will be ended.'))) return
+    try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
+    dispatch({ type: 'GO_LOBBY' }) // volta pro início (e libera a vaga se estiver online)
+  }
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
   if (privatePreview && state.careerIntent && state.screen === 'setup') return null
+  // The private lobby supplies its own shop card. Keep contact here, outside
+  // Router, without reviving the legacy support banner underneath it.
+  if (ownerAccount && state.sport !== 'basquete' && (state.screen === 'lobby' || ownerOnlineScope(state))) return <footer className="ow-contact-footer">
+    {state.screen!=='lobby'&&<div className="ow-footer-links"><button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><LojaButton className="ow-footer-shop-link">{tr('Loja do clube','Club shop')} →</LojaButton></div>}
+    <p>{tr('Achou um bug ou tem uma ideia? Fala comigo:', 'Found a bug or got an idea? Talk to me:')}</p>
+    <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">@leilaolegendscom</a>
+    <a href="mailto:contato@leilaolegends.com">contato@leilaolegends.com</a>
+  </footer>
   // No lobby, a navegação já está acima — então aqui fica só o apoio compacto da
   // home, sem repetir assinatura nem a saída de emergência.
   // 📬 MAS O CONTATO VOLTA (Diego 21/09): *"esse mesmo texto sutil falando do
@@ -906,11 +920,7 @@ export function GameFooter() {
       <ApoieButton trigger={open => <SupportFooter onOpen={open} />} />
     </footer>
   )
-  const goHome = () => {
-    if (!window.confirm(tr('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.', 'Back to the home screen? If you got stuck on a blank screen, this fixes it. A match in progress (on this screen) will be ended.'))) return
-    try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
-    dispatch({ type: 'GO_LOBBY' }) // volta pro início (e libera a vaga se estiver online)
-  }
+
   return (
     <div className="game-contact-footer" style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
       <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">

@@ -8,6 +8,7 @@ import logo from './img/logo-ll.webp'
 import stadium from './img/online-estadio-v25.webp'
 import {legendAvatar} from './legend-avatars'
 import './owner-online-visual.css'
+import './owner-waiting.css'
 
 /** Local presentation only. Never serialized into EscState or a room payload. */
 export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;screen?:string}){
@@ -15,18 +16,18 @@ export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;care
 }
 export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0]){const owner=useOwnerPresentation();return owner&&ownerOnlineScope(state)}
 
-type Slot='view'|'tactic'|'controls'|'ad'|'tabs'|'room'
+type Slot='view'|'tactic'|'controls'|'ad'|'tabs'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
 type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>
-type Layout={state?:OwnerState;enabled:boolean;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
+type Layout={accountName?:string;state?:OwnerState;enabled:boolean;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
 const noop=()=>{}
 const Context=createContext<Layout>({enabled:false,primary:null,claim:noop,release:noop,target:noop,targets:{}})
-export function OwnerOnlineProvider({enabled,state,children}:{enabled:boolean;state:OwnerState;children:ReactNode}){
+export function OwnerOnlineProvider({enabled,state,accountName,children}:{enabled:boolean;state:OwnerState;accountName?:string;children:ReactNode}){
  const [primary,setPrimary]=useState<string|null>(null),[targets,setTargets]=useState<Targets>({})
  const claim=useCallback((id:string)=>setPrimary(old=>old??id),[])
  const release=useCallback((id:string)=>setPrimary(old=>old===id?null:old),[])
  const target=useCallback((slot:Slot,node:HTMLDivElement|null)=>setTargets(old=>old[slot]===node?old:{...old,[slot]:node}),[])
- const value=useMemo(()=>({state,enabled,primary,claim,release,target,targets}),[state,enabled,primary,claim,release,target,targets])
+ const value=useMemo(()=>({accountName,state,enabled,primary,claim,release,target,targets}),[accountName,state,enabled,primary,claim,release,target,targets])
  return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useOwnerLayout(){return useContext(Context).enabled}
@@ -34,6 +35,36 @@ export function useOwnerState(){return useContext(Context).state}
 export function OwnerSlot({name,children}:{name:Slot;children:ReactNode}){
  const ctx=useContext(Context),target=ctx.targets[name]
  return ctx.enabled&&target?createPortal(children,target):<>{children}</>
+}
+
+/** Moves the existing waiting-room controls, retaining their handlers and permissions. */
+function WaitingTarget({name}:{name:Slot}) {
+ const ctx=useContext(Context)
+ const ref=useCallback((node:HTMLDivElement|null)=>ctx.target(name,node),[ctx.target,name])
+ return <div className={`ow-target ow-${name}`} ref={ref}/>
+}
+export function OwnerWaitingLayout({children,canTheme,chatEnabled,hasRules}:{children:ReactNode;canTheme:boolean;chatEnabled:boolean;hasRules:boolean}) {
+ const theme=useRef<HTMLDetailsElement>(null)
+ const showTheme=()=>{if(!theme.current)return;theme.current.open=true;theme.current.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});theme.current.querySelector('summary')?.focus()}
+ return <div className="ow-layout">
+  <WaitingTarget name="wait-heading"/>
+  <div className="ow-grid">
+   <main className="ow-main">
+    <WaitingTarget name="wait-people"/>
+    <WaitingTarget name="wait-start"/>
+    {(chatEnabled||canTheme)&&<section className="ow-climate"><h2>{tr('O CLIMA DA SALA','THE ROOM ATMOSPHERE')}</h2>
+     {chatEnabled&&<details className="ow-banter"><summary>{tr('Provocações e áudios','Banter and audio')}<span aria-hidden="true">＋</span></summary><WaitingTarget name="wait-banter"/></details>}
+     {canTheme&&<button type="button" className="ow-theme-shortcut" onClick={showTheme}>{tr('Trocar tema','Change theme')} →</button>}
+    </section>}
+   </main>
+   <aside className="ow-aside">
+    <WaitingTarget name="wait-invite"/>
+    {hasRules&&<section className="ow-rules"><h2>{tr('REGRAS COMBINADAS','ROOM RULES')}</h2><WaitingTarget name="wait-rules"/></section>}
+    {canTheme&&<details ref={theme} className="ow-themes"><summary>{tr('PERSONALIZE A SALA','PERSONALIZE THE ROOM')}<span aria-hidden="true">＋</span></summary><WaitingTarget name="wait-themes"/></details>}
+   </aside>
+  </div>
+  <div className="ow-extra">{children}</div>
+ </div>
 }
 export function OwnerRoomTarget(){
  const ctx=useContext(Context),ref=useCallback((node:HTMLDivElement|null)=>ctx.target('room',node),[ctx.target])
@@ -64,8 +95,8 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
 }
 
 export function OwnerModalBrand(){
- const {state}=useContext(Context),manager=state?.managers[state.youIdx],perk=myApoioPerk()??APOIO_PERKS.bege
- return <header className="ov3-brand"><div className="ov3-logo"><img src={logo} alt="" width={34} height={34}/><span><b>LEILÃO LEGENDS</b><small>{tr('O SEU TIME COMEÇA NO LANCE.','YOUR TEAM STARTS WITH A BID.')}</small></span></div><span className="ov3-account" style={{marginLeft:'auto',background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{manager?.name??tr('Minha conta','My account')}</span></header>
+ const {state,accountName}=useContext(Context),manager=state?.managers[state.youIdx],perk=myApoioPerk()??APOIO_PERKS.bege
+ return <header className="ov3-brand"><div className="ov3-logo"><img src={logo} alt="" width={34} height={34}/><span><b>LEILÃO LEGENDS</b><small>{tr('O SEU TIME COMEÇA NO LANCE.','YOUR TEAM STARTS WITH A BID.')}</small></span></div><span className="ov3-account" style={{marginLeft:'auto',background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{accountName||manager?.name||tr('Minha conta','My account')}</span></header>
 }
 
 export function OwnerOnlineHeader({name,club,balance,onHome,onRooms,online}:{name:string;club?:string;balance?:ReactNode;onHome:()=>void;onRooms:()=>void;online:boolean}){

@@ -1,5 +1,5 @@
 import {useOwnerPresentation} from './online-preview'
-import {OwnerOnlineHeader} from './owner-online-visual'
+import {OwnerOnlineHeader,OwnerOnlineProvider,OwnerSlot,OwnerWaitingLayout} from './owner-online-visual'
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react'
 import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
@@ -3437,8 +3437,8 @@ export function EscLobby() {
     e.preventDefault(); e.stopPropagation(); pedeConta()
   }
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className={`${ownerAccount&&!nbaSala&&phase==='waiting'?'ov3 ov3-waiting ':''}tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${onlineHub && phase === 'menu' && !estreito && !recovering ? ' ll-online-hub' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
-      {ownerAccount&&!nbaSala&&phase==='waiting'&&<OwnerOnlineHeader name={nameOf()} online onHome={onBack??(()=>setPhase('menu'))} onRooms={()=>{setTab('open');setPhase('menu')}}/>}
+    <OwnerOnlineProvider enabled={ownerAccount&&!nbaSala&&phase==='waiting'} state={escState} accountName={nameOf()}><div className={`${ownerAccount&&!nbaSala&&phase==='waiting'?'ov3 ov3-waiting ':''}tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${onlineHub && phase === 'menu' && !estreito && !recovering ? ' ll-online-hub' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
+      {ownerAccount&&!nbaSala&&phase==='waiting'&&<OwnerOnlineHeader name={nameOf()} online onHome={onBack??(()=>dispatch({type:'GO_LOBBY'}))} onRooms={()=>{setTab('open');setPhase('menu')}}/>}
       {temaSala && <TemaFundo tema={temaSala} />}
       {!(ownerAccount&&phase==='waiting')&&!nbaSala&&!estreito&&!recovering&&!(onlineHub&&phase==='menu')&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
         {label:tr('Salas abertas','Open rooms'),active:tab==='open'&&!showLeagues,onClick:()=>{setRoomError('');setShowLeagues(false);setTab('open')}},
@@ -3452,8 +3452,8 @@ export function EscLobby() {
           <span className="text-xl leading-none">←</span> Home
         </button>
       )}
-      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`} onClickCapture={travaVisitante}>{children}</div>
-    </div>
+      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`} onClickCapture={travaVisitante}>{ownerAccount&&!nbaSala&&phase==='waiting'?<><OwnerWaitingLayout hasRules={room?.game_state?.mode!=='mundo'&&room?.game_state?.mode!=='elenco'} canTheme={isHost&&meusTemas.length>0} chatEnabled={!room?.game_state?.chatOff}>{children}</OwnerWaitingLayout><div className="ow-shop"><OnlineLobbyFooter enabled><button type="button" onClick={()=>dispatch({type:'GO_LOBBY'})}>{tr('← Menu inicial','← Main menu')}</button></OnlineLobbyFooter></div></>:children}</div>
+    </div></OwnerOnlineProvider>
   )
 
   // 👁️ escolheu assistir uma sala: a espera do fantasma (entra sozinho quando a partida estiver rolando)
@@ -5296,7 +5296,7 @@ export function EscLobby() {
     //   · RÁPIDA → onde sempre esteve. Lá o código já basta e a tela é curta.
     const ehLigaSala = room.game_state?.mode === 'liga'
     const caixaConvite = (
-      <div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+      <OwnerSlot name="wait-invite"><div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>
         {/* 🔑 08/11 (live do Reffatti): o CÓDIGO grande, à vista — quem está do outro lado da live digita lendo da tela */}
         <button onClick={() => copyCode(room.code)} className="w-full rounded-xl border-[3px] border-black bg-white text-black px-2 py-1.5 active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}
@@ -5345,7 +5345,7 @@ export function EscLobby() {
             ✓ {shareOk === 'code' ? tr('Código copiado', 'Code copied') : ehLigaSala ? tr('Convite copiado — cola no zap', 'Invite copied — paste it in the chat') : tr('Link copiado — cola no zap', 'Link copied — paste it in the chat')}
           </p>
         )}
-      </div>
+      </div></OwnerSlot>
     )
     // 🗂️ visual novo (só na conta do Diego): os selos das regras da sala numa linha só, lidos do game_state que já está na mão
     const gsSala = (room.game_state as GS & { holandes?: boolean; duplasMode?: boolean; mundoNaLiga?: boolean; regionalNaLiga?: string })
@@ -5369,7 +5369,7 @@ export function EscLobby() {
       : tr('✉️ Às cegas: cada um lacra o lance no envelope e o maior leva no martelo.', '✉️ Sealed bid: everyone seals their bid and the highest wins at the hammer.')
     return wrap(<>
       {salasEspera && (<>
-        <div className="ll-wait-heading flex items-center gap-2.5 pt-1">
+        <OwnerSlot name="wait-heading"><div className="ll-wait-heading flex items-center gap-2.5 pt-1">
           <div className="flex-1 min-w-0">
             <p className="text-white font-black text-[19px] leading-tight truncate" style={OSWALD}>{room.game_state?.roomName ?? tr('Sala', 'Room')}</p>
             <p className="text-white/60 text-[12px] font-bold">{isHost ? tr('você é o dono 👑', 'you are the owner 👑') : tr('você é convidado', 'you are a guest')}</p>
@@ -5379,15 +5379,16 @@ export function EscLobby() {
             <span className="block font-black text-[24px] leading-none text-black" style={{ ...OSWALD, letterSpacing: '.1em' }}>{room.code}</span>
             <span className="block text-[9px] font-black uppercase text-black/50">{tr('toque pra copiar', 'tap to copy')}</span>
           </button>
-        </div>
+        </div></OwnerSlot>
         {selosSala.length > 0 && (
-          <div className="ll-wait-rules rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
+          <OwnerSlot name="wait-rules"><div className="ll-wait-rules rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
             <div className="flex flex-wrap items-center gap-1.5">
               {selosSala.map(x => <span key={x} className="text-[11px] font-black uppercase border-2 border-black rounded-md px-1.5 py-0.5 leading-none" style={{ ...OSWALD, background: '#fff', color: INK }}>{x}</span>)}
+              {ownerAccount&&<span className="text-[11px] font-black border-2 border-black rounded-md px-1.5 py-0.5" style={{...OSWALD,background:'#fff',color:INK}}>{tr('Formação','Formation')}: {gsSala.formation??'4-3-3'}</span>}
               <button onClick={() => setRegrasAbertas(v => !v)} className="ml-auto text-[11.5px] font-black" style={{ color: GOLD, minHeight: 0 }}>{regrasAbertas ? tr('regras ▴', 'rules ▴') : tr('regras ▾', 'rules ▾')}</button>
             </div>
             {regrasAbertas && <p className="text-white/75 text-[12px] font-bold leading-snug mt-2">{regraLonga}</p>}
-          </div>
+          </div></OwnerSlot>
         )}
       </>)}
       {!salasEspera && <div className="online-room-code text-center">
@@ -5427,14 +5428,14 @@ export function EscLobby() {
           🖼️ 29/10 (mockup `tema-sala-achar.png`): em DOURADO, com a miniatura de cada tema e o "✓ NA SALA" — o dono não percebia que
           tinha tema. Até 3 temas cabem numa linha; com mais, quebra (o "Sem tema" vai por último). */}
       {isHost && meusTemas.length > 0 && (
-        <div className="ll-room-themes rounded-2xl border-[3px] border-black p-2.5" style={{ background: 'linear-gradient(135deg,#FFE79A,#FFC400)', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
+        <OwnerSlot name="wait-themes"><div className="ll-room-themes rounded-2xl border-[3px] border-black p-2.5" style={{ background: 'linear-gradient(135deg,#FFE79A,#FFC400)', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
           <p className="font-black text-[14px] uppercase leading-tight" style={OSWALD}>{meusTemas.length === 1 ? tr('🎨 Você tem 1 tema · vista a sala', '🎨 You have 1 theme · dress the room') : tr(`🎨 Você tem ${meusTemas.length} temas · vista a sala`, `🎨 You have ${meusTemas.length} themes · dress the room`)}</p>
           <p className="text-[11px] font-bold mb-2" style={{ color: 'rgba(12,12,12,.75)' }}>{tr('Toque num tema. Todo mundo que entrar vê a sala com ele.', 'Tap a theme. Everyone who joins sees the room with it.')}</p>
           <div className="flex flex-wrap gap-1.5">
             {meusTemas.map(id => <div key={id} style={{ flex: '1 1 30%', minWidth: 96, display: 'flex' }}><MiniTemaSala tema={temaValido(id)} ativo={temaSala?.id === id} onClick={() => void salvaTema(id)} /></div>)}
             <div style={{ flex: '1 1 30%', minWidth: 96, display: 'flex' }}><MiniTemaSala tema={null} ativo={!temaSala} onClick={() => void salvaTema(null)} /></div>
           </div>
-        </div>
+        </div></OwnerSlot>
       )}
 
       {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima); no visual novo, em toda sala */}
@@ -5757,7 +5758,7 @@ export function EscLobby() {
         }} />
       )}
 
-      <div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+      <OwnerSlot name="wait-people"><div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">
           {duplasOn ? `${tr('Times', 'Teams')} (${donos.length}/20) · ${players.length} ${players.length === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `${tr('Técnicos', 'Managers')} (${players.length}/${room.max_players})`}
         </p>
@@ -5798,8 +5799,8 @@ export function EscLobby() {
                 ); return getSport() === 'basquete' ? bolinha : <PresidenteDaConta uid={p.user_id} size={40} reserva={bolinha} /> /* 🧑‍💼 16/10: a PESSOA = o presidente dela (Craque+); sem boneco, a bolinha de sempre */ })()}
                 <div className="flex-1 min-w-0 flex flex-col items-start">{/* ⚔️ 21/10: o selo do clã vai na linha de BAIXO do nome (sem tirar nada do lugar) */}
                 {amigosOn && !duplasOn && contaValida(p.user_id)
-                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}<NomeComFake nome={p.manager_name} /></button>/* 👥 toque no nome = perfil (adicionar amigo) */
-                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : <NomeComFake nome={p.manager_name} />}</span>}
+                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: ownerAccount ? ({ouro:'#85620d',prata:'#58616f',roxo:'#6b30a0',verde:'#236e40',bege:'#6b6048'} as const)[pk.tier] : pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}<NomeComFake nome={p.manager_name} /></button>/* 👥 toque no nome = perfil (adicionar amigo) */
+                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: ownerAccount ? ({ouro:'#85620d',prata:'#58616f',roxo:'#6b30a0',verde:'#236e40',bege:'#6b6048'} as const)[pk.tier] : pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : <NomeComFake nome={p.manager_name} />}</span>}
                   <SeloCla uid={p.user_id} />
                 </div>
                 {gala && <GalaMascoteMini clube={gala} />}
@@ -5996,7 +5997,7 @@ export function EscLobby() {
             </p>
           )}
         </div>
-      </div>
+      </div></OwnerSlot>
 
       {/* 🔕 QUANDO O CHAT ESTÁ DESLIGADO, A SALA TEM QUE DIZER (29/08). O próprio
           Diego caiu nisto: entrou numa sala com o chat desligado pelo host e achou
@@ -6030,7 +6031,7 @@ export function EscLobby() {
               { ic: '🔥', tx: tr('Tô pronto pra ganhar de todo mundo!', 'I\'m ready to beat everyone!') },
             ]
         return (
-          <div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+          <OwnerSlot name="wait-banter"><div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">{tr('😜 Enquanto espera… zoa a galera', '😜 While you wait… tease the crew')}</p>
             <div className={salasEspera ? 'flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'grid grid-cols-2 gap-2'}>
               {jabs.map((j, i) => (
@@ -6065,7 +6066,7 @@ export function EscLobby() {
               className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
               {tr('💬 Abrir chat da sala', '💬 Open room chat')} {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
             </button>
-          </div>
+          </div></OwnerSlot>
         )
       })()}
       {/* 🃏 BAFO: o host mandou começar com gente ainda montando. Mesmo padrão da
@@ -6105,7 +6106,7 @@ export function EscLobby() {
           (lá em cima, na faixa verde), porque a regra tem que ser decidida ANTES
           da bola rolar. */}
       {/* 🗂️ visual novo: o botão do dono (e o aviso de quem espera) fica FIXO no pé da tela, sempre à vista */}
-      <div className={salasEspera ? 'salas-rodape-fixo' : undefined} style={salasEspera ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
+      <OwnerSlot name="wait-start"><div className={salasEspera ? 'salas-rodape-fixo' : undefined} style={salasEspera ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
       {mascKey&&<button type="button" className="ll-mascot-start" onClick={sendMasc} disabled={mascCoolLeft>0}><MascoteMini art={MASCOTES[mascKey]} alt={38}/>{mascCoolLeft>0?`🐾 ${mascCoolLeft}s…`:tr('Soltar o mascote','Release mascot')}</button>}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
@@ -6163,7 +6164,7 @@ export function EscLobby() {
             </>
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
-      </div>
+      </div></OwnerSlot>
       {/* 🚪🗑️ SAIR e EXCLUIR juntos, no PÉ DA TELA (Diego 22/08: *"eu acho q além de
           sair da sala deve ter um botão dentro da sala de excluir sala tb não?"*).
           O excluir da liga EXISTIA, mas morava lá em cima, dentro da faixa verde do
@@ -6186,7 +6187,7 @@ export function EscLobby() {
         // aberta a noite toda.
         const rotuloSair = ehLiga ? tr('✅ Guardar e sair', '✅ Save and leave') : !souDonoAqui ? tr('🚪 Sair da sala', '🚪 Leave the room') : tr('🚪 Sair e encerrar a sala', '🚪 Leave and close the room')
         return (
-          <div className="space-y-1.5">
+          <div className={ownerAccount?'ow-native-exit space-y-1.5':'space-y-1.5'}>
             {ehLiga && (isHost || mandaNaLiga) ? (
               <div className="flex gap-2">
                 <button onClick={leaveRoom}
