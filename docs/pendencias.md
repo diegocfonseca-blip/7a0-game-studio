@@ -1,3 +1,14 @@
+## ⚖️ 08/11 — Critérios da carreira corrigidos (PUBLICAÇÃO PARA TODOS AUTORIZADA EM 08/11)
+
+- Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Publicação para todos autorizada depois com “Pode fazer tudo e publicar p todos já”. Branch `fix/carreira-criterios-20261108`, integrada à base `50f60ad0` (inclui a correção posterior das salas online); sem escrita nova na conta. Confirmar workflow de publicação antes de anunciar conclusão. Detalhes, reprodução e reversão: [criterios-carreira-20261108.md](criterios-carreira-20261108.md).
+- Cache por identidade completa da carta; leitura compatível de resultados antigos; fotografias compactas de jogos oficiais, sem persistir prévias. Sincronização do catálogo preserva essas fotografias. Decisão legítima de intervalo usa revisão numerada, muda só o segundo tempo e sobrevive à ordem JSON.
+- Gás não acumula antes da Série C; estatísticas continuam. Primeiro desbloqueio inteiro; rebaixamento posterior conserva condição. Versão nova tira a segunda penalidade na entrada do Motor 2 e usa recuperação real do preparador.
+- Simulação leve dos bots calibrada pelo perfil do Motor 2 (480 partidas de ajuste + 120 separadas de validação), sem escolher vencedor. Controle de 20 temporadas com elencos equivalentes aproximou gols: usuário 23,4/bots 47,69 → usuário 25,8/bots 24,68. Sem mudar catálogo, categorias, prêmios, preços ou dar vantagem ao dono.
+- Adesão na próxima temporada; partidas antigas mantidas. Novos detalhes expansíveis de regras, acesso/queda e leitura do XI; custos de aquisição/salário/reserva da folha/renovação antes do clique. Direitos dos olheiros e stream preservados. Sondagem recusa preenchimentos/crias/emprestados.
+- Testes: identidade/histórico/intervalo; reducer sintético; condição, pirâmide, A/B, armazenamento; três temporadas futuras em cópia T48–T50; salvar/reabrir com tabelas idênticas. T50 3º/60, 37 GF/27 GA, caixa3502; conta real segue T47/caixa2044. Visual em320/393/1440px e renovação efetiva conforme o valor mostrado. Build de produção passou.
+- Não muda online/co2/NBA nem gates privados de mapa/2D/3D/recepção. Reversão antes do lançamento = reverter commit. Após lançar, manter leitores/versionamento: desligar `CRITERIOS_CARREIRA_LIBERADOS` só encerra adesão na próxima virada, com `criteriosCarreiraAte`. Não remover versões de saves já criados.
+- Limites: calibração é aproximação; histórico antigo sem entradas completas não permite reconstruir com certeza toda reprodução. Sem anúncio de bugfix em novidades. Evidências locais em `/workspace/shared/carreira-correcoes-20261108/`; não commitar arquivos privados da conta nem harness `qa-carreira-*`.
+
 ## ⭐ 08/11 — Craque Salas ativado NA MÃO (Vendria falhou)
 - didico (diegoferocha22@gmail.com): linha em `esc_assinatura_mensal` com `vendria_sub = 'manual-diego-08nov'`, válido até 08/12/2026.
   Quando a Vendria voltar e cobrar a renovação, conferir se não ficou duplicado. Se ele não renovar, vence sozinho.
@@ -698,6 +709,13 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Kombi dos ambulantes (`cidade3d/vendor-delivery.mjs`): chega parada na vaga de carga, entra pelo portão de serviço e sai pela pista.
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 08/11 (nada forte novo; não avisado)
+- Médios novos (só anotado): Carvalho × Carvalho (carvalho.marcosrp × mpereiradecarvalhoneto, 11 temp., 5×0, mas o perdedor jogou 5 salas cheias —
+  parece família) · Witzel × Witzel (ritawitzel08 criada 07/11 × miguelwitzel994, 10 temp., 0×6, perdedor 2 salas cheias) · juan.fcsilva × bryangemado
+  (ambas 06/11, logins 13 min, 8 temp., 0×3, perdedor 1 sala cheia) · erickgomes × gomesdasilvaenzo (ambas 05/11, logins 4 min, 7 temp., 0×3, perdedor
+  3 salas cheias — irmãos?) · martinsventura13 × luizfernandoop2 (contas de julho, 5 temp., 0×3, perdedor nunca em sala cheia, logins distantes).
+- Os fortes de 07/11 (Amaral, Goat × Fcsccp, Adadada × Arthur, Serventes) continuam iguais, esperando o OK do Diego.
 
 ## 🕵️ VIGIA DE CONTA DUPLA — 07/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **Amaral FC** (pedro.smeirelesamaral, criada 04/11) com DUAS contas de apoio criadas no dia seguinte, que nunca jogaram sala cheia:
@@ -12930,3 +12948,19 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   salvamento com o texto do Diego e só "Conhecer os planos". Foto `scripts/mockups/salvar-teste-5-dias.png`.
   ⚠️ NA HORA DE PUBLICAR: desligar o cron `esc-nuvem-gratis-1d` (senão, sem poder salvar, a carreira seria apagada 1 dia depois).
   ⚠️ Brecha conhecida: quem NUNCA aperta Salvar continua com o salvamento automático do aparelho (o teste só começa no toque).
+- 🕵️ 08/11: **Ice Nugets × Gabiru FC LIGADOS** (grupo `icenugets`; `desde` puxado pra 07/11 22:45 UTC a pedido do Diego, pra ele sair do top 3 da semana: ficou com 36) — ordem do Diego. Gabiru criado 07/11,
+  100 temporadas só os dois na Liga Draft "Eu e eu" (94 × 5). Título deles jogando só os dois não conta mais pro ranking; os de antes ficam.
+- 🏷️ 08/11: sala JWKSLQ ("Eu e eu") aparece na lista como **"Eu"** (ordem do Diego). Feito no gatilho `esc_sala_nome_ofensivo`
+  (`if new.code = 'JWKSLQ' then new.ls_name := 'Eu'`) — o dono regrava o estado a cada poucos segundos, então só o update não segurava.
+  Dentro da partida o nome continua o do estado do dono (não mexi no jogo rolando). Desfazer = tirar a linha do gatilho.
+
+## 🚪 08/11 — Sala 8QQPWZ (Liga Draft do Reffattifc): partida velha gravando por cima da sala de espera
+- O banco mostrou: das 14h21 às 14h58 (Brasília) a sala nova 8QQPWZ, ainda na SALA DE ESPERA (11 pessoas), recebeu gravação de PARTIDA do
+  aparelho do dono a cada 0,5–3 s — no mesmo ritmo da liga antiga dele (PB8HW2), que parou de ser gravada no minuto em que a nova nasceu.
+  Os convidados ficaram presos esperando e apertaram F5 várias vezes (caixa-preta: recargas em massa 14h58–15h01). Às 15h01 o dono apagou
+  as DUAS ligas (a antiga, com temporadas, não volta; os títulos ficam em game_champions).
+- TRAVA (branch, esperando "publica"): o save de partida do dono (`store.tsx`, efeito do batimento de 3 s) lê o `status` da sala ao começar; se o
+  banco diz `waiting`, NÃO grava e solta sozinho quando a sala vira `started` (re-checa a cada 5 s). Leitura que falha = grava como sempre.
+  Toda largada marca `started` ANTES do `triggerStart`, então nunca barra jogo de verdade. Anota `save_em_sala_de_espera` na caixa-preta
+  (`esc_travas`, extra com tela/fase/temporada/rodada) pra achar o caminho exato que deixa a partida velha apontando pra sala nova — ainda NÃO achado.
+- [ ] Depois de publicado: olhar `esc_travas` com `extra->>'quando' = 'save_em_sala_de_espera'` e fechar a causa.

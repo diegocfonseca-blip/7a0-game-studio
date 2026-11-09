@@ -1,3 +1,4 @@
+import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
 import estadioCerArt from './img/online-estadio-v25.webp'
@@ -30,7 +31,7 @@ import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } f
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
-import { ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
@@ -5330,6 +5331,12 @@ function Envelope() {
       </div>
 
       <AuctionSlot name="summary">
+      {state.careerOnline && total>0 && (!state.streamMode||peek) && <CompromissoCarreira
+        custo={total}
+        salarioNovo={Object.entries(bids).reduce((sum,[id,v])=>{const c=state.currentCards.find(c=>c.id===id);return sum+(tecMesa?Math.round(v/10):c?salaryOfCard({...c,paid:v,via:'leilao'}):0)},0)}
+        salarioSubstituido={tecMesa?Math.round((state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0)/10):0}
+        multa={tecMesa?(state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0):0}
+        manager={you} />}
       {state.streamMode && canBid && (
         <Box bg="#111" className="p-2.5 text-center space-y-2">
           <p className="font-black text-white text-xs" style={OSWALD}>{L('🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒', '🎥 STREAM MODE — amounts stay hidden until the hammer. Go for it! 🔒')}</p>
@@ -5397,6 +5404,10 @@ function Envelope() {
               {masked
                 ? <p className="text-[11px] font-bold text-black/60 mb-2">{L('Só você vê o valor — a câmera não. Toque 👁️ pra conferir.', 'Only you see the amount — the camera does not. Tap 👁️ to check.')}</p>
                 : <p className="text-[11px] font-bold text-black/60 mb-2">{floor > 0 ? `mín ${floor} · ` : ''}cabe até {room} 🪙</p>}
+              {state.careerOnline && !masked && valid && <CompromissoCarreira custo={typed}
+                salarioNovo={tecMesa?Math.round(typed/10):salaryOfCard({...c,paid:typed,via:'leilao'})} manager={you} renovacaoReferencia={tecMesa?undefined:typed}
+                salarioSubstituido={tecMesa?Math.round((state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0)/10):0}
+                multa={tecMesa?(state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0):0} />}
               {/* atalhos +5 / +10: relativos, seguros até no stream (não revelam o total) */}
               {room >= min && (
                 <div className="grid grid-cols-2 gap-2 mb-2">

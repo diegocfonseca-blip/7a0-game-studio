@@ -1004,7 +1004,7 @@ function jogoM2(entrants: Entrant[], seed: number, seasonNo: number, jogo: strin
   let n = 0
   for (let i = 0; i < jogo.length; i++) n = Math.imul(n ^ jogo.charCodeAt(i), 0x01000193) >>> 0
   const H = entrants[h], A = entrants[a]
-  const e = entradaM2({ versao, seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!H.you, !A.you] })
+  const e = entradaM2({ versao, preservarGuardado:true, partidaId:`mundial:${seed}:${seasonNo}:${n}:${h}:${a}`, seed: sementeM2((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, 'M', n, h, a), casa: H.xi as never, fora: A.xi as never, fCasa: H.form, fFora: A.form, tatica: [0, 0], bots: [!H.you, !A.you] })
   const res = resultadoM2(e)
   const ev: ScoreGoal[] = res.gols.map(g => g.contra ? { home: g.home, min: g.min, name: g.nome + GOL_CONTRA } : { home: g.home, min: g.min, name: g.nome, assist: g.assist })
   return { e, g: [res.placar[0], res.placar[1]], ev }

@@ -107,7 +107,7 @@ export function entradaInternacionalM2(teams: readonly InternationalTeam[], matc
   if (!match.m2) return undefined
   const h = teams.find(t => t.id === match.home), a = teams.find(t => t.id === match.away)
   if (!h || !a) return undefined
-  return entradaM2({ versao: match.m2.versao, seed: match.m2.s, casa: h.xi as never, fora: a.xi as never, tatica: match.m2.t, bots: [!h.you, !a.you] })
+  return entradaM2({ preservarGuardado:true, partidaId:`internacional:${match.m2.s}:${match.home}:${match.away}`, versao: match.m2.versao, seed: match.m2.s, casa: h.xi as never, fora: a.xi as never, tatica: match.m2.t, bots: [!h.you, !a.you] })
 }
 
 /** Resultado e calendário completos são congelados no save no início da campanha.

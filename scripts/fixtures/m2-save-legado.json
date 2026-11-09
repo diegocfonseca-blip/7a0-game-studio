@@ -1,0 +1,274 @@
+{
+  "input": {
+    "versao": "recepcao-contextual-1",
+    "seed": 4162022143,
+    "casa": [
+      {
+        "name": "Gilmar",
+        "pos": "GOL",
+        "club": "Santos",
+        "year": 1962,
+        "fame": 5,
+        "lo": 89,
+        "hi": 93,
+        "gasMod": -3
+      },
+      {
+        "name": "Carlos Alberto Torres",
+        "pos": "LAT",
+        "club": "Santos",
+        "year": 1970,
+        "fame": 5,
+        "lo": 89,
+        "hi": 93,
+        "gasMod": -3
+      },
+      {
+        "name": "Nílton Santos",
+        "pos": "LAT",
+        "club": "Botafogo",
+        "year": 1958,
+        "fame": 5,
+        "lo": 89,
+        "hi": 93,
+        "gasMod": -3
+      },
+      {
+        "name": "Franz Beckenbauer",
+        "pos": "ZAG",
+        "club": "Bayern",
+        "year": 1974,
+        "fame": 5,
+        "lo": 91,
+        "hi": 95,
+        "gasMod": -3
+      },
+      {
+        "name": "Franco Baresi",
+        "pos": "ZAG",
+        "club": "Milan",
+        "year": 1989,
+        "fame": 5,
+        "lo": 89,
+        "hi": 94,
+        "gasMod": -3
+      },
+      {
+        "name": "Zico",
+        "pos": "MEI",
+        "club": "Flamengo",
+        "year": 1981,
+        "fame": 5,
+        "lo": 92,
+        "hi": 96,
+        "gasMod": -3
+      },
+      {
+        "name": "Didi",
+        "pos": "MEI",
+        "club": "Botafogo",
+        "year": 1958,
+        "fame": 5,
+        "lo": 90,
+        "hi": 94,
+        "gasMod": -3
+      },
+      {
+        "name": "Rivelino",
+        "pos": "MEI",
+        "club": "Corinthians",
+        "year": 1972,
+        "fame": 5,
+        "lo": 90,
+        "hi": 94,
+        "gasMod": -3
+      },
+      {
+        "name": "Pelé",
+        "pos": "ATA",
+        "club": "Santos",
+        "year": 1962,
+        "fame": 5,
+        "lo": 92,
+        "hi": 96,
+        "gasMod": -3
+      },
+      {
+        "name": "Romário",
+        "pos": "ATA",
+        "club": "Vasco",
+        "year": 2000,
+        "fame": 5,
+        "lo": 92,
+        "hi": 96
+      },
+      {
+        "name": "Jairzinho",
+        "pos": "ATA",
+        "club": "Botafogo",
+        "year": 1970,
+        "fame": 5,
+        "lo": 90,
+        "hi": 94,
+        "gasMod": -3
+      }
+    ],
+    "fora": [
+      {
+        "name": "Lev Yashin",
+        "pos": "GOL",
+        "club": "Dínamo de Moscou",
+        "year": 1963,
+        "fame": 5,
+        "lo": 89,
+        "hi": 94,
+        "gasMod": -3
+      },
+      {
+        "name": "Paolo Maldini",
+        "pos": "LAT",
+        "club": "Milan",
+        "year": 1994,
+        "fame": 5,
+        "lo": 89,
+        "hi": 94,
+        "gasMod": -3
+      },
+      {
+        "name": "Marcelo",
+        "pos": "LAT",
+        "club": "Fluminense",
+        "year": 2006,
+        "fame": 3,
+        "lo": 78,
+        "hi": 86,
+        "gasMod": -3
+      },
+      {
+        "name": "Matthias Sammer",
+        "pos": "ZAG",
+        "club": "Dortmund",
+        "year": 1996,
+        "fame": 4,
+        "lo": 80,
+        "hi": 88
+      },
+      {
+        "name": "Jack Charlton",
+        "pos": "ZAG",
+        "club": "Leeds",
+        "year": 1966,
+        "fame": 4,
+        "lo": 76,
+        "hi": 85,
+        "gasMod": -3
+      },
+      {
+        "name": "Robert Pires",
+        "pos": "MEI",
+        "club": "Arsenal",
+        "year": 2004,
+        "fame": 4,
+        "lo": 83,
+        "hi": 89
+      },
+      {
+        "name": "Robert Prosinečki",
+        "pos": "MEI",
+        "club": "Estrela Vermelha",
+        "year": 1991,
+        "fame": 4,
+        "lo": 79,
+        "hi": 87
+      },
+      {
+        "name": "Paulinho",
+        "pos": "MEI",
+        "club": "Corinthians",
+        "year": 2012,
+        "fame": 4,
+        "lo": 79,
+        "hi": 87
+      },
+      {
+        "name": "Samuel Eto'o",
+        "pos": "ATA",
+        "club": "Barcelona",
+        "year": 2006,
+        "fame": 5,
+        "lo": 87,
+        "hi": 93,
+        "gasMod": -3
+      },
+      {
+        "name": "Bebeto",
+        "pos": "ATA",
+        "club": "Deportivo La Coruña",
+        "year": 1993,
+        "fame": 4,
+        "lo": 83,
+        "hi": 89
+      },
+      {
+        "name": "Marc Overmars",
+        "pos": "ATA",
+        "club": "Ajax",
+        "year": 1995,
+        "fame": 4,
+        "lo": 82,
+        "hi": 88
+      }
+    ],
+    "fCasa": "4-3-3",
+    "tatica": [
+      0,
+      -1
+    ],
+    "bots": [
+      false,
+      true
+    ],
+    "tecnico": [
+      89.64548445958644,
+      93.82432081038132
+    ],
+    "evento": [
+      0,
+      0
+    ],
+    "clima": "sol"
+  },
+  "result": {
+    "placar": [
+      1,
+      0
+    ],
+    "gols": [
+      {
+        "home": true,
+        "nome": "Romário",
+        "min": 16,
+        "assist": "Nílton Santos",
+        "contra": false
+      }
+    ]
+  },
+  "saved": {
+    "1hzahkp.-sktrh0": [
+      1,
+      0,
+      [
+        {
+          "home": true,
+          "nome": "Romário",
+          "min": 16,
+          "assist": "Nílton Santos",
+          "contra": false
+        }
+      ],
+      47,
+      "recepcao-contextual-1"
+    ]
+  },
+  "source": "Formato publicado antes da correção de identidade; entrada com cartas públicas do catálogo."
+}
