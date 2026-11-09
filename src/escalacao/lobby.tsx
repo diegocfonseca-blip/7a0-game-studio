@@ -1416,8 +1416,15 @@ export function EscLobby() {
           // da cópia local — daí em diante toda comparação com `host_id` responde
           // "não é o dono". Guardar custa nada e fecha a porta.
           // ⭐ e o vice da liga, quando o aviso traz a coluna (aviso picado não apaga nada)
-          if (r.host_id) setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id,
-            ...('liga_vice' in r ? { liga_vice: r.liga_vice ?? null } : {}), ...(r.liga_dono ? { liga_dono: r.liga_dono } : {}) } : prev)
+          // 09/11: nada mudou → devolve o MESMO objeto (não redesenha nem reacorda efeito nenhum)
+          if (r.host_id) setRoom(prev => {
+            if (!prev || prev.id !== r.id) return prev
+            const vice = 'liga_vice' in r ? (r.liga_vice ?? null) : prev.liga_vice
+            const dono = r.liga_dono ? r.liga_dono : prev.liga_dono
+            if (prev.host_id === r.host_id && prev.liga_vice === vice && prev.liga_dono === dono) return prev
+            return { ...prev, host_id: r.host_id,
+              ...('liga_vice' in r ? { liga_vice: r.liga_vice ?? null } : {}), ...(r.liga_dono ? { liga_dono: r.liga_dono } : {}) }
+          })
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
       // aviso na hora; a exclusão da sala é a rede de segurança).
@@ -1530,7 +1537,10 @@ export function EscLobby() {
     beat()
     const iv = setInterval(beat, 30_000)
     return () => clearInterval(iv)
-  }, [phase, room, isHost])
+    // ⚠️ 09/11: depende do ID da sala, nunca do objeto `room` — o próprio batimento volta pelo canal, o ouvinte
+    // recria o `room`, e com `room` aqui o efeito rodava de novo e batia NA HORA: laço infinito (até 13 gravações/s).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, room?.id, isHost])
 
   // 🛟 HOST CAIU SEM AVISAR: o convidado vigia o batimento do host na sala de
   // espera. Se a sala sumiu (host apertou "sair" e apagou) → banner na hora. Se o
@@ -1564,7 +1574,9 @@ export function EscLobby() {
     }
     const iv = setInterval(check, 30_000)
     return () => clearInterval(iv)
-  }, [phase, room, isHost])
+    // ⚠️ 09/11: pelo ID — com o objeto `room` o relógio recomeçava a cada aviso e a vigia nunca disparava
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, room?.id, isHost])
 
   // Busca a lista de jogadores DIRETO do banco (não confia em estado local
   // que pode estar vazio/desatualizado, ex.: logo após reconectar) — usar
