@@ -1,12 +1,13 @@
+import {useCareerVisualV2} from './career-visual-v2'
 import {useT} from './lang'
 import {useEffect,useRef,type ReactNode} from 'react'
 import {createPortal} from 'react-dom'
 import {nomeAgenciaClube,type DestinoClubeMapa} from './clube-mapa-destinos'
 import './clube-mapa.css'
 export function ClubeMapaPainel({enabled,active,club,agency,onSelect,onClose,children}:{enabled:boolean;active:DestinoClubeMapa|null;club:string;agency:boolean;onSelect:(target:DestinoClubeMapa)=>void;onClose:()=>void;children:ReactNode}){
- const t=useT()
+ const t=useT(),visualV2=useCareerVisualV2()
  const panel=useRef<HTMLElement>(null),close=useRef(onClose);close.current=onClose
- const open=enabled&&!!active,title=active==='arena'?t('Arena Legends','Arena Legends'):active==='loja'?t('Loja do Clube','Club Store'):active==='financas'?t('Finanças do clube','Club finances'):active==='presidencia'?t('Minha casa','My house'):active==='veiculos'?t('Vadico Veículos','Vadico Veículos'):nomeAgenciaClube(club)
+ const open=enabled&&!!active,title=active==='arena'?t('Arena Legends','Arena Legends'):active==='loja'?t('Loja do Clube','Club Store'):active==='patrocinio'?t('Patrocínios do clube','Club sponsorships'):active==='financas'?t('Finanças do clube','Club finances'):active==='presidencia'?t('Minha casa','My house'):active==='veiculos'?t('Vadico Veículos','Vadico Veículos'):nomeAgenciaClube(club)
  useEffect(()=>{
   if(!open)return
   const el=panel.current;if(!el)return
@@ -34,7 +35,7 @@ export function ClubeMapaPainel({enabled,active,club,agency,onSelect,onClose,chi
  },[open])
  if(!enabled)return <>{children}</>
  if(!active)return null
- return createPortal(<div className={`clube-mapa-backdrop ll25-career ll29-career ll25-tab-estadio ll25-clube-${active}`} onClick={e=>{if(e.target===e.currentTarget)close.current()}}>
+ return createPortal(<div className={`clube-mapa-backdrop ll25-career ll29-career ll25-tab-estadio ll25-clube-${active}${visualV2?' cv2-root cv2-club':''}`} onClick={e=>{if(e.target===e.currentTarget)close.current()}}>
  <section ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className="clube-mapa-painel" aria-label={title}>
   <header><div><small>{active==='arena'?t('Consulta de salas abertas','Open rooms'):active==='presidencia'?t('Seu espaço pessoal','Your personal space'):club}</small><h2>{title}</h2></div><button type="button" data-map-panel-close onClick={onClose}>{t('← Voltar ao mapa','← Back to the map')}</button></header>
   {['agencia','escritorio','patrocinio'].includes(active)&&<nav aria-label={t('Áreas da agência','Agency areas')}><button aria-pressed={active!=='patrocinio'} onClick={()=>onSelect(agency?'agencia':'escritorio')}>{t('Sua agência e cartas','Your agency and cards')}</button><button aria-pressed={active==='patrocinio'} onClick={()=>onSelect('patrocinio')}>{t('Patrocínios e contratos','Sponsorships and contracts')}</button></nav>}

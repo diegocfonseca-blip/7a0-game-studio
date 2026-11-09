@@ -1,3 +1,9 @@
+## 🎨 09/11 — Carreira visual V02 — publicação autorizada
+
+- Diego aprovou as 35 telas da V02, incluindo as seis revisadas. Branch `feature/carreira-visual-v02-20261109`, base `8605a139`.
+- Componentes funcionais e organização responsiva da Central, elenco, rankings, painéis do clube, mercado, partidas e decisões. Mantém regras, saves, direitos e gates existentes. Sem novos assets ou chamadas ao servidor.
+- Escopo, telas, validação e reversão: [carreira-visual-v02-20261109.md](carreira-visual-v02-20261109.md). Publicação autorizada depois com “Ok terminando piblique”. Preservar as correções de ligas de `445a6982` e conferir o deploy oficial antes de anunciar conclusão.
+
 ## 🚨 09/11 (madrugada) — servidor lento: Painel do Dono lendo o banco a cada desenho da tela (RESOLVIDO)
 - Sintoma: respostas de 5–16 s no site todo (~01:00–01:28 UTC), erros 500 em clãs/avisos e 503/504 no login.
 - Causa: `painel-dono-liga.tsx` (07/11) tinha o `t` (função nova a cada desenho) nas dependências do efeito de leitura → relia
@@ -10,6 +16,13 @@
   (mediana de 40–50 s às 22h35–22h37). Com o banco já sob pressão, não fazer mudança de esquema em sequência — uma só e esperar.
 - Ficou no banco uma `esc_liga_pedidos_dono` nova que devolve `{}` (pra quebrar o laço do código velho); o PostgREST seguiu dando 404
   pra ela. Inofensiva. Pode sair junto com a `_velha`.
+- 09/11 (2): a varredura achou o MESMO tipo de laço na SALA DE ESPERA: o batimento de 30 s do dono dependia do objeto `room`, o
+  próprio aviso do banco recriava o `room` e o efeito batia de novo na hora (média 10× o normal, pico 13 gravações/s). Consertado
+  (depende do ID) e publicado. A vigia do convidado ("dono caiu") voltou a funcionar junto.
+- 🛡️ Vigia do servidor: tarefa agendada de hora em hora (trig_01SLmYgwXpe7VSmfVgGzgVz7) confere logs/banco e só avisa o Diego se houver perigo.
+- PROPOSTO, esperando OK: portão da Copa do Mundo/regional lendo a cada 2 s até depois do campeão; votação do fim lendo a cada 3 s
+  (+ a cada pacote do dono); lista de salas sem pausar com a aba escondida; SQL lento (esc_avisos, esc_perfil_publico2, esc_clas_de,
+  esc_nomes_sem_escudo, esc_meu_nome_fake).
 
 ## ⚖️ 08/11 — Critérios da carreira corrigidos (PUBLICAÇÃO PARA TODOS AUTORIZADA EM 08/11)
 

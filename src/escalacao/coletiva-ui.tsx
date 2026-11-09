@@ -1,3 +1,4 @@
+import {useCareerVisualV2} from './career-visual-v2'
 // ─── 🎙️ COLETIVA DE IMPRENSA — as telas (19/10) ───────────────────────────────────────────────────────────────
 // O motor (situações, textos, efeito, fama, arquirrival) mora em `coletiva.ts`. Aqui só o desenho:
 //  · `ColetivaBanner`: o cartão do pós-jogo (na fila de avisos da carreira): repórter → pergunta → 3 respostas → pular.
@@ -278,6 +279,7 @@ export function SalaImprensa({ save, clube, onClose, rivais, podeTrocar, onTroca
   /** os rivais da carreira (pra escolher o arquirrival) · `podeTrocar` só na virada da temporada */
   rivais: string[]; podeTrocar: boolean; onTrocar: (team: string) => void
 }) {
+  const visualV2=useCareerVisualV2()
   useEffect(() => { const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }; window.addEventListener('keydown', esc); return () => window.removeEventListener('keydown', esc) }, [onClose])
   const fama = FAMAS[famaDoPresidente(save)]
   const c = save.contagem
@@ -290,15 +292,16 @@ export function SalaImprensa({ save, clube, onClose, rivais, podeTrocar, onTroca
     </div>
   )
   return createPortal(
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99960, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, maxHeight: '92vh', overflowY: 'auto', color: INK, background: CREME, border: `3px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 ${INK}`, padding: 12 }}>
+    <div className={visualV2 ? "cv2-root cv2-dialog" : undefined} onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99960, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+      <div role="dialog" aria-modal="true" aria-label={tr("Sala de imprensa","Press room")} className={visualV2 ? "cv2-dialog-panel cv2-press-panel" : undefined} onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, maxHeight: '92vh', overflowY: 'auto', color: INK, background: CREME, border: `3px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 ${INK}`, padding: 12 }}>
         <div style={{ background: INK, color: GOLD, borderRadius: 12, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...OSW, fontSize: 15 }}>
           <span>🎙️ {tr('Sala de imprensa', 'Press room')} · {clube}</span>
           <button onClick={onClose} aria-label={tr('Fechar', 'Close')} style={{ background: 'none', border: 'none', color: GOLD, fontSize: 18, fontWeight: 900, cursor: 'pointer' }}>✕</button>
         </div>
-        <div style={{ ...caixa, display: 'flex', gap: 6 }}>
+        <div className={visualV2 ? "cv2-press-stats" : undefined} style={{ ...caixa, display: 'flex', gap: 6 }}>
           {cx('😈', c.provoca, tr('provocou', 'taunted'), '#FFE3D6')}{cx('🧊', c.diplomata, tr('diplomata', 'diplomat'))}{cx('🚪', c.desconversa, tr('desconversou', 'dodged'))}{cx('🤐', c.pulou, tr('pulou', 'skipped'), '#f3eee0')}
         </div>
+        <div className={visualV2 ? "cv2-press-content" : undefined}>
         <div style={caixa}>
           <p style={h3}>🏷️ {tr('Fama do presidente', 'The president’s reputation')}</p>
           <div style={{ ...OSW, fontSize: 22, color: '#C2452F', lineHeight: 1 }}>{fama.emoji} “{par(fama.nome)}”</div>
@@ -342,6 +345,7 @@ export function SalaImprensa({ save, clube, onClose, rivais, podeTrocar, onTroca
           ))}
           <p style={{ fontSize: 10, fontWeight: 700, color: '#666', margin: '6px 0 0' }}>{tr('⏳ ainda nesta temporada · ✅ cumpriu · ❌ o jornal cobrou', '⏳ still this season · ✅ delivered · ❌ the paper called it out')}</p>
         </div>}
+        </div>
       </div>
     </div>,
     document.body,

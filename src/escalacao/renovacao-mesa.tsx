@@ -1,3 +1,4 @@
+import {useCareerVisualV2} from './career-visual-v2'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 // 📝 MESA DE RENOVAÇÃO (22/10, mockup scripts/mockups/carreira-renovacao-nova.png — Diego: *"perfeito pode
 // fazer"*). A janela de contratos encerrados virou uma mesa de CARTAS: cada pessoa (técnico, preparador,
@@ -38,6 +39,7 @@ const tag = (txt: string) => (
 )
 
 export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
+  const visualV2=useCareerVisualV2()
   const { state, dispatch } = useEsc()
   const [feitos, setFeitos] = useState<Feito[]>([])
   const [prazo, setPrazo] = useState<Record<string, RenewAnos>>({})
@@ -190,7 +192,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
   const primeira = state.seasonNo <= 6
 
   return (
-    <div style={{ marginBottom: 12, color: INK }}>
+    <div className={visualV2 ? 'cv2-renewals' : undefined} style={{ marginBottom: 12, color: INK }}>
       {/* placar de cima */}
       <div style={{ background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `3px solid ${GOLD}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, padding: '10px 12px', color: '#fff', marginBottom: 10 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', margin: 0, color: GOLD }}>{nDecidir > 0 ? tr('📝 Contratos encerrados', '📝 Contracts ended') : tr('📝 Contratos decididos ✓', '📝 Contracts decided ✓')}</p>
