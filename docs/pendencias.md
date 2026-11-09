@@ -1,3 +1,9 @@
+## 🎨 09/11 — Carreira visual V02 implementada (sem publicação)
+
+- Diego aprovou as 35 telas da V02, incluindo as seis revisadas. Branch `feature/carreira-visual-v02-20261109`, base `8605a139`.
+- Componentes funcionais e organização responsiva da Central, elenco, rankings, painéis do clube, mercado, partidas e decisões. Mantém regras, saves, direitos e gates existentes. Sem novos assets ou chamadas ao servidor.
+- Escopo, telas, validação e reversão: [carreira-visual-v02-20261109.md](carreira-visual-v02-20261109.md). Não confundir implementação aprovada com deploy; este trabalho não publicou.
+
 ## ⚖️ 08/11 — Critérios da carreira corrigidos (PUBLICAÇÃO PARA TODOS AUTORIZADA EM 08/11)
 
 - Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Publicação para todos autorizada depois com “Pode fazer tudo e publicar p todos já”. Branch `fix/carreira-criterios-20261108`, integrada à base `50f60ad0` (inclui a correção posterior das salas online); sem escrita nova na conta. Confirmar workflow de publicação antes de anunciar conclusão. Detalhes, reprodução e reversão: [criterios-carreira-20261108.md](criterios-carreira-20261108.md).

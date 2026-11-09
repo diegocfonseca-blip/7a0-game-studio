@@ -1,3 +1,4 @@
+import {careerVisualV2,CareerVisualProvider} from './career-visual-v2'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
@@ -991,6 +992,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
+  const visualV2 = careerVisualV2(state)
   const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
   // sair, o dispatch libera a vaga na sala online (não vira fantasma).
@@ -1036,8 +1038,8 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const matchDesktop = desktopWidth && state.sport !== 'basquete' && ['season','liberta','champions'].includes(state.screen)
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
-    <MobileAuctionHeaderContext.Provider value={auctionMobile}>
-    <div className={`min-h-screen pb-16 palco ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+    <CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
+    <div className={`min-h-screen pb-16 palco ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
         <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
@@ -1099,7 +1101,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
         </div>
       )}
     </div>
-    </MobileAuctionHeaderContext.Provider>
+    </MobileAuctionHeaderContext.Provider></CareerVisualProvider>
   )
 }
 
@@ -5398,16 +5400,13 @@ function Envelope() {
         }
         const atCap = (parseInt(typeVal || '0', 10) || min) >= room
         return (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
-            <div className="w-full max-w-[280px] border-[3px] border-black rounded-2xl p-3.5 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
+          <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4${careerVisualV2(state) ? " cv2-root cv2-dialog" : ""}`} style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
+            <div role="dialog" aria-modal="true" aria-label={L("Seu lance", "Your bid")} className={`w-full max-w-[280px] border-[3px] border-black rounded-2xl p-3.5 bg-[#F4ECD6]${careerVisualV2(state) ? " cv2-dialog-panel cv2-bid-panel" : ""}`} style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
               <p className="font-black text-base" style={OSWALD}>{masked ? L('🔒 Seu lance secreto', '🔒 Your secret bid') : `✍️ ${cName}`}</p>
               {masked
                 ? <p className="text-[11px] font-bold text-black/60 mb-2">{L('Só você vê o valor — a câmera não. Toque 👁️ pra conferir.', 'Only you see the amount — the camera does not. Tap 👁️ to check.')}</p>
                 : <p className="text-[11px] font-bold text-black/60 mb-2">{floor > 0 ? `mín ${floor} · ` : ''}cabe até {room} 🪙</p>}
-              {state.careerOnline && !masked && valid && <CompromissoCarreira custo={typed}
-                salarioNovo={tecMesa?Math.round(typed/10):salaryOfCard({...c,paid:typed,via:'leilao'})} manager={you} renovacaoReferencia={tecMesa?undefined:typed}
-                salarioSubstituido={tecMesa?Math.round((state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0)/10):0}
-                multa={tecMesa?(state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0):0} />}
+
               {/* atalhos +5 / +10: relativos, seguros até no stream (não revelam o total) */}
               {room >= min && (
                 <div className="grid grid-cols-2 gap-2 mb-2">
@@ -5440,6 +5439,10 @@ function Envelope() {
                 <button onClick={() => apply(0)} className="text-xs font-black text-black/55 underline active:opacity-60">🗑️ tirar</button>
                 <button onClick={() => setPickerCard(null)} className="text-xs font-black text-black/55 underline active:opacity-60">fechar</button>
               </div>
+              {state.careerOnline && !masked && valid && <CompromissoCarreira custo={typed}
+                salarioNovo={tecMesa?Math.round(typed/10):salaryOfCard({...c,paid:typed,via:'leilao'})} manager={you} renovacaoReferencia={tecMesa?undefined:typed}
+                salarioSubstituido={tecMesa?Math.round((state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0)/10):0}
+                multa={tecMesa?(state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0):0} />}
             </div>
           </div>
         )
