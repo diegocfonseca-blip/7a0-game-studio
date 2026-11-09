@@ -1,3 +1,12 @@
+## 📋 09/11 (noite) — Liga Draft: ordem do draft + 2 consertos (no branch, esperando "publica")
+- 🔢 Ordem do draft escolhida pelo dono: 🏆 melhor→pior (padrão) ou 🔄 pior→melhor. Na criação (ConfigLigaDraft) e no painel do dono
+  (`patchDraftLiga` → `draftRegras.piorPrimeiro`). Vale na próxima noite do draft. Banco: `20261109220000_liga_draft_ordem.sql`
+  (só acrescenta a chave na lista do `liga_patch_draft`) — APLICAR junto da publicação.
+- 🧯 Artilharia abria a temporada nova com os gols da VELHA (cópia anti-spoiler `scorersPrev` nunca era limpa). Zera na virada +
+  a caixa só usa a cópia com rodada jogada. Assistências/tabela já estavam certas.
+- 📏 Liga de 10 virava 20 no "🔨 Novo leilão" (o START_ONLINE da revanche não mandava `tamanhoLiga`; também perdia turno único,
+  chave do Relâmpago e a Liga Draft). Agora vai junto. Salas que JÁ viraram 20 não voltam sozinhas (o game_state delas ainda diz 10).
+
 ## 💬 09/11 — Chat privado no celular e desktop
 
 - Aplicado o mockup aprovado somente à conta principal verificada, preservando personagens de 40 px, crachás, respostas e figurinhas nativas. Gaveta acompanha o teclado; novas mensagens respeitam a leitura do histórico.

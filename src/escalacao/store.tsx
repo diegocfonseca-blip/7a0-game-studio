@@ -7498,6 +7498,7 @@ function comecaTemporadaMesmoTime(s: EscState): void {
   s.fixtures = calendarioDaLiga(s)
   s.round = 0
   s.scorers = []; s.assists = []
+  s.scorersPrev = undefined // 🧯 09/11: a cópia anti-spoiler é da temporada passada — sem isto a artilharia nova abria com os gols da velha
   s.lastResults = []
   s.news = []
   s.champion = null
@@ -12996,7 +12997,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'DRAFT_ABRIR': {
       if (!s.ligaDraft || s.draft || s.screen !== 'end' || s.draftFeito === s.seasonNo) return state
       const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
-      const ordem = ordemDoDraft(sortedTable(s.league), humanos)
+      const ordem = ordemDoDraft(sortedTable(s.league), humanos, !!s.draftRegras?.piorPrimeiro) // 🔁 09/11: o dono escolhe melhor→pior ou pior→melhor
       if (!ordem.length) return state
       if (s.minhaLigaDraft) {
         // 💰 moedas pela colocação (só gente) + ✋ prontos antes do draft (o dono decide quando começa)

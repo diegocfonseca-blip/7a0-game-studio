@@ -8422,7 +8422,7 @@ function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORER
   // 🙈 ANTI-SPOILER: enquanto o SEU jogo anima (hold), mostra a artilharia de ANTES
   // da rodada (scorersPrev) — os gols novos só entram no apito. Sem isto o total do
   // artilheiro subia com a partida rolando e entregava o gol antes de animar.
-  const src = fonte ?? (hold && state.scorersPrev ? state.scorersPrev : state.scorers) // ⭐ `fonte`: a artilharia da Champions (tela própria)
+  const src = fonte ?? (hold && state.scorersPrev && state.round > 0 && state.lastResults.length > 0 ? state.scorersPrev : state.scorers) // 🧯 09/11: no começo da temporada a cópia é da temporada PASSADA (Liga Draft mostrava a artilharia velha) // ⭐ `fonte`: a artilharia da Champions (tela própria)
   const rows = [...src].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10)
   if (rows.length === 0) {
     return (
@@ -11832,6 +11832,12 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         holandes: state.holandes,
         pregaoAberto: state.pregaoAberto, // 🔨 o pregão aberto também continua no novo leilão (17/10)
         envUnico: state.envUnico, // ⚡ o envelope único também continua no novo leilão (28/10)
+        // 📏 09/11 (Diego: *"se ele escolheu um modo, deve seguir o que ele escolheu… se editar ou começar outra coisa aí sim"*):
+        // a liga de 10 virava de 20 no novo leilão (o tamanho não vinha na ação). Junto: turno único, chave do Relâmpago e a Liga Draft.
+        tamanhoLiga: state.tamanhoLiga === 10 ? 10 : undefined,
+        turnoUnico: state.turnoUnico === true,
+        relampagoChave: state.relampagoChave,
+        ligaDraft: state.ligaDraft, minhaLigaDraft: state.minhaLigaDraft, draftRegras: state.draftRegras, draftPremios: state.draftPremios,
         // 🧱 E O LEILÃO DE CLUBES (28/09, mesma regra dele: *"se continuarem jogando na
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".

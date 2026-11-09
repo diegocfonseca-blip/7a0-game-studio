@@ -62,7 +62,7 @@ export function EscLigaDraft() {
           <span style={{ fontSize: 26 }}>📋</span>
           <div className="min-w-0">
             <p className="text-white uppercase leading-none" style={{ ...OSW, fontSize: 17 }}>{t('Noite do draft', 'Draft night')} · {t('temporada', 'season')} {d.temporada + 1}</p>
-            <p className="text-white/65 text-[11px] font-bold mt-1">{t('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro.', 'Each manager picks 1 player from the whole game. The champion picks first.')}</p>
+            <p className="text-white/65 text-[11px] font-bold mt-1">{state.draftRegras?.piorPrimeiro ? t('Cada técnico pega 1 jogador, de todos do jogo. O último colocado escolhe primeiro.', 'Each manager picks 1 player from the whole game. The last-placed picks first.') : t('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro.', 'Each manager picks 1 player from the whole game. The champion picks first.')}</p>
             {minha && temRegraDraft(state.draftRegras) && <p className="text-[11px] font-black mt-1" style={{ color: GOLD }}>📜 {t('Regras da turma', 'Crew rules')}: {textoRegrasDraft(state.draftRegras, t)}</p>}
           </div>
         </div>
