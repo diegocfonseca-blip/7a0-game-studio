@@ -1,3 +1,12 @@
+## 🚨 09/11 (madrugada) — servidor lento: Painel do Dono lendo o banco a cada desenho da tela (RESOLVIDO)
+- Sintoma: respostas de 5–16 s no site todo (~01:00–01:28 UTC), erros 500 em clãs/avisos e 503/504 no login.
+- Causa: `painel-dono-liga.tsx` (07/11) tinha o `t` (função nova a cada desenho) nas dependências do efeito de leitura → relia
+  `esc_liga_pedidos_dono` a cada desenho. ~54 mil chamadas em 25 min, quase tudo de 2 donos de liga (Ferreira 36XD9X e Turbina IP7J5H).
+- Conserto: (1) o efeito só depende da sala (1 leitura/min); (2) a função virou `esc_liga_pedidos_dono2` e a antiga foi RENOMEADA pra
+  `esc_liga_pedidos_dono_velha` — quem está com o código velho recebe 404 na hora, sem ocupar o banco. Mediana voltou a ~30–75 ms.
+- Lição: nunca pôr o `t` do `useT()` (nem função recriada a cada desenho) em dependência de efeito que fala com o banco.
+- Daqui a uns dias (quando ninguém mais tiver o código velho aberto) dá pra apagar a `_velha`.
+
 ## ⚖️ 08/11 — Critérios da carreira corrigidos (PUBLICAÇÃO PARA TODOS AUTORIZADA EM 08/11)
 
 - Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Publicação para todos autorizada depois com “Pode fazer tudo e publicar p todos já”. Branch `fix/carreira-criterios-20261108`, integrada à base `50f60ad0` (inclui a correção posterior das salas online); sem escrita nova na conta. Confirmar workflow de publicação antes de anunciar conclusão. Detalhes, reprodução e reversão: [criterios-carreira-20261108.md](criterios-carreira-20261108.md).
