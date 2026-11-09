@@ -1,3 +1,8 @@
+## 💬 09/11 — Nome em cada balão, visual novo mantido
+
+- Diego esclareceu que mantém fontes, cores e posições novas. Cada mensagem agora repete o nome/crachá dentro do próprio balão, mesmo quando o remetente escreve várias seguidas; personagens e figurinhas preservados.
+- Sem alteração de transporte ou permissões. Testes de celular/desktop, resposta, espera e teclado passaram; detalhes em [online-chat-publico-20261109.md](online-chat-publico-20261109.md).
+
 ## 🌐 09/11 — Repaginação online liberada para todos
 
 - Diego ampliou a autorização: “publique na conta de todos já as mudanças também visuais todas”. O padrão aprovado de salas, leilões, competições e chat passa pela chave pública de apresentação, separada das prévias autenticadas.

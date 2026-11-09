@@ -24,3 +24,7 @@ Conferência das recompensas: pacote acima da Copa em393/1440px, carta salva ant
 Também conferido o fluxo de recompensa da Copa dos8, Libertadores, Liga+Champions, Só Champions e Relâmpago com mata-mata encerrado pelo reducer nativo. Os cinco mostraram a carta própria da Copa, acima do torneio. O mapa desligado não exibe nem o estado de espera do carregamento.
 
 Botão de som no celular durante o jogo: canto inferior direito, acima do menu inferior. CSS restrito à presença da navegação online, sem mudar comportamento de áudio ou posição no desktop. Conferido em320/393/1099/1440px; evidência `chat-online-publico-20261109/som-posicao.json` e `som-celular.png`.
+
+## Nomes em cada mensagem
+
+Diego esclareceu que mantém toda a aparência nova, fontes e posições, mas quer o nome do remetente dentro de cada balão. Removido somente o agrupamento de mensagens consecutivas: cada mensagem mantém seu personagem, nome/crachá, balão e horário. Figurinhas também repetem o nome. O nome continua visível no modo compacto do teclado. Nenhuma alteração de transmissão, permissões, estado da sala ou áudio.
