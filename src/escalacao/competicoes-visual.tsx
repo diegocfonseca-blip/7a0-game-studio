@@ -238,6 +238,7 @@ export const TemaCompCtx = createContext<CompId | null>(null)
 export const useTemaComp = () => { const id = useContext(TemaCompCtx); return id ? { id, ...COMPS[id] } : null }
 export function FraseCopa() {
   const t = useTemaComp()
-  if (!t) return null
+  const ownerVisual = useOwnerLayout()
+  if (!t || (ownerVisual && t.id === 'liga')) return null
   return <div style={{ background: t.vsBg, color: t.vsInk, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, ...OSW, fontSize: 14, letterSpacing: '.06em', textAlign: 'center', padding: '6px 10px', margin: '4px 0 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trofeu comp={t.id} size={26} />{tr(t.frase[0], t.frase[1])}</div>
 }

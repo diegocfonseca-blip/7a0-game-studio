@@ -74,3 +74,14 @@
 .ow-native-exit{background:#101b13;border:1px solid #526343;border-radius:12px;padding:15px}
 #root .ov3-waiting .ow-native-exit p{color:#c2cbb7!important}
 #root .ov3-waiting .ow-shop .ll-hub-footer{background:#0b120e;border-radius:11px;padding:14px;color:#d9dfcf}
+/* The main action keeps its own contrast, including silver and white club themes. */
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start){
+ min-height:62px;padding:15px 18px!important;border:3px solid #0c0c0c!important;
+ border-radius:12px;font:700 19px/1.25 Oswald,sans-serif!important;opacity:1!important;
+ background:#ffc400!important;color:#0c0c0c!important;box-shadow:4px 4px 0 #000!important;
+}
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start) span{color:#0c0c0c!important}
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start):disabled{
+ background:#d4d9ce!important;color:#4d5545!important;box-shadow:none!important;cursor:not-allowed;
+}
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start):disabled span{color:#4d5545!important}

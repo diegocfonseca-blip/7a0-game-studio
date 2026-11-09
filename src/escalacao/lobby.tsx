@@ -5298,12 +5298,13 @@ export function EscLobby() {
     const caixaConvite = (
       <OwnerSlot name="wait-invite"><div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>
+        {/* Na prévia privada o cabeçalho já exibe o código; o botão compacto de copiar fica abaixo. */}
         {/* 🔑 08/11 (live do Reffatti): o CÓDIGO grande, à vista — quem está do outro lado da live digita lendo da tela */}
-        <button onClick={() => copyCode(room.code)} className="w-full rounded-xl border-[3px] border-black bg-white text-black px-2 py-1.5 active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}
+        {(!ownerAccount || nbaSala) && <button onClick={() => copyCode(room.code)} className="w-full rounded-xl border-[3px] border-black bg-white text-black px-2 py-1.5 active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}
           aria-label={tr('Copiar código', 'Copy code')}>
           <span className="block text-[9px] font-black uppercase tracking-wider text-black/55" style={OSWALD}>{tr('Código da sala · toque pra copiar', 'Room code · tap to copy')}</span>
           <span className="block font-black text-[30px] leading-none tracking-[4px]" style={OSWALD}>{room.code}</span>
-        </button>
+        </button>}
         <p className="text-white/80 text-[11px] font-medium leading-snug">
           {tr('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — whoever has an account lands straight in the room; whoever doesn\'t signs up and ends up here.')}
         </p>

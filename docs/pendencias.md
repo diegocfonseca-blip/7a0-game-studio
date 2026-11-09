@@ -13023,3 +13023,7 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
 ### 09/11 — Contraste da prévia privada do Online
 
 Os prints do Diego revelaram creme sobre branco em pacotes, lances e lendas, além de avisos escuros sobre o novo fundo. Correção de apresentação validada, abrangendo superfícies claras, instruções, Draft e diferenças entre celular/desktop. Build, isolamento e matriz de telas passaram; publicação acompanhada separadamente. Escopo segue **somente a conta principal verificada**, inclusive como espectador. Detalhes e limites da auditoria: `docs/correcao-contraste-online-privado-20261109.md`. Não considerar a ausência de erros de JavaScript como validação de contraste.
+
+### 09/11 — Código repetido, início do pregão e faixas da liga (prévia privada)
+
+Atendidos os novos prints do Diego: só um código grande na espera; botão de início destacado independente do tema branco/prata; retirada da notícia de entrada no G4/G8 e da faixa “A Liga Lendária” na conta principal. Controles de convite, mascote e permissões de começo preservados. Validação direcionada e capturas em `docs/ajustes-espera-e-faixas-privadas-20261109.md`; confirmação de publicação acompanhada separadamente.

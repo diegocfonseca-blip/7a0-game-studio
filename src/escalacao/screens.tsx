@@ -7346,7 +7346,7 @@ export function EscSeason() {
     return disp.findIndex(t => t.id === you.id) + 1
   })()
   const prevPosRef = useRef(youPosShown)
-  const [personalNews, setPersonalNews] = useState<string | null>(null)
+  const [personalNews, setPersonalNews] = useState<{ text: string; topEntry: boolean } | null>(null)
   const personalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     const prev = prevPosRef.current
@@ -7361,17 +7361,18 @@ export function EscSeason() {
     const zTop = zoneN(table.length)      // faixa de cima (G4 proporcional)
     const zBot = zoneBot(table.length)    // 1ª posição da zona de baixo (Z4 proporcional)
     let msg: string | null = null
+    let topEntry = false
     if (youPosShown === 1 && prev !== 1) msg = LS('👑 Você é o novo LÍDER do campeonato!', '👑 You are the new league LEADER!')
     else if (kingsS) msg = null // 👑 na Kings não tem G4 nem rebaixamento — só a liderança vira manchete
     // 🏀 basquete NÃO tem rebaixamento (ninguém cai). O TOP 4 é a zona de SUBIR DE ANDAR
     // (Street → G League → NBA). Sem faixa de "zona de rebaixamento".
     else if (bbS) { if (youPosShown <= 4 && prev > 4) msg = LS('📈 Você entrou no TOP 4 — zona de SUBIR DE ANDAR!', '📈 You are in the TOP 4 — the PROMOTION zone!'); else if (youPosShown > 4 && prev <= 4) msg = LS('😮‍💨 Você caiu do TOP 4 — corre pra voltar pra zona de subir!', '😮‍💨 You dropped out of the TOP 4 — climb back into the promotion zone!') }
-    else if (state.ligaDraft && youPosShown <= copaN(table.length) && prev > copaN(table.length)) msg = LS(`📈 Você ENTROU no G${copaN(table.length)}!`, `📈 You are IN the top ${copaN(table.length)}!`) // 🟢 06/11: a Liga Draft pinta G8 (20) / G4 (10)
-    else if (youPosShown <= zTop && prev > zTop && !state.ligaDraft) msg = LS(`📈 Você ENTROU no G${zTop}!`, `📈 You are IN the top ${zTop}!`)
+    else if (state.ligaDraft && youPosShown <= copaN(table.length) && prev > copaN(table.length)) { msg = LS(`📈 Você ENTROU no G${copaN(table.length)}!`, `📈 You are IN the top ${copaN(table.length)}!`); topEntry = true } // 🟢 06/11: a Liga Draft pinta G8 (20) / G4 (10)
+    else if (youPosShown <= zTop && prev > zTop && !state.ligaDraft) { msg = LS(`📈 Você ENTROU no G${zTop}!`, `📈 You are IN the top ${zTop}!`); topEntry = true }
     else if (youPosShown >= zBot && prev < zBot) msg = LS(`⚠️ PERIGO! Você caiu pra zona de rebaixamento (Z${zTop})!`, `⚠️ DANGER! You dropped into the relegation zone (bottom ${zTop})!`)
     else if (youPosShown < zBot && prev >= zBot) msg = LS(`😮‍💨 Você escapou do Z${zTop}!`, `😮‍💨 You escaped the bottom ${zTop}!`)
     if (msg) {
-      setPersonalNews(msg)
+      setPersonalNews({ text: msg, topEntry })
       if (personalTimer.current) clearTimeout(personalTimer.current)
       personalTimer.current = setTimeout(() => setPersonalNews(null), 5000)
     }
@@ -8247,9 +8248,9 @@ export function EscSeason() {
           DECISÃO da rodada e não pode cair embaixo de 20 linhas de tabela + a lista
           de todos os jogos. */}
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5 ll-col-side ll-depois-da-tabela">
-      {personalNews && (
+      {personalNews && !(ownerVisual && personalNews.topEntry) && (
         <Box bg="#6C43C0" className="p-2.5 text-center" shadow={4}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews}</p>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews.text}</p>
         </Box>
       )}
 
