@@ -1,0 +1,115 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#2a2b24;font-family:Arial,sans-serif;padding:28px;display:flex;gap:28px;align-items:flex-start}
+.col{width:390px}
+.lbl{font:700 22px Oswald;color:#FFC400;margin:0 0 6px;text-transform:uppercase}
+.lbl small{display:block;font:600 13px Arial;color:#cfc8b2;text-transform:none;margin-top:2px}
+.tela{background:#14150f;border-radius:18px;overflow:hidden;border:2px solid #000;color:#f4ecd6}
+.hdr{height:62px;background:#0c100e;display:flex;align-items:center;padding:0 14px;gap:10px;border-bottom:1px solid #f4ecd625}
+.ll{display:grid;place-items:center;border:2px solid #ffc400;border-radius:6px;width:30px;height:34px;font:700 18px Oswald;color:#ffc400}
+.hdr b{font:700 18px Oswald}
+.tabs{display:flex;gap:6px;padding:12px 12px;border-bottom:1px solid #f4ecd615}
+.tab{font:600 13px Oswald;color:#cfc8b2;padding:8px 10px;border-radius:8px}
+.tab.on{background:#f4ecd6;color:#0c0c0c;border:2px solid #000;box-shadow:3px 3px 0 #000}
+.h1{font:700 26px Oswald;margin:14px 16px 2px;text-transform:uppercase}
+.sub{font-size:12px;color:#cfc8b2;margin:0 16px 12px}
+.box{background:#F4ECD6;color:#0c0c0c;border:3px solid #000;border-radius:16px;box-shadow:4px 4px 0 #000;margin:0 14px 16px;padding:14px}
+.box h2{font:700 21px Oswald;margin:0;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
+.box h2 span{font:700 11px Arial;color:#6b6656;text-transform:none}
+.exp{font-size:12px;font-weight:700;line-height:1.4;margin:6px 0 10px;color:#3a372e}
+.slot{background:#fff;border:3px solid #000;border-radius:12px;padding:10px;margin-bottom:10px;display:flex;gap:10px;align-items:center;position:relative}
+.slot .tag{position:absolute;top:-11px;left:10px;font:700 11px Oswald;background:#0c0c0c;color:#FFC400;padding:2px 8px;border-radius:6px;letter-spacing:.5px}
+.prev{display:flex;gap:6px;align-items:center}
+.campo{width:64px;height:64px;border-radius:8px;border:2px solid #000;background:repeating-linear-gradient(0deg,#2f8a3e 0 10px,#38974a 10px 20px);display:grid;place-items:center}
+.cartinha{width:44px;height:62px;border:2px solid #000;border-radius:6px;background:#efe6cc;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.info{flex:1;min-width:0}
+.info b{font:700 15px Oswald;text-transform:uppercase;display:block}
+.cores{display:flex;gap:5px;margin:5px 0}
+.cor{width:22px;height:22px;border-radius:50%;border:2px solid #000}
+.cor.add{background:#fff;display:grid;place-items:center;font:700 14px Arial;color:#888;border-style:dashed}
+.mini{font-size:11px;font-weight:700;color:#6b6656;line-height:1.3}
+.btn{font:700 15px Oswald;background:#1B7A3D;color:#fff;border:3px solid #000;border-radius:10px;box-shadow:3px 3px 0 #000;padding:8px 10px;white-space:nowrap;text-transform:uppercase}
+.btn.cinza{background:#e6dfc8;color:#0c0c0c}
+.btn.ouro{background:#FFC400;color:#0c0c0c}
+.ok{font:700 12px Oswald;background:#1B7A3D;color:#fff;border-radius:6px;padding:3px 7px;border:2px solid #000;white-space:nowrap}
+.combo{background:#FFC400;border:3px solid #000;border-radius:12px;padding:9px 10px;display:flex;justify-content:space-between;align-items:center;box-shadow:3px 3px 0 #000;margin-top:4px}
+.combo b{font:700 15px Oswald;text-transform:uppercase}
+.combo s{color:#6b5a10;font-size:12px}
+.troca{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 10px}
+.troca .btn{font-size:13px;padding:6px 10px}
+.nota{font-size:11.5px;font-weight:700;color:#1B7A3D;margin-top:8px;line-height:1.35}
+.prod{display:flex;gap:10px;align-items:center;background:#fff;border:3px solid #000;border-radius:12px;padding:10px}
+.ico{width:58px;height:58px;border:2px solid #000;border-radius:10px;display:grid;place-items:center;font-size:32px;background:#efe6cc;flex:none}
+.prod p{margin:2px 0 0;font-size:11.5px;font-weight:700;color:#3a372e;line-height:1.35}
+.prod b{font:700 16px Oswald;text-transform:uppercase}
+.incl{font:700 12px Oswald;color:#1B7A3D;text-transform:uppercase}
+.onde{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.onde span{font-size:10.5px;font-weight:700;background:#efe6cc;border:1.5px solid #000;border-radius:6px;padding:2px 6px}
+.sug{background:#7C3AED;color:#fff;font:700 9.5px Oswald;padding:1px 6px;border-radius:5px;border:2px solid #000;margin-bottom:4px}
+.rel{display:flex;flex-direction:column;align-items:center}
+</style></head><body>
+<script>
+function botao(c1,c2,c3,n){ // a bolinha do campo 2D (estilo jogo de botão)
+  return `<svg width="46" height="46" viewBox="0 0 46 46"><defs><clipPath id="k${n}${c1.slice(1)}"><circle cx="23" cy="23" r="19"/></clipPath></defs>
+  <ellipse cx="25" cy="27" rx="19" ry="17" fill="rgba(0,0,0,.35)"/>
+  <g clip-path="url(#k${n}${c1.slice(1)})"><rect width="46" height="46" fill="${c1}"/>
+  ${c2?`<rect x="12" y="0" width="6" height="46" fill="${c2}"/><rect x="28" y="0" width="6" height="46" fill="${c2}"/>`:''}
+  ${c3?`<rect x="22" y="0" width="2.4" height="46" fill="${c3}"/>`:''}</g>
+  <circle cx="23" cy="23" r="19" fill="none" stroke="#000" stroke-width="2.5"/>
+  <text x="23" y="28.5" text-anchor="middle" font-family="Oswald" font-weight="700" font-size="15" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${n}</text></svg>`
+}
+function silhueta(c1,c2,c3){ // o boneco sem rosto da cartinha
+  return `<svg width="40" height="54" viewBox="0 0 40 54"><circle cx="20" cy="15" r="9" fill="#9c9278" stroke="#000" stroke-width="2"/>
+  <path d="M4 54 Q4 30 20 28 Q36 30 36 54Z" fill="${c1}" stroke="#000" stroke-width="2"/>
+  ${c2?`<path d="M14 29.5 L14 54 M26 29.5 L26 54" stroke="${c2}" stroke-width="4"/>`:''}
+  ${c3?`<path d="M20 28 L20 54" stroke="${c3}" stroke-width="1.6"/>`:''}
+  <path d="M4 54 Q4 30 20 28 Q36 30 36 54Z" fill="none" stroke="#000" stroke-width="2"/></svg>`
+}
+function slot(tag,c,n,titulo,linha,dir){
+  const cores=c.filter(Boolean).map(x=>`<div class="cor" style="background:${x}"></div>`).join('')+(c.filter(Boolean).length<3?'<div class="cor add">+</div>':'')
+  return `<div class="slot"><div class="tag">${tag}</div><div class="prev"><div class="campo">${botao(c[0],c[1],c[2],n)}</div><div class="cartinha">${silhueta(c[0],c[1],c[2])}</div></div>
+  <div class="info"><b>${titulo}</b><div class="cores">${cores}</div><div class="mini">${linha}</div></div>${dir}</div>`
+}
+function tela(conteudo){
+  return `<div class="tela"><div class="hdr"><div class="ll">LL</div><b>LEILÃO LEGENDS</b></div>
+  <div class="tabs"><span class="tab">☆ Planos</span><span class="tab on">🛡 Seu clube</span><span class="tab">Carreira</span><span class="tab">Salas</span></div>
+  <div class="h1">SEU CLUBE COM A SUA CARA.</div><div class="sub">Personalização e identidade, num lugar só.</div>${conteudo}</div>`
+}
+const ONDE=`<div class="onde"><span>⚽ bolinha no Campo 2D</span><span>🃏 cartinha sem rosto no elenco</span><span>🗺️ jogo no mapa</span></div>`
+const mantoBox=(corpo)=>`<div class="box"><h2>🎽 SEUS MANTOS <span>2 ou 3 cores</span></h2>
+<div class="exp">Você escolhe as cores da camisa do seu time. Ela veste seus jogadores:</div>${ONDE}<div style="height:12px"></div>${corpo}</div>`
+const mascote=(incl)=>`<div class="box"><h2>🐾 MASCOTE DO CLUBE <span>feito só pro seu time</span></h2><div style="height:8px"></div>
+<div class="prod"><div class="ico">🐊</div><div style="flex:1"><b>Seu bicho, sua arte</b><p>Aparece no seu gol, na festa de campeão e no pulo do pênalti.</p></div>${incl?'<span class="incl">✓ já é seu</span>':'<span class="rel"><span class="sug">SUGESTÃO</span><span class="btn">R$ 29,90</span></span>'}</div></div>`
+const gala=(incl)=>`<div class="box"><h2>🎬 ENTRADA DE GALA <span>personalizada</span></h2><div style="height:8px"></div>
+<div class="prod"><div class="ico">🎆</div><div style="flex:1"><b>Sua entrada, só sua</b><p>Quando você entra na sala online, todo mundo vê a sua cena: mascote, escudo e as cores do clube.</p></div>${incl?'<span class="incl">✓ já é sua</span>':'<span class="rel"><span class="sug">SUGESTÃO</span><span class="btn">R$ 49,90</span></span>'}</div></div>`
+
+// A) quem NÃO tem nada (ex.: plano Craque)
+const A = tela(mantoBox(
+  slot('1ª CAMISA',['#C2452F','#FFFFFF',null],9,'Ainda não tem','escolhe 2 ou 3 cores','<span class="rel"><span class="sug">SUGESTÃO</span><span class="btn">R$ 9,90</span></span>')+
+  slot('2ª CAMISA',['#FFFFFF','#C2452F',null],9,'Ainda não tem','entra quando bater cor com o rival','<span class="btn cinza">R$ 9,90</span>')+
+  `<div class="combo"><div><b>🎽🎽 AS DUAS JUNTAS</b><br><s>R$ 19,80</s></div><span class="btn">R$ 14,90</span></div>`
+)+mascote(false)+gala(false))
+
+// B) quem tem BATISMO (1ª já vem com ele)
+const B = tela(mantoBox(
+  slot('1ª CAMISA',['#0E3E86','#FFC400',null],10,'Do seu batismo','incluída no plano','<span class="ok">✓ ATIVA</span>')+
+  slot('2ª CAMISA',['#FFFFFF','#0E3E86','#FFC400'],10,'Nova! Monte a sua','entra quando bater cor com o rival','<span class="rel"><span class="sug">SUGESTÃO</span><span class="btn">R$ 9,90</span></span>')+
+  `<div class="nota">💡 Hoje, quando a cor bate com a do rival, seu time joga de branco. Com a 2ª camisa, joga com a SUA.</div>`
+)+mascote(true)+gala(false))
+
+// C) quem tem AS DUAS — escolhe qual é a 1ª e qual é a 2ª
+const C = tela(mantoBox(
+  slot('1ª CAMISA',['#0E3E86','#FFC400',null],10,'Azul e dourado','a que joga sempre','<span class="ok">✓ ATIVA</span>')+
+  `<div class="troca"><span class="btn ouro">⇅ TROCAR A ORDEM</span></div>`+
+  slot('2ª CAMISA',['#FFFFFF','#0E3E86','#FFC400'],10,'Branca','só quando bater com o rival','<span class="btn cinza">✏️ CORES</span>')+
+  `<div class="nota">✓ Você tem as duas. Toque em TROCAR pra decidir qual é a 1ª.</div>`
+)+mascote(true)+gala(true))
+
+document.body.innerHTML = [
+ ['A) Quem não tem nada','ex.: plano Craque — compra camisa, mascote e gala',A],
+ ['B) Quem tem Batismo','a 1ª camisa já vem; a 2ª é nova, à venda',B],
+ ['C) Quem tem as duas','Fundador/Batismo que comprou a 2ª — escolhe a ordem',C],
+].map(([t,s,h])=>`<div class="col"><div class="lbl">${t}<small>${s}</small></div>${h}</div>`).join('')
+</script></body></html>
