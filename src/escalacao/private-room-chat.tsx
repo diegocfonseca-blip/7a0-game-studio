@@ -16,19 +16,10 @@ type Props={
  stickers?:{label:string;art:ReactNode;send:()=>void}[]
 }
 const nearEnd=(el:HTMLElement)=>el.scrollHeight-el.clientHeight-el.scrollTop<36
-function senderKey(m:PrivateChatMessage){return`${m.uid??m.from??m.name}|${m.name}|${!!m.esp}`}
 function dateOf(m:PrivateChatMessage){if(typeof m.ts!=='number'||!Number.isFinite(m.ts))return null;const date=new Date(m.ts);return Number.isFinite(date.getTime())?date:null}
 function dayKey(m:PrivateChatMessage){return dateOf(m)?.toDateString()??''}
-function groupsOf(messages:PrivateChatMessage[]){
- const groups:PrivateChatMessage[][]=[]
- for(const message of messages){const group=groups.at(-1),previous=group?.at(-1)
-  if(previous&&senderKey(previous)===senderKey(message)&&dayKey(previous)===dayKey(message)&&(!message.ts||!previous.ts||message.ts-previous.ts<300000))group!.push(message)
-  else groups.push([message])
- }
- return groups
-}
 
-/** Shared private skin. Transport, seat identity, host authority and sticker cooldown stay in callers. */
+/** Shared room presentation. Transport, seat identity, host authority and sticker cooldown stay in callers. */
 export function PrivateRoomChat(props:Props){
  const{roomId,roomName,people,open,setOpen,unread,messages,isMine,onSend,game=false,readOnly=false,off=false,onToggleChat,renderAttachment,stickers}=props
  const latest=useRef(props);latest.current=props
@@ -104,7 +95,6 @@ export function PrivateRoomChat(props:Props){
  },[setOpen,open,menu])
  const send=()=>{const value=text.trim().slice(0,160);if(!value||readOnly||off)return;onSend(value,reply??undefined);setText('');setReply(null);scrollLatest()}
  const counts=Math.min(99,unread+pending)
- const grouped=groupsOf(messages)
  return <>
   {!open&&!navVisible&&<button type="button" className="pc-launcher" data-mobile={mobile||undefined} aria-label={tr('Abrir chat da sala','Open room chat')} onClick={()=>setOpen(true)}>{off?'🔕':'💬'}{counts>0&&!off&&<span>{counts}</span>}</button>}
   {open&&createPortal(<div className="pc-layer" style={{'--pc-inset':`${viewport.bottom}px`,'--pc-available':`${viewport.height}px`} as CSSProperties}>
@@ -117,18 +107,17 @@ export function PrivateRoomChat(props:Props){
     {menu&&onToggleChat&&<div className="pc-menu"><button type="button" onClick={()=>{onToggleChat();setMenu(false)}}>{off?tr('🔔 Ligar chat da sala','🔔 Enable room chat'):tr('🔕 Desligar chat da sala','🔕 Disable room chat')}</button></div>}
     {off?<p className="pc-off">{tr('O chat está desligado para esta sala. Use as opções acima para ligar.','Chat is off for this room. Use the options above to enable it.')}</p>:<>
      <section className="pc-conversation"><div ref={list} className="pc-messages" onScroll={()=>{if(list.current){atEnd.current=nearEnd(list.current);if(atEnd.current)setPending(0)}}}>
-      {grouped.length===0&&<p className="pc-empty">{tr('Manda a primeira zoeira 😎','Send the first jab 😎')}</p>}
-      {grouped.map((group,index)=>{const first=group[0],last=group.at(-1)!,mine=isMine(first),day=dayKey(first),previousDay=index?dayKey(grouped[index-1][0]):'',stamp=dateOf(last)
-       return <div key={first.id} className="pc-message-block">
-        {day&&day!==previousDay&&<p className="pc-day">{day===new Date().toDateString()?tr('HOJE','TODAY'):new Date(first.ts!).toLocaleDateString(getLang()==='en'?'en-GB':'pt-BR')}</p>}
+      {messages.length===0&&<p className="pc-empty">{tr('Manda a primeira zoeira 😎','Send the first jab 😎')}</p>}
+      {messages.map((message,index)=>{const mine=isMine(message),day=dayKey(message),previousDay=index?dayKey(messages[index-1]):'',stamp=dateOf(message),quote=reValido(message.re),attachment=renderAttachment?.(message)
+       const name=<div className="pc-name"><ComPerfil uid={mine?null:message.uid}><ChatCracha name={message.name} uid={message.uid} esp={message.esp}/></ComPerfil>{mine&&<small>{tr('você','you')}</small>}</div>
+       return <div key={message.id} className="pc-message-block">
+        {day&&day!==previousDay&&<p className="pc-day">{day===new Date().toDateString()?tr('HOJE','TODAY'):new Date(message.ts!).toLocaleDateString(getLang()==='en'?'en-GB':'pt-BR')}</p>}
         <div className="pc-group" data-mine={mine||undefined}>
-         <div className="pc-character"><ComPerfil uid={mine?null:first.uid}><PresidenteDaConta uid={first.uid} size={40} reserva={null}/></ComPerfil></div>
-         <div className="pc-group-body"><div className="pc-name"><ComPerfil uid={mine?null:first.uid}><ChatCracha name={first.name} uid={first.uid} esp={first.esp}/></ComPerfil>{mine&&<small>{tr('você','you')}</small>}</div>
-          {group.map(message=>{const quote=reValido(message.re),attachment=renderAttachment?.(message)
-           return attachment?<div className="pc-attachment" key={message.id}>{attachment}</div>:<div key={message.id} className="pc-bubble" onClick={!mine&&!readOnly?()=>setReply(citacao(message.name,message.text)):undefined}>
-            {quote&&<ChatCita re={quote}/>}<span className="pc-text">{message.text}</span>
-           </div>
-          })}
+         <div className="pc-character"><ComPerfil uid={mine?null:message.uid}><PresidenteDaConta uid={message.uid} size={40} reserva={null}/></ComPerfil></div>
+         <div className="pc-group-body">
+          {attachment?<div className="pc-attachment">{name}{attachment}</div>:<div className="pc-bubble" onClick={!mine&&!readOnly?()=>setReply(citacao(message.name,message.text)):undefined}>
+           {name}{quote&&<ChatCita re={quote}/>}<span className="pc-text">{message.text}</span>
+          </div>}
           {stamp&&<time className="pc-time" dateTime={stamp.toISOString()}>{stamp.toLocaleTimeString(getLang()==='en'?'en-GB':'pt-BR',{hour:'2-digit',minute:'2-digit'})}</time>}
          </div>
         </div>
