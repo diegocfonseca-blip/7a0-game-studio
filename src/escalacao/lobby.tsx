@@ -1369,8 +1369,11 @@ export function EscLobby() {
     fetchOpenRooms()
     // 10s (era 8s): na queda de 08/09 a lista era 1 em cada 5 pedidos ao banco no
     // pico. Sala nova aparece ~5s "depois"; o botão 🔄 continua na hora.
-    const iv = setInterval(() => fetchOpenRooms(true), 10000)
-    return () => clearInterval(iv)
+    // 🧯 09/11: com o jogo minimizado ninguém está olhando a lista — não pergunta ao banco; ao voltar, atualiza na hora.
+    const iv = setInterval(() => { if (!document.hidden) fetchOpenRooms(true) }, 10000)
+    const volta = () => { if (!document.hidden) fetchOpenRooms(true) }
+    document.addEventListener('visibilitychange', volta)
+    return () => { clearInterval(iv); document.removeEventListener('visibilitychange', volta) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, tab])
 
