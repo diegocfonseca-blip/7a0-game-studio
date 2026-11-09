@@ -8702,6 +8702,7 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
 }
 
 function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE' : 'TABELA', cinema = false }: { highlight: number; holdResults?: boolean; title?: string; cinema?: boolean }) {
+  const ownerVisual=useOwnerLayout()
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
@@ -8816,7 +8817,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
     </div>
   )
   return (
-    <Box className={`p-3 overflow-x-auto${cinema ? ' ll31-table' : ''}`}>
+    <Box className={`p-3 overflow-x-auto${cinema ? ' ll31-table' : ''}${ownerVisual?' ov3-standings':''}`}>
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">

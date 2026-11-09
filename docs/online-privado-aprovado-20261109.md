@@ -20,6 +20,10 @@ O contexto `OwnerOnlineProvider` é local à apresentação. Nenhum flag é grav
 - Na tela do computador, os atalhos da sala vão para a coluna lateral; no celular mantêm a navegação inferior existente.
 - Campeão tem troféu da competição em destaque, escudo, retratos identificados por nome/clube/ano do elenco real e mascote cadastrado quando houver. Duração, sons, resultados e prêmios da comemoração continuam nativos.
 
+## Ajuste solicitado após a aprovação
+
+Diego pediu a classificação acima das rivalidades no desktop e o indicador discreto Manual/Auto · velocidade ao lado do botão Velocidade. A classificação ganha prioridade somente na coluna privada do desktop; o indicador acompanha o botão em todos os tamanhos, inclusive 320 px, sem alterar comandos ou reduzir o jogo. Conferido em 1440, 393, 360 e 320 px, incluindo Auto. `npm run build` passou novamente.
+
 ## Competições
 
 Os pontos de integração abrangem Liga Legends, Liga da Turma, Liga Draft, leilões (envelope, Tocaia, pregão e envelope único), Copa dos 8, Libertadores, Champions (incluindo repescagem), mata-mata relâmpago, Copa do Mundo, Eurocopa e Rio–São Paulo, Sul–Minas–Paraná e Nordeste. As taças mantêm suas identidades próprias. Não altera seleção de cartas, regras dos campeonatos, simulação ou pagamentos.

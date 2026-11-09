@@ -1,6 +1,7 @@
 ## 🎨 09/11 — Online e Partida Rápida: prévia privada aprovada
 
 - Diego aprovou os mockups de todas as competições para desktop e celular e autorizou publicar **somente na conta principal**. A ativação usa o e-mail retornado por `auth.getUser()`, no cache já existente. A segunda conta de testes e o público conservam a apresentação anterior; o flag não entra no estado da sala.
+- Revisão posterior: classificação acima das rivalidades na coluna do desktop; indicador discreto Manual/Auto · ritmo junto ao botão Velocidade, incluindo celulares de 320 px. Mantém a restrição à conta principal.
 - Últimas decisões: **Velocidade** em vez de Ajustes; Manual/Auto e ritmo no diálogo; tática em linha própria; Próxima rodada principal e Pular secundário; telão somente texto abaixo dos controles. O placar termina na narração, com autores dos gols acima. Campo 2D e cena de gol mantêm dimensões nativas.
 - Liga, Liga da Turma, Liga Draft, leilões, Copa dos 8, Libertadores, Champions, relâmpago, Mundo, Euro e três regionais usam a mesma apresentação. Campeão maior com troféu da competição, escudo, lendas do elenco real e mascote quando cadastrado. Todos os confrontos continuam na lista, inclusive o do usuário.
 - Não modifica motor, resultado, relógios sincronizados, host, prêmios, planos, banco ou regras de acesso ao mapa/2D/3D. Os callbacks e as travas existentes continuam responsáveis pelas ações.
