@@ -453,7 +453,7 @@ function MiniLive({ nmH, nmA, hPais, aPais, ev, min, bold, privateVisual, homeOw
         )}
       </div>
       <div style={{ padding: '4px 8px 5px' }}>
-        {!done && <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.15)', margin: '0 0 4px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${barPct}%`, background: GOLD }} /></div>}
+        {!done && <div style={{ height: 3, borderRadius: 2, background: 'rgba(0,0,0,.15)', margin: '0 0 4px', overflow: 'hidden' }}><div className="ov3-surface" style={{ height: '100%', width: `${barPct}%`, background: GOLD }} /></div>}
         <p style={{ textAlign: 'center', margin: 0 }}>
           <span style={{ ...copaCenterChip, fontWeight: 900, fontSize: 9, color: done ? '#8ff0a8' : justScored ? '#FFD778' : '#ff9a8f' }}>
             {done ? tr('FIM', 'FT') : justScored ? tr('⚽ GOOOL agora!', '⚽ GOOOAL just now!') : `🔴 ${Math.min(90, min)}'`}
@@ -546,15 +546,15 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
 
   if (seasonNo < COPA_ANCHOR) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      {internationalCareer && <div style={{ background: seasonNo >= 40 ? '#E3F2DC' : '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9 }}>
+      {internationalCareer && <div className="ov3-surface" style={{ background: seasonNo >= 40 ? '#E3F2DC' : '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0 }}>{seasonNo >= 40 ? '✓' : '🔒'} TEMPORADA 40 · 🌎 FUTEBOL INTERNACIONAL DE CLUBES</p>
         <p style={{ fontSize: 10, fontWeight: 800, margin: '4px 0' }}>CONMEBOL Libertadores · UEFA Champions League · Mundial de Clubes</p>
-        <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}><div style={{ width: `${Math.min(100, seasonNo / 40 * 100)}%`, height: '100%', background: '#1B7A3D' }} /></div>
+        <div className="ov3-surface" style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}><div style={{ width: `${Math.min(100, seasonNo / 40 * 100)}%`, height: '100%', background: '#1B7A3D' }} /></div>
         <small>{seasonNo >= 40 ? 'Disponível nesta carreira. A campanha nacional define sua prioridade de escolha.' : `Faltam ${40 - seasonNo} temporadas para desbloquear.`}</small>
       </div>}
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>{tr('🔒 Copa do Mundo Legends', '🔒 Legends World Cup')}</p>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season 100</b> — and only clubs in the <b>TOP 32 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 32 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
-      <div style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
+      <div className="ov3-surface" style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
         <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>{tr('temporada', 'season')} {seasonNo} {tr('de', 'of')} 100</b>
       </div>
@@ -714,7 +714,7 @@ function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose }: { paises16:
       {paises16.map((p, i) => {
         const locked = i < myPos
         return (
-          <button key={p} disabled={locked} onClick={() => onPick(p)}
+          <button className="ov3-surface" key={p} disabled={locked} onClick={() => onPick(p)}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 11px', marginBottom: 6, cursor: locked ? 'not-allowed' : 'pointer', background: locked ? '#CBBF9E' : '#fff', boxShadow: locked ? 'none' : `3px 3px 0 0 ${INK}`, opacity: locked ? 0.75 : 1, textAlign: 'left' }}>
             <span style={{ fontSize: 21 }}>{flagOf(p)}</span>
             <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, flex: 1, color: locked ? 'rgba(0,0,0,.5)' : INK }}>{ordinal(i + 1)} · {p}</span>
@@ -829,7 +829,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
           const on = form === f && alas === ala
           const nome = ala ? '3-5-2' : f
           return (
-            <button key={nome} disabled={!ok} onClick={() => switchForm(f, ala)}
+            <button className="ov3-surface" key={nome} disabled={!ok} onClick={() => switchForm(f, ala)}
               title={ok ? (ala ? tr('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined) : `${pais} ${tr('não tem elenco pra esse esquema', 'has no squad for this system')}`}
               style={{ flex: '1 0 21%', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : on ? GOLD : '#fff', boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : 0.7 }}>
               {ok ? nome : `🔒 ${nome}`}
@@ -854,12 +854,12 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
       {/* 🗣️ o porquê do toque que "não fez nada" — fica logo em cima da lista,
           no lugar exato onde a pessoa tocou (jeito que o Diego pede). */}
       {aviso && (
-        <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>
+        <div className="ov3-surface" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>
           ✋ {aviso}
         </div>
       )}
 
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${pool[tab].length} ${SEC_LABEL[tab].toLowerCase()}…`}
+      <input className="ov3-surface" value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${pool[tab].length} ${SEC_LABEL[tab].toLowerCase()}…`}
         style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
 
       <div style={{ ...box('#fff'), borderRadius: 12, overflow: 'hidden', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -874,7 +874,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
             // nada. O botão continua clicável DE PROPÓSITO — é o toque que faz
             // aparecer a explicação em cima da lista.
             return (
-              <button key={k} onClick={() => toggle(c)}
+              <button className="ov3-surface" key={k} onClick={() => toggle(c)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : full ? '#EFE7D2' : '#fff', cursor: 'pointer', opacity: full ? 0.62 : 1, textAlign: 'left' }}>
                 <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : full ? '🔒' : ''}</span>
                 <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
@@ -925,7 +925,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
           no "em cada posição": quem marcou 7 fica com os 7 dele e leva 4
           pernas-de-pau — o castigo é POR VAGA, não joga fora o que você fez. */}
       {prazoSeg !== undefined && (
-        <div style={{ border: `3px solid ${INK}`, borderRadius: 12, background: prazoSeg <= 15 ? '#FFE3DC' : '#FFF4CF', boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 10px', marginBottom: 9 }}>
+        <div className="ov3-surface" style={{ border: `3px solid ${INK}`, borderRadius: 12, background: prazoSeg <= 15 ? '#FFE3DC' : '#FFF4CF', boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 10px', marginBottom: 9 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textAlign: 'center', color: prazoSeg <= 15 ? '#B23B2E' : INK }}>
             ⏱️ {prazoSeg}s {tr('pra fechar a convocação', 'to close the call-up')}
           </p>
@@ -1598,7 +1598,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
             pessoa ACABOU de escolher a seleção, e o placar ao vivo logo abaixo já
             diz "VOCÊ". Na carreira a linha fica: lá ela conta a temporada. */}
         {!online && <p style={{ position: 'relative', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: '4px 0 0' }}>{tr('temporada', 'season')} {seasonNo} · {tr('Você', 'You')}: <b style={{ color: GOLD }}>{nm(myIdx)}</b> ({club(myIdx)})</p>}
-        <div style={{ position: 'relative', height: 2, margin: '9px auto 0', width: '65%', background: 'linear-gradient(90deg,transparent,#FFC400,transparent)' }} />
+        <div className="ov3-surface" style={{ position: 'relative', height: 2, margin: '9px auto 0', width: '65%', background: 'linear-gradient(90deg,transparent,#FFC400,transparent)' }} />
       </div>}
 
       {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>{tr('GRUPOS', 'GROUPS')}</span><span aria-current={step > GR && step <= OITAVAS ? 'step' : undefined}>{tr('OITAVAS', 'ROUND OF 16')}</span><span aria-current={step === QUARTAS ? 'step' : undefined}>{tr('QUARTAS', 'QUARTERS')}</span><span aria-current={step === SEMI ? 'step' : undefined}>{tr('SEMIFINAIS', 'SEMI-FINALS')}</span><span aria-current={step > SEMI ? 'step' : undefined}>FINAL</span></div>}
@@ -1648,7 +1648,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
               )}
             </div>
           ))}
-          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo)', 'green = goes through (2 per group)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#FFF1BF', border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GOLD, marginLeft: 4 }} />{vagasTerceiros(world.groups.length) > 0 && tr('amarelo = 3º entre os 4 melhores (passa também)', 'yellow = 3rd among the best 4 (also through)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', border: '2px solid #7C3AED', marginLeft: 4 }} />{tr('roxo = você · desempate: PTS, V, SG, GP', 'purple = you · tie-break: PTS, W, GD, GF')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i className="ov3-surface" style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo)', 'green = goes through (2 per group)')} <i className="ov3-surface" style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#FFF1BF', border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GOLD, marginLeft: 4 }} />{vagasTerceiros(world.groups.length) > 0 && tr('amarelo = 3º entre os 4 melhores (passa também)', 'yellow = 3rd among the best 4 (also through)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', border: '2px solid #7C3AED', marginLeft: 4 }} />{tr('roxo = você · desempate: PTS, V, SG, GP', 'purple = you · tie-break: PTS, W, GD, GF')}</p>
           {/* 🥉 A BRIGA DOS TERCEIROS — a tabela cruzada dos seis 3ºs, pra ficar CLARO que
               o melhor terceiro passa (Diego 19/09: *"será que vai ser claro pras pessoas
               que o melhor terceiro colocado passa?"*). Só entra com rodada apitada. */}

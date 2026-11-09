@@ -1,0 +1,30 @@
+/* Local to the approved account. Native light cards define their own ink instead
+   of inheriting cream from the dark page. No permissions or room data change. */
+.ov3 { --ov3-muted: #bfc8b3; --ov3-title: #f4ecd6; }
+.ov3 .ov3-surface,
+.ov3 .bg-white,
+.ov3 .bg-cream,
+.ov3 .bg-gold {
+  --ov3-muted: #59604e;
+  --ov3-title: #0c0c0c;
+  color: #0c0c0c;
+}
+.ov3 .ov3-surface input,
+.ov3 .ov3-surface select,
+.ov3 .ov3-surface textarea { color: #0c0c0c; }
+.ov3 .ov3-page-muted { color: var(--ov3-muted) !important; }
+.ov3 .ov3-page-muted b { color: inherit !important; }
+.ov3 .ov3-page-title { color: var(--ov3-title) !important; }
+.ov3 .ov3-empty-slot,
+.ov3 .ov3-draft-muted { color: #66624f !important; }
+.ov3 .ov3-bid-placeholder { color: #66624f !important; }
+.ov3 .ov3-draft-clock { color: #ffc400 !important; }
+.ov3-coins span { color: #ffc400 !important; }
+@media (min-width: 1100px) {
+  .ov3 .ll-desktop-panel,
+  .ov3 .ll-auction-prelude,
+  .ov3.ll-auction-shell .ll-shell-exit { --ov3-muted: #59604e; --ov3-title: #0c0c0c; }
+  .ov3 .ll-auction-sidebar > section:first-child { --ov3-muted: #bfc8b3; --ov3-title: #f4ecd6; }
+  .ov3 .ll-auction-sidebar > section:first-child .ll-auction-seal > p { color: #bfc8b3; }
+}
+.ov3 .ll27-fila-espera { color: #66624f; }

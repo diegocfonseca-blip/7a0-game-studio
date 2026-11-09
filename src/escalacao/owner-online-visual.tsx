@@ -9,6 +9,7 @@ import stadium from './img/online-estadio-v25.webp'
 import {legendAvatar} from './legend-avatars'
 import './owner-online-visual.css'
 import './owner-waiting.css'
+import './owner-contrast.css'
 
 /** Local presentation only. Never serialized into EscState or a room payload. */
 export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;screen?:string}){

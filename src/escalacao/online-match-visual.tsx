@@ -437,7 +437,7 @@ export function SorteioRelampago({ fases, confrontos, seg, total, espera }: {
       : <div key={i} className="ll40-jogo" style={{ opacity: .55 }}>
           <div className="ll40-time"><b style={{ color: '#FFE14D', animation: 'srRaio .8s ease-in-out infinite' }}>⚡ ?</b></div><span className="ll40-x">×</span><div className="ll40-time r"><b style={{ color: '#FFE14D', animation: 'srRaio .8s ease-in-out infinite' }}>? ⚡</b></div>
         </div>)}
-    <div className="ll40-bar"><i style={{ width: `${pct}%`, background: '#FFE14D' }} /></div>
+    <div className="ll40-bar"><i className="ov3-surface" style={{ width: `${pct}%`, background: '#FFE14D' }} /></div>
     <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⚽ {tr('A BOLA ROLA EM', 'KICK-OFF IN')} <b>{seg}s</b></>}</p>
   </div>
 }

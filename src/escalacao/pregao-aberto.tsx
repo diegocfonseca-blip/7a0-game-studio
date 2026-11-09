@@ -97,7 +97,7 @@ export function PregaoAberto() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
                 {mesas.map(k => <MesaPregao key={k} k={k} agora={agora} compacto />)}
               </div>
-              <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{state.leilaoClubes
+              <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{state.leilaoClubes
                 ? t(`Cada pacote tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelos dois — ou só pelo que você precisa.`, `Each pack has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)
                 : t(`Cada carta tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelas duas — ou só pela que você precisa.`, `Each card has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)}</p>
             </>}
@@ -119,10 +119,10 @@ export function PregaoAberto() {
 
         {/* 🟩 o campinho PADRÃO do leilão (17/10, Diego: "deve ser os campinhos padrões igual os outros modos… quando
             aparece uma lenda aparece o avatar da lenda") — o MESMO `YourPitch` do envelope e da Tocaia, com rosto e manto */}
-        <p style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{bbPA() ? t('Seu quinteto', 'Your five') : t('Sua escalação', 'Your lineup')}</p>
+        <p className="ov3-page-muted" style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{bbPA() ? t('Seu quinteto', 'Your five') : t('Sua escalação', 'Your lineup')}</p>
         <YourPitch small />
         <RivalsStrip desktopOnly />
-        <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{state.leilaoClubes
+        <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{state.leilaoClubes
           ? t('Um pacote por setor: quem já tem o do setor não dá lance. Depois do pregão vem a convocação.', 'One pack per sector: if you have that sector’s pack, no more bids there. The call-up comes after the auction.')
           : t('Quem já fechou a posição não dá lance. Vaga vazia no fim ganha jogador de graça.', 'Position full? No more bids there. Empty spots at the end get a free player.')}</p>
       </div>
@@ -197,8 +197,8 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
                   : <CartaCoberta name={card.name} club={card.club} year={card.year} pos={card.pos} />}
               </div>
             </div>
-            {!compacto && <p style={{ margin: 0, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>
-              {card.pacote ? t('próximo clube', 'next club') : t('próxima carta', 'next card')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
+            {!compacto && <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>
+              {card.pacote ? t('próximo clube', 'next club') : t('próxima carta', 'next card')}: <b className="ov3-surface" style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b className="ov3-surface" style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
             </p>}
 
             </div>
@@ -220,12 +220,12 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
 
             {/* 📜 os últimos lances */}
             {M.lances.length > 0 && (
-              <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 13, overflow: 'hidden' }}>
+              <div className="ov3-surface" style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 13, overflow: 'hidden' }}>
                 {[...M.lances].reverse().slice(0, compacto ? 2 : 4).map((l, i) => {
                   const m = state.managers.find(x => x.id === l.mgr)
                   return (
-                    <div key={`${l.mgr}-${l.valor}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.08)' : 'none', background: i === 0 ? '#E9F5EC' : '#fff', fontWeight: 700, fontSize: 12 }}>
-                      <span style={{ ...OSW, fontWeight: 700, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', background: m?.id === you.id ? GOLD : '#F4ECD6' }}>{m?.teamName ?? '?'}</span>
+                    <div className="ov3-surface" key={`${l.mgr}-${l.valor}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.08)' : 'none', background: i === 0 ? '#E9F5EC' : '#fff', fontWeight: 700, fontSize: 12 }}>
+                      <span className="ov3-surface" style={{ ...OSW, fontWeight: 700, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', background: m?.id === you.id ? GOLD : '#F4ECD6' }}>{m?.teamName ?? '?'}</span>
                       <b style={{ ...OSW, marginLeft: 'auto', fontSize: 16 }}>{l.valor} 🪙</b>
                     </div>
                   )
@@ -233,7 +233,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
               </div>
             )}
 
-            {aviso && <div role="alert" style={{ background: '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '5px 7px' : '7px 10px', fontSize: compacto ? 10.5 : 12, fontWeight: 800, textAlign: 'center' }}>{aviso}</div>}
+            {aviso && <div className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '5px 7px' : '7px 10px', fontSize: compacto ? 10.5 : 12, fontWeight: 800, textAlign: 'center' }}>{aviso}</div>}
             {/* 🫵 seus botões — ou a trava explicada */}
             {posVagas <= 0 ? (
               <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
@@ -242,7 +242,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
                   : t(`Você já tem ${posNome} — nesta carta só assiste.`, `You already have a ${posNome} — just watching this one.`)}
               </div>
             ) : M.lider === you.id ? (
-              <div style={{ background: '#E9F5EC', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase' }}>
+              <div className="ov3-surface" style={{ background: '#E9F5EC', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase' }}>
                 ✋ {t(`Você está na frente. Se ninguém cobrir em ${PA_MARTELO_MS / 1000}s, é seu.`, `You lead. Nobody tops it in ${PA_MARTELO_MS / 1000}s and it’s yours.`)}
               </div>
             ) : Math.floor(you.money) < minimo ? (
@@ -262,12 +262,12 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
                       <span style={{ display: 'block', fontSize: compacto ? 17 : 20 }}>+{extra + 1}</span>
                     </button>
                   })}
-                  <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden', gridColumn: '1 / -1', minHeight: 36 }}>
+                  <div className="ov3-surface" style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden', gridColumn: '1 / -1', minHeight: 36 }}>
                     <input inputMode="numeric" value={outro} onChange={e => setOutro(e.target.value.replace(/\D/g, ''))} placeholder={t('outro', 'other')} style={{ width: '100%', minWidth: 0, border: 'none', padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 14, textAlign: 'center' }} />
                     <button disabled={!pode(Number(outro))} onClick={() => { lance(Number(outro)); setOutro('') }} style={{ border: 'none', borderLeft: `3px solid ${INK}`, background: pode(Number(outro)) ? GREEN : '#CBBF9E', color: '#fff', fontWeight: 900, padding: '0 8px', cursor: 'pointer' }}>OK</button>
                   </div>
                 </div>
-                {!compacto && <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada lance novo zera o relógio. ${PA_MARTELO_MS / 1000}s sem lance = uma, duas, três… vendido!`, `Every new bid resets the clock. ${PA_MARTELO_MS / 1000}s without a bid = going once, twice… sold!`)}</p>}
+                {!compacto && <p className="ov3-page-muted" style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada lance novo zera o relógio. ${PA_MARTELO_MS / 1000}s sem lance = uma, duas, três… vendido!`, `Every new bid resets the clock. ${PA_MARTELO_MS / 1000}s without a bid = going once, twice… sold!`)}</p>}
               </>
             )}
             </div>
@@ -285,13 +285,13 @@ export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolea
   const t = useT()
   const n = c.pacote?.cartas.length ?? 0
   return (
-    <div style={{ border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, background: '#fff', padding: compacto ? '10px 8px' : '16px 14px', textAlign: 'center' }}>
+    <div className="ov3-surface" style={{ border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, background: '#fff', padding: compacto ? '10px 8px' : '16px 14px', textAlign: 'center' }}>
       <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: compacto ? 11 : 13 }}>{tagPos(c.pos)}</span>
       <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloPacote c={c} size={compacto ? 58 : 96} /></div>
       {/* 📐 17/10 (Diego, print da mesa dupla): o nome ocupa SEMPRE 2 linhas na mesa dupla — senão "Goleiros do Everton"
           (2 linhas) empurrava o lance atual dele pra baixo do "Meio do Newcastle" (1 linha) e as duas mesas desalinhavam */}
       <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1.05, textTransform: 'uppercase', ...(compacto ? { minHeight: '2.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' } : { display: 'block' }) }}>{nomePacote(c)}</b>
-      <span style={{ display: 'inline-block', marginTop: 6, background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: compacto ? 12 : 15 }}>👥 {n} {n === 1 ? t('jogador', 'player') : t('jogadores', 'players')}</span>
+      <span className="ov3-surface" style={{ display: 'inline-block', marginTop: 6, background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: compacto ? 12 : 15 }}>👥 {n} {n === 1 ? t('jogador', 'player') : t('jogadores', 'players')}</span>
       {!compacto && <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem são, você vê na convocação.', 'You see who they are at the call-up.')}</p>}
     </div>
   )
@@ -302,9 +302,9 @@ export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolea
 export function CartaCoberta({ name, club, year, pos }: { name: string; club: string; year: number; pos: string }) {
   const t = useT()
   return (
-    <div style={{ position: 'relative', aspectRatio: '5 / 7', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, overflow: 'hidden', background: 'repeating-linear-gradient(135deg,#E7DEC6 0 14px,#DED3B6 14px 28px)' }}>
+    <div className="ov3-surface" style={{ position: 'relative', aspectRatio: '5 / 7', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, overflow: 'hidden', background: 'repeating-linear-gradient(135deg,#E7DEC6 0 14px,#DED3B6 14px 28px)' }}>
       <span style={{ position: 'absolute', top: 10, left: 10, background: INK, color: '#fff', borderRadius: 7, padding: '1px 7px', ...OSW, fontWeight: 900, fontSize: 13 }}>{tagPos(pos)}</span>
-      <span style={{ position: 'absolute', top: 10, right: 10, background: '#fff', border: `2px solid ${INK}`, borderRadius: 7, padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 11 }}>{t('❓ categoria', '❓ tier')}</span>
+      <span className="ov3-surface" style={{ position: 'absolute', top: 10, right: 10, background: '#fff', border: `2px solid ${INK}`, borderRadius: 7, padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 11 }}>{t('❓ categoria', '❓ tier')}</span>
       <div style={{ position: 'absolute', top: '22%', left: '50%', transform: 'translateX(-50%)', width: '46%', aspectRatio: '1', borderRadius: '50%', background: '#C9BD9C', border: '3px dashed #8a7d59', display: 'grid', placeItems: 'center', ...OSW, fontWeight: 900, fontSize: 44, color: '#8a7d59' }}>?</div>
       <div style={{ position: 'absolute', left: 12, right: 10, bottom: 12 }}>
         <b style={{ ...OSW, fontWeight: 900, fontSize: 20, display: 'block', lineHeight: 1.05 }}>{name}</b>

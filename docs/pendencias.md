@@ -13019,3 +13019,7 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   Toda largada marca `started` ANTES do `triggerStart`, então nunca barra jogo de verdade. Anota `save_em_sala_de_espera` na caixa-preta
   (`esc_travas`, extra com tela/fase/temporada/rodada) pra achar o caminho exato que deixa a partida velha apontando pra sala nova — ainda NÃO achado.
 - [ ] Depois de publicado: olhar `esc_travas` com `extra->>'quando' = 'save_em_sala_de_espera'` e fechar a causa.
+
+### 09/11 — Contraste da prévia privada do Online
+
+Os prints do Diego revelaram creme sobre branco em pacotes, lances e lendas, além de avisos escuros sobre o novo fundo. Correção de apresentação validada, abrangendo superfícies claras, instruções, Draft e diferenças entre celular/desktop. Build, isolamento e matriz de telas passaram; publicação acompanhada separadamente. Escopo segue **somente a conta principal verificada**, inclusive como espectador. Detalhes e limites da auditoria: `docs/correcao-contraste-online-privado-20261109.md`. Não considerar a ausência de erros de JavaScript como validação de contraste.

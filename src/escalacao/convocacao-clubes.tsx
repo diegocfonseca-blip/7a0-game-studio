@@ -190,7 +190,7 @@ export function EscConvocacaoClubes() {
                 const falta = ok ? null : SECTORS.find(sec => (lotes[sec]?.pacote?.cartas.length ?? 0) < FORMATIONS[f][sec])
                 const on = form === f && alas === ala, nome = ala ? '3-5-2' : f
                 return (
-                  <button key={nome} disabled={!ok} onClick={() => { if (f === form) { setAlas(ala); return } setForm(f); setAlas(ala); setSel({}); setAviso(null) }}
+                  <button className="ov3-surface" key={nome} disabled={!ok} onClick={() => { if (f === form) { setAlas(ala); return } setForm(f); setAlas(ala); setSel({}); setAviso(null) }}
                     title={falta ? t(`Seu pacote de ${nomeSec(falta, 2)} não tem gente pra ${nome}`, `Your ${nomeSec(falta, 2)} pack is too small for ${nome}`) : (ala ? t('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined)}
                     style={{ flex: '1 0 21%', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 13, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : on ? GOLD : '#fff', boxShadow: on ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .6 }}>
                     {ok ? nome : `🔒 ${nome}`}
@@ -198,7 +198,7 @@ export function EscConvocacaoClubes() {
                 )
               })}
             </div>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 0' }}>{t('Acende só a formação que os seus pacotes fecham. Trocar limpa a convocação.', 'Only formations your packs can fill light up. Switching clears the call-up.')}</p>
+            <p className="ov3-page-muted" style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 0' }}>{t('Acende só a formação que os seus pacotes fecham. Trocar limpa a convocação.', 'Only formations your packs can fill light up. Switching clears the call-up.')}</p>
           </div>
         )}
 
@@ -226,7 +226,7 @@ export function EscConvocacaoClubes() {
         )}
         <Box className="p-0 overflow-hidden" shadow={3}>
           {lote ? (
-            <div className="cv-pack" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: `3px solid ${INK}`, background: '#FFF4CF' }}>
+            <div className="cv-pack ov3-surface" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: `3px solid ${INK}`, background: '#FFF4CF' }}>
               <SeloPacote c={lote} size={pc ? 60 : 44} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', lineHeight: 1.1 }}>{nomePacote(lote)}</p>
@@ -239,7 +239,7 @@ export function EscConvocacaoClubes() {
             </p>
           )}
           {aviso && (
-            <div style={{ borderBottom: `2px solid ${INK}`, padding: '7px 10px', background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>✋ {aviso}</div>
+            <div className="ov3-surface" style={{ borderBottom: `2px solid ${INK}`, padding: '7px 10px', background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>✋ {aviso}</div>
           )}
           <div className="cv-lista">
           {lista.map(c => {
@@ -247,7 +247,7 @@ export function EscConvocacaoClubes() {
             const cheio = !on && doSetor(tab).length >= vagas(tab)
             const travado = !meuSetor(tab)
             return (
-              <button key={c.id} onClick={() => toggle(c, tab)} disabled={travado}
+              <button className="ov3-surface" key={c.id} onClick={() => toggle(c, tab)} disabled={travado}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : cheio ? '#EFE7D2' : '#fff', cursor: travado ? 'default' : 'pointer', opacity: cheio || travado ? 0.62 : 1, textAlign: 'left' }}>
                 <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : cheio || travado ? '🔒' : ''}</span>
                 <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: INK }}>{c.name}</span>
@@ -315,7 +315,7 @@ export function EscConvocacaoClubes() {
         {state.onlineMode === 'online' && humanos.length > 1 && (() => {
           // ✅ 05/11 (Diego): quem da sala já fechou — só o nome, nunca quem convocou (sem spoiler)
           const ja = humanos.filter(m => (state.convocacaoFeitos ?? []).includes(m.id))
-          return <p style={{ fontSize: 11, fontWeight: 800, margin: 0, textAlign: 'center', color: 'rgba(0,0,0,.7)', lineHeight: 1.4 }}>✅ {t('Já fecharam', 'Already done')}: <b>{ja.length} {t('de', 'of')} {humanos.length}</b>{ja.length ? ` · ${ja.map(m => m.teamName).join(', ')}` : ''}</p>
+          return <p className="ov3-page-muted" style={{ fontSize: 11, fontWeight: 800, margin: 0, textAlign: 'center', color: 'rgba(0,0,0,.7)', lineHeight: 1.4 }}>✅ {t('Já fecharam', 'Already done')}: <b>{ja.length} {t('de', 'of')} {humanos.length}</b>{ja.length ? ` · ${ja.map(m => m.teamName).join(', ')}` : ''}</p>
         })()}
         </div>
       </div>

@@ -201,7 +201,7 @@ function GradeDeClubes({ copa, pegos, marcado, podeMarcar, aoMarcar }: { copa: C
 function Barra({ seg, total, cor = GOLD }: { seg: number; total: number; cor?: string }) {
   const pct = Math.max(0, Math.min(100, (seg / total) * 100))
   return (
-    <div style={{ marginTop: 8, height: 16, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}>
+    <div className="ov3-surface" style={{ marginTop: 8, height: 16, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}>
       <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: seg <= 10 ? '#E8503A' : cor, transition: 'width .9s linear' }} />
       <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: INK }}>{seg}s</b>
     </div>
