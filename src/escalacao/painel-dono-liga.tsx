@@ -41,7 +41,7 @@ export function PainelDonoLiga({ roomId, roomCode, roomName, managers, presence,
 
   const lePedidos = useCallback(async () => {
     try {
-      const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: roomId })
+      const { data } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: roomId })
       if (!vivo.current) return
       const lista = (data ?? []) as Ped[]
       setPeds(lista)

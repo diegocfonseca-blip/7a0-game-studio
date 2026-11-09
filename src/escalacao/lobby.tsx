@@ -1762,7 +1762,7 @@ export function EscLobby() {
     let saem = new Set<string>()
     if (amHost && ehLigaSala) {
       try {
-        const { data: peds } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: roomData.id })
+        const { data: peds } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: roomData.id })
         for (const p of (peds ?? []) as { user_id: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[])
           if (p.status === 'aceito') entradas[p.user_id] = { ...(p.alvo_bot != null ? { bot: p.alvo_bot } : {}), ...(p.alvo_uid ? { uid: p.alvo_uid } : {}) }
       } catch { entradas = {} }
@@ -2765,7 +2765,7 @@ export function EscLobby() {
     // 🙋 pedidos: os que chegaram nas MINHAS ligas (só o dono lê) e os que EU fiz
     const minhasComoDono = rooms.filter(r => (r.liga_dono ?? r.host_id) === user.id)
     const lidos = await Promise.all(minhasComoDono.map(async r => {
-      try { const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: r.id }); return [r.id, (data ?? []) as PedLiga[]] as const } catch { return [r.id, [] as PedLiga[]] as const }
+      try { const { data } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: r.id }); return [r.id, (data ?? []) as PedLiga[]] as const } catch { return [r.id, [] as PedLiga[]] as const }
     }))
     setPedidosDono(Object.fromEntries(lidos))
     try { const { data } = await supabase.rpc('esc_liga_meus_pedidos'); setMeusPedidos(((data ?? []) as MeuPed[]).filter(p => p.status !== 'recusado' && !rooms.some(r => r.id === p.room_id))) } catch { /* sem pedidos */ }
