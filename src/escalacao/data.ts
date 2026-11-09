@@ -4439,7 +4439,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // o Murriz não foi renomeado, só mudou de divisão (o OLD_NAME dele continua
     // sendo o Robertão United, de quando ele foi batizado). Mapear faria uma
     // carreira que tem OS DOIS desenhar o escudo do Murriz no Seringueiro também.
-    { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
+    // 👑💜 09/11 (Diego: *"ele entrará no lugar do Murriz FC"*): o Double Duo FC assumiu ESTE assento da Série B. O Murriz FC sai da
+    // pirâmide (sem vaga), mas continua batismo: escudo, mascote, manto e nome reservado seguem o e-mail dele. SEM OLD_NAME (ninguém
+    // foi renomeado). ⚠️ No POST não se diz de quem era o assento (regra 05/09).
+    { name: 'Streamer', team: 'Double Duo FC' }, // 👑💜 clube BATIZADO por apoiador (doublecontatocomercial — Double Duo FC; streamer de jogos de manager; escudo DD coroado com as redes dele, mascote O Streamer; preto #161016 + roxo #A131BF MEDIDOS na camisa, azul na 3ª cor; plano FUNDADOR nº100, 09/11).
     { name: 'Cápsula', team: 'Corporação Capsule FC' }, // 🐉 clube BATIZADO por apoiador (contatovegetta14 — Corporação Capsule FC, ex-Real Tabuleiro; mascote DragonBola, preto + azul escuro; Lenda + fundador nº55, 03/09)
     // 🐝👑 Sapekeiros FC (tiosapeka / @tiosapekagg) DESCEU da Série A pra cá em 16/09,
     // por decisão do Diego, pra abrir o assento do Rei da Bola FC. Ocupa a vaga que era
@@ -4583,7 +4586,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Operário das Docas', atk: 64, def: 65 },
   { name: 'Botafogo da Colônia', atk: 63, def: 62 },
   { name: 'Fluminense de Caicó', atk: 61, def: 63 },
-  { name: 'Murriz FC', atk: 60, def: 60 }, // 🧔 desceu da Série A em 05/09 (abriu o assento do Vidraceiro FC) — MESMA força do bot que cedeu a vaga (Atlético Seringueiro)
+  { name: 'Double Duo FC', atk: 60, def: 60 }, // 👑💜 09/11: assumiu o assento do Murriz FC (mesma força). Antes: Murriz FC — 🧔 desceu da Série A em 05/09 (abriu o assento do Vidraceiro FC) — MESMA força do bot que cedeu a vaga (Atlético Seringueiro)
   { name: 'Corporação Capsule FC', atk: 58, def: 59 }, // 🐉 ex-Real Tabuleiro (batismo 03/09) — MESMA força do bot que cedeu o assento
   { name: 'Sapekeiros FC', atk: 55, def: 54 }, // 🐝 desceu da Série A em 16/09 (abriu o assento do Rei da Bola FC) — MESMA força do bot que cedeu a vaga (Íbis da Mata)
 ]

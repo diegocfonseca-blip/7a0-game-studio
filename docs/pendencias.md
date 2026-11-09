@@ -6,8 +6,9 @@
 - ⛔ A CONTA AINDA NÃO EXISTE (09/11). Banco SÓ depois que ele criar: `esc_socios` (sócio nº86, manto, mascote_key
   doubleduo_streamer, escudo_time 'Double Duo FC', origem batismo), `esc_fundadores` (n 100), `esc_nomes_batismo` ('double duo'),
   `user_colors` ouro manual. Conferir antes `select max(n) from esc_fundadores` / `max(socio_n)`.
-- ❓ VAGA: as 80 vagas A/B/C/D já são todas de batismo — o Diego decide em que série entra e quem desce. Depois: `data.ts`
-  (time na divisão) e o post (`node scripts/mockup-batismo.mjs`, com --camisa scripts/kits/doubleduo-camisa.webp).
+- ✅ VAGA (09/11, Diego: *"ele entrará no lugar do Murriz FC"*): Série B, no assento do Murriz FC. O Murriz sai da pirâmide
+  (continua batismo; `FORA_DA_PIRAMIDE` no checa-batismos). Post: `scripts/posts/batismo-double-duo-fc.png` (sem nome/@ do dono e
+  sem coração — pedir pro Diego se quiser no rodapé).
 
 ## 💬 09/11 — Nome em cada balão, visual novo mantido
 
