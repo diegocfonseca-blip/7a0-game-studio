@@ -75,6 +75,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Cuiudos FC": "cuiudos-camisa-v1.webp", // 🤠🔵 Cuiudos FC (matheussoaresg2018, 17/10)
   "Wen Milan B": "wenmilan-camisa-v1.webp", // 😈🔴⚫ Wen Milan B (vittor@tidex, 17/10)
   "Chelsão da Massa FC": "chelsao-camisa-v1.webp", // 🦁🔵 Chelsão da Massa FC (ccaonta, 16/10)
+  "Double Duo FC": "doubleduo-camisa-v1.webp", // 👑💜 Double Duo FC (doublecontatocomercial, 09/11)
   "Monarca Tricolor": "monarca-tricolor-camisa-v1.webp", // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus, 05/11)
   "Paizão FC": "paizao-camisa-v1.webp", // 👑🎩 Paizão FC (enzocromero9, 30/10)
   "Piranhão FC": "piranhao-camisa-v1.webp", // 🐟🏛️ Piranhão FC (bruno.cunha2007, 29/10)

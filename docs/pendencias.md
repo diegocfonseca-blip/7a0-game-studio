@@ -1,3 +1,14 @@
+## 👑💜 09/11 — Batismo FUNDADOR Double Duo FC (doublecontatocomercial@gmail.com) — FALTA: conta, vaga e banco
+- Streamer de jogos de manager de futebol. Feito no código (branch): escudo `doubleduo-escudo.webp` (297×360, 28 KB) · mascote
+  O Streamer `doubleduo-mascote.webp` (339×440, 43 KB, key `doubleduo_streamer`) · manto preto #161016 + roxo #A131BF (3ª azul
+  #0170F2 em MANTO_TRI) · camisa do salão · tier ouro + FUNDADOR_N 100 · `batismos.ts` · checa-batismos · gala única "O Save"
+  (`gala-doubleduo.tsx`, vídeo `scripts/posts/gala-doubleduo.webm`).
+- ⛔ A CONTA AINDA NÃO EXISTE (09/11). Banco SÓ depois que ele criar: `esc_socios` (sócio nº86, manto, mascote_key
+  doubleduo_streamer, escudo_time 'Double Duo FC', origem batismo), `esc_fundadores` (n 100), `esc_nomes_batismo` ('double duo'),
+  `user_colors` ouro manual. Conferir antes `select max(n) from esc_fundadores` / `max(socio_n)`.
+- ❓ VAGA: as 80 vagas A/B/C/D já são todas de batismo — o Diego decide em que série entra e quem desce. Depois: `data.ts`
+  (time na divisão) e o post (`node scripts/mockup-batismo.mjs`, com --camisa scripts/kits/doubleduo-camisa.webp).
+
 ## 💬 09/11 — Nome em cada balão, visual novo mantido
 
 - Diego esclareceu que mantém fontes, cores e posições novas. Cada mensagem agora repete o nome/crachá dentro do próprio balão, mesmo quando o remetente escreve várias seguidas; personagens e figurinhas preservados.

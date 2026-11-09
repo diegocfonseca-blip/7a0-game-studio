@@ -47,6 +47,7 @@ import { GalaSeven, SEVEN_MS } from './gala-seven'
 import { GalaFutpoint, FUTPOINT_MS } from './gala-futpoint'
 import { GalaGuimaraes, GUIMARAES_MS } from './gala-guimaraes'
 import { GalaDsouza, DSOUZA_MS } from './gala-dsouza'
+import { GalaDoubleDuo, DOUBLEDUO_MS } from './gala-doubleduo'
 import { GalaLulubaba, LULUBABA_MS } from './gala-lulubaba'
 import { GalaPiranhao, PIRANHAO_MS } from './gala-piranhao'
 import { GalaNeymarFC, NEYMARFC_MS } from './gala-neymarfc'
@@ -79,6 +80,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Neymar_FC': { ms: NEYMARFC_MS, Show: GalaNeymarFC }, // 🐐👑 O G.O.A.T.: as letras carimbam, o 10 dourado, o Bode Rei no pedestal e a coroa (29/10, virou Fundador)
   'Piranhão FC': { ms: PIRANHAO_MS, Show: GalaPiranhao }, // 🐟🏛️ A Posse: Palácio, tapete vermelho, salva de 21 tiros, faixa presidencial e as piranhas (29/10, Fundador)
   'Lulubaba FC': { ms: LULUBABA_MS, Show: GalaLulubaba }, // 🧤🖤 O Paredão Alvinegro: estrela solitária, 3 chutes, o Goleiro pega no ângulo (29/10, virou Fundador)
+  'Double Duo FC': { ms: DOUBLEDUO_MS, Show: GalaDoubleDuo }, // 👑💜 O Save: o jogo de manager abre, a escalação se desenha, os dois D viram o escudo e o Streamer sobe (09/11, Fundador nº100)
   'dSouza FC': { ms: DSOUZA_MS, Show: GalaDsouza }, // 🐶💚 A Galeria: quadros de lenda acendem, a caixa dSouza cai, abre e o Pitbull sobe (28/10, Fundador)
   'Wen Milan B': { ms: WENMILAN_MS, Show: GalaWenMilan }, // 😈🔴⚫ fogo, tridente cravando, lambida na tela e a diabinha (17/10, Fundador)
 }

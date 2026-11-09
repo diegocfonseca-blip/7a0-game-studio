@@ -120,6 +120,10 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'bruno.cunha2007@gmail.com': ['#100F0E', '#E2E1E1'],
   // 👑🎩 Paizão FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (30/10): preto do corpo (66%, #100F0F) e o dourado das
   // pinceladas, gola e punhos (#D99C32).
+  // 👑💜 Double Duo FC — PRETO e ROXO, MEDIDOS na camisa que o dono mandou (09/11): preto do corpo (54%, mediana #080508, levantado pra
+  // #161016 pelo motivo de sempre: preto de arte escura, na listra fininha, lê como buraco; o tom R≈B é o medido) e o roxo das
+  // pinceladas (25%, #A131BF). O AZUL da gola e das faixas (6%, #0170F2) é a 3ª cor, em MANTO_TRI.
+  'doublecontatocomercial@gmail.com': ['#161016', '#A131BF'],
   // 👑⚪🔴 Monarca Tricolor — BRANCO e VERMELHO, MEDIDOS na camisa que o dono mandou (05/11): branco do corpo (46%, #F2F1F3) e o
   // vermelho das listras, gola e punhos (#D40101). O PRETO (16%) é a 3ª cor, em MANTO_TRI (tricolor à moda São Paulo).
   'danieltorresreus@gmail.com': ['#F2F1F3', '#D40101'],
@@ -369,6 +373,7 @@ const MANTO_TRI: Record<string, string> = {
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
   gremio_gaucho: '#EDECEB', // 🔵⚫⚪ Grêmio FBPA (danieldias11) — 3ª cor BRANCA: o filete entre as listras azul e preta (medida na camisa dele, 21/09)
+  doubleduo_streamer: '#0170F2', // 👑💜 Double Duo FC (doublecontatocomercial) — 3ª cor AZUL: a gola e as faixas da camisa (medida na arte dele, 09/11)
   monarca_rei: '#060604', // 👑 Monarca Tricolor (danieltorresreus) — 3ª cor PRETA: a listra larga do peito e das mangas (medida na camisa dele, 05/11)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08
 }
