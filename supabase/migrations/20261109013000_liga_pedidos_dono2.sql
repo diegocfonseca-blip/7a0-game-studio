@@ -15,3 +15,9 @@ end $function$;
 grant execute on function public.esc_liga_pedidos_dono2(uuid) to authenticated;
 alter function public.esc_liga_pedidos_dono(uuid) rename to esc_liga_pedidos_dono_velha;
 notify pgrst, 'reload schema';
+-- (depois, no mesmo episódio) só a página VELHA chama este nome: devolver objeto em vez de lista faz o código velho cair no
+-- catch sem redesenhar a tela. A API seguiu respondendo 404 pra ele; inofensivo.
+create or replace function public.esc_liga_pedidos_dono(p_room uuid)
+ returns json language sql stable set search_path to 'public'
+as $function$ select '{}'::json $function$;
+grant execute on function public.esc_liga_pedidos_dono(uuid) to authenticated;

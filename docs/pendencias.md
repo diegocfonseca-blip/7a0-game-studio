@@ -6,6 +6,10 @@
   `esc_liga_pedidos_dono_velha` — quem está com o código velho recebe 404 na hora, sem ocupar o banco. Mediana voltou a ~30–75 ms.
 - Lição: nunca pôr o `t` do `useT()` (nem função recriada a cada desenho) em dependência de efeito que fala com o banco.
 - Daqui a uns dias (quando ninguém mais tiver o código velho aberto) dá pra apagar a `_velha`.
+- ⚠️ Lição 2: cada `notify pgrst, 'reload schema'` (e toda migration que cria/renomeia função) TRAVOU a API por 1–3 min nessa noite
+  (mediana de 40–50 s às 22h35–22h37). Com o banco já sob pressão, não fazer mudança de esquema em sequência — uma só e esperar.
+- Ficou no banco uma `esc_liga_pedidos_dono` nova que devolve `{}` (pra quebrar o laço do código velho); o PostgREST seguiu dando 404
+  pra ela. Inofensiva. Pode sair junto com a `_velha`.
 
 ## ⚖️ 08/11 — Critérios da carreira corrigidos (PUBLICAÇÃO PARA TODOS AUTORIZADA EM 08/11)
 
