@@ -5677,6 +5677,7 @@ type Action =
   | { type: 'DRAFT_VENDER'; mgrId: number; cardId: string | null; by?: string } // 🏷️ põe (ou tira) 1 jogador seu à venda no leilão
   | { type: 'DRAFT_SONDAR'; mgrId: number; dono: number; cardId: string; by?: string } // 🕵️ na sua vez: sonda o jogador de um amigo (perde a vez)
   | { type: 'DRAFT_LANCE'; mgrId: number; lote: number; valor: number; by?: string } // 🔨 envelope do leilão dos sondados (0 = tira o lance)
+  | { type: 'DRAFT_LACRAR'; mgrId: number; by?: string } // 🔒 09/11: lacrou o envelope (com ou sem lance); todo mundo lacrou = o martelo bate na hora
   | { type: 'DRAFT_IGUALAR'; mgrId: number; sim: boolean; by?: string } // ⚡ quem sondou iguala (ou não) o maior lance
   | { type: 'MLD_FORMACAO'; mgrId: number; formation: FormationKey; view?: string; by?: string } // 👕 Minha Liga Draft: troca a formação (só se o elenco preencher)
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
@@ -13045,7 +13046,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const d = s.draft
       if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || !soDono(s, action.by)) return state
       if (d.fase === 'prontos' && d.proxima === 'draft') { d.fase = 'aguarda'; d.idx = 0; d.prazo = 0; d.prontos = []; return s }
-      if (d.fase === 'prontos' && d.proxima === 'leilao') { d.fase = 'leilao'; d.lances = {}; d.prazo = Date.now() + MLD_LEILAO_MS; d.prontos = []; return s }
+      if (d.fase === 'prontos' && d.proxima === 'leilao') { d.fase = 'leilao'; d.lances = {}; d.lacrou = []; d.prazo = Date.now() + MLD_LEILAO_MS; d.prontos = []; return s }
       if (d.fase === 'escala') { mldComecaTemporada(s); return s }
       return state
     }
@@ -13086,6 +13087,18 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (v <= 0) delete porLote[m.id]
       else { if (v < lote.piso || v > m.money) return state; porLote[m.id] = v }
       d.lances = { ...(d.lances ?? {}), [action.lote]: porLote }
+      return s
+    }
+    case 'DRAFT_LACRAR': {
+      // 🔒 09/11 (Gabriel Ribeiro, via Diego: *"não consigo lacrar sem escolher ninguém… tamo tendo que esperar o tempo acabar"*):
+      // lacrar vale MESMO SEM LANCE ("não quero ninguém"). Quando todo técnico de gente lacrou, o prazo vira AGORA e o
+      // próximo tique do dono bate o martelo (o mesmo caminho do tempo esgotado — nada de regra nova no martelo).
+      const d = s.draft
+      if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || d.fase !== 'leilao' || Date.now() >= d.prazo) return state
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      if (!m) return state
+      const lac = new Set(d.lacrou ?? []); lac.add(m.id); d.lacrou = [...lac]
+      if (s.managers.filter(x => x.isHuman).every(x => lac.has(x.id))) d.prazo = Date.now()
       return s
     }
     case 'DRAFT_IGUALAR': {
@@ -15035,7 +15048,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       // 📋 a escolha do draft é recado ÚNICO (se sumir, o tempo acaba e o jogo escolhe por ele): vai pelas duas estradas
-      if ((action.type === 'DRAFT_ESCOLHER' || action.type === 'DRAFT_PRONTO' || action.type === 'DRAFT_PASSAR' || action.type === 'DRAFT_SONDAR' || action.type === 'DRAFT_LANCE' || action.type === 'DRAFT_IGUALAR') && stateRef.current.roomId) {
+      if ((action.type === 'DRAFT_ESCOLHER' || action.type === 'DRAFT_PRONTO' || action.type === 'DRAFT_PASSAR' || action.type === 'DRAFT_SONDAR' || action.type === 'DRAFT_LANCE' || action.type === 'DRAFT_LACRAR' || action.type === 'DRAFT_IGUALAR') && stateRef.current.roomId) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
@@ -15520,7 +15533,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
             // jogador da mão de quem apertou. O reducer confere o preço da tela
             // e recusa carta que já tem dono, então repetido não faz mal.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'DRAFT_PRONTO' || a.type === 'DRAFT_PASSAR' || a.type === 'DRAFT_SONDAR' || a.type === 'DRAFT_LANCE' || a.type === 'DRAFT_IGUALAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'DRAFT_PRONTO' || a.type === 'DRAFT_PASSAR' || a.type === 'DRAFT_SONDAR' || a.type === 'DRAFT_LANCE' || a.type === 'DRAFT_LACRAR' || a.type === 'DRAFT_IGUALAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }

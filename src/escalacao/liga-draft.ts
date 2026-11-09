@@ -53,6 +53,7 @@ export interface DraftEstado {
   aVenda?: Record<number, string> // 🏷️ técnico → a carta que ele pôs à venda (1 por técnico)
   lotes?: LoteDraft[] // 🔨 o leilão dos sondados + à venda
   lances?: Record<number, Record<number, number>> // lote → técnico → lance (envelope: ninguém vê o do outro)
+  lacrou?: number[] // 🔒 09/11: técnicos que lacraram o envelope (com ou sem lance) — todos lacraram = martelo na hora
   igualarIdx?: number // o lote que está esperando quem sondou decidir se iguala
   inicioEscala?: number // quando a escalação começou (o relógio de 45 s é só guia: quem começa a temporada é o dono)
   somaTemporada?: boolean // true = draft aberto no fim da temporada (a próxima soma +1); false = veio da sala de espera (o número já é o da próxima)

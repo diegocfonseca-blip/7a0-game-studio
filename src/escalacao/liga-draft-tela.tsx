@@ -547,7 +547,7 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
   const enviado = (i: number) => d.lances?.[i]?.[you.id] ?? 0
   const [bids, setBids] = useState<Record<number, number>>(() => Object.fromEntries(lotes.map((_, i) => [i, enviado(i)]).filter(([, v]) => v > 0)))
   const total = Object.values(bids).reduce((a, b) => a + b, 0)
-  const lacrado = lotes.every((_, i) => (bids[i] ?? 0) === enviado(i)) && lotes.some((_, i) => enviado(i) > 0)
+  const lacrado = lotes.every((_, i) => (bids[i] ?? 0) === enviado(i)) && (d.lacrou ?? []).includes(you.id) // 🔒 09/11: vale lacrar sem lance
   const bump = (i: number, dir: 1 | -1) => {
     const l = lotes[i]
     setBids(prev => {
@@ -559,7 +559,10 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
       return { ...prev, [i]: v }
     })
   }
-  const lacrar = () => lotes.forEach((_, i) => { const v = bids[i] ?? 0; if (v !== enviado(i)) dispatch({ type: 'DRAFT_LANCE', mgrId: you.id, lote: i, valor: v, by: state.youUid }) })
+  const lacrar = () => {
+    lotes.forEach((_, i) => { const v = bids[i] ?? 0; if (v !== enviado(i)) dispatch({ type: 'DRAFT_LANCE', mgrId: you.id, lote: i, valor: v, by: state.youUid }) })
+    dispatch({ type: 'DRAFT_LACRAR', mgrId: you.id, by: state.youUid }) // 🔒 sem lance também vale; todo mundo lacrou = martelo na hora
+  }
   const barra = (
     <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
       <p className="uppercase" style={{ ...OSW, fontSize: 15 }}>🔨 {t('Leilão dos sondados', 'Scouted auction')}</p>
@@ -603,7 +606,7 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[13px] font-black text-white" style={OSW}>✉️ {t('ENVELOPE', 'ENVELOPE')}: <span style={{ color: GOLD }}>{total} / {caixa}</span></p>
-                <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.7)' }}>{lacrado ? t('✅ Lacrado — dá pra mudar até o tempo acabar', '✅ Sealed — you can change it until time runs out') : t('Sem lance = você não disputa aquele jogador', 'No bid = you skip that player')}</p>
+                <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.7)' }}>{lacrado ? t('✅ Lacrado — quando todo mundo lacrar, o martelo bate na hora', '✅ Sealed — once everyone seals, the hammer falls right away') : t('Sem lance = você não disputa aquele jogador', 'No bid = you skip that player')}</p>
               </div>
               <Btn onClick={lacrar} bg={lacrado ? GREEN : RED}><span className="text-white whitespace-nowrap">{lacrado ? t('LACRADO ✅', 'SEALED ✅') : t('LACRAR TUDO 🔒', 'SEAL ALL 🔒')}</span></Btn>
             </div>
