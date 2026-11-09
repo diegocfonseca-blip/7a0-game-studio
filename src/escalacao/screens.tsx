@@ -1963,52 +1963,32 @@ function BidLegendsHome() {
   const [showManual, setShowManual] = useState(false)
   const [carreiras, setCarreiras] = useState<null | 'lista' | 'nova'>(null) // 🪜 Minhas Carreiras do basquete (lista ou já no passo do nome)
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
-  return (
-    <><div className="ll-home ll-home-bb">
-      <div className="ll-art" />
-      <div className="ll-shade" />
-      <header className="ll-header">
-        <div className="ll-brand"><small>{t('NBA ÀS CEGAS', 'NBA BLIND AUCTION')}</small>BIDLEGENDS</div>
-        <div className="ll-lang"><LangToggle /></div>
-        <div className="ll-account"><button onClick={() => setContaAberta(true)}>{t('MINHA CONTA', 'MY ACCOUNT')}</button></div>
-      </header>
-      <SeletorEsporte />{/* ⚽🏀 voltar pro futebol (a home do basquete só existe pra conta liberada) */}
-      {amigosOn && <div className="ll-sino"><SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /></div>}
-      <section className="ll-intro">
-        <h1>{t('O PREGÃO ESTÁ ABERTO.', 'THE AUCTION IS OPEN.')}</h1>
-        <p>{t('Dê lance no nome. O nível só aparece depois do martelo.', 'Bid on the name. The rating only shows after the hammer.')}</p>
-      </section>
-      {nbaSolo && <div className="ll-resume">
-        <button onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
-        <button onClick={() => setCarreiras('lista')}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button>
-      </div>}
-      <section className="ll-choices" aria-label="Escolha como jogar">
-        <p className="ll-eyebrow">{t('ESCOLHA COMO VOCÊ QUER JOGAR', 'CHOOSE HOW YOU WANT TO PLAY')}</p>
-        <div className="ll-modes">
-          <button className="ll-mode" onClick={() => dispatch({ type: 'GO_SETUP' })}><span className="ll-symbol" aria-hidden="true">ϟ</span><span className="ll-copy"><strong>{t('PARTIDA RÁPIDA', 'QUICK MATCH')}</strong><small>{t('Monte seu quinteto e enfrente a CPU.', 'Build your five and face the CPU.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-          <button className="ll-mode ll-online" onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-          <button className="ll-mode ll-career" onClick={() => setCarreiras(listaNbaCarreiras().length ? 'lista' : 'nova')}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Suba da Street League à NBA.', 'Climb from the Street League to the NBA.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
-        </div>
-        <div className={amigosOn ? 'll-loja-linha ll-com-amigos' : 'll-loja-linha'}>
-          <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, canto da torcida e moedas', 'Move up a plan, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
-          {amigosOn && <button className="ll-salao-entry ll-amigos-entry" onClick={() => setVerAmigos(true)}><span aria-hidden="true">👥</span><span><strong>{t('AMIGOS', 'FRIENDS')}</strong><small>{t('Quem está online', 'Who is online')}</small></span><span aria-hidden="true">›</span></button>}
-        </div>
-        {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
-        <div className="ll-extras ll-extras-3">
-          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
-          <button className="ll-salao-entry ll-regras-entry" onClick={() => setShowManual(true)}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>
-          {/* 📖 28/10 (Diego): o MEU ÁLBUM saiu da home — o álbum já mora dentro dos 👥 Amigos. Sem Amigos (deslogado), fica. */}
-          {!amigosOn && <button className="ll-salao-entry ll-album-entry" onClick={() => dispatch({ type: 'GO_ALBUM' })}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>}
-        </div>
-      </section>
-      <footer className="ll-footer">
-        <div className="ll-web"><span>bidlegendsarena.com</span> · {t('Seu quinteto. Sua lenda.', 'Your five. Your legend.')}</div>
-      </footer>
+  // 🏀 09/11: a MESMA home v03 do futebol (Diego: "tudo igual do futebol pro basquete"); só troca marca, arte e textos.
+  return <HomeV03 bb
+    onCareer={() => setCarreiras(listaNbaCarreiras().length ? 'lista' : 'nova')}
+    onCareers={() => setCarreiras('lista')}
+    onQuick={() => dispatch({ type: 'GO_SETUP' })}
+    onOnline={destination => { requestOnlineDestination(destination); dispatch({ type: 'GO_LOBBY_ONLINE' }) }}
+    onAccount={() => setContaAberta(true)} onAlbum={() => dispatch({ type: 'GO_ALBUM' })} onManual={() => setShowManual(true)}
+    onFriends={amigosOn ? () => setVerAmigos(true) : undefined}
+    onHall={() => { setVerSalao(true); window.scrollTo(0, 0) }}
+    language={<LangToggle />}
+    sportSwitcher={<SeletorEsporte />}
+    notifications={amigosOn ? <SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /> : undefined}
+    title={<h1>{t('O SEU QUINTETO', 'YOUR FIVE')}<br /> {t('COMEÇA', 'STARTS')} <em>{t('NO LANCE.', 'WITH A BID.')}</em></h1>}
+    resume={nbaSolo ? <>
+      <button type="button" onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
+      <button type="button" onClick={() => setCarreiras('lista')}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button>
+    </> : undefined}
+    notices={amigosOn ? <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} /> : undefined}
+    shop={<LojaButton className="hv3-extra hv3-shop"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></svg><span className="hv3-text"><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Planos, identidade do clube, moedas e muito mais.', 'Plans, club identity, coins and more.')}</small></span><span aria-hidden="true">→</span></LojaButton>}
+    overlays={<>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
+      {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
       {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo bb />}
       {carreiras && <NbaMinhasCarreiras comecaNova={carreiras === 'nova'} onClose={() => setCarreiras(null)} />}
-    </div><div className="ll-support-home-tail"><ApoieButton trigger={open => <SupportFooter onOpen={open} />} /></div></>
-  )
+    </>}
+  />
 }
 // 🗑️ A TELA CHEIA DE LOGIN DA CARREIRA SAIU (Diego 16/08, plano-crescimento §1).
 // Ela ocupava a tela inteira e o botão de entrar disparava GO_LOBBY_ONLINE —

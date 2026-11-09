@@ -30,3 +30,5 @@
  .hv3-hero-copy .ll-aviao{left:-16px}.hv3-step>b{font-variant-numeric:tabular-nums}
 }
 .hv3-footer-language{display:none}@media(max-width:760px){.hv3-footer-language{display:flex;justify-content:center;margin-top:16px}}
+.home-v03.hv3-bb .hv3-hero:before{background-image:url('./img/home-bidlegends-v01.webp');background-position:center 58%}
+@media(max-width:760px){.home-v03.hv3-bb .hv3-hero:before{background-size:cover;background-position:center 62%}}
