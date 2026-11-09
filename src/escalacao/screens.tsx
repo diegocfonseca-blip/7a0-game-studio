@@ -83,7 +83,8 @@ import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { EscalacaoMinha } from './minha-escalacao' // 📋🏆 Minha Liga Draft (01/11)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
-import { useOnlinePreview, useOwnerPresentation } from './online-preview'
+import { useOnlinePreview } from './online-preview'
+import { useOnlineRoomPresentation as useOwnerPresentation } from './presentation-release'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
 import { useLegendPresentation } from './presentation-release'
@@ -10347,10 +10348,11 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     )
   }
   return createPortal(
-    <div onClick={() => setDismissed(true)} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(8,6,3,.64)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
+    // Acima do torneio (99996), depois da comemoração (100040).
+    <div role="dialog" aria-modal="true" aria-label={tr('Carta do campeão','Champion card')} onClick={() => setDismissed(true)} style={{ position: 'fixed', inset: 0, zIndex: 100030, background: 'rgba(8,6,3,.64)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
       <motion.div initial={{ scale: 0.66, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', bounce: 0.3, duration: 0.5 }}
         onClick={e => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 360, margin: 'auto' }}>
-        <button className="ov3-surface" onClick={() => setDismissed(true)} aria-label="Fechar" style={{ position: 'absolute', top: -14, right: -8, zIndex: 2, width: 34, height: 34, borderRadius: 999, border: `3px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 15, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}`, ...OSWALD }}>✕</button>
+        <button className="ov3-surface" onClick={() => setDismissed(true)} aria-label="Fechar" style={{ position: 'absolute', top: -14, right: -8, zIndex: 2, width: 34, height: 34, borderRadius: 999, border: `3px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 15, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}`, ...OSWALD }}>✕</button>
         {content}
       </motion.div>
     </div>,

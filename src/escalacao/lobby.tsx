@@ -1,5 +1,5 @@
 import {PrivateRoomChat} from './private-room-chat'
-import {useOwnerPresentation} from './online-preview'
+import {useOnlineRoomPresentation as useOwnerPresentation} from './presentation-release'
 import {OwnerOnlineHeader,OwnerOnlineProvider,OwnerSlot,OwnerWaitingLayout} from './owner-online-visual'
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react'
 import { SeloCla } from './cla' // ⚔️ 21/10: clãs

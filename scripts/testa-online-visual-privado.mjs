@@ -45,4 +45,24 @@ const scopeExports={};vm.runInNewContext(ts.transpileModule(node.getText(source)
 const scope=scopeExports.ownerOnlineScope
 for(const screen of ['auction','monte','cerimonia','season','liberta','champions','draft','end'])assert.equal(scope({screen}),true)
 for(const s of [{screen:'season',careerOnline:true},{screen:'season',sport:'basquete'},{screen:'intro'},{screen:'season',co2:{}},{screen:'setup',careerIntent:true}])assert.equal(scope(s),false)
-console.log('PASS: somente a conta principal verificada; público, segunda conta, carreira e basquete isolados; respostas atrasadas não liberam a prévia.')
+// A liberação pública de aparência não pode ampliar as prévias de conta.
+const releaseSource=fs.readFileSync('src/escalacao/presentation-release.ts','utf8')
+const publicFlags={}
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/online-release.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:publicFlags})
+assert.equal(publicFlags.ONLINE_ROOM_VISUAL_RELEASED,true)
+const presidencyFlags={}
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/presidencia-lotes.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:presidencyFlags})
+assert.equal(presidencyFlags.PRESIDENCY_STADIUM_RELEASED,false,'mapa oculto para todas as contas, sem depender da prévia')
+for(const accountPreview of [false,true]){
+ const presentation={}
+ vm.runInNewContext(ts.transpileModule(releaseSource,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{
+  exports:presentation,require(name){
+   if(name==='./online-preview')return{useOwnerPresentation:()=>accountPreview,useOnlinePreview:()=>false}
+   if(name==='./online-release')return publicFlags
+   if(name==='./career-feature-release')return{}
+   throw Error(name)
+  }
+ })
+ assert.equal(presentation.useOnlineRoomPresentation(),true,'o visual está disponível mesmo sem a prévia de conta')
+}
+console.log('PASS: apresentação pública do online; prévias privadas continuam verificadas; carreira/basquete fora do layout; respostas atrasadas não ampliam acesso.')

@@ -1,3 +1,7 @@
+## 🌐 09/11 — Repaginação online liberada para todos
+
+- Diego ampliou a autorização: “publique na conta de todos já as mudanças também visuais todas”. O padrão aprovado de salas, leilões, competições e chat passa pela chave pública de apresentação, separada das prévias autenticadas.
+- Mantidos personagens, mascotes, crachás de plano e permissões. Mapa oculto para TODAS as contas, inclusive a principal, por nova ordem do Diego; 2D/3D e outras funções privadas mantêm as regras atuais. Detalhes: [online-chat-publico-20261109.md](online-chat-publico-20261109.md).
 ## 📋 09/11 (noite) — Liga Draft: ordem do draft + 2 consertos (no branch, esperando "publica")
 - 🔢 Ordem do draft escolhida pelo dono: 🏆 melhor→pior (padrão) ou 🔄 pior→melhor. Na criação (ConfigLigaDraft) e no painel do dono
   (`patchDraftLiga` → `draftRegras.piorPrimeiro`). Vale na próxima noite do draft. Banco: `20261109220000_liga_draft_ordem.sql`
