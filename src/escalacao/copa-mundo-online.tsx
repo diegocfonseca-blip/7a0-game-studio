@@ -889,11 +889,15 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
       const f = fs[0] as LinhaFase | undefined
       setFase(f ? { ...f, seed: Number(f.seed) } : null)
       setLido(true)
+      acabouRef.current = !!f?.campeao // 🏆 09/11: Copa com campeão → para de perguntar ao banco
       return { linhas: pls as LinhaSala[], fase: f }
     } catch { return null }
   }, [roomId, edicaoDaTemporada])
 
-  useEffect(() => { void ler(); const iv = setInterval(() => { void ler() }, 2000); return () => clearInterval(iv) }, [ler])
+  // 🧯 09/11: a leitura de 2 s seguia pra sempre na tela de fim, mesmo com a Copa já decidida (1,6 milhão de leituras em 10 dias).
+  // Com campeão ela PARA; a 1ª leitura de cada edição sempre acontece (é ela que descobre se já tem campeão).
+  const acabouRef = useRef(false)
+  useEffect(() => { void ler(); const iv = setInterval(() => { if (!acabouRef.current) void ler() }, 2000); return () => clearInterval(iv) }, [ler])
 
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
   // 🪑 20/10: com o estado da partida, o assento sai do `seatUids` (a renumeração do banco já errou em dupla cruzada)
@@ -933,7 +937,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   // Só ele escreve. Roda junto da batidinha de leitura (2s), então a vez anda
   // no máximo 2s depois — e nunca depende do relógio do celular dos outros.
   const passo = useCallback(async () => {
-    if (!souDono) return
+    if (!souDono || acabouRef.current) return // 🏆 Copa decidida: nada pra empurrar
     const lido = await ler()
     if (!lido?.fase) return
     const f = lido.fase
