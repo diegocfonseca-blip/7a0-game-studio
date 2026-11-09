@@ -1,3 +1,4 @@
+import {usePrivateChatNavigation} from './private-chat-navigation'
 import {useOwnerLayout,OwnerRoomNavigation} from './owner-online-visual'
 // ─── 🏆 LIGA HUB — a liga inteira num lugar só, em pílulas ──────────────────
 //
@@ -430,6 +431,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
   aoExcluir?: () => void            // o que fazer depois de excluir a liga (sair da sala)
 }) {
   const ownerVisual=useOwnerLayout()
+  const roomChat=usePrivateChatNavigation(roomId,ownerVisual)
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
   const [membros, setMembros] = useState<MembroSala[]>([])
   const [sala, setSala] = useState<{ ehLiga: boolean; nome: string; regras: LigaRegras; ligaAt?: string; semBots: boolean } | null>(null)
@@ -621,7 +623,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
       {/* 🔁 28/10 (Diego: *"só fazer visualmente igual ao do carreira"*, sem mudar nome nenhum): a barra ganhou a cara
           da barra da CARREIRA no celular (`career-abas.css`) — fundo claro com linha preta grossa, aba aberta num
           botão preto com o ícone dourado. Vale com e sem o visual novo (o `ll31-bottom-nav` dourado saiu daqui). */}
-      <OwnerRoomNavigation><div className={(ownerVisual?'ov3-hub-nav':undefined)+" ov3-surface"} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
+      <OwnerRoomNavigation><div data-private-chat-nav={roomChat.available?roomId:undefined} className={(ownerVisual?'ov3-hub-nav':undefined)+" ov3-surface"} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
         {abas.map(t => {
           // ⚽📊👥 abas da PARTIDA: elas trocam o conteúdo da PÁGINA (não abrem
           // painel nenhum), então acendem quando são a aba da vez — e tocar numa
@@ -649,6 +651,9 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
             </button>
           )
         })}
+        {roomChat.available&&<button type="button" className="pc-nav-entry" aria-label={tr('Abrir chat da sala','Open room chat')} aria-pressed={roomChat.open} onClick={roomChat.show}>
+          <span className="pc-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2z"/></svg>{roomChat.unread>0&&<span className="pc-nav-count">{roomChat.unread}</span>}</span><span className="pc-nav-label">Chat</span>
+        </button>}
       </div></OwnerRoomNavigation>
       </>, document.body)}
     </>

@@ -1,3 +1,9 @@
+## 💬 09/11 — Chat privado no celular e desktop
+
+- Aplicado o mockup aprovado somente à conta principal verificada, preservando personagens de 40 px, crachás, respostas e figurinhas nativas. Gaveta acompanha o teclado; novas mensagens respeitam a leitura do histórico.
+- Atalho integrado ao menu móvel quando acessível; alternativa flutuante nas esperas, leilões e torneios. Público/segunda conta mantêm o chat anterior; transporte e permissões preservados.
+- Detalhes: [chat-privado-v01-20261109.md](chat-privado-v01-20261109.md).
+
 ## 🎨 09/11 — Complemento da espera privada e rodapé geral
 
 - Diego mostrou a espera antiga como convidado. Faltava implementar o corpo aprovado e incluir o GameFooter externo na conferência. Corrigidos os painéis, convite/regras, provocações/áudios, mascote visível também no celular, temas e Loja no rodapé.

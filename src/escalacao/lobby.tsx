@@ -1,3 +1,4 @@
+import {PrivateRoomChat} from './private-room-chat'
 import {useOwnerPresentation} from './online-preview'
 import {OwnerOnlineHeader,OwnerOnlineProvider,OwnerSlot,OwnerWaitingLayout} from './owner-online-visual'
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react'
@@ -155,7 +156,8 @@ function chatColor(name: string): string {
 // pílulas: 🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes.
 // Aqui na ESPERA ficou só o ⚖️ do dono (na faixa verde do próximo jogo), porque a
 // regra tem que ser decidida ANTES da bola rolar — depois do pregão não tem volta.
-function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: {
+function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend, privateChat=false, roomId='', roomName='', people=0 }: {
+  privateChat?: boolean; roomId?: string; roomName?: string; people?: number
   open: boolean; setOpen: (o: boolean) => void; unread: number
   msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string, re?: ChatRe) => void
 }) {
@@ -163,6 +165,7 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
   const [resp, setResp] = useState<ChatRe | null>(null)
   useEffect(() => { const f = () => setOpen(false); window.addEventListener(EVENTO_PERFIL_ABERTO, f); return () => window.removeEventListener(EVENTO_PERFIL_ABERTO, f) }, [setOpen]) // 👥 abriu perfil pelo chat → fecha o chat
   const send = (t: string) => { if (!t.trim()) return; onSend(t, resp ?? undefined); setText(''); setResp(null) }
+  if(privateChat)return <PrivateRoomChat key={roomId} roomId={roomId} roomName={roomName||tr('Sala','Room')} people={people} open={open} setOpen={setOpen} unread={unread} messages={msgs} isMine={m=>!!myUid&&m.uid===myUid} onSend={onSend}/>
   return (
     <>
       {!open && (
@@ -1461,8 +1464,8 @@ export function EscLobby() {
 
   // rola pro fim quando chega mensagem nova (com a gaveta aberta)
   useEffect(() => {
-    if (lobbyChatOpen && lobbyListRef.current) lobbyListRef.current.scrollTop = lobbyListRef.current.scrollHeight
-  }, [lobbyChat, lobbyChatOpen])
+    if (!(ownerAccount && !nbaSala) && lobbyChatOpen && lobbyListRef.current) lobbyListRef.current.scrollTop = lobbyListRef.current.scrollHeight
+  }, [lobbyChat, lobbyChatOpen, ownerAccount, nbaSala])
 
   // 💾 salva o histórico do chat da sala NESTE aparelho (sobrevive a recarregar)
   useEffect(() => {
@@ -6223,7 +6226,8 @@ export function EscLobby() {
           crachá de não-lidas. Só aparece se o host deixou o chat ligado. */}
       {!chatOff && <LobbyChatDock
         open={lobbyChatOpen} setOpen={openLobbyChat} unread={lobbyUnread}
-        msgs={lobbyChat} myUid={user?.id} listRef={lobbyListRef} onSend={sendLobbyChat} />}
+        msgs={lobbyChat} myUid={user?.id} listRef={lobbyListRef} onSend={sendLobbyChat}
+        privateChat={ownerAccount&&!nbaSala} roomId={room.id} roomName={room.game_state?.roomName} people={players.length} />}
 
       {/* 🎈 CAMADA FLUTUANTE: as reações da zoeira sobem e somem POR CIMA de tudo —
           inclusive do chat aberto (z acima da gaveta). Não entra no chat. */}

@@ -1,3 +1,4 @@
+import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
 import {careerVisualV2,CareerVisualProvider} from './career-visual-v2'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
@@ -755,11 +756,12 @@ export function ChatWidget() {
   const listRef = useRef<HTMLDivElement>(null)
   const [figAberta, setFigAberta] = useState(false) // 🐊 bandeja de figurinhas (21/10)
   const figUltima = useRef(0)
+  const ownerChat = useOwnerOnlineVisual(state)
   const online = state.onlineMode === 'online'
-  const inRoom = online && !!state.roomId
+  const inRoom = online && !!state.roomId && !(ownerChat && state.screen === 'lobby')
   const isHost = !!state.isHost
   const chatOff = !!state.chatOff
-  useEffect(() => { if (chatOpen && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [chat, chatOpen])
+  useEffect(() => { if (!ownerChat && chatOpen && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [chat, chatOpen, ownerChat])
   useEffect(() => { const f = () => setChatOpen(false); window.addEventListener(EVENTO_PERFIL_ABERTO, f); return () => window.removeEventListener(EVENTO_PERFIL_ABERTO, f) }, [setChatOpen]) // 👥 abriu perfil pelo chat → fecha o chat
   if (!inRoom) return null
   if (chatOff && !isHost) return null // host desligou → convidados não veem nada
@@ -772,6 +774,12 @@ export function ChatWidget() {
     figUltima.current = Date.now()
     sendChat(`🐊 ${FIG_LEG[i][0]}`, undefined, i); setFigAberta(false)
   }
+  if (ownerChat) return <PrivateRoomChat key={state.roomId} roomId={state.roomId!} roomName={state.roomName || `${tr('Sala','Room')} ${state.roomCode || ''}`} people={state.managers.filter(m=>m.isHuman).length}
+    open={chatOpen} setOpen={setChatOpen} unread={chatUnread} messages={chat} game readOnly={!!state.espectador} off={chatOff}
+    isMine={m=>m.uid?m.uid===state.youUid:m.from===state.youIdx} onSend={sendChat}
+    onToggleChat={isHost?()=>dispatch({type:'SET_CHAT',off:!chatOff}):undefined}
+    renderAttachment={m=>typeof m.fig==='number'&&FIG_LEG[m.fig]&&mascoteInteiraDoTime(m.name)?<FigurinhaMascote time={m.name} leg={tr(FIG_LEG[m.fig][0],FIG_LEG[m.fig][1])}/>:null}
+    stickers={temFig?FIG_LEG.map((l,i)=>({label:tr(l[0],l[1]),art:<FigurinhaMascote time={meuTime} leg={tr(l[0],l[1])} size={58}/>,send:()=>mandaFig(i)})):undefined}/>
   return (
     <>
       {!chatOpen && (
