@@ -14993,7 +14993,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             if (f && (f.tamanho === 10 || f.tamanho === 20)) rawDispatch({ type: 'LIGA_FORMATO', tamanho: f.tamanho, turnoUnico: !!f.turno_unico })
           }
           // 🙋 depois quem o dono aceitou (no time escolhido; quem foi trocado sai da sala e vê o aviso "removido pelo dono")
-          const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: rid })
+          const { data } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: rid })
           const ac = ((data ?? []) as { user_id: string; nome: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[]).filter(p => p.status === 'aceito')
           if (ac.length) {
             rawDispatch({ type: 'LIGA_ENTRADAS', entradas: ac.map(p => ({ uid: p.user_id, nome: p.nome, bot: p.alvo_bot, alvoUid: p.alvo_uid })) })
