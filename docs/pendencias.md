@@ -2185,6 +2185,22 @@ Goleiro: diferença profissional × lenda vale ~0,35 de chance de defesa (0,80 �
 Pendente: ligar o v2 na bancada visual e FILMAR
 (`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. ✅ Clima visual (sol/nublado/chuva) APROVADO (21/10, *"ok siga"* depois da foto).
 
+## 🏀 BidLegends: "tudo igual do futebol" (09/11) — ⏳ no ramo `claude/bidlegends-fase-1-7vtrzu`, ESPERANDO OK VISUAL
+Pedido: *"siga fazendo tudo igual do futebol pro basquete, alterando mais coisas visuais tb e mais modos como Liga Draft"*.
+Feito (só na conta liberada; nada muda no futebol):
+- [x] Home do basquete = a MESMA `HomeV03` do futebol (`bb`): marca BL/BIDLEGENDS, arte da quadra, textos de quinteto/anel/Street League (sem a faixa do streamer).
+- [x] Visual novo das salas (lista, criar sala), leilão no PC/celular e placar da temporada: tiradas as travas `!nbaSala`/`sport !== 'basquete'`.
+- [x] `marca.ts`: topo das telas novas (online, loja, salão) diz BIDLEGENDS no basquete.
+- [x] Criar sala no basquete: resumo NBA, sem formação, "Temporada da NBA + Playoffs"; arte da quadra no topo; vagas em PG/SG/SF/PF/C; "quadra".
+- [x] Envelope único no rápido do basquete (antes aparecia e era ignorado) + trava no `npm run envelope-unico`.
+Falta (próximos passos):
+- [ ] **Liga Draft na NBA** — hoje bloqueada no basquete (usa baralho do futebol). Precisa: pool do draft = cartas da NBA, posições PG..C, leilão inicial só profissional/bom da NBA.
+- [ ] Liga de 10 times / turno único no basquete (travado por `tam10Mostra`/`turnoMostra` com `!nbaSala`).
+- [ ] Tela final de campeão: fundo ainda é estádio de futebol.
+- [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).
+- [ ] Carreira v02 (35 telas), mapa 3D, coletiva, calendário, Campo 2D: só futebol por construção (a carreira do basquete usa a `EscSeason`).
+- [ ] Testar online com 2 aparelhos (sala de basquete com o visual novo).
+
 ## 🏀 BidLegends NO AR (20/10) — só na conta do Diego (BASQUETE_TESTERS)
 Diego: *"já pode [pôr] o basquete pra eu ver como tá, trocando a aba lá em cima do futebol pelo basquete"*. O branch
 `claude/bidlegends-fase-1-7vtrzu` recebeu a main (90 commits: Carreira Online v2, Liga Draft…) e foi pra main. Conflitos
