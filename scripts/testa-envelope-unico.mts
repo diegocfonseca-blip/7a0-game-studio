@@ -6,6 +6,7 @@
 // uso: npx tsx scripts/testa-envelope-unico.mts   (ou npm run envelope-unico)
 import { reducer, INITIAL, ENVELOPE_UNICO_MS } from '../src/escalacao/store'
 import type { EscState } from '../src/escalacao/types'
+import { CATALOG_NBA } from '../src/escalacao/data-basquete'
 let falhas = 0
 const ok = (c: boolean, m: string) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 const SECT = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const
@@ -94,6 +95,38 @@ console.log('\n🌐 2) Sala online (3 pessoas)')
     const m = s.managers.find(x => x.id === id)!
     ok(m.squad.length >= 11 && m.money >= 0 && !m.squad.some(c => c.fake), `${m.name}: elenco ${m.squad.length}, caixa ${m.money}, sem fake`)
   }
+}
+
+console.log('\n🏀 2b) Sala online do BASQUETE (3 pessoas, NBA)')
+{
+  const NBA = new Set(Object.values(CATALOG_NBA).flat().map(c => `${c.name}|${c.club}`))
+  let s = reducer(structuredClone(INITIAL) as EscState, { type: 'START_ONLINE', sport: 'basquete', roomId: 't', roomCode: 'T2', isHost: true, playerIndex: 0, playerNames: ['A', 'B', 'C'], formation: '4-3-3', deck: 'todos', copaMode: 'liga_copa', envUnico: true } as never)
+  for (let i = 0; i < 20 && s.screen !== 'auction'; i++) s = reducer(s, { type: 'FINISH_CEREMONY' } as never)
+  ok(s.sport === 'basquete' && s.euAberto === true, 'abre o envelope único na sala de basquete')
+  ok(s.currentCards.every(c => NBA.has(`${c.name}|${c.club}`)), `só cartas da NBA no envelope (${s.currentCards.length})`)
+  const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
+  const r = anda(s, st => { let x = st; for (const id of humanos) x = reducer(x, { type: 'SUBMIT_ENVELOPE', mgrId: id, bids: envelopeDe(x, id, 4) }); return x })
+  s = r.s
+  ok(s.screen === 'season', `chegou na temporada (${s.screen})`)
+  for (const m of s.managers) {
+    ok(m.squad.length === 5 && m.money >= 0, `${m.teamName}: quinteto ${m.squad.length}, caixa ${m.money}`)
+    ok(m.squad.every(c => NBA.has(`${c.name}|${c.club}`) || c.club === 'Pickup' || c.fake), `${m.teamName}: nenhum jogador de futebol`)
+    if (m.isHuman) ok(!m.squad.some(c => c.fake), `${m.teamName}: sem jogador de mentira`)
+  }
+}
+
+console.log('\n🏀 2c) Partida Rápida do BASQUETE')
+{
+  let s = reducer(structuredClone(INITIAL) as EscState, { type: 'START_NBA', teamName: 'Tijoleiros', rivals: 5, envUnico: true } as never)
+  for (let i = 0; i < 20 && s.screen !== 'auction'; i++) s = reducer(s, { type: 'FINISH_CEREMONY' } as never)
+  ok(s.envUnico === true && s.euAberto === true, 'abre o envelope único no rápido do basquete')
+  const eu = s.managers[s.youIdx]
+  const r = anda(s, st => reducer(st, { type: 'SUBMIT_ENVELOPE', mgrId: eu.id, bids: envelopeDe(st, eu.id, 5) }))
+  s = r.s
+  ok(s.screen === 'season', `chegou na temporada (${s.screen})`)
+  ok(s.managers.every(m => m.squad.length === 5 && m.money >= 0), 'todos com quinteto e caixa >= 0')
+  const sem = reducer(s, { type: 'START_NBA', teamName: 'Tijoleiros', rivals: 5 } as never)
+  ok(!sem.envUnico && !sem.euAberto, 'a partida seguinte sem a escolha não herda o envelope único')
 }
 
 console.log('\n🔨 3) os outros jeitos ficam iguais')

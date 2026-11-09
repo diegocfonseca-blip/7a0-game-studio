@@ -1024,7 +1024,7 @@ export function EscLobby() {
   const campo2dOn = useCampo2DLiberado()
   // 🗂️ visual novo das salas (23/10, só a conta do Diego): filtro da lista e os modos recolhidos no criar
   const salasNovo = useSalasVisualNovo()
-  const onlineHub = !nbaSala && salasNovo
+  const onlineHub = salasNovo // 🏀 09/11: basquete na mesma lista/criação nova do futebol
   const salasLista = useSalasListaNova() // 🗂️ lista de salas abertas nova: liberada pra todos em 31/10
   // 🖥️ CRIAR SALA NO COMPUTADOR (23/10, liberado pra todos, só ≥1100px): todas as etapas abertas + "Sua sala" ao lado
   const desk = useTelaPC()
@@ -3625,7 +3625,7 @@ export function EscLobby() {
       </div>
 
       {onlineHub && <OnlineLobbyReturn onBack={() => { clearSavedRoom(); dispatch({ type: 'GO_LOBBY' }) }} />}
-      {onlineHub && <section className="ll-hub-hero"><div><p>{tr('LEILÃO AO VIVO COM A GALERA', 'LIVE AUCTIONS WITH YOUR CREW')}</p><h1>{tab === 'create' ? tr('CRIE ', 'CREATE ') : 'ONLINE. '}<em>{tab === 'create' ? tr('A SUA SALA.', 'YOUR ROOM.') : tr('O LANCE É SEU.', 'YOUR BID. YOUR GAME.')}</em></h1><span>{tr('Entre numa sala, monte seu time e dispute a taça.', 'Join a room, build your team and compete for the trophy.')}</span></div></section>}
+      {onlineHub && <section className={nbaSala ? 'll-hub-hero ll-hub-hero-bb' : 'll-hub-hero'}><div><p>{tr('LEILÃO AO VIVO COM A GALERA', 'LIVE AUCTIONS WITH YOUR CREW')}</p><h1>{tab === 'create' ? tr('CRIE ', 'CREATE ') : 'ONLINE. '}<em>{tab === 'create' ? tr('A SUA SALA.', 'YOUR ROOM.') : tr('O LANCE É SEU.', 'YOUR BID. YOUR GAME.')}</em></h1><span>{nbaSala ? tr('Entre numa sala, monte seu quinteto e dispute o anel.', 'Join a room, build your five and chase the ring.') : tr('Entre numa sala, monte seu time e dispute a taça.', 'Join a room, build your team and compete for the trophy.')}</span></div></section>}
       {/* partida em andamento: pergunta se quer voltar ou sair */}
       {/* 🏆 06/11 (Diego): se a partida é de uma LIGA que já está em "🏆 Suas ligas", a faixa verde some — o VOLTAR mora no card da liga */}
       {resumeRoom && !(ligaOn && myLigas.some(l => l.id === resumeRoom.id)) && (
@@ -4126,7 +4126,7 @@ export function EscLobby() {
         const rDeck = rapidoClubes && !ehMinha ? tr('🌎 Todos', '🌎 All') : rapidoDeck === 'eu' ? tr('🌍 Europa', '🌍 Europe') : rapidoDeck === 'world' ? tr('🌎 Mundo', '🌎 World') : rapidoDeck === 'both' ? tr('🌎 Todos', '🌎 All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
         const rLeilao = rapidoEnvUnico && envUnicoOk && !roomDuplas ? tr('⚡ Envelope único', '⚡ Single envelope') : rapidoPregao && pregaoAbertoOk && rapidoCopaMode !== 'champions' ? tr('🔨 Pregão aberto', '🔨 Open auction') : rapidoHolandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid')
         const rCopa: Record<string, string> = { liga: tr('Só a liga', 'League only'), liga_copa: tr('Liga + Copa', 'League + Cup'), liga_liberta: tr('Liga + Liberta', 'League + Liberta'), liga_champions: tr('Liga + Champions', 'League + Champions'), champions: tr('Só Champions', 'Champions only'), relampago: tr('Mata-mata Relâmpago', 'Lightning Knockout'), liga_mundo: tr('Liga + Mundo', 'League + World Cup'), liga_riosp: tr('Liga + Rio×SP', 'League + Rio×SP'), liga_sulminas: tr('Liga + Sul-Minas', 'League + Sul-Minas'), liga_nordeste: tr('Liga + Nordeste', 'League + Nordeste') }
-        const resumoTime = (ehDraft && roomMode === 'liga') ? [tr('👤 Solo', '👤 Solo'), ehMinha && rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), ehMinha && !rapidoClubes ? rDeck : tr('🌎 Todos', '🌎 All'), formation].join(' · ') : [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), rDeck, formation].join(' · ')
+        const resumoTime = (ehDraft && roomMode === 'liga') ? [tr('👤 Solo', '👤 Solo'), ehMinha && rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), ehMinha && !rapidoClubes ? rDeck : tr('🌎 Todos', '🌎 All'), formation].join(' · ') : [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), nbaSala ? '🏀 NBA' : rDeck, ...(nbaSala ? [] : [formation])].join(' · ') /* 🏀 basquete: baralho é sempre a NBA, e quinteto não tem formação */
         const resumoPartida = [rLeilao, (ehDraft && roomMode === 'liga') ? tr('📊 Liga + 📋 draft', '📊 League + 📋 draft') : rCopa[rapidoCopaMode] ?? '', roomManual && hasManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
         const resumoSala = [roomLocked ? tr('🔒 com senha', '🔒 password') : tr('🔓 aberta', '🔓 open'), roomChat ? tr('💬 chat ligado', '💬 chat on') : tr('🔕 sem chat', '🔕 no chat'), roomStream ? tr('🎥 stream', '🎥 stream') : ''].filter(Boolean).join(' · ')
         const nomeModo = MODOS.find(m => chaveModo(m) === chaveSel)?.nome ?? ''
@@ -4146,10 +4146,10 @@ export function EscLobby() {
         const createRows: [string, string][] = (roomMode === 'rapido' || roomMode === 'liga') ? [
           [tr('Modo', 'Mode'), nomeModo],
           [tr('Leilão', 'Auction'), `${rapidoClubes ? tipoPacote({ clubes: true, pacSelecao, pacDecada }) : tr('Jogador', 'Player')} · ${rLeilao}`],
-          [tr('Time', 'Team'), `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · ${rDeck}${!rapidoClubes && rapidoDeck === 'br' ? ` · ${rapidoVarzea ? tr('Várzea', 'Grassroots') : tr('Todos', 'All')}` : ''}`],
-          [tr('Formação', 'Formation'), formation],
-          [tr('Campeonato', 'Championship'), rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
-          [tr('Depois da liga', 'After the league'), ehDraft ? tr('Liga + draft', 'League + draft') : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
+          [tr('Time', 'Team'), nbaSala ? `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · 🏀 NBA` : `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · ${rDeck}${!rapidoClubes && rapidoDeck === 'br' ? ` · ${rapidoVarzea ? tr('Várzea', 'Grassroots') : tr('Todos', 'All')}` : ''}`],
+          ...(nbaSala ? [] : [[tr('Formação', 'Formation'), formation] as [string, string]]), // 🏀 quinteto: sem formação
+          [tr('Campeonato', 'Championship'), nbaSala ? tr('Temporada da NBA', 'NBA season') : rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
+          [tr('Depois da liga', 'After the league'), nbaSala ? tr('🏀 Playoffs', '🏀 Playoffs') : ehDraft ? tr('Liga + draft', 'League + draft') : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
           [tr('Partida', 'Match'), `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`],
           [tr('Entrada', 'Entry'), roomMode === 'liga' || roomLocked ? tr('Com senha', 'Password') : tr('Aberta', 'Open')],
           [tr('Conversa', 'Chat'), roomChat ? tr('Chat ligado', 'Chat on') : tr('Sem chat', 'No chat')],
@@ -4158,7 +4158,7 @@ export function EscLobby() {
         const createSummaries: Record<string, string> = {
           [tr('O leilão', 'The auction')]: rLeilao,
           [tr('O time', 'The team')]: resumoTime,
-          [tr('O campeonato', 'The championship')]: (createRows.find(([label]) => label === tr('Campeonato', 'Championship'))?.[1] ?? '') + ` · ${rCopa[rapidoCopaMode] ?? ''}`,
+          [tr('O campeonato', 'The championship')]: (createRows.find(([label]) => label === tr('Campeonato', 'Championship'))?.[1] ?? '') + ` · ${nbaSala ? tr('🏀 Playoffs', '🏀 Playoffs') : rCopa[rapidoCopaMode] ?? ''}`,
           [tr('A partida', 'The match')]: `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`,
           [tr('A sala', 'The room')]: resumoSala,
           [tr('Os rivais', 'The rivals')]: tr('Ajuste quem joga com vocês', 'Choose who plays with you'),

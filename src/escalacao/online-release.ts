@@ -8,5 +8,5 @@ export const ONLINE_ROOM_VISUAL_RELEASED = true
 // (rádio com os jogadores, pisca do gol, controle de ritmo e tela final) — é o que a conta dele já via offline. Antes isto
 // exigia `onlineMode === 'online'`. A carreira continua de fora (tem a chave dela).
 export function publicOnlineVisual(state: { onlineMode?: string; careerOnline?: boolean; sport?: string }) {
-  return ONLINE_VISUAL_RELEASED && !state.careerOnline && state.sport !== 'basquete'
+  return ONLINE_VISUAL_RELEASED && !state.careerOnline // 🏀 09/11: basquete ganha o mesmo visual (Diego: "tudo igual do futebol")
 }

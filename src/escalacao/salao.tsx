@@ -9,6 +9,7 @@ import { MASCOTES, CARIMBO_GOL } from './mascotes'
 import { tr, getLang } from './lang'
 import { CAMISAS_SALAO, RECORTE_CAMISA } from './salao-camisas'
 import './salao.css'
+import { marcaNome, marcaSigla, marcaFraseClube } from './marca'
 
 interface Torcida { time_nome: string; gente: number }
 const porChegada = (a: Batismo, b: Batismo) => (a.fundador ?? 999) - (b.fundador ?? 999) || a.clube.localeCompare(b.clube)
@@ -91,7 +92,7 @@ export default function Salao({ voltar }: { voltar?: () => void }) {
   }
   const apoio = <section className="sb-apoio"><small>{tr('O PRÓXIMO PODE SER O SEU', 'YOURS COULD BE NEXT')}</small><h2>{tr('Seu nome. Seu escudo. Sua história no jogo.', 'Your name. Your crest. Your story in the game.')}</h2><p>{tr('Uma identidade criada para o seu clube e vista por quem joga.', 'An identity created for your club and seen by fellow players.')}</p><ApoieButton startScreen="batismo" trigger={open => <button className="sb-primary" onClick={open}>{tr('QUERO CRIAR MEU CLUBE', 'I WANT TO CREATE MY CLUB')}</button>} /><p className="sb-note">{tr('Conheça o Batismo · sem vantagem em campo.', 'Explore club naming · no on-pitch advantage.')}</p></section>
   return <div className="sb-root">
-    <div className="sb-topbar"><div className="sb-brand"><span aria-hidden="true">LL</span><div><strong>LEILÃO LEGENDS</strong><small>{tr('SEU CLUBE. SUA HISTÓRIA.', 'YOUR CLUB. YOUR STORY.')}</small></div></div><button className="sb-back" onClick={() => detalhe ? setDetalhe(null) : voltar?.()}>{detalhe ? tr('← VOLTAR AO SALÃO', '← BACK TO THE HALL') : tr('← VOLTAR AO JOGO', '← BACK TO GAME')}</button></div>
+    <div className="sb-topbar"><div className="sb-brand"><span aria-hidden="true">{marcaSigla()}</span><div><strong>{marcaNome()}</strong><small>{marcaFraseClube()}</small></div></div><button className="sb-back" onClick={() => detalhe ? setDetalhe(null) : voltar?.()}>{detalhe ? tr('← VOLTAR AO SALÃO', '← BACK TO THE HALL') : tr('← VOLTAR AO JOGO', '← BACK TO GAME')}</button></div>
     <header className="sb-header">
       <small>{detalhe ? tr('IDENTIDADE DO CLUBE', 'CLUB IDENTITY') : tr('A COMUNIDADE TEM ESCUDO', 'A COMMUNITY WITH ITS OWN CRESTS')}</small>
       <h1>{detalhe ? detalhe.clube : tr('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</h1>

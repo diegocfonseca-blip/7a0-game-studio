@@ -7,13 +7,14 @@ import type {Tactic,EscState} from './types'
 import logo from './img/logo-ll.webp'
 import stadium from './img/online-estadio-v25.webp'
 import {legendAvatar} from './legend-avatars'
+import {ehBasquete,marcaNome,marcaFraseLance} from './marca'
 import './owner-online-visual.css'
 import './owner-waiting.css'
 import './owner-contrast.css'
 
 /** Local presentation only. Never serialized into EscState or a room payload. */
 export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;screen?:string}){
- return state.sport!=='basquete'&&!state.careerOnline&&!state.careerIntent&&!state.co2&&!!state.screen&&['setup','lobby','streamIntro','auction','monte','cerimonia','convocacao','season','liberta','champions','draft','end'].includes(state.screen)
+ return !state.careerOnline&&!state.careerIntent&&!state.co2&&!!state.screen&&['setup','lobby','streamIntro','auction','monte','cerimonia','convocacao','season','liberta','champions','draft','end'].includes(state.screen)
 }
 export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0]){const owner=useOwnerPresentation();return owner&&ownerOnlineScope(state)}
 
@@ -96,12 +97,12 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
 
 export function OwnerModalBrand(){
  const {state,accountName}=useContext(Context),manager=state?.managers[state.youIdx],perk=myApoioPerk()??APOIO_PERKS.bege
- return <header className="ov3-brand"><div className="ov3-logo"><img src={logo} alt="" width={34} height={34}/><span><b>LEILÃO LEGENDS</b><small>{tr('O SEU TIME COMEÇA NO LANCE.','YOUR TEAM STARTS WITH A BID.')}</small></span></div><span className="ov3-account" style={{marginLeft:'auto',background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{accountName||manager?.name||tr('Minha conta','My account')}</span></header>
+ return <header className="ov3-brand"><div className="ov3-logo">{ehBasquete()?<span className="ov3-sigla" aria-hidden="true">BL</span>:<img src={logo} alt="" width={34} height={34}/>}<span><b>{marcaNome()}</b><small>{marcaFraseLance()}</small></span></div><span className="ov3-account" style={{marginLeft:'auto',background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{accountName||manager?.name||tr('Minha conta','My account')}</span></header>
 }
 
 export function OwnerOnlineHeader({name,club,balance,onHome,onRooms,online}:{name:string;club?:string;balance?:ReactNode;onHome:()=>void;onRooms:()=>void;online:boolean}){
  const perk=myApoioPerk()??APOIO_PERKS.bege
- return <><header className="ov3-brand"><button type="button" className="ov3-logo" onClick={onHome}><img src={logo} alt="" width={34} height={34}/><span><b>LEILÃO LEGENDS</b><small>{tr('O SEU TIME COMEÇA NO LANCE.','YOUR TEAM STARTS WITH A BID.')}</small></span></button><nav><button onClick={onHome}>{tr('Menu inicial','Main menu')}</button>{online&&<button onClick={onRooms}>{tr('Salas abertas','Open rooms')}</button>}</nav><span className="ov3-account" style={{background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{name||club||tr('Minha conta','My account')}</span>{balance!=null&&<div className="ov3-coins">{balance}</div>}</header><div className="ov3-roomline"><button onClick={onHome}>‹ {tr('Menu','Menu')}</button><span>{online?tr('Sala online','Online room'):tr('Partida Rápida','Quick Match')}{club?` · ${club}`:''}</span></div></>
+ return <><header className="ov3-brand"><button type="button" className="ov3-logo" onClick={onHome}>{ehBasquete()?<span className="ov3-sigla" aria-hidden="true">BL</span>:<img src={logo} alt="" width={34} height={34}/>}<span><b>{marcaNome()}</b><small>{marcaFraseLance()}</small></span></button><nav><button onClick={onHome}>{tr('Menu inicial','Main menu')}</button>{online&&<button onClick={onRooms}>{tr('Salas abertas','Open rooms')}</button>}</nav><span className="ov3-account" style={{background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{name||club||tr('Minha conta','My account')}</span>{balance!=null&&<div className="ov3-coins">{balance}</div>}</header><div className="ov3-roomline"><button onClick={onHome}>‹ {tr('Menu','Menu')}</button><span>{online?tr('Sala online','Online room'):tr('Partida Rápida','Quick Match')}{club?` · ${club}`:''}</span></div></>
 }
 
 export function OwnerTactics({value,onChange,disabled=false,note}:{value:Tactic;onChange:(t:Tactic)=>void;disabled?:boolean;note?:string}){

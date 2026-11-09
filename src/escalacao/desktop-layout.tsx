@@ -2,6 +2,7 @@ import {createContext,useContext,useMemo,useState,type ReactNode,type MouseEvent
 import {createPortal} from 'react-dom'
 import logo from './img/logo-ll.webp'
 import {tr,getLang} from './lang'
+import {ehBasquete} from './marca'
 import './desktop-layout.css'
 
 type DesktopLink={label:string;active?:boolean;free?:boolean;onClick:()=>void}
@@ -59,7 +60,7 @@ export function AuctionDesktopLayout({enabled,children,bar,title,description,bud
    </section>
    <section className="ll-desktop-panel ll-auction-team"><h2>{tr('Seu time','Your team')}</h2>
     {slots&&<div className="ll-auction-open-slots"><p>{tr('Vagas por posição','Open positions')}</p>{slots.map(slot=><div key={slot.position}><span>{slot.position}</span><b>{slot.open} {slot.open===1?tr('vaga','slot'):tr('vagas','slots')}</b></div>)}</div>}
-    <details className="ll-auction-pitch-details" open={!slots}><summary>{tr('Ver campinho e elenco','View pitch and squad')}</summary><div ref={setTeam}/></details>
+    <details className="ll-auction-pitch-details" open={!slots}><summary>{ehBasquete()?tr('Ver quadra e elenco','View court and roster'):tr('Ver campinho e elenco','View pitch and squad')}</summary><div ref={setTeam}/></details>
    </section>
    <section className="ll-desktop-panel ll-auction-room"><h2>{tr('Sala','Room')}</h2><details className="ll-auction-room-details"><summary>{tr('Ver equipes da sala','View room teams')}</summary><div ref={setRoom}/></details></section>
   </aside>

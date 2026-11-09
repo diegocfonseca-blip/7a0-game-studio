@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { useT } from './lang'
 import './loja-layout.css'
+import { marcaNome, marcaSigla, marcaFraseClube } from './marca'
 
 export type LojaCategoria = 'planos' | 'clube' | 'carreira' | 'salas' | 'marca'
 export function categoriaDaAncora(ancora?: string): LojaCategoria {
@@ -60,14 +61,14 @@ export function LojaLayout({ categoria, onCategoria, onClose, onAccount, marca, 
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
       if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
     }}>
-    <header className="ls1-header"><div className="ls1-wrap"><button type="button" className="ls1-brand" onClick={onClose} aria-label={t('Voltar ao jogo', 'Return to game')}><span className="ls1-ll" aria-hidden="true">LL</span><span><strong>LEILÃO LEGENDS</strong><small>{t('SEU CLUBE. SUA HISTÓRIA.', 'YOUR CLUB. YOUR STORY.')}</small></span></button><div className="ls1-header-actions"><button type="button" className="ls1-back" onClick={onClose}>← {t('Voltar ao jogo', 'Return to game')}</button><button type="button" onClick={onAccount}>{t('MINHA CONTA', 'MY ACCOUNT')}</button><button type="button" ref={close} onClick={onClose} aria-label={t('Fechar loja', 'Close shop')}>✕</button></div></div></header>
+    <header className="ls1-header"><div className="ls1-wrap"><button type="button" className="ls1-brand" onClick={onClose} aria-label={t('Voltar ao jogo', 'Return to game')}><span className="ls1-ll" aria-hidden="true">{marcaSigla()}</span><span><strong>{marcaNome()}</strong><small>{marcaFraseClube()}</small></span></button><div className="ls1-header-actions"><button type="button" className="ls1-back" onClick={onClose}>← {t('Voltar ao jogo', 'Return to game')}</button><button type="button" onClick={onAccount}>{t('MINHA CONTA', 'MY ACCOUNT')}</button><button type="button" ref={close} onClick={onClose} aria-label={t('Fechar loja', 'Close shop')}>✕</button></div></div></header>
     <section className="ls1-hero"><div className="ls1-wrap"><div><div className="ls1-kicker">{t('A MESMA RESENHA. MAIS POSSIBILIDADES.', 'THE SAME BANTER. MORE POSSIBILITIES.')}</div><h1 id={`${id}-titulo`}>{t('LOJA DO CLUBE.', 'CLUB SHOP.')}</h1><p>{t('Seu jeito de jogar. Seu clube com a sua cara.', 'Your way to play. Your club, your style.')}</p></div><div className="ls1-account-status">{status}</div></div></section>
     <div className="ls1-layout ls1-wrap"><aside className="ls1-sidebar"><div className="ls1-sidebar-title">{t('EXPLORE A LOJA', 'EXPLORE THE SHOP')}</div><nav className="ls1-categories" aria-label={t('Categorias da loja', 'Shop categories')}>
       {categorias.map(([key, label]) => <button type="button" key={key} className={key === ativo ? 'active' : undefined} aria-pressed={key === ativo} aria-controls={`${id}-${key}`} onClick={() => escolher(key)}><LojaIcone tipo={key} />{label}</button>)}
     </nav><div className="ls1-sidebar-note"><b>{t('Seu plano, do seu jeito.', 'Your plan, your way.')}</b>{t('Mensalidades e compras únicas bem separadas. Benefícios já adquiridos continuam respeitados.', 'Monthly plans and one-off purchases, clearly separated. Your existing benefits stay yours.')}</div></aside>
       <main className="ls1-content" id={`${id}-conteudo`}>{categorias.map(([key, label]) => <section key={key} id={`${id}-${key}`} hidden={key !== ativo} aria-label={label} className="ls1-category">{secoes[key]}</section>)}{pagamento}</main>
     </div>
-    <footer className="ls1-wrap ls1-trust"><strong>LEILÃO LEGENDS</strong><span>{t('Preços e condições visíveis antes de continuar.', 'Prices and terms shown before you continue.')} <a href="mailto:contato@leilaolegends.com">{t('Precisa de ajuda?', 'Need help?')}</a></span></footer>
+    <footer className="ls1-wrap ls1-trust"><strong>{marcaNome()}</strong><span>{t('Preços e condições visíveis antes de continuar.', 'Prices and terms shown before you continue.')} <a href="mailto:contato@leilaolegends.com">{t('Precisa de ajuda?', 'Need help?')}</a></span></footer>
     {overlays}
   </div>
 }
