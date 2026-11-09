@@ -43,4 +43,4 @@ Aprovação de Diego: “Ok faça todos da versão 02”. Referência: 35 telas 
 
 ## Publicação
 
-Esta aprovação solicita implementar. Nenhum push para `main` ou deploy é feito por este trabalho. Publicação deve ser tratada separadamente. Reversão: reverter o commit visual; não há migração de dados.
+Publicação autorizada por Diego em 09/11: “Ok terminando piblique”. Integração preserva `445a6982`, incluindo as correções recentes de leituras e pedidos das ligas. O envio para `main` aciona o workflow oficial `Deploy to GitHub Pages`; conferir o job `deploy` antes de anunciar conclusão. O processo existente mantém os assets anteriores e não recarrega partidas abertas. Nenhuma mudança de banco faz parte desta entrega visual. Reversão: reverter o commit visual; não há migração de dados.
