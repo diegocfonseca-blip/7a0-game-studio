@@ -14,7 +14,7 @@ import {ancorarMinutoCampo,passoRelogioCampo,suspenderRelogioCampo} from './camp
 //     da torcida tem a largura de sempre e as placas ficam só atrás dos gols (*"no móvel não vai diminuir o espaço do campo?"*).
 import { campoNaTela } from './campo2d-modo'
 import { camisasDoJogo } from './camisas-2d'
-import { kitDoTime } from './camisas-2d-dados'
+import { kitDoTime, kit2DoTime } from './camisas-2d-dados'
 import { CARIMBO_GOL } from './mascotes'
 import { climaDoJogo, noiteDoJogo, type Clima } from './campo2d-clima'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -138,7 +138,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 👕 camisas (06/11, Diego): batismo veste o MANTO · gente sem plano bege · Craque prata · Lenda dourado (a cor que já chega)
   // · bot a de hoje — e no choque o visitante troca pra 2ª cor do manto ou pra reserva branca/preta (regras em camisas-2d.ts)
   const kitCasaK = kitDoTime(casa.nome, casa.cor || '#C2452F', chaveMascoteFixa).join(','), kitForaK = kitDoTime(fora.nome, fora.cor || '#2B6CFF', chaveMascoteFixa).join(',')
-  const [camCasa, camFora] = useMemo(() => camisasDoJogo(kitCasaK.split(','), kitForaK.split(',')), [kitCasaK, kitForaK])
+  const kitFora2K = (kit2DoTime(fora.nome) ?? []).join(',') // 🎽 09/11: a 2ª camisa do visitante (Loja)
+  const [camCasa, camFora] = useMemo(() => camisasDoJogo(kitCasaK.split(','), kitForaK.split(','), kitFora2K ? kitFora2K.split(',') : null), [kitCasaK, kitForaK, kitFora2K])
   const corCasa = camCasa.cor, corFora = camFora.cor
   const listrasK = `${camCasa.listras.join(',')}|${camFora.listras.join(',')}`
   // o jogo do campinho: um por rodada (mesma semente das chances → o que a rádio narra é o que o campinho mostra)

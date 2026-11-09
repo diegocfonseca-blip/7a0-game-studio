@@ -3,8 +3,8 @@
 // dos assentos (`esc_mantos_sala`/`esc_mimos_sala`, registrado em mimos.ts). O e-mail de quem olha só vale FORA de sala
 // (carreira offline: só o próprio dono vê a tela dele). A trava `npm run camisas-2d` confere isso.
 import { mantoDoClube } from './batismos'
-import { mantoDaSala, mascoteDaSala, estouEmSala, ehMeuClube, meuMascoteBatismo, nomeSemEscudo } from './mimos'
-import { meuManto, mantoTriDaChave } from './manto'
+import { mantoDaSala, manto2DaSala, mascoteDaSala, estouEmSala, ehMeuClube, meuMascoteBatismo, nomeSemEscudo } from './mimos'
+import { meuManto, meuMantoC3, meuKit2, mantoTriDaChave } from './manto'
 import { kitLimpo } from './camisas-2d'
 
 // o nome sem selo/emoji e sem o "(você)" — a mesma limpeza de `nomeLimpo` (escudos.tsx), copiada pra este arquivo poder rodar
@@ -26,5 +26,16 @@ export function kitDoTime(nome: string, cor: string, chaveFixa: (n: string) => s
   const manto = fixo ?? daSala ?? meu
   if (!manto) return kitLimpo([cor])
   const chave = chaveFixa(n) ?? mascoteDaSala(n) ?? (!sala && ehMeuClube(n) ? meuMascoteBatismo() : null)
-  return kitLimpo([manto[0], manto[1], mantoTriDaChave(chave)], cor)
+  // 🎽 09/11: a 3ª cor que a pessoa escolheu na Loja (na sala ela já vem no manto; fora, `meuMantoC3` sabe)
+  const tri = manto[2] ?? (meu && manto === meu ? meuMantoC3() : mantoTriDaChave(chave))
+  return kitLimpo([manto[0], manto[1], tri], cor)
+}
+
+/** 🎽 09/11: a 2ª CAMISA do time (comprada na Loja) — entra quando a 1ª bate com a do rival. null = não tem.
+ *  Na sala vem do servidor (`esc_mantos_sala2`); fora de sala, só a do PRÓPRIO dono. */
+export function kit2DoTime(nome: string): string[] | null {
+  const n = limpo(nome || '')
+  if (!n || /\bFAKE\b/.test(n) || nomeSemEscudo(nome)) return null
+  const k = estouEmSala() ? manto2DaSala(n) : ehMeuClube(n) ? meuKit2() : null
+  return k && k.length >= 2 ? kitLimpo(k) : null
 }

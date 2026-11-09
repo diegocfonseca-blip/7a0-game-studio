@@ -1,3 +1,17 @@
+## 🎽 09/11 — Loja "Seu clube": mantos (1ª/2ª camisa), mascote, escudo e entrada de gala (FEITO no branch, esperando publicar)
+- Mockup aprovado (`scripts/mockups/loja-mantos-mascote-gala.png`, *"pode aprovar tudo já"*). Preços: camisa R$ 9,90 cada · as duas
+  R$ 14,90 · mascote R$ 29,90 · escudo R$ 19,90 (escolhi eu, ele não deu número) · gala R$ 49,90. 🔒 Gala SÓ com mascote (banco devolve preço nulo).
+- Camisa: 2 ou 3 cores. Veste a bolinha do Campo 2D (e o jogo do mapa, que copia o campinho) e a faixinha das fichas do campinho do
+  dono. A 2ª entra sozinha quando a 1ª bate com a do rival (`camisasDoJogo` 3º parâmetro), antes de inverter/ir de branco.
+  Batismo/Fundador: a 1ª é o manto do batismo (fixa, não edita); quem tem as duas TROCA A ORDEM na Loja.
+- Mascote/escudo/gala: paga → escreve a ideia (Briefing do pix-mp) → aparece no #admin em "Batismos e artes pra fazer" →
+  o Diego faz a arte. Ao ENTREGAR a arte: cadastrar como num batismo (LOGOS_PRONTAS/MASCOTES…) e marcar
+  `update esc_artes_conta set status = 'pronto' where email = … and item = …`. ⚠️ Pra quem NÃO é batismo, o mascote/escudo
+  ainda precisa de linha em `esc_socios` (mascote_key/escudo_time) pra aparecer pros outros na sala — decidir caso a caso.
+- Banco: `supabase/migrations/20261109030000_loja_mantos_artes.sql` (tabelas esc_kits_conta/esc_artes_conta, esc_meus_kits,
+  esc_kit_salvar, esc_kit_trocar, esc_mantos_sala2, preço e entrega). Edge `mp-criar-pix` ganhou os 5 nomes (redeploy junto).
+  ⚠️ Aplicar FORA do pico (mudança de esquema trava a API 1–3 min — lição de 09/11).
+
 ## 🎨 09/11 — Carreira visual V02 — publicação autorizada
 
 - Diego aprovou as 35 telas da V02, incluindo as seis revisadas. Branch `feature/carreira-visual-v02-20261109`, base `8605a139`.

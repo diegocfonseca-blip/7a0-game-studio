@@ -15747,22 +15747,30 @@ export function EscProvider({ children }: { children: ReactNode }) {
       : Promise.resolve({ data: null })
     // 👕 06/11: as cores do manto de cada assento (a MESMA RPC que já veste os campinhos da sala desde 10/08) — pras camisas do
     // Campo 2D saírem iguais em todos os aparelhos. Falhou? Fica sem manto; os mimos seguem como sempre.
-    const pedeMantos = Promise.resolve(supabase.rpc('esc_mantos_sala', { p_room: salaDosMimos })).then(r => r, () => ({ data: null }))
+    // 🎽 09/11: a v2 traz as camisas da LOJA (1ª com até 3 cores + a 2ª). Banco sem a v2 → cai na v1 de sempre.
+    const pedeMantos = Promise.resolve(supabase.rpc('esc_mantos_sala2', { p_room: salaDosMimos }))
+      .then(r => r.error ? Promise.resolve(supabase.rpc('esc_mantos_sala', { p_room: salaDosMimos })) : r, () => Promise.resolve(supabase.rpc('esc_mantos_sala', { p_room: salaDosMimos })))
+      .then(r => r, () => ({ data: null }))
     Promise.all([supabase.rpc('esc_mimos_sala', { p_room: salaDosMimos }), pedeContas, pedeMantos]).then(([{ data }, { data: contas }, { data: mantos }]) => {
       if (!vivo || !Array.isArray(data)) return
       type Conta = { user_id: string; player_index: number; dupla_partner_of?: string | null }
       const contaDoAssento = Array.isArray(contas) ? new Map((contas as Conta[]).map(c => [c.player_index, c])) : null
       // 🤝 DUPLA (12/10): o time veste o mimo do DONO do assento; se o dono não tem
       // batismo e o PARCEIRO tem, veste o do parceiro. Nenhum dos dois = escudo pelo nome.
-      type Mimo = { mascote?: string | null; escudo?: string | null; manto?: string[] | null }
+      type Mimo = { mascote?: string | null; escudo?: string | null; manto?: string[] | null; manto2?: string[] | null }
       const doDono = new Map<number, Mimo>()
       const doParceiro = new Map<number, Mimo>()
       const mantoDoAssento = new Map<number, string[]>()
-      if (Array.isArray(mantos)) for (const r of mantos as { player_index: number; manto_c1: string | null; manto_c2: string | null }[]) if (r.manto_c1 && r.manto_c2) mantoDoAssento.set(r.player_index, [r.manto_c1, r.manto_c2])
+      const manto2DoAssento = new Map<number, string[]>()
+      if (Array.isArray(mantos)) for (const r of mantos as { player_index: number; manto_c1?: string | null; manto_c2?: string | null; k1?: string[] | null; k2?: string[] | null }[]) {
+        if (Array.isArray(r.k1) && r.k1.length >= 2) mantoDoAssento.set(r.player_index, r.k1)
+        else if (r.manto_c1 && r.manto_c2) mantoDoAssento.set(r.player_index, [r.manto_c1, r.manto_c2])
+        if (Array.isArray(r.k2) && r.k2.length >= 2) manto2DoAssento.set(r.player_index, r.k2)
+      }
       const linhasCruas = (data as { player_index: number; mascote_key: string | null; escudo_time: string | null }[]).map(r => ({ ...r }))
-      for (const i of mantoDoAssento.keys()) if (!linhasCruas.some(r => r.player_index === i)) linhasCruas.push({ player_index: i, mascote_key: null, escudo_time: null })
+      for (const i of [...mantoDoAssento.keys(), ...manto2DoAssento.keys()]) if (!linhasCruas.some(r => r.player_index === i)) linhasCruas.push({ player_index: i, mascote_key: null, escudo_time: null })
       for (const r of linhasCruas) {
-        const mimo: Mimo = { mascote: r.mascote_key, escudo: r.escudo_time, manto: mantoDoAssento.get(r.player_index) ?? null }
+        const mimo: Mimo = { mascote: r.mascote_key, escudo: r.escudo_time, manto: mantoDoAssento.get(r.player_index) ?? null, manto2: manto2DoAssento.get(r.player_index) ?? null }
         if (!crachas?.length) { doDono.set(r.player_index, mimo); continue }
         const c = contaDoAssento?.get(r.player_index)
         if (!c) continue

@@ -219,7 +219,39 @@ async function fetchMeuSocio() {
   // 🎁 08/09: escudo e mascote do dono passam a seguir o E-MAIL (ver mimos.ts).
   // Só sócio ATIVO leva; deslogou/venceu → limpa, e o clube volta ao automático.
   registraMeuBatismo(meu?.ativo ? meu.escudoTime : null, meu?.ativo ? meu.mascoteKey : null)
+  await fetchMeusKits()
   listeners.forEach(fn => fn())
+}
+
+// 🎽 09/11: AS CAMISAS DA LOJA (1ª e 2ª, 2 ou 3 cores cada) — `esc_meus_kits`. A 1ª comprada/montada GANHA do manto do
+// batismo (quem trocou a ordem na Loja escolheu isso). Sem rede ou sem a função no banco: fica tudo como era.
+export interface MeusKits { tem1: boolean; tem2: boolean; k1: string[] | null; k2: string[] | null; mantoBatismo: string[] | null; mascote: boolean; escudo: boolean; gala: boolean; producao: string[] }
+let kits: MeusKits | null = null
+const hexOk = (a: unknown): a is string[] => Array.isArray(a) && a.length >= 2 && a.every(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c))
+async function fetchMeusKits() {
+  kits = null
+  try {
+    const { data, error } = await supabase.rpc('esc_meus_kits')
+    const r = data as Record<string, unknown> | null
+    if (!error && r && typeof r === 'object') kits = {
+      tem1: !!r.tem1, tem2: !!r.tem2, k1: hexOk(r.k1) ? r.k1.slice(0, 3) : null, k2: hexOk(r.k2) ? r.k2.slice(0, 3) : null,
+      mantoBatismo: hexOk(r.manto_batismo) ? r.manto_batismo.slice(0, 2) : null,
+      mascote: !!r.mascote, escudo: !!r.escudo, gala: !!r.gala, producao: Array.isArray(r.producao) ? (r.producao as string[]) : [],
+    }
+  } catch { /* sem rede */ }
+}
+export const meusKits = (): MeusKits | null => kits
+/** relê depois de comprar/salvar na Loja (avisa quem usa `useMeuSocio`) */
+export async function recarregaKits(): Promise<void> { await fetchMeusKits(); listeners.forEach(fn => fn()) }
+/** 🎽 a 2ª camisa do dono logado (null = não tem/ainda não montou) — só vale na tela do PRÓPRIO dono, fora de sala */
+export const meuKit2 = (): string[] | null => (kits?.tem2 && kits.k2) ? kits.k2 : null
+/** salva as cores de uma camisa (o banco confere se é dela) */
+export async function salvaKit(slot: 1 | 2, cores: string[]): Promise<boolean> {
+  try { const { data } = await supabase.rpc('esc_kit_salvar', { p_slot: slot, p_cores: cores }); if (data) await recarregaKits(); return !!data } catch { return false }
+}
+/** ⇅ troca a ordem da 1ª com a 2ª (manda as duas como estão AGORA, com a 3ª cor do batismo junto) */
+export async function trocaKits(k1: string[], k2: string[]): Promise<boolean> {
+  try { const { data } = await supabase.rpc('esc_kit_trocar', { p_k1: k1, p_k2: k2 }); if (data) await recarregaKits(); return !!data } catch { return false }
 }
 supabase.auth.getSession().then(({ data }) => { if (releConta('manto', data.session?.user?.id)) fetchMeuSocio() }, () => {})
 supabase.auth.onAuthStateChange((_e, s) => { if (releConta('manto', s?.user?.id)) fetchMeuSocio() })
@@ -227,6 +259,7 @@ supabase.auth.onAuthStateChange((_e, s) => { if (releConta('manto', s?.user?.id)
 // manto da conta logada NESTE aparelho — banco primeiro, reserva do código
 // depois. Só decora o PRÓPRIO time de quem vê (nunca sincroniza pros outros).
 export function meuManto(): [string, string] | null {
+  if (kits?.tem1 && kits.k1) return [kits.k1[0], kits.k1[1]] // 🎽 09/11: a 1ª camisa montada na Loja
   if (meu?.ativo && meu.manto) return meu.manto
   const em = loggedEmail()
   return em ? (MANTO_CONTAS[em] ?? null) : null
@@ -301,6 +334,7 @@ const MANTO_ANGLE: Record<string, number> = {
 }
 // ângulo da listra do MEU manto (pelo meu mascote). Só o próprio dono decora o seu.
 export function meuMantoAngle(): number {
+  if (kits?.tem1 && kits.k1) return 90 // 🎽 camisa da Loja: listra reta
   const k = meu?.ativo ? meu.mascoteKey : null
   return (k && MANTO_ANGLE[k] != null) ? MANTO_ANGLE[k] : 90
 }
@@ -341,6 +375,7 @@ const MANTO_TRI: Record<string, string> = {
 /** 👕 06/11 (camisas do Campo 2D): a 3ª cor do manto de um clube pela CHAVE da mascote (pública: vem da lista fixa ou da sala) */
 export const mantoTriDaChave = (k: string | null | undefined): string | null => (k && MANTO_TRI[k]) ? MANTO_TRI[k] : null
 export function meuMantoC3(): string | null {
+  if (kits?.tem1 && kits.k1) return kits.k1[2] ?? null // 🎽 09/11: a 3ª cor é a que a pessoa escolheu na Loja
   const k = meu?.ativo ? meu.mascoteKey : null
   return (k && MANTO_TRI[k]) ? MANTO_TRI[k] : null
 }
@@ -349,6 +384,7 @@ export function meuMantoC3(): string | null {
 // o Tricolor do Arruda FC, porque vermelho não pode encostar em preto.
 const MANTO_TRI_BUFFER = new Set(['cobra_arruda', 'saoluiz_pitbull']) // 🐶 São Luiz FC entra aqui pelo mesmo motivo do Arruda: vermelho não pode encostar em preto
 export function meuMantoC3Buffer(): boolean {
+  if (kits?.tem1 && kits.k1) return false
   const k = meu?.ativo ? meu.mascoteKey : null
   return !!(k && MANTO_TRI_BUFFER.has(k))
 }
