@@ -2346,8 +2346,10 @@ Feito (só na conta liberada; nada muda no futebol):
 - [x] `marca.ts`: topo das telas novas (online, loja, salão) diz BIDLEGENDS no basquete.
 - [x] Criar sala no basquete: resumo NBA, sem formação, "Temporada da NBA + Playoffs"; arte da quadra no topo; vagas em PG/SG/SF/PF/C; "quadra".
 - [x] Envelope único no rápido do basquete (antes aparecia e era ignorado) + trava no `npm run envelope-unico`.
+- [x] PUBLICADO na main em 10/11 (home, online, leilão, temporada, envelope único) — ordem do Diego: *"simm tb"*.
 Falta (próximos passos):
-- [ ] **Liga Draft na NBA** — hoje bloqueada no basquete (usa baralho do futebol). Precisa: pool do draft = cartas da NBA, posições PG..C, leilão inicial só profissional/bom da NBA.
+- [x] **Liga Draft na NBA** (10/11, no ramo, esperando OK): a Liga Draft de hoje (Minha Liga Draft) no basquete — 1º leilão e draft só com cartas da NBA, elenco de até 15 (quinteto + banco), posições PG..C na noite do draft, prêmio padrão pela colocação = metade do futebol (orçamento 50). Régua do esporte em `liga-draft.ts` (`setDraftBasquete`, ligada por `setActiveSport`/`setActiveCatalog`). Trava `npm run liga-draft-nba`. A Liga Draft ANTIGA (1ª temporada fraca) segue só no futebol.
+  - ⚠️ `npm run liga-draft` e `scripts/testa-liga-vaga-motor.mts` já falham na main (erro dos próprios scripts), não é do basquete.
 - [ ] Liga de 10 times / turno único no basquete (travado por `tam10Mostra`/`turnoMostra` com `!nbaSala`).
 - [ ] Tela final de campeão: fundo ainda é estádio de futebol.
 - [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).

@@ -100,6 +100,7 @@ export function catalogTodos(): typeof CATALOG {
 }
 function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'todos' | undefined, varzea = false, regional?: string) {
   ACTIVE_SPORT = 'futebol'
+  setDraftBasquete(false) // 📋 Liga Draft: régua do futebol (22 · XI da formação)
   const base0 = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
   const base = regional ? comCartasRegionais(base0, regional) : base0
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
@@ -127,6 +128,7 @@ function comCartasRegionais(base: typeof CATALOG, regional: string): typeof CATA
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
 function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
   ACTIVE_SPORT = sport
+  setDraftBasquete(sport === 'basquete') // 📋🏀 Liga Draft: elenco de 15 e quinteto no basquete
   if (sport === 'basquete') {
     ACTIVE_CATALOG = buildNbaCatalog() as unknown as typeof CATALOG
     NBA_BASE_SLOTS = NBA_SLOTS_PER_POS[mode]
@@ -1119,7 +1121,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -4141,7 +4143,7 @@ export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scor
 function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[], lancesSempre = false): MatchResult {
   // 📋🏆 MINHA LIGA DRAFT: elenco de até 22 — quem joga é o XI (os primeiros de cada posição, o mesmo que o campinho mostra).
   // O banco não entra na força nem faz gol. Fora deste modo nada muda (o elenco É o time de 11).
-  if (state.minhaLigaDraft) state = { ...state, managers: state.managers.map(m => m.squad.length > 11 ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) /* 🤖 05/11: bot com banco também (o dele já vem do melhor pro pior) */ }
+  if (state.minhaLigaDraft) state = { ...state, managers: state.managers.map(m => m.squad.length > titularesDraft() ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) /* 🏀 basquete: quinteto · 🤖 05/11: bot com banco também (o dele já vem do melhor pro pior) */ }
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
   const comLances = involveHuman || lancesSempre
@@ -7695,7 +7697,7 @@ function mldAplicaLeilao(s: EscState): void {
     if (!ganhador || !card || ganhador.money < valor) return
     const nova: WonCard = { ...card, id: `ml${d.temporada}-${ganhador.id}-${i}`, paid: valor, via: 'leilao', mldDesde: d.temporada + 1 } // 🔒 o contrato recomeça no time novo
     let saiu: WonCard | undefined
-    if (ganhador.squad.length >= MLD_ELENCO_MAX) {
+    if (ganhador.squad.length >= elencoMaxDraft()) {
       saiu = reservaMaisBarata(ganhador.squad, nova, ganhador.formation)
       if (!saiu) return // não tem quem tirar sem furar o time: a venda não acontece
     }
@@ -7716,7 +7718,7 @@ function mldAplicaLeilao(s: EscState): void {
   })
 }
 // 🔒 o convidado nunca roda o reducer da sala, mas o recado dele chega no do dono: ação "só do dono" confere o crachá
-const deckDraft = (s: EscState) => (s.minhaLigaDraft ? s.deckLeague : undefined) // 🇧🇷🌍 Liga Draft de um baralho só: o draft também
+const deckDraft = (s: EscState) => baralhoDoDraft(s) // 🏀 basquete = baralho da NBA · 🇧🇷🌍 Liga Draft de um baralho só: o draft também
 const soDono = (s: EscState, by?: string) => s.onlineMode !== 'online' || (s.isHost && (!by || by === s.youUid))
 /** 📺⚡ TROCA 2D ↔ PLACAR RÁPIDO NO MEIO DA SALA (05/11, pedido do Diego). O dono marca (`SET_CAMPO2D` → `campo2dProximo`) e a
  *  troca só acontece AQUI, no passo do reducer que COMEÇA um jogo novo (rodada da liga, perna da Copa, rodada da Liberta/
@@ -9273,7 +9275,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
       // 🧱🏳️ 06/11 (Diego: *"na hora de criar a Liga Draft deveria ter opção de escolher jogador, clubes ou seleção, igual tem no rápido"*):
       // a Liga Draft de hoje (Minha Liga Draft) aceita o leilão de Clubes/Seleções na 1ª temporada; a de antes (fraca) continua sem.
-      s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && (!s.leilaoClubes || !!action.minhaLigaDraft)
+      s.ligaDraft = !!action.ligaDraft && !action.career && (!onlineNba || !!action.minhaLigaDraft) && (!s.leilaoClubes || !!action.minhaLigaDraft) // 🏀 10/11: no basquete só a Liga Draft de hoje (Minha Liga Draft), com o baralho da NBA
       s.minhaLigaDraft = s.ligaDraft && !!action.minhaLigaDraft // 📋🏆 (01/11): a 1ª temporada é o leilão NORMAL (não o fraco)
       // 📜💰 05/11: regras da turma no draft + prêmio editado pelo criador (vazio = padrão do tamanho da liga)
       s.draftRegras = s.minhaLigaDraft && action.draftRegras ? { ...action.draftRegras } : undefined
@@ -9288,7 +9290,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       else setActiveCatalog(s.deckLeague, fracoInicial, s.regionalSala)
       // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
       // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
-      if (s.ligaDraft && !onlineNba) {
+      if (s.ligaDraft) { // 🏀 vale pro baralho da NBA também (um LeBron só por liga)
         const vistos = new Set<string>()
         const out = {} as typeof CATALOG
         for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => { const k = chaveNome(c.name); if (vistos.has(k)) return false; vistos.add(k); return true })
@@ -13049,7 +13051,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const premios: Record<number, number> = {}
         sortedTable(s.league).forEach((t, pos) => {
           const m = s.managers.find(x => x.id === t.id && x.isHuman)
-          if (m) { premios[m.id] = premioDaLiga(pos, s.league.length, s.draftPremios); m.money += premios[m.id] } // 💰 05/11: tabela de 10 ou 20 (ou a do criador)
+          if (m) { const pr = premioDaLiga(pos, s.league.length, s.draftPremios); premios[m.id] = s.sport === 'basquete' && !s.draftPremios ? Math.ceil(pr / 2) : pr; m.money += premios[m.id] } // 🏀 basquete: orçamento é 50 (não 100), então o prêmio padrão é a metade // 💰 05/11: tabela de 10 ou 20 (ou a do criador)
         })
         const jaProntos = Object.keys(s.seasonVotes ?? {}).map(Number).filter(id => humanos.includes(id)) // ✋ quem já disse pronto no banner do fim
         s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
@@ -13069,7 +13071,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.minhaLigaDraft && !cartaPermitidaDraft(carta, s.draftRegras)) return state // 📜 regra da turma (a tela esconde a mesma carta)
       if (s.minhaLigaDraft) {
         // 📋🏆 com vaga (menos de 22) entra sem ninguém sair; elenco cheio = sai quem ele escolheu, sem furar posição
-        if (m.squad.length < MLD_ELENCO_MAX) { aplicaPickDraft(s, m, carta, null, false); return s }
+        if (m.squad.length < elencoMaxDraft()) { aplicaPickDraft(s, m, carta, null, false); return s }
         const saiM = podemSairMinha(m.squad, carta, m.formation).find(c => c.id === action.sai)
         if (!saiM) return state
         aplicaPickDraft(s, m, carta, saiM, false)
@@ -13257,7 +13259,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (d.fase === 'escolha') {
         // ⏱️ acabou o tempo: o jogo pega o MELHOR livre e tira o mais fraco daquela posição (nunca trava a sala)
         const m = s.managers.find(x => x.id === d.ordem[d.idx])
-        const auto = m ? escolhaAutomatica(cartasLivres(nomesOcupados(s.managers)), m.squad) : null
+        const auto = m ? escolhaAutomatica(cartasLivres(nomesOcupados(s.managers), deckDraft(s)), m.squad) : null
         if (m && auto) aplicaPickDraft(s, m, auto.carta, auto.sai, true)
         else proximoDoDraft(s)
         return s

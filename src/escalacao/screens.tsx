@@ -97,7 +97,7 @@ import { publicOnlineVisual } from './online-release'
 import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto'
 import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
 import { CaminhoDraft } from './draft-favoritos'
-import { chaveNome as chaveNomeDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
+import { chaveNome as chaveNomeDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
@@ -1405,7 +1405,7 @@ function YourPitchBody({ small = false }: { small?: boolean }) {
   const mantoAng = meuMantoAngle()
   const mantoC3 = meuMantoC3() // 🟢 3ª cor (só do próprio dono, ex.: Desportivo Montreal)
   const mantoC3Buf = meuMantoC3Buffer() // 🚫🔴⚫ amortecedor: pro Arruda, vermelho não pode encostar em preto
-  if (state.reserveAuction || (state.minhaLigaDraft && shown.squad.length > 11)) { // 📋🏆 Minha Liga Draft: até 22 = titulares + banco
+  if (state.reserveAuction || (state.minhaLigaDraft && shown.squad.length > titularesDraft())) { // 🏀 basquete: quinteto · 📋🏆 Minha Liga Draft: até 22 = titulares + banco
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
     // o mercado, então o campinho de baixo é só o "Banco".
     const benchTitle = state.seasonNo === 2 ? '🔁 Reservas (banco)' : '🔁 Banco'
@@ -8284,7 +8284,7 @@ export function EscSeason() {
         const donoDe = new Map<string, { time: string; bot: boolean }>()
         for (const m of state.managers) for (const c of m.squad) if (!c.fake) donoDe.set(chaveNomeDraft(c.name), { time: m.teamName, bot: !m.isHuman })
         return naDireita(<CaminhoDraft etapas={etapas} atual="liga" faltam={totalRounds - state.round} minhaVez={idx >= 0 ? idx + 1 : null} total={humanos.length}
-          temporadaQueVem={(state.seasonNo ?? 1) + 1} deck={state.minhaLigaDraft ? state.deckLeague : undefined} regras={state.minhaLigaDraft ? state.draftRegras : undefined} donoDe={donoDe} />)
+          temporadaQueVem={(state.seasonNo ?? 1) + 1} deck={baralhoDoDraft(state)} regras={state.minhaLigaDraft ? state.draftRegras : undefined} donoDe={donoDe} />)
       })()}
 
       {/* 🛋️ FOLGA: liga com nº ímpar de times — nesta rodada você não tem jogo. Só

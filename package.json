@@ -111,6 +111,7 @@
     "pregao-aberto": "npx tsx scripts/testa-pregao-aberto.mts",
     "liga-draft": "npx tsx scripts/testa-liga-draft.mts",
     "minha-liga-draft": "npx tsx scripts/testa-minha-liga-draft.mts",
+    "liga-draft-nba": "npx tsx scripts/testa-liga-draft-nba.mts",
     "motor2": "npx tsx scripts/testa-motor2.mts",
     "camisas-2d": "npx tsx scripts/testa-camisas-2d.mts",
     "stats-placar": "npx tsx scripts/testa-stats-placar.mts",
