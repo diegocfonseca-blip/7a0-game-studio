@@ -1,3 +1,5 @@
+import {useOwnerLayout,OwnerPlayback,OwnerChampionBanner} from './owner-online-visual'
+import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 // ─── 🏟️ COPA REGIONAL NA SALA ONLINE (Diego 10/10) ───────────────────────────
 //
 // Liga + 🏖️🏙️ Rio × SP · 🧉 Sul × Minas-PR · 🌵 Nordeste. Acabou a liga, os primeiros da
@@ -35,7 +37,7 @@ import './online-match-visual.css'
 import { Penaltis2D } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import type { ConfigPenaltisCampo, DisputaPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { ChatWidget, GiroDaRodada, TrocaCampo2DSala } from './screens'
+import { ChatWidget, GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from './screens'
 import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
@@ -199,7 +201,7 @@ function GradeDeClubes({ copa, pegos, marcado, podeMarcar, aoMarcar }: { copa: C
 function Barra({ seg, total, cor = GOLD }: { seg: number; total: number; cor?: string }) {
   const pct = Math.max(0, Math.min(100, (seg / total) * 100))
   return (
-    <div style={{ marginTop: 8, height: 16, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}>
+    <div className="ov3-surface" style={{ marginTop: 8, height: 16, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}>
       <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: seg <= 10 ? '#E8503A' : cor, transition: 'width .9s linear' }} />
       <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: INK }}>{seg}s</b>
     </div>
@@ -278,10 +280,14 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       const f = fs[0] as LinhaFase | undefined
       setFase(f ? { ...f, seed: Number(f.seed) } : null)
       setLido(true)
+      acabouRef.current = !!f?.campeao // 🏆 09/11: Copa com campeão → para de perguntar ao banco
       return { linhas: pls as LinhaSala[], fase: f ? { ...f, seed: Number(f.seed) } : undefined }
     } catch { return null }
   }, [roomId, edicao])
-  useEffect(() => { void ler(); const iv = setInterval(() => { void ler() }, 2000); return () => clearInterval(iv) }, [ler])
+  // 🧯 09/11: a leitura de 2 s seguia pra sempre na tela de fim, mesmo com a Copa já decidida (1,6 milhão de leituras em 10 dias).
+  // Com campeão ela PARA; a 1ª leitura de cada edição sempre acontece (é ela que descobre se já tem campeão).
+  const acabouRef = useRef(false)
+  useEffect(() => { void ler(); const iv = setInterval(() => { if (!acabouRef.current) void ler() }, 2000); return () => clearInterval(iv) }, [ler])
 
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
   // 🪑 20/10: com o estado da partida, o assento sai do `seatUids` (a renumeração do banco já errou em dupla cruzada)
@@ -313,7 +319,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
 
   // ─── 👑 só o DONO empurra a fase (a vez, o prazo, o castigo de quem dormiu) ───
   const passo = useCallback(async () => {
-    if (!souDono) return
+    if (!souDono || acabouRef.current) return // 🏆 Copa decidida: nada pra empurrar
     const l = await ler()
     if (!l?.fase) return
     const f = l.fase
@@ -604,6 +610,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
   useApitoDeLargada(`regional-${copa}`, passoRegionalRodaBola(P, step) ? step : null, true)
 
+  const ownerVisual=useOwnerLayout()
   const done = step >= P.FIM
   const finalVista = step >= P.FINAL && liveDone
   const avisou = useRef(false)
@@ -677,8 +684,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     // 🎮 13/10 (print do Diego na live do Futpoint: *"o que aconteceu com o botão manual?"*): o painel ficava com o
     // padding próprio por cima do do CSS — o rótulo "RITMO DA PARTIDA" caía em cima do MANUAL — e sem a classe dos
     // botões. Agora é a MESMA peça do controle da Copa do Mundo (`ll27-world-controls` + `ll31-tournament-controls`).
-    <section className="ll27-world-controls ll31-tournament-controls" aria-label={tr('Ritmo da copa', 'Cup pace')}>
-      {relogio.isHost ? <>
+    <section className={ownerVisual?'ov3-clock-controls':'ll27-world-controls ll31-tournament-controls'} aria-label={tr('Ritmo da copa', 'Cup pace')}>
+      {ownerVisual&&relogio.isHost ? <OwnerPlayback manual={relogio.row.manual} onToggle={()=>void relogio.command(relogio.row?.manual?'auto':'manual')} speed={c2d?vel2dBanco(true,relogio.row.vel2d):relogio.row.speed} onSpeed={v=>void relogio.command(c2d?'vel2d':'speed',v)} opts={c2d?VEL2D_SALA_OPTS:undefined} canNext={!relogio.busy&&liveDone&&!done} onNext={()=>void relogio.command('next')} onSkip={()=>void relogio.command(relogio.row?.running?'skip':'next')} nextLabel={proximoRotulo} busy={relogio.busy} speedDisabled={relogio.row.running} allowAutoSpeed/> : relogio.isHost ? <>
         <div className="ll27-world-rhythm">
           <button className={relogio.row.manual ? 'selected' : ''} disabled={relogio.busy} onClick={() => void relogio.command('manual')}>MANUAL</button>
           <button className={!relogio.row.manual ? 'selected' : ''} disabled={relogio.busy} onClick={() => void relogio.command('auto')}>AUTO</button>
@@ -803,20 +810,25 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       ))}
       {step > P.CHAVE && <details className="ll26-bracket-history"><summary>{tr('FASE DE CLASSIFICAÇÃO · AS DUAS TABELAS', 'QUALIFYING STAGE · BOTH TABLES')}</summary>{tabela(0)}{tabela(1)}</details>}
       {/* CERIMÔNIA */}
+      {finalVista && isYou(mundo.campeao) && <CardCollectPrompt
+        motivo={`${tr('🏆 Campeão da','🏆 Champion of')} ${nomeCopa(copa)}`}
+        seasonKey={`regional:${roomId}:${ficha.seed}:${ficha.edicao}:${copa}`} origin="online" />}
       {done && !festaRegVista && <FestaCampeao comp={copa} nome={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={150} />}
-        souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }}
+        mascote={ownerVisual?MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']:undefined} lendas={ownerVisual?entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year})):undefined} souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }}
         artilheiro={(() => { const r = artilhariaRegional(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = garconsRegional(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
       {done && (() => {
         const c = mundo.campeao, fin = mundo.ko[mundo.ko.length - 1].ties[0]
         const art = artilhariaRegional(mundo).slice(0, 5)
         return <>
+          {ownerVisual ? <OwnerChampionBanner title={nomeCopa(copa)} name={entrants[c].pais} crest={<SeloClube clube={entrants[c].pais} size={52}/>} trophy={<Trofeu comp={copa} size={210}/>} own={isYou(c)} legends={entrants[c].xi.filter(x=>x.fame>=5).map(x=>({nome:x.name,club:x.club,year:x.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club)??'']} line={`${tr('Final','Final')}: ${entrants[fin.h].pais} ${fin.g[0]} × ${fin.g[1]} ${entrants[fin.a].pais}`}/> : (
           <div style={{ ...box(isYou(c) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), color: INK, padding: 14, marginBottom: 10, textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10 }}><SeloClube clube={entrants[c].pais} size={70} /><Trofeu comp={copa} size={64} /></div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '6px 0 0', textTransform: 'uppercase' }}>{entrants[c].pais} {tr('CAMPEÃO!', 'CHAMPION!')}</p>
             <p style={{ fontSize: 11, fontWeight: 800, margin: '3px 0 0' }}>{isYou(c) ? tr('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : entrants[c].humano ? `${tr('Técnico', 'Manager')}: ${entrants[c].club}` : tr('Título da máquina 🤖', 'Won by the machine 🤖')}</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0' }}>{tr('final', 'final')}: {entrants[fin.h].pais} {fin.g[0]}×{fin.g[1]} {entrants[fin.a].pais}{fin.pen ? ` (${tr('pên.', 'pens')} ${fin.pen[0]}×${fin.pen[1]})` : ''}</p>
           </div>
+          )}
           {/* 🥇 ARTILHEIRO EM CARTÃO (13/10, mockup nº 3): o 1º com gols, clube e carta; 2º e 3º embaixo */}
           <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA', 'CUP TOP SCORER')} linhas={art.slice(0, 3).map((r): ArtilheiroLinha => { const carta = entrants[r.team].xi.find(c => c.name === r.name); return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <SeloClube clube={entrants[r.team].pais} size={40} />, meu: isYou(r.team) } })} />
         </>

@@ -3,7 +3,7 @@
 // Quem chama só monta isto DEPOIS do apito (`statsPlacarVisivel`): antes disso não existe nem a conta.
 import { useEffect, useMemo, useState } from 'react'
 import { camisasDoJogo } from './camisas-2d'
-import { kitDoTime } from './camisas-2d-dados'
+import { kitDoTime, kit2DoTime } from './camisas-2d-dados'
 import { CARIMBO_GOL } from './mascotes'
 import { nomeLimpo } from './escudos'
 import { ResumoApitoCampo2D } from './campo2d-resumo-ui'
@@ -21,7 +21,8 @@ export function StatsDoPlacar({ entrada, corCasa, corFora, craqueRadio }: { entr
   const [resumo, setResumo] = useState<{ k: string; r: ResumoCampo2D } | null>(() => { const r = resumoGuardado(entrada); return r ? { k, r } : null })
   useEffect(() => contaResumoDoPlacar(entrada, r => setResumo({ k, r })), [k]) // eslint-disable-line react-hooks/exhaustive-deps
   const kc = kitDoTime(entrada.casa.nome, corCasa || '#C2452F', mascoteFixa).join(','), kf = kitDoTime(entrada.fora.nome, corFora || '#2B6CFF', mascoteFixa).join(',')
-  const [camC, camF] = useMemo(() => camisasDoJogo(kc.split(','), kf.split(',')), [kc, kf])
+  const kf2 = (kit2DoTime(entrada.fora.nome) ?? []).join(',')
+  const [camC, camF] = useMemo(() => camisasDoJogo(kc.split(','), kf.split(','), kf2 ? kf2.split(',') : null), [kc, kf, kf2])
   if (!resumo || resumo.k !== k) return null
   return (
     <div data-stats-placar style={{ display: 'flex', justifyContent: 'center', padding: '0 0 8px' }}>

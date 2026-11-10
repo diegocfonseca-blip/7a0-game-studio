@@ -136,7 +136,9 @@
     "turno-unico": "npx tsx scripts/testa-turno-unico.mts",
     "relogio-sala": "npx tsx scripts/testa-relogio-sala.mts",
     "352": "npx tsx scripts/testa-352-liga-draft.mts",
-    "replay-assist": "npx tsx scripts/testa-replay-sem-assist.mts"
+    "replay-assist": "npx tsx scripts/testa-replay-sem-assist.mts",
+    "criterios-carreira": "npx tsx scripts/testa-criterios-carreira.mts 0 && npx tsx scripts/testa-calibracao-carreira.mts && node scripts/testa-criterios-reducer.mjs",
+    "criterios-amostra": "npx tsx scripts/mede-calibracao-carreira.mts 600"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -1,3 +1,7 @@
+import {PrivateRoomChat} from './private-room-chat'
+import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
+import {careerVisualV2,CareerVisualProvider} from './career-visual-v2'
+import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
 import estadioCerArt from './img/online-estadio-v25.webp'
@@ -30,7 +34,7 @@ import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } f
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
-import { ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
@@ -80,6 +84,7 @@ import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio cit
 import { EscalacaoMinha } from './minha-escalacao' // 📋🏆 Minha Liga Draft (01/11)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
+import { useOnlineRoomPresentation as useOwnerPresentation } from './presentation-release'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
 import { useLegendPresentation } from './presentation-release'
@@ -208,7 +213,7 @@ function InstaIcon({ size = 12 }: { size?: number }) {
 export function CreditLine({ className = '' }: { className?: string }) {
   return (
     <p className={`text-center text-black/30 text-[11px] font-semibold ${className}`}>
-      <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="text-black/30 no-underline"><InstaIcon /> @leilaolegendscom</a>
+      <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="ov3-page-muted text-black/30 no-underline"><InstaIcon /> @leilaolegendscom</a>
     </p>
   )
 }
@@ -752,11 +757,12 @@ export function ChatWidget() {
   const listRef = useRef<HTMLDivElement>(null)
   const [figAberta, setFigAberta] = useState(false) // 🐊 bandeja de figurinhas (21/10)
   const figUltima = useRef(0)
+  const ownerChat = useOwnerOnlineVisual(state)
   const online = state.onlineMode === 'online'
-  const inRoom = online && !!state.roomId
+  const inRoom = online && !!state.roomId && !(ownerChat && state.screen === 'lobby')
   const isHost = !!state.isHost
   const chatOff = !!state.chatOff
-  useEffect(() => { if (chatOpen && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [chat, chatOpen])
+  useEffect(() => { if (!ownerChat && chatOpen && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [chat, chatOpen, ownerChat])
   useEffect(() => { const f = () => setChatOpen(false); window.addEventListener(EVENTO_PERFIL_ABERTO, f); return () => window.removeEventListener(EVENTO_PERFIL_ABERTO, f) }, [setChatOpen]) // 👥 abriu perfil pelo chat → fecha o chat
   if (!inRoom) return null
   if (chatOff && !isHost) return null // host desligou → convidados não veem nada
@@ -769,6 +775,12 @@ export function ChatWidget() {
     figUltima.current = Date.now()
     sendChat(`🐊 ${FIG_LEG[i][0]}`, undefined, i); setFigAberta(false)
   }
+  if (ownerChat) return <PrivateRoomChat key={state.roomId} roomId={state.roomId!} roomName={state.roomName || `${tr('Sala','Room')} ${state.roomCode || ''}`} people={state.managers.filter(m=>m.isHuman).length}
+    open={chatOpen} setOpen={setChatOpen} unread={chatUnread} messages={chat} game readOnly={!!state.espectador} off={chatOff}
+    isMine={m=>m.uid?m.uid===state.youUid:m.from===state.youIdx} onSend={sendChat}
+    onToggleChat={isHost?()=>dispatch({type:'SET_CHAT',off:!chatOff}):undefined}
+    renderAttachment={m=>typeof m.fig==='number'&&FIG_LEG[m.fig]&&mascoteInteiraDoTime(m.name)?<FigurinhaMascote time={m.name} leg={tr(FIG_LEG[m.fig][0],FIG_LEG[m.fig][1])}/>:null}
+    stickers={temFig?FIG_LEG.map((l,i)=>({label:tr(l[0],l[1]),art:<FigurinhaMascote time={meuTime} leg={tr(l[0],l[1])} size={58}/>,send:()=>mandaFig(i)})):undefined}/>
   return (
     <>
       {!chatOpen && (
@@ -875,15 +887,29 @@ export function ChatWidget() {
 export function GameFooter() {
   const { state, dispatch } = useEsc()
   const privatePreview = useOnlinePreview()
+  const ownerAccount = useOwnerPresentation()
   // 🛟 SAÍDA DE EMERGÊNCIA: o rodapé é a ÚNICA coisa que continua na tela mesmo se
   // uma tela renderizar vazia (troca de fase, estado incompleto, save travado). Um
   // link discreto aqui garante que NINGUÉM fica preso num "tela em branco" — volta
   // pro início e limpa o save da partida em andamento (pra o refresh não recarregar
   // o mesmo estado ruim). Só aparece fora do início (lá já é o próprio início).
   const canEscape = state.screen !== 'intro'
+  const goHome = () => {
+    if (!window.confirm(tr('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.', 'Back to the home screen? If you got stuck on a blank screen, this fixes it. A match in progress (on this screen) will be ended.'))) return
+    try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
+    dispatch({ type: 'GO_LOBBY' }) // volta pro início (e libera a vaga se estiver online)
+  }
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
   if (privatePreview && state.careerIntent && state.screen === 'setup') return null
+  // The private lobby supplies its own shop card. Keep contact here, outside
+  // Router, without reviving the legacy support banner underneath it.
+  if (ownerAccount && state.sport !== 'basquete' && (state.screen === 'lobby' || ownerOnlineScope(state))) return <footer className="ow-contact-footer">
+    {state.screen!=='lobby'&&<div className="ow-footer-links"><button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><LojaButton className="ow-footer-shop-link">{tr('Loja do clube','Club shop')} →</LojaButton></div>}
+    <p>{tr('Achou um bug ou tem uma ideia? Fala comigo:', 'Found a bug or got an idea? Talk to me:')}</p>
+    <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">@leilaolegendscom</a>
+    <a href="mailto:contato@leilaolegends.com">contato@leilaolegends.com</a>
+  </footer>
   // No lobby, a navegação já está acima — então aqui fica só o apoio compacto da
   // home, sem repetir assinatura nem a saída de emergência.
   // 📬 MAS O CONTATO VOLTA (Diego 21/09): *"esse mesmo texto sutil falando do
@@ -903,11 +929,7 @@ export function GameFooter() {
       <ApoieButton trigger={open => <SupportFooter onOpen={open} />} />
     </footer>
   )
-  const goHome = () => {
-    if (!window.confirm(tr('Voltar pra tela inicial? Se você travou numa tela em branco, isso resolve. Uma partida em andamento (nesta tela) será encerrada.', 'Back to the home screen? If you got stuck on a blank screen, this fixes it. A match in progress (on this screen) will be ended.'))) return
-    try { localStorage.removeItem('esc-solo-inprogress-v1') } catch { /* ignora */ }
-    dispatch({ type: 'GO_LOBBY' }) // volta pro início (e libera a vaga se estiver online)
-  }
+
   return (
     <div className="game-contact-footer" style={{ background: '#F4ECD6', borderTop: '2px solid rgba(0,0,0,0.06)' }}>
       <footer className="max-w-xl mx-auto text-center px-4 pt-4 pb-8 space-y-1.5">
@@ -931,21 +953,23 @@ export function GameFooter() {
 }
 
 export function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
+  const ownerVisual=useOwnerLayout()
   return (
-    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
+    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, ...(ownerVisual?{color:INK}:{}), boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
       {children}
     </div>
   )
 }
 
 export function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }: { children: React.ReactNode; onClick: () => void; bg?: string; disabled?: boolean; className?: string }) {
+  const ownerVisual = useOwnerLayout()
   return (
     <motion.button
       whileTap={disabled ? undefined : { x: 2, y: 2 }}
       onClick={onClick}
       disabled={disabled}
       className={`border-[3px] border-black rounded-xl px-4 py-3 font-black uppercase text-sm tracking-wide ${disabled ? 'opacity-40' : ''} ${className}`}
-      style={{ backgroundColor: bg, boxShadow: disabled ? 'none' : `4px 4px 0 0 ${INK}`, ...OSWALD }}
+      style={{ backgroundColor: bg, ...(ownerVisual ? { color: bg === GREEN || bg === INK || bg === '#7C3AED' ? '#fff' : INK } : {}), boxShadow: disabled ? 'none' : `4px 4px 0 0 ${INK}`, ...OSWALD }}
     >
       {children}
     </motion.button>
@@ -990,6 +1014,8 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
+  const ownerVisual = useOwnerOnlineVisual(state)
+  const visualV2 = careerVisualV2(state)
   const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
   // sair, o dispatch libera a vaga na sala online (não vira fantasma).
@@ -1035,15 +1061,15 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const matchDesktop = desktopWidth && state.sport !== 'basquete' && ['season','liberta','champions'].includes(state.screen)
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
   return (
-    <MobileAuctionHeaderContext.Provider value={auctionMobile}>
-    <div className={`min-h-screen pb-16 palco ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
-      {(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
+    <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
+    <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete' && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+      {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
         <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
           {isReserveAuction && (
             <p className="text-center text-[10px] font-black uppercase tracking-wide mb-1.5" style={{ ...OSWALD, color: PURPLE }}>{reserveLabel}</p>
           )}
-          {auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={state.phase === 'pregao' ? undefined : <CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
+          {!ownerVisual&&auctionMobile && <MobileAuctionHeader name={stripEmoji(shellManager.name ?? '')} title={auctionTitle} balance={state.phase === 'pregao' ? undefined : <CoinCounter compact value={shellManager.money + pendingSpend(state,shellManager)}/>}/>}
           {bar}
         </div>
       )}
@@ -1052,11 +1078,11 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
         <div className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
             <div className="flex items-center justify-center gap-5">
-              <button onClick={backToMenu} className="text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but you stay in the room — you can come back')}>{tr('🏠 voltar pro menu', '🏠 back to menu')}</button>
-              <button onClick={leaveRoom} className="text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai da sala de vez (removido)', 'Leaves the room for good (removed)')}>{tr('🚪 sair da sala', '🚪 leave the room')}</button>
+              <button onClick={backToMenu} className="ov3-page-muted text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but you stay in the room — you can come back')}>{tr('🏠 voltar pro menu', '🏠 back to menu')}</button>
+              <button onClick={leaveRoom} className="ov3-page-muted text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai da sala de vez (removido)', 'Leaves the room for good (removed)')}>{tr('🚪 sair da sala', '🚪 leave the room')}</button>
             </div>
           ) : (
-            <button onClick={leave} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">{tr('🚪 sair do jogo', '🚪 leave the game')}</button>
+            <button onClick={leave} className="ov3-page-muted block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">{tr('🚪 sair do jogo', '🚪 leave the game')}</button>
           )}
           {/* 👑 07/11: PAINEL DO DONO dentro da liga (pedidos · próxima temporada · convidar · técnicos) — só o dono vê */}
           {canManage && state.ligaMode && !!state.roomId && !!state.roomCode && (
@@ -1064,12 +1090,12 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
               youIdx={state.youIdx} donoUid={state.seatUids?.[state.youIdx]} tamanho={state.tamanhoLiga === 10 ? 10 : 20} turnoUnico={!!state.turnoUnico} />
           )}
           {canManage && others.length > 0 && (
-            <button onClick={() => setManage(v => !v)} className="block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">
+            <button onClick={() => setManage(v => !v)} className="ov3-page-muted block mx-auto text-black/60 text-[13px] font-black underline active:opacity-60">
               {manage ? tr('fechar', 'close') : tr('⚙️ gerenciar técnicos', '⚙️ manage managers')}
             </button>
           )}
           {canManage && manage && (
-            <div className="max-w-xs mx-auto mt-1 border-2 border-black/15 rounded-xl p-2 space-y-1.5 text-left" style={{ background: '#fff' }}>
+            <div className="max-w-xs mx-auto mt-1 border-2 border-black/15 rounded-xl p-2 space-y-1.5 text-left ov3-surface" style={{ background: '#fff' }}>
               <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1">{tr('Remover da partida', 'Remove from the match')}</p>
               {others.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
@@ -1098,7 +1124,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
         </div>
       )}
     </div>
-    </MobileAuctionHeaderContext.Provider>
+    </MobileAuctionHeaderContext.Provider></CareerVisualProvider></OwnerOnlineProvider>
   )
 }
 
@@ -1269,7 +1295,7 @@ function NbaCourt({ m }: { m: Manager }) {
   const tierOf = (c: Card) => (isProm(c) ? PROMESSA_TIER : (FAME_TIER[c.fame] ?? FAME_TIER[1]))
   const tierEmoji = (c: Card) => (isProm(c) ? '💎' : c.fame >= 5 ? '👑' : c.fame === 4 ? '⭐' : c.fame === 1 ? '🪵' : '🎯')
   return (
-    <div className="relative w-full mx-auto" style={{ maxWidth: 320, aspectRatio: '1 / 1.18', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, background: 'linear-gradient(180deg,#E7BE85,#DFB074 55%,#D7A566)' }}>
+    <div className="relative w-full mx-auto ov3-surface" style={{ maxWidth: 320, aspectRatio: '1 / 1.18', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, background: 'linear-gradient(180deg,#E7BE85,#DFB074 55%,#D7A566)' }}>
       <svg viewBox="0 0 100 118" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
         <rect x="37" y="3" width="26" height="40" fill="#E8703A" fillOpacity="0.92" />
         <g fill="none" stroke="rgba(20,12,4,.55)" strokeWidth="1.1">
@@ -1390,7 +1416,7 @@ function PacotesDoTime({ m }: { m: Manager }) {
             {c ? <>
               <span className="flex-none"><SeloPacote c={c} size={30} /></span>
               <span className="font-black text-[13px] uppercase truncate" style={OSWALD}>{nomePacote(c)}</span>
-            </> : <span className="text-[12px] font-bold text-black/40">{L('ainda sem pacote', 'no pack yet')}</span>}
+            </> : <span className="ov3-empty-slot text-[12px] font-bold text-black/40">{L('ainda sem pacote', 'no pack yet')}</span>}
           </div>
         )
       })}
@@ -1731,7 +1757,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
           {!nomeando && <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {lim}</span>}
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
-        {aviso && <p role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
+        {aviso && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
         {nomeando ? (<>
           <p style={{ fontSize: 12.5, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '0 2px 8px', lineHeight: 1.4 }}>{t('Como vai se chamar o seu time? Ele começa na 🛝 Street League e sobe até a 💍 NBA.', 'What will your team be called? It starts in the 🛝 Street League and climbs to the 💍 NBA.')}</p>
           <input value={nome} onChange={e => { setNome(stripEmoji(e.target.value)); setNomeErr('') }} maxLength={24} autoFocus placeholder={t('Ex.: Garrafão do Zé', 'e.g. Downtown Bricklayers')}
@@ -1747,7 +1773,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
           const caixa = slot.save.careerCoins?.[you?.id ?? 0] ?? 0
           const key = idNbaCarreira(slot.save) + i
           return (
-            <div key={key} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${andar.cor}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: ativa ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <div className="ov3-surface" key={key} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${andar.cor}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: ativa ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
               {ativa && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>{t('▶ última jogada', '▶ last played')}</span>}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{you?.teamName ?? t('Meu Time', 'My Team')}</p>
@@ -1807,13 +1833,13 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   const t = useT() // 🌐 BR/EN
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
+      <div className="ov3-surface" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <p style={{ flex: 1, fontWeight: 900, fontSize: 18, ...OSWALD, margin: 0 }}>{t('🪜 Minhas Carreiras', '🪜 My Careers')}</p>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
-        {avisoTroca && <p role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
+        {avisoTroca && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
         {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
         {list.map(({ slot, active }, i) => {
           const you = slot.save.managers?.[slot.save.youIdx ?? 0]
@@ -1821,7 +1847,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
           const caixa = slot.save.careerCoins?.[you?.id ?? 0] ?? 0
           const tn = you?.teamName ?? you?.name ?? t('Meu time', 'My team')
           return (
-            <div key={String(slot.save.seed ?? i)} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${DIV_COLOR[div] ?? '#8B8168'}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: active ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <div className="ov3-surface" key={String(slot.save.seed ?? i)} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: `2.5px solid ${INK}`, borderLeft: `7px solid ${DIV_COLOR[div] ?? '#8B8168'}`, borderRadius: 12, padding: '10px 11px', marginBottom: 9, marginTop: active ? 10 : 0, boxShadow: `3px 3px 0 0 ${INK}` }}>
               {active && <span style={{ position: 'absolute', top: -9, left: 12, background: GOLD, color: INK, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 7px', borderRadius: 6, border: `2px solid ${INK}`, ...OSWALD }}>{t('▶ última jogada', '▶ last played')}</span>}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 900, fontSize: 15.5, ...OSWALD, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tn}</p>
@@ -2229,7 +2255,7 @@ function Duvidas() {
 function PassoLinha({ n, ic, titulo, children }: { n?: number; ic: string; titulo: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 border-[2.5px] border-black rounded-xl bg-white px-3.5 py-3" style={{ boxShadow: `2px 2px 0 0 ${INK}` }}>
-      <span className="flex-none w-[30px] h-[30px] rounded-[9px] border-[2.5px] border-black grid place-items-center text-[15px]" style={{ background: GOLD }}>{ic}</span>
+      <span className="flex-none w-[30px] h-[30px] rounded-[9px] border-[2.5px] border-black grid place-items-center text-[15px] ov3-surface" style={{ background: GOLD }}>{ic}</span>
       <div className="min-w-0">
         <p className="font-black text-[12.5px] uppercase leading-tight" style={OSWALD}>{n != null && <span className="text-black/30">{n}. </span>}{titulo}</p>
         <p className="text-[10.5px] font-semibold text-black/60 leading-snug">{children}</p>
@@ -2436,11 +2462,11 @@ export function EscIntro() {
         <div className="space-y-7">
         {/* 1 · o que é o jogo */}
         <div className="text-center pt-6">
-          <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide ov3-surface" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
             {t('⚽ Leilão às cegas de lendas', '⚽ Blind auction of legends')}
           </span>
           <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
-          <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
+          <div className="mx-auto mt-2 ov3-surface" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
           <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">{getLang() === 'en' ? <>Bid <b>on the name</b>, without seeing the level. Build the team and collect the legends.</> : <>Dê lance <b>no nome</b>, sem ver o nível. Monte o time e colecione as lendas.</>}</p>
         </div>
         {/* 2 · as cartas, DEITADAS — o motivo de jogar fica no alto */}
@@ -2597,12 +2623,12 @@ export function EscIntro() {
           onFechar={() => setCareerGate(null)} />
       )}
       <div className="text-center pt-8">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide ov3-surface" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           {t('⚽ Leilão às cegas de lendas', '⚽ Blind auction of legends')}
         </span>
         <h1 className="font-black text-5xl mt-4 leading-none" style={OSWALD}>LEILÃO LEGENDS</h1>
         {/* sublinhado dourado da marca oficial (mesmo da logo do Instagram/og) */}
-        <div className="mx-auto mt-2" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
+        <div className="mx-auto mt-2 ov3-surface" style={{ width: 150, height: 10, borderRadius: 5, background: GOLD, border: `2px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}` }} />
         <p className="mt-3 font-semibold text-black/60 max-w-sm mx-auto">{getLang() === 'en' ? <>Bid on the <b>name</b>, without seeing the level. Build the team at the auction, win the championship and collect the stars in your album.</> : <>Dê lance no <b>nome</b>, sem ver o nível. Monte o time no pregão, ganhe o campeonato e colecione os craques no seu álbum.</>}</p>
       </div>
       {/* 🎯 O QUE FAZER AGORA (Diego 16/08 — docs/plano-crescimento.md §4).
@@ -2794,11 +2820,11 @@ function ManualDoTecnico({ onClose, limpo, bb = false }: { onClose: () => void; 
           </>
         ) : (<>
         {/* a regra-mãe: o leilão */}
-        <div style={{ border: `3px solid ${INK}`, borderRadius: 14, background: GOLD, padding: '10px 11px', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
+        <div className="ov3-surface" style={{ border: `3px solid ${INK}`, borderRadius: 14, background: GOLD, padding: '10px 11px', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
           <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{t('🔨 Como funciona o leilão (a base de tudo)', '🔨 How the auction works (the base of everything)')}</p>
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
             {fases.map(([ic, t, d]) => (
-              <div key={t} style={{ flex: 1, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', textAlign: 'center' }}>
+              <div className="ov3-surface" key={t} style={{ flex: 1, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', textAlign: 'center' }}>
                 <div style={{ fontSize: 16 }}>{ic}</div>
                 <p style={{ fontWeight: 900, fontSize: 9, ...OSWALD, margin: '2px 0 0', textTransform: 'uppercase' }}>{t}</p>
                 <p style={{ fontSize: 8, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0', lineHeight: 1.25 }}>{d}</p>
@@ -2809,7 +2835,7 @@ function ManualDoTecnico({ onClose, limpo, bb = false }: { onClose: () => void; 
         </div>
         {/* um card por modo — só o que muda */}
         {modos.map(([ic, t, d]) => (
-          <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 10px', marginBottom: 7, background: '#FCFBF4', boxShadow: `2.5px 2.5px 0 0 ${INK}` }}>
+          <div className="ov3-surface" key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 10px', marginBottom: 7, background: '#FCFBF4', boxShadow: `2.5px 2.5px 0 0 ${INK}` }}>
             <span style={{ fontSize: 20, lineHeight: 1 }}>{ic}</span>
             <div>
               <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{t}</p>
@@ -2834,8 +2860,8 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
   if (vista) return null
   const marca = (tudo: boolean) => { try { localStorage.setItem(K, '1'); if (tudo) localStorage.setItem(KOFF, '1') } catch { /* segue */ } setVista(true) }
   return (
-    <div style={{ border: `3px solid ${INK}`, borderRadius: 13, borderBottomLeftRadius: 4, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10 }}>
-      <span style={{ display: 'inline-block', fontWeight: 900, fontSize: 9, ...OSWALD, textTransform: 'uppercase', background: GOLD, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 8px', marginBottom: 5 }}>{tr('🎙️ Narrador', '🎙️ Commentator')}</span>
+    <div className="ov3-surface" style={{ border: `3px solid ${INK}`, borderRadius: 13, borderBottomLeftRadius: 4, background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10 }}>
+      <span className="ov3-surface" style={{ display: 'inline-block', fontWeight: 900, fontSize: 9, ...OSWALD, textTransform: 'uppercase', background: GOLD, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 8px', marginBottom: 5 }}>{tr('🎙️ Narrador', '🎙️ Commentator')}</span>
       <p style={{ margin: 0, fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}>{texto}</p>
       <div style={{ display: 'flex', gap: 8, marginTop: 7, alignItems: 'center' }}>
         <button onClick={() => marca(false)} style={{ border: `2.5px solid ${INK}`, borderRadius: 9, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 11, ...OSWALD, padding: '4px 12px', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>{tr('✅ Entendi', '✅ Got it')}</button>
@@ -3143,7 +3169,7 @@ export function EscSetup() {
                 const on = m === 'sel' ? clubes && pacSel : m === true ? clubes && !pacSel : !clubes
                 return (
                 <button key={String(m)} onClick={() => { setClubes(m !== false); setPacSel(m === 'sel') }}
-                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {m === true && seloNovoClubes() && (
                     <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
@@ -3161,7 +3187,7 @@ export function EscSetup() {
             {clubes && !bbSetup && (
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {([[false, t('🌍 Todas as épocas', '🌍 All eras')], [true, t('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]).map(([m, label]) => (
-                  <button key={String(m)} onClick={() => setPacDec(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                  <button key={String(m)} onClick={() => setPacDec(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
                     style={{ backgroundColor: pacDec === m ? GOLD : '#fff', boxShadow: pacDec === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
                 ))}
               </div>
@@ -3178,22 +3204,22 @@ export function EscSetup() {
           </div>
         )}
         {career ? (
-          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+          <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? tr('🌎 Baralho: Brasileirão + Europa + MUNDO juntos', '🌎 Deck: Brasileirão + Europe + WORLD together') : tr('🌎 Baralho fixo: Brasileirão + Europa juntos', '🌎 Fixed deck: Brasileirão + Europe together')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{getLang() === 'en' ? (escadaLiberada() ? <>In Career the deck is <b>Brasileirão + Europe + World together</b> (~850 names) — it takes all of them to properly fill the <b>100 teams across 5 tiers</b> (from Várzea to Série A). Each tier's market only trades its own categories.</> : <>In Career the deck is always the <b>Brasileirão peaks + the Europe peaks together</b> (~700 names) — it takes both to properly fill the <b>80 teams across 4 tiers</b>. There is no BR-only or Europe-only deck here.</>) : escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
           </div>
         ) : bbSetup ? (
-          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+          <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{t('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{t('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
           </div>
         ) : pokeLigado ? (
-          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#FFF6CC' }}>
+          <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#FFF6CC' }}>
             <p className="font-black text-sm" style={OSWALD}>{t('⚡ Baralho: 200 pokémon', '⚡ Deck: 200 Pokémon')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{t('Toda a 1ª geração + os mais famosos das outras, com os tipos oficiais. Os 5 lotes do leilão vêm misturados (o 5º vale 2 vagas).', 'The whole 1st generation + the most famous of the others, with the official types. The 5 auction lots come mixed (the 5th is worth 2 slots).')}</p>
           </div>
         ) : clubesOn && clubes ? (
-          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+          <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{t('🌎 Baralho: Brasil + Europa + Mundo juntos', '🌎 Deck: Brazil + Europe + World together')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{t('No leilão de clubes precisa dos 3 baralhos: é o que dá clube suficiente pra cada setor ter pacotes diferentes.', 'The club auction needs all 3 decks: that is what gives each sector enough different clubs.')}</p>
           </div>
@@ -3203,14 +3229,14 @@ export function EscSetup() {
           <div className="grid grid-cols-2 gap-2">
             {([['br', t('🇧🇷 Brasileirão', '🇧🇷 Brazil')], ['eu', t('🌍 Liga Europa', '🌍 Europe')]] as const).map(([id, label]) => (
               <button key={id} onClick={() => setLeague(id)}
-                className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                 style={{ backgroundColor: league === id ? GOLD : '#fff', boxShadow: league === id ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                 {label}
               </button>
             ))}
           </div>
           <button onClick={() => setLeague('both')}
-            className="w-full mt-2 border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+            className="w-full mt-2 border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
             style={{ backgroundColor: league === 'both' ? GOLD : '#fff', boxShadow: league === 'both' ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
             {t('🌎 Todos juntos (BR + Europa + Mundo)', '🌎 All together (Brazil + Europe + World)')}
           </button>
@@ -3220,7 +3246,7 @@ export function EscSetup() {
           {league === 'br' && (
             <div className="grid grid-cols-2 gap-2">
               {([[false, t('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]).map(([m, label]) => (
-                <button key={String(m)} onClick={() => setVarzeaR(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                <button key={String(m)} onClick={() => setVarzeaR(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
                   style={{ backgroundColor: varzeaR === m ? GOLD : '#fff', boxShadow: varzeaR === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
               ))}
             </div>
@@ -3237,7 +3263,7 @@ export function EscSetup() {
               style={{ backgroundColor: c2dLigadoSetup ? GREEN : '#fff', color: c2dLigadoSetup ? '#fff' : INK, ...OSWALD }}>{c2dLigadoSetup ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Campo 2D: desligado (toque pra ligar)', '📺 2D pitch: off (tap to turn on)')}</button>
             <div className="grid grid-cols-2 gap-2">
               {([[false, t('🎮 Com Manual', '🎮 With Manual')], [true, t('🚫 Sem Manual', '🚫 No Manual')]] as [boolean, string][]).map(([m, label]) => (
-                <button key={String(m)} onClick={() => setRitmo2dSemManual(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                <button key={String(m)} onClick={() => setRitmo2dSemManual(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
                   style={{ backgroundColor: semManual2d === m ? GOLD : '#fff', boxShadow: semManual2d === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
               ))}
             </div>
@@ -3250,7 +3276,7 @@ export function EscSetup() {
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
             {/* a MESMA régua do START_NBA: 7+ rivais = Playoffs (top 8); menos = só a liga */}
-            <div className="border-[3px] border-black rounded-xl px-3 py-2" style={{ background: '#fff' }}>
+            <div className="border-[3px] border-black rounded-xl px-3 py-2 ov3-surface" style={{ background: '#fff' }}>
               <p className="font-black text-sm" style={OSWALD}>{rivals >= 7 ? t('🏀 Liga + Playoffs', '🏀 League + Playoffs') : t('📊 Só a liga', '📊 League only')}</p>
               <p className="text-[11px] font-semibold text-black/55 mt-0.5">{rivals >= 7 ? t('Os 8 melhores vão aos PLAYOFFS (melhor de 3) e o campeão leva o anel 💍.', 'The top 8 go to the PLAYOFFS (best of 3) and the champion takes the ring 💍.') : t('Com 3 ou 5 rivais é só a tabela. Escolha 7 ou 9 rivais pra ter Playoffs.', 'With 3 or 5 rivals it is just the table. Pick 7 or 9 rivals to get Playoffs.')}</p>
             </div>
@@ -3270,7 +3296,7 @@ export function EscSetup() {
                 const travado = m === 'champions' && !championsOn
                 return (
                   <button key={m} onClick={() => { if (!travado) setCopaMode(m) }} disabled={travado} aria-disabled={travado}
-                    className="border-[3px] border-black rounded-xl py-2.5 px-1 font-black text-[12px] relative"
+                    className="border-[3px] border-black rounded-xl py-2.5 px-1 font-black text-[12px] relative ov3-surface"
                     style={{ backgroundColor: copaMode === m ? GOLD : '#fff', boxShadow: copaMode === m ? `3px 3px 0 0 ${INK}` : 'none', opacity: travado ? .45 : 1, ...OSWALD }}>
                     {label}
                     {travado && <span className="absolute -top-2 right-1 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full border-2 border-black" style={{ background: PURPLE, color: '#fff' }}>{t('em breve', 'soon')}</span>}
@@ -3285,7 +3311,7 @@ export function EscSetup() {
                 <p className="text-[11px] font-black uppercase mb-1" style={OSWALD}>{t('Tamanho da chave', 'Bracket size')}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {([16, 32] as const).map(n => (
-                    <button key={n} onClick={() => setRelChave(n)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                    <button key={n} onClick={() => setRelChave(n)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
                       style={{ backgroundColor: relChave === n ? GOLD : '#fff', boxShadow: relChave === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                       {n === 16 ? t('16 times (oitavas)', '16 teams (round of 16)') : t('32 times (Rodada de 32)', '32 teams (round of 32)')}
                     </button>
@@ -3300,7 +3326,7 @@ export function EscSetup() {
                 <p className="text-[11px] font-black uppercase mb-1" style={OSWALD}>{t('Times na liga', 'Teams in the league')}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {([20, 10] as const).map(n => (
-                    <button key={n} onClick={() => setTamLiga(n)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px]"
+                    <button key={n} onClick={() => setTamLiga(n)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
                       style={{ backgroundColor: tamLiga === n ? GOLD : '#fff', boxShadow: tamLiga === n ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                       {n === 20 ? t('🏟️ 20 times · 38 rodadas', '🏟️ 20 teams · 38 rounds') : t('⚡ 10 times · 18 rodadas', '⚡ 10 teams · 18 rounds')}
                     </button>
@@ -3320,7 +3346,7 @@ export function EscSetup() {
             <div className={`grid ${pregaoAbertoOk || envUnicoOk ? 'grid-cols-2' : 'grid-cols-2'} gap-2`}>
               {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${t(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]).map(([m, label]) => (
                 <button key={String(m)} onClick={() => { setHolandes(m); setPregaoAb(false); setEnvUnico(false) }}
-                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: !pregaoAb && !envUnico && holandes === m ? GOLD : '#fff', boxShadow: !pregaoAb && !envUnico && holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {/* 🏷️ tarja NOVO — a MESMA da sala online, pra as duas telas não
                       contarem histórias diferentes. Ela some sozinha 45 dias depois
@@ -3340,7 +3366,7 @@ export function EscSetup() {
               ))}
               {pregaoAbertoOk && (
                 <button onClick={() => { setPregaoAb(true); setHolandes(false); setEnvUnico(false) }}
-                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: pregaoAb && !envUnico ? GOLD : '#fff', boxShadow: pregaoAb && !envUnico ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   <span className="seg-selo-brilho" style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                     letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
@@ -3352,7 +3378,7 @@ export function EscSetup() {
               )}
               {envUnicoOk && (
                 <button onClick={() => { setEnvUnico(true); setPregaoAb(false); setHolandes(false) }}
-                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: envUnico ? GOLD : '#fff', boxShadow: envUnico ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   <span className="seg-selo-brilho" style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                     letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
@@ -3399,7 +3425,7 @@ export function EscSetup() {
                 carreira depois — nunca no começo. */}
             {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
               <button key={f} onClick={() => setFormation(f)}
-                className="border-[3px] border-black rounded-xl py-2 font-black text-sm"
+                className="border-[3px] border-black rounded-xl py-2 font-black text-sm ov3-surface"
                 style={{ backgroundColor: formation === f ? GOLD : '#fff', boxShadow: formation === f ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                 {f}
               </button>
@@ -3482,7 +3508,7 @@ export function CardAccountNote() {
     dispatch({ type: 'GO_LOBBY_ONLINE' })
   }
   return (
-    <button onClick={goRegister} className="w-full rounded-2xl border-[3px] border-black p-3.5 text-left active:translate-y-0.5"
+    <button onClick={goRegister} className="w-full rounded-2xl border-[3px] border-black p-3.5 text-left active:translate-y-0.5 ov3-surface"
       style={{ background: '#FFF7DB', boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p className="font-black text-sm" style={OSWALD}>{tr('🎴 Colecione craques — faça seu cadastro', '🎴 Collect stars — sign up')}</p>
       <p className="text-xs font-semibold text-black/75 mt-1">
@@ -3628,7 +3654,7 @@ export function EscStreamIntro() {
               <div className="flex items-center gap-1.5">
                 <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black bg-white">−</span>
                 <span className="w-12 h-8 flex items-center justify-center font-black border-[3px] rounded-lg bg-white text-lg" style={{ ...OSWALD, borderColor: GREEN, boxShadow: `0 0 0 3px rgba(46,158,91,.25)` }}>7</span>
-                <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black" style={{ background: GOLD }}>+</span>
+                <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black ov3-surface" style={{ background: GOLD }}>+</span>
               </div>
             </div>
           </div>
@@ -3699,7 +3725,7 @@ export function EscStreamIntro() {
       {isHost ? (
         <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">{tocaia ? tr('▶️ COMEÇAR A TOCAIA 🐊', '▶️ START THE AMBUSH 🐊') : tr('▶️ COMEÇAR O LEILÃO 🔨', '▶️ START THE AUCTION 🔨')}</span></Btn>
       ) : (
-        <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>{tocaia ? tr('⏳ O host vai começar a tocaia…', '⏳ The host will start the ambush…') : tr('⏳ O host vai começar o leilão…', '⏳ The host will start the auction…')}</div>
+        <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black ov3-surface" style={{ background: '#fff', ...OSWALD }}>{tocaia ? tr('⏳ O host vai começar a tocaia…', '⏳ The host will start the ambush…') : tr('⏳ O host vai começar o leilão…', '⏳ The host will start the auction…')}</div>
       )}
       {/* ← voltar: só no offline (rápido/carreira), volta pro setup certo pra
           reconfigurar. No online, sair é pelo próprio fluxo da sala. */}
@@ -3873,7 +3899,7 @@ function RegrasDoPregao({ onFechar }: { onFechar: () => void }) {
   ]
   return (
     <div onClick={onFechar} style={{ position: 'fixed', inset: 0, zIndex: 99995, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, maxHeight: '86vh', overflowY: 'auto', border: `4px solid ${INK}`, borderRadius: 18, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
+      <div className="ov3-surface" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 380, maxHeight: '86vh', overflowY: 'auto', border: `4px solid ${INK}`, borderRadius: 18, background: '#fff', boxShadow: `4px 4px 0 0 ${INK}` }}>
         <div style={{ background: INK, padding: '10px 13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0 }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: GOLD }}>❓ REGRAS DO PREGÃO</span>
           <button onClick={onFechar} aria-label="Fechar" style={{ background: 'none', border: 'none', color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 18, cursor: 'pointer', lineHeight: 1 }}>×</button>
@@ -3889,7 +3915,7 @@ function RegrasDoPregao({ onFechar }: { onFechar: () => void }) {
             </div>
           ))}
         </div>
-        <div style={{ background: '#E7F7EC', borderTop: `3px solid ${INK}`, padding: '10px 13px', textAlign: 'center' }}>
+        <div className="ov3-surface" style={{ background: '#E7F7EC', borderTop: `3px solid ${INK}`, padding: '10px 13px', textAlign: 'center' }}>
           <p style={{ fontSize: 10, fontWeight: 800, color: '#146c33', margin: '0 0 8px', lineHeight: 1.4 }}>{getLang() === 'en' ? <>⏱️ The clock <b>doesn't stop</b> while this is open — close it and place your bid right away.</> : <>⏱️ O relógio <b>não para</b> enquanto isso está aberto — feche e dê seu lance na hora.</>}</p>
           <button onClick={onFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '9px 10px', ...OSWALD, fontWeight: 900, fontSize: 13.5, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Fechar e dar lance 👊', 'Close and bid 👊')}</button>
         </div>
@@ -4087,7 +4113,7 @@ function FotoLendasCerimonia({ lendas }: { lendas: LendaCer[] }) {
   const vis = lendas.slice(0, 4), n = vis.length, h = n <= 2 ? 140 : n === 3 ? 128 : 112, w = Math.min(Math.round(h * .84), Math.floor((lendas.length > 4 ? 290 : 330) / n))
   return (
     <div style={{ position: 'relative', marginTop: 8, height: 150, border: `2.5px solid ${INK}`, borderRadius: 12, overflow: 'hidden', background: `#1d2b1f url(${estadioCerArt}) center 60% / cover`, display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }}>
-      <span style={{ position: 'absolute', left: 8, top: 8, zIndex: 2, background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 11, padding: '2px 8px', textTransform: 'uppercase' }}>⭐ {lendas.length === 1 ? tr('Apresentou 1 lenda', 'Unveiled 1 legend') : tr(`Apresentou ${lendas.length} lendas`, `Unveiled ${lendas.length} legends`)}</span>
+      <span className="ov3-surface" style={{ position: 'absolute', left: 8, top: 8, zIndex: 2, background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, ...OSWALD, fontWeight: 900, fontSize: 11, padding: '2px 8px', textTransform: 'uppercase' }}>⭐ {lendas.length === 1 ? tr('Apresentou 1 lenda', 'Unveiled 1 legend') : tr(`Apresentou ${lendas.length} lendas`, `Unveiled ${lendas.length} legends`)}</span>
       {vis.map(l => <RostoCer key={l.nome + l.club} l={l} w={w} h={h} />)}
       {lendas.length > 4 && <span style={{ alignSelf: 'center', marginLeft: 4, background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 8px', ...OSWALD, fontWeight: 900, fontSize: 13 }}>+{lendas.length - 4}</span>}
     </div>
@@ -4097,15 +4123,15 @@ function LendasDoPregao({ mgrs, lendasDe }: { mgrs: Manager[]; lendasDe: (m: Man
   const todas = mgrs.flatMap(m => lendasDe(m)).sort((a, b) => b.paid - a.paid)
   if (!todas.length) return null
   return (
-    <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `3px 3px 0 ${INK}`, background: '#fff' }}>
+    <div className="ov3-surface" style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `3px 3px 0 ${INK}`, background: '#fff' }}>
       <div style={{ padding: '7px 11px', background: INK, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>⭐ {tr('As lendas do pregão', 'The auction\'s legends')}</div>
       {todas.map((l, i) => {
         const art = legendAvatar(l.nome, l.club, l.year)
         const pk = pokeDe(l.nome)
         return (
           <div key={l.nome + l.time + i} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '5px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.1)' : 'none' }}>
-            {pk ? <span style={{ flex: 'none' }}><ArtePoke p={pk} size={38} /></span> : art ? <img src={art.src} alt="" style={{ width: 38, height: 38, objectFit: 'cover', objectPosition: 'top', borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, flex: 'none' }} />
-              : <span style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, flex: 'none' }}>{l.nome.charAt(0)}</span>}
+            {pk ? <span style={{ flex: 'none' }}><ArtePoke p={pk} size={38} /></span> : art ? <img className="ov3-surface" src={art.src} alt="" style={{ width: 38, height: 38, objectFit: 'cover', objectPosition: 'top', borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, flex: 'none' }} />
+              : <span className="ov3-surface" style={{ width: 38, height: 38, borderRadius: '50%', border: `2px solid ${INK}`, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, flex: 'none' }}>{l.nome.charAt(0)}</span>}
             <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><b style={{ ...OSWALD, fontSize: 14 }}>{l.nome}</b> · {l.time}</span>
             {l.paid > 0 && <b style={{ ...OSWALD, fontSize: 15 }}>{l.paid} 🪙</b>}
           </div>
@@ -4123,7 +4149,7 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
   const bbPr = getSport() === 'basquete' // 🏀 "perna-de-pau"/"titular" é coisa de futebol
   const COR = { bom: [GREEN, GOLD], ruim: ['#C2452F', '#FFE3D6'], meh: ['#B45309', '#FDE7C8'] } as const
   const cartao = (tipo: keyof typeof COR, ic: string, rotulo: string, quem: string, num: string, numSub: string, frase: React.ReactNode) => (
-    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+    <div className="ov3-surface" style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <div style={{ height: 6, background: COR[tipo][0] }} />
       <div style={{ padding: '8px 9px 9px', display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
@@ -4151,8 +4177,8 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
         {pr.vaca && cartao('meh', '🤏', tr('Mão de vaca', 'Tightwad'), pr.vaca.time, `${pr.vaca.sobrou} 🪙`, tr('no bolso', 'in the pocket'), tr('Guardou pra quê?', 'Saving it for what?'))}
       </div>
       {pr.pau && (
-        <div style={{ marginTop: 8, background: '#fff', border: `3px solid ${INK}`, borderLeft: `8px solid #C2452F`, borderRadius: 14, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ width: 38, height: 38, flex: 'none', borderRadius: '50%', border: `3px solid ${INK}`, background: '#FFE3D6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19 }}>🗑️</span>
+        <div className="ov3-surface" style={{ marginTop: 8, background: '#fff', border: `3px solid ${INK}`, borderLeft: `8px solid #C2452F`, borderRadius: 14, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="ov3-surface" style={{ width: 38, height: 38, flex: 'none', borderRadius: '50%', border: `3px solid ${INK}`, background: '#FFE3D6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19 }}>🗑️</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 10.5, letterSpacing: '.05em', textTransform: 'uppercase', color: '#666' }}>{bbPr ? tr('Tijolo no quinteto', 'Dud in the starting five') : tr('Perna-de-pau titular', 'Dud in the starting XI')}</span>
             <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pr.pau.nome} · {pr.pau.time}</span>
@@ -4295,7 +4321,7 @@ export function PainelDupla({ destaque }: { destaque?: Sector }) {
   const falta = SECTORS.map(p => ({ p, n: openSlots(you, p) })).filter(x => x.n > 0)
   const completos = SECTORS.filter(p => openSlots(you, p) === 0)
   const nomeP = (p: Sector, n: number) => { const pt: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goleiros'], LAT: ['lateral', 'laterais'], ZAG: ['zagueiro', 'zagueiros'], MEI: ['meia', 'meias'], ATA: ['atacante', 'atacantes'] }; const en: Record<Sector, [string, string]> = { GOL: ['keeper', 'keepers'], LAT: ['full-back', 'full-backs'], ZAG: ['centre-back', 'centre-backs'], MEI: ['midfielder', 'midfielders'], ATA: ['forward', 'forwards'] }; return tr(`${n} ${pt[p][n > 1 ? 1 : 0]}`, `${n} ${en[p][n > 1 ? 1 : 0]}`) }
-  const chip = (c: DuplaCat) => <span key={c} className="text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSWALD, fontWeight: 900, background: c === destaque ? GOLD : '#fff' }}>{c === 'MONTE' ? tr('MONTE', 'PILE') : c}</span>
+  const chip = (c: DuplaCat) => <span key={c} className="text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSWALD, fontWeight: 900, background: c === destaque ? GOLD : '#fff' }}>{c === 'MONTE' ? tr('MONTE', 'PILE') : c}</span>
   return (
     <Box className="p-3 space-y-2">
       <p className="font-black text-xs uppercase" style={OSWALD}>🤝 {tr('Quem cuida de quê', 'Who handles what')}{d.soloUid ? tr(' · você assumiu tudo', ' · you took over everything') : ''}</p>
@@ -4307,14 +4333,14 @@ export function PainelDupla({ destaque }: { destaque?: Sector }) {
         {falta.map(({ p, n }) => {
           const meu = donoDa(p) === eu || !donoDa(p)
           return (
-            <div key={p} className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1" style={{ background: meu ? '#FFE3DD' : '#FFF3CF' }}>
+            <div key={p} className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1 ov3-surface" style={{ background: meu ? '#FFE3DD' : '#FFF3CF' }}>
               <span>{meu ? '🔴' : '🟡'}</span>
               <span className="flex-1 text-[12px] font-black" style={OSWALD}>{tr(`Falta${n > 1 ? 'm' : ''} ${nomeP(p, n)}`, `${nomeP(p, n)} missing`)}</span>
               <span className="text-[11px] font-bold text-black/60">{meu ? tr('é com você', "it's on you") : tr(`é com ${nomeDe(donoDa(p))}`, `on ${nomeDe(donoDa(p))}`)}</span>
             </div>
           )
         })}
-        {completos.length > 0 && <div className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1" style={{ background: '#DFF6E8' }}><span>🟢</span><span className="text-[12px] font-black" style={OSWALD}>{completos.join(' · ')} {tr(completos.length > 1 ? 'completos' : 'completo', 'done')}</span></div>}
+        {completos.length > 0 && <div className="flex items-center gap-2 rounded-lg border-2 border-black px-2 py-1 ov3-surface" style={{ background: '#DFF6E8' }}><span>🟢</span><span className="text-[12px] font-black" style={OSWALD}>{completos.join(' · ')} {tr(completos.length > 1 ? 'completos' : 'completo', 'done')}</span></div>}
       </div>
     </Box>
   )
@@ -4436,7 +4462,7 @@ function Holandes() {
           {MODO_EMOJI} {modoNomeDe(lang === 'en').toUpperCase()}
         </p>
         <h2 className="font-black text-3xl leading-none" style={OSWALD}>{posName.toUpperCase()}</h2>
-        <p className="text-sm font-semibold text-black/70 mt-0.5">
+        <p className="ov3-page-muted text-sm font-semibold text-black/70 mt-0.5">
           {L('Um preço só pra todos. Ele CAI. Quem apertar primeiro leva o jogador por ele.', 'One price for all of them. It DROPS. First to tap takes the player at that price.')}
         </p>
       </div>
@@ -4464,7 +4490,7 @@ function Holandes() {
           UM dono só. Quem perdeu a corrida vê aqui por quê, e segue no pregão
           com a moeda no bolso (pedido que não vence não cobra nada). */}
       {hol.ultimo?.perdedores?.includes(you.id) && (
-        <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2 flex items-center gap-2"
+        <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2 flex items-center gap-2 ov3-surface"
           style={{ background: '#FFE3DC', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <span className="text-xl leading-none">😤</span>
           <p className="text-[12px] font-bold text-black leading-snug min-w-0">
@@ -4478,7 +4504,7 @@ function Holandes() {
 
       {/* 🔨 o que aconteceu no degrau que acabou de fechar */}
       {hol.ultimo && (
-        <div className="border-[3px] border-black rounded-xl px-3 py-1.5 mt-2 flex items-center gap-2"
+        <div className="border-[3px] border-black rounded-xl px-3 py-1.5 mt-2 flex items-center gap-2 ov3-surface"
           style={{ background: '#FFF7DB', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <span className="text-lg leading-none">{hol.ultimo.roleta ? '🎰' : '🔨'}</span>
           <p className="text-[12px] font-bold text-black leading-snug min-w-0">
@@ -4509,7 +4535,7 @@ function Holandes() {
           // (é o "martelo" deste pregão — a linha de cima já diz o nome de quem saiu)
           const ehEnigma = state.mudoId === c.id && !dono
           return (
-            <div key={c.id} className="border-[3px] border-black rounded-xl p-2.5 flex items-center gap-2"
+            <div key={c.id} className="border-[3px] border-black rounded-xl p-2.5 flex items-center gap-2 ov3-surface"
               style={{
                 // 🫵 a carta que VOCÊ levou fica verdinha e em pé (é conquista,
                 // não descarte); a que foi pra outro apaga e vai pro canto.
@@ -4538,7 +4564,7 @@ function Holandes() {
               ) : recusa?.id === c.id ? (
                 // ⏳ O TOQUE CHEGOU TARDE. Fica 3s no lugar do botão, explicando —
                 // e o botão volta sozinho, pra pessoa tentar no preço novo.
-                <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0 max-w-[124px]"
+                <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0 max-w-[124px] ov3-surface"
                   style={{ background: '#FFE9B0', boxShadow: `3px 3px 0 0 ${INK}` }}>
                   <p className="text-[11px] font-black leading-none" style={OSWALD}>⏳ {L('SE PERDEU', 'LOST')}</p>
                   <p className="text-[9px] font-bold leading-tight mt-0.5 text-black/70">{recusa.txt}</p>
@@ -4586,7 +4612,7 @@ function Holandes() {
 
       {/* 🧾 o resumo de sempre */}
       <AuctionSlot name="summary">
-      <div className="flex items-center justify-between gap-2 mt-2 text-[12px] font-bold text-black/70">
+      <div className="ov3-page-muted flex items-center justify-between gap-2 mt-2 text-[12px] font-bold text-black/70">
         <span>💰 {L('Sua caixa', 'Your coins')}: <b style={{ color: INK }}>{caixa} 🪙</b></span>
         <span>🎽 {L('Vagas de', 'Open')} {posName.toLowerCase()}: <b style={{ color: INK }}>{minhasVagas}</b></span>
       </div>
@@ -4619,7 +4645,7 @@ function Holandes() {
 
       {/* ℹ️ POR QUE O SEU TOQUE NÃO ARREMATA NO MILÉSIMO — explicado no lugar
           exato, embaixo do botão, do jeito que ele gosta. */}
-      <p className="text-[10.5px] font-bold text-black/45 text-center mt-2 leading-snug">
+      <p className="ov3-page-muted text-[10.5px] font-bold text-black/45 text-center mt-2 leading-snug">
         ⏱️ {L('Apertou primeiro, levou — e o jogador cai no seu campinho na hora. Se outro apertar um tiquinho antes, a carta já sai com o nome dele e a sua moeda nem é tocada. Robô nunca passa na frente de gente.', 'First to tap wins — and the player lands on your pitch right away. If someone taps a blink earlier, the card leaves with their name and your coins are never touched. Bots never come before people.')}
       </p>
       {online && !state.isHost && (
@@ -4703,7 +4729,7 @@ function EnvelopeUnico() {
   const esperando = state.managers.filter(m => m.isHuman && !m.dormindo && m.money > 0 && SECTORS.some(p => openSlots(m, p) > 0) && !state.submitted.includes(m.id))
   const vaiPara = (p: string) => { try { document.getElementById(`eu-${p}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch { /* ignora */ } }
   const barra = (
-    <div className="ll-auction-bar-row ll-auction-bar-unico flex items-center justify-between gap-2 px-3 py-2" style={{ background: CREAM, borderBottom: `3px solid ${INK}` }}>
+    <div className="ll-auction-bar-row ll-auction-bar-unico flex items-center justify-between gap-2 px-3 py-2 ov3-surface" style={{ background: CREAM, borderBottom: `3px solid ${INK}` }}>
       <div className="ll-auction-bar-positions flex gap-1 flex-wrap">
         {setores.map(x => (
           <button key={x.p} onClick={() => vaiPara(x.p)} className="ll-auction-bar-position border-2 border-black rounded-full px-2 py-0.5 text-[11px] font-black"
@@ -4733,8 +4759,8 @@ function EnvelopeUnico() {
         {setores.map(x => x.cards.length === 0 ? null : (
           <div key={x.p} id={`eu-${x.p}`} style={{ scrollMarginTop: 70 }}>
             <div className="flex items-baseline justify-between px-1 mb-1">
-              <p className="font-black text-[16px] uppercase text-black" style={OSWALD}>{secLabel(sport, x.p, lang)}</p>
-              <p className="text-[11px] font-black text-black/55" style={OSWALD}>
+              <p className="ov3-page-title font-black text-[16px] uppercase text-black" style={OSWALD}>{secLabel(sport, x.p, lang)}</p>
+              <p className="ov3-page-muted text-[11px] font-black text-black/55" style={OSWALD}>
                 {x.vagas === 0 ? tr('posição completa', 'position full') : tr(`${x.vagas} ${x.vagas === 1 ? 'vaga' : 'vagas'} · ${lancesNa(x.p)} lance(s)`, `${x.vagas} ${x.vagas === 1 ? 'slot' : 'slots'} · ${lancesNa(x.p)} bid(s)`)}
               </p>
             </div>
@@ -4749,9 +4775,9 @@ function EnvelopeUnico() {
                     {podeLance && x.vagas > 0 && (
                       <div className="flex items-center gap-1.5">
                         <HoldButton onStep={() => bump(c, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
-                        <span className="w-12 h-8 grid place-items-center text-base font-black border-2 border-black rounded-lg bg-white" style={{ ...OSWALD, color: chosen ? INK : 'rgba(0,0,0,.35)' }}>{masked ? '🔒' : bid}</span>
+                        <span className={`w-12 h-8 grid place-items-center text-base font-black border-2 border-black rounded-lg bg-white ${!chosen && !masked ? 'ov3-bid-placeholder' : ''}`} style={{ ...OSWALD, color: chosen ? INK : 'rgba(0,0,0,.35)' }}>{masked ? '🔒' : bid}</span>
                         <HoldButton onStep={() => bump(c, 1)} disabled={!masked && (cheia || total >= (you?.money ?? 0))}
-                          className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!masked && (cheia || total >= (you?.money ?? 0)) ? 'opacity-40' : ''}`} style={{ backgroundColor: GOLD }}>+</HoldButton>
+                          className={(`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!masked && (cheia || total >= (you?.money ?? 0)) ? 'opacity-40' : ''}`)+" ov3-surface"} style={{ backgroundColor: GOLD }}>+</HoldButton>
                       </div>
                     )}
                   </Box>
@@ -5122,7 +5148,7 @@ function Envelope() {
           <p className="text-[9px] font-bold text-black/45 mt-1.5">{L('Esqueceu? O ❓ lá em cima abre isso de novo, a qualquer hora.', 'Forgot? The ❓ up top reopens this any time.')}</p>
         </div>
       ) : (
-        <div className="relative border-[3px] border-black rounded-xl p-3 pr-8" style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+        <div className="relative border-[3px] border-black rounded-xl p-3 pr-8 ov3-surface" style={{ background: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[12.5px] font-black leading-snug" style={OSWALD}>{tipTxt}</p>
           <button onClick={() => setTipClosed(true)} aria-label="Fechar"
             className="absolute top-1 right-2 text-lg font-black" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
@@ -5133,7 +5159,7 @@ function Envelope() {
           <h2 className="font-black text-3xl" style={OSWALD}>
             {rescue ? L('⚡ REPESCAGEM · ', '⚡ LEFTOVERS · ') : '🔨 '}{posName.toUpperCase()}
           </h2>
-          <p className="text-sm font-semibold text-black/70">
+          <p className="ov3-page-muted text-sm font-semibold text-black/70">
             {rescue
               ? <>{L('Sobras do setor, última chance de pagar por elas. Só quem ficou com buraco participa. Suas vagas: ', 'Leftovers from this position — last chance to pay for them. Only those with an open slot join. Your slots: ')}<b>{myOpen}</b>.</>
               : L('Lance cego: distribua suas moedas em segredo. Ninguém vê nada até a revelação.', 'Blind bid: spread your coins in secret. No one sees anything until the reveal.')}
@@ -5218,7 +5244,7 @@ function Envelope() {
             <p className="font-black text-lg leading-tight" style={OSWALD}>🏆 {L('GANHA QUEM DÁ O MAIOR LANCE', 'HIGHEST BID WINS')}</p>
             <p className="text-[11px] font-bold text-black/70 mt-0.5">{L('Não é 1 moeda que leva — é quem ', 'It\'s not one coin that wins — it\'s who ')}<b>{L('paga mais', 'pays most')}</b>{L('. Empate? Re-lance às cegas.', '. Tie? Blind re-bid.')}</p>
           </div>
-          <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5"
+          <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 ov3-surface"
             style={{ background: '#E7F7EC', boxShadow: `3px 3px 0 0 ${INK}` }}>
             {bidLimit === 1
               ? <p className="text-sm font-black" style={{ color: '#146c33' }}>{L('Você tem ', 'You have ')}<b>{L('1 vaga', '1 slot')}</b>{L(' — dê seu lance em quem quer levar.', ' — bid on the one you want.')}</p>
@@ -5246,7 +5272,7 @@ function Envelope() {
       {/* 🔨 PREGÃO LIMPO: este quadro é REDUNDANTE — a própria carta já mostra
           "mín 🔒 7" logo em cima da caixa do lance. A explicação foi pro ❓. */}
       {!pregaoLimpo && !state.streamMode && canBid && cards.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
-        <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5" style={{ background: '#FFF3D6', boxShadow: `3px 3px 0 0 ${INK}` }}>
+        <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 ov3-surface" style={{ background: '#FFF3D6', boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[11px] font-bold text-black/75">🔒 O número esmaecido é o <b>piso</b> do jogador — <b>não é lance</b>. Só vira lance quando você aperta <b>+</b> (aí fica preto). Abaixo do piso fica vermelho e é anulado.</p>
         </div>
       )}
@@ -5288,7 +5314,7 @@ function Envelope() {
               {/* 📝 ANTI-MALANDRAGEM: você deixou o contrato vencer → não recompra
                   este jogador (nem no monte). Trava com aviso do porquê. */}
               {canBid && c.semContrato && isMine && (
-                <div className="border-2 border-black rounded-lg px-2 py-1.5 text-center max-w-[130px]" style={{ background: '#FDECEA' }}>
+                <div className="border-2 border-black rounded-lg px-2 py-1.5 text-center max-w-[130px] ov3-surface" style={{ background: '#FDECEA' }}>
                   <p className="text-[9px] font-black uppercase leading-tight" style={{ ...OSWALD, color: RED }}>🙅 {L('não joga pra você!', "won't play for you!")}</p>
                   <p className="text-[8px] font-bold leading-tight text-black/60">{L('Você não quis renovar — ele se recusa a ir pra clube que você comanda. Só se outro clube levar.', "You refused to renew — he won't join any club you manage. Only if another club signs him.")}</p>
                 </div>
@@ -5307,7 +5333,7 @@ function Envelope() {
                         (todas iguais) e o modal não mostra o nome do jogador — assim
                         a câmera não denuncia EM QUEM nem QUANTO você apostou. */}
                     <button onClick={() => { setTypeVal(chosen ? String(bid) : ''); setPickerCard(c) }}
-                      className="w-14 h-8 text-base text-center font-black border-2 border-black rounded-lg bg-white active:opacity-60"
+                      className={`w-14 h-8 text-base text-center font-black border-2 border-black rounded-lg bg-white active:opacity-60 ${!chosen && !masked ? 'ov3-bid-placeholder' : ''}`}
                       style={{ ...OSWALD, color: masked ? INK : numColor }}>
                       {masked ? '🔒' : (chosen ? bid : floor > 0 ? floor : 0)}
                     </button>
@@ -5317,7 +5343,7 @@ function Envelope() {
                     <HoldButton
                       onStep={() => bump(c, 1)}
                       disabled={masked ? false : plusBlocked}
-                      className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!masked && plusBlocked ? 'opacity-40' : ''}`}
+                      className={(`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${!masked && plusBlocked ? 'opacity-40' : ''}`)+" ov3-surface"}
                       style={{ backgroundColor: GOLD }}>+</HoldButton>
                   </div>
                 </div>
@@ -5330,6 +5356,12 @@ function Envelope() {
       </div>
 
       <AuctionSlot name="summary">
+      {state.careerOnline && total>0 && (!state.streamMode||peek) && <CompromissoCarreira
+        custo={total}
+        salarioNovo={Object.entries(bids).reduce((sum,[id,v])=>{const c=state.currentCards.find(c=>c.id===id);return sum+(tecMesa?Math.round(v/10):c?salaryOfCard({...c,paid:v,via:'leilao'}):0)},0)}
+        salarioSubstituido={tecMesa?Math.round((state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0)/10):0}
+        multa={tecMesa?(state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0):0}
+        manager={you} />}
       {state.streamMode && canBid && (
         <Box bg="#111" className="p-2.5 text-center space-y-2">
           <p className="font-black text-white text-xs" style={OSWALD}>{L('🎥 MODO STREAM — os valores ficam ocultos até o martelo. Manda ver no dedo! 🔒', '🎥 STREAM MODE — amounts stay hidden until the hammer. Go for it! 🔒')}</p>
@@ -5348,7 +5380,7 @@ function Envelope() {
       </Box>
       )}
       {online && waitingFor.length > 0 && (
-        <p className="text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
+        <p className="ov3-page-muted text-center text-xs font-bold text-black/60">Faltam lacrar: {waitingFor.map(m => m.teamName).join(', ')}</p>
       )}
       {/* ⏱️ leilão SEM cronômetro: só o HOST fecha o envelope e faz todo mundo
           avançar. Lacra o lance do host (se ainda não) e sela os que faltam. */}
@@ -5391,12 +5423,13 @@ function Envelope() {
         }
         const atCap = (parseInt(typeVal || '0', 10) || min) >= room
         return (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
-            <div className="w-full max-w-[280px] border-[3px] border-black rounded-2xl p-3.5 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
+          <div className={`fixed inset-0 z-[60] flex items-center justify-center p-4${careerVisualV2(state) ? " cv2-root cv2-dialog" : ""}`} style={{ background: 'rgba(0,0,0,.6)' }} onClick={() => setPickerCard(null)}>
+            <div role="dialog" aria-modal="true" aria-label={L("Seu lance", "Your bid")} className={`w-full max-w-[280px] border-[3px] border-black rounded-2xl p-3.5 bg-[#F4ECD6]${careerVisualV2(state) ? " cv2-dialog-panel cv2-bid-panel" : ""}`} style={{ boxShadow: `5px 5px 0 ${INK}` }} onClick={e => e.stopPropagation()}>
               <p className="font-black text-base" style={OSWALD}>{masked ? L('🔒 Seu lance secreto', '🔒 Your secret bid') : `✍️ ${cName}`}</p>
               {masked
                 ? <p className="text-[11px] font-bold text-black/60 mb-2">{L('Só você vê o valor — a câmera não. Toque 👁️ pra conferir.', 'Only you see the amount — the camera does not. Tap 👁️ to check.')}</p>
                 : <p className="text-[11px] font-bold text-black/60 mb-2">{floor > 0 ? `mín ${floor} · ` : ''}cabe até {room} 🪙</p>}
+
               {/* atalhos +5 / +10: relativos, seguros até no stream (não revelam o total) */}
               {room >= min && (
                 <div className="grid grid-cols-2 gap-2 mb-2">
@@ -5429,6 +5462,10 @@ function Envelope() {
                 <button onClick={() => apply(0)} className="text-xs font-black text-black/55 underline active:opacity-60">🗑️ tirar</button>
                 <button onClick={() => setPickerCard(null)} className="text-xs font-black text-black/55 underline active:opacity-60">fechar</button>
               </div>
+              {state.careerOnline && !masked && valid && <CompromissoCarreira custo={typed}
+                salarioNovo={tecMesa?Math.round(typed/10):salaryOfCard({...c,paid:typed,via:'leilao'})} manager={you} renovacaoReferencia={tecMesa?undefined:typed}
+                salarioSubstituido={tecMesa?Math.round((state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0)/10):0}
+                multa={tecMesa?(state.careerTecnicoPago?.[state.careerTecnicos?.[you.teamName]??'']??0):0} />}
             </div>
           </div>
         )
@@ -5597,7 +5634,7 @@ function Tiebreak() {
             className="border-2 border-black rounded-lg w-11 h-11 font-black text-xl bg-white text-black">−</button>
           <span className="w-16 text-center font-black text-3xl text-black" style={OSWALD}>{amount}</span>
           <button onClick={() => canRaise && setAmount(v => Math.min(maxBid, v + 1))} disabled={!canRaise}
-            className={`border-2 border-black rounded-lg w-11 h-11 font-black text-xl text-black ${canRaise ? '' : 'opacity-40'}`}
+            className={(`border-2 border-black rounded-lg w-11 h-11 font-black text-xl text-black ${canRaise ? '' : 'opacity-40'}`)+" ov3-surface"}
             style={{ backgroundColor: GOLD }}>+</button>
         </div>
         <p className="text-center text-xs font-bold text-black/55">
@@ -5769,7 +5806,7 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, 
     const selo = ordIdx === 0 && venceu ? '🥇' : `${ordIdx + 1}º`
     return (
       <motion.div key={b.mgr} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: ordIdx * 0.25 }}
-        className="relative overflow-hidden text-center rounded-xl"
+        className="relative overflow-hidden text-center rounded-xl ov3-surface"
         style={{ background: '#fff', border: `${souEu ? 3 : 2.5}px solid ${venceu ? GREEN : INK}`, boxShadow: `2.5px 2.5px 0 0 ${venceu ? GREEN : INK}`, padding: mini ? '4px 3px 4px' : '6px 4px 5px' }}>
         {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
         <span className="absolute z-10 font-black" style={{ ...OSWALD, top: -1, left: -1, fontSize: mini ? 7.5 : 8.5, letterSpacing: 0.3, lineHeight: 1.5,
@@ -5983,7 +6020,7 @@ function Reveal() {
                 if (avatarPreview && hammered && sold && !escondido && avatarLote1(item.card.name, item.card.club, item.card.year)) return <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
                 const lenda = item.card.fame >= 5
                 return (
-                  <div className="rounded-2xl text-center relative overflow-hidden"
+                  <div className="rounded-2xl text-center relative overflow-hidden ov3-surface"
                     style={{ border: `3px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}`, background: lenda ? GOLD : '#fff' }}>
                     {(lenda || item.card.id === state.surpriseId || ehEnigma) && (
                       <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 8.5, letterSpacing: '.14em', padding: '2px 0 3px',
@@ -6082,7 +6119,7 @@ function Reveal() {
             ]
             return (
               <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: hammerDelay + 0.4 }}
-                className="mt-2 border-2 border-black rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: '#FFE1DC' }}>
+                className="mt-2 border-2 border-black rounded-lg px-3 py-1.5 text-center ov3-surface" style={{ backgroundColor: '#FFE1DC' }}>
                 <p className="font-black text-[13px]" style={{ ...OSWALD, color: RED }}>{frases[(moneySeed(item.card.id) + state.revealIdx) % frases.length]}</p>
               </motion.div>
             )
@@ -6095,7 +6132,7 @@ function Reveal() {
           </div>}
           {tie && (!privateReveal || hammered) && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: item.bids.length * 0.25 + 0.15 }}
-              className="mt-3 border-[3px] border-black rounded-xl p-2.5" style={{ backgroundColor: '#FFE9B0' }}>
+              className="mt-3 border-[3px] border-black rounded-xl p-2.5 ov3-surface" style={{ backgroundColor: '#FFE9B0' }}>
               <p className="text-[11px] font-black uppercase text-center" style={{ color: RED }}>⚔️ Desempate · re-lance às cegas</p>
               <div className="mt-1.5 space-y-1">
                 {tieRows.map(r => {
@@ -6151,7 +6188,7 @@ function Reveal() {
                   morto do martelo (não adiciona passo). A moeda já entrou no motor. */}
               {sold && state.agenciaOn && agLibReveal && (state.agenciados ?? []).some(a => a.name === item.card.name) && (
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: hammerDelay + 0.5 }}
-                  className="mt-2 border-[3px] border-black rounded-2xl px-3 py-2 text-left flex items-center gap-2"
+                  className="mt-2 border-[3px] border-black rounded-2xl px-3 py-2 text-left flex items-center gap-2 ov3-surface"
                   style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 60%,#E8A200)', boxShadow: `3px 3px 0 ${INK}` }}>
                   <span className="text-2xl">🕴️</span>
                   <div className="flex-1 min-w-0">
@@ -6204,7 +6241,7 @@ function RivalsStripBody() {
   if (rivals.length === 0) return null
   return (
     <div>
-      <p className="text-xs font-black uppercase text-black/70 mb-1.5">{L('A sala', 'The room')}</p>
+      <p className="ov3-page-muted text-xs font-black uppercase text-black/70 mb-1.5">{L('A sala', 'The room')}</p>
       <div className="grid grid-cols-2 gap-2">
         {rivals.map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
@@ -6258,7 +6295,7 @@ export function EscMonte() {
     <Shell bar={<AuctionBar />}>
       {state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
       <h2 className="font-black text-3xl pt-1" style={OSWALD}>{tr('🪣 MONTE FINAL', '🪣 FINAL PILE')}</h2>
-      <p className="text-sm font-semibold text-black/70">
+      <p className="ov3-page-muted text-sm font-semibold text-black/70">
         {tr('As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos:', 'The auction leftovers. Whoever has more holes picks first, snake order. Your holes:')} <b>{totalHoles(you)}</b>.
       </p>
       {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
@@ -6267,7 +6304,7 @@ export function EscMonte() {
         </p>
       )}
       {online && (
-        <p className="text-xs font-semibold text-black/60">
+        <p className="ov3-page-muted text-xs font-semibold text-black/60">
           ⏱️ {remaining ?? monteMsDe(state) / 1000}s {tr('por vez', 'per turn')}. {state.careerOnline
             ? (getLang() === 'en' ? <>If time runs out, you <b>take nobody</b> and pass — no penalty ({state.sport === 'basquete' ? 'your team is already complete' : 'your team already has the 11'}).</> : <>Se estourar o tempo, você <b>não pega ninguém</b> e passa a vez — sem multa ({state.sport === 'basquete' ? 'seu time já está completo' : 'seu time já tem os 11'}).</>)
             : (getLang() === 'en' ? <>Time ran out (bathroom break?), the game picks the worst leftover for you and passes the turn. <b>Costs no coins</b>: leftovers are free.</> : <>Estourou o tempo (foi ao banheiro?), o jogo escolhe a pior sobra pra você e passa a vez. <b>Não custa moeda</b>: as sobras são de graça.</>)}
@@ -6367,7 +6404,7 @@ export function EscMonte() {
               <p className="text-[10px] font-bold text-black/45 text-center">{state.sport === 'basquete' ? tr('Seu time já está completo — sobra é opcional, ninguém é obrigado a pagar.', 'Your team is already complete — leftovers are optional, nobody is forced to pay.') : tr('Seu time já tem os 11 — sobra é opcional, ninguém é obrigado a pagar.', 'Your team already has the 11 — leftovers are optional, nobody is forced to pay.')}</p>
             </>
           ) : (
-            <p className="text-[11px] font-black text-center rounded-xl border-2 border-black py-2 px-3" style={{ background: '#FFE9B0', ...OSWALD }}>
+            <p className="text-[11px] font-black text-center rounded-xl border-2 border-black py-2 px-3 ov3-surface" style={{ background: '#FFE9B0', ...OSWALD }}>
               {state.sport === 'basquete' ? tr('⚠️ Você tem BURACO no quinteto — aqui não dá pra passar: pega alguém pra fechar o time!', '⚠️ You have a HOLE in your five — you can\'t pass here: grab someone to complete the team!') : tr('⚠️ Você tem BURACO no time titular — aqui não dá pra passar: pega alguém pra fechar os 11!', '⚠️ You have a HOLE in the starting XI — you can\'t pass here: grab someone to complete the 11!')}
             </p>
           ))}
@@ -6503,7 +6540,7 @@ export function EscCerimonia() {
     <Shell>
       <div className="text-center pt-4">
         <h2 className="font-black text-3xl" style={OSWALD}>{t('🎭 CERIMÔNIA DA REVELAÇÃO', '🎭 REVEAL CEREMONY')}</h2>
-        <p className="text-sm font-semibold text-black/60">{t('As faixas de nível abrem. Agora todo mundo descobre o que comprou.', 'The level ranges open. Now everyone finds out what they bought.')}</p>
+        <p className="ov3-page-muted text-sm font-semibold text-black/60">{t('As faixas de nível abrem. Agora todo mundo descobre o que comprou.', 'The level ranges open. Now everyone finds out what they bought.')}</p>
       </div>
       {secsLeft !== null && (
         <div className="rounded-2xl border-[3px] border-black p-3 text-center" style={{ background: secsLeft <= 10 ? '#E8503A' : GREEN, boxShadow: `4px 4px 0 ${INK}` }}>
@@ -6556,7 +6593,7 @@ export function EscCerimonia() {
           </div>
           <div className="bg-white p-3">
             <p className="text-[12px] font-semibold leading-relaxed">{n.texto}</p>
-            <div className="mt-2 border-2 border-dashed border-black/30 rounded-xl px-3 py-1.5 text-[11px] font-bold" style={{ background: '#F3EFE2' }}>
+            <div className="mt-2 border-2 border-dashed border-black/30 rounded-xl px-3 py-1.5 text-[11px] font-bold ov3-surface" style={{ background: '#F3EFE2' }}>
               🌱 {n.nome} · {n.pos} — {t('nível de base · sem contrato · sai de graça quando chegar reforço', 'academy level · no contract · leaves for free when a signing arrives')}
             </div>
           </div>
@@ -6598,7 +6635,7 @@ export function EscCerimonia() {
       <div className="flex gap-2">
         <div className="flex-1"><Btn className="w-full" bg="#fff"
           onClick={() => setIdx((idx - 1 + mgrs.length) % mgrs.length)}>◀ {t('Anterior', 'Previous')}</Btn></div>
-        <div className="shrink-0 flex items-center px-2 font-black text-sm text-black/50" style={OSWALD}>{idx + 1}/{mgrs.length}</div>
+        <div className="ov3-page-muted shrink-0 flex items-center px-2 font-black text-sm text-black/50" style={OSWALD}>{idx + 1}/{mgrs.length}</div>
         <div className="flex-1"><Btn className="w-full" bg={GOLD}
           onClick={() => setIdx((idx + 1) % mgrs.length)}>{t('Próximo', 'Next')} ▶</Btn></div>
       </div>
@@ -6619,7 +6656,7 @@ export function EscCerimonia() {
             : (state.sport === 'basquete' ? t('COMEÇAR AGORA 🏀', 'START NOW 🏀') : t('COMEÇAR AGORA 🏆', 'START NOW 🏆'))}</span>
         </Btn>
       ) : (
-        <p className="text-center text-sm font-bold text-black/55 py-1">{(state.sport === 'basquete' ? t('🔨 A temporada começa quando', '🔨 The season starts when') : t('🔨 O campeonato começa quando', '🔨 The championship starts when'))} {(state.streamMode || state.manualRoom) ? t('o host começar', 'the host starts it') : t('o tempo acabar', 'time runs out')}…</p>
+        <p className="ov3-page-muted text-center text-sm font-bold text-black/55 py-1">{(state.sport === 'basquete' ? t('🔨 A temporada começa quando', '🔨 The season starts when') : t('🔨 O campeonato começa quando', '🔨 The championship starts when'))} {(state.streamMode || state.manualRoom) ? t('o host começar', 'the host starts it') : t('o tempo acabar', 'time runs out')}…</p>
       )}
     </Shell>
   )
@@ -6716,6 +6753,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
+  const ownerVisual=useOwnerLayout()
   // 💳 o 2D vem junto do Manual (o mesmo direito): conferido aqui, lembrado no aparelho (`marcaPago2D`)
   const pagou2d = useTem2D() // 05/11: do ⭐ Craque Salas pra cima (o Manual é só do Completo pra cima)
   const temDireito = pagou2d || !!state.careerOnline // 🏆 07/11: na carreira o 2D é de graça (o Manual segue pago)
@@ -6735,6 +6773,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
       </button>
     )} />
   )
+  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={ligado?'campo':'placar'} onChange={e=>{if((e.target.value==='campo')!==ligado)trocaCampo2D()}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo">{t('Campo 2D','2D pitch')}</option></select></label></OwnerSlot>
   return (
     <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
       {ligado ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
@@ -6761,10 +6800,12 @@ export function TrocaCampo2DSala() {
 /** o desenho do botão (separado pra bancada `scripts/teste-troca-2d` mostrar os 3 estados sem conta logada) */
 export function TrocaCampo2DVisual({ agora, pendente, podeLigar, onTroca }: { agora: boolean; pendente: boolean; podeLigar: boolean; onTroca: (on: boolean) => void }) {
   const t = useT()
+  const ownerVisual=useOwnerLayout()
   const alvo = pendente ? !agora : agora // o que vai valer no próximo jogo
   if (!agora && !alvo && !podeLigar) return null // sala rápida e dono sem o 2D: nada a oferecer
   const quer = !alvo // apertar leva pro outro lado do que vai valer
   const podeApertar = !quer || podeLigar || pendente // ligar exige o 2D liberado; desmarcar/voltar pro rápido, sempre
+  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={alvo?'campo':'placar'} onChange={e=>{const on=e.target.value==='campo';if(on!==alvo&&(!on||podeLigar||pendente))onTroca(on)}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo" disabled={!podeLigar&&!agora}>{t('Campo 2D','2D pitch')}</option></select>{pendente&&<small>{t('Marcado para o próximo jogo','Scheduled for the next match')}</small>}</label></OwnerSlot>
   return (
     <div style={{ marginBottom: 8 }}>
       <button onClick={() => podeApertar && onTroca(quer)} disabled={!podeApertar}
@@ -6788,6 +6829,7 @@ export function SimControls(props: { manual: boolean; onToggle: () => void; onNe
 }
 function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerLayout()
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
@@ -6797,6 +6839,7 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   if (lock) return <>{lock}</>
   // ⏩📺 05/11: teste "sem botão Manual" (Partida Rápida com 2D, conta do Diego) — some o Manual, fica o automático 2×
   if (r2d.semManual) return <p style={{ margin: '0 0 8px', textAlign: 'center', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>{t('⚡ Automático 2× · sem botão Manual', '⚡ Auto 2× · no Manual button')}</p>
+  if(ownerVisual) return <OwnerPlayback manual={manual} onToggle={onToggle} speed={c2dCtl?c2dCtl.cur:state.simSpeed??1} onSpeed={v=>{if(c2dCtl)c2dCtl.set(v);else dispatch({type:'SET_SIM_SPEED',speed:v})}} opts={c2dCtl?.opts} canNext={canNext} onNext={onNext} onSkip={onSkip} nextLabel={nextLabel}/>
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return <>
     <OnlineRhythm manual={manual} onToggle={onToggle} speed={c2dCtl ? c2dCtl.cur : state.simSpeed ?? 1} onSpeed={speed => { if (c2dCtl) c2dCtl.set(speed); else dispatch({ type: 'SET_SIM_SPEED', speed }) }} opts={c2dCtl?.opts} />
     {manual && <div className="ll25-actions">
@@ -7155,6 +7198,7 @@ export function EscSeason() {
   const [dirCol, setDirCol] = useState<HTMLDivElement | null>(null)
   useTitulosNaHora() // 🏆 18/10: campeão apareceu = título e carta contam na hora (mesmo que a sala pare antes do fim)
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerOnlineVisual(state)
   // 🎬 VISUAL DE TRANSMISSÃO APROVADO (21/09): agora é público no online
   // normal de futebol. Carreira online e basquete continuam com suas peles próprias.
   const cinemaPreview = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete'
@@ -7311,7 +7355,7 @@ export function EscSeason() {
     return disp.findIndex(t => t.id === you.id) + 1
   })()
   const prevPosRef = useRef(youPosShown)
-  const [personalNews, setPersonalNews] = useState<string | null>(null)
+  const [personalNews, setPersonalNews] = useState<{ text: string; topEntry: boolean } | null>(null)
   const personalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     const prev = prevPosRef.current
@@ -7326,17 +7370,18 @@ export function EscSeason() {
     const zTop = zoneN(table.length)      // faixa de cima (G4 proporcional)
     const zBot = zoneBot(table.length)    // 1ª posição da zona de baixo (Z4 proporcional)
     let msg: string | null = null
+    let topEntry = false
     if (youPosShown === 1 && prev !== 1) msg = LS('👑 Você é o novo LÍDER do campeonato!', '👑 You are the new league LEADER!')
     else if (kingsS) msg = null // 👑 na Kings não tem G4 nem rebaixamento — só a liderança vira manchete
     // 🏀 basquete NÃO tem rebaixamento (ninguém cai). O TOP 4 é a zona de SUBIR DE ANDAR
     // (Street → G League → NBA). Sem faixa de "zona de rebaixamento".
     else if (bbS) { if (youPosShown <= 4 && prev > 4) msg = LS('📈 Você entrou no TOP 4 — zona de SUBIR DE ANDAR!', '📈 You are in the TOP 4 — the PROMOTION zone!'); else if (youPosShown > 4 && prev <= 4) msg = LS('😮‍💨 Você caiu do TOP 4 — corre pra voltar pra zona de subir!', '😮‍💨 You dropped out of the TOP 4 — climb back into the promotion zone!') }
-    else if (state.ligaDraft && youPosShown <= copaN(table.length) && prev > copaN(table.length)) msg = LS(`📈 Você ENTROU no G${copaN(table.length)}!`, `📈 You are IN the top ${copaN(table.length)}!`) // 🟢 06/11: a Liga Draft pinta G8 (20) / G4 (10)
-    else if (youPosShown <= zTop && prev > zTop && !state.ligaDraft) msg = LS(`📈 Você ENTROU no G${zTop}!`, `📈 You are IN the top ${zTop}!`)
+    else if (state.ligaDraft && youPosShown <= copaN(table.length) && prev > copaN(table.length)) { msg = LS(`📈 Você ENTROU no G${copaN(table.length)}!`, `📈 You are IN the top ${copaN(table.length)}!`); topEntry = true } // 🟢 06/11: a Liga Draft pinta G8 (20) / G4 (10)
+    else if (youPosShown <= zTop && prev > zTop && !state.ligaDraft) { msg = LS(`📈 Você ENTROU no G${zTop}!`, `📈 You are IN the top ${zTop}!`); topEntry = true }
     else if (youPosShown >= zBot && prev < zBot) msg = LS(`⚠️ PERIGO! Você caiu pra zona de rebaixamento (Z${zTop})!`, `⚠️ DANGER! You dropped into the relegation zone (bottom ${zTop})!`)
     else if (youPosShown < zBot && prev >= zBot) msg = LS(`😮‍💨 Você escapou do Z${zTop}!`, `😮‍💨 You escaped the bottom ${zTop}!`)
     if (msg) {
-      setPersonalNews(msg)
+      setPersonalNews({ text: msg, topEntry })
       if (personalTimer.current) clearTimeout(personalTimer.current)
       personalTimer.current = setTimeout(() => setPersonalNews(null), 5000)
     }
@@ -7623,7 +7668,7 @@ export function EscSeason() {
       </div>
     }>
       {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
-      {desk2 && <div className="ll-dir"><div className="ll-dir-in" ref={setDirCol} /></div>}
+      {desk2 && <div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setDirCol} /></div>}
       {faixaProxAtiva && <FaixaProximaCompeticao lista={proximasCompeticoes(copasDaSala)} />}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →
@@ -7740,7 +7785,7 @@ export function EscSeason() {
                   <span style={{ ...loserStyle(!aWin) }}><Escudo nome={tie.aName} size={22} /></span>
                   <span className="font-black text-[10.5px] truncate text-center" style={{ ...OSWALD, color: fA.ink, maxWidth: '100%', ...loserStyle(!aWin) }}>{tie.aName}{nameTag(tie.aId)}</span>
                 </div>
-                <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 11px', gap: 1 }}>
+                <div className="ov3-surface" style={{ background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 11px', gap: 1 }}>
                   {live && <span className="text-[9px] font-black" style={{ color: '#C2452F' }}>●{minLabel}</span>}
                   <span className="font-black text-lg" style={{ ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>{(privateVisual || bbS) ? showA - tie.legs.slice(0,-1).reduce((s,l)=>s+l[0],0) : showA} × {(privateVisual || bbS) ? showB - tie.legs.slice(0,-1).reduce((s,l)=>s+l[1],0) : showB}</span>
                   {(privateVisual || bbS) && <small style={{fontSize:9,fontWeight:800,color:INK}}>{bbSerie ? `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}` : cupNow ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.phase==='final'?'FINAL':nLegs>1?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')}</small>}
@@ -7952,12 +7997,12 @@ export function EscSeason() {
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
             {myTie && (!privateVisual || visualTab === 'jogos') && naDireita(
-              <Box bg="#fff" className="p-4 space-y-3" shadow={4}>
+              ownerVisual ? <OwnerTactics value={myTactic} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg="#fff" className="p-4 space-y-3" shadow={4}>
                 <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{enS ? `🎯 Your tactic ${libS ? 'in the Libertadores' : 'in the Cup'}` : `🎯 Sua tática ${libS ? 'na Libertadores' : 'na Copa'}`}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
-                      className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
+                      className="border-[3px] border-black rounded-xl py-2 text-xs font-black ov3-surface"
                       style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
                       {tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}
                     </button>
@@ -7967,7 +8012,7 @@ export function EscSeason() {
                     equilíbrio…". Palavras dele: *"não precisa escrever o que é retranca,
                     equilíbrio e ataque, só bote"*. Ele mexe na tática toda rodada — a
                     explicação virou ruído fixo na tela. A regra continua a mesma no jogo. */}
-              </Box>
+              </Box>)
             )}
             {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && naDireita(
               <div className={privateVisual ? 'll26-phase-matches' : undefined}>
@@ -8110,7 +8155,7 @@ export function EscSeason() {
       )}
 
       {fixture && opp && naDireita(
-        <Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
+        ownerVisual ? <OwnerTactics value={myTactic} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
           {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
               De manhã (18/09) eles viraram uma PÍLULA que abria no toque, a pedido
               dele (*"tem que diminuir esse modal aí de equilíbrio, ataque, defesa nos
@@ -8145,7 +8190,7 @@ export function EscSeason() {
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
-                className={`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaPreview ? ' ll31-tactic' : ''}`}
+                className={(`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaPreview ? ' ll31-tactic' : ''}`)+" ov3-surface"}
                 style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
                 <span>{tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}</span>
                 {cinemaPreview && <small>{t === 'retranca' ? LS('Defesa + · Ataque −', 'Defence + · Attack −') : t === 'ataque' ? LS('Ataque + · Defesa −', 'Attack + · Defence −') : LS('Sem alteração', 'No change')}</small>}
@@ -8155,11 +8200,11 @@ export function EscSeason() {
           {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
               progresso + o textão "temporada rolando sozinha" (decorativo, a
               Copa nunca teve isso e ficava mais poluído aqui). */}
-        </Box>
+        </Box>)
       )}
 
       {/* 🆚 08/11: PRATELEIRA DE RIVALIDADES (mockup aprovado) — próximo encontro com um AMIGO + retrospecto contra cada amigo da sala */}
-      {retroOn && !copaLive && (() => {
+      {retroOn && (!copaLive||ownerVisual) && (() => {
         const amigos: AmigoRival[] = state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => ({ m, uid: uidDo(m.id) })).filter((x): x is { m: typeof x.m; uid: string } => !!x.uid && x.uid !== meuUidRetro)
           .map(({ m, uid }) => ({ uid, nome: m.name, time: m.teamName || m.name, temporada: (() => { const r = rivalryOf(state.rivalries, you.id, m.id); return { w: r.w, d: r.d, l: r.l } })(), id: m.id }))
         if (amigos.length === 0) return null
@@ -8171,7 +8216,7 @@ export function EscSeason() {
           const amigo = amigos.find(a => (a as AmigoRival & { id: number }).id === oppId)
           if (amigo) proximo = { amigo, rodada: r + 1, daqui: r - state.round }
         }
-        return naDireita(<PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />)
+        return naDireita(<section className={ownerVisual?'ov3-rivalries':undefined}><PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} /></section>)
       })()}
 
       {/* 📋 08/11: LIGA DRAFT — o caminho até a próxima temporada + ⭐ favoritos (mockup aprovado). Só mostra; a ordem é a da tabela (campeão primeiro). */}
@@ -8212,9 +8257,9 @@ export function EscSeason() {
           DECISÃO da rodada e não pode cair embaixo de 20 linhas de tabela + a lista
           de todos os jogos. */}
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5 ll-col-side ll-depois-da-tabela">
-      {personalNews && (
+      {personalNews && !(ownerVisual && personalNews.topEntry) && (
         <Box bg="#6C43C0" className="p-2.5 text-center" shadow={4}>
-          <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews}</p>
+          <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews.text}</p>
         </Box>
       )}
 
@@ -8350,7 +8395,7 @@ function RivalTracker() {
           const here = rv.division === myDiv
           const games = rv.h2h[0] + rv.h2h[1] + rv.h2h[2]
           return (
-            <div key={rv.team} className="flex items-center justify-between text-xs font-bold rounded-lg px-2 py-1.5"
+            <div key={rv.team} className="flex items-center justify-between text-xs font-bold rounded-lg px-2 py-1.5 ov3-surface"
               style={{ backgroundColor: here ? '#FFE0D6' : '#F3EFE2' }}>
               <span className="truncate max-w-[150px]">{here ? '🔥 ' : ''}{rv.team}</span>
               <span className="flex items-center gap-2 shrink-0">
@@ -8378,7 +8423,7 @@ function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORER
   // 🙈 ANTI-SPOILER: enquanto o SEU jogo anima (hold), mostra a artilharia de ANTES
   // da rodada (scorersPrev) — os gols novos só entram no apito. Sem isto o total do
   // artilheiro subia com a partida rolando e entregava o gol antes de animar.
-  const src = fonte ?? (hold && state.scorersPrev ? state.scorersPrev : state.scorers) // ⭐ `fonte`: a artilharia da Champions (tela própria)
+  const src = fonte ?? (hold && state.scorersPrev && state.round > 0 && state.lastResults.length > 0 ? state.scorersPrev : state.scorers) // 🧯 09/11: no começo da temporada a cópia é da temporada PASSADA (Liga Draft mostrava a artilharia velha) // ⭐ `fonte`: a artilharia da Champions (tela própria)
   const rows = [...src].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10)
   if (rows.length === 0) {
     return (
@@ -8614,6 +8659,7 @@ function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }
 }
 export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean; exemplos?: AnuncioGiro[]; mb?: number; /** o telão que mora EMBAIXO do campinho 2D */ doCampo?: boolean }) {
   // 📺 com o campinho 2D na tela, o telão é o dele (embaixo do jogo); o da página some — nunca dois
+  const ownerVisual=useOwnerLayout()
   const campoNaTela = useCampoNaTela()
   const escondido = !doCampo && !exemplos && campoNaTela
   // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
@@ -8629,12 +8675,12 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
     return () => clearInterval(iv)
   }, [])
   const idx = slot % itens.length
-  const ad = itens[idx]
+  const ad = ownerVisual ? {...itens[idx],foto:undefined} : itens[idx]
   const { marca, oferta } = partesDoAnuncio(ad.texto)
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   if (escondido) return null
   return (
-    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
+    <OwnerSlot name="ad"><div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
       <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
 .placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
 .placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}
@@ -8672,11 +8718,12 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
         </>}
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
-    </div>
+    </div></OwnerSlot>
   )
 }
 
 function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE' : 'TABELA', cinema = false }: { highlight: number; holdResults?: boolean; title?: string; cinema?: boolean }) {
+  const ownerVisual=useOwnerLayout()
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
@@ -8791,23 +8838,23 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
     </div>
   )
   return (
-    <Box className={`p-3 overflow-x-auto${cinema ? ' ll31-table' : ''}`}>
+    <Box className={`p-3 overflow-x-auto${cinema ? ' ll31-table' : ''}${ownerVisual?' ov3-standings':''}`}>
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
           {bb ? (confTier && (
-            <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Playoffs', 'Playoffs')}</span>
+            <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Playoffs', 'Playoffs')}</span>
           )) : kg ? (
             <>
-              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFE79A', border: '1px solid rgba(0,0,0,.3)' }} />SEMI</span>
-              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Quartas', 'Quarters')}</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#FFE79A', border: '1px solid rgba(0,0,0,.3)' }} />SEMI</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Quartas', 'Quarters')}</span>
             </>
           ) : (
             <>
               {soLiga && !zonasDraft ? <span className="flex items-center gap-1">{L('📊 Só a liga', '📊 League only')}</span> : <>
-              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{copaN(table.length)}</span>
-              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
-              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: '#F9D8D3', border: '1px solid rgba(0,0,0,.3)' }} />Z{zoneN(table.length)}</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#FFC400', border: '1px solid rgba(0,0,0,.3)' }} />G{copaN(table.length)}</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block border border-black/20 ov3-surface" style={{ backgroundColor: '#fff' }} />{L('Meio', 'Mid')}</span>
+              <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#F9D8D3', border: '1px solid rgba(0,0,0,.3)' }} />Z{zoneN(table.length)}</span>
               </>}
             </>
           )}
@@ -9165,6 +9212,7 @@ export function EscLiberta() {
   const LB = useT() // 🌐 BR/EN
   const enL = getLang() === 'en'
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerOnlineVisual(state)
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [groupView, setGroupView] = useState<'meu' | 'todos'>(()=>typeof window!=='undefined'&&window.innerWidth>=1100?'meu':'todos')
   const continentalDesk=useDesktopNovo()
@@ -9279,7 +9327,7 @@ export function EscLiberta() {
         )}
       </div>
     }>
-      {continentalDesk&&<div className="ll-dir"><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
+      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
 {privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? LB('Grupos encerrados', 'Groups over') : LB(`Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`, `Group stage · round ${Math.max(1, lb.rodada)}/6`)} detail={LB('32 clubes · 8 grupos · os dois primeiros avançam às oitavas', '32 clubs · 8 groups · the top two reach the round of 16')} status={meuTime ? LB(`Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}`, `Your club is in group ${GRUPO_LETRA[meuGrupo]}`) : LB('Acompanhe os clubes classificados da sala', 'Follow the room\'s qualified clubs')} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
         <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{LB('🌎 LIBERTADORES · FASE DE GRUPOS', '🌎 LIBERTADORES · GROUP STAGE')}</p>
@@ -9335,7 +9383,7 @@ export function EscLiberta() {
         const classico = humano(oppId)
         const minhaTatica = state.tactics[you.id] ?? 'equilibrio'
         return (
-          <Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
+          ownerVisual ? <OwnerTactics value={state.tactics[you.id]??'equilibrio'} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
             <div className="ll-linha-tatica">
               <p className="font-black text-[10px] uppercase tracking-[1.4px] text-black/45" style={OSWALD}>
                 {classico ? LB('🔥 Clássico', '🔥 Derby') : LB('Próximo jogo', 'Next match')} · {prox[0] === you.id ? LB('em casa', 'home') : LB('fora', 'away')}
@@ -9347,13 +9395,13 @@ export function EscLiberta() {
             <div className="grid grid-cols-3 gap-2">
               {(Object.keys(TACTIC_LABEL) as Tactic[]).map(tt => (
                 <button key={tt} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: tt })}
-                  className={`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaOnline ? ' ll31-tactic' : ''}`}
+                  className={(`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaOnline ? ' ll31-tactic' : ''}`)+" ov3-surface"}
                   style={{ backgroundColor: minhaTatica === tt ? GOLD : '#fff', boxShadow: minhaTatica === tt ? `3px 3px 0 0 ${INK}` : 'none' }}>
                   <span>{tacticLabel(tt, false, enL ? 'en' : 'pt')}</span>
                 </button>
               ))}
             </div>
-          </Box>
+          </Box>)
         )
       })()}
 
@@ -9372,7 +9420,7 @@ export function EscLiberta() {
           <p className="font-black text-[11px] uppercase mb-1.5" style={{ ...OSWALD, color: NOITE }}>{LB('🥅 Os outros jogos da rodada', '🥅 The other matches of the round')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 5 }}>
             {lb.lastResults.filter(r => r.homeId !== you.id && r.awayId !== you.id).map((r, i) => (
-              <div key={i} className="flex items-center gap-1 text-[10px] font-bold rounded-lg px-1.5 py-1" style={{ background: '#F4ECD6', border: '2px solid rgba(0,0,0,.18)' }}>
+              <div key={i} className="flex items-center gap-1 text-[10px] font-bold rounded-lg px-1.5 py-1 ov3-surface" style={{ background: '#F4ECD6', border: '2px solid rgba(0,0,0,.18)' }}>
                 <span className="min-w-0 flex-1 truncate text-right">{nomeDe(r.homeId)}</span>
                 <span className="flex-none font-black tabular-nums">{r.hg}×{r.ag}</span>
                 <span className="min-w-0 flex-1 truncate">{nomeDe(r.awayId)}</span>
@@ -9462,6 +9510,7 @@ export function EscChampions() {
   const { state, dispatch } = useEsc()
   const T = useT()
   const previewAccount = useOnlinePreview()
+  const ownerVisual = useOwnerOnlineVisual(state)
   // 🎨 "TUDO IGUAL" (Diego 25/09: *"visual segue padrões do q já tem nos modo hj seja
   // placar botões cores tabelas… outros jogos e tudo mais"*). Esta tela é montada com
   // as MESMAS peças e na MESMA ordem da tela da liga (`EscSeason`): barra do topo com
@@ -9617,7 +9666,7 @@ export function EscChampions() {
       <tr key={t.id} className={`border-t border-black/10 font-semibold${eu ? ' ll31-my-team' : ''}`}
         style={{ background: fundo, color: tinta, fontWeight: t.isManager ? 800 : 500 }}>
         <td className="pr-1 pl-1.5">
-          <span className="text-[9.5px] font-black rounded text-white text-center inline-block" style={{ ...OSWALD, background: zona, width: 19 }}>{pos}</span>
+          <span className="text-[9.5px] font-black rounded text-white text-center inline-block" style={{ ...OSWALD, background: zona, ...(ownerVisual && pos > CHAMPIONS_DIRETO ? { color: INK } : {}), width: 19 }}>{pos}</span>
         </td>
         <td className="max-w-[160px]">
           <span className="flex items-center gap-1.5 min-w-0">
@@ -9661,7 +9710,7 @@ export function EscChampions() {
         {minhaPos > 0 && <span className="font-black text-sm" style={OSWALD}>{ordinal(minhaPos, getLang() === 'en' ? 'en' : 'pt')} · {tabela[minhaPos - 1]?.pts ?? 0} pts</span>}
       </div>
     }>
-      {continentalDesk&&<div className="ll-dir"><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
+      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
       {/* ⭐ o MESMO palco cinematográfico da Copa do Mundo e da Liberta */}
       <CompetitionStage kind="champions" title="CHAMPIONS LEAGUE" phase={ch.rodada === 0 && ch.fase === 'tabela' ? T('A tabela de 36', 'The table of 36') : fase}
         // 🚪 nos PORTÕES o próprio banner é o que separa as fases (um teatro só na tela):
@@ -9739,7 +9788,7 @@ export function EscChampions() {
           const oppId = proximo[0] === you.id ? proximo[1] : proximo[0]
           const classico = humanoId(oppId)
           return (
-            <Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
+            ownerVisual ? <OwnerTactics value={state.tactics[you.id]??'equilibrio'} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg={classico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaOnline ? ' ll31-next-match' : ''}`}>
               <div className="ll-linha-tatica">
                 <p className="font-black text-[10px] uppercase tracking-[1.4px] text-black/45" style={OSWALD}>
                   {classico ? T('🔥 Clássico', '🔥 Derby') : T('Próximo jogo', 'Next match')} · {proximo[0] === you.id ? T('em casa', 'home') : T('fora', 'away')}
@@ -9751,13 +9800,13 @@ export function EscChampions() {
               <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(TACTIC_LABEL) as Tactic[]).map(tt => (
                   <button key={tt} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: tt })}
-                    className={`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaOnline ? ' ll31-tactic' : ''}`}
+                    className={(`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaOnline ? ' ll31-tactic' : ''}`)+" ov3-surface"}
                     style={{ backgroundColor: myTactic === tt ? GOLD : '#fff', boxShadow: myTactic === tt ? `3px 3px 0 0 ${INK}` : 'none' }}>
                     <span>{tacticLabel(tt, false, getLang() === 'en' ? 'en' : 'pt')}</span>
                   </button>
                 ))}
               </div>
-            </Box>
+            </Box>)
           )
         })()}
 
@@ -9797,7 +9846,7 @@ export function EscChampions() {
                   const de = fi === 0 ? 0 : CHAMPIONS_FAIXAS[fi - 1].ate
                   return (
                     <Fragment key={f.pt}>
-                      <tr><td colSpan={7} className="px-2 py-1 text-[8.5px] font-black uppercase tracking-wide" style={{ ...OSWALD, background: f.bg, color: f.ink }}>{T(f.pt, f.en)}</td></tr>
+                      <tr><td colSpan={7} className="px-2 py-1 text-[8.5px] font-black uppercase tracking-wide" style={{ ...OSWALD, background: f.bg, color: ownerVisual && fi > 0 ? INK : f.ink }}>{T(f.pt, f.en)}</td></tr>
                       {tabela.slice(de, f.ate).map((t, i) => linha(t, de + i + 1))}
                     </Fragment>
                   )
@@ -9824,7 +9873,7 @@ export function EscChampions() {
               <p className="font-black text-[11px] uppercase mb-1.5" style={OSWALD}>{T('🥅 Os outros jogos da rodada', '🥅 The other matches of the round')}</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 5 }}>
                 {outros.map((r, i) => (
-                  <div key={i} className="flex items-center gap-1 text-[10px] font-bold rounded-lg px-1.5 py-1" style={{ background: '#F4ECD6', border: '2px solid rgba(0,0,0,.18)' }}>
+                  <div key={i} className="flex items-center gap-1 text-[10px] font-bold rounded-lg px-1.5 py-1 ov3-surface" style={{ background: '#F4ECD6', border: '2px solid rgba(0,0,0,.18)' }}>
                     <span className="min-w-0 flex-1 truncate text-right">{nomeDe(r.homeId)}</span>
                     <span className="flex-none font-black tabular-nums">{r.hg}×{r.ag}</span>
                     <span className="min-w-0 flex-1 truncate">{nomeDe(r.awayId)}</span>
@@ -10276,12 +10325,12 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
           <span style={{ ...OSWALD, fontWeight: 800, fontSize: 9, letterSpacing: 2.5, color: GOLD, textShadow: '1px 1px 0 rgba(0,0,0,.5)' }}>PACOTE DO CAMPEÃO</span>
         </div>
         {origin === 'online' && <img className="online-pack-image" src={onlinePackArt} alt="" />}
-        <motion.span animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
+        <motion.span className="ov3-surface" animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
           style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
       </motion.button>
       {!opening && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>👆 TOCA PRA ABRIR</p>}
       {opening && (
-        <motion.div className="fixed inset-0 pointer-events-none" style={{ background: '#fff', zIndex: 9999 }}
+        <motion.div className="fixed inset-0 pointer-events-none ov3-surface" style={{ background: '#fff', zIndex: 9999 }}
           initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.5, delay: 0.6 }} />
       )}
     </Box>
@@ -10299,10 +10348,11 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     )
   }
   return createPortal(
-    <div onClick={() => setDismissed(true)} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(8,6,3,.64)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
+    // Acima do torneio (99996), depois da comemoração (100040).
+    <div role="dialog" aria-modal="true" aria-label={tr('Carta do campeão','Champion card')} onClick={() => setDismissed(true)} style={{ position: 'fixed', inset: 0, zIndex: 100030, background: 'rgba(8,6,3,.64)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
       <motion.div initial={{ scale: 0.66, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', bounce: 0.3, duration: 0.5 }}
         onClick={e => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 360, margin: 'auto' }}>
-        <button onClick={() => setDismissed(true)} aria-label="Fechar" style={{ position: 'absolute', top: -14, right: -8, zIndex: 2, width: 34, height: 34, borderRadius: 999, border: `3px solid ${INK}`, background: '#fff', fontWeight: 900, fontSize: 15, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}`, ...OSWALD }}>✕</button>
+        <button className="ov3-surface" onClick={() => setDismissed(true)} aria-label="Fechar" style={{ position: 'absolute', top: -14, right: -8, zIndex: 2, width: 34, height: 34, borderRadius: 999, border: `3px solid ${INK}`, background: '#fff', color: INK, fontWeight: 900, fontSize: 15, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}`, ...OSWALD }}>✕</button>
         {content}
       </motion.div>
     </div>,
@@ -10359,13 +10409,13 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
           <span style={{ ...OSWALD, fontWeight: 800, fontSize: 9, letterSpacing: 2.5, color: GOLD, textShadow: '1px 1px 0 rgba(0,0,0,.5)' }}>PACOTE DO CAMPEÃO</span>
         </div>
         <img className="online-pack-image" src={onlinePackArt} alt="" />
-        <motion.span animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
+        <motion.span className="ov3-surface" animate={opening ? { y: -34, rotate: 22, opacity: 0 } : {}} transition={{ duration: 0.35, delay: 0.3 }}
           style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: GOLD, border: `3px solid ${INK}`, borderRadius: 999, padding: '3px 13px', fontSize: 10.5, fontWeight: 900, letterSpacing: 1, ...OSWALD }}>LACRADO</motion.span>
       </motion.button>
       {!opening && !opened && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>👆 TOCA PRA ABRIR</p>}
       {opened && !card && <p className="text-[11px] font-black text-black/60 mt-3" style={OSWALD}>⏳ Esperando o campeão abrir o pacote…</p>}
       {opening && (
-        <motion.div className="fixed inset-0 pointer-events-none" style={{ background: '#fff', zIndex: 9999 }}
+        <motion.div className="fixed inset-0 pointer-events-none ov3-surface" style={{ background: '#fff', zIndex: 9999 }}
           initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.5, delay: 0.6 }} />
       )}
     </Box>
@@ -10655,7 +10705,7 @@ function EscAlbumFutebol() {
       {colecoesOn && !anon && (
         <div className="flex gap-1.5">
           {([['cartas', tr('🃏 Cartas', '🃏 Cards')], ['colecoes', tr('📚 Coleções', '📚 Collections')], ['trocas', tr('🤝 Trocas', '🤝 Trades')]] as const).map(([id, rot]) => (
-            <button key={id} onClick={() => setAba(id)} className="flex-1 py-2 font-black text-[13px] uppercase border-[3px] border-black rounded-xl"
+            <button key={id} onClick={() => setAba(id)} className="flex-1 py-2 font-black text-[13px] uppercase border-[3px] border-black rounded-xl ov3-surface"
               style={{ ...OSWALD, background: aba === id ? GOLD : '#fff', boxShadow: aba === id ? `2px 2px 0 0 ${INK}` : 'none' }}>{rot}</button>
           ))}
         </div>
@@ -10909,7 +10959,7 @@ export function EscRanking() {
       <div className="space-y-2">
         {shown.slice(0, 10).map((r, i) => (
           <button key={r.user_id} onClick={() => openAlbum(r.user_id, r.name, r.career_key, { titles: r.titles, scorers: r.scorer_titles, goals: r.goals, cards: r.cards })}
-            className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5 active:translate-y-0.5"
+            className="w-full flex items-center gap-3 border-[3px] border-black rounded-xl p-2.5 active:translate-y-0.5 ov3-surface"
             style={{ background: r.user_id === meId ? GOLD : '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
             <span className="font-black text-lg w-9 text-center shrink-0" style={OSWALD}>{medal(i)}</span>
             <span className="font-black text-black text-sm flex-1 min-w-0 truncate text-left" style={OSWALD}>{r.name}{r.user_id === meId ? tr(' (você)', ' (you)') : ''}</span>
@@ -10932,7 +10982,7 @@ export function EscRanking() {
       {/* álbum do técnico tocado */}
       {viewUser && (
         <div className="fixed inset-0 z-50 flex flex-col p-4" style={{ background: 'rgba(0,0,0,.7)' }} onClick={() => setViewUser(null)}>
-          <div className="max-w-md w-full mx-auto my-auto max-h-[85vh] flex flex-col rounded-2xl border-[3px] border-black overflow-hidden" style={{ background: CREAM }} onClick={e => e.stopPropagation()}>
+          <div className="max-w-md w-full mx-auto my-auto max-h-[85vh] flex flex-col rounded-2xl border-[3px] border-black overflow-hidden ov3-surface" style={{ background: CREAM }} onClick={e => e.stopPropagation()}>
             {(() => {
               // 🎨 header na cor do PRÓPRIO tier (fidelidade sagrada): grátis = bege
               const pk = viewPerfil ? APOIO_PERKS[viewPerfil.tier ?? 'bege'] : null
@@ -10971,7 +11021,7 @@ export function EscRanking() {
                 <div className="px-4 pt-3 space-y-2">
                   {fN != null && (
                     <div className="relative overflow-hidden border-[3px] border-black rounded-xl px-3 py-3" style={{ background: 'linear-gradient(150deg,#241d0c,#141414 55%,#2b230e)', boxShadow: `3px 3px 0 ${INK}` }}>
-                      <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {fN}</span>
+                      <span className="absolute right-2.5 top-2.5 font-black text-sm border-2 border-black rounded-lg px-2 py-0.5 ov3-surface" style={{ ...OSWALD, background: 'linear-gradient(150deg,#FFE79A,#FFC400)' }}>Nº {fN}</span>
                       <p className="font-black text-base uppercase" style={{ ...OSWALD, color: GOLD }}>{tr('🖋️ Fundador do Leilão Legends', '🖋️ Leilão Legends Founder')}</p>
                       <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.75)' }}>{fN} {tr('dos 100 primeiros · pra sempre', 'of the first 100 · forever')}</p>
                     </div>
@@ -11020,8 +11070,8 @@ export function EscRanking() {
                 <p className="font-black text-[11px] uppercase tracking-wide mb-1.5" style={OSWALD}>{tr('🏆 Sala de troféus', '🏆 Trophy room')}</p>
                 {/* 🏆 troféus GRANDES (pedido do Diego 09/08: o DESENHO grande, não só a letra) */}
                 <div className="flex flex-wrap gap-2">
-                  {viewUser.stats.titles > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>🏆</span>{viewUser.stats.titles === 1 ? tr('Título', 'Title') : tr('Títulos', 'Titles')} ×{viewUser.stats.titles}</span>}
-                  {viewUser.stats.scorers > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>👟</span>{viewUser.stats.scorers === 1 ? tr('Artilharia', 'Top scorer') : tr('Artilharias', 'Top scorer awards')} ×{viewUser.stats.scorers}</span>}
+                  {viewUser.stats.titles > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black ov3-surface" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>🏆</span>{viewUser.stats.titles === 1 ? tr('Título', 'Title') : tr('Títulos', 'Titles')} ×{viewUser.stats.titles}</span>}
+                  {viewUser.stats.scorers > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black ov3-surface" style={{ background: 'linear-gradient(150deg,#FFF3C2,#FFE79A)', boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>👟</span>{viewUser.stats.scorers === 1 ? tr('Artilharia', 'Top scorer') : tr('Artilharias', 'Top scorer awards')} ×{viewUser.stats.scorers}</span>}
                   {viewUser.stats.goals > 0 && <span className="flex items-center gap-1.5 border-[3px] border-black rounded-xl px-3 py-1.5 text-[15px] font-black bg-white" style={{ boxShadow: `2.5px 2.5px 0 ${INK}`, ...OSWALD }}><span style={{ fontSize: 28, lineHeight: '28px' }}>⚽</span>{viewUser.stats.goals} {tr('gols', 'goals')}</span>}
                 </div>
               </div>
@@ -11032,7 +11082,7 @@ export function EscRanking() {
               <div className="flex gap-2 px-4 pt-3">
                 {([['carreira', tr('🪜 Esta carreira', '🪜 This career'), albumCarreira.length], ['conta', tr('📊 Conta toda', '📊 Whole account'), albumConta.length]] as const).map(([id, label, n]) => (
                   <button key={id} onClick={() => setViewScope(id)}
-                    className="flex-1 border-[2.5px] border-black rounded-xl py-2 px-1 font-black text-[11px] uppercase leading-tight"
+                    className="flex-1 border-[2.5px] border-black rounded-xl py-2 px-1 font-black text-[11px] uppercase leading-tight ov3-surface"
                     style={{ backgroundColor: viewScope === id ? GOLD : '#fff', boxShadow: viewScope === id ? `2px 2px 0 0 ${INK}` : 'none', ...OSWALD }}>
                     {label}
                     <span className="block text-[11px] font-extrabold normal-case">{n} {n === 1 ? tr('carta', 'card') : tr('cartas', 'cards')}</span>
@@ -11154,7 +11204,7 @@ class CercaDaCopa extends Component<{ children: ReactNode }, { caiu: boolean }> 
   render() {
     if (!this.state.caiu) return this.props.children
     return (
-      <div style={{ border: '3px solid #0C0C0C', borderRadius: 14, background: '#FFF4CF', boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px', marginBottom: 10 }}>
+      <div className="ov3-surface" style={{ border: '3px solid #0C0C0C', borderRadius: 14, background: '#FFF4CF', boxShadow: '4px 4px 0 #0C0C0C', padding: '11px 13px', marginBottom: 10 }}>
         <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 900, fontSize: 13, margin: 0 }}>🌍 A Copa do Mundo não abriu</p>
         <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.4 }}>
           Deu um problema só na Copa — <b>o resto da temporada está tudo aí embaixo</b>, campeão, carta e jornal.
@@ -11379,7 +11429,7 @@ function NbaCareerEndPanel() {
           <span className="text-white">▶️ {advancing ? t('Avançando…', 'Advancing…') : t('Próxima temporada', 'Next season')}</span>
         </Btn>
       ) : (
-        <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
+        <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center ov3-surface" style={{ background: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>
           <p className="font-black text-sm" style={OSWALD}>⏳ {t('Esperando o host começar a próxima temporada…', 'Waiting for the host to start the next season…')}</p>
         </div>
       )) : (
@@ -11482,7 +11532,7 @@ function CareerEndPanel() {
   return (
     <div className="space-y-2.5">
       {wonA && (
-        <div className="rounded-2xl border-4 border-black p-3 text-center" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 45%,#E8A200 75%,#FFDD70)', boxShadow: `4px 4px 0 ${INK}` }}>
+        <div className="rounded-2xl border-4 border-black p-3 text-center ov3-surface" style={{ background: 'linear-gradient(150deg,#FFE79A,#FFC400 45%,#E8A200 75%,#FFDD70)', boxShadow: `4px 4px 0 ${INK}` }}>
           <p className="font-black text-black text-2xl leading-none" style={OSWALD}>{tr('🏆 CAMPEÃO DA SÉRIE A!', '🏆 SÉRIE A CHAMPION!')}</p>
           <p className="font-black text-black/80 text-sm mt-1" style={OSWALD}>{aTitleLabel(totalA)}</p>
           <p className="mt-1"><CareerStars n={totalA} size={22} /></p>
@@ -11497,7 +11547,7 @@ function CareerEndPanel() {
         <p className="font-black text-black text-xl leading-tight mt-1" style={OSWALD}>{tr(`A CARREIRA GRÁTIS VAI ATÉ A TEMPORADA ${ateGratis}`, `THE FREE CAREER GOES UP TO SEASON ${ateGratis}`)}</p>
         <p className="font-bold text-sm text-black/80 mt-2">{tr(`Pra jogar a temporada ${ateGratis + 1} em diante com o ${you.teamName}, escolha qualquer plano.`, `To play season ${ateGratis + 1} onwards with ${you.teamName}, pick any plan.`)}</p>
         <p className="font-bold text-sm mt-2 rounded-xl border-2 px-2 py-1.5" style={{ background: '#E9F7EE', borderColor: GREEN, color: INK }}>{tr('✅ Seu save fica guardado do jeito que está. Assinou, ele destrava na hora e você segue de onde parou.', '✅ Your save stays exactly as it is. Subscribe and it unlocks right away — you carry on from here.')}</p>
-        <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🔒 carreira grátis T50 → ver os planos'); open() }} className="w-full mt-3 border-[3px] border-black rounded-xl py-2.5 font-black text-base text-black" style={{ background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS E DESTRAVAR', '⭐ SEE THE PLANS AND UNLOCK')}</button>} />
+        <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🔒 carreira grátis T50 → ver os planos'); open() }} className="w-full mt-3 border-[3px] border-black rounded-xl py-2.5 font-black text-base text-black ov3-surface" style={{ background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{tr('⭐ VER OS PLANOS E DESTRAVAR', '⭐ SEE THE PLANS AND UNLOCK')}</button>} />
         <p className="font-bold text-xs text-black/55 mt-2">{tr('☁️ Sem plano, a cópia na nuvem some se a carreira ficar 7 dias sem salvar. No aparelho ela continua.', '☁️ Without a plan, the cloud copy is removed if the career goes 7 days without saving. On this device it stays.')}</p>
       </div>
       : <>
@@ -11784,6 +11834,12 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         holandes: state.holandes,
         pregaoAberto: state.pregaoAberto, // 🔨 o pregão aberto também continua no novo leilão (17/10)
         envUnico: state.envUnico, // ⚡ o envelope único também continua no novo leilão (28/10)
+        // 📏 09/11 (Diego: *"se ele escolheu um modo, deve seguir o que ele escolheu… se editar ou começar outra coisa aí sim"*):
+        // a liga de 10 virava de 20 no novo leilão (o tamanho não vinha na ação). Junto: turno único, chave do Relâmpago e a Liga Draft.
+        tamanhoLiga: state.tamanhoLiga === 10 ? 10 : undefined,
+        turnoUnico: state.turnoUnico === true,
+        relampagoChave: state.relampagoChave,
+        ligaDraft: state.ligaDraft, minhaLigaDraft: state.minhaLigaDraft, draftRegras: state.draftRegras, draftPremios: state.draftPremios,
         // 🧱 E O LEILÃO DE CLUBES (28/09, mesma regra dele: *"se continuarem jogando na
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".
@@ -11849,7 +11905,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       {awaitingCard ? (
         // 🎁 Jeito 1: você foi campeão e ainda não abriu a carta — trava o voto/começar
         // até pegar, pra NUNCA trocar de tela e perder a carta.
-        <div className="rounded-xl border-[3px] border-black px-3 py-3 text-center" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
+        <div className="rounded-xl border-[3px] border-black px-3 py-3 text-center ov3-surface" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#92600A' }}>{V('🎁 Pega tua carta de campeão primeiro!', '🎁 Grab your champion card first!')}</p>
           <p className="text-[11px] font-bold text-black/65 mt-0.5">{enV ? `Tap the pack up top to open it. After that ${isHost ? 'starting the next one' : 'your vote'} unlocks — so nobody loses a card.` : `Toque no pacote lá em cima pra abrir. Depois disso libera ${isHost ? 'o começar a próxima' : 'o seu voto'} — assim ninguém perde carta.`}</p>
         </div>
@@ -11889,7 +11945,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             <Btn onClick={() => void vaiPraEsperaSozinho()} bg={GOLD} className="w-full text-lg"><span>{V('📣 Ir pra sala de espera chamar gente', '📣 Go to the waiting room and invite people')}</span></Btn>
           </> : <>
             {myVote
-              ? <div className="rounded-2xl border-[3px] border-black py-3 text-center" style={{ background: '#DCFCE7' }}><p className="font-black text-lg" style={{ ...OSWALD, color: '#166534' }}>{V('✅ VOCÊ ESTÁ PRONTO!', '✅ YOU ARE READY!')}</p></div>
+              ? <div className="rounded-2xl border-[3px] border-black py-3 text-center ov3-surface" style={{ background: '#DCFCE7' }}><p className="font-black text-lg" style={{ ...OSWALD, color: '#166534' }}>{V('✅ VOCÊ ESTÁ PRONTO!', '✅ YOU ARE READY!')}</p></div>
               : <Btn onClick={() => vote('mesmo')} bg={GREEN} className="w-full text-xl"><span className="text-white">{V('✋ ESTOU PRONTO', '✋ I\'M READY')}</span></Btn>}
             {isHost ? <>
               <Btn onClick={() => void abrirDraft()} bg={GOLD} className="w-full text-xl"><span>{V('📋 ABRIR A NOITE DO DRAFT', '📋 OPEN DRAFT NIGHT')}</span></Btn>
@@ -11904,7 +11960,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {guests.length > 0 && !state.ligaDraft && (
             <div className="online-vote-repeat space-y-1.5">
               {guests.map(m => { const v = votes[m.id]; const here = members.has(m.id); const onlineNow = connected.has(m.id); return (
-                <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
+                <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2 ov3-surface" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
                   <span className="font-black text-sm text-black" style={OSWALD}>{v ? '✅' : here ? '⏳' : '🚪'} {m.teamName}</span>
                   <span className="text-[11px] font-black" style={{ ...OSWALD, color: v ? '#166534' : here ? '#92600A' : '#8a8672' }}>
                     {v ? (enV ? `READY · wants ${v === 'mesmo' ? '▶️ same team' : '🔨 new auction'}` : `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}`) : here ? (onlineNow ? V('ainda não votou…', 'hasn\'t voted yet…') : V('reconectando…', 'reconnecting…')) : V('saiu da sala — não segura o começo', 'left the room — doesn\'t hold up the start')}
@@ -11945,7 +12001,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       ) : (
         <>
           {state.ligaDraft ? (
-            <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
+            <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center ov3-surface" style={{ background: '#FFF7DE', boxShadow: `3px 3px 0 ${INK}` }}>
               <p className="font-black text-sm" style={{ ...OSWALD, color: '#4C1D95' }}>{V('📋 Agora vem a NOITE DO DRAFT', '📋 Next up: DRAFT NIGHT')}</p>
               <p className="text-[11px] font-bold text-black/65">{V('O dono abre quando a galera estiver aqui. Cada um pega 1 jogador de todo o jogo, na ordem da tabela.', 'The owner opens it when the crew is here. Everyone picks 1 player from the whole game, in table order.')}</p>
             </div>
@@ -11956,7 +12012,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
             {voteBtn('leilao', V('🔨 Novo leilão', '🔨 New auction'), GOLD, '#000')}
           </div>
           {myVote ? (
-            <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center" style={{ background: '#DCFCE7', boxShadow: `3px 3px 0 ${INK}` }}>
+            <div className="rounded-xl border-[3px] border-black px-3 py-2.5 text-center ov3-surface" style={{ background: '#DCFCE7', boxShadow: `3px 3px 0 ${INK}` }}>
               <p className="font-black text-sm" style={{ ...OSWALD, color: '#166534' }}>{V('✅ VOCÊ ESTÁ PRONTO!', '✅ YOU ARE READY!')}</p>
               <p className="text-[11px] font-bold text-black/60">{enV ? `You voted ${myVote === 'mesmo' ? '▶️ same team' : '🔨 new auction'} · waiting for the host to start (you can switch)` : `Votou em ${myVote === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'} · esperando o host começar (dá pra trocar)`}</p>
             </div>
@@ -11977,7 +12033,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         )}
       </div>
       {isHost && gerenciar && (
-        <div className="rounded-xl border-2 border-black p-2 space-y-1.5 text-left" style={{ background: '#fff' }}>
+        <div className="rounded-xl border-2 border-black p-2 space-y-1.5 text-left ov3-surface" style={{ background: '#fff' }}>
           <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1" style={OSWALD}>{V('Remover da partida', 'Remove from the match')}</p>
           {outrosTecnicos.map(m => (
             <div key={m.id} className="flex items-center gap-2">
@@ -12156,19 +12212,19 @@ function BafoCascata() {
       </p>
 
       {erro && (
-        <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: '#FFF1E8' }}>
+        <div className="border-[2.5px] border-black rounded-xl p-2.5 ov3-surface" style={{ background: '#FFF1E8' }}>
           <p className="text-[11.5px] font-bold leading-snug" style={{ color: '#8E2A1B' }}>⚠️ {erro}</p>
         </div>
       )}
 
       {!trocas && !erro && !esperou && (
-        <div className="border-[2.5px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>
+        <div className="border-[2.5px] border-black rounded-xl py-3 text-center font-black ov3-surface" style={{ background: '#fff', ...OSWALD }}>
           ⏳ Separando as cartas…
         </div>
       )}
 
       {!trocas && esperou && (
-        <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: '#FFF1E8' }}>
+        <div className="border-[2.5px] border-black rounded-xl p-2.5 ov3-surface" style={{ background: '#FFF1E8' }}>
           <p className="text-[11.5px] font-bold leading-snug" style={{ color: '#8E2A1B' }}>
             ⏳ O Bafo ainda não foi fechado — quem fecha é o host, e ele precisa chegar nesta tela. <b>Nenhuma carta trocou de dono</b> até agora. Se ele voltar, some sozinho.
           </p>
@@ -12180,7 +12236,7 @@ function BafoCascata() {
         const euGanhei = t.para === eu
         const cor = euGanhei ? GREEN : euPerdi ? RED : INK
         return (
-          <div key={t.key ?? i} className="rounded-xl p-3" style={{ border: `3px solid ${cor}`, background: '#fff', boxShadow: `3px 3px 0 0 ${cor}` }}>
+          <div key={t.key ?? i} className="rounded-xl p-3 ov3-surface" style={{ border: `3px solid ${cor}`, background: '#fff', boxShadow: `3px 3px 0 0 ${cor}` }}>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-[13px] truncate flex-1" style={OSWALD}>{t.deNome}{euPerdi && ' (você)'}</span>
               <span className="font-black text-[15px] shrink-0">➜</span>
@@ -12212,6 +12268,7 @@ function BafoCascata() {
 export function EscEnd() {
   const { state, dispatch, kickPlayer } = useEsc()
   const previewEnd = useOnlinePreview()
+  const ownerVisual=useOwnerOnlineVisual(state)
   const privateEnd = (previewEnd || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [manualPref] = useSimMode()
   const [streamManual] = useStreamSimMode()
@@ -12658,6 +12715,7 @@ export function EscEnd() {
   return (
     <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
       {festaNode}
+      {ownerVisual&&!semLiga&&<OwnerChampionBanner title={LE('Liga Legends','Liga Legends')} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={`${champ.pts} ${LE('pontos','points')}`}/>}
       <RankResultWriter />
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
           Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}
@@ -12800,7 +12858,7 @@ export function EscEnd() {
                   {(manual || pacedRoom) ? LE('▶️ Iniciar a Libertadores', '▶️ Start the Libertadores') : LE(`▶️ A Libertadores começa em ${libLeft}s (toque pra já)`, `▶️ Libertadores starts in ${libLeft}s (tap to go)`)}
                 </Btn>
               ) : (
-                <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>
+                <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black ov3-surface" style={{ background: '#fff', ...OSWALD }}>
                   ⏳ {pacedRoom ? LE('A Libertadores começa quando o host quiser', 'Libertadores starts when the host is ready') : LE(`A Libertadores começa em ${libLeft}s — o host puxa`, `Libertadores starts in ${libLeft}s — the host kicks it off`)}
                 </div>
               )}
@@ -12858,7 +12916,7 @@ export function EscEnd() {
               <span className="text-white">{(manual || pacedRoom) ? (bbEnd ? LE('▶️ Iniciar os Playoffs', '▶️ Start the Playoffs') : kEnd ? LE('▶️ Iniciar o mata-mata', '▶️ Start the knockout') : LE('▶️ Iniciar Copa dos 8', '▶️ Start the Cup of 8')) : (bbEnd ? LE(`▶️ Os Playoffs começam em ${copaLeft}s (toque pra já)`, `▶️ Playoffs start in ${copaLeft}s (tap to go)`) : LE(`▶️ A Copa começa em ${copaLeft}s (toque pra já)`, `▶️ The Cup starts in ${copaLeft}s (tap to go)`))}</span>
             </Btn>
           ) : (
-            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black" style={{ background: '#fff', ...OSWALD }}>⏳ {pacedRoom ? LE('A Copa começa quando o host quiser', 'The Cup starts when the host is ready') : LE(`A Copa começa em ${copaLeft}s — o host puxa`, `The Cup starts in ${copaLeft}s — the host kicks it off`)}</div>
+            <div className="w-full border-[3px] border-black rounded-xl py-2.5 text-center font-black ov3-surface" style={{ background: '#fff', ...OSWALD }}>⏳ {pacedRoom ? LE('A Copa começa quando o host quiser', 'The Cup starts when the host is ready') : LE(`A Copa começa em ${copaLeft}s — o host puxa`, `The Cup starts in ${copaLeft}s — the host kicks it off`)}</div>
           )}
         </Box>
       ))}
@@ -13000,7 +13058,7 @@ export function EscEnd() {
       ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending ? null : <NbaCareerEndPanel />) : (online || copaPending || libPending) ? null : (<>
       {restartPending
         ? (
-          <div className="rounded-2xl border-4 border-black p-3 space-y-2" style={{ background: '#FEF3C7' }}>
+          <div className="rounded-2xl border-4 border-black p-3 space-y-2 ov3-surface" style={{ background: '#FEF3C7' }}>
             <p className="text-center font-black text-lg" style={OSWALD}>{LE('🔀 REINICIAR COM NOVOS TIMES', '🔀 RESTART WITH NEW TEAMS')}</p>
             <p className="text-center text-sm font-bold">{LE('Esperando todo mundo confirmar…', 'Waiting for everyone to confirm…')} {readyCount}/{totalPessoas} {LE('prontos', 'ready')}</p>
             {!iAmReady

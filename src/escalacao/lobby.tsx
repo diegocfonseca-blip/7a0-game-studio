@@ -1,3 +1,6 @@
+import {PrivateRoomChat} from './private-room-chat'
+import {useOnlineRoomPresentation as useOwnerPresentation} from './presentation-release'
+import {OwnerOnlineHeader,OwnerOnlineProvider,OwnerSlot,OwnerWaitingLayout} from './owner-online-visual'
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react'
 import { SeloCla } from './cla' // ⚔️ 21/10: clãs
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
@@ -134,7 +137,10 @@ const PURPLE_DARK = '#5B21B6'
 const RED = '#E8503A'
 const CREAM = '#F4ECD6'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' }
-function randCode() { return Math.random().toString(36).slice(2, 8).toUpperCase() }
+// 🔑 08/11 (live do Reffatti, chat: *"é LETRA O e não zero"*): código novo sem os pares que confundem lendo da tela
+// (0/O · 1/I/L). Salas que já existem mantêm o código que têm.
+const CODIGO_LETRAS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+function randCode() { let c = ''; for (let i = 0; i < 6; i++) c += CODIGO_LETRAS[Math.floor(Math.random() * CODIGO_LETRAS.length)]; return c }
 // cor por usuário (estável pelo nome) — diferencia as mensagens de cada um.
 // tons escuros o suficiente pra ler no balão branco.
 const CHAT_COLORS = ['#7C3AED', '#E8503A', '#1B7A3D', '#2E6FB0', '#C77800', '#B23B8E', '#0E8A8A', '#B8860B']
@@ -150,7 +156,8 @@ function chatColor(name: string): string {
 // pílulas: 🏆 Rank · 🏅 Estante · 📜 Temporadas · ⚙️ Ajustes.
 // Aqui na ESPERA ficou só o ⚖️ do dono (na faixa verde do próximo jogo), porque a
 // regra tem que ser decidida ANTES da bola rolar — depois do pregão não tem volta.
-function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: {
+function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend, privateChat=false, roomId='', roomName='', people=0 }: {
+  privateChat?: boolean; roomId?: string; roomName?: string; people?: number
   open: boolean; setOpen: (o: boolean) => void; unread: number
   msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string, re?: ChatRe) => void
 }) {
@@ -158,6 +165,7 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
   const [resp, setResp] = useState<ChatRe | null>(null)
   useEffect(() => { const f = () => setOpen(false); window.addEventListener(EVENTO_PERFIL_ABERTO, f); return () => window.removeEventListener(EVENTO_PERFIL_ABERTO, f) }, [setOpen]) // 👥 abriu perfil pelo chat → fecha o chat
   const send = (t: string) => { if (!t.trim()) return; onSend(t, resp ?? undefined); setText(''); setResp(null) }
+  if(privateChat)return <PrivateRoomChat key={roomId} roomId={roomId} roomName={roomName||tr('Sala','Room')} people={people} open={open} setOpen={setOpen} unread={unread} messages={msgs} isMine={m=>!!myUid&&m.uid===myUid} onSend={onSend}/>
   return (
     <>
       {!open && (
@@ -797,6 +805,7 @@ export function plataformaDaLive(url: string | undefined | null): string | null 
 }
 
 export function EscLobby() {
+  const ownerAccount=useOwnerPresentation()
   const privateOnline = ONLINE_VISUAL_RELEASED
   const { state: escState, dispatch, addEmote } = useEsc()
   // 👑 retrato do estado do JOGO, lido na hora dentro do `triggerStart` (async):
@@ -880,6 +889,7 @@ export function EscLobby() {
   const [ligaComBots, setLigaComBots] = useState(true) // 🤖 padrão COM bots (Diego 29/08)
   // 📜💰 05/11: regras da turma no draft + prêmio por colocação (null = padrão do tamanho) — escolhidos ao CRIAR a Liga Draft
   const [draftPremiosSel, setDraftPremiosSel] = useState<number[] | null>(null)
+  const [draftPiorSel, setDraftPiorSel] = useState(false) // 🔢 09/11: ordem do draft (false = campeão primeiro)
   const premiosTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [ligaTamanho, setLigaTamanho] = useState<20 | 10>(20)
   useEffect(() => { setDraftPremiosSel(null) }, [ligaTamanho]) // 💰 mudou o tamanho = volta pro padrão daquele tamanho // 📋🏆 Minha Liga Draft (01/11): 20 times (padrão) ou 10, bots completam
@@ -1366,8 +1376,11 @@ export function EscLobby() {
     fetchOpenRooms()
     // 10s (era 8s): na queda de 08/09 a lista era 1 em cada 5 pedidos ao banco no
     // pico. Sala nova aparece ~5s "depois"; o botão 🔄 continua na hora.
-    const iv = setInterval(() => fetchOpenRooms(true), 10000)
-    return () => clearInterval(iv)
+    // 🧯 09/11: com o jogo minimizado ninguém está olhando a lista — não pergunta ao banco; ao voltar, atualiza na hora.
+    const iv = setInterval(() => { if (!document.hidden) fetchOpenRooms(true) }, 10000)
+    const volta = () => { if (!document.hidden) fetchOpenRooms(true) }
+    document.addEventListener('visibilitychange', volta)
+    return () => { clearInterval(iv); document.removeEventListener('visibilitychange', volta) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, tab])
 
@@ -1413,8 +1426,15 @@ export function EscLobby() {
           // da cópia local — daí em diante toda comparação com `host_id` responde
           // "não é o dono". Guardar custa nada e fecha a porta.
           // ⭐ e o vice da liga, quando o aviso traz a coluna (aviso picado não apaga nada)
-          if (r.host_id) setRoom(prev => prev && prev.id === r.id ? { ...prev, host_id: r.host_id,
-            ...('liga_vice' in r ? { liga_vice: r.liga_vice ?? null } : {}), ...(r.liga_dono ? { liga_dono: r.liga_dono } : {}) } : prev)
+          // 09/11: nada mudou → devolve o MESMO objeto (não redesenha nem reacorda efeito nenhum)
+          if (r.host_id) setRoom(prev => {
+            if (!prev || prev.id !== r.id) return prev
+            const vice = 'liga_vice' in r ? (r.liga_vice ?? null) : prev.liga_vice
+            const dono = r.liga_dono ? r.liga_dono : prev.liga_dono
+            if (prev.host_id === r.host_id && prev.liga_vice === vice && prev.liga_dono === dono) return prev
+            return { ...prev, host_id: r.host_id,
+              ...('liga_vice' in r ? { liga_vice: r.liga_vice ?? null } : {}), ...(r.liga_dono ? { liga_dono: r.liga_dono } : {}) }
+          })
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
       // aviso na hora; a exclusão da sala é a rede de segurança).
@@ -1445,8 +1465,8 @@ export function EscLobby() {
 
   // rola pro fim quando chega mensagem nova (com a gaveta aberta)
   useEffect(() => {
-    if (lobbyChatOpen && lobbyListRef.current) lobbyListRef.current.scrollTop = lobbyListRef.current.scrollHeight
-  }, [lobbyChat, lobbyChatOpen])
+    if (!(ownerAccount && !nbaSala) && lobbyChatOpen && lobbyListRef.current) lobbyListRef.current.scrollTop = lobbyListRef.current.scrollHeight
+  }, [lobbyChat, lobbyChatOpen, ownerAccount, nbaSala])
 
   // 💾 salva o histórico do chat da sala NESTE aparelho (sobrevive a recarregar)
   useEffect(() => {
@@ -1527,7 +1547,10 @@ export function EscLobby() {
     beat()
     const iv = setInterval(beat, 30_000)
     return () => clearInterval(iv)
-  }, [phase, room, isHost])
+    // ⚠️ 09/11: depende do ID da sala, nunca do objeto `room` — o próprio batimento volta pelo canal, o ouvinte
+    // recria o `room`, e com `room` aqui o efeito rodava de novo e batia NA HORA: laço infinito (até 13 gravações/s).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, room?.id, isHost])
 
   // 🛟 HOST CAIU SEM AVISAR: o convidado vigia o batimento do host na sala de
   // espera. Se a sala sumiu (host apertou "sair" e apagou) → banner na hora. Se o
@@ -1561,7 +1584,9 @@ export function EscLobby() {
     }
     const iv = setInterval(check, 30_000)
     return () => clearInterval(iv)
-  }, [phase, room, isHost])
+    // ⚠️ 09/11: pelo ID — com o objeto `room` o relógio recomeçava a cada aviso e a vigia nunca disparava
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, room?.id, isHost])
 
   // Busca a lista de jogadores DIRETO do banco (não confia em estado local
   // que pode estar vazio/desatualizado, ex.: logo após reconectar) — usar
@@ -1759,7 +1784,7 @@ export function EscLobby() {
     let saem = new Set<string>()
     if (amHost && ehLigaSala) {
       try {
-        const { data: peds } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: roomData.id })
+        const { data: peds } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: roomData.id })
         for (const p of (peds ?? []) as { user_id: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[])
           if (p.status === 'aceito') entradas[p.user_id] = { ...(p.alvo_bot != null ? { bot: p.alvo_bot } : {}), ...(p.alvo_uid ? { uid: p.alvo_uid } : {}) }
       } catch { entradas = {} }
@@ -1973,12 +1998,15 @@ export function EscLobby() {
       ? linhas.filter((l): l is string => l !== null).join('\n')
       : getLang() === 'en' ? `🔨 I challenge you on Leilão Legends! Join room ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}` : `🔨 Te desafio no Leilão Legends! Entre na sala ${roomName ? `"${roomName}" ` : ''}(${code}):\n${url}`
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
-    if (typeof nav.share === 'function') {
+    // 🖥️ 08/11 (live do Reffatti): no PC o Chrome abre a janela de compartilhar do Windows, que não tem "copiar" —
+    // o dono ficava sem o convite. Com mouse (PC) copia direto; o compartilhar nativo fica só no celular.
+    const pc = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches
+    if (!pc && typeof nav.share === 'function') {
       try { await nav.share(liga ? { title: 'Leilão Legends', text } : { title: 'Leilão Legends', text, url }); return } catch { /* usuário cancelou ou não suporta */ }
     }
     // sem share nativo (PC): copia. Na liga copia a MENSAGEM INTEIRA — o link
     // sozinho não abre a porta, que é o furo que estamos consertando.
-    try { await navigator.clipboard.writeText(liga ? text : url); setShareOk('link'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+    if (await copiaTexto(liga ? text : url)) { setShareOk('link'); setTimeout(() => setShareOk(null), 2500) }
   }
   // 🔓 REABRIR A LIGA PRA CHAMAR GENTE NOVA (31/08 — relato que chegou pro Diego:
   // *"começou um dia o jogo… e dps em outro dia, se quiser mandar convite pra uma
@@ -2010,7 +2038,7 @@ export function EscLobby() {
     erro: tr('Não consegui abrir a sala agora. Tenta de novo em instantes.', 'Couldn\'t open the room right now. Try again in a moment.'),
   }
   async function copyCode(code: string) {
-    try { await navigator.clipboard.writeText(code); setShareOk('code'); setTimeout(() => setShareOk(null), 2000) } catch { /* ignora */ }
+    if (await copiaTexto(code)) { setShareOk('code'); setTimeout(() => setShareOk(null), 2500) }
   }
 
   // selo de apoio (👑/⭐/💎) entra colado no nome — aparece pra TODO MUNDO na
@@ -2179,7 +2207,7 @@ export function EscLobby() {
     const turnoSala = !carreira && !elenco && !mundo && turnoVale // ⚡ 06/11: liga de 20 em turno único (19 rodadas, campo neutro)
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}), ...(tam10Sala ? { tamanhoLiga: 10 } : {}) }), // 🏟️ 04/11: liga de 10 times
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: 'liga', ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}), ...(draftPiorSel ? { draftRegras: { piorPrimeiro: true } } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: 'liga', ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
       mundoNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}),
       ...(turnoSala ? { turnoUnico: true } : {}) }
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
@@ -2327,8 +2355,14 @@ export function EscLobby() {
       const { data: ligasVivas } = await supabase.from('game_rooms').select(cols)
         .eq('status', 'started').eq('ls_mode', 'liga').eq('ls_tag', tagAtual()).gte('updated_at', desde)
         .order('updated_at', { ascending: false }).limit(30)
+      // 🔒 08/11 (Diego: *"permita aparecer nas salas abertas a sala, porém com senha pra entrar sempre"*): a liga ESPERANDO a
+      // turma também entra na lista (criada há dias, por isso busca à parte); entrar continua pedindo a senha (`enterRoom`).
+      const desdeEspera = new Date(Date.now() - 180_000).toISOString() // (o mesmo WAIT_STALE_MS de baixo)
+      const { data: ligasEspera } = await supabase.from('game_rooms').select(cols)
+        .eq('status', 'waiting').eq('ls_mode', 'liga').eq('ls_tag', tagAtual()).gte('updated_at', desdeEspera)
+        .order('updated_at', { ascending: false }).limit(30)
       const ja = new Set((rooms as { id: string }[]).map(x => x.id))
-      for (const lv of (ligasVivas ?? []) as unknown as { id: string }[]) if (!ja.has(lv.id)) (rooms as unknown[]).push(lv)
+      for (const lv of [...(ligasVivas ?? []), ...(ligasEspera ?? [])] as unknown as { id: string }[]) if (!ja.has(lv.id)) { ja.add(lv.id); (rooms as unknown[]).push(lv) }
     } catch { /* sem resposta: só as salas de sempre */ }
     type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null; gpregao?: string | null; gdraft?: string | null }
     // 📋 LIGA DRAFT (19/10): só a conta do Diego cria e ela NÃO aparece pra ninguém na lista (*"ninguém pode ver"*)
@@ -2437,7 +2471,7 @@ export function EscLobby() {
       .filter(r => {
         if (isCareer(r) || isBafo(r) || isMundo(r)) return false
         // 🏆 liga: SÓ com a partida rolando. ⚡ rápida: a regra de sempre.
-        if (ehLigaRow(r)) return ligaRolando(r)
+        if (ehLigaRow(r)) return ligaRolando(r) || (r.status === 'waiting' && r.count >= 1 && waitingAlive(r)) // 🔒 08/11: esperando a turma também (entra só com a senha)
         if ((r.game_state as GS & { ligaDraft?: boolean })?.ligaDraft) return false // 📋 draft que não é liga: nunca na lista
         return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
       })
@@ -2753,7 +2787,7 @@ export function EscLobby() {
     // 🙋 pedidos: os que chegaram nas MINHAS ligas (só o dono lê) e os que EU fiz
     const minhasComoDono = rooms.filter(r => (r.liga_dono ?? r.host_id) === user.id)
     const lidos = await Promise.all(minhasComoDono.map(async r => {
-      try { const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: r.id }); return [r.id, (data ?? []) as PedLiga[]] as const } catch { return [r.id, [] as PedLiga[]] as const }
+      try { const { data } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: r.id }); return [r.id, (data ?? []) as PedLiga[]] as const } catch { return [r.id, [] as PedLiga[]] as const }
     }))
     setPedidosDono(Object.fromEntries(lidos))
     try { const { data } = await supabase.rpc('esc_liga_meus_pedidos'); setMeusPedidos(((data ?? []) as MeuPed[]).filter(p => p.status !== 'recusado' && !rooms.some(r => r.id === p.room_id))) } catch { /* sem pedidos */ }
@@ -3407,22 +3441,23 @@ export function EscLobby() {
     e.preventDefault(); e.stopPropagation(); pedeConta()
   }
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${onlineHub && phase === 'menu' && !estreito && !recovering ? ' ll-online-hub' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
+    <OwnerOnlineProvider enabled={ownerAccount&&!nbaSala&&phase==='waiting'} state={escState} accountName={nameOf()}><div className={`${ownerAccount&&!nbaSala&&phase==='waiting'?'ov3 ov3-waiting ':''}tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? `online-room-art${!nbaSala?' ll-desktop-approved':''}` : ''}${onlineHub && phase === 'menu' && !estreito && !recovering ? ' ll-online-hub' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} data-online-tab={tab} data-room-mode={room?.game_state?.mode} data-desk-criar={desk && phase === 'menu' && tab === 'create' ? '1' : undefined} style={{ backgroundColor: INK }}>
+      {ownerAccount&&!nbaSala&&phase==='waiting'&&<OwnerOnlineHeader name={nameOf()} online onHome={onBack??(()=>dispatch({type:'GO_LOBBY'}))} onRooms={()=>{setTab('open');setPhase('menu')}}/>}
       {temaSala && <TemaFundo tema={temaSala} />}
-      {!nbaSala&&!estreito&&!recovering&&!(onlineHub&&phase==='menu')&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
+      {!(ownerAccount&&phase==='waiting')&&!nbaSala&&!estreito&&!recovering&&!(onlineHub&&phase==='menu')&&(phase==='menu'||phase==='waiting')&&<DesktopHeader onClickCapture={travaVisitante} name={user?.user_metadata?.display_name||undefined} links={phase==='menu'?[
         {label:tr('Salas abertas','Open rooms'),active:tab==='open'&&!showLeagues,onClick:()=>{setRoomError('');setShowLeagues(false);setTab('open')}},
         {label:tr('Criar sala','Create room'),free:false,active:tab==='create',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('create')}},
         ...(ligaOn?[{label:tr('Suas ligas','Your leagues'),active:tab==='open'&&showLeagues,onClick:()=>{setTab('open');setShowLeagues(true)}}]:[]),
         {label:tr('Entrar por código','Join by code'),active:tab==='join',onClick:()=>{setRoomError('');setShowLeagues(false);setTab('join')}},
       ]:[]}/>}
-      {onBack && !(onlineHub && phase === 'menu' && !estreito && !recovering) && (
+      {onBack && !(ownerAccount&&!nbaSala&&phase==='waiting') && !(onlineHub && phase === 'menu' && !estreito && !recovering) && (
         <button onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
           <span className="text-xl leading-none">←</span> Home
         </button>
       )}
-      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`} onClickCapture={travaVisitante}>{children}</div>
-    </div>
+      <div className={`${estreito ? 'col-tela col-form' : 'col-tela'} space-y-5`} onClickCapture={travaVisitante}>{ownerAccount&&!nbaSala&&phase==='waiting'?<><OwnerWaitingLayout hasRules={room?.game_state?.mode!=='mundo'&&room?.game_state?.mode!=='elenco'} canTheme={isHost&&meusTemas.length>0} chatEnabled={!room?.game_state?.chatOff}>{children}</OwnerWaitingLayout><div className="ow-shop"><OnlineLobbyFooter enabled><button type="button" onClick={()=>dispatch({type:'GO_LOBBY'})}>{tr('← Menu inicial','← Main menu')}</button></OnlineLobbyFooter></div></>:children}</div>
+    </div></OwnerOnlineProvider>
   )
 
   // 👁️ escolheu assistir uma sala: a espera do fantasma (entra sozinho quando a partida estiver rolando)
@@ -4037,7 +4072,7 @@ export function EscLobby() {
                   {/* 💡💰 05/11 (Diego): ideias de regras (só texto) + prêmio por colocação (padrão pelo tamanho; o criador edita) */}
                   {ehMinha && (
                     <div className="mt-3">
-                      <ConfigLigaDraft premios={draftPremiosSel} nTimes={ligaComBots ? ligaTamanho : 20} onPremios={setDraftPremiosSel} />
+                      <ConfigLigaDraft premios={draftPremiosSel} nTimes={ligaComBots ? ligaTamanho : 20} onPremios={setDraftPremiosSel} piorPrimeiro={draftPiorSel} onOrdem={setDraftPiorSel} />
                     </div>
                   )}
                   {/* 🔒 SENHA OBRIGATÓRIA + AS REGRAS ESCRITAS (Diego 29/08: *"somente
@@ -5264,17 +5299,8 @@ export function EscLobby() {
     //     no celular, mais de uma tela de rolagem. Quem não rolou, não achou.
     //   · RÁPIDA → onde sempre esteve. Lá o código já basta e a tela é curta.
     const ehLigaSala = room.game_state?.mode === 'liga'
-    const caixaConvite = (
-      <div className="online-invite rounded-2xl border-[3px] border-black p-3 space-y-2" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
-        <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>
-        <p className="text-white/80 text-[11px] font-medium leading-snug">
-          {tr('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — whoever has an account lands straight in the room; whoever doesn\'t signs up and ends up here.')}
-        </p>
-        {/* 🔒 a senha entra NO CONVITE, e só. Ninguém consegue LER a senha da liga
-            (o banco guarda ela embaralhada), então o dono escreve aqui qual é pra
-            ela viajar junto com o código. Nada fica guardado: fechou a tela,
-            sumiu. Esqueceu qual era? Troca em "🏆 Minhas ligas › ✏️ Editar". */}
-        {ehLigaSala && isHost && (
+    const conviteCompacto = ownerAccount && !nbaSala
+    const conviteSenha = ehLigaSala && isHost ? (
           <div className="rounded-xl border-2 border-black px-2.5 py-2" style={{ background: 'rgba(255,255,255,.14)' }}>
             <p className="text-white/70 text-[9px] font-black uppercase tracking-wider" style={OSWALD}>{tr('🔒 senha da liga (vai junto no convite)', '🔒 league password (goes with the invite)')}</p>
             <input value={convitePw} maxLength={24} onChange={e => setConvitePw(e.target.value)}
@@ -5284,17 +5310,35 @@ export function EscLobby() {
               {getLang() === 'en' ? <>Without the password your friend hits a locked door. Forgot it? Change it in <b>🏆 My leagues › ✏️ Edit</b>.</> : <>Sem a senha o amigo bate na porta trancada. Esqueceu qual é? Troque em <b>🏆 Minhas ligas › ✏️ Editar</b>.</>}
             </p>
           </div>
-        )}
-        <div className="flex gap-2">
+        ) : null
+    const caixaConvite = (
+      <OwnerSlot name="wait-invite"><div className={`online-invite rounded-2xl border-[3px] border-black p-3 space-y-2${conviteCompacto ? ' ow-invite-inline' : ''}`} style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`, boxShadow: `4px 4px 0 ${INK}` }}>
+        {!conviteCompacto && <p className="text-white font-black text-[13px] leading-tight" style={OSWALD}>{tr('📣 Chame a galera', '📣 Call the crew')}</p>}
+        {/* Na prévia privada o código e a ação de copiar ficam só no cabeçalho. */}
+        {/* 🔑 08/11 (live do Reffatti): o CÓDIGO grande, à vista — quem está do outro lado da live digita lendo da tela */}
+        {(!ownerAccount || nbaSala) && <button onClick={() => copyCode(room.code)} className="w-full rounded-xl border-[3px] border-black bg-white text-black px-2 py-1.5 active:translate-y-0.5" style={{ boxShadow: `3px 3px 0 ${INK}` }}
+          aria-label={tr('Copiar código', 'Copy code')}>
+          <span className="block text-[9px] font-black uppercase tracking-wider text-black/55" style={OSWALD}>{tr('Código da sala · toque pra copiar', 'Room code · tap to copy')}</span>
+          <span className="block font-black text-[30px] leading-none tracking-[4px]" style={OSWALD}>{room.code}</span>
+        </button>}
+        {!conviteCompacto && <p className="text-white/80 text-[11px] font-medium leading-snug">
+          {tr('Manda o link — quem já tem conta cai direto na sala; quem não tem, cadastra e vem parar aqui.', 'Send the link — whoever has an account lands straight in the room; whoever doesn\'t signs up and ends up here.')}
+        </p>}
+        {/* 🔒 a senha entra NO CONVITE, e só. Ninguém consegue LER a senha da liga
+            (o banco guarda ela embaralhada), então o dono escreve aqui qual é pra
+            ela viajar junto com o código. Nada fica guardado: fechou a tela,
+            sumiu. Esqueceu qual era? Troca em "🏆 Minhas ligas › ✏️ Editar". */}
+        {conviteSenha && (conviteCompacto ? <details className="ow-invite-password"><summary>{tr('🔒 Incluir senha no convite', '🔒 Include password in invite')}</summary>{conviteSenha}</details> : conviteSenha)}
+        <div className="ow-invite-actions flex gap-2">
           <button onClick={() => shareInvite(room.code, room.game_state?.roomName, ehLigaSala ? { at: (room.game_state as GS)?.ligaAt, senha: convitePw } : undefined)}
             className="flex-1 border-[2px] border-black rounded-xl py-2.5 font-black text-xs uppercase bg-white text-black active:translate-y-0.5" style={OSWALD}>
             {tr('📤 Compartilhar convite', '📤 Share invite')}
           </button>
-          <button onClick={() => copyCode(room.code)}
+          {!conviteCompacto && <button onClick={() => copyCode(room.code)}
             className="border-[2px] border-black rounded-xl px-3 py-2.5 font-black text-xs uppercase bg-[#FFC400] text-black active:translate-y-0.5" style={OSWALD}
             aria-label={tr('Copiar código', 'Copy code')}>
             📋
-          </button>
+          </button>}
         </div>
         {amigosOn && (
           <button onClick={() => setVerAmigos(true)}
@@ -5304,11 +5348,11 @@ export function EscLobby() {
         )}
         {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
         {shareOk && (
-          <p className="text-white text-[11px] font-black text-center" style={OSWALD}>
+          <p className="ow-invite-status text-white text-[11px] font-black text-center" style={OSWALD}>
             ✓ {shareOk === 'code' ? tr('Código copiado', 'Code copied') : ehLigaSala ? tr('Convite copiado — cola no zap', 'Invite copied — paste it in the chat') : tr('Link copiado — cola no zap', 'Link copied — paste it in the chat')}
           </p>
         )}
-      </div>
+      </div></OwnerSlot>
     )
     // 🗂️ visual novo (só na conta do Diego): os selos das regras da sala numa linha só, lidos do game_state que já está na mão
     const gsSala = (room.game_state as GS & { holandes?: boolean; duplasMode?: boolean; mundoNaLiga?: boolean; regionalNaLiga?: string })
@@ -5332,7 +5376,7 @@ export function EscLobby() {
       : tr('✉️ Às cegas: cada um lacra o lance no envelope e o maior leva no martelo.', '✉️ Sealed bid: everyone seals their bid and the highest wins at the hammer.')
     return wrap(<>
       {salasEspera && (<>
-        <div className="ll-wait-heading flex items-center gap-2.5 pt-1">
+        <OwnerSlot name="wait-heading"><div className="ll-wait-heading flex items-center gap-2.5 pt-1">
           <div className="flex-1 min-w-0">
             <p className="text-white font-black text-[19px] leading-tight truncate" style={OSWALD}>{room.game_state?.roomName ?? tr('Sala', 'Room')}</p>
             <p className="text-white/60 text-[12px] font-bold">{isHost ? tr('você é o dono 👑', 'you are the owner 👑') : tr('você é convidado', 'you are a guest')}</p>
@@ -5342,15 +5386,16 @@ export function EscLobby() {
             <span className="block font-black text-[24px] leading-none text-black" style={{ ...OSWALD, letterSpacing: '.1em' }}>{room.code}</span>
             <span className="block text-[9px] font-black uppercase text-black/50">{tr('toque pra copiar', 'tap to copy')}</span>
           </button>
-        </div>
+        </div></OwnerSlot>
         {selosSala.length > 0 && (
-          <div className="ll-wait-rules rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
+          <OwnerSlot name="wait-rules"><div className="ll-wait-rules rounded-xl border-2 px-2 py-2" style={{ background: 'rgba(255,255,255,.08)', borderColor: 'rgba(255,255,255,.25)' }}>
             <div className="flex flex-wrap items-center gap-1.5">
               {selosSala.map(x => <span key={x} className="text-[11px] font-black uppercase border-2 border-black rounded-md px-1.5 py-0.5 leading-none" style={{ ...OSWALD, background: '#fff', color: INK }}>{x}</span>)}
+              {ownerAccount&&<span className="text-[11px] font-black border-2 border-black rounded-md px-1.5 py-0.5" style={{...OSWALD,background:'#fff',color:INK}}>{tr('Formação','Formation')}: {gsSala.formation??'4-3-3'}</span>}
               <button onClick={() => setRegrasAbertas(v => !v)} className="ml-auto text-[11.5px] font-black" style={{ color: GOLD, minHeight: 0 }}>{regrasAbertas ? tr('regras ▴', 'rules ▴') : tr('regras ▾', 'rules ▾')}</button>
             </div>
             {regrasAbertas && <p className="text-white/75 text-[12px] font-bold leading-snug mt-2">{regraLonga}</p>}
-          </div>
+          </div></OwnerSlot>
         )}
       </>)}
       {!salasEspera && <div className="online-room-code text-center">
@@ -5390,14 +5435,14 @@ export function EscLobby() {
           🖼️ 29/10 (mockup `tema-sala-achar.png`): em DOURADO, com a miniatura de cada tema e o "✓ NA SALA" — o dono não percebia que
           tinha tema. Até 3 temas cabem numa linha; com mais, quebra (o "Sem tema" vai por último). */}
       {isHost && meusTemas.length > 0 && (
-        <div className="ll-room-themes rounded-2xl border-[3px] border-black p-2.5" style={{ background: 'linear-gradient(135deg,#FFE79A,#FFC400)', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
+        <OwnerSlot name="wait-themes"><div className="ll-room-themes rounded-2xl border-[3px] border-black p-2.5" style={{ background: 'linear-gradient(135deg,#FFE79A,#FFC400)', boxShadow: `4px 4px 0 ${INK}`, color: INK }}>
           <p className="font-black text-[14px] uppercase leading-tight" style={OSWALD}>{meusTemas.length === 1 ? tr('🎨 Você tem 1 tema · vista a sala', '🎨 You have 1 theme · dress the room') : tr(`🎨 Você tem ${meusTemas.length} temas · vista a sala`, `🎨 You have ${meusTemas.length} themes · dress the room`)}</p>
           <p className="text-[11px] font-bold mb-2" style={{ color: 'rgba(12,12,12,.75)' }}>{tr('Toque num tema. Todo mundo que entrar vê a sala com ele.', 'Tap a theme. Everyone who joins sees the room with it.')}</p>
           <div className="flex flex-wrap gap-1.5">
             {meusTemas.map(id => <div key={id} style={{ flex: '1 1 30%', minWidth: 96, display: 'flex' }}><MiniTemaSala tema={temaValido(id)} ativo={temaSala?.id === id} onClick={() => void salvaTema(id)} /></div>)}
             <div style={{ flex: '1 1 30%', minWidth: 96, display: 'flex' }}><MiniTemaSala tema={null} ativo={!temaSala} onClick={() => void salvaTema(null)} /></div>
           </div>
-        </div>
+        </div></OwnerSlot>
       )}
 
       {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima); no visual novo, em toda sala */}
@@ -5440,6 +5485,8 @@ export function EscLobby() {
             {(gs as GS & { minhaLigaDraft?: boolean })?.minhaLigaDraft && (
               <div className="mt-3">
                 <ConfigLigaDraft soLeitura={!mandaNaLiga}
+                  piorPrimeiro={!!(gs as GS & { draftRegras?: RegrasDraft })?.draftRegras?.piorPrimeiro}
+                  onOrdem={pior => { void patchDraftLiga({ regras: { ...((gs as GS & { draftRegras?: RegrasDraft })?.draftRegras ?? {}), piorPrimeiro: pior } }) }}
                   premios={(gs as GS & { draftPremios?: number[] | null })?.draftPremios ?? null}
                   nTimes={(gs as GS & { tamanhoLiga?: number })?.tamanhoLiga === 10 ? 10 : 20}
                   onPremios={pm => {
@@ -5720,7 +5767,7 @@ export function EscLobby() {
         }} />
       )}
 
-      <div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+      <OwnerSlot name="wait-people"><div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">
           {duplasOn ? `${tr('Times', 'Teams')} (${donos.length}/20) · ${players.length} ${players.length === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `${tr('Técnicos', 'Managers')} (${players.length}/${room.max_players})`}
         </p>
@@ -5761,8 +5808,8 @@ export function EscLobby() {
                 ); return getSport() === 'basquete' ? bolinha : <PresidenteDaConta uid={p.user_id} size={40} reserva={bolinha} /> /* 🧑‍💼 16/10: a PESSOA = o presidente dela (Craque+); sem boneco, a bolinha de sempre */ })()}
                 <div className="flex-1 min-w-0 flex flex-col items-start">{/* ⚔️ 21/10: o selo do clã vai na linha de BAIXO do nome (sem tirar nada do lugar) */}
                 {amigosOn && !duplasOn && contaValida(p.user_id)
-                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}<NomeComFake nome={p.manager_name} /></button>/* 👥 toque no nome = perfil (adicionar amigo) */
-                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : <NomeComFake nome={p.manager_name} />}</span>}
+                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: ownerAccount ? ({ouro:'#85620d',prata:'#58616f',roxo:'#6b30a0',verde:'#236e40',bege:'#6b6048'} as const)[pk.tier] : pk.solid } : undefined}>{meuRival?.uid === p.user_id && <span title={tr('Seu rival', 'Your rival')} className="no-underline">🔥 </span>}<NomeComFake nome={p.manager_name} /></button>/* 👥 toque no nome = perfil (adicionar amigo) */
+                  : <span className="font-black text-black text-sm" style={pk && !gala ? { color: ownerAccount ? ({ouro:'#85620d',prata:'#58616f',roxo:'#6b30a0',verde:'#236e40',bege:'#6b6048'} as const)[pk.tier] : pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : <NomeComFake nome={p.manager_name} />}</span>}
                   <SeloCla uid={p.user_id} />
                 </div>
                 {gala && <GalaMascoteMini clube={gala} />}
@@ -5959,7 +6006,7 @@ export function EscLobby() {
             </p>
           )}
         </div>
-      </div>
+      </div></OwnerSlot>
 
       {/* 🔕 QUANDO O CHAT ESTÁ DESLIGADO, A SALA TEM QUE DIZER (29/08). O próprio
           Diego caiu nisto: entrou numa sala com o chat desligado pelo host e achou
@@ -5993,7 +6040,7 @@ export function EscLobby() {
               { ic: '🔥', tx: tr('Tô pronto pra ganhar de todo mundo!', 'I\'m ready to beat everyone!') },
             ]
         return (
-          <div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+          <OwnerSlot name="wait-banter"><div className="online-banter rounded-2xl border-[3px] border-black p-3 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-2">{tr('😜 Enquanto espera… zoa a galera', '😜 While you wait… tease the crew')}</p>
             <div className={salasEspera ? 'flex gap-2 overflow-x-auto pb-1 [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'grid grid-cols-2 gap-2'}>
               {jabs.map((j, i) => (
@@ -6028,7 +6075,7 @@ export function EscLobby() {
               className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
               {tr('💬 Abrir chat da sala', '💬 Open room chat')} {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
             </button>
-          </div>
+          </div></OwnerSlot>
         )
       })()}
       {/* 🃏 BAFO: o host mandou começar com gente ainda montando. Mesmo padrão da
@@ -6068,7 +6115,7 @@ export function EscLobby() {
           (lá em cima, na faixa verde), porque a regra tem que ser decidida ANTES
           da bola rolar. */}
       {/* 🗂️ visual novo: o botão do dono (e o aviso de quem espera) fica FIXO no pé da tela, sempre à vista */}
-      <div className={salasEspera ? 'salas-rodape-fixo' : undefined} style={salasEspera ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
+      <OwnerSlot name="wait-start"><div className={salasEspera ? 'salas-rodape-fixo' : undefined} style={salasEspera ? { position: 'sticky', bottom: 0, zIndex: 30, background: 'linear-gradient(180deg, rgba(10,8,6,0) 0%, rgba(10,8,6,.92) 22%, #0a0806 100%)', padding: '14px 0 10px', marginTop: -6 } : undefined}>
       {mascKey&&<button type="button" className="ll-mascot-start" onClick={sendMasc} disabled={mascCoolLeft>0}><MascoteMini art={MASCOTES[mascKey]} alt={38}/>{mascCoolLeft>0?`🐾 ${mascCoolLeft}s…`:tr('Soltar o mascote','Release mascot')}</button>}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
@@ -6126,7 +6173,7 @@ export function EscLobby() {
             </>
           : <p className="text-white/60 text-sm font-bold text-center py-3">{waitMsg}</p>
       })()}
-      </div>
+      </div></OwnerSlot>
       {/* 🚪🗑️ SAIR e EXCLUIR juntos, no PÉ DA TELA (Diego 22/08: *"eu acho q além de
           sair da sala deve ter um botão dentro da sala de excluir sala tb não?"*).
           O excluir da liga EXISTIA, mas morava lá em cima, dentro da faixa verde do
@@ -6149,7 +6196,7 @@ export function EscLobby() {
         // aberta a noite toda.
         const rotuloSair = ehLiga ? tr('✅ Guardar e sair', '✅ Save and leave') : !souDonoAqui ? tr('🚪 Sair da sala', '🚪 Leave the room') : tr('🚪 Sair e encerrar a sala', '🚪 Leave and close the room')
         return (
-          <div className="space-y-1.5">
+          <div className={ownerAccount?'ow-native-exit space-y-1.5':'space-y-1.5'}>
             {ehLiga && (isHost || mandaNaLiga) ? (
               <div className="flex gap-2">
                 <button onClick={leaveRoom}
@@ -6182,7 +6229,8 @@ export function EscLobby() {
           crachá de não-lidas. Só aparece se o host deixou o chat ligado. */}
       {!chatOff && <LobbyChatDock
         open={lobbyChatOpen} setOpen={openLobbyChat} unread={lobbyUnread}
-        msgs={lobbyChat} myUid={user?.id} listRef={lobbyListRef} onSend={sendLobbyChat} />}
+        msgs={lobbyChat} myUid={user?.id} listRef={lobbyListRef} onSend={sendLobbyChat}
+        privateChat={ownerAccount&&!nbaSala} roomId={room.id} roomName={room.game_state?.roomName} people={players.length} />}
 
       {/* 🎈 CAMADA FLUTUANTE: as reações da zoeira sobem e somem POR CIMA de tudo —
           inclusive do chat aberto (z acima da gaveta). Não entra no chat. */}
@@ -6262,4 +6310,13 @@ function ContaNova24h({ fim, onVerSalas }: { fim: number; onVerSalas: () => void
       </div>
     </div>
   )
+}
+
+// 📋 copia com reserva: a área de transferência moderna falha em alguns navegadores/abas sem foco — aí vai pelo jeito antigo
+async function copiaTexto(txt: string): Promise<boolean> {
+  try { await navigator.clipboard.writeText(txt); return true } catch { /* tenta o jeito antigo */ }
+  try {
+    const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'
+    document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok
+  } catch { return false }
 }

@@ -56,11 +56,14 @@ export function kitLimpo(cores: (string | null | undefined)[], reserva = '#88888
  * ⚔️ as duas camisas do jogo. `casa`/`fora` = o kit de cada um ([principal, 2ª?, 3ª?]).
  * Pura e determinística: mesmo kit → mesma camisa, em qualquer aparelho.
  */
-export function camisasDoJogo(casaKit: string[], foraKit: string[]): [Camisa2D, Camisa2D] {
+export function camisasDoJogo(casaKit: string[], foraKit: string[], foraKit2?: string[] | null): [Camisa2D, Camisa2D] {
   const casa = kitLimpo(casaKit, '#C2452F'), fora = kitLimpo(foraKit, '#2B6CFF')
   const principal = casa[0]
   const camCasa: Camisa2D = { cor: principal, listras: casa.slice(1) }
   if (!parecido(principal, fora[0])) return [camCasa, { cor: fora[0], listras: fora.slice(1) }]
+  // 🎽 09/11: o visitante tem 2ª CAMISA (Loja) e ela não bate com a casa → joga com ela, antes de inverter ou ir de branco
+  const segunda = foraKit2 && foraKit2.length ? kitLimpo(foraKit2) : null
+  if (segunda && !parecido(principal, segunda[0])) return [camCasa, { cor: segunda[0], listras: segunda.slice(1) }]
   // 🔄 camisa invertida: a 2ª (ou a 3ª, a que menos choca) vira a principal, e a principal vira detalhe
   const outras = fora.slice(1).map(c => ({ c, d: deltaE(principal, c) })).sort((a, b) => b.d - a.d)
   const melhor = outras[0]

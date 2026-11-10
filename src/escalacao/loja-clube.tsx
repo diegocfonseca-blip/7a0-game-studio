@@ -27,6 +27,7 @@ import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, planoFixo, PRECOS_UNICO, PRECOS_DUPLO, MENSAIS, type PlanoUnico } from './planos-regras'
 import { assinarMensal } from './vendria-checkout'
 import { PixBox, APOIO_IG, ApoieButton, GiroDaRodada } from './screens'
+import { MantosNaLoja } from './mantos-loja'
 import { CoresNaLoja } from './cores-loja' // 🎨 02/11: cor adicional
 import { PresenteBox } from './presente'
 import { TemasNaLoja } from './temas-loja' // 🎨 18/10: tema da sala (time de coração + clube batizado)
@@ -195,7 +196,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
       <div className="ls1-bottom-links"><button type="button" className="ls1-shortcut" onClick={() => ir('carreira', 'loja-moedas')}><LojaIcone tipo="carreira" /><span><strong>{t('MOEDAS E FICHAS DE CARREIRA', 'CAREER COINS AND SLOTS')}</strong><small>{t('Pacotes de moedas e mais espaços para salvar.', 'Coin packs and more save slots.')}</small></span>→</button><button type="button" className="ls1-shortcut" onClick={() => ir('salas', 'loja-presentes')}><LojaIcone tipo="gift" /><span><strong>{t('PRESENTEIE UM AMIGO', 'GIVE A FRIEND A GIFT')}</strong><small>{t('Planos de presente e combos para dois.', 'Plan gifts and bundles for two.')}</small></span>→</button></div>
       <details className="ls1-story" onToggle={e => setHistoriaAberta(e.currentTarget.open)}><summary>{t('O jogo, a história do Luca e para onde vai o apoio →', 'The game, Luca’s story and where support goes →')}</summary>{historiaAberta && <><SupportStory /><SupportMoney /></>}</details>
     </>,
-    clube: <><div className="ls1-section-heading"><h2>{t('SEU CLUBE COM A SUA CARA.', 'YOUR CLUB, YOUR STYLE.')}</h2><p>{t('Personalização e identidade, num lugar só.', 'Customization and identity, in one place.')}</p></div><div className="ls1-products-grid ls1-legacy"><div className="ls1-item ls1-wide" id="loja-presidente"><MeuPresidenteLoja /></div><div className="ls1-item">        {/* 🎤 DO CLUBE BATIZADO — 14/10 (Diego): a gala avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo).
+    clube: <><div className="ls1-section-heading"><h2>{t('SEU CLUBE COM A SUA CARA.', 'YOUR CLUB, YOUR STYLE.')}</h2><p>{t('Personalização e identidade, num lugar só.', 'Customization and identity, in one place.')}</p></div><div className="ls1-products-grid ls1-legacy"><div className="ls1-item ls1-wide" id="loja-presidente"><MeuPresidenteLoja /></div>{pixMp && email && <div className="ls1-item ls1-wide">{/* 🎽🐾🛡️🎬 09/11: mantos (1ª/2ª camisa), mascote, escudo e gala */}<MantosNaLoja h2={h2} sub={sub} card={card} preco={preco} reais={reais} /></div>}<div className="ls1-item">        {/* 🎤 DO CLUBE BATIZADO — 14/10 (Diego): a gala avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo).
             Fica só o 📣 canto avulso, o pedacinho barato; a gala única vem no 🖋 Fundador. */}
         <h2 id="loja-canto" style={h2}>{tr('📣 Canto da torcida', '📣 Crowd chant')} <span style={sub}>{tr('pro seu clube batizado', 'for your named club')}</span></h2>
         <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', opacity: temBatismo ? 1 : .6 }}>

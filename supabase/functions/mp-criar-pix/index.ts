@@ -25,6 +25,8 @@ const NOMES: Record<string, string> = {
   manual_24h: 'Modo Manual por 24 horas', // 26/10: R$ 9,90 avulso (quem já tem Manual não compra)
   cor_extra: 'Cor adicional brilhante', // 02/11: R$ 14,90 cada, só com plano, ref = a cor
   doacao_luca: 'Doação pro Luca', // 05/11: Pix de doação (R$ 2 a 1.000, ref = v<centavos>); não dá nada no jogo
+  manto_camisa: 'Camisa do clube', manto_duas: 'As duas camisas do clube', // 09/11: R$ 9,90 cada (ref '1'/'2') · as duas R$ 14,90
+  mascote_clube: 'Mascote do clube', escudo_clube: 'Escudo do clube', gala_clube: 'Entrada de gala personalizada', // 09/11: 29,90 · 19,90 · 49,90 (gala só com mascote)
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60

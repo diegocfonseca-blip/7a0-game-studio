@@ -1,3 +1,93 @@
+## 💬 09/11 — Nome em cada balão, visual novo mantido
+
+- Diego esclareceu que mantém fontes, cores e posições novas. Cada mensagem agora repete o nome/crachá dentro do próprio balão, mesmo quando o remetente escreve várias seguidas; personagens e figurinhas preservados.
+- Sem alteração de transporte ou permissões. Testes de celular/desktop, resposta, espera e teclado passaram; detalhes em [online-chat-publico-20261109.md](online-chat-publico-20261109.md).
+
+## 🌐 09/11 — Repaginação online liberada para todos
+
+- Diego ampliou a autorização: “publique na conta de todos já as mudanças também visuais todas”. O padrão aprovado de salas, leilões, competições e chat passa pela chave pública de apresentação, separada das prévias autenticadas.
+- Mantidos personagens, mascotes, crachás de plano e permissões. Mapa oculto para TODAS as contas, inclusive a principal, por nova ordem do Diego; 2D/3D e outras funções privadas mantêm as regras atuais. Detalhes: [online-chat-publico-20261109.md](online-chat-publico-20261109.md).
+## 📋 09/11 (noite) — Liga Draft: ordem do draft + 2 consertos (no branch, esperando "publica")
+- 🔢 Ordem do draft escolhida pelo dono: 🏆 melhor→pior (padrão) ou 🔄 pior→melhor. Na criação (ConfigLigaDraft) e no painel do dono
+  (`patchDraftLiga` → `draftRegras.piorPrimeiro`). Vale na próxima noite do draft. Banco: `20261109220000_liga_draft_ordem.sql`
+  (só acrescenta a chave na lista do `liga_patch_draft`) — APLICAR junto da publicação.
+- 🧯 Artilharia abria a temporada nova com os gols da VELHA (cópia anti-spoiler `scorersPrev` nunca era limpa). Zera na virada +
+  a caixa só usa a cópia com rodada jogada. Assistências/tabela já estavam certas.
+- 📏 Liga de 10 virava 20 no "🔨 Novo leilão" (o START_ONLINE da revanche não mandava `tamanhoLiga`; também perdia turno único,
+  chave do Relâmpago e a Liga Draft). Agora vai junto. Salas que JÁ viraram 20 não voltam sozinhas (o game_state delas ainda diz 10).
+
+## 💬 09/11 — Chat privado no celular e desktop
+
+- Aplicado o mockup aprovado somente à conta principal verificada, preservando personagens de 40 px, crachás, respostas e figurinhas nativas. Gaveta acompanha o teclado; novas mensagens respeitam a leitura do histórico.
+- Atalho integrado ao menu móvel quando acessível; alternativa flutuante nas esperas, leilões e torneios. Público/segunda conta mantêm o chat anterior; transporte e permissões preservados.
+- Detalhes: [chat-privado-v01-20261109.md](chat-privado-v01-20261109.md).
+
+## 🎨 09/11 — Complemento da espera privada e rodapé geral
+
+- Diego mostrou a espera antiga como convidado. Faltava implementar o corpo aprovado e incluir o GameFooter externo na conferência. Corrigidos os painéis, convite/regras, provocações/áudios, mascote visível também no celular, temas e Loja no rodapé.
+- Continua somente na conta principal. Convidado conserva as permissões originais; público/segunda conta mantêm o visual atual. Nenhuma alteração de banco, RPC, motor ou regra de início.
+- Detalhes e validação: [correcao-espera-privada-20261109.md](correcao-espera-privada-20261109.md). Conferir a composição completa do aplicativo, incluindo o rodapé fora do Router, antes de anunciar fidelidade de uma tela.
+
+## 🎨 09/11 — Online e Partida Rápida: prévia privada aprovada
+
+- Diego aprovou os mockups de todas as competições para desktop e celular e autorizou publicar **somente na conta principal**. A ativação usa o e-mail retornado por `auth.getUser()`, no cache já existente. A segunda conta de testes e o público conservam a apresentação anterior; o flag não entra no estado da sala.
+- Revisão posterior: classificação acima das rivalidades na coluna do desktop; indicador discreto Manual/Auto · ritmo junto ao botão Velocidade, incluindo celulares de 320 px. Mantém a restrição à conta principal.
+- Últimas decisões: **Velocidade** em vez de Ajustes; Manual/Auto e ritmo no diálogo; tática em linha própria; Próxima rodada principal e Pular secundário; telão somente texto abaixo dos controles. O placar termina na narração, com autores dos gols acima. Campo 2D e cena de gol mantêm dimensões nativas.
+- Liga, Liga da Turma, Liga Draft, leilões, Copa dos 8, Libertadores, Champions, relâmpago, Mundo, Euro e três regionais usam a mesma apresentação. Campeão maior com troféu da competição, escudo, lendas do elenco real e mascote quando cadastrado. Todos os confrontos continuam na lista, inclusive o do usuário.
+- Não modifica motor, resultado, relógios sincronizados, host, prêmios, planos, banco ou regras de acesso ao mapa/2D/3D. Os callbacks e as travas existentes continuam responsáveis pelas ações.
+- Entrega e validação: [online-privado-aprovado-20261109.md](online-privado-aprovado-20261109.md). Sem novidade pública: é uma prévia privada.
+
+## 🎽 09/11 — Loja "Seu clube": mantos (1ª/2ª camisa), mascote, escudo e entrada de gala (FEITO no branch, esperando publicar)
+- Mockup aprovado (`scripts/mockups/loja-mantos-mascote-gala.png`, *"pode aprovar tudo já"*). Preços: camisa R$ 9,90 cada · as duas
+  R$ 14,90 · mascote R$ 29,90 · escudo R$ 19,90 (escolhi eu, ele não deu número) · gala R$ 49,90. 🔒 Gala SÓ com mascote (banco devolve preço nulo).
+- Camisa: 2 ou 3 cores. Veste a bolinha do Campo 2D (e o jogo do mapa, que copia o campinho) e a faixinha das fichas do campinho do
+  dono. A 2ª entra sozinha quando a 1ª bate com a do rival (`camisasDoJogo` 3º parâmetro), antes de inverter/ir de branco.
+  Batismo/Fundador: a 1ª é o manto do batismo (fixa, não edita); quem tem as duas TROCA A ORDEM na Loja.
+- Mascote/escudo/gala: paga → escreve a ideia (Briefing do pix-mp) → aparece no #admin em "Batismos e artes pra fazer" →
+  o Diego faz a arte. Ao ENTREGAR a arte: cadastrar como num batismo (LOGOS_PRONTAS/MASCOTES…) e marcar
+  `update esc_artes_conta set status = 'pronto' where email = … and item = …`. ⚠️ Pra quem NÃO é batismo, o mascote/escudo
+  ainda precisa de linha em `esc_socios` (mascote_key/escudo_time) pra aparecer pros outros na sala — decidir caso a caso.
+- Banco: `supabase/migrations/20261109030000_loja_mantos_artes.sql` (tabelas esc_kits_conta/esc_artes_conta, esc_meus_kits,
+  esc_kit_salvar, esc_kit_trocar, esc_mantos_sala2, preço e entrega). Edge `mp-criar-pix` ganhou os 5 nomes (redeploy junto).
+  ⚠️ Aplicar FORA do pico (mudança de esquema trava a API 1–3 min — lição de 09/11).
+
+## 🎨 09/11 — Carreira visual V02 — publicação autorizada
+
+- Diego aprovou as 35 telas da V02, incluindo as seis revisadas. Branch `feature/carreira-visual-v02-20261109`, base `8605a139`.
+- Componentes funcionais e organização responsiva da Central, elenco, rankings, painéis do clube, mercado, partidas e decisões. Mantém regras, saves, direitos e gates existentes. Sem novos assets ou chamadas ao servidor.
+- Escopo, telas, validação e reversão: [carreira-visual-v02-20261109.md](carreira-visual-v02-20261109.md). Publicação autorizada depois com “Ok terminando piblique”. Preservar as correções de ligas de `445a6982` e conferir o deploy oficial antes de anunciar conclusão.
+
+## 🚨 09/11 (madrugada) — servidor lento: Painel do Dono lendo o banco a cada desenho da tela (RESOLVIDO)
+- Sintoma: respostas de 5–16 s no site todo (~01:00–01:28 UTC), erros 500 em clãs/avisos e 503/504 no login.
+- Causa: `painel-dono-liga.tsx` (07/11) tinha o `t` (função nova a cada desenho) nas dependências do efeito de leitura → relia
+  `esc_liga_pedidos_dono` a cada desenho. ~54 mil chamadas em 25 min, quase tudo de 2 donos de liga (Ferreira 36XD9X e Turbina IP7J5H).
+- Conserto: (1) o efeito só depende da sala (1 leitura/min); (2) a função virou `esc_liga_pedidos_dono2` e a antiga foi RENOMEADA pra
+  `esc_liga_pedidos_dono_velha` — quem está com o código velho recebe 404 na hora, sem ocupar o banco. Mediana voltou a ~30–75 ms.
+- Lição: nunca pôr o `t` do `useT()` (nem função recriada a cada desenho) em dependência de efeito que fala com o banco.
+- Daqui a uns dias (quando ninguém mais tiver o código velho aberto) dá pra apagar a `_velha`.
+- ⚠️ Lição 2: cada `notify pgrst, 'reload schema'` (e toda migration que cria/renomeia função) TRAVOU a API por 1–3 min nessa noite
+  (mediana de 40–50 s às 22h35–22h37). Com o banco já sob pressão, não fazer mudança de esquema em sequência — uma só e esperar.
+- Ficou no banco uma `esc_liga_pedidos_dono` nova que devolve `{}` (pra quebrar o laço do código velho); o PostgREST seguiu dando 404
+  pra ela. Inofensiva. Pode sair junto com a `_velha`.
+- 09/11 (2): a varredura achou o MESMO tipo de laço na SALA DE ESPERA: o batimento de 30 s do dono dependia do objeto `room`, o
+  próprio aviso do banco recriava o `room` e o efeito batia de novo na hora (média 10× o normal, pico 13 gravações/s). Consertado
+  (depende do ID) e publicado. A vigia do convidado ("dono caiu") voltou a funcionar junto.
+- 🛡️ Vigia do servidor: tarefa agendada de hora em hora (trig_01SLmYgwXpe7VSmfVgGzgVz7) confere logs/banco e só avisa o Diego se houver perigo.
+- PROPOSTO, esperando OK: portão da Copa do Mundo/regional lendo a cada 2 s até depois do campeão; votação do fim lendo a cada 3 s
+  (+ a cada pacote do dono); lista de salas sem pausar com a aba escondida; SQL lento (esc_avisos, esc_perfil_publico2, esc_clas_de,
+  esc_nomes_sem_escudo, esc_meu_nome_fake).
+
+## ⚖️ 08/11 — Critérios da carreira corrigidos (PUBLICAÇÃO PARA TODOS AUTORIZADA EM 08/11)
+
+- Diego aprovou todos os pontos da análise com “Pode fszer tudo”. Publicação para todos autorizada depois com “Pode fazer tudo e publicar p todos já”. Branch `fix/carreira-criterios-20261108`, integrada à base `50f60ad0` (inclui a correção posterior das salas online); sem escrita nova na conta. Confirmar workflow de publicação antes de anunciar conclusão. Detalhes, reprodução e reversão: [criterios-carreira-20261108.md](criterios-carreira-20261108.md).
+- Cache por identidade completa da carta; leitura compatível de resultados antigos; fotografias compactas de jogos oficiais, sem persistir prévias. Sincronização do catálogo preserva essas fotografias. Decisão legítima de intervalo usa revisão numerada, muda só o segundo tempo e sobrevive à ordem JSON.
+- Gás não acumula antes da Série C; estatísticas continuam. Primeiro desbloqueio inteiro; rebaixamento posterior conserva condição. Versão nova tira a segunda penalidade na entrada do Motor 2 e usa recuperação real do preparador.
+- Simulação leve dos bots calibrada pelo perfil do Motor 2 (480 partidas de ajuste + 120 separadas de validação), sem escolher vencedor. Controle de 20 temporadas com elencos equivalentes aproximou gols: usuário 23,4/bots 47,69 → usuário 25,8/bots 24,68. Sem mudar catálogo, categorias, prêmios, preços ou dar vantagem ao dono.
+- Adesão na próxima temporada; partidas antigas mantidas. Novos detalhes expansíveis de regras, acesso/queda e leitura do XI; custos de aquisição/salário/reserva da folha/renovação antes do clique. Direitos dos olheiros e stream preservados. Sondagem recusa preenchimentos/crias/emprestados.
+- Testes: identidade/histórico/intervalo; reducer sintético; condição, pirâmide, A/B, armazenamento; três temporadas futuras em cópia T48–T50; salvar/reabrir com tabelas idênticas. T50 3º/60, 37 GF/27 GA, caixa3502; conta real segue T47/caixa2044. Visual em320/393/1440px e renovação efetiva conforme o valor mostrado. Build de produção passou.
+- Não muda online/co2/NBA nem gates privados de mapa/2D/3D/recepção. Reversão antes do lançamento = reverter commit. Após lançar, manter leitores/versionamento: desligar `CRITERIOS_CARREIRA_LIBERADOS` só encerra adesão na próxima virada, com `criteriosCarreiraAte`. Não remover versões de saves já criados.
+- Limites: calibração é aproximação; histórico antigo sem entradas completas não permite reconstruir com certeza toda reprodução. Sem anúncio de bugfix em novidades. Evidências locais em `/workspace/shared/carreira-correcoes-20261108/`; não commitar arquivos privados da conta nem harness `qa-carreira-*`.
+
 ## ⭐ 08/11 — Craque Salas ativado NA MÃO (Vendria falhou)
 - didico (diegoferocha22@gmail.com): linha em `esc_assinatura_mensal` com `vendria_sub = 'manual-diego-08nov'`, válido até 08/12/2026.
   Quando a Vendria voltar e cobrar a renovação, conferir se não ficou duplicado. Se ele não renovar, vence sozinho.
@@ -12993,3 +13083,15 @@ foi revertido no branch. A carreira fica como está. As salas online seguem com 
   Toda largada marca `started` ANTES do `triggerStart`, então nunca barra jogo de verdade. Anota `save_em_sala_de_espera` na caixa-preta
   (`esc_travas`, extra com tela/fase/temporada/rodada) pra achar o caminho exato que deixa a partida velha apontando pra sala nova — ainda NÃO achado.
 - [ ] Depois de publicado: olhar `esc_travas` com `extra->>'quando' = 'save_em_sala_de_espera'` e fechar a causa.
+
+### 09/11 — Contraste da prévia privada do Online
+
+Os prints do Diego revelaram creme sobre branco em pacotes, lances e lendas, além de avisos escuros sobre o novo fundo. Correção de apresentação validada, abrangendo superfícies claras, instruções, Draft e diferenças entre celular/desktop. Build, isolamento e matriz de telas passaram; publicação acompanhada separadamente. Escopo segue **somente a conta principal verificada**, inclusive como espectador. Detalhes e limites da auditoria: `docs/correcao-contraste-online-privado-20261109.md`. Não considerar a ausência de erros de JavaScript como validação de contraste.
+
+### 09/11 — Código repetido, início do pregão e faixas da liga (prévia privada)
+
+Atendidos os novos prints do Diego: só um código grande na espera; botão de início destacado independente do tema branco/prata; retirada da notícia de entrada no G4/G8 e da faixa “A Liga Lendária” na conta principal. Controles de convite, mascote e permissões de começo preservados. Validação direcionada e capturas em `docs/ajustes-espera-e-faixas-privadas-20261109.md`; confirmação de publicação acompanhada separadamente.
+
+### 09/11 — Convites compactos junto do código (prévia privada)
+
+Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do código. Retirada a seção separada. Campo de senha das ligas fica recolhido; copiar código continua no próprio código. Apenas a conta principal recebe o ajuste. Build, isolamento, 11 casos de layout e duas conferências funcionais passaram; detalhes em `docs/convites-no-cabecalho-privado-20261109.md`.

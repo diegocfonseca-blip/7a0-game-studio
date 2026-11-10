@@ -1003,6 +1003,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Pedido → o dono aceita e escolhe o time (bot ou no lugar de alguém) → entra na VIRADA da temporada, nunca no meio. Na Liga Draft, quem
   sai vira bot com o elenco (a liga não recomeça). Formato da próxima temporada (10→20, só ida) só muda com a liga parada. NADA de botão
   "pausar/encerrar a noite" (*"não precisa… já tem o sair da sala"*).
+- **🔒📋 LIGA ESPERANDO A TURMA APARECE NAS SALAS ABERTAS (08/11, revê o "liga nunca na lista" de 29/08).** *"permita aparecer nas
+  salas abertas a sala, porém com senha pra entrar sempre"*. Aparece enquanto o dono está na sala de espera (batimento de 30s); entrar
+  pede SEMPRE a senha (`enterRoom`), e liga já começada segue só pra quem tem plano.
 - **🚫👤 SALA ONLINE = MÍNIMO 2 PESSOAS, SEMPRE (19/10, regra dele).** *"Só dá pra jogar com mínimo de 2 numa sala de usuários no
   online"*. Vale pra começar E pra recomeçar (mesmo time, novo leilão): sobrou 1 → volta pra sala de espera chamar gente. Nunca deixar
   alguém jogar sozinho contra a máquina numa sala online (pra isso existe a Partida Rápida).

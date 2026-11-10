@@ -18,7 +18,7 @@ export function modoEspectador(): boolean { return ativo }
 
 // só LEITURA — o que a tela de uma sala em jogo consulta (mantos, mimos, perfis, ranking, temas…)
 const LEITURA = new Set([
-  'esc_sou_espectador', 'esc_mantos_sala', 'esc_mimos_sala', 'esc_perfil', 'esc_perfil_publico2', 'esc_presidentes_publicos2',
+  'esc_sou_espectador', 'esc_mantos_sala', 'esc_mantos_sala2', 'esc_mimos_sala', 'esc_perfil', 'esc_perfil_publico2', 'esc_presidentes_publicos2',
   'esc_ranking', 'esc_mural', 'esc_votacao_atual', 'esc_vitrine_salas', 'esc_meus_temas', 'esc_copa_taticas',
   'esc_copa_preview_clock', 'esc_nuvem_regra', 'esc_minhas_fichas_extras', 'esc_clubes_recentes', 'esc_amigos_lista',
   'esc_amigos_lista2', 'esc_meus_direitos', 'esc_meu_nome_fake', 'esc_meu_socio', 'esc_cla_ranking', 'esc_clas_de',

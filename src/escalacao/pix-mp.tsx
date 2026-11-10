@@ -21,7 +21,7 @@ import { ANUNCIO_MAX, releAnuncios } from './patrocinio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente' | 'escudo_cla' | 'cla_extra' | 'cla_criar' | 'manual_24h' | 'cor_extra' | 'doacao_luca'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira' | 'tema_coracao' | 'tema_clube' | 'giro_hora' | 'recado_hora' | 'recado_dia' | 'peca_presidente' | 'escudo_cla' | 'cla_extra' | 'cla_criar' | 'manual_24h' | 'cor_extra' | 'doacao_luca' | 'manto_camisa' | 'manto_duas' | 'mascote_clube' | 'escudo_clube' | 'gala_clube'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
@@ -37,6 +37,8 @@ const NOME: Record<ProdutoMp, [string, string]> = {
   manual_24h: ['🎮 Modo Manual por 24 h', '🎮 Manual Mode for 24 h'],
   cor_extra: ['🎨 Cor brilhante', '🎨 Shiny colour'],
   doacao_luca: ['💙 Doação pro Luca', '💙 Donation for Luca'],
+  manto_camisa: ['🎽 Camisa do seu clube', '🎽 Your club’s kit'], manto_duas: ['🎽🎽 As duas camisas', '🎽🎽 Both kits'], // 09/11
+  mascote_clube: ['🐾 Mascote do clube', '🐾 Club mascot'], escudo_clube: ['🛡️ Escudo do clube', '🛡️ Club crest'], gala_clube: ['🎬 Entrada de gala personalizada', '🎬 Custom grand entrance'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -67,6 +69,11 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   manual_24h: ['🎮 Seu Modo Manual já está valendo: são 24 horas a partir de agora. Bom jogo!', '🎮 Your Manual Mode is live: 24 hours from now. Enjoy!'],
   cor_extra: ['🎨 Sua cor já é sua, pra sempre, e já está EM USO. Ela aparece na próxima sala que você entrar.', '🎨 Your colour is yours forever and already IN USE. It shows in the next room you join.'],
   doacao_luca: ['💙 Obrigado de coração! Sua ajuda chegou.', '💙 Thank you from the heart! Your help arrived.'],
+  manto_camisa: ['🎽 A camisa já é sua! Agora escolha as cores logo aqui embaixo.', '🎽 The kit is yours! Now pick the colours right below.'],
+  manto_duas: ['🎽🎽 As duas camisas já são suas! Agora escolha as cores logo aqui embaixo.', '🎽🎽 Both kits are yours! Now pick the colours right below.'],
+  mascote_clube: ['Pagamento confirmado! Agora conta como você imagina o seu mascote: o Diego faz a arte.', 'Payment confirmed! Now tell us how you picture your mascot: Diego makes the art.'],
+  escudo_clube: ['Pagamento confirmado! Agora conta como você imagina o seu escudo: o Diego faz a arte.', 'Payment confirmed! Now tell us how you picture your crest: Diego makes the art.'],
+  gala_clube: ['Pagamento confirmado! Agora conta como você imagina a sua entrada: o Diego faz a cena.', 'Payment confirmed! Now tell us how you picture your entrance: Diego makes the scene.'],
 }
 // 📲 contato do Diego depois de pagar (o WhatsApp entra quando ele mandar o número; sem número, só o e-mail aparece)
 export const WHATSAPP_CONTATO = '5521998886982' // 16/10: número que o Diego passou (batismo, Fundador e Dia da marca)
@@ -191,7 +198,7 @@ export function PixMP({ produto, valor, refId = '', aoReceberFicha, aoPagar }: {
 
 /** ✅ caiu! — e, no Batismo/Fundador, o "conta como você imagina" (por escrito) + falar com o Diego */
 function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: ProdutoMp; liberado: boolean; pedido: string; ficha: string | null; aoReceberFicha?: (ficha: string) => Promise<number | null> }) {
-  const clubeDeGente = produto === 'batismo' || produto === 'fundador' || produto === 'teste' || produto === 'canto'
+  const clubeDeGente = produto === 'batismo' || produto === 'fundador' || produto === 'teste' || produto === 'canto' || produto === 'mascote_clube' || produto === 'escudo_clube' || produto === 'gala_clube'
   // 🏦 comprou dentro da carreira: a ficha cai sozinha no caixa DESTE clube (uma vez só)
   const [creditou, setCreditou] = useState<number | null>(null)
   const jaTentou = useRef(false)
@@ -210,7 +217,7 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
       {ficha && !(creditou != null && creditou > 0) && <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.5)' }}>
         {tr('Código de reserva (se precisar): ', 'Backup code (if needed): ')}<b className="select-all">{ficha}</b>
       </p>}
-      {produto === 'giro_dia' || produto === 'giro_hora' || produto === 'recado_hora' || produto === 'recado_dia' ? <EscreveAnuncio pedido={pedido} produto={produto} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : produto === 'peca_presidente' || produto === 'doacao_luca' ? null : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
+      {produto === 'giro_dia' || produto === 'giro_hora' || produto === 'recado_hora' || produto === 'recado_dia' ? <EscreveAnuncio pedido={pedido} produto={produto} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : produto === 'peca_presidente' || produto === 'doacao_luca' || produto === 'manto_camisa' || produto === 'manto_duas' ? null : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
         <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
           style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Bora jogar', '🎮 Let’s play')}</button>
@@ -272,12 +279,15 @@ function Telefone({ pedido, embutido = false }: { pedido: string; embutido?: boo
 }
 
 function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
-  const [d, setD] = useState({ clube: '', coracao: '', cores: '', escudo: '', mascote: '', canto: '' })
+  const [d, setD] = useState({ clube: '', coracao: '', cores: '', escudo: '', mascote: '', canto: '', gala: '' })
   const [salvo, setSalvo] = useState(false)
   const [busy, setBusy] = useState(false)
   const fundador = produto === 'fundador' || produto === 'teste' || produto === 'canto'
   const soCanto = produto === 'canto'
-  const nomeProd = produto === 'fundador' ? 'Fundador' : produto === 'batismo' ? 'Batismo' : produto === 'canto' ? 'Canto da torcida' : 'Teste'
+  // 🐾🛡️🎬 09/11: arte avulsa da Loja — só os campos daquela peça (+ nome e cores do clube, pra arte casar)
+  const avulsa = produto === 'mascote_clube' ? 'mascote' : produto === 'escudo_clube' ? 'escudo' : produto === 'gala_clube' ? 'gala' : null
+  const nomeProd = produto === 'fundador' ? 'Fundador' : produto === 'batismo' ? 'Batismo' : produto === 'canto' ? 'Canto da torcida'
+    : avulsa === 'mascote' ? 'Mascote do clube' : avulsa === 'escudo' ? 'Escudo do clube' : avulsa === 'gala' ? 'Entrada de gala' : 'Teste'
   const num = pedido.slice(0, 8).toUpperCase()
   const salvar = async () => {
     setBusy(true)
@@ -297,8 +307,16 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
   )
   return (
     <div className="mt-3 rounded-xl p-3 text-left" style={{ background: CREAM, border: `2px solid ${INK}` }}>
-      <p className="font-black uppercase text-[16px]" style={OSW}>{soCanto ? tr('✍️ Conta qual canto você quer', '✍️ Tell us which chant you want') : tr('✍️ Conta como você imagina o seu clube', '✍️ Tell us how you picture your club')}</p>
-      {!salvo ? <>
+      <p className="font-black uppercase text-[16px]" style={OSW}>{soCanto ? tr('✍️ Conta qual canto você quer', '✍️ Tell us which chant you want') : avulsa === 'mascote' ? tr('✍️ Conta como é o seu mascote', '✍️ Tell us about your mascot') : avulsa === 'escudo' ? tr('✍️ Conta como é o seu escudo', '✍️ Tell us about your crest') : avulsa === 'gala' ? tr('✍️ Conta como é a sua entrada', '✍️ Tell us about your entrance') : tr('✍️ Conta como você imagina o seu clube', '✍️ Tell us how you picture your club')}</p>
+      {!salvo && avulsa ? <>
+        {campo('clube', ['Nome do clube', 'Club name'], ['Ex.: Atlético do Jefão', 'e.g. Atlético do Jefão'])}
+        {campo('cores', ['Cores do clube', 'Club colours'], ['Ex.: verde e branco', 'e.g. green and white'])}
+        {avulsa === 'mascote' && campo('mascote', ['Como você imagina a mascote', 'How you picture the mascot'], ['Ex.: um leão de boné, bravo', 'e.g. a lion with a cap, fierce'], true)}
+        {avulsa === 'escudo' && campo('escudo', ['Como você imagina o escudo', 'How you picture the crest'], ['Ex.: uma coroa em cima e o meu apelido no meio', 'e.g. a crown on top and my nickname in the middle'], true)}
+        {avulsa === 'gala' && campo('gala', ['Como você imagina a sua entrada', 'How you picture your entrance'], ['Ex.: o mascote chega de helicóptero com fogos', 'e.g. the mascot arrives by helicopter with fireworks'], true)}
+        <p className="text-[11px] font-black mt-2.5 leading-snug" style={{ color: '#7C3AED' }}>{tr('🎨 Não precisa mandar imagem: a arte é feita pelo Leilão Legends, exclusiva pro seu clube.', '🎨 No need to send images: the art is made by Leilão Legends, exclusive to your club.')}</p>
+        <button onClick={salvar} disabled={busy} className="w-full rounded-xl py-2.5 mt-2.5 text-[16px] uppercase active:translate-y-0.5" style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{busy ? '…' : tr('📨 Enviar', '📨 Send')}</button>
+      </> : !salvo ? <>
         {!soCanto && campo('clube', ['Nome do clube', 'Club name'], ['Ex.: Atlético do Jefão', 'e.g. Atlético do Jefão'])}
         {campo('coracao', ['Time de coração', 'Favourite team'], ['Ex.: Palmeiras', 'e.g. Palmeiras'])}
         {!soCanto && campo('cores', ['Cores do clube', 'Club colours'], ['Ex.: verde e branco', 'e.g. green and white'])}

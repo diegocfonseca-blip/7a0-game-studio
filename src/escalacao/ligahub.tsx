@@ -1,3 +1,5 @@
+import {usePrivateChatNavigation} from './private-chat-navigation'
+import {useOwnerLayout,OwnerRoomNavigation} from './owner-online-visual'
 // ─── 🏆 LIGA HUB — a liga inteira num lugar só, em pílulas ──────────────────
 //
 // Desenho aprovado pelo Diego em 23/08 (`scripts/mockup-liga-pilulas.mjs`).
@@ -428,6 +430,8 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
   }
   aoExcluir?: () => void            // o que fazer depois de excluir a liga (sair da sala)
 }) {
+  const ownerVisual=useOwnerLayout()
+  const roomChat=usePrivateChatNavigation(roomId,ownerVisual)
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
   const [membros, setMembros] = useState<MembroSala[]>([])
   const [sala, setSala] = useState<{ ehLiga: boolean; nome: string; regras: LigaRegras; ligaAt?: string; semBots: boolean } | null>(null)
@@ -619,7 +623,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
       {/* 🔁 28/10 (Diego: *"só fazer visualmente igual ao do carreira"*, sem mudar nome nenhum): a barra ganhou a cara
           da barra da CARREIRA no celular (`career-abas.css`) — fundo claro com linha preta grossa, aba aberta num
           botão preto com o ícone dourado. Vale com e sem o visual novo (o `ll31-bottom-nav` dourado saiu daqui). */}
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
+      <OwnerRoomNavigation><div data-private-chat-nav={roomChat.available?roomId:undefined} className={(ownerVisual?'ov3-hub-nav':undefined)+" ov3-surface"} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
         {abas.map(t => {
           // ⚽📊👥 abas da PARTIDA: elas trocam o conteúdo da PÁGINA (não abrem
           // painel nenhum), então acendem quando são a aba da vez — e tocar numa
@@ -647,7 +651,10 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
             </button>
           )
         })}
-      </div>
+        {roomChat.available&&<button type="button" className="pc-nav-entry" aria-label={tr('Abrir chat da sala','Open room chat')} aria-pressed={roomChat.open} onClick={roomChat.show}>
+          <span className="pc-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2z"/></svg>{roomChat.unread>0&&<span className="pc-nav-count">{roomChat.unread}</span>}</span><span className="pc-nav-label">Chat</span>
+        </button>}
+      </div></OwnerRoomNavigation>
       </>, document.body)}
     </>
   )
@@ -778,7 +785,7 @@ function AbaRank({ ranking, regras, temLinhas, ehLiga, rows }: { ranking: Return
               </p>
             </div>
             {regras.modo === 'pontos' && (
-              <span className="shrink-0 rounded-lg px-2 py-0.5 font-black text-[13px]" style={{ ...OSWALD, background: GOLD, border: `2px solid ${INK}` }}>{r.pts}</span>
+              <span className="shrink-0 rounded-lg px-2 py-0.5 font-black text-[13px] ov3-surface" style={{ ...OSWALD, background: GOLD, border: `2px solid ${INK}` }}>{r.pts}</span>
             )}
           </div>
         ))}
@@ -817,13 +824,13 @@ function AbaEstante({ rows, gente }: { rows: LinhaCampeao[]; gente: Set<string> 
         const claro = perk.tier !== 'roxo'
         const total = t.liga + t.copa + t.art
         return (
-          <div key={nome} style={{ border: `3px solid ${INK}`, borderRadius: 14, marginBottom: 8, overflow: 'hidden', boxShadow: `3px 3px 0 0 ${INK}`, background: '#fff' }}>
+          <div className="ov3-surface" key={nome} style={{ border: `3px solid ${INK}`, borderRadius: 14, marginBottom: 8, overflow: 'hidden', boxShadow: `3px 3px 0 0 ${INK}`, background: '#fff' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 11px', fontWeight: 900, fontSize: 13, ...OSWALD, borderBottom: `3px solid ${INK}`, background: perk.grad, color: claro ? INK : '#fff', position: 'relative', overflow: 'hidden' }}>
               {perk.holo > 0 && <ApoioSheen holo={perk.holo} dur={3.4} />}
               <span style={{ position: 'relative', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</span>
               <span style={{ position: 'relative', marginLeft: 'auto', flex: 'none', background: 'rgba(0,0,0,.72)', color: GOLD, borderRadius: 8, fontSize: 10, padding: '1px 8px', ...OSWALD }}>{total > 0 ? `${total} ${total === 1 ? tr('troféu', 'trophy') : tr('troféus', 'trophies')}` : '😬'}</span>
             </div>
-            <div style={{ display: 'flex', gap: 7, padding: '9px 11px', flexWrap: 'wrap', background: '#FFF9E8' }}>
+            <div className="ov3-surface" style={{ display: 'flex', gap: 7, padding: '9px 11px', flexWrap: 'wrap', background: '#FFF9E8' }}>
               {t.liga > 0 && trofeu('🏆', t.liga, tr('Liga', 'League'), 'linear-gradient(170deg,#FFD84D,#F5B301)', INK, { sheen: true })}
               {t.copa > 0 && trofeu('🏆', t.copa, tr('Copa', 'Cup'), 'linear-gradient(170deg,#FFF3C9,#FFE07A)', INK, { sheen: true })}
               {t.art > 0 && trofeu('⚽', t.art, tr('Artilharia', 'Top scorer'), 'linear-gradient(170deg,#57C983,#1B7A3D)', '#fff')}
@@ -895,7 +902,7 @@ function AbaTemporadas({ roomId, rows, souDono, nomes, recarregar }: {
       {rows.length === 0 && <p className="text-black/50 text-[11.5px] font-bold mb-2">{tr('Nenhuma temporada guardada ainda.', 'No season saved yet.')}</p>}
       <div className="space-y-1.5">
         {[...rows].sort((a, b) => b.season_no - a.season_no).map(r => (
-          <div key={r.season_no} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: '#fff', border: `2.5px solid ${INK}` }}>
+          <div key={r.season_no} className="flex items-center gap-2 rounded-lg px-2 py-1.5 ov3-surface" style={{ background: '#fff', border: `2.5px solid ${INK}` }}>
             <span className="flex-none rounded-md px-1.5 font-black text-[10.5px]" style={{ ...OSWALD, background: INK, color: GOLD }}>T{r.season_no}</span>
             <span className="min-w-0 flex-1 text-[10px] font-bold leading-snug">🏆 {r.champion_name || '—'}{r.copa_champion_name && <> · 🏆 {tr('Copa', 'Cup')}: {r.copa_champion_name}</>}{r.top_scorer_name && <> · ⚽ {r.top_scorer_name} ({r.top_scorer_goals})</>}</span>
             {r.mico_name && <span className="flex-none text-[10px] font-extrabold" style={{ color: '#8B5E3C' }}>🙈 {r.mico_name}</span>}
@@ -977,7 +984,7 @@ function AbaAjustes({ sala, regras, busy, salvarRegras, patch, excluir }: {
         {sala.semBots ? tr('🤖 Botar bots até 20 times', '🤖 Add bots up to 20 teams') : tr('🚫 Tirar os bots — só a galera', '🚫 Remove the bots — crew only')}
       </button>
       <button onClick={() => setAbrirRegras(v => !v)}
-        className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5 mb-2" style={{ ...OSWALD, background: abrirRegras ? GOLD : '#fff' }}>
+        className="w-full border-2 border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5 mb-2 ov3-surface" style={{ ...OSWALD, background: abrirRegras ? GOLD : '#fff' }}>
         ⚖️ {abrirRegras ? tr('Fechar', 'Close') : tr('Regras do ranking', 'Ranking rules')}
       </button>
       {abrirRegras && <div className="mb-2"><RegrasDaLiga regras={regras} salvar={salvarRegras} /></div>}
@@ -1008,7 +1015,7 @@ export function RegrasDaLiga({ regras, salvar }: { regras: LigaRegras; salvar: (
       <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden">
         {(['titulos', 'pontos'] as const).map(m => (
           <button key={m} onClick={() => salvar({ ...regras, modo: m })}
-            className="flex-1 font-black text-[11.5px] py-1.5" style={{ ...OSWALD, background: regras.modo === m ? GOLD : '#fff', borderLeft: m === 'pontos' ? `2.5px solid ${INK}` : undefined }}>
+            className="flex-1 font-black text-[11.5px] py-1.5 ov3-surface" style={{ ...OSWALD, background: regras.modo === m ? GOLD : '#fff', borderLeft: m === 'pontos' ? `2.5px solid ${INK}` : undefined }}>
             {m === 'titulos' ? tr('🏆 Por títulos', '🏆 By titles') : tr('🔢 Por pontos', '🔢 By points')}
           </button>
         ))}

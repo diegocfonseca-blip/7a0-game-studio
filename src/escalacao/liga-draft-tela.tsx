@@ -62,7 +62,7 @@ export function EscLigaDraft() {
           <span style={{ fontSize: 26 }}>📋</span>
           <div className="min-w-0">
             <p className="text-white uppercase leading-none" style={{ ...OSW, fontSize: 17 }}>{t('Noite do draft', 'Draft night')} · {t('temporada', 'season')} {d.temporada + 1}</p>
-            <p className="text-white/65 text-[11px] font-bold mt-1">{t('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro.', 'Each manager picks 1 player from the whole game. The champion picks first.')}</p>
+            <p className="text-white/65 text-[11px] font-bold mt-1">{state.draftRegras?.piorPrimeiro ? t('Cada técnico pega 1 jogador, de todos do jogo. O último colocado escolhe primeiro.', 'Each manager picks 1 player from the whole game. The last-placed picks first.') : t('Cada técnico pega 1 jogador, de todos do jogo. O campeão escolhe primeiro.', 'Each manager picks 1 player from the whole game. The champion picks first.')}</p>
             {minha && temRegraDraft(state.draftRegras) && <p className="text-[11px] font-black mt-1" style={{ color: GOLD }}>📜 {t('Regras da turma', 'Crew rules')}: {textoRegrasDraft(state.draftRegras, t)}</p>}
           </div>
         </div>
@@ -89,14 +89,14 @@ export function EscLigaDraft() {
               <p className="text-white uppercase leading-tight" style={{ ...OSW, fontSize: 24 }}>{daVez?.teamName ?? '?'} {t('está escolhendo', 'is picking')}</p>
             </div>
             <Coberta etapa={0} />
-            <p className="text-center font-black text-[13px]" style={{ ...OSW, color: restante <= 10 ? RED : INK }}>⏱ {restante}s</p>
+            <p className="ov3-draft-clock text-center font-black text-[13px]" style={{ ...OSW, color: restante <= 10 ? RED : INK }}>⏱ {restante}s</p>
             {minha && souDono && (
               <button onClick={() => dispatch({ type: 'DRAFT_PULAR', by: state.youUid })} className="w-full border-[3px] border-black rounded-xl py-2 uppercase"
                 style={{ ...OSW, fontSize: 15, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
             )}
             {minha ? (
-              <p className="text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, ele PERDE A VEZ.', 'Nobody sees the pick until the card flips. If time runs out, they LOSE THE TURN.')}</p>
-            ) : <p className="text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, o jogo escolhe o melhor jogador livre por ele.', 'Nobody sees the pick until the card flips. If time runs out, the game takes the best free player for them.')}</p>}
+              <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, ele PERDE A VEZ.', 'Nobody sees the pick until the card flips. If time runs out, they LOSE THE TURN.')}</p>
+            ) : <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, o jogo escolhe o melhor jogador livre por ele.', 'Nobody sees the pick until the card flips. If time runs out, the game takes the best free player for them.')}</p>}
           </div>
         )}
         {minha && <VenderMeu d={d} you={you} />}
@@ -131,19 +131,19 @@ function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, onPassar, duasEsc
             <span className="block text-[10px] font-black mt-1" style={{ color: '#1B7A3D' }}>{t('⚡ empatou? o desempate é seu', '⚡ tied? the tiebreak is yours')}</span>
           </button>
         </div>
-        <p className="text-center text-[11.5px] font-bold text-black/60">{t('Escolha UMA. Ao apertar, você tem 45 s. Acabou o tempo, perde a vez.', 'Pick ONE. Once you tap, you have 45 s. If time runs out, you lose the turn.')}</p>
+        <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Escolha UMA. Ao apertar, você tem 45 s. Acabou o tempo, perde a vez.', 'Pick ONE. Once you tap, you have 45 s. If time runs out, you lose the turn.')}</p>
       </>) : minhaVez ? (<>
         <button onClick={() => onPronto(false)} className="w-full border-[3px] border-black rounded-xl py-3 uppercase"
           style={{ ...OSW, fontSize: 19, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('✋ Pronto, quero escolher', '✋ Ready, let me pick')}</button>
-        <p className="text-center text-[11.5px] font-bold text-black/60">{t('Quando apertar, você tem 45 s pra escolher. Acabou o tempo, perde a vez.', 'Once you tap, you have 45 s to pick. If time runs out, you lose the turn.')}</p>
+        <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Quando apertar, você tem 45 s pra escolher. Acabou o tempo, perde a vez.', 'Once you tap, you have 45 s to pick. If time runs out, you lose the turn.')}</p>
       </>) : (
-        <p className="text-center text-[12.5px] font-bold text-black/65">{t(`⏳ Esperando o ${quem} dizer que está pronto…`, `⏳ Waiting for ${quem} to say they're ready…`)}</p>
+        <p className="ov3-page-muted text-center text-[12.5px] font-bold text-black/65">{t(`⏳ Esperando o ${quem} dizer que está pronto…`, `⏳ Waiting for ${quem} to say they're ready…`)}</p>
       )}
       {minhaVez && onPassar && <BotaoPassar onPassar={onPassar} />}
       {onPular && (<>
         <button onClick={onPular} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
           style={{ ...OSW, fontSize: 16, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
-        <p className="text-center text-[11px] font-bold text-black/55">{t('Só você (dono) vê. Quem é pulado fica sem jogador do draft nesta temporada.', 'Only you (owner) see this. Whoever is skipped gets no draft player this season.')}</p>
+        <p className="ov3-page-muted text-center text-[11px] font-bold text-black/55">{t('Só você (dono) vê. Quem é pulado fica sem jogador do draft nesta temporada.', 'Only you (owner) see this. Whoever is skipped gets no draft player this season.')}</p>
       </>)}
     </div>
   )
@@ -164,7 +164,7 @@ function OrdemDraft({ ordem, idx, fase, picks, pulados, sondou, nome, youId }: {
           <div key={id} className="flex items-center gap-2 px-3 py-1.5 border-t border-black/10" style={{ background: vez ? '#FFF1B8' : undefined }}>
             <span className="w-7 shrink-0" style={{ ...OSW, fontSize: 15 }}>{i + 1}º</span>
             <span className="flex-1 min-w-0 truncate text-[13px]" style={OSW}>{nome(id)}{id === youId ? t(' (você)', ' (you)') : ''}{i === 0 ? ' 🏆' : ''}</span>
-            <span className="shrink-0 text-[12.5px]" style={{ ...OSW, color: pick && !escondido ? GREEN : vez ? RED : 'rgba(0,0,0,.35)' }}>
+            <span className={`shrink-0 text-[12.5px] ${!(pick && !escondido) && !vez ? 'ov3-draft-muted' : ''}`} style={{ ...OSW, color: pick && !escondido ? GREEN : vez ? RED : 'rgba(0,0,0,.35)' }}>
               {pick && !escondido ? `✓ ${pick.carta.name}${pick.auto ? ' ⏱' : ''}` : sondou[id] ? `🕵️ ${t('sondou', 'scouted')} ${sondou[id]}` : pulou ? t('⏭ perdeu a vez', '⏭ lost the turn') : vez ? (fase === 'aguarda' ? t('✋ NA VEZ', '✋ UP NEXT') : t('⏱ NA VEZ', '⏱ ON THE CLOCK')) : escondido ? '🥁' : '…'}
             </span>
           </div>
@@ -249,7 +249,7 @@ function BotaoPassar({ onPassar }: { onPassar: () => void }) {
   return (<>
     <button onClick={onPassar} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
       style={{ ...OSW, fontSize: 16, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Passar a vez', '⏭ Pass my turn')}</button>
-    <p className="text-center text-[11px] font-bold text-black/55">{t(`Seu elenco está cheio (${MLD_ELENCO_MAX}). Não quer ninguém? Passe a vez: ninguém sai do seu time.`, `Your squad is full (${MLD_ELENCO_MAX}). Don't want anyone? Pass: nobody leaves your team.`)}</p>
+    <p className="ov3-page-muted text-center text-[11px] font-bold text-black/55">{t(`Seu elenco está cheio (${MLD_ELENCO_MAX}). Não quer ninguém? Passe a vez: ninguém sai do seu time.`, `Your squad is full (${MLD_ELENCO_MAX}). Don't want anyone? Pass: nobody leaves your team.`)}</p>
   </>)
 }
 
@@ -290,7 +290,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   if (sondando) return <SondarAmigo restante={restante} onVoltar={() => setSondando(false)} />
   return (
     <div className="space-y-2.5">
-      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
+      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 ov3-surface" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>{t(`Sua vez · ${n}ª escolha`, `Your turn · pick #${n}`)}</p>
         <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> {minha ? t('pra escolher · acabou o tempo, você perde a vez', 'to pick · if time runs out, you lose the turn') : t('pra escolher · acabou o tempo, o jogo pega o melhor livre pra você', 'to pick · if time runs out, the game takes the best free player for you')}</p>
       </div>
@@ -306,7 +306,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
           className="w-full border-[3px] border-black rounded-xl px-3 py-2 font-bold text-[14px] bg-white" />
         <div className="flex gap-1.5">
           {[null, ...POS].map(p => (
-            <button key={p ?? 'todos'} onClick={() => setPos(p)} className="flex-1 border-2 border-black rounded-lg py-1.5 text-[13px]"
+            <button key={p ?? 'todos'} onClick={() => setPos(p)} className="flex-1 border-2 border-black rounded-lg py-1.5 text-[13px] ov3-surface"
               style={{ ...OSW, background: pos === p ? GOLD : '#fff' }}>{p ?? t('Todos', 'All')}</button>
           ))}
         </div>
@@ -314,17 +314,17 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
           {lista.map(c => {
             const dono = donoDe.get(chaveNome(c.name))
             if (dono) return (
-              <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10" style={{ background: '#EFEBE0', opacity: .62 }}>
-                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#fff' }}>{c.pos}</span>
+              <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 ov3-surface" style={{ background: '#EFEBE0', opacity: .62 }}>
+                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#fff' }}>{c.pos}</span>
                 <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{c.name}</b><small className="text-[10.5px] font-bold text-black/55">{c.club} · {c.year}</small></span>
-                <span className="shrink-0 max-w-[45%] truncate text-[10.5px] font-black border-2 border-black rounded-lg px-1.5" style={{ ...OSW, background: dono.bot ? '#E6E1D3' : '#FFE6A8' }}>{dono.bot ? '🤖' : '👤'} {dono.time}</span>
+                <span className="shrink-0 max-w-[45%] truncate text-[10.5px] font-black border-2 border-black rounded-lg px-1.5 ov3-surface" style={{ ...OSW, background: dono.bot ? '#E6E1D3' : '#FFE6A8' }}>{dono.bot ? '🤖' : '👤'} {dono.time}</span>
               </div>
             )
             return (
               <button key={chaveCarta(c)} onClick={() => { setCarta(c); setSai(null) }} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 text-left active:bg-yellow-100">
-                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#F4ECD6' }}>{c.pos}</span>
+                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{c.pos}</span>
                 <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{c.name}</b><small className="text-[10.5px] font-bold text-black/55">{c.club} · {c.year}</small></span>
-                <span className="shrink-0 text-[10.5px] font-black text-black/40" style={OSW}>{t('livre', 'free')}</span>
+                <span className="ov3-draft-muted shrink-0 text-[10.5px] font-black text-black/40" style={OSW}>{t('livre', 'free')}</span>
                 <EstrelaFav chave={chaveCarta(c)} favs={favs} dentroDeBotao />
               </button>
             )
@@ -334,14 +334,14 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
         </div>
         {minha && podePassarDraft(you) && <BotaoPassar onPassar={() => dispatch({ type: 'DRAFT_PASSAR', mgrId: you.id, by: state.youUid })} />}
         {minha && (
-          <button onClick={() => setSondando(true)} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
+          <button onClick={() => setSondando(true)} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase ov3-surface"
             style={{ ...OSW, fontSize: 16, background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>{t('🕵️ Prefiro sondar um amigo', '🕵️ I\'d rather scout a friend')}</button>
         )}
       </>) : (
         <div className="space-y-2.5">
           {/* 🤫 sem categoria e sem over antes de pegar: só posição, nome, clube e ano (a carta de verdade vira no anúncio) */}
           <div className="mx-auto rounded-2xl border-[3px] border-black bg-white px-4 py-3 text-center" style={{ width: 220, boxShadow: `3px 3px 0 ${INK}` }}>
-            <span className="inline-block text-[12px] border-2 border-black rounded-md px-2" style={{ ...OSW, background: '#F4ECD6' }}>{POS_NOME[carta.pos][0]}</span>
+            <span className="inline-block text-[12px] border-2 border-black rounded-md px-2 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{POS_NOME[carta.pos][0]}</span>
             <p className="uppercase leading-tight mt-1.5" style={{ ...OSW, fontSize: 22 }}>{carta.name}</p>
             <p className="text-[12px] font-bold text-black/60">{carta.club} · {carta.year}</p>
           </div>
@@ -353,7 +353,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
             <p className="text-[12px] font-bold text-black/60 mb-2">{t(`O time tem vaga fixa: sai um dos seus ${POS_NOME[carta.pos][0].toLowerCase()}s e ele fica livre na liga.`, `The squad has fixed slots: one of your ${POS_NOME[carta.pos][1].toLowerCase()}s leaves and becomes free in the league.`)}</p>
             <div className="grid grid-cols-2 gap-1.5">
               {candidatos.map(c => (
-                <button key={c.id} onClick={() => setSai(c.id)} className="border-2 border-black rounded-lg px-2 py-1.5 text-left"
+                <button key={c.id} onClick={() => setSai(c.id)} className="border-2 border-black rounded-lg px-2 py-1.5 text-left ov3-surface"
                   style={{ background: sai === c.id ? GOLD : '#F4ECD6', boxShadow: sai === c.id ? `2px 2px 0 ${INK}` : 'none' }}>
                   <b className="block truncate text-[13px]" style={OSW}>{c.name}</b>
                   <small className="text-[10px] font-bold text-black/55">{categoriaDa(c).emoji} {c.club} · {c.year}</small>
@@ -405,7 +405,7 @@ function ListaProntos({ d, you, souDono, rotulo, onSeguir }: { d: DraftEstado; y
       {!prontos.has(you.id) && <BotaoGrande cor={GREEN} tinta="#fff" onClick={() => dispatch({ type: 'DRAFT_ESTOU_PRONTO', mgrId: you.id, by: state.youUid })}>{t('✋ Estou pronto', '✋ I\'m ready')}</BotaoGrande>}
       {souDono ? (<>
         <BotaoGrande onClick={onSeguir}>{rotulo}</BotaoGrande>
-        <p className="text-center text-[11px] font-bold text-black/55">{t('Só você (dono) vê. Pode seguir mesmo com gente faltando.', 'Only you (owner) see this. You can go on even with people missing.')}</p>
+        <p className="ov3-page-muted text-center text-[11px] font-bold text-black/55">{t('Só você (dono) vê. Pode seguir mesmo com gente faltando.', 'Only you (owner) see this. You can go on even with people missing.')}</p>
       </>) : <p className="text-center text-[12px] font-bold text-black/60">{t('⏳ O dono segue quando a galera estiver pronta.', '⏳ The owner moves on when the crew is ready.')}</p>}
     </div>
   )
@@ -438,7 +438,7 @@ function EtapaMinha({ d, you, souDono, restante, nome }: { d: DraftEstado; you: 
         <Caixa titulo={t(`🔨 Vão a leilão · ${d.lotes?.length ?? 0}`, `🔨 Up for auction · ${d.lotes?.length ?? 0}`)}>
           {(d.lotes ?? []).map((l, i) => <Linha key={i} a={`${l.carta.name} · ${nome(l.dono)}`} b={l.sondador != null ? `🕵️ ${nome(l.sondador)}` : t('🏷️ à venda', '🏷️ for sale')} />)}
         </Caixa>
-        <p className="text-center text-[11.5px] font-bold text-black/60">{t('Envelope de 60 s: ninguém vê o lance do outro. Lance mínimo = o que o dono pagou. Quem sondou pode IGUALAR o maior lance (menos se o maior for do dono). Vendeu: o dinheiro vai pro dono. Ninguém deu lance: volta pro dono.', '60 s sealed envelope: nobody sees the others\' bids. Minimum bid = what the owner paid. Whoever scouted can MATCH the top bid (unless the top bid is the owner\'s). Sold: money goes to the owner. No bids: back to the owner.')}</p>
+        <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Envelope de 60 s: ninguém vê o lance do outro. Lance mínimo = o que o dono pagou. Quem sondou pode IGUALAR o maior lance (menos se o maior for do dono). Vendeu: o dinheiro vai pro dono. Ninguém deu lance: volta pro dono.', '60 s sealed envelope: nobody sees the others\' bids. Minimum bid = what the owner paid. Whoever scouted can MATCH the top bid (unless the top bid is the owner\'s). Sold: money goes to the owner. No bids: back to the owner.')}</p>
         <ListaProntos d={d} you={you} souDono={souDono} rotulo={t('▶ Começar o leilão', '▶ Start the auction')} onSeguir={seguir} />
       </div>
     )
@@ -466,11 +466,11 @@ function VenderMeu({ d, you }: { d: DraftEstado; you: Manager }) {
           <button onClick={() => dispatch({ type: 'DRAFT_VENDER', mgrId: you.id, cardId: null, by: state.youUid })} className="border-2 border-black rounded-lg px-2 py-1 text-[12px]" style={OSW}>{t('tirar', 'remove')}</button>
         </div>
       ) : !aberto ? (
-        <button onClick={() => setAberto(true)} className="w-full border-2 border-black rounded-lg py-1.5 text-[13px]" style={{ ...OSW, background: '#F4ECD6' }}>{t('Escolher jogador pra vender', 'Pick a player to sell')}</button>
+        <button onClick={() => setAberto(true)} className="w-full border-2 border-black rounded-lg py-1.5 text-[13px] ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{t('Escolher jogador pra vender', 'Pick a player to sell')}</button>
       ) : (
         <div className="grid grid-cols-2 gap-1.5 max-h-64 overflow-y-auto">
           {pode.map(c => (
-            <button key={c.id} onClick={() => { dispatch({ type: 'DRAFT_VENDER', mgrId: you.id, cardId: c.id, by: state.youUid }); setAberto(false) }} className="border-2 border-black rounded-lg px-2 py-1 text-left" style={{ background: '#F4ECD6' }}>
+            <button key={c.id} onClick={() => { dispatch({ type: 'DRAFT_VENDER', mgrId: you.id, cardId: c.id, by: state.youUid }); setAberto(false) }} className="border-2 border-black rounded-lg px-2 py-1 text-left ov3-surface" style={{ background: '#F4ECD6' }}>
               <b className="block truncate text-[12.5px]" style={OSW}>{c.pos} · {c.name}</b>
               <small className="text-[10px] font-bold text-black/55">{Math.max(1, Math.round(c.paid ?? 1))} 🪙</small>
             </button>
@@ -500,13 +500,13 @@ function SondarAmigo({ restante, onVoltar }: { restante: number; onVoltar: () =>
   const c = cartas.find(x => x.id === cardId && podeSondarCarta(x, d.temporada))
   return (
     <div className="space-y-2.5">
-      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
+      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 ov3-surface" style={{ background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>🕵️ {t('Sondar um amigo', 'Scout a friend')}</p>
         <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t('você perde a vez no draft e o jogador vai pro leilão', 'you lose your draft turn and the player goes to auction')}</p>
       </div>
       <p className="text-[11px] font-bold text-black/60">{t(`🔒 Só dá pra sondar quem já está há ${MLD_SONDAR_TEMPORADAS} temporadas no time do amigo (é o "contrato"). Quem chegou depois aparece com cadeado.`, `🔒 You can only scout players who have been on your friend's team for ${MLD_SONDAR_TEMPORADAS} seasons (the "contract"). Newer arrivals show a padlock.`)}</p>
       <div className="flex gap-1.5 flex-wrap">
-        {amigos.map(m => <button key={m.id} onClick={() => { setDono(m.id); setCardId(null) }} className="border-2 border-black rounded-lg px-2 py-1 text-[13px]" style={{ ...OSW, background: dono === m.id ? GOLD : '#fff' }}>{m.teamName}</button>)}
+        {amigos.map(m => <button key={m.id} onClick={() => { setDono(m.id); setCardId(null) }} className="border-2 border-black rounded-lg px-2 py-1 text-[13px] ov3-surface" style={{ ...OSW, background: dono === m.id ? GOLD : '#fff' }}>{m.teamName}</button>)}
       </div>
       <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white max-h-80 overflow-y-auto">
         {cartas.map(x => {
@@ -516,7 +516,7 @@ function SondarAmigo({ restante, onVoltar }: { restante: number; onVoltar: () =>
           return (
             <button key={x.id} disabled={!livre} onClick={() => setCardId(x.id)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 text-left"
               style={{ background: cardId === x.id ? '#FFF1B8' : !livre ? '#EFEAD9' : undefined, opacity: livre ? 1 : 0.7 }}>
-              <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#F4ECD6' }}>{x.pos}</span>
+              <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{x.pos}</span>
               <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{livre ? '' : '🔒 '}{x.name}</b>
                 <small className="text-[10.5px] font-bold text-black/55">{x.club} · {x.year}</small>
                 {!livre && <small className="block text-[10.5px] font-black" style={{ color: RED }}>{t(`📝 Contrato: falta${faltam === 1 ? '' : 'm'} ${faltam} temporada${faltam === 1 ? '' : 's'} · libera no draft do fim da temporada ${sondavelNoDraftDa(x)}`, `📝 Contract: ${faltam} more season${faltam === 1 ? '' : 's'} · unlocks at the draft after season ${sondavelNoDraftDa(x)}`)}</small>}
@@ -547,7 +547,7 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
   const enviado = (i: number) => d.lances?.[i]?.[you.id] ?? 0
   const [bids, setBids] = useState<Record<number, number>>(() => Object.fromEntries(lotes.map((_, i) => [i, enviado(i)]).filter(([, v]) => v > 0)))
   const total = Object.values(bids).reduce((a, b) => a + b, 0)
-  const lacrado = lotes.every((_, i) => (bids[i] ?? 0) === enviado(i)) && lotes.some((_, i) => enviado(i) > 0)
+  const lacrado = lotes.every((_, i) => (bids[i] ?? 0) === enviado(i)) && (d.lacrou ?? []).includes(you.id) // 🔒 09/11: vale lacrar sem lance
   const bump = (i: number, dir: 1 | -1) => {
     const l = lotes[i]
     setBids(prev => {
@@ -559,9 +559,12 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
       return { ...prev, [i]: v }
     })
   }
-  const lacrar = () => lotes.forEach((_, i) => { const v = bids[i] ?? 0; if (v !== enviado(i)) dispatch({ type: 'DRAFT_LANCE', mgrId: you.id, lote: i, valor: v, by: state.youUid }) })
+  const lacrar = () => {
+    lotes.forEach((_, i) => { const v = bids[i] ?? 0; if (v !== enviado(i)) dispatch({ type: 'DRAFT_LANCE', mgrId: you.id, lote: i, valor: v, by: state.youUid }) })
+    dispatch({ type: 'DRAFT_LACRAR', mgrId: you.id, by: state.youUid }) // 🔒 sem lance também vale; todo mundo lacrou = martelo na hora
+  }
   const barra = (
-    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
+    <div className="flex items-center justify-between gap-2 px-3 py-2 ov3-surface" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
       <p className="uppercase" style={{ ...OSW, fontSize: 15 }}>🔨 {t('Leilão dos sondados', 'Scouted auction')}</p>
       <div className="text-center border-[3px] border-black rounded-xl px-2 py-0.5" style={{ background: restante <= 15 ? RED : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}` }}>
         <p className="text-[8px] font-black leading-none" style={OSW}>{t('TEMPO', 'TIME')}</p>
@@ -584,14 +587,14 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
                 <div className="min-w-0"><CardFace c={l.carta} /></div>
                 <div className="flex items-center gap-1.5">
                   <HoldButton onStep={() => bump(i, -1)} className="border-2 border-black rounded-lg w-8 h-8 font-black bg-white text-black">−</HoldButton>
-                  <span className="w-12 h-8 grid place-items-center text-base font-black border-2 border-black rounded-lg bg-white" style={{ ...OSW, color: bid > 0 ? INK : 'rgba(0,0,0,.35)' }}>{bid}</span>
-                  <HoldButton onStep={() => bump(i, 1)} disabled={total >= caixa} className={`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${total >= caixa ? 'opacity-40' : ''}`} style={{ backgroundColor: GOLD }}>+</HoldButton>
+                  <span className={`w-12 h-8 grid place-items-center text-base font-black border-2 border-black rounded-lg bg-white ${bid === 0 ? 'ov3-bid-placeholder' : ''}`} style={{ ...OSW, color: bid > 0 ? INK : 'rgba(0,0,0,.35)' }}>{bid}</span>
+                  <HoldButton onStep={() => bump(i, 1)} disabled={total >= caixa} className={(`border-2 border-black rounded-lg w-8 h-8 font-black text-black ${total >= caixa ? 'opacity-40' : ''}`)+" ov3-surface"} style={{ backgroundColor: GOLD }}>+</HoldButton>
                 </div>
               </div>
               <div className="flex gap-1.5 flex-wrap">
                 <span className="text-[10.5px] rounded px-1.5 border-2 border-black" style={{ ...OSW, background: l.sondador != null ? RED : '#fff', color: l.sondador != null ? '#fff' : INK }}>{l.sondador != null ? `🕵️ ${t('sondado por', 'scouted by')} ${nome(l.sondador)}` : t('🏷️ à venda', '🏷️ for sale')}</span>
-                <span className="text-[10.5px] rounded px-1.5 border-2 border-black" style={{ ...OSW, background: '#F4ECD6' }}>{t('dono', 'owner')}: {nome(l.dono)}</span>
-                <span className="text-[10.5px] rounded px-1.5 border-2 border-black" style={{ ...OSW, background: GOLD }}>{t('mín.', 'min.')} {l.piso} 🪙</span>
+                <span className="text-[10.5px] rounded px-1.5 border-2 border-black ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{t('dono', 'owner')}: {nome(l.dono)}</span>
+                <span className="text-[10.5px] rounded px-1.5 border-2 border-black ov3-surface" style={{ ...OSW, background: GOLD }}>{t('mín.', 'min.')} {l.piso} 🪙</span>
               </div>
             </Box>
           )
@@ -603,7 +606,7 @@ function LeilaoMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager;
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[13px] font-black text-white" style={OSW}>✉️ {t('ENVELOPE', 'ENVELOPE')}: <span style={{ color: GOLD }}>{total} / {caixa}</span></p>
-                <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.7)' }}>{lacrado ? t('✅ Lacrado — dá pra mudar até o tempo acabar', '✅ Sealed — you can change it until time runs out') : t('Sem lance = você não disputa aquele jogador', 'No bid = you skip that player')}</p>
+                <p className="text-[10.5px] font-bold" style={{ color: 'rgba(255,255,255,.7)' }}>{lacrado ? t('✅ Lacrado — quando todo mundo lacrar, o martelo bate na hora', '✅ Sealed — once everyone seals, the hammer falls right away') : t('Sem lance = você não disputa aquele jogador', 'No bid = you skip that player')}</p>
               </div>
               <Btn onClick={lacrar} bg={lacrado ? GREEN : RED}><span className="text-white whitespace-nowrap">{lacrado ? t('LACRADO ✅', 'SEALED ✅') : t('LACRAR TUDO 🔒', 'SEAL ALL 🔒')}</span></Btn>
             </div>
@@ -638,7 +641,7 @@ function RevelaLeilao({ d, you, nome }: { d: DraftEstado; you: Manager; nome: (i
   if (!l) return <Shell><div className="pt-10 text-center text-5xl">🔨</div></Shell>
   const ficou = l.vencedor == null || l.vencedor === l.dono
   const barra = (
-    <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
+    <div className="flex items-center justify-between gap-2 px-3 py-2 ov3-surface" style={{ background: '#F4ECD6', borderBottom: `3px solid ${INK}` }}>
       <p className="uppercase" style={{ ...OSW, fontSize: 15 }}>🔨 {t('Abrindo os envelopes', 'Opening the envelopes')}</p>
       <p className="font-black text-sm" style={OSW}>{i + 1}/{d.lotes?.length ?? 0}</p>
     </div>
@@ -703,7 +706,7 @@ function IgualarMinha({ d, you, restante, nome }: { d: DraftEstado; you: Manager
       {souEu ? (<>
         <BotaoGrande cor={GREEN} tinta="#fff" onClick={() => dispatch({ type: 'DRAFT_IGUALAR', mgrId: you.id, sim: true, by: state.youUid })}>{t(`✅ Igualar ${l.valor} e levar`, `✅ Match ${l.valor} and take him`)}</BotaoGrande>
         <BotaoGrande cor="#fff" onClick={() => dispatch({ type: 'DRAFT_IGUALAR', mgrId: you.id, sim: false, by: state.youUid })}>{t('Deixar', 'Pass')}</BotaoGrande>
-      </>) : <p className="text-center text-[12.5px] font-bold text-black/65">{t(`⏳ ${nome(l.sondador)} sondou e está decidindo se iguala…`, `⏳ ${nome(l.sondador)} scouted him and is deciding whether to match…`)}</p>}
+      </>) : <p className="ov3-page-muted text-center text-[12.5px] font-bold text-black/65">{t(`⏳ ${nome(l.sondador)} sondou e está decidindo se iguala…`, `⏳ ${nome(l.sondador)} scouted him and is deciding whether to match…`)}</p>}
     </div>
   )
 }
@@ -720,7 +723,7 @@ function EscalaMinha({ d, you, souDono, restante }: { d: DraftEstado; you: Manag
           {resultados.map((l, i) => <Linha key={i} a={l.carta.name} b={l.vencedor === l.dono ? (l.valor ? t(`🛡️ ficou (${l.valor})`, `🛡️ kept (${l.valor})`) : l.sondador == null ? t('🤖 foi pra um bot', '🤖 went to a bot') : t('↩️ ficou com o dono', '↩️ stays')) : `${state.managers.find(m => m.id === l.vencedor)?.teamName ?? '?'} · ${l.valor} 🪙${l.igualou ? ' ⚡' : ''}`} />)}
         </Caixa>
       )}
-      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
+      <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 ov3-surface" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>👕 {t('Escalação', 'Line-up')} · {you.squad.length}/{MLD_ELENCO_MAX}</p>
         <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t('igual ao Elenco da carreira: toque num jogador e depois em outro da mesma posição pra trocar; a formação fica na pílula', 'same as the career Squad tab: tap a player and then another of the same position to swap; formation is in the pill')}</p>
       </div>

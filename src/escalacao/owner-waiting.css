@@ -1,0 +1,109 @@
+/* Approved waiting room: verified principal account only; native controls live in slots. */
+#root .ov3.ov3-waiting.online-room-art{padding:0 0 24px!important;min-height:0;justify-content:flex-start!important}
+#root .ov3.ov3-waiting.online-room-art:not(.tema-sala){background:#0b120e!important}
+#root .ov3.ov3-waiting>.col-tela{display:block!important;width:calc(100% - 60px);max-width:1320px;margin:12px auto 0}
+#root .ov3-waiting .ow-layout{min-width:0;color:#f4ecd6}
+.ow-target:empty,.ow-extra:empty{display:none}
+.ow-grid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:22px;align-items:start;margin-top:20px}
+.ow-main,.ow-aside{display:flex;flex-direction:column;gap:20px;min-width:0}
+#root .ov3-waiting .ll-wait-heading{min-height:162px;padding:26px!important;gap:18px;border-bottom:1px solid #cabb8b50;border-radius:14px;background:linear-gradient(90deg,#08130eeb,#08130e99),url('./img/online-estadio-v25.webp') center 48%/cover}
+#root .ov3-waiting .ll-wait-heading>div>p:first-child{font:700 34px/1.15 Oswald,sans-serif;white-space:normal;overflow-wrap:anywhere;margin-bottom:10px;color:#f4ecd6!important}
+#root .ov3-waiting .ll-wait-heading>div>p:nth-child(2){color:#c5cfbc!important;font-size:12px}
+#root .ov3-waiting .ll-wait-heading>button{align-self:center;min-width:115px;padding:13px;background:#f4ecd6}
+#root .ov3-waiting .online-attendance{background:#f4ecd6!important;color:#0c0c0c!important;border:3px solid #0c0c0c;border-radius:15px;padding:20px;box-shadow:4px 4px #000}
+#root .ov3-waiting .online-attendance>p:first-child{font:700 19px/1.3 Oswald,sans-serif;letter-spacing:.2px;color:#0c0c0c;margin-bottom:16px}
+#root .ov3-waiting .salas-tec-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#root .ov3-waiting .salas-tec-grade>div{min-width:0;min-height:76px;padding:12px!important;border-radius:12px}
+#root .ov3-waiting .salas-tec-grade .truncate{white-space:normal;overflow-wrap:anywhere}
+#root .ov3-waiting .online-invite{margin:0!important;background:#f4ecd6!important;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:15px;padding:18px!important;box-shadow:4px 4px #000;text-shadow:none}
+#root .ov3-waiting .online-invite>p:first-child{font:700 20px/1.25 Oswald,sans-serif;color:#0c0c0c!important;margin-bottom:13px}
+#root .ov3-waiting .online-invite p[class*='text-white']{color:#4a5142!important}
+#root .ov3-waiting .online-invite button{min-height:44px}
+#root .ov3-waiting .online-invite>p{font-size:11px;line-height:1.55}
+.ow-rules,.ow-climate,.ow-themes{background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:15px;padding:18px;box-shadow:4px 4px #000;min-width:0}
+.ow-rules>h2,.ow-climate>h2{font:700 19px/1.3 Oswald,sans-serif;margin:0 0 14px}
+#root .ov3-waiting .ll-wait-rules{margin:0;padding:0;background:none!important;border:0;color:#0c0c0c}
+#root .ov3-waiting .ll-wait-rules>div{gap:9px}
+#root .ov3-waiting .ll-wait-rules>div>span{padding:7px;font-size:11px;background:#fffaf0!important}
+#root .ov3-waiting .ll-wait-rules button{color:#1b7a3d!important;min-height:44px}
+#root .ov3-waiting .ll-wait-rules>p{color:#4a5142!important}
+.ow-banter>summary,.ow-themes>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;min-height:44px;font:700 14px/1.3 Oswald,sans-serif}
+.ow-banter>summary::-webkit-details-marker,.ow-themes>summary::-webkit-details-marker{display:none}
+.ow-banter>summary{background:#fffaf0;border:2px solid #0c0c0c;border-radius:10px;padding:11px 13px}
+.ow-banter[open]>summary span,.ow-themes[open]>summary span{rotate:45deg}
+#root .ov3-waiting .online-banter{margin:12px 0 0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#0c0c0c!important}
+#root .ov3-waiting .online-banter>p:first-child{display:none}
+#root .ov3-waiting .online-banter>div{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;overflow:visible!important}
+#root .ov3-waiting .online-banter button{white-space:normal!important;min-width:0!important;min-height:44px!important;font-size:12px!important;padding:9px!important}
+#root .ov3-waiting .online-banter .ll-mascot-inline{display:none!important}
+.ow-theme-shortcut{display:block;width:100%;min-height:44px;margin-top:12px;background:transparent;border:2px solid #0c0c0c;border-radius:10px;color:#0c0c0c;font:700 14px Oswald,sans-serif}
+#root .ov3-waiting .ll-room-themes{background:none!important;border:0!important;box-shadow:none!important;margin-top:12px;color:#0c0c0c;padding:0!important}
+#root .ov3-waiting .salas-rodape-fixo{position:static!important;z-index:auto!important;background:none!important;border:0!important;border-radius:0;padding:0!important;margin:0!important;box-shadow:none!important}
+#root .ov3-waiting .salas-rodape-fixo>button{min-height:48px}
+#root .ov3-waiting .salas-rodape-fixo>p{background:#15241a;border:1px solid #526343;border-radius:12px;color:#d6dfc9!important;padding:16px;font-size:13px;line-height:1.5}
+#root .ov3-waiting .ll-mascot-start{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:8px;font:700 15px Oswald,sans-serif;min-height:48px;margin-bottom:12px;background:#f4ecd6;border:2px solid #66517f;border-radius:11px}
+.ow-extra{display:flex;flex-direction:column;gap:18px;margin-top:20px}
+.ow-extra>div{min-width:0}
+.ow-shop{margin-top:28px!important}
+.ow-shop .ll-hub-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:18px;margin-top:18px;border-top:1px solid #f4ecd626;color:#bdb9a9}
+#root .ov3-waiting .ow-shop .ll-hub-footer button{color:#d1d8c5;min-height:44px;background:none;border:0;font:11px Arial,sans-serif}
+.ow-contact-footer{padding:18px 14px 28px;text-align:center;background:#0b120e;color:#b4bea7;font:11px/1.7 Arial,sans-serif}
+.ow-contact-footer p{margin:0 0 6px}.ow-contact-footer a{display:inline-block;margin:0 8px;text-decoration:underline;color:#d5ddc9;min-height:30px}
+@media(max-width:1099px){.ow-grid{grid-template-columns:minmax(0,1fr)}.ow-aside{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.ow-aside>.ow-themes{grid-column:1/-1}}
+@media(max-width:760px){
+ #root .ov3.ov3-waiting>.col-tela{width:calc(100% - 28px);margin-top:6px}
+ #root .ov3-waiting .ll-wait-heading{padding:19px 15px!important;min-height:142px;gap:12px}
+ #root .ov3-waiting .ll-wait-heading>div>p:first-child{font-size:27px;margin-bottom:8px}
+ #root .ov3-waiting .ll-wait-heading>button{min-width:94px;padding:11px 7px}
+ #root .ov3-waiting .ll-wait-heading>button>span:first-child{font-size:23px}
+ .ow-grid{gap:16px;margin-top:16px}.ow-main,.ow-aside{gap:16px}.ow-aside{display:flex}
+ #root .ov3-waiting .online-attendance{padding:16px}
+ #root .ov3-waiting .salas-tec-grade{gap:8px}
+ #root .ov3-waiting .salas-tec-grade>div{padding:9px!important;min-height:72px}
+ .ow-rules,.ow-climate,.ow-themes{padding:16px}.ow-extra{gap:16px;margin-top:16px}
+ .ow-shop .ll-hub-store{flex-wrap:wrap;padding:17px;gap:12px}.ow-shop .ll-hub-store>button{width:100%}
+}
+@media(max-width:370px){#root .ov3-waiting .salas-tec-grade{grid-template-columns:minmax(0,1fr)}#root .ov3-waiting .ll-wait-heading{flex-wrap:wrap}.ow-contact-footer a{display:block}}
+#root .ov3-waiting .ow-shop .ll-hub-store-button{display:flex;align-items:center;justify-content:center;min-height:46px;border:2px solid #0c0c0c;border-radius:10px;background:#ffc400;color:#0c0c0c;padding:10px 18px;box-shadow:3px 3px #000;font:700 15px Oswald,sans-serif}
+.ow-footer-shop-link{display:block;margin:0 auto 10px;min-height:44px;background:transparent;border:0;color:#e5d99d;font:700 13px Oswald,sans-serif;text-decoration:underline}
+.ow-footer-links{display:flex;gap:20px;justify-content:center;align-items:center;margin-bottom:10px}.ow-footer-links>button{margin:0;min-height:44px;background:none;border:0;color:#e5d99d;font:700 13px Oswald,sans-serif;text-decoration:underline}
+/* Opaque supports keep navigation and warnings readable over every room theme. */
+#root .ov3-waiting>.ov3-brand,#root .ov3-waiting>.ov3-roomline{position:relative;z-index:1}
+#root .ov3-waiting>.ov3-roomline{background:#0b120eed;border-radius:9px;padding:0 10px;margin-top:4px}
+#root .ov3-waiting .ll-mascot-start{color:#0c0c0c!important}
+.ow-native-exit{background:#101b13;border:1px solid #526343;border-radius:12px;padding:15px}
+#root .ov3-waiting .ow-native-exit p{color:#c2cbb7!important}
+#root .ov3-waiting .ow-shop .ll-hub-footer{background:#0b120e;border-radius:11px;padding:14px;color:#d9dfcf}
+/* The main action keeps its own contrast, including silver and white club themes. */
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start){
+ min-height:62px;padding:15px 18px!important;border:3px solid #0c0c0c!important;
+ border-radius:12px;font:700 19px/1.25 Oswald,sans-serif!important;opacity:1!important;
+ background:#ffc400!important;color:#0c0c0c!important;box-shadow:4px 4px 0 #000!important;
+}
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start) span{color:#0c0c0c!important}
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start):disabled{
+ background:#d4d9ce!important;color:#4d5545!important;box-shadow:none!important;cursor:not-allowed;
+}
+#root .ov3-waiting .ow-wait-start>div>button:not(.ll-mascot-start):disabled span{color:#4d5545!important}
+/* Invitation actions belong to the room heading, next to its single room code. */
+.ow-heading{border-radius:14px;overflow:hidden;background:linear-gradient(90deg,#08130eeb,#08130e99),url('./img/online-estadio-v25.webp') center 48%/cover}
+#root .ov3-waiting .ow-heading .ll-wait-heading{min-height:110px;padding:20px 22px 12px!important;border:0;background:transparent!important;border-radius:0}
+#root .ov3-waiting .online-invite.ow-invite-inline{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding:0 22px 18px!important;background:transparent!important;border:0!important;border-radius:0;box-shadow:none!important;color:#f4ecd6}
+#root .ov3-waiting .online-invite.ow-invite-inline>*{margin:0!important}
+#root .ov3-waiting .online-invite.ow-invite-inline .ow-invite-actions{flex:0 1 auto;min-width:0}
+#root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions>button,
+#root .ov3-waiting .online-invite.ow-invite-inline>button{width:auto;min-height:44px;padding:7px 11px!important;font:700 12px/1.25 Oswald,sans-serif!important;text-transform:none;box-shadow:none;background:#f4ecd6;color:#0c0c0c;border:1px solid #a9b39b;border-radius:8px}
+#root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions>button{background:transparent;color:#f4ecd6}
+.ow-invite-password{order:3;flex-basis:100%;text-align:right;font:11px/1.5 Arial,sans-serif}
+.ow-invite-password>summary{cursor:pointer;min-height:32px;color:#d9e3cd}
+#root .ov3-waiting .ow-invite-password>div{background:#f4ecd6!important;color:#0c0c0c;text-align:left;margin-top:8px}
+#root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-status{order:4;flex-basis:100%;color:#d9e3cd!important;font:700 11px/1.5 Arial,sans-serif;text-align:right}
+.ow-aside:empty{display:none}.ow-grid:has(>.ow-aside:empty){grid-template-columns:minmax(0,1fr)}
+@media(max-width:760px){
+ #root .ov3-waiting .ow-heading .ll-wait-heading{min-height:104px;padding:16px 14px 10px!important}
+ #root .ov3-waiting .online-invite.ow-invite-inline{padding:0 14px 14px!important;gap:7px;justify-content:stretch}
+ #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions,
+ #root .ov3-waiting .online-invite.ow-invite-inline>button{flex:1 1 0;min-width:0}
+ #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-actions>button{width:100%}
+ #root .ov3-waiting .online-invite.ow-invite-inline>.ow-invite-status{text-align:left}
+}

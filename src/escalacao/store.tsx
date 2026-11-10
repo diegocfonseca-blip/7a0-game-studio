@@ -1,3 +1,4 @@
+import { iniciarCriteriosDaTemporada } from './criterios-carreira'
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
@@ -36,7 +37,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
-import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
+import { condicaoAtiva, divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
@@ -324,6 +325,12 @@ function pagaExDono(s: EscState, nomeTec: string, preco: number, contratanteTeam
   logFin(s, 'sell', `🕴️ Parte da venda do técnico ${nomeTec}`, parte, undefined, ex.id)
 }
 
+/** Folha conhecida do clube, sem empréstimos compartilhados da SAF. Mesma base da cobrança. */
+export function folhaBaseDoClube(s: EscState, m: Manager): number {
+  const tecnico=s.careerTecnicos?.[m.teamName]
+  return squadPayroll(m.squad as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
+}
+
 function chargeSalaries(s: EscState) {
   // 🔓 só a partir da 4ª temporada (fôlego: T1 monta o time, T2 reservas, T3 vender).
   // Roda ANTES do seasonNo++, então s.seasonNo aqui = a temporada que ACABOU de rolar.
@@ -331,13 +338,7 @@ function chargeSalaries(s: EscState) {
   const cc = { ...(s.careerCoins ?? {}) }
   for (const m of s.managers) {
     if (!m.isHuman) continue
-    let folha = squadPayroll(m.squad as WonCard[])
-    // 🧢 salário do TÉCNICO (27/08): valor/10 por temporada, igual jogador
-    const nomeTec = s.careerTecnicos?.[m.teamName]
-    if (nomeTec) folha += Math.round((s.careerTecnicoPago?.[nomeTec] ?? 0) / 10)
-    // 🏋️ salário do PREPARADOR FÍSICO (15/09): a MESMA conta do técnico — 10% do
-    // preço, por temporada. Ele mora no Departamento Técnico e pesa na folha junto.
-    folha += salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
+    const folha = folhaBaseDoClube(s, m)
     if (folha > 0) cc[m.id] = (cc[m.id] ?? 0) - folha // folha REAL, pode negativar (dívida)
   }
   if (saf2On(s)) folhaEmprestimosSaf2(s, cc) // 🏢➡️⚽ empréstimo paga METADE do salário pra cada lado (13/10, só com a chave)
@@ -686,6 +687,11 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
 function ligaCondicaoSeCabe(s: EscState): void {
   if (!s.careerOnline || s.onlineMode === 'online' || !s.agenciaOn) return
   const divAgora = divisaoDaCarreira(s)
+  // Antes do desbloqueio o histórico esportivo existe, mas o desgaste não.
+  // O primeiro jogo da primeira temporada com gás também começa inteiro.
+  if (s.condicaoDesde == null || (s.condicaoDesde === s.seasonNo && (s.round ?? 0) === 0)) {
+    if (s.condicaoCarry) s.condicaoCarry = Object.fromEntries(Object.entries(s.condicaoCarry).map(([k, v]) => [k, { ...v, g: 100 }]))
+  }
   if (s.condicaoDesde === s.seasonNo && s.condicaoDesdeR != null && !DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = undefined; s.condicaoDesdeR = undefined }
   if (s.condicaoDesde == null && DIV_COM_GAS.has(divAgora)) { s.condicaoDesde = s.seasonNo; s.condicaoDesdeR = s.round }
 }
@@ -1506,7 +1512,7 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
     for (const c of squad) if (!c.fake) novo[chave(c)] = {
       // 🏃 + os jogos de Copa e de Copa do Mundo (26/09) — a liga vem das escalações,
       // as copas vêm da tela (quem sabe quantas fases o time jogou é ela)
-      g: Math.round(gas[c.id] ?? 100), j: (jogos[c.id] ?? 0) + (jogosCard?.[c.id] ?? 0),
+      g: condicaoAtiva(s) ? Math.round(gas[c.id] ?? 100) : 100, j: (jogos[c.id] ?? 0) + (jogosCard?.[c.id] ?? 0),
       gl: (inicioGl[c.id] ?? 0) + (golsCard?.[c.id] ?? 0),
       as: (inicioAs[c.id] ?? 0) + (assCard?.[c.id] ?? 0),
     }
@@ -5671,6 +5677,7 @@ type Action =
   | { type: 'DRAFT_VENDER'; mgrId: number; cardId: string | null; by?: string } // 🏷️ põe (ou tira) 1 jogador seu à venda no leilão
   | { type: 'DRAFT_SONDAR'; mgrId: number; dono: number; cardId: string; by?: string } // 🕵️ na sua vez: sonda o jogador de um amigo (perde a vez)
   | { type: 'DRAFT_LANCE'; mgrId: number; lote: number; valor: number; by?: string } // 🔨 envelope do leilão dos sondados (0 = tira o lance)
+  | { type: 'DRAFT_LACRAR'; mgrId: number; by?: string } // 🔒 09/11: lacrou o envelope (com ou sem lance); todo mundo lacrou = o martelo bate na hora
   | { type: 'DRAFT_IGUALAR'; mgrId: number; sim: boolean; by?: string } // ⚡ quem sondou iguala (ou não) o maior lance
   | { type: 'MLD_FORMACAO'; mgrId: number; formation: FormationKey; view?: string; by?: string } // 👕 Minha Liga Draft: troca a formação (só se o elenco preencher)
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
@@ -7491,6 +7498,7 @@ function comecaTemporadaMesmoTime(s: EscState): void {
   s.fixtures = calendarioDaLiga(s)
   s.round = 0
   s.scorers = []; s.assists = []
+  s.scorersPrev = undefined // 🧯 09/11: a cópia anti-spoiler é da temporada passada — sem isto a artilharia nova abria com os gols da velha
   s.lastResults = []
   s.news = []
   s.champion = null
@@ -7708,7 +7716,7 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
 export const ZERA_NA_CARREIRA_NOVA = ['careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
-  'motor2Desde', 'motor2RecepcaoDesde', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
+  'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
   'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev'] as const satisfies readonly (keyof EscState)[]
@@ -8960,6 +8968,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
       s.careerSeen = {} // 🗺️ Guia da carreira: carreira nova não herda banner fechado da carreira anterior
       s.criaDeEvento = undefined
+      s.criteriosCarreiraDesde = undefined; s.criteriosCarreiraAte = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: carreira nova começa desligado (liga ao chegar na Série C)
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: carreira nova NÃO herda jogos/gols/assistências/gás da anterior ("mal começou e já tinha gol")
       // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
@@ -9015,6 +9024,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const m of s.managers) if (m.isHuman) { cc[m.id] = 100; m.money = 100 }
       s.careerCoins = cc
       s.seasonNo = 1
+      iniciarCriteriosDaTemporada(s)
       // 🧾 carreira nova: zera o livro-caixa e registra o SALDO INICIAL de 100, pra
       // somar o Extrato dar exatamente a Caixa (era o único dinheiro fora do extrato).
       s.careerLedger = []
@@ -9081,6 +9091,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined; s.careerColetiva = undefined
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
+      s.criteriosCarreiraDesde = undefined; s.criteriosCarreiraAte = undefined
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.condicaoCarry = undefined; s.botCarry = undefined // 🧾 02/11: idem — nada da carreira anterior
       // 🏋️🧢 03/11 (usuário pelo Diego: "inicio uma nova carreira e continua com o preparador do último save… não tem moedas pra manter"):
@@ -9103,6 +9114,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       for (const m of s.managers) if (m.isHuman) { ccQ[m.id] = 100; m.money = 100 }
       s.careerCoins = ccQ
       s.seasonNo = 1
+      iniciarCriteriosDaTemporada(s)
       s.careerLedger = []
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
@@ -10746,7 +10758,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) if (cards.filter(c => c.pos === pos).length !== need[pos]) return s // 11 não batem com a formação
       }
       const hh = { ...(s.careerHalftime ?? {}) }
-      hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { xi2: ids, formation: action.formation, tactic: action.tactic } }
+      hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { xi2: ids, formation: action.formation, tactic: action.tactic, revisao:(hh[action.mgrId]?.[action.round]?.revisao ?? (hh[action.mgrId]?.[action.round] ? 1 : 0))+1 } }
       s.careerHalftime = hh
       return s
     }
@@ -11662,7 +11674,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // receita de fundo para de oferecê-la (ela casa por nome|clube|ano).
         const alvo = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === action.cardId))?.squad.find(c => c.id === action.cardId)
           ?? (action.clube && action.card && action.card.id === action.cardId ? action.card : null)
-        if (!alvo || alvo.fake || alvo.emprestado) return s
+        if (!alvo || ehFake(alvo) || alvo.cria || alvo.emprestado) return s
         if (!sondarLiberado(alvo, myApoioPerk()?.tier)) return s
         s.aliciarJogadores = [action.cardId]
         s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: action.card, squad: action.squad ?? [] } : undefined
@@ -12031,6 +12043,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes do seasonNo++/placements
       s.seasonNo++
+      iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // campanha da temporada encerrada; o histórico permanece
       s.careerPlacements = action.placements
       escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
@@ -12131,6 +12144,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) voltaCriaSeSobrou(s, m, pos)
       }
       s.seasonNo++
+      iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // libera o save da campanha encerrada; preserva careerInternationalHistory
       s.round = 0; s.champion = null
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
@@ -12758,6 +12772,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
         s.fixtures = calendarioDaLiga(s)
         s.seasonNo++
+        iniciarCriteriosDaTemporada(s)
         s.screen = 'season'
         return s
       }
@@ -12772,6 +12787,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.submitted = []; s.pendingEnvelopes = {}
       s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.seasonNo++
+      iniciarCriteriosDaTemporada(s)
       s.screen = 'auction'
       startAuctionPhase(s, false)
       return s
@@ -12981,7 +12997,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'DRAFT_ABRIR': {
       if (!s.ligaDraft || s.draft || s.screen !== 'end' || s.draftFeito === s.seasonNo) return state
       const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
-      const ordem = ordemDoDraft(sortedTable(s.league), humanos)
+      const ordem = ordemDoDraft(sortedTable(s.league), humanos, !!s.draftRegras?.piorPrimeiro) // 🔁 09/11: o dono escolhe melhor→pior ou pior→melhor
       if (!ordem.length) return state
       if (s.minhaLigaDraft) {
         // 💰 moedas pela colocação (só gente) + ✋ prontos antes do draft (o dono decide quando começa)
@@ -13031,7 +13047,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const d = s.draft
       if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || !soDono(s, action.by)) return state
       if (d.fase === 'prontos' && d.proxima === 'draft') { d.fase = 'aguarda'; d.idx = 0; d.prazo = 0; d.prontos = []; return s }
-      if (d.fase === 'prontos' && d.proxima === 'leilao') { d.fase = 'leilao'; d.lances = {}; d.prazo = Date.now() + MLD_LEILAO_MS; d.prontos = []; return s }
+      if (d.fase === 'prontos' && d.proxima === 'leilao') { d.fase = 'leilao'; d.lances = {}; d.lacrou = []; d.prazo = Date.now() + MLD_LEILAO_MS; d.prontos = []; return s }
       if (d.fase === 'escala') { mldComecaTemporada(s); return s }
       return state
     }
@@ -13072,6 +13088,18 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (v <= 0) delete porLote[m.id]
       else { if (v < lote.piso || v > m.money) return state; porLote[m.id] = v }
       d.lances = { ...(d.lances ?? {}), [action.lote]: porLote }
+      return s
+    }
+    case 'DRAFT_LACRAR': {
+      // 🔒 09/11 (Gabriel Ribeiro, via Diego: *"não consigo lacrar sem escolher ninguém… tamo tendo que esperar o tempo acabar"*):
+      // lacrar vale MESMO SEM LANCE ("não quero ninguém"). Quando todo técnico de gente lacrou, o prazo vira AGORA e o
+      // próximo tique do dono bate o martelo (o mesmo caminho do tempo esgotado — nada de regra nova no martelo).
+      const d = s.draft
+      if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || d.fase !== 'leilao' || Date.now() >= d.prazo) return state
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      if (!m) return state
+      const lac = new Set(d.lacrou ?? []); lac.add(m.id); d.lacrou = [...lac]
+      if (s.managers.filter(x => x.isHuman).every(x => lac.has(x.id))) d.prazo = Date.now()
       return s
     }
     case 'DRAFT_IGUALAR': {
@@ -13880,7 +13908,12 @@ function sincronizaNiveis(save: EscState): EscState {
       }
       return // carta não tem carta dentro
     }
-    for (const k of Object.keys(o)) anda(o[k], prof + 1)
+    for (const k of Object.keys(o)) {
+      // Fotografias oficiais não são fichas do elenco atual. Reaplicar o catálogo
+      // aqui retirava o desconto de condição e reescrevia o jogo ao reabrir.
+      if (prof === 0 && k === 'm2Res') continue
+      anda(o[k], prof + 1)
+    }
   }
   try { anda(save, 0) } catch { /* save torto: melhor não sincronizar do que quebrar o load */ }
   // 💰 o livro de preços segue a carta que mudou de clube (fica o MAIOR, mesma
@@ -14961,7 +14994,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             if (f && (f.tamanho === 10 || f.tamanho === 20)) rawDispatch({ type: 'LIGA_FORMATO', tamanho: f.tamanho, turnoUnico: !!f.turno_unico })
           }
           // 🙋 depois quem o dono aceitou (no time escolhido; quem foi trocado sai da sala e vê o aviso "removido pelo dono")
-          const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: rid })
+          const { data } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: rid })
           const ac = ((data ?? []) as { user_id: string; nome: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[]).filter(p => p.status === 'aceito')
           if (ac.length) {
             rawDispatch({ type: 'LIGA_ENTRADAS', entradas: ac.map(p => ({ uid: p.user_id, nome: p.nome, bot: p.alvo_bot, alvoUid: p.alvo_uid })) })
@@ -15016,7 +15049,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       // 📋 a escolha do draft é recado ÚNICO (se sumir, o tempo acaba e o jogo escolhe por ele): vai pelas duas estradas
-      if ((action.type === 'DRAFT_ESCOLHER' || action.type === 'DRAFT_PRONTO' || action.type === 'DRAFT_PASSAR' || action.type === 'DRAFT_SONDAR' || action.type === 'DRAFT_LANCE' || action.type === 'DRAFT_IGUALAR') && stateRef.current.roomId) {
+      if ((action.type === 'DRAFT_ESCOLHER' || action.type === 'DRAFT_PRONTO' || action.type === 'DRAFT_PASSAR' || action.type === 'DRAFT_SONDAR' || action.type === 'DRAFT_LANCE' || action.type === 'DRAFT_LACRAR' || action.type === 'DRAFT_IGUALAR') && stateRef.current.roomId) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
       if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
@@ -15501,7 +15534,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
             // jogador da mão de quem apertou. O reducer confere o preço da tela
             // e recusa carta que já tem dono, então repetido não faz mal.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'DRAFT_PRONTO' || a.type === 'DRAFT_PASSAR' || a.type === 'DRAFT_SONDAR' || a.type === 'DRAFT_LANCE' || a.type === 'DRAFT_IGUALAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'DRAFT_ESCOLHER' || a.type === 'DRAFT_PRONTO' || a.type === 'DRAFT_PASSAR' || a.type === 'DRAFT_SONDAR' || a.type === 'DRAFT_LANCE' || a.type === 'DRAFT_LACRAR' || a.type === 'DRAFT_IGUALAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -15715,22 +15748,30 @@ export function EscProvider({ children }: { children: ReactNode }) {
       : Promise.resolve({ data: null })
     // 👕 06/11: as cores do manto de cada assento (a MESMA RPC que já veste os campinhos da sala desde 10/08) — pras camisas do
     // Campo 2D saírem iguais em todos os aparelhos. Falhou? Fica sem manto; os mimos seguem como sempre.
-    const pedeMantos = Promise.resolve(supabase.rpc('esc_mantos_sala', { p_room: salaDosMimos })).then(r => r, () => ({ data: null }))
+    // 🎽 09/11: a v2 traz as camisas da LOJA (1ª com até 3 cores + a 2ª). Banco sem a v2 → cai na v1 de sempre.
+    const pedeMantos = Promise.resolve(supabase.rpc('esc_mantos_sala2', { p_room: salaDosMimos }))
+      .then(r => r.error ? Promise.resolve(supabase.rpc('esc_mantos_sala', { p_room: salaDosMimos })) : r, () => Promise.resolve(supabase.rpc('esc_mantos_sala', { p_room: salaDosMimos })))
+      .then(r => r, () => ({ data: null }))
     Promise.all([supabase.rpc('esc_mimos_sala', { p_room: salaDosMimos }), pedeContas, pedeMantos]).then(([{ data }, { data: contas }, { data: mantos }]) => {
       if (!vivo || !Array.isArray(data)) return
       type Conta = { user_id: string; player_index: number; dupla_partner_of?: string | null }
       const contaDoAssento = Array.isArray(contas) ? new Map((contas as Conta[]).map(c => [c.player_index, c])) : null
       // 🤝 DUPLA (12/10): o time veste o mimo do DONO do assento; se o dono não tem
       // batismo e o PARCEIRO tem, veste o do parceiro. Nenhum dos dois = escudo pelo nome.
-      type Mimo = { mascote?: string | null; escudo?: string | null; manto?: string[] | null }
+      type Mimo = { mascote?: string | null; escudo?: string | null; manto?: string[] | null; manto2?: string[] | null }
       const doDono = new Map<number, Mimo>()
       const doParceiro = new Map<number, Mimo>()
       const mantoDoAssento = new Map<number, string[]>()
-      if (Array.isArray(mantos)) for (const r of mantos as { player_index: number; manto_c1: string | null; manto_c2: string | null }[]) if (r.manto_c1 && r.manto_c2) mantoDoAssento.set(r.player_index, [r.manto_c1, r.manto_c2])
+      const manto2DoAssento = new Map<number, string[]>()
+      if (Array.isArray(mantos)) for (const r of mantos as { player_index: number; manto_c1?: string | null; manto_c2?: string | null; k1?: string[] | null; k2?: string[] | null }[]) {
+        if (Array.isArray(r.k1) && r.k1.length >= 2) mantoDoAssento.set(r.player_index, r.k1)
+        else if (r.manto_c1 && r.manto_c2) mantoDoAssento.set(r.player_index, [r.manto_c1, r.manto_c2])
+        if (Array.isArray(r.k2) && r.k2.length >= 2) manto2DoAssento.set(r.player_index, r.k2)
+      }
       const linhasCruas = (data as { player_index: number; mascote_key: string | null; escudo_time: string | null }[]).map(r => ({ ...r }))
-      for (const i of mantoDoAssento.keys()) if (!linhasCruas.some(r => r.player_index === i)) linhasCruas.push({ player_index: i, mascote_key: null, escudo_time: null })
+      for (const i of [...mantoDoAssento.keys(), ...manto2DoAssento.keys()]) if (!linhasCruas.some(r => r.player_index === i)) linhasCruas.push({ player_index: i, mascote_key: null, escudo_time: null })
       for (const r of linhasCruas) {
-        const mimo: Mimo = { mascote: r.mascote_key, escudo: r.escudo_time, manto: mantoDoAssento.get(r.player_index) ?? null }
+        const mimo: Mimo = { mascote: r.mascote_key, escudo: r.escudo_time, manto: mantoDoAssento.get(r.player_index) ?? null, manto2: manto2DoAssento.get(r.player_index) ?? null }
         if (!crachas?.length) { doDono.set(r.player_index, mimo); continue }
         const c = contaDoAssento?.get(r.player_index)
         if (!c) continue

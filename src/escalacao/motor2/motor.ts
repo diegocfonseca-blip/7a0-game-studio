@@ -62,7 +62,14 @@ function formaDe(c: CartaCampo, dia: number): number {
   return ((dia - c.lo) / (c.hi - c.lo)) * 2 - 1
 }
 /** o que muda o nível de TODO o time hoje: técnico (a 12ª carta, mesma régua da simulação) e o evento da rodada */
-export interface Ajuste { seed: number; tecnico?: number | null; evento?: number }
+export interface Ajuste { seed: number; tecnico?: number | null; evento?: number; condicaoUnica?: boolean }
+/** Mesma ficha inicial para o futebol em campo e a estimativa leve dos confrontos entre bots. */
+export function perfilDoDia(c: CartaCampo, grupo: Grupo, lado: Lado, aj?: Ajuste) {
+  const dia = aj && c.name ? diaDe(aj.seed, c, lado) : undefined
+  const nivel = dia == null ? undefined : dia + (aj?.tecnico != null ? (aj.tecnico - dia) / 12 : 0) + (aj?.evento ?? 0)
+  return { perfil:perfilDe(c, grupo, nivel), forma:dia == null ? 0 : formaDe(c, dia) }
+}
+
 function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeitoOn = false, aj?: Ajuste): Atleta[] {
   const lista = onze(cartas, formacao).slice(0, 11)
   while (lista.length < 11) lista.push({ name: '', pos: lista.some(c => c.pos === 'GOL') ? 'MEI' : 'GOL' })
@@ -96,10 +103,7 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeit
     const n = cs.length, bx = n === 1 ? 34 : n === 2 && gr(0, 2) === 'ATA' ? (i === 0 ? 22 : 46) : 9 + (50 * i) / (n - 1), g = gr(i, n)
     const centro = n > 1 ? Math.abs(i - (n - 1) / 2) / ((n - 1) / 2) : 0
     // (nível do dia + técnico: 1/12 da diferença entre ele e o jogador, igual à simulação · + o evento da rodada)
-    const dia = aj && c.name ? diaDe(aj.seed, c, lado) : undefined
-    const nivel = dia == null ? undefined : dia + (aj?.tecnico != null ? (aj.tecnico - dia) / 12 : 0) + (aj?.evento ?? 0)
-    const pf = perfilDe(c, g, nivel)
-    const forma = dia == null ? 0 : formaDe(c, dia)
+    const { perfil:pf, forma } = perfilDoDia(c, g, lado, aj)
     out.push({
       id: idSeq++, lado, nome: c.name, carta: c, grupo: g, estilo: pf.estilo, golpes: pf.golpes, pe: pf.pe, at: { ...pf.at }, base: pf.at, forma, tend: pf.tend,
       // (meio-campo ESCALONADO: o do meio é o volante (0,45), os de fora são os "8" que chegam na área (0,75). Três meias
@@ -107,7 +111,7 @@ function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, peloJeit
       bx, dep: g === 'MEI' ? 0.45 + centro * 0.3 : g === 'ATA' ? dep - (1 - centro) * 0.04 : dep,
       x: 34, y: 52.5, vx: 0, vy: 0, fx: 0, fy: lado === 0 ? -1 : 1, alvo: { x: 34, y: 52.5, v: 0 }, papel: 'forma', marca: null, proxDecisao: 0, atordoado: 0, amarelos: 0, expulso: false, faltas: 0,
       // 😓 quem entra cansado pela régua da carreira (−1 😓 · −2 🥵 · −3 🚑) começa com menos gás — nada de régua nova
-      gas: GAS_INICIO[Math.min(3, Math.max(0, -(c.gasMod ?? 0)))],
+      gas: aj?.condicaoUnica ? 1 : GAS_INICIO[Math.min(3, Math.max(0, -(c.gasMod ?? 0)))],
     })
   })
   linha(por.GOL.slice(0, 1), 0, () => 'GOL')
@@ -213,11 +217,13 @@ export class Motor2 {
   /** 🦶 o PRIMEIRO TOQUE de quem acabou de receber: pra onde ele leva a bola (longe do marcador, pro lado do jogo) */
   private toque1: { de: Atleta; ux: number; uy: number; ate: number } | null = null
   private readonly recepcaoContextual:boolean
+  readonly criteriosCarreira:boolean
 
   /** `bots`: qual lado é time de BOT (sem escalação de gente) — só nesse o motor escolhe quem joga aberto e quem joga no meio pelo jeito do jogador */
   /** `extra`: técnico (nível do dia dele) e evento da rodada de cada lado — o que a simulação da carreira também usa */
-  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false], extra: { tecnico?: [number | null, number | null]; evento?: [number, number]; recepcaoContextual?:boolean } = {}) {
+  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], en = false, formacoes: [string?, string?] = [], tatica: [number, number] = [0, 0], clima: Clima = 'sol', bots: [boolean, boolean] = [false, false], extra: { tecnico?: [number | null, number | null]; evento?: [number, number]; recepcaoContextual?:boolean; criteriosCarreira?:boolean } = {}) {
     this.recepcaoContextual=extra.recepcaoContextual===true
+    this.criteriosCarreira=extra.criteriosCarreira===true
     const s = sorteio(seed)
     this.r = s.r; this.n = s.n
     this.nar = new Narrador(en, this.r)
@@ -227,7 +233,7 @@ export class Motor2 {
     const ROT: Rotina[] = ['primeiro_pau', 'segundo_pau', 'curta']
     this.rotinaBase = [ROT[Math.floor(this.r() * 3)], ROT[Math.floor(this.r() * 3)]]
     this.rotina = [...this.rotinaBase] as [Rotina, Rotina]
-    this.ajuste = [0, 1].map(l => ({ seed, tecnico: extra.tecnico?.[l] ?? null, evento: extra.evento?.[l] ?? 0 }))
+    this.ajuste = [0, 1].map(l => ({ seed, tecnico: extra.tecnico?.[l] ?? null, evento: extra.evento?.[l] ?? 0, condicaoUnica:this.criteriosCarreira }))
     this.atl = [...montaTime(0, casa, formacoes[0], bots[0], this.ajuste[0]), ...montaTime(1, fora, formacoes[1], bots[1], this.ajuste[1])]
     for (const p of this.atl) this.rende(p)
     this.atl.forEach((p, i) => { p.proxDecisao = (i % 5) * 0.05 })
@@ -388,9 +394,9 @@ export class Motor2 {
   // ── 🔁 TROCA NO INTERVALO (carreira, Diego): o técnico escolhe os 11 do 2º tempo com o jogo parado aos 45'. A troca vale
   // quando o juiz apita o intervalo — o 1º tempo fica IGUAL (mesma semente, nada mudou até ali), então o jogo que a tela mostrou
   // e o que decide o placar são o mesmo jogo. Quem foi expulso no 1º tempo não volta.
-  private trocas: ({ cartas: CartaCampo[]; formacao?: string } | null)[] = [null, null]
-  trocaTime(lado: Lado, cartas: CartaCampo[], formacao?: string) {
-    this.trocas[lado] = { cartas, formacao }
+  private trocas: ({ cartas: CartaCampo[]; formacao?: string; tatica?: number } | null)[] = [null, null]
+  trocaTime(lado: Lado, cartas: CartaCampo[], formacao?: string, tatica?: number) {
+    this.trocas[lado] = { cartas, formacao, tatica }
     if (this.intervalo && this.t < this.intervaloT + 0.05) this.aplicaTrocas() // (pedida bem no apito: aplica na hora)
   }
   private intervaloT = 0
@@ -400,6 +406,7 @@ export class Motor2 {
       const tr = this.trocas[l]
       if (!tr) continue
       this.trocas[l] = null
+      if (tr.tatica != null) this.taticaBase[l] = tr.tatica
       const velhos = this.atl.filter(a => a.lado === l)
       const fora = this.expulsos.filter(n => n.lado === l).map(n => n.nome)
       let novos = montaTime(l, tr.cartas.filter(c => !fora.includes(c.name)), tr.formacao, false, this.ajuste[l])

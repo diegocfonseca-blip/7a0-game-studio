@@ -293,11 +293,11 @@ export function modsDoElenco(
   byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[],
   xiAt: (r: number) => string[],
   ev: { tipo: string; season: number; status: string; volta?: number; cardId: string } | null | undefined, seasonNo: number,
-  desdeR = 0, inicio?: Record<string, number>,
+  desdeR = 0, inicio?: Record<string, number>, banco = GAS_BANCO,
 ): CardModsPorRodada {
   const out: CardModsPorRodada = {}
   for (let r = desdeR; r <= round; r++) {
-    const gas = gasDoElenco(byRound, r, squad, desdeR, inicio)
+    const gas = gasDoElenco(byRound, r, squad, desdeR, inicio, banco)
     const m: Record<string, number> = {}
     for (const id of xiAt(r)) {
       const v = modGas(gas[id] ?? 100) + modVolta(ev, seasonNo, r, id)

@@ -36,19 +36,22 @@ export function PainelDonoLiga({ roomId, roomCode, roomName, managers, presence,
   const [prox, setProx] = useState<{ tam: 10 | 20; turno: boolean } | null>(null)
   const [copiado, setCopiado] = useState(false)
   const vivo = useRef(true)
+  const tRef = useRef(t); tRef.current = t
   useEffect(() => () => { vivo.current = false }, [])
 
   const lePedidos = useCallback(async () => {
     try {
-      const { data } = await supabase.rpc('esc_liga_pedidos_dono', { p_room: roomId })
+      const { data } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: roomId })
       if (!vivo.current) return
       const lista = (data ?? []) as Ped[]
       setPeds(lista)
       const novo = lista.find(p => p.status === 'pendente' && !avisados.has(p.id))
       lista.filter(p => p.status === 'pendente').forEach(p => avisados.add(p.id))
-      if (novo) { setToast(novo.nome || t('Alguém', 'Someone')); setTimeout(() => vivo.current && setToast(null), 6000) }
+      if (novo) { setToast(novo.nome || tRef.current('Alguém', 'Someone')); setTimeout(() => vivo.current && setToast(null), 6000) }
     } catch { /* sem rede: tenta na próxima leitura */ }
-  }, [roomId, t])
+  // 🚨 09/11: NÃO depender do `t` — ele é uma função NOVA a cada desenho, e com o jogo redesenhando várias vezes por segundo
+  // este efeito relia o banco a cada desenho (~40 leituras/s no site inteiro, deixou o servidor lento). Agora: 1 leitura/min.
+  }, [roomId])
   useEffect(() => {
     void lePedidos()
     const iv = setInterval(() => { if (document.visibilityState === 'visible') void lePedidos() }, LEITURA_MS)

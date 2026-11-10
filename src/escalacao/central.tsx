@@ -1,3 +1,4 @@
+import {useCareerVisualV2} from './career-visual-v2'
 // ─── 📺 CENTRAL LEGENDS — a home do modo carreira (03/10) ────────────────────
 //
 // Pedido do Diego: *"queria alguma central no modo carreira… falta uma área na
@@ -119,6 +120,7 @@ export type CentralProps = {
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
+  onClubDestination?: (target: 'financas' | 'agencia') => void
   /** 💾 SALVAR À VISTA (04/10): desde que a nuvem só recebe no botão, ele mora no topo da Central.
    *  `estado`: 'em_dia' (nuvem igual ao jogo) · 'atrasado' (jogou desde a última subida) · 'nunca' ·
    *  'deslogado' (só o aparelho) · 'salvando' · 'salvo' (acabou de subir, 2s). `ha` = minutos desde a
@@ -205,6 +207,7 @@ function Cabecalho({ titulo, sub, link, onClick }: { titulo: string; sub?: strin
 }
 
 export function CentralCarreira(p: CentralProps) {
+  const visualV2=useCareerVisualV2()
   const t = useT()
   const [mercadoTodo, setMercadoTodo] = useState(false) // 💸 mostra os 5 maiores; o resto abre no toque
   const posDe = (nome: string) => { const i = p.tabela.findIndex(x => x.name === nome); return i >= 0 ? i + 1 : null }
@@ -242,6 +245,7 @@ export function CentralCarreira(p: CentralProps) {
       <b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
       <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
       <Forma f={p.formas[nome]} />
+      {visualV2 && <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['jogos',t('Jogos e tabela','Matches and table'),t('Acompanhar sua campanha','Follow your campaign')],['elenco',t('Elenco','Squad'),t('Escalação e condição','Lineup and fitness')],['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>tab==='financas'||tab==='agencia' ? (p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')) : p.onTab(tab)}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</>}
     </div>
   )
   const en = getLang() === 'en'
@@ -259,7 +263,7 @@ export function CentralCarreira(p: CentralProps) {
         </div>
         <b style={{ ...OSW, fontSize: 20, lineHeight: 1, whiteSpace: 'nowrap', color: '#fff' }}>{t('Rod.', 'Rd.')} {p.round}<span style={{ color: '#888', fontSize: 13 }}> / 38</span></b>
       </div>
-      {p.salvar && <FaixaSalvar s={p.salvar} />}
+      {!visualV2 && p.salvar && <FaixaSalvar s={p.salvar} />}
 
       {/* 📱 celular: camarote → giro → Martelo → mercado → tabela+agenda (ordem por CSS `order`).
           🖥️ desktop (03/10, 4º ajuste dele): esquerda camarote → [tabela inteira | giro inteiro + agenda];

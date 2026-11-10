@@ -53,6 +53,7 @@ export interface DraftEstado {
   aVenda?: Record<number, string> // 🏷️ técnico → a carta que ele pôs à venda (1 por técnico)
   lotes?: LoteDraft[] // 🔨 o leilão dos sondados + à venda
   lances?: Record<number, Record<number, number>> // lote → técnico → lance (envelope: ninguém vê o do outro)
+  lacrou?: number[] // 🔒 09/11: técnicos que lacraram o envelope (com ou sem lance) — todos lacraram = martelo na hora
   igualarIdx?: number // o lote que está esperando quem sondou decidir se iguala
   inicioEscala?: number // quando a escalação começou (o relógio de 45 s é só guia: quem começa a temporada é o dono)
   somaTemporada?: boolean // true = draft aberto no fim da temporada (a próxima soma +1); false = veio da sala de espera (o número já é o da próxima)
@@ -96,7 +97,7 @@ export function premioDaLiga(pos: number, nTimes: number, editado?: number[] | n
 /** 📜 REGRAS DA TURMA no draft (05/11, Diego: *"não pode contratar no draft jogador de categoria craque pra cima, ou só pode
  *  contratar jogador de times brasileiros, ou somente jogadores que não são lendas"*). O criador marca na hora de criar (e pode
  *  mudar na sala de espera). Vale pra escolha do draft de TODO MUNDO — gente e bot. A tela e o motor leem ESTA função. */
-export type RegrasDraft = { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean }
+export type RegrasDraft = { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean; piorPrimeiro?: boolean } // piorPrimeiro: ordem do draft do pior pro melhor (09/11)
 let chavesBR: Set<string> | null = null
 export function cartaPermitidaDraft(c: { name: string; club: string; year: number; fame: number }, r?: RegrasDraft | null): boolean {
   if (!r) return true
@@ -206,10 +207,12 @@ export interface DraftCarry {
 export const chaveNome = (n: string) => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 export const chaveCarta = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
 
-/** ordem da noite do draft: humanos na ordem da tabela final (campeão primeiro). */
-export function ordemDoDraft(tabelaOrdenada: { id: number }[], humanos: number[]): number[] {
+/** ordem da noite do draft: humanos na ordem da tabela final (campeão primeiro).
+ *  🔁 09/11 (Diego): o dono escolhe — `piorPrimeiro` = do último pro campeão (estilo NBA). Vale na criação e editando a liga. */
+export function ordemDoDraft(tabelaOrdenada: { id: number }[], humanos: number[], piorPrimeiro = false): number[] {
   const h = new Set(humanos)
-  return tabelaOrdenada.map(t => t.id).filter(id => h.has(id))
+  const o = tabelaOrdenada.map(t => t.id).filter(id => h.has(id))
+  return piorPrimeiro ? o.reverse() : o
 }
 
 /** todos os nomes que já têm dono na liga (humanos E bots — o bot também é dono do jogador dele). */

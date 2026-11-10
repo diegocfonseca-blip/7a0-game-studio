@@ -1,3 +1,9 @@
+import {OwnerPrimary} from './owner-online-visual'
+import { careerVisualV2, CareerVisualProvider, CareerBrand, CareerHeading, CareerMarketSteps, CareerSection, CareerSectionLinks, CareerBalance, useCareerVisualV2 } from './career-visual-v2'
+import { climaDoJogo } from './campo2d-clima'
+import { expectativaBotsCarreira } from './calibracao-bots-carreira'
+import { LeituraDoTime, RegrasDaTemporada } from './criterios-carreira-ui'
+import { criteriosDaTemporada, versaoComCriterios } from './criterios-carreira'
 import { minutoAtrasado } from './relogio-sala'
 import { usePenaltisCampo } from './campo2d-penaltis-react'
 import { disputaRolandoNaTela } from './penaltis-na-tela'
@@ -844,7 +850,7 @@ function botXI(t: SimTeam, r: number, plans?: BotPlans): PoolCard[] {
 // 🔁 INTERVALO (carreira offline): decisão do 2º tempo por técnico/rodada. O 1º
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
-export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac }>>
+export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac; revisao?: number }>>
 // 🧢 técnicos ATIVOS na simulação (por NOME de time): faixa lo–hi + a partir de
 // qual rodada o efeito vale nesta temporada (0 = desde o começo). Ausente/vazio
 // = simulação byte a byte como sempre foi (ninguém sem técnico muda NADA).
@@ -879,7 +885,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -1005,7 +1011,8 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // de baixo (várzea) não inflam a artilharia com nomes de brincadeira.
     const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
     const G = realGoals ? GOAL_TUNE.v3 : GOAL_TUNE.v2
-    const lh = Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk)), la = Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
+    const esperado=regrasM2?.criterios ? expectativaBotsCarreira({seed:sementeM2(seed,div,r,hi,ai),casa:hxi,fora:axi,fCasa:H.formation,fFora:A.formation,tatica:[taticaM2(th),taticaM2(ta)],bots:[!H.human,!A.human],tecnico:[lvlH,lvlA],evento:[mh,ma],clima:climaDoJogo(sementeM2(seed,div,r,hi,ai))}) : undefined
+    const lh = esperado?.[0] ?? Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk)), la = esperado?.[1] ?? Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hev = scoreGoals(H, hxi, hg), aev = scoreGoals(A, axi, ag)
     // resultado do jogo (pode ser reescrito SÓ no 2º tempo se o humano trocou no intervalo)
@@ -1058,7 +1065,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     // com os MESMOS 11 na MESMA ordem do campinho, a tática, o gás, a formação e a troca do intervalo. Só a partir de `m2Desde`.
     let m2e: EntradaM2 | undefined
     if (m2Desde != null && r >= m2Desde && (H.human || A.human)) {
-      m2e = entradaM2({ versao:versaoRecepcaoNaRodada(r,recepcaoDesde), seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
+      m2e = entradaM2({ versao:versaoComCriterios(versaoRecepcaoNaRodada(r,recepcaoDesde), !!regrasM2?.criterios), preservarGuardado:r < (regrasM2?.disputadas ?? round), partidaId:`liga:${seed}:${div}:${r}:${hi}:${ai}`,
+        atualizarIntervalo:!!regrasM2?.intervaloAberto && r === (regrasM2?.disputadas ?? round)-1,
+        intervaloRevisao:hd?.revisao ?? (hd?.xi2?.length ? 1 : 0),
+        tatica2:regrasM2?.criterios && hd ? [taticaM2(H.human ? hd.tactic ?? th : th),taticaM2(A.human ? hd.tactic ?? ta : ta)] : undefined, seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
         tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human], tecnico: [lvlH, lvlA], evento: [mh, ma],
         casa2: hxi2 as never, fora2: axi2 as never, fCasa2: hxi2 ? hd?.formation ?? H.formation : undefined, fFora2: axi2 ? hd?.formation ?? A.formation : undefined })
       const res = resultadoM2(m2e)
@@ -1108,7 +1118,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -1116,7 +1126,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans, m2Desde, recepcaoDesde)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans, m2Desde, recepcaoDesde, regrasM2)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -1267,7 +1277,7 @@ const COPA_DIV_STRENGTH: Record<Div, number> = { A: 10, B: 6, C: 3, D: 0, V: 0 }
 // dois). Os gols voltam já com a CARTA do autor e do garçom; perna-de-pau e gol contra não levam crédito (id vazio).
 export interface GolCopaM2 { name: string; min: number; id: string; assist?: string; assistId?: string; carta?: PoolCard; garcom?: PoolCard }
 export function jogoCopaM2(seed: number, seasonNo: number, tag: string, jogo: number, H: SimTeam, A: SimTeam, th: Tac, ta: Tac, versao?: VersaoM2): { e: EntradaM2; hg: number; ag: number; h: GolCopaM2[]; a: GolCopaM2[] } {
-  const e = entradaM2({ versao, seed: sementeM2((seed ^ Math.imul(seasonNo, 0x9E3779B1)) >>> 0, tag, jogo, 0, 0), casa: H.xi as never, fora: A.xi as never, fCasa: H.formation, fFora: A.formation,
+  const e = entradaM2({ versao, preservarGuardado:true, somenteConsulta:true, partidaId:`copa:${seed}:${seasonNo}:${tag}:${jogo}:${H.name}:${A.name}`, seed: sementeM2((seed ^ Math.imul(seasonNo, 0x9E3779B1)) >>> 0, tag, jogo, 0, 0), casa: H.xi as never, fora: A.xi as never, fCasa: H.formation, fFora: A.formation,
     tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human] })
   const res = resultadoM2(e)
   const out: { h: GolCopaM2[]; a: GolCopaM2[] } = { h: [], a: [] }
@@ -1820,65 +1830,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
         </div>
       )}
 
-      {/* 💰 MENSALIDADES DESTA TEMPORADA — o dinheiro onde a pessoa olha (Diego
-          19/09: *"mostrar dinheiro onde ela olha"*). Além do total do ano, agora
-          diz ONDE ele cai (extrato) e quanto a agência já rendeu na carreira. */}
-      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 13px', marginBottom: 10 }}>
-        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💰 Mensalidades desta temporada', '💰 This season\'s fees')}</div>
-        <div style={{ ...OSWALD, fontSize: 26, fontWeight: 900, lineHeight: 1.1, marginTop: 2 }}>+{renda.total} 🪙</div>
-        <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.62)', marginTop: 1 }}>{getLang() === 'en' ? <>lands in the till at the turnover · shows up in the statement as <u>🕴️ Agency</u></> : <>cai no caixa na virada · no extrato aparece como <u>🕴️ Agência</u></>}</div>
-        {carreiraTotal > 0 && (
-          <div style={{ marginTop: 7, background: 'rgba(0,0,0,.28)', border: '2px solid rgba(255,255,255,.22)', borderRadius: 9, padding: '5px 9px', fontSize: 10.5, fontWeight: 800 }}>
-            {getLang() === 'en' ? <>🏦 the agency has already earned you <b>{carreiraTotal} 🪙</b> in this career</> : <>🏦 a agência já te rendeu <b>{carreiraTotal} 🪙</b> nesta carreira</>}
-          </div>
-        )}
-        <div style={{ marginTop: 6 }}>
-          {EMP_ORDER.map(k => {
-            const b = renda.by[k]; if (b.count === 0) return null
-            const m = empMeta(k)
-            return (
-              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
-                <span>{m.emoji} {m.label}</span>
-                <span style={{ opacity: .85 }}>{b.count} × {b.value}</span>
-                <span style={{ marginLeft: 'auto' }}>{b.unlocked ? `= ${b.income} 🪙` : `🔒 ${tr('destrava', 'unlocks')}: ${m.req}`}</span>
-              </div>
-            )
-          })}
-          {renda.folkCount > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
-              <span>{tr('🃏 Folclórico', '🃏 Folk hero')}</span><span style={{ opacity: .85 }}>{renda.folkCount} {tr('na ativa', 'active')}, +{AG_FOLK_BONUS} {tr('cada', 'each')}</span>
-              <span style={{ marginLeft: 'auto' }}>= +{renda.folkIncome} 🪙</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* COMISSÕES / fatura da temporada */}
-      <div style={{ ...box(), padding: '10px 12px', marginBottom: 10 }}>
-        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>{tr('📈 Comissões da agência', '📈 Agency commissions')}</div>
-        {(!fatura || (fatura.rows.length === 0 && fatura.mensal === 0)) ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your active clients pay commission when they <b>finish top scorer</b> 🥇 of ANY competition (your division, the Cup, the World Cup), when they <b>win the Golden Ball</b> 🥇 (that is one more) or when they <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus clientes na ativa pagam comissão quando <b>terminam artilheiros</b> 🥇 de QUALQUER competição (a sua série, a Copa, a Copa do Mundo), quando <b>levam a Bola de Ouro</b> 🥇 (essa é mais uma) ou quando <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
-        ) : (
-          <>
-            {fatura.mensal > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 700, padding: '4px 0' }}>
-                💰 <span>{tr('Mensalidades pagas na última virada', 'Monthly fees paid at the last turnover')}</span>
-                <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, color: GREEN, fontSize: 12.5 }}>+{fatura.mensal} 🪙</span>
-              </div>
-            )}
-            {fatura.rows.slice(-8).map((r, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 700, padding: '4px 0', borderTop: '2px solid rgba(0,0,0,.06)' }}>
-                {r.emoji} <span style={{ flex: 1, minWidth: 0 }}>{r.texto}</span>
-                <span style={{ ...OSWALD, fontWeight: 900, color: GREEN, fontSize: 12.5, whiteSpace: 'nowrap' }}>+{r.coins} 🪙</span>
-              </div>
-            ))}
-            <div style={{ marginTop: 6, background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 900, fontSize: 11 }}>
-              <span>{tr('🕴️ Total no caixa do', '🕴️ Total in the till of')} {primeiroClube}</span><span style={{ ...OSWALD, color: GREEN, fontSize: 14 }}>+{fatura.total} 🪙</span>
-            </div>
-          </>
-        )}
-      </div>
-
+      <div className="cv2-agency-grid"><CareerSection title={tr('Clientes e decisões','Clients and decisions')}>
       {/* 🆕 CHEGOU CARTA MELHOR — o jogo avisa e compara com o pior da ativa.
           Antes a pessoa tinha que descobrir sozinha, carta por carta. */}
       {sugestao && (
@@ -1963,6 +1915,67 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
         </div>
       )}
 
+      </CareerSection><aside><CareerSection title={tr('Receitas da agência','Agency income')}>
+      {/* 💰 MENSALIDADES DESTA TEMPORADA — o dinheiro onde a pessoa olha (Diego
+          19/09: *"mostrar dinheiro onde ela olha"*). Além do total do ano, agora
+          diz ONDE ele cai (extrato) e quanto a agência já rendeu na carreira. */}
+      <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 13px', marginBottom: 10 }}>
+        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💰 Mensalidades desta temporada', '💰 This season\'s fees')}</div>
+        <div style={{ ...OSWALD, fontSize: 26, fontWeight: 900, lineHeight: 1.1, marginTop: 2 }}>+{renda.total} 🪙</div>
+        <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.62)', marginTop: 1 }}>{getLang() === 'en' ? <>lands in the till at the turnover · shows up in the statement as <u>🕴️ Agency</u></> : <>cai no caixa na virada · no extrato aparece como <u>🕴️ Agência</u></>}</div>
+        {carreiraTotal > 0 && (
+          <div style={{ marginTop: 7, background: 'rgba(0,0,0,.28)', border: '2px solid rgba(255,255,255,.22)', borderRadius: 9, padding: '5px 9px', fontSize: 10.5, fontWeight: 800 }}>
+            {getLang() === 'en' ? <>🏦 the agency has already earned you <b>{carreiraTotal} 🪙</b> in this career</> : <>🏦 a agência já te rendeu <b>{carreiraTotal} 🪙</b> nesta carreira</>}
+          </div>
+        )}
+        <div style={{ marginTop: 6 }}>
+          {EMP_ORDER.map(k => {
+            const b = renda.by[k]; if (b.count === 0) return null
+            const m = empMeta(k)
+            return (
+              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
+                <span>{m.emoji} {m.label}</span>
+                <span style={{ opacity: .85 }}>{b.count} × {b.value}</span>
+                <span style={{ marginLeft: 'auto' }}>{b.unlocked ? `= ${b.income} 🪙` : `🔒 ${tr('destrava', 'unlocks')}: ${m.req}`}</span>
+              </div>
+            )
+          })}
+          {renda.folkCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 800, padding: '3px 0', borderTop: '1px solid rgba(255,255,255,.14)' }}>
+              <span>{tr('🃏 Folclórico', '🃏 Folk hero')}</span><span style={{ opacity: .85 }}>{renda.folkCount} {tr('na ativa', 'active')}, +{AG_FOLK_BONUS} {tr('cada', 'each')}</span>
+              <span style={{ marginLeft: 'auto' }}>= +{renda.folkIncome} 🪙</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* COMISSÕES / fatura da temporada */}
+      <div style={{ ...box(), padding: '10px 12px', marginBottom: 10 }}>
+        <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>{tr('📈 Comissões da agência', '📈 Agency commissions')}</div>
+        {(!fatura || (fatura.rows.length === 0 && fatura.mensal === 0)) ? (
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your active clients pay commission when they <b>finish top scorer</b> 🥇 of ANY competition (your division, the Cup, the World Cup), when they <b>win the Golden Ball</b> 🥇 (that is one more) or when they <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus clientes na ativa pagam comissão quando <b>terminam artilheiros</b> 🥇 de QUALQUER competição (a sua série, a Copa, a Copa do Mundo), quando <b>levam a Bola de Ouro</b> 🥇 (essa é mais uma) ou quando <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
+        ) : (
+          <>
+            {fatura.mensal > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 700, padding: '4px 0' }}>
+                💰 <span>{tr('Mensalidades pagas na última virada', 'Monthly fees paid at the last turnover')}</span>
+                <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, color: GREEN, fontSize: 12.5 }}>+{fatura.mensal} 🪙</span>
+              </div>
+            )}
+            {fatura.rows.slice(-8).map((r, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, fontWeight: 700, padding: '4px 0', borderTop: '2px solid rgba(0,0,0,.06)' }}>
+                {r.emoji} <span style={{ flex: 1, minWidth: 0 }}>{r.texto}</span>
+                <span style={{ ...OSWALD, fontWeight: 900, color: GREEN, fontSize: 12.5, whiteSpace: 'nowrap' }}>+{r.coins} 🪙</span>
+              </div>
+            ))}
+            <div style={{ marginTop: 6, background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 900, fontSize: 11 }}>
+              <span>{tr('🕴️ Total no caixa do', '🕴️ Total in the till of')} {primeiroClube}</span><span style={{ ...OSWALD, color: GREEN, fontSize: 14 }}>+{fatura.total} 🪙</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      </CareerSection></aside></div>
       {/* modal: carta cheia (igual álbum) + fatura do jogador */}
       {open && (() => {
         const cat = empCat(open)
@@ -2612,6 +2625,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
   squad: WonCard[]; marketValues: Record<string, number>
   bb?: boolean // 🏀 basquete: a obra é na ARENA (default false → futebol idêntico)
 }) {
+  const visualV2 = useCareerVisualV2()
   const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
   // extrato: do mais novo pro mais antigo, agrupado por temporada
   const [filterSeason,setFilterSeason]=useState('all')
@@ -2642,7 +2656,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
   const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? traduzirLancamentoPresidencia(l)) : l)
   const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? (bb ? tr('🏟️ Obra na arena', '🏟️ Arena works') : tr('🏟️ Obra no estádio', '🏟️ Stadium works')) : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
-    <div className="ll-financial-layout">
+    <div className={`ll-financial-layout${visualV2 ? ' cv2-finances' : ''}`}>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
       <div style={{ ...box(), background: caixa < 0 ? `linear-gradient(160deg, ${FIN_RED}, #7a1b10)` : `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -3286,7 +3300,13 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
 // ⚔️ 25/10 (Diego, carreira organizada): o que vai LOGO EMBAIXO DOS GOLS no placar (a tática, na aba Jogos + Tabela). Quem
 // monta o placar não precisa saber de nada — quem quer pôr algo ali só embrulha o placar neste contexto.
 export const AbaixoDosGolsCtx = createContext<ReactNode>(null)
-export function LiveScoreCard({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
+export function LiveScoreCard(props: Parameters<typeof LiveScoreCardBody>[0]) {
+  const {state}=useEsc(),club=state.managers[state.youIdx]?.teamName
+  const field=useCampo2DLigado()
+  const mine=!!club&&!props.neutro&&[props.homeName,props.awayName,props.homeOwner,props.awayOwner].includes(club)
+  return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props}/></OwnerPrimary>
+}
+function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
   { /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
@@ -3304,6 +3324,10 @@ export function LiveScoreCard({ neutro, pausado, homeName, awayName, homeColor, 
   /** 📢 frases próprias do apito final (vitória · derrota · empate), pra jogo que NÃO é de liga —
    *  na final de copa não se fala em "três pontos" (Diego 02/10). Sem isto, valem as da liga. */
   apitoFrases?: { win: string[]; lose: string[]; draw: string[] }; stadiumMatch?:ContextoPartidaEstadio }) {
+  // O chaveamento simula fases futuras. Só a partida apresentada passa a
+  // oficializar sua fotografia; mudar o XI antes da próxima fase continua válido.
+  const entradaDaTela=elencos?.m2
+  useEffect(()=>{if(enhancedCareer&&entradaDaTela?.somenteConsulta)resultadoM2({...entradaDaTela,somenteConsulta:false})},[enhancedCareer,entradaDaTela])
   const privatePreview = useOnlinePreview()
   // 📺 Campo 2D (20/10): ligado, o campinho aparece EM CIMA deste placar em qualquer competição (liga, copas, Liberta,
   // Champions, Mundial, Copa do Mundo, regionais, online e offline) e o mascote grande do gol sai de lá — por isso o
@@ -4036,6 +4060,7 @@ function PlacarQueEncolhe({ pausado, m, youName, finished, col, colors, roundKey
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
 function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG, awayG, youIsHome, onConfirm, suspensoId }: { mgr: Manager; baseXIids: string[]; baseTactic: Tac; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; onConfirm: (ids: string[], formation: FormationKey, tactic: Tac) => void; suspensoId?: string }) {
+  const visualV2 = useCareerVisualV2()
   const { state: escStH } = useEsc() // só leitura (cardápio de formações do SEU técnico)
   // 🎭 15 formações + técnico: SÓ na carreira solo. No online ninguém contrata
   // técnico, então lá seguem as 5 de sempre (senão o time ficaria preso numa
@@ -4093,10 +4118,10 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
     )
   }
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+    <div className={visualV2 ? "cv2-root cv2-dialog" : undefined} role="dialog" aria-modal="true" aria-label={tr("Intervalo", "Half-time")} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
       {/* fundo = MANTO do tier (degradê + brilho), igual à aba Elenco */}
-      <div style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: perk.grad, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
-        {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
+      <div className={visualV2 ? "cv2-dialog-panel cv2-halftime-panel" : undefined} style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: perk.grad, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
+        {perk.holo > 0 && !visualV2 && <ApoioSheen holo={perk.holo} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
         {/* cabeçalho: título + o JOGO (mandante ESQUERDA 🏠 · visitante DIREITA ✈️),
             cada time com o placar do 1º tempo; o SEU time em dourado. */}
@@ -4113,7 +4138,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
             <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: !youIsHome ? GOLD : '#fff', maxWidth: '38%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayName} ✈️</span>
           </div>
         </div>
-        <div style={{ padding: 14 }}>
+        <div className={visualV2 ? "cv2-grid cv2-halftime-grid" : undefined} style={{ padding: 14 }}><div>
           {/* formação */}
           <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: '0 0 5px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -4146,6 +4171,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
               return <button key={t} onClick={() => setTactic(t)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '7px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: 'pointer', background: cur ? INK : '#fff', color: cur ? '#fff' : INK, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{lb}</button>
             })}
           </div>
+          </div><div>
           {/* trocas: em campo | banco */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <p style={{ fontWeight: 900, fontSize: 11, ...OSWALD, margin: 0, color: INK }}>{tr('🔁 Trocas', '🔁 Subs')} <span style={{ color: subs >= 3 ? '#C2452F' : '#2E7D46' }}>({subs}/3)</span></p>
@@ -4161,7 +4187,8 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
               {SECTORS.map(pos => { const cs = mgr.squad.filter(c => c.pos === pos && !xiSet.has(c.id) && !c.fake).sort((a, b) => mid(b) - mid(a)); return cs.length ? <div key={pos} style={{ marginBottom: 5 }}><span style={{ fontSize: 8.5, fontWeight: 800, color: '#a29c8c', textTransform: 'uppercase' }}>{POS_LABEL[pos]}</span>{cs.map(c => row(c, 'res'))}</div> : null })}
             </div>
           </div>
-          <button onClick={() => onConfirm(xi, formation, tactic)} style={{ width: '100%', marginTop: 14, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px', fontWeight: 900, fontSize: 15, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('▶️ Voltar pro 2º tempo', '▶️ Back for the 2nd half')}</button>
+          </div><div className={visualV2 ? "cv2-decision-footer" : undefined} style={{gridColumn:"1 / -1"}}>
+          <button onClick={() => onConfirm(xi, formation, tactic)} style={{ width: '100%', marginTop: 14, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px', fontWeight: 900, fontSize: 15, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('▶️ Voltar pro 2º tempo', '▶️ Back for the 2nd half')}</button></div>
           <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '6px 0 0' }}>{tr('pode voltar sem trocar nada — aí o 2º tempo segue com o mesmo time', 'you can go back without changing anything — the 2nd half continues with the same team')}</p>
         </div>
         </div>
@@ -4243,6 +4270,7 @@ export function cobradoresDoJogo(squad: WonCard[], emCampoIds?: string[], suspen
 }
 
 export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName, homeG, awayG, youIsHome, mascote, onDone }:{ mgr: Manager; /** 🧍 os 11 que estão EM CAMPO neste jogo (com a troca do intervalo, se houve) */ emCampoIds?: string[]; suspensoId?: string; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; mascote: ReactNode | null; onDone: (scored: boolean, takerId: string) => void }) {
+  const visualV2 = useCareerVisualV2()
   const privatePenaltyArt = usePenaltyArtPreview()
   const penaltyArtRef = useRef<PenaltyArtHandle>(null)
   const perk = myApoioPerk() ?? APOIO_PERKS.bege
@@ -4355,11 +4383,21 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
   }
   const revColor = kind === 'gol' ? '#39E27A' : kind === 'def' ? '#6FA8FF' : '#FF6A4D'
   const conf = useMemo(() => Array.from({ length: 26 }, (_, i) => ({ x: (i * 137 + 40) % 100, w: 5 + (i % 3) * 2, cor: ['#FFC400', '#39E27A', '#6FA8FF', '#FF6A4D', '#ffffff', '#7C3AED'][i % 6], dur: 1 + ((i * 79) % 100) / 90, delay: -((i * 211) % 120) / 100, rot: (i * 47) % 360 })), [])
+  const powerControl = <>
+{mode === 'voce' && (phase === 'choose' || phase === 'power') && (
+              <div style={{ margin: '10px 0 2px' }}>
+                <div style={{ position: 'relative', height: 20, border: `3px solid ${INK}`, borderRadius: 10, background: '#e9dfbe', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${(0.5 - (0.12 + skill * 0.30) / 2) * 100}%`, width: `${(0.12 + skill * 0.30) * 100}%`, background: 'repeating-linear-gradient(90deg,#1B7A3D 0 7px,#249a4a 7px 14px)' }} />
+                  <div ref={markRef} style={{ position: 'absolute', top: -3, width: 6, height: 24, background: '#fff', border: `2px solid ${INK}`, borderRadius: 3, left: '0%', transform: 'translateX(-50%)' }} />
+                </div>
+              </div>
+            )}
+</>
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+    <div className={visualV2 ? "cv2-root cv2-dialog" : undefined} role="dialog" aria-modal="true" aria-label={tr("Pênalti", "Penalty")} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
       <style>{`@keyframes penPop{to{opacity:1;transform:scale(1)}}@keyframes penJump{from{transform:translateX(-50%) translateY(0) rotate(-7deg)}to{transform:translateX(-50%) translateY(-20px) rotate(7deg)}}@keyframes penConf{to{transform:translateY(300px) rotate(560deg);opacity:.15}}@keyframes penSpin{to{rotate:540deg}}`}</style>
-      <div style={{ position: 'relative', width: '100%', maxWidth: 480, maxHeight: '94vh', overflowY: 'auto', background: perk.grad, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
-        {perk.holo > 0 && <ApoioSheen holo={perk.holo} />}
+      <div className={visualV2 ? "cv2-dialog-panel cv2-penalty-panel" : undefined} style={{ position: 'relative', width: '100%', maxWidth: 480, maxHeight: '94vh', overflowY: 'auto', background: perk.grad, border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}` }}>
+        {perk.holo > 0 && !visualV2 && <ApoioSheen holo={perk.holo} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
           {/* cabeçalho: ⚡ PÊNALTI + o JOGO (mandante 🏠 esquerda · visitante ✈️ direita) */}
           <div style={{ background: INK, color: '#fff', padding: '11px 15px', borderRadius: '14px 14px 0 0' }}>
@@ -4375,7 +4413,7 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
               <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: !youIsHome ? GOLD : '#fff', maxWidth: '36%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{awayName} ✈️</span>
             </div>
           </div>
-          <div style={{ padding: 13 }}>
+          <div className={visualV2 ? "cv2-penalty-body" : undefined} style={{ padding: 13 }}>
             {/* toggle dos 2 modos (trava depois de bater) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 11 }}>
               {([['voce', tr('🎯 Você bate', '🎯 You take it')], ['sozinho', tr('🎙️ Bate sozinho', '🎙️ He takes it')]] as ['voce' | 'sozinho', string][]).map(([m, lb]) => (
@@ -4393,8 +4431,9 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
               ) })}
             </div>
             {mode === 'voce' && phase === 'choose' && <p style={{ fontWeight: 900, fontSize: 10.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎯 Mira num canto e trava a força no VERDE', '🎯 Aim at a corner and lock the power in the GREEN')}</p>}
+            <div className={visualV2 ? "cv2-penalty-play" : undefined}>
             {/* CAMPO */}
-            {privatePenaltyArt ? <PenaltyArt ref={penaltyArtRef} aim={aim} choosing={mode === 'voce' && phase === 'choose'} onAim={setAim} /> : <div style={{ position: 'relative', borderRadius: 13, overflow: 'hidden', background: 'linear-gradient(#3aa862,#2c8a4f 55%,#25793f)', border: `3px solid ${INK}`, padding: '11px 11px 0' }}>
+            {privatePenaltyArt ? <PenaltyArt ref={penaltyArtRef} aim={aim} choosing={mode === 'voce' && phase === 'choose'} onAim={setAim} controls={visualV2 ? powerControl : undefined} /> : <div style={{ position: 'relative', borderRadius: 13, overflow: 'hidden', background: 'linear-gradient(#3aa862,#2c8a4f 55%,#25793f)', border: `3px solid ${INK}`, padding: '11px 11px 0' }}>
               <div ref={goalRef} style={{ position: 'relative', height: 122, margin: '0 6px' }}>
                 <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 6, background: '#fff', borderRadius: 2, boxShadow: '0 0 0 2px rgba(0,0,0,.25)' }} />
                 <div style={{ position: 'absolute', left: 0, top: 0, width: 6, height: '100%', background: '#fff', borderRadius: 2, boxShadow: '0 0 0 2px rgba(0,0,0,.25)' }} />
@@ -4412,16 +4451,10 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
               </div>
             </div>}
             {/* barra de força (só Você bate) */}
-            {mode === 'voce' && (phase === 'choose' || phase === 'power') && (
-              <div style={{ margin: '10px 0 2px' }}>
-                <div style={{ position: 'relative', height: 20, border: `3px solid ${INK}`, borderRadius: 10, background: '#e9dfbe', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${(0.5 - (0.12 + skill * 0.30) / 2) * 100}%`, width: `${(0.12 + skill * 0.30) * 100}%`, background: 'repeating-linear-gradient(90deg,#1B7A3D 0 7px,#249a4a 7px 14px)' }} />
-                  <div ref={markRef} style={{ position: 'absolute', top: -3, width: 6, height: 24, background: '#fff', border: `2px solid ${INK}`, borderRadius: 3, left: '0%', transform: 'translateX(-50%)' }} />
-                </div>
-              </div>
-            )}
+            {(!visualV2 || !privatePenaltyArt) && powerControl}
+            </div>
             {/* NARRAÇÃO (fundo preto) + comemoração do mascote */}
-            <div style={{ position: 'relative', overflow: 'hidden', marginTop: 10, background: '#0C0C0C', border: `3px solid ${INK}`, borderRadius: 12, minHeight: 72, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '11px 13px' }}>
+            <div className={visualV2 ? "cv2-penalty-narration" : undefined} style={{ position: 'relative', overflow: 'hidden', marginTop: 10, background: '#0C0C0C', border: `3px solid ${INK}`, borderRadius: 12, minHeight: 72, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '11px 13px' }}>
               {celeb && (
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 8, overflow: 'hidden' }}>
                   {conf.map((c, i) => <span key={i} style={{ position: 'absolute', top: -14, left: `${c.x}%`, width: c.w, height: c.w + 4, borderRadius: 2, background: c.cor, transform: `rotate(${c.rot}deg)`, animation: `penConf ${c.dur}s linear ${c.delay}s forwards` }} />)}
@@ -4434,12 +4467,14 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
               {kind && phase === 'rev' && <div style={{ fontWeight: 900, fontSize: 40, lineHeight: 1, marginTop: 2, color: revColor, ...OSWALD, animation: 'penPop .45s cubic-bezier(.2,1.7,.4,1) forwards', opacity: 0, transform: 'scale(.4)', position: 'relative', zIndex: 9, textShadow: kind === 'gol' ? '0 0 18px rgba(57,226,122,.5)' : 'none' }}>{revWord}</div>}
               {sub && <div style={{ fontWeight: 800, fontSize: 13.5, color: '#efe9d6', marginTop: 7, ...OSWALD, position: 'relative', zIndex: 9 }}>{sub}</div>}
             </div>
+            <div className={visualV2 ? "cv2-decision-footer" : undefined}>
             {/* botão de ação */}
             {phase === 'choose' && mode === 'voce' && <button onClick={startPower} disabled={aim === null} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: aim === null ? '#b7b0a0' : GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: aim === null ? 'default' : 'pointer' }}>{aim === null ? tr('1️⃣ escolha o canto', '1️⃣ pick a corner') : tr('⚽ BATER!', '⚽ SHOOT!')}</button>}
             {phase === 'choose' && mode === 'sozinho' && <button onClick={shootAlone} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('⚽ BATER!', '⚽ SHOOT!')}</button>}
             {phase === 'power' && <button onClick={travar} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: '#C2452F', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🛑 TRAVAR!', '🛑 LOCK!')}</button>}
             {phase === 'anim' && <button disabled style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: '#b7b0a0', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, opacity: 0.7 }}>...</button>}
             {phase === 'rev' && <button onClick={() => onDone(kind === 'gol', taker?.id ?? takerId)} style={{ width: '100%', marginTop: 11, border: `3px solid ${INK}`, borderRadius: 12, padding: 13, fontWeight: 900, fontSize: 16, ...OSWALD, background: INK, color: GOLD, boxShadow: `3px 3px 0 0 rgba(0,0,0,.4)`, cursor: 'pointer' }}>{tr('▶️ Seguir o jogo', '▶️ Play on')}</button>}
+            </div>
             <p style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 700, color: '#8a8478', margin: '7px 0 0' }}>{phase === 'choose' ? tr('depois de BATER não dá pra voltar — escolha com calma', 'once you SHOOT there is no going back — choose calmly') : phase === 'rev' ? tr('o resultado já vale pro placar do jogo', 'the result already counts for the match score') : tr('valendo!', 'for real!')}</p>
           </div>
         </div>
@@ -4573,7 +4608,10 @@ type EstatUI = {
   jogos: Record<string, number>          // jogos dele NO SEU CLUBE (temporadas anteriores + esta, liga + copas)
   antes?: { j: Record<string, number>; gl: Record<string, number>; as: Record<string, number> } // o que ele tinha antes desta temporada
 }
-function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, estat, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; estat?: EstatUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean }) {
+type CareerSquadTarget = 'overview' | 'formation' | 'reserves' | 'staff'
+type CareerSquadRequest = { target: CareerSquadTarget; revision: number }
+function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, estat, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; estat?: EstatUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean; navigationRequest?: CareerSquadRequest }) {
+  const visualV2 = useCareerVisualV2()
   // 🧹 ENXUGADA (Diego 14/09: *"tá com muita informação desnecessária"*): o texto
   // longo do preparador só abre no "?" — quem já sabe a regra nunca mais lê.
   const [ajudaPrep, setAjudaPrep] = useState(false)
@@ -4597,6 +4635,12 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // ele pediu: *"base deveria jogar o usuário pra base… comissão deveria jogar pra
   // área de comissão mostrando técnico e preparador"*.
   const [painel, setPainel] = useState<'nenhum' | 'comissao' | 'base'>('nenhum')
+  useEffect(() => {
+    if (!visualV2 || !navigationRequest) return
+    setPainel(navigationRequest.target === 'staff' ? 'comissao' : 'nenhum')
+    if (navigationRequest.target === 'reserves') setAbaLista('res')
+    else if (navigationRequest.target === 'overview') setAbaLista('tit')
+  }, [visualV2, navigationRequest])
   // 🙅 "AGORA NÃO" da pergunta da Base: guarda QUAL situação foi recusada (os ids de
   // quem ficou sem troca). Assim o "não" vale pra esta rodada e some sozinho quando
   // muda quem está cansado — botão que não faz nada seria mentira, e aviso que volta
@@ -5136,6 +5180,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {barraSelecionado}
     </div>
   )
+  if (visualV2 && elencoNovo && painel !== 'nenhum') return <div className="cv2-squad-panel">{atalhos}<CareerSection title={painel === 'comissao' ? tr('Comissão técnica', 'Coaching staff') : tr('Oportunidades da base', 'Academy opportunities')}>{painelAberto}</CareerSection></div>
   return (
     <div>
       {/* 🚪 porta dos olheiros (regra das portas: só pra quem NÃO tem, no lugar
@@ -5338,7 +5383,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {/* 🖥️📱 CAMPO E LISTA (mockup aprovado 16/09): no monitor lado a lado, no
           celular empilhado — e no celular esta caixa não muda NADA, é a tela de
           sempre. Quem sai da coluna de 576px é a caixa verde do clube (SquadTab). */}
-      <div style={{ display: larga ? 'flex' : 'block', gap: 14, alignItems: 'flex-start' }}>
+      <div className={visualV2 ? 'cv2-squad-grid' : undefined} style={{ display: larga ? 'flex' : 'block', gap: 14, alignItems: 'flex-start' }}>
       <div className="ll-cx-campo" style={larga ? { width: 560, flex: 'none' } : undefined}>
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
         <PlacaGol lado="cima" />{/* 🏟️ placas atrás dos gols (17/10) */}
@@ -5414,7 +5459,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         })()}
         <PlacaGol lado="baixo" />
       </div>
-      {elencoNovo ? atalhos : blocoClube}
+      {elencoNovo ? (!visualV2 ? atalhos : null) : blocoClube}
       </div>
       {/* 📋 a lista: no monitor ela ocupa o resto da largura, ao lado do campo —
           e leva junto comissão/base/folha, senão sobrava um vão verde do lado. */}
@@ -5715,6 +5760,8 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
 // 🔬 exportado só pra bancada de conferência (`scripts/teste-sondar/`)
 export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () => void }) {
   const { state, dispatch } = useEsc()
+  const visualV2=useCareerVisualV2()
+  const [busca,setBusca]=useState('')
   const jogadorOn = useAliciarJogador() // 🔒 interruptor geral do sondar jogador (sport.ts)
   // 🕵️ OLHEIRO (Diego 07/09): sondar JOGADOR vai pela CATEGORIA da carta, com
   // a régua de `sondarLiberado` (store.tsx): foi profissional, bom jogador e
@@ -5817,7 +5864,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   const jogs: LinhaJog[] = []
   let escondidos = 0
   if (jogadorOn) for (const c of clubes) for (const x of c.squad) {
-    if (x.fake || x.emprestado) continue
+    if (ehFake(x) || x.cria || x.emprestado) continue
     if (!marcadosJ.includes(x.id) && !sondarLiberado(x, olheiroTier)) { escondidos++; continue }
     jogs.push({ card: x, clube: c, falta: contratoCpuFalta(x.id, state.seed, state.seasonNo) })
   }
@@ -5866,12 +5913,12 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   if (passo === 'tec') {
     const lista = (soLivres ? tecs.filter(t => t.falta <= 0) : tecs).slice().sort((a, b) => (a.falta > 0 ? 1 : 0) - (b.falta > 0 ? 1 : 0) || a.nome.localeCompare(b.nome))
     return (
-      <div style={{ marginTop: 4 }}>
+      <div className={visualV2 ? 'cv2-coach-scout' : undefined} style={{ marginTop: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
           <button onClick={fecha} style={{ ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: 'none', border: 'none', color: INK, cursor: 'pointer', padding: 0 }}>{tr('← 🧢 Sondar técnico', '← 🧢 Scout a coach')}</button>
           <span style={{ fontSize: 11, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 9px', background: '#fff' }}>{marcadosT.length}/1</span>
         </div>
-        {meu && <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}><MeuTecnicoBox mgr={mgr} /></div>}
+        {meu && <div className={visualV2 ? 'cv2-coach-current' : undefined} style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}><MeuTecnicoBox mgr={mgr} /></div>}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 9 }}>
           {pilula(soLivres, `${tr('🆓 Sem contrato', '🆓 No contract')} (${tecLivres})`, () => setSoLivres(true))}
           {pilula(!soLivres, `${tr('Todos', 'All')} (${tecs.length})`, () => setSoLivres(false))}
@@ -5901,6 +5948,8 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
     const fundoMarcado = state.aliciarFundo?.clube ?? null
     const ehMarcado = (j: LinhaJog) => marcadosJ.includes(j.card.id) && (fundoMarcado ? j.clube.teamName === fundoMarcado : !j.clube.fundo)
     const setores = posF ? [posF] : SECTORS
+    const normaliza=(v:string)=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase()
+    const visiveis=visualV2 && busca.trim() ? jogs.filter(j=>normaliza(`${j.card.name} ${j.card.club} ${j.clube.teamName}`).includes(normaliza(busca.trim()))) : jogs
     return (
       <div style={{ marginTop: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -5915,9 +5964,10 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
           {pilula(posF === null, tr('Todas', 'All'), () => setPosF(null))}
           {SECTORS.map(p => pilula(posF === p, p, () => setPosF(p)))}
         </div>
-        {!jogs.length && <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', textAlign: 'center', margin: '14px 0' }}>{tr('😶 Seu olheiro não achou ninguém sem contrato ao alcance dele.', '😶 Your scout found nobody out of contract within his reach.')}</p>}
+        {visualV2 && <label className="cv2-scout-search">{tr('Buscar jogador ou clube','Search player or club')}<input type="search" value={busca} onChange={e=>setBusca(e.target.value)} placeholder={tr('Nome do jogador ou clube…','Player or club name…')} /></label>}
+        {!visiveis.length && <p style={{ fontSize: 11, fontWeight: 800, color: '#5a5647', textAlign: 'center', margin: '14px 0' }}>{tr('😶 Seu olheiro não achou ninguém sem contrato ao alcance dele.', '😶 Your scout found nobody out of contract within his reach.')}</p>}
         {setores.map(pos => {
-          const doSetor = jogs.filter(j => j.card.pos === pos)
+          const doSetor = visiveis.filter(j => j.card.pos === pos)
           const livres = doSetor.filter(j => j.falta <= 0 || ehMarcado(j)).sort((a, b) => a.card.name.localeCompare(b.card.name) || a.clube.teamName.localeCompare(b.clube.teamName))
           const presos = doSetor.filter(j => j.falta > 0 && !ehMarcado(j)).sort((a, b) => a.falta - b.falta || a.card.name.localeCompare(b.card.name))
           if (!doSetor.length) return null
@@ -5984,6 +6034,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 12px', lineHeight: 1.45 }}>{getLang() === 'en'
         ? <>Mark someone <b>🆓 out of contract</b> at another club of the {divRot}{rivaisDeFora > 0 ? ' (or one of your ⚔️ rivals from the start of the career)' : ''} — he <b>enters the next auction</b> and you fight for him in the envelope.</>
         : <>Marque quem está <b>🆓 sem contrato</b> em outro clube da {divRot}{rivaisDeFora > 0 ? ' (ou num dos seus ⚔️ rivais do começo da carreira)' : ''} — ele <b>entra no próximo leilão</b> e você briga por ele no envelope.</>}</p>
+      <div className={visualV2 ? 'cv2-scout-choices' : undefined}>
       {cartao('tec', GOLD, '🧢', tr('Técnico', 'Coach'), marcadosT.length,
         meu ? (getLang() === 'en' ? <>You have <b>{meu}</b>. A new coach brings his systems and his level adds to the team in every match.</> : <>Você tem o <b>{meu}</b>. Um técnico novo traz os esquemas dele, e o nível dele soma no time em toda partida.</>)
           : (getLang() === 'en' ? <>Without a coach you only play <b>4-3-3</b> and <b>4-4-2</b>. With one: more systems and his level adding to the team.</> : <>Sem técnico você só joga <b>4-3-3</b> e <b>4-4-2</b>. Com ele: mais esquemas e o nível dele somando no time.</>),
@@ -5993,6 +6044,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
           ? <>That rival's player who ran out of contract. Your <b>{olheiroNome}</b> finds {olheiroTier === 'ouro' ? <b>anyone, legends included</b> : olheiroTier === 'prata' ? <b>up to stars</b> : <b>up to prospects</b>}.</>
           : <>Aquele jogador do rival que ficou sem contrato. Seu <b>{olheiroNome}</b> acha {olheiroTier === 'ouro' ? <b>qualquer um, lenda inclusive</b> : olheiroTier === 'prata' ? <b>até craque</b> : <b>até promessa</b>}.</>,
         jogLivres, jogMarcado?.card.name ?? null)}
+      </div>
       {onPular && (
         <button onClick={onPular} style={{ width: '100%', ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: 10, background: '#fff', color: INK, cursor: 'pointer', marginBottom: 8 }}>
           {totalMarcado > 0 ? tr('Seguir → vender reservas', 'Next → sell reserves') : tr('Agora não → vender reservas', 'Not now → sell reserves')}
@@ -6093,6 +6145,8 @@ export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaN
 }
 
 export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase, ab }: { /** ⚔️ 25/10: a tática do próximo jogo, logo abaixo da formação (conta do Diego) */ tatica?: ReactNode; /** 💾 Time A/B (23/10): a 3ª pílula ao lado de Formação/Trocas + o painel/aviso que ela abre */ ab?: { rotulo: string; render: (aberto: boolean, fechar: () => void) => ReactNode }; mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
+  const visualV2 = useCareerVisualV2()
+  const [navigationRequest,setNavigationRequest]=useState<CareerSquadRequest>({target:'overview',revision:0})
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
   const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
@@ -6145,9 +6199,10 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
   // o RESUMO na linha do gás (com os contadores de volta) e os NOMES na caixa.
   const atalhoGas = !!resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0) && !elencoNovoOk
   return (
-    <div className={elenco && largaElenco ? 'll-cx-elenco-largo' : undefined} style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12, ...(elenco && largaElenco ? { width: 'min(1180px, calc(100vw - 48px))', marginLeft: 'calc(50% - min(590px, 50vw - 24px))' } : {}) }}>
-      {shine && <ApoioSheen holo={perk.holo} />}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+    <div className={[elenco && largaElenco ? 'll-cx-elenco-largo' : '', visualV2 ? 'cv2-squad' : ''].filter(Boolean).join(' ')} style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12, ...(elenco && largaElenco ? { width: 'min(1180px, calc(100vw - 48px))', marginLeft: 'calc(50% - min(590px, 50vw - 24px))' } : {}) }}>
+      {visualV2 && elenco && <nav className="cv2-squad-nav" aria-label={tr('Atalhos do elenco','Squad shortcuts')}>{([['overview',tr('Visão geral','Overview')],['formation',tr('Formação','Formation')],['reserves',tr('Reservas','Reserves')],['staff',tr('Comissão e base','Staff and academy')]] as const).map(([target,label])=><button key={target} type="button" data-active={navigationRequest.target===target} onClick={()=>{setNavigationRequest(v=>({target,revision:v.revision+1}));setAbreFormacao(target==='formation');setAbreTrocas(false);setAbreAB(false)}}>{label}</button>)}</nav>}
+      {shine && !visualV2 && <ApoioSheen holo={perk.holo} />}
+      <div className={visualV2 ? 'cv2-squad-header' : undefined} style={{ ...(visualV2 ? { background: perk?.grad ?? col.light, color: perk?.tier === 'roxo' || perk?.tier === 'verde' ? '#fff' : INK } : {}), display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco && perk?.selo ? ` ${perk.selo}` : elenco ? apoioSelo() : ''}</p>
         {/* 🎽 o teto vem do MOTOR (`elencoCheio`), nunca de um 22 escrito na mão —
             desde 16/09 o SEU elenco tem +1 por posição (27 no 4-4-2). E com
@@ -6186,7 +6241,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
           </div>
         )
         return (
-          <div style={{ display: 'flex', gap: 4, background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '7px 6px 6px', marginBottom: 8, position: 'relative' }}>
+          <div className={visualV2 ? 'cv2-squad-strength' : undefined} style={{ display: 'flex', gap: 4, background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '7px 6px 6px', marginBottom: 8, position: 'relative' }}>
             {cel('DEF', setor(['GOL', 'LAT', 'ZAG']), tr('gol · lat · zag', 'gk · fb · cb'))}
             {cel('MEI', setor(['MEI']), tr('meio-campo', 'midfield'))}
             {cel('ATA', setor(['ATA']), tr('ataque', 'attack'))}
@@ -6205,6 +6260,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
             senão a leitura de relance se perderia. */}
         {resumoGas && <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: resumoGas.cor }}>{resumoGas.pct}%</span>{!atalhoGas && resumoGas.esg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {resumoGas.esg} 🚑</span> : null}{!atalhoGas && resumoGas.lim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {resumoGas.lim} 🥵</span> : null}{resumoGas.can ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {resumoGas.can} 😓</span> : null}</span>}
       </div>
+      {elenco&&!visualV2&&<LeituraDoTime squad={mgr.squad as WonCard[]} ids={xiIds} gas={condicao?.gas} />}
       {/* 🚑 ATALHO PRO ELENCO (Diego 15/09: *"o cara tem q descer lá em baixo p ver o
           elenco... os cansados e etc"*). Entre o cabeçalho do clube e a lista mora um
           monte de coisa (formação, banners, modo de troca, campinho). Em vez de MEXER
@@ -6235,7 +6291,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
           </button>
         )
         return (
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+          <div className={visualV2 ? 'cv2-squad-tools' : undefined} style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
             {onSetFormation && pilula(`🎽 ${rotuloForm}`, abreFormacao, () => setAbreFormacao(v => !v))}
             {onSetSubMode && pilula(modoAgora, abreTrocas, () => setAbreTrocas(v => !v))}
             {ab && pilula(ab.rotulo, abreAB, () => setAbreAB(v => !v))}
@@ -6418,7 +6474,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
                 : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (5% por jogo; 10% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
             </UnlockBanner>
           )}
-          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} estat={estat}
+          <ElencoField navigationRequest={visualV2 ? navigationRequest : undefined} mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} estat={estat}
             dicaTrocaNoTopo={!!(elenco && onSetSubMode)}
             antesFolha={criaBase ? <BaseBox mgr={mgr} criaNames={escSt.criaNames ?? []} seed={escSt.seed ?? 1} onSubir={criaBase.onSubir} /> : undefined} />
         </>
@@ -6444,6 +6500,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
         )
       })}
       </>)}
+      {elenco&&visualV2&&<LeituraDoTime squad={mgr.squad as WonCard[]} ids={xiIds} gas={condicao?.gas} />}
       {/* 🕵️ o SONDAR não mora mais aqui (Diego 28/08: "mudamos de local pra
           dentro da área do pré-leilão, que já tem as duas abas de rodapé, então
           não precisa ter aqui na área do elenco repetido"). No Elenco fica só a
@@ -7515,12 +7572,13 @@ export function EventoBanner({ ev, reservas, onDecide }: {
   reservas: WonCard[]
   onDecide: (escolha: 'troca' | 'campo', subId?: string) => void
 }) {
+  const visualV2 = useCareerVisualV2()
   const [subId, setSubId] = useState(reservas[0]?.id ?? '')
   const noit = ev.tipo === 'noitada'
   const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
   const trait = traitDe(ev.nome)
   return (
-    <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
+    <div className={visualV2 ? "cv2-root cv2-injury-panel" : undefined} style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
       <div style={{ padding: '12px 13px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2.5px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE79A,#FFC400 55%,#E8A200)', padding: '8px 10px', margin: '0 0 10px', boxShadow: '2px 2px 0 #000' }}>
@@ -7543,7 +7601,7 @@ export function EventoBanner({ ev, reservas, onDecide }: {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className={visualV2 ? "cv2-decision-footer" : undefined} style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => subId && onDecide('troca', subId)} disabled={!subId}
             style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: '#EAF6EE', cursor: 'pointer', ...OSWALD }}>
             {noit ? tr('😤 Banco por 1 jogo', '😤 Benched for 1 match') : tr('✅ Confirmar a troca', '✅ Confirm the swap')}
@@ -8051,7 +8109,8 @@ function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, 
           <div style={{ position: 'relative' }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.12em', color: 'rgba(255,255,255,.6)', margin: 0 }}>{tr(`TEMPORADA ${temporada} ENCERRADA`, `SEASON ${temporada} OVER`)}</p>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: tipo === 'ficou' ? 27 : 42, lineHeight: 1, margin: '5px 0 0', color: d.cor, textShadow: '3px 3px 0 rgba(0,0,0,.35)' }}>{d.titulo}</p>
-            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0' }}>{d.sub(pos)}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.85)', margin: '6px 0 0' }}>{tipo==='campeao'&&!mudou?tr(`Campeão da ${de}. Continua na ${para}.`,`Champion of ${de}. Stays in ${para}.`):mudou?tr(`${pos}º lugar na ${de}: ${tipo==='queda'?'rebaixado':'promovido'} para a ${para}.`,`${ordinal(pos)} in ${de}: ${tipo==='queda'?'relegated':'promoted'} to ${para}.`):tr(`${pos}º lugar na ${de}. Continua na ${para}.`,`${ordinal(pos)} in ${de}. Stays in ${para}.`)}</p>
+            {mudou&&<p style={{fontSize:11,fontWeight:700,color:'#fff',margin:'6px 0 0'}}>{tipo==='queda'?tr('Os quatro últimos são rebaixados.','The bottom four are relegated.'):tr('Os quatro primeiros conquistam o acesso.','The top four earn promotion.')}</p>}
             {mudou ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 11, margin: '14px 0 4px' }}>
                 <span style={{ border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, padding: '6px 13px', ...OSWALD, fontWeight: 900, fontSize: 14, color: 'rgba(255,255,255,.6)' }}>{de}</span>
@@ -8146,11 +8205,13 @@ const FIM_PASSOS = [
 // `ordem` = a sequência dos passos (os números são os de FIM_PASSOS: 1 jornal ·
 // 2 caixa · 3 mundo · 4 decisão). Ano de Copa do Mundo com você nela: [3,1,2,4].
 function RoteiroFim({ passo, onIr, ordem = [1, 2, 3, 4] }: { passo: number; onIr: (n: number) => void; ordem?: number[] }) {
+  const visualV2=useCareerVisualV2()
   const pos = ordem.indexOf(passo)
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 10 }}>
+    <div className={visualV2 ? 'cv2-season-steps' : undefined} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 10 }}>
       {ordem.map((n, i) => {
         const p = FIM_PASSOS[n - 1]
+        const label=visualV2 ? [tr('Campanha','Campaign'),tr('Balanço','Balance'),tr('Internacional','International'),tr('Próxima temporada','Next season')][n-1] : tr(p.pt,p.en)
         const feito = i < pos, ativo = i === pos
         return (
           <Fragment key={p.pt}>
@@ -8158,11 +8219,11 @@ function RoteiroFim({ passo, onIr, ordem = [1, 2, 3, 4] }: { passo: number; onIr
             <button
               onClick={() => { if (feito) onIr(n) }}
               disabled={!feito}
-              aria-label={tr(p.pt, p.en)}
+              aria-label={label}
               style={{ flex: 'none', width: 54, background: 'none', border: 'none', padding: 0, cursor: feito ? 'pointer' : 'default', textAlign: 'center' }}>
               <span style={{ display: 'flex', width: 30, height: 30, margin: '0 auto', border: `2.5px solid ${INK}`, borderRadius: 9, alignItems: 'center', justifyContent: 'center', fontSize: 14,
                 background: ativo ? GOLD : feito ? INK : '#fff', color: feito ? '#fff' : INK, boxShadow: ativo ? `2px 2px 0 ${INK}` : 'none' }}>{feito ? '✓' : p.ic}</span>
-              <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 8.5, letterSpacing: .4, marginTop: 3, color: ativo ? INK : 'rgba(12,12,12,.45)' }}>{tr(p.pt, p.en).toUpperCase()}</span>
+              <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 8.5, letterSpacing: .4, marginTop: 3, color: ativo ? INK : 'rgba(12,12,12,.45)' }}>{label.toUpperCase()}</span>
             </button>
           </Fragment>
         )
@@ -8351,6 +8412,8 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
 
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
+  const visualV2 = careerVisualV2(state)
+  const [visualArea,setVisualArea]=useState<'partida'|'tabela'>('partida')
   useCo2FimDaVirada() // 🌐 carreira online v2: quem comanda põe a sala no PREPARO quando o leilão de todos acaba
   // 🏢➡️⚽ SAF que vira 2º clube (13/10): só carreira SOLO e só com a chave (conta do Diego por enquanto)
   // 🌐 carreira online v2: SEM 2º clube (decisão do Diego, 19/10) — a SAF lá é a da regra antiga
@@ -8366,7 +8429,7 @@ export function PyramidSeasonScreen() {
   const [planosSalvar, setPlanosSalvar] = useState(false)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
-  const presidentPending = usePresidentPreviewPending() // ⏳ 24/10: conta liberada ainda sendo conferida → espera em vez de piscar a maquete
+  const presidentPending = usePresidentPreviewPending() && PRESIDENCY_STADIUM_RELEASED // mapa oculto também não exibe sua espera de carregamento
   const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
@@ -8582,9 +8645,9 @@ export function PyramidSeasonScreen() {
     if (!condOn) return {}
     const me = state.managers[state.youIdx]
     if (!me) return {}
-    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g)
+    const mods = modsDoElenco(careerLineup[me.id], round, me.squad, r => lineupAt(careerLineup, me.id, r, me.squad, me.formation).map(c => c.id), state.eventoTemporada, state.seasonNo ?? 1, condDesdeR, condInicio?.g, criteriosDaTemporada(state) ? preparadorDe(state.careerPreparador?.[me.teamName])?.banco : undefined)
     return Object.keys(mods).length ? { [me.id]: mods } : {}
-  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR])
+  }, [condOn, state.managers, state.youIdx, careerLineup, round, state.eventoTemporada, state.seasonNo, condDesdeR, condInicio, state.careerPreparador, state.criteriosCarreiraDesde, state.criteriosCarreiraAte])
   // 🧮 UMA HISTÓRIA SÓ (conserto 14/09). A tela precisa da temporada em duas
   // alturas: a rodada ATUAL (`live`) e a rodada já REVELADA (`shown`, usada
   // enquanto a partida anima, pra tabela não entregar o resultado antes do apito).
@@ -8677,9 +8740,9 @@ export function PyramidSeasonScreen() {
   // 🏆 nas copas, só se o motor já estava ligado ANTES da copa começar (ligar no meio dela mudaria fase que já apareceu na tela)
   // 📅 com a Copa no meio da Liga ela começa cedo (1ª quarta ≥ rodada 5): o motor novo só vale se ligou antes da rodada 5
   const m2Copa = m2Desde != null && (copaMid ? m2Desde < 5 : m2Desde < 38)
-  const recepcaoCopa = versaoRecepcaoNaCopa(recepcaoDesde, copaMid ? 5 : 38)
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde),
-    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde])
+  const recepcaoCopa = versaoComCriterios(versaoRecepcaoNaCopa(recepcaoDesde, copaMid ? 5 : 38), criteriosDaTemporada(state))
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, { criterios:criteriosDaTemporada(state), disputadas:round, intervaloAberto:state.booksSeason !== state.seasonNo }),
+    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde, state.criteriosCarreiraDesde, state.criteriosCarreiraAte, state.onlineMode, state.co2, state.careerOnline, state.sport, state.seasonNo, state.booksSeason, round])
   // 💾 os resultados do motor novo que o SAVE já tem (antes de simular) — e, depois de cada tela, o que foi calculado agora vai pro save
   carregaGuardados(state.m2Res, state.seasonNo ?? 1, `${loggedEmail() ?? 'local'}:${state.seed}`)
   useEffect(() => { const n = tiraNovos(); if (n && state.careerOnline && state.onlineMode !== 'online') dispatch({ type: 'GUARDA_M2', novos: n }) })
@@ -9088,6 +9151,15 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaRoundMid.current !== copaRound) { copaRoundMid.current = copaRound; setCopaMidOn(false) } }, [copaRound])
   const copaPlaying = done ? !!copa && nCopaRounds > 0 && copaRound < nCopaRounds : copaMid && copaMidOn && !!copa && copaRound < nCopaBase
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  useEffect(()=>{
+    if(!m2Ok||!copa)return
+    // Pular uma fase também oficializa seus jogos, mas nunca os próximos.
+    for(const fase of copa.rounds.slice(0,copaFinished?copa.rounds.length:copaRound))
+      for(const tie of fase.ties)for(const e of tie.legM2??[])
+        if(e?.somenteConsulta)resultadoM2({...e,somenteConsulta:false})
+    const novos=tiraNovos()
+    if(novos)dispatch({type:'GUARDA_M2',novos})
+  },[m2Ok,copa,copaRound,copaFinished,dispatch])
   // ⚽🅰️ GOL DE COPA SÓ CONTA DEPOIS DE JOGADO (02/11, print do Fabulous: começo de temporada e o elenco já com gol e
   // assistência). Com o calendário a Copa inteira já nasce calculada na rodada 0 (`copaMid`), e o `copa.goalsByCard` somava
   // TODAS as fases de uma vez — gol de jogo que ainda não aconteceu (e spoiler). Agora soma fase por fase, a mesma régua do
@@ -11048,7 +11120,7 @@ export function PyramidSeasonScreen() {
       if (penMode && !penaltyDone) return { label: tr('⚽ Bata o pênalti', '⚽ Take the penalty'), onClick: avancarRodada }
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: () => { avancarRodada(); escolheAba('jogos') } } // ⏸️ o jogo roda onde aparece (na Central ele fica pausado)
     })()
-    return <CentralCarreira janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    return <CentralCarreira onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={null /* 26/10 (Diego: *"tire o rank global da central, deixe na aba do rank"*) */}
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
@@ -11279,9 +11351,11 @@ export function PyramidSeasonScreen() {
   )
 
   return (
+    <CareerVisualProvider enabled={visualV2}>
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
     <MapaGuardado mapa={mapaDoClube}>
-    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}${visualV2 ? ` cv2-root cv2-career cv2-view-${tab}${visualArea === 'tabela' ? ' cv2-focus-table' : ''}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+      {visualV2 && <CareerBrand club={state.managers[state.youIdx]?.teamName ?? ''} />}
       <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
       <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
       {barraOn && cabFora && !faixaCalAqui && (
@@ -11357,6 +11431,8 @@ export function PyramidSeasonScreen() {
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
+        {visualV2 && tab === 'jogos' && !done && round > 0 && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
+        {visualV2 && tab !== 'jogos' && <CareerHeading club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : tr('Mapa do clube', 'Club map')} />}
         <div className="ll-cx-lado">
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
             (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
@@ -12093,7 +12169,7 @@ export function PyramidSeasonScreen() {
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined}
+            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
@@ -12107,7 +12183,7 @@ export function PyramidSeasonScreen() {
           // quem decide é você e o leilão é de UM clube só. Guarda por onlineMode
           // pra um save torto (2 humanos ativos) não cair na votação sem sentido.
           if (state.onlineMode !== 'online' || humans.length <= 1) return (
-            <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+            <div className={visualV2 ? 'cv2-season-flow' : undefined} style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               {/* 🌍 PASSO 3: a COPA DO MUNDO, discreta e DEPOIS do jornal (pedido
                   dele: *"quero algo sutil msm mas após o jornal"*). Antes ela abria
                   a tela com um cadeado de 74 temporadas à frente, competindo com a
@@ -12153,6 +12229,7 @@ export function PyramidSeasonScreen() {
                 const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario', 'saf'].includes(e.kind))
                 if (!led.length) return null
                 const total = led.reduce((n, e) => n + e.amount, 0)
+                if (visualV2) return <CareerBalance season={state.seasonNo} balance={state.careerCoins?.[youId] ?? 0} entries={led} onStatement={() => { setTab('estadio'); setClubeSub('financas') }} onContinue={() => irPasso(proxPasso(2))} />
                 const caixa = Math.round(state.careerCoins?.[youId] ?? 0)
                 if (roteiroOn) {
                   // 🔝 os maiores lançamentos primeiro (o que mais pesou no ano) — e o 🥇 ARTILHEIRO aparece SEMPRE, mesmo
@@ -12310,7 +12387,7 @@ export function PyramidSeasonScreen() {
             </button>
           )
           return (
-            <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
+            <div className={visualV2 ? 'cv2-season-flow' : undefined} style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
               {/* 🌍 no ONLINE a Copa é individual (cada técnico no seu aparelho) —
                   jogar não trava a votação: dá pra disputar e voltar pra votar. */}
               {copaGate}
@@ -12453,10 +12530,8 @@ export function PyramidSeasonScreen() {
               <>
               {/* 🕴️ SUA AGÊNCIA — saiu do Elenco e veio pro Clube (Diego 19/09).
                   A escada de desbloqueios vem junto: tudo de agência num lugar só. */}
-              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)} />
-              {/* 📚 COLEÇÕES DE CLUBES (04/10): fechou um clube no álbum → recebe AQUI, nesta carreira. */}
-              {colecoesOn && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
-              <AgenciadosTab cards={state.agenciados ?? []}
+              <CareerSectionLinks items={[{id:"cv2-agency-clients",label:tr("Clientes e receitas","Clients and income")},{id:"cv2-agency-structure",label:tr("Estrutura e coleções","Structure and collections")}]} />
+              <div id="cv2-agency-clients"><AgenciadosTab cards={state.agenciados ?? []}
                 pool={(() => {
                   const seen = new Set<string>(); const out: AgCard[] = []
                   for (const c of [...(state.empresarioCards ?? []), ...(state.multiClube?.empresario ?? [])]) {
@@ -12476,7 +12551,12 @@ export function PyramidSeasonScreen() {
                 ] : undefined}
                 destinoId={state.agenciaClubeId ?? youId} dividir={!!state.agenciaDividir}
                 onSetDestino={(id, dividir) => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id, dividir })}
-                onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />
+                onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} /></div>
+              <CareerSection title={tr('Estrutura e coleções', 'Structure and collections')} id="cv2-agency-structure">
+              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)} />
+              {/* 📚 COLEÇÕES DE CLUBES (04/10): fechou um clube no álbum → recebe AQUI, nesta carreira. */}
+              {colecoesOn && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
+              </CareerSection>
               </>
             ) : clubeSub === 'escritorio' && !agenciaOk ? (
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
@@ -12507,7 +12587,10 @@ export function PyramidSeasonScreen() {
               <BancoLegends />
               </>
             ) : clubeSub === 'patrocinio' ? (
-              <>
+              <div className={visualV2 ? 'cv2-sponsors' : undefined}>
+                {visualV2 && <CareerSectionLinks items={[{id:'cv2-sponsor-master',label:tr('Master e metas','Master and goals')},{id:'cv2-sponsor-other',label:tr('Material e transmissão','Kit and broadcasting')}]} />}
+                <div className={visualV2 ? 'cv2-grid' : undefined}>
+                <CareerSection id="cv2-sponsor-master" title={tr('Master e meta do clube','Club master and goals')}>
                 {/* 🤝 aqui mora a RÉGUA: a tabela de valores e o "como funciona"
                     saíram da tela de início de temporada (Diego 21/08: "não quero
                     mais a tabela de valores aí, coloque na aba de patrocínio"). */}
@@ -12523,6 +12606,7 @@ export function PyramidSeasonScreen() {
                       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: 0 }}>🏆 {tr('Patrocinador Master', 'Master sponsor')}</p>
                       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{tr('Sem contrato correndo. Os contratos aparecem no começo da temporada.', 'No contract running. The contracts show up at the start of the season.')}</p>
                     </div>)}
+                </CareerSection><CareerSection id="cv2-sponsor-other" title={tr("Outros contratos","Other contracts")}>
                 {/* 👟 FORNECEDOR DE MATERIAL — irmão do Master, aqui e não na Loja.
                     O Diego pegou meu erro em 15/09: *"não era contrato igual tem lá na
                     área de patrocínio Master e Pontual? Achei que aqui [na Loja] era só
@@ -12541,6 +12625,7 @@ export function PyramidSeasonScreen() {
                       </p>
                     </div>)}
                 {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
+                </CareerSection></div>
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
                   // 🕴️ a régua e as marcas do bico moram em `bico.ts` (lista repetida diverge)
@@ -12601,7 +12686,7 @@ export function PyramidSeasonScreen() {
                     </div>
                   )
                 })()}
-              </>
+              </div>
             ) : null}
             </ClubeMapaPainel>
           </>
@@ -12640,7 +12725,7 @@ export function PyramidSeasonScreen() {
                 </div>
               )
             })()}
-            <div className="ll-rank-layout"><div className="ll-rank-results">
+            <div className="ll-rank-layout cv2-rank-layout"><div className="ll-rank-results">
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} />
             ) : rankSub === 'garcons' ? (
@@ -12781,12 +12866,12 @@ export function PyramidSeasonScreen() {
             </>
           </>
         ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
-          <section className="ll29-board" aria-label="Competições da carreira">
+          <section className={`ll29-board${visualV2 ? ' cv2-board' : ''}`} aria-label="Competições da carreira">
             {/* 📊 25/10 (Diego: *"esse negócio de NA COLA aí tem que sair… esse modal com essas notícias"*): na aba Jogos + Tabela
                 saem a frase rotativa e a trilha Liga › Copa — a Copa aparece sozinha na quarta dela */}
             {!jogoTabela && !done && round > 0 && tab==='jogos' && renderCareerTicker()}
             {!jogoTabela && tab === 'jogos' && trilhaTemporada}
-            {tab === 'jogos' && <GiroDaRodada />}{/* 📢 Anúncio do dia também na carreira (17/10, Diego: "sim, pode ser") */}
+            {/* 📢 Anúncio do dia também na carreira (17/10, Diego: "sim, pode ser") */}
             {done && copa && copa.rounds.length ? <>
               {/* 🧹 OS CHIPS DAS FASES SAEM DA ABA JOGOS NO FIM DE TEMPORADA (19/09).
                   Diego, com o print na mão: *"aparece essas coisas aqui misturadas
@@ -12811,14 +12896,17 @@ export function PyramidSeasonScreen() {
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('JOGOS DA COPA', 'CUP MATCHES')}`}/>
               </>
               return <>
+                {visualV2 && <CareerSectionLinks items={[{id:'cv2-standings',label:tr('Classificação','Standings')},{id:'cv2-other-games',label:tr('Outros jogos','Other matches')}]} />}
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
                 {/* 🖥️ no computador a divisão vira botões (23/10); o select acima some lá e segue no celular */}
                 <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={d===division} onClick={()=>setDivisionView(d)}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}</div>
-                {(tab==='tabelas' || jogoTabela) && <div className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>}
-                {tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}
+                {(tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>}
+                <div id="cv2-other-games">{tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}</div>
               </>
             })()}
-          </section>
+
+            {tab === 'jogos' && <div className={visualV2 ? 'cv2-board-ad' : undefined}><GiroDaRodada /></div>}
+</section>
         ) : tab === 'jogos' && hasMatches ? (
           copaPlaying && copaFase ? (
             /* Durante a COPA: SEU jogo já está no placar em cima das abas. Aqui na
@@ -12903,6 +12991,7 @@ export function PyramidSeasonScreen() {
     </div>
     </MapaGuardado>
     </RitmoCampoProvider>
+    </CareerVisualProvider>
   )
 }
 
@@ -12911,6 +13000,7 @@ export function PyramidSeasonScreen() {
 // tem 11 não lista nada — só aguarda. O host começa o leilão (ou vai sozinho no 0). ──
 export function ReserveListScreen() {
   const { state, dispatch } = useEsc()
+  const visualV2 = careerVisualV2(state)
   const escLib = useEscadaLiberada() // 🪜 escada de categorias: por enquanto só a conta do Diego
   // 🧢 técnicos: SÓ carreira solo. Checa onlineMode E roomId — se o estado da
   // sala ainda não sincronizou, `onlineMode` pode chegar um instante depois e a
@@ -13020,10 +13110,12 @@ export function ReserveListScreen() {
   const mostraPills = quinzeRL && state.onlineMode !== 'online' && !state.reserveListMesmo
   const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
   return (
-    <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK }}>
+    <CareerVisualProvider enabled={visualV2}><div className={`palco tela-cheia${visualV2 ? ' cv2-root cv2-market' : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       {/* 📏 o vão de baixo acompanha a altura da barra: com a faixa de estreia ela
           fica ~28px mais alta, e sem esse vão a última carta some atrás dela. */}
       <div className="max-w-xl mx-auto" style={{ padding: mostraPills ? (viuSondar ? '16px 14px 118px' : '16px 14px 148px') : '16px 14px 48px' }}>
+        {visualV2 && <><CareerBrand club={mgr?.teamName ?? ''} /><CareerHeading title={abaLeilao === 'aliciar' ? tr('Sondagem para o leilão', 'Auction scouting') : tr('Contratos e vendas', 'Contracts and sales')} club={mgr?.teamName ?? ''} season={state.seasonNo} balance={state.careerCoins?.[youId] ?? 0} /><CareerMarketSteps active={abaLeilao === 'aliciar' ? 'scout' : 'sell'} onScout={mostraPills ? abreSondar : undefined} onSell={mostraPills ? () => setAbaLeilao('vender') : undefined} /></>}
+
         <div style={{ ...box(INK), padding: 12, color: '#fff', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 900, fontSize: 15, ...OSWALD }}>{state.reserveListMesmo ? tr('📝 CONTRATOS · MESMO TIME', '📝 CONTRACTS · SAME TEAM') : abaLeilao === 'aliciar' && mostraPills ? tr('🕵️ SONDAR PRO LEILÃO', '🕵️ SCOUT FOR THE AUCTION') : tr('📋 LISTAR PRA LEILÃO', '📋 LIST FOR AUCTION')} · {tr('TEMP.', 'SEASON')} {state.seasonNo}</span>
           {/* ⏱️ o relógio só faz sentido ONLINE (esperar todo mundo decidir) — no
@@ -13032,7 +13124,7 @@ export function ReserveListScreen() {
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD, background: remaining <= 10 ? '#e8503a' : '#fff', color: remaining <= 10 ? '#fff' : INK, borderRadius: 8, padding: '2px 9px' }}>{remaining}s</span>
           )}
         </div>
-        {(!mostraPills || abaLeilao === 'vender') && (<>
+        {(!mostraPills || abaLeilao === 'vender') && (<div className={visualV2 ? 'cv2-transfer-grid' : undefined}><div className="cv2-transfer-context">
         {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça.
             Não faz sentido em "mesmo time" (não tem leilão pra comprar/vender aqui). */}
         {!state.reserveListMesmo && (state.careerCoins?.[youId] ?? 0) < 0 && (
@@ -13043,6 +13135,7 @@ export function ReserveListScreen() {
         )}
         {/* 📝 MESA DE RENOVAÇÃO (22/10): técnico, preparador e jogadores com contrato encerrado, em cartas
             — mesmas ações e preços de antes, só a tela mudou (renovacao-mesa.tsx) */}
+        <RegrasDaTemporada />
         <MesaRenovacao tecnicoOn={quinzeRL} />
         {/* 🪜 ESCADA DE CATEGORIAS (carreira nova, teste): a régua da SUA divisão */}
         {state.escadaOn && escLib && !state.escadaLivre && (() => {
@@ -13112,9 +13205,9 @@ export function ReserveListScreen() {
         )}
         {/* mesmo layout da aba Elenco (Titulares/Reservas), mas em modo listagem —
             "mesmo time" não tem leilão, então nem mostra o botão de listar/vender */}
-        <SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} olheiros={state.onlineMode !== 'online'} xiIds={myXIids} xi={myXI as WonCard[]}
+        </div><div className="cv2-transfer-players"><SquadTab mgr={mgr} col={col} coins={state.careerCoins?.[youId] ?? 0} olheiros={state.onlineMode !== 'online'} xiIds={myXIids} xi={myXI as WonCard[]}
           seasonNo={state.seasonNo} contratosOn={!!state.contratosOn}
-          list={state.reserveListMesmo ? undefined : { listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} />
+          list={state.reserveListMesmo ? undefined : { listed, canList, onList: (id) => dispatch({ type: 'TOGGLE_RESERVE_LIST', mgrId: youId, cardId: id }) }} /></div><div className="cv2-transfer-help">
         {!state.reserveListMesmo && marketUnlocked && (
           <EnsinoPilula k="listar" pill={tr('ℹ️ como funciona a venda', 'ℹ️ how selling works')} seasonNo={state.seasonNo}>
             <div style={{ ...box('#FFF3CF'), padding: '11px 13px', margin: '10px 0' }}>
@@ -13126,7 +13219,7 @@ export function ReserveListScreen() {
             </div>
           </EnsinoPilula>
         )}
-        </>)}
+        </div></div>)}
         {/* 🕵️ aba SONDAR (nome escolhido pelo Diego 28/08 — era "aliciar"): a
             mesma área da aba Elenco, agora aqui na hora certa — marcou, ele
             ABRE o próximo leilão (que é este). */}
@@ -13190,7 +13283,7 @@ export function ReserveListScreen() {
           </div>
         </>
       )}
-    </div>
+    </div></CareerVisualProvider>
   )
 }
 

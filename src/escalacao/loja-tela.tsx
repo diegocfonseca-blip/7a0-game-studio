@@ -1,3 +1,4 @@
+import {useCareerVisualV2,CareerSection,CareerSectionLinks} from './career-visual-v2'
 // ─── 🛍️ LOJA DO CLUBE — a tela (sub-aba 🏟️ Clube › 🛍️ Loja) ──────────────
 // Aprovada pelo Diego em 15/09 e LIBERADA GERAL no mesmo dia (`LOJA_GERAL` em
 // `sport.ts`). A porta de verdade continua sendo a OBRA 🛍️ Loja do Clube no estádio:
@@ -290,6 +291,7 @@ export function LojaTab({
   minhaCor: string
   onIrEstrutura: () => void
 }) {
+  const visualV2=useCareerVisualV2()
   const arteFile = camisaSalaoDe(time)
   const arteBatismo = arteFile ? import.meta.env.BASE_URL + 'mantos-salao/' + arteFile : undefined
   const aberta = lojaConstruida(st)
@@ -358,8 +360,11 @@ export function LojaTab({
     </div>
   )
   return (
-    <section aria-label={tr('Loja do Clube', 'Club Store')}>
-      <Vitrine>{camisa}</Vitrine>
+    <section className={visualV2 ? "cv2-store" : undefined} aria-label={tr('Loja do Clube', 'Club Store')}>
+      {visualV2 && <CareerSectionLinks items={[{id:'cv2-store-shirt',label:tr('Manto','Shirt')},{id:'cv2-store-sales',label:tr('Vendas e contrato','Sales and contract')}]} />}
+      <div className={visualV2 ? 'cv2-grid' : undefined}>
+      <CareerSection id="cv2-store-shirt" title={tr('O manto do seu clube','Your club’s shirt')}><Vitrine>{camisa}</Vitrine></CareerSection>
+      <CareerSection id="cv2-store-sales" title={tr('Vendas e fornecedor','Sales and supplier')}>
 
       {/* 📦 quanto rendeu no ano que fechou */}
       {b && (
@@ -405,6 +410,7 @@ export function LojaTab({
         {tr('Preço da camisa e contrato de material você escolhe na virada da temporada, junto com o Master e o Pontual. Esta aba é só pra ver como o seu clube está.',
           'You pick the shirt price and the kit deal at the season turn, along with the Master and the one-season sponsor. This tab is just to see how your club looks.')}
       </div>
+      </CareerSection></div>
     </section>
   )
 }

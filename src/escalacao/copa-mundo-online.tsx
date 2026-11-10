@@ -225,7 +225,7 @@ export function EscolhaSelecao({ roomId, meuUid, minha, pegasPorOutros, aoEscolh
               const cartas = countryPool(p)
               const qtd = (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const).reduce((n, s) => n + cartas[s].length, 0)
               return (
-                <button key={p} disabled={!!dono} onClick={() => { setPais(p); setTela('convoca') }}
+                <button className="ov3-surface" key={p} disabled={!!dono} onClick={() => { setPais(p); setTela('convoca') }}
                   style={{ textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '7px 9px', background: dono ? '#ded5bd' : '#fff',
                     opacity: dono ? .65 : 1, cursor: dono ? 'default' : 'pointer', boxShadow: dono ? 'none' : `2px 2px 0 0 ${INK}` }}>
                   <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, display: 'block' }}>{flagOf(p)} {p}</span>
@@ -544,7 +544,7 @@ function Relogio({ seg, total, cor = GOLD }: { seg: number; total: number; cor?:
   const apertado = seg <= 10
   return (
     <div style={{ marginTop: 8 }}>
-      <div style={{ height: 16, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}>
+      <div className="ov3-surface" style={{ height: 16, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: apertado ? '#E8503A' : cor, transition: 'width .9s linear' }} />
         <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 10.5, fontWeight: 900, ...OSWALD, color: INK }}>{seg}s</b>
       </div>
@@ -782,7 +782,7 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
               {gerenciar ? tr('fechar', 'close') : tr('⚙️ gerenciar técnicos', '⚙️ manage managers')}
             </button>
             {gerenciar && (
-              <div style={{ maxWidth: 320, margin: '6px auto 0', border: '2px solid rgba(0,0,0,.15)', borderRadius: 12, padding: 8, background: '#fff', textAlign: 'left' }}>
+              <div className="ov3-surface" style={{ maxWidth: 320, margin: '6px auto 0', border: '2px solid rgba(0,0,0,.15)', borderRadius: 12, padding: 8, background: '#fff', textAlign: 'left' }}>
                 <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '0 4px 6px' }}>
                   {tr('Remover da partida — o time vira CPU e a vez passa pro próximo', 'Remove from the match — the team becomes CPU and the turn moves on')}
                 </p>
@@ -889,11 +889,15 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
       const f = fs[0] as LinhaFase | undefined
       setFase(f ? { ...f, seed: Number(f.seed) } : null)
       setLido(true)
+      acabouRef.current = !!f?.campeao // 🏆 09/11: Copa com campeão → para de perguntar ao banco
       return { linhas: pls as LinhaSala[], fase: f }
     } catch { return null }
   }, [roomId, edicaoDaTemporada])
 
-  useEffect(() => { void ler(); const iv = setInterval(() => { void ler() }, 2000); return () => clearInterval(iv) }, [ler])
+  // 🧯 09/11: a leitura de 2 s seguia pra sempre na tela de fim, mesmo com a Copa já decidida (1,6 milhão de leituras em 10 dias).
+  // Com campeão ela PARA; a 1ª leitura de cada edição sempre acontece (é ela que descobre se já tem campeão).
+  const acabouRef = useRef(false)
+  useEffect(() => { void ler(); const iv = setInterval(() => { if (!acabouRef.current) void ler() }, 2000); return () => clearInterval(iv) }, [ler])
 
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
   // 🪑 20/10: com o estado da partida, o assento sai do `seatUids` (a renumeração do banco já errou em dupla cruzada)
@@ -933,7 +937,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   // Só ele escreve. Roda junto da batidinha de leitura (2s), então a vez anda
   // no máximo 2s depois — e nunca depende do relógio do celular dos outros.
   const passo = useCallback(async () => {
-    if (!souDono) return
+    if (!souDono || acabouRef.current) return // 🏆 Copa decidida: nada pra empurrar
     const lido = await ler()
     if (!lido?.fase) return
     const f = lido.fase

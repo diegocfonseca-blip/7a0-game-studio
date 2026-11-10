@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { type ReactNode, forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import './penalty-art.css'
 
 export type PenaltyArtHandle = { moveKeeper: (zone: number) => void; flyBall: (zone: number, outside: boolean) => void }
@@ -6,7 +6,7 @@ const TARGETS = [[33, 30], [50, 29], [67, 30], [34, 42], [50, 42], [66, 42]]
 const LABELS = ['↖ Alto esquerdo', '↑ Alto central', 'Alto direito ↗', '↙ Baixo esquerdo', '↓ Baixo central', 'Baixo direito ↘']
 const ASSETS = `${import.meta.env.BASE_URL}penalty-private-v1/`
 // Presentation only: the existing PenaltyBanner still decides and saves every result.
-export const PenaltyArt = forwardRef<PenaltyArtHandle, { aim: number | null; choosing: boolean; onAim: (zone: number) => void }>(function PenaltyArt({ aim, choosing, onAim }, ref) {
+export const PenaltyArt = forwardRef<PenaltyArtHandle, { aim: number | null; choosing: boolean; onAim: (zone: number) => void; controls?: ReactNode }>(function PenaltyArt({ aim, choosing, onAim, controls }, ref) {
   const ball = useRef<HTMLImageElement>(null), keeper = useRef<HTMLImageElement>(null), dive = useRef<HTMLImageElement>(null)
   const animations = useRef<Animation[]>([])
   const keeperZone = useRef(4)
@@ -47,5 +47,6 @@ export const PenaltyArt = forwardRef<PenaltyArtHandle, { aim: number | null; cho
       <img ref={ball} className="ball" src={`${ASSETS}ball.webp`} alt="" />
     </div>
     {choosing && <div className="targets" aria-label="Escolha onde cobrar">{LABELS.map((label, z) => <button type="button" key={z} aria-pressed={aim === z} onClick={() => onAim(z)}>{label}</button>)}</div>}
+    {controls && <div className="power-control">{controls}</div>}
   </div>
 })

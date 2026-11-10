@@ -825,7 +825,7 @@ export interface EscState {
   careerEscalacoes?: Record<number, { A?: import('./escalacao-salva').EscalacaoSalva; B?: import('./escalacao-salva').EscalacaoSalva; /** qual dos dois entrou por último e com quais 11 — é o que a pílula mostra */ ativo?: { qual: 'A' | 'B'; ids: string[] } }>
   careerLineup?: Record<number, Record<number, string[]>> // carreira online: escalação (XI) POR JOGO (mgrId → rodada → ids dos 11 titulares); vale da rodada em diante, como a tática
   careerSubMode?: 'dinamico' | 'intervalo' // 🔁 SÓ CARREIRA OFFLINE (Diego 12/08): como o técnico faz troca. 'dinamico' (padrão) = como sempre foi (troca vale pro PRÓXIMO jogo, sem pausa). 'intervalo' = o jogo PARA aos 45' e abre o banner pra trocar SÓ pro 2º tempo. Preferência do técnico, NÃO zera entre temporadas.
-  careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
+  careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic; revisao?: number }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
   careerColetiva?: Record<number, import('./coletiva').ColetivaSave> // 🎙️ COLETIVA DE IMPRENSA (19/10): por clube (mgrId). Histórico das respostas, promessas, fama, arquirrival e os efeitos pendentes (moral no próximo jogo / clássico). Só carreira solo. Ausente = nunca deu coletiva.
   // 🌐 CARREIRA ONLINE v2 (19/10, só conta do Diego): este aparelho roda a carreira SOLO do próprio clube e os outros clubes de gente chegam pelas gavetas (`carreira-online-v2.ts`). Ausente = carreira solo de sempre (nada muda).
   // `comanda` = este aparelho conduz as fases de TODOS (leilão etc.: o dono, ou o vice no dia dele); `espelho` = este aparelho só ASSISTE o leilão do dono (o que ele aperta vai pro dono).
@@ -835,6 +835,10 @@ export interface EscState {
   motor2Desde?: { season: number; round: number }
   /** Recepção contextual: somente novas partidas/competições na conta de teste. */
   motor2RecepcaoDesde?: import('./motor2-recepcao-conta').MarcoRecepcaoM2
+  /** Critérios versionados: passam a valer somente na primeira temporada nova após a atualização. */
+  criteriosCarreiraDesde?: number
+  /** Eventual suspensão só começa na virada seguinte; conserva as regras de temporadas anteriores. */
+  criteriosCarreiraAte?: number
   /** 💾 os resultados do motor novo, DENTRO do save (21/10): o mesmo save no celular e no PC mostra o mesmo placar, e ajuste do
    *  motor nunca muda jogo já visto. Chave = assinatura da entrada do jogo; fica a temporada atual e a anterior. */
   m2Res?: Record<string, import('./motor2/carreira').GuardadoM2>
@@ -928,7 +932,7 @@ export interface EscState {
   ligaDraft?: boolean
   turnoUnico?: boolean // ⚡ (06/11) sala online com liga de 20: 19 rodadas só ida, todo jogo em campo neutro (escolha do dono ao criar; sem o campo = 38)
   tamanhoLiga?: 10 // 📏 Liga Draft (02/11): liga de 10 times (usuários + bots) — sem isto a tabela completa até 20
-  draftRegras?: { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean } // 📜 regras da turma no draft (05/11)
+  draftRegras?: { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean; piorPrimeiro?: boolean } // 📜 regras da turma no draft (05/11)
   draftPremios?: number[] // 💰 prêmio por colocação editado pelo criador (05/11); vazio = padrão do tamanho da liga
   mldBotVez?: number // 🤖 Liga Draft (05/11): de qual bot é a vez de receber a próxima sobra (fila 1→7→1)
   minhaLigaDraft?: boolean // 📋🏆 Minha Liga Draft (01/11): T1 leilão normal, draft 45 s com ✋ pronto, perde a vez sem auto
