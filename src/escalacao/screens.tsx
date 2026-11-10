@@ -1,6 +1,7 @@
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
-import {careerVisualV2,CareerVisualProvider} from './career-visual-v2'
+import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
+import {CareerWelcome,CareerAuctionHint} from './career-start-guide'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
@@ -904,6 +905,7 @@ export function GameFooter() {
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
   if (privatePreview && state.careerIntent && state.screen === 'setup') return null
+  if (careerVisualV2(state)) return <footer className="csg-footer"><div className="csg-footer-inner"><div><strong>LEILÃO LEGENDS</strong><p>{tr('Seu clube. Sua história. Uma temporada de cada vez.','Your club. Your story. One season at a time.')}</p></div><nav aria-label={tr('Links do rodapé','Footer links')}><LojaButton naCarreira>{tr('Loja do clube','Club shop')} →</LojaButton><button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">Instagram</a><a href="mailto:contato@leilaolegends.com">{tr('Contato','Contact')}</a></nav></div></footer>
   // The private lobby supplies its own shop card. Keep contact here, outside
   // Router, without reviving the legacy support banner underneath it.
   if (ownerAccount && state.sport !== 'basquete' && (state.screen === 'lobby' || ownerOnlineScope(state))) return <footer className="ow-contact-footer">
@@ -956,22 +958,32 @@ export function GameFooter() {
 
 export function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
   const ownerVisual=useOwnerLayout()
+  const soloCareerVisual=useCareerVisualV2()
   return (
-    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, ...(ownerVisual?{color:INK}:{}), boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
+    <div className={`ll-box border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, ...(ownerVisual?{color:INK}:soloCareerVisual?{color:careerSurfaceColor(bg)}:{}), boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
       {children}
     </div>
   )
 }
 
+function careerSurfaceColor(bg:string):string {
+  const hex=bg.replace('#','')
+  if(!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex))return INK
+  const full=hex.length===3?hex.split('').map(c=>c+c).join(''):hex
+  const rgb=[0,2,4].map(i=>parseInt(full.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4)
+  return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]>.179?INK:'#F4ECD6'
+}
+
 export function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }: { children: React.ReactNode; onClick: () => void; bg?: string; disabled?: boolean; className?: string }) {
   const ownerVisual = useOwnerLayout()
+  const soloCareerVisual=useCareerVisualV2()
   return (
     <motion.button
       whileTap={disabled ? undefined : { x: 2, y: 2 }}
       onClick={onClick}
       disabled={disabled}
       className={`border-[3px] border-black rounded-xl px-4 py-3 font-black uppercase text-sm tracking-wide ${disabled ? 'opacity-40' : ''} ${className}`}
-      style={{ backgroundColor: bg, ...(ownerVisual ? { color: bg === GREEN || bg === INK || bg === '#7C3AED' ? '#fff' : INK } : {}), boxShadow: disabled ? 'none' : `4px 4px 0 0 ${INK}`, ...OSWALD }}
+      style={{ backgroundColor: bg, ...(ownerVisual ? { color: bg === GREEN || bg === INK || bg === '#7C3AED' ? '#fff' : INK } : soloCareerVisual ? {color:careerSurfaceColor(bg)} : {}), boxShadow: disabled ? 'none' : `4px 4px 0 0 ${INK}`, ...OSWALD }}
     >
       {children}
     </motion.button>
@@ -3602,6 +3614,7 @@ export function EscStreamIntro() {
   const humans = state.managers.filter(m => m.isHuman)
   // cor do apoiador pelo selo no nome (igual ao lobby): 👑 ouro · ⭐ prata · 💎 roxo
   const perkColor = (name: string) => comCorDoNome(name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null, name) // 🎨 02/11
+  if(careerVisualV2(state))return <Shell hideExit><CareerWelcome state={state} onStart={()=>dispatch({type:'START_STREAM_AUCTION'})} onSkip={()=>{dispatch({type:'MARK_CAREER_SEEN',key:'guia-basico'});dispatch({type:'START_STREAM_AUCTION'})}} onBack={()=>dispatch({type:'GO_SETUP_CAREER'})}/></Shell>
   return (
     <Shell>
       {isCareer && (
@@ -5176,12 +5189,12 @@ function Envelope() {
       : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>)
   return (
     <Shell auctionBudget={{committed:total,masked:!!state.streamMode&&!peek}} bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
-      {sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
+      {careerVisualV2(state)?<CareerAuctionHint stage={state.reserveAuction?'reservas':'lance'} slots={bidLimit} bidTotal={total}/>:sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
       {/* 🎓 O ENSINO. Com o pregão limpo as regras saem da frente das cartas — mas
           QUEM ESTÁ COMEÇANDO vê tudo aqui, uma vez, no começo da partida/carreira,
           com um "entendi" pra fechar. É a troca: ensina no momento certo em vez de
           empurrar a mesma regra em todo setor de toda temporada. */}
-      {showLanceTip && !rescue && (pregaoLimpo ? (
+      {showLanceTip && !rescue && !careerVisualV2(state) && (pregaoLimpo ? (
         <div className="border-[3px] border-black rounded-xl p-3 text-center" style={{ background: `linear-gradient(180deg,#FFE07A,${GOLD})`, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[9px] font-black uppercase tracking-wide text-black/50" style={OSWALD}>{L('Seu primeiro pregão', 'Your first auction')}</p>
           <p className="text-[16px] font-black leading-tight mt-0.5" style={OSWALD}>🏆 {L('GANHA QUEM DÁ O MAIOR LANCE', 'HIGHEST BID WINS')}</p>
@@ -6029,7 +6042,7 @@ function Reveal() {
           guia por cima do martelo, comendo meia tela no melhor momento do jogo.
           Ela continua VIVA em todo o resto (solo, carreira, outras fases) e o
           conteúdo segue no Manual. */}
-      {state.sport !== 'basquete' && !mesaModo && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
+      {careerVisualV2(state)?<CareerAuctionHint stage="revelacao"/>:state.sport !== 'basquete' && !mesaModo && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
       <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
         Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
       </p>
@@ -6342,7 +6355,7 @@ export function EscMonte() {
   return (
   <>
     <Shell bar={<AuctionBar />}>
-      {state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
+      {careerVisualV2(state)?<CareerAuctionHint stage="monte"/>:state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
       <h2 className="font-black text-3xl pt-1" style={OSWALD}>{tr('🪣 MONTE FINAL', '🪣 FINAL PILE')}</h2>
       <p className="ov3-page-muted text-sm font-semibold text-black/70">
         {tr('As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos:', 'The auction leftovers. Whoever has more holes picks first, snake order. Your holes:')} <b>{totalHoles(you)}</b>.

@@ -1,4 +1,16 @@
 ## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · ✅ PUBLICADO 10/11 ~11h (deploy verde)
+## 🎓 10/11 — Início da carreira e ajuda por desbloqueio (aprovado; publicação autorizada)
+
+- Diego aprovou as 13 etapas em celular e desktop e autorizou: **"Ok pode publicar tudo isso"** (10/11). Liberação para todas as contas na carreira solo de futebol.
+- Diego pediu repaginação de todo o começo depois da escolha de rivais: regras, lances, revelação, apresentação do elenco, Central e rodapé. Também pediu explicação no momento dos desbloqueios, sem repetir depois de entendida.
+- Preparado em `visual/inicio-carreira-guiado-20261110`, base `37abbcd6`: guia em quatro etapas com lance de treino isolado, dicas no pregão/Monte/reservas/primeiro jogo, correções de contraste e rodapé com Loja. Treino não despacha lance real nem gasta moedas.
+- Corrigida a origem dos atalhos e faixa Salvar duplicados: estavam dentro da função que desenha CADA lado do confronto na Central; agora aparecem uma vez fora dos escudos. Os atalhos extras são Finanças e Agência; Jogos e Elenco continuam na barra principal.
+- Usa `careerSeen`/`MARK_CAREER_SEEN` já existentes, por carreira e com retomada. Condição física usa `condicaoAtiva` (Série C, permanente após desbloqueio); moral só quando há efeito real pendente da coletiva; Série A e mercado livre usam as marcas reais. Não se inventa divisão de desbloqueio para moral.
+- “Já sei jogar” pula somente o básico; os desbloqueios futuros continuam. Voltar preserva a intenção de criar carreira.
+- Banners existentes têm resumo e detalhes expansíveis no solo. Ajuda da Central guarda explicações aprendidas. Regras, prazos, economia, salvamento em nuvem e transporte online não foram modificados.
+- Prévia e evidências: `/workspace/shared/inicio-carreira-20261110/`. Bancada local `scripts/teste-inicio-carreira/index.html`; regressão reproduzível em `node scripts/testa-inicio-carreira.mjs`. Não entra no build público. Testes completos de navegador: 390/320/1440 px, treino sem gasto, lance real, contraste, atalhos, condição física e retomada, moral e reservas. Comparações completas de antes/depois para celular e desktop prontas (HTML/PDF), com 13 etapas. TypeScript e build de produção passaram; 33 verificações funcionais, 13 de regras/navegação, 9 cenários de layout e o pulo do tutorial/retorno ao modo carreira passaram.
+
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · no branch, esperando "publica"
 - Medido no banco: o rádio dos convidados (`state`) = **32 GB/dia**, ~54 KB por envio. O texto de história (bio) das cartas era ~30%.
 - Agora a carta cuja bio é igual à do catálogo vai sem o texto (`_b: 1`) e o convidado põe de volta (`tiraBioDoRadio`/`poeBioDoRadio`,
   store.tsx). Só o rádio; o save no banco não muda. O simulador confere em TODO estado que o que chega é igual ao que saiu:

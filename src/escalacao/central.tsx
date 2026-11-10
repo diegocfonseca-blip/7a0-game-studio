@@ -1,4 +1,5 @@
 import {useCareerVisualV2} from './career-visual-v2'
+import {CareerCentralGuide} from './career-start-guide'
 // ─── 📺 CENTRAL LEGENDS — a home do modo carreira (03/10) ────────────────────
 //
 // Pedido do Diego: *"queria alguma central no modo carreira… falta uma área na
@@ -245,7 +246,6 @@ export function CentralCarreira(p: CentralProps) {
       <b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
       <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
       <Forma f={p.formas[nome]} />
-      {visualV2 && <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['jogos',t('Jogos e tabela','Matches and table'),t('Acompanhar sua campanha','Follow your campaign')],['elenco',t('Elenco','Squad'),t('Escalação e condição','Lineup and fitness')],['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>tab==='financas'||tab==='agencia' ? (p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')) : p.onTab(tab)}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</>}
     </div>
   )
   const en = getLang() === 'en'
@@ -296,6 +296,8 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           </div>}
 
+          {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
+          <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
