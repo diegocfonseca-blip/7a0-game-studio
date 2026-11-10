@@ -1620,8 +1620,8 @@ const L39_BR_MEI: C[] = [
 const L43_BR_ATA: C[] = [
   { name: "Gilberto", club: "Bahia", year: 2020, fame: 3, lo: 63, hi: 75, bio: "Centroavante artilheiro do Bahia — goleador do time no Brasileirão de 2019 e 2020." },
   // 👑 08/10, pedido do Diego ("quero ele de lenda"): Kelvin Oliveira, o K9 — apelido ao lado do nome, clube G3X.
-  // 📉 08/10, depois: "coloque o over como o pior das lendas, mas mantenha lenda" → igual ao Nelinho (80–88), a lenda mais fraca.
-  { name: "Kelvin Oliveira (K9)", club: "G3X", year: 2025, fame: 5, lo: 90, hi: 97, bio: "O Rei da Kings League: artilheiro e melhor jogador da liga no Brasil, camisa 9 e presidente do G3X — de Ipatinga pro mundo, disse não até ao Neymar pra seguir no seu time." },
+  // 📉 09/11: faixa 87–95 aprovada para ficar abaixo de Inzaghi (88–96) e Agüero (89–96), mantendo Lenda.
+  { name: "Kelvin Oliveira (K9)", club: "G3X", year: 2025, fame: 5, lo: 87, hi: 95, bio: "O Rei da Kings League: artilheiro e melhor jogador da liga no Brasil, camisa 9 e presidente do G3X — de Ipatinga pro mundo, disse não até ao Neymar pra seguir no seu time." },
   // 🔵⚫ 08/10, Diego: a 2ª carta do K9, no Grêmio, como BOM jogador no teto da categoria. ⚠️ EXCEÇÃO à regra
   // "mesmo jogador só em baralho diferente" (26/09), aberta por ele só pra este caso. O Grêmio dele foi o de
   // Fut7 (2023) — treinou com os profissionais, o Renato não aproveitou; a bio conta isso como é.
@@ -2157,7 +2157,7 @@ const ATA_EU: C[] = [
   { name: "Samuel Eto'o", club: "Barcelona", year: 2006, fame: 5, lo: 90, hi: 96 },
   { name: "Karim Benzema", club: "Real Madrid", year: 2022, fame: 5, lo: 91, hi: 96 },
   { name: "Mohamed Salah", club: "Liverpool", year: 2019, fame: 5, lo: 92, hi: 97 }, // 👑 30/10, Diego: "coloque o Salah como lenda" (a carta do Liverpool, a única dele)
-  { name: "Sergio Agüero", club: "Man City", year: 2015, fame: 4, lo: 86, hi: 92 },
+  { name: "Sergio Agüero", club: "Man City", year: 2015, fame: 5, lo: 89, hi: 96 },
   { name: "Harry Kane", club: "Tottenham", year: 2018, fame: 5, lo: 91, hi: 96 },
   { name: "Luis Suárez", club: "Barcelona", year: 2016, fame: 5, lo: 91, hi: 96 },
   { name: "Alan Shearer", club: "Newcastle", year: 1996, fame: 5, lo: 90, hi: 96 },
@@ -2167,7 +2167,7 @@ const ATA_EU: C[] = [
   { name: "David Villa", club: "Barcelona", year: 2010, fame: 4, lo: 83, hi: 89 },
   { name: "Robinho", club: "Real Madrid", year: 2007, fame: 4, lo: 80, hi: 86 },
   { name: "Hulk", club: "Porto", year: 2012, fame: 4, lo: 79, hi: 85 },
-  { name: "Filippo Inzaghi", club: "Milan", year: 2003, fame: 4, lo: 82, hi: 88 },
+  { name: "Filippo Inzaghi", club: "Milan", year: 2003, fame: 5, lo: 88, hi: 96 },
   { name: "David Trezeguet", club: "Juventus", year: 2002, fame: 4, lo: 83, hi: 89 },
   { name: "Michael Owen", club: "Liverpool", year: 2001, fame: 5, lo: 90, hi: 96 },
   { name: "Hernán Crespo", club: "Inter", year: 2003, fame: 4, lo: 82, hi: 88 },

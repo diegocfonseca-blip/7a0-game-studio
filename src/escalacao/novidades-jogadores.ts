@@ -5,6 +5,22 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU' | 'MUNDO'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "nivel",
+    "nome": "Sergio Agüero",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-11-09"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Filippo Inzaghi",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-11-09"
+  },
+  {
     "tipo": "entrou",
     "nome": "Neto",
     "baralho": "EU",
@@ -406,20 +422,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Pedro Neto",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Wilfried Zaha",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jarrod Bowen",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-11-10"

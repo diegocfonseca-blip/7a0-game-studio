@@ -28,7 +28,7 @@ const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
 const FOTO = join(raiz, 'scripts', 'catalogo-snapshot.json')
 const SAIDA = join(raiz, 'src', 'escalacao', 'novidades-jogadores.ts')
 
-const hoje = new Date().toISOString().slice(0, 10)
+const hoje = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
 
 // 🤫 CALADOS — mudança de baralho que é CONSERTO DE BUG, e conserto de bug não
 // aparece pra quem joga. Regra do Diego: *"menos bugs, que nunca lance"*. A foto
@@ -101,7 +101,9 @@ if (caladas.length) mudancas.splice(0, mudancas.length, ...mudancas.filter(m => 
 let antigas = []
 if (existsSync(SAIDA)) {
   const m = readFileSync(SAIDA, 'utf8').match(/export const MUDANCAS_JOGADORES: MudancaJogador\[\] = (\[[\s\S]*?\n\])/)
-  if (m) { try { antigas = JSON.parse(m[1].replace(/(\w+):/g, '"$1":').replace(/'/g, '"').replace(/,(\s*[\]}])/g, '$1')) } catch { antigas = [] } }
+  if (m) { try { antigas = JSON.parse(m[1]) } catch {
+    try { antigas = JSON.parse(m[1].replace(/(\w+):/g, '"$1":').replace(/'/g, '"').replace(/,(\s*[\]}])/g, '$1')) } catch { antigas = [] }
+  } }
 }
 let todas = [...mudancas.map(m => ({ ...m, data: hoje })), ...antigas]
   // guarda no máximo 120 dias e 60 linhas — o resto é história velha
