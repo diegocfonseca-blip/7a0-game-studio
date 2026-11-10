@@ -113,7 +113,7 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, useStatsPlacar, useCampo2DTester } from './sport'
+import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, useStatsPlacar, useKingsLiberada } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
@@ -3340,7 +3340,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // quem manda é a sala (todo mundo vê igual, convidado nunca paga); fora dela, quem está liberado e pagou.
   const presidentFieldAccount = usePresidentPreview()
   // 👑 Kings: o 2D só com os dados da partida dela (senão seria o campinho de 11) e, por enquanto, só na conta de teste (10/11)
-  const kings2dOk = useCampo2DTester()
+  const kings2dOk = useKingsLiberada() // as mesmas contas que veem a Kings (10/11)
   const c2d = useCampo2DLigado() && !basket && (!relogioKings || (kings2dOk && !!kings2d))
   const statsPlacar = useStatsPlacar() // 📊 07/11: estatísticas no apito do placar cinema (só a conta do Diego até ele aprovar)
   const c2dX = useCampo2DExtras()

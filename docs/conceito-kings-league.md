@@ -149,6 +149,6 @@ esperar 2 minutos lá fora"*.
   banco com o cartão do lado e o time joga com um a menos.
 - Do 38' da Kings em diante: bola vermelha/dourada com brilho e a borda do campo na cor. Selo da TV e "GOOOL" com o minuto da Kings.
 - Banners, faixa EM CAMPO e faixa dos efeitos continuam os de sempre (ficam fora do placar). Replay dos gols fica DESLIGADO na Kings.
-- 🔒 Só na conta de teste (`useCampo2DTester`): o botão do 2D some na Kings pros outros, e o placar só vira 2D com os dados da Kings.
+- 🔒 Só pras contas que veem a Kings (`useKingsLiberada`: Diego + henriquejunger07, 10/11 — o Rossini Money saiu da lista a pedido do Diego). Pros outros o botão do 2D some na Kings.
 - Medido: 200 jogos sem tela — 0 erro, placar do campinho = placar da regra em todos, nunca mais de 7 em campo. Fotos reais:
   `scripts/mockups/kings-2d-real-*.png`.

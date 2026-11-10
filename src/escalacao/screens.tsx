@@ -6808,7 +6808,7 @@ export function QuickManualLock() {
 // é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
 export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {}) {
   const liberado = useCampo2DLiberado()
-  const kings2dTeste = useCampo2DTester()
+  const kings2dTeste = useKingsLiberada() // 👑📺 o 2D da Kings: as mesmas contas que veem a Kings
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
