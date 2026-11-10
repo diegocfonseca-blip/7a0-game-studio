@@ -592,7 +592,7 @@ export function useMotor2Carreira(): boolean {
 // 📡✂️ RÁDIO EM PEDAÇOS (10/11, Diego: *"liga primeiro nas salas que eu criar"*): o dono manda a sala inteira de vez em quando e,
 // no meio, só o que mudou (`radio-pedaco.ts`, −78% de tráfego no simulador). Vale só quando o DONO da sala é uma conta daqui — e mesmo
 // assim só se TODOS na sala estão na versão nova (store.tsx, `pedacoPode`). Liberar pra todos = RADIO_PEDACO_GERAL = true.
-const RADIO_PEDACO_GERAL = false
+const RADIO_PEDACO_GERAL = true // 🟢 10/11 ~13h40: Diego testou na sala 2R2Y2T (pedaço ~8 KB × 22 KB da sala inteira, 0 erro) e mandou: *"publique p todos"*
 const RADIO_PEDACO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let radioPedacoOk = false
 function applyRadioPedaco(email?: string | null): void { radioPedacoOk = RADIO_PEDACO_GERAL || (!!email && RADIO_PEDACO_TESTERS.has(email.toLowerCase())) }

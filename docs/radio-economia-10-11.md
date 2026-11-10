@@ -18,7 +18,7 @@ aos convidados = **~32 GB/dia**, ~54 KB por envio, ~23 envios/min por convidado.
   `seatUids` — antes o `myMgrIdRef` velho + assentos renumerados no "novo leilão" punham gente no time de outro (48/400).
 - `CAST_SEASON_VOTE`: `if (!s.careerOnline && s.screen !== 'end') return s` — voto atrasado valia na partida seguinte.
 
-## 3. 🟡 LIGADO SÓ NAS SALAS QUE O DIEGO CRIA — rádio em pedaços (−78% do tráfego no simulador)
+## 3. 🟢 LIGADO PRA TODOS (10/11 ~13h40, depois do teste do Diego na sala 2R2Y2T) — rádio em pedaços (−78% no simulador; ~8 KB por pedaço × ~22 KB da sala inteira na sala real)
 - `src/escalacao/radio-pedaco.ts` (puro): `criaEmissor(tira)` / `criaReceptor(poe)`.
   - Base cheia com carimbo `b` + número `s`; no meio, só as CHAVES de cima do estado que mudaram **desde a base**
     (nunca desde o pedaço anterior) + chaves removidas `r`. Pedaço perdido não estraga nada.
@@ -31,7 +31,7 @@ aos convidados = **~32 GB/dia**, ~54 KB por envio, ~23 envios/min por convidado.
   - `pedacoPode(ch)`: só com `radioPedacoLiberado()` (sport.ts, `RADIO_PEDACO_TESTERS` = conta do Diego como DONO)
     e TODO mundo da presença com `rp: 1` (todos os `track()` agora mandam `rp: 1`). Qualquer erro = sala inteira.
   - Convidado: `lePacote` → `criaReceptor`; `pedeCheio` no máx. 1 a cada 3 s.
-- Liberar pra todos: `RADIO_PEDACO_GERAL = true` em `sport.ts`. Desligar: tirar o e-mail de `RADIO_PEDACO_TESTERS`.
+- `RADIO_PEDACO_GERAL = true` em `sport.ts` (todas as salas). Desligar: `false` (aí vale só pra `RADIO_PEDACO_TESTERS`).
 - ⚠️ Isto corta **tráfego (egress)**, não o **número de mensagens** (cada envio continua sendo 1 mensagem).
 
 ## 4. Simulador de salas (`scripts/simula-salas-online.mts`)

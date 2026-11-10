@@ -47,7 +47,10 @@
   liberar pra todos = `RADIO_PEDACO_GERAL = true`. No store: `mandaEstado` (dono) manda a base no 'state' de sempre (aba velha lê) e o
   pedaço no evento novo 'stateP'; `pedacoPode` só deixa com TODO mundo da presença dizendo `rp: 1` (versão nova). Convidado: `lePacote`
   → `criaReceptor`; sem a base = pede o estado (no máx. 1 a cada 3 s). Qualquer erro = sala inteira, como sempre.
-  ⏭️ Próximo: o Diego joga umas partidas nas salas dele; medir no `esc_realtime_medidor` (rx_bytes por 'state'/'stateP') e liberar.
+  ✅ Testado pelo Diego na sala 2R2Y2T (3 pessoas): pedaço ~8 KB × sala inteira ~22 KB, 0 erro.
+  🟢 LIBERADO PRA TODOS 10/11 ~13h40 (*"publique p todos"*): `RADIO_PEDACO_GERAL = true`. Desligar = `false` (volta a sala inteira).
+  ⏭️ Medir no `esc_realtime_medidor` nos próximos dias (rx_bytes de 'state' + 'stateP'). Ideia seguinte: o pedaço ainda reenvia
+  `managers` inteiro a cada lance — diferenciar por técnico dentro dele cortaria mais (só no simulador primeiro).
 - Próximas ideias medidas, NÃO feitas: sala parada na tela de fim (BHZBJB ficou 14 h aberta conversando a cada 3 s) — mexe no
   batimento do dono, precisa do OK do Diego; mandar o baralho só quando muda (arriscado, ficou de fora).
 
