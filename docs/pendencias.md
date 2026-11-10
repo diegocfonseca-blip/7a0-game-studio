@@ -4,7 +4,7 @@
 - Feito (Diego: *"tira essa porra de nome fake… a do clãs aumenta o tempo"*): cron dos clãs **5 → 15 min** (direto no banco,
   `cron.alter_job`); selo 🎭 FAKE DESLIGADO no aparelho (`NOME_FAKE_LIGADO = false` em apoio.tsx — ninguém leva o selo até ele decidir).
 - ✅ `esc_avisos` (sininho): 1 min → **3 min** e **parado durante a partida** (pergunta na hora ao voltar pra home) — Diego: "sim".
-- ⏭️ `esc_nomes_sem_escudo` (~540 ms, 59 mil chamadas) ainda pesado.
+- ✅ 10/11: cache privado da lista de nomes aplicado, com invalidação imediata e cálculo original como alternativa. Índice de presença e cálculo único por clã também aplicados. Criação agora atômica, com prazo e recuperação da mesma tentativa. Ver `docs/custos-salas-20261110.md` para medidas, testes e reversão.
 
 
 ## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)
