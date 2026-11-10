@@ -2350,6 +2350,10 @@ Feito (só na conta liberada; nada muda no futebol):
 Falta (próximos passos):
 - [x] **Liga Draft na NBA** (10/11, no ramo, esperando OK): a Liga Draft de hoje (Minha Liga Draft) no basquete — 1º leilão e draft só com cartas da NBA, elenco de até 15 (quinteto + banco), posições PG..C na noite do draft, prêmio padrão pela colocação = metade do futebol (orçamento 50). Régua do esporte em `liga-draft.ts` (`setDraftBasquete`, ligada por `setActiveSport`/`setActiveCatalog`). Trava `npm run liga-draft-nba`. A Liga Draft ANTIGA (1ª temporada fraca) segue só no futebol.
   - ⚠️ `npm run liga-draft` e `scripts/testa-liga-vaga-motor.mts` já falham na main (erro dos próprios scripts), não é do basquete.
+- [x] Liga Draft do basquete PUBLICADA na main (10/11, *"sim e siga fazendo tudo"*).
+- [x] Topo do leilão (celular/PC) e dos Amigos com BIDLEGENDS no basquete (10/11).
+- [ ] **Nova carreira do basquete no passo a passo** (Seu time → A liga) — no ramo, esperando OK visual (`nba-criar-carreira.tsx`). Sem presidente/rivais de batismo (o basquete não tem presidência e a Street League é fixa). Se o Diego quiser presidente no basquete, precisa antes existir lugar pro presidente na carreira do basquete.
+- [ ] Carreira do basquete nas telas novas (visual v02 das 35 telas) — a carreira do basquete roda na `EscSeason`, não na pirâmide: é trabalho grande à parte.
 - [ ] Liga de 10 times / turno único no basquete (travado por `tam10Mostra`/`turnoMostra` com `!nbaSala`).
 - [ ] Tela final de campeão: fundo ainda é estádio de futebol.
 - [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).
