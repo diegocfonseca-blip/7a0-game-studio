@@ -6,6 +6,15 @@
 - ✅ `esc_avisos` (sininho): 1 min → **3 min** e **parado durante a partida** (pergunta na hora ao voltar pra home) — Diego: "sim".
 - ⏭️ `esc_nomes_sem_escudo` (~540 ms, 59 mil chamadas) ainda pesado.
 
+
+## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)
+- Regra do Diego: o time só deixa de ser do jogador quando o DONO remove. Saiu/caiu no meio da temporada → volta pro mesmo time.
+- Código: `KICK_PLAYER.peloDono` apaga o crachá só na remoção do dono · `RETOMA_TIME` devolve o time · `lobby.tsx` (enterRoom/triggerStart)
+  deixa voltar com o time na mão da máquina · o aparelho que voltou pede o time de 5 em 5s até o dono responder. Trava `npm run liga-volta`.
+- Banco (já aplicado em 10/11): quem tem time na liga recria a vaga sem plano (`docs/sql/liga-membro-volta.sql`).
+- ⚠️ Só vale quando o DONO da sala já estiver na versão nova (é o aparelho dele que devolve o time).
+- Ficou de fora: gravar o motivo quando a volta é recusada (ofereci, sem resposta).
+
 ## 📱☁️ 10/11 — CARREIRA QUE NÃO COUBE NO APARELHO FICAVA INVISÍVEL (Lucas Barreto 30, T113 "sumiu" do celular e do PC) · no branch
 - A T113 (2,5 MB) estava INTEIRA na nuvem (`esc_pyramid_saves`, junto com a T7 nova). Cópia de segurança feita em `esc_saves_backup`
   (id c948506f-45f5-4454-ac1e-b0977baca775).

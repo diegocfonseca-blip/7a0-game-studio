@@ -5751,7 +5751,8 @@ type Action =
   | { type: 'MEDICO_AVISO_VISTO' }
   | { type: 'PREPARADOR_AVISO_VISTO' } // 🏋️💸 fecha o recibo do troco do preparador (19/09) // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
   | { type: 'TV_EXTRA_CREDIT'; coins: number; qtd: number } // 📺 cota extra de TV: o RPC tv_resgatar já virou aprovado→creditado no Supabase (atômico) — aqui só entra o crédito no caixa. Só carreira solo
-  | { type: 'KICK_PLAYER'; playerIndex: number }
+  | { type: 'KICK_PLAYER'; playerIndex: number; peloDono?: boolean }
+  | { type: 'RETOMA_TIME'; uid: string } // 🪑 10/11: quem tem time na liga e voltou reassume (só o dono tira o time de alguém)
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
@@ -8329,6 +8330,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // por ele — mesma lógica do auto-preenchimento por AFK.
       const m = s.managers.find(x => x.id === action.playerIndex)
       if (!m) return s
+      // 🪑 10/11 (Diego: *"o time dele só deve deixar de ser dele se o HOST remover"*): na liga, só a remoção feita pelo DONO
+      // apaga o crachá. Quem saiu/caiu sozinho continua com o crachá no `seatUids` — é a prova que deixa ele voltar pro
+      // mesmo time (RETOMA_TIME), em qualquer ponto da temporada.
+      if (action.peloDono && s.ligaMode && Array.isArray(s.seatUids) && s.seatUids[m.id]) s.seatUids[m.id] = ''
       if (!m.isHuman) {
         // já é RIVAL CPU (ex-humano que saiu): o host está EXCLUINDO — para de dar
         // lance e vira só preenchimento na tabela.
@@ -9635,6 +9640,16 @@ function reducerBase(state: EscState, action: Action): EscState {
     // 🤝 DUPLA — o parceiro SAIU DE VERDADE (botão sair / caiu). Quem ficou passa
     // a mandar em tudo, senão o time ficaria sem quem lacra metade dos setores.
     // Só trocar de tela/perder o foco NÃO chega aqui.
+    case 'RETOMA_TIME': {
+      // 🪑 10/11: o técnico da liga saiu/caiu (o time ficou com a máquina) e VOLTOU. O crachá dele ainda está no `seatUids`
+      // (o dono não removeu) → o time volta a ser de gente, no ponto em que a partida está. Sem crachá, nada acontece.
+      if (!s.ligaMode || !action.uid || !Array.isArray(s.seatUids)) return state
+      const seat = s.seatUids.indexOf(action.uid)
+      const m = seat >= 0 ? s.managers.find(x => x.id === seat) : undefined
+      if (!m || m.isHuman) return state
+      m.isHuman = true; m.auctionRival = false
+      return s
+    }
     case 'DUPLA_SOLO': {
       const d = s.duplas?.[action.mgrId]
       if (!d) return s
@@ -14925,10 +14940,28 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meId = stateRef.current.managers[stateRef.current.youIdx]?.id
     if (!isHostRef.current || mgrId === meId) return
     channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex: mgrId } })
-    rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId })
+    rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId, peloDono: true })
     const rid = stateRef.current.roomId
     if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', mgrId).then(() => {}) }
   }, [])
+
+  // 🪑 10/11 (Diego: *"se o usuário voltar, ele volta pro mesmo local onde o host tá comandando a sala"*): voltei pra liga e
+  // o meu time está com a máquina (eu tinha saído/caído) → peço pro dono devolver. Quem pede é o MEU aparelho, que está aqui
+  // de verdade — nunca a presença sozinha (ela atrasa e criaria técnico fantasma). Repete até o estado mostrar o time comigo.
+  const meuTimeComMaquina = state.onlineMode === 'online' && !state.isHost && !state.espectador && !!state.ligaMode && !!state.youUid
+    && Array.isArray(state.seatUids) && state.seatUids.indexOf(state.youUid) >= 0
+    && state.managers.find(m => m.id === state.seatUids!.indexOf(state.youUid!))?.isHuman === false
+  useEffect(() => {
+    if (!meuTimeComMaquina) return
+    const pede = () => {
+      const st = stateRef.current
+      if (!st.roomId || !st.youUid || onlineRef.current !== 'online' || isHostRef.current) return
+      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'RETOMA_TIME', uid: st.youUid } })
+    }
+    const t0 = setTimeout(pede, 1200) // dá tempo de o canal da sala ligar
+    const t = setInterval(pede, 5000)
+    return () => { clearTimeout(t0); clearInterval(t) }
+  }, [meuTimeComMaquina])
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
   const [becameHost, setBecameHost] = useState(false)

@@ -1753,6 +1753,9 @@ export function EscLobby() {
       // não é esse caso — ele é quem toca a sala.
       if (amHost && (!mineMgr || !mineMgr.isHuman)) {
         // deixa passar: ele restaura como dono e continua tocando a partida
+      } else if (mineMgr && !mineMgr.isHuman && gs?.mode === 'liga' && seatMeu >= 0 && (gs as EscState).seatUids?.indexOf(user.id) === seatMeu) {
+        // 🪑 10/11: liga — o crachá ainda é meu (o dono não me removeu), só que o time ficou com a máquina quando saí/caí.
+        // Volto pra partida e o jogo pede pro dono devolver o time (RETOMA_TIME, no store).
       } else if (!mineMgr || !mineMgr.isHuman) {
         await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
         clearSavedRoom()
@@ -3013,7 +3016,9 @@ export function EscLobby() {
         const { data: salva } = await supabase.from('game_rooms').select('game_state').eq('id', rd.id).maybeSingle()
         const gsSalvo = salva?.game_state as { seatUids?: (string | null)[]; managers?: { id: number; isHuman?: boolean; name?: string }[] } | undefined
         const assento = gsSalvo?.seatUids?.indexOf(user.id) ?? -1
-        const meuTime = assento >= 0 ? gsSalvo?.managers?.find(m => m.id === assento && m.isHuman) : undefined
+        // 🪑 10/11 (Diego: *"o time dele só deve deixar de ser dele se o host remover"*): vale também quando o time está com a
+        // máquina porque eu saí/caí — o crachá só some quando o DONO remove.
+        const meuTime = assento >= 0 ? gsSalvo?.managers?.find(m => m.id === assento) : undefined
         if (meuTime) {
           const { error: volta } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: assento, manager_name: meuTime.name ?? nameOf(), is_ready: true })
           if (!volta) {
