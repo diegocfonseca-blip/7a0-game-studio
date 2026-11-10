@@ -14059,7 +14059,17 @@ export function readActiveCareer(): CareerSlot | null {
 function archiveActiveCareer(): boolean {
   const act = readActiveCareer(); if (!act) return true
   const rest = readCareerArchive().filter(s => s.save.seed !== act.save.seed)
-  return writeCareerArchive([{ save: act.save, at: act.at }, ...rest])
+  if (writeCareerArchive([{ save: act.save, at: act.at }, ...rest])) return true
+  // 🐛 10/11 (Diego, carreira T47 + "sem espaço" com 2 de 4 fichas): gravar a cópia no arquivo ANTES de tirar a original deixava a
+  // MESMA carreira duas vezes no aparelho por um instante — carreira grande estoura a cota. Mesma receita da troca (06/10): tira a
+  // original da vaga, grava o arquivo e, se ainda assim não couber, devolve a original exatamente como estava. Nada se perde.
+  let cru: string | null = null
+  try { cru = localStorage.getItem('esc-solo-career') } catch { return false }
+  if (cru == null) return false
+  try { localStorage.removeItem('esc-solo-career') } catch { return false }
+  if (writeCareerArchive([{ save: act.save, at: act.at }, ...rest])) return true
+  try { localStorage.setItem('esc-solo-career', cru) } catch { /* acabou de sair daqui: o mesmo tamanho cabe de volta */ }
+  return false
 }
 // TODAS as carreiras pra listar (ativa primeiro, depois o arquivo), por recência.
 export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {

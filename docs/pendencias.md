@@ -801,6 +801,11 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 💾 10/11 — "SEM ESPAÇO" AO COMEÇAR CARREIRA NOVA COM CARREIRA GRANDE (Diego, Neymarzetti T47, 2 de 4 fichas) — ✅ PUBLICADO
+- `archiveActiveCareer` gravava a cópia no arquivo com a original ainda na vaga: a mesma carreira 2× no aparelho → estourava a cota.
+  Agora, se não couber, tira a original da vaga, grava o arquivo e, se ainda não couber, devolve a original byte a byte (mesma
+  receita da troca de 06/10). Trava: `npm run troca` (caso 4b, folga pequena). Era isso o "aperto Ir para o pregão e não vai".
+
 ## 🧑‍💼 10/11 — CARREIRA PASSO A PASSO LIBERADA PRA TODOS + PRESIDENTE GRÁTIS — ✅ PUBLICADO ("publique já p todos")
 - Testado sem conta no navegador: clube → presidente (camiseta branca grátis já marcada) → rivais → "Começar o leilão". Ninguém trava.
 - ⚠️ O presidente de quem NÃO é a conta do Diego ainda não é gravado na carreira (`careerPresidentBase` só com `presidentWritesEnabled`) — a tela de criação vale pra todos, mas a Presidência/mapa continuam só dele.
