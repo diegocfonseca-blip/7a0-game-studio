@@ -1115,7 +1115,7 @@ import { BATISMOS, chaveClube } from './batismos' // 🖋 bots de batismo/fundad
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
-import { pack, unpack } from './netpack'
+import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
 import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
@@ -16608,8 +16608,35 @@ let _packOut: { z: string } = { z: '' }
 function packState(state: EscState): { z: string } {
   if (state === _packSrc) return _packOut
   _packSrc = state
-  _packOut = { z: pack(sanitize(state)) }
+  _packOut = { z: packCom(sanitize(state), tiraBioDoRadio) }
   return _packOut
+}
+// 💸📡 BIO FORA DO RÁDIO (10/11, Diego: *"o intuito é diminuir os custos… mas não ter bugs"*). Medido no simulador de salas: o
+// texto de história das cartas era ~30% de tudo que o dono manda pros convidados — e todo aparelho já tem esse texto no catálogo.
+// No caminho do rádio, a carta cuja bio é IGUALZINHA à do catálogo vai sem o texto e com a marca `_b: 1`; o convidado, ao ler, põe
+// o texto do catálogo de volta e tira a marca. Bio que não bate com o catálogo (carta fake, basquete, catálogo que mudou) vai
+// inteira, como sempre — então nada se perde. Só o RÁDIO: o save no banco (game_rooms) não muda. Trava: `npm run salas-sim`
+// (confere, a cada estado, que o que chega é igual ao que saiu).
+// ⚠️ Só a BIO, de propósito: convidado com a aba velha aberta (o jogo não recarrega sozinho) lê a carta sem o texto e cai na bio
+// pelo nome, como já fazia — nada quebra. Tirar fame/lo/hi do mesmo jeito daria só +2% e deixaria a carta SEM NÍVEL na aba velha.
+const chaveBio = (o: { name: string; club: string; year: number }) => `${o.name}|${clubCanon(o.club)}|${o.year}`
+export function tiraBioDoRadio(this: unknown, _k: string, v: unknown): unknown {
+  if (!v || typeof v !== 'object') return v
+  const o = v as { name?: unknown; club?: unknown; year?: unknown; bio?: unknown; _b?: unknown }
+  if (typeof o.bio !== 'string' || typeof o.name !== 'string' || typeof o.club !== 'string' || typeof o.year !== 'number' || o._b !== undefined) return v
+  const f = FICHA_ATUAL.exato.get(chaveBio(o as { name: string; club: string; year: number }))
+  if (!f || f.bio !== o.bio) return v
+  const { bio: _fora, ...resto } = o
+  void _fora
+  return { ...resto, _b: 1 }
+}
+export function poeBioDoRadio(this: unknown, _k: string, v: unknown): unknown {
+  if (!v || typeof v !== 'object' || (v as { _b?: unknown })._b !== 1) return v
+  const o = v as Record<string, unknown> & { name: string; club: string; year: number }
+  delete o._b
+  const bio = FICHA_ATUAL.exato.get(chaveBio(o))?.bio
+  if (bio !== undefined) o.bio = bio
+  return o
 }
 // ⏱️ O CARIMBO DE HORA DO DONO vai POR FORA do pacote comprimido, de propósito:
 // o `packState` guarda o pacote por identidade de estado (e o mesmo estado é
@@ -16625,7 +16652,7 @@ function pacoteDeEstado(state: EscState): { z: string; t: number } {
 // convidado podem estar em versões diferentes por uns minutos.
 function readState(payload: unknown): EscState {
   const p = payload as { z?: string } | EscState
-  if (p && typeof (p as { z?: string }).z === 'string') return unpack<EscState>((p as { z: string }).z)
+  if (p && typeof (p as { z?: string }).z === 'string') return unpackCom<EscState>((p as { z: string }).z, poeBioDoRadio)
   return p as EscState
 }
 

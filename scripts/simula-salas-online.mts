@@ -8,8 +8,8 @@
 // Relógio falso (Date.now) e Math.random com semente: toda falha se reproduz com a mesma semente.
 //
 // uso: npx tsx scripts/simula-salas-online.mts [--seeds 50] [--cenario nome] [--seed N] [--verbose]
-import { reducer, INITIAL, sanitize, openSlots, montePickable, paPodeLancar, paMinimo, paMesasAtivas, paMesa, assentoDoCracha, sortedTable } from '../src/escalacao/store'
-import { pack, unpack } from '../src/escalacao/netpack'
+import { reducer, INITIAL, sanitize, tiraBioDoRadio, poeBioDoRadio, openSlots, montePickable, paPodeLancar, paMinimo, paMesasAtivas, paMesa, assentoDoCracha, sortedTable } from '../src/escalacao/store'
+import { pack, packCom, unpackCom } from '../src/escalacao/netpack'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from '../src/escalacao/types'
 import type { EscState, Manager, Card } from '../src/escalacao/types'
 import { cartasLivres, nomesOcupados, chaveCarta, chaveNome, cartaPermitidaDraft, podemSairMinha, MLD_ELENCO_MAX } from '../src/escalacao/liga-draft'
@@ -204,16 +204,45 @@ function pacote(st: EscState): string {
   if (st === cacheSrc) return cacheTxt
   cacheSrc = st
   cacheTxt = JSON.stringify(sanitize(st))
-  if (conferidosPack < 3 && chance(0.02)) { // o caminho comprimido de verdade dá o mesmo que o JSON
-    conferidosPack++
-    const z = pack(sanitize(st))
-    if (JSON.stringify(unpack(z)) !== cacheTxt) falha('PACK-DIFERENTE', 'pack/unpack não devolve o mesmo estado')
+  // 📡 o caminho do rádio de verdade (bio fora → bio de volta) tem que devolver EXATAMENTE o mesmo estado — confere em todo estado novo
+  const z = packCom(sanitize(st), tiraBioDoRadio)
+  const volta = unpackCom(z, poeBioDoRadio)
+  conferidosPack++
+  if (ordena(volta) !== ordena(JSON.parse(cacheTxt))) falha('RADIO-DIFERENTE', 'o estado que chega pelo rádio não é igual ao que o dono mandou')
+  return JSON.stringify(volta)
+}
+const ordena = (x: unknown): string => JSON.stringify(x, (_k, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) : v)
+// 📏 --medir: quanto cada campo pesa no que o dono manda (comprimido, como vai no rádio)
+const MEDIR = process.argv.includes('--medir')
+const medida: Record<string, { n: number; tot: number; campos: Record<string, number> }> = {}
+let medSrc: EscState | null = null
+let medRadio = 0
+let medUlt: { k: string; total: number; radio: number; campos: [string, number][] } = { k: '', total: 0, radio: 0, campos: [] }
+function mede(st: EscState, n: number) {
+  if (st !== medSrc) {
+    medSrc = st
+    const san = sanitize(st) as unknown as Record<string, unknown>
+    medUlt = { k: `${st.screen}/${st.phase}`, total: pack(san).length, radio: packCom(san, tiraBioDoRadio).length, campos: [...Object.entries(san).filter(([, v]) => v !== undefined).map(([c, v]) => [c, packCom(v, tiraBioDoRadio).length] as [string, number]),
+      ...(process.argv.includes('--medir-mgr') ? Object.keys((san.managers as Record<string, unknown>[])[0] ?? {}).map(f => [`mgr.${f}`, packCom((san.managers as Record<string, unknown>[]).map(m => m[f]), tiraBioDoRadio).length] as [string, number]) : [])] }
   }
-  return cacheTxt
+  const m = medida[medUlt.k] ??= { n: 0, tot: 0, campos: {} }
+  m.n += n; m.tot += medUlt.total * n; medRadio += medUlt.radio * n
+  for (const [c, v] of medUlt.campos) m.campos[c] = (m.campos[c] ?? 0) + v * n
+}
+export function relatorioMedida() {
+  const tot = Object.values(medida).reduce((a, m) => a + m.tot, 0)
+  const campos: Record<string, number> = {}
+  for (const m of Object.values(medida)) for (const [c, v] of Object.entries(m.campos)) campos[c] = (campos[c] ?? 0) + v
+  console.log(`\n📏 enviado ANTES (comprimido, × convidados): ${(tot / 1e6).toFixed(2)} MB`)
+  console.log(`📡 enviado AGORA (rádio de hoje): ${(medRadio / 1e6).toFixed(2)} MB (−${(100 - 100 * medRadio / tot).toFixed(0)}%)`)
+  for (const [k, m] of Object.entries(medida).sort((a, b) => b[1].tot - a[1].tot).slice(0, 8)) console.log(`  ${k}: ${m.n} envios · ${(m.tot / 1e6).toFixed(2)} MB · média ${(m.tot / m.n / 1024).toFixed(1)} KB`)
+  const somaC = Object.values(campos).reduce((a, b) => a + b, 0)
+  for (const [c, v] of Object.entries(campos).sort((a, b) => b[1] - a[1]).slice(0, 20)) console.log(`    ${c.padEnd(26)} ${(100 * v / somaC).toFixed(1)}%`)
 }
 function transmite(porque: string, so?: Cli) {
   if (!H.vivo) return
   estadoEnviadoAte = NOW
+  if (MEDIR) mede(H.st, (so ? [so] : G).filter(g => g.vivo).length)
   const txt = pacote(H.st)
   const tHost = NOW
   for (const g of (so ? [so] : G)) {
@@ -692,5 +721,6 @@ for (const [k, fs] of porTipo) {
   console.log(`   ex. semente ${f.seed} em ${(f.t / 1000).toFixed(0)}s: ${f.detalhe}`)
   if (process.argv.includes('--trilha')) for (const l of f.trilha) console.log(`     ${l}`)
 }
+if (MEDIR) relatorioMedida()
 console.log(`\n⏱️ ${((tReal() - t00) / 1000).toFixed(1)}s · ${falhas.length ? `${falhas.length} falha(s)` : 'nenhuma falha'}`)
 process.exit(falhas.length ? 1 : 0)
