@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useT } from './lang'
+import { marcaNome, marcaSigla, marcaFraseClube } from './marca'
 import './social-layout.css'
 
 // Only the uppermost social window handles Escape/Tab. Opening a profile keeps
@@ -49,7 +50,7 @@ export function SocialJanela({ titulo, tipo = 'convite', resumo, onClose, childr
   </div>, document.body)
   const title = tipo === 'amigos' ? t('AMIGOS.', 'FRIENDS.') : tipo === 'perfil' ? t('PERFIL.', 'PROFILE.') : t('AVISOS.', 'NOTIFICATIONS.')
   return createPortal(<div ref={root} className={`ll-social-window social-${tipo}`} role="dialog" aria-modal={active === id} aria-labelledby={`${id}-title`} aria-hidden={active !== id || undefined} inert={active !== id}>
-    <header className="social-top"><div className="social-wrap"><div className="social-brand"><span aria-hidden="true">LL</span><div><strong>LEILÃO LEGENDS</strong><small>{t('SEU CLUBE. SUA HISTÓRIA.', 'YOUR CLUB. YOUR STORY.')}</small></div></div><div className="social-top-actions"><button type="button" className="social-button" onClick={onClose}>{tipo === 'perfil' ? t('VOLTAR', 'BACK') : t('VOLTAR AO JOGO', 'BACK TO GAME')}</button><button type="button" className="social-button social-close" ref={close} onClick={onClose} aria-label={t('Fechar', 'Close')}>×</button></div></div></header>
+    <header className="social-top"><div className="social-wrap"><div className="social-brand"><span aria-hidden="true">{marcaSigla()}</span><div><strong>{marcaNome()}</strong><small>{marcaFraseClube()}</small></div></div><div className="social-top-actions"><button type="button" className="social-button" onClick={onClose}>{tipo === 'perfil' ? t('VOLTAR', 'BACK') : t('VOLTAR AO JOGO', 'BACK TO GAME')}</button><button type="button" className="social-button social-close" ref={close} onClick={onClose} aria-label={t('Fechar', 'Close')}>×</button></div></div></header>
     <section className="social-hero"><div className="social-wrap"><div><div className="social-kicker">{t('A RESENHA CONTINUA FORA DE CAMPO.', 'THE BANTER CONTINUES OFF THE PITCH.')}</div><h1 id={`${id}-title`}>{title}</h1><p>{tipo === 'amigos' ? t('Quem joga com você, suas cartas e seu clã.', 'Your friends, your cards and your clan.') : tipo === 'perfil' ? t('Identidade, conquistas e histórias de quem joga.', 'Identity, achievements and the people who play.') : t('Seus convites e pedidos, num lugar só.', 'Your invitations and requests, in one place.')}</p></div><div className="social-summary">{resumo}</div></div></section>
     <div className="social-wrap social-body" aria-label={titulo}>{children}</div>
   </div>, document.body)

@@ -1,6 +1,7 @@
 import {useEffect, useRef, type ReactNode} from 'react'
 import logo from './img/logo-ll.webp'
 import {tr} from './lang'
+import {ehBasquete} from './marca'
 import './mobile-auction-header.css'
 
 /** Approved mobile header only; the caller supplies the existing visible balance. */
@@ -19,8 +20,8 @@ export function MobileAuctionHeader({name, title, balance}: {name: string; title
   }, [])
   return <div ref={ref} className="ll-mobile-auction-brand">
     <div className="ll-mobile-auction-title">
-      <img src={logo} alt="" width={28} height={32}/>
-      <div><strong>Leilão Legends</strong><small title={`${name} · ${title}`}>{name} · {title}</small></div>
+      {ehBasquete() ? <span className="ov3-sigla" aria-hidden="true" style={{width:28,height:30,fontSize:14}}>BL</span> : <img src={logo} alt="" width={28} height={32}/>}
+      <div><strong>{ehBasquete() ? 'BidLegends' : 'Leilão Legends'}</strong><small title={`${name} · ${title}`}>{name} · {title}</small></div>
     </div>
     {balance != null && <div className="ll-mobile-auction-wallet" aria-label={tr('Moedas do leilão', 'Auction coins')}>
       <span aria-hidden="true">🪙</span><div><small>{tr('Moedas', 'Coins')}</small>{balance}</div>
