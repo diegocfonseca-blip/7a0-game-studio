@@ -7093,7 +7093,11 @@ const KINGS_MS_7X7 = 45_000 // o resto do jogo (7×7) na marcha normal
 const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_DADO_FIM]] // 🎲 10/11: o dado é do 20' ao 23'
 const KINGS_LENTO_MS = (7 + 3) * KINGS_MS_POR_MIN_LENTO
 /** tempo de uma rodada da Kings na marcha escolhida: cenas fixas + fases lentas fixas + o 7×7 (que acelera com a marcha) */
-export const kingsRoundMs = (speed: number) => Math.round((KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + 2 * KINGS_CENA_MS.bola) / speed + KINGS_LENTO_MS + KINGS_MS_7X7 / speed + 1500) / 0.84)
+export const kingsRoundMs = (speed: number, dur2d?: number) => dur2d
+  // 📺 10/11 (Diego: *"a velocidade deixe igual ao atual das salas no campo 2D"*): com o 2D, a bola rola no MESMO tempo de um jogo 2D
+  // da sala (1:30 ÷ marcha) — sem as fases lentas; só as cenas da Kings (entrada, dado, cartas, duelos) param o relógio por cima.
+  ? Math.round((KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + 2 * KINGS_CENA_MS.bola) / speed + dur2d * 0.82 + 1500) / 0.84)
+  : Math.round((KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + 2 * KINGS_CENA_MS.bola) / speed + KINGS_LENTO_MS + KINGS_MS_7X7 / speed + 1500) / 0.84)
 type BannerKings = { emoji: string; titulo: string; texto: string; cor: string }
 type CenaKings = { tipo: 'banner'; b: BannerKings } | { tipo: 'pontape' } | { tipo: 'entra'; n: number; modo?: 'entra' | 'dado' | 'volta' } | { tipo: 'dado'; face: 1 | 2 | 3 } | { tipo: 'carta'; carta: CartaKingsInfo } | { tipo: 'duelo'; key: string } | { tipo: 'escolha'; key: string; modo: 'coringa' | 'suspensao'; teamId: number }
 /** chave de uma cena (pra achar onde o relógio estava quando a lista é refeita depois de uma escolha) */
@@ -7150,7 +7154,7 @@ function cenasDoJogo(r: MatchResult, nome: (id: number) => string, souEu: (id: n
 }
 /** relógio da Kings: anda 0→93 (escala do placar) e PARA em cada cena pelo tempo dela. Acaba antes de 85% da rodada,
  *  que é quando a tela libera o resultado — então a tabela nunca entrega o placar antes do apito. */
-function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string, youId = -1) {
+function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string, youId = -1, jogo2d = false) {
   const [min, setMin] = useState(0)
   const [cena, setCena] = useState<CenaKings | null>(null)
   const rk = useRef(roundKey)
@@ -7170,7 +7174,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
     // 🃏 a escolha de carta pode mudar o que vem (coringa que vira pênalti traz a cobrança): a lista é refeita e o relógio segue de onde estava
     const assinatura = (x?: MatchResult) => JSON.stringify(x?.kings?.cartas ?? []) + (x?.kings?.duelos ?? []).map(d => d.key).join(',')
     let assin = assinatura(r), ultimaCena = ''
-    const lentos = r.kings?.duelos ? trechosLentos() : []
+    const lentos = r.kings?.duelos && !jogo2d ? trechosLentos() : [] // 📺 no 2D não tem fase lenta: o ritmo é o da sala
     const lento = (m: number) => lentos.some(([a, b]) => m >= a && m < b)
     // fases lentas: tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada (refeito a cada passo: a marcha pode mudar no meio)
     const unidLentas = lentos.reduce((a, [x, y]) => a + (y - x), 0)
@@ -7205,7 +7209,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
       setMin(Math.round(cur))
     }, 60)
     return () => clearInterval(iv)
-  }, [ativo, roundKey, !!r])
+  }, [ativo, roundKey, !!r, jogo2d])
   return { min, cena }
 }
 /** 👑 a cena da vez, desenhada por cima do jogo */
@@ -7398,11 +7402,14 @@ export function EscSeason() {
   // caber no MESMO tempo total (~3 min), senão levaria mais que o dobro. Futebol
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
   // 📺 Campo 2D ligado (aparelho no offline, a sala no online): cada jogo dura 1:30, em toda competição
-  const c2d = useCampo2DLigado() && state.sport !== 'basquete' && !kingsS
+  const c2dLigado = useCampo2DLigado()
+  const kings2dLib = useKingsLiberada()
+  const c2d = c2dLigado && state.sport !== 'basquete' && !kingsS
+  const kings2dAqui = kingsS && c2dLigado && kings2dLib // 👑📺 a Kings no campinho (mesma régua do LiveScoreCard)
   // ⏩📺 06/11 (Diego): no 2D a velocidade é ABSOLUTA (`vel2d-regra.ts`) e NÃO divide pelo simSpeed — era o 3× × 3 = 9× da sala 4RVDD8
   const vel2dAqui = useVel2DAqui()
   const baseRoundMs = c2d ? dur2DDaVel(vel2dAqui) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
-  const roundMs = kingsS ? kingsRoundMs(speedFactor) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  const roundMs = kingsS ? kingsRoundMs(speedFactor, kings2dAqui ? dur2DDaVel(vel2dAqui) : undefined) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -7645,7 +7652,7 @@ export function EscSeason() {
     ? (kTie?.lastKings ? { homeId: kTie.aId, awayId: kTie.bId, hg: kTie.legs[0][0], ag: kTie.legs[0][1], highlights: kTie.lastHighlights ?? [], kings: kTie.lastKings } : undefined)
     : myLast
   const kKey = copaLive ? 500 + (qc?.bracket.length ?? 0) * 10 + (kTie?.legs.length ?? 0) : state.round
-  const kRel = useRelogioKings(kingsS, kKey, roundMs, speedFactor, kJogo, nomeLiga, you.id)
+  const kRel = useRelogioKings(kingsS, kKey, roundMs, speedFactor, kJogo, nomeLiga, you.id, kings2dAqui)
   // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
   // fase rolar aparece o caminho da copa + os confrontos escudo×escudo. Na 1ª fase usa o tempo de leitura
   // de sempre (`COPA_INTRO_SECONDS`); nas seguintes o respiro sobe de 3,2s pra 5s pra dar tempo de ler.

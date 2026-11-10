@@ -13,6 +13,7 @@ import type { AssistRow, CartaKingsInfo, CartaoKingsInfo, CartaKingsTipo, DueloK
 import { MIN_DADO, MIN_DADO_FIM, MIN_GOL_DOBRO, MIN_MATCHBALL, MIN_INTERVALO, MIN_FIM, MIN_EFEITO as MIN_EFEITO_K, rngKings, dueloKings } from './kings'
 import type { Canto } from './kings'
 import { disputaPenaltisComSequencia } from './penaltis'
+import type { Chance } from './chances'
 
 /** minuto da Kings (0–40) → minuto do placar de sempre (0–93) */
 export const kParaPlacar = (k: number) => Math.round(k * 93 / MIN_FIM)
@@ -403,11 +404,41 @@ export interface Kings2D {
   matchBall?: boolean
   /** quem está FORA (cartão ou carta de suspensão): `min` no relógio do placar (0–93), `ate` = minuto da KINGS (0–40) em que volta */
   fora: { nome: string; min: number; ate: number; cor: 'amarelo' | 'vermelho' }[]
+  /** 🎬 10/11 (Diego: *"cada situação diferenciada… deve ter uma jogada pra cada momento desses"*): os momentos especiais desta
+   *  partida em minutos do PLACAR (0–93) — cada um ganha ao menos uma jogada desenhada no campinho */
+  momentos?: [number, number][]
 }
 /** 👑📺 a partida da Kings → o que o Campo 2D desenha (cartões e a carta de suspensão viram "fora"; o dado e a bola do fim) */
 export function kings2DDe(k?: KingsInfo | null): Kings2D | undefined {
   if (!k) return undefined
   const fora: Kings2D['fora'] = (k.cartoes ?? []).map(c => ({ nome: c.nome, min: c.min, ate: c.ate, cor: c.cor }))
   for (const c of k.cartas ?? []) if (c.vale === 'suspensao' && c.suspenso) fora.push({ nome: c.suspenso, min: c.min, ate: placarParaK(c.min) + MIN_EFEITO_K, cor: 'vermelho' })
-  return { dado: k.dado, bola: k.mb ? (k.mb.empate ? undefined : 'dourada') : k.bola, matchBall: !!k.mb, fora }
+  // 🎬 os momentos: 1×1 (0'–2') · 2×2 … 6×6 (um minuto cada) · ✖️2 do 17' ao 20' · 🎲 dado do 20' ao 23' · cada carta (4 min) · match ball
+  const momentos: [number, number][] = [[0, kParaPlacar(2)]]
+  for (let n = 2; n <= 6; n++) momentos.push([kParaPlacar(n), kParaPlacar(n + 1)])
+  if (k.mb) { momentos.push([PLACAR_DOBRO_INI, PLACAR_INTERVALO], [PLACAR_DADO, PLACAR_DADO_FIM]); if (!k.mb.empate) momentos.push([PLACAR_MB, Math.min(93, k.mb.fim ?? 93)]) }
+  else momentos.push([PLACAR_DADO, PLACAR_INTERVALO])
+  for (const c of k.cartas ?? []) if (c.vale !== 'penalti') momentos.push([c.min, Math.min(93, kParaPlacar(placarParaK(c.min) + MIN_EFEITO_K))])
+  return { dado: k.dado, bola: k.mb ? (k.mb.empate ? undefined : 'dourada') : k.bola, matchBall: !!k.mb, fora, momentos }
+}
+
+/** 👑📺 as jogadas extras que o campinho da Kings desenha (puro: a trava `testa-kings-momentos` importa daqui) */
+export function chancesKings2D(seed: number, gols: { min: number; home: boolean }[], base: Chance[], momentos?: [number, number][]): Chance[] {
+  let x = (seed ^ 0x2D7C1) >>> 0
+  const rnd = () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296 }
+  const fins: Chance['fim'][] = ['defendeu', 'fora', 'defendeu', 'trave', 'fora']
+  const out = [...base]
+  const ocupado = (m: number) => out.some(c => Math.abs(c.min - m) < 1.2) || gols.some(g => Math.abs(g.min - m) < 1.5)
+  // 🎬 10/11: UMA jogada garantida em cada momento especial (1×1 · 2×2 … 6×6 · ✖️2 · dado · carta · match ball) — se já tem
+  // gol ou chance dentro do momento, ele já tem a sua jogada
+  const janelas = momentos?.length ? momentos : [0, 1, 2, 3, 4, 5, 6, 20, 21, 22].map(k => [Math.round(k * 93 / 40), Math.round((k + 1) * 93 / 40)] as [number, number])
+  for (const [a, b] of janelas) {
+    if (b <= a) continue
+    const dentro = (m: number) => m >= a && m < b
+    if (out.some(c => dentro(c.min)) || gols.some(g => dentro(g.min))) continue
+    const m = Math.max(a, Math.min(b - 1, Math.round((a + b) / 2)))
+    if (ocupado(m) && b - a < 2) continue
+    out.push({ min: m, home: rnd() < 0.5, fim: fins[Math.floor(rnd() * fins.length)] })
+  }
+  return out.sort((a, b) => a.min - b.min)
 }

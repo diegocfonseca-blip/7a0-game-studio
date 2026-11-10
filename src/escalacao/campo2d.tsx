@@ -19,7 +19,7 @@ import { CARIMBO_GOL } from './mascotes'
 import { climaDoJogo, noiteDoJogo, type Clima } from './campo2d-clima'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Jogo2D, eventosDoJogo, W, L, SEG_POR_MIN, type Atleta, type CartaCampo } from './campo2d-motor'
-import { chancesDoJogo, sementeDasChances, quemFinalizou, type Chance } from './chances'
+import { chancesDoJogo, sementeDasChances, quemFinalizou } from './chances'
 import { avatarLote1 } from './avatar-lote1'
 import { useT } from './lang'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ as MESMAS placas atrás dos gols do campinho do jogo (Vadico · Tidex, trocando)
@@ -29,7 +29,7 @@ import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado, useCampo2DTester } from './sport'
 import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu, alturaQuique, QUIQUE_DUR, esticaGoleiro, riscoCarrinho, casaAtacando, type BolaVista } from './campo2d-efeitos'
 import { playTrave } from './sound'
-import { emCampoKings, placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // 👑 quantos em campo a cada minuto da Kings (a MESMA conta da regra)
+import { emCampoKings, chancesKings2D, placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // 👑 quantos em campo a cada minuto da Kings (a MESMA conta da regra)
 import { MIN_BOLA, MIN_MATCHBALL } from './kings'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D, publicarTelaoCampo2D } from './campo2d-festa'
@@ -121,20 +121,6 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
 /** 👑 KINGS (10/11, Diego: *"quando tiver confrontos de 1x1… 6x6 dê pra ver uma jogada em cada minuto desse"*): em cada minuto da
  *  Kings com pouca gente (1×1 até 6×6 e o dado) que não teve gol nem chance, o campinho ganha UMA chance (chute pra fora, defesa ou
  *  trave) — só desenho, sorteada da semente do jogo (todo aparelho igual). O placar não muda: chance nunca é gol. */
-function chancesKings2D(seed: number, gols: { min: number; home: boolean }[], base: Chance[]): Chance[] {
-  let x = (seed ^ 0x2D7C1) >>> 0
-  const rnd = () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296 }
-  const fins: Chance['fim'][] = ['defendeu', 'fora', 'defendeu', 'trave', 'fora']
-  const out = [...base]
-  const ocupado = (m: number) => out.some(c => Math.abs(c.min - m) < 1.2) || gols.some(g => Math.abs(g.min - m) < 1.5)
-  const minsK = [0, 1, 2, 3, 4, 5, 6, 20, 21, 22]
-  for (const k of minsK) {
-    const m = Math.round(k * 93 / 40) + 1
-    if (ocupado(m)) continue
-    out.push({ min: m, home: rnd() < 0.5, fim: fins[Math.floor(rnd() * fins.length)] })
-  }
-  return out.sort((a, b) => a.min - b.min)
-}
 export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis, kings }: Campo2DProps) {
   const replay = replay0 && !kings // 👑 a Kings muda quem está em campo no meio do jogo: a fita (que guarda por posição na lista) não serve
   const t = useT()
@@ -171,7 +157,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const create=()=>{
     const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
     if (motorExperimental) return motorExperimental(seed, casa.cartas ?? [], fora.cartas ?? [], t('pt', 'en') === 'en', [casa.formacao, fora.formacao], climaForcado ?? climaDoJogo(seed)) as Jogo2D
-    const chances = kings ? chancesKings2D(seed, gols, chancesDoJogo(seed, gols, roundMs)) : chancesDoJogo(seed, gols, roundMs)
+    const chances = kings ? chancesKings2D(seed, gols, chancesDoJogo(seed, gols, roundMs), kings.momentos) : chancesDoJogo(seed, gols, roundMs)
     const evs = eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? casa.cartas : fora.cartas, { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome))
     return new Jogo2D(seed, casa.cartas ?? [], fora.cartas ?? [], evs, t('pt', 'en') === 'en', [casa.formacao, fora.formacao])
     }

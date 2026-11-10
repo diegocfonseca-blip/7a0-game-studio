@@ -7,6 +7,14 @@
 - ⏭️ `esc_nomes_sem_escudo` (~540 ms, 59 mil chamadas) ainda pesado.
 
 
+
+## 👑📺 10/11 — Kings no 2D: ritmo da sala + uma jogada por momento (no branch, esperando o OK de publicar)
+- Diego: *"a velocidade deixe igual ao atual das salas no campo 2D… cada situação diferenciada (1×1, 2×2, gol em dobro e outros) deve ter uma jogada"*.
+- Com o 2D ligado a Kings não tem mais fase lenta: a bola rola no tempo de um jogo 2D da marcha (1:30 ÷ marcha); só as cenas da Kings param o relógio.
+- `Kings2D.momentos` (1×1, 2×2…6×6, ✖️2 17'–20', dado 20'–23', cada carta, match ball) e `chancesKings2D` (agora em `kings-liga.ts`) garantem uma
+  jogada em cada um. Trava `npm run kings-momentos`. Sem 2D (placar da Kings) nada mudou.
+- ⚠️ No 2,5× um minuto da Kings dura menos de 1 s na tela: a jogada do 2×2…6×6 é curta. Se ele achar rápido demais, a saída é segurar SÓ esses momentos.
+
 ## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)
 - Regra do Diego: o time só deixa de ser do jogador quando o DONO remove. Saiu/caiu no meio da temporada → volta pro mesmo time.
 - Código: `KICK_PLAYER.peloDono` apaga o crachá só na remoção do dono · `RETOMA_TIME` devolve o time · `lobby.tsx` (enterRoom/triggerStart)
