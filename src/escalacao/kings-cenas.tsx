@@ -87,14 +87,14 @@ export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: 
   const completo = n >= 7
   const tag = modo === 'dado' ? tr('O DADO MANDOU', 'THE DICE SAYS') : modo === 'volta' ? tr('23\' · VOLTOU O 7×7', '23\' · BACK TO 7 v 7')
     : completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n} · ENTRA MAIS UM`, `MINUTE ${n} · ONE MORE IN`)
-  const titulo = modo === 'dado' ? (n === 1 ? tr('👑 1 × 1 ATÉ O INTERVALO', '👑 1 v 1 UNTIL HALF-TIME') : tr(`🎲 ${n} × ${n} ATÉ O INTERVALO`, `🎲 ${n} v ${n} UNTIL HALF-TIME`))
-    : modo === 'volta' ? tr('⚡ 7 × 7 DE NOVO! ACELERA', '⚡ 7 v 7 AGAIN! SPEEDING UP')
-    : completo ? tr('⚡ 7 × 7! AGORA ACELERA', '⚡ 7 v 7! NOW IT SPEEDS UP') : `➕ ${n} × ${n}!`
+  const titulo = modo === 'dado' ? (n === 1 ? tr('👑 1 × 1 ATÉ O 23\'', '👑 1 v 1 UNTIL 23\'') : tr(`🎲 ${n} × ${n} ATÉ O 23'`, `🎲 ${n} v ${n} UNTIL 23'`))
+    : modo === 'volta' ? tr('⚡ 7 × 7 DE NOVO!', '⚡ 7 v 7 AGAIN!')
+    : completo ? tr('⚡ 7 × 7! TIME COMPLETO', '⚡ 7 v 7! FULL TEAMS') : `➕ ${n} × ${n}!`
   const texto = modo === 'dado'
-    ? tr(`Saem jogadores dos dois lados: fica ${n === 1 ? 'só 1' : n} na linha + o goleiro até o fim do 1º tempo. Nessa fase o jogo rola mais devagar.`, `Players leave on both sides: ${n === 1 ? 'only 1' : n} outfield + the keeper until the end of the 1st half. This phase runs slower.`)
-    : modo === 'volta' ? tr('Acabou o dado: os dois times voltam completos (goleiro + 6) e o jogo volta ao ritmo normal.', 'Dice over: both teams are complete again (keeper + 6) and the game runs at normal speed.')
-    : completo ? tr('Os dois times estão completos (goleiro + 6). Daqui pra frente o jogo rola no ritmo normal.', 'Both teams are complete (keeper + 6). From here on the game runs at normal speed.')
-    : tr(`Entrou mais um de cada lado. Enquanto não chega no 7×7 o jogo rola mais devagar — cada minuto entra mais um.`, `One more in on each side. Until it reaches 7 v 7 the game runs slower — one more joins every minute.`)
+    ? tr(`Saem jogadores dos dois lados: fica ${n === 1 ? 'só 1' : n} na linha + o goleiro até o 23'. Depois volta o 7×7.`, `Players leave on both sides: ${n === 1 ? 'only 1' : n} outfield + the keeper until 23'. Then it's 7 v 7 again.`)
+    : modo === 'volta' ? tr('Acabou o dado: os dois times voltam completos (goleiro + 6).', 'Dice over: both teams are complete again (keeper + 6).')
+    : completo ? tr('Os dois times estão completos (goleiro + 6). Agora é 7 contra 7.', 'Both teams are complete (keeper + 6). Now it is 7 v 7.')
+    : tr(`Entrou mais um de cada lado. A cada minuto entra mais um, até o 7×7.`, `One more in on each side. One more joins every minute, up to 7 v 7.`)
   const novo = modo === 'entra' ? n - 1 : -1
   return (
     <Palco tag={tag} cor={completo ? GREEN : PURPLE}>
