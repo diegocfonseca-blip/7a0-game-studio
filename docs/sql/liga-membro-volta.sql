@@ -69,3 +69,19 @@ begin
     status = case when esc_liga_pedidos.status in ('recusado','entrou') then 'pendente' else esc_liga_pedidos.status end;
   return 'ok';
 end $function$;
+
+-- 🔁 MESMO DIA, correção do Diego: *"não é quem foi de uma liga, é quem o time dele AINDA TÁ na liga, porque o host não removeu"*.
+-- A régua passou a ser: membro registrado E um time com o nome dele ainda na partida guardada (game_state.managers).
+alter table public.esc_liga_membros add column if not exists nome text; -- o nome com que entrou (room_players.manager_name)
+-- (o gatilho `esc_liga_membro_anota` grava/atualiza o nome; a carga inicial veio de room_players e de game_champions)
+create or replace function public.esc_nome_cru(t text) returns text language sql immutable as $$
+  select lower(regexp_replace(coalesce(t,''), '[^[:alnum:]]', '', 'g'))
+$$;
+create or replace function public.esc_liga_ja_foi_membro(p_room uuid, p_uid uuid) returns boolean
+language sql stable security definer set search_path to 'public' as $$
+  select exists (
+    select 1 from public.esc_liga_membros m join public.game_rooms g on g.id = m.room_id
+    where m.room_id = p_room and m.user_id = p_uid and length(esc_nome_cru(m.nome)) >= 3
+      and exists (select 1 from jsonb_array_elements(coalesce(g.game_state->'managers','[]'::jsonb)) mg
+                  where esc_nome_cru(mg->>'teamName') = esc_nome_cru(m.nome) or esc_nome_cru(mg->>'name') = esc_nome_cru(m.nome)))
+$$;

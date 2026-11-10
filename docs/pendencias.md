@@ -13261,6 +13261,7 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 
 ## 10/11 — 🔁 Liga: quem já foi membro volta sem plano (sala XUPREG do Reffati)
 - Caso: o Realengo FC (sem plano) caiu, o time virou bot (uid nulo no fecho da T1) e a volta dele foi barrada pelo `LIGA_SO_PLANO` (06/11).
+- 🔁 Régua corrigida pelo Diego no mesmo dia: vale pra quem o TIME AINDA ESTÁ na liga (o dono não removeu), não pra todo ex-membro.
 - ✅ Banco (aplicado, `docs/sql/liga-membro-volta.sql`): tabela `esc_liga_membros` (gatilho em room_players + carga do que já existia);
   ex-membro pula a checagem do PLANO no gatilho e no `esc_liga_pedir`. A volta continua pelo PEDIDO (dono aceita e escolhe o time, na virada).
 - ⏳ Não provado: POR QUE a cadeira dele virou bot (sala apagada). E no MEIO da temporada quem perdeu a linha em room_players ainda vê
