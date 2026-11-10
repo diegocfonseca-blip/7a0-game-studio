@@ -1104,6 +1104,8 @@ import { supabase } from '../lib/supabase'
 import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
+import { radioPedacoLiberado } from './sport' // 📡✂️ rádio em pedaços (10/11): por enquanto só nas salas do Diego
+import { criaEmissor, criaReceptor, type PacoteCheio, type PacotePedaco } from './radio-pedaco'
 import { troca2DSalaLiberada } from './sport' // 📺⚡ troca 2D ↔ rápido na sala: por enquanto só a conta do Diego (vale a conta do DONO — o reducer só roda no aparelho dele)
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { formacoes15On } from './sport' // 🎽 as 15 formações (a mesma régua do seletor) — A/B, 23/10
@@ -14676,6 +14678,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  // 📡✂️ RÁDIO EM PEDAÇOS (10/11, Diego: *"liga primeiro nas salas que eu criar"*). O dono manda a sala INTEIRA de vez em quando
+  // (a "base", no evento 'state' de sempre — aba velha entende) e, no meio, só o que mudou desde ela (evento novo 'stateP'). Só liga
+  // quando `pedacoPode`: dono liberado E todo mundo da sala anunciou na presença que entende pedaço (`rp: 1`). Qualquer erro aqui =
+  // manda a sala inteira, como sempre. Simulador: `npm run salas-sim -- --pedacos` (13 modos, 0 falhas, −78%).
+  const emissorRef = useRef<ReturnType<typeof criaEmissor> | null>(null)
+  const mandaEstado = (st: EscState, cheio = false) => {
+    const ch = channelRef.current
+    if (!ch) return
+    if (pedacoPode(ch)) {
+      try {
+        const emi = emissorRef.current ??= criaEmissor(tiraBioDoRadio)
+        const r = emi.emite(sanitize(st) as unknown as Record<string, unknown>, cheio)
+        if ('cheio' in r) ch.send({ type: 'broadcast', event: 'state', payload: { ...r.cheio, t: Date.now() } })
+        else ch.send({ type: 'broadcast', event: 'stateP', payload: { ...r.pedaco, t: Date.now() } })
+        return
+      } catch { emissorRef.current = null }
+    } else emissorRef.current = null // saiu do modo pedaço: quando voltar, começa por uma base nova
+    ch.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(st) })
+  }
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
@@ -15164,14 +15185,29 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
-        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        mandaEstado(stateRef.current, true) // 📡✂️ quem pede o estado ganha uma base nova (a sala toda recebe)
       })
     } else {
-      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => {
+      // 📡✂️ rádio em pedaços: cada canal tem o SEU receptor (sala nova / reconexão = começa sem base)
+      const rx = criaReceptor<EscState>(poeBioDoRadio)
+      let pedidoEm = 0
+      const pedeCheio = () => { if (Date.now() - pedidoEm < 3000) return; pedidoEm = Date.now(); channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} }) }
+      const lePacote = (payload: unknown): EscState | null => {
+        const p = payload as { b?: unknown; s?: unknown; z?: unknown; d?: unknown } | null
+        if (p && typeof p.b === 'string' && typeof p.s === 'number' && (typeof p.z === 'string' || typeof p.d === 'string')) {
+          const r = rx.recebe(p as PacoteCheio | PacotePedaco)
+          if (r === 'pede') { pedeCheio(); return null }
+          return r
+        }
+        return readState(payload)
+      }
+      ch.on('broadcast', { event: 'stateP' }, ({ payload }: { payload: unknown }) => recebeEstado(payload))
+      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => recebeEstado(payload))
+      function recebeEstado(payload: unknown) {
         // pacote corrompido/parcial não pode derrubar o canal: ignora essa
         // mensagem (o heartbeat do host reenvia um estado bom em ~3s).
-        let next: EscState
-        try { next = readState(payload) } catch { return }
+        let next: EscState | null
+        try { next = lePacote(payload) } catch { pedeCheio(); return }
         if (!next || typeof next !== 'object') return
         // ⏱️ acerta o relógio pelo do DONO: todo prazo da sala (leilão, Monte,
         // cerimônia, Copa) nasce no aparelho dele. Sem isso, celular atrasado
@@ -15183,7 +15219,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         setDonoForaSeg(0)
         jaRecebiEstadoRef.current = true
         rawDispatch({ type: 'SYNC_STATE', newState: next })
-      })
+      }
     }
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
@@ -15272,7 +15308,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // ORDEM CERTA: pedir o estado PRIMEIRO (é o que destrava a tela), anunciar
       // presença DEPOIS. O crachá pode demorar; a partida não pode.
       if (!isHostRef.current) ch.send({ type: 'broadcast', event: 'request_state', payload: {} })
-      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) // 👁️ fantasma não anuncia presença
+      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha(), rp: 1 }) // 👁️ fantasma não anuncia presença
     })
     channelRef.current = ch
     // 🔁 O PRIMEIRO PEDIDO PODE SE PERDER (o convidado entra antes do canal do host
@@ -15294,7 +15330,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
       const alive = (ch as unknown as { state?: string }).state === 'joined'
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        if (isHostRef.current) mandaEstado(stateRef.current, true)
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
@@ -15328,7 +15364,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       juntaTimerRef.current = null
       const atual = stateRef.current
       if (atual.onlineMode !== 'online' || !atual.isHost || !atual.roomId) return
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(atual) })
+      mandaEstado(atual)
       lastStateSendRef.current = Date.now()
     }, ONLINE_ENVIO_MS)
   }, [state])
@@ -15439,7 +15475,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < HEARTBEAT_QUIETO_MS) return // teve jogada recente → já sincronizado
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+      mandaEstado(stateRef.current)
       lastStateSendRef.current = Date.now()
     }, 10_000)
     return () => clearInterval(iv)
@@ -15610,10 +15646,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!ch) return
       if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        if (isHostRef.current) mandaEstado(stateRef.current, true)
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha(), rp: 1 }) }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -15628,7 +15664,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const ch = channelRef.current
     if (!ch) return
     if (stateRef.current.espectador) return // 👁️ fantasma não anuncia presença
-    void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha() }) } catch { /* a reconexão periódica reanuncia */ } })()
+    void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha(), rp: 1 }) } catch { /* a reconexão periódica reanuncia */ } })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.youIdx])
 
@@ -16603,6 +16639,16 @@ export const SEM_BAGAGEM_DE_CARREIRA: Partial<EscState> = {
 // resyncs podem pedir o pacote do MESMO objeto de estado várias vezes por segundo.
 // Como cada dispatch cria um objeto novo (imutável), comparar por referência basta
 // pra comprimir só uma vez por estado — evita gastar CPU do celular do host à toa.
+// 📡✂️ pode mandar em pedaços? Só com o dono liberado (sport.ts) e TODO mundo na presença dizendo que entende (`rp: 1`). Presença que
+// não deu pra ler, sala só com o dono, ou alguém de aba velha = não (manda a sala inteira, como sempre).
+function pedacoPode(ch: unknown): boolean {
+  if (!radioPedacoLiberado()) return false
+  try {
+    const ps = (ch as { presenceState?: () => Record<string, { rp?: unknown }[]> }).presenceState?.() ?? {}
+    const metas = Object.values(ps).flat()
+    return metas.length >= 2 && metas.every(m => m?.rp === 1)
+  } catch { return false }
+}
 let _packSrc: EscState | null = null
 let _packOut: { z: string } = { z: '' }
 function packState(state: EscState): { z: string } {

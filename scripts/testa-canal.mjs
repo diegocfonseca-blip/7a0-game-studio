@@ -44,6 +44,6 @@ const retransmite = src.slice(src.indexOf('// host retransmite estado'), src.ind
 assert.match(retransmite, /const atual = stateRef\.current/, 'o Broadcast agrupado não leva o estado mais novo')
 assert.match(retransmite, /setTimeout\([\s\S]*ONLINE_ENVIO_MS\)/, 'o estado deixou de ser agrupado')
 assert.doesNotMatch(retransmite, /state\.copaMode === 'champions'/, 'o agrupamento voltou a valer só na Champions')
-assert.equal((retransmite.match(/event: 'state'/g) ?? []).length, 1, 'voltou um envio imediato de estado a cada mudança')
+assert.equal((retransmite.match(/event: 'state'|mandaEstado\(/g) ?? []).length, 1, 'voltou um envio imediato de estado a cada mudança') // 📡✂️ 10/11: o envio passa por `mandaEstado` (sala inteira ou pedaço)
 
 console.log('✅ canal ao vivo: sem "tô vivo", heartbeat ≥ 20s, estado agrupado em toda sala, convidado pede estado só em 60s (8s se o lance dele ficou sem resposta), lance vai só pro dono')

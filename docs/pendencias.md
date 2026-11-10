@@ -12,8 +12,11 @@
   da sala estiverem na versão nova (aba velha não entende pedaço).
   ✅ CONSTRUÍDO NO SIMULADOR (Diego: "sim"): `src/escalacao/radio-pedaco.ts` (NÃO ligado no jogo). `--pedacos`: 13 modos × 4 sementes,
   0 falhas, conferido envio a envio; 1.922 MB → 428 MB (−78%). Corta o TRÁFEGO, não o número de mensagens.
-  Falta pra ligar: aviso de versão na presença (só manda pedaço se TODOS da sala entendem), evento novo ('stateP') pra aba velha
-  nem ver, ligar primeiro só na conta do Diego, e o OK dele.
+  🟡 LIGADO 10/11 SÓ NAS SALAS QUE O DIEGO CRIA (*"liga primeiro nas salas que eu criar"*): `RADIO_PEDACO_TESTERS` em sport.ts;
+  liberar pra todos = `RADIO_PEDACO_GERAL = true`. No store: `mandaEstado` (dono) manda a base no 'state' de sempre (aba velha lê) e o
+  pedaço no evento novo 'stateP'; `pedacoPode` só deixa com TODO mundo da presença dizendo `rp: 1` (versão nova). Convidado: `lePacote`
+  → `criaReceptor`; sem a base = pede o estado (no máx. 1 a cada 3 s). Qualquer erro = sala inteira, como sempre.
+  ⏭️ Próximo: o Diego joga umas partidas nas salas dele; medir no `esc_realtime_medidor` (rx_bytes por 'state'/'stateP') e liberar.
 - Próximas ideias medidas, NÃO feitas: sala parada na tela de fim (BHZBJB ficou 14 h aberta conversando a cada 3 s) — mexe no
   batimento do dono, precisa do OK do Diego; mandar o baralho só quando muda (arriscado, ficou de fora).
 
