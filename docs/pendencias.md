@@ -13258,3 +13258,10 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
   sem essa coluna ou no celular fica como sempre. ✅ Publicado pra todos em 10/11 (*"sim p todos ja"*).
 - (Kings: confirmado pra ele que o mano a mano e o tempo de 12 s nunca saíram da Kings da Partida Rápida; a saída do campinho voltou
   a escolher o batedor exatamente como antes.)
+
+## 10/11 — 🔁 Liga: quem já foi membro volta sem plano (sala XUPREG do Reffati)
+- Caso: o Realengo FC (sem plano) caiu, o time virou bot (uid nulo no fecho da T1) e a volta dele foi barrada pelo `LIGA_SO_PLANO` (06/11).
+- ✅ Banco (aplicado, `docs/sql/liga-membro-volta.sql`): tabela `esc_liga_membros` (gatilho em room_players + carga do que já existia);
+  ex-membro pula a checagem do PLANO no gatilho e no `esc_liga_pedir`. A volta continua pelo PEDIDO (dono aceita e escolhe o time, na virada).
+- ⏳ Não provado: POR QUE a cadeira dele virou bot (sala apagada). E no MEIO da temporada quem perdeu a linha em room_players ainda vê
+  "Você não está nessa sala" (lobby `enterRoom`) — só volta na virada. Se o Diego quiser volta no meio, é mudança de cliente (cadeira: cuidado).
