@@ -9,7 +9,7 @@
 //
 // uso: npx tsx scripts/simula-salas-online.mts [--seeds 50] [--cenario nome] [--seed N] [--verbose]
 import { reducer, INITIAL, sanitize, tiraBioDoRadio, poeBioDoRadio, openSlots, montePickable, paPodeLancar, paMinimo, paMesasAtivas, paMesa, assentoDoCracha, sortedTable } from '../src/escalacao/store'
-import { pack, packCom, unpackCom } from '../src/escalacao/netpack'
+import { pack, unpack, packCom, unpackCom } from '../src/escalacao/netpack'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from '../src/escalacao/types'
 import type { EscState, Manager, Card } from '../src/escalacao/types'
 import { cartasLivres, nomesOcupados, chaveCarta, chaveNome, cartaPermitidaDraft, podemSairMinha, MLD_ELENCO_MAX } from '../src/escalacao/liga-draft'
@@ -42,6 +42,7 @@ type Cli = {
   ultimoEstado: number; acaoPendente: number
   saiEm?: number; recarregaEm?: number; afk: number // 0..1 chance de não agir na vez
   dupla?: { owner: string } // eu sou parceiro do dono `owner`
+  velho?: boolean // 🗂️ aba VELHA aberta (versão de antes da bio fora do rádio): lê o pacote sem pôr a bio de volta
 }
 type Msg = { t: number; seq: number; run: () => void }
 type Falha = { cenario: string; seed: number; tipo: string; detalhe: string; t: number; trilha: string[] }
@@ -67,6 +68,11 @@ const CENARIOS: Cenario[] = [
   { nome: 'clubes', humanos: [2, 4, 8], start: { copaMode: 'liga', deck: 'todos', clubes: true }, fim: 'leilao' },
   { nome: 'duplas', humanos: [4, 6], start: { copaMode: 'liga', deck: 'br' }, fim: 'leilao', duplas: true },
   { nome: 'liga10-novo-leilao', humanos: [2, 4, 8], start: { copaMode: 'liga', deck: 'br', liga: true, tamanhoLiga: 10 }, fim: 'leilao' },
+  { nome: 'liga-copa', humanos: [2, 4, 8], start: { copaMode: 'liga_copa', deck: 'br' }, fim: 'leilao' },
+  { nome: 'liga-liberta', humanos: [2, 4, 8], start: { copaMode: 'liga_liberta', deck: 'br' }, fim: 'leilao' },
+  { nome: 'liga-champions', humanos: [2, 4, 8], start: { copaMode: 'liga_champions', deck: 'eu' }, fim: 'leilao' },
+  { nome: 'so-champions', humanos: [2, 4, 8], start: { copaMode: 'champions', deck: 'todos' }, fim: 'leilao' },
+  { nome: 'relampago', humanos: [2, 4, 8], start: { copaMode: 'relampago', relampagoChave: 16, deck: 'br' }, fim: 'leilao' },
   { nome: 'liga-draft', humanos: [2, 4, 8], start: { copaMode: 'liga', deck: 'todos', liga: true, ligaDraft: true, minhaLigaDraft: true, draftRegras: { piorPrimeiro: true } }, fim: 'draft' },
 ]
 
@@ -209,24 +215,37 @@ function pacote(st: EscState): string {
   const volta = unpackCom(z, poeBioDoRadio)
   conferidosPack++
   if (ordena(volta) !== ordena(JSON.parse(cacheTxt))) falha('RADIO-DIFERENTE', 'o estado que chega pelo rádio não é igual ao que o dono mandou')
+  cacheVelho = JSON.stringify(unpack(z)) // como a aba velha lê (o `readState` de antes: unpack puro)
   return JSON.stringify(volta)
 }
+let cacheVelho = ''
 const ordena = (x: unknown): string => JSON.stringify(x, (_k, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) : v)
 // 📏 --medir: quanto cada campo pesa no que o dono manda (comprimido, como vai no rádio)
 const MEDIR = process.argv.includes('--medir')
 const medida: Record<string, { n: number; tot: number; campos: Record<string, number> }> = {}
 let medSrc: EscState | null = null
+let medPrevTxt: Record<string, string> = {}, medDeltaUlt = 0, medDelta = 0
+const porMotivo: Record<string, number> = {}
 let medRadio = 0
 let medUlt: { k: string; total: number; radio: number; campos: [string, number][] } = { k: '', total: 0, radio: 0, campos: [] }
 function mede(st: EscState, n: number) {
+  const novoEstado = st !== medSrc
   if (st !== medSrc) {
     medSrc = st
     const san = sanitize(st) as unknown as Record<string, unknown>
+    // 🧪 estimativa: mandar só as chaves de cima que mudaram desde o envio anterior
+    const txts: Record<string, string> = {}
+    for (const [c, v] of Object.entries(san)) txts[c] = JSON.stringify(v) ?? ''
+    const mud: Record<string, unknown> = {}
+    for (const c of Object.keys(txts)) if (medPrevTxt[c] !== txts[c]) mud[c] = san[c]
+    for (const c of Object.keys(medPrevTxt)) if (!(c in txts)) mud[c] = null
+    medPrevTxt = txts
+    medDeltaUlt = packCom(mud, tiraBioDoRadio).length
     medUlt = { k: `${st.screen}/${st.phase}`, total: pack(san).length, radio: packCom(san, tiraBioDoRadio).length, campos: [...Object.entries(san).filter(([, v]) => v !== undefined).map(([c, v]) => [c, packCom(v, tiraBioDoRadio).length] as [string, number]),
       ...(process.argv.includes('--medir-mgr') ? Object.keys((san.managers as Record<string, unknown>[])[0] ?? {}).map(f => [`mgr.${f}`, packCom((san.managers as Record<string, unknown>[]).map(m => m[f]), tiraBioDoRadio).length] as [string, number]) : [])] }
   }
   const m = medida[medUlt.k] ??= { n: 0, tot: 0, campos: {} }
-  m.n += n; m.tot += medUlt.total * n; medRadio += medUlt.radio * n
+  m.n += n; m.tot += medUlt.total * n; medRadio += medUlt.radio * n; medDelta += (novoEstado ? medDeltaUlt : 0) * n
   for (const [c, v] of medUlt.campos) m.campos[c] = (m.campos[c] ?? 0) + v * n
 }
 export function relatorioMedida() {
@@ -234,6 +253,8 @@ export function relatorioMedida() {
   const campos: Record<string, number> = {}
   for (const m of Object.values(medida)) for (const [c, v] of Object.entries(m.campos)) campos[c] = (campos[c] ?? 0) + v
   console.log(`\n📏 enviado ANTES (comprimido, × convidados): ${(tot / 1e6).toFixed(2)} MB`)
+  console.log(`🧪 se mandasse só o que mudou (estimativa, sem os reenvios): ${(medDelta / 1e6).toFixed(2)} MB (−${(100 - 100 * medDelta / tot).toFixed(0)}%)`)
+  console.log(`📨 entregas por motivo: ${Object.entries(porMotivo).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(' · ')}`)
   console.log(`📡 enviado AGORA (rádio de hoje): ${(medRadio / 1e6).toFixed(2)} MB (−${(100 - 100 * medRadio / tot).toFixed(0)}%)`)
   for (const [k, m] of Object.entries(medida).sort((a, b) => b[1].tot - a[1].tot).slice(0, 8)) console.log(`  ${k}: ${m.n} envios · ${(m.tot / 1e6).toFixed(2)} MB · média ${(m.tot / m.n / 1024).toFixed(1)} KB`)
   const somaC = Object.values(campos).reduce((a, b) => a + b, 0)
@@ -242,7 +263,7 @@ export function relatorioMedida() {
 function transmite(porque: string, so?: Cli) {
   if (!H.vivo) return
   estadoEnviadoAte = NOW
-  if (MEDIR) mede(H.st, (so ? [so] : G).filter(g => g.vivo).length)
+  if (MEDIR) { const n = (so ? [so] : G).filter(g => g.vivo).length; mede(H.st, n); porMotivo[porque] = (porMotivo[porque] ?? 0) + n }
   const txt = pacote(H.st)
   const tHost = NOW
   for (const g of (so ? [so] : G)) {
@@ -253,7 +274,8 @@ function transmite(porque: string, so?: Cli) {
     const dt = entre(40, 900)
     const quando = Math.max(NOW + dt, (g as Cli & { _ult?: number })._ult ?? 0)
     ;(g as Cli & { _ult?: number })._ult = quando
-    fila.push({ t: quando, seq: seqN++, run: () => { if (g.vivo && g.geracao === ger) convidadoRecebe(g, txt, tHost) } })
+    const meu = g.velho ? cacheVelho : txt
+    fila.push({ t: quando, seq: seqN++, run: () => { if (g.vivo && g.geracao === ger) convidadoRecebe(g, meu, tHost) } })
   }
   void porque
 }
@@ -454,7 +476,11 @@ function motorDoDono() {
     const total = st.fixtures.length
     if (st.round < total && cada('round', 1500)) hostAplica({ type: 'PLAY_ROUND' }, H.uid, 'tela')
     else if (st.round >= total && st.champion == null && !st.quickCopa && cada('fin', 1500)) hostAplica({ type: 'FINISH_SEASON' }, H.uid, 'tela')
+    // 🏆 copa/mata-mata (Copa dos 8, mata da Liberta/Champions, Relâmpago): o botão "jogar a perna" do dono
+    else if (st.round >= total && st.quickCopa && st.quickCopa.phase !== 'done' && cada('copa', 1500)) hostAplica({ type: 'PLAY_COPA_LEG' }, H.uid, 'tela')
   }
+  if (st.screen === 'champions' && st.champions && cada('champ', 1500)) hostAplica({ type: st.champions.fase === 'mata' ? 'START_COPA' : st.champions.fase === 'repescao' ? 'PLAY_CHAMPIONS_REPESCAO' : 'PLAY_CHAMPIONS_RODADA' }, H.uid, 'tela') // o mesmo `avancar` da tela (screens.tsx ~9740)
+  if (st.screen === 'liberta' && cada('lib', 1500)) hostAplica({ type: 'PLAY_LIBERTA_RODADA' }, H.uid, 'tela')
   if (st.screen === 'draft' && st.draft) {
     const d = st.draft
     if (cada('dtick', 500)) hostAplica({ type: 'DRAFT_TICK' }, H.uid, 'tela')
@@ -573,7 +599,8 @@ function assinatura(st: EscState) {
   const d = st.draft
   return [st.screen, st.phase, st.seasonNo, st.sectorIdx, st.sectorCursor, st.revealIdx, st.monteIdx, st.round, st.submitted.length, st.managers.reduce((a, m) => a + m.squad.length, 0),
     st.hol?.passo, st.pa?.idx, st.pa?.lances.length, st.pa?.m2?.lances.length, st.tiebreakIdx, st.euRodada, d?.fase, d?.idx, d?.picks.length, (d?.prontos ?? []).length,
-    Object.keys(st.seasonVotes ?? {}).length, (st.convocacaoFeitos ?? []).length, st.champion?.id].join('|')
+    Object.keys(st.seasonVotes ?? {}).length, (st.convocacaoFeitos ?? []).length, st.champion?.id,
+    st.champions?.fase, st.champions?.rodada, (st.champions as { repescao?: { legs?: unknown[] }[] } | undefined)?.repescao?.[0]?.legs?.length, st.liberta?.fase, st.liberta?.rodada, st.quickCopa?.phase, st.quickCopa?.ties?.[0]?.legs.length].join('|')
 }
 
 // ─── uma corrida ───────────────────────────────────────────────────────────
@@ -607,7 +634,7 @@ function corre(cen: Cenario, seed: number) {
     let st = reducer(structuredClone(INITIAL) as EscState, { type: 'NEW_GAME' } as never)
     st = reducer(st, { type: 'START_ONLINE', ...base, isHost: ehHost, playerIndex: donosL.findIndex(d => d.uid === (p.partnerOf ?? p.uid)), youUid: p.uid } as never)
     return { uid: p.uid, nome: p.partnerOf ? `${pessoas.find(x => x.uid === p.partnerOf)!.nome}|${p.nome}` : (cen.duplas && pessoas.some(x => x.partnerOf === p.uid) ? `${p.nome}|${pessoas.find(x => x.partnerOf === p.uid)!.nome}` : p.nome),
-      host: ehHost, st, vivo: true, geracao: 0, myMgrId: null, cool: {}, ultimoEstado: NOW, acaoPendente: 0, afk: chance(0.3) ? 0.25 : 0.03, dupla: p.partnerOf ? { owner: p.partnerOf } : undefined }
+      host: ehHost, st, vivo: true, geracao: 0, myMgrId: null, cool: {}, ultimoEstado: NOW, acaoPendente: 0, afk: chance(0.3) ? 0.25 : 0.03, velho: !ehHost && process.argv.includes('--abas-velhas') ? chance(0.5) : undefined, dupla: p.partnerOf ? { owner: p.partnerOf } : undefined }
   }
   H = novo(pessoas[0])
   G = pessoas.slice(1).map(novo)
@@ -658,7 +685,7 @@ function corre(cen: Cenario, seed: number) {
   }
   if (!acabou && !parado) falha('NAO-ACABOU', `6 h de relógio e não terminou (tela ${H.st.screen}/${H.st.phase}, temporada ${H.st.seasonNo}, rodada ${H.st.round})`)
   // fim: todo convidado vivo, depois de um estado novo, aponta pro próprio time
-  for (const g of G) if (g.vivo) { convidadoRecebe(g, pacote(H.st), NOW); confereIdentidade(g, 'fim') }
+  for (const g of G) if (g.vivo) { const t = pacote(H.st); convidadoRecebe(g, g.velho ? cacheVelho : t, NOW); confereIdentidade(g, 'fim') }
 }
 
 // ─── principal ─────────────────────────────────────────────────────────────
