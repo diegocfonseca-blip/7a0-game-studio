@@ -204,7 +204,8 @@ export class Jogo2D {
    *  com a bola nem quem está num lance (tenta de novo no quadro seguinte). Só APRESENTAÇÃO: não sorteia nada nem mexe no placar. */
   emCampo(n: [number, number], fora: string[] = []) {
     const ordem: Record<Grupo, number> = { ATA: 0, MEI: 1, LAT: 2, DEF: 2, GOL: 9 }
-    this.manoAMano = Math.max(n[0], n[1]) < 6
+    // (10/11: a marcação colada saiu no mesmo dia — o Diego falava do campo VAZIO, não de marcar colado. Fica desligada.)
+    this.manoAMano = false
     const ocupado = (a: Atleta) => a === this.bola.dono || !!a.ov
     for (const l of [0, 1] as Lado[]) {
       const linha = [...this.atl, ...this.banco].filter(a => a.lado === l && a.grupo !== 'GOL')

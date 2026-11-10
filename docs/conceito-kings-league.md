@@ -171,3 +171,4 @@ esperar 2 minutos lá fora"*.
   Com o 2D ligado, cada minuto das fases com pouca gente (1×1 até 6×6 e o dado) dura **12 s** (`KINGS_MS_POR_MIN_LENTO_2D`; placar normal
   segue 5 s). E com até 5 de linha em campo o motor joga **mano a mano** (`Jogo2D.manoAMano`): sem a bola, cada um cola no seu
   adversário. Medido: 800 jogos sem tela, 0 erro, placar sempre igual ao da regra.
+  🔁 Mesmo dia: o MANO A MANO SAIU (*"eu não disse ficar colado, quis só dizer que tava com o corredor vazio"*). Fica só o tempo de 12 s.
