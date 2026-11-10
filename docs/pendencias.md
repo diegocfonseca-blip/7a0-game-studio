@@ -1,3 +1,10 @@
+## 🧪 10/11 — Simulador de salas online (`npm run salas-sim`) + 2 consertos que ele achou (no branch, esperando "publica")
+- `scripts/simula-salas-online.mts`: reducer de verdade, 1 dono + 2/4/8 convidados, rede ruim (atraso, duplicado, perda, F5, saída),
+  8 modos × 50 sementes. Confere troca de cadeira, XI completo, carta em dois times, sala travada, dinheiro.
+- 🪪 TROCA DE CADEIRA no "🔨 novo leilão" quando alguém tinha saído (48/400): a auto-cura usava o crachá (id) antigo → agora,
+  com `seatUids`, quem manda é o UID (`assentoDoCracha`). 🗳️ Voto atrasado do fim valia na partida nova → só vale na tela do fim.
+- Não simulado ainda: Copa/Liberta/Champions, carreira online, stream/manual, coroa.
+
 ## 👑💜 09/11 — Batismo FUNDADOR Double Duo FC (doublecontatocomercial@gmail.com) — FALTA: conta, vaga e banco
 - Streamer de jogos de manager de futebol. Feito no código (branch): escudo `doubleduo-escudo.webp` (297×360, 28 KB) · mascote
   O Streamer `doubleduo-mascote.webp` (339×440, 43 KB, key `doubleduo_streamer`) · manto preto #161016 + roxo #A131BF (3ª azul

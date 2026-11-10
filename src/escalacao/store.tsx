@@ -11835,6 +11835,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // time. Guarda o voto (guest rota pro host, host aplica e sincroniza).
       // Vale no carreira online E no online rápido (fim de jogo).
       if (s.onlineMode !== 'online' && !s.careerOnline) return s
+      // 🗳️ 10/11 (simulador): voto atrasado/duplicado que chega DEPOIS do novo leilão trazia o assento velho e marcava outra
+      // pessoa como "pronta" na partida nova. Fora da carreira, voto só vale na tela do FIM.
+      if (!s.careerOnline && s.screen !== 'end') return s
       s.seasonVotes = { ...(s.seasonVotes ?? {}), [action.mgrId]: action.vote }
       return s
     }
@@ -15840,6 +15843,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.screen === 'intro' || state.screen === 'lobby') return
     if (state.roomId !== lastRoomRef.current) { lastRoomRef.current = state.roomId; myMgrIdRef.current = null } // sala nova → esquece o crachá antigo
     const clean = (x?: string) => stripEmoji(x ?? '').trim()
+    // 0) 🪪 10/11 (simulador de salas, 48 de 400 partidas): no "🔨 novo leilão" a sala é a MESMA e os assentos se renumeram
+    //    quando alguém saiu. O crachá guardado (id antigo) apontava pro time de OUTRA pessoa e a cura levava o convidado pra
+    //    lá — "dei lance por outro". Com `seatUids` quem manda é o UID da conta: ele diz o assento certo, sem adivinhar.
+    if (state.youUid && Array.isArray(state.seatUids) && state.seatUids.length) {
+      const seat = assentoDoCracha(state, state.youUid)
+      if (seat >= 0) {
+        const idx = state.managers.findIndex(m => m.id === seat)
+        if (idx >= 0) {
+          myMgrIdRef.current = seat
+          if (idx !== state.youIdx) rawDispatch({ type: 'FIX_YOU_IDX', idx })
+          return
+        }
+      }
+    }
     // 1) JÁ SEI MEU CRACHÁ: reancora pela POSIÇÃO ATUAL dele. Imune a nome repetido/
     //    trocado (fantasma com meu nome) e à reordenação de times entre temporadas —
     //    é o que faltava pra parar o "virei outro / F5 trocou de nome".
