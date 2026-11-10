@@ -1,3 +1,22 @@
+## 🎨 10/11 — Clube, presidente e rivais: prévia aprovada e publicação autorizada
+
+- Diego aprovou as capturas de celular/desktop e autorizou em 10/11: “Ok, pode publicar. Pode publicar”. Implementado no branch `visual/entrada-carreira-20261110`, com liberação geral na carreira solo: três etapas com cabeçalho/rodapé atuais, progresso Clube → Presidente → Rivais → Aprender, ação principal clara e ida ao tutorial publicado.
+- Clube: identidade real da conta preservada, formação explicada e Batismo recolhido depois da ação principal. Correção adicional pedida pelo Diego: “Conhecer o Batismo” usa `LojaButton` com `ancora="loja-planos"`, abrindo a Loja nova (não o fluxo antigo de ApoieButton).
+- Personagem: básico pronto, nome + cinco tons de pele livres logo na entrada; personalização opcional, disponíveis primeiro e catálogo extra sob demanda. Prévia do desktop limitada a 270 px de largura, proporção 2:3 preservada (sem esticar camadas). Roupa gratuita PRIMEIRA em toda listagem do formulário, inclusive a Loja/editor existente, conforme pedido adicional.
+- Diego reforçou que os tons de pele são do gratuito também: mantidas as permissões existentes e corrigido o selo da aba Pele no editor para “GRÁTIS PARA TODOS”. Escolher peça paga continua exigindo posse/pagamento; provar não compra. Há retorno ao visual disponível caso tenha provado peça bloqueada.
+- Rivais: escolha de nomes opcional, busca, lotes de 12 na lista e resumo da seleção. Reduzir quantidade ajusta os escolhidos mantendo os primeiros e avisa; seleção cheia não substitui clubes em silêncio. Corrigido 5/3. Liga permanece com 20 clubes e a regra de preencher com padrões foi preservada. Nome do próprio clube não aparece como opção.
+- Validação final: build TypeScript/Vite passou; 48 verificações de entrada em 320/390/1440 px e fixture de plano pago + 33 regressões do tutorial publicado passaram, sem erro de navegador ou overflow. Comparações antes/depois em HTML/PDF para celular e desktop prontas.
+- Bancada: `scripts/teste-entrada-carreira/index.html`; teste reproduzível `scripts/testa-entrada-carreira.mjs`, sem APIs ou WebSockets externos. Evidências em `/workspace/shared/entrada-carreira-20261110/`. Não mexe em banco, transporte online, orçamento, prazo, pagamento ou regras de competição. Revisão visual e autorização de publicação concluídas pelo Diego. Publicação em andamento; evidências finais ficam na pasta da entrega.
+
+## 🔎 10/11 — Auditoria das etapas anteriores ao tutorial da carreira (somente análise)
+
+- Diego pediu revisar Clube → Presidente → Rivais, especialmente quem não tem plano. Auditoria local da versão publicada `d73410f0` em 320/390/1440 px, sem sessão real e sem nova publicação. Caminho gratuito chegou ao pregão com 100 moedas, sem erro de navegador ou overflow horizontal.
+- Clube: oferta grande de Batismo antes de continuar; falta explicitar que pode iniciar sem compra e explicar as duas formações. Nome editado aqui pode alterar o display_name da conta ao começar; consequência não é avisada nesta etapa.
+- Presidente: catálogo inicial com 33 roupas (gratuita na posição 22), 43 botões, cerca de 4.939 px de altura a 390 px. Continuar fica depois do catálogo. Proposta: básico/disponíveis primeiro, catálogo extra opcional e ação próxima à identificação.
+- Rivais: lista de 80 clubes sem busca, nomes pequenos, rolagem interna; falta explicar preenchimento automático e separar escolha opcional de nomes da quantidade de bots no pregão. BUG confirmado: escolher 5 com limite 9 e reduzir para 3 deixa 5/3 e cinco destaques, mas o início usa só três. Reproduzido nas três larguras; corrigido na implementação aprovada acima.
+- Estas três etapas continuam com rodapé antigo e apresentações diferentes entre si e do tutorial. Proposta de progresso único: Clube → Presidente → Rivais → Aprender, cabeçalho/rodapé atuais e continuidade visual.
+- Evidências e capturas atuais: `/workspace/shared/auditoria-entrada-carreira-20261110/analise.html`, `resultados.json`, `analise.json`; bancada reproduzível arquivada na mesma pasta. Nenhuma mudança de produto nesta entrega. Propostas visuais precisam de mockup/OK antes de implementação/commit visual, conforme CLAUDE.md.
+
 ## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · ✅ PUBLICADO 10/11 ~11h (deploy verde)
 ## 🎓 10/11 — Início da carreira e ajuda por desbloqueio (aprovado; publicação autorizada)
 
