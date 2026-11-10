@@ -187,3 +187,6 @@
  #root:has(.ll-online-hub[data-online-phase=menu]) .game-contact-footer{padding:0 14px 22px}
  #root:has(.ll-online-hub[data-online-phase=menu]) .game-contact-footer>p{text-align:center;font-size:10px}
 }
+/* 🏀 09/11: no basquete o fundo do topo é a arte da quadra */
+#root .ll-online-hub>.col-tela>.ll-hub-hero.ll-hub-hero-bb{background:linear-gradient(90deg,#0b100e 12%,#0b100ed9 44%,#0b100e55),url('./img/home-bidlegends-v01.webp') center 62%/cover}
+@media(max-width:760px){#root .ll-online-hub>.col-tela>.ll-hub-hero.ll-hub-hero-bb{background:linear-gradient(90deg,#0b100eef,#0b100e99),url('./img/home-bidlegends-v01.webp') center 62%/cover}}

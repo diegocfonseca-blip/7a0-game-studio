@@ -100,6 +100,7 @@ export function catalogTodos(): typeof CATALOG {
 }
 function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'todos' | undefined, varzea = false, regional?: string) {
   ACTIVE_SPORT = 'futebol'
+  setDraftBasquete(false) // 📋 Liga Draft: régua do futebol (22 · XI da formação)
   const base0 = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
   const base = regional ? comCartasRegionais(base0, regional) : base0
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
@@ -127,6 +128,7 @@ function comCartasRegionais(base: typeof CATALOG, regional: string): typeof CATA
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
 function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
   ACTIVE_SPORT = sport
+  setDraftBasquete(sport === 'basquete') // 📋🏀 Liga Draft: elenco de 15 e quinteto no basquete
   if (sport === 'basquete') {
     ACTIVE_CATALOG = buildNbaCatalog() as unknown as typeof CATALOG
     NBA_BASE_SLOTS = NBA_SLOTS_PER_POS[mode]
@@ -1104,6 +1106,8 @@ import { supabase } from '../lib/supabase'
 import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
+import { radioPedacoLiberado } from './sport' // 📡✂️ rádio em pedaços (10/11): por enquanto só nas salas do Diego
+import { criaEmissor, criaReceptor, type PacoteCheio, type PacotePedaco } from './radio-pedaco'
 import { troca2DSalaLiberada } from './sport' // 📺⚡ troca 2D ↔ rápido na sala: por enquanto só a conta do Diego (vale a conta do DONO — o reducer só roda no aparelho dele)
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { formacoes15On } from './sport' // 🎽 as 15 formações (a mesma régua do seletor) — A/B, 23/10
@@ -1115,9 +1119,9 @@ import { BATISMOS, chaveClube } from './batismos' // 🖋 bots de batismo/fundad
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
-import { pack, unpack } from './netpack'
+import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -4139,7 +4143,7 @@ export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scor
 function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[], lancesSempre = false): MatchResult {
   // 📋🏆 MINHA LIGA DRAFT: elenco de até 22 — quem joga é o XI (os primeiros de cada posição, o mesmo que o campinho mostra).
   // O banco não entra na força nem faz gol. Fora deste modo nada muda (o elenco É o time de 11).
-  if (state.minhaLigaDraft) state = { ...state, managers: state.managers.map(m => m.squad.length > 11 ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) /* 🤖 05/11: bot com banco também (o dele já vem do melhor pro pior) */ }
+  if (state.minhaLigaDraft) state = { ...state, managers: state.managers.map(m => m.squad.length > titularesDraft() ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) /* 🏀 basquete: quinteto · 🤖 05/11: bot com banco também (o dele já vem do melhor pro pior) */ }
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
   const comLances = involveHuman || lancesSempre
@@ -5645,7 +5649,7 @@ type Action =
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean }
-  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
@@ -7693,7 +7697,7 @@ function mldAplicaLeilao(s: EscState): void {
     if (!ganhador || !card || ganhador.money < valor) return
     const nova: WonCard = { ...card, id: `ml${d.temporada}-${ganhador.id}-${i}`, paid: valor, via: 'leilao', mldDesde: d.temporada + 1 } // 🔒 o contrato recomeça no time novo
     let saiu: WonCard | undefined
-    if (ganhador.squad.length >= MLD_ELENCO_MAX) {
+    if (ganhador.squad.length >= elencoMaxDraft()) {
       saiu = reservaMaisBarata(ganhador.squad, nova, ganhador.formation)
       if (!saiu) return // não tem quem tirar sem furar o time: a venda não acontece
     }
@@ -7714,7 +7718,7 @@ function mldAplicaLeilao(s: EscState): void {
   })
 }
 // 🔒 o convidado nunca roda o reducer da sala, mas o recado dele chega no do dono: ação "só do dono" confere o crachá
-const deckDraft = (s: EscState) => (s.minhaLigaDraft ? s.deckLeague : undefined) // 🇧🇷🌍 Liga Draft de um baralho só: o draft também
+const deckDraft = (s: EscState) => baralhoDoDraft(s) // 🏀 basquete = baralho da NBA · 🇧🇷🌍 Liga Draft de um baralho só: o draft também
 const soDono = (s: EscState, by?: string) => s.onlineMode !== 'online' || (s.isHost && (!by || by === s.youUid))
 /** 📺⚡ TROCA 2D ↔ PLACAR RÁPIDO NO MEIO DA SALA (05/11, pedido do Diego). O dono marca (`SET_CAMPO2D` → `campo2dProximo`) e a
  *  troca só acontece AQUI, no passo do reducer que COMEÇA um jogo novo (rodada da liga, perna da Copa, rodada da Liberta/
@@ -8495,6 +8499,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.sport = 'basquete'; s.nbaCareer = false // jogo rápido (não é carreira)
       // 🔨 o jeito do lance é DESTA partida: antes ele vinha da última partida de futebol (ficava ligado no estado)
       s.pregaoAberto = !!action.pregaoAberto; s.holandes = !s.pregaoAberto && !!action.holandes; s.pa = undefined
+      // ⚡ 09/11: envelope único também no rápido do basquete (igual ao futebol); e nunca herda da partida anterior
+      s.envUnico = !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
+      if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição
       s.deckLeague = 'br' // não usado no basquete (o baralho é o NBA), mas mantém o campo válido
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
@@ -9268,7 +9275,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
       // 🧱🏳️ 06/11 (Diego: *"na hora de criar a Liga Draft deveria ter opção de escolher jogador, clubes ou seleção, igual tem no rápido"*):
       // a Liga Draft de hoje (Minha Liga Draft) aceita o leilão de Clubes/Seleções na 1ª temporada; a de antes (fraca) continua sem.
-      s.ligaDraft = !!action.ligaDraft && !action.career && !onlineNba && (!s.leilaoClubes || !!action.minhaLigaDraft)
+      s.ligaDraft = !!action.ligaDraft && !action.career && (!onlineNba || !!action.minhaLigaDraft) && (!s.leilaoClubes || !!action.minhaLigaDraft) // 🏀 10/11: no basquete só a Liga Draft de hoje (Minha Liga Draft), com o baralho da NBA
       s.minhaLigaDraft = s.ligaDraft && !!action.minhaLigaDraft // 📋🏆 (01/11): a 1ª temporada é o leilão NORMAL (não o fraco)
       // 📜💰 05/11: regras da turma no draft + prêmio editado pelo criador (vazio = padrão do tamanho da liga)
       s.draftRegras = s.minhaLigaDraft && action.draftRegras ? { ...action.draftRegras } : undefined
@@ -9283,7 +9290,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       else setActiveCatalog(s.deckLeague, fracoInicial, s.regionalSala)
       // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
       // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
-      if (s.ligaDraft && !onlineNba) {
+      if (s.ligaDraft) { // 🏀 vale pro baralho da NBA também (um LeBron só por liga)
         const vistos = new Set<string>()
         const out = {} as typeof CATALOG
         for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => { const k = chaveNome(c.name); if (vistos.has(k)) return false; vistos.add(k); return true })
@@ -11847,6 +11854,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // time. Guarda o voto (guest rota pro host, host aplica e sincroniza).
       // Vale no carreira online E no online rápido (fim de jogo).
       if (s.onlineMode !== 'online' && !s.careerOnline) return s
+      // 🗳️ 10/11 (simulador): voto atrasado/duplicado que chega DEPOIS do novo leilão trazia o assento velho e marcava outra
+      // pessoa como "pronta" na partida nova. Fora da carreira, voto só vale na tela do FIM.
+      if (!s.careerOnline && s.screen !== 'end') return s
       s.seasonVotes = { ...(s.seasonVotes ?? {}), [action.mgrId]: action.vote }
       return s
     }
@@ -13041,7 +13051,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const premios: Record<number, number> = {}
         sortedTable(s.league).forEach((t, pos) => {
           const m = s.managers.find(x => x.id === t.id && x.isHuman)
-          if (m) { premios[m.id] = premioDaLiga(pos, s.league.length, s.draftPremios); m.money += premios[m.id] } // 💰 05/11: tabela de 10 ou 20 (ou a do criador)
+          if (m) { const pr = premioDaLiga(pos, s.league.length, s.draftPremios); premios[m.id] = s.sport === 'basquete' && !s.draftPremios ? Math.ceil(pr / 2) : pr; m.money += premios[m.id] } // 🏀 basquete: orçamento é 50 (não 100), então o prêmio padrão é a metade // 💰 05/11: tabela de 10 ou 20 (ou a do criador)
         })
         const jaProntos = Object.keys(s.seasonVotes ?? {}).map(Number).filter(id => humanos.includes(id)) // ✋ quem já disse pronto no banner do fim
         s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
@@ -13061,7 +13071,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.minhaLigaDraft && !cartaPermitidaDraft(carta, s.draftRegras)) return state // 📜 regra da turma (a tela esconde a mesma carta)
       if (s.minhaLigaDraft) {
         // 📋🏆 com vaga (menos de 22) entra sem ninguém sair; elenco cheio = sai quem ele escolheu, sem furar posição
-        if (m.squad.length < MLD_ELENCO_MAX) { aplicaPickDraft(s, m, carta, null, false); return s }
+        if (m.squad.length < elencoMaxDraft()) { aplicaPickDraft(s, m, carta, null, false); return s }
         const saiM = podemSairMinha(m.squad, carta, m.formation).find(c => c.id === action.sai)
         if (!saiM) return state
         aplicaPickDraft(s, m, carta, saiM, false)
@@ -13249,7 +13259,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (d.fase === 'escolha') {
         // ⏱️ acabou o tempo: o jogo pega o MELHOR livre e tira o mais fraco daquela posição (nunca trava a sala)
         const m = s.managers.find(x => x.id === d.ordem[d.idx])
-        const auto = m ? escolhaAutomatica(cartasLivres(nomesOcupados(s.managers)), m.squad) : null
+        const auto = m ? escolhaAutomatica(cartasLivres(nomesOcupados(s.managers), deckDraft(s)), m.squad) : null
         if (m && auto) aplicaPickDraft(s, m, auto.carta, auto.sai, true)
         else proximoDoDraft(s)
         return s
@@ -14673,6 +14683,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  // 📡✂️ RÁDIO EM PEDAÇOS (10/11, Diego: *"liga primeiro nas salas que eu criar"*). O dono manda a sala INTEIRA de vez em quando
+  // (a "base", no evento 'state' de sempre — aba velha entende) e, no meio, só o que mudou desde ela (evento novo 'stateP'). Só liga
+  // quando `pedacoPode`: dono liberado E todo mundo da sala anunciou na presença que entende pedaço (`rp: 1`). Qualquer erro aqui =
+  // manda a sala inteira, como sempre. Simulador: `npm run salas-sim -- --pedacos` (13 modos, 0 falhas, −78%).
+  const emissorRef = useRef<ReturnType<typeof criaEmissor> | null>(null)
+  const mandaEstado = (st: EscState, cheio = false) => {
+    const ch = channelRef.current
+    if (!ch) return
+    if (pedacoPode(ch)) {
+      try {
+        const emi = emissorRef.current ??= criaEmissor(tiraBioDoRadio)
+        const r = emi.emite(sanitize(st) as unknown as Record<string, unknown>, cheio)
+        if ('cheio' in r) ch.send({ type: 'broadcast', event: 'state', payload: { ...r.cheio, t: Date.now() } })
+        else ch.send({ type: 'broadcast', event: 'stateP', payload: { ...r.pedaco, t: Date.now() } })
+        return
+      } catch { emissorRef.current = null }
+    } else emissorRef.current = null // saiu do modo pedaço: quando voltar, começa por uma base nova
+    ch.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(st) })
+  }
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
@@ -15161,14 +15190,29 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
-        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        mandaEstado(stateRef.current, true) // 📡✂️ quem pede o estado ganha uma base nova (a sala toda recebe)
       })
     } else {
-      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => {
+      // 📡✂️ rádio em pedaços: cada canal tem o SEU receptor (sala nova / reconexão = começa sem base)
+      const rx = criaReceptor<EscState>(poeBioDoRadio)
+      let pedidoEm = 0
+      const pedeCheio = () => { if (Date.now() - pedidoEm < 3000) return; pedidoEm = Date.now(); channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} }) }
+      const lePacote = (payload: unknown): EscState | null => {
+        const p = payload as { b?: unknown; s?: unknown; z?: unknown; d?: unknown } | null
+        if (p && typeof p.b === 'string' && typeof p.s === 'number' && (typeof p.z === 'string' || typeof p.d === 'string')) {
+          const r = rx.recebe(p as PacoteCheio | PacotePedaco)
+          if (r === 'pede') { pedeCheio(); return null }
+          return r
+        }
+        return readState(payload)
+      }
+      ch.on('broadcast', { event: 'stateP' }, ({ payload }: { payload: unknown }) => recebeEstado(payload))
+      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => recebeEstado(payload))
+      function recebeEstado(payload: unknown) {
         // pacote corrompido/parcial não pode derrubar o canal: ignora essa
         // mensagem (o heartbeat do host reenvia um estado bom em ~3s).
-        let next: EscState
-        try { next = readState(payload) } catch { return }
+        let next: EscState | null
+        try { next = lePacote(payload) } catch { pedeCheio(); return }
         if (!next || typeof next !== 'object') return
         // ⏱️ acerta o relógio pelo do DONO: todo prazo da sala (leilão, Monte,
         // cerimônia, Copa) nasce no aparelho dele. Sem isso, celular atrasado
@@ -15180,7 +15224,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         setDonoForaSeg(0)
         jaRecebiEstadoRef.current = true
         rawDispatch({ type: 'SYNC_STATE', newState: next })
-      })
+      }
     }
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
@@ -15269,7 +15313,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // ORDEM CERTA: pedir o estado PRIMEIRO (é o que destrava a tela), anunciar
       // presença DEPOIS. O crachá pode demorar; a partida não pode.
       if (!isHostRef.current) ch.send({ type: 'broadcast', event: 'request_state', payload: {} })
-      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) // 👁️ fantasma não anuncia presença
+      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha(), rp: 1 }) // 👁️ fantasma não anuncia presença
     })
     channelRef.current = ch
     // 🔁 O PRIMEIRO PEDIDO PODE SE PERDER (o convidado entra antes do canal do host
@@ -15291,7 +15335,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
       const alive = (ch as unknown as { state?: string }).state === 'joined'
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        if (isHostRef.current) mandaEstado(stateRef.current, true)
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
@@ -15325,7 +15369,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       juntaTimerRef.current = null
       const atual = stateRef.current
       if (atual.onlineMode !== 'online' || !atual.isHost || !atual.roomId) return
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(atual) })
+      mandaEstado(atual)
       lastStateSendRef.current = Date.now()
     }, ONLINE_ENVIO_MS)
   }, [state])
@@ -15436,7 +15480,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < HEARTBEAT_QUIETO_MS) return // teve jogada recente → já sincronizado
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+      mandaEstado(stateRef.current)
       lastStateSendRef.current = Date.now()
     }, 10_000)
     return () => clearInterval(iv)
@@ -15607,10 +15651,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!ch) return
       if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        if (isHostRef.current) mandaEstado(stateRef.current, true)
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha(), rp: 1 }) }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -15625,7 +15669,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const ch = channelRef.current
     if (!ch) return
     if (stateRef.current.espectador) return // 👁️ fantasma não anuncia presença
-    void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha() }) } catch { /* a reconexão periódica reanuncia */ } })()
+    void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha(), rp: 1 }) } catch { /* a reconexão periódica reanuncia */ } })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.youIdx])
 
@@ -15862,6 +15906,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.screen === 'intro' || state.screen === 'lobby') return
     if (state.roomId !== lastRoomRef.current) { lastRoomRef.current = state.roomId; myMgrIdRef.current = null } // sala nova → esquece o crachá antigo
     const clean = (x?: string) => stripEmoji(x ?? '').trim()
+    // 0) 🪪 10/11 (simulador de salas, 48 de 400 partidas): no "🔨 novo leilão" a sala é a MESMA e os assentos se renumeram
+    //    quando alguém saiu. O crachá guardado (id antigo) apontava pro time de OUTRA pessoa e a cura levava o convidado pra
+    //    lá — "dei lance por outro". Com `seatUids` quem manda é o UID da conta: ele diz o assento certo, sem adivinhar.
+    if (state.youUid && Array.isArray(state.seatUids) && state.seatUids.length) {
+      const seat = assentoDoCracha(state, state.youUid)
+      if (seat >= 0) {
+        const idx = state.managers.findIndex(m => m.id === seat)
+        if (idx >= 0) {
+          myMgrIdRef.current = seat
+          if (idx !== state.youIdx) rawDispatch({ type: 'FIX_YOU_IDX', idx })
+          return
+        }
+      }
+    }
     // 1) JÁ SEI MEU CRACHÁ: reancora pela POSIÇÃO ATUAL dele. Imune a nome repetido/
     //    trocado (fantasma com meu nome) e à reordenação de times entre temporadas —
     //    é o que faltava pra parar o "virei outro / F5 trocou de nome".
@@ -16586,13 +16644,50 @@ export const SEM_BAGAGEM_DE_CARREIRA: Partial<EscState> = {
 // resyncs podem pedir o pacote do MESMO objeto de estado várias vezes por segundo.
 // Como cada dispatch cria um objeto novo (imutável), comparar por referência basta
 // pra comprimir só uma vez por estado — evita gastar CPU do celular do host à toa.
+// 📡✂️ pode mandar em pedaços? Só com o dono liberado (sport.ts) e TODO mundo na presença dizendo que entende (`rp: 1`). Presença que
+// não deu pra ler, sala só com o dono, ou alguém de aba velha = não (manda a sala inteira, como sempre).
+function pedacoPode(ch: unknown): boolean {
+  if (!radioPedacoLiberado()) return false
+  try {
+    const ps = (ch as { presenceState?: () => Record<string, { rp?: unknown }[]> }).presenceState?.() ?? {}
+    const metas = Object.values(ps).flat()
+    return metas.length >= 2 && metas.every(m => m?.rp === 1)
+  } catch { return false }
+}
 let _packSrc: EscState | null = null
 let _packOut: { z: string } = { z: '' }
 function packState(state: EscState): { z: string } {
   if (state === _packSrc) return _packOut
   _packSrc = state
-  _packOut = { z: pack(sanitize(state)) }
+  _packOut = { z: packCom(sanitize(state), tiraBioDoRadio) }
   return _packOut
+}
+// 💸📡 BIO FORA DO RÁDIO (10/11, Diego: *"o intuito é diminuir os custos… mas não ter bugs"*). Medido no simulador de salas: o
+// texto de história das cartas era ~30% de tudo que o dono manda pros convidados — e todo aparelho já tem esse texto no catálogo.
+// No caminho do rádio, a carta cuja bio é IGUALZINHA à do catálogo vai sem o texto e com a marca `_b: 1`; o convidado, ao ler, põe
+// o texto do catálogo de volta e tira a marca. Bio que não bate com o catálogo (carta fake, basquete, catálogo que mudou) vai
+// inteira, como sempre — então nada se perde. Só o RÁDIO: o save no banco (game_rooms) não muda. Trava: `npm run salas-sim`
+// (confere, a cada estado, que o que chega é igual ao que saiu).
+// ⚠️ Só a BIO, de propósito: convidado com a aba velha aberta (o jogo não recarrega sozinho) lê a carta sem o texto e cai na bio
+// pelo nome, como já fazia — nada quebra. Tirar fame/lo/hi do mesmo jeito daria só +2% e deixaria a carta SEM NÍVEL na aba velha.
+const chaveBio = (o: { name: string; club: string; year: number }) => `${o.name}|${clubCanon(o.club)}|${o.year}`
+export function tiraBioDoRadio(this: unknown, _k: string, v: unknown): unknown {
+  if (!v || typeof v !== 'object') return v
+  const o = v as { name?: unknown; club?: unknown; year?: unknown; bio?: unknown; _b?: unknown }
+  if (typeof o.bio !== 'string' || typeof o.name !== 'string' || typeof o.club !== 'string' || typeof o.year !== 'number' || o._b !== undefined) return v
+  const f = FICHA_ATUAL.exato.get(chaveBio(o as { name: string; club: string; year: number }))
+  if (!f || f.bio !== o.bio) return v
+  const { bio: _fora, ...resto } = o
+  void _fora
+  return { ...resto, _b: 1 }
+}
+export function poeBioDoRadio(this: unknown, _k: string, v: unknown): unknown {
+  if (!v || typeof v !== 'object' || (v as { _b?: unknown })._b !== 1) return v
+  const o = v as Record<string, unknown> & { name: string; club: string; year: number }
+  delete o._b
+  const bio = FICHA_ATUAL.exato.get(chaveBio(o))?.bio
+  if (bio !== undefined) o.bio = bio
+  return o
 }
 // ⏱️ O CARIMBO DE HORA DO DONO vai POR FORA do pacote comprimido, de propósito:
 // o `packState` guarda o pacote por identidade de estado (e o mesmo estado é
@@ -16608,7 +16703,7 @@ function pacoteDeEstado(state: EscState): { z: string; t: number } {
 // convidado podem estar em versões diferentes por uns minutos.
 function readState(payload: unknown): EscState {
   const p = payload as { z?: string } | EscState
-  if (p && typeof (p as { z?: string }).z === 'string') return unpack<EscState>((p as { z: string }).z)
+  if (p && typeof (p as { z?: string }).z === 'string') return unpackCom<EscState>((p as { z: string }).z, poeBioDoRadio)
   return p as EscState
 }
 

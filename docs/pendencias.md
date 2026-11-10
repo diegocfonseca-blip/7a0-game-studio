@@ -1,3 +1,66 @@
+## 🎨 10/11 — Clube, presidente e rivais: prévia aprovada e publicação autorizada
+
+- Diego aprovou as capturas de celular/desktop e autorizou em 10/11: “Ok, pode publicar. Pode publicar”. Implementado no branch `visual/entrada-carreira-20261110`, com liberação geral na carreira solo: três etapas com cabeçalho/rodapé atuais, progresso Clube → Presidente → Rivais → Aprender, ação principal clara e ida ao tutorial publicado.
+- Clube: identidade real da conta preservada, formação explicada e Batismo recolhido depois da ação principal. Correção adicional pedida pelo Diego: “Conhecer o Batismo” usa `LojaButton` com `ancora="loja-planos"`, abrindo a Loja nova (não o fluxo antigo de ApoieButton).
+- Personagem: básico pronto, nome + cinco tons de pele livres logo na entrada; personalização opcional, disponíveis primeiro e catálogo extra sob demanda. Prévia do desktop limitada a 270 px de largura, proporção 2:3 preservada (sem esticar camadas). Roupa gratuita PRIMEIRA em toda listagem do formulário, inclusive a Loja/editor existente, conforme pedido adicional.
+- Diego reforçou que os tons de pele são do gratuito também: mantidas as permissões existentes e corrigido o selo da aba Pele no editor para “GRÁTIS PARA TODOS”. Escolher peça paga continua exigindo posse/pagamento; provar não compra. Há retorno ao visual disponível caso tenha provado peça bloqueada.
+- Rivais: escolha de nomes opcional, busca, lotes de 12 na lista e resumo da seleção. Reduzir quantidade ajusta os escolhidos mantendo os primeiros e avisa; seleção cheia não substitui clubes em silêncio. Corrigido 5/3. Liga permanece com 20 clubes e a regra de preencher com padrões foi preservada. Nome do próprio clube não aparece como opção.
+- Validação final: build TypeScript/Vite passou; 48 verificações de entrada em 320/390/1440 px e fixture de plano pago + 33 regressões do tutorial publicado passaram, sem erro de navegador ou overflow. Comparações antes/depois em HTML/PDF para celular e desktop prontas.
+- Bancada: `scripts/teste-entrada-carreira/index.html`; teste reproduzível `scripts/testa-entrada-carreira.mjs`, sem APIs ou WebSockets externos. Evidências em `/workspace/shared/entrada-carreira-20261110/`. Não mexe em banco, transporte online, orçamento, prazo, pagamento ou regras de competição. Revisão visual e autorização de publicação concluídas pelo Diego. Publicação em andamento; evidências finais ficam na pasta da entrega.
+
+## 🔎 10/11 — Auditoria das etapas anteriores ao tutorial da carreira (somente análise)
+
+- Diego pediu revisar Clube → Presidente → Rivais, especialmente quem não tem plano. Auditoria local da versão publicada `d73410f0` em 320/390/1440 px, sem sessão real e sem nova publicação. Caminho gratuito chegou ao pregão com 100 moedas, sem erro de navegador ou overflow horizontal.
+- Clube: oferta grande de Batismo antes de continuar; falta explicitar que pode iniciar sem compra e explicar as duas formações. Nome editado aqui pode alterar o display_name da conta ao começar; consequência não é avisada nesta etapa.
+- Presidente: catálogo inicial com 33 roupas (gratuita na posição 22), 43 botões, cerca de 4.939 px de altura a 390 px. Continuar fica depois do catálogo. Proposta: básico/disponíveis primeiro, catálogo extra opcional e ação próxima à identificação.
+- Rivais: lista de 80 clubes sem busca, nomes pequenos, rolagem interna; falta explicar preenchimento automático e separar escolha opcional de nomes da quantidade de bots no pregão. BUG confirmado: escolher 5 com limite 9 e reduzir para 3 deixa 5/3 e cinco destaques, mas o início usa só três. Reproduzido nas três larguras; corrigido na implementação aprovada acima.
+- Estas três etapas continuam com rodapé antigo e apresentações diferentes entre si e do tutorial. Proposta de progresso único: Clube → Presidente → Rivais → Aprender, cabeçalho/rodapé atuais e continuidade visual.
+- Evidências e capturas atuais: `/workspace/shared/auditoria-entrada-carreira-20261110/analise.html`, `resultados.json`, `analise.json`; bancada reproduzível arquivada na mesma pasta. Nenhuma mudança de produto nesta entrega. Propostas visuais precisam de mockup/OK antes de implementação/commit visual, conforme CLAUDE.md.
+
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · ✅ PUBLICADO 10/11 ~11h (deploy verde)
+## 🎓 10/11 — Início da carreira e ajuda por desbloqueio (aprovado; publicação autorizada)
+
+- Diego aprovou as 13 etapas em celular e desktop e autorizou: **"Ok pode publicar tudo isso"** (10/11). Liberação para todas as contas na carreira solo de futebol.
+- Diego pediu repaginação de todo o começo depois da escolha de rivais: regras, lances, revelação, apresentação do elenco, Central e rodapé. Também pediu explicação no momento dos desbloqueios, sem repetir depois de entendida.
+- Preparado em `visual/inicio-carreira-guiado-20261110`, base `37abbcd6`: guia em quatro etapas com lance de treino isolado, dicas no pregão/Monte/reservas/primeiro jogo, correções de contraste e rodapé com Loja. Treino não despacha lance real nem gasta moedas.
+- Corrigida a origem dos atalhos e faixa Salvar duplicados: estavam dentro da função que desenha CADA lado do confronto na Central; agora aparecem uma vez fora dos escudos. Os atalhos extras são Finanças e Agência; Jogos e Elenco continuam na barra principal.
+- Usa `careerSeen`/`MARK_CAREER_SEEN` já existentes, por carreira e com retomada. Condição física usa `condicaoAtiva` (Série C, permanente após desbloqueio); moral só quando há efeito real pendente da coletiva; Série A e mercado livre usam as marcas reais. Não se inventa divisão de desbloqueio para moral.
+- “Já sei jogar” pula somente o básico; os desbloqueios futuros continuam. Voltar preserva a intenção de criar carreira.
+- Banners existentes têm resumo e detalhes expansíveis no solo. Ajuda da Central guarda explicações aprendidas. Regras, prazos, economia, salvamento em nuvem e transporte online não foram modificados.
+- Prévia e evidências: `/workspace/shared/inicio-carreira-20261110/`. Bancada local `scripts/teste-inicio-carreira/index.html`; regressão reproduzível em `node scripts/testa-inicio-carreira.mjs`. Não entra no build público. Testes completos de navegador: 390/320/1440 px, treino sem gasto, lance real, contraste, atalhos, condição física e retomada, moral e reservas. Comparações completas de antes/depois para celular e desktop prontas (HTML/PDF), com 13 etapas. TypeScript e build de produção passaram; 33 verificações funcionais, 13 de regras/navegação, 9 cenários de layout e o pulo do tutorial/retorno ao modo carreira passaram.
+
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · no branch, esperando "publica"
+- Medido no banco: o rádio dos convidados (`state`) = **32 GB/dia**, ~54 KB por envio. O texto de história (bio) das cartas era ~30%.
+- Agora a carta cuja bio é igual à do catálogo vai sem o texto (`_b: 1`) e o convidado põe de volta (`tiraBioDoRadio`/`poeBioDoRadio`,
+  store.tsx). Só o rádio; o save no banco não muda. O simulador confere em TODO estado que o que chega é igual ao que saiu:
+  8 modos, 0 falhas (`npm run salas-sim -- --cenario X --medir` mostra o antes/depois).
+- Aba velha aberta (o jogo não recarrega sozinho) só perde o texto da bio por uns dias (cai na bio pelo nome). Por isso NÃO tirei
+  categoria/nível do mesmo jeito (+2% só, e a carta ficaria sem nível na aba velha).
+- Simulador cobre 13 modos (+ Liga/Copa, Liga/Liberta, Liga/Champions, Só Champions, Relâmpago) e a ABA VELHA (`--abas-velhas`):
+  tudo 0 falhas em 10/11. Só Champions e Relâmpago chegaram a 40 temporadas seguidas sem travar.
+- 🧪 MEDIDO (não feito): mandar só o PEDAÇO que mudou em vez da sala inteira = −83% do envio. É o grande corte, mas mexe no
+  coração do online: precisa de número de sequência, reenvio inteiro quando o convidado perde um pedaço, e só ligar quando TODOS
+  da sala estiverem na versão nova (aba velha não entende pedaço).
+  ✅ CONSTRUÍDO NO SIMULADOR (Diego: "sim"): `src/escalacao/radio-pedaco.ts` (NÃO ligado no jogo). `--pedacos`: 13 modos × 4 sementes,
+  0 falhas, conferido envio a envio; 1.922 MB → 428 MB (−78%). Corta o TRÁFEGO, não o número de mensagens.
+  🟡 LIGADO 10/11 SÓ NAS SALAS QUE O DIEGO CRIA (*"liga primeiro nas salas que eu criar"*): `RADIO_PEDACO_TESTERS` em sport.ts;
+  liberar pra todos = `RADIO_PEDACO_GERAL = true`. No store: `mandaEstado` (dono) manda a base no 'state' de sempre (aba velha lê) e o
+  pedaço no evento novo 'stateP'; `pedacoPode` só deixa com TODO mundo da presença dizendo `rp: 1` (versão nova). Convidado: `lePacote`
+  → `criaReceptor`; sem a base = pede o estado (no máx. 1 a cada 3 s). Qualquer erro = sala inteira, como sempre.
+  ✅ Testado pelo Diego na sala 2R2Y2T (3 pessoas): pedaço ~8 KB × sala inteira ~22 KB, 0 erro.
+  🟢 LIBERADO PRA TODOS 10/11 ~13h40 (*"publique p todos"*): `RADIO_PEDACO_GERAL = true`. Desligar = `false` (volta a sala inteira).
+  ⏭️ Medir no `esc_realtime_medidor` nos próximos dias (rx_bytes de 'state' + 'stateP'). Ideia seguinte: o pedaço ainda reenvia
+  `managers` inteiro a cada lance — diferenciar por técnico dentro dele cortaria mais (só no simulador primeiro).
+- Próximas ideias medidas, NÃO feitas: sala parada na tela de fim (BHZBJB ficou 14 h aberta conversando a cada 3 s) — mexe no
+  batimento do dono, precisa do OK do Diego; mandar o baralho só quando muda (arriscado, ficou de fora).
+
+## 🧪 10/11 — Simulador de salas online (`npm run salas-sim`) + 2 consertos que ele achou (no branch, esperando "publica")
+- `scripts/simula-salas-online.mts`: reducer de verdade, 1 dono + 2/4/8 convidados, rede ruim (atraso, duplicado, perda, F5, saída),
+  8 modos × 50 sementes. Confere troca de cadeira, XI completo, carta em dois times, sala travada, dinheiro.
+- 🪪 TROCA DE CADEIRA no "🔨 novo leilão" quando alguém tinha saído (48/400): a auto-cura usava o crachá (id) antigo → agora,
+  com `seatUids`, quem manda é o UID (`assentoDoCracha`). 🗳️ Voto atrasado do fim valia na partida nova → só vale na tela do fim.
+- Não simulado ainda: Copa/Liberta/Champions, carreira online, stream/manual, coroa.
+
 ## 👑💜 09/11 — Batismo FUNDADOR Double Duo FC (doublecontatocomercial@gmail.com) — FALTA: conta, vaga e banco
 - Streamer de jogos de manager de futebol. Feito no código (branch): escudo `doubleduo-escudo.webp` (297×360, 28 KB) · mascote
   O Streamer `doubleduo-mascote.webp` (339×440, 43 KB, key `doubleduo_streamer`) · manto preto #161016 + roxo #A131BF (3ª azul
@@ -2274,6 +2337,24 @@ Goleiro: diferença profissional × lenda vale ~0,35 de chance de defesa (0,80 �
 ✅ (21/10) `npm run motor2` agora REPROVA se o placar sair da faixa calibrada (gols 1,5–2,7 · 0×0 ≤ 15% · forte ≥ 60%).
 Pendente: ligar o v2 na bancada visual e FILMAR
 (`scripts/teste-campo2d/v2.html`) antes de qualquer foto pra ele; nada vai pra main. ✅ Clima visual (sol/nublado/chuva) APROVADO (21/10, *"ok siga"* depois da foto).
+
+## 🏀 BidLegends: "tudo igual do futebol" (09/11) — ⏳ no ramo `claude/bidlegends-fase-1-7vtrzu`, ESPERANDO OK VISUAL
+Pedido: *"siga fazendo tudo igual do futebol pro basquete, alterando mais coisas visuais tb e mais modos como Liga Draft"*.
+Feito (só na conta liberada; nada muda no futebol):
+- [x] Home do basquete = a MESMA `HomeV03` do futebol (`bb`): marca BL/BIDLEGENDS, arte da quadra, textos de quinteto/anel/Street League (sem a faixa do streamer).
+- [x] Visual novo das salas (lista, criar sala), leilão no PC/celular e placar da temporada: tiradas as travas `!nbaSala`/`sport !== 'basquete'`.
+- [x] `marca.ts`: topo das telas novas (online, loja, salão) diz BIDLEGENDS no basquete.
+- [x] Criar sala no basquete: resumo NBA, sem formação, "Temporada da NBA + Playoffs"; arte da quadra no topo; vagas em PG/SG/SF/PF/C; "quadra".
+- [x] Envelope único no rápido do basquete (antes aparecia e era ignorado) + trava no `npm run envelope-unico`.
+- [x] PUBLICADO na main em 10/11 (home, online, leilão, temporada, envelope único) — ordem do Diego: *"simm tb"*.
+Falta (próximos passos):
+- [x] **Liga Draft na NBA** (10/11, no ramo, esperando OK): a Liga Draft de hoje (Minha Liga Draft) no basquete — 1º leilão e draft só com cartas da NBA, elenco de até 15 (quinteto + banco), posições PG..C na noite do draft, prêmio padrão pela colocação = metade do futebol (orçamento 50). Régua do esporte em `liga-draft.ts` (`setDraftBasquete`, ligada por `setActiveSport`/`setActiveCatalog`). Trava `npm run liga-draft-nba`. A Liga Draft ANTIGA (1ª temporada fraca) segue só no futebol.
+  - ⚠️ `npm run liga-draft` e `scripts/testa-liga-vaga-motor.mts` já falham na main (erro dos próprios scripts), não é do basquete.
+- [ ] Liga de 10 times / turno único no basquete (travado por `tam10Mostra`/`turnoMostra` com `!nbaSala`).
+- [ ] Tela final de campeão: fundo ainda é estádio de futebol.
+- [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).
+- [ ] Carreira v02 (35 telas), mapa 3D, coletiva, calendário, Campo 2D: só futebol por construção (a carreira do basquete usa a `EscSeason`).
+- [ ] Testar online com 2 aparelhos (sala de basquete com o visual novo).
 
 ## 🏀 BidLegends NO AR (20/10) — só na conta do Diego (BASQUETE_TESTERS)
 Diego: *"já pode [pôr] o basquete pra eu ver como tá, trocando a aba lá em cima do futebol pelo basquete"*. O branch

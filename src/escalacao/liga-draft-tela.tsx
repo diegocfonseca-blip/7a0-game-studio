@@ -11,12 +11,13 @@ import { motion } from 'framer-motion'
 import { flagOf } from './copa-mundo'
 import { seloDoClube } from './selo-clube'
 import type { Card, Sector, Manager } from './types'
+import { POS_LABELS } from './sportcfg'
 import { EscalacaoMinha } from './minha-escalacao'
 import { ListaFavoritos, EstrelaFav, useFavoritosDraft } from './draft-favoritos'
 import {
   podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
-  MLD_ELENCO_MAX, podePassarDraft, todasAsCartas, podemSairMinha, podeIrProLeilao, cartaPermitidaDraft, temRegraDraft, type RegrasDraft, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
+  elencoMaxDraft, draftEhBasquete, baralhoDoDraft, podePassarDraft, todasAsCartas, podemSairMinha, podeIrProLeilao, cartaPermitidaDraft, temRegraDraft, type RegrasDraft, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
 } from './liga-draft'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', ROXO = '#7C3AED', RED = '#C2452F'
@@ -185,13 +186,16 @@ function Coberta({ etapa, pick }: { etapa: number; pick?: DraftPick }) {
     <div className="mx-auto rounded-2xl grid place-items-center transition-all duration-500"
       style={{ width: 180, height: 240, background: listra, border: `4px solid ${brilho ?? '#555'}`, boxShadow: brilho ? `0 0 34px ${brilho}, 0 0 80px ${brilho}66` : 'none' }}>
       <div className="grid place-items-center rounded-xl" style={{ width: 112, height: 150, background: INK, border: `3px solid ${GOLD}`, color: GOLD, ...OSW, fontSize: etapa >= 1 && c ? 48 : 60 }}>
-        {etapa >= 1 && c ? c.pos : '?'}
+        {etapa >= 1 && c ? tagP(c.pos) : '?'}
       </div>
     </div>
   )
 }
 
-const POS_NOME: Record<Sector, [string, string]> = { GOL: ['GOLEIRO', 'GOALKEEPER'], LAT: ['LATERAL', 'FULL-BACK'], ZAG: ['ZAGUEIRO', 'CENTRE-BACK'], MEI: ['MEIA', 'MIDFIELDER'], ATA: ['ATACANTE', 'FORWARD'] }
+const POS_NOME_FUT: Record<Sector, [string, string]> = { GOL: ['GOLEIRO', 'GOALKEEPER'], LAT: ['LATERAL', 'FULL-BACK'], ZAG: ['ZAGUEIRO', 'CENTRE-BACK'], MEI: ['MEIA', 'MIDFIELDER'], ATA: ['ATACANTE', 'FORWARD'] }
+// 🏀 10/11: no basquete a posição aparece como na NBA (PG/SG/SF/PF/C · Armador…). O setor do motor continua GOL..ATA.
+const posNome = (p: Sector): [string, string] => draftEhBasquete() ? [POS_LABELS.basquete[p].singular.pt.toUpperCase(), POS_LABELS.basquete[p].singular.en.toUpperCase()] : POS_NOME_FUT[p]
+const tagP = (p: string): string => draftEhBasquete() && p in POS_LABELS.basquete ? POS_LABELS.basquete[p as Sector].tag : p
 
 function AnuncioDraft({ pick, n, quem, decorrido }: { pick: DraftPick; n: number; quem: string; decorrido: number }) {
   const t = useT()
@@ -205,10 +209,10 @@ function AnuncioDraft({ pick, n, quem, decorrido }: { pick: DraftPick; n: number
   useEffect(() => { if (etapa !== ultimaEtapa.current) { ultimaEtapa.current = etapa; try { playTick() } catch { /* sem som */ } } }, [etapa])
   const titulo = virou ? `${t(`Com a ${n}ª escolha…`, `With pick #${n}…`)} ${c.name.toUpperCase()}!`
     : etapa === 0 ? t('🥁 Escolha feita!', '🥁 Pick is in!')
-    : etapa === 1 ? `${t('É um…', 'It\'s a…')} ${t(POS_NOME[c.pos][0], POS_NOME[c.pos][1])}`
+    : etapa === 1 ? `${t('É um…', 'It\'s a…')} ${t(posNome(c.pos)[0], posNome(c.pos)[1])}`
     : etapa === 2 ? `…${t('e é', 'and it\'s')} ${cat.emoji} ${t(cat.pt, cat.en)}!`
     : `${t('Brilhou', 'Shone')} ${pais !== '??' ? `${t('no', 'in')} ${flagOf(pais)} ${pais} ` : ''}${t(`nos ${dec.pt}`, `in ${dec.en}`)}`
-  const pistas: string[] = [c.pos, `${cat.emoji} ${t(cat.pt, cat.en)}`, `${pais !== '??' ? flagOf(pais) + ' ' : ''}${t(dec.pt, dec.en)}`]
+  const pistas: string[] = [tagP(c.pos), `${cat.emoji} ${t(cat.pt, cat.en)}`, `${pais !== '??' ? flagOf(pais) + ' ' : ''}${t(dec.pt, dec.en)}`]
   return (
     <div className="rounded-3xl border-4 border-black p-3 space-y-3" style={{ background: 'radial-gradient(circle at 50% 40%,#2a2140,#0c0c0c 70%)', boxShadow: `4px 4px 0 ${INK}` }}>
       <div className="text-center">
@@ -249,7 +253,7 @@ function BotaoPassar({ onPassar }: { onPassar: () => void }) {
   return (<>
     <button onClick={onPassar} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
       style={{ ...OSW, fontSize: 16, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Passar a vez', '⏭ Pass my turn')}</button>
-    <p className="ov3-page-muted text-center text-[11px] font-bold text-black/55">{t(`Seu elenco está cheio (${MLD_ELENCO_MAX}). Não quer ninguém? Passe a vez: ninguém sai do seu time.`, `Your squad is full (${MLD_ELENCO_MAX}). Don't want anyone? Pass: nobody leaves your team.`)}</p>
+    <p className="ov3-page-muted text-center text-[11px] font-bold text-black/55">{t(`Seu elenco está cheio (${elencoMaxDraft()}). Não quer ninguém? Passe a vez: ninguém sai do seu time.`, `Your squad is full (${elencoMaxDraft()}). Don't want anyone? Pass: nobody leaves your team.`)}</p>
   </>)
 }
 
@@ -268,7 +272,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
     for (const m of state.managers) for (const c of m.squad) if (!c.fake) mp.set(chaveNome(c.name), { time: m.teamName, bot: !m.isHuman })
     return mp
   }, [state.managers])
-  const baralho = useMemo(() => todasAsCartas(state.minhaLigaDraft ? state.deckLeague : undefined), [state.minhaLigaDraft, state.deckLeague])
+  const baralho = useMemo(() => todasAsCartas(baralhoDoDraft(state)), [state.minhaLigaDraft, state.deckLeague])
   const q = norm(busca.trim())
   const filtradas = useMemo(() => {
     // 📜 05/11: a regra da turma esconde quem não pode (a MESMA função que o motor confere em DRAFT_ESCOLHER)
@@ -281,7 +285,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   const favs = useFavoritosDraft() // ⭐ 08/11: os favoritos marcados na temporada aparecem em cima (só conveniência do aparelho)
   if (!you) return null
   // 📋🏆 Minha Liga Draft: com vaga (menos de 22) ninguém sai; cheio = sai quem ele escolher, sem furar posição
-  const temVaga = !!minha && you.squad.length < MLD_ELENCO_MAX
+  const temVaga = !!minha && you.squad.length < elencoMaxDraft()
   const candidatos = carta ? (minha ? podemSairMinha(you.squad, carta, you.formation) : podemSair(you.squad, carta.pos)) : []
   const confirmar = () => {
     if (!carta || (!sai && !temVaga)) return
@@ -298,7 +302,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
         {favs.length > 0 && (
           <div>
             <p className="uppercase text-[13px] mb-1" style={OSW}>⭐ {t('Seus favoritos', 'Your favourites')}</p>
-            <ListaFavoritos deck={state.minhaLigaDraft ? state.deckLeague : undefined} donoDe={donoDe} favs={favs}
+            <ListaFavoritos deck={baralhoDoDraft(state)} donoDe={donoDe} favs={favs}
               onPegar={c => { if (!state.minhaLigaDraft || cartaPermitidaDraft(c, state.draftRegras)) { setCarta(c); setSai(null) } }} />
           </div>
         )}
@@ -307,7 +311,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
         <div className="flex gap-1.5">
           {[null, ...POS].map(p => (
             <button key={p ?? 'todos'} onClick={() => setPos(p)} className="flex-1 border-2 border-black rounded-lg py-1.5 text-[13px] ov3-surface"
-              style={{ ...OSW, background: pos === p ? GOLD : '#fff' }}>{p ?? t('Todos', 'All')}</button>
+              style={{ ...OSW, background: pos === p ? GOLD : '#fff' }}>{p ? tagP(p) : t('Todos', 'All')}</button>
           ))}
         </div>
         <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white">
@@ -315,14 +319,14 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
             const dono = donoDe.get(chaveNome(c.name))
             if (dono) return (
               <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 ov3-surface" style={{ background: '#EFEBE0', opacity: .62 }}>
-                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#fff' }}>{c.pos}</span>
+                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#fff' }}>{tagP(c.pos)}</span>
                 <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{c.name}</b><small className="text-[10.5px] font-bold text-black/55">{c.club} · {c.year}</small></span>
                 <span className="shrink-0 max-w-[45%] truncate text-[10.5px] font-black border-2 border-black rounded-lg px-1.5 ov3-surface" style={{ ...OSW, background: dono.bot ? '#E6E1D3' : '#FFE6A8' }}>{dono.bot ? '🤖' : '👤'} {dono.time}</span>
               </div>
             )
             return (
               <button key={chaveCarta(c)} onClick={() => { setCarta(c); setSai(null) }} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 text-left active:bg-yellow-100">
-                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{c.pos}</span>
+                <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{tagP(c.pos)}</span>
                 <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{c.name}</b><small className="text-[10.5px] font-bold text-black/55">{c.club} · {c.year}</small></span>
                 <span className="ov3-draft-muted shrink-0 text-[10.5px] font-black text-black/40" style={OSW}>{t('livre', 'free')}</span>
                 <EstrelaFav chave={chaveCarta(c)} favs={favs} dentroDeBotao />
@@ -341,16 +345,16 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
         <div className="space-y-2.5">
           {/* 🤫 sem categoria e sem over antes de pegar: só posição, nome, clube e ano (a carta de verdade vira no anúncio) */}
           <div className="mx-auto rounded-2xl border-[3px] border-black bg-white px-4 py-3 text-center" style={{ width: 220, boxShadow: `3px 3px 0 ${INK}` }}>
-            <span className="inline-block text-[12px] border-2 border-black rounded-md px-2 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{POS_NOME[carta.pos][0]}</span>
+            <span className="inline-block text-[12px] border-2 border-black rounded-md px-2 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{posNome(carta.pos)[0]}</span>
             <p className="uppercase leading-tight mt-1.5" style={{ ...OSW, fontSize: 22 }}>{carta.name}</p>
             <p className="text-[12px] font-bold text-black/60">{carta.club} · {carta.year}</p>
           </div>
           {temVaga ? (
-            <p className="text-center text-[12px] font-bold text-black/60">{t(`Você tem vaga (${you.squad.length}/${MLD_ELENCO_MAX}): ele entra no banco e ninguém sai. Chega valendo 10 🪙.`, `You have room (${you.squad.length}/${MLD_ELENCO_MAX}): he joins the bench and nobody leaves. Worth 10 🪙.`)}</p>
+            <p className="text-center text-[12px] font-bold text-black/60">{t(`Você tem vaga (${you.squad.length}/${elencoMaxDraft()}): ele entra no banco e ninguém sai. Chega valendo 10 🪙.`, `You have room (${you.squad.length}/${elencoMaxDraft()}): he joins the bench and nobody leaves. Worth 10 🪙.`)}</p>
           ) : (
           <div className="rounded-2xl border-[3px] border-black p-3 bg-white">
-            <p className="uppercase" style={{ ...OSW, fontSize: 16 }}>🔄 {minha ? t(`Elenco cheio (${MLD_ELENCO_MAX}): quem sai?`, `Full squad (${MLD_ELENCO_MAX}): who leaves?`) : t('Quem sai pra ele entrar?', 'Who leaves to make room?')}</p>
-            <p className="text-[12px] font-bold text-black/60 mb-2">{t(`O time tem vaga fixa: sai um dos seus ${POS_NOME[carta.pos][0].toLowerCase()}s e ele fica livre na liga.`, `The squad has fixed slots: one of your ${POS_NOME[carta.pos][1].toLowerCase()}s leaves and becomes free in the league.`)}</p>
+            <p className="uppercase" style={{ ...OSW, fontSize: 16 }}>🔄 {minha ? t(`Elenco cheio (${elencoMaxDraft()}): quem sai?`, `Full squad (${elencoMaxDraft()}): who leaves?`) : t('Quem sai pra ele entrar?', 'Who leaves to make room?')}</p>
+            <p className="text-[12px] font-bold text-black/60 mb-2">{t(`O time tem vaga fixa: sai um dos seus ${posNome(carta.pos)[0].toLowerCase()}s e ele fica livre na liga.`, `The squad has fixed slots: one of your ${posNome(carta.pos)[1].toLowerCase()}s leaves and becomes free in the league.`)}</p>
             <div className="grid grid-cols-2 gap-1.5">
               {candidatos.map(c => (
                 <button key={c.id} onClick={() => setSai(c.id)} className="border-2 border-black rounded-lg px-2 py-1.5 text-left ov3-surface"
@@ -471,7 +475,7 @@ function VenderMeu({ d, you }: { d: DraftEstado; you: Manager }) {
         <div className="grid grid-cols-2 gap-1.5 max-h-64 overflow-y-auto">
           {pode.map(c => (
             <button key={c.id} onClick={() => { dispatch({ type: 'DRAFT_VENDER', mgrId: you.id, cardId: c.id, by: state.youUid }); setAberto(false) }} className="border-2 border-black rounded-lg px-2 py-1 text-left ov3-surface" style={{ background: '#F4ECD6' }}>
-              <b className="block truncate text-[12.5px]" style={OSW}>{c.pos} · {c.name}</b>
+              <b className="block truncate text-[12.5px]" style={OSW}>{tagP(c.pos)} · {c.name}</b>
               <small className="text-[10px] font-bold text-black/55">{Math.max(1, Math.round(c.paid ?? 1))} 🪙</small>
             </button>
           ))}
@@ -516,7 +520,7 @@ function SondarAmigo({ restante, onVoltar }: { restante: number; onVoltar: () =>
           return (
             <button key={x.id} disabled={!livre} onClick={() => setCardId(x.id)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 text-left"
               style={{ background: cardId === x.id ? '#FFF1B8' : !livre ? '#EFEAD9' : undefined, opacity: livre ? 1 : 0.7 }}>
-              <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{x.pos}</span>
+              <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>{tagP(x.pos)}</span>
               <span className="flex-1 min-w-0"><b className="block truncate uppercase text-[14px] leading-tight" style={OSW}>{livre ? '' : '🔒 '}{x.name}</b>
                 <small className="text-[10.5px] font-bold text-black/55">{x.club} · {x.year}</small>
                 {!livre && <small className="block text-[10.5px] font-black" style={{ color: RED }}>{t(`📝 Contrato: falta${faltam === 1 ? '' : 'm'} ${faltam} temporada${faltam === 1 ? '' : 's'} · libera no draft do fim da temporada ${sondavelNoDraftDa(x)}`, `📝 Contract: ${faltam} more season${faltam === 1 ? '' : 's'} · unlocks at the draft after season ${sondavelNoDraftDa(x)}`)}</small>}
@@ -724,7 +728,7 @@ function EscalaMinha({ d, you, souDono, restante }: { d: DraftEstado; you: Manag
         </Caixa>
       )}
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 ov3-surface" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
-        <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>👕 {t('Escalação', 'Line-up')} · {you.squad.length}/{MLD_ELENCO_MAX}</p>
+        <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>👕 {t('Escalação', 'Line-up')} · {you.squad.length}/{elencoMaxDraft()}</p>
         <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t('igual ao Elenco da carreira: toque num jogador e depois em outro da mesma posição pra trocar; a formação fica na pílula', 'same as the career Squad tab: tap a player and then another of the same position to swap; formation is in the pill')}</p>
       </div>
       <EscalacaoMinha />

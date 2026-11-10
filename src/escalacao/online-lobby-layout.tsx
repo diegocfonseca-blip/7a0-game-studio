@@ -3,12 +3,13 @@ import { tr } from './lang'
 import { LojaButton } from './loja-clube'
 import { abreAmigosSolto } from './amigos'
 import './online-lobby-layout.css'
+import { ehBasquete, marcaNome, marcaSigla, marcaFraseLance } from './marca'
 
 /** Presentation only: navigation is supplied by the existing lobby. */
 export function OnlineLobbyBrand({ onBack }: { onBack?: () => void }) {
   return <div className="ll-hub-brand-row">
     <button type="button" data-livre="1" className="ll-hub-brand" onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}>
-      <span className="ll-hub-monogram" aria-hidden="true">LL</span><span>LEILÃO LEGENDS<small>{tr('O SEU TIME COMEÇA NO LANCE.', 'YOUR TEAM STARTS WITH A BID.')}</small></span>
+      <span className="ll-hub-monogram" aria-hidden="true">{marcaSigla()}</span><span>{marcaNome()}<small>{marcaFraseLance()}</small></span>
     </button>
     <nav className="ll-hub-links" aria-label={tr('Atalhos do Online', 'Online shortcuts')}>
       <span data-livre="1"><LojaButton>{tr('Loja do clube', 'Club shop')}</LojaButton></span>
@@ -41,7 +42,7 @@ export function OnlineCommunity({ enabled, clans, children }: { enabled: boolean
   const current = tabs.some(t => t.key === active) ? active : 'ranking'
   return <Community.Provider value={{ enabled, active: current }}>
     <div className={enabled ? 'll-hub-community' : 'space-y-3.5'} style={enabled ? undefined : { marginTop: 6 }}>
-      {enabled && <><header className="ll-hub-community-heading"><small>{tr('A GALERA DO LEILÃO LEGENDS', 'THE LEILÃO LEGENDS COMMUNITY')}</small><h2>{tr('NA COMUNIDADE', 'IN THE COMMUNITY')}</h2><p>{tr('Quem venceu, quem lidera e quem joga junto.', 'Who won, who leads and who plays together.')}</p></header>
+      {enabled && <><header className="ll-hub-community-heading"><small>{ehBasquete() ? tr('A GALERA DO BIDLEGENDS', 'THE BIDLEGENDS COMMUNITY') : tr('A GALERA DO LEILÃO LEGENDS', 'THE LEILÃO LEGENDS COMMUNITY')}</small><h2>{tr('NA COMUNIDADE', 'IN THE COMMUNITY')}</h2><p>{tr('Quem venceu, quem lidera e quem joga junto.', 'Who won, who leads and who plays together.')}</p></header>
         <div role="tablist" aria-label={tr('Comunidade', 'Community')} className="ll-hub-community-tabs">
           {tabs.map((tab, i) => <button key={tab.key} ref={el => { buttons.current[tab.key] = el }} type="button" data-livre="1" role="tab"
             id={`${id}-${tab.key}`} aria-controls={`${id}-${tab.key}-panel`} aria-selected={current === tab.key} tabIndex={current === tab.key ? 0 : -1}
@@ -72,7 +73,7 @@ export function OnlineLobbyFooter({ enabled, children }: { enabled: boolean; chi
       <span className="ll-hub-store-symbol" aria-hidden="true">🛍</span><div><small>{tr('O CLUBE COM A SUA CARA', 'MAKE THE CLUB YOUR OWN')}</small><h2>{tr('LOJA DO CLUBE', 'CLUB SHOP')}</h2><p>{tr('Planos, moedas e itens para o seu clube, em um só lugar.', 'Plans, coins and items for your club, all in one place.')}</p></div>
       <LojaButton className="ll-hub-store-button">{tr('ABRIR LOJA →', 'OPEN SHOP →')}</LojaButton>
     </section>
-    <footer className="ll-hub-footer"><strong>LEILÃO LEGENDS</strong><div>{children}</div></footer>
+    <footer className="ll-hub-footer"><strong>{marcaNome()}</strong><div>{children}</div></footer>
   </div> : <>{children}</>
 }
 

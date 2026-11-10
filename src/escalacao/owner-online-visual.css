@@ -31,3 +31,4 @@
 @media(min-width:1100px){.ov3 .ll-dir-in>.ov3-standings{order:-1}}
 @media(max-width:760px){.ov3-speed-area{gap:8px}}
 @media(max-width:370px){.ov3-advance{gap:5px}.ov3-advance button{padding-inline:7px;font-size:11px}.ov3-speed-area{gap:5px}.ov3-speed{padding-inline:7px;font-size:10px}}
+.ov3-sigla{display:grid;place-items:center;width:34px;height:34px;border:2px solid #ffc400;border-radius:7px;color:#ffc400;font:700 17px Oswald,sans-serif;letter-spacing:-1px}
