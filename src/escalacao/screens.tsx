@@ -53,13 +53,15 @@ import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
 import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
-import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
+import {PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
 import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
-import {usePlanoConta,getPosseConta} from './presidente-conta'
+import {usePlanoConta,getPosseConta,visualCabeNaPosse} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
 import { ComPerfil, MeusAmigos, SinoAmigos, PedidosNaHome, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
-import {podeVestirComPosse} from './presidente-avulsas'
+import {podeVestirComPosse,ROUPA_GRATIS} from './presidente-avulsas'
+import {aparenciaInicial,escolherPeca} from './presidente-aparencia'
+import {chaveClube} from './batismos'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
 import {identidadeDaConta} from './presidencia-identidade-conta'
@@ -2877,13 +2879,26 @@ export function EscSetup() {
   const t = useT() // 🌐 BR/EN
   const career = state.careerIntent
   const legacyPrivatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
-  const presidentAccount = usePresidentPreview()
-  const modularSetup = presidentAccount && PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
+  // 🟢 10/11 (Diego: *"publique já p todos"*): o passo a passo novo (clube → presidente → pregão) vale pra TODA conta. Quem não tem
+  // plano ganha o presidente básico de graça (careca + camiseta branca, `ROUPA_GRATIS`). Antes: só a conta dele (`usePresidentPreview`).
+  const modularSetup = PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
   // Keep the account check alive between the editor and final career step.
   usePlanoConta()
   const privatePreview = modularSetup || legacyPrivatePreview
   const setupMember = useMeuSocio()
   const [presidentDraft,setPresidentDraft] = useState(()=>sugestaoPresidente(undefined))
+  // 🎁 10/11: sem plano, o rascunho nasce no presidente GRÁTIS (careca + camiseta branca) — senão o terno (do Craque) travava o início.
+  //    Só quando o plano já chegou do banco (`useDireitos` != null) e só se o rascunho atual não cabe no que a conta tem.
+  const direitosSetup = useDireitos()
+  useEffect(() => {
+    if ((!direitosSetup && loggedEmail()) || !modularSetup) return // sem conta (ou sessão ainda vazia) = grátis na hora; logado espera o plano
+    setPresidentDraft(d => {
+      const posse = getPosseConta()
+      if (visualCabeNaPosse(d, posse)) return d
+      const careca = escolherPeca(escolherPeca(aparenciaInicial(), 'hair', 'none') ?? aparenciaInicial(), 'beard', 'none')
+      return { ...d, outfit: podeVestirComPosse(d.outfit, posse) ? d.outfit : ROUPA_GRATIS, ...(careca ? { appearance: careca } : {}) }
+    })
+  }, [direitosSetup, modularSetup])
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -2988,7 +3003,8 @@ export function EscSetup() {
     // dois "Neymarzetti" na mesma tabela, um dele e um robô. Aqui o seu clube sai
     // da lista de rivais; a trava final está no `makeCareerManagers`.
     const meuNome = stripEmoji(clean).trim().toLowerCase()
-    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome
+    const meuBatSetup = setupMember?.ativo ? setupMember.escudoTime?.trim() || null : null // 🖋 10/11: o seu clube batizado também não vira rival
+    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome && !(meuBatSetup && chaveClube(t) === chaveClube(meuBatSetup))
     const picks = career
       ? [...rivalPicks.filter(naoSouEu), ...TIMES_ELITE.map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
       : undefined
@@ -3110,12 +3126,24 @@ export function EscSetup() {
                 </div>
                 <p className="ll-career-note">{tr('Mais rivais significam mais disputa pelos mesmos jogadores. A liga continua com 20 clubes.', 'More rivals means more competition for the same players. The league still has 20 clubs.')}</p>
                 <label>{tr('RIVAIS PARA A CARREIRA', 'RIVALS FOR THE CAREER')} <small>{rivalPicks.length}/{rivals}</small></label>
-                <div className="ll-rival-list">
-                  {TIMES_ELITE.map(t => {
-                    const on = rivalPicks.includes(t.team)
-                    return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
-                  })}
-                </div>
+                {(() => {
+                  // 🖋 10/11 (Diego): o clube batizado do PRÓPRIO usuário não aparece como rival (escudo e mascote não podem repetir
+                  // na mesma liga) — e só quem tem batismo vê a linha explicando. Régua do nome = `chaveClube` (ignora caixa, acento, FC/EC).
+                  const meuBat = setupMember?.ativo ? setupMember.escudoTime?.trim() || null : null
+                  const ehMeu = (team: string) => !!meuBat && chaveClube(team) === chaveClube(meuBat)
+                  const lista = TIMES_ELITE.filter(t => !ehMeu(t.team))
+                  return <>
+                    <div className="ll-rival-list">
+                      {lista.map(t => {
+                        const on = rivalPicks.includes(t.team)
+                        return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
+                      })}
+                    </div>
+                    {meuBat && <p className="ll-career-note" style={{ marginTop: 8, background: 'rgba(255,196,0,.18)', border: '2px dashed #b38900', borderRadius: 10, padding: '6px 9px', color: '#5a4a14' }}>
+                      {tr(`🖋 O ${meuBat} não aparece aqui porque é o seu clube: escudo e mascote não se repetem na mesma liga.`, `🖋 ${meuBat} isn't listed because it's your club: crest and mascot can't repeat in the same league.`)}
+                    </p>}
+                  </>
+                })()}
                 <button className="ll-random-rivals" onClick={() => setRivalPicks([])}>{tr('🎲 USAR RIVAIS PADRÃO', '🎲 USE DEFAULT RIVALS')}</button>
               </div>
               {nameErr && <p className="ll-career-error" role="alert">{nameErr}</p>}
