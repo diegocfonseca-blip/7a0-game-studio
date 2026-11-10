@@ -65,6 +65,7 @@ import {aparenciaInicial,escolherPeca} from './presidente-aparencia'
 import {chaveClube,batismoDe} from './batismos'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
+import {CareerSetupFrame,CareerRivalsSetup} from './career-setup-guide'
 import {identidadeDaConta} from './presidencia-identidade-conta'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
@@ -904,8 +905,8 @@ export function GameFooter() {
   }
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
-  if (privatePreview && state.careerIntent && state.screen === 'setup') return null
-  if (careerVisualV2(state)) return <footer className="csg-footer"><div className="csg-footer-inner"><div><strong>LEILÃO LEGENDS</strong><p>{tr('Seu clube. Sua história. Uma temporada de cada vez.','Your club. Your story. One season at a time.')}</p></div><nav aria-label={tr('Links do rodapé','Footer links')}><LojaButton naCarreira>{tr('Loja do clube','Club shop')} →</LojaButton><button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">Instagram</a><a href="mailto:contato@leilaolegends.com">{tr('Contato','Contact')}</a></nav></div></footer>
+  if (privatePreview && state.careerIntent && state.screen === 'setup' && state.sport === 'basquete') return null
+  if (careerVisualV2(state) || (state.screen === 'setup' && state.careerIntent && state.sport !== 'basquete')) return <footer className="csg-footer"><div className="csg-footer-inner"><div><strong>LEILÃO LEGENDS</strong><p>{tr('Seu clube. Sua história. Uma temporada de cada vez.','Your club. Your story. One season at a time.')}</p></div><nav aria-label={tr('Links do rodapé','Footer links')}><LojaButton naCarreira={state.screen!=='setup'}>{tr('Loja do clube','Club shop')} →</LojaButton><button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">Instagram</a><a href="mailto:contato@leilaolegends.com">{tr('Contato','Contact')}</a></nav></div></footer>
   // The private lobby supplies its own shop card. Keep contact here, outside
   // Router, without reviving the legacy support banner underneath it.
   if (ownerAccount && state.sport !== 'basquete' && (state.screen === 'lobby' || ownerOnlineScope(state))) return <footer className="ow-contact-footer">
@@ -2966,13 +2967,19 @@ export function EscSetup() {
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
   const [privateStep, setPrivateStep] = useState<1 | 2 | 3>(1)
+  const [rivalsNotice,setRivalsNotice] = useState('')
   const [presidentName, setPresidentName] = useState('')
   const [presidentOutfit, setPresidentOutfit] = useState<'casual' | 'polo' | 'social' | 'terno'>('terno')
-  const toggleRival = (team: string) => setRivalPicks(prev => {
-    if (prev.includes(team)) return prev.filter(t => t !== team)
-    const next = [...prev, team]
-    return next.length > rivals ? next.slice(next.length - rivals) : next
-  })
+  const toggleRival = (team: string) => {
+    if (rivalPicks.includes(team)) { setRivalPicks(rivalPicks.filter(t => t !== team)); setRivalsNotice(''); return }
+    if (rivalPicks.length >= rivals) { setRivalsNotice(tr('Você já escolheu todos. Remova um clube antes de adicionar outro.', 'All slots are selected. Remove a club before adding another.')); return }
+    setRivalPicks([...rivalPicks,team]); setRivalsNotice('')
+  }
+  const changeRivals = (n:number) => {
+    setRivals(n)
+    if (rivalPicks.length > n) { setRivalPicks(rivalPicks.slice(0,n)); setRivalsNotice(tr(`Quantidade reduzida: mantivemos os ${n} primeiros clubes que você escolheu.`,`Number reduced: kept the first ${n} clubs you selected.`)) }
+    else setRivalsNotice('')
+  }
   // conta = fonte única do nome do time. Se logado, o nome vem do cadastro
   // (mesmo do online) e é editável aqui; ao começar, sincroniza de volta pra
   // conta — então trocar num lugar troca em todos (CPU, carreira, online, stats).
@@ -3062,11 +3069,18 @@ export function EscSetup() {
     const activePresident = outfits.find(([id]) => id === presidentOutfit)?.[2] ?? presidentTerno
     const nextFromClub = () => {
       if (!stripEmoji(name).trim()) { setNameErr(tr('Digite o nome do clube.', 'Type the club name.')); return }
+      if (nomeOfensivo(name)) { setNameErr(NOME_MSG.ofensivo); return }
       setNameErr(''); setPrivateStep(2)
     }
     const nextFromPresident = () => setPrivateStep(3)
-    if(modularSetup&&privateStep===1)return <Shell hideExit><CriarClubePresidencia name={name} onName={v=>{setName(stripEmoji(v));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} onBack={()=>dispatch({type:'GO_LOBBY'})} support={<ApoieButton startScreen="batismo" trigger={open=><Btn onClick={open}>{tr('CONHECER O BATISMO','EXPLORE BAPTISM')}</Btn>}/>} /></Shell>
-    if(modularSetup&&privateStep===2)return <Shell hideExit><PresidenteFormulario value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/></Shell>
+    if(modularSetup){
+      const back=()=>privateStep===1?dispatch({type:'GO_LOBBY'}):setPrivateStep(privateStep===2?1:2)
+      const ownClub=setupMember?.ativo?setupMember.escudoTime?.trim():null
+      const choices=RIVAIS_BATISMO.filter(t=>chaveClube(t.team)!==chaveClube(name)&&(!ownClub||chaveClube(t.team)!==chaveClube(ownClub)))
+      return <Shell className="cse-shell" hideExit><CareerSetupFrame step={privateStep} club={name} onBack={back}>
+       {privateStep===1?<CriarClubePresidencia name={name} accountName={accountName} onName={v=>{const clean=stripEmoji(v);setName(clean);setRivalPicks(p=>p.filter(team=>chaveClube(team)!==chaveClube(clean)));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} support={<LojaButton ancora="loja-planos" className="cse-secondary">{tr('CONHECER O BATISMO NA LOJA →','EXPLORE NAMING IN THE SHOP →')}</LojaButton>}/>:privateStep===2?<PresidenteFormulario guided value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/>:<CareerRivalsSetup rivals={rivals} picks={rivalPicks} options={choices} onCount={changeRivals} onToggle={toggleRival} onDefaults={()=>{setRivalPicks([]);setRivalsNotice('')}} onStart={()=>void start()} error={nameErr} notice={rivalsNotice}/>}
+      </CareerSetupFrame></Shell>
+    }
     return (
       <Shell className="ll-career-onboarding" hideExit>
         <main className={`ll-career-setup ll-career-step-${privateStep}`} style={{ '--career-room': `url(${careerSetupRoom})` } as CSSProperties}>
