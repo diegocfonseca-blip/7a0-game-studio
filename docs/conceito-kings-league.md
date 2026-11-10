@@ -138,3 +138,17 @@ esperar 2 minutos lá fora"*.
 - **Rádio**: nas fases de campo aberto (1×1 até 6×6 e a do dado) tem uma frase por minuto da Kings, todas com nome de
   jogador (banco `KINGS_FASE`); no resto, a Kings prefere as frases com jogador. Tudo SÓ na Kings.
 - Trava: `npm run kings-regras` confere giro, cartões e o % de frases com nome.
+
+## 📺 10/11 — CAMPO 2D DA KINGS (mockup `scripts/mockups/kings-campo2d.png`, Diego: *"aprovo… 2d como falei p desktop mantendo padrão e dispositivo móvel"*)
+- O MESMO campinho 2D (`Campo2D`), deitado no computador e em pé no celular, com a prop `kings` (`Kings2D`, montada por `kings2DDe` em
+  `kings-liga.ts` a partir do `KingsInfo` da partida). Só DESENHO: gols, cartões e resultado continuam os da regra da Kings.
+- Arena: piso preto com brilho roxo, linha branca, círculo do meio em NEON (azul da casa · rosa do visitante), o escudo de cada time
+  projetado no chão da sua metade. Sem chuva e sem noite.
+- Futebol 7 no motor (`tamanhoDoTime('kings') = 7`). Quem está em campo segue `emCampoKings` (1×1 … 7×7 e o dado; de linha = no máx. 6);
+  quem não está vai pro `banco` do `Jogo2D` (`emCampo`) e aparece na lateral, apagadinho. Cartão e carta de suspensão: o jogador vai pro
+  banco com o cartão do lado e o time joga com um a menos.
+- Do 38' da Kings em diante: bola vermelha/dourada com brilho e a borda do campo na cor. Selo da TV e "GOOOL" com o minuto da Kings.
+- Banners, faixa EM CAMPO e faixa dos efeitos continuam os de sempre (ficam fora do placar). Replay dos gols fica DESLIGADO na Kings.
+- 🔒 Só na conta de teste (`useCampo2DTester`): o botão do 2D some na Kings pros outros, e o placar só vira 2D com os dados da Kings.
+- Medido: 200 jogos sem tela — 0 erro, placar do campinho = placar da regra em todos, nunca mais de 7 em campo. Fotos reais:
+  `scripts/mockups/kings-2d-real-*.png`.

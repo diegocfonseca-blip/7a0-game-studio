@@ -10,7 +10,7 @@
 //  · empate no apito → SHOOTOUT; pontos 3 (vitória) · 2 (vitória no shootout) · 1 (derrota no shootout) · 0
 // A partida tem 40 min; o placar de sempre anda de 0 a 93, então os minutos são traduzidos pela proporção.
 import type { AssistRow, CartaKingsInfo, CartaoKingsInfo, CartaKingsTipo, DueloKingsInfo, KingsBase, KingsInfo, LeagueTeam, MatchHighlight, MatchResult, ScorerRow } from './types'
-import { MIN_BOLA, MIN_DADO, MIN_INTERVALO, MIN_FIM, rngKings, dueloKings } from './kings'
+import { MIN_BOLA, MIN_DADO, MIN_INTERVALO, MIN_FIM, MIN_EFEITO as MIN_EFEITO_K, rngKings, dueloKings } from './kings'
 import type { Canto } from './kings'
 import { disputaPenaltisComSequencia } from './penaltis'
 
@@ -351,4 +351,20 @@ export function vencedorKings(r: { homeId: number; awayId: number; hg: number; a
 export function somaListas(destS: ScorerRow[], tmpS: ScorerRow[], destA: AssistRow[], tmpA: AssistRow[]) {
   for (const x of tmpS) { const row = destS.find(y => y.name === x.name && y.teamId === x.teamId); if (row) row.goals += x.goals; else destS.push({ ...x }) }
   for (const x of tmpA) { const row = destA.find(y => y.name === x.name && y.teamId === x.teamId); if (row) row.assists += x.assists; else destA.push({ ...x }) }
+}
+
+/** 👑 o que o campinho precisa saber da partida da Kings (tudo já sorteado pela regra — aqui só se mostra) */
+export interface Kings2D {
+  dado: 1 | 2 | 3
+  /** 🔴 vermelha (alguém na frente: gol vale 2) · 🟡 dourada (empate: gol de ouro), a partir do 38' da Kings */
+  bola?: 'dourada' | 'vermelha'
+  /** quem está FORA (cartão ou carta de suspensão): `min` no relógio do placar (0–93), `ate` = minuto da KINGS (0–40) em que volta */
+  fora: { nome: string; min: number; ate: number; cor: 'amarelo' | 'vermelho' }[]
+}
+/** 👑📺 a partida da Kings → o que o Campo 2D desenha (cartões e a carta de suspensão viram "fora"; o dado e a bola do fim) */
+export function kings2DDe(k?: KingsInfo | null): Kings2D | undefined {
+  if (!k) return undefined
+  const fora: Kings2D['fora'] = (k.cartoes ?? []).map(c => ({ nome: c.nome, min: c.min, ate: c.ate, cor: c.cor }))
+  for (const c of k.cartas ?? []) if (c.vale === 'suspensao' && c.suspenso) fora.push({ nome: c.suspenso, min: c.min, ate: placarParaK(c.min) + MIN_EFEITO_K, cor: 'vermelho' })
+  return { dado: k.dado, bola: k.bola, fora }
 }

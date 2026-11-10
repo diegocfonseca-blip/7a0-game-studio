@@ -81,21 +81,25 @@ const grupoDe = (pos?: string): Grupo => pos === 'GOL' ? 'GOL' : pos === 'LAT' ?
 // 📐 A FORMAÇÃO DO TÉCNICO MANDA (Diego 20/10: *"não adianta ser 4-5-1 e ter três atacantes cravados na frente… 5-3-2 e ter
 // dois zagueiros na zaga"*). Elenco com mais de 11 (Minhas Ligas depois do leilão de reservas) entrava pelos 11 PRIMEIROS
 // COMPRADOS — e a formação no campinho saía da ordem de compra. Agora sai a conta da formação: N por posição, os melhores.
+/** 👑 KINGS (10/11): futebol 7 (goleiro + 6). Todo o resto do jogo é 11. */
+export const tamanhoDoTime = (formacao?: FormationKey | string) => formacao === 'kings' ? 7 : 11
 export function onzeDaFormacao(cartas0: CartaCampo[], formacao?: FormationKey | string): CartaCampo[] {
   // 🌐 a Copa do Mundo e a regional guardam a posição em `sec`, não em `pos`: sem isto o time inteiro virava atacante, sem
   // goleiro, e o campinho quebrava ao montar (20/10)
   const cartas = cartas0.map(c => c.pos || !c.sec ? c : { ...c, pos: c.sec })
-  if (cartas.length <= 11) return cartas
+  const tam = tamanhoDoTime(formacao)
+  if (cartas.length <= tam) return cartas
   const need = FORMATIONS[(formacao && formacao in FORMATIONS ? formacao : '4-3-3') as FormationKey]
   const out: CartaCampo[] = []
   for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const)
     out.push(...cartas.filter(c => c.pos === pos).sort((a, b) => (b.fame ?? 0) - (a.fame ?? 0)).slice(0, need[pos]))
-  for (const c of cartas) if (out.length < 11 && !out.includes(c)) out.push(c) // (posição que faltou: completa com quem sobrou)
-  return out.slice(0, 11)
+  for (const c of cartas) if (out.length < tam && !out.includes(c)) out.push(c) // (posição que faltou: completa com quem sobrou)
+  return out.slice(0, tam)
 }
 function montaTime(lado: Lado, cartas: CartaCampo[], formacao?: FormationKey | string): Atleta[] {
-  const lista = onzeDaFormacao(cartas, formacao).slice(0, 11)
-  while (lista.length < 11) lista.push({ name: '', pos: lista.some(c => c.pos === 'GOL') ? 'MEI' : 'GOL' })
+  const tam = tamanhoDoTime(formacao)
+  const lista = onzeDaFormacao(cartas, formacao).slice(0, tam)
+  while (lista.length < tam) lista.push({ name: '', pos: lista.some(c => c.pos === 'GOL') ? 'MEI' : 'GOL' })
   const por: Record<Grupo, CartaCampo[]> = { GOL: [], DEF: [], LAT: [], MEI: [], ATA: [] }
   for (const c of lista) por[grupoDe(c.pos)].push(c)
   if (!por.GOL.length) por.GOL.push((por.DEF.pop() ?? por.MEI.pop() ?? por.LAT.pop() ?? por.ATA.pop())!)
@@ -190,6 +194,30 @@ export class Jogo2D {
     this.evs = [...feitos, ...eventos.filter(e => e.fim === 'gol' ? e.min > ult : e.min > agora).sort((a, b) => a.min - b.min)]
   }
 
+  // ── 👑 KINGS: quem está em campo ──────────────────────────────────────────────────────────────────────────────────────
+  /** quem está FORA do campo agora (Kings: ainda não entrou, ou cumprindo cartão). Não joga e é desenhado na lateral. */
+  banco: Atleta[] = []
+  /** 👑 KINGS (10/11): `n` = quantos de LINHA cada lado tem agora (1×1 … 7×7, dado) e `fora` = nomes cumprindo cartão (o time joga
+   *  com um a menos). Quem sobra vai pro banco; quem entra nasce na lateral, no meio, e corre pro lugar. Nunca tira quem está
+   *  com a bola nem quem está num lance (tenta de novo no quadro seguinte). Só APRESENTAÇÃO: não sorteia nada nem mexe no placar. */
+  emCampo(n: [number, number], fora: string[] = []) {
+    const ordem: Record<Grupo, number> = { ATA: 0, MEI: 1, LAT: 2, DEF: 2, GOL: 9 }
+    const ocupado = (a: Atleta) => a === this.bola.dono || !!a.ov
+    for (const l of [0, 1] as Lado[]) {
+      const linha = [...this.atl, ...this.banco].filter(a => a.lado === l && a.grupo !== 'GOL')
+        .sort((a, b) => ordem[a.grupo] - ordem[b.grupo] || a.bx - b.bx)
+      const cumprindo = linha.filter(a => a.nome && fora.includes(a.nome))
+      const quer = new Set(linha.filter(a => !cumprindo.includes(a)).slice(0, Math.max(0, n[l] - cumprindo.length)))
+      for (const a of this.atl.filter(a => a.lado === l && a.grupo !== 'GOL' && !quer.has(a)))
+        if (!ocupado(a)) { this.atl.splice(this.atl.indexOf(a), 1); this.banco.push(a); a.ov = null }
+      for (const a of this.banco.filter(a => a.lado === l && quer.has(a))) {
+        this.banco.splice(this.banco.indexOf(a), 1)
+        a.x = a.ax = l === 0 ? -1 : W + 1; a.y = a.ay = L / 2 + (l === 0 ? 4 : -4); a.ov = null
+        this.atl.push(a)
+      }
+    }
+  }
+
   // ── consultas ──
   time(l: Lado) { return this.atl.filter(a => a.lado === l) }
   gk(l: Lado) { return this.atl.find(a => a.lado === l && a.grupo === 'GOL') ?? this.time(l)[0] }
@@ -202,7 +230,10 @@ export class Jogo2D {
     // bola voltava 35–40 m pra trás de graça (Diego 20/10: *"tem que ter sentido igual futebol real"*)
     if (perto && cands.length > 1) cands = [...cands].sort((a, b) => dist(a, perto) - dist(b, perto)).slice(0, Math.ceil(cands.length / 2))
     const bons = cands.filter(a => est.includes(a.estilo))
-    const base = cands.length ? cands : this.time(l).filter(a => a.grupo !== 'GOL' && !tira.includes(a))
+    let base = cands.length ? cands : this.time(l).filter(a => a.grupo !== 'GOL' && !tira.includes(a))
+    // 👑 Kings (1×1, 2×2…): pode não ter ninguém do setor em campo — vale quem estiver (até o goleiro)
+    if (!base.length) base = this.time(l).filter(a => !tira.includes(a))
+    if (!base.length) base = this.time(l)
     return bons.length && this.rng() < 0.75 ? this.sorteia(bons) : this.sorteia(base)
   }
   private porNome(l: Lado, nome?: string) { return nome ? this.time(l).find(a => a.nome === nome && !!a.nome) : undefined }

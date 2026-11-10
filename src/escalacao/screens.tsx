@@ -14,7 +14,7 @@ import { usePenaltisCampo } from './campo2d-penaltis-react' // 🥅 disputa de p
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
 import { dur2DDaVel } from './vel2d-regra'
 import { useRitmo2D, useVel2D, useVel2DAqui, useControleVel2D, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
-import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
+import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar, kings2DDe, type Kings2D } from './kings-liga'
 import { PixMP } from './pix-mp'
 import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
 import type { MatchResult, CartaKingsInfo } from './types'
@@ -6807,6 +6807,7 @@ export function QuickManualLock() {
 // é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
 export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {}) {
   const liberado = useCampo2DLiberado()
+  const kings2dTeste = useCampo2DTester()
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
@@ -6821,6 +6822,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   }, [pagou2d])
   if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
   if (!liberado || state.sport === 'basquete') return null
+  if (ehKings(state) && !kings2dTeste) return null // 👑📺 10/11: o 2D da Kings ainda só na conta de teste
   if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
   if (!temDireito) return (
     <ApoieButton startScreen="choice" trigger={open => (
@@ -6996,7 +6998,8 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm, kings2d }: {
+  /** 👑📺 a partida da Kings pro Campo 2D */ kings2d?: Kings2D
   /** ⏱️ 07/11: hora em que o dono começou esta rodada (quem chega atrasado entra no minuto certo) */ inicioEm?: number
   /** 👑 Kings: o relógio vem de fora (para nos banners) e mostra os 40 min da Kings */ minutoFixo?: number; relogioKings?: boolean
   /** 👑 Kings: frases que a rádio É OBRIGADA a dar naquele minuto (cartão) */ radioExtra?: { min: number; txt: string }[]
@@ -7023,7 +7026,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
         <LiveScoreCard enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
-          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} />
+          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} kings2d={kings2d} />
       </div>
       {fora && !basket && (
         <FaixaPlacarMini topo={0} min={relogioKings ? placarParaK(min) : min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
@@ -8005,7 +8008,7 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'r32' ? 50 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+                      roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(kJogo?.kings) : undefined}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === legHomeId)?.squad, fora: state.managers.find(m => m.id === legAwayId)?.squad, fCasa: state.managers.find(m => m.id === legHomeId)?.formation, fFora: state.managers.find(m => m.id === legAwayId)?.formation }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
@@ -8103,7 +8106,7 @@ export function EscSeason() {
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
           enhancedOnline={privateVisual} retro={retroDe(oppId)}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad, fCasa: state.managers.find(m => m.id === myLast.homeId)?.formation, fFora: state.managers.find(m => m.id === myLast.awayId)?.formation }}
-          minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+          minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(myLast.kings) : undefined}
           inicioEm={online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined}
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)
