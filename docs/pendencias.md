@@ -5,6 +5,11 @@
   8 modos, 0 falhas (`npm run salas-sim -- --cenario X --medir` mostra o antes/depois).
 - Aba velha aberta (o jogo não recarrega sozinho) só perde o texto da bio por uns dias (cai na bio pelo nome). Por isso NÃO tirei
   categoria/nível do mesmo jeito (+2% só, e a carta ficaria sem nível na aba velha).
+- Simulador cobre 13 modos (+ Liga/Copa, Liga/Liberta, Liga/Champions, Só Champions, Relâmpago) e a ABA VELHA (`--abas-velhas`):
+  tudo 0 falhas em 10/11. Só Champions e Relâmpago chegaram a 40 temporadas seguidas sem travar.
+- 🧪 MEDIDO (não feito): mandar só o PEDAÇO que mudou em vez da sala inteira = −83% do envio. É o grande corte, mas mexe no
+  coração do online: precisa de número de sequência, reenvio inteiro quando o convidado perde um pedaço, e só ligar quando TODOS
+  da sala estiverem na versão nova (aba velha não entende pedaço). Esperando o Diego dizer se quer que eu construa no simulador.
 - Próximas ideias medidas, NÃO feitas: sala parada na tela de fim (BHZBJB ficou 14 h aberta conversando a cada 3 s) — mexe no
   batimento do dono, precisa do OK do Diego; mandar o baralho só quando muda (arriscado, ficou de fora).
 
