@@ -5,6 +5,10 @@
   `cron.alter_job`); selo 🎭 FAKE DESLIGADO no aparelho (`NOME_FAKE_LIGADO = false` em apoio.tsx — ninguém leva o selo até ele decidir).
 - ✅ `esc_avisos` (sininho): 1 min → **3 min** e **parado durante a partida** (pergunta na hora ao voltar pra home) — Diego: "sim".
 - ⏭️ `esc_nomes_sem_escudo` (~540 ms, 59 mil chamadas) ainda pesado.
+- ⏭️ Painel do Criador: `esc_admin_dashboard` / `esc_admin_funil_mensal` passam dos 8 s (usuários online não carregam). Diego: "Sim"
+  pra consertar DE MADRUGADA (DDL recarrega a API). Lembrete marcado pra 11/11 04h10 (Brasília). `SET statement_timeout` na função NÃO
+  resolve — tem que achar a parte lenta (índice/varredura).
+- ✅ Publicados 10/11 ~16h35: conserto da carreira que não coube (Lucas Barreto), selo FAKE desligado, sininho 3 min.
 
 ## 📱☁️ 10/11 — CARREIRA QUE NÃO COUBE NO APARELHO FICAVA INVISÍVEL (Lucas Barreto 30, T113 "sumiu" do celular e do PC) · no branch
 - A T113 (2,5 MB) estava INTEIRA na nuvem (`esc_pyramid_saves`, junto com a T7 nova). Cópia de segurança feita em `esc_saves_backup`
