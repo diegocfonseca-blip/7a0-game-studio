@@ -9804,7 +9804,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // carreira: carta com piso é compra sem leilão — bloqueia se não tem caixa
       const picker = s.managers.find(m => m.id === action.mgrId)
       const pickCard = s.monte.find(c => c.id === action.cardId)
-      if (picker && pickCard && !montePickable(s, picker, pickCard)) return s
+      // 🛡️ 10/11 (sala 4N8G9P, time com 10): a carta já saiu do monte (toque repetido, pedido reenviado, ou chegou depois do
+      // tempo esgotado) → IGNORA, sem queimar a vez. Antes o `monteIdx++` andava mesmo sem carta e o time perdia a vaga.
+      if (!picker || !pickCard || !montePickable(s, picker, pickCard)) return s
       const rng = rngOf(s)
       takeFromMonte(s, action.cardId)
       s.monteIdx++
