@@ -6035,11 +6035,34 @@ function enterCerimonia(st: EscState) {
     }
     fechaConvocacao(st, {}); return
   }
+  fechaBuracosDeGente(st) // 🧯 10/11: ninguém de gente entra em campo com um a menos
   sweepMonteToBackstops(st)
   st.screen = 'cerimonia'
   // 🎥 modo stream: SEM cronômetro — o host dá o comando pra começar (controla o
   // ritmo da revelação ao vivo, mostra time por time). Sem stream: 45s e começa sozinho.
   st.cerimoniaDeadline = (st.streamMode || st.manualRoom) ? null : Date.now() + CEREMONY_MS // stream/manual: host dá o start (sem cronômetro)
+}
+// 🧯 TRAVA DO "UM A MENOS" (10/11, sala 4N8G9P: o "É Oq Cesarrrr?" jogou a liga inteira com 2 meias no 4-3-3 — e sobraram 2
+// meias no monte). Fora da carreira o Monte FECHA o XI (não existe passar), então chegar na cerimônia com titular faltando é bug.
+// Rede de segurança: antes da cerimônia, cada time de GENTE com vaga de titular vazia leva a PIOR sobra do monte daquela posição
+// (a mesma régua de quem deixa o tempo do monte acabar), de graça e pelo caminho de sempre (`takeFromMonte`). Só carta de
+// verdade que está no monte — nunca inventa jogador. Sem carta daquela posição no monte, fica como estava.
+function fechaBuracosDeGente(st: EscState) {
+  if (st.careerOnline) return // carreira tem banco, Cria da Base e "passar" — regra própria
+  for (const m of st.managers) {
+    if (!m.isHuman || m.dormindo) continue
+    for (const pos of SECTORS) {
+      while (filled(m, pos) < baseSlots(m.formation, pos)) {
+        const c = st.monte.filter(x => x.pos === pos && montePickable(st, m, x)).sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))[0]
+        if (!c) break
+        const ordem = st.monteOrder, idx = st.monteIdx
+        st.monteOrder = [m.id]; st.monteIdx = 0
+        takeFromMonte(st, c.id) // o caminho de sempre (vendedor, livro de preço, carteira) — com a "vez" apontando pra este time
+        st.monteOrder = ordem; st.monteIdx = idx
+        ;(st.marketLog = st.marketLog ?? []).push(`🧯 ${m.name} completou o time com ${c.name} (sobra do monte)`)
+      }
+    }
+  }
 }
 const TIEBREAK_MS = 30_000
 
