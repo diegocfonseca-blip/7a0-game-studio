@@ -42,7 +42,7 @@ import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrow
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
+import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
@@ -53,13 +53,15 @@ import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
 import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
-import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
+import {PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
 import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
-import {usePlanoConta,getPosseConta} from './presidente-conta'
+import {usePlanoConta,getPosseConta,visualCabeNaPosse} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
 import { ComPerfil, MeusAmigos, SinoAmigos, PedidosNaHome, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
-import {podeVestirComPosse} from './presidente-avulsas'
+import {podeVestirComPosse,ROUPA_GRATIS} from './presidente-avulsas'
+import {aparenciaInicial,escolherPeca} from './presidente-aparencia'
+import {chaveClube,batismoDe} from './batismos'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
 import {identidadeDaConta} from './presidencia-identidade-conta'
@@ -2871,19 +2873,38 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
   )
 }
 
+// 🖋 10/11: os rivais da carreira = todo clube de batismo/fundador que existe na pirâmide (A→D), um de cada, em ordem alfabética
+const RIVAIS_BATISMO: { team: string; name: string }[] = (() => {
+  const vistos = new Set<string>(); const out: { team: string; name: string }[] = []
+  for (const d of ['A', 'B', 'C', 'D'] as const) for (const tm of DIVISION_TEAMS[d]) if (!vistos.has(tm.team) && batismoDe(tm.team)) { vistos.add(tm.team); out.push(tm) }
+  return out.sort((a, b) => a.team.localeCompare(b.team, 'pt-BR'))
+})()
 // ─── SETUP ───────────────────────────────────────────────────────────
 export function EscSetup() {
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const career = state.careerIntent
   const legacyPrivatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
-  const presidentAccount = usePresidentPreview()
-  const modularSetup = presidentAccount && PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
+  // 🟢 10/11 (Diego: *"publique já p todos"*): o passo a passo novo (clube → presidente → pregão) vale pra TODA conta. Quem não tem
+  // plano ganha o presidente básico de graça (careca + camiseta branca, `ROUPA_GRATIS`). Antes: só a conta dele (`usePresidentPreview`).
+  const modularSetup = PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
   // Keep the account check alive between the editor and final career step.
   usePlanoConta()
   const privatePreview = modularSetup || legacyPrivatePreview
   const setupMember = useMeuSocio()
   const [presidentDraft,setPresidentDraft] = useState(()=>sugestaoPresidente(undefined))
+  // 🎁 10/11: sem plano, o rascunho nasce no presidente GRÁTIS (careca + camiseta branca) — senão o terno (do Craque) travava o início.
+  //    Só quando o plano já chegou do banco (`useDireitos` != null) e só se o rascunho atual não cabe no que a conta tem.
+  const direitosSetup = useDireitos()
+  useEffect(() => {
+    if ((!direitosSetup && loggedEmail()) || !modularSetup) return // sem conta (ou sessão ainda vazia) = grátis na hora; logado espera o plano
+    setPresidentDraft(d => {
+      const posse = getPosseConta()
+      if (visualCabeNaPosse(d, posse)) return d
+      const careca = escolherPeca(escolherPeca(aparenciaInicial(), 'hair', 'none') ?? aparenciaInicial(), 'beard', 'none')
+      return { ...d, outfit: podeVestirComPosse(d.outfit, posse) ? d.outfit : ROUPA_GRATIS, ...(careca ? { appearance: careca } : {}) }
+    })
+  }, [direitosSetup, modularSetup])
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -2959,8 +2980,19 @@ export function EscSetup() {
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
 
+  // 🛟 10/11 (Diego: *"aperto em iniciar pregão e N deixa ir… N tem erro em vermelho nenhum"*): nenhum NÃO pode ser mudo. Toda
+  // recusa diz o porquê NA tela onde a pessoa está, e o motivo vai pra caixa-preta (esc_travas, quando = 'carreira_nao_comeca').
+  const travaInicio = (motivo: string, msg: string) => {
+    setNameErr(msg)
+    anotaTrava({ papel: 'host', momento: 'envelope', segundos: 0, reenvios: 0, extra: { quando: 'carreira_nao_comeca', motivo, passo: privateStep, roupa: presidentDraft?.outfit ?? null } }, true)
+  }
   async function start() {
-    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
+    try { await startInner() } catch (e) {
+      travaInicio('erro:' + String((e as Error)?.message ?? e).slice(0, 120), tr('Não deu pra começar a carreira agora. Tente de novo — se continuar, avise a gente.', 'Couldn\'t start the career right now. Try again — if it keeps happening, let us know.'))
+    }
+  }
+  async function startInner() {
+    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { travaInicio('presidente', tr('Falta terminar o presidente: dê um nome e escolha o visual.', 'Finish your president first: give a name and pick the look.')); setPrivateStep(2); return }
     const clean = nomeDeTime(stripEmoji(name)) // 🔤 21/10 (Diego): "NEYMAR_FC" vira "Neymar_FC"
     if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
@@ -2977,7 +3009,8 @@ export function EscSetup() {
     // dois "Neymarzetti" na mesma tabela, um dele e um robô. Aqui o seu clube sai
     // da lista de rivais; a trava final está no `makeCareerManagers`.
     const meuNome = stripEmoji(clean).trim().toLowerCase()
-    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome
+    const meuBatSetup = setupMember?.ativo ? setupMember.escudoTime?.trim() || null : null // 🖋 10/11: o seu clube batizado também não vira rival
+    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome && !(meuBatSetup && chaveClube(t) === chaveClube(meuBatSetup))
     const picks = career
       ? [...rivalPicks.filter(naoSouEu), ...TIMES_ELITE.map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
       : undefined
@@ -2985,7 +3018,7 @@ export function EscSetup() {
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
       if(modularSetup&&!podeVestirComPosse(presidentDraft.outfit,getPosseConta())){
-        setNameErr(tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
+        travaInicio('roupa', tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
         setPrivateStep(2);return
       }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
@@ -3099,14 +3132,30 @@ export function EscSetup() {
                 </div>
                 <p className="ll-career-note">{tr('Mais rivais significam mais disputa pelos mesmos jogadores. A liga continua com 20 clubes.', 'More rivals means more competition for the same players. The league still has 20 clubs.')}</p>
                 <label>{tr('RIVAIS PARA A CARREIRA', 'RIVALS FOR THE CAREER')} <small>{rivalPicks.length}/{rivals}</small></label>
-                <div className="ll-rival-list">
-                  {TIMES_ELITE.map(t => {
-                    const on = rivalPicks.includes(t.team)
-                    return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
-                  })}
-                </div>
+                {(() => {
+                  // 🖋 10/11 (Diego): o clube batizado do PRÓPRIO usuário não aparece como rival (escudo e mascote não podem repetir
+                  // na mesma liga) — e só quem tem batismo vê a linha explicando. Régua do nome = `chaveClube` (ignora caixa, acento, FC/EC).
+                  const meuBat = setupMember?.ativo ? setupMember.escudoTime?.trim() || null : null
+                  const ehMeu = (team: string) => !!meuBat && chaveClube(team) === chaveClube(meuBat)
+                  // 🖋 10/11 (Diego): TODOS os clubes de batismo e fundador, misturados (ordem alfabética), sem dizer a divisão de ninguém.
+                  //    O escolhido começa com você e outro clube ocupa o lugar dele na divisão de origem (store: START_CAREER_SOLO).
+                  const lista = RIVAIS_BATISMO.filter(t => !ehMeu(t.team))
+                  return <>
+                    <p className="ll-career-note" style={{ marginTop: 0 }}>{tr('🖋 Clubes de quem fez Batismo ou Fundador: eles aparecem na carreira de todo mundo.', '🖋 Clubs of players who got Naming or Founder: they show up in everyone\'s career.')}</p>
+                    <div className="ll-rival-list">
+                      {lista.map(t => {
+                        const on = rivalPicks.includes(t.team)
+                        return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
+                      })}
+                    </div>
+                    {meuBat && <p className="ll-career-note" style={{ marginTop: 8, background: 'rgba(255,196,0,.18)', border: '2px dashed #b38900', borderRadius: 10, padding: '6px 9px', color: '#5a4a14' }}>
+                      {tr(`🖋 O ${meuBat} não aparece aqui porque é o seu clube: escudo e mascote não se repetem na mesma liga.`, `🖋 ${meuBat} isn't listed because it's your club: crest and mascot can't repeat in the same league.`)}
+                    </p>}
+                  </>
+                })()}
                 <button className="ll-random-rivals" onClick={() => setRivalPicks([])}>{tr('🎲 USAR RIVAIS PADRÃO', '🎲 USE DEFAULT RIVALS')}</button>
               </div>
+              {nameErr && <p className="ll-career-error" role="alert">{nameErr}</p>}
               <div className="ll-career-actions">
                 <button className="ll-secondary" onClick={() => setPrivateStep(2)}>{tr('VOLTAR', 'BACK')}</button>
                 <button className="ll-primary" onClick={() => void start()}>{tr('IR PARA O PREGÃO 🔨', 'GO TO THE AUCTION 🔨')}</button>

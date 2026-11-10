@@ -2,7 +2,7 @@ import {sortearPresidente} from './presidente-sortear'
 import {usePosseConta,getPosseConta,recarregarMinhasPecas,visualCabeNaPosse} from './presidente-conta'
 import {podeSalvarPresidente,seloPeca} from './presidente-plano'
 import {seloRoupaModular} from './presidente-vestuario-acesso'
-import {compraPossivel,podeVestirComPosse,podeUsarPecaAvulsa,refPeca,refRoupa,temBoneco,type PosseAvulsa} from './presidente-avulsas'
+import {ROUPA_GRATIS,compraPossivel,podeVestirComPosse,podeUsarPecaAvulsa,refPeca,refRoupa,temBoneco,type PosseAvulsa} from './presidente-avulsas'
 import {PixMP} from './pix-mp'
 import {precoTxt} from './planos-regras'
 import {createPortal} from 'react-dom'
@@ -34,7 +34,6 @@ export function PresidenteFormulario({value,onChange,onConfirm,onBack,busy=false
  const posse=usePosseConta(),canWear=podeVestirComPosse(value.outfit,posse),boneco=temBoneco(posse),cabe=visualCabeNaPosse(value,posse)
  const [comprando,setComprando]=useState<string|null>(null)
  const pagou=useCallback(()=>{void recarregarMinhasPecas()},[])
- const precoDe=(ref:string)=>{const c=compraPossivel(ref,posse);return c.ok?precoTxt(c.preco,t('pt','en')==='en'):null}
  const [readyKey,setReadyKey]=useState<string|null>(null),layers=camadasDoPresidente(value),visualReady=readyKey===JSON.stringify(layers)
  const appearance=value.appearance??aparenciaInicial()
  const [pieceQuery,setPieceQuery]=useState('')
@@ -44,7 +43,7 @@ export function PresidenteFormulario({value,onChange,onConfirm,onBack,busy=false
  const modular=aparenciaModular(appearance)
  const changePiece=(category:CategoriaPeca,id:string)=>{const next=escolherPeca(appearance,category,id);if(next)onChange({...value,appearance:next})}
  const seloP=t(...seloPeca())
- const seloPecaDe=(id:string)=>podeUsarPecaAvulsa(id,posse)?seloP:precoDe(refPeca(id))?'🛒 '+precoDe(refPeca(id)):'🔒 '+seloP
+ const seloPecaDe=(id:string)=>podeUsarPecaAvulsa(id,posse)?seloP:'🔒 '+seloP // 10/11 (Diego): a grade mostra só o plano, sem preço
  const faltam=pecasQueFaltam(value,posse)
  return <section className="gp-root pb-root" aria-label={editing?t('Editar presidente','Edit president'):t('Criar presidente','Create president')}>
   <h1>{editing?t('EDITE SEU PRESIDENTE','EDIT YOUR PRESIDENT'):t('CRIE SEU PRESIDENTE','CREATE YOUR PRESIDENT')}</h1>
@@ -53,7 +52,7 @@ export function PresidenteFormulario({value,onChange,onConfirm,onBack,busy=false
    <div><div className="gp-filters"><label htmlFor={nameId}>{t('NOME DO PRESIDENTE','PRESIDENT NAME')}<input id={nameId} value={value.name} maxLength={40} disabled={busy} onChange={e=>onChange({...value,name:e.target.value})}/></label></div>
     <h2>{t('SEU VISUAL','YOUR LOOK')}</h2>
     <div className="gp-tabs" aria-label={t('Categorias do visual','Appearance categories')}>{([['outfit','ROUPAS','OUTFITS'],['skin','PELE','SKIN'],['hair','CABELO','HAIR'],['beard','BARBA','BEARD'],['accessory','ACESSÓRIOS','ACCESSORIES']] as const).map(([id,pt,en])=><button type="button" key={id} disabled={busy} aria-pressed={tab===id} onClick={()=>{setTab(id);setPieceQuery('')}}>{t(pt,en)}</button>)}</div>
-    {tab==='skin'?<div className="gp-tabs pb-options" aria-label={t('Cinco tons de pele','Five skin tones')}>{TONS_PELE.map(tone=><button type="button" key={tone.id} disabled={busy} aria-pressed={(modular.skinTone??'medium')===tone.id} onClick={()=>{const next=escolherTomPele(appearance,tone.id);if(next)onChange({...value,appearance:next})}}><span aria-hidden="true" style={{display:'inline-block',width:24,height:24,border:'2px solid #0c0c0c',borderRadius:'50%',background:tone.color,verticalAlign:'middle',marginRight:8}}/>{t(tone.pt,tone.en)}<small>{seloP}</small></button>)}</div>:tab==='outfit'?<div className="gp-tabs pb-options pb-outfits">{VESTUARIO_MODULAR.map(({id:outfit,pt,en,src})=><button type="button" key={outfit} disabled={busy} aria-pressed={value.outfit===outfit} onClick={()=>onChange({...value,outfit})}><img className="pb-outfit-art" src={import.meta.env.BASE_URL+src} alt="" loading="lazy" decoding="async" draggable={false}/>{t(pt,en)}<small>{podeVestirComPosse(outfit,posse)?t(...seloRoupaModular(outfit)):precoDe(refRoupa(outfit))?'🛒 '+precoDe(refRoupa(outfit))+' · '+t(...seloRoupaModular(outfit)):'🔒 '+t(...seloRoupaModular(outfit))}</small></button>)}</div>:<div className="gp-tabs pb-options">
+    {tab==='skin'?<div className="gp-tabs pb-options" aria-label={t('Cinco tons de pele','Five skin tones')}>{TONS_PELE.map(tone=><button type="button" key={tone.id} disabled={busy} aria-pressed={(modular.skinTone??'medium')===tone.id} onClick={()=>{const next=escolherTomPele(appearance,tone.id);if(next)onChange({...value,appearance:next})}}><span aria-hidden="true" style={{display:'inline-block',width:24,height:24,border:'2px solid #0c0c0c',borderRadius:'50%',background:tone.color,verticalAlign:'middle',marginRight:8}}/>{t(tone.pt,tone.en)}<small>{seloP}</small></button>)}</div>:tab==='outfit'?<div className="gp-tabs pb-options pb-outfits">{VESTUARIO_MODULAR.map(({id:outfit,pt,en,src})=><button type="button" key={outfit} disabled={busy} aria-pressed={value.outfit===outfit} onClick={()=>onChange({...value,outfit})}><img className="pb-outfit-art" src={import.meta.env.BASE_URL+src} alt="" loading="lazy" decoding="async" draggable={false}/>{t(pt,en)}<small>{outfit===ROUPA_GRATIS?t('🎁 GRÁTIS','🎁 FREE'):podeVestirComPosse(outfit,posse)?t(...seloRoupaModular(outfit)):'🔒 '+t(...seloRoupaModular(outfit))}</small></button>)}</div>:<div className="gp-tabs pb-options">
      <label style={{gridColumn:'1 / -1',width:'100%'}}>{t('BUSCAR PEÇA OU JOGADOR','FIND PART OR PLAYER')}<input type="search" value={pieceQuery} disabled={busy} onChange={e=>setPieceQuery(e.target.value)} aria-label={t('Buscar peça ou jogador','Find part or player')} style={{display:'block',width:'100%',boxSizing:'border-box',padding:12,border:'2px solid #0c0c0c',borderRadius:8,font:'inherit'}}/></label>
      {visiblePieces.map(p=><button type="button" key={p.id} disabled={busy} aria-pressed={tab==='accessory'?modular.accessories.includes(p.id):modular[tab]===p.id} onClick={()=>changePiece(tab,p.id)}><span className="pb-piece-art" aria-hidden="true">{p.layers.slice(0,1).map(id=>{const layer=PRESIDENTE_LAYERS.find(part=>part.id===id);return layer?<img key={id} src={import.meta.env.BASE_URL+layer.src} alt="" loading="lazy"/>:null})}</span>{t(p.pt,p.en)}<small>{seloPecaDe(p.id)}</small></button>)}
      {!visiblePieces.length&&<p role="status">{t('Nenhuma peça pronta nesta categoria corresponde à busca. Seu visual foi mantido.','No ready parts in this category match your search. Your appearance is unchanged.')}</p>}

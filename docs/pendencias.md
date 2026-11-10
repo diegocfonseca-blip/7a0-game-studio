@@ -808,6 +808,24 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 💾 10/11 — "SEM ESPAÇO" AO COMEÇAR CARREIRA NOVA COM CARREIRA GRANDE (Diego, Neymarzetti T47, 2 de 4 fichas) — ✅ PUBLICADO
+- `archiveActiveCareer` gravava a cópia no arquivo com a original ainda na vaga: a mesma carreira 2× no aparelho → estourava a cota.
+  Agora, se não couber, tira a original da vaga, grava o arquivo e, se ainda não couber, devolve a original byte a byte (mesma
+  receita da troca de 06/10). Trava: `npm run troca` (caso 4b, folga pequena). Era isso o "aperto Ir para o pregão e não vai".
+
+## 🧑‍💼 10/11 — CARREIRA PASSO A PASSO LIBERADA PRA TODOS + PRESIDENTE GRÁTIS — ✅ PUBLICADO ("publique já p todos")
+- Testado sem conta no navegador: clube → presidente (camiseta branca grátis já marcada) → rivais → "Começar o leilão". Ninguém trava.
+- ⚠️ O presidente de quem NÃO é a conta do Diego ainda não é gravado na carreira (`careerPresidentBase` só com `presidentWritesEnabled`) — a tela de criação vale pra todos, mas a Presidência/mapa continuam só dele.
+- ✅ 10/11 (2ª entrega): rivais = TODOS os clubes de batismo/fundador da pirâmide (A→D), em ordem alfabética, sem dizer divisão (Diego: *"N fale nada onde cada um tá"*). O escolhido começa com você; o lugar dele na B/C/D é completado com os extras da D. Testado (esbuild + reducer): 3/5/7 rivais de A/B/C/D → V, D, C, B e A com 20 cada, zero duplicado (*"terá q ter 20 times nas 5 divisões"*).
+### (antes) "IR PARA O PREGÃO" NÃO DEIXAVA IR, SEM AVISO
+- Diego: *"aperto em iniciar pregão e N deixa ir… N tem erro em vermelho nenhum"*. No `start()` do EscSetup as recusas eram MUDAS na tela 3
+  (rivais): nome/espaço gravavam `nameErr` mas a tela 3 não mostrava; presidente inválido voltava pra tela 2 sem texto; e um erro jogado
+  dentro do start() sumia (promessa sem catch). Agora: tela 3 mostra o aviso, presidente inválido diz o que falta, erro vira aviso +
+  caixa-preta (`esc_travas.extra.quando = 'carreira_nao_comeca'`, com o motivo). ⚠️ A CAUSA de verdade ainda não está provada — depois que
+  ele testar, ler a caixa-preta.
+- Pedido junto (FALTA, mockup antes): rivais da carreira = TODOS os clubes de batismo/fundador (menos o do próprio usuário) + linha
+  discreta pra quem tem batismo falando do clube batizado.
+
 ## 📋 10/11 — LIGA DRAFT NUNCA TEM COPA DEPOIS DA LIGA (sala DT89DJ do Fabulous virou Eurocopa) — ✅ PUBLICADO 10/11 ("Pode")
 - Diego: *"liga draft N pode ter copa dps das ligas"*. A DT89DJ (id 398f5e41, 4 pessoas) fechou a T1 às 23h50 e abriu uma copa de
   seleções da Europa (Neymar FC/Espanha campeão); a sala foi apagada depois, então não deu pra ler a config dela.

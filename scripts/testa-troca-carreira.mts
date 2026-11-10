@@ -64,6 +64,13 @@ assert.equal(m.stashActiveBeforeNew(), false, 'sem espaço: não começa a nova'
 assert.ok(store.getItem('esc-solo-career'), 'a atual continua na vaga dela')
 assert.deepEqual(seeds(), todas)
 
+// 4b) 🐛 10/11 (Diego, carreira T47 + "sem espaço" com 2 de 4 fichas): folga pequena (cabe a carreira UMA vez, não duas) — antes
+//     a cópia ia pro arquivo com a original ainda na vaga e estourava. Agora a original sai primeiro: a nova começa e nada some.
+store.teto = store.used + 300
+assert.equal(m.stashActiveBeforeNew(), true, 'pouca folga: guarda a atual sem dobrar e deixa começar a nova')
+assert.equal(store.getItem('esc-solo-career'), null, 'a vaga de jogando fica livre pra nova')
+assert.deepEqual(seeds(), todas, 'a atual foi pro arquivo: nenhuma carreira some')
+
 // 5) a nuvem nunca apaga carreira sozinha: se o aparelho perdeu alguma que a nuvem tem, a subida junta
 const fonte = (await import('node:fs')).readFileSync('src/escalacao/store.tsx', 'utf8')
 assert.ok(/faltaNoAparelho/.test(fonte) && /carimbo !== cloudAtConhecido\(uid\) \|\| faltaNoAparelho/.test(fonte), 'subida junta com a nuvem quando falta carreira no aparelho')
