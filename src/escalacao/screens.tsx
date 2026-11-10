@@ -3141,6 +3141,7 @@ export function EscSetup() {
                   //    O escolhido começa com você e outro clube ocupa o lugar dele na divisão de origem (store: START_CAREER_SOLO).
                   const lista = RIVAIS_BATISMO.filter(t => !ehMeu(t.team))
                   return <>
+                    <p className="ll-career-note" style={{ marginTop: 0 }}>{tr('🖋 Clubes de quem fez Batismo ou Fundador: eles aparecem na carreira de todo mundo.', '🖋 Clubs of players who got Naming or Founder: they show up in everyone\'s career.')}</p>
                     <div className="ll-rival-list">
                       {lista.map(t => {
                         const on = rivalPicks.includes(t.team)
