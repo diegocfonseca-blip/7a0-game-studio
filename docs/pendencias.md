@@ -13255,6 +13255,6 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 ## 10/11 — 🚪 "sair do jogo" alinhado no computador
 - Pedido: *"o sair do jogo… está desalinhado… deveria estar alinhado junto com o modal de cima… em qualquer modo e competição"*.
 - Feito no branch: no PC o rodapé copia posição e largura da coluna da esquerda (`.ll-auction-main` no leilão, `.ll-col-main` nos jogos);
-  sem essa coluna ou no celular fica como sempre. ⏳ Publicar quando o Diego mandar.
+  sem essa coluna ou no celular fica como sempre. ✅ Publicado pra todos em 10/11 (*"sim p todos ja"*).
 - (Kings: confirmado pra ele que o mano a mano e o tempo de 12 s nunca saíram da Kings da Partida Rápida; a saída do campinho voltou
   a escolher o batedor exatamente como antes.)
