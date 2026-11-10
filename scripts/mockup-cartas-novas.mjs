@@ -45,8 +45,9 @@ let m
 while ((m = re.exec(src))) {
   const setor = m[1].split('_').pop()
   if (!SETORES.includes(setor)) continue
-  const cartas = [...m[2].matchAll(/\{\s*name:\s*["']([^"']+)["']\s*,\s*club:\s*["']([^"']+)["']\s*,\s*year:\s*(\d+)/g)]
-  for (const c of cartas) porSetor[setor].push({ nome: c[1], clube: c[2], ano: c[3] })
+  // 10/11: aspas iguais dos dois lados — "Newell's Old Boys" tem apóstrofo e sumia do post (Scocco, Lote 49)
+  const cartas = [...m[2].matchAll(/\{\s*name:\s*(?:"([^"]+)"|'([^']+)')\s*,\s*club:\s*(?:"([^"]+)"|'([^']+)')\s*,\s*year:\s*(\d+)/g)]
+  for (const c of cartas) porSetor[setor].push({ nome: c[1] ?? c[2], clube: c[3] ?? c[4], ano: c[5] })
 }
 // 🧤 CARTAS SOLTAS: quem não nasceu num lote L3x precisa ser apontado aqui na mão.
 // Hoje é só o Koeman Jr, que entrou no `L31_EU_GOL` (o lote dos goleiros da leva 31)

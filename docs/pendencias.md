@@ -801,6 +801,44 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 🃏 LOTE 49 — 83 cartas famosas no AUGE (10/11) — ✅ PUBLICADO (ordem do Diego: "pode lançar ele já")
+- Diego: *"quero adicionar só os famosos… que não tem… aonde você adicionaria o auge"*. O 1º rascunho (148 cartas, todo mundo da lista) foi
+  DESCARTADO antes de publicar. ⚠️ Lição: conferir carta SEMPRE pelo `CATALOG*` (npx tsx), nunca grep com aspas duplas — metade do baralho usa
+  aspas simples e o grep deu "não tem" pra Kasper Schmeichel, Mahrez (Leicester City 2016), Estupiñán, Tim Cahill, Mitoma…
+- Entraram (EU): Southall Everton 85 C · Ramsdale Arsenal 22 · Luke Shaw United 21 · Bertrand Southampton 15 (auge, PFA; no Chelsea era reserva) · Aké City 23 · Guéhi Palace 25 ·
+  Woodgate Real 05 (folk) · James Rodríguez Real 15 C · Milner Liverpool 18 · Arteta Everton 08 · Kewell Leeds 01 · Kalvin Phillips Leeds 21 ·
+  Rúben Neves Wolves 19 · Douglas Luiz Villa 24 · Maddison Leicester 20 · Eze Palace 25 · McKennie Juve 21 · Trevor Francis Forest 79 C ·
+  Raúl Jiménez Wolves 19 · Adama Traoré Wolves 20 (folk) · Toney Brentford 23 · Mbeumo Brentford 25 · Igor Thiago Brentford 26 ·
+  Richarlison Everton 20 · João Pedro Chelsea 25 C (escolha do Diego) · Pedro Neto Chelsea 25 · Zaha Palace 19 · Bowen West Ham 23 ·
+  Sørloth Villarreal 24 · Zaza Juve 16 (folk) · + 2ª rodada: Neto Valencia 19 (goleiro; nome LIMPO "Neto", ordem do Diego — país preso por carta em PAIS_POR_CARTA e bio própria pra não herdar a do Neto do Corinthians) · Evanilson Porto 24 · Caballero City 16 · Amadou Onana Everton 23 · Verbruggen Brighton 25. Schelotto fora (o famoso, Guillermo do Boca, já tem). Total 35. James/Igor Thiago/Neves/Toney entraram em MESMO_JOGADOR (já tinham carta em outro baralho).
+- + 48 (2ª leva, mesma ordem): River (Pity Martínez C, Quintero, Pratto, Ponzio, Barovero, Rodrigo Mora, Teo Gutiérrez, Cavenaghi, Astrada,
+  Ramón Díaz C, Saviola C) · Boca (Rattín C, Benedetto, Pavón, Ibarra, Marcelo Delgado, Palacio) · Boselli Estudiantes 09 · Chango Cárdenas
+  Racing 67 C · Scocco Newell's 13 · Gignac Tigres 17 C (MUNDO) · e no EUROPA: Almeyda, Pastore, Lisandro López, Jackson Martínez, Guarín,
+  Antonio Valencia, Duván Zapata, Muriel, Borré, Enner Valencia, Effenberg C, Möller C, Riedle, Scholl, Kurányi, Schuster C, Valerón C,
+  Makaay C, Tristán C, Aduriz, Joaquín, Pauleta, Chalana C, Nuno Gomes, Jonas C, Di Natale C, Marcelinho Paraíba (Hertha 03).
+  Chicharito saiu (já existia como "Chicharito", Manchester United 2011). Conferido o baralho por SOBRENOME/apelido também.
+- Stories: `scripts/mockups/lote49-stories-1.png` (GOL·LAT·ZAG·MEI, 40) e `-2.png` (ATA, 43). O gerador perdia carta com apóstrofo no
+  clube ("Newell's") — consertado.
+
+## 🕵️ 09/11 — OLIVEIRA FC 30 × PRIME FC LIGADOS, sem valer nem sozinho (ordem do Diego: "tire todos C prime")
+- Oliveira (pietro.oliveira23061721) criava a sala, o Prime (pietrinhajaoliveira, criada 24/09) entrava pela MESMA internet 5–15 s depois,
+  saía quando começava e ele jogava sozinho contra 19 robôs (~3–4 min por temporada) e apagava a sala. ~30 salas só em 09/11; às 0h38 o
+  aparelho trocou Oliveira → Prime → Oliveira em 1 min. Era 1º da semana com 39 (2º tinha 11).
+- Tirados: os 50 títulos jogando sozinho desde 12/10 (39 provados no registro de 09/11; 11 antigos com o mesmo jeito, sem registro).
+  Os 34 títulos com gente na sala continuam. Banco: coluna nova `esc_contas_ligadas.solo_nao_vale` (só esse grupo usa).
+  Voltar os 11 antigos: `update esc_contas_ligadas set desde='2026-11-09 03:00+00' where grupo='oliveira30'`.
+- 🔁 Mesmo dia, Diego: *"N falei q sozinho N pode… Só falei q N deixe do Oliveira C a Prime"*. Os 11 antigos VOLTARAM (`desde` = 09/11 03:00 UTC,
+  a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
+- ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 09/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **wislleyrc12 × wislley427** — mesmo nome "wislley" nos dois e-mails, as duas criadas 31/08, logins com 13 min, 9 temporadas
+  só os dois, 0 × 4 ligas. ⚠️ A perdedora (wislleyrc12) jogou 33 salas cheias — é conta ATIVA dele, não conta morta de apoio.
+- PIOROU: **Amaral FC** × Blue Lock agora 24 temporadas, 10 ligas × 0 (eram 18 / 8×0); com o FC Bbc (4×0) somam 14 ligas.
+- Médios novos (só anotado): samuelmachadof12 × elisangelafelisbinomachado (mesmo sobrenome, 7 temp., 5×0, perdedora 7 salas cheias — família) ·
+  luizhveras01 × othon.bf (5 temp., 3×0, perdedor 33 salas cheias — parece amigo de verdade).
+- Os outros de 07/11 e 08/11 seguem iguais.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 08/11 (nada forte novo; não avisado)
 - Médios novos (só anotado): Carvalho × Carvalho (carvalho.marcosrp × mpereiradecarvalhoneto, 11 temp., 5×0, mas o perdedor jogou 5 salas cheias —
   parece família) · Witzel × Witzel (ritawitzel08 criada 07/11 × miguelwitzel994, 10 temp., 0×6, perdedor 2 salas cheias) · juan.fcsilva × bryangemado
@@ -877,6 +915,8 @@ Pedido aprovado: *"coisas bem tradicionais do Brasil, espalhadas pelo mapa, muda
 ## 🛡️📧 Escudo de batismo só pelo e-mail (02/11) — ✅ PUBLICADO
 - Diego: *"não deveria seguir pelo nome… somente pelo e-mail da conta do usuário"* (caso Mengão Malvadao do João Victor aparecendo com o escudo do batismo do Átila na lista do clã). Banco: `esc_nomes_sem_escudo()` lista os nomes EXATOS (minúsculo, com acento) de contas que usam nome de batismo sem ser donas (pelo e-mail em `esc_nomes_batismo`), tirando o nome exato que o próprio dono usa. Aparelho: `mimos.ts` (`nomeSemEscudo`) + `escudos.tsx` (`logoPronta` não dá a arte fixa pra esses nomes; nome de ASSENTO dos bots segue com escudo). Carrega no início (`main.tsx`) e no lobby. Limite: cópia letra por letra igual ao nome do dono continua indistinguível pelo nome (no jogo ela já sai com "🎭FAKE" grudado, que também tira o escudo). Etapa 3 completa (escudo por conta em todo lugar) continua pendente.
 
+## ⭐ 09/11 — ibemanu5@gmail.com: Craque Salas por 12 meses, dado pelo Diego
+- Linha em `esc_assinatura_mensal` (craque_salas, até 09/11/2027, sem `vendria_sub`). Conta de 02/11 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — é do Craque Completo).
 ## ⭐ 02/11 — brunomontoya011@gmail.com: Craque Salas por 12 meses, dado pelo Diego
 - Linha em `esc_assinatura_mensal` (craque_salas, até 02/11/2027, sem `vendria_sub`). Conta de 24/07 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo). Tinha tier verde antigo (continua como `tier_legado`).
 ## 🏆 Dia de FINAL no mapa 3D (03/11, aprovado: "ok") — no BRANCH, esperando OK visual (só a conta de teste vê o mapa)
