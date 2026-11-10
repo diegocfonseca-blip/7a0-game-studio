@@ -178,7 +178,7 @@ esperar 2 minutos lá fora"*.
   mais o relógio** (marcha e tempo da rodada por ref no `useRelogioKings`) — era o "troquei a velocidade e travou". **E a Kings usa o
   desenho de computador das salas** (`desk2` sem `!kingsS`): campinho, tabela e o resto nos mesmos lugares.
   ⚠️ Lembrar: tudo isso só liga com `ehKings` — nada vaza pros outros modos (cobrança dele: *"Kings League é um tipo de jogo diferente"*).
-- ⏩ **Kings: a marcha vale pro jogo TODO (10/11, noite)** — *"quero a velocidade do manual igual é nas salas online… tá muito lento… de
+- ⏩ **Kings PARTIDA RÁPIDA: a marcha vale pro jogo TODO (10/11, noite; a sala online da Kings NÃO mudou — *"apenas do partida rápida"*)** — *"quero a velocidade do manual igual é nas salas online… tá muito lento… de
   qualquer lance igual a velocidade"* + *"mesmo trocando a velocidade não tá mudando nada"*. Antes só o 7×7 acelerava (1×1–6×6, dado,
   pontapé, carta e entradas eram fixos): do Normal pro 4× o jogo caía só de 3,7 pra 2,8 min. Agora tudo divide pela marcha
   (`msCenaKings` + `kingsRoundMs` em screens.tsx), menos a cena em que alguém DECIDE (escolha do coringa/suspensão e o duelo), com piso

@@ -1,4 +1,5 @@
-## ⏩ 10/11 noite — Kings: a velocidade agora vale pro jogo todo (FEITO no branch, falta publicar com OK do Diego)
+## ⏩ 10/11 noite — Kings PARTIDA RÁPIDA: a velocidade agora vale pro jogo todo (FEITO no branch, falta publicar com OK do Diego)
+- Diego: *"tô falando apenas do partida rápida do Kings League e só"* → a sala online da Kings segue EXATAMENTE como antes (`kingsRapida`).
 - Antes só o 7×7 acelerava; 1×1–6×6, dado, banners, carta e entradas eram fixos, e no 2D a marcha nem chegava no relógio da Kings.
 - Agora tudo anda na marcha (menos a escolha da carta e o duelo, que são decisão), com o seletor do 2D igual ao das salas. Detalhe em
   `docs/conceito-kings-league.md`. Testes: build + `npm run kings` + `kings-regras` + `vel-2d` ✅.

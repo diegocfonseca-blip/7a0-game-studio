@@ -6914,7 +6914,7 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   const t = useT() // 🌐 BR/EN
   const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
   const r2d = useRitmo2D()
-  const c2dCtl = useControleVel2D(useCampo2DLigado()) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !(ehKings(state) && state.onlineMode === 'online')) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
   // ⏩📺 05/11: teste "sem botão Manual" (Partida Rápida com 2D, conta do Diego) — some o Manual, fica o automático 2×
@@ -6977,7 +6977,7 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
   const r2d = useRitmo2D()
   // ⏩📺 06/11 (Diego): no 2D a marcha é ABSOLUTA e mora fora do simSpeed — offline no aparelho (vale no auto também), online no
   // estado da sala (`SET_VEL_2D`, só o dono). Fora do 2D, o seletor e o simSpeed de sempre.
-  const c2dCtl = useControleVel2D(useCampo2DLigado())
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !(ehKings(state) && state.onlineMode === 'online'))
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return null
   if (r2d.semManual) return null
   const opcoes = c2dCtl ? c2dCtl.opts.map(o => ({ v: o.v, label: t(o.pt, o.en) })) : SPEED_OPTS
@@ -7096,16 +7096,23 @@ const KINGS_LENTO_MS = (7 + 3) * KINGS_MS_POR_MIN_LENTO
 // os banners, a carta, a entrada de jogador — e não só pro 7×7. Só fica no tempo de sempre a cena em que ALGUÉM DECIDE (a escolha do
 // coringa/suspensão e a cobrança do duelo), pra marcha alta não roubar o tempo de quem está escolhendo. A leitura tem um piso (3 s;
 // a entrada de jogador 1,2 s) pra dar tempo de ler mesmo no 4×. No Campo 2D a marcha é a do 2D (1× a 4×, igual às salas).
-const msCenaKings = (ms: number, tipo: CenaKings['tipo'], marcha: number) => {
+// ⚠️ 10/11 (Diego: *"tô falando apenas do partida rápida do Kings League e só"*): isto vale SÓ na Partida Rápida (offline). Na sala
+// online da Kings segue a régua de antes (`tudo = false`: cenas fixas ficam fixas, fases lentas 5 s por minuto, só o 7×7 acelera).
+const msCenaKings = (ms: number, tipo: CenaKings['tipo'], marcha: number, tudo = true, fixo = false) => {
   const m = marcha > 0 ? marcha : 1
+  if (!tudo) return fixo ? ms : ms / m
   if (tipo === 'escolha' || tipo === 'duelo') return ms
   if (tipo === 'entra') return Math.max(1200, ms / m)
   return Math.max(Math.min(ms, 3000), ms / m)
 }
 /** tempo de uma rodada da Kings na marcha escolhida: tudo anda na marcha (menos as cenas de decisão) */
-export const kingsRoundMs = (marcha: number) => {
+export const kingsRoundMs = (marcha: number, tudo = true) => {
   const m = marcha > 0 ? marcha : 1
   const c = KINGS_CENA_MS
+  if (!tudo) { // a régua de antes (sala online da Kings)
+    const fixoMax = c.pontape + 8 * c.entra + c.dado + 2 * c.carta + 4 * c.duelo + 2 * c.escolha
+    return Math.round((fixoMax + (c.intervalo + 2 * c.bola) / m + KINGS_LENTO_MS + KINGS_MS_7X7 / m + 1500) / 0.84)
+  }
   const cenas = 2 * c.escolha + 4 * c.duelo + msCenaKings(c.pontape, 'pontape', m) + 8 * msCenaKings(c.entra, 'entra', m) + msCenaKings(c.dado, 'dado', m)
     + 2 * msCenaKings(c.carta, 'carta', m) + msCenaKings(c.intervalo, 'banner', m) + 2 * msCenaKings(c.bola, 'banner', m)
   return Math.round((cenas + KINGS_LENTO_MS / m + KINGS_MS_7X7 / m + 1500) / 0.84)
@@ -7166,7 +7173,7 @@ function cenasDoJogo(r: MatchResult, nome: (id: number) => string, souEu: (id: n
 }
 /** relógio da Kings: anda 0→93 (escala do placar) e PARA em cada cena pelo tempo dela. Acaba antes de 85% da rodada,
  *  que é quando a tela libera o resultado — então a tabela nunca entrega o placar antes do apito. */
-function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string, youId = -1) {
+function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string, youId = -1, tudo = true) {
   const [min, setMin] = useState(0)
   const [cena, setCena] = useState<CenaKings | null>(null)
   const rk = useRef(roundKey)
@@ -7178,6 +7185,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
   // Agora a marcha e o tempo da rodada vêm por ref: o relógio segue de onde está, só muda o ritmo.
   const speedRef = useRef(speed); speedRef.current = speed
   const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs
+  const tudoRef = useRef(tudo); tudoRef.current = tudo
   useEffect(() => {
     const r = rRef.current, nome = nomeRef.current
     if (!ativo || !r) return
@@ -7191,10 +7199,10 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
     // fases lentas: tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada (refeito a cada passo: a marcha pode mudar no meio)
     const unidLentas = lentos.reduce((a, [x, y]) => a + (y - x), 0)
     const minLentos = lentos.reduce((a, [x, y]) => a + placarParaK(y) - placarParaK(x), 0)
-    const msLento = () => minLentos * KINGS_MS_POR_MIN_LENTO / (speedRef.current > 0 ? speedRef.current : 1) // ⏩ 10/11: a marcha vale aqui também
+    const msLento = () => minLentos * KINGS_MS_POR_MIN_LENTO / (tudoRef.current && speedRef.current > 0 ? speedRef.current : 1) // ⏩ 10/11: a marcha vale aqui também
     const taxaLenta = () => unidLentas > 0 ? unidLentas / msLento() : 0
     const taxaRapida = () => {
-      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, e.c.tipo, sp), 0)
+      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, e.c.tipo, sp, tudoRef.current, e.fixo), 0)
       return (93 - unidLentas) / Math.max(2000, roundMsRef.current * 0.84 - pausas - msLento() - 500)
     }
     let cur = 0, idx = 0, ate = 0, ult = Date.now()
@@ -7212,7 +7220,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
         if (k >= 0) { ev = nova; idx = k + 1 }
       }
       if (idx < ev.length && cur >= ev[idx].min) {
-        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, ev[idx].c.tipo, speedRef.current); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
+        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, ev[idx].c.tipo, speedRef.current, tudoRef.current, ev[idx].fixo); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
       }
       // 🟡 gol de ouro: o jogo ACABA no minuto do gol (lido na hora — a escolha de canto pode ter mudado o jogo)
       const rr = rRef.current
@@ -7421,8 +7429,9 @@ export function EscSeason() {
   const baseRoundMs = c2d ? dur2DDaVel(vel2dAqui) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
   // 👑⏩ 10/11: a Kings anda na marcha do Manual — no Campo 2D a marcha do 2D (1×–4×, igual às salas), no placar a de sempre
   const c2dLigadoAqui = useCampo2DLigado()
-  const kingsMarcha = kingsS && c2dLigadoAqui ? vel2dAqui : speedFactor
-  const roundMs = kingsS ? kingsRoundMs(kingsMarcha) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  const kingsRapida = kingsS && !online // ⚠️ só a Partida Rápida da Kings; a sala online da Kings fica como estava
+  const kingsMarcha = kingsRapida && c2dLigadoAqui ? vel2dAqui : speedFactor
+  const roundMs = kingsS ? kingsRoundMs(kingsMarcha, kingsRapida) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -7665,7 +7674,7 @@ export function EscSeason() {
     ? (kTie?.lastKings ? { homeId: kTie.aId, awayId: kTie.bId, hg: kTie.legs[0][0], ag: kTie.legs[0][1], highlights: kTie.lastHighlights ?? [], kings: kTie.lastKings } : undefined)
     : myLast
   const kKey = copaLive ? 500 + (qc?.bracket.length ?? 0) * 10 + (kTie?.legs.length ?? 0) : state.round
-  const kRel = useRelogioKings(kingsS, kKey, roundMs, kingsMarcha, kJogo, nomeLiga, you.id)
+  const kRel = useRelogioKings(kingsS, kKey, roundMs, kingsMarcha, kJogo, nomeLiga, you.id, kingsRapida)
   // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
   // fase rolar aparece o caminho da copa + os confrontos escudo×escudo. Na 1ª fase usa o tempo de leitura
   // de sempre (`COPA_INTRO_SECONDS`); nas seguintes o respiro sobe de 3,2s pra 5s pra dar tempo de ler.
