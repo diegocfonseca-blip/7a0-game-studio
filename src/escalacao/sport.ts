@@ -291,7 +291,7 @@ export function useAliciarJogador(): boolean {
 }
 
 // 👑 KINGS LEAGUE na Partida Rápida (15/10) — só a conta do Diego até ele aprovar (`docs/conceito-kings-league.md`)
-const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'luizeduardorossini0013@gmail.com']) // + Rossini Money (16/10, pedido do Diego)
+const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'luizeduardorossini0013@gmail.com', 'henriquejunger07@gmail.com']) // + Rossini Money (16/10) + henriquejunger07 (10/11), pedidos do Diego
 let kingsOk = false
 function applyKings(email?: string | null): void {
   const u = !!email && KINGS_TESTERS.has(email.toLowerCase())
