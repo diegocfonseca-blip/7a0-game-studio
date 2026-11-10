@@ -8,6 +8,10 @@
 - ⏭️ Painel do Criador: `esc_admin_dashboard` / `esc_admin_funil_mensal` passam dos 8 s (usuários online não carregam). Diego: "Sim"
   pra consertar DE MADRUGADA (DDL recarrega a API). Lembrete marcado pra 11/11 04h10 (Brasília). `SET statement_timeout` na função NÃO
   resolve — tem que achar a parte lenta (índice/varredura).
+- 🛑 BANCO RELENDO O SAVE DA SALA (game_rooms na publicação do Realtime → cada gravação de 3 s é relida; maior gasto do banco em
+  pg_stat_statements). Diego, 10/11: *"NÃO pq n entendi… e se isso vai gerar bugs e travas… tem que fazer testes de simulação
+  sozinho antes"*. NÃO MEXER até: montar a mudança numa cópia (ex.: lista de colunas na publicação SEM `game_state` — cuidado: a sala
+  de Copa (`mode='mundo'`) lê `game_state` pelo aviso do banco em lobby.tsx), testar no simulador/bancada e levar o RESULTADO pra ele.
 - ✅ Publicados 10/11 ~16h35: conserto da carreira que não coube (Lucas Barreto), selo FAKE desligado, sininho 3 min.
 
 ## 📱☁️ 10/11 — CARREIRA QUE NÃO COUBE NO APARELHO FICAVA INVISÍVEL (Lucas Barreto 30, T113 "sumiu" do celular e do PC) · no branch
