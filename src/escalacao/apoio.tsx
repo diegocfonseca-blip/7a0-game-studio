@@ -607,12 +607,17 @@ export async function carregaSeloCoracao(liberada: boolean): Promise<void> {
 }
 /** 🛡️📧 02/11: nomes de conta que copiaram um batismo (o banco decide pelo e-mail) — o escudo do batismo não é desenhado pra eles */
 let nomesSemEscudoCarregado = false
-export async function carregaNomesSemEscudo(): Promise<void> {
-  if (nomesSemEscudoCarregado) return
-  try {
-    const { data, error } = await supabase.rpc('esc_nomes_sem_escudo')
-    if (!error && Array.isArray(data)) { registraNomesSemEscudo(data as string[]); nomesSemEscudoCarregado = true }
-  } catch { /* sem banco: fica como antes */ }
+let nomesSemEscudoPendente:Promise<void>|null=null
+export function carregaNomesSemEscudo(): Promise<void> {
+  if (nomesSemEscudoCarregado) return Promise.resolve()
+  if (nomesSemEscudoPendente) return nomesSemEscudoPendente
+  nomesSemEscudoPendente=Promise.resolve().then(async()=>{
+    try {
+      const { data, error } = await supabase.rpc('esc_nomes_sem_escudo')
+      if (!error && Array.isArray(data)) { registraNomesSemEscudo(data as string[]); nomesSemEscudoCarregado = true }
+    } catch { /* sem banco: fica como antes */ }
+  }).finally(()=>{nomesSemEscudoPendente=null})
+  return nomesSemEscudoPendente
 }
 /** separa o selo 🎭 FAKE do nome (pra desenhar ele como etiqueta vermelha) */
 export function separaFake(name: string): { nome: string; fake: boolean } {

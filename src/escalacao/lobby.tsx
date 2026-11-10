@@ -1,3 +1,4 @@
+import {CriacaoSala,ErroPrazoCriacao,leCriacaoPendente,gravaCriacaoPendente,limpaCriacaoPendente,novoIdCriacao} from './criacao-sala'
 import {PrivateRoomChat} from './private-room-chat'
 import {useOnlineRoomPresentation as useOwnerPresentation} from './presentation-release'
 import {OwnerOnlineHeader,OwnerOnlineProvider,OwnerSlot,OwnerWaitingLayout} from './owner-online-visual'
@@ -34,7 +35,7 @@ import { LimiteSalaVenda } from './limite-sala-venda'
 import { assinarMensal } from './vendria-checkout'
 import { LojaButton } from './loja-clube'
 import { isMuted } from './sound'
-import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
+import { anotaTrava, anotaQueda } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice as DeckCarreira } from './careeronline'
 // 🌎 26/10: a sala ganha o baralho MUNDO sozinho ('world'); a carreira online continua com os dela
@@ -847,6 +848,8 @@ export function EscLobby() {
   const [newPwConfirm, setNewPwConfirm] = useState('')
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
+  const criacaoRef=useRef<CriacaoSala|null>(null)
+  useEffect(()=>()=>{if(criacaoRef.current){criacaoRef.current.encerrar();criacaoRef.current=null;setLoading(false)}},[user?.id])
 
   // 🏀 estou no BidLegends? O lobby é o MESMO do futebol (mesmas telas e botões,
   // regra do Diego); no basquete só some o que ainda não existe lá (carreira online
@@ -1739,9 +1742,11 @@ export function EscLobby() {
         const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: roomData.id })
         if (removido === true) {
           await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
+          anotaQueda(roomData.id, roomData.code, 'volta_removido_pelo_dono')
           setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.'))
           return true
         }
+        anotaQueda(roomData.id, roomData.code, 'volta_liga_sem_cracha', { assentoBanco: myPl.player_index, tela: (gs as EscState).screen, temporada: (gs as EscState).seasonNo })
         setRoomError(tr('⏳ Essa liga está no meio da temporada. Você entra na próxima virada, no time que o dono escolher (no lugar de um bot).', '⏳ This league is mid-season. You join at the next season change, on the team the owner picks (in place of a bot).'))
         return true
       }
@@ -1760,6 +1765,7 @@ export function EscLobby() {
         await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
         clearSavedRoom()
         setRoom(null); setPlayers([]); setPhase('menu')
+        anotaQueda(roomData.id, roomData.code, 'volta_time_nao_e_meu', { assentoBanco: myPl.player_index, assentoCracha: seatMeu, temMapa, temTime: !!mineMgr, humano: mineMgr?.isHuman ?? null, modo: gs?.mode ?? null, tela: (gs as EscState).screen })
         setRoomError(tr('⏱️ Essa partida começou sem você (entrou bem na hora do início). Espera o host chamar no "Jogar de novo" ou entra em outra sala.', '⏱️ That match started without you (you joined right at kick-off). Wait for the host to call "Play again" or join another room.'))
         return true // já navegou (pro menu, com aviso) — não fica re-tentando
       }
@@ -2082,8 +2088,32 @@ export function EscLobby() {
   }
 
   async function createRoom() {
-    if (!user) return
+    if (!user || criacaoRef.current) return
+    const operacao=new CriacaoSala();criacaoRef.current=operacao
     setLoading(true); setRoomError('')
+    try {
+    const game=tagAtual(),pendente=leCriacaoPendente(user.id,game)
+    const confirmar=(rd:RoomInfo)=>{
+      if(rd.host_id!==user.id||rd.game_state?.__game!==game)throw new Error('Não foi possível confirmar a identidade da sala.')
+      saveRoom(rd.id);limpaCriacaoPendente(user.id,game)
+      if(rd.status==='started'){setResumeRoom(rd);return}
+      if(rd.status!=='waiting')throw new Error('A tentativa anterior já foi encerrada.')
+      setRoom(rd);setIsHost(true);setPhase('waiting')
+    }
+    // Antes de qualquer limite ou POST, recupera só o UUID desta tentativa.
+    // Nunca escolhe outra sala do dono ou reinicia uma partida já iniciada.
+    if(pendente){
+      const {data:existe,error}=await operacao.passo('conferir-tentativa',signal=>supabase.from('game_rooms').select('*').eq('id',pendente.id).abortSignal(signal).maybeSingle())
+      if(error)throw error
+      if(existe){
+        if(existe.host_id!==user.id||existe.game_state?.__game!==game){limpaCriacaoPendente(user.id,game);throw new Error('A tentativa anterior não pertence a esta conta/jogo.')}
+        if(existe.status!=='waiting'){confirmar(existe as RoomInfo);return}
+        const {data,error}=await operacao.passo('recuperar-dono',signal=>supabase.rpc('esc_criar_sala_segura',{p_id:pendente.id,p_code:existe.code,p_max_players:existe.max_players,p_game_state:existe.game_state,p_nome:nameOf()}).abortSignal(signal))
+        if(error)throw error
+        if(!data)throw new Error('A criação ainda não foi confirmada.')
+        confirmar(data as RoomInfo);return
+      }
+    }
     // 🧯 TETO DE 2 SALAS RÁPIDAS ABERTAS (Diego 23/08: *"limite pode ser duas sim"*).
     // Por que: criar sala rápida NUNCA teve limite, e o banco mostrou o estrago —
     // 484 salas guardadas, 68% paradas há mais de um dia, uma pessoa só criou 20
@@ -2096,9 +2126,10 @@ export function EscLobby() {
     // carreira também não, porque ela é um SAVE, não uma sala de encontro.
     if (roomMode === 'rapido' || roomMode === 'elenco') {
       const vivasDesde = new Date(Date.now() - 3 * 3600_000).toISOString()
-      const { data: minhas } = await supabase.from('game_rooms')
+      const { data: minhas,error: erroMinhas } = await operacao.passo('conferir-salas',signal=>supabase.from('game_rooms')
         .select('code, mode:game_state->>mode, screen:game_state->>screen')
-        .eq('host_id', user.id).gt('updated_at', vivasDesde)
+        .eq('host_id', user.id).gt('updated_at', vivasDesde).abortSignal(signal))
+      if(erroMinhas)throw erroMinhas
       // 🏁 PARTIDA QUE JÁ ACABOU NÃO CONTA (bug do dono do Jurubeba, 02/09: *"diz
       // que já tem salas abertas mas não tem"*). As duas salas dele estavam na
       // tela FINAL (rodada 38, `screen = 'end'`), mas o `status` fica 'started'
@@ -2121,10 +2152,11 @@ export function EscLobby() {
         setLoading(false); return
       }
     }
-    let code = randCode()
+    let code = pendente?.code??randCode()
     for (let i = 0; i < 5; i++) {
-      const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()
-      if (!data) break; code = randCode()
+      const { data,error } = await operacao.passo('conferir-codigo',signal=>supabase.from('game_rooms').select('id').eq('code', code).abortSignal(signal).maybeSingle())
+      if(error)throw error
+      if (!data || data.id===pendente?.id) break; code = randCode()
     }
     // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
     // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
@@ -2187,7 +2219,7 @@ export function EscLobby() {
     // então este caminho nunca tinha rodado).
     // O campo vem preenchido (amanhã 21:00), mas dá pra APAGAR num toque. Aí
     // `new Date('T21:00')` vira Data Inválida e o `.toISOString()` **ESTOURA** —
-    // e como `createRoom` não tem try/catch, o estouro matava a função no meio:
+    // e como `createRoom` ainda não tinha try/catch, o estouro matava a função no meio:
     // o `setLoading(false)` nunca rodava e o botão ficava girando PRA SEMPRE, sem
     // mensagem nenhuma. Trava com aviso, do jeito certo: diz o que falta e por quê.
     let ligaAt: string | undefined
@@ -2229,7 +2261,8 @@ export function EscLobby() {
       const teto = Math.max(1, limiteCriarLigas(meuTierLegado(), direitosLiga))
       let q = supabase.from('game_rooms').select('id', { count: 'exact', head: true }).eq('host_id', user.id).eq('game_state->>mode', 'liga')
       q = ehDraftNova ? q.eq('game_state->>ligaDraft', 'true') : q.or('game_state->>ligaDraft.is.null,game_state->>ligaDraft.neq.true')
-      const { count } = await q
+      const { count,error: erroLimite } = await operacao.passo('conferir-ligas',signal=>q.abortSignal(signal))
+      if(erroLimite)throw erroLimite
       if ((count ?? 0) >= teto) {
         const tipo = ehDraftNova ? tr('Ligas Draft', 'Draft Leagues') : tr('Ligas da Turma', 'Crew Leagues')
         const sobe = teto < 4 ? tr(' Com o ⭐ Craque Completo você cria até 4.', ' With ⭐ Star Complete you can create up to 4.') : ''
@@ -2244,10 +2277,13 @@ export function EscLobby() {
     // tema de CLUBE/MASCOTE na conta cria a sala já vestida com o 1º dele (o dono troca ou tira na sala de espera). Tema de time de
     // coração não entra sozinho — é escolha do dono.
     { const auto = meusTemas.find(id => !id.startsWith('c:')); if (auto && temaValido(auto)) (gs as Record<string, unknown>).tema = auto }
-    await registraAparelho() // 📱 30/10: o banco precisa saber o aparelho ANTES do gatilho da sala decidir
-    const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS, game_state: gs })
-      .select().single()
+    await operacao.passo('identificar-aparelho',signal=>registraAparelho(signal))
+    const tentativa={v:1 as const,id:pendente?.id??novoIdCriacao(),code,at:pendente?.at??Date.now()}
+    if(!gravaCriacaoPendente(user.id,game,tentativa))throw new Error('CRIACAO_SEM_ARMAZENAMENTO')
+    const { data: rd, error: re } = await operacao.passo('criar-sala-e-dono',signal=>supabase.rpc('esc_criar_sala_segura',{
+      p_id:tentativa.id,p_code:code,p_max_players:tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS,
+      p_game_state:gs,p_nome:nameOf()
+    }).abortSignal(signal))
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
       // escuro). O código do Postgres/PostgREST diz na hora o que houve — 42501 = RLS
@@ -2271,9 +2307,20 @@ export function EscLobby() {
       setRoomError(`${tr('Erro ao criar sala', 'Error creating room')}: ${hint}${code2 ? ` [${code2}]` : ''}`)
       setLoading(false); return
     }
-    await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
-    saveRoom(rd.id)
-    setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
+    confirmar(rd as RoomInfo)
+    } catch(erro) {
+      if(criacaoRef.current!==operacao)return
+      const detalhe=erro as {message?:string;code?:string}
+      console.error('[createRoom]',{etapa:operacao.etapa,codigo:detalhe?.code,mensagem:detalhe?.message})
+      setRoomError(erro instanceof ErroPrazoCriacao
+        ?tr('A conexão demorou para confirmar a sala. Toque em Criar sala para tentar novamente; vamos conferir a mesma tentativa.','The connection took too long to confirm the room. Tap Create room to retry; we will check the same attempt.')
+        :detalhe?.message==='CRIACAO_SEM_ARMAZENAMENTO'
+          ?tr('Não consegui guardar a confirmação neste aparelho. Verifique o espaço ou a permissão de armazenamento do navegador e tente novamente.','Could not save confirmation on this device. Check space or the browser storage permission and try again.')
+          :tr('Não consegui concluir a criação. Verifique sua conexão e tente novamente. Sua tentativa fica guardada para confirmar sem criar outra sala.','Could not complete creation. Check your connection and retry. Your attempt is kept so we can confirm it without creating another room.'))
+    } finally {
+      operacao.encerrar()
+      if(criacaoRef.current===operacao){criacaoRef.current=null;setLoading(false)}
+    }
   }
 
   // lista pública de salas: as esperando gente (waiting) E as com jogo já
@@ -3021,6 +3068,7 @@ export function EscLobby() {
         const meuTime = assento >= 0 ? gsSalvo?.managers?.find(m => m.id === assento) : undefined
         if (meuTime) {
           const { error: volta } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: assento, manager_name: meuTime.name ?? nameOf(), is_ready: true })
+          anotaQueda(rd.id, rd.code, volta ? 'volta_vaga_recusada' : 'volta_ok', { assento, humano: !!meuTime.isHuman, erro: volta?.message ?? null })
           if (!volta) {
             const ok = await triggerStart(rd, false)
             if (ok) { setLoading(false); return }
@@ -3036,16 +3084,16 @@ export function EscLobby() {
       if (!mySlot && rd.game_state?.mode === 'liga') {
         // 🚫 06/11: o dono me trocou por outra pessoa — fui removido, não vira pedido
         const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: rd.id })
-        if (removido === true) { setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); setLoading(false); return }
+        if (removido === true) { anotaQueda(rd.id, rd.code, 'entrada_removido_pelo_dono'); setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); setLoading(false); return }
         const res = await reabreLiga(rd.id)
         // 🙋 06/11 (Diego: *"remove esse pedido p entrar aqui… vai ser lá onde ele põe o código da sala, aí chega o convite pro
         // host"*): liga RODANDO + gente nova que não é do time → o código vira o PEDIDO pro dono (o botão da lista saiu).
-        if ((res === 'rolando' || res === 'meio') && (rd.liga_dono ?? rd.host_id) !== user.id) { setLoading(false); await pedirLiga(rd); return }
+        if ((res === 'rolando' || res === 'meio') && (rd.liga_dono ?? rd.host_id) !== user.id) { anotaQueda(rd.id, rd.code, 'entrada_virou_pedido'); setLoading(false); await pedirLiga(rd); return }
         if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
         rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
       }
       if (rd.status === 'started') {
-        if (!mySlot) { setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
+        if (!mySlot) { anotaQueda(rd.id, rd.code, 'entrada_sem_vaga', { modo: rd.game_state?.mode ?? null }); setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
         // 🔧 17/10 (Diego: "muitas vezes não consegue continuar a liga"): antes o resultado
         // era ignorado — se a partida guardada não abria, o botão ficava MUDO. Agora, numa
         // liga, tenta reabrir a sala de espera (mesma função do banco, que nunca mexe em
@@ -3109,7 +3157,7 @@ export function EscLobby() {
       setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.'))
       setLoading(false); return
     }
-    if (!insOk && /LIGA_SO_ACEITO/.test(lastErr)) { setLoading(false); await pedirLiga(rd); return } // 🙋 06/11: liga já começada = só com o pedido ACEITO pelo dono — vira o pedido
+    if (!insOk && /LIGA_SO_ACEITO/.test(lastErr)) { anotaQueda(rd.id, rd.code, 'entrada_virou_pedido'); setLoading(false); await pedirLiga(rd); return } // 🙋 06/11: liga já começada = só com o pedido ACEITO pelo dono — vira o pedido
     if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
     saveRoom(rd.id)
     setPwModal(null); setRoomError('')
@@ -4260,7 +4308,7 @@ export function EscLobby() {
           )}
         </>)
         const botaoCriar = (!criar2 || modoLiberado) && (
-          <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
+          <Big onClick={createRoom} disabled={loading} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
             <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? tr('Criando...', 'Creating...') : createV01 ? tr('Criar sala →', 'Create room →') : criar2 ? tr('🔨 Criar e chamar a galera', '🔨 Create and call the crew') : isCareer ? tr('🌐 Criar Carreira', '🌐 Create Career') : tr('🏠 Criar Sala', '🏠 Create Room')}</span>
           </Big>
         )

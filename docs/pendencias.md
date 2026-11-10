@@ -13,6 +13,7 @@
   sozinho antes"*. NÃO MEXER até: montar a mudança numa cópia (ex.: lista de colunas na publicação SEM `game_state` — cuidado: a sala
   de Copa (`mode='mundo'`) lê `game_state` pelo aviso do banco em lobby.tsx), testar no simulador/bancada e levar o RESULTADO pra ele.
 - ✅ Publicados 10/11 ~16h35: conserto da carreira que não coube (Lucas Barreto), selo FAKE desligado, sininho 3 min.
+- ✅ 10/11: cache privado da lista de nomes aplicado, com invalidação imediata e cálculo original como alternativa. Índice de presença e cálculo único por clã também aplicados. Criação agora atômica, com prazo e recuperação da mesma tentativa. Ver `docs/custos-salas-20261110.md` para medidas, testes e reversão.
 
 
 ## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)
