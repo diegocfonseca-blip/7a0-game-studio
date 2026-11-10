@@ -23,7 +23,7 @@
 .tema-sala.tema-k9_gelo .tema-marca,.tema-sala.tema-k9_branco .tema-marca{filter:none}
 .tema-listras{position:absolute;inset:-20%;transform:skewY(-8deg);opacity:.9}
 .tema-sombra{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(0,0,0,.2),rgba(0,0,0,.65) 80%)}
-.tema-marca.tema-marca-cor{filter:drop-shadow(0 0 20px rgba(0,0,0,.5));opacity:.2;top:62%;width:min(70vw,360px)}
+.tema-marca.tema-marca-cor{filter:drop-shadow(0 0 24px rgba(0,0,0,.6));opacity:.55;top:50%;width:min(78vw,400px);max-height:70vh;object-fit:contain} /* 10/11 (Diego: *"no tema da sala apareça grande o fundo do time… faltou o escudo"*): era .2 e sumia atrás das caixas */
 .tema-torcida{position:absolute;left:0;right:0;bottom:0;height:150px;opacity:.9;background:
   radial-gradient(circle at 10px 12px,#111 9px,transparent 10px) 0 0/22px 26px,
   radial-gradient(circle at 10px 12px,#222 9px,transparent 10px) 11px 13px/22px 26px}

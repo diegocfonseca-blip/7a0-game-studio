@@ -2353,8 +2353,10 @@ Feito (só na conta liberada; nada muda no futebol):
 - [x] `marca.ts`: topo das telas novas (online, loja, salão) diz BIDLEGENDS no basquete.
 - [x] Criar sala no basquete: resumo NBA, sem formação, "Temporada da NBA + Playoffs"; arte da quadra no topo; vagas em PG/SG/SF/PF/C; "quadra".
 - [x] Envelope único no rápido do basquete (antes aparecia e era ignorado) + trava no `npm run envelope-unico`.
+- [x] PUBLICADO na main em 10/11 (home, online, leilão, temporada, envelope único) — ordem do Diego: *"simm tb"*.
 Falta (próximos passos):
-- [ ] **Liga Draft na NBA** — hoje bloqueada no basquete (usa baralho do futebol). Precisa: pool do draft = cartas da NBA, posições PG..C, leilão inicial só profissional/bom da NBA.
+- [x] **Liga Draft na NBA** (10/11, no ramo, esperando OK): a Liga Draft de hoje (Minha Liga Draft) no basquete — 1º leilão e draft só com cartas da NBA, elenco de até 15 (quinteto + banco), posições PG..C na noite do draft, prêmio padrão pela colocação = metade do futebol (orçamento 50). Régua do esporte em `liga-draft.ts` (`setDraftBasquete`, ligada por `setActiveSport`/`setActiveCatalog`). Trava `npm run liga-draft-nba`. A Liga Draft ANTIGA (1ª temporada fraca) segue só no futebol.
+  - ⚠️ `npm run liga-draft` e `scripts/testa-liga-vaga-motor.mts` já falham na main (erro dos próprios scripts), não é do basquete.
 - [ ] Liga de 10 times / turno único no basquete (travado por `tam10Mostra`/`turnoMostra` com `!nbaSala`).
 - [ ] Tela final de campeão: fundo ainda é estádio de futebol.
 - [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).
@@ -13218,3 +13220,12 @@ Atendidos os novos prints do Diego: só um código grande na espera; botão de i
 ### 09/11 — Convites compactos junto do código (prévia privada)
 
 Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do código. Retirada a seção separada. Campo de senha das ligas fica recolhido; copiar código continua no próprio código. Apenas a conta principal recebe o ajuste. Build, isolamento, 11 casos de layout e duas conferências funcionais passaram; detalhes em `docs/convites-no-cabecalho-privado-20261109.md`.
+
+## 10/11 — 🎨 Tema da sala na FESTA DE CAMPEÃO (aprovado: *"da festa de campeão eu gostei… pode fazer sim"*)
+- ✅ Feito no branch: quando o CAMPEÃO (liga ou copa da sala) é o DONO da sala e a sala tem tema, o fundo da festa vira o tema
+  (listras do time de coração ou o pano do clube) + selo "❤️ TEMA FLAMENGO" no topo. Escudo, mascote e troféu continuam os do campeão.
+  Todo mundo da sala vê. Lê `game_rooms.host_id` + `game_state->tema` UMA vez quando há festa. (`temaDaFesta` em temas-sala.tsx,
+  prop `tema` no `FestaCampeao`, screens.tsx.) Foto real: `scripts/mockups/festa-tema-flamengo-real.png`.
+- ✅ Publicado na main em 10/11 (ordem do Diego: *"publique"*), junto com o escudo grande na sala e o escudo pequeno na festa. A tela "ov3" (só conta do Diego, `useOwnerLayout`) ainda NÃO mostra o tema.
+- 🚫 Recusados no mesmo dia: tema no cartão da lista de salas (*"gostei não"*). Tema na HOME do dono: mockup feito, ele não aprovou.
+- ✅ Tema ❤️ Flamengo dado na conta do Diego (Neymarzetti), `esc_temas_conta` id 11, origem manual.

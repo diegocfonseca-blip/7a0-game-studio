@@ -17,6 +17,23 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, ehPromessa } from './data'
 import { paisDe, type Baralho } from './paises'
 import type { Card, FormationKey, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
+import { buildNbaCatalog } from './basquete-deck'
+
+// 🏀 LIGA DRAFT NO BASQUETE (10/11, Diego: *"tudo igual do futebol pro basquete… mais modos como Liga Draft"*). O motor liga
+// isto junto com o esporte (`setActiveSport`/`setActiveCatalog` em store.tsx — o mesmo ponto que muda o baralho, que já roda
+// no dono e no convidado ao retomar/sincronizar). No futebol NADA muda: 22 no elenco e o XI da formação.
+// No basquete: elenco de até 15 (3 por posição, o limite real da NBA — `docs/conceito-basquete.md`) e o quinteto titular.
+let DRAFT_BB = false
+export function setDraftBasquete(v: boolean): void { DRAFT_BB = v }
+/** a tela do draft lê o MESMO esporte do motor (PG/SG… e '15' no basquete) */
+export function draftEhBasquete(): boolean { return DRAFT_BB }
+export const MLD_ELENCO_MAX_NBA = 15
+/** elenco máximo da Liga Draft do esporte de agora (⚽ 22 · 🏀 15) */
+export function elencoMaxDraft(): number { return DRAFT_BB ? MLD_ELENCO_MAX_NBA : MLD_ELENCO_MAX }
+/** quantos titulares (⚽ 11 · 🏀 5) */
+export function titularesDraft(): number { return DRAFT_BB ? SECTORS.length : 11 }
+const NEED_NBA = Object.fromEntries(SECTORS.map(p => [p, 1])) as Record<Sector, number>
+const needDe = (formation: FormationKey): Record<Sector, number> => DRAFT_BB ? NEED_NBA : (FORMATIONS[formation] ?? FORMATIONS['4-3-3'])
 
 export const DRAFT_ESCOLHA_MS = 60_000
 // 📋🏆 MINHA LIGA DRAFT (01/11, Diego): 45 s por vez, e o relógio só corre depois que a pessoa aperta ✋ PRONTO
@@ -109,14 +126,14 @@ export function cartaPermitidaDraft(c: { name: string; club: string; year: numbe
 export function temRegraDraft(r?: RegrasDraft | null): boolean { return !!r && !!(r.semLendas || r.semCraques || r.soBrasil) }
 /** 👕 os titulares são os PRIMEIROS de cada posição na ordem do elenco (o mesmo que o campinho desenha) */
 export function xiPorOrdem<T extends Card>(squad: T[], formation: FormationKey): T[] {
-  const need = FORMATIONS[formation] ?? FORMATIONS['4-3-3']
+  const need = needDe(formation)
   const out: T[] = []
   for (const pos of SECTORS) out.push(...squad.filter(c => c.pos === pos).slice(0, need[pos]))
   return out
 }
 /** o elenco fecha a formação? (nenhuma posição com menos gente que o esquema pede) */
 export function fechaFormacao(squad: Card[], formation: FormationKey): boolean {
-  const need = FORMATIONS[formation] ?? FORMATIONS['4-3-3']
+  const need = needDe(formation)
   return SECTORS.every(p => squad.filter(c => c.pos === p).length >= need[p])
 }
 /** elenco cheio (22): quem pode sair pra `nova` entrar sem o time ficar faltando gente em alguma posição */
@@ -146,7 +163,7 @@ export function botDaSobra(bots: Manager[], vez: number, nova: Card, temporadaQu
   const v0 = ((vez % n) + n) % n
   for (let k = 0; k < n; k++) {
     const i = (v0 + k) % n
-    if (bots[i].squad.length < MLD_ELENCO_MAX) return { bot: bots[i], aceita: true, proxVez: (i + 1) % n }
+    if (bots[i].squad.length < elencoMaxDraft()) return { bot: bots[i], aceita: true, proxVez: (i + 1) % n }
   }
   const b = bots[v0]
   const pior = b.squad.filter(c => c.pos === nova.pos && !c.emprestado && botPodeSoltar(c, temporadaQueAcabou)).sort((a, c) => forca(a) - forca(c))[0]
@@ -155,7 +172,7 @@ export function botDaSobra(bots: Manager[], vez: number, nova: Card, temporadaQu
 }
 /** ⏭ 05/11 (Diego): com o elenco CHEIO (22) o técnico pode PASSAR a vez no draft — senão era obrigado a pegar alguém e tirar um */
 export function podePassarDraft(m: { squad: Card[] } | undefined): boolean {
-  return !!m && m.squad.length >= MLD_ELENCO_MAX
+  return !!m && m.squad.length >= elencoMaxDraft()
 }
 /** o bot sempre escala os melhores: em cada posição, do mais forte pro mais fraco (o XI é o começo de cada posição) */
 export function ordenaBotPelaForca<T extends Card>(squad: T[]): T[] {
@@ -225,12 +242,17 @@ export function nomesOcupados(managers: { squad: Card[] }[]): Set<string> {
 // 🌎 o baralho do draft é o jogo INTEIRO (Brasil + Europa + Mundo), sem repetir a mesma carta.
 // 🇧🇷🌍 02/11 (Diego: "no liga draft não apareceu pra escolher só BR ou só Europa"): a Liga Draft pode ser de um baralho só —
 // aí o draft também só oferece aquele baralho. Sem baralho (ou 'both'/'todos') = o jogo inteiro, como sempre.
-export type BaralhoDraft = 'br' | 'eu' | 'both' | 'todos' | undefined
+// 🏀 'nba' = o baralho da NBA (Liga Draft do basquete). Quem decide é `baralhoDoDraft` (lê o esporte do estado).
+export type BaralhoDraft = 'br' | 'eu' | 'both' | 'todos' | 'nba' | undefined
 const TODAS: Record<string, Card[]> = {}
+export function baralhoDoDraft(s: { sport?: string; minhaLigaDraft?: boolean; deckLeague?: string }): BaralhoDraft {
+  if (s.sport === 'basquete') return 'nba'
+  return s.minhaLigaDraft ? s.deckLeague as BaralhoDraft : undefined
+}
 export function todasAsCartas(deck?: BaralhoDraft): Card[] {
-  const k = deck === 'br' || deck === 'eu' ? deck : 'todos'
+  const k = deck === 'br' || deck === 'eu' || deck === 'nba' ? deck : 'todos'
   if (TODAS[k]) return TODAS[k]
-  const fonte = k === 'br' ? CATALOG : k === 'eu' ? CATALOG_EU : CATALOG_BOTH
+  const fonte = (k === 'nba' ? buildNbaCatalog() : k === 'br' ? CATALOG : k === 'eu' ? CATALOG_EU : CATALOG_BOTH) as typeof CATALOG
   const out: Card[] = []
   const vistas = new Set<string>()
   for (const pos of SECTORS) {

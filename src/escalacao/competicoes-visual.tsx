@@ -167,7 +167,9 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera, nomeComp, onF
 /** 🏆 A FESTA DO CAMPEÃO: por cima da tela de fim, ~5,5 s, toque pula. */
 /** ⚽🅰️ quem fez mais gols / deu mais passes na competição (pra festa) */
 export type DestaqueFesta = { nome: string; time: string; n: number }
-export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom, nomeComp, penaltis = false }: {
+export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom, nomeComp, penaltis = false, tema }: {
+  /** 🎨 10/11: o campeão é o dono da sala e a sala tem tema → o fundo da festa vira o tema, com o selo dele (todo mundo vê) */
+  tema?: { fundo: string; selo: string; escudo: string } | null
   comp: CompId; nome: string; crest: ReactNode; mascote?: ReactNode
   /** 🏆 carreira: o nome que o save usa (Copa do Brasil × Copa Legends) */ nomeComp?: [string, string]
   /** ⚽ 23/10 (Diego: *"já poderia aparecer o artilheiro que ganhou a copa também"*) — e o 🅰️ garçom junto (regra dele: o que vale pro gol vale pra assistência) */
@@ -198,11 +200,13 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   return createPortal(
     <div role="dialog" aria-label={tr('Comemoração do título','Title celebration')} onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: 100040, display: 'flex', justifyContent: 'center', background: '#000', animation: saindo ? 'fcSai .45s both' : undefined, cursor: 'pointer' }}>
       <style>{css}</style>
-      <div style={{ position: 'relative', width: '100%', maxWidth: pc ? '100%' : 480, height: '100%', overflow: 'hidden', background: `${c.bg}, url(${estadioArt}) center / cover`, color: '#fff', zoom: pc ? 1.35 : undefined } as CSSProperties}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: pc ? '100%' : 480, height: '100%', overflow: 'hidden', background: `${tema ? tema.fundo : c.bg}, url(${estadioArt}) center / cover`, color: '#fff', zoom: pc ? 1.35 : undefined } as CSSProperties}>
         <div style={{ position: 'absolute', inset: 0, background: `url(${estadioArt}) center / cover`, opacity: .35, mixBlendMode: 'overlay' }} />
+        {tema && <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 42%,#0000 0,#000a 78%)' }} />}
+        {tema && <span style={{ position: 'absolute', zIndex: 2, top: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', boxShadow: '2px 2px 0 #000', ...OSW, fontSize: 11 }}><img src={tema.escudo} alt="" style={{ height: 16 }} />{tema.selo}</span>}
         <Enfeite tipo={c.extra} />
         {conf.map((k, i) => <i key={i} style={{ position: 'absolute', left: `${k.l}%`, top: -20, width: 9, height: 14, borderRadius: 2, background: k.cor, transform: `rotate(${k.r}deg)`, animation: `fcCai ${k.dur}s ${k.d}s linear infinite` }} />)}
-        <div style={{ position: 'absolute', top: '5%', left: 0, right: 0, textAlign: 'center', animation: 'tfZoom .5s both' }}>
+        <div style={{ position: 'absolute', top: tema ? '7%' : '5%', left: 0, right: 0, textAlign: 'center', animation: 'tfZoom .5s both' }}>
           <small style={{ ...OSW, fontSize: 13, letterSpacing: '.3em', color: c.sub }}>{tr('Campeão', 'Champion')} · {tr(c.nome[0], c.nome[1])}</small>
           <b style={{ ...OSW, display: 'block', fontSize: nome.length > 14 ? 40 : 54, lineHeight: .95, padding: '0 12px', color: c.titulo, filter: 'drop-shadow(4px 4px 0 #000)' }}>{nome}</b>
         </div>
@@ -210,6 +214,8 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
           <div style={{ animation: 'fcBrilho 1.6s .8s infinite' }}>{crest}</div>
         </div>
         <div style={{ position: 'absolute', top: '44%', left: 0, right: 0, display: 'flex', justifyContent: 'center', animation: 'fcSobe .6s .6s both' }}><Trofeu comp={comp} size={110} /></div>
+        {/* 🎨 10/11 (Diego: *"quero que apareça o escudo pequeno no tema de campeão"*): o escudo do tema, pequeno, ao lado do troféu */}
+        {tema && <img src={tema.escudo} alt="" style={{ position: 'absolute', top: '45%', left: '9%', height: 74, maxWidth: 80, objectFit: 'contain', transform: 'rotate(-8deg)', filter: 'drop-shadow(3px 3px 0 #000)', animation: 'fcSobe .6s .8s both' }} />}
         {vis.length > 0 && <div style={{ position: 'absolute', bottom: 108, left: 4, display: 'flex', animation: 'fcSobe .6s 1s both' }}>
           {vis.map(l => { const art = legendAvatar(l.nome, l.club, l.year); return art ? <img key={l.nome} src={art.src} alt={l.nome} style={{ width: 104, height: 150, objectFit: 'cover', objectPosition: 'center top', filter: 'drop-shadow(4px 4px 0 #000)' }} /> : null })}
         </div>}
