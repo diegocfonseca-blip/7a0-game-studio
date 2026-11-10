@@ -216,6 +216,15 @@ export function temaValido(id: unknown): Tema | null {
   return id in TEMAS_SALA ? TEMAS_SALA[id as TemaClubeId] : null
 }
 export const nomeTema = (t: Tema) => tr(t.nome, t.nomeEn)
+// 🏆🎨 TEMA NA FESTA DE CAMPEÃO (10/11, mockup `scripts/mockups/tema-home-campeao.png`, Diego: *"o cara comprou o tema Chelsea… vai ter
+// na sala e vai ter também lá no campeão… aparece pra todo mundo, quando ele é campeão, junto com o mascote dele"*). Só o FUNDO da festa
+// e um selo: escudo, mascote e troféu continuam os do campeão. Quem decide é o tema que o DONO pôs na sala (game_state.tema).
+export type TemaFesta = { fundo: string; selo: string; escudo: string }
+export function temaDaFesta(id: unknown): TemaFesta | null {
+  const t = temaValido(id); if (!t) return null
+  if (t.coracao) return { fundo: t.coracao.listra ?? `repeating-linear-gradient(160deg,${t.coracao.c1} 0 34px,${t.coracao.c2} 34px 68px)`, selo: tr(`❤️ TEMA ${t.coracao.nome}`, `❤️ ${t.coracao.nome} THEME`), escudo: t.escudo }
+  return { fundo: t.pano ?? (t.claro ? 'linear-gradient(160deg,#f2f2f2,#bdbdbd)' : 'radial-gradient(ellipse at 50% 40%,#3a3a3a,#0C0C0C 75%)'), selo: t.selo, escudo: t.escudo }
+}
 // 🖼️ MINIATURA do tema (29/10, mockup `scripts/mockups/tema-sala-achar.png`, Diego: *"não está muito claro pra ele o que ele tem de
 // tema pra botar"*): o fundo do tema + o escudo + a mascote num cartãozinho, pro dono VER como a sala fica antes de tocar.
 export function MiniTemaSala({ tema, ativo, onClick }: { tema: Tema | null; ativo: boolean; onClick: () => void }) {

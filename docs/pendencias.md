@@ -13132,3 +13132,12 @@ Atendidos os novos prints do Diego: só um código grande na espera; botão de i
 ### 09/11 — Convites compactos junto do código (prévia privada)
 
 Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do código. Retirada a seção separada. Campo de senha das ligas fica recolhido; copiar código continua no próprio código. Apenas a conta principal recebe o ajuste. Build, isolamento, 11 casos de layout e duas conferências funcionais passaram; detalhes em `docs/convites-no-cabecalho-privado-20261109.md`.
+
+## 10/11 — 🎨 Tema da sala na FESTA DE CAMPEÃO (aprovado: *"da festa de campeão eu gostei… pode fazer sim"*)
+- ✅ Feito no branch: quando o CAMPEÃO (liga ou copa da sala) é o DONO da sala e a sala tem tema, o fundo da festa vira o tema
+  (listras do time de coração ou o pano do clube) + selo "❤️ TEMA FLAMENGO" no topo. Escudo, mascote e troféu continuam os do campeão.
+  Todo mundo da sala vê. Lê `game_rooms.host_id` + `game_state->tema` UMA vez quando há festa. (`temaDaFesta` em temas-sala.tsx,
+  prop `tema` no `FestaCampeao`, screens.tsx.) Foto real: `scripts/mockups/festa-tema-flamengo-real.png`.
+- ⏳ Falta: publicar na main (esperando ordem do Diego). A tela "ov3" (só conta do Diego, `useOwnerLayout`) ainda NÃO mostra o tema.
+- 🚫 Recusados no mesmo dia: tema no cartão da lista de salas (*"gostei não"*). Tema na HOME do dono: mockup feito, ele não aprovou.
+- ✅ Tema ❤️ Flamengo dado na conta do Diego (Neymarzetti), `esc_temas_conta` id 11, origem manual.

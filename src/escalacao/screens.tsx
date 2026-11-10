@@ -34,9 +34,10 @@ import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } f
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
-import { salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
+import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -12375,8 +12376,19 @@ export function EscEnd() {
     setFestasVistas(v)
     try { sessionStorage.setItem(festaBase, JSON.stringify(v)) } catch { /* segue */ }
   }
+  // 🎨 10/11: tema da sala na festa — só quando o CAMPEÃO é o dono da sala (quem pôs o tema). Uma leitura curta da sala (dono +
+  // tema) quando há festa pra mostrar; sem resposta, a festa sai como sempre.
+  const [salaTema, setSalaTema] = useState<{ host: string | null; tema: unknown } | null>(null)
+  const temFesta = !!festaAgora
+  useEffect(() => {
+    if (!online || !state.roomId || !temFesta || salaTema) return
+    supabase.from('game_rooms').select('host_id, tema:game_state->tema').eq('id', state.roomId).maybeSingle()
+      .then(({ data }) => { if (data) setSalaTema({ host: (data as { host_id?: string }).host_id ?? null, tema: (data as { tema?: unknown }).tema }) }, () => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, state.roomId, temFesta])
   const festaNode = festaAgora ? (() => {
     const souEu = festaAgora.id === you.id
+    const temaFesta = salaTema?.host && assentoDoCracha(state, salaTema.host) === festaAgora.id ? temaDaFesta(salaTema.tema) : null
     const dono = state.managers.find(m => m.id === festaAgora.id)
     const mk = souEu && minhaMasc ? minhaMasc : mascoteKeyDoTime(festaAgora.nome)
     const lendas = ((dono?.squad ?? []) as WonCard[]).filter(c => !c.fake && c.fame >= 5 && !c.promessa).sort((a, b) => (b.paid ?? 0) - (a.paid ?? 0)).map(c => ({ nome: c.name, club: c.club, year: c.year }))
@@ -12387,7 +12399,7 @@ export function EscEnd() {
     const g1 = [...gols].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
     const a1 = [...pas].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name))[0]
     return <FestaCampeao key={festaAgora.key} comp={festaAgora.comp} nome={festaAgora.nome} crest={<Escudo nome={festaAgora.nome} size={160} />}
-      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} onDone={fecharFesta}
+      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} onDone={fecharFesta} tema={temaFesta}
       artilheiro={g1 && g1.goals > 0 ? { nome: g1.name, time: g1.teamName, n: g1.goals } : null}
       garcom={a1 && a1.assists > 0 ? { nome: a1.name, time: a1.teamName, n: a1.assists } : null} />
   })() : null
