@@ -14096,6 +14096,16 @@ export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
   const out: { slot: CareerSlot; active: boolean }[] = []
   if (act) out.push({ slot: act, active: true })
   for (const s of arch) out.push({ slot: s, active: false })
+  // 📱☁️ 10/11 (Lucas Barreto 30: carreira T113 "sumiu" do celular E do PC): com o aparelho CHEIO, as carreiras que desceram da
+  // nuvem e não couberam ficam só na memória — e a lista só olhava o aparelho. Se a carreira grande era OUTRA (não a que estava no
+  // aparelho), ela ficava invisível, mesmo inteira na nuvem. Agora toda carreira da nuvem aparece; abrir uma que não coube joga da
+  // memória (`activateCareerSlot`) e o "Sair e salvar" segue juntando com a nuvem, como sempre.
+  for (const m of carreirasEmMemoria) {
+    if (!isCareerSave(m?.save)) continue
+    const i = out.findIndex(o => o.slot.save.seed === m.save.seed)
+    if (i >= 0) { if (careerProgress(m) > careerProgress(out[i].slot)) out[i] = { slot: m, active: out[i].active }; continue }
+    out.push({ slot: m, active: false })
+  }
   return out.sort((a, b) => b.slot.at - a.slot.at)
 }
 // vai começar uma carreira NOVA: arquiva a atual (não perde) antes do START zerar.
@@ -14138,7 +14148,24 @@ export function activateCareerSlot(seed: number): EscState | null {
   const act = readActiveCareer()
   const slots = readCareerArchive()
   const idx = slots.findIndex(s => s.save.seed === seed)
-  if (idx < 0) return null
+  if (idx < 0) {
+    // 📱☁️ 10/11: a escolhida não está no aparelho — só na memória (desceu da nuvem e não coube). Tenta pôr no aparelho no lugar
+    // da atual (que vai pro arquivo); se não couber, devolve o aparelho EXATAMENTE como estava e joga a escolhida da memória.
+    const mem = carreirasEmMemoria.find(s => s.save.seed === seed)
+    if (!mem || !isCareerSave(mem.save)) return null
+    const arquivoNovo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...slots.filter(s => s.save.seed !== act.save.seed)] : slots
+    let coube = false
+    try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ }
+    if (writeCareerArchive(arquivoNovo)) {
+      try { localStorage.setItem('esc-solo-career', JSON.stringify(mem.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())); coube = true } catch { /* não coube */ }
+    }
+    if (!coube) {
+      writeCareerArchive(slots)
+      try { if (act) { localStorage.setItem('esc-solo-career', JSON.stringify(act.save)); localStorage.setItem('esc-solo-career-at', String(act.at)) } } catch { /* ignora */ }
+    }
+    carreiraEmMemoria = coube ? null : mem.save
+    return mem.save
+  }
   const chosen = slots[idx]
   const semEscolhida = slots.filter((_, i) => i !== idx)
   const novoArquivo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...semEscolhida.filter(s => s.save.seed !== act.save.seed)] : semEscolhida
@@ -14550,6 +14577,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // 📱 aparelho CHEIO (13/10, caso do Pé de Breque: "volto e estou na 189 de novo"): a versão certa fica
     // na MEMÓRIA e é ela que o "Continuar" abre — nunca a cópia velha que sobrou no aparelho.
     carreiraEmMemoria = gravou ? null : active.save // (o aviso de aparelho cheio só sai DENTRO da carreira, pelo autosave)
+    carreirasEmMemoria = gravou ? [] : all // 📱☁️ 10/11: TODAS as que desceram (a lista mostra as que não couberam)
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
@@ -14572,6 +14600,10 @@ async function nuvemNaFrente(locais: CareerSlot[]): Promise<boolean> {
 }
 // a carreira mais nova que NÃO coube no aparelho (só nesta aba)
 let carreiraEmMemoria: EscState | null = null
+// 📱☁️ 10/11: todas as carreiras da nuvem que o aparelho cheio não conseguiu guardar (a lista de carreiras mostra elas)
+let carreirasEmMemoria: CareerSlot[] = []
+/** só pras travas (`npm run troca`): simula o que a junção com a nuvem deixa na memória quando o aparelho está cheio */
+export function _carreirasEmMemoriaParaTeste(list: CareerSlot[], ativa: EscState | null) { carreirasEmMemoria = list; carreiraEmMemoria = ativa }
 /** a carreira ativa pra abrir: a do aparelho, ou a da memória se ela estiver MAIS adiantada (aparelho cheio) */
 export function carreiraAtivaPraAbrir(): EscState | null {
   let local: EscState | null = null

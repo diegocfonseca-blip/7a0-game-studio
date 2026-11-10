@@ -585,7 +585,11 @@ export async function carregaMedalhaDaSemana(): Promise<void> {
 export const MARCA_FAKE = ' 🎭FAKE'
 let nomeFake = false
 export function meuNomeFake(): boolean { return nomeFake }
+// ⏸️ 10/11 (Diego: *"tira essa porra de nome fake pra parar de pesar, depois vejo o que é"*): a consulta pesava no banco (~400 ms,
+// 73 mil vezes) e entrou na travada de 4 min das 16h14. DESLIGADA: ninguém leva o selo 🎭 FAKE até ele decidir. Religar = true.
+const NOME_FAKE_LIGADO = false
 export async function carregaNomeFake(): Promise<void> {
+  if (!NOME_FAKE_LIGADO) { nomeFake = false; return }
   try { const { data, error } = await supabase.rpc('esc_meu_nome_fake'); if (!error) nomeFake = data === true } catch { /* sem banco: sem selo */ }
 }
 // 💙 SELO DO PLANO CORAÇÃO (05/11, Diego): opcional, DESLIGADO até a pessoa ligar ("Mostrar meu selo"). É só um 💙 do lado do nome
