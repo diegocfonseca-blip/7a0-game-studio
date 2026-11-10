@@ -41,6 +41,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
+    "nome": "Antonio Valencia",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Luke Shaw",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -72,6 +79,83 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Jonathan Woodgate",
     "baralho": "EU",
     "nivel": "foi profissional",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Matías Almeyda",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Javier Pastore",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Freddy Guarín",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Stefan Effenberg",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Andreas Möller",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Mehmet Scholl",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Bernd Schuster",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Juan Carlos Valerón",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Joaquín",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Fernando Chalana",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Marcelinho Paraíba",
+    "baralho": "EU",
+    "nivel": "bom jogador",
     "data": "2026-11-10"
   },
   {
@@ -149,6 +233,111 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Weston McKennie",
     "baralho": "EU",
     "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Lisandro López",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jackson Martínez",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Duván Zapata",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Muriel",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rafael Borré",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Enner Valencia",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Karl-Heinz Riedle",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Kevin Kurányi",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Roy Makaay",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Diego Tristán",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Aritz Aduriz",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Pauleta",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Nuno Gomes",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jonas",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Antonio Di Natale",
+    "baralho": "EU",
+    "nivel": "craque",
     "data": "2026-11-10"
   },
   {
@@ -233,20 +422,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Jarrod Bowen",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Alexander Sørloth",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Simone Zaza",
-    "baralho": "EU",
-    "nivel": "foi profissional",
     "data": "2026-11-10"
   }
 ]

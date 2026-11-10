@@ -699,7 +699,7 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
-## 🃏 LOTE 49 — 30 famosos da Premier no AUGE (lista do Gabriel "Chelsão", 10/11) — NO BRANCH, esperando "publica"
+## 🃏 LOTE 49 — 83 cartas famosas no AUGE (10/11) — ✅ PUBLICADO (ordem do Diego: "pode lançar ele já")
 - Diego: *"quero adicionar só os famosos… que não tem… aonde você adicionaria o auge"*. O 1º rascunho (148 cartas, todo mundo da lista) foi
   DESCARTADO antes de publicar. ⚠️ Lição: conferir carta SEMPRE pelo `CATALOG*` (npx tsx), nunca grep com aspas duplas — metade do baralho usa
   aspas simples e o grep deu "não tem" pra Kasper Schmeichel, Mahrez (Leicester City 2016), Estupiñán, Tim Cahill, Mitoma…
@@ -709,7 +709,14 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   Raúl Jiménez Wolves 19 · Adama Traoré Wolves 20 (folk) · Toney Brentford 23 · Mbeumo Brentford 25 · Igor Thiago Brentford 26 ·
   Richarlison Everton 20 · João Pedro Chelsea 25 C (escolha do Diego) · Pedro Neto Chelsea 25 · Zaha Palace 19 · Bowen West Ham 23 ·
   Sørloth Villarreal 24 · Zaza Juve 16 (folk) · + 2ª rodada: Neto Valencia 19 (goleiro; nome LIMPO "Neto", ordem do Diego — país preso por carta em PAIS_POR_CARTA e bio própria pra não herdar a do Neto do Corinthians) · Evanilson Porto 24 · Caballero City 16 · Amadou Onana Everton 23 · Verbruggen Brighton 25. Schelotto fora (o famoso, Guillermo do Boca, já tem). Total 35. James/Igor Thiago/Neves/Toney entraram em MESMO_JOGADOR (já tinham carta em outro baralho).
-- Falta: stories (`scripts/mockup-cartas-novas.mjs`) se ele quiser, e publicar.
+- + 48 (2ª leva, mesma ordem): River (Pity Martínez C, Quintero, Pratto, Ponzio, Barovero, Rodrigo Mora, Teo Gutiérrez, Cavenaghi, Astrada,
+  Ramón Díaz C, Saviola C) · Boca (Rattín C, Benedetto, Pavón, Ibarra, Marcelo Delgado, Palacio) · Boselli Estudiantes 09 · Chango Cárdenas
+  Racing 67 C · Scocco Newell's 13 · Gignac Tigres 17 C (MUNDO) · e no EUROPA: Almeyda, Pastore, Lisandro López, Jackson Martínez, Guarín,
+  Antonio Valencia, Duván Zapata, Muriel, Borré, Enner Valencia, Effenberg C, Möller C, Riedle, Scholl, Kurányi, Schuster C, Valerón C,
+  Makaay C, Tristán C, Aduriz, Joaquín, Pauleta, Chalana C, Nuno Gomes, Jonas C, Di Natale C, Marcelinho Paraíba (Hertha 03).
+  Chicharito saiu (já existia como "Chicharito", Manchester United 2011). Conferido o baralho por SOBRENOME/apelido também.
+- Stories: `scripts/mockups/lote49-stories-1.png` (GOL·LAT·ZAG·MEI, 40) e `-2.png` (ATA, 43). O gerador perdia carta com apóstrofo no
+  clube ("Newell's") — consertado.
 
 ## 🕵️ 09/11 — OLIVEIRA FC 30 × PRIME FC LIGADOS, sem valer nem sozinho (ordem do Diego: "tire todos C prime")
 - Oliveira (pietro.oliveira23061721) criava a sala, o Prime (pietrinhajaoliveira, criada 24/09) entrava pela MESMA internet 5–15 s depois,
