@@ -167,3 +167,7 @@ esperar 2 minutos lá fora"*.
   suspensão pede as duas escolhas) · **Jogador estrela = TODO gol dele vale 2 até o 36'** (antes: só o próximo). Bot continua sorteando.
   A escolha usa o MESMO caminho do canto do pênalti (`KINGS_DECIDIR` → `refazJogoKings`, mesma semente) e a cena `CenaEscolhaKings`
   tem 7 s de contagem (não tocou = vale o sorteio). Se a escolha traz uma cobrança, o relógio refaz a lista de cenas e ela aparece em seguida.
+- 📺 **Kings no 2D, 2º pedido (10/11)**: *"1x1 2x2… tem que ter mais tempo pra poder ver os confrontos… os jogadores tem que tá mano a mano"*.
+  Com o 2D ligado, cada minuto das fases com pouca gente (1×1 até 6×6 e o dado) dura **12 s** (`KINGS_MS_POR_MIN_LENTO_2D`; placar normal
+  segue 5 s). E com até 5 de linha em campo o motor joga **mano a mano** (`Jogo2D.manoAMano`): sem a bola, cada um cola no seu
+  adversário. Medido: 800 jogos sem tela, 0 erro, placar sempre igual ao da regra.
