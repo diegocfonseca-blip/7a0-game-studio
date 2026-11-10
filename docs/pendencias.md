@@ -1,3 +1,11 @@
+## 🐢 10/11 16h14–16h18 — SERVIDOR TRAVOU 4 MIN (Kelvin/K9 não conseguiu criar sala: nasceu vazia, C8PGSV)
+- Banco sobrecarregado (pedido de 0,02 s levando até 20 s, timeouts). Pesos: cron `esc-cla-limites` (levou 18 s), `esc_avisos`
+  (1,3 mi de chamadas, ~83 ms), `esc_nomes_sem_escudo` (~540 ms) e `esc_meu_nome_fake` (~400 ms).
+- Feito (Diego: *"tira essa porra de nome fake… a do clãs aumenta o tempo"*): cron dos clãs **5 → 15 min** (direto no banco,
+  `cron.alter_job`); selo 🎭 FAKE DESLIGADO no aparelho (`NOME_FAKE_LIGADO = false` em apoio.tsx — ninguém leva o selo até ele decidir).
+- ⏭️ `esc_avisos` (o "tem aviso pra mim?" do sininho, a cada 60 s por jogador): propor 3 min / pausar durante a partida — ele não
+  entendeu a 1ª explicação; `esc_nomes_sem_escudo` também.
+
 ## 📱☁️ 10/11 — CARREIRA QUE NÃO COUBE NO APARELHO FICAVA INVISÍVEL (Lucas Barreto 30, T113 "sumiu" do celular e do PC) · no branch
 - A T113 (2,5 MB) estava INTEIRA na nuvem (`esc_pyramid_saves`, junto com a T7 nova). Cópia de segurança feita em `esc_saves_backup`
   (id c948506f-45f5-4454-ac1e-b0977baca775).
