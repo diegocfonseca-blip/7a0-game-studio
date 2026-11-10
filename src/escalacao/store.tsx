@@ -25,7 +25,7 @@ import {alterarTetoPresidencia} from './presidencia-estadio-integrado'
 import {lancamentosPresidencia} from './presidencia-extrato'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltisComSequencia } from './penaltis'
-import { anotaTrava } from './caixa-preta'
+import { anotaTrava, anotaQueda } from './caixa-preta'
 import { agoraSala, ajustaRelogioSala, souODono } from './relogio' // ⏱️ um relógio só pra sala (o do dono) — ver relogio.ts
 import { publicOnlineVisual } from './online-release'
 import { publicCareerVisual } from './career-feature-release'
@@ -14958,6 +14958,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!st.roomId || !st.youUid || onlineRef.current !== 'online' || isHostRef.current) return
       channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'RETOMA_TIME', uid: st.youUid } })
     }
+    anotaQueda(stateRef.current.roomId, stateRef.current.roomCode, 'voltou_pede_o_time', { tela: stateRef.current.screen })
     const t0 = setTimeout(pede, 1200) // dá tempo de o canal da sala ligar
     const t = setInterval(pede, 5000)
     return () => { clearTimeout(t0); clearInterval(t) }
@@ -15083,6 +15084,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // volta como fantasma, travando o setor à espera de um envelope que nunca vem.
     const inGame = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'liberta', 'end', 'draft'].includes(st.screen)
     if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
+      anotaQueda(rid, st.roomCode, 'saiu_por_conta_propria', { tela: st.screen, fase: st.phase, liga: !!st.ligaMode })
       // 🤝 DUPLA: se eu jogava de dois, o time NÃO vira CPU — seria injusto com
       // quem ficou. Em vez do KICK_PLAYER, aviso que ele assume TODAS as
       // categorias (senão metade dos setores ficaria sem quem lacra).
@@ -15324,6 +15326,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (payload.playerIndex !== stateRef.current.managers[stateRef.current.youIdx]?.id) return
       // trava esta sala: nunca reaparece o "voltar pra sala" neste aparelho.
       const rid = stateRef.current.roomId
+      anotaQueda(rid, stateRef.current.roomCode, 'tirado_pelo_dono', { tela: stateRef.current.screen })
       if (rid) {
         try {
           const K = 'esc-dismissed-rooms'
