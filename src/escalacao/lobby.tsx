@@ -34,7 +34,7 @@ import { LimiteSalaVenda } from './limite-sala-venda'
 import { assinarMensal } from './vendria-checkout'
 import { LojaButton } from './loja-clube'
 import { isMuted } from './sound'
-import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
+import { anotaTrava, anotaQueda } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice as DeckCarreira } from './careeronline'
 // 🌎 26/10: a sala ganha o baralho MUNDO sozinho ('world'); a carreira online continua com os dela
@@ -1739,9 +1739,11 @@ export function EscLobby() {
         const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: roomData.id })
         if (removido === true) {
           await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
+          anotaQueda(roomData.id, roomData.code, 'volta_removido_pelo_dono')
           setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.'))
           return true
         }
+        anotaQueda(roomData.id, roomData.code, 'volta_liga_sem_cracha', { assentoBanco: myPl.player_index, tela: (gs as EscState).screen, temporada: (gs as EscState).seasonNo })
         setRoomError(tr('⏳ Essa liga está no meio da temporada. Você entra na próxima virada, no time que o dono escolher (no lugar de um bot).', '⏳ This league is mid-season. You join at the next season change, on the team the owner picks (in place of a bot).'))
         return true
       }
@@ -1760,6 +1762,7 @@ export function EscLobby() {
         await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
         clearSavedRoom()
         setRoom(null); setPlayers([]); setPhase('menu')
+        anotaQueda(roomData.id, roomData.code, 'volta_time_nao_e_meu', { assentoBanco: myPl.player_index, assentoCracha: seatMeu, temMapa, temTime: !!mineMgr, humano: mineMgr?.isHuman ?? null, modo: gs?.mode ?? null, tela: (gs as EscState).screen })
         setRoomError(tr('⏱️ Essa partida começou sem você (entrou bem na hora do início). Espera o host chamar no "Jogar de novo" ou entra em outra sala.', '⏱️ That match started without you (you joined right at kick-off). Wait for the host to call "Play again" or join another room.'))
         return true // já navegou (pro menu, com aviso) — não fica re-tentando
       }
@@ -3021,6 +3024,7 @@ export function EscLobby() {
         const meuTime = assento >= 0 ? gsSalvo?.managers?.find(m => m.id === assento) : undefined
         if (meuTime) {
           const { error: volta } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: assento, manager_name: meuTime.name ?? nameOf(), is_ready: true })
+          anotaQueda(rd.id, rd.code, volta ? 'volta_vaga_recusada' : 'volta_ok', { assento, humano: !!meuTime.isHuman, erro: volta?.message ?? null })
           if (!volta) {
             const ok = await triggerStart(rd, false)
             if (ok) { setLoading(false); return }
@@ -3036,16 +3040,16 @@ export function EscLobby() {
       if (!mySlot && rd.game_state?.mode === 'liga') {
         // 🚫 06/11: o dono me trocou por outra pessoa — fui removido, não vira pedido
         const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: rd.id })
-        if (removido === true) { setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); setLoading(false); return }
+        if (removido === true) { anotaQueda(rd.id, rd.code, 'entrada_removido_pelo_dono'); setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); setLoading(false); return }
         const res = await reabreLiga(rd.id)
         // 🙋 06/11 (Diego: *"remove esse pedido p entrar aqui… vai ser lá onde ele põe o código da sala, aí chega o convite pro
         // host"*): liga RODANDO + gente nova que não é do time → o código vira o PEDIDO pro dono (o botão da lista saiu).
-        if ((res === 'rolando' || res === 'meio') && (rd.liga_dono ?? rd.host_id) !== user.id) { setLoading(false); await pedirLiga(rd); return }
+        if ((res === 'rolando' || res === 'meio') && (rd.liga_dono ?? rd.host_id) !== user.id) { anotaQueda(rd.id, rd.code, 'entrada_virou_pedido'); setLoading(false); await pedirLiga(rd); return }
         if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
         rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
       }
       if (rd.status === 'started') {
-        if (!mySlot) { setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
+        if (!mySlot) { anotaQueda(rd.id, rd.code, 'entrada_sem_vaga', { modo: rd.game_state?.mode ?? null }); setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
         // 🔧 17/10 (Diego: "muitas vezes não consegue continuar a liga"): antes o resultado
         // era ignorado — se a partida guardada não abria, o botão ficava MUDO. Agora, numa
         // liga, tenta reabrir a sala de espera (mesma função do banco, que nunca mexe em
@@ -3109,7 +3113,7 @@ export function EscLobby() {
       setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.'))
       setLoading(false); return
     }
-    if (!insOk && /LIGA_SO_ACEITO/.test(lastErr)) { setLoading(false); await pedirLiga(rd); return } // 🙋 06/11: liga já começada = só com o pedido ACEITO pelo dono — vira o pedido
+    if (!insOk && /LIGA_SO_ACEITO/.test(lastErr)) { anotaQueda(rd.id, rd.code, 'entrada_virou_pedido'); setLoading(false); await pedirLiga(rd); return } // 🙋 06/11: liga já começada = só com o pedido ACEITO pelo dono — vira o pedido
     if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
     saveRoom(rd.id)
     setPwModal(null); setRoomError('')
