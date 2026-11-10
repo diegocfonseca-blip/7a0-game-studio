@@ -2959,8 +2959,19 @@ export function EscSetup() {
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
 
+  // 🛟 10/11 (Diego: *"aperto em iniciar pregão e N deixa ir… N tem erro em vermelho nenhum"*): nenhum NÃO pode ser mudo. Toda
+  // recusa diz o porquê NA tela onde a pessoa está, e o motivo vai pra caixa-preta (esc_travas, quando = 'carreira_nao_comeca').
+  const travaInicio = (motivo: string, msg: string) => {
+    setNameErr(msg)
+    anotaTrava({ papel: 'host', momento: 'envelope', segundos: 0, reenvios: 0, extra: { quando: 'carreira_nao_comeca', motivo, passo: privateStep, roupa: presidentDraft?.outfit ?? null } }, true)
+  }
   async function start() {
-    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
+    try { await startInner() } catch (e) {
+      travaInicio('erro:' + String((e as Error)?.message ?? e).slice(0, 120), tr('Não deu pra começar a carreira agora. Tente de novo — se continuar, avise a gente.', 'Couldn\'t start the career right now. Try again — if it keeps happening, let us know.'))
+    }
+  }
+  async function startInner() {
+    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { travaInicio('presidente', tr('Falta terminar o presidente: dê um nome e escolha o visual.', 'Finish your president first: give a name and pick the look.')); setPrivateStep(2); return }
     const clean = nomeDeTime(stripEmoji(name)) // 🔤 21/10 (Diego): "NEYMAR_FC" vira "Neymar_FC"
     if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
@@ -2985,7 +2996,7 @@ export function EscSetup() {
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
       if(modularSetup&&!podeVestirComPosse(presidentDraft.outfit,getPosseConta())){
-        setNameErr(tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
+        travaInicio('roupa', tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
         setPrivateStep(2);return
       }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
@@ -3107,6 +3118,7 @@ export function EscSetup() {
                 </div>
                 <button className="ll-random-rivals" onClick={() => setRivalPicks([])}>{tr('🎲 USAR RIVAIS PADRÃO', '🎲 USE DEFAULT RIVALS')}</button>
               </div>
+              {nameErr && <p className="ll-career-error" role="alert">{nameErr}</p>}
               <div className="ll-career-actions">
                 <button className="ll-secondary" onClick={() => setPrivateStep(2)}>{tr('VOLTAR', 'BACK')}</button>
                 <button className="ll-primary" onClick={() => void start()}>{tr('IR PARA O PREGÃO 🔨', 'GO TO THE AUCTION 🔨')}</button>
