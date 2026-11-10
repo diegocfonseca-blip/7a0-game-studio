@@ -21,7 +21,7 @@ const store = new Store(10_000_000)
 ;(globalThis as unknown as { localStorage: Store }).localStorage = store
 ;(globalThis as unknown as { window: unknown }).window = globalThis
 
-const vite = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'silent' })
+const vite = await createServer({ server: { middlewareMode: true, watch: null }, appType: 'custom', logLevel: 'silent' })
 const m = await vite.ssrLoadModule('/src/escalacao/store.tsx')
 try {
 const carreira = (seed: number, tam: number, temp: number) => ({
@@ -70,6 +70,22 @@ store.teto = store.used + 300
 assert.equal(m.stashActiveBeforeNew(), true, 'pouca folga: guarda a atual sem dobrar e deixa começar a nova')
 assert.equal(store.getItem('esc-solo-career'), null, 'a vaga de jogando fica livre pra nova')
 assert.deepEqual(seeds(), todas, 'a atual foi pro arquivo: nenhuma carreira some')
+
+// 4c) 📱☁️ 10/11 (Lucas Barreto 30): aparelho CHEIO só com a carreira NOVA; a grande (T113) desceu da nuvem e não coube. Ela tem que
+//     APARECER na lista e abrir (da memória, se não couber), sem estragar a que está no aparelho.
+store.clear()
+store.teto = 10_000_000
+store.setItem('esc-solo-career', JSON.stringify(carreira(7, 1000, 7)))
+store.setItem('esc-solo-career-at', '1')
+store.teto = store.used + 500 // não cabe a de 113 (5000)
+m._carreirasEmMemoriaParaTeste([{ save: carreira(113, 5000, 113), at: 9 }, { save: carreira(7, 1000, 7), at: 1 }], carreira(113, 5000, 113))
+assert.deepEqual(m.listAllCareers().map(c => c.slot.save.seed).sort((a, b) => a - b), [7, 113], 'a carreira grande que não coube APARECE na lista')
+const aberta = m.activateCareerSlot(113)
+assert.equal(aberta?.seed, 113, 'dá pra abrir a carreira que não coube')
+assert.equal(m.carreiraAtivaPraAbrir()?.seed, 113, 'o Continuar abre a T113 (da memória)')
+assert.equal(JSON.parse(store.getItem('esc-solo-career')!).seed, 7, 'a do aparelho continua intacta')
+store.teto = 10_000_000
+m._carreirasEmMemoriaParaTeste([], null)
 
 // 5) a nuvem nunca apaga carreira sozinha: se o aparelho perdeu alguma que a nuvem tem, a subida junta
 const fonte = (await import('node:fs')).readFileSync('src/escalacao/store.tsx', 'utf8')

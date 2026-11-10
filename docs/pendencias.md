@@ -1,3 +1,12 @@
+## 📱☁️ 10/11 — CARREIRA QUE NÃO COUBE NO APARELHO FICAVA INVISÍVEL (Lucas Barreto 30, T113 "sumiu" do celular e do PC) · no branch
+- A T113 (2,5 MB) estava INTEIRA na nuvem (`esc_pyramid_saves`, junto com a T7 nova). Cópia de segurança feita em `esc_saves_backup`
+  (id c948506f-45f5-4454-ac1e-b0977baca775).
+- Causa: aparelho cheio → `syncCareersWithCloud` não grava e guarda só a ATIVA na memória; `listAllCareers` só mostrava a memória
+  se fosse a MESMA carreira do aparelho. Agora todas as que desceram ficam em `carreirasEmMemoria`, a lista mostra todas e
+  `activateCareerSlot` abre a que não coube (no aparelho se couber; senão joga da memória sem mexer no que está no aparelho).
+  Trava: `npm run troca` (caso 4c). O teste agora roda sem vigiar arquivos (`watch: null`): as pastas de agentes estouravam o limite.
+- ⏭️ Diego quer o botão SAIR com escolha "sair salvando / sair sem salvar" (hoje só existe "Sair e salvar") — MOCKUP antes.
+
 ## 💤 10/11 — Sala parada na TELA DE FIM dorme depois de 20 min (Diego: *"ok pode ser mas deixe com 20 min"*) · ✅ PUBLICADO 10/11 (*"Sim"*)
 - Achado do vigia: sala que acabou e ficou aberta (BHZBJB 14 h, KKXFY2) seguia perguntando ao banco a cada 3 s (quem está na sala +
   quem é o dono, em TODO aparelho) e o dono gravando o batimento a cada 3 s — a noite toda.
