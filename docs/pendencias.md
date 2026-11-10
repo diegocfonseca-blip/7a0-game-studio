@@ -1,3 +1,12 @@
+## 🔎 10/11 — Auditoria das etapas anteriores ao tutorial da carreira (somente análise)
+
+- Diego pediu revisar Clube → Presidente → Rivais, especialmente quem não tem plano. Auditoria local da versão publicada `d73410f0` em 320/390/1440 px, sem sessão real e sem nova publicação. Caminho gratuito chegou ao pregão com 100 moedas, sem erro de navegador ou overflow horizontal.
+- Clube: oferta grande de Batismo antes de continuar; falta explicitar que pode iniciar sem compra e explicar as duas formações. Nome editado aqui pode alterar o display_name da conta ao começar; consequência não é avisada nesta etapa.
+- Presidente: catálogo inicial com 33 roupas (gratuita na posição 22), 43 botões, cerca de 4.939 px de altura a 390 px. Continuar fica depois do catálogo. Proposta: básico/disponíveis primeiro, catálogo extra opcional e ação próxima à identificação.
+- Rivais: lista de 80 clubes sem busca, nomes pequenos, rolagem interna; falta explicar preenchimento automático e separar escolha opcional de nomes da quantidade de bots no pregão. BUG confirmado: escolher 5 com limite 9 e reduzir para 3 deixa 5/3 e cinco destaques, mas o início usa só três. Reproduzido nas três larguras; ainda NÃO corrigido.
+- Estas três etapas continuam com rodapé antigo e apresentações diferentes entre si e do tutorial. Proposta de progresso único: Clube → Presidente → Rivais → Aprender, cabeçalho/rodapé atuais e continuidade visual.
+- Evidências e capturas atuais: `/workspace/shared/auditoria-entrada-carreira-20261110/analise.html`, `resultados.json`, `analise.json`; bancada reproduzível arquivada na mesma pasta. Nenhuma mudança de produto nesta entrega. Propostas visuais precisam de mockup/OK antes de implementação/commit visual, conforme CLAUDE.md.
+
 ## 🎓 10/11 — Início da carreira e ajuda por desbloqueio (aprovado; publicação autorizada)
 
 - Diego aprovou as 13 etapas em celular e desktop e autorizou: **"Ok pode publicar tudo isso"** (10/11). Liberação para todas as contas na carreira solo de futebol.
