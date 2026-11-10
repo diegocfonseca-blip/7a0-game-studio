@@ -10,6 +10,8 @@
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 
 export const PAIS: Record<string, string> = {
+  // 📅 Lote 49 (10/11): famosos da Premier no auge
+  "Marcelo Barovero": "Argentina", "Hugo Ibarra": "Argentina", "Pity Martínez": "Argentina", "Juan Fernando Quintero": "Colômbia", "Leonardo Ponzio": "Argentina", "Leonardo Astrada": "Argentina", "Antonio Rattín": "Argentina", "Rodrigo Mora": "Uruguai", "Teófilo Gutiérrez": "Colômbia", "Fernando Cavenaghi": "Argentina", "Ramón Díaz": "Argentina", "Javier Saviola": "Argentina", "Darío Benedetto": "Argentina", "Cristian Pavón": "Argentina", "Marcelo Delgado": "Argentina", "Rodrigo Palacio": "Argentina", "Mauro Boselli": "Argentina", "Juan Carlos Cárdenas": "Argentina", "André-Pierre Gignac": "França", "Antonio Valencia": "Equador", "Matías Almeyda": "Argentina", "Javier Pastore": "Argentina", "Freddy Guarín": "Colômbia", "Stefan Effenberg": "Alemanha", "Andreas Möller": "Alemanha", "Mehmet Scholl": "Alemanha", "Bernd Schuster": "Alemanha", "Juan Carlos Valerón": "Espanha", "Joaquín": "Espanha", "Fernando Chalana": "Portugal", "Marcelinho Paraíba": "Brasil", "Lisandro López": "Argentina", "Jackson Martínez": "Colômbia", "Duván Zapata": "Colômbia", "Muriel": "Colômbia", "Karl-Heinz Riedle": "Alemanha", "Kevin Kurányi": "Alemanha", "Roy Makaay": "Holanda", "Diego Tristán": "Espanha", "Aritz Aduriz": "Espanha", "Pauleta": "Portugal", "Nuno Gomes": "Portugal", "Jonas": "Brasil", "Antonio Di Natale": "Itália", "Willy Caballero": "Argentina", "Bart Verbruggen": "Holanda", "Amadou Onana": "Bélgica", "Evanilson": "Brasil", "Neville Southall": "País de Gales", "Aaron Ramsdale": "Inglaterra", "Luke Shaw": "Inglaterra", "Ryan Bertrand": "Inglaterra", "Nathan Aké": "Holanda", "Marc Guéhi": "Inglaterra", "Jonathan Woodgate": "Inglaterra", "James Milner": "Inglaterra", "Mikel Arteta": "Espanha", "Harry Kewell": "Austrália", "Kalvin Phillips": "Inglaterra", "Douglas Luiz": "Brasil", "James Maddison": "Inglaterra", "Eberechi Eze": "Inglaterra", "Weston McKennie": "Estados Unidos", "Trevor Francis": "Inglaterra", "Raúl Jiménez": "México", "Adama Traoré": "Espanha", "Bryan Mbeumo": "Camarões", "Igor Thiago": "Brasil", "Richarlison": "Brasil", "João Pedro": "Brasil", "Pedro Neto": "Portugal", "Wilfried Zaha": "Costa do Marfim", "Jarrod Bowen": "Inglaterra", "Alexander Sørloth": "Noruega", "Simone Zaza": "Itália",
   // 📅 Lote 48 (02/11): cartas pra fechar pacotes por década
   "David de Gea": "Espanha", "Samir Handanović": "Eslovênia", "Christian Abbiati": "Itália", "Hans-Jörg Butt": "Alemanha", "Andriy Lunin": "Ucrânia", "Manuel Almunia": "Espanha", "Yann Sommer": "Suíça", "Carlos Roa": "Argentina", "Kakha Kaladze": "Geórgia", "Massimo Oddo": "Itália", "Juan Bernat": "Espanha", "Ferland Mendy": "França", "Lucas Vázquez": "Espanha", "Gaël Clichy": "França", "Glen Johnson": "Inglaterra", "Alberto Moreno": "Espanha", "Steve Finnan": "Irlanda", "Phil Neville": "Inglaterra", "Paul Parker": "Inglaterra", "Thilo Kehrer": "Alemanha", "Marcos Alonso": "Espanha", "Gregory van der Wiel": "Holanda", "Samuel Umtiti": "França", "Holger Badstuber": "Alemanha", "Martin Keown": "Inglaterra", "Joleon Lescott": "Inglaterra", "Sami Hyypiä": "Finlândia", "Martin Škrtel": "Eslováquia", "Gary Cahill": "Inglaterra", "Laurent Koscielny": "França", "Stefan de Vrij": "Holanda", "Saúl Ñíguez": "Espanha", "Samir Nasri": "França", "Leon Goretzka": "Alemanha", "Mario Gómez": "Alemanha", "Daniel Sturridge": "Inglaterra", "Justo Villar": "Paraguai", "Mateo Ponte": "Uruguai", "Rivarola": "Paraguai",
   // 🇪🇺 Lote 46 (31/10): fechar as seleções da Eurocopa
@@ -543,6 +545,7 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 // ⚠️ Ao adicionar uma carta com nome que JÁ EXISTE no jogo, ponha as duas aqui.
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
+  'Neto|Corinthians|1990': 'Brasil', 'Neto|Valencia|2019': 'Brasil', // 📅 Lote 49: o goleiro Neto (outra pessoa que o Neto do Corinthians)
   // 📅 Lote 48 (02/11)
   'Ricardo|Sporting|2004': 'Portugal', 'Benítez|Internacional|1979': 'Paraguai', 'Jesé Rodríguez|Real Madrid|2014': 'Espanha', 'Diego Milito|Inter|2010': 'Argentina', 'Pablo Zabaleta|Man City|2012': 'Argentina', 'Rafinha|Bayern|2014': 'Brasil', 'Rafinha|Flamengo|2019': 'Brasil',
   // 📚 Lote 45 (30/10): a outra carta destes já tem país por carta, então a nova também precisa
@@ -1235,6 +1238,9 @@ export const MESMO_JOGADOR = new Set<string>([
   'Marcelo Salas',
   'Walter Samuel',
   'Daniel Passarella',
+  // 📅 Lote 49 (10/11): auge no baralho Europa + a carta que já tinham em outro baralho
+  'James Rodríguez', 'Igor Thiago', 'Rúben Neves', 'Ivan Toney',
+  'Lucas Pratto', 'Scocco', 'Muriel', 'Rafael Borré', 'Enner Valencia', 'Marcelinho Paraíba',
 ])
 
 /** Todo nome que aparece em mais de uma carta do jogo, com as cartas. */

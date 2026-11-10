@@ -4,7 +4,7 @@
 // de cada posição na ordem do elenco (`xiPorOrdem`) — a troca reordena o elenco (MLD_TROCA) e a formação vale na hora
 // (MLD_FORMACAO), sempre conferida pelo motor (nunca fica posição faltando).
 import { useMemo, useState } from 'react'
-import { useEsc } from './store'
+import { useEsc, golsNoJogo, assistsNoJogo } from './store'
 import { SquadTab, playerColors } from './pyramidseason'
 import { perkFromSelo } from './pyramidseason'
 import { xiPorOrdem } from './liga-draft'
@@ -16,6 +16,13 @@ export function EscalacaoMinha() {
   const [selId, setSelId] = useState<string | null>(null)
   const xi = useMemo(() => (you ? xiPorOrdem(you.squad, you.formation) : []), [you])
   const xiIds = useMemo(() => new Set(xi.map(c => c.id)), [xi])
+  // ⚽🅰️ 09/11 (reclamação na Liga Draft: "não aparecem as estatísticas dos jogadores"): os gols e as assistências DA TEMPORADA
+  // de cada carta, pela mesma conta do campinho (nome + time). A temporada nova começa zerada (a lista zera na virada).
+  const { goals, assists } = useMemo(() => {
+    const g: Record<string, number> = {}, a: Record<string, number> = {}
+    if (you) for (const c of you.squad) { const ng = golsNoJogo(state, c.name, you.id), na = assistsNoJogo(state, c.name, you.id); if (ng) g[c.id] = ng; if (na) a[c.id] = na }
+    return { goals: g, assists: a }
+  }, [state, you])
   if (!you) return null
   const humanos = state.managers.filter(m => m.isHuman).map(m => m.id)
   const perks = Object.fromEntries(state.managers.filter(m => m.isHuman).map(m => [m.id, perkFromSelo(m.name) ?? null]))
@@ -31,7 +38,7 @@ export function EscalacaoMinha() {
     setSelId(null)
   }
   return (
-    <SquadTab mgr={you} col={col} coins={Math.max(0, Math.floor(you.money))} xiIds={xiIds} xi={xi as WonCard[]}
+    <SquadTab mgr={you} col={col} coins={Math.max(0, Math.floor(you.money))} xiIds={xiIds} xi={xi as WonCard[]} goals={goals} assists={assists}
       onSwap={onTap} selId={selId} seasonNo={state.seasonNo}
       onSetFormation={(f, view) => dispatch({ type: 'MLD_FORMACAO', mgrId: you.id, formation: f, view, by: state.youUid })} />
   )

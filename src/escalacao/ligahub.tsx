@@ -33,6 +33,7 @@ import { APOIO_PERKS, ApoioSheen } from './apoio'
 import { perkFromSelo } from './pyramidseason'
 import { ApoieButton } from './screens' // 💛 o clique da linha "tem dono de verdade" abre o batismo
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
+import { useEscTalvez } from './store'
 import { Trofeu, type CompId } from './competicoes-visual' // 🏆 28/10: a taça de cada título do lado do nome
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
@@ -435,6 +436,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
   const [membros, setMembros] = useState<MembroSala[]>([])
   const [sala, setSala] = useState<{ ehLiga: boolean; nome: string; regras: LigaRegras; ligaAt?: string; semBots: boolean } | null>(null)
+  const draft = !!useEscTalvez()?.state.minhaLigaDraft // ⚙️ 10/11: na Liga Draft a aba Ajustes some (ver `abas`)
   const [aba, setAba] = useState<Aba | null>(null) // 🔽 barra começa FECHADA: nada tapa o jogo rolando
   // 📚 qual das três (Rank · Estante · Temporadas) está aberta DENTRO do painel,
   // quando elas viram um botão só. Nada mudou de conteúdo — só de porta.
@@ -552,10 +554,13 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
   // largura é o que falta no celular, não no monitor.
   const ehAbaDaPartida = (b: Botao): b is 'jogos' | 'estatisticas' | 'elenco' => b === 'jogos' || b === 'estatisticas' || b === 'elenco'
   const juntas = !!abasJogo
+  // ⚙️ 10/11 (Diego, olhando o rodapé da Liga Draft: *"essa abinha de ajustes… não tem muito sentido aqui na Liga Draft"*): na
+  // Liga Draft a aba sai — o dono já tem o ✏️ Painel do dono na partida, e remarcar/bots/excluir seguem na sala de espera.
+  const comAjustes = souDono && !draft
   const abas: Botao[] = sala.ehLiga
     ? (juntas
-      ? ['jogos', 'estatisticas', 'elenco', 'rank', 'estante', 'temporadas', ...(souDono ? ['ajustes' as Botao] : [])]
-      : ['rank', 'estante', 'temporadas', ...(souDono ? ['ajustes' as Botao] : [])])
+      ? ['jogos', 'estatisticas', 'elenco', 'rank', 'estante', 'temporadas', ...(comAjustes ? ['ajustes' as Botao] : [])]
+      : ['rank', 'estante', 'temporadas', ...(comAjustes ? ['ajustes' as Botao] : [])])
     : (juntas ? ['jogos', 'estatisticas', 'elenco', 'estante'] : ['estante'])
   // quem só existe no celular (as abas da partida) e quem só existe no desktop
   // (Rank e Temporadas soltos — no celular eles moram dentro do 📚 Estante)

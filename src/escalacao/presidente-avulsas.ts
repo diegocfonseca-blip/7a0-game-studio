@@ -36,8 +36,12 @@ export function catalogoAvulsas(): { ref: string; nivel: 1 | 2 | 3 | 4 }[] {
 
 /** o que a conta tem: plano + peças compradas (refs) */
 export type PosseAvulsa = { plano: PlanoUnico | null | undefined; compradas: readonly string[] }
-export const temBoneco = (p: PosseAvulsa) => degrauDoPlano(p.plano) >= 1 || p.compradas.some(r => r.startsWith('r-'))
+// 🎁 10/11 (Diego: *"liberar um personagem grátis p todos igual. Careca e roupa simples e fundo será tier bege"*): REVOGA o "nada é de
+//    graça" de 15/10 SÓ no básico — todo mundo tem boneco, careca, com a CAMISETA BRANCA. O resto continua no plano ou avulso.
+export const ROUPA_GRATIS = 'camiseta-branca' as const
+export const temBoneco = (_p: PosseAvulsa) => true
 export function podeVestirRoupaAvulsa(id: RoupaModular, p: PosseAvulsa): boolean {
+  if (id === ROUPA_GRATIS) return true
   return degrauDoPlano(p.plano) >= nivelRoupa(id) || p.compradas.includes(refRoupa(id))
 }
 /** aceita o plano sozinho (código velho) ou a posse inteira */
@@ -59,7 +63,7 @@ export const podeEscolherPele = (p: PosseAvulsa) => temBoneco(p)
 export function compraPossivel(ref: string, p: PosseAvulsa): { ok: true; preco: number } | { ok: false; motivo: 'ja_tem' | 'roupa_primeiro' | 'invalida' } {
   const item = catalogoAvulsas().find(c => c.ref === ref)
   if (!item) return { ok: false, motivo: 'invalida' }
-  if (p.compradas.includes(ref) || degrauDoPlano(p.plano) >= item.nivel) return { ok: false, motivo: 'ja_tem' }
+  if (p.compradas.includes(ref) || degrauDoPlano(p.plano) >= item.nivel || ref === refRoupa(ROUPA_GRATIS)) return { ok: false, motivo: 'ja_tem' }
   if (ref.startsWith('p-') && !temBoneco(p)) return { ok: false, motivo: 'roupa_primeiro' }
   return { ok: true, preco: PRECO_NIVEL[item.nivel] }
 }

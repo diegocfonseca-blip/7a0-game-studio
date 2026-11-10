@@ -54,3 +54,14 @@ alter table public.esc_contas_ligadas add column if not exists desde timestamptz
 -- `desde` do grupo 'icenugets' voltou pra 2026-11-07 22:45:01 UTC (o 25º título da fazenda). Ficam valendo os 12 títulos de sala
 -- de verdade + 24 da sala só dos dois = 36 na semana (o 3º lugar, Corinthians Pe, tem 38). Nenhum título foi apagado.
 -- update esc_contas_ligadas set desde = '2026-11-07 22:45:01.199276+00' where grupo = 'icenugets';
+
+-- 🕵️ 09/11 (Diego: "tire todos C prime"): Oliveira FC 30 criava a sala, a conta Prime FC (mesmo aparelho/internet) entrava,
+-- saía no começo e ele jogava SOZINHO contra os robôs (~30 salas só no dia 09/11). Ligar não bastava: a regra deixava valer
+-- título "sozinho". Nova coluna `solo_nao_vale`: no grupo marcado, título jogando sozinho também NÃO conta. Só vale pra quem
+-- tem a marca (os outros grupos seguem iguais). Desfazer: update esc_contas_ligadas set solo_nao_vale=false where grupo='oliveira30'.
+alter table esc_contas_ligadas add column if not exists solo_nao_vale boolean not null default false;
+-- (as duas versões de esc_titulo_vale ganharam: sozinho na sala → return not coalesce(solo_nao_vale,false))
+insert into esc_contas_ligadas (conta, grupo, motivo, criado_em, desde, solo_nao_vale) values
+ ('56ed8d29-974a-4f47-b457-411249927ad2','oliveira30','Oliveira FC 30', now(), '2026-09-24', true),
+ ('665e49ba-70f1-474b-ac1a-3bc1838fd97c','oliveira30','Prime FC (apoio)', now(), '2026-09-24', true)
+on conflict do nothing;

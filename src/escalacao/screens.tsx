@@ -1,6 +1,7 @@
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
-import {careerVisualV2,CareerVisualProvider} from './career-visual-v2'
+import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
+import {CareerWelcome,CareerAuctionHint} from './career-start-guide'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { legendAvatar } from './legend-avatars' // ⭐ 22/10: rostinho das lendas apresentadas na Cerimônia
@@ -42,7 +43,7 @@ import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrow
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
+import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
@@ -53,15 +54,18 @@ import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
 import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
-import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
+import {PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
 import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
-import {usePlanoConta,getPosseConta} from './presidente-conta'
+import {usePlanoConta,getPosseConta,visualCabeNaPosse} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
 import { ComPerfil, MeusAmigos, SinoAmigos, PedidosNaHome, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
-import {podeVestirComPosse} from './presidente-avulsas'
+import {podeVestirComPosse,ROUPA_GRATIS} from './presidente-avulsas'
+import {aparenciaInicial,escolherPeca} from './presidente-aparencia'
+import {chaveClube,batismoDe} from './batismos'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
+import {CareerSetupFrame,CareerRivalsSetup} from './career-setup-guide'
 import {identidadeDaConta} from './presidencia-identidade-conta'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
@@ -901,7 +905,8 @@ export function GameFooter() {
   }
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
-  if (privatePreview && state.careerIntent && state.screen === 'setup') return null
+  if (privatePreview && state.careerIntent && state.screen === 'setup' && state.sport === 'basquete') return null
+  if (careerVisualV2(state) || (state.screen === 'setup' && state.careerIntent && state.sport !== 'basquete')) return <footer className="csg-footer"><div className="csg-footer-inner"><div><strong>LEILÃO LEGENDS</strong><p>{tr('Seu clube. Sua história. Uma temporada de cada vez.','Your club. Your story. One season at a time.')}</p></div><nav aria-label={tr('Links do rodapé','Footer links')}><LojaButton naCarreira={state.screen!=='setup'}>{tr('Loja do clube','Club shop')} →</LojaButton><button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">Instagram</a><a href="mailto:contato@leilaolegends.com">{tr('Contato','Contact')}</a></nav></div></footer>
   // The private lobby supplies its own shop card. Keep contact here, outside
   // Router, without reviving the legacy support banner underneath it.
   if (ownerAccount && state.sport !== 'basquete' && (state.screen === 'lobby' || ownerOnlineScope(state))) return <footer className="ow-contact-footer">
@@ -954,22 +959,32 @@ export function GameFooter() {
 
 export function Box({ children, bg = '#fff', className = '', shadow = 4, style }: { children: React.ReactNode; bg?: string; className?: string; shadow?: number; style?: React.CSSProperties }) {
   const ownerVisual=useOwnerLayout()
+  const soloCareerVisual=useCareerVisualV2()
   return (
-    <div className={`border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, ...(ownerVisual?{color:INK}:{}), boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
+    <div className={`ll-box border-[3px] border-black rounded-2xl ${className}`} style={{ background: bg, ...(ownerVisual?{color:INK}:soloCareerVisual?{color:careerSurfaceColor(bg)}:{}), boxShadow: `${shadow}px ${shadow}px 0 0 ${INK}`, ...style }}>
       {children}
     </div>
   )
 }
 
+function careerSurfaceColor(bg:string):string {
+  const hex=bg.replace('#','')
+  if(!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex))return INK
+  const full=hex.length===3?hex.split('').map(c=>c+c).join(''):hex
+  const rgb=[0,2,4].map(i=>parseInt(full.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4)
+  return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]>.179?INK:'#F4ECD6'
+}
+
 export function Btn({ children, onClick, bg = GOLD, disabled = false, className = '' }: { children: React.ReactNode; onClick: () => void; bg?: string; disabled?: boolean; className?: string }) {
   const ownerVisual = useOwnerLayout()
+  const soloCareerVisual=useCareerVisualV2()
   return (
     <motion.button
       whileTap={disabled ? undefined : { x: 2, y: 2 }}
       onClick={onClick}
       disabled={disabled}
       className={`border-[3px] border-black rounded-xl px-4 py-3 font-black uppercase text-sm tracking-wide ${disabled ? 'opacity-40' : ''} ${className}`}
-      style={{ backgroundColor: bg, ...(ownerVisual ? { color: bg === GREEN || bg === INK || bg === '#7C3AED' ? '#fff' : INK } : {}), boxShadow: disabled ? 'none' : `4px 4px 0 0 ${INK}`, ...OSWALD }}
+      style={{ backgroundColor: bg, ...(ownerVisual ? { color: bg === GREEN || bg === INK || bg === '#7C3AED' ? '#fff' : INK } : soloCareerVisual ? {color:careerSurfaceColor(bg)} : {}), boxShadow: disabled ? 'none' : `4px 4px 0 0 ${INK}`, ...OSWALD }}
     >
       {children}
     </motion.button>
@@ -2851,19 +2866,38 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
   )
 }
 
+// 🖋 10/11: os rivais da carreira = todo clube de batismo/fundador que existe na pirâmide (A→D), um de cada, em ordem alfabética
+const RIVAIS_BATISMO: { team: string; name: string }[] = (() => {
+  const vistos = new Set<string>(); const out: { team: string; name: string }[] = []
+  for (const d of ['A', 'B', 'C', 'D'] as const) for (const tm of DIVISION_TEAMS[d]) if (!vistos.has(tm.team) && batismoDe(tm.team)) { vistos.add(tm.team); out.push(tm) }
+  return out.sort((a, b) => a.team.localeCompare(b.team, 'pt-BR'))
+})()
 // ─── SETUP ───────────────────────────────────────────────────────────
 export function EscSetup() {
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const career = state.careerIntent
   const legacyPrivatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
-  const presidentAccount = usePresidentPreview()
-  const modularSetup = presidentAccount && PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
+  // 🟢 10/11 (Diego: *"publique já p todos"*): o passo a passo novo (clube → presidente → pregão) vale pra TODA conta. Quem não tem
+  // plano ganha o presidente básico de graça (careca + camiseta branca, `ROUPA_GRATIS`). Antes: só a conta dele (`usePresidentPreview`).
+  const modularSetup = PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
   // Keep the account check alive between the editor and final career step.
   usePlanoConta()
   const privatePreview = modularSetup || legacyPrivatePreview
   const setupMember = useMeuSocio()
   const [presidentDraft,setPresidentDraft] = useState(()=>sugestaoPresidente(undefined))
+  // 🎁 10/11: sem plano, o rascunho nasce no presidente GRÁTIS (careca + camiseta branca) — senão o terno (do Craque) travava o início.
+  //    Só quando o plano já chegou do banco (`useDireitos` != null) e só se o rascunho atual não cabe no que a conta tem.
+  const direitosSetup = useDireitos()
+  useEffect(() => {
+    if ((!direitosSetup && loggedEmail()) || !modularSetup) return // sem conta (ou sessão ainda vazia) = grátis na hora; logado espera o plano
+    setPresidentDraft(d => {
+      const posse = getPosseConta()
+      if (visualCabeNaPosse(d, posse)) return d
+      const careca = escolherPeca(escolherPeca(aparenciaInicial(), 'hair', 'none') ?? aparenciaInicial(), 'beard', 'none')
+      return { ...d, outfit: podeVestirComPosse(d.outfit, posse) ? d.outfit : ROUPA_GRATIS, ...(careca ? { appearance: careca } : {}) }
+    })
+  }, [direitosSetup, modularSetup])
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -2913,13 +2947,19 @@ export function EscSetup() {
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
   const [privateStep, setPrivateStep] = useState<1 | 2 | 3>(1)
+  const [rivalsNotice,setRivalsNotice] = useState('')
   const [presidentName, setPresidentName] = useState('')
   const [presidentOutfit, setPresidentOutfit] = useState<'casual' | 'polo' | 'social' | 'terno'>('terno')
-  const toggleRival = (team: string) => setRivalPicks(prev => {
-    if (prev.includes(team)) return prev.filter(t => t !== team)
-    const next = [...prev, team]
-    return next.length > rivals ? next.slice(next.length - rivals) : next
-  })
+  const toggleRival = (team: string) => {
+    if (rivalPicks.includes(team)) { setRivalPicks(rivalPicks.filter(t => t !== team)); setRivalsNotice(''); return }
+    if (rivalPicks.length >= rivals) { setRivalsNotice(tr('Você já escolheu todos. Remova um clube antes de adicionar outro.', 'All slots are selected. Remove a club before adding another.')); return }
+    setRivalPicks([...rivalPicks,team]); setRivalsNotice('')
+  }
+  const changeRivals = (n:number) => {
+    setRivals(n)
+    if (rivalPicks.length > n) { setRivalPicks(rivalPicks.slice(0,n)); setRivalsNotice(tr(`Quantidade reduzida: mantivemos os ${n} primeiros clubes que você escolheu.`,`Number reduced: kept the first ${n} clubs you selected.`)) }
+    else setRivalsNotice('')
+  }
   // conta = fonte única do nome do time. Se logado, o nome vem do cadastro
   // (mesmo do online) e é editável aqui; ao começar, sincroniza de volta pra
   // conta — então trocar num lugar troca em todos (CPU, carreira, online, stats).
@@ -2939,8 +2979,19 @@ export function EscSetup() {
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [])
 
+  // 🛟 10/11 (Diego: *"aperto em iniciar pregão e N deixa ir… N tem erro em vermelho nenhum"*): nenhum NÃO pode ser mudo. Toda
+  // recusa diz o porquê NA tela onde a pessoa está, e o motivo vai pra caixa-preta (esc_travas, quando = 'carreira_nao_comeca').
+  const travaInicio = (motivo: string, msg: string) => {
+    setNameErr(msg)
+    anotaTrava({ papel: 'host', momento: 'envelope', segundos: 0, reenvios: 0, extra: { quando: 'carreira_nao_comeca', motivo, passo: privateStep, roupa: presidentDraft?.outfit ?? null } }, true)
+  }
   async function start() {
-    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
+    try { await startInner() } catch (e) {
+      travaInicio('erro:' + String((e as Error)?.message ?? e).slice(0, 120), tr('Não deu pra começar a carreira agora. Tente de novo — se continuar, avise a gente.', 'Couldn\'t start the career right now. Try again — if it keeps happening, let us know.'))
+    }
+  }
+  async function startInner() {
+    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { travaInicio('presidente', tr('Falta terminar o presidente: dê um nome e escolha o visual.', 'Finish your president first: give a name and pick the look.')); setPrivateStep(2); return }
     const clean = nomeDeTime(stripEmoji(name)) // 🔤 21/10 (Diego): "NEYMAR_FC" vira "Neymar_FC"
     if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
@@ -2957,7 +3008,8 @@ export function EscSetup() {
     // dois "Neymarzetti" na mesma tabela, um dele e um robô. Aqui o seu clube sai
     // da lista de rivais; a trava final está no `makeCareerManagers`.
     const meuNome = stripEmoji(clean).trim().toLowerCase()
-    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome
+    const meuBatSetup = setupMember?.ativo ? setupMember.escudoTime?.trim() || null : null // 🖋 10/11: o seu clube batizado também não vira rival
+    const naoSouEu = (t: string) => stripEmoji(t).trim().toLowerCase() !== meuNome && !(meuBatSetup && chaveClube(t) === chaveClube(meuBatSetup))
     const picks = career
       ? [...rivalPicks.filter(naoSouEu), ...TIMES_ELITE.map(t => t.team).filter(t => !rivalPicks.includes(t) && naoSouEu(t))].slice(0, rivals)
       : undefined
@@ -2965,7 +3017,7 @@ export function EscSetup() {
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
       if(modularSetup&&!podeVestirComPosse(presidentDraft.outfit,getPosseConta())){
-        setNameErr(tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
+        travaInicio('roupa', tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
         setPrivateStep(2);return
       }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
@@ -2997,11 +3049,18 @@ export function EscSetup() {
     const activePresident = outfits.find(([id]) => id === presidentOutfit)?.[2] ?? presidentTerno
     const nextFromClub = () => {
       if (!stripEmoji(name).trim()) { setNameErr(tr('Digite o nome do clube.', 'Type the club name.')); return }
+      if (nomeOfensivo(name)) { setNameErr(NOME_MSG.ofensivo); return }
       setNameErr(''); setPrivateStep(2)
     }
     const nextFromPresident = () => setPrivateStep(3)
-    if(modularSetup&&privateStep===1)return <Shell hideExit><CriarClubePresidencia name={name} onName={v=>{setName(stripEmoji(v));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} onBack={()=>dispatch({type:'GO_LOBBY'})} support={<ApoieButton startScreen="batismo" trigger={open=><Btn onClick={open}>{tr('CONHECER O BATISMO','EXPLORE BAPTISM')}</Btn>}/>} /></Shell>
-    if(modularSetup&&privateStep===2)return <Shell hideExit><PresidenteFormulario value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/></Shell>
+    if(modularSetup){
+      const back=()=>privateStep===1?dispatch({type:'GO_LOBBY'}):setPrivateStep(privateStep===2?1:2)
+      const ownClub=setupMember?.ativo?setupMember.escudoTime?.trim():null
+      const choices=RIVAIS_BATISMO.filter(t=>chaveClube(t.team)!==chaveClube(name)&&(!ownClub||chaveClube(t.team)!==chaveClube(ownClub)))
+      return <Shell className="cse-shell" hideExit><CareerSetupFrame step={privateStep} club={name} onBack={back}>
+       {privateStep===1?<CriarClubePresidencia name={name} accountName={accountName} onName={v=>{const clean=stripEmoji(v);setName(clean);setRivalPicks(p=>p.filter(team=>chaveClube(team)!==chaveClube(clean)));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} support={<LojaButton ancora="loja-planos" className="cse-secondary">{tr('CONHECER O BATISMO NA LOJA →','EXPLORE NAMING IN THE SHOP →')}</LojaButton>}/>:privateStep===2?<PresidenteFormulario guided value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/>:<CareerRivalsSetup rivals={rivals} picks={rivalPicks} options={choices} onCount={changeRivals} onToggle={toggleRival} onDefaults={()=>{setRivalPicks([]);setRivalsNotice('')}} onStart={()=>void start()} error={nameErr} notice={rivalsNotice}/>}
+      </CareerSetupFrame></Shell>
+    }
     return (
       <Shell className="ll-career-onboarding" hideExit>
         <main className={`ll-career-setup ll-career-step-${privateStep}`} style={{ '--career-room': `url(${careerSetupRoom})` } as CSSProperties}>
@@ -3079,14 +3138,30 @@ export function EscSetup() {
                 </div>
                 <p className="ll-career-note">{tr('Mais rivais significam mais disputa pelos mesmos jogadores. A liga continua com 20 clubes.', 'More rivals means more competition for the same players. The league still has 20 clubs.')}</p>
                 <label>{tr('RIVAIS PARA A CARREIRA', 'RIVALS FOR THE CAREER')} <small>{rivalPicks.length}/{rivals}</small></label>
-                <div className="ll-rival-list">
-                  {TIMES_ELITE.map(t => {
-                    const on = rivalPicks.includes(t.team)
-                    return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
-                  })}
-                </div>
+                {(() => {
+                  // 🖋 10/11 (Diego): o clube batizado do PRÓPRIO usuário não aparece como rival (escudo e mascote não podem repetir
+                  // na mesma liga) — e só quem tem batismo vê a linha explicando. Régua do nome = `chaveClube` (ignora caixa, acento, FC/EC).
+                  const meuBat = setupMember?.ativo ? setupMember.escudoTime?.trim() || null : null
+                  const ehMeu = (team: string) => !!meuBat && chaveClube(team) === chaveClube(meuBat)
+                  // 🖋 10/11 (Diego): TODOS os clubes de batismo e fundador, misturados (ordem alfabética), sem dizer a divisão de ninguém.
+                  //    O escolhido começa com você e outro clube ocupa o lugar dele na divisão de origem (store: START_CAREER_SOLO).
+                  const lista = RIVAIS_BATISMO.filter(t => !ehMeu(t.team))
+                  return <>
+                    <p className="ll-career-note" style={{ marginTop: 0 }}>{tr('🖋 Clubes de quem fez Batismo ou Fundador: eles aparecem na carreira de todo mundo.', '🖋 Clubs of players who got Naming or Founder: they show up in everyone\'s career.')}</p>
+                    <div className="ll-rival-list">
+                      {lista.map(t => {
+                        const on = rivalPicks.includes(t.team)
+                        return <button key={t.team} onClick={() => toggleRival(t.team)} className={on ? 'is-selected' : ''}>{on ? '🔥 ' : ''}{t.team}</button>
+                      })}
+                    </div>
+                    {meuBat && <p className="ll-career-note" style={{ marginTop: 8, background: 'rgba(255,196,0,.18)', border: '2px dashed #b38900', borderRadius: 10, padding: '6px 9px', color: '#5a4a14' }}>
+                      {tr(`🖋 O ${meuBat} não aparece aqui porque é o seu clube: escudo e mascote não se repetem na mesma liga.`, `🖋 ${meuBat} isn't listed because it's your club: crest and mascot can't repeat in the same league.`)}
+                    </p>}
+                  </>
+                })()}
                 <button className="ll-random-rivals" onClick={() => setRivalPicks([])}>{tr('🎲 USAR RIVAIS PADRÃO', '🎲 USE DEFAULT RIVALS')}</button>
               </div>
+              {nameErr && <p className="ll-career-error" role="alert">{nameErr}</p>}
               <div className="ll-career-actions">
                 <button className="ll-secondary" onClick={() => setPrivateStep(2)}>{tr('VOLTAR', 'BACK')}</button>
                 <button className="ll-primary" onClick={() => void start()}>{tr('IR PARA O PREGÃO 🔨', 'GO TO THE AUCTION 🔨')}</button>
@@ -3533,6 +3608,7 @@ export function EscStreamIntro() {
   const humans = state.managers.filter(m => m.isHuman)
   // cor do apoiador pelo selo no nome (igual ao lobby): 👑 ouro · ⭐ prata · 💎 roxo
   const perkColor = (name: string) => comCorDoNome(name.includes('👑') ? APOIO_PERKS.ouro : name.includes('⭐') ? APOIO_PERKS.prata : name.includes('💎') ? APOIO_PERKS.roxo : null, name) // 🎨 02/11
+  if(careerVisualV2(state))return <Shell hideExit><CareerWelcome state={state} onStart={()=>dispatch({type:'START_STREAM_AUCTION'})} onSkip={()=>{dispatch({type:'MARK_CAREER_SEEN',key:'guia-basico'});dispatch({type:'START_STREAM_AUCTION'})}} onBack={()=>dispatch({type:'GO_SETUP_CAREER'})}/></Shell>
   return (
     <Shell>
       {isCareer && (
@@ -5107,12 +5183,12 @@ function Envelope() {
       : <>💡 O nível da carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda. Repara no clube e no ano!</>)
   return (
     <Shell auctionBudget={{committed:total,masked:!!state.streamMode&&!peek}} bar={<AuctionBar vagas={pregaoLimpo && canBid ? bidLimit : undefined} ajuda={pregaoLimpo} />}>
-      {sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
+      {careerVisualV2(state)?<CareerAuctionHint stage={state.reserveAuction?'reservas':'lance'} slots={bidLimit} bidTotal={total}/>:sport !== 'basquete' && <NarradorDica fase="envelope" texto="✉️ Escreve teu lance ESCONDIDO — ninguém vê o de ninguém! Quem der mais, leva no martelo. E se segura: são 5 posições pra encher o time. 💰" />}
       {/* 🎓 O ENSINO. Com o pregão limpo as regras saem da frente das cartas — mas
           QUEM ESTÁ COMEÇANDO vê tudo aqui, uma vez, no começo da partida/carreira,
           com um "entendi" pra fechar. É a troca: ensina no momento certo em vez de
           empurrar a mesma regra em todo setor de toda temporada. */}
-      {showLanceTip && !rescue && (pregaoLimpo ? (
+      {showLanceTip && !rescue && !careerVisualV2(state) && (pregaoLimpo ? (
         <div className="border-[3px] border-black rounded-xl p-3 text-center" style={{ background: `linear-gradient(180deg,#FFE07A,${GOLD})`, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p className="text-[9px] font-black uppercase tracking-wide text-black/50" style={OSWALD}>{L('Seu primeiro pregão', 'Your first auction')}</p>
           <p className="text-[16px] font-black leading-tight mt-0.5" style={OSWALD}>🏆 {L('GANHA QUEM DÁ O MAIOR LANCE', 'HIGHEST BID WINS')}</p>
@@ -5960,7 +6036,7 @@ function Reveal() {
           guia por cima do martelo, comendo meia tela no melhor momento do jogo.
           Ela continua VIVA em todo o resto (solo, carreira, outras fases) e o
           conteúdo segue no Manual. */}
-      {state.sport !== 'basquete' && !mesaModo && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
+      {careerVisualV2(state)?<CareerAuctionHint stage="revelacao"/>:state.sport !== 'basquete' && !mesaModo && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
       <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
         Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
       </p>
@@ -6273,7 +6349,7 @@ export function EscMonte() {
   return (
   <>
     <Shell bar={<AuctionBar />}>
-      {state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
+      {careerVisualV2(state)?<CareerAuctionHint stage="monte"/>:state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
       <h2 className="font-black text-3xl pt-1" style={OSWALD}>{tr('🪣 MONTE FINAL', '🪣 FINAL PILE')}</h2>
       <p className="ov3-page-muted text-sm font-semibold text-black/70">
         {tr('As sobras do pregão. Quem tem mais buracos escolhe primeiro, em serpente. Seus buracos:', 'The auction leftovers. Whoever has more holes picks first, snake order. Your holes:')} <b>{totalHoles(you)}</b>.
@@ -7265,7 +7341,7 @@ export function EscSeason() {
   // 🔜 FAIXA "DEPOIS DA LIGA TEM…" nas últimas rodadas das salas online (Diego 13/10: gente saía
   // achando que tinha acabado e perdia a escolha do clube/seleção). Só aviso — `proxima-competicao.tsx`.
   const faixaProxAtiva = online && !!state.roomId && !state.careerOnline && !bbS && state.round > 0 && state.round < totalRounds && totalRounds - state.round <= RODADAS_DO_AVISO
-  const copasDaSala = useCopasDaSala(state.roomId, faixaProxAtiva)
+  const copasDaSala = useCopasDaSala(state.roomId, faixaProxAtiva && !state.ligaDraft && !state.minhaLigaDraft) // 📋 10/11: Liga Draft não tem copa depois
   const fixture = state.round < totalRounds ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
   const opp = fixture ? state.league.find(t => t.id === (fixture[0] === you.id ? fixture[1] : fixture[0])) : undefined
   // confronto direto: clássico quando o adversário é um humano da sala OU um
@@ -8403,7 +8479,7 @@ function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORER
   // 🙈 ANTI-SPOILER: enquanto o SEU jogo anima (hold), mostra a artilharia de ANTES
   // da rodada (scorersPrev) — os gols novos só entram no apito. Sem isto o total do
   // artilheiro subia com a partida rolando e entregava o gol antes de animar.
-  const src = fonte ?? (hold && state.scorersPrev ? state.scorersPrev : state.scorers) // ⭐ `fonte`: a artilharia da Champions (tela própria)
+  const src = fonte ?? (hold && state.scorersPrev && state.round > 0 && state.lastResults.length > 0 ? state.scorersPrev : state.scorers) // 🧯 09/11: no começo da temporada a cópia é da temporada PASSADA (Liga Draft mostrava a artilharia velha) // ⭐ `fonte`: a artilharia da Champions (tela própria)
   const rows = [...src].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10)
   if (rows.length === 0) {
     return (
@@ -11814,6 +11890,12 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         holandes: state.holandes,
         pregaoAberto: state.pregaoAberto, // 🔨 o pregão aberto também continua no novo leilão (17/10)
         envUnico: state.envUnico, // ⚡ o envelope único também continua no novo leilão (28/10)
+        // 📏 09/11 (Diego: *"se ele escolheu um modo, deve seguir o que ele escolheu… se editar ou começar outra coisa aí sim"*):
+        // a liga de 10 virava de 20 no novo leilão (o tamanho não vinha na ação). Junto: turno único, chave do Relâmpago e a Liga Draft.
+        tamanhoLiga: state.tamanhoLiga === 10 ? 10 : undefined,
+        turnoUnico: state.turnoUnico === true,
+        relampagoChave: state.relampagoChave,
+        ligaDraft: state.ligaDraft, minhaLigaDraft: state.minhaLigaDraft, draftRegras: state.draftRegras, draftPremios: state.draftPremios,
         // 🧱 E O LEILÃO DE CLUBES (28/09, mesma regra dele: *"se continuarem jogando na
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".
@@ -12494,8 +12576,12 @@ export function EscEnd() {
         // 🛡️ sala com as DUAS marcas (achado 15/10, sala "Rio-SP no YouTube" do Futpoint): abria a Copa do Mundo E o
         // Rio × SP juntos, lendo as MESMAS escolhas — "2 listas" e a convocação do São Paulo vazia (procurava o PAÍS São
         // Paulo). Uma copa só por noite: a regional, que é a escolha mais específica, ganha.
-        const reg = ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
-        setMundoNaLiga(String(d?.flag) === 'true' && !reg)
+        // 📋 10/11 (Diego: *"liga draft N pode ter copa dps das ligas"*, sala DT89DJ do Fabulous virou Eurocopa): Liga Draft
+        // NUNCA abre copa de seleção/regional no fim — vai sempre pro draft, mesmo que alguma marca tenha sobrado na sala.
+        const draftSala = !!(state.ligaDraft || state.minhaLigaDraft)
+        const reg = !draftSala && ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
+        if (draftSala) setEuroNaLiga(undefined)
+        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg)
         setRegionalNaLiga(reg)
         setMundoChecado(true)
       }, () => {})

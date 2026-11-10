@@ -76,6 +76,7 @@ const BATISMOS = [
   ['matheussoaresg2018@gmail.com', 'Cuiudos FC'], // 🤠🔵 Série A (17/10) — plano Fundador, assento do Papão United Madrid, que desceu pra C
   ['vittor@tidex.com.br', 'Wen Milan B'], // 😈🔴⚫ Série A (17/10) — plano Fundador, assento do Al Takhadao FC, que desceu pra C
   ['ccaonta@gmail.com', 'Chelsão da Massa FC'], // 🦁🔵 Série C (16/10) — assento do bot CRBebê
+  ['doublecontatocomercial@gmail.com', 'Double Duo FC'], // 👑💜 Série B (09/11, Fundador) — streamer; no assento do Murriz FC
   ['danieltorresreus@gmail.com', 'Monarca Tricolor'], // 👑⚪🔴⚫ Série D (05/11, Fundador) — assento do bot Excelsior SAF
   ['enzocromero9@gmail.com', 'Paizão FC'], // 👑🎩 Série D (30/10, Fundador) — no assento do bot Monarca EC
   ['bruno.cunha2007@gmail.com', 'Piranhão FC'], // 🐟🏛️ Série D (29/10, Fundador) — no assento do bot Continental Real
@@ -133,6 +134,8 @@ const BATISMOS = [
   ['felipe.ofrida@gmail.com', 'Fridão FC'], // 🐴 Série C (16/09), na vaga do bot Casa de Vó
   ['portaltech.ep@gmail.com', 'Pesadelo Verde FC'], // 🌑🐺 Série C (18/09), na vaga do bot Zé Colmeia
 ]
+// 🪑 FORA DA PIRÂMIDE por decisão do Diego (batismo continua valendo, só não tem assento): Murriz FC cedeu o lugar ao Double Duo FC (09/11).
+const FORA_DA_PIRAMIDE = new Set(['msb102010@hotmail.com'])
 // 🎫 SÓCIOS: clube próprio, SEM vaga na pirâmide e SEM número de fundador.
 const SOCIOS = [
   ['gfpicolo13@gmail.com', 'Futpoint FC'], ['erosreis@outlook.com.br', 'Eros FC'],
@@ -149,7 +152,7 @@ const olha = ([email, clube], ehSocio) => {
   if (!MANTO.has(email)) falta.push('manto medido na camisa')
   if (!OURO.has(email)) falta.push('tier OURO (batismo nasce ouro)')
   if (!ehSocio && !FUND.has(email) && !SEM_FUNDADOR.has(email)) falta.push('número de fundador')
-  if (!ehSocio && !DIV.has(k)) falta.push('vaga na pirâmide')
+  if (!ehSocio && !DIV.has(k) && !FORA_DA_PIRAMIDE.has(email)) falta.push('vaga na pirâmide')
   return { clube, falta }
 }
 

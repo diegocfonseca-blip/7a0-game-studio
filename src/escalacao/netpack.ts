@@ -247,6 +247,19 @@ export function pack(obj: unknown): string {
   return compressToBase64(JSON.stringify(obj))
 }
 
+// 📡 versões com "filtro" do JSON (10/11): o rádio da sala tira a bio das cartas no caminho e o convidado devolve na chegada
+export function packCom(obj: unknown, replacer: (this: unknown, k: string, v: unknown) => unknown): string {
+  return compressToBase64(JSON.stringify(obj, replacer))
+}
+export function unpackCom<T = unknown>(packed: string, reviver: (this: unknown, k: string, v: unknown) => unknown): T {
+  const json = decompressFromBase64(packed)
+  return JSON.parse(json || 'null', reviver) as T
+}
+
+/** 📡 texto JSON já pronto → comprimido, e de volta pro texto (rádio em pedaços: guarda a base como texto) */
+export function packTxt(json: string): string { return compressToBase64(json) }
+export function unpackTxt(packed: string): string { return decompressFromBase64(packed) || 'null' }
+
 export function unpack<T = unknown>(packed: string): T {
   const json = decompressFromBase64(packed)
   return JSON.parse(json || 'null') as T

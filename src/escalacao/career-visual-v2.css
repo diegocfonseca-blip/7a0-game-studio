@@ -90,6 +90,16 @@ html body #root .cv2-career:is(.cv2-view-central,.cv2-view-elenco,.cv2-view-rank
 .cv2-auction :is(.ll-desktop-brand,.ll-desktop-brand b,.ll-desktop-brand span,.ll-desktop-account,.ll-desktop-account strong,.ll-auction-mobile-title,.ll-auction-mobile-sub){color:#f4ecd6!important}
 .cv2-auction .ll-auction-heading h1{color:#f4ecd6!important}.cv2-auction .ll-auction-desktop{gap:20px!important;grid-template-columns:minmax(0,1.65fr) minmax(330px,1fr)!important}
 .cv2-auction .ll-auction-list{gap:12px!important}.cv2-auction .ll-auction-list>*{border-radius:12px!important}
+.cv2-auction .ov3-surface,.cv2-market .ov3-surface{color:#0c0c0c}
+.cv2-auction .ov3-page-muted,.cv2-auction .ll-auction-heading>p{color:#c9c5b8!important}
+.cv2-auction .csg-welcome{max-width:1240px}
+.cv2-career .cv2-quick-links{margin:18px 0 12px;gap:8px}
+.cv2-career .cv2-quick-links button{padding:11px 12px;font-size:15px}
+.cv2-career .cv2-quick-links small{font-size:11px;line-height:1.4}
+.cv2-career .cv2-career-start-tools{min-width:0;margin-bottom:18px}
+.cv2-career .cv2-career-start-tools .cv2-quick-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:1100px){.cv2-career .ll-central-esq{grid-template-areas:"hero hero" "guide guide" "tabela lado";grid-template-rows:auto auto 1fr}.cv2-career .cv2-career-start-tools{grid-area:guide}}
+.cv2-career .csg-unlock-banner{background:#f4ecd6!important;border-radius:12px!important}
 .cv2-dialog{z-index:100005!important;padding:22px!important;overflow-y:auto}
 .cv2-dialog-panel{background:#f4ecd6!important;color:#0c0c0c!important;max-width:780px!important;width:100%!important;border:3px solid #000!important;border-radius:14px!important;box-shadow:5px 5px #000!important}
 .cv2-dialog-panel>[style*="apoioSheen"]{display:none!important}

@@ -69,6 +69,7 @@ import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ Co
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
+import doubleduoEscudoImg from './img/doubleduo-escudo.webp' // 👑💜 Double Duo FC (doublecontatocomercial): arte própria do dono, 09/11
 import monarcaEscudoImg from './img/monarca-tricolor-escudo.webp' // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus): arte própria do dono, 05/11
 import paizaoEscudoImg from './img/paizao-escudo.webp' // 👑🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoEscudoImg from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
@@ -927,6 +928,12 @@ const chelsaoEscudoRender = (size: number) => (
 // 👑⚪🔴⚫ MONARCA TRICOLOR (danieltorresreus, batismo FUNDADOR de 05/11) — Série D, no assento do bot Excelsior SAF. 📏 278×360, 29 KB.
 // O goleiro-rei de capa com a coroa por cima, louros dourados, faixa "MONARCA TRICOLOR" e as listras do São Paulo (o time de coração
 // dele). Fundo verde chroma tirado; conferido sobre vermelho.
+// 👑💜 DOUBLE DUO FC (doublecontatocomercial, batismo FUNDADOR de 09/11 — streamer de jogos de manager de futebol). 📏 297×360, 28 KB.
+// O monograma DD azul com a coroa dourada, os louros, o controle, a prancheta e as redes dele (YouTube, TikTok, Kick, Instagram).
+// Fundo verde chroma tirado (o K verde do Kick ficou: só sai o verde que encosta na borda); conferido sobre vermelho e creme.
+const doubleduoEscudoRender = (size: number) => (
+  <img src={doubleduoEscudoImg} height={size} width={Math.round(size * 297 / 360)} alt="Double Duo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const monarcaEscudoRender = (size: number) => (
   <img src={monarcaEscudoImg} height={size} width={Math.round(size * 278 / 360)} alt="Monarca Tricolor" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1633,6 +1640,10 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Piranhao FC': piranhaoEscudoRender,
   'Piranhao': piranhaoEscudoRender,
   'Continental Real': piranhaoEscudoRender,
+  'Double Duo FC': doubleduoEscudoRender, // 👑💜 Double Duo FC (doublecontatocomercial) — BATISMO FUNDADOR. As 4 formas do nome.
+  'Double Duo': doubleduoEscudoRender,
+  'Double Duo EC': doubleduoEscudoRender,
+  'Double Duo SC': doubleduoEscudoRender,
   'Monarca Tricolor': monarcaEscudoRender, // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus) — BATISMO FUNDADOR. As 4 formas do nome + o bot que cedeu o assento.
   'Monarca Tricolor FC': monarcaEscudoRender,
   'Monarca Tricolor EC': monarcaEscudoRender,

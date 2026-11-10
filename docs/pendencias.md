@@ -1,7 +1,95 @@
+## 🎨 10/11 — Clube, presidente e rivais: prévia aprovada e publicação autorizada
+
+- Diego aprovou as capturas de celular/desktop e autorizou em 10/11: “Ok, pode publicar. Pode publicar”. Implementado no branch `visual/entrada-carreira-20261110`, com liberação geral na carreira solo: três etapas com cabeçalho/rodapé atuais, progresso Clube → Presidente → Rivais → Aprender, ação principal clara e ida ao tutorial publicado.
+- Clube: identidade real da conta preservada, formação explicada e Batismo recolhido depois da ação principal. Correção adicional pedida pelo Diego: “Conhecer o Batismo” usa `LojaButton` com `ancora="loja-planos"`, abrindo a Loja nova (não o fluxo antigo de ApoieButton).
+- Personagem: básico pronto, nome + cinco tons de pele livres logo na entrada; personalização opcional, disponíveis primeiro e catálogo extra sob demanda. Prévia do desktop limitada a 270 px de largura, proporção 2:3 preservada (sem esticar camadas). Roupa gratuita PRIMEIRA em toda listagem do formulário, inclusive a Loja/editor existente, conforme pedido adicional.
+- Diego reforçou que os tons de pele são do gratuito também: mantidas as permissões existentes e corrigido o selo da aba Pele no editor para “GRÁTIS PARA TODOS”. Escolher peça paga continua exigindo posse/pagamento; provar não compra. Há retorno ao visual disponível caso tenha provado peça bloqueada.
+- Rivais: escolha de nomes opcional, busca, lotes de 12 na lista e resumo da seleção. Reduzir quantidade ajusta os escolhidos mantendo os primeiros e avisa; seleção cheia não substitui clubes em silêncio. Corrigido 5/3. Liga permanece com 20 clubes e a regra de preencher com padrões foi preservada. Nome do próprio clube não aparece como opção.
+- Validação final: build TypeScript/Vite passou; 48 verificações de entrada em 320/390/1440 px e fixture de plano pago + 33 regressões do tutorial publicado passaram, sem erro de navegador ou overflow. Comparações antes/depois em HTML/PDF para celular e desktop prontas.
+- Bancada: `scripts/teste-entrada-carreira/index.html`; teste reproduzível `scripts/testa-entrada-carreira.mjs`, sem APIs ou WebSockets externos. Evidências em `/workspace/shared/entrada-carreira-20261110/`. Não mexe em banco, transporte online, orçamento, prazo, pagamento ou regras de competição. Revisão visual e autorização de publicação concluídas pelo Diego. Publicação em andamento; evidências finais ficam na pasta da entrega.
+
+## 🔎 10/11 — Auditoria das etapas anteriores ao tutorial da carreira (somente análise)
+
+- Diego pediu revisar Clube → Presidente → Rivais, especialmente quem não tem plano. Auditoria local da versão publicada `d73410f0` em 320/390/1440 px, sem sessão real e sem nova publicação. Caminho gratuito chegou ao pregão com 100 moedas, sem erro de navegador ou overflow horizontal.
+- Clube: oferta grande de Batismo antes de continuar; falta explicitar que pode iniciar sem compra e explicar as duas formações. Nome editado aqui pode alterar o display_name da conta ao começar; consequência não é avisada nesta etapa.
+- Presidente: catálogo inicial com 33 roupas (gratuita na posição 22), 43 botões, cerca de 4.939 px de altura a 390 px. Continuar fica depois do catálogo. Proposta: básico/disponíveis primeiro, catálogo extra opcional e ação próxima à identificação.
+- Rivais: lista de 80 clubes sem busca, nomes pequenos, rolagem interna; falta explicar preenchimento automático e separar escolha opcional de nomes da quantidade de bots no pregão. BUG confirmado: escolher 5 com limite 9 e reduzir para 3 deixa 5/3 e cinco destaques, mas o início usa só três. Reproduzido nas três larguras; corrigido na implementação aprovada acima.
+- Estas três etapas continuam com rodapé antigo e apresentações diferentes entre si e do tutorial. Proposta de progresso único: Clube → Presidente → Rivais → Aprender, cabeçalho/rodapé atuais e continuidade visual.
+- Evidências e capturas atuais: `/workspace/shared/auditoria-entrada-carreira-20261110/analise.html`, `resultados.json`, `analise.json`; bancada reproduzível arquivada na mesma pasta. Nenhuma mudança de produto nesta entrega. Propostas visuais precisam de mockup/OK antes de implementação/commit visual, conforme CLAUDE.md.
+
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · ✅ PUBLICADO 10/11 ~11h (deploy verde)
+## 🎓 10/11 — Início da carreira e ajuda por desbloqueio (aprovado; publicação autorizada)
+
+- Diego aprovou as 13 etapas em celular e desktop e autorizou: **"Ok pode publicar tudo isso"** (10/11). Liberação para todas as contas na carreira solo de futebol.
+- Diego pediu repaginação de todo o começo depois da escolha de rivais: regras, lances, revelação, apresentação do elenco, Central e rodapé. Também pediu explicação no momento dos desbloqueios, sem repetir depois de entendida.
+- Preparado em `visual/inicio-carreira-guiado-20261110`, base `37abbcd6`: guia em quatro etapas com lance de treino isolado, dicas no pregão/Monte/reservas/primeiro jogo, correções de contraste e rodapé com Loja. Treino não despacha lance real nem gasta moedas.
+- Corrigida a origem dos atalhos e faixa Salvar duplicados: estavam dentro da função que desenha CADA lado do confronto na Central; agora aparecem uma vez fora dos escudos. Os atalhos extras são Finanças e Agência; Jogos e Elenco continuam na barra principal.
+- Usa `careerSeen`/`MARK_CAREER_SEEN` já existentes, por carreira e com retomada. Condição física usa `condicaoAtiva` (Série C, permanente após desbloqueio); moral só quando há efeito real pendente da coletiva; Série A e mercado livre usam as marcas reais. Não se inventa divisão de desbloqueio para moral.
+- “Já sei jogar” pula somente o básico; os desbloqueios futuros continuam. Voltar preserva a intenção de criar carreira.
+- Banners existentes têm resumo e detalhes expansíveis no solo. Ajuda da Central guarda explicações aprendidas. Regras, prazos, economia, salvamento em nuvem e transporte online não foram modificados.
+- Prévia e evidências: `/workspace/shared/inicio-carreira-20261110/`. Bancada local `scripts/teste-inicio-carreira/index.html`; regressão reproduzível em `node scripts/testa-inicio-carreira.mjs`. Não entra no build público. Testes completos de navegador: 390/320/1440 px, treino sem gasto, lance real, contraste, atalhos, condição física e retomada, moral e reservas. Comparações completas de antes/depois para celular e desktop prontas (HTML/PDF), com 13 etapas. TypeScript e build de produção passaram; 33 verificações funcionais, 13 de regras/navegação, 9 cenários de layout e o pulo do tutorial/retorno ao modo carreira passaram.
+
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · no branch, esperando "publica"
+- Medido no banco: o rádio dos convidados (`state`) = **32 GB/dia**, ~54 KB por envio. O texto de história (bio) das cartas era ~30%.
+- Agora a carta cuja bio é igual à do catálogo vai sem o texto (`_b: 1`) e o convidado põe de volta (`tiraBioDoRadio`/`poeBioDoRadio`,
+  store.tsx). Só o rádio; o save no banco não muda. O simulador confere em TODO estado que o que chega é igual ao que saiu:
+  8 modos, 0 falhas (`npm run salas-sim -- --cenario X --medir` mostra o antes/depois).
+- Aba velha aberta (o jogo não recarrega sozinho) só perde o texto da bio por uns dias (cai na bio pelo nome). Por isso NÃO tirei
+  categoria/nível do mesmo jeito (+2% só, e a carta ficaria sem nível na aba velha).
+- Simulador cobre 13 modos (+ Liga/Copa, Liga/Liberta, Liga/Champions, Só Champions, Relâmpago) e a ABA VELHA (`--abas-velhas`):
+  tudo 0 falhas em 10/11. Só Champions e Relâmpago chegaram a 40 temporadas seguidas sem travar.
+- 🧪 MEDIDO (não feito): mandar só o PEDAÇO que mudou em vez da sala inteira = −83% do envio. É o grande corte, mas mexe no
+  coração do online: precisa de número de sequência, reenvio inteiro quando o convidado perde um pedaço, e só ligar quando TODOS
+  da sala estiverem na versão nova (aba velha não entende pedaço).
+  ✅ CONSTRUÍDO NO SIMULADOR (Diego: "sim"): `src/escalacao/radio-pedaco.ts` (NÃO ligado no jogo). `--pedacos`: 13 modos × 4 sementes,
+  0 falhas, conferido envio a envio; 1.922 MB → 428 MB (−78%). Corta o TRÁFEGO, não o número de mensagens.
+  🟡 LIGADO 10/11 SÓ NAS SALAS QUE O DIEGO CRIA (*"liga primeiro nas salas que eu criar"*): `RADIO_PEDACO_TESTERS` em sport.ts;
+  liberar pra todos = `RADIO_PEDACO_GERAL = true`. No store: `mandaEstado` (dono) manda a base no 'state' de sempre (aba velha lê) e o
+  pedaço no evento novo 'stateP'; `pedacoPode` só deixa com TODO mundo da presença dizendo `rp: 1` (versão nova). Convidado: `lePacote`
+  → `criaReceptor`; sem a base = pede o estado (no máx. 1 a cada 3 s). Qualquer erro = sala inteira, como sempre.
+  ✅ Testado pelo Diego na sala 2R2Y2T (3 pessoas): pedaço ~8 KB × sala inteira ~22 KB, 0 erro.
+  🟢 LIBERADO PRA TODOS 10/11 ~13h40 (*"publique p todos"*): `RADIO_PEDACO_GERAL = true`. Desligar = `false` (volta a sala inteira).
+  ⏭️ Medir no `esc_realtime_medidor` nos próximos dias (rx_bytes de 'state' + 'stateP'). Ideia seguinte: o pedaço ainda reenvia
+  `managers` inteiro a cada lance — diferenciar por técnico dentro dele cortaria mais (só no simulador primeiro).
+- Próximas ideias medidas, NÃO feitas: sala parada na tela de fim (BHZBJB ficou 14 h aberta conversando a cada 3 s) — mexe no
+  batimento do dono, precisa do OK do Diego; mandar o baralho só quando muda (arriscado, ficou de fora).
+
+## 🧪 10/11 — Simulador de salas online (`npm run salas-sim`) + 2 consertos que ele achou (no branch, esperando "publica")
+- `scripts/simula-salas-online.mts`: reducer de verdade, 1 dono + 2/4/8 convidados, rede ruim (atraso, duplicado, perda, F5, saída),
+  8 modos × 50 sementes. Confere troca de cadeira, XI completo, carta em dois times, sala travada, dinheiro.
+- 🪪 TROCA DE CADEIRA no "🔨 novo leilão" quando alguém tinha saído (48/400): a auto-cura usava o crachá (id) antigo → agora,
+  com `seatUids`, quem manda é o UID (`assentoDoCracha`). 🗳️ Voto atrasado do fim valia na partida nova → só vale na tela do fim.
+- Não simulado ainda: Copa/Liberta/Champions, carreira online, stream/manual, coroa.
+
+## 👑💜 09/11 — Batismo FUNDADOR Double Duo FC (doublecontatocomercial@gmail.com) — FALTA: conta, vaga e banco
+- Streamer de jogos de manager de futebol. Feito no código (branch): escudo `doubleduo-escudo.webp` (297×360, 28 KB) · mascote
+  O Streamer `doubleduo-mascote.webp` (339×440, 43 KB, key `doubleduo_streamer`) · manto preto #161016 + roxo #A131BF (3ª azul
+  #0170F2 em MANTO_TRI) · camisa do salão · tier ouro + FUNDADOR_N 100 · `batismos.ts` · checa-batismos · gala única "O Save"
+  (`gala-doubleduo.tsx`, vídeo `scripts/posts/gala-doubleduo.webm`).
+- ⛔ A CONTA AINDA NÃO EXISTE (09/11). Banco SÓ depois que ele criar: `esc_socios` (sócio nº86, manto, mascote_key
+  doubleduo_streamer, escudo_time 'Double Duo FC', origem batismo), `esc_fundadores` (n 100), `esc_nomes_batismo` ('double duo'),
+  `user_colors` ouro manual. Conferir antes `select max(n) from esc_fundadores` / `max(socio_n)`.
+- ✅ VAGA (09/11, Diego: *"ele entrará no lugar do Murriz FC"*): Série B, no assento do Murriz FC. O Murriz sai da pirâmide
+  (continua batismo; `FORA_DA_PIRAMIDE` no checa-batismos). Post: `scripts/posts/batismo-double-duo-fc.png` (sem nome/@ do dono e
+  sem coração — pedir pro Diego se quiser no rodapé).
+
+## 💬 09/11 — Nome em cada balão, visual novo mantido
+
+- Diego esclareceu que mantém fontes, cores e posições novas. Cada mensagem agora repete o nome/crachá dentro do próprio balão, mesmo quando o remetente escreve várias seguidas; personagens e figurinhas preservados.
+- Sem alteração de transporte ou permissões. Testes de celular/desktop, resposta, espera e teclado passaram; detalhes em [online-chat-publico-20261109.md](online-chat-publico-20261109.md).
+
 ## 🌐 09/11 — Repaginação online liberada para todos
 
 - Diego ampliou a autorização: “publique na conta de todos já as mudanças também visuais todas”. O padrão aprovado de salas, leilões, competições e chat passa pela chave pública de apresentação, separada das prévias autenticadas.
 - Mantidos personagens, mascotes, crachás de plano e permissões. Mapa oculto para TODAS as contas, inclusive a principal, por nova ordem do Diego; 2D/3D e outras funções privadas mantêm as regras atuais. Detalhes: [online-chat-publico-20261109.md](online-chat-publico-20261109.md).
+## 📋 09/11 (noite) — Liga Draft: ordem do draft + 2 consertos (no branch, esperando "publica")
+- 🔢 Ordem do draft escolhida pelo dono: 🏆 melhor→pior (padrão) ou 🔄 pior→melhor. Na criação (ConfigLigaDraft) e no painel do dono
+  (`patchDraftLiga` → `draftRegras.piorPrimeiro`). Vale na próxima noite do draft. Banco: `20261109220000_liga_draft_ordem.sql`
+  (só acrescenta a chave na lista do `liga_patch_draft`) — APLICAR junto da publicação.
+- 🧯 Artilharia abria a temporada nova com os gols da VELHA (cópia anti-spoiler `scorersPrev` nunca era limpa). Zera na virada +
+  a caixa só usa a cópia com rodada jogada. Assistências/tabela já estavam certas.
+- 📏 Liga de 10 virava 20 no "🔨 Novo leilão" (o START_ONLINE da revanche não mandava `tamanhoLiga`; também perdia turno único,
+  chave do Relâmpago e a Liga Draft). Agora vai junto. Salas que JÁ viraram 20 não voltam sozinhas (o game_state delas ainda diz 10).
 
 ## 💬 09/11 — Chat privado no celular e desktop
 
@@ -776,6 +864,69 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 💾 10/11 — "SEM ESPAÇO" AO COMEÇAR CARREIRA NOVA COM CARREIRA GRANDE (Diego, Neymarzetti T47, 2 de 4 fichas) — ✅ PUBLICADO
+- `archiveActiveCareer` gravava a cópia no arquivo com a original ainda na vaga: a mesma carreira 2× no aparelho → estourava a cota.
+  Agora, se não couber, tira a original da vaga, grava o arquivo e, se ainda não couber, devolve a original byte a byte (mesma
+  receita da troca de 06/10). Trava: `npm run troca` (caso 4b, folga pequena). Era isso o "aperto Ir para o pregão e não vai".
+
+## 🧑‍💼 10/11 — CARREIRA PASSO A PASSO LIBERADA PRA TODOS + PRESIDENTE GRÁTIS — ✅ PUBLICADO ("publique já p todos")
+- Testado sem conta no navegador: clube → presidente (camiseta branca grátis já marcada) → rivais → "Começar o leilão". Ninguém trava.
+- ⚠️ O presidente de quem NÃO é a conta do Diego ainda não é gravado na carreira (`careerPresidentBase` só com `presidentWritesEnabled`) — a tela de criação vale pra todos, mas a Presidência/mapa continuam só dele.
+- ✅ 10/11 (2ª entrega): rivais = TODOS os clubes de batismo/fundador da pirâmide (A→D), em ordem alfabética, sem dizer divisão (Diego: *"N fale nada onde cada um tá"*). O escolhido começa com você; o lugar dele na B/C/D é completado com os extras da D. Testado (esbuild + reducer): 3/5/7 rivais de A/B/C/D → V, D, C, B e A com 20 cada, zero duplicado (*"terá q ter 20 times nas 5 divisões"*).
+### (antes) "IR PARA O PREGÃO" NÃO DEIXAVA IR, SEM AVISO
+- Diego: *"aperto em iniciar pregão e N deixa ir… N tem erro em vermelho nenhum"*. No `start()` do EscSetup as recusas eram MUDAS na tela 3
+  (rivais): nome/espaço gravavam `nameErr` mas a tela 3 não mostrava; presidente inválido voltava pra tela 2 sem texto; e um erro jogado
+  dentro do start() sumia (promessa sem catch). Agora: tela 3 mostra o aviso, presidente inválido diz o que falta, erro vira aviso +
+  caixa-preta (`esc_travas.extra.quando = 'carreira_nao_comeca'`, com o motivo). ⚠️ A CAUSA de verdade ainda não está provada — depois que
+  ele testar, ler a caixa-preta.
+- Pedido junto (FALTA, mockup antes): rivais da carreira = TODOS os clubes de batismo/fundador (menos o do próprio usuário) + linha
+  discreta pra quem tem batismo falando do clube batizado.
+
+## 📋 10/11 — LIGA DRAFT NUNCA TEM COPA DEPOIS DA LIGA (sala DT89DJ do Fabulous virou Eurocopa) — ✅ PUBLICADO 10/11 ("Pode")
+- Diego: *"liga draft N pode ter copa dps das ligas"*. A DT89DJ (id 398f5e41, 4 pessoas) fechou a T1 às 23h50 e abriu uma copa de
+  seleções da Europa (Neymar FC/Espanha campeão); a sala foi apagada depois, então não deu pra ler a config dela.
+- Furo achado: ao criar Liga Draft o lobby limpava `mundoNaLiga`/`regionalNaLiga` mas NÃO `euroNaLiga` (sobrava de quem tocou em Liga + Eurocopa antes).
+- Conserto (2 travas): criação limpa `euroNaLiga` também · no fim da temporada (screens.tsx) Liga Draft ignora TODA marca de copa
+  (Mundo/Euro/regional) e a faixa "depois da liga tem…" não liga na Liga Draft. Vai sempre pro draft.
+
+## 🃏 LOTE 49 — 83 cartas famosas no AUGE (10/11) — ✅ PUBLICADO (ordem do Diego: "pode lançar ele já")
+- Diego: *"quero adicionar só os famosos… que não tem… aonde você adicionaria o auge"*. O 1º rascunho (148 cartas, todo mundo da lista) foi
+  DESCARTADO antes de publicar. ⚠️ Lição: conferir carta SEMPRE pelo `CATALOG*` (npx tsx), nunca grep com aspas duplas — metade do baralho usa
+  aspas simples e o grep deu "não tem" pra Kasper Schmeichel, Mahrez (Leicester City 2016), Estupiñán, Tim Cahill, Mitoma…
+- Entraram (EU): Southall Everton 85 C · Ramsdale Arsenal 22 · Luke Shaw United 21 · Bertrand Southampton 15 (auge, PFA; no Chelsea era reserva) · Aké City 23 · Guéhi Palace 25 ·
+  Woodgate Real 05 (folk) · James Rodríguez Real 15 C · Milner Liverpool 18 · Arteta Everton 08 · Kewell Leeds 01 · Kalvin Phillips Leeds 21 ·
+  Rúben Neves Wolves 19 · Douglas Luiz Villa 24 · Maddison Leicester 20 · Eze Palace 25 · McKennie Juve 21 · Trevor Francis Forest 79 C ·
+  Raúl Jiménez Wolves 19 · Adama Traoré Wolves 20 (folk) · Toney Brentford 23 · Mbeumo Brentford 25 · Igor Thiago Brentford 26 ·
+  Richarlison Everton 20 · João Pedro Chelsea 25 C (escolha do Diego) · Pedro Neto Chelsea 25 · Zaha Palace 19 · Bowen West Ham 23 ·
+  Sørloth Villarreal 24 · Zaza Juve 16 (folk) · + 2ª rodada: Neto Valencia 19 (goleiro; nome LIMPO "Neto", ordem do Diego — país preso por carta em PAIS_POR_CARTA e bio própria pra não herdar a do Neto do Corinthians) · Evanilson Porto 24 · Caballero City 16 · Amadou Onana Everton 23 · Verbruggen Brighton 25. Schelotto fora (o famoso, Guillermo do Boca, já tem). Total 35. James/Igor Thiago/Neves/Toney entraram em MESMO_JOGADOR (já tinham carta em outro baralho).
+- + 48 (2ª leva, mesma ordem): River (Pity Martínez C, Quintero, Pratto, Ponzio, Barovero, Rodrigo Mora, Teo Gutiérrez, Cavenaghi, Astrada,
+  Ramón Díaz C, Saviola C) · Boca (Rattín C, Benedetto, Pavón, Ibarra, Marcelo Delgado, Palacio) · Boselli Estudiantes 09 · Chango Cárdenas
+  Racing 67 C · Scocco Newell's 13 · Gignac Tigres 17 C (MUNDO) · e no EUROPA: Almeyda, Pastore, Lisandro López, Jackson Martínez, Guarín,
+  Antonio Valencia, Duván Zapata, Muriel, Borré, Enner Valencia, Effenberg C, Möller C, Riedle, Scholl, Kurányi, Schuster C, Valerón C,
+  Makaay C, Tristán C, Aduriz, Joaquín, Pauleta, Chalana C, Nuno Gomes, Jonas C, Di Natale C, Marcelinho Paraíba (Hertha 03).
+  Chicharito saiu (já existia como "Chicharito", Manchester United 2011). Conferido o baralho por SOBRENOME/apelido também.
+- Stories: `scripts/mockups/lote49-stories-1.png` (GOL·LAT·ZAG·MEI, 40) e `-2.png` (ATA, 43). O gerador perdia carta com apóstrofo no
+  clube ("Newell's") — consertado.
+
+## 🕵️ 09/11 — OLIVEIRA FC 30 × PRIME FC LIGADOS, sem valer nem sozinho (ordem do Diego: "tire todos C prime")
+- Oliveira (pietro.oliveira23061721) criava a sala, o Prime (pietrinhajaoliveira, criada 24/09) entrava pela MESMA internet 5–15 s depois,
+  saía quando começava e ele jogava sozinho contra 19 robôs (~3–4 min por temporada) e apagava a sala. ~30 salas só em 09/11; às 0h38 o
+  aparelho trocou Oliveira → Prime → Oliveira em 1 min. Era 1º da semana com 39 (2º tinha 11).
+- Tirados: os 50 títulos jogando sozinho desde 12/10 (39 provados no registro de 09/11; 11 antigos com o mesmo jeito, sem registro).
+  Os 34 títulos com gente na sala continuam. Banco: coluna nova `esc_contas_ligadas.solo_nao_vale` (só esse grupo usa).
+  Voltar os 11 antigos: `update esc_contas_ligadas set desde='2026-11-09 03:00+00' where grupo='oliveira30'`.
+- 🔁 Mesmo dia, Diego: *"N falei q sozinho N pode… Só falei q N deixe do Oliveira C a Prime"*. Os 11 antigos VOLTARAM (`desde` = 09/11 03:00 UTC,
+  a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
+- ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 09/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **wislleyrc12 × wislley427** — mesmo nome "wislley" nos dois e-mails, as duas criadas 31/08, logins com 13 min, 9 temporadas
+  só os dois, 0 × 4 ligas. ⚠️ A perdedora (wislleyrc12) jogou 33 salas cheias — é conta ATIVA dele, não conta morta de apoio.
+- PIOROU: **Amaral FC** × Blue Lock agora 24 temporadas, 10 ligas × 0 (eram 18 / 8×0); com o FC Bbc (4×0) somam 14 ligas.
+- Médios novos (só anotado): samuelmachadof12 × elisangelafelisbinomachado (mesmo sobrenome, 7 temp., 5×0, perdedora 7 salas cheias — família) ·
+  luizhveras01 × othon.bf (5 temp., 3×0, perdedor 33 salas cheias — parece amigo de verdade).
+- Os outros de 07/11 e 08/11 seguem iguais.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 08/11 (nada forte novo; não avisado)
 - Médios novos (só anotado): Carvalho × Carvalho (carvalho.marcosrp × mpereiradecarvalhoneto, 11 temp., 5×0, mas o perdedor jogou 5 salas cheias —
   parece família) · Witzel × Witzel (ritawitzel08 criada 07/11 × miguelwitzel994, 10 temp., 0×6, perdedor 2 salas cheias) · juan.fcsilva × bryangemado
@@ -852,6 +1003,8 @@ Pedido aprovado: *"coisas bem tradicionais do Brasil, espalhadas pelo mapa, muda
 ## 🛡️📧 Escudo de batismo só pelo e-mail (02/11) — ✅ PUBLICADO
 - Diego: *"não deveria seguir pelo nome… somente pelo e-mail da conta do usuário"* (caso Mengão Malvadao do João Victor aparecendo com o escudo do batismo do Átila na lista do clã). Banco: `esc_nomes_sem_escudo()` lista os nomes EXATOS (minúsculo, com acento) de contas que usam nome de batismo sem ser donas (pelo e-mail em `esc_nomes_batismo`), tirando o nome exato que o próprio dono usa. Aparelho: `mimos.ts` (`nomeSemEscudo`) + `escudos.tsx` (`logoPronta` não dá a arte fixa pra esses nomes; nome de ASSENTO dos bots segue com escudo). Carrega no início (`main.tsx`) e no lobby. Limite: cópia letra por letra igual ao nome do dono continua indistinguível pelo nome (no jogo ela já sai com "🎭FAKE" grudado, que também tira o escudo). Etapa 3 completa (escudo por conta em todo lugar) continua pendente.
 
+## ⭐ 09/11 — ibemanu5@gmail.com: Craque Salas por 12 meses, dado pelo Diego
+- Linha em `esc_assinatura_mensal` (craque_salas, até 09/11/2027, sem `vendria_sub`). Conta de 02/11 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — é do Craque Completo).
 ## ⭐ 02/11 — brunomontoya011@gmail.com: Craque Salas por 12 meses, dado pelo Diego
 - Linha em `esc_assinatura_mensal` (craque_salas, até 02/11/2027, sem `vendria_sub`). Conta de 24/07 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — o Manual é do Craque Completo). Tinha tier verde antigo (continua como `tier_legado`).
 ## 🏆 Dia de FINAL no mapa 3D (03/11, aprovado: "ok") — no BRANCH, esperando OK visual (só a conta de teste vê o mapa)

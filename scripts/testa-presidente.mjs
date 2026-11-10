@@ -62,7 +62,12 @@ try {
 
   // o sorteio respeita o plano
   const base = { version: 5, name: 'Diego', outfit: 'terno' }
-  assert.equal(S.sortearPresidente(base, Math.random, null), base, 'grátis: sorteio não muda nada')
+  // 🎁 10/11 (Diego): grátis tem o presidente BÁSICO — o sorteio só entrega a camiseta branca, careca
+  for (let i = 0; i < 20; i++) {
+    const v = S.sortearPresidente(base, Math.random, null)
+    assert.equal(v.outfit, 'camiseta-branca', 'grátis: sorteio só veste a camiseta branca')
+    assert.ok(v.appearance.hair === 'none' && v.appearance.beard === 'none', 'grátis: sorteio careca')
+  }
   for (let i = 0; i < 60; i++) {
     const v = S.sortearPresidente(base, Math.random, 'craque')
     assert.ok(A.podeVestirModular(v.outfit, 'craque'), `sorteio do Craque entregou ${v.outfit}`)
@@ -86,8 +91,10 @@ try {
   const V = await vite.ssrLoadModule('/src/escalacao/presidente-avulsas.ts')
   const C = await vite.ssrLoadModule('/src/escalacao/presidente-conta.ts').catch(() => null)
   const gratis = { plano: null, compradas: [] }
-  assert.equal(V.temBoneco(gratis), false, 'grátis sem compra não tem boneco')
-  assert.deepEqual(V.compraPossivel('p-classic-hair', gratis), { ok: false, motivo: 'roupa_primeiro' }, 'grátis: cabelo antes da roupa, não')
+  assert.equal(V.temBoneco(gratis), true, '10/11: todo mundo tem o boneco básico')
+  assert.equal(V.podeVestirComPosse('camiseta-branca', gratis), true, '10/11: camiseta branca é de graça')
+  assert.deepEqual(V.compraPossivel('r-camiseta-branca', gratis), { ok: false, motivo: 'ja_tem' }, 'a roupa grátis não se vende')
+  assert.deepEqual(V.compraPossivel('p-classic-hair', gratis), { ok: true, preco: 1.99 }, '10/11: grátis já tem boneco, cabelo a 1,99')
   assert.deepEqual(V.compraPossivel('r-polo', gratis), { ok: true, preco: 1.99 }, 'roupa de Craque = 1,99')
   assert.deepEqual(V.compraPossivel('r-jaqueta-couro', gratis), { ok: true, preco: 2.99 }, 'roupa de Lenda = 2,99')
   assert.deepEqual(V.compraPossivel('r-rei-pregao', gratis), { ok: true, preco: 3.99 }, 'roupa de Batismo = 3,99')
@@ -103,7 +110,7 @@ try {
   assert.equal(V.podeVestirComPosse('astronauta', { plano: 'craque', compradas: ['r-astronauta'] }), true, 'Craque com o astronauta comprado veste')
   for (let i = 0; i < 40; i++) {
     const v = S.sortearPresidente(base, Math.random, comRoupa)
-    assert.equal(v.outfit, 'polo', 'grátis sorteia só a roupa que comprou')
+    assert.ok(['polo', 'camiseta-branca'].includes(v.outfit), 'grátis sorteia só a roupa que comprou ou a grátis')
     assert.ok(v.appearance.hair === 'none' && v.appearance.beard === 'none', 'grátis sem peça comprada sorteia careca')
   }
   console.log(C ? '  (conta carregada: régua de salvar conferida)' : '  ⚠️ presidente-conta não carregou no teste')
@@ -111,7 +118,8 @@ try {
     const careca = { version: 5, name: 'Zé', outfit: 'polo', appearance: { version: 22, hair: 'none', beard: 'none', accessories: [] } }
     assert.equal(C.visualCabeNaPosse(careca, comRoupa), true, 'boneco careca com a roupa comprada salva')
     assert.equal(C.visualCabeNaPosse({ ...careca, appearance: { ...careca.appearance, hair: 'classic-hair' } }, comRoupa), false, 'com cabelo não comprado não salva')
-    assert.equal(C.visualCabeNaPosse(careca, gratis), false, 'sem roupa comprada não salva')
+    assert.equal(C.visualCabeNaPosse(careca, gratis), false, 'roupa de Craque sem comprar não salva')
+    assert.equal(C.visualCabeNaPosse({ ...careca, outfit: 'camiseta-branca' }, gratis), true, '10/11: careca de camiseta branca salva de graça')
   }
   // o catálogo do banco (migration) é o MESMO do código: nem peça a mais, nem nível diferente
   const sql = readFileSync('supabase/migrations/20261019180000_presidente_pecas_avulsas.sql', 'utf8')

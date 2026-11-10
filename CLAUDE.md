@@ -805,6 +805,15 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🎽 **Camisa de time do personagem: PARADA (15/10)** — duas versões pintadas por cima da camiseta reprovadas (*"tá muito ruim"*);
   só volta com arte de verdade, quando ele pedir.
 
+- **🧑‍💼🎁 10/11: CARREIRA PASSO A PASSO PRA TODOS + PRESIDENTE BÁSICO GRÁTIS (revê o "boneco é pago, nada de graça" de 15/10).** Mockup
+  `scripts/mockups/carreira-gratis-passos.png`; palavras dele: *"liberar um personagem grátis p todos igual. Careca e roupa simples e fundo
+  será tier bege"* e *"N precisa ter preço nos personagens de baixo… basta por de cada categoria"* → *"publique já p todos"*. Criar carreira =
+  Crie seu clube → Crie seu presidente → Prepare o pregão (`modularSetup` sem trava de conta). Todo mundo tem boneco (`temBoneco`), careca e a
+  **camiseta branca** (`ROUPA_GRATIS`); o resto continua do plano/avulso. A grade de roupas mostra só o PLANO de cada uma (🔒 ⭐ Craque…),
+  nunca preço. Nos rivais, o clube batizado do próprio usuário não aparece e só ele vê a linha explicando (escudo/mascote não repetem).
+  🖋 Rivais = TODOS os batismos/fundadores da pirâmide, misturados, sem mostrar a divisão; o escolhido começa com você e outro clube
+  ocupa o lugar dele (*"terá q ter 20 times nas 5 divisões"* — sempre 20 em V, D, C, B e A, nenhum repetido).
+  🔁 Complemento de 10/11: Diego confirmou **tons de pele também livres no gratuito** e pediu **camiseta branca gratuita PRIMEIRA na listagem**. Na criação, “Conhecer o Batismo” deve abrir a **Loja nova na categoria Planos**, e a prévia do presidente no desktop deve ter altura limitada sem esticar a arte. Proposta de entrada aprovada: básico pronto, nome/pele e Continuar próximos; catálogo extra só em Personalizar. Isso não libera roupas/cabelo/barba pagos.
 - **🎁 08/11: TESTE DE 5 DIAS PRA SALVAR A CARREIRA (substitui o "1 dia sem salvar apaga" de 07/11).** Texto dele: *"🎁 Seus primeiros
   5 dias salvando a carreira são grátis! … Depois do teste, você pode continuar jogando gratuitamente. Para salvar novos avanços, é
   necessário um plano"*. Os 5 dias começam no 1º salvamento (botão OU automático do aparelho) de quem não tem plano, contados por CONTA

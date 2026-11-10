@@ -1620,8 +1620,8 @@ const L39_BR_MEI: C[] = [
 const L43_BR_ATA: C[] = [
   { name: "Gilberto", club: "Bahia", year: 2020, fame: 3, lo: 63, hi: 75, bio: "Centroavante artilheiro do Bahia — goleador do time no Brasileirão de 2019 e 2020." },
   // 👑 08/10, pedido do Diego ("quero ele de lenda"): Kelvin Oliveira, o K9 — apelido ao lado do nome, clube G3X.
-  // 📉 08/10, depois: "coloque o over como o pior das lendas, mas mantenha lenda" → igual ao Nelinho (80–88), a lenda mais fraca.
-  { name: "Kelvin Oliveira (K9)", club: "G3X", year: 2025, fame: 5, lo: 90, hi: 97, bio: "O Rei da Kings League: artilheiro e melhor jogador da liga no Brasil, camisa 9 e presidente do G3X — de Ipatinga pro mundo, disse não até ao Neymar pra seguir no seu time." },
+  // 📉 09/11: faixa 87–95 aprovada para ficar abaixo de Inzaghi (88–96) e Agüero (89–96), mantendo Lenda.
+  { name: "Kelvin Oliveira (K9)", club: "G3X", year: 2025, fame: 5, lo: 87, hi: 95, bio: "O Rei da Kings League: artilheiro e melhor jogador da liga no Brasil, camisa 9 e presidente do G3X — de Ipatinga pro mundo, disse não até ao Neymar pra seguir no seu time." },
   // 🔵⚫ 08/10, Diego: a 2ª carta do K9, no Grêmio, como BOM jogador no teto da categoria. ⚠️ EXCEÇÃO à regra
   // "mesmo jogador só em baralho diferente" (26/09), aberta por ele só pra este caso. O Grêmio dele foi o de
   // Fut7 (2023) — treinou com os profissionais, o Renato não aproveitou; a bio conta isso como é.
@@ -2157,7 +2157,7 @@ const ATA_EU: C[] = [
   { name: "Samuel Eto'o", club: "Barcelona", year: 2006, fame: 5, lo: 90, hi: 96 },
   { name: "Karim Benzema", club: "Real Madrid", year: 2022, fame: 5, lo: 91, hi: 96 },
   { name: "Mohamed Salah", club: "Liverpool", year: 2019, fame: 5, lo: 92, hi: 97 }, // 👑 30/10, Diego: "coloque o Salah como lenda" (a carta do Liverpool, a única dele)
-  { name: "Sergio Agüero", club: "Man City", year: 2015, fame: 4, lo: 86, hi: 92 },
+  { name: "Sergio Agüero", club: "Man City", year: 2015, fame: 5, lo: 89, hi: 96 },
   { name: "Harry Kane", club: "Tottenham", year: 2018, fame: 5, lo: 91, hi: 96 },
   { name: "Luis Suárez", club: "Barcelona", year: 2016, fame: 5, lo: 91, hi: 96 },
   { name: "Alan Shearer", club: "Newcastle", year: 1996, fame: 5, lo: 90, hi: 96 },
@@ -2167,7 +2167,7 @@ const ATA_EU: C[] = [
   { name: "David Villa", club: "Barcelona", year: 2010, fame: 4, lo: 83, hi: 89 },
   { name: "Robinho", club: "Real Madrid", year: 2007, fame: 4, lo: 80, hi: 86 },
   { name: "Hulk", club: "Porto", year: 2012, fame: 4, lo: 79, hi: 85 },
-  { name: "Filippo Inzaghi", club: "Milan", year: 2003, fame: 4, lo: 82, hi: 88 },
+  { name: "Filippo Inzaghi", club: "Milan", year: 2003, fame: 5, lo: 88, hi: 96 },
   { name: "David Trezeguet", club: "Juventus", year: 2002, fame: 4, lo: 83, hi: 89 },
   { name: "Michael Owen", club: "Liverpool", year: 2001, fame: 5, lo: 90, hi: 96 },
   { name: "Hernán Crespo", club: "Inter", year: 2003, fame: 4, lo: 82, hi: 88 },
@@ -3200,7 +3200,81 @@ const L48_EU_ATA: C[] = [
   { name: "Daniel Sturridge", club: "Liverpool", year: 2014, fame: 4, lo: 80, hi: 87 },
   { name: "Tevez", club: "Man City", year: 2012, fame: 4, lo: 84, hi: 90 },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL, ...L45_EU_GOL, ...L46_EU_GOL, ...L48_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT, ...L45_EU_LAT, ...L46_EU_LAT, ...L48_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG, ...L44_EU_ZAG, ...L45_EU_ZAG, ...L46_EU_ZAG, ...L48_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI, ...L45_EU_MEI, ...L46_EU_MEI, ...L48_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA, ...L45_EU_ATA, ...L46_EU_ATA, ...L48_EU_ATA] }
+// 📅 Lote 49 (10/11, Diego: *"quero adicionar só os famosos… e aonde você adicionaria o auge"*): os famosos da lista do
+//    Gabriel "Chelsão" que NÃO tinham carta (ou só tinham em OUTRO baralho), cada um no clube e ano do AUGE. Régua de 02/11.
+const L49_EU_GOL: C[] = [
+  { name: "Neto", club: "Valencia", year: 2019, fame: 3, lo: 72, hi: 80, bio: "Goleiro brasileiro titular do Valencia campeão da Copa do Rei de 2019." },
+  { name: "Willy Caballero", club: "Man City", year: 2016, fame: 3, lo: 70, hi: 78 },
+  { name: "Bart Verbruggen", club: "Brighton", year: 2025, fame: 3, lo: 71, hi: 79 },
+  { name: "Neville Southall", club: "Everton", year: 1985, fame: 4, lo: 83, hi: 89 },
+  { name: "Aaron Ramsdale", club: "Arsenal", year: 2022, fame: 3, lo: 72, hi: 80 },
+]
+const L49_EU_LAT: C[] = [
+  { name: "Antonio Valencia", club: "Man United", year: 2012, fame: 3, lo: 74, hi: 82 },
+  { name: "Luke Shaw", club: "Man United", year: 2021, fame: 3, lo: 74, hi: 83 },
+  { name: "Ryan Bertrand", club: "Southampton", year: 2015, fame: 3, lo: 72, hi: 80 },
+]
+const L49_EU_ZAG: C[] = [
+  { name: "Nathan Aké", club: "Man City", year: 2023, fame: 3, lo: 74, hi: 82 },
+  { name: "Marc Guéhi", club: "Crystal Palace", year: 2025, fame: 3, lo: 75, hi: 83 },
+  { name: "Jonathan Woodgate", club: "Real Madrid", year: 2005, fame: 1, lo: 58, hi: 66, folk: true },
+]
+const L49_EU_MEI: C[] = [
+  { name: "Matías Almeyda", club: "Lazio", year: 2000, fame: 3, lo: 74, hi: 82 },
+  { name: "Javier Pastore", club: "PSG", year: 2012, fame: 3, lo: 75, hi: 83 },
+  { name: "Freddy Guarín", club: "Porto", year: 2011, fame: 3, lo: 73, hi: 81 },
+  { name: "Stefan Effenberg", club: "Bayern", year: 2001, fame: 4, lo: 82, hi: 88 },
+  { name: "Andreas Möller", club: "Dortmund", year: 1997, fame: 4, lo: 81, hi: 88 },
+  { name: "Mehmet Scholl", club: "Bayern", year: 2001, fame: 3, lo: 75, hi: 83 },
+  { name: "Bernd Schuster", club: "Barcelona", year: 1985, fame: 4, lo: 82, hi: 88 },
+  { name: "Juan Carlos Valerón", club: "Deportivo La Coruña", year: 2002, fame: 4, lo: 81, hi: 87 },
+  { name: "Joaquín", club: "Real Betis", year: 2005, fame: 3, lo: 75, hi: 83 },
+  { name: "Fernando Chalana", club: "Benfica", year: 1984, fame: 4, lo: 80, hi: 86 },
+  { name: "Marcelinho Paraíba", club: "Hertha Berlin", year: 2003, fame: 3, lo: 74, hi: 82 },
+  { name: "Amadou Onana", club: "Everton", year: 2023, fame: 3, lo: 71, hi: 79 },
+  { name: "James Rodríguez", club: "Real Madrid", year: 2015, fame: 4, lo: 82, hi: 88 },
+  { name: "James Milner", club: "Liverpool", year: 2018, fame: 3, lo: 74, hi: 82 },
+  { name: "Mikel Arteta", club: "Everton", year: 2008, fame: 3, lo: 74, hi: 82 },
+  { name: "Harry Kewell", club: "Leeds", year: 2001, fame: 3, lo: 75, hi: 83 },
+  { name: "Kalvin Phillips", club: "Leeds", year: 2021, fame: 3, lo: 74, hi: 82 },
+  { name: "Rúben Neves", club: "Wolves", year: 2019, fame: 3, lo: 75, hi: 83 },
+  { name: "Douglas Luiz", club: "Aston Villa", year: 2024, fame: 3, lo: 75, hi: 83 },
+  { name: "James Maddison", club: "Leicester", year: 2020, fame: 3, lo: 75, hi: 83 },
+  { name: "Eberechi Eze", club: "Crystal Palace", year: 2025, fame: 3, lo: 76, hi: 84 },
+  { name: "Weston McKennie", club: "Juventus", year: 2021, fame: 3, lo: 70, hi: 79 },
+]
+const L49_EU_ATA: C[] = [
+  { name: "Lisandro López", club: "Porto", year: 2008, fame: 3, lo: 75, hi: 83 },
+  { name: "Jackson Martínez", club: "Porto", year: 2014, fame: 3, lo: 75, hi: 83 },
+  { name: "Duván Zapata", club: "Atalanta", year: 2019, fame: 3, lo: 74, hi: 82 },
+  { name: "Muriel", club: "Atalanta", year: 2021, fame: 3, lo: 74, hi: 82 },
+  { name: "Rafael Borré", club: "Eintracht Frankfurt", year: 2022, fame: 3, lo: 72, hi: 80 },
+  { name: "Enner Valencia", club: "Fenerbahçe", year: 2023, fame: 3, lo: 72, hi: 80 },
+  { name: "Karl-Heinz Riedle", club: "Dortmund", year: 1997, fame: 3, lo: 74, hi: 82 },
+  { name: "Kevin Kurányi", club: "Stuttgart", year: 2005, fame: 3, lo: 73, hi: 81 },
+  { name: "Roy Makaay", club: "Deportivo La Coruña", year: 2003, fame: 4, lo: 81, hi: 87 },
+  { name: "Diego Tristán", club: "Deportivo La Coruña", year: 2002, fame: 4, lo: 80, hi: 86 },
+  { name: "Aritz Aduriz", club: "Athletic Bilbao", year: 2016, fame: 3, lo: 75, hi: 83 },
+  { name: "Pauleta", club: "PSG", year: 2006, fame: 3, lo: 75, hi: 83 },
+  { name: "Nuno Gomes", club: "Benfica", year: 2005, fame: 3, lo: 73, hi: 81 },
+  { name: "Jonas", club: "Benfica", year: 2016, fame: 4, lo: 80, hi: 86 },
+  { name: "Antonio Di Natale", club: "Udinese", year: 2010, fame: 4, lo: 80, hi: 87 },
+  { name: "Evanilson", club: "Porto", year: 2024, fame: 3, lo: 72, hi: 80 },
+  { name: "Trevor Francis", club: "Nottingham Forest", year: 1979, fame: 4, lo: 81, hi: 88 },
+  { name: "Raúl Jiménez", club: "Wolves", year: 2019, fame: 3, lo: 73, hi: 81 },
+  { name: "Adama Traoré", club: "Wolves", year: 2020, fame: 3, lo: 70, hi: 80, folk: true },
+  { name: "Ivan Toney", club: "Brentford", year: 2023, fame: 3, lo: 75, hi: 83 },
+  { name: "Bryan Mbeumo", club: "Brentford", year: 2025, fame: 3, lo: 75, hi: 83 },
+  { name: "Igor Thiago", club: "Brentford", year: 2026, fame: 3, lo: 74, hi: 82 },
+  { name: "Richarlison", club: "Everton", year: 2020, fame: 3, lo: 74, hi: 82 },
+  { name: "João Pedro", club: "Chelsea", year: 2025, fame: 4, lo: 80, hi: 86 },
+  { name: "Pedro Neto", club: "Chelsea", year: 2025, fame: 3, lo: 74, hi: 82 },
+  { name: "Wilfried Zaha", club: "Crystal Palace", year: 2019, fame: 3, lo: 75, hi: 83 },
+  { name: "Jarrod Bowen", club: "West Ham", year: 2023, fame: 3, lo: 74, hi: 82 },
+  { name: "Alexander Sørloth", club: "Villarreal", year: 2024, fame: 3, lo: 73, hi: 81 },
+  { name: "Simone Zaza", club: "Juventus", year: 2016, fame: 1, lo: 60, hi: 66, folk: true },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL, ...L45_EU_GOL, ...L46_EU_GOL, ...L48_EU_GOL, ...L49_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT, ...L45_EU_LAT, ...L46_EU_LAT, ...L48_EU_LAT, ...L49_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG, ...L44_EU_ZAG, ...L45_EU_ZAG, ...L46_EU_ZAG, ...L48_EU_ZAG, ...L49_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI, ...L44_EU_MEI, ...L45_EU_MEI, ...L46_EU_MEI, ...L48_EU_MEI, ...L49_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA, ...L44_EU_ATA, ...L45_EU_ATA, ...L46_EU_ATA, ...L48_EU_ATA, ...L49_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -3943,7 +4017,37 @@ const L45_WORLD_ATA: C[] = [
 const L48_WORLD_GOL: C[] = [
   { name: "Justo Villar", club: "Estudiantes", year: 2010, fame: 3, lo: 71, hi: 80 },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL, ...L45_WORLD_GOL, ...L48_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT, ...L45_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG, ...L45_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI, ...L44_WORLD_MEI, ...L45_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA, ...L45_WORLD_ATA] }
+// 📅 Lote 49 (10/11) — parte Mundo: argentinos no auge (River, Boca, Estudiantes, Racing, Newell's) + Gignac no Tigres
+const L49_WORLD_GOL: C[] = [
+  { name: "Marcelo Barovero", club: "River Plate", year: 2015, fame: 3, lo: 72, hi: 80 },
+]
+const L49_WORLD_LAT: C[] = [
+  { name: "Hugo Ibarra", club: "Boca Juniors", year: 2001, fame: 3, lo: 72, hi: 80 },
+]
+const L49_WORLD_MEI: C[] = [
+  { name: "Pity Martínez", club: "River Plate", year: 2018, fame: 4, lo: 80, hi: 86 },
+  { name: "Juan Fernando Quintero", club: "River Plate", year: 2018, fame: 3, lo: 74, hi: 82 },
+  { name: "Leonardo Ponzio", club: "River Plate", year: 2018, fame: 3, lo: 72, hi: 80 },
+  { name: "Leonardo Astrada", club: "River Plate", year: 1996, fame: 3, lo: 72, hi: 80 },
+  { name: "Antonio Rattín", club: "Boca Juniors", year: 1962, fame: 4, lo: 80, hi: 87 },
+]
+const L49_WORLD_ATA: C[] = [
+  { name: "Lucas Pratto", club: "River Plate", year: 2018, fame: 3, lo: 73, hi: 81 },
+  { name: "Rodrigo Mora", club: "River Plate", year: 2015, fame: 3, lo: 72, hi: 80 },
+  { name: "Teófilo Gutiérrez", club: "River Plate", year: 2014, fame: 3, lo: 73, hi: 81 },
+  { name: "Fernando Cavenaghi", club: "River Plate", year: 2003, fame: 3, lo: 73, hi: 81 },
+  { name: "Ramón Díaz", club: "River Plate", year: 1981, fame: 4, lo: 80, hi: 87 },
+  { name: "Javier Saviola", club: "River Plate", year: 2000, fame: 4, lo: 79, hi: 86 },
+  { name: "Darío Benedetto", club: "Boca Juniors", year: 2017, fame: 3, lo: 73, hi: 81 },
+  { name: "Cristian Pavón", club: "Boca Juniors", year: 2018, fame: 3, lo: 72, hi: 80 },
+  { name: "Marcelo Delgado", club: "Boca Juniors", year: 2000, fame: 3, lo: 73, hi: 81 },
+  { name: "Rodrigo Palacio", club: "Boca Juniors", year: 2006, fame: 3, lo: 73, hi: 81 },
+  { name: "Mauro Boselli", club: "Estudiantes", year: 2009, fame: 3, lo: 73, hi: 81 },
+  { name: "Juan Carlos Cárdenas", club: "Racing", year: 1967, fame: 4, lo: 80, hi: 86 },
+  { name: "Scocco", club: "Newell's Old Boys", year: 2013, fame: 3, lo: 74, hi: 82 },
+  { name: "André-Pierre Gignac", club: "Tigres", year: 2017, fame: 4, lo: 80, hi: 87 },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL, ...L45_WORLD_GOL, ...L48_WORLD_GOL, ...L49_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT, ...L45_WORLD_LAT, ...L49_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG, ...L45_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI, ...L44_WORLD_MEI, ...L45_WORLD_MEI, ...L49_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA, ...L45_WORLD_ATA, ...L49_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
@@ -4439,7 +4543,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // o Murriz não foi renomeado, só mudou de divisão (o OLD_NAME dele continua
     // sendo o Robertão United, de quando ele foi batizado). Mapear faria uma
     // carreira que tem OS DOIS desenhar o escudo do Murriz no Seringueiro também.
-    { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
+    // 👑💜 09/11 (Diego: *"ele entrará no lugar do Murriz FC"*): o Double Duo FC assumiu ESTE assento da Série B. O Murriz FC sai da
+    // pirâmide (sem vaga), mas continua batismo: escudo, mascote, manto e nome reservado seguem o e-mail dele. SEM OLD_NAME (ninguém
+    // foi renomeado). ⚠️ No POST não se diz de quem era o assento (regra 05/09).
+    { name: 'Streamer', team: 'Double Duo FC' }, // 👑💜 clube BATIZADO por apoiador (doublecontatocomercial — Double Duo FC; streamer de jogos de manager; escudo DD coroado com as redes dele, mascote O Streamer; preto #161016 + roxo #A131BF MEDIDOS na camisa, azul na 3ª cor; plano FUNDADOR nº100, 09/11).
     { name: 'Cápsula', team: 'Corporação Capsule FC' }, // 🐉 clube BATIZADO por apoiador (contatovegetta14 — Corporação Capsule FC, ex-Real Tabuleiro; mascote DragonBola, preto + azul escuro; Lenda + fundador nº55, 03/09)
     // 🐝👑 Sapekeiros FC (tiosapeka / @tiosapekagg) DESCEU da Série A pra cá em 16/09,
     // por decisão do Diego, pra abrir o assento do Rei da Bola FC. Ocupa a vaga que era
@@ -4583,7 +4690,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Operário das Docas', atk: 64, def: 65 },
   { name: 'Botafogo da Colônia', atk: 63, def: 62 },
   { name: 'Fluminense de Caicó', atk: 61, def: 63 },
-  { name: 'Murriz FC', atk: 60, def: 60 }, // 🧔 desceu da Série A em 05/09 (abriu o assento do Vidraceiro FC) — MESMA força do bot que cedeu a vaga (Atlético Seringueiro)
+  { name: 'Double Duo FC', atk: 60, def: 60 }, // 👑💜 09/11: assumiu o assento do Murriz FC (mesma força). Antes: Murriz FC — 🧔 desceu da Série A em 05/09 (abriu o assento do Vidraceiro FC) — MESMA força do bot que cedeu a vaga (Atlético Seringueiro)
   { name: 'Corporação Capsule FC', atk: 58, def: 59 }, // 🐉 ex-Real Tabuleiro (batismo 03/09) — MESMA força do bot que cedeu o assento
   { name: 'Sapekeiros FC', atk: 55, def: 54 }, // 🐝 desceu da Série A em 16/09 (abriu o assento do Rei da Bola FC) — MESMA força do bot que cedeu a vaga (Íbis da Mata)
 ]

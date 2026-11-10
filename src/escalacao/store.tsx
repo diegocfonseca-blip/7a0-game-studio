@@ -1104,6 +1104,8 @@ import { supabase } from '../lib/supabase'
 import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
+import { radioPedacoLiberado } from './sport' // 📡✂️ rádio em pedaços (10/11): por enquanto só nas salas do Diego
+import { criaEmissor, criaReceptor, type PacoteCheio, type PacotePedaco } from './radio-pedaco'
 import { troca2DSalaLiberada } from './sport' // 📺⚡ troca 2D ↔ rápido na sala: por enquanto só a conta do Diego (vale a conta do DONO — o reducer só roda no aparelho dele)
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { formacoes15On } from './sport' // 🎽 as 15 formações (a mesma régua do seletor) — A/B, 23/10
@@ -1115,7 +1117,7 @@ import { BATISMOS, chaveClube } from './batismos' // 🖋 bots de batismo/fundad
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
-import { pack, unpack } from './netpack'
+import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
 import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_ELENCO_MAX, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
@@ -2871,6 +2873,8 @@ const DIVISION_BASE: Record<Division, number> = { V: 58, D: 64, C: 70, B: 75, A:
 //    último, os clássicos da D. Assim a Série A nunca fica com menos de 20.
 // ⚠️ Isto NÃO mexe em carreira já começada: quem já jogou tem a colocação gravada
 // em `careerPlacements` e a pirâmide é montada por ela, não por estas listas.
+// 🖋 10/11: todos os clubes da pirâmide (A→D), um de cada — é onde o rival escolhido é procurado (pode vir de qualquer divisão)
+const TIMES_PIRAMIDE: { team: string; name: string }[] = (() => { const vistos = new Set<string>(); const out: { team: string; name: string }[] = []; for (const d of ['A', 'B', 'C', 'D'] as const) for (const t of DIVISION_TEAMS[d]) if (!vistos.has(t.team)) { vistos.add(t.team); out.push(t) } return out })()
 const divsDeFundo = (escada?: boolean): readonly ('B' | 'C' | 'D')[] => escada ? ['B', 'C', 'D'] : ['B', 'C']
 function eliteNaSerieA(managers: { teamName: string }[], pl: Record<string, string>): string[] {
   const usados = new Set<string>([...managers.map(m => m.teamName), ...Object.keys(pl)])
@@ -2966,7 +2970,7 @@ function initCareerRivals(count: number, chosen?: string[], humanTeam?: string):
     ? [...chosen.filter(c => !humanTeam || !mesmoNomeTime(c, humanTeam)), ...pool.map(t => t.team).filter(t => !chosen.includes(t))].slice(0, count)
     : pool.slice(0, count).map(t => t.team)
   return pickNames.map(team => {
-    const def = pool.find(t => t.team === team) ?? { name: team, team }
+    const def = pool.find(t => t.team === team) ?? TIMES_PIRAMIDE.find(t => t.team === team) ?? { name: team, team }
     return { team: def.team, name: def.name, division: 'D' as Division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }
   })
 }
@@ -6035,11 +6039,34 @@ function enterCerimonia(st: EscState) {
     }
     fechaConvocacao(st, {}); return
   }
+  fechaBuracosDeGente(st) // 🧯 10/11: ninguém de gente entra em campo com um a menos
   sweepMonteToBackstops(st)
   st.screen = 'cerimonia'
   // 🎥 modo stream: SEM cronômetro — o host dá o comando pra começar (controla o
   // ritmo da revelação ao vivo, mostra time por time). Sem stream: 45s e começa sozinho.
   st.cerimoniaDeadline = (st.streamMode || st.manualRoom) ? null : Date.now() + CEREMONY_MS // stream/manual: host dá o start (sem cronômetro)
+}
+// 🧯 TRAVA DO "UM A MENOS" (10/11, sala 4N8G9P: o "É Oq Cesarrrr?" jogou a liga inteira com 2 meias no 4-3-3 — e sobraram 2
+// meias no monte). Fora da carreira o Monte FECHA o XI (não existe passar), então chegar na cerimônia com titular faltando é bug.
+// Rede de segurança: antes da cerimônia, cada time de GENTE com vaga de titular vazia leva a PIOR sobra do monte daquela posição
+// (a mesma régua de quem deixa o tempo do monte acabar), de graça e pelo caminho de sempre (`takeFromMonte`). Só carta de
+// verdade que está no monte — nunca inventa jogador. Sem carta daquela posição no monte, fica como estava.
+function fechaBuracosDeGente(st: EscState) {
+  if (st.careerOnline) return // carreira tem banco, Cria da Base e "passar" — regra própria
+  for (const m of st.managers) {
+    if (!m.isHuman || m.dormindo) continue
+    for (const pos of SECTORS) {
+      while (filled(m, pos) < baseSlots(m.formation, pos)) {
+        const c = st.monte.filter(x => x.pos === pos && montePickable(st, m, x)).sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))[0]
+        if (!c) break
+        const ordem = st.monteOrder, idx = st.monteIdx
+        st.monteOrder = [m.id]; st.monteIdx = 0
+        takeFromMonte(st, c.id) // o caminho de sempre (vendedor, livro de preço, carteira) — com a "vez" apontando pra este time
+        st.monteOrder = ordem; st.monteIdx = idx
+        ;(st.marketLog = st.marketLog ?? []).push(`🧯 ${m.name} completou o time com ${c.name} (sobra do monte)`)
+      }
+    }
+  }
 }
 const TIEBREAK_MS = 30_000
 
@@ -7498,6 +7525,7 @@ function comecaTemporadaMesmoTime(s: EscState): void {
   s.fixtures = calendarioDaLiga(s)
   s.round = 0
   s.scorers = []; s.assists = []
+  s.scorersPrev = undefined // 🧯 09/11: a cópia anti-spoiler é da temporada passada — sem isto a artilharia nova abria com os gols da velha
   s.lastResults = []
   s.news = []
   s.champion = null
@@ -8923,7 +8951,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       const rivalCount = Math.max(0, Math.min(action.rivals, LEAGUE_SIZE - 1))
       // ordem dos nomes: rivais escolhidos primeiro (viram os auction-rivals), depois
       // o resto da ELITE (a 👑 Série A) sem repetir.
-      const chosen = (action.rivalTeams ?? []).map(tn => TIMES_ELITE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
+      // 🖋 10/11 (Diego): o rival pode ser QUALQUER clube de batismo/fundador da pirâmide (A, B, C ou D) — ele começa com você e
+      // outro clube ocupa o lugar dele na divisão de origem (ver `pl` logo abaixo). Antes só a elite (Série A) era achada aqui.
+      const chosen = (action.rivalTeams ?? []).map(tn => TIMES_PIRAMIDE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
       const rest = TIMES_ELITE.filter(t => !chosen.some(c => c.team === t.team))
       // 🌱 escada: os bots de preenchimento da sala usam os times de VÁRZEA (a sala
       // é a divisão V) — os nomes da elite ficam livres pro fundo profissional.
@@ -8941,7 +8971,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       const pl: Record<string, string> = {}
       const divIni = s.escadaOn ? 'V' : 'D'
       for (const m of s.managers) pl[`m${m.id}`] = divIni
-      for (const d of divsDeFundo(s.escadaOn)) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+      // 🖋 10/11: rival escolhido que é da B/C/D NÃO fica também na divisão de origem (aparecia duplicado) — sai de lá e o lugar
+      //    dele é completado com os clubes extras da D (os mesmos que já completam a Série A), sem repetir ninguém.
+      const jaNaSala = new Set(s.managers.map(m => m.teamName))
+      const extras = EXTRA_D_TEAMS.map(t => t.team).filter(nm => !jaNaSala.has(nm))
+      for (const d of divsDeFundo(s.escadaOn)) {
+        const lista = DIVISION_TEAMS[d].slice(0, 20).map(t => t.team).filter(nm => !jaNaSala.has(nm))
+        while (lista.length < 20 && extras.length) { const nm = extras.shift()!; if (!pl[nm] && !lista.includes(nm)) lista.push(nm) }
+        for (const nm of lista) pl[nm] = d
+      }
       for (const nm of eliteNaSerieA(s.managers, pl)) pl[nm] = 'A'
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
@@ -9783,7 +9821,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // carreira: carta com piso é compra sem leilão — bloqueia se não tem caixa
       const picker = s.managers.find(m => m.id === action.mgrId)
       const pickCard = s.monte.find(c => c.id === action.cardId)
-      if (picker && pickCard && !montePickable(s, picker, pickCard)) return s
+      // 🛡️ 10/11 (sala 4N8G9P, time com 10): a carta já saiu do monte (toque repetido, pedido reenviado, ou chegou depois do
+      // tempo esgotado) → IGNORA, sem queimar a vez. Antes o `monteIdx++` andava mesmo sem carta e o time perdia a vaga.
+      if (!picker || !pickCard || !montePickable(s, picker, pickCard)) return s
       const rng = rngOf(s)
       takeFromMonte(s, action.cardId)
       s.monteIdx++
@@ -11812,6 +11852,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // time. Guarda o voto (guest rota pro host, host aplica e sincroniza).
       // Vale no carreira online E no online rápido (fim de jogo).
       if (s.onlineMode !== 'online' && !s.careerOnline) return s
+      // 🗳️ 10/11 (simulador): voto atrasado/duplicado que chega DEPOIS do novo leilão trazia o assento velho e marcava outra
+      // pessoa como "pronta" na partida nova. Fora da carreira, voto só vale na tela do FIM.
+      if (!s.careerOnline && s.screen !== 'end') return s
       s.seasonVotes = { ...(s.seasonVotes ?? {}), [action.mgrId]: action.vote }
       return s
     }
@@ -12999,7 +13042,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'DRAFT_ABRIR': {
       if (!s.ligaDraft || s.draft || s.screen !== 'end' || s.draftFeito === s.seasonNo) return state
       const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
-      const ordem = ordemDoDraft(sortedTable(s.league), humanos)
+      const ordem = ordemDoDraft(sortedTable(s.league), humanos, !!s.draftRegras?.piorPrimeiro) // 🔁 09/11: o dono escolhe melhor→pior ou pior→melhor
       if (!ordem.length) return state
       if (s.minhaLigaDraft) {
         // 💰 moedas pela colocação (só gente) + ✋ prontos antes do draft (o dono decide quando começa)
@@ -14024,7 +14067,17 @@ export function readActiveCareer(): CareerSlot | null {
 function archiveActiveCareer(): boolean {
   const act = readActiveCareer(); if (!act) return true
   const rest = readCareerArchive().filter(s => s.save.seed !== act.save.seed)
-  return writeCareerArchive([{ save: act.save, at: act.at }, ...rest])
+  if (writeCareerArchive([{ save: act.save, at: act.at }, ...rest])) return true
+  // 🐛 10/11 (Diego, carreira T47 + "sem espaço" com 2 de 4 fichas): gravar a cópia no arquivo ANTES de tirar a original deixava a
+  // MESMA carreira duas vezes no aparelho por um instante — carreira grande estoura a cota. Mesma receita da troca (06/10): tira a
+  // original da vaga, grava o arquivo e, se ainda assim não couber, devolve a original exatamente como estava. Nada se perde.
+  let cru: string | null = null
+  try { cru = localStorage.getItem('esc-solo-career') } catch { return false }
+  if (cru == null) return false
+  try { localStorage.removeItem('esc-solo-career') } catch { return false }
+  if (writeCareerArchive([{ save: act.save, at: act.at }, ...rest])) return true
+  try { localStorage.setItem('esc-solo-career', cru) } catch { /* acabou de sair daqui: o mesmo tamanho cabe de volta */ }
+  return false
 }
 // TODAS as carreiras pra listar (ativa primeiro, depois o arquivo), por recência.
 export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
@@ -14628,6 +14681,25 @@ export function EscProvider({ children }: { children: ReactNode }) {
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  // 📡✂️ RÁDIO EM PEDAÇOS (10/11, Diego: *"liga primeiro nas salas que eu criar"*). O dono manda a sala INTEIRA de vez em quando
+  // (a "base", no evento 'state' de sempre — aba velha entende) e, no meio, só o que mudou desde ela (evento novo 'stateP'). Só liga
+  // quando `pedacoPode`: dono liberado E todo mundo da sala anunciou na presença que entende pedaço (`rp: 1`). Qualquer erro aqui =
+  // manda a sala inteira, como sempre. Simulador: `npm run salas-sim -- --pedacos` (13 modos, 0 falhas, −78%).
+  const emissorRef = useRef<ReturnType<typeof criaEmissor> | null>(null)
+  const mandaEstado = (st: EscState, cheio = false) => {
+    const ch = channelRef.current
+    if (!ch) return
+    if (pedacoPode(ch)) {
+      try {
+        const emi = emissorRef.current ??= criaEmissor(tiraBioDoRadio)
+        const r = emi.emite(sanitize(st) as unknown as Record<string, unknown>, cheio)
+        if ('cheio' in r) ch.send({ type: 'broadcast', event: 'state', payload: { ...r.cheio, t: Date.now() } })
+        else ch.send({ type: 'broadcast', event: 'stateP', payload: { ...r.pedaco, t: Date.now() } })
+        return
+      } catch { emissorRef.current = null }
+    } else emissorRef.current = null // saiu do modo pedaço: quando voltar, começa por uma base nova
+    ch.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(st) })
+  }
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
@@ -15116,14 +15188,29 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
-        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        mandaEstado(stateRef.current, true) // 📡✂️ quem pede o estado ganha uma base nova (a sala toda recebe)
       })
     } else {
-      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => {
+      // 📡✂️ rádio em pedaços: cada canal tem o SEU receptor (sala nova / reconexão = começa sem base)
+      const rx = criaReceptor<EscState>(poeBioDoRadio)
+      let pedidoEm = 0
+      const pedeCheio = () => { if (Date.now() - pedidoEm < 3000) return; pedidoEm = Date.now(); channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} }) }
+      const lePacote = (payload: unknown): EscState | null => {
+        const p = payload as { b?: unknown; s?: unknown; z?: unknown; d?: unknown } | null
+        if (p && typeof p.b === 'string' && typeof p.s === 'number' && (typeof p.z === 'string' || typeof p.d === 'string')) {
+          const r = rx.recebe(p as PacoteCheio | PacotePedaco)
+          if (r === 'pede') { pedeCheio(); return null }
+          return r
+        }
+        return readState(payload)
+      }
+      ch.on('broadcast', { event: 'stateP' }, ({ payload }: { payload: unknown }) => recebeEstado(payload))
+      ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => recebeEstado(payload))
+      function recebeEstado(payload: unknown) {
         // pacote corrompido/parcial não pode derrubar o canal: ignora essa
         // mensagem (o heartbeat do host reenvia um estado bom em ~3s).
-        let next: EscState
-        try { next = readState(payload) } catch { return }
+        let next: EscState | null
+        try { next = lePacote(payload) } catch { pedeCheio(); return }
         if (!next || typeof next !== 'object') return
         // ⏱️ acerta o relógio pelo do DONO: todo prazo da sala (leilão, Monte,
         // cerimônia, Copa) nasce no aparelho dele. Sem isso, celular atrasado
@@ -15135,7 +15222,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         setDonoForaSeg(0)
         jaRecebiEstadoRef.current = true
         rawDispatch({ type: 'SYNC_STATE', newState: next })
-      })
+      }
     }
     // reações chegam pra todos (host e convidados), fora do fluxo de ações
     ch.on('broadcast', { event: 'emote' }, ({ payload }: { payload: EmoteEvent }) => addEmote(payload))
@@ -15224,7 +15311,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // ORDEM CERTA: pedir o estado PRIMEIRO (é o que destrava a tela), anunciar
       // presença DEPOIS. O crachá pode demorar; a partida não pode.
       if (!isHostRef.current) ch.send({ type: 'broadcast', event: 'request_state', payload: {} })
-      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) // 👁️ fantasma não anuncia presença
+      if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha(), rp: 1 }) // 👁️ fantasma não anuncia presença
     })
     channelRef.current = ch
     // 🔁 O PRIMEIRO PEDIDO PODE SE PERDER (o convidado entra antes do canal do host
@@ -15246,7 +15333,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
       const alive = (ch as unknown as { state?: string }).state === 'joined'
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        if (isHostRef.current) mandaEstado(stateRef.current, true)
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
@@ -15280,7 +15367,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       juntaTimerRef.current = null
       const atual = stateRef.current
       if (atual.onlineMode !== 'online' || !atual.isHost || !atual.roomId) return
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(atual) })
+      mandaEstado(atual)
       lastStateSendRef.current = Date.now()
     }, ONLINE_ENVIO_MS)
   }, [state])
@@ -15391,7 +15478,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < HEARTBEAT_QUIETO_MS) return // teve jogada recente → já sincronizado
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+      mandaEstado(stateRef.current)
       lastStateSendRef.current = Date.now()
     }, 10_000)
     return () => clearInterval(iv)
@@ -15562,10 +15649,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!ch) return
       if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
+        if (isHostRef.current) mandaEstado(stateRef.current, true)
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
-      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
+      try { ch.subscribe(async () => { resync(); if (!stateRef.current.espectador) await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha(), rp: 1 }) }) } catch { /* tenta de novo no próximo tique */ }
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.roomId])
@@ -15580,7 +15667,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const ch = channelRef.current
     if (!ch) return
     if (stateRef.current.espectador) return // 👁️ fantasma não anuncia presença
-    void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha() }) } catch { /* a reconexão periódica reanuncia */ } })()
+    void (async () => { try { await ch.track({ playerIndex: state.youIdx, uid: await meuCracha(), rp: 1 }) } catch { /* a reconexão periódica reanuncia */ } })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.youIdx])
 
@@ -15817,6 +15904,20 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.screen === 'intro' || state.screen === 'lobby') return
     if (state.roomId !== lastRoomRef.current) { lastRoomRef.current = state.roomId; myMgrIdRef.current = null } // sala nova → esquece o crachá antigo
     const clean = (x?: string) => stripEmoji(x ?? '').trim()
+    // 0) 🪪 10/11 (simulador de salas, 48 de 400 partidas): no "🔨 novo leilão" a sala é a MESMA e os assentos se renumeram
+    //    quando alguém saiu. O crachá guardado (id antigo) apontava pro time de OUTRA pessoa e a cura levava o convidado pra
+    //    lá — "dei lance por outro". Com `seatUids` quem manda é o UID da conta: ele diz o assento certo, sem adivinhar.
+    if (state.youUid && Array.isArray(state.seatUids) && state.seatUids.length) {
+      const seat = assentoDoCracha(state, state.youUid)
+      if (seat >= 0) {
+        const idx = state.managers.findIndex(m => m.id === seat)
+        if (idx >= 0) {
+          myMgrIdRef.current = seat
+          if (idx !== state.youIdx) rawDispatch({ type: 'FIX_YOU_IDX', idx })
+          return
+        }
+      }
+    }
     // 1) JÁ SEI MEU CRACHÁ: reancora pela POSIÇÃO ATUAL dele. Imune a nome repetido/
     //    trocado (fantasma com meu nome) e à reordenação de times entre temporadas —
     //    é o que faltava pra parar o "virei outro / F5 trocou de nome".
@@ -16541,13 +16642,50 @@ export const SEM_BAGAGEM_DE_CARREIRA: Partial<EscState> = {
 // resyncs podem pedir o pacote do MESMO objeto de estado várias vezes por segundo.
 // Como cada dispatch cria um objeto novo (imutável), comparar por referência basta
 // pra comprimir só uma vez por estado — evita gastar CPU do celular do host à toa.
+// 📡✂️ pode mandar em pedaços? Só com o dono liberado (sport.ts) e TODO mundo na presença dizendo que entende (`rp: 1`). Presença que
+// não deu pra ler, sala só com o dono, ou alguém de aba velha = não (manda a sala inteira, como sempre).
+function pedacoPode(ch: unknown): boolean {
+  if (!radioPedacoLiberado()) return false
+  try {
+    const ps = (ch as { presenceState?: () => Record<string, { rp?: unknown }[]> }).presenceState?.() ?? {}
+    const metas = Object.values(ps).flat()
+    return metas.length >= 2 && metas.every(m => m?.rp === 1)
+  } catch { return false }
+}
 let _packSrc: EscState | null = null
 let _packOut: { z: string } = { z: '' }
 function packState(state: EscState): { z: string } {
   if (state === _packSrc) return _packOut
   _packSrc = state
-  _packOut = { z: pack(sanitize(state)) }
+  _packOut = { z: packCom(sanitize(state), tiraBioDoRadio) }
   return _packOut
+}
+// 💸📡 BIO FORA DO RÁDIO (10/11, Diego: *"o intuito é diminuir os custos… mas não ter bugs"*). Medido no simulador de salas: o
+// texto de história das cartas era ~30% de tudo que o dono manda pros convidados — e todo aparelho já tem esse texto no catálogo.
+// No caminho do rádio, a carta cuja bio é IGUALZINHA à do catálogo vai sem o texto e com a marca `_b: 1`; o convidado, ao ler, põe
+// o texto do catálogo de volta e tira a marca. Bio que não bate com o catálogo (carta fake, basquete, catálogo que mudou) vai
+// inteira, como sempre — então nada se perde. Só o RÁDIO: o save no banco (game_rooms) não muda. Trava: `npm run salas-sim`
+// (confere, a cada estado, que o que chega é igual ao que saiu).
+// ⚠️ Só a BIO, de propósito: convidado com a aba velha aberta (o jogo não recarrega sozinho) lê a carta sem o texto e cai na bio
+// pelo nome, como já fazia — nada quebra. Tirar fame/lo/hi do mesmo jeito daria só +2% e deixaria a carta SEM NÍVEL na aba velha.
+const chaveBio = (o: { name: string; club: string; year: number }) => `${o.name}|${clubCanon(o.club)}|${o.year}`
+export function tiraBioDoRadio(this: unknown, _k: string, v: unknown): unknown {
+  if (!v || typeof v !== 'object') return v
+  const o = v as { name?: unknown; club?: unknown; year?: unknown; bio?: unknown; _b?: unknown }
+  if (typeof o.bio !== 'string' || typeof o.name !== 'string' || typeof o.club !== 'string' || typeof o.year !== 'number' || o._b !== undefined) return v
+  const f = FICHA_ATUAL.exato.get(chaveBio(o as { name: string; club: string; year: number }))
+  if (!f || f.bio !== o.bio) return v
+  const { bio: _fora, ...resto } = o
+  void _fora
+  return { ...resto, _b: 1 }
+}
+export function poeBioDoRadio(this: unknown, _k: string, v: unknown): unknown {
+  if (!v || typeof v !== 'object' || (v as { _b?: unknown })._b !== 1) return v
+  const o = v as Record<string, unknown> & { name: string; club: string; year: number }
+  delete o._b
+  const bio = FICHA_ATUAL.exato.get(chaveBio(o))?.bio
+  if (bio !== undefined) o.bio = bio
+  return o
 }
 // ⏱️ O CARIMBO DE HORA DO DONO vai POR FORA do pacote comprimido, de propósito:
 // o `packState` guarda o pacote por identidade de estado (e o mesmo estado é
@@ -16563,7 +16701,7 @@ function pacoteDeEstado(state: EscState): { z: string; t: number } {
 // convidado podem estar em versões diferentes por uns minutos.
 function readState(payload: unknown): EscState {
   const p = payload as { z?: string } | EscState
-  if (p && typeof (p as { z?: string }).z === 'string') return unpack<EscState>((p as { z: string }).z)
+  if (p && typeof (p as { z?: string }).z === 'string') return unpackCom<EscState>((p as { z: string }).z, poeBioDoRadio)
   return p as EscState
 }
 

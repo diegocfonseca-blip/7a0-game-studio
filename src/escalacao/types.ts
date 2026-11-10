@@ -932,7 +932,7 @@ export interface EscState {
   ligaDraft?: boolean
   turnoUnico?: boolean // ⚡ (06/11) sala online com liga de 20: 19 rodadas só ida, todo jogo em campo neutro (escolha do dono ao criar; sem o campo = 38)
   tamanhoLiga?: 10 // 📏 Liga Draft (02/11): liga de 10 times (usuários + bots) — sem isto a tabela completa até 20
-  draftRegras?: { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean } // 📜 regras da turma no draft (05/11)
+  draftRegras?: { semLendas?: boolean; semCraques?: boolean; soBrasil?: boolean; piorPrimeiro?: boolean } // 📜 regras da turma no draft (05/11)
   draftPremios?: number[] // 💰 prêmio por colocação editado pelo criador (05/11); vazio = padrão do tamanho da liga
   mldBotVez?: number // 🤖 Liga Draft (05/11): de qual bot é a vez de receber a próxima sobra (fila 1→7→1)
   minhaLigaDraft?: boolean // 📋🏆 Minha Liga Draft (01/11): T1 leilão normal, draft 45 s com ✋ pronto, perde a vez sem auto
