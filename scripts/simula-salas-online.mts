@@ -173,8 +173,9 @@ function checaDono(antes: EscState, s: EscState, a: Act, de: string) {
   }
   // ⚽ todo humano com o XI fechado quando a temporada começa
   const k = `${s.seasonNo}|${s.screen}`
-  if (s.screen === 'season' && s.round === 0 && jaChecouTemporada !== k) {
-    jaChecouTemporada = k
+  // (Só Champions abre direto na tela 'champions'; Relâmpago abre na 'season' sem liga — os dois contam como começo de temporada)
+  if (((s.screen === 'season' && s.round === 0) || (s.screen === 'champions' && s.champions?.rodada === 0)) && antes.screen !== s.screen && jaChecouTemporada !== `${s.seasonNo}`) {
+    jaChecouTemporada = `${s.seasonNo}`; void k
     for (const m of s.managers.filter(m => m.isHuman)) {
       const need = FORMATIONS[m.formation]
       const falta = SECTORS.filter(p => m.squad.filter(c => c.pos === p && !c.fake).length < (need?.[p] ?? 0))
