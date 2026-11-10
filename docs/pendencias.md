@@ -14,6 +14,15 @@
   de Copa (`mode='mundo'`) lê `game_state` pelo aviso do banco em lobby.tsx), testar no simulador/bancada e levar o RESULTADO pra ele.
 - ✅ Publicados 10/11 ~16h35: conserto da carreira que não coube (Lucas Barreto), selo FAKE desligado, sininho 3 min.
 
+
+## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)
+- Regra do Diego: o time só deixa de ser do jogador quando o DONO remove. Saiu/caiu no meio da temporada → volta pro mesmo time.
+- Código: `KICK_PLAYER.peloDono` apaga o crachá só na remoção do dono · `RETOMA_TIME` devolve o time · `lobby.tsx` (enterRoom/triggerStart)
+  deixa voltar com o time na mão da máquina · o aparelho que voltou pede o time de 5 em 5s até o dono responder. Trava `npm run liga-volta`.
+- Banco (já aplicado em 10/11): quem tem time na liga recria a vaga sem plano (`docs/sql/liga-membro-volta.sql`).
+- ⚠️ Só vale quando o DONO da sala já estiver na versão nova (é o aparelho dele que devolve o time).
+- Ficou de fora: gravar o motivo quando a volta é recusada (ofereci, sem resposta).
+
 ## 📱☁️ 10/11 — CARREIRA QUE NÃO COUBE NO APARELHO FICAVA INVISÍVEL (Lucas Barreto 30, T113 "sumiu" do celular e do PC) · no branch
 - A T113 (2,5 MB) estava INTEIRA na nuvem (`esc_pyramid_saves`, junto com a T7 nova). Cópia de segurança feita em `esc_saves_backup`
   (id c948506f-45f5-4454-ac1e-b0977baca775).
@@ -13259,3 +13268,18 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - ✅ Feito no branch, só na conta de teste. Detalhe em `docs/conceito-kings-league.md` (seção 10/11).
 - ⏳ Falta: Diego testar na Partida Rápida da Kings (ligar o 📺 2D) e mandar publicar/liberar pra todos (tirar a trava `useCampo2DTester`
   em `Botao2D` e no `LiveScoreCard`). A final "dos outros" (neutra) no mata-mata da Kings segue no placar normal.
+
+## 10/11 — 🚪 "sair do jogo" alinhado no computador
+- Pedido: *"o sair do jogo… está desalinhado… deveria estar alinhado junto com o modal de cima… em qualquer modo e competição"*.
+- Feito no branch: no PC o rodapé copia posição e largura da coluna da esquerda (`.ll-auction-main` no leilão, `.ll-col-main` nos jogos);
+  sem essa coluna ou no celular fica como sempre. ✅ Publicado pra todos em 10/11 (*"sim p todos ja"*).
+- (Kings: confirmado pra ele que o mano a mano e o tempo de 12 s nunca saíram da Kings da Partida Rápida; a saída do campinho voltou
+  a escolher o batedor exatamente como antes.)
+
+## 10/11 — 🔁 Liga: quem já foi membro volta sem plano (sala XUPREG do Reffati)
+- Caso: o Realengo FC (sem plano) caiu, o time virou bot (uid nulo no fecho da T1) e a volta dele foi barrada pelo `LIGA_SO_PLANO` (06/11).
+- 🔁 Régua corrigida pelo Diego no mesmo dia: vale pra quem o TIME AINDA ESTÁ na liga (o dono não removeu), não pra todo ex-membro.
+- ✅ Banco (aplicado, `docs/sql/liga-membro-volta.sql`): tabela `esc_liga_membros` (gatilho em room_players + carga do que já existia);
+  ex-membro pula a checagem do PLANO no gatilho e no `esc_liga_pedir`. A volta continua pelo PEDIDO (dono aceita e escolhe o time, na virada).
+- ⏳ Não provado: POR QUE a cadeira dele virou bot (sala apagada). E no MEIO da temporada quem perdeu a linha em room_players ainda vê
+  "Você não está nessa sala" (lobby `enterRoom`) — só volta na virada. Se o Diego quiser volta no meio, é mudança de cliente (cadeira: cuidado).

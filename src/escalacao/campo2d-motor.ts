@@ -197,11 +197,15 @@ export class Jogo2D {
   // ── 👑 KINGS: quem está em campo ──────────────────────────────────────────────────────────────────────────────────────
   /** quem está FORA do campo agora (Kings: ainda não entrou, ou cumprindo cartão). Não joga e é desenhado na lateral. */
   banco: Atleta[] = []
+  /** 👑 KINGS com pouca gente em campo: sem a bola, cada um marca o seu (mano a mano) */
+  manoAMano = false
   /** 👑 KINGS (10/11): `n` = quantos de LINHA cada lado tem agora (1×1 … 7×7, dado) e `fora` = nomes cumprindo cartão (o time joga
    *  com um a menos). Quem sobra vai pro banco; quem entra nasce na lateral, no meio, e corre pro lugar. Nunca tira quem está
    *  com a bola nem quem está num lance (tenta de novo no quadro seguinte). Só APRESENTAÇÃO: não sorteia nada nem mexe no placar. */
   emCampo(n: [number, number], fora: string[] = []) {
     const ordem: Record<Grupo, number> = { ATA: 0, MEI: 1, LAT: 2, DEF: 2, GOL: 9 }
+    // (10/11: a marcação colada saiu no mesmo dia — o Diego falava do campo VAZIO, não de marcar colado. Fica desligada.)
+    this.manoAMano = false
     const ocupado = (a: Atleta) => a === this.bola.dono || !!a.ov
     for (const l of [0, 1] as Lado[]) {
       const linha = [...this.atl, ...this.banco].filter(a => a.lado === l && a.grupo !== 'GOL')
@@ -287,6 +291,14 @@ export class Jogo2D {
       const amp = (ataca ? 1 : 0.6) * (p.grupo === 'ATA' ? 3.2 : p.grupo === 'MEI' ? 2.4 : 1.4)
       x += Math.sin(this.t * 0.55 + ph) * amp
       y += Math.cos(this.t * 0.41 + ph * 1.3) * amp * (ataca && p.grupo === 'ATA' ? 1.3 : 0.7)
+    }
+    // 👑 KINGS com pouca gente (1×1 … 6×6, o dado): MANO A MANO (Diego 10/11: *"os jogadores tem que tá mano a mano"*) — sem a bola,
+    // cada um cola no SEU adversário (pareados pela vaga, espelhada), um passo à frente do próprio gol. Com a bola, joga normal.
+    if (this.manoAMano && !ataca) {
+      const meus = this.time(p.lado).filter(a => a.grupo !== 'GOL').sort((a, b) => a.bx - b.bx)
+      const deles = this.time((1 - p.lado) as Lado).filter(a => a.grupo !== 'GOL').sort((a, b) => b.bx - a.bx)
+      const alvo = deles.length ? deles[meus.indexOf(p) % deles.length] : null
+      if (alvo) return { x: clamp(alvo.x + Math.sin(this.t * 0.9 + p.bx) * 0.8, 1.5, W - 1.5), y: clamp(alvo.y + (p.lado === 0 ? 1.8 : -1.8), 0.5, L - 0.5) }
     }
     const r = this.rel(p.lado, x, y)
     return { x: clamp(r.x, 1.5, W - 1.5), y: clamp(r.y, 0.5, L - 0.5) } // ninguém se posiciona fora das linhas
@@ -599,7 +611,7 @@ export class Jogo2D {
   saida(l: Lado, inicio = false) {
     // (no apito inicial todo mundo já está no lugar; depois de um gol eles CORREM até lá — antes o time inteiro "pulava" pra
     // posição de saída, um teletransporte na tela)
-    const ca = this.do(l, ['ATA'])[0] ?? this.time(l)[1]
+    const ca = this.do(l, ['ATA'])[0] ?? this.time(l)[1] ?? this.gk(l) // (a escolha de sempre; 👑 Kings: no 1×1 pode sobrar só o goleiro)
     const lugar = new Map<Atleta, { x: number; y: number }>()
     for (const p of this.atl) {
       const r = this.posSaida(p)
@@ -614,10 +626,10 @@ export class Jogo2D {
     // da bola, do lado dele — antes ele ficava no lugar da formação e a bola recuava 30, 40 m devagar
     lugar.set(rec, { x: 34 + (rec.bx < 34 ? -5 : 5), y: L / 2 + (l === 0 ? 9 : -9) })
     if (inicio) {
-      for (const p of this.atl) { const r = lugar.get(p)!; p.ov = null; p.x = r.x; p.y = r.y }
+      for (const p of this.atl) { const r = lugar.get(p) ?? { x: p.x, y: p.y }; p.ov = null; p.x = r.x; p.y = r.y }
       this.pega(ca)
     } else {
-      for (const p of this.atl) p.ov = { ...this.rotaSaida(p, lugar.get(p)!, l), v: dist(p, lugar.get(p)!) > 15 ? 11 : 8 }
+      for (const p of this.atl) { const r = lugar.get(p) ?? { x: p.x, y: p.y }; p.ov = { ...this.rotaSaida(p, r, l), v: dist(p, r) > 15 ? 11 : 8 } }
       let t0 = 0
       this.acoes.push(...this.cobranca({
         ini: () => { t0 = this.t; this.narra = this.v('saida') + ' ' + this.v(l === 0 ? 'saida_casa' : 'saida_fora') },
@@ -626,7 +638,7 @@ export class Jogo2D {
           const noCampo = this.atl.every(p => p === ca || (p.lado === 0 ? p.y >= L / 2 + 0.3 : p.y <= L / 2 - 0.3))
           const circulo = this.atl.every(p => p.lado === l || Math.hypot(p.x - 34, p.y - L / 2) > 9.3)
           // (quem já cruzou o meio segue pro lugar dele; a bola rola quando a REGRA está cumprida — não precisa todo mundo no lugar exato)
-          for (const p of this.atl) if (p.ov) { const r = this.rotaSaida(p, lugar.get(p)!, l); p.ov = { ...r, v: p.ov.v } }
+          for (const p of this.atl) if (p.ov) { const r = this.rotaSaida(p, lugar.get(p) ?? { x: p.x, y: p.y }, l); p.ov = { ...r, v: p.ov.v } } // (👑 Kings: quem entrou no meio da saída fica onde está)
           const perto = dist(ca, this.bola) < 1.6
           if (!(noCampo && circulo && perto) && this.t - t0 < 5) { if (this.t - t0 > 1) for (const p of this.atl) if (p.ov) p.ov.v = 10; return false }
           // (as ordens só caem DEPOIS do toque: soltas aqui, no meio segundo de espera o time voltava pro campo do rival)
@@ -1157,7 +1169,7 @@ export class Jogo2D {
         const h = this.bola.dono
         if (h?.lado !== l) {
           if (this.parada != null && this.parada !== l) return false // bola parada do rival (até no pé do cobrador): espera a cobrança dele
-          if (t0 < 0) { t0 = this.t; ladrao = this.maisPerto(l, this.bola) }
+          if (t0 < 0) { t0 = this.t; ladrao = this.maisPerto(l, this.bola) ?? this.gk(l) } // (👑 Kings: com 1×1 pode não sobrar ninguém de linha)
           ladrao!.ov = { x: this.bola.x, y: this.bola.y, v: 10 }
           // (com o lance em cima, o bote é instantâneo: o tempo do gol vale mais que a bonitez)
           if (dist(ladrao!, this.bola) > 1.5 && this.t - t0 < Math.min(1.4, (tEv - this.t - 2.2) / 2)) return false

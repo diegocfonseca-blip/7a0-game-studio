@@ -1012,6 +1012,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Pedido → o dono aceita e escolhe o time (bot ou no lugar de alguém) → entra na VIRADA da temporada, nunca no meio. Na Liga Draft, quem
   sai vira bot com o elenco (a liga não recomeça). Formato da próxima temporada (10→20, só ida) só muda com a liga parada. NADA de botão
   "pausar/encerrar a noite" (*"não precisa… já tem o sair da sala"*).
+- **🪑 NA LIGA, O TIME SÓ DEIXA DE SER DO JOGADOR QUANDO O DONO REMOVE (10/11, regra permanente, caso do Realengo FC na sala do Reffati).**
+  *"O time dele só deve deixar de ser dele se o host remover; enquanto não remove, se o usuário voltar, ele volta pro mesmo local onde o
+  host tá comandando a sala"* — no meio da temporada também, com ou sem plano. Saiu/caiu = a máquina toca o time, mas o crachá FICA no
+  `seatUids`; ao voltar, o aparelho dele pede `RETOMA_TIME` e o dono devolve. Só o `KICK_PLAYER` com `peloDono` (e a troca na virada) apaga
+  o crachá. Vale pra Liga Draft e Liga da Turma; sala rápida não mudou. Gente NOVA continua: plano + aceite do dono. Trava: `npm run liga-volta`.
 - **🔒📋 LIGA ESPERANDO A TURMA APARECE NAS SALAS ABERTAS (08/11, revê o "liga nunca na lista" de 29/08).** *"permita aparecer nas
   salas abertas a sala, porém com senha pra entrar sempre"*. Aparece enquanto o dono está na sala de espera (batimento de 30s); entrar
   pede SEMPRE a senha (`enterRoom`), e liga já começada segue só pra quem tem plano.

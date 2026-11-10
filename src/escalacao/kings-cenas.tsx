@@ -118,8 +118,8 @@ export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: 
 // ── ➕ a faixa do "quantos tem em campo" (só nos primeiros minutos)
 export function FaixaEmCampo({ n, dado = false }: { n: number; dado?: boolean }) {
   return (
-    <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', textAlign: 'center' }}>
-      <p style={{ ...OSW, fontSize: 18, margin: 0 }}>{tr('EM CAMPO', 'ON THE PITCH')}: {n} × {n}</p>
+    <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', textAlign: 'center' }}>{/* (10/11: a cor da letra fixa — no visual escuro da sala ela herdava o creme e sumia no branco) */}
+      <p style={{ ...OSW, fontSize: 18, margin: 0, color: INK }}>{tr('EM CAMPO', 'ON THE PITCH')}: {n} × {n}</p>
       <div style={{ display: 'flex', gap: 6, justifyContent: 'center', margin: '5px 0' }}>
         {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ width: 18, height: 18, borderRadius: 99, border: `3px solid ${INK}`, background: i < n ? GREEN : '#ddd', transition: 'background .3s' }} />)}
       </div>

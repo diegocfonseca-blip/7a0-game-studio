@@ -1077,6 +1077,26 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const auctionDescription=state.phase==='holandes'?tr('Um preço para todos. Quem pega primeiro leva.','One price for all. First to take wins.'):state.phase==='pregao'?tr('Uma carta por vez. Lance e martelo à vista.','One card at a time. Open bids and hammer.'):tr('Lances em segredo até a revelação.','Bids remain secret until the reveal.')
   const matchDesktop = desktopWidth && ['season','liberta','champions'].includes(state.screen)
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
+  // 🚪 10/11 (Diego: *"o sair do jogo… está desalinhado… deveria estar alinhado junto com o modal de cima"*): no computador o rodapé
+  // copia a posição e a largura da COLUNA DA ESQUERDA da tela (leilão: `.ll-auction-main` · jogos: `.ll-col-main`), em qualquer
+  // modo e competição. Sem essa coluna (ou no celular), fica como sempre: centralizado.
+  const saidaRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = saidaRef.current
+    if (!desktopWidth || !el) return
+    const solta = () => { el.style.removeProperty('width'); el.style.removeProperty('max-width'); el.style.removeProperty('margin-left'); el.style.removeProperty('margin-right') }
+    const alinha = () => {
+      const col = [...document.querySelectorAll<HTMLElement>('.ll-shell-content .ll-auction-main, .ll-shell-content .ll-col-main')].find(c => c.offsetWidth > 200)
+      const pai = el.parentElement
+      if (!col || !pai) { solta(); return }
+      const c = col.getBoundingClientRect(), p = pai.getBoundingClientRect()
+      el.style.maxWidth = 'none'; el.style.width = `${Math.round(c.width)}px`; el.style.marginLeft = `${Math.round(c.left - p.left)}px`; el.style.marginRight = '0'
+    }
+    alinha()
+    const ro = new ResizeObserver(alinha); ro.observe(document.body)
+    const iv = setInterval(alinha, 1500)
+    return () => { ro.disconnect(); clearInterval(iv); solta() }
+  }, [desktopWidth, state.screen])
   return (
     <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
@@ -1092,7 +1112,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
       )}
       <div className={`ll-shell-content max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}><AuctionDesktopLayout enabled={auctionDesktop} bar={bar} title={isReserveAuction?`${reserveLabel} · ${auctionTitle}`:auctionTitle} description={auctionDescription} playersTitle={state.screen==='monte'?tr('Monte de jogadores','Player pile'):state.screen==='cerimonia'?tr('Revelação','Reveal'):state.phase==='pregao'?tr('Jogador na mesa','Player at auction'):undefined} budget={auctionDesktop?{balance:state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx]),...auctionBudget}:undefined} slots={auctionDesktop&&['envelope','resq_envelope','holandes','pregao'].includes(state.phase)?SECTORS.map(position=>({position:posTag(position),open:openSlots(state.managers[state.youIdx],position)})):undefined}>{children}</AuctionDesktopLayout></div>
       {inGame && !hideExit && (
-        <div className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
+        <div ref={saidaRef} className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
             <div className="flex items-center justify-center gap-5">
               <button onClick={backToMenu} className="ov3-page-muted text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but you stay in the room — you can come back')}>{tr('🏠 voltar pro menu', '🏠 back to menu')}</button>
@@ -7067,9 +7087,11 @@ const KINGS_FIXO_MAX = KINGS_CENA_MS.pontape + 8 * KINGS_CENA_MS.entra + KINGS_C
 // 7x7 será mais rápido… quando cair o dado, se cair 3x3, volta a mostrar o campinho 3x3 e também com um tempo a mais"*.
 // Tempo FIXO de bola rolando por minuto da Kings nessas fases (a marcha ⏩ só mexe no 7×7).
 const KINGS_MS_POR_MIN_LENTO = 5000
+// (10/11: os 12 s por minuto no 2D duraram 1 h — o Diego achou lento: *"mantenha a velocidade padrão… mas que dê pra ver uma jogada
+// em cada minuto"*. A jogada por minuto agora sai no PRÓPRIO campinho — `chancesKings2D` no campo2d.tsx — e o tempo é o de sempre.)
 const KINGS_MS_7X7 = 45_000 // o resto do jogo (7×7) na marcha normal
 const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_DADO_FIM]] // 🎲 10/11: o dado é do 20' ao 23'
-const KINGS_LENTO_MS = (7 + 2) * KINGS_MS_POR_MIN_LENTO
+const KINGS_LENTO_MS = (7 + 3) * KINGS_MS_POR_MIN_LENTO
 /** tempo de uma rodada da Kings na marcha escolhida: cenas fixas + fases lentas fixas + o 7×7 (que acelera com a marcha) */
 export const kingsRoundMs = (speed: number) => Math.round((KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + 2 * KINGS_CENA_MS.bola) / speed + KINGS_LENTO_MS + KINGS_MS_7X7 / speed + 1500) / 0.84)
 type BannerKings = { emoji: string; titulo: string; texto: string; cor: string }
@@ -7136,6 +7158,10 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
   // o jogo vem por ref: o estado é recriado a cada toque (tática, velocidade, a escolha do canto…) e o relógio NÃO pode recomeçar por isso
   const rRef = useRef(r); rRef.current = r
   const nomeRef = useRef(nome); nomeRef.current = nome
+  // ⏩ 10/11 (Diego: *"troquei a velocidade pra 2 e agora tá travado"*): trocar a marcha no meio do jogo RECOMEÇAVA o relógio do 0'.
+  // Agora a marcha e o tempo da rodada vêm por ref: o relógio segue de onde está, só muda o ritmo.
+  const speedRef = useRef(speed); speedRef.current = speed
+  const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs
   useEffect(() => {
     const r = rRef.current, nome = nomeRef.current
     if (!ativo || !r) return
@@ -7144,15 +7170,16 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
     // 🃏 a escolha de carta pode mudar o que vem (coringa que vira pênalti traz a cobrança): a lista é refeita e o relógio segue de onde estava
     const assinatura = (x?: MatchResult) => JSON.stringify(x?.kings?.cartas ?? []) + (x?.kings?.duelos ?? []).map(d => d.key).join(',')
     let assin = assinatura(r), ultimaCena = ''
-    const pausas = ev.reduce((a, e) => a + (e.fixo ? e.ms : e.ms / speed), 0)
     const lentos = r.kings?.duelos ? trechosLentos() : []
     const lento = (m: number) => lentos.some(([a, b]) => m >= a && m < b)
-    // fases lentas: tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada
+    // fases lentas: tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada (refeito a cada passo: a marcha pode mudar no meio)
     const unidLentas = lentos.reduce((a, [x, y]) => a + (y - x), 0)
     const msLento = lentos.reduce((a, [x, y]) => a + placarParaK(y) - placarParaK(x), 0) * KINGS_MS_POR_MIN_LENTO
-    const msRapido = Math.max(2000, roundMs * 0.84 - pausas - msLento - 500)
     const taxaLenta = unidLentas > 0 ? unidLentas / msLento : 0
-    const taxaRapida = (93 - unidLentas) / msRapido
+    const taxaRapida = () => {
+      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + (e.fixo ? e.ms : e.ms / sp), 0)
+      return (93 - unidLentas) / Math.max(2000, roundMsRef.current * 0.84 - pausas - msLento - 500)
+    }
     let cur = 0, idx = 0, ate = 0, ult = Date.now()
     setMin(0)
     const iv = setInterval(() => {
@@ -7160,7 +7187,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
       ult = agora
       if (ate > agora) return
       if (ate) { ate = 0; setCena(null) }
-      cur += dt * (lento(cur) ? taxaLenta : taxaRapida)
+      cur += dt * (lento(cur) ? taxaLenta : taxaRapida())
       const rAgora = rRef.current
       if (assinatura(rAgora) !== assin && rAgora) {
         assin = assinatura(rAgora)
@@ -7168,7 +7195,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
         if (k >= 0) { ev = nova; idx = k + 1 }
       }
       if (idx < ev.length && cur >= ev[idx].min) {
-        cur = ev[idx].min; ate = agora + (ev[idx].fixo ? ev[idx].ms : ev[idx].ms / speed); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
+        cur = ev[idx].min; ate = agora + (ev[idx].fixo ? ev[idx].ms : ev[idx].ms / speedRef.current); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
       }
       // 🟡 gol de ouro: o jogo ACABA no minuto do gol (lido na hora — a escolha de canto pode ter mudado o jogo)
       const rr = rRef.current
@@ -7178,7 +7205,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
       setMin(Math.round(cur))
     }, 60)
     return () => clearInterval(iv)
-  }, [ativo, roundKey, !!r, roundMs, speed])
+  }, [ativo, roundKey, !!r])
   return { min, cena }
 }
 /** 👑 a cena da vez, desenhada por cima do jogo */
@@ -7741,8 +7768,9 @@ export function EscSeason() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retroOn, state.isHost, copaLive, copaMin >= 93, copaAdvReady, copaTieKey])
 
-  // 🖥️ desenho de computador novo: fora da Kings e do basquete (têm telas por cima do placar que não foram desenhadas pra isso)
-  const desk2 = desk2Conta && !kingsS && !bbS
+  // 🖥️ desenho de computador novo: fora do basquete. 👑 10/11 (Diego: *"o visual do campinho, com tabela etc deve manter padrão das salas
+  // online… os locais das coisas"*): a Kings entra no MESMO desenho (as cenas dela são por cima da tela inteira, não dependem dele)
+  const desk2 = desk2Conta && !bbS
   const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
