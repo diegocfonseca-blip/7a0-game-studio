@@ -9,6 +9,28 @@
 - Banners existentes têm resumo e detalhes expansíveis no solo. Ajuda da Central guarda explicações aprendidas. Regras, prazos, economia, salvamento em nuvem e transporte online não foram modificados.
 - Prévia e evidências: `/workspace/shared/inicio-carreira-20261110/`. Bancada local `scripts/teste-inicio-carreira/index.html`; regressão reproduzível em `node scripts/testa-inicio-carreira.mjs`. Não entra no build público. Testes completos de navegador: 390/320/1440 px, treino sem gasto, lance real, contraste, atalhos, condição física e retomada, moral e reservas. Comparações completas de antes/depois para celular e desktop prontas (HTML/PDF), com 13 etapas. TypeScript e build de produção passaram; 33 verificações funcionais, 13 de regras/navegação, 9 cenários de layout e o pulo do tutorial/retorno ao modo carreira passaram.
 
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · no branch, esperando "publica"
+- Medido no banco: o rádio dos convidados (`state`) = **32 GB/dia**, ~54 KB por envio. O texto de história (bio) das cartas era ~30%.
+- Agora a carta cuja bio é igual à do catálogo vai sem o texto (`_b: 1`) e o convidado põe de volta (`tiraBioDoRadio`/`poeBioDoRadio`,
+  store.tsx). Só o rádio; o save no banco não muda. O simulador confere em TODO estado que o que chega é igual ao que saiu:
+  8 modos, 0 falhas (`npm run salas-sim -- --cenario X --medir` mostra o antes/depois).
+- Aba velha aberta (o jogo não recarrega sozinho) só perde o texto da bio por uns dias (cai na bio pelo nome). Por isso NÃO tirei
+  categoria/nível do mesmo jeito (+2% só, e a carta ficaria sem nível na aba velha).
+- Simulador cobre 13 modos (+ Liga/Copa, Liga/Liberta, Liga/Champions, Só Champions, Relâmpago) e a ABA VELHA (`--abas-velhas`):
+  tudo 0 falhas em 10/11. Só Champions e Relâmpago chegaram a 40 temporadas seguidas sem travar.
+- 🧪 MEDIDO (não feito): mandar só o PEDAÇO que mudou em vez da sala inteira = −83% do envio. É o grande corte, mas mexe no
+  coração do online: precisa de número de sequência, reenvio inteiro quando o convidado perde um pedaço, e só ligar quando TODOS
+  da sala estiverem na versão nova (aba velha não entende pedaço). Esperando o Diego dizer se quer que eu construa no simulador.
+- Próximas ideias medidas, NÃO feitas: sala parada na tela de fim (BHZBJB ficou 14 h aberta conversando a cada 3 s) — mexe no
+  batimento do dono, precisa do OK do Diego; mandar o baralho só quando muda (arriscado, ficou de fora).
+
+## 🧪 10/11 — Simulador de salas online (`npm run salas-sim`) + 2 consertos que ele achou (no branch, esperando "publica")
+- `scripts/simula-salas-online.mts`: reducer de verdade, 1 dono + 2/4/8 convidados, rede ruim (atraso, duplicado, perda, F5, saída),
+  8 modos × 50 sementes. Confere troca de cadeira, XI completo, carta em dois times, sala travada, dinheiro.
+- 🪪 TROCA DE CADEIRA no "🔨 novo leilão" quando alguém tinha saído (48/400): a auto-cura usava o crachá (id) antigo → agora,
+  com `seatUids`, quem manda é o UID (`assentoDoCracha`). 🗳️ Voto atrasado do fim valia na partida nova → só vale na tela do fim.
+- Não simulado ainda: Copa/Liberta/Champions, carreira online, stream/manual, coroa.
+
 ## 👑💜 09/11 — Batismo FUNDADOR Double Duo FC (doublecontatocomercial@gmail.com) — FALTA: conta, vaga e banco
 - Streamer de jogos de manager de futebol. Feito no código (branch): escudo `doubleduo-escudo.webp` (297×360, 28 KB) · mascote
   O Streamer `doubleduo-mascote.webp` (339×440, 43 KB, key `doubleduo_streamer`) · manto preto #161016 + roxo #A131BF (3ª azul
