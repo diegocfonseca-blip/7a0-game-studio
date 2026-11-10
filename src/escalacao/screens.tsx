@@ -7285,7 +7285,7 @@ export function EscSeason() {
   // 🔜 FAIXA "DEPOIS DA LIGA TEM…" nas últimas rodadas das salas online (Diego 13/10: gente saía
   // achando que tinha acabado e perdia a escolha do clube/seleção). Só aviso — `proxima-competicao.tsx`.
   const faixaProxAtiva = online && !!state.roomId && !state.careerOnline && !bbS && state.round > 0 && state.round < totalRounds && totalRounds - state.round <= RODADAS_DO_AVISO
-  const copasDaSala = useCopasDaSala(state.roomId, faixaProxAtiva)
+  const copasDaSala = useCopasDaSala(state.roomId, faixaProxAtiva && !state.ligaDraft && !state.minhaLigaDraft) // 📋 10/11: Liga Draft não tem copa depois
   const fixture = state.round < totalRounds ? state.fixtures[state.round].find(([h, a]) => h === you.id || a === you.id) : undefined
   const opp = fixture ? state.league.find(t => t.id === (fixture[0] === you.id ? fixture[1] : fixture[0])) : undefined
   // confronto direto: clássico quando o adversário é um humano da sala OU um
@@ -12520,8 +12520,12 @@ export function EscEnd() {
         // 🛡️ sala com as DUAS marcas (achado 15/10, sala "Rio-SP no YouTube" do Futpoint): abria a Copa do Mundo E o
         // Rio × SP juntos, lendo as MESMAS escolhas — "2 listas" e a convocação do São Paulo vazia (procurava o PAÍS São
         // Paulo). Uma copa só por noite: a regional, que é a escolha mais específica, ganha.
-        const reg = ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
-        setMundoNaLiga(String(d?.flag) === 'true' && !reg)
+        // 📋 10/11 (Diego: *"liga draft N pode ter copa dps das ligas"*, sala DT89DJ do Fabulous virou Eurocopa): Liga Draft
+        // NUNCA abre copa de seleção/regional no fim — vai sempre pro draft, mesmo que alguma marca tenha sobrado na sala.
+        const draftSala = !!(state.ligaDraft || state.minhaLigaDraft)
+        const reg = !draftSala && ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
+        if (draftSala) setEuroNaLiga(undefined)
+        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg)
         setRegionalNaLiga(reg)
         setMundoChecado(true)
       }, () => {})

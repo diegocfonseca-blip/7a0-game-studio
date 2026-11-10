@@ -801,6 +801,13 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 📋 10/11 — LIGA DRAFT NUNCA TEM COPA DEPOIS DA LIGA (sala DT89DJ do Fabulous virou Eurocopa) — ✅ PUBLICADO 10/11 ("Pode")
+- Diego: *"liga draft N pode ter copa dps das ligas"*. A DT89DJ (id 398f5e41, 4 pessoas) fechou a T1 às 23h50 e abriu uma copa de
+  seleções da Europa (Neymar FC/Espanha campeão); a sala foi apagada depois, então não deu pra ler a config dela.
+- Furo achado: ao criar Liga Draft o lobby limpava `mundoNaLiga`/`regionalNaLiga` mas NÃO `euroNaLiga` (sobrava de quem tocou em Liga + Eurocopa antes).
+- Conserto (2 travas): criação limpa `euroNaLiga` também · no fim da temporada (screens.tsx) Liga Draft ignora TODA marca de copa
+  (Mundo/Euro/regional) e a faixa "depois da liga tem…" não liga na Liga Draft. Vai sempre pro draft.
+
 ## 🃏 LOTE 49 — 83 cartas famosas no AUGE (10/11) — ✅ PUBLICADO (ordem do Diego: "pode lançar ele já")
 - Diego: *"quero adicionar só os famosos… que não tem… aonde você adicionaria o auge"*. O 1º rascunho (148 cartas, todo mundo da lista) foi
   DESCARTADO antes de publicar. ⚠️ Lição: conferir carta SEMPRE pelo `CATALOG*` (npx tsx), nunca grep com aspas duplas — metade do baralho usa
