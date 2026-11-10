@@ -10,7 +10,7 @@
 //  · empate no apito → SHOOTOUT; pontos 3 (vitória) · 2 (vitória no shootout) · 1 (derrota no shootout) · 0
 // A partida tem 40 min; o placar de sempre anda de 0 a 93, então os minutos são traduzidos pela proporção.
 import type { AssistRow, CartaKingsInfo, CartaoKingsInfo, CartaKingsTipo, DueloKingsInfo, KingsBase, KingsInfo, LeagueTeam, MatchHighlight, MatchResult, ScorerRow } from './types'
-import { MIN_BOLA, MIN_DADO, MIN_INTERVALO, MIN_FIM, rngKings, dueloKings } from './kings'
+import { MIN_DADO, MIN_DADO_FIM, MIN_GOL_DOBRO, MIN_MATCHBALL, MIN_INTERVALO, MIN_FIM, MIN_EFEITO as MIN_EFEITO_K, rngKings, dueloKings } from './kings'
 import type { Canto } from './kings'
 import { disputaPenaltisComSequencia } from './penaltis'
 
@@ -20,7 +20,14 @@ export const kParaPlacar = (k: number) => Math.round(k * 93 / MIN_FIM)
 export const placarParaK = (m: number) => Math.max(0, Math.min(MIN_FIM, Math.round(m * MIN_FIM / 93)))
 export const PLACAR_DADO = kParaPlacar(MIN_DADO)
 export const PLACAR_INTERVALO = kParaPlacar(MIN_INTERVALO)
-export const PLACAR_BOLA = kParaPlacar(MIN_BOLA)
+/** ⏱️ o minuto do match ball na escala do placar (o relógio da Kings para aqui) */
+export const PLACAR_MB = kParaPlacar(MIN_MATCHBALL)
+/** (regra antiga: a bola do 38' — só pra jogos já jogados) */
+export const PLACAR_BOLA = kParaPlacar(38)
+export const PLACAR_DADO_FIM = kParaPlacar(MIN_DADO_FIM)
+export const PLACAR_DOBRO_INI = kParaPlacar(MIN_GOL_DOBRO)
+/** o minuto da Kings que a TELA mostra: no match ball o relógio fica parado no 36' */
+export const placarParaKTela = (m: number) => Math.min(MIN_MATCHBALL, placarParaK(m))
 
 const ehGol = (h: MatchHighlight) => h.kind === 'gol'
 /** chance de gol numa tentativa do shootout (1×1 saindo do meio, 5 s) */
@@ -53,7 +60,7 @@ const GOL_RETA_FINAL = 0.055
 export function emCampoKings(k: number, dado: 1 | 2 | 3): number {
   if (k < 2) return 1
   if (k < 7) return k
-  if (k >= MIN_DADO && k < MIN_INTERVALO) return dado
+  if (k >= MIN_DADO && k < MIN_DADO_FIM) return dado
   return 7
 }
 /** o dado do jogo sai da MESMA semente da regra (`aplicaRegrasKings` sorteia ele primeiro) */
@@ -164,7 +171,11 @@ export function agendaKings(seed: number, rodada: number): AgendaKings {
 export const sementeJogoKings = (seed: number, rodada: number, homeId: number, awayId: number) => misturaSemente(seed, rodada, homeId, awayId, 0xC0DE)
 
 // 🃏 as cartas da Kings League (página oficial "Como se joga" + regulamento PT de 14/10/2025). Sorteio puro: ninguém escolhe.
-export const CARTAS_SORTEIO: CartaKingsTipo[] = ['penalti', 'shootout', 'suspensao', 'gol_dobro', 'estrela', 'penalti_inverso', 'coringa']
+// 🔁 10/11: as 6 cartas que o Diego mandou (Gol 2× · Shootout · Jogador estrela · Pênalti · Coringa · Suspensão). O PÊNALTI INVERSO
+// saiu da roleta (não está na lista dele, e ele já tinha dito que não entendia) — o tipo continua existindo pros jogos já jogados.
+export const CARTAS_SORTEIO: CartaKingsTipo[] = ['penalti', 'shootout', 'suspensao', 'gol_dobro', 'estrela', 'coringa']
+/** 🃏 10/11 (Diego: *"coringa vc escolhe a carta"*): no que o coringa pode virar (quem é gente escolhe; bot sorteia) */
+export const OPCOES_CORINGA = CARTAS_SORTEIO.filter(c => c !== 'coringa') as Exclude<CartaKingsTipo, 'coringa'>[]
 /** 🎲 as 6 faces do dado: duas de cada — 👑 cara do rei (1×1), 2×2, 3×3 */
 export const FACES_DADO: (1 | 2 | 3)[] = [1, 1, 2, 2, 3, 3]
 /** quanto duram a suspensão e o gol em dobro (min da Kings) */
@@ -202,6 +213,11 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
     return { sorteada, vale: sorteada === 'coringa' ? sub : sorteada }
   }
   const cartaH = sorteiaCarta(), cartaA = sorteiaCarta()
+  // 🃏 CORINGA: quem é gente escolhe no que ele vira (`coringa:h|a`); sem escolha (ou bot), fica o sorteado acima
+  for (const [c, lado, id] of [[cartaH, 'h', H], [cartaA, 'a', A]] as const) {
+    const d = base.decisoes[`coringa:${lado}`]
+    if (c.sorteada === 'coringa' && d != null && ctx.humanos.includes(id) && OPCOES_CORINGA[d]) c.vale = OPCOES_CORINGA[d]
+  }
   const dados = () => ({ chute: Math.floor(rng() * 6), pulo: Math.floor(rng() * 6), sorte: rng(), sorte2: rng() })
   const dPresH = dados(), dPresA = dados(), dCartaH = dados(), dCartaA = dados()
   const suspH = { chance: rng(), quando: rng() }, suspA = { chance: rng(), quando: rng() }
@@ -237,7 +253,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   const cartas: CartaKingsInfo[] = []
   const usaCarta = (teamId: number, kMin: number, c: ReturnType<typeof sorteiaCarta>, d: ReturnType<typeof dados>, susp: { chance: number; quando: number }, lado: 'h' | 'a', quemSai: number) => {
     const info: CartaKingsInfo = { teamId, min: kParaPlacar(kMin), sorteada: c.sorteada, vale: c.vale }
-    if (c.vale === 'suspensao') { const l = ctx.linha(rival(teamId)); if (l.length) info.suspenso = l[Math.floor(quemSai * l.length)] }
+    // 🟥 SUSPENSÃO (10/11, Diego: *"1 jogador a sua escolha por 4 min"*): quem é gente escolhe QUEM do rival sai (`susp:h|a`); bot sorteia
+    if (c.vale === 'suspensao') { const l = ctx.linha(rival(teamId)), d = base.decisoes[`susp:${lado}`]; if (l.length) info.suspenso = l[d != null && ctx.humanos.includes(teamId) && d < l.length ? d : Math.floor(quemSai * l.length)] }
     if (c.vale === 'penalti' || c.vale === 'shootout') duelo(`carta:${lado}`, c.vale, kMin, teamId, d)
     else if (c.vale === 'penalti_inverso') duelo(`carta:${lado}`, 'penalti_inverso', kMin, rival(teamId), d)
     else if (c.vale === 'suspensao' && susp.chance < 0.45) {
@@ -257,8 +274,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
       const ate = c.min + kParaPlacar(EFEITO_K)
       for (const g of r.highlights.filter(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.min <= ate)) dobrados.add(g)
     } else if (c.vale === 'estrela' && c.estrela) {
-      const g = r.highlights.find(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.text.startsWith(`⚽ ${c.estrela} marca para`))
-      if (g) dobrados.add(g)
+      // ⭐ 10/11 (Diego: *"jogador estrela o gol dele vale 2 no jogo normal"*): TODO gol dele vale 2, da carta até o 36' (no match ball, não)
+      for (const g of r.highlights.filter(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.min <= PLACAR_MB && h.text.startsWith(`⚽ ${c.estrela} marca para`))) dobrados.add(g)
     }
   }
   for (const g of dobrados) {
@@ -266,37 +283,61 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
     r.highlights.push({ min: g.min, text: estrela ? '⭐ JOGADOR ESTRELA: esse gol vale 2!' : '✖️2 GOL EM DOBRO: esse gol vale 2!', teamId: g.teamId, kind: 'gol' })
   }
   r.highlights.sort((x, y) => x.min - y.min)
-  // ⏱️ minuto 38: como estava o placar?
-  const antes = r.highlights.filter(h => ehGol(h) && h.min <= PLACAR_BOLA)
+  // ✖️2 do 17' ao 20' TODO gol vale 2, dos dois times (o que já vale 2 pela carta não dobra de novo)
+  const extra = /^(✖️2|⭐|🔴)/
+  for (const g of r.highlights.filter(h => ehGol(h) && !extra.test(h.text) && h.min >= PLACAR_DOBRO_INI && h.min < PLACAR_INTERVALO))
+    if (!dobrados.has(g)) { dobrados.add(g); r.highlights.push({ min: g.min, text: '✖️2 DO 17\' AO 20\': esse gol vale 2!', teamId: g.teamId, kind: 'gol' }) }
+  r.highlights.sort((x, y) => x.min - y.min)
+  // ⏱️ MATCH BALL no 36': o relógio para. Empatado → shootout (nada depois do 36' vale). Alguém na frente → vence quem chegar
+  // primeiro a (líder + 1): o gol que decide acaba o jogo e o que viria depois não existiu (sai do placar e da artilharia).
+  const antes = r.highlights.filter(h => ehGol(h) && h.min <= PLACAR_MB)
   const h0 = antes.filter(h => h.teamId === H).length, a0 = antes.length - h0
-  const bola: KingsInfo['bola'] = h0 === a0 ? 'dourada' : 'vermelha'
-  let ouro = false
-  const depois = r.highlights.filter(h => ehGol(h) && h.min > PLACAR_BOLA && h.text.startsWith('⚽'))
-  if (bola === 'dourada' && depois.length) {
-    // 🟡 o 1º gol depois do 38' vence e o jogo ACABA — os outros não existiram (saem do placar e da artilharia)
-    ouro = true
-    const fim = depois[0].min
-    const fica = new Set<MatchHighlight>([depois[0]])
-    const passe = r.highlights.find(x => x.kind === 'assist' && x.min === fim && x.teamId === depois[0].teamId)
-    if (passe) fica.add(passe)
+  const tira = (desde: number, fica: Set<MatchHighlight>) => {
     for (const g of [...r.highlights]) {
-      if (g.min < fim || fica.has(g)) continue
+      if (g.min <= desde || fica.has(g)) continue
       r.highlights.splice(r.highlights.indexOf(g), 1)
       const autor = /^⚽ (.+) marca para /.exec(g.text)?.[1]
       if (autor) desconta(tmpS, autor, g.teamId, 'goals')
       const garcom = /^🅰️ (.+) deu o passe/.exec(g.text)?.[1]
       if (garcom) desconta(tmpA, garcom, g.teamId, 'assists')
     }
-    const g = depois[0]
-    g.text = `🟡 GOL DE OURO! ${g.text.replace(/^⚽ /, '')}`
-  } else if (bola === 'vermelha') {
-    // 🔴 todo gol depois do 38' vale 2 (gol que já vale 2 pela carta não dobra de novo)
-    for (const g of depois) if (!dobrados.has(g)) r.highlights.push({ min: g.min, text: '🔴 BOLA VERMELHA: esse gol vale 2!', teamId: g.teamId, kind: 'gol' })
-    r.highlights.sort((x, y) => x.min - y.min)
   }
+  let mb: NonNullable<KingsInfo['mb']>
+  if (h0 === a0) { tira(PLACAR_MB, new Set()); mb = { empate: true, fim: PLACAR_MB } }
+  else {
+    const alvo = Math.max(h0, a0) + 1
+    let h = h0, a = a0, decide: MatchHighlight | null = null
+    for (const g of r.highlights.filter(x => ehGol(x) && x.min > PLACAR_MB && !extra.test(x.text))) {
+      if (g.teamId === H) h++; else a++
+      if (h >= alvo || a >= alvo) { decide = g; break }
+    }
+    if (!decide) {
+      // ninguém chegou a tempo: o match ball segue até sair o gol — e quem está na frente precisa de UM só, então é ele que fecha
+      const lider = h > a ? H : A
+      const min = Math.min(93, Math.max(PLACAR_MB + 1, ...r.highlights.filter(x => x.min > PLACAR_MB).map(x => x.min)) + 1)
+      decide = { min, text: `⚽ Gol de ${nome(lider)}.`, teamId: lider, kind: 'gol' }
+      r.highlights.push(decide)
+    }
+    r.highlights.sort((x, y) => x.min - y.min)
+    // o que vem DEPOIS do gol que decide (pela ordem dos lances, não pelo minuto) não existiu — e os "vale 2" das cartas
+    // depois do 36' também não valem (no match ball é corrida até líder + 1)
+    const idx = r.highlights.indexOf(decide!)
+    const passe = r.highlights.slice(idx + 1).find(x => x.kind === 'assist' && x.min === decide!.min && x.teamId === decide!.teamId)
+    const sai = r.highlights.filter((x, k) => (k > idx && x !== passe) || (x.min > PLACAR_MB && extra.test(x.text)))
+    for (const g of sai) {
+      r.highlights.splice(r.highlights.indexOf(g), 1)
+      const autor = /^⚽ (.+) marca para /.exec(g.text)?.[1]
+      if (autor) desconta(tmpS, autor, g.teamId, 'goals')
+      const garcom = /^🅰️ (.+) deu o passe/.exec(g.text)?.[1]
+      if (garcom) desconta(tmpA, garcom, g.teamId, 'assists')
+    }
+    decide!.text = `⏱️ MATCH BALL! ${decide!.text.replace(/^⚽ /, '')}`
+    mb = { empate: false, alvo, fim: decide!.min }
+  }
+  r.highlights.sort((x, y) => x.min - y.min)
   r.hg = r.highlights.filter(h => ehGol(h) && h.teamId === H).length
   r.ag = r.highlights.filter(h => ehGol(h) && h.teamId === A).length
-  const info: KingsInfo = { dado, posse, bola, ouro, pres: duelos.filter(d => d.tipo === 'presidente').map(d => ({ teamId: d.batedor, min: d.min, gol: d.gol })), cartas, duelos }
+  const info: KingsInfo = { dado, posse, ouro: false, mb, pres: duelos.filter(d => d.tipo === 'presidente').map(d => ({ teamId: d.batedor, min: d.min, gol: d.gol })), cartas, duelos }
   if (r.hg === r.ag) {
     // 🥅 SHOOTOUT da Kings (regra oficial): 5 por time, cada um sai do MEIO-CAMPO cara a cara com o goleiro e tem 5 s pra
     // chutar; acaba antes se um não alcança mais; empatou nas 5, morte súbita. Entra bem menos que pênalti (~55%).
@@ -351,4 +392,22 @@ export function vencedorKings(r: { homeId: number; awayId: number; hg: number; a
 export function somaListas(destS: ScorerRow[], tmpS: ScorerRow[], destA: AssistRow[], tmpA: AssistRow[]) {
   for (const x of tmpS) { const row = destS.find(y => y.name === x.name && y.teamId === x.teamId); if (row) row.goals += x.goals; else destS.push({ ...x }) }
   for (const x of tmpA) { const row = destA.find(y => y.name === x.name && y.teamId === x.teamId); if (row) row.assists += x.assists; else destA.push({ ...x }) }
+}
+
+/** 👑 o que o campinho precisa saber da partida da Kings (tudo já sorteado pela regra — aqui só se mostra) */
+export interface Kings2D {
+  dado: 1 | 2 | 3
+  /** 🟡 o brilho do fim: no MATCH BALL (36', alguém na frente) é dourado · regra antiga: 🔴/🟡 a partir do 38' */
+  bola?: 'dourada' | 'vermelha'
+  /** regra nova (10/11): o brilho entra no 36' (match ball), não no 38' */
+  matchBall?: boolean
+  /** quem está FORA (cartão ou carta de suspensão): `min` no relógio do placar (0–93), `ate` = minuto da KINGS (0–40) em que volta */
+  fora: { nome: string; min: number; ate: number; cor: 'amarelo' | 'vermelho' }[]
+}
+/** 👑📺 a partida da Kings → o que o Campo 2D desenha (cartões e a carta de suspensão viram "fora"; o dado e a bola do fim) */
+export function kings2DDe(k?: KingsInfo | null): Kings2D | undefined {
+  if (!k) return undefined
+  const fora: Kings2D['fora'] = (k.cartoes ?? []).map(c => ({ nome: c.nome, min: c.min, ate: c.ate, cor: c.cor }))
+  for (const c of k.cartas ?? []) if (c.vale === 'suspensao' && c.suspenso) fora.push({ nome: c.suspenso, min: c.min, ate: placarParaK(c.min) + MIN_EFEITO_K, cor: 'vermelho' })
+  return { dado: k.dado, bola: k.mb ? (k.mb.empate ? undefined : 'dourada') : k.bola, matchBall: !!k.mb, fora }
 }

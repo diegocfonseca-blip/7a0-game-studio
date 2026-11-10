@@ -15,9 +15,9 @@ import { usePenaltisCampo } from './campo2d-penaltis-react' // 🥅 disputa de p
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
 import { dur2DDaVel } from './vel2d-regra'
 import { useRitmo2D, useVel2D, useVel2DAqui, useControleVel2D, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
-import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
+import { OPCOES_CORINGA, PLACAR_BOLA, PLACAR_DADO, PLACAR_DADO_FIM, PLACAR_DOBRO_INI, PLACAR_MB, PLACAR_INTERVALO, placarParaK, placarParaKTela, kParaPlacar, kings2DDe, type Kings2D } from './kings-liga'
 import { PixMP } from './pix-mp'
-import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
+import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, CenaEscolhaKings, cartaRotulo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
 import type { MatchResult, CartaKingsInfo } from './types'
 import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { createPortal } from 'react-dom'
@@ -6808,6 +6808,7 @@ export function QuickManualLock() {
 // é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
 export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {}) {
   const liberado = useCampo2DLiberado()
+  const kings2dTeste = useKingsLiberada() // 👑📺 o 2D da Kings: as mesmas contas que veem a Kings
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
@@ -6822,6 +6823,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   }, [pagou2d])
   if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
   if (!liberado || state.sport === 'basquete') return null
+  if (ehKings(state) && !kings2dTeste) return null // 👑📺 10/11: o 2D da Kings ainda só na conta de teste
   if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
   if (!temDireito) return (
     <ApoieButton startScreen="choice" trigger={open => (
@@ -6997,7 +6999,8 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm, kings2d }: {
+  /** 👑📺 a partida da Kings pro Campo 2D */ kings2d?: Kings2D
   /** ⏱️ 07/11: hora em que o dono começou esta rodada (quem chega atrasado entra no minuto certo) */ inicioEm?: number
   /** 👑 Kings: o relógio vem de fora (para nos banners) e mostra os 40 min da Kings */ minutoFixo?: number; relogioKings?: boolean
   /** 👑 Kings: frases que a rádio É OBRIGADA a dar naquele minuto (cartão) */ radioExtra?: { min: number; txt: string }[]
@@ -7024,10 +7027,10 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
         <LiveScoreCard enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
-          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} />
+          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} kings2d={kings2d} />
       </div>
       {fora && !basket && (
-        <FaixaPlacarMini topo={0} min={relogioKings ? placarParaK(min) : min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
+        <FaixaPlacarMini topo={0} min={relogioKings ? placarParaKTela(min) : min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
           youIsHome={youIsHome}
           onAbrir={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} />
       )}
@@ -7057,21 +7060,23 @@ function nomeGolKings(text: string): string | null {
 }
 // ⏱️ as cenas em que alguém DECIDE (ou precisa ler o sorteio) têm tempo FIXO — a marcha ⏩ não encurta a contagem da
 // cobrança. Os banners de leitura (intervalo, bola do 38') aceleram com a marcha, como o resto do jogo.
-const KINGS_CENA_MS = { pontape: 9000, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 12000, bola: 7000 }
-const KINGS_FIXO_MAX = KINGS_CENA_MS.pontape + 8 * KINGS_CENA_MS.entra + KINGS_CENA_MS.dado + 2 * KINGS_CENA_MS.carta + 4 * KINGS_CENA_MS.duelo
+const KINGS_CENA_MS = { pontape: 9000, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 12000, bola: 7000, escolha: 9500 }
+const KINGS_FIXO_MAX = KINGS_CENA_MS.pontape + 8 * KINGS_CENA_MS.entra + KINGS_CENA_MS.dado + 2 * KINGS_CENA_MS.carta + 4 * KINGS_CENA_MS.duelo + 2 * KINGS_CENA_MS.escolha
 // 🐢 enquanto não está 7×7 o jogo rola DEVAGAR, mas rola de verdade (pode sair gol) — Diego 15/10: *"tem que rolar algum
 // tempo em cada 1x1… 2x2… 3x3… mais lenta um pouco em cada minuto desse, não real mas também não a jato… quando chegar em
 // 7x7 será mais rápido… quando cair o dado, se cair 3x3, volta a mostrar o campinho 3x3 e também com um tempo a mais"*.
 // Tempo FIXO de bola rolando por minuto da Kings nessas fases (a marcha ⏩ só mexe no 7×7).
 const KINGS_MS_POR_MIN_LENTO = 5000
 const KINGS_MS_7X7 = 45_000 // o resto do jogo (7×7) na marcha normal
-const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_INTERVALO]]
+const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_DADO_FIM]] // 🎲 10/11: o dado é do 20' ao 23'
 const KINGS_LENTO_MS = (7 + 2) * KINGS_MS_POR_MIN_LENTO
 /** tempo de uma rodada da Kings na marcha escolhida: cenas fixas + fases lentas fixas + o 7×7 (que acelera com a marcha) */
-export const kingsRoundMs = (speed: number) => Math.round((KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + KINGS_CENA_MS.bola) / speed + KINGS_LENTO_MS + KINGS_MS_7X7 / speed + 1500) / 0.84)
+export const kingsRoundMs = (speed: number) => Math.round((KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + 2 * KINGS_CENA_MS.bola) / speed + KINGS_LENTO_MS + KINGS_MS_7X7 / speed + 1500) / 0.84)
 type BannerKings = { emoji: string; titulo: string; texto: string; cor: string }
-type CenaKings = { tipo: 'banner'; b: BannerKings } | { tipo: 'pontape' } | { tipo: 'entra'; n: number; modo?: 'entra' | 'dado' | 'volta' } | { tipo: 'dado'; face: 1 | 2 | 3 } | { tipo: 'carta'; carta: CartaKingsInfo } | { tipo: 'duelo'; key: string }
-function cenasDoJogo(r: MatchResult, nome: (id: number) => string): { min: number; ms: number; fixo: boolean; c: CenaKings }[] {
+type CenaKings = { tipo: 'banner'; b: BannerKings } | { tipo: 'pontape' } | { tipo: 'entra'; n: number; modo?: 'entra' | 'dado' | 'volta' } | { tipo: 'dado'; face: 1 | 2 | 3 } | { tipo: 'carta'; carta: CartaKingsInfo } | { tipo: 'duelo'; key: string } | { tipo: 'escolha'; key: string; modo: 'coringa' | 'suspensao'; teamId: number }
+/** chave de uma cena (pra achar onde o relógio estava quando a lista é refeita depois de uma escolha) */
+const chaveCena = (e: { min: number; c: CenaKings }) => `${e.min}|${e.c.tipo}|${'key' in e.c ? e.c.key : ''}|${'modo' in e.c ? e.c.modo ?? '' : ''}|${e.c.tipo === 'carta' ? e.c.carta.teamId : ''}`
+function cenasDoJogo(r: MatchResult, nome: (id: number) => string, souEu: (id: number) => boolean = () => false): { min: number; ms: number; fixo: boolean; c: CenaKings }[] {
   const k = r.kings
   if (!k) return []
   const ev: { min: number; ms: number; fixo: boolean; c: CenaKings }[] = []
@@ -7082,22 +7087,38 @@ function cenasDoJogo(r: MatchResult, nome: (id: number) => string): { min: numbe
     // o número bate com o RELÓGIO (Diego 15/10: "4x4 aparece 3' no placar"): 1×1 do 0' ao 2', 2×2 no 2', 3×3 no 3'… 7×7 no 7'
     for (let k = 2; k <= 7; k++) ev.push({ min: kParaPlacar(k), ms: KINGS_CENA_MS.entra, fixo: true, c: { tipo: 'entra', n: k } })
   }
+  if (k.mb) {
+    // 🔁 REGRA DE 10/11 (regulamento novo da Kings Brasil): ✖️2 do 17' ao 20' · intervalo · 🎲 dado do 20' ao 23' · ⏱️ match ball no 36'
+    ev.push({ min: PLACAR_DOBRO_INI, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: { emoji: '✖️2', titulo: tr('GOL VALE 2 · 17\' AO 20\'', 'GOALS COUNT 2 · 17\' TO 20\''), cor: PURPLE,
+      texto: tr('Até o intervalo, TODO gol vale 2 — pros dois times!', 'Until half-time EVERY goal counts double — for both teams!') } } })
+    ev.push({ min: PLACAR_INTERVALO, ms: KINGS_CENA_MS.intervalo, fixo: false, c: { tipo: 'banner', b: { emoji: '⏸️', titulo: tr('INTERVALO · 20\'', 'HALF-TIME · 20\''), cor: INK,
+      texto: tr('Na volta, o DADO decide quantos jogam até o 23\'. No 36\' o relógio PARA: empatado vai pro SHOOTOUT; quem está atrás precisa alcançar.', 'Back on, the DICE decides how many play until 23\'. At 36\' the clock STOPS: level goes to a SHOOTOUT; whoever is behind has to catch up.') } } })
+    ev.push({ min: PLACAR_DADO, ms: KINGS_CENA_MS.dado, fixo: true, c: { tipo: 'dado', face: k.dado } })
+    const lider = (() => { const ant = r.highlights.filter(h => lanceEhGol(h) && h.min <= PLACAR_MB), hh = ant.filter(h => h.teamId === r.homeId).length; return hh * 2 > ant.length ? r.homeId : r.awayId })()
+    ev.push({ min: PLACAR_MB, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: k.mb.empate
+      ? { emoji: '⏱️', titulo: tr('36\' · EMPATE = SHOOTOUT', '36\' · LEVEL = SHOOTOUT'), cor: '#C2452F', texto: tr('O relógio parou e está empatado: o jogo vai direto pro SHOOTOUT!', 'The clock stopped and it is level: straight to the SHOOTOUT!') }
+      : { emoji: '⏱️', titulo: tr('MATCH BALL · 36\'', 'MATCH BALL · 36\''), cor: '#B8860B', texto: tr(`O relógio parou! Vence quem chegar primeiro a ${k.mb.alvo} gols. Um gol do ${nome(lider)} acaba o jogo.`, `The clock stopped! First to ${k.mb.alvo} goals wins. One goal from ${nome(lider)} ends it.`) } } })
+  } else {
   ev.push(novo
-    ? { min: PLACAR_DADO, ms: KINGS_CENA_MS.dado, fixo: true, c: { tipo: 'dado', face: k.dado } }
-    : { min: PLACAR_DADO, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: { emoji: '🎲', titulo: tr('O DADO DO MINUTO 18', 'THE MINUTE-18 DICE'), cor: PURPLE, texto: tr(`Saiu ${k.dado}! Até o intervalo cada time joga só com ${k.dado} na linha + o goleiro.`, `It rolled ${k.dado}! Until half-time each team plays with only ${k.dado} outfield + the keeper.`) } } })
-  ev.push({ min: PLACAR_INTERVALO, ms: KINGS_CENA_MS.intervalo, fixo: false, c: { tipo: 'banner', b: { emoji: '⏸️', titulo: tr('INTERVALO · 20\'', 'HALF-TIME · 20\''), cor: INK,
-    texto: tr('Na Kings são 2 tempos de 20 minutos e NINGUÉM empata: se acabar igual, vai pro SHOOTOUT. No minuto 38 entra a bola especial.', 'Kings games are 2 halves of 20 minutes and NOBODY draws: level at the end means a SHOOTOUT. At minute 38 the special ball comes in.') } } })
-  ev.push({ min: PLACAR_BOLA, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: k.bola === 'dourada'
-    ? { emoji: '🟡', titulo: tr('BOLA DOURADA · 38\'', 'GOLDEN BALL · 38\''), cor: '#B8860B', texto: tr('Está EMPATADO! Quem marcar primeiro VENCE e o jogo acaba na hora. Ninguém marcou? SHOOTOUT.', 'It is LEVEL! Next goal WINS and the game ends right there. No goal? SHOOTOUT.') }
-    : { emoji: '🔴', titulo: tr('BOLA VERMELHA · 38\'', 'RED BALL · 38\''), cor: '#C2452F', texto: tr('Alguém está na frente: até o apito, TODO gol vale 2!', 'Someone is ahead: until the whistle, EVERY goal counts double!') } } })
+      ? { min: PLACAR_DADO, ms: KINGS_CENA_MS.dado, fixo: true, c: { tipo: 'dado', face: k.dado } }
+      : { min: PLACAR_DADO, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: { emoji: '🎲', titulo: tr('O DADO DO MINUTO 18', 'THE MINUTE-18 DICE'), cor: PURPLE, texto: tr(`Saiu ${k.dado}! Até o intervalo cada time joga só com ${k.dado} na linha + o goleiro.`, `It rolled ${k.dado}! Until half-time each team plays with only ${k.dado} outfield + the keeper.`) } } })
+    ev.push({ min: PLACAR_INTERVALO, ms: KINGS_CENA_MS.intervalo, fixo: false, c: { tipo: 'banner', b: { emoji: '⏸️', titulo: tr('INTERVALO · 20\'', 'HALF-TIME · 20\''), cor: INK,
+      texto: tr('Na Kings são 2 tempos de 20 minutos e NINGUÉM empata: se acabar igual, vai pro SHOOTOUT. No minuto 38 entra a bola especial.', 'Kings games are 2 halves of 20 minutes and NOBODY draws: level at the end means a SHOOTOUT. At minute 38 the special ball comes in.') } } })
+    ev.push({ min: PLACAR_BOLA, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: k.bola === 'dourada'
+      ? { emoji: '🟡', titulo: tr('BOLA DOURADA · 38\'', 'GOLDEN BALL · 38\''), cor: '#B8860B', texto: tr('Está EMPATADO! Quem marcar primeiro VENCE e o jogo acaba na hora. Ninguém marcou? SHOOTOUT.', 'It is LEVEL! Next goal WINS and the game ends right there. No goal? SHOOTOUT.') }
+      : { emoji: '🔴', titulo: tr('BOLA VERMELHA · 38\'', 'RED BALL · 38\''), cor: '#C2452F', texto: tr('Alguém está na frente: até o apito, TODO gol vale 2!', 'Someone is ahead: until the whistle, EVERY goal counts double!') } } })
+  }
   if (novo) {
     // 🎲 depois do dado, o campinho com quantos ficaram; no intervalo, o campinho do 7×7 de volta
     ev.push({ min: PLACAR_DADO, ms: KINGS_CENA_MS.entra, fixo: true, c: { tipo: 'entra', n: k.dado, modo: 'dado' } })
-    ev.push({ min: PLACAR_INTERVALO, ms: KINGS_CENA_MS.entra, fixo: true, c: { tipo: 'entra', n: 7, modo: 'volta' } })
+    ev.push({ min: k.mb ? PLACAR_DADO_FIM : PLACAR_INTERVALO, ms: KINGS_CENA_MS.entra, fixo: true, c: { tipo: 'entra', n: 7, modo: 'volta' } })
     for (const d of k.duelos!.filter(x => x.tipo === 'presidente')) ev.push({ min: d.min, ms: KINGS_CENA_MS.duelo, fixo: true, c: { tipo: 'duelo', key: d.key } })
     for (const c of k.cartas ?? []) {
       ev.push({ min: c.min, ms: KINGS_CENA_MS.carta, fixo: true, c: { tipo: 'carta', carta: c } })
       const lado = c.teamId === r.homeId ? 'h' : 'a'
+      // 🃏 10/11: carta SUA → você escolhe (coringa: no que vira · suspensão: quem do rival sai). Coringa que vira suspensão = as duas.
+      if (souEu(c.teamId) && c.sorteada === 'coringa') ev.push({ min: c.min, ms: KINGS_CENA_MS.escolha, fixo: true, c: { tipo: 'escolha', key: `coringa:${lado}`, modo: 'coringa', teamId: c.teamId } })
+      if (souEu(c.teamId) && c.vale === 'suspensao') ev.push({ min: c.min, ms: KINGS_CENA_MS.escolha, fixo: true, c: { tipo: 'escolha', key: `susp:${lado}`, modo: 'suspensao', teamId: c.teamId } })
       if (k.duelos!.some(d => d.key === `carta:${lado}`)) ev.push({ min: c.min, ms: KINGS_CENA_MS.duelo, fixo: true, c: { tipo: 'duelo', key: `carta:${lado}` } })
     }
   } else for (const p of k.pres) ev.push({ min: p.min, ms: 5500, fixo: false, c: { tipo: 'banner', b: { emoji: '🎩', titulo: tr('PÊNALTI DO PRESIDENTE', 'PRESIDENT PENALTY'), cor: '#1B7A3D',
@@ -7107,7 +7128,7 @@ function cenasDoJogo(r: MatchResult, nome: (id: number) => string): { min: numbe
 }
 /** relógio da Kings: anda 0→93 (escala do placar) e PARA em cada cena pelo tempo dela. Acaba antes de 85% da rodada,
  *  que é quando a tela libera o resultado — então a tabela nunca entrega o placar antes do apito. */
-function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string) {
+function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string, youId = -1) {
   const [min, setMin] = useState(0)
   const [cena, setCena] = useState<CenaKings | null>(null)
   const rk = useRef(roundKey)
@@ -7118,7 +7139,11 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
   useEffect(() => {
     const r = rRef.current, nome = nomeRef.current
     if (!ativo || !r) return
-    const ev = cenasDoJogo(r, nome)
+    const souEu = (id: number) => id === youId
+    let ev = cenasDoJogo(r, nome, souEu)
+    // 🃏 a escolha de carta pode mudar o que vem (coringa que vira pênalti traz a cobrança): a lista é refeita e o relógio segue de onde estava
+    const assinatura = (x?: MatchResult) => JSON.stringify(x?.kings?.cartas ?? []) + (x?.kings?.duelos ?? []).map(d => d.key).join(',')
+    let assin = assinatura(r), ultimaCena = ''
     const pausas = ev.reduce((a, e) => a + (e.fixo ? e.ms : e.ms / speed), 0)
     const lentos = r.kings?.duelos ? trechosLentos() : []
     const lento = (m: number) => lentos.some(([a, b]) => m >= a && m < b)
@@ -7136,12 +7161,18 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
       if (ate > agora) return
       if (ate) { ate = 0; setCena(null) }
       cur += dt * (lento(cur) ? taxaLenta : taxaRapida)
+      const rAgora = rRef.current
+      if (assinatura(rAgora) !== assin && rAgora) {
+        assin = assinatura(rAgora)
+        const nova = cenasDoJogo(rAgora, nomeRef.current, souEu), k = ultimaCena ? nova.findIndex(e => chaveCena(e) === ultimaCena) : -1
+        if (k >= 0) { ev = nova; idx = k + 1 }
+      }
       if (idx < ev.length && cur >= ev[idx].min) {
-        cur = ev[idx].min; ate = agora + (ev[idx].fixo ? ev[idx].ms : ev[idx].ms / speed); setCena(ev[idx].c); idx++
+        cur = ev[idx].min; ate = agora + (ev[idx].fixo ? ev[idx].ms : ev[idx].ms / speed); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
       }
       // 🟡 gol de ouro: o jogo ACABA no minuto do gol (lido na hora — a escolha de canto pode ter mudado o jogo)
       const rr = rRef.current
-      const ouro = rr?.kings?.ouro ? rr.highlights.filter(lanceEhGol).find(h => h.min > PLACAR_BOLA)?.min : undefined
+      const ouro = rr?.kings?.mb ? rr.kings.mb.fim : rr?.kings?.ouro ? rr.highlights.filter(lanceEhGol).find(h => h.min > PLACAR_BOLA)?.min : undefined // ⏱️ match ball: acaba no gol que decide (ou no 36' empatado)
       if (ouro != null && cur >= ouro) cur = 93
       if (cur >= 93) { cur = 93; clearInterval(iv) }
       setMin(Math.round(cur))
@@ -7151,12 +7182,22 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
   return { min, cena }
 }
 /** 👑 a cena da vez, desenhada por cima do jogo */
-function CenaKingsTela({ cena, jogo, youId, nome, onEscolha }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void }) {
+function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void; /** os jogadores de LINHA do time (a suspensão escolhe um do rival) — a mesma lista da regra */ linhaDe: (id: number) => string[] }) {
   if (cena.tipo === 'banner') return <BannerKingsTela b={cena.b} />
   if (cena.tipo === 'pontape') { const p = jogo?.kings?.posse; return <CenaPontape posse={p != null ? nome(p) : undefined} ladoPosse={p === jogo?.awayId ? 'd' : 'e'} casa={jogo ? nome(jogo.homeId) : undefined} fora={jogo ? nome(jogo.awayId) : undefined} /> }
   if (cena.tipo === 'entra') return <CenaEntra key={`${cena.modo ?? 'entra'}${cena.n}`} n={cena.n} modo={cena.modo} casa={jogo ? nome(jogo.homeId) : ''} fora={jogo ? nome(jogo.awayId) : ''} />
   if (cena.tipo === 'dado') return <CenaDado face={cena.face} />
-  if (cena.tipo === 'carta') return <CenaCarta key={`${cena.carta.teamId}-${cena.carta.min}`} carta={cena.carta} time={nome(cena.carta.teamId)} rival={jogo ? nome(cena.carta.teamId === jogo.homeId ? jogo.awayId : jogo.homeId) : ''} />
+  if (cena.tipo === 'carta') return <CenaCarta key={`${cena.carta.teamId}-${cena.carta.min}`} carta={cena.carta} time={nome(cena.carta.teamId)} rival={jogo ? nome(cena.carta.teamId === jogo.homeId ? jogo.awayId : jogo.homeId) : ''}
+    escolhe={cena.carta.teamId === youId ? (cena.carta.sorteada === 'coringa' ? 'coringa' : cena.carta.vale === 'suspensao' ? 'suspensao' : undefined) : undefined} />
+  if (cena.tipo === 'escolha') {
+    const c = jogo?.kings?.cartas?.find(x => x.teamId === cena.teamId)
+    const rival = jogo ? (cena.teamId === jogo.homeId ? jogo.awayId : jogo.homeId) : -1
+    if (cena.modo === 'coringa') return <CenaEscolhaKings key={cena.key} titulo={tr('🃏 CORINGA: EM QUAL CARTA ELE VIRA?', '🃏 JOKER: WHICH CARD DOES IT BECOME?')} ajuda={tr('Toque na carta. Não tocou até zerar? Vale a que o jogo sorteou.', 'Tap a card. No tap before zero? The game\'s draw stands.')}
+      opcoes={OPCOES_CORINGA.map(cartaRotulo)} escolhido={c ? OPCOES_CORINGA.indexOf(c.vale as never) : null} onEscolha={i => onEscolha(cena.key, i)} />
+    const l = linhaDe(rival)
+    return <CenaEscolhaKings key={cena.key} titulo={tr(`🟥 QUEM DO ${nome(rival).toUpperCase()} SAI POR 4 MIN?`, `🟥 WHO FROM ${nome(rival).toUpperCase()} GOES OFF FOR 4 MIN?`)} ajuda={tr('Toque no jogador. Não tocou até zerar? Sai o que o jogo sorteou.', 'Tap a player. No tap before zero? The game\'s pick goes off.')}
+      opcoes={l.map(n => ({ ic: '👤', nome: n }))} escolhido={c?.suspenso ? l.indexOf(c.suspenso) : null} onEscolha={i => onEscolha(cena.key, i)} />
+  }
   const d = jogo?.kings?.duelos?.find(x => x.key === cena.key)
   if (!d) return null
   return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} />
@@ -7182,8 +7223,9 @@ function RegrasKingsBox() {
         tr('⏱️ 2 tempos de 20 minutos. NINGUÉM empata: igual no fim = 🥅 SHOOTOUT.', '⏱️ 2 halves of 20 minutes. NOBODY draws: level at the end = 🥅 SHOOTOUT.'),
         tr('🏆 Pontos: vitória 3 · vitória no shootout 2 · derrota no shootout 1 · derrota 0.', '🏆 Points: win 3 · shootout win 2 · shootout loss 1 · loss 0.'),
         tr('🎩 Todo jogo tem 1 pênalti do presidente pra cada time.', '🎩 Every game has 1 president penalty for each team.'),
-        tr('🎲 No 18\' sai o dado: 2 ou 3 na linha até o intervalo.', '🎲 At 18\' the dice rolls: 2 or 3 outfield until half-time.'),
-        tr('🟡 No 38\' empatado: o próximo gol vence. 🔴 Alguém na frente: gol vale 2.', '🟡 Level at 38\': next goal wins. 🔴 Someone ahead: goals count double.'),
+        tr('✖️2 Do 17\' ao 20\' todo gol vale 2.', '✖️2 From 17\' to 20\' every goal counts double.'),
+        tr('🎲 Do 20\' ao 23\' vale o dado: 1×1, 2×2 ou 3×3.', '🎲 From 20\' to 23\' the dice rules: 1v1, 2v2 or 3v3.'),
+        tr('⏱️ No 36\' o relógio para. Empatado = SHOOTOUT. Alguém na frente (7×5): vence quem chegar primeiro a 8.', '⏱️ At 36\' the clock stops. Level = SHOOTOUT. Someone ahead (7–5): first to 8 wins.'),
         tr('🔨 9 rodadas. O 1º vai direto pra SEMI, do 2º ao 7º jogam as QUARTAS. Tudo jogo único.', '🔨 9 rounds. 1st goes straight to the SEMI, 2nd–7th play the QUARTERS. All single games.'),
       ].map(t => <p key={t} className="text-xs font-bold text-black/75">{t}</p>)}
       <p className="text-[11px] font-bold" style={{ color: '#C2452F' }}>{tr('O jogo PARA e explica cada regra na hora que ela acontece.', 'The game PAUSES and explains each rule as it happens.')}</p>
@@ -7576,7 +7618,7 @@ export function EscSeason() {
     ? (kTie?.lastKings ? { homeId: kTie.aId, awayId: kTie.bId, hg: kTie.legs[0][0], ag: kTie.legs[0][1], highlights: kTie.lastHighlights ?? [], kings: kTie.lastKings } : undefined)
     : myLast
   const kKey = copaLive ? 500 + (qc?.bracket.length ?? 0) * 10 + (kTie?.legs.length ?? 0) : state.round
-  const kRel = useRelogioKings(kingsS, kKey, roundMs, speedFactor, kJogo, nomeLiga)
+  const kRel = useRelogioKings(kingsS, kKey, roundMs, speedFactor, kJogo, nomeLiga, you.id)
   // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
   // fase rolar aparece o caminho da copa + os confrontos escudo×escudo. Na 1ª fase usa o tempo de leitura
   // de sempre (`COPA_INTRO_SECONDS`); nas seguintes o respiro sobe de 3,2s pra 5s pra dar tempo de ler.
@@ -7801,7 +7843,7 @@ export function EscSeason() {
           // jogo de basquete. Agora usa o MESMO relógio de quartos do card grande
           // (a conta mora em `sportcfg.ts`, pra duas telas nunca marcarem quartos
           // diferentes no mesmo jogo).
-          const minLabel = copaMin >= 93 ? '' : bbS ? basketClockLabel(copaMin) : kingsS ? `${placarParaK(copaMin)}'` : copaMin > 90 ? `90+${copaMin - 90}'` : `${copaMin}'`
+          const minLabel = copaMin >= 93 ? '' : bbS ? basketClockLabel(copaMin) : kingsS ? `${placarParaKTela(copaMin)}'` : copaMin > 90 ? `90+${copaMin - 90}'` : `${copaMin}'`
           const live = !clockDone && nLegs > 0
           const kindOf = (id: number): 'you' | 'human' | 'bot' => id === you.id ? 'you' : state.managers.some(m => m.id === id && m.isHuman) ? 'human' : 'bot'
           const fA = copaFill(kindOf(tie.aId), tie.aName), fB = copaFill(kindOf(tie.bId), tie.bName)
@@ -8006,7 +8048,7 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'r32' ? 50 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+                      roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(kJogo?.kings) : undefined}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === legHomeId)?.squad, fora: state.managers.find(m => m.id === legAwayId)?.squad, fCasa: state.managers.find(m => m.id === legHomeId)?.formation, fFora: state.managers.find(m => m.id === legAwayId)?.formation }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
@@ -8104,7 +8146,7 @@ export function EscSeason() {
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
           enhancedOnline={privateVisual} retro={retroDe(oppId)}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad, fCasa: state.managers.find(m => m.id === myLast.homeId)?.formation, fFora: state.managers.find(m => m.id === myLast.awayId)?.formation }}
-          minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS}
+          minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(myLast.kings) : undefined}
           inicioEm={online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined}
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)
@@ -8116,9 +8158,9 @@ export function EscSeason() {
       )}
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
-      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto })} />}
+      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name)} />}
       {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.max(1, Math.min(7, placarParaK(kRel.min)))} />}
-      {kingsS && kJogo?.kings?.duelos && kRel.min >= PLACAR_DADO && kRel.min < PLACAR_INTERVALO && <FaixaEmCampo n={kJogo.kings.dado} dado />}
+      {kingsS && kJogo?.kings?.duelos && kRel.min >= PLACAR_DADO && kRel.min < (kJogo.kings.mb ? PLACAR_DADO_FIM : PLACAR_INTERVALO) && <FaixaEmCampo n={kJogo.kings.dado} dado />}
       {kingsS && kJogo?.kings?.cartas && (() => {
         // 📌 o que está VALENDO agora (gol em dobro, suspensão, jogador estrela), com até que minuto
         const itens: { ic: string; txt: string; cor: string }[] = []
@@ -8129,11 +8171,10 @@ export function EscSeason() {
           const t = nomeLiga(c.teamId), rv = nomeLiga(c.teamId === kJogo.homeId ? kJogo.awayId : kJogo.homeId)
           if (c.vale === 'gol_dobro' && placarParaK(m) < ate) itens.push({ ic: '✖️2', cor: PURPLE, txt: LS(`GOL EM DOBRO · todo gol do ${t} vale 2 até o ${ate}'`, `DOUBLE GOAL · every ${t} goal counts 2 until ${ate}'`) })
           if (c.vale === 'suspensao' && placarParaK(m) < ate) itens.push({ ic: '🟥', cor: '#C2452F', txt: LS(`${c.suspenso ?? 'Um jogador'} (${rv}) FORA até o ${ate}' · ${t} com um a mais`, `${c.suspenso ?? 'A player'} (${rv}) OFF until ${ate}' · ${t} a man up`) })
-          if (c.vale === 'estrela' && c.estrela) {
-            const marcou = kJogo.highlights.some(h => h.min >= c.min && h.min <= m && h.text.startsWith('⭐'))
-            if (!marcou) itens.push({ ic: '⭐', cor: '#B8860B', txt: LS(`JOGADOR ESTRELA · o próximo gol do ${c.estrela} (${t}) vale 2`, `STAR PLAYER · ${c.estrela}'s next goal (${t}) counts 2`) })
-          }
+          if (c.vale === 'estrela' && c.estrela && m < PLACAR_MB) itens.push({ ic: '⭐', cor: '#B8860B', txt: LS(`JOGADOR ESTRELA · todo gol do ${c.estrela} (${t}) vale 2 até o 36'`, `STAR PLAYER · every ${c.estrela} goal (${t}) counts 2 until 36'`) })
         }
+        if (kJogo.kings.mb && m >= PLACAR_DOBRO_INI && m < PLACAR_INTERVALO) itens.push({ ic: '✖️2', cor: PURPLE, txt: LS('GOL VALE 2 · todo gol dos dois times até o 20\'', 'GOALS COUNT 2 · every goal, both teams, until 20\'') })
+        if (kJogo.kings.mb && !kJogo.kings.mb.empate && m >= PLACAR_MB && m < 93) itens.push({ ic: '⏱️', cor: '#B8860B', txt: LS(`MATCH BALL · vence quem chegar a ${kJogo.kings.mb.alvo} gols`, `MATCH BALL · first to ${kJogo.kings.mb.alvo} goals wins`) })
         // 🟨🟥 cartão: o jogador fica FORA (amarelo 2 min · vermelho 5 min) e o time joga com um a menos
         for (const c of kJogo.kings.cartoes ?? []) {
           if (m < c.min || m >= 93 || placarParaK(m) >= c.ate) continue

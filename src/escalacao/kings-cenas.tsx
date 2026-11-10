@@ -85,14 +85,14 @@ const POS_E: [number, number][] = [[40, 50], [30, 28], [30, 72], [20, 42], [40, 
 /** `modo`: 'entra' (1'–6', entra mais um) · 'dado' (o dado mandou N×N até o intervalo) · 'volta' (2º tempo: voltou o 7×7) */
 export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: string; fora: string; modo?: 'entra' | 'dado' | 'volta' }) {
   const completo = n >= 7
-  const tag = modo === 'dado' ? tr('O DADO MANDOU', 'THE DICE SAYS') : modo === 'volta' ? tr('2º TEMPO · VOLTOU O 7×7', '2ND HALF · BACK TO 7 v 7')
+  const tag = modo === 'dado' ? tr('O DADO MANDOU', 'THE DICE SAYS') : modo === 'volta' ? tr('23\' · VOLTOU O 7×7', '23\' · BACK TO 7 v 7')
     : completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n} · ENTRA MAIS UM`, `MINUTE ${n} · ONE MORE IN`)
   const titulo = modo === 'dado' ? (n === 1 ? tr('👑 1 × 1 ATÉ O INTERVALO', '👑 1 v 1 UNTIL HALF-TIME') : tr(`🎲 ${n} × ${n} ATÉ O INTERVALO`, `🎲 ${n} v ${n} UNTIL HALF-TIME`))
     : modo === 'volta' ? tr('⚡ 7 × 7 DE NOVO! ACELERA', '⚡ 7 v 7 AGAIN! SPEEDING UP')
     : completo ? tr('⚡ 7 × 7! AGORA ACELERA', '⚡ 7 v 7! NOW IT SPEEDS UP') : `➕ ${n} × ${n}!`
   const texto = modo === 'dado'
     ? tr(`Saem jogadores dos dois lados: fica ${n === 1 ? 'só 1' : n} na linha + o goleiro até o fim do 1º tempo. Nessa fase o jogo rola mais devagar.`, `Players leave on both sides: ${n === 1 ? 'only 1' : n} outfield + the keeper until the end of the 1st half. This phase runs slower.`)
-    : modo === 'volta' ? tr('No 2º tempo os dois times voltam completos (goleiro + 6) e o jogo volta ao ritmo normal.', 'In the 2nd half both teams are complete again (keeper + 6) and the game runs at normal speed.')
+    : modo === 'volta' ? tr('Acabou o dado: os dois times voltam completos (goleiro + 6) e o jogo volta ao ritmo normal.', 'Dice over: both teams are complete again (keeper + 6) and the game runs at normal speed.')
     : completo ? tr('Os dois times estão completos (goleiro + 6). Daqui pra frente o jogo rola no ritmo normal.', 'Both teams are complete (keeper + 6). From here on the game runs at normal speed.')
     : tr(`Entrou mais um de cada lado. Enquanto não chega no 7×7 o jogo rola mais devagar — cada minuto entra mais um.`, `One more in on each side. Until it reaches 7 v 7 the game runs slower — one more joins every minute.`)
   const novo = modo === 'entra' ? n - 1 : -1
@@ -123,7 +123,7 @@ export function FaixaEmCampo({ n, dado = false }: { n: number; dado?: boolean })
       <div style={{ display: 'flex', gap: 6, justifyContent: 'center', margin: '5px 0' }}>
         {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ width: 18, height: 18, borderRadius: 99, border: `3px solid ${INK}`, background: i < n ? GREEN : '#ddd', transition: 'background .3s' }} />)}
       </div>
-      <p style={{ fontSize: 11, fontWeight: 700, margin: 0, opacity: .75 }}>{dado ? tr('🎲 Fase do dado: até o intervalo. No 2º tempo volta o 7×7.', '🎲 Dice phase: until half-time. 7 v 7 again in the 2nd half.') : tr('Começa 1×1; do 2\' em diante entra 1 de cada lado por minuto até o 7×7 no 7\'', 'Starts 1 v 1; from 2\' one more per side every minute up to 7 v 7 at 7\'')}</p>
+      <p style={{ fontSize: 11, fontWeight: 700, margin: 0, opacity: .75 }}>{dado ? tr('🎲 Fase do dado: do 20\' ao 23\'. Depois volta o 7×7.', '🎲 Dice phase: from 20\' to 23\'. Then 7 v 7 again.') : tr('Começa 1×1; do 2\' em diante entra 1 de cada lado por minuto até o 7×7 no 7\'', 'Starts 1 v 1; from 2\' one more per side every minute up to 7 v 7 at 7\'')}</p>
     </div>
   )
 }
@@ -150,8 +150,8 @@ export function CenaDado({ face }: { face: 1 | 2 | 3 }) {
   useEffect(() => { const t = setTimeout(() => setParou(true), 2300); return () => clearTimeout(t) }, [])
   const titulo = face === 1 ? tr('👑 CARA DO REI!', '👑 KING\'S FACE!') : face === 2 ? '2 × 2!' : '3 × 3!'
   const texto = face === 1
-    ? tr('Até o intervalo é 1 CONTRA 1 com goleiro. O dado tem 3 coisas: 👑 cara do rei (1×1), 2×2 e 3×3 — duas faces de cada.', 'Until half-time it is 1 v 1 with keepers. The dice has 3 things: 👑 king\'s face (1 v 1), 2 v 2 and 3 v 3 — two faces each.')
-    : tr(`Até o intervalo cada time joga com ${face} na linha + o goleiro. Campo aberto = mais gol! (O dado tem 👑 cara do rei, 2×2 e 3×3.)`, `Until half-time each team plays ${face} outfield + the keeper. Open pitch = more goals! (The dice has 👑 king's face, 2 v 2 and 3 v 3.)`)
+    ? tr('Até o 23\' é 1 CONTRA 1 com goleiro. O dado tem 3 coisas: 👑 cara do rei (1×1), 2×2 e 3×3 — duas faces de cada.', 'Until 23\' it is 1 v 1 with keepers. The dice has 3 things: 👑 king\'s face (1 v 1), 2 v 2 and 3 v 3 — two faces each.')
+    : tr(`Até o 23' cada time joga com ${face} na linha + o goleiro. Campo aberto = mais gol! (O dado tem 👑 cara do rei, 2×2 e 3×3.)`, `Until 23' each team plays ${face} outfield + the keeper. Open pitch = more goals! (The dice has 👑 king's face, 2 v 2 and 3 v 3.)`)
   return (
     <Palco tag={tr('MINUTO 18 · O DADO', 'MINUTE 18 · THE DICE')}>
       <div style={{ height: 200, position: 'relative', perspective: 520 }}>
@@ -190,13 +190,13 @@ function cartaTexto(c: CartaKingsInfo, time: string, rival: string): string {
     case 'shootout': return tr(`Um shootout pro ${time}: sai do meio-campo, 5 segundos contra o goleiro!`, `A shootout for ${time}: from halfway, 5 seconds against the keeper!`)
     case 'suspensao': return c.suspenso ? tr(`🟥 ${c.suspenso} (${rival}) sai de campo por 4 minutos! O ${time} joga com um a mais.`, `🟥 ${c.suspenso} (${rival}) leaves the pitch for 4 minutes! ${time} plays a man up.`) : tr(`Um jogador do ${rival} fica 4 minutos fora. O ${time} joga com um a mais!`, `A ${rival} player sits out 4 minutes. ${time} plays a man up!`)
     case 'gol_dobro': return tr(`Por 4 minutos, todo gol do ${time} vale 2!`, `For 4 minutes, every ${time} goal counts double!`)
-    case 'estrela': return c.estrela ? tr(`⭐ ${c.estrela}, o craque do ${time}, vira o JOGADOR ESTRELA: o próximo gol dele vale 2!`, `⭐ ${c.estrela}, ${time}'s star, becomes the STAR PLAYER: his next goal counts double!`) : tr(`O 1º gol do craque do ${time} vale 2!`, `${time}'s star's first goal counts double!`)
+    case 'estrela': return c.estrela ? tr(`⭐ ${c.estrela}, o craque do ${time}, vira o JOGADOR ESTRELA: todo gol dele vale 2 até o 36'!`, `⭐ ${c.estrela}, ${time}'s star, becomes the STAR PLAYER: every goal of his counts double until 36'!`) : tr(`Todo gol do craque do ${time} vale 2 até o 36'!`, `Every goal by ${time}'s star counts double until 36'!`)
     default: return tr(`É um pênalti AO CONTRÁRIO: quem bate é o ${rival}, e o goleiro é o do ${time}. Se o ${rival} ERRAR (ou o goleiro defender), o gol é do ${time}! Se fizer, ninguém ganha nada.`, `It is a penalty IN REVERSE: ${rival} shoots and ${time}'s keeper defends. If ${rival} MISSES (or it is saved), ${time} gets the goal! If they score, nobody gets anything.`)
   }
 }
-const ROLETA: CartaKingsTipo[] = ['penalti', 'shootout', 'suspensao', 'gol_dobro', 'estrela', 'penalti_inverso', 'coringa']
-export function CenaCarta({ carta, time, rival }: { carta: CartaKingsInfo; time: string; rival: string }) {
-  const r = cartaRotulo(carta.vale)
+const ROLETA: CartaKingsTipo[] = ['penalti', 'shootout', 'suspensao', 'gol_dobro', 'estrela', 'coringa'] // (10/11: as 6 cartas do Diego — sem o pênalti inverso)
+export function CenaCarta({ carta, time, rival, escolhe }: { carta: CartaKingsInfo; time: string; rival: string; /** 🃏 10/11: a carta é SUA e você escolhe (coringa: no que vira · suspensão: quem sai) */ escolhe?: 'coringa' | 'suspensao' }) {
+  const r = escolhe === 'coringa' ? cartaRotulo('coringa') : cartaRotulo(carta.vale)
   const coringa = carta.sorteada === 'coringa'
   // 🎰 a ROLETA: os itens passam rápido, vão freando e param no sorteado (tipo cassino) — aí a carta vira
   const [giro, setGiro] = useState(0)
@@ -229,13 +229,14 @@ export function CenaCarta({ carta, time, rival }: { carta: CartaKingsInfo; time:
         <div className="kc-carta">
           <div className="kc-carta-costas"><b>👑</b><span>KINGS<br />LEAGUE</span><small>{tr('CARTA SECRETA', 'SECRET CARD')}</small></div>
           <div className="kc-carta-frente">
-            <small style={{ color: GOLD }}>{coringa ? tr('🃏 CORINGA VIROU…', '🃏 JOKER TURNED INTO…') : tr('CARTA SORTEADA', 'CARD DRAWN')}</small>
+            <small style={{ color: GOLD }}>{escolhe === 'coringa' ? tr('🃏 CORINGA!', '🃏 JOKER!') : coringa ? tr('🃏 CORINGA VIROU…', '🃏 JOKER TURNED INTO…') : tr('CARTA SORTEADA', 'CARD DRAWN')}</small>
             <div style={{ ...OSW, fontSize: 52, lineHeight: 1.1 }}>{r.ic}</div>
             <b style={{ ...OSW, fontSize: 24, display: 'block' }}>{r.nome}</b>
           </div>
         </div>
       </div>
-      <Explica titulo={`🃏 ${r.nome}`} texto={cartaTexto(carta, time, rival)} />
+      <Explica titulo={`🃏 ${r.nome}`} texto={escolhe === 'coringa' ? tr('O coringa vira a carta que VOCÊ escolher. Escolha já já!', 'The joker becomes the card YOU pick. Pick it in a moment!')
+        : escolhe === 'suspensao' ? tr(`Você escolhe QUEM do ${rival} sai de campo por 4 minutos!`, `You pick WHO from ${rival} leaves the pitch for 4 minutes!`) : cartaTexto(carta, time, rival)} />
     </Palco>
   )
 }
@@ -291,6 +292,41 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
                 : tr('Toque pra onde o goleiro pula. Não tocou? O jogo pula sozinho.', 'Tap where the keeper dives. No tap? The game dives for you.')}
               {ajuda && duelo.tipo !== 'penalti_inverso' ? <><br />{ajuda}</> : null}
             </p>}
+      </div>
+    </Palco>
+  )
+}
+
+// ── 🃏 A ESCOLHA DA CARTA (10/11, Diego: *"suspensão de 1 jogador a sua escolha… coringa vc escolhe a carta"*): contagem igual à da
+//    cobrança; não tocou até zerar, fica o que o jogo sorteou. Depois mostra o que valeu.
+export const ESCOLHA_SEGUNDOS = 7
+export function CenaEscolhaKings({ titulo, ajuda, opcoes, escolhido, onEscolha }: {
+  titulo: string; ajuda: string; opcoes: { ic: string; nome: string }[]; /** o que está valendo agora (o sorteado, ou o que a pessoa tocou) */ escolhido: number | null; onEscolha: (i: number) => void
+}) {
+  const [seg, setSeg] = useState(ESCOLHA_SEGUNDOS)
+  const [toque, setToque] = useState<number | null>(null)
+  useEffect(() => {
+    const t0 = Date.now()
+    const iv = setInterval(() => { const x = Math.max(0, ESCOLHA_SEGUNDOS - Math.floor((Date.now() - t0) / 1000)); setSeg(x); if (x <= 0) clearInterval(iv) }, 200)
+    return () => clearInterval(iv)
+  }, [])
+  const fim = seg <= 0, vale = toque ?? (fim ? escolhido : null)
+  return (
+    <Palco tag={tr('🃏 SUA CARTA · VOCÊ ESCOLHE', '🃏 YOUR CARD · YOU PICK')} cor={PURPLE}>
+      <div style={{ background: INK, color: '#fff', border: `4px solid ${INK}`, borderRadius: 20, padding: 14, boxShadow: `5px 5px 0 ${PURPLE}` }}>
+        <p style={{ ...OSW, fontSize: 22, margin: 0, lineHeight: 1.1 }}>{titulo}</p>
+        {!fim && toque == null && <p style={{ ...OSW, fontSize: 28, margin: '6px 0 0', color: INK, background: GOLD, borderRadius: 12, display: 'inline-block', padding: '0 12px' }}>⏱️ {seg}</p>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
+          {opcoes.map((o, i) => (
+            <button key={i} disabled={toque != null || fim} onClick={() => { setToque(i); onEscolha(i) }}
+              style={{ ...OSW, fontSize: 15, padding: '9px 6px', borderRadius: 12, border: `3px solid ${vale === i ? GOLD : '#555'}`, background: vale === i ? GOLD : '#1c1c22', color: vale === i ? INK : '#fff', boxShadow: '2px 2px 0 #000', cursor: toque != null || fim ? 'default' : 'pointer', opacity: vale != null && vale !== i ? 0.45 : 1 }}>
+              {o.ic} {o.nome}
+            </button>
+          ))}
+        </div>
+        <p style={{ fontSize: 12.5, fontWeight: 700, margin: '8px 0 0', opacity: .9 }}>
+          {toque != null ? tr('✅ Escolhido!', '✅ Picked!') : fim ? tr('⏱️ Acabou o tempo: valeu o que o jogo sorteou.', '⏱️ Time is up: the game\'s draw stands.') : ajuda}
+        </p>
       </div>
     </Palco>
   )

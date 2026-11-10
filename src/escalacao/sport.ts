@@ -291,7 +291,9 @@ export function useAliciarJogador(): boolean {
 }
 
 // 👑 KINGS LEAGUE na Partida Rápida (15/10) — só a conta do Diego até ele aprovar (`docs/conceito-kings-league.md`)
-const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'luizeduardorossini0013@gmail.com', 'henriquejunger07@gmail.com']) // + Rossini Money (16/10) + henriquejunger07 (10/11), pedidos do Diego
+// 10/11 (Diego: *"por enquanto a kings poderá ver apenas eu e o henriquejunger07"*): o Rossini Money (16/10) saiu da lista.
+// O Campo 2D da Kings segue esta MESMA lista (`useKingsLiberada` no Botao2D e no LiveScoreCard).
+const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'henriquejunger07@gmail.com'])
 let kingsOk = false
 function applyKings(email?: string | null): void {
   const u = !!email && KINGS_TESTERS.has(email.toLowerCase())

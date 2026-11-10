@@ -29,6 +29,8 @@ import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado, useCampo2DTester } from './sport'
 import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu, alturaQuique, QUIQUE_DUR, esticaGoleiro, riscoCarrinho, casaAtacando, type BolaVista } from './campo2d-efeitos'
 import { playTrave } from './sound'
+import { emCampoKings, placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // 👑 quantos em campo a cada minuto da Kings (a MESMA conta da regra)
+import { MIN_BOLA, MIN_MATCHBALL } from './kings'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D, publicarTelaoCampo2D } from './campo2d-festa'
 import { alvoBandeirinhas, sinalDaBandeira, desenhaFotografos, desenhaBandeira, arredoresParaMapa, type CenaArredores } from './campo2d-arredores'
@@ -76,6 +78,9 @@ export interface Campo2DProps {
   estadio?: { grama: number; lotacao: number }
   /** 🎬 replay dos gols depois do apito (só fora do online — Diego 21/10) */
   replay?: boolean
+  /** 👑 KINGS LEAGUE (10/11, mockup `scripts/mockups/kings-campo2d.png`, Diego: *"aprovo"*): a arena escura, futebol 7, quem está em
+   *  campo minuto a minuto (1×1 … 7×7, dado), quem cumpre cartão, e a bola do fim. Só DESENHO: o placar continua o da regra da Kings. */
+  kings?: Kings2D
 }
 
 // 🎨 cor e tinta: luminância pra escolher letra clara/escura, e distância pra trocar a camisa do visitante
@@ -113,7 +118,8 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
   return out
 }
 
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis, kings }: Campo2DProps) {
+  const replay = replay0 && !kings // 👑 a Kings muda quem está em campo no meio do jogo: a fita (que guarda por posição na lista) não serve
   const t = useT()
   useEffect(() => { if(mapOnly)return;campoNaTela(1); return () => campoNaTela(-1) }, [mapOnly]) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
@@ -126,12 +132,13 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // 📻 26/10: no gol a faixa do locutor pisca (igual à rádio do placar cinema), na cor de quem marcou ⇄ creme —
   // e para JUNTO com a festa do gol (Diego: *"quando a mascote sai… o pisca para ao mesmo tempo"*)
   const piscaGol = festa ? { k: `${festa.lado}|${festa.autor}|${festa.min}`, lado: festa.lado } : null
-  const ultimos = useRef({ narra: '', festa: '', placar: [-1, -1] as [number, number] })
+  const ultimos = useRef({ narra: '', festa: '', placar: [-1, -1] as [number, number], bolaK: null as Kings2D['bola'] | null })
+  const [bolaK, setBolaK] = useState<Kings2D['bola'] | null>(null)
   const deitado = larg >= DEITADO_A_PARTIR
   // 🌤️ o céu deste jogo (preso na semente: a sala inteira vê o mesmo) — ☀️ sombra atravessando · ☁️ luz chapada · 🌧️ chuva (rara)
-  const clima = climaForcado ?? climaDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome))
+  const clima = kings ? 'nublado' : climaForcado ?? climaDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome))
   // 🌙 de vez em quando o jogo é de noite, com os refletores acesos (preso na semente, como o clima)
-  const noite = noiteForcada ?? noiteDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome)) // ✅ aprovado pelo Diego (21/10)
+  const noite = kings ? false : noiteForcada ?? noiteDoJogo(sementeDasChances(roundKey, casa.nome, fora.nome)) // ✅ aprovado pelo Diego (21/10)
   // 🌱🏟️ o estádio de quem joga em casa: o gramado melhora com as obras (terra → perfeito) e a torcida enche com as ampliações
   const gramaPct = clamp(estadio?.grama ?? 100, 0, 100) / 100
   const lotacao = clamp(estadio?.lotacao ?? 1, 0.04, 1)
@@ -210,8 +217,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // ✨ 07/11: efeitos de lance (trave · chapéu · onde a bola cai · goleiro voando · quique · risco do carrinho · torcida) — LIBERADOS PRA
   // TODOS no mesmo dia (*"publique tudo que falamos sobre o campo 2D"*). Voltar a ser só da conta do Diego: `useCampo2DTester()`.
   const efeitosLance = EFEITOS_LANCE_GERAL || tester2d
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance }
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance, kings })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance, kings }
 
   useEffect(() => {
     const el = caixa.current
@@ -388,6 +395,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         // ☁️ NUBLADO: luz chapada, sem sombra — só um cinza leve por cima
         g.fillStyle = 'rgba(120,130,150,.08)'; g.fillRect(fx, fy, fw, fh)
       }
+      // 👑 a ARENA da Kings: piso PRETO com um leve brilho roxo no meio (a mesma cara das cenas e do placar da Kings)
+      if (kings) {
+        g.fillStyle = '#07070c'; g.fillRect(fx, fy, fw, fh)
+        const [ax0, ay0] = tr(0, 0), [ax1, ay1] = tr(W, L), mx = (ax0 + ax1) / 2, my = (ay0 + ay1) / 2
+        const rg = g.createRadialGradient(mx, my, 0, mx, my, Math.max(Math.abs(ax1 - ax0), Math.abs(ay1 - ay0)) * 0.62)
+        rg.addColorStop(0, '#1a1630'); rg.addColorStop(1, '#08080e'); g.fillStyle = rg
+        g.fillRect(Math.min(ax0, ax1), Math.min(ay0, ay1), Math.abs(ax1 - ax0), Math.abs(ay1 - ay0))
+      }
       // linhas (na várzea a cal é mais fraquinha)
       g.strokeStyle = `rgba(255,255,255,${(0.62 + gramaPct * 0.28).toFixed(2)})`; g.lineWidth = Math.max(1.5, S * 0.35)
       g.strokeRect(...rect(0, 0, W, L))
@@ -406,6 +421,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           : (s > 0 ? [a, Math.PI - a] : [Math.PI + a, Math.PI * 2 - a])
         g.beginPath(); g.arc(mx, my, 9.15 * S, ang[0], ang[1]); g.stroke()
         for (const cxm of [0, W]) { const [ex, ey] = tr(cxm, y0); g.beginPath(); g.arc(ex, ey, 1 * S, 0, 7); g.stroke() } // escanteios
+      }
+      // 👑 o círculo do meio em NEON: azul (casa) e rosa (visitante), cada um na sua metade
+      if (kings) {
+        const [mx, my] = tr(34, L / 2), r = 9.15 * S, meio = deitado ? 0 : Math.PI / 2
+        for (const [cor, a0] of [['#2EE6FF', meio], ['#FF3DB8', meio + Math.PI]] as [string, number][]) {
+          g.save(); g.shadowColor = cor; g.shadowBlur = S * 2.2; g.strokeStyle = cor; g.lineWidth = Math.max(2.5, S * 0.7)
+          g.beginPath(); g.arc(mx, my, r, a0 - Math.PI / 2, a0 + Math.PI / 2); g.stroke(); g.restore()
+        }
       }
       torcida(g, null, 0)
       bandeirao(g)
@@ -489,6 +512,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
           jogo.bola.x = jogo.bolaAnt.x = qd.b[0]; jogo.bola.y = jogo.bolaAnt.y = qd.b[1]; jogo.bola.h = jogo.bolaAnt.h = qd.b[2]
         }
       } else {
+        // 👑 Kings: quem está em campo AGORA (1×1 … 7×7, dado) e quem cumpre cartão — antes do passo, pra o lance já sair com eles
+        const kg = vivo.current.kings
+        if (kg) {
+          const k = Math.floor(simMin * 40 / 93), n = Math.min(6, emCampoKings(k, kg.dado))
+          jogo.emCampo([n, n], kg.fora.filter(f => f.min <= simMin && k < f.ate).map(f => f.nome))
+          const bk = k >= (kg.matchBall ? MIN_MATCHBALL : MIN_BOLA) && kg.bola ? kg.bola : null
+          if (bk !== ultimos.current.bolaK) { ultimos.current.bolaK = bk; setBolaK(bk) }
+        }
         jogo.avancaAte(simMin)
         vivo.current.onSimulationMinute?.(simMin)
         // 📊😱 só CONTA o que a tela mostrou (não sorteia nada, não mexe no jogo)
@@ -527,7 +558,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       if (cena.placar[0] !== ult.placar[0] || cena.placar[1] !== ult.placar[1]) { ult.placar = [cena.placar[0], cena.placar[1]]; setPlacarV(ult.placar) }
       const fk = cena.festa ? `${cena.festa.lado}|${cena.festa.autor}|${cena.festa.min}` : ''
       if (fk !== ult.festa) {
-        ult.festa = fk; setFesta(cena.festa ? { lado: cena.festa.lado, autor: cena.festa.autor, assist: cena.festa.assist, min: cena.festa.min } : null)
+        ult.festa = fk; setFesta(cena.festa ? { lado: cena.festa.lado, autor: cena.festa.autor, assist: cena.festa.assist, min: vivo.current.kings ? placarParaK(cena.festa.min) : cena.festa.min } : null) // 👑 Kings: o minuto da Kings (0–40)
         if (replay && cena.festa && !vendo.current && fi.atual.length > 5) { fi.gols.push({ autor: cena.festa.autor, min: cena.festa.min, quadros: fi.atual.slice() }); setTemReplay(true) }
       }
       // 🙈 25/10 (Diego: *"gostei da ideia, 2D escondido tá errado"*): campinho ESCONDIDO (aba Clube/Central com o jogo por trás)
@@ -781,6 +812,20 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         desenharMarcadorCampo2D(cx,X,festaPen?Y-Math.abs(Math.sin(cena.t*11))*R*0.5:Y,R,{name:comNome.has(p)&&!igualMapa?p.nome:'',color:camisa,stripes:(p.lado===0?camCasa:camFora).listras,number:String(numero.get(p)??''),portrait:im,owned:penalti ? cena.atl.indexOf(p)===penalti.batedor : p===cena.bola.dono,step:correndo?Math.sin(cena.t*14+p.bx):0})
       }
       for (const [X, Y, nome] of nomesPorCima) desenharNomeCampo2D(cx, X, Y, R, nome)
+      // 👑 o BANCO da Kings, na lateral: quem ainda não entrou (apagadinho) e quem cumpre cartão (com o cartão do lado)
+      const kgB = vivo.current.kings
+      if (kgB && jogo.banco.length) {
+        const kNow = Math.floor(simMin * 40 / 93), cartao = new Map(kgB.fora.filter(f => f.min <= simMin && kNow < f.ate).map(f => [f.nome, f.cor]))
+        for (const l of [0, 1] as const) jogo.banco.filter(p => p.lado === l).forEach((p, i) => {
+          const [X, Y] = tr(l === 0 ? -PADX * 0.45 : W + PADX * 0.45, L / 2 + (l === 0 ? 1 : -1) * (5 + i * 3.4)), rr = R * 0.62, cor = cartao.get(p.nome)
+          const a0 = cx.globalAlpha; cx.globalAlpha = cor ? 0.95 : 0.5
+          cx.beginPath(); cx.arc(X, Y, rr, 0, 7); cx.fillStyle = l === 0 ? corCasa : corFora; cx.fill(); cx.lineWidth = 2; cx.strokeStyle = claro(l === 0 ? corCasa : corFora) ? INK : '#e9e9f2'; cx.stroke()
+          cx.font = fonte(Math.max(7, rr * 1.05)); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillStyle = claro(l === 0 ? corCasa : corFora) ? INK : '#fff'
+          cx.fillText(String(numero.get(p) ?? ''), X, Y + 0.5); cx.textBaseline = 'alphabetic'
+          if (cor) { cx.fillStyle = cor === 'amarelo' ? '#FFC400' : '#E8503A'; cx.fillRect(X + rr * 0.6, Y - rr * 1.2, rr * 0.75, rr * 1.05); cx.strokeRect(X + rr * 0.6, Y - rr * 1.2, rr * 0.75, rr * 1.05) }
+          cx.globalAlpha = a0
+        })
+      }
       // 🎩 quem levou o chapéu fica olhando a bola passar por cima
       if (fxOn && fx.chapeu) {
         const q = pos.get(fx.chapeu.a)
@@ -817,7 +862,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         // (💥 o rastro de fogo do chute forte saiu em 07/11: *"não quero fogo no chute"* — fica só a rede balançando mais no gol de longe)
         cx.beginPath(); cx.ellipse(bx + bh * 0.25, by + rb * 0.55, rb * (1 - Math.min(0.4, bh / 120)), rb * 0.45, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.38)'; cx.fill()
         const cy = by - bh
-        cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.fillStyle = '#fff'; cx.fill()
+        const corBolaK = vivo.current.kings && ultimos.current.bolaK ? (ultimos.current.bolaK === 'vermelha' ? '#ff2b2b' : '#FFC400') : null
+        if (corBolaK) { cx.save(); cx.shadowColor = corBolaK; cx.shadowBlur = rb * 2.5; cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.fillStyle = corBolaK; cx.fill(); cx.restore() }
+        cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.fillStyle = corBolaK ?? '#fff'; cx.fill()
         const giro = (bolaVis.x + bolaVis.y) * 0.9
         cx.save(); cx.beginPath(); cx.arc(bx, cy, rb, 0, 7); cx.clip(); cx.fillStyle = '#151515'
         for (let k = 0; k < 4; k++) { const a = giro + k * 1.75, rr = k ? rb * 0.95 : 0, gx = bx + Math.cos(a) * rr, gy = cy + Math.sin(a) * rr, g5 = rb * (k ? 0.36 : 0.42)
@@ -902,11 +949,14 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         {!deitado && <PlacaGol lado="cima" alt={altPlaca} />}
         <div style={{ position: 'relative' }}>
           <canvas ref={cv} style={{ display: 'block' }} />
+          {/* 👑 Kings: o escudo de cada time PROJETADO no chão da sua metade (a casa defende embaixo/à direita) e o brilho da bola do fim */}
+          {kings && [casa, fora].map((lado, i) => lado.escudo ? <div key={i} aria-hidden style={{ position: 'absolute', pointerEvents: 'none', opacity: 0.16, transform: 'scale(1.6)', filter: 'grayscale(.2)', ...(deitado ? { top: '50%', marginTop: -55, [i === 0 ? 'right' : 'left']: '22%' } : { left: '50%', marginLeft: -55, [i === 0 ? 'bottom' : 'top']: '25%' }) }}>{lado.escudo}</div> : null)}
+          {kings && bolaK && <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', boxShadow: `inset 0 0 ${Math.round(larg / 9)}px ${bolaK === 'vermelha' ? '#ff2b2b' : '#FFC400'}` }} />}
           {/* 📺 o "selo da TV": placar e minuto do que o campinho JÁ mostrou (o placar só muda quando a bola entra).
               🥅 07/11: na disputa de pênaltis, com o campinho em pé (celular), o selo desce pro canto de BAIXO — em cima ele
               cobria o auxiliar da esquerda, e lá embaixo (o outro gol) não acontece nada durante a disputa */}
           <div style={{ position: 'absolute', left: 8, ...(placarPenV && !deitado ? { bottom: 8 } : { top: 8 }), ...OSW, fontSize: deitado ? 15 : 12, background: INK, color: '#fff', border: '2px solid #fff', borderRadius: 8, padding: deitado ? '3px 10px' : '2px 8px', display: 'flex', gap: 6, alignItems: 'center', pointerEvents: 'none' }}>
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{placarPenV ? `${t('PÊN', 'PENS')} ${placarPenV[0]}–${placarPenV[1]}` : fechado ? t('FIM', 'FT') : `${Math.min(90, minuto)}'`}</span>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: corCasa, border: '1px solid #fff' }} />{sigla(casa.nome)} <b style={{ color: GOLD }}>{placarV[0]} × {placarV[1]}</b> {sigla(fora.nome)}<span style={{ width: 8, height: 8, borderRadius: 2, background: corFora, border: '1px solid #fff' }} /><span style={{ opacity: .8 }}>{placarPenV ? `${t('PÊN', 'PENS')} ${placarPenV[0]}–${placarPenV[1]}` : fechado ? t('FIM', 'FT') : `${kings ? placarParaK(minuto) : Math.min(90, minuto)}'`}</span>
           </div>
           <Telao2D deitado={deitado} larg={larg} gol={telao} casa={casa} fora={fora} />
         </div>

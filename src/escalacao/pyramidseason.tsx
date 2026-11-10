@@ -35,7 +35,7 @@ import type {DecisaoJogo} from './presidencia-lotacao-jogo'
 import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from './presidencia-complexo-jornada'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {divisaoDaFesta,ULTIMA_RODADA_LIGA} from './presidencia-complexo-final-regras'
-import { placarParaK } from './kings-liga'
+import { placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // ⏱️ 10/11: na tela o relógio da Kings para no 36' (match ball)
 import {usePartidaNoMapa,partidaPublicada,reinicioPartidaPendente} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio,EstadoPartidaEstadio} from './presidencia-partida-model'
 import {criarRelogioLance} from './presidencia-lance-tempo'
@@ -113,7 +113,7 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, useStatsPlacar } from './sport'
+import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, useStatsPlacar, useKingsLiberada } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
@@ -3307,8 +3307,8 @@ export function LiveScoreCard(props: Parameters<typeof LiveScoreCardBody>[0]) {
   const mine=!!club&&!props.neutro&&[props.homeName,props.awayName,props.homeOwner,props.awayOwner].includes(club)
   return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props}/></OwnerPrimary>
 }
-function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
-  { /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm, kings2d }:
+  { /** 👑📺 10/11: a partida da Kings pro Campo 2D (quem está em campo, cartões, bola do fim) */ kings2d?: Kings2D; /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3339,7 +3339,9 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // campinho 2D em si também tinha ficado só na conta dele. O 2D volta à régua de sempre (`useCampo2DLigado`): na sala online
   // quem manda é a sala (todo mundo vê igual, convidado nunca paga); fora dela, quem está liberado e pagou.
   const presidentFieldAccount = usePresidentPreview()
-  const c2d = useCampo2DLigado() && !basket
+  // 👑 Kings: o 2D só com os dados da partida dela (senão seria o campinho de 11) e, por enquanto, só na conta de teste (10/11)
+  const kings2dOk = useKingsLiberada() // as mesmas contas que veem a Kings (10/11)
+  const c2d = useCampo2DLigado() && !basket && (!relogioKings || (kings2dOk && !!kings2d))
   const statsPlacar = useStatsPlacar() // 📊 07/11: estatísticas no apito do placar cinema (só a conta do Diego até ele aprovar)
   const c2dX = useCampo2DExtras()
   const abaixoDosGols = useContext(AbaixoDosGolsCtx)
@@ -3797,7 +3799,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
-      estadio={c2dX.estadioDe(homeName)} replay={c2dX.offline} />
+      estadio={c2dX.estadioDe(homeName)} replay={c2dX.offline} kings={relogioKings ? kings2d : undefined} />
   ) : null
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
   // ⚽ 25/10 (Diego: *"embaixo do comentarista… vem gols que não tô vendo no 2D"*): os gols do jogo embaixo do campinho, igual ao

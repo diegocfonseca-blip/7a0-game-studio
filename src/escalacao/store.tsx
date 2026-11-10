@@ -5015,7 +5015,9 @@ function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => numb
 /** 👑 refaz um jogo da Kings com a escolha de canto da pessoa; devolve o jogo novo (ou null se não deu) */
 function refazJogoKings(s: EscState, r: MatchResult, key: string, canto: number, scorers: ScorerRow[], assists: AssistRow[]): MatchResult | null {
   const b = r.kingsBase
-  if (!b || b.decisoes[key] != null || !(r.kings?.duelos ?? []).some(d => d.key === key)) return null
+  // 🃏 10/11: além do canto da cobrança, as ESCOLHAS de carta (coringa: no que vira · suspensão: quem do rival sai)
+  const escolhaCarta = /^(coringa|susp):[ha]$/.test(key) && (r.kings?.cartas ?? []).some(c => (c.teamId === r.homeId ? 'h' : 'a') === key.slice(-1) && (key.startsWith('coringa') ? c.sorteada === 'coringa' : c.vale === 'suspensao'))
+  if (!b || b.decisoes[key] != null || (!escolhaCarta && !(r.kings?.duelos ?? []).some(d => d.key === key))) return null
   tiraListas(scorers, b.art, assists)
   const novo: MatchResult = { ...r, highlights: [] }
   const base: KingsBase = { ...b, decisoes: { ...b.decisoes, [key]: canto } }

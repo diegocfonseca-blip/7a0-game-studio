@@ -138,3 +138,32 @@ esperar 2 minutos lá fora"*.
 - **Rádio**: nas fases de campo aberto (1×1 até 6×6 e a do dado) tem uma frase por minuto da Kings, todas com nome de
   jogador (banco `KINGS_FASE`); no resto, a Kings prefere as frases com jogador. Tudo SÓ na Kings.
 - Trava: `npm run kings-regras` confere giro, cartões e o % de frases com nome.
+
+## 📺 10/11 — CAMPO 2D DA KINGS (mockup `scripts/mockups/kings-campo2d.png`, Diego: *"aprovo… 2d como falei p desktop mantendo padrão e dispositivo móvel"*)
+- O MESMO campinho 2D (`Campo2D`), deitado no computador e em pé no celular, com a prop `kings` (`Kings2D`, montada por `kings2DDe` em
+  `kings-liga.ts` a partir do `KingsInfo` da partida). Só DESENHO: gols, cartões e resultado continuam os da regra da Kings.
+- Arena: piso preto com brilho roxo, linha branca, círculo do meio em NEON (azul da casa · rosa do visitante), o escudo de cada time
+  projetado no chão da sua metade. Sem chuva e sem noite.
+- Futebol 7 no motor (`tamanhoDoTime('kings') = 7`). Quem está em campo segue `emCampoKings` (1×1 … 7×7 e o dado; de linha = no máx. 6);
+  quem não está vai pro `banco` do `Jogo2D` (`emCampo`) e aparece na lateral, apagadinho. Cartão e carta de suspensão: o jogador vai pro
+  banco com o cartão do lado e o time joga com um a menos.
+- Do 38' da Kings em diante: bola vermelha/dourada com brilho e a borda do campo na cor. Selo da TV e "GOOOL" com o minuto da Kings.
+- Banners, faixa EM CAMPO e faixa dos efeitos continuam os de sempre (ficam fora do placar). Replay dos gols fica DESLIGADO na Kings.
+- 🔒 Só pras contas que veem a Kings (`useKingsLiberada`: Diego + henriquejunger07, 10/11 — o Rossini Money saiu da lista a pedido do Diego). Pros outros o botão do 2D some na Kings.
+- Medido: 200 jogos sem tela — 0 erro, placar do campinho = placar da regra em todos, nunca mais de 7 em campo. Fotos reais:
+  `scripts/mockups/kings-2d-real-*.png`.
+
+## 🔁 10/11 — REGULAMENTO NOVO (Diego mandou o print: *"17 até 20 gol vale 2 · 20 ao 23 vira o dado · 36 acaba o jogo (se empatar = shootout) se alguém tiver ganhando tipo 7-5 quem fizer 8 ganha"*)
+- ✖️2 **17'–20'**: todo gol dos DOIS times vale 2 (linha "✖️2 DO 17' AO 20'"; o que já vale 2 pela carta não dobra de novo).
+- 🎲 **Dado 20'–23'** (começo do 2º tempo): intervalo no 20', depois o dado, e no 23' volta o 7×7 (`MIN_DADO`/`MIN_DADO_FIM`).
+- ⏱️ **MATCH BALL no 36'** (`KingsInfo.mb`): o relógio da TELA para no 36' (`placarParaKTela`). Empatado → SHOOTOUT direto (nada depois
+  vale). Alguém na frente → vence quem chegar primeiro a líder + 1 (7×5 → quem fizer 8); o gol que decide acaba o jogo, o resto some do
+  placar e da artilharia; se ninguém decidir no tempo que sobra, quem está na frente faz o gol que fecha. A bola dourada/vermelha do 38'
+  SAIU (jogos já jogados seguem com o `bola` antigo).
+- 🃏 **As 6 cartas** que ele mandou: Gol 2× · Shootout · Jogador estrela · Pênalti · Coringa · Suspensão. O PÊNALTI INVERSO saiu da roleta.
+- Travas: `npm run kings` e `npm run kings-regras` (match ball empatado/na frente, jogo montado, 17–20, cartas).
+- 🃏 **Cartas, do jeito que o Diego descreveu (10/11)**: Gol em dobro 4 min · Pênalti · Shootout (iguais) · **Suspensão = VOCÊ escolhe
+  quem do rival sai 4 min** (`susp:h|a`) · **Coringa = VOCÊ escolhe a carta** (`coringa:h|a`, opções `OPCOES_CORINGA`; coringa que vira
+  suspensão pede as duas escolhas) · **Jogador estrela = TODO gol dele vale 2 até o 36'** (antes: só o próximo). Bot continua sorteando.
+  A escolha usa o MESMO caminho do canto do pênalti (`KINGS_DECIDIR` → `refazJogoKings`, mesma semente) e a cena `CenaEscolhaKings`
+  tem 7 s de contagem (não tocou = vale o sorteio). Se a escolha traz uma cobrança, o relógio refaz a lista de cenas e ela aparece em seguida.

@@ -62,7 +62,12 @@ export function semisKings(semiDireto: number, vencQuartas: [number, number, num
 }
 
 // ── a partida ────────────────────────────────────────────────────────────────────────────────────────────────
-export const MIN_DADO = 18            // 🎲 o dado: 2 ou 3 por time até o intervalo
+// 🔁 10/11 (Diego, regulamento novo da Kings Brasil): gol vale 2 do 17' ao 20' · o dado do 20' ao 23' (começo do 2º tempo) ·
+// no 36' o relógio PARA: empatado = shootout; alguém na frente (7×5) = vence quem chegar primeiro a 8 (o "match ball").
+export const MIN_DADO = 20            // 🎲 o dado: 1×1 · 2×2 · 3×3 do 20' ao 23'
+export const MIN_DADO_FIM = 23
+export const MIN_GOL_DOBRO = 17       // ✖️2 todo gol vale 2 do 17' ao 20'
+export const MIN_MATCHBALL = 36       // ⏱️ o relógio para
 export const MIN_INTERVALO = 20
 export const MIN_BOLA = 38            // 🟡 dourada (empate) · 🔴 vermelha (alguém na frente)
 export const MIN_FIM = 40
