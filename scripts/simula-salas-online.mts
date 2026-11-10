@@ -10,6 +10,7 @@
 // uso: npx tsx scripts/simula-salas-online.mts [--seeds 50] [--cenario nome] [--seed N] [--verbose]
 import { reducer, INITIAL, sanitize, tiraBioDoRadio, poeBioDoRadio, openSlots, montePickable, paPodeLancar, paMinimo, paMesasAtivas, paMesa, assentoDoCracha, sortedTable } from '../src/escalacao/store'
 import { pack, unpack, packCom, unpackCom } from '../src/escalacao/netpack'
+import { criaEmissor, criaReceptor, type PacoteCheio, type PacotePedaco } from '../src/escalacao/radio-pedaco'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from '../src/escalacao/types'
 import type { EscState, Manager, Card } from '../src/escalacao/types'
 import { cartasLivres, nomesOcupados, chaveCarta, chaveNome, cartaPermitidaDraft, podemSairMinha, MLD_ELENCO_MAX } from '../src/escalacao/liga-draft'
@@ -42,6 +43,7 @@ type Cli = {
   ultimoEstado: number; acaoPendente: number
   saiEm?: number; recarregaEm?: number; afk: number // 0..1 chance de não agir na vez
   dupla?: { owner: string } // eu sou parceiro do dono `owner`
+  rx?: ReturnType<typeof criaReceptor<EscState>> // 📡✂️ receptor do rádio em pedaços (zera no F5)
   velho?: boolean // 🗂️ aba VELHA aberta (versão de antes da bio fora do rádio): lê o pacote sem pôr a bio de volta
 }
 type Msg = { t: number; seq: number; run: () => void }
@@ -261,13 +263,25 @@ export function relatorioMedida() {
   const somaC = Object.values(campos).reduce((a, b) => a + b, 0)
   for (const [c, v] of Object.entries(campos).sort((a, b) => b[1] - a[1]).slice(0, 20)) console.log(`    ${c.padEnd(26)} ${(100 * v / somaC).toFixed(1)}%`)
 }
+// 📡✂️ --pedacos: o dono manda a base cheia de vez em quando e, no meio, só o que mudou desde ela (radio-pedaco.ts)
+const PEDACOS = process.argv.includes('--pedacos')
+let EMI = criaEmissor(tiraBioDoRadio)
+let bytesPedaco = 0, nCheios = 0, nPedacos = 0, nPedidos = 0
 function transmite(porque: string, so?: Cli) {
   if (!H.vivo) return
   estadoEnviadoAte = NOW
   if (MEDIR) { const n = (so ? [so] : G).filter(g => g.vivo).length; mede(H.st, n); porMotivo[porque] = (porMotivo[porque] ?? 0) + n }
   const txt = pacote(H.st)
   const tHost = NOW
-  for (const g of (so ? [so] : G)) {
+  let pac: PacoteCheio | PacotePedaco | null = null
+  let alvo = so ? [so] : G
+  if (PEDACOS) {
+    // quem pede o estado ganha uma BASE nova — e base nova vai pra sala TODA (o pedido do código de verdade também é respondido no canal aberto)
+    const r = EMI.emite(JSON.parse(cacheTxt), porque === 'request_state' || porque === 'largada')
+    pac = 'cheio' in r ? r.cheio : r.pedaco
+    if ('cheio' in r) { alvo = G; nCheios++ } else nPedacos++
+  }
+  for (const g of alvo) {
     if (!g.vivo) continue
     if (chance(0.06)) continue // perdeu no caminho
     const ger = g.geracao
@@ -275,10 +289,29 @@ function transmite(porque: string, so?: Cli) {
     const dt = entre(40, 900)
     const quando = Math.max(NOW + dt, (g as Cli & { _ult?: number })._ult ?? 0)
     ;(g as Cli & { _ult?: number })._ult = quando
+    if (pac) {
+      const p = pac, esperado = txt
+      bytesPedaco += 'z' in p ? p.z.length : p.d.length
+      fila.push({ t: quando, seq: seqN++, run: () => { if (g.vivo && g.geracao === ger) recebePedaco(g, p, esperado, tHost) } })
+      continue
+    }
     const meu = g.velho ? cacheVelho : txt
     fila.push({ t: quando, seq: seqN++, run: () => { if (g.vivo && g.geracao === ger) convidadoRecebe(g, meu, tHost) } })
   }
   void porque
+}
+function recebePedaco(g: Cli, p: PacoteCheio | PacotePedaco, esperado: string, t: number) {
+  g.rx ??= criaReceptor<EscState>(poeBioDoRadio)
+  let r: EscState | 'pede' | null
+  try { r = g.rx.recebe(p) } catch (e) { falha('PEDACO-CRASH', (e as Error).message); return }
+  if (r === null) return
+  if (r === 'pede') { nPedidos++; if (pode(g, 'reqP', 3000)) agenda(entre(50, 600), () => { if (H.vivo) transmite('request_state', g) }); return }
+  if (ordena(r) !== ordena(JSON.parse(esperado))) { falha('PEDACO-DIFERENTE', `${g.uid} montou uma sala diferente da do dono (${'z' in p ? 'base' : 'pedaço'} ${p.s})`); return }
+  convidadoRecebe(g, JSON.stringify(r), t)
+}
+export function relatorioPedacos() {
+  if (!PEDACOS) return
+  console.log(`📡✂️ em pedaços: ${(bytesPedaco / 1e6).toFixed(2)} MB · ${nCheios} bases · ${nPedacos} pedaços · ${nPedidos} "não tenho a base"`)
 }
 
 // ─── o convidado recebe o estado (SYNC_STATE + auto-cura do provider) ──────
@@ -565,7 +598,7 @@ function novoLeilao() {
 function recarrega(g: Cli) {
   if (!g.vivo || !dbSnap) return
   g.geracao++ // o que estava no caminho pra aba velha some
-  g.myMgrId = null; g.lastRoom = undefined; g.cool = {}
+  g.myMgrId = null; g.lastRoom = undefined; g.cool = {}; g.rx = undefined
   const linha = roomPlayers.find(p => p.uid === g.uid)
   if (!linha) return
   const gs = JSON.parse(JSON.stringify(sanitize(dbSnap.st))) as EscState
@@ -612,7 +645,7 @@ function corre(cen: Cenario, seed: number) {
   NOW = 1_800_000_000_000 + seed * 3_600_000; T0 = NOW
   fila = []; seqN = 0; trilha = []; acabou = false; temporadasJogadas = 0; fimDecidido = -1; jaChecouTemporada = ''; vistosDraftOrdem = ''
   for (const k of Object.keys(ultimo)) delete ultimo[k]
-  envioMarcado = false; cacheSrc = null; dbSnap = null; parado = false
+  envioMarcado = false; cacheSrc = null; dbSnap = null; parado = false; EMI = criaEmissor(tiraBioDoRadio)
   const nH = pega(cen.humanos)!
   // assentos: em duplas, pares (dono, parceiro) + talvez um solo
   const pessoas: { uid: string; nome: string; partnerOf?: string }[] = []
@@ -750,5 +783,6 @@ for (const [k, fs] of porTipo) {
   if (process.argv.includes('--trilha')) for (const l of f.trilha) console.log(`     ${l}`)
 }
 if (MEDIR) relatorioMedida()
+relatorioPedacos()
 console.log(`\n⏱️ ${((tReal() - t00) / 1000).toFixed(1)}s · ${falhas.length ? `${falhas.length} falha(s)` : 'nenhuma falha'}`)
 process.exit(falhas.length ? 1 : 0)

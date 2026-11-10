@@ -256,6 +256,10 @@ export function unpackCom<T = unknown>(packed: string, reviver: (this: unknown, 
   return JSON.parse(json || 'null', reviver) as T
 }
 
+/** 📡 texto JSON já pronto → comprimido, e de volta pro texto (rádio em pedaços: guarda a base como texto) */
+export function packTxt(json: string): string { return compressToBase64(json) }
+export function unpackTxt(packed: string): string { return decompressFromBase64(packed) || 'null' }
+
 export function unpack<T = unknown>(packed: string): T {
   const json = decompressFromBase64(packed)
   return JSON.parse(json || 'null') as T
