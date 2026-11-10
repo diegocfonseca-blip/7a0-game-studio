@@ -6,13 +6,14 @@ import logo from './img/logo-ll.webp'
 import './career-start-guide.css'
 import './career-setup-guide.css'
 
-export function CareerSetupFrame({step,club,onBack,children}:{step:1|2|3;club:string;onBack:()=>void;children:ReactNode}){
+// 🏀 10/11: o basquete usa a MESMA moldura (marca, etapas e topo próprios); sem essas props, o futebol fica igual.
+export function CareerSetupFrame({step,club,onBack,children,etapas,topo,marca}:{step:number;club:string;onBack:()=>void;children:ReactNode;etapas?:string[];topo?:string;marca?:{nome:string;frase:string;sigla?:string}}){
  const t=useT(),perk=myApoioPerk()??APOIO_PERKS.bege,frame=useRef<HTMLElement>(null)
  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});const heading=frame.current?.querySelector('h1');heading?.setAttribute('tabindex','-1');heading?.focus({preventScroll:true})},[step])
- const labels=[t('Seu clube','Your club'),t('Presidente','President'),t('Rivais','Rivals'),t('Aprender','Learn')]
+ const labels=etapas??[t('Seu clube','Your club'),t('Presidente','President'),t('Rivais','Rivals'),t('Aprender','Learn')]
  return <main className="cse-frame" ref={frame}>
-  <header className="csg-brand"><div><img src={logo} alt=""/><span><b>LEILÃO LEGENDS</b><small>{t('O SEU TIME COMEÇA NO LANCE.','YOUR TEAM STARTS WITH A BID.')}</small></span></div><span style={{background:perk.grad,color:['verde','roxo'].includes(perk.tier)?'#fff':'#0c0c0c'}}>{club||t('Nova carreira','New career')}</span></header>
-  <div className="csg-topline"><button type="button" onClick={onBack}>← {step===1?t('Menu inicial','Main menu'):t('Voltar','Back')}</button><span>{t('NOVA CARREIRA · VÁRZEA','NEW CAREER · VÁRZEA')}</span></div>
+  <header className="csg-brand"><div>{marca?.sigla?<span className="ov3-sigla" aria-hidden="true">{marca.sigla}</span>:<img src={logo} alt=""/>}<span><b>{marca?.nome??'LEILÃO LEGENDS'}</b><small>{marca?.frase??t('O SEU TIME COMEÇA NO LANCE.','YOUR TEAM STARTS WITH A BID.')}</small></span></div><span style={{background:perk.grad,color:['verde','roxo'].includes(perk.tier)?'#fff':'#0c0c0c'}}>{club||t('Nova carreira','New career')}</span></header>
+  <div className="csg-topline"><button type="button" onClick={onBack}>← {step===1?t('Menu inicial','Main menu'):t('Voltar','Back')}</button><span>{topo??t('NOVA CARREIRA · VÁRZEA','NEW CAREER · VÁRZEA')}</span></div>
   <ol className="csg-steps" aria-label={t('Etapas da nova carreira','New career steps')}>{labels.map((label,i)=><li key={label} className={i+1===step?'on':i+1<step?'done':''} aria-current={i+1===step?'step':undefined}><span>{i+1<step?'✓':i+1}</span><b>{label}</b></li>)}</ol>
   {children}
  </main>

@@ -67,6 +67,7 @@ import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-mod
 import {CriarClubePresidencia} from './presidencia-criar-clube'
 import {CareerSetupFrame,CareerRivalsSetup} from './career-setup-guide'
 import {identidadeDaConta} from './presidencia-identidade-conta'
+import { NbaCriarCarreira } from './nba-criar-carreira' // 🏀 nova carreira do basquete no passo a passo (10/11)
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
@@ -1764,6 +1765,10 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
     dispatch({ type: 'START_NBA_CAREER', teamName: limpo || t('Meu Time', 'My Team') })
   }
   const botao = (bg: string, fg: string) => ({ background: bg, color: fg, border: `2px solid ${INK}`, borderRadius: 9, fontWeight: 900, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' as const })
+  // 🏀 10/11: nova carreira = a MESMA página passo a passo da carreira do futebol (Seu time → A liga), não mais a janelinha
+  if (nomeando) return <NbaCriarCarreira nome={nome} onNome={v => { setNome(stripEmoji(v)); setNomeErr('') }} erro={nomeErr} checando={checando}
+    onComecar={() => void comecar()} onVoltar={() => list.length > 0 && !comecaNova ? setNomeando(false) : onClose()}
+    avisoAparelho={aviso ? t('⚠️ Seu aparelho ficou sem espaço pra guardar a carreira atual. NADA foi apagado. Apague uma carreira que não usa mais em Minhas carreiras e tente de novo.', '⚠️ Your device ran out of room to keep your current career. NOTHING was deleted. Delete a career you no longer use in My careers and try again.') : undefined} />
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 440, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, color: INK }}>

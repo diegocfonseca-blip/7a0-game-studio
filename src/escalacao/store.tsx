@@ -174,7 +174,7 @@ const NBA_RESERVE_BUDGET = 50
 // 🛝 times da STREET LEAGUE (a base amadora = streetball): 20 CREWS DE QUADRA DE
 // RUA — NÃO franquias da NBA (essas ficam pro topo da pirâmide, a NBA de verdade).
 // É o espelho da Série D do futebol (times de várzea, não Flamengo/Palmeiras).
-const NBA_STREET_TEAMS: { team: string; name: string }[] = [
+export const NBA_STREET_TEAMS: { team: string; name: string }[] = [
   'Rucker Kings', 'Dyckman Ballers', 'Blacktop Kings', 'Concrete Jungle', 'Asphalt Assassins',
   'Ankle Breakers', 'Rim Rockers', 'Crossover Kingz', 'Downtown Ballers', 'Cage Fighters',
   'Uptown Hustlers', 'Halfcourt Heroes', 'Sidewalk Slammers', 'Backboard Bullies', 'And-One Army',
