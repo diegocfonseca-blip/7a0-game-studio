@@ -13219,6 +13219,6 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
   (listras do time de coração ou o pano do clube) + selo "❤️ TEMA FLAMENGO" no topo. Escudo, mascote e troféu continuam os do campeão.
   Todo mundo da sala vê. Lê `game_rooms.host_id` + `game_state->tema` UMA vez quando há festa. (`temaDaFesta` em temas-sala.tsx,
   prop `tema` no `FestaCampeao`, screens.tsx.) Foto real: `scripts/mockups/festa-tema-flamengo-real.png`.
-- ⏳ Falta: publicar na main (esperando ordem do Diego). A tela "ov3" (só conta do Diego, `useOwnerLayout`) ainda NÃO mostra o tema.
+- ✅ Publicado na main em 10/11 (ordem do Diego: *"publique"*), junto com o escudo grande na sala e o escudo pequeno na festa. A tela "ov3" (só conta do Diego, `useOwnerLayout`) ainda NÃO mostra o tema.
 - 🚫 Recusados no mesmo dia: tema no cartão da lista de salas (*"gostei não"*). Tema na HOME do dono: mockup feito, ele não aprovou.
 - ✅ Tema ❤️ Flamengo dado na conta do Diego (Neymarzetti), `esc_temas_conta` id 11, origem manual.
