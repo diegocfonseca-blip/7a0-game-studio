@@ -22,7 +22,7 @@ As alterações reduzem consultas repetidas e trabalho desnecessário. Não redu
 ## Validação
 
 - Build completo e TypeScript aprovados.
-- `node scripts/teste-custos-salas/criacao.mjs`: 69 verificações no código real extraído do lobby, com respostas simuladas; inclui falhas, cota, clique duplo, resposta perdida, recuperação e configurações dos modos/competições.
+- `node scripts/teste-custos-salas/criacao.mjs`: 73 verificações no código real extraído do lobby, com respostas simuladas; inclui falhas, cota, clique duplo, resposta perdida, troca de conta com requisição pendente, recuperação e configurações dos modos/competições.
 - `node scripts/teste-custos-salas/nomes.mjs`: 3 verificações de agrupamento e recuperação após erro.
 - `PGLITE_MODULE=<caminho do módulo PGlite> node scripts/teste-custos-salas/banco.mjs`: 24 verificações PostgreSQL isoladas de equivalência, invalidação, permissões, RLS, atomicidade e preservação de cotas.
 - `node scripts/teste-custos-salas/browser.mjs`: tela real em 390 e 1440 px; prazo com aviso, botão destravado, atualização recupera o mesmo UUID, uma sala/um dono, sem erro de página ou rolagem horizontal. Todas as conexões externas bloqueadas no teste.

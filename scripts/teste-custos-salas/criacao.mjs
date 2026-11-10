@@ -52,6 +52,17 @@ for(const fault of ['none','hang-read','throw-read','hang-device','lost-response
   ok(s.server.rooms.length===1&&s.server.seats.length===1,'Repetir não duplica sala nem dono')
  }
 }
+// Executa a limpeza real do useEffect: sair/trocar de conta durante resposta perdida.
+const tree=ts.createSourceFile('lobby.tsx',src,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let cleanupBody
+function findCleanup(n){if(ts.isCallExpression(n)&&n.expression.getText(tree)==='useEffect'&&n.arguments[1]?.getText(tree)==='[user?.id]'&&ts.isArrowFunction(n.arguments[0])&&ts.isArrowFunction(n.arguments[0].body))cleanupBody=n.arguments[0].body.body.getText(tree);ts.forEachChild(n,findCleanup)}findCleanup(tree)
+assert.ok(cleanupBody,'Limpeza real da criação encontrada')
+reset();const switching=scenario('lost-response'),oldTask=switching.create();await tick(1)
+ok(switching.local.loading&&switching.server.rooms.length===1,'Troca de conta acontece com resposta pendente')
+const cleanup=new Function('criacaoRef','setLoading',cleanupBody);cleanup(switching.local.criacaoRef,switching.values.setLoading)
+ok(!switching.local.loading&&switching.local.criacaoRef.current===null,'Troca de conta cancela a operação e destrava o botão')
+ok(leCriacaoPendente(uid,'leilao')!==null&&leCriacaoPendente('outra-conta','leilao')===null,'Troca conserva a tentativa só na conta original')
+switching.local.criacaoRef.current={};switching.local.loading=true;await oldTask
+ok(switching.local.loading&&switching.local.error==='', 'Resposta cancelada não muda loading nem erro de uma nova operação')
 reset();const double=scenario();await Promise.all([double.create(),double.create()]);ok(double.server.rooms.length===1,'Clique duplo executa uma só criação')
 reset();const pending={v:1,id:novoIdCriacao(),code:'ABC234',at:Date.now()};gravaCriacaoPendente(uid,'leilao',pending)
 const started=scenario('none',{rooms:[{id:pending.id,code:pending.code,host_id:uid,status:'started',game_state:{__game:'leilao',round:18}}],seats:[]});await started.create();ok(started.local.resume?.game_state.round===18,'Retoma sem recomeçar partida iniciada');ok(!started.local.calls.some(x=>x.rpc),'Partida iniciada não recebe gravação de criação')

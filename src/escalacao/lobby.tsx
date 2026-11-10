@@ -849,7 +849,7 @@ export function EscLobby() {
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
   const criacaoRef=useRef<CriacaoSala|null>(null)
-  useEffect(()=>()=>{criacaoRef.current?.encerrar();criacaoRef.current=null},[user?.id])
+  useEffect(()=>()=>{if(criacaoRef.current){criacaoRef.current.encerrar();criacaoRef.current=null;setLoading(false)}},[user?.id])
 
   // 🏀 estou no BidLegends? O lobby é o MESMO do futebol (mesmas telas e botões,
   // regra do Diego); no basquete só some o que ainda não existe lá (carreira online
