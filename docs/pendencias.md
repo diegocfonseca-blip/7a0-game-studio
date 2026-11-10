@@ -1,3 +1,8 @@
+## ⏩ 10/11 noite — Kings: a velocidade agora vale pro jogo todo (FEITO no branch, falta publicar com OK do Diego)
+- Antes só o 7×7 acelerava; 1×1–6×6, dado, banners, carta e entradas eram fixos, e no 2D a marcha nem chegava no relógio da Kings.
+- Agora tudo anda na marcha (menos a escolha da carta e o duelo, que são decisão), com o seletor do 2D igual ao das salas. Detalhe em
+  `docs/conceito-kings-league.md`. Testes: build + `npm run kings` + `kings-regras` + `vel-2d` ✅.
+
 ## 🐢 10/11 16h14–16h18 — SERVIDOR TRAVOU 4 MIN (Kelvin/K9 não conseguiu criar sala: nasceu vazia, C8PGSV)
 - Banco sobrecarregado (pedido de 0,02 s levando até 20 s, timeouts). Pesos: cron `esc-cla-limites` (levou 18 s), `esc_avisos`
   (1,3 mi de chamadas, ~83 ms), `esc_nomes_sem_escudo` (~540 ms) e `esc_meu_nome_fake` (~400 ms).
