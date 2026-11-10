@@ -1,4 +1,4 @@
-## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · no branch, esperando "publica"
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · ✅ PUBLICADO 10/11 ~11h (deploy verde)
 - Medido no banco: o rádio dos convidados (`state`) = **32 GB/dia**, ~54 KB por envio. O texto de história (bio) das cartas era ~30%.
 - Agora a carta cuja bio é igual à do catálogo vai sem o texto (`_b: 1`) e o convidado põe de volta (`tiraBioDoRadio`/`poeBioDoRadio`,
   store.tsx). Só o rádio; o save no banco não muda. O simulador confere em TODO estado que o que chega é igual ao que saiu:
@@ -9,7 +9,11 @@
   tudo 0 falhas em 10/11. Só Champions e Relâmpago chegaram a 40 temporadas seguidas sem travar.
 - 🧪 MEDIDO (não feito): mandar só o PEDAÇO que mudou em vez da sala inteira = −83% do envio. É o grande corte, mas mexe no
   coração do online: precisa de número de sequência, reenvio inteiro quando o convidado perde um pedaço, e só ligar quando TODOS
-  da sala estiverem na versão nova (aba velha não entende pedaço). Esperando o Diego dizer se quer que eu construa no simulador.
+  da sala estiverem na versão nova (aba velha não entende pedaço).
+  ✅ CONSTRUÍDO NO SIMULADOR (Diego: "sim"): `src/escalacao/radio-pedaco.ts` (NÃO ligado no jogo). `--pedacos`: 13 modos × 4 sementes,
+  0 falhas, conferido envio a envio; 1.922 MB → 428 MB (−78%). Corta o TRÁFEGO, não o número de mensagens.
+  Falta pra ligar: aviso de versão na presença (só manda pedaço se TODOS da sala entendem), evento novo ('stateP') pra aba velha
+  nem ver, ligar primeiro só na conta do Diego, e o OK dele.
 - Próximas ideias medidas, NÃO feitas: sala parada na tela de fim (BHZBJB ficou 14 h aberta conversando a cada 3 s) — mexe no
   batimento do dono, precisa do OK do Diego; mandar o baralho só quando muda (arriscado, ficou de fora).
 
