@@ -182,7 +182,8 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'matheussoaresg2018@gmail.com': 'ouro', // 👑 batismo Cuiudos FC (Série A, plano 🖋 Fundador, no assento do Papão United Madrid, que desceu pra C) + fundador nº91 + sócio nº75 (17/10)
   'vittor@tidex.com.br': 'ouro', // 👑 batismo Wen Milan B (Série A, plano 🖋 Fundador, no assento do Al Takhadao FC, que desceu pra C) + fundador nº92 + sócio nº76 (17/10)
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
-  'doublecontatocomercial@gmail.com': 'ouro', // 👑 batismo FUNDADOR Double Duo FC (streamer, 09/11) + fundador nº100 + sócio nº86.
+  // ⛔ LIGA QUANDO A CONTA EXISTIR (regra 07/09: mimo por e-mail antes da conta = quem criar primeiro leva):
+  // 'doublecontatocomercial@gmail.com': 'ouro', // 👑 batismo FUNDADOR Double Duo FC (streamer, 09/11) + fundador nº100 + sócio nº86.
   'danieltorresreus@gmail.com': 'ouro', // 👑 batismo FUNDADOR Monarca Tricolor (Série D, no assento do bot Excelsior SAF) + fundador nº99 + sócio nº85 (05/11, pago por fora no Pix).
   'enzocromero9@gmail.com': 'ouro', // 👑 batismo FUNDADOR Paizão FC (Série D, no assento do bot Monarca EC) + fundador nº98 + sócio nº82 (30/10).
   'bruno.cunha2007@gmail.com': 'ouro', // 👑 batismo FUNDADOR Piranhão FC (Série D, no assento do bot Continental Real) + fundador nº96 + sócio nº81 (29/10).
@@ -311,7 +312,8 @@ const FUNDADOR_N: Record<string, number> = {
   'alexandre12cdm@gmail.com': 94, // 🐶💚 dSouza FC (28/10, plano Fundador)
   'lucasfonseca363@gmail.com': 95,
   'bruno.cunha2007@gmail.com': 96,
-  'doublecontatocomercial@gmail.com': 100, // 👑💜 Double Duo FC (09/11, plano Fundador) — o fundador nº100!
+  // ⛔ LIGA QUANDO A CONTA EXISTIR (regra 07/09: mimo por e-mail antes da conta = quem criar primeiro leva):
+  // 'doublecontatocomercial@gmail.com': 100, // 👑💜 Double Duo FC (09/11, plano Fundador) — o fundador nº100!
   'danieltorresreus@gmail.com': 99, // 👑⚪🔴⚫ Monarca Tricolor (05/11, plano Fundador)
   'enzocromero9@gmail.com': 98, // 👑🎩 Paizão FC (30/10, plano Fundador)
   'sheeryarie772@gmail.com': 97, // 🐐👑 Neymar_FC (29/10, subiu de Batismo pra Fundador) // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)

@@ -123,7 +123,8 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👑💜 Double Duo FC — PRETO e ROXO, MEDIDOS na camisa que o dono mandou (09/11): preto do corpo (54%, mediana #080508, levantado pra
   // #161016 pelo motivo de sempre: preto de arte escura, na listra fininha, lê como buraco; o tom R≈B é o medido) e o roxo das
   // pinceladas (25%, #A131BF). O AZUL da gola e das faixas (6%, #0170F2) é a 3ª cor, em MANTO_TRI.
-  'doublecontatocomercial@gmail.com': ['#161016', '#A131BF'],
+  // ⛔ LIGA QUANDO A CONTA EXISTIR (regra 07/09: mimo por e-mail antes da conta = quem criar primeiro leva):
+  // 'doublecontatocomercial@gmail.com': ['#161016', '#A131BF'],
   // 👑⚪🔴 Monarca Tricolor — BRANCO e VERMELHO, MEDIDOS na camisa que o dono mandou (05/11): branco do corpo (46%, #F2F1F3) e o
   // vermelho das listras, gola e punhos (#D40101). O PRETO (16%) é a 3ª cor, em MANTO_TRI (tricolor à moda São Paulo).
   'danieltorresreus@gmail.com': ['#F2F1F3', '#D40101'],
