@@ -6,6 +6,27 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Neto",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Willy Caballero",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Bart Verbruggen",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Neville Southall",
     "baralho": "EU",
     "nivel": "craque",
@@ -51,6 +72,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Jonathan Woodgate",
     "baralho": "EU",
     "nivel": "foi profissional",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Amadou Onana",
+    "baralho": "EU",
+    "nivel": "bom jogador",
     "data": "2026-11-10"
   },
   {
@@ -119,6 +147,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Weston McKennie",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-10"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Evanilson",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-11-10"

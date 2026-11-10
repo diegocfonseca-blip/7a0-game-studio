@@ -703,12 +703,12 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Diego: *"quero adicionar só os famosos… que não tem… aonde você adicionaria o auge"*. O 1º rascunho (148 cartas, todo mundo da lista) foi
   DESCARTADO antes de publicar. ⚠️ Lição: conferir carta SEMPRE pelo `CATALOG*` (npx tsx), nunca grep com aspas duplas — metade do baralho usa
   aspas simples e o grep deu "não tem" pra Kasper Schmeichel, Mahrez (Leicester City 2016), Estupiñán, Tim Cahill, Mitoma…
-- Entraram (EU): Southall Everton 85 C · Ramsdale Arsenal 22 · Luke Shaw United 21 · Bertrand Chelsea 12 · Aké City 23 · Guéhi Palace 25 ·
+- Entraram (EU): Southall Everton 85 C · Ramsdale Arsenal 22 · Luke Shaw United 21 · Bertrand Southampton 15 (auge, PFA; no Chelsea era reserva) · Aké City 23 · Guéhi Palace 25 ·
   Woodgate Real 05 (folk) · James Rodríguez Real 15 C · Milner Liverpool 18 · Arteta Everton 08 · Kewell Leeds 01 · Kalvin Phillips Leeds 21 ·
   Rúben Neves Wolves 19 · Douglas Luiz Villa 24 · Maddison Leicester 20 · Eze Palace 25 · McKennie Juve 21 · Trevor Francis Forest 79 C ·
   Raúl Jiménez Wolves 19 · Adama Traoré Wolves 20 (folk) · Toney Brentford 23 · Mbeumo Brentford 25 · Igor Thiago Brentford 26 ·
   Richarlison Everton 20 · João Pedro Chelsea 25 C (escolha do Diego) · Pedro Neto Chelsea 25 · Zaha Palace 19 · Bowen West Ham 23 ·
-  Sørloth Villarreal 24 · Zaza Juve 16 (folk). James/Igor Thiago/Neves/Toney entraram em MESMO_JOGADOR (já tinham carta em outro baralho).
+  Sørloth Villarreal 24 · Zaza Juve 16 (folk) · + 2ª rodada: Neto Valencia 19 (goleiro; nome LIMPO "Neto", ordem do Diego — país preso por carta em PAIS_POR_CARTA e bio própria pra não herdar a do Neto do Corinthians) · Evanilson Porto 24 · Caballero City 16 · Amadou Onana Everton 23 · Verbruggen Brighton 25. Schelotto fora (o famoso, Guillermo do Boca, já tem). Total 35. James/Igor Thiago/Neves/Toney entraram em MESMO_JOGADOR (já tinham carta em outro baralho).
 - Falta: stories (`scripts/mockup-cartas-novas.mjs`) se ele quiser, e publicar.
 
 ## 🕵️ 09/11 — OLIVEIRA FC 30 × PRIME FC LIGADOS, sem valer nem sozinho (ordem do Diego: "tire todos C prime")

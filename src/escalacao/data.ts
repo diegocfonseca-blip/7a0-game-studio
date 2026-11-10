@@ -3203,12 +3203,15 @@ const L48_EU_ATA: C[] = [
 // 📅 Lote 49 (10/11, Diego: *"quero adicionar só os famosos… e aonde você adicionaria o auge"*): os famosos da lista do
 //    Gabriel "Chelsão" que NÃO tinham carta (ou só tinham em OUTRO baralho), cada um no clube e ano do AUGE. Régua de 02/11.
 const L49_EU_GOL: C[] = [
+  { name: "Neto", club: "Valencia", year: 2019, fame: 3, lo: 72, hi: 80, bio: "Goleiro brasileiro titular do Valencia campeão da Copa do Rei de 2019." },
+  { name: "Willy Caballero", club: "Man City", year: 2016, fame: 3, lo: 70, hi: 78 },
+  { name: "Bart Verbruggen", club: "Brighton", year: 2025, fame: 3, lo: 71, hi: 79 },
   { name: "Neville Southall", club: "Everton", year: 1985, fame: 4, lo: 83, hi: 89 },
   { name: "Aaron Ramsdale", club: "Arsenal", year: 2022, fame: 3, lo: 72, hi: 80 },
 ]
 const L49_EU_LAT: C[] = [
   { name: "Luke Shaw", club: "Man United", year: 2021, fame: 3, lo: 74, hi: 83 },
-  { name: "Ryan Bertrand", club: "Chelsea", year: 2012, fame: 3, lo: 70, hi: 78 },
+  { name: "Ryan Bertrand", club: "Southampton", year: 2015, fame: 3, lo: 72, hi: 80 },
 ]
 const L49_EU_ZAG: C[] = [
   { name: "Nathan Aké", club: "Man City", year: 2023, fame: 3, lo: 74, hi: 82 },
@@ -3216,6 +3219,7 @@ const L49_EU_ZAG: C[] = [
   { name: "Jonathan Woodgate", club: "Real Madrid", year: 2005, fame: 1, lo: 58, hi: 66, folk: true },
 ]
 const L49_EU_MEI: C[] = [
+  { name: "Amadou Onana", club: "Everton", year: 2023, fame: 3, lo: 71, hi: 79 },
   { name: "James Rodríguez", club: "Real Madrid", year: 2015, fame: 4, lo: 82, hi: 88 },
   { name: "James Milner", club: "Liverpool", year: 2018, fame: 3, lo: 74, hi: 82 },
   { name: "Mikel Arteta", club: "Everton", year: 2008, fame: 3, lo: 74, hi: 82 },
@@ -3228,6 +3232,7 @@ const L49_EU_MEI: C[] = [
   { name: "Weston McKennie", club: "Juventus", year: 2021, fame: 3, lo: 70, hi: 79 },
 ]
 const L49_EU_ATA: C[] = [
+  { name: "Evanilson", club: "Porto", year: 2024, fame: 3, lo: 72, hi: 80 },
   { name: "Trevor Francis", club: "Nottingham Forest", year: 1979, fame: 4, lo: 81, hi: 88 },
   { name: "Raúl Jiménez", club: "Wolves", year: 2019, fame: 3, lo: 73, hi: 81 },
   { name: "Adama Traoré", club: "Wolves", year: 2020, fame: 3, lo: 70, hi: 80, folk: true },
