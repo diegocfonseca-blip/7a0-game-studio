@@ -214,6 +214,8 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
           <div style={{ animation: 'fcBrilho 1.6s .8s infinite' }}>{crest}</div>
         </div>
         <div style={{ position: 'absolute', top: '44%', left: 0, right: 0, display: 'flex', justifyContent: 'center', animation: 'fcSobe .6s .6s both' }}><Trofeu comp={comp} size={110} /></div>
+        {/* 🎨 10/11 (Diego: *"quero que apareça o escudo pequeno no tema de campeão"*): o escudo do tema, pequeno, ao lado do troféu */}
+        {tema && <img src={tema.escudo} alt="" style={{ position: 'absolute', top: '45%', left: '9%', height: 74, maxWidth: 80, objectFit: 'contain', transform: 'rotate(-8deg)', filter: 'drop-shadow(3px 3px 0 #000)', animation: 'fcSobe .6s .8s both' }} />}
         {vis.length > 0 && <div style={{ position: 'absolute', bottom: 108, left: 4, display: 'flex', animation: 'fcSobe .6s 1s both' }}>
           {vis.map(l => { const art = legendAvatar(l.nome, l.club, l.year); return art ? <img key={l.nome} src={art.src} alt={l.nome} style={{ width: 104, height: 150, objectFit: 'cover', objectPosition: 'center top', filter: 'drop-shadow(4px 4px 0 #000)' }} /> : null })}
         </div>}
