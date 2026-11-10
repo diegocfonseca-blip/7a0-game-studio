@@ -611,7 +611,7 @@ export class Jogo2D {
   saida(l: Lado, inicio = false) {
     // (no apito inicial todo mundo já está no lugar; depois de um gol eles CORREM até lá — antes o time inteiro "pulava" pra
     // posição de saída, um teletransporte na tela)
-    const ca = this.do(l, ['ATA'])[0] ?? this.time(l).find(a => a.grupo !== 'GOL') ?? this.gk(l) // (👑 Kings: no 1×1 só sobra um — ou o goleiro)
+    const ca = this.do(l, ['ATA'])[0] ?? this.time(l)[1] ?? this.gk(l) // (a escolha de sempre; 👑 Kings: no 1×1 pode sobrar só o goleiro)
     const lugar = new Map<Atleta, { x: number; y: number }>()
     for (const p of this.atl) {
       const r = this.posSaida(p)

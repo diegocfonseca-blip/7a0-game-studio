@@ -13251,3 +13251,10 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - ✅ Feito no branch, só na conta de teste. Detalhe em `docs/conceito-kings-league.md` (seção 10/11).
 - ⏳ Falta: Diego testar na Partida Rápida da Kings (ligar o 📺 2D) e mandar publicar/liberar pra todos (tirar a trava `useCampo2DTester`
   em `Botao2D` e no `LiveScoreCard`). A final "dos outros" (neutra) no mata-mata da Kings segue no placar normal.
+
+## 10/11 — 🚪 "sair do jogo" alinhado no computador
+- Pedido: *"o sair do jogo… está desalinhado… deveria estar alinhado junto com o modal de cima… em qualquer modo e competição"*.
+- Feito no branch: no PC o rodapé copia posição e largura da coluna da esquerda (`.ll-auction-main` no leilão, `.ll-col-main` nos jogos);
+  sem essa coluna ou no celular fica como sempre. ⏳ Publicar quando o Diego mandar.
+- (Kings: confirmado pra ele que o mano a mano e o tempo de 12 s nunca saíram da Kings da Partida Rápida; a saída do campinho voltou
+  a escolher o batedor exatamente como antes.)

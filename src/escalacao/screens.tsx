@@ -1077,6 +1077,26 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const auctionDescription=state.phase==='holandes'?tr('Um preço para todos. Quem pega primeiro leva.','One price for all. First to take wins.'):state.phase==='pregao'?tr('Uma carta por vez. Lance e martelo à vista.','One card at a time. Open bids and hammer.'):tr('Lances em segredo até a revelação.','Bids remain secret until the reveal.')
   const matchDesktop = desktopWidth && ['season','liberta','champions'].includes(state.screen)
   const privateAuctionShell = privateCareerShell && ['streamIntro', 'auction', 'monte', 'cerimonia', 'reserveList'].includes(state.screen)
+  // 🚪 10/11 (Diego: *"o sair do jogo… está desalinhado… deveria estar alinhado junto com o modal de cima"*): no computador o rodapé
+  // copia a posição e a largura da COLUNA DA ESQUERDA da tela (leilão: `.ll-auction-main` · jogos: `.ll-col-main`), em qualquer
+  // modo e competição. Sem essa coluna (ou no celular), fica como sempre: centralizado.
+  const saidaRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = saidaRef.current
+    if (!desktopWidth || !el) return
+    const solta = () => { el.style.removeProperty('width'); el.style.removeProperty('max-width'); el.style.removeProperty('margin-left'); el.style.removeProperty('margin-right') }
+    const alinha = () => {
+      const col = [...document.querySelectorAll<HTMLElement>('.ll-shell-content .ll-auction-main, .ll-shell-content .ll-col-main')].find(c => c.offsetWidth > 200)
+      const pai = el.parentElement
+      if (!col || !pai) { solta(); return }
+      const c = col.getBoundingClientRect(), p = pai.getBoundingClientRect()
+      el.style.maxWidth = 'none'; el.style.width = `${Math.round(c.width)}px`; el.style.marginLeft = `${Math.round(c.left - p.left)}px`; el.style.marginRight = '0'
+    }
+    alinha()
+    const ro = new ResizeObserver(alinha); ro.observe(document.body)
+    const iv = setInterval(alinha, 1500)
+    return () => { ro.disconnect(); clearInterval(iv); solta() }
+  }, [desktopWidth, state.screen])
   return (
     <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
@@ -1092,7 +1112,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
       )}
       <div className={`ll-shell-content max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}><AuctionDesktopLayout enabled={auctionDesktop} bar={bar} title={isReserveAuction?`${reserveLabel} · ${auctionTitle}`:auctionTitle} description={auctionDescription} playersTitle={state.screen==='monte'?tr('Monte de jogadores','Player pile'):state.screen==='cerimonia'?tr('Revelação','Reveal'):state.phase==='pregao'?tr('Jogador na mesa','Player at auction'):undefined} budget={auctionDesktop?{balance:state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx]),...auctionBudget}:undefined} slots={auctionDesktop&&['envelope','resq_envelope','holandes','pregao'].includes(state.phase)?SECTORS.map(position=>({position:posTag(position),open:openSlots(state.managers[state.youIdx],position)})):undefined}>{children}</AuctionDesktopLayout></div>
       {inGame && !hideExit && (
-        <div className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
+        <div ref={saidaRef} className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
             <div className="flex items-center justify-center gap-5">
               <button onClick={backToMenu} className="ov3-page-muted text-black/35 text-xs font-semibold underline active:opacity-60" title={tr('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but you stay in the room — you can come back')}>{tr('🏠 voltar pro menu', '🏠 back to menu')}</button>
