@@ -699,6 +699,15 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - Teste `scripts/testa-presidencia-complexo-transporte.mjs`: o ônibus pode andar na roadOut/roadBack e cruzar a torcida só na faixa.
   ⚠️ Ele já falhava ANTES (metro × prédio do patrocinador oittolabs) — não é desta mudança.
 
+## 🃏 LOTE 49 — Premier League (lista do Gabriel "Chelsão", 10/11) — NO BRANCH, esperando "publica" do Diego
+- 148 cartas novas no baralho EUROPA (só quem não tinha carta NENHUMA pelo nome — conferido nos 3 baralhos com
+  `CATALOG*`, não com grep: o grep perdeu Tim Cahill/Everton 2010, Ian Rush/Liverpool 1984 e Mitoma/Brighton 2023 MUNDO, que ficaram fora).
+- Força na régua de 02/11 (clube médio da Premier = bom jogador 70–80; Wrexham de liga baixa = foi profissional).
+  Ajustes sobre a lista dele: Callum Wilson NUNCA jogou no Brentford (só a do Bournemouth) · Chris Wood só a do Forest 2025 e Bertrand
+  só a do Chelsea 2012 (mesmo jogador não pode 2× no baralho) · Kelleher no Brentford = 2025 · Kenny Burns e Jach = zagueiros.
+- Nico Paz (Como 2026) e David Luiz (Chelsea 2012) JÁ existiam.
+- Falta: stories `scripts/mockup-cartas-novas.mjs` (se ele quiser) e publicar.
+
 ## 🕵️ 09/11 — OLIVEIRA FC 30 × PRIME FC LIGADOS, sem valer nem sozinho (ordem do Diego: "tire todos C prime")
 - Oliveira (pietro.oliveira23061721) criava a sala, o Prime (pietrinhajaoliveira, criada 24/09) entrava pela MESMA internet 5–15 s depois,
   saía quando começava e ele jogava sozinho contra 19 robôs (~3–4 min por temporada) e apagava a sala. ~30 salas só em 09/11; às 0h38 o
