@@ -1,0 +1,71 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Oswald;src:url(../fonts/oswald-latin-700-normal.woff2);font-weight:700}
+*{box-sizing:border-box}
+body{margin:0;background:#2a2620;font-family:Inter,system-ui,sans-serif;padding:24px;color:#0C0C0C}
+.top{color:#F4ECD6;font:700 26px Oswald;margin:0 0 4px}.sub{color:#cfc6ad;font-size:14px;margin:0 0 18px}
+.row{display:flex;gap:26px;align-items:flex-start}
+.ph{width:390px;background:#F4ECD6;border:4px solid #0C0C0C;border-radius:28px;padding:18px 14px;box-shadow:6px 6px 0 #000}
+h1{font:700 26px Oswald;text-transform:uppercase;margin:0 0 10px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs span{font:700 12px Oswald;border:2.5px solid #0C0C0C;border-radius:9px;padding:4px 9px;background:#fff}.tabs span.on{background:#FFC400}
+.card{position:relative;background:#fff;border:3px solid #0C0C0C;border-radius:14px;box-shadow:3px 3px 0 #000;margin-bottom:12px;overflow:hidden}
+.band{height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;border-bottom:3px solid #0C0C0C;font:700 11.5px Oswald;letter-spacing:.05em;color:#fff;text-shadow:1px 1px 0 #000}
+.band img{height:22px}
+.in{display:flex;align-items:center;gap:8px;padding:11px 10px;position:relative}
+.wm{position:absolute;right:118px;opacity:.08;top:50%;transform:translateY(-50%);height:74px;opacity:.10;pointer-events:none}
+.nm{font:700 15px Oswald;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.chip{font:700 9px Oswald;border:2px solid #0C0C0C;border-radius:5px;padding:2px 5px;line-height:1}
+.info{font-size:12px;font-weight:700;color:rgba(0,0,0,.6);margin-top:3px}
+.ab{display:inline-block;margin-top:5px;font:700 10.5px Oswald;border-radius:7px;padding:2px 7px;background:#1B7A3D;color:#fff}
+.n{text-align:center;line-height:1}.n b{display:block;font:700 22px Oswald}.n span{font-size:9.5px;font-weight:900;color:#5a5647}
+.btn{font:700 13px Oswald;text-transform:uppercase;border:2.5px solid #0C0C0C;border-radius:9px;padding:8px 12px;background:#FFC400}
+.fla .band{background:repeating-linear-gradient(90deg,#C8102E 0 18px,#0C0C0C 18px 36px)}
+.fla .btn{background:#C8102E;color:#fff}
+.nz .band{background:linear-gradient(90deg,#141414,#3a2a5a);}
+.nz .btn{background:#0C0C0C;color:#FFC400}
+.cap{color:#F4ECD6;font:600 14px Oswald;margin:10px 4px 0;max-width:390px}
+.lbl{display:inline-block;font:700 12px Oswald;background:#FFC400;border:2.5px solid #0C0C0C;border-radius:9px;padding:3px 9px;box-shadow:2px 2px 0 #000;margin-bottom:10px}
+</style></head><body>
+<p class="top">TEMA DA SALA TAMBÉM NO CARTÃO DA LISTA</p>
+<p class="sub">Só muda o cartão de quem comprou tema. O resto da lista fica como é hoje. O jogo e o leilão não mudam nada.</p>
+<div class="row">
+<div><div class="ph">
+<span class="lbl">SALAS ABERTAS · CELULAR</span>
+<h1>Salas abertas</h1>
+<div class="tabs"><span class="on">Todas</span><span>Rápido</span><span>Liga da Turma</span><span>Liga Draft</span></div>
+
+<div class="card fla">
+ <div class="band"><img src="../../public/escudos-clubes/flamengo.webp">❤️ TEMA FLAMENGO</div>
+ <div class="in"><img class="wm" src="../../public/escudos-clubes/flamengo.webp">
+  <div style="flex:1;min-width:0"><div class="nm">Neymarzetti <span class="chip" style="background:#FFC400">TODOS</span><span class="chip" style="background:#fff">ÀS CEGAS</span></div>
+  <div class="info">Normal · com Copa</div><span class="ab">🔓 ABERTA · QUALQUER UM ENTRA</span></div>
+  <div class="n"><b>4/20</b><span>TÉCNICOS</span></div><span class="btn">Entrar</span></div>
+</div>
+
+<div class="card nz">
+ <div class="band"><img src="../../src/escalacao/img/neymarzetti-escudo.webp">🦇 TEMA DO CLUBE · NEYMARZETTI</div>
+ <div class="in"><img class="wm" src="../../src/escalacao/img/neymarzetti-mascote.webp">
+  <div style="flex:1;min-width:0"><div class="nm">Pregão da Madrugada <span class="chip" style="background:#FFC400">BR</span><span class="chip" style="background:#1B7A3D;color:#fff">🔨 PREGÃO ABERTO</span></div>
+  <div class="info">Rápido · só liga</div><span class="ab">🔓 ABERTA · QUALQUER UM ENTRA</span></div>
+  <div class="n"><b>7/12</b><span>TÉCNICOS</span></div><span class="btn">Entrar</span></div>
+</div>
+
+<div class="card">
+ <div class="in">
+  <div style="flex:1;min-width:0"><div class="nm">Sala do Joaquim <span class="chip" style="background:#FFC400">EU</span><span class="chip" style="background:#fff">ÀS CEGAS</span></div>
+  <div class="info">Normal · com Copa</div><span class="ab">🔓 ABERTA · QUALQUER UM ENTRA</span></div>
+  <div class="n"><b>2/10</b><span>TÉCNICOS</span></div><span class="btn">Entrar</span></div>
+</div>
+</div><p class="cap">① Com tema: faixa no topo com as cores e o escudo do tema + o escudo bem clarinho no fundo. Botão "Entrar" na cor do tema.</p></div>
+
+<div><div class="ph" style="width:340px">
+<span class="lbl">COMO É HOJE</span>
+<div class="card">
+ <div class="in">
+  <div style="flex:1;min-width:0"><div class="nm">Neymarzetti <span class="chip" style="background:#FFC400">TODOS</span><span class="chip" style="background:#fff">ÀS CEGAS</span></div>
+  <div class="info">Normal · com Copa</div><span class="ab">🔓 ABERTA · QUALQUER UM ENTRA</span></div>
+  <div class="n"><b>4/20</b><span>TÉCNICOS</span></div><span class="btn">Entrar</span></div>
+</div>
+<p class="info" style="margin:6px 2px 0">Hoje o tema só aparece DEPOIS que a pessoa entra na sala.</p>
+</div><p class="cap">② Sem tema: igual a hoje, nada muda.</p></div>
+</div></body></html>
