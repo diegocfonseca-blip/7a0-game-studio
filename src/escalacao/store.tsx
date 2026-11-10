@@ -2871,6 +2871,8 @@ const DIVISION_BASE: Record<Division, number> = { V: 58, D: 64, C: 70, B: 75, A:
 //    último, os clássicos da D. Assim a Série A nunca fica com menos de 20.
 // ⚠️ Isto NÃO mexe em carreira já começada: quem já jogou tem a colocação gravada
 // em `careerPlacements` e a pirâmide é montada por ela, não por estas listas.
+// 🖋 10/11: todos os clubes da pirâmide (A→D), um de cada — é onde o rival escolhido é procurado (pode vir de qualquer divisão)
+const TIMES_PIRAMIDE: { team: string; name: string }[] = (() => { const vistos = new Set<string>(); const out: { team: string; name: string }[] = []; for (const d of ['A', 'B', 'C', 'D'] as const) for (const t of DIVISION_TEAMS[d]) if (!vistos.has(t.team)) { vistos.add(t.team); out.push(t) } return out })()
 const divsDeFundo = (escada?: boolean): readonly ('B' | 'C' | 'D')[] => escada ? ['B', 'C', 'D'] : ['B', 'C']
 function eliteNaSerieA(managers: { teamName: string }[], pl: Record<string, string>): string[] {
   const usados = new Set<string>([...managers.map(m => m.teamName), ...Object.keys(pl)])
@@ -2966,7 +2968,7 @@ function initCareerRivals(count: number, chosen?: string[], humanTeam?: string):
     ? [...chosen.filter(c => !humanTeam || !mesmoNomeTime(c, humanTeam)), ...pool.map(t => t.team).filter(t => !chosen.includes(t))].slice(0, count)
     : pool.slice(0, count).map(t => t.team)
   return pickNames.map(team => {
-    const def = pool.find(t => t.team === team) ?? { name: team, team }
+    const def = pool.find(t => t.team === team) ?? TIMES_PIRAMIDE.find(t => t.team === team) ?? { name: team, team }
     return { team: def.team, name: def.name, division: 'D' as Division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }
   })
 }
@@ -8944,7 +8946,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       const rivalCount = Math.max(0, Math.min(action.rivals, LEAGUE_SIZE - 1))
       // ordem dos nomes: rivais escolhidos primeiro (viram os auction-rivals), depois
       // o resto da ELITE (a 👑 Série A) sem repetir.
-      const chosen = (action.rivalTeams ?? []).map(tn => TIMES_ELITE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
+      // 🖋 10/11 (Diego): o rival pode ser QUALQUER clube de batismo/fundador da pirâmide (A, B, C ou D) — ele começa com você e
+      // outro clube ocupa o lugar dele na divisão de origem (ver `pl` logo abaixo). Antes só a elite (Série A) era achada aqui.
+      const chosen = (action.rivalTeams ?? []).map(tn => TIMES_PIRAMIDE.find(t => t.team === tn)).filter((t): t is { team: string; name: string } => !!t)
       const rest = TIMES_ELITE.filter(t => !chosen.some(c => c.team === t.team))
       // 🌱 escada: os bots de preenchimento da sala usam os times de VÁRZEA (a sala
       // é a divisão V) — os nomes da elite ficam livres pro fundo profissional.
@@ -8962,7 +8966,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       const pl: Record<string, string> = {}
       const divIni = s.escadaOn ? 'V' : 'D'
       for (const m of s.managers) pl[`m${m.id}`] = divIni
-      for (const d of divsDeFundo(s.escadaOn)) for (const t of DIVISION_TEAMS[d].slice(0, 20)) pl[t.team] = d
+      // 🖋 10/11: rival escolhido que é da B/C/D NÃO fica também na divisão de origem (aparecia duplicado) — sai de lá e o lugar
+      //    dele é completado com os clubes extras da D (os mesmos que já completam a Série A), sem repetir ninguém.
+      const jaNaSala = new Set(s.managers.map(m => m.teamName))
+      const extras = EXTRA_D_TEAMS.map(t => t.team).filter(nm => !jaNaSala.has(nm))
+      for (const d of divsDeFundo(s.escadaOn)) {
+        const lista = DIVISION_TEAMS[d].slice(0, 20).map(t => t.team).filter(nm => !jaNaSala.has(nm))
+        while (lista.length < 20 && extras.length) { const nm = extras.shift()!; if (!pl[nm] && !lista.includes(nm)) lista.push(nm) }
+        for (const nm of lista) pl[nm] = d
+      }
       for (const nm of eliteNaSerieA(s.managers, pl)) pl[nm] = 'A'
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []

@@ -811,7 +811,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Crie seu clube → Crie seu presidente → Prepare o pregão (`modularSetup` sem trava de conta). Todo mundo tem boneco (`temBoneco`), careca e a
   **camiseta branca** (`ROUPA_GRATIS`); o resto continua do plano/avulso. A grade de roupas mostra só o PLANO de cada uma (🔒 ⭐ Craque…),
   nunca preço. Nos rivais, o clube batizado do próprio usuário não aparece e só ele vê a linha explicando (escudo/mascote não repetem).
-  ⚠️ Falta: rivais de batismo da Série B/C/D (precisa tirar o clube da divisão de fundo, senão duplica) — `docs/pendencias.md`.
+  🖋 Rivais = TODOS os batismos/fundadores da pirâmide, misturados, sem mostrar a divisão; o escolhido começa com você e outro clube
+  ocupa o lugar dele (*"terá q ter 20 times nas 5 divisões"* — sempre 20 em V, D, C, B e A, nenhum repetido).
 - **🎁 08/11: TESTE DE 5 DIAS PRA SALVAR A CARREIRA (substitui o "1 dia sem salvar apaga" de 07/11).** Texto dele: *"🎁 Seus primeiros
   5 dias salvando a carreira são grátis! … Depois do teste, você pode continuar jogando gratuitamente. Para salvar novos avanços, é
   necessário um plano"*. Os 5 dias começam no 1º salvamento (botão OU automático do aparelho) de quem não tem plano, contados por CONTA

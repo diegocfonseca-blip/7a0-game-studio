@@ -42,7 +42,7 @@ import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrow
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
+import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE, DIVISION_TEAMS } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
@@ -61,7 +61,7 @@ import {PresidenteDaConta} from './presidente-avatar'
 import { ComPerfil, MeusAmigos, SinoAmigos, PedidosNaHome, zoeiraDoRival, EVENTO_PERFIL_ABERTO } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
 import {podeVestirComPosse,ROUPA_GRATIS} from './presidente-avulsas'
 import {aparenciaInicial,escolherPeca} from './presidente-aparencia'
-import {chaveClube} from './batismos'
+import {chaveClube,batismoDe} from './batismos'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
 import {identidadeDaConta} from './presidencia-identidade-conta'
@@ -2873,6 +2873,12 @@ function NarradorDica({ fase, texto }: { fase: string; texto: string }) {
   )
 }
 
+// 🖋 10/11: os rivais da carreira = todo clube de batismo/fundador que existe na pirâmide (A→D), um de cada, em ordem alfabética
+const RIVAIS_BATISMO: { team: string; name: string }[] = (() => {
+  const vistos = new Set<string>(); const out: { team: string; name: string }[] = []
+  for (const d of ['A', 'B', 'C', 'D'] as const) for (const tm of DIVISION_TEAMS[d]) if (!vistos.has(tm.team) && batismoDe(tm.team)) { vistos.add(tm.team); out.push(tm) }
+  return out.sort((a, b) => a.team.localeCompare(b.team, 'pt-BR'))
+})()
 // ─── SETUP ───────────────────────────────────────────────────────────
 export function EscSetup() {
   const { state, dispatch } = useEsc()
@@ -3131,7 +3137,9 @@ export function EscSetup() {
                   // na mesma liga) — e só quem tem batismo vê a linha explicando. Régua do nome = `chaveClube` (ignora caixa, acento, FC/EC).
                   const meuBat = setupMember?.ativo ? setupMember.escudoTime?.trim() || null : null
                   const ehMeu = (team: string) => !!meuBat && chaveClube(team) === chaveClube(meuBat)
-                  const lista = TIMES_ELITE.filter(t => !ehMeu(t.team))
+                  // 🖋 10/11 (Diego): TODOS os clubes de batismo e fundador, misturados (ordem alfabética), sem dizer a divisão de ninguém.
+                  //    O escolhido começa com você e outro clube ocupa o lugar dele na divisão de origem (store: START_CAREER_SOLO).
+                  const lista = RIVAIS_BATISMO.filter(t => !ehMeu(t.team))
                   return <>
                     <div className="ll-rival-list">
                       {lista.map(t => {

@@ -804,7 +804,7 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 ## 🧑‍💼 10/11 — CARREIRA PASSO A PASSO LIBERADA PRA TODOS + PRESIDENTE GRÁTIS — ✅ PUBLICADO ("publique já p todos")
 - Testado sem conta no navegador: clube → presidente (camiseta branca grátis já marcada) → rivais → "Começar o leilão". Ninguém trava.
 - ⚠️ O presidente de quem NÃO é a conta do Diego ainda não é gravado na carreira (`careerPresidentBase` só com `presidentWritesEnabled`) — a tela de criação vale pra todos, mas a Presidência/mapa continuam só dele.
-- ⏳ FALTA: rivais = TODOS os batismos (B/C/D também). Hoje a lista é a da Série A (20, todos batismo). Pra B/C/D o clube escolhido precisa sair da divisão de fundo (`pl[...]` no START_CAREER_SOLO e nas viradas), senão aparece duplicado.
+- ✅ 10/11 (2ª entrega): rivais = TODOS os clubes de batismo/fundador da pirâmide (A→D), em ordem alfabética, sem dizer divisão (Diego: *"N fale nada onde cada um tá"*). O escolhido começa com você; o lugar dele na B/C/D é completado com os extras da D. Testado (esbuild + reducer): 3/5/7 rivais de A/B/C/D → V, D, C, B e A com 20 cada, zero duplicado (*"terá q ter 20 times nas 5 divisões"*).
 ### (antes) "IR PARA O PREGÃO" NÃO DEIXAVA IR, SEM AVISO
 - Diego: *"aperto em iniciar pregão e N deixa ir… N tem erro em vermelho nenhum"*. No `start()` do EscSetup as recusas eram MUDAS na tela 3
   (rivais): nome/espaço gravavam `nameErr` mas a tela 3 não mostrava; presidente inválido voltava pra tela 2 sem texto; e um erro jogado
