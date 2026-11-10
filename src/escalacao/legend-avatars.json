@@ -1377,5 +1377,19 @@
     "year": 1958,
     "src": "/avatars/lendas-v2/raymond-kopa-real-madrid-1958.webp",
     "transparent": true
+  },
+  {
+    "name": "Filippo Inzaghi",
+    "club": "Milan",
+    "year": 2003,
+    "src": "/avatars/lendas-v3/filippo-inzaghi-milan-2003.webp",
+    "transparent": true
+  },
+  {
+    "name": "Sergio Agüero",
+    "club": "Man City",
+    "year": 2015,
+    "src": "/avatars/lendas-v3/sergio-aguero-manchester-city-2015.webp",
+    "transparent": true
   }
 ]
