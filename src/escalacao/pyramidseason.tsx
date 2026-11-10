@@ -35,7 +35,7 @@ import type {DecisaoJogo} from './presidencia-lotacao-jogo'
 import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from './presidencia-complexo-jornada'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {divisaoDaFesta,ULTIMA_RODADA_LIGA} from './presidencia-complexo-final-regras'
-import { placarParaK, type Kings2D } from './kings-liga'
+import { placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // ⏱️ 10/11: na tela o relógio da Kings para no 36' (match ball)
 import {usePartidaNoMapa,partidaPublicada,reinicioPartidaPendente} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio,EstadoPartidaEstadio} from './presidencia-partida-model'
 import {criarRelogioLance} from './presidencia-lance-tempo'

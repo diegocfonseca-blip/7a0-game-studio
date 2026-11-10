@@ -23,7 +23,7 @@
 // 🎲 DETERMINÍSTICO: semente da rodada + clubes → a sala inteira ouve a mesma rádio no mesmo minuto.
 // 🌐 PT e EN andam juntos (par por par), então o sorteio vale pros dois idiomas.
 
-import { kParaPlacar, PLACAR_DADO, PLACAR_INTERVALO } from './kings-liga'
+import { kParaPlacar, PLACAR_DADO, PLACAR_DADO_FIM } from './kings-liga'
 
 type Par = [pt: string, en: string]
 export type RadioLance = { min: number; i: number; a: number; f: number; home: boolean; /** nº do toque desse time (rodízio de quem pega na bola) */ k?: number }
@@ -337,7 +337,7 @@ const KINGS_FASE: FraseKings[] = [
 ]
 export const ACERVO_KINGS_FASE = KINGS_FASE.length
 /** 👑 minuto do placar em que a Kings está com o campo aberto (1×1 até 6×6, ou a fase do dado) */
-const kingsAberto = (m: number) => m < kParaPlacar(7) || (m >= PLACAR_DADO && m < PLACAR_INTERVALO)
+const kingsAberto = (m: number) => m < kParaPlacar(7) || (m >= PLACAR_DADO && m < PLACAR_DADO_FIM)
 
 // 🕐 começo de jogo e fim de jogo têm cara própria (sem dizer placar)
 const CEDO: Par[] = [
@@ -372,7 +372,7 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, k
   const extras: number[] = []
   if (kings) {
     for (let k = 0; k < 7; k++) extras.push(Math.max(1, kParaPlacar(k) + 1))
-    for (let m = PLACAR_DADO + 1; m < PLACAR_INTERVALO; m += 2) extras.push(m)
+    for (let m = PLACAR_DADO + 1; m < PLACAR_DADO_FIM; m += 2) extras.push(m)
     for (const m of extras) if (ocupados.every(o => Math.abs(o - m) >= 1) && mins.every(o => Math.abs(o - m) >= 2)) mins.push(m)
   }
   // espalha: um minuto por fatia do jogo, pra não amontoar

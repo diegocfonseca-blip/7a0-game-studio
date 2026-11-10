@@ -85,14 +85,14 @@ const POS_E: [number, number][] = [[40, 50], [30, 28], [30, 72], [20, 42], [40, 
 /** `modo`: 'entra' (1'–6', entra mais um) · 'dado' (o dado mandou N×N até o intervalo) · 'volta' (2º tempo: voltou o 7×7) */
 export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: string; fora: string; modo?: 'entra' | 'dado' | 'volta' }) {
   const completo = n >= 7
-  const tag = modo === 'dado' ? tr('O DADO MANDOU', 'THE DICE SAYS') : modo === 'volta' ? tr('2º TEMPO · VOLTOU O 7×7', '2ND HALF · BACK TO 7 v 7')
+  const tag = modo === 'dado' ? tr('O DADO MANDOU', 'THE DICE SAYS') : modo === 'volta' ? tr('23\' · VOLTOU O 7×7', '23\' · BACK TO 7 v 7')
     : completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n} · ENTRA MAIS UM`, `MINUTE ${n} · ONE MORE IN`)
   const titulo = modo === 'dado' ? (n === 1 ? tr('👑 1 × 1 ATÉ O INTERVALO', '👑 1 v 1 UNTIL HALF-TIME') : tr(`🎲 ${n} × ${n} ATÉ O INTERVALO`, `🎲 ${n} v ${n} UNTIL HALF-TIME`))
     : modo === 'volta' ? tr('⚡ 7 × 7 DE NOVO! ACELERA', '⚡ 7 v 7 AGAIN! SPEEDING UP')
     : completo ? tr('⚡ 7 × 7! AGORA ACELERA', '⚡ 7 v 7! NOW IT SPEEDS UP') : `➕ ${n} × ${n}!`
   const texto = modo === 'dado'
     ? tr(`Saem jogadores dos dois lados: fica ${n === 1 ? 'só 1' : n} na linha + o goleiro até o fim do 1º tempo. Nessa fase o jogo rola mais devagar.`, `Players leave on both sides: ${n === 1 ? 'only 1' : n} outfield + the keeper until the end of the 1st half. This phase runs slower.`)
-    : modo === 'volta' ? tr('No 2º tempo os dois times voltam completos (goleiro + 6) e o jogo volta ao ritmo normal.', 'In the 2nd half both teams are complete again (keeper + 6) and the game runs at normal speed.')
+    : modo === 'volta' ? tr('Acabou o dado: os dois times voltam completos (goleiro + 6) e o jogo volta ao ritmo normal.', 'Dice over: both teams are complete again (keeper + 6) and the game runs at normal speed.')
     : completo ? tr('Os dois times estão completos (goleiro + 6). Daqui pra frente o jogo rola no ritmo normal.', 'Both teams are complete (keeper + 6). From here on the game runs at normal speed.')
     : tr(`Entrou mais um de cada lado. Enquanto não chega no 7×7 o jogo rola mais devagar — cada minuto entra mais um.`, `One more in on each side. Until it reaches 7 v 7 the game runs slower — one more joins every minute.`)
   const novo = modo === 'entra' ? n - 1 : -1
@@ -123,7 +123,7 @@ export function FaixaEmCampo({ n, dado = false }: { n: number; dado?: boolean })
       <div style={{ display: 'flex', gap: 6, justifyContent: 'center', margin: '5px 0' }}>
         {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ width: 18, height: 18, borderRadius: 99, border: `3px solid ${INK}`, background: i < n ? GREEN : '#ddd', transition: 'background .3s' }} />)}
       </div>
-      <p style={{ fontSize: 11, fontWeight: 700, margin: 0, opacity: .75 }}>{dado ? tr('🎲 Fase do dado: até o intervalo. No 2º tempo volta o 7×7.', '🎲 Dice phase: until half-time. 7 v 7 again in the 2nd half.') : tr('Começa 1×1; do 2\' em diante entra 1 de cada lado por minuto até o 7×7 no 7\'', 'Starts 1 v 1; from 2\' one more per side every minute up to 7 v 7 at 7\'')}</p>
+      <p style={{ fontSize: 11, fontWeight: 700, margin: 0, opacity: .75 }}>{dado ? tr('🎲 Fase do dado: do 20\' ao 23\'. Depois volta o 7×7.', '🎲 Dice phase: from 20\' to 23\'. Then 7 v 7 again.') : tr('Começa 1×1; do 2\' em diante entra 1 de cada lado por minuto até o 7×7 no 7\'', 'Starts 1 v 1; from 2\' one more per side every minute up to 7 v 7 at 7\'')}</p>
     </div>
   )
 }
@@ -150,8 +150,8 @@ export function CenaDado({ face }: { face: 1 | 2 | 3 }) {
   useEffect(() => { const t = setTimeout(() => setParou(true), 2300); return () => clearTimeout(t) }, [])
   const titulo = face === 1 ? tr('👑 CARA DO REI!', '👑 KING\'S FACE!') : face === 2 ? '2 × 2!' : '3 × 3!'
   const texto = face === 1
-    ? tr('Até o intervalo é 1 CONTRA 1 com goleiro. O dado tem 3 coisas: 👑 cara do rei (1×1), 2×2 e 3×3 — duas faces de cada.', 'Until half-time it is 1 v 1 with keepers. The dice has 3 things: 👑 king\'s face (1 v 1), 2 v 2 and 3 v 3 — two faces each.')
-    : tr(`Até o intervalo cada time joga com ${face} na linha + o goleiro. Campo aberto = mais gol! (O dado tem 👑 cara do rei, 2×2 e 3×3.)`, `Until half-time each team plays ${face} outfield + the keeper. Open pitch = more goals! (The dice has 👑 king's face, 2 v 2 and 3 v 3.)`)
+    ? tr('Até o 23\' é 1 CONTRA 1 com goleiro. O dado tem 3 coisas: 👑 cara do rei (1×1), 2×2 e 3×3 — duas faces de cada.', 'Until 23\' it is 1 v 1 with keepers. The dice has 3 things: 👑 king\'s face (1 v 1), 2 v 2 and 3 v 3 — two faces each.')
+    : tr(`Até o 23' cada time joga com ${face} na linha + o goleiro. Campo aberto = mais gol! (O dado tem 👑 cara do rei, 2×2 e 3×3.)`, `Until 23' each team plays ${face} outfield + the keeper. Open pitch = more goals! (The dice has 👑 king's face, 2 v 2 and 3 v 3.)`)
   return (
     <Palco tag={tr('MINUTO 18 · O DADO', 'MINUTE 18 · THE DICE')}>
       <div style={{ height: 200, position: 'relative', perspective: 520 }}>

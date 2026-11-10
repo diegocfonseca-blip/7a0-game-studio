@@ -152,3 +152,13 @@ esperar 2 minutos lá fora"*.
 - 🔒 Só pras contas que veem a Kings (`useKingsLiberada`: Diego + henriquejunger07, 10/11 — o Rossini Money saiu da lista a pedido do Diego). Pros outros o botão do 2D some na Kings.
 - Medido: 200 jogos sem tela — 0 erro, placar do campinho = placar da regra em todos, nunca mais de 7 em campo. Fotos reais:
   `scripts/mockups/kings-2d-real-*.png`.
+
+## 🔁 10/11 — REGULAMENTO NOVO (Diego mandou o print: *"17 até 20 gol vale 2 · 20 ao 23 vira o dado · 36 acaba o jogo (se empatar = shootout) se alguém tiver ganhando tipo 7-5 quem fizer 8 ganha"*)
+- ✖️2 **17'–20'**: todo gol dos DOIS times vale 2 (linha "✖️2 DO 17' AO 20'"; o que já vale 2 pela carta não dobra de novo).
+- 🎲 **Dado 20'–23'** (começo do 2º tempo): intervalo no 20', depois o dado, e no 23' volta o 7×7 (`MIN_DADO`/`MIN_DADO_FIM`).
+- ⏱️ **MATCH BALL no 36'** (`KingsInfo.mb`): o relógio da TELA para no 36' (`placarParaKTela`). Empatado → SHOOTOUT direto (nada depois
+  vale). Alguém na frente → vence quem chegar primeiro a líder + 1 (7×5 → quem fizer 8); o gol que decide acaba o jogo, o resto some do
+  placar e da artilharia; se ninguém decidir no tempo que sobra, quem está na frente faz o gol que fecha. A bola dourada/vermelha do 38'
+  SAIU (jogos já jogados seguem com o `bola` antigo).
+- 🃏 **As 6 cartas** que ele mandou: Gol 2× · Shootout · Jogador estrela · Pênalti · Coringa · Suspensão. O PÊNALTI INVERSO saiu da roleta.
+- Travas: `npm run kings` e `npm run kings-regras` (match ball empatado/na frente, jogo montado, 17–20, cartas).

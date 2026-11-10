@@ -29,8 +29,8 @@ import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado, useCampo2DTester } from './sport'
 import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu, alturaQuique, QUIQUE_DUR, esticaGoleiro, riscoCarrinho, casaAtacando, type BolaVista } from './campo2d-efeitos'
 import { playTrave } from './sound'
-import { emCampoKings, placarParaK, type Kings2D } from './kings-liga' // 👑 quantos em campo a cada minuto da Kings (a MESMA conta da regra)
-import { MIN_BOLA } from './kings'
+import { emCampoKings, placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // 👑 quantos em campo a cada minuto da Kings (a MESMA conta da regra)
+import { MIN_BOLA, MIN_MATCHBALL } from './kings'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D, publicarTelaoCampo2D } from './campo2d-festa'
 import { alvoBandeirinhas, sinalDaBandeira, desenhaFotografos, desenhaBandeira, arredoresParaMapa, type CenaArredores } from './campo2d-arredores'
@@ -517,7 +517,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
         if (kg) {
           const k = Math.floor(simMin * 40 / 93), n = Math.min(6, emCampoKings(k, kg.dado))
           jogo.emCampo([n, n], kg.fora.filter(f => f.min <= simMin && k < f.ate).map(f => f.nome))
-          const bk = k >= MIN_BOLA && kg.bola ? kg.bola : null
+          const bk = k >= (kg.matchBall ? MIN_MATCHBALL : MIN_BOLA) && kg.bola ? kg.bola : null
           if (bk !== ultimos.current.bolaK) { ultimos.current.bolaK = bk; setBolaK(bk) }
         }
         jogo.avancaAte(simMin)

@@ -489,7 +489,11 @@ export interface KingsInfo {
   dado: 1 | 2 | 3
   /** ⚽ quem ficou com a bola quando ela caiu da gaiola */
   posse?: number
-  bola: 'dourada' | 'vermelha'
+  /** (regra até 10/11) a bola do 38': dourada/vermelha — jogos novos usam `mb` */
+  bola?: 'dourada' | 'vermelha'
+  /** ⏱️ MATCH BALL (regra de 10/11): no 36' o relógio para. `empate` = foi direto pro shootout; senão `alvo` = quantos gols
+   *  vence (o líder + 1). `fim` = minuto do placar (0–93) em que o jogo acabou. */
+  mb?: { empate: boolean; alvo?: number; fim: number }
   /** decidido no gol de ouro (bola dourada) */
   ouro: boolean
   /** 🎩 o pênalti do presidente de cada time */
