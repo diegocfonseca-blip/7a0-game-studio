@@ -2,7 +2,7 @@
 // uso: npx tsx scripts/testa-kings-regras.mts
 import { reducer, INITIAL } from '../src/escalacao/store'
 import type { EscState, MatchResult } from '../src/escalacao/types'
-import { PLACAR_MB, PLACAR_DOBRO_INI, PLACAR_INTERVALO, kParaPlacar, aplicaRegrasKings, agendaKings } from '../src/escalacao/kings-liga'
+import { OPCOES_CORINGA, PLACAR_MB, PLACAR_DOBRO_INI, PLACAR_INTERVALO, kParaPlacar, aplicaRegrasKings, agendaKings } from '../src/escalacao/kings-liga'
 import type { KingsBase } from '../src/escalacao/types'
 import { radioDoJogo, narraRadio } from '../src/escalacao/radio'
 let falhas = 0
@@ -80,8 +80,21 @@ const dobroOk = dobro.every(({ r, c }) => { const ate = c.min + kParaPlacar(4); 
 const dobroComGol = dobro.filter(({ r, c }) => r.highlights.some(d => d.text.startsWith('✖️2') && d.teamId === c.teamId)).length
 ok(dobro.length > 0 && dobroOk && dobroComGol > 0, `✖️2 GOL EM DOBRO: todo gol do time nos 4 min vale 2 — ${dobro.length} cartas, ${dobroComGol} com gol dobrado`)
 const est = cartas.filter(x => x.c.vale === 'estrela')
-const estOk = est.every(({ r, c }) => { const g0 = r.highlights.find(h => h.teamId === c.teamId && h.min >= c.min && /^(⚽|⏱️ MATCH BALL!) /.test(h.text) && h.text.includes(`${c.estrela} marca`)); const g = g0 && g0.min <= PLACAR_MB ? g0 : undefined; const dup = r.highlights.filter(h => h.text.startsWith('⭐') && h.teamId === c.teamId); return g ? (dup.length === 1 && dup[0].min === g.min) : dup.length === 0 /* (no match ball o gol vale 1: é corrida até líder+1) */ })
-ok(est.length > 0 && est.every(x => !!x.c.estrela) && estOk, `⭐ JOGADOR ESTRELA (o craque do time): o próximo gol DELE vale 2, só esse — ${est.length} cartas, ${est.filter(({ r }) => r.highlights.some(h => h.text.startsWith('⭐'))).length} com gol da estrela`)
+// ⭐ 10/11: TODO gol do jogador estrela vale 2, da carta até o 36' (no match ball, não)
+const estOk = est.every(({ r, c }) => r.highlights.filter(h => h.teamId === c.teamId && h.min >= c.min && h.min <= PLACAR_MB && h.text.startsWith(`⚽ ${c.estrela} marca`)).every(g => r.highlights.some(d => d.text.startsWith('⭐') && d.min === g.min && d.teamId === c.teamId)))
+ok(est.length > 0 && est.every(x => !!x.c.estrela) && estOk, `⭐ JOGADOR ESTRELA: TODO gol dele vale 2 até o 36' — ${est.length} cartas, ${est.filter(({ r }) => r.highlights.some(h => h.text.startsWith('⭐'))).length} com gol da estrela`)
+// 🃏 10/11: as ESCOLHAS de quem é gente — coringa vira a carta escolhida · suspensão tira o jogador escolhido (bot: sorteio)
+{
+  let coringaOk = 0, coringaN = 0, suspOk = 0, suspN = 0
+  for (let seed = 1; seed < 3000 && (coringaN < 10 || suspN < 10); seed++) {
+    const mk = (dec: Record<string, number>) => { const base: KingsBase = { highlights: [], tmpS: [], tmpA: [], seed, rodada: 0, decisoes: dec, art: { s: [], a: [] } }; const r = { homeId: 1, awayId: 2, hg: 0, ag: 0, highlights: [] } as MatchResult; aplicaRegrasKings(r, base, { agenda: agendaKings(seed, 0), nomes: { h: 'Casa', a: 'Fora' }, humanos: [1], estrela: () => 'Craque', linha: id => id === 2 ? ['F1', 'F2', 'F3', 'F4', 'F5', 'F6'] : ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'] }); return r.kings!.cartas!.find(c => c.teamId === 1)! }
+    const c0 = mk({})
+    if (c0.sorteada === 'coringa' && coringaN < 10) { coringaN++; const c1 = mk({ 'coringa:h': 3 }); if (c1.vale === OPCOES_CORINGA[3]) coringaOk++ }
+    if (c0.vale === 'suspensao' && c0.sorteada === 'suspensao' && suspN < 10) { suspN++; const c1 = mk({ 'susp:h': 4 }); if (c1.suspenso === 'F5') suspOk++ }
+  }
+  ok(coringaN > 0 && coringaOk === coringaN, `🃏 CORINGA: vira a carta que a pessoa escolheu — ${coringaOk}/${coringaN}`)
+  ok(suspN > 0 && suspOk === suspN, `🟥 SUSPENSÃO: sai o jogador que a pessoa escolheu — ${suspOk}/${suspN}`)
+}
 const susp = cartas.filter(x => x.c.vale === 'suspensao')
 ok(susp.length > 0 && susp.every(x => !!x.c.suspenso), `🟥 SUSPENSÃO: sempre diz QUEM do rival saiu — ${susp.length} cartas, ${susp.filter(({ r, c }) => r.highlights.some(h => h.text.startsWith('🟥') && h.teamId === c.teamId)).length} viraram gol`)
 // cobranças

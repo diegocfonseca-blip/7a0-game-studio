@@ -174,6 +174,8 @@ export const sementeJogoKings = (seed: number, rodada: number, homeId: number, a
 // 🔁 10/11: as 6 cartas que o Diego mandou (Gol 2× · Shootout · Jogador estrela · Pênalti · Coringa · Suspensão). O PÊNALTI INVERSO
 // saiu da roleta (não está na lista dele, e ele já tinha dito que não entendia) — o tipo continua existindo pros jogos já jogados.
 export const CARTAS_SORTEIO: CartaKingsTipo[] = ['penalti', 'shootout', 'suspensao', 'gol_dobro', 'estrela', 'coringa']
+/** 🃏 10/11 (Diego: *"coringa vc escolhe a carta"*): no que o coringa pode virar (quem é gente escolhe; bot sorteia) */
+export const OPCOES_CORINGA = CARTAS_SORTEIO.filter(c => c !== 'coringa') as Exclude<CartaKingsTipo, 'coringa'>[]
 /** 🎲 as 6 faces do dado: duas de cada — 👑 cara do rei (1×1), 2×2, 3×3 */
 export const FACES_DADO: (1 | 2 | 3)[] = [1, 1, 2, 2, 3, 3]
 /** quanto duram a suspensão e o gol em dobro (min da Kings) */
@@ -211,6 +213,11 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
     return { sorteada, vale: sorteada === 'coringa' ? sub : sorteada }
   }
   const cartaH = sorteiaCarta(), cartaA = sorteiaCarta()
+  // 🃏 CORINGA: quem é gente escolhe no que ele vira (`coringa:h|a`); sem escolha (ou bot), fica o sorteado acima
+  for (const [c, lado, id] of [[cartaH, 'h', H], [cartaA, 'a', A]] as const) {
+    const d = base.decisoes[`coringa:${lado}`]
+    if (c.sorteada === 'coringa' && d != null && ctx.humanos.includes(id) && OPCOES_CORINGA[d]) c.vale = OPCOES_CORINGA[d]
+  }
   const dados = () => ({ chute: Math.floor(rng() * 6), pulo: Math.floor(rng() * 6), sorte: rng(), sorte2: rng() })
   const dPresH = dados(), dPresA = dados(), dCartaH = dados(), dCartaA = dados()
   const suspH = { chance: rng(), quando: rng() }, suspA = { chance: rng(), quando: rng() }
@@ -246,7 +253,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   const cartas: CartaKingsInfo[] = []
   const usaCarta = (teamId: number, kMin: number, c: ReturnType<typeof sorteiaCarta>, d: ReturnType<typeof dados>, susp: { chance: number; quando: number }, lado: 'h' | 'a', quemSai: number) => {
     const info: CartaKingsInfo = { teamId, min: kParaPlacar(kMin), sorteada: c.sorteada, vale: c.vale }
-    if (c.vale === 'suspensao') { const l = ctx.linha(rival(teamId)); if (l.length) info.suspenso = l[Math.floor(quemSai * l.length)] }
+    // 🟥 SUSPENSÃO (10/11, Diego: *"1 jogador a sua escolha por 4 min"*): quem é gente escolhe QUEM do rival sai (`susp:h|a`); bot sorteia
+    if (c.vale === 'suspensao') { const l = ctx.linha(rival(teamId)), d = base.decisoes[`susp:${lado}`]; if (l.length) info.suspenso = l[d != null && ctx.humanos.includes(teamId) && d < l.length ? d : Math.floor(quemSai * l.length)] }
     if (c.vale === 'penalti' || c.vale === 'shootout') duelo(`carta:${lado}`, c.vale, kMin, teamId, d)
     else if (c.vale === 'penalti_inverso') duelo(`carta:${lado}`, 'penalti_inverso', kMin, rival(teamId), d)
     else if (c.vale === 'suspensao' && susp.chance < 0.45) {
@@ -266,8 +274,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
       const ate = c.min + kParaPlacar(EFEITO_K)
       for (const g of r.highlights.filter(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.min <= ate)) dobrados.add(g)
     } else if (c.vale === 'estrela' && c.estrela) {
-      const g = r.highlights.find(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.text.startsWith(`⚽ ${c.estrela} marca para`))
-      if (g) dobrados.add(g)
+      // ⭐ 10/11 (Diego: *"jogador estrela o gol dele vale 2 no jogo normal"*): TODO gol dele vale 2, da carta até o 36' (no match ball, não)
+      for (const g of r.highlights.filter(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.min <= PLACAR_MB && h.text.startsWith(`⚽ ${c.estrela} marca para`))) dobrados.add(g)
     }
   }
   for (const g of dobrados) {

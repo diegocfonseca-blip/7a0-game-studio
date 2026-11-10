@@ -162,3 +162,8 @@ esperar 2 minutos lá fora"*.
   SAIU (jogos já jogados seguem com o `bola` antigo).
 - 🃏 **As 6 cartas** que ele mandou: Gol 2× · Shootout · Jogador estrela · Pênalti · Coringa · Suspensão. O PÊNALTI INVERSO saiu da roleta.
 - Travas: `npm run kings` e `npm run kings-regras` (match ball empatado/na frente, jogo montado, 17–20, cartas).
+- 🃏 **Cartas, do jeito que o Diego descreveu (10/11)**: Gol em dobro 4 min · Pênalti · Shootout (iguais) · **Suspensão = VOCÊ escolhe
+  quem do rival sai 4 min** (`susp:h|a`) · **Coringa = VOCÊ escolhe a carta** (`coringa:h|a`, opções `OPCOES_CORINGA`; coringa que vira
+  suspensão pede as duas escolhas) · **Jogador estrela = TODO gol dele vale 2 até o 36'** (antes: só o próximo). Bot continua sorteando.
+  A escolha usa o MESMO caminho do canto do pênalti (`KINGS_DECIDIR` → `refazJogoKings`, mesma semente) e a cena `CenaEscolhaKings`
+  tem 7 s de contagem (não tocou = vale o sorteio). Se a escolha traz uma cobrança, o relógio refaz a lista de cenas e ela aparece em seguida.
