@@ -1104,6 +1104,7 @@ import { supabase } from '../lib/supabase'
 import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
+import { salaDormindo, marcaMovimento, marcaTela, aoAcordar } from './sala-dorme' // 💤 sala parada 20 min na tela de fim para de perguntar ao banco
 import { radioPedacoLiberado } from './sport' // 📡✂️ rádio em pedaços (10/11): por enquanto só nas salas do Diego
 import { criaEmissor, criaReceptor, type PacoteCheio, type PacotePedaco } from './radio-pedaco'
 import { troca2DSalaLiberada } from './sport' // 📺⚡ troca 2D ↔ rápido na sala: por enquanto só a conta do Diego (vale a conta do DONO — o reducer só roda no aparelho dele)
@@ -14700,6 +14701,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
     } else emissorRef.current = null // saiu do modo pedaço: quando voltar, começa por uma base nova
     ch.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(st) })
   }
+  // 💤 SALA DORME NA TELA DE FIM (sala-dorme.ts): toda mudança na partida conta como movimento; quem acorda pede/manda o estado
+  useEffect(() => {
+    if (state.onlineMode !== 'online') { marcaTela(undefined); return }
+    marcaTela(state.screen)
+    marcaMovimento()
+  }, [state])
+  useEffect(() => aoAcordar(() => {
+    const st = stateRef.current
+    if (st.onlineMode !== 'online' || !st.roomId) return
+    if (st.isHost) mandaEstado(st, true)
+    else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+  }), [])
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
@@ -15188,6 +15201,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
+        marcaMovimento() // 💤 alguém acordou e pediu o estado: o dono acorda junto
         mandaEstado(stateRef.current, true) // 📡✂️ quem pede o estado ganha uma base nova (a sala toda recebe)
       })
     } else {
@@ -15478,6 +15492,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < HEARTBEAT_QUIETO_MS) return // teve jogada recente → já sincronizado
+      if (salaDormindo()) return // 💤 sala parada na tela de fim há 20 min: ninguém precisa do batimento
       mandaEstado(stateRef.current)
       lastStateSendRef.current = Date.now()
     }, 10_000)
@@ -15524,6 +15539,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const st = stateRef.current
           const uid = st.youUid // meu crachá (= auth uid). Sem uid não dá pra comparar → não mexe.
           if (!uid || !st.roomId || !st.isHost) return
+          if (salaDormindo()) return // 💤 sala parada na tela de fim: não pergunta nada (acorda no 1º toque)
           const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at, tab:game_state->>__hostTab, claim:game_state->>__hostClaimAt').eq('id', st.roomId).maybeSingle()
           const row = r as { host_id?: string; updated_at?: string; tab?: string | null; claim?: string | null } | null
           const hostId = row?.host_id
@@ -15963,6 +15979,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     lastHostMsgRef.current = Date.now() // zera ao (re)entrar nessa vigília
     donoSumidoNoBancoRef.current = false // entrou agora: ninguém é acusado sem prova
     const iv = setInterval(() => {
+      if (salaDormindo()) return // 💤 sala parada na tela de fim: o convidado não pede nem pergunta nada (acorda no 1º toque)
       // 💸 04/10 (sem o "tô vivo"): o dono parado só fala a cada ~20-30s (heartbeat de estado),
       // então silêncio normal vai até 60s. A exceção é o MEU lance sem resposta: aí 8s já é
       // motivo pra pedir o estado — é o único caso em que a espera dói pra quem está jogando.
@@ -16193,6 +16210,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       // 45s, não 6s (04/10): sem o "tô vivo", o dono parado só fala a cada ~20-30s. Com 6s todo
       // convidado de toda sala voltaria a consultar o banco a cada 4s entre um estado e outro.
+      if (salaDormindo()) return // 💤 sala parada na tela de fim
       if (Date.now() - lastHostMsgRef.current < 45_000) return // tem dono vivo falando: nada a fazer
       if (Date.now() - voltaCoroaRef.current < 3_500) return
       voltaCoroaRef.current = Date.now()
@@ -16358,7 +16376,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       } catch { /* sem rede: segue com o que já tinha guardado */ }
       if (!vivo) return
       save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
-      iv = setInterval(save, 3000)
+      iv = setInterval(() => { if (!salaDormindo()) save() }, 3000) // 💤 parada 20 min na tela de fim: não grava o batimento
     })()
     return () => { vivo = false; save(); if (iv) clearInterval(iv); if (ivEspera) clearInterval(ivEspera) }
   }, [state.onlineMode, state.isHost, state.roomId])

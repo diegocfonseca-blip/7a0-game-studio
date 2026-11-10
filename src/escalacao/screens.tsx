@@ -1,3 +1,4 @@
+import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
 import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
@@ -11746,7 +11747,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       } catch { /* sem tag de host — segue */ }
     }
     void carregarMembros()
-    const timer = window.setInterval(() => void carregarMembros(), 3000)
+    const timer = window.setInterval(() => { if (!salaDormindo()) void carregarMembros() }, 3000) // 💤 parada 20 min na tela de fim: não pergunta (acorda no 1º toque)
     return () => { vivo = false; window.clearInterval(timer) }
   }, [state.roomId, state.managers])
   const vaiPraEsperaSozinho = async () => {

@@ -1,3 +1,10 @@
+## 💤 10/11 — Sala parada na TELA DE FIM dorme depois de 20 min (Diego: *"ok pode ser mas deixe com 20 min"*) · no branch, esperando "publica"
+- Achado do vigia: sala que acabou e ficou aberta (BHZBJB 14 h, KKXFY2) seguia perguntando ao banco a cada 3 s (quem está na sala +
+  quem é o dono, em TODO aparelho) e o dono gravando o batimento a cada 3 s — a noite toda.
+- `src/escalacao/sala-dorme.ts`: só na tela `end`, 20 min sem toque/tecla/mudança na partida = para o batimento do dono, o heartbeat de
+  estado, as vigias da coroa (dono e convidado) e o "quem está na sala" da tela de fim (screens.tsx). Qualquer toque, voltar pra aba
+  ou mudança acorda; quem acorda pede o estado e o pedido acorda o dono. Fora da tela de fim NUNCA dorme. Trava: `npm run sala-dorme`.
+
 ## 🎨 10/11 — Clube, presidente e rivais: prévia aprovada e publicação autorizada
 
 - Diego aprovou as capturas de celular/desktop e autorizou em 10/11: “Ok, pode publicar. Pode publicar”. Implementado no branch `visual/entrada-carreira-20261110`, com liberação geral na carreira solo: três etapas com cabeçalho/rodapé atuais, progresso Clube → Presidente → Rivais → Aprender, ação principal clara e ida ao tutorial publicado.

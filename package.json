@@ -139,7 +139,8 @@
     "replay-assist": "npx tsx scripts/testa-replay-sem-assist.mts",
     "criterios-carreira": "npx tsx scripts/testa-criterios-carreira.mts 0 && npx tsx scripts/testa-calibracao-carreira.mts && node scripts/testa-criterios-reducer.mjs",
     "criterios-amostra": "npx tsx scripts/mede-calibracao-carreira.mts 600",
-    "salas-sim": "npx tsx scripts/simula-salas-online.mts"
+    "salas-sim": "npx tsx scripts/simula-salas-online.mts",
+    "sala-dorme": "npx tsx scripts/testa-sala-dorme.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
