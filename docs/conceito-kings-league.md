@@ -172,3 +172,9 @@ esperar 2 minutos lá fora"*.
   segue 5 s). E com até 5 de linha em campo o motor joga **mano a mano** (`Jogo2D.manoAMano`): sem a bola, cada um cola no seu
   adversário. Medido: 800 jogos sem tela, 0 erro, placar sempre igual ao da regra.
   🔁 Mesmo dia: o MANO A MANO SAIU (*"eu não disse ficar colado, quis só dizer que tava com o corredor vazio"*). Fica só o tempo de 12 s.
+- 🔁 **Kings no 2D, 3º acerto (10/11)**: os 12 s SAÍRAM (*"deixou o jogo muito lento… mantenha a velocidade padrão… mas dê pra ver uma
+  jogada em cada minuto"*). Agora: tempo de sempre + **uma chance desenhada em cada minuto da Kings com pouca gente** sem gol nem chance
+  (`chancesKings2D` no campo2d.tsx: chute pra fora / defesa / trave, da semente — placar não muda). **Trocar a marcha no meio não recomeça
+  mais o relógio** (marcha e tempo da rodada por ref no `useRelogioKings`) — era o "troquei a velocidade e travou". **E a Kings usa o
+  desenho de computador das salas** (`desk2` sem `!kingsS`): campinho, tabela e o resto nos mesmos lugares.
+  ⚠️ Lembrar: tudo isso só liga com `ehKings` — nada vaza pros outros modos (cobrança dele: *"Kings League é um tipo de jogo diferente"*).
