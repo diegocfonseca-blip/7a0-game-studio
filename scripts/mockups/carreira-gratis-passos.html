@@ -1,0 +1,110 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Oswald;src:url(../fonts/oswald-latin-700-normal.woff2);font-weight:700}
+@font-face{font-family:Oswald;src:url(../fonts/oswald-latin-600-normal.woff2);font-weight:600}
+*{box-sizing:border-box}
+body{margin:0;background:#2a2620;font-family:Inter,system-ui,sans-serif;color:#0C0C0C;padding:24px}
+.top{color:#F4ECD6;font:700 26px Oswald;letter-spacing:.02em;margin:0 0 4px}
+.sub{color:#cfc6ad;font-size:14px;margin:0 0 18px}
+.row{display:flex;gap:22px;align-items:flex-start}
+.ph{width:390px;background:#F4ECD6;border:4px solid #0C0C0C;border-radius:28px;padding:22px 18px 20px;box-shadow:6px 6px 0 #000}
+.tag{display:inline-block;font:700 12px Oswald;letter-spacing:.06em;background:#FFC400;border:2.5px solid #0C0C0C;border-radius:9px;padding:3px 9px;box-shadow:2px 2px 0 #000;margin-bottom:10px}
+h1{font:700 34px Oswald;text-transform:uppercase;margin:0 0 4px;line-height:1}
+.lead{margin:0 0 14px;font-size:14px}
+.box{background:#fff;border:3px solid #0C0C0C;border-radius:16px;padding:14px;box-shadow:3px 3px 0 #000;margin-bottom:12px}
+.box.creme{background:#F4ECD6}
+label,h2{display:block;font:700 15px Oswald;text-transform:uppercase;margin:0 0 6px}
+.inp{border:3px solid #0C0C0C;border-radius:12px;padding:10px 12px;font-size:16px;background:#fff;margin-bottom:12px}
+.ident{display:flex;gap:10px;align-items:center;justify-content:space-around;margin:4px 0 8px}
+.crest{width:92px;height:104px;border:3px solid #0C0C0C;border-radius:14px 14px 46px 46px;background:linear-gradient(160deg,#E9DFC2,#B2A583);display:flex;align-items:center;justify-content:center;font:700 34px Oswald;box-shadow:2px 2px 0 #000}
+.shirt{width:96px;height:100px;position:relative}
+.shirt svg{width:100%;height:100%}
+.nomasc{width:86px;height:100px;border:2.5px dashed #8a7d59;border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:700;color:#6b5f3f;padding:6px}
+.small{font-size:12.5px;color:#4a4232;margin:0;line-height:1.35}
+.tabs{display:flex;gap:8px;margin-top:6px}
+.tabs span{flex:1;text-align:center;font:700 15px Oswald;border:3px solid #0C0C0C;border-radius:12px;padding:8px;background:#fff;box-shadow:2px 2px 0 #000}
+.tabs span.on{background:#7C3AED;color:#fff}
+.btns{display:flex;gap:10px}
+.btn{font:700 17px Oswald;text-transform:uppercase;border:3px solid #0C0C0C;border-radius:13px;padding:11px 16px;background:#FFC400;box-shadow:3px 3px 0 #000}
+.btn.w{background:#fff}
+.btn.full{flex:1;text-align:center}
+.ex{display:flex;gap:8px;align-items:center}
+.ex img{height:70px}
+.pres{border:3.5px solid #0C0C0C;border-radius:18px;background:linear-gradient(180deg,#F4ECD6,#E2D6B5);height:300px;display:flex;align-items:flex-end;justify-content:center;box-shadow:4px 4px 0 #000;position:relative;margin-bottom:10px}
+.pres img{height:285px}
+.free{position:absolute;top:10px;left:10px;font:700 12px Oswald;background:#1B7A3D;color:#fff;border:2.5px solid #0C0C0C;border-radius:9px;padding:3px 8px;box-shadow:2px 2px 0 #000}
+.bege{position:absolute;top:10px;right:10px;font:700 11px Oswald;background:#E9DFC2;border:2.5px solid #0C0C0C;border-radius:9px;padding:3px 8px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.it{border:3px solid #0C0C0C;border-radius:12px;background:#fff;text-align:center;padding:4px 2px 5px;position:relative}
+.it img{height:86px}
+.it.sel{outline:4px solid #7C3AED}
+.it .lk{position:absolute;inset:0;background:rgba(244,236,214,.35);border-radius:9px}
+.it b{display:block;font:700 10.5px Oswald;line-height:1.1}
+.pl{display:inline-block;font:700 10px Oswald;border:2px solid #0C0C0C;border-radius:7px;padding:1px 5px;margin-top:2px}
+.pl.c{background:#D9DDE3}.pl.l{background:#FFC400}.pl.f{background:#0C0C0C;color:#FFC400}.pl.g{background:#1B7A3D;color:#fff}
+.note{font-size:12px;color:#4a4232;margin:8px 2px 0}
+.num{display:flex;gap:8px;margin-bottom:10px}
+.num span{flex:1;text-align:center;font:700 22px Oswald;border:3px solid #0C0C0C;border-radius:12px;padding:6px;background:#fff;box-shadow:2px 2px 0 #000}
+.num span.on{background:#7C3AED;color:#fff}
+.rv{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.rv span{font-weight:700;font-size:13px;text-align:center;border:2.5px solid #0C0C0C;border-radius:10px;padding:7px 4px;background:#fff}
+.rv span.on{background:#E8503A;color:#fff}
+.bat{margin-top:10px;font-size:12px;color:#5a4a14;background:rgba(255,196,0,.18);border:2px dashed #b38900;border-radius:10px;padding:7px 9px;line-height:1.35}
+.cap{color:#F4ECD6;font:600 14px Oswald;margin:10px 4px 0;letter-spacing:.02em}
+</style></head><body>
+<p class="top">CARREIRA PASSO A PASSO · LIBERADO PRA TODOS</p>
+<p class="sub">Como fica pra quem NÃO tem plano nem batismo (1 e 2) · e a tela de rivais pra quem TEM batismo (3)</p>
+<div class="row">
+
+<div><div class="ph">
+ <span class="tag">PASSO 1 DE 3</span>
+ <h1>Crie seu clube</h1><p class="lead">Primeiro o clube. Depois, o presidente que vai comandá-lo.</p>
+ <div class="box creme">
+  <label>Nome do clube</label><div class="inp">Leões da Vila FC</div>
+  <h2>Sua identidade</h2>
+  <div class="ident">
+   <div class="crest">LV</div>
+   <div class="shirt"><svg viewBox="0 0 100 100"><path d="M30 8 L12 18 L4 40 L18 46 L22 34 L22 94 L78 94 L78 34 L82 46 L96 40 L88 18 L70 8 Q50 22 30 8Z" fill="#E9DFC2" stroke="#0C0C0C" stroke-width="3.5"/></svg></div>
+   <div class="nomasc">Mascote só<br>com Batismo</div>
+  </div>
+  <p class="small">Escudo automático e camisa lisa na cor do seu apoio (bege). Mascote só aparece quando você tiver um.</p>
+  <h2 style="margin-top:12px">Formação inicial</h2>
+  <div class="tabs"><span class="on">4-3-3</span><span>4-4-2</span></div>
+ </div>
+ <div class="box"><h2>Conheça o Batismo</h2>
+  <div class="ex"><img src="../../src/escalacao/img/leitedeverdade-escudo.webp"><img src="../../src/escalacao/img/leitedeverdade-mascote.webp"><p class="small">Exemplo: Leite de Verdade FC. Escudo, manto e mascote próprios, que viajam com a sua conta.</p></div>
+ </div>
+ <div class="btns"><span class="btn">Criar clube</span><span class="btn w">Voltar</span></div>
+</div><p class="cap">① Já existe assim hoje (sem batismo = escudo automático + camisa bege)</p></div>
+
+<div><div class="ph">
+ <span class="tag">PASSO 2 DE 3</span>
+ <h1>Crie seu presidente</h1><p class="lead">Todo mundo ganha um presidente. As outras roupas você vê e prova.</p>
+ <div class="pres"><span class="free">🎁 GRÁTIS PRA TODOS</span><span class="bege">FUNDO BEGE</span><img src="../../public/presidente-v92/base-neutra-camiseta-branca.webp"></div>
+ <label>Nome do presidente</label><div class="inp">Joaquim</div>
+ <div class="grid">
+  <div class="it sel"><img src="../../public/presidente-v92/base-neutra-camiseta-branca.webp"><b>CAMISETA BRANCA</b><span class="pl g">GRÁTIS</span></div>
+  <div class="it"><img src="../../public/presidente-v17/base-neutra-polo.webp"><b>POLO AZUL</b><span class="pl c">⭐ CRAQUE · 1,99</span></div>
+  <div class="it"><img src="../../public/presidente-v17/base-neutra-terno.webp"><b>TERNO</b><span class="pl c">⭐ CRAQUE · 1,99</span></div>
+  <div class="it"><img src="../../public/presidente-v178/smoking-branco-em-pe.webp"><b>SMOKING BRANCO</b><span class="pl l">👑 LENDA · 2,99</span></div>
+  <div class="it"><img src="../../public/presidente-v213/rei-pregao-em-pe.webp"><b>REI DO PREGÃO</b><span class="pl l">🖋 BATISMO · 3,99</span></div>
+  <div class="it"><img src="../../public/presidente-v157/gala-dourada-em-pe.webp"><b>GALA DOURADA</b><span class="pl f">🖋 FUNDADOR · 4,99</span></div>
+ </div>
+ <p class="note">Careca e camiseta branca são de graça. Cabelo, barba e as outras roupas: no plano ou avulsas (dá pra provar antes).</p>
+ <div class="btns" style="margin-top:10px"><span class="btn full">Confirmar presidente</span></div>
+</div><p class="cap">② Muda: o boneco básico vira grátis (careca + camiseta branca, fundo bege)</p></div>
+
+<div><div class="ph">
+ <span class="tag">PASSO 3 DE 3</span>
+ <h1>Prepare o pregão</h1><p class="lead">Escolha quem disputa os envelopes com você.</p>
+ <div class="box creme">
+  <h2>Rivais no pregão</h2>
+  <div class="num"><span class="on">3</span><span>5</span><span>7</span><span>9</span></div>
+  <h2>Rivais para a carreira · batismos e fundadores</h2>
+  <div class="rv"><span>Briga de Galo FC</span><span>Fabulous EC</span><span>Wen Milan B</span><span class="on">🔥 Julia Barranquila</span><span>Mengão Malvadão</span><span>Cuiudos FC</span><span>La Bestia Negra</span><span class="on">🔥 Real Madruga</span><span>Grêmio FBPA</span><span class="on">🔥 Rei da Bola FC</span><span>Rossini Money</span><span>São Luiz FC</span></div>
+  <p class="bat">🖋 O <b>Neymarzetti</b> não aparece aqui porque é o seu clube: escudo e mascote não se repetem na mesma liga.</p>
+ </div>
+ <div class="btns"><span class="btn w full">Voltar</span><span class="btn full">Ir para o pregão 🔨</span></div>
+</div><p class="cap">③ Todos os batismos e fundadores · o seu sai · linha discreta só pra quem tem batismo</p></div>
+
+</div></body></html>
