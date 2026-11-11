@@ -7097,7 +7097,7 @@ function nomeGolKings(text: string): string | null {
 }
 // ⏱️ as cenas em que alguém DECIDE (ou precisa ler o sorteio) têm tempo FIXO — a marcha ⏩ não encurta a contagem da
 // cobrança. Os banners de leitura (intervalo, bola do 38') aceleram com a marcha, como o resto do jogo.
-const KINGS_CENA_MS = { pontape: 9000, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 12000, bola: 7000, escolha: 9500 }
+const KINGS_CENA_MS = { pontape: 8000, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 12000, bola: 7000, escolha: 9500 }
 // 🐢 enquanto não está 7×7 o jogo rola DEVAGAR, mas rola de verdade (pode sair gol) — Diego 15/10: *"tem que rolar algum
 // tempo em cada 1x1… 2x2… 3x3… mais lenta um pouco em cada minuto desse, não real mas também não a jato… quando chegar em
 // 7x7 será mais rápido… quando cair o dado, se cair 3x3, volta a mostrar o campinho 3x3 e também com um tempo a mais"*.
@@ -7496,8 +7496,11 @@ export function EscSeason() {
   // 🥅 11/11 (Diego: *"só vira quando TODOS acabarem"*): os OUTROS jogos andam no relógio do seu e, se empataram, o shootout
   // deles começa no fim do seu — a rodada espera o mais longo (contado como no placar: na lista ele é só "🥅 SHOOTOUT…").
   const kingsPensOutros = !kingsRapida ? 0 : Math.max(0, ...state.lastResults.map(r => r.kings?.pens ? Math.round(pensRevealDelay(r.kings.pens, true, r.kings.pensSeq) * 1000) + 1500 : 0))
-  const kingsBase = kingsRapida ? Math.max(kingsRapidaRoundMs(undefined, kingsMarcha, you.id), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu))) : 0
-  const roundMs = kingsRapida ? Math.max(kingsBase + Math.round(kingsPensOutros / 0.84), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu) + Math.round(kingsPensMs(j.r) / 0.84))) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  // ⏩ 11/11 (Diego: *"tá demorando pra reiniciar a próxima partida"*): o resultado sai NO APITO (o relógio chegou no 40') e a
+  // próxima começa ~2,5 s depois da última disputa — antes a rodada esperava os 16% de "folga" da conta velha (~15 s parado).
+  const kingsApitoMs = kingsJogosCedo.length ? Math.max(...kingsJogosCedo.map(j => duracaoKingsRapida(j.r, kingsMarcha, j.eu))) + 1500 : 0
+  const kingsPensMax = Math.max(kingsPensOutros, ...kingsJogosCedo.map(j => kingsPensMs(j.r)))
+  const roundMs = kingsRapida ? (kingsApitoMs ? Math.round(kingsApitoMs + kingsPensMax + 2500) : kingsRapidaRoundMs(undefined, kingsMarcha, you.id)) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -7556,7 +7559,7 @@ export function EscSeason() {
   useEffect(() => {
     if (seasonSettled) { setResultRevealed(true); return }
     setResultRevealed(false)
-    const t = setTimeout(() => setResultRevealed(true), roundMs * 0.85 + 250)
+    const t = setTimeout(() => setResultRevealed(true), kingsApitoMs ? kingsApitoMs + 250 : roundMs * 0.85 + 250) // 👑 Kings: no apito
     return () => clearTimeout(t)
   }, [state.round, seasonSettled])
   // 👑🥅 11/11 (Diego: *"no shootout… faça valer no campo 2D… ele sai lá de trás com a bola do meio-campo e vai levando, tentando
@@ -7753,6 +7756,8 @@ export function EscSeason() {
     : myLast
   const kKey = copaLive ? 500 + (qc?.bracket.length ?? 0) * 10 + (kTie?.legs.length ?? 0) : state.round
   const kRel = useRelogioKings(kingsS, kKey, roundMs, kingsMarcha, kJogo, nomeLiga, you.id, kingsRapida)
+  // 👑 o relógio do seu jogo chegou no fim (pode ser antes da conta, se a marcha subiu): o resultado sai na hora — não há spoiler, o jogo acabou
+  useEffect(() => { if (kingsS && kJogo && !copaLive && kRel.min >= 93 && !resultRevealed) setResultRevealed(true) }, [kRel.min >= 93])
   // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
   // fase rolar aparece o caminho da copa + os confrontos escudo×escudo. Na 1ª fase usa o tempo de leitura
   // de sempre (`COPA_INTRO_SECONDS`); nas seguintes o respiro sobe de 3,2s pra 5s pra dar tempo de ler.
@@ -7892,7 +7897,7 @@ export function EscSeason() {
   const kFalta = Math.max(0, Math.ceil((kIniT + roundMs - Date.now()) / 1000))
   const kAviso = kingsS && kRel.cena ? (kRel.cena.tipo === 'banner' ? { tag: LS('JOGO PARADO', 'GAME PAUSED'), titulo: `${kRel.cena.b.emoji} ${kRel.cena.b.titulo}`, texto: kRel.cena.b.texto, cor: kRel.cena.b.cor }
     : kRel.cena.tipo === 'entra' ? textoEntra(kRel.cena.n, kRel.cena.modo) : null) : null
-  const kingsInfo = kingsS ? (<>
+  const kingsInfo = kingsS ? (<OwnerSlot name="kings">
     {kAviso && <FaixaAvisoKings {...kAviso} />}
     {kEsperando && (
       <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 12px', textAlign: 'center' }}>
@@ -7947,7 +7952,7 @@ export function EscSeason() {
           </Box>
         )
       })()}
-  </>) : null
+  </OwnerSlot>) : null
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
