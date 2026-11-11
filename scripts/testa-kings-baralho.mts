@@ -46,6 +46,11 @@ for (let t = 0; t < 8; t++) {
   let x = s
   for (let r = 0; r < 9; r++) { x = reducer(x, { type: 'PLAY_ROUND' } as never); jogosKings += x.lastResults.length }
 }
+// 2b) a Kings não tem lateral: nenhum lote de lateral no leilão (nem com os jogadores padrão)
+for (const kb of [true, false]) {
+  const s0 = reducer(structuredClone(INITIAL) as EscState, { type: 'START', teamName: 'T', formation: '4-3-3', rivals: 9, kings: true, kingsBaralho: kb, copaMode: 'liga', league: 'br' } as never)
+  if ((s0.deck.LAT ?? []).length) falha(`Kings (${kb ? 'baralho da Kings' : 'jogadores padrão'}) com ${s0.deck.LAT.length} lateral no leilão`)
+}
 // 3) com "jogadores padrão" a Kings usa o baralho de sempre (nenhuma carta da Kings)
 for (let t = 0; t < 3; t++) {
   const { s, vistas } = partida({ kings: true })

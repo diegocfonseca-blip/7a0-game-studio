@@ -2187,7 +2187,9 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // Só quando nem `demand` cabe em reais (sala gigante) é que sobra fake.
     // `extra` = cartas a mais por posição além da demanda (online: +1, pra dar
     // opção/disputa — 2 jogadores viram 3 goleiros, 5 laterais, etc.).
-    const target = Math.max(1, Math.ceil(demand * margin), demand + extra)
+    // 👑 11/11 (Diego: *"Kings League só tem zag, meia e ataque"* — + o goleiro): setor que NINGUÉM usa (a lateral da formação 'kings')
+    // não ganha carta nenhuma. Antes o piso de 1 punha um lateral solto no leilão da Kings com os jogadores padrão. Só a 'kings' tem 0.
+    const target = demand === 0 ? 0 : Math.max(1, Math.ceil(demand * margin), demand + extra)
     const count = Math.max(demand, Math.min(target, realFree))
     plan[pos] = { count, catalog }
   }

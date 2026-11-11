@@ -1,4 +1,5 @@
 ## 👑 11/11 ~21h45 — Kings: banner travado + infos embaixo do placar + avisos mais curtos (FEITO no branch, falta OK pra publicar)
+- 🚫 Lateral: com os jogadores padrão a Kings punha 1 lateral solto no leilão (piso de 1 no `buildDeck`). Agora setor com demanda 0 não ganha carta (só a formação `kings` tem 0). Trava no `npm run kings-baralho`.
 - 🐛 "36' · EMPATE = SHOOTOUT" ficava TRAVADO: a cena do match ball e o fim do jogo caíam no mesmo passo e o relógio parava antes
   de fechar a cena. Agora só para depois de a cena sair (`useRelogioKings`, flag `fim`).
 - 📌 EM CAMPO, efeitos valendo (jogador estrela, gol em dobro, suspensão, cartões) e o shootout agora ficam LOGO ABAIXO do placar
