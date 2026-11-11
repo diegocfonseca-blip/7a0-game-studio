@@ -1,3 +1,11 @@
+## 👑 11/11 ~00h — Kings nas SALAS ONLINE (PUBLICADO, Diego: "publique tudo já")
+- Card "👑 Kings League" em O JOGO (criar sala), faixa "🔒 Só Diego, K9 e Chinesin" (KINGS_TESTERS). No leilão: jogadores da Kings ou
+  padrão; envelope cego, Tocaia, pregão aberto e envelope único. START_ONLINE com formação 'kings' (`kingsSala`): 10 times (bots também
+  na Kings, 7 cada; no baralho da Kings o bot completa com quem sobrou, nunca falso), competição da Kings, sem Clubes/liga de 10/turno.
+- KINGS_DECIDIR leva `jogo` (casa-fora): com várias pessoas na sala o dono refaz o jogo CERTO.
+- Lista de salas mostra "👑 KINGS". Quem não é tester não vê o card, mas pode entrar numa sala da Kings pela lista (senha resolve).
+- Travas: `npm run kings-baralho` (inclui sala online) · `kings-sem-lateral` · simulador `--cenario kings|kings-unico|kings-padrao-tocaia`.
+
 ## 🏀 10/11 — Avatares das 51 lendas NBA · aprovados para publicação
 
 - 51 retratos individuais gerados com referência fotográfica e aparência correspondente à franquia/ano já cadastrados. Mantido o estilo aprovado do Agüero: busto sem feições, contorno preto, cores do uniforme sem marcas ou texto e alfa real. Porte, cabelo, barba, tranças, tatuagens e óculos individualizados. Duncan corrigido para barba preta de 2003.
