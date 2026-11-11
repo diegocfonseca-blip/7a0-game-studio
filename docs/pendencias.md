@@ -12,6 +12,8 @@
 - ⏩ Kings (11/11, print do Diego): a caixa do SHOOTOUT e os avisos ficam LOGO ABAIXO do placar (slot `kings` do visual novo, antes da tática/anúncio); o resultado sai no apito e a próxima partida começa ~2,5 s depois da última disputa (antes ~15 s parado); a contagem da bola caindo é 3-2-1 (era 5).
 - 🎲 Dado da Kings: a face do rei agora diz "👑 1×1" (Diego: *"no dado faltou ter também 1x1"*). 📺 Sala da Kings: o dono vê a troca placar ↔ Campo 2D no meio da sala, igual às outras salas (*"serve pra qualquer modo e sala"*).
 - 🤖 Bots da Kings jogam com a força do elenco −1 (`BOT_MENOS_KINGS`, kings-liga.ts): média de 79 → 78 (Diego: *"deixe força média 78"*). Só a conta de força do jogo; elenco e cartas iguais.
+- 🔒 Sala da Kings: SEMPRE com senha (criar sem senha é recusado com aviso) e não aparece na lista de salas pra quem não vê a Kings (Diego: *"não pode aparecer pras pessoas… só com senha"*).
+- 🐛 Sala K3MMV2 (Kings) parou em "Virando a rodada…" depois da 9ª: o fim da liga virou um vigia que conta do início da rodada e encerra quando passa o tempo (antes era um único timer que recomeçava).
 - Card "👑 Kings League" em O JOGO (criar sala), faixa "🔒 Só Diego, K9 e Chinesin" (KINGS_TESTERS). No leilão: jogadores da Kings ou
   padrão; envelope cego, Tocaia, pregão aberto e envelope único. START_ONLINE com formação 'kings' (`kingsSala`): 10 times (bots também
   na Kings, 7 cada; no baralho da Kings o bot completa com quem sobrou, nunca falso), competição da Kings, sem Clubes/liga de 10/turno.

@@ -7502,6 +7502,7 @@ export function EscSeason() {
   const kingsApitoMs = kingsJogosCedo.length ? Math.max(...kingsJogosCedo.map(j => duracaoKingsRapida(j.r, kingsMarcha, j.eu))) + 1500 : 0
   const kingsPensMax = Math.max(kingsPensOutros, ...kingsJogosCedo.map(j => kingsPensMs(j.r)))
   const roundMs = kingsRapida ? (kingsApitoMs ? Math.round(kingsApitoMs + kingsPensMax + 2500) : kingsRapidaRoundMs(undefined, kingsMarcha, you.id)) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs // (o vigia do fim da liga lê o valor de agora)
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -7661,9 +7662,13 @@ export function EscSeason() {
   // antes o PLAY_ROUND pulava direto e a última partida não aparecia rolando.
   useEffect(() => {
     if (!canAdvance || state.round < totalRounds || state.screen !== 'season' || state.champion != null || state.quickCopa) return
-    const t = setTimeout(() => dispatch({ type: 'FINISH_SEASON' }), roundMs)
-    return () => clearTimeout(t)
-  }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, roundMs, dispatch])
+    // 🐛 11/11 (sala K3MMV2 do Diego, Kings: travou em "Seu jogo acabou · Virando a rodada…" depois da 9ª): o fim da liga era UM
+    // setTimeout que recomeçava do zero sempre que o tempo da rodada mudava — e ele nunca disparava. Agora é um vigia: conta a
+    // partir do início da rodada (o MESMO relógio da sala) e, passou o tempo, encerra (FINISH_SEASON não faz nada duas vezes).
+    const ini = online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : Date.now()
+    const iv = setInterval(() => { if (Date.now() - ini >= roundMsRef.current) dispatch({ type: 'FINISH_SEASON' }) }, 1000)
+    return () => clearInterval(iv)
+  }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, dispatch])
 
   // 🏆 Copa dos 8: a liga acabou (round 38) e a sala escolheu Liga + Copa —
   // toca fase a fase (quartas → semis → final), mesmo ritmo/motor da Copa da

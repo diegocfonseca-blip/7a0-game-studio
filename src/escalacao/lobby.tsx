@@ -2170,10 +2170,13 @@ export function EscLobby() {
     const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
+    // 👑🔒 11/11: a sala da Kings é SEMPRE com senha (igual à Liga da Turma e à Liga Draft)
+    const kingsSenha = kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete'
+    if (kingsSenha && !roomPw.trim()) { setRoomError(tr('👑 A sala da Kings League é sempre com senha: digite uma senha pra criar.', '👑 Kings League rooms always need a password: type one to create.')); setLoading(false); return }
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
     // genérico "sala fechada" nem aparece no modo liga).
     const ligaMode = ligaOn && roomMode === 'liga'
-    const locked = ligaMode ? true : (roomLocked && !!roomPw.trim())
+    const locked = ligaMode ? true : kingsSenha ? true : (roomLocked && !!roomPw.trim())
     const pwHash = locked ? hashPw((ligaMode ? ligaPw : roomPw).trim().toLowerCase()) : undefined // sem diferenciar maiúsculas
     const carreira = canCareer && roomMode === 'carreira'
     // 👔 Sala de Elenco: NÃO tem Copa (decisão do Diego 17/08 — "não terá copa,
@@ -2503,6 +2506,15 @@ export function EscLobby() {
         const tirados = new Set((tir ?? []).map(x => (x as { room_id: string }).room_id))
         for (const r of list) if (tirados.has(r.id) && r.game_state) r.game_state = { ...r.game_state, liveUrl: undefined }
       } catch { /* sem resposta: a lista segue como sempre */ }
+    }
+    // 👑🔒 11/11 (Diego: *"salas da Kings League não podem aparecer pras pessoas. Essa sala é só com senha"*): quem não vê a Kings não
+    // vê a sala dela na lista. A lista magra não traz a formação, então pergunta só os ids (resposta minúscula). Sem resposta = esconde nada.
+    if (!kingsVe && ids.length) {
+      try {
+        const { data: kg } = await supabase.from('game_rooms').select('id').in('id', ids).eq('game_state->>formation', 'kings')
+        const kings = new Set((kg ?? []).map(x => (x as { id: string }).id))
+        if (kings.size) for (let i = list.length - 1; i >= 0; i--) if (kings.has(list[i].id)) list.splice(i, 1)
+      } catch { /* a lista segue */ }
     }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
       // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
@@ -4217,7 +4229,7 @@ export function EscLobby() {
           [tr('Campeonato', 'Championship'), kingsCriar ? tr('10 times · 9 rodadas', '10 teams · 9 rounds') : nbaSala ? tr('Temporada da NBA', 'NBA season') : rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
           [tr('Depois da liga', 'After the league'), kingsCriar ? tr('Mata-mata da Kings', 'Kings knockouts') : ehDraft ? tr('Liga + draft', 'League + draft') : nbaSala ? tr('🏀 Playoffs', '🏀 Playoffs') : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
           [tr('Partida', 'Match'), `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`],
-          [tr('Entrada', 'Entry'), roomMode === 'liga' || roomLocked ? tr('Com senha', 'Password') : tr('Aberta', 'Open')],
+          [tr('Entrada', 'Entry'), roomMode === 'liga' || roomLocked || (kingsVe && kingsSala && roomMode === 'rapido') ? tr('Com senha', 'Password') : tr('Aberta', 'Open')],
           [tr('Conversa', 'Chat'), roomChat ? tr('Chat ligado', 'Chat on') : tr('Sem chat', 'No chat')],
           ...(roomStream ? [[tr('Transmissão', 'Stream'), tr('Modo Stream', 'Stream mode')] as [string, string]] : []),
         ] : linhasSala
@@ -4864,8 +4876,9 @@ export function EscLobby() {
                     <p className="font-black text-[12.5px] text-white" style={OSWALD}>{tr('🏆 A senha da liga fica lá em cima', '🏆 The league password is up there')}</p>
                     <p className="text-white/50 text-[10.5px] font-bold mt-0.5">{tr('No quadro da liga, junto com o dia e a hora. Liga é sempre com senha.', 'In the league box, next to the day and time. A league always has a password.')}</p>
                   </div>
+                : (kingsVe && kingsSala && roomMode === 'rapido') ? <SegField label={tr('Entrada', 'Entry')}><p className="text-[11.5px] font-bold text-white/75">{tr('🔒 A sala da Kings League é sempre com senha — passe a senha só pra quem vai jogar.', '🔒 Kings League rooms always need a password — share it only with your players.')}</p></SegField>
                 : <SegField label={tr('Entrada', 'Entry')}><Seg options={[[false, tr('🔓 Aberta', '🔓 Open')], [true, tr('🔒 Com senha', '🔒 Password')]] as [boolean, string][]} value={roomLocked} onSet={v => setRoomLocked(v)} /><ExplicaEntrada senha={roomLocked} /></SegField>}
-              {roomLocked && roomMode !== 'liga' && (
+              {(roomLocked || (kingsVe && kingsSala && roomMode === 'rapido')) && roomMode !== 'liga' && (
                 <input type="text" value={roomPw} onChange={e => setRoomPw(e.target.value)} maxLength={20}
                   placeholder={tr('Senha da sala (avise a galera)', 'Room password (tell your crew)')}
                   className="w-full mt-2 border-[2.5px] border-black rounded-xl px-3 py-2 font-black text-black bg-white" />
@@ -4939,7 +4952,7 @@ export function EscLobby() {
             <div className="rounded-2xl p-3" style={{ background: INK }}>
               <p className="uppercase mb-2" style={{ fontSize: 12, letterSpacing: '.08em', color: GOLD, ...OSWALD }}>📋 {tr('Sua sala', 'Your room')}</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {[nomeModo, ...(roomMode === 'rapido' || roomMode === 'liga' ? [rLeilao] : []), ...(roomMode !== 'elenco' && !isCareer ? [(ehDraft && roomMode === 'liga' && !ehMinha) ? tr('🌎 Todos', '🌎 All') : rDeck, formation] : []), ...(!isCareer ? [(ehDraft && roomMode === 'liga') ? tr('📊 Liga + 📋 draft', '📊 League + 📋 draft') : rCopa[rapidoCopaMode] ?? ''] : []), ...(!isCareer ? [roomManual && hasManual ? tr('🎮 Manual', '🎮 Manual') : tr('⚡ Auto', '⚡ Auto')] : []), roomStream ? tr('🔴 Stream', '🔴 Stream') : '', roomMode === 'liga' || roomLocked ? tr('🔒 Com senha', '🔒 Password') : tr('🔓 Aberta', '🔓 Open')].filter(Boolean).map((t, i) => (
+                {[nomeModo, ...(roomMode === 'rapido' || roomMode === 'liga' ? [rLeilao] : []), ...(roomMode !== 'elenco' && !isCareer ? [(ehDraft && roomMode === 'liga' && !ehMinha) ? tr('🌎 Todos', '🌎 All') : rDeck, formation] : []), ...(!isCareer ? [(ehDraft && roomMode === 'liga') ? tr('📊 Liga + 📋 draft', '📊 League + 📋 draft') : rCopa[rapidoCopaMode] ?? ''] : []), ...(!isCareer ? [roomManual && hasManual ? tr('🎮 Manual', '🎮 Manual') : tr('⚡ Auto', '⚡ Auto')] : []), roomStream ? tr('🔴 Stream', '🔴 Stream') : '', roomMode === 'liga' || roomLocked || (kingsVe && kingsSala && roomMode === 'rapido') ? tr('🔒 Com senha', '🔒 Password') : tr('🔓 Aberta', '🔓 Open')].filter(Boolean).map((t, i) => (
                   <span key={i} className="uppercase" style={{ fontSize: 11, background: '#2b241a', color: CREAM, borderRadius: 7, padding: '3px 7px', ...OSWALD }}>{t}</span>
                 ))}
               </div>
