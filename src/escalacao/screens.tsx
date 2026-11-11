@@ -18,7 +18,7 @@ import { dur2DDaVel } from './vel2d-regra'
 import { useRitmo2D, useVel2D, useVel2DAqui, useControleVel2D, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { OPCOES_CORINGA, PLACAR_BOLA, PLACAR_DADO, PLACAR_DADO_FIM, PLACAR_DOBRO_INI, PLACAR_MB, PLACAR_INTERVALO, placarParaK, placarParaKTela, kParaPlacar, kings2DDe, type Kings2D } from './kings-liga'
 import { PixMP } from './pix-mp'
-import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, CenaEscolhaKings, cartaRotulo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
+import { CenaPontape, textoEntra, FaixaAvisoKings, CenaDado, CenaCarta, CenaDuelo, CenaEscolhaKings, cartaRotulo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
 import type { MatchResult, CartaKingsInfo } from './types'
 import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { createPortal } from 'react-dom'
@@ -7290,9 +7290,8 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
 }
 /** 👑 a cena da vez, desenhada por cima do jogo */
 function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void; /** os jogadores de LINHA do time (a suspensão escolhe um do rival) — a mesma lista da regra */ linhaDe: (id: number) => string[] }) {
-  if (cena.tipo === 'banner') return <BannerKingsTela b={cena.b} />
+  if (cena.tipo === 'banner' || cena.tipo === 'entra') return null // 📣 11/11: aviso de texto = faixa embaixo do placar (`kingsInfo`)
   if (cena.tipo === 'pontape') { const p = jogo?.kings?.posse; return <CenaPontape posse={p != null ? nome(p) : undefined} ladoPosse={p === jogo?.awayId ? 'd' : 'e'} casa={jogo ? nome(jogo.homeId) : undefined} fora={jogo ? nome(jogo.awayId) : undefined} /> }
-  if (cena.tipo === 'entra') return <CenaEntra key={`${cena.modo ?? 'entra'}${cena.n}`} n={cena.n} modo={cena.modo} casa={jogo ? nome(jogo.homeId) : ''} fora={jogo ? nome(jogo.awayId) : ''} />
   if (cena.tipo === 'dado') return <CenaDado face={cena.face} />
   if (cena.tipo === 'carta') return <CenaCarta key={`${cena.carta.teamId}-${cena.carta.min}`} carta={cena.carta} time={nome(cena.carta.teamId)} rival={jogo ? nome(cena.carta.teamId === jogo.homeId ? jogo.awayId : jogo.homeId) : ''}
     escolhe={cena.carta.teamId === youId ? (cena.carta.sorteada === 'coringa' ? 'coringa' : cena.carta.vale === 'suspensao' ? 'suspensao' : undefined) : undefined} />
@@ -7308,18 +7307,6 @@ function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe }: { cena: 
   const d = jogo?.kings?.duelos?.find(x => x.key === cena.key)
   if (!d) return null
   return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} />
-}
-function BannerKingsTela({ b }: { b: BannerKings }) {
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(12,12,12,.45)', pointerEvents: 'none' }}>
-      <div style={{ maxWidth: 380, width: '100%', background: '#FFF6DE', color: INK, border: `4px solid ${INK}`, borderRadius: 22, boxShadow: `6px 6px 0 ${b.cor}`, padding: '16px 18px', textAlign: 'center', animation: 'kgBan .35s cubic-bezier(.2,1.4,.4,1)' }}>
-        <style>{'@keyframes kgBan{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}'}</style>
-        <p style={{ ...OSWALD, fontSize: 11, fontWeight: 900, letterSpacing: '.18em', color: b.cor, margin: 0 }}>👑 KINGS LEAGUE · {tr('JOGO PARADO', 'GAME PAUSED')}</p>
-        <p style={{ ...OSWALD, fontSize: 30, fontWeight: 900, lineHeight: 1.05, margin: '4px 0 6px' }}>{b.emoji} {b.titulo}</p>
-        <p style={{ fontSize: 14, fontWeight: 800, margin: 0 }}>{b.texto}</p>
-      </div>
-    </div>
-  )
 }
 /** 👑 a caixa de regras da Kings — aparece antes da 1ª rodada, no lugar do "aguardando o pontapé" */
 function RegrasKingsBox() {
@@ -7899,7 +7886,10 @@ export function EscSeason() {
   useEffect(() => { if (!kEsperando) return; const iv = setInterval(() => kTick(n => n + 1), 1000); return () => clearInterval(iv) }, [kEsperando])
   const kIniT = !copaLive && state.rodadaEm?.r === state.round ? state.rodadaEm.at : kIni.current.t
   const kFalta = Math.max(0, Math.ceil((kIniT + roundMs - Date.now()) / 1000))
+  const kAviso = kingsS && kRel.cena ? (kRel.cena.tipo === 'banner' ? { tag: LS('JOGO PARADO', 'GAME PAUSED'), titulo: `${kRel.cena.b.emoji} ${kRel.cena.b.titulo}`, texto: kRel.cena.b.texto, cor: kRel.cena.b.cor }
+    : kRel.cena.tipo === 'entra' ? textoEntra(kRel.cena.n, kRel.cena.modo) : null) : null
   const kingsInfo = kingsS ? (<>
+    {kAviso && <FaixaAvisoKings {...kAviso} />}
     {kEsperando && (
       <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 12px', textAlign: 'center' }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{LS('⏳ Seu jogo acabou', '⏳ Your match is over')}</p>

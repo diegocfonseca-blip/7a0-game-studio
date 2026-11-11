@@ -83,7 +83,8 @@ export function CenaPontape({ posse, ladoPosse, casa, fora }: { posse?: string; 
 //    Posições de cada lado do campo (esquerda), espelhadas pro outro lado — o goleiro fica sempre no gol.
 const POS_E: [number, number][] = [[40, 50], [30, 28], [30, 72], [20, 42], [40, 20], [40, 80], [22, 64]]
 /** `modo`: 'entra' (1'–6', entra mais um) · 'dado' (o dado mandou N×N até o intervalo) · 'volta' (2º tempo: voltou o 7×7) */
-export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: string; fora: string; modo?: 'entra' | 'dado' | 'volta' }) {
+/** os textos do aviso de "quantos tem em campo" (a faixa embaixo do placar e a cena usam os MESMOS) */
+export function textoEntra(n: number, modo: 'entra' | 'dado' | 'volta' = 'entra') {
   const completo = n >= 7
   const tag = modo === 'dado' ? tr('O DADO MANDOU', 'THE DICE SAYS') : modo === 'volta' ? tr('23\' · VOLTOU O 7×7', '23\' · BACK TO 7 v 7')
     : completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n} · ENTRA MAIS UM`, `MINUTE ${n} · ONE MORE IN`)
@@ -95,6 +96,11 @@ export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: 
     : modo === 'volta' ? tr('Acabou o dado: os dois times voltam completos (goleiro + 6) e o jogo volta ao ritmo normal.', 'Dice over: both teams are complete again (keeper + 6) and the game runs at normal speed.')
     : completo ? tr('Os dois times estão completos (goleiro + 6). Daqui pra frente o jogo rola no ritmo normal.', 'Both teams are complete (keeper + 6). From here on the game runs at normal speed.')
     : tr(`Entrou mais um de cada lado. Enquanto não chega no 7×7 o jogo rola mais devagar — cada minuto entra mais um.`, `One more in on each side. Until it reaches 7 v 7 the game runs slower — one more joins every minute.`)
+  return { tag, titulo, texto, cor: completo ? GREEN : PURPLE }
+}
+export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: string; fora: string; modo?: 'entra' | 'dado' | 'volta' }) {
+  const completo = n >= 7
+  const { tag, titulo, texto } = textoEntra(n, modo)
   const novo = modo === 'entra' ? n - 1 : -1
   return (
     <Palco tag={tag} cor={completo ? GREEN : PURPLE}>
@@ -112,6 +118,19 @@ export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: 
       </Arena>
       <Explica cor={completo ? GREEN : PURPLE} titulo={titulo} texto={texto} />
     </Palco>
+  )
+}
+
+// ── 📣 11/11 (Diego: *"aviso que não tampa a tela"* → *"só coloque o aviso"*): os avisos de TEXTO da Kings (presidente, match
+// ball, intervalo, entra mais um…) viram uma FAIXA embaixo do placar, no lugar da janela por cima do jogo. O relógio para igual.
+export function FaixaAvisoKings({ tag, titulo, texto, cor }: { tag: string; titulo: string; texto: string; cor: string }) {
+  return (
+    <div style={{ background: CREAM, color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${cor}`, padding: '8px 12px', textAlign: 'center', animation: 'kcPop .3s ease' }}>
+      <style>{CSS}</style>
+      <p style={{ ...OSW, fontSize: 10, letterSpacing: '.16em', color: cor, margin: 0 }}>👑 KINGS LEAGUE · {tag}</p>
+      <p style={{ ...OSW, fontSize: 20, lineHeight: 1.1, margin: '2px 0 3px', color: INK }}>{titulo}</p>
+      <p style={{ fontSize: 12.5, fontWeight: 700, margin: 0, lineHeight: 1.35, color: INK }}>{texto}</p>
+    </div>
   )
 }
 
