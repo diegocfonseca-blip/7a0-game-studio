@@ -50,7 +50,7 @@ export function Arena({ casa, fora, children, altura = 210 }: { casa?: string; f
 
 // ── ⚽ PONTAPÉ: a gaiola no teto abre e a bola cai no meio do campo, 1×1 + goleiros
 // ⏱️ todo jogo tem 5 s de contagem antes de a bola cair (Diego 15/10, com a foto do "3" gigante na arena)
-export const PONTAPE_CONTA_MS = 4000 // ⏩ 11/11 (Diego: *"o início quando a bola cai deve ser um segundo mais rápido"*): contagem de 4, não 5
+export const PONTAPE_CONTA_MS = 3000 // ⏩ 11/11 (Diego: *"coloque 3 2 1"*): contagem 3-2-1 (era 5)
 export function CenaPontape({ posse, ladoPosse, casa, fora }: { posse?: string; ladoPosse?: 'e' | 'd'; casa?: string; fora?: string }) {
   const [pegou, setPegou] = useState(false)
   const [conta, setConta] = useState(PONTAPE_CONTA_MS / 1000)
