@@ -75,6 +75,7 @@ import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import doubleduoMascoteImg from './img/doubleduo-mascote.webp' // 🎮 Double Duo FC (doublecontatocomercial): arte própria do dono, 09/11
 import calabresosMascoteImg from './img/calabresos-mascote.webp' // 🌭 Calabresos FC (silviovicente87): arte própria do dono, 11/11
+import gotiMascoteImg from './img/goti-mascote.webp' // 😴 Goti FC (klebim877): arte própria do dono, 11/11
 import monarcaMascoteImg from './img/monarca-tricolor-mascote.webp' // 👑 Monarca Tricolor (danieltorresreus): arte própria do dono, 05/11
 import paizaoMascoteImg from './img/paizao-mascote.webp' // 🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoMascoteImg from './img/piranhao-mascote.webp' // 🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
@@ -422,6 +423,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 👑 O MONARCA (mascote do Monarca Tricolor — danieltorresreus, 05/11): o goleiro-rei de preto, vermelho e branco, camisa 01 e
   // braçadeira de capitão, com a capa vermelha de arminho e a bola debaixo do braço. Arte do próprio dono. 📏 391×440, 39 KB — altura
   // 176. mascote_key = "monarca_rei".
+  // 😴 O GOTI (mascote do Goti FC — klebim877, 11/11): o próprio dono de venda nos olhos, relaxado no trono vermelho, camisa 22
+  // tricolor, pé na bola com a coroa. Arte do próprio dono. 📏 270×440, 42 KB — altura 176. mascote_key = "goti_rei".
+  goti_rei: (
+    <img src={gotiMascoteImg} height={176} width={Math.round(176 * 270 / 440)} alt="O Goti — Goti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🌭 O REI CALABRESA (mascote do Calabresos FC — silviovicente87, 11/11): a calabresa musculosa de coroa, óculos dourados e capa
   // de arminho, braços cruzados, com o calção do clube. Arte do próprio dono. 📏 281×440, 40 KB — altura 176. mascote_key = "calabresos_rei".
   calabresos_rei: (
@@ -1324,6 +1330,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Calabresos': 'calabresos_rei',
   'Calabresos EC': 'calabresos_rei',
   'Calabresos SC': 'calabresos_rei',
+  // 😴 o Goti carimba o gol do Goti FC (klebim877, 11/11).
+  'Goti FC': 'goti_rei',
+  'Goti': 'goti_rei',
+  'Goti EC': 'goti_rei',
+  'Goti SC': 'goti_rei',
   // 👑 o Monarca carimba o gol do Monarca Tricolor (danieltorresreus, 05/11).
   'Monarca Tricolor': 'monarca_rei',
   'Monarca Tricolor FC': 'monarca_rei',
@@ -1515,6 +1526,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   piranhao_presidente: 'O Presidente', // 🏛️ Piranhão FC (bruno.cunha2007, 29/10)
   doubleduo_streamer: 'O Streamer', // 🎮 Double Duo FC (doublecontatocomercial, 09/11)
   calabresos_rei: 'O Rei Calabresa', // 🌭 Calabresos FC (silviovicente87, 11/11)
+  goti_rei: 'O Goti', // 😴 Goti FC (klebim877, 11/11)
   monarca_rei: 'O Monarca', // 👑 Monarca Tricolor (danieltorresreus, 05/11)
   paizao_cartola: 'O Paizão', // 🎩 Paizão FC (enzocromero9, 30/10)
   principe_rubronegro: 'O Príncipe', // 👑 Príncipe Rubro Negro (pedroglima50, 02/11)

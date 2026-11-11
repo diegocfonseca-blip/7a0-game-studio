@@ -71,6 +71,7 @@ import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Mi
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import doubleduoEscudoImg from './img/doubleduo-escudo.webp' // 👑💜 Double Duo FC (doublecontatocomercial): arte própria do dono, 09/11
 import calabresosEscudoImg from './img/calabresos-escudo.webp' // 👑🌭 Calabresos FC (silviovicente87): arte própria do dono, 11/11
+import gotiEscudoImg from './img/goti-escudo.webp' // 👑😴 Goti FC (klebim877): arte própria do dono, 11/11
 import monarcaEscudoImg from './img/monarca-tricolor-escudo.webp' // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus): arte própria do dono, 05/11
 import paizaoEscudoImg from './img/paizao-escudo.webp' // 👑🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoEscudoImg from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
@@ -932,6 +933,11 @@ const chelsaoEscudoRender = (size: number) => (
 // 👑💜 DOUBLE DUO FC (doublecontatocomercial, batismo FUNDADOR de 09/11 — streamer de jogos de manager de futebol). 📏 297×360, 28 KB.
 // O monograma DD azul com a coroa dourada, os louros, o controle, a prancheta e as redes dele (YouTube, TikTok, Kick, Instagram).
 // Fundo verde chroma tirado (o K verde do Kick ficou: só sai o verde que encosta na borda); conferido sobre vermelho e creme.
+// 👑😴 GOTI FC (klebim877, batismo de 11/11 — joga na sala do K9; SEM vaga na pirâmide, decisão do Diego; ❤️ São Paulo).
+// O dono de venda nos olhos, mãos na nuca, camisa 22 tricolor, coroa e louros. 📏 281×320, 29 KB. Conferido sobre vermelho e creme.
+const gotiEscudoRender = (size: number) => (
+  <img src={gotiEscudoImg} height={size} width={Math.round(size * 281 / 320)} alt="Goti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 👑🌭 CALABRESOS FC (silviovicente87, batismo de 11/11 — joga sempre na sala do K9; SEM vaga na pirâmide, decisão do Diego).
 // O rei calabresa de coroa, óculos e cetro no trono. 📏 282×320, 29 KB. Fundo verde chroma tirado; conferido sobre vermelho e creme.
 const calabresosEscudoRender = (size: number) => (
@@ -1654,6 +1660,10 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Calabresos': calabresosEscudoRender,
   'Calabresos EC': calabresosEscudoRender,
   'Calabresos SC': calabresosEscudoRender,
+  'Goti FC': gotiEscudoRender, // 👑😴 Goti FC (klebim877) — BATISMO. As 4 formas do nome.
+  'Goti': gotiEscudoRender,
+  'Goti EC': gotiEscudoRender,
+  'Goti SC': gotiEscudoRender,
   'Monarca Tricolor': monarcaEscudoRender, // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus) — BATISMO FUNDADOR. As 4 formas do nome + o bot que cedeu o assento.
   'Monarca Tricolor FC': monarcaEscudoRender,
   'Monarca Tricolor EC': monarcaEscudoRender,

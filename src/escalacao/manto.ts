@@ -132,6 +132,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // pra #16100E pelo motivo de sempre: preto de arte escura, na listra fininha, lê como buraco) e o vermelho das listras (18%, #C71D07).
   // O dourado da gola fica de fora (manto é de 2 cores).
   'silviovicente87@gmail.com': ['#16100E', '#C71D07'],
+  // 👑😴 Goti FC — BRANCO e VERMELHO, MEDIDOS na camisa que o dono mandou (11/11): branco do corpo (33%, #FCF9F9) e o vermelho da
+  // listra do peito, gola e punhos (#D70506). O PRETO (25%, #0C0909) é a 3ª cor, em MANTO_TRI (tricolor à moda São Paulo, o clube dele).
+  'klebim877@gmail.com': ['#FCF9F9', '#D70506'],
   'enzocromero9@gmail.com': ['#100F0F', '#D99C32'],
   // 🐆💜 Milan Recifense — ROXO e PRETO, MEDIDOS na camisa que o dono mandou (05/11): roxo das listras (mediana, #C402F5) e o
   // preto do corpo (#0C060A).
@@ -378,6 +381,7 @@ const MANTO_TRI: Record<string, string> = {
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
   gremio_gaucho: '#EDECEB', // 🔵⚫⚪ Grêmio FBPA (danieldias11) — 3ª cor BRANCA: o filete entre as listras azul e preta (medida na camisa dele, 21/09)
+  goti_rei: '#0C0909', // 👑😴 Goti FC (klebim877) — 3ª cor PRETA: a listra do peito (medida na camisa dele, 11/11)
   doubleduo_streamer: '#0170F2', // 👑💜 Double Duo FC (doublecontatocomercial) — 3ª cor AZUL: a gola e as faixas da camisa (medida na arte dele, 09/11)
   monarca_rei: '#060604', // 👑 Monarca Tricolor (danieltorresreus) — 3ª cor PRETA: a listra larga do peito e das mangas (medida na camisa dele, 05/11)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08

@@ -187,6 +187,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'danieltorresreus@gmail.com': 'ouro', // 👑 batismo FUNDADOR Monarca Tricolor (Série D, no assento do bot Excelsior SAF) + fundador nº99 + sócio nº85 (05/11, pago por fora no Pix).
   'enzocromero9@gmail.com': 'ouro', // 👑 batismo FUNDADOR Paizão FC (Série D, no assento do bot Monarca EC) + fundador nº98 + sócio nº82 (30/10).
   'bruno.cunha2007@gmail.com': 'ouro', // 👑 batismo FUNDADOR Piranhão FC (Série D, no assento do bot Continental Real) + fundador nº96 + sócio nº81 (29/10).
+  'klebim877@gmail.com': 'ouro', // 👑😴 batismo Goti FC (11/11; joga na sala do K9 — SEM vaga na pirâmide, decisão do Diego; ❤️ São Paulo). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'silviovicente87@gmail.com': 'ouro', // 👑🌭 batismo Calabresos FC (11/11; joga na sala do K9 — SEM vaga na pirâmide, decisão do Diego). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'danicorreafilho@gmail.com': 'ouro', // 🐆💜 batismo Milan Recifense (Série D, no assento do bot Dragão Imperial) + sócio (05/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'pedroglima50@gmail.com': 'ouro', // 👑 batismo Príncipe Rubro Negro (Série D, no assento do bot Aurora Suprema) + sócio (02/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
