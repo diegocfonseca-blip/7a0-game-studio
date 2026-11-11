@@ -7098,7 +7098,7 @@ function nomeGolKings(text: string): string | null {
 }
 // ⏱️ as cenas em que alguém DECIDE (ou precisa ler o sorteio) têm tempo FIXO — a marcha ⏩ não encurta a contagem da
 // cobrança. Os banners de leitura (intervalo, bola do 38') aceleram com a marcha, como o resto do jogo.
-const KINGS_CENA_MS = { pontape: 7000, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 12000, bola: 7000, escolha: 9500 }
+const KINGS_CENA_MS = { pontape: 7000, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 6000, /* ⏩ 11/11 (Diego: *"quando acaba o intervalo tá demorando pra aparecer o dado"*): era 12 s */ bola: 7000, escolha: 9500 }
 // 🐢 enquanto não está 7×7 o jogo rola DEVAGAR, mas rola de verdade (pode sair gol) — Diego 15/10: *"tem que rolar algum
 // tempo em cada 1x1… 2x2… 3x3… mais lenta um pouco em cada minuto desse, não real mas também não a jato… quando chegar em
 // 7x7 será mais rápido… quando cair o dado, se cair 3x3, volta a mostrar o campinho 3x3 e também com um tempo a mais"*.
@@ -7507,10 +7507,12 @@ export function EscSeason() {
   // ESTIMATIVA — se o relógio do jogo andou mais devagar que ela (cenas, escolhas, a tela abrindo atrasada), a rodada virava antes
   // do shootout aparecer. Agora o dono só vira quando o SEU jogo de fato apitou e a disputa dele teve tempo de passar inteira.
   const kProntoRef = useRef<{ r: number; at: number } | null>(null)
+  const kOutroHumanoPens = kingsJogosCedo.some(j => j.eu !== you.id && !!j.r.kings?.pens)
   const kingsViraOk = (ini: number) => {
     const agora = Date.now(), ms = roundMsRef.current
-    if (agora - ini >= ms * 1.6) return true // trava de segurança: nunca segura a sala pra sempre
-    if (agora - ini < ms) return false
+    // 🥅 11/11 (Diego: *"não pode passar o shootout, só se for bot contra bot"*): sem atalho por tempo. Se outro jogo com GENTE foi pro
+    // shootout, o dono ainda dá 20% de folga, porque o relógio do outro aparelho pode andar um pouco atrás do dele.
+    if (agora - ini < ms * (kOutroHumanoPens ? 1.2 : 1)) return false
     const p = kProntoRef.current
     return !!p && p.r === state.round && agora >= p.at
   }
