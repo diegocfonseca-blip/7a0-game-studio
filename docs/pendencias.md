@@ -8,6 +8,7 @@
 - ⏳ Quem termina antes na sala da Kings vê "Seu jogo acabou… a próxima começa em N s" (ou "o dono passa pra próxima", no manual) — Diego: *"como o outro vai saber que tem jogo rolando e não é bug?"*.
 - 🥅 O tempo da rodada da Kings agora conta o SHOOTOUT (placar ou campinho 2D): a próxima rodada não começa no meio da disputa (11/11).
 - 📣 Avisos de TEXTO da Kings (presidente, match ball, intervalo, "entra mais um", 7×7) viram FAIXA embaixo do placar, sem tampar a tela (11/11, *"só coloque o aviso"*). Escalonado NÃO muda: 1×1 + goleiros, completa no 7' (Diego: *"não"*).
+- 🥅 Lista dos OUTROS jogos da Kings: jogo empatado mostra "🥅 SHOOTOUT…" depois do 40' e no fim "X venceu no shootout 3×2"; a rodada só vira quando a disputa mais longa de TODOS os jogos acaba (11/11, *"só vira quando todos acabarem"*).
 - Card "👑 Kings League" em O JOGO (criar sala), faixa "🔒 Só Diego, K9 e Chinesin" (KINGS_TESTERS). No leilão: jogadores da Kings ou
   padrão; envelope cego, Tocaia, pregão aberto e envelope único. START_ONLINE com formação 'kings' (`kingsSala`): 10 times (bots também
   na Kings, 7 cada; no baralho da Kings o bot completa com quem sobrou, nunca falso), competição da Kings, sem Clubes/liga de 10/turno.

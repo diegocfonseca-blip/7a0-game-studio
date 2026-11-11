@@ -239,6 +239,9 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
    *  Antes cada jogo do giro tinha relógio próprio e os gols do 1×1 passavam por baixo da cena do pontapé — o Diego
    *  achava que não saía gol no começo. */
   minutoFixo?: number; relogioKings?: boolean
+  /** 🥅 Kings (11/11): o jogo empatou e foi pro SHOOTOUT ([casa, fora] da disputa). Depois do 40' ele mostra "SHOOTOUT…" até a
+   *  rodada fechar, e no fim diz quem venceu — igual aos pênaltis das copas. */
+  kingsPens?: [number, number]
 }) {
   const [minuteLocal, setMinute] = useState(0)
   const minute = p.minutoFixo ?? minuteLocal
@@ -253,9 +256,15 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
   const homeScore = finished ? score[0] : basket ? parcial(score[0]) : known ? goals.filter(g => g.home && g.min <= minute).length : '–'
   const awayScore = finished ? score[1] : basket ? parcial(score[1]) : known ? goals.filter(g => !g.home && g.min <= minute).length : '–'
   const relogio = basket ? basketClockLabel(minute, tr('FIM', 'FINAL')) : p.relogioKings ? `${placarParaK(minute)}′` : `${Math.min(90, minute)}′`
-  const { minutoFixo: _mf, relogioKings: _rk, ...resto } = p
+  const { minutoFixo: _mf, relogioKings: _rk, kingsPens, ...resto } = p
   void _mf; void _rk
-  return <CompetitionMatch {...resto} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={finished ? tr('ENCERRADO', 'FULL TIME') : `${relogio} · ${tr('AO VIVO', 'LIVE')}`} detail={!finished && !known && !basket ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail} />
+  const naDisputa = !!kingsPens && !finished && minute >= 93
+  const venceu = kingsPens && finished ? (kingsPens[0] > kingsPens[1] ? p.home : p.away) : null
+  const status = finished ? tr('ENCERRADO', 'FULL TIME') : naDisputa ? tr('🥅 SHOOTOUT…', '🥅 SHOOTOUT…') : `${relogio} · ${tr('AO VIVO', 'LIVE')}`
+  const detail = venceu && kingsPens ? tr(`🥅 ${venceu} venceu no shootout ${Math.max(...kingsPens)}×${Math.min(...kingsPens)}`, `🥅 ${venceu} won the shootout ${Math.max(...kingsPens)}–${Math.min(...kingsPens)}`)
+    : naDisputa ? tr('Empatou: a disputa está rolando…', 'Level: the shootout is on…')
+    : !finished && !known && !basket ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail
+  return <CompetitionMatch {...resto} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={status} detail={detail} />
 }
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}

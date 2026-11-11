@@ -7493,7 +7493,11 @@ export function EscSeason() {
     if (c2dKings) return Math.round(new DisputaShootoutCampo({ id: 'conta', pens: p, aName: nomeLiga(r.homeId), bName: nomeLiga(r.awayId), seqReal: r.kings?.pensSeq, shootout: true }).duracao * 1000) + 1500
     return Math.round(pensRevealDelay(p, true, r.kings?.pensSeq) * 1000) + 1500
   }
-  const roundMs = kingsRapida ? Math.max(kingsRapidaRoundMs(undefined, kingsMarcha, you.id), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu) + Math.round(kingsPensMs(j.r) / 0.84))) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  // 🥅 11/11 (Diego: *"só vira quando TODOS acabarem"*): os OUTROS jogos andam no relógio do seu e, se empataram, o shootout
+  // deles começa no fim do seu — a rodada espera o mais longo (contado como no placar: na lista ele é só "🥅 SHOOTOUT…").
+  const kingsPensOutros = !kingsRapida ? 0 : Math.max(0, ...state.lastResults.map(r => r.kings?.pens ? Math.round(pensRevealDelay(r.kings.pens, true, r.kings.pensSeq) * 1000) + 1500 : 0))
+  const kingsBase = kingsRapida ? Math.max(kingsRapidaRoundMs(undefined, kingsMarcha, you.id), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu))) : 0
+  const roundMs = kingsRapida ? Math.max(kingsBase + Math.round(kingsPensOutros / 0.84), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu) + Math.round(kingsPensMs(j.r) / 0.84))) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -8395,7 +8399,7 @@ export function EscSeason() {
       )}
       {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
-        return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
+        return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kingsPens={kingsS ? r.kings?.pens : undefined} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}
       {/* 🗂️ O INVÓLUCRO DA COLUNA DA DIREITA. No DESKTOP ele é UM bloco só na coluna
           2 — por isso a tela larga que o Diego aprovou em 18/09 fica intacta. No
@@ -8574,7 +8578,7 @@ export function EscSeason() {
           {state.lastResults.map(r => {
             const h = state.league.find(t => t.id === r.homeId), a = state.league.find(t => t.id === r.awayId)
             const owner = (id: number) => { const m = state.managers.find(x => x.id === id); return m?.isHuman ? m.name : 'BOT' }
-            return <RoundMatchPresentation basket={bbS} startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} />
+            return <RoundMatchPresentation basket={bbS} startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kingsPens={kingsS ? r.kings?.pens : undefined} />
           })}
         </div></section>}
         {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({repescao:'PLAYOFF',r32:'ROUND OF 32',oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({repescao:'REPESCÃO',r32:'RODADA DE 32',oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
