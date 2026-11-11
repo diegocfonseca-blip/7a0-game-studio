@@ -7665,10 +7665,12 @@ export function EscSeason() {
     // 🐛 11/11 (sala K3MMV2 do Diego, Kings: travou em "Seu jogo acabou · Virando a rodada…" depois da 9ª): o fim da liga era UM
     // setTimeout que recomeçava do zero sempre que o tempo da rodada mudava — e ele nunca disparava. Agora é um vigia: conta a
     // partir do início da rodada (o MESMO relógio da sala) e, passou o tempo, encerra (FINISH_SEASON não faz nada duas vezes).
+    // (só na Kings, por enquanto: o futebol de sempre segue com o timer de sempre)
+    if (!kingsS) { const t = setTimeout(() => dispatch({ type: 'FINISH_SEASON' }), roundMs); return () => clearTimeout(t) }
     const ini = online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : Date.now()
     const iv = setInterval(() => { if (Date.now() - ini >= roundMsRef.current) dispatch({ type: 'FINISH_SEASON' }) }, 1000)
     return () => clearInterval(iv)
-  }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, dispatch])
+  }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, dispatch, kingsS, kingsS ? 0 : roundMs])
 
   // 🏆 Copa dos 8: a liga acabou (round 38) e a sala escolheu Liga + Copa —
   // toca fase a fase (quartas → semis → final), mesmo ritmo/motor da Copa da
