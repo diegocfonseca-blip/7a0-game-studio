@@ -1391,5 +1391,12 @@
     "year": 2015,
     "src": "/avatars/lendas-v3/sergio-aguero-manchester-city-2015.webp",
     "transparent": true
+  },
+  {
+    "name": "Lipão",
+    "club": "Furia",
+    "year": 2025,
+    "src": "/avatars/lendas-v3/lipao-furia-2025.webp",
+    "transparent": true
   }
 ]
