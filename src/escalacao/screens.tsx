@@ -11,6 +11,7 @@ import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type C
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
+import { DisputaShootoutCampo } from './campo2d-shootout' // 👑🥅 a conta do tempo do shootout da Kings
 import { usePenaltisCampo } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
 import { dur2DDaVel } from './vel2d-regra'
@@ -7496,7 +7497,16 @@ export function EscSeason() {
     }
     return state.lastResults.filter(x => humanos.has(x.homeId) || humanos.has(x.awayId)).map(r => ({ r, eu: eu(r.homeId, r.awayId) }))
   })()
-  const roundMs = kingsRapida ? Math.max(kingsRapidaRoundMs(undefined, kingsMarcha, you.id), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu))) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  // 🥅 11/11 (Diego: *"tem rodada que pode ir pro shootout"*): o tempo da rodada conta a disputa também — no placar, o quadro das
+  // cobranças (`pensRevealDelay`); no Campo 2D, a cena do shootout no campinho. Sem isto a próxima rodada podia começar no meio dela.
+  const c2dKings = useCampo2DLigado()
+  const kingsPensMs = (r: MatchResult) => {
+    const p = r.kings?.pens
+    if (!p) return 0
+    if (c2dKings) return Math.round(new DisputaShootoutCampo({ id: 'conta', pens: p, aName: nomeLiga(r.homeId), bName: nomeLiga(r.awayId), seqReal: r.kings?.pensSeq, shootout: true }).duracao * 1000) + 1500
+    return Math.round(pensRevealDelay(p, true, r.kings?.pensSeq) * 1000) + 1500
+  }
+  const roundMs = kingsRapida ? Math.max(kingsRapidaRoundMs(undefined, kingsMarcha, you.id), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu) + Math.round(kingsPensMs(j.r) / 0.84))) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
