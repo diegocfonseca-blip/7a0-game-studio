@@ -1,3 +1,11 @@
+## 🏀 10/11 — Avatares das 51 lendas NBA · aprovados para publicação
+
+- 51 retratos individuais gerados com referência fotográfica e aparência correspondente à franquia/ano já cadastrados. Mantido o estilo aprovado do Agüero: busto sem feições, contorno preto, cores do uniforme sem marcas ou texto e alfa real. Porte, cabelo, barba, tranças, tatuagens e óculos individualizados. Duncan corrigido para barba preta de 2003.
+- Catálogo separado `basketball-avatars.json`, integrado pelo resolvedor existente de nome + franquia + ano. Nenhuma alteração de over, categoria, regras ou acesso privado do basquete. As 199 identidades do futebol permanecem intactas.
+- Produção: `public/avatars/nba-v1/`, 51 WebP 600×400, alfa verdadeiro, todos abaixo de 60 KB; conjunto aproximado 1,56 MB. Carregamento lazy do componente existente preservado.
+- Verificações: `node scripts/check-basketball-avatars.mjs`, `node scripts/check-legend-avatars.mjs` e `npm run build` passaram. Alfa/dimensões/peso verificados com Pillow. Pranchas conferidas sobre creme e verde. O Chromium do ambiente não pôde iniciar, então o teste de navegador ficou pendente.
+- Artes aprovadas pelo usuário e publicação autorizada.
+
 ## 👑 11/11 ~23h — Kings: shootout no Campo 2D + rádio + gol dobrado no 2D + Luan Mestre/Andreas Craque (PUBLICADO, Diego: "publique tudo já")
 - 🥅 Shootout no campinho (`campo2d-shootout.ts`, subclasse da disputa de pênaltis): sai do meio-campo com a bola, 5 s, goleiro na
   linha até o apito, se encostar na bola acabou; resto atrás do meio; goleiro reserva ao lado do gol. Liga e mata-mata da Kings com 2D.
