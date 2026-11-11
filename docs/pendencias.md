@@ -5,7 +5,7 @@
 - 📻 Rádio da Kings: +34 frases de jogo e +20 das fases abertas; frase de gente entrando só no começo, do dado só no dado (`fase`).
 - ✖️2 Campo 2D: o lance "(+1)" gruda no gol do mesmo minuto e o campinho sobe 2 (`juntaBonusKings`, `Evento.vale`).
 - Luan Mestre e Andreas Vaz: Lendário → Craque (kings-baralho.ts).
-- ⚽ Gols (Diego: *"onde mais sai gol é do minuto 1 ao 4… e no dado 3x3, 2x2 também"*): `GOL_POR_MIN` 1×1–4×4 e dado 2×2/3×3 sobem (0,20·0,20·0,19·0,17), 5×5/6×6/7×7 descem (0,075·0,06·0,028). ~2 gols no 0–4', ~1,2 no dado, média 9,2 por jogo.
+- ⚽ Gols: 1×1–4×4 e dado 2×2/3×3 sobem (0,20·0,20·0,19·0,17); o resto como era (Diego: *"não quer dizer que não saia nos outros… na Kings costuma sair mais goleada, até empate de goleada"*). + RITMO por jogo (0,75×–1,5×, sorteio próprio). Medido: ~10,6 gols/jogo, 46% goleada de 4+, 22% com 13+ gols, empate 4x4+ 8%. Trava da média subiu pra 12.
 - ⚠️ Ainda pendente com o Diego: avisos como faixa embaixo do placar (sim/não) · escalonado do começo terminar no 6' (sim/não).
 
 ## 👑 11/11 ~22h20 — Kings: campinho com poucos + pênalti "esticou" (FEITO no branch, falta OK pra publicar)

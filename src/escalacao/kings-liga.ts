@@ -54,9 +54,9 @@ function desconta<T extends { name: string; teamId: number }>(lista: T[], nome: 
 // Placar médio de bola rolando ≈ 5,5 + presidente/cartas/bola do fim ≈ 7–8. Força do time (média dos 7 melhores) e
 // tática mexem na chance. Autor e garçom saem do elenco DE VERDADE (carta de mentira faz o gol mas não entra na súmula).
 export interface CartaGol { name: string; pos: string; lo: number; hi: number; fake?: boolean; club?: string }
-// 🔁 11/11 (Diego: *"onde mais sai gol é do minuto 1 ao 4… e no dado quando cai 3x3, 2x2 também"*): 1×1 a 4×4 e o dado de 2×2/3×3 sobem;
-// 5×5 e 6×6 descem um pouco e o 7×7 um tiquinho, pra média do jogo continuar perto da Kings de verdade.
-const GOL_POR_MIN: Record<number, number> = { 1: 0.2, 2: 0.2, 3: 0.19, 4: 0.17, 5: 0.075, 6: 0.06, 7: 0.028 }
+// 🔁 11/11 (Diego: *"onde mais sai gol é do minuto 1 ao 4… e no dado quando cai 3x3, 2x2 também"*): 1×1 a 4×4 e o dado de 2×2/3×3 sobem.
+// O resto fica como era — *"não quer dizer que não saia nos outros… na Kings costuma sair mais goleada, até empate de goleada"*.
+const GOL_POR_MIN: Record<number, number> = { 1: 0.2, 2: 0.2, 3: 0.19, 4: 0.17, 5: 0.095, 6: 0.08, 7: 0.04 }
 const GOL_RETA_FINAL = 0.055
 /** quantos de linha cada time tem no minuto `k` da Kings */
 export function emCampoKings(k: number, dado: 1 | 2 | 3): number {
@@ -76,6 +76,9 @@ export function simulaGolsKings(o: {
   elencos: { h: CartaGol[]; a: CartaGol[] }; taticas?: { h?: string; a?: string }; ehFake: (c: CartaGol) => boolean
 }): { highlights: MatchHighlight[]; tmpS: ScorerRow[]; tmpA: AssistRow[]; cartoes: CartaoKingsInfo[] } {
   const rng = rngKings(o.seed ^ 0x601A5)
+  // 🎢 11/11: cada jogo tem o SEU ritmo (sorteio próprio, não mexe nos outros): uns mais travados, outros jogo louco — é daí que saem as
+  // goleadas e os empates de goleada que a Kings tem. Entre 0,75× e 1,5× a chance de gol de todo minuto.
+  const ritmo = 0.75 + 0.75 * rngKings(o.seed ^ 0x717A5)()
   // 🟨🟥 CARTÕES (15/10, Diego: *"o cartão amarelo, o jogador tem que esperar 2 minutos lá fora"*). Na Kings ninguém é
   // expulso de vez: amarelo = 2 min fora, vermelho = 5 min fora, e o time joga com UM A MENOS nesse tempo (marca menos,
   // leva mais). Só depois do 7×7 completo (no 1×1 não sobra ninguém pra tirar). Sorteio PRÓPRIO (`rc`), separado do gol.
@@ -116,7 +119,7 @@ export function simulaGolsKings(o: {
   }
   for (let k = 0; k < MIN_FIM; k++) {
     const n = emCampoKings(k, dado)
-    const base = k >= 36 ? GOL_RETA_FINAL : GOL_POR_MIN[n]
+    const base = (k >= 36 ? GOL_RETA_FINAL : GOL_POR_MIN[n]) * ritmo
     // 🟨🟥 alguém tomou cartão neste minuto? (o time fica com um a menos a partir do minuto seguinte)
     if (k >= 7 && k < MIN_FIM - 1) for (const lado of ['h', 'a'] as const) {
       const r = rc(), r2 = rc(), r3 = rc()

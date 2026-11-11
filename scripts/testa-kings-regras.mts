@@ -35,7 +35,7 @@ console.log(`(${jogos.length} partidas com gente conferidas lance a lance)`)
   const cedo = crus.filter(l => l.some(h => h.min < kParaPlacar(2))).length / crus.length
   const goleiro = jogos.some(r => r.kingsBase!.highlights.some(h => h.kind === 'gol' && h.min < kParaPlacar(3) && /^⚽ /.test(h.text)) )
   console.log(`   média ${tot.toFixed(1)} gols/jogo · por minuto: 1×1 ${um.toFixed(2)} · escalonado ${escal.toFixed(2)} · 7×7 ${sete.toFixed(2)} · dado ${dado.toFixed(2)} · 2º tempo ${seg.toFixed(2)} · ${Math.round(cedo * 100)}% dos jogos com gol nos 2 primeiros minutos`)
-  ok(tot >= 6 && tot <= 9.5, `⚽ média de ${tot.toFixed(1)} gols por jogo (Kings de verdade ≈ 7,4)`)
+  ok(tot >= 6 && tot <= 12, `⚽ média de ${tot.toFixed(1)} gols por jogo (Kings de verdade ≈ 7,4 — 11/11 o Diego quer mais goleada: até 12)`)
   ok(um > sete * 2 && dado > sete * 1.8 && escal > sete, '⚽ sai MUITO mais gol no 1×1 e no dado do que no 7×7')
   ok(cedo > 0.2 && goleiro, `⚽ gol logo no 1×1 acontece (${Math.round(cedo * 100)}% dos jogos)`)
 }
