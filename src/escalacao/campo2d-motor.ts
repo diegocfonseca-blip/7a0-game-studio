@@ -161,12 +161,12 @@ export class Jogo2D {
   private espalma: -1 | 1 | null = null
   private en: boolean
 
-  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], eventos: Evento[], en = false, formacoes: [string?, string?] = []) {
+  constructor(seed: number, casa: CartaCampo[], fora: CartaCampo[], eventos: Evento[], en = false, formacoes: [string?, string?] = [], /** 👑 Kings: quem pegou a bola da gaiola (sorteado na regra); fora da Kings é sempre a casa */ comeca: Lado = 0) {
     this.rng = mulberry(seed)
     this.atl = [...montaTime(0, casa, formacoes[0]), ...montaTime(1, fora, formacoes[1])]
     this.evs = [...eventos].sort((a, b) => a.min - b.min)
     this.en = en
-    this.saida(0, true)
+    this.saida(comeca, true)
     this.narra = en ? 'Kick-off!' : 'Rola a bola!'
   }
 

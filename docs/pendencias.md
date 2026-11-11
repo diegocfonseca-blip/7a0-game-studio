@@ -4,6 +4,10 @@
   losango; 5×5 2-1-2) e volta pro lugar de verdade no 7×7. `npm run campo2d` ✅.
 - 🥅 Pênalti: pela regra, goleiro do mesmo lado na altura errada pega metade das vezes; a tela mostrava a luva num canto e a bola em
   outro com "DEFENDEU" (testador achou que era bug). Agora a luva aparece onde a bola foi + "ESTICOU E PEGOU" (só desenho).
+- ⚖️ Força do time na Kings pesava pouco (diferença média: forte vencia 59% × 65% no normal; grande 79% × 96%). Expoente 1,4 → 4 (teto
+  2,6), com a SOMA dos dois igual (média segue ~8,5 gols). Medido em 1.350 jogos: 55% · 59% · 65% · 95% — igual ao modo normal.
+- ⚽ Gols do 1×1–6×6 (24% dos gols em 7 de 40 min) e gol no período do gol que vale 2 (25% dos jogos = o "3 pra 1" dele) já batiam: não mexi.
+- ⚽ Bola da gaiola: a regra já sorteava (52% casa); o campinho 2D é que sempre dava a saída pra casa — agora começa com quem pegou.
 - ❓ Perguntas abertas pro Diego: (1) avisos de texto viram faixa embaixo do placar (dado/roleta/cobrança seguem grandes)? (2) escalonado
   do começo: hoje 1×1 (goleiro + 1) do 0' ao 2' e 7×7 no 7'; o testador diz que contando o goleiro já começa 2×2 e acaba no 6'. (3) "no
   shootout tá bugando" — falta detalhe/print (o conserto do banner travado só chegou às 22h15).

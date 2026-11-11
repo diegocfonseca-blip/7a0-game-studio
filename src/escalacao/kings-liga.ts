@@ -85,8 +85,15 @@ export function simulaGolsKings(o: {
   const fH = forcaDe(o.elencos.h), fA = forcaDe(o.elencos.a)
   const tat = (t?: string) => t === 'ataque' ? [1.15, 1.12] : t === 'retranca' ? [0.85, 0.8] : [1, 1]
   const [hOwn, hGive] = tat(o.taticas?.h), [aOwn, aGive] = tat(o.taticas?.a)
-  const multH = Math.min(1.9, Math.max(0.45, Math.pow(fH / fA, 1.4))) * hOwn * aGive
-  const multA = Math.min(1.9, Math.max(0.45, Math.pow(fA / fH, 1.4))) * aOwn * hGive
+  // ⚖️ 11/11 (Diego: *"o principal: ganha também com base em quem escolher melhor o time, igual normalmente com os outros modos"*): a força
+  // pesava pouco (expoente 1,4, teto 1,9) — com diferença média o mais forte ganhava só 59% (no modo normal, 65%; diferença grande 79% × 96%).
+  // Com expoente 4 e teto 2,6, medido em 1.350 jogos: diferença pequena 54% · média 69% · grande 96% — o mesmo do jogo normal.
+  // (a SOMA dos dois fica como era: muda QUEM faz os gols, não quantos saem — senão a média passava de 10 por jogo)
+  const pH = Math.min(2.6, Math.max(0.38, Math.pow(fH / fA, 4))), pA = Math.min(2.6, Math.max(0.38, Math.pow(fA / fH, 4)))
+  const antigoH = Math.min(1.9, Math.max(0.45, Math.pow(fH / fA, 1.4))), antigoA = Math.min(1.9, Math.max(0.45, Math.pow(fA / fH, 1.4)))
+  const igual = (antigoH + antigoA) / (pH + pA)
+  const multH = pH * igual * hOwn * aGive
+  const multA = pA * igual * aOwn * hGive
   const highlights: MatchHighlight[] = []
   const tmpS: ScorerRow[] = [], tmpA: AssistRow[] = []
   // "dia" de cada jogador (o craque pode apagar, o perna-de-pau pode brilhar), igual à partida de sempre
@@ -396,6 +403,8 @@ export function somaListas(destS: ScorerRow[], tmpS: ScorerRow[], destA: AssistR
 
 /** 👑 o que o campinho precisa saber da partida da Kings (tudo já sorteado pela regra — aqui só se mostra) */
 export interface Kings2D {
+  /** ⚽ quem pegou a bola da gaiola: 0 = casa · 1 = fora */
+  posse?: 0 | 1
   dado: 1 | 2 | 3
   /** 🟡 o brilho do fim: no MATCH BALL (36', alguém na frente) é dourado · regra antiga: 🔴/🟡 a partir do 38' */
   bola?: 'dourada' | 'vermelha'
@@ -405,9 +414,12 @@ export interface Kings2D {
   fora: { nome: string; min: number; ate: number; cor: 'amarelo' | 'vermelho' }[]
 }
 /** 👑📺 a partida da Kings → o que o Campo 2D desenha (cartões e a carta de suspensão viram "fora"; o dado e a bola do fim) */
-export function kings2DDe(k?: KingsInfo | null): Kings2D | undefined {
+export function kings2DDe(k?: KingsInfo | null, homeId?: number): Kings2D | undefined {
   if (!k) return undefined
   const fora: Kings2D['fora'] = (k.cartoes ?? []).map(c => ({ nome: c.nome, min: c.min, ate: c.ate, cor: c.cor }))
   for (const c of k.cartas ?? []) if (c.vale === 'suspensao' && c.suspenso) fora.push({ nome: c.suspenso, min: c.min, ate: placarParaK(c.min) + MIN_EFEITO_K, cor: 'vermelho' })
-  return { dado: k.dado, bola: k.mb ? (k.mb.empate ? undefined : 'dourada') : k.bola, matchBall: !!k.mb, fora }
+  // ⚽ 11/11 (Diego: *"a bola do início que cai pra alguém pegar deve ser aleatório quem fica com a bola"*): o campinho começa com quem a
+  // regra sorteou (`posse`), o mesmo da cena do pontapé — antes o 2D sempre dava a saída pra casa
+  const posse = homeId != null && k.posse != null ? (k.posse === homeId ? 0 : 1) : undefined
+  return { dado: k.dado, bola: k.mb ? (k.mb.empate ? undefined : 'dourada') : k.bola, matchBall: !!k.mb, fora, posse }
 }
