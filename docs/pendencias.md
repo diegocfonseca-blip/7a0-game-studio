@@ -1,3 +1,13 @@
+## 👑 11/11 ~22h20 — Kings: campinho com poucos + pênalti "esticou" (FEITO no branch, falta OK pra publicar)
+- 📺 Campo 2D com 1×1…5×5: entravam primeiro os ATACANTES e ficavam no lugar do 7×7 (todos na frente, buraco atrás). Agora quem está
+  em campo ganha desenho próprio pro número (`arrumaPoucos` no campo2d-motor.ts: 2×2 = um atrás/um na frente; 3×3 um por linha; 4×4
+  losango; 5×5 2-1-2) e volta pro lugar de verdade no 7×7. `npm run campo2d` ✅.
+- 🥅 Pênalti: pela regra, goleiro do mesmo lado na altura errada pega metade das vezes; a tela mostrava a luva num canto e a bola em
+  outro com "DEFENDEU" (testador achou que era bug). Agora a luva aparece onde a bola foi + "ESTICOU E PEGOU" (só desenho).
+- ❓ Perguntas abertas pro Diego: (1) avisos de texto viram faixa embaixo do placar (dado/roleta/cobrança seguem grandes)? (2) escalonado
+  do começo: hoje 1×1 (goleiro + 1) do 0' ao 2' e 7×7 no 7'; o testador diz que contando o goleiro já começa 2×2 e acaba no 6'. (3) "no
+  shootout tá bugando" — falta detalhe/print (o conserto do banner travado só chegou às 22h15).
+
 ## 👑 11/11 ~21h45 — Kings: banner travado + infos embaixo do placar + avisos mais curtos (PUBLICADO 11/11 ~22h, Diego: "Sim")
 - 📺 Campo 2D VOLTOU na Kings (só contas da Kings), a pedido dele: *"coloque o campinho 2D também e depois eu decido se deixo ou tiro"*. PENDENTE: ele decidir.
 - 🏷️ Formação da Kings aparece como **2-2-2** (`rotuloFormacao` em types.ts; a chave `kings` continua no save).

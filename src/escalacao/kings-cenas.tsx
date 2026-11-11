@@ -265,11 +265,20 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
   const ajuda = duelo.tipo === 'penalti_inverso'
     ? (souBatedor ? tr(`Pênalti ao contrário (carta do ${nomeGoleiro}): você é obrigado a bater. FAZ pra se salvar — se errar, o gol é DELES!`, `Reverse penalty (${nomeGoleiro}'s card): you must shoot. SCORE to stay safe — miss and THEY get the goal!`) : tr('Pênalti ao contrário (sua carta): DEFENDA e o gol é SEU!', 'Reverse penalty (your card): SAVE it and the goal is YOURS!'))
     : duelo.tipo === 'shootout' ? tr('Sai do meio-campo: 5 segundos cara a cara.', 'From halfway: 5 seconds one on one.') : ''
-  const resultado = duelo.tipo === 'penalti_inverso'
+  // 🐛 11/11 (testador, áudio: *"você clica no lugar, o gol é por outro, mas não conta o gol, parece como se tivesse defendido"*): pela
+  // regra (`dueloKings`), goleiro que pula do MESMO LADO do chute, na altura errada, pega metade das vezes ESTICANDO. A tela mostrava a
+  // luva no canto do pulo e a bola em outro com "DEFENDEU" — parecia bug. Agora, quando ele pega esticando, a luva aparece ONDE A BOLA
+  // FOI e o texto diz que ele esticou. (Só desenho: o resultado é o mesmo de sempre.)
+  const esticou = fim && duelo.chute !== duelo.pulo && duelo.chute % 3 === duelo.pulo % 3 && !duelo.gol
+  const resultado = esticou
+    ? (duelo.tipo === 'penalti_inverso'
+      ? tr(`🧤 O GOLEIRO ESTICOU E PEGOU! GOL DO ${nomeGoleiro.toUpperCase()}!`, `🧤 THE KEEPER STRETCHED AND SAVED! ${nomeGoleiro.toUpperCase()} GETS THE GOAL!`)
+      : souBatedor ? tr('🧤 O GOLEIRO ESTICOU E PEGOU!', '🧤 THE KEEPER STRETCHED AND SAVED!') : tr('🧤 VOCÊ ESTICOU E PEGOU!', '🧤 YOU STRETCHED AND SAVED!'))
+    : duelo.tipo === 'penalti_inverso'
     ? (duelo.gol ? tr('⚽ FEZ! NINGUÉM GANHA GOL', '⚽ SCORED! NO GOAL FOR ANYONE') : tr(`🧤 ERROU! GOL DO ${nomeGoleiro.toUpperCase()}!`, `🧤 MISSED! ${nomeGoleiro.toUpperCase()} GETS THE GOAL!`))
     : (duelo.gol ? tr('⚽ GOOOOL!', '⚽ GOAAAL!') : tr('🧤 DEFENDEU!', '🧤 SAVED!'))
   const marca = (i: number) => escolha === i || (fim && (souBatedor ? duelo.chute === i : duelo.pulo === i))
-  const outro = fim ? (souBatedor ? duelo.pulo : duelo.chute) : null
+  const outro = fim ? (souBatedor ? (esticou ? duelo.chute : duelo.pulo) : duelo.chute) : null
   return (
     <Palco tag={tag} cor={RED}>
       <div style={{ background: INK, color: '#fff', border: `4px solid ${INK}`, borderRadius: 20, padding: 14, boxShadow: `5px 5px 0 ${RED}` }}>
