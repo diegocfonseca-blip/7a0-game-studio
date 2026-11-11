@@ -7880,7 +7880,28 @@ export function EscSeason() {
   const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
   // 👑📌 11/11 (Diego: *"a info, por exemplo jogador estrela escolhido… está abaixo do telão. Essas infos devem ficar abaixo do placar
   // cinema"*): EM CAMPO, os efeitos valendo e o shootout moram logo embaixo do placar grande (liga e mata-mata), não mais lá no fim.
+  // ⏳👑 11/11 (Diego: *"como o outro vai saber que tem jogo rolando e não é bug?"*): na SALA da Kings a rodada só vira quando o jogo
+  // mais longo acaba. Quem terminou antes vê um aviso com a contagem até a próxima — senão o placar parado parece travado.
+  const kIni = useRef({ k: kKey, t: Date.now() })
+  if (kIni.current.k !== kKey) kIni.current = { k: kKey, t: Date.now() }
+  const kEsperando = kingsS && online && kRel.min >= 93
+  const [, kTick] = useState(0)
+  useEffect(() => { if (!kEsperando) return; const iv = setInterval(() => kTick(n => n + 1), 1000); return () => clearInterval(iv) }, [kEsperando])
+  const kIniT = !copaLive && state.rodadaEm?.r === state.round ? state.rodadaEm.at : kIni.current.t
+  const kFalta = Math.max(0, Math.ceil((kIniT + roundMs - Date.now()) / 1000))
   const kingsInfo = kingsS ? (<>
+    {kEsperando && (
+      <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 12px', textAlign: 'center' }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{LS('⏳ Seu jogo acabou', '⏳ Your match is over')}</p>
+        <p style={{ fontSize: 12, fontWeight: 700, margin: '2px 0 0', opacity: .8 }}>
+          {manual
+            ? LS('Ainda tem jogo rolando nessa rodada. Quando acabar, o dono da sala passa pra próxima.', 'There are still matches going on this round. When they finish, the host moves to the next one.')
+            : kFalta > 0
+              ? LS(`Ainda tem jogo rolando nessa rodada — a próxima começa em ${kFalta} s.`, `There are still matches going on this round — the next one starts in ${kFalta} s.`)
+              : LS('Virando a rodada…', 'Moving to the next round…')}
+        </p>
+      </div>
+    )}
       {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.max(1, Math.min(7, placarParaK(kRel.min)))} />}
       {kingsS && kJogo?.kings?.duelos && kRel.min >= PLACAR_DADO && kRel.min < (kJogo.kings.mb ? PLACAR_DADO_FIM : PLACAR_INTERVALO) && <FaixaEmCampo n={kJogo.kings.dado} dado />}
       {kingsS && kJogo?.kings?.cartas && (() => {
