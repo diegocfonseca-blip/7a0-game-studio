@@ -291,7 +291,7 @@ export const ACERVO_TOQUES = TOQUES.length
 // 👑 FRASES DA KINGS LEAGUE (15/10): o que acontece numa partida da Kings e não acontece num jogo comum. `c` = versão do
 // clube; `p` = versão com o jogador ({p}) da posição `pos`, do time `quem` (t = quem faz · o = o outro). Nada de gol,
 // chance, pênalti (tem tela própria) nem placar — mesmas regras do resto da rádio.
-type FraseKings = { c: Par; p?: Par; pos?: 'GOL' | 'ZAG' | 'MEI' | 'ATA'; quem?: 't' | 'o' }
+type FraseKings = { c: Par; p?: Par; pos?: 'GOL' | 'ZAG' | 'MEI' | 'ATA'; quem?: 't' | 'o'; /** 👑 11/11: só no começo escalonado ('ini', gente ENTRANDO) ou só na fase do dado ('dado'); sem = qualquer fase aberta */ fase?: 'ini' | 'dado' }
 const KINGS: FraseKings[] = [
   { c: ['o goleiro do {t} sai da área e vira jogador de linha. Coisa de Kings', 'the {t} keeper leaves the box and plays outfield. Pure Kings'], p: ['{p}, goleiro do {t}, sai da área e vira jogador de linha. Coisa de Kings', '{p}, the {t} keeper, leaves the box and plays outfield. Pure Kings'], pos: 'GOL' },
   { c: ['o presidente do {t} levanta na tribuna e pede raça', 'the {t} president stands up in the box and demands fight'] },
@@ -313,6 +313,41 @@ const KINGS: FraseKings[] = [
   { c: ['o goleiro do {o} repõe rápido com a mão, jogo de Kings é sem respiro', 'the {o} keeper throws it out quickly, Kings games never pause'], p: ['{p}, goleiro do {o}, repõe rápido com a mão: jogo de Kings é sem respiro', '{p}, the {o} keeper, throws it out quickly: Kings games never pause'], pos: 'GOL', quem: 'o' },
   { c: ['os comentaristas apostam na transmissão quem leva hoje', 'the commentators are betting on air who takes it today'] },
   { c: ['o {t} gira a bola de pé em pé, a arena faz olé', '{t} pass it around, the arena shouts olé'], p: ['{p} gira a bola do {t} de pé em pé, a arena faz olé', '{p} moves the {t} ball around, the arena shouts olé'], pos: 'MEI' },
+  // ➕ 11/11 (Diego: *"aumente a variedade de narrações da Kings League"*) — mais 34, mesmas regras (nada de gol, chance, pênalti nem placar)
+  { c: ['o presidente do {t} desce até a beira do campo e é contido pela segurança', 'the {t} president walks down to the touchline and security holds him back'] },
+  { c: ['o presidente do {o} cruza os braços na tribuna. Cara de poucos amigos', 'the {o} president folds his arms in the box. Not a happy face'] },
+  { c: ['os dois presidentes trocam provocação pelo telão. Isso é Kings', 'the two presidents trade jabs on the big screen. This is Kings'] },
+  { c: ['o chat da transmissão explode com o nome do {t}', 'the stream chat explodes with the {t} name'] },
+  { c: ['o streamer do {t} já está de pé na cadeira', 'the {t} streamer is already standing on his chair'] },
+  { c: ['a câmera aérea mostra o {t} todo no campo do {o}', 'the aerial camera shows the whole {t} side in the {o} half'] },
+  { c: ['o técnico do {t} grita da área técnica, mas com essa música ninguém escuta', 'the {t} coach yells from the technical area, but with this music nobody hears'] },
+  { c: ['a arena canta junto com o DJ entre um lance e outro', 'the arena sings along with the DJ between plays'] },
+  { c: ['a fumaça colorida sobe atrás do gol do {o}', 'coloured smoke rises behind the {o} goal'] },
+  { c: ['o narrador da Kings já perdeu a voz e ainda falta muito', 'the Kings commentator has lost his voice and there is a long way to go'] },
+  { c: ['o banco do {o} pede pro juiz olhar o relógio', 'the {o} bench asks the ref to check the clock'] },
+  { c: ['a torcida do {o} faz barulho com as palminhas infláveis', 'the {o} fans bang their inflatable clappers'] },
+  { c: ['o influenciador do {t} faz dancinha na arquibancada e vira meme na hora', 'the {t} influencer dances in the stands and becomes a meme instantly'] },
+  { c: ['campo de futebol 7: um passe errado e o rival já está na cara do gol', '7-a-side pitch: one bad pass and the rival is already through'], p: ['campo de futebol 7: {p} sabe que um passe errado aqui vira contra-ataque', '7-a-side pitch: {p} knows one bad pass here becomes a counter'], pos: 'MEI' },
+  { c: ['troca volante no {o}: o cansado sai correndo pra dar lugar', 'rolling sub for {o}: the tired one sprints off to make room'], p: ['troca volante no {o}: {p} sai correndo pra dar lugar ao companheiro', 'rolling sub for {o}: {p} sprints off to make room for a teammate'], pos: 'MEI', quem: 'o' },
+  { c: ['o {t} usa a parede da arena pra sair jogando. Pode tudo aqui', '{t} use the arena boards to play out. Anything goes here'], p: ['{p} usa a parede da arena pra sair jogando pelo {t}', '{p} uses the arena boards to bring it out for {t}'], pos: 'ZAG' },
+  { c: ['o goleiro do {t} sobe até o meio e distribui como volante', 'the {t} keeper steps up to halfway and spreads it like a midfielder'], p: ['{p}, goleiro do {t}, sobe até o meio e distribui como volante', '{p}, the {t} keeper, steps up to halfway and spreads it like a midfielder'], pos: 'GOL' },
+  { c: ['o {t} troca passes curtinhos, cada toque é aplaudido', '{t} trade short passes, every touch gets a cheer'], p: ['{p} troca passes curtinhos pelo {t}, cada toque é aplaudido', '{p} trades short passes for {t}, every touch gets a cheer'], pos: 'MEI' },
+  { c: ['o {o} dobra a marcação no craque do {t}', '{o} double up on the {t} star'], p: ['{p} dobra a marcação pelo {o} no craque do {t}', '{p} doubles up for {o} on the {t} star'], pos: 'ZAG', quem: 'o' },
+  { c: ['caneta do {t} na lateral da arena! A transmissão já está repetindo', 'a nutmeg by {t} by the arena wall! The stream is already replaying it'], p: ['caneta de {p} na lateral da arena! A transmissão já está repetindo', 'a nutmeg by {p} by the arena wall! The stream is already replaying it'], pos: 'ATA' },
+  { c: ['chapéu do {t} no meio da arena, a torcida vai à loucura', 'a flick over the top by {t} in midfield, the crowd goes wild'], p: ['chapéu de {p} no meio da arena, a torcida vai à loucura', 'a flick over the top by {p} in midfield, the crowd goes wild'], pos: 'MEI' },
+  { c: ['elástico do {t} pra cima do marcador do {o}', 'an elastico by {t} on the {o} marker'], p: ['elástico de {p} pra cima do marcador do {o}', 'an elastico by {p} on the {o} marker'], pos: 'ATA' },
+  { c: ['o {o} faz falta tática e o juiz da Kings avisa: próxima é cartão', '{o} commit a tactical foul and the Kings ref warns: next one is a card'], p: ['{p} faz falta tática pelo {o} e o juiz avisa: a próxima é cartão', '{p} commits a tactical foul for {o} and the ref warns: next one is a card'], pos: 'ZAG', quem: 'o' },
+  { c: ['o {t} esconde a bola na lateral pra gastar o relógio da Kings', '{t} shield the ball by the boards to run down the Kings clock'], p: ['{p} esconde a bola na lateral pra gastar o relógio', '{p} shields the ball by the boards to run down the clock'], pos: 'ATA' },
+  { c: ['carrinho na quadra sintética do {o}! Limpo, a arena aplaude', 'a sliding tackle on the {o} artificial pitch! Clean, the arena applauds'], p: ['carrinho de {p} pelo {o}! Limpo, a arena aplaude', 'a sliding tackle by {p} for {o}! Clean, the arena applauds'], pos: 'ZAG', quem: 'o' },
+  { c: ['o {t} roda a bola de um lado pro outro esperando a brecha', '{t} switch it side to side waiting for a gap'], p: ['{p} roda a bola do {t} de um lado pro outro esperando a brecha', '{p} switches the {t} ball side to side waiting for a gap'], pos: 'MEI' },
+  { c: ['a arena acende as lanternas dos celulares pro {t}', 'the arena lights up its phone torches for {t}'] },
+  { c: ['o banco do {t} já está de pé, ninguém senta numa partida dessas', 'the {t} bench is on its feet, nobody sits in a game like this'] },
+  { c: ['entre um lance e outro o telão mostra a reação do presidente do {o}', 'between plays the big screen shows the {o} president reacting'] },
+  { c: ['o {o} reclama que a bola bateu na parede. Na Kings, segue o jogo', '{o} claim the ball hit the boards. In the Kings, play on'] },
+  { c: ['jogo de futebol 7 é assim: ninguém para de correr um segundo', '7-a-side is like this: nobody stops running for a second'] },
+  { c: ['o capitão do {t} reúne todo mundo num abraço rápido no meio', 'the {t} captain pulls everyone into a quick huddle in midfield'], p: ['{p}, capitão do {t}, reúne todo mundo num abraço rápido no meio', '{p}, the {t} captain, pulls everyone into a quick huddle in midfield'], pos: 'MEI' },
+  { c: ['o goleiro do {o} sai jogando com o pé, arriscando tudo', 'the {o} keeper plays out with his feet, risking everything'], p: ['{p}, goleiro do {o}, sai jogando com o pé, arriscando tudo', '{p}, the {o} keeper, plays out with his feet, risking everything'], pos: 'GOL', quem: 'o' },
+  { c: ['o {t} dá um toque de calcanhar no meio da arena. Pura resenha', '{t} play a backheel in midfield. Pure showboating'], p: ['{p} dá um toque de calcanhar no meio da arena. Pura resenha', '{p} plays a backheel in midfield. Pure showboating'], pos: 'MEI' },
 ]
 export const ACERVO_KINGS_RADIO = KINGS.length
 
@@ -320,20 +355,41 @@ export const ACERVO_KINGS_RADIO = KINGS.length
 // está vazio (1×1 do pontapé até o 6×6, e a fase do dado) a rádio tem frases PRÓPRIAS, sempre com o nome de alguém do
 // time. Antes essa fase caía nas frases genéricas de "começo de jogo", que não citam ninguém. Nada de gol/chance/placar.
 const KINGS_FASE: FraseKings[] = [
-  { c: ['campo inteiro aberto no 1×1: o {t} conduz em velocidade', 'the whole pitch is open in the 1v1: {t} drive forward at speed'], p: ['campo inteiro aberto no 1×1: {p} conduz em velocidade pelo {t}', 'the whole pitch is open in the 1v1: {p} drives forward at speed for {t}'], pos: 'ATA' },
-  { c: ['no 1×1 até o goleiro joga: o do {t} sai com a bola no pé', 'in the 1v1 even the keeper plays: the {t} keeper brings it out'], p: ['no 1×1 até o goleiro joga: {p} sai da área com a bola no pé', 'in the 1v1 even the keeper plays: {p} walks out of the box with the ball'], pos: 'GOL' },
-  { c: ['o {t} ganha mais um em campo e já pede a bola', '{t} get one more on the pitch and he wants the ball'], p: ['{p} acaba de entrar pelo {t} e já pede a bola', '{p} has just come on for {t} and already wants the ball'], pos: 'MEI' },
-  { c: ['a defesa do {o} está sozinha atrás enquanto o time ainda entra', 'the {o} defence is on its own while the team is still coming on'], p: ['{p} segura o {o} sozinho atrás enquanto o time ainda entra', '{p} holds {o} together alone at the back while the team is still coming on'], pos: 'ZAG', quem: 'o' },
+  { c: ['campo inteiro aberto no 1×1: o {t} conduz em velocidade', 'the whole pitch is open in the 1v1: {t} drive forward at speed'], p: ['campo inteiro aberto no 1×1: {p} conduz em velocidade pelo {t}', 'the whole pitch is open in the 1v1: {p} drives forward at speed for {t}'], pos: 'ATA', fase: 'ini' },
+  { c: ['no 1×1 até o goleiro joga: o do {t} sai com a bola no pé', 'in the 1v1 even the keeper plays: the {t} keeper brings it out'], p: ['no 1×1 até o goleiro joga: {p} sai da área com a bola no pé', 'in the 1v1 even the keeper plays: {p} walks out of the box with the ball'], pos: 'GOL', fase: 'ini' },
+  { c: ['o {t} ganha mais um em campo e já pede a bola', '{t} get one more on the pitch and he wants the ball'], p: ['{p} acaba de entrar pelo {t} e já pede a bola', '{p} has just come on for {t} and already wants the ball'], pos: 'MEI', fase: 'ini' },
+  { c: ['a defesa do {o} está sozinha atrás enquanto o time ainda entra', 'the {o} defence is on its own while the team is still coming on'], p: ['{p} segura o {o} sozinho atrás enquanto o time ainda entra', '{p} holds {o} together alone at the back while the team is still coming on'], pos: 'ZAG', quem: 'o', fase: 'ini' },
   { c: ['com pouca gente em campo, sobra espaço por todo lado pro {t}', 'with few players on the pitch, {t} find space everywhere'], p: ['com pouca gente em campo, {p} acha espaço por todo lado', 'with few players on the pitch, {p} finds space everywhere'], pos: 'MEI' },
   { c: ['o {t} cansa o marcador do {o}: campo aberto é coisa de Kings', '{t} wear out the {o} marker: open pitches are pure Kings'], p: ['{p} cansa o marcador do {o}: campo aberto é coisa de Kings', '{p} wears out the {o} marker: open pitches are pure Kings'], pos: 'ATA' },
-  { c: ['o {t} entra correndo do banco e a arena aplaude', '{t} add a runner from the bench and the arena applauds'], p: ['{p} entra correndo do banco do {t} e a arena aplaude', '{p} sprints on from the {t} bench and the arena applauds'], pos: 'ATA' },
-  { c: ['o goleiro do {o} grita pra organizar quem acabou de entrar', 'the {o} keeper is yelling to organise the new arrivals'], p: ['{p}, goleiro do {o}, grita pra organizar quem acabou de entrar', '{p}, the {o} keeper, yells to organise the new arrivals'], pos: 'GOL', quem: 'o' },
+  { c: ['o {t} entra correndo do banco e a arena aplaude', '{t} add a runner from the bench and the arena applauds'], p: ['{p} entra correndo do banco do {t} e a arena aplaude', '{p} sprints on from the {t} bench and the arena applauds'], pos: 'ATA', fase: 'ini' },
+  { c: ['o goleiro do {o} grita pra organizar quem acabou de entrar', 'the {o} keeper is yelling to organise the new arrivals'], p: ['{p}, goleiro do {o}, grita pra organizar quem acabou de entrar', '{p}, the {o} keeper, yells to organise the new arrivals'], pos: 'GOL', quem: 'o', fase: 'ini' },
   { c: ['o {t} encara o marcador no mano a mano, a arena prende a respiração', '{t} take on the defender one against one, the arena holds its breath'], p: ['{p} encara o marcador do {o} no mano a mano, a arena prende a respiração', '{p} takes on the {o} defender one against one, the arena holds its breath'], pos: 'ATA' },
   { c: ['o {o} corre atrás de todo mundo, não tem onde se esconder nesse campo', '{o} chase everyone, there is nowhere to hide on this pitch'], p: ['{p} corre atrás de todo mundo pelo {o}, não tem onde se esconder nesse campo', '{p} chases everyone for {o}, there is nowhere to hide on this pitch'], pos: 'ZAG', quem: 'o' },
   { c: ['o {t} tabela rápido no campo vazio e a defesa nem acompanha', '{t} play a quick one-two on the empty pitch and the defence cannot keep up'], p: ['{p} tabela rápido no campo vazio e a defesa do {o} nem acompanha', '{p} plays a quick one-two on the empty pitch and the {o} defence cannot keep up'], pos: 'MEI' },
-  { c: ['o dado mudou tudo: o {t} tem espaço de sobra agora', 'the dice changed everything: {t} have space to spare now'], p: ['o dado mudou tudo: {p} tem espaço de sobra agora', 'the dice changed everything: {p} has space to spare now'], pos: 'ATA' },
-  { c: ['o goleiro do {t} vira o último homem com o campo vazio do dado', 'the {t} keeper becomes the last man on the empty dice pitch'], p: ['{p}, goleiro do {t}, vira o último homem com o campo vazio do dado', '{p}, the {t} keeper, becomes the last man on the empty dice pitch'], pos: 'GOL' },
+  { c: ['o dado mudou tudo: o {t} tem espaço de sobra agora', 'the dice changed everything: {t} have space to spare now'], p: ['o dado mudou tudo: {p} tem espaço de sobra agora', 'the dice changed everything: {p} has space to spare now'], pos: 'ATA', fase: 'dado' },
+  { c: ['o goleiro do {t} vira o último homem com o campo vazio do dado', 'the {t} keeper becomes the last man on the empty dice pitch'], p: ['{p}, goleiro do {t}, vira o último homem com o campo vazio do dado', '{p}, the {t} keeper, becomes the last man on the empty dice pitch'], pos: 'GOL', fase: 'dado' },
   { c: ['o {o} recua pra fechar o meio, com tão pouca gente cada passo conta', '{o} drop back to close the middle, with so few players every step counts'], p: ['{p} recua pra fechar o meio do {o}: com tão pouca gente cada passo conta', '{p} drops back to close the middle for {o}: with so few players every step counts'], pos: 'ZAG', quem: 'o' },
+  // ➕ 11/11 (Diego: mais variedade) — mais 20 das fases de campo aberto, sempre citando alguém, sem gol/chance/placar
+  { c: ['pouca gente na arena: cada um marca o seu e o {t} procura o espaço', 'few players in the arena: everyone marks a man and {t} look for space'], p: ['pouca gente na arena: {p} procura o espaço pelo {t}', 'few players in the arena: {p} looks for space for {t}'], pos: 'ATA' },
+  { c: ['com mais gente chegando, o {t} já consegue trocar passe', 'with more players arriving, {t} can pass it around now'], p: ['com mais gente chegando, {p} já consegue trocar passe pelo {t}', 'with more players arriving, {p} can pass it around for {t}'], pos: 'MEI', fase: 'ini' },
+  { c: ['o {o} ainda procura o encaixe na marcação com o campo aberto', '{o} are still looking for their marking shape on the open pitch'], p: ['{p} ainda procura o encaixe na marcação do {o}', '{p} is still sorting out the {o} marking'], pos: 'ZAG', quem: 'o' },
+  { c: ['o {t} tenta encurtar o campo mesmo com pouca gente', '{t} try to squeeze the pitch even with few players'], p: ['{p} tenta encurtar o campo pelo {t} mesmo com pouca gente', '{p} tries to squeeze the pitch for {t} even with few players'], pos: 'ZAG' },
+  { c: ['o time do {t} vai se completando e já joga como time', 'the {t} side keeps filling up and already plays as a team'], p: ['o {t} vai se completando e {p} já organiza todo mundo', '{t} keep filling up and {p} already organises everyone'], pos: 'MEI', fase: 'ini' },
+  { c: ['o {t} pede pro próximo que entra ficar aberto na ponta', '{t} ask the next one coming on to stay wide'], p: ['{p} pede pro companheiro que entra ficar aberto na ponta', '{p} asks the teammate coming on to stay wide'], pos: 'MEI', fase: 'ini' },
+  { c: ['o {o} sofre com o campo vazio: corre muito e toca pouco na bola', '{o} suffer on the empty pitch: lots of running, little of the ball'], p: ['{p} sofre com o campo vazio: corre muito e toca pouco na bola', '{p} suffers on the empty pitch: lots of running, little of the ball'], pos: 'ZAG', quem: 'o' },
+  { c: ['o goleiro do {o} encurta o espaço saindo do gol no campo aberto', 'the {o} keeper narrows the angle by coming off his line on the open pitch'], p: ['{p}, goleiro do {o}, encurta o espaço saindo do gol', '{p}, the {o} keeper, narrows the angle by coming off his line'], pos: 'GOL', quem: 'o' },
+  { c: ['o {t} arrisca o drible longo, tem campo de sobra pra isso', '{t} try the long dribble, there is plenty of pitch for it'], p: ['{p} arrisca o drible longo, tem campo de sobra pra isso', '{p} tries the long dribble, there is plenty of pitch for it'], pos: 'ATA' },
+  { c: ['o banco do {t} empurra quem vai entrar: corre, corre!', 'the {t} bench pushes the next one on: go, go!'], p: ['o banco do {t} empurra {p} pra dentro: corre, corre!', 'the {t} bench pushes {p} on: go, go!'], pos: 'ATA', fase: 'ini' },
+  { c: ['com o campo vazio, o fôlego do {o} já começa a pesar', 'with the pitch so empty, {o} are already feeling it in their legs'], p: ['com o campo vazio, o fôlego de {p} já começa a pesar', 'with the pitch so empty, {p} is already feeling it in the legs'], pos: 'MEI', quem: 'o' },
+  { c: ['o {t} gira o corpo e deixa o marcador do {o} pra trás', '{t} turn and leave the {o} marker behind'], p: ['{p} gira o corpo e deixa o marcador do {o} pra trás', '{p} turns and leaves the {o} marker behind'], pos: 'ATA' },
+  { c: ['a arena conta junto cada jogador que entra no {t}', 'the arena counts along every player coming on for {t}'], fase: 'ini' },
+  { c: ['o dado deixou o campo enorme: o {o} não sabe quem marcar', 'the dice left a huge pitch: {o} do not know who to mark'], p: ['o dado deixou o campo enorme: {p} não sabe quem marcar pelo {o}', 'the dice left a huge pitch: {p} does not know who to mark for {o}'], pos: 'ZAG', quem: 'o', fase: 'dado' },
+  { c: ['fase do dado: o {t} aposta tudo na velocidade', 'dice phase: {t} go all in on pace'], p: ['fase do dado: {p} aposta tudo na velocidade pelo {t}', 'dice phase: {p} goes all in on pace for {t}'], pos: 'ATA', fase: 'dado' },
+  { c: ['fase do dado: até o goleiro do {t} vira armador', 'dice phase: even the {t} keeper turns playmaker'], p: ['fase do dado: até {p}, goleiro do {t}, vira armador', 'dice phase: even {p}, the {t} keeper, turns playmaker'], pos: 'GOL', fase: 'dado' },
+  { c: ['o dado tirou gente de campo e o {t} sorri: gosta de espaço', 'the dice took players off and {t} are smiling: they love space'], p: ['o dado tirou gente de campo e {p} sorri: gosta de espaço', 'the dice took players off and {p} is smiling: he loves space'], pos: 'MEI', fase: 'dado' },
+  { c: ['o presidente do {t} vibra na tribuna com o campo vazio', 'the {t} president cheers in the box with the pitch so empty'] },
+  { c: ['o {o} recua o único defensor e torce pro tempo passar', '{o} drop their only defender deep and hope time flies'], p: ['{p} recua sozinho pelo {o} e torce pro tempo passar', '{p} drops deep alone for {o} and hopes time flies'], pos: 'ZAG', quem: 'o' },
+  { c: ['campo vazio é vitrine: o {t} quer aparecer no telão', 'an empty pitch is a showcase: {t} want to be on the big screen'], p: ['campo vazio é vitrine: {p} quer aparecer no telão', 'an empty pitch is a showcase: {p} wants to be on the big screen'], pos: 'ATA' },
 ]
 export const ACERVO_KINGS_FASE = KINGS_FASE.length
 /** 👑 minuto do placar em que a Kings está com o campo aberto (1×1 até 6×6, ou a fase do dado) */
@@ -393,8 +449,11 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, k
       return { min, i: 5000 + i, a: rng() < 0.3 ? Math.floor(rng() * ABRE.length) : 0, f: 0, home, k }
     }
     if (kings && kingsAberto(min)) {
+      // 👑 11/11: frase de gente ENTRANDO só no começo escalonado; frase do DADO só na fase do dado
+      const agora: 'ini' | 'dado' = min >= PLACAR_DADO ? 'dado' : 'ini'
+      const vale = (k: number) => !KINGS_FASE[k].fase || KINGS_FASE[k].fase === agora
       let i = Math.floor(rng() * KINGS_FASE.length)
-      for (let t = 0; t < KINGS_FASE.length && usados.has(4000 + i); t++) i = (i + 1) % KINGS_FASE.length
+      for (let t = 0; t < 2 * KINGS_FASE.length && (!vale(i) || (t < KINGS_FASE.length && usados.has(4000 + i))); t++) i = (i + 1) % KINGS_FASE.length
       usados.add(4000 + i)
       return { min, i: 4000 + i, a: Math.floor(rng() * ABRE.length), f: Math.floor(rng() * FECHA.length), home: rng() < 0.5 }
     }
