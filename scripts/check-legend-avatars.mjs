@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import ts from 'typescript'
 const catalog=JSON.parse(fs.readFileSync('src/escalacao/legend-avatars.json','utf8'))
 const exports={}
-vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/legend-avatars.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports,require:()=>catalog})
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/legend-avatars.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports,require:path=>path==='./basketball-avatars.json'?JSON.parse(fs.readFileSync('src/escalacao/basketball-avatars.json','utf8')):catalog})
 assert.equal(catalog.length,199)
 const paths=new Set()
 for(const p of catalog){

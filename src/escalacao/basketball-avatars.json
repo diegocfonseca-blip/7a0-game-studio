@@ -1,0 +1,359 @@
+[
+  {
+    "name": "Magic Johnson",
+    "club": "Lakers",
+    "year": 1987,
+    "src": "/avatars/nba-v1/magic-johnson.webp",
+    "transparent": true
+  },
+  {
+    "name": "Stephen Curry",
+    "club": "Warriors",
+    "year": 2016,
+    "src": "/avatars/nba-v1/stephen-curry.webp",
+    "transparent": true
+  },
+  {
+    "name": "Isiah Thomas",
+    "club": "Pistons",
+    "year": 1989,
+    "src": "/avatars/nba-v1/isiah-thomas.webp",
+    "transparent": true
+  },
+  {
+    "name": "Allen Iverson",
+    "club": "Sixers",
+    "year": 2001,
+    "src": "/avatars/nba-v1/allen-iverson.webp",
+    "transparent": true
+  },
+  {
+    "name": "Steve Nash",
+    "club": "Suns",
+    "year": 2005,
+    "src": "/avatars/nba-v1/steve-nash.webp",
+    "transparent": true
+  },
+  {
+    "name": "Russell Westbrook",
+    "club": "Thunder",
+    "year": 2017,
+    "src": "/avatars/nba-v1/russell-westbrook.webp",
+    "transparent": true
+  },
+  {
+    "name": "Derrick Rose",
+    "club": "Bulls",
+    "year": 2011,
+    "src": "/avatars/nba-v1/derrick-rose.webp",
+    "transparent": true
+  },
+  {
+    "name": "Luka Dončić",
+    "club": "Mavericks",
+    "year": 2024,
+    "src": "/avatars/nba-v1/luka-doncic.webp",
+    "transparent": true
+  },
+  {
+    "name": "Oscar Robertson",
+    "club": "Royals",
+    "year": 1962,
+    "src": "/avatars/nba-v1/oscar-robertson.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bob Cousy",
+    "club": "Celtics",
+    "year": 1957,
+    "src": "/avatars/nba-v1/bob-cousy.webp",
+    "transparent": true
+  },
+  {
+    "name": "Walt Frazier",
+    "club": "Knicks",
+    "year": 1970,
+    "src": "/avatars/nba-v1/walt-frazier.webp",
+    "transparent": true
+  },
+  {
+    "name": "Michael Jordan",
+    "club": "Bulls",
+    "year": 1996,
+    "src": "/avatars/nba-v1/michael-jordan.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kobe Bryant",
+    "club": "Lakers",
+    "year": 2008,
+    "src": "/avatars/nba-v1/kobe-bryant.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dwyane Wade",
+    "club": "Heat",
+    "year": 2006,
+    "src": "/avatars/nba-v1/dwyane-wade.webp",
+    "transparent": true
+  },
+  {
+    "name": "James Harden",
+    "club": "Rockets",
+    "year": 2018,
+    "src": "/avatars/nba-v1/james-harden.webp",
+    "transparent": true
+  },
+  {
+    "name": "Jerry West",
+    "club": "Lakers",
+    "year": 1969,
+    "src": "/avatars/nba-v1/jerry-west.webp",
+    "transparent": true
+  },
+  {
+    "name": "Clyde Drexler",
+    "club": "Blazers",
+    "year": 1992,
+    "src": "/avatars/nba-v1/clyde-drexler.webp",
+    "transparent": true
+  },
+  {
+    "name": "Shai Gilgeous-Alexander",
+    "club": "Thunder",
+    "year": 2024,
+    "src": "/avatars/nba-v1/shai-gilgeous-alexander.webp",
+    "transparent": true
+  },
+  {
+    "name": "LeBron James",
+    "club": "Cavaliers",
+    "year": 2016,
+    "src": "/avatars/nba-v1/lebron-james.webp",
+    "transparent": true
+  },
+  {
+    "name": "Larry Bird",
+    "club": "Celtics",
+    "year": 1986,
+    "src": "/avatars/nba-v1/larry-bird.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kevin Durant",
+    "club": "Warriors",
+    "year": 2017,
+    "src": "/avatars/nba-v1/kevin-durant.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kawhi Leonard",
+    "club": "Raptors",
+    "year": 2019,
+    "src": "/avatars/nba-v1/kawhi-leonard.webp",
+    "transparent": true
+  },
+  {
+    "name": "Scottie Pippen",
+    "club": "Bulls",
+    "year": 1994,
+    "src": "/avatars/nba-v1/scottie-pippen.webp",
+    "transparent": true
+  },
+  {
+    "name": "Jayson Tatum",
+    "club": "Celtics",
+    "year": 2024,
+    "src": "/avatars/nba-v1/jayson-tatum.webp",
+    "transparent": true
+  },
+  {
+    "name": "Julius Erving (Dr. J)",
+    "club": "Sixers",
+    "year": 1983,
+    "src": "/avatars/nba-v1/julius-erving.webp",
+    "transparent": true
+  },
+  {
+    "name": "Elgin Baylor",
+    "club": "Lakers",
+    "year": 1962,
+    "src": "/avatars/nba-v1/elgin-baylor.webp",
+    "transparent": true
+  },
+  {
+    "name": "John Havlicek",
+    "club": "Celtics",
+    "year": 1974,
+    "src": "/avatars/nba-v1/john-havlicek.webp",
+    "transparent": true
+  },
+  {
+    "name": "Tim Duncan",
+    "club": "Spurs",
+    "year": 2003,
+    "src": "/avatars/nba-v1/tim-duncan.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dirk Nowitzki",
+    "club": "Mavericks",
+    "year": 2011,
+    "src": "/avatars/nba-v1/dirk-nowitzki.webp",
+    "transparent": true
+  },
+  {
+    "name": "Giannis Antetokounmpo",
+    "club": "Bucks",
+    "year": 2021,
+    "src": "/avatars/nba-v1/giannis-antetokounmpo.webp",
+    "transparent": true
+  },
+  {
+    "name": "Charles Barkley",
+    "club": "Suns",
+    "year": 1993,
+    "src": "/avatars/nba-v1/charles-barkley.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kevin Garnett",
+    "club": "Timberwolves",
+    "year": 2004,
+    "src": "/avatars/nba-v1/kevin-garnett.webp",
+    "transparent": true
+  },
+  {
+    "name": "Karl Malone",
+    "club": "Jazz",
+    "year": 1997,
+    "src": "/avatars/nba-v1/karl-malone.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bob Pettit",
+    "club": "Hawks",
+    "year": 1958,
+    "src": "/avatars/nba-v1/bob-pettit.webp",
+    "transparent": true
+  },
+  {
+    "name": "Elvin Hayes",
+    "club": "Bullets",
+    "year": 1978,
+    "src": "/avatars/nba-v1/elvin-hayes.webp",
+    "transparent": true
+  },
+  {
+    "name": "Shaquille O'Neal",
+    "club": "Lakers",
+    "year": 2000,
+    "src": "/avatars/nba-v1/shaquille-oneal.webp",
+    "transparent": true
+  },
+  {
+    "name": "Kareem Abdul-Jabbar",
+    "club": "Lakers",
+    "year": 1980,
+    "src": "/avatars/nba-v1/kareem-abdul-jabbar.webp",
+    "transparent": true
+  },
+  {
+    "name": "Hakeem Olajuwon",
+    "club": "Rockets",
+    "year": 1994,
+    "src": "/avatars/nba-v1/hakeem-olajuwon.webp",
+    "transparent": true
+  },
+  {
+    "name": "Nikola Jokić",
+    "club": "Nuggets",
+    "year": 2023,
+    "src": "/avatars/nba-v1/nikola-jokic.webp",
+    "transparent": true
+  },
+  {
+    "name": "Wilt Chamberlain",
+    "club": "Warriors",
+    "year": 1962,
+    "src": "/avatars/nba-v1/wilt-chamberlain.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bill Russell",
+    "club": "Celtics",
+    "year": 1965,
+    "src": "/avatars/nba-v1/bill-russell.webp",
+    "transparent": true
+  },
+  {
+    "name": "David Robinson",
+    "club": "Spurs",
+    "year": 1995,
+    "src": "/avatars/nba-v1/david-robinson.webp",
+    "transparent": true
+  },
+  {
+    "name": "Patrick Ewing",
+    "club": "Knicks",
+    "year": 1994,
+    "src": "/avatars/nba-v1/patrick-ewing.webp",
+    "transparent": true
+  },
+  {
+    "name": "Moses Malone",
+    "club": "Sixers",
+    "year": 1983,
+    "src": "/avatars/nba-v1/moses-malone.webp",
+    "transparent": true
+  },
+  {
+    "name": "Joel Embiid",
+    "club": "Sixers",
+    "year": 2023,
+    "src": "/avatars/nba-v1/joel-embiid.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bill Walton",
+    "club": "Blazers",
+    "year": 1977,
+    "src": "/avatars/nba-v1/bill-walton.webp",
+    "transparent": true
+  },
+  {
+    "name": "Willis Reed",
+    "club": "Knicks",
+    "year": 1970,
+    "src": "/avatars/nba-v1/willis-reed.webp",
+    "transparent": true
+  },
+  {
+    "name": "Wes Unseld",
+    "club": "Bullets",
+    "year": 1978,
+    "src": "/avatars/nba-v1/wes-unseld.webp",
+    "transparent": true
+  },
+  {
+    "name": "George Mikan",
+    "club": "Lakers",
+    "year": 1950,
+    "src": "/avatars/nba-v1/george-mikan.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dave Cowens",
+    "club": "Celtics",
+    "year": 1973,
+    "src": "/avatars/nba-v1/dave-cowens.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bob McAdoo",
+    "club": "Braves",
+    "year": 1975,
+    "src": "/avatars/nba-v1/bob-mcadoo.webp",
+    "transparent": true
+  }
+]

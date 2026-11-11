@@ -1,4 +1,5 @@
 import catalog from './legend-avatars.json'
+import basketballCatalog from './basketball-avatars.json'
 
 // Presentation only: no card/save mutations. No guessing another club or year.
 const normalized = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()
@@ -10,7 +11,7 @@ export const legendAvatarKey = (name: string, club: string, year: number) => {
   const c = normalized(club)
   return `${normalized(name)}|${clubs[c] ?? c}|${year}`
 }
-const byIdentity = new Map(catalog.map(p => [legendAvatarKey(p.name, p.club, p.year), p]))
+const byIdentity = new Map([...catalog, ...basketballCatalog].map(p => [legendAvatarKey(p.name, p.club, p.year), p]))
 for (const [alias, name, club, year] of [
   ['Gérson Canhotinha de Ouro', 'Gérson', 'Botafogo', 1968],
   ['Cerezo', 'Toninho Cerezo', 'Atlético-MG', 1980],
