@@ -12569,7 +12569,10 @@ export function EscEnd() {
   // ⚡ Relâmpago (28/10): também não tem liga — o fim é só do mata-mata (mesmo bloco da Só Champions)
   const soRelampago = state.copaMode === 'relampago'
   const semLiga = soChampions || soRelampago
-  const youWon = !semLiga && champ.id === you.id
+  // 👑 11/11 (Diego: *"quem fica em primeiro na tabela não é campeão. Campeão é só quem ganha a final"*): na Kings a liga é só a fase
+  // de classificação — o 1º NÃO ganha taça, festa nem título. O campeão sai do mata-mata.
+  const semTituloLiga = semLiga || kEnd
+  const youWon = !semTituloLiga && champ.id === you.id
   const online = state.onlineMode === 'online'
   // 🐊 FESTÃO DA MASCOTE (aprovado no GIF): só o CAMPEÃO vê, pós-apito, 1x por
   // temporada (sessionStorage), toque pula. Diego 11/08: valia só pro campeão
@@ -12587,7 +12590,7 @@ export function EscEnd() {
     if (state.sport === 'basquete' || kEnd) return []
     const out: { key: string; comp: CompId; id: number; nome: string; linha: string }[] = []
     const tab = sortedTable(state.league)
-    if (!semLiga && tab[0]) out.push({ key: 'liga', comp: 'liga', id: tab[0].id, nome: tab[0].name, linha: `${tab[0].pts} pts${tab[1] ? ` · ${LE('vice', 'runner-up')}: ${tab[1].name}` : ''}` })
+    if (!semTituloLiga && tab[0]) out.push({ key: 'liga', comp: 'liga', id: tab[0].id, nome: tab[0].name, linha: `${tab[0].pts} pts${tab[1] ? ` · ${LE('vice', 'runner-up')}: ${tab[1].name}` : ''}` })
     const qc = state.quickCopa
     if (qc?.champion && qc.phase === 'done') {
       const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
@@ -12647,7 +12650,8 @@ export function EscEnd() {
   // depende de relógio nenhum) e em 27/08 o relógio da carta deixou de existir.
   // Ou seja: os 30s aqui são só o tempo de olhar o chaveamento — não seguram
   // carta de ninguém.
-  const COPA_GATE_S = 30 // quadro "COPA DOS 8 · fica ligado" (mostra o chaveamento) antes de começar
+  const COPA_GATE_S = kEnd ? 5 : 30 // 👑 11/11 (Diego: *"tem que ser 5 s após a tabela"*): na Kings o mata-mata começa 5 s depois
+  // (fora da Kings: 30 s do quadro "COPA DOS 8 · fica ligado", que mostra o chaveamento antes de começar)
   const copaPending = !!state.quickCopa && state.quickCopa.phase !== 'done'
   // 🌎 LIBERTADORES: a liga acabou numa sala 'liga_liberta' e a fase de grupos
   // ainda não começou → entra o BANNERZÃO de abertura (pedido do Diego 20/08:
@@ -12765,7 +12769,7 @@ export function EscEnd() {
       <p className="text-6xl">{youWon ? '🏆' : youPos <= zoneN(table.length) ? '🏅' : !bbEnd && youPos >= zoneBot(table.length) ? '🪦' : '📻'}</p>
       <h2 className="font-black text-4xl mt-2" style={OSWALD}>{youWon ? LE('CAMPEÃO!', 'CHAMPION!') : `${ordinal(youPos, endLang)} ${LE('LUGAR', 'PLACE')}`}</h2>
       <p className="font-semibold text-black/60 mt-1">
-        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado. O leilão cobra caro.', 'Relegated. The auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
+        {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${kEnd ? LE('1º da fase de liga', '1st in the league phase') : LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado. O leilão cobra caro.', 'Relegated. The auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
       </p>
     </div>
   )
@@ -12909,7 +12913,7 @@ export function EscEnd() {
           <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
           <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
-            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
+            {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${kEnd ? LE('1º da fase de liga', '1st in the league phase') : LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
           </p>
         </div>
       </Box>
@@ -13008,7 +13012,7 @@ export function EscEnd() {
   return (
     <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
       {festaNode}
-      {ownerVisual&&!semLiga&&<OwnerChampionBanner title={LE('Liga Legends','Liga Legends')} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={`${champ.pts} ${LE('pontos','points')}`}/>}
+      {ownerVisual&&!semTituloLiga&&<OwnerChampionBanner title={LE('Liga Legends','Liga Legends')} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={`${champ.pts} ${LE('pontos','points')}`}/>}
       <RankResultWriter />
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
           Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}

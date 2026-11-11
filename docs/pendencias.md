@@ -14,6 +14,7 @@
 - 🤖 Bots da Kings jogam com a força do elenco −1 (`BOT_MENOS_KINGS`, kings-liga.ts): média de 79 → 78 (Diego: *"deixe força média 78"*). Só a conta de força do jogo; elenco e cartas iguais.
 - 🔒 Sala da Kings: SEMPRE com senha (criar sem senha é recusado com aviso) e não aparece na lista de salas pra quem não vê a Kings (Diego: *"não pode aparecer pras pessoas… só com senha"*).
 - 🐛 Sala K3MMV2 (Kings) parou em "Virando a rodada…" depois da 9ª: o fim da liga virou um vigia que conta do início da rodada e encerra quando passa o tempo (antes era um único timer que recomeçava).
+- 🏆 Kings: o 1º da liga NÃO é campeão (sem festa, taça, título nem carta de campeão da liga; o texto vira "1º da fase de liga"). Campeão = quem ganha a final (Diego). E o mata-mata começa 5 s depois da tabela (era 30).
 - Card "👑 Kings League" em O JOGO (criar sala), faixa "🔒 Só Diego, K9 e Chinesin" (KINGS_TESTERS). No leilão: jogadores da Kings ou
   padrão; envelope cego, Tocaia, pregão aberto e envelope único. START_ONLINE com formação 'kings' (`kingsSala`): 10 times (bots também
   na Kings, 7 cada; no baralho da Kings o bot completa com quem sobrou, nunca falso), competição da Kings, sem Clubes/liga de 10/turno.
