@@ -7383,6 +7383,17 @@ function useTitulosNaHora() {
   }, [online, ligaCamp, copaCamp, state.roomId, state.seed, state.seasonNo, state.isHost]) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
+/** 🛟 a disputa no campinho passou do DOBRO do tempo dela (+10 s) sem acabar? (11/11) — pra sala nunca ficar presa numa cena parada */
+function useFolgaShootout(ativo: boolean, chave: string, sessao: { duracao: number } | undefined): boolean {
+  const [estourou, setEstourou] = useState('')
+  const dur = sessao?.duracao ?? 30
+  useEffect(() => {
+    if (!ativo) return
+    const t = setTimeout(() => setEstourou(chave), Math.round(dur * 2000) + 10_000)
+    return () => clearTimeout(t)
+  }, [ativo, chave, dur])
+  return ativo && estourou === chave
+}
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   // 🖥️ DESKTOP EM 2 COLUNAS (23/10, mockups `desktop-{liga,copa}-{placar,campinho}`, *"aprovado pode fazer"*; só a conta do Diego
@@ -7515,6 +7526,9 @@ export function EscSeason() {
     // 🥅 11/11 (Diego: *"não pode passar o shootout, só se for bot contra bot"*): sem atalho por tempo. Se outro jogo com GENTE foi pro
     // shootout, o dono ainda dá 20% de folga, porque o relógio do outro aparelho pode andar um pouco atrás do dele.
     if (agora - ini < ms * (kOutroHumanoPens ? 1.2 : 1)) return false
+    // 🛟 11/11 (Diego: *"às vezes trava"*): se o apito do seu jogo nunca foi registrado (tela apagada, app no fundo), a sala não fica parada
+    // pra sempre — com 2,5× o tempo da rodada ela vira. Bem depois de qualquer shootout normal ter acabado.
+    if (agora - ini >= ms * 2.5) return true
     const p = kProntoRef.current
     return !!p && p.r === state.round && agora >= p.at
   }
@@ -7589,7 +7603,11 @@ export function EscSeason() {
     aName: nomeLiga(kLigaPen.homeId), bName: nomeLiga(kLigaPen.awayId), shootout: true,
     aSquad: state.managers.find(m => m.id === kLigaPen.homeId)?.squad, bSquad: state.managers.find(m => m.id === kLigaPen.awayId)?.squad,
   } : undefined, !!kLigaPen && resultRevealed)
-  const kPenSegura = !!kLigaPen && (!resultRevealed || !kPen.estado || !kPen.estado.encerrado)
+  // 🛟 11/11 (Diego: *"depois do shootout, às vezes trava quando acaba o jogo, quando tá no automático"*): a cena anda no ritmo da TELA —
+  // tela apagada, app no fundo ou campinho parado, ela não chega no fim e a sala esperava pra sempre. Passou o DOBRO do tempo dela
+  // (+10 s) e ainda não acabou: segue o jogo. Não corta disputa que está rolando normal.
+  const kPenEstourou = useFolgaShootout(!!kLigaPen && resultRevealed, `kings:${state.round}:${kLigaPen?.homeId}:${kLigaPen?.awayId}`, kPen.sessao)
+  const kPenSegura = !!kLigaPen && (!resultRevealed || ((!kPen.estado || !kPen.estado.encerrado) && !kPenEstourou))
   // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
   // 📣 LIGA DO RÁPIDO/ONLINE: apita só na LARGADA da temporada (a regra mora em
@@ -7846,7 +7864,8 @@ export function EscSeason() {
   // rolando no campinho, NADA avança e nada revela o vencedor — nem o "Próximo", nem o avanço automático (no online, é o
   // aparelho do DONO que segura o próximo passo), nem o giro, nem o riscado/"avança" da lista. A conta antiga (`copaAnimMs`)
   // continua valendo: a disputa só ESTICA o passo quando a cena atrasou (aparelho lento, aba escondida), nunca encurta.
-  const penSegura = !!meuTiePen && !!penCampo.estado && !penCampo.estado.encerrado
+  const penEstourou = useFolgaShootout(!!meuTiePen && copaMin >= 93, `copa:${qc?.phase}:${meuTiePen?.aId}:${meuTiePen?.bId}:${meuTiePen?.legs.length}`, penCampo.sessao) // 🛟 11/11: igual ao da liga da Kings
+  const penSegura = !!meuTiePen && !!penCampo.estado && !penCampo.estado.encerrado && !penEstourou
   const copaAdvReady = copaAdvTimer && !penSegura
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending || cupNow || penSegura) return // a Cup tem o motor dela

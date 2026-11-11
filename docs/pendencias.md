@@ -3,6 +3,18 @@
 - Lipão já está no baralho exclusivo da Kings League como atacante Lenda da Fúria, edição 2025, over 92–96. O avatar foi ligado à carta existente por nome, clube e ano.
 - A foto enviada pelo usuário orientou o cabelo platinado, a barba curta e a camisa geométrica escura. WebP 600×400 com alfa real, conferido sobre creme e verde. Usuário aprovou a arte e autorizou a publicação.
 
+
+## 👑 11/11 — Kings: gol dobrado e shootout travando (esta sessão fica com a Kings a partir de agora, ordem do Diego)
+- ✖️2 *"às vezes o gol dobrado não conta"*: a janela olhava o minuto do placar (0–93) e a tela mostra o da Kings arredondado — gol
+  mostrado como 17' ou 20' (e na carta, no 4º minuto) às vezes ficava fora. Agora é pelo minuto da TELA (`naJanelaDoDobro`).
+- 🥅 *"depois do shootout às vezes trava, no automático"*: a cena do shootout anda no ritmo da tela (requestAnimationFrame) e a sala
+  esperava ela acabar SEM limite — tela apagada/app no fundo = parada pra sempre (e o atalho de tempo do `kingsViraOk` tinha saído
+  em 11/11 madrugada). Agora `useFolgaShootout`: passou 2× o tempo da cena + 10 s, segue (liga e mata-mata); e o `kingsViraOk` vira
+  com 2,5× o tempo da rodada se o apito nunca foi registrado. Medido no navegador com a animação congelada: antes parava pra
+  sempre; agora vira ~2 min depois do normal (rodada normal ~3m40).
+- (O trabalho velho da Kings desta sessão — velocidade das salas e uma jogada por momento — ficou FORA: a outra sessão mudou o
+  ritmo depois disso; tag local `kings-velho-minha`.)
+
 ## 👑 11/11 ~00h — Kings nas SALAS ONLINE (PUBLICADO, Diego: "publique tudo já")
 - ⏩ A sala online da Kings anda IGUAL à Partida Rápida (Diego: *"a velocidade deve ser idêntica… a Kings tá perfeita lá"*). A rodada dura o jogo com gente que precisa de mais tempo (mesmo tempo em todo aparelho; ninguém tem o jogo cortado).
 - ⏳ Quem termina antes na sala da Kings vê "Seu jogo acabou… a próxima começa em N s" (ou "o dono passa pra próxima", no manual) — Diego: *"como o outro vai saber que tem jogo rolando e não é bug?"*.
