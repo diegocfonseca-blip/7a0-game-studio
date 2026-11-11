@@ -7030,7 +7030,8 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm, kings2d }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm, kings2d, disputaPenaltis, estadoPenaltis }: {
+  /** 👑🥅 o shootout da Kings no campinho */ disputaPenaltis?: import('./campo2d-penaltis').DisputaPenaltisCampo; estadoPenaltis?: import('./campo2d-penaltis').EstadoPenaltisCampo
   /** 👑📺 a partida da Kings pro Campo 2D */ kings2d?: Kings2D
   /** ⏱️ 07/11: hora em que o dono começou esta rodada (quem chega atrasado entra no minuto certo) */ inicioEm?: number
   /** 👑 Kings: o relógio vem de fora (para nos banners) e mostra os 40 min da Kings */ minutoFixo?: number; relogioKings?: boolean
@@ -7058,7 +7059,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
         <LiveScoreCard enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
-          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} kings2d={kings2d} />
+          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} kings2d={kings2d} disputaPenaltis={disputaPenaltis} estadoPenaltis={estadoPenaltis} />
       </div>
       {fora && !basket && (
         <FaixaPlacarMini topo={0} min={relogioKings ? placarParaKTela(min) : min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
@@ -7549,6 +7550,17 @@ export function EscSeason() {
     const t = setTimeout(() => setResultRevealed(true), roundMs * 0.85 + 250)
     return () => clearTimeout(t)
   }, [state.round, seasonSettled])
+  // 👑🥅 11/11 (Diego: *"no shootout… faça valer no campo 2D… ele sai lá de trás com a bola do meio-campo e vai levando, tentando
+  // driblar o goleiro"*): empatou na liga da Kings com o Campo 2D ligado → o shootout acontece NO CAMPINHO (`campo2d-shootout.ts`),
+  // depois do apito. Enquanto ele rola, a rodada não avança sozinha e o quadro das bolinhas acompanha o campinho (sem spoiler).
+  const c2dLigadoK = useCampo2DLigado()
+  const kLigaPen = kingsS && c2dLigadoK && !(state.quickCopa && state.quickCopa.phase !== 'done' && state.round >= totalRounds) && myLast?.kings?.pens ? myLast : undefined
+  const kPen = usePenaltisCampo(kLigaPen?.kings?.pens ? {
+    id: `kings:${state.round}:${kLigaPen.homeId}:${kLigaPen.awayId}`, pens: kLigaPen.kings.pens, seqReal: kLigaPen.kings.pensSeq,
+    aName: nomeLiga(kLigaPen.homeId), bName: nomeLiga(kLigaPen.awayId), shootout: true,
+    aSquad: state.managers.find(m => m.id === kLigaPen.homeId)?.squad, bSquad: state.managers.find(m => m.id === kLigaPen.awayId)?.squad,
+  } : undefined, !!kLigaPen && resultRevealed)
+  const kPenSegura = !!kLigaPen && (!resultRevealed || !kPen.estado || !kPen.estado.encerrado)
   // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
   // 📣 LIGA DO RÁPIDO/ONLINE: apita só na LARGADA da temporada (a regra mora em
@@ -7610,15 +7622,16 @@ export function EscSeason() {
   const cup = state.nbaCup
   const cupLive = state.sport === 'basquete' && !!cup && cup.phase !== 'done'
   useEffect(() => {
-    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive) return // Dinastia: para na janela do meio; Cup: a liga espera; manual: avança no botão
+    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive) return
+    if (kPenSegura && resultRevealed) return // 👑🥅 o shootout da Kings ainda rola no campinho: espera ele acabar // Dinastia: para na janela do meio; Cup: a liga espera; manual: avança no botão
     // 📺⏱️ 05/11 (Diego: *"está demorando pra aparecer o campinho 2D nas salas online"*): na LARGADA (rodada 0) ainda não
     // tem jogo nenhum na tela — a espera é só a tela "Aguardando o pontapé inicial". Ela usava o `roundMs` da rodada, que
     // no 2D é o tempo de um JOGO INTEIRO (~55 s) em vez dos 9 s de sempre. Na largada, o 2D espera o MESMO que a sala sem
     // 2D; da rodada 1 em diante nada muda (cada jogo continua com o tempo inteiro do 2D).
-    const espera = state.round === 0 && c2d ? Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) : roundMs
+    const espera = kLigaPen && resultRevealed ? 1800 : state.round === 0 && c2d ? Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) : roundMs
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed])
   // toca a Cup fase a fase, no mesmo ritmo do mata-mata do fim de temporada.
   const cupKey = cup ? `${cup.phase}:${cup.ties.map(t => t.legs.length).join(',')}` : ''
   const cupJustAdvanced = cupLive && !!cup && cup.ties.every(t => t.legs.length === 0)
@@ -7778,12 +7791,12 @@ export function EscSeason() {
   // 🏆 08/11 (Diego: *"a final deveria sempre aparecer no placar cinema ou no campo 2D… quando o usuário não tá participando"*): quem
   // já caiu (ou nem entrou) vê a FINAL no placar grande, igual a quem joga. Só a final — nas outras fases segue a lista dos jogos.
   const finalAlheiaQ = copaLive && qc && qc.phase === 'final' && qc.ties.length === 1 && !qc.ties.some(t => t.aId === you.id || t.bId === you.id) ? qc.ties[0] : undefined
-  const meuTiePen = c2d && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id || t === finalAlheiaQ) && !!t.pens && !t.ot && t.winner != null && t.legs.length > 0) : undefined
+  const meuTiePen = (c2d || (kingsS && c2dLigadoK)) && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id || t === finalAlheiaQ) && !!t.pens && !t.ot && t.winner != null && t.legs.length > 0) : undefined
   const penCampo = usePenaltisCampo(meuTiePen?.pens ? {
     id: `copa:${qc?.phase}:${meuTiePen.aId}:${meuTiePen.bId}:${meuTiePen.legs.length}`, pens: meuTiePen.pens, seqReal: meuTiePen.pensSeq,
     aName: meuTiePen.aName, bName: meuTiePen.bName, invertido: meuTiePen.legs.length === 2,
     aSquad: state.managers.find(m => m.id === meuTiePen.aId)?.squad, bSquad: state.managers.find(m => m.id === meuTiePen.bId)?.squad,
-    orcamento: pensRevealDelay(meuTiePen.pens, copaTemGenteQ(meuTiePen), meuTiePen.pensSeq),
+    orcamento: pensRevealDelay(meuTiePen.pens, copaTemGenteQ(meuTiePen), meuTiePen.pensSeq), shootout: kingsS || undefined, // 👑 Kings: shootout no campinho
   } : undefined, !!meuTiePen && copaMin >= 93)
   // 🥅 07/11 (Diego: *"o jogo não pode acabar antes dos pênaltis"* + *"nada de spoiler"*): enquanto a disputa do SEU confronto está
   // rolando no campinho, NADA avança e nada revela o vencedor — nem o "Próximo", nem o avanço automático (no online, é o
@@ -7886,7 +7899,7 @@ export function EscSeason() {
         }
         return <FaixaEfeitos itens={itens} />
       })()}
-      {kingsS && !copaLive && myLast?.kings?.pens && kRel.min >= 93 && (() => {
+      {kingsS && !copaLive && myLast?.kings?.pens && kRel.min >= 93 && (!kLigaPen || !!kPen.estado) && (() => {
         // 🥅 empatou no apito: SHOOTOUT (já decidido no jogo — a tela só mostra as cobranças)
         const hN = nomeLiga(myLast.homeId), aN = nomeLiga(myLast.awayId)
         const [ph, pa] = myLast.kings.pens
@@ -7894,10 +7907,10 @@ export function EscSeason() {
           <Box bg="#FFF6DE" className="p-3 space-y-1" shadow={4}>
             <p className="font-black text-sm text-center" style={OSWALD}>🥅 {LS('EMPATOU — SHOOTOUT!', 'LEVEL — SHOOTOUT!')}</p>
             <p className="text-[11px] font-bold text-center text-black/65">{LS('5 por time: sai do meio-campo cara a cara com o goleiro e tem 5 segundos pra chutar.', '5 per team: start at halfway, 1v1 with the keeper, 5 seconds to shoot.')}</p>
-            <PensShootout shootout compactOnline lento={true} pens={myLast.kings.pens} seqReal={myLast.kings.pensSeq} aName={hN} bName={aN}
+            <PensShootout shootout compactOnline lento={true} campo={kLigaPen ? kPen.estado : undefined} pens={myLast.kings.pens} seqReal={myLast.kings.pensSeq} aName={hN} bName={aN}
               aCrest={<Escudo nome={hN} size={20} />} bCrest={<Escudo nome={aN} size={20} />}
               aSquad={state.managers.find(m => m.id === myLast.homeId)?.squad} bSquad={state.managers.find(m => m.id === myLast.awayId)?.squad} />
-            <p className="text-[11px] font-bold text-center text-black/65">{LS(`${ph > pa ? hN : aN} leva 2 pontos · ${ph > pa ? aN : hN} leva 1`, `${ph > pa ? hN : aN} takes 2 points · ${ph > pa ? aN : hN} takes 1`)}</p>
+            {(!kLigaPen || kPen.estado?.encerrado) && <p className="text-[11px] font-bold text-center text-black/65">{LS(`${ph > pa ? hN : aN} leva 2 pontos · ${ph > pa ? aN : hN} leva 1`, `${ph > pa ? hN : aN} takes 2 points · ${ph > pa ? aN : hN} takes 1`)}</p>}
           </Box>
         )
       })()}
@@ -8306,6 +8319,7 @@ export function EscSeason() {
           enhancedOnline={privateVisual} retro={retroDe(oppId)}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad, fCasa: state.managers.find(m => m.id === myLast.homeId)?.formation, fFora: state.managers.find(m => m.id === myLast.awayId)?.formation }}
           minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(myLast.kings, myLast.homeId) : undefined}
+          disputaPenaltis={kLigaPen === myLast ? kPen.sessao : undefined} estadoPenaltis={kLigaPen === myLast ? kPen.estado : undefined}
           inicioEm={online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined}
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)

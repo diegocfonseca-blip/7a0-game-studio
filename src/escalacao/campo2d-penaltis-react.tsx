@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { DisputaPenaltisCampo, type ConfigPenaltisCampo, type EstadoPenaltisCampo } from './campo2d-penaltis'
+import { DisputaShootoutCampo } from './campo2d-shootout'
 import { disputaRolandoNaTela, entrouNaTela, mudouNaTela, ouvirNaTela, saiuDaTela } from './penaltis-na-tela'
 
 // Memória local e limitada: mudar de aba/câmera não recomeça a disputa.
@@ -11,7 +12,7 @@ type Motor = { raf: number; antes: number; semCampo: number; pedidos: { velocida
 const motores = new WeakMap<DisputaPenaltisCampo, Motor>()
 
 export function chavePenaltisCampo(config: ConfigPenaltisCampo) {
-  return `${config.id}|${config.aName}|${config.bName}|${config.pens.join(':')}|${config.seqReal ?? ''}|${!!config.invertido}|${config.orcamento ?? ''}`
+  return `${config.id}|${config.aName}|${config.bName}|${config.pens.join(':')}|${config.seqReal ?? ''}|${!!config.invertido}|${config.orcamento ?? ''}|${config.shootout ? 'sh' : ''}`
 }
 
 /** alguma disputa ainda rolando na tela, como gancho: a tela renderiza de novo quando ela começa/termina (registro em penaltis-na-tela.ts) */
@@ -51,7 +52,7 @@ export function usePenaltisCampo(config: ConfigPenaltisCampo | undefined, ativo:
     if (!config) return undefined
     let s = sessoes.get(chave)
     if (!s) {
-      s = new DisputaPenaltisCampo(config); sessoes.set(chave, s)
+      s = config.shootout ? new DisputaShootoutCampo(config) : new DisputaPenaltisCampo(config); sessoes.set(chave, s) // 👑 Kings: shootout
       if (sessoes.size > 8) sessoes.delete(sessoes.keys().next().value!)
     }
     return s
