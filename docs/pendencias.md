@@ -1,3 +1,8 @@
+## 👑 11/11 — Lipão da Fúria com avatar · arte aprovada para publicação
+
+- Lipão já está no baralho exclusivo da Kings League como atacante Lenda da Fúria, edição 2025, over 92–96. O avatar foi ligado à carta existente por nome, clube e ano.
+- A foto enviada pelo usuário orientou o cabelo platinado, a barba curta e a camisa geométrica escura. WebP 600×400 com alfa real, conferido sobre creme e verde. Usuário aprovou a arte e autorizou a publicação.
+
 ## 👑 11/11 ~00h — Kings nas SALAS ONLINE (PUBLICADO, Diego: "publique tudo já")
 - ⏩ A sala online da Kings anda IGUAL à Partida Rápida (Diego: *"a velocidade deve ser idêntica… a Kings tá perfeita lá"*). A rodada dura o jogo com gente que precisa de mais tempo (mesmo tempo em todo aparelho; ninguém tem o jogo cortado).
 - Card "👑 Kings League" em O JOGO (criar sala), faixa "🔒 Só Diego, K9 e Chinesin" (KINGS_TESTERS). No leilão: jogadores da Kings ou

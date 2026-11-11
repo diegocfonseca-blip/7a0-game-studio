@@ -4,7 +4,7 @@
 // Ruim e "Pior do jogo" = Foi profissional (1) — *"só terão três categorias… o ruim será a categoria foi profissional"*.
 // Defensores = ZAG (a formação 'kings' não tem lateral: GOL 1 · ZAG 2 · MEI 2 · ATA 2). Ano 2025 (a temporada da Kings Brasil).
 // ⚠️ O "Kelvin" daqui NÃO é a carta "Kelvin Oliveira (K9)" do baralho BR: chave diferente (nome|clube|ano), só o ROSTO é o mesmo
-// (alias em `legend-avatars.ts`). Ninguém mais tem rosto: sem referência, fica o boneco neutro (regra de não inventar gente real).
+// (alias em `legend-avatars.ts`). O Lipão tem retrato próprio no catálogo de avatares.
 import type { Sector } from './types'
 
 export type CartaKings = { name: string; club: string; year: number; fame: 1 | 2 | 4 | 5; lo: number; hi: number }
