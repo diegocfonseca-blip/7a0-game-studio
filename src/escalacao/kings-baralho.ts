@@ -70,7 +70,7 @@ export const BARALHO_KINGS: Record<Sector, CartaKings[]> = {
     K('Jeffinho', 'Furia', 79, 83, 4),
     K('Gabriel Costa', 'Dibrados', 78, 82, 2),
     K('Chaveirinho', 'Fluxo', 78, 82, 1),
-    K('Yan Coringa', 'Fibol', 78, 81, 2),
+    K('Yan Coringa', 'Funkbol', 78, 81, 2),
     K("Thiago 'TH'", 'G3X', 79, 83, 2),
     K('Brinquinho', 'Desimpain', 73, 78, 2),
     K('Juninho Maestro', 'Funkbol', 73, 78, 1),

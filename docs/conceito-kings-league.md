@@ -203,4 +203,4 @@ esperar 2 minutos lá fora"*.
   - Trava: `npm run kings-baralho` (só cartas da Kings no leilão dela, 100 moedas, sem jogador falso, 7 vagas fechadas, nunca vaza pro
     leilão normal/Clubes/Kings com jogadores padrão) + `npm run kings` (envelope e Tocaia com o baralho da Kings).
   - ⚠️ 20 times NÃO fecha com o baralho da Kings: são só 17 goleiros (20 times precisariam de 21). A Kings segue com 10 times.
-  - ❓ "Fibol" (Yan Coringa) ficou como ele escreveu — pode ser erro de digitação (Funkbol?). Perguntar.
+  - ✅ Yan Coringa é do Funkbol (o Diego confirmou; tinha vindo "Fibol").
