@@ -7481,18 +7481,22 @@ export function EscSeason() {
   // ⏩📺 06/11 (Diego): no 2D a velocidade é ABSOLUTA (`vel2d-regra.ts`) e NÃO divide pelo simSpeed — era o 3× × 3 = 9× da sala 4RVDD8
   const vel2dAqui = useVel2DAqui()
   const baseRoundMs = c2d ? dur2DDaVel(vel2dAqui) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
-    const kingsRapida = kingsS && !online // ⚠️ só a Partida Rápida da Kings; a sala online da Kings fica como estava
+  // 👑 11/11 (Diego: *"a velocidade deve ser idêntica como tá hoje no Partida Rápida… a Kings tá perfeita lá em tudo"*): a SALA ONLINE da Kings
+  // anda igual à Partida Rápida. Na sala a rodada tem que durar o MESMO em todo aparelho (o dono avança por ela): vale o jogo com gente
+  // que precisa de MAIS tempo — ninguém tem o jogo cortado. (Na Partida Rápida a lista é só o seu jogo, então nada muda lá.)
+  const kingsRapida = kingsS
   const kingsMarcha = speedFactor // 👑 10/11 (Diego: *"não coloque mais campo 2D na Kings League"*): a Kings é sempre no placar
-  // 👑⏩ Partida Rápida: a rodada dura o que o SEU jogo precisa (liga: o último jogo · mata-mata: o jogo da fase), no ritmo da sala online
-  const kingsJogoCedo: MatchResult | undefined = !kingsRapida ? undefined : (() => {
+  const kingsJogosCedo: { r: MatchResult; eu: number }[] = !kingsRapida ? [] : (() => {
+    const humanos = new Set(state.managers.filter(m => m.isHuman).map(m => m.id))
+    const eu = (h: number, a: number) => (h === you.id || a === you.id ? you.id : humanos.has(h) ? h : a)
     const q = state.quickCopa
     if (q && q.phase !== 'done' && state.round >= (state.fixtures.length || 38)) {
-      const t = q.ties.find(x => (x.aId === you.id || x.bId === you.id) && x.legs.length > 0)
-      return t?.lastKings ? { homeId: t.aId, awayId: t.bId, hg: t.legs[0][0], ag: t.legs[0][1], highlights: t.lastHighlights ?? [], kings: t.lastKings } : undefined
+      return q.ties.filter(x => (humanos.has(x.aId) || humanos.has(x.bId)) && x.legs.length > 0 && x.lastKings)
+        .map(t => ({ r: { homeId: t.aId, awayId: t.bId, hg: t.legs[0][0], ag: t.legs[0][1], highlights: t.lastHighlights ?? [], kings: t.lastKings } as MatchResult, eu: eu(t.aId, t.bId) }))
     }
-    return state.lastResults.find(x => x.homeId === you.id || x.awayId === you.id)
+    return state.lastResults.filter(x => humanos.has(x.homeId) || humanos.has(x.awayId)).map(r => ({ r, eu: eu(r.homeId, r.awayId) }))
   })()
-  const roundMs = kingsRapida ? kingsRapidaRoundMs(kingsJogoCedo, kingsMarcha, you.id) : kingsS ? kingsRoundMs(kingsMarcha) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  const roundMs = kingsRapida ? Math.max(kingsRapidaRoundMs(undefined, kingsMarcha, you.id), ...kingsJogosCedo.map(j => kingsRapidaRoundMs(j.r, kingsMarcha, j.eu))) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
