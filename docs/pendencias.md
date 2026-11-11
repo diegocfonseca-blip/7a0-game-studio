@@ -1,4 +1,5 @@
-## 👑 11/11 ~21h45 — Kings: banner travado + infos embaixo do placar + avisos mais curtos (FEITO no branch, falta OK pra publicar)
+## 👑 11/11 ~21h45 — Kings: banner travado + infos embaixo do placar + avisos mais curtos (PUBLICADO 11/11 ~22h, Diego: "Sim")
+- 📺 Campo 2D VOLTOU na Kings (só contas da Kings), a pedido dele: *"coloque o campinho 2D também e depois eu decido se deixo ou tiro"*. PENDENTE: ele decidir.
 - 🏷️ Formação da Kings aparece como **2-2-2** (`rotuloFormacao` em types.ts; a chave `kings` continua no save).
 - ⏩ 21h54 (Diego no 4×: *"nem consigo ver o jogo rolando… decisivos um pouco mais lentos… 7x7 corre rápido"*): lance decisivo com ritmo PRÓPRIO, 2,5 s por minuto da Kings no Normal, marcha só pela raiz (4× = 1,25 s); 7×7 segue no ritmo da sala × marcha. Respiro em volta de carta/presidente encurtado (±3 → −1/+2). Mediana: Normal 2min09 · 2× 1min44 · 4× 1min29.
 - 🚫 Lateral: com os jogadores padrão a Kings punha 1 lateral solto no leilão (piso de 1 no `buildDeck`). Agora setor com demanda 0 não ganha carta (só a formação `kings` tem 0). Trava no `npm run kings-baralho`.
