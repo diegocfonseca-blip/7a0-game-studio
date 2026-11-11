@@ -76,6 +76,7 @@ const BATISMOS = [
   ['matheussoaresg2018@gmail.com', 'Cuiudos FC'], // 🤠🔵 Série A (17/10) — plano Fundador, assento do Papão United Madrid, que desceu pra C
   ['vittor@tidex.com.br', 'Wen Milan B'], // 😈🔴⚫ Série A (17/10) — plano Fundador, assento do Al Takhadao FC, que desceu pra C
   ['ccaonta@gmail.com', 'Chelsão da Massa FC'], // 🦁🔵 Série C (16/10) — assento do bot CRBebê
+  ['silviovicente87@gmail.com', 'Calabresos FC'], // 👑🌭 (11/11) — joga na sala do K9; SEM vaga na pirâmide (decisão do Diego)
   ['doublecontatocomercial@gmail.com', 'Double Duo FC'], // 👑💜 Série B (09/11, Fundador) — streamer; no assento do Murriz FC
   ['danieltorresreus@gmail.com', 'Monarca Tricolor'], // 👑⚪🔴⚫ Série D (05/11, Fundador) — assento do bot Excelsior SAF
   ['enzocromero9@gmail.com', 'Paizão FC'], // 👑🎩 Série D (30/10, Fundador) — no assento do bot Monarca EC
@@ -135,7 +136,7 @@ const BATISMOS = [
   ['portaltech.ep@gmail.com', 'Pesadelo Verde FC'], // 🌑🐺 Série C (18/09), na vaga do bot Zé Colmeia
 ]
 // 🪑 FORA DA PIRÂMIDE por decisão do Diego (batismo continua valendo, só não tem assento): Murriz FC cedeu o lugar ao Double Duo FC (09/11).
-const FORA_DA_PIRAMIDE = new Set(['msb102010@hotmail.com'])
+const FORA_DA_PIRAMIDE = new Set(['msb102010@hotmail.com', 'silviovicente87@gmail.com']) // + Calabresos FC (11/11: *"não precisa pôr ele em divisões"*)
 // 🎫 SÓCIOS: clube próprio, SEM vaga na pirâmide e SEM número de fundador.
 const SOCIOS = [
   ['gfpicolo13@gmail.com', 'Futpoint FC'], ['erosreis@outlook.com.br', 'Eros FC'],
@@ -144,7 +145,7 @@ const SOCIOS = [
 
 // 🖋 REGRA NOVA (14/10, Diego): *"melhor deixar fundador só qm faz o fundador… mas qm já tem número de fundador deixe como
 // está"*. Batismo de 79,90 feito daqui pra frente NÃO ganha número — entra aqui. (Quem compra o plano Fundador ganha.)
-const SEM_FUNDADOR = new Set(['danicorreafilho@gmail.com', 'pedroglima50@gmail.com', 'ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com'])
+const SEM_FUNDADOR = new Set(['silviovicente87@gmail.com', 'danicorreafilho@gmail.com', 'pedroglima50@gmail.com', 'ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com'])
 const olha = ([email, clube], ehSocio) => {
   const k = chave(clube); const falta = []
   if (!LOGOS.has(k)) falta.push('escudo próprio')

@@ -128,6 +128,10 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👑⚪🔴 Monarca Tricolor — BRANCO e VERMELHO, MEDIDOS na camisa que o dono mandou (05/11): branco do corpo (46%, #F2F1F3) e o
   // vermelho das listras, gola e punhos (#D40101). O PRETO (16%) é a 3ª cor, em MANTO_TRI (tricolor à moda São Paulo).
   'danieltorresreus@gmail.com': ['#F2F1F3', '#D40101'],
+  // 👑🌭 Calabresos FC — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou (11/11): preto do corpo (36%, mediana #140402, levantado
+  // pra #16100E pelo motivo de sempre: preto de arte escura, na listra fininha, lê como buraco) e o vermelho das listras (18%, #C71D07).
+  // O dourado da gola fica de fora (manto é de 2 cores).
+  'silviovicente87@gmail.com': ['#16100E', '#C71D07'],
   'enzocromero9@gmail.com': ['#100F0F', '#D99C32'],
   // 🐆💜 Milan Recifense — ROXO e PRETO, MEDIDOS na camisa que o dono mandou (05/11): roxo das listras (mediana, #C402F5) e o
   // preto do corpo (#0C060A).

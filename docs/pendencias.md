@@ -13387,3 +13387,9 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
   ex-membro pula a checagem do PLANO no gatilho e no `esc_liga_pedir`. A volta continua pelo PEDIDO (dono aceita e escolhe o time, na virada).
 - ⏳ Não provado: POR QUE a cadeira dele virou bot (sala apagada). E no MEIO da temporada quem perdeu a linha em room_players ainda vê
   "Você não está nessa sala" (lobby `enterRoom`) — só volta na virada. Se o Diego quiser volta no meio, é mudança de cliente (cadeira: cuidado).
+
+## 👑🌭 11/11 — Batismo Calabresos FC (silviovicente87)
+- ✅ Escudo (282×320, 29 KB), mascote "O Rei Calabresa" (281×440, 40 KB), manto preto #16100E + vermelho #C71D07 (medidos na camisa), camisa do salão, tier ouro.
+- ✅ Banco: esc_socios (sócio nº87 — o 86 fica guardado pro Double Duo, cuja conta ainda não existe), esc_nomes_batismo (Calabresos / FC / EC), user_colors ouro manual.
+- 🪑 SEM vaga na pirâmide (Diego: *"não precisa pôr ele em divisões"* — joga sempre na sala do K9). Sem número de fundador (batismo, regra 14/10).
+- ⏳ Falta: time de coração (pra o post) e o post do batismo (`scripts/mockup-batismo.mjs`).
