@@ -13392,10 +13392,10 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - ✅ Escudo (282×320, 29 KB), mascote "O Rei Calabresa" (281×440, 40 KB), manto preto #16100E + vermelho #C71D07 (medidos na camisa), camisa do salão, tier ouro.
 - ✅ Banco: esc_socios (sócio nº87 — o 86 fica guardado pro Double Duo, cuja conta ainda não existe), esc_nomes_batismo (Calabresos / FC / EC), user_colors ouro manual.
 - 🪑 SEM vaga na pirâmide (Diego: *"não precisa pôr ele em divisões"* — joga sempre na sala do K9). Sem número de fundador (batismo, regra 14/10).
-- ⏳ Falta: time de coração (pra o post) e o post do batismo (`scripts/mockup-batismo.mjs`).
+- ✅ Post: `scripts/posts/batismo-calabresos.png`. ⏳ Falta só o time de coração (se o Diego souber).
 
 ## 👑😴 11/11 — Batismo Goti FC (klebim877) ❤️ São Paulo
 - ✅ Escudo (281×320, 29 KB), mascote "O Goti" (270×440, 42 KB), manto branco #FCF9F9 + vermelho #D70506 (+ preto #0C0909 em MANTO_TRI), camisa do salão, tier ouro.
 - ✅ Banco: esc_socios (sócio nº88, time de coração São Paulo), esc_nomes_batismo (Goti / FC / EC), user_colors ouro manual.
 - 🪑 SEM vaga na pirâmide (joga na sala do K9, igual ao Calabresos). Sem número de fundador (batismo, regra 14/10).
-- ⏳ Falta: post do batismo dos dois (`scripts/mockup-batismo.mjs`).
+- ✅ Post: `scripts/posts/batismo-goti.png`.
