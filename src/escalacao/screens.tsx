@@ -2956,6 +2956,7 @@ export function EscSetup() {
   const kingsOn = useKingsLiberada() // 👑 Kings League (15/10): só a conta do Diego
   const [kings, setKings] = useState(false) // ligado = o MESMO leilão escolhido embaixo, com a formação 'kings' e 10 times
   const kingsLigado = kingsOn && kings
+  const [kingsBar, setKingsBar] = useState(true) // 👑 10/11: jogadores DA Kings League (padrão) ou os jogadores de sempre
   const pokeOn = usePokemonLiberado() // ⚡ Modo Pokémon (25/10): só a conta do Diego
   const [poke, setPoke] = useState(false)
   const pokeLigado = pokeOn && poke && !kingsLigado
@@ -3057,9 +3058,9 @@ export function EscSetup() {
       })
     }
     else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !kingsLigado && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado, kings: kingsLigado || undefined, pokemon: pokeLigado || undefined, intro: true,
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !kingsLigado && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
       relampagoChave: copaMode === 'relampago' ? relChave : undefined, tamanhoLiga: tamLiga === 10 && copaMode !== 'relampago' && copaMode !== 'champions' ? 10 : undefined,
-      selecao: clubesOn && clubes && pacSel || undefined, decada: clubesOn && clubes && pacDec || undefined, varzea: league === 'br' && !(clubesOn && clubes) && varzeaR || undefined })
+      selecao: clubesOn && clubes && pacSel && !kingsLigado || undefined, decada: clubesOn && clubes && pacDec && !kingsLigado || undefined, varzea: league === 'br' && !(clubesOn && clubes) && !kingsLigado && varzeaR || undefined })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -3214,17 +3215,7 @@ export function EscSetup() {
           <p className="text-xs font-bold text-black/75">💾 <b>{t('Salva e continua:', 'Save and continue:')}</b> {t('pare e volte depois, em qualquer aparelho.', 'stop and come back later, on any device.')}</p>
         </Box>
       )}
-      {/* 👑 KINGS LEAGUE (15/10) — jogo à parte por cima da tela, com estado próprio (`kings-rapida.tsx`). Só a
-          conta do Diego vê (`useKingsLiberada`); o resto da partida rápida não muda nada. */}
-      {!career && kingsOn && !bbSetup && (
-        <button onClick={() => { setKings(k => !k); setPoke(false) }} className="w-full text-left active:translate-y-0.5"
-          style={{ background: kings ? '#0C0C0C' : '#fff', color: kings ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: kings ? '4px 4px 0 #C2452F' : 'none', padding: '12px 14px' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: kings ? '#FFC400' : INK, display: 'block' }}>{kings ? '✅' : '⬜'} 👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
-          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{kings
-            ? t('Ligado: escolha embaixo o leilão como sempre (envelope ou Tocaia, baralho, jogador ou clubes). Muda só: 7 vagas (goleiro + 6), 10 times e, depois do leilão, as regras da Kings League Brasil.', 'On: pick the auction below as usual (sealed bid or Ambush, deck, players or clubs). Only changes: 7 spots (keeper + 6), 10 teams and, after the auction, Kings League Brasil rules.')
-            : t('Toque pra ligar. O leilão continua o de sempre, com tudo que você escolher embaixo.', 'Tap to turn on. The auction stays the usual one, with everything you pick below.')}</span>
-        </button>
-      )}
+      {/* 👑 10/11 (Diego): a KINGS LEAGUE saiu daqui de cima e virou o 4º TIPO DE LEILÃO (Jogador · Clubes · Seleções · Kings) */}
       {/* ⚡ MODO POKÉMON (25/10) — o leilão de sempre com os pokémon, e depois da cerimônia a liga de batalhas
           (`pokemon-liga.tsx`). Só a conta do Diego vê (`usePokemonLiberado`). Sem Clubes (decisão dele). */}
       {!career && pokeOn && !bbSetup && (
@@ -3240,12 +3231,13 @@ export function EscSetup() {
         {!career && clubesOn && !pokeLigado && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Tipo de leilão', 'Auction type')}</p>
-            <div className={`grid ${bbSetup ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
+            {/* 👑 10/11 (Diego): o 4º tipo, KINGS LEAGUE — só pras contas que veem a Kings (`useKingsLiberada`). Com 4 opções vira grade 2×2. */}
+            <div className={`grid ${bbSetup || (kingsOn && !bbSetup) ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
               {/* 🏳️ 05/11: o 3º tipo, Seleções (o MESMO motor do Clubes, pacote = setor de uma seleção) — igual na sala; no basquete não existe */}
-              {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')], ...(bbSetup ? [] : [['sel', t('🏳️ Seleções', '🏳️ Nations')]])] as [boolean | 'sel', string][]).map(([m, label]) => {
-                const on = m === 'sel' ? clubes && pacSel : m === true ? clubes && !pacSel : !clubes
+              {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')], ...(bbSetup ? [] : [['sel', t('🏳️ Seleções', '🏳️ Nations')]]), ...(kingsOn && !bbSetup ? [['kings', '👑 Kings League']] : [])] as [boolean | 'sel' | 'kings', string][]).map(([m, label]) => {
+                const on = m === 'kings' ? kingsLigado : kingsLigado ? false : m === 'sel' ? clubes && pacSel : m === true ? clubes && !pacSel : !clubes
                 return (
-                <button key={String(m)} onClick={() => { setClubes(m !== false); setPacSel(m === 'sel') }}
+                <button key={String(m)} onClick={() => { if (m === 'kings') { setKings(true); setPoke(false); setClubes(false); setPacSel(false); setEnvUnico(false); return } setKings(false); setClubes(m !== false); setPacSel(m === 'sel') }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {m === true && seloNovoClubes() && (
@@ -3260,8 +3252,17 @@ export function EscSetup() {
                 )
               })}
             </div>
+            {/* 👑 10/11 (Diego): *"após escolher Kings League o usuário escolhe se quer jogadores da Kings League ou jogadores padrão"* */}
+            {kingsLigado && (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {([[true, t('👑 Jogadores da Kings League', '👑 Kings League players')], [false, t('🃏 Jogadores padrão', '🃏 Standard players')]] as [boolean, string][]).map(([m, label]) => (
+                  <button key={String(m)} onClick={() => setKingsBar(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
+                    style={{ backgroundColor: kingsBar === m ? GOLD : '#fff', boxShadow: kingsBar === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
+                ))}
+              </div>
+            )}
             {/* 🕰️ 05/11: ÉPOCA — todas as épocas misturadas ou o pacote preso numa década (igual na sala) */}
-            {clubes && !bbSetup && (
+            {clubes && !kingsLigado && !bbSetup && (
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {([[false, t('🌍 Todas as épocas', '🌍 All eras')], [true, t('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]).map(([m, label]) => (
                   <button key={String(m)} onClick={() => setPacDec(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
@@ -3270,7 +3271,11 @@ export function EscSetup() {
               </div>
             )}
             <p className="text-[11px] font-semibold text-black/55 mt-1">
-              {clubes && pacSel && !bbSetup
+              {kingsLigado
+                ? (kingsBar
+                  ? t('👑 O leilão de sempre (envelope, Tocaia, pregão…) só com os jogadores da Kings League Brasil. 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois do leilão, as regras da Kings.', '👑 The usual auction (sealed bid, Ambush, open…) with Kings League Brasil players only. 7 slots per team (keeper + 6), 10 teams and 100 coins. After the auction, the Kings rules.')
+                  : t('👑 O leilão de sempre com os jogadores de sempre (o baralho que você escolher embaixo). 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois do leilão, as regras da Kings.', '👑 The usual auction with the usual players (the deck you pick below). 7 slots per team (keeper + 6), 10 teams and 100 coins. After the auction, the Kings rules.'))
+                : clubes && pacSel && !bbSetup
                 ? t('🏳️ Cada lote é um SETOR de uma seleção (ex.: Meio da Argentina). Você leva o pacote inteiro e, no fim, CONVOCA quem joga. Quem sobrar vai pros bots.', '🏳️ Each lot is a SECTOR of a national team (e.g. Argentina Midfield). You take the whole pack and, at the end, CALL UP who plays. The rest goes to the bots.')
                 : clubes && bbSetup
                 ? t('🧱 Cada lote é uma POSIÇÃO de uma franquia (ex.: Armadores dos Lakers). Você leva o pacote inteiro e, no fim, CONVOCA quem joga — 1 por posição, o seu quinteto. Quem sobrar vai pros bots. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱 Each lot is a franchise POSITION (e.g. Lakers Point Guards). You take the whole pack and, at the end, CALL UP who plays — 1 per position, your starting five. Leftovers go to the bots. Works with sealed bid, Ambush or open auction.')
@@ -3295,6 +3300,11 @@ export function EscSetup() {
             <p className="font-black text-sm" style={OSWALD}>{t('⚡ Baralho: 200 pokémon', '⚡ Deck: 200 Pokémon')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{t('Toda a 1ª geração + os mais famosos das outras, com os tipos oficiais. Os 5 lotes do leilão vêm misturados (o 5º vale 2 vagas).', 'The whole 1st generation + the most famous of the others, with the official types. The 5 auction lots come mixed (the 5th is worth 2 slots).')}</p>
           </div>
+        ) : kingsLigado && kingsBar ? (
+          <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#FFF6CC' }}>
+            <p className="font-black text-sm" style={OSWALD}>{t('👑 Baralho: jogadores da Kings League Brasil', '👑 Deck: Kings League Brasil players')}</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{t('91 jogadores (17 goleiros, 23 defensores, 25 meias e 26 atacantes). Eles só existem aqui: não aparecem em nenhum outro leilão.', '91 players (17 keepers, 23 defenders, 25 midfielders and 26 forwards). They only exist here: they never show up in any other auction.')}</p>
+          </div>
         ) : clubesOn && clubes ? (
           <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{t('🌎 Baralho: Brasil + Europa + Mundo juntos', '🌎 Deck: Brazil + Europe + World together')}</p>
@@ -3318,9 +3328,9 @@ export function EscSetup() {
             {t('🌎 Todos juntos (BR + Europa + Mundo)', '🌎 All together (Brazil + Europe + World)')}
           </button>
           <p className="text-[11px] font-semibold text-black/55 mt-1">{league === 'br' ? t('Auges do futebol brasileiro — de Pelé a Obina.', 'Peak years of Brazilian football — from Pelé to Obina.') : league === 'eu' ? t('Auges nos clubes europeus — de Yashin a Mbappé.', 'Peak years at European clubs — from Yashin to Mbappé.') : t('Brasileirão + Europa juntos (~700 nomes) — craques e folclóricos dos dois lados no mesmo martelo.', 'Brazil + Europe together (~700 names) — stars and cult heroes from both sides under the same hammer.')}</p>
-          {/* 🥅 05/11: categoria SÓ do baralho Brasil — Todos (padrão) ou Várzea (sem craques), igual na sala */}
-          {league === 'br' && <p className="text-[11px] font-black uppercase mt-2 mb-1">{t('Categoria', 'Category')}</p>}
-          {league === 'br' && (
+          {/* 🥅 05/11: categoria SÓ do baralho Brasil — Todos (padrão) ou Várzea (sem craques), igual na sala */} {/* 👑 10/11: na Kings a Várzea não vale (o motor ignora) — some */}
+          {league === 'br' && !kingsLigado && <p className="text-[11px] font-black uppercase mt-2 mb-1">{t('Categoria', 'Category')}</p>}
+          {league === 'br' && !kingsLigado && (
             <div className="grid grid-cols-2 gap-2">
               {([[false, t('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]).map(([m, label]) => (
                 <button key={String(m)} onClick={() => setVarzeaR(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
@@ -3328,7 +3338,7 @@ export function EscSetup() {
               ))}
             </div>
           )}
-          {league === 'br' && varzeaR && <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pickup game.')}</p>}
+          {league === 'br' && !kingsLigado && varzeaR && <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pickup game.')}</p>}
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
@@ -3453,7 +3463,8 @@ export function EscSetup() {
                   {t('🔨 Pregão aberto', '🔨 Open auction')}
                 </button>
               )}
-              {envUnicoOk && (
+              {/* 👑 10/11: na Kings o envelope único não vale (o motor ignora) — então nem aparece, pra não virar botão mudo */}
+              {envUnicoOk && !kingsLigado && (
                 <button onClick={() => { setEnvUnico(true); setPregaoAb(false); setHolandes(false) }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: envUnico ? GOLD : '#fff', boxShadow: envUnico ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>

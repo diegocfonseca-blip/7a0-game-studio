@@ -188,3 +188,19 @@ esperar 2 minutos lá fora"*.
 - 🔁 **Mesma noite (10/11), versão que vale**: *"não coloque mais campo 2D na Kings League"* (Kings sempre no placar) e, na PARTIDA RÁPIDA,
   o placar anda no ritmo da sala online e fica a 60% nos lances decisivos (1×1–6×6, gol dobrado, dado, fim, carta, presidente) —
   `trechosDecisivosKings`/`kingsRapidaRoundMs` em screens.tsx. A sala online da Kings segue na régua antiga (`kingsRoundMs`).
+- 👑🃏 **BARALHO PRÓPRIO DA KINGS + Kings virou TIPO DE LEILÃO (10/11, madrugada)**. A Kings saiu do botão grande lá de cima e virou a 4ª
+  opção de "Tipo de leilão" (🃏 Jogador · 🧱 Clubes · 🏳️ Seleções · 👑 Kings League), só pras contas da `KINGS_TESTERS`. Escolhida a
+  Kings, mais uma escolha: **👑 Jogadores da Kings League** (padrão) ou **🃏 Jogadores padrão**. O resto é o de sempre (envelope, Tocaia,
+  pregão aberto). 10 times, 7 vagas (GOL 1 · ZAG 2 · MEI 2 · ATA 2), 100 moedas, oferta e demanda de sempre (demanda + 1 por posição).
+  - Baralho: `src/escalacao/kings-baralho.ts` (91 cartas: 17 GOL · 23 ZAG · 25 MEI · 26 ATA, ano 2025). Arquivo SEPARADO: nenhum outro
+    leilão lê (`setActiveCatalog` não olha pra ele); só entra com `kingsBaralho` no START, e o `reancoraEsporte` repõe ele no F5.
+    Palavras dele: *"esses jogadores não irão vazar pra nenhum tipo de leilão a não ser da Kings"*.
+  - Categorias (*"só terão lenda, craque, bom jogador e foi profissional… o ruim será foi profissional"*): Lendário 5 · Craque 4 · Bom 2 ·
+    Ruim/"Pior do jogo" 1. Over = o que ele mandou (inclusive Ruim com over alto, ex.: William Jesus 76-80).
+  - **Kelvin** (G3X, 95-99, lenda) é OUTRA carta, não o "Kelvin Oliveira (K9)" do baralho BR — só o rosto é o mesmo (alias em
+    `legend-avatars.ts`). Os outros 90 ficam com o boneco neutro (sem referência de rosto).
+  - Envelope único e Várzea somem da tela quando a Kings está escolhida (o motor já ignorava — era botão mudo).
+  - Trava: `npm run kings-baralho` (só cartas da Kings no leilão dela, 100 moedas, sem jogador falso, 7 vagas fechadas, nunca vaza pro
+    leilão normal/Clubes/Kings com jogadores padrão) + `npm run kings` (envelope e Tocaia com o baralho da Kings).
+  - ⚠️ 20 times NÃO fecha com o baralho da Kings: são só 17 goleiros (20 times precisariam de 21). A Kings segue com 10 times.
+  - ❓ "Fibol" (Yan Coringa) ficou como ele escreveu — pode ser erro de digitação (Funkbol?). Perguntar.

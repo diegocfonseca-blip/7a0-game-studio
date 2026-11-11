@@ -674,6 +674,8 @@ export interface CareerRival {
 export interface EscState {
   /** ⚡ MODO POKÉMON (partida rápida, só a conta do Diego): a liga de batalhas depois da cerimônia (`pokemon-liga.tsx`) */
   pokeLiga?: import('./pokemon-batalha').PokeLigaEstado
+  /** 👑 10/11: a partida da Kings usa o baralho PRÓPRIO dos jogadores da Kings League (`kings-baralho.ts`) */
+  kingsBaralho?: boolean
   screen: Screen
   // 🏀 esporte da partida atual: ausente/'futebol' = futebol (padrão, tudo como
   // hoje); 'basquete' = BidLegends. Só metadado — o motor usa o mesmo fluxo.

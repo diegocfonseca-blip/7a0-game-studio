@@ -1,3 +1,8 @@
+## 👑 10/11 madrugada — Kings vira TIPO DE LEILÃO + baralho próprio da Kings (FEITO no branch, esperando o OK visual do Diego)
+- 4ª opção em "Tipo de leilão" (só KINGS_TESTERS) → escolhe "Jogadores da Kings League" ou "Jogadores padrão". 91 cartas em
+  `kings-baralho.ts`, que nunca vazam pra outro leilão. Kelvin da Kings = rosto do K9. Detalhes e travas em `docs/conceito-kings-league.md`.
+- Pendente com o Diego: OK do print · "Fibol" é Funkbol? · 20 times não dá com o baralho da Kings (17 goleiros) — fica 10.
+
 ## ⏩ 10/11 noite — Kings PARTIDA RÁPIDA: ritmo da sala online + lento nos lances decisivos · Kings SEM Campo 2D (FEITO no branch, falta publicar)
 - Diego: *"não coloque mais campo 2D na Kings League"* → a Kings é sempre no placar (Botao2D some na Kings; `c2d` do placar ignora a Kings).
 - Diego: *"quero do placar rápido igual sempre foi nas salas online… nos lances decisivos (1x1… 6x6, cartas, gol dobrado…) reduza… no 7x7

@@ -7,6 +7,7 @@ import type { CtxKings } from './kings-liga'
 import type { KingsBase } from './types'
 import { calendarioKings, chaveKings } from './kings'
 import { baralhoPokemon, setPokeModo } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
+import { BARALHO_KINGS } from './kings-baralho' // 👑 10/11: o baralho PRÓPRIO da Kings (só entra com `kingsBaralho`)
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
@@ -149,9 +150,10 @@ export function vagasBase(formation: FormationKey, pos: Sector): number { return
 // pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
 // o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
 // sempre (byte-idêntico pra quem não é basquete).
-function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string }): void {
+function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean }): void {
   if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
   else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala)
+  if (s.kingsBaralho && s.sport !== 'basquete') ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG // 👑 a partida da Kings com o baralho dela
 }
 
 // 🏀 franquias da NBA usadas como rivais CPU do basquete (o motor lê {team,name}
@@ -5651,7 +5653,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -8395,6 +8397,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ⚡ MODO POKÉMON (25/10, só a conta do Diego): o leilão de sempre, com o baralho dos pokémon nos 5 lotes
       const poke = !!action.pokemon && !action.career && !action.dinastia
       if (poke) ACTIVE_CATALOG = baralhoPokemon(rng) as unknown as typeof CATALOG
+      // 👑 10/11 (Diego): Kings League com os jogadores DA Kings — baralho próprio, que nenhum outro leilão enxerga
+      s.kingsBaralho = !!action.kings && !!action.kingsBaralho && !action.career && !action.dinastia && !poke ? true : undefined
+      if (s.kingsBaralho) ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG
       s.pokeLiga = undefined
       // carreira: começa na Série D. Partida rápida: sem divisão.
       s.careerDivision = action.career ? 'D' : null
