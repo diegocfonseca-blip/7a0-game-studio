@@ -60,7 +60,7 @@ const COMO: Record<Acab, [string, string]> = {
   bicicleta: ['de BICICLETA!', 'an OVERHEAD KICK!'], calcanhar: ['de CALCANHAR', 'with a BACKHEEL'], cabeca: ['de cabeça', 'with a header'], de_bico: ['de bico', 'with a toe-poke'],
   de_primeira: ['de primeira', 'first time'], barriga: ['de BARRIGA! Feio, mas vale', 'off the BELLY! Ugly, but it counts'],
 }
-export interface Evento { min: number; lado: Lado; fim: Fim; autor?: string; assist?: string }
+export interface Evento { min: number; lado: Lado; fim: Fim; autor?: string; assist?: string; /** 👑 Kings: quanto esse gol vale no placar (gol em dobro / estrela / bola vermelha = 2) */ vale?: number }
 export interface CartaCampo { name: string; pos?: string; /** (Copa do Mundo/regional guardam a posição aqui) */ sec?: string; club?: string; year?: number; fame?: number; fake?: boolean }
 type Grupo = 'GOL' | 'DEF' | 'LAT' | 'MEI' | 'ATA'
 export interface Atleta { lado: Lado; nome: string; carta?: CartaCampo; estilo: Estilo; /** 🎯 os golpes assinatura (só lenda) */ golpes: Golpe[]; /** 🦶 pé conhecido (só lenda famosa por ele) */ pe: Pe; grupo: Grupo; bx: number; dep: number; /** 👑 Kings: o lugar ORIGINAL do 7×7 (guardado enquanto joga numa fase com pouca gente) */ b0?: { grupo: Grupo; bx: number; dep: number }; x: number; y: number; /** onde estava no passo anterior (só pro DESENHO ficar liso) */ ax?: number; ay?: number; ov: { x: number; y: number; v: number; busca?: boolean } | null }
@@ -1014,7 +1014,7 @@ export class Jogo2D {
           this.viaja(34 + lado * (acab === 'bomba' ? 1.8 : 2.7), ataca0 ? -1.6 : L + 1.6, vel, A.alt, true, () => {
             gk.ov = null
             this.rede = { y0: ataca0 ? 0 : L, t0: this.t }
-            this.placar[p.lado]++
+            this.placar[p.lado] += ev?.vale ?? 1 // (👑 Kings: o gol que vale 2 sobe 2 de uma vez — 11/11)
             // a festa encurta se o próximo lance do motor já está chegando (gols colados)
             const prox = this.evs[this.iev], folga = prox ? prox.min * SEG_POR_MIN - this.t - 6 : FESTA
             this.festa = { de: this.t, curta: folga < 3.4, ate: this.t + clamp(folga, 1.6, FESTA), lado: p.lado, autor: ev?.autor ?? p.nome, assist: ev?.assist, min: ev?.min ?? 0 }
@@ -1658,9 +1658,9 @@ export class Jogo2D {
 }
 
 /** os gols do jogo (formato do placar) + as chances perdidas (`chances.ts`) → a lista de eventos do campinho */
-export function eventosDoJogo(gols: { min: number; home: boolean; name: string; assist?: string }[], chances: { min: number; home: boolean; fim: Exclude<Fim, 'gol'> }[], quemChutou?: (c: { min: number; home: boolean }) => string | null): Evento[] {
+export function eventosDoJogo(gols: { min: number; home: boolean; name: string; assist?: string; vale?: number }[], chances: { min: number; home: boolean; fim: Exclude<Fim, 'gol'> }[], quemChutou?: (c: { min: number; home: boolean }) => string | null): Evento[] {
   return [
-    ...gols.map(g => ({ min: g.min, lado: (g.home ? 0 : 1) as Lado, fim: 'gol' as Fim, autor: g.name, assist: g.assist })),
+    ...gols.map(g => ({ min: g.min, lado: (g.home ? 0 : 1) as Lado, fim: 'gol' as Fim, autor: g.name, assist: g.assist, ...(g.vale && g.vale > 1 ? { vale: g.vale } : {}) })),
     ...chances.map(c => ({ min: c.min, lado: (c.home ? 0 : 1) as Lado, fim: c.fim as Fim, autor: quemChutou?.(c) ?? undefined })),
   ].sort((a, b) => a.min - b.min)
 }

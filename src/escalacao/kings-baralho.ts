@@ -58,8 +58,8 @@ export const BARALHO_KINGS: Record<Sector, CartaKings[]> = {
     K('MLKJhow', 'Funkbol', 60, 65, 1),
   ],
   MEI: [
-    K('Andreas Vaz', 'G3X', 89, 93, 5),
-    K('Luan Mestre', 'Dibrados', 84, 90, 5),
+    K('Andreas Vaz', 'G3X', 89, 93, 4),
+    K('Luan Mestre', 'Dibrados', 84, 90, 4),
     K('Davi Ilario', 'Desimpain', 84, 90, 4),
     K('Nadir', 'Porcinos', 84, 90, 4),
     K('Rufino', 'Dibrados', 82, 87, 4),

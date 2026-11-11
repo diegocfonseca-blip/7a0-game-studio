@@ -135,6 +135,17 @@ function chancesKings2D(seed: number, gols: { min: number; home: boolean }[], ba
   }
   return out.sort((a, b) => a.min - b.min)
 }
+/** 👑 junta o lance "(+1)" da Kings no gol de verdade do mesmo time no mesmo minuto (vale 2) */
+function juntaBonusKings<G extends { min: number; home: boolean; name: string }>(gols: G[]): (G & { vale?: number })[] {
+  const out: (G & { vale?: number })[] = []
+  for (const g of [...gols].sort((a, b) => a.min - b.min)) {
+    const bonus = /\(\+1\)\s*$/.test(g.name)
+    const dono = bonus ? [...out].reverse().find(o => o.home === g.home && Math.abs(o.min - g.min) <= 1 && !/\(\+1\)\s*$/.test(o.name)) : undefined
+    if (dono) dono.vale = (dono.vale ?? 1) + 1
+    else out.push({ ...g })
+  }
+  return out
+}
 export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis, kings }: Campo2DProps) {
   const replay = replay0 && !kings // 👑 a Kings muda quem está em campo no meio do jogo: a fita (que guarda por posição na lista) não serve
   const t = useT()
@@ -172,7 +183,11 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     const seed = sementeDasChances(roundKey, casa.nome, fora.nome)
     if (motorExperimental) return motorExperimental(seed, casa.cartas ?? [], fora.cartas ?? [], t('pt', 'en') === 'en', [casa.formacao, fora.formacao], climaForcado ?? climaDoJogo(seed)) as Jogo2D
     const chances = kings ? chancesKings2D(seed, gols, chancesDoJogo(seed, gols, roundMs)) : chancesDoJogo(seed, gols, roundMs)
-    const evs = eventosDoJogo(gols, chances, c => quemFinalizou(c.home ? casa.cartas : fora.cartas, { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome))
+    // 👑 11/11 (Diego: *"quando sai gol no dobrado ainda tá aparecendo um gol e não dois"*): na Kings o ponto extra do gol que vale 2
+    // (gol em dobro, jogador estrela, bola vermelha: o lance "(+1)") vinha como uma 2ª JOGADA de gol, minutos depois. Agora ele gruda no gol
+    // de verdade do mesmo minuto e o campinho sobe 2 de uma vez. Só desenho: a soma continua a mesma do placar.
+    const golsK = kings ? juntaBonusKings(gols) : gols
+    const evs = eventosDoJogo(golsK, chances, c => quemFinalizou(c.home ? casa.cartas : fora.cartas, { ...c, fim: 'fora' }, c.home ? casa.nome : fora.nome))
     return new Jogo2D(seed, casa.cartas ?? [], fora.cartas ?? [], evs, t('pt', 'en') === 'en', [casa.formacao, fora.formacao], kings?.posse ?? 0)
     }
     return mapMatchId?motorCompartilhadoCampo2D(mapMatchId,create):create()
