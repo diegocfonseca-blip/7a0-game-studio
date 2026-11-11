@@ -167,7 +167,7 @@ const FACE_FINAL: Record<1 | 2 | 3, string> = { 1: 'rotateX(-18deg) rotateY(-24d
 export function CenaDado({ face }: { face: 1 | 2 | 3 }) {
   const [parou, setParou] = useState(false)
   useEffect(() => { const t = setTimeout(() => setParou(true), 2300); return () => clearTimeout(t) }, [])
-  const titulo = face === 1 ? tr('👑 CARA DO REI!', '👑 KING\'S FACE!') : face === 2 ? '2 × 2!' : '3 × 3!'
+  const titulo = face === 1 ? tr('👑 1 × 1! CARA DO REI', '👑 1 v 1! KING\'S FACE') : face === 2 ? '2 × 2!' : '3 × 3!'
   const texto = face === 1
     ? tr('Até o 23\' é 1 CONTRA 1 com goleiro. O dado tem 3 coisas: 👑 cara do rei (1×1), 2×2 e 3×3 — duas faces de cada.', 'Until 23\' it is 1 v 1 with keepers. The dice has 3 things: 👑 king\'s face (1 v 1), 2 v 2 and 3 v 3 — two faces each.')
     : tr(`Até o 23' cada time joga com ${face} na linha + o goleiro. Campo aberto = mais gol! (O dado tem 👑 cara do rei, 2×2 e 3×3.)`, `Until 23' each team plays ${face} outfield + the keeper. Open pitch = more goals! (The dice has 👑 king's face, 2 v 2 and 3 v 3.)`)
@@ -176,8 +176,8 @@ export function CenaDado({ face }: { face: 1 | 2 | 3 }) {
       <div style={{ height: 200, position: 'relative', perspective: 520 }}>
         <div className="kc-dado-voo">
           <div className="kc-cubo" style={{ ['--kc-fim' as string]: FACE_FINAL[face] }}>
-            <div className="kc-f kc-rei" style={{ transform: 'translateZ(60px)' }}>👑<small>{tr('CARA DO REI', 'KING\'S FACE')}</small></div>
-            <div className="kc-f kc-rei" style={{ transform: 'rotateY(180deg) translateZ(60px)' }}>👑<small>{tr('CARA DO REI', 'KING\'S FACE')}</small></div>
+            <div className="kc-f kc-rei" style={{ transform: 'translateZ(60px)' }}><span style={{ lineHeight: 1 }}>👑</span><span style={{ fontSize: 30, lineHeight: 1.05 }}>1×1</span><small>{tr('CARA DO REI', 'KING\'S FACE')}</small></div>
+            <div className="kc-f kc-rei" style={{ transform: 'rotateY(180deg) translateZ(60px)' }}><span style={{ lineHeight: 1 }}>👑</span><span style={{ fontSize: 30, lineHeight: 1.05 }}>1×1</span><small>{tr('CARA DO REI', 'KING\'S FACE')}</small></div>
             <div className="kc-f" style={{ transform: 'rotateY(90deg) translateZ(60px)' }}>2×2</div>
             <div className="kc-f" style={{ transform: 'rotateY(-90deg) translateZ(60px)' }}>2×2</div>
             <div className="kc-f" style={{ transform: 'rotateX(90deg) translateZ(60px)' }}>3×3</div>
@@ -386,7 +386,7 @@ const CSS = `
 .kc-cubo{width:120px;height:120px;position:relative;transform-style:preserve-3d;animation:kcGira 2.3s cubic-bezier(.2,.7,.3,1) forwards}
 @keyframes kcGira{0%{transform:rotateX(620deg) rotateY(480deg)}100%{transform:var(--kc-fim)}}
 .kc-f{position:absolute;inset:0;background:#fff;border:5px solid ${INK};border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;${'font:700 44px Oswald,sans-serif'};color:${INK};backface-visibility:hidden}
-.kc-f small{${'font:700 11px Oswald,sans-serif'};letter-spacing:.06em}.kc-rei{background:${GOLD};font-size:56px}
+.kc-f small{${'font:700 11px Oswald,sans-serif'};letter-spacing:.06em}.kc-rei{background:${GOLD};font-size:40px}
 .kc-sombra{position:absolute;left:50%;bottom:4px;width:130px;height:18px;margin-left:-65px;border-radius:50%;background:rgba(0,0,0,.55);filter:blur(5px)}
 .kc-carta{position:relative;width:200px;height:240px;margin:0 auto;transform-style:preserve-3d;animation:kcVira 1.6s cubic-bezier(.3,1.3,.5,1) .3s both}
 @keyframes kcVira{0%{transform:rotateY(0) translateY(40px) scale(.7)}40%{transform:rotateY(0) translateY(0) scale(1.05)}100%{transform:rotateY(180deg) rotate(-3deg)}}
