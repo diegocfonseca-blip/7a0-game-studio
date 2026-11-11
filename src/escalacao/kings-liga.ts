@@ -25,7 +25,10 @@ export const PLACAR_MB = kParaPlacar(MIN_MATCHBALL)
 /** (regra antiga: a bola do 38' — só pra jogos já jogados) */
 export const PLACAR_BOLA = kParaPlacar(38)
 export const PLACAR_DADO_FIM = kParaPlacar(MIN_DADO_FIM)
-export const PLACAR_DOBRO_INI = kParaPlacar(MIN_GOL_DOBRO)
+/** ✖️2 17'–20': o 1º minuto do placar (0–93) que a tela já mostra como 17' (11/11: era o 40, que deixava o 39 = "17'" de fora) */
+export const PLACAR_DOBRO_INI = Math.ceil((MIN_GOL_DOBRO - 0.5) * 93 / MIN_FIM)
+/** o gol do minuto `m` (placar 0–93) cai na janela ✖️2? — pelo minuto da TELA: 17' a 20' */
+export const naJanelaDoDobro = (m: number) => placarParaK(m) >= MIN_GOL_DOBRO && placarParaK(m) <= MIN_INTERVALO
 /** o minuto da Kings que a TELA mostra: no match ball o relógio fica parado no 36' */
 export const placarParaKTela = (m: number) => Math.min(MIN_MATCHBALL, placarParaK(m))
 
@@ -287,8 +290,10 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   const dobrados = new Set<MatchHighlight>()
   for (const c of cartas) {
     if (c.vale === 'gol_dobro') {
-      const ate = c.min + kParaPlacar(EFEITO_K)
-      for (const g of r.highlights.filter(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.min <= ate)) dobrados.add(g)
+      // 🐛 11/11 (Diego: *"às vezes o gol dobrado não tá contando"*): a janela é contada no MINUTO DA TELA (o da Kings, 0–40), não no
+      // do placar (0–93) — o arredondamento deixava gol que a tela mostrava dentro dos 4 min de fora do dobro
+      const k0 = placarParaK(c.min)
+      for (const g of r.highlights.filter(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && placarParaK(h.min) <= k0 + EFEITO_K)) dobrados.add(g)
     } else if (c.vale === 'estrela' && c.estrela) {
       // ⭐ 10/11 (Diego: *"jogador estrela o gol dele vale 2 no jogo normal"*): TODO gol dele vale 2, da carta até o 36' (no match ball, não)
       for (const g of r.highlights.filter(h => ehGol(h) && h.teamId === c.teamId && h.min >= c.min && h.min <= PLACAR_MB && h.text.startsWith(`⚽ ${c.estrela} marca para`))) dobrados.add(g)
@@ -301,7 +306,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   r.highlights.sort((x, y) => x.min - y.min)
   // ✖️2 do 17' ao 20' TODO gol vale 2, dos dois times (o que já vale 2 pela carta não dobra de novo)
   const extra = /^(✖️2|⭐|🔴)/
-  for (const g of r.highlights.filter(h => ehGol(h) && !extra.test(h.text) && h.min >= PLACAR_DOBRO_INI && h.min < PLACAR_INTERVALO))
+  // 🐛 11/11: pelo minuto que a TELA mostra — todo gol que aparece como 17', 18', 19' ou 20' vale 2 (antes um 17' e um 20' ficavam de fora)
+  for (const g of r.highlights.filter(h => ehGol(h) && !extra.test(h.text) && naJanelaDoDobro(h.min)))
     if (!dobrados.has(g)) { dobrados.add(g); r.highlights.push({ min: g.min, text: '✖️2 DO 17\' AO 20\': esse gol vale 2!', teamId: g.teamId, kind: 'gol' }) }
   r.highlights.sort((x, y) => x.min - y.min)
   // ⏱️ MATCH BALL no 36': o relógio para. Empatado → shootout (nada depois do 36' vale). Alguém na frente → vence quem chegar

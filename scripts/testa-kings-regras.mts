@@ -2,7 +2,7 @@
 // uso: npx tsx scripts/testa-kings-regras.mts
 import { reducer, INITIAL } from '../src/escalacao/store'
 import type { EscState, MatchResult } from '../src/escalacao/types'
-import { OPCOES_CORINGA, PLACAR_MB, PLACAR_DOBRO_INI, PLACAR_INTERVALO, kParaPlacar, aplicaRegrasKings, agendaKings } from '../src/escalacao/kings-liga'
+import { OPCOES_CORINGA, PLACAR_MB, PLACAR_DOBRO_INI, PLACAR_INTERVALO, kParaPlacar, placarParaKTela, naJanelaDoDobro, aplicaRegrasKings, agendaKings } from '../src/escalacao/kings-liga'
 import type { KingsBase } from '../src/escalacao/types'
 import { radioDoJogo, narraRadio } from '../src/escalacao/radio'
 let falhas = 0
@@ -52,7 +52,9 @@ for (const r of mbLid) { const mb = r.kings!.mb!, ult = golT(r).at(-1)!; if (!(M
 ok(mbLid.length > 0 && mbLid.every(r => { const mb = r.kings!.mb!, ult = golT(r).at(-1)!; return Math.max(r.hg, r.ag) === mb.alvo && Math.min(r.hg, r.ag) < mb.alvo! && ult.text.startsWith('⏱️ MATCH BALL') && ult.min === mb.fim && !r.highlights.some(h => h.min > mb.fim) && !r.kings!.pens }),
   `⏱️ ALGUÉM NA FRENTE no 36' → vence quem chega primeiro a líder+1, e o jogo acaba no gol que decide — ${mbLid.length} casos (${mbLid.filter(r => { const ant = golT(r).filter(h => h.min <= PLACAR_MB), lid = ant.filter(h => h.teamId === r.homeId).length * 2 > ant.length ? r.homeId : r.awayId; return (r.hg > r.ag ? r.homeId : r.awayId) !== lid }).length} viradas de quem estava atrás)`)
 // ✖️2 do 17' ao 20': todo gol "de jogo" dos dois times ganha o 2º lance no mesmo minuto
-const janela = jogos.flatMap(r => golT(r).filter(h => h.text.startsWith('⚽') && h.min >= PLACAR_DOBRO_INI && h.min < PLACAR_INTERVALO).map(g => ({ r, g })))
+// 🐛 11/11: a janela é a do minuto da TELA — todo gol mostrado como 17'…20' (antes um 17' e um 20' ficavam de fora)
+const janela = jogos.flatMap(r => golT(r).filter(h => h.text.startsWith('⚽') && placarParaKTela(h.min) >= 17 && placarParaKTela(h.min) <= 20).map(g => ({ r, g })))
+ok(naJanelaDoDobro(PLACAR_DOBRO_INI) && !naJanelaDoDobro(PLACAR_DOBRO_INI - 1) && placarParaKTela(PLACAR_DOBRO_INI) === 17 && naJanelaDoDobro(PLACAR_INTERVALO), `✖️2 a janela começa no 1º minuto que a tela mostra 17' e vai até o 20'`)
 ok(janela.length > 0 && janela.every(({ r, g }) => r.highlights.some(d => d.kind === 'gol' && d.min === g.min && d.teamId === g.teamId && /^(✖️2|⭐)/.test(d.text))), `✖️2 DO 17' AO 20': todo gol vale 2, pros dois times — ${janela.length} gols conferidos`)
 // prova montada: empatado no 36' com gols depois → somem do placar E da artilharia
 {
