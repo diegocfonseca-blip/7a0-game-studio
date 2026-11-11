@@ -3303,7 +3303,7 @@ export function EscSetup() {
         ) : kingsLigado && kingsBar ? (
           <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#FFF6CC' }}>
             <p className="font-black text-sm" style={OSWALD}>{t('👑 Baralho: jogadores da Kings League Brasil', '👑 Deck: Kings League Brasil players')}</p>
-            <p className="text-[11px] font-bold text-black/65 mt-1">{t('91 jogadores (17 goleiros, 23 defensores, 25 meias e 26 atacantes). Eles só existem aqui: não aparecem em nenhum outro leilão.', '91 players (17 keepers, 23 defenders, 25 midfielders and 26 forwards). They only exist here: they never show up in any other auction.')}</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{t('91 jogadores (17 goleiros, 23 defensores, 25 meias e 26 atacantes).', '91 players (17 keepers, 23 defenders, 25 midfielders and 26 forwards).')}</p>
           </div>
         ) : clubesOn && clubes ? (
           <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#EAF3FF' }}>
