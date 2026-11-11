@@ -65,6 +65,23 @@ for (let t = 0; t < 3; t++) {
   const cl = partida({ clubes: true })
   for (const k of cl.vistas) if (KINGS.has(k)) falha(`carta da Kings vazou no leilão de Clubes: ${k}`)
 }
+// 5) 👑 11/11: SALA ONLINE da Kings — 10 times na formação 'kings', a competição dela (só liga), o baralho da Kings e nada vaza
+for (const kb of [true, false]) {
+  const s0 = reducer(structuredClone(INITIAL) as EscState, { type: 'START_ONLINE', roomId: 'r', roomCode: 'KINGS1', isHost: true, playerIndex: 0, playerNames: ['Ana', 'Beto', 'Caio'], seatUids: ['a', 'b', 'c'], formation: 'kings', kingsBaralho: kb, deck: 'br', copaMode: 'liga_copa', tamanhoLiga: 10, envUnico: true, clubes: true } as never)
+  if (s0.managers.length !== 10) falha(`sala Kings com ${s0.managers.length} times`)
+  if (!s0.managers.every(m => m.formation === 'kings')) falha('sala Kings com time fora da formação kings')
+  if (s0.copaMode !== 'liga' || s0.envUnico || s0.leilaoClubes || s0.tamanhoLiga) falha('sala Kings levou opção que não vale nela (copa/envelope único/clubes/liga de 10)')
+  if (!!s0.kingsBaralho !== kb) falha(`sala Kings: kingsBaralho ${s0.kingsBaralho} (esperado ${kb})`)
+  const cartas = [...Object.values(s0.deck ?? {}).flat(), ...s0.managers.flatMap(m => m.squad)] as { name: string; club: string; year: number }[]
+  for (const c of cartas) if (kb !== KINGS.has(chave(c))) { falha(`sala Kings (${kb ? 'baralho da Kings' : 'padrão'}): carta ${chave(c)}`); break }
+  for (const m of s0.managers.filter(m => !m.isHuman)) if (m.squad.length !== 7 || m.squad.some(c => c.fake)) falha(`bot ${m.name} da sala Kings com ${m.squad.length} (ou falso)`)
+}
+// 6) e uma sala normal depois de uma sala da Kings não herda o baralho dela
+{
+  const s1 = reducer(structuredClone(INITIAL) as EscState, { type: 'START_ONLINE', roomId: 'r2', roomCode: 'NORMAL1', isHost: true, playerIndex: 0, playerNames: ['Ana', 'Beto'], seatUids: ['a', 'b'], formation: '4-3-3', deck: 'br', copaMode: 'liga' } as never)
+  if (s1.kingsBaralho) falha('sala normal herdou o baralho da Kings')
+  for (const c of [...Object.values(s1.deck ?? {}).flat(), ...s1.managers.flatMap(m => m.squad)] as { name: string; club: string; year: number }[]) if (KINGS.has(chave(c))) { falha(`carta da Kings vazou na sala normal: ${chave(c)}`); break }
+}
 console.log(`(${jogosKings} jogos da Kings jogados com o baralho dela)`)
 if (falhas) { console.log(`🔴 ${falhas} falha(s)`); process.exit(1) }
 console.log('🟢 baralho da Kings: só na Kings, 100 moedas, sem jogador falso, 7 vagas fechadas, nunca vaza')

@@ -43,6 +43,7 @@ type DeckChoice = DeckCarreira | 'world'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
+import { useKingsLiberada } from './sport' // 👑 11/11: Kings nas salas online (só as contas da Kings)
 import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useRegionalLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
@@ -927,6 +928,10 @@ export function EscLobby() {
   // convocação. Só aparece pra CLUBES_TESTERS e só no ⚡ Rápido online.
   const clubesOn = useClubesLiberado()
   const [rapidoClubes, setRapidoClubes] = useState(false)
+  // 👑 11/11 (Diego: *"sim"* pra Kings nas salas online): só no Rápido e só pras contas da Kings (`useKingsLiberada`)
+  const kingsVe = useKingsLiberada()
+  const [kingsSala, setKingsSala] = useState(false)
+  const [kingsBarSala, setKingsBarSala] = useState(true) // jogadores DA Kings League (padrão) ou os de sempre
   const [pacSelecao, setPacSelecao] = useState(false) // 🏳️ leilão de Seleções (31/10, em teste): pacote = setor de uma SELEÇÃO
   const [pacDecada, setPacDecada] = useState(false) // 📅 por década (31/10, em teste): pacote = clube/seleção numa década
   // 🃏 BAFO: o host decide se a partida vale carta (padrão) ou se é amistoso.
@@ -1854,6 +1859,7 @@ export function EscLobby() {
       duplasMode, duplas: duplasMode ? duplas : undefined, youUid: user.id,
       seatUids: uniq.map(p => p.user_id), // 🪑 quem senta em cada assento (mesma lista dos playerNames)
       formation: gs?.formation ?? '4-3-3',
+      kingsBaralho: !!(gs as { kingsBaralho?: boolean } | undefined)?.kingsBaralho, // 👑 11/11: sala da Kings com os jogadores dela
       stream: !!gs?.stream,
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       chatOff: !!gs?.chatOff, // 💬 chat ligado/desligado (escolha do host na criação)
@@ -2245,6 +2251,8 @@ export function EscLobby() {
       ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}), ...(draftPiorSel ? { draftRegras: { piorPrimeiro: true } } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: 'liga', ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
       mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}), // 🇪🇺 10/11: a marca da Euro também sai (sobrava se a pessoa tinha tocado em Liga + Eurocopa antes)
       ...(turnoSala ? { turnoUnico: true } : {}) }
+    // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
+    if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, envUnico: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -4340,10 +4348,19 @@ export function EscLobby() {
                   {/* 🏳️ 31/10: o 3º tipo, Seleções, é o MESMO motor do Clubes (pacote = setor de uma seleção). No basquete não existe. */}
                   <Seg options={(nbaSala
                       ? [['jogador', tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')]]
-                      : [['jogador', tr('🃏 Jogador', '🃏 Player')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['selecoes', tr('🏳️ Seleções', '🏳️ Nations')]]) as ['jogador' | 'clubes' | 'selecoes', string][]}
-                    value={!rapidoClubes ? 'jogador' : pacSelecao && !nbaSala ? 'selecoes' : 'clubes'}
-                    onSet={v => { if (v === 'jogador') { setRapidoClubes(false); setPacSelecao(false) } else if (clubesOn) { setRapidoClubes(true); setPacSelecao(v === 'selecoes') } }}
+                      : [['jogador', tr('🃏 Jogador', '🃏 Player')], ['clubes', tr('🧱 Clubes', '🧱 Clubs')], ['selecoes', tr('🏳️ Seleções', '🏳️ Nations')], ...(kingsVe && roomMode === 'rapido' ? [['kings', '👑 Kings League']] : [])]) as ['jogador' | 'clubes' | 'selecoes' | 'kings', string][]}
+                    value={kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala ? 'kings' : !rapidoClubes ? 'jogador' : pacSelecao && !nbaSala ? 'selecoes' : 'clubes'}
+                    onSet={v => { if (v === 'kings') { setKingsSala(true); setRapidoClubes(false); setPacSelecao(false); setRapidoEnvUnico(false); setRoomDuplas(false); return } setKingsSala(false); if (v === 'jogador') { setRapidoClubes(false); setPacSelecao(false) } else if (clubesOn) { setRapidoClubes(true); setPacSelecao(v === 'selecoes') } }}
                     travados={clubesOn ? [] : ['clubes', 'selecoes']} /> {/* 🏷️ 05/11: sai o selo "em teste" das Seleções (Diego) */} {/* 🏷️ 12/10: selo NOVO tirado do Clubes (ordem do Diego) */}
+                  {/* 👑 Kings: jogadores DA Kings League ou os de sempre (igual à Partida Rápida) */}
+                  {kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala && (
+                    <div className="mt-2">
+                      <Seg options={[[true, tr('👑 Jogadores da Kings League', '👑 Kings League players')], [false, tr('🃏 Jogadores padrão', '🃏 Standard players')]] as [boolean, string][]} value={kingsBarSala} onSet={v => setKingsBarSala(v)} />
+                      <p className="text-[11px] font-semibold mt-1.5 leading-snug" style={{ color: '#6b6250' }}>
+                        {tr('👑 O leilão de sempre com 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois, a competição da Kings: 9 rodadas e o mata-mata.', '👑 The usual auction with 7 slots per team (keeper + 6), 10 teams and 100 coins. Then the Kings competition: 9 rounds and the knockouts.')}
+                      </p>
+                    </div>
+                  )}
                   {/* 📅 ÉPOCA (31/10, em teste): todas as épocas misturadas ou o pacote preso numa década ("Meio do Milan · anos 90") */}
                   {rapidoClubes && clubesOn && !nbaSala && (
                     <div className="mt-2">
@@ -4386,7 +4403,7 @@ export function EscLobby() {
               {(roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Jeito do lance', 'How you bid')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
-                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
+                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas && !(kingsVe && kingsSala && roomMode === 'rapido') ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
                         selos={{ pregao: tr('novo', 'new'), unico: tr('novo', 'new') }} selosBrilho={['pregao', 'unico']}
                         value={rapidoEnvUnico && envUnicoOk && !roomDuplas ? 'unico' : rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia'); setRapidoEnvUnico(v === 'unico') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}
@@ -4461,7 +4478,7 @@ export function EscLobby() {
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto. 🚫 Nem na sala "🌐 Copa do Mundo" direta (Diego 15/10):
                 lá não tem leilão, e a escolha de seleção não sabe de dupla (cada um escolheria a sua). */}
-            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && (
+            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && !(kingsVe && kingsSala && roomMode === 'rapido') && (
               <div>
                 <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
                   <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
@@ -4509,6 +4526,11 @@ export function EscLobby() {
                 </>)}
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">☝️ {tr('Cada jogador é único na liga', 'Each player is unique in the league')}</p>
               </div>
+            ) : (kingsVe && kingsSala && kingsBarSala && roomMode === 'rapido' && !nbaSala) ? (
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('👑 Baralho: jogadores da Kings League Brasil', '👑 Deck: Kings League Brasil players')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('91 jogadores (17 goleiros, 23 defensores, 25 meias e 26 atacantes).', '91 players (17 keepers, 23 defenders, 25 midfielders and 26 forwards).')}</p>
+              </div>
             ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes && !nbaSala) ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho: Todos (BR+EU+Mundo)', '🌎 Deck: All (BR+EU+World)')}</p>
@@ -4534,7 +4556,7 @@ export function EscLobby() {
               </SegField>
             )}
             {/* 🏀 formação 4-3-3/4-4-2 é do futebol; o basquete é quinteto (5), sem formação. */}
-            {!isCareer && !nbaSala && (
+            {!isCareer && !nbaSala && !(kingsVe && kingsSala && roomMode === 'rapido') && (
               <SegField label={tr('Formação (vale pra todos)', 'Formation (for everyone)')}>
                 <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />
               </SegField>
@@ -4580,7 +4602,7 @@ export function EscLobby() {
           )}
 
           {/* 🏆 O CAMPEONATO (26/10): o que vem depois da liga — só no rápido/ligas/bafo (a carreira tem regras próprias) */}
-          {!isCareer && (
+          {!isCareer && !(kingsVe && kingsSala && roomMode === 'rapido') && (
             <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆" sub={tam10Vale ? tr('O que vem depois das 18 rodadas', 'What comes after the 18 rounds') : turnoVale ? tr('O que vem depois das 19 rodadas', 'What comes after the 19 rounds') : tr('O que vem depois das 38 rodadas', 'What comes after the 38 rounds')}>
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga

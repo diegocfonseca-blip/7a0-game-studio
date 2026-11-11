@@ -75,6 +75,9 @@ const CENARIOS: Cenario[] = [
   { nome: 'liga-champions', humanos: [2, 4, 8], start: { copaMode: 'liga_champions', deck: 'eu' }, fim: 'leilao' },
   { nome: 'so-champions', humanos: [2, 4, 8], start: { copaMode: 'champions', deck: 'todos' }, fim: 'leilao' },
   { nome: 'relampago', humanos: [2, 4, 8], start: { copaMode: 'relampago', relampagoChave: 16, deck: 'br' }, fim: 'leilao' },
+  // 👑 11/11: a Kings na sala online (formação 'kings', 10 times, a competição dela) — com o baralho da Kings e com o de sempre
+  { nome: 'kings', humanos: [2, 4, 8], start: { formation: 'kings', kingsBaralho: true, deck: 'br', copaMode: 'liga' }, fim: 'leilao' },
+  { nome: 'kings-padrao-tocaia', humanos: [2, 4], start: { formation: 'kings', deck: 'br', copaMode: 'liga', holandes: true }, fim: 'mesmo' },
   { nome: 'liga-draft', humanos: [2, 4, 8], start: { copaMode: 'liga', deck: 'todos', liga: true, ligaDraft: true, minhaLigaDraft: true, draftRegras: { piorPrimeiro: true } }, fim: 'draft' },
 ]
 
@@ -584,7 +587,7 @@ function novoLeilao() {
   log(`dono: novo leilão com ${uniq.map(p => p.uid).join(',')}`)
   hostAplica({
     type: 'START_ONLINE', roomId: st.roomId, roomCode: st.roomCode, roomName: st.roomName, isHost: true, playerIndex: myPos >= 0 ? myPos : st.youIdx,
-    playerNames, formation: eu(H)?.formation ?? '4-3-3', duplasMode: st.duplasMode, duplas: st.duplasMode ? duplas : undefined, youUid: H.uid,
+    playerNames, formation: eu(H)?.formation ?? '4-3-3', kingsBaralho: st.kingsBaralho, duplasMode: st.duplasMode, duplas: st.duplasMode ? duplas : undefined, youUid: H.uid,
     seatUids: uniq.map(p => p.uid), deck: st.deckLeague, varzea: st.varzea, regional: st.regionalSala, rematch: NOW, copaMode: st.copaMode,
     seasonNo: (st.seasonNo ?? 1) + 1, stream: st.streamMode, manual: st.manualRoom, chatOff: st.chatOff, campo2d: st.campo2dProximo ?? st.campo2d,
     auctionSecs: st.auctionSecs, ligaFechada: st.ligaFechadaEscolha ?? st.ligaFechada, liga: st.ligaMode, locked: st.locked, pwHash: st.pwHash,

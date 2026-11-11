@@ -5492,6 +5492,9 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
         : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
         : shuffled.filter(c => c.fame === 2 || c.fame === 3)
       picks = pool.slice(0, need)
+      // 👑 11/11: no baralho da KINGS (91 cartas, poucas de cada categoria) o bot completa com quem sobrou do baralho dela — nunca
+      // jogador falso (regra do Diego). Fora da Kings nada muda.
+      if (picks.length < need && (ACTIVE_CATALOG as unknown) === (BARALHO_KINGS as unknown)) for (const c of shuffled) { if (picks.length >= need) break; if (!picks.includes(c)) picks.push(c) }
     }
     for (const c of picks) used.add(ident(c))
     let gi = 0
@@ -5653,7 +5656,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'KINGS_DECIDIR'; key: string; canto: number }
+  | { type: 'KINGS_DECIDIR'; key: string; canto: number; /** 👑 11/11 (sala online): QUAL jogo (casa-fora) — com várias pessoas na sala tem mais de um jogo com gente */ jogo?: string }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
@@ -5696,7 +5699,7 @@ type Action =
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -9241,7 +9244,11 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'START_ONLINE': {
       // 🧱 LEILÃO DE CLUBES na sala: escolha do host — rápido e Minhas Ligas (28/09), nunca carreira.
       // 🏀 19/10: no basquete também — o pacote é a POSIÇÃO de uma franquia da NBA (o baralho ativo é o da NBA).
-      s.leilaoClubes = !!action.clubes && !action.career
+      // 👑 11/11 (Diego: *"sim"* pra Kings nas salas online, só pras contas da Kings): a sala nasce com a formação 'kings' (o dono
+      // escolhe na criação). É o MESMO motor da Kings da Partida Rápida: 10 times, 7 vagas, 100 moedas e a competição DELA (9 rodadas +
+      // mata-mata) — nada de Copa/Liberta/Champions, liga de 20, turno único, Clubes ou envelope único.
+      const kingsSala = action.formation === 'kings' && !action.career && action.sport !== 'basquete'
+      s.leilaoClubes = !!action.clubes && !action.career && !kingsSala
       s.leilaoSelecao = s.leilaoClubes && action.sport !== 'basquete' && !!action.selecao // 🏳️ 31/10
       s.leilaoDecada = s.leilaoClubes && action.sport !== 'basquete' && !!action.decada // 📅 31/10
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
@@ -9284,7 +9291,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
       // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
-      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
+      s.envUnico = !action.career && !action.duplasMode && !kingsSala && !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
@@ -9303,6 +9310,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (nbaCareerRoom) s.nbaTier = 'street' // começa na base da pirâmide do basquete (Street League)
       if (onlineNba) setActiveSport('basquete', nbaCareerRoom ? 'career' : 'quick') // carreira = vagas de carreira; rápido = quinteto
       else setActiveCatalog(s.deckLeague, fracoInicial, s.regionalSala)
+      // 👑 sala da Kings com os jogadores DA Kings (o baralho próprio, que nenhum outro leilão enxerga)
+      s.kingsBaralho = kingsSala && !!action.kingsBaralho ? true : undefined
+      if (s.kingsBaralho) ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG
       // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
       // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
       if (s.ligaDraft) { // 🏀 vale pro baralho da NBA também (um LeBron só por liga)
@@ -9324,7 +9334,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.ligaMode = !!action.liga // 🏆 é uma liga do "Minhas Ligas" (13/09): dono nunca passa a coroa; "📣 Chamar mais gente" só aqui
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
-      s.copaMode = (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      s.copaMode = kingsSala || (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
       // ⚡ RELÂMPAGO: a chave que o dono escolheu (16 ou 32). Se a sala tiver mais gente que a chave (não devia — a tela trava),
       // a chave cresce pra caber todo mundo: ninguém fica de fora do sorteio.
       s.relampagoChave = s.copaMode === 'relampago' ? chaveRelampago(action.relampagoChave, action.playerNames.length) : undefined
@@ -9332,10 +9342,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Minha Liga Draft (01/11) e agora vale pra toda sala com LIGA (rápido e Minhas Ligas). A ÚNICA mudança é completar com bots
       // até 10 em vez de 20 (18 rodadas). Fora: carreira, basquete, liga sem bots (o tamanho já é a galera), Relâmpago e Só
       // Champions (não têm liga). O que vem depois da liga já sabe lidar com tabela menor (é o mesmo caminho da liga sem bots).
-      s.tamanhoLiga = action.tamanhoLiga === 10 && !action.career && !onlineNba && !s.ligaFechada && !s.relampagoChave && s.copaMode !== 'champions' ? 10 : undefined
+      s.tamanhoLiga = !kingsSala && action.tamanhoLiga === 10 && !action.career && !onlineNba && !s.ligaFechada && !s.relampagoChave && s.copaMode !== 'champions' ? 10 : undefined
       // ⚡ TURNO ÚNICO (06/11): escolha do DONO ao criar a sala, carimbada aqui pra todo aparelho jogar igual (igual `escalaBots`).
       // Só vale com a tabela de 20 (`turnoUnicoVale` confere na hora de montar o calendário): liga de 10 segue as 18 rodadas de sempre.
-      s.turnoUnico = action.turnoUnico === true && !action.career && !onlineNba && !s.relampagoChave && s.copaMode !== 'champions' && s.tamanhoLiga !== 10 ? true : undefined
+      s.turnoUnico = !kingsSala && action.turnoUnico === true && !action.career && !onlineNba && !s.relampagoChave && s.copaMode !== 'champions' && s.tamanhoLiga !== 10 ? true : undefined
       // 🏀 carreira do basquete: o modo de copa segue o ANDAR — street = só pontos corridos
       // (sem playoffs); G League/NBA entram com playoffs. (Começa em street.)
       // 🏀 SANITIZA o modo de copa do basquete: a sala NUNCA roda competição de futebol
@@ -9437,7 +9447,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // bots. Nos outros modos, completa até 20 como sempre.
       // ⚡ Relâmpago: a sala tem EXATAMENTE o tamanho da chave (16 ou 32) — os bots que completam ganham elenco pronto, igual sempre.
       // 📏 Liga de 10 (Minha Liga Draft 01/11; toda sala com liga 04/11): bots completam até 10; com mais de 10 pessoas a liga cresce até caber todo mundo
-      const onlineLeagueSize = s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : s.tamanhoLiga === 10 ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
+      const onlineLeagueSize = kingsSala ? Math.max(10, action.playerNames.length) : s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : s.tamanhoLiga === 10 ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
       // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
@@ -9453,6 +9463,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         : poolSalaComBatismos(rng)
       const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, onlineRivalCount, onlineLeagueSize, rng, namePool)
+      // 👑 sala da Kings: os BOTS também jogam a Kings (formação 'kings', 7 no elenco) — sem isto nasciam com time de 11
+      if (kingsSala) { for (const m of onlineManagers) m.formation = 'kings'; for (const p of onlinePlans) p.formation = 'kings' }
       // ⚠️ NÃO marca os rivais como `rival` (diferente do offline): na tabela online
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
@@ -11244,7 +11256,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!ehKings(s)) return s
       const qc = s.quickCopa
       if (qc && qc.phase !== 'done' && s.round >= (s.fixtures.length || TOTAL_ROUNDS)) {
-        const tie = qc.ties.find(t => t.kingsJogo?.kingsBase && t.legs.length === 1)
+        // 👑 11/11: na sala, o JOGO da escolha vem junto (pode ter mais de um confronto com gente na fase)
+        const tie = qc.ties.find(t => t.kingsJogo?.kingsBase && t.legs.length === 1 && (!action.jogo || `${t.kingsJogo.homeId}-${t.kingsJogo.awayId}` === action.jogo))
         if (!tie?.kingsJogo) return s
         if (!qc.scorers) qc.scorers = []
         if (!qc.assists) qc.assists = []
@@ -11265,7 +11278,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         }
         return s
       }
-      const i = s.lastResults.findIndex(r => !!r.kingsBase)
+      const i = s.lastResults.findIndex(r => !!r.kingsBase && (!action.jogo || `${r.homeId}-${r.awayId}` === action.jogo))
       if (i < 0) return s
       const velho = s.lastResults[i]
       if (!s.assists) s.assists = []

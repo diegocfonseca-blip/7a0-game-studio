@@ -8331,7 +8331,7 @@ export function EscSeason() {
       )}
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
-      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name)} />}
+      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto, ...(kJogo ? { jogo: `${kJogo.homeId}-${kJogo.awayId}` } : {}) })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name)} />}
       {manual && !state.dinastiaPaused && !copaLive && (
         // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.
@@ -12042,7 +12042,8 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         duplasMode: state.duplasMode, duplas: state.duplasMode ? duplas : undefined, youUid: meuUid ?? state.youUid,
         seatUids: uniq.map(p => p.user_id), // 🪑 quem senta em cada assento — é por ISTO que o convidado se reancora no time certo
-        deck: state.deckLeague, varzea: state.varzea, regional: state.regionalSala, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
+        deck: state.deckLeague, varzea: state.varzea, regional: state.regionalSala, rematch: Date.now(), copaMode: state.copaMode, kingsBaralho: state.kingsBaralho, // 👑 a sala da Kings segue com o baralho dela no novo leilão
+        // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
         // 🏆 a sala CONTINUA a contagem: o "novo leilão" é a próxima temporada da
         // mesma resenha, não um recomeço do zero. Sem isto o `seasonNo` voltava
         // pra 1 e a partida nova apagava a anterior no Hall da Fama.
