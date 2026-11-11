@@ -3058,7 +3058,7 @@ export function EscSetup() {
       })
     }
     else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
-    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !kingsLigado && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
       relampagoChave: copaMode === 'relampago' ? relChave : undefined, tamanhoLiga: tamLiga === 10 && copaMode !== 'relampago' && copaMode !== 'champions' ? 10 : undefined,
       selecao: clubesOn && clubes && pacSel && !kingsLigado || undefined, decada: clubesOn && clubes && pacDec && !kingsLigado || undefined, varzea: league === 'br' && !(clubesOn && clubes) && !kingsLigado && varzeaR || undefined })
   }
@@ -3237,7 +3237,7 @@ export function EscSetup() {
               {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')], ...(bbSetup ? [] : [['sel', t('🏳️ Seleções', '🏳️ Nations')]]), ...(kingsOn && !bbSetup ? [['kings', '👑 Kings League']] : [])] as [boolean | 'sel' | 'kings', string][]).map(([m, label]) => {
                 const on = m === 'kings' ? kingsLigado : kingsLigado ? false : m === 'sel' ? clubes && pacSel : m === true ? clubes && !pacSel : !clubes
                 return (
-                <button key={String(m)} onClick={() => { if (m === 'kings') { setKings(true); setPoke(false); setClubes(false); setPacSel(false); setEnvUnico(false); return } setKings(false); setClubes(m !== false); setPacSel(m === 'sel') }}
+                <button key={String(m)} onClick={() => { if (m === 'kings') { setKings(true); setPoke(false); setClubes(false); setPacSel(false); return } setKings(false); setClubes(m !== false); setPacSel(m === 'sel') }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {m === true && seloNovoClubes() && (
@@ -3463,8 +3463,7 @@ export function EscSetup() {
                   {t('🔨 Pregão aberto', '🔨 Open auction')}
                 </button>
               )}
-              {/* 👑 10/11: na Kings o envelope único não vale (o motor ignora) — então nem aparece, pra não virar botão mudo */}
-              {envUnicoOk && !kingsLigado && (
+              {envUnicoOk && (
                 <button onClick={() => { setEnvUnico(true); setPregaoAb(false); setHolandes(false) }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: envUnico ? GOLD : '#fff', boxShadow: envUnico ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>

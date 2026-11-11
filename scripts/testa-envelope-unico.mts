@@ -50,6 +50,19 @@ function anda(s: EscState, lance: (s: EscState) => EscState): { s: EscState; viu
   return { s, viuEnvelope, viuDesempate, revelacoes }
 }
 
+console.log('👑 0) Kings League com envelope único (11/11, pedido do Diego) — baralho da Kings e o padrão')
+for (const kb of [true, false]) {
+  let s = reducer(structuredClone(INITIAL) as EscState, { type: 'START', teamName: 'Teste FC', formation: '4-3-3', rivals: 9, kings: true, kingsBaralho: kb, copaMode: 'liga', league: 'br', envUnico: true } as never)
+  for (let i = 0; i < 20 && s.screen !== 'auction'; i++) s = reducer(s, { type: 'FINISH_CEREMONY' } as never)
+  ok(s.envUnico === true && s.phase === 'envelope', `Kings (${kb ? 'baralho da Kings' : 'padrão'}): abre o envelope único (fase ${s.phase})`)
+  ok(!s.currentCards.some(c => c.pos === 'LAT'), 'Kings: nenhum lateral no envelope')
+  const eu = s.managers[s.youIdx]
+  const r = anda(s, st => reducer(st, { type: 'SUBMIT_ENVELOPE', mgrId: eu.id, bids: envelopeDe(st, eu.id, 5) }))
+  s = r.s
+  ok(s.screen === 'season', `Kings: chegou na temporada (${s.screen})`)
+  ok(s.managers.every(m => m.squad.length === 7 && !m.squad.some(c => c.fake)), `Kings: os 10 fecharam 7, sem falso (${s.managers.map(m => m.squad.length).join(',')})`)
+}
+r2.length = 0 // (a Kings acima não conta pra conferência da 2ª lista abaixo)
 console.log('⚡ 1) Partida Rápida')
 {
   let s = reducer(structuredClone(INITIAL) as EscState, { type: 'START', teamName: 'Teste FC', formation: '4-3-3', rivals: 7, envUnico: true } as never)

@@ -2252,7 +2252,7 @@ export function EscLobby() {
       mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}), // 🇪🇺 10/11: a marca da Euro também sai (sobrava se a pessoa tinha tocado em Liga + Eurocopa antes)
       ...(turnoSala ? { turnoUnico: true } : {}) }
     // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
-    if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, envUnico: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
+    if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -4255,7 +4255,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRapidoEnvUnico(false); setRoomDuplas(false) } }}
+                  <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
                     style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 26 : undefined, minHeight: 64 }}>
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
@@ -4408,7 +4408,7 @@ export function EscLobby() {
               {(roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Jeito do lance', 'How you bid')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
-                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas && !(kingsVe && kingsSala && roomMode === 'rapido') ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
+                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
                         selos={{ pregao: tr('novo', 'new'), unico: tr('novo', 'new') }} selosBrilho={['pregao', 'unico']}
                         value={rapidoEnvUnico && envUnicoOk && !roomDuplas ? 'unico' : rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia'); setRapidoEnvUnico(v === 'unico') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}

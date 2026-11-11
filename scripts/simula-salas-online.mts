@@ -77,6 +77,7 @@ const CENARIOS: Cenario[] = [
   { nome: 'relampago', humanos: [2, 4, 8], start: { copaMode: 'relampago', relampagoChave: 16, deck: 'br' }, fim: 'leilao' },
   // 👑 11/11: a Kings na sala online (formação 'kings', 10 times, a competição dela) — com o baralho da Kings e com o de sempre
   { nome: 'kings', humanos: [2, 4, 8], start: { formation: 'kings', kingsBaralho: true, deck: 'br', copaMode: 'liga' }, fim: 'leilao' },
+  { nome: 'kings-unico', humanos: [2, 4, 8], start: { formation: 'kings', kingsBaralho: true, deck: 'br', copaMode: 'liga', envUnico: true }, fim: 'leilao' },
   { nome: 'kings-padrao-tocaia', humanos: [2, 4], start: { formation: 'kings', deck: 'br', copaMode: 'liga', holandes: true }, fim: 'mesmo' },
   { nome: 'liga-draft', humanos: [2, 4, 8], start: { copaMode: 'liga', deck: 'todos', liga: true, ligaDraft: true, minhaLigaDraft: true, draftRegras: { piorPrimeiro: true } }, fim: 'draft' },
 ]
