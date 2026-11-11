@@ -5004,7 +5004,7 @@ function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => numb
   const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
   const elenco = (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).map(c => ({ name: c.name, pos: c.pos, lo: c.lo, hi: c.hi, fake: c.fake, club: c.club }))
   const tat = (id: number) => s.managers.some(m => m.id === id && m.isHuman) ? s.tactics[id] : undefined
-  const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake })
+  const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake, bot: { h: !s.managers.some(m => m.id === homeId && m.isHuman), a: !s.managers.some(m => m.id === awayId && m.isHuman) } })
   const r: MatchResult = { homeId, awayId, hg: 0, ag: 0, highlights: [] }
   const base: KingsBase = { highlights: g.highlights, tmpS: g.tmpS, tmpA: g.tmpA, cartoes: g.cartoes, seed, rodada, decisoes: {}, art: { s: [], a: [] } }
   const art = aplicaRegrasKings(r, base, ctxKings(s, homeId, awayId, rodada))

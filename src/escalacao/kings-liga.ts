@@ -67,6 +67,7 @@ export function emCampoKings(k: number, dado: 1 | 2 | 3): number {
 }
 /** o dado do jogo sai da MESMA semente da regra (`aplicaRegrasKings` sorteia ele primeiro) */
 export const dadoDoJogo = (seed: number): 1 | 2 | 3 => FACES_DADO[Math.floor(rngKings(seed)() * 6)]
+export const BOT_MENOS_KINGS = 1
 const forcaDe = (elenco: CartaGol[]) => {
   const top = elenco.map(c => (c.lo + c.hi) / 2).sort((a, b) => b - a).slice(0, 7)
   return top.length ? top.reduce((a, b) => a + b, 0) / top.length : 60
@@ -74,6 +75,7 @@ const forcaDe = (elenco: CartaGol[]) => {
 export function simulaGolsKings(o: {
   homeId: number; awayId: number; nomes: { h: string; a: string }; seed: number
   elencos: { h: CartaGol[]; a: CartaGol[] }; taticas?: { h?: string; a?: string }; ehFake: (c: CartaGol) => boolean
+  /** 🤖 time de BOT (sem dono): joga 1 ponto abaixo da força do elenco */ bot?: { h?: boolean; a?: boolean }
 }): { highlights: MatchHighlight[]; tmpS: ScorerRow[]; tmpA: AssistRow[]; cartoes: CartaoKingsInfo[] } {
   const rng = rngKings(o.seed ^ 0x601A5)
   // 🎢 11/11: cada jogo tem o SEU ritmo (sorteio próprio, não mexe nos outros): uns mais travados, outros jogo louco — é daí que saem as
@@ -87,7 +89,9 @@ export function simulaGolsKings(o: {
   const foraAte: Record<'h' | 'a', number> = { h: -1, a: -1 }
   const pesoCartao = (c: CartaGol) => c.pos === 'ZAG' ? 3 : c.pos === 'LAT' ? 2.2 : c.pos === 'MEI' ? 2 : c.pos === 'ATA' ? 1.4 : 0
   const dado = dadoDoJogo(o.seed)
-  const fH = forcaDe(o.elencos.h), fA = forcaDe(o.elencos.a)
+  // 🤖 11/11 (Diego: *"tô achando os bots muito fortes… deixe força média 78, caindo um ponto de 79"*): na Kings o bot joga com a força
+  // do elenco MENOS 1 (medido: bots chegavam com 79 de média no leilão). Só a conta de quem é mais forte — o elenco e as cartas não mudam.
+  const fH = forcaDe(o.elencos.h) - (o.bot?.h ? BOT_MENOS_KINGS : 0), fA = forcaDe(o.elencos.a) - (o.bot?.a ? BOT_MENOS_KINGS : 0)
   const tat = (t?: string) => t === 'ataque' ? [1.15, 1.12] : t === 'retranca' ? [0.85, 0.8] : [1, 1]
   const [hOwn, hGive] = tat(o.taticas?.h), [aOwn, aGive] = tat(o.taticas?.a)
   // ⚖️ 11/11 (Diego: *"o principal: ganha também com base em quem escolher melhor o time, igual normalmente com os outros modos"*): a força
