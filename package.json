@@ -145,7 +145,8 @@
     "salas-sim": "npx tsx scripts/simula-salas-online.mts",
     "sala-dorme": "npx tsx scripts/testa-sala-dorme.mts",
     "kings-baralho": "npx tsx scripts/testa-kings-baralho.mts",
-    "kings-shootout": "npx tsx scripts/testa-kings-shootout-2d.mts"
+    "kings-shootout": "npx tsx scripts/testa-kings-shootout-2d.mts",
+    "kings-sem-lateral": "npx tsx scripts/testa-kings-sem-lateral.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

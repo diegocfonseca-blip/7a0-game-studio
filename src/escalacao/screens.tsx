@@ -3240,6 +3240,11 @@ export function EscSetup() {
                 <button key={String(m)} onClick={() => { if (m === 'kings') { setKings(true); setPoke(false); setClubes(false); setPacSel(false); return } setKings(false); setClubes(m !== false); setPacSel(m === 'sel') }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {m === 'kings' && (
+                    <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35, letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999, border: `1.5px solid ${INK}`, background: INK, color: GOLD }}>
+                      {t('🔒 Só Diego, K9 e Chinesin', '🔒 Only Diego, K9 and Chinesin')}
+                    </span>
+                  )}
                   {m === true && seloNovoClubes() && (
                     <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                       letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,

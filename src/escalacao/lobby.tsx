@@ -4022,7 +4022,7 @@ export function EscLobby() {
         // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
         // 🗂️ 26/10 (mockup v5 aprovado: *"agora pode publicar pra todos"*): ⭐ = precisa de plano pra CRIAR (quem tem plano usa
         // normal; jogar é sempre grátis) · `meta` = ainda não lançado: abre quando o Instagram bater N mil seguidores (faixa roxa)
-        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; kings?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; seloVerde?: boolean; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
+        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; kings?: boolean; /** faixa em cima do cartão (👑 Kings: quem pode ver) */ topo?: string; ic: string; nome: string; frase: string; on: boolean; selo?: string; seloVerde?: boolean; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Liga da Turma', 'Crew League'), frase: tr('O mesmo leilão das salas rápidas, mas numa liga só com os seus amigos, que não acaba.', 'The same auction as the quick rooms, but in a league just with your friends that never ends.'), on: ligaOn, estrela: true },
           // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
@@ -4030,7 +4030,7 @@ export function EscLobby() {
           // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
           { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, ...(minhaOn ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : { meta: 2 }) }, // 🟢 05/11: liberada pra todos (MINHA_LIGA_DRAFT_GERAL) — a faixa da meta some e entra o selo NOVO
           // 👑 11/11 (Diego: *"Kings League tem que estar em cima, junto com Liga Draft e outros"*): um MODO da sala, só pras contas da Kings
-          ...(kingsVe && !nbaSala ? [{ v: 'rapido' as const, kings: true, ic: '👑', nome: 'Kings League', frase: tr('7 contra 7, 10 times e as regras da Kings League Brasil.', '7 v 7, 10 teams and the Kings League Brasil rules.'), on: true }] : []),
+          ...(kingsVe && !nbaSala ? [{ v: 'rapido' as const, kings: true, ic: '👑', nome: 'Kings League', frase: tr('7 contra 7, 10 times e as regras da Kings League Brasil.', '7 v 7, 10 teams and the Kings League Brasil rules.'), on: true, topo: tr('🔒 Só Diego, K9 e Chinesin', '🔒 Only Diego, K9 and Chinesin') }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -4257,7 +4257,8 @@ export function EscLobby() {
                   // que não dá pra criar seria promessa falsa.
                   <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
-                    style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 26 : undefined, minHeight: 64 }}>
+                    style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
+                    {m.topo && !meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1" style={{ background: INK, color: GOLD, borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', ...OSWALD }}>{m.topo}</span>}
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
                     <span className="min-w-0">
                       <span className="flex items-center justify-center gap-1.5 flex-wrap">
