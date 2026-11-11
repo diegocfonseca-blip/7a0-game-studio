@@ -1,3 +1,12 @@
+## 👑 11/11 ~23h — Kings: shootout no Campo 2D + rádio + gol dobrado no 2D + Luan Mestre/Andreas Craque (PUBLICADO, Diego: "publique tudo já")
+- 🥅 Shootout no campinho (`campo2d-shootout.ts`, subclasse da disputa de pênaltis): sai do meio-campo com a bola, 5 s, goleiro na
+  linha até o apito, se encostar na bola acabou; resto atrás do meio; goleiro reserva ao lado do gol. Liga e mata-mata da Kings com 2D.
+  Trava: `npm run kings-shootout`. Bancada: `scripts/teste-penaltis-campo/index.html?modo=kings`.
+- 📻 Rádio da Kings: +34 frases de jogo e +20 das fases abertas; frase de gente entrando só no começo, do dado só no dado (`fase`).
+- ✖️2 Campo 2D: o lance "(+1)" gruda no gol do mesmo minuto e o campinho sobe 2 (`juntaBonusKings`, `Evento.vale`).
+- Luan Mestre e Andreas Vaz: Lendário → Craque (kings-baralho.ts).
+- ⚠️ Ainda pendente com o Diego: avisos como faixa embaixo do placar (sim/não) · escalonado do começo terminar no 6' (sim/não).
+
 ## 👑 11/11 ~22h20 — Kings: campinho com poucos + pênalti "esticou" (FEITO no branch, falta OK pra publicar)
 - 📺 Campo 2D com 1×1…5×5: entravam primeiro os ATACANTES e ficavam no lugar do 7×7 (todos na frente, buraco atrás). Agora quem está
   em campo ganha desenho próprio pro número (`arrumaPoucos` no campo2d-motor.ts: 2×2 = um atrás/um na frente; 3×3 um por linha; 4×4
