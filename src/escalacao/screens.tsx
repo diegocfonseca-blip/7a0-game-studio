@@ -32,7 +32,7 @@ import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
-import { FORMATIONS, SECTORS, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
+import { FORMATIONS, SECTORS, rotuloFormacao, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
@@ -1444,7 +1444,7 @@ function YourPitchBody({ small = false }: { small?: boolean }) {
 function PacotesDoTime({ m }: { m: Manager }) {
   return (
     <Box className="p-0 overflow-hidden" shadow={3}>
-      <p className="text-[11px] font-black uppercase text-center py-1.5" style={{ ...OSWALD, background: INK, color: '#fff', letterSpacing: .5 }}>{L('🧱 Seus pacotes', '🧱 Your packs')} · {m.formation}</p>
+      <p className="text-[11px] font-black uppercase text-center py-1.5" style={{ ...OSWALD, background: INK, color: '#fff', letterSpacing: .5 }}>{L('🧱 Seus pacotes', '🧱 Your packs')} · {rotuloFormacao(m.formation)}</p>
       {SECTORS.map(pos => {
         const c = m.squad.find(x => x.pos === pos && x.pacote)
         return (
@@ -6335,7 +6335,7 @@ function RivalsStripBody() {
         {rivals.map(m => (
           <Box key={m.id} className="p-2.5" shadow={3}>
             <p className="font-black text-sm truncate" style={OSWALD}>{m.teamName}</p>
-            <p className="text-[11px] font-semibold text-black/55">{state.sport === 'basquete' || m.formation === 'pokemon' ? '' : `${m.formation} · `}💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
+            <p className="text-[11px] font-semibold text-black/55">{state.sport === 'basquete' || m.formation === 'pokemon' ? '' : `${rotuloFormacao(m.formation)} · `}💰 {m.money} · {m.squad.length}/{m.squad.length + totalHoles(m)}</p>
             <p className="text-[10px] font-medium text-black/70" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => c.name).join(', ') || L('ainda sem contratações', 'no signings yet')}
             </p>
@@ -6639,7 +6639,7 @@ export function EscCerimonia() {
         </div>
       )}
       <Box bg={m.id === you.id ? GOLD : '#fff'} className="p-4" shadow={6}>
-        <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName}{state.sport === 'basquete' || m.formation === 'pokemon' ? '' : <span className="text-sm font-bold text-black/70"> ({m.formation})</span>}</p>
+        <p className="font-black text-xl" style={OSWALD}>{m.id === you.id ? `🫵 ${m.teamName}` : m.teamName}{state.sport === 'basquete' || m.formation === 'pokemon' ? '' : <span className="text-sm font-bold text-black/70"> ({rotuloFormacao(m.formation)})</span>}</p>
         {/* ⭐ 22/10 (mockup online-cerimonia-lendas-conta.png, Diego: *"aprovado"*): as LENDAS que este time levou, apresentadas no estádio */}
         <FotoLendasCerimonia lendas={lendasDoTime(m)} />
         <div className="mt-2 space-y-1.5">
@@ -7121,7 +7121,11 @@ export const kingsRoundMs = (marcha: number) => {
 // Então: o placar anda no MESMO ritmo da sala online no placar (9 s por jogo ÷ a marcha, 82% disso com a bola rolando) e, nos lances
 // especiais da Kings, anda a 60% disso (a conta dele: 2,5 → 1,5). As cenas (banners, carta, dado, escolha) seguem como sempre.
 // ⚠️ Só a Partida Rápida (offline). A sala online da Kings continua na régua de cima (`kingsRoundMs`).
-const KINGS_RAPIDA_LENTO = 1.5 / 2.5
+// 🔁 11/11 (Diego, jogando no 4×: *"agora tá passando muito rápido… nem consigo ver o jogo rolando… momentos decisivos têm que ser um
+// pouco mais lentos… quando tiver 7x7 corre rápido"*): o lance decisivo ganha um ritmo PRÓPRIO — 2,5 s por minuto da Kings no Normal — e
+// a marcha só mexe nele de leve (raiz da marcha: 2× = 1,8 s · 4× = 1,25 s). O 7×7 continua no ritmo da sala × marcha.
+const KINGS_RAPIDA_MIN_DECISIVO_MS = 2500
+const taxaDecisivaKings = (marcha: number) => (93 / 40) / (KINGS_RAPIDA_MIN_DECISIVO_MS / Math.sqrt(marcha > 0 ? marcha : 1))
 /** placar-minutos por ms no ritmo normal da sala online, na marcha escolhida */
 const taxaSalaKings = (marcha: number) => 93 / (ROUND_MS_ONLINE * 0.82 / (marcha > 0 ? marcha : 1))
 /** os trechos "decisivos" do jogo (escala do placar 0–93): 1×1 até 6×6, gol dobrado, dado, a bola/match ball do fim e ±1 minuto da Kings
@@ -7132,7 +7136,7 @@ function trechosDecisivosKings(r: MatchResult): [number, number][] {
   const out: [number, number][] = [[0, kParaPlacar(7)]]
   if (k.duelos) out.push([PLACAR_DOBRO_INI, PLACAR_INTERVALO], [PLACAR_DADO, PLACAR_DADO_FIM])
   if (k.mb) out.push([PLACAR_MB, 94]); else if (k.bola) out.push([PLACAR_BOLA, 94])
-  const volta = (m: number) => out.push([m - 3, m + 3])
+  const volta = (m: number) => out.push([m - 1, m + 2]) // 11/11: só um respiro em volta da carta/presidente (era ±3 e pesava demais)
   for (const c of k.cartas ?? []) volta(c.min)
   for (const d of k.duelos ?? []) volta(d.min)
   for (const p of k.pres ?? []) volta(p.min)
@@ -7144,7 +7148,7 @@ function duracaoKingsRapida(r: MatchResult, marcha: number, youId: number): numb
   const ev = cenasDoJogo(r, () => '', id => id === youId)
   const t = trechosDecisivosKings(r), rapida = taxaSalaKings(marcha)
   let ms = 0
-  for (let m = 0; m < 93; m += 0.5) ms += 0.5 / (emTrecho(t, m) ? rapida * KINGS_RAPIDA_LENTO : rapida)
+  for (let m = 0; m < 93; m += 0.5) ms += 0.5 / (emTrecho(t, m) ? taxaDecisivaKings(marcha) : rapida)
   for (const e of ev) ms += msCenaKings(e.ms, marcha, e.fixo, e.c.tipo, true)
   // a escolha da carta pode trazer uma cobrança nova: guarda o tempo dela
   ms += ev.filter(e => e.c.tipo === 'escolha').length * KINGS_CENA_MS.duelo
@@ -7239,7 +7243,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
     // sala online: fases lentas com tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada (refeito a cada passo: a marcha pode mudar)
     const unidLentas = lentos.reduce((a, [x, y]) => a + (y - x), 0)
     const msLento = lentos.reduce((a, [x, y]) => a + placarParaK(y) - placarParaK(x), 0) * KINGS_MS_POR_MIN_LENTO
-    const taxaLenta = () => tudoRef.current ? taxaSalaKings(speedRef.current) * KINGS_RAPIDA_LENTO : unidLentas > 0 ? unidLentas / msLento : 0
+    const taxaLenta = () => tudoRef.current ? taxaDecisivaKings(speedRef.current) : unidLentas > 0 ? unidLentas / msLento : 0
     const taxaRapida = () => {
       if (tudoRef.current) return taxaSalaKings(speedRef.current)
       const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, sp, e.fixo, e.c.tipo, tudoRef.current), 0)

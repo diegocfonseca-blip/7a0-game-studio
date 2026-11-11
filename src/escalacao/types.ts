@@ -212,6 +212,8 @@ export interface EventoManchete { season: number; round: number; emoji: string; 
 // no motor real (25 temporadas × 4 perfis de elenco): nenhuma passa de 48% de
 // título nem no cenário mais favorável — mesma faixa das 5 antigas.
 export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1' | 'kings' | 'pokemon'
+/** 👑 11/11 (Diego: *"formação coloca 2 2 2"*): o NOME que aparece na tela. A chave 'kings' continua no save/motor; a pessoa lê 2-2-2. */
+export const rotuloFormacao = (f: FormationKey | string | undefined): string => f === 'kings' ? '2-2-2' : (f ?? '')
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
