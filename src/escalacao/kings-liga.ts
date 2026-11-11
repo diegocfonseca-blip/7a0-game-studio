@@ -54,7 +54,9 @@ function desconta<T extends { name: string; teamId: number }>(lista: T[], nome: 
 // Placar médio de bola rolando ≈ 5,5 + presidente/cartas/bola do fim ≈ 7–8. Força do time (média dos 7 melhores) e
 // tática mexem na chance. Autor e garçom saem do elenco DE VERDADE (carta de mentira faz o gol mas não entra na súmula).
 export interface CartaGol { name: string; pos: string; lo: number; hi: number; fake?: boolean; club?: string }
-const GOL_POR_MIN: Record<number, number> = { 1: 0.16, 2: 0.15, 3: 0.13, 4: 0.11, 5: 0.095, 6: 0.08, 7: 0.04 }
+// 🔁 11/11 (Diego: *"onde mais sai gol é do minuto 1 ao 4… e no dado quando cai 3x3, 2x2 também"*): 1×1 a 4×4 e o dado de 2×2/3×3 sobem;
+// 5×5 e 6×6 descem um pouco e o 7×7 um tiquinho, pra média do jogo continuar perto da Kings de verdade.
+const GOL_POR_MIN: Record<number, number> = { 1: 0.2, 2: 0.2, 3: 0.19, 4: 0.17, 5: 0.075, 6: 0.06, 7: 0.028 }
 const GOL_RETA_FINAL = 0.055
 /** quantos de linha cada time tem no minuto `k` da Kings */
 export function emCampoKings(k: number, dado: 1 | 2 | 3): number {
