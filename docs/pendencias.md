@@ -21,6 +21,7 @@
 - Com o 2D ligado a Kings não tem mais fase lenta: a bola rola no tempo de um jogo 2D da marcha (1:30 ÷ marcha); só as cenas da Kings param o relógio.
 - `Kings2D.momentos` (1×1, 2×2…6×6, ✖️2 17'–20', dado 20'–23', cada carta, match ball) e `chancesKings2D` (agora em `kings-liga.ts`) garantem uma
   jogada em cada um. Trava `npm run kings-momentos`. Sem 2D (placar da Kings) nada mudou.
+- ✖️2 11/11: no placar do CAMPINHO o gol dobrado (✖️2, ⭐, 🔴) somava 1 — o +1 virava um 2º "gol" no mesmo minuto que o campinho não jogava. Agora entra junto com o gol (`placarComBonusKings`).
 - ⚠️ No 2,5× um minuto da Kings dura menos de 1 s na tela: a jogada do 2×2…6×6 é curta. Se ele achar rápido demais, a saída é segurar SÓ esses momentos.
 
 ## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)

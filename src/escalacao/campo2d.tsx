@@ -29,7 +29,7 @@ import { nomeLimpo } from './escudos'
 import { useCampo2DLiberado, useCampo2DTester } from './sport'
 import { pousoDaBola, velocidadeBola, ehBomba, golDeLonge, balancoRede, tremorTrave, vitimaDoChapeu, alturaQuique, QUIQUE_DUR, esticaGoleiro, riscoCarrinho, casaAtacando, type BolaVista } from './campo2d-efeitos'
 import { playTrave } from './sound'
-import { emCampoKings, chancesKings2D, placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // 👑 quantos em campo a cada minuto da Kings (a MESMA conta da regra)
+import { emCampoKings, chancesKings2D, ehGolBonusKings, placarComBonusKings, placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // 👑 quantos em campo a cada minuto da Kings (a MESMA conta da regra)
 import { MIN_BOLA, MIN_MATCHBALL } from './kings'
 import { criaRastro, pontoRastro, rastroVisivel, arteBolinhaRastro, criaNomeNaBola } from './campo2d-apresentacao'
 import { FestaGolCampo2D, publicarFestaCampo2D, publicarTelaoCampo2D } from './campo2d-festa'
@@ -124,6 +124,9 @@ function numerosDe(atl: Atleta[]): Map<Atleta, number> {
 export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis, kings }: Campo2DProps) {
   const replay = replay0 && !kings // 👑 a Kings muda quem está em campo no meio do jogo: a fita (que guarda por posição na lista) não serve
   const t = useT()
+  // 👑 ✖️2/⭐/🔴: o "+1" da Kings não é outra jogada — sai da lista que o campinho joga e entra no placar junto do gol que ele dobra
+  const golsTodos = gols
+  gols = kings ? golsTodos.filter(g => !ehGolBonusKings(g.name)) : golsTodos
   useEffect(() => { if(mapOnly)return;campoNaTela(1); return () => campoNaTela(-1) }, [mapOnly]) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
   const cv = useRef<HTMLCanvasElement | null>(null)
   const caixa = useRef<HTMLDivElement | null>(null)
@@ -220,8 +223,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   // ✨ 07/11: efeitos de lance (trave · chapéu · onde a bola cai · goleiro voando · quique · risco do carrinho · torcida) — LIBERADOS PRA
   // TODOS no mesmo dia (*"publique tudo que falamos sobre o campo 2D"*). Voltar a ser só da conta do Diego: `useCampo2DTester()`.
   const efeitosLance = EFEITOS_LANCE_GERAL || tester2d
-  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance, kings })
-  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance, kings }
+  const vivo = useRef({ casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance, kings, golsTodos })
+  vivo.current = { casa, fora, fechado, pausado, t, onSimulationMinute, igualMapa, disputaPenaltis, nGols: gols.length, efeitosLance, kings, golsTodos }
 
   useEffect(() => {
     const el = caixa.current
@@ -558,7 +561,8 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
       // 😱 o QUASE fica ~2,6 s DE JOGO na faixa (ou até sair um gol: a festa manda) — no tempo do jogo: pausou, ele espera; no 4×, passa rápido
       if (quaseVivo.current && ((jogo.t - quaseVivo.current.desde) * 1000 > QUASE_FAIXA_MS || jogo.festa || penalti)) { quaseVivo.current = null; setQuase(null) }
-      if (cena.placar[0] !== ult.placar[0] || cena.placar[1] !== ult.placar[1]) { ult.placar = [cena.placar[0], cena.placar[1]]; setPlacarV(ult.placar) }
+      const plc: [number, number] = vivo.current.kings ? placarComBonusKings([cena.placar[0], cena.placar[1]], vivo.current.golsTodos) : [cena.placar[0], cena.placar[1]]
+      if (plc[0] !== ult.placar[0] || plc[1] !== ult.placar[1]) { ult.placar = plc; setPlacarV(ult.placar) }
       const fk = cena.festa ? `${cena.festa.lado}|${cena.festa.autor}|${cena.festa.min}` : ''
       if (fk !== ult.festa) {
         ult.festa = fk; setFesta(cena.festa ? { lado: cena.festa.lado, autor: cena.festa.autor, assist: cena.festa.assist, min: vivo.current.kings ? placarParaK(cena.festa.min) : cena.festa.min } : null) // 👑 Kings: o minuto da Kings (0–40)

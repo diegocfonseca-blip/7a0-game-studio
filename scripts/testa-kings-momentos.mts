@@ -3,7 +3,7 @@
 // Rodar: npx tsx scripts/testa-kings-momentos.mts
 import assert from 'node:assert/strict'
 import { chancesKings2D } from '../src/escalacao/kings-liga'
-import { kings2DDe, PLACAR_DOBRO_INI, PLACAR_DADO, PLACAR_MB } from '../src/escalacao/kings-liga'
+import { kings2DDe, PLACAR_DOBRO_INI, PLACAR_DADO, PLACAR_MB, placarComBonusKings } from '../src/escalacao/kings-liga'
 let falhas = 0, jogos = 0
 for (let s = 1; s <= 300; s++) {
   const r = (n: number) => ((s * 2654435761 + n * 40503) >>> 0) % 1000 / 1000
@@ -23,4 +23,14 @@ for (let s = 1; s <= 300; s++) {
 }
 assert.equal(falhas, 0, 'todo momento especial tem jogada')
 console.log(`✅ Kings 2D: ${jogos} jogos, cada momento (1×1…6×6, ✖️2, dado, cartas, match ball) com pelo menos uma jogada`)
+// ✖️2 11/11: o gol dobrado vale 2 no placar do campinho — o +1 entra junto com o gol que ele dobra, nunca antes
+{
+  const gols = [{ min: 10, home: true, name: 'Pelé' }, { min: 42, home: true, name: 'Pelé' }, { min: 42, home: true, name: 'Gol em dobro (+1)' }, { min: 50, home: false, name: 'Zico' }]
+  assert.deepEqual(placarComBonusKings([1, 0], gols), [1, 0], 'antes do gol dobrado: só o 1º')
+  assert.deepEqual(placarComBonusKings([2, 0], gols), [3, 0], 'saiu o gol do 42\' → conta 2')
+  assert.deepEqual(placarComBonusKings([2, 1], gols), [3, 1], 'o rival não ganha bônus')
+  const en = [{ min: 5, home: false, name: 'Romário' }, { min: 5, home: false, name: 'Star player (+1)' }]
+  assert.deepEqual(placarComBonusKings([0, 1], en), [0, 2], 'estrela em inglês também')
+  console.log('✅ gol dobrado/estrela soma 2 no placar do campinho')
+}
 process.exit(0)

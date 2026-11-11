@@ -442,3 +442,20 @@ export function chancesKings2D(seed: number, gols: { min: number; home: boolean 
   }
   return out.sort((a, b) => a.min - b.min)
 }
+
+/** ✖️2 / ⭐ / 🔴 o "+1" que a regra da Kings soma em cima de um gol (o placar de sempre conta lance a lance). No campinho 2D ele NÃO
+ *  vira outra jogada: entra no placar junto com o gol que ele dobra (11/11, Diego: *"quando sai gol no dobrado ainda tá aparecendo um
+ *  gol e não dois"*). Os nomes são os de `nomeGolKings` (screens.tsx), em PT e EN. */
+const BONUS_KINGS = ['Gol em dobro (+1)', 'Double goal (+1)', 'Jogador estrela (+1)', 'Star player (+1)', 'Bola vermelha (+1)', 'Red ball (+1)']
+export function ehGolBonusKings(nome: string): boolean { return BONUS_KINGS.includes(nome) }
+/** o placar do campinho com os "+1" da Kings: cada bônus entra quando o gol que ele dobra (o do mesmo minuto) já entrou */
+export function placarComBonusKings(placar: [number, number], gols: { min: number; home: boolean; name: string }[]): [number, number] {
+  const out: [number, number] = [placar[0], placar[1]]
+  for (const b of gols) {
+    if (!ehGolBonusKings(b.name)) continue
+    const lado = b.home ? 0 : 1
+    const precisa = gols.filter(g => !ehGolBonusKings(g.name) && g.home === b.home && g.min <= b.min).length
+    if (placar[lado] >= precisa) out[lado]++
+  }
+  return out
+}
