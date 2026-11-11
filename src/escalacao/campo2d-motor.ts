@@ -63,7 +63,7 @@ const COMO: Record<Acab, [string, string]> = {
 export interface Evento { min: number; lado: Lado; fim: Fim; autor?: string; assist?: string }
 export interface CartaCampo { name: string; pos?: string; /** (Copa do Mundo/regional guardam a posição aqui) */ sec?: string; club?: string; year?: number; fame?: number; fake?: boolean }
 type Grupo = 'GOL' | 'DEF' | 'LAT' | 'MEI' | 'ATA'
-export interface Atleta { lado: Lado; nome: string; carta?: CartaCampo; estilo: Estilo; /** 🎯 os golpes assinatura (só lenda) */ golpes: Golpe[]; /** 🦶 pé conhecido (só lenda famosa por ele) */ pe: Pe; grupo: Grupo; bx: number; dep: number; x: number; y: number; /** onde estava no passo anterior (só pro DESENHO ficar liso) */ ax?: number; ay?: number; ov: { x: number; y: number; v: number; busca?: boolean } | null }
+export interface Atleta { lado: Lado; nome: string; carta?: CartaCampo; estilo: Estilo; /** 🎯 os golpes assinatura (só lenda) */ golpes: Golpe[]; /** 🦶 pé conhecido (só lenda famosa por ele) */ pe: Pe; grupo: Grupo; bx: number; dep: number; /** 👑 Kings: o lugar ORIGINAL do 7×7 (guardado enquanto joga numa fase com pouca gente) */ b0?: { grupo: Grupo; bx: number; dep: number }; x: number; y: number; /** onde estava no passo anterior (só pro DESENHO ficar liso) */ ax?: number; ay?: number; ov: { x: number; y: number; v: number; busca?: boolean } | null }
 interface Voo { x0: number; y0: number; x1: number; y1: number; t: number; dur: number; alt: number; lin: boolean; fim?: () => void; /** 🌀 curva (metros pro lado, no meio do caminho): colocado, trivela, folha seca */ curva?: number }
 type Acao = { ini?: () => void; upd: (dt: number) => boolean; /** enfeite: pode ser cortado pelo prazo do lance decisivo e pelo lance seguinte */ pre?: boolean; /** reinício (tiro de meta, lateral, reposição): só o lance SEGUINTE corta — o prazo do lance anterior não */ pos?: boolean; /** o chute: o vigia nunca derruba (é ele que faz o placar) */ chute?: boolean }
 
@@ -208,6 +208,8 @@ export class Jogo2D {
     this.manoAMano = false
     const ocupado = (a: Atleta) => a === this.bola.dono || !!a.ov
     for (const l of [0, 1] as Lado[]) {
+      // (volta todo mundo pro lugar do 7×7 antes de escolher: a escolha de quem entra usa a posição de verdade)
+      for (const a of [...this.atl, ...this.banco]) if (a.lado === l && a.b0) { a.grupo = a.b0.grupo; a.bx = a.b0.bx; a.dep = a.b0.dep; a.b0 = undefined }
       const linha = [...this.atl, ...this.banco].filter(a => a.lado === l && a.grupo !== 'GOL')
         .sort((a, b) => ordem[a.grupo] - ordem[b.grupo] || a.bx - b.bx)
       const cumprindo = linha.filter(a => a.nome && fora.includes(a.nome))
@@ -219,7 +221,32 @@ export class Jogo2D {
         a.x = a.ax = l === 0 ? -1 : W + 1; a.y = a.ay = L / 2 + (l === 0 ? 4 : -4); a.ov = null
         this.atl.push(a)
       }
+      this.arrumaPoucos(l)
     }
+  }
+  /** 👑 KINGS (11/11, Diego: *"os jogadores estão meio burros com poucos jogadores… deixando buracos no campo, atacantes passam livres,
+   *  tocam a bola errada"*): quem entra primeiro no 1×1, 2×2… são os atacantes — e eles ficavam no lugar do 7×7, todos lá na frente,
+   *  sem ninguém atrás. Agora, com menos de 6 de linha, os que estão em campo ganham um DESENHO próprio pro número que tem (2×2 = um
+   *  atrás e um na frente; 3×3 = um por linha; 4×4 = losango; 5×5 = 2-1-2), do mais recuado pro mais avançado, e o papel (zagueiro,
+   *  meia, atacante) segue o lugar. Com 6 de linha (7×7) cada um volta pro seu lugar de verdade. Só posição: não mexe em placar. */
+  private arrumaPoucos(l: Lado) {
+    const linha = this.atl.filter(a => a.lado === l && a.grupo !== 'GOL')
+    const n = linha.length
+    if (n === 0 || n >= 6) return
+    const D: Record<number, [number, number][]> = {
+      1: [[34, 0.55]],
+      2: [[34, 1], [34, 0.15]],
+      3: [[34, 1], [34, 0.55], [34, 0.1]],
+      4: [[34, 1], [18, 0.55], [50, 0.55], [34, 0.1]],
+      5: [[22, 1], [46, 1], [34, 0.55], [22, 0.1], [46, 0.1]],
+    }
+    const vagas = [...D[n]].sort((a, b) => b[1] - a[1] || a[0] - b[0])
+    const jogadores = [...linha].sort((a, b) => b.dep - a.dep || a.bx - b.bx)
+    jogadores.forEach((a, i) => {
+      const [bx, dep] = vagas[i]
+      a.b0 = { grupo: a.grupo, bx: a.bx, dep: a.dep }
+      a.bx = bx; a.dep = dep; a.grupo = dep >= 0.9 ? 'DEF' : dep >= 0.4 ? 'MEI' : 'ATA'
+    })
   }
 
   // ── consultas ──
