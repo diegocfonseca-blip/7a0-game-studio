@@ -8,6 +8,14 @@
 
 
 
+
+## 📱 11/11 — Carreira voltando pra temporada velha em aparelho cheio (Lucas Barreto 30) — no branch, esperando OK
+- Nuvem dele estava CERTA (temporada 114, salva 10/11 21h39). O aparelho estava cheio: a carreira é guardada 2× no aparelho
+  (`esc-solo-career` e a "partida em andamento", ~2,7 MB cada) e a 2ª gravação falhava calada, deixando a cópia da 113 — que o jogo
+  abre DIRETO ao ligar, antes de olhar a nuvem.
+- Conserto: gravação que falha apaga a cópia velha · ao ligar, carreira em andamento mais atrasada que a do aparelho não abre (vai pra
+  home, que junta com a nuvem). Trava `npm run save-velho`. Paliativo até publicar: ir no Menu inicial e tocar em Continuar.
+
 ## 👑📺 10/11 — Kings no 2D: ritmo da sala + uma jogada por momento (no branch, esperando o OK de publicar)
 - Diego: *"a velocidade deixe igual ao atual das salas no campo 2D… cada situação diferenciada (1×1, 2×2, gol em dobro e outros) deve ter uma jogada"*.
 - Com o 2D ligado a Kings não tem mais fase lenta: a bola rola no tempo de um jogo 2D da marcha (1:30 ÷ marcha); só as cenas da Kings param o relógio.

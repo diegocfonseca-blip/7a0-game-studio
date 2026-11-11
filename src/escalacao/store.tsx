@@ -13527,12 +13527,23 @@ function sanearTitulos(s: EscState): void {
   if ((s.careerTitlesA ?? 0) > jogadas) s.careerTitlesA = jogadas
 }
 
+/** a carreira guardada no aparelho (`esc-solo-career`) é a mesma e está mais adiantada que `s`? */
+export function carreiraLocalNaFrente(s: Pick<EscState, 'seed' | 'seasonNo' | 'round'>, bruto?: string | null): boolean {
+  try {
+    const r = bruto !== undefined ? bruto : localStorage.getItem('esc-solo-career')
+    const l = r ? JSON.parse(r) as EscState : null
+    if (!l || l.seed !== s.seed) return false
+    return (l.seasonNo ?? 0) > (s.seasonNo ?? 0) || ((l.seasonNo ?? 0) === (s.seasonNo ?? 0) && (l.round ?? 0) > (s.round ?? 0))
+  } catch { return false }
+}
 function loadSoloInProgress(): EscState | null {
   try {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
     if (!raw) return null
     const s = JSON.parse(raw) as EscState
     if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen, s) && Array.isArray(s.managers) && s.managers.length > 0) {
+      // 📱 11/11: carreira — se a cópia da carreira no aparelho está MAIS adiantada que esta, esta é velha: não abre (vai pra home)
+      if (s.careerOnline && carreiraLocalNaFrente(s)) { localStorage.removeItem(SOLO_RESUME_KEY); return null }
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
       normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
@@ -14730,7 +14741,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
       else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado())) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
-    } catch { /* quota cheia etc. — não trava o jogo */ }
+    } catch {
+      // 📱 11/11 (Lucas Barreto 30: *"jogo até a 114, salvo, e quando entro volta pro 113"*): aparelho CHEIO. A gravação falhava
+      // calada e a cópia VELHA ficava aqui — e é esta chave que o jogo abre direto ao ligar, antes de olhar a nuvem. Cópia que não
+      // dá pra atualizar sai: o jogo abre na home, junta com a nuvem e o "Continuar" abre a versão certa. (E sobra espaço pro
+      // salvamento da carreira, que é o que vale.)
+      try { localStorage.removeItem(SOLO_RESUME_KEY) } catch { /* ignora */ }
+    }
   }, [state])
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   // 📡✂️ RÁDIO EM PEDAÇOS (10/11, Diego: *"liga primeiro nas salas que eu criar"*). O dono manda a sala INTEIRA de vez em quando

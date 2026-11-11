@@ -90,6 +90,7 @@
     "espectador": "npx tsx scripts/testa-espectador.mts",
     "liga-volta": "npx tsx scripts/testa-liga-volta.mts",
     "kings-momentos": "npx tsx scripts/testa-kings-momentos.mts",
+    "save-velho": "npx tsx scripts/testa-save-velho.mts",
     "lotacao": "npx tsx scripts/testa-lotacao-jogo.mts",
     "envelope-unico": "npx tsx scripts/testa-envelope-unico.mts",
     "congela": "node scripts/testa-congela.mjs",
