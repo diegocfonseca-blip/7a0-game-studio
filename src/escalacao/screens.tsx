@@ -7503,6 +7503,17 @@ export function EscSeason() {
   const kingsPensMax = Math.max(kingsPensOutros, ...kingsJogosCedo.map(j => kingsPensMs(j.r)))
   const roundMs = kingsRapida ? (kingsApitoMs ? Math.round(kingsApitoMs + kingsPensMax + 2500) : kingsRapidaRoundMs(undefined, kingsMarcha, you.id)) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs // (o vigia do fim da liga lê o valor de agora)
+  // 👑🥅 11/11 (Diego: *"meu primeiro jogo foi pro shootout mas nem vi… não deixou passar"*): a conta do tempo da rodada é uma
+  // ESTIMATIVA — se o relógio do jogo andou mais devagar que ela (cenas, escolhas, a tela abrindo atrasada), a rodada virava antes
+  // do shootout aparecer. Agora o dono só vira quando o SEU jogo de fato apitou e a disputa dele teve tempo de passar inteira.
+  const kProntoRef = useRef<{ r: number; at: number } | null>(null)
+  const kingsViraOk = (ini: number) => {
+    const agora = Date.now(), ms = roundMsRef.current
+    if (agora - ini >= ms * 1.6) return true // trava de segurança: nunca segura a sala pra sempre
+    if (agora - ini < ms) return false
+    const p = kProntoRef.current
+    return !!p && p.r === state.round && agora >= p.at
+  }
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -7643,6 +7654,11 @@ export function EscSeason() {
     // no 2D é o tempo de um JOGO INTEIRO (~55 s) em vez dos 9 s de sempre. Na largada, o 2D espera o MESMO que a sala sem
     // 2D; da rodada 1 em diante nada muda (cada jogo continua com o tempo inteiro do 2D).
     const espera = kLigaPen && resultRevealed ? 1800 : state.round === 0 && c2d ? Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) : roundMs
+    if (kingsS && state.round > 0 && !(kLigaPen && resultRevealed)) {
+      const ini = online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : Date.now()
+      const iv = setInterval(() => { if (kingsViraOk(ini)) { clearInterval(iv); dispatch({ type: 'PLAY_ROUND' }) } }, 500)
+      return () => clearInterval(iv)
+    }
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
     return () => clearTimeout(t)
   }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed])
@@ -7668,7 +7684,7 @@ export function EscSeason() {
     // (só na Kings, por enquanto: o futebol de sempre segue com o timer de sempre)
     if (!kingsS) { const t = setTimeout(() => dispatch({ type: 'FINISH_SEASON' }), roundMs); return () => clearTimeout(t) }
     const ini = online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : Date.now()
-    const iv = setInterval(() => { if (Date.now() - ini >= roundMsRef.current) dispatch({ type: 'FINISH_SEASON' }) }, 1000)
+    const iv = setInterval(() => { if (kingsViraOk(ini)) dispatch({ type: 'FINISH_SEASON' }) }, 1000)
     return () => clearInterval(iv)
   }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, dispatch, kingsS, kingsS ? 0 : roundMs])
 
@@ -7764,6 +7780,8 @@ export function EscSeason() {
     : myLast
   const kKey = copaLive ? 500 + (qc?.bracket.length ?? 0) * 10 + (kTie?.legs.length ?? 0) : state.round
   const kRel = useRelogioKings(kingsS, kKey, roundMs, kingsMarcha, kJogo, nomeLiga, you.id, kingsRapida)
+  // 👑 o apito do SEU jogo: daqui a disputa (se teve) + 2,5 s, a rodada pode virar (`kingsViraOk`)
+  if (kingsS && !copaLive && kRel.min >= 93 && kProntoRef.current?.r !== state.round) kProntoRef.current = { r: state.round, at: Date.now() + (kJogo ? kingsPensMs(kJogo) : 0) + 2500 }
   // 👑 o relógio do seu jogo chegou no fim (pode ser antes da conta, se a marcha subiu): o resultado sai na hora — não há spoiler, o jogo acabou
   useEffect(() => { if (kingsS && kJogo && !copaLive && kRel.min >= 93 && !resultRevealed) setResultRevealed(true) }, [kRel.min >= 93])
   // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
