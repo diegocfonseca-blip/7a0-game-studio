@@ -6828,7 +6828,6 @@ export function QuickManualLock() {
 // é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
 export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {}) {
   const liberado = useCampo2DLiberado()
-  const kings2dTeste = useKingsLiberada() // 👑📺 o 2D da Kings: as mesmas contas que veem a Kings
   const ligado = useCampo2DLigado()
   const { state } = useEsc()
   const t = useT()
@@ -6843,7 +6842,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
   }, [pagou2d])
   if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
   if (!liberado || state.sport === 'basquete') return null
-  if (ehKings(state) && !kings2dTeste) return null // 👑📺 10/11: o 2D da Kings ainda só na conta de teste
+  if (ehKings(state)) return null // 👑📺 10/11 (Diego: *"não coloque mais campo 2D na Kings League"*): a Kings é sempre no placar
   if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
   if (!temDireito) return (
     <ApoieButton startScreen="choice" trigger={open => (
@@ -6914,7 +6913,7 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   const t = useT() // 🌐 BR/EN
   const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
   const r2d = useRitmo2D()
-  const c2dCtl = useControleVel2D(useCampo2DLigado() && !(ehKings(state) && state.onlineMode === 'online')) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state)) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
   // ⏩📺 05/11: teste "sem botão Manual" (Partida Rápida com 2D, conta do Diego) — some o Manual, fica o automático 2×
@@ -6977,7 +6976,7 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
   const r2d = useRitmo2D()
   // ⏩📺 06/11 (Diego): no 2D a marcha é ABSOLUTA e mora fora do simSpeed — offline no aparelho (vale no auto também), online no
   // estado da sala (`SET_VEL_2D`, só o dono). Fora do 2D, o seletor e o simSpeed de sempre.
-  const c2dCtl = useControleVel2D(useCampo2DLigado() && !(ehKings(state) && state.onlineMode === 'online'))
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state))
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return null
   if (r2d.semManual) return null
   const opcoes = c2dCtl ? c2dCtl.opts.map(o => ({ v: o.v, label: t(o.pt, o.en) })) : SPEED_OPTS
@@ -7091,31 +7090,53 @@ const KINGS_MS_POR_MIN_LENTO = 5000
 const KINGS_MS_7X7 = 45_000 // o resto do jogo (7×7) na marcha normal
 const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_DADO_FIM]] // 🎲 10/11: o dado é do 20' ao 23'
 const KINGS_LENTO_MS = (7 + 3) * KINGS_MS_POR_MIN_LENTO
-// ⏩ 10/11 (Diego: *"quero a velocidade do manual igual é nas salas online… só que tá muito lento… quero de qualquer lance igual a
-// velocidade"* + *"mesmo trocando a velocidade não tá mudando nada"*): a marcha agora vale pro JOGO TODO — fases com pouca gente, o dado,
-// os banners, a carta, a entrada de jogador — e não só pro 7×7. Só fica no tempo de sempre a cena em que ALGUÉM DECIDE (a escolha do
-// coringa/suspensão e a cobrança do duelo), pra marcha alta não roubar o tempo de quem está escolhendo. A leitura tem um piso (3 s;
-// a entrada de jogador 1,2 s) pra dar tempo de ler mesmo no 4×. No Campo 2D a marcha é a do 2D (1× a 4×, igual às salas).
-// ⚠️ 10/11 (Diego: *"tô falando apenas do partida rápida do Kings League e só"*): isto vale SÓ na Partida Rápida (offline). Na sala
-// online da Kings segue a régua de antes (`tudo = false`: cenas fixas ficam fixas, fases lentas 5 s por minuto, só o 7×7 acelera).
-const msCenaKings = (ms: number, tipo: CenaKings['tipo'], marcha: number, tudo = true, fixo = false) => {
-  const m = marcha > 0 ? marcha : 1
-  if (!tudo) return fixo ? ms : ms / m
-  if (tipo === 'escolha' || tipo === 'duelo') return ms
-  if (tipo === 'entra') return Math.max(1200, ms / m)
-  return Math.max(Math.min(ms, 3000), ms / m)
+/** tempo de uma cena: a que tem alguém lendo/decidindo (`fixo`) fica no tempo dela; as outras andam na marcha */
+const msCenaKings = (ms: number, marcha: number, fixo: boolean) => fixo ? ms : ms / (marcha > 0 ? marcha : 1)
+/** tempo de uma rodada da Kings na SALA ONLINE (régua de antes): cenas fixas + fases lentas fixas + o 7×7 (que acelera com a marcha) */
+export const kingsRoundMs = (marcha: number) => {
+  const m = marcha > 0 ? marcha : 1, c = KINGS_CENA_MS
+  const fixoMax = c.pontape + 8 * c.entra + c.dado + 2 * c.carta + 4 * c.duelo + 2 * c.escolha
+  return Math.round((fixoMax + (c.intervalo + 2 * c.bola) / m + KINGS_LENTO_MS + KINGS_MS_7X7 / m + 1500) / 0.84)
 }
-/** tempo de uma rodada da Kings na marcha escolhida: tudo anda na marcha (menos as cenas de decisão) */
-export const kingsRoundMs = (marcha: number, tudo = true) => {
-  const m = marcha > 0 ? marcha : 1
-  const c = KINGS_CENA_MS
-  if (!tudo) { // a régua de antes (sala online da Kings)
-    const fixoMax = c.pontape + 8 * c.entra + c.dado + 2 * c.carta + 4 * c.duelo + 2 * c.escolha
-    return Math.round((fixoMax + (c.intervalo + 2 * c.bola) / m + KINGS_LENTO_MS + KINGS_MS_7X7 / m + 1500) / 0.84)
-  }
-  const cenas = 2 * c.escolha + 4 * c.duelo + msCenaKings(c.pontape, 'pontape', m) + 8 * msCenaKings(c.entra, 'entra', m) + msCenaKings(c.dado, 'dado', m)
-    + 2 * msCenaKings(c.carta, 'carta', m) + msCenaKings(c.intervalo, 'banner', m) + 2 * msCenaKings(c.bola, 'banner', m)
-  return Math.round((cenas + KINGS_LENTO_MS / m + KINGS_MS_7X7 / m + 1500) / 0.84)
+// ⏩👑 PARTIDA RÁPIDA DA KINGS (10/11, Diego): *"quero do placar rápido igual sempre foi nas salas online… velocidade padrão no manual…
+// porém quando tiver lances decisivos diferentes como 1x1, 2x2… 6x6 você reduza a velocidade… quando voltar pro 7x7 volta pro padrão…
+// cartas e outras coisas volte pro 1,5… gol dobrado reduza de novo. Enfim todo lance decisivo diferente reduza e no jogo normal aumente"*.
+// Então: o placar anda no MESMO ritmo da sala online no placar (9 s por jogo ÷ a marcha, 82% disso com a bola rolando) e, nos lances
+// especiais da Kings, anda a 60% disso (a conta dele: 2,5 → 1,5). As cenas (banners, carta, dado, escolha) seguem como sempre.
+// ⚠️ Só a Partida Rápida (offline). A sala online da Kings continua na régua de cima (`kingsRoundMs`).
+const KINGS_RAPIDA_LENTO = 1.5 / 2.5
+/** placar-minutos por ms no ritmo normal da sala online, na marcha escolhida */
+const taxaSalaKings = (marcha: number) => 93 / (ROUND_MS_ONLINE * 0.82 / (marcha > 0 ? marcha : 1))
+/** os trechos "decisivos" do jogo (escala do placar 0–93): 1×1 até 6×6, gol dobrado, dado, a bola/match ball do fim e ±1 minuto da Kings
+ *  em volta de cada carta e de cada pênalti do presidente */
+function trechosDecisivosKings(r: MatchResult): [number, number][] {
+  const k = r.kings
+  if (!k) return []
+  const out: [number, number][] = [[0, kParaPlacar(7)]]
+  if (k.duelos) out.push([PLACAR_DOBRO_INI, PLACAR_INTERVALO], [PLACAR_DADO, PLACAR_DADO_FIM])
+  if (k.mb) out.push([PLACAR_MB, 94]); else if (k.bola) out.push([PLACAR_BOLA, 94])
+  const volta = (m: number) => out.push([m - 3, m + 3])
+  for (const c of k.cartas ?? []) volta(c.min)
+  for (const d of k.duelos ?? []) volta(d.min)
+  for (const p of k.pres ?? []) volta(p.min)
+  return out
+}
+const emTrecho = (t: [number, number][], m: number) => t.some(([a, b]) => m >= a && m < b)
+/** quanto o relógio da Partida Rápida leva pra levar ESSE jogo do 0' ao 93' (bola rolando + cenas) */
+function duracaoKingsRapida(r: MatchResult, marcha: number, youId: number): number {
+  const ev = cenasDoJogo(r, () => '', id => id === youId)
+  const t = trechosDecisivosKings(r), rapida = taxaSalaKings(marcha)
+  let ms = 0
+  for (let m = 0; m < 93; m += 0.5) ms += 0.5 / (emTrecho(t, m) ? rapida * KINGS_RAPIDA_LENTO : rapida)
+  for (const e of ev) ms += msCenaKings(e.ms, marcha, e.fixo)
+  // a escolha da carta pode trazer uma cobrança nova: guarda o tempo dela
+  ms += ev.filter(e => e.c.tipo === 'escolha').length * KINGS_CENA_MS.duelo
+  return ms
+}
+/** a rodada da Partida Rápida da Kings: o jogo do SEU clube cabe inteiro antes de 85% (quando a tela solta o resultado) */
+export function kingsRapidaRoundMs(r: MatchResult | undefined, marcha: number, youId: number): number {
+  if (!r?.kings) return Math.round(ROUND_MS_ONLINE / (marcha > 0 ? marcha : 1)) // (ainda sem jogo: a espera de sempre da sala)
+  return Math.round((duracaoKingsRapida(r, marcha, youId) + 1500) / 0.84)
 }
 type BannerKings = { emoji: string; titulo: string; texto: string; cor: string }
 type CenaKings = { tipo: 'banner'; b: BannerKings } | { tipo: 'pontape' } | { tipo: 'entra'; n: number; modo?: 'entra' | 'dado' | 'volta' } | { tipo: 'dado'; face: 1 | 2 | 3 } | { tipo: 'carta'; carta: CartaKingsInfo } | { tipo: 'duelo'; key: string } | { tipo: 'escolha'; key: string; modo: 'coringa' | 'suspensao'; teamId: number }
@@ -7195,15 +7216,17 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
     const assinatura = (x?: MatchResult) => JSON.stringify(x?.kings?.cartas ?? []) + (x?.kings?.duelos ?? []).map(d => d.key).join(',')
     let assin = assinatura(r), ultimaCena = ''
     const lentos = r.kings?.duelos ? trechosLentos() : []
-    const lento = (m: number) => lentos.some(([a, b]) => m >= a && m < b)
-    // fases lentas: tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada (refeito a cada passo: a marcha pode mudar no meio)
+    // 👑⏩ Partida Rápida (`tudo`): o ritmo da sala online, mais devagar nos lances decisivos (`trechosDecisivosKings`)
+    const decisivos = trechosDecisivosKings(r)
+    const lento = (m: number) => tudoRef.current ? emTrecho(decisivos, m) : lentos.some(([a, b]) => m >= a && m < b)
+    // sala online: fases lentas com tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada (refeito a cada passo: a marcha pode mudar)
     const unidLentas = lentos.reduce((a, [x, y]) => a + (y - x), 0)
-    const minLentos = lentos.reduce((a, [x, y]) => a + placarParaK(y) - placarParaK(x), 0)
-    const msLento = () => minLentos * KINGS_MS_POR_MIN_LENTO / (tudoRef.current && speedRef.current > 0 ? speedRef.current : 1) // ⏩ 10/11: a marcha vale aqui também
-    const taxaLenta = () => unidLentas > 0 ? unidLentas / msLento() : 0
+    const msLento = lentos.reduce((a, [x, y]) => a + placarParaK(y) - placarParaK(x), 0) * KINGS_MS_POR_MIN_LENTO
+    const taxaLenta = () => tudoRef.current ? taxaSalaKings(speedRef.current) * KINGS_RAPIDA_LENTO : unidLentas > 0 ? unidLentas / msLento : 0
     const taxaRapida = () => {
-      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, e.c.tipo, sp, tudoRef.current, e.fixo), 0)
-      return (93 - unidLentas) / Math.max(2000, roundMsRef.current * 0.84 - pausas - msLento() - 500)
+      if (tudoRef.current) return taxaSalaKings(speedRef.current)
+      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, sp, e.fixo), 0)
+      return (93 - unidLentas) / Math.max(2000, roundMsRef.current * 0.84 - pausas - msLento - 500)
     }
     let cur = 0, idx = 0, ate = 0, ult = Date.now()
     setMin(0)
@@ -7220,7 +7243,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
         if (k >= 0) { ev = nova; idx = k + 1 }
       }
       if (idx < ev.length && cur >= ev[idx].min) {
-        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, ev[idx].c.tipo, speedRef.current, tudoRef.current, ev[idx].fixo); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
+        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, speedRef.current, ev[idx].fixo); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
       }
       // 🟡 gol de ouro: o jogo ACABA no minuto do gol (lido na hora — a escolha de canto pode ter mudado o jogo)
       const rr = rRef.current
@@ -7427,11 +7450,18 @@ export function EscSeason() {
   // ⏩📺 06/11 (Diego): no 2D a velocidade é ABSOLUTA (`vel2d-regra.ts`) e NÃO divide pelo simSpeed — era o 3× × 3 = 9× da sala 4RVDD8
   const vel2dAqui = useVel2DAqui()
   const baseRoundMs = c2d ? dur2DDaVel(vel2dAqui) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
-  // 👑⏩ 10/11: a Kings anda na marcha do Manual — no Campo 2D a marcha do 2D (1×–4×, igual às salas), no placar a de sempre
-  const c2dLigadoAqui = useCampo2DLigado()
-  const kingsRapida = kingsS && !online // ⚠️ só a Partida Rápida da Kings; a sala online da Kings fica como estava
-  const kingsMarcha = kingsRapida && c2dLigadoAqui ? vel2dAqui : speedFactor
-  const roundMs = kingsS ? kingsRoundMs(kingsMarcha, kingsRapida) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+    const kingsRapida = kingsS && !online // ⚠️ só a Partida Rápida da Kings; a sala online da Kings fica como estava
+  const kingsMarcha = speedFactor // 👑 10/11 (Diego: *"não coloque mais campo 2D na Kings League"*): a Kings é sempre no placar
+  // 👑⏩ Partida Rápida: a rodada dura o que o SEU jogo precisa (liga: o último jogo · mata-mata: o jogo da fase), no ritmo da sala online
+  const kingsJogoCedo: MatchResult | undefined = !kingsRapida ? undefined : (() => {
+    const q = state.quickCopa
+    if (q && q.phase !== 'done' && state.round >= (state.fixtures.length || 38)) {
+      const t = q.ties.find(x => (x.aId === you.id || x.bId === you.id) && x.legs.length > 0)
+      return t?.lastKings ? { homeId: t.aId, awayId: t.bId, hg: t.legs[0][0], ag: t.legs[0][1], highlights: t.lastHighlights ?? [], kings: t.lastKings } : undefined
+    }
+    return state.lastResults.find(x => x.homeId === you.id || x.awayId === you.id)
+  })()
+  const roundMs = kingsRapida ? kingsRapidaRoundMs(kingsJogoCedo, kingsMarcha, you.id) : kingsS ? kingsRoundMs(kingsMarcha) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)

@@ -1,8 +1,12 @@
-## ⏩ 10/11 noite — Kings PARTIDA RÁPIDA: a velocidade agora vale pro jogo todo (FEITO no branch, falta publicar com OK do Diego)
-- Diego: *"tô falando apenas do partida rápida do Kings League e só"* → a sala online da Kings segue EXATAMENTE como antes (`kingsRapida`).
-- Antes só o 7×7 acelerava; 1×1–6×6, dado, banners, carta e entradas eram fixos, e no 2D a marcha nem chegava no relógio da Kings.
-- Agora tudo anda na marcha (menos a escolha da carta e o duelo, que são decisão), com o seletor do 2D igual ao das salas. Detalhe em
-  `docs/conceito-kings-league.md`. Testes: build + `npm run kings` + `kings-regras` + `vel-2d` ✅.
+## ⏩ 10/11 noite — Kings PARTIDA RÁPIDA: ritmo da sala online + lento nos lances decisivos · Kings SEM Campo 2D (FEITO no branch, falta publicar)
+- Diego: *"não coloque mais campo 2D na Kings League"* → a Kings é sempre no placar (Botao2D some na Kings; `c2d` do placar ignora a Kings).
+- Diego: *"quero do placar rápido igual sempre foi nas salas online… nos lances decisivos (1x1… 6x6, cartas, gol dobrado…) reduza… no 7x7
+  volta pro padrão"* → Partida Rápida da Kings: bola rolando no ritmo da sala online (9 s por jogo ÷ marcha) e a 60% disso (2,5→1,5) no
+  1×1–6×6, gol dobrado, dado, bola/match ball do fim e ±1 min em volta de carta e pênalti do presidente (`trechosDecisivosKings`). A rodada
+  dura o que o SEU jogo precisa (`kingsRapidaRoundMs`). Sala online da Kings: régua antiga intacta.
+- Medido (36 jogos): Normal ~1min52 (antes 3min43) · 2× ~1min34 · 4× ~1min24. O grosso que sobra são as CENAS (pontapé, entra jogador,
+  carta, dado, banners, cobrança) ~1min20; bola rolando ~11 s no Normal. Se ele quiser mais rápido, o próximo corte é nas cenas.
+- (A versão anterior desta noite — "a marcha vale pro jogo todo" — foi substituída por esta.)
 
 ## 🐢 10/11 16h14–16h18 — SERVIDOR TRAVOU 4 MIN (Kelvin/K9 não conseguiu criar sala: nasceu vazia, C8PGSV)
 - Banco sobrecarregado (pedido de 0,02 s levando até 20 s, timeouts). Pesos: cron `esc-cla-limites` (levou 18 s), `esc_avisos`

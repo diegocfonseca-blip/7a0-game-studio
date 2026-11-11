@@ -185,3 +185,6 @@ esperar 2 minutos lá fora"*.
   de leitura (3 s; entrada 1,2 s). No Campo 2D a Kings usa a marcha do 2D (1×–4×, igual às salas; padrão 2,5× na sala, 2× na rápida) —
   antes o seletor do 2D era escondido na Kings e a marcha dele não chegava no relógio. Tempo máximo do jogo: 1× 3,7 · 2× 2,3 · 2,5× 2,0 ·
   3× 1,9 · 4× 1,7 min.
+- 🔁 **Mesma noite (10/11), versão que vale**: *"não coloque mais campo 2D na Kings League"* (Kings sempre no placar) e, na PARTIDA RÁPIDA,
+  o placar anda no ritmo da sala online e fica a 60% nos lances decisivos (1×1–6×6, gol dobrado, dado, fim, carta, presidente) —
+  `trechosDecisivosKings`/`kingsRapidaRoundMs` em screens.tsx. A sala online da Kings segue na régua antiga (`kingsRoundMs`).
