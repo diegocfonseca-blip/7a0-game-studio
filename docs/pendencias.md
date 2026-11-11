@@ -43,6 +43,13 @@
 - ✅ 10/11: cache privado da lista de nomes aplicado, com invalidação imediata e cálculo original como alternativa. Índice de presença e cálculo único por clã também aplicados. Criação agora atômica, com prazo e recuperação da mesma tentativa. Ver `docs/custos-salas-20261110.md` para medidas, testes e reversão.
 
 
+## 📱 11/11 — Carreira voltando pra temporada velha em aparelho cheio (Lucas Barreto 30) — PUBLICADO 11/11
+- Nuvem dele estava CERTA (temporada 114, salva 10/11 21h39). O aparelho estava cheio: a carreira é guardada 2× no aparelho
+  (`esc-solo-career` e a "partida em andamento", ~2,7 MB cada) e a 2ª gravação falhava calada, deixando a cópia da 113 — que o jogo
+  abre DIRETO ao ligar, antes de olhar a nuvem.
+- Conserto: gravação que falha apaga a cópia velha · ao ligar, carreira em andamento mais atrasada que a do aparelho não abre (vai pra
+  home, que junta com a nuvem). Trava `npm run save-velho`. Paliativo até publicar: ir no Menu inicial e tocar em Continuar.
+
 ## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)
 - Regra do Diego: o time só deixa de ser do jogador quando o DONO remove. Saiu/caiu no meio da temporada → volta pro mesmo time.
 - Código: `KICK_PLAYER.peloDono` apaga o crachá só na remoção do dono · `RETOMA_TIME` devolve o time · `lobby.tsx` (enterRoom/triggerStart)
