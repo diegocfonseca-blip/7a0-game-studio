@@ -1,3 +1,11 @@
+## 👑 11/11 ~21h45 — Kings: banner travado + infos embaixo do placar + avisos mais curtos (FEITO no branch, falta OK pra publicar)
+- 🐛 "36' · EMPATE = SHOOTOUT" ficava TRAVADO: a cena do match ball e o fim do jogo caíam no mesmo passo e o relógio parava antes
+  de fechar a cena. Agora só para depois de a cena sair (`useRelogioKings`, flag `fim`).
+- 📌 EM CAMPO, efeitos valendo (jogador estrela, gol em dobro, suspensão, cartões) e o shootout agora ficam LOGO ABAIXO do placar
+  cinema (`kingsInfo`), na liga e no mata-mata — antes ficavam embaixo do telão.
+- ⏱️ Partida Rápida: avisos de leitura a ~55% (carta com piso 4,5 s pra roleta; pontapé com a contagem de 5 s, escolha e cobrança
+  ficam iguais). Jogo mediano no Normal: 1min52 → 1min30.
+
 ## 👑 10/11 madrugada — Kings vira TIPO DE LEILÃO + baralho próprio da Kings (PUBLICADO 11/11 com o OK do Diego)
 - 4ª opção em "Tipo de leilão" (só KINGS_TESTERS) → escolhe "Jogadores da Kings League" ou "Jogadores padrão". 91 cartas em
   `kings-baralho.ts`, que nunca vazam pra outro leilão. Kelvin da Kings = rosto do K9. Detalhes e travas em `docs/conceito-kings-league.md`.

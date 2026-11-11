@@ -7102,7 +7102,13 @@ const KINGS_MS_7X7 = 45_000 // o resto do jogo (7×7) na marcha normal
 const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_DADO_FIM]] // 🎲 10/11: o dado é do 20' ao 23'
 const KINGS_LENTO_MS = (7 + 3) * KINGS_MS_POR_MIN_LENTO
 /** tempo de uma cena: a que tem alguém lendo/decidindo (`fixo`) fica no tempo dela; as outras andam na marcha */
-const msCenaKings = (ms: number, marcha: number, fixo: boolean) => fixo ? ms : ms / (marcha > 0 ? marcha : 1)
+const msCenaKings = (ms: number, marcha: number, fixo: boolean, tipo?: CenaKings['tipo'], rapida = false) => {
+  // ⏱️ 11/11 (Diego, Partida Rápida: *"analise os banners pra sair um pouco mais rápido… está demorando muito cada aviso"*): os avisos
+  // de LEITURA caem pra ~55% do tempo. Ficam como estão: a escolha da carta e a cobrança (alguém decide) e o pontapé (a contagem de 5 s
+  // é regra dele de 15/10). Pisos pra animação não ser cortada: a roleta da carta leva ~2,5 s antes de virar (4,5 s no total).
+  if (rapida && tipo && tipo !== 'escolha' && tipo !== 'duelo' && tipo !== 'pontape') ms = Math.max(tipo === 'carta' ? 4500 : 1500, Math.round(ms * 0.55))
+  return fixo ? ms : ms / (marcha > 0 ? marcha : 1)
+}
 /** tempo de uma rodada da Kings na SALA ONLINE (régua de antes): cenas fixas + fases lentas fixas + o 7×7 (que acelera com a marcha) */
 export const kingsRoundMs = (marcha: number) => {
   const m = marcha > 0 ? marcha : 1, c = KINGS_CENA_MS
@@ -7139,7 +7145,7 @@ function duracaoKingsRapida(r: MatchResult, marcha: number, youId: number): numb
   const t = trechosDecisivosKings(r), rapida = taxaSalaKings(marcha)
   let ms = 0
   for (let m = 0; m < 93; m += 0.5) ms += 0.5 / (emTrecho(t, m) ? rapida * KINGS_RAPIDA_LENTO : rapida)
-  for (const e of ev) ms += msCenaKings(e.ms, marcha, e.fixo)
+  for (const e of ev) ms += msCenaKings(e.ms, marcha, e.fixo, e.c.tipo, true)
   // a escolha da carta pode trazer uma cobrança nova: guarda o tempo dela
   ms += ev.filter(e => e.c.tipo === 'escolha').length * KINGS_CENA_MS.duelo
   return ms
@@ -7236,16 +7242,17 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
     const taxaLenta = () => tudoRef.current ? taxaSalaKings(speedRef.current) * KINGS_RAPIDA_LENTO : unidLentas > 0 ? unidLentas / msLento : 0
     const taxaRapida = () => {
       if (tudoRef.current) return taxaSalaKings(speedRef.current)
-      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, sp, e.fixo), 0)
+      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, sp, e.fixo, e.c.tipo, tudoRef.current), 0)
       return (93 - unidLentas) / Math.max(2000, roundMsRef.current * 0.84 - pausas - msLento - 500)
     }
-    let cur = 0, idx = 0, ate = 0, ult = Date.now()
+    let cur = 0, idx = 0, ate = 0, ult = Date.now(), fim = false
     setMin(0)
     const iv = setInterval(() => {
       const agora = Date.now(), dt = agora - ult
       ult = agora
       if (ate > agora) return
       if (ate) { ate = 0; setCena(null) }
+      if (fim) { clearInterval(iv); return } // o jogo já tinha acabado: só faltava fechar a cena
       cur += dt * (lento(cur) ? taxaLenta() : taxaRapida())
       const rAgora = rRef.current
       if (assinatura(rAgora) !== assin && rAgora) {
@@ -7254,13 +7261,16 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
         if (k >= 0) { ev = nova; idx = k + 1 }
       }
       if (idx < ev.length && cur >= ev[idx].min) {
-        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, speedRef.current, ev[idx].fixo); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
+        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, speedRef.current, ev[idx].fixo, ev[idx].c.tipo, tudoRef.current); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
       }
       // 🟡 gol de ouro: o jogo ACABA no minuto do gol (lido na hora — a escolha de canto pode ter mudado o jogo)
       const rr = rRef.current
       const ouro = rr?.kings?.mb ? rr.kings.mb.fim : rr?.kings?.ouro ? rr.highlights.filter(lanceEhGol).find(h => h.min > PLACAR_BOLA)?.min : undefined // ⏱️ match ball: acaba no gol que decide (ou no 36' empatado)
       if (ouro != null && cur >= ouro) cur = 93
-      if (cur >= 93) { cur = 93; clearInterval(iv) }
+      // 🐛 11/11 (print do Diego: o banner "36' · EMPATE = SHOOTOUT" ficou TRAVADO na tela): no 36' empatado a cena do match ball e o
+      // fim do jogo caem no MESMO passo — o relógio parava antes de a cena sair e ela nunca era fechada. Agora ele só para
+      // depois que a cena da vez terminou (o próximo passo fecha a cena e aí, já no 93', para).
+      if (cur >= 93) { cur = 93; fim = true; if (!ate) clearInterval(iv) }
       setMin(Math.round(cur))
     }, 60)
     return () => clearInterval(iv)
@@ -7842,6 +7852,51 @@ export function EscSeason() {
   // online… os locais das coisas"*): a Kings entra no MESMO desenho (as cenas dela são por cima da tela inteira, não dependem dele)
   const desk2 = desk2Conta && !bbS
   const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
+  // 👑📌 11/11 (Diego: *"a info, por exemplo jogador estrela escolhido… está abaixo do telão. Essas infos devem ficar abaixo do placar
+  // cinema"*): EM CAMPO, os efeitos valendo e o shootout moram logo embaixo do placar grande (liga e mata-mata), não mais lá no fim.
+  const kingsInfo = kingsS ? (<>
+      {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.max(1, Math.min(7, placarParaK(kRel.min)))} />}
+      {kingsS && kJogo?.kings?.duelos && kRel.min >= PLACAR_DADO && kRel.min < (kJogo.kings.mb ? PLACAR_DADO_FIM : PLACAR_INTERVALO) && <FaixaEmCampo n={kJogo.kings.dado} dado />}
+      {kingsS && kJogo?.kings?.cartas && (() => {
+        // 📌 o que está VALENDO agora (gol em dobro, suspensão, jogador estrela), com até que minuto
+        const itens: { ic: string; txt: string; cor: string }[] = []
+        const m = kRel.min
+        for (const c of kJogo.kings.cartas) {
+          if (m < c.min || m >= 93) continue
+          const ate = placarParaK(c.min) + 4
+          const t = nomeLiga(c.teamId), rv = nomeLiga(c.teamId === kJogo.homeId ? kJogo.awayId : kJogo.homeId)
+          if (c.vale === 'gol_dobro' && placarParaK(m) < ate) itens.push({ ic: '✖️2', cor: PURPLE, txt: LS(`GOL EM DOBRO · todo gol do ${t} vale 2 até o ${ate}'`, `DOUBLE GOAL · every ${t} goal counts 2 until ${ate}'`) })
+          if (c.vale === 'suspensao' && placarParaK(m) < ate) itens.push({ ic: '🟥', cor: '#C2452F', txt: LS(`${c.suspenso ?? 'Um jogador'} (${rv}) FORA até o ${ate}' · ${t} com um a mais`, `${c.suspenso ?? 'A player'} (${rv}) OFF until ${ate}' · ${t} a man up`) })
+          if (c.vale === 'estrela' && c.estrela && m < PLACAR_MB) itens.push({ ic: '⭐', cor: '#B8860B', txt: LS(`JOGADOR ESTRELA · todo gol do ${c.estrela} (${t}) vale 2 até o 36'`, `STAR PLAYER · every ${c.estrela} goal (${t}) counts 2 until 36'`) })
+        }
+        if (kJogo.kings.mb && m >= PLACAR_DOBRO_INI && m < PLACAR_INTERVALO) itens.push({ ic: '✖️2', cor: PURPLE, txt: LS('GOL VALE 2 · todo gol dos dois times até o 20\'', 'GOALS COUNT 2 · every goal, both teams, until 20\'') })
+        if (kJogo.kings.mb && !kJogo.kings.mb.empate && m >= PLACAR_MB && m < 93) itens.push({ ic: '⏱️', cor: '#B8860B', txt: LS(`MATCH BALL · vence quem chegar a ${kJogo.kings.mb.alvo} gols`, `MATCH BALL · first to ${kJogo.kings.mb.alvo} goals wins`) })
+        // 🟨🟥 cartão: o jogador fica FORA (amarelo 2 min · vermelho 5 min) e o time joga com um a menos
+        for (const c of kJogo.kings.cartoes ?? []) {
+          if (m < c.min || m >= 93 || placarParaK(m) >= c.ate) continue
+          const t = nomeLiga(c.teamId)
+          itens.push(c.cor === 'amarelo'
+            ? { ic: '🟨', cor: '#B8860B', txt: LS(`${c.nome} (${t}) FORA 2 MIN · volta no ${c.ate}' · ${t} com um a menos`, `${c.nome} (${t}) OUT 2 MIN · back at ${c.ate}' · ${t} a man down`) }
+            : { ic: '🟥', cor: '#C2452F', txt: LS(`${c.nome} (${t}) FORA 5 MIN · volta no ${c.ate}' · ${t} com um a menos`, `${c.nome} (${t}) OUT 5 MIN · back at ${c.ate}' · ${t} a man down`) })
+        }
+        return <FaixaEfeitos itens={itens} />
+      })()}
+      {kingsS && !copaLive && myLast?.kings?.pens && kRel.min >= 93 && (() => {
+        // 🥅 empatou no apito: SHOOTOUT (já decidido no jogo — a tela só mostra as cobranças)
+        const hN = nomeLiga(myLast.homeId), aN = nomeLiga(myLast.awayId)
+        const [ph, pa] = myLast.kings.pens
+        return (
+          <Box bg="#FFF6DE" className="p-3 space-y-1" shadow={4}>
+            <p className="font-black text-sm text-center" style={OSWALD}>🥅 {LS('EMPATOU — SHOOTOUT!', 'LEVEL — SHOOTOUT!')}</p>
+            <p className="text-[11px] font-bold text-center text-black/65">{LS('5 por time: sai do meio-campo cara a cara com o goleiro e tem 5 segundos pra chutar.', '5 per team: start at halfway, 1v1 with the keeper, 5 seconds to shoot.')}</p>
+            <PensShootout shootout compactOnline lento={true} pens={myLast.kings.pens} seqReal={myLast.kings.pensSeq} aName={hN} bName={aN}
+              aCrest={<Escudo nome={hN} size={20} />} bCrest={<Escudo nome={aN} size={20} />}
+              aSquad={state.managers.find(m => m.id === myLast.homeId)?.squad} bSquad={state.managers.find(m => m.id === myLast.awayId)?.squad} />
+            <p className="text-[11px] font-bold text-center text-black/65">{LS(`${ph > pa ? hN : aN} leva 2 pontos · ${ph > pa ? aN : hN} leva 1`, `${ph > pa ? hN : aN} takes 2 points · ${ph > pa ? aN : hN} takes 1`)}</p>
+          </Box>
+        )
+      })()}
+  </>) : null
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
@@ -8148,6 +8203,7 @@ export function EscSeason() {
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'r32' ? 50 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
                       roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(kJogo?.kings) : undefined}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === legHomeId)?.squad, fora: state.managers.find(m => m.id === legAwayId)?.squad, fCasa: state.managers.find(m => m.id === legHomeId)?.formation, fFora: state.managers.find(m => m.id === legAwayId)?.formation }} />
+                    {kingsInfo}
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
                     )}
@@ -8238,7 +8294,7 @@ export function EscSeason() {
         // ter uma barrinha mostrando os gols que arrasta junto em cima da tela, igual
         // fizemos no modo carreira"*. É a MESMA tira da carreira (`FaixaPlacarMini`),
         // não uma cópia — só o placar de baixo é que é outro componente aqui.
-        return <PlacarOnlineQueEncolhe key={state.round}
+        return <><PlacarOnlineQueEncolhe key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
@@ -8248,7 +8304,7 @@ export function EscSeason() {
           inicioEm={online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined}
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)
-            : LS(`🟥 VERMELHO pra ${c.nome}, do ${t}! São 5 minutos fora: o ${t} se vira com um a menos até o ${c.ate}'.`, `🟥 RED for ${c.nome} of ${t}! 5 minutes off: ${t} hold on a man down until ${c.ate}'.`) } }) : undefined} />
+            : LS(`🟥 VERMELHO pra ${c.nome}, do ${t}! São 5 minutos fora: o ${t} se vira com um a menos até o ${c.ate}'.`, `🟥 RED for ${c.nome} of ${t}! 5 minutes off: ${t} hold on a man down until ${c.ate}'.`) } }) : undefined} />{kingsInfo}</>
       })() : kingsS ? <RegrasKingsBox /> : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : LS('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')}</p>
@@ -8257,47 +8313,6 @@ export function EscSeason() {
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
       {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name)} />}
-      {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.max(1, Math.min(7, placarParaK(kRel.min)))} />}
-      {kingsS && kJogo?.kings?.duelos && kRel.min >= PLACAR_DADO && kRel.min < (kJogo.kings.mb ? PLACAR_DADO_FIM : PLACAR_INTERVALO) && <FaixaEmCampo n={kJogo.kings.dado} dado />}
-      {kingsS && kJogo?.kings?.cartas && (() => {
-        // 📌 o que está VALENDO agora (gol em dobro, suspensão, jogador estrela), com até que minuto
-        const itens: { ic: string; txt: string; cor: string }[] = []
-        const m = kRel.min
-        for (const c of kJogo.kings.cartas) {
-          if (m < c.min || m >= 93) continue
-          const ate = placarParaK(c.min) + 4
-          const t = nomeLiga(c.teamId), rv = nomeLiga(c.teamId === kJogo.homeId ? kJogo.awayId : kJogo.homeId)
-          if (c.vale === 'gol_dobro' && placarParaK(m) < ate) itens.push({ ic: '✖️2', cor: PURPLE, txt: LS(`GOL EM DOBRO · todo gol do ${t} vale 2 até o ${ate}'`, `DOUBLE GOAL · every ${t} goal counts 2 until ${ate}'`) })
-          if (c.vale === 'suspensao' && placarParaK(m) < ate) itens.push({ ic: '🟥', cor: '#C2452F', txt: LS(`${c.suspenso ?? 'Um jogador'} (${rv}) FORA até o ${ate}' · ${t} com um a mais`, `${c.suspenso ?? 'A player'} (${rv}) OFF until ${ate}' · ${t} a man up`) })
-          if (c.vale === 'estrela' && c.estrela && m < PLACAR_MB) itens.push({ ic: '⭐', cor: '#B8860B', txt: LS(`JOGADOR ESTRELA · todo gol do ${c.estrela} (${t}) vale 2 até o 36'`, `STAR PLAYER · every ${c.estrela} goal (${t}) counts 2 until 36'`) })
-        }
-        if (kJogo.kings.mb && m >= PLACAR_DOBRO_INI && m < PLACAR_INTERVALO) itens.push({ ic: '✖️2', cor: PURPLE, txt: LS('GOL VALE 2 · todo gol dos dois times até o 20\'', 'GOALS COUNT 2 · every goal, both teams, until 20\'') })
-        if (kJogo.kings.mb && !kJogo.kings.mb.empate && m >= PLACAR_MB && m < 93) itens.push({ ic: '⏱️', cor: '#B8860B', txt: LS(`MATCH BALL · vence quem chegar a ${kJogo.kings.mb.alvo} gols`, `MATCH BALL · first to ${kJogo.kings.mb.alvo} goals wins`) })
-        // 🟨🟥 cartão: o jogador fica FORA (amarelo 2 min · vermelho 5 min) e o time joga com um a menos
-        for (const c of kJogo.kings.cartoes ?? []) {
-          if (m < c.min || m >= 93 || placarParaK(m) >= c.ate) continue
-          const t = nomeLiga(c.teamId)
-          itens.push(c.cor === 'amarelo'
-            ? { ic: '🟨', cor: '#B8860B', txt: LS(`${c.nome} (${t}) FORA 2 MIN · volta no ${c.ate}' · ${t} com um a menos`, `${c.nome} (${t}) OUT 2 MIN · back at ${c.ate}' · ${t} a man down`) }
-            : { ic: '🟥', cor: '#C2452F', txt: LS(`${c.nome} (${t}) FORA 5 MIN · volta no ${c.ate}' · ${t} com um a menos`, `${c.nome} (${t}) OUT 5 MIN · back at ${c.ate}' · ${t} a man down`) })
-        }
-        return <FaixaEfeitos itens={itens} />
-      })()}
-      {kingsS && !copaLive && myLast?.kings?.pens && kRel.min >= 93 && (() => {
-        // 🥅 empatou no apito: SHOOTOUT (já decidido no jogo — a tela só mostra as cobranças)
-        const hN = nomeLiga(myLast.homeId), aN = nomeLiga(myLast.awayId)
-        const [ph, pa] = myLast.kings.pens
-        return (
-          <Box bg="#FFF6DE" className="p-3 space-y-1" shadow={4}>
-            <p className="font-black text-sm text-center" style={OSWALD}>🥅 {LS('EMPATOU — SHOOTOUT!', 'LEVEL — SHOOTOUT!')}</p>
-            <p className="text-[11px] font-bold text-center text-black/65">{LS('5 por time: sai do meio-campo cara a cara com o goleiro e tem 5 segundos pra chutar.', '5 per team: start at halfway, 1v1 with the keeper, 5 seconds to shoot.')}</p>
-            <PensShootout shootout compactOnline lento={true} pens={myLast.kings.pens} seqReal={myLast.kings.pensSeq} aName={hN} bName={aN}
-              aCrest={<Escudo nome={hN} size={20} />} bCrest={<Escudo nome={aN} size={20} />}
-              aSquad={state.managers.find(m => m.id === myLast.homeId)?.squad} bSquad={state.managers.find(m => m.id === myLast.awayId)?.squad} />
-            <p className="text-[11px] font-bold text-center text-black/65">{LS(`${ph > pa ? hN : aN} leva 2 pontos · ${ph > pa ? aN : hN} leva 1`, `${ph > pa ? hN : aN} takes 2 points · ${ph > pa ? aN : hN} takes 1`)}</p>
-          </Box>
-        )
-      })()}
       {manual && !state.dinastiaPaused && !copaLive && (
         // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.
