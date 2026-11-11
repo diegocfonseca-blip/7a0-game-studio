@@ -7488,10 +7488,12 @@ export function EscSeason() {
   // 🥅 11/11 (Diego: *"tem rodada que pode ir pro shootout"*): o tempo da rodada conta a disputa também — no placar, o quadro das
   // cobranças (`pensRevealDelay`); no Campo 2D, a cena do shootout no campinho. Sem isto a próxima rodada podia começar no meio dela.
   const c2dKings = useCampo2DLigado()
+  // 🐛 11/11: aqui o `nomeLiga` ainda não existe (ele nasce mais embaixo) — usar ele derrubava a tela da Kings com shootout
+  const nomeAqui = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
   const kingsPensMs = (r: MatchResult) => {
     const p = r.kings?.pens
     if (!p) return 0
-    if (c2dKings) return Math.round(new DisputaShootoutCampo({ id: 'conta', pens: p, aName: nomeLiga(r.homeId), bName: nomeLiga(r.awayId), seqReal: r.kings?.pensSeq, shootout: true }).duracao * 1000) + 1500
+    if (c2dKings) return Math.round(new DisputaShootoutCampo({ id: 'conta', pens: p, aName: nomeAqui(r.homeId), bName: nomeAqui(r.awayId), seqReal: r.kings?.pensSeq, shootout: true }).duracao * 1000) + 1500
     return Math.round(pensRevealDelay(p, true, r.kings?.pensSeq) * 1000) + 1500
   }
   // 🥅 11/11 (Diego: *"só vira quando TODOS acabarem"*): os OUTROS jogos andam no relógio do seu e, se empataram, o shootout
