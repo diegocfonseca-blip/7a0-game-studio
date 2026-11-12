@@ -7300,7 +7300,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
   return { min, cena }
 }
 /** 👑 a cena da vez, desenhada por cima do jogo */
-function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe, presidenteDe }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void; /** os jogadores de LINHA do time (a suspensão escolhe um do rival) — a mesma lista da regra */ linhaDe: (id: number) => string[]; /** 🎩 o presidente do time */ presidenteDe?: (id: number) => string | null }) {
+function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe, presidenteDe }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void; /** os jogadores de LINHA do time (a suspensão escolhe um do rival) — a mesma lista da regra */ linhaDe: (id: number) => string[]; /** 🎩 o presidente do time */ presidenteDe?: (id: number) => { name: string; club: string } | null }) {
   if (cena.tipo === 'banner' || cena.tipo === 'entra') return null // 📣 11/11: aviso de texto = faixa embaixo do placar (`kingsInfo`)
   if (cena.tipo === 'pontape') { const p = jogo?.kings?.posse; return <CenaPontape posse={p != null ? nome(p) : undefined} ladoPosse={p === jogo?.awayId ? 'd' : 'e'} casa={jogo ? nome(jogo.homeId) : undefined} fora={jogo ? nome(jogo.awayId) : undefined} /> }
   if (cena.tipo === 'dado') return <CenaDado face={cena.face} />
@@ -7317,7 +7317,7 @@ function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe, presidente
   }
   const d = jogo?.kings?.duelos?.find(x => x.key === cena.key)
   if (!d) return null
-  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} presidente={d.tipo === 'presidente' ? presidenteDe?.(d.batedor) : null} />
+  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} presidente={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.name : null} presClub={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.club : null} />
 }
 /** 👑 a caixa de regras da Kings — aparece antes da 1ª rodada, no lugar do "aguardando o pontapé" */
 function RegrasKingsBox() {
@@ -8428,7 +8428,7 @@ export function EscSeason() {
       )}
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
-      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto, ...(kJogo ? { jogo: `${kJogo.homeId}-${kJogo.awayId}` } : {}) })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL' && !c.presidente).map(c => c.name)} presidenteDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).find(c => c.presidente)?.name ?? null} />}
+      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto, ...(kJogo ? { jogo: `${kJogo.homeId}-${kJogo.awayId}` } : {}) })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL' && !c.presidente).map(c => c.name)} presidenteDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).find(c => c.presidente) ?? null} />}
       {manual && !state.dinastiaPaused && !copaLive && (
         // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.

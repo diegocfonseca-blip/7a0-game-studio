@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react'
 import { tr } from './lang'
 import { Escudo } from './escudos'
+import { coresDoPresidente, tintaSobre } from './kings-presidentes'
 import type { CartaKingsInfo, CartaKingsTipo, DueloKingsInfo } from './types'
 
 // 🏟️ ARENA DA KINGS (fotos que o Diego mandou, 15/10): piso PRETO com linha branca, círculo do meio em NEON com a cor de
@@ -264,9 +265,31 @@ export function CenaCarta({ carta, time, rival, escolhe }: { carta: CartaKingsIn
 //    Não tocou até zerar? O jogo bate (ou pula) sozinho. Depois mostra o que o motor deu.
 const SETAS = ['↖', '↑', '↗', '↙', '↓', '↘']
 export const DUELO_SEGUNDOS = 5
-export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscolha, presidente }: {
+// ── 🎩 12/11 (mockup `scripts/mockups/kings-penalti-presidente-2d.png`, Diego: *"pode fazer"*): o presidente ENTRA NA ARENA — o
+//    disco 🎩 nas cores do time dele anda até a marca DURANTE a contagem (não soma tempo nenhum ao jogo), e no fim a bola vai pro canto
+//    que valeu e o goleiro pula pro dele. Só desenho: o resultado é o mesmo `duelo` de sempre. Sem rosto (pessoa real).
+function PresidenteNaArena({ nome, club, fim, chute, pulo, gol }: { nome: string; club?: string; fim: boolean; chute: number; pulo: number; gol: boolean }) {
+  const [c1, c2] = coresDoPresidente(club ?? '')
+  const cx = (i: number) => [30, 50, 70][i % 3], cy = (i: number) => (i < 3 ? 9 : 19) // cantos dentro do gol (% da arena)
+  return (
+    <div className="kc-pres-arena">
+      <div className="kc-pres-area" /><div className="kc-pres-peq" /><div className="kc-pres-gol" />
+      <div className="kc-pres-marca" />
+      <div className="kc-pres-gk" style={fim ? { left: `${cx(pulo)}%`, top: `${cy(pulo) + 4}%` } : undefined}>1</div>
+      <div className="kc-pres-bola" style={fim ? { left: `${gol ? cx(chute) : cx(pulo)}%`, top: `${gol ? cy(chute) : cy(pulo) + 12}%` } : undefined} />
+      <div className={`kc-pres-disco${fim ? ' fim' : ''}`}>
+        <span style={{ background: `linear-gradient(135deg,${c1} 50%,${c2} 50%)` }}>🎩</span>
+        <b style={{ background: c1, color: tintaSobre(c1), borderColor: c2 }}>{nome.toUpperCase()}</b>
+      </div>
+      {/* o GOL/DEFENDEU já aparece grande embaixo (mesma cena) — não repetir aqui (regra do Diego: o mesmo teatro não aparece 2×) */}
+    </div>
+  )
+}
+
+export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscolha, presidente, presClub }: {
   duelo: DueloKingsInfo; souBatedor: boolean; nomeBatedor: string; nomeGoleiro: string; onEscolha: (canto: number) => void
   /** 🎩 12/11: o presidente comprado no leilão (é ele que bate o pênalti do presidente) */ presidente?: string | null
+  /** 🎩 o time do presidente (as cores do disco) */ presClub?: string | null
 }) {
   const [seg, setSeg] = useState(DUELO_SEGUNDOS)
   const [escolha, setEscolha] = useState<number | null>(null)
@@ -303,6 +326,7 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
   return (
     <Palco tag={tag} cor={RED}>
       <div style={{ background: INK, color: '#fff', border: `4px solid ${INK}`, borderRadius: 20, padding: 14, boxShadow: `5px 5px 0 ${RED}` }}>
+        {duelo.tipo === 'presidente' && presidente && <PresidenteNaArena nome={presidente} club={presClub ?? undefined} fim={fim} chute={duelo.chute} pulo={duelo.pulo} gol={duelo.gol} />}
         <p style={{ ...OSW, fontSize: 24, margin: 0, lineHeight: 1.1 }}>{titulo}</p>
         {ajuda && duelo.tipo === 'penalti_inverso' && !fim && <p style={{ fontSize: 13, fontWeight: 800, margin: '6px 0 0', background: '#2a2140', border: `2px solid ${PURPLE}`, borderRadius: 10, padding: '6px 8px' }}>🔄 {ajuda}</p>}
         {!fim && <p style={{ ...OSW, fontSize: 28, margin: '6px 0 0', color: INK, background: GOLD, borderRadius: 12, display: 'inline-block', padding: '0 12px' }}>⏱️ {seg}</p>}
@@ -408,7 +432,18 @@ const CSS = `
 .kc-times{position:absolute;left:8px;right:8px;bottom:8px;display:flex;justify-content:space-between;z-index:3}.kc-times span{color:#fff;border:2px solid ${INK};border-radius:8px;${'font:700 11px Oswald,sans-serif'};padding:1px 7px;max-width:45%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .kc-roleta{background:${INK};border:4px solid ${GOLD};border-radius:20px;padding:10px;box-shadow:0 0 30px rgba(255,196,0,.4)}
 .kc-rol-l{${'font:700 22px Oswald,sans-serif'};color:#fff;padding:8px;border-radius:12px}.kc-rol-l.op{opacity:.35;font-size:16px}.kc-rol-l.on{background:linear-gradient(160deg,#C9A8FF,${PURPLE});border:3px solid #fff;font-size:28px}
-@media (prefers-reduced-motion:reduce){.kc-bola-cai,.kc-dado-voo,.kc-cubo,.kc-carta,.kc-conta span,.kc-corre-e,.kc-corre-d{animation-duration:.01s!important}}
+.kc-pres-arena{position:relative;height:150px;margin:-4px -4px 10px;border:3px solid #000;border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 0,rgba(255,196,0,.18),transparent 60%),repeating-linear-gradient(90deg,#0d0f12 0 36px,#101317 36px 72px)}
+.kc-pres-area{position:absolute;left:18%;right:18%;top:0;height:62%;border:2px solid rgba(255,255,255,.85);border-top:none}
+.kc-pres-peq{position:absolute;left:34%;right:34%;top:0;height:26%;border:2px solid rgba(255,255,255,.85);border-top:none}
+.kc-pres-gol{position:absolute;left:26%;right:26%;top:0;height:9px;background:repeating-linear-gradient(90deg,#ddd 0 3px,#555 3px 6px)}
+.kc-pres-marca{position:absolute;left:50%;top:46%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#fff}
+.kc-pres-gk{position:absolute;left:50%;top:11%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:${GOLD};color:${INK};border:2px solid #000;font:800 12px Oswald,sans-serif;display:grid;place-items:center;transition:left .35s ease-out,top .35s ease-out;z-index:2}
+.kc-pres-bola{position:absolute;left:50%;top:46%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#fff;border:2px solid #000;transition:left .3s ease-in,top .3s ease-in;z-index:3}
+.kc-pres-disco{position:absolute;left:50%;top:60%;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,0);animation:kcPresAnda 1.8s ease-out both;z-index:2}
+.kc-pres-disco span{width:34px;height:34px;border-radius:50%;border:3px solid ${GOLD};display:grid;place-items:center;font-size:18px;box-shadow:0 0 0 3px rgba(255,196,0,.35),0 0 14px ${GOLD}}
+.kc-pres-disco b{margin-top:3px;border:2px solid;border-radius:7px;font:800 11px Oswald,sans-serif;padding:0 6px;white-space:nowrap}
+@keyframes kcPresAnda{from{top:118%}to{top:60%}}
+@media (prefers-reduced-motion:reduce){.kc-pres-disco,.kc-bola-cai,.kc-dado-voo,.kc-cubo,.kc-carta,.kc-conta span,.kc-corre-e,.kc-corre-d{animation-duration:.01s!important}}
 `
 
 /** 🏟️ o placar de sempre ganha a cara da ARENA da Kings (piso preto, neon azul/rosa) enquanto a temporada da Kings roda.
