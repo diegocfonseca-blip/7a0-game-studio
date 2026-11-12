@@ -14,7 +14,7 @@ export const CORES_TIME_KINGS: Record<string, [string, string]> = {
   Loud: ['#0E8F4A', '#0B0B0B'],
   Capim: ['#1B8A3A', '#F2F2F2'],
   Nyvelados: ['#111111', '#FF2E93'],
-  'Real Elite': ['#1F4FBF', '#F2F2F2'],
+  'Real Elite': ['#0030F0', '#F03078'],
   Dendele: ['#1F4FBF', '#F2C230'],
   Funkbol: ['#B0168A', '#111111'],
   G3X: ['#F2F2F2', '#1B8A3A'],
