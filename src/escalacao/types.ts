@@ -122,6 +122,9 @@ export interface Card {
   /** 🧱 LEILÃO DE CLUBES: esta "carta" é um PACOTE — o setor de um clube (todos os
    *  goleiros do Palmeiras…). Quem ganha convoca os que vão jogar depois do pregão. */
   pacote?: { clube: string; cartas: Card[]; /** 🏳️ pacote de seleção (31/10) */ selecao?: boolean; /** 📅 década do pacote, ex. 1990 (31/10) */ decada?: number }
+  /** 🎩 KINGS (12/11): esta carta é um PRESIDENTE (mora na vaga 'LAT' da Kings, que não tem lateral). Não entra em campo;
+   *  bate o pênalti do presidente. A carta leva as cores do time no lugar da cor da categoria (`kings-presidentes.ts`). */
+  presidente?: boolean
   cria?: boolean // 🌱 Cria da Base: tapa-buraco sem contrato, ruim de doer, invendável — some quando chega reforço // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
@@ -225,7 +228,7 @@ export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '5-4-1': { GOL: 1, LAT: 2, ZAG: 3, MEI: 4, ATA: 1 }, // 🚌 ônibus: 5 atrás + 4 meias segurando, 1 lá na frente
   // 👑 KINGS LEAGUE (15/10, só a conta do Diego): futebol 7 = goleiro + 6. Só nasce no START com `kings` — nenhuma
   // tela de escolha de formação oferece esta (o leilão de sempre monta 7 vagas por time).
-  kings: { GOL: 1, LAT: 0, ZAG: 2, MEI: 2, ATA: 2 },
+  kings: { GOL: 1, LAT: 1, ZAG: 2, MEI: 2, ATA: 2 }, // 🎩 12/11: a vaga 'LAT' da Kings é o PRESIDENTE (não entra em campo)
   // ⚡ MODO POKÉMON (25/10, só a conta do Diego, em teste): 6 pokémon nos 5 setores do motor, que viram LOTES (pokemon-modo.ts)
   pokemon: { GOL: 1, LAT: 1, ZAG: 1, MEI: 1, ATA: 2 },
 }

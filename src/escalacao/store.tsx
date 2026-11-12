@@ -7,6 +7,7 @@ import type { CtxKings } from './kings-liga'
 import type { KingsBase } from './types'
 import { calendarioKings, chaveKings } from './kings'
 import { baralhoPokemon, setPokeModo } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
+import { CATALOGO_PRESIDENTES } from './kings-presidentes' // 🎩 12/11: os presidentes da Kings (5ª posição do leilão, vaga 'LAT')
 import { BARALHO_KINGS } from './kings-baralho' // 👑 10/11: o baralho PRÓPRIO da Kings (só entra com `kingsBaralho`)
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
@@ -65,6 +66,19 @@ import { NBA_SLOTS_PER_POS } from './sportcfg'
 // partida (START / RESTORE_CAREER / CAREER_ADVANCE) e forçado pra BR no
 // online e no Manager, que sempre usam o baralho brasileiro.
 let ACTIVE_CATALOG = CATALOG
+// 🎩 KINGS (12/11): a ORDEM das posições no leilão. Sempre a de sempre (SECTORS); na Kings o presidente (vaga 'LAT', que a Kings
+// não usava) vem DEPOIS do ataque: GOL · ZAG · MEI · ATA · 🎩. Mesmo padrão do ACTIVE_CATALOG (global do módulo, reancorada pelo
+// estado em `reancoraEsporte` e em toda largada).
+const ORDEM_KINGS: Sector[] = ['GOL', 'ZAG', 'MEI', 'ATA', 'LAT']
+let ORDEM_ATIVA: Sector[] = SECTORS
+/** a ordem das posições do leilão desta partida (a tela lê a MESMA da do motor) */
+export function ordemSetores(): Sector[] { return ORDEM_ATIVA }
+/** 🎩 liga os presidentes da Kings: o catálogo da vaga 'LAT' vira a lista dos presidentes e a ordem põe ela no fim */
+function ancoraPresidentesKings(kings: boolean) {
+  if (!kings) { ORDEM_ATIVA = SECTORS; return }
+  ACTIVE_CATALOG = { ...ACTIVE_CATALOG, LAT: CATALOGO_PRESIDENTES } as unknown as typeof CATALOG
+  ORDEM_ATIVA = ORDEM_KINGS
+}
 // 🏀 ESPORTE ATIVO DO MOTOR — mesmo padrão do ACTIVE_CATALOG: 'futebol' por
 // padrão; só vira 'basquete' quando um jogo de basquete começa. Guarda a única
 // diferença de mecânica (QUANTIDADE de vagas por posição) sem tocar no futebol.
@@ -105,6 +119,7 @@ function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'to
   const base0 = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
   const base = regional ? comCartasRegionais(base0, regional) : base0
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
+  ORDEM_ATIVA = SECTORS
 }
 // 🏟️ BARALHO REGIONAL (10/10, regra do Diego): as cartas dos clubes pequenos só existem
 // na sala de COPA REGIONAL — e lá entram no leilão MISTURADAS com o baralho de sempre.
@@ -129,6 +144,7 @@ function comCartasRegionais(base: typeof CATALOG, regional: string): typeof CATA
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
 function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
   ACTIVE_SPORT = sport
+  ORDEM_ATIVA = SECTORS
   setDraftBasquete(sport === 'basquete') // 📋🏀 Liga Draft: elenco de 15 e quinteto no basquete
   if (sport === 'basquete') {
     ACTIVE_CATALOG = buildNbaCatalog() as unknown as typeof CATALOG
@@ -150,10 +166,11 @@ export function vagasBase(formation: FormationKey, pos: Sector): number { return
 // pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
 // o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
 // sempre (byte-idêntico pra quem não é basquete).
-function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean }): void {
+function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
   if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
   else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala)
   if (s.kingsBaralho && s.sport !== 'basquete') ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG // 👑 a partida da Kings com o baralho dela
+  ancoraPresidentesKings(s.sport !== 'basquete' && !!s.managers?.some(m => m.formation === 'kings')) // 🎩 os presidentes (os dois baralhos)
 }
 
 // 🏀 franquias da NBA usadas como rivais CPU do basquete (o motor lê {team,name}
@@ -2431,7 +2448,7 @@ function fairPrice(v: number): number {
 // gastador, pão-duro, obcecado, imprevisível ou equilibrado. 'equilibrado' (o padrão, e
 // o que partida rápida/salas sempre recebem) é o leilão de antes, sem mudar nem o rng.
 export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector, pensaComoGente = false): (Bid & { cardId: string })[] {
-  const pos = SECTORS[sectorIdx]
+  const pos = ORDEM_ATIVA[sectorIdx]
   // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
   // fim (FINISH_CEREMONY). Humano decide sozinho, então segue só com openSlots.
@@ -2444,7 +2461,7 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
   const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman
   if (reforco) need = 1
   if (need === 0 || m.money <= 0) return []
-  const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
+  const remaining = ORDEM_ATIVA.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
   const shape = 0.65 + m.aggression * 0.8
   // 👑 REPESCAGEM com LENDA na mesa: o bot fica mais esperto — orçamento normal
   // (4-9) quase nunca cobre o piso de uma lenda, e ela sumia de graça no monte
@@ -4994,7 +5011,8 @@ function ctxKings(s: EscState, homeId: number, awayId: number, rodada: number): 
       const pref = sq.filter(c => c.pos === 'ATA').length ? sq.filter(c => c.pos === 'ATA') : sq.filter(c => c.pos === 'MEI')
       return [...pref].sort((x, y) => y.fame - x.fame || y.hi - x.hi)[0]?.name ?? null
     },
-    linha: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name),
+    linha: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL' && !c.presidente).map(c => c.name),
+    presidente: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).find(c => c.presidente)?.name ?? null, // 🎩 12/11
   }
 }
 function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => number, scorers: ScorerRow[], assists: AssistRow[], _neutral: boolean, rodada: number): MatchResult {
@@ -5002,7 +5020,8 @@ function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => numb
   // `simMatch` do futebol de 11. Mesma semente = mesma partida em todo aparelho.
   const seed = sementeJogoKings(s.seed, rodada, homeId, awayId)
   const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
-  const elenco = (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).map(c => ({ name: c.name, pos: c.pos, lo: c.lo, hi: c.hi, fake: c.fake, club: c.club }))
+  // 🎩 o presidente NÃO entra em campo: fica fora da força, dos gols e das assistências (só bate o pênalti do presidente)
+  const elenco = (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => !c.presidente).map(c => ({ name: c.name, pos: c.pos, lo: c.lo, hi: c.hi, fake: c.fake, club: c.club }))
   const tat = (id: number) => s.managers.some(m => m.id === id && m.isHuman) ? s.tactics[id] : undefined
   const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake, bot: { h: !s.managers.some(m => m.id === homeId && m.isHuman), a: !s.managers.some(m => m.id === awayId && m.isHuman) } })
   const r: MatchResult = { homeId, awayId, hg: 0, ag: 0, highlights: [] }
@@ -5494,7 +5513,9 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
       picks = pool.slice(0, need)
       // 👑 11/11: no baralho da KINGS (91 cartas, poucas de cada categoria) o bot completa com quem sobrou do baralho dela — nunca
       // jogador falso (regra do Diego). Fora da Kings nada muda.
-      if (picks.length < need && (ACTIVE_CATALOG as unknown) === (BARALHO_KINGS as unknown)) for (const c of shuffled) { if (picks.length >= need) break; if (!picks.includes(c)) picks.push(c) }
+      // 🎩 12/11: os presidentes (todos 'bom jogador') também completam por aqui, nos dois baralhos da Kings; e a conta do baralho da
+      // Kings olha o GOL (o catálogo virou um objeto novo quando ganhou os presidentes — comparar o objeto inteiro deixava de reconhecer)
+      if (picks.length < need && ((ACTIVE_CATALOG.GOL as unknown) === (BARALHO_KINGS.GOL as unknown) || (pos === 'LAT' && ORDEM_ATIVA === ORDEM_KINGS))) for (const c of shuffled) { if (picks.length >= need) break; if (!picks.includes(c)) picks.push(c) }
     }
     for (const c of picks) used.add(ident(c))
     let gi = 0
@@ -6430,7 +6451,7 @@ function holResgate(state: EscState) {
   if (!mesa.length) return
   const rng = rngOf(state)
   const econ = state.careerOnline ? escadaEconFactor(state) : 0
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ORDEM_ATIVA[state.sectorIdx]
   for (const m of state.managers) {
     if (m.isHuman) continue
     if (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
@@ -6539,7 +6560,7 @@ export function paMesa(state: EscState, k: number): PaMesaVista | null {
   return { M: pa, card: state.currentCards[0] ?? null }
 }
 function paPoeCarta(state: EscState, k: number, card: Card | null) {
-  if (k === 0) { state.currentCards = card ? [card] : []; if (card) state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos)) }
+  if (k === 0) { state.currentCards = card ? [card] : []; if (card) state.sectorIdx = Math.max(0, ORDEM_ATIVA.indexOf(card.pos)) }
   else if (state.pa?.m2) state.pa.m2.card = card
 }
 /** quanto o clube já tem PRESO na outra mesa (está na frente lá): o caixa dele aqui é o que sobra */
@@ -6732,7 +6753,7 @@ function paMartelo(state: EscState, k = 0) {
   // o arremate entra pela MESMA porta do envelope: o lance do líder (+ o do 2º, pra resenha do "jogou fora").
   // 🔨🔨 a porta lê `currentCards`/`sectorIdx`: na mesa 2 a carta dela entra ali só durante o martelo e a da mesa 1 volta.
   const mesa1Antes = state.currentCards, setorAntes = state.sectorIdx
-  state.currentCards = [card]; state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos))
+  state.currentCards = [card]; state.sectorIdx = Math.max(0, ORDEM_ATIVA.indexOf(card.pos))
   const segundo = [...M.lances].reverse().find(l => l.mgr !== M.lider)
   state.pendingEnvelopes = { [M.lider]: [{ cardId: card.id, amount: M.preco }], ...(segundo ? { [segundo.mgr]: [{ cardId: card.id, amount: segundo.valor }] } : {}) }
   state.holFechando = true
@@ -6923,7 +6944,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
     state.submitted = []
     state.pendingEnvelopes = {}
     state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ((state.auctionSecs && state.auctionSecs > 0 ? state.auctionSecs * 1000 : ENVELOPE_MS))
-    if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[state.sectorIdx]).length === 0) sealAndResolve(state)
+    if (state.onlineMode !== 'online' && humansToSubmit(state, ORDEM_ATIVA[state.sectorIdx]).length === 0) sealAndResolve(state)
     return
   }
   // 🔨 PREGÃO ABERTO: a fila é o baralho inteiro embaralhado; abre uma vez e vai até o Monte
@@ -6932,7 +6953,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   if (state.pregaoAberto && !rescue && !state.careerOnline) { abrePregaoAberto(state); return }
   // ⚡ ENVELOPE ÚNICO (28/10): as 5 posições num envelope só, logo na abertura do leilão (nunca na carreira)
   if (state.envUnico && !rescue && !state.careerOnline && state.sectorIdx === 0 && state.sectorCursor === 0) { abreEnvelopeUnico(state); return }
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ORDEM_ATIVA[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
     // levas SÓ por espaço de tela: pega a próxima fatia de até BATCH_SIZE
@@ -6974,7 +6995,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // HORA. Sem isto, ninguém enviava envelope, o setor nunca era lacrado e o
   // jogo congelava com o jogador de espectador ("esperando a contratação").
   // No online não muda nada: lá o vigia de prazo já cuida disso.
-  if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[state.sectorIdx]).length === 0) {
+  if (state.onlineMode !== 'online' && humansToSubmit(state, ORDEM_ATIVA[state.sectorIdx]).length === 0) {
     sealAndResolve(state)
   }
 }
@@ -7223,8 +7244,8 @@ function selaEnvelopeUnico(state: EscState) {
   const sobras: Card[] = []
   // posição por posição, na ordem de sempre (GOL → ATA), com o MESMO motor de uma leva — a caixa de cada um vai
   // baixando a cada posição, igual ao leilão normal
-  for (let i = 0; i < SECTORS.length; i++) {
-    const ids = new Set((state.deck[SECTORS[i]] ?? []).map(c => c.id))
+  for (let i = 0; i < ORDEM_ATIVA.length; i++) {
+    const ids = new Set((state.deck[ORDEM_ATIVA[i]] ?? []).map(c => c.id))
     const cards = todas.filter(c => ids.has(c.id))
     if (cards.length === 0) continue
     state.sectorIdx = i
@@ -7254,7 +7275,7 @@ function selaEnvelopeUnico(state: EscState) {
   state.revealQueue = fila.filter(q => q.winner !== null || q.bids.length > 0)
   state.revealIdx = 0
   state.sectorIdx = SECTORS.length - 1
-  state.sectorCursor = (state.deck[SECTORS[SECTORS.length - 1]] ?? []).length
+  state.sectorCursor = (state.deck[ORDEM_ATIVA[ORDEM_ATIVA.length - 1]] ?? []).length
   state.euRevelando = true
   state.phase = 'reveal'
   state.phaseDeadline = null
@@ -7356,7 +7377,7 @@ function afterReveal(state: EscState) {
     return
   }
   const rng = rngOf(state)
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ORDEM_ATIVA[state.sectorIdx]
   const unsold = state.currentCards
   if (state.phase === 'reveal') {
     // terminou uma leva do pregão principal — acumula os não vendidos
@@ -8357,7 +8378,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const humansLeft = s.managers.filter(x => x.isHuman).length
       m.auctionRival = humansLeft <= 1
       if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
-        const pos = SECTORS[s.sectorIdx]
+        const pos = ORDEM_ATIVA[s.sectorIdx]
         if (humansToSubmit(s, pos).every(id => s.submitted.includes(id))) sealAndResolve(s)
       } else if (s.phase === 'tiebreak') {
         const tb = s.tiebreaks[s.tiebreakIdx]
@@ -8405,6 +8426,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 👑 10/11 (Diego): Kings League com os jogadores DA Kings — baralho próprio, que nenhum outro leilão enxerga
       s.kingsBaralho = !!action.kings && !!action.kingsBaralho && !action.career && !action.dinastia && !poke ? true : undefined
       if (s.kingsBaralho) ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG
+      ancoraPresidentesKings(!!action.kings && !action.career && !action.dinastia && !poke) // 🎩 12/11: os presidentes da Kings (os dois baralhos)
       s.pokeLiga = undefined
       // carreira: começa na Série D. Partida rápida: sem divisão.
       s.careerDivision = action.career ? 'D' : null
@@ -9313,6 +9335,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 👑 sala da Kings com os jogadores DA Kings (o baralho próprio, que nenhum outro leilão enxerga)
       s.kingsBaralho = kingsSala && !!action.kingsBaralho ? true : undefined
       if (s.kingsBaralho) ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG
+      ancoraPresidentesKings(kingsSala) // 🎩 12/11: os presidentes da Kings (os dois baralhos)
       // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
       // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
       if (s.ligaDraft) { // 🏀 vale pro baralho da NBA também (um LeBron só por liga)
@@ -9683,7 +9706,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // A checagem é aqui no reducer (lado do HOST) de propósito: esconder o botão
       // na tela do parceiro não basta — é exatamente essa a família de bug de
       // assento que já mordeu antes ("dei lance por outro").
-      if (!duplaPodeAgir(s.duplas, action.mgrId, SECTORS[s.sectorIdx], action.by)) return s
+      if (!duplaPodeAgir(s.duplas, action.mgrId, ORDEM_ATIVA[s.sectorIdx], action.by)) return s
       // 💰 A CAIXA É CONFERIDA AQUI, NO MOTOR — não só na tela.
       // 🐛 CAUSA DO "PAGUEI E NÃO LEVEI JOGADOR" (relato do Pedro pelo Diego, 20/08):
       // a conta de "só posso lançar até onde tenho" existia SÓ na tela. O motor
@@ -9694,7 +9717,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // tela não basta".
       s.pendingEnvelopes[action.mgrId] = envelopeQueCabe(s, action.mgrId, action.bids)
       s.submitted.push(action.mgrId)
-      const pos = SECTORS[s.sectorIdx]
+      const pos = ORDEM_ATIVA[s.sectorIdx]
       const need = humansToSubmit(s, pos)
       const allIn = need.every(id => s.submitted.includes(id))
       // ⏱️ host-manual (auctionSecs=0): NÃO fecha sozinho nem quando todos lacram —
@@ -9841,7 +9864,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // duplicado de um cliente que ficou pra trás). SEM cronômetro (host-manual,
       // auctionSecs=0 → phaseDeadline null): é o BOTÃO do host que sela — sempre vale.
       if (s.phaseDeadline && Date.now() < s.phaseDeadline) return s
-      const pos = SECTORS[s.sectorIdx]
+      const pos = ORDEM_ATIVA[s.sectorIdx]
       const need = humansToSubmit(s, pos)
       for (const id of need) {
         if (!s.submitted.includes(id)) {

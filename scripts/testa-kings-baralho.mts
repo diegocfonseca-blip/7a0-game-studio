@@ -1,13 +1,17 @@
 // 👑 TRAVA DO BARALHO DA KINGS (10/11, pedido do Diego): os jogadores da Kings League só aparecem no leilão da Kings com
 // "Jogadores da Kings League"; nunca em outro leilão; nunca entra jogador falso; todo mundo fecha as 7 vagas; o valor é 100.
 // Rodar: npx tsx scripts/testa-kings-baralho.mts
+import { PRESIDENTES_KINGS } from '../src/escalacao/kings-presidentes'
 import { reducer, INITIAL } from '../src/escalacao/store'
 import type { EscState } from '../src/escalacao/types'
 import { BARALHO_KINGS } from '../src/escalacao/kings-baralho'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from '../src/escalacao/data'
 
 const chave = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
-const KINGS = new Set(Object.values(BARALHO_KINGS).flat().map(chave))
+// 🎩 12/11: os PRESIDENTES da Kings também são do leilão dela (vaga 'LAT')
+const KINGS = new Set([...Object.values(BARALHO_KINGS).flat(), ...PRESIDENTES_KINGS].map(chave))
+// os JOGADORES da Kings (os presidentes valem nos dois baralhos da Kings — só não podem sair da Kings)
+const KINGS_JOG = new Set(Object.values(BARALHO_KINGS).flat().map(chave))
 let falhas = 0
 const falha = (m: string) => { falhas++; console.log('❌ ' + m) }
 
@@ -40,7 +44,7 @@ for (let t = 0; t < 8; t++) {
   if (s.managers.length !== 10) falha(`Kings com ${s.managers.length} times (devia ser 10)`)
   for (const k of vistas) if (!KINGS.has(k)) falha(`carta de fora no leilão da Kings: ${k}`)
   for (const m of s.managers) {
-    if (m.squad.length !== 7) falha(`${m.name} fechou com ${m.squad.length} (devia 7)`)
+    if (m.squad.length !== 8 || m.squad.filter(c => c.presidente).length !== 1) falha(`${m.name} fechou com ${m.squad.length} (devia 7 + 1 presidente)`)
     for (const c of m.squad) { if (c.fake) falha(`jogador falso no ${m.name}: ${c.name}`); if (!KINGS.has(chave(c))) falha(`carta de fora no elenco ${m.name}: ${chave(c)}`) }
   }
   let x = s
@@ -49,13 +53,13 @@ for (let t = 0; t < 8; t++) {
 // 2b) a Kings não tem lateral: nenhum lote de lateral no leilão (nem com os jogadores padrão)
 for (const kb of [true, false]) {
   const s0 = reducer(structuredClone(INITIAL) as EscState, { type: 'START', teamName: 'T', formation: '4-3-3', rivals: 9, kings: true, kingsBaralho: kb, copaMode: 'liga', league: 'br' } as never)
-  if ((s0.deck.LAT ?? []).length) falha(`Kings (${kb ? 'baralho da Kings' : 'jogadores padrão'}) com ${s0.deck.LAT.length} lateral no leilão`)
+  if ((s0.deck.LAT ?? []).some(c => !c.presidente)) falha(`Kings (${kb ? 'baralho da Kings' : 'jogadores padrão'}) com lateral de verdade no leilão (a vaga LAT é só dos 🎩 presidentes)`)
 }
 // 3) com "jogadores padrão" a Kings usa o baralho de sempre (nenhuma carta da Kings)
 for (let t = 0; t < 3; t++) {
   const { s, vistas } = partida({ kings: true })
   if (s.kingsBaralho) falha('Kings com jogadores padrão ficou com o baralho da Kings')
-  for (const k of vistas) if (KINGS.has(k)) falha(`carta da Kings vazou na Kings com jogadores padrão: ${k}`)
+  for (const k of vistas) if (KINGS_JOG.has(k)) falha(`carta da Kings vazou na Kings com jogadores padrão: ${k}`)
 }
 // 4) e depois de uma Kings, a partida rápida normal NÃO herda o baralho da Kings
 for (let t = 0; t < 3; t++) {
@@ -70,11 +74,11 @@ for (const kb of [true, false]) {
   const s0 = reducer(structuredClone(INITIAL) as EscState, { type: 'START_ONLINE', roomId: 'r', roomCode: 'KINGS1', isHost: true, playerIndex: 0, playerNames: ['Ana', 'Beto', 'Caio'], seatUids: ['a', 'b', 'c'], formation: 'kings', kingsBaralho: kb, deck: 'br', copaMode: 'liga_copa', tamanhoLiga: 10, envUnico: true, clubes: true } as never)
   if (s0.managers.length !== 10) falha(`sala Kings com ${s0.managers.length} times`)
   if (!s0.managers.every(m => m.formation === 'kings')) falha('sala Kings com time fora da formação kings')
-  if (s0.copaMode !== 'liga' || s0.envUnico || s0.leilaoClubes || s0.tamanhoLiga) falha('sala Kings levou opção que não vale nela (copa/envelope único/clubes/liga de 10)')
+  if (s0.copaMode !== 'liga' || s0.leilaoClubes || s0.tamanhoLiga) falha('sala Kings levou opção que não vale nela (copa/clubes/liga de 10)') // (o envelope único VALE na Kings desde 11/11)
   if (!!s0.kingsBaralho !== kb) falha(`sala Kings: kingsBaralho ${s0.kingsBaralho} (esperado ${kb})`)
   const cartas = [...Object.values(s0.deck ?? {}).flat(), ...s0.managers.flatMap(m => m.squad)] as { name: string; club: string; year: number }[]
-  for (const c of cartas) if (kb !== KINGS.has(chave(c))) { falha(`sala Kings (${kb ? 'baralho da Kings' : 'padrão'}): carta ${chave(c)}`); break }
-  for (const m of s0.managers.filter(m => !m.isHuman)) if (m.squad.length !== 7 || m.squad.some(c => c.fake)) falha(`bot ${m.name} da sala Kings com ${m.squad.length} (ou falso)`)
+  for (const c of cartas) if ((c as { presidente?: boolean }).presidente ? !KINGS.has(chave(c)) : kb !== KINGS_JOG.has(chave(c))) { falha(`sala Kings (${kb ? 'baralho da Kings' : 'padrão'}): carta ${chave(c)}`); break } // 🎩 presidentes valem nos dois
+  for (const m of s0.managers.filter(m => !m.isHuman)) if (m.squad.length !== 8 || m.squad.filter(c => c.presidente).length !== 1 || m.squad.some(c => c.fake)) falha(`bot ${m.name} da sala Kings com ${m.squad.length} (ou falso / sem presidente)`)
 }
 // 6) e uma sala normal depois de uma sala da Kings não herda o baralho dela
 {

@@ -86,7 +86,8 @@ export const tamanhoDoTime = (formacao?: FormationKey | string) => formacao === 
 export function onzeDaFormacao(cartas0: CartaCampo[], formacao?: FormationKey | string): CartaCampo[] {
   // 🌐 a Copa do Mundo e a regional guardam a posição em `sec`, não em `pos`: sem isto o time inteiro virava atacante, sem
   // goleiro, e o campinho quebrava ao montar (20/10)
-  const cartas = cartas0.map(c => c.pos || !c.sec ? c : { ...c, pos: c.sec })
+  // 🎩 12/11: na Kings a vaga 'LAT' é o PRESIDENTE — ele não entra em campo
+  const cartas = (formacao === 'kings' ? cartas0.filter(c => (c.pos || c.sec) !== 'LAT') : cartas0).map(c => c.pos || !c.sec ? c : { ...c, pos: c.sec })
   const tam = tamanhoDoTime(formacao)
   if (cartas.length <= tam) return cartas
   const need = FORMATIONS[(formacao && formacao in FORMATIONS ? formacao : '4-3-3') as FormationKey]

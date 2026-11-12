@@ -7083,6 +7083,8 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
 //  · e o jogo mais DEVAGAR que todos (*"mais demorado por partida… mais que todos"*)
 /** 👑 nome que aparece no placar pros gols que a REGRA da Kings fez (o presidente, o 2º gol da bola vermelha, o gol de ouro) */
 function nomeGolKings(text: string): string | null {
+  const presN = /^🎩 PÊNALTI DO PRESIDENTE! (.+?) marca pro /.exec(text) // 🎩 12/11: com o presidente comprado no leilão
+  if (presN) return `🎩 ${presN[1]}`
   if (text.startsWith('🎩')) return tr('Pênalti do presidente', 'President penalty')
   if (text.startsWith('🔴')) return tr('Bola vermelha (+1)', 'Red ball (+1)')
   if (text.startsWith('🃏 PÊNALTI')) return tr('Pênalti (carta)', 'Penalty (card)')
@@ -8418,7 +8420,7 @@ export function EscSeason() {
       )}
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
-      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto, ...(kJogo ? { jogo: `${kJogo.homeId}-${kJogo.awayId}` } : {}) })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name)} />}
+      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto, ...(kJogo ? { jogo: `${kJogo.homeId}-${kJogo.awayId}` } : {}) })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL' && !c.presidente).map(c => c.name)} />}
       {manual && !state.dinastiaPaused && !copaLive && (
         // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.

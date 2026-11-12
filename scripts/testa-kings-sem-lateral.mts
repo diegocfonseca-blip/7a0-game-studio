@@ -6,7 +6,7 @@ const nowRef = { t: 1_800_000_000_000 }; Date.now = () => nowRef.t
 for (const modo of ['envelope', 'tocaia', 'pregao', 'unico']) for (const kb of [true, false]) {
   let s: any = reducer(structuredClone(INITIAL) as any, { type: 'START', teamName: 'T', formation: '4-3-3', rivals: 9, kings: true, kingsBaralho: kb, copaMode: 'liga', league: 'br', holandes: modo === 'tocaia', pregaoAberto: modo === 'pregao', envUnico: modo === 'unico' } as any)
   let lat = 0, passos = 0
-  const olha = () => { for (const c of [...(s.currentCards ?? []), ...Object.values(s.deck ?? {}).flat(), ...(s.monte ?? []), ...((s.pa?.fila ?? []) as any[]), ...((s.pa?.mesa ?? []) as any[]).map((x: any) => x?.card ?? x)]) if (c && c.pos === 'LAT') lat++ }
+  const olha = () => { for (const c of [...(s.currentCards ?? []), ...Object.values(s.deck ?? {}).flat(), ...(s.monte ?? []), ...((s.pa?.fila ?? []) as any[]), ...((s.pa?.mesa ?? []) as any[]).map((x: any) => x?.card ?? x)]) if (c && c.pos === 'LAT' && !c.presidente && !c.pacote) lat++ } // 🎩 12/11: a vaga LAT da Kings é do presidente
   for (let i = 0; i < 20000 && s.screen !== 'season'; i++, passos++) {
     olha()
     if (s.screen === 'auction') {
@@ -20,8 +20,8 @@ for (const modo of ['envelope', 'tocaia', 'pregao', 'unico']) for (const kb of [
     if (s.screen === 'cerimonia') { s = reducer(s, { type: 'FINISH_CEREMONY' } as any); continue }
     s = reducer(s, { type: 'FORCE_SEAL' } as any)
   }
-  const latElenco = s.managers.reduce((a: number, m: any) => a + m.squad.filter((c: any) => c.pos === 'LAT').length, 0)
-  if (s.screen !== 'season' || lat || latElenco || s.managers.some((m: any) => m.squad.length !== 7)) falhas++
+  const latElenco = s.managers.reduce((a: number, m: any) => a + m.squad.filter((c: any) => c.pos === 'LAT' && !c.presidente).length, 0)
+  if (s.screen !== 'season' || lat || latElenco || s.managers.some((m: any) => m.squad.length !== 8 || m.squad.filter((c: any) => c.presidente).length !== 1)) falhas++
   console.log(`${modo} ${kb ? 'kings' : 'padrão'}: tela ${s.screen} · lateral visto ${lat} · lateral nos elencos ${latElenco} · elencos ${s.managers.map((m: any) => m.squad.length).join(',')}`)
 }
 if (falhas) { console.log(`🔴 ${falhas} falha(s)`); process.exit(1) }

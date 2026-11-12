@@ -209,6 +209,8 @@ export interface CtxKings {
   estrela: (teamId: number) => string | null
   /** os jogadores de LINHA do time (a suspensão sorteia um deles) */
   linha: (teamId: number) => string[]
+  /** 🎩 12/11: o PRESIDENTE comprado no leilão (a carta da vaga 'LAT'); sem presidente (jogo antigo) = null */
+  presidente?: (teamId: number) => string | null
 }
 
 /**
@@ -256,7 +258,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
     const min = kParaPlacar(kMin)
     duelos.push({ key, tipo, min, batedor, goleiro, chute, pulo, gol, golPara })
     if (golPara != null) {
-      const texto = tipo === 'presidente' ? `🎩 PÊNALTI DO PRESIDENTE! Gol do ${nome(golPara)}!`
+      const pres = tipo === 'presidente' ? ctx.presidente?.(golPara) : null
+      const texto = tipo === 'presidente' ? (pres ? `🎩 PÊNALTI DO PRESIDENTE! ${pres} marca pro ${nome(golPara)}!` : `🎩 PÊNALTI DO PRESIDENTE! Gol do ${nome(golPara)}!`)
         : tipo === 'penalti' ? `🃏 PÊNALTI DA CARTA! Gol do ${nome(golPara)}!`
         : tipo === 'shootout' ? `🃏 SHOOTOUT DA CARTA! Gol do ${nome(golPara)}!`
         : `🔄 PÊNALTI INVERSO! O ${nome(batedor)} errou — gol do ${nome(golPara)}!`
