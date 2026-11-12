@@ -1539,7 +1539,10 @@ export function CardFace({ c, big = false, surprise = false, mudo = false, highl
   return (
     <div className="text-left">
       <div className="flex items-center gap-2">
-        {pk ? <ChipsTipo tipos={pk.tipos} /> : <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{posTag(c.pos)}</span>}
+        {pk ? <ChipsTipo tipos={pk.tipos} /> : c.presidente
+          // 🎩 Kings: o selo do presidente vai nas cores do time dele
+          ? <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: `linear-gradient(135deg, ${coresDoPresidente(c.club)[0]} 55%, ${coresDoPresidente(c.club)[1]})`, color: tintaSobre(coresDoPresidente(c.club)[0]) }}>🎩 PRES</span>
+          : <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{posTag(c.pos)}</span>}
         {mudo
           // 🕵️ ENIGMA: nem nome, nem clube, nem ano vão pro HTML — só a posição
           // (que já está no selo ao lado) e a dica na linha de baixo.
@@ -6653,7 +6656,7 @@ export function EscCerimonia() {
         {/* ⭐ 22/10 (mockup online-cerimonia-lendas-conta.png, Diego: *"aprovado"*): as LENDAS que este time levou, apresentadas no estádio */}
         <FotoLendasCerimonia lendas={lendasDoTime(m)} />
         <div className="mt-2 space-y-1.5">
-          {[...m.squad].sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(c => {
+          {[...m.squad].sort((a, b) => ordemSetores().indexOf(a.pos) - ordemSetores().indexOf(b.pos)).map(c => {
             const tb = tierBadge(c)
             return (
             <div key={c.id} className="flex items-center justify-between border-2 border-black rounded-lg px-3 py-1.5 bg-white">
@@ -6666,7 +6669,7 @@ export function EscCerimonia() {
               <motion.span initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.15 }}
                 className="border-2 border-black rounded-lg px-2 py-1 font-black text-sm"
                 style={{ backgroundColor: tb.bg, color: tb.ink, ...OSWALD }}>
-                {c.lo}–{c.hi}
+                {c.presidente ? '🎩' : `${c.lo}–${c.hi}`}
               </motion.span>
             </div>
             )
@@ -10229,7 +10232,8 @@ export function EscChampions() {
   )
 }
 
-function tierBadge(c: { fame: number; promessa?: boolean }): { bg: string; ink: string } {
+function tierBadge(c: { fame: number; promessa?: boolean; presidente?: boolean; club?: string }): { bg: string; ink: string } {
+  if (c.presidente && c.club) { const k = coresDoPresidente(c.club); return { bg: k[0], ink: tintaSobre(k[0]) } } // 🎩 Kings: a cor do time
   if (c.promessa) return { bg: '#7C57D6', ink: '#fff' }   // 💎 promessa
   if (c.fame === 5) return { bg: GOLD, ink: INK }          // 👑 lenda (ouro)
   if (c.fame === 4) return { bg: '#C3CCD8', ink: INK }     // ⭐ craque (prata)
