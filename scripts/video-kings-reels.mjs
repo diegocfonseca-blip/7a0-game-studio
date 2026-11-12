@@ -61,7 +61,7 @@ if (PARTE === 1) {
   DUR = 45.5
   roteiro = `
 ${cena(0, 4.6, `${coroa}
-  <p style="${OSW};font-size:60px;text-transform:uppercase;color:rgba(12,12,12,.5);margin:46px 0 18px;${sobe(.45)}">vem aí no leilão</p>
+  <p style="${OSW};font-size:60px;text-transform:uppercase;color:rgba(12,12,12,.5);margin:46px 0 18px;${sobe(.45)}">chegou no leilão</p>
   <p style="${OSW};font-size:170px;text-transform:uppercase;line-height:.88;${pop(.75)}">kings<br><span style="color:${RED}">league</span></p>
   ${marca}
   <div style="margin-top:40px;${pop(1.6)}">${pill('os jogadores de verdade da Kings', GOLD, INK, 36)}</div>`)}
@@ -157,7 +157,7 @@ ${cena(38.0, 44.4, `
 ${cena(44.4, 60, `
   ${coroa}
   <p style="${OSW};font-size:120px;text-transform:uppercase;line-height:.9;margin-top:40px;${pop(44.7)}">kings<br><span style="color:${RED}">league</span></p>
-  <div style="margin-top:40px;${pop(45.3)}">${pill('vem aí nas salas online', GOLD, INK, 44)}</div>
+  <div style="margin-top:40px;${pop(45.3)}">${pill('já no ar · salas online', GOLD, INK, 44)}</div>
   <div style="margin-top:50px;animation:pulsa 1.4s ease-in-out 45.8s infinite">${marca}</div>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}`
 }

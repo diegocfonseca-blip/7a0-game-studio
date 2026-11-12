@@ -294,9 +294,13 @@ export function useAliciarJogador(): boolean {
 // 10/11 (Diego: *"por enquanto a kings poderá ver apenas eu e o henriquejunger07"*): o Rossini Money (16/10) saiu da lista.
 // O Campo 2D da Kings segue esta MESMA lista (`useKingsLiberada` no Botao2D e no LiveScoreCard).
 const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'henriquejunger07@gmail.com', 'kelvinoliveiraandradeenunes@gmail.com']) // 👑 10/11: K9 FC liberado pelo Diego
-let kingsOk = false
+// 🟢 12/11 (Diego: *"pode publicar pra todos e coloca uma de graça, igual às salas rápidas"*): Kings liberada pra TODOS. Criar a sala
+// conta como a sala grátis do dia (o gatilho `esc_sala_por_dia` vale pra qualquer sala): depois, 🎟️ 3 salas R$ 4,90 · ⭐ Craque Salas.
+// `false` volta a fechar só nos testadores.
+export const KINGS_GERAL = true
+let kingsOk = KINGS_GERAL
 function applyKings(email?: string | null): void {
-  const u = !!email && KINGS_TESTERS.has(email.toLowerCase())
+  const u = KINGS_GERAL || (!!email && KINGS_TESTERS.has(email.toLowerCase()))
   if (u === kingsOk) return
   kingsOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })

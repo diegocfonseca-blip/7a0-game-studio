@@ -887,6 +887,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   jogo 6–8s em cada regra) e *"mais demorado por partida… mais que todos"* (~3 min por partida). Duplas fora por enquanto.
   🔨 **E o LEILÃO é o DE SEMPRE** (*"o leilão é sempre igual ao de sempre nosso"*): eu inventei um pregão próprio e ele cortou. Vale
   pra QUALQUER modo novo: o pregão é o do jogo (envelope/revelação/monte); muda só formação, vagas ou baralho.
+  🟢 **LIBERADA PRA TODOS EM 12/11** (`KINGS_GERAL`): criar sala da Kings = a sala grátis do dia, igual às salas rápidas (depois 🎟️ R$ 4,90 · ⭐ Craque Salas R$ 9,90/mês · todos os planos). Sempre com senha. 🎩 Presidentes = 5ª posição do leilão (só na Kings), todos com a mesma força, carta nas cores do time.
   📺 **E A TEMPORADA TAMBÉM É A DE SEMPRE** (mesmo dia: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*): modo novo
   NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 

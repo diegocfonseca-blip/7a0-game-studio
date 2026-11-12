@@ -3251,7 +3251,7 @@ export function EscSetup() {
                   style={{ backgroundColor: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {m === 'kings' && (
                     <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35, letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999, border: `1.5px solid ${INK}`, background: INK, color: GOLD }}>
-                      {t('🔒 Só Diego, K9 e Chinesin', '🔒 Only Diego, K9 and Chinesin')}
+                      {t('✨ NOVO', '✨ NEW')}
                     </span>
                   )}
                   {m === true && seloNovoClubes() && (
