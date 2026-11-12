@@ -65,3 +65,12 @@ export const CATALOGO_PRESIDENTES = PRESIDENTES_KINGS.map(p => ({ name: p.name, 
 
 export const ehPresidente = (c: Pick<Card, 'presidente'> | null | undefined): boolean => !!c?.presidente
 export const coresDoPresidente = (club: string): [string, string] => CORES_TIME_KINGS[club] ?? ['#6B6B6B', '#2A2A2A']
+
+const CHAVES_PRES = new Set(PRESIDENTES_KINGS.map(p => `${p.name}|${p.club}|${p.year}`))
+/** a carta (nome+clube+ano) é de presidente? — a carta não depende do modo: onde ela aparecer, sai com as cores do time */
+export const ehCartaPresidente = (name: string, club: string, year: number): boolean => CHAVES_PRES.has(`${name}|${club}|${year}`)
+/** tinta legível sobre a cor de fundo */
+export const tintaSobre = (hex: string): string => {
+  const n = parseInt(hex.replace('#', ''), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#0C0C0C' : '#FFFFFF'
+}

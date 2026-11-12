@@ -264,8 +264,9 @@ export function CenaCarta({ carta, time, rival, escolhe }: { carta: CartaKingsIn
 //    Não tocou até zerar? O jogo bate (ou pula) sozinho. Depois mostra o que o motor deu.
 const SETAS = ['↖', '↑', '↗', '↙', '↓', '↘']
 export const DUELO_SEGUNDOS = 5
-export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscolha }: {
+export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscolha, presidente }: {
   duelo: DueloKingsInfo; souBatedor: boolean; nomeBatedor: string; nomeGoleiro: string; onEscolha: (canto: number) => void
+  /** 🎩 12/11: o presidente comprado no leilão (é ele que bate o pênalti do presidente) */ presidente?: string | null
 }) {
   const [seg, setSeg] = useState(DUELO_SEGUNDOS)
   const [escolha, setEscolha] = useState<number | null>(null)
@@ -279,7 +280,8 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
     : duelo.tipo === 'shootout' ? tr('🃏 SHOOTOUT DA CARTA', '🃏 CARD SHOOTOUT')
     : duelo.tipo === 'penalti_inverso' ? tr('🔄 PÊNALTI INVERSO', '🔄 REVERSE PENALTY') : tr('🃏 PÊNALTI DA CARTA', '🃏 CARD PENALTY')
   const titulo = souBatedor
-    ? (duelo.tipo === 'presidente' ? tr('O SEU PRESIDENTE BATE!', 'YOUR PRESIDENT SHOOTS!') : tr('VOCÊ BATE!', 'YOU SHOOT!'))
+    ? (duelo.tipo === 'presidente' ? (presidente ? tr(`${presidente.toUpperCase()}, O SEU PRESIDENTE, BATE!`, `${presidente.toUpperCase()}, YOUR PRESIDENT, SHOOTS!`) : tr('O SEU PRESIDENTE BATE!', 'YOUR PRESIDENT SHOOTS!')) : tr('VOCÊ BATE!', 'YOU SHOOT!'))
+    : duelo.tipo === 'presidente' && presidente ? tr(`🧤 ${presidente.toUpperCase()} (${nomeBatedor.toUpperCase()}) BATE — DEFENDA!`, `🧤 ${presidente.toUpperCase()} (${nomeBatedor.toUpperCase()}) SHOOTS — SAVE IT!`)
     : tr(`🧤 ${nomeBatedor.toUpperCase()} BATE — DEFENDA!`, `🧤 ${nomeBatedor.toUpperCase()} SHOOTS — SAVE IT!`)
   const ajuda = duelo.tipo === 'penalti_inverso'
     ? (souBatedor ? tr(`Pênalti ao contrário (carta do ${nomeGoleiro}): você é obrigado a bater. FAZ pra se salvar — se errar, o gol é DELES!`, `Reverse penalty (${nomeGoleiro}'s card): you must shoot. SCORE to stay safe — miss and THEY get the goal!`) : tr('Pênalti ao contrário (sua carta): DEFENDA e o gol é SEU!', 'Reverse penalty (your card): SAVE it and the goal is YOURS!'))

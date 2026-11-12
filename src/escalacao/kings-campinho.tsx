@@ -2,10 +2,12 @@
 // círculo do meio em neon azul/rosa. — o mesmo desenho no leilão de sempre (`YourPitch`, screens.tsx) e na
 // temporada (a de sempre, com a regra da Kings por cima: `kings-liga.ts`). Arquivo pequeno à parte pra não puxar o jogo da Kings inteiro pro leilão.
 import type { Sector } from './types'
+import { coresDoPresidente, tintaSobre } from './kings-presidentes'
+import { tr } from './lang'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 900 as const, textTransform: 'uppercase' as const }
-export interface CartaCampinho { name: string; pos: Sector; fame: number }
+export interface CartaCampinho { name: string; pos: Sector; fame: number; club?: string; presidente?: boolean }
 type Tier = { grad: string; ink: string }
 const tierEmoji = (f: number) => (f >= 5 ? '👑' : f === 4 ? '⭐' : f === 1 ? '🪵' : '🎯')
 const sobrenome = (n: string) => { const l = n.replace(/\s*\(.*?\)\s*/g, ' ').trim(); return l.split(' ').pop() || l }
@@ -15,7 +17,10 @@ export function CampinhoKings({ elenco, tier }: { elenco: CartaCampinho[]; tier:
     { pos: 'ATA', x: 32, y: 20, i: 0 }, { pos: 'ATA', x: 68, y: 20, i: 1 }, { pos: 'MEI', x: 24, y: 44, i: 0 }, { pos: 'MEI', x: 76, y: 44, i: 1 },
     { pos: 'ZAG', x: 30, y: 67, i: 0 }, { pos: 'ZAG', x: 70, y: 67, i: 1 }, { pos: 'GOL', x: 50, y: 85, i: 0 },
   ]
-  return (
+  // 🎩 12/11: o PRESIDENTE (vaga 'LAT') não entra em campo — fica numa faixa embaixo do campinho, nas cores do time dele
+  const pres = elenco.find(e => e.presidente || e.pos === 'LAT')
+  const pc = pres?.club ? coresDoPresidente(pres.club) : null
+  return (<div style={{ width: '100%', maxWidth: 330, margin: '0 auto' }}>
     <div style={{ position: 'relative', width: '100%', maxWidth: 330, margin: '0 auto', aspectRatio: '1 / 1.3', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 ${INK}`, background: 'radial-gradient(ellipse at 50% 30%,rgba(30,200,255,.14),transparent 50%),radial-gradient(ellipse at 50% 75%,rgba(255,43,214,.14),transparent 50%),repeating-linear-gradient(180deg,#0d0f12 0 9%,#111418 9% 18%)' }}>
       <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '5.5%', background: '#111', color: GOLD, ...OSW, fontSize: 9, letterSpacing: '.15em', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, whiteSpace: 'nowrap' }}>KINGS LEAGUE · 👑 · KINGS LEAGUE · 👑 · KINGS LEAGUE</div>
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '5.5%', background: '#111', color: GOLD, ...OSW, fontSize: 9, letterSpacing: '.15em', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, whiteSpace: 'nowrap' }}>LEILÃO LEGENDS · 🔨 · LEILÃO LEGENDS · 🔨</div>
@@ -36,6 +41,11 @@ export function CampinhoKings({ elenco, tier }: { elenco: CartaCampinho[]; tier:
         )
       })}
     </div>
-  )
+    <div style={{ marginTop: 8, border: `3px ${pres ? 'solid' : 'dashed'} ${INK}`, borderRadius: 12, boxShadow: pres ? `3px 3px 0 ${INK}` : 'none', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8,
+      background: pc ? `linear-gradient(150deg, ${pc[0]} 0%, ${pc[0]} 55%, ${pc[1]} 100%)` : 'rgba(255,255,255,.5)', color: pc ? tintaSobre(pc[0]) : INK }}>
+      <span style={{ fontSize: 18 }}>🎩</span>
+      <span style={{ ...OSW, fontSize: 13, textTransform: 'none', lineHeight: 1.1 }}>{pres ? <>{tr('Presidente', 'President')}: {pres.name}{pres.club ? <span style={{ opacity: .7, fontSize: 11 }}> · {pres.club}</span> : null}</> : tr('Presidente: ainda não tem (vem depois do ataque)', 'President: none yet (comes after the forwards)')}</span>
+    </div>
+  </div>)
 }
 

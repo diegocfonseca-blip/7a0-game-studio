@@ -37,7 +37,7 @@ import { FORMATIONS, SECTORS, rotuloFormacao, duplaPodeAgir, desfazParCruzado, t
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
-import { assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
@@ -127,6 +127,7 @@ import { HomeV03 } from './home-v03'
 import './career-private.css'
 import careerSetupRoom from './img/career-setup-room-private.webp'
 import presidentCasual from './img/career-president-casual.webp'
+import { ehCartaPresidente, coresDoPresidente, tintaSobre } from './kings-presidentes' // 🎩 12/11: a carta do presidente da Kings
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
@@ -137,12 +138,16 @@ import { PlacaGol, AviaoDaHome } from './patrocinio-visual' // 🏟️ placas at
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
 function secLabel(sport: Sport, pos: Sector, lang: 'pt' | 'en'): string {
   if (pokeModo()) return nomeDoLote(pos, lang === 'en') // ⚡ modo Pokémon: os setores viram LOTES misturados
+  if (pos === 'LAT' && presModo()) return lang === 'en' ? '🎩 Presidents' : '🎩 Presidentes' // 🎩 Kings: a vaga 'LAT' é do presidente
   return POS_LABELS[sport][pos].plural[lang]
 }
+// 🎩 KINGS (12/11): a partida tem PRESIDENTES (a vaga 'LAT' é deles, e vem depois do ataque) — a MESMA régua do motor (`ordemSetores`)
+const presModo = () => ordemSetores()[ordemSetores().length - 1] === 'LAT'
 // selo curto da posição na carta (GOL… no futebol; PG/SG/SF/PF/C no basquete).
 const SECTOR_KEYS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 function posTag(pos: string): string {
   if (pokeModo() && (SECTOR_KEYS as string[]).includes(pos)) return `L${SECTOR_KEYS.indexOf(pos as Sector) + 1}` // ⚡ lote 1…5
+  if (pos === 'LAT' && presModo()) return 'PRES' // 🎩 Kings
   return getSport() === 'basquete' && (SECTOR_KEYS as string[]).includes(pos)
     ? POS_LABELS.basquete[pos as Sector].tag : pos
 }
@@ -1111,7 +1116,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
           {bar}
         </div>
       )}
-      <div className={`ll-shell-content max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}><AuctionDesktopLayout enabled={auctionDesktop} bar={bar} title={isReserveAuction?`${reserveLabel} · ${auctionTitle}`:auctionTitle} description={auctionDescription} playersTitle={state.screen==='monte'?tr('Monte de jogadores','Player pile'):state.screen==='cerimonia'?tr('Revelação','Reveal'):state.phase==='pregao'?tr('Jogador na mesa','Player at auction'):undefined} budget={auctionDesktop?{balance:state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx]),...auctionBudget}:undefined} slots={auctionDesktop&&['envelope','resq_envelope','holandes','pregao'].includes(state.phase)?SECTORS.map(position=>({position:posTag(position),open:openSlots(state.managers[state.youIdx],position)})):undefined}>{children}</AuctionDesktopLayout></div>
+      <div className={`ll-shell-content max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}${wide && desk2 ? ' ll-desk2' : ''}`}><AuctionDesktopLayout enabled={auctionDesktop} bar={bar} title={isReserveAuction?`${reserveLabel} · ${auctionTitle}`:auctionTitle} description={auctionDescription} playersTitle={state.screen==='monte'?tr('Monte de jogadores','Player pile'):state.screen==='cerimonia'?tr('Revelação','Reveal'):state.phase==='pregao'?tr('Jogador na mesa','Player at auction'):undefined} budget={auctionDesktop?{balance:state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx]),...auctionBudget}:undefined} slots={auctionDesktop&&['envelope','resq_envelope','holandes','pregao'].includes(state.phase)?ordemSetores().map(position=>({position:posTag(position),open:openSlots(state.managers[state.youIdx],position)})):undefined}>{children}</AuctionDesktopLayout></div>
       {inGame && !hideExit && (
         <div ref={saidaRef} className="ll-shell-exit max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
@@ -3935,7 +3940,7 @@ export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean }
   const { state, dispatch } = useEsc()
   const mobileHeader = useContext(MobileAuctionHeaderContext)
   // ⚡ revelação ÚNICA: a barra acende a posição da carta que está sendo revelada (o motor deixa o setor no último)
-  const secBarra = state.euRevelando ? Math.max(0, SECTORS.indexOf(state.revealQueue[state.revealIdx]?.card.pos as typeof SECTORS[number])) : state.sectorIdx
+  const secBarra = state.euRevelando ? Math.max(0, ordemSetores().indexOf(state.revealQueue[state.revealIdx]?.card.pos as typeof SECTORS[number])) : state.sectorIdx
   const you = state.managers[state.youIdx]
   const [regras, setRegras] = useState(false)
   const V = useT()
@@ -3956,7 +3961,7 @@ export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean }
       )}
       <div className="ll-auction-bar-row flex items-center justify-between max-w-xl mx-auto gap-2">
         <div className="ll-auction-bar-positions flex gap-1.5">
-          {SECTORS.map((p, i) => (
+          {ordemSetores().map((p, i) => (
             <span key={p} className="ll-auction-bar-position border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
               style={{ backgroundColor: i < secBarra ? INK : i === secBarra ? GOLD : '#fff', color: i < secBarra ? '#fff' : INK }}>
               {posTag(p)}
@@ -4412,8 +4417,8 @@ export function PainelDupla({ destaque }: { destaque?: Sector }) {
   const donoDa = (c: DuplaCat) => d.soloUid ?? d.cats?.[c]
   const minhas = (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA', 'MONTE'] as DuplaCat[]).filter(c => donoDa(c) === eu)
   const dele = (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA', 'MONTE'] as DuplaCat[]).filter(c => donoDa(c) && donoDa(c) !== eu)
-  const falta = SECTORS.map(p => ({ p, n: openSlots(you, p) })).filter(x => x.n > 0)
-  const completos = SECTORS.filter(p => openSlots(you, p) === 0)
+  const falta = ordemSetores().map(p => ({ p, n: openSlots(you, p) })).filter(x => x.n > 0)
+  const completos = ordemSetores().filter(p => openSlots(you, p) === 0)
   const nomeP = (p: Sector, n: number) => { const pt: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goleiros'], LAT: ['lateral', 'laterais'], ZAG: ['zagueiro', 'zagueiros'], MEI: ['meia', 'meias'], ATA: ['atacante', 'atacantes'] }; const en: Record<Sector, [string, string]> = { GOL: ['keeper', 'keepers'], LAT: ['full-back', 'full-backs'], ZAG: ['centre-back', 'centre-backs'], MEI: ['midfielder', 'midfielders'], ATA: ['forward', 'forwards'] }; return tr(`${n} ${pt[p][n > 1 ? 1 : 0]}`, `${n} ${en[p][n > 1 ? 1 : 0]}`) }
   const chip = (c: DuplaCat) => <span key={c} className="text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSWALD, fontWeight: 900, background: c === destaque ? GOLD : '#fff' }}>{c === 'MONTE' ? tr('MONTE', 'PILE') : c}</span>
   return (
@@ -4460,7 +4465,7 @@ function Holandes() {
   const [blLang] = useLang()
   const you = state.managers[state.youIdx]
   const hol = state.hol
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ordemSetores()[state.sectorIdx]
   const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
   const lang: 'pt' | 'en' = blLang === 'en' ? 'en' : 'pt'
   const L = (pt: string, en: string) => (lang === 'en' ? en : pt)
@@ -4769,7 +4774,7 @@ function EnvelopeUnico() {
   useEffect(() => { const iv = setInterval(() => setNow(agoraSala()), 250); return () => clearInterval(iv) }, [])
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 180
   // 2ª lista: posição sem carta sobrando não conta (nem pede lance nem aparece na barra)
-  const setores = SECTORS.map(p => ({ p, cards: state.currentCards.filter(c => c.pos === p), vagas: you ? openSlots(you, p) : 0 })).filter(x => state.euRodada !== 2 || x.cards.length > 0)
+  const setores = ordemSetores().map(p => ({ p, cards: state.currentCards.filter(c => c.pos === p), vagas: you ? openSlots(you, p) : 0 })).filter(x => state.euRodada !== 2 || x.cards.length > 0)
   const precisaLacrar = !!you && !state.espectador && you.money > 0 && setores.some(x => x.vagas > 0 && x.cards.length > 0)
   const podeLance = precisaLacrar && !iSubmitted && !pending
   const total = Object.values(bids).reduce((a, b) => a + b, 0)
@@ -4915,7 +4920,7 @@ function Envelope() {
   const { state, dispatch, emote } = useEsc()
   const [blLang] = useLang()
   const you = state.managers[state.youIdx]
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ordemSetores()[state.sectorIdx]
   // 🧢 setor TÉCNICO na mesa: mesma tela, mesmo envelope — só muda o rótulo e
   // que a "vaga" é uma só (todo time tem um posto de técnico).
   const tecMesa = !!state.tecLote
@@ -7292,7 +7297,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
   return { min, cena }
 }
 /** 👑 a cena da vez, desenhada por cima do jogo */
-function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void; /** os jogadores de LINHA do time (a suspensão escolhe um do rival) — a mesma lista da regra */ linhaDe: (id: number) => string[] }) {
+function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe, presidenteDe }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void; /** os jogadores de LINHA do time (a suspensão escolhe um do rival) — a mesma lista da regra */ linhaDe: (id: number) => string[]; /** 🎩 o presidente do time */ presidenteDe?: (id: number) => string | null }) {
   if (cena.tipo === 'banner' || cena.tipo === 'entra') return null // 📣 11/11: aviso de texto = faixa embaixo do placar (`kingsInfo`)
   if (cena.tipo === 'pontape') { const p = jogo?.kings?.posse; return <CenaPontape posse={p != null ? nome(p) : undefined} ladoPosse={p === jogo?.awayId ? 'd' : 'e'} casa={jogo ? nome(jogo.homeId) : undefined} fora={jogo ? nome(jogo.awayId) : undefined} /> }
   if (cena.tipo === 'dado') return <CenaDado face={cena.face} />
@@ -7309,7 +7314,7 @@ function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe }: { cena: 
   }
   const d = jogo?.kings?.duelos?.find(x => x.key === cena.key)
   if (!d) return null
-  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} />
+  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} presidente={d.tipo === 'presidente' ? presidenteDe?.(d.batedor) : null} />
 }
 /** 👑 a caixa de regras da Kings — aparece antes da 1ª rodada, no lugar do "aguardando o pontapé" */
 function RegrasKingsBox() {
@@ -8420,7 +8425,7 @@ export function EscSeason() {
       )}
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
-      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto, ...(kJogo ? { jogo: `${kJogo.homeId}-${kJogo.awayId}` } : {}) })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL' && !c.presidente).map(c => c.name)} />}
+      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto, ...(kJogo ? { jogo: `${kJogo.homeId}-${kJogo.awayId}` } : {}) })} linhaDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL' && !c.presidente).map(c => c.name)} presidenteDe={id => (state.managers.find(m => m.id === id)?.squad ?? []).find(c => c.presidente)?.name ?? null} />}
       {manual && !state.dinastiaPaused && !copaLive && (
         // ⏩ marcha da velocidade: só no manual (o passo é seu). No online manual/stream
         // só o HOST vê e escolhe — o valor vai pro estado e sincroniza pra sala toda.
@@ -10246,13 +10251,18 @@ function fallbackBio(fame: number, pos: string): string {
   }
 }
 export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
-  const avatarPreview = useLegendPresentation() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(pos) && !!avatarLote1(name, club, year)
-  const isProm = ehPromessa({ name, club, year, promessa }) // 💎 pela CARTA, nunca só pelo nome
-  const t = isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
+  // 🎩 KINGS (12/11, Diego: *"a carta dos presidentes, ao invés de cor dourada de lenda ou cor tier… terão visual do time na carta
+  // toda, sem boneco ou avatar"*): a carta é a de sempre, só a cor da categoria vira a cor do time e sai o retrato
+  const pres = ehCartaPresidente(name, club, year)
+  const avatarPreview = !pres && useLegendPresentation() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(pos) && !!avatarLote1(name, club, year)
+  const isProm = !pres && ehPromessa({ name, club, year, promessa }) // 💎 pela CARTA, nunca só pelo nome
+  const presCores = pres ? coresDoPresidente(club) : null
+  const t = presCores ? { ...FAME_TIER[2], grad: `linear-gradient(150deg, ${presCores[0]} 0%, ${presCores[0]} 48%, ${presCores[1]} 100%)`, holo: false, label: '🎩 PRESIDENTE', tierColor: tintaSobre(presCores[0]), ink: tintaSobre(presCores[0]), crestBg: presCores[1], crestInk: tintaSobre(presCores[1]) }
+    : isProm ? PROMESSA_TIER : (FAME_TIER[fame] ?? FAME_TIER[1])
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
   const foto = fotoDoJogador(name)
   const pk = pokeDe(name) // ⚡ modo Pokémon: Lenda = a arte dele (sem rosto); o resto = o desenho do tipo
-  const text = bio ?? BIOS[name] ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
+  const text = pres ? tr(`Presidente do ${club} na Kings League.`, `${club} president in the Kings League.`) : bio ?? BIOS[name] ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
   return (
     <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
       style={{ background: t.grad, aspectRatio: '3 / 4.2', boxShadow: `5px 6px 0 0 ${INK}`, padding: big ? 16 : 11 }}>
@@ -10263,7 +10273,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           transition={{ duration: !isProm && fame === 5 ? 2.2 : !isProm && fame === 4 ? 2.8 : 3.6, repeat: Infinity, ease: 'linear' }} />
       )}
       <div className="relative flex justify-between items-start gap-1">
-        {pk ? <ChipsTipo tipos={pk.tipos} small={!big} /> : <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{posTag(pos)}</span>}
+        {pk ? <ChipsTipo tipos={pk.tipos} small={!big} /> : <span className="font-black rounded-lg" style={{ ...OSWALD, background: INK, color: '#fff', border: '2px solid rgba(255,255,255,.25)', fontSize: big ? 13 : 11, padding: '2px 7px' }}>{pres ? 'PRES' : posTag(pos)}</span>}
         <div className="flex flex-col items-end gap-1">
           <span className="font-black tracking-wide text-right" style={{ ...OSWALD, color: t.tierColor, fontSize: big ? 11 : 9 }}>{t.label}</span>
           {folk && (
@@ -10275,7 +10285,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           nome, exatamente como sempre foi. Como quase todo mundo ainda não tem,
           o normal é cair na letra — e a carta não muda em nada. Ver
           `rostos.ts`: o Diego vai fazendo os rostos aos poucos. */}
-      {pk ? <div className="relative self-center"><ArtePoke p={pk} size={big ? 130 : 84} /></div> : avatarPreview ? <div className="ll-lote1-card-avatar"><AvatarLote1 name={name} club={club} year={year}/></div> : <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
+      {pres ? <div className="relative self-center" aria-hidden style={{ height: big ? 100 : 66 }} /> : pk ? <div className="relative self-center"><ArtePoke p={pk} size={big ? 130 : 84} /></div> : avatarPreview ? <div className="ll-lote1-card-avatar"><AvatarLote1 name={name} club={club} year={year}/></div> : <div className="relative self-center rounded-full flex items-center justify-center overflow-hidden"
         style={{ width: big ? 100 : 66, height: big ? 100 : 66, background: t.crestBg, color: t.crestInk, border: '3px solid rgba(0,0,0,.28)', ...OSWALD, fontWeight: 900, fontSize: big ? 42 : 27, boxShadow: t.holo ? 'inset 0 0 14px rgba(255,255,255,.7)' : 'none' }}>
         {foto
           ? <img src={foto} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
@@ -10284,7 +10294,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
       <div className="relative">
         <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{name}</p>
         <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
-        <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{isProm ? '💎💎💎' : '⭐'.repeat(fame)}</p>
+        {!pres && <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{isProm ? '💎💎💎' : '⭐'.repeat(fame)}</p>}
         {(big || showBio) && text && (
           <p className="font-semibold italic" style={{ color: t.ink, opacity: .78, fontSize: big ? 12 : 9.5, lineHeight: 1.28, marginTop: big ? 8 : 5, display: '-webkit-box', WebkitLineClamp: big ? 5 : 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>“{text}”</p>
         )}
