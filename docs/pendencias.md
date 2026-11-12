@@ -13399,3 +13399,9 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - ✅ Banco: esc_socios (sócio nº88, time de coração São Paulo), esc_nomes_batismo (Goti / FC / EC), user_colors ouro manual.
 - 🪑 SEM vaga na pirâmide (joga na sala do K9, igual ao Calabresos). Sem número de fundador (batismo, regra 14/10).
 - ✅ Post: `scripts/posts/batismo-goti.png`.
+
+## 🎩 12/11 — Kings: PRESIDENTE vira a 5ª posição do leilão (mockup `scripts/mockups/kings-presidentes.png`, esperando OK)
+- Diego: *"add todos esses presidentes como se fosse uma posição da Kings… presidente vem depois do atacante… não bota repetido… Gaules sem apelido"* + Juninho Manella (FURIA).
+- Decidido (1s 2s 3s 4s): o presidente comprado bate o 🎩 pênalti do presidente (nome na tela), não muda a força do time · TODOS com a mesma força (nem o Neymar acima) · Kelvin Oliveira fica como jogador E presidente · só na Kings (Partida Rápida e salas, os dois baralhos).
+- 29: Allan Stag (Dibrados) · Gaules (G3X) · Jon Vlogs, Luva de Pedreiro, Racha (Capim) · Paulinho o Loko, LuquEt4 (Dendele) · Toguro, Nobru, Cerol, Benja (Fluxo) · Yuri 22 (Desimpedidos Goti) · Ludmilla, Whindersson Nunes, Lucas Freestyle (FC Real Elite) · Kond (Funkbol) · Michel Elias, MC Hariel, Igão (Podpah Funkbol) · Neymar Jr., Cris Guedes, Juninho Manella (FURIA) · Kelvin Oliveira (G3X) · Coringa, Brabox (LOUD) · Nyvi Estephan, Falcão (Nyvelados) · Renatin (DesimpaiN) · Lucas Tylty (Dibrados).
+- ⚠️ Mexe no coração do leilão (as 5 posições são fixas em todo o jogo): fazer com cuidado, isolado da Kings, e testar todos os jeitos de lance.
