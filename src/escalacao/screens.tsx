@@ -6102,7 +6102,11 @@ function Reveal() {
           {/* 🎁 SURPRESA anti-spoiler: o nome fica BORRADO até alguém GANHAR de fato
               (martelo com vencedor). Sem lance = nunca revela (vai pro Monte às cegas);
               com lance = borrado até o martelo bater. */}
-          {!mesaOn && (privateReveal && identityVisible && avatarLote1(item.card.name, item.card.club, item.card.year)
+          {!mesaOn && (item.card.presidente
+            /* 🎩 13/11 (Diego, print da sala Futpoint: *"na revelação do presidente deveria aparecer a carta padrão… dos presidentes e suas
+               cores"*): o presidente revela com a CARTA aprovada (cores do time, sem rosto), não a linha de texto */
+            ? <div style={{ maxWidth: 230, margin: '0 auto' }}><CollectibleCard {...item.card} big /></div>
+            : privateReveal && identityVisible && avatarLote1(item.card.name, item.card.club, item.card.year)
             ? <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
             : <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} mudo={ehEnigma && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />)}
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
