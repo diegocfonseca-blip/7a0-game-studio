@@ -13457,3 +13457,6 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - 🚫 Aviso "você pode cancelar o mensal" pra quem tem plano de uma vez + mensal ativo: o Diego NÃO gostou ("N gostei n"). Não repropor.
 - Pendente: EhuLaion FC (sergioricardocf16) — Batismo por R$ 55 (Diego mandou; Fundador preço normal). Precisa mexer no `esc_mp_preco` (trava a API 1–3 min) → esperando o Diego dizer agora ou de manhã.
 - Pendente: tela do batismo mostrava "+ R$ 55" pro Craque mensal (corrigida no branch, commit "preço da tela segue a régua do banco") → esperando OK pra publicar.
+- 💳 13/11 (noite): preços de hoje arrumados na TELA (`precos-servidor.ts`: Loja, vitrine, janela do batismo e upgrade do Lenda leem o
+  preço do banco). O banco (`docs/sql/precos-tela-e-especial-20261113.sql`: preço especial + `esc_mp_meus_precos`) roda de madrugada
+  (mexe em função → engasga as salas). Até lá a tela usa a conta local (já corrigida pro mensal).
