@@ -5,13 +5,20 @@
 
 
 
-## 📊 13/11 — Carreira: meio-campo quase não dá assistência (reclamação de jogador) — MEDIDO, esperando o OK do Diego pra mexer
+## 📊 13/11 — Carreira: meio-campo quase não dá assistência (reclamação de jogador) — AJUSTADO no branch (Diego: "Pode"), falta publicar
 - Os jogos do SEU time na carreira são do motor novo; os dos bots, da simulação de sempre. Medido (`scripts/mede-gols-assist-motor2.mts`):
   · motor novo 4-3-3: assistências ATA 60% · MEI 33% · LAT 5% — gols ATA 93% · MEI 5% (4-4-2: assist. ATA 51% · MEI 39%; gols ATA 94%)
   · simulação dos bots (pesos de `garcomDoGol`/gols): assistências MEI ~51% · ATA ~24% · LAT ~20% — gols ATA ~60% · MEI ~30%
 - Ou seja: no seu time quem dá o último passe é quase sempre outro atacante, e meia quase nunca faz gol. Proposta: ajustar o motor
   novo pra o meia dar mais o passe final (e chegar pra chutar), mirando ~45% das assistências no MEI e ~20% dos gols. Mexe em como o
   jogo da carreira rola — só depois do OK dele, e com a trava `npm run motor2` passando.
+
+- FEITO (motor novo, `motor2/decide.ts` + `coletivo.ts`): passe decisivo vale mais saindo do meia/lateral (`KEY_MEIA`), atacante na cara
+  do gol finaliza em vez de rolar pro outro atacante (`KEY_ATA`), atacante apertado escora pro meia (`ESCORA_MEIA`), meia que chega
+  livre arrisca da entrada da área (`CHEGADA_MEIA`), e com a bola perto da área o meia encosta 3 m atrás do atacante (era 7) e ocupa a
+  marca do pênalti no ataque pela ponta. 300 jogos: assist. MEI 33% → 44% (4-4-2: 39% → 45%) · gols MEI 5% → 9% · 1,3–1,5 gol/jogo.
+- `npm run motor2` já falhava ANTES (régua "parelho" 44%×29%) e segue no mesmo lugar (47%×26%); `npm run artilharia` também já tinha 1
+  falha antes (medalha 🥇), sem relação.
 
 ## 👑 11/11 — Kings: gol dobrado e shootout travando (esta sessão fica com a Kings a partir de agora, ordem do Diego)
 - ✖️2 *"às vezes o gol dobrado não conta"*: a janela olhava o minuto do placar (0–93) e a tela mostra o da Kings arredondado — gol

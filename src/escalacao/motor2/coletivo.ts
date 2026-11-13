@@ -56,7 +56,7 @@ export function ancora(m: Motor2, p: Atleta): { x: number; y: number } {
   // (atacando, o atacante fica no OMBRO do último zagueiro — nunca atrás dele, que é impedimento e bola perdida; o meia que chega fica
   // 6 m atrás dele, nunca na mesma linha: um é a profundidade, o outro é a segunda onda)
   if (ataca && p.grupo === 'ATA') prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 1)
-  if (ataca && p.grupo === 'MEI' && dep > 0.6) prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - 7)
+  if (ataca && p.grupo === 'MEI' && dep > 0.6) prof = Math.min(prof, L - linhaImpedimento(m, p.lado) - (MEIA_NA_MARCA && frente(p.lado, m.bola.y) < 30 ? MEIA_ENCOSTA : 7)) // (⚽ 13/11: com a bola perto da área o meia encosta — 3 m atrás do atacante, não 7)
   let x = 34 + (p.bx - 34) * b.largura + b.desliza
   // ponta abre o campo quando o time ataca…
   if (ataca && p.grupo === 'ATA' && (p.bx < 22 || p.bx > 46)) {
@@ -92,6 +92,11 @@ export function linhaImpedimento(m: Motor2, lado: Lado): number {
   const fs = m.atl.filter(a => a.lado !== lado).map(a => frente(lado, a.y)).sort((a, b) => a - b)
   return Math.min(fs[1] ?? 0, frente(lado, m.bola.y), L / 2)
 }
+
+/** ⚽ 13/11: no ataque pela ponta, o meia que chega vai pra marca do pênalti (era o 3º atacante) */
+export const MEIA_NA_MARCA = !(globalThis as { __SEM_MEIA_MARCA?: boolean }).__SEM_MEIA_MARCA
+/** quantos metros atrás do atacante o meia encosta com a bola perto da área (era 7) */
+export const MEIA_ENCOSTA = +(globalThis as { __MEIA_ENCOSTA?: number }).__MEIA_ENCOSTA! || 3
 
 // direções do "anel" de opções (no referencial do time: +y = pra frente) — sem trigonometria
 const ANEL: [number, number][] = [[0, 1], [0.7, 0.7], [-0.7, 0.7], [1, 0], [-1, 0], [0.7, -0.7], [-0.7, -0.7]]
@@ -150,7 +155,13 @@ export function planeja(m: Motor2) {
       if ((d.x < 20 || d.x > W - 20) && frente(l, d.y) < 34) {
         const sx = d.x < 34 ? -1 : 1, lin = linhaAtaque(l), fyA = l === 0 ? 1 : -1
         const PONTOS: [number, number][] = [[34 + sx * 3, 6], [34 - sx * 4, 7.5], [34, 11.5]]
-        const vao = campo.filter(p => (p.grupo === 'ATA' || (p.grupo === 'MEI' && p.dep > 0.6)) && p.papel !== 'opcao').sort((a, b) => frente(l, a.y) - frente(l, b.y)).slice(0, 3)
+        let vao = campo.filter(p => (p.grupo === 'ATA' || (p.grupo === 'MEI' && p.dep > 0.6)) && p.papel !== 'opcao').sort((a, b) => frente(l, a.y) - frente(l, b.y)).slice(0, 3)
+        // ⚽ 13/11 (medido: o meia fazia 5% dos gols — chutava só de longe): a MARCA DO PÊNALTI (o corte pra trás, o rebote) é do meia que
+        // chega, não do 3º atacante. Os dois primeiros paus continuam dos atacantes
+        if (MEIA_NA_MARCA) {
+          const meia = campo.filter(p => p.grupo === 'MEI' && p.dep > 0.6 && p.papel !== 'opcao' && p !== d).sort((a, b) => frente(l, a.y) - frente(l, b.y))[0]
+          if (meia && !vao.slice(0, 2).includes(meia)) vao = [...vao.filter(p => p !== meia).slice(0, 2), meia]
+        }
         vao.forEach((p, i) => { const [x, y] = PONTOS[i]; m.corrida.set(p, { ate: m.t + 0.6, alvo: { x, y: lin + fyA * y } }); p.papel = 'infiltra' })
       }
       // ↗️ lateral que apoia passa por fora quando a bola está do lado dele

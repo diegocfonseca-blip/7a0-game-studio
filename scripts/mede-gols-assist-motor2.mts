@@ -1,5 +1,6 @@
 // 📊 13/11 (reclamação de jogador: "meio-campo quase não dá assistência na carreira"). Mede, no MOTOR NOVO (jogos do seu time na
 // carreira), quem faz os gols e quem dá as assistências por posição. Uso: npx tsx scripts/mede-gols-assist-motor2.mts 300 4-3-3 [bots]
+// Depois do ajuste de 13/11 (300 jogos): 4-3-3 assist. MEI 44% · ATA 49% · gols MEI 9% — 4-4-2 assist. MEI 45% · gols MEI 7%. Antes: MEI 33% / 39%, gols 5% / 4%.
 import { Motor2 } from '../src/escalacao/motor2/motor'
 import { CATALOG, CATALOG_EU } from '../src/escalacao/data'
 type C = { name: string; club: string; year: number; pos: string; fame: number; lo: number; hi: number }
