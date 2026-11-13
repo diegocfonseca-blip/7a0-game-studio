@@ -13416,3 +13416,5 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - 👑 **13/11: sala da Kings com o BARALHO DA KINGS = máx. 10 pessoas** (`KINGS_SALA_MAX`, lobby.tsx). Causa: sala FDBQPN com 16 pessoas → faltaram zagueiros reais e entraram 8 incógnitas (Valdir Trovoada, Gonçalves Maestro…, clube Mixto). Com jogadores padrão não tem limite. ⏳ Pra subir pra 20: faltam ~53 nomes da Kings (+4 GOL, +18 ZAG, +16 MEI, +15 ATA) — Diego vai juntar. E o campinho da Kings perdeu o emoji da categoria (só cor, posição e nome).
 - 🎩 **13/11: revelação do presidente mostra a CARTA aprovada** (cores do time, sem rosto) no lugar da linha de texto (Diego, print na sala do Futpoint).
 - 🏷️ **13/11: "Foi profissional" virou "Profissional"** (EN "Pro") em toda a tela (cartas, rótulos, técnicos, olheiro, Liga Draft). Só o nome; regra igual.
+
+- **13/11 — Fundador sem contato: lucassaboia14@gmail.com** (pagou o 🖋 Fundador e não falou com o Diego). Aviso id 68 em `esc_avisos_conta` com o WhatsApp e o Instagram do Diego. Quando ele chamar, seguir o roteiro de batismo (arte + as 4 linhas no banco).
