@@ -4575,7 +4575,7 @@ export function EscLobby() {
                   <div className="mt-2.5">
                     <p className="text-white/55 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>{tr('Categoria', 'Category')}</p>
                     <Seg options={[[false, tr('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => setRapidoVarzea(v)} />
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? tr('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pick-up football.') : tr('🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.', '🇧🇷 The whole BR deck, from the star to the donkey.')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? tr('🥅 Sem craques: só bom jogador e profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pick-up football.') : tr('🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.', '🇧🇷 The whole BR deck, from the star to the donkey.')}</p>
                   </div>
                 )}
               </SegField>

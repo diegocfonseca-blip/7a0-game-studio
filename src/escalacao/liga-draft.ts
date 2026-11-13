@@ -301,7 +301,7 @@ export function categoriaDa(c: { name: string; club?: string; year?: number; fam
   if (c.fame >= 5) return { pt: 'LENDA', en: 'LEGEND', emoji: '👑', brilho: '#FFC400' }
   if (c.fame === 4) return { pt: 'CRAQUE', en: 'STAR', emoji: '⭐', brilho: '#CBD4DE' }
   if (c.fame >= 2) return { pt: 'BOM JOGADOR', en: 'GOOD PLAYER', emoji: '🎯', brilho: '#2E9E5B' }
-  return { pt: 'FOI PROFISSIONAL', en: 'EX-PRO', emoji: '🪵', brilho: '#CBBF9E' }
+  return { pt: 'PROFISSIONAL', en: 'PRO', emoji: '🪵', brilho: '#CBBF9E' }
 }
 export function decadaDe(year: number): { pt: string; en: string } {
   const d = Math.floor(year / 10) * 10

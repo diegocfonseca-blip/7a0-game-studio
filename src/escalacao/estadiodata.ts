@@ -374,7 +374,7 @@ export const EMP_META: Record<EmpCat, { label: string; emoji: string; value: num
   craque:   { label: 'Craque',           emoji: '⭐', value: 4, req: 'estádio 100% completo' },
   promessa: { label: 'Promessa',         emoji: '💎', value: 3, req: '3 setores prontos' },
   bom:      { label: 'Bom Jogador',      emoji: '📇', value: 2, req: '1 setor do estádio pronto' },
-  prof:     { label: 'Foi Profissional', emoji: '💼', value: 1, req: 'livre' },
+  prof:     { label: 'Profissional', emoji: '💼', value: 1, req: 'livre' },
 }
 // categoria de uma carta pela raridade (promessa manda; senão pela fama)
 export function empCat(c: { fame?: number; promessa?: boolean }): EmpCat {
