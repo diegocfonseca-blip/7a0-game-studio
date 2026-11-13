@@ -32,7 +32,7 @@ const seed:any={...INITIAL,careerOnline:true,onlineMode:'cpu',sport:'futebol',se
  careerPresidency:{0:{revision:1,owned:[{id:'sofa',paid:100},{id:'planta',paid:20},...cars],homeFurniture:['sofa','planta']}}}
 W.mapModules={reducer,INITIAL,sanitize,...domain,...wallet,...labels,LOTE_MUSEU_CLUBE,interfereLoteMuseu,conquistasDaCarreira,criarMobiliaComplexo,complexoDoEstadio,STADIUM_EXTRAS,presidentPreviewEnabled}
 function App(){
- const allowed=usePresidentPreview(),[state,dispatch]=useReducer(reducer,W.__mapSeed??seed),[active,A]=useState<any>(null),[stage,S]=useState(0),[empty,E]=useState(false)
+ const allowed=usePresidentPreview(),[state,dispatch]=useReducer(reducer,W.__mapSeed??seed),[active,A]=useState<any>(null),[stage,S]=useState(Number(query.get('museumStage')??0)),[empty,E]=useState(false)
  W.mapState=state;W.mapDispatch=dispatch;W.mapSetStage=S;W.mapEmpty=E;W.mapAllowed=allowed;W.mapSetPanel=A
  if(mode==='carreira'){
   const noop=()=>{},ctx:any={state,dispatch,emote:noop,addEmote:noop,emotes:[],chat:[],chatUnread:0,sendChat:noop,chatOpen:false,setChatOpen:noop,hostStale:false,kickPlayer:noop,leaveRoom:noop}
@@ -41,7 +41,7 @@ function App(){
  const home=<ResidenciaClube state={state} mgrId={0} onBack={()=>A(null)} onVadico={()=>A('veiculos')} onFurnitureHome={ids=>{dispatch({type:'PRESIDENCY_FURNITURE_HOME',mgrId:0,ids});return true}}/>
  if(mode==='home')return home
  if(mode==='museum')return <main style={{maxWidth:1100,margin:'auto',padding:12}}><MuseuClube state={state} mgrId={0} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:0,expectedStage})} onStore={()=>A('estrutura')}/></main>
- return <div style={{padding:8,background:'#0a100d'}}><Complexo museumStage={state.careerMuseums?.[0]?.etapas??stage} clubName="Clube de teste" stadium={empty?{inv:{},ext:[]}:full} presidency={wallet.carteiraDaCarreira(state,0)} onOpenClub={target=>{W.mapDestination=target;A(target)}} onReady={api=>W.mapApi=api}/><ClubeMapaPainel enabled active={active} club="Clube de teste" agency onSelect={A} onClose={()=>A(null)}>{active==='museu'?<MuseuClube state={state} mgrId={0} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:0,expectedStage})} onStore={()=>A(null)}/>:active==='presidencia'?home:<p>{active==='financas'?'Finanças do clube':active==='patrocinio'?'Patrocínios e contratos':'Destino local de teste'}</p>}</ClubeMapaPainel></div>
+ return <div style={{padding:8,background:'#0a100d'}}><Complexo cidadeViva={query.has('hour')?{canteiros:[],humor:'normal',carreata:false,dia:Date.UTC(2027,1,Number(query.get('day')??8)),hora:Number(query.get('hour'))}:undefined} museumStage={state.careerMuseums?.[0]?.etapas??stage} clubName="Clube de teste" stadium={empty?{inv:{},ext:[]}:full} presidency={wallet.carteiraDaCarreira(state,0)} onOpenClub={target=>{W.mapDestination=target;A(target)}} onReady={api=>W.mapApi=api}/><ClubeMapaPainel enabled active={active} club="Clube de teste" agency onSelect={A} onClose={()=>A(null)}>{active==='museu'?<MuseuClube state={state} mgrId={0} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:0,expectedStage})} onStore={()=>A(null)}/>:active==='presidencia'?home:<p>{active==='financas'?'Finanças do clube':active==='patrocinio'?'Patrocínios e contratos':'Destino local de teste'}</p>}</ClubeMapaPainel></div>
 }
 _bancadaApoio(email,'ouro')
 createRoot(document.getElementById('root')!).render(<App/>);

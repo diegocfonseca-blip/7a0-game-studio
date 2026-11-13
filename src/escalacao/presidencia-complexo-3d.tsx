@@ -7,7 +7,7 @@ import {TERRENO_USUARIO as HOME} from './residencia-planta'
 import {duplaDaGaragem} from './presidencia-garagem'
 import {LOTE_AGENCIA_CLUBE,nomeAgenciaClube,type DestinoClubeMapa} from './clube-mapa-destinos'
 import './clube-mapa.css'
-import {LOTES_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
+import {LOTES_PATROCINADORES_CIDADE,CENTRO_PATROCINADORES_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarZoomCameraFixa} from './presidencia-camera-zoom-fixo'
 import {framePacer} from './cidade3d/frame-pacer.mjs'
 import {criarLodCadeirasMobile} from './presidencia-cadeiras-lod-mobile'
@@ -595,7 +595,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    }
    {const fzAgora=performance.now();fan.update(fzAntes?(fzAgora-fzAntes)/1000:0,camera,controls.target);fzAntes=fzAgora};seatLod.update(camera);architecture.updateSeats(camera);updateShadows();lighting.update(camera,controls.target);renderer.render(scene,camera)
    if(poiLabels.current){
-    const anchors:Record<string,[number,number,number]>={'gestao-clube':[0,12,80],'casa-usuario':[HOME.x,7,HOME.z],patrocinadores:[-220,40,-277],'museu-clube':[LOTE_MUSEU_CLUBE.x,10,LOTE_MUSEU_CLUBE.z],'agencia-clube':[LOTE_AGENCIA_CLUBE.x,LOTE_AGENCIA_CLUBE.height+2,LOTE_AGENCIA_CLUBE.z],shopping:[141,33,-247],loja:[-41.6,8,136]}
+    const anchors:Record<string,[number,number,number]>={'gestao-clube':[0,12,80],'casa-usuario':[HOME.x,7,HOME.z],patrocinadores:[CENTRO_PATROCINADORES_CIDADE.x,20,CENTRO_PATROCINADORES_CIDADE.z],'museu-clube':[LOTE_MUSEU_CLUBE.x,10,LOTE_MUSEU_CLUBE.z],'agencia-clube':[LOTE_AGENCIA_CLUBE.x,LOTE_AGENCIA_CLUBE.height+2,LOTE_AGENCIA_CLUBE.z],shopping:[141,33,-247],loja:[-41.6,8,136]}
     const labels=Array.from(poiLabels.current.querySelectorAll<HTMLElement>('[data-poi]'))
     const projected=labels.flatMap(label=>{const id=label.dataset.poi??'',point=anchors[id];if(!point)return[];const v=new THREE.Vector3(...point),d=camera.position.distanceTo(v),p=v.project(camera);return[{id,x:p.x,y:p.y,z:p.z,distance:d,label:label.textContent??''}]})
     const placements=distribuirRotulosMapa(projected,el.clientWidth,el.clientHeight)
@@ -636,10 +636,10 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    if(isOffice&&!['room','office','president','shelf'].includes(next))next='room'
    if(isOffice){controls.enabled=next!=='office';camera.fov=next==='president'?32:48;camera.updateProjectionMatrix()}
    else{camera.fov=38;camera.updateProjectionMatrix()}
-   navigation.beginView({fitOnResize:['gestao-clube','casa-luca','arena-online','casa-usuario','original','region','field','estacao','loja','hotel','shopping','vadico','museu-clube','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras','tv-boteco'].includes(next),terrainGuard:['gestao-clube','casa-luca','arena-online','casa-usuario','original','region','estacao','loja','hotel','shopping','vadico','museu-clube','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
+   navigation.beginView({fitOnResize:['gestao-clube','casa-luca','arena-online','casa-usuario','original','region','field','estacao','loja','hotel','chopp','praca','shopping','vadico','museu-clube','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras','tv-boteco'].includes(next),terrainGuard:['gestao-clube','casa-luca','arena-online','casa-usuario','original','region','estacao','loja','hotel','chopp','praca','shopping','vadico','museu-clube','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
    setSelectedView(next);setCartaoFechado(null);setShoppingOpen(false)
    mode=next;focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
-   if(next==='original'){if(managementEnabled)fit(-112,145,-105,174,32,[],new THREE.Vector3(.16,camera.aspect<.85?1.8:1.2,1.45));else fit(-190,190,-140,175,32,stationFrame)}
+   if(next==='original'){if(managementEnabled)fit(-174,150,-50,330,37,[],new THREE.Vector3(.16,camera.aspect<.85?1.8:1.2,1.45));else fit(-190,190,-140,175,32,stationFrame)}
    else if(next==='region')fit(-500,310,-330,300,35)
    else if(next==='field'){
     if(state.roofClosed){controls.target.set(0,0,-8);camera.position.set(0,14,39)}
@@ -728,7 +728,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    else if(next==='casa-usuario')fit(HOME.x-HOME.width/2-6,HOME.x+HOME.width/2+6,HOME.z-HOME.depth/2-6,HOME.z+HOME.depth/2+6,5,[],new THREE.Vector3(.25,1.05,1.3))
    else if(next==='loja'){
     const p=PLANTA_COMPLEXO.lots.loja,h=p.door?.heading??p.heading
-    fit(Math.min(...p.footprint.map(p=>p.x))-3,Math.max(...p.footprint.map(p=>p.x))+3,Math.min(...p.footprint.map(p=>p.z))-3,Math.max(...p.footprint.map(p=>p.z))+3,6,[],new THREE.Vector3(Math.sin(h)*1.1+Math.cos(h)*.9,.75,Math.cos(h)*1.1-Math.sin(h)*.9))
+    fit(Math.min(...p.footprint.map(p=>p.x))-3,Math.max(...p.footprint.map(p=>p.x))+3,Math.min(...p.footprint.map(p=>p.z))-3,Math.max(...p.footprint.map(p=>p.z))+3,6,[],new THREE.Vector3(Math.sin(h)*1.1-Math.cos(h)*.85,.55,Math.cos(h)*1.1+Math.sin(h)*.85))
    }
    else if(next==='hotel'){
     // 🏨 08/11: o prédio inteiro (torre + recepção), de frente pra fachada do letreiro; antes a câmera colava na porta e a torre cortava meia tela
@@ -737,18 +737,27 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     if(camera.aspect<.85){const d=new THREE.Vector3(.8,.62,.6).normalize();controls.target.set(-118,8,93);camera.position.copy(controls.target).addScaledVector(d,camera.aspect<.6?150:125)}
     else fit(Math.min(...xs)-2,Math.max(...xs)+2,Math.min(...zs)-2,Math.max(...zs)+2,23,[],new THREE.Vector3(1.05,.55,.62))
    }
+   else if(next==='chopp'||next==='praca'){
+    const p=PLANTA_COMPLEXO.lots[next],xs=p.footprint.map(q=>q.x),zs=p.footprint.map(q=>q.z),h=p.door?.heading??p.heading,mobile=camera.aspect<.85
+    if(next==='chopp'&&mobile&&p.door){
+     const d=p.door,c=Math.cos(h),sn=Math.sin(h),corners=[-24.8,6.8].flatMap(u=>[-13.2,2.2].map(v=>({x:d.x+u*c+v*sn,z:d.z-u*sn+v*c})))
+     fit(Math.min(...corners.map(p=>p.x))-1,Math.max(...corners.map(p=>p.x))+1,Math.min(...corners.map(p=>p.z))-1,Math.max(...corners.map(p=>p.z))+1,6,[],new THREE.Vector3(sn*1.3+c*.2,.75,c*1.3-sn*.2))
+    }
+    else if(next==='praca'&&mobile)fit(p.x-24,p.x+24,p.z-19,p.z+19,10,[],new THREE.Vector3(.15,1.05,1.4))
+    else fit(Math.min(...xs)-3,Math.max(...xs)+3,Math.min(...zs)-8,Math.max(...zs)+4,next==='praca'?10:6,[],new THREE.Vector3(Math.sin(h)*1.3+Math.cos(h)*.25,.8,Math.cos(h)*1.3-Math.sin(h)*.25))
+   }
    else if(next==='vadico'){
     // 🚗 05/11: a Vadico mudou pro lado do Shopping do Clube (prédio próprio + pátio); a velha saiu do mapa
     const v=PLANTA_SHOPPING.vadico,b={minX:v.minX,maxX:v.maxX,minZ:v.minZ,maxZ:v.patio.maxZ}
     fit(b.minX-2,b.maxX+2,b.minZ-2,b.maxZ+2,12,[],camera.aspect<.85?new THREE.Vector3(-.25,1.05,1.3):new THREE.Vector3(.18,.65,1.3))
    }
    // 🛍️ 08/11: no computador o quadro vai até o fim da Vadico, do lado — antes a logo dela entrava cortada na borda
-   else if(next==='shopping'){const b=PLANTA_SHOPPING.building,pk=PLANTA_SHOPPING.parking;fit(b.minX-2,camera.aspect<.85?b.maxX+2:PLANTA_SHOPPING.vadico.maxX+2,b.minZ-1,pk.maxZ+2,PLANTA_SHOPPING.height+4,[],camera.aspect<.85?new THREE.Vector3(-.2,1.05,1.3):new THREE.Vector3(.15,.62,1.3))}
+   else if(next==='shopping'){const b=PLANTA_SHOPPING.building,pk=PLANTA_SHOPPING.parking,mobile=camera.aspect<.85;fit(mobile?104:b.minX-2,mobile?179:PLANTA_SHOPPING.vadico.maxX+2,b.minZ+4,pk.maxZ+2,PLANTA_SHOPPING.height+4,[],mobile?new THREE.Vector3(.06,.75,1.4):new THREE.Vector3(.15,.62,1.3))}
    else if(next==='casa-luca'){const c=LIMITES_COMPLEXO_CASA_LUCA;fit(c.minX-1,c.maxX+1,c.minZ-1,c.maxZ+2,6,[],new THREE.Vector3(-.25,1.05,1.3))} // 💙 06/11: o complexo inteiro (prédio, jardim, piquenique e quadra)
    else if(next==='gestao-clube')fit(-48,48,50,110,28,[],new THREE.Vector3(.3,.9,1.3))
     else if(next==='museu-clube'){const b=LOTE_MUSEU_CLUBE.building;fit(b.minX-2,b.maxX+2,b.minZ-11,b.maxZ+1,11,[],new THREE.Vector3(.6,1.2,-1.5))}
    else if(next==='agencia-clube'){const b=LOTE_AGENCIA_CLUBE.building;fit(b.minX-1.5,b.maxX+1.5,b.minZ-1,b.maxZ+10,LOTE_AGENCIA_CLUBE.height+3,[],new THREE.Vector3(.5,.95,1.5))}
-   else if(next==='patrocinadores')fit(-482,-144,-314,-69,36,[],new THREE.Vector3(.12,2.1,1.25))
+   else if(next==='patrocinadores')fit(-164,111,213,337,36,[],new THREE.Vector3(.08,1.2,1.5))
    else if(next==='dsouza'||next==='tidex'||next==='oittolabs'||next==='gecg'){
     const p=LOTES_PATROCINADORES_CIDADE[next],sport=next==='gecg'
     fit(p.x-(sport?p.width/2:p.buildingWidth/2+5),p.x+(sport?p.width/2:p.buildingWidth/2+5),p.z-(sport?p.depth/2:p.buildingDepth/2+3),p.z+(sport?p.depth/2:p.buildingDepth/2+18),p.height+5,[],sport?new THREE.Vector3(.04,2.1,1.1):new THREE.Vector3(.22,.72,1.4))

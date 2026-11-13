@@ -1,3 +1,4 @@
+import {criarAcabamentosComerciais} from './presidencia-comercio-acabamentos'
 import {LOTE_MUSEU_CLUBE} from './museu-clube-predio'
 import {ARENA_ONLINE} from './arena-planta'
 import {TERRENO_USUARIO} from './residencia-planta'
@@ -564,7 +565,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
         if(i===doorEdge&&door&&floor===0&&Math.hypot(p.x-door.threshold.x,p.z-door.threshold.z)<3.5)continue
         const outward=.165*outwardSign
         const wy=GROUND+(floor===0?1.72:4+(floor-1)*3+1.5)
-        box(`${id}-vitrine`,floor%3?glass:warmGlass,bay-.54,floor===0?2.6:2.12,.042,p.x-dz*outward,wy,p.z+dx*outward,yaw)
+        box(`${id}-vitrine`,id.startsWith('hotel')?glass:floor%3?glass:warmGlass,bay-.54,floor===0?2.6:2.12,.042,p.x-dz*outward,wy,p.z+dx*outward,yaw)
         box(`${id}-montante`,white,.16,floor===0?3.4:2.7,.28,p.x-dx*bay/2-dz*.19*outwardSign,wy,p.z-dz*bay/2+dx*.19*outwardSign,yaw)
       }
       for(let floor=1;floor<storeys;floor++)segment(0,length,GROUND+4+(floor-1)*3,.18,white,false)
@@ -585,10 +586,10 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     polygon('loja-piso',lot.footprint,GROUND,paving)
     for(const side of[-1,1])part('lateral',concrete,.26,h,d,side*w/2,GROUND+h/2,0,true)
     part('fundo',concrete,w,h,.26,0,GROUND+h/2,-d/2,true)
-    part('cobertura',white,w+.5,.22,d+.5,0,GROUND+h,0)
+    part('cobertura',dark,w+.5,.22,d+.5,0,GROUND+h,0)
     const clearGlass=material('#c5e2e9',.22,.05)
-    clearGlass.transparent=true;clearGlass.opacity=.16;clearGlass.depthWrite=false
-    const accent=material('#17483c',.85)
+    clearGlass.transparent=true;clearGlass.opacity=.8;clearGlass.depthWrite=false
+    const accent=material('#1d2328',.75)
     for(const side of[-1,1]){
       const u=side*5.05
       part('vitrine-base',accent,5.6,.52,.28,u,GROUND+.26,d/2,true)
@@ -683,6 +684,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       box('praca-quiosque-telhado',roof,6.7,.28,4.7,p.x,8.53,p.z,lot.heading)
     }
   }
+
+  const commercialFinishes=criarAcabamentosComerciais(root,state)
 
   // Static transportation uses the exact same metric plan as moving actors.
   // In particular no parked train is baked into these material batches.
@@ -1504,12 +1507,12 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // 🚗 05/11: a Vadico VELHA saiu do mapa (a loja nova é o prédio separado do lado do Shopping do Clube). Ela continua sendo
   // montada só pelos dados que a entrega de carro e as conferências leem; não aparece e não bloqueia ninguém.
   dealership.root.visible=false
-  solids.push(...shopping.solids);root.userData.shopping=shopping.root.userData.shopping
+  solids.push(...shopping.solids);root.userData.shopping=shopping.root.userData.shopping;root.userData.commercialFinishes=commercialFinishes.root.userData.commercialFinishes
   root.userData.dealership=dealership.metadata
   let disposed=false
   return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,casaLuca:!!quadraCasaLuca,casaLucaSul:!!quadraCasaLucaSul,bairro:{quadras:occupied.filter(p=>p!==quadraCasaLuca&&p!==quadraCasaLucaSul) as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
     botecos.forEach(pub=>pub.dispose())
-    if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();shopping.dispose();scene.remove(root);root.clear()
+    if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();commercialFinishes.dispose();sponsors.dispose();dealership.dispose();shopping.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
   }}
 }

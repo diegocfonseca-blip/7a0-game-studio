@@ -1,3 +1,4 @@
+import {getLang} from './lang'
 // 🛍️ SHOPPING LEGENDS (05/11, mockup `scripts/mockups/shopping-clube.png`, Diego: "ok pode fazer").
 // 🔁 05/11, 2ª versão (Diego: *"não achei imponente e nem bonito… o local tem que ser bem visível… trazer a Vadico
 // Veículos pra cá"*): saiu do lado da Vadico e foi pros quarteirões logo DEPOIS da avenida, de frente pro estádio
@@ -156,7 +157,7 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
  panoVidro(AX0+6,AX1-6,GROUND,GROUND+6,AZ1+.2,2.5,6)
  caixa(ouro,AX1-AX0+6,.5,7,ax,GROUND+6.4,AZ1+3.3)
  caixa(preto,AX1-AX0+6,.9,.6,ax,GROUND+6.95,AZ1+6.6,false)
- quadro('🛒 LOJA DO CLUBE','#FFC400','#0C0C0C',AX1-AX0-4,1.1,ax,GROUND+6.95,AZ1+6.92,{brilho:.4})
+ quadro(getLang()==='en'?'PLANS AND ITEMS':'PLANOS E ITENS','#FFC400','#0C0C0C',AX1-AX0-4,1.1,ax,GROUND+6.95,AZ1+6.92,{brilho:.4})
  for(const x of [AX0+2,AX1-2])cil(ouro,.35,6.2,x,GROUND+3.1,AZ1+6.2,12)
  solido('shopping-atrio',AX0,AX1,AZ0,AZ1,GROUND+AH+1)
 
@@ -186,8 +187,8 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
  // 🪧 LETREIRO da fachada (Diego 05/11: "a logo ficou estranha, letra vazada… deveria ter uma imagem atrás, branca"):
  // placa BRANCA acesa com moldura preta, e o logo oficial pintado EM CIMA dela (nada de logo vazado direto no prédio).
  const art=LOGOS_PATROCINADORES_CIDADE.vadico
- const PW=30,PH=9.4
- caixa(preto,PW+1,PH+1,.7,vx,GROUND+VH+4.9,VZ1-1)
+ const PW=31,PH=8.0
+ caixa(preto,PW+1,PH+1,.7,vx,GROUND+VH+3.6,VZ1-1)
  for(const x of [vx-PW/3,vx+PW/3])caixa(grafite,.5,3,.5,x,GROUND+VH+.9,VZ1-1.6)
  if(typeof document!=='undefined'){
   const c=document.createElement('canvas');c.width=1536;c.height=Math.round(1536*PH/PW)
@@ -198,13 +199,13 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
    g.imageSmoothingQuality='high';g.drawImage(img,(c.width-w)/2,(c.height-h)/2,w,h);t.needsUpdate=true;onReady?.()
   })
   const m=new THREE.MeshBasicMaterial({name:'shopping-vadico-letreiro',map:t,toneMapped:false});materials.push(m)
-  const pg=new THREE.PlaneGeometry(PW,PH);geometries.push(pg);const pl=new THREE.Mesh(pg,m);pl.position.set(vx,GROUND+VH+4.9,VZ1-.62);root.add(pl)
- }else caixa(branco,PW,PH,.1,vx,GROUND+VH+4.9,VZ1-.62,false)
+  const pg=new THREE.PlaneGeometry(PW,PH);geometries.push(pg);const pl=new THREE.Mesh(pg,m);pl.position.set(vx,GROUND+VH+3.6,VZ1-.62);root.add(pl)
+ }else caixa(branco,PW,PH,.1,vx,GROUND+VH+3.6,VZ1-.62,false)
  // um carro no salão (no tablado) e os outros no pátio, de frente pra rua
  const carro=(modelo:'f40'|'opala-ss'|'fusca'|'gol-gti'|'brasilia'|'kombi',x:number,z:number,giro:number,y=0)=>{const v=biblioteca.create(modelo);if(!v)return;v.root.position.set(x,GROUND+y,z);v.root.rotation.y=giro;v.root.traverse(o=>{o.castShadow=true;o.receiveShadow=true});root.add(v.root)}
- cil(ouro,3.2,.3,vx-8,GROUND+.35,VZ1-7,24);carro('f40',vx-8,VZ1-7,.7,.5)
- cil(branco,3.2,.3,vx+9,GROUND+.35,VZ1-7,24);carro('opala-ss',vx+9,VZ1-7,-.7,.5)
- ;(['fusca','gol-gti','brasilia','kombi'] as const).forEach((m,i)=>carro(m,VX0+6+i*10,VZ1+7,Math.PI*0+.0))
+ cil(ouro,3.2,.3,vx-8,GROUND+.35,VZ1+3,24);carro('f40',vx-8,VZ1+3,.7,.5)
+ cil(branco,3.2,.3,vx+9,GROUND+.35,VZ1+3,24);carro('opala-ss',vx+9,VZ1+3,-.7,.5)
+ ;(['fusca','gol-gti','brasilia','kombi'] as const).forEach((m,i)=>carro(m,VX0+6+i*10,VZ1+16,Math.PI*0+.0))
  for(const x of [VX0+1,VX1-1]){cil(branco,.12,10,x,GROUND+5,PRACA_Z1+1,6);const m=mat(`vadico-bandeira-${x}`,'#C31E2B',.8);caixa(m,2.6,1.6,.05,x+(x<vx?1.35:-1.35),GROUND+9.1,PRACA_Z1+1,false)}
  solido('vadico-loja',VX0,VX1,VZ0,VZ1,GROUND+VH+9)
 
@@ -231,10 +232,29 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
   cil(tronco,.3,7,x,GROUND+3.5,PRACA_Z1-3,8)
   const g=new THREE.SphereGeometry(2.4,10,8);geometries.push(g);const f=new THREE.Mesh(g,folha);f.scale.set(1,.55,1);f.position.set(x,GROUND+7.4,PRACA_Z1-3);f.castShadow=true;root.add(f)
  }
- // nome no telhado do átrio (pra quem olha o mapa de cima)
- const tTopo=(()=>{if(typeof document==='undefined')return null;const c=document.createElement('canvas');c.width=1024;c.height=1205;const g=c.getContext('2d')!;g.fillStyle='#14271b';g.fillRect(0,0,c.width,c.height);g.strokeStyle='#ffc400';g.lineWidth=34;g.strokeRect(35,35,c.width-70,c.height-70);g.lineWidth=44;g.strokeRect(280,310,464,410);g.beginPath();g.arc(512,310,120,Math.PI,0);g.stroke();g.fillStyle='#ffc400';g.textAlign='center';g.textBaseline='middle';g.font='700 160px Oswald,Arial,sans-serif';g.fillText('SHOPPING',512,910,920);g.fillStyle='#f4ecd6';g.font='700 65px Oswald,Arial,sans-serif';g.fillText('LEGENDS',512,1060);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t})()
- if(tTopo){textures.push(tTopo);const m=new THREE.MeshStandardMaterial({name:'shopping-telhado',map:tTopo,roughness:.85});materials.push(m)
-  const g=new THREE.PlaneGeometry(AX1-AX0-8,AZ1-AZ0-10);geometries.push(g);const mesh=new THREE.Mesh(g,m);mesh.rotation.x=-Math.PI/2;mesh.position.set(ax,GROUND+AH+.82,(AZ0+AZ1)/2);root.add(mesh)}
+ // Coberturas com volumes arquitetônicos; a marca fica no coroamento frontal.
+ caixa(grafite,AX1-AX0-10,.65,AZ1-AZ0-12,ax,GROUND+AH+1,(AZ0+AZ1)/2)
+ caixa(vidro,AX1-AX0-12,.24,AZ1-AZ0-14,ax,GROUND+AH+1.48,(AZ0+AZ1)/2)
+ for(let i=0;i<5;i++)caixa(pedra,.2,.35,AZ1-AZ0-13,AX0+6+i*(AX1-AX0-12)/4,GROUND+AH+1.7,(AZ0+AZ1)/2,false)
+ for(const [x0,x1]of[[OX0,OX1],[EX0,EX1]]){
+  const mid=(x0+x1)/2
+  caixa(pedra,x1-x0+.5,.7,.5,mid,GROUND+OH+.8,OZ0)
+  caixa(pedra,.5,.7,OZ1-OZ0,x0,GROUND+OH+.8,(OZ0+OZ1)/2)
+  caixa(pedra,.5,.7,OZ1-OZ0,x1,GROUND+OH+.8,(OZ0+OZ1)/2)
+  // Frentes com ritmo e profundidade, sem apagar as identidades das vitrines.
+  for(let x=x0+1;x<x1;x+=14.2)caixa(pedra,.45,OH,.8,x,GROUND+OH/2,OZ1+.45)
+ }
+ for(const x of[72,95]){
+  caixa(grafite,13,.45,8,x,GROUND+OH+.7,-253)
+  caixa(vidro,12,.12,7,x,GROUND+OH+1,-253,false)
+  for(let i=0;i<4;i++)caixa(pedra,.16,.16,7.2,x-5.7+i*3.8,GROUND+OH+1.12,-253,false)
+ }
+ // Fachada e lateral do showroom, entrada e veículos em posições destacadas.
+ caixa(grafite,VX1-VX0+.5,1.4,VZ1-VZ0+.6,vx,GROUND+VH+.5,(VZ0+VZ1)/2)
+ caixa(preto,7.6,.3,3.6,vx,GROUND+3.7,VZ1+1.5)
+ caixa(pedra,.25,3.45,.25,vx-2.1,GROUND+1.72,VZ1+.2)
+ caixa(pedra,.25,3.45,.25,vx+2.1,GROUND+1.72,VZ1+.2)
+ for(const x of[VX0+1,VX1-1])caixa(grafite,.4,VH,.4,x,GROUND+VH/2,VZ1+.18)
 
  root.userData.shopping={label:PLANTA_SHOPPING.label,lojinhas:LOJINHAS_SHOPPING.map(l=>l.id),building:{...PLANTA_SHOPPING.building}}
  let disposed=false

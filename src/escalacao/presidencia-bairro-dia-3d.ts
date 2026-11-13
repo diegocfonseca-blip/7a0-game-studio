@@ -62,9 +62,12 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
  }
  desenhaAtlas()
  const atlasMat=mat(new THREE.MeshStandardMaterial({map:atlas,roughness:.9,side:THREE.DoubleSide}))
+ const letreiroMat=mat(new THREE.MeshStandardMaterial({map:atlas,emissiveMap:atlas,emissive:'#fff1cf',emissiveIntensity:.12,roughness:.9,side:THREE.DoubleSide}))
+ const fachadas=new THREE.Group();fachadas.name='fachadas-comerciais-permanentes';root.add(fachadas);let padariaFechada:THREE.Object3D|undefined
+
  const tvMat=mat(new THREE.MeshStandardMaterial({map:atlas,emissiveMap:atlas,emissive:'#ffffff',emissiveIntensity:.9,roughness:.6}))
  const planoAtlas=(faixa:number,u0=0,u1=1)=>{const g=own(new THREE.PlaneGeometry(1,1)),uv=g.getAttribute('uv') as THREE.BufferAttribute,v0=1-(faixa+1)/8,v1=1-faixa/8;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)?u1:u0,uv.getY(i)?v1-.004:v0+.004);uv.needsUpdate=true;return g}
- const placa=(parent:THREE.Object3D,name:string,faixa:number,x:number,y:number,z:number,w:number,h:number,yaw:number,pitch=0,material:THREE.Material=atlasMat,u1=1)=>{const m=new THREE.Mesh(planoAtlas(faixa,0,u1),material);m.name=name;m.position.set(x,y,z);m.rotation.set(pitch,yaw,0,'YXZ');m.scale.set(w,h,1);m.castShadow=false;m.receiveShadow=false;parent.add(m);return m}
+ const placa=(parent:THREE.Object3D,name:string,faixa:number,x:number,y:number,z:number,w:number,h:number,yaw:number,pitch=0,material:THREE.Material=atlasMat,u1=1)=>{const written=faixa===F.padaria||faixa===F.podrao||faixa===F.espetinho;const m=new THREE.Mesh(planoAtlas(faixa,0,u1),material===atlasMat&&written?letreiroMat:material);m.name=name;m.position.set(x,y,z);m.rotation.set(pitch,yaw,0,'YXZ');m.scale.set(w,h,1);m.castShadow=false;m.receiveShadow=false;parent.add(m);return m}
 
  // ── peças paradas: um InstancedMesh por cena e por geometria ─────────────────────────────────────────────────────────
  type Peca={x:number;y:number;z:number;w:number;h:number;d:number;yaw?:number;pitch?:number;roll?:number;c:string}
@@ -100,8 +103,11 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   for(let k=0;k<4;k++)cil1.push(l.peca(.35+k*.28,1.42,1.12,.07,.09,.07,k%2?'#f4ecd6':'#ffffff')) // copinho americano de café
   cil1.push(l.peca(1.25,1.42,1.18,.16,.22,.16,'#b5b9bc'))                    // a garrafa térmica
   lote(cenas.manha,'padaria-pecas',pecas);lote(cenas.manha,'padaria-copos',cil1,cil)
-  placa(cenas.manha,'padaria-letreiro',F.padaria,o.x,QUADRA_Y+3.05,o.z+.14,4.2,.6,0)
-  placa(cenas.manha,'padaria-toldo',F.listraVermelha,o.x,QUADRA_Y+2.62,o.z+.85,3.3,1.5,0,-Math.PI/2+.38)
+  placa(fachadas,'padaria-letreiro',F.padaria,o.x,QUADRA_Y+3.05,o.z+.14,4.2,.6,0,0,letreiroMat)
+  placa(fachadas,'padaria-toldo',F.listraVermelha,o.x,QUADRA_Y+2.62,o.z+.85,3.3,1.5,0,-Math.PI/2+.38)
+  // O endereço continua sendo uma padaria quando fecha; só a operação segue o horário.
+  lote(fachadas,'padaria-moldura',[l.peca(-1.65,.02,1.35,.18,2.8,.18,'#263a31'),l.peca(1.65,.02,1.35,.18,2.8,.18,'#263a31')])
+  padariaFechada=lote(fachadas,'padaria-porta-fechada',[l.peca(0,.17,1.26,3.05,2.45,.08,'#84928d'),...Array.from({length:9},(_,i)=>l.peca(0,.22,.22+i*.26,2.95,.025,.015,'#58675f'))])
   // padeiro atrás do balcão e 3 fregueses tomando café em pé, virados pro balcão
   pessoa('padeiro','manha','fuller-man','#ffffff',parado(o.x+.5,QUADRA_Y,o.z+.55,0))
   for(const [k,[s,v]] of ([[-1.0,'older-man'],[.3,'adult-woman'],[1.2,'adult-man']] as const).entries()){const q=l.at(s,2.05);pessoa('cafe-'+k,'manha',v,['#2F6FB5','#C2452F','#e8e0c9'][k],parado(q.x,QUADRA_Y,q.z,Math.PI))}
@@ -298,6 +304,7 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   mobile=opts.mobile
   ligadas={manha:opts.enabled&&vida.padaria,tarde:opts.enabled&&vida.varal,noite:opts.enabled&&vida.espetinho,jogo:vida.jogoEmCasa} // o dia de jogo é do estádio (igual às barracas oficiais): não depende da população do bairro
   // a TV e as peças paradas aparecem mesmo sem população (são cenário); só as pessoas e os veículos dependem dela
+  if(padariaFechada)padariaFechada.visible=!vida.padaria;letreiroMat.emissiveIntensity=vida.periodo==='noite'?.8:.12
   cenas.manha.visible=vida.padaria;cenas.tarde.visible=vida.varal;cenas.noite.visible=vida.espetinho;cenas.jogo.visible=vida.jogoEmCasa
   const c1=opts.cor??'#C2452F',c2=opts.cor2??'#ffffff',k=c1+c2
   if(k!==coresKey){coresKey=k;pintaClube(camisaClube,c1,c2);pintaClube(pirataClube,c1,c2)}
@@ -321,7 +328,7 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
  }
  function vista(kind:VistaDiaBairro,aspect:number):{target:[number,number,number];camera:[number,number,number]}|undefined{
   const k=aspect<.85?1.45:1
-  if(kind==='padaria'&&L.padaria){const p=L.padaria;return{target:[p.x+.6,.8,p.frente+9],camera:[p.x+1.4,8+3*k,p.frente+20+5*k]}} // do outro lado da rua: a padaria, e a Kombi e a bicicleta passando na porta
+  if(kind==='padaria'&&L.padaria){const p=L.padaria;return{target:[p.x,1.6,p.frente+1.5],camera:[p.x+3,6+2*k,p.frente+14+3*k]}} // do outro lado da rua: a padaria, e a Kombi e a bicicleta passando na porta
   if(kind==='praca-bairro'&&L.praca){const c=L.praca.centro;return{target:[c.x+1.8,.6,c.z-4.4],camera:[c.x+4+2*k,6+3*k,c.z-17-6*k]}} // do canto sem árvore
   if(kind==='varal'&&L.varais?.length){const v=L.varais[0];return{target:[v.x,1.3,v.z],camera:[v.x+2.5,2.6+1.2*k,v.z+6+3*k]}}
   if(kind==='espetinho'&&L.espetinho&&L.podrao){const m={x:(L.espetinho.x+L.podrao.x)/2,z:(L.espetinho.z+L.podrao.z)/2};return{target:[m.x,.8,m.z-.5],camera:[m.x,6+3*k,m.z+13+8*k]}} // de dentro da travessa
@@ -332,6 +339,6 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   return undefined
  }
  return{configure,update,vista,
-  inspect:()=>({cenas:Object.fromEntries(Object.entries(cenas).map(([k,g])=>[k,g.visible])),kombi:kombi?.visible?kombi.position.toArray():null,bicicleta:bike?.visible?bike.position.toArray():null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.cena)}),
-  dispose(){pessoas.forEach(p=>p.body.dispose());for(const g of Object.values(cenas))g.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());atlas.dispose()}}
+  inspect:()=>({fachadaPadariaPermanente:!!L.padaria,padariaFechada:padariaFechada?.visible??false,cenas:Object.fromEntries(Object.entries(cenas).map(([k,g])=>[k,g.visible])),kombi:kombi?.visible?kombi.position.toArray():null,bicicleta:bike?.visible?bike.position.toArray():null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.cena)}),
+  dispose(){pessoas.forEach(p=>p.body.dispose());for(const g of [...Object.values(cenas),fachadas])g.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());atlas.dispose()}}
 }

@@ -46,26 +46,37 @@ export function criarPatrocinadoresCidade(parent:T.Object3D,onReady?:()=>void){
   solid(id+'-back',p.x,p.z-d/2,w,.35,floor,floor+h)
   for(const sign of[-1,1])solid(id+'-side-'+sign,p.x+sign*w/2,p.z,.35,d,floor,floor+h)
   doors[id]={id,approach:{x:doorX,z:front+5},threshold:{x:doorX,z:front+.2},inside:{x:doorX,z:front-2},stay:4,heading:0,x:doorX,z:front+.2}
-  box(cream,2.8,.04,-242-front,p.x,.18,(front-242)/2)
+  box(cream,2.8,.04,p.frontWalkZ-front,p.x,.18,(front+p.frontWalkZ)/2)
   return{...p,front}
  }
  const ds=building('dsouza',8.5,48,28,green,5.6)
+ // Showroom térreo: vitrine e portal, sem mudar a abertura ou a rotina de entrega.
+ box(glass,27,4.2,.08,ds.x-10,3.0,ds.front+.18)
+ for(const x of[-24,-18,-10,-2,24])box(black,.3,7.8,.5,ds.x+x,4.1,ds.front+.18)
+ box(black,49,.6,29,ds.x,8.9,ds.z);box(cream,49,.12,.45,ds.x,9.25,ds.front+.5)
+ box(black,8.7,.3,3.5,ds.x,3.5,ds.front+1.35)
+ text('DSOUZA EMPREENDIMENTOS',ds.x,8.45,ds.front+.64,45,1.1,'#102d19')
+
  // Corrugated roof, loading canopy and framed football illustrations.
  for(let i=0;i<17;i++)box(metal,.08,.12,28.4,ds.x-23+i*2.9,8.92,ds.z)
- box(black,7,.14,3.3,ds.x,5.7,ds.front+1.5)
  for(let i=0;i<4;i++){
   const x=ds.x-19+i*3.5;box(wood,2.5,3.15,.13,x,2.45,ds.front+.19);box(white,2.24,2.88,.04,x,2.45,ds.front+.27)
   // Illustrative display, not an invented official product photograph.
   const ink=i%2?green:navy;box(ink,1.1,1.4,.025,x,2.45,ds.front+.3);for(const s of[-1,1])box(ink,.5,.43,.025,x+s*.7,2.87,ds.front+.3)
  }
  logo('dsouza',ds.x+17,3.8,ds.front+.25,9,5.5)
- logo('dsouza',ds.x,9.08,ds.z,13,11,true)
- text('QUADROS DECORATIVOS DE FUTEBOL',ds.x,7.65,ds.front+.22,43,1.05,'#102d19')
- text('Mercado Livre  ·  TikTok Shop  ·  Shopee',ds.x-2,6.35,ds.front+.22,27,.75,'#102d19')
+ logo('dsouza',ds.x,9.4,ds.z,13,11,true)
+ text('QUADROS DECORATIVOS DE FUTEBOL',ds.x,7.1,ds.front+.24,43,.75,'#102d19')
+ text('Mercado Livre  ·  TikTok Shop  ·  Shopee',ds.x-2,6.1,ds.front+.24,27,.65,'#102d19')
  for(let i=0;i<7;i++){const x=ds.x+6+(i%3)*1.3,z=ds.front+4+Math.floor(i/3)*1.2;box(wood,1.05,.6,1,x,.46,z);box(cream,.08,.61,1.03,x,.46,z)}
  // The delivery vehicle now belongs to the animated sponsor routine.
  for(const[id,h,color]of[['tidex',32,navy],['oittolabs',25,cream]] as const){
   const p=building(id,h,LOTS[id].buildingWidth,20,color)
+  box(black,p.buildingWidth+.7,.6,20.7,p.x,h+.4,p.z)
+  box(id==='tidex'?teal:navy,p.buildingWidth+.8,.16,.5,p.x,h-.1,p.front+.3)
+  box(black,7.4,.35,3.1,p.x,3.5,p.front+1.2)
+  for(const x of[-2.05,2.05])box(id==='tidex'?teal:navy,.24,3.3,.35,p.x+x,1.8,p.front+.35)
+
   for(let level=0;level<Math.floor(h/3.5);level++){
    if(level===0){
     const span=(p.buildingWidth-2-3.2)/2
@@ -76,7 +87,7 @@ export function criarPatrocinadoresCidade(parent:T.Object3D,onReady?:()=>void){
   for(const s of[-1,1])box(id==='tidex'?teal:navy,.25,h,.25,p.x+s*(p.buildingWidth/2-.8),h/2,p.front+.25)
   for(const s of[-1,1])box(metal,.18,3,.18,p.x+s*6,h+1,p.front-.4)
   logo(id,p.x,h+1.75,p.front+.4,20,3.3)
-  logo(id,p.x,floor+h+.38,p.z,18,6,true)
+  logo(id,p.x,floor+h+.86,p.z,18,6,true)
   text(id==='tidex'?'SUA MARCA DENTRO DAS IAs':'CONTABILIDADE  ·  BPO FINANCEIRO',p.x,4.7,p.front+.3,21,1.1,id==='tidex'?'#0b1220':'#f4ecd6',id==='tidex'?'#73d3ce':'#142c43')
  }
  // A shared avenue treatment makes the partners identifiable from the street.

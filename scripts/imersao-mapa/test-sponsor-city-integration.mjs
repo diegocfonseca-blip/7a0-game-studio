@@ -13,7 +13,7 @@ try{
  assert.equal(roads.diagnostics.afterComponents,1,'A disconnected public street was introduced')
  assert.deepEqual(roads.diagnostics.unresolved,[])
  assert.equal(roads.streets.filter(r=>r.id==='acesso-gecg').length,1)
- assert.equal(roads.streets.filter(r=>r.id==='acesso-dsouza').length,1)
+ assert.equal(roads.streets.filter(r=>r.id==='avenida-parceiros').length,1)
  const overlaps=(s,p,w,d)=>s.minX<p.x+w/2&&s.maxX>p.x-w/2&&s.minZ<p.z+d/2&&s.maxZ>p.z-d/2
  for(const s of world.solids)for(const p of Object.values(lots)){
   if(s.id.startsWith(p.id))continue
