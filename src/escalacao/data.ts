@@ -4253,6 +4253,7 @@ export const OLD_NAME: Record<string, string> = {
   'Milan Recifense': 'Dragão Imperial', // 🐆💜 batismo do danicorreafilho (05/11): assumiu o assento da Série D que era do bot Dragão Imperial — save antigo com Dragão Imperial vira Milan Recifense ao abrir.
   'Príncipe Rubro Negro': 'Aurora Suprema', // 👑🔴⚫ batismo do pedroglima50 (02/11): assumiu o assento da Série D que era do bot Aurora Suprema — save antigo com Aurora Suprema vira Príncipe Rubro Negro ao abrir.
   'Lulubaba FC': 'Fênix Dourada', // 🧤💛 batismo do lucasfonseca363 (29/10): assumiu o assento da Série D que era do bot Fênix Dourada — save antigo com Fênix Dourada vira Lulubaba FC ao abrir.
+  'Cabritiiin F.C': 'Unidos da Resenha', // 🐐👑 batismo FUNDADOR do lucassaboia14 (13/11): assumiu o assento da Várzea que era do bot Unidos da Resenha — save antigo com Unidos da Resenha vira Cabritiiin F.C ao abrir.
   'dSouza FC': 'Kombi United', // 🐶💚 batismo FUNDADOR do alexandre12cdm (28/10): assumiu o assento da Série C que era do bot Kombi United — save antigo com Kombi United vira dSouza FC ao abrir. (O Kombi United continua no jogo rápido.)
   'Vila Esporte Clube': 'Imperador SAF', // ⭐🦁 batismo do oluisantonio.contato (27/10): assumiu o assento da Série D que era do bot Imperador SAF — save antigo com Imperador SAF vira Vila Esporte Clube ao abrir.
   'Neymar_FC': 'Galáxia EC', // 🐐👑 batismo do sheeryarie772 (21/10): assumiu o assento da Série D que era do bot Galáxia EC — save antigo com Galáxia EC vira Neymar FC ao abrir.
@@ -4336,7 +4337,7 @@ export const CRIA_APELIDOS = [
 ]
 
 export const VARZEA_TEAMS: CareerTeam[] = [
-  { name: 'Bilu', team: 'Unidos da Resenha' },
+  { name: 'Lucas', team: 'Cabritiiin F.C' }, // 🐐👑 clube BATIZADO por apoiador (lucassaboia14 — Cabritiiin F.C, ex-Unidos da Resenha, Várzea; plano FUNDADOR nº101 + sócio nº89; coração CEARÁ; escudo do bode de coroa e óculos escuros, mascote O Cabritiiin; azul #0159C7 + branco #F6F6F6 MEDIDOS na camisa, 13/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Careca', team: 'Chuteira Rachada FC' },
   { name: 'Pastel', team: 'Atlético Pelada' },
   { name: 'Bode', team: 'Galáticos do Bairro' },

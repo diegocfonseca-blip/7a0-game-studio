@@ -85,6 +85,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Príncipe Rubro Negro": "principe-camisa-v1.webp", // 👑🔴⚫ Príncipe Rubro Negro (pedroglima50, 02/11)
   "Lulubaba FC": "lulubaba-camisa-v2.webp", // 🧤🖤 Lulubaba FC (lucasfonseca363, 29/10; v2 = a camisa preta e branca do Botafogo, quando virou Fundador)
   "dSouza FC": "dsouza-camisa-v1.webp", // 🐶💚 dSouza FC (alexandre12cdm, 28/10)
+  "Cabritiiin F.C": "cabritiiin-camisa-v1.webp", // 🐐👑 Cabritiiin F.C (lucassaboia14, 13/11)
   "Vila Esporte Clube": "vila-camisa-v1.webp", // ⭐🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)
   "Neymar_FC": "neymarfc-camisa-v1.webp", // 🐐👑 Neymar FC (sheeryarie772, 21/10)
   "Labubu FC": "labubu-camisa-v1.webp", // 🐰⚪ Labubu FC (caelborba, 14/10)

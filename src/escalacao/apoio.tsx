@@ -193,6 +193,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'pedroglima50@gmail.com': 'ouro', // 👑 batismo Príncipe Rubro Negro (Série D, no assento do bot Aurora Suprema) + sócio (02/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo FUNDADOR Lulubaba FC (Série D, no assento do bot Fênix Dourada) + fundador nº95 + sócio nº80 (29/10; entrou como Batismo e subiu pra Fundador no mesmo dia).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
+  'lucassaboia14@gmail.com': 'ouro', // 👑 batismo FUNDADOR Cabritiiin F.C (Várzea, no assento do bot Unidos da Resenha) + fundador nº101 + sócio nº89 (13/11).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
   'sheeryarie772@gmail.com': 'ouro', // 👑 batismo FUNDADOR Neymar FC (Série D, no assento do bot Galáxia EC) + fundador nº97 + sócio nº77 (21/10; subiu de Batismo pra Fundador em 29/10).
   'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
@@ -317,6 +318,7 @@ const FUNDADOR_N: Record<string, number> = {
   // ⛔ LIGA QUANDO A CONTA EXISTIR (regra 07/09: mimo por e-mail antes da conta = quem criar primeiro leva):
   // 'doublecontatocomercial@gmail.com': 100, // 👑💜 Double Duo FC (09/11, plano Fundador) — o fundador nº100!
   'danieltorresreus@gmail.com': 99, // 👑⚪🔴⚫ Monarca Tricolor (05/11, plano Fundador)
+  'lucassaboia14@gmail.com': 101, // 🐐👑 Cabritiiin F.C (13/11, plano Fundador)
   'enzocromero9@gmail.com': 98, // 👑🎩 Paizão FC (30/10, plano Fundador)
   'sheeryarie772@gmail.com': 97, // 🐐👑 Neymar_FC (29/10, subiu de Batismo pra Fundador) // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
   'gfpicolo13@gmail.com': 93, // 📍 Futpoint FC (18/10, Diego deu o plano Fundador; o 92 está guardado pro Wen Milan B)

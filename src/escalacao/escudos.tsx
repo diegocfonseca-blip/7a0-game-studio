@@ -79,6 +79,7 @@ import milanRecifenseEscudoImg from './img/milan-recifense-escudo.webp' // 🐆�
 import principeEscudoImg from './img/principe-escudo.webp' // 👑🔴⚫ Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
+import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
@@ -972,6 +973,11 @@ const lulubabaEscudoRender = (size: number) => (
 )
 // 🐶💚 dSOUZA FC (alexandre12cdm, batismo FUNDADOR de 28/10) — Série C, no assento do bot Kombi United. 📏 360×334, 26 KB.
 // O pitbull de boné dSouza FC com os quadros das lendas, preto e verde-neon. Fundo verde chroma tirado; conferido sobre creme e vermelho.
+// 🐐👑 CABRITIIIN F.C (lucassaboia14, batismo FUNDADOR de 13/11) — Várzea, no assento do bot Unidos da Resenha. 📏 302×360, 29 KB.
+// O bode de coroa e óculos escuros, braços cruzados, listrado azul e branco. Fundo verde chroma tirado; conferido sobre creme e vermelho.
+const cabritiiinEscudoRender = (size: number) => (
+  <img src={cabritiiinEscudoImg} height={size} width={Math.round(size * 302 / 360)} alt="Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const dsouzaEscudoRender = (size: number) => (
   <img src={dsouzaEscudoImg} height={size} width={Math.round(size * 360 / 334)} alt="dSouza FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1699,6 +1705,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'dSouza': dsouzaEscudoRender,
   'dSouza EC': dsouzaEscudoRender,
   'dSouza SC': dsouzaEscudoRender,
+  // 🐐👑 Cabritiiin F.C (lucassaboia14) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Unidos da Resenha (bot que
+  // cedeu o assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  'Cabritiiin F.C': cabritiiinEscudoRender,
+  'Cabritiiin FC': cabritiiinEscudoRender,
+  'Cabritiiin': cabritiiinEscudoRender,
+  'Cabritiiin EC': cabritiiinEscudoRender,
+  'Cabritiiin SC': cabritiiinEscudoRender,
   // ⭐🦁 Vila Esporte Clube (oluisantonio.contato) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
   'Vila Esporte Clube': vilaEscudoRender,
   'Vila Esporte Clube FC': vilaEscudoRender,

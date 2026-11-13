@@ -13441,3 +13441,13 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - 🏷️ **13/11: "Foi profissional" virou "Profissional"** (EN "Pro") em toda a tela (cartas, rótulos, técnicos, olheiro, Liga Draft). Só o nome; regra igual.
 
 - **13/11 — Fundador sem contato: lucassaboia14@gmail.com** (pagou o 🖋 Fundador e não falou com o Diego). Aviso id 68 em `esc_avisos_conta` com o WhatsApp e o Instagram do Diego. Quando ele chamar, seguir o roteiro de batismo (arte + as 4 linhas no banco).
+
+## 🐐☀️ 13/11 — Batismo FUNDADOR Cabritiiin F.C (lucassaboia14) — PUBLICADO
+- Várzea, no assento do bot Unidos da Resenha (A–D cheias de batismo; o Diego escolheu a Várzea). Berretinho segue na Série D.
+- Fundador nº101 (o nº100 está guardado pro Double Duo FC, que ainda não tem conta) · sócio nº89 · coração Ceará.
+- Escudo/mascote/camisa recortados da prancha verde (`recorta-prancha-chroma.py`); manto azul #0159C7 + branco #F6F6F6 medidos.
+- Banco: esc_socios, esc_fundadores, esc_nomes_batismo (cabritiiin / FC / EC / F.C); user_colors ouro já estava.
+- Gala única "Direto da Terra do Sol" (`gala-cabritiiin.tsx`), vídeo `scripts/posts/gala-cabritiiin.webm`. Sem som: falta o canto (Fundador tem direito).
+- Post: `scripts/posts/batismo-cabritiiin.png`.
+- Ficha do clube depois do Pix (Batismo/Fundador, WhatsApp obrigatório, aviso de 24h) publicada junto.
+- ⚠️ Lucas pagou também R$ 19,90 de escudo avulso (11/11) — o Diego decide se devolve.

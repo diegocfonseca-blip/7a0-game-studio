@@ -148,6 +148,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐶💚 dSouza FC — PRETO e VERDE-NEON, MEDIDOS na camisa que o dono mandou (28/10): preto do corpo (64%, #0A0A09) e o
   // verde-neon das faixas (média dos pixels neon, #73E541).
   'alexandre12cdm@gmail.com': ['#0A0A09', '#73E541'],
+  // 🐐👑 Cabritiiin F.C — AZUL e BRANCO, MEDIDOS na camisa que o dono mandou (13/11): azul das listras (mediana, #0159C7) e o
+  // branco do corpo (#F6F6F6).
+  'lucassaboia14@gmail.com': ['#0159C7', '#F6F6F6'],
   // ⭐🦁 Vila Esporte Clube — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (27/10): preto das listras/mangas (58%, #0C0C0C)
   // e o branco das listras (32%, #DADADA).
   'oluisantonio.contato@gmail.com': ['#0C0C0C', '#DADADA'],

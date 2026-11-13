@@ -83,6 +83,7 @@ import milanRecifenseMascoteImg from './img/milan-recifense-mascote.webp' // �
 import principeMascoteImg from './img/principe-mascote.webp' // 👑 Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaMascoteImg from './img/lulubaba-mascote.webp' // 🧤 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
+import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcMascoteImg from './img/neymarfc-mascote.webp' // 🐐 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
@@ -460,6 +461,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
   // 🐶 O PITBULL (mascote do dSouza FC — alexandre12cdm, 28/10): o pitbull de boné e moletom dSouza FC carregando os quadros
   // das lendas, com as caixas da loja dele. Arte do próprio dono. 📏 398×440, 32 KB — altura 176. mascote_key = "dsouza_pitbull".
+  // 🐐👑 O CABRITIIIN (mascote do Cabritiiin F.C — lucassaboia14, 13/11): o bode de coroa e óculos escuros, braços cruzados,
+  // pé em cima da bola, camisa 10 listrada. Arte do próprio dono. 📏 300×440, 40 KB — altura 176. mascote_key = "cabritiiin_bode".
+  cabritiiin_bode: (
+    <img src={cabritiiinMascoteImg} height={176} width={Math.round(176 * 300 / 440)} alt="O Cabritiiin — Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   dsouza_pitbull: (
     <img src={dsouzaMascoteImg} height={176} width={Math.round(176 * 398 / 440)} alt="O Pitbull — dSouza FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1371,6 +1377,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'dSouza': 'dsouza_pitbull',
   'dSouza EC': 'dsouza_pitbull',
   'dSouza SC': 'dsouza_pitbull',
+  // 🐐 o Cabritiiin carimba o gol do Cabritiiin F.C (lucassaboia14, 13/11).
+  'Cabritiiin F.C': 'cabritiiin_bode',
+  'Cabritiiin FC': 'cabritiiin_bode',
+  'Cabritiiin': 'cabritiiin_bode',
+  'Cabritiiin EC': 'cabritiiin_bode',
+  'Cabritiiin SC': 'cabritiiin_bode',
   // 🦁 o Leão carimba o gol do Vila Esporte Clube (oluisantonio.contato, 27/10).
   'Vila Esporte Clube': 'vila_leao',
   'Vila Esporte Clube FC': 'vila_leao',
@@ -1533,6 +1545,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   puma_milan: 'O Puma', // 🐆 Milan Recifense (danicorreafilho, 05/11)
   lulubaba_goleiro: 'O Goleiro', // 🧤 Lulubaba FC (lucasfonseca363, 29/10)
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
+  cabritiiin_bode: 'O Cabritiiin', // 🐐 Cabritiiin F.C (lucassaboia14, 13/11)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)
   neymarfc_bode: 'O Bode Rei', // 🐐 Neymar FC (sheeryarie772, 21/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)

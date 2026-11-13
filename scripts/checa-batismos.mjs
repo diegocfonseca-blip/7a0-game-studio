@@ -86,6 +86,7 @@ const BATISMOS = [
   ['pedroglima50@gmail.com', 'Príncipe Rubro Negro'], // 👑🔴⚫ Série D (02/11) — no assento do bot Aurora Suprema
   ['lucasfonseca363@gmail.com', 'Lulubaba FC'], // 🧤🖤 Série D (29/10, virou Fundador) — no assento do bot Fênix Dourada
   ['alexandre12cdm@gmail.com', 'dSouza FC'], // 🐶💚 Série C (28/10, Fundador) — no assento do bot Kombi United
+  ['lucassaboia14@gmail.com', 'Cabritiiin F.C'], // 🐐👑 Várzea (13/11, Fundador) — no assento do bot Unidos da Resenha
   ['oluisantonio.contato@gmail.com', 'Vila Esporte Clube'], // ⭐🦁 Série D (27/10) — assento do bot Imperador SAF
   ['sheeryarie772@gmail.com', 'Neymar_FC'], // 🐐👑 Série D (21/10; Fundador em 29/10) — assento do bot Galáxia EC
   ['caelborba@gmail.com', 'Labubu FC'], // 🐰⚪ Série A (14/10) — assento do Só Deus Sabe FC, que desceu pra C
