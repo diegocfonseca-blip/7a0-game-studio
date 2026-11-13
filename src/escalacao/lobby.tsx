@@ -2507,11 +2507,16 @@ export function EscLobby() {
     }
     // 👑🔒 11/11 (Diego: *"salas da Kings League não podem aparecer pras pessoas. Essa sala é só com senha"*): quem não vê a Kings não
     // vê a sala dela na lista. A lista magra não traz a formação, então pergunta só os ids (resposta minúscula). Sem resposta = esconde nada.
-    if (!kingsVe && ids.length) {
+    // 👑🩷 13/11 (Diego: *"nas salas abertas já aparece selo da sala de ser da Kings League? Coloque selo rosa"*): a MESMA pergunta (só os
+    // ids, resposta minúscula — a que já rodava pra todo mundo antes de 12/11) agora também MARCA a sala como Kings pro selo rosa.
+    if (ids.length) {
       try {
         const { data: kg } = await supabase.from('game_rooms').select('id').in('id', ids).eq('game_state->>formation', 'kings')
         const kings = new Set((kg ?? []).map(x => (x as { id: string }).id))
-        if (kings.size) for (let i = list.length - 1; i >= 0; i--) if (kings.has(list[i].id)) list.splice(i, 1)
+        if (kings.size) for (let i = list.length - 1; i >= 0; i--) if (kings.has(list[i].id)) {
+          if (!kingsVe) list.splice(i, 1)
+          else list[i] = { ...list[i], game_state: { ...(list[i].game_state as GS), formation: 'kings' } as GS }
+        }
       } catch { /* a lista segue */ }
     }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
@@ -5062,7 +5067,9 @@ export function EscLobby() {
                   <p className="ll-hub-room-name font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
                     <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
-                    <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>
+                    {(r.game_state as { formation?: string } | undefined)?.formation === 'kings'
+                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
+                      : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Sala de duplas: cada time é comandado por 2 pessoas', 'Duos room: each team is run by 2 people')}>{tr('🤝 DUPLAS', '🤝 DUOS')}</span>
                     )}
