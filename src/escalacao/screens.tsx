@@ -3352,7 +3352,7 @@ export function EscSetup() {
               ))}
             </div>
           )}
-          {league === 'br' && !kingsLigado && varzeaR && <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pickup game.')}</p>}
+          {league === 'br' && !kingsLigado && varzeaR && <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🥅 Sem craques: só bom jogador e profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pickup game.')}</p>}
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
@@ -9309,7 +9309,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   const [g1, g2, g3] = grads[key]
   const dark = key === 'prom' || key === 'f3'
   const inkC = dark ? '#ffffff' : '#0C0C0C'
-  const tierLabel = isProm ? '💎 PROMESSA' : c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.fame >= 2 ? '🎯 BOM JOGADOR' : '🪵 FOI PROFISSIONAL'
+  const tierLabel = isProm ? '💎 PROMESSA' : c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.fame >= 2 ? '🎯 BOM JOGADOR' : '🪵 PROFISSIONAL'
   const rrp = (px: number, py: number, w: number, h: number, r: number) => {
     x.beginPath(); x.moveTo(px + r, py); x.arcTo(px + w, py, px + w, py + h, r); x.arcTo(px + w, py + h, px, py + h, r); x.arcTo(px, py + h, px, py, r); x.arcTo(px, py, px + w, py, r); x.closePath()
   }
@@ -9804,7 +9804,7 @@ export const FAME_TIER: Record<number, { label: string; grad: string; ink: strin
   4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F4F7FB,#CBD4DE 45%,#9BA7B5 78%,#EAEFF4)', ink: '#0C0C0C', tierColor: '#44546a', crestBg: 'rgba(255,255,255,.5)', crestInk: '#44546a', holo: true, holoAlpha: .72 },
   3: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45)', ink: '#fff', tierColor: 'rgba(255,255,255,.92)', crestBg: 'rgba(255,255,255,.35)', crestInk: '#14532d' },
   2: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45)', ink: '#fff', tierColor: 'rgba(255,255,255,.92)', crestBg: 'rgba(255,255,255,.35)', crestInk: '#14532d' },
-  1: { label: '🪵 FOI PROFISSIONAL', grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E 60%,#B2A583)', ink: '#0C0C0C', tierColor: '#655c43', crestBg: 'rgba(255,255,255,.5)', crestInk: '#655c43' },
+  1: { label: '🪵 PROFISSIONAL', grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E 60%,#B2A583)', ink: '#0C0C0C', tierColor: '#655c43', crestBg: 'rgba(255,255,255,.5)', crestInk: '#655c43' },
 }
 // 5º tier: promessas (foi promessa aqui, virou estrela na Europa) — roxo, brilho sutil
 export const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#C9A9FF,#8B5CF6 52%,#5B2FB0)', ink: '#fff', tierColor: 'rgba(255,255,255,.9)', crestBg: 'rgba(255,255,255,.5)', crestInk: '#3d1f7a', holo: true, holoAlpha: .38 } as const
@@ -10255,7 +10255,7 @@ function fallbackBio(fame: number, pos: string): string {
     case 4: return `Craque ${where}: brilhou de verdade e marcou época.`
     case 3: return `Bom jogador ${where}, de confiança e regularidade.`
     case 2: return `Bom jogador ${where} que tinha seus dias de brilho.`
-    default: return `Foi profissional ${where} — do nosso futebol raiz.`
+    default: return `Profissional ${where} — do nosso futebol raiz.`
   }
 }
 export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
@@ -10329,7 +10329,7 @@ async function shareCardImage(c: { name: string; club: string; year: number; pos
   const [g1, g2, g3] = grads[key]
   const dark = key === 'prom' || key === 'f3'
   const inkC = dark ? '#ffffff' : '#0C0C0C'
-  const tierLabel = isProm ? '💎 PROMESSA' : c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.fame >= 2 ? '🎯 BOM JOGADOR' : '🪵 FOI PROFISSIONAL'
+  const tierLabel = isProm ? '💎 PROMESSA' : c.fame >= 5 ? '👑 LENDA' : c.fame === 4 ? '⭐ CRAQUE' : c.fame >= 2 ? '🎯 BOM JOGADOR' : '🪵 PROFISSIONAL'
   // fundo creme + carta
   x.fillStyle = '#F4ECD6'; x.fillRect(0, 0, W, H)
   const M = 46, cw = W - M * 2, ch = CH - M * 2

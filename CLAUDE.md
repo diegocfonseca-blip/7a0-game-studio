@@ -1152,6 +1152,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   escalado (Digão 48–64 na zaga do Duarte). A simulação é por SETOR com os 11 titulares — lenda no ataque não tapa zagueiro ruim. Ele
   achou justo e mandou deixar. **Não aumentar o peso da lenda** sem ele pedir. (E "ficou em 16º três vezes" do Duarte = coincidência: 15º na T3.)
 
+- **🏷️ A CATEGORIA SE CHAMA "PROFISSIONAL" (13/11).** *"a categoria foi profissional agora será profissional, o nome apenas"*. Só o nome na tela (PT "Profissional", EN "Pro"); a categoria (fame 1) não mudou. Texto novo já nasce com "Profissional".
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

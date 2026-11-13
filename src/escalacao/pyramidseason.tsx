@@ -5573,7 +5573,7 @@ const TEC_GRAD: Record<DivTec, { grad: string; ink: string }> = {
 }
 const TEC_ESTILO: Record<string, string> = { retranca: '🛡️ Retranqueiro', posse: '🎩 Posse de bola', ofensiva: '⚽ Ofensivo', equilibrado: '⚖️ Equilibrado' }
 const TEC_ESTILO_EN: Record<string, string> = { retranca: '🛡️ Defensive', posse: '🎩 Possession', ofensiva: '⚽ Attacking', equilibrado: '⚖️ Balanced' }
-const CAT_TEC_EN: Record<DivTec, string> = { A: '👑 Legend', B: '⭐ Star', C: '💜 Prospect', D: '💚 Good player', V: '🤎 Ex-pro' }
+const CAT_TEC_EN: Record<DivTec, string> = { A: '👑 Legend', B: '⭐ Star', C: '💜 Prospect', D: '💚 Good player', V: '🤎 Pro' }
 const catTecRotulo = (d: DivTec) => (getLang() === 'en' ? CAT_TEC_EN[d] : CATEGORIA_TECNICO_ROTULO[d])
 function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFaixa?: boolean; misterio?: boolean }) {
   const t = tecnicoPorNome(nome)
@@ -5962,7 +5962,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
         </div>
         <p style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: INK, background: olheiroGrad, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{olheiroNome}</span>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#5a5647' }}>{olheiroTier === 'ouro' ? tr('acha qualquer jogador, lenda inclusive', 'finds any player, legends included') : olheiroTier === 'prata' ? tr('acha de craque pra baixo', 'finds from star down') : tr('acha foi profissional, bom jogador e promessa', 'finds ex-pros, good players and prospects')}</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#5a5647' }}>{olheiroTier === 'ouro' ? tr('acha qualquer jogador, lenda inclusive', 'finds any player, legends included') : olheiroTier === 'prata' ? tr('acha de craque pra baixo', 'finds from star down') : tr('acha profissional, bom jogador e promessa', 'finds ex-pros, good players and prospects')}</span>
         </p>
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
           {pilula(posF === null, tr('Todas', 'All'), () => setPosF(null))}
@@ -7703,7 +7703,7 @@ function CriseBanner({ crise, opcoes, onResolve }: {
             <button key={f.name} onClick={() => onResolve('folclorico', f)} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', padding: '9px 10px', marginBottom: 8, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}` }}>
               <div style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}>{f.name}</div>
               <div style={{ fontSize: 8.5, fontWeight: 800, color: '#7a6b3f', marginTop: 1 }}>{f.club} · {f.year}</div>
-              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio ?? tr('Categoria "foi profissional" — jogou pouco, mas jogou.', '"Was a pro" category — didn\'t play much, but played.')}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio ?? tr('Categoria "profissional" — jogou pouco, mas jogou.', '"Pro" category — didn\'t play much, but played.')}</div>
               <span style={{ display: 'inline-block', marginTop: 6, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 8.5, borderRadius: 5, padding: '2px 8px', textTransform: 'uppercase' }}>{tr('Grátis', 'Free')}</span>
             </button>
           ))}
@@ -7742,7 +7742,7 @@ function CriseBanner({ crise, opcoes, onResolve }: {
           {tr('"Nunca gostei dele mesmo"', '"Never liked him anyway"')}
           <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>{tr('Chama alguém da base pro lugar dele.', 'Call someone up from the academy to replace him.')}</small>
         </button>
-        <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.4 }}>{tr('🤡 Aviso justo: seja base ou "foi profissional", ninguém aqui é bom de bola — mas topa jogar de graça.', '🤡 Fair warning: academy or "was a pro", nobody here is any good — but they\'ll play for free.')}</p>
+        <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.4 }}>{tr('🤡 Aviso justo: seja base ou "profissional", ninguém aqui é bom de bola — mas topa jogar de graça.', '🤡 Fair warning: academy or "was a pro", nobody here is any good — but they\'ll play for free.')}</p>
       </div>
     </div>
   )
@@ -12929,11 +12929,11 @@ export function PyramidSeasonScreen() {
             {quinzeCarr && (
               <UnlockBanner k="tecnicos-chegaram" tag={tr('🎉 vocês pediram muito', '🎉 you asked a lot')} title={tr('🧢 Os técnicos chegaram!', '🧢 The head coaches are here!')} ctaBg={GREEN} ctaColor="#fff">
                 {getLang() === 'en' ? <>
-                Your club now has a <b>head coach</b>: there are <b>105 of them</b>, from 🤎 Was a pro to 👑 Legend, and <b>their level adds to your team</b> in every league match.
+                Your club now has a <b>head coach</b>: there are <b>105 of them</b>, from 🤎 Pro to 👑 Legend, and <b>their level adds to your team</b> in every league match.
                 <br /><br />🎽 The <b>15 formations</b> came along too — but <b>the coach is who unlocks them</b>: with no coach, the team only plays the system it already trains. The higher the coach\'s category, the more systems they bring (👑 Legend brings 5).
                 <br /><br />📍 <b>To hire one:</b> in the window <b>before the auction</b>, <b>🕵️ SCOUT</b> tab — you mark the coach you want and fight for them at the auction, in the envelope, just like a player. 🔨 <b>5-season</b> contract, salary on the payroll.
                 </> : <>
-                Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Foi profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
+                Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
                 <br /><br />🎽 E vieram junto as <b>15 formações</b> — mas <b>quem abre elas é o técnico</b>: sem técnico, o time joga só o esquema que já treina. Quanto maior a categoria dele, mais esquemas ele traz (👑 Lenda traz 5).
                 <br /><br />📍 <b>Pra contratar:</b> na janela <b>antes do leilão</b>, aba <b>🕵️ SONDAR</b> — você marca o técnico que quer e briga por ele no pregão, no envelope, igual jogador. 🔨 O tempo de contrato é <b>sorteado na assinatura</b> ({CONTRATO_PRAZOS.join(', ')} temporadas, a mesma escada do jogador), com salário na folha.
                 </>}
@@ -13147,7 +13147,7 @@ export function ReserveListScreen() {
           const d = (state.careerPlacements?.[`m${youId}`] ?? 'V') as 'A' | 'B' | 'C' | 'D' | 'V'
           const CATS: Record<string, string> = getLang() === 'en'
             ? { V: '🪵 Was a Pro + 🎯 Good Player', D: '🎯 Good Player + 💎 Prospect', C: '💎 Prospect + ⭐ Star', B: '💎 Prospect + ⭐ Star', A: '⭐ Star + 👑 Legend' }
-            : { V: '🪵 Foi Profissional + 🎯 Bom Jogador', D: '🎯 Bom Jogador + 💎 Promessa', C: '💎 Promessa + ⭐ Craque', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
+            : { V: '🪵 Profissional + 🎯 Bom Jogador', D: '🎯 Bom Jogador + 💎 Promessa', C: '💎 Promessa + ⭐ Craque', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
           return (
             <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🪜 Mercado da', '🪜 Market of')} {d === 'V' ? '🌱 Várzea' : `Série ${d}`}</p>
