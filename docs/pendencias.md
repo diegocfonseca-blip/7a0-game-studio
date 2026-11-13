@@ -4,6 +4,15 @@
 - A foto enviada pelo usuário orientou o cabelo platinado, a barba curta e a camisa geométrica escura. WebP 600×400 com alfa real, conferido sobre creme e verde. Usuário aprovou a arte e autorizou a publicação.
 
 
+
+## 📊 13/11 — Carreira: meio-campo quase não dá assistência (reclamação de jogador) — MEDIDO, esperando o OK do Diego pra mexer
+- Os jogos do SEU time na carreira são do motor novo; os dos bots, da simulação de sempre. Medido (`scripts/mede-gols-assist-motor2.mts`):
+  · motor novo 4-3-3: assistências ATA 60% · MEI 33% · LAT 5% — gols ATA 93% · MEI 5% (4-4-2: assist. ATA 51% · MEI 39%; gols ATA 94%)
+  · simulação dos bots (pesos de `garcomDoGol`/gols): assistências MEI ~51% · ATA ~24% · LAT ~20% — gols ATA ~60% · MEI ~30%
+- Ou seja: no seu time quem dá o último passe é quase sempre outro atacante, e meia quase nunca faz gol. Proposta: ajustar o motor
+  novo pra o meia dar mais o passe final (e chegar pra chutar), mirando ~45% das assistências no MEI e ~20% dos gols. Mexe em como o
+  jogo da carreira rola — só depois do OK dele, e com a trava `npm run motor2` passando.
+
 ## 👑 11/11 — Kings: gol dobrado e shootout travando (esta sessão fica com a Kings a partir de agora, ordem do Diego)
 - ✖️2 *"às vezes o gol dobrado não conta"*: a janela olhava o minuto do placar (0–93) e a tela mostra o da Kings arredondado — gol
   mostrado como 17' ou 20' (e na carta, no 4º minuto) às vezes ficava fora. Agora é pelo minuto da TELA (`naJanelaDoDobro`).
