@@ -43,7 +43,11 @@ type DeckChoice = DeckCarreira | 'world'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
-import { useKingsLiberada } from './sport' // 👑 11/11: Kings nas salas online (só as contas da Kings)
+import { useKingsLiberada } from './sport'
+// 👑 13/11 (Diego: *"limite a 10… se por da Kings deixe com 10 times apenas… jogadores padrão aí tudo bem"*): a sala com o BARALHO da
+// Kings tem no máximo 10 pessoas — com mais, faltava zagueiro de verdade e o jogo completava com jogador de mentira (sala FDBQPN, 16 pessoas).
+// Mais nomes da Kings no baralho = sobe este número (pra 20 faltam ~53: +4 GOL, +18 ZAG, +16 MEI, +15 ATA).
+const KINGS_SALA_MAX = 10
 import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useRegionalLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
@@ -2290,7 +2294,7 @@ export function EscLobby() {
     const tentativa={v:1 as const,id:pendente?.id??novoIdCriacao(),code,at:pendente?.at??Date.now()}
     if(!gravaCriacaoPendente(user.id,game,tentativa))throw new Error('CRIACAO_SEM_ARMAZENAMENTO')
     const { data: rd, error: re } = await operacao.passo('criar-sala-e-dono',signal=>supabase.rpc('esc_criar_sala_segura',{
-      p_id:tentativa.id,p_code:code,p_max_players:tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS,
+      p_id:tentativa.id,p_code:code,p_max_players:(kingsVe && kingsSala && kingsBarSala && roomMode === 'rapido' && getSport() !== 'basquete') ? KINGS_SALA_MAX /* 👑 13/11: baralho da Kings = 10 pessoas (o baralho fecha até 11 sem jogador de mentira) */ : tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS,
       p_game_state:gs,p_nome:nameOf()
     }).abortSignal(signal))
     if (re || !rd) {
@@ -4368,7 +4372,7 @@ export function EscLobby() {
                 <SegField label={tr('Jogadores', 'Players')}>
                   <Seg options={[[true, tr('👑 Jogadores da Kings League', '👑 Kings League players')], [false, tr('🃏 Jogadores padrão', '🃏 Standard players')]] as [boolean, string][]} value={kingsBarSala} onSet={v => setKingsBarSala(v)} />
                   <p className="text-[11px] font-semibold mt-1.5 leading-snug" style={{ color: '#6b6250' }}>
-                    {tr('👑 O leilão de sempre com 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois, a competição da Kings: 9 rodadas e o mata-mata.', '👑 The usual auction with 7 slots per team (keeper + 6), 10 teams and 100 coins. Then the Kings competition: 9 rounds and the knockouts.')}
+                    {tr('👑 O leilão de sempre com 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois, a competição da Kings: 9 rodadas e o mata-mata.', '👑 The usual auction with 7 slots per team (keeper + 6), 10 teams and 100 coins. Then the Kings competition: 9 rounds and the knockouts.')}{kingsBarSala ? tr(` Com os jogadores da Kings, a sala vai até ${KINGS_SALA_MAX} pessoas.`, ` With the Kings players, the room holds up to ${KINGS_SALA_MAX} people.`) : ''}
                   </p>
                 </SegField>
               )}

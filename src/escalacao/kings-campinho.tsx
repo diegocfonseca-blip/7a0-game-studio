@@ -9,7 +9,6 @@ const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 900 as const, textTransform: 'uppercase' as const }
 export interface CartaCampinho { name: string; pos: Sector; fame: number; club?: string; presidente?: boolean }
 type Tier = { grad: string; ink: string }
-const tierEmoji = (f: number) => (f >= 5 ? '👑' : f === 4 ? '⭐' : f === 1 ? '🪵' : '🎯')
 const sobrenome = (n: string) => { const l = n.replace(/\s*\(.*?\)\s*/g, ' ').trim(); return l.split(' ').pop() || l }
 
 export function CampinhoKings({ elenco, tier }: { elenco: CartaCampinho[]; tier: (fame: number) => Tier }) {
@@ -35,7 +34,7 @@ export function CampinhoKings({ elenco, tier }: { elenco: CartaCampinho[]; tier:
           <div key={`${pos}${i}`} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)', width: 78, textAlign: 'center', zIndex: 3 }}>
             <div style={{ border: `3px ${c ? 'solid' : 'dashed'} ${INK}`, borderRadius: 10, boxShadow: c ? `2px 3px 0 ${INK}` : 'none', padding: '3px 3px 4px', background: c && t ? t.grad : 'rgba(255,255,255,.4)' }}>
               <span style={{ ...OSW, display: 'inline-block', fontSize: 9.5, background: c ? INK : 'rgba(0,0,0,.55)', color: '#fff', borderRadius: 6, padding: '1px 6px' }}>{pos}</span>
-              {c && t ? <><div style={{ ...OSW, fontSize: 12, lineHeight: 1, color: t.ink, textTransform: 'none' }}>{sobrenome(c.name)}</div><div style={{ fontSize: 10 }}>{tierEmoji(c.fame)}</div></> : <div style={{ ...OSW, fontSize: 10.5, color: 'rgba(12,12,12,.7)', textTransform: 'none' }}>Vazio</div>}
+              {c && t ? <div style={{ ...OSW, fontSize: 12, lineHeight: 1, color: t.ink, textTransform: 'none', marginTop: 2 }}>{sobrenome(c.name)}</div> /* 13/11 (Diego): sem o emoji da categoria — só a cor, a posição e o nome */ : <div style={{ ...OSW, fontSize: 10.5, color: 'rgba(12,12,12,.7)', textTransform: 'none' }}>Vazio</div>}
             </div>
           </div>
         )
