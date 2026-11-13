@@ -77,7 +77,7 @@ import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:0
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
-import { SECTORS, FORMATIONS, FORMACOES_JOGO } from './types'
+import { SECTORS, FORMATIONS, FORMACOES_JOGO, rotuloFormacao } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
@@ -4151,7 +4151,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
                 de sempre (+ a atual, se for conta nova). Aqui é sempre a CONTA do
                 motor (sem maquiagem: intervalo é ajuste rápido). */}
             {((): FormationKey[] => {
-              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]
+              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2'] as FormationKey[]
               if (!quinze15) return base
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
@@ -4164,7 +4164,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
               return [...new Set<FormationKey>([...motores, mgr.formation])]
             })().map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
-              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
+              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{rotuloFormacao(f)}{cur ? ' ✓' : ''}</button>
             })}
           </div>
           {/* tática */}
@@ -6391,7 +6391,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
         }
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
         // 📋 Liga Draft (04/11): as 7 formações do jogo, acesas pelo que o elenco tem; o resto segue com as 5 de sempre
-        const listaForm: readonly FormationKey[] = escSt.minhaLigaDraft ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2']
+        const listaForm: readonly FormationKey[] = escSt.minhaLigaDraft ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2']
         const blocked = listaForm.filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
@@ -6406,13 +6406,13 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
                   <button key={vista ?? f} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f, vista) }}
                     title={vista ? tr('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined}
                     style={btnStyle(cur, can)}>
-                    {vista ?? f}{cur ? ' ✓' : ''}
+                    {vista ?? rotuloFormacao(f)}{cur ? ' ✓' : ''}
                   </button>
                 )
               })}
             </div>
             {blocked.length
-              ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{blocked[0]}</b> you\'re missing <b>{missFor(blocked[0]).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{blocked[0]}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
+              ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{rotuloFormacao(blocked[0])}</b> you\'re missing <b>{missFor(blocked[0]).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{rotuloFormacao(blocked[0])}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
               : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>{tr('✅ Você pode trocar de formação quando quiser — vale do próximo jogo.', '✅ You can change formation whenever you like — applies from the next match.')}</p>}
           </div>
         )

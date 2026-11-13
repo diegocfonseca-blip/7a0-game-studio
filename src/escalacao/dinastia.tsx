@@ -43,6 +43,7 @@ const FORM_NEED: Record<FormationKey, Record<Sector, number>> = {
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
   '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
   '3-4-3': { GOL: 1, LAT: 2, ZAG: 1, MEI: 4, ATA: 3 },
+  '3-4-3z': { GOL: 1, LAT: 0, ZAG: 3, MEI: 4, ATA: 3 },
   '5-3-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 },
   '4-2-4': { GOL: 1, LAT: 2, ZAG: 2, MEI: 2, ATA: 4 },
   '5-4-1': { GOL: 1, LAT: 2, ZAG: 3, MEI: 4, ATA: 1 },

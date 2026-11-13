@@ -1152,6 +1152,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   escalado (Digão 48–64 na zaga do Duarte). A simulação é por SETOR com os 11 titulares — lenda no ataque não tapa zagueiro ruim. Ele
   achou justo e mandou deixar. **Não aumentar o peso da lenda** sem ele pedir. (E "ficou em 16º três vezes" do Duarte = coincidência: 15º na T3.)
 
+- **🛡️ 3-4-3 = 3 ZAGUEIROS, 4 MEIAS, 3 ATACANTES, SEM LATERAL (13/11, opção 1 dele).** *"a formação 343 não deveria ter lateral"*.
+  Chave nova `'3-4-3z'` (na tela "3-4-3"); a `'3-4-3'` antiga (2 LAT + 1 ZAG) só vale pra quem já estava nela. Trava `npm run 343`.
 - **🏷️ A CATEGORIA SE CHAMA "PROFISSIONAL" (13/11).** *"a categoria foi profissional agora será profissional, o nome apenas"*. Só o nome na tela (PT "Profissional", EN "Pro"); a categoria (fame 1) não mudou. Texto novo já nasce com "Profissional".
 
 ## 🗣️ Como falar com o Diego

@@ -47,6 +47,16 @@ const GOLEIRO_CURTO = 0.03
 const CEGUEIRA = 25
 /** 🤝 o gosto por devolver a tabela (quem me tocou e saiu correndo) */
 const TABELA = 0.03
+/** 🅰️ (13/11, reclamação de jogador: "o meio-campo quase não dá assistência na carreira"; medido: ATA 60% das assistências · MEI 33%)
+ *  o PASSE DECISIVO é coisa de meia: tocar pra quem está na cara do gol vale mais quando quem toca é meia (ou lateral), pela visão dele */
+export const KEY_MEIA = +(globalThis as { __KEY_MEIA?: number }).__KEY_MEIA! || 2.5
+/** 🅰️ …e o atacante na cara do gol FINALIZA em vez de rolar pro outro atacante do lado (era daí que saíam 60% das assistências) */
+export const KEY_ATA = +(globalThis as { __KEY_ATA?: number }).__KEY_ATA! || 1.0
+/** 🔙 (13/11; medido: perto da área a bola ficava 76% do tempo com atacante e 21% com meia) o atacante apertado de costas no último
+ *  terço escora pro meia que chega de frente — é dali que sai o passe decisivo e o chute de fora */
+export const ESCORA_MEIA = +(globalThis as { __ESCORA_MEIA?: number }).__ESCORA_MEIA! || 0.06
+/** ⚽ (13/11; medido: o meia fazia 5% dos gols) o meia que chega na entrada da área, livre, arrisca — é o gol do "8" */
+export const CHEGADA_MEIA = +(globalThis as { __CHEGADA_MEIA?: number }).__CHEGADA_MEIA! || 4
 /** ⚽ a partir desta finalização o jogador bate de primeira, sem ajeitar */
 const CRAQUE_PRIMEIRA = 88
 
@@ -98,6 +108,7 @@ export function decide(m: Motor2, p: Atleta): Acao {
     if (dGol > 27) u *= 0.7
     // (na entrada da área, LIVRE, o profissional arrisca — é o chute de meia distância de verdade; marcado, procura o passe)
     if (dGol > 15 && dGol < 26) u *= 1 + clamp(1 - pres / 0.55, 0, 1) * 0.8
+    if (p.grupo === 'MEI' && dGol > 11 && dGol < 26) u *= 1 + (CHEGADA_MEIA - 1) * clamp(1 - pres / 0.7, 0, 1)
     if (restr === 'penalti') u = 9
     if (restr === 'falta' && dGol > 30) u = 0
     // ⚽ FALTA DIRETA × LEVANTADA (Diego 20/10): quem é batedor de falta (`falta_curva`/`falta_bomba`, estilo chutador) bate
@@ -167,6 +178,14 @@ export function decide(m: Motor2, p: Atleta): Acao {
     // a jogada que mais faz gol no futebol de verdade
     const fAlvo = frente(l, alvo.y)
     if (f < 11 && Math.abs(p.x - 34) > 9 && !aereo && fAlvo > f && fAlvo < 15 && Math.abs(alvo.x - 34) < 10) u += pOk * CORTE
+    // 🅰️ O PASSE DECISIVO (13/11): bola pra quem está na cara do gol — do meia/lateral vale mais (pela visão); do atacante pro atacante do
+    // lado, dentro da área, vale menos (ali o atacante finaliza)
+    if (t.grupo !== 'GOL' && t.grupo !== 'DEF' && fAlvo < 22 && Math.abs(alvo.x - 34) < 13) {
+      const xgA = xgDe(l, alvo.x, alvo.y, clamp(1 - rec / 6, 0, 1))
+      if (p.grupo === 'MEI' || p.grupo === 'LAT') u += pOk * xgA * (KEY_MEIA - 1) * (0.55 + p.at.visao / 220)
+      else if (p.grupo === 'ATA' && t.grupo === 'ATA' && f < 20) u -= pOk * xgA * KEY_ATA
+    }
+    if (p.grupo === 'ATA' && t.grupo === 'MEI' && f < 38 && pRec > 0.7 && (t.y - p.y) * fy < 2) u += pOk * ESCORA_MEIA * (0.5 + pres)
     // 🤝 (25/10) APERTADO, O TOQUE CURTO É O CERTO: tabela, parede, o apoio a 5–10 m — é assim que o profissional sai da pressão
     if (d < 11 && !aereo) u += pOk * TOQUE_CURTO * (0.35 + pres)
     // ⭐ O JOGO PASSA PELO CRAQUE: o time procura quem resolve (lenda com a bola vale mais que o volante com a bola)
