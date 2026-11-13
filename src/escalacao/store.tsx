@@ -1,5 +1,5 @@
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, lazy, Suspense } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
 import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
@@ -1117,7 +1117,16 @@ import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiber
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
 import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import { AvisoDonoFundo, salaEsperaODono } from './aviso-dono-fundo' // 🖥️ 20/10
-import { AvisoConta } from './aviso-conta' // 📣 21/10: aviso de moderação pra uma conta
+import { AvisoConta } from './aviso-conta'
+// 🖋📲 13/11: a ficha do clube (Batismo/Fundador) por cima de tudo até o WhatsApp ser salvo — preguiçosa, só baixa quem pagou
+const BriefingPendente = lazy(() => import('./pix-mp'))
+const FICHA_KEY = 'esc-ficha-clube-pendente', FICHA_EVT = 'esc-ficha-clube' // = FICHA_CLUBE_KEY/EVT do pix-mp.tsx
+function FichaClubeVigia() {
+  const le = () => { try { return !!localStorage.getItem(FICHA_KEY) } catch { return false } }
+  const [tem, setTem] = useState(le)
+  useEffect(() => { const f = () => setTem(le()); window.addEventListener(FICHA_EVT, f); return () => window.removeEventListener(FICHA_EVT, f) }, [])
+  return tem ? <Suspense fallback={null}><BriefingPendente /></Suspense> : null
+} // 📣 21/10: aviso de moderação pra uma conta
 import { co2Ganchos, co2Envia, co2Agora } from './co2'
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
@@ -16687,6 +16696,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       )}
       {/* 🖥️ dono que saiu da aba / computador travou no meio do leilão: avisa ELE (20/10, live do Fridão) */}
       <AvisoConta />
+      <FichaClubeVigia />
       <AvisoDonoFundo ativo={state.onlineMode === 'online' && state.isHost && !!state.roomId && salaEsperaODono(state.screen, state.phase)} />
       {showHostBanner && (
         <div style={{

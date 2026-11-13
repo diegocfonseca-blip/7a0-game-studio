@@ -12,6 +12,7 @@
 // 🔒 Este componente NÃO decide nada: preço e liberação são do servidor (Edge Functions `mp-criar-pix`/`mp-webhook` +
 // `esc_mp_*` no banco). Aqui só se pede o Pix e se PERGUNTA o status do próprio pedido.
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import { logApoio, recarregaDireitos } from './apoio'
@@ -123,7 +124,7 @@ export function PixMP({ produto, valor, refId = '', aoReceberFicha, aoPagar }: {
       const row = Array.isArray(data) ? (data[0] as { status: string; ficha: string | null } | undefined) : undefined
       const st = row?.status
       if (st === 'pago' || st === 'liberado') {
-        setLiberado(st === 'liberado'); setFicha(row?.ficha ?? null); setFase('pago'); recarregaDireitos(); aoPagar?.(pix.pedido_id) /* 💙 05/11: o id vai junto (o mural da doação assina por ele) */
+        setLiberado(st === 'liberado'); setFicha(row?.ficha ?? null); setFase('pago'); if (ehClubeFicha(produto)) void marcaFichaClube(produto, pix.pedido_id); recarregaDireitos(); aoPagar?.(pix.pedido_id) /* 💙 05/11: o id vai junto (o mural da doação assina por ele) */
         logApoio(`💳 PIX MP caiu · ${produto} · ${st}`)
       }
     } finally { conferindo.current = false }
@@ -217,7 +218,7 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
       {ficha && !(creditou != null && creditou > 0) && <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.5)' }}>
         {tr('Código de reserva (se precisar): ', 'Backup code (if needed): ')}<b className="select-all">{ficha}</b>
       </p>}
-      {produto === 'giro_dia' || produto === 'giro_hora' || produto === 'recado_hora' || produto === 'recado_dia' ? <EscreveAnuncio pedido={pedido} produto={produto} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : produto === 'peca_presidente' || produto === 'doacao_luca' || produto === 'manto_camisa' || produto === 'manto_duas' ? null : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
+      {produto === 'giro_dia' || produto === 'giro_hora' || produto === 'recado_hora' || produto === 'recado_dia' ? <EscreveAnuncio pedido={pedido} produto={produto} /> : produto === 'dia_marca' ? <ContatoDiego pedido={pedido} produto={produto} /> : produto === 'peca_presidente' || produto === 'doacao_luca' || produto === 'manto_camisa' || produto === 'manto_duas' ? null : ehClubeFicha(produto) ? <p className="text-[12.5px] font-black mt-2" style={{ color: '#7C3AED' }}>{tr('📝 A ficha do seu clube abriu por cima: é só preencher.', '📝 Your club form opened on top: just fill it in.')}</p> : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
         <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
           style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Bora jogar', '🎮 Let’s play')}</button>
@@ -278,10 +279,33 @@ function Telefone({ pedido, embutido = false }: { pedido: string; embutido?: boo
   )
 }
 
-function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
+/** 🖋📲 13/11 (Diego): "agora qm faz fundador deve deixar o telefone após pagamento… ou pedir pra pessoa me mandar msg ou
+ *  direct caso passe de 24h". E o furo achado no mesmo dia: o cartão do Fundador SOME da Loja quando o plano cai (a pessoa já
+ *  tem o plano), e levava junto a tela do Pix — os 7 Fundadores pagaram e nenhum viu a ficha. Agora, no Batismo/Fundador, o
+ *  pedido fica guardado no aparelho e a ficha abre POR CIMA de tudo (`BriefingPendente`, montado no store), e volta em toda
+ *  abertura do jogo até o WhatsApp ser salvo. O telefone é OBRIGATÓRIO aqui. */
+export const FICHA_CLUBE_KEY = 'esc-ficha-clube-pendente'
+export const FICHA_CLUBE_EVT = 'esc-ficha-clube'
+export const ehClubeFicha = (p: ProdutoMp) => p === 'batismo' || p === 'fundador'
+async function marcaFichaClube(produto: ProdutoMp, pedido: string) {
+  try {
+    const { data } = await supabase.auth.getUser()
+    localStorage.setItem(FICHA_CLUBE_KEY, JSON.stringify({ produto, pedido, em: Date.now(), email: data?.user?.email?.toLowerCase() ?? '' }))
+  } catch { /* sem armazenamento: a ficha ainda aparece na tela do Pix */ }
+  try { window.dispatchEvent(new Event(FICHA_CLUBE_EVT)) } catch { /* ignora */ }
+}
+export function limpaFichaClube() {
+  try { localStorage.removeItem(FICHA_CLUBE_KEY) } catch { /* ignora */ }
+  try { window.dispatchEvent(new Event(FICHA_CLUBE_EVT)) } catch { /* ignora */ }
+}
+const telOk = (t: string) => { const n = t.replace(/\D/g, '').length; return n >= 10 && n <= 13 }
+
+function Briefing({ produto, pedido, obrigaTel = false, aoTerminar, passou24h = false }: { produto: ProdutoMp; pedido: string; obrigaTel?: boolean; aoTerminar?: () => void; passou24h?: boolean }) {
   const [d, setD] = useState({ clube: '', coracao: '', cores: '', escudo: '', mascote: '', canto: '', gala: '' })
   const [salvo, setSalvo] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [tel, setTel] = useState('')
+  const [erroTel, setErroTel] = useState(false)
   const fundador = produto === 'fundador' || produto === 'teste' || produto === 'canto'
   const soCanto = produto === 'canto'
   // 🐾🛡️🎬 09/11: arte avulsa da Loja — só os campos daquela peça (+ nome e cores do clube, pra arte casar)
@@ -290,10 +314,16 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
     : avulsa === 'mascote' ? 'Mascote do clube' : avulsa === 'escudo' ? 'Escudo do clube' : avulsa === 'gala' ? 'Entrada de gala' : 'Teste'
   const num = pedido.slice(0, 8).toUpperCase()
   const salvar = async () => {
+    if (obrigaTel && !telOk(tel)) { setErroTel(true); return }
     setBusy(true)
+    if (obrigaTel) {
+      const { data: okTel } = await supabase.rpc('esc_mp_telefone', { p_id: pedido, p_tel: tel })
+      if (!okTel) { setBusy(false); setErroTel(true); return }
+      logApoio(`📲 deixou o WhatsApp · ${nomeProd}`)
+    }
     const { data } = await supabase.rpc('esc_mp_briefing', { p_id: pedido, p_dados: d })
     setBusy(false)
-    if (data) { setSalvo(true); logApoio(`🖋 briefing do ${nomeProd}: ${d.clube || '(sem nome)'}`) }
+    if (data || obrigaTel) { setSalvo(true); logApoio(`🖋 briefing do ${nomeProd}: ${d.clube || '(sem nome)'}`) }
   }
   const msg = tr(`Oi, Diego! Comprei o ${nomeProd} (pedido ${num})${d.clube ? `, clube ${d.clube}` : ''}. Já contei no jogo como imagino o meu clube.`,
     `Hi Diego! I bought ${nomeProd} (order ${num})${d.clube ? `, club ${d.clube}` : ''}. I already described in the game how I picture my club.`)
@@ -324,13 +354,51 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
         {!soCanto && campo('mascote', ['Como você imagina a mascote', 'How you picture the mascot'], ['Ex.: um leão de boné, bravo', 'e.g. a lion with a cap, fierce'], true)}
         {fundador && campo('canto', ['Canto da torcida (música ou letra)', 'Fan chant (song or lyrics)'], ['Ex.: o canto do meu time de coração', 'e.g. my favourite team’s chant'], true)}
         <p className="text-[11px] font-black mt-2.5 leading-snug" style={{ color: '#7C3AED' }}>{tr('🎨 Não precisa mandar imagem: a arte é feita pelo Leilão Legends, exclusiva pro seu clube.', '🎨 No need to send images: the art is made by Leilão Legends, exclusive to your club.')}</p>
-        <button onClick={salvar} disabled={busy} className="w-full rounded-xl py-2.5 mt-2.5 text-[16px] uppercase active:translate-y-0.5" style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{busy ? '…' : tr('📨 Enviar', '📨 Send')}</button>
+        {obrigaTel && <label className="block text-left mt-2.5 rounded-xl p-2.5" style={{ background: '#fff', border: `3px solid ${erroTel ? RED : INK}` }}>
+          <span className="text-[12px] font-black uppercase tracking-wide" style={{ ...OSW, color: INK }}>{tr('📲 Seu WhatsApp (obrigatório)', '📲 Your WhatsApp (required)')}</span>
+          <input value={tel} onChange={e => { setTel(e.target.value.replace(/[^\d()+\s-]/g, '').slice(0, 20)); setErroTel(false) }} inputMode="tel" placeholder="(11) 91234-5678"
+            className="w-full rounded-xl px-3 py-2 mt-1 font-bold text-[15px] bg-white" style={{ border: `2px solid ${INK}` }} />
+          <span className="block text-[10.5px] font-bold mt-1" style={{ color: erroTel ? RED : 'rgba(12,12,12,.55)' }}>{erroTel ? tr('Confere o número com DDD.', 'Check the number with area code.') : tr('É por aqui que o Diego te chama pra montar escudo, mascote, manto e entrada de gala.', 'This is how Diego reaches you to build your crest, mascot, kit and grand entrance.')}</span>
+        </label>}
+        <button onClick={salvar} disabled={busy || (obrigaTel && !telOk(tel))} className="w-full rounded-xl py-2.5 mt-2.5 text-[16px] uppercase active:translate-y-0.5" style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, opacity: obrigaTel && !telOk(tel) ? .5 : 1 }}>{busy ? '…' : tr('📨 Enviar', '📨 Send')}</button>
       </> : <p className="text-[13px] font-black mt-1.5" style={{ color: GREEN }}>{tr('✅ Recebido! O Diego começa a fazer o seu clube.', '✅ Got it! Diego will start building your club.')}</p>}
-      <Telefone pedido={pedido} embutido />
+      {!obrigaTel && <Telefone pedido={pedido} embutido />}
+      {obrigaTel && <p className="text-[11.5px] font-black mt-3 leading-snug rounded-lg px-2.5 py-2" style={{ background: passou24h ? '#FFE3DC' : '#fff', border: `2px solid ${passou24h ? RED : INK}`, color: passou24h ? RED : INK }}>{passou24h
+        ? tr(`⏰ Já faz mais de 1 dia e a gente ainda não se falou! Me chama no WhatsApp ${WHATSAPP_TXT} ou no direct do Instagram @leilaolegendscom.`, `⏰ It’s been over a day and we haven’t talked yet! Message me on WhatsApp ${WHATSAPP_TXT} or Instagram DM @leilaolegendscom.`)
+        : tr(`⏰ Se em 24 h a gente ainda não tiver se falado, me chama no WhatsApp ${WHATSAPP_TXT} ou no direct do Instagram @leilaolegendscom.`, `⏰ If we haven’t talked within 24 h, message me on WhatsApp ${WHATSAPP_TXT} or Instagram DM @leilaolegendscom.`)}</p>}
       <p className="text-[11.5px] font-bold mt-3" style={{ color: '#5a5240' }}>{tr(`Dúvida? Fala com o Diego (WhatsApp ${WHATSAPP_TXT}):`, `Questions? Talk to Diego (WhatsApp ${WHATSAPP_TXT}):`)}</p>
       <div className="flex gap-2 mt-1.5">
         {WHATSAPP_CONTATO && <a href={`https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" className="flex-1 rounded-xl py-2 text-center text-[14px] uppercase" style={{ ...OSW, background: '#25D366', color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>📲 WhatsApp</a>}
-        <a href={`mailto:${EMAIL_CONTATO}?subject=${encodeURIComponent(tr(`Leilão Legends · ${nomeProd} (pedido ${num})`, `Leilão Legends · ${nomeProd} (order ${num})`))}&body=${encodeURIComponent(msg)}`} className="flex-1 rounded-xl py-2 text-center text-[14px] uppercase bg-white" style={{ ...OSW, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>✉️ E-mail</a>
+        {obrigaTel && <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer" className="flex-1 rounded-xl py-2 text-center text-[14px] uppercase bg-white" style={{ ...OSW, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>📷 Direct</a>}
+        {!obrigaTel && <a href={`mailto:${EMAIL_CONTATO}?subject=${encodeURIComponent(tr(`Leilão Legends · ${nomeProd} (pedido ${num})`, `Leilão Legends · ${nomeProd} (order ${num})`))}&body=${encodeURIComponent(msg)}`} className="flex-1 rounded-xl py-2 text-center text-[14px] uppercase bg-white" style={{ ...OSW, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>✉️ E-mail</a>}
+      </div>
+      {salvo && aoTerminar && <button onClick={aoTerminar} className="w-full rounded-xl py-2.5 mt-3 text-[16px] uppercase active:translate-y-0.5" style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Fechar e jogar', '🎮 Close and play')}</button>}
+    </div>
+  )
+}
+
+/** 🖋 a ficha do clube por cima de tudo (Batismo/Fundador): abre quando o Pix cai e volta em toda abertura do jogo até o
+ *  WhatsApp ser salvo. Só na conta que pagou. Sem ✕ antes do telefone (ordem do Diego: "deve deixar o telefone"). */
+export default function BriefingPendente() {
+  const [f, setF] = useState<{ produto: ProdutoMp; pedido: string; em: number; email: string } | null>(null)
+  const [meu, setMeu] = useState<string | null>(null)
+  useEffect(() => {
+    const le = () => { try { const r = JSON.parse(localStorage.getItem(FICHA_CLUBE_KEY) || 'null'); setF(r && r.pedido ? r : null) } catch { setF(null) } }
+    le(); window.addEventListener(FICHA_CLUBE_EVT, le)
+    supabase.auth.getUser().then(({ data }) => setMeu(data?.user?.email?.toLowerCase() ?? ''), () => setMeu(''))
+    return () => window.removeEventListener(FICHA_CLUBE_EVT, le)
+  }, [])
+  if (!f || meu == null || !meu || (f.email && f.email !== meu)) return null
+  return createPortal(<FichaClubeCaixa produto={f.produto} pedido={f.pedido} passou24h={Date.now() - f.em > 24 * 3600_000} />, document.body)
+}
+export function FichaClubeCaixa({ produto, pedido, passou24h }: { produto: ProdutoMp; pedido: string; passou24h: boolean }) {
+  const f = { produto, pedido }
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99991, background: 'rgba(0,0,0,.65)', overflowY: 'auto', padding: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 440, margin: '24px 0', background: '#fff', color: INK, border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14 }}>
+        <p className="text-center font-black uppercase text-[22px] leading-tight" style={{ ...OSW, color: GREEN }}>{f.produto === 'fundador' ? tr('🖋 Bem-vindo, Fundador!', '🖋 Welcome, Founder!') : tr('🖋 Bem-vindo ao Batismo!', '🖋 Welcome to Club Naming!')}</p>
+        <p className="text-center text-[12.5px] font-bold mt-1 leading-snug">{tr('Falta só montar o SEU clube. Conta como você imagina e deixa o seu WhatsApp.', 'All that’s left is building YOUR club. Tell us how you picture it and leave your WhatsApp.')}</p>
+        <Briefing produto={f.produto} pedido={f.pedido} obrigaTel passou24h={passou24h} aoTerminar={limpaFichaClube} />
       </div>
     </div>
   )
