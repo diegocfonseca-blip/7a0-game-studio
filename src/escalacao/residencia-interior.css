@@ -1,0 +1,10 @@
+.residencia-painel{color:#0c0c0c;background:#f4ecd6;padding:14px;border-radius:12px}
+.residencia-painel>nav{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.residencia-painel>nav button{min-height:44px;padding:8px 12px;border:2px solid #0c0c0c;border-radius:9px;color:#0c0c0c!important;background:#fffaf0;font:700 14px Oswald,system-ui,sans-serif}
+.residencia-painel>nav button[aria-pressed=true]{background:#ffc400}
+.residencia-painel h2,.residencia-painel h3,.residencia-painel strong{color:#0c0c0c}
+.residencia-painel>.residencia-bens article,.residencia-painel .residencia-bens article{color:#0c0c0c;background:#fffaf0;border:2px solid #0c0c0c;border-radius:12px;padding:12px}
+.residencia-painel .residencia-bens small,.residencia-painel .residencia-bens strong{color:#0c0c0c}
+.residencia-painel .residencia-home button,.residencia-painel>.cr3-actions button,.residencia-painel>button{color:#0c0c0c!important}
+.residencia-painel .cr3-interior{max-width:100%;overflow:hidden;border:2px solid #0c0c0c}
+.residencia-painel button:focus-visible{outline:3px solid #1b7a3d;outline-offset:3px}

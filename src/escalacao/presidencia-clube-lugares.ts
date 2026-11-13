@@ -7,7 +7,7 @@ import {criarAgenciaClube} from './presidencia-agencia-3d'
 import type {SolidoEntorno} from './presidencia-complexo-entorno'
 
 /** Visual addresses for existing club screens. No purchase, income or save. */
-export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubName?:string,residence=false,arena=false){
+export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubName?:string,residence=false,arena=false,crest?:string,onReady?:()=>void){
  const root=new T.Group();root.name='lugares-do-clube';parent.add(root)
  const geometries=new Set<T.BufferGeometry>(),materials=new Set<T.Material>(),textures=new Set<T.Texture>(),solids:SolidoEntorno[]=[]
  const cream=new T.MeshStandardMaterial({color:'#f4ecd6',roughness:.9}),ink=new T.MeshStandardMaterial({color:'#233746',roughness:.85}),glass=new T.MeshStandardMaterial({color:'#648294',roughness:.4}),gold=new T.MeshStandardMaterial({color:'#ffc400',roughness:.85})
@@ -17,16 +17,25 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
  function sign(lines:string[],w:number,h:number,x:number,y:number,z:number,roof=false,angle=0){
   let map:T.Texture
   if(typeof document==='undefined')map=new T.DataTexture(new Uint8Array([244,236,214,255]),1,1)
-  else{const c=document.createElement('canvas');c.width=768;c.height=Math.round(768*h/w);const g=c.getContext('2d')!;g.fillStyle='#f4ecd6';g.fillRect(0,0,c.width,c.height);g.fillStyle='#0c0c0c';g.textAlign='center';g.textBaseline='middle';lines.forEach((line,i)=>{g.font=`900 ${Math.min(70,c.height/(lines.length===1?1.12:lines.length+1))}px Oswald,Arial,sans-serif`;g.fillText(line,c.width/2,c.height*(i+.5)/lines.length,c.width-25)});map=new T.CanvasTexture(c)}
+  else{const c=document.createElement('canvas');c.width=768;c.height=Math.round(768*h/w);const g=c.getContext('2d')!;g.fillStyle='#f4ecd6';g.fillRect(0,0,c.width,c.height);g.fillStyle='#0c0c0c';g.textAlign='center';g.textBaseline='middle';if(roof&&lines[0]==='LOJA DO CLUBE'){g.fillStyle='#13291b';g.fillRect(0,0,c.width,c.height);g.fillStyle='#ffc400';g.fillRect(25,25,c.width-50,12);g.font='700 190px Oswald,Arial,sans-serif';g.fillText('LOJA',c.width/2,c.height*.48,c.width-60);g.fillStyle='#f4ecd6';g.font='700 52px Oswald,Arial,sans-serif';g.fillText('DO CLUBE',c.width/2,c.height*.77,c.width-70)}else{lines.forEach((line,i)=>{g.font=`900 ${Math.min(70,c.height/(lines.length===1?1.12:lines.length+1))}px Oswald,Arial,sans-serif`;g.fillText(line,c.width/2,c.height*(i+.5)/lines.length,c.width-25)})};map=new T.CanvasTexture(c)}
   map.colorSpace=T.SRGBColorSpace;map.needsUpdate=true;textures.add(map);const m=new T.MeshBasicMaterial({map,toneMapped:false});materials.add(m)
   const o=mesh(new T.PlaneGeometry(w,h),m,x,y,z);if(roof)o.rotation.x=-Math.PI/2;o.rotateOnWorldAxis(new T.Vector3(0,1,0),angle);o.castShadow=false;return o
  }
  if(state.extras.loja){
   const {x,z,height,heading}=LOJA_CLUBE_3D
   // 08/11: o topo do letreiro do teto aponta pra avenida (+z): as vistas da Loja e da Agência olham do lado do estádio e liam ele de cabeça pra baixo
-  sign(['LOJA DO CLUBE',clubName??''],14,9,x,height+.285,z,true,Math.PI)
+  sign(['LOJA DA TORCIDA'],12,3.2,x,height+.285,z,true,Math.PI)
+  for(let i=0;i<7;i++){
+   const offset=-6+i*2,canopy=box(i%2?cream:gold,2,.16,2.1,x+Math.sin(heading)*10.8+Math.cos(heading)*offset,3.4,z+Math.cos(heading)*10.8-Math.sin(heading)*offset)
+   canopy.rotation.y=heading
+  }
+  // Neutral shirts inside existing windows; no ownership is granted.
+  for(const side of[-1,1]){
+   const offset=side*4.1,cx=x+Math.sin(heading)*10.3+Math.cos(heading)*offset,cz=z+Math.cos(heading)*10.3-Math.sin(heading)*offset
+   for(const [w,h,y]of[[.8,1.1,2.05],[1.35,.35,2.35]]){const shirt=box(side<0?gold:cream,w,h,.12,cx,y,cz);shirt.rotation.y=heading}
+  }
   // faixa da fachada: na frente da vitrine, seja qual for o lado pra onde a loja olha
-  sign([`LOJA DO CLUBE · ${clubName??''}`],14,.8,x+Math.sin(heading)*10.23,4.36,z+Math.cos(heading)*10.23,false,heading)
+  sign([`LOJA DA TORCIDA · ${clubName??''}`],14,.8,x+Math.sin(heading)*10.23,4.36,z+Math.cos(heading)*10.23,false,heading)
 
  }
  if(residence)sign(['SUA CASA'],8,1.2,HOME.house.x,1.4,HOME.z+HOME.depth/2+.16)
@@ -48,7 +57,7 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
  let agency:ReturnType<typeof criarAgenciaClube>|undefined
  if(clubName){
   // 🏢 05/11: prédio novo, no lado da torcida da casa (presidencia-agencia-3d.ts)
-  agency=criarAgenciaClube(root,clubName);solids.push(...agency.solids)
+  agency=criarAgenciaClube(root,clubName,crest,onReady);solids.push(...agency.solids)
  }
  root.userData.clubPlaces={clubName:clubName??null,store:state.extras.loja,agency:!!clubName}
  let disposed=false

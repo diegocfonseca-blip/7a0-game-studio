@@ -1,3 +1,4 @@
+import {LOTE_MUSEU_CLUBE} from './museu-clube-predio'
 import {ARENA_ONLINE} from './arena-planta'
 import {TERRENO_USUARIO} from './residencia-planta'
 import {criarResidenciaUsuario} from './residencia-3d'
@@ -87,7 +88,7 @@ function camposRuido(size:number){
   for(let z=0;z<size;z++)for(let x=0;x<size;x++){const i=z*size+x;fino[i]=(hash(x,z)-.5)*.45+smooth(x,z,16)*.35;mancha[i]=smooth(x,z,128)}
   return CAMPOS_RUIDO={size,fino,mancha}
 }
-export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onReady?:()=>void,club?:{name?:string;residence?:boolean;arena?:boolean}) {
+export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onReady?:()=>void,club?:{name?:string;crest?:string;residence?:boolean;arena?:boolean;museum?:boolean}) {
   const root=new THREE.Group()
   root.name='complexo-entorno'
   scene.add(root)
@@ -260,7 +261,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const parkingLots=LOTES_ESTACIONAMENTO_COMPLEXO
   const circle=(center:PontoComplexo,radius:number)=>Array.from({length:48},(_,i)=>({x:center.x+Math.cos(i*Math.PI/24)*radius,z:center.z+Math.sin(i*Math.PI/24)*radius}))
   const serviceReservations=[...['east','west','branch'].map(key=>poligonoRuaComplexo({points:AJUSTES_RUAS_COMPLEXO[key as 'east'|'west'|'branch'],width:5.8},1.6)),circle(AJUSTES_RUAS_COMPLEXO.turning.center,7)]
-  const landscapeReservations=[...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
+  const landscapeReservations=[...(club?.museum?[LOTE_MUSEU_CLUBE.footprint]:[]),...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
     ...(transport.station.enabled?[faixaTransporteComplexo([transport.station.point(-transport.station.railExtent,0),transport.station.point(transport.station.railExtent,0)],14)]:[]),
     ...['fonte','jardim-acesso-hotel','canteiro-central','canteiro-direito','canteiro-esquerdo','canteiro-calcada-leste'].map(id=>PLANTA_COMPLEXO.footprints[id]),
     path([[578,604],[916,605],[916,770],[657,798],[553,730]]),
@@ -909,7 +910,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     }
     const forecourt=path([[532,640],[598,691],[605,752],[929,741],[988,665],[1043,598]])
     // 🏢🛍️ 05/11: loja e agência agora moram aqui no sul — palmeira/cipreste do jardim não nasce dentro (nem colado) delas
-    const lotesDoClube=[PLANTA_COMPLEXO.lots.loja.footprint,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[])]
+    const lotesDoClube=[...(club?.museum?[LOTE_MUSEU_CLUBE.footprint]:[]),PLANTA_COMPLEXO.lots.loja.footprint,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[])]
     const noLoteDoClube=(q:PontoComplexo)=>lotesDoClube.some(points=>inside(q,points)||points.some((b,j)=>distanceToSegment(q,points[(j+points.length-1)%points.length],b)<1.6))
     for(let i=0;i<forecourt.length;i++){
       const p=forecourt[i]
@@ -1191,6 +1192,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       ...registeredLots.map((lot,i)=>({id:`lote-${i}`,polygon:lot.footprint})),
       ...parkingLots.map((polygon,i)=>({id:`estacionamento-${i}`,polygon})),
       {id:'arena',polygon:arena},
+      ...(club?.museum?[{id:'museu-clube',polygon:LOTE_MUSEU_CLUBE.footprint}]:[]),
       ...(club?.name?[{id:'agencia-clube',polygon:LOTE_AGENCIA_CLUBE.footprint}]:[]),
       ...(club?.residence?[{id:TERRENO_USUARIO.id,polygon:TERRENO_USUARIO.footprint}]:[]),
       ...(club?.arena?[{id:ARENA_ONLINE.id,polygon:ARENA_ONLINE.footprint}]:[]),
@@ -1477,7 +1479,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const sponsors=criarPatrocinadoresCidade(root,onReady)
   solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
   const ownerHome=club?.residence?criarResidenciaUsuario(root,onReady):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
-  const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena);solids.push(...clubPlaces.solids)
+  const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena,club?.crest,onReady);solids.push(...clubPlaces.solids)
+  if(club?.museum){const b=LOTE_MUSEU_CLUBE.building;solids.push({id:'museu-clube',...b,base:0,top:8,footprint:[{x:b.minX,z:b.minZ},{x:b.maxX,z:b.minZ},{x:b.maxX,z:b.maxZ},{x:b.minX,z:b.maxZ}]})}
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
   root.userData.residentialDoors=deliveryHomes

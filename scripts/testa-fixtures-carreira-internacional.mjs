@@ -128,6 +128,7 @@ try {
   const summary = summarizeInternationalCampaign(campaign)
   state = reducer(state, { type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry: summary })
   assert.equal(state.careerInternationalHistory.length, 1)
+  assert.equal(state.careerInternationalHistory[0].userClubId, state.managers[state.youIdx].id, 'Acervo conserva o clube da conquista mesmo após mudar de nome')
   const firstCoins = state.careerCoins[0]
   const firstRank = internationalCareerRanking(state.careerInternationalHistory)
   const firstPoints = pontosDeTitulos({ mundial: summary.mundial, libertadores: summary.libertadores, champions: summary.champions })

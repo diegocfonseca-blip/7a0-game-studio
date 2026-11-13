@@ -1,4 +1,4 @@
-// 🛍️ SHOPPING DO CLUBE (05/11, mockup `scripts/mockups/shopping-clube.png`, Diego: "ok pode fazer").
+// 🛍️ SHOPPING LEGENDS (05/11, mockup `scripts/mockups/shopping-clube.png`, Diego: "ok pode fazer").
 // 🔁 05/11, 2ª versão (Diego: *"não achei imponente e nem bonito… o local tem que ser bem visível… trazer a Vadico
 // Veículos pra cá"*): saiu do lado da Vadico e foi pros quarteirões logo DEPOIS da avenida, de frente pro estádio
 // (atrás do pomar e da linha do monotrilho). Agora é um complexo: ÁTRIO de vidro alto no meio (coroa dourada, letreiro
@@ -26,7 +26,7 @@ const PK={minX:62,maxX:202,minZ:-211,maxZ:-199} // estacionamento (o monotrilho 
 export type LojinhaShopping={id:string;pt:string;en:string;ancora:string;cor:string;tinta:string;x0:number;x1:number;itensPt:string;itensEn:string}
 /** As 6 lojinhas do mockup. `ancora` = id da seção na Loja (`loja-clube.tsx`). x0/x1 = vitrine na ala oeste. */
 export const LOJINHAS_SHOPPING:readonly LojinhaShopping[]=[
- {id:'loja',pt:'🛒 Loja do Clube',en:'🛒 Club Shop',ancora:'loja-planos',cor:'#FFC400',tinta:'#0C0C0C',x0:AX0+6,x1:AX1-6,itensPt:'Planos · salas extras · ficha de carreira · presente',itensEn:'Plans · extra rooms · career slot · gift'},
+ {id:'loja',pt:'⭐ Planos e benefícios',en:'⭐ Plans and benefits',ancora:'loja-planos',cor:'#FFC400',tinta:'#0C0C0C',x0:AX0+6,x1:AX1-6,itensPt:'Planos · salas extras · ficha de carreira · presente',itensEn:'Plans · extra rooms · career slot · gift'},
  {id:'alfaiataria',pt:'👔 Alfaiataria',en:'👔 Tailor',ancora:'loja-presidente',cor:'#FFFFFF',tinta:'#0C0C0C',x0:62,x1:76.5,itensPt:'Roupas, cabelos e barbas do presidente',itensEn:'Your president’s clothes, hair and beards'},
  {id:'cores',pt:'🎨 Tintas & Cores',en:'🎨 Paints & Colors',ancora:'loja-cores',cor:'#7C3AED',tinta:'#FFFFFF',x0:77,x1:91.5,itensPt:'A cor do seu nome',itensEn:'The color of your name'},
  {id:'banco',pt:'🏦 Banco Legends',en:'🏦 Banco Legends',ancora:'loja-moedas',cor:'#1B7A3D',tinta:'#FFFFFF',x0:92,x1:106.5,itensPt:'Moedas pro clube (carreira)',itensEn:'Coins for your club (career)'},
@@ -144,7 +144,7 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
  caixa(preto,AX1-AX0+1,4.6,AZ1-AZ0+1,ax,GROUND+AH-2.1,(AZ0+AZ1)/2) // coroa
  caixa(ouro,AX1-AX0+1.4,.6,AZ1-AZ0+1.4,ax,GROUND+AH+.5,(AZ0+AZ1)/2)
  caixa(ouro,AX1-AX0+1.4,.4,.6,ax,GROUND+AH-4.4,AZ1+.5,false)
- quadro('SHOPPING DO CLUBE','#141414','#FFC400',AX1-AX0-2,3.4,ax,GROUND+AH-2.1,AZ1+.53,{px:2048,borda:false,brilho:.7})
+ quadro('SHOPPING LEGENDS','#141414','#FFC400',AX1-AX0-2,3.4,ax,GROUND+AH-2.1,AZ1+.53,{px:2048,borda:false,brilho:.7})
  // escudo dourado no meio do vidro
  const escudo=new THREE.Shape([new THREE.Vector2(-3.4,3.2),new THREE.Vector2(3.4,3.2),new THREE.Vector2(3.4,.4),new THREE.Vector2(0,-4),new THREE.Vector2(-3.4,.4)])
  const eg=new THREE.ExtrudeGeometry(escudo,{depth:.5,bevelEnabled:true,bevelSize:.18,bevelThickness:.15,bevelSegments:1});geometries.push(eg)
@@ -215,7 +215,7 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
  const tv=placa('SHOPPING','#141414','#FFC400',256,1024,180,false)
  if(tv){textures.push(tv);const m=new THREE.MeshStandardMaterial({map:tv,emissive:new THREE.Color('#ffffff'),emissiveMap:tv,emissiveIntensity:.6});materials.push(m)
   const c=document.createElement('canvas');c.width=256;c.height=1600;const g=c.getContext('2d')!;g.fillStyle='#141414';g.fillRect(0,0,256,1600);g.fillStyle='#FFC400';g.font='800 150px Oswald, "Arial Narrow", Arial, sans-serif';g.textAlign='center';g.textBaseline='middle'
-  ;'SHOPPING'.split('').forEach((ch,i)=>g.fillText(ch,128,110+i*150));g.font='800 64px Oswald, Arial';g.fillText('DO CLUBE',128,1440)
+  ;'SHOPPING'.split('').forEach((ch,i)=>g.fillText(ch,128,110+i*150));g.font='800 64px Oswald, Arial';g.fillText('LEGENDS',128,1440)
   const t2=new THREE.CanvasTexture(c);t2.colorSpace=THREE.SRGBColorSpace;textures.push(t2);m.map=t2;m.emissiveMap=t2
   for(const s of [1,-1]){const pg=new THREE.PlaneGeometry(3.6,30);geometries.push(pg);const p=new THREE.Mesh(pg,m);p.position.set(tx,GROUND+18,tz+s*1.22);if(s<0)p.rotation.y=Math.PI;root.add(p)}}
  solido('shopping-totem',tx-2.2,tx+2.2,tz-1.2,tz+1.2,GROUND+35)
@@ -232,7 +232,7 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
   const g=new THREE.SphereGeometry(2.4,10,8);geometries.push(g);const f=new THREE.Mesh(g,folha);f.scale.set(1,.55,1);f.position.set(x,GROUND+7.4,PRACA_Z1-3);f.castShadow=true;root.add(f)
  }
  // nome no telhado do átrio (pra quem olha o mapa de cima)
- const tTopo=placa('SHOPPING DO CLUBE','#EFE6CE','#0C0C0C',2048,1400,300,false)
+ const tTopo=(()=>{if(typeof document==='undefined')return null;const c=document.createElement('canvas');c.width=1024;c.height=1205;const g=c.getContext('2d')!;g.fillStyle='#14271b';g.fillRect(0,0,c.width,c.height);g.strokeStyle='#ffc400';g.lineWidth=34;g.strokeRect(35,35,c.width-70,c.height-70);g.lineWidth=44;g.strokeRect(280,310,464,410);g.beginPath();g.arc(512,310,120,Math.PI,0);g.stroke();g.fillStyle='#ffc400';g.textAlign='center';g.textBaseline='middle';g.font='700 160px Oswald,Arial,sans-serif';g.fillText('SHOPPING',512,910,920);g.fillStyle='#f4ecd6';g.font='700 65px Oswald,Arial,sans-serif';g.fillText('LEGENDS',512,1060);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t})()
  if(tTopo){textures.push(tTopo);const m=new THREE.MeshStandardMaterial({name:'shopping-telhado',map:tTopo,roughness:.85});materials.push(m)
   const g=new THREE.PlaneGeometry(AX1-AX0-8,AZ1-AZ0-10);geometries.push(g);const mesh=new THREE.Mesh(g,m);mesh.rotation.x=-Math.PI/2;mesh.position.set(ax,GROUND+AH+.82,(AZ0+AZ1)/2);root.add(mesh)}
 

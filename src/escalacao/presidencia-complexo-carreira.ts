@@ -24,7 +24,7 @@ export type DiaCarreiraComplexo = { division: string; support: number; rain?: bo
 export type EntradaCarreiraComplexo = {
   /** The existing caller's gate. This boolean never authenticates an account. */
   enabled: boolean
-  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & FonteTitulos & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[];careerMaster?:Record<number,MasterContrato>;seasonNo?:number}
+  state: Omit<CarreiraComEstadio,'managers'> & ConquistasCarreira & FonteTitulos & {managers:readonly {id:number;isHuman?:boolean;teamName?:string}[];careerMaster?:Record<number,MasterContrato>;seasonNo?:number;careerMuseums?:Record<number,import('./museu-clube').MuseuClubeSave>}
   mgrId: number
   day?: DiaCarreiraComplexo
   match?: EstadoPartidaEstadio | null

@@ -68,7 +68,7 @@ const PRESIDENCIA_LEGADO = [
 export type PresidenciaItemId = typeof PRESIDENCIA_CATALOGO[number]['id'] | typeof PRESIDENCIA_LEGADO[number]['id']
 export type PresidenciaSlot = typeof PRESIDENCIA_CATALOGO[number]['slot']
 export type PresidenciaBem = {id:PresidenciaItemId; paid:number}
-export type PresidenciaCarteira = {cash:number; revision:number; owned:PresidenciaBem[]}
+export type PresidenciaCarteira = {cash:number; revision:number; owned:PresidenciaBem[]; homeFurniture?:PresidenciaItemId[]}
 export type PresidenciaPedido = {kind:'buy'|'sell'; id:PresidenciaItemId; replaceId?:PresidenciaItemId}
 export type PresidenciaOrcamento = {
   snapshot:string; pedido:PresidenciaPedido; sale:PresidenciaBem|null;

@@ -79,6 +79,12 @@ export function criarPatrocinadoresCidade(parent:T.Object3D,onReady?:()=>void){
   logo(id,p.x,floor+h+.38,p.z,18,6,true)
   text(id==='tidex'?'SUA MARCA DENTRO DAS IAs':'CONTABILIDADE  ·  BPO FINANCEIRO',p.x,4.7,p.front+.3,21,1.1,id==='tidex'?'#0b1220':'#f4ecd6',id==='tidex'?'#73d3ce':'#142c43')
  }
+ // A shared avenue treatment makes the partners identifiable from the street.
+ for(const id of ['dsouza','tidex','oittolabs'] as const){
+  const lot=LOTS[id],x=lot.x-lot.width/2+2.5,z=lot.z+lot.depth/2-4
+  box(metal,.35,6.5,.35,x,3.4,z);box(cream,5.6,2.9,.3,x,6.0,z)
+  logo(id,x,6,z+.18,5.1,2.5)
+ }
  const p=LOTS.gecg,L=55,W=35,y=.19
  box(concrete,p.width,.16,p.depth,p.x,.08,p.z)
  const grassData=new Uint8Array(32*32*4);let grainSeed=31
