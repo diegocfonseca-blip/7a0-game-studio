@@ -5,6 +5,13 @@
 
 
 
+## 🛡️ 13/11 — 3-4-3 com 3 zagueiros (Diego: opção 1) — FEITO
+- Chave nova `'3-4-3z'` = GOL 1 · LAT 0 · ZAG 3 · MEI 4 · ATA 3; é ela que aparece pra escolher (FORMACOES_JOGO, cardápio dos técnicos,
+  listas da carreira/Liga Draft) e na tela se chama "3-4-3" (`rotuloFormacao`). A chave `'3-4-3'` (2 LAT + 1 ZAG) segue existindo só pra
+  quem JÁ estava nela (`FORMACAO_343_ANTIGO` desenha); trocou de formação, não volta pra ela. Trava `npm run 343`.
+- ⚠️ Aparelho com a versão velha aberta numa sala de liga em que o dono escolhe o 3-4-3 novo não conhece a chave (3 dias de janela).
+- (A `npm run carreira-limpa` já falhava antes, por `kingsBaralho` da Kings — não é desta mudança.)
+
 ## 📊 13/11 — Carreira: meio-campo quase não dá assistência (reclamação de jogador) — AJUSTADO no branch (Diego: "Pode"), falta publicar
 - Os jogos do SEU time na carreira são do motor novo; os dos bots, da simulação de sempre. Medido (`scripts/mede-gols-assist-motor2.mts`):
   · motor novo 4-3-3: assistências ATA 60% · MEI 33% · LAT 5% — gols ATA 93% · MEI 5% (4-4-2: assist. ATA 51% · MEI 39%; gols ATA 94%)
