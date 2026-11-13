@@ -51,7 +51,7 @@ import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
 import { travaCarreiraGratis, limiteGratis } from './carreira-gratis'
-import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
+import { PRECOS_UNICO, precoSubida, precoTxt, planoFixo } from './planos-regras'
 import { LojaButton } from './loja-clube'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
@@ -452,7 +452,9 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
   // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
   // 💳 14/10 (Diego): Batismo 79,90 · 🖋 FUNDADOR 99,90 (era "Batismo Lenda" 89,90). Quem já tem plano paga só a diferença.
   const direitosApoie = useDireitos()
-  const planoJa = planoAtual(direitosApoie, myApoioPerk()?.tier)
+  // 💳 13/11 (EhuLaion FC): a tela mostrava "+ R$ 55" pro Craque MENSAL e o Pix cobrava 79,90 — o mensal não conta como plano pago
+  // pra sempre (regra do banco, `esc_plano_rank_fixo`). O preço daqui tem que ler a MESMA régua do servidor: `planoFixo`.
+  const planoJa = planoFixo(direitosApoie, myApoioPerk()?.tier)
   const reaisApoie = (v: number) => precoTxt(v, getLang() === 'en')
   const precoCheioBatismo = precoSubida(serieBatismo === 'd' ? 'fundador' : 'batismo', planoJa)
   // 🎟️ CUPOM DE INFLUENCIADOR (Diego 07/09): "PANTERA" = 10% off SÓ no batismo.
