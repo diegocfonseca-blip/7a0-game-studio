@@ -13463,7 +13463,7 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 ## 💳 13/11 — Planos: FICA TUDO COMO ESTÁ (decisão do Diego)
 - Discutimos mensal × plano de uma vez × pacote vitalício. Números de 30 dias: planos de uma vez ~R$ 1.800; mensais ativos ~R$ 710/mês (46 Salas + 17 Completo). Conclusão: não mudar a estrutura.
 - 🚫 Aviso "você pode cancelar o mensal" pra quem tem plano de uma vez + mensal ativo: o Diego NÃO gostou ("N gostei n"). Não repropor.
-- Pendente: EhuLaion FC (sergioricardocf16) — Batismo por R$ 55 (Diego mandou; Fundador preço normal). Precisa mexer no `esc_mp_preco` (trava a API 1–3 min) → esperando o Diego dizer agora ou de manhã.
+- ✅ FEITO 14/11 ~22h50 (Diego: "Ligar agora" → "Deixe como está"): EhuLaion FC (sergioricardocf16) — Batismo por R$ 55. `docs/sql/precos-tela-e-especial-20261113.sql` APLICADO (tabela `esc_preco_especial` + `esc_mp_preco` lendo ela + `esc_mp_meus_precos`). Fundador dele no preço normal.
 - Pendente: tela do batismo mostrava "+ R$ 55" pro Craque mensal (corrigida no branch, commit "preço da tela segue a régua do banco") → esperando OK pra publicar.
 - 💳 13/11 (noite): preços de hoje arrumados na TELA (`precos-servidor.ts`: Loja, vitrine, janela do batismo e upgrade do Lenda leem o
   preço do banco). O banco (`docs/sql/precos-tela-e-especial-20261113.sql`: preço especial + `esc_mp_meus_precos`) roda de madrugada
