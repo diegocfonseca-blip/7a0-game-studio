@@ -13460,3 +13460,4 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - 💳 13/11 (noite): preços de hoje arrumados na TELA (`precos-servidor.ts`: Loja, vitrine, janela do batismo e upgrade do Lenda leem o
   preço do banco). O banco (`docs/sql/precos-tela-e-especial-20261113.sql`: preço especial + `esc_mp_meus_precos`) roda de madrugada
   (mexe em função → engasga as salas). Até lá a tela usa a conta local (já corrigida pro mensal).
+- ✅ 14/11 04h30: parte do servidor dos preços APLICADA (migration precos_tela_e_especial_20261113). EhuLaion: Batismo 55 · Fundador 99,90. `esc_mp_meus_precos` no ar.
