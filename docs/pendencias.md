@@ -1,3 +1,10 @@
+## 🚶 14/11 — Passeio do personagem: teto, corrida, comandos e limites — CORREÇÕES NA PRÉVIA
+
+- Teto oculto durante caminhada, escolha de cadeira e arquibancada. Corrida 4,8 → 5,6 m/s, caminhada igual. Borda do mapa acompanha bairros e endereços atuais, incluindo casa e agência.
+- Corrige comandos presos ao perder foco/captura, conflitos entre dedos, corrida ao digitar e animação contra a parede. Movimento em pequenos trechos; reconfere a vaga ao sentar para não sobrepor a torcida.
+- Análise e recomendações separadas para destino opcional, câmera, interação nas portas, ajuda por aparelho e retomada de passeio ao trocar qualidade. Essas propostas visuais ainda não foram implementadas.
+- Detalhes em `docs/passeio-personagem-20261114.md`; testes, antes/depois e publicação em `/workspace/shared/passeio-personagem-20261114/`. Prévia privada continua restrita a Diego; sem salas, banco, prêmios ou moedas.
+
 ## 🗂️ 14/11 — Aba Clube: aviso de encerramento deslocado e proposta visual — ANÁLISE E MOCKUPS
 
 - O aviso “aparece uma vez por temporada” pertence ao passo internacional/Copa do Mundo do encerramento, não ao mapa. Em Clube, fica sem a campanha e contradiz a trava de continuar. Proposta: roteiro em Jogos e acesso compacto para a pendência real; validação da sessão com mensagem distinta.

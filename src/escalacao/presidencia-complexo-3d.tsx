@@ -9,7 +9,8 @@ import {LOTE_MUSEU_CLUBE,criarPredioMuseu,interfereLoteMuseu} from './museu-club
 import './career-review.css'
 import {criarVidaLocais} from './presidencia-locais-vida'
 import {ARENA_ONLINE as ARENA} from './arena-planta'
-import {TERRENO_USUARIO as HOME} from './residencia-planta'
+import {TERRENO_USUARIO as HOME,RESERVA_BAIRRO_USUARIO} from './residencia-planta'
+import {RESERVA_CAMPUS} from './presidencia-implantacao-urbana'
 import {duplaDaGaragem} from './presidencia-garagem'
 import {LOTE_AGENCIA_CLUBE,nomeAgenciaClube,type DestinoClubeMapa} from './clube-mapa-destinos'
 import './clube-mapa.css'
@@ -70,7 +71,7 @@ import type {PresidenteBaseSave} from './presidencia-carreira'
 import {criarPresidenteComplexo,type EstadoArtePresidente} from './presidencia-presidente-3d'
 import {criarEfeitosMapa} from './presidencia-efeitos-mapa'
 import {superficieCampo2D} from './campo2d-superficie'
-import {criarFanZone,type FaseFanZone,type CadeiraFanZone,type ObstaculoFanZone} from './presidencia-fanzone-3d'
+import {criarFanZone,limitesFanZone,type FaseFanZone,type CadeiraFanZone,type ObstaculoFanZone} from './presidencia-fanzone-3d'
 import {FanZoneHud} from './presidencia-fanzone-hud'
 import {useFanZoneLiberada} from './sport'
 import {useT,getLang} from './lang'
@@ -109,7 +110,7 @@ const NOMES_LUGARES_MAPA:Partial<Record<VistaComplexo,readonly [string,string]>>
 const lugarComCartao=(view:VistaComplexo)=>!!NOMES_LUGARES_MAPA[view]
 
 /** Physical reconstruction for local visual review. It only reads the existing save and match clock. */
-export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,cityStadium,clubName,onOpenClub,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,arrivalTeams,fora=false,visitRow=5,visitTier='lower',presentation='map',matchPresentation='3d',onUnavailable,onReady,hud,garage}:{museumStage?:number;/** 🚗 03/11: a dupla escolhida em "Sua garagem" (sem ela: os 2 primeiros veículos) */garage?:unknown;/** 🏙️ obra em canteiro, humor do boteco e carreata (presidencia-cidade-viva.ts) */cidadeViva?:CidadeViva;stadium?:StadiumSave;cityStadium?:StadiumSave;clubName?:string;onOpenClub?:(target:DestinoClubeMapa)=>void;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;arrivalTeams?:ElencoChegadaCidade;fora?:boolean;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';matchPresentation?:'2d'|'3d';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void;/** 📺 25/10: placar e controle da partida desenhados POR CIMA do 3D (vale na tela cheia) */hud?:ReactNode}){
+export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,cityStadium,clubName,onOpenClub,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,arrivalTeams,fora=false,visitRow=5,visitTier='lower',presentation='map',matchPresentation='3d',onUnavailable,onReady,onWalkChange,hud,garage}:{museumStage?:number;/** 🚗 03/11: a dupla escolhida em "Sua garagem" (sem ela: os 2 primeiros veículos) */garage?:unknown;/** 🏙️ obra em canteiro, humor do boteco e carreata (presidencia-cidade-viva.ts) */cidadeViva?:CidadeViva;stadium?:StadiumSave;cityStadium?:StadiumSave;clubName?:string;onOpenClub?:(target:DestinoClubeMapa)=>void;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;arrivalTeams?:ElencoChegadaCidade;fora?:boolean;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';matchPresentation?:'2d'|'3d';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void;onWalkChange?:(active:boolean)=>void;/** 📺 25/10: placar e controle da partida desenhados POR CIMA do 3D (vale na tela cheia) */hud?:ReactNode}){
  const root=useRef<HTMLDivElement>(null),api=useRef<ControleComplexo|null>(null),ready=useRef(onReady),matchRef=useRef(match),wake=useRef(()=>{}),refreshPopulation=useRef(()=>{}),refreshFurniture=useRef(()=>{}),refreshJourney=useRef(()=>{}),walletRef=useRef(presidency),journeyRef=useRef(journey)
  const t=useT()
  const clubActionRef=useRef(onOpenClub);clubActionRef.current=onOpenClub
@@ -137,6 +138,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
  const [diag,setDiag]=useState<{gpu:string;soft:boolean;fps:number|null}|null>(null)
  const fanZoneOk=useFanZoneLiberada(),fanRef=useRef<ReturnType<typeof criarFanZone>|null>(null),fzFaseRef=useRef<FaseFanZone>('fora')
  const [fzFase,setFzFase]=useState<FaseFanZone>('fora'),passeando=fanZoneOk&&fzFase!=='fora',[fzCadeiras,setFzCadeiras]=useState<CadeiraFanZone[]>([]),[fzEscolhida,setFzEscolhida]=useState('')
+ useEffect(()=>{onWalkChange?.(passeando);return()=>onWalkChange?.(false)},[passeando,onWalkChange])
  const caiPraLeve=useRef(()=>{});caiPraLeve.current=()=>{if(nivelRef.current==='leve')return;guardaNivelMapa('leve');setCaiuProLeve(true);setNivel('leve')}
  const [stadiumSound,setStadiumSound]=useState(false),stadiumSoundRef=useRef(false);stadiumSoundRef.current=stadiumSound
  const [matchCamera,setMatchCamera]=useState<CameraPartidaContinua>('free')
@@ -372,10 +374,10 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
   const efeitosMapa=criarEfeitosMapa(scene,{seats:()=>architecture.seats,telao:!!state.screenVisible});let efAntes=0
   // 🚶 07/11: FAN ZONE (só a conta do Diego) — o boneco anda pelo bairro, entra pelo portão da torcida e senta numa cadeira
   let fzAntes=0,fzControles=true
-  const fan=criarFanZone(scene,{seats:()=>architecture.seats,cor:()=>foraRef.current?teamColors.current.away:teamColors.current.home,obstaculos:()=>[...surround.solids,...((surround.root.userData.residentObstacles??[]) as ObstaculoFanZone[])],ocupadas:()=>new Set(crowd.inspect().seats.map(seat=>seat.id)),onFase:(f,extra)=>{
+  const fan=criarFanZone(scene,{limites:managementEnabled?limitesFanZone([...surround.bairro.quadras,...RESERVA_CAMPUS,...RESERVA_BAIRRO_USUARIO,...LOTE_AGENCIA_CLUBE.footprint]):undefined,seats:()=>architecture.seats,cor:()=>foraRef.current?teamColors.current.away:teamColors.current.home,obstaculos:()=>[...surround.solids,...((surround.root.userData.residentObstacles??[]) as ObstaculoFanZone[])],ocupadas:()=>new Set(crowd.inspect().seats.map(seat=>seat.id)),onFase:(f,extra)=>{
    if(f!=='fora'&&fzFaseRef.current==='fora'){fzControles=controls.enabled;controls.enabled=false}
    if(f==='fora'){controls.enabled=fzControles;fzAntes=0}
-   fzFaseRef.current=f;setFzFase(f);if(extra?.cadeiras)setFzCadeiras(extra.cadeiras);if(extra?.escolhida)setFzEscolhida(extra.escolhida);vivoAte=performance.now()+VIVO_MS;wake.current()}})
+   fzFaseRef.current=f;setFzFase(f);if(extra?.cadeiras)setFzCadeiras(extra.cadeiras);if(extra?.escolhida!==undefined)setFzEscolhida(extra.escolhida);vivoAte=performance.now()+VIVO_MS;wake.current()}})
   fanRef.current=fan
   if(fzFaseRef.current!=='fora'){fzFaseRef.current='fora';setFzFase('fora')} // a cena foi refeita (ex.: caiu pro Leve): o passeio recomeça do botão
   let circulationActors:ReturnType<typeof criarCirculacaoComplexo>|undefined,previousActorKey='',previousCirculationKey='',populationRebuilds=0

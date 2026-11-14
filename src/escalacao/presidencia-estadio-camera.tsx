@@ -28,6 +28,8 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  const viewKey=JSON.stringify([career?.key??null,stadium??null])
  const [readyKey,setReadyKey]=useState<string|null>(null),mapReady=readyKey===viewKey
  const handleReady=useCallback((value:ControleComplexo|null)=>{setReadyKey(value?viewKey:null);onReady?.(value)},[onReady,viewKey])
+ const [walkingKey,setWalkingKey]=useState<string|null>(null),walking=walkingKey===viewKey
+ const handleWalk=useCallback((active:boolean)=>setWalkingKey(active?viewKey:null),[viewKey])
  const match=usePartidaNoMapa(matchId,homeClubId,!!career),t=useT()
  const account=usePresidentPreview(),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
  const replay=useReplay3D(career?.replayMatch,account)
@@ -59,7 +61,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
   {replayFrame&&career?.replayMatch&&<FonteReplayCampo2D frame={replayFrame} source={career.replayMatch}/>}
   {/* 📺 25/10: o ritmo e o placar moram DENTRO do mapa (MapaHud); os créditos foram pro pé */}
   <Suspense fallback={<MapaPreparando moldura/>}>
-   <Complexo museumStage={career?etapasMuseu(career.state.careerMuseums?.[career.mgrId]):undefined} matchPresentation="2d" {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={handleReady} hud={<MapaHud match={replayFrame??retained} torcedores={replayFrame?0:torcedores} replay={!!replayFrame}/>}/>
+   <Complexo museumStage={career?etapasMuseu(career.state.careerMuseums?.[career.mgrId]):undefined} matchPresentation="2d" {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={handleReady} onWalkChange={handleWalk} hud={<MapaHud match={replayFrame??retained} torcedores={replayFrame?0:torcedores} replay={!!replayFrame}/>}/>
   </Suspense>
   {career?.replayMatch&&(mapReady||replay.active)&&<div data-private-match-review style={{margin:'10px 0'}}>
    {mapReady&&<button type="button" onClick={replay.start}>{t('REVER JOGO SALVO NO MAPA','REPLAY SAVED MATCH ON MAP')}</button>}
@@ -67,14 +69,14 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
    {replayFrame&&<p role="status">{t('Reprodução de teste no campo do mapa. Não avança a carreira.','Test replay on the map pitch. It does not advance your career.')} {replayFrame.officialTeams?.join(' × ')} · {replayFrame.homeScore} × {replayFrame.awayScore} · {Math.min(93,Math.floor(replayFrame.minute))}′</p>}
    {replay.error&&<p role="status">{t('Este jogo salvo não possui replay compatível. Seu resultado foi preservado.','This saved match has no compatible replay. Its result was preserved.')}</p>}
   </div>}
-  {mapReady&&onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
+  {mapReady&&!walking&&onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
   <p style={{margin:'8px 0 0',fontSize:11}}><a href="./creditos-3d.txt" target="_blank" rel="noreferrer">{t('Créditos dos modelos e animações 3D','3D models and animation credits')}</a></p>
 
  </section>
  return <section ref={watching}>
   <Suspense fallback={<MapaPreparando moldura/>}>
-   <Complexo matchPresentation="2d" stadium={stadium} match={match??undefined} onReady={handleReady} hud={<MapaHud match={match}/>}/>
+   <Complexo matchPresentation="2d" stadium={stadium} match={match??undefined} onReady={handleReady} onWalkChange={handleWalk} hud={<MapaHud match={match}/>}/>
   </Suspense>
-  {mapReady&&onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
+  {mapReady&&!walking&&onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
  </section>
 }

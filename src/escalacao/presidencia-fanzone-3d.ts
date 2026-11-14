@@ -13,8 +13,9 @@ export type FaseFanZone = 'fora' | 'andando' | 'portao' | 'escolhendo' | 'sentad
 export type CadeiraFanZone = { id: string; rotulo: string }
 
 const CHAO = 0.16
-const ANDA = 2.4, CORRE = 4.8 // m/s (07/11: correr mais baixo — a 6,2 o passo do boneco não acompanhava e parecia escorregar)
-const LIMITE = { minX: -290, maxX: 290, minZ: -230, maxZ: 260 }
+export const RITMO_PASSEIO = { andar: 2.4, correr: 5.6 } as const // corrida +17%; animação continua seguindo a distância real
+export type LimitesFanZone = { minX: number; maxX: number; minZ: number; maxZ: number }
+const LIMITE: LimitesFanZone = { minX: -290, maxX: 290, minZ: -230, maxZ: 260 }
 // o corpo do estádio (portões: serviço x −90 · visitante x 105 · casa z 82) — andando, ninguém atravessa a parede
 const ESTADIO = { minX: -91, maxX: 104, minZ: -84, maxZ: 81 }
 const PERTO_PORTAO = 12
@@ -24,6 +25,16 @@ export function dentroDoEstadio(x: number, z: number): boolean {
   return x > ESTADIO.minX && x < ESTADIO.maxX && z > ESTADIO.minZ && z < ESTADIO.maxZ
 }
 type Ponto = { x: number; z: number }
+/** Inclui os endereços e bairros atuais sem liberar o personagem fora da cidade. */
+export function limitesFanZone(pontos: readonly Ponto[], margem = 12): LimitesFanZone {
+  const bounds = { ...LIMITE }
+  for (const p of pontos) {
+    if (!Number.isFinite(p.x) || !Number.isFinite(p.z)) continue
+    bounds.minX = Math.min(bounds.minX, p.x - margem); bounds.maxX = Math.max(bounds.maxX, p.x + margem)
+    bounds.minZ = Math.min(bounds.minZ, p.z - margem); bounds.maxZ = Math.max(bounds.maxZ, p.z + margem)
+  }
+  return bounds
+}
 export type ObstaculoFanZone = { minX: number; maxX: number; minZ: number; maxZ: number; base: number; top: number; footprint?: readonly Ponto[] }
 const RAIO = 0.32 // o "corpo" do boneco: chega encostado na parede, mas não entra
 const dentroPoligono = (x: number, z: number, poly: readonly Ponto[]) => {
@@ -49,16 +60,21 @@ export function criarColisaoFanZone(obstaculos: readonly ObstaculoFanZone[]) {
   }
 }
 /** um passo do boneco: anda na direção pedida, mas nunca sai do mundo, nem entra no estádio, nem atravessa casa (desliza pela parede) */
-export function passoFanZone(x: number, z: number, dx: number, dz: number, bate: (x: number, z: number) => boolean = () => false): { x: number; z: number } {
+export function passoFanZone(x: number, z: number, dx: number, dz: number, bate: (x: number, z: number) => boolean = () => false, limites = LIMITE): { x: number; z: number } {
   const cx = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
   const barra = (a: number, b: number) => dentroDoEstadio(a, b) || bate(a, b)
-  let nx = cx(x + dx, LIMITE.minX, LIMITE.maxX), nz = cx(z + dz, LIMITE.minZ, LIMITE.maxZ)
-  if (barra(nx, nz)) {
-    if (!barra(nx, z)) nz = z
-    else if (!barra(x, nz)) nx = x
-    else { nx = x; nz = z }
+  // Passos curtos impedem atravessar uma parede fina ao correr ou num quadro lento.
+  const passos = Math.max(1, Math.ceil(Math.hypot(dx, dz) / .16))
+  for (let i = 0; i < passos; i++) {
+    let nx = cx(x + dx / passos, limites.minX, limites.maxX), nz = cx(z + dz / passos, limites.minZ, limites.maxZ)
+    if (barra(nx, nz)) {
+      if (!barra(nx, z)) nz = z
+      else if (!barra(x, nz)) nx = x
+      else { nx = x; nz = z }
+    }
+    x = nx; z = nz
   }
-  return { x: nx, z: nz }
+  return { x, z }
 }
 /** cadeiras pra escolher: setor da CASA, anel de baixo, perto do meio-campo, nenhuma que a torcida já ocupa */
 export function cadeirasDaCasa(seats: readonly AssentoComplexo[], ocupadas: ReadonlySet<string>, n = 4): AssentoComplexo[] {
@@ -68,7 +84,7 @@ export function cadeirasDaCasa(seats: readonly AssentoComplexo[], ocupadas: Read
   return casa.sort((a, b) => Math.abs(a.row - (topo - 1)) - Math.abs(b.row - (topo - 1)) || Math.abs(a.position.x) - Math.abs(b.position.x)).slice(0, n)
 }
 
-export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly AssentoComplexo[]; ocupadas: () => ReadonlySet<string>; cor?: () => string | undefined; obstaculos?: () => readonly ObstaculoFanZone[]; onFase: (f: FaseFanZone, extra?: { cadeiras?: CadeiraFanZone[]; escolhida?: string }) => void }) {
+export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly AssentoComplexo[]; ocupadas: () => ReadonlySet<string>; cor?: () => string | undefined; obstaculos?: () => readonly ObstaculoFanZone[]; limites?: LimitesFanZone; onFase: (f: FaseFanZone, extra?: { cadeiras?: CadeiraFanZone[]; escolhida?: string }) => void }) {
   let fase: FaseFanZone = 'fora'
   const pos = new THREE.Vector3(INICIO.x, CHAO, INICIO.z)
   let nObst = 0, comemoraIni = -1, corAtual = '', bate: (x: number, z: number) => boolean = () => false
@@ -82,11 +98,15 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
   const tecla = (e: KeyboardEvent, on: boolean) => {
     const k = e.key.toLowerCase()
     if (!['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) return
+    if (!on) { teclas.delete(k); return }
     if (fase !== 'andando' && fase !== 'portao') return
+    if (e.ctrlKey || e.metaKey || e.altKey || e.target instanceof HTMLElement && e.target.closest('input,textarea,select,[contenteditable="true"]')) return
     e.preventDefault()
-    if (on) teclas.add(k); else teclas.delete(k)
+    teclas.add(k)
   }
   const down = (e: KeyboardEvent) => tecla(e, true), up = (e: KeyboardEvent) => tecla(e, false)
+  const parar = () => { teclas.clear(); input.x = input.y = 0; vel = 0 }
+  const visibilidade = () => { if (document.hidden) parar() }
 
   function ligar() {
     if (fase !== 'fora') return
@@ -97,14 +117,17 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     const obst = opts.obstaculos?.() ?? []; nObst = obst.filter(o => o.base < 0.4 && o.top > 0.5).length
     bate = criarColisaoFanZone(obst)
     ator.root.visible = true
+    parar(); input.correr = false
     pos.set(INICIO.x, CHAO, INICIO.z); heading = Math.PI; camYaw = Math.PI; camPitch = 0.42; olhar = olharPitch = 0; seated = seatedAlvo = 0; vel = 0; comemoraIni = -1
     window.addEventListener('keydown', down); window.addEventListener('keyup', up)
+    window.addEventListener('blur', parar); document.addEventListener('visibilitychange', visibilidade)
     muda('andando')
   }
   function desligar() {
     if (fase === 'fora') return
     window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); teclas.clear()
-    input.x = input.y = 0
+    window.removeEventListener('blur', parar); document.removeEventListener('visibilitychange', visibilidade)
+    parar(); input.correr = false
     if (ator) ator.root.visible = false
     escolhida = null
     muda('fora')
@@ -113,6 +136,7 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     opcoes = cadeirasDaCasa(opts.seats(), opts.ocupadas())
     if (!opcoes.length) return false
     escolhida = opcoes[0]
+    parar()
     muda('escolhendo', { cadeiras: opcoes.map(rotular), escolhida: escolhida.id })
     return true
   }
@@ -126,9 +150,16 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
   function rotular(s: AssentoComplexo): CadeiraFanZone { return { id: s.id, rotulo: `Fileira ${s.row + 1} · Cadeira ${s.column + 1}` } }
   function escolher(id: string) { const s = opcoes.find(o => o.id === id); if (s) { escolhida = s; opts.onFase('escolhendo', { cadeiras: opcoes.map(rotular), escolhida: s.id }) } }
   function sentar() {
-    if (!escolhida) return
+    if (!escolhida) return false
+    // A torcida pode chegar enquanto o usuário escolhe: conferir a vaga de novo.
+    if (opts.ocupadas().has(escolhida.id) || !opts.seats().some(s => s.id === escolhida!.id)) {
+      opcoes = cadeirasDaCasa(opts.seats(), opts.ocupadas()); escolhida = opcoes[0] ?? null
+      muda('escolhendo', { cadeiras: opcoes.map(rotular), escolhida: escolhida?.id ?? '' })
+      return false
+    }
     pos.set(escolhida.position.x, escolhida.position.y, escolhida.position.z); heading = escolhida.heading; seatedAlvo = 1; vel = 0; olhar = olharPitch = 0
     muda('sentado')
+    return true
   }
   function levantar() {
     seatedAlvo = 0; seated = 0; comemoraIni = -1
@@ -168,9 +199,10 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
         const dx = fx * iy + rx * ix, dz = fz * iy + rz * ix, l = Math.hypot(dx, dz) || 1 // 07/11: era "−" e a esquerda andava pra direita
         const alvo = Math.atan2(dx / l, dz / l)
         let d = alvo - heading; d = Math.atan2(Math.sin(d), Math.cos(d)); heading += d * Math.min(1, dt * 10)
-        vel = (input.correr || teclas.has('shift') ? CORRE : ANDA) * m
-        const p = passoFanZone(pos.x, pos.z, Math.sin(heading) * vel * dt, Math.cos(heading) * vel * dt, bate)
-        dist += Math.hypot(p.x - pos.x, p.z - pos.z); pos.x = p.x; pos.z = p.z
+        vel = (input.correr || teclas.has('shift') ? RITMO_PASSEIO.correr : RITMO_PASSEIO.andar) * m
+        const p = passoFanZone(pos.x, pos.z, Math.sin(heading) * vel * dt, Math.cos(heading) * vel * dt, bate, opts.limites)
+        const andou = Math.hypot(p.x - pos.x, p.z - pos.z)
+        dist += andou; vel = dt > 0 ? andou / dt : 0; pos.x = p.x; pos.z = p.z
       } else vel = 0
       const g = STADIUM_HOME_GATE, perto = Math.hypot(pos.x - g.approach.x, pos.z - (g.threshold.z + 6)) < PERTO_PORTAO
       if (perto && fase === 'andando') muda('portao'); else if (!perto && fase === 'portao') muda('andando')
@@ -217,7 +249,7 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     /** onde o boneco está (o som da torcida cresce conforme ele chega perto do estádio) */
     posicao: () => pos,
     fase: () => fase,
-    inspect: () => ({ comemorando: comemoraIni >= 0, obstaculos: nObst, fase, pos: pos.toArray(), heading, escolhida: escolhida?.id ?? null, opcoes: opcoes.map(o => o.id) }),
+    inspect: () => ({ comemorando: comemoraIni >= 0, obstaculos: nObst, fase, pos: pos.toArray(), heading, velocidade: vel, distancia: dist, ritmo: RITMO_PASSEIO, limites: opts.limites ?? LIMITE, input: { ...input }, teclas: [...teclas], escolhida: escolhida?.id ?? null, opcoes: opcoes.map(o => o.id) }),
     dispose() { desligar(); ator?.dispose(); ator = null },
   }
 }
