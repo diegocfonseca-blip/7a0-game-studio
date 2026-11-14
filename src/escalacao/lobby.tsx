@@ -4685,6 +4685,7 @@ export function EscLobby() {
                   <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{draftCopa === 'liga_copa'
                     ? tr('Acabou a tabela, os 8 primeiros jogam a Copa dos 8 · depois vem o draft. Vale toda temporada.', 'When the table ends, the top 8 play the Cup of 8 · then the draft. Every season.')
                     : tr('Acabou a tabela, vem o draft e a próxima temporada. Vale toda temporada.', 'When the table ends, the draft and the next season. Every season.')}</p>
+                  {draftCopa === 'liga_copa' && <p className="text-[11px] font-black mt-1.5 leading-snug rounded-lg px-2 py-1.5" style={{ color: '#fff', background: 'rgba(255,196,0,.14)', border: '2px solid ' + GOLD }}>{tr('📋 A ordem do draft é sempre pela TABELA DA LIGA. A Copa não muda o draft: ela só vale moedas e troféu.', '📋 Draft order always follows the LEAGUE TABLE. The Cup doesn\'t change the draft: it only gives coins and a trophy.')}</p>}
                   {draftCopa === 'liga_copa' && ehMinha && <p className="text-[10.5px] font-black mt-1 leading-snug" style={{ color: GOLD }}>{tr('💰 Copa: campeão leva as moedas do campeão da liga + troféu · vice, as do vice · semi 12 · quartas 6', '💰 Cup: champion gets the league champion\'s coins + trophy · runner-up, the runner-up\'s · semi 12 · quarters 6')}</p>}
                 </SegField>
               ) : nbaSala ? (
@@ -5774,6 +5775,7 @@ export function EscLobby() {
                 {!nbaSala && !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft && <div>
                   <p className="text-black/60 text-[10.5px] font-black uppercase mb-0.5" style={OSWALD}>{tr('Depois da liga', 'After the league')}</p>
                   <Seg small options={[['liga', tr('📊 Só a liga', '📊 League only')], ['liga_copa', tr('🏆 Liga + Copa dos 8', '🏆 League + Cup of 8')]] as [CopaLiga, string][]} value={modoEdit.copa === 'liga_copa' ? 'liga_copa' : 'liga'} onSet={v => setModoEdit(m => m && { ...m, copa: v })} />
+                  {modoEdit.copa === 'liga_copa' && <p className="text-black/70 text-[10.5px] font-black mt-1 leading-snug">{tr('📋 A ordem do draft é sempre pela tabela da LIGA. A Copa só vale moedas e troféu.', '📋 Draft order always follows the LEAGUE table. The Cup only gives coins and a trophy.')}</p>}
                 </div>}
                 {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. */}
                 {!nbaSala && !(gs as GS & { ligaDraft?: boolean })?.ligaDraft && (() => {
