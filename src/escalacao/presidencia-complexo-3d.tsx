@@ -595,7 +595,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    }
    {const fzAgora=performance.now();fan.update(fzAntes?(fzAgora-fzAntes)/1000:0,camera,controls.target);fzAntes=fzAgora};seatLod.update(camera);architecture.updateSeats(camera);updateShadows();lighting.update(camera,controls.target);renderer.render(scene,camera)
    if(poiLabels.current){
-    const anchors:Record<string,[number,number,number]>={'gestao-clube':[0,12,80],'casa-usuario':[HOME.x,7,HOME.z],patrocinadores:[CENTRO_PATROCINADORES_CIDADE.x,20,CENTRO_PATROCINADORES_CIDADE.z],'museu-clube':[LOTE_MUSEU_CLUBE.x,10,LOTE_MUSEU_CLUBE.z],'agencia-clube':[LOTE_AGENCIA_CLUBE.x,LOTE_AGENCIA_CLUBE.height+2,LOTE_AGENCIA_CLUBE.z],shopping:[141,33,-247],loja:[-41.6,8,136]}
+    const anchors:Record<string,[number,number,number]>={'gestao-clube':[0,12,80],'casa-luca':[-125,10,178],'casa-usuario':[HOME.x,7,HOME.z],patrocinadores:[CENTRO_PATROCINADORES_CIDADE.x,20,CENTRO_PATROCINADORES_CIDADE.z],'museu-clube':[LOTE_MUSEU_CLUBE.x,10,LOTE_MUSEU_CLUBE.z],'agencia-clube':[LOTE_AGENCIA_CLUBE.x,LOTE_AGENCIA_CLUBE.height+2,LOTE_AGENCIA_CLUBE.z],shopping:[141,33,-247],loja:[PLANTA_COMPLEXO.lots.loja.x,8,PLANTA_COMPLEXO.lots.loja.z]}
     const labels=Array.from(poiLabels.current.querySelectorAll<HTMLElement>('[data-poi]'))
     const projected=labels.flatMap(label=>{const id=label.dataset.poi??'',point=anchors[id];if(!point)return[];const v=new THREE.Vector3(...point),d=camera.position.distanceTo(v),p=v.project(camera);return[{id,x:p.x,y:p.y,z:p.z,distance:d,label:label.textContent??''}]})
     const placements=distribuirRotulosMapa(projected,el.clientWidth,el.clientHeight)
@@ -639,8 +639,8 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    navigation.beginView({fitOnResize:['gestao-clube','casa-luca','arena-online','casa-usuario','original','region','field','estacao','loja','hotel','chopp','praca','shopping','vadico','museu-clube','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg','boteco-oswaldo','bar-esquina','feira','banca','campinho','padaria','praca-bairro','espetinho','jogo-bairro','varal','flanelinha','cadeiras','tv-boteco'].includes(next),terrainGuard:['gestao-clube','casa-luca','arena-online','casa-usuario','original','region','estacao','loja','hotel','chopp','praca','shopping','vadico','museu-clube','agencia-clube','patrocinadores','dsouza','tidex','oittolabs','gecg'].includes(next)||(next==='field'&&!state.roofClosed)})
    setSelectedView(next);setCartaoFechado(null);setShoppingOpen(false)
    mode=next;focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
-   if(next==='original'){if(managementEnabled)fit(-174,150,-50,330,37,[],new THREE.Vector3(.16,camera.aspect<.85?1.8:1.2,1.45));else fit(-190,190,-140,175,32,stationFrame)}
-   else if(next==='region')fit(-500,310,-330,300,35)
+   if(next==='original'){if(managementEnabled)fit(-220,330,-290,350,37,[],new THREE.Vector3(.12,camera.aspect<.85?2:1.65,1.4));else fit(-220,330,-290,350,37,stationFrame)}
+   else if(next==='region')fit(-500,440,-360,430,35)
    else if(next==='field'){
     if(state.roofClosed){controls.target.set(0,0,-8);camera.position.set(0,14,39)}
     else fit(-57,57,-40,40,2)
@@ -734,7 +734,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     // 🏨 08/11: o prédio inteiro (torre + recepção), de frente pra fachada do letreiro; antes a câmera colava na porta e a torre cortava meia tela
     const p=PLANTA_COMPLEXO.lots.hotel,xs=p.footprint.map(q=>q.x),zs=p.footprint.map(q=>q.z)
     // no celular (em pé) a torre é olhada de frente pela fachada estreita, com o comprido dela indo pro fundo — cabe de perto
-    if(camera.aspect<.85){const d=new THREE.Vector3(.8,.62,.6).normalize();controls.target.set(-118,8,93);camera.position.copy(controls.target).addScaledVector(d,camera.aspect<.6?150:125)}
+    if(camera.aspect<.85){const d=new THREE.Vector3(.8,.62,.6).normalize();controls.target.set(p.x,8,p.z);camera.position.copy(controls.target).addScaledVector(d,camera.aspect<.6?150:125)}
     else fit(Math.min(...xs)-2,Math.max(...xs)+2,Math.min(...zs)-2,Math.max(...zs)+2,23,[],new THREE.Vector3(1.05,.55,.62))
    }
    else if(next==='chopp'||next==='praca'){
@@ -757,7 +757,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    else if(next==='gestao-clube')fit(-48,48,50,110,28,[],new THREE.Vector3(.3,.9,1.3))
     else if(next==='museu-clube'){const b=LOTE_MUSEU_CLUBE.building;fit(b.minX-2,b.maxX+2,b.minZ-11,b.maxZ+1,11,[],new THREE.Vector3(.6,1.2,-1.5))}
    else if(next==='agencia-clube'){const b=LOTE_AGENCIA_CLUBE.building;fit(b.minX-1.5,b.maxX+1.5,b.minZ-1,b.maxZ+10,LOTE_AGENCIA_CLUBE.height+3,[],new THREE.Vector3(.5,.95,1.5))}
-   else if(next==='patrocinadores')fit(-164,111,213,337,36,[],new THREE.Vector3(.08,1.2,1.5))
+   else if(next==='patrocinadores')fit(-196,315,-287,322,36,[],new THREE.Vector3(.08,1.8,1.45))
    else if(next==='dsouza'||next==='tidex'||next==='oittolabs'||next==='gecg'){
     const p=LOTES_PATROCINADORES_CIDADE[next],sport=next==='gecg'
     fit(p.x-(sport?p.width/2:p.buildingWidth/2+5),p.x+(sport?p.width/2:p.buildingWidth/2+5),p.z-(sport?p.depth/2:p.buildingDepth/2+3),p.z+(sport?p.depth/2:p.buildingDepth/2+18),p.height+5,[],sport?new THREE.Vector3(.04,2.1,1.1):new THREE.Vector3(.22,.72,1.4))
@@ -936,7 +936,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
   <div className="pc3-stage">
    {replayOn&&<div className="pc3-replay" aria-live="polite">🔁 REPLAY</div>}
    <div ref={root} className="pc3-viewport" data-complexo-3d="true" aria-busy={!loaded} onPointerDown={()=>{setPlacesOpen(false);setCartaoFechado(selectedView)}}>
-    {!isWindow&&!isOffice&&managementEnabled&&loaded&&['original','region'].includes(selectedView)&&<div ref={poiLabels} className="cr3-map-labels" aria-label={t('Destinos do mapa','Map destinations')}>{([['gestao-clube',t('Gestão','Management')],['loja',currentCityState.extras.loja?t('Loja da torcida','Supporters’ store'):t('Terreno da loja','Store plot')],...(museumEnabled?[['museu-clube',t('Museu','Museum')]]:[]),['agencia-clube',t('Agência','Agency')],['shopping','Shopping'],['casa-usuario',t('Minha casa','My house')],['patrocinadores',t('Patrocinadores','Sponsors')]] as [VistaComplexo,string][]).map(([id,label])=><button key={id} type="button" data-poi={id} hidden onClick={e=>{e.stopPropagation();go(id)}}>{label}</button>)}</div>}
+    {!isWindow&&!isOffice&&managementEnabled&&loaded&&['original','region'].includes(selectedView)&&<div ref={poiLabels} className="cr3-map-labels" aria-label={t('Destinos do mapa','Map destinations')}>{([['gestao-clube',t('Gestão','Management')],['loja',currentCityState.extras.loja?t('Loja da torcida','Supporters’ store'):t('Terreno da loja','Store plot')],...(museumEnabled?[['museu-clube',t('Museu','Museum')]]:[]),['agencia-clube',t('Agência','Agency')],['shopping','Shopping'],['casa-luca','Casa Luca'],['casa-usuario',t('Minha casa','My house')]] as [VistaComplexo,string][]).map(([id,label])=><button key={id} type="button" data-poi={id} hidden onClick={e=>{e.stopPropagation();go(id)}}>{label}</button>)}</div>}
     {!loaded&&!error&&<p className="pc3-loading" role="status">{t('Preparando o mapa…','Preparing the map…')}</p>}
     {error&&<p className="pc3-error" role="alert">{error}</p>}
    </div>
@@ -979,7 +979,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     </details>     </details>
      {managementEnabled&&<details name={`${uiId}-places-group`}><summary>{t('Minha vida','My life')}</summary><button type="button" onClick={()=>go('casa-usuario')}>{t('Minha casa e garagem','My house and garage')}</button><button type="button" onClick={()=>go('casa-luca')}>💙 Casa Luca</button></details>}
      <details name={`${uiId}-places-group`}><summary>{t('Compras','Shopping')}</summary><button type="button" onClick={()=>go('shopping')}>Shopping Legends · R$</button><button type="button" onClick={()=>go('vadico')}>Vadico Veículos</button></details>
-     <details name={`${uiId}-places-group`}><summary>{t('Patrocinadores','Sponsors')}</summary><button type="button" onClick={()=>go('patrocinadores')}>{t('Avenida dos patrocinadores','Sponsors avenue')}</button>{(['dsouza','tidex','oittolabs','gecg'] as const).map(id=><button type="button" key={id} onClick={()=>go(id)}>{LOTES_PATROCINADORES_CIDADE[id].label}</button>)}</details>
+     <details name={`${uiId}-places-group`}><summary>{t('Patrocinadores','Sponsors')}</summary><button type="button" onClick={()=>go('patrocinadores')}>{t('Todos os patrocinadores','All sponsors')}</button>{(['dsouza','tidex','oittolabs','gecg'] as const).map(id=><button type="button" key={id} onClick={()=>go(id)}>{LOTES_PATROCINADORES_CIDADE[id].label}</button>)}</details>
      <details name={`${uiId}-places-group`}><summary>{t('Bairro e comunidade','Neighbourhood and community')}</summary>{managementEnabled&&<button type="button" onClick={()=>go('arena-online')}>{t('Arena Legends · salas abertas','Arena Legends · open rooms')}</button>}
 {circulation&&<button type="button" onClick={()=>go('city-street')}>{t('Pessoas e trânsito','People and traffic')}</button>}
     {journey?.hosting&&journey.phase!=='idle'&&<><button type="button" onClick={()=>go('coach-arrival')}>{t('Ônibus e desembarque','Bus and drop-off')}</button><button type="button" onClick={()=>go('coach-door')}>{t('Porta do ônibus · atletas','Bus door · players')}</button><button type="button" onClick={()=>go('team-entrance')}>{t('Serviço e delegações','Service and squads')}</button><button type="button" onClick={()=>go('team-field')}>{t('Entrada das equipes no campo','Teams walking out')}</button></>}

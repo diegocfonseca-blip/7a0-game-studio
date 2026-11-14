@@ -1,3 +1,4 @@
+import {LOTES_URBANOS,ROTAS_URBANAS,JARDINS_URBANOS,PORTA_HOTEL_URBANA,PORTA_BAR_URBANA} from './presidencia-implantacao-urbana'
 import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {STADIUM_ENTRANCES,STADIUM_HOME_GATE,STADIUM_AWAY_GATE} from './cidade3d/stadium-entrances.mjs'
 import { STADIUM_SECTORS, STADIUM_EXTRAS, type StadiumSave } from './estadiodata'
@@ -134,6 +135,10 @@ const full: StadiumSave = {
 }
 /** Registro de chão já usado pelos NPCs. Recortes visuais AREAS_MUNDO não são pegadas. */
 const footprints = Object.fromEntries(obstaculosDoEstadio(full).map(o => [o.id, o.polygon.map(mapaParaMundo)]))
+// Implantação métrica 3D; a ilustração legada e seus saves não são regravados.
+Object.assign(footprints,LOTES_URBANOS,JARDINS_URBANOS)
+Object.assign(doors,{hotel:PORTA_HOTEL_URBANA,chopp:PORTA_BAR_URBANA})
+for(const [id,points] of Object.entries(ROTAS_URBANAS))routes[id]={id,points,loop:false}
 // Shared 3D address: geometry, pedestrians, doors and camera.
 footprints.loja=LOJA_CLUBE_3D.footprint
 doors.loja=LOJA_CLUBE_3D.door
@@ -190,7 +195,7 @@ export const PLANTA_COMPLEXO = {
 /** Estado ativo sem mutação: a compra controla quais colisores existem. */
 export function obstaculosComplexo(st?: StadiumSave) {
   if (!estadioVisualValido(st)) return []
-  return obstaculosDoEstadio(st).map(o => ({ id: o.id, footprint: o.id==='loja'?PLANTA_COMPLEXO.lots.loja.footprint:o.polygon.map(mapaParaMundo) }))
+  return obstaculosDoEstadio(st).map(o => ({ id: o.id, footprint: PLANTA_COMPLEXO.footprints[o.id]??o.polygon.map(mapaParaMundo) }))
 }
 
 /** A praça contorna fonte/canteiros; visitantes chegam pelo passeio leste. */
@@ -198,7 +203,7 @@ export function caminhosTorcidaComplexo(state: EstadoComplexo) {
   return {
     home: [...PLANTA_COMPLEXO.routes[state.extras.asfalto ? 'entrance' : 'entranceBare'].points,
       gates.home.approach, gates.home.threshold, gates.home.inside],
-    away: [{ x: 118, z: 49 }, { x: 117, z: 35 }, { x: 117, z: 17 },
+    away: [{ x: 155, z: 100 }, { x: 130, z: 100 }, { x: 123.5, z: 70 }, { x: 123.5, z: 17 },
       gates.away.approach, gates.away.threshold, gates.away.inside],
   }
 }

@@ -1,7 +1,7 @@
 import * as T from 'three'
 import {criarBibliotecaVeiculos,type Veiculo3D} from './veiculos-modelos-3d'
 import {modeloVeiculo} from './veiculos-modelos'
-import {PLANTA_VADICO} from './presidencia-complexo-concessionaria'
+import {ENTREGA_VADICO_URBANA} from './presidencia-implantacao-urbana'
 import {TERRENO_USUARIO as HOME} from './residencia-planta'
 import {carteiraPresidenciaValida,type PresidenciaCarteira} from './presidencia-economia'
 import type {RuaComplexo} from './presidencia-complexo-ruas'
@@ -25,10 +25,10 @@ export function criarEntregasVeiculos(scene:T.Scene,environment:T.Object3D,solid
  const ray=new T.Raycaster(),ground=(p:{x:number;z:number}):PontoEntrega=>{ray.set(new T.Vector3(p.x,2.4,p.z),new T.Vector3(0,-1,0));ray.far=4;const h=ray.intersectObjects(surface,false).find(h=>h.face&&h.face.normal.y>.8&&h.point.y<.5);return{...p,y:h?.point.y??0}}
  const parked=(c:Car)=>({x:HOME.garage.x+(c.slot%2===0?-2.1:2.1),z:HOME.garage.z+(c.slot>=2?9:0),heading:Math.PI})
  function path(c:Car){
-  const end=parked(c),drive=PLANTA_VADICO.access.driveway,exit=drive[0],approach={x:HOME.garage.x,z:HOME.z+HOME.depth/2+9},street=caminhoPelasRuas(roads,exit,approach,80);if(!street){issues.push({id:c.id,reason:'Não há conexão viária comprovada entre a Vadico e a entrada da casa.'});return}
+  const end=parked(c),drive=ENTREGA_VADICO_URBANA.driveway,exit=drive[0],approach={x:HOME.garage.x,z:HOME.z+HOME.depth/2+9},street=caminhoPelasRuas(roads,exit,approach,80);if(!street){issues.push({id:c.id,reason:'Não há conexão viária comprovada entre a Vadico e a entrada da casa.'});return}
   const front=HOME.z+HOME.depth/2,side=HOME.garage.x+7.5
   const yard=[approach,{x:HOME.garage.x,z:front+1},{x:side,z:front-2},{x:side,z:end.z+4},{x:end.x,z:end.z+3},end]
-  const start={x:drive.at(-1)!.x-5,z:drive.at(-1)!.z-5.5},points=arredondarCaminho([start,...[...drive].reverse(),...street.slice(1),...yard.slice(1)],3)
+  const start=ENTREGA_VADICO_URBANA.start,points=arredondarCaminho([start,...[...drive].reverse(),...street.slice(1),...yard.slice(1)],3)
   const obstacles=solids.filter(s=>s.top>.35&&s.base<2).map(s=>({id:s.id,polygon:s.footprint.map(p=>({x:p.x,y:p.z}))}))
   for(let i=1;i<points.length;i++)if(!segmentoLivre({x:points[i-1].x,y:points[i-1].z},{x:points[i].x,y:points[i].z},obstacles,c.body.profile.width/2+.08)){issues.push({id:c.id,reason:`Rota bloqueada no trecho ${i}; o veículo permanece na área de entrega.`});return}
   const sampled=points.flatMap((p,i)=>{if(!i)return[p];const a=points[i-1],n=Math.ceil(Math.hypot(p.x-a.x,p.z-a.z));return Array.from({length:n},(_,k)=>({x:a.x+(p.x-a.x)*(k+1)/n,z:a.z+(p.z-a.z)*(k+1)/n}))});return viagemVeiculo(sampled.map(ground),7)
@@ -40,7 +40,7 @@ export function criarEntregasVeiculos(scene:T.Scene,environment:T.Object3D,solid
   for(const[id,c]of cars)if(!ids.has(id as typeof owned[number]['id'])){c.rider?.dispose();c.body.dispose();cars.delete(id);changed=true}
   let extraSlot=2,queue=0;const pair=display??owned.slice(0,2).map(b=>b.id)
   for(const b of owned){const p=modeloVeiculo(b.id)!,selected=pair.indexOf(b.id),slot=selected>=0?selected:extraSlot++;const existing=cars.get(b.id);if(existing){if(existing.slot!==slot){existing.slot=slot;if(existing.phase==='parked')position(existing);changed=true}continue}const body=library.create(b.id)!;root.add(body.root);const c:Car={id:b.id,body,phase:initialized?'delivery':'parked',time:-queue*2,heading:0,slot,arrival:0};cars.set(b.id,c);queue++;changed=true
-   if(initialized){c.trip=path(c);if(c.trip){const first=c.trip.at(0);body.root.position.set(first.x,first.y,first.z);body.root.rotation.y=first.heading;c.heading=first.heading;if(p.kind==='bike'){c.rider=createCivilian(body.root,{id:'entrega-'+b.id,variant:'adult-man'});c.rider.root.scale.setScalar(.88);c.rider.root.position.y=.28}}else{c.phase='blocked';const d=PLANTA_VADICO.access.driveway.at(-1)!;body.root.position.set(d.x-5,d.y,d.z-5.5)}}else position(c)
+   if(initialized){c.trip=path(c);if(c.trip){const first=c.trip.at(0);body.root.position.set(first.x,first.y,first.z);body.root.rotation.y=first.heading;c.heading=first.heading;if(p.kind==='bike'){c.rider=createCivilian(body.root,{id:'entrega-'+b.id,variant:'adult-man'});c.rider.root.scale.setScalar(.88);c.rider.root.position.y=.28}}else{c.phase='blocked';const d=ENTREGA_VADICO_URBANA.start;body.root.position.set(d.x,.16,d.z)}}else position(c)
   }
   initialized=true;revision=wallet.revision;return changed
  }

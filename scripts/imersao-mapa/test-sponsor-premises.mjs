@@ -11,14 +11,12 @@ for(const art of Object.values(logos)){assert(existsSync(new URL(art.src)));logo
 assert(logoBytes<160000,'Reuse the existing small assets, without new heavy art')
 const parcels=Object.values(lots)
 for(const a of parcels)for(const b of parcels)if(a!==b)assert(Math.abs(a.x-b.x)>=(a.width+b.width)/2||Math.abs(a.z-b.z)>=(a.depth+b.depth)/2,'Parcels overlap')
-// Reforma aprovada: os quatro parceiros passam para a avenida ao sul do anel.
-// Continuam fora do estádio, dos terrenos da casa e da arena online.
-for(const p of parcels)assert(p.z-p.depth/2>212,'Sponsor parcel occupies stadium/ring access')
+// Implantação aprovada em 14/11: parceiros misturados ao redor do estádio.
+for(const p of parcels)assert(Math.abs(p.x)-p.width/2>110||p.z+p.depth/2< -100||p.z-p.depth/2>212,'Sponsor parcel occupies stadium/gate access')
 assert(reserved.length>=parcels.length+3,'Road and plot reservations are required')
-assert(Math.abs(lots.tidex.x-lots.oittolabs.x)<50,'Keep the offices together')
+assert(lots.tidex.z<0&&lots.oittolabs.z>0&&lots.dsouza.x>220,'North, south and lateral partners are represented')
 assert(lots.dsouza.frontWalkZ>=lots.dsouza.z+lots.dsouza.depth/2)
 assert(lots.gecg.x-lots.gecg.width/2>road.points[1].x+road.width/2+road.walk,'Society approach stays outside its plot')
-// Public access stays outside the warehouse, office lots and society pitch.
 for(const id of['dsouza','tidex','oittolabs']){const p=lots[id];assert(Math.abs(road.points[1].x-p.x)>p.width/2+road.width/2+road.walk)}
 const scene=new T.Scene(),site=criarPatrocinadoresCidade(scene)
 assert.equal(site.metadata.brands.length,4);assert.equal(site.metadata.static,true)

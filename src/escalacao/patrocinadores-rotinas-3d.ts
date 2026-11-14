@@ -61,7 +61,7 @@ export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,
  const ground=(p:{x:number;z:number})=>{ray.set(new T.Vector3(p.x,2.4,p.z),new T.Vector3(0,-1,0));ray.far=4;const hit=ray.intersectObjects(surfaces,false).find(h=>h.face&&h.face.normal.y>.8&&h.point.y<.5);return{...p,y:hit?.point.y??0}}
  const clear=(p:{x:number;z:number}[])=>!p.some((b,i)=>i>0&&!segmentoLivre({x:p[i-1].x,y:p[i-1].z},{x:b.x,y:b.z},obstacles,1.12))
  // Route searches run one candidate per task, outside the render frame.
- function prepareRoutes(){if(routes)return;routes=[];routePending=true;const start={x:loadingBay.x,z:-231.34},candidates=[...homes].sort((a,b)=>Math.hypot(a.curb.x-start.x,a.curb.z-start.z)-Math.hypot(b.curb.x-start.x,b.curb.z-start.z));let index=0;
+ function prepareRoutes(){if(routes)return;routes=[];routePending=true;const start={x:loadingBay.x,z:LOTS.dsouza.frontWalkZ},candidates=[...homes].sort((a,b)=>Math.hypot(a.curb.x-start.x,a.curb.z-start.z)-Math.hypot(b.curb.x-start.x,b.curb.z-start.z));let index=0;
   const step=()=>{routeTimer=undefined;if(disposed)return;
    const h=candidates[index++];if(!h||routes!.length>=3){routePending=false;if(!routes!.length)routeError='Nenhuma casa com acesso e manobra de retorno livres foi encontrada.';options.onReady();return}
    const dx=h.curb.x-h.door.x,dz=h.curb.z-h.door.z,n=Math.hypot(dx,dz),stop={x:h.door.x+dx/n*16,z:h.door.z+dz/n*16},path=n>0?caminhoPelasRuas(roads,start,stop,18):null;

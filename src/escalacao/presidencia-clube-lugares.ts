@@ -23,10 +23,10 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
   const o=mesh(new T.PlaneGeometry(w,h),m,x,y,z);if(roof)o.rotation.x=-Math.PI/2;o.rotateOnWorldAxis(new T.Vector3(0,1,0),angle);o.castShadow=false;return o
  }
  if(state.extras.loja){
-  const {x,z,height,heading}=LOJA_CLUBE_3D
+  const {x,z,height,heading,depth}=LOJA_CLUBE_3D
   sign([getLang()==='en'?'FAN SHOP':'LOJA DA TORCIDA'],10,2.6,x,height+.58,z,true,0)
-  sign([getLang()==='en'?'FAN SHOP':'LOJA DA TORCIDA'],14,1.15,x+Math.sin(heading)*10.35,4.65,z+Math.cos(heading)*10.35,false,heading)
-  if(crest){const map=new T.TextureLoader().load(crest,tex=>{if(disposed){tex.dispose();return}tex.colorSpace=T.SRGBColorSpace;onReady?.()});textures.add(map);const m=new T.MeshBasicMaterial({map,transparent:true,toneMapped:false,depthWrite:false});materials.add(m);mesh(new T.PlaneGeometry(1.9,1.9),m,x-7.1,2.3,z+8.38).castShadow=false}
+  sign([getLang()==='en'?'FAN SHOP':'LOJA DA TORCIDA'],14,1.15,x+Math.sin(heading)*(depth/2+.35),4.65,z+Math.cos(heading)*(depth/2+.35),false,heading)
+  if(crest){const map=new T.TextureLoader().load(crest,tex=>{if(disposed){tex.dispose();return}tex.colorSpace=T.SRGBColorSpace;onReady?.()});textures.add(map);const m=new T.MeshBasicMaterial({map,transparent:true,toneMapped:false,depthWrite:false});materials.add(m);mesh(new T.PlaneGeometry(1.9,1.9),m,x-7.1,2.3,z+depth/2+.38).castShadow=false}
 
 
  }

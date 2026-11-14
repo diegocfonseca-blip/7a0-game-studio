@@ -1,9 +1,9 @@
 import * as T from 'three'
 /** Former agency parcel, outside the stadium, beside the purchased store.
  * The entrance faces north, toward the existing pedestrian forecourt. */
-export const LOTE_MUSEU_CLUBE={id:'museu-clube',x:-61,z:141.5,height:8,
- building:{minX:-67.5,maxX:-54.5,minZ:134,maxZ:149},
- footprint:[{x:-69,z:126.2},{x:-53.3,z:126.2},{x:-53.3,z:150.5},{x:-69,z:150.5}]} as const
+export const LOTE_MUSEU_CLUBE={id:'museu-clube',x:-60,z:133,height:8,
+ building:{minX:-72,maxX:-48,minZ:119,maxZ:147},
+ footprint:[{x:-74,z:104},{x:-46,z:104},{x:-46,z:150},{x:-74,z:150}]} as const
 /** Convex footprint intersection, including height. The diagonal 3.2km rail
  * deck has a huge axis-aligned box; its box alone is not a collision. */
 export function interfereLoteMuseu(solid:{base:number;top:number;footprint:readonly {x:number;z:number}[]}){
@@ -19,7 +19,7 @@ export function interfereLoteMuseu(solid:{base:number;top:number;footprint:reado
  return true
 }
 export function criarPredioMuseu(stage:number){
- const root=new T.Group();root.name='museu-do-clube';root.userData.stage=stage
+ const root=new T.Group();root.name='museu-do-clube';root.userData.stage=stage;root.scale.set(24/13,1,28/15)
  const geos:T.BufferGeometry[]=[],mats:T.Material[]=[],textures:T.Texture[]=[]
  const box=(color:string,w:number,h:number,d:number,x:number,y:number,z:number)=>{
   const g=new T.BoxGeometry(w,h,d),m=new T.MeshStandardMaterial({color,roughness:.75});geos.push(g);mats.push(m)

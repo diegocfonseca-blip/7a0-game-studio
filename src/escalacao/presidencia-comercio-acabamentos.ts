@@ -27,7 +27,7 @@ export function criarAcabamentosComerciais(parent:T.Object3D,state:EstadoComplex
  if(state.extras.loja){
   const {x,z,width:w,depth:d,height:h,heading:a}=LOJA_CLUBE_3D
   const part=(m:T.Material,bw:number,bh:number,bd:number,u:number,y:number,v:number)=>localBox(m,bw,bh,bd,x,z,u,y,v,a)
-  part(ink,w+.55,.3,d+.55,0,h+.4,0);part(cream,6,.35,5.4,3.2,h+.74,-4.5);part(glass,5.6,.18,5,3.2,h+1,-4.5);for(const u of[1.35,3.2,5.05])part(ink,.12,.2,5.1,u,h+1.12,-4.5);part(ink,w+.25,.44,d+.25,0,.4,0)
+  part(ink,w+.55,.3,d+.55,0,h+.4,0);part(cream,6,.35,5.4,3.2,h+.74,-4.5);part(glass,5.6,.18,5,3.2,h+1,-4.5);for(const u of[1.35,3.2,5.05])part(ink,.12,.2,5.1,u,h+1.12,-4.5);part(ink,w+.25,.44,.25,0,.4,-d/2);for(const side of[-1,1]){part(ink,.25,.44,d,side*w/2,.4,0);part(ink,(w-4.4)/2,.44,.25,side*(w/4+1.1),.4,d/2)}
   // Finished corner facing +z in the opening view. The east door stays open.
   for(const v of[-7.4,-3.7,0,3.7,7.4]){part(glass,.1,2.75,3.5,-w/2-.17,2.18,v);part(ink,.2,3.25,.15,-w/2-.24,2.13,v-1.8)}
   part(ink,.3,1.1,d+.5,-w/2-.13,4.65,0);part(gold,.36,.12,d+.55,-w/2-.16,4.05,0)
@@ -36,7 +36,7 @@ export function criarAcabamentosComerciais(parent:T.Object3D,state:EstadoComplex
   part(ink,1.25,.2,d+.75,-w/2-.55,3.55,0);part(gold,.12,.12,d+.75,-w/2-1.12,3.43,0)
   // Store windows use neutral display silhouettes, not a paid club kit.
   for(const v of[-5.5,1.9,5.6]){part(cream,.16,1.2,.85,-w/2-.25,2.12,v);part(gold,.17,.3,1.22,-w/2-.27,2.4,v)}
-  sign(word('LOJA DA TORCIDA','FAN SHOP'),d-1.7,1.0,x,4.64,z+w/2+.31)
+  sign(word('LOJA DA TORCIDA','FAN SHOP'),w-1.7,1.0,x,4.64,z+d/2+.31)
  }
  if(state.extras.chopp){
   const p=PLANTA_COMPLEXO.doors.chopp,a=p.heading
