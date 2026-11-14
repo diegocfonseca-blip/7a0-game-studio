@@ -17,7 +17,7 @@ export const RUAS_CAMPUS=[
  {id:'acesso-estacionamento',points:caminhoUrbano([[330,100],[280,100]]),width:8,walk:2},
  {id:'bairro-casa-luca-oeste',points:caminhoUrbano([[-220,145],[-156.5,145],[-156.5,207.5],[-220,207.5]]),width:5.8,walk:1.5},
  {id:'bairro-casa-luca-sul',points:caminhoUrbano([[-156.5,207.5],[-90,207.5]]),width:5.8,walk:1.5},
- {id:'acesso-arena',points:caminhoUrbano([[330,275],[275,275]]),width:6,walk:2},
+ {id:'acesso-arena',points:caminhoUrbano([[330,-4],[270,-4]]),width:6,walk:2},
  ...RUAS_BAIRRO_USUARIO,
 ] as const
 export const RUAS_SERVICO_CAMPUS=[

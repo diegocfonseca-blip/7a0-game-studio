@@ -762,7 +762,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     const pub=surround.botecos.find(p=>p.id===(next==='boteco-oswaldo'?'oswaldo':'bar-da-esquina'));if(!pub){view('original');return}const p=pub.root.position,k=camera.aspect<.85?1.4:1;controls.target.set(p.x,p.y+1.4,p.z+7);camera.position.set(p.x+9*k,p.y+6*k,p.z+20*k)
    }
    else if(next==='pipas'||next==='pagode'||next==='festa-junina'||next==='feira'||next==='banca'||next==='campinho'||next==='padaria'||next==='praca-bairro'||next==='espetinho'||next==='jogo-bairro'||next==='varal'||next==='flanelinha'||next==='cadeiras'||next==='tv-boteco'){const v=tradicoes.vista(next,camera.aspect);if(!v){view('original');return}controls.target.set(...v.target);camera.position.set(...v.camera)}
-   else if(next==='arena-online')fit(ARENA.x-13,ARENA.x+13,ARENA.z-13,ARENA.z+17,10,[],new THREE.Vector3(.3,1,1.3))
+   else if(next==='arena-online')fit(ARENA.x-ARENA.width/2-3,ARENA.x+ARENA.width/2+3,ARENA.z-ARENA.depth/2-3,ARENA.frontWalkZ,ARENA.height+2,[],new THREE.Vector3(.3,1,1.3))
    else if(next==='casa-usuario')fit(HOME.x-HOME.width/2-6,HOME.x+HOME.width/2+6,HOME.z-HOME.depth/2-6,HOME.z+HOME.depth/2+6,5,[],new THREE.Vector3(.25,1.05,1.3))
    else if(next==='loja'){
     const p=PLANTA_COMPLEXO.lots.loja,h=p.door?.heading??p.heading
@@ -928,7 +928,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    targets.push({id:'loja',view:'loja',box:new THREE.Box3(new THREE.Vector3(Math.min(...shop.footprint.map(p=>p.x)),.16,Math.min(...shop.footprint.map(p=>p.z))),new THREE.Vector3(Math.max(...shop.footprint.map(p=>p.x)),8,Math.max(...shop.footprint.map(p=>p.z))))})
    if(museumEnabled){const b=LOTE_MUSEU_CLUBE.building;targets.push({id:'museu',view:'museu-clube',box:new THREE.Box3(new THREE.Vector3(b.minX,0,b.minZ),new THREE.Vector3(b.maxX,8,b.maxZ))})}
    if(clubName)targets.push({id:'agencia',view:'agencia-clube',box:new THREE.Box3(new THREE.Vector3(a.building.minX,.16,a.building.minZ),new THREE.Vector3(a.building.maxX,a.height+3,a.building.maxZ))})
-   targets.push({id:'arena',view:'arena-online',box:new THREE.Box3(new THREE.Vector3(ARENA.x-9,0,ARENA.z-9),new THREE.Vector3(ARENA.x+9,9,ARENA.z+9))})
+   targets.push({id:'arena',view:'arena-online',box:new THREE.Box3(new THREE.Vector3(ARENA.building.minX,0,ARENA.building.minZ),new THREE.Vector3(ARENA.building.maxX,ARENA.height,ARENA.building.maxZ))})
    // 🏢 03/11: tocar no prédio de um patrocinador abre o cartão dele (logo, texto, link)
    const sponsorTargets=[...(['dsouza','tidex','oittolabs','gecg'] as const).map(id=>{const l=LOTES_PATROCINADORES_CIDADE[id];return{id,view:id as VistaComplexo,box:new THREE.Box3(new THREE.Vector3(l.x-l.width/2,0,l.z-l.depth/2),new THREE.Vector3(l.x+l.width/2,l.height+2,l.z+l.depth/2))}}),
     // 🛍️ 05/11: tocar no Shopping abre o cartão com as lojinhas

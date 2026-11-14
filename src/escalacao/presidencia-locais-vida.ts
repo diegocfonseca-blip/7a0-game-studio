@@ -15,7 +15,7 @@ export function criarVidaLocais(scene:T.Scene,environment:T.Object3D,solids:read
  const ray=new T.Raycaster(),ground=(x:number,z:number)=>{ray.set(new T.Vector3(x,.6,z),new T.Vector3(0,-1,0));ray.far=1;const h=ray.intersectObjects(meshes,false).find(h=>h.face&&h.face.normal.y>.8);return{x,z,y:(h?.point.y??0)+.003}}
  const specs=[
   {id:'agencia',variant:'older-woman',occupation:'office',points:G.visit.map(p=>[p.x,p.z]),stay:17},
-  {id:'arena',variant:'adult-man',points:[[A.x-7,A.z+12],[A.x,A.z+12],[A.x,A.z+10.4]],stay:22},
+  {id:'arena',variant:'adult-man',points:[[A.x-7,A.frontWalkZ],[A.x,A.frontWalkZ],[A.x,A.entryZ]],stay:22},
   {id:'casa',variant:'adult-woman',points:[[H.garage.x,H.z+H.depth/2+1],[H.garage.x,H.z+8],[H.house.x,H.z+8],[H.house.x,H.house.z+H.house.depth/2+.8]],stay:12},
  ]
  const obstacles=solids.filter(s=>s.base<1.8&&s.top>.2).map(s=>({id:s.id,polygon:s.footprint.map(p=>({x:p.x,y:p.z}))})),issues:string[]=[]

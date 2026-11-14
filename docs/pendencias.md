@@ -1,3 +1,10 @@
+## 🏟️ 14/11 — Arena maior e troca de setor com a dSouza — FEITO na prévia privada
+
+- Pedido de Diego: trocar a Arena Legends online de lugar com a dSouza e deixar uma arena maior que o campo do Grêmio. Arena no setor leste, dSouza no setor sul.
+- Arena oval em lote de 92 × 104 m, campo de 60 × 40 m (Grêmio: 55 × 35), seis níveis de arquibancadas, cobertura aberta, entrada e iluminação. Modelo agrupado em dez desenhos.
+- Atualizados acessos, clique, enquadramento e visita. Caminhos e estacionamento preservados; dSouza mantém três rotas de entrega. Nenhuma mudança em salas, economia ou saves; mapa continua exclusivo da conta de Diego.
+- Detalhes em `docs/mapa-arena-dsouza-20261114.md`; imagens, testes e publicação em `/workspace/shared/mapa-arena-dsouza-20261114/`.
+
 ## 🧭 14/11 — Aproximação suave ao tocar nos estabelecimentos — FEITO na prévia privada
 
 - Esclarecimento de Diego: pode aproximar ao tocar, mas sem virar a câmera bruscamente e com retorno fácil. Agora o local aproxima automaticamente, mantendo a direção de observação, com movimento gradual de cerca de um segundo.
