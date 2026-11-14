@@ -689,7 +689,9 @@ export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave |
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2, bb = false }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, saf2, bb = false }: {
+  initialSection?: 'sectors' | 'extras'
+  museumImprovement?: ReactNode
   presidencyView?: ReactNode
   cinematic?: boolean
   bb?: boolean // 🏀 basquete: quadra no lugar do gramado + nome de arena (texto já é bilíngue via getLang)
@@ -766,7 +768,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   // ✏️ sócio batiza o PRÓPRIO estádio aqui mesmo (pedido do Diego 09/08 — sem
   // passar pelo painel). O formzinho abre ABAIXO do desenho (StadiumSvg é
   // sagrado: sempre primeiro). Quem não é sócio não vê nada disso.
-  const [structurePage, setStructurePage] = useState<'sectors' | 'extras'>('sectors')
+  const [structurePage, setStructurePage] = useState<'sectors' | 'extras'>(initialSection??'sectors')
   const [edEstadio, setEdEstadio] = useState(false)
   const [nomeTmp, setNomeTmp] = useState('')
   const [salvandoNome, setSalvandoNome] = useState(false)
@@ -1020,6 +1022,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         )
       })}
       </section>
+      {museumImprovement}
       {onBuyFilial && (() => {
         // 🔐 a SAF EXIGE login (direitos ligados à conta). Antes, sem login a seção
         // SUMIA — e o jogador não entendia (ele só via a SAF "desaparecer"). Agora

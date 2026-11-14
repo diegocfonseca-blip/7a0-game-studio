@@ -11,6 +11,7 @@
 // Nada aqui lê relógio do aparelho nem sorteia: a hora sai do calendário da carreira (dia + hora do jogo) ou da luz do mapa,
 // e sem calendário sai uma regra estável pela rodada — o mesmo save mostra a mesma cidade no celular e no PC.
 
+import {LOTES_ESTACIONAMENTO_COMPLEXO} from './presidencia-complexo-transporte-model'
 export type PeriodoBairro='manha'|'tarde'|'noite'
 export type ContextoBairro={
  /** dia do calendário da carreira (ms UTC, `diaDaRodada`/`hoje` de calendario.ts) — nunca a data do aparelho */
@@ -270,7 +271,7 @@ export const LUGARES_DIA_DE_JOGO={
  /** 🐈 churrasquinho de gato, logo atrás do camelô, virado pra fila da torcida */
  gato:{x:8.8,z:101.4,yaw:-Math.PI/2},
  /** 🧽 flanelinha, na entrada do 1º estacionamento (anda pra lá e pra cá ao longo de `yaw` + 90°) */
- flanelinha:{x:44,z:182,yaw:0},
+ flanelinha:{x:LOTES_ESTACIONAMENTO_COMPLEXO[0][0].x+10,z:LOTES_ESTACIONAMENTO_COMPLEXO[0][2].z-2,yaw:0},
 } as const
 
 /** Onde a Kombi/bicicleta está depois de andar `metros` na volta dela (o sentido contrário anda de ré na conta e vira de frente). */

@@ -48,10 +48,10 @@ export function criarColecaoSala(scene:THREE.Scene,state:EstadoComplexo,onChange
  }
  function update(wallet?:PresidenciaCarteira|null,trophies:readonly TrofeuPresidencia[]=[],art?:ArtesIdentidadeSala,page=0){
   if(disposed)return false
-  const valid=available&&carteiraPresidenciaValida(wallet),next=JSON.stringify(valid?[wallet!.owned.map(i=>i.id).sort(),trophies,art,page]:null)
+  const valid=available&&carteiraPresidenciaValida(wallet),next=JSON.stringify(valid?[wallet!.owned.map(i=>i.id).sort(),wallet!.homeFurniture?.slice().sort(),trophies,art,page]:null)
   if(next===key)return false
   key=next;clear();if(!valid)return true
-  const owned=new Set(wallet!.owned.map(i=>i.id)),wood=material('#493424'),gold=material('#baa063',.65),black=material('#292a25')
+  const owned=new Set(wallet!.owned.filter(i=>!wallet!.homeFurniture?.includes(i.id)).map(i=>i.id)),wood=material('#493424'),gold=material('#baa063',.65),black=material('#292a25')
   if(owned.has('estante-simples')||owned.has('estante-madeira')){
    const basic=owned.has('estante-simples'),height=basic?1.85:2.35
    const earned=trophies.filter(t=>typeof t.id==='string'&&/^[a-z\d-]+$/i.test(t.id)&&Number.isSafeInteger(t.count)&&t.count!>0)

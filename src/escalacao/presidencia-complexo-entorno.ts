@@ -1,5 +1,8 @@
+import {PRACA_TORCEDOR,RESERVA_CAMPUS,RUAS_CAMPUS,RUAS_SERVICO_CAMPUS} from './presidencia-implantacao-urbana'
+import {criarAcabamentosComerciais} from './presidencia-comercio-acabamentos'
+import {LOTE_MUSEU_CLUBE} from './museu-clube-predio'
 import {ARENA_ONLINE} from './arena-planta'
-import {TERRENO_USUARIO} from './residencia-planta'
+import {TERRENO_USUARIO,RESERVA_BAIRRO_USUARIO,VIZINHOS_RESIDENCIA,ACESSO_GARAGEM_USUARIO} from './residencia-planta'
 import {criarResidenciaUsuario} from './residencia-3d'
 import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {criarLugaresClube} from './presidencia-clube-lugares'
@@ -87,7 +90,7 @@ function camposRuido(size:number){
   for(let z=0;z<size;z++)for(let x=0;x<size;x++){const i=z*size+x;fino[i]=(hash(x,z)-.5)*.45+smooth(x,z,16)*.35;mancha[i]=smooth(x,z,128)}
   return CAMPOS_RUIDO={size,fino,mancha}
 }
-export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onReady?:()=>void,club?:{name?:string;residence?:boolean;arena?:boolean}) {
+export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onReady?:()=>void,club?:{name?:string;crest?:string;residence?:boolean;arena?:boolean;museum?:boolean}) {
   const root=new THREE.Group()
   root.name='complexo-entorno'
   scene.add(root)
@@ -173,7 +176,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   }))
   // Purchased driveways are curved/concave, so subtract their actual triangles
   // from old raised pavements rather than treating the whole strip as convex.
-  const transportCorridors=[...transport.vehicleSurfaces].flatMap(surface=>{
+  const transportCorridors=[...transport.vehicleSurfaces,...(club?.residence?[{polygon:faixaTransporteComplexo(ACESSO_GARAGEM_USUARIO,6)}]:[])].flatMap(surface=>{
     const source=surface.polygon
     return THREE.ShapeUtils.triangulateShape(source.map(p=>new THREE.Vector2(p.x,p.z)),[]).map(indices=>{
       const points=indices.map(i=>source[i]),area=points.reduce((sum,a,i)=>{const b=points[(i+1)%points.length];return sum+a.x*b.z-b.x*a.z},0)
@@ -260,7 +263,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const parkingLots=LOTES_ESTACIONAMENTO_COMPLEXO
   const circle=(center:PontoComplexo,radius:number)=>Array.from({length:48},(_,i)=>({x:center.x+Math.cos(i*Math.PI/24)*radius,z:center.z+Math.sin(i*Math.PI/24)*radius}))
   const serviceReservations=[...['east','west','branch'].map(key=>poligonoRuaComplexo({points:AJUSTES_RUAS_COMPLEXO[key as 'east'|'west'|'branch'],width:5.8},1.6)),circle(AJUSTES_RUAS_COMPLEXO.turning.center,7)]
-  const landscapeReservations=[...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
+  const landscapeReservations=[RESERVA_CAMPUS,RESERVA_BAIRRO_USUARIO,...(club?.museum?[LOTE_MUSEU_CLUBE.footprint]:[]),...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
     ...(transport.station.enabled?[faixaTransporteComplexo([transport.station.point(-transport.station.railExtent,0),transport.station.point(transport.station.railExtent,0)],14)]:[]),
     ...['fonte','jardim-acesso-hotel','canteiro-central','canteiro-direito','canteiro-esquerdo','canteiro-calcada-leste'].map(id=>PLANTA_COMPLEXO.footprints[id]),
     path([[578,604],[916,605],[916,770],[657,798],[553,730]]),
@@ -413,21 +416,18 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   })
   const streetNetwork:(RuaComplexo&{clearance:number})[]=[]
   const street=(id:string,points:readonly PontoComplexo[],width:number,walk=2.8)=>{
-    streetNetwork.push({id:/^(bairro|parque)-/.test(id)?`${id}-${streetNetwork.length}`:id,points:[...points],width,walk,clearance:width/2+walk})
+    streetNetwork.push({id:/^(bairro|parque)-/.test(id)?`${id}-${streetNetwork.length}`:id,points:[...points],width,walk,clearance:width/2+walk,...(/^(via-publica|avenida-norte)$/.test(id)?{destinations:[{end:0 as const,id:'continua-cidade'},{end:1 as const,id:'continua-cidade'}]}:id==='rua-interna-oeste'?{destinations:[{end:1 as const,id:'servico-estadio-hotel'}]}:{})})
   }
   street('via-publica',peripheral,10)
   const north=transport.station.avenue
-  street('avenida-norte',north,transport.station.avenueWidth,3.5)
-  const east=path([[1640,331],[1521,451],[1475,592],[1410,720]])
-  street('via-leste',east,11)
-  const west=path([[-65,269],[150,119],[295,48],[354,-65]])
-  street('via-oeste',west,11)
+  for(const road of RUAS_CAMPUS)street(road.id,road.points,road.width,road.walk)
+  const east=RUAS_CAMPUS[1].points,west=RUAS_CAMPUS[0].points
   for(const road of RUAS_PATROCINADORES_CIDADE)street(road.id,road.points,road.width,road.walk)
   ribbon('calcada-registrada',PLANTA_COMPLEXO.routes.sidewalk.points,3.9,GROUND,paving)
   const markings=(points:readonly PontoComplexo[])=>{
     for(let i=1;i<points.length;i++){
       const a=points[i-1],b=points[i],length=Math.hypot(b.x-a.x,b.z-a.z),yaw=-Math.atan2(b.z-a.z,b.x-a.x)
-      for(let d=3;d<length-2;d+=8){const t=d/length;box('faixa-viaria',white,3,.015,.11,a.x+(b.x-a.x)*t,.047,a.z+(b.z-a.z)*t,yaw)}
+      for(let d=3;d<length-2;d+=8){const t=d/length;box('faixa-viaria',white,3,.008,.11,a.x+(b.x-a.x)*t,.016,a.z+(b.z-a.z)*t,yaw)}
     }
   }
   markings(peripheral);markings(north);markings(east);markings(west)
@@ -452,13 +452,12 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     ribbon(`soleira-${id}`,[door.threshold,door.inside],2.6,GROUND,paving)
   }
   if(state.extras.asfalto){
-    const plaza=path([[578,604],[916,605],[916,770],[657,798],[553,730]])
+    const plaza=PRACA_TORCEDOR
     polygon('praca-acesso-pavimentada',plaza,.095,paving)
     // Walking access uses the destination paths below. The old decorative
     // ring cut through the hotel, gardens and businesses despite looking
     // continuous on the aerial illustration.
-    street('rua-interna-oeste',path([[275,673],[330,618],[346,555],[325,466],[347,364],[411,283]]),5.8,1.6)
-    street('rua-interna-leste',path([[1293,322],[1345,421],[1370,536],[1343,633],[1249,718]]),5.8,1.6)
+    for(const road of RUAS_SERVICO_CAMPUS)street(road.id,road.points,road.width,road.walk)
   }
 
   const crownShape=(detail:number,variant:number)=>{
@@ -563,7 +562,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
         if(i===doorEdge&&door&&floor===0&&Math.hypot(p.x-door.threshold.x,p.z-door.threshold.z)<3.5)continue
         const outward=.165*outwardSign
         const wy=GROUND+(floor===0?1.72:4+(floor-1)*3+1.5)
-        box(`${id}-vitrine`,floor%3?glass:warmGlass,bay-.54,floor===0?2.6:2.12,.042,p.x-dz*outward,wy,p.z+dx*outward,yaw)
+        box(`${id}-vitrine`,id.startsWith('hotel')?glass:floor%3?glass:warmGlass,bay-.54,floor===0?2.6:2.12,.042,p.x-dz*outward,wy,p.z+dx*outward,yaw)
         box(`${id}-montante`,white,.16,floor===0?3.4:2.7,.28,p.x-dx*bay/2-dz*.19*outwardSign,wy,p.z-dz*bay/2+dx*.19*outwardSign,yaw)
       }
       for(let floor=1;floor<storeys;floor++)segment(0,length,GROUND+4+(floor-1)*3,.18,white,false)
@@ -584,10 +583,10 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     polygon('loja-piso',lot.footprint,GROUND,paving)
     for(const side of[-1,1])part('lateral',concrete,.26,h,d,side*w/2,GROUND+h/2,0,true)
     part('fundo',concrete,w,h,.26,0,GROUND+h/2,-d/2,true)
-    part('cobertura',white,w+.5,.22,d+.5,0,GROUND+h,0)
+    part('cobertura',dark,w+.5,.22,d+.5,0,GROUND+h,0)
     const clearGlass=material('#c5e2e9',.22,.05)
-    clearGlass.transparent=true;clearGlass.opacity=.16;clearGlass.depthWrite=false
-    const accent=material('#17483c',.85)
+    clearGlass.transparent=true;clearGlass.opacity=.8;clearGlass.depthWrite=false
+    const accent=material('#1d2328',.75)
     for(const side of[-1,1]){
       const u=side*5.05
       part('vitrine-base',accent,5.6,.52,.28,u,GROUND+.26,d/2,true)
@@ -683,6 +682,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     }
   }
 
+  const commercialFinishes=criarAcabamentosComerciais(root,state)
+
   // Static transportation uses the exact same metric plan as moving actors.
   // In particular no parked train is baked into these material batches.
   for(const surface of transport.surfaces){
@@ -691,7 +692,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       const a=points[0],b=points[1],d=points[3],base=surface.base??y-.18
       const center={x:(a.x+points[2].x)/2,z:(a.z+points[2].z)/2}
       box(id,kind==='platform'?paving:concrete,Math.hypot(b.x-a.x,b.z-a.z),Math.max(.02,y-base),Math.hypot(d.x-a.x,d.z-a.z),center.x,(base+y)/2,center.z,-Math.atan2(b.z-a.z,b.x-a.x),true)
-    }else polygon(id,points,kind==='road'||state.extras.asfalto?y:y-.025,kind==='road'?(id.startsWith('estacionamento')&&!transport.parking.paved?dirt:asphalt):routeSurface) // 🧱 04/11: calçada de terra do ônibus/estacionamento também fica embaixo do cimento
+    }else polygon(id,points,y,kind==='road'?(id.startsWith('estacionamento')&&!transport.parking.paved?dirt:asphalt):routeSurface) // O piso do transporte usa a altura declarada pelo mesmo plano dos passageiros.
   }
   // The waiting shelter sits behind the bus pavement, with no post or bench
   // in the opened door or in the route to the front gate.
@@ -751,11 +752,13 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     // 🦓 faixa de pedestre: a torcida que desce na calçada da avenida atravessa a pista aqui (x≈-4,4) pra subir pro portão
     for(let x=-6.2;x<=-2.6;x+=.9){const p=pista.naPista(x,0);box('pista-faixa-pedestre',white,.45,.02,PISTA_FAIXA*2,p.x,.03,p.z,ang(x)+Math.PI/2)}
     // 🅿️ cancela: cabine do porteiro + braço listrado (levantado: o carro do torcedor passa)
-    const cc=pista.cancela
-    box('cancela-cabine',white,1.6,2.3,1.6,cc.x+4.3,1.3,cc.z,0,true);box('cancela-cabine-teto',red,1.9,.14,1.9,cc.x+4.3,2.52,cc.z)
-    box('cancela-pe',metal,.35,1.0,.35,cc.x-3.1,.65,cc.z,0,true)
-    for(let i=0;i<6;i++){const r=.4+i*.42;box('cancela-braco',i%2?stripeW:red,.12,.42,.12,cc.x-3.1+Math.cos(1.2)*r,1.15+Math.sin(1.2)*r,cc.z)}
-    box('cancela-placa-p',material('#1f5fa8',.6),.9,.9,.08,cc.x+4.3,3.2,cc.z+.82);box('cancela-placa-poste',metal,.08,.8,.08,cc.x+4.3,2.75,cc.z+.82)
+    if(state.extras.estac){
+      const cc=pista.cancela
+      box('cancela-cabine',white,1.6,2.3,1.6,cc.x+6,1.3,cc.z+6,0,true);box('cancela-cabine-teto',red,1.9,.14,1.9,cc.x+6,2.52,cc.z+6)
+      box('cancela-pe',metal,.35,1,.35,cc.x,.65,cc.z-5.4,0,true)
+      for(let i=0;i<6;i++){const r=.4+i*.42;box('cancela-braco',i%2?stripeW:red,.12,.42,.12,cc.x,1.15+Math.sin(1.2)*r,cc.z-5.4+Math.cos(1.2)*r)}
+      box('cancela-placa-p',material('#1f5fa8',.6),.9,.9,.08,cc.x+6,3.2,cc.z+6.82)
+    }
     // 🚧 portão de serviço da Kombi: dois pilares e a folha de grade corrida pro lado (aberto no dia de jogo)
     const ps=pista.portaoServico,hs=ang(30)
     const lat=(s:number)=>({x:ps.x+Math.sin(hs)*s,z:ps.z+Math.cos(hs)*s})
@@ -856,7 +859,18 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       for(const f of [-1.3,1.3])for(const sd of [-.86,.86]){const w=at(f,sd);box(id+'-roda',tyre,.24,.6,.6,w.x,fy+.3,w.z,h)}
     }
     for(const lot of transport.parkingPlants.filter(lot=>lot.stage<=transport.parking.stage)){
-      polygon(`estacionamento-${lot.id}`,lot.polygon,transport.parking.floor,state.extras.asfalto?asphalt:dirt)
+      // O terreno continua reservado inteiro; pavimentar apenas vagas e circulação
+      // evita grandes placas vazias. Não acrescenta capacidade nem compra.
+      polygon(`estacionamento-${lot.id}`,lot.polygon,state.extras.asfalto?-.025:transport.parking.floor,state.extras.asfalto?grass:dirt)
+      if(state.extras.asfalto){
+        const rows=new Map<number,typeof lot.slots>()
+        for(const slot of lot.slots){const row=rows.get(slot.center.z)??[];row.push(slot);rows.set(slot.center.z,row)}
+        for(const [z,slots] of rows){const xs=slots.map(s=>s.center.x);polygon('estacionamento-fileira',[{x:Math.min(...xs)-2,z:z-4.2},{x:Math.max(...xs)+2,z:z-4.2},{x:Math.max(...xs)+2,z:z+4.2},{x:Math.min(...xs)-2,z:z+4.2}],transport.parking.floor,asphalt)}
+        const spine=lot.polygon[0].x+29,minZ=Math.min(...lot.slots.map(s=>s.center.z)),maxZ=Math.max(...lot.slots.map(s=>s.center.z))
+        ribbon('estacionamento-corredor',[{x:spine,z:100},{x:spine,z:lot.stage<3?minZ-6.7:maxZ+6.7}],5.4,transport.parking.floor,asphalt,0)
+        for(const z of rows.keys())ribbon('estacionamento-acesso-fileira',[{x:lot.polygon[0].x+1,z:z+(lot.stage<3?6.7:-6.7)},{x:lot.polygon[1].x-1,z:z+(lot.stage<3?6.7:-6.7)}],5.4,transport.parking.floor,asphalt,0)
+      }
+
       for(const slot of lot.slots){
         const {center,heading,width,length}=slot
         if(Math.hypot(center.x-stopAt.x,center.z-stopAt.z)<1){
@@ -865,7 +879,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
           continue
         }
         const r=hash(center.x*.7,center.z*1.3)
-        if(r<.55)parkedCar('carro-parado',center.x,center.z,heading+(r<.27?Math.PI:0),carPaint[Math.floor(r*97)%carPaint.length])
+        if(slot.id!==transport.parkingPlants[0].slots[5].id&&r<.55)parkedCar('carro-parado',center.x,center.z,heading+(r<.27?Math.PI:0),carPaint[Math.floor(r*97)%carPaint.length])
         for(const side of [-1,1]){
           const p=localPoint(center.x,center.z,side*width/2,0,heading)
           box('linha-vaga',white,.07,.012,length,p.x,transport.parking.floor+.012,p.z,heading)
@@ -877,6 +891,10 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   }
 
   // Gardens follow the registered island footprints; none creates a shortcut
+  if(state.parking.stage>0&&typeof document!=='undefined')for(const lot of transport.parkingPlants.filter(l=>l.stage<=state.parking.stage)){
+    const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d')
+    if(g){g.fillStyle='#14271b';g.fillRect(0,0,256,64);g.fillStyle='#f4ecd6';g.font='700 40px Oswald,Arial';g.textAlign='center';g.textBaseline='middle';g.fillText(`SETOR ${'ABCD'[lot.stage-1]}`,128,34);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.add(t);const m=new THREE.MeshBasicMaterial({map:t});materials.add(m);const label=add(new THREE.PlaneGeometry(14,3.5),m);label.name='estacionamento-setor-placa';label.rotation.x=-Math.PI/2;label.position.set((lot.polygon[0].x+lot.polygon[1].x)/2,.20,lot.polygon[0].z+4);label.castShadow=false}
+  }
   // through a planted bed. Public roadside trees exist even in the bare stage.
   if(state.extras.asfalto){
     const fountain=PLANTA_COMPLEXO.footprints.fonte
@@ -909,7 +927,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     }
     const forecourt=path([[532,640],[598,691],[605,752],[929,741],[988,665],[1043,598]])
     // 🏢🛍️ 05/11: loja e agência agora moram aqui no sul — palmeira/cipreste do jardim não nasce dentro (nem colado) delas
-    const lotesDoClube=[PLANTA_COMPLEXO.lots.loja.footprint,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[])]
+    const lotesDoClube=[...(club?.museum?[LOTE_MUSEU_CLUBE.footprint]:[]),PLANTA_COMPLEXO.lots.loja.footprint,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[])]
     const noLoteDoClube=(q:PontoComplexo)=>lotesDoClube.some(points=>inside(q,points)||points.some((b,j)=>distanceToSegment(q,points[(j+points.length-1)%points.length],b)<1.6))
     for(let i=0;i<forecourt.length;i++){
       const p=forecourt[i]
@@ -1054,8 +1072,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // Select whole occupied blocks around the entire boundary, not floating house
   // clusters. Local streets connect the blocks and join the peripheral avenues.
   blocks.sort((a,b)=>Math.hypot(a.x,a.z-20)-Math.hypot(b.x,b.z-20))
-  const occupied=blocks.slice(0,118)
-  const botecos:BotecoBairro[]=[],pubBlocks=occupied.filter(p=>p.z>120).sort((a,b)=>Math.hypot(a.x,a.z-140)-Math.hypot(b.x,b.z-140)).slice(0,2)
+  const occupied=blocks.slice(0,116)
+  if(club?.residence)occupied.push({x:CASA_LUCA.x,z:CASA_LUCA.z},{x:QUADRA_CASA_LUCA_SUL.x,z:QUADRA_CASA_LUCA_SUL.z})
+  const botecos:BotecoBairro[]=[],pubBlocks=occupied.filter(p=>p.z>120&&!(p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z)&&!(p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z)).sort((a,b)=>Math.hypot(a.x,a.z-140)-Math.hypot(b.x,b.z-140)).slice(0,2)
   // 💙 05/11: o quarteirão da CASA LUCA (só no mapa do clube) fica sem as duas casas e sem a árvore: o prédio e o pátio
   // (presidencia-casa-luca-3d.ts) ocupam o quarteirão inteiro. Calçada do quarteirão, ruas e travessias continuam iguais.
   const quadraCasaLuca=club?.residence?occupied.find(p=>p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z&&!pubBlocks.includes(p)):undefined
@@ -1137,10 +1156,30 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     }
   }
 
+  // Bairro da casa: vizinhos reais, passeios, bancos e árvores fora do campus.
+  const personalBlocks:PontoComplexo[]=[]
+  if(club?.residence){
+    ribbon('garagem-acesso-rua',ACESSO_GARAGEM_USUARIO,5.5,.035,concrete,0)
+    for(const [i,p] of VIZINHOS_RESIDENCIA.entries()){
+      personalBlocks.push({...p})
+      box('bairro-residencial-jardim',grass,36,.1,34,p.x,-.05,p.z)
+      const home=residence(p.x,p.z,i%2,0)
+      casasBairro.push({x:p.x,z:p.z,w:home.w,d:home.d,h:home.h,andares:home.floors})
+      const curb=p.z<480?479.5:537.5
+      ribbon('bairro-residencial-porta',[{x:p.x,z:p.z+home.d/2+.4},{x:p.x,z:curb}],2.2,GROUND,paving,0)
+      const bench={x:p.x+14,z:p.z+19}
+      box('bairro-residencial-banco-piso',paving,3,.15,2,bench.x,.075,bench.z)
+      box('bairro-residencial-banco',wood,2,.12,.6,bench.x,.6,bench.z)
+      box('bairro-residencial-banco-encosto',wood,2,.6,.12,bench.x,.94,bench.z-.3)
+      for(const side of[-.75,.75])box('bairro-residencial-banco-pe',metal,.12,.5,.5,bench.x+side,.3,bench.z)
+      plant({x:p.x-13,z:p.z+15},4.5,false)
+    }
+  }
+
   // Infill the strips left between the two street grids with public squares.
   // These are city amenities: they never occupy a future club purchase, and
   // remain the same from the bare field to the finished stadium.
-  const parcels=[...occupied.map(p=>({...p,half:11.5})),...extensions.map(p=>({...p,half:25.85}))]
+  const parcels=[...personalBlocks.map(p=>({...p,half:18})),...occupied.map(p=>({...p,half:11.5})),...extensions.map(p=>({...p,half:25.85}))]
   const nearStreet=(p:PontoComplexo,margin=0)=>streetNetwork.some(road=>road.points.some((b,i)=>i>0&&distanceToSegment(p,road.points[i-1],b)<road.clearance+margin))
   const nearParcel=(p:PontoComplexo,margin=0)=>parcels.some(q=>Math.abs(p.x-q.x)<q.half+margin&&Math.abs(p.z-q.z)<q.half+margin)
   const parks:PontoComplexo[]=[]
@@ -1191,6 +1230,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       ...registeredLots.map((lot,i)=>({id:`lote-${i}`,polygon:lot.footprint})),
       ...parkingLots.map((polygon,i)=>({id:`estacionamento-${i}`,polygon})),
       {id:'arena',polygon:arena},
+      ...(club?.museum?[{id:'museu-clube',polygon:LOTE_MUSEU_CLUBE.footprint}]:[]),
       ...(club?.name?[{id:'agencia-clube',polygon:LOTE_AGENCIA_CLUBE.footprint}]:[]),
       ...(club?.residence?[{id:TERRENO_USUARIO.id,polygon:TERRENO_USUARIO.footprint}]:[]),
       ...(club?.arena?[{id:ARENA_ONLINE.id,polygon:ARENA_ONLINE.footprint}]:[]),
@@ -1199,7 +1239,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       ...parcels.map((p,i)=>({id:`quadra-${i}`,polygon:parcelPolygon(p)})),
       ...solids.filter(s=>s.base<.3&&s.top>.5).map(s=>({id:s.id,polygon:s.footprint})),
     ],
+    maxConnections:16,
     blockedRoutes:[
+      {id:'praca-torcedor',polygon:PRACA_TORCEDOR},
       ...Object.entries(PLANTA_COMPLEXO.routes).filter(([id])=>!['roadOut','roadBack','parking'].includes(id)).map(([id,route])=>({id,polygon:faixaTransporteComplexo(route.points,4)})),
       ...Object.entries(fanPaths).map(([id,points])=>({id:`torcida-${id}`,polygon:faixaTransporteComplexo(points,4.4)})),
       ...transport.pedestrianSurfaces.filter(surface=>surface.y<.5).map(surface=>({id:surface.id,polygon:surface.polygon})),
@@ -1207,7 +1249,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     ],
   })
   streetNetwork.splice(0,streetNetwork.length,...roadPlan.streets.map(road=>({...road,clearance:road.width/2+road.walk})))
-  const turnarounds=state.extras.asfalto?[{...AJUSTES_RUAS_COMPLEXO.turning,roadId:'rua-interna-oeste',destination:'hotel'}]:[]
+  const turnarounds=state.extras.asfalto?[{center:{x:-121,z:80},radius:6,walk:1.5,roadId:'rua-interna-oeste',destination:'hotel'}]:[]
   // A purchased parking lot is also a drivable surface. Its actual footprint
   // must cut street kerbs, otherwise the western terminal connects on paper
   // while a raised sidewalk still blocks the lateral entrance into the lot.
@@ -1274,7 +1316,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     {id:'sidewalk',polygon:faixaTransporteComplexo(PLANTA_COMPLEXO.routes.sidewalk.points,4.1)},
     ...['hotel','shop','food','beer','station'].filter(id=>state.extras[({hotel:'hotel',shop:'loja',food:'praca',beer:'chopp',station:'estacao'} as Record<string,string>)[id]])
       .map(id=>({id,polygon:faixaTransporteComplexo(PLANTA_COMPLEXO.routes[id].points,3.6)})),
-    ...pedestrianPlan.walks.map(walk=>({id:walk.id,polygon:walk.polygon})),
+    ...pedestrianPlan.walks.flatMap(walk=>walk.points.slice(1).map((b,i)=>({id:walk.id,polygon:faixaTransporteComplexo([walk.points[i],b],walk.width)}))),
     ...transport.pedestrianSurfaces.filter(surface=>Math.abs(surface.y-GROUND)<.001).map(surface=>({id:surface.id,polygon:surface.polygon})),
   ]
   const crossings=planejarTravessiasComplexo(streetNetwork,crossingWalks)
@@ -1477,7 +1519,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const sponsors=criarPatrocinadoresCidade(root,onReady)
   solids.push(...sponsors.solids);Object.assign(doors,sponsors.doors)
   const ownerHome=club?.residence?criarResidenciaUsuario(root,onReady):undefined;if(ownerHome){solids.push(...ownerHome.solids);root.userData.residence=ownerHome.root.userData.residence}
-  const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena);solids.push(...clubPlaces.solids)
+  const clubPlaces=criarLugaresClube(root,state,club?.name,!!club?.residence,!!club?.arena,club?.crest,onReady);solids.push(...clubPlaces.solids)
+  if(club?.museum){const b=LOTE_MUSEU_CLUBE.building;solids.push({id:'museu-clube',...b,base:0,top:8,footprint:[{x:b.minX,z:b.minZ},{x:b.maxX,z:b.minZ},{x:b.maxX,z:b.maxZ},{x:b.minX,z:b.maxZ}]})}
   root.userData.clubPlaces=clubPlaces.root.userData.clubPlaces
   root.userData.sponsors=sponsors.metadata
   root.userData.residentialDoors=deliveryHomes
@@ -1501,12 +1544,12 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // 🚗 05/11: a Vadico VELHA saiu do mapa (a loja nova é o prédio separado do lado do Shopping do Clube). Ela continua sendo
   // montada só pelos dados que a entrega de carro e as conferências leem; não aparece e não bloqueia ninguém.
   dealership.root.visible=false
-  solids.push(...shopping.solids);root.userData.shopping=shopping.root.userData.shopping
+  solids.push(...shopping.solids);root.userData.shopping=shopping.root.userData.shopping;root.userData.commercialFinishes=commercialFinishes.root.userData.commercialFinishes
   root.userData.dealership=dealership.metadata
   let disposed=false
   return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,casaLuca:!!quadraCasaLuca,casaLucaSul:!!quadraCasaLucaSul,bairro:{quadras:occupied.filter(p=>p!==quadraCasaLuca&&p!==quadraCasaLucaSul) as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
     botecos.forEach(pub=>pub.dispose())
-    if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();sponsors.dispose();dealership.dispose();shopping.dispose();scene.remove(root);root.clear()
+    if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();commercialFinishes.dispose();sponsors.dispose();dealership.dispose();shopping.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
   }}
 }

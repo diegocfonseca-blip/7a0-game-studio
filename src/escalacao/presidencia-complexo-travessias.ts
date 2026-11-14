@@ -25,7 +25,7 @@ const intersection=(a:PontoComplexo,b:PontoComplexo,c:PontoComplexo,d:PontoCompl
 export function planejarTravessiasComplexo(roads:readonly RuaComplexo[],walks:readonly Passeio[]){
  const crossings:TravessiaComplexo[]=[]
  for(const road of roads){
-  if(!road.id.startsWith('rua-interna-')&&!road.id.startsWith('ligacao-viaria-'))continue
+  if(!road.id.startsWith('rua-interna-')&&!road.id.startsWith('ligacao-viaria-')&&!road.id.startsWith('bairro-casa-luca-'))continue
   for(let i=1;i<road.points.length;i++){
    const a=road.points[i-1],b=road.points[i],length=Math.hypot(b.x-a.x,b.z-a.z)
    if(length<.01)continue
