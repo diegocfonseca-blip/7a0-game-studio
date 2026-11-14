@@ -25,7 +25,7 @@ export const PLANTAS_ESTACIONAMENTO_COMPLEXO=LOTES_ESTACIONAMENTO_COMPLEXO.map((
  if(index===0)slots.push(bay(180,35))
  for(let z=z0+8;z<polygon[2].z-4;z+=14)for(let x=x0+4;x<x0+55;x+=3.2){
   // Dois corredores para a entrada/saída real, inclusive na primeira etapa.
-  if(index===0&&(Math.abs(x-180)<5||Math.abs(x-198)<5||z<26))continue
+  if(Math.abs(x-(x0+29))<4||index===0&&(Math.abs(x-180)<5||Math.abs(x-198)<5||z<26))continue
   slots.push(bay(x,z))
  }
  // A contagem física continua igual à capacidade já comprada no save.

@@ -859,7 +859,18 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       for(const f of [-1.3,1.3])for(const sd of [-.86,.86]){const w=at(f,sd);box(id+'-roda',tyre,.24,.6,.6,w.x,fy+.3,w.z,h)}
     }
     for(const lot of transport.parkingPlants.filter(lot=>lot.stage<=transport.parking.stage)){
-      polygon(`estacionamento-${lot.id}`,lot.polygon,transport.parking.floor,state.extras.asfalto?asphalt:dirt)
+      // O terreno continua reservado inteiro; pavimentar apenas vagas e circulação
+      // evita grandes placas vazias. Não acrescenta capacidade nem compra.
+      polygon(`estacionamento-${lot.id}`,lot.polygon,state.extras.asfalto?-.025:transport.parking.floor,state.extras.asfalto?grass:dirt)
+      if(state.extras.asfalto){
+        const rows=new Map<number,typeof lot.slots>()
+        for(const slot of lot.slots){const row=rows.get(slot.center.z)??[];row.push(slot);rows.set(slot.center.z,row)}
+        for(const [z,slots] of rows){const xs=slots.map(s=>s.center.x);polygon('estacionamento-fileira',[{x:Math.min(...xs)-2,z:z-4.2},{x:Math.max(...xs)+2,z:z-4.2},{x:Math.max(...xs)+2,z:z+4.2},{x:Math.min(...xs)-2,z:z+4.2}],transport.parking.floor,asphalt)}
+        const spine=lot.polygon[0].x+29,minZ=Math.min(...lot.slots.map(s=>s.center.z)),maxZ=Math.max(...lot.slots.map(s=>s.center.z))
+        ribbon('estacionamento-corredor',[{x:spine,z:100},{x:spine,z:lot.stage<3?minZ-6.7:maxZ+6.7}],5.4,transport.parking.floor,asphalt,0)
+        for(const z of rows.keys())ribbon('estacionamento-acesso-fileira',[{x:lot.polygon[0].x+1,z:z+(lot.stage<3?6.7:-6.7)},{x:lot.polygon[1].x-1,z:z+(lot.stage<3?6.7:-6.7)}],5.4,transport.parking.floor,asphalt,0)
+      }
+
       for(const slot of lot.slots){
         const {center,heading,width,length}=slot
         if(Math.hypot(center.x-stopAt.x,center.z-stopAt.z)<1){
