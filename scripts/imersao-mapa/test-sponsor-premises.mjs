@@ -11,13 +11,13 @@ for(const art of Object.values(logos)){assert(existsSync(new URL(art.src)));logo
 assert(logoBytes<160000,'Reuse the existing small assets, without new heavy art')
 const parcels=Object.values(lots)
 for(const a of parcels)for(const b of parcels)if(a!==b)assert(Math.abs(a.x-b.x)>=(a.width+b.width)/2||Math.abs(a.z-b.z)>=(a.depth+b.depth)/2,'Parcels overlap')
-for(const p of parcels)assert(p.id==='gecg'?p.x+p.width/2<-350:p.z+p.depth/2<=-242,'Parcel is in the stadium approach/avenue')
-assert.equal(reserved.length,6)
-assert(Math.abs(lots.tidex.x-lots.oittolabs.x)<50,'Keep the offices together')
-assert(Math.hypot(lots.gecg.x-lots.tidex.x,lots.gecg.z-lots.tidex.z)>200,'The pitch remains behind the office towers')
-assert(Math.hypot(lots.dsouza.x-lots.gecg.x,lots.dsouza.z-lots.gecg.z)>150,'Warehouse and society pitch need separate blocks')
-// Public access stays outside the warehouse, office lots and society pitch.
-for(const id of['dsouza','tidex','oittolabs']){const p=lots[id];assert(Math.abs(road.points[0].x-p.x)>p.width/2+road.width/2+road.walk)}
+// Implantação aprovada em 14/11: parceiros misturados ao redor do estádio.
+for(const p of parcels)assert(Math.abs(p.x)-p.width/2>110||p.z+p.depth/2< -100||p.z-p.depth/2>212,'Sponsor parcel occupies stadium/gate access')
+assert(reserved.length>=parcels.length+3,'Road and plot reservations are required')
+assert(lots.tidex.z<0&&lots.oittolabs.z>0&&lots.dsouza.x>220,'North, south and lateral partners are represented')
+assert(lots.dsouza.frontWalkZ>=lots.dsouza.z+lots.dsouza.depth/2)
+assert(lots.gecg.x-lots.gecg.width/2>road.points[1].x+road.width/2+road.walk,'Society approach stays outside its plot')
+for(const id of['dsouza','tidex','oittolabs']){const p=lots[id];assert(Math.abs(road.points[1].x-p.x)>p.width/2+road.width/2+road.walk)}
 const scene=new T.Scene(),site=criarPatrocinadoresCidade(scene)
 assert.equal(site.metadata.brands.length,4);assert.equal(site.metadata.static,true)
 assert.deepEqual(site.metadata.field,{length:55,width:35,goalWidth:5,goalHeight:2,owner:'gecg',rental:true,independentOfOfficialMatch:true})
@@ -33,6 +33,10 @@ assert(!site.solids.some(s=>contains(s,{x:lots.gecg.x-13,z:lots.gecg.z+19.5})),'
 scene.updateMatrixWorld(true)
 const crest=new T.Vector3(lots.gecg.x+24,.26,lots.gecg.z+28),ray=new T.Raycaster(new T.Vector3(crest.x,100,crest.z),new T.Vector3(0,-1,0))
 assert.equal(ray.intersectObject(site.root,true)[0]?.object.material.name,'logo-oficial-gecg','Official aerial crest is absent or obstructed')
+for(const id of ['dsouza','tidex','oittolabs']){
+ const p=lots[id],ray=new T.Raycaster(new T.Vector3(p.x,100,p.z),new T.Vector3(0,-1,0))
+ assert.equal(ray.intersectObject(site.root,true)[0]?.object.material.name,'logo-oficial-'+id,'Roof/cornice covers the official sponsor logo: '+id)
+}
 const disposed={textures:0,geometries:0,materials:0}
 for(const [key,set]of Object.entries({textures,geometries,materials}))for(const resource of set)resource.addEventListener('dispose',()=>disposed[key]++)
 const metrics={...site.metadata,logoBytes}

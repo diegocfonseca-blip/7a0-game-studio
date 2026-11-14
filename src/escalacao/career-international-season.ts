@@ -46,6 +46,7 @@ export type InternationalCampaign = {
   recusados?: string[]
 }
 export type InternationalHistoryEntry = {
+  userClubId?: number
   season: number
   representedClub: string | null
   userTeam: string

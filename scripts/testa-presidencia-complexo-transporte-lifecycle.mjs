@@ -25,6 +25,7 @@ const vehiclePose = vehicle => ({ id: vehicle.id, rigId: vehicle.rigId, position
 try {
   const { criarTransporteComplexo } = await import('../src/escalacao/presidencia-complexo-transporte.ts')
   const { complexoDoEstadio } = await import('../src/escalacao/presidencia-complexo-model.ts')
+  const { gerarPlantaTransporte } = await import('../src/escalacao/presidencia-complexo-transporte-model.ts')
   const { publicoDoEstadio } = await import('../src/escalacao/presidencia-estadio-publico.ts')
   const { distribuirFluxoComplexo } = await import('../src/escalacao/presidencia-complexo-fluxo.ts')
   const { STADIUM_SECTORS, STADIUM_EXTRAS } = await import('../src/escalacao/estadiodata.ts')
@@ -38,15 +39,16 @@ try {
   assert.equal(idleFlow.transport.parkingPassengers, 1); assert.equal(playingFlow.transport.parkingPassengers, 0)
   const options = flow => ({ ...flow.transport, transit: true, source: 'career', homeColor: '#1b7a3d', awayColor: '#c2452f' })
   const scene = new THREE.Scene(), actors = criarTransporteComplexo(scene, lower, options(idleFlow))
-  actors.update(180)
+  const observation=actors.inspect().vehicles.find(v=>v.kind==='car').markers.exitClear+5
+  actors.update(observation)
   const before = actors.inspect(), passenger = before.passengers.find(p => p.transport === 'car'), car = before.vehicles.find(v => v.kind === 'car')
   assert(passenger && car); assert.notEqual(passenger.phase, 'riding', 'regressão começa com passageiro fora do carro')
-  close(distance(car.position, { x: 54, y: .035, z: 163 }), 0, 'carro estava parado na vaga aos180s')
+  close(distance(car.position, {...gerarPlantaTransporte(lower).parking.slot,y:.035}), 0, 'carro permanece na vaga enquanto o passageiro caminha')
   const callerOptions = options(playingFlow), optionsCopy = structuredClone(callerOptions)
   actors.configure(callerOptions)
   assert.deepEqual(callerOptions, optionsCopy, 'configure não muda dados do chamador')
   const configured = actors.inspect()
-  assert.equal(configured.seconds, 180)
+  assert.equal(configured.seconds, observation)
   assert.deepEqual(configured.vehicles.map(vehiclePose), before.vehicles.map(vehiclePose), 'demanda muda sem trocar UUID, posição, portas ou fase de veículos')
   assert.deepEqual(configured.passengers.map(p => ({ id: p.id, rigId: p.rigId, pose: p.pose })), before.passengers.map(p => ({ id: p.id, rigId: p.rigId, pose: p.pose })), 'não apaga passageiro que ainda está caminhando')
   const allocation = actors.allocation()
@@ -56,12 +58,12 @@ try {
   assert.equal(effectiveFlow.visits.home, 0, 'visita nova aguarda liberação da vaga ocupada pelo passageiro antigo')
   assert.equal(effectiveFlow.used.home, playing.home.outside)
   const pending = allocation.pending.find(change => change.vehicleId === car.id)
-  assert(pending && pending.at > 180, 'retirada é agendada na origem física futura')
+  assert(pending && pending.at > observation, 'retirada é agendada na origem física futura')
   actors.configure(callerOptions)
   assert.deepEqual(actors.allocation().pending, allocation.pending, 'mesmo pedido não adia a retirada a cada render')
-  const frozen = actors.inspect(); actors.update(180); assert.deepEqual(actors.inspect(), frozen, 'relógio repetido mantém quadro')
+  const frozen = actors.inspect(); actors.update(observation); assert.deepEqual(actors.inspect(), frozen, 'relógio repetido mantém quadro')
   let frames = 0
-  for (let seconds = 180; seconds < pending.at; seconds += .5) {
+  for (let seconds = observation; seconds < pending.at; seconds += .5) {
     actors.update(seconds)
     const frame = actors.inspect(), retained = frame.passengers.find(p => p.id === passenger.id)
     assert.equal(retained?.rigId, passenger.rigId, 'mesmo passageiro permanece até chegar à origem fechada')

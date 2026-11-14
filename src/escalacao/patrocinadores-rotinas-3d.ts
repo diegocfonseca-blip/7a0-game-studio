@@ -2,7 +2,7 @@ import * as T from 'three'
 import {createCivilian} from './cidade3d/civilians.mjs'
 import {residentVisibility} from './cidade3d/resident-visibility.mjs'
 import {activityRoute,customerJourney} from './cidade3d/activity-route.mjs'
-import {LOTES_PATROCINADORES_CIDADE as LOTS} from './presidencia-patrocinadores-planta'
+import {LOTES_PATROCINADORES_CIDADE as LOTS,ACESSO_GECG_CIDADE} from './presidencia-patrocinadores-planta'
 import {criarBibliotecaVeiculos} from './veiculos-modelos-3d'
 import {caminhoPelasRuas,arredondarCaminho,viagemVeiculo} from './veiculos-entrega-rota'
 import type {RuaComplexo} from './presidencia-complexo-ruas'
@@ -22,7 +22,7 @@ export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,
  const floor=.19,point=(p:{x:number;z:number})=>({...p,y:floor}),staff:ReturnType<typeof createCivilian>[]=[]
  const offices=(['tidex','oittolabs'] as const).flatMap((id,k)=>Array.from({length:options.mobile?1:2},(_,i)=>{
   const d=doors[id],p=LOTS[id],body=createCivilian(root,{id:id+'-funcionario-'+i,variant:i?'older-woman':'older-man',outfitColor:k?'#383c45':'#203447',occupation:'office',deferUntilVisible:true,onReady:options.onReady});staff.push(body)
-  const path=[point({x:p.x+(i?8:-8),z:-235}),point({x:p.x,z:-240}),point(d.approach),point(d.threshold),point(d.inside)]
+  const path=[point({x:p.x+(i?8:-8),z:p.frontWalkZ-3}),point({x:p.x,z:p.frontWalkZ-6}),point(d.approach),point(d.threshold),point(d.inside)]
   return{id,body,journey:customerJourney(path,{speed:1.25,wait:3+k*9+i*18,stay:42+i*23})}
  }))
  // Local society practice reuses the game's authored football clips and model.
@@ -30,7 +30,7 @@ export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,
  let football:any[]=[],loading=false,disposed=false,footballError='',seconds=0,trainingPhase='waiting',framesLoaded=0,truckPhase='waiting'
  const sportsCount=options.mobile?2:4,positions=Array.from({length:sportsCount},(_,i)=>({x:LOTS.gecg.x+(i%2?9:-9),z:LOTS.gecg.z+(i<2?-5:5)})),g=LOTS.gecg
  const ballMaterial=new T.MeshStandardMaterial({color:'#ecebdc',roughness:.7}),ballGeometry=new T.IcosahedronGeometry(.11,2),ball=new T.Mesh(ballGeometry,ballMaterial);ball.visible=false;ball.castShadow=true;root.add(ball)
- const arrival=positions.map((p,i)=>activityRoute([point({x:-473-i*.5,z:g.z+40}),point({x:g.x-13,z:g.z+40}),point({x:g.x-13,z:g.z+19.5}),point({x:g.x-13,z:g.z+15}),point(p)],1.45))
+ const arrival=positions.map((p,i)=>activityRoute([point({x:ACESSO_GECG_CIDADE.points[1].x+2-i*.5,z:g.z+40}),point({x:g.x-13,z:g.z+40}),point({x:g.x-13,z:g.z+19.5}),point({x:g.x-13,z:g.z+15}),point(p)],1.45))
  async function loadFootball(){if(loading||football.length||footballError)return;loading=true;try{
   const[{carregaJogadorNovo,criarJogadorNovo},{completa}]=await Promise.all([import('./futebol3d/jogador-novo.mjs'),import('./futebol3d/uniformes.mjs')]);const asset:any=await carregaJogadorNovo();if(disposed)return;
   const clips=new Map([...asset.clips].map(([name,source]:any)=>{const clip=source.clone();for(const t of clip.tracks)if(t.name.endsWith('.position')&&/Hips|Armature|Root/.test(t.name))for(let k=0;k<t.values.length;k+=3){t.values[k]=t.values[0];t.values[k+2]=t.values[2]}return[name,clip]}));const safe={...asset,clips};
@@ -61,7 +61,7 @@ export function criarRotinasPatrocinadores(scene:T.Scene,environment:T.Object3D,
  const ground=(p:{x:number;z:number})=>{ray.set(new T.Vector3(p.x,2.4,p.z),new T.Vector3(0,-1,0));ray.far=4;const hit=ray.intersectObjects(surfaces,false).find(h=>h.face&&h.face.normal.y>.8&&h.point.y<.5);return{...p,y:hit?.point.y??0}}
  const clear=(p:{x:number;z:number}[])=>!p.some((b,i)=>i>0&&!segmentoLivre({x:p[i-1].x,y:p[i-1].z},{x:b.x,y:b.z},obstacles,1.12))
  // Route searches run one candidate per task, outside the render frame.
- function prepareRoutes(){if(routes)return;routes=[];routePending=true;const start={x:loadingBay.x,z:-231.34},candidates=[...homes].sort((a,b)=>Math.hypot(a.curb.x-start.x,a.curb.z-start.z)-Math.hypot(b.curb.x-start.x,b.curb.z-start.z));let index=0;
+ function prepareRoutes(){if(routes)return;routes=[];routePending=true;const start={x:loadingBay.x,z:LOTS.dsouza.frontWalkZ},candidates=[...homes].sort((a,b)=>Math.hypot(a.curb.x-start.x,a.curb.z-start.z)-Math.hypot(b.curb.x-start.x,b.curb.z-start.z));let index=0;
   const step=()=>{routeTimer=undefined;if(disposed)return;
    const h=candidates[index++];if(!h||routes!.length>=3){routePending=false;if(!routes!.length)routeError='Nenhuma casa com acesso e manobra de retorno livres foi encontrada.';options.onReady();return}
    const dx=h.curb.x-h.door.x,dz=h.curb.z-h.door.z,n=Math.hypot(dx,dz),stop={x:h.door.x+dx/n*16,z:h.door.z+dz/n*16},path=n>0?caminhoPelasRuas(roads,start,stop,18):null;

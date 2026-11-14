@@ -1,3 +1,5 @@
+import {investirMuseu} from './museu-clube'
+import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, lazy, Suspense } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
@@ -5769,6 +5771,8 @@ type Action =
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
   | { type: 'PRESIDENCY_SAVE_BASE'; mgrId:number; value:PresidenteBaseSave }
   | { type: 'PRESIDENCY_TRADE'; mgrId:number; quote:PresidenciaOrcamento; confirmed:boolean }
+  | { type: 'MUSEU_INVEST'; mgrId:number; expectedStage:number }
+  | { type: 'PRESIDENCY_FURNITURE_HOME'; mgrId:number; ids:import('./presidencia-economia').PresidenciaItemId[] }
   | { type: 'PRESIDENCY_DISPLAY'; mgrId:number; display:DuplaGaragem }
   | { type: 'PRESIDENCY_ROOF'; mgrId:number; closed:boolean }
   | { type: 'STADIUM_PARKING_INVEST'; mgrId:number; expectedStage:EtapaEstacionamento }
@@ -7785,7 +7789,7 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
  *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
-export const ZERA_NA_CARREIRA_NOVA = ['careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
@@ -8019,7 +8023,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🗜️ a lista dos jogadores da máquina vira SOMA no placar acumulado (mesmos números, sem repetir por temporada)
       s.careerIntlBotTotals = somaBotsIntl(s.careerIntlBotTotals, expected.botPlayerStats)
       const { botPlayerStats: _somado, ...entrada } = expected
-      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), entrada]
+      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), {...entrada, userClubId:s.managers[s.youIdx]?.id}]
       // 🏢➡️⚽ SAF nova: a taça internacional entra na coleção do 2º clube se era ELE no comando
       if (saf2On(s) && s.managers[s.youIdx]?.mine) {
         const seg = s.managers[s.youIdx]
@@ -8130,6 +8134,20 @@ function reducerBase(state: EscState, action: Action): EscState {
       if(!result.ok)return state
       for(const entry of lancamentosPresidencia(action.quote))logFin(result.value,'presidency',entry.label,entry.amount,undefined,action.mgrId)
       return result.value
+    }
+    case 'MUSEU_INVEST': {
+      if(!presidentWritesEnabled())return state
+      const purchase=investirMuseu(s,action.mgrId,action.expectedStage)
+      if(!purchase)return state
+      s.careerCoins={...s.careerCoins,[action.mgrId]:purchase.coins}
+      s.careerMuseums={...s.careerMuseums,[action.mgrId]:purchase.museum}
+      logFin(s,'stadium',`Museu do Clube · etapa ${purchase.museum.etapas}/4`,-20,undefined,action.mgrId)
+      return s
+    }
+    case 'PRESIDENCY_FURNITURE_HOME': {
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      const result=organizarMoveisNaCasa(s,action.mgrId,action.ids)
+      return result.ok?result.value:state
     }
     case 'PRESIDENCY_DISPLAY': {
       if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
@@ -15840,7 +15858,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '') + `|museu:${JSON.stringify(state.careerMuseums??null)}`
     const presidencySig = sig + assinaturaPresidencia(state)
     if (presidencySig === soloSigRef.current) return
     soloSigRef.current = presidencySig
@@ -16768,7 +16786,7 @@ export function sanitize(state: EscState): EscState {
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
   // 🔨 PREGÃO ABERTO (17/10): mesma regra — os tetos dos robôs (das duas mesas) ficam só no aparelho do dono
   const pa = state.pa ? { ...state.pa, tetos: {}, ...(state.pa.m2 ? { m2: { ...state.pa.m2, tetos: {} } } : {}) } : state.pa
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
+  return { ...state, careerMuseums:undefined, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
 // 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
 // Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.

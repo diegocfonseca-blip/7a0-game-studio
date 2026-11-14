@@ -9,7 +9,7 @@ import type {SolidoEntorno} from './presidencia-complexo-entorno'
  * preto, faixa dourada, marquise com toldo na entrada, letreiro AGÊNCIA + logo no topo e dois carros executivos no
  * pátio. Leve pro celular: as peças fixas viram 1 malha por material (6 desenhos) e os carros vêm da biblioteca
  * de veículos que o mapa já usa (geometria em cache). Só endereço visual: nada de compra, save ou dinheiro. */
-export function criarAgenciaClube(parent:T.Object3D,clubName:string){
+export function criarAgenciaClube(parent:T.Object3D,clubName:string,crest?:string,onReady?:()=>void){
  const root=new T.Group();root.name='agencia-clube';parent.add(root)
  const en=getLang()==='en'
  const W=A.width,D=A.depth,H=A.height,G1=4.0,FLOOR=3.2,front=D/2
@@ -43,7 +43,7 @@ export function criarAgenciaClube(parent:T.Object3D,clubName:string){
  for(const s of[-1,1])for(const y of[2.2,G1+1.75,G1+FLOOR+1.75])box(glass,.08,1.45,D-2.6,s*(W/2+.04),y,-.4)
  for(const s of[-1,1]){box(ink,1.3,.6,1.3,s*4.6,.66,front+1.1);const bush=new T.SphereGeometry(.62,8,6);bush.scale(1,.7,1);put(leaf,bush,s*4.6,1.25,front+1.1)}
  // pátio da frente até a calçada: piso, faixas das duas vagas e o corredor da porta
- const yard=A.building.minZ-A.footprint[0].z
+ const yard=A.heading===0?Math.max(...A.footprint.map(p=>p.z))-A.building.maxZ:A.building.minZ-Math.min(...A.footprint.map(p=>p.z))
  box(paving,W+2.7,.06,yard,-.15,.19,front+yard/2)
  for(const x of[-5.8,-1.9,1.9,5.8])box(cream,.1,.02,4.6,x,.23,front+3.3)
 
@@ -73,8 +73,8 @@ export function criarAgenciaClube(parent:T.Object3D,clubName:string){
  const top=plane(canvasTexture(W-1.6,2.6,(g,cw,ch)=>{
   g.fillStyle='#1d2328';g.fillRect(0,0,cw,ch);g.fillStyle='#ffc400';g.fillRect(0,ch-10,cw,10)
   logo(g,ch*.52,ch*.48,ch*.42)
-  g.textBaseline='middle';g.textAlign='left';g.fillStyle='#ffc400';g.font=`900 ${Math.round(ch*.52)}px Oswald,Arial Narrow,Arial,sans-serif`;g.fillText(word,ch*1.08,ch*.38,cw-ch*1.2)
-  g.fillStyle='#f4ecd6';g.font=`800 ${Math.round(ch*.22)}px Oswald,Arial Narrow,Arial,sans-serif`;g.fillText(clubName.toUpperCase(),ch*1.1,ch*.78,cw-ch*1.25)
+  g.textBaseline='middle';g.textAlign='center';g.fillStyle='#ffc400';g.font=`700 ${Math.round(ch*.62)}px Oswald,Arial,sans-serif`;g.fillText(word,(cw+ch)/2,ch*.36,cw-ch*1.2)
+  g.fillStyle='#f4ecd6';g.font=`700 ${Math.round(ch*.30)}px Oswald,Arial,sans-serif`;g.fillText(clubName.toUpperCase(),(cw+ch)/2,ch*.82,cw-ch*1.25)
  }),W-1.6,2.6)
  top.position.set(0,H+1.85,front-.54)
  // faixa da marquise
@@ -86,23 +86,29 @@ export function criarAgenciaClube(parent:T.Object3D,clubName:string){
  const roofMap=canvasTexture(W-1,D-1.4,(g,cw,ch)=>{
   g.fillStyle='#f4ecd6';g.fillRect(0,0,cw,ch);g.strokeStyle='#0c0c0c';g.lineWidth=14;g.strokeRect(7,7,cw-14,ch-14)
   // só o logo (lê de qualquer lado): o nome fica no letreiro da fachada, que nunca aparece de cabeça pra baixo
-  logo(g,cw/2,ch/2,Math.min(cw,ch)*.36)
+  logo(g,cw/2,ch*.34,Math.min(cw,ch)*.23);g.fillStyle='#0c0c0c';g.textAlign='center';g.textBaseline='middle';g.font=`700 ${Math.round(ch*.16)}px Oswald,Arial,sans-serif`;g.fillText(word,cw/2,ch*.76,cw*.86)
  })
  const roofMat=new T.MeshBasicMaterial({map:roofMap,toneMapped:false});materials.push(roofMat)
  const roofGeo=new T.PlaneGeometry(W-1,D-1.4);geometries.push(roofGeo)
  const roof=new T.Mesh(roofGeo,roofMat);roof.rotation.x=-Math.PI/2;roof.position.set(A.x,H+.52,A.z);roof.name='agencia-telhado';parent.add(roof)
 
+ // The only badge used here comes from the caller's existing owned identity.
+ let disposed=false
+ if(crest){
+  const map=new T.TextureLoader().load(crest,tex=>{if(disposed){tex.dispose();return}tex.colorSpace=T.SRGBColorSpace;onReady?.()},undefined,()=>{})
+  textures.push(map);const material=new T.MeshBasicMaterial({map,transparent:true,toneMapped:false,depthWrite:false});materials.push(material)
+  const geo=new T.PlaneGeometry(4.2,4.2);geometries.push(geo);const badge=new T.Mesh(geo,material);badge.position.set(0,H-2,front+.22);root.add(badge)
+ }
  // carros executivos no pátio, de bico pra fachada
  const library=criarBibliotecaVeiculos(),cars:{root:T.Object3D}[]=[],solids:SolidoEntorno[]=[]
  ;(['escalade','civic'] as const).forEach((id,i)=>{
   const v=library.create(id);if(!v)return
-  const x=A.door.x+(i?4:-4),z=A.building.minZ-.7-v.profile.length/2
-  v.root.position.set(x,.2,z);v.root.rotation.y=0;v.root.name='agencia-carro-'+id;parent.add(v.root);cars.push(v)
+  const x=A.door.x+(i?4:-4),z=A.door.z+.7+v.profile.length/2
+  v.root.position.set(x,.2,z);v.root.rotation.y=Math.PI;v.root.name='agencia-carro-'+id;parent.add(v.root);cars.push(v)
   const hw=v.profile.width/2+.05,hl=v.profile.length/2+.05
   solids.push({id:'agencia-clube-carro-'+i,minX:x-hw,maxX:x+hw,minZ:z-hl,maxZ:z+hl,base:.2,top:.2+v.profile.height,footprint:[{x:x-hw,z:z-hl},{x:x+hw,z:z-hl},{x:x+hw,z:z+hl},{x:x-hw,z:z+hl}]})
  })
  const b=A.building
  solids.unshift({id:A.id,minX:b.minX,maxX:b.maxX,minZ:b.minZ,maxZ:b.maxZ,base:.2,top:H+.5,footprint:[{x:b.minX,z:b.minZ},{x:b.maxX,z:b.minZ},{x:b.maxX,z:b.maxZ},{x:b.minX,z:b.maxZ}]})
- let disposed=false
  return{root,solids,dispose(){if(disposed)return;disposed=true;root.removeFromParent();roof.removeFromParent();cars.forEach(c=>c.root.removeFromParent());library.dispose();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());root.clear()}}
 }

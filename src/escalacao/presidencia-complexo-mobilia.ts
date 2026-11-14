@@ -199,7 +199,7 @@ export function criarMobiliaComplexo(scene: THREE.Scene, state: EstadoComplexo, 
   function update(next?: PresidenciaCarteira | null) {
     if (disposed) return false
     walletStatus = next == null ? 'missing' : carteiraPresidenciaValida(next) ? 'valid' : 'invalid'
-    ownedFurniture = walletStatus === 'valid' ? next!.owned.map(b => b.id).filter(isFurniture).sort() : []
+    ownedFurniture = walletStatus === 'valid' ? next!.owned.map(b => b.id).filter(id=>!next!.homeFurniture?.includes(id)).filter(isFurniture).sort() : []
     const ids = available ? ownedFurniture : [], key = JSON.stringify(ids)
     if (signature === key) return false
     clear(); ids.forEach(furniture); signature = key; rebuilds++; return true

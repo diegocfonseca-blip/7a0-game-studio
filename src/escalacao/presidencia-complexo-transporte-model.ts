@@ -1,4 +1,5 @@
-import {PLANTA_COMPLEXO, caminhosTorcidaComplexo, deslocarCaminhoComplexo, mapaParaMundo, type EstadoComplexo, type PontoComplexo} from './presidencia-complexo-model'
+import {ESTACIONAMENTO_LOTES,ESTACIONAMENTO_VAGAS_POR_LOTE} from './presidencia-estacionamento'
+import {PLANTA_COMPLEXO, caminhosTorcidaComplexo, deslocarCaminhoComplexo, type EstadoComplexo, type PontoComplexo} from './presidencia-complexo-model'
 
 export type PontoTransporteComplexo = PontoComplexo & {y:number}
 export type SuperficieTransporteComplexo = {id:string;polygon:PontoComplexo[];y:number;kind:'pavement'|'road'|'platform'|'stair';base?:number}
@@ -14,38 +15,24 @@ export type EscadaEstacaoComplexo={count:number;rise:number;tread:number;width:n
 export type AcessoEstacaoComplexo={id:'oeste'|'leste';points:PontoTransporteComplexo[];surfaces:SuperficieTransporteComplexo[];bridge:{points:PontoTransporteComplexo[];width:number;floor:number};stair:EscadaEstacaoComplexo;walk:PontoTransporteComplexo[];platformX:number}
 const GROUND=.16
 const point=(p:PontoComplexo,y=GROUND):PontoTransporteComplexo=>({...p,y})
-const mapped=(points:number[][])=>points.map(([x,y])=>mapaParaMundo({x,y}))
-export const LOTES_ESTACIONAMENTO_COMPLEXO=[
-  mapped([[331,683],[491,721],[564,826],[446,780]]),mapped([[930,695],[1088,667],[1156,779],[956,837]]),
-  mapped([[1253,494],[1394,524],[1350,660],[1212,652]]),mapped([[312,189],[438,170],[412,282],[205,344]]),
-]
+const ret=(x0:number,x1:number,z0:number,z1:number):PontoComplexo[]=>[{x:x0,z:z0},{x:x1,z:z0},{x:x1,z:z1},{x:x0,z:z1}]
+/** Quatro etapas pagas de sempre, agora setores contíguos do mesmo estacionamento. */
+export const LOTES_ESTACIONAMENTO_COMPLEXO=[ret(160,218,5,91),ret(222,280,5,91),ret(160,218,109,185),ret(222,280,109,185)]
 export type VagaEstacionamentoComplexo={id:string;center:PontoComplexo;heading:number;width:number;length:number;polygon:PontoComplexo[]}
-const insideParking=(p:PontoComplexo,polygon:readonly PontoComplexo[])=>{let result=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){const a=polygon[i],b=polygon[j];if((a.z>p.z)!==(b.z>p.z)&&p.x<(b.x-a.x)*(p.z-a.z)/(b.z-a.z)+a.x)result=!result}return result}
-const segmentDistance=(p:PontoComplexo,a:PontoComplexo,b:PontoComplexo)=>{const dx=b.x-a.x,dz=b.z-a.z,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz||1)));return Math.hypot(p.x-a.x-dx*t,p.z-a.z-dz*t)}
-const parkingAccesses=[
-  [{x:38.39,z:208.46057},{x:38.38621511294916,z:203.56924931856256},{x:36.3,z:198.86},{x:34.91,z:184.85},{x:39,z:177},{x:48,z:177}],
-  [{x:-84.17232591935513,z:179.3188600497851},{x:-78,z:173},{x:-72,z:165}],
-  [{x:153.11222213030794,z:160.31492395331176},{x:149,z:150},{x:143,z:131}],
-  [{x:-240.84,z:-153.15},{x:-202,z:-146},{x:-182,z:-134},{x:-151,z:-111}],
-]
-/** Purchase order and parking bays are stable across all visual stages. */
-export const PLANTAS_ESTACIONAMENTO_COMPLEXO=([1,0,2,3] as const).map((originalIndex,index)=>{
-  const polygon=LOTES_ESTACIONAMENTO_COMPLEXO[originalIndex],a=polygon[0],b=polygon[1]
-  const yaw=-Math.atan2(b.z-a.z,b.x-a.x),cos=Math.cos(yaw),sin=Math.sin(yaw)
-  const local=polygon.map(p=>({x:(p.x-a.x)*cos-(p.z-a.z)*sin,z:(p.x-a.x)*sin+(p.z-a.z)*cos}))
-  const world=(x:number,z:number)=>({x:a.x+x*cos+z*sin,z:a.z-x*sin+z*cos})
-  const maxX=Math.max(...local.map(p=>p.x)),maxZ=Math.max(...local.map(p=>p.z)),slots:VagaEstacionamentoComplexo[]=[]
-  const reserve=[parkingAccesses[index],...(index===0?[[{x:54,z:154},{x:67,z:151},{x:74,z:161},{x:77,z:176},{x:61,z:184},{x:42,z:191},{x:38.39,z:203.57}],[{x:48,z:177},{x:54,z:171},{x:54,z:163}],[{x:53.05,z:163},{x:49,z:162},{x:35,z:163}]]:[])]
-  const bay=(center:PontoComplexo,heading:number):VagaEstacionamentoComplexo=>({id:`vaga-${index}-${slots.length}`,center,heading,width:2.9,length:5.9,polygon:[[-1.45,-2.95],[1.45,-2.95],[1.45,2.95],[-1.45,2.95]].map(([x,z])=>({x:center.x+x*Math.cos(heading)+z*Math.sin(heading),z:center.z-x*Math.sin(heading)+z*Math.cos(heading)}))})
-  if(index===0)slots.push(bay({x:54,z:163},Math.PI))
-  for(let z=5;z<maxZ-3;z+=12)for(let x=2;x<maxX-1.5;x+=3.1){
-    const center=world(x,z),candidate=bay(center,yaw)
-    if(!candidate.polygon.every(p=>insideParking(p,polygon)))continue
-    if(reserve.some(route=>route.some((b,i)=>i>0&&candidate.polygon.some(p=>segmentDistance(p,route[i-1],b)<2.8))))continue
-    if(slots.some(slot=>Math.hypot(slot.center.x-center.x,slot.center.z-center.z)<4))continue
-    slots.push(candidate)
-  }
-  return{id:(['sudeste','sudoeste','leste','noroeste'] as const)[index],stage:index+1,originalIndex,polygon,access:parkingAccesses[index],slots}
+export const PLANTAS_ESTACIONAMENTO_COMPLEXO=LOTES_ESTACIONAMENTO_COMPLEXO.map((polygon,index)=>{
+ const x0=polygon[0].x,z0=polygon[0].z,slots:VagaEstacionamentoComplexo[]=[]
+ const bay=(x:number,z:number):VagaEstacionamentoComplexo=>({id:`vaga-${index}-${slots.length}`,center:{x,z},heading:Math.PI,width:2.9,length:5.9,polygon:ret(x-1.45,x+1.45,z-2.95,z+2.95)})
+ if(index===0)slots.push(bay(180,35))
+ for(let z=z0+8;z<polygon[2].z-4;z+=14)for(let x=x0+4;x<x0+55;x+=3.2){
+  // Dois corredores para a entrada/saída real, inclusive na primeira etapa.
+  if(Math.abs(x-(x0+29))<4||index===0&&(Math.abs(x-180)<5||Math.abs(x-198)<5||z<26))continue
+  slots.push(bay(x,z))
+ }
+ // A contagem física continua igual à capacidade já comprada no save.
+ const capacity=ESTACIONAMENTO_VAGAS_POR_LOTE[ESTACIONAMENTO_LOTES[index]]
+ slots.splice(capacity)
+ return{id:ESTACIONAMENTO_LOTES[index],stage:index+1,originalIndex:index,polygon,
+  access:index<2?[{x:330,z:100},{x:280,z:100},{x:x0+29,z:100},{x:x0+29,z:85}]:[{x:330,z:100},{x:280,z:100},{x:x0+29,z:100},{x:x0+29,z:115}],slots}
 })
 export const faixaTransporteComplexo=(points:readonly PontoComplexo[],width:number)=>[
   ...deslocarCaminhoComplexo(points,width/2),...deslocarCaminhoComplexo(points,-width/2).reverse(),
@@ -81,14 +68,12 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
   const ribbon=(id:string,points:readonly PontoComplexo[],width:number,y:number,kind:SuperficieTransporteComplexo['kind'])=>addSurface({id,polygon:faixaTransporteComplexo(points,width),y,kind})
   const fanPaths=caminhosTorcidaComplexo(state)
   const homeLane=deslocarCaminhoComplexo(fanPaths.home,3.6)
-  const f=PLANTA_COMPLEXO.lots.estacao.footprint
-  const a={x:(f[0].x+f[3].x)/2,z:(f[0].z+f[3].z)/2},b={x:(f[1].x+f[2].x)/2,z:(f[1].z+f[2].z)/2}
-  const dx=b.x-a.x,dz=b.z-a.z,length=Math.hypot(dx,dz),yaw=-Math.atan2(dz,dx)
-  const center={x:(a.x+b.x)/2,z:(a.z+b.z)/2}
+  const dx=168,dz=0,length=168,yaw=0
+  const center={x:0,z:-155}
   const stationPoint=(x:number,z:number,y=8.38):PontoTransporteComplexo=>({x:center.x+x*Math.cos(yaw)+z*Math.sin(yaw),z:center.z-x*Math.sin(yaw)+z*Math.cos(yaw),y})
   const rectangle=(id:string,x0:number,x1:number,z0:number,z1:number,y:number,kind:SuperficieTransporteComplexo['kind'],base?:number)=>addSurface({id,polygon:[[x0,z0],[x1,z0],[x1,z1],[x0,z1]].map(([x,z])=>stationPoint(x,z)),y,kind,...(base===undefined?{}:{base})})
   const firstStair:EscadaEstacaoComplexo={count:36,rise:(8.38-GROUND)/36,tread:.5,width:3.6,landing:1.8,points:[],surfaces:[]}
-  const station={enabled:!!state.extras.estacao,center,length,yaw,heading:Math.atan2(dx,dz),floor:8.38,railY:7.9,railExtent:1600,railWidth:7.6,avenueWidth:18,avenue:[...mapped([[-120,72],[420,78],[815,103]]),stationPoint(-95,40,0),stationPoint(100,40,0),...mapped([[1640,331]])],point:stationPoint,stair:firstStair,accesses:[] as AcessoEstacaoComplexo[],homeWalk:[] as PontoTransporteComplexo[]}
+  const station={enabled:!!state.extras.estacao,center,length,yaw,heading:Math.atan2(dx,dz),floor:8.38,railY:7.9,railExtent:1600,railWidth:7.6,avenueWidth:18,avenue:[{x:-650,z:-190},{x:650,z:-190}],point:stationPoint,stair:firstStair,accesses:[] as AcessoEstacaoComplexo[],homeWalk:[] as PontoTransporteComplexo[]}
   if(station.enabled){
     for(const side of [-1,1])rectangle(`estacao-plataforma-${side}`,-length/2,length/2,side<0?-9.65:3.10,side<0?-3.10:9.65,station.floor,'platform',7.72)
     const deck=(id:string,a:PontoTransporteComplexo,b:PontoTransporteComplexo,width:number,y:number,kind:SuperficieTransporteComplexo['kind']='platform',base=y-.35)=>{
@@ -99,8 +84,8 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
     // a avenida; a oeste vence a faixa externa antes da praça junto à arena.
     // Nenhuma escada desemboca na pista nem obriga o passageiro a atravessá-la.
     for(const spec of [
-      {id:'oeste' as const,x:-60,top:{x:62,z:-105},direction:{x:0,z:1}},
-      {id:'leste' as const,x:50,top:{x:142,z:-82},direction:{x:-16/Math.hypot(16,19),z:19/Math.hypot(16,19)}},
+      {id:'oeste' as const,x:-60,top:{x:-120,z:-113},direction:{x:0,z:1}},
+      {id:'leste' as const,x:60,top:{x:120,z:-113},direction:{x:0,z:1}},
     ]){
       const stair:EscadaEstacaoComplexo=spec.id==='oeste'?firstStair:{...firstStair,points:[],surfaces:[]}
       const bridgePoints=[stationPoint(spec.x,8.6),point(spec.top,station.floor)]
@@ -128,8 +113,8 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
         }
       }
       const foot=stair.points.at(-1)!,exit=axis(longitudinal+2,GROUND)
-      const walk=[foot,exit,...(spec.id==='oeste'?[{x:83,z:-78},{x:102,z:-68},{x:121,z:-63},{x:151,z:-61}]:[{x:151,z:-61}]).map(p=>point(p)),
-        ...[{x:158,z:-61},{x:158,z:-13},{x:123.5,z:-9},{x:123.5,z:3.5},{x:105,z:3.5},{x:98,z:3.5}].map(p=>point(p))]
+      const walk=[foot,exit,...(spec.id==='oeste'?[{x:-120,z:-85},{x:-120,z:-100},{x:120,z:-100}]:[{x:120,z:-85}]).map(p=>point(p)),
+        ...[{x:120,z:-15},{x:123.5,z:-9},{x:123.5,z:3.5},{x:105,z:3.5},{x:98,z:3.5}].map(p=>point(p))]
       accessSurfaces.push(ribbon(`metro-passeio-estadio-${spec.id}`,walk,3.6,GROUND,'pavement'))
       station.accesses.push({id:spec.id,platformX:spec.x,points:[...bridgePoints,...stair.points.slice(1)],surfaces:accessSurfaces,bridge:{points:bridgePoints,width:4.2,floor:station.floor},stair,walk})
     }
@@ -137,8 +122,7 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
     // da arena até o portão frontal. O passeio existe independentemente do
     // lado atendido pelo único trem; trocar a demanda não reconstrói o bairro.
     const west=station.accesses[0]
-    station.homeWalk=[...west.walk.slice(0,2),...[{x:52,z:-81.7},{x:-94,z:-81.7},{x:-102,z:-63},{x:-110,z:-30},{x:-110,z:40},
-      {x:-80,z:65},{x:-55,z:80},{x:-55,z:115},{x:-4.55,z:115},{x:-4.55,z:76}].map(p=>point(p))]
+    station.homeWalk=[...west.walk.slice(0,2),...[{x:-120,z:-85},{x:-120,z:65},{x:-90,z:90},{x:-90,z:115},{x:-4.55,z:115},{x:-4.55,z:76}].map(p=>point(p))]
     ribbon('metro-passeio-mandantes',[...station.homeWalk,point({x:-4.55,z:75.4})],2.4,GROUND,'pavement')
     const passengerPath=(access:AcessoEstacaoComplexo,walk=access.walk)=>[stationPoint(0,2.5),stationPoint(0,3.04),stationPoint(0,3.65),stationPoint(0,6.6),stationPoint(access.platformX,6.6),...access.points,...walk.slice(1)]
     // Regional track continues outside the visible map in both directions.
@@ -172,7 +156,7 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
   const meioFio=(lado:number,x0:number,x1:number)=>{const n=Math.max(1,Math.round((x1-x0)/4));return Array.from({length:n+1},(_,i)=>naPista(x0+(x1-x0)*i/n,lado))}
   ribbon('terminal-onibus-calcada-oeste',meioFio(-PISTA_LARG/2-1.3,PISTA_X0,27),2.6,GROUND,'pavement')
   // acesso de serviço asfaltado: do portão (x≈30) até o pátio — por ele entram a Kombi dos ambulantes e o ônibus dos times
-  ribbon('terminal-onibus-servico',[naPista(30,-PISTA_LARG/2+.2),{x:30,z:150}],3.8,0,'road')
+  ribbon('terminal-onibus-servico',[naPista(30,-PISTA_LARG/2+.2),{x:30,z:325}],3.8,0,'road')
   ribbon('terminal-onibus-calcada-leste',meioFio(-PISTA_LARG/2-1.3,48.5,PISTA_X1),2.6,GROUND,'pavement')
   // Vagas junto ao meio-fio (o carro parado ocupa só a metade de dentro; quem passa vai pela metade da avenida)
   const CURB=-PISTA_LARG/2+1.15,PASSA=.95
@@ -203,27 +187,26 @@ export function gerarPlantaTransporte(state:EstadoComplexo,options:{metroSide?:'
   const stopIndex=loop.findIndex(p=>Math.hypot(p.x-busStop.x,p.z-busStop.z)<1e-6)
   if(stopIndex<0)throw new RangeError('Ponto de ônibus fora da linha')
   const busInbound=loop.slice(0,stopIndex+1),busOutbound=[...loop.slice(stopIndex),loop[0]]
-  const busWalk=[{x:busStop.x,z:busStop.z-.65,y:.32},{x:busStop.x,z:busStop.z-1.25,y:.32},{x:busStop.x,z:busStop.z-1.25,y:GROUND},{x:busStop.x,z:busStop.z-1.9,y:GROUND},{x:busStop.x,z:busStop.z-6,y:GROUND},{x:-23,z:174,y:GROUND},{x:-14,z:166,y:GROUND},{x:-28,z:148,y:GROUND},{x:-28,z:124,y:GROUND},{x:-7,z:122,y:GROUND},{x:-3.6,z:116,y:GROUND},{x:-3.6,z:74,y:GROUND}]
+  const busWalk=[{x:busStop.x,z:busStop.z-.65,y:.32},{x:busStop.x,z:busStop.z-1.25,y:.32},{x:busStop.x,z:busStop.z-1.25,y:GROUND},{x:busStop.x,z:busStop.z-1.9,y:GROUND},{x:busStop.x,z:busStop.z-6,y:GROUND},...[{x:0,z:325},{x:0,z:210},{x:0,z:165},{x:-3.6,z:115},{x:-3.6,z:74}].map(p=>point(p))]
   ribbon('terminal-onibus-passeio',busWalk.slice(2),2.4,GROUND,'pavement')
   const pista={x0:PISTA_X0,x1:PISTA_X1,largura:PISTA_LARG,meio:pistaMeio,taxis,carga,naPista,naAvenida,
     // 🚧 portão de serviço (Kombi dos ambulantes) e 🅿️ cancela do estacionamento, os dois no meio-fio do terreno
-    portaoServico:naPista(27,-PISTA_LARG/2-1.3),cancela:{x:37,z:192.4}}
+    portaoServico:naPista(27,-PISTA_LARG/2-1.3),cancela:{x:280,z:100}}
   const bus={center:busCenter,radiusX:busRadiusX,radiusZ:busRadiusZ,stop:busStop,heading:stopHeading,turningRadius:6,walk:busWalk,origin:loop[0],
-    /** o ponto do bairro (ao lado do hotel) continua lá, só como abrigo da outra linha */ paradaBairro:point({x:-74,z:130},0)}
+    /** o ponto do bairro (ao lado do hotel) continua lá, só como abrigo da outra linha */ paradaBairro:point({x:-205,z:130},0)}
   services.push({id:'onibus-mandantes',kind:'bus',side:'home',width:2.5,length:10,wheelRadius:.43,floorHeight:.32,stop:{position:busStop,heading:stopHeading},inbound:busInbound,outbound:busOutbound,passengerRoute:busWalk,door:{side:1,longitudinal:0,width:1.5},someNaOrigem:true})
-  const parking={enabled:state.parking.stage>0,stage:state.parking.stage,capacity:state.parking.capacity,paved:!!state.extras.asfalto,floor:.035,turningRadius:3.5,entry:{x:38.38621511294916,z:203.56924931856256},slot:{x:54,z:163},width:2.9,length:5.9}
+  const parking={enabled:state.parking.stage>0,stage:state.parking.stage,capacity:state.parking.capacity,paved:!!state.extras.asfalto,floor:.035,turningRadius:3.5,entry:{x:280,z:100},slot:{x:180,z:35},width:2.9,length:5.9}
+  // A espinha de acesso existe desde a primeira parcela: ninguém atravessa um setor futuro.
+  if(parking.enabled)ribbon('estacionamento-espinha',[{x:330,z:100},{x:155,z:100}],8,parking.floor,'road')
   for(const lot of PLANTAS_ESTACIONAMENTO_COMPLEXO)if(lot.stage<=parking.stage)ribbon(`estacionamento-ligacao-${lot.id}`,lot.access,5.4,parking.floor,'road')
   if(parking.enabled){
     const y=parking.floor
-    const rawInbound=[{x:37,z:197},{x:37,z:186},{x:43,z:177},{x:48,z:177},{x:54,z:171},{x:54,z:163}].map(p=>point(p,y))
-    const rawOutbound=[{x:54,z:163},{x:54,z:154},{x:67,z:151},{x:74,z:161},{x:77,z:176},{x:61,z:184},{x:44,z:191},{x:44,z:200.5},{x:37,z:200.5},{x:37,z:197}].map(p=>point(p,y))
-    const loop=circularLoop([...rawInbound,...rawOutbound.slice(1,-1)],3.5)
-    const stopIndex=loop.findIndex(p=>Math.hypot(p.x-parking.slot.x,p.z-parking.slot.z)<1e-6)
+    const raw=[{x:280,z:100},{x:180,z:100},{x:180,z:35},{x:180,z:20},{x:198,z:20},{x:198,z:100},{x:280,z:100},{x:300,z:100},{x:300,z:116},{x:280,z:116}].map(p=>point(p,y))
+    const loop=circularLoop(raw,3.5),stopIndex=loop.findIndex(p=>Math.hypot(p.x-parking.slot.x,p.z-parking.slot.z)<1e-6)
+    if(stopIndex<0)throw new RangeError('Vaga principal fora do caminho do estacionamento')
     const route=loop.slice(0,stopIndex+1),outbound=[...loop.slice(stopIndex),loop[0]]
     ribbon('estacionamento-chegada',route,5.4,y,'road');ribbon('estacionamento-saida',outbound,5.4,y,'road')
-    const start=homeLane.findIndex(p=>p.z<125)
-    const selected=homeLane.slice(Math.max(0,start))
-    const pedestrian=[{x:53.6,z:163,y:.32},{x:53.05,z:163,y:.32},{x:53.05,z:163,y:GROUND},{x:52.45,z:163,y:GROUND},{x:49,z:162,y:GROUND},{x:35,z:163,y:GROUND},{x:26,z:148,y:GROUND},{x:26,z:124,y:GROUND},...selected.map(p=>point(p))]
+    const pedestrian=[{x:180.4,z:35,y:.32},{x:181,z:35,y:.32},{x:181,z:35,y:GROUND},... [{x:181,z:8},{x:156,z:8},{x:156,z:100},{x:140,z:115},{x:30,z:115},{x:26,z:124},{x:0,z:124},{x:-4.55,z:115}].map(p=>point(p)),...homeLane.filter(p=>p.z<115).map(p=>point(p))]
     ribbon('estacionamento-passeio-estadio',pedestrian.slice(2),2.4,GROUND,'pavement')
     services.push({id:'estacionamento-mandantes',kind:'car',side:'home',width:1.9,length:4.6,wheelRadius:.3,floorHeight:.285,stop:{position:point(parking.slot,y),heading:Math.PI},inbound:route,outbound,passengerRoute:pedestrian,door:{side:1,longitudinal:0,width:1.4}})
   }
