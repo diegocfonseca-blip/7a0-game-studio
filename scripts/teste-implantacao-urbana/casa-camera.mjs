@@ -10,7 +10,7 @@ try{for(const[device,width,height]of[['desktop',1440,1000],['celular',390,844],[
  await context.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());await context.routeWebSocket('**/*',w=>w.close())
  const page=await context.newPage();page.setDefaultTimeout(150000)
  await page.goto(base+'/7a0-game-studio/scripts/teste-implantacao-urbana/index.html?cars',{waitUntil:'domcontentloaded'})
- await page.getByRole('button',{name:'Estádio e região',exact:true}).click()
+ await page.getByRole('button',{name:'Voltar à visão inicial do mapa',exact:true}).click()
  await page.getByRole('button',{name:'Ver cidade',exact:true}).click()
  await page.waitForFunction(()=>window.urbanApi?.inspect().view==='region')
  // Render explicitly before inspecting the canvas; screenshots must show the selected camera.

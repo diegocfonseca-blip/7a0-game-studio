@@ -5,13 +5,18 @@
 .pc3-places-organized details[open]>summary::before{content:'−'}
 .pc3-places-organized details>button{font-size:12px}
 .pc3-review .cr3-map-labels{position:absolute;inset:0;pointer-events:none;z-index:1}
-.pc3-review .cr3-map-labels button{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;min-height:44px;min-width:74px;max-width:150px;padding:5px 8px;font:800 12px/1.15 Oswald,system-ui,sans-serif;box-shadow:1px 2px 0 #0c0c0c;border-radius:8px}
+.pc3-review .cr3-map-labels button{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;min-height:44px;min-width:44px;max-width:112px;padding:0 4px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;box-shadow:none;border-radius:5px}
+.pc3-review .cr3-map-labels button span{display:block;max-width:100%;padding:3px 6px;font:600 11px/1.2 Oswald,system-ui,sans-serif;color:#0c0c0c;background:#f4ecd6e6;border:1px solid #59624d;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc3-review .cr3-map-labels button:hover span,.pc3-review .cr3-map-labels button:focus-visible span{background:#ffc400}
+.pc3-review .pc3-reset-camera{background:#ffc400;min-width:70px;max-width:94px;white-space:normal;line-height:1.15}
+.pc3-review .pc3-look-place{min-height:44px;margin-top:7px}
+
 .pc3-review .cr3-map-labels button[hidden]{display:none!important}
 .pc3-review .pc3-shopping-card:not(.pc3-shopping-expanded){max-width:310px}
 .pc3-review .pc3-shopping-card>small{display:block;line-height:1.4;margin:6px 24px 9px 0}
 .pc3-review .pc3-club-place>strong{padding-right:24px;display:block}
 .clube-mapa-context{margin:8px 14px;color:#243729;font-weight:600}
-@media(max-width:600px){.pc3-review .pc3-shopping-card{max-height:55%;overflow:auto}.pc3-review .pc3-shopping-lojas{grid-template-columns:1fr}.pc3-review .cr3-map-labels button{max-width:124px;font-size:12px}.pc3-places-organized{width:calc(100% - 104px)}}
+@media(max-width:600px){.pc3-review .pc3-shopping-card{max-height:55%;overflow:auto}.pc3-review .pc3-shopping-lojas{grid-template-columns:1fr}.pc3-review .cr3-map-labels button{max-width:104px}.pc3-review .pc3-reset-camera{width:76px;padding:5px 7px;font-size:12px}.pc3-places-organized{width:calc(100% - 104px)}}
 .pc3-office .pc3-stage{height:clamp(540px,80svh,1000px)}
 .pc3-office .pc3-primary{flex-wrap:wrap}
 .pc3-avatar-status{position:absolute;z-index:2;bottom:48px;left:12px;max-width:calc(100% - 112px);padding:10px 12px;border:2px solid #0c0c0c;border-radius:10px;background:#f4ecd6;font:600 13px/1.4 system-ui,sans-serif}

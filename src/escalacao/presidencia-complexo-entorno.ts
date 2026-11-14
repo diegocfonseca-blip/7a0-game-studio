@@ -351,32 +351,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const rawTerrain=path([[165,320],[464,150],[1050,169],[1355,333],[1350,703],[1000,875],[480,860],[218,616]])
   const clubGround=polygon('terreno-clube',rawTerrain,-.19,state.extras.asfalto?grass:dirt)
   if(!state.extras.asfalto){
-    // An unbuilt plot is natural land, not a uniform beige board. World-space
-    // colour varies across the real ground mesh; no image is enlarged, no
-    // obstacle occupies a reserved purchase, and the pitch keeps its own stage.
-    const original=clubGround.geometry,source=original.getAttribute('position'),index=original.getIndex()
-    const points:number[]=[],normal:number[]=[],uv:number[]=[],colors:number[]=[]
-    const earth=new THREE.Color('#968763'),growth=new THREE.Color('#687348'),shade=new THREE.Color()
-    const vertex=(p:THREE.Vector3)=>{
-      const patch=Math.sin(p.x*.041+Math.sin(p.z*.031)*1.9)+Math.cos(p.z*.058-p.x*.019)*.65+Math.sin((p.x+p.z)*.113)*.2
-      const amount=THREE.MathUtils.smoothstep(patch,-1.45,1.4)
-      shade.copy(earth).lerp(growth,amount)
-      points.push(p.x,0,p.z);normal.push(0,1,0);uv.push(p.x/4,p.z/4);colors.push(shade.r,shade.g,shade.b)
-    }
-    const subdivide=(a:THREE.Vector3,b:THREE.Vector3,c:THREE.Vector3,depth:number)=>{
-      if(!depth){vertex(a);vertex(b);vertex(c);return}
-      const ab=a.clone().lerp(b,.5),bc=b.clone().lerp(c,.5),ca=c.clone().lerp(a,.5)
-      subdivide(a,ab,ca,depth-1);subdivide(ab,b,bc,depth-1);subdivide(ca,bc,c,depth-1);subdivide(ab,bc,ca,depth-1)
-    }
-    for(let i=0;i<(index?.count??source.count);i+=3){
-      const p=[0,1,2].map(j=>new THREE.Vector3().fromBufferAttribute(source,index?index.getX(i+j):i+j))
-      subdivide(p[0],p[1],p[2],4)
-    }
-    clubGround.geometry=own(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(points,3))
-      .setAttribute('normal',new THREE.Float32BufferAttribute(normal,3)).setAttribute('uv',new THREE.Float32BufferAttribute(uv,2))
-      .setAttribute('color',new THREE.Float32BufferAttribute(colors,3)))
-    const natural=material('#ffffff',1);natural.vertexColors=true;natural.bumpMap=dirt.map;natural.bumpScale=.01
-    clubGround.material=natural
+    // Entorno verde e discreto. A terra pertence ao campo e aos acessos ainda
+    // sem piso; misturar tons em toda a gleba gerava uma grande mancha borrada.
+    clubGround.material=grass
   }else{
     // The completed club keeps broad natural colour in its residual lawns.
     // Sample in world metres rather than repeating a large stain every 4 m;
