@@ -13532,3 +13532,13 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - Revisão de Diego sobre os vazios: perguntou se o estacionamento lateral seria do shopping. Esclarecido: lateral = estádio; shopping possui vagas próprias ao norte. Sugestão para próximo refinamento: identificação explícita do estacionamento do estádio e paisagismo com função nos vazios (árvores, bancos, caminhos), mantendo moradias e campinho no bairro. Não houve pedido para mudar novamente a posição do estacionamento.
 - 🦁🔵 14/11: tema do clube do Chelsão da Massa FC (comprado 09/11, estava 'producao' sem tema montado) — montado (`chelsao`, padrão temaFundador azul+dourado) e status ativo no banco. ⚠️ Toda compra de `tema_clube` nasce 'producao': tem que montar o tema e virar 'ativo' (hoje não há aviso pra isso).
 - 🪞 14/11: robô do clube de batismo aparecia junto do dono na sala (Príncipe Rubro Negro × 'Principe' sem acento). `tiraClonesSala` compara sem acento/FC. Liga que já começou com o clone segue com ele até recomeçar.
+
+## 🦁🇧🇷 14/11 — Batismo Leões da Tuf EC (sergioricardocf16, ex-EhuLaion FC) — dado pelo Diego, PUBLICADO
+- Várzea, no assento do bot Chuteira Rachada FC. Sócio nº90, sem nº de fundador (regra 14/10). Nome da conta trocado pra Leões da Tuf EC.
+- Manto branco #FEFEFE + vermelho #E90201 (3ª cor azul #0132AF em MANTO_TRI). Banco: esc_socios, esc_nomes_batismo, user_colors ouro.
+- O preço especial de R$ 55 (esc_preco_especial) fica sem efeito: ele já é batismo.
+- Post: scripts/posts/batismo-leoestuf.png. Coração: não sabemos.
+
+## 📋🏆 14/11 — Liga Draft + Copa dos 8 (no branch)
+- Criar sala: Só a liga / Liga + Copa dos 8 (só a Copa dos 8, ordem do Diego). Prêmio: campeão/vice = moedas do 1º/2º da liga, semi 12, quartas 6, troféu pro campeão.
+- FALTA no banco: `esc_liga_modo2` ainda recusa copa ≠ liga em sala de draft (Trocar o modo). Mexe em função → madrugada.
