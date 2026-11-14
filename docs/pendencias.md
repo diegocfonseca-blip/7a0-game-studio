@@ -1,3 +1,10 @@
+## 🧭 14/11 — Aproximação suave ao tocar nos estabelecimentos — FEITO na prévia privada
+
+- Esclarecimento de Diego: pode aproximar ao tocar, mas sem virar a câmera bruscamente e com retorno fácil. Agora o local aproxima automaticamente, mantendo a direção de observação, com movimento gradual de cerca de um segundo.
+- Retirado o passo extra “Ver de perto”; “Visão inicial” permanece no topo e faz a volta suavemente. Fechar o cartão retorna à vista anterior. Gesto, zoom e troca de destino podem interromper o movimento.
+- Testados museu, loja, agência, shopping, Vadico, Grêmio, hotel, feira e boteco em 1440, 390 e 320 px; cancelamento, Home, movimento reduzido e save inalterado. Teste determinístico com 1.001 quadros passou. Usa o laço gráfico existente, sem atualizações de banco ou relógio oficial.
+- Mapa público continua desligado, prévia exclusiva de Diego. Detalhes em `docs/mapa-aproximacao-suave-20261114.md`; imagens, verificações e publicação em `/workspace/shared/mapa-aproximacao-suave-20261114/`.
+
 ## 🧭 14/11 — Mapa: etiquetas discretas e câmera previsível — FEITO na prévia privada
 
 - Etiquetas pequenas com área de toque de 44 px. Tocar no local abre informações sem mover a câmera; aproximação passa a ser explícita em “Ver de perto”. Fechar volta à visão anterior.

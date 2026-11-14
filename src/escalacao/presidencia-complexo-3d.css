@@ -9,7 +9,6 @@
 .pc3-review .cr3-map-labels button span{display:block;max-width:100%;padding:3px 6px;font:600 11px/1.2 Oswald,system-ui,sans-serif;color:#0c0c0c;background:#f4ecd6e6;border:1px solid #59624d;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pc3-review .cr3-map-labels button:hover span,.pc3-review .cr3-map-labels button:focus-visible span{background:#ffc400}
 .pc3-review .pc3-reset-camera{background:#ffc400;min-width:70px;max-width:94px;white-space:normal;line-height:1.15}
-.pc3-review .pc3-look-place{min-height:44px;margin-top:7px}
 
 .pc3-review .cr3-map-labels button[hidden]{display:none!important}
 .pc3-review .pc3-shopping-card:not(.pc3-shopping-expanded){max-width:310px}

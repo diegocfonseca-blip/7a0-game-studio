@@ -1,5 +1,7 @@
 # Navegação do mapa — 14/11/2026
 
+> Atualização posterior: Diego pediu aproximação automática suave ao tocar, mantendo a orientação, em vez de um passo adicional. A implementação atual está documentada em `mapa-aproximacao-suave-20261114.md`. O texto abaixo registra a primeira correção.
+
 Diego apontou que os nomes grandes encobriam o cenário e que tocar nos estabelecimentos girava a câmera, dificultando a volta à visão inicial. Também mostrou a mancha borrada em torno do campo de Várzea. As correções seguem a autorização de melhoria/publicação da prévia somente na conta dele.
 
 ## Comportamento
