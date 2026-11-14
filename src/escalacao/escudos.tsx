@@ -79,6 +79,7 @@ import milanRecifenseEscudoImg from './img/milan-recifense-escudo.webp' // 🐆�
 import principeEscudoImg from './img/principe-escudo.webp' // 👑🔴⚫ Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
+import leoestufEscudoImg from './img/leoestuf-escudo.webp' // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
@@ -975,6 +976,11 @@ const lulubabaEscudoRender = (size: number) => (
 // O pitbull de boné dSouza FC com os quadros das lendas, preto e verde-neon. Fundo verde chroma tirado; conferido sobre creme e vermelho.
 // 🐐👑 CABRITIIIN F.C (lucassaboia14, batismo FUNDADOR de 13/11) — Várzea, no assento do bot Unidos da Resenha. 📏 302×360, 29 KB.
 // O bode de coroa e óculos escuros, braços cruzados, listrado azul e branco. Fundo verde chroma tirado; conferido sobre creme e vermelho.
+// 🦁🇧🇷 LEÕES DA TUF EC (sergioricardocf16, batismo de 14/11, dado pelo Diego) — Várzea, no assento do bot Chuteira Rachada FC.
+// 📏 278×360, 29 KB. O leão de boné e moletom fazendo o L, branco/vermelho/azul. Fundo verde chroma tirado; conferido sobre vermelho.
+const leoestufEscudoRender = (size: number) => (
+  <img src={leoestufEscudoImg} height={size} width={Math.round(size * 278 / 360)} alt="Leões da Tuf EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const cabritiiinEscudoRender = (size: number) => (
   <img src={cabritiiinEscudoImg} height={size} width={Math.round(size * 302 / 360)} alt="Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1707,6 +1713,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'dSouza SC': dsouzaEscudoRender,
   // 🐐👑 Cabritiiin F.C (lucassaboia14) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Unidos da Resenha (bot que
   // cedeu o assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16) — BATISMO. As 4 formas do nome (regra 20/08).
+  'Leões da Tuf EC': leoestufEscudoRender,
+  'Leões da Tuf': leoestufEscudoRender,
+  'Leões da Tuf FC': leoestufEscudoRender,
+  'Leões da Tuf SC': leoestufEscudoRender,
   'Cabritiiin F.C': cabritiiinEscudoRender,
   'Cabritiiin FC': cabritiiinEscudoRender,
   'Cabritiiin': cabritiiinEscudoRender,
