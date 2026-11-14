@@ -136,7 +136,7 @@ assert.equal(B.vidaDoBairro({dia:QUA,hora:21,jogoEmCasa:true}).jogoEmCasa,true,'
  const T=await import('../../src/escalacao/presidencia-complexo-transporte-model.ts')
  const lote=T.PLANTAS_ESTACIONAMENTO_COMPLEXO[0]
  assert(lote,'estacionamento existe')
- const fl=J.flanelinha;let dentro=false;const poly=T.LOTES_ESTACIONAMENTO_COMPLEXO[1];for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a.z>fl.z)!==(b.z>fl.z)&&fl.x<(b.x-a.x)*(fl.z-a.z)/(b.z-a.z)+a.x)dentro=!dentro}
+ const fl=J.flanelinha;let dentro=false;const poly=lote.polygon;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a.z>fl.z)!==(b.z>fl.z)&&fl.x<(b.x-a.x)*(fl.z-a.z)/(b.z-a.z)+a.x)dentro=!dentro}
  assert(dentro,'flanelinha no estacionamento')
 }
 console.log('PASS test-bairro-tradicoes')

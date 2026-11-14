@@ -1,3 +1,11 @@
+## 🇧🇷 14/11 — Bairro vivo: futebol do Grêmio, feira, pipas, pagode e festa junina — FEITO E TESTADO para a prévia exclusiva
+
+- Diego aprovou as propostas (“Perfeito.. Pode fszer Tb.”). Mantém o campinho e a feira, corrige o flanelinha para a localização atual do estacionamento e acrescenta os eventos no calendário da carreira.
+- Futebol do Grêmio funciona ao aproximar mesmo no Leve, com dois goleiros, banco e câmera própria; feira usa fila e sacolas; pagode reserva uma mesa do boteco e respeita o som do mapa; pipas à tarde e festa somente em junho.
+- Sem mudança em partidas, salas online, economia ou banco. Prévia continua só para a conta confirmada de Diego; chave pública desligada.
+- Detalhes, limites e verificações em `docs/bairro-vivo-20261114.md`; imagens e relatórios em `/workspace/shared/bairro-vivo-20261114/`.
+- Passaram: compilação; 3.243 quadros da pelada; agenda e limites das pipas; rotina comercial nos níveis Leve e Padrão; tradições anteriores; acesso privado; passeio de carro preservado; navegador em 1440, 390 e 320 px, com calendário, mute e ocultação do flanelinha sem estacionamento. Antes/depois em seis páginas no mesmo diretório de evidências.
+
 ## 🔒 14/11 — Publicação do mapa somente na conta de Diego — VALIDADA, autorizada para envio
 
 - Diego: “Ok pode publicar Na minha conta”. Integra o mapa, estabelecimentos, museu, bairro afastado e passeio com carro já aprovados à versão atual da `main`.

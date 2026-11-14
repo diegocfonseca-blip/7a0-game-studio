@@ -1,3 +1,4 @@
+import {criarCulturaBairro,type VistaCulturaBairro} from './bairro-cultura-3d'
 // 🇧🇷 TRADIÇÕES DO BAIRRO no mapa 3D (04/11) — o desenho das regras de presidencia-bairro-tradicoes.ts:
 //  🍅 feira livre (sáb/dom de manhã) numa rua do bairro · 📰 banca de jornal com a capa d'O MARTELO (sempre) ·
 //  ⚽ pelada no campinho de terra (de tarde; fora disso só as traves).
@@ -18,9 +19,9 @@ import {criarDiaDoBairro,type VistaDiaBairro} from './presidencia-bairro-dia-3d'
 
 type P={x:number;z:number}
 export type BairroEntorno={quadras:readonly P[];ruas:readonly (readonly [P,P])[];campinho?:P;praca?:P;casas?:readonly {x:number;z:number;w:number;d:number;h?:number;andares?:number}[]}
-export type VistaTradicao='feira'|'banca'|'campinho'|VistaDiaBairro
+export type VistaTradicao='feira'|'banca'|'campinho'|VistaDiaBairro|VistaCulturaBairro
 type Civil=ReturnType<typeof createCivilian>
-type Pessoa={body:Civil;grupo:'feira'|'banca'|'pelada';semSombra:boolean;pose:(s:number)=>{x:number;z:number;heading:number;speed:number;distance:number}}
+type Pessoa={body:Civil;grupo:'feira'|'banca'|'pelada';semSombra:boolean;pose:(s:number)=>{x:number;z:number;heading:number;speed:number;distance:number;phase?:string};compra?:boolean}
 
 const CREME='#F4ECD6',TINTA='#0C0C0C',OURO='#FFC400',VERDE='#1B7A3D',VERMELHO='#C2452F'
 const FONTE='"Oswald","Arial Narrow",Impact,sans-serif'
@@ -111,11 +112,13 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   for(let i=0;i<N;i++){const u=u0+i*passo,p=em(u+(i%2?.4:-.4),2.6);pessoa('feirante-'+i,'feira',['adult-man','fuller-man','adult-woman','older-man','fuller-woman','adult-man'][i],['#ffffff','#2F6FB5','#C2452F','#ffffff','#1B7A3D','#f39a1e'][i],parado(p.x,p.z,q.yawV+Math.PI))}
   for(let k=0;k<5;k++){
    const v=-.35-(k%2)*.85,vel=.55+(k%3)*.12,from=em(3,v),to=em(u0+passo*k,v),journey=customerJourney([{...from,y:ESTRADA_Y},{...to,y:ESTRADA_Y}],{speed:vel,wait:2+k*3,stay:4+k,turnAtExit:true})
-   pessoa('freguesa-'+k,'feira',['adult-woman','older-woman','adult-man','fuller-woman','older-man'][k],undefined,s=>journey.at(s))
+   pessoa('freguesa-'+k,'feira',['adult-woman','older-woman','adult-man','fuller-woman','older-man'][k],undefined,s=>journey.at(s));pessoas[pessoas.length-1].compra=true
   }
-  for(let k=0;k<3;k++){const p=em(u0+passo*(1+k*1.6),.3);pessoa('escolhendo-'+k,'feira',['older-woman','adult-woman','fuller-man'][k],undefined,parado(p.x,p.z,q.yawV))}
+  for(let k=0;k<3;k++){const p=em(u0+k*.8,-.15);pessoa('escolhendo-'+k,'feira',['older-woman','adult-woman','fuller-man'][k],undefined,parado(p.x,p.z,q.yawV))}
  }
 
+ // Sacolas aparecem depois do atendimento, nas pessoas que voltam da compra.
+ const bags=new THREE.InstancedMesh(own(new THREE.BoxGeometry(.24,.33,.14)),mat({color:'#b98b52'}),5);bags.name='feira-sacolas';bags.castShadow=false;root.add(bags)
  // 📰 BANCA DE JORNAL ──────────────────────────────────────────────────────────────────────────────────────────────────
  const banca=new THREE.Group();banca.name='banca-de-jornal';root.add(banca)
  let capa:THREE.CanvasTexture|undefined,letreiro:THREE.CanvasTexture|undefined,capaKey='',ultimoCapa:{gf:number;ga:number}|null|undefined=null
@@ -225,37 +228,41 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  const diaVista=diaSeguro((d,k:VistaDiaBairro,a:number)=>d.vista(k,a),undefined)
  const diaInspect=diaSeguro(d=>d.inspect(),null)
 
+ const cultura=criarCulturaBairro(root,{lugares,boteco:oswaldo,solids:input.solids,onReady:input.onReady})
  // pessoas: posição, LOD e o mesmo "sem sombra nova" da cidade viva
  let vida:VidaBairro=vidaDoBairro(),enabled=false,mobile=false,cfgKey=''
- function configure(cidade:CidadeViva|undefined,journey:JornadaComplexo|undefined,opts:{mobile:boolean;enabled:boolean}){
+ function configure(cidade:CidadeViva|undefined,journey:JornadaComplexo|undefined,opts:{mobile:boolean;enabled:boolean;sound?:boolean;parkingStage?:number}){
   enabled=opts.enabled;mobile=opts.mobile
   const ctx=contextoBairroDoMapa(cidade,journey) // 🗺️ a MESMA conta que o menu "Locais" usa pra dizer se o lugar está aberto
-  const key=JSON.stringify([ctx,cidade?.placar,getLang(),enabled,mobile,cidade?.cor,cidade?.cor2])
+  const key=JSON.stringify([ctx,cidade?.placar,getLang(),enabled,mobile,cidade?.cor,cidade?.cor2,opts.sound,opts.parkingStage])
   if(key===cfgKey)return;cfgKey=key
   vida=vidaDoBairro(ctx)
-  diaConfigure(vida,{enabled,mobile,cor:cidade?.cor,cor2:cidade?.cor2})
+  diaConfigure(vida,{enabled,mobile,cor:cidade?.cor,cor2:cidade?.cor2,parkingStage:opts.parkingStage});cultura.configure(ctx,opts)
   feira.visible=vida.feira
   ultimoCapa=cidade?.placar??null;desenhaCapa(ultimoCapa)
   if(letreiroLang!==getLang()){letreiroLang=getLang();desenhaLetreiro()}
  }
  function update(seconds:number,camera?:THREE.Camera,height=720){
-  diaUpdate(seconds,camera,height)
+  diaUpdate(seconds,camera,height);cultura.update(seconds,camera,height)
   const ativo={feira:enabled&&vida.feira,banca:true,pelada:enabled&&vida.pelada}
   if(bolaMesh&&lugares.campinho){bolaMesh.visible=ativo.pelada;if(ativo.pelada){const b=bolaEm(seconds,lugares.campinho);bolaMesh.position.set(b.x,CAMPO_Y+.13+Math.abs(Math.sin(seconds*3.1))*.32,b.z);bolaMesh.rotation.set(seconds*4,seconds*2.3,0)}}
-  let moleques=0
+  let moleques=0,bagIndex=0;bags.userData.carrying=0
   for(const p of pessoas){
    let on=ativo[p.grupo]
    if(on&&p.grupo==='pelada'){moleques++;if(mobile&&moleques>8)on=false} // celular: 8 moleques (6 de linha + 2 goleiros)
    const pose=on?p.pose(seconds):undefined
    if(pose){p.body.root.position.set(pose.x,p.grupo==='feira'?ESTRADA_Y:p.grupo==='banca'?QUADRA_Y:CAMPO_Y,pose.z);p.body.root.rotation.y=pose.heading}
+   if(p.compra){const carrying=!!pose&&pose.phase==='leaving';if(carrying)bags.userData.carrying++;t.position.set(pose?pose.x+Math.cos(pose.heading)*.34:0,.65,pose?pose.z-Math.sin(pose.heading)*.34:0);t.rotation.set(0,pose?.heading??0,Math.sin(seconds*4)*.06);t.scale.setScalar(carrying?1:0);t.updateMatrix();bags.setMatrixAt(bagIndex++,t.matrix)}
    const lod=pose?residentVisibility(p.body.root.position,p.grupo==='pelada'?1.2:1.76,camera,height):{visible:false,detail:'far'}
    p.body.update({seconds,distance:pose?.distance??0,speed:pose?.speed??0,visible:lod.visible,detail:lod.detail})
    if(!p.semSombra&&p.body.root.children[0]?.children.length){p.body.root.traverse(o=>{o.castShadow=false});p.semSombra=true}
   }
+  bags.instanceMatrix.needsUpdate=true;bags.visible=ativo.feira;bags.computeBoundingSphere()
  }
  /** câmera de cada lugar (alvo e posição); `aspect` < .85 = celular em pé, afasta um pouco */
  function vista(kind:VistaTradicao,aspect:number):{target:[number,number,number];camera:[number,number,number]}|undefined{
   const k=aspect<.85?1.45:1
+  if(kind==='pipas'||kind==='pagode'||kind==='festa-junina')return cultura.vista(kind,aspect)
   if(kind!=='feira'&&kind!=='banca'&&kind!=='campinho')return diaVista(kind,aspect)
   if(kind==='feira'&&lugares.feira){const q=quadroDaRua(lugares.feira),m=q.at(q.L*.38,1.3),o=q.at(-1.5-2.4*k,-4.2);return{target:[m.x,1,m.z],camera:[o.x,2.3+1.4*k,o.z]}} // da esquina, olhando a rua da feira inteira
   if(kind==='banca'&&lugares.banca){const b=lugares.banca,fx=Math.sin(b.yaw),fz=Math.cos(b.yaw),sx=Math.cos(b.yaw),sz=-Math.sin(b.yaw),tx=b.x+fx*1.3+sx*.8,tz=b.z+fz*1.3+sz*.8;return{target:[tx,1.3,tz],camera:[tx+fx*6.6*k+sx*3*k,2.4+1.1*k,tz+fz*6.6*k+sz*3*k]}}
@@ -263,8 +270,8 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   return undefined
  }
  return{root,configure,update,vista,
-  inspect:()=>({vida,lugares,feira:feira.visible,pelada:!!bolaMesh?.visible,capa:capaKey?JSON.parse(capaKey)[0]:null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.grupo),dia:diaInspect()}),
-  dispose(){try{dia?.dispose()}catch{/* nada */}pessoas.forEach(p=>p.body.dispose());root.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(x=>x.dispose())}}
+  inspect:()=>({vida,lugares,cultura:cultura.inspect(),feira:feira.visible,feiraSacolas:bags.userData.carrying??0,pelada:!!bolaMesh?.visible,capa:capaKey?JSON.parse(capaKey)[0]:null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.grupo),dia:diaInspect()}),
+  dispose(){cultura.dispose();try{dia?.dispose()}catch{/* nada */}pessoas.forEach(p=>p.body.dispose());root.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(x=>x.dispose())}}
 }
 
 /** Casca à prova de erro: se alguma coisa aqui quebrar, o mapa segue sem a feira/banca/campinho. */

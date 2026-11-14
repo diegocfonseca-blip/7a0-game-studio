@@ -18,7 +18,7 @@ type P={x:number;z:number}
 export type VistaDiaBairro='padaria'|'praca-bairro'|'espetinho'|'jogo-bairro'|'varal'|'flanelinha'|'cadeiras'|'tv-boteco'
 type Cena='manha'|'tarde'|'noite'|'jogo'
 type Pose={x:number;y:number;z:number;heading:number;speed:number;distance:number;seated:number}
-type Pessoa={body:ReturnType<typeof createCivilian>;cena:Cena;semSombra:boolean;pose:(s:number)=>Pose}
+type Pessoa={body:ReturnType<typeof createCivilian>;cena:Cena;semSombra:boolean;estacionamento?:boolean;pose:(s:number)=>Pose}
 
 const ESTRADA_Y=.01,QUADRA_Y=.16,PRACA_Y=-.04,ESTADIO_Y=.16
 const FONTE='"Oswald","Arial Narrow",Impact,sans-serif'
@@ -290,18 +290,19 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   const fl=J.flanelinha
   const flanela=new THREE.Mesh(unit,mat(new THREE.MeshStandardMaterial({color:'#ff7a1a',roughness:.9})));flanela.name='flanelinha-flanela';flanela.scale.set(.03,.4,.32);flanela.castShadow=false;cenas.jogo.add(flanela)
   const poseFlanela=(s:number)=>{const u=Math.sin(s*.45),dx=Math.cos(fl.yaw)*u*2.2,dz=-Math.sin(fl.yaw)*u*2.2,anda=Math.abs(Math.cos(s*.45))>.25;return{x:fl.x+dx,y:ESTADIO_Y,z:fl.z+dz,heading:anda?(Math.cos(s*.45)>0?fl.yaw+Math.PI/2:fl.yaw-Math.PI/2):fl.yaw,speed:anda?.8:0,distance:s*.8,seated:0}}
-  pessoa('flanelinha','jogo','adult-man','#e9d84a',poseFlanela)
+  pessoa('flanelinha','jogo','adult-man','#e9d84a',poseFlanela);pessoas[pessoas.length-1].estacionamento=true
   // a flanela na mão direita, na altura da cintura, abanando pro motorista
-  flanelaPose=(s:number)=>{const p=poseFlanela(s),fx=Math.sin(p.heading),fz=Math.cos(p.heading),ax=Math.cos(p.heading),az=-Math.sin(p.heading),aceno=Math.sin(s*5);flanela.position.set(p.x+fx*.22-ax*.36,p.y+.92+aceno*.08,p.z+fz*.22-az*.36);flanela.rotation.set(aceno*.5,p.heading,0,'YXZ')}
+  flanelaPose=(s:number)=>{flanela.visible=parkingStage>0;const p=poseFlanela(s),fx=Math.sin(p.heading),fz=Math.cos(p.heading),ax=Math.cos(p.heading),az=-Math.sin(p.heading),aceno=Math.sin(s*5);flanela.position.set(p.x+fx*.22-ax*.36,p.y+.92+aceno*.08,p.z+fz*.22-az*.36);flanela.rotation.set(aceno*.5,p.heading,0,'YXZ')}
  }
 
  // no celular o teto corta pela ordem: dia de jogo primeiro, depois noite, manhã e tarde
  const PRIORIDADE:Record<Cena,number>={jogo:0,noite:1,manha:2,tarde:3};pessoas.sort((a,b)=>PRIORIDADE[a.cena]-PRIORIDADE[b.cena])
  // ── cores do clube (varal e camisa pirata) e o "liga/desliga" de cada cena ─────────────────────────────────────────────
+ let parkingStage=0
  let ligadas:Record<Cena,boolean>={manha:false,tarde:false,noite:false,jogo:false},mobile=false,coresKey=''
  const pintaClube=(m:THREE.InstancedMesh|undefined,c1:string,c2:string)=>{if(!m)return;for(let i=0;i<m.count;i++)m.setColorAt(i,cor.set(i%2?c2:c1));if(m.instanceColor)m.instanceColor.needsUpdate=true}
- function configure(vida:VidaBairro,opts:{enabled:boolean;mobile:boolean;cor?:string;cor2?:string}){
-  mobile=opts.mobile
+ function configure(vida:VidaBairro,opts:{enabled:boolean;mobile:boolean;cor?:string;cor2?:string;parkingStage?:number}){
+  mobile=opts.mobile;parkingStage=opts.parkingStage??0
   ligadas={manha:opts.enabled&&vida.padaria,tarde:opts.enabled&&vida.varal,noite:opts.enabled&&vida.espetinho,jogo:vida.jogoEmCasa} // o dia de jogo é do estádio (igual às barracas oficiais): não depende da população do bairro
   // a TV e as peças paradas aparecem mesmo sem população (são cenário); só as pessoas e os veículos dependem dela
   if(padariaFechada)padariaFechada.visible=!vida.padaria;letreiroMat.emissiveIntensity=vida.periodo==='noite'?.8:.12
@@ -311,14 +312,16 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   if(atlasLang!==getLang())desenhaAtlas()
  }
  function update(seconds:number,camera?:THREE.Camera,height=720){
+  const flanela=cenas.jogo.getObjectByName('flanelinha-flanela');if(flanela)flanela.visible=parkingStage>0
+
   if(kombi){kombi.visible=ligadas.manha;if(ligadas.manha){const v=poseNaVolta(L.kombi!,seconds*KOMBI_V);kombi.position.set(v.x,ESTRADA_Y,v.z);kombi.rotation.y=v.yaw}}
   if(bike){bike.visible=ligadas.manha;if(ligadas.manha){const v=poseNaVolta(L.bicicleta!,seconds*BIKE_V+40);bike.position.set(v.x,ESTRADA_Y,v.z);bike.rotation.y=v.yaw}}
   for(const f of fumacas){if(!f.mesh.parent?.visible)continue;for(let i=0;i<f.n;i++){const u=((seconds*.35+i/f.n)%1),r=.12+u*.32;t.position.set(f.base.x+Math.sin(seconds*.7+i)*.15*u,f.y+u*1.6,f.base.z+Math.cos(seconds*.5+i*2)*.12*u);t.rotation.set(0,0,0);t.scale.setScalar(r);t.updateMatrix();f.mesh.setMatrixAt(i,t.matrix)}f.mesh.instanceMatrix.needsUpdate=true}
-  if(ligadas.jogo)flanelaPose(seconds)
+  if(ligadas.jogo&&parkingStage>0)flanelaPose(seconds)
   // celular: no máximo 9 pessoas desta leva por vez (a pelada e a feira têm o teto delas)
   let n=0
   for(const p of pessoas){
-   let on=ligadas[p.cena];if(on){n++;if(mobile&&n>9)on=false}
+   let on=ligadas[p.cena]&&(!p.estacionamento||parkingStage>0);if(on){n++;if(mobile&&n>9)on=false}
    const pose=on?p.pose(seconds):undefined
    if(pose){p.body.root.position.set(pose.x,pose.y,pose.z);p.body.root.rotation.y=pose.heading}
    const lod=pose?residentVisibility(p.body.root.position,1.7,camera,height):{visible:false,detail:'far'}
@@ -339,6 +342,6 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   return undefined
  }
  return{configure,update,vista,
-  inspect:()=>({fachadaPadariaPermanente:!!L.padaria,padariaFechada:padariaFechada?.visible??false,cenas:Object.fromEntries(Object.entries(cenas).map(([k,g])=>[k,g.visible])),kombi:kombi?.visible?kombi.position.toArray():null,bicicleta:bike?.visible?bike.position.toArray():null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.cena)}),
+  inspect:()=>({flanelinha:{visible:pessoas.some(p=>p.estacionamento&&p.body.root.visible),parkingStage},fachadaPadariaPermanente:!!L.padaria,padariaFechada:padariaFechada?.visible??false,cenas:Object.fromEntries(Object.entries(cenas).map(([k,g])=>[k,g.visible])),kombi:kombi?.visible?kombi.position.toArray():null,bicicleta:bike?.visible?bike.position.toArray():null,pessoas:pessoas.filter(p=>p.body.root.visible).map(p=>p.cena)}),
   dispose(){pessoas.forEach(p=>p.body.dispose());for(const g of [...Object.values(cenas),fachadas])g.traverse(o=>{if(o instanceof THREE.InstancedMesh)o.dispose()});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());atlas.dispose()}}
 }
