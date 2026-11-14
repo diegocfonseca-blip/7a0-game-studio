@@ -13,6 +13,7 @@ const {PRESIDENCY_STADIUM_RELEASED}=await import('../src/escalacao/presidencia-l
 const {LOTE_MUSEU_CLUBE,interfereLoteMuseu}=await import('../src/escalacao/museu-clube-predio.ts')
 const {investirEstacionamento}=await import('../src/escalacao/presidencia-estacionamento.ts')
 const {criarEntregasVeiculos}=await import('../src/escalacao/veiculos-entrega-3d.ts')
+const {TERRENO_USUARIO:HOME}=await import('../src/escalacao/residencia-planta.ts')
 const {teamCoachAccess}=await import('../src/escalacao/cidade3d/coach-access.mjs')
 assert.equal(PRESIDENCY_STADIUM_RELEASED,false,'Mapa continua oculto')
 assert.deepEqual(PLANTA_COMPLEXO.arena.structure,{minX:-105,maxX:105,minZ:-70,maxZ:82,centerZ:6,shape:'ellipse',roofY:24})
@@ -59,7 +60,7 @@ assert.deepEqual(delivery.inspect().issues,[],'Entrega da Vadico visível deve c
 assert.equal(delivery.inspect().active,1)
 const duration=delivery.inspect().vehicles[0].duration
 for(let i=0;i<=Math.ceil(duration*10)+2;i++)delivery.update(i/10)
-const arrived=delivery.inspect().vehicles[0];assert.equal(arrived.phase,'parked');assert.ok(Math.hypot(arrived.position[0]-203.9,arrived.position[2]-228)<.01,'Fusca chegou à vaga da garagem')
+const arrived=delivery.inspect().vehicles[0];assert.equal(arrived.phase,'parked');assert.ok(Math.hypot(arrived.position[0]-(HOME.garage.x-2.1),arrived.position[2]-HOME.garage.z)<.01,'Fusca chegou à vaga da garagem')
 delivery.dispose()
 console.log(JSON.stringify({museum:LOTE_MUSEU_CLUBE.id,casaLuca:entorno.casaLuca,roadDiagnostics:entorno.root.userData.roadNetwork.diagnostics,routeFailures:failures},null,2))
 entorno.dispose()

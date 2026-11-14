@@ -1,3 +1,10 @@
+## 🏡 14/11 — Casa além da avenida e passeio de carro — FEITO LOCALMENTE, sem publicação
+
+- Diego aprovou afastar a casa do estádio e autorizou executar o bairro e o trajeto de carro (“Ok pode fazer tudo”). Casa pessoal em (432,455), além da avenida sul; cinco vizinhos, jardins, calçadas e ruas conectadas. Casa Luca preservada.
+- “Ir ao estádio de carro” usa carro comprado da garagem: saída de ré, ruas, vaga real no estacionamento e retorno explícito à mesma garagem. Requer estacionamento etapa 1. Pausa, acompanhar carro e explorar o mapa; computador e celular.
+- Não altera moedas, bens, calendário, partida, saves ou salas online. Mantém viagem ao recriar a cena por qualidade; ao recarregar a página, carro começa na garagem. Mapa continua com `PRESIDENCY_STADIUM_RELEASED=false`, sem liberação pública.
+- Testes: quatro modelos com ida/volta; requisitos e posse; retomada de cena e bloqueio por tráfego; implantação urbana e privacidade; navegador em 1440/390/320 px; `npm run build`. Detalhes em `docs/implantacao-urbana-mapa.md`; antes/depois em `/workspace/shared/casa-bairro-passeio-20261114/`.
+
 ## 👑 11/11 — Lipão da Fúria com avatar · arte aprovada para publicação
 
 - Lipão já está no baralho exclusivo da Kings League como atacante Lenda da Fúria, edição 2025, over 92–96. O avatar foi ligado à carta existente por nome, clube e ano.

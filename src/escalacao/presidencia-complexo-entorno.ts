@@ -2,7 +2,7 @@ import {PRACA_TORCEDOR,RESERVA_CAMPUS,RUAS_CAMPUS,RUAS_SERVICO_CAMPUS} from './p
 import {criarAcabamentosComerciais} from './presidencia-comercio-acabamentos'
 import {LOTE_MUSEU_CLUBE} from './museu-clube-predio'
 import {ARENA_ONLINE} from './arena-planta'
-import {TERRENO_USUARIO} from './residencia-planta'
+import {TERRENO_USUARIO,RESERVA_BAIRRO_USUARIO,VIZINHOS_RESIDENCIA,ACESSO_GARAGEM_USUARIO} from './residencia-planta'
 import {criarResidenciaUsuario} from './residencia-3d'
 import {LOJA_CLUBE_3D} from './presidencia-loja-planta'
 import {criarLugaresClube} from './presidencia-clube-lugares'
@@ -176,7 +176,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   }))
   // Purchased driveways are curved/concave, so subtract their actual triangles
   // from old raised pavements rather than treating the whole strip as convex.
-  const transportCorridors=[...transport.vehicleSurfaces].flatMap(surface=>{
+  const transportCorridors=[...transport.vehicleSurfaces,...(club?.residence?[{polygon:faixaTransporteComplexo(ACESSO_GARAGEM_USUARIO,6)}]:[])].flatMap(surface=>{
     const source=surface.polygon
     return THREE.ShapeUtils.triangulateShape(source.map(p=>new THREE.Vector2(p.x,p.z)),[]).map(indices=>{
       const points=indices.map(i=>source[i]),area=points.reduce((sum,a,i)=>{const b=points[(i+1)%points.length];return sum+a.x*b.z-b.x*a.z},0)
@@ -263,7 +263,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const parkingLots=LOTES_ESTACIONAMENTO_COMPLEXO
   const circle=(center:PontoComplexo,radius:number)=>Array.from({length:48},(_,i)=>({x:center.x+Math.cos(i*Math.PI/24)*radius,z:center.z+Math.sin(i*Math.PI/24)*radius}))
   const serviceReservations=[...['east','west','branch'].map(key=>poligonoRuaComplexo({points:AJUSTES_RUAS_COMPLEXO[key as 'east'|'west'|'branch'],width:5.8},1.6)),circle(AJUSTES_RUAS_COMPLEXO.turning.center,7)]
-  const landscapeReservations=[RESERVA_CAMPUS,...(club?.museum?[LOTE_MUSEU_CLUBE.footprint]:[]),...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
+  const landscapeReservations=[RESERVA_CAMPUS,RESERVA_BAIRRO_USUARIO,...(club?.museum?[LOTE_MUSEU_CLUBE.footprint]:[]),...(club?.arena?[ARENA_ONLINE.footprint]:[]),...(club?.residence?[TERRENO_USUARIO.footprint]:[]),...RESERVAS_PATROCINADORES_CIDADE,...(club?.name?[LOTE_AGENCIA_CLUBE.footprint]:[]),...serviceReservations,...pedestrianPlan.reservationPolygons,...PLANTA_SHOPPING.reservationPolygons,faixaTransporteComplexo(transport.station.avenue,transport.station.avenueWidth+8),...registeredLots.map(lot=>lot.footprint),...parkingLots,...transport.surfaces.map(surface=>surface.polygon),...transport.parkingPlants.map(lot=>faixaTransporteComplexo(lot.access,8)),
     ...(transport.station.enabled?[faixaTransporteComplexo([transport.station.point(-transport.station.railExtent,0),transport.station.point(transport.station.railExtent,0)],14)]:[]),
     ...['fonte','jardim-acesso-hotel','canteiro-central','canteiro-direito','canteiro-esquerdo','canteiro-calcada-leste'].map(id=>PLANTA_COMPLEXO.footprints[id]),
     path([[578,604],[916,605],[916,770],[657,798],[553,730]]),
@@ -879,7 +879,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
           continue
         }
         const r=hash(center.x*.7,center.z*1.3)
-        if(r<.55)parkedCar('carro-parado',center.x,center.z,heading+(r<.27?Math.PI:0),carPaint[Math.floor(r*97)%carPaint.length])
+        if(slot.id!==transport.parkingPlants[0].slots[5].id&&r<.55)parkedCar('carro-parado',center.x,center.z,heading+(r<.27?Math.PI:0),carPaint[Math.floor(r*97)%carPaint.length])
         for(const side of [-1,1]){
           const p=localPoint(center.x,center.z,side*width/2,0,heading)
           box('linha-vaga',white,.07,.012,length,p.x,transport.parking.floor+.012,p.z,heading)
@@ -1156,10 +1156,30 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     }
   }
 
+  // Bairro da casa: vizinhos reais, passeios, bancos e árvores fora do campus.
+  const personalBlocks:PontoComplexo[]=[]
+  if(club?.residence){
+    ribbon('garagem-acesso-rua',ACESSO_GARAGEM_USUARIO,5.5,.035,concrete,0)
+    for(const [i,p] of VIZINHOS_RESIDENCIA.entries()){
+      personalBlocks.push({...p})
+      box('bairro-residencial-jardim',grass,36,.1,34,p.x,-.05,p.z)
+      const home=residence(p.x,p.z,i%2,0)
+      casasBairro.push({x:p.x,z:p.z,w:home.w,d:home.d,h:home.h,andares:home.floors})
+      const curb=p.z<480?479.5:537.5
+      ribbon('bairro-residencial-porta',[{x:p.x,z:p.z+home.d/2+.4},{x:p.x,z:curb}],2.2,GROUND,paving,0)
+      const bench={x:p.x+14,z:p.z+19}
+      box('bairro-residencial-banco-piso',paving,3,.15,2,bench.x,.075,bench.z)
+      box('bairro-residencial-banco',wood,2,.12,.6,bench.x,.6,bench.z)
+      box('bairro-residencial-banco-encosto',wood,2,.6,.12,bench.x,.94,bench.z-.3)
+      for(const side of[-.75,.75])box('bairro-residencial-banco-pe',metal,.12,.5,.5,bench.x+side,.3,bench.z)
+      plant({x:p.x-13,z:p.z+15},4.5,false)
+    }
+  }
+
   // Infill the strips left between the two street grids with public squares.
   // These are city amenities: they never occupy a future club purchase, and
   // remain the same from the bare field to the finished stadium.
-  const parcels=[...occupied.map(p=>({...p,half:11.5})),...extensions.map(p=>({...p,half:25.85}))]
+  const parcels=[...personalBlocks.map(p=>({...p,half:18})),...occupied.map(p=>({...p,half:11.5})),...extensions.map(p=>({...p,half:25.85}))]
   const nearStreet=(p:PontoComplexo,margin=0)=>streetNetwork.some(road=>road.points.some((b,i)=>i>0&&distanceToSegment(p,road.points[i-1],b)<road.clearance+margin))
   const nearParcel=(p:PontoComplexo,margin=0)=>parcels.some(q=>Math.abs(p.x-q.x)<q.half+margin&&Math.abs(p.z-q.z)<q.half+margin)
   const parks:PontoComplexo[]=[]
