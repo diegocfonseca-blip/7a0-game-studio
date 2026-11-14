@@ -13577,3 +13577,9 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 ## 📋🏆 14/11 — Liga Draft + Copa dos 8 (no branch)
 - Criar sala: Só a liga / Liga + Copa dos 8 (só a Copa dos 8, ordem do Diego). Prêmio: campeão/vice = moedas do 1º/2º da liga, semi 12, quartas 6, troféu pro campeão.
 - ✅ Banco liberado em 14/11 (migration liga_draft_copa8_20261114: draft aceita 'liga' ou 'liga_copa'). PUBLICADO com aviso: a ordem do draft é sempre pela tabela da LIGA.
+
+## 🛒 14/11 — Ambulantes na praça: investigação da prévia, sem mudança de produção
+
+- Reproduzida a praça vazia entre jogos e a mesma praça com seis barracas durante uma partida, em celular simulado no Leve. A regra existente esconde o grupo fora da jornada de jogo e aguarda chegada/descarga na preparação; a otimização não removeu os ambulantes.
+- Passaram a bancada de navegador, as 144.000 amostras das peruas e as verificações do dia de jogo. Sem acesso a conta, saves, salas ou banco; nenhuma publicação necessária.
+- A foto não revela a fase da sessão real; foi perguntado se havia partida rolando. Se havia, falta investigar o estado da jornada nessa sessão. Detalhes em `docs/mapa-ambulantes-20261114.md`; evidências em `/workspace/shared/mapa-ambulantes-20261114/`.
