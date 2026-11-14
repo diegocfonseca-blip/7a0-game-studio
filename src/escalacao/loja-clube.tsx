@@ -24,7 +24,8 @@ import { JanelaConta } from './conta'
 import { SupportMoney, SupportStory } from './support-plans'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
 import { temCantoProprio } from './sound'
-import { precoSubida, precoTxt, planoAtual, planoFixo, PRECOS_UNICO, PRECOS_DUPLO, MENSAIS, type PlanoUnico } from './planos-regras'
+import { precoTxt, planoAtual, planoFixo, PRECOS_UNICO, PRECOS_DUPLO, MENSAIS, type PlanoUnico } from './planos-regras'
+import { usePrecoMeu } from './precos-servidor' // 💳 13/11: o preço da subida vem do banco (o mesmo do Pix)
 import { assinarMensal } from './vendria-checkout'
 import { PixBox, APOIO_IG, ApoieButton, GiroDaRodada } from './screens'
 import { MantosNaLoja } from './mantos-loja'
@@ -146,6 +147,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
   const setComprando = (it: Item | null) => { setComprandoRaw(it); if (it) setTimeout(() => document.getElementById('loja-pagar')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60) }
   // (preço/subida pelo plano PAGO pra sempre — quem só assina o mensal paga cheio, igual ao banco; e o Craque de 29,90 não aparece mais)
   const fixo = planoFixo(direitos, tier)
+  const precoSubida = usePrecoMeu() // mesmo nome de antes de propósito: (alvo, fixo) → o preço que o Pix vai cobrar
   const acima = ORDEM.slice(fixo ? ORDEM.indexOf(fixo) + 1 : 0).filter(pl => pl !== 'craque')
   const temBatismo = atual === 'batismo' || atual === 'fundador'
   // 🎟️ salas extras: só pra quem NÃO cria à vontade (grátis e Craque novo). O saldo vem do banco.

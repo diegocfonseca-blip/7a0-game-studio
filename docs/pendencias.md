@@ -13459,3 +13459,12 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - Post: `scripts/posts/batismo-cabritiiin.png`.
 - Ficha do clube depois do Pix (Batismo/Fundador, WhatsApp obrigatório, aviso de 24h) publicada junto.
 - ⚠️ Lucas pagou também R$ 19,90 de escudo avulso (11/11) — o Diego decide se devolve.
+
+## 💳 13/11 — Planos: FICA TUDO COMO ESTÁ (decisão do Diego)
+- Discutimos mensal × plano de uma vez × pacote vitalício. Números de 30 dias: planos de uma vez ~R$ 1.800; mensais ativos ~R$ 710/mês (46 Salas + 17 Completo). Conclusão: não mudar a estrutura.
+- 🚫 Aviso "você pode cancelar o mensal" pra quem tem plano de uma vez + mensal ativo: o Diego NÃO gostou ("N gostei n"). Não repropor.
+- Pendente: EhuLaion FC (sergioricardocf16) — Batismo por R$ 55 (Diego mandou; Fundador preço normal). Precisa mexer no `esc_mp_preco` (trava a API 1–3 min) → esperando o Diego dizer agora ou de manhã.
+- Pendente: tela do batismo mostrava "+ R$ 55" pro Craque mensal (corrigida no branch, commit "preço da tela segue a régua do banco") → esperando OK pra publicar.
+- 💳 13/11 (noite): preços de hoje arrumados na TELA (`precos-servidor.ts`: Loja, vitrine, janela do batismo e upgrade do Lenda leem o
+  preço do banco). O banco (`docs/sql/precos-tela-e-especial-20261113.sql`: preço especial + `esc_mp_meus_precos`) roda de madrugada
+  (mexe em função → engasga as salas). Até lá a tela usa a conta local (já corrigida pro mensal).

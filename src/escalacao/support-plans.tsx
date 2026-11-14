@@ -6,6 +6,7 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen, useDireitos, logApoio } from './apoio'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoFixo, MENSAIS } from './planos-regras'
+import { usePrecoMeu } from './precos-servidor'
 import { assinarMensal } from './vendria-checkout'
 import { DuploLinha } from './presente'
 import './support-plans.css'
@@ -207,7 +208,8 @@ export function SupportPlans(p: Props) {
   // (preço/subida pelo plano PAGO pra sempre: quem só assina o mensal paga o Lenda cheio — 26/10)
   const atual = planoFixo(direitos, p.tier as 'prata' | 'ouro' | undefined)
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
-  const subLenda = precoSubida('lenda', atual)
+  const precoMeu = usePrecoMeu() // 💳 13/11: o preço que o Pix cobra desta conta
+  const subLenda = precoMeu('lenda', atual)
   const meuTier: 'bege' | 'prata' | 'ouro' = p.tier === 'ouro' ? 'ouro' : p.tier === 'prata' ? 'prata' : 'bege'
   return <div className="ll-support" ref={root}>
     {/* 💸 14/10 (Diego): "pra onde vai o dinheiro" mora LÁ EM CIMA de tudo; depois "na mesma sala…" e os planos */}

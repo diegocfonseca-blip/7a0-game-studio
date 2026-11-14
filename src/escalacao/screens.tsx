@@ -51,7 +51,8 @@ import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
 import { travaCarreiraGratis, limiteGratis } from './carreira-gratis'
-import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
+import { PRECOS_UNICO, precoSubida, precoTxt, planoFixo } from './planos-regras'
+import { usePrecoMeu } from './precos-servidor' // 💳 13/11: a tela mostra o preço que o Pix cobra (pergunta ao banco)
 import { LojaButton } from './loja-clube'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
@@ -452,9 +453,12 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
   // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
   // 💳 14/10 (Diego): Batismo 79,90 · 🖋 FUNDADOR 99,90 (era "Batismo Lenda" 89,90). Quem já tem plano paga só a diferença.
   const direitosApoie = useDireitos()
-  const planoJa = planoAtual(direitosApoie, myApoioPerk()?.tier)
+  // 💳 13/11 (EhuLaion FC): a tela mostrava "+ R$ 55" pro Craque MENSAL e o Pix cobrava 79,90 — o mensal não conta como plano pago
+  // pra sempre (regra do banco, `esc_plano_rank_fixo`). O preço daqui tem que ler a MESMA régua do servidor: `planoFixo`.
+  const planoJa = planoFixo(direitosApoie, myApoioPerk()?.tier)
   const reaisApoie = (v: number) => precoTxt(v, getLang() === 'en')
-  const precoCheioBatismo = precoSubida(serieBatismo === 'd' ? 'fundador' : 'batismo', planoJa)
+  const precoMeu = usePrecoMeu()
+  const precoCheioBatismo = precoMeu(serieBatismo === 'd' ? 'fundador' : 'batismo', planoJa)
   // 🎟️ CUPOM DE INFLUENCIADOR (Diego 07/09): "PANTERA" = 10% off SÓ no batismo.
   // O código é conferido no banco (esc_cupom_validar) — nenhum cupom vive no
   // código do jogo, então ninguém descobre fuçando. O desconto entra no valor do
@@ -641,7 +645,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
       {screen === 'pay' && (() => {
         const ouro = payTier === 'ouro'
         const upgrade = ouro && planoJa === 'craque'
-        const amount = precoSubida(ouro ? 'lenda' : 'craque', ouro ? planoJa : null)
+        const amount = ouro ? precoMeu('lenda', planoJa) : precoSubida('craque', null)
         return (
         <ApoieModal onClose={close}>
           <p className="font-black text-xl text-center" style={OSWALD}>{upgrade ? tr(`👑 UPGRADE LENDA · ${reaisApoie(amount)}`, `👑 LEGEND UPGRADE · ${reaisApoie(amount)}`) : ouro ? tr(`👑 LENDA · ${reaisApoie(amount)}`, `👑 LEGEND · ${reaisApoie(amount)}`) : tr(`⭐ CRAQUE · ${reaisApoie(amount)}`, `⭐ STAR · ${reaisApoie(amount)}`)}</p>
@@ -674,11 +678,11 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('🖋️ Batismo · Série B·C·D e Várzea', '🖋️ Club Naming · Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{planoJa ? '+ ' : ''}{reaisApoie(precoSubida('batismo', planoJa))}</span>
+              {tr('🖋️ Batismo · Série B·C·D e Várzea', '🖋️ Club Naming · Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{planoJa ? '+ ' : ''}{reaisApoie(precoMeu('batismo', planoJa))}</span>
             </button>
             <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('🖋️ Fundador · Série A', '🖋️ Founder · Série A')}<br /><span className="text-[12px]" style={OSWALD}>{planoJa ? '+ ' : ''}{reaisApoie(precoSubida('fundador', planoJa))}</span>
+              {tr('🖋️ Fundador · Série A', '🖋️ Founder · Série A')}<br /><span className="text-[12px]" style={OSWALD}>{planoJa ? '+ ' : ''}{reaisApoie(precoMeu('fundador', planoJa))}</span>
             </button>
           </div>
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
