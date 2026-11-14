@@ -7124,11 +7124,18 @@ const KINGS_MS_7X7 = 45_000 // o resto do jogo (7×7) na marcha normal
 const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_DADO_FIM]] // 🎲 10/11: o dado é do 20' ao 23'
 const KINGS_LENTO_MS = (7 + 3) * KINGS_MS_POR_MIN_LENTO
 /** tempo de uma cena: a que tem alguém lendo/decidindo (`fixo`) fica no tempo dela; as outras andam na marcha */
-const msCenaKings = (ms: number, marcha: number, fixo: boolean, tipo?: CenaKings['tipo'], rapida = false) => {
+const msCenaKings = (ms: number, marcha: number, fixo: boolean, tipo?: CenaKings['tipo'], rapida = false, sala = false) => {
   // ⏱️ 11/11 (Diego, Partida Rápida: *"analise os banners pra sair um pouco mais rápido… está demorando muito cada aviso"*): os avisos
   // de LEITURA caem pra ~55% do tempo. Ficam como estão: a escolha da carta e a cobrança (alguém decide) e o pontapé (a contagem de 5 s
   // é regra dele de 15/10). Pisos pra animação não ser cortada: a roleta da carta leva ~2,5 s antes de virar (4,5 s no total).
   if (rapida && tipo && tipo !== 'escolha' && tipo !== 'duelo' && tipo !== 'pontape') ms = Math.max(tipo === 'carta' ? 4500 : 1500, Math.round(ms * 0.55))
+  // ⏩👑 14/11 (Diego, SALA ONLINE da Kings: *"quando ele aumenta a velocidade, deveria aumentar também… seja aumentar ou diminuir"*):
+  // na sala a marcha mexe TAMBÉM nos avisos, no campinho que cresce, no dado e na carta (com piso pra animação não ser cortada).
+  // Continuam no tempo deles: quem DECIDE (escolha da carta, cobrança) e o pontapé (contagem de 5 s). Normal (1×) = igual a antes.
+  if (sala && marcha > 0 && marcha !== 1 && tipo && tipo !== 'escolha' && tipo !== 'duelo' && tipo !== 'pontape') {
+    const piso = tipo === 'carta' ? 3000 : tipo === 'dado' ? 2500 : tipo === 'entra' ? 900 : 1200
+    return Math.max(Math.min(piso, ms), Math.round(ms / marcha))
+  }
   return fixo ? ms : ms / (marcha > 0 ? marcha : 1)
 }
 /** tempo de uma rodada da Kings na SALA ONLINE (régua de antes): cenas fixas + fases lentas fixas + o 7×7 (que acelera com a marcha) */
@@ -7147,7 +7154,8 @@ export const kingsRoundMs = (marcha: number) => {
 // pouco mais lentos… quando tiver 7x7 corre rápido"*): o lance decisivo ganha um ritmo PRÓPRIO — 2,5 s por minuto da Kings no Normal — e
 // a marcha só mexe nele de leve (raiz da marcha: 2× = 1,8 s · 4× = 1,25 s). O 7×7 continua no ritmo da sala × marcha.
 const KINGS_RAPIDA_MIN_DECISIVO_MS = 2500
-const taxaDecisivaKings = (marcha: number) => (93 / 40) / (KINGS_RAPIDA_MIN_DECISIVO_MS / Math.sqrt(marcha > 0 ? marcha : 1))
+// ⏩👑 14/11: na SALA ONLINE o lance decisivo acompanha a marcha por inteiro (2× = metade do tempo); a raiz fica só na Partida Rápida.
+const taxaDecisivaKings = (marcha: number, sala = false) => { const m = marcha > 0 ? marcha : 1; return (93 / 40) / (KINGS_RAPIDA_MIN_DECISIVO_MS / (sala ? m : Math.sqrt(m))) }
 /** placar-minutos por ms no ritmo normal da sala online, na marcha escolhida */
 const taxaSalaKings = (marcha: number) => 93 / (ROUND_MS_ONLINE * 0.82 / (marcha > 0 ? marcha : 1))
 /** os trechos "decisivos" do jogo (escala do placar 0–93): 1×1 até 6×6, gol dobrado, dado, a bola/match ball do fim e ±1 minuto da Kings
@@ -7166,12 +7174,12 @@ function trechosDecisivosKings(r: MatchResult): [number, number][] {
 }
 const emTrecho = (t: [number, number][], m: number) => t.some(([a, b]) => m >= a && m < b)
 /** quanto o relógio da Partida Rápida leva pra levar ESSE jogo do 0' ao 93' (bola rolando + cenas) */
-function duracaoKingsRapida(r: MatchResult, marcha: number, youId: number): number {
+function duracaoKingsRapida(r: MatchResult, marcha: number, youId: number, sala = false): number {
   const ev = cenasDoJogo(r, () => '', id => id === youId)
   const t = trechosDecisivosKings(r), rapida = taxaSalaKings(marcha)
   let ms = 0
-  for (let m = 0; m < 93; m += 0.5) ms += 0.5 / (emTrecho(t, m) ? taxaDecisivaKings(marcha) : rapida)
-  for (const e of ev) ms += msCenaKings(e.ms, marcha, e.fixo, e.c.tipo, true)
+  for (let m = 0; m < 93; m += 0.5) ms += 0.5 / (emTrecho(t, m) ? taxaDecisivaKings(marcha, sala) : rapida)
+  for (const e of ev) ms += msCenaKings(e.ms, marcha, e.fixo, e.c.tipo, true, sala)
   // a escolha da carta pode trazer uma cobrança nova: guarda o tempo dela
   ms += ev.filter(e => e.c.tipo === 'escolha').length * KINGS_CENA_MS.duelo
   return ms
@@ -7237,7 +7245,7 @@ function cenasDoJogo(r: MatchResult, nome: (id: number) => string, souEu: (id: n
 }
 /** relógio da Kings: anda 0→93 (escala do placar) e PARA em cada cena pelo tempo dela. Acaba antes de 85% da rodada,
  *  que é quando a tela libera o resultado — então a tabela nunca entrega o placar antes do apito. */
-function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string, youId = -1, tudo = true) {
+function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string, youId = -1, tudo = true, sala = false) {
   const [min, setMin] = useState(0)
   const [cena, setCena] = useState<CenaKings | null>(null)
   const rk = useRef(roundKey)
@@ -7250,6 +7258,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
   const speedRef = useRef(speed); speedRef.current = speed
   const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs
   const tudoRef = useRef(tudo); tudoRef.current = tudo
+  const salaRef = useRef(sala); salaRef.current = sala
   useEffect(() => {
     const r = rRef.current, nome = nomeRef.current
     if (!ativo || !r) return
@@ -7265,10 +7274,10 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
     // sala online: fases lentas com tempo FIXO por minuto da Kings · 7×7: o que sobra da rodada (refeito a cada passo: a marcha pode mudar)
     const unidLentas = lentos.reduce((a, [x, y]) => a + (y - x), 0)
     const msLento = lentos.reduce((a, [x, y]) => a + placarParaK(y) - placarParaK(x), 0) * KINGS_MS_POR_MIN_LENTO
-    const taxaLenta = () => tudoRef.current ? taxaDecisivaKings(speedRef.current) : unidLentas > 0 ? unidLentas / msLento : 0
+    const taxaLenta = () => tudoRef.current ? taxaDecisivaKings(speedRef.current, salaRef.current) : unidLentas > 0 ? unidLentas / msLento : 0
     const taxaRapida = () => {
       if (tudoRef.current) return taxaSalaKings(speedRef.current)
-      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, sp, e.fixo, e.c.tipo, tudoRef.current), 0)
+      const sp = speedRef.current, pausas = ev.reduce((a, e) => a + msCenaKings(e.ms, sp, e.fixo, e.c.tipo, tudoRef.current, salaRef.current), 0)
       return (93 - unidLentas) / Math.max(2000, roundMsRef.current * 0.84 - pausas - msLento - 500)
     }
     let cur = 0, idx = 0, ate = 0, ult = Date.now(), fim = false
@@ -7287,7 +7296,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
         if (k >= 0) { ev = nova; idx = k + 1 }
       }
       if (idx < ev.length && cur >= ev[idx].min) {
-        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, speedRef.current, ev[idx].fixo, ev[idx].c.tipo, tudoRef.current); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
+        cur = ev[idx].min; ate = agora + msCenaKings(ev[idx].ms, speedRef.current, ev[idx].fixo, ev[idx].c.tipo, tudoRef.current, salaRef.current); setCena(ev[idx].c); ultimaCena = chaveCena(ev[idx]); idx++
       }
       // 🟡 gol de ouro: o jogo ACABA no minuto do gol (lido na hora — a escolha de canto pode ter mudado o jogo)
       const rr = rRef.current
@@ -7526,7 +7535,7 @@ export function EscSeason() {
   const kingsPensOutros = !kingsRapida ? 0 : Math.max(0, ...state.lastResults.map(r => r.kings?.pens ? Math.round(pensRevealDelay(r.kings.pens, true, r.kings.pensSeq) * 1000) + 1500 : 0))
   // ⏩ 11/11 (Diego: *"tá demorando pra reiniciar a próxima partida"*): o resultado sai NO APITO (o relógio chegou no 40') e a
   // próxima começa ~2,5 s depois da última disputa — antes a rodada esperava os 16% de "folga" da conta velha (~15 s parado).
-  const kingsApitoMs = kingsJogosCedo.length ? Math.max(...kingsJogosCedo.map(j => duracaoKingsRapida(j.r, kingsMarcha, j.eu))) + 1500 : 0
+  const kingsApitoMs = kingsJogosCedo.length ? Math.max(...kingsJogosCedo.map(j => duracaoKingsRapida(j.r, kingsMarcha, j.eu, online))) + 1500 : 0
   const kingsPensMax = Math.max(kingsPensOutros, ...kingsJogosCedo.map(j => kingsPensMs(j.r)))
   const roundMs = kingsRapida ? (kingsApitoMs ? Math.round(kingsApitoMs + kingsPensMax + 2500) : kingsRapidaRoundMs(undefined, kingsMarcha, you.id)) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
   const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs // (o vigia do fim da liga lê o valor de agora)
@@ -7815,7 +7824,7 @@ export function EscSeason() {
     ? (kTie?.lastKings ? { homeId: kTie.aId, awayId: kTie.bId, hg: kTie.legs[0][0], ag: kTie.legs[0][1], highlights: kTie.lastHighlights ?? [], kings: kTie.lastKings } : undefined)
     : myLast
   const kKey = copaLive ? 500 + (qc?.bracket.length ?? 0) * 10 + (kTie?.legs.length ?? 0) : state.round
-  const kRel = useRelogioKings(kingsS, kKey, roundMs, kingsMarcha, kJogo, nomeLiga, you.id, kingsRapida)
+  const kRel = useRelogioKings(kingsS, kKey, roundMs, kingsMarcha, kJogo, nomeLiga, you.id, kingsRapida, online)
   // 👑 o apito do SEU jogo: daqui a disputa (se teve) + 2,5 s, a rodada pode virar (`kingsViraOk`)
   if (kingsS && !copaLive && kRel.min >= 93 && kProntoRef.current?.r !== state.round) kProntoRef.current = { r: state.round, at: Date.now() + (kJogo ? kingsPensMs(kJogo) : 0) + 2500 }
   // 👑 o relógio do seu jogo chegou no fim (pode ser antes da conta, se a marcha subiu): o resultado sai na hora — não há spoiler, o jogo acabou

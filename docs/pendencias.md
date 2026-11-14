@@ -1,3 +1,11 @@
+## ⏩👑 14/11 — Kings nas SALAS: o botão de velocidade quase não mudava nada — FEITO no branch
+Diego: *"quando ele aumenta a velocidade, deveria aumentar também mais um pouco… seja aumentar ou diminuir"* (só Kings, só sala online).
+Causa: na sala, só o 7×7 acelerava por inteiro; os lances decisivos (1×1…6×6, gol em dobro, dado, match ball) aceleravam pela RAIZ da
+marcha e os avisos/campinho/dado/carta tinham tempo fixo — no 4× o jogo ficava só ~⅓ mais curto. Agora, na SALA ONLINE da Kings, a marcha
+vale por inteiro nos lances decisivos e nos avisos, no campinho que cresce, no dado e na carta (com piso pra animação não cortar). Ficam no
+tempo deles: escolha da carta, cobrança e o pontapé. Normal (1×) e o automático = igual a antes. Partida Rápida da Kings NÃO mudou.
+Código: `sala` em `msCenaKings`/`taxaDecisivaKings`/`duracaoKingsRapida`/`useRelogioKings` (screens.tsx). Reverter = reverter o commit.
+
 ## 👑 11/11 — Lipão da Fúria com avatar · arte aprovada para publicação
 
 - Lipão já está no baralho exclusivo da Kings League como atacante Lenda da Fúria, edição 2025, over 92–96. O avatar foi ligado à carta existente por nome, clube e ano.
@@ -12,7 +20,7 @@
 - ⚠️ Aparelho com a versão velha aberta numa sala de liga em que o dono escolhe o 3-4-3 novo não conhece a chave (3 dias de janela).
 - (A `npm run carreira-limpa` já falhava antes, por `kingsBaralho` da Kings — não é desta mudança.)
 
-## 📊 13/11 — Carreira: meio-campo quase não dá assistência (reclamação de jogador) — AJUSTADO no branch (Diego: "Pode"), falta publicar
+## 📊 13/11 — Carreira: meio-campo quase não dá assistência (reclamação de jogador) — PUBLICADO 13/11
 - Os jogos do SEU time na carreira são do motor novo; os dos bots, da simulação de sempre. Medido (`scripts/mede-gols-assist-motor2.mts`):
   · motor novo 4-3-3: assistências ATA 60% · MEI 33% · LAT 5% — gols ATA 93% · MEI 5% (4-4-2: assist. ATA 51% · MEI 39%; gols ATA 94%)
   · simulação dos bots (pesos de `garcomDoGol`/gols): assistências MEI ~51% · ATA ~24% · LAT ~20% — gols ATA ~60% · MEI ~30%
