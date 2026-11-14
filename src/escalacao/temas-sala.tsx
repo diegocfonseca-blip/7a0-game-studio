@@ -29,6 +29,8 @@ import futpointEscudo from './img/futpoint-escudo.webp'
 import futpointMascote from './img/futpoint-mascote.webp'
 import wenMilanEscudo from './img/wenmilan-escudo.webp'
 import wenMilanMascote from './img/wenmilan-mascote.webp'
+import chelsaoEscudo from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (13/11): o mesmo escudo do batismo, 0 KB novo
+import chelsaoMascote from './img/chelsao-mascote.webp'
 import dsouzaEscudo from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (28/10): o mesmo escudo do batismo, 0 KB novo
 import dsouzaMascote from './img/dsouza-mascote.webp'
 import interValeEscudo from './img/intervale-escudo.webp'
@@ -46,7 +48,7 @@ import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
-  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex' | 'intervale' | 'guimaraes' | 'dsouza' | 'dsouza_emp' | 'lulubaba' | 'piranhao' | 'neymarfc'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint' | 'wenmilan' | 'tidex' | 'intervale' | 'guimaraes' | 'dsouza' | 'dsouza_emp' | 'lulubaba' | 'piranhao' | 'neymarfc' | 'chelsao'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -88,6 +90,9 @@ function TEMAS_FUNDADOR_PRONTOS() {
     lulubaba: temaFundador('lulubaba', 'Lulubaba FC', '🧤', lulubabaEscudo, lulubabaMascote, '#3a3a3a', 'rgba(227,226,226,.14)', '#E3E2E2', '#0c0c0c'),
     piranhao: temaFundador('piranhao', 'Piranhão FC', '🐟', piranhaoEscudo, piranhaoMascote, '#3a3a3a', 'rgba(226,225,225,.14)', '#E2E1E1', '#0c0c0c'),
     neymarfc: { ...temaFundador('neymarfc', 'Neymar_FC', '🐐', neymarfcEscudo, neymarfcMascote, '#6b5534', 'rgba(242,216,184,.18)', '#F2D8B8', '#0c0c0c'), selo: '🐐 TEMA DO CLUBE · Neymar_FC' },
+    // 🦁🔵 Chelsão da Massa FC (comprado na Loja em 09/11, R$ 6,90 — ficou 'em produção' até 14/11): azul e dourado MEDIDOS na camisa
+    // (#032169/#E4A745, os mesmos de `batismos.ts`), o filete dourado e o leão na tela
+    chelsao: temaFundador('chelsao', 'Chelsão da Massa FC', '🦁', chelsaoEscudo, chelsaoMascote, '#0b2a7a', 'rgba(228,167,69,.2)', '#E4A745', '#0c0c0c'),
     wenmilan: temaFundador('wenmilan', 'Wen Milan B', '😈', wenMilanEscudo, wenMilanMascote, '#8a0a16', 'rgba(223,18,36,.22)', '#DF1224', '#fff'),
     seven: temaFundador('seven', 'Seven City', '🍀', sevenEscudo, sevenMascote, '#6b4c1c', 'rgba(217,158,68,.2)', '#D99E44', '#0c0c0c'),
   } satisfies Partial<Record<TemaClubeId, Tema>>
@@ -142,7 +147,7 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
   'Neymarzetti': ['neymarzetti_noite', 'neymarzetti_branco'],
   'K9 FC': ['k9_gelo', 'k9_branco'],
-  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'], 'Inter Vale FC': ['intervale'], 'dSouza FC': ['dsouza'], 'Guimarães SCI': ['guimaraes'], 'Lulubaba FC': ['lulubaba'], 'Piranhão FC': ['piranhao'], 'Neymar_FC': ['neymarfc'],
+  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'], 'Wen Milan B': ['wenmilan'], 'Inter Vale FC': ['intervale'], 'dSouza FC': ['dsouza'], 'Guimarães SCI': ['guimaraes'], 'Lulubaba FC': ['lulubaba'], 'Piranhão FC': ['piranhao'], 'Neymar_FC': ['neymarfc'], 'Chelsão da Massa FC': ['chelsao'],
 }
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão

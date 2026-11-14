@@ -5557,6 +5557,15 @@ const mesmoNomeTime = (a: string, b: string) => stripEmoji(a).trim().toLowerCase
 function tiraClones(defs: { team: string; name: string }[], humanNames: string[]): { team: string; name: string }[] {
   return defs.filter(d => !humanNames.some(h => mesmoNomeTime(d.team, h)))
 }
+// 🪞 14/11 (sala do Príncipe Rubro Negro): nas SALAS ONLINE o robô do clube de batismo aparecia JUNTO com o dono, porque ele
+// jogava como "Principe Rubro Negro" (sem acento) e o clube é "Príncipe Rubro Negro" — o `mesmoNomeTime` só ignora caixa e
+// emoji. Aqui a régua é a do batismo (`chaveClube`: ignora acento, espaço, pontuação e FC/EC/SC). Vale só pra ESCOLHER os bots
+// quando uma partida/carreira começa (`makeManagers`); a migração de nome velho de save continua no `mesmoNomeTime` de sempre.
+const chaveSala = (n: string) => chaveClube(stripEmoji(n).trim())
+function tiraClonesSala(defs: { team: string; name: string }[], humanNames: string[]): { team: string; name: string }[] {
+  const humanos = new Set(humanNames.map(chaveSala))
+  return defs.filter(d => !humanos.has(chaveSala(d.team)))
+}
 
 type BotPlan = { id: number; tier: Tier; formation: FormationKey }
 // 🖋🎲 BATISMOS SE REVEZANDO NAS SALAS ONLINE (02/11, pedido do Diego: *"todo time de batismo ou fundador se
@@ -5598,9 +5607,9 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   // PRIMEIRO (viram os auction-rivals nomeados), depois o resto da D (sem repetir).
   // 🪞 regra do clone: tira da lista o robô com nome de humano da sala e, se a
   // conta não fechar, completa com reservas de outras divisões (sem clone também).
-  const poolBase = tiraClones(cpuNameOrder ?? TIMES_ELITE, humanNames)
+  const poolBase = tiraClonesSala(cpuNameOrder ?? TIMES_ELITE, humanNames)
   if (poolBase.length < totalCpus) {
-    const reservas = tiraClones([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
+    const reservas = tiraClonesSala([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
     for (const r of reservas) {
       if (poolBase.length >= totalCpus) break
       if (!poolBase.some(t => t.team === r.team)) poolBase.push(r)
