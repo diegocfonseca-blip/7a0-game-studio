@@ -1,3 +1,9 @@
+## 🗂️ 14/11 — Aba Clube: aviso de encerramento deslocado e proposta visual — ANÁLISE E MOCKUPS
+
+- O aviso “aparece uma vez por temporada” pertence ao passo internacional/Copa do Mundo do encerramento, não ao mapa. Em Clube, fica sem a campanha e contradiz a trava de continuar. Proposta: roteiro em Jogos e acesso compacto para a pendência real; validação da sessão com mensagem distinta.
+- Mockups de celular/computador com mapa em destaque, gestão acessível, obras concluídas recolhidas e Finanças com contexto. Antes reproduz o layout da foto; depois é proposta, sem alterar a conta. Valores financeiros são ilustrativos.
+- Nenhuma mudança de produção ou publicação. Proposta detalhada em `docs/proposta-clube-organizacao-20261114.md`; PDF e protótipo em `/workspace/shared/clube-organizacao-proposta-20261114/`.
+
 ## ⏳ 14/11 — Carregamento limpo e menos trabalho gráfico no mapa — FEITO na prévia privada
 
 - O menu “Seu clube” deixa de aparecer na carga normal; permanece como alternativa em erro. Espera por etapas, sem porcentagem inventada, e controles liberados com o primeiro quadro. Replay e teto ficam abaixo do mapa, após a carga.
