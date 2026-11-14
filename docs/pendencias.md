@@ -13541,4 +13541,4 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 
 ## 📋🏆 14/11 — Liga Draft + Copa dos 8 (no branch)
 - Criar sala: Só a liga / Liga + Copa dos 8 (só a Copa dos 8, ordem do Diego). Prêmio: campeão/vice = moedas do 1º/2º da liga, semi 12, quartas 6, troféu pro campeão.
-- FALTA no banco: `esc_liga_modo2` ainda recusa copa ≠ liga em sala de draft (Trocar o modo). Mexe em função → madrugada.
+- ✅ Banco liberado em 14/11 (migration liga_draft_copa8_20261114: draft aceita 'liga' ou 'liga_copa'). PUBLICADO com aviso: a ordem do draft é sempre pela tabela da LIGA.
