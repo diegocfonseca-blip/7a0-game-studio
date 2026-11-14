@@ -9,7 +9,7 @@ try{for(const [device,width,height]of[['desktop',1440,1000],['celular',390,844],
  await context.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());await context.routeWebSocket('**/*',ws=>ws.close())
  const p=await context.newPage();p.setDefaultTimeout(150000);p.on('pageerror',e=>report.errors.push({device,error:e.message}));
  await p.goto(base+'/7a0-game-studio/scripts/teste-implantacao-urbana/index.html?cars',{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>!!window.urbanApi);await p.evaluate(()=>document.fonts.ready)
- await p.getByRole('button',{name:'Estádio e região',exact:true}).click()
+ await p.getByRole('button',{name:'Voltar à visão inicial do mapa',exact:true}).click()
  const view=async name=>p.waitForFunction(v=>{if(!window.urbanApi)return false;window.urbanApi.view(v);return true},name)
  const snap=()=>p.evaluate(()=>{const s=window.urbanApi.inspect();return{car:s.carTrip,vehicles:s.vehicleDeliveries,roads:s.roads,circulation:s.circulation?.problems,transport:s.transport?.problems,wallet:window.urbanCurrentWallet,save:window.urbanCurrentSave}})
  const photo=async name=>{await p.locator('[data-complexo-3d]').screenshot({path:`${out}/${device}-${name}.png`,animations:'disabled',timeout:90000});report.screens.push({device,name});console.log(device,name)}

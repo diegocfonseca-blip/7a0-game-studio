@@ -1,3 +1,10 @@
+## 🧭 14/11 — Mapa: etiquetas discretas e câmera previsível — FEITO na prévia privada
+
+- Etiquetas pequenas com área de toque de 44 px. Tocar no local abre informações sem mover a câmera; aproximação passa a ser explícita em “Ver de perto”. Fechar volta à visão anterior.
+- “Visão inicial” sempre acessível no topo para restaurar posição, zoom e rotação. Corrigida também a mancha borrada ao redor do campo sem asfalto, mantendo o campo de terra e os acessos.
+- Mantém a liberação exclusivamente para Diego e a chave pública desligada. Sem alterações de saves, moedas, partidas ou salas.
+- Detalhes em `docs/mapa-navegacao-20261114.md`; antes/depois, relatórios e resultado da publicação em `/workspace/shared/mapa-navegacao-20261114/`.
+
 ## 🇧🇷 14/11 — Bairro vivo: futebol do Grêmio, feira, pipas, pagode e festa junina — FEITO E TESTADO para a prévia exclusiva
 
 - Diego aprovou as propostas (“Perfeito.. Pode fszer Tb.”). Mantém o campinho e a feira, corrige o flanelinha para a localização atual do estacionamento e acrescenta os eventos no calendário da carreira.

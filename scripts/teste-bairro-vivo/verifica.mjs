@@ -11,7 +11,7 @@ try{for(const[device,width,height]of cases){
  await c.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());await c.routeWebSocket('**/*',w=>w.close())
  const p=await c.newPage();p.setDefaultTimeout(180000);p.on('pageerror',e=>report.errors.push({device,error:e.message}));p.on('console',m=>{if(m.type()==='warning'&&/tradições|mergeGeometries|desligadas/.test(m.text()))report.warnings.push(m.text())})
  await p.goto(base+'/7a0-game-studio/scripts/teste-bairro-vivo/index.html',{waitUntil:'domcontentloaded'})
- await p.getByRole('button',{name:'Estádio e região',exact:true}).click();await p.evaluate(()=>document.fonts.ready)
+ await p.getByRole('button',{name:'Voltar à visão inicial do mapa',exact:true}).click();await p.evaluate(()=>document.fonts.ready)
  const initialWallet=await p.evaluate(()=>JSON.stringify(window.bairroWallet))
  const inspect=()=>p.evaluate(()=>{const s=window.bairroApi.inspect();return{training:s.sponsorLife?.training,tradicoes:s.tradicoes,view:s.view,drawCalls:s.drawCalls,triangles:s.triangles,wallet:window.bairroWallet,c:window.bairroContext,pubLife:s.botecos,camera:s.camera,circulation:s.circulation?.problems}})
  const set=async opts=>{await p.evaluate(v=>window.setBairroContext(v),opts);await p.waitForFunction(v=>Object.entries(v).every(([k,x])=>window.bairroContext[k]===x),opts);await p.evaluate(()=>window.bairroApi?.seekCirculation(80))}
