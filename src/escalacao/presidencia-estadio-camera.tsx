@@ -61,8 +61,8 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
   <Suspense fallback={<MapaPreparando moldura/>}>
    <Complexo museumStage={career?etapasMuseu(career.state.careerMuseums?.[career.mgrId]):undefined} matchPresentation="2d" {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={handleReady} hud={<MapaHud match={replayFrame??retained} torcedores={replayFrame?0:torcedores} replay={!!replayFrame}/>}/>
   </Suspense>
-  {mapReady&&career?.replayMatch&&<div data-private-match-review style={{margin:'10px 0'}}>
-   <button type="button" onClick={replay.start}>{t('REVER JOGO SALVO NO MAPA','REPLAY SAVED MATCH ON MAP')}</button>
+  {career?.replayMatch&&(mapReady||replay.active)&&<div data-private-match-review style={{margin:'10px 0'}}>
+   {mapReady&&<button type="button" onClick={replay.start}>{t('REVER JOGO SALVO NO MAPA','REPLAY SAVED MATCH ON MAP')}</button>}
    {replay.active&&<><button type="button" disabled={replayFrame?.finished} onClick={replay.pause}>{replay.paused?t('CONTINUAR','RESUME'):t('PAUSAR','PAUSE')}</button><button type="button" onClick={replay.stop}>{t('FECHAR REPLAY','CLOSE REPLAY')}</button></>}
    {replayFrame&&<p role="status">{t('Reprodução de teste no campo do mapa. Não avança a carreira.','Test replay on the map pitch. It does not advance your career.')} {replayFrame.officialTeams?.join(' × ')} · {replayFrame.homeScore} × {replayFrame.awayScore} · {Math.min(93,Math.floor(replayFrame.minute))}′</p>}
    {replay.error&&<p role="status">{t('Este jogo salvo não possui replay compatível. Seu resultado foi preservado.','This saved match has no compatible replay. Its result was preserved.')}</p>}
