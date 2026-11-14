@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict'
+import {registerHooks} from 'node:module'
+import {existsSync} from 'node:fs'
+import * as T from 'three'
+registerHooks({resolve(s,c,n){if(s.startsWith('.')){const u=new URL(s+'.ts',c.parentURL);if(existsSync(u))return{url:u.href,shortCircuit:true}}return n(s,c)},load(u,c,n){if(u.endsWith('/lang.ts'))return{format:'module',source:"export const getLang=()=> 'pt'",shortCircuit:true};const r=n(u,c);return r.source&&u.includes('/src/escalacao/')?{...r,source:Buffer.from(r.source).toString().replaceAll('import.meta.env.BASE_URL',"'/'")}:r}})
+const {agruparPecasEstaticas}=await import('../src/escalacao/presidencia-pecas-estaticas.ts')
+const {criarShoppingClube}=await import('../src/escalacao/presidencia-shopping-clube.ts')
+// Triângulos efetivamente enviados ao desenho, incluindo coordenadas de textura.
+function triangles(root){root.updateMatrixWorld(true);const rows=[];root.traverse(o=>{if(!(o instanceof T.Mesh))return;const p=o.geometry.getAttribute('position'),uv=o.geometry.getAttribute('uv'),idx=o.geometry.index,n=idx?.count??p.count;for(let i=0;i<n;i+=3){const corners=[];for(let j=0;j<3;j++){const k=idx?idx.getX(i+j):i+j,v=new T.Vector3().fromBufferAttribute(p,k).applyMatrix4(o.matrixWorld);corners.push([...v.toArray(),...(uv?[uv.getX(k),uv.getY(k)]:[])].map(x=>Math.round(x*1e4)).join(','))}rows.push(corners.join('|'))}});return rows.sort()}
+const root=new T.Group(),opaque=new T.MeshStandardMaterial(),glass=new T.MeshStandardMaterial({transparent:true,opacity:.5}),owned=[]
+for(let i=0;i<4;i++){const m=new T.Mesh(new T.BoxGeometry(1,2,3),opaque);m.position.set(2+i*3,1,i);m.rotation.y=i*.2;root.add(m)}
+const window=new T.Mesh(new T.BoxGeometry(1,1,.1),glass);root.add(window);const before=triangles(root),result=agruparPecasEstaticas(root,g=>owned.push(g));assert.equal(result.savedDraws,3);assert.deepEqual(triangles(root),before,'Triângulos e UVs preservados');assert(root.children.includes(window),'Vidro mantém identidade e ordenação')
+root.traverse(o=>{if(o instanceof T.Mesh)o.geometry.dispose()});opaque.dispose();glass.dispose()
+function counts(root){const totals=new Map();root.updateMatrixWorld(true);root.traverse(o=>{if(o instanceof T.Mesh){const key=o.material.name+':'+o.material.type+':'+o.material.transparent,previous=totals.get(key)??0;totals.set(key,previous+(o.geometry.index?.count??o.geometry.getAttribute('position').count)/3)}});return[...totals].sort()}
+const a=criarShoppingClube(new T.Scene(),undefined,false),b=criarShoppingClube(new T.Scene());assert.deepEqual(counts(a.root),counts(b.root),'Mesmo número de triângulos por material');assert.deepEqual(a.solids,b.solids,'Portas, lotes e colisores iguais');const ba=new T.Box3().setFromObject(a.root),bb=new T.Box3().setFromObject(b.root);assert(ba.min.distanceTo(bb.min)<.0001&&ba.max.distanceTo(bb.max)<.0001,'Mesmo volume e posição');assert(b.root.userData.shopping.batching.savedDraws>80,'Redução concreta de desenhos das peças fixas');console.log(b.root.userData.shopping.batching);a.dispose();b.dispose();console.log('PASS shopping: forma, materiais, triângulos, UVs, vidros, lote e limpeza preservados')

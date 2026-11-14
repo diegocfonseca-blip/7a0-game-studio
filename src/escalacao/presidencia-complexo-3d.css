@@ -141,3 +141,7 @@
 .pc3-review .pc3-drive-status{position:absolute;z-index:6;left:12px;bottom:46px;max-width:300px;padding:11px;background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:12px;box-shadow:3px 3px 0 #000;display:grid;gap:7px}.pc3-drive-status strong{font:800 17px Oswald,sans-serif;text-transform:uppercase}.pc3-drive-status span{font-size:12px}.pc3-drive-status button{min-height:44px;border:2px solid #0c0c0c;border-radius:8px;background:#ffc400;color:#0c0c0c;font:700 14px Oswald,sans-serif;padding:7px 12px}.pc3-drive-status button:last-of-type{background:#fff}.pc3-drive-status p{margin:0;font-size:12px}
 @media(max-width:600px){.pc3-review .pc3-drive-status{left:8px;right:98px;max-width:280px;bottom:42px;padding:8px}.pc3-drive-status strong{font-size:15px}.pc3-drive-status button{font-size:13px}}
 @media(max-width:600px){.pc3-review[data-map-view="region"] .pc3-navigation{top:70px;bottom:auto}}
+
+/* Controles só entram quando o primeiro quadro está pronto. O erro conserva os atalhos de saída. */
+.pc3-review[data-map-ready=false]:not(.pc3-expanded) .pc3-topbar,.pc3-review[data-map-ready=false] .pc3-primary,.pc3-review[data-map-ready=false] .pc3-navigation,.pc3-review[data-map-ready=false] .pc3-help{display:none}
+.pc3-review[data-map-ready=false].pc3-expanded .pc3-topbar{justify-content:flex-end}

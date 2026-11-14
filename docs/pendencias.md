@@ -1,3 +1,11 @@
+## ⏳ 14/11 — Carregamento limpo e menos trabalho gráfico no mapa — FEITO na prévia privada
+
+- O menu “Seu clube” deixa de aparecer na carga normal; permanece como alternativa em erro. Espera por etapas, sem porcentagem inventada, e controles liberados com o primeiro quadro. Replay e teto ficam abaixo do mapa, após a carga.
+- Padrão do mapa deixa de capturar seis vistas completas da cidade para reflexos; montagem da cidade e estádio dividida por uma pausa. Shopping agrupa peças fixas opacas, mantendo vidros, modelos, materiais e colisores.
+- No panorama local: desktop 1.015 → 787 chamadas, celular 953 → 725, mesmos triângulos; não é promessa de ganho equivalente de FPS. Perda do contexto gráfico invalida API/controles e preserva acesso ao clube.
+- Passaram: compilação, geometria/UVs, implantação urbana, trava privada, espera, tela cheia em recarga, falha de WebGL, navegação, painel cobrindo mapa, saída, teto da carreira e perda do contexto. Testes locais com respostas de conta simuladas; sem alterar contas ou salas reais.
+- Detalhes e limites em `docs/mapa-carregamento-fluidez-20261114.md`; evidências em `/workspace/shared/mapa-carregamento-fluidez-20261114/`. Público continua desligado.
+
 ## 🌱 14/11 — Grama contínua no entorno do estádio — CORREÇÃO da prévia privada
 
 - Diego mostrou o contorno escuro em volta do estádio pronto. A correção anterior havia uniformizado somente o estado sem asfalto; o estádio pronto ainda recebia uma textura de grama exclusiva no polígono do terreno.

@@ -1,3 +1,4 @@
+import {agruparPecasEstaticas} from './presidencia-pecas-estaticas'
 import {getLang} from './lang'
 // 🛍️ SHOPPING LEGENDS (05/11, mockup `scripts/mockups/shopping-clube.png`, Diego: "ok pode fazer").
 // 🔁 05/11, 2ª versão (Diego: *"não achei imponente e nem bonito… o local tem que ser bem visível… trazer a Vadico
@@ -61,7 +62,7 @@ function placa(texto:string,fundo:string,tinta:string,w:number,h:number,tam:numb
  return t
 }
 
-export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
+export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void,batchStatic=true){
  const root=new THREE.Group();root.name='complexo-shopping-clube';parent.add(root)
  const materials:THREE.Material[]=[],geometries:THREE.BufferGeometry[]=[],textures:THREE.Texture[]=[]
  const solids:SolidoEntorno[]=[]
@@ -256,7 +257,8 @@ export function criarShoppingClube(parent:THREE.Object3D,onReady?:()=>void){
  caixa(pedra,.25,3.45,.25,vx+2.1,GROUND+1.72,VZ1+.2)
  for(const x of[VX0+1,VX1-1])caixa(grafite,.4,VH,.4,x,GROUND+VH/2,VZ1+.18)
 
- root.userData.shopping={label:PLANTA_SHOPPING.label,lojinhas:LOJINHAS_SHOPPING.map(l=>l.id),building:{...PLANTA_SHOPPING.building}}
+ const batching=batchStatic?agruparPecasEstaticas(root,g=>geometries.push(g)):{removed:0,created:0,savedDraws:0}
+ root.userData.shopping={batching,label:PLANTA_SHOPPING.label,lojinhas:LOJINHAS_SHOPPING.map(l=>l.id),building:{...PLANTA_SHOPPING.building}}
  let disposed=false
  return{root,solids,dispose(){if(disposed)return;disposed=true;root.removeFromParent();geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());biblioteca.dispose?.()}}
 }
