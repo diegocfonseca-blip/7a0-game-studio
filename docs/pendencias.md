@@ -1,3 +1,9 @@
+## 🌱 14/11 — Grama contínua no entorno do estádio — CORREÇÃO da prévia privada
+
+- Diego mostrou o contorno escuro em volta do estádio pronto. A correção anterior havia uniformizado somente o estado sem asfalto; o estádio pronto ainda recebia uma textura de grama exclusiva no polígono do terreno.
+- Agora o terreno do clube e a cidade usam o mesmo material e a mesma escala de textura em todas as etapas, eliminando a borda de cor. Mantém campo, calçadas, construções, geometria, sombras reais, compras e saves.
+- Conferência visual em desktop e celular, com o estádio pronto e o terreno inicial. Imagens e resultado da publicação em `/workspace/shared/mapa-grama-continua-20261114/`. Mapa público permanece desligado; prévia só na conta de Diego.
+
 ## 🏟️ 14/11 — Arena maior e troca de setor com a dSouza — FEITO na prévia privada
 
 - Pedido de Diego: trocar a Arena Legends online de lugar com a dSouza e deixar uma arena maior que o campo do Grêmio. Arena no setor leste, dSouza no setor sul.

@@ -349,42 +349,9 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const surface=box('terreno',grass,1800,.24,2600,0,-.36,0)
   surface.castShadow=false
   const rawTerrain=path([[165,320],[464,150],[1050,169],[1355,333],[1350,703],[1000,875],[480,860],[218,616]])
-  const clubGround=polygon('terreno-clube',rawTerrain,-.19,state.extras.asfalto?grass:dirt)
-  if(!state.extras.asfalto){
-    // Entorno verde e discreto. A terra pertence ao campo e aos acessos ainda
-    // sem piso; misturar tons em toda a gleba gerava uma grande mancha borrada.
-    clubGround.material=grass
-  }else{
-    // The completed club keeps broad natural colour in its residual lawns.
-    // Sample in world metres rather than repeating a large stain every 4 m;
-    // paving, plots and the existing ground triangles stay exactly in place.
-    const size=512,extent=1024,pixels=new Uint8Array(size*size*4)
-    const shade=new THREE.Color('#5d704b'),growth=new THREE.Color('#728054'),color=new THREE.Color()
-    const smoothNoise=(x:number,z:number,scale:number)=>{
-      const px=x/scale,pz=z/scale,ix=Math.floor(px),iz=Math.floor(pz)
-      const fx=px-ix,fz=pz-iz,u=fx*fx*(3-2*fx),v=fz*fz*(3-2*fz)
-      const a=hash(ix,iz)*(1-u)+hash(ix+1,iz)*u
-      const b=hash(ix,iz+1)*(1-u)+hash(ix+1,iz+1)*u
-      return a*(1-v)+b*v
-    }
-    for(let z=0;z<size;z++)for(let x=0;x<size;x++){
-      const wx=((x+.5)/size-.5)*extent,wz=((z+.5)/size-.5)*extent
-      // Different scales and offsets break any visible square-grid rhythm.
-      const patch=smoothNoise(wx+91,wz-37,137)*.62+smoothNoise(wx-63,wz+129,59)*.28+smoothNoise(wx+17,wz+53,27)*.10
-      color.copy(shade).lerp(growth,THREE.MathUtils.smoothstep(patch,.12,.88))
-      const at=(z*size+x)*4
-      pixels[at]=Math.round(color.r*255);pixels[at+1]=Math.round(color.g*255);pixels[at+2]=Math.round(color.b*255);pixels[at+3]=255
-    }
-    const lawn=new THREE.DataTexture(pixels,size,size)
-    lawn.colorSpace=THREE.LinearSRGBColorSpace
-    lawn.wrapS=lawn.wrapT=THREE.ClampToEdgeWrapping
-    lawn.offset.set(.5,.5);lawn.repeat.set(4/extent,4/extent)
-    lawn.magFilter=THREE.LinearFilter;lawn.minFilter=THREE.LinearMipmapLinearFilter
-    lawn.generateMipmaps=true;lawn.needsUpdate=true;textures.add(lawn)
-    const natural=material('#ffffff',1,0,lawn)
-    natural.bumpMap=grass.map;natural.bumpScale=.008
-    clubGround.material=natural
-  }
+  // Mesma grama e UVs em metros dentro e fora do clube. Uma textura exclusiva
+  // aqui deixava o polígono do terreno visível como uma mancha no mapa pronto.
+  polygon('terreno-clube',rawTerrain,-.19,grass)
   const roadOut=PLANTA_COMPLEXO.routes.roadOut.points,roadBack=[...PLANTA_COMPLEXO.routes.roadBack.points].reverse()
   const peripheral=roadOut.map((p,i)=>({x:(p.x+roadBack[i].x)/2,z:(p.z+roadBack[i].z)/2}))
   const offsetPath=(points:readonly PontoComplexo[],offset:number)=>points.map((p,i)=>{
