@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 155 escudos · 1385 KB somados.
+// 274 escudos · 2620 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -421,8 +421,8 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   },
   "São Bernardo": {
     "src": "escudos-clubes/sao-bernardo.webp",
-    "w": 160,
-    "h": 159
+    "w": 156,
+    "h": 160
   },
   "Vila Nova": {
     "src": "escudos-clubes/vila-nova.webp",
@@ -497,6 +497,601 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "Ypiranga": {
     "src": "escudos-clubes/ypiranga.webp",
     "w": 135,
+    "h": 160
+  },
+  "Galvez": {
+    "src": "escudos-clubes/galvez.webp",
+    "w": 141,
+    "h": 160
+  },
+  "Humaitá": {
+    "src": "escudos-clubes/humaita.webp",
+    "w": 137,
+    "h": 160
+  },
+  "Independência": {
+    "src": "escudos-clubes/independencia.webp",
+    "w": 143,
+    "h": 160
+  },
+  "ASA": {
+    "src": "escudos-clubes/asa.webp",
+    "w": 160,
+    "h": 160
+  },
+  "CSE": {
+    "src": "escudos-clubes/cse.webp",
+    "w": 144,
+    "h": 160
+  },
+  "Manauara": {
+    "src": "escudos-clubes/manauara.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Manaus": {
+    "src": "escudos-clubes/manaus.webp",
+    "w": 110,
+    "h": 160
+  },
+  "Nacional-AM": {
+    "src": "escudos-clubes/nacional-am.webp",
+    "w": 141,
+    "h": 160
+  },
+  "Oratório": {
+    "src": "escudos-clubes/oratorio.webp",
+    "w": 152,
+    "h": 160
+  },
+  "Trem": {
+    "src": "escudos-clubes/trem.webp",
+    "w": 114,
+    "h": 160
+  },
+  "Atlético-BA": {
+    "src": "escudos-clubes/atletico-ba.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Bahia de Feira": {
+    "src": "escudos-clubes/bahia-de-feira.webp",
+    "w": 160,
+    "h": 148
+  },
+  "Barcelona de Ilhéus": {
+    "src": "escudos-clubes/barcelona-de-ilheus.webp",
+    "w": 112,
+    "h": 160
+  },
+  "Jacuipense": {
+    "src": "escudos-clubes/jacuipense.webp",
+    "w": 160,
+    "h": 159
+  },
+  "Jequié": {
+    "src": "escudos-clubes/jequie.webp",
+    "w": 132,
+    "h": 160
+  },
+  "Juazeirense": {
+    "src": "escudos-clubes/juazeirense.webp",
+    "w": 144,
+    "h": 160
+  },
+  "Porto-BA": {
+    "src": "escudos-clubes/porto-ba.webp",
+    "w": 105,
+    "h": 160
+  },
+  "Atlético-CE": {
+    "src": "escudos-clubes/atletico-ce.webp",
+    "w": 149,
+    "h": 160
+  },
+  "Ferroviário-CE": {
+    "src": "escudos-clubes/ferroviario-ce.webp",
+    "w": 137,
+    "h": 160
+  },
+  "Iguatu": {
+    "src": "escudos-clubes/iguatu.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Maracanã-CE": {
+    "src": "escudos-clubes/maracana-ce.webp",
+    "w": 114,
+    "h": 160
+  },
+  "Tirol": {
+    "src": "escudos-clubes/tirol.webp",
+    "w": 129,
+    "h": 160
+  },
+  "Brasiliense": {
+    "src": "escudos-clubes/brasiliense.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Capital": {
+    "src": "escudos-clubes/capital.webp",
+    "w": 128,
+    "h": 160
+  },
+  "Ceilândia": {
+    "src": "escudos-clubes/ceilandia.webp",
+    "w": 133,
+    "h": 160
+  },
+  "Gama": {
+    "src": "escudos-clubes/gama.webp",
+    "w": 129,
+    "h": 160
+  },
+  "Real Noroeste": {
+    "src": "escudos-clubes/real-noroeste.webp",
+    "w": 83,
+    "h": 160
+  },
+  "Rio Branco-ES": {
+    "src": "escudos-clubes/rio-branco-es.webp",
+    "w": 126,
+    "h": 160
+  },
+  "Vitória-ES": {
+    "src": "escudos-clubes/vitoria-es.webp",
+    "w": 122,
+    "h": 160
+  },
+  "ABECAT": {
+    "src": "escudos-clubes/abecat.webp",
+    "w": 111,
+    "h": 160
+  },
+  "Anapolina": {
+    "src": "escudos-clubes/anapolina.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Aparecidense": {
+    "src": "escudos-clubes/aparecidense.webp",
+    "w": 159,
+    "h": 160
+  },
+  "Centro Oeste": {
+    "src": "escudos-clubes/centro-oeste.webp",
+    "w": 160,
+    "h": 160
+  },
+  "CRAC": {
+    "src": "escudos-clubes/crac.webp",
+    "w": 111,
+    "h": 160
+  },
+  "Goiatuba": {
+    "src": "escudos-clubes/goiatuba.webp",
+    "w": 160,
+    "h": 159
+  },
+  "Inhumas": {
+    "src": "escudos-clubes/inhumas.webp",
+    "w": 126,
+    "h": 160
+  },
+  "Jataiense": {
+    "src": "escudos-clubes/jataiense.webp",
+    "w": 118,
+    "h": 160
+  },
+  "IAPE": {
+    "src": "escudos-clubes/iape.webp",
+    "w": 130,
+    "h": 160
+  },
+  "Imperatriz": {
+    "src": "escudos-clubes/imperatriz.webp",
+    "w": 122,
+    "h": 160
+  },
+  "Moto Club": {
+    "src": "escudos-clubes/moto-club.webp",
+    "w": 138,
+    "h": 160
+  },
+  "Betim": {
+    "src": "escudos-clubes/betim.webp",
+    "w": 132,
+    "h": 160
+  },
+  "Democrata-GV": {
+    "src": "escudos-clubes/democrata-gv.webp",
+    "w": 126,
+    "h": 160
+  },
+  "Itabirito": {
+    "src": "escudos-clubes/itabirito.webp",
+    "w": 160,
+    "h": 160
+  },
+  "North": {
+    "src": "escudos-clubes/north.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Pouso Alegre": {
+    "src": "escudos-clubes/pouso-alegre.webp",
+    "w": 158,
+    "h": 160
+  },
+  "Tombense": {
+    "src": "escudos-clubes/tombense.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Uberlândia": {
+    "src": "escudos-clubes/uberlandia.webp",
+    "w": 122,
+    "h": 160
+  },
+  "URT": {
+    "src": "escudos-clubes/urt.webp",
+    "w": 119,
+    "h": 160
+  },
+  "Ivinhema": {
+    "src": "escudos-clubes/ivinhema.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Operário-MS": {
+    "src": "escudos-clubes/operario-ms.webp",
+    "w": 116,
+    "h": 160
+  },
+  "Luverdense": {
+    "src": "escudos-clubes/luverdense.webp",
+    "w": 95,
+    "h": 160
+  },
+  "Mixto": {
+    "src": "escudos-clubes/mixto.webp",
+    "w": 160,
+    "h": 92
+  },
+  "Operário VG": {
+    "src": "escudos-clubes/operario-vg.webp",
+    "w": 130,
+    "h": 160
+  },
+  "Primavera-MT": {
+    "src": "escudos-clubes/primavera-mt.webp",
+    "w": 92,
+    "h": 160
+  },
+  "União Rondonópolis": {
+    "src": "escudos-clubes/uniao-rondonopolis.webp",
+    "w": 107,
+    "h": 160
+  },
+  "Várzea Grande": {
+    "src": "escudos-clubes/varzea-grande.webp",
+    "w": 160,
+    "h": 158
+  },
+  "Tuna Luso": {
+    "src": "escudos-clubes/tuna-luso.webp",
+    "w": 144,
+    "h": 160
+  },
+  "Águia de Marabá": {
+    "src": "escudos-clubes/aguia-de-maraba.webp",
+    "w": 146,
+    "h": 160
+  },
+  "Campinense": {
+    "src": "escudos-clubes/campinense.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Serra Branca": {
+    "src": "escudos-clubes/serra-branca.webp",
+    "w": 130,
+    "h": 160
+  },
+  "Sousa": {
+    "src": "escudos-clubes/sousa.webp",
+    "w": 94,
+    "h": 160
+  },
+  "Treze": {
+    "src": "escudos-clubes/treze.webp",
+    "w": 113,
+    "h": 160
+  },
+  "Central": {
+    "src": "escudos-clubes/central.webp",
+    "w": 118,
+    "h": 160
+  },
+  "Decisão": {
+    "src": "escudos-clubes/decisao.webp",
+    "w": 127,
+    "h": 160
+  },
+  "Maguary": {
+    "src": "escudos-clubes/maguary.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Retrô": {
+    "src": "escudos-clubes/retro.webp",
+    "w": 130,
+    "h": 160
+  },
+  "Altos": {
+    "src": "escudos-clubes/altos.webp",
+    "w": 148,
+    "h": 160
+  },
+  "Fluminense-PI": {
+    "src": "escudos-clubes/fluminense-pi.webp",
+    "w": 160,
+    "h": 137
+  },
+  "Parnahyba": {
+    "src": "escudos-clubes/parnahyba.webp",
+    "w": 128,
+    "h": 160
+  },
+  "Piauí": {
+    "src": "escudos-clubes/piaui.webp",
+    "w": 160,
+    "h": 88
+  },
+  "Andraus": {
+    "src": "escudos-clubes/andraus.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Azuriz": {
+    "src": "escudos-clubes/azuriz.webp",
+    "w": 109,
+    "h": 160
+  },
+  "Cascavel": {
+    "src": "escudos-clubes/cascavel.webp",
+    "w": 159,
+    "h": 160
+  },
+  "Cianorte": {
+    "src": "escudos-clubes/cianorte.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Foz do Iguaçu": {
+    "src": "escudos-clubes/foz-do-iguacu.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Galo Maringá": {
+    "src": "escudos-clubes/galo-maringa.webp",
+    "w": 92,
+    "h": 160
+  },
+  "São Joseense": {
+    "src": "escudos-clubes/sao-joseense.webp",
+    "w": 107,
+    "h": 160
+  },
+  "Boavista-RJ": {
+    "src": "escudos-clubes/boavista-rj.webp",
+    "w": 136,
+    "h": 160
+  },
+  "Maricá": {
+    "src": "escudos-clubes/marica.webp",
+    "w": 93,
+    "h": 160
+  },
+  "Nova Iguaçu": {
+    "src": "escudos-clubes/nova-iguacu.webp",
+    "w": 133,
+    "h": 160
+  },
+  "Portuguesa-RJ": {
+    "src": "escudos-clubes/portuguesa-rj.webp",
+    "w": 160,
+    "h": 157
+  },
+  "Sampaio Corrêa-RJ": {
+    "src": "escudos-clubes/sampaio-correa-rj.webp",
+    "w": 154,
+    "h": 160
+  },
+  "América-RN": {
+    "src": "escudos-clubes/america-rn.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Laguna": {
+    "src": "escudos-clubes/laguna.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Guaporé": {
+    "src": "escudos-clubes/guapore.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Porto Velho": {
+    "src": "escudos-clubes/porto-velho.webp",
+    "w": 159,
+    "h": 160
+  },
+  "GAS": {
+    "src": "escudos-clubes/gas.webp",
+    "w": 150,
+    "h": 160
+  },
+  "Monte Roraima": {
+    "src": "escudos-clubes/monte-roraima.webp",
+    "w": 142,
+    "h": 160
+  },
+  "São Raimundo-RR": {
+    "src": "escudos-clubes/sao-raimundo-rr.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Avenida": {
+    "src": "escudos-clubes/avenida.webp",
+    "w": 160,
+    "h": 158
+  },
+  "Brasil de Pelotas": {
+    "src": "escudos-clubes/brasil-de-pelotas.webp",
+    "w": 143,
+    "h": 160
+  },
+  "Guarany de Bagé": {
+    "src": "escudos-clubes/guarany-de-bage.webp",
+    "w": 136,
+    "h": 160
+  },
+  "Inter-SM": {
+    "src": "escudos-clubes/inter-sm.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Monsoon": {
+    "src": "escudos-clubes/monsoon.webp",
+    "w": 160,
+    "h": 157
+  },
+  "Novo Hamburgo": {
+    "src": "escudos-clubes/novo-hamburgo.webp",
+    "w": 116,
+    "h": 160
+  },
+  "São José-RS": {
+    "src": "escudos-clubes/sao-jose-rs.webp",
+    "w": 150,
+    "h": 160
+  },
+  "São Luiz-RS": {
+    "src": "escudos-clubes/sao-luiz-rs.webp",
+    "w": 128,
+    "h": 160
+  },
+  "Blumenau": {
+    "src": "escudos-clubes/blumenau.webp",
+    "w": 137,
+    "h": 160
+  },
+  "Joinville": {
+    "src": "escudos-clubes/joinville.webp",
+    "w": 123,
+    "h": 160
+  },
+  "Marcílio Dias": {
+    "src": "escudos-clubes/marcilio-dias.webp",
+    "w": 106,
+    "h": 160
+  },
+  "Santa Catarina": {
+    "src": "escudos-clubes/santa-catarina.webp",
+    "w": 97,
+    "h": 160
+  },
+  "Atlético Gloriense": {
+    "src": "escudos-clubes/atletico-gloriense.webp",
+    "w": 133,
+    "h": 160
+  },
+  "Lagarto": {
+    "src": "escudos-clubes/lagarto.webp",
+    "w": 120,
+    "h": 160
+  },
+  "Sergipe": {
+    "src": "escudos-clubes/sergipe.webp",
+    "w": 114,
+    "h": 160
+  },
+  "Noroeste": {
+    "src": "escudos-clubes/noroeste.webp",
+    "w": 124,
+    "h": 160
+  },
+  "Portuguesa": {
+    "src": "escudos-clubes/portuguesa.webp",
+    "w": 128,
+    "h": 160
+  },
+  "Primavera-SP": {
+    "src": "escudos-clubes/primavera-sp.webp",
+    "w": 133,
+    "h": 160
+  },
+  "Velo Clube": {
+    "src": "escudos-clubes/velo-clube.webp",
+    "w": 160,
+    "h": 159
+  },
+  "XV de Piracicaba": {
+    "src": "escudos-clubes/xv-de-piracicaba.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Água Santa": {
+    "src": "escudos-clubes/agua-santa.webp",
+    "w": 158,
+    "h": 160
+  },
+  "Araguaína": {
+    "src": "escudos-clubes/araguaina.webp",
+    "w": 129,
+    "h": 160
+  },
+  "Tocantinópolis": {
+    "src": "escudos-clubes/tocantinopolis.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Vasco-AC": {
+    "src": "escudos-clubes/vasco-ac.webp",
+    "w": 127,
+    "h": 160
+  },
+  "Independente-AP": {
+    "src": "escudos-clubes/independente-ap.webp",
+    "w": 118,
+    "h": 160
+  },
+  "Horizonte": {
+    "src": "escudos-clubes/horizonte.webp",
+    "w": 160,
+    "h": 147
+  },
+  "Cametá": {
+    "src": "escudos-clubes/cameta.webp",
+    "w": 111,
+    "h": 160
+  },
+  "Ji-Paraná": {
+    "src": "escudos-clubes/ji-parana.webp",
+    "w": 109,
+    "h": 160
+  },
+  "Camboriú": {
+    "src": "escudos-clubes/camboriu.webp",
+    "w": 135,
+    "h": 160
+  },
+  "Dorense": {
+    "src": "escudos-clubes/dorense.webp",
+    "w": 151,
     "h": 160
   },
   "Real Madrid": {
