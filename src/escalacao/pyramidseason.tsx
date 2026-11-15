@@ -7819,11 +7819,21 @@ function AvisoContaCarreira() {
   useEffect(() => {
     let vivo = true
     const ver = async () => {
-      try { const { data } = await supabase.auth.getSession(); if (vivo) setLogado(!!data.session) }
-      catch { if (vivo) setLogado(null) }
+      // 🔐 15/11 (Diego, LOGADO, via o aviso "crie uma conta"): o celular volta do fundo com o crachá vencido e a renovação
+      // falha um instante (rede) → `getSession` devolve sessão vazia COM erro. Isso não é "sem conta". Só mostra o convite
+      // quando o login diz, sem erro, que não tem ninguém; e só esconde/mostra de novo pelos eventos de entrar/sair.
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (!vivo) return
+        setLogado(data.session ? true : error ? null : false)
+      } catch { if (vivo) setLogado(null) }
     }
     ver()
-    const { data: sub } = supabase.auth.onAuthStateChange((_, sess) => { if (vivo) setLogado(!!sess) })
+    const { data: sub } = supabase.auth.onAuthStateChange((ev, sess) => {
+      if (!vivo) return
+      if (sess) setLogado(true)
+      else if (ev === 'SIGNED_OUT') setLogado(false)
+    })
     return () => { vivo = false; sub.subscription.unsubscribe() }
   }, [])
   const solo = state.careerOnline && state.onlineMode !== 'online'
