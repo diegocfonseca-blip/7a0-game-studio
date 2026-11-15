@@ -15,6 +15,7 @@
 // 🖼️ EXCEÇÃO APROVADA (Diego, 10/08): batismo pode usar ARTE PRÓPRIA em imagem
 // quando o dono manda o arquivo (caso Tôka10). Regra prática: webp comprimido,
 // kit inteiro ≤ ~40 KB (o site tem ~3 MB, então isso é ~1% — irrelevante).
+import { ESCUDOS_OFICIAIS } from './escudos-oficiais'
 import type { ReactNode } from 'react'
 import tokaEscudoImg from './img/toka10-escudo.webp'
 import erosEscudoImg from './img/eros-escudo.webp'
@@ -1937,8 +1938,15 @@ const logoPronta = (n: string) => {
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos
 // e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
+// 🇧🇷 BRASIL OFICIAL (15/11): durante a carreira do modo, clube REAL aparece com o escudo OFICIAL (o mesmo do leilão de clubes,
+// `escudos-oficiais.ts`, arquivo fora do bundle). Liga/desliga junto do baralho do modo (`setActiveCatalog` no store); fora do
+// modo nada muda.
+let ESCUDO_OFICIAL_ON = false
+export function ligaEscudosOficiais(v: boolean) { ESCUDO_OFICIAL_ON = v }
 export function Escudo({ nome: nomeCru, size = 30, title, automatic=false }: { nome: string; size?: number; title?: string; automatic?:boolean }) {
   const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 mesmo escudo com ou sem o selo do tier
+  const of = ESCUDO_OFICIAL_ON && !automatic ? (ESCUDOS_OFICIAIS as Record<string, { src: string; w: number; h: number }>)[nome] : undefined
+  if (of) return <img src={`${import.meta.env.BASE_URL}${of.src}`} alt={title ?? nome} title={title ?? nome} width={Math.round(size * of.w / of.h)} height={size} style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   // logo artesanal: bate pelo nome EXATO; se não achar, tenta o nome ATUAL do
   // batismo (save antigo que ficou com o nome velho — ex.: "Cuiabagre" →
   // "Império Samambaia"). Assim a logo comprada aparece mesmo em carreira antiga.

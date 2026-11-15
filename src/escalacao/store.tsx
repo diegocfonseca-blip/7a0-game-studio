@@ -122,6 +122,7 @@ function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'to
   const base0 = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
   const base1 = regional ? comCartasRegionais(base0, regional) : base0
   const base = oficial ? comCartasOficiais(base1) : base1
+  ligaEscudosOficiais(oficial) // 🇧🇷 clube real com escudo oficial só dentro do Brasil Oficial
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
   ORDEM_ATIVA = SECTORS
 }
@@ -1130,6 +1131,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
+import { ligaEscudosOficiais } from './escudos'
 import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
 import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'

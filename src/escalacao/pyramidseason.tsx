@@ -3101,12 +3101,104 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
     </div>
   )
 }
-export function PyramidTables({ tables, order, colors, myDiv, final, safTeam, safCol }: { tables: Record<Div, SimTeam[]>; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null; final?: boolean; safTeam?: string; safCol?: FCol }) {
+// ─── 🇧🇷 BRASIL OFICIAL: a tabela de cada série no FORMATO REAL (mockup aprovado 15/11, scripts/mockups/brasil-oficial-tabelas.png) ─
+// B: faixas SOBE (1º–2º) · PLAYOFF (3º–6º) · Z4, e o quadro do playoff. C: 1ª fase · 2ª fase · Final. D: Grupos (A1…A16) ·
+// Mata-mata. A Série A segue na `DivTable` de sempre.
+const VERDE_OF = '#DCF2E1', AMARELO_OF = '#FFF4C2', VERMELHO_OF = '#F9D8D3'
+function SeloOf({ t, bg }: { t: string; bg: string }) { return <span style={{ fontSize: 7, fontWeight: 900, borderRadius: 4, padding: '1px 3px', marginLeft: 2, background: bg, border: '1px solid rgba(0,0,0,.4)', color: INK }}>{t}</span> }
+function ChipsOf({ itens, on, set }: { itens: string[]; on: string; set: (s: string) => void }) {
+  return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, margin: '0 0 8px' }}>{itens.map(i => <button key={i} type="button" onClick={() => set(i)} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '3px 8px', ...OSWALD, fontWeight: 900, fontSize: 12, cursor: 'pointer', background: i === on ? INK : '#fff', color: i === on ? GOLD : INK }}>{i}</button>)}</div>
+}
+function TabelaOf({ titulo, teams, faixa }: { titulo: string; teams: SimTeam[]; faixa: (i: number) => { bg: string; selo?: string } | null }) {
+  return (
+    <div style={{ ...box('#fff'), padding: 10, marginBottom: 10, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 4px' }}>{titulo}</p>
+      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+        <thead><tr style={{ textAlign: 'left' }}><th>#</th><th>{tr('Time', 'Team')}</th><th style={{ textAlign: 'center' }}>P</th><th className="ll-dk-col" style={{ textAlign: 'center' }}>J</th><th style={{ textAlign: 'center' }}>V</th><th style={{ textAlign: 'center' }}>E</th><th style={{ textAlign: 'center' }}>D</th><th style={{ textAlign: 'center' }}>SG</th></tr></thead>
+        <tbody>{teams.map((t, i) => { const f = faixa(i); return (
+          <tr key={t.name} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', background: t.you ? '#FFF1B8' : f?.bg ?? '#fff', fontWeight: t.you ? 800 : 500 }}>
+            <td style={{ whiteSpace: 'nowrap' }}>{i + 1}{f?.selo && <SeloOf t={f.selo} bg={f.bg} />}</td>
+            <td style={{ maxWidth: 160 }}><span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}><Escudo nome={t.name} size={18} /><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.you ? '👤 ' : ''}{t.name}</span></span></td>
+            <td style={{ textAlign: 'center', fontWeight: 900 }}>{t.pts}</td><td className="ll-dk-col" style={{ textAlign: 'center' }}>{t.w + t.d + t.l}</td>
+            <td style={{ textAlign: 'center' }}>{t.w}</td><td style={{ textAlign: 'center' }}>{t.d}</td><td style={{ textAlign: 'center' }}>{t.l}</td><td style={{ textAlign: 'center' }}>{t.gf - t.ga}</td>
+          </tr>) })}</tbody>
+      </table>
+    </div>
+  )
+}
+function ConfrontoOf({ c, voce }: { c: ConfrontoSim; voce?: string }) {
+  // ida: o PIOR em casa (gols do b, gols do a) · volta: o MELHOR em casa (gols do a, gols do b)
+  const ga = (c.ida?.[1] ?? 0) + (c.volta?.[0] ?? 0), gb = (c.ida?.[0] ?? 0) + (c.volta?.[1] ?? 0)
+  const linha = (t: string, g: number) => <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: c.vencedor === t ? 900 : 500, fontSize: 12, background: t === voce ? '#FFF1B8' : undefined }}><span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Escudo nome={t} size={16} />{t}</span><span>{c.ida ? g : ''}</span></div>
+  return (
+    <div style={{ border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 7px', margin: '5px 0', background: '#fff' }}>
+      {linha(c.a, ga)}{linha(c.b, gb)}
+      <div style={{ fontSize: 10, fontWeight: 600, color: '#555' }}>{c.ida ? `${tr('ida', '1st leg')} ${c.ida[0]}×${c.ida[1]}` : tr('ida e volta: ainda vai jogar', 'two legs: still to play')}{c.volta ? ` · ${tr('volta', '2nd leg')} ${c.volta[0]}×${c.volta[1]}` : ''}{c.penaltis ? tr(' · pênaltis', ' · penalties') : ''}</div>
+    </div>
+  )
+}
+const legendaOf = (t: string) => <p style={{ fontSize: 11.5, fontWeight: 600, margin: '0 0 10px', color: '#333' }}>{t}</p>
+export function TabelaOficial({ div, tables, fases }: { div: Div; tables: Record<Div, SimTeam[]>; fases: FasesOficiais }) {
+  const [faseC, setFaseC] = useState<string>('')
+  const [modoD, setModoD] = useState<string>('')
+  const [grupoD, setGrupoD] = useState<string>('')
+  const [koD, setKoD] = useState<string>('')
+  const voce = (tables[div] ?? []).find(t => t.you)?.name
+  if (div === 'B') {
+    const t = tables.B ?? []
+    return <>
+      <TabelaOf titulo={tr('Série B · pontos corridos', 'Série B · league')} teams={t} faixa={i => i < 2 ? { bg: VERDE_OF, selo: tr('SOBE', 'UP') } : i < 6 ? { bg: AMARELO_OF, selo: 'PLAYOFF' } : i >= t.length - 4 ? { bg: VERMELHO_OF, selo: 'Z4' } : null} />
+      {legendaOf(tr('🟩 1º e 2º sobem direto · 🟨 3º ao 6º vão pro playoff · 🟥 4 últimos caem', '🟩 1st and 2nd go straight up · 🟨 3rd to 6th go to the playoff · 🟥 bottom 4 go down'))}
+      {fases.B.playoff && <div style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+        <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🔥 {tr('PLAYOFF DE ACESSO', 'PROMOTION PLAYOFF')}</p>
+        <p style={{ fontSize: 11, fontWeight: 600, margin: '2px 0 4px' }}>{tr('Ida e volta. Empate no total: passa a melhor campanha.', 'Two legs. Level on aggregate: the better league season goes through.')}</p>
+        {fases.B.playoff.map(c => <ConfrontoOf key={c.a} c={c} voce={voce} />)}
+      </div>}
+    </>
+  }
+  if (div === 'C') {
+    const nomes = [...new Set(fases.C.fases.map(f => f.nome.split(' · ')[0])), ...(fases.C.final ? ['Final'] : [])]
+    const on = nomes.includes(faseC) ? faseC : nomes[nomes.length - 1] ?? ''
+    const doisGrupos = fases.C.formato === 'dois-grupos'
+    return <>
+      <ChipsOf itens={nomes} on={on} set={setFaseC} />
+      {on === '1ª fase' && legendaOf(doisGrupos ? tr('Dois grupos de 14, turno e returno. Os 4 primeiros de cada grupo avançam; os 3 últimos de cada caem.', 'Two groups of 14, home and away. Top 4 of each group advance; bottom 3 of each go down.') : tr('Turno único. Os 8 primeiros avançam; os 2 últimos caem.', 'Single round robin. Top 8 advance; bottom 2 go down.'))}
+      {on === '2ª fase' && legendaOf(tr('Os 8 primeiros formam 2 grupos de 4 (pontos zerados). Os 2 primeiros de cada grupo SOBEM.', 'The top 8 form 2 groups of 4 (points reset). The top 2 of each group go UP.'))}
+      {fases.C.fases.filter(f => f.nome.startsWith(on)).map(f => <TabelaOf key={f.nome} titulo={f.nome} teams={f.tabela} faixa={i => on === '2ª fase' ? (i < 2 ? { bg: VERDE_OF, selo: tr('SOBE', 'UP') } : null) : doisGrupos ? (i < 4 ? { bg: VERDE_OF, selo: tr('AVANÇA', 'ADVANCE') } : i >= f.tabela.length - 3 ? { bg: VERMELHO_OF, selo: tr('CAI', 'DOWN') } : null) : (i < 8 ? { bg: VERDE_OF, selo: tr('AVANÇA', 'ADVANCE') } : i >= f.tabela.length - 2 ? { bg: VERMELHO_OF, selo: tr('CAI', 'DOWN') } : null)} />)}
+      {on === 'Final' && fases.C.final && <div style={{ ...box('#fff'), padding: 10 }}><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🏆 {tr('FINAL', 'FINAL')}</p><ConfrontoOf c={fases.C.final} voce={voce} /></div>}
+    </>
+  }
+  if (div === 'D') {
+    const temKo = fases.D.mataMata.length > 0
+    const modo = temKo && (modoD === 'ko' || (!modoD)) ? 'ko' : 'grupos'
+    const gNomes = fases.D.grupos.map(g => g.nome)
+    const meuGrupo = fases.D.grupos.find(g => g.tabela.some(t => t.you))?.nome
+    const gOn = gNomes.includes(grupoD) ? grupoD : meuGrupo ?? gNomes[0] ?? ''
+    const kNomes = fases.D.mataMata.map(m => m.nome)
+    const kOn = kNomes.includes(koD) ? koD : kNomes[kNomes.length - 1] ?? ''
+    const g = fases.D.grupos.find(x => x.nome === gOn)
+    return <>
+      <ChipsOf itens={temKo ? [tr('Grupos', 'Groups'), tr('Mata-mata', 'Knockout')] : [tr('Grupos', 'Groups')]} on={modo === 'ko' ? tr('Mata-mata', 'Knockout') : tr('Grupos', 'Groups')} set={x => setModoD(x === tr('Mata-mata', 'Knockout') ? 'ko' : 'grupos')} />
+      {modo === 'grupos' ? <>
+        <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 4px' }}>{tr('GRUPO', 'GROUP')}</p>
+        <ChipsOf itens={gNomes} on={gOn} set={setGrupoD} />
+        {g && <TabelaOf titulo={`${tr('Grupo', 'Group')} ${g.nome} · 🟫 ${tr('campo de terra', 'dirt pitch')}`} teams={g.tabela} faixa={i => i < 4 ? { bg: VERDE_OF, selo: tr('AVANÇA', 'ADVANCE') } : null} />}
+        {legendaOf(tr('Os 4 primeiros de cada grupo vão pro mata-mata (ida e volta). Sobem 6: os 4 semifinalistas + 2 do playoff.', 'The top 4 of each group go to the knockouts (two legs). 6 go up: the 4 semi-finalists + 2 from the playoff.'))}
+      </> : <>
+        <ChipsOf itens={kNomes} on={kOn} set={setKoD} />
+        <div style={{ ...box('#fff'), padding: 10 }}><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{kOn}</p>
+          {(fases.D.mataMata.find(m => m.nome === kOn)?.confrontos ?? []).map(c => <ConfrontoOf key={c.a + c.b} c={c} voce={voce} />)}</div>
+      </>}
+    </>
+  }
+  return null
+}
+export function PyramidTables({ tables, order, colors, myDiv, final, safTeam, safCol, oficial }: { tables: Record<Div, SimTeam[]>; order?: Div[]; colors?: Record<number, FCol>; myDiv?: Div | null; final?: boolean; safTeam?: string; safCol?: FCol; oficial?: FasesOficiais }) {
   const cols = colors ?? {}
   // a artilharia saiu daqui (foi pra aba Rank) — a aba Tabelas fica só com as 4 tabelas.
   // The match sidebar is narrower than the desktop viewport. Fit one or two
   // tables to the space actually available, keeping the original division order.
-  return <div className="desk-grid2 ll-pyramid-tables">{(order ?? DIVS).map(d => <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</div>
+  return <div className="desk-grid2 ll-pyramid-tables">{(order ?? DIVS).map(d => oficial && d !== 'A' ? <div key={d}><p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: '0 0 6px' }}>{DIV_LABEL[d]}</p><TabelaOficial div={d} tables={tables} fases={oficial} /></div> : <DivTable key={d} div={d} teams={tables[d]} colors={cols} mine={d === myDiv} final={final} safTeam={safTeam} safCol={safCol} />)}</div>
 }
 // caixa de artilharia reutilizável (temporada e todos os tempos) — top N já pronto.
 function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
@@ -13161,7 +13253,7 @@ export function PyramidSeasonScreen() {
               {(tab==='tabelas' || jogoTabela) && <>
                 {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('CONFRONTOS DA FASE', 'TIES OF THE ROUND')}`}/>}
                 {copa.rounds.slice(0,copaFinished ? nCopaRounds : copaRound).map((r,i)=><details className="ll29-history" key={i}><summary>{r.name.toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name}/></details>)}
-                <details className="ll29-history"><summary>{tr('LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO', 'LEAGUE OVER · STANDINGS AND PRIZES')}</summary><PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
+                <details className="ll29-history"><summary>{tr('LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO', 'LEAGUE OVER · STANDINGS AND PRIZES')}</summary><PyramidTables oficial={shown.oficial} tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
               </>}
             </> : (() => {
               const division = divisionView && ord.includes(divisionView) ? divisionView : myDiv ?? ord[0]
@@ -13177,7 +13269,7 @@ export function PyramidSeasonScreen() {
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
                 {/* 🖥️ no computador a divisão vira botões (23/10); o select acima some lá e segue no celular */}
                 <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={d===division} onClick={()=>setDivisionView(d)}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}</div>
-                {(tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table"><DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/></div>}
+                {(tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table">{shown.oficial && division !== 'A' ? <TabelaOficial div={division} tables={tables} fases={shown.oficial} /> : <DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/>}</div>}
                 <div id="cv2-other-games">{tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}</div>
               </>
             })()}
@@ -13225,7 +13317,7 @@ export function PyramidSeasonScreen() {
           <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
         ) : (
           <>
-            <PyramidTables tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
+            <PyramidTables oficial={shown.oficial} tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
             <PrizesBox />
           </>
         )}
