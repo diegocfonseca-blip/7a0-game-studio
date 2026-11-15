@@ -1,3 +1,10 @@
+## ⚽🎩 15/11 — Kings: pênalti do presidente igual ao pênalti do campinho — PUBLICADO
+- Diego: *"o chute tá feio… tem que ser igual pênalti mesmo do campinho, não o pulinho do presidente"*. Mockup
+  `scripts/mockups/kings-penalti-presidente.png` (2ª versão com o campo da Kings: escuro, neon azul/rosa) → *"ok agora sim"*.
+- `PresidenteNaArena` (kings-cenas.tsx): campo maior; presidente espera na meia-lua, ao zerar CORRE até a bola, a bola voa pro canto
+  que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
+  regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
+
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
 - O que o banco mostra: 17h02 ele recarregou (o botão Manual sumiu dali em diante = o aparelho dele deixou de ser dono); a sala seguiu
   salva com youIdx 0 até 17h10 (final da Kings) e parou; 39 s depois o aparelho dele saiu (registro "saiu_por_conta_propria" com
