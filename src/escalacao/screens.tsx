@@ -76,6 +76,8 @@ import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
 import { PyramidOverlay } from './pyramid'
+import { CentralCarreira } from './central' // 🏀 15/11: a Central também na carreira do basquete
+import { redacaoBasquete } from './central-basquete'
 // 🌍 COPA DO MUNDO DEPOIS DA LIGA (01/09) — LAZY de propósito: este pedaço
 // puxa o torneio inteiro junto, e só quem termina uma sala 'liga + Copa do
 // Mundo' precisa dele. Ninguém mais baixa um byte a mais.
@@ -7439,6 +7441,57 @@ function useFolgaShootout(ativo: boolean, chave: string, sessao: { duracao: numb
   }, [ativo, chave, dur])
   return ativo && estourou === chave
 }
+// 🏀📺 CENTRAL DA CARREIRA DO BASQUETE (15/11, carreira v02): a MESMA Central do futebol (`central.tsx`, com `bb`),
+// alimentada pela liga do basquete. Só mostra o que já foi revelado (a aba só abre entre um jogo e outro).
+function TabsCentralBB({ aba, onAba, travada }: { aba: 'central' | 'jogos'; onAba: (a: 'central' | 'jogos') => void; travada: boolean }) {
+  const b = (id: 'central' | 'jogos', rot: string) => (
+    <button type="button" onClick={() => onAba(id)} disabled={id === 'central' && travada}
+      style={{ ...OSWALD, flex: 1, padding: '9px 6px', fontSize: 14, letterSpacing: '.05em', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: aba === id ? 'none' : `3px 3px 0 ${INK}`, transform: aba === id ? 'translate(2px,2px)' : undefined, background: aba === id ? GOLD : '#fff', color: INK, opacity: id === 'central' && travada ? .5 : 1, cursor: 'pointer' }}>{rot}</button>
+  )
+  return <div style={{ display: 'flex', gap: 8 }}>{b('central', tr('📺 Central', '📺 Hub'))}{b('jogos', tr('🏀 Jogos e tabela', '🏀 Games & table'))}</div>
+}
+function CentralBB({ onJogos, onClube }: { onJogos: () => void; onClube: () => void }) {
+  const { state } = useEsc()
+  const you = state.managers[state.youIdx]
+  const total = state.fixtures.length || 82
+  const tab = sortedTable(state.league)
+  const nome = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
+  const tier = (state.nbaTier ?? 'street') as 'street' | 'gleague' | 'nba'
+  const liga: [string, string] = tier === 'nba' ? ['NBA', 'NBA'] : tier === 'gleague' ? ['G League', 'G League'] : ['Street League', 'Street League']
+  const vd: Record<string, { w: number; l: number }> = {}
+  for (const t of tab) vd[t.name] = { w: t.w, l: t.l }
+  const posDe = (n: string) => tab.findIndex(t => t.name === n) + 1
+  const fx = state.round < total ? state.fixtures[state.round]?.find(([h, a]) => h === you.id || a === you.id) : undefined
+  const proximo = fx ? (() => {
+    const casa = nome(fx[0]), fora = nome(fx[1]), adv = fx[0] === you.id ? fora : casa
+    const eu = tab.find(t => t.id === you.id), ad = tab.find(t => t.name === adv)
+    const mp = posDe(you.teamName), ap = posDe(adv)
+    let frase: string | undefined
+    if (eu && ad && state.round > 0) {
+      const d = ad.w - eu.w
+      frase = ap === 1 && mp !== 1 ? tr(`🔥 Você pega o líder · ${d > 0 ? `ele tem ${d} vitória${d > 1 ? 's' : ''} a mais` : 'dá pra assumir a ponta'}`, `🔥 You face the leader · ${d > 0 ? `${d} more win${d > 1 ? 's' : ''} than you` : 'you could take the top spot'}`)
+        : mp === 1 ? tr(`👑 Você é o líder · ${adv} vem em ${ap}º`, `👑 You lead · ${adv} are ${ordinal(ap, 'en')}`)
+        : Math.abs(ap - mp) <= 1 ? tr(`⚔️ Confronto direto: ${mp}º × ${ap}º`, `⚔️ Head-to-head: ${ordinal(mp, 'en')} v ${ordinal(ap, 'en')}`)
+        : tr(`${mp}º × ${ap}º · ${d > 0 ? `${d} vitórias separam vocês` : d < 0 ? `você tem ${-d} vitórias a mais` : 'mesma campanha'}`, `${ordinal(mp, 'en')} v ${ordinal(ap, 'en')} · ${d > 0 ? `${d} wins between you` : d < 0 ? `you are ${-d} wins ahead` : 'same record'}`)
+    }
+    return { rodada: state.round + 1, casa, fora, rolando: false, frase }
+  })() : null
+  const ultimos = state.round > 0 ? state.lastResults.map(r => ({ h: nome(r.homeId), a: nome(r.awayId), hg: r.hg, ag: r.ag, hId: r.homeId, aId: r.awayId })) : []
+  const meus = ultimos.filter(j => j.hId === you.id || j.aId === you.id)
+  const giro = ultimos.length ? { rodada: state.round, total: ultimos.length, titulo: tr(`📣 Giro do jogo ${state.round}`, `📣 Around game ${state.round}`), jogos: [...meus, ...ultimos.filter(j => !meus.includes(j))] } : null
+  const negocios = state.managers.flatMap(m => m.squad.filter(c => !c.fake && (c.paid ?? 0) > 0).map(c => ({ name: c.name, pos: posTag(c.pos), paid: c.paid ?? 0, team: m.teamName, you: m.id === you.id })))
+    .sort((a, b) => b.paid - a.paid).slice(0, 20)
+  const caro = negocios[0]
+  const cestinhas = [...(state.scorers ?? [])].sort((a, b) => b.goals - a.goals).slice(0, 40).map(x => ({ name: x.name, team: x.teamName, pts: x.goals, you: x.teamId === you.id }))
+  const jornal = redacaoBasquete({ jogo: state.round, total, liga, tabela: tab.map(t => ({ name: t.name, w: t.w, l: t.l, gf: t.gf, ga: t.ga, you: t.id === you.id })), ultimos, cestinhas, maisCaro: caro ? { name: caro.name, team: caro.team, paid: caro.paid, you: caro.you } : null })
+  const onTab = (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => { if (t === 'estadio') onClube(); else onJogos() }
+  return <CentralCarreira bb={{ total, vd }} seasonNo={state.seasonNo ?? 1} round={state.round} divName={liga[getLang() === 'en' ? 1 : 0]} youId={you.id} euNome={you.teamName}
+    proximo={proximo} palco={proximo ? null : { rotulo: tr('🏁 Temporada regular encerrada', '🏁 Regular season over') }} formas={{}} giro={giro}
+    tabela={tab.map(t => ({ name: t.name, pts: t.pts, you: t.id === you.id }))} jornal={jornal} mercado={{ negocios, maisCaro: null }} agenda={[]}
+    botao={{ label: proximo ? tr(`▶ Jogar o jogo ${proximo.rodada}`, `▶ Play game ${proximo.rodada}`) : tr('🏀 Ver a temporada', '🏀 See the season'), sub: tr('o jogo roda na aba Jogos, no controle de sempre', 'the game runs in Games, with the usual controls'), onClick: onJogos }}
+    onTab={onTab} />
+}
+
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   // 🖥️ DESKTOP EM 2 COLUNAS (23/10, mockups `desktop-{liga,copa}-{placar,campinho}`, *"aprovado pode fazer"*; só a conta do Diego
@@ -7632,6 +7685,10 @@ export function EscSeason() {
   const [resultRevealed, setResultRevealed] = useState(seasonSettled)
   const [showPyramid, setShowPyramid] = useState(false)
   const [bbClube, setBbClube] = useState(false) // 🏀🏢 overlay da economia (Clube) na carreira do basquete
+  // 🏀📺 15/11: a CENTRAL da carreira do basquete (só a carreira solo, durante a temporada regular). Igual ao futebol, a
+  // liga fica PAUSADA enquanto você está na Central, e a aba só abre entre um jogo e outro (nunca no meio de um jogo = sem spoiler).
+  const [abaBB, setAbaBB] = useState<'central' | 'jogos'>('central')
+  const [rodadaAoAbrir] = useState(state.round) // o jogo que já estava salvo ao abrir já foi visto (não é spoiler)
   useEffect(() => {
     if (seasonSettled) { setResultRevealed(true); return }
     setResultRevealed(false)
@@ -7711,10 +7768,13 @@ export function EscSeason() {
   // PARA (a tela mostra a Cup no lugar da rodada) e volta sozinha quando sai o
   // campeão — sem botão, sem passo novo, sem espera extra. Não precisa de uma
   // "flag de pausa" à parte: a própria existência da chave já diz que é a vez dela.
+  const centralBB = bbS && !!state.nbaCareer && !!state.careerOnline && !online && state.round < totalRounds && !(state.nbaCup && state.nbaCup.phase !== 'done')
+  const centralTravada = state.round > rodadaAoAbrir && !resultRevealed // jogo rolando: a Central espera o apito (anti-spoiler)
+  const naCentralBB = centralBB && abaBB === 'central' && !centralTravada
   const cup = state.nbaCup
   const cupLive = state.sport === 'basquete' && !!cup && cup.phase !== 'done'
   useEffect(() => {
-    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive) return
+    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive || naCentralBB) return
     if (kPenSegura && resultRevealed) return // 👑🥅 o shootout da Kings ainda rola no campinho: espera ele acabar // Dinastia: para na janela do meio; Cup: a liga espera; manual: avança no botão
     // 📺⏱️ 05/11 (Diego: *"está demorando pra aparecer o campinho 2D nas salas online"*): na LARGADA (rodada 0) ainda não
     // tem jogo nenhum na tela — a espera é só a tela "Aguardando o pontapé inicial". Ela usava o `roundMs` da rodada, que
@@ -7728,7 +7788,7 @@ export function EscSeason() {
     }
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, naCentralBB])
   // toca a Cup fase a fase, no mesmo ritmo do mata-mata do fim de temporada.
   const cupKey = cup ? `${cup.phase}:${cup.ties.map(t => t.legs.length).join(',')}` : ''
   const cupJustAdvanced = cupLive && !!cup && cup.ties.every(t => t.legs.length === 0)
@@ -8047,6 +8107,13 @@ export function EscSeason() {
         )
       })()}
   </OwnerSlot>) : null
+  if (naCentralBB) return (
+    <Shell wide bar={<div className="flex items-center justify-between max-w-xl mx-auto gap-2"><span className="font-black text-sm" style={OSWALD}>🪜 {LS('CARREIRA', 'CAREER')} · {LS('JOGO', 'GAME')} {Math.max(1, state.round)}/{totalRounds}</span></div>}>
+      <TabsCentralBB aba="central" onAba={setAbaBB} travada={false} />
+      <CentralBB onJogos={() => setAbaBB('jogos')} onClube={() => setBbClube(true)} />
+      {bbClube && <BbClubeOverlay onClose={() => setBbClube(false)} />}
+    </Shell>
+  )
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
@@ -8072,6 +8139,7 @@ export function EscSeason() {
     }>
       {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
       {desk2 && <div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setDirCol} /></div>}
+      {centralBB && <TabsCentralBB aba="jogos" onAba={setAbaBB} travada={centralTravada} />}
       {faixaProxAtiva && <FaixaProximaCompeticao lista={proximasCompeticoes(copasDaSala)} />}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →

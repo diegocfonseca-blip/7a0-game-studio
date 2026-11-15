@@ -11,6 +11,7 @@
 .ll-central-card { flex: 0 0 100%; min-width: 0; border: 3px solid #0C0C0C; border-radius: 18px; box-shadow: 4px 4px 0 #000; margin-bottom: 14px; overflow: hidden; background: #fff; color: #0C0C0C; }
 .ll-c-hero { order: 1; } .ll-c-giro { order: 2; } .ll-c-martelo { order: 3; } .ll-c-mercado { order: 4; } .ll-c-tabela { order: 5; } .ll-c-agenda { order: 6; }
 .ll-c-tabela, .ll-c-agenda { flex: 0 0 calc(50% - 6px); }
+.ll-central-bb .ll-c-tabela { flex: 0 0 100%; } /* 🏀 15/11: no basquete não tem Agenda do lado */
 .ll-central-card button.ll-central-link { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
 .ll-central-row { display: flex; align-items: center; gap: 9px; padding: 9px 13px; border-bottom: 2px solid rgba(0,0,0,.1); font-size: 12.5px; font-weight: 700; }
 .ll-central-row:last-child { border-bottom: 0; }
