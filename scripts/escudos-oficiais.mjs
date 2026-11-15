@@ -123,6 +123,10 @@ const MAPA = {
   'Figueirense': J('Figueirense'), 'Avaí': J('Avai'), 'Londrina': J('Londrina'), 'ABC': J('ABC_Futebol_Clube'),
   'Botafogo-PB': J('Botafogo_PB'), 'CSA': J('CSA'), 'CRB': B('crb'), 'Criciúma': B('criciuma'),
   'Paraná': H('parana'), 'Sampaio Corrêa': H('sampaio-correa'),
+  // 🇧🇷 Brasil Oficial (15/11, Diego: "todos os times com escudos oficiais") — Séries A/B de 2026 que faltavam
+  'Mirassol': J('Mirassol'), 'Remo': J('Clube_do_Remo'), 'Athletic': J('Athletic'), 'Atlético-GO': J('Atlético_Goianiense'),
+  'Botafogo-SP': J('Botafogo_SP'), 'Cuiabá': J('Cuiabá'), 'Novorizontino': J('Grêmio_Novorizontino'),
+  'Operário-PR': J('Operário_Ferroviário'), 'São Bernardo': J('São_Bernardo'), 'Vila Nova': J('Vila_Nova'),
   // 🌍 football-logos.cc (baixa quando o host estiver liberado)
   'Blackburn': W('england/blackburn-rovers'), 'América de Cali': W('colombia/america-de-cali'),
   // 🇪🇺
