@@ -32,3 +32,14 @@ Xará permitido: Tinga do Fortaleza (Guilherme de Jesus da Silva) não é o Ting
 | Benevenuto | ZAG | 2022 | 2 | 62 | 73 | O Leão pagou R$ 4,5 milhões ao Botafogo por 55% dele — zagueiro do Fortaleza na estreia na Libertadores. | Fortaleza paid Botafogo R$4.5m for 55% of him — a centre-back for the club's Libertadores debut year. | https://pt.wikipedia.org/wiki/Marcelo_Benevenuto · https://www.transfermarkt.com.br/fortaleza-ec/kader/verein/10870/saison_id/2021 |
 | Hércules | MEI | 2023 | 3 | 65 | 77 | Volante piauiense que o Fortaleza comprou por R$ 200 mil e vendeu ao Fluminense por cerca de R$ 29 milhões. | Midfielder from Piauí whom Fortaleza bought for R$200k and sold to Fluminense for about R$29m. | https://pt.wikipedia.org/wiki/Hércules_(futebolista) · https://www.transfermarkt.com.br/fortaleza-ec/kader/verein/10870/saison_id/2022 |
 | Lucas Sasha | MEI | 2023 | 2 | 62 | 73 | Voltou de mais de uma década na Europa pra virar líder do meio tricolor — campeão cearense de 2023. | Came back after more than a decade in Europe to lead Fortaleza's midfield — 2023 Ceará state champion. | https://pt.wikipedia.org/wiki/Lucas_Sasha · https://www.transfermarkt.com.br/fortaleza-ec/kader/verein/10870/saison_id/2022 |
+
+## Xarás revistos (cartas de baralhos que não se editam — nenhuma linha aqui vira carta)
+
+Conferência de 15/11 dos nomes repetidos entre o baralho de sempre (data.ts) e o regional (cartas-regionais.ts): são pessoas diferentes.
+
+| nome | cartas | conclusão | fonte |
+|---|---|---|---|
+| Everaldo | Grêmio 1970 (BR) × America-RJ 1982 (regional) | xará: o Everaldo do Grêmio (Everaldo Marques da Silva) morreu em 1974, não pode ser o zagueiro do America-RJ 1982 | https://pt.wikipedia.org/wiki/Everaldo_Marques_da_Silva |
+| Kléber | Corinthians 2002 (BR) × Athletico-PR 2001 (regional) | xará: o do Athletico 2001 é o centroavante Kléber Pereira (artilheiro do título); o do Corinthians 2002 é o lateral | https://pt.wikipedia.org/wiki/Kl%C3%A9ber_Pereira |
+| Alessandro | Corinthians 2012 (BR) × Athletico-PR 2001 (regional) | xará: o do Corinthians (Alessandro Mori Nunes) estava no Flamengo de 1999 a 2003 (tri carioca 1999–2001), não no Athletico de 2001 | https://pt.wikipedia.org/wiki/Alessandro_Nunes |
+| Carlão | Botafogo-SP 2025 (carta "Carlos Eduardo", Carlão no TM) × Botafogo-PB 2019 (regional) | xará: o do Botafogo-SP (TM id 638301) só estreou como profissional no Náutico em 2021 | https://www.transfermarkt.com.br/carlao/profil/spieler/638301 |

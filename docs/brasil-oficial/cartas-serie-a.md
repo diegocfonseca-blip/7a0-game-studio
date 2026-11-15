@@ -24,7 +24,7 @@ Todos os nomes foram conferidos contra `baralho-brasil-atual.txt` (nome e apelid
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | fonte | conferido em |
 |---|---|---|---|---|---|---|---|---|---|
 | Marcelo Rangel | GOL | 2025 | 2 | 62 | 73 | Goleiro do acesso que tirou o Leão Azul de 31 anos longe da elite. | Goalkeeper of the promotion that ended Remo's 31 years away from the top flight. | https://www.oliberal.com/esportes/remo/com-novidades-remo-encara-athletico-pr-no-baenao-para-colar-de-vez-no-g4-1.1031942 | https://pt.wikipedia.org/wiki/Marcelo_Rangel_(futebolista) · https://www.transfermarkt.com.br/clube-do-remo-pa-/kader/verein/10997/saison_id/2024/plus/1 · https://pt.wikipedia.org/wiki/Clube_do_Remo |
-| Marcelinho | LAT | 2026 | 1 | 52 | 65 | Lateral-direito do elenco do acesso que seguiu no Remo pra volta à Série A. | Right-back from the promotion squad who stayed on for Remo's Série A return. | https://muitainformacao.com.br/esporte/remo-x-coritiba-onde-assistir-ao-vivo-horario-e-provaveis-escalacoes-em-31-08-2026/ | https://www.transfermarkt.com.br/marcelinho/profil/spieler/681494 |
+| Edson Kauã | LAT | 2026 | 1 | 52 | 66 | Lateral-esquerdo canhoto nascido em 2004, no elenco do Remo na volta à Série A, em 2026. | Left-footed left-back born in 2004, in Remo's squad for their 2026 Série A return. | https://www.transfermarkt.com.br/clube-do-remo-pa-/kader/verein/10997/saison_id/2025/plus/1 | https://www.transfermarkt.com.br/edson-kaua/profil/spieler/1095628 |
 | Mayk | LAT | 2026 | 1 | 52 | 66 | Lateral do Remo na Série A de 2026, apoiando pela esquerda no Mangueirão lotado. | Remo full-back in the 2026 Série A, bombing forward in a packed Mangueirão. | https://muitainformacao.com.br/esporte/remo-x-sao-paulo-onde-assistir-ao-vivo-horario-e-provaveis-escalacoes-em-31-05-2026/ | https://pt.wikipedia.org/wiki/Mayk |
 | Zé Ivaldo | ZAG | 2026 | 2 | 61 | 72 | Zagueiro rodado (Athletico, Cruzeiro, Santos) que chegou emprestado pelo Santos pra volta do Remo à Série A. | Well-travelled centre-back (Athletico, Cruzeiro, Santos) who joined on loan from Santos for Remo's Série A return. | https://diariodopara.com.br/bola/com-ze-ivaldo-estreando-e-sem-tchamba-remo-define-time-contra-corinthians-veja-a-escalacao/ | https://pt.wikipedia.org/wiki/Z%C3%A9_Ivaldo |
 | Zé Welison | MEI | 2026 | 2 | 60 | 72 | Volante cão de guarda do Remo de 2026 — passar por ele custava canela. | Remo's 2026 guard-dog midfielder — getting past him cost you a shin. | https://muitainformacao.com.br/esporte/remo-x-coritiba-onde-assistir-ao-vivo-horario-e-provaveis-escalacoes-em-31-08-2026/ | https://pt.wikipedia.org/wiki/Jos%C3%A9_Welison |
@@ -96,6 +96,10 @@ Nome limpo; quem separa é clube + ano. Os 3 da Chape morreram no acidente de 28
 Total de cartas novas: 46 (40 + 6 xarás).
 
 ### Descartados por já estarem no baralho Brasil (mesma pessoa)
+
+**Revisão de nomes repetidos (15/11) — mesma pessoa de outra carta, carta tirada:**
+- Marcelinho (Remo 2026) — mesma pessoa que a carta Marcelinho do Confiança 2021 (baralho regional; TM id 681494: Confiança 2019–22 → Remo 2025). No lugar entrou Edson Kauã (LAT, do elenco real do clube no Transfermarkt).
+
 - **Reinaldo** (lateral, maior destaque do Mirassol 2025) — já é carta do São Paulo 2020.
 - **Alex Muralha** (goleiro com mais jogos pelo Mirassol) — já é carta do Flamengo 2017.
 - **Negueba** (Mirassol 2025) — já é carta do Flamengo 2012.

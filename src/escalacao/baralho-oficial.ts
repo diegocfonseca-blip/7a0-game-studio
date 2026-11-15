@@ -7,6 +7,16 @@ import { CATALOG_OFICIAL, type CartaOficial } from './data-oficial'
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { CLUBES_BR_TODOS } from './brasil-oficial'
 
+// 🃏 MESMA PESSOA em duas cartas (conferido no Transfermarkt em 15/11): no modo fica só a carta mais importante; a outra some
+// SÓ daqui (o baralho regional continua igual nas copas regionais). Regra do Diego: a mesma pessoa uma vez no baralho Brasil.
+const ESCONDIDAS = new Set([
+  'Zenon|Guarani|1978', // fica o do Corinthians 1983 (baralho de sempre)
+  'Pintado|América-MG|1997', // fica o do São Paulo 1993
+  'Wilson|Figueirense|2007', // fica o Figueirense 2010 (fame 3)
+  'Lucas Ramon|Londrina|2017', // fica o Mirassol 2025 (está no regional E na pesquisa: some dos dois)
+  'Fernando Sobral|Sampaio Corrêa|2018', // fica o Ceará 2021
+  'Danielzinho|Sampaio Corrêa|2018', // fica o Mirassol 2025
+])
 const DO_MODO = new Set(CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]))
 export const CATALOG_OFICIAL_MODO: Record<Sector, (CartaOficial & { folk?: boolean })[]> = (() => {
   const out = {} as Record<Sector, (CartaOficial & { folk?: boolean })[]>
@@ -16,7 +26,7 @@ export const CATALOG_OFICIAL_MODO: Record<Sector, (CartaOficial & { folk?: boole
   for (const p of Object.keys(CATALOG_OFICIAL) as Sector[]) {
     const reg = (CARTAS_REGIONAIS[p] ?? []).filter(c => DO_MODO.has(c.club) && !vistas.has(`${c.name}|${c.club}|${c.year}`))
       .map(c => ({ ...c, bio: c.bio ?? '', bioEn: '' }))
-    out[p] = [...CATALOG_OFICIAL[p], ...reg]
+    out[p] = [...CATALOG_OFICIAL[p], ...reg].filter(c => !ESCONDIDAS.has(`${c.name}|${c.club}|${c.year}`))
   }
   return out
 })()

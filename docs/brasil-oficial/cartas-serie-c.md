@@ -39,7 +39,7 @@ Já no baralho Brasil: nenhuma. Novas: 11.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Renan | GOL | 2025 | 1 | 50 | 64 | Goleiro veterano da Onça-Pintada na Série B de 2025. | Veteran Amazonas keeper in the 2025 Série B. | https://www.transfermarkt.com.br/amazonas-fc/kader/verein/87727/saison_id/2024/plus/1 |  |
+| Renan | GOL | 2025 | 1 | 50 | 64 | Goleiro veterano da Onça-Pintada na Série B de 2025. | Veteran Amazonas keeper in the 2025 Série B. | https://www.transfermarkt.com.br/amazonas-fc/kader/verein/87727/saison_id/2024/plus/1 | xará (não é o Renan do Madureira 2006 — este estava na base do Botafogo até 2008; TM id 68102) |
 | Sidcley | LAT | 2024 | 1 | 52 | 66 | Lateral-esquerdo ex-Corinthians que reforçou o Amazonas na Série B de 2024. | Ex-Corinthians left-back who joined Amazonas for the 2024 Série B. | https://pt.wikipedia.org/wiki/Sidcley |  |
 | Riza Durmisi | LAT | 2025 | 1 | 52 | 66 | Lateral dinamarquês com Copa da Itália no currículo que parou em Manaus na Série B de 2025. | Danish full-back with an Italian Cup on his CV who landed in Manaus for the 2025 Série B. | https://www.transfermarkt.com.br/amazonas-fc/kader/verein/87727/saison_id/2024/plus/1 + https://www.transfermarkt.com.br/riza-durmisi/profil/spieler/135208 |  |
 | Léo Coelho | ZAG | 2025 | 1 | 51 | 65 | Zagueiro anunciado em agosto de 2025 pra Série B; saiu em 2026 brigando na Justiça por salário atrasado. | Centre-back signed in August 2025 for the Série B; left in 2026 suing over late wages. | https://pt.wikipedia.org/wiki/Léo_Coelho |  |
@@ -153,7 +153,7 @@ Já no baralho Brasil: Wallace Pernambucano ATA 2014. Novas: 10.
 | Váldson | ZAG | 2009 | 2 | 60 | 72 | Cria da base do time do coração, foi improvisado na zaga aos 18 anos e nunca mais saiu. | Academy product of his boyhood club, thrown in at centre-back at 18 and never moved again. | https://pt.wikipedia.org/wiki/Váldson |  |
 | Vinícius Simon | ZAG | 2020 | 1 | 51 | 65 | Zagueiro do Confiança de 2018 a 2022, inclusive na Série B de 2020. | Confiança centre-back from 2018 to 2022, including the 2020 Série B. | https://pt.wikipedia.org/wiki/Vinícius_Simon |  |
 | Joubert | MEI | 2009 | 1 | 50 | 64 | Meia que defendeu o Dragão sergipano em 2009. | Midfielder who played for Confiança in 2009. | https://pt.wikipedia.org/wiki/Joubert_Araújo_Martins |  |
-| Rogerinho | MEI | 2016 | 1 | 50 | 64 | Meia do Confiança em 2016. | Confiança midfielder in 2016. | https://pt.wikipedia.org/wiki/Rogerinho_(futebolista) |  |
+| Rogerinho | MEI | 2016 | 1 | 50 | 64 | Meia do Confiança em 2016. | Confiança midfielder in 2016. | https://pt.wikipedia.org/wiki/Rogerinho_(futebolista) | xará (não é o Rogerinho lateral do América-RN 1998 — este nasceu em 1984 e estreou em 2004; TM id 54296) |
 | André Moritz | MEI | 2021 | 2 | 60 | 72 | Volante rodado (Crystal Palace no currículo) que fincou raízes no Confiança a partir de 2020. | Well-travelled holding midfielder (Crystal Palace on the CV) who put down roots at Confiança from 2020. | https://pt.wikipedia.org/wiki/André_Moritz |  |
 | Tiago Luís | ATA | 2020 | 2 | 60 | 72 | Ex-Santos que chegou em agosto de 2020 e jogou 11 partidas da Série B pelo Confiança. | Ex-Santos forward who arrived in August 2020 and played 11 Série B games for Confiança. | https://pt.wikipedia.org/wiki/Tiago_Luís |  |
 | Edil Highlander | ATA | 2002 | 2 | 60 | 72 | Artilheiro rodado de Vasco a Venezuela e Portugal, indicado ao Confiança em 2002. | Globetrotting striker from Vasco to Venezuela and Portugal, recommended to Confiança in 2002. | https://pt.wikipedia.org/wiki/Edil_Highlander |  |
@@ -188,7 +188,6 @@ Já no baralho Brasil: Roberto Firmino MEI 2010, Creedence ATA 2005. Novas: 9.
 | Clebão | ZAG | 2004 | 2 | 60 | 72 | Zagueirão ex-Palmeiras que defendeu o Figueirense de 2003 a 2005. | Ex-Palmeiras centre-back who defended Figueirense from 2003 to 2005. | https://pt.wikipedia.org/wiki/Clebão |  |
 | Márcio Goiano | ZAG | 2003 | 2 | 60 | 72 | Zagueiro do Figueira entre 2002 e 2004, que depois voltou ao clube como técnico. | Figueirense centre-back from 2002 to 2004 who later came back as coach. | https://pt.wikipedia.org/wiki/Márcio_de_Azevedo |  |
 | Fernandes | MEI | 2006 | 3 | 65 | 77 | Maior artilheiro da história do Figueirense: 108 gols em 403 jogos. | Figueirense's all-time top scorer: 108 goals in 403 games. | https://pt.wikipedia.org/wiki/Rodrigo_Fernandes_Valete |  |
-| Cleiton Xavier | MEI | 2008 | 2 | 62 | 74 | Rodou por vários empréstimos, mas foi no Figueirense que ganhou destaque nacional. | Bounced between loans, but it was at Figueirense that he made his national name. | https://pt.wikipedia.org/wiki/Cleiton_Xavier |  |
 | Aldrovani | ATA | 2000 | 2 | 60 | 72 | Atacante marcado como Grande Ídolo na lista de jogadores notáveis do Figueira. | Striker marked as a Great Idol among Figueirense's notable players. | https://pt.wikipedia.org/wiki/Aldrovani + https://pt.wikipedia.org/wiki/Figueirense_Futebol_Clube |  |
 | Schwenck | ATA | 2006 | 2 | 61 | 73 | O Schwenckchenko, que fez dupla de sucesso com o Soares no Figueira em 2005 e 2006. | "Schwenckchenko", who formed a hit strike partnership with Soares at Figueirense in 2005 and 2006. | https://pt.wikipedia.org/wiki/Schwenck + https://pt.wikipedia.org/wiki/Figueirense_Futebol_Clube |  |
 
@@ -254,7 +253,7 @@ Já no baralho Brasil: nenhuma. Novas: 11.
 | Adevaldo | LAT | 1974 | 1 | 51 | 65 | Lateral-esquerdo mineiro que defendeu o Itabaiana em 1974. | Minas-born left-back who played for Itabaiana in 1974. | https://pt.wikipedia.org/wiki/Adevaldo |  |
 | Neto Borges | LAT | 2017 | 1 | 51 | 65 | Lateral-esquerdo baiano que passou pelo Itabaiana em 2017 e foi parar no Middlesbrough. | Bahia-born left-back who passed through Itabaiana in 2017 and ended up at Middlesbrough. | https://pt.wikipedia.org/wiki/Neto_Borges |  |
 | Aílton | ZAG | 1977 | 2 | 60 | 72 | Zagueiro formado na base do Itabaiana, onde virou profissional aos 19 anos. | Centre-back from Itabaiana's academy, turning pro there at 19. | https://pt.wikipedia.org/wiki/José_Aílton_de_Oliveira_Silva |  |
-| Ligger | ZAG | 2026 | 1 | 49 | 63 | Zagueiro veterano de 38 anos na zaga do Itabaiana em 2026. | 38-year-old veteran centre-back at Itabaiana in 2026. | https://www.transfermarkt.com.br/associacao-olimpica-de-itabaiana-se-/kader/verein/8547/saison_id/2025/plus/1 |  |
+| Gustavo Fagundes | ZAG | 2026 | 1 | 49 | 63 | Zagueiro de 1,88 m nascido em 2001, camisa 4 do Itabaiana em 2026. | 1.88 m centre-back born in 2001, Itabaiana's number 4 in 2026. | https://www.transfermarkt.com.br/associacao-olimpica-de-itabaiana-se-/kader/verein/8547/saison_id/2025/plus/1 + https://www.transfermarkt.com.br/gustavo-fagundes/profil/spieler/987594 | entrou no lugar de Ligger (repetido: mesma pessoa que a carta Ligger do Fortaleza 2018 (baralho regional; TM id 265837)) |
 | Lima Sergipano | MEI | 1988 | 1 | 51 | 65 | Volante filho de Itabaiana que jogou no Tricolor da Serra de 1987 a 1990. | Itabaiana-born holding midfielder who played for the home club from 1987 to 1990. | https://pt.wikipedia.org/wiki/Lima_Sergipano |  |
 | Claudiney Rincón | MEI | 2012 | 1 | 50 | 64 | Meio-campista que passou pelo Itabaiana em 2012. | Midfielder who passed through Itabaiana in 2012. | https://pt.wikipedia.org/wiki/Claudiney_Rincón |  |
 | Elicarlos | MEI | 2022 | 2 | 60 | 72 | Volante ex-Cruzeiro e Náutico que voltou pra perto de casa e jogou no Itabaiana em 2022 e 2023. | Ex-Cruzeiro and Náutico holding midfielder who came back near home to play for Itabaiana in 2022 and 2023. | https://pt.wikipedia.org/wiki/Elicarlos |  |
@@ -340,11 +339,9 @@ Já no baralho Brasil: Givanildo Oliveira MEI 1976, Mazinho Deus Ébano MEI 1975
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
 | Tiago Cardoso | GOL | 2016 | 2 | 60 | 72 | Goleiro do título da Série C de 2013 que ainda estava lá no Nordestão de 2016. | Keeper of the 2013 Série C title who was still there for the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2012/plus/1 + https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 |  |
-| Tiago Costa | LAT | 2013 | 1 | 50 | 64 | Lateral-esquerdo do Santinha campeão da Série C de 2013. | Left-back of the Santinha side that won the 2013 Série C. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2012/plus/1 |  |
-| Roberto | LAT | 2016 | 1 | 49 | 63 | Lateral-esquerdo do Santa em 2016, o ano do título do Nordeste. | Santa Cruz left-back in 2016, the year of the Nordeste title. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 |  |
+| Roberto | LAT | 2016 | 1 | 49 | 63 | Lateral-esquerdo do Santa em 2016, o ano do título do Nordeste. | Santa Cruz left-back in 2016, the year of the Nordeste title. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 | xará (não é o Roberto do Juventude 1999 — este é profissional desde 2011; TM id 114144) |
 | Danny Morais | ZAG | 2016 | 1 | 52 | 66 | Zagueiro do Tricolor do Arruda campeão do Nordeste em 2016. | Centre-back of the Santa Cruz side that won the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 |  |
-| Alemão | ZAG | 2016 | 1 | 51 | 65 | Zagueiro do elenco campeão do Nordeste em 2016. | Centre-back in the squad that won the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 |  |
-| Derley | MEI | 2016 | 1 | 52 | 66 | Volante do Santa em 2016, ano do Nordestão e da Sul-Americana, a primeira competição internacional do clube. | Santa holding midfielder in 2016, the year of the Nordeste Cup and the Sudamericana, the club's first international tournament. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 + https://pt.wikipedia.org/wiki/Santa_Cruz_Futebol_Clube |  |
+| Alemão | ZAG | 2016 | 1 | 51 | 65 | Zagueiro do elenco campeão do Nordeste em 2016. | Centre-back in the squad that won the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 | xará (não é o Alemão do Volta Redonda 2005 — este é profissional desde 2011; TM id 179020) |
 | Ramón | ATA | 1973 | 3 | 67 | 79 | Artilheiro do Brasileirão de 1973 com 21 gols e do penta pernambucano: 148 gols pelo Santa. | 1973 Brasileirão top scorer with 21 goals and star of five straight state titles: 148 goals for Santa. | https://pt.wikipedia.org/wiki/Ramón_da_Silva_Ramos |  |
 
 ## Volta Redonda
@@ -412,6 +409,13 @@ Formato: novas (+ já no baralho). Mínimo exigido: 1 GOL · 2 LAT · 2 ZAG · 3
 | **Total** | | | | | | **210** | **223** |
 
 ## Descartados
+
+**Revisão de nomes repetidos (15/11) — mesma pessoa de outra carta, carta tirada:**
+- Tiago Costa (Santa Cruz 2013) — mesma pessoa que a carta Tiago Costa do Santa Cruz 2016 (baralho regional; TM id 349163, no Santa de 2012 a 2017).
+- Cleiton Xavier (Figueirense 2008) — mesma pessoa que a carta Cleiton Xavier do Figueirense 2007 (baralho regional; TM id 27378).
+- Derley (Santa Cruz 2016) — mesma pessoa que a carta Derley do Fortaleza 2018 (baralho regional; TM id 67889).
+- Ligger (Itabaiana 2026) — mesma pessoa que a carta Ligger do Fortaleza 2018 (baralho regional; TM id 265837). No lugar entrou Gustavo Fagundes (ZAG, do elenco real do clube no Transfermarkt).
+
 
 Candidatos que apareceram na pesquisa e ficaram de fora (regra 3: a mesma pessoa não pode repetir).
 

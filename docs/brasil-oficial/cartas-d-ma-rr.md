@@ -7,7 +7,7 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 ## IAPE
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Kennedy | GOL | 2026 | 1 | 49 | 61 | Chegou do FC Pantanal no começo de 2026 para fechar o gol do IAPE. | Arrived from FC Pantanal in early 2026 to lock down IAPE's goal. | https://www.transfermarkt.com.br/iape-futebol-clube/kader/verein/87160/saison_id/2025/plus/1 |  |
+| Kennedy | GOL | 2026 | 1 | 49 | 61 | Chegou do FC Pantanal no começo de 2026 para fechar o gol do IAPE. | Arrived from FC Pantanal in early 2026 to lock down IAPE's goal. | https://www.transfermarkt.com.br/iape-futebol-clube/kader/verein/87160/saison_id/2025/plus/1 | xará (não é o Kennedy do Gama nem o do Camboriú; TM id 742022) |
 | Michael Heberth | LAT | 2026 | 1 | 50 | 62 | Lateral-esquerdo canhoto que também veio do FC Pantanal: pacote fechado no atacado. | Left-footed left-back who also came from FC Pantanal: a wholesale deal. | https://www.transfermarkt.com.br/iape-futebol-clube/kader/verein/87160/saison_id/2025/plus/1 |  |
 | Matheus Rubens | LAT | 2026 | 1 | 49 | 61 | Lateral-direito que trocou o Canaã pelo IAPE em 2026. | Right-back who swapped Canaã for IAPE in 2026. | https://www.transfermarkt.com.br/iape-futebol-clube/kader/verein/87160/saison_id/2025/plus/1 |  |
 | Gustavo Cutrim | ZAG | 2026 | 1 | 50 | 62 | Zagueiro que desceu do Tocantinópolis para guardar a área do IAPE. | Centre-back who came over from Tocantinópolis to guard IAPE's box. | https://www.transfermarkt.com.br/iape-futebol-clube/kader/verein/87160/saison_id/2025/plus/1 |  |
@@ -28,7 +28,7 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 | Clayton He-Man | ZAG | 2015 | 1 | 52 | 64 | Zagueiro canhoto com apelido de desenho animado no Imperatriz campeão de 2015. | Left-footed centre-back with a cartoon-hero nickname in the 2015 Imperatriz champions. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 |  |
 | André Penalva | ZAG | 2015 | 1 | 50 | 62 | Zagueiro que, com 20 anos, já estava no elenco campeão maranhense de 2015. | Centre-back who was already in the 2015 title-winning squad at age 20. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 |  |
 | Valderrama | MEI | 2015 | 1 | 53 | 65 | Diogo Valderrama marcou na final que deu o título maranhense de 2015 contra o Sampaio — cabelo do xará não incluído. | Diogo Valderrama scored in the 2015 state final against Sampaio — his namesake's hair not included. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 ; https://pt.wikipedia.org/wiki/Sociedade_Imperatriz_de_Desportos | xará do Carlos Valderrama (baralho MUNDO) |
-| Rubens | MEI | 2015 | 2 | 61 | 73 | Ídolo do clube, nascido em João Lisboa (MA), bateu o pênalti na final de 2015 e fez o Caldeirão tremer. | Club idol born in João Lisboa (MA), he scored the penalty in the 2015 final and shook the Caldeirão. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 ; https://pt.wikipedia.org/wiki/Sociedade_Imperatriz_de_Desportos ; https://www.transfermarkt.com.br/rubens/profil/spieler/435244 |  |
+| Rubens | MEI | 2015 | 2 | 61 | 73 | Ídolo do clube, nascido em João Lisboa (MA), bateu o pênalti na final de 2015 e fez o Caldeirão tremer. | Club idol born in João Lisboa (MA), he scored the penalty in the 2015 final and shook the Caldeirão. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 ; https://pt.wikipedia.org/wiki/Sociedade_Imperatriz_de_Desportos ; https://www.transfermarkt.com.br/rubens/profil/spieler/435244 | xará (não é o Rubens lateral do Foz do Iguaçu; TM id 435244) |
 | Dudu Maranhão | MEI | 2015 | 1 | 52 | 64 | Volante que chegou do Sampaio Corrêa em julho de 2015. | Holding midfielder who arrived from Sampaio Corrêa in July 2015. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 |  |
 | Junior Chicão | ATA | 2015 | 2 | 60 | 72 | Ídolo do Cavalo de Aço, marcou na vitória sobre o Sampaio que deu o Maranhense de 2015. | Cavalo de Aço idol who scored in the 2015 state final against Sampaio. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 ; https://pt.wikipedia.org/wiki/Sociedade_Imperatriz_de_Desportos |  |
 | Cris Maranhense | ATA | 2015 | 1 | 51 | 63 | Centroavante canhoto do elenco campeão de 2015, com o estado no próprio nome. | Left-footed striker in the 2015 title squad, with the state in his own name. | https://www.transfermarkt.com.br/sociedade-imperatriz-de-desportos-ma-/kader/verein/23778/saison_id/2014/plus/1 |  |
@@ -68,7 +68,7 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
 | Kássio | GOL | 2026 | 1 | 49 | 61 | Goleiro que trocou o Paragominas pelo Leão dos Cocais em 2026. | Keeper who swapped Paragominas for the Leão dos Cocais in 2026. | https://www.transfermarkt.com.br/tuntum-esporte-clube/kader/verein/92884/saison_id/2025/plus/1 |  |
-| David Lopes | LAT | 2026 | 1 | 50 | 62 | Lateral-esquerdo que abriu 2026 no Tuntum antes de ser levado pelo Imperatriz. | Left-back who opened 2026 at Tuntum before Imperatriz took him. | https://www.transfermarkt.com.br/tuntum-esporte-clube/kader/verein/92884/saison_id/2025/plus/1 | aparece também no elenco 2026 do Imperatriz (não usado lá) |
+| David Lopes | LAT | 2026 | 1 | 50 | 62 | Lateral-esquerdo que abriu 2026 no Tuntum antes de ser levado pelo Imperatriz. | Left-back who opened 2026 at Tuntum before Imperatriz took him. | https://www.transfermarkt.com.br/tuntum-esporte-clube/kader/verein/92884/saison_id/2025/plus/1 | aparece também no elenco 2026 do Imperatriz (não usado lá) · xará (não é o David Lopes ponta do Rio Branco-ES; TM id 1025712) |
 | Roberth | LAT | 2026 | 1 | 49 | 61 | Lateral-direito de 1,84 m que chegou do Juventude Samas. | A 1.84 m right-back who arrived from Juventude Samas. | https://www.transfermarkt.com.br/tuntum-esporte-clube/kader/verein/92884/saison_id/2025/plus/1 |  |
 | Mateus | ZAG | 2026 | 1 | 49 | 61 | Zagueiro no Tuntum desde 2024, vindo da base do XV de Jaú. | Centre-back at Tuntum since 2024, from XV de Jaú's youth ranks. | https://www.transfermarkt.com.br/tuntum-esporte-clube/kader/verein/92884/saison_id/2025/plus/1 |  |
 | Yozeff | ZAG | 2026 | 1 | 48 | 60 | Zagueiro jovem que saiu do IAPE para o Tuntum em 2026. | Young centre-back who left IAPE for Tuntum in 2026. | https://www.transfermarkt.com.br/tuntum-esporte-clube/kader/verein/92884/saison_id/2025/plus/1 |  |
@@ -85,14 +85,13 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 | Vinícius | GOL | 2026 | 1 | 49 | 61 | Goleiro que chegou do Ipatinga para defender o Colorado da Consolata. | Keeper who arrived from Ipatinga to defend the Colorado da Consolata. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 | xará do Vinícius do Figueirense (outra pessoa) |
 | Anderson | LAT | 2026 | 1 | 48 | 60 | Lateral-esquerdo que veio do Paduano para o Baré em 2026. | Left-back who came from Paduano to Baré in 2026. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
 | Adilson | LAT | 2026 | 1 | 48 | 60 | Lateral-direito do elenco do Baré em 2026. | Right-back in Baré's 2026 squad. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
-| Thiago Jesus | ZAG | 2026 | 1 | 50 | 62 | Zagueiro de 1,91 m que chegou do Bandeirante. | A 1.91 m centre-back who arrived from Bandeirante. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
 | Airton | ZAG | 2026 | 1 | 51 | 63 | Zagueiro experiente (1989) que passou pelo Baré no começo de 2026. | Experienced centre-back (born 1989) who had a spell at Baré in early 2026. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 ; https://www.transfermarkt.com.br/ceapi/transferHistory/list/735308 |  |
 | Eduardo Castro | ZAG | 2026 | 1 | 49 | 61 | Zagueiro que chegou do Amazônia Independente em março de 2026. | Centre-back who arrived from Amazônia Independente in March 2026. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
 | Eduardo Simioni | MEI | 2026 | 1 | 49 | 61 | Volante de 1,82 m que veio da Aparecidense goiana. | A 1.82 m holding mid from Goiás side Aparecidense. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
 | Danilo Pires | MEI | 2026 | 1 | 52 | 64 | Meia rodado que saiu do Moto Club para ser o cérebro do Baré em 2026. | Well-travelled playmaker who left Moto Club to be Baré's brain in 2026. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 ; https://www.transfermarkt.com.br/ceapi/transferHistory/list/196040 |  |
 | Guilherme Barrozo | MEI | 2026 | 1 | 49 | 61 | Meia canhoto que chegou do Piauí EC. | Left-footed midfielder who arrived from Piauí EC. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
 | Kakim | ATA | 2026 | 1 | 50 | 62 | Ponta de 1,70 m que veio do Caiçara para correr pela esquerda do Baré. | A 1.70 m winger who came from Caiçara to run Baré's left flank. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
-| Peu | ATA | 2026 | 1 | 49 | 61 | Centroavante de 1,90 m vindo do Paragominas — nome curto, alcance longo. | A 1.90 m striker from Paragominas — short name, long reach. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
+| Peu | ATA | 2026 | 1 | 49 | 61 | Centroavante de 1,90 m vindo do Paragominas — nome curto, alcance longo. | A 1.90 m striker from Paragominas — short name, long reach. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 | xará (não é o Peu do Porto-BA nem o do Sinop; TM id 1098567) |
 | Mayco Félix | ATA | 2026 | 1 | 50 | 62 | Centroavante ambidestro que chegou do Maguary em março de 2026. | Two-footed striker who arrived from Maguary in March 2026. | https://www.transfermarkt.com.br/bare-esporte-clube/kader/verein/70707/saison_id/2025/plus/1 |  |
 
 ## GAS
@@ -115,7 +114,7 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 ## Monte Roraima
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| André Junio | GOL | 2026 | 1 | 50 | 62 | Goleiro de 1,93 m que veio do Foz do Iguaçu para o Tamanduá da Amazônia. | A 1.93 m keeper who came from Foz do Iguaçu to the Tamanduá da Amazônia. | https://www.transfermarkt.com.br/monte-roraima-fc/kader/verein/119625/saison_id/2025/plus/1 |  |
+| Luis Henrique | GOL | 2026 | 1 | 50 | 62 | Goleiro de 1,90 m nascido em 2004, no elenco do Tamanduá da Amazônia em 2026. | 1.90 m keeper born in 2004, in Monte Roraima's 2026 squad. | https://www.transfermarkt.com.br/monte-roraima-fc/kader/verein/119625/saison_id/2025/plus/1 + https://www.transfermarkt.com.br/luis-henrique/profil/spieler/1362620 | entrou no lugar de André Junio (repetido: mesma pessoa que a carta André Junio do Foz do Iguaçu 2026 (TM id 740375)) |
 | Jonathan Nascimento | LAT | 2026 | 1 | 49 | 61 | Lateral-esquerdo que chegou do Atlético Monte Azul. | Left-back who arrived from Atlético Monte Azul. | https://www.transfermarkt.com.br/monte-roraima-fc/kader/verein/119625/saison_id/2025/plus/1 |  |
 | Romailson | LAT | 2026 | 1 | 49 | 61 | Lateral-direito que veio do Cianorte paranaense. | Right-back from Paraná side Cianorte. | https://www.transfermarkt.com.br/monte-roraima-fc/kader/verein/119625/saison_id/2025/plus/1 |  |
 | Luís Gustavo | ZAG | 2026 | 1 | 52 | 64 | Zagueiro rodado (Botafogo-PB, Amazonas) no Monte Roraima desde janeiro de 2025. | Well-travelled centre-back (Botafogo-PB, Amazonas) at Monte Roraima since January 2025. | https://www.transfermarkt.com.br/monte-roraima-fc/kader/verein/119625/saison_id/2025/plus/1 ; https://www.transfermarkt.com.br/ceapi/transferHistory/list/291451 |  |
@@ -136,7 +135,6 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 | George | LAT | 2026 | 1 | 49 | 61 | Lateral-direito que veio da Tuna Luso paraense. | Right-back who came from Pará side Tuna Luso. | https://www.transfermarkt.com.br/sao-raimundo-esporte-clube-rr-/kader/verein/73574/saison_id/2025/plus/1 |  |
 | Guigui | ZAG | 2026 | 1 | 50 | 62 | Zagueiro que trocou o Carajás pelo São Raimundo em 2026. | Centre-back who swapped Carajás for São Raimundo in 2026. | https://www.transfermarkt.com.br/sao-raimundo-esporte-clube-rr-/kader/verein/73574/saison_id/2025/plus/1 |  |
 | Hícaro | ZAG | 2026 | 1 | 50 | 62 | Zagueiro canhoto de 1,92 m que chegou do Marajó. | A 1.92 m left-footed centre-back from Marajó. | https://www.transfermarkt.com.br/sao-raimundo-esporte-clube-rr-/kader/verein/73574/saison_id/2025/plus/1 |  |
-| Vera Cruz | ZAG | 2026 | 1 | 49 | 61 | Zagueiro que veio no mesmo pacote do Marajó — dupla de zaga já entrosada. | Centre-back who came in the same Marajó package — a ready-made defensive pairing. | https://www.transfermarkt.com.br/sao-raimundo-esporte-clube-rr-/kader/verein/73574/saison_id/2025/plus/1 |  |
 | Gerson Belão | MEI | 2026 | 2 | 60 | 72 | Meia com quatro passagens pelo São Raimundo desde 2020 — praticamente mobília do clube. | Midfielder on his fourth spell at São Raimundo since 2020 — practically club furniture. | https://www.transfermarkt.com.br/sao-raimundo-esporte-clube-rr-/kader/verein/73574/saison_id/2025/plus/1 ; https://www.transfermarkt.com.br/ceapi/transferHistory/list/198938 |  |
 | Lucas Guerreiro | MEI | 2026 | 1 | 50 | 62 | Volante canhoto do elenco do São Raimundo em 2026. | Left-footed holding mid in São Raimundo's 2026 squad. | https://www.transfermarkt.com.br/sao-raimundo-esporte-clube-rr-/kader/verein/73574/saison_id/2025/plus/1 |  |
 | Thaleco | MEI | 2026 | 1 | 49 | 61 | Volante que chegou do América em 2026. | Holding mid who arrived from América in 2026. | https://www.transfermarkt.com.br/sao-raimundo-esporte-clube-rr-/kader/verein/73574/saison_id/2025/plus/1 |  |
@@ -148,8 +146,7 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 ## Sampaio Corrêa
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-
-(nenhuma carta nova — já completo no baralho)
+| Neto Pacas | MEI | 2026 | 1 | 55 | 66 | Meia-ofensivo da Bolívia Querida em 2026: 20 jogos na temporada, quase sempre como titular. | Sampaio Corrêa's attacking midfielder in 2026: 20 games in the season, nearly always as a starter. | https://www.transfermarkt.com.br/sampaio-correa-fc-ma-/leistungsdaten/verein/3319/reldata/%262025/plus/1 | entrou em 15/11 no lugar de Fernando Sobral e Danielzinho (2018), escondidos no modo por serem a mesma pessoa das cartas do Ceará 2021 e do Mirassol 2025 (TM id 669215) |
 
 ## Moto Club
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -174,6 +171,12 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 | **Total** | **105** | | | | | |
 
 ## Descartados (com motivo)
+
+**Revisão de nomes repetidos (15/11) — mesma pessoa de outra carta, carta tirada:**
+- Vera Cruz (São Raimundo-RR 2026) — mesma pessoa que a carta Vera Cruz do Cruzeiro-AL 2024 (TM id 871761).
+- Thiago Jesus (Baré 2026) — mesma pessoa que a carta Thiago Jesus do Decisão 2026 (TM id 1101070).
+- André Junio (Monte Roraima 2026) — mesma pessoa que a carta André Junio do Foz do Iguaçu 2026 (TM id 740375). No lugar entrou Luis Henrique (GOL, do elenco real do clube no Transfermarkt).
+
 | nome | clube | motivo |
 |---|---|---|
 | Rodrigo Ramos (GOL) | Imperatriz | Listado como ídolo na Wikipédia, mas é a MESMA pessoa da carta "Rodrigo Ramos – Maranhão 2018 – GOL" (OFICIAL) já no baralho (TM id 346865 passou pelo Maranhão em 2018). |
