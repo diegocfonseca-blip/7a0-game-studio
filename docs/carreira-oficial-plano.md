@@ -179,3 +179,9 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   28 de 2028; D: 96 em 16 grupos) e o FORMATO (B com playoff 3º–6º; C turno único + quadrangulares + final; D grupos + mata-mata).
   O motor de hoje força 20 times e 38 rodadas em tudo. Caminho (do mapeamento de 15/11): módulo próprio do modo que simula a
   temporada inteira de cada série pelo formato real, e a tela da carreira lê dele quando `state.oficial`.
+- ✅ **Motor dos campeonatos reais** (`campeonato-oficial.ts`, trava `npm run campeonato-oficial`), ainda NÃO ligado na tela:
+  A (20, 4 caem) · B (2 diretos + playoff 3º×6º/4º×5º sem pênalti, 4 caem) · C 2026/2027 (turno único 20/24 → 2 grupos de 4 com
+  pontos zerados → final; 4 sobem, 2 caem) · C 2028+ (2 grupos de 14, 6 caem) · D (16×6 → mata-mata ida e volta, 6 sobem).
+  Desempate CBF: pontos → vitórias → saldo → gols → confronto direto (2 empatados) → sorteio. Pesquisa em `formatos-futuros.md`.
+  INCERTOS que ficaram com escolha provisória (anotada no código): grupos da 2ª fase da C 2027, final da C 2027 em ida e volta,
+  formato da 2ª fase da C 2028 e quem cai (3 por grupo), chaveamento da D, pênalti no playoff da D.

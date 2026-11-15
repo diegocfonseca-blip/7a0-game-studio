@@ -21,10 +21,27 @@ export type Jogo = { casa: string; fora: string; gc: number; gf: number; ctx: Ct
 export type Confronto = { a: string; b: string; jogos: Jogo[]; vencedor: string; penaltis?: boolean }
 
 const sg = (l: Linha) => l.gp - l.gc
-/** desempate da CBF nas tabelas: pontos → vitórias → saldo → gols pró (confronto direto e sorteio ficam pra depois: INCERTO
- *  na ordem exata — ver formatos-futuros.md). Empate total cai na ordem de entrada, que já é sorteada pela semente. */
-export function ordena(linhas: Linha[]): Linha[] {
-  return linhas.map((l, i) => ({ l, i })).sort((x, y) => y.l.pts - x.l.pts || y.l.v - x.l.v || sg(y.l) - sg(x.l) || y.l.gp - x.l.gp || x.i - y.i).map(x => x.l)
+/** desempate da CBF nas tabelas (formatos-futuros.md, regulamento citado na pt.wikipedia): pontos → vitórias → saldo → gols
+ *  pró → confronto direto (só quando são DOIS empatados) → (cartões: o jogo não conta) → sorteio = a ordem de entrada, que já
+ *  é sorteada pela semente. */
+export function ordena(linhas: Linha[], jogos: Jogo[] = []): Linha[] {
+  const base = (a: Linha, b: Linha) => b.pts - a.pts || b.v - a.v || sg(b) - sg(a) || b.gp - a.gp
+  const ord = linhas.map((l, i) => ({ l, i })).sort((x, y) => base(x.l, y.l) || x.i - y.i)
+  // confronto direto: só entre DOIS times empatados em tudo acima (pontos nos jogos entre eles; depois saldo neles)
+  for (let k = 0; k + 1 < ord.length; k++) {
+    const a = ord[k].l, b = ord[k + 1].l
+    if (base(a, b) !== 0 || (ord[k + 2] && base(b, ord[k + 2].l) === 0) || (k > 0 && base(ord[k - 1].l, a) === 0)) continue
+    let pa = 0, pb = 0, ga = 0, gb = 0
+    for (const j of jogos) {
+      const ca = j.casa === a.time && j.fora === b.time, cb = j.casa === b.time && j.fora === a.time
+      if (!ca && !cb) continue
+      const golsA = ca ? j.gc : j.gf, golsB = ca ? j.gf : j.gc
+      ga += golsA; gb += golsB
+      if (golsA > golsB) pa += 3; else if (golsB > golsA) pb += 3; else { pa++; pb++ }
+    }
+    if (pb > pa || (pb === pa && gb > ga)) [ord[k], ord[k + 1]] = [ord[k + 1], ord[k]]
+  }
+  return ord.map(x => x.l)
 }
 
 // dado preso na semente
@@ -72,7 +89,7 @@ export function pontosCorridos(times: string[], rodadas: [number, number][][], j
       if (p.gc > p.gf) { lc.v++; lc.pts += 3; lf.d++ } else if (p.gc < p.gf) { lf.v++; lf.pts += 3; lc.d++ } else { lc.e++; lf.e++; lc.pts++; lf.pts++ }
     }
   })
-  return { tabela: ordena([...L.values()]), jogos }
+  return { tabela: ordena([...L.values()], jogos), jogos }
 }
 
 /**
@@ -134,8 +151,11 @@ export function serieB(times: string[], seed: number, joga: Joga, pen: Penaltis)
 /**
  * SÉRIE C 2026: 1ª fase com 20 em turno único (19 rodadas); 8 avançam; os 2 últimos caem. 2ª fase: grupos 1º/4º/5º/8º e
  * 2º/3º/6º/7º em turno e returno; os 2 primeiros de cada grupo sobem. Final entre os líderes dos grupos, ida e volta.
- * ⚠️ INCERTO: se os pontos zeram na 2ª fase (a Wikipedia não diz). Aqui ZERAM até a pesquisa confirmar (formatos-futuros.md).
+ * ✅ os pontos ZERAM na 2ª fase (regulamento: "a pontuação será zerada no início de cada fase") e o desempate só conta os
+ *    jogos daquela fase (formatos-futuros.md).
  * ⚠️ INCERTO: desempate da final empatada no agregado — aqui pênaltis até confirmar.
+ * 2027 (✅ 24 clubes, turno único de 23 rodadas, 8 avançam, 2 últimos caem, 2 grupos de 4, 2 primeiros sobem, final entre
+ * os líderes): MESMA receita com 24 — ⚠️ INCERTO a composição dos grupos e se a final é ida e volta (usa a de 2026).
  */
 export function serieC2026(times: string[], seed: number, joga: Joga, pen: Penaltis): Resultado {
   const ordem = embaralha(times, rngDe(seed ^ 0xC0C0))
@@ -205,4 +225,43 @@ export function serieD2026(grupos: { nome: string; times: string[] }[], seed: nu
     }
   }
   throw new Error('Série D: chave incompleta')
+}
+
+/**
+ * SÉRIE C de 2028 em diante: ✅ 28 clubes em 2 grupos de 14, turno e returno dentro do grupo, ✅ 6 caem (CBF).
+ * ⚠️ INCERTO (só 1–2 fontes de imprensa): os 4 primeiros de cada grupo avançam pra 2ª fase em dois grupos de 4 (mesma regra da
+ * C 2026: 1º/4º/5º/8º × 2º/3º/6º/7º, juntando os 8 pela campanha), 2 primeiros de cada sobem (4 acessos), final entre os
+ * líderes; e os 6 que caem são os 3 últimos de cada grupo. Grupos da 1ª fase: ⚠️ INCERTO o critério — aqui sorteio pela semente.
+ */
+export function serieC2028(times: string[], seed: number, joga: Joga, pen: Penaltis): Resultado {
+  const ordem = embaralha(times, rngDe(seed ^ 0xC028))
+  const g1 = ordem.slice(0, 14), g2 = ordem.slice(14, 28)
+  const a = pontosCorridos(g1, turnoEReturno(14), joga, 'C', '1ª fase · Grupo A')
+  const b = pontosCorridos(g2, turnoEReturno(14), joga, 'C', '1ª fase · Grupo B')
+  const oito = ordena([...a.tabela.slice(0, 4), ...b.tabela.slice(0, 4)]).map(l => l.time)
+  const h1 = [oito[0], oito[3], oito[4], oito[7]], h2 = [oito[1], oito[2], oito[5], oito[6]]
+  const x = pontosCorridos(h1, turnoEReturno(4), joga, 'C', '2ª fase · Grupo 1')
+  const y = pontosCorridos(h2, turnoEReturno(4), joga, 'C', '2ª fase · Grupo 2')
+  const lx = x.tabela.map(l => l.time), ly = y.tabela.map(l => l.time)
+  const linha1 = new Map([...a.tabela, ...b.tabela].map(l => [l.time, l]))
+  const [m, p] = (linha1.get(lx[0])!.pts >= linha1.get(ly[0])!.pts) ? [lx[0], ly[0]] : [ly[0], lx[0]]
+  const final = idaEVolta(m, p, joga, pen, { serie: 'C', fase: 'final', rodada: 1 }, 'penaltis')
+  return {
+    serie: 'C', tabelas: [{ nome: '1ª fase · Grupo A', tabela: a.tabela }, { nome: '1ª fase · Grupo B', tabela: b.tabela }, { nome: '2ª fase · Grupo 1', tabela: x.tabela }, { nome: '2ª fase · Grupo 2', tabela: y.tabela }],
+    mataMata: [{ nome: 'Final', confrontos: [final] }], jogos: [...a.jogos, ...b.jogos, ...x.jogos, ...y.jogos, ...final.jogos],
+    campeao: final.vencedor, vice: final.vencedor === m ? p : m, sobem: [lx[0], lx[1], ly[0], ly[1]],
+    caem: [...a.tabela.slice(-3), ...b.tabela.slice(-3)].map(l => l.time),
+  }
+}
+
+/** quantos clubes cada série tem em cada ano (✅ formatos-futuros.md). Depois de 2028 repete 2028 (nada anunciado). */
+export function tamanhoDaSerie(serie: 'A' | 'B' | 'C' | 'D', ano: number): number {
+  if (serie === 'C') return ano <= 2026 ? 20 : ano === 2027 ? 24 : 28
+  if (serie === 'D') return 96
+  return 20
+}
+/** quantos caem de cada série no fim do ano (✅): A 4 · B 4 · C 2 em 2026 e 2027, 6 a partir de 2028 · D não cai */
+export function caemDaSerie(serie: 'A' | 'B' | 'C' | 'D', ano: number): number {
+  if (serie === 'C') return ano >= 2028 ? 6 : 2
+  return serie === 'D' ? 0 : 4
 }
