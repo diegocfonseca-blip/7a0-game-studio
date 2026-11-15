@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 141 escudos · 1260 KB somados.
+// 155 escudos · 1385 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -427,6 +427,76 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "Vila Nova": {
     "src": "escudos-clubes/vila-nova.webp",
     "w": 136,
+    "h": 160
+  },
+  "Amazonas": {
+    "src": "escudos-clubes/amazonas.webp",
+    "w": 116,
+    "h": 160
+  },
+  "Anápolis": {
+    "src": "escudos-clubes/anapolis.webp",
+    "w": 133,
+    "h": 160
+  },
+  "Barra": {
+    "src": "escudos-clubes/barra.webp",
+    "w": 112,
+    "h": 160
+  },
+  "Brusque": {
+    "src": "escudos-clubes/brusque.webp",
+    "w": 114,
+    "h": 160
+  },
+  "Confiança": {
+    "src": "escudos-clubes/confianca.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Ferroviária": {
+    "src": "escudos-clubes/ferroviaria.webp",
+    "w": 160,
+    "h": 148
+  },
+  "Floresta": {
+    "src": "escudos-clubes/floresta.webp",
+    "w": 138,
+    "h": 160
+  },
+  "Inter de Limeira": {
+    "src": "escudos-clubes/inter-de-limeira.webp",
+    "w": 113,
+    "h": 160
+  },
+  "Itabaiana": {
+    "src": "escudos-clubes/itabaiana.webp",
+    "w": 102,
+    "h": 160
+  },
+  "Ituano": {
+    "src": "escudos-clubes/ituano.webp",
+    "w": 157,
+    "h": 160
+  },
+  "Maranhão": {
+    "src": "escudos-clubes/maranhao.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Maringá": {
+    "src": "escudos-clubes/maringa.webp",
+    "w": 102,
+    "h": 160
+  },
+  "Paysandu": {
+    "src": "escudos-clubes/paysandu.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Ypiranga": {
+    "src": "escudos-clubes/ypiranga.webp",
+    "w": 135,
     "h": 160
   },
   "Real Madrid": {

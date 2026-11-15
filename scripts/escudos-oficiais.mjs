@@ -126,7 +126,8 @@ const MAPA = {
   // 🇧🇷 Brasil Oficial (15/11, Diego: "todos os times com escudos oficiais") — Séries A/B de 2026 que faltavam
   'Mirassol': J('Mirassol'), 'Remo': J('Clube_do_Remo'), 'Athletic': J('Athletic'), 'Atlético-GO': J('Atlético_Goianiense'),
   'Botafogo-SP': J('Botafogo_SP'), 'Cuiabá': J('Cuiabá'), 'Novorizontino': J('Grêmio_Novorizontino'),
-  'Operário-PR': J('Operário_Ferroviário'), 'São Bernardo': J('São_Bernardo'), 'Vila Nova': J('Vila_Nova'),
+  'Operário-PR': J('Operário_Ferroviário'), 'São Bernardo': J('São_Bernardo'), // ⚠️ o SVG vem sem viewBox e sai CORTADO: o .webp do repo foi refeito à mão (15/11) — depois de rodar, `git checkout public/escudos-clubes/sao-bernardo.webp` e w 160 / h 159 no índice
+  'Vila Nova': J('Vila_Nova'),
   // 🇧🇷 Série C 2026 (15/11)
   'Amazonas': J('Amazonas'), 'Anápolis': J('Anápolis'), 'Barra': J('Barra'), 'Brusque': J('Brusque'), 'Confiança': J('Confiança'),
   'Ferroviária': J('Ferroviaria'), 'Floresta': J('Floresta'), 'Inter de Limeira': J('Inter_de_Limeira'), 'Itabaiana': J('Itabaiana'),
