@@ -7,6 +7,7 @@ let erros = 0
 const falha = (m: string) => { erros++; console.log('❌', m) }
 if (clubesDaDivisao('A').length !== 20) falha('Série A precisa de 20')
 if (clubesDaDivisao('B').length !== 20) falha('Série B precisa de 20')
+if (clubesDaDivisao('C').length !== 20) falha('Série C precisa de 20')
 if (new Set(CLUBES_BR.map(c => c.nome)).size !== CLUBES_BR.length) falha('clube repetido')
 for (const c of CLUBES_BR) if (!(ESCUDOS_OFICIAIS as Record<string, unknown>)[c.nome]) falha(`sem escudo oficial: ${c.nome}`)
 // sorteio: mesma semente = mesmo elenco; 22 sem repetir; sobra + elenco = todas
@@ -29,7 +30,7 @@ for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (!nomes.ha
 const ja = new Set(Object.values(CATALOG).flat().map(x => `${x.name}|${x.club}|${x.year}`))
 for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (ja.has(`${x.name}|${x.club}|${x.year}`)) falha(`carta já existe no baralho: ${x.name} ${x.club} ${x.year}`)
 if (erros) { console.log(`❌ brasil-oficial: ${erros} erro(s)`); process.exit(1) }
-console.log('✅ brasil-oficial: 40 clubes com escudo, sorteio dos 22 estável e sem perder carta')
+console.log('✅ brasil-oficial: 60 clubes com escudo, sorteio dos 22 estável e sem perder carta')
 
 // ── 🇧🇷 a carreira nasce com o clube real (reducer) ──
 {
@@ -55,9 +56,10 @@ console.log('✅ brasil-oficial: 40 clubes com escudo, sorteio dos 22 estável e
   const ids = s.managers.flatMap(m => m.squad.map(c => `${c.name}|${c.club}|${c.year}`))
   if (new Set(ids).size !== ids.length) falha('a mesma carta em dois clubes')
   if (s.careerDivision !== 'A') falha('divisão do usuário errada')
-  for (const c of clubesDaDivisao('B')) if (s.careerPlacements?.[c.nome] !== 'B') falha(`${c.nome} devia estar na Série B`)
+  for (const d of ['B', 'C'] as const) for (const c of clubesDaDivisao(d)) if (s.careerPlacements?.[c.nome] !== d) falha(`${c.nome} devia estar na Série ${d}`)
+  for (const d of ['A', 'B', 'C', 'D']) { const n = Object.values(s.careerPlacements ?? {}).filter(v => v === d).length; if (n !== 20) falha(`Série ${d} com ${n} clubes (devia 20)`) }
   const fundo = seedCpuSquadsOficial(s)
-  for (const c of clubesDaDivisao('B')) if (!fundo[c.nome] || !fechaTime(fundo[c.nome])) falha(`fundo: ${c.nome} sem elenco que feche um 11`)
+  for (const c of [...clubesDaDivisao('B'), ...clubesDaDivisao('C')]) if (!fundo[c.nome] || !fechaTime(fundo[c.nome])) falha(`fundo: ${c.nome} sem elenco que feche um 11`)
   const todos = [...ids, ...Object.values(fundo).flat().filter(c => c.club !== 'Várzea').map(c => `${c.name}|${c.club}|${c.year}`)]
   const rep = todos.filter((k, i) => todos.indexOf(k) !== i)
   if (rep.length) falha(`carta repetida entre clubes: ${rep.slice(0, 5).join(', ')}`)

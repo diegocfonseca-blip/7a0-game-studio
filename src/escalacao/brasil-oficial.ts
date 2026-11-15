@@ -25,11 +25,12 @@ export type ClubeOficial = {
 const ESTADUAL: Record<string, string> = {
   RJ: 'Carioca', SP: 'Paulista', MG: 'Mineiro', RS: 'Gaúcho', PR: 'Paranaense', SC: 'Catarinense', BA: 'Baiano',
   PE: 'Pernambucano', CE: 'Cearense', GO: 'Goiano', PA: 'Paraense', AL: 'Alagoano', MT: 'Mato-Grossense',
+  AM: 'Amazonense', PB: 'Paraibano', SE: 'Sergipano', MA: 'Maranhense',
 }
 const c = (nome: string, div: DivOficial, uf: string, apelidos?: string[]): ClubeOficial =>
   ({ nome, div, uf, estadual: ESTADUAL[uf] ?? uf, ...(apelidos ? { apelidos } : {}) })
 
-/** Séries A e B de 2026 (conferidas em 15/11 — Band, ESPN, Wikipedia) */
+/** Séries A, B e C de 2026 (conferidas em 15/11 — Band, ESPN, pt.wikipedia; C em docs/brasil-oficial/cartas-serie-c.md) */
 export const CLUBES_BR: ClubeOficial[] = [
   // Série A 2026
   c('Athletico-PR', 'A', 'PR', ['Atlético-PR']), c('Atlético-MG', 'A', 'MG'), c('Bahia', 'A', 'BA'), c('Botafogo', 'A', 'RJ'),
@@ -42,6 +43,11 @@ export const CLUBES_BR: ClubeOficial[] = [
   c('Ceará', 'B', 'CE'), c('CRB', 'B', 'AL'), c('Criciúma', 'B', 'SC'), c('Cuiabá', 'B', 'MT'), c('Fortaleza', 'B', 'CE'),
   c('Goiás', 'B', 'GO'), c('Juventude', 'B', 'RS'), c('Londrina', 'B', 'PR'), c('Náutico', 'B', 'PE'), c('Novorizontino', 'B', 'SP'),
   c('Operário-PR', 'B', 'PR'), c('Ponte Preta', 'B', 'SP'), c('São Bernardo', 'B', 'SP'), c('Sport', 'B', 'PE'), c('Vila Nova', 'B', 'GO'),
+  // Série C 2026
+  c('Amazonas', 'C', 'AM'), c('Anápolis', 'C', 'GO'), c('Barra', 'C', 'SC'), c('Botafogo-PB', 'C', 'PB'), c('Brusque', 'C', 'SC'),
+  c('Caxias', 'C', 'RS'), c('Confiança', 'C', 'SE'), c('Ferroviária', 'C', 'SP'), c('Figueirense', 'C', 'SC'), c('Floresta', 'C', 'CE'),
+  c('Guarani', 'C', 'SP'), c('Inter de Limeira', 'C', 'SP'), c('Itabaiana', 'C', 'SE'), c('Ituano', 'C', 'SP'), c('Maranhão', 'C', 'MA'),
+  c('Maringá', 'C', 'PR'), c('Paysandu', 'C', 'PA'), c('Santa Cruz', 'C', 'PE'), c('Volta Redonda', 'C', 'RJ'), c('Ypiranga', 'C', 'RS'),
 ]
 
 export const clubesDaDivisao = (div: DivOficial) => CLUBES_BR.filter(x => x.div === div)

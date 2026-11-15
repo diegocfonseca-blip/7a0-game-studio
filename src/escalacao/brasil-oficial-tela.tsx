@@ -47,12 +47,12 @@ export function EscolhaCarreira({ onMeuClube, onOficial }: { onMeuClube: () => v
 }
 
 export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clube: string) => void; onVoltar: () => void }) {
-  const [div, setDiv] = useState<'A' | 'B'>('A')
+  const [div, setDiv] = useState<'A' | 'B' | 'C'>('A')
   const [sel, setSel] = useState<string>(clubesDaDivisao('A')[0]?.nome ?? '')
   const clube = CLUBES_BR.find(c => c.nome === sel) ?? null
   const n = useMemo(() => (clube ? totalCartas(clube) : 0), [clube])
   const sorteados = Math.min(ELENCO_INICIAL, n)
-  const tab = (d: 'A' | 'B') => ({ flex: 1, textAlign: 'center' as const, border: `3px solid ${INK}`, borderRadius: 12, padding: 6, ...OSW, fontWeight: 900, fontSize: 14, cursor: 'pointer', background: div === d ? INK : '#fff', color: div === d ? GOLD : INK })
+  const tab = (d: 'A' | 'B' | 'C') => ({ flex: 1, textAlign: 'center' as const, border: `3px solid ${INK}`, borderRadius: 12, padding: 6, ...OSW, fontWeight: 900, fontSize: 14, cursor: 'pointer', background: div === d ? INK : '#fff', color: div === d ? GOLD : INK })
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', padding: 16, background: CREME }}>
       <button onClick={onVoltar} style={{ background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', padding: 0, marginBottom: 6 }}>← {tr('Voltar', 'Back')}</button>
@@ -60,6 +60,7 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <button style={tab('A')} onClick={() => { setDiv('A'); setSel(clubesDaDivisao('A')[0].nome) }}>SÉRIE A</button>
         <button style={tab('B')} onClick={() => { setDiv('B'); setSel(clubesDaDivisao('B')[0].nome) }}>SÉRIE B</button>
+        <button style={tab('C')} onClick={() => { setDiv('C'); setSel(clubesDaDivisao('C')[0].nome) }}>SÉRIE C</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {clubesDaDivisao(div).map(c => {

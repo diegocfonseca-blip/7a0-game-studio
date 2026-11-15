@@ -2,9 +2,9 @@
 # 🇧🇷 Brasil Oficial: transforma as listas conferidas (docs/brasil-oficial/cartas-*.md) em src/escalacao/data-oficial.ts.
 # Rodar de novo sempre que uma lista mudar: python3 scripts/gera-cartas-oficial.py
 import re, json, unicodedata
-ARQS = ['docs/brasil-oficial/cartas-serie-a.md', 'docs/brasil-oficial/cartas-serie-b1.md', 'docs/brasil-oficial/cartas-serie-b2.md', 'docs/brasil-oficial/cartas-complemento.md']
+ARQS = ['docs/brasil-oficial/cartas-serie-a.md', 'docs/brasil-oficial/cartas-serie-b1.md', 'docs/brasil-oficial/cartas-serie-b2.md', 'docs/brasil-oficial/cartas-complemento.md', 'docs/brasil-oficial/cartas-serie-c.md']
 # cabeçalho da seção → nome do clube no jogo (a chave do escudo, igual a CLUBES_BR em brasil-oficial.ts)
-CLUBE = [('Athletico-PR','Athletico-PR'),('Bahia','Bahia'),('Vitória','Vitória'),('Fortaleza','Fortaleza'),('Mirassol','Mirassol'),('Remo','Remo'),('Red Bull Bragantino','Bragantino'),('Bragantino','Bragantino'),('Chapecoense','Chapecoense'),
+CLUBE = [('Amazonas','Amazonas'),('Anápolis','Anápolis'),('Barra-SC','Barra'),('Botafogo-PB','Botafogo-PB'),('Brusque','Brusque'),('Caxias','Caxias'),('Confiança','Confiança'),('Ferroviária','Ferroviária'),('Figueirense','Figueirense'),('Floresta','Floresta'),('Guarani','Guarani'),('Inter de Limeira','Inter de Limeira'),('Itabaiana','Itabaiana'),('Ituano','Ituano'),('Maranhão','Maranhão'),('Maringá','Maringá'),('Paysandu','Paysandu'),('Santa Cruz','Santa Cruz'),('Volta Redonda','Volta Redonda'),('Ypiranga-RS','Ypiranga'),('Athletico-PR','Athletico-PR'),('Bahia','Bahia'),('Vitória','Vitória'),('Fortaleza','Fortaleza'),('Mirassol','Mirassol'),('Remo','Remo'),('Red Bull Bragantino','Bragantino'),('Bragantino','Bragantino'),('Chapecoense','Chapecoense'),
   ('Coritiba','Coritiba'),('América-MG','América-MG'),('Athletic','Athletic'),('Atlético-GO','Atlético-GO'),('Atlético Goianiense','Atlético-GO'),
   ('Avaí','Avaí'),('Botafogo-SP','Botafogo-SP'),('Ceará','Ceará'),('CRB','CRB'),('Criciúma','Criciúma'),('Cuiabá','Cuiabá'),('Goiás','Goiás'),
   ('Juventude','Juventude'),('Londrina','Londrina'),('Náutico','Náutico'),('Novorizontino','Novorizontino'),('Operário','Operário-PR'),

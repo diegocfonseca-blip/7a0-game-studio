@@ -127,6 +127,10 @@ const MAPA = {
   'Mirassol': J('Mirassol'), 'Remo': J('Clube_do_Remo'), 'Athletic': J('Athletic'), 'Atlético-GO': J('Atlético_Goianiense'),
   'Botafogo-SP': J('Botafogo_SP'), 'Cuiabá': J('Cuiabá'), 'Novorizontino': J('Grêmio_Novorizontino'),
   'Operário-PR': J('Operário_Ferroviário'), 'São Bernardo': J('São_Bernardo'), 'Vila Nova': J('Vila_Nova'),
+  // 🇧🇷 Série C 2026 (15/11)
+  'Amazonas': J('Amazonas'), 'Anápolis': J('Anápolis'), 'Barra': J('Barra'), 'Brusque': J('Brusque'), 'Confiança': J('Confiança'),
+  'Ferroviária': J('Ferroviaria'), 'Floresta': J('Floresta'), 'Inter de Limeira': J('Inter_de_Limeira'), 'Itabaiana': J('Itabaiana'),
+  'Ituano': J('Ituano'), 'Maranhão': J('Maranhão'), 'Maringá': J('Maringá'), 'Paysandu': J('Paysandu'), 'Ypiranga': J('Ypiranga'),
   // 🌍 football-logos.cc (baixa quando o host estiver liberado)
   'Blackburn': W('england/blackburn-rovers'), 'América de Cali': W('colombia/america-de-cali'),
   // 🇪🇺

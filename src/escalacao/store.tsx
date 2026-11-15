@@ -7827,10 +7827,10 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
 // da carreira (mesmo sorteio em qualquer aparelho). Devolve false (e não mexe em nada) se o clube não existir no modo.
-// ⚠️ Fase 1: só Séries A e B são reais; C e D ainda são as de sempre até a pesquisa da C/D entrar (pendência no plano).
+// ⚠️ Séries A, B e C são reais; a D ainda é a de sempre até a D real (96 em grupos) entrar (pendência no plano).
 function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const meu = clubeOficial(nome)
-  if (!meu || (meu.div !== 'A' && meu.div !== 'B')) return false
+  if (!meu || meu.div === 'D') return false
   s.oficial = { clube: meu.nome, desde: 1 }
   s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
   s.deckLeague = 'todos'; setActiveCatalog('todos', false, undefined, true)
@@ -7856,7 +7856,7 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const pl: Record<string, string> = {}
   for (const m of s.managers) pl[`m${m.id}`] = meu.div
   for (const c of CLUBES_BR) if (c.div !== meu.div) pl[c.nome] = c.div
-  for (const d of ['C', 'D'] as const) for (const t of DIVISION_TEAMS[d].slice(0, 20)) if (!pl[t.team]) pl[t.team] = d
+  for (const t of DIVISION_TEAMS.D.slice(0, 20)) if (!pl[t.team]) pl[t.team] = 'D' // ⚠️ D ainda é a de sempre (a D real tem 96 em grupos — próxima etapa)
   s.careerPlacements = pl
   s.careerDivision = meu.div
   s.clubCash = seedClubCash({}, pl)
