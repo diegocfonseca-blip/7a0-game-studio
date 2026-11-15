@@ -4254,6 +4254,7 @@ export const OLD_NAME: Record<string, string> = {
   'Príncipe Rubro Negro': 'Aurora Suprema', // 👑🔴⚫ batismo do pedroglima50 (02/11): assumiu o assento da Série D que era do bot Aurora Suprema — save antigo com Aurora Suprema vira Príncipe Rubro Negro ao abrir.
   'Lulubaba FC': 'Fênix Dourada', // 🧤💛 batismo do lucasfonseca363 (29/10): assumiu o assento da Série D que era do bot Fênix Dourada — save antigo com Fênix Dourada vira Lulubaba FC ao abrir.
   'Leões da Tuf EC': 'Chuteira Rachada FC', // 🦁🇧🇷 batismo do sergioricardocf16 (14/11): assumiu o assento da Várzea que era do bot Chuteira Rachada FC.
+  'Reffatti FC': 'Atlético Pelada', // 🎮👑 batismo do leoreffattig (15/11): assumiu o assento da Várzea que era do bot Atlético Pelada — save antigo com Atlético Pelada vira Reffatti FC ao abrir.
   'Cabritiiin F.C': 'Unidos da Resenha', // 🐐👑 batismo FUNDADOR do lucassaboia14 (13/11): assumiu o assento da Várzea que era do bot Unidos da Resenha — save antigo com Unidos da Resenha vira Cabritiiin F.C ao abrir.
   'dSouza FC': 'Kombi United', // 🐶💚 batismo FUNDADOR do alexandre12cdm (28/10): assumiu o assento da Série C que era do bot Kombi United — save antigo com Kombi United vira dSouza FC ao abrir. (O Kombi United continua no jogo rápido.)
   'Vila Esporte Clube': 'Imperador SAF', // ⭐🦁 batismo do oluisantonio.contato (27/10): assumiu o assento da Série D que era do bot Imperador SAF — save antigo com Imperador SAF vira Vila Esporte Clube ao abrir.
@@ -4340,7 +4341,7 @@ export const CRIA_APELIDOS = [
 export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Lucas', team: 'Cabritiiin F.C' }, // 🐐👑 clube BATIZADO por apoiador (lucassaboia14 — Cabritiiin F.C, ex-Unidos da Resenha, Várzea; plano FUNDADOR nº101 + sócio nº89; coração CEARÁ; escudo do bode de coroa e óculos escuros, mascote O Cabritiiin; azul #0159C7 + branco #F6F6F6 MEDIDOS na camisa, 13/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Sérgio', team: 'Leões da Tuf EC' }, // 🦁🇧🇷 clube BATIZADO por apoiador (sergioricardocf16 — Leões da Tuf EC, ex-Chuteira Rachada FC e ex-EhuLaion FC, Várzea; batismo dado pelo Diego; sócio nº90; escudo do leão de boné fazendo o L, mascote O Leão da Tuf; branco #FEFEFE + vermelho #E90201 MEDIDOS na camisa, 14/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
-  { name: 'Pastel', team: 'Atlético Pelada' },
+  { name: 'Leo', team: 'Reffatti FC' }, // 🎮👑 clube BATIZADO por apoiador (leoreffattig — Reffatti FC, ex-Atlético Pelada, Várzea; batismo; sócio nº91; escudo do streamer de boné, fone e coroa apontando, mascote O Reffatti; branco #F9F4FB + verde-neon #2AF604 MEDIDOS na camisa, 15/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Bode', team: 'Galáticos do Bairro' },
   { name: 'Zoinho', team: 'Real Domingueira' },
   { name: 'Tico', team: 'Ressaca United' },

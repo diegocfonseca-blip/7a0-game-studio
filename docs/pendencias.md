@@ -1,3 +1,11 @@
+## 🎮👑 15/11 — Batismo Reffatti FC (leoreffattig) — PUBLICADO
+- Várzea, no assento do bot Atlético Pelada (o Diego: "qualquer um que tenha bot"). Plano Batismo (sem nº de fundador) · sócio nº91 · coração: não sabemos.
+- Arte da prancha verde recortada À MÃO: o verde do desenho é idêntico ao do fundo (chroma 2,250,4), então saíram só o fundo de fora e os 3 vãos
+  fechados (entre as pernas, o cabo do controle, a mão). Escudo 235×360 29 KB · mascote 291×440 36 KB · camisa da Loja 620×574 53 KB.
+- Manto branco #F9F4FB + verde-neon #2AF604 medidos; 3ª cor preta (MANTO_TRI reffatti_gamer).
+- Banco: esc_socios (91), esc_nomes_batismo (reffatti / FC / EC + reffattifc, o nome dele no jogo); user_colors ouro já estava.
+- Post: scripts/posts/batismo-reffatti.png ("Leo" tirado do e-mail — confirmar com o Diego o nome).
+
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 
 - Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
