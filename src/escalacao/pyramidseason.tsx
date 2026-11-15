@@ -88,7 +88,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -8447,6 +8447,9 @@ export function PyramidSeasonScreen() {
   const [planosSair, setPlanosSair] = useState(false) // ☁️ 19/10: sem plano, "Sair e salvar" mostra os planos
   const salvarTravado = useSalvarBloqueado() // 🔒 04/11: sem plano a carreira não salva
   const [planosSalvar, setPlanosSalvar] = useState(false)
+  // 🚪 15/11: "Só sair" pergunta antes e, confirmado, volta a carreira pro último salvamento (`voltaProUltimoSalvo`)
+  const [sairSem, setSairSem] = useState<null | 'pergunta' | 'voltando' | 'sem_salvo' | 'sem_rede'>(null)
+  const sairESalvar = () => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' }) }
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentPending = usePresidentPreviewPending() && !mapaEstadioDisponivel(false) && mapaEstadioDisponivel(true) // espera só na conta candidata à prévia
@@ -13000,20 +13003,69 @@ export function PyramidSeasonScreen() {
             <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Sem plano, o que você jogou não fica salvo.', 'Without a plan, what you played is not saved.')}</span>
           </button>
           </>) : (
+          <>
           <button
-            onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' }) }}
+            onClick={sairESalvar}
             className="ll-cx-sair"
-            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-            {tr('🚪 Sair e salvar carreira', '🚪 Exit and save career')}
+            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+            {tr('💾 Sair e salvar carreira', '💾 Exit and save career')}
             <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{soAparelhoPe
               ? tr('☁️ Salvar na nuvem é dos planos (⭐ Craque ou 👑 Lenda).', '☁️ Saving to the cloud comes with the plans (⭐ Star or 👑 Legend).')
               : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
+          <button onClick={() => setSairSem('pergunta')} className="ll-cx-sair"
+            style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '8px 13px', fontWeight: 900, fontSize: 13, background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+            {tr('🚪 Só sair', '🚪 Just exit')}
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Sai sem salvar o que você jogou agora.', 'Leaves without saving what you just played.')}</span>
+          </button>
+          </>
           )
         )}
         {/* ☁️ 19/10: sem plano, o "Sair e salvar" mostra os planos antes de sair (fechar a janela = sai pro menu, como sempre) */}
         {planosSair && <JanelaNuvemPlanos onClose={() => { setPlanosSair(false); dispatch({ type: 'GO_LOBBY' }) }} />}
         {planosSalvar && <JanelaNuvemPlanos travado onClose={() => setPlanosSalvar(false)} />}
+        {sairSem && (() => {
+          const ult = ultimaSubidaNuvem(state.seed)
+          const btn = (bg: string, cor: string, fs: number) => ({ width: '100%', marginTop: 12, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: fs, background: bg, color: cor, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD } as const)
+          const titulo = sairSem === 'sem_salvo' ? tr('Ainda não tem salvamento', 'No save yet')
+            : sairSem === 'sem_rede' ? tr('Sem conexão agora', 'No connection right now')
+            : tr('Sair sem salvar?', 'Exit without saving?')
+          return (
+            <div onClick={() => sairSem !== 'voltando' && setSairSem(null)} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+              <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: '#fff', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 #000`, padding: 18, textAlign: 'center' }}>
+                <div style={{ fontSize: 38 }}>⚠️</div>
+                <h2 style={{ ...OSWALD, margin: '4px 0 8px', fontSize: 23, fontWeight: 900, textTransform: 'uppercase' }}>{titulo}</h2>
+                {sairSem === 'sem_salvo' ? (
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#333', margin: '0 0 4px', lineHeight: 1.4 }}>{tr('Essa carreira nunca foi salva, então não tem pra onde voltar. Nada foi apagado: ela continua de onde parou.', 'This career was never saved, so there is nothing to go back to. Nothing was deleted: it stays where you left off.')}</p>
+                ) : sairSem === 'sem_rede' ? (
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#333', margin: '0 0 4px', lineHeight: 1.4 }}>{tr('Não deu pra buscar o seu último salvamento. Nada foi apagado. Tente de novo daqui a pouco.', 'Could not fetch your last save. Nothing was deleted. Try again in a moment.')}</p>
+                ) : (<>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#333', margin: '0 0 6px', lineHeight: 1.4 }}>{tr('O que você jogou desde o último salvamento ', 'What you played since your last save ')}<b>{tr('vai ser perdido', 'will be lost')}</b>.{ult ? <> {tr('A carreira volta pra', 'The career goes back to')} <b>{tr('temporada', 'season')} {ult.seasonNo}</b>.</> : null}</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#333', margin: 0 }}>{tr('Quer guardar antes de sair?', 'Want to save before leaving?')}</p>
+                </>)}
+                {sairSem !== 'sem_rede' && (
+                  <button disabled={sairSem === 'voltando'} onClick={() => { setSairSem(null); sairESalvar() }} style={btn(GOLD, INK, 15)}>{tr('💾 Salvar e sair', '💾 Save and exit')}</button>
+                )}
+                {sairSem === 'sem_salvo' ? (
+                  <button onClick={() => { setSairSem(null); dispatch({ type: 'GO_LOBBY' }) }} style={btn('#fff', INK, 13)}>{tr('🚪 Sair assim mesmo', '🚪 Exit anyway')}</button>
+                ) : sairSem === 'sem_rede' ? (
+                  <button onClick={() => setSairSem('pergunta')} style={btn(GOLD, INK, 14)}>{tr('🔁 Tentar de novo', '🔁 Try again')}</button>
+                ) : (
+                  <button disabled={sairSem === 'voltando'} onClick={async () => {
+                    setSairSem('voltando')
+                    const r = await voltaProUltimoSalvo(state.seed)
+                    if (r === 'voltou') { setSairSem(null); dispatch({ type: 'GO_LOBBY' }) } else setSairSem(r)
+                  }} style={{ ...btn('#E8503A', '#fff', 13), opacity: sairSem === 'voltando' ? 0.6 : 1 }}>
+                    {sairSem === 'voltando' ? tr('Voltando…', 'Going back…') : tr('🚪 Sair sem salvar', '🚪 Exit without saving')}
+                  </button>
+                )}
+                {sairSem !== 'voltando' && (
+                  <button onClick={() => setSairSem(null)} style={{ marginTop: 14, background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 700, fontSize: 13, cursor: 'pointer', color: INK, ...OSWALD }}>{tr('Voltar pro jogo', 'Back to the game')}</button>
+                )}
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </div>
     </MapaGuardado>

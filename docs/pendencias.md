@@ -254,7 +254,7 @@ Código: `sala` em `msCenaKings`/`taxaDecisivaKings`/`duracaoKingsRapida`/`useRe
   se fosse a MESMA carreira do aparelho. Agora todas as que desceram ficam em `carreirasEmMemoria`, a lista mostra todas e
   `activateCareerSlot` abre a que não coube (no aparelho se couber; senão joga da memória sem mexer no que está no aparelho).
   Trava: `npm run troca` (caso 4c). O teste agora roda sem vigiar arquivos (`watch: null`): as pastas de agentes estouravam o limite.
-- ⏭️ Diego quer o botão SAIR com escolha "sair salvando / sair sem salvar" (hoje só existe "Sair e salvar") — MOCKUP antes.
+- ✅ 15/11 FEITO e PUBLICADO (*"pode fazer e publique"*): fim da carreira tem 💾 Sair e salvar (dourado) + 🚪 Só sair. Só sair → aviso "Sair sem salvar?" → confirmado, a carreira VOLTA pro último Salvar (a cópia da nuvem, `voltaProUltimoSalvo` no store; só no aparelho, só aquela carreira). Nunca salvou = não apaga nada e avisa; sem rede = não mexe. Fechar o jogo sem apertar nada continua guardando de onde parou. Mockup `scripts/mockups/sair-ou-salvar.png`.
 
 ## 💤 10/11 — Sala parada na TELA DE FIM dorme depois de 20 min (Diego: *"ok pode ser mas deixe com 20 min"*) · ✅ PUBLICADO 10/11 (*"Sim"*)
 - Achado do vigia: sala que acabou e ficou aberta (BHZBJB 14 h, KKXFY2) seguia perguntando ao banco a cada 3 s (quem está na sala +
