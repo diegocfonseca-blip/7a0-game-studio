@@ -1,5 +1,7 @@
 # Proposta para a aba Clube — 14/11/2026
 
+Atualização de 15/11: Diego aprovou e pediu a publicação da revisão v02 (Meu clube / Meus negócios / Minha vida). Implementação e validação documentadas em `docs/clube-organizacao-20261115.md`; histórico abaixo preserva a fase de proposta.
+
 Pedido de Diego: entender o cartão “aparece uma vez por temporada” e reorganizar a área do Clube no padrão visual atual, com sugestões adicionais. Entrega desta etapa: diagnóstico, proposta e mockups. Nenhuma mudança de produção ou publicação.
 
 ## Aviso deslocado

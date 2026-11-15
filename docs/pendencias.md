@@ -1,3 +1,9 @@
+## 🗂️ 15/11 — Reorganização do Clube — FEITO na prévia privada
+
+- Diego pediu publicar também a proposta revisada: Meu clube, Meus negócios, Minha vida. Mapa em destaque, acessos ao lado/abaixo; casa/garagem juntas; SAF e segundo clube separados das obras.
+- Obras concluídas recolhidas, custos e saldo posterior explícitos; Finanças contextualiza o caixa e o extrato reais. Roteiro fica em Jogos; fora, só pendência real com acesso à etapa correta.
+- Detalhes em `docs/clube-organizacao-20261115.md`; capturas e testes em `/workspace/shared/clube-organizacao-20261115/`. Exclusivo da conta verificada de Diego, sem novas conexões, gastos de chat ou mudanças nas salas.
+
 ## 🧭 14/11 — Passeio livre: destinos, câmera, portas e retomada — FEITO na prévia privada
 
 - Diego autorizou todas as melhorias recomendadas. Implementa destino opcional, centralizar, câmera respeitando volumes, ação perto dos estabelecimentos, retorno ao enquadramento anterior, retomada por qualidade e piso para calçadas/rampas/escadas.
@@ -11,11 +17,11 @@
 - Análise e recomendações separadas para destino opcional, câmera, interação nas portas, ajuda por aparelho e retomada de passeio ao trocar qualidade. Implementadas na entrega de passeio livre acima.
 - Detalhes em `docs/passeio-personagem-20261114.md`; testes, antes/depois e publicação em `/workspace/shared/passeio-personagem-20261114/`. Prévia privada continua restrita a Diego; sem salas, banco, prêmios ou moedas.
 
-## 🗂️ 14/11 — Aba Clube: aviso de encerramento deslocado e proposta visual — ANÁLISE E MOCKUPS
+## 🗂️ 14/11 — Aba Clube: aviso de encerramento deslocado e proposta visual — ANÁLISE E MOCKUPS · IMPLEMENTADA em 15/11
 
 - O aviso “aparece uma vez por temporada” pertence ao passo internacional/Copa do Mundo do encerramento, não ao mapa. Em Clube, fica sem a campanha e contradiz a trava de continuar. Proposta: roteiro em Jogos e acesso compacto para a pendência real; validação da sessão com mensagem distinta.
 - Mockups de celular/computador com mapa em destaque, gestão acessível, obras concluídas recolhidas e Finanças com contexto. Antes reproduz o layout da foto; depois é proposta, sem alterar a conta. Valores financeiros são ilustrativos.
-- Nenhuma mudança de produção ou publicação. Proposta detalhada em `docs/proposta-clube-organizacao-20261114.md`; PDF e protótipo em `/workspace/shared/clube-organizacao-proposta-20261114/`.
+- Proposta implementada na entrega de 15/11, mantendo a prévia privada. Referência detalhada em `docs/proposta-clube-organizacao-20261114.md`; PDF e protótipo em `/workspace/shared/clube-organizacao-proposta-20261114/`.
 
 ## ⏳ 14/11 — Carregamento limpo e menos trabalho gráfico no mapa — FEITO na prévia privada
 

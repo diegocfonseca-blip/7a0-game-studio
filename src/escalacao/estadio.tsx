@@ -1,3 +1,4 @@
+import {ObrasDoClube,InformacoesDoEstadio} from './clube-organizacao'
 import { useState, type ReactNode } from 'react'
 import { Saf2Regras, saf2LoanSub } from './saf2-telas' // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com a chave)
 import { CareerStadiumView } from './career-stadium-view'
@@ -689,7 +690,8 @@ export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave |
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, saf2, bb = false }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, clubPage, saf2, bb = false }: {
+  clubPage?: 'map' | 'works' | 'business'
   initialSection?: 'sectors' | 'extras'
   museumImprovement?: ReactNode
   presidencyView?: ReactNode
@@ -781,19 +783,21 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   // % pronto, nem na exigência da SAF — senão save antigo travava em 91%).
   // (o 🏟️ retrátil segue o MESMO gate do médico: só carreiras novas veem/exigem)
   const extras = medicoOn ? STADIUM_EXTRAS : STADIUM_EXTRAS.filter(e => !extraNovaOnly(e.k))
+  const projectLayout=!!presidencyView||!!clubPage
   const parkingStages = PRESIDENCY_PARKING_STAGES_RELEASED && !!onInvestParking
   const parking = estacionamentoDoSave(st)
   const totalPieces = STADIUM_SECTORS.length + extras.length
   const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + extras.reduce((sum,e)=>sum+(parkingStages&&e.k==='estac'&&parking.valid?parking.progress:Number(hasExtra(st,e.k))),0)) / totalPieces * 100)
   return (
     <>
+      {clubPage!=='works'&&clubPage!=='business'&&<>
       {/* 🖥️ `ll-est-box` (23/10): no computador da carreira o estádio fica à esquerda e os números ao lado (career-desktop.css) */}
       <div className="ll-est-box" style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{ fontWeight: 900, fontSize: 15, textTransform: 'uppercase', ...OSW }}>
             {nomeEstadio ? <>🏟️ {nomeEstadio}</> : lvl.name}
             {meuSocio?.ativo && (
-              <button onClick={() => { setNomeTmp(nomeEstadio ?? ''); setErroNome(null); setEdEstadio(v => !v) }}
+              <button type="button" aria-label={tr('Editar nome do estádio','Edit stadium name')} onClick={() => { setNomeTmp(nomeEstadio ?? ''); setErroNome(null); setEdEstadio(v => !v) }}
                 style={{ marginLeft: 7, border: `2px solid ${INK}`, borderRadius: 8, background: '#fff', fontSize: 11, padding: '1px 6px', verticalAlign: 'middle' }}>✏️</button>
             )}
           </span>
@@ -821,9 +825,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 }}>
-          <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</span></div>
+          <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>{clubPage==='map'?tr('lugares construídos','built seats'):<>/ {seats.max.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</>}</span></div>
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% {tr('pronto', 'done')}</span>
         </div>
+        <InformacoesDoEstadio organized={clubPage==='map'}>
         <div style={{ marginTop: 9, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 11px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.55)', ...OSW }}>{tr('🧍 Torcida do clube', '🧍 Club support')}</span>
@@ -852,11 +857,13 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
             : medicoOn
             ? <><b>Piso garantido +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}</b> se LOTAR. 🎟️ Você fatura conforme a <b>colocação</b> enche {bb ? 'a arena' : 'o estádio'}: Top 4 lota (renda cheia), {bb ? 'os 4 últimos esvaziam' : 'Z4 esvazia'} (só o piso). O piso nunca cai.</>
             : <><b>{bb ? 'Base da arena' : 'Base do estádio'} +{STADIUM_BASE}</b>{stadiumBuiltIncome(st) > 0 ? <> · construído +{stadiumBuiltIncome(st)}</> : ''} = <b>+{income}/temporada</b>. Todo clube já vende ingresso — construir <b>soma em cima da base</b>. Cai sozinha no caixa ao fim de cada temporada; melhoria pronta rende pra sempre.</>}</p>
+        </InformacoesDoEstadio>
       </div>
 
       {/* 🎟️ LOTAÇÃO (Diego 12/08): só clima do próximo jogo — nunca desconta a
           bilheteria fixa acima. Sem Camarote, chuva esfria o público SÓ desse
           jogo; com Camarote, protege. */}
+      <InformacoesDoEstadio organized={clubPage==='map'} label={tr('Público do próximo jogo','Next match attendance')}>
       {torcidaPct != null && (() => {
         // 🐛 CORRIGIDO (relato do jogador Amauri, 12/08): 'camarote' é SETOR (st.inv),
         // não extra — então hasExtra('camarote') dava SEMPRE falso e a chuva punia
@@ -890,8 +897,12 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         )
       })()}
 
+      </InformacoesDoEstadio>
+      </>}
+      {clubPage!=='map'&&clubPage!=='business'&&<>
+      {clubPage==='works'&&<div className="clube-obras-intro"><strong>{coins.toLocaleString('pt-BR')} 🪙</strong><p>{tr('Caixa disponível do clube no comando. Cada obra mostra o preço do próximo investimento.','Available balance of the managed club. Each upgrade shows the next investment price.')}</p></div>}
       {cinematic && <nav className="ll32-structure-tabs" aria-label={bb ? 'Obras da arena' : 'Obras do estádio'}><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
-      <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
+      <section className={cinematic&&!clubPage ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>{tr('🧱 Arquibancadas — investe aos poucos', '🧱 Stands — invest bit by bit')}</p>
       {/* 🌱 O GRAMADO SAIU DAQUI (Diego 16/09). Ele tem ZERO lugares — não é
           arquibancada, e ficava na lista como se fosse. Vai lá pra baixo, junto das
@@ -901,9 +912,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           poderia ver obras RE-TRANCAREM (a Cobertura pede 4 setores, o Hotel pede
           todos). Isto aqui é mudança de LUGAR NA TELA, não de regra — ninguém perde
           progresso nem desbloqueio. */}
+      <ObrasDoClube enabled={!!clubPage}>
       {STADIUM_SECTORS.filter(s => s.k !== 'grama').map(s => {
-        const p = sectorPct(st, s.k), full = presidencyView ? setorPagoNoProjeto(st,s.k) : p >= 100
-        const locked = !!presidencyView && !podeInvestirNoProjeto(st,s.k)
+        const p = sectorPct(st, s.k), full = projectLayout ? setorPagoNoProjeto(st,s.k) : p >= 100
+        const locked = projectLayout && !podeInvestirNoProjeto(st,s.k)
         // 🐛 CORRIGIDO (relato de jogador, 12/08): Cadeiras (90) e Camarote (150)
         // não são múltiplos de 20 — o ÚLTIMO clique já cobrava só o restante
         // (o reducer sempre fez `Math.min(STADIUM_STEP, custo - investido)`,
@@ -916,7 +928,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         const stepPay = Math.min(STADIUM_STEP, Math.max(0, s.cost - investedRaw))
         const poor = coins < stepPay
         return (
-          <div key={s.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
+          <div key={s.k} data-work-done={full||undefined} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
                 <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{presidencyView && s.k==='camarote' ? tr('Camarotes e 2º andar','Boxes and upper tier') : bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
@@ -928,6 +940,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b>{typeof torcidaPct === 'number' && torcidaPct < 100 ? <span style={{ opacity: .75 }}> {tr(`(hoje +${Math.floor(s.inc * torcidaPct / 100)} — estádio ${torcidaPct}% cheio)`, `(today +${Math.floor(s.inc * torcidaPct / 100)} — stadium ${torcidaPct}% full)`)}</span> : null}{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</> : null}</div>
               {locked&&<p style={{fontSize:11,margin:'4px 0 0'}}>{tr('Conclua Geral, Cadeiras e Visitante para construir o 2º andar.','Finish Terraces, Seats and Away end before the upper tier.')}</p>}
             </div>
+            {clubPage&&!full&&<p className="clube-obra-context" data-insuficiente={poor}>{locked?tr('Conclua primeiro o andar inferior.','Complete the lower tier first.'):poor?tr(`Faltam ${stepPay-coins} moedas.`,`You need ${stepPay-coins} more coins.`):tr(`Após investir: ${coins-stepPay} moedas.`,`After investing: ${coins-stepPay} coins.`)}</p>}
             <button onClick={() => !full && !poor && !locked && onInvest(s.k)} disabled={full || poor || locked}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor || locked ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor || locked ? '#d9cfb4' : INK, color: full ? INK : poor || locked ? '#7d7358' : '#fff' }}>
               {full ? tr('✅ pronto', '✅ done') : locked ? tr('🔒 1º andar','🔒 Lower tier') : <>{tr('Investir', 'Invest')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
@@ -936,9 +949,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         )
       })}
 
+      </ObrasDoClube>
       </section>
-      <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'extras'}>
+      <section className={cinematic&&!clubPage ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'extras'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>{tr('✨ Melhorias — pagam e destravam 🔓', '✨ Upgrades — they pay and unlock 🔓')}</p>
+      <ObrasDoClube enabled={!!clubPage}>
       {/* 🌱 o GRAMADO mora aqui desde 16/09 (ver o comentário lá em cima) */}
       {(() => {
         const s = STADIUM_SECTORS.find(x => x.k === 'grama')!
@@ -946,7 +961,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         const stepPay = Math.min(STADIUM_STEP, Math.max(0, s.cost - (st?.inv[s.k] ?? 0)))
         const poor = coins < stepPay
         return (
-          <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
+          <div data-work-done={full||undefined} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
                 <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
@@ -957,6 +972,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b> · <b>{tr('sem lugares', 'no seats')}</b></div>
             </div>
+            {clubPage&&!full&&<p className="clube-obra-context" data-insuficiente={poor}>{poor?tr(`Faltam ${stepPay-coins} moedas.`,`You need ${stepPay-coins} more coins.`):tr(`Após investir: ${coins-stepPay} moedas.`,`After investing: ${coins-stepPay} coins.`)}</p>}
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
               {full ? tr('✅ pronto', '✅ done') : <>{tr('Investir', 'Invest')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
@@ -964,11 +980,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </div>
         )
       })()}
-      {(presidencyView ? extras.flatMap(e=>e.k==='loja'?[e,PAVIMENTACAO_ESTADIO]:[e]) : extras).map(e => {
+      {(projectLayout ? extras.flatMap(e=>e.k==='loja'?[e,PAVIMENTACAO_ESTADIO]:[e]) : extras).map(e => {
         if(e.k==='estac'&&parkingStages){
           const unlocked=hasExtra(st,'loja'),poor=!Number.isSafeInteger(coins)||coins<parking.nextCost
           const disabled=!parking.valid||parking.complete||!unlocked||poor
-          return <div key={e.k} data-parking-stage={parking.stage} style={{...box('#FBF6E9'),borderRadius:14,padding:'10px 11px',marginBottom:9,display:'flex',alignItems:'center',gap:11}}>
+          return <div key={e.k} data-work-done={parking.complete||undefined} data-parking-stage={parking.stage} style={{...box('#FBF6E9'),borderRadius:14,padding:'10px 11px',marginBottom:9,display:'flex',alignItems:'center',gap:11}}>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontWeight:900,fontSize:14.5,...OSW}}>{extraNome(e)}</div>
               {parking.valid?<>
@@ -985,7 +1001,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
             </button>
           </div>
         }
-        const done = hasExtra(st, e.k), unlocked = presidencyView ? extraLiberadoNoProjeto(st,e.k) : extraUnlocked(st,e.k), poor = coins < e.cost
+        const done = hasExtra(st, e.k), unlocked = projectLayout ? extraLiberadoNoProjeto(st,e.k) : extraUnlocked(st,e.k), poor = coins < e.cost
         // 🛍️ com a LOJA DO CLUBE de verdade ligada (teste fechado), a obra da loja
         // deixa de prometer "+6/temp": ela passou a render pela VENDA DE CAMISAS e
         // pelo patrocínio de material. Ordem do Diego (15/09): *"diz ali que rende 6
@@ -996,7 +1012,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           ? tr('rende com a venda de camisas e o fornecedor de material', 'earns from shirt sales and the kit supplier')
           : null
         return (
-          <div key={e.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: done || unlocked ? 1 : .55, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
+          <div key={e.k} data-work-done={done||undefined} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: done || unlocked ? 1 : .55, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{e.k==='asfalto' ? tr('🛣️ Ruas internas e calçadas','🛣️ Internal streets and sidewalks') : extraNome(e)}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
@@ -1011,9 +1027,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                     não dava pra planejar pra que obra juntar dinheiro. */}
                 {done ? <b style={{ color: ACC }}>{rendeTxt ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}{extraPerk(e) ? <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.5)' }}> · {extraPerk(e)}</span> : null}</b>
                   : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{rendeTxt ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b>{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>
-                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{presidencyView ? requisitoExtraNoProjeto(e.k,getLang()==='en')??extraReq(e) : extraReq(e)}</b> · {tr('custaria', 'would cost')} {e.cost} 💰 · {rendeTxt??tr(`renderia +${e.inc}/temp`, `would earn +${e.inc}/season`)}{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
+                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{projectLayout ? requisitoExtraNoProjeto(e.k,getLang()==='en')??extraReq(e) : extraReq(e)}</b> · {tr('custaria', 'would cost')} {e.cost} 💰 · {rendeTxt??tr(`renderia +${e.inc}/temp`, `would earn +${e.inc}/season`)}{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
               </div>
             </div>
+            {clubPage&&!done&&unlocked&&<p className="clube-obra-context" data-insuficiente={poor}>{poor?tr(`Faltam ${e.cost-coins} moedas.`,`You need ${e.cost-coins} more coins.`):tr(`Após construir: ${coins-e.cost} moedas.`,`After building: ${coins-e.cost} coins.`)}</p>}
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: !done && unlocked && !poor ? 'pointer' : 'default', lineHeight: 1.15, ...OSW, background: done ? GOLD : (!unlocked || poor) ? '#d9cfb4' : INK, color: done ? INK : (!unlocked || poor) ? '#7d7358' : '#fff' }}>
               {done ? tr('✅ feito', '✅ built') : !unlocked ? '🔒' : <>{tr('Construir', 'Build')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>−{e.cost} 💰</span></>}
@@ -1021,8 +1038,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </div>
         )
       })}
+      </ObrasDoClube>
       </section>
       {museumImprovement}
+      </>}
+      {clubPage!=='map'&&clubPage!=='works'&&<>
       {onBuyFilial && (() => {
         // 🔐 a SAF EXIGE login (direitos ligados à conta). Antes, sem login a seção
         // SUMIA — e o jogador não entendia (ele só via a SAF "desaparecer"). Agora
@@ -1261,7 +1281,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           </div>
         )
       })()}
-      <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '10px 2px 4px' }}>{tr('🏟️ O desenho lá em cima é o teu progresso — cada compra aparece nele.', '🏟️ The drawing up there is your progress — every purchase shows up in it.')}</p>
+      {!clubPage&&<p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '10px 2px 4px' }}>{tr('🏟️ O desenho lá em cima é o teu progresso — cada compra aparece nele.', '🏟️ The drawing up there is your progress — every purchase shows up in it.')}</p>}
+      </>}
     </>
   )
 }

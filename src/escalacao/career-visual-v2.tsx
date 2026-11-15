@@ -18,9 +18,9 @@ export function CareerBrand({ club }: { club: string }) {
   const t = useT(), perk = myApoioPerk() ?? APOIO_PERKS.bege
   return <header className="cv2-mobile-brand"><div><img src={logo} width={28} height={28} alt="" /><span><strong>LEILÃO LEGENDS</strong><small>{t('O SEU TIME COMEÇA NO LANCE.', 'YOUR TEAM STARTS WITH A BID.')}</small></span></div><span className="cv2-identity" style={{ background: perk.grad, color: perk.tier === 'roxo' || perk.tier === 'verde' ? '#fff' : '#0c0c0c' }}>{club}</span></header>
 }
-export function CareerHeading({ title, club, season, division, balance }: { title: string; club: string; season: number; division?: string; balance: number }) {
+export function CareerHeading({ title, club, season, division, balance, hideBalance=false }: { title: string; club: string; season: number; division?: string; balance: number; hideBalance?:boolean }) {
   const t = useT()
-  return <header className="cv2-heading"><div><small>{club} · {t('Temporada', 'Season')} {season}{division ? ` · ${division}` : ''}</small><h1>{title}</h1></div><div className="cv2-heading-balance"><small>{t('Caixa da carreira', 'Career balance')}</small><strong>🪙 {balance.toLocaleString()}</strong></div></header>
+  return <header className="cv2-heading"><div><small>{club} · {t('Temporada', 'Season')} {season}{division ? ` · ${division}` : ''}</small><h1>{title}</h1></div>{!hideBalance&&<div className="cv2-heading-balance"><small>{t('Caixa da carreira', 'Career balance')}</small><strong>🪙 {balance.toLocaleString()}</strong></div>}</header>
 }
 export function CareerSection({ title, id, children, className = '' }: { title: string; id?: string; children: ReactNode; className?: string }) {
   const enabled = useCareerVisualV2()

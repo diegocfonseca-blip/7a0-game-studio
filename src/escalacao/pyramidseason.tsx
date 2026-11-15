@@ -16,6 +16,7 @@ import {ResidenciaClube} from './residencia-clube'
 import {GaragemCarreira} from './garagem-carreira'
 import {carteiraDaCarreira,organizarMoveisNaCasa} from './presidencia-carreira'
 import {ClubeMapaPainel} from './clube-mapa-painel'
+import {ClubeOrganizacao,PendenciaDaTemporada} from './clube-organizacao'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import { podeAtivarRecepcaoM2, recepcaoM2Desde, versaoRecepcaoNaRodada, versaoRecepcaoNaCopa } from './motor2-recepcao-conta'
 import {publicarTempoCampo2D} from './campo2d-relogio'
@@ -2622,7 +2623,8 @@ function FinLine({ label, sub, amount }: { label: string; sub?: string; amount: 
     </div>
   )
 }
-function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false }: {
+function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, club, bb = false }: {
+  club?: string
   ledger: LedgerEntry[]; caixa: number; seasonNo: number
   squad: WonCard[]; marketValues: Record<string, number>
   bb?: boolean // 🏀 basquete: a obra é na ARENA (default false → futebol idêntico)
@@ -2659,6 +2661,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, bb = false 
   const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? (bb ? tr('🏟️ Obra na arena', '🏟️ Arena works') : tr('🏟️ Obra no estádio', '🏟️ Stadium works')) : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <div className={`ll-financial-layout${visualV2 ? ' cv2-finances' : ''}`}>
+      {club&&<p className="clube-financas-contexto">{tr(`Caixa do ${club}. Entradas e saídas abaixo correspondem à temporada ${summarySeason} do extrato; valores futuros não estão somados ao caixa.`,`Balance of ${club}. Income and expenses below refer to season ${summarySeason} in the statement; future values are not added to the balance.`)}</p>}
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
       <div style={{ ...box(), background: caixa < 0 ? `linear-gradient(160deg, ${FIN_RED}, #7a1b10)` : `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -8520,7 +8523,7 @@ export function PyramidSeasonScreen() {
   // quem manda no tempo é o dono da sala, então lá não pausa.
   const pausaCentral = tab === 'central' && !state.co2
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena' | 'museu' | 'estrutura'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena' | 'museu' | 'estrutura' | 'negocios'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const clubeMapaApi=useRef<ControleComplexo|null>(null)
   const mapaComoClube = stadiumMapAvailable && state.onlineMode!=='online' && !state.co2
 
@@ -11132,10 +11135,10 @@ export function PyramidSeasonScreen() {
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
       semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} raioX={compProximo || compPalco ? null : raioX} />
   }
-  const abrirDestinoNoMapa=(target:DestinoClubeMapa)=>setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)
+  const abrirDestinoNoMapa=(target:DestinoClubeMapa)=>setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target==='loja'&&!lojaLib?'estrutura':target)
   const PainelResidencia=mapaComoClube?ResidenciaClube:PresidenciaClube
   const museuDisponivel=mapaComoClube && state.sport!=='basquete'
-  const temPainelClube = clubeSub==='estrutura'&&mapaComoClube||clubeSub==='museu'&&museuDisponivel|| clubeSub==='arena'&&mapaComoClube||clubeSub==='veiculos'&&mapaComoClube|| clubeSub==='financas'||clubeSub==='patrocinio'||clubeSub==='loja'&&lojaLib||clubeSub==='agencia'&&agenciaOk||clubeSub==='escritorio'&&!agenciaOk||clubeSub==='presidencia'&&(presidentAvailable||privateCareer&&PRESIDENT_ROOM_RELEASED)
+  const temPainelClube = clubeSub==='negocios'&&mapaComoClube||clubeSub==='estrutura'&&mapaComoClube||clubeSub==='museu'&&museuDisponivel|| clubeSub==='arena'&&mapaComoClube||clubeSub==='veiculos'&&mapaComoClube|| clubeSub==='financas'||clubeSub==='patrocinio'||clubeSub==='loja'&&lojaLib||clubeSub==='agencia'&&agenciaOk||clubeSub==='escritorio'&&!agenciaOk||clubeSub==='presidencia'&&(presidentAvailable||privateCareer&&PRESIDENT_ROOM_RELEASED)
   // Preserve the one map instance while the existing club screens open above it.
   // Existing purchases keep their rules; the optional museum has its own action.
   // Navigating never runs a match.
@@ -11149,14 +11152,14 @@ export function PyramidSeasonScreen() {
     context: { ...stadiumMatch, tituloDivisao: divFesta }, officialTeams: [myMatch.h, myMatch.a], minute: 93, period: 2, homeScore: myMatch.hg, awayScore: myMatch.ag, paused: true, finished: true,
     homeColor: myMatch.hId === youId ? myCol.solid : colors?.[myMatch.hId]?.solid ?? '#3A7CA5', awayColor: myMatch.aId === youId ? myCol.solid : colors?.[myMatch.aId]?.solid ?? '#C2452F' } : undefined
   const mapaDoClube = !presidentPending && stadiumMapAvailable ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
-  const renderEstruturaDoClube=(insidePanel=false)=> (
+  const renderEstruturaDoClube=(insidePanel=false,business=false)=> (
           <>
             {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
                 de temporada (antes de "Começar a temporada") — aqui é só status/leitura.
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab clubPage={mapaComoClube?(business?'business':insidePanel?'works':'map'):undefined} initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={stadiumMapAvailable&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
@@ -11226,6 +11229,7 @@ export function PyramidSeasonScreen() {
                 como reserva) — se divergirem, o botão prometia 2 e o clique não fazia nada */
                 filialSlots(state.careerPlacements?.[`m${youId}`] ?? me?.div ?? 'D')}
               torcidaPct={torcidaPct} chuvaHoje={chuvaHoje} />
+            {(!mapaComoClube||business)&&<>
             {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio depois do estádio. A escada de
                 desbloqueios da Agência morava aqui — mudou pra Elenco › Agenciados
                 (14/08, pedido do Diego: tudo de Agência num lugar só, junto da
@@ -11355,6 +11359,7 @@ export function PyramidSeasonScreen() {
                 moedas" — o banco aparece na hora certa. Também segue em Finanças.
                 (O componente já se esconde sozinho no online.) */}
             <BancoLegends />
+            </>}
           </>
   )
 
@@ -11441,7 +11446,8 @@ export function PyramidSeasonScreen() {
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
         {visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
         {visualV2 && tab === 'jogos' && !done && round > 0 && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
-        {visualV2 && tab !== 'jogos' && <CareerHeading club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : tr('Mapa do clube', 'Club map')} />}
+        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
+        {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
         <div className="ll-cx-lado">
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
             (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
@@ -12129,7 +12135,7 @@ export function PyramidSeasonScreen() {
             </div>
           )
         })}
-        {copaFinished && (() => {
+        {copaFinished && (!mapaComoClube||tab==='jogos') && (() => {
           // 🏛️ MULTICLUBES: o 2º clube dormindo é `isHuman` (assento meu), mas NÃO conta
           // como técnico na votação — senão o SOLO cairia no fluxo online. Fica de fora aqui.
           const humans = state.managers.filter(m => m.isHuman && !m.dormindo)
@@ -12201,7 +12207,7 @@ export function PyramidSeasonScreen() {
               {roteiroOn && fimPasso === 3 && (
                 <>
                   <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(12,12,12,.45)', margin: '2px 0 0', lineHeight: 1.4 }}>
-                    {tr('Aparece uma vez por temporada, e só. Nada pra fazer aqui — é só pra você saber que ela existe.', 'Shows up once a season, that’s it. Nothing to do here — just so you know it exists.')}
+                    {mapaComoClube?(!intlAuthReady&&intlPendente?tr('Conferindo sua temporada. Aguarde a confirmação da sessão.','Checking your season. Waiting for session confirmation.'):intlPendente?tr('Conclua a temporada internacional abaixo para continuar o encerramento.','Complete the international season below to continue the wrap-up.'):mundoPendente?tr('Dispute a Copa do Mundo antes de seguir para os próximos passos.','Play the World Cup before continuing to the next steps.'):tr('Confira a situação da Copa do Mundo e continue o roteiro da temporada.','Check the World Cup status and continue the season wrap-up.')):tr('Aparece uma vez por temporada, e só. Nada pra fazer aqui — é só pra você saber que ela existe.', 'Shows up once a season, that’s it. Nothing to do here — just so you know it exists.')}
                   </p>
                   <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} travado={mundoPendente || intlPendente}
                     sub={!intlAuthReady && intlPendente ? tr('Validando a sessão da carreira…', 'Checking your career session…') : intlPendente ? tr('🌎 conclua a temporada internacional para seguir', '🌎 complete the international season to continue') : mundoPendente ? tr('🌍 jogue a Copa do Mundo pra seguir — o jornal e a Bola de Ouro já saem com os gols dela', '🌍 play the World Cup to move on — the paper and the Ballon d’Or will include its goals')
@@ -12457,7 +12463,7 @@ export function PyramidSeasonScreen() {
             {/* 📌 as MESMAS pílulas de sempre — o wrapper só faz elas grudarem no
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             {(() => {
-              if(mapaComoClube)return <nav aria-label={tr('Área do clube','Club area')} style={{marginBottom:10}}><button type="button" aria-label={tr('Mapa do clube','Club map')} aria-current="page" onClick={()=>setClubeSub('estadio')} style={{border:`2.5px solid ${INK}`,borderRadius:11,padding:'7px 14px',background:GOLD,color:INK,boxShadow:`2px 2px 0 ${INK}`,fontWeight:900,textTransform:'uppercase',cursor:'pointer',...OSWALD}}>🗺️ {tr('Mapa','Map')}</button></nav>
+              if(mapaComoClube)return null
               const subs = (([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], /* 🚫🏛️ 04/11: a sub-aba "Presidência" (sala do presidente) SAIU, ordem do Diego — a casa continua no mapa, em "Minha casa" */ ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
                 // 🕴️ SAIU DO ELENCO, VEIO PRO CLUBE (Diego 19/09): *"tem que tirar do
                 // elenco e pôr lá no clube também"*. Agência não é escalação — o lugar
@@ -12511,9 +12517,9 @@ export function PyramidSeasonScreen() {
                 </SubAbasGrudadas>
               )
             })()}
-            {(mapaComoClube || !temPainelClube) && renderEstruturaDoClube()}
+            {mapaComoClube?<ClubeOrganizacao onSelect={abrirDestinoNoMapa} store={lojaLib&&hasExtra(state.stadiums?.[youId],'loja')} museum={museuDisponivel} home={presidentAvailable} balance={state.careerCoins?.[youId]??0} club={state.managers[state.youIdx]?.teamName??''}>{renderEstruturaDoClube()}</ClubeOrganizacao>:!temPainelClube&&renderEstruturaDoClube()}
             <ClubeMapaPainel enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={abrirDestinoNoMapa} onClose={()=>setClubeSub('estadio')}>
-            {clubeSub==='estrutura'&&mapaComoClube?renderEstruturaDoClube(true):clubeSub==='museu'&&museuDisponivel?<MuseuClube state={state} mgrId={youId} member={meuSocFesta} color={myCol.solid} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:youId,expectedStage})} onStore={()=>setClubeSub('estrutura')}/>:clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
+            {clubeSub==='negocios'&&mapaComoClube?renderEstruturaDoClube(true,true):clubeSub==='estrutura'&&mapaComoClube?renderEstruturaDoClube(true):clubeSub==='museu'&&museuDisponivel?<MuseuClube state={state} mgrId={youId} member={meuSocFesta} color={myCol.solid} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:youId,expectedStage})} onStore={()=>setClubeSub('estrutura')}/>:clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
               <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><PainelResidencia onFurnitureHome={ids=>{if(!presidentWritesEnabled()||!organizarMoveisNaCasa(state,youId,ids).ok)return false;dispatch({type:'PRESIDENCY_FURNITURE_HOME',mgrId:youId,ids});return true}} onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
                 if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
                 dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true
@@ -12588,10 +12594,10 @@ export function PyramidSeasonScreen() {
                 masterNome={masterBrandAtual?.name}
                 masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
                 minhaCor={myCol.solid}
-                onIrEstrutura={() => setClubeSub('estadio')} />
+                onIrEstrutura={() => setClubeSub(mapaComoClube?'estrutura':'estadio')} />
             ) : clubeSub === 'financas' ? (
               <>
-              <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
+              <FinancasTab club={mapaComoClube?state.managers[state.youIdx]?.teamName:undefined} ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}
                 squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} marketValues={state.marketValues ?? {}} />
               <BancoLegends />
               </>

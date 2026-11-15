@@ -1,5 +1,5 @@
 import type {LimitesComplexo} from './presidencia-complexo-model'
-export type DestinoClubeMapa='presidencia'|'financas'|'loja'|'agencia'|'escritorio'|'patrocinio'|'veiculos'|'arena'|'museu'|'estrutura'
+export type DestinoClubeMapa='presidencia'|'financas'|'loja'|'agencia'|'escritorio'|'patrocinio'|'veiculos'|'arena'|'museu'|'estrutura'|'negocios'
 /** 10/11: agência em lote comercial independente junto ao shopping. A fachada olha
  * ao sul; o acesso fica fora da esplanada, do anel e das entradas do estádio. */
 const BX0=-38,BX1=-12,BZ0=-271,BZ1=-245
