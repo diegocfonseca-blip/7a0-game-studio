@@ -8358,7 +8358,7 @@ const abreCraqueNuvem = () => { window.location.href = `${window.location.origin
 // componentes do futebol (StadiumTab/FinancasTab/EscritorioTab/MultiClubeBuy) com
 // bb={true} pro visual de quadra e a régua da arena. SÓ aparece na carreira do
 // basquete (EscSeason), nunca no futebol. Patrocínio fica pra uma próxima fatia.
-export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
+export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** 🏀 15/11: vira a ABA Clube da carreira do basquete (sem fundo escuro, sem ✕) */ inline?: boolean }) {
   const { state, dispatch } = useEsc()
   const en = getLang() === 'en'
   const L = (pt: string, e: string) => en ? e : pt
@@ -8385,19 +8385,19 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
     ['multi', '🏛️', L('2º Clube', '2nd Club')],
   ]
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />
-      <div style={{ position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={inline ? undefined : { position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      {!inline && <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />}
+      <div style={inline ? { background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden' } : { position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
-          <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
+          {!inline && <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>}
         </div>
         <div style={{ display: 'flex', gap: 6, padding: 10 }}>
           {tabs.map(([s, ic, label]) => (
             <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
           ))}
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
+        <div style={inline ? { padding: '0 12px 20px' } : { flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
           {sub === 'escritorio' ? (
             <EscritorioTab cards={myCards} st={state.stadiums?.[youId]} hasFilial={false} bb />
           ) : sub === 'patrocinio' ? (

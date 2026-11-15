@@ -7443,12 +7443,43 @@ function useFolgaShootout(ativo: boolean, chave: string, sessao: { duracao: numb
 }
 // 🏀📺 CENTRAL DA CARREIRA DO BASQUETE (15/11, carreira v02): a MESMA Central do futebol (`central.tsx`, com `bb`),
 // alimentada pela liga do basquete. Só mostra o que já foi revelado (a aba só abre entre um jogo e outro).
-function TabsCentralBB({ aba, onAba, travada }: { aba: 'central' | 'jogos'; onAba: (a: 'central' | 'jogos') => void; travada: boolean }) {
-  const b = (id: 'central' | 'jogos', rot: string) => (
-    <button type="button" onClick={() => onAba(id)} disabled={id === 'central' && travada}
-      style={{ ...OSWALD, flex: 1, padding: '9px 6px', fontSize: 14, letterSpacing: '.05em', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: aba === id ? 'none' : `3px 3px 0 ${INK}`, transform: aba === id ? 'translate(2px,2px)' : undefined, background: aba === id ? GOLD : '#fff', color: INK, opacity: id === 'central' && travada ? .5 : 1, cursor: 'pointer' }}>{rot}</button>
-  )
-  return <div style={{ display: 'flex', gap: 8 }}>{b('central', tr('📺 Central', '📺 Hub'))}{b('jogos', tr('🏀 Jogos e tabela', '🏀 Games & table'))}</div>
+type AbaBB = 'central' | 'jogos' | 'elenco' | 'rank' | 'clube'
+function TabsCentralBB({ aba, onAba, travada }: { aba: AbaBB; onAba: (a: AbaBB) => void; travada: boolean }) {
+  // 🏀 15/11 (carreira v02): as MESMAS 5 pílulas da carreira do futebol (ícone em cima, nome embaixo). Com jogo rolando,
+  // só Jogos fica livre — as outras esperam o apito (anti-spoiler: tabela, cestinhas e jornal ainda não sabem do jogo).
+  const abas: [AbaBB, string, string][] = [['central', '📺', 'Central'], ['jogos', '🏀', tr('Jogos', 'Games')], ['elenco', '👥', tr('Elenco', 'Roster')], ['rank', '🏆', 'Rank'], ['clube', '🏢', tr('Clube', 'Club')]]
+  return <div style={{ display: 'flex', gap: 6 }}>{abas.map(([id, ic, rot]) => {
+    const off = id !== 'jogos' && travada
+    return <button key={id} type="button" onClick={() => onAba(id)} disabled={off}
+      style={{ ...OSWALD, flex: 1, padding: '7px 2px', fontSize: 10.5, fontWeight: 900, letterSpacing: '.04em', textTransform: 'uppercase', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 ${INK}`, background: aba === id ? GOLD : '#fff', color: INK, opacity: off ? .45 : 1, cursor: off ? 'default' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+      <span style={{ fontSize: 16, lineHeight: 1.1 }}>{ic}</span>{rot}</button>
+  })}</div>
+}
+/** 👥 aba Elenco do basquete: a quadra + o elenco inteiro com os pontos da temporada. É só VER: no basquete não existe
+ *  titular fixo — em cada jogo até 9 entram na rotação e dividem os pontos, pesando o nível (`simMatch`, creditPts). */
+function ElencoBB() {
+  const { state } = useEsc()
+  const you = state.managers[state.youIdx]
+  const pts: Record<string, number> = {}
+  for (const x of state.scorers ?? []) if (x.teamId === you.id) pts[x.name] = x.goals
+  const cat = (f: number) => f >= 5 ? tr('👑 Lenda', '👑 Legend') : f === 4 ? tr('⭐ Craque', '⭐ Star') : f === 3 ? tr('🌱 Promessa', '🌱 Prospect') : f === 2 ? tr('🎯 Bom', '🎯 Good') : tr('🪵 Profissional', '🪵 Pro')
+  const lista = [...you.squad].sort((a, b) => SECTOR_KEYS.indexOf(a.pos as Sector) - SECTOR_KEYS.indexOf(b.pos as Sector) || (b.lo + b.hi) - (a.lo + a.hi))
+  return <>
+    <YourPitch small />
+    <Box className="p-0 overflow-hidden">
+      <div style={{ ...OSWALD, background: INK, color: '#fff', padding: '9px 13px', display: 'flex', justifyContent: 'space-between', fontSize: 15, letterSpacing: '.06em', textTransform: 'uppercase' }}>
+        <b>👥 {tr('Elenco', 'Roster')} · {you.squad.length}</b><small style={{ fontSize: 10, opacity: .7, alignSelf: 'center' }}>{tr('pontos na temporada', 'season points')}</small>
+      </div>
+      {lista.map(c => (
+        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderTop: '2px solid rgba(0,0,0,.08)', background: (pts[c.name] ?? 0) > 0 && pts[c.name] === Math.max(...Object.values(pts)) ? '#FFF3C4' : undefined, fontSize: 12 }}>
+          <b style={{ ...OSWALD, width: 26, fontSize: 12 }}>{posTag(c.pos)}</b>
+          <span style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b><small style={{ color: '#6a6250', fontWeight: 700 }}>{c.club} {c.year} · {cat(c.fame)}</small></span>
+          <b style={{ ...OSWALD, fontSize: 16 }}>{pts[c.name] ?? 0}</b>
+        </div>
+      ))}
+      <p style={{ margin: 0, padding: '8px 12px 10px', fontSize: 10.5, fontWeight: 700, color: '#6a6250', borderTop: '2px solid rgba(0,0,0,.08)' }}>{tr('🏀 Em cada jogo até 9 do elenco entram na rotação e dividem os pontos — quem tem nível maior joga mais. Em amarelo, o seu cestinha.', '🏀 Each game up to 9 players rotate and share the points — higher level plays more. Highlighted: your top scorer.')}</p>
+    </Box>
+  </>
 }
 function CentralBB({ onJogos, onClube }: { onJogos: () => void; onClube: () => void }) {
   const { state } = useEsc()
@@ -7687,7 +7718,7 @@ export function EscSeason() {
   const [bbClube, setBbClube] = useState(false) // 🏀🏢 overlay da economia (Clube) na carreira do basquete
   // 🏀📺 15/11: a CENTRAL da carreira do basquete (só a carreira solo, durante a temporada regular). Igual ao futebol, a
   // liga fica PAUSADA enquanto você está na Central, e a aba só abre entre um jogo e outro (nunca no meio de um jogo = sem spoiler).
-  const [abaBB, setAbaBB] = useState<'central' | 'jogos'>('central')
+  const [abaBB, setAbaBB] = useState<AbaBB>('central')
   const [rodadaAoAbrir] = useState(state.round) // o jogo que já estava salvo ao abrir já foi visto (não é spoiler)
   useEffect(() => {
     if (seasonSettled) { setResultRevealed(true); return }
@@ -7770,7 +7801,7 @@ export function EscSeason() {
   // "flag de pausa" à parte: a própria existência da chave já diz que é a vez dela.
   const centralBB = bbS && !!state.nbaCareer && !!state.careerOnline && !online && state.round < totalRounds && !(state.nbaCup && state.nbaCup.phase !== 'done')
   const centralTravada = state.round > rodadaAoAbrir && !resultRevealed // jogo rolando: a Central espera o apito (anti-spoiler)
-  const naCentralBB = centralBB && abaBB === 'central' && !centralTravada
+  const naCentralBB = centralBB && abaBB !== 'jogos' && !centralTravada // fora da aba Jogos a liga fica parada (igual à Central)
   const cup = state.nbaCup
   const cupLive = state.sport === 'basquete' && !!cup && cup.phase !== 'done'
   useEffect(() => {
@@ -8108,10 +8139,15 @@ export function EscSeason() {
       })()}
   </OwnerSlot>) : null
   if (naCentralBB) return (
-    <Shell wide bar={<div className="flex items-center justify-between max-w-xl mx-auto gap-2"><span className="font-black text-sm" style={OSWALD}>🪜 {LS('CARREIRA', 'CAREER')} · {LS('JOGO', 'GAME')} {Math.max(1, state.round)}/{totalRounds}</span></div>}>
-      <TabsCentralBB aba="central" onAba={setAbaBB} travada={false} />
-      <CentralBB onJogos={() => setAbaBB('jogos')} onClube={() => setBbClube(true)} />
-      {bbClube && <BbClubeOverlay onClose={() => setBbClube(false)} />}
+    <Shell wide bar={<div className="flex items-center justify-between max-w-xl mx-auto gap-2"><span className="font-black text-sm" style={OSWALD}>🪜 {LS('CARREIRA', 'CAREER')} · {LS('JOGO', 'GAME')} {Math.max(1, state.round)}/{totalRounds}</span><span className="font-black text-sm" style={OSWALD}>{ordinal(table.findIndex(t => t.id === you.id) + 1, seasonLang)} · {(() => { const t = table.find(x => x.id === you.id); return t ? `${t.w}-${t.l}` : '' })()}</span></div>}>
+      <TabsCentralBB aba={abaBB} onAba={setAbaBB} travada={false} />
+      {abaBB === 'central' && <CentralBB onJogos={() => setAbaBB('jogos')} onClube={() => setAbaBB('clube')} />}
+      {abaBB === 'elenco' && <ElencoBB />}
+      {abaBB === 'rank' && <>
+        <TopScorersBox highlight={you.id} title={LS('🏀 CESTINHA DA LIGA', '🏀 SCORING LEADERS')} />
+        <TopAssistsBox highlight={you.id} competition="liga" showEmpty />
+      </>}
+      {abaBB === 'clube' && <BbClubeOverlay inline onClose={() => setAbaBB('central')} />}
     </Shell>
   )
   return (
@@ -8122,7 +8158,7 @@ export function EscSeason() {
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
-          {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {LS('CARREIRA', 'CAREER')}{escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
+          {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {LS('CARREIRA', 'CAREER')}{bbS ? (state.nbaTier === 'nba' ? ' · NBA' : state.nbaTier === 'gleague' ? ' · G LEAGUE' : ' · STREET') : escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
           {copaLive && qc ? (cupNow
             ? `🏆 NBA CUP · ${qc.phase === 'quartas' ? LS('QUARTAS', 'QUARTERS') : qc.phase === 'semis' ? LS('SEMIFINAL', 'SEMIFINAL') : LS('FINAL', 'FINAL')}`
@@ -8133,7 +8169,7 @@ export function EscSeason() {
           if ((privateVisual || state.copaMode === 'champions' || relS) && copaLive && qc) return qc.phase === 'final' ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.legIdx === 0 ? LS('IDA', '1ST LEG') : LS('VOLTA', '2ND LEG')
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
           const pos = disp.findIndex(t => t.id === you.id) + 1
-          return `${ordinal(pos, seasonLang)} · ${disp[pos - 1]?.pts ?? 0} pts`
+          return bbS ? `${ordinal(pos, seasonLang)} · ${disp[pos - 1]?.w ?? 0}-${disp[pos - 1]?.l ?? 0}` : `${ordinal(pos, seasonLang)} · ${disp[pos - 1]?.pts ?? 0} pts` // 🏀 basquete: campanha V-D
         })()}</span>
       </div>
     }>
@@ -8729,7 +8765,7 @@ export function EscSeason() {
       )}
       {/* 🏀🏢 CLUBE (economia do basquete): arena, finanças, agência, 2º clube.
           Só na carreira do basquete SOLO (careerOnline=true + nbaCareer). */}
-      {bbS && state.careerOnline && state.nbaCareer && (
+      {bbS && state.careerOnline && state.nbaCareer && !centralBB && (
         <button onClick={() => setBbClube(true)}
           className="w-full border-[3px] border-black rounded-xl py-3 font-black text-sm uppercase"
           style={{ backgroundColor: '#7C3AED', color: '#fff', boxShadow: `4px 4px 0 ${INK}`, ...OSWALD }}>
@@ -8751,10 +8787,10 @@ export function EscSeason() {
         {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({repescao:'PLAYOFF',r32:'ROUND OF 32',oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({repescao:'REPESCÃO',r32:'RODADA DE 32',oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
         {/* ⭐ Só Champions: não teve liga — a tabela dela (toda zerada) não aparece */}
         {state.copaMode === 'champions' ? null : privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
-      naDireita(<TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" cinema={cinemaPreview} />)
+      naDireita(<TableBox highlight={you.id} holdResults={!resultRevealed} title={bbS && state.nbaCareer ? (state.nbaTier === 'nba' ? '🏆 NBA' : state.nbaTier === 'gleague' ? '🏆 G LEAGUE' : '🏆 STREET LEAGUE') : "🏆 LIGA LEGENDS"} cinema={cinemaPreview} />)
         }
       </div>
-      <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">
+      <div hidden={(privateVisual && visualTab !== 'estatisticas') || centralBB} className="space-y-5">
         {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
         {state.copaMode !== 'champions' && <TopScorersBox highlight={you.id} title={LS('⚽ ARTILHARIA DA LIGA LEGENDS', '⚽ LIGA LEGENDS TOP SCORERS')} hold={!resultRevealed} />}
         {/* 🐛 08/09 (Diego: *"fica aparecendo 'disponíveis após o apito' e não mostra
@@ -8766,7 +8802,7 @@ export function EscSeason() {
         {(!privateVisual || !copaLive || (copaMin >= 93 && copaAdvReady)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">{LS('Assistências disponíveis após o apito final.', 'Assists available after the final whistle.')}</Box>}
       </div>
       <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
-      <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
+      <div hidden={(privateVisual && visualTab !== 'elenco') || centralBB} className="space-y-5">
       {/* 📋🏆 Minha Liga Draft: elenco de até 22 → a aba Elenco é a MESMA da carreira (trocar titular e formação) */}
       {state.minhaLigaDraft ? <EscalacaoMinha /> : <YourPitch small />}
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
