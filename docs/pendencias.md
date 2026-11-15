@@ -13627,3 +13627,17 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - Reproduzida a praça vazia entre jogos e a mesma praça com seis barracas durante uma partida, em celular simulado no Leve. A regra existente esconde o grupo fora da jornada de jogo e aguarda chegada/descarga na preparação; a otimização não removeu os ambulantes.
 - Passaram a bancada de navegador, as 144.000 amostras das peruas e as verificações do dia de jogo. Sem acesso a conta, saves, salas ou banco; nenhuma publicação necessária.
 - A foto não revela a fase da sessão real; foi perguntado se havia partida rolando. Se havia, falta investigar o estado da jornada nessa sessão. Detalhes em `docs/mapa-ambulantes-20261114.md`; evidências em `/workspace/shared/mapa-ambulantes-20261114/`.
+
+## 15/11 (noite) — 4 ideias do Diego vistas no Brasileirinho (A FAZER, mockup antes de cada uma)
+Palavras dele: *"tem coisas legais dele que poderíamos ter no nosso"*. Prints: semana passando dia a dia com transferências e camisas
+vendidas; Central com "ENQUANTO ISSO NA SEDE" (cena filmada do mapa + texto + VER NO MAPA); chegada do ônibus antes de clássico.
+**Não copiar a cara deles** — tudo no visual do nosso jogo (creme/bordas/Oswald) e usando o MAPA que já temos.
+1. **Semana com mais acontecimentos** — cada dia que passa (calendário que já existe, `calendario-ui.tsx`) ganha mais coisas do
+   próprio jogo (transferências dos bots, camisas vendidas, obras, lesões…), crescendo com o tempo, SEM mudar o jeito que os dias
+   passam hoje e sem passo novo (regra do ritmo; o dia de jogo continua parando — regra de 26/10).
+2. **Central com cena filmada do mapa** — um cartão na Central mostrando um momento real do mapa do clube (loja vendendo camisa,
+   obra que ficou pronta…) com o texto e o botão de ir ao mapa. Só da Central (regra "uma coisa só em cada aba").
+3. **Jogo grande = ônibus chegando em festa** — em clássico, final ou jogo decisivo, antes do jogo na aba Jogos aparece o ônibus
+   chegando no estádio do mapa com mais torcida, fotógrafos, bandeiras e torcedor em cima do ônibus; dá pra pular. Não entra no lugar
+   do placar/2D durante o jogo — só ANTES. Só carreira (é onde existe o mapa).
+4. **Mapa com pouco NPC** — encher mais o mapa de gente, medindo o peso no celular (regra de não travar).
