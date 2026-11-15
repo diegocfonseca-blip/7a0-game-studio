@@ -3342,7 +3342,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // 🐛 03/11 (Diego: "criei a Liga Draft com campo 2D e o Futpoint e o Lucas Barreto 30 estão vendo placar"): desde 01/11 o
   // campinho 2D em si também tinha ficado só na conta dele. O 2D volta à régua de sempre (`useCampo2DLigado`): na sala online
   // quem manda é a sala (todo mundo vê igual, convidado nunca paga); fora dela, quem está liberado e pagou.
-  const presidentFieldAccount = usePresidentPreview()
+  const presidentFieldPreview = usePresidentPreview()
+  const presidentFieldAccount = presidentFieldPreview || (!!stadiumMatch&&!!enhancedCareer&&mapaEstadioDisponivel(false))
   // 👑 Kings: o 2D só com os dados da partida dela e só pras contas que veem a Kings. (10/11 ele tirou; 11/11 pediu de volta pra
   // decidir: *"coloque o campinho 2D também e depois eu decido se deixo ou tiro"*.)
   const kings2dOk = useKingsLiberada()
@@ -7247,7 +7248,8 @@ export function MyCopaMatch(props: { neutro?: boolean; pensOrcamento?: number; s
 function MyCopaMatchInner({ neutro, pensOrcamento, stadiumContext, onFieldMinute, onPenaltiesComplete, pausado, tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { /** 🏆 08/11: a final de quem já caiu (nenhum lado é você) */ neutro?: boolean; pensOrcamento?: number; stadiumContext?:ContextoCopaEstadio; onFieldMinute?:MinutoCopaCampo; onPenaltiesComplete?:()=>void; pausado?:boolean; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   // 🔓 19/09: o visual novo da Copa da carreira também saiu da prévia (mesma chave)
   const privateMatch = useOnlinePreview() || CAREER_VISUAL_RELEASED
-  const presidentFieldAccount=usePresidentPreview()
+  const presidentFieldPreview=usePresidentPreview()
+  const presidentFieldAccount=presidentFieldPreview||!!stadiumContext&&mapaEstadioDisponivel(false)
   const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
   const nLegs = legG.length
   const total = nLegs * 90
@@ -8437,9 +8439,9 @@ export function PyramidSeasonScreen() {
   const [planosSalvar, setPlanosSalvar] = useState(false)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
-  const presidentPending = usePresidentPreviewPending() && mapaEstadioDisponivel(true) // espera só na conta candidata à prévia
-  const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
-  const stadiumMapAvailable = mapaEstadioDisponivel(presidentAvailable)
+  const presidentPending = usePresidentPreviewPending() && !mapaEstadioDisponivel(false) && mapaEstadioDisponivel(true) // espera só na conta candidata à prévia
+  const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && (presidentAccount||!state.co2&&mapaEstadioDisponivel(false)) && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
+  const stadiumMapAvailable = presidentAvailable && mapaEstadioDisponivel(presidentAccount)
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
   // 🔓 19/09: liberado pra TODO MUNDO (*"pode publicar p todos"*). `publicCareerVisual`
@@ -12519,15 +12521,15 @@ export function PyramidSeasonScreen() {
             })()}
             {mapaComoClube?<ClubeOrganizacao onSelect={abrirDestinoNoMapa} store={lojaLib&&hasExtra(state.stadiums?.[youId],'loja')} museum={museuDisponivel} home={presidentAvailable} balance={state.careerCoins?.[youId]??0} club={state.managers[state.youIdx]?.teamName??''}>{renderEstruturaDoClube()}</ClubeOrganizacao>:!temPainelClube&&renderEstruturaDoClube()}
             <ClubeMapaPainel enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={abrirDestinoNoMapa} onClose={()=>setClubeSub('estadio')}>
-            {clubeSub==='negocios'&&mapaComoClube?renderEstruturaDoClube(true,true):clubeSub==='estrutura'&&mapaComoClube?renderEstruturaDoClube(true):clubeSub==='museu'&&museuDisponivel?<MuseuClube state={state} mgrId={youId} member={meuSocFesta} color={myCol.solid} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:youId,expectedStage})} onStore={()=>setClubeSub('estrutura')}/>:clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
-              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><PainelResidencia onFurnitureHome={ids=>{if(!presidentWritesEnabled()||!organizarMoveisNaCasa(state,youId,ids).ok)return false;dispatch({type:'PRESIDENCY_FURNITURE_HOME',mgrId:youId,ids});return true}} onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
-                if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
+            {clubeSub==='negocios'&&mapaComoClube?renderEstruturaDoClube(true,true):clubeSub==='estrutura'&&mapaComoClube?renderEstruturaDoClube(true):clubeSub==='museu'&&museuDisponivel?<MuseuClube state={state} mgrId={youId} member={meuSocFesta} color={myCol.solid} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:youId,expectedStage})} onStore={()=>setClubeSub('estrutura')}/>:clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled(state)||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled(state)||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
+              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><PainelResidencia onFurnitureHome={ids=>{if(!presidentWritesEnabled(state)||!organizarMoveisNaCasa(state,youId,ids).ok)return false;dispatch({type:'PRESIDENCY_FURNITURE_HOME',mgrId:youId,ids});return true}} onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
+                if(!presidentWritesEnabled(state)||!negociarNaCarreira(state,youId,quote,true).ok)return false
                 dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true
               }} onDisplay={display=>{
-                if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false
+                if(!presidentWritesEnabled(state)||!exibirDuplaNaCarreira(state,youId,display).ok)return false
                 dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true
               }} onSave={value=>{
-                if(!presidentWritesEnabled())return false
+                if(!presidentWritesEnabled(state))return false
                 dispatch({type:'PRESIDENCY_SAVE_BASE',mgrId:youId,value})
                 return true
               }}/></DiaDoEstadio>

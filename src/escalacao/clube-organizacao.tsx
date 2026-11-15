@@ -3,7 +3,7 @@ import {useT} from './lang'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import './clube-organizacao.css'
 
-/** Navegação da prévia privada. Cada atalho abre o mesmo painel usado pelo prédio. */
+/** Navegação da carreira, publicada para todos em 15/11. Cada atalho abre o mesmo painel usado pelo prédio. */
 export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,club}:{children:ReactNode;onSelect:(id:DestinoClubeMapa)=>void;store:boolean;museum:boolean;home:boolean;balance:number;club:string}){
  const t=useT()
  const groups:{name:string;items:[DestinoClubeMapa,string,string][]}[]=[

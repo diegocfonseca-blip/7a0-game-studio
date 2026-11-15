@@ -10,6 +10,7 @@ import {criaRastro,pontoRastro,rastroVisivel,arteBolinhaRastro,criaNomeNaBola,RA
 /** Same Campo2D positions, on the native stadium grass, markings and goals.
  * No opaque pitch overlay, football rig, match engine or independent clock. */
 export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T.Object3D):PartidaComplexo{
+ let spectatorView=false,naturalView=false
  const root=new T.Group();root.name='campo2d-no-mapa';scene.add(root)
  const circle=new T.PlaneGeometry(1,1),ringGeometry=new T.RingGeometry(1.08,1.19,40)
  const ringMaterial=new T.MeshBasicMaterial({color:'#FFC400',side:T.DoubleSide,transparent:true,opacity:.95,depthWrite:false,toneMapped:false})
@@ -22,6 +23,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  const texture=(canvas:HTMLCanvasElement)=>{const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.minFilter=T.LinearMipmapLinearFilter;return map}
  const drop=(token:Token)=>{token.icon.material.dispose();token.label?.material.dispose();token.texture.dispose();token.labelTexture?.dispose();token.root.removeFromParent()}
  function marker(key:string,art:MarcadorCampo2D,x:number,z:number,radius:number){
+  if(naturalView)radius=Math.min(radius,.55)
   const portrait=!!(art.portrait?.complete&&art.portrait.naturalWidth),signature=[art.name,art.color,(art.stripes??[]).join(','),art.number,art.portrait?.src,portrait,art.referee].join('|')
   let token=tokens.get(key)
   if(token?.key!==signature){
@@ -113,16 +115,17 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   const seen=new Set<string>(),candidates:RotuloCampo2D[]=[],obstacles:RotuloCampo2D[]=[];let shadowIndex=0
   const shadowAt=(x:number,z:number,radius:number)=>{if(shadowIndex>=30)return;shadowPose.position.set(x,.028,z);shadowPose.rotation.set(-Math.PI/2,0,0);shadowPose.scale.setScalar(2.6*radius);shadowPose.updateMatrix();shadows.setMatrixAt(shadowIndex++,shadowPose.matrix)}
   camera?.getWorldDirection(direction)
+  naturalView=spectatorView||!!camera&&Math.abs(direction.y)<.45
   const tan=camera?Math.tan(T.MathUtils.degToRad(camera.fov)*.5):1,anchor=camera?Math.hypot(direction.x,direction.z):.5
   // 🏷️ 04/11 (Diego: *"o nome… na aba do mapa não dá pra ler ou some rápido"*): o nome tem TAMANHO DE TELA fixo (26 px no celular,
   // 30 no PC — a letra fica ~15/17 px, maior que a do campinho), fica EM CIMA da cabeça (longe da bola) e não some atrás de outro
   // boneco. Quem mostra o nome é a MESMA regra do campinho: quem encosta na bola (segurando um pouquinho) + o autor do gol.
-  const alturaTela=viewportHeight&&viewportHeight>80?viewportHeight:(typeof window!=='undefined'?window.innerHeight:700)||700,pxNome=alturaTela<700?26:30
+  const alturaTela=viewportHeight&&viewportHeight>80?viewportHeight:(typeof window!=='undefined'?window.innerHeight:700)||700,pxNome=naturalView?18:alturaTela<700?26:30
   const nomeVez=nomeNaBola(source.players.find(q=>q.marker.owned)?.key,performance.now())
   // 🔎 08/11 (celular: os jogadores viravam bolinhas com número ilegível): perto do campo, cada marcador tem um tamanho MÍNIMO de
   // tela (24 px no celular em pé, 18 deitado/PC) — só cresce o desenho; a posição é a mesma da aba Jogos.
   const pxMarca=camera&&camera.aspect<.85?24:18
-  const raioTela=(x:number,z:number,r:number)=>{if(!camera||distant)return r;const d=relative.set(x,0,z).sub(camera.position).dot(direction);return d>0?Math.max(r,pxMarca/alturaTela*d*tan):r}
+  const raioTela=(x:number,z:number,r:number)=>{if(naturalView)return Math.min(r,.55);if(!camera||distant)return r;const d=relative.set(x,0,z).sub(camera.position).dot(direction);return d>0?Math.max(r,pxMarca/alturaTela*d*tan):r}
   for(const p of source.players){
    const pr=raioTela(p.x,p.z,p.radius)
    const token=marker(p.key,p.marker,p.x,p.z,pr);token.root.visible=true;seen.add(p.key)
@@ -135,7 +138,7 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
      projected.set(p.x,token.icon.position.y,p.z).project(camera);relative.set(p.x,token.icon.position.y,p.z).sub(camera.position)
      const depth=relative.dot(direction)
      if(depth>0){
-      const image=token.labelTexture!.image as HTMLCanvasElement,alto=Math.max(p.radius*.94,pxNome/alturaTela*2*depth*tan),folga=pr*1.15
+      const image=token.labelTexture!.image as HTMLCanvasElement,alto=Math.max(pr*.94,pxNome/alturaTela*2*depth*tan),folga=pr*1.15
       token.label.scale.set(alto*image.width/image.height,alto,1);token.label.center.set(.5,-folga/alto)
       const hh=alto/(2*depth*tan),hw=token.label.scale.x/(2*depth*tan*camera.aspect)
       if(projected.z>-1&&projected.z<1)candidates.push({key:p.key,x:projected.x,y:projected.y+folga/(depth*tan)+hh,halfWidth:hw,halfHeight:hh,priority:(p.key===nomeVez?-100:token.portrait?-25:0)+distance})
@@ -171,10 +174,10 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   // ⚽ 05/11 (Diego: *"a bola tá ficando escondida no jogador… deve deixar igual já funciona na aba de jogos"*): a posição é a MESMA
   // da aba Jogos (no pé de quem conduz, um passo à frente — vem pronta da superfície); a diferença era só o desenho: aqui o jogador
   // fica de pé e tampava a bola. Agora a bola é desenhada por cima de todo mundo, como no campinho (depthTest off, renderOrder 30).
-  ball.visible=ballShadow.visible=true;desliza(ball,source.ball.x,.65+height,source.ball.z);{const rb=raioTela(ball.position.x,ball.position.z,.725)*(pxMarca>20?.62:.75);const sb=Math.max(1.45,2*rb);ball.scale.set(sb,sb,1)}
+  ball.visible=ballShadow.visible=true;ballMaterial.depthTest=naturalView;desliza(ball,source.ball.x,(naturalView?.2:.65)+height,source.ball.z);{const rb=raioTela(ball.position.x,ball.position.z,.725)*(pxMarca>20?.62:.75);const sb=naturalView?.4:Math.max(1.45,2*rb);ball.scale.set(sb,sb,1)}
   // 🏷️ nomes dos times atrás dos gols (mesma ideia do campinho da aba Jogos)
   {const times=state.officialTeams,cores=[state.homeColor,state.awayColor],L=105
-   nomesTimes.forEach(b=>{const nome=times?.[b.lado]??'';b.sp.visible=!!nome&&!!camera&&!distant;if(!b.sp.visible||!camera)return;desenhaNomeTime(b,nome,cores[b.lado]||'#1b1b1b')
+   nomesTimes.forEach(b=>{const nome=times?.[b.lado]??'';b.sp.visible=!!nome&&!!camera&&!distant&&!naturalView;if(!b.sp.visible||!camera)return;desenhaNomeTime(b,nome,cores[b.lado]||'#1b1b1b')
     const sinal=b.lado===0?-1:1,cx=sinal*(L/2+3)
     // pra que lado a linha do gol corre NA TELA: em pé ela é horizontal (texto deitado); deitado ela fica em pé (texto em pé, de baixo pra cima)
     projected.set(cx,0,-20).project(camera);const ax=projected.x,ay=projected.y;projected.set(cx,0,20).project(camera);const dx=(projected.x-ax)*camera.aspect,dy=projected.y-ay
@@ -185,8 +188,8 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
     b.sp.position.set(sinal*(L/2+(vertical?2.4+grossura*.6:.8+grossura*.5)),.5,0)})}ballShadow.position.set(ball.position.x,.03,ball.position.z);
   {const b=ball.position,trailPts=rastro.passo(b.x,b.y,b.z,dtQuadro)
    trail.forEach((sp,i)=>{const q=trailPts[i];sp.visible=!!q&&rastroVisivel(trailPts.length);if(!q)return;const {tamanho,alfa}=pontoRastro(i,trailPts.length);sp.position.set(q.x,q.y,q.z);sp.scale.setScalar(tamanho*ball.scale.x);(sp.material as T.SpriteMaterial).opacity=alfa})}
-  {const falas=source.falas??['',''],L=105,W=68;bubbles.forEach(b=>{const texto=falas[b.lado]??'';desenhaBalao(b,texto);b.sp.visible=!!texto&&!distant;if(!texto)return;const yy=b.lado===0?L*.72:L*.28;b.sp.position.set(L/2-yy,3.2,-W/2-3.5);b.sp.scale.set(15,15*96/512,1)})}
-  {const chove=source.clima==='chuva';rain.visible=chove;if(chove){const a=rainGeometry.getAttribute('position') as T.BufferAttribute,arr=a.array as Float32Array,queda=Math.min(1.5,Math.max(.2,suave*6));for(let i=0;i<RAIN;i++){let y=arr[i*6+1]-queda;if(y<0)y+=24;arr[i*6+1]=y;arr[i*6+4]=y-1.1}a.needsUpdate=true}}ballShadow.scale.setScalar(1.8+Math.min(2,height*.15))
+  {const falas=source.falas??['',''],L=105,W=68;bubbles.forEach(b=>{const texto=falas[b.lado]??'';desenhaBalao(b,texto);b.sp.visible=!!texto&&!distant&&!naturalView;if(!texto)return;const yy=b.lado===0?L*.72:L*.28;b.sp.position.set(L/2-yy,3.2,-W/2-3.5);b.sp.scale.set(15,15*96/512,1)})}
+  {const chove=source.clima==='chuva';rain.visible=chove;if(chove){const a=rainGeometry.getAttribute('position') as T.BufferAttribute,arr=a.array as Float32Array,queda=Math.min(1.5,Math.max(.2,suave*6));for(let i=0;i<RAIN;i++){let y=arr[i*6+1]-queda;if(y<0)y+=24;arr[i*6+1]=y;arr[i*6+4]=y-1.1}a.needsUpdate=true}}ballShadow.scale.setScalar((naturalView?.5:1.8)+Math.min(naturalView?.5:2,height*.15))
   if(lastBall&&source.minute>=lastMinute){const dx=source.ball.x-lastBall.x,dz=source.ball.z-lastBall.z,distance=Math.hypot(dx,dz);if(distance>.0001&&distance<8){ballMaterial.rotation+=distance/.7*(dx+dz>=0?1:-1)}}
   lastBall={x:source.ball.x,z:source.ball.z};lastMinute=source.minute
   {const q=source.quase,on=!!q&&q.age<1;quaseRing.visible=quaseInner.visible=on;quaseDot.visible=on&&!!q?.trave
@@ -194,6 +197,6 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
   subjects=source.players.map(p=>({key:p.key,name:p.name,side:p.side,keeper:p.keeper,mx:p.x,mz:p.z,visible:true}))
   frame={quase:source.quase?{side:source.quase.side,age:source.quase.age}:undefined,matchId:id,players:source.players.length,ball:{...source.ball},time:source.minute,phase:state.finished?'fim':'dominio',replay:false,official:undefined}
  }
- return{update,subjects:()=>subjects,frame:()=>frame,inspect:()=>({...frame,ball:{...frame.ball},detail:{design:'campo2d-marcadores-no-gramado-original',sourceId:id,surfaceRevision:revision,ready:revision>=0,actors:frame.players,skinnedPlayers:0,sameSource:true,nativePitch:true,pitchUploads:0,labels:[...labels],portraitMarkers:[...tokens.values()].filter(t=>t.portrait).length,fontRevision,score:superficieCampo2D(id)?.score,narration:superficieCampo2D(id)?.narration} as unknown as InspecaoPartidaComplexo['detail']}),setPresentationVisible:value=>{root.visible=value},setViewportVisible:value=>{viewportVisible=value;if(id&&!value)pedirSuperficieCampo2D(id,consumer,0)},
+ return{setSpectatorView:(active:boolean)=>{spectatorView=active},update,subjects:()=>subjects,frame:()=>frame,inspect:()=>({...frame,ball:{...frame.ball},detail:{design:'campo2d-marcadores-no-gramado-original',spectatorView,naturalView,markerMaxDiameter:Math.max(0,...[...tokens.values()].map(t=>t.icon.scale.x)),ballDiameter:ball.scale.x,sourceId:id,surfaceRevision:revision,ready:revision>=0,actors:frame.players,skinnedPlayers:0,sameSource:true,nativePitch:true,pitchUploads:0,labels:[...labels],portraitMarkers:[...tokens.values()].filter(t=>t.portrait).length,fontRevision,score:superficieCampo2D(id)?.score,narration:superficieCampo2D(id)?.narration} as unknown as InspecaoPartidaComplexo['detail']}),setPresentationVisible:value=>{root.visible=value},setViewportVisible:value=>{viewportVisible=value;if(id&&!value)pedirSuperficieCampo2D(id,consumer,0)},
   dispose(){if(disposed)return;disposed=true;off();nomesTimes.forEach(b=>{b.map.dispose();b.mat.dispose()});flags.forEach(f=>(f.material as T.SpriteMaterial).dispose());flashes.forEach(f=>(f.material as T.SpriteMaterial).dispose());flagTexture.dispose();flashTexture.dispose();quaseRingGeo.dispose();quaseDotGeo.dispose();quaseGold.dispose();quaseWhite.dispose();dotTexture.dispose();trail.forEach(sp=>(sp.material as T.SpriteMaterial).dispose());bubbles.forEach(b=>{b.map.dispose();b.mat.dispose()});rainGeometry.dispose();rainMaterial.dispose();if(id)pedirSuperficieCampo2D(id,consumer,0);tokens.forEach(drop);tokens.clear();shadows.dispose();circle.dispose();ringGeometry.dispose();ringMaterial.dispose();shadowTexture.dispose();shadowMaterial.dispose();ballGeometry.dispose();ballTexture.dispose();ballMaterial.dispose();root.removeFromParent()}}
 }

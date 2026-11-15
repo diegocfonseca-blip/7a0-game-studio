@@ -1,3 +1,4 @@
+import {pedidoVeiculoLiberado,NEGOCIACAO_VEICULOS_LIBERADA} from './presidencia-veiculos-liberacao'
 import {GaragemVista} from './garagem-vista'
 import {GaragemExperimentar} from './garagem-experimentar'
 import {modeloVeiculo} from './veiculos-modelos'
@@ -19,14 +20,14 @@ export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium
  const [preview,setPreview]=useState<PresidenciaItemId|null>(null)
  const t=useT(),dialog=useRef<HTMLDialogElement>(null),[quote,Q]=useState<PresidenciaOrcamento|null>(null),[notice,N]=useState(''),[tab,T]=useState<'carro'|'duas-rodas'|'owned'>('carro'),[search,S]=useState(''),[order,O]=useState<OrdemCatalogo>('price-asc'),[replacements,R]=useState<Partial<Record<PresidenciaItemId,PresidenciaItemId>>>({})
  if(!wallet)return <p role="alert">{t('Não foi possível conferir seus bens. Compras bloqueadas.','Could not verify your assets. Purchases blocked.')}</p>
- const request=(kind:'buy'|'sell',id:PresidenciaItemId,replaceId?:PresidenciaItemId)=>{const r=orcarPresidencia(wallet,{kind,id,...(replaceId?{replaceId}:{})});if(!r.ok){N(t(...PRESIDENCIA_ERROS[r.error]));return}Q(r.value);N('');dialog.current?.showModal()}
+ const request=(kind:'buy'|'sell',id:PresidenciaItemId,replaceId?:PresidenciaItemId)=>{if(!pedidoVeiculoLiberado({id,replaceId})){N(t('Negociação de veículos em breve. Seus bens continuam preservados.','Vehicle trading is coming soon. Your assets are preserved.'));return}const r=orcarPresidencia(wallet,{kind,id,...(replaceId?{replaceId}:{})});if(!r.ok){N(t(...PRESIDENCIA_ERROS[r.error]));return}Q(r.value);N('');dialog.current?.showModal()}
  const products=filtrarCatalogoPresidencia({furniture,tab,owned:wallet.owned,search,order,english:getLang()==='en'}).filter(p=>compraPresidenciaDisponivel(p.id)||wallet.owned.some(b=>b.id===p.id))
  return <section className="gp-root">
   <header className="gp-header"><h1>{furniture?t('MOBÍLIAS','FURNITURE'):soLoja?t('À VENDA NA VADICO','FOR SALE AT VADICO'):t('GARAGEM','GARAGE')}</h1><span className="gp-coins">{wallet.cash} {t('moedas','coins')}</span></header>
   {stadium}
   {!furniture&&<>
   {!soLoja&&<GaragemVista owned={wallet.owned} display={display} stadium={stadiumSave} onDisplay={onDisplay}/>}
-  <p className="gp-rule">{t('Até 2 carros + 2 motos ou bicicletas. Revenda por 70% do valor pago.','Up to 2 cars + 2 motorcycles or bicycles. Resale at 70% of the price paid.')}</p>
+  <p className="gp-rule">{NEGOCIACAO_VEICULOS_LIBERADA?t('Até 2 carros + 2 motos ou bicicletas. Revenda por 70% do valor pago.','Up to 2 cars + 2 motorcycles or bicycles. Resale at 70% of the price paid.'):t('Negociação de veículos em breve. Os carros já adquiridos continuam na sua garagem.','Vehicle trading is coming soon. Previously purchased cars remain in your garage.')}</p>
   {!soLoja&&<><GaragemDuplaSeletores owned={wallet.owned} display={display} onDisplay={onDisplay} onError={N}/>
   <p className="gp-rule">{t('Troque os lados pelos seletores. Obras avançadas e recortes de outros veículos ainda estão em preparação.','Swap sides using the selectors. Advanced construction and other vehicle cutouts are still in preparation.')}</p></>}
   <div className="gp-tabs">{(['carro','duas-rodas','owned'] as const).map((id,i)=><button key={id} aria-pressed={tab===id} onClick={()=>T(id)}>{[t('CARROS','CARS'),t('MOTOS E BIKES','MOTORCYCLES & BIKES'),t('MEUS BENS','MY ASSETS')][i]}</button>)}</div>
@@ -39,11 +40,11 @@ export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium
    {arteCatalogoPresidencia(p.id)?<img loading="lazy" decoding="async" className="gp-product-art" src={import.meta.env.BASE_URL+arteCatalogoPresidencia(p.id)} alt={t(p.pt,p.en)}/>:<p>{t('Arte em preparação','Artwork in preparation')}</p>}
    <h2>{t(p.pt,p.en)}</h2><strong>{p.price} {t('moedas','coins')}</strong>
    {!owned&&(modeloVeiculo(p.id)||ARTES_VEICULOS[p.id]?.scene)&&<a className="gp-preview-link" href={'#preview-'+p.id} onClick={e=>{e.preventDefault();setPreview(p.id)}}>{t('VER MODELO 3D','VIEW 3D MODEL')}</a>}
-   {!owned&&options.length>0&&<div className="gp-filters gp-trade-filter"><label>{t('DAR NA TROCA','TRADE IN')}<select aria-label={t('Dar na troca: ','Trade in: ')+t(p.pt,p.en)} value={replacement??''} onChange={e=>{const id=options.find(b=>b.id===e.target.value)?.id;R(prev=>({...prev,[p.id]:id}))}}><option value="">{t('Sem troca','No trade-in')}</option>{options.map(b=><option key={b.id} value={b.id}>{t(itemPresidencia(b.id)!.pt,itemPresidencia(b.id)!.en)} (+{valorRevenda(b.paid)})</option>)}</select></label></div>}
-   <Btn bg="#fff" onClick={()=>request(owned?'sell':'buy',p.id,owned?undefined:replacement)}>{owned?`${t('VENDER POR','SELL FOR')} ${valorRevenda(owned.paid)}`:replacement?t('CONFERIR TROCA','REVIEW TRADE'):t('COMPRAR','BUY')}</Btn>
+   {!owned&&pedidoVeiculoLiberado({id:p.id})&&options.length>0&&<div className="gp-filters gp-trade-filter"><label>{t('DAR NA TROCA','TRADE IN')}<select aria-label={t('Dar na troca: ','Trade in: ')+t(p.pt,p.en)} value={replacement??''} onChange={e=>{const id=options.find(b=>b.id===e.target.value)?.id;R(prev=>({...prev,[p.id]:id}))}}><option value="">{t('Sem troca','No trade-in')}</option>{options.map(b=><option key={b.id} value={b.id}>{t(itemPresidencia(b.id)!.pt,itemPresidencia(b.id)!.en)} (+{valorRevenda(b.paid)})</option>)}</select></label></div>}
+   <Btn disabled={!pedidoVeiculoLiberado({id:p.id})} bg="#fff" onClick={()=>request(owned?'sell':'buy',p.id,owned?undefined:replacement)}>{!pedidoVeiculoLiberado({id:p.id})?t('EM BREVE','COMING SOON'):owned?`${t('VENDER POR','SELL FOR')} ${valorRevenda(owned.paid)}`:replacement?t('CONFERIR TROCA','REVIEW TRADE'):t('COMPRAR','BUY')}</Btn>
   </Box>})}</div>
   <div className="gp-confirm-actions" style={{marginTop:18}}><Btn bg="#fff" onClick={onBack}>{t('VOLTAR','BACK')}</Btn></div>
-  {preview&&<GaragemExperimentar key={preview} id={preview} stadium={stadiumSave} onClose={()=>setPreview(null)} onReview={()=>{const id=preview;setPreview(null);request('buy',id,replacements[id])}}/>}
+  {preview&&<GaragemExperimentar key={preview} id={preview} stadium={stadiumSave} onClose={()=>setPreview(null)} onReview={pedidoVeiculoLiberado({id:preview})?()=>{const id=preview;setPreview(null);request('buy',id,replacements[id])}:undefined}/>}
   <dialog ref={dialog} className="gp-dialog" aria-label={t('Confirmar negociação','Confirm transaction')} onClose={()=>Q(null)}>{quote&&<>
    <h2>{t('CONFIRMAR NEGOCIAÇÃO','CONFIRM TRANSACTION')}</h2><p>{t('Usa as moedas da sua carreira.','Uses your career coins.')}</p>{quote.pedido.kind==='buy'&&modeloVeiculo(quote.pedido.id)&&<p>{t('Após confirmar, o veículo sai da Vadico e segue até a garagem da sua casa no mapa.','After confirmation, the vehicle leaves Vadico and drives to your home garage on the map.')}</p>}
    <p>{t(itemPresidencia(quote.pedido.id)!.pt,itemPresidencia(quote.pedido.id)!.en)}</p>
@@ -52,7 +53,7 @@ export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium
    {quote.sale&&duplaDaGaragem(wallet.owned,display).includes(quote.sale.id)&&<p className="gp-rule" data-sale-impact="vehicle">{t('Este veículo está exposto na garagem. Ao confirmar, ele sai dessa vista. Confira a dupla nos seletores depois da negociação.','This vehicle is on display in the garage. Confirming removes it from that view. Review your pair using the selectors after the transaction.')}</p>}
    {quote.sale&&!['carro','duas-rodas'].includes(itemPresidencia(quote.sale.id)!.slot)&&<p className="gp-rule" data-sale-impact="furniture">{t('Ao confirmar, esta mobília sai da sala e do patrimônio. Se for uma troca, a nova peça ocupa seu lugar. Vender a estante não apaga seus títulos.','Confirming removes this furniture from the office and assets. For a trade-in, the new piece replaces it. Selling a trophy cabinet does not erase your titles.')}</p>}
    <dl><dt>{t('Saldo atual','Current balance')}</dt><dd>{wallet.cash}</dd><dt>{t('Compra','Purchase')}</dt><dd>−{quote.price}</dd><dt>{t('Revenda','Resale')}</dt><dd>+{quote.credit}</dd><dt>{t('Saldo final','Final balance')}</dt><dd>{quote.finalCash}</dd></dl>
-   <div className="gp-confirm-actions"><Btn onClick={()=>{if(onTrade(quote)){dialog.current?.close();N(t('Negociação concluída.','Transaction complete.'))}else{dialog.current?.close();N(t('Saldo ou bens mudaram. Confira e tente novamente.','Funds or assets changed. Review and try again.'))}}}>{t('CONFIRMAR','CONFIRM')}</Btn><Btn bg="#fff" onClick={()=>dialog.current?.close()}>{t('CANCELAR','CANCEL')}</Btn></div>
+   <div className="gp-confirm-actions"><Btn onClick={()=>{if(pedidoVeiculoLiberado(quote.pedido)&&onTrade(quote)){dialog.current?.close();N(t('Negociação concluída.','Transaction complete.'))}else{dialog.current?.close();N(t('Saldo ou bens mudaram. Confira e tente novamente.','Funds or assets changed. Review and try again.'))}}}>{t('CONFIRMAR','CONFIRM')}</Btn><Btn bg="#fff" onClick={()=>dialog.current?.close()}>{t('CANCELAR','CANCEL')}</Btn></div>
   </>}</dialog>
  </section>
 }

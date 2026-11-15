@@ -566,6 +566,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    }
    if(fieldWatchPending&&matchRef.current){fieldWatchPending=false;setFootballCamera(matchPresentation==='2d'?'field2d':'broadcast')}
    if(game.subjects().length&&matchRef.current){lastFieldFixture=matchRef.current.context.id;lastFieldSubjects=game.subjects().map(p=>({...p}))}
+   game.setSpectatorView?.(fan.ativo())
    game.update(matchRef.current,performance.now(),camera,el.clientHeight)
    {const insp=game.frame() as {ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}};phase?:string;replay?:boolean;owner?:string};const subj=game.subjects();let foco:{x:number;y:number;z:number}|undefined
     if(!!insp.replay!==replayRef.current){replayRef.current=!!insp.replay;setReplayOn(replayRef.current)}

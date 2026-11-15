@@ -1,3 +1,10 @@
+## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
+
+- Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
+- Veículos já possuídos visíveis, compra/venda/troca bloqueadas na UI e no reducer, com “Em breve” enquanto a arte é revisada. Móveis continuam no fluxo existente.
+- Corrige o exagero dos marcadores na visão sentada/passeio: limite visual de 1,1 m e bola de 0,4 m; câmera alta e fonte de posições preservadas. Placar deixa de ficar encoberto pela identificação da arquibancada.
+- Detalhes em `docs/mapa-publico-20261115.md`; capturas, testes e publicação em `/workspace/shared/mapa-publico-20261115/`. Chat por proximidade segue desligado, sem novos canais.
+
 ## 🗂️ 15/11 — Reorganização do Clube — FEITO na prévia privada
 
 - Diego pediu publicar também a proposta revisada: Meu clube, Meus negócios, Minha vida. Mapa em destaque, acessos ao lado/abaixo; casa/garagem juntas; SAF e segundo clube separados das obras.

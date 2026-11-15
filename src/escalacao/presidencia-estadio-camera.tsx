@@ -8,6 +8,7 @@ import {useReplay3D,type FonteReplay3D} from './presidencia-replay-3d'
 import {useT} from './lang'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
 import type {StadiumSave} from './estadiodata'
+import {mapaEstadioDisponivel} from './presidencia-lotes'
 import {usePresidentPreview} from './presidente-acesso'
 import {adaptarCarreiraAoComplexo,type EntradaCarreiraComplexo} from './presidencia-complexo-carreira'
 import {podeOperarTeto} from './presidencia-estadio-integrado'
@@ -31,7 +32,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  const [walkingKey,setWalkingKey]=useState<string|null>(null),walking=walkingKey===viewKey
  const handleWalk=useCallback((active:boolean)=>setWalkingKey(active?viewKey:null),[viewKey])
  const match=usePartidaNoMapa(matchId,homeClubId,!!career),t=useT()
- const account=usePresidentPreview(),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
+ const account=mapaEstadioDisponivel(usePresidentPreview()),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
  const replay=useReplay3D(career?.replayMatch,account)
  const replayFrame=replay.frame
  const watching=useVistaCampo<HTMLElement>(account)
