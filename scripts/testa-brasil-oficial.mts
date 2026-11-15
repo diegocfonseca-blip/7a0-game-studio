@@ -87,6 +87,18 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   for (const d of ['B', 'C'] as const) for (const c of clubesDaDivisao(d)) if (s.careerPlacements?.[c.nome] !== d) falha(`${c.nome} devia estar na Série ${d}`)
   for (const d of ['A', 'B', 'C', 'D']) { const n = Object.values(s.careerPlacements ?? {}).filter(v => v === d).length; if (n !== 20) falha(`Série ${d} com ${n} clubes (devia 20)`) }
   const fundo = seedCpuSquadsOficial(s)
+  // 🇧🇷 a pirâmide MONTADA (o que a tela simula) só tem clube real: A/B/C = as séries reais de 2026, D = clubes reais da D
+  const { buildPyramid } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+  const BO = await vite.ssrLoadModule('/src/escalacao/brasil-oficial.ts')
+  const mundo = buildPyramid(s.managers, 0, s.seed, s.deckLeague, s.careerPlacements, fundo, true)
+  for (const d of ['A', 'B', 'C', 'D'] as const) {
+    if (mundo[d].length !== 20) falha(`pirâmide: Série ${d} com ${mundo[d].length} times`)
+    const falsos = mundo[d].filter((t: { name: string }) => !BO.clubeOficial(t.name))
+    if (falsos.length) falha(`pirâmide: Série ${d} com clube que não é real: ${falsos.slice(0, 4).map((t: { name: string }) => t.name).join(', ')}`)
+    if (d !== 'D') { const esperado = new Set(BO.clubesDaDivisao(d).map((c: { nome: string }) => c.nome)); const fora = mundo[d].filter((t: { name: string }) => !esperado.has(t.name)); if (fora.length) falha(`pirâmide: Série ${d} com clube de outra série: ${fora.map((t: { name: string }) => t.name).join(', ')}`) }
+    else if (mundo.D.some((t: { name: string }) => BO.clubeOficial(t.name)?.div !== 'D')) falha('pirâmide: Série D com clube que não é da D real')
+  }
+  for (const t of Object.values(mundo).flat() as { name: string; xi: unknown[] }[]) if (t.xi.length !== 11) falha(`pirâmide: ${t.name} não escala 11`)
   for (const c of [...clubesDaDivisao('B'), ...clubesDaDivisao('C')]) if (!fundo[c.nome] || !fechaTime(fundo[c.nome])) falha(`fundo: ${c.nome} sem elenco que feche um 11`)
   const todos = [...ids, ...Object.values(fundo).flat().filter(c => c.club !== 'Várzea').map(c => `${c.name}|${c.club}|${c.year}`)]
   const rep = todos.filter((k, i) => todos.indexOf(k) !== i)

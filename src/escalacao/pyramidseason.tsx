@@ -485,7 +485,7 @@ function completaComBase(salva: PoolCard[], base: PoolCard[]): PoolCard[] {
 
 // monta as 4 divisões pela COLOCAÇÃO guardada (placements): D começa com os
 // técnicos reais; a cada temporada os times sobem/descem por nome exato.
-export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both' | 'todos', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Record<Div, SimTeam[]> {
+export function buildPyramid(managers: Manager[], youId: number, seed: number, deck: 'br' | 'eu' | 'both' | 'todos', placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>, oficial = false): Record<Div, SimTeam[]> {
   const mk = (name: string, squad: PoolCard[], human: boolean, you: boolean, teamId: number, backstop = false, rival = false, dorm = false, formation?: FormationKey): SimTeam => ({ name, you, human, rival, dorm, backstop, teamId, squad, formation, xi: bestXI(squad, formation), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
   const world: Record<Div, SimTeam[]> = { A: [], B: [], C: [], D: [], V: [] }
   // 🪪 quem entrou pela COLOCAÇÃO GUARDADA (mérito: subiu/desceu/ficou) e quem
@@ -505,7 +505,9 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
     world[divOf(`m${m.id}`, hasV ? 'V' : 'D')].push(t)
   }
   const cpuDiv = new Map<string, Div>()
-  const cpu = buildCpuSquads(managers, seed, deck, hasV, cpuDiv)
+  // 🇧🇷 BRASIL OFICIAL (15/11): o fundo são os CLUBES REAIS das colocações, com o elenco sorteado deles — nunca a receita de
+  // sempre (que trazia clubes de jogadores do site pra pirâmide real). Carreira de sempre: nada muda (oficial = false).
+  const cpu = oficial ? oficialFundo(managers, seed, placements, cpuSquads) : buildCpuSquads(managers, seed, deck, hasV, cpuDiv)
   // usa a FICHA salva do time de fundo se existir (memória de mercado); senão, a
   // receita determinística (base). Assim vender/comprar cola entre temporadas.
   // Times RENOMEADOS: se o save antigo guardou colocação/ficha no nome VELHO,
@@ -557,6 +559,19 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   for (const d of balanceDivs) while (world[d].length < 20 && over.length) world[d].push(over.pop()!)
   return world
 }
+function oficialFundo(managers: Manager[], seed: number, placements?: Record<string, string> | null, cpuSquads?: Record<string, Card[]>): Map<string, PoolCard[]> {
+  const out = new Map<string, PoolCard[]>()
+  const pl = placements ?? {}
+  const nomesDosTecnicos = new Set(managers.map(m => m.teamName))
+  const precisa = Object.keys(pl).some(n => !/^m\d+$/.test(n) && !nomesDosTecnicos.has(n) && !cpuSquads?.[n])
+  const sorteados = precisa ? seedCpuSquadsOficial({ managers, seed, careerPlacements: pl }) : {}
+  for (const nome of Object.keys(pl)) {
+    if (/^m\d+$/.test(nome) || nomesDosTecnicos.has(nome)) continue
+    const sq = cpuSquads?.[nome] ?? sorteados[nome]
+    if (sq) out.set(nome, sq as PoolCard[])
+  }
+  return out
+}
 // semeia a ficha dos times de fundo (80 com Várzea, 60 sem) a partir da receita
 // — materializa 1x os elencos que antes eram só calculados na hora.
 export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos', comVarzea = false): Record<string, Card[]> {
@@ -591,23 +606,8 @@ export function seedCpuSquadsOficial(state: { managers: Manager[]; seed: number;
     out[nome] = el.map((x, i) => ({ ...x.carta, pos: x.pos, id: `of-${x.pos}-${i}-${semente(nome) % 100000}` }) as Card)
     for (const c of out[nome]) donos.add(ident(c))
   }
-  // C e D (por enquanto as de sempre): a receita de fundo, sem nenhuma carta que já tenha dono
-  // (a carta repetida é trocada por outra carta REAL livre da mesma posição — nunca por jogador inventado, regra do Diego)
-  const fundo = buildCpuSquads(state.managers, state.seed, 'todos', true)
-  const livres: Record<Sector, Card[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
-  const rngL = mulberry(semente('livres'))
-  for (const p of SECTORS) livres[p] = shuffle(cat[p].filter(c => !donos.has(ident(c))), rngL)
-  for (const sq of fundo.values()) for (const c of sq) donos.add(ident(c))
-  for (const p of SECTORS) livres[p] = livres[p].filter(c => !donos.has(ident(c)))
-  for (const [nome, sq] of fundo) {
-    if (out[nome] || !pl[nome] || (pl[nome] !== 'C' && pl[nome] !== 'D')) continue
-    out[nome] = sq.map((c, i) => {
-      const repetida = Object.entries(out).some(([n, l]) => n !== nome && l.some(x => ident(x) === ident(c)))
-      if (!repetida) return c
-      const novo = livres[c.pos].shift()
-      return novo ? ({ ...novo, pos: c.pos, id: `of-livre-${c.pos}-${i}-${semente(nome) % 100000}` } as Card) : c
-    })
-  }
+  // (15/11, noite) a receita de fundo SAIU: no Brasil Oficial toda divisão é de clube real — a receita punha clubes de
+  // jogadores do site (Crias do Bigão, Nata de SP…) no meio da pirâmide real.
   return out
 }
 
@@ -5875,7 +5875,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   // 🏟️ o elenco dos TIMES DE FUNDO vem da mesma conta que monta a pirâmide na tela
   // da temporada — é receita determinística, então dá o mesmo time sempre.
   const mundoSondar = useMemo(
-    () => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads),
+    () => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial),
     [state.managers, state.youIdx, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads],
   )
   const clubes = useMemo(() => {
@@ -8602,7 +8602,7 @@ export function PyramidSeasonScreen() {
   // 🏛️ `state.youIdx` entra nas dependências (07/09): ao passar o comando pro 2º
   // clube, o `you` do mundo continuava no clube antigo até outra coisa mexer —
   // "minha colocação", "minha divisão" e o desfecho descreviam o clube errado.
-  const worldVivo = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+  const worldVivo = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🧊 DEPOIS DO APITO, O PASSADO NÃO MUDA MAIS (conserto 24/09 — caso do Futpoint FC).
   // A tela REFAZ as 38 rodadas a partir do elenco de AGORA, e a janela de empréstimo
   // fica nesta mesma tela: trazer um jogador da SAF mexia em `cpuSquads`, a conta era

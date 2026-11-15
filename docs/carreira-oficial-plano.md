@@ -169,3 +169,13 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   nada publicado. Trava no `npm run brasil-oficial`.
 - 🗳️ **Decisão do Diego (15/11): clube SEM divisão nacional (só estadual/Copa — div 'E', ex. Maricá, Galvez, Altos) NÃO pode ser
   escolhido.** Escolha vai de A até D. Os clubes 'E' existem no modo como rivais (estaduais, Copa do Brasil, quem sobe da D).
+- 🐛 **15/11 (noite): a pirâmide do modo NÃO tinha os clubes reais de fora da divisão do usuário.** A montagem (`buildPyramid`)
+  só criava os clubes "de receita" do jogo — que são clubes de jogadores do site (Crias do Bigão, Nata de SP, Neymarzetti…) —
+  então numa carreira com o Remo a Série A era real e B, C e D eram de mentira. Consertado: `buildPyramid(…, oficial)` monta o
+  fundo só com os clubes reais das colocações (`oficialFundo`), e a D de fundo virou **20 clubes reais da D sorteados pela
+  semente (PROVISÓRIO até a D real de 96)**. Rival com 11 cartas não pega mais 4-4-2 sem ter 4 meias (o Mirassol entrava com 10).
+  Trava: `npm run brasil-oficial` agora confere a pirâmide montada (20 por série, todos reais, A/B/C = as de 2026, todos escalam 11).
+- ⏭️ **O motor de campeonatos do modo** (a obra grande): o formato real muda o TAMANHO das séries (C: 20 em 2026 → 24 em 2027 →
+  28 de 2028; D: 96 em 16 grupos) e o FORMATO (B com playoff 3º–6º; C turno único + quadrangulares + final; D grupos + mata-mata).
+  O motor de hoje força 20 times e 38 rodadas em tudo. Caminho (do mapeamento de 15/11): módulo próprio do modo que simula a
+  temporada inteira de cada série pelo formato real, e a tela da carreira lê dele quando `state.oficial`.

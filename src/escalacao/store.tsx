@@ -1132,7 +1132,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
 import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
-import { clubeOficial, CLUBES_BR, cartasDoClube, sorteiaElenco } from './brasil-oficial'
+import { clubeOficial, CLUBES_BR, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
@@ -7850,16 +7850,21 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const daDiv = CLUBES_BR.filter(c => c.div === meu.div)
   const ordem = [meu, ...daDiv.filter(c => c.nome !== meu.nome)]
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
+  const elencos = ordem.map(c => elencoDe(c))
+  // o rival só joga 4-4-2 se o elenco tiver 4 meias (clube com 11 cartas, tipo o Mirassol, entraria com 10) — senão 4-3-3
+  const formacaoQueCabe = (f: FormationKey, sq: WonCard[]): FormationKey => f === '4-4-2' && sq.filter(x => x.pos === 'MEI').length < 4 ? '4-3-3' : f
   s.managers = ordem.map((c, i) => ({
     id: i, name: i === 0 ? (s.managers[0]?.name ?? c.nome) : c.nome, teamName: c.nome, isHuman: i === 0, auctionRival: i === 0,
-    formation: i === 0 ? formacao : forms[Math.floor(rngC() * forms.length)], money: i === 0 ? 100 : 0, squad: elencoDe(c),
+    formation: i === 0 ? formacao : formacaoQueCabe(forms[Math.floor(rngC() * forms.length)], elencos[i]), money: i === 0 ? 100 : 0, squad: elencos[i],
     aggression: 0.5, starHunger: 0.5,
   } as Manager))
   s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
   const pl: Record<string, string> = {}
   for (const m of s.managers) pl[`m${m.id}`] = meu.div
   for (const c of CLUBES_BR) if (c.div !== meu.div) pl[c.nome] = c.div
-  for (const t of DIVISION_TEAMS.D.slice(0, 20)) if (!pl[t.team]) pl[t.team] = 'D' // ⚠️ D ainda é a de sempre (a D real tem 96 em grupos — próxima etapa)
+  // 🟫 Série D de FUNDO, provisória: 20 clubes REAIS da D 2026, sorteados pela semente da carreira (nunca mais os clubes de
+  // receita, que eram de jogadores do site). ⚠️ A D real tem 96 em 16 grupos — quando o motor dela entrar, isto sai.
+  for (const c of [...clubesDaDivisao('D')].sort((a, b) => semente(a.nome) - semente(b.nome)).slice(0, 20)) pl[c.nome] = 'D'
   s.careerPlacements = pl
   s.careerDivision = meu.div
   s.clubCash = seedClubCash({}, pl)
