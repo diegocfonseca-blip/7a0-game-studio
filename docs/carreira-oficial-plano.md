@@ -59,6 +59,21 @@ Já temos **152 escudos** em `public/escudos-clubes/` (muitos estrangeiros). Fal
 3. **Fase 3 — Estaduais** (27 estados; começar pelos grandes: RJ, SP, MG, RS, PE, BA…).
 4. **Fase 4 — atualização anual** das divisões reais (quem subiu/caiu no mundo real).
 
+## 7b. Decisões e números de 15/11 (2ª conversa)
+- Diego: começa pelo **Brasil Oficial**; Europa Oficial vem depois. As cartas novas ficam **SÓ neste modo** (nem Partida
+  Rápida, nem online, nem carreira de time criado). Começar pela fase que eu achar certa → **Fase 1: Série A + B**.
+- Clubes 2026 (conferidos na imprensa/Wikipedia): **Série A** Athletico-PR, Atlético-MG, Bahia, Botafogo, Bragantino,
+  Chapecoense, Corinthians, Coritiba, Cruzeiro, Flamengo, Fluminense, Grêmio, Internacional, Mirassol, Palmeiras, Remo,
+  Santos, São Paulo, Vasco, Vitória · **Série B** América-MG, Athletic, Atlético-GO, Avaí, Botafogo-SP, Ceará, CRB,
+  Criciúma, Cuiabá, Fortaleza, Goiás, Juventude, Londrina, Náutico, Novorizontino, Operário-PR, Ponte Preta, São Bernardo,
+  Sport, Vila Nova.
+- ⚠️ **Série C real: 20 clubes em 2026, 24 em 2027 e 28 só a partir de 2028** (dois grupos de 14). Série D: 96 em 2026. Diego
+  pediu C com 28 — perguntar se usa o formato de 2028 já.
+- Falta pra Fase 1 (mínimo de 11 cartas por clube): **Série A = 37 cartas** (Bragantino 7, Chapecoense 4, Coritiba 5,
+  Mirassol 11, Remo 10) + escudos de Mirassol e Remo · **Série B = 181 cartas** (13 clubes com zero) + 7 escudos (Athletic,
+  Atlético-GO, Botafogo-SP, Cuiabá, Novorizontino, Operário-PR, São Bernardo, Vila Nova).
+- Mockup da escolha: `scripts/mockups/carreira-brasil-oficial.png`.
+
 ## 8. Perguntas abertas pro Diego
 1. "**Dois** novos modos": o segundo é qual? (Europa com ligas reais?)
 2. Série C com 28 e D com 96: é o formato de 2026/2027 da CBF? Conferir antes de codar.
