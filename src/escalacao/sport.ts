@@ -331,7 +331,7 @@ export function usePokemonLiberado(): boolean {
 
 // 🚶 FAN ZONE NO MAPA 3D (07/11, Diego: *"pode p eu testar"*): andar pelo bairro com o boneco 3D, entrar pelo portão da torcida e
 // sentar numa cadeira pra ver o jogo. Só a conta dele; liberar geral = FANZONE_GERAL = true.
-const FANZONE_GERAL = false
+const FANZONE_GERAL = true // 15/11: passeio liberado junto do mapa público, por autorização de Diego.
 const FANZONE_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let fanZoneOk = FANZONE_GERAL
 function applyFanZone(email?: string | null): void {

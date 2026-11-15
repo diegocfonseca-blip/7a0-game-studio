@@ -43,5 +43,5 @@ function App(){
  if(mode==='museum')return <main style={{maxWidth:1100,margin:'auto',padding:12}}><MuseuClube state={state} mgrId={0} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:0,expectedStage})} onStore={()=>A('estrutura')}/></main>
  return <div style={{padding:8,background:'#0a100d'}}><Complexo cidadeViva={query.has('hour')?{canteiros:[],humor:'normal',carreata:false,dia:Date.UTC(2027,1,Number(query.get('day')??8)),hora:Number(query.get('hour'))}:undefined} museumStage={state.careerMuseums?.[0]?.etapas??stage} clubName="Clube de teste" stadium={empty?{inv:{},ext:[]}:full} presidency={wallet.carteiraDaCarreira(state,0)} onOpenClub={target=>{W.mapDestination=target;A(target)}} onReady={api=>W.mapApi=api}/><ClubeMapaPainel enabled active={active} club="Clube de teste" agency onSelect={A} onClose={()=>A(null)}>{active==='museu'?<MuseuClube state={state} mgrId={0} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:0,expectedStage})} onStore={()=>A(null)}/>:active==='presidencia'?home:<p>{active==='financas'?'Finanças do clube':active==='patrocinio'?'Patrocínios e contratos':'Destino local de teste'}</p>}</ClubeMapaPainel></div>
 }
-_bancadaApoio(email,'ouro')
+_bancadaApoio(email,query.has('free')?'bege':'ouro')
 createRoot(document.getElementById('root')!).render(<App/>);

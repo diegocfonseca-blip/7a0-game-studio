@@ -1,3 +1,10 @@
+## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
+
+- Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
+- Veículos já possuídos visíveis, compra/venda/troca bloqueadas na UI e no reducer, com “Em breve” enquanto a arte é revisada. Móveis continuam no fluxo existente.
+- Corrige o exagero dos marcadores na visão sentada/passeio: limite visual de 1,1 m e bola de 0,4 m; câmera alta e fonte de posições preservadas. Placar deixa de ficar encoberto pela identificação da arquibancada.
+- Detalhes em `docs/mapa-publico-20261115.md`; capturas, testes e publicação em `/workspace/shared/mapa-publico-20261115/`. Chat por proximidade segue desligado, sem novos canais.
+
 ## 🗂️ 15/11 — Reorganização do Clube — FEITO na prévia privada
 
 - Diego pediu publicar também a proposta revisada: Meu clube, Meus negócios, Minha vida. Mapa em destaque, acessos ao lado/abaixo; casa/garagem juntas; SAF e segundo clube separados das obras.
@@ -2608,8 +2615,12 @@ Feito (só na conta liberada; nada muda no futebol):
 Falta (próximos passos):
 - [x] **Liga Draft na NBA** (10/11, no ramo, esperando OK): a Liga Draft de hoje (Minha Liga Draft) no basquete — 1º leilão e draft só com cartas da NBA, elenco de até 15 (quinteto + banco), posições PG..C na noite do draft, prêmio padrão pela colocação = metade do futebol (orçamento 50). Régua do esporte em `liga-draft.ts` (`setDraftBasquete`, ligada por `setActiveSport`/`setActiveCatalog`). Trava `npm run liga-draft-nba`. A Liga Draft ANTIGA (1ª temporada fraca) segue só no futebol.
   - ⚠️ `npm run liga-draft` e `scripts/testa-liga-vaga-motor.mts` já falham na main (erro dos próprios scripts), não é do basquete.
-- [ ] Liga de 10 times / turno único no basquete (travado por `tam10Mostra`/`turnoMostra` com `!nbaSala`).
-- [ ] Tela final de campeão: fundo ainda é estádio de futebol.
+- [x] Liga Draft do basquete PUBLICADA na main (10/11, *"sim e siga fazendo tudo"*).
+- [x] Topo do leilão (celular/PC) e dos Amigos com BIDLEGENDS no basquete (10/11).
+- [ ] **Nova carreira do basquete no passo a passo** (Seu time → A liga) — no ramo, esperando OK visual (`nba-criar-carreira.tsx`). Sem presidente/rivais de batismo (o basquete não tem presidência e a Street League é fixa). Se o Diego quiser presidente no basquete, precisa antes existir lugar pro presidente na carreira do basquete.
+- [ ] Carreira do basquete nas telas novas (visual v02 das 35 telas) — a carreira do basquete roda na `EscSeason`, não na pirâmide: é trabalho grande à parte.
+- [~] Liga de 10 times / turno único no basquete: DEIXADO DE FORA de propósito (15/11) — a temporada do basquete imita a NBA (conferências + playoffs); liga de 10/19 rodadas quebra isso. Só fazer se o Diego pedir.
+- [x] Tela final de campeão do basquete: arena no fundo + 'O ANEL É SEU' (15/11, no ramo).
 - [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).
 - [ ] Carreira v02 (35 telas), mapa 3D, coletiva, calendário, Campo 2D: só futebol por construção (a carreira do basquete usa a `EscSeason`).
 - [ ] Testar online com 2 aparelhos (sala de basquete com o visual novo).

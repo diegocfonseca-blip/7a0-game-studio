@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { supabase } from '../lib/supabase'
+import {PRESIDENCY_STADIUM_RELEASED} from './presidencia-lotes'
 import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
 // Prévia de apresentação local. Nunca vai para o estado compartilhado da sala.
@@ -77,7 +78,9 @@ export function usePresidentPreview() {
   return useSyncExternalStore(subscribe, () => enabled, () => false)
 }
 
-// Lote 1 autorizado: criação, perfil e sala. Continua restrito à conta verificada.
-// Economia, garagem, teto e troca do estádio têm chaves separadas desligadas.
+// A identidade da prévia continua privada. A liberação pública autoriza as ações
+// locais da carreira; cada domínio/reducer confere o clube, modo e plano.
+// Negociação de veículos tem trava própria, desligada enquanto a arte é revista.
 export const PRESIDENT_INTEGRATION_RELEASED:boolean=true
-export const presidentWritesEnabled=()=>PRESIDENT_INTEGRATION_RELEASED&&presidentPreviewEnabled()
+type AcoesMapaCarreira={careerOnline?:boolean;onlineMode?:string;sport?:string;co2?:unknown}
+export const presidentWritesEnabled=(state?:AcoesMapaCarreira)=>PRESIDENT_INTEGRATION_RELEASED&&(presidentPreviewEnabled()||PRESIDENCY_STADIUM_RELEASED&&!!state?.careerOnline&&state.onlineMode==='cpu'&&state.sport!=='basquete'&&!state.co2)

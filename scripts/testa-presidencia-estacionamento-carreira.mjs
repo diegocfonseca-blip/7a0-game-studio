@@ -20,6 +20,7 @@ registerHooks({
 const data = await import('../src/escalacao/estadiodata.ts')
 const domain = await import('../src/escalacao/presidencia-estacionamento.ts')
 const project = await import('../src/escalacao/presidencia-estadio-projeto.ts')
+const {marcaObraNaRodada}=await import('../src/escalacao/presidencia-cidade-viva.ts')
 const { podeAlterarPresidencia } = await import('../src/escalacao/presidencia-carreira.ts')
 const { valorEstadioPresidencia } = await import('../src/escalacao/presidencia-valores.ts')
 const flags = await import('../src/escalacao/presidencia-lotes.ts')
@@ -33,7 +34,7 @@ const ledgerBegin = source.indexOf('function logFin('), ledgerEnd = source.index
 assert(ledgerBegin >= 0 && ledgerEnd > ledgerBegin)
 const ledger = stripTypeScriptTypes(source.slice(ledgerBegin, ledgerEnd))
 const buildReducer = (released, account = true) => {
- const deps = { ...data, ...domain, ...project, podeAlterarPresidencia,
+ const deps = { ...data, ...domain, ...project, podeAlterarPresidencia,marcaObraNaRodada,
   presidentWritesEnabled: () => account, PRESIDENCY_PARKING_STAGES_RELEASED: released }
  // O reducer principal clona antes do switch. O harness mantém essa fronteira
  // para conferir que nenhuma recusa ou atualização altera o estado de entrada.

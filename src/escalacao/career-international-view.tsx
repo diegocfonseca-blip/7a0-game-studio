@@ -2,6 +2,7 @@ import { criteriosDaTemporada, versaoComCriterios } from './criterios-carreira'
 import { usePenaltisCampo } from './campo2d-penaltis-react'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {idPartidaInternacional} from './presidencia-complexo-final-regras'
+import {mapaEstadioDisponivel} from './presidencia-lotes'
 import {usePresidentPreview} from './presidente-acesso'
 // ─── 🌎 CARREIRA INTERNACIONAL — a tela, PASSO A PASSO (01/10, pedido do Diego) ────
 //
@@ -511,7 +512,8 @@ function frasesDoApito(fase: 'liga' | 'ida' | 'volta' | 'final', comp: Comp, voc
 
 export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase = 'liga', penalties }: { penalties?: InternationalTie; match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
   const c2d = useCampo2DLigado() // 📺 no Campo 2D o jogo dura 1:30
-  const {state}=useEsc(),presidentAvailable=usePresidentPreview()
+  const {state}=useEsc(),presidentPreview=usePresidentPreview()
+  const presidentAvailable=presidentPreview||mapaEstadioDisponivel(false)&&state.onlineMode==='cpu'&&!state.co2
   const teams = new Map(campaign.teams.map(t => [t.id, t]))
   const home = teams.get(match.home)!, away = teams.get(match.away)!
   // 🏆 04/11: na FINAL o id ganha o ":Final" — é por ele que o mapa 3D reconhece o dia de final (festa com a taça da competição)
@@ -585,7 +587,7 @@ export function CareerInternationalView(p: Props) {
   const [celebrate, setCelebrate] = useState<CompId | null>(null)
   // 🥅 04/11 (só a conta do Diego, igual ao mapa 3D): a final foi nos pênaltis? a festa ganha o selo "NOS PÊNALTIS!"
   const [celebratePens, setCelebratePens] = useState(false)
-  const presidentMapa = usePresidentPreview()
+  const presidentMapa = mapaEstadioDisponivel(usePresidentPreview())
   // 🔇 CONTRA BOTÃO MUDO: confirmou e a campanha não começou? Avisa e devolve os convites.
   const [esperando, setEsperando] = useState(0)
   const [recusado, setRecusado] = useState<string | null>(null)
