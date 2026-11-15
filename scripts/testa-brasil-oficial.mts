@@ -85,20 +85,30 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   if (new Set(ids).size !== ids.length) falha('a mesma carta em dois clubes')
   if (s.careerDivision !== 'A') falha('divisão do usuário errada')
   for (const d of ['B', 'C'] as const) for (const c of clubesDaDivisao(d)) if (s.careerPlacements?.[c.nome] !== d) falha(`${c.nome} devia estar na Série ${d}`)
-  for (const d of ['A', 'B', 'C', 'D']) { const n = Object.values(s.careerPlacements ?? {}).filter(v => v === d).length; if (n !== 20) falha(`Série ${d} com ${n} clubes (devia 20)`) }
+  for (const d of ['A', 'B', 'C', 'D']) { const n = Object.values(s.careerPlacements ?? {}).filter(v => v === d).length, tam = d === 'D' ? 96 : 20; if (n !== tam) falha(`Série ${d} com ${n} clubes (devia ${tam})`) }
   const fundo = seedCpuSquadsOficial(s)
   // 🇧🇷 a pirâmide MONTADA (o que a tela simula) só tem clube real: A/B/C = as séries reais de 2026, D = clubes reais da D
   const { buildPyramid } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
   const BO = await vite.ssrLoadModule('/src/escalacao/brasil-oficial.ts')
   const mundo = buildPyramid(s.managers, 0, s.seed, s.deckLeague, s.careerPlacements, fundo, true)
   for (const d of ['A', 'B', 'C', 'D'] as const) {
-    if (mundo[d].length !== 20) falha(`pirâmide: Série ${d} com ${mundo[d].length} times`)
+    const tam = d === 'D' ? 96 : 20
+    if (mundo[d].length !== tam) falha(`pirâmide: Série ${d} com ${mundo[d].length} times (devia ${tam})`)
     const falsos = mundo[d].filter((t: { name: string }) => !BO.clubeOficial(t.name))
     if (falsos.length) falha(`pirâmide: Série ${d} com clube que não é real: ${falsos.slice(0, 4).map((t: { name: string }) => t.name).join(', ')}`)
     if (d !== 'D') { const esperado = new Set(BO.clubesDaDivisao(d).map((c: { nome: string }) => c.nome)); const fora = mundo[d].filter((t: { name: string }) => !esperado.has(t.name)); if (fora.length) falha(`pirâmide: Série ${d} com clube de outra série: ${fora.map((t: { name: string }) => t.name).join(', ')}`) }
     else if (mundo.D.some((t: { name: string }) => BO.clubeOficial(t.name)?.div !== 'D')) falha('pirâmide: Série D com clube que não é da D real')
   }
   for (const t of Object.values(mundo).flat() as { name: string; xi: unknown[] }[]) if (t.xi.length !== 11) falha(`pirâmide: ${t.name} não escala 11`)
+  // 🇧🇷 a temporada no formato real fecha: B com playoff (4 sobem), C em fases (4 sobem, 2 caem), D com 96 (6 sobem)
+  const { simulaTemporadaOficial } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+  const fim = simulaTemporadaOficial(mundo, s.seed, 38, 2026).oficial
+  if (fim.B.sobem?.length !== 4) falha(`temporada: B com ${fim.B.sobem?.length} acessos`)
+  if (fim.C.sobem?.length !== 4 || fim.C.caem?.length !== 2 || !fim.C.campeao) falha(`temporada: C sobem ${fim.C.sobem} caem ${fim.C.caem} campeão ${fim.C.campeao}`)
+  if (fim.D.sobem?.length !== 6 || new Set(fim.D.sobem).size !== 6 || !fim.D.campeao) falha(`temporada: D sobem ${fim.D.sobem}`)
+  const meio = simulaTemporadaOficial(mundo, s.seed, 20, 2026)
+  if (meio.oficial.C.campeao || meio.oficial.D.campeao || meio.oficial.B.playoff) falha('temporada: campeão/playoff aparecendo no meio da temporada (spoiler)')
+  if (JSON.stringify(simulaTemporadaOficial(mundo, s.seed, 38, 2026).oficial) !== JSON.stringify(fim)) falha('temporada: mesma semente deu temporada diferente')
   for (const c of [...clubesDaDivisao('B'), ...clubesDaDivisao('C')]) if (!fundo[c.nome] || !fechaTime(fundo[c.nome])) falha(`fundo: ${c.nome} sem elenco que feche um 11`)
   const todos = [...ids, ...Object.values(fundo).flat().filter(c => c.club !== 'Várzea').map(c => `${c.name}|${c.club}|${c.year}`)]
   const rep = todos.filter((k, i) => todos.indexOf(k) !== i)

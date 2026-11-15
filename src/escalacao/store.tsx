@@ -7862,9 +7862,8 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const pl: Record<string, string> = {}
   for (const m of s.managers) pl[`m${m.id}`] = meu.div
   for (const c of CLUBES_BR) if (c.div !== meu.div) pl[c.nome] = c.div
-  // 🟫 Série D de FUNDO, provisória: 20 clubes REAIS da D 2026, sorteados pela semente da carreira (nunca mais os clubes de
-  // receita, que eram de jogadores do site). ⚠️ A D real tem 96 em 16 grupos — quando o motor dela entrar, isto sai.
-  for (const c of [...clubesDaDivisao('D')].sort((a, b) => semente(a.nome) - semente(b.nome)).slice(0, 20)) pl[c.nome] = 'D'
+  // 🟫 Série D: os 96 clubes REAIS de 2026, nos 16 grupos (a temporada no formato real mora em `simulaTemporadaOficial`)
+  for (const c of clubesDaDivisao('D')) pl[c.nome] = 'D'
   s.careerPlacements = pl
   s.careerDivision = meu.div
   s.clubCash = seedClubCash({}, pl)

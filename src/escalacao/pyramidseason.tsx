@@ -89,6 +89,7 @@ import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoReno
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
 import { clubeOficial, cartasDoClube, sorteiaElenco } from './brasil-oficial'
+import { turnoUnico, turnoEReturno } from './campeonato-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
@@ -532,7 +533,8 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
   // inteira. Sobras saem do fim da série cheia (nunca humano) e completam a
   // série vazia — determinístico, então online continua sincronizado.
   const over: SimTeam[] = []
-  const balanceDivs = hasV ? DIVS : DIVS.filter(d => d !== 'V') // sem escada, a V fica vazia (não puxa time)
+  // 🇧🇷 no Brasil Oficial cada série tem o tamanho REAL (D 96, C 20→24→28): nada de forçar 20
+  const balanceDivs = oficial ? [] as Div[] : hasV ? DIVS : DIVS.filter(d => d !== 'V') // sem escada, a V fica vazia (não puxa time)
   for (const d of balanceDivs) {
     while (world[d].length > 20) {
       // 🎯 QUEM SAI QUANDO SOBRA TIME (endurecido 04/09).
@@ -1197,6 +1199,194 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   const assistsSorted = [...assists.values()].sort((a, b) => b.assists - a.assists)
   return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, assistsByCard, assistsAll: assistsSorted, divTop }
 }
+// ─── 🇧🇷 BRASIL OFICIAL: A TEMPORADA NO FORMATO REAL (15/11, mockup `scripts/mockups/brasil-oficial-tabelas.png` aprovado) ───
+// A e B jogam o turno e returno de sempre (o MESMO caminho do `simulatePyramid`, byte a byte). Depois da 38ª a B tem o playoff
+// 3º×6º / 4º×5º. A C e a D jogam as fases reais (campeonato-oficial.ts tem o regulamento e a trava): cada série tem N "datas"
+// espalhadas pelas 38 rodadas da temporada (a C de 2026 tem 27 datas, a D 24), e a rodada global R mostra só as datas que já
+// aconteceram — nada de spoiler. Tudo determinístico pela semente.
+export type ConfrontoSim = { a: string; b: string; ida?: [number, number]; volta?: [number, number]; vencedor?: string; penaltis?: boolean }
+export type FasesOficiais = {
+  ano: number
+  B: { playoff: ConfrontoSim[] | null; sobem?: string[] }
+  C: { fases: { nome: string; tabela: SimTeam[] }[]; final: ConfrontoSim | null; sobem?: string[]; caem?: string[]; campeao?: string; formato: 'turno-unico' | 'dois-grupos' }
+  D: { grupos: { nome: string; tabela: SimTeam[] }[]; mataMata: { nome: string; confrontos: ConfrontoSim[] }[]; sobem?: string[]; campeao?: string }
+}
+const zera = (t: SimTeam): SimTeam => ({ ...t, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
+/** em que rodada global (1..38) cai a data k (1..total) de uma série com `total` datas */
+const dataNaRodada = (k: number, total: number) => Math.ceil(k * 38 / total)
+const datasJogadas = (ini: number, len: number, total: number, round: number) => { let n = 0; for (let k = ini + 1; k <= ini + len; k++) if (dataNaRodada(k, total) <= round) n++; return n }
+const hashNome = (txt: string, seed: number) => { let h = seed >>> 0; for (let i = 0; i < txt.length; i++) h = Math.imul(h ^ txt.charCodeAt(i), 0x01000193) >>> 0; return h }
+
+export function simulaTemporadaOficial(world: Record<Div, SimTeam[]>, seed: number, round: number, ano: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }): ReturnType<typeof simulatePyramid> & { oficial: FasesOficiais } {
+  // A e B: o caminho de sempre (C, D e V vazias — o simDivTo pula vaga vazia sem consumir dado)
+  const base = simulatePyramid({ ...world, C: [], D: [], V: [] }, seed, round, tactics, lineups, capElite, realGoals, fairBoost, mods, halftime, penalty, tecs, cardMods, botPlans, m2Desde, recepcaoDesde, regrasM2)
+  const scorers = new Map<string, SeasonScorer>(base.scorersAll.map(x => [`${x.teamName}:${x.cardId}`, { ...x }]))
+  const assists = new Map<string, SeasonAssist>(base.assistsAll.map(x => [`${x.teamName}:${x.cardId}`, { ...x }]))
+  const lixo = { s: new Map<string, SeasonScorer>(), a: new Map<string, SeasonAssist>() }
+  const matches = { ...base.matches, C: [] as SimMatch[], D: [] as SimMatch[], V: [] as SimMatch[] }
+  const tables = { ...base.tables }
+  const fs = (d: Div, nome: string) => hashNome(`${d}|${nome}`, seed)
+  /** joga uma fase de pontos corridos com o calendário dado, só até as datas já jogadas */
+  const fase = (times: SimTeam[], d: Div, nome: string, cal: [number, number][][], jogadas: number, ini: number, total: number): SimTeam[] => {
+    const ts = times.map(zera)
+    const lm: SimMatch[] = []
+    simDivTo(ts, d, fs(d, nome), jogadas, scorers, {}, {}, lm, capElite, realGoals, fairBoost, {}, {}, {}, assists, undefined, {}, undefined, undefined, undefined, undefined, cal)
+    // os jogos "da rodada" são só os da data que cai NESTA rodada global (nada de repetir a data anterior)
+    if (jogadas > 0 && lm.length && dataNaRodada(ini + jogadas, total) === round) matches[d] = [...(matches[d] ?? []), ...lm]
+    return sortDiv(ts)
+  }
+  /** mata-mata ida e volta: `pares` = [melhor, pior] (a volta é na casa do melhor). legs = 0, 1 ou 2 já jogados */
+  const mataMata = (pares: [SimTeam, SimTeam][], d: Div, nome: string, legs: number, desempate: 'campanha' | 'penaltis'): ConfrontoSim[] => {
+    const out: ConfrontoSim[] = pares.map(([m, p]) => ({ a: m.name, b: p.name }))
+    if (!legs) return out
+    const cal: [number, number][][] = [pares.map((_, i) => [i * 2 + 1, i * 2] as [number, number]), pares.map((_, i) => [i * 2, i * 2 + 1] as [number, number])]
+    const joga = (n: number, sc: Map<string, SeasonScorer>, as: Map<string, SeasonAssist>) => { const ts = pares.flat().map(zera); const lm: SimMatch[] = []; simDivTo(ts, d, fs(d, nome), n, sc, {}, {}, lm, capElite, realGoals, fairBoost, {}, {}, {}, as, undefined, {}, undefined, undefined, undefined, undefined, cal); return { ts, lm } }
+    const um = joga(1, legs === 1 ? scorers : lixo.s, legs === 1 ? assists : lixo.a)
+    um.lm.forEach((g, i) => { out[i].ida = [g.hg, g.ag] })
+    if (legs === 1) { if (dataAtual === 1) matches[d] = [...(matches[d] ?? []), ...um.lm]; return out }
+    const dois = joga(2, scorers, assists)
+    if (dataAtual === 2) matches[d] = [...(matches[d] ?? []), ...dois.lm]
+    dois.lm.forEach((g, i) => { out[i].volta = [g.hg, g.ag] })
+    pares.forEach(([m, p], i) => {
+      const gm = dois.ts[i * 2].gf, gp = dois.ts[i * 2 + 1].gf
+      if (gm !== gp) out[i].vencedor = gm > gp ? m.name : p.name
+      else if (desempate === 'campanha') out[i].vencedor = m.name
+      else { out[i].penaltis = true; out[i].vencedor = (hashNome(`${m.name}|${p.name}|pen`, seed) % 2) ? m.name : p.name } // pênaltis automáticos (sorteio preso na semente)
+    })
+    return out
+  }
+  let dataAtual = 0 // 1 ou 2 quando a rodada global de agora é a ida/volta do mata-mata que está sendo montado
+  const legsAte = (ini: number, total: number) => { const l = datasJogadas(ini, 2, total, round); dataAtual = [1, 2].find(k => dataNaRodada(ini + k, total) === round) ?? 0; return l }
+  const porNome = (l: SimTeam[]) => new Map(l.map(t => [t.name, t]))
+  // campanha (pra decidir quem faz a volta em casa): pontos → vitórias → saldo → gols
+  const melhorPrimeiro = (x: SimTeam, y: SimTeam): [SimTeam, SimTeam] => (sortDiv([x, y])[0] === x ? [x, y] : [y, x])
+
+  // ── B: playoff 3º×6º e 4º×5º depois da 38ª (só aparece com a liga fechada) ──
+  const oficial: FasesOficiais = { ano, B: { playoff: null }, C: { fases: [], final: null, formato: ano >= 2028 ? 'dois-grupos' : 'turno-unico' }, D: { grupos: [], mataMata: [] } }
+  if (round >= 38 && (tables.B?.length ?? 0) >= 6) {
+    const t = tables.B
+    dataAtual = 0
+    const po = mataMata([[t[2], t[5]], [t[3], t[4]]], 'B', 'playoff', 2, 'campanha')
+    oficial.B = { playoff: po, sobem: [t[0].name, t[1].name, ...po.map(c => c.vencedor!)] }
+  }
+
+  // ── C ──
+  const C = world.C ?? []
+  if (C.length >= 8) {
+    const ordem = shuffle(C, mulberry(fs('C', 'ordem')))
+    if (ano < 2028) {
+      // 2026 (20) e 2027 (24): turno único → 2 grupos de 4 (pontos zerados) → final
+      const n1 = ordem.length - (ordem.length % 2 ? 0 : 1), total = n1 + 6 + 2
+      const cal1 = turnoUnico(ordem.length)
+      const j1 = datasJogadas(0, cal1.length, total, round)
+      const f1 = fase(ordem, 'C', '1ª fase', cal1, j1, 0, total)
+      oficial.C.fases.push({ nome: '1ª fase', tabela: f1 })
+      tables.C = f1
+      if (j1 === cal1.length) {
+        const t = f1, g1 = [t[0], t[3], t[4], t[7]], g2 = [t[1], t[2], t[5], t[6]]
+        const j2 = datasJogadas(cal1.length, 6, total, round)
+        const a = fase(g1, 'C', '2ª fase · Grupo 1', turnoEReturno(4), j2, cal1.length, total), b = fase(g2, 'C', '2ª fase · Grupo 2', turnoEReturno(4), j2, cal1.length, total)
+        oficial.C.fases.push({ nome: '2ª fase · Grupo 1', tabela: a }, { nome: '2ª fase · Grupo 2', tabela: b })
+        if (j2 === 6) {
+          oficial.C.sobem = [a[0].name, a[1].name, b[0].name, b[1].name]
+          const f1n = porNome(f1)
+          const [m, p] = melhorPrimeiro(f1n.get(a[0].name)!, f1n.get(b[0].name)!)
+          const fin = mataMata([[m, p]], 'C', 'final', legsAte(cal1.length + 6, total), 'penaltis')[0]
+          oficial.C.final = fin
+          if (fin.vencedor) oficial.C.campeao = fin.vencedor
+        }
+      }
+      if (j1 === cal1.length) oficial.C.caem = f1.slice(-2).map(t => t.name)
+    } else {
+      // 2028+: 2 grupos de 14 (turno e returno) → os 4 primeiros de cada → 2 grupos de 4 → final. 6 caem (3 por grupo — INCERTO)
+      const gA = ordem.slice(0, Math.ceil(ordem.length / 2)), gB = ordem.slice(Math.ceil(ordem.length / 2))
+      const calA = turnoEReturno(gA.length), calB = turnoEReturno(gB.length)
+      const len1 = Math.max(calA.length, calB.length), total = len1 + 6 + 2
+      const j1 = datasJogadas(0, len1, total, round)
+      const a1 = fase(gA, 'C', '1ª fase · Grupo A', calA, Math.min(j1, calA.length), 0, total), b1 = fase(gB, 'C', '1ª fase · Grupo B', calB, Math.min(j1, calB.length), 0, total)
+      oficial.C.fases.push({ nome: '1ª fase · Grupo A', tabela: a1 }, { nome: '1ª fase · Grupo B', tabela: b1 })
+      tables.C = sortDiv([...a1, ...b1])
+      if (j1 === len1) {
+        oficial.C.caem = [...a1.slice(-3), ...b1.slice(-3)].map(t => t.name)
+        const oito = sortDiv([...a1.slice(0, 4), ...b1.slice(0, 4)])
+        const j2 = datasJogadas(len1, 6, total, round)
+        const x = fase([oito[0], oito[3], oito[4], oito[7]], 'C', '2ª fase · Grupo 1', turnoEReturno(4), j2, len1, total), y = fase([oito[1], oito[2], oito[5], oito[6]], 'C', '2ª fase · Grupo 2', turnoEReturno(4), j2, len1, total)
+        oficial.C.fases.push({ nome: '2ª fase · Grupo 1', tabela: x }, { nome: '2ª fase · Grupo 2', tabela: y })
+        if (j2 === 6) {
+          oficial.C.sobem = [x[0].name, x[1].name, y[0].name, y[1].name]
+          const n1 = porNome([...a1, ...b1])
+          const [m, p] = melhorPrimeiro(n1.get(x[0].name)!, n1.get(y[0].name)!)
+          const fin = mataMata([[m, p]], 'C', 'final', legsAte(len1 + 6, total), 'penaltis')[0]
+          oficial.C.final = fin
+          if (fin.vencedor) oficial.C.campeao = fin.vencedor
+        }
+      }
+    }
+  }
+
+  // ── D: grupos de 6 (A1…A16) → mata-mata ida e volta → 6 sobem ──
+  const D = world.D ?? []
+  if (D.length >= 8) {
+    const grupos = gruposDaD(D)
+    const len1 = Math.max(...grupos.map(g => turnoEReturno(g.times.length).length))
+    const nomesKO = ['2ª fase', '3ª fase', '4ª fase', 'Quartas de final', 'Semifinal', 'Final']
+    const total = len1 + nomesKO.length * 2
+    const j1 = datasJogadas(0, len1, total, round)
+    for (const g of grupos) { const cal = turnoEReturno(g.times.length); oficial.D.grupos.push({ nome: g.nome, tabela: fase(g.times, 'D', `Grupo ${g.nome}`, cal, Math.min(j1, cal.length), 0, total) }) }
+    tables.D = oficial.D.grupos.flatMap((g, gi) => g.tabela.map((t, pos) => ({ t, pos, gi }))).sort((x, y) => x.pos - y.pos || y.t.pts - x.t.pts || x.gi - y.gi).map(x => x.t)
+    if (j1 === len1 && oficial.D.grupos.length >= 2) {
+      const camp = porNome(oficial.D.grupos.flatMap(g => g.tabela))
+      let vivos: [SimTeam, SimTeam][] = []
+      for (let i = 0; i + 1 < oficial.D.grupos.length; i += 2) {
+        const g = oficial.D.grupos[i].tabela, h = oficial.D.grupos[i + 1].tabela
+        const par = (x?: SimTeam, y?: SimTeam) => { if (x && y) vivos.push(melhorPrimeiro(x, y)) }
+        par(g[0], h[3]); par(h[0], g[3]); par(g[1], h[2]); par(h[1], g[2])
+      }
+      let elimQuartas: SimTeam[] = [], semis: SimTeam[] = []
+      for (let k = 0; k < nomesKO.length && vivos.length; k++) {
+        const nome = nomesKO[k]
+        const conf = mataMata(vivos, 'D', nome, legsAte(len1 + k * 2, total), 'penaltis')
+        oficial.D.mataMata.push({ nome, confrontos: conf })
+        if (conf.some(c => !c.vencedor)) break
+        if (nome === 'Quartas de final') elimQuartas = conf.map(c => camp.get(c.vencedor === c.a ? c.b : c.a)!)
+        if (nome === 'Semifinal') semis = conf.flatMap(c => [camp.get(c.a)!, camp.get(c.b)!])
+        if (nome === 'Final') {
+          oficial.D.campeao = conf[0].vencedor
+          // playoff dos eliminados nas quartas (2 vagas) — na mesma data da final
+          const po: [SimTeam, SimTeam][] = []
+          for (let i = 0; i + 1 < elimQuartas.length; i += 2) po.push(melhorPrimeiro(elimQuartas[i], elimQuartas[i + 1]))
+          const cpo = mataMata(po, 'D', 'Playoff de acesso', legsAte(len1 + k * 2, total), 'penaltis')
+          oficial.D.mataMata.push({ nome: 'Playoff de acesso', confrontos: cpo })
+          if (cpo.every(c => c.vencedor)) oficial.D.sobem = [...semis.map(t => t.name), ...cpo.map(c => c.vencedor!)]
+          break
+        }
+        const w = conf.map(c => camp.get(c.vencedor!)!)
+        vivos = []
+        for (let i = 0; i + 1 < w.length; i += 2) vivos.push(melhorPrimeiro(w[i], w[i + 1]))
+      }
+    }
+  }
+
+  // artilharia e garçons de volta no formato do simulatePyramid
+  const goalsByCard: Record<string, number> = {}
+  for (const x of scorers.values()) if (x.cardId) goalsByCard[x.cardId] = x.goals
+  const assistsByCard: Record<string, number> = {}
+  for (const a of assists.values()) if (a.cardId) assistsByCard[a.cardId] = a.assists
+  const divTop = {} as Record<Div, SeasonScorer | undefined>
+  for (const x of scorers.values()) if (x.goals > 0 && (!divTop[x.div] || x.goals > divTop[x.div]!.goals)) divTop[x.div] = x
+  const sorted = [...scorers.values()].sort((a, b) => b.goals - a.goals)
+  return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, assistsByCard, assistsAll: [...assists.values()].sort((a, b) => b.assists - a.assists), divTop, oficial }
+}
+/** os grupos da Série D: o grupo REAL de 2026 (lista mestra) pra quem tem; quem chegou depois ocupa a vaga de quem saiu
+ *  (⚠️ provisório até o motor dos estaduais/sorteio regional — INCERTO como a CBF monta os grupos de 2027 em diante) */
+export function gruposDaD(D: SimTeam[]): { nome: string; times: SimTeam[] }[] {
+  const g: { nome: string; times: SimTeam[] }[] = Array.from({ length: 16 }, (_, i) => ({ nome: `A${i + 1}`, times: [] }))
+  const sobra: SimTeam[] = []
+  for (const t of D) { const gr = clubeOficial(t.name)?.grupoD; const alvo = gr ? g.find(x => x.nome === gr) : undefined; if (alvo && alvo.times.length < 6) alvo.times.push(t); else sobra.push(t) }
+  for (const t of sobra) { const alvo = [...g].sort((a, b) => a.times.length - b.times.length)[0]; alvo.times.push(t) }
+  return g.filter(x => x.times.length >= 2)
+}
+
 // prêmio do artilheiro: CAIXA do time por divisão (A 30 · B 20 · C 15 · D 10).
 // 🚫 O PISO DO JOGADOR NÃO SOBE MAIS (Diego 22/09): *"não quero mais que o jogador
 // bola de ouro aumente o piso do valor dele. Nem artilheiro também não"*. Até aqui,
@@ -8816,8 +9006,13 @@ export function PyramidSeasonScreen() {
   // 📅 com a Copa no meio da Liga ela começa cedo (1ª quarta ≥ rodada 5): o motor novo só vale se ligou antes da rodada 5
   const m2Copa = m2Desde != null && (copaMid ? m2Desde < 5 : m2Desde < 38)
   const recepcaoCopa = versaoComCriterios(versaoRecepcaoNaCopa(recepcaoDesde, copaMid ? 5 : 38), criteriosDaTemporada(state))
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, { criterios:criteriosDaTemporada(state), disputadas:round, intervaloAberto:state.booksSeason !== state.seasonNo }),
-    [world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde, state.criteriosCarreiraDesde, state.criteriosCarreiraAte, state.onlineMode, state.co2, state.careerOnline, state.sport, state.seasonNo, state.booksSeason, round])
+  // 🇧🇷 Brasil Oficial: a temporada no formato REAL de cada série (B com playoff, C em fases, D com 96) — ano = 2025 + temporada
+  const simulaAte = useCallback((ate: number): ReturnType<typeof simulatePyramid> & { oficial?: FasesOficiais } => {
+    const regras = { criterios: criteriosDaTemporada(state), disputadas: round, intervaloAberto: state.booksSeason !== state.seasonNo }
+    if (state.oficial) return simulaTemporadaOficial(world, seasonSeed, ate, 2025 + (state.seasonNo ?? 1), entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, regras)
+    return simulatePyramid(world, seasonSeed, ate, entradasSim.tactics, entradasSim.lineups, capElite, realGoals, fairBoost, entradasSim.mods, entradasSim.halftime, entradasSim.penalty, entradasSim.tecs, entradasSim.cardMods, botPlans, m2Desde, recepcaoDesde, regras)
+  },
+    [state.oficial, world, seasonSeed, entradasSim, capElite, realGoals, fairBoost, botPlans, m2Desde, recepcaoDesde, state.criteriosCarreiraDesde, state.criteriosCarreiraAte, state.onlineMode, state.co2, state.careerOnline, state.sport, state.seasonNo, state.booksSeason, round])
   // 💾 os resultados do motor novo que o SAVE já tem (antes de simular) — e, depois de cada tela, o que foi calculado agora vai pro save
   carregaGuardados(state.m2Res, state.seasonNo ?? 1, `${loggedEmail() ?? 'local'}:${state.seed}`)
   useEffect(() => { const n = tiraNovos(); if (n && state.careerOnline && state.onlineMode !== 'online') dispatch({ type: 'GUARDA_M2', novos: n }) })
@@ -8840,7 +9035,8 @@ export function PyramidSeasonScreen() {
   const tables = shown.tables
   const me = myStanding(tables)
   const meuSocFesta = useMeuSocio() // 🐊 a mascote do dono vai na festa do campeão (mais abaixo, depois da Copa)
-  const hasMatches = round >= 1 && matches.D.length > 0
+  // (Brasil Oficial: a D joga só em algumas datas — quem diz se a rodada tem jogo é a série A, que joga todas)
+  const hasMatches = round >= 1 && (state.oficial ? matches.A.length > 0 : matches.D.length > 0)
   const youId = state.managers[state.youIdx]?.id ?? 0
   const intlEnabled = useInternacionalCarreiraLiberada()
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
