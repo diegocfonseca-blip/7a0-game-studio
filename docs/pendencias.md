@@ -2618,7 +2618,9 @@ Falta (próximos passos):
 - [x] Liga Draft do basquete PUBLICADA na main (10/11, *"sim e siga fazendo tudo"*).
 - [x] Topo do leilão (celular/PC) e dos Amigos com BIDLEGENDS no basquete (10/11).
 - [ ] **Nova carreira do basquete no passo a passo** (Seu time → A liga) — no ramo, esperando OK visual (`nba-criar-carreira.tsx`). Sem presidente/rivais de batismo (o basquete não tem presidência e a Street League é fixa). Se o Diego quiser presidente no basquete, precisa antes existir lugar pro presidente na carreira do basquete.
-- [ ] Carreira do basquete nas telas novas (visual v02 das 35 telas) — a carreira do basquete roda na `EscSeason`, não na pirâmide: é trabalho grande à parte.
+- [x] 15/11 PUBLICADO: rosto da lenda na quadra e na revelação do basquete (pedido do Diego) · chat novo da sala de espera no basquete · "Acompanhe os playoffs até as Finals" · partida/carreira de basquete que volta depois de recarregar reancora a NBA (antes voltava com as vagas do futebol).
+- [~] Desenho de PC de duas colunas no basquete: testado 15/11 e DEIXADO DE FORA — nos playoffs a tabela Leste/Oeste não cabe na coluna da direita.
+- [ ] Carreira do basquete nas telas novas (visual v02 das 35 telas) — 🟢 Diego mandou começar (15/11, *"Sim"*). Começar pela Central (home da carreira), mockup antes. — a carreira do basquete roda na `EscSeason`, não na pirâmide: é trabalho grande à parte.
 - [~] Liga de 10 times / turno único no basquete: DEIXADO DE FORA de propósito (15/11) — a temporada do basquete imita a NBA (conferências + playoffs); liga de 10/19 rodadas quebra isso. Só fazer se o Diego pedir.
 - [x] Tela final de campeão do basquete: arena no fundo + 'O ANEL É SEU' (15/11, no ramo).
 - [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).
