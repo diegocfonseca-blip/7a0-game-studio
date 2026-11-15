@@ -77,6 +77,11 @@ Já temos **152 escudos** em `public/escudos-clubes/` (muitos estrangeiros). Fal
 - 15/11: **xarás podem entrar** (*"sim podem entrar nome igual qd não é a mesma pessoa"*): nome limpo, quem separa é clube+ano.
   A regra "uma pessoa só uma vez no baralho Brasil" continua valendo pra MESMA pessoa.
 
+- 15/11: Diego pediu **pesquisa a fundo** (*"quero que pesquise a fundo"*). A sessão está sem acesso a pt.wikipedia.org,
+  www.ogol.com.br, ge.globo.com e www.transfermarkt.com.br (proxy recusa): as listas em `docs/brasil-oficial/` foram feitas
+  só com resumos de busca → são RASCUNHO. Antes de qualquer carta entrar no jogo, refazer a conferência com esses sites
+  liberados (Diego libera no ambiente "7a0-game-studio (com Brasileirinho)" e abre sessão nova).
+
 ## 8. Perguntas abertas pro Diego
 1. "**Dois** novos modos": o segundo é qual? (Europa com ligas reais?)
 2. Série C com 28 e D com 96: é o formato de 2026/2027 da CBF? Conferir antes de codar.
