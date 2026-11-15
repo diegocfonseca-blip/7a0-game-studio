@@ -376,6 +376,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   vagas de Libertadores/Sul-Americana, estaduais, Copa do Brasil, Supercopa, Intercontinental e troféus seguem o REAL, cada
   dado com fonte aberta (pt.wikipedia/ge/Transfermarkt). Não achou = marca INCERTO e pergunta, nunca chuta. Pesquisa SEMPRE a
   fundo (*"quero que pesquise a fundo"*). Plano em `docs/carreira-oficial-plano.md`; pesquisa em `docs/brasil-oficial/`.
+  🃏 **TODO CLUBE DO MODO TEM CARTAS DE JOGADOR REAL** (15/11, *"todos têm que ter cartas… se não achar jogadores famosos do time
+  dele, bota os jogadores reais"*): nada de clube "sem cartas" jogando pela força — vale Série D, estaduais e Copa do Brasil.
+  Famoso do clube primeiro; não achou, elenco atual real. As cartas do modo nunca vão pra Partida Rápida nem pro online.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
   meias — contrate no leilão ou traga da SAF").
