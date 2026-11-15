@@ -9,7 +9,7 @@ type DesktopLink={label:string;active?:boolean;free?:boolean;onClick:()=>void}
 /** Presentation only. Callers supply their existing navigation and account data. */
 export function DesktopHeader({name,club,links=[],balance,onClickCapture}:{name?:string;club?:string;links?:DesktopLink[];balance?:ReactNode;onClickCapture?:MouseEventHandler<HTMLElement>}){
  return <header className="ll-desktop-header" onClickCapture={onClickCapture}>
-  <div className="ll-desktop-brand"><img src={logo} alt="" width={34} height={34}/><span>Leilão <b>Legends</b></span></div>
+  <div className="ll-desktop-brand">{ehBasquete()?<span className="ov3-sigla" aria-hidden="true">BL</span>:<img src={logo} alt="" width={34} height={34}/>}<span>{ehBasquete()?<>Bid<b>Legends</b></>:<>Leilão <b>Legends</b></>}</span></div>
   <div className="ll-desktop-account"><strong>{name||club||tr('Visitante','Guest')}</strong><small>{club&&club!==name?club:tr('Minha conta','My account')}</small></div>
   {links.length>0&&<nav aria-label={tr('Navegação do Online','Online navigation')}>{links.map(link=><button key={link.label} type="button" data-livre={link.free===false?undefined:'1'} aria-current={link.active?'page':undefined} onClick={link.onClick}>{link.label}</button>)}</nav>}
   {balance!=null&&<div className="ll-desktop-balance">{balance}</div>}

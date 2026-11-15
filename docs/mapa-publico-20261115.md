@@ -8,7 +8,7 @@ Diego autorizou liberar para todos o mapa, a reorganização do Clube, o passeio
 - Mapa/reorganização/ações continuam condicionados a uma carreira solo de futebol e ao clube humano no comando (`podeAlterarPresidencia`). Outros modos e a autoridade das salas não passam a usar essa autorização. Co2 mantém seus gates anteriores; nenhuma sala foi convertida em cidade compartilhada.
 - O campo do placar e da Copa pode publicar a fotografia existente para o mapa nas contas comuns. O adaptador das competições internacionais usa a mesma liberação. Contextos, equipes, resultado, clock e fontes continuam os existentes; não foi criado outro motor ou outra partida. Onde uma competição/save não fornece contexto/replay compatível, esta entrega não inventa um.
 - Passeio liberado com o mapa, incluindo NPCs existentes, destinos e arquibancada. Continua local, sem chat por proximidade ou novas mensagens de posição.
-- Permissões das ações locais do estádio acompanham a publicação. Cada domínio/reducer continua validando modo, clube, bens, saldo e plano; autenticação da conta, RLS e permissões do host não foram modificadas.
+- Permissões das ações locais do estádio acompanham a publicação somente quando o estado informado é de carreira solo compatível; a consulta sem estado continua no gate privado. Cada domínio/reducer continua validando modo, clube, bens, saldo e plano; autenticação da conta, RLS e permissões do host não foram modificadas.
 
 ## Veículos em preparação
 
@@ -43,3 +43,5 @@ Testes em bancada, identidades simuladas e rede externa bloqueada: não são tes
 ## Reversão
 
 Reverter este commit restaura o alcance anterior. A identidade da prévia continua separada, e a trava de veículos é explícita para não reativar negociações acidentalmente. A publicação preserva os arquivos das versões anteriores; clientes já abertos precisam atualizar para carregar as novas regras, sem forçar recarga de salas em andamento.
+
+Integração: preservadas as atualizações concorrentes de `origin/main` até `d368352d`; compilação completa e teste público/garagem/reducer passaram novamente após a integração.
