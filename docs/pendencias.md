@@ -1,3 +1,8 @@
+## 🛡️ 15/11 — IDEIA: CARREIRA COM TIMES DE ESCUDO OFICIAL (só ideia, nada feito)
+- Diego: *"tô pensando em fazer o modo carreira agora c/ escudos oficial"*. Decisão dele: **só joga com time oficial quem tem plano** (*"só vai jogar c/ times oficial quem tiver plano pow"*).
+- Eu sugeri NÃO vender mascote pro time oficial (concorre com o Batismo e mascote de clube é marca do clube); ele não fechou nada sobre isso.
+- Falta: qual plano libera (do Craque Salas pra cima?) e mockup da escolha na criação da carreira. Cuidado com marca registrada dos escudos.
+
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 
 - Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
