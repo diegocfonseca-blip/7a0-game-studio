@@ -81,6 +81,7 @@ Nome limpo; quem separa é clube + ano. Os 3 da Chape morreram no acidente de 28
 | Josimar | MEI | Chapecoense | 2016 | 1 | 52 | 66 | Volante do elenco de 2016, peça da campanha que o futebol nunca vai esquecer. | Holding midfielder of the 2016 squad, part of a run football will never forget. | https://aws.fbref.com/en/matches/aa59cdca/Santa-Cruz-Chapecoense-September-7-2016-Serie-A | (xará) — não é o Josimar do Botafogo 1986 (este é Josimar Rosado da Silva Tavares) | https://pt.wikipedia.org/wiki/Josimar_Rosado_da_Silva_Tavares |
 | Dida | LAT | Coritiba | 1985 | 2 | 62 | 73 | Lateral-esquerdo titular do Coxa campeão brasileiro, que começou no Colorado — e só recebeu a medalha 40 anos depois. | Starting left-back of Coritiba's Brazilian champions, who started out at Colorado — and only got his medal 40 years later. | https://www.tribunapr.com.br/esportes/cristian-toledo/coritiba-campeao-brasileiro-dez-personagens/ · https://www.cbf.com.br/a-cbf/noticias/informes/a/reparacao-historica-campeoes-do-coritiba-sao-homenageados-pela-cbf | (xará) — não é o Dida goleiro do Corinthians 2000 (este é Marco Aurélio Morais dos Santos) | https://pt.wikipedia.org/wiki/Dida_(futebolista,_1965) · https://pt.wikipedia.org/wiki/Coritiba_Foot_Ball_Club |
 | Marcelo | GOL | Red Bull Bragantino | 1990 | 2 | 63 | 74 | Goleiro do Bragantino de Luxemburgo que desbancou os grandes e ganhou o Paulistão de 1990. | Goalkeeper of Luxemburgo's Bragantino that upset the giants and won the 1990 Paulistão. | https://trivela.com.br/imortais-do-futebol/imortais-do-futebol-o-bragantino-campeao-paulista-de-1990-e-vice-campeao-brasileiro-de-1991/ | (xará) — não é o Marcelo lateral do Fluminense 2006 (este é Marcelo Martelotte) | https://pt.wikipedia.org/wiki/Campeonato_Paulista_de_Futebol_de_1990 · https://pt.wikipedia.org/wiki/Marcelo_Martelotte |
+| Biro-Biro | LAT | Red Bull Bragantino | 1990 | 3 | 66 | 77 | Lateral-esquerdo titular nas duas finais do Paulistão de 1990 e Bola de Prata do Brasileiro daquele ano — eleito o melhor lateral-esquerdo da história do Bragantino. | Starting left-back in both legs of the 1990 Paulistão final and Bola de Prata winner in that year's Brasileirão — voted Bragantino's greatest ever left-back. | https://pt.wikipedia.org/wiki/Biro-Biro_Ribeiro | (xará) — não é o Biro-Biro do Corinthians 1983 (este é Gilberto Ribeiro de Carvalho, "Biro-Biro Ribeiro") | https://pt.wikipedia.org/wiki/Biro-Biro_Ribeiro · https://pt.wikipedia.org/wiki/Campeonato_Paulista_de_Futebol_de_1990 |
 
 ## Conferência
 
@@ -88,11 +89,11 @@ Nome limpo; quem separa é clube + ano. Os 3 da Chape morreram no acidente de 28
 |---|---|---|---|---|---|---|---|---|
 | Mirassol | 0 | 11 | 11 | 1 | 2 | 2 | 3 | 3 |
 | Remo | 1 | 11 | 12 | 1 | 2 | 2 (Marllon + Zé Ivaldo) | 4 | 3 |
-| Red Bull Bragantino | 4 | 8 | 12 | 2 (Cleiton + Marcelo) | 2 (Juninho Capixaba + Gil Baiano) | 2 (Léo Ortiz + Natan) | 3 (Mauro Silva, Claudinho, Jadsom) | 3 |
+| Red Bull Bragantino | 4 | 9 | 13 | 2 (Cleiton + Marcelo) | 3 (Juninho Capixaba, Gil Baiano, Biro-Biro) | 2 (Léo Ortiz + Natan) | 3 (Mauro Silva, Claudinho, Jadsom) | 3 |
 | Chapecoense | 7 | 8 | 15 | 2 | 3 (Alan Ruschel, Gimenez, Dener) | 3 (Neto, Thiego, Filipe Machado) | 4 (Cléber Santana, Arthur Maia, Gil, Josimar) | 3 (Kempes, Bruno Rangel, Ananias) |
 | Coritiba | 6 | 7 | 13 | 1 | 3 (Natanael, André, Dida) | 2 (Gomes + Heraldo) | 3 (Dirceu Krüger, Marcelino Moreno, Toby) | 4 (Alef Manga, Jesé, Lela, Keirrison) |
 
-Total de cartas novas: 45 (40 + 5 xarás).
+Total de cartas novas: 46 (40 + 6 xarás).
 
 ### Descartados por já estarem no baralho Brasil (mesma pessoa)
 - **Reinaldo** (lateral, maior destaque do Mirassol 2025) — já é carta do São Paulo 2020.
@@ -103,10 +104,9 @@ Total de cartas novas: 45 (40 + 5 xarás).
 - **Alex** (ídolo do Coritiba) — já é carta do Cruzeiro 2003.
 - **Rafinha** (revelado no Coritiba) — já é carta do Flamengo 2019.
 - **Fabrício Bruno** (Bragantino 2021) — já é carta do Cruzeiro 2025 (mesma pessoa; achado na conferência a fundo, trocado pelo Natan).
-- **Biro-Biro** (Bragantino 1990) — ficou de fora por segurança. ⚠️ A conferência mostrou que é OUTRA pessoa (Gilberto Ribeiro de Carvalho, "Biro-Biro Ribeiro"; o do Corinthians é Antônio José da Silva Filho) — é xará, pode entrar se o dono quiser.
 
 ### Xarás (antes deixados de fora)
-- Dener, Gil, Josimar (Chape 2016), Dida (Coritiba 1985) e Marcelo (Bragantino 1990) ENTRARAM depois do OK do dono — ver seção "Xarás aprovados".
+- Dener, Gil, Josimar (Chape 2016), Dida (Coritiba 1985), Marcelo e Biro-Biro (Bragantino 1990) ENTRARAM depois do OK do dono — ver seção "Xarás aprovados".
 
 ### Observações
 - **Pedro Rocha** foi pro Coritiba em 2026; entrou como carta do **Remo 2025** (artilheiro da Série B), não do Coritiba.
@@ -127,4 +127,5 @@ Cada uma das 45 cartas foi aberta em pelo menos uma página real (pt.wikipedia.o
   - Bio com afirmação que a página NÃO sustentou (trocada por fato conferido): **João Victor** ("revelado pelo Santa Cruz / comprado depois da campanha" → veio do Vitória em jul/2025) · **Carlos Eduardo** · **Marcelinho** ("seguiu titular") · **Zé Ivaldo** ("estreou contra o Corinthians") · **Patrick** ("350 jogos de Brasileiro") · **Vitor Bueno** ("pé direito") · **Leonel Picco** (agora: contratação mais cara da história do Remo) · **Pedro Rocha** ("gol que abriu a festa contra o Goiás") · **Jajá** ("dividiu a artilharia") · **Alcino** ("abriu o placar" → "autor de um dos gols") · **Cleiton** ("fechou o gol contra o Libertad") · **Artur** ("gol em Assunção") · **Ytalo** ("gol no Libertad") · **Thiego** (agora: gol contra o Junior nas quartas) · **Ananias** ("artilheiro com 2 gols" → gol de empate contra o San Lorenzo na semi) · **Gil** ("marcou gol na campanha") · **Keirrison** ("recorde do Coxa" → dividiu a artilharia de 2008, 41 gols no ano) · **Dida** ("cria da base do Colorado" → começou no Colorado).
 - **Trocadas: 1** — **Fabrício Bruno** (Bragantino 2021) é a MESMA pessoa da carta Cruzeiro 2025 que já está no baralho → trocado por **Natan** (Natan Bernardo de Souza, zagueiro do Bragantino 2021).
 - **Removidas: 0.**
+- **Acrescentada depois: 1** — **Biro-Biro** (Bragantino 1990, LAT, xará): a conferência mostrou que é Gilberto Ribeiro de Carvalho, outra pessoa que não o Biro-Biro do Corinthians (Antônio José da Silva Filho). O dono liberou xará e mandou usar o APELIDO pelo qual a torcida conhece. Total agora: 46 cartas.
 - Mínimos por clube continuam batendo (ver tabela "Conferência" acima).
