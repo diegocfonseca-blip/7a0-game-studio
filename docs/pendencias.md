@@ -1,6 +1,7 @@
 ## 🛡️ 15/11 — IDEIA: CARREIRA COM TIMES DE ESCUDO OFICIAL (só ideia, nada feito)
 - Diego: *"tô pensando em fazer o modo carreira agora c/ escudos oficial"*. Decisão dele: **só joga com time oficial quem tem plano** (*"só vai jogar c/ times oficial quem tiver plano pow"*).
 - Eu sugeri NÃO vender mascote pro time oficial (concorre com o Batismo e mascote de clube é marca do clube); ele não fechou nada sobre isso.
+- 🔁 Mesmo dia, DECISÃO: *"caiu muito carreira, ninguém joga mais… melhor arriscar no modo novo com oficiais e deixar os times criados ser de entrada pro pessoal pagar os oficiais"*. Ou seja: carreira com time OFICIAL = modo novo, só com plano; carreira de time criado = a porta de entrada grátis. Já temos 152 escudos oficiais em `public/escudos-clubes/`.
 - Falta: qual plano libera (do Craque Salas pra cima?) e mockup da escolha na criação da carreira. Cuidado com marca registrada dos escudos.
 
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
