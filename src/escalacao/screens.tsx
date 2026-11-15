@@ -1331,6 +1331,9 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
 // motor (PG→GOL · SG→LAT · SF→ZAG · PF→MEI · C→ATA); o rótulo sai via posTag.
 function NbaCourt({ m }: { m: Manager }) {
   const t = useT()
+  // 🏀 15/11 (Diego: *"no leilão qd tá ganhando um jogador N tá aparecendo a fofinha dele se for lenda na quadra"*): lenda com
+  // rosto pronto aparece com o rosto na quadra, igual ao campinho do futebol (mesma trava `useLegendPresentation`)
+  const rostos = useLegendPresentation()
   const SPOTS: { pos: Sector; x: number; y: number }[] = [
     { pos: 'ATA', x: 62, y: 22 }, // C · pivô (cesta)
     { pos: 'MEI', x: 38, y: 22 }, // PF · ala-pivô
@@ -1364,6 +1367,16 @@ function NbaCourt({ m }: { m: Manager }) {
       {SPOTS.map(({ pos, x, y }) => {
         const c = m.squad.find(cc => cc.pos === pos && !cc.fake)
         const tt = c ? tierOf(c) : null
+        const comRosto = !!c && rostos && !!avatarLote1(c.name, c.club, c.year)
+        if (c && tt && comRosto) return (
+          <div key={pos} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-58%)', width: 86, textAlign: 'center', zIndex: 3 }}>
+            <AvatarLote1 name={c.name} club={c.club} year={c.year} style={{ width: 86, margin: '0 auto -6px', filter: `drop-shadow(2px 2px 0 ${INK})` }} />
+            <div style={{ position: 'relative', border: `2.5px solid ${INK}`, borderRadius: 9, boxShadow: `2px 2px 0 0 ${INK}`, padding: '2px 4px', background: tt.grad }}>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9, background: INK, color: '#fff', borderRadius: 5, padding: '0 5px', marginRight: 4 }}>{posTag(pos)}</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: tt.ink }}>{surname(c.name)}</span>
+            </div>
+          </div>
+        )
         return (
           <div key={pos} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)', width: 82, textAlign: 'center', zIndex: 3 }}>
             <div style={{ border: `3px solid ${INK}`, borderRadius: 11, boxShadow: c ? `2px 3px 0 0 ${INK}` : 'none', padding: '5px 4px 6px', background: c && tt ? tt.grad : 'rgba(255,255,255,.35)', borderStyle: c ? 'solid' : 'dashed' }}>
@@ -6073,7 +6086,7 @@ function Reveal() {
   // só pro modo online rápido"). Solo e carreira seguem na lista de sempre, byte
   // por byte — se a mesa der qualquer problema, ela não alcança o resto do jogo.
   const mesaModo = online && !state.careerOnline
-  const privateReveal = avatarPreview && state.sport !== 'basquete'
+  const privateReveal = avatarPreview // 🏀 15/11 (Diego): no basquete a lenda também revela com a carta e o rosto
   const mesaOn = mesaModo && item.bids.length > 0 && !privateReveal
   const ehEnigma = item.card.id === state.mudoId
   const identityVisible = revealIdentityVisible(item.card.id === state.surpriseId || ehEnigma, hammered, sold)

@@ -13630,6 +13630,9 @@ function loadSoloInProgress(): EscState | null {
       // 📱 11/11: carreira — se a cópia da carreira no aparelho está MAIS adiantada que esta, esta é velha: não abre (vai pra home)
       if (s.careerOnline && carreiraLocalNaFrente(s)) { localStorage.removeItem(SOLO_RESUME_KEY); return null }
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
+      // 🏀 15/11: partida/carreira de BASQUETE que volta depois de recarregar a página: reancora o esporte (baralho da NBA + vagas do
+      // quinteto). Sem isso o motor voltava no futebol — vagas 1·2·2·3·3 e Monte com carta de futebol. O futebol não passa aqui.
+      if (s.sport === 'basquete') reancoraEsporte(s)
       normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
