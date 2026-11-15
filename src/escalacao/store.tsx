@@ -1128,7 +1128,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
-import { CATALOG_OFICIAL } from './data-oficial'
+import { CATALOG_OFICIAL_MODO as CATALOG_OFICIAL } from './baralho-oficial'
 import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
@@ -7830,7 +7830,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
 // ⚠️ Séries A, B e C são reais; a D ainda é a de sempre até a D real (96 em grupos) entrar (pendência no plano).
 function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const meu = clubeOficial(nome)
-  if (!meu || meu.div === 'D') return false
+  if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C')) return false // D e só-estadual ainda não dá pra escolher
   s.oficial = { clube: meu.nome, desde: 1 }
   s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
   s.deckLeague = 'todos'; setActiveCatalog('todos', false, undefined, true)

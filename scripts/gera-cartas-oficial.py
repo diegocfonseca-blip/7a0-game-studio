@@ -2,7 +2,10 @@
 # 🇧🇷 Brasil Oficial: transforma as listas conferidas (docs/brasil-oficial/cartas-*.md) em src/escalacao/data-oficial.ts.
 # Rodar de novo sempre que uma lista mudar: python3 scripts/gera-cartas-oficial.py
 import re, json, unicodedata
-ARQS = ['docs/brasil-oficial/cartas-serie-a.md', 'docs/brasil-oficial/cartas-serie-b1.md', 'docs/brasil-oficial/cartas-serie-b2.md', 'docs/brasil-oficial/cartas-complemento.md', 'docs/brasil-oficial/cartas-serie-c.md']
+import glob
+ARQS = ['docs/brasil-oficial/cartas-serie-a.md', 'docs/brasil-oficial/cartas-serie-b1.md', 'docs/brasil-oficial/cartas-serie-b2.md', 'docs/brasil-oficial/cartas-complemento.md', 'docs/brasil-oficial/cartas-serie-c.md'] + sorted(glob.glob('docs/brasil-oficial/cartas-d-*.md'))
+# lotes da Série D / estaduais / Copa: o cabeçalho da seção É o nome do clube na lista mestra (brasil-oficial-clubes.ts)
+MESTRA = {json.loads(l.strip().rstrip(','))['nome'] for l in open('src/escalacao/brasil-oficial-clubes.ts', encoding='utf-8') if l.strip().startswith('{')}
 # cabeçalho da seção → nome do clube no jogo (a chave do escudo, igual a CLUBES_BR em brasil-oficial.ts)
 CLUBE = [('Amazonas','Amazonas'),('Anápolis','Anápolis'),('Barra-SC','Barra'),('Botafogo-PB','Botafogo-PB'),('Brusque','Brusque'),('Caxias','Caxias'),('Confiança','Confiança'),('Ferroviária','Ferroviária'),('Figueirense','Figueirense'),('Floresta','Floresta'),('Guarani','Guarani'),('Inter de Limeira','Inter de Limeira'),('Itabaiana','Itabaiana'),('Ituano','Ituano'),('Maranhão','Maranhão'),('Maringá','Maringá'),('Paysandu','Paysandu'),('Santa Cruz','Santa Cruz'),('Volta Redonda','Volta Redonda'),('Ypiranga-RS','Ypiranga'),('Athletico-PR','Athletico-PR'),('Bahia','Bahia'),('Vitória','Vitória'),('Fortaleza','Fortaleza'),('Mirassol','Mirassol'),('Remo','Remo'),('Red Bull Bragantino','Bragantino'),('Bragantino','Bragantino'),('Chapecoense','Chapecoense'),
   ('Coritiba','Coritiba'),('América-MG','América-MG'),('Athletic','Athletic'),('Atlético-GO','Atlético-GO'),('Atlético Goianiense','Atlético-GO'),
@@ -25,7 +28,7 @@ for arq in ARQS:
   clube = None; cab = None
   for ln in open(arq, encoding='utf-8'):
     if ln.startswith('## '):
-      h = ln[3:].strip(); clube = clube_de(h); cab = None
+      h = ln[3:].strip(); clube = (h if h in MESTRA else None) if '/cartas-d-' in arq else clube_de(h); cab = None
       if h.lower().startswith(('conferência','totais','pontos','descartados','dúvidas','xarás revistos')): clube = None; cab = 'fora'
       elif h.lower().startswith('xarás'): clube = 'XARA'
       continue

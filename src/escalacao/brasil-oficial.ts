@@ -9,8 +9,10 @@
 // ⚠️ Divisões = as REAIS de 2026. A temporada real fecha em 28/11 (Série B) e 02/12 (Série A): nesse dia, atualizar
 // quem subiu e quem caiu (Fase 4 do plano).
 import type { Card, Sector } from './types'
+import { CLUBES_MESTRA } from './brasil-oficial-clubes'
 
-export type DivOficial = 'A' | 'B' | 'C' | 'D'
+/** 'D' = Série D 2026 (96 em 16 grupos) · 'E' = só estadual e/ou Copa do Brasil (sem divisão nacional) */
+export type DivOficial = 'A' | 'B' | 'C' | 'D' | 'E'
 export type ClubeOficial = {
   /** nome como o jogo escreve o clube (é a chave do escudo em `escudos-oficiais.ts`) */
   nome: string
@@ -20,6 +22,10 @@ export type ClubeOficial = {
   estadual: string
   /** outros nomes com que o clube aparece nas cartas (ex.: a era "Bragantino" dos anos 90) */
   apelidos?: string[]
+  /** grupo da Série D 2026 (A1…A16) */
+  grupoD?: string
+  /** fase em que entra na Copa do Brasil 2026 */
+  copa?: string
 }
 
 const ESTADUAL: Record<string, string> = {
@@ -50,8 +56,16 @@ export const CLUBES_BR: ClubeOficial[] = [
   c('Maringá', 'C', 'PR'), c('Paysandu', 'C', 'PA'), c('Santa Cruz', 'C', 'PE'), c('Volta Redonda', 'C', 'RJ'), c('Ypiranga', 'C', 'RS'),
 ]
 
-export const clubesDaDivisao = (div: DivOficial) => CLUBES_BR.filter(x => x.div === div)
-export const clubeOficial = (nome: string) => CLUBES_BR.find(x => x.nome === nome || x.apelidos?.includes(nome)) ?? null
+/** 🇧🇷 os outros 168 clubes das competições reais de 2026 (Série D, Copa do Brasil e os estaduais), da lista mestra
+ *  conferida em docs/brasil-oficial/clubes-mestra.md. ⚠️ A/B/C continuam SÓ em CLUBES_BR (é dela que a carreira monta a
+ *  pirâmide); estes entram no modo pelas cartas e, na próxima etapa, pela Série D em grupos e pelas copas. */
+export const CLUBES_BR_OUTROS: ClubeOficial[] = CLUBES_MESTRA.filter(x => !x.abc).map(x => ({
+  nome: x.nome, div: x.grupoD ? 'D' : 'E', uf: x.uf, estadual: x.estadual ?? ESTADUAL[x.uf] ?? x.uf,
+  ...(x.grupoD ? { grupoD: x.grupoD } : {}), ...(x.copa ? { copa: x.copa } : {}),
+}))
+export const CLUBES_BR_TODOS: ClubeOficial[] = [...CLUBES_BR, ...CLUBES_BR_OUTROS]
+export const clubesDaDivisao = (div: DivOficial) => (div === 'D' || div === 'E' ? CLUBES_BR_OUTROS : CLUBES_BR).filter(x => x.div === div)
+export const clubeOficial = (nome: string) => CLUBES_BR_TODOS.find(x => x.nome === nome || x.apelidos?.includes(nome)) ?? null
 
 type CartaCat = Pick<Card, 'name' | 'club' | 'year'> & { fame: number }
 /** todas as cartas do clube (pelo nome e pelos apelidos), por posição */

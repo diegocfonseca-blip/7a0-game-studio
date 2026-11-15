@@ -87,7 +87,7 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
-import { CATALOG_OFICIAL } from './data-oficial' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo
+import { CATALOG_OFICIAL_MODO as CATALOG_OFICIAL } from './baralho-oficial' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo
 import { clubeOficial, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'

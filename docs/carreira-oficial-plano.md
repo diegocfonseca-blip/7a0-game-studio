@@ -135,3 +135,18 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   (acervo JoseArroyave tem quase todos), CLUBES_BR ganha os clubes de D/estaduais.
 - ⏭️ Depois: motor das competições (acesso/queda real, Copa do Brasil 126, Libertadores/Sul-Americana, Supercopa,
   Intercontinental, estaduais, Série D em grupos) e o mockup das taças (`docs/brasil-oficial/trofeus-reais.md`).
+
+## 12. 15/11 (noite, 2) — 11 de 13 lotes somados
+- ✅ `src/escalacao/brasil-oficial-clubes.ts` (GERADO por `scripts/gera-clubes-oficial.py` da lista mestra): os 225, com grupo da D,
+  fase da Copa e estadual. `CLUBES_BR` continua só A/B/C (é dela que a carreira monta a pirâmide); `CLUBES_BR_OUTROS` = os 168
+  (div 'D' = Série D, 'E' = só estadual/Copa). Ainda NÃO dá pra escolher clube de D/E (o começo de carreira recusa).
+- ✅ `gera-cartas-oficial.py` lê todos os `cartas-d-*.md` (cabeçalho = nome exato na lista mestra): **2.097 cartas**.
+- ✅ `baralho-oficial.ts` = cartas do modo + as do baralho REGIONAL dos clubes do modo (CSA, Bangu, Moto Club, ABC… já moram lá;
+  os lotes contaram com elas). Mesma carta nas duas → vale a da pesquisa do modo.
+- ✅ `npm run brasil-oficial`: 142/168 fecham um 11; os 26 que faltam são dos 2 lotes parados no limite de uso (Norte AM/AC/AP e CE/PI).
+- ⚠️ **ANTES DE PUBLICAR, 2 coisas:**
+  1. **Pessoa repetida**: `docs/brasil-oficial/repetidos.md` — 141 nomes em mais de uma carta sem marca de xará (lotes feitos em
+     paralelo não se viam; ex.: Gabriel Morbeck no Serra Branca 2025 e no Brasil de Pelotas 2026). Conferir um por um no
+     Transfermarkt: mesma pessoa = fica UMA carta; pessoa diferente = marcar xará.
+  2. **Peso**: as cartas do modo estão no arquivo principal do jogo (+124 KB gz pra TODO jogador). Carregar sob demanda (só quem
+     abre o Brasil Oficial) antes de soltar pra alguém além do Diego.

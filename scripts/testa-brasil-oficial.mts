@@ -2,7 +2,9 @@
 import { CATALOG } from '../src/escalacao/data.ts'
 import { ESCUDOS_OFICIAIS } from '../src/escalacao/escudos-oficiais.ts'
 import { CATALOG_OFICIAL } from '../src/escalacao/data-oficial.ts'
-import { CLUBES_BR, cartasDoClube, sorteiaElenco, fechaTime, clubesDaDivisao } from '../src/escalacao/brasil-oficial.ts'
+import { CATALOG_OFICIAL_MODO } from '../src/escalacao/baralho-oficial.ts'
+import { CLUBES_BR, CLUBES_BR_OUTROS, CLUBES_BR_TODOS, cartasDoClube, sorteiaElenco, fechaTime, clubesDaDivisao } from '../src/escalacao/brasil-oficial.ts'
+import { existsSync, readFileSync } from 'node:fs'
 let erros = 0
 const falha = (m: string) => { erros++; console.log('❌', m) }
 if (clubesDaDivisao('A').length !== 20) falha('Série A precisa de 20')
@@ -21,16 +23,29 @@ if (a.elenco.map(x => x.carta.name).join() !== b.elenco.map(x => x.carta.name).j
 if (a.elenco.map(x => x.carta.name).join() === d.elenco.map(x => x.carta.name).join()) falha('semente diferente deu o mesmo elenco')
 if (!fechaTime(a.elenco)) falha('Flamengo: os 22 sorteados não fecham um 11')
 // 🇧🇷 com as cartas do modo (CATALOG + CATALOG_OFICIAL), TODO clube fecha um 11
-const juntas = Object.fromEntries((Object.keys(CATALOG) as (keyof typeof CATALOG)[]).map(p => [p, [...CATALOG[p], ...CATALOG_OFICIAL[p]]])) as typeof CATALOG
+const juntas = Object.fromEntries((Object.keys(CATALOG) as (keyof typeof CATALOG)[]).map(p => [p, [...CATALOG[p], ...CATALOG_OFICIAL_MODO[p]]])) as typeof CATALOG
 for (const c of CLUBES_BR) if (!fechaTime(cartasDoClube(c, juntas))) falha(`não fecha um 11: ${c.nome}`)
+// 🇧🇷 os 168 de fora de A/B/C (Série D 96 em 16 grupos de 6 + estaduais/Copa)
+if (CLUBES_BR_OUTROS.length !== 168) falha(`lista mestra: ${CLUBES_BR_OUTROS.length} clubes fora de A/B/C (devia 168)`)
+if (clubesDaDivisao('D').length !== 96) falha(`Série D com ${clubesDaDivisao('D').length} (devia 96)`)
+{ const g: Record<string, number> = {}; for (const c of clubesDaDivisao('D')) g[c.grupoD!] = (g[c.grupoD!] ?? 0) + 1
+  if (Object.keys(g).length !== 16 || Object.values(g).some(n => n !== 6)) falha(`grupos da Série D errados: ${JSON.stringify(g)}`) }
+if (new Set(CLUBES_BR_TODOS.map(c => c.nome)).size !== CLUBES_BR_TODOS.length) falha('clube repetido entre A/B/C e o resto')
+// todo clube que já tem lote de pesquisa fecha um 11 (os lotes que ainda faltam ficam de fora até chegarem)
+const lotes = ['al-rn-ro', 'ba-se', 'df-es-to', 'go-ms', 'ma-rr', 'mg-sp', 'mt', 'pa', 'pb-pe', 'pr-sc', 'rj-rs', 'norte1', 'ce-pi']
+const comLote = new Set<string>()
+for (const l of lotes) { const f = `docs/brasil-oficial/cartas-d-${l}.md`; if (existsSync(f)) for (const m of readFileSync(f, 'utf8').matchAll(/^## (.+)$/gm)) comLote.add(m[1].trim()) }
+const semCarta: string[] = []
+for (const c of CLUBES_BR_OUTROS) { if (!fechaTime(cartasDoClube(c, juntas))) (comLote.has(c.nome) ? falha(`não fecha um 11: ${c.nome}`) : semCarta.push(c.nome)) }
+if (semCarta.length) console.log(`⏳ ${semCarta.length} clubes ainda esperando lote de cartas: ${semCarta.join(', ')}`)
 // toda carta do modo é de um clube do modo
-const nomes = new Set(CLUBES_BR.flatMap(c => [c.nome, ...(c.apelidos ?? [])]))
+const nomes = new Set(CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]))
 for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (!nomes.has(x.club)) falha(`carta de clube fora do modo: ${x.name} (${x.club})`)
 // mesmo nome+clube+ano não pode existir nos dois baralhos
 const ja = new Set(Object.values(CATALOG).flat().map(x => `${x.name}|${x.club}|${x.year}`))
 for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (ja.has(`${x.name}|${x.club}|${x.year}`)) falha(`carta já existe no baralho: ${x.name} ${x.club} ${x.year}`)
 if (erros) { console.log(`❌ brasil-oficial: ${erros} erro(s)`); process.exit(1) }
-console.log('✅ brasil-oficial: 60 clubes com escudo, sorteio dos 22 estável e sem perder carta')
+console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length - semCarta.length}/168 de D/estaduais fechando um 11, sorteio dos 22 estável e sem perder carta`)
 
 // ── 🇧🇷 a carreira nasce com o clube real (reducer) ──
 {
@@ -66,7 +81,7 @@ console.log('✅ brasil-oficial: 60 clubes com escudo, sorteio dos 22 estável e
   // a carreira de time criado continua sem as cartas do modo
   const criada = reducer(INITIAL, { type: 'START_CAREER_SOLO', teamName: 'Meu Time', formation: '4-3-3', rivals: 5, league: 'both' } as never)
   if (criada.oficial) falha('carreira criada marcada como oficial')
-  const doModo = new Set(Object.values(CATALOG_OFICIAL).flat().map(x => `${x.name}|${x.club}|${x.year}`))
+  const doModo = new Set(Object.values(CATALOG_OFICIAL_MODO).flat().map(x => `${x.name}|${x.club}|${x.year}`))
   if (criada.managers.some(m => m.squad.some(c => doModo.has(`${c.name}|${c.club}|${c.year}`)))) falha('carta do Brasil Oficial vazou pra carreira criada')
   _forcaBrasilOficialParaTeste(false)
   await vite.close()

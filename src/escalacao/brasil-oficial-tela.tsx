@@ -7,7 +7,7 @@ import { tr } from './lang'
 import { CLUBES_BR, clubesDaDivisao, cartasDoClube, ELENCO_INICIAL, type ClubeOficial } from './brasil-oficial'
 import { ESCUDOS_OFICIAIS } from './escudos-oficiais'
 import { CATALOG } from './data'
-import { CATALOG_OFICIAL } from './data-oficial'
+import { CATALOG_OFICIAL_MODO as CATALOG_OFICIAL } from './baralho-oficial'
 import type { Sector } from './types'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREME = '#F4ECD6'
