@@ -7963,7 +7963,7 @@ export function EscSeason() {
 
   // 🖥️ desenho de computador novo: fora do basquete. 👑 10/11 (Diego: *"o visual do campinho, com tabela etc deve manter padrão das salas
   // online… os locais das coisas"*): a Kings entra no MESMO desenho (as cenas dela são por cima da tela inteira, não dependem dele)
-  const desk2 = desk2Conta && !bbS
+  const desk2 = desk2Conta && !bbS // 🏀 15/11: testado de novo — nos playoffs a tabela Leste/Oeste não cabe na coluna da direita
   const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
   // 👑📌 11/11 (Diego: *"a info, por exemplo jogador estrela escolhido… está abaixo do telão. Essas infos devem ficar abaixo do placar
   // cinema"*): EM CAMPO, os efeitos valendo e o shootout moram logo embaixo do placar grande (liga e mata-mata), não mais lá no fim.
@@ -8374,7 +8374,7 @@ export function EscSeason() {
                 : chS ? ([...qc.bracket.flatMap(b => b.ties), ...qc.ties].some(tt => tt.aId === you.id || tt.bId === you.id)
                   ? LS('❌ Você caiu — acompanhe a Champions chegando ao fim…', '❌ You are out — follow the Champions to the end…')
                   : LS('❌ Você não se classificou pro mata-mata — agora é só assistir a Champions chegando ao fim…', '❌ You did not reach the knockouts — now just watch the Champions to the end…'))
-                : libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : (kingsS && qc.kingsDireto === you.id && qc.phase === 'quartas' ? LS('👑 Você foi 1º da liga: está DIRETO NA SEMI. Assista as quartas pra saber quem te pega!', '👑 You topped the league: straight into the SEMI. Watch the quarters to see who you face!') : kingsS ? LS('Acompanhe o mata-mata da Kings chegando ao fim…', 'Follow the Kings knockout to the end…') : relS ? LS('Você já caiu — acompanhe o Relâmpago até a final…', 'You are out — follow the Lightning Knockout to the final…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…'))}</p>
+                : libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : (kingsS && qc.kingsDireto === you.id && qc.phase === 'quartas' ? LS('👑 Você foi 1º da liga: está DIRETO NA SEMI. Assista as quartas pra saber quem te pega!', '👑 You topped the league: straight into the SEMI. Watch the quarters to see who you face!') : kingsS ? LS('Acompanhe o mata-mata da Kings chegando ao fim…', 'Follow the Kings knockout to the end…') : relS ? LS('Você já caiu — acompanhe o Relâmpago até a final…', 'You are out — follow the Lightning Knockout to the final…') : bbS ? LS('Acompanhe os playoffs até as Finals…', 'Follow the playoffs to the Finals…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…'))}</p>
               </Box>
             )}
             {/* 🎮 No online, a leitura aprovada é sempre: cartaz → placar →
