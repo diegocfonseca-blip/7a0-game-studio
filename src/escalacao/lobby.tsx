@@ -1,3 +1,4 @@
+import {CriacaoSala,ErroPrazoCriacao,leCriacaoPendente,gravaCriacaoPendente,limpaCriacaoPendente,novoIdCriacao} from './criacao-sala'
 import {PrivateRoomChat} from './private-room-chat'
 import {useOnlineRoomPresentation as useOwnerPresentation} from './presentation-release'
 import {OwnerOnlineHeader,OwnerOnlineProvider,OwnerSlot,OwnerWaitingLayout} from './owner-online-visual'
@@ -34,7 +35,7 @@ import { LimiteSalaVenda } from './limite-sala-venda'
 import { assinarMensal } from './vendria-checkout'
 import { LojaButton } from './loja-clube'
 import { isMuted } from './sound'
-import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
+import { anotaTrava, anotaQueda } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice as DeckCarreira } from './careeronline'
 // 🌎 26/10: a sala ganha o baralho MUNDO sozinho ('world'); a carreira online continua com os dela
@@ -42,6 +43,11 @@ type DeckChoice = DeckCarreira | 'world'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
+import { useKingsLiberada } from './sport'
+// 👑 13/11 (Diego: *"limite a 10… se por da Kings deixe com 10 times apenas… jogadores padrão aí tudo bem"*): a sala com o BARALHO da
+// Kings tem no máximo 10 pessoas — com mais, faltava zagueiro de verdade e o jogo completava com jogador de mentira (sala FDBQPN, 16 pessoas).
+// Mais nomes da Kings no baralho = sobe este número (pra 20 faltam ~53: +4 GOL, +18 ZAG, +16 MEI, +15 ATA).
+const KINGS_SALA_MAX = 10
 import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useRegionalLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
@@ -847,6 +853,8 @@ export function EscLobby() {
   const [newPwConfirm, setNewPwConfirm] = useState('')
   const [authError, setAuthError] = useState('')
   const [loading, setLoading] = useState(false)
+  const criacaoRef=useRef<CriacaoSala|null>(null)
+  useEffect(()=>()=>{if(criacaoRef.current){criacaoRef.current.encerrar();criacaoRef.current=null;setLoading(false)}},[user?.id])
 
   // 🏀 estou no BidLegends? O lobby é o MESMO do futebol (mesmas telas e botões,
   // regra do Diego); no basquete só some o que ainda não existe lá (carreira online
@@ -924,6 +932,10 @@ export function EscLobby() {
   // convocação. Só aparece pra CLUBES_TESTERS e só no ⚡ Rápido online.
   const clubesOn = useClubesLiberado()
   const [rapidoClubes, setRapidoClubes] = useState(false)
+  // 👑 11/11 (Diego: *"sim"* pra Kings nas salas online): só no Rápido e só pras contas da Kings (`useKingsLiberada`)
+  const kingsVe = useKingsLiberada()
+  const [kingsSala, setKingsSala] = useState(false)
+  const [kingsBarSala, setKingsBarSala] = useState(true) // jogadores DA Kings League (padrão) ou os de sempre
   const [pacSelecao, setPacSelecao] = useState(false) // 🏳️ leilão de Seleções (31/10, em teste): pacote = setor de uma SELEÇÃO
   const [pacDecada, setPacDecada] = useState(false) // 📅 por década (31/10, em teste): pacote = clube/seleção numa década
   // 🃏 BAFO: o host decide se a partida vale carta (padrão) ou se é amistoso.
@@ -937,6 +949,7 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
+  const [draftCopa, setDraftCopa] = useState<'liga' | 'liga_copa'>('liga') // 📋🏆 14/11 (Diego): Liga Draft pode ter a Copa dos 8 depois da liga — SÓ a Copa dos 8
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' | 'liga_mundo' | 'liga_euro' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   const [relampagoChave, setRelampagoChave] = useState<16 | 32>(16) // ⚡ Relâmpago (28/10): chave de 16 ou 32, o dono escolhe
   const relampagoOn = useRelampagoLiberado() // ⚡ só a conta do Diego cria, por enquanto
@@ -979,8 +992,8 @@ export function EscLobby() {
   const tam10Mostra = !nbaSala && (roomMode === 'rapido' || (roomMode === 'liga' && !ehDraft && ligaComBots))
   const tam10Travado = rapidoCopaMode === 'relampago' || rapidoCopaMode === 'champions'
   const tam10Vale = ligaTamanho === 10 && ((tam10Mostra && !tam10Travado) || (roomMode === 'liga' && ehMinha && ligaComBots))
-  const chaveSel = roomMode === 'liga' ? (minhaSel ? 'liga-minha' : ligaDraftSel ? 'liga-draft' : 'liga') : roomMode
-  const chaveModo = (m: { v: string; draft?: boolean; minha?: boolean }) => m.v === 'liga' ? (m.minha ? 'liga-minha' : m.draft ? 'liga-draft' : 'liga') : m.v
+  const chaveSel = roomMode === 'rapido' && kingsSala && kingsVe ? 'kings' : roomMode === 'liga' ? (minhaSel ? 'liga-minha' : ligaDraftSel ? 'liga-draft' : 'liga') : roomMode
+  const chaveModo = (m: { v: string; draft?: boolean; minha?: boolean; kings?: boolean }) => m.kings ? 'kings' : m.v === 'liga' ? (m.minha ? 'liga-minha' : m.draft ? 'liga-draft' : 'liga') : m.v
   const amigosOn = useAmigos() // 👥 18/10: amigos + perfil (pra todos desde 19/10)
   const co2On = useCarreiraOnline2() // 🌐 carreira online v2 (19/10, só Diego)
   const [perfilUid, setPerfilUid] = useState<string | null>(null)
@@ -1739,9 +1752,11 @@ export function EscLobby() {
         const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: roomData.id })
         if (removido === true) {
           await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
+          anotaQueda(roomData.id, roomData.code, 'volta_removido_pelo_dono')
           setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.'))
           return true
         }
+        anotaQueda(roomData.id, roomData.code, 'volta_liga_sem_cracha', { assentoBanco: myPl.player_index, tela: (gs as EscState).screen, temporada: (gs as EscState).seasonNo })
         setRoomError(tr('⏳ Essa liga está no meio da temporada. Você entra na próxima virada, no time que o dono escolher (no lugar de um bot).', '⏳ This league is mid-season. You join at the next season change, on the team the owner picks (in place of a bot).'))
         return true
       }
@@ -1753,10 +1768,14 @@ export function EscLobby() {
       // não é esse caso — ele é quem toca a sala.
       if (amHost && (!mineMgr || !mineMgr.isHuman)) {
         // deixa passar: ele restaura como dono e continua tocando a partida
+      } else if (mineMgr && !mineMgr.isHuman && gs?.mode === 'liga' && seatMeu >= 0 && (gs as EscState).seatUids?.indexOf(user.id) === seatMeu) {
+        // 🪑 10/11: liga — o crachá ainda é meu (o dono não me removeu), só que o time ficou com a máquina quando saí/caí.
+        // Volto pra partida e o jogo pede pro dono devolver o time (RETOMA_TIME, no store).
       } else if (!mineMgr || !mineMgr.isHuman) {
         await supabase.from('room_players').delete().eq('room_id', roomData.id).eq('user_id', user.id).then(() => {}, () => {})
         clearSavedRoom()
         setRoom(null); setPlayers([]); setPhase('menu')
+        anotaQueda(roomData.id, roomData.code, 'volta_time_nao_e_meu', { assentoBanco: myPl.player_index, assentoCracha: seatMeu, temMapa, temTime: !!mineMgr, humano: mineMgr?.isHuman ?? null, modo: gs?.mode ?? null, tela: (gs as EscState).screen })
         setRoomError(tr('⏱️ Essa partida começou sem você (entrou bem na hora do início). Espera o host chamar no "Jogar de novo" ou entra em outra sala.', '⏱️ That match started without you (you joined right at kick-off). Wait for the host to call "Play again" or join another room.'))
         return true // já navegou (pro menu, com aviso) — não fica re-tentando
       }
@@ -1845,6 +1864,7 @@ export function EscLobby() {
       duplasMode, duplas: duplasMode ? duplas : undefined, youUid: user.id,
       seatUids: uniq.map(p => p.user_id), // 🪑 quem senta em cada assento (mesma lista dos playerNames)
       formation: gs?.formation ?? '4-3-3',
+      kingsBaralho: !!(gs as { kingsBaralho?: boolean } | undefined)?.kingsBaralho, // 👑 11/11: sala da Kings com os jogadores dela
       stream: !!gs?.stream,
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       chatOff: !!gs?.chatOff, // 💬 chat ligado/desligado (escolha do host na criação)
@@ -2079,8 +2099,32 @@ export function EscLobby() {
   }
 
   async function createRoom() {
-    if (!user) return
+    if (!user || criacaoRef.current) return
+    const operacao=new CriacaoSala();criacaoRef.current=operacao
     setLoading(true); setRoomError('')
+    try {
+    const game=tagAtual(),pendente=leCriacaoPendente(user.id,game)
+    const confirmar=(rd:RoomInfo)=>{
+      if(rd.host_id!==user.id||rd.game_state?.__game!==game)throw new Error('Não foi possível confirmar a identidade da sala.')
+      saveRoom(rd.id);limpaCriacaoPendente(user.id,game)
+      if(rd.status==='started'){setResumeRoom(rd);return}
+      if(rd.status!=='waiting')throw new Error('A tentativa anterior já foi encerrada.')
+      setRoom(rd);setIsHost(true);setPhase('waiting')
+    }
+    // Antes de qualquer limite ou POST, recupera só o UUID desta tentativa.
+    // Nunca escolhe outra sala do dono ou reinicia uma partida já iniciada.
+    if(pendente){
+      const {data:existe,error}=await operacao.passo('conferir-tentativa',signal=>supabase.from('game_rooms').select('*').eq('id',pendente.id).abortSignal(signal).maybeSingle())
+      if(error)throw error
+      if(existe){
+        if(existe.host_id!==user.id||existe.game_state?.__game!==game){limpaCriacaoPendente(user.id,game);throw new Error('A tentativa anterior não pertence a esta conta/jogo.')}
+        if(existe.status!=='waiting'){confirmar(existe as RoomInfo);return}
+        const {data,error}=await operacao.passo('recuperar-dono',signal=>supabase.rpc('esc_criar_sala_segura',{p_id:pendente.id,p_code:existe.code,p_max_players:existe.max_players,p_game_state:existe.game_state,p_nome:nameOf()}).abortSignal(signal))
+        if(error)throw error
+        if(!data)throw new Error('A criação ainda não foi confirmada.')
+        confirmar(data as RoomInfo);return
+      }
+    }
     // 🧯 TETO DE 2 SALAS RÁPIDAS ABERTAS (Diego 23/08: *"limite pode ser duas sim"*).
     // Por que: criar sala rápida NUNCA teve limite, e o banco mostrou o estrago —
     // 484 salas guardadas, 68% paradas há mais de um dia, uma pessoa só criou 20
@@ -2093,9 +2137,10 @@ export function EscLobby() {
     // carreira também não, porque ela é um SAVE, não uma sala de encontro.
     if (roomMode === 'rapido' || roomMode === 'elenco') {
       const vivasDesde = new Date(Date.now() - 3 * 3600_000).toISOString()
-      const { data: minhas } = await supabase.from('game_rooms')
+      const { data: minhas,error: erroMinhas } = await operacao.passo('conferir-salas',signal=>supabase.from('game_rooms')
         .select('code, mode:game_state->>mode, screen:game_state->>screen')
-        .eq('host_id', user.id).gt('updated_at', vivasDesde)
+        .eq('host_id', user.id).gt('updated_at', vivasDesde).abortSignal(signal))
+      if(erroMinhas)throw erroMinhas
       // 🏁 PARTIDA QUE JÁ ACABOU NÃO CONTA (bug do dono do Jurubeba, 02/09: *"diz
       // que já tem salas abertas mas não tem"*). As duas salas dele estavam na
       // tela FINAL (rodada 38, `screen = 'end'`), mas o `status` fica 'started'
@@ -2118,10 +2163,11 @@ export function EscLobby() {
         setLoading(false); return
       }
     }
-    let code = randCode()
+    let code = pendente?.code??randCode()
     for (let i = 0; i < 5; i++) {
-      const { data } = await supabase.from('game_rooms').select('id').eq('code', code).maybeSingle()
-      if (!data) break; code = randCode()
+      const { data,error } = await operacao.passo('conferir-codigo',signal=>supabase.from('game_rooms').select('id').eq('code', code).abortSignal(signal).maybeSingle())
+      if(error)throw error
+      if (!data || data.id===pendente?.id) break; code = randCode()
     }
     // 🏆 no modo Liga o padrão é "Liga do Fulano" (não "Sala do Fulano"): é o nome
     // que aparece no card de "Minhas ligas" e na sala de troféus, temporada após
@@ -2129,6 +2175,7 @@ export function EscLobby() {
     const name = cutName(roomName.trim() || (getLang() === 'en' ? `${roomMode === 'liga' ? (ehDraft ? 'Draft League' : 'League') : 'Room'} of ${nameOf()}` : `${roomMode === 'liga' ? (ehDraft ? 'Liga Draft' : 'Liga') : 'Sala'} do ${nameOf()}`))
     // sala fechada: exige uma senha
     if (roomLocked && !roomPw.trim()) { setRoomError(tr('Digite uma senha ou desmarque "sala fechada".', 'Type a password or turn off "locked room".')); setLoading(false); return }
+    // 👑🔓 13/11 (Diego: *"a sala da Kings não precisa ser com senha… ao criar sala o usuário decide"*): igual à sala rápida
     // 🔒 na liga o cadeado é obrigatório e usa a senha do quadro dela (o toggle
     // genérico "sala fechada" nem aparece no modo liga).
     const ligaMode = ligaOn && roomMode === 'liga'
@@ -2184,7 +2231,7 @@ export function EscLobby() {
     // então este caminho nunca tinha rodado).
     // O campo vem preenchido (amanhã 21:00), mas dá pra APAGAR num toque. Aí
     // `new Date('T21:00')` vira Data Inválida e o `.toISOString()` **ESTOURA** —
-    // e como `createRoom` não tem try/catch, o estouro matava a função no meio:
+    // e como `createRoom` ainda não tinha try/catch, o estouro matava a função no meio:
     // o `setLoading(false)` nunca rodava e o botão ficava girando PRA SEMPRE, sem
     // mensagem nenhuma. Trava com aviso, do jeito certo: diz o que falta e por quê.
     let ligaAt: string | undefined
@@ -2207,9 +2254,11 @@ export function EscLobby() {
     const turnoSala = !carreira && !elenco && !mundo && turnoVale // ⚡ 06/11: liga de 20 em turno único (19 rodadas, campo neutro)
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}), ...(tam10Sala ? { tamanhoLiga: 10 } : {}) }), // 🏟️ 04/11: liga de 10 times
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}), ...(draftPiorSel ? { draftRegras: { piorPrimeiro: true } } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: 'liga', ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}), ...(draftPiorSel ? { draftRegras: { piorPrimeiro: true } } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: draftCopa, ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
       mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}), // 🇪🇺 10/11: a marca da Euro também sai (sobrava se a pessoa tinha tocado em Liga + Eurocopa antes)
       ...(turnoSala ? { turnoUnico: true } : {}) }
+    // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
+    if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -2226,7 +2275,8 @@ export function EscLobby() {
       const teto = Math.max(1, limiteCriarLigas(meuTierLegado(), direitosLiga))
       let q = supabase.from('game_rooms').select('id', { count: 'exact', head: true }).eq('host_id', user.id).eq('game_state->>mode', 'liga')
       q = ehDraftNova ? q.eq('game_state->>ligaDraft', 'true') : q.or('game_state->>ligaDraft.is.null,game_state->>ligaDraft.neq.true')
-      const { count } = await q
+      const { count,error: erroLimite } = await operacao.passo('conferir-ligas',signal=>q.abortSignal(signal))
+      if(erroLimite)throw erroLimite
       if ((count ?? 0) >= teto) {
         const tipo = ehDraftNova ? tr('Ligas Draft', 'Draft Leagues') : tr('Ligas da Turma', 'Crew Leagues')
         const sobe = teto < 4 ? tr(' Com o ⭐ Craque Completo você cria até 4.', ' With ⭐ Star Complete you can create up to 4.') : ''
@@ -2241,10 +2291,13 @@ export function EscLobby() {
     // tema de CLUBE/MASCOTE na conta cria a sala já vestida com o 1º dele (o dono troca ou tira na sala de espera). Tema de time de
     // coração não entra sozinho — é escolha do dono.
     { const auto = meusTemas.find(id => !id.startsWith('c:')); if (auto && temaValido(auto)) (gs as Record<string, unknown>).tema = auto }
-    await registraAparelho() // 📱 30/10: o banco precisa saber o aparelho ANTES do gatilho da sala decidir
-    const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS, game_state: gs })
-      .select().single()
+    await operacao.passo('identificar-aparelho',signal=>registraAparelho(signal))
+    const tentativa={v:1 as const,id:pendente?.id??novoIdCriacao(),code,at:pendente?.at??Date.now()}
+    if(!gravaCriacaoPendente(user.id,game,tentativa))throw new Error('CRIACAO_SEM_ARMAZENAMENTO')
+    const { data: rd, error: re } = await operacao.passo('criar-sala-e-dono',signal=>supabase.rpc('esc_criar_sala_segura',{
+      p_id:tentativa.id,p_code:code,p_max_players:(kingsVe && kingsSala && kingsBarSala && roomMode === 'rapido' && getSport() !== 'basquete') ? KINGS_SALA_MAX /* 👑 13/11: baralho da Kings = 10 pessoas (o baralho fecha até 11 sem jogador de mentira) */ : tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS,
+      p_game_state:gs,p_nome:nameOf()
+    }).abortSignal(signal))
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
       // escuro). O código do Postgres/PostgREST diz na hora o que houve — 42501 = RLS
@@ -2268,9 +2321,20 @@ export function EscLobby() {
       setRoomError(`${tr('Erro ao criar sala', 'Error creating room')}: ${hint}${code2 ? ` [${code2}]` : ''}`)
       setLoading(false); return
     }
-    await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: 0, manager_name: nameOf(), is_ready: true })
-    saveRoom(rd.id)
-    setRoom(rd); setIsHost(true); setPhase('waiting'); setLoading(false)
+    confirmar(rd as RoomInfo)
+    } catch(erro) {
+      if(criacaoRef.current!==operacao)return
+      const detalhe=erro as {message?:string;code?:string}
+      console.error('[createRoom]',{etapa:operacao.etapa,codigo:detalhe?.code,mensagem:detalhe?.message})
+      setRoomError(erro instanceof ErroPrazoCriacao
+        ?tr('A conexão demorou para confirmar a sala. Toque em Criar sala para tentar novamente; vamos conferir a mesma tentativa.','The connection took too long to confirm the room. Tap Create room to retry; we will check the same attempt.')
+        :detalhe?.message==='CRIACAO_SEM_ARMAZENAMENTO'
+          ?tr('Não consegui guardar a confirmação neste aparelho. Verifique o espaço ou a permissão de armazenamento do navegador e tente novamente.','Could not save confirmation on this device. Check space or the browser storage permission and try again.')
+          :tr('Não consegui concluir a criação. Verifique sua conexão e tente novamente. Sua tentativa fica guardada para confirmar sem criar outra sala.','Could not complete creation. Check your connection and retry. Your attempt is kept so we can confirm it without creating another room.'))
+    } finally {
+      operacao.encerrar()
+      if(criacaoRef.current===operacao){criacaoRef.current=null;setLoading(false)}
+    }
   }
 
   // lista pública de salas: as esperando gente (waiting) E as com jogo já
@@ -2445,6 +2509,20 @@ export function EscLobby() {
         const tirados = new Set((tir ?? []).map(x => (x as { room_id: string }).room_id))
         for (const r of list) if (tirados.has(r.id) && r.game_state) r.game_state = { ...r.game_state, liveUrl: undefined }
       } catch { /* sem resposta: a lista segue como sempre */ }
+    }
+    // 👑🔒 11/11 (Diego: *"salas da Kings League não podem aparecer pras pessoas. Essa sala é só com senha"*): quem não vê a Kings não
+    // vê a sala dela na lista. A lista magra não traz a formação, então pergunta só os ids (resposta minúscula). Sem resposta = esconde nada.
+    // 👑🩷 13/11 (Diego: *"nas salas abertas já aparece selo da sala de ser da Kings League? Coloque selo rosa"*): a MESMA pergunta (só os
+    // ids, resposta minúscula — a que já rodava pra todo mundo antes de 12/11) agora também MARCA a sala como Kings pro selo rosa.
+    if (ids.length) {
+      try {
+        const { data: kg } = await supabase.from('game_rooms').select('id').in('id', ids).eq('game_state->>formation', 'kings')
+        const kings = new Set((kg ?? []).map(x => (x as { id: string }).id))
+        if (kings.size) for (let i = list.length - 1; i >= 0; i--) if (kings.has(list[i].id)) {
+          if (!kingsVe) list.splice(i, 1)
+          else list[i] = { ...list[i], game_state: { ...(list[i].game_state as GS), formation: 'kings' } as GS }
+        }
+      } catch { /* a lista segue */ }
     }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
       // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
@@ -3013,9 +3091,12 @@ export function EscLobby() {
         const { data: salva } = await supabase.from('game_rooms').select('game_state').eq('id', rd.id).maybeSingle()
         const gsSalvo = salva?.game_state as { seatUids?: (string | null)[]; managers?: { id: number; isHuman?: boolean; name?: string }[] } | undefined
         const assento = gsSalvo?.seatUids?.indexOf(user.id) ?? -1
-        const meuTime = assento >= 0 ? gsSalvo?.managers?.find(m => m.id === assento && m.isHuman) : undefined
+        // 🪑 10/11 (Diego: *"o time dele só deve deixar de ser dele se o host remover"*): vale também quando o time está com a
+        // máquina porque eu saí/caí — o crachá só some quando o DONO remove.
+        const meuTime = assento >= 0 ? gsSalvo?.managers?.find(m => m.id === assento) : undefined
         if (meuTime) {
           const { error: volta } = await supabase.from('room_players').insert({ room_id: rd.id, user_id: user.id, player_index: assento, manager_name: meuTime.name ?? nameOf(), is_ready: true })
+          anotaQueda(rd.id, rd.code, volta ? 'volta_vaga_recusada' : 'volta_ok', { assento, humano: !!meuTime.isHuman, erro: volta?.message ?? null })
           if (!volta) {
             const ok = await triggerStart(rd, false)
             if (ok) { setLoading(false); return }
@@ -3031,16 +3112,16 @@ export function EscLobby() {
       if (!mySlot && rd.game_state?.mode === 'liga') {
         // 🚫 06/11: o dono me trocou por outra pessoa — fui removido, não vira pedido
         const { data: removido } = await supabase.rpc('esc_liga_fui_removido', { p_room: rd.id })
-        if (removido === true) { setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); setLoading(false); return }
+        if (removido === true) { anotaQueda(rd.id, rd.code, 'entrada_removido_pelo_dono'); setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); setLoading(false); return }
         const res = await reabreLiga(rd.id)
         // 🙋 06/11 (Diego: *"remove esse pedido p entrar aqui… vai ser lá onde ele põe o código da sala, aí chega o convite pro
         // host"*): liga RODANDO + gente nova que não é do time → o código vira o PEDIDO pro dono (o botão da lista saiu).
-        if ((res === 'rolando' || res === 'meio') && (rd.liga_dono ?? rd.host_id) !== user.id) { setLoading(false); await pedirLiga(rd); return }
+        if ((res === 'rolando' || res === 'meio') && (rd.liga_dono ?? rd.host_id) !== user.id) { anotaQueda(rd.id, rd.code, 'entrada_virou_pedido'); setLoading(false); await pedirLiga(rd); return }
         if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
         rd = { ...rd, status: 'waiting' } // segue o baile: cai no fluxo normal de entrada
       }
       if (rd.status === 'started') {
-        if (!mySlot) { setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
+        if (!mySlot) { anotaQueda(rd.id, rd.code, 'entrada_sem_vaga', { modo: rd.game_state?.mode ?? null }); setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
         // 🔧 17/10 (Diego: "muitas vezes não consegue continuar a liga"): antes o resultado
         // era ignorado — se a partida guardada não abria, o botão ficava MUDO. Agora, numa
         // liga, tenta reabrir a sala de espera (mesma função do banco, que nunca mexe em
@@ -3104,7 +3185,7 @@ export function EscLobby() {
       setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.'))
       setLoading(false); return
     }
-    if (!insOk && /LIGA_SO_ACEITO/.test(lastErr)) { setLoading(false); await pedirLiga(rd); return } // 🙋 06/11: liga já começada = só com o pedido ACEITO pelo dono — vira o pedido
+    if (!insOk && /LIGA_SO_ACEITO/.test(lastErr)) { anotaQueda(rd.id, rd.code, 'entrada_virou_pedido'); setLoading(false); await pedirLiga(rd); return } // 🙋 06/11: liga já começada = só com o pedido ACEITO pelo dono — vira o pedido
     if (!insOk) { setRoomError(tr('Não consegui entrar: ', 'Couldn\'t join: ') + lastErr); setLoading(false); return }
     saveRoom(rd.id)
     setPwModal(null); setRoomError('')
@@ -3961,13 +4042,15 @@ export function EscLobby() {
         // seletor "Depois da liga" (🌍 Liga + Mundo), e é só lá. NÃO REPOR AQUI.
         // 🗂️ 26/10 (mockup v5 aprovado: *"agora pode publicar pra todos"*): ⭐ = precisa de plano pra CRIAR (quem tem plano usa
         // normal; jogar é sempre grátis) · `meta` = ainda não lançado: abre quando o Instagram bater N mil seguidores (faixa roxa)
-        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; ic: string; nome: string; frase: string; on: boolean; selo?: string; seloVerde?: boolean; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
+        const TODOS_MODOS: { v: typeof roomMode; draft?: boolean; minha?: boolean; kings?: boolean; /** faixa em cima do cartão (👑 Kings: quem pode ver) */ topo?: string; ic: string; nome: string; frase: string; on: boolean; selo?: string; seloVerde?: boolean; emTeste?: boolean; estrela?: boolean; meta?: number }[] = [
           { v: 'rapido', ic: '⚡', nome: tr('Rápido', 'Quick'), frase: tr('Uma temporada. Começa agora.', 'One season. Starts now.'), on: true },
           { v: 'liga', ic: '🏆', nome: tr('Liga da Turma', 'Crew League'), frase: tr('O mesmo leilão das salas rápidas, mas numa liga só com os seus amigos, que não acaba.', 'The same auction as the quick rooms, but in a league just with your friends that never ends.'), on: ligaOn, estrela: true },
           // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
           // pra todos mas não libere… meta de 2k seguidores"*). A antiga (1ª temporada fraca, 60 s) não se cria mais — salas antigas seguem.
           // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
           { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, ...(minhaOn ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : { meta: 2 }) }, // 🟢 05/11: liberada pra todos (MINHA_LIGA_DRAFT_GERAL) — a faixa da meta some e entra o selo NOVO
+          // 👑 11/11 (Diego: *"Kings League tem que estar em cima, junto com Liga Draft e outros"*): um MODO da sala, só pras contas da Kings
+          ...(kingsVe && !nbaSala ? [{ v: 'rapido' as const, kings: true, ic: '👑', nome: 'Kings League', frase: tr('7 contra 7, 10 times e as regras da Kings League Brasil.', '7 v 7, 10 teams and the Kings League Brasil rules.'), on: true, selo: tr('NOVO', 'NEW'), seloVerde: true }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -4127,7 +4210,9 @@ export function EscLobby() {
         const rDeck = rapidoClubes && !ehMinha ? tr('🌎 Todos', '🌎 All') : rapidoDeck === 'eu' ? tr('🌍 Europa', '🌍 Europe') : rapidoDeck === 'world' ? tr('🌎 Mundo', '🌎 World') : rapidoDeck === 'both' ? tr('🌎 Todos', '🌎 All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
         const rLeilao = rapidoEnvUnico && envUnicoOk && !roomDuplas ? tr('⚡ Envelope único', '⚡ Single envelope') : rapidoPregao && pregaoAbertoOk && rapidoCopaMode !== 'champions' ? tr('🔨 Pregão aberto', '🔨 Open auction') : rapidoHolandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope cego', '✉️ Sealed bid')
         const rCopa: Record<string, string> = { liga: tr('Só a liga', 'League only'), liga_copa: tr('Liga + Copa', 'League + Cup'), liga_liberta: tr('Liga + Liberta', 'League + Liberta'), liga_champions: tr('Liga + Champions', 'League + Champions'), champions: tr('Só Champions', 'Champions only'), relampago: tr('Mata-mata Relâmpago', 'Lightning Knockout'), liga_mundo: tr('Liga + Mundo', 'League + World Cup'), liga_riosp: tr('Liga + Rio×SP', 'League + Rio×SP'), liga_sulminas: tr('Liga + Sul-Minas', 'League + Sul-Minas'), liga_nordeste: tr('Liga + Nordeste', 'League + Nordeste') }
-        const resumoTime = (ehDraft && roomMode === 'liga') ? [tr('👤 Solo', '👤 Solo'), ehMinha && rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), nbaSala ? '🏀 NBA' : ehMinha && !rapidoClubes ? rDeck : tr('🌎 Todos', '🌎 All'), ...(nbaSala ? [] : [formation])].join(' · ') : [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), nbaSala ? '🏀 NBA' : rDeck, ...(nbaSala ? [] : [formation])].join(' · ') /* 🏀 basquete: baralho é sempre a NBA, e quinteto não tem formação */
+        // 👑 11/11: sala da Kings — os resumos dizem Kings (10 times, 2-2-2, a competição dela), não o padrão de 20 × 38 rodadas
+        const kingsCriar = kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala
+        const resumoTime = kingsCriar ? [tr('👤 Solo', '👤 Solo'), kingsBarSala ? tr('👑 Jogadores da Kings', '👑 Kings players') : rDeck, '2-2-2'].join(' · ') : (ehDraft && roomMode === 'liga') ? [tr('👤 Solo', '👤 Solo'), ehMinha && rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), nbaSala ? '🏀 NBA' : ehMinha && !rapidoClubes ? rDeck : tr('🌎 Todos', '🌎 All'), ...(nbaSala ? [] : [formation])].join(' · ') : [roomDuplas ? tr('🤝 Duplas', '🤝 Duos') : tr('👤 Solo', '👤 Solo'), rapidoClubes ? tipoPacote({ clubes: true, pacSelecao: pacSelecao && !nbaSala, pacDecada: pacDecada && !nbaSala }) : tr('🃏 Jogador', '🃏 Player'), nbaSala ? '🏀 NBA' : rDeck, ...(nbaSala ? [] : [formation])].join(' · ') /* 🏀 basquete: baralho é sempre a NBA, e quinteto não tem formação */
         const resumoPartida = [rLeilao, (ehDraft && roomMode === 'liga') ? tr('📊 Liga + 📋 draft', '📊 League + 📋 draft') : rCopa[rapidoCopaMode] ?? '', roomManual && hasManual ? tr('🎮 manual', '🎮 manual') : tr('⚡ auto', '⚡ auto')].filter(Boolean).join(' · ')
         const resumoSala = [roomLocked ? tr('🔒 com senha', '🔒 password') : tr('🔓 aberta', '🔓 open'), roomChat ? tr('💬 chat ligado', '💬 chat on') : tr('🔕 sem chat', '🔕 no chat'), roomStream ? tr('🎥 stream', '🎥 stream') : ''].filter(Boolean).join(' · ')
         const nomeModo = MODOS.find(m => chaveModo(m) === chaveSel)?.nome ?? ''
@@ -4146,11 +4231,11 @@ export function EscLobby() {
         ]
         const createRows: [string, string][] = (roomMode === 'rapido' || roomMode === 'liga') ? [
           [tr('Modo', 'Mode'), nomeModo],
-          [tr('Leilão', 'Auction'), `${rapidoClubes ? tipoPacote({ clubes: true, pacSelecao, pacDecada }) : tr('Jogador', 'Player')} · ${rLeilao}`],
+          [tr('Leilão', 'Auction'), `${kingsCriar ? '👑 Kings League' : rapidoClubes ? tipoPacote({ clubes: true, pacSelecao, pacDecada }) : tr('Jogador', 'Player')} · ${rLeilao}`],
           [tr('Time', 'Team'), nbaSala ? `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · 🏀 NBA` : `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · ${rDeck}${!rapidoClubes && rapidoDeck === 'br' ? ` · ${rapidoVarzea ? tr('Várzea', 'Grassroots') : tr('Todos', 'All')}` : ''}`],
-          ...(nbaSala ? [] : [[tr('Formação', 'Formation'), formation] as [string, string]]), // 🏀 quinteto: sem formação
-          [tr('Campeonato', 'Championship'), nbaSala ? tr('Temporada da NBA', 'NBA season') : rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
-          [tr('Depois da liga', 'After the league'), ehDraft ? tr('Liga + draft', 'League + draft') : nbaSala ? tr('🏀 Playoffs', '🏀 Playoffs') : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
+          ...(nbaSala ? [] : [[tr('Formação', 'Formation'), kingsCriar ? '2-2-2' : formation] as [string, string]]), // 🏀 quinteto: sem formação
+          [tr('Campeonato', 'Championship'), kingsCriar ? tr('10 times · 9 rodadas', '10 teams · 9 rounds') : nbaSala ? tr('Temporada da NBA', 'NBA season') : rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
+          [tr('Depois da liga', 'After the league'), kingsCriar ? tr('Mata-mata da Kings', 'Kings knockouts') : ehDraft ? tr('Liga + draft', 'League + draft') : nbaSala ? tr('🏀 Playoffs', '🏀 Playoffs') : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
           [tr('Partida', 'Match'), `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`],
           [tr('Entrada', 'Entry'), roomMode === 'liga' || roomLocked ? tr('Com senha', 'Password') : tr('Aberta', 'Open')],
           [tr('Conversa', 'Chat'), roomChat ? tr('Chat ligado', 'Chat on') : tr('Sem chat', 'No chat')],
@@ -4190,9 +4275,10 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha) }}
+                  <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
-                    style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta ? 26 : undefined, minHeight: 64 }}>
+                    style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
+                    {m.topo && !meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1" style={{ background: INK, color: GOLD, borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', ...OSWALD }}>{m.topo}</span>}
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
                     <span className="min-w-0">
                       <span className="flex items-center justify-center gap-1.5 flex-wrap">
@@ -4208,7 +4294,7 @@ export function EscLobby() {
               </div>
               {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
               <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-2.5" style={{ background: CREAM }}>
-                <p className="text-white/65 text-[11px] font-bold leading-snug">{minhaSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre (todas as categorias). Depois de cada temporada vem o DRAFT: na ordem da tabela (o campeão primeiro), cada técnico aperta ✋ PRONTO e tem 45 s pra pegar 1 jogador livre de todo o jogo. Quem não der pronto ou deixar o tempo acabar PERDE A VEZ. Cada jogador é único na liga.', '📋 Season 1 is the usual auction (every category). After each season comes the DRAFT: in table order (champion first), each manager taps ✋ READY and has 45 s to take 1 free player from the whole game. Whoever is not ready or runs out of time LOSES THE TURN. Each player is unique in the league.') : ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : EXPLICA[roomMode]}</p>
+                <p className="text-white/65 text-[11px] font-bold leading-snug">{minhaSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre (todas as categorias). Depois de cada temporada vem o DRAFT: na ordem da tabela (o campeão primeiro), cada técnico aperta ✋ PRONTO e tem 45 s pra pegar 1 jogador livre de todo o jogo. Quem não der pronto ou deixar o tempo acabar PERDE A VEZ. Cada jogador é único na liga.', '📋 Season 1 is the usual auction (every category). After each season comes the DRAFT: in table order (champion first), each manager taps ✋ READY and has 45 s to take 1 free player from the whole game. Whoever is not ready or runs out of time LOSES THE TURN. Each player is unique in the league.') : ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala ? tr('👑 A Kings League: o leilão de sempre com 7 por time (goleiro + 6), 10 times, e depois as regras da Kings — 1×1 até 7×7, dado, cartas, pênalti do presidente, match ball e shootout. 9 rodadas e o mata-mata.', '👑 The Kings League: the usual auction with 7 per team (keeper + 6), 10 teams, then the Kings rules — 1v1 up to 7v7, dice, cards, president penalty, match ball and shootout. 9 rounds and the knockouts.') : EXPLICA[roomMode]}</p>
                 {modoEscolhido?.emTeste && !(modoEscolhido.meta && !nbaSala && !modoLiberado) && (
                   <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
                     {getLang() === 'en' ? <>🔜 Still under construction — <b>creating</b> this mode unlocks soon. Keep an eye on the news!</> : <>🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!</>}
@@ -4255,7 +4341,7 @@ export function EscLobby() {
           )}
         </>)
         const botaoCriar = (!criar2 || modoLiberado) && (
-          <Big onClick={createRoom} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
+          <Big onClick={createRoom} disabled={loading} color={criar2 ? GREEN : isCareer ? PURPLE : GOLD}>
             <span style={{ color: criar2 || isCareer ? '#fff' : '#000' }}>{loading ? tr('Criando...', 'Creating...') : createV01 ? tr('Criar sala →', 'Create room →') : criar2 ? tr('🔨 Criar e chamar a galera', '🔨 Create and call the crew') : isCareer ? tr('🌐 Criar Carreira', '🌐 Create Career') : tr('🏠 Criar Sala', '🏠 Create Room')}</span>
           </Big>
         )
@@ -4282,7 +4368,16 @@ export function EscLobby() {
                   interruptor: desligado, a opção aparece com NOVO mas travada.
                   Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido.
                   🏀 19/10 (Diego: "quero da NBA"): no basquete o pacote é a POSIÇÃO de uma franquia ("Armadores dos Lakers"). */}
-              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga' && !ehMinha) && ( /* 🧱 06/11: a Liga Draft também escolhe */
+              {/* 👑 11/11: na Kings, no lugar de Jogador/Clubes/Seleções, a escolha dos jogadores (da Kings ou os de sempre) */}
+              {kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala && (
+                <SegField label={tr('Jogadores', 'Players')}>
+                  <Seg options={[[true, tr('👑 Jogadores da Kings League', '👑 Kings League players')], [false, tr('🃏 Jogadores padrão', '🃏 Standard players')]] as [boolean, string][]} value={kingsBarSala} onSet={v => setKingsBarSala(v)} />
+                  <p className="text-[11px] font-semibold mt-1.5 leading-snug" style={{ color: '#6b6250' }}>
+                    {tr('👑 O leilão de sempre com 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois, a competição da Kings: 9 rodadas e o mata-mata.', '👑 The usual auction with 7 slots per team (keeper + 6), 10 teams and 100 coins. Then the Kings competition: 9 rounds and the knockouts.')}{kingsBarSala ? tr(` Com os jogadores da Kings, a sala vai até ${KINGS_SALA_MAX} pessoas.`, ` With the Kings players, the room holds up to ${KINGS_SALA_MAX} people.`) : ''}
+                  </p>
+                </SegField>
+              )}
+              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga' && !ehMinha) && !(kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala) && ( /* 🧱 06/11: a Liga Draft também escolhe */
                 <SegField label={tr('O que vai a leilão', 'What goes to auction')}>
                   {/* 🏳️ 31/10: o 3º tipo, Seleções, é o MESMO motor do Clubes (pacote = setor de uma seleção). No basquete não existe. */}
                   <Seg options={(nbaSala
@@ -4317,6 +4412,7 @@ export function EscLobby() {
                       ? tr('🧱🕰️ Cada lote é um SETOR de um clube numa década (ex.: Meio do Milan · anos 90). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Usa os 3 baralhos juntos. Vale com envelope cego, Tocaia ou pregão aberto.', '🧱🕰️ Each lot is a SECTOR of a club in one decade (e.g. Midfield of Milan · the \'90s). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Uses all 3 decks. Works with sealed bid, Ambush or open auction.')
                       : rapidoClubes
                       ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
+                      : kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala ? '' // 👑 a Kings já explica em cima
                       : clubesOn
                         ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
                         : tr('🃏 O leilão de sempre: um jogador por lote. 🧱 Clubes chega em breve no online — já dá pra jogar na Partida Rápida contra a CPU.', '🃏 The usual auction: one player per lot. 🧱 Clubs is coming soon online — you can already play it in Quick Match vs CPU.')}
@@ -4408,7 +4504,7 @@ export function EscLobby() {
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto. 🚫 Nem na sala "🌐 Copa do Mundo" direta (Diego 15/10):
                 lá não tem leilão, e a escolha de seleção não sabe de dupla (cada um escolheria a sua). */}
-            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && (
+            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && !(kingsVe && kingsSala && roomMode === 'rapido') && (
               <div>
                 <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
                   <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
@@ -4456,6 +4552,11 @@ export function EscLobby() {
                 </>)}
                 <p className="text-white/70 text-[10.5px] font-bold leading-snug">☝️ {tr('Cada jogador é único na liga', 'Each player is unique in the league')}</p>
               </div>
+            ) : (kingsVe && kingsSala && kingsBarSala && roomMode === 'rapido' && !nbaSala) ? (
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('👑 Baralho: jogadores da Kings League Brasil', '👑 Deck: Kings League Brasil players')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('91 jogadores (17 goleiros, 23 defensores, 25 meias e 26 atacantes).', '91 players (17 keepers, 23 defenders, 25 midfielders and 26 forwards).')}</p>
+              </div>
             ) : ((roomMode === 'rapido' || roomMode === 'liga') && clubesOn && rapidoClubes && !nbaSala) ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho: Todos (BR+EU+Mundo)', '🌎 Deck: All (BR+EU+World)')}</p>
@@ -4475,13 +4576,13 @@ export function EscLobby() {
                   <div className="mt-2.5">
                     <p className="text-white/55 text-[10.5px] font-black uppercase tracking-wide mb-1" style={OSWALD}>{tr('Categoria', 'Category')}</p>
                     <Seg options={[[false, tr('Todos', 'All')], [true, '🥅 Várzea']] as [boolean, string][]} value={rapidoVarzea} onSet={v => setRapidoVarzea(v)} />
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? tr('🥅 Sem craques: só bom jogador e foi profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pick-up football.') : tr('🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.', '🇧🇷 The whole BR deck, from the star to the donkey.')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{rapidoVarzea ? tr('🥅 Sem craques: só bom jogador e profissional — todo mundo no mesmo nível, peladão puro.', '🥅 No stars: only good players and ex-pros — everyone at the same level, pure pick-up football.') : tr('🇧🇷 Baralho BR inteiro, do craque ao perna-de-pau.', '🇧🇷 The whole BR deck, from the star to the donkey.')}</p>
                   </div>
                 )}
               </SegField>
             )}
             {/* 🏀 formação 4-3-3/4-4-2 é do futebol; o basquete é quinteto (5), sem formação. */}
-            {!isCareer && !nbaSala && (
+            {!isCareer && !nbaSala && !(kingsVe && kingsSala && roomMode === 'rapido') && (
               <SegField label={tr('Formação (vale pra todos)', 'Formation (for everyone)')}>
                 <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />
               </SegField>
@@ -4527,7 +4628,7 @@ export function EscLobby() {
           )}
 
           {/* 🏆 O CAMPEONATO (26/10): o que vem depois da liga — só no rápido/ligas/bafo (a carreira tem regras próprias) */}
-          {!isCareer && (
+          {!isCareer && !(kingsVe && kingsSala && roomMode === 'rapido') && (
             <Section num={proxSec()} title={tr('O campeonato', 'The championship')} icon="🏆" sub={tam10Vale ? tr('O que vem depois das 18 rodadas', 'What comes after the 18 rounds') : turnoVale ? tr('O que vem depois das 19 rodadas', 'What comes after the 19 rounds') : tr('O que vem depois das 38 rodadas', 'What comes after the 38 rounds')}>
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
@@ -4579,10 +4680,13 @@ export function EscLobby() {
                 </>
               ) : (ehDraft && roomMode === 'liga') ? (
                 <SegField label={tr('Depois da liga', 'After the league')}>
-                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 A liga · depois, 📋 a noite do draft', '📊 The league · then 📋 draft night')}</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Sem Copa: acabou a tabela, vem o draft e a próxima temporada.', 'No Cup: the table ends, then the draft and the next season.')}</p>
-                  </div>
+                  {/* 📋🏆 14/11 (Diego: *"dê opção de ter copa após a liga… só com a Copa dos 8"*): vale pra TODA temporada; muda só no 🔁 Trocar o modo */}
+                  <Seg options={[['liga', tr('📊 Só a liga', '📊 League only')], ['liga_copa', tr('🏆 Liga + Copa dos 8', '🏆 League + Cup of 8')]] as ['liga' | 'liga_copa', string][]} value={draftCopa} onSet={setDraftCopa} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{draftCopa === 'liga_copa'
+                    ? tr('Acabou a tabela, os 8 primeiros jogam a Copa dos 8 · depois vem o draft. Vale toda temporada.', 'When the table ends, the top 8 play the Cup of 8 · then the draft. Every season.')
+                    : tr('Acabou a tabela, vem o draft e a próxima temporada. Vale toda temporada.', 'When the table ends, the draft and the next season. Every season.')}</p>
+                  {draftCopa === 'liga_copa' && <p className="text-[11px] font-black mt-1.5 leading-snug rounded-lg px-2 py-1.5" style={{ color: '#fff', background: 'rgba(255,196,0,.14)', border: '2px solid ' + GOLD }}>{tr('📋 A ordem do draft é sempre pela TABELA DA LIGA. A Copa não muda o draft: ela só vale moedas e troféu.', '📋 Draft order always follows the LEAGUE TABLE. The Cup doesn\'t change the draft: it only gives coins and a trophy.')}</p>}
+                  {draftCopa === 'liga_copa' && ehMinha && <p className="text-[10.5px] font-black mt-1 leading-snug" style={{ color: GOLD }}>{tr('💰 Copa: campeão leva as moedas do campeão da liga + troféu · vice, as do vice · semi 12 · quartas 6', '💰 Cup: champion gets the league champion\'s coins + trophy · runner-up, the runner-up\'s · semi 12 · quarters 6')}</p>}
                 </SegField>
               ) : nbaSala ? (
                 // 🏀 basquete: nada de competição de futebol. Street League = só a tabela;
@@ -4923,7 +5027,8 @@ export function EscLobby() {
             const full = r.count >= r.max_players
             const live = r.status === 'started'
             // baralho escolhido na criação: BR · EU · B/E (os dois). Sala antiga sem deck = BR.
-            const deckLbl = (r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'world' ? tr('MUNDO', 'WORLD') : r.game_state?.deck === 'both' ? 'B/E/M' : 'BR') + ((r.game_state as GS)?.varzea ? ' 🥅' : '')
+            // 👑 11/11: sala da Kings se anuncia na lista (quem entra sabe que é outra regra)
+            const deckLbl = (r.game_state as { formation?: string } | undefined)?.formation === 'kings' ? ((r.game_state as { kingsBaralho?: boolean }).kingsBaralho ? '👑 KINGS · jogadores da Kings' : '👑 KINGS') : (r.game_state?.deck === 'eu' ? 'EU' : r.game_state?.deck === 'world' ? tr('MUNDO', 'WORLD') : r.game_state?.deck === 'both' ? 'B/E/M' : 'BR') + ((r.game_state as GS)?.varzea ? ' 🥅' : '')
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto (igual nos dois idiomas)
@@ -4970,7 +5075,9 @@ export function EscLobby() {
                   <p className="ll-hub-room-name font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
                     <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
-                    <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>
+                    {(r.game_state as { formation?: string } | undefined)?.formation === 'kings'
+                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
+                      : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Sala de duplas: cada time é comandado por 2 pessoas', 'Duos room: each team is run by 2 people')}>{tr('🤝 DUPLAS', '🤝 DUOS')}</span>
                     )}
@@ -5664,7 +5771,13 @@ export function EscLobby() {
                   {modoEdit.clubes && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Leilão de Clubes usa o baralho Todos (Brasil ou Europa sozinhos não têm clube suficiente).', '🔒 Club auction uses the All deck (Brazil or Europe alone don\'t have enough clubs).')}</p>}
                   {modoEdit.copa === 'champions' && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
                 </div>}
-                {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. Liga Draft não tem copa. */}
+                {/* 📋🏆 14/11: a Liga Draft troca só entre "só a liga" e "Liga + Copa dos 8" (ordem do Diego: só a Copa dos 8) */}
+                {!nbaSala && !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft && <div>
+                  <p className="text-black/60 text-[10.5px] font-black uppercase mb-0.5" style={OSWALD}>{tr('Depois da liga', 'After the league')}</p>
+                  <Seg small options={[['liga', tr('📊 Só a liga', '📊 League only')], ['liga_copa', tr('🏆 Liga + Copa dos 8', '🏆 League + Cup of 8')]] as [CopaLiga, string][]} value={modoEdit.copa === 'liga_copa' ? 'liga_copa' : 'liga'} onSet={v => setModoEdit(m => m && { ...m, copa: v })} />
+                  {modoEdit.copa === 'liga_copa' && <p className="text-black/70 text-[10.5px] font-black mt-1 leading-snug">{tr('📋 A ordem do draft é sempre pela tabela da LIGA. A Copa só vale moedas e troféu.', '📋 Draft order always follows the LEAGUE table. The Cup only gives coins and a trophy.')}</p>}
+                </div>}
+                {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. */}
                 {!nbaSala && !(gs as GS & { ligaDraft?: boolean })?.ligaDraft && (() => {
                   const duplas = !!(gs as GS & { duplasMode?: boolean })?.duplasMode
                   const valores: CopaLiga[] = ['liga_copa', ...(libertaOn ? ['liga_liberta' as const] : []), 'champions', 'liga_mundo', ...(euroOn || copaDaLiga(gs) === 'liga_euro' ? ['liga_euro' as const] : []), 'liga', ...(regionalOn ? ['liga_riosp' as const, 'liga_sulminas' as const, 'liga_nordeste' as const] : [])]

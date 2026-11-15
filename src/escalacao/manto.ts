@@ -128,6 +128,13 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👑⚪🔴 Monarca Tricolor — BRANCO e VERMELHO, MEDIDOS na camisa que o dono mandou (05/11): branco do corpo (46%, #F2F1F3) e o
   // vermelho das listras, gola e punhos (#D40101). O PRETO (16%) é a 3ª cor, em MANTO_TRI (tricolor à moda São Paulo).
   'danieltorresreus@gmail.com': ['#F2F1F3', '#D40101'],
+  // 👑🌭 Calabresos FC — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou (11/11): preto do corpo (36%, mediana #140402, levantado
+  // pra #16100E pelo motivo de sempre: preto de arte escura, na listra fininha, lê como buraco) e o vermelho das listras (18%, #C71D07).
+  // O dourado da gola fica de fora (manto é de 2 cores).
+  'silviovicente87@gmail.com': ['#16100E', '#C71D07'],
+  // 👑😴 Goti FC — BRANCO e VERMELHO, MEDIDOS na camisa que o dono mandou (11/11): branco do corpo (33%, #FCF9F9) e o vermelho da
+  // listra do peito, gola e punhos (#D70506). O PRETO (25%, #0C0909) é a 3ª cor, em MANTO_TRI (tricolor à moda São Paulo, o clube dele).
+  'klebim877@gmail.com': ['#FCF9F9', '#D70506'],
   'enzocromero9@gmail.com': ['#100F0F', '#D99C32'],
   // 🐆💜 Milan Recifense — ROXO e PRETO, MEDIDOS na camisa que o dono mandou (05/11): roxo das listras (mediana, #C402F5) e o
   // preto do corpo (#0C060A).
@@ -141,6 +148,12 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐶💚 dSouza FC — PRETO e VERDE-NEON, MEDIDOS na camisa que o dono mandou (28/10): preto do corpo (64%, #0A0A09) e o
   // verde-neon das faixas (média dos pixels neon, #73E541).
   'alexandre12cdm@gmail.com': ['#0A0A09', '#73E541'],
+  // 🐐👑 Cabritiiin F.C — AZUL e BRANCO, MEDIDOS na camisa que o dono mandou (13/11): azul das listras (mediana, #0159C7) e o
+  // branco do corpo (#F6F6F6).
+  'lucassaboia14@gmail.com': ['#0159C7', '#F6F6F6'],
+  // 🦁🇧🇷 Leões da Tuf EC — BRANCO e VERMELHO, MEDIDOS na camisa que o dono mandou (14/11): branco do corpo (38%, #FEFEFE) e o
+  // vermelho das faixas (#E90201). O AZUL das faixas (#0132AF) é a 3ª cor (MANTO_TRI).
+  'sergioricardocf16@gmail.com': ['#FEFEFE', '#E90201'],
   // ⭐🦁 Vila Esporte Clube — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (27/10): preto das listras/mangas (58%, #0C0C0C)
   // e o branco das listras (32%, #DADADA).
   'oluisantonio.contato@gmail.com': ['#0C0C0C', '#DADADA'],
@@ -349,6 +362,7 @@ export function meuMantoAngle(): number {
 // Só o PRÓPRIO dono vê a 3ª cor no seu manto (igual o ângulo) — não afeta os
 // outros times. Quem não está aqui segue com manto de 2 cores normal.
 const MANTO_TRI: Record<string, string> = {
+  leoestuf_leao: '#0132AF', // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16) — 3ª cor AZUL: as faixas azuis da camisa (medida na arte dele, 14/11)
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   reidabola_leao: '#ECE1D9', // 👑🦁 Rei da Bola FC (caiobegnamii) — 3ª cor BRANCO-CREME: a base da camisa, medida na arte dele (16/09)
   toka: '#013088', // 🧢 Tôka10 — 3ª cor AZUL: a touca (que é o escudo) e o calção, medidos na arte dele (16/09)
@@ -374,6 +388,7 @@ const MANTO_TRI: Record<string, string> = {
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
   gremio_gaucho: '#EDECEB', // 🔵⚫⚪ Grêmio FBPA (danieldias11) — 3ª cor BRANCA: o filete entre as listras azul e preta (medida na camisa dele, 21/09)
+  goti_rei: '#0C0909', // 👑😴 Goti FC (klebim877) — 3ª cor PRETA: a listra do peito (medida na camisa dele, 11/11)
   doubleduo_streamer: '#0170F2', // 👑💜 Double Duo FC (doublecontatocomercial) — 3ª cor AZUL: a gola e as faixas da camisa (medida na arte dele, 09/11)
   monarca_rei: '#060604', // 👑 Monarca Tricolor (danieltorresreus) — 3ª cor PRETA: a listra larga do peito e das mangas (medida na camisa dele, 05/11)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08

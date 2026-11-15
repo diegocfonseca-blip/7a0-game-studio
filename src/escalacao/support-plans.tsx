@@ -6,6 +6,7 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen, useDireitos, logApoio } from './apoio'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoFixo, MENSAIS } from './planos-regras'
+import { usePrecoMeu } from './precos-servidor'
 import { assinarMensal } from './vendria-checkout'
 import { DuploLinha } from './presente'
 import './support-plans.css'
@@ -176,7 +177,7 @@ export function SupportCraqueBenefits() {
   return <ul className="ll-support-benefits">
     <li><b>{tr('Modo Manual na carreira', 'Manual Mode in Career')}</b>{tr('Pause a partida, altere a velocidade, pule ou avance a rodada quando quiser.', 'Pause the match, adjust the speed, skip or advance the round whenever you want.')}</li>
     <li><b>{tr('Overall visível depois da contratação', 'Ratings visible after signing')}</b>{tr('Veja a nota dos jogadores e treinadores do seu elenco até a categoria Craque. Lendas continuam ocultas.', 'See the rating of players and coaches in your squad up to Star. Legends remain hidden.')}</li>
-    <li><b>{tr('Olheiro até a categoria Craque', 'Scout up to Star')}</b>{tr('Sonde Foi Profissional, Bom Jogador, Promessa e Craque. O jogador vai ao pregão e você ainda disputa o lance.', 'Scout Former Pro, Good Player, Prospect and Star. The player enters the auction and you still compete for the bid.')}</li>
+    <li><b>{tr('Olheiro até a categoria Craque', 'Scout up to Star')}</b>{tr('Sonde Profissional, Bom Jogador, Promessa e Craque. O jogador vai ao pregão e você ainda disputa o lance.', 'Scout Pro, Good Player, Prospect and Star. The player enters the auction and you still compete for the bid.')}</li>
     <li><b>{tr('Visual prata com brilho', 'Shining silver look')}</b>{tr('Seu nome ganha destaque prateado no estádio, elenco e tabelas.', 'Your name gets a silver highlight in the stadium, squad and tables.')}</li>
     <li><b>{tr('Grupo VIP', 'VIP group')}</b>{tr('Bastidores, novidades e contato com o Diego no WhatsApp.', 'Behind the scenes, news and contact with Diego on WhatsApp.')}</li>
     <li><b>{tr('2 carreiras salvas', '2 saved careers')}</b>{tr('Mantenha duas histórias diferentes ao mesmo tempo.', 'Keep two different stories at the same time.')}</li>
@@ -207,7 +208,8 @@ export function SupportPlans(p: Props) {
   // (preço/subida pelo plano PAGO pra sempre: quem só assina o mensal paga o Lenda cheio — 26/10)
   const atual = planoFixo(direitos, p.tier as 'prata' | 'ouro' | undefined)
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
-  const subLenda = precoSubida('lenda', atual)
+  const precoMeu = usePrecoMeu() // 💳 13/11: o preço que o Pix cobra desta conta
+  const subLenda = precoMeu('lenda', atual)
   const meuTier: 'bege' | 'prata' | 'ouro' = p.tier === 'ouro' ? 'ouro' : p.tier === 'prata' ? 'prata' : 'bege'
   return <div className="ll-support" ref={root}>
     {/* 💸 14/10 (Diego): "pra onde vai o dinheiro" mora LÁ EM CIMA de tudo; depois "na mesma sala…" e os planos */}

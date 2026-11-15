@@ -564,6 +564,10 @@ export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
   const [toast, setToast] = useState<{ uid: string; nome: string; txt?: [string, string] } | null>(null)
   const jaVi = useRef<Set<string> | null>(null) // 🔔 21/10: pedido de amizade / convite de clã / pedido pro meu clã que eu já vi
   const [fechados, setFechados] = useState<Set<number>>(new Set())
+  const ocupadoRef = useRef(ocupado)
+  ocupadoRef.current = ocupado
+  // saiu da partida (voltou pra home/tela livre): pergunta na hora, sem esperar os 3 min
+  useEffect(() => { if (on && !ocupado) lerAvisosAgora() }, [on, ocupado])
   useEffect(() => {
     if (!on) return
     let vivo = true
@@ -593,7 +597,9 @@ export function AvisosAmigos({ ocupado }: { ocupado: boolean }) {
     }
     lerAvisosAgora = () => { void ler() }
     void ler()
-    const t = setInterval(() => { void ler() }, 60_000)
+    // 🔔💸 10/11 (Diego: "sim"): o sininho perguntava a cada 1 min o dia todo (1,3 milhão de vezes; entrou na travada das 16h14).
+    // Agora a cada 3 min, e NÃO pergunta durante a partida (`ocupado`): ao voltar pra home ele pergunta na hora (efeito abaixo).
+    const t = setInterval(() => { if (!ocupadoRef.current) void ler() }, 180_000)
     const vis = () => { if (document.visibilityState === 'visible') void ler() }
     document.addEventListener('visibilitychange', vis)
     return () => { vivo = false; clearInterval(t); document.removeEventListener('visibilitychange', vis); lerAvisosAgora = () => {} }

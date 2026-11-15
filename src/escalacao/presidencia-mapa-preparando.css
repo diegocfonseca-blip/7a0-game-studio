@@ -1,0 +1,9 @@
+.pc3-start-screen{box-sizing:border-box;position:relative;height:clamp(480px,84svh,1080px);border:3px solid #0c0c0c;border-radius:16px;background:#f4ecd6;display:grid;place-content:center;padding:24px;color:#0c0c0c;font-family:system-ui,sans-serif}
+.pc3-start-card{box-sizing:border-box;width:min(310px,calc(100vw - 64px));display:grid;justify-items:center;gap:12px;padding:24px 18px;border:3px solid #0c0c0c;border-radius:16px;background:#fffaf0;box-shadow:3px 4px 0 #0c0c0c;text-align:center;color:#0c0c0c;font:500 13px/1.5 system-ui,sans-serif}
+.pc3-start-mark{display:grid;place-content:center;width:44px;height:44px;background:#ffc400;border:2px solid #0c0c0c;border-radius:10px;font:800 21px/1 Oswald,system-ui,sans-serif}
+.pc3-start-card strong{font:800 21px/1.2 Oswald,system-ui,sans-serif;letter-spacing:.03em}
+.pc3-start-steps{display:flex;gap:6px;margin-top:2px}.pc3-start-steps i{display:block;width:32px;height:5px;border-radius:3px;background:#d7d0bd}.pc3-start-steps .is-current{background:#ffc400;animation:pc3-start-pulse 1.2s ease-in-out infinite alternate}
+@keyframes pc3-start-pulse{to{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.pc3-start-steps .is-current{animation:none}}
+@media(max-width:600px){.pc3-start-screen{height:calc(100svh - 92px);min-height:320px;border-radius:12px}}
+@media(max-height:520px) and (orientation:landscape){.pc3-start-screen{height:88svh;min-height:260px}}

@@ -66,6 +66,7 @@ export interface DraftEstado {
   proxima?: 'draft' | 'leilao' // na fase 'prontos': o que vem depois que o dono seguir
   prontos?: number[] // ✋ quem já disse "estou pronto" nesta etapa
   premios?: Record<number, number> // 💰 moedas pela colocação da temporada que acabou (já caíram no caixa)
+  premiosCopa?: Record<number, number> // 🏆 14/11: moedas da Copa dos 8 dessa temporada (já caíram no caixa, junto com as da liga)
   sondagens?: { por: number; dono: number; cardId: string; nome: string }[] // 🕵️ quem sondou quem (a vez de quem sondou acabou)
   aVenda?: Record<number, string> // 🏷️ técnico → a carta que ele pôs à venda (1 por técnico)
   lotes?: LoteDraft[] // 🔨 o leilão dos sondados + à venda
@@ -109,6 +110,29 @@ export function premioDaLiga(pos: number, nTimes: number, editado?: number[] | n
   if (typeof v === 'number' && Number.isFinite(v) && v >= 0) return Math.min(999, Math.floor(v))
   const pad = premiosPadraoDraft(nTimes)
   return pad[pos] ?? pad[pad.length - 1]
+}
+
+/** 🏆 COPA DOS 8 NA LIGA DRAFT (14/11, Diego: *"vale o mesmo valor de moedas pro campeão e o mesmo pro vice… troféu pro campeão"*):
+ *  campeão = as moedas do 1º da liga · vice = as do 2º (a tabela que vale, a do dono se ele editou) · quem caiu na semi 12 · nas
+ *  quartas 6. Quem nem entrou na copa não ganha nada aqui (já ganhou pela posição na liga). Só confrontos FECHADOS contam. */
+export const PREMIO_COPA_SEMI = 12
+export const PREMIO_COPA_QUARTAS = 6
+type ConfrontoCopa = { aId: number; bId: number; winner: number | null }
+export function premiosCopaDraft(copa: { phase: string; ties: ConfrontoCopa[]; bracket: { phase: string; ties: ConfrontoCopa[] }[]; champion?: { id: number } | null } | null | undefined,
+  nTimes: number, editado?: number[] | null, metade = false): Record<number, number> {
+  const out: Record<number, number> = {}
+  if (!copa?.champion) return out // copa que não terminou não paga
+  const aj = (v: number) => metade ? Math.ceil(v / 2) : v
+  const fases = [...copa.bracket, { phase: copa.phase, ties: copa.ties }]
+  for (const f of fases) for (const t of f.ties) {
+    if (t.winner == null) continue
+    const perdeu = t.winner === t.aId ? t.bId : t.aId
+    if (f.phase === 'final') out[perdeu] = Math.max(out[perdeu] ?? 0, aj(premioDaLiga(1, nTimes, editado)))
+    else if (f.phase === 'semis') out[perdeu] = Math.max(out[perdeu] ?? 0, aj(PREMIO_COPA_SEMI))
+    else if (f.phase === 'quartas') out[perdeu] = Math.max(out[perdeu] ?? 0, aj(PREMIO_COPA_QUARTAS))
+  }
+  out[copa.champion.id] = aj(premioDaLiga(0, nTimes, editado))
+  return out
 }
 
 /** 📜 REGRAS DA TURMA no draft (05/11, Diego: *"não pode contratar no draft jogador de categoria craque pra cima, ou só pode
@@ -301,7 +325,7 @@ export function categoriaDa(c: { name: string; club?: string; year?: number; fam
   if (c.fame >= 5) return { pt: 'LENDA', en: 'LEGEND', emoji: '👑', brilho: '#FFC400' }
   if (c.fame === 4) return { pt: 'CRAQUE', en: 'STAR', emoji: '⭐', brilho: '#CBD4DE' }
   if (c.fame >= 2) return { pt: 'BOM JOGADOR', en: 'GOOD PLAYER', emoji: '🎯', brilho: '#2E9E5B' }
-  return { pt: 'FOI PROFISSIONAL', en: 'EX-PRO', emoji: '🪵', brilho: '#CBBF9E' }
+  return { pt: 'PROFISSIONAL', en: 'PRO', emoji: '🪵', brilho: '#CBBF9E' }
 }
 export function decadaDe(year: number): { pt: string; en: string } {
   const d = Math.floor(year / 10) * 10

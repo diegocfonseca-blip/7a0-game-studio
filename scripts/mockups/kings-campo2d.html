@@ -1,0 +1,104 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>
+@font-face{font-family:Oswald;src:url(../fonts/oswald-latin-700-normal.woff2);font-weight:700}
+*{box-sizing:border-box}body{margin:0;background:#F4ECD6;font-family:Inter,system-ui,sans-serif;padding:26px;color:#0C0C0C}
+h1{font:700 32px Oswald;margin:0 0 4px;text-transform:uppercase}.sub{margin:0 0 18px;font-size:15px;color:#4a4232;max-width:1300px}
+.row{display:flex;gap:20px;align-items:flex-start}
+.lbl{display:inline-block;font:700 13px Oswald;background:#FFC400;border:3px solid #0C0C0C;border-radius:10px;padding:4px 10px;box-shadow:3px 3px 0 #000;margin-bottom:10px}
+.cap{font-size:13px;font-weight:600;color:#3d3628;margin:10px 2px 0;width:320px;line-height:1.4}
+.ph{width:320px;border:4px solid #0C0C0C;border-radius:22px;overflow:hidden;box-shadow:5px 5px 0 #000;background:#07070c}
+/* placar da Kings */
+.pl{background:linear-gradient(180deg,#14101f,#07070c);padding:10px 10px 8px;border-bottom:2px solid #2a2340;color:#fff}
+.pl .top{display:flex;align-items:center;justify-content:space-between}
+.pl .t{display:flex;flex-direction:column;align-items:center;width:84px;font:700 11px Oswald;letter-spacing:.03em}
+.pl .t img{height:40px}
+.pl .sc{text-align:center}.pl .sc b{font:700 34px Oswald;letter-spacing:2px}.pl .sc small{display:block;font:700 12px Oswald;color:#FFC400}
+.fase{display:flex;justify-content:center;gap:6px;margin-top:6px;align-items:center;font:700 11px Oswald;color:#cfc8ff}
+.fase i{width:9px;height:9px;border-radius:50%;background:#2c2840;border:1px solid #6b62a8}.fase i.on{background:#2EE6FF;border-color:#2EE6FF;box-shadow:0 0 6px #2EE6FF}
+.ef{margin:7px 0 0;display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+.ef span{color:#000;font:700 10.5px Oswald;border-radius:7px;padding:2px 7px;border:2px solid #000}
+/* arena */
+.ar{position:relative;height:430px;background:#07070c;overflow:hidden}
+.campo{position:absolute;left:22px;right:22px;top:16px;bottom:16px;border:2px solid #e9e9f2;border-radius:6px;background:radial-gradient(ellipse at 50% 50%,#15131f,#09090f 75%)}
+.meio{position:absolute;left:0;right:0;top:50%;border-top:2px solid #e9e9f2}
+.circ{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px;border-radius:50%;border:3px solid #2EE6FF;box-shadow:0 0 12px #2EE6FF,inset 0 0 10px #2EE6FF}
+.circ:after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid transparent;border-bottom-color:#FF3DB8;border-left-color:#FF3DB8;filter:drop-shadow(0 0 6px #FF3DB8)}
+.area{position:absolute;left:28%;right:28%;height:46px;border:2px solid #e9e9f2}.area.c{top:-2px;border-top:0}.area.b{bottom:-2px;border-bottom:0}
+.gol{position:absolute;left:40%;right:40%;height:6px;background:#e9e9f2}.gol.c{top:-8px}.gol.b{bottom:-8px}
+.proj{position:absolute;left:50%;transform:translateX(-50%);height:96px;opacity:.16}.proj.c{top:22%}.proj.b{bottom:22%}
+/* bonecos */
+.p{position:absolute;width:26px;height:26px;margin:-13px;border-radius:50%;display:grid;place-items:center;font:700 12px Oswald;border:2.5px solid #000;box-shadow:0 2px 0 #000}
+.p.a{background:#0A0A0A;color:#fff;border-color:#2EE6FF}.p.v{background:#7A1CA8;color:#fff;border-color:#FF3DB8}
+.p img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.p.out{opacity:.35}
+.bola{position:absolute;width:10px;height:10px;margin:-5px;border-radius:50%;background:#fff;border:1.5px solid #000;box-shadow:0 0 6px #fff}
+.bola.red{background:#ff2b2b;box-shadow:0 0 12px #ff2b2b}
+.nm{position:absolute;font:700 9.5px Oswald;color:#fff;background:#000a;padding:0 4px;border-radius:3px;transform:translate(-50%,14px);white-space:nowrap}
+/* banco lateral */
+.banco{position:absolute;top:30px;bottom:30px;width:16px;display:flex;flex-direction:column;justify-content:center;gap:6px;align-items:center}
+.banco.e{left:3px}.banco.d{right:3px}
+.banco i{width:12px;height:12px;border-radius:50%;border:1.5px solid #000;opacity:.45}
+.banco.e i{background:#0A0A0A;border-color:#2EE6FF}.banco.d i{background:#7A1CA8;border-color:#FF3DB8}
+.puni{position:absolute;right:2px;bottom:34px;background:#FFC400;color:#000;font:700 9px Oswald;border:2px solid #000;border-radius:6px;padding:2px 4px;text-align:center;line-height:1.1}
+.radio{background:#100d1a;color:#ddd;font-size:11.5px;padding:7px 10px;border-top:2px solid #2a2340}.radio b{color:#FFC400}
+.glow{position:absolute;inset:0;box-shadow:inset 0 0 40px #ff2b2b;pointer-events:none}
+.ban{position:absolute;left:14px;right:14px;top:120px;background:#F4ECD6;border:3px solid #000;border-radius:14px;box-shadow:4px 4px 0 #000;padding:10px;text-align:center}
+.ban b{font:700 22px Oswald}.ban p{margin:4px 0 0;font-size:12px}
+.dado{width:64px;height:64px;margin:0 auto 6px;background:#fff;border:3px solid #000;border-radius:12px;display:grid;place-items:center;font:700 24px Oswald;box-shadow:3px 3px 0 #000;transform:rotate(-10deg)}
+</style></head><body>
+<h1>👑 Kings League · Campo 2D (Partida Rápida)</h1>
+<p class="sub">O mesmo campinho 2D de hoje, na arena escura da Kings (piso preto, círculo neon azul/rosa, escudos no chão), em <b>futebol 7</b>. Quem não está em campo fica no banco do lado. As regras que a Kings já tem continuam iguais e aparecem no campinho: 1×1 até 7×7, dado, carta, cartão (2/5 min fora), bola vermelha/dourada, pênalti do presidente e shootout. Os banners que explicam cada regra continuam por cima.</p>
+<div class="row">
+
+<div><span class="lbl">① 2' · COMEÇO 2×2</span><div class="ph">
+ <div class="pl"><div class="top"><div class="t"><img src="../../src/escalacao/img/neymarzetti-escudo.webp">NEYMARZETTI</div><div class="sc"><b>0 × 0</b><small>2'</small></div><div class="t"><img src="../../src/escalacao/img/fabulous-escudo.webp">FABULOUS EC</div></div>
+ <div class="fase">EM CAMPO 2×2 <i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div></div>
+ <div class="ar"><div class="campo"><div class="meio"></div><div class="circ"></div><div class="area c"></div><div class="area b"></div><div class="gol c"></div><div class="gol b"></div>
+  <img class="proj c" src="../../src/escalacao/img/fabulous-escudo.webp"><img class="proj b" src="../../src/escalacao/img/neymarzetti-escudo.webp"></div>
+  <div class="banco e"><i></i><i></i><i></i><i></i><i></i></div><div class="banco d"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="p a" style="left:50%;top:392px">1</div><div class="p a" style="left:38%;top:250px">9</div><div class="p a" style="left:64%;top:228px">10</div>
+  <div class="p v" style="left:50%;top:38px">1</div><div class="p v" style="left:44%;top:190px">7</div><div class="p v" style="left:70%;top:150px">11</div>
+  <div class="bola" style="left:61%;top:216px"></div><span class="nm" style="left:64%;top:228px">Romário</span>
+ </div>
+ <div class="radio">📻 <b>2'</b> Romário domina no 2×2, campo aberto pra correr!</div>
+</div><p class="cap">Cada minuto entra mais um de cada lado (as bolinhas do placar mostram quantos). Quem ainda não entrou espera no banco do lado do campo.</p></div>
+
+<div><span class="lbl">② 24' · 7×7 · CARTÃO + GOL EM DOBRO</span><div class="ph">
+ <div class="pl"><div class="top"><div class="t"><img src="../../src/escalacao/img/neymarzetti-escudo.webp">NEYMARZETTI</div><div class="sc"><b>3 × 2</b><small>24'</small></div><div class="t"><img src="../../src/escalacao/img/fabulous-escudo.webp">FABULOUS EC</div></div>
+ <div class="ef"><span style="background:#FFC400">⚡ GOL EM DOBRO até 27'</span><span style="background:#fff">🟨 Cafu FORA · volta 26'</span></div></div>
+ <div class="ar"><div class="campo"><div class="meio"></div><div class="circ"></div><div class="area c"></div><div class="area b"></div><div class="gol c"></div><div class="gol b"></div>
+  <img class="proj c" src="../../src/escalacao/img/fabulous-escudo.webp"><img class="proj b" src="../../src/escalacao/img/neymarzetti-escudo.webp"></div>
+  <div class="p a" style="left:50%;top:392px">1</div><div class="p a" style="left:34%;top:320px">3</div><div class="p a" style="left:66%;top:322px">4</div><div class="p a" style="left:30%;top:236px">8</div><div class="p a" style="left:62%;top:250px">5</div><div class="p a" style="left:42%;top:150px">9</div><div class="p a" style="left:58%;top:118px">10</div>
+  <div class="p v" style="left:50%;top:38px">1</div><div class="p v" style="left:40%;top:96px">3</div><div class="p v" style="left:68%;top:110px">4</div><div class="p v" style="left:34%;top:180px">8</div><div class="p v" style="left:58%;top:200px">7</div><div class="p v" style="left:72%;top:268px">11</div>
+  <div class="bola" style="left:58%;top:106px"></div><span class="nm" style="left:58%;top:118px">Ronaldinho</span>
+  <div class="puni">🟨 2'<br>Cafu</div>
+ </div>
+ <div class="radio">📻 <b>24'</b> Cafu tomou amarelo e vai pro banquinho 2 minutos. Fabulous joga com um a menos!</div>
+</div><p class="cap">Quem toma cartão sai do campo e fica no cantinho até voltar. O time joga com um a menos. Os efeitos ficam na faixa do placar.</p></div>
+
+<div><span class="lbl">③ 38' · BOLA VERMELHA</span><div class="ph">
+ <div class="pl"><div class="top"><div class="t"><img src="../../src/escalacao/img/neymarzetti-escudo.webp">NEYMARZETTI</div><div class="sc"><b>5 × 4</b><small>38'</small></div><div class="t"><img src="../../src/escalacao/img/fabulous-escudo.webp">FABULOUS EC</div></div>
+ <div class="ef"><span style="background:#ff2b2b;color:#fff">🔴 BOLA VERMELHA · todo gol vale 2</span></div></div>
+ <div class="ar"><div class="campo"><div class="meio"></div><div class="circ"></div><div class="area c"></div><div class="area b"></div><div class="gol c"></div><div class="gol b"></div>
+  <img class="proj c" src="../../src/escalacao/img/fabulous-escudo.webp"><img class="proj b" src="../../src/escalacao/img/neymarzetti-escudo.webp"></div>
+  <div class="glow"></div>
+  <div class="p a" style="left:50%;top:392px">1</div><div class="p a" style="left:36%;top:330px">3</div><div class="p a" style="left:64%;top:316px">4</div><div class="p a" style="left:30%;top:260px">8</div><div class="p a" style="left:60%;top:280px">5</div><div class="p a" style="left:44%;top:300px">9</div><div class="p a" style="left:70%;top:230px">10</div>
+  <div class="p v" style="left:50%;top:38px">1</div><div class="p v" style="left:38%;top:250px">3</div><div class="p v" style="left:52%;top:220px">4</div><div class="p v" style="left:34%;top:300px">8</div><div class="p v" style="left:56%;top:340px">7</div><div class="p v" style="left:64%;top:352px">11</div>
+  <div class="bola red" style="left:57%;top:340px"></div><span class="nm" style="left:56%;top:340px">Mbappé</span>
+ </div>
+ <div class="radio">📻 <b>38'</b> Bola vermelha! Mbappé vai pra cima, se entrar vale DOIS!</div>
+</div><p class="cap">Na reta final a bola fica vermelha (vale 2) ou dourada (gol de ouro). O campo ganha um brilho da cor.</p></div>
+
+<div><span class="lbl">④ 18' · O DADO (banner de sempre)</span><div class="ph">
+ <div class="pl"><div class="top"><div class="t"><img src="../../src/escalacao/img/neymarzetti-escudo.webp">NEYMARZETTI</div><div class="sc"><b>2 × 2</b><small>18'</small></div><div class="t"><img src="../../src/escalacao/img/fabulous-escudo.webp">FABULOUS EC</div></div>
+ <div class="fase">ATÉ O INTERVALO: 3×3 <i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+ <div class="ar" style="filter:saturate(.9)"><div class="campo"><div class="meio"></div><div class="circ"></div><div class="area c"></div><div class="area b"></div><div class="gol c"></div><div class="gol b"></div>
+  <img class="proj c" src="../../src/escalacao/img/fabulous-escudo.webp"><img class="proj b" src="../../src/escalacao/img/neymarzetti-escudo.webp"></div>
+  <div class="banco e"><i></i><i></i><i></i><i></i></div><div class="banco d"><i></i><i></i><i></i><i></i></div>
+  <div class="p a" style="left:50%;top:392px">1</div><div class="p a" style="left:40%;top:300px">5</div><div class="p a" style="left:60%;top:290px">9</div><div class="p a" style="left:50%;top:250px">10</div>
+  <div class="p v" style="left:50%;top:38px">1</div><div class="p v" style="left:40%;top:130px">4</div><div class="p v" style="left:60%;top:140px">8</div><div class="p v" style="left:50%;top:180px">11</div>
+  <div class="ban"><div class="dado">3×3</div><b>🎲 O DADO DECIDIU: 3×3!</b><p>Até o intervalo cada time joga com 3 na linha + goleiro. Os outros vão pro banco.</p></div>
+ </div>
+ <div class="radio">📻 <b>18'</b> Dado rolando… saiu 3×3, todo mundo pro banco!</div>
+</div><p class="cap">Os banners que explicam cada regra (bola caindo, dado, carta, pênalti do presidente, shootout) continuam os mesmos, por cima do campinho. O jogo para, explica e volta.</p></div>
+
+</div></body></html>

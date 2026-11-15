@@ -3,10 +3,11 @@ import { tr, getLang } from './lang'
 import { Escudo } from './escudos'
 import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
-import { APOIO_PERKS, ApoioSheen } from './apoio'
+import { APOIO_PERKS, ApoioSheen, useDireitos } from './apoio'
 import './support-plans.css'
 import { SupportPlanCard, SupportMoney } from './support-plans'
-import { PRECOS_UNICO, precoSubida, precoTxt, type PlanoUnico } from './planos-regras'
+import { PRECOS_UNICO, precoTxt, planoFixo, type PlanoUnico } from './planos-regras'
+import { usePrecoMeu } from './precos-servidor'
 import { DuploLinha } from './presente'
 
 // 💳 PLANOS V2 (08–09/10) — a vitrine nova, por enquanto SÓ nas contas do Diego (`usePlanos2`, sport.ts).
@@ -92,7 +93,8 @@ export const UmaVezSo = () => <div style={{ display: 'flex', alignItems: 'center
 export function CartoesBatismo({ batismoPlano, onNaming, serieA = false, atual = null }: { batismoPlano?: 'antigo' | 'lenda' | 'plus' | null; onNaming: (plano: 'lenda' | 'plus') => void; serieA?: boolean; atual?: PlanoUnico | null }) {
   // 💳 14/10 (Diego): Batismo 79,90 · 🖋️ FUNDADOR 99,90 (era "Batismo Lenda"). Quem já tem plano paga só a diferença.
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
-  const subBat = precoSubida('batismo', atual), subFun = precoSubida('fundador', atual)
+  const precoMeu = usePrecoMeu() // 💳 13/11: o preço que o Pix cobra desta conta
+  const subBat = precoMeu('batismo', atual), subFun = precoMeu('fundador', atual)
   return <>
     {/* 3️⃣ BATISMO LENDA */}
     <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club Naming')} price={reais(PRECOS_UNICO.batismo)} cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="batismo">
@@ -204,6 +206,8 @@ type Props = {
 
 export function SupportPlansV2(p: Props) {
   const root = useRef<HTMLDivElement>(null)
+  const direitosV2 = useDireitos()
+  const fixoV2 = planoFixo(direitosV2, p.tier === 'ouro' || p.tier === 'prata' ? p.tier : undefined) // 💳 13/11: subida pelo plano pago pra sempre (igual ao banco)
   useEffect(() => {
     if (!p.focus) return
     // links antigos (?apoie=lenda/craque/nuvem) caem no Craque completo, que é quem tem tudo agora
@@ -273,7 +277,7 @@ export function SupportPlansV2(p: Props) {
       <p className="ll-support-addon">{tr('Cancelou? Continua valendo até o fim do mês pago. Se vencer, voltam as regras do gratuito — seus saves, ligas e histórico continuam guardados.', 'Cancelled? It stays valid until the end of the paid month. If it lapses, the free rules come back — your saves, leagues and history stay stored.')}</p>
     </SupportPlanCard>
 
-    <CartoesBatismo batismoPlano={p.batismoPlano} onNaming={p.onNaming} serieA />
+    <CartoesBatismo batismoPlano={p.batismoPlano} onNaming={p.onNaming} serieA atual={fixoV2} />
 
     {/* 🛟 quem já comprou antes */}
     <div className="ll-vit-antigos">

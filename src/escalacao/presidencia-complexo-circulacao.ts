@@ -135,7 +135,7 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
     const door = PLANTA_COMPLEXO.doors[destination], registered = PLANTA_COMPLEXO.routes[destinationRoutes[destination]].points
     // The southern beer path crosses the visiting gate's two lanes. This local
     // sample starts on its existing northern branch, clear of either fan clock.
-    const approach = destination === 'chopp' ? registered.slice(4) : registered
+    const approach = registered
     const route = [...approach, door.threshold, door.inside]
     return { id: `pedestre-${destination}`, destination, route, door,
       legs: prepare(`pedestre-${destination}`, route, PEDESTRIAN_RADIUS, PEDESTRIAN_HEIGHT, approach.length, destination, true) }

@@ -70,6 +70,8 @@ import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC 
 import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import doubleduoEscudoImg from './img/doubleduo-escudo.webp' // 👑💜 Double Duo FC (doublecontatocomercial): arte própria do dono, 09/11
+import calabresosEscudoImg from './img/calabresos-escudo.webp' // 👑🌭 Calabresos FC (silviovicente87): arte própria do dono, 11/11
+import gotiEscudoImg from './img/goti-escudo.webp' // 👑😴 Goti FC (klebim877): arte própria do dono, 11/11
 import monarcaEscudoImg from './img/monarca-tricolor-escudo.webp' // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus): arte própria do dono, 05/11
 import paizaoEscudoImg from './img/paizao-escudo.webp' // 👑🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoEscudoImg from './img/piranhao-escudo.webp' // 🐟🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
@@ -77,6 +79,8 @@ import milanRecifenseEscudoImg from './img/milan-recifense-escudo.webp' // 🐆�
 import principeEscudoImg from './img/principe-escudo.webp' // 👑🔴⚫ Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
+import leoestufEscudoImg from './img/leoestuf-escudo.webp' // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
+import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
@@ -931,6 +935,16 @@ const chelsaoEscudoRender = (size: number) => (
 // 👑💜 DOUBLE DUO FC (doublecontatocomercial, batismo FUNDADOR de 09/11 — streamer de jogos de manager de futebol). 📏 297×360, 28 KB.
 // O monograma DD azul com a coroa dourada, os louros, o controle, a prancheta e as redes dele (YouTube, TikTok, Kick, Instagram).
 // Fundo verde chroma tirado (o K verde do Kick ficou: só sai o verde que encosta na borda); conferido sobre vermelho e creme.
+// 👑😴 GOTI FC (klebim877, batismo de 11/11 — joga na sala do K9; SEM vaga na pirâmide, decisão do Diego; ❤️ São Paulo).
+// O dono de venda nos olhos, mãos na nuca, camisa 22 tricolor, coroa e louros. 📏 281×320, 29 KB. Conferido sobre vermelho e creme.
+const gotiEscudoRender = (size: number) => (
+  <img src={gotiEscudoImg} height={size} width={Math.round(size * 281 / 320)} alt="Goti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 👑🌭 CALABRESOS FC (silviovicente87, batismo de 11/11 — joga sempre na sala do K9; SEM vaga na pirâmide, decisão do Diego).
+// O rei calabresa de coroa, óculos e cetro no trono. 📏 282×320, 29 KB. Fundo verde chroma tirado; conferido sobre vermelho e creme.
+const calabresosEscudoRender = (size: number) => (
+  <img src={calabresosEscudoImg} height={size} width={Math.round(size * 282 / 320)} alt="Calabresos FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const doubleduoEscudoRender = (size: number) => (
   <img src={doubleduoEscudoImg} height={size} width={Math.round(size * 297 / 360)} alt="Double Duo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -960,6 +974,16 @@ const lulubabaEscudoRender = (size: number) => (
 )
 // 🐶💚 dSOUZA FC (alexandre12cdm, batismo FUNDADOR de 28/10) — Série C, no assento do bot Kombi United. 📏 360×334, 26 KB.
 // O pitbull de boné dSouza FC com os quadros das lendas, preto e verde-neon. Fundo verde chroma tirado; conferido sobre creme e vermelho.
+// 🐐👑 CABRITIIIN F.C (lucassaboia14, batismo FUNDADOR de 13/11) — Várzea, no assento do bot Unidos da Resenha. 📏 302×360, 29 KB.
+// O bode de coroa e óculos escuros, braços cruzados, listrado azul e branco. Fundo verde chroma tirado; conferido sobre creme e vermelho.
+// 🦁🇧🇷 LEÕES DA TUF EC (sergioricardocf16, batismo de 14/11, dado pelo Diego) — Várzea, no assento do bot Chuteira Rachada FC.
+// 📏 278×360, 29 KB. O leão de boné e moletom fazendo o L, branco/vermelho/azul. Fundo verde chroma tirado; conferido sobre vermelho.
+const leoestufEscudoRender = (size: number) => (
+  <img src={leoestufEscudoImg} height={size} width={Math.round(size * 278 / 360)} alt="Leões da Tuf EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const cabritiiinEscudoRender = (size: number) => (
+  <img src={cabritiiinEscudoImg} height={size} width={Math.round(size * 302 / 360)} alt="Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const dsouzaEscudoRender = (size: number) => (
   <img src={dsouzaEscudoImg} height={size} width={Math.round(size * 360 / 334)} alt="dSouza FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1644,6 +1668,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Double Duo': doubleduoEscudoRender,
   'Double Duo EC': doubleduoEscudoRender,
   'Double Duo SC': doubleduoEscudoRender,
+  'Calabresos FC': calabresosEscudoRender, // 👑🌭 Calabresos FC (silviovicente87) — BATISMO. As 4 formas do nome.
+  'Calabresos': calabresosEscudoRender,
+  'Calabresos EC': calabresosEscudoRender,
+  'Calabresos SC': calabresosEscudoRender,
+  'Goti FC': gotiEscudoRender, // 👑😴 Goti FC (klebim877) — BATISMO. As 4 formas do nome.
+  'Goti': gotiEscudoRender,
+  'Goti EC': gotiEscudoRender,
+  'Goti SC': gotiEscudoRender,
   'Monarca Tricolor': monarcaEscudoRender, // 👑⚪🔴⚫ Monarca Tricolor (danieltorresreus) — BATISMO FUNDADOR. As 4 formas do nome + o bot que cedeu o assento.
   'Monarca Tricolor FC': monarcaEscudoRender,
   'Monarca Tricolor EC': monarcaEscudoRender,
@@ -1679,6 +1711,18 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'dSouza': dsouzaEscudoRender,
   'dSouza EC': dsouzaEscudoRender,
   'dSouza SC': dsouzaEscudoRender,
+  // 🐐👑 Cabritiiin F.C (lucassaboia14) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Unidos da Resenha (bot que
+  // cedeu o assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16) — BATISMO. As 4 formas do nome (regra 20/08).
+  'Leões da Tuf EC': leoestufEscudoRender,
+  'Leões da Tuf': leoestufEscudoRender,
+  'Leões da Tuf FC': leoestufEscudoRender,
+  'Leões da Tuf SC': leoestufEscudoRender,
+  'Cabritiiin F.C': cabritiiinEscudoRender,
+  'Cabritiiin FC': cabritiiinEscudoRender,
+  'Cabritiiin': cabritiiinEscudoRender,
+  'Cabritiiin EC': cabritiiinEscudoRender,
+  'Cabritiiin SC': cabritiiinEscudoRender,
   // ⭐🦁 Vila Esporte Clube (oluisantonio.contato) — BATISMO. As 4 formas do nome (regra 20/08) + o nome do bot que cedeu o assento.
   'Vila Esporte Clube': vilaEscudoRender,
   'Vila Esporte Clube FC': vilaEscudoRender,

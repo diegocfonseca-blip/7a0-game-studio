@@ -22,7 +22,7 @@ const GREEN = '#1B7A3D'
 const RED = '#C2452F'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 
-const TIER_EN: Record<string, string> = { '👑 LENDA': '👑 LEGEND', '⭐ CRAQUE': '⭐ STAR', '🎯 BOM JOGADOR': '🎯 GOOD PLAYER', '🪵 FOI PROFISSIONAL': '🪵 WAS A PRO', '💎 PROMESSA': '💎 PROSPECT' }
+const TIER_EN: Record<string, string> = { '👑 LENDA': '👑 LEGEND', '⭐ CRAQUE': '⭐ STAR', '🎯 BOM JOGADOR': '🎯 GOOD PLAYER', '🪵 PROFISSIONAL': '🪵 PRO', '💎 PROMESSA': '💎 PROSPECT' }
 const tierDe = (c: WonCard) => (c.promessa ? PROMESSA_TIER : (FAME_TIER[c.fame] ?? FAME_TIER[1]))
 // prazo padrão de cada carta: 5 anos se existir, senão o mais perto de 5 (mesma régua do "renovar todos")
 const prazoPerto = (ops: RenewAnos[], alvo: number): RenewAnos => ops.find(a => a === alvo) ?? [...ops].sort((x, y) => Math.abs(x - alvo) - Math.abs(y - alvo) || y - x)[0]

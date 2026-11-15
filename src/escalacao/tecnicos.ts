@@ -55,7 +55,7 @@ export const FAME_POR_DIV: Record<DivTecnico, number> = { A: 5, B: 4, C: 3, D: 2
 // `promessa: true` pinta o tier roxo, nível logo abaixo de craque).
 export const PROMESSA_POR_DIV: Record<DivTecnico, boolean> = { A: false, B: false, C: true, D: false, V: false }
 export const CATEGORIA_TECNICO_ROTULO: Record<DivTecnico, string> = {
-  A: '👑 Lenda', B: '⭐ Craque', C: '💜 Promessa', D: '💚 Bom jogador', V: '🤎 Foi profissional',
+  A: '👑 Lenda', B: '⭐ Craque', C: '💜 Promessa', D: '💚 Bom jogador', V: '🤎 Profissional',
 }
 export const FAIXA_POR_DIV: Record<DivTecnico, { lo: number; hi: number }> = {
   A: { lo: 89, hi: 95 },

@@ -105,7 +105,7 @@ export type Sec = 'GOL' | 'LAT' | 'ZAG' | 'MEI' | 'ATA'
 const SECS: Sec[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 export type PoolCard = { name: string; club: string; year: number; fame: number; lo: number; hi: number; sec: Sec }
 // ⚽ 04/11 (Diego): na convocação das seleções abrem as 7 formações da carreira — acende só a que o país fecha
-export type Formation = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1'
+export type Formation = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '3-4-3z' | '5-3-2' | '4-2-4' | '5-4-1'
 const NEED = Object.fromEntries(FORMACOES_JOGO.map(f => [f, FORMATIONS[f]])) as Record<Formation, Record<Sec, number>>
 const SEC_LABEL_PT: Record<Sec, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
 const SEC_LABEL_EN: Record<Sec, string> = { GOL: 'Goalkeepers', LAT: 'Full-backs', ZAG: 'Centre-backs', MEI: 'Midfielders', ATA: 'Forwards' }

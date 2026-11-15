@@ -1,3 +1,255 @@
+## 🧭 14/11 — Passeio livre: destinos, câmera, portas e retomada — FEITO na prévia privada
+
+- Diego autorizou todas as melhorias recomendadas. Implementa destino opcional, centralizar, câmera respeitando volumes, ação perto dos estabelecimentos, retorno ao enquadramento anterior, retomada por qualidade e piso para calçadas/rampas/escadas.
+- NPCs, ambulantes e rotinas permanecem. Diego condicionou conversa entre usuários reais a não haver custo adicional. Não ativar multiplayer/chat: presença e posições compartilhadas podem aumentar Realtime e egress. Nenhum novo canal ou alteração nas salas.
+- Detalhes em `docs/passeio-livre-20261114.md`; testes e antes/depois em `/workspace/shared/passeio-livre-20261114/`. Público continua desligado; prévia só de Diego.
+
+## 🚶 14/11 — Passeio do personagem: teto, corrida, comandos e limites — CORREÇÕES NA PRÉVIA
+
+- Teto oculto durante caminhada, escolha de cadeira e arquibancada. Corrida 4,8 → 5,6 m/s, caminhada igual. Borda do mapa acompanha bairros e endereços atuais, incluindo casa e agência.
+- Corrige comandos presos ao perder foco/captura, conflitos entre dedos, corrida ao digitar e animação contra a parede. Movimento em pequenos trechos; reconfere a vaga ao sentar para não sobrepor a torcida.
+- Análise e recomendações separadas para destino opcional, câmera, interação nas portas, ajuda por aparelho e retomada de passeio ao trocar qualidade. Implementadas na entrega de passeio livre acima.
+- Detalhes em `docs/passeio-personagem-20261114.md`; testes, antes/depois e publicação em `/workspace/shared/passeio-personagem-20261114/`. Prévia privada continua restrita a Diego; sem salas, banco, prêmios ou moedas.
+
+## 🗂️ 14/11 — Aba Clube: aviso de encerramento deslocado e proposta visual — ANÁLISE E MOCKUPS
+
+- O aviso “aparece uma vez por temporada” pertence ao passo internacional/Copa do Mundo do encerramento, não ao mapa. Em Clube, fica sem a campanha e contradiz a trava de continuar. Proposta: roteiro em Jogos e acesso compacto para a pendência real; validação da sessão com mensagem distinta.
+- Mockups de celular/computador com mapa em destaque, gestão acessível, obras concluídas recolhidas e Finanças com contexto. Antes reproduz o layout da foto; depois é proposta, sem alterar a conta. Valores financeiros são ilustrativos.
+- Nenhuma mudança de produção ou publicação. Proposta detalhada em `docs/proposta-clube-organizacao-20261114.md`; PDF e protótipo em `/workspace/shared/clube-organizacao-proposta-20261114/`.
+
+## ⏳ 14/11 — Carregamento limpo e menos trabalho gráfico no mapa — FEITO na prévia privada
+
+- O menu “Seu clube” deixa de aparecer na carga normal; permanece como alternativa em erro. Espera por etapas, sem porcentagem inventada, e controles liberados com o primeiro quadro. Replay e teto ficam abaixo do mapa, após a carga.
+- Padrão do mapa deixa de capturar seis vistas completas da cidade para reflexos; montagem da cidade e estádio dividida por uma pausa. Shopping agrupa peças fixas opacas, mantendo vidros, modelos, materiais e colisores.
+- No panorama local: desktop 1.015 → 787 chamadas, celular 953 → 725, mesmos triângulos; não é promessa de ganho equivalente de FPS. Perda do contexto gráfico invalida API/controles e preserva acesso ao clube.
+- Passaram: compilação, geometria/UVs, implantação urbana, trava privada, espera, tela cheia em recarga, falha de WebGL, navegação, painel cobrindo mapa, saída, teto da carreira e perda do contexto. Testes locais com respostas de conta simuladas; sem alterar contas ou salas reais.
+- Detalhes e limites em `docs/mapa-carregamento-fluidez-20261114.md`; evidências em `/workspace/shared/mapa-carregamento-fluidez-20261114/`. Público continua desligado.
+
+## 🌱 14/11 — Grama contínua no entorno do estádio — CORREÇÃO da prévia privada
+
+- Diego mostrou o contorno escuro em volta do estádio pronto. A correção anterior havia uniformizado somente o estado sem asfalto; o estádio pronto ainda recebia uma textura de grama exclusiva no polígono do terreno.
+- Agora o terreno do clube e a cidade usam o mesmo material e a mesma escala de textura em todas as etapas, eliminando a borda de cor. Mantém campo, calçadas, construções, geometria, sombras reais, compras e saves.
+- Conferência visual em desktop e celular, com o estádio pronto e o terreno inicial. Imagens e resultado da publicação em `/workspace/shared/mapa-grama-continua-20261114/`. Mapa público permanece desligado; prévia só na conta de Diego.
+
+## 🏟️ 14/11 — Arena maior e troca de setor com a dSouza — FEITO na prévia privada
+
+- Pedido de Diego: trocar a Arena Legends online de lugar com a dSouza e deixar uma arena maior que o campo do Grêmio. Arena no setor leste, dSouza no setor sul.
+- Arena oval em lote de 92 × 104 m, campo de 60 × 40 m (Grêmio: 55 × 35), seis níveis de arquibancadas, cobertura aberta, entrada e iluminação. Modelo agrupado em dez desenhos.
+- Atualizados acessos, clique, enquadramento e visita. Caminhos e estacionamento preservados; dSouza mantém três rotas de entrega. Nenhuma mudança em salas, economia ou saves; mapa continua exclusivo da conta de Diego.
+- Detalhes em `docs/mapa-arena-dsouza-20261114.md`; imagens, testes e publicação em `/workspace/shared/mapa-arena-dsouza-20261114/`.
+
+## 🧭 14/11 — Aproximação suave ao tocar nos estabelecimentos — FEITO na prévia privada
+
+- Esclarecimento de Diego: pode aproximar ao tocar, mas sem virar a câmera bruscamente e com retorno fácil. Agora o local aproxima automaticamente, mantendo a direção de observação, com movimento gradual de cerca de um segundo.
+- Retirado o passo extra “Ver de perto”; “Visão inicial” permanece no topo e faz a volta suavemente. Fechar o cartão retorna à vista anterior. Gesto, zoom e troca de destino podem interromper o movimento.
+- Testados museu, loja, agência, shopping, Vadico, Grêmio, hotel, feira e boteco em 1440, 390 e 320 px; cancelamento, Home, movimento reduzido e save inalterado. Teste determinístico com 1.001 quadros passou. Usa o laço gráfico existente, sem atualizações de banco ou relógio oficial.
+- Mapa público continua desligado, prévia exclusiva de Diego. Detalhes em `docs/mapa-aproximacao-suave-20261114.md`; imagens, verificações e publicação em `/workspace/shared/mapa-aproximacao-suave-20261114/`.
+
+## 🧭 14/11 — Mapa: etiquetas discretas e câmera previsível — FEITO na prévia privada
+
+- Etiquetas pequenas com área de toque de 44 px. Tocar no local abre informações sem mover a câmera; aproximação passa a ser explícita em “Ver de perto”. Fechar volta à visão anterior.
+- “Visão inicial” sempre acessível no topo para restaurar posição, zoom e rotação. Corrigida também a mancha borrada ao redor do campo sem asfalto, mantendo o campo de terra e os acessos.
+- Mantém a liberação exclusivamente para Diego e a chave pública desligada. Sem alterações de saves, moedas, partidas ou salas.
+- Detalhes em `docs/mapa-navegacao-20261114.md`; antes/depois, relatórios e resultado da publicação em `/workspace/shared/mapa-navegacao-20261114/`.
+
+## 🇧🇷 14/11 — Bairro vivo: futebol do Grêmio, feira, pipas, pagode e festa junina — FEITO E TESTADO para a prévia exclusiva
+
+- Diego aprovou as propostas (“Perfeito.. Pode fszer Tb.”). Mantém o campinho e a feira, corrige o flanelinha para a localização atual do estacionamento e acrescenta os eventos no calendário da carreira.
+- Futebol do Grêmio funciona ao aproximar mesmo no Leve, com dois goleiros, banco e câmera própria; feira usa fila e sacolas; pagode reserva uma mesa do boteco e respeita o som do mapa; pipas à tarde e festa somente em junho.
+- Sem mudança em partidas, salas online, economia ou banco. Prévia continua só para a conta confirmada de Diego; chave pública desligada.
+- Detalhes, limites e verificações em `docs/bairro-vivo-20261114.md`; imagens e relatórios em `/workspace/shared/bairro-vivo-20261114/`.
+- Passaram: compilação; 3.243 quadros da pelada; agenda e limites das pipas; rotina comercial nos níveis Leve e Padrão; tradições anteriores; acesso privado; passeio de carro preservado; navegador em 1440, 390 e 320 px, com calendário, mute e ocultação do flanelinha sem estacionamento. Antes/depois em seis páginas no mesmo diretório de evidências.
+
+## 🔒 14/11 — Publicação do mapa somente na conta de Diego — VALIDADA, autorizada para envio
+
+- Diego: “Ok pode publicar Na minha conta”. Integra o mapa, estabelecimentos, museu, bairro afastado e passeio com carro já aprovados à versão atual da `main`.
+- Liberação por chave própria de prévia, dependente da conta confirmada `diego.c.fonseca@gmail.com` e das permissões da carreira. A chave pública `PRESIDENCY_STADIUM_RELEASED` permanece `false`.
+- Nenhuma alteração em Auth, banco ou salas online. Publicação automática padrão preserva os arquivos da versão anterior para quem já está jogando.
+- Compilação de produção e trava de acesso passaram. Integração no navegador com a chave real: identidade local de Diego abre mapa/obras/museu; outra conta não vê o mapa. Evidências e estado do deploy em `/workspace/shared/mapa-publicacao-privada-20261114/`.
+
+## ⏩👑 14/11 — Kings nas SALAS: o botão de velocidade quase não mudava nada — FEITO no branch
+Diego: *"quando ele aumenta a velocidade, deveria aumentar também mais um pouco… seja aumentar ou diminuir"* (só Kings, só sala online).
+Causa: na sala, só o 7×7 acelerava por inteiro; os lances decisivos (1×1…6×6, gol em dobro, dado, match ball) aceleravam pela RAIZ da
+marcha e os avisos/campinho/dado/carta tinham tempo fixo — no 4× o jogo ficava só ~⅓ mais curto. Agora, na SALA ONLINE da Kings, a marcha
+vale por inteiro nos lances decisivos e nos avisos, no campinho que cresce, no dado e na carta (com piso pra animação não cortar). Ficam no
+tempo deles: escolha da carta, cobrança e o pontapé. Normal (1×) e o automático = igual a antes. Partida Rápida da Kings NÃO mudou.
+Código: `sala` em `msCenaKings`/`taxaDecisivaKings`/`duracaoKingsRapida`/`useRelogioKings` (screens.tsx). Reverter = reverter o commit.
+
+## 🏡 14/11 — Casa além da avenida e passeio de carro — FEITO LOCALMENTE, sem publicação
+
+- Diego aprovou afastar a casa do estádio e autorizou executar o bairro e o trajeto de carro (“Ok pode fazer tudo”). Casa pessoal em (432,455), além da avenida sul; cinco vizinhos, jardins, calçadas e ruas conectadas. Casa Luca preservada.
+- “Ir ao estádio de carro” usa carro comprado da garagem: saída de ré, ruas, vaga real no estacionamento e retorno explícito à mesma garagem. Requer estacionamento etapa 1. Pausa, acompanhar carro e explorar o mapa; computador e celular.
+- Não altera moedas, bens, calendário, partida, saves ou salas online. Mantém viagem ao recriar a cena por qualidade; ao recarregar a página, carro começa na garagem. Mapa continua com `PRESIDENCY_STADIUM_RELEASED=false`, sem liberação pública.
+- Testes: quatro modelos com ida/volta; requisitos e posse; retomada de cena e bloqueio por tráfego; implantação urbana e privacidade; navegador em 1440/390/320 px; `npm run build`. Detalhes em `docs/implantacao-urbana-mapa.md`; antes/depois em `/workspace/shared/casa-bairro-passeio-20261114/`.
+
+## 👑 11/11 — Lipão da Fúria com avatar · arte aprovada para publicação
+
+- Lipão já está no baralho exclusivo da Kings League como atacante Lenda da Fúria, edição 2025, over 92–96. O avatar foi ligado à carta existente por nome, clube e ano.
+- A foto enviada pelo usuário orientou o cabelo platinado, a barba curta e a camisa geométrica escura. WebP 600×400 com alfa real, conferido sobre creme e verde. Usuário aprovou a arte e autorizou a publicação.
+
+
+
+## 🛡️ 13/11 — 3-4-3 com 3 zagueiros (Diego: opção 1) — FEITO
+- Chave nova `'3-4-3z'` = GOL 1 · LAT 0 · ZAG 3 · MEI 4 · ATA 3; é ela que aparece pra escolher (FORMACOES_JOGO, cardápio dos técnicos,
+  listas da carreira/Liga Draft) e na tela se chama "3-4-3" (`rotuloFormacao`). A chave `'3-4-3'` (2 LAT + 1 ZAG) segue existindo só pra
+  quem JÁ estava nela (`FORMACAO_343_ANTIGO` desenha); trocou de formação, não volta pra ela. Trava `npm run 343`.
+- ⚠️ Aparelho com a versão velha aberta numa sala de liga em que o dono escolhe o 3-4-3 novo não conhece a chave (3 dias de janela).
+- (A `npm run carreira-limpa` já falhava antes, por `kingsBaralho` da Kings — não é desta mudança.)
+
+## 📊 13/11 — Carreira: meio-campo quase não dá assistência (reclamação de jogador) — PUBLICADO 13/11
+- Os jogos do SEU time na carreira são do motor novo; os dos bots, da simulação de sempre. Medido (`scripts/mede-gols-assist-motor2.mts`):
+  · motor novo 4-3-3: assistências ATA 60% · MEI 33% · LAT 5% — gols ATA 93% · MEI 5% (4-4-2: assist. ATA 51% · MEI 39%; gols ATA 94%)
+  · simulação dos bots (pesos de `garcomDoGol`/gols): assistências MEI ~51% · ATA ~24% · LAT ~20% — gols ATA ~60% · MEI ~30%
+- Ou seja: no seu time quem dá o último passe é quase sempre outro atacante, e meia quase nunca faz gol. Proposta: ajustar o motor
+  novo pra o meia dar mais o passe final (e chegar pra chutar), mirando ~45% das assistências no MEI e ~20% dos gols. Mexe em como o
+  jogo da carreira rola — só depois do OK dele, e com a trava `npm run motor2` passando.
+
+- FEITO (motor novo, `motor2/decide.ts` + `coletivo.ts`): passe decisivo vale mais saindo do meia/lateral (`KEY_MEIA`), atacante na cara
+  do gol finaliza em vez de rolar pro outro atacante (`KEY_ATA`), atacante apertado escora pro meia (`ESCORA_MEIA`), meia que chega
+  livre arrisca da entrada da área (`CHEGADA_MEIA`), e com a bola perto da área o meia encosta 3 m atrás do atacante (era 7) e ocupa a
+  marca do pênalti no ataque pela ponta. 300 jogos: assist. MEI 33% → 44% (4-4-2: 39% → 45%) · gols MEI 5% → 9% · 1,3–1,5 gol/jogo.
+- `npm run motor2` já falhava ANTES (régua "parelho" 44%×29%) e segue no mesmo lugar (47%×26%); `npm run artilharia` também já tinha 1
+  falha antes (medalha 🥇), sem relação.
+
+## 👑 11/11 — Kings: gol dobrado e shootout travando (esta sessão fica com a Kings a partir de agora, ordem do Diego)
+- ✖️2 *"às vezes o gol dobrado não conta"*: a janela olhava o minuto do placar (0–93) e a tela mostra o da Kings arredondado — gol
+  mostrado como 17' ou 20' (e na carta, no 4º minuto) às vezes ficava fora. Agora é pelo minuto da TELA (`naJanelaDoDobro`).
+- 🥅 *"depois do shootout às vezes trava, no automático"*: a cena do shootout anda no ritmo da tela (requestAnimationFrame) e a sala
+  esperava ela acabar SEM limite — tela apagada/app no fundo = parada pra sempre (e o atalho de tempo do `kingsViraOk` tinha saído
+  em 11/11 madrugada). Agora `useFolgaShootout`: passou 2× o tempo da cena + 10 s, segue (liga e mata-mata); e o `kingsViraOk` vira
+  com 2,5× o tempo da rodada se o apito nunca foi registrado. Medido no navegador com a animação congelada: antes parava pra
+  sempre; agora vira ~2 min depois do normal (rodada normal ~3m40).
+- (O trabalho velho da Kings desta sessão — velocidade das salas e uma jogada por momento — ficou FORA: a outra sessão mudou o
+  ritmo depois disso; tag local `kings-velho-minha`.)
+
+## 👑 11/11 ~00h — Kings nas SALAS ONLINE (PUBLICADO, Diego: "publique tudo já")
+- ⏩ A sala online da Kings anda IGUAL à Partida Rápida (Diego: *"a velocidade deve ser idêntica… a Kings tá perfeita lá"*). A rodada dura o jogo com gente que precisa de mais tempo (mesmo tempo em todo aparelho; ninguém tem o jogo cortado).
+- ⏳ Quem termina antes na sala da Kings vê "Seu jogo acabou… a próxima começa em N s" (ou "o dono passa pra próxima", no manual) — Diego: *"como o outro vai saber que tem jogo rolando e não é bug?"*.
+- 🥅 O tempo da rodada da Kings agora conta o SHOOTOUT (placar ou campinho 2D): a próxima rodada não começa no meio da disputa (11/11).
+- 📣 Avisos de TEXTO da Kings (presidente, match ball, intervalo, "entra mais um", 7×7) viram FAIXA embaixo do placar, sem tampar a tela (11/11, *"só coloque o aviso"*). Escalonado NÃO muda: 1×1 + goleiros, completa no 7' (Diego: *"não"*).
+- 🥅 Lista dos OUTROS jogos da Kings: jogo empatado mostra "🥅 SHOOTOUT…" depois do 40' e no fim "X venceu no shootout 3×2"; a rodada só vira quando a disputa mais longa de TODOS os jogos acaba (11/11, *"só vira quando todos acabarem"*).
+- ⏩ Kings (11/11, print do Diego): a caixa do SHOOTOUT e os avisos ficam LOGO ABAIXO do placar (slot `kings` do visual novo, antes da tática/anúncio); o resultado sai no apito e a próxima partida começa ~2,5 s depois da última disputa (antes ~15 s parado); a contagem da bola caindo é 3-2-1 (era 5).
+- 🎲 Dado da Kings: a face do rei agora diz "👑 1×1" (Diego: *"no dado faltou ter também 1x1"*). 📺 Sala da Kings: o dono vê a troca placar ↔ Campo 2D no meio da sala, igual às outras salas (*"serve pra qualquer modo e sala"*).
+- 🤖 Bots da Kings jogam com a força do elenco −1 (`BOT_MENOS_KINGS`, kings-liga.ts): média de 79 → 78 (Diego: *"deixe força média 78"*). Só a conta de força do jogo; elenco e cartas iguais.
+- 🔒 Sala da Kings: SEMPRE com senha (criar sem senha é recusado com aviso) e não aparece na lista de salas pra quem não vê a Kings (Diego: *"não pode aparecer pras pessoas… só com senha"*).
+- 🐛 Sala K3MMV2 (Kings) parou em "Virando a rodada…" depois da 9ª: o fim da liga virou um vigia que conta do início da rodada e encerra quando passa o tempo (antes era um único timer que recomeçava).
+- 🏆 Kings: o 1º da liga NÃO é campeão (sem festa, taça, título nem carta de campeão da liga; o texto vira "1º da fase de liga"). Campeão = quem ganha a final (Diego). E o mata-mata começa 5 s depois da tabela (era 30).
+- 🥅 Kings: o dono só vira a rodada quando o SEU jogo apitou de fato + a disputa dele + 2,5 s (`kingsViraOk`; SEM atalho por tempo — Diego: *"não pode passar o shootout, só se for bot contra bot"*; +20% de folga se o jogo de outro humano foi pro shootout). Intervalo da Kings: 12 s → 6 s (o dado demorava a aparecer). Antes a conta era só estimada e o shootout do 1º jogo da sala do Diego nem apareceu.
+- Card "👑 Kings League" em O JOGO (criar sala), faixa "🔒 Só Diego, K9 e Chinesin" (KINGS_TESTERS). No leilão: jogadores da Kings ou
+  padrão; envelope cego, Tocaia, pregão aberto e envelope único. START_ONLINE com formação 'kings' (`kingsSala`): 10 times (bots também
+  na Kings, 7 cada; no baralho da Kings o bot completa com quem sobrou, nunca falso), competição da Kings, sem Clubes/liga de 10/turno.
+- KINGS_DECIDIR leva `jogo` (casa-fora): com várias pessoas na sala o dono refaz o jogo CERTO.
+- Lista de salas mostra "👑 KINGS". Quem não é tester não vê o card, mas pode entrar numa sala da Kings pela lista (senha resolve).
+- Travas: `npm run kings-baralho` (inclui sala online) · `kings-sem-lateral` · simulador `--cenario kings|kings-unico|kings-padrao-tocaia`.
+
+## 🏀 10/11 — Avatares das 51 lendas NBA · aprovados para publicação
+
+- 51 retratos individuais gerados com referência fotográfica e aparência correspondente à franquia/ano já cadastrados. Mantido o estilo aprovado do Agüero: busto sem feições, contorno preto, cores do uniforme sem marcas ou texto e alfa real. Porte, cabelo, barba, tranças, tatuagens e óculos individualizados. Duncan corrigido para barba preta de 2003.
+- Catálogo separado `basketball-avatars.json`, integrado pelo resolvedor existente de nome + franquia + ano. Nenhuma alteração de over, categoria, regras ou acesso privado do basquete. As 199 identidades do futebol permanecem intactas.
+- Produção: `public/avatars/nba-v1/`, 51 WebP 600×400, alfa verdadeiro, todos abaixo de 60 KB; conjunto aproximado 1,56 MB. Carregamento lazy do componente existente preservado.
+- Verificações: `node scripts/check-basketball-avatars.mjs`, `node scripts/check-legend-avatars.mjs` e `npm run build` passaram. Alfa/dimensões/peso verificados com Pillow. Pranchas conferidas sobre creme e verde. O Chromium do ambiente não pôde iniciar, então o teste de navegador ficou pendente.
+- Artes aprovadas pelo usuário e publicação autorizada.
+
+## 👑 11/11 ~23h — Kings: shootout no Campo 2D + rádio + gol dobrado no 2D + Luan Mestre/Andreas Craque (PUBLICADO, Diego: "publique tudo já")
+- 🥅 Shootout no campinho (`campo2d-shootout.ts`, subclasse da disputa de pênaltis): sai do meio-campo com a bola, 5 s, goleiro na
+  linha até o apito, se encostar na bola acabou; resto atrás do meio; goleiro reserva ao lado do gol. Liga e mata-mata da Kings com 2D.
+  Trava: `npm run kings-shootout`. Bancada: `scripts/teste-penaltis-campo/index.html?modo=kings`.
+- 📻 Rádio da Kings: +34 frases de jogo e +20 das fases abertas; frase de gente entrando só no começo, do dado só no dado (`fase`).
+- ✖️2 Campo 2D: o lance "(+1)" gruda no gol do mesmo minuto e o campinho sobe 2 (`juntaBonusKings`, `Evento.vale`).
+- Luan Mestre e Andreas Vaz: Lendário → Craque (kings-baralho.ts).
+- ⚽ Gols: 1×1–4×4 e dado 2×2/3×3 sobem (0,20·0,20·0,19·0,17); o resto como era (Diego: *"não quer dizer que não saia nos outros… na Kings costuma sair mais goleada, até empate de goleada"*). + RITMO por jogo (0,75×–1,5×, sorteio próprio). Medido: ~10,6 gols/jogo, 46% goleada de 4+, 22% com 13+ gols, empate 4x4+ 8%. Trava da média subiu pra 12.
+- ⚠️ Ainda pendente com o Diego: avisos como faixa embaixo do placar (sim/não) · escalonado do começo terminar no 6' (sim/não).
+
+## 👑 11/11 ~22h20 — Kings: campinho com poucos + pênalti "esticou" (FEITO no branch, falta OK pra publicar)
+- 📺 Campo 2D com 1×1…5×5: entravam primeiro os ATACANTES e ficavam no lugar do 7×7 (todos na frente, buraco atrás). Agora quem está
+  em campo ganha desenho próprio pro número (`arrumaPoucos` no campo2d-motor.ts: 2×2 = um atrás/um na frente; 3×3 um por linha; 4×4
+  losango; 5×5 2-1-2) e volta pro lugar de verdade no 7×7. `npm run campo2d` ✅.
+- 🥅 Pênalti: pela regra, goleiro do mesmo lado na altura errada pega metade das vezes; a tela mostrava a luva num canto e a bola em
+  outro com "DEFENDEU" (testador achou que era bug). Agora a luva aparece onde a bola foi + "ESTICOU E PEGOU" (só desenho).
+- ⚖️ Força do time na Kings pesava pouco (diferença média: forte vencia 59% × 65% no normal; grande 79% × 96%). Expoente 1,4 → 4 (teto
+  2,6), com a SOMA dos dois igual (média segue ~8,5 gols). Medido em 1.350 jogos: 55% · 59% · 65% · 95% — igual ao modo normal.
+- ⚽ Gols do 1×1–6×6 (24% dos gols em 7 de 40 min) e gol no período do gol que vale 2 (25% dos jogos = o "3 pra 1" dele) já batiam: não mexi.
+- ⚽ Bola da gaiola: a regra já sorteava (52% casa); o campinho 2D é que sempre dava a saída pra casa — agora começa com quem pegou.
+- ❓ Perguntas abertas pro Diego: (1) avisos de texto viram faixa embaixo do placar (dado/roleta/cobrança seguem grandes)? (2) escalonado
+  do começo: hoje 1×1 (goleiro + 1) do 0' ao 2' e 7×7 no 7'; o testador diz que contando o goleiro já começa 2×2 e acaba no 6'. (3) "no
+  shootout tá bugando" — falta detalhe/print (o conserto do banner travado só chegou às 22h15).
+
+## 👑 11/11 ~21h45 — Kings: banner travado + infos embaixo do placar + avisos mais curtos (PUBLICADO 11/11 ~22h, Diego: "Sim")
+- 📺 Campo 2D VOLTOU na Kings (só contas da Kings), a pedido dele: *"coloque o campinho 2D também e depois eu decido se deixo ou tiro"*. PENDENTE: ele decidir.
+- 🏷️ Formação da Kings aparece como **2-2-2** (`rotuloFormacao` em types.ts; a chave `kings` continua no save).
+- ⏩ 21h54 (Diego no 4×: *"nem consigo ver o jogo rolando… decisivos um pouco mais lentos… 7x7 corre rápido"*): lance decisivo com ritmo PRÓPRIO, 2,5 s por minuto da Kings no Normal, marcha só pela raiz (4× = 1,25 s); 7×7 segue no ritmo da sala × marcha. Respiro em volta de carta/presidente encurtado (±3 → −1/+2). Mediana: Normal 2min09 · 2× 1min44 · 4× 1min29.
+- 🚫 Lateral: com os jogadores padrão a Kings punha 1 lateral solto no leilão (piso de 1 no `buildDeck`). Agora setor com demanda 0 não ganha carta (só a formação `kings` tem 0). Trava no `npm run kings-baralho`.
+- 🐛 "36' · EMPATE = SHOOTOUT" ficava TRAVADO: a cena do match ball e o fim do jogo caíam no mesmo passo e o relógio parava antes
+  de fechar a cena. Agora só para depois de a cena sair (`useRelogioKings`, flag `fim`).
+- 📌 EM CAMPO, efeitos valendo (jogador estrela, gol em dobro, suspensão, cartões) e o shootout agora ficam LOGO ABAIXO do placar
+  cinema (`kingsInfo`), na liga e no mata-mata — antes ficavam embaixo do telão.
+- ⏱️ Partida Rápida: avisos de leitura a ~55% (carta com piso 4,5 s pra roleta; pontapé com a contagem de 5 s, escolha e cobrança
+  ficam iguais). Jogo mediano no Normal: 1min52 → 1min30.
+
+## 👑 10/11 madrugada — Kings vira TIPO DE LEILÃO + baralho próprio da Kings (PUBLICADO 11/11 com o OK do Diego)
+- 4ª opção em "Tipo de leilão" (só KINGS_TESTERS) → escolhe "Jogadores da Kings League" ou "Jogadores padrão". 91 cartas em
+  `kings-baralho.ts`, que nunca vazam pra outro leilão. Kelvin da Kings = rosto do K9. Detalhes e travas em `docs/conceito-kings-league.md`.
+- Diego: *"só deixe abrir com 10 times"* (já era: na Kings somem rivais, times na liga e "depois da liga" — a competição é a da Kings). Tirada a frase "não aparecem em nenhum outro leilão" (*"não tem necessidade de avisar"*). Yan Coringa = Funkbol (Diego confirmou).
+
+## ⏩ 10/11 noite — Kings PARTIDA RÁPIDA: ritmo da sala online + lento nos lances decisivos · Kings SEM Campo 2D (PUBLICADO 11/11)
+- Diego: *"não coloque mais campo 2D na Kings League"* → a Kings é sempre no placar (Botao2D some na Kings; `c2d` do placar ignora a Kings).
+- Diego: *"quero do placar rápido igual sempre foi nas salas online… nos lances decisivos (1x1… 6x6, cartas, gol dobrado…) reduza… no 7x7
+  volta pro padrão"* → Partida Rápida da Kings: bola rolando no ritmo da sala online (9 s por jogo ÷ marcha) e a 60% disso (2,5→1,5) no
+  1×1–6×6, gol dobrado, dado, bola/match ball do fim e ±1 min em volta de carta e pênalti do presidente (`trechosDecisivosKings`). A rodada
+  dura o que o SEU jogo precisa (`kingsRapidaRoundMs`). Sala online da Kings: régua antiga intacta.
+- Medido (36 jogos): Normal ~1min52 (antes 3min43) · 2× ~1min34 · 4× ~1min24. O grosso que sobra são as CENAS (pontapé, entra jogador,
+  carta, dado, banners, cobrança) ~1min20; bola rolando ~11 s no Normal. Se ele quiser mais rápido, o próximo corte é nas cenas.
+- (A versão anterior desta noite — "a marcha vale pro jogo todo" — foi substituída por esta.)
+
+## 🐢 10/11 16h14–16h18 — SERVIDOR TRAVOU 4 MIN (Kelvin/K9 não conseguiu criar sala: nasceu vazia, C8PGSV)
+- Banco sobrecarregado (pedido de 0,02 s levando até 20 s, timeouts). Pesos: cron `esc-cla-limites` (levou 18 s), `esc_avisos`
+  (1,3 mi de chamadas, ~83 ms), `esc_nomes_sem_escudo` (~540 ms) e `esc_meu_nome_fake` (~400 ms).
+- Feito (Diego: *"tira essa porra de nome fake… a do clãs aumenta o tempo"*): cron dos clãs **5 → 15 min** (direto no banco,
+  `cron.alter_job`); selo 🎭 FAKE DESLIGADO no aparelho (`NOME_FAKE_LIGADO = false` em apoio.tsx — ninguém leva o selo até ele decidir).
+- ✅ `esc_avisos` (sininho): 1 min → **3 min** e **parado durante a partida** (pergunta na hora ao voltar pra home) — Diego: "sim".
+- ⏭️ `esc_nomes_sem_escudo` (~540 ms, 59 mil chamadas) ainda pesado.
+- ⏭️ Painel do Criador: `esc_admin_dashboard` / `esc_admin_funil_mensal` passam dos 8 s (usuários online não carregam). Diego: "Sim"
+  pra consertar DE MADRUGADA (DDL recarrega a API). Lembrete marcado pra 11/11 04h10 (Brasília). `SET statement_timeout` na função NÃO
+  resolve — tem que achar a parte lenta (índice/varredura).
+- 🛑 BANCO RELENDO O SAVE DA SALA (game_rooms na publicação do Realtime → cada gravação de 3 s é relida; maior gasto do banco em
+  pg_stat_statements). Diego, 10/11: *"NÃO pq n entendi… e se isso vai gerar bugs e travas… tem que fazer testes de simulação
+  sozinho antes"*. NÃO MEXER até: montar a mudança numa cópia (ex.: lista de colunas na publicação SEM `game_state` — cuidado: a sala
+  de Copa (`mode='mundo'`) lê `game_state` pelo aviso do banco em lobby.tsx), testar no simulador/bancada e levar o RESULTADO pra ele.
+- ✅ Publicados 10/11 ~16h35: conserto da carreira que não coube (Lucas Barreto), selo FAKE desligado, sininho 3 min.
+- ✅ 10/11: cache privado da lista de nomes aplicado, com invalidação imediata e cálculo original como alternativa. Índice de presença e cálculo único por clã também aplicados. Criação agora atômica, com prazo e recuperação da mesma tentativa. Ver `docs/custos-salas-20261110.md` para medidas, testes e reversão.
+
+
+## 📱 11/11 — Carreira voltando pra temporada velha em aparelho cheio (Lucas Barreto 30) — PUBLICADO 11/11
+- Nuvem dele estava CERTA (temporada 114, salva 10/11 21h39). O aparelho estava cheio: a carreira é guardada 2× no aparelho
+  (`esc-solo-career` e a "partida em andamento", ~2,7 MB cada) e a 2ª gravação falhava calada, deixando a cópia da 113 — que o jogo
+  abre DIRETO ao ligar, antes de olhar a nuvem.
+- Conserto: gravação que falha apaga a cópia velha · ao ligar, carreira em andamento mais atrasada que a do aparelho não abre (vai pra
+  home, que junta com a nuvem). Trava `npm run save-velho`. Paliativo até publicar: ir no Menu inicial e tocar em Continuar.
+
+## 🪑 10/11 — Liga: quem tem time volta pro mesmo lugar (FEITO no branch, falta publicar com OK do Diego)
+- Regra do Diego: o time só deixa de ser do jogador quando o DONO remove. Saiu/caiu no meio da temporada → volta pro mesmo time.
+- Código: `KICK_PLAYER.peloDono` apaga o crachá só na remoção do dono · `RETOMA_TIME` devolve o time · `lobby.tsx` (enterRoom/triggerStart)
+  deixa voltar com o time na mão da máquina · o aparelho que voltou pede o time de 5 em 5s até o dono responder. Trava `npm run liga-volta`.
+- Banco (já aplicado em 10/11): quem tem time na liga recria a vaga sem plano (`docs/sql/liga-membro-volta.sql`).
+- ⚠️ Só vale quando o DONO da sala já estiver na versão nova (é o aparelho dele que devolve o time).
+- Ficou de fora: gravar o motivo quando a volta é recusada (ofereci, sem resposta).
+
+## 📱☁️ 10/11 — CARREIRA QUE NÃO COUBE NO APARELHO FICAVA INVISÍVEL (Lucas Barreto 30, T113 "sumiu" do celular e do PC) · no branch
+- A T113 (2,5 MB) estava INTEIRA na nuvem (`esc_pyramid_saves`, junto com a T7 nova). Cópia de segurança feita em `esc_saves_backup`
+  (id c948506f-45f5-4454-ac1e-b0977baca775).
+- Causa: aparelho cheio → `syncCareersWithCloud` não grava e guarda só a ATIVA na memória; `listAllCareers` só mostrava a memória
+  se fosse a MESMA carreira do aparelho. Agora todas as que desceram ficam em `carreirasEmMemoria`, a lista mostra todas e
+  `activateCareerSlot` abre a que não coube (no aparelho se couber; senão joga da memória sem mexer no que está no aparelho).
+  Trava: `npm run troca` (caso 4c). O teste agora roda sem vigiar arquivos (`watch: null`): as pastas de agentes estouravam o limite.
+- ⏭️ Diego quer o botão SAIR com escolha "sair salvando / sair sem salvar" (hoje só existe "Sair e salvar") — MOCKUP antes.
+
+## 💤 10/11 — Sala parada na TELA DE FIM dorme depois de 20 min (Diego: *"ok pode ser mas deixe com 20 min"*) · ✅ PUBLICADO 10/11 (*"Sim"*)
+- Achado do vigia: sala que acabou e ficou aberta (BHZBJB 14 h, KKXFY2) seguia perguntando ao banco a cada 3 s (quem está na sala +
+  quem é o dono, em TODO aparelho) e o dono gravando o batimento a cada 3 s — a noite toda.
+- `src/escalacao/sala-dorme.ts`: só na tela `end`, 20 min sem toque/tecla/mudança na partida = para o batimento do dono, o heartbeat de
+  estado, as vigias da coroa (dono e convidado) e o "quem está na sala" da tela de fim (screens.tsx). Qualquer toque, voltar pra aba
+  ou mudança acorda; quem acorda pede o estado e o pedido acorda o dono. Fora da tela de fim NUNCA dorme. Trava: `npm run sala-dorme`.
+
 ## 🎨 10/11 — Clube, presidente e rivais: prévia aprovada e publicação autorizada
 
 - Diego aprovou as capturas de celular/desktop e autorizou em 10/11: “Ok, pode publicar. Pode publicar”. Implementado no branch `visual/entrada-carreira-20261110`, com liberação geral na carreira solo: três etapas com cabeçalho/rodapé atuais, progresso Clube → Presidente → Rivais → Aprender, ação principal clara e ida ao tutorial publicado.
@@ -29,7 +281,7 @@
 - Banners existentes têm resumo e detalhes expansíveis no solo. Ajuda da Central guarda explicações aprendidas. Regras, prazos, economia, salvamento em nuvem e transporte online não foram modificados.
 - Prévia e evidências: `/workspace/shared/inicio-carreira-20261110/`. Bancada local `scripts/teste-inicio-carreira/index.html`; regressão reproduzível em `node scripts/testa-inicio-carreira.mjs`. Não entra no build público. Testes completos de navegador: 390/320/1440 px, treino sem gasto, lance real, contraste, atalhos, condição física e retomada, moral e reservas. Comparações completas de antes/depois para celular e desktop prontas (HTML/PDF), com 13 etapas. TypeScript e build de produção passaram; 33 verificações funcionais, 13 de regras/navegação, 9 cenários de layout e o pulo do tutorial/retorno ao modo carreira passaram.
 
-## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · no branch, esperando "publica"
+## 💸📡 10/11 — Bio fora do rádio da sala (−27 a −31% do que o dono manda) · ✅ PUBLICADO 10/11 (*"Sim"*)
 - Medido no banco: o rádio dos convidados (`state`) = **32 GB/dia**, ~54 KB por envio. O texto de história (bio) das cartas era ~30%.
 - Agora a carta cuja bio é igual à do catálogo vai sem o texto (`_b: 1`) e o convidado põe de volta (`tiraBioDoRadio`/`poeBioDoRadio`,
   store.tsx). Só o rádio; o save no banco não muda. O simulador confere em TODO estado que o que chega é igual ao que saiu:
@@ -13217,3 +13469,140 @@ Atendidos os novos prints do Diego: só um código grande na espera; botão de i
 ### 09/11 — Convites compactos junto do código (prévia privada)
 
 Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do código. Retirada a seção separada. Campo de senha das ligas fica recolhido; copiar código continua no próprio código. Apenas a conta principal recebe o ajuste. Build, isolamento, 11 casos de layout e duas conferências funcionais passaram; detalhes em `docs/convites-no-cabecalho-privado-20261109.md`.
+
+## 10/11 — 🎨 Tema da sala na FESTA DE CAMPEÃO (aprovado: *"da festa de campeão eu gostei… pode fazer sim"*)
+- ✅ Feito no branch: quando o CAMPEÃO (liga ou copa da sala) é o DONO da sala e a sala tem tema, o fundo da festa vira o tema
+  (listras do time de coração ou o pano do clube) + selo "❤️ TEMA FLAMENGO" no topo. Escudo, mascote e troféu continuam os do campeão.
+  Todo mundo da sala vê. Lê `game_rooms.host_id` + `game_state->tema` UMA vez quando há festa. (`temaDaFesta` em temas-sala.tsx,
+  prop `tema` no `FestaCampeao`, screens.tsx.) Foto real: `scripts/mockups/festa-tema-flamengo-real.png`.
+- ✅ Publicado na main em 10/11 (ordem do Diego: *"publique"*), junto com o escudo grande na sala e o escudo pequeno na festa. A tela "ov3" (só conta do Diego, `useOwnerLayout`) ainda NÃO mostra o tema.
+- 🚫 Recusados no mesmo dia: tema no cartão da lista de salas (*"gostei não"*). Tema na HOME do dono: mockup feito, ele não aprovou.
+- ✅ Tema ❤️ Flamengo dado na conta do Diego (Neymarzetti), `esc_temas_conta` id 11, origem manual.
+
+## 10/11 — 👑📺 Campo 2D da Kings League (aprovado no mockup)
+- ✅ Feito no branch, só na conta de teste. Detalhe em `docs/conceito-kings-league.md` (seção 10/11).
+- ⏳ Falta: Diego testar na Partida Rápida da Kings (ligar o 📺 2D) e mandar publicar/liberar pra todos (tirar a trava `useCampo2DTester`
+  em `Botao2D` e no `LiveScoreCard`). A final "dos outros" (neutra) no mata-mata da Kings segue no placar normal.
+
+## 10/11 — 🚪 "sair do jogo" alinhado no computador
+- Pedido: *"o sair do jogo… está desalinhado… deveria estar alinhado junto com o modal de cima… em qualquer modo e competição"*.
+- Feito no branch: no PC o rodapé copia posição e largura da coluna da esquerda (`.ll-auction-main` no leilão, `.ll-col-main` nos jogos);
+  sem essa coluna ou no celular fica como sempre. ✅ Publicado pra todos em 10/11 (*"sim p todos ja"*).
+- (Kings: confirmado pra ele que o mano a mano e o tempo de 12 s nunca saíram da Kings da Partida Rápida; a saída do campinho voltou
+  a escolher o batedor exatamente como antes.)
+
+## 10/11 — 🔁 Liga: quem já foi membro volta sem plano (sala XUPREG do Reffati)
+- Caso: o Realengo FC (sem plano) caiu, o time virou bot (uid nulo no fecho da T1) e a volta dele foi barrada pelo `LIGA_SO_PLANO` (06/11).
+- 🔁 Régua corrigida pelo Diego no mesmo dia: vale pra quem o TIME AINDA ESTÁ na liga (o dono não removeu), não pra todo ex-membro.
+- ✅ Banco (aplicado, `docs/sql/liga-membro-volta.sql`): tabela `esc_liga_membros` (gatilho em room_players + carga do que já existia);
+  ex-membro pula a checagem do PLANO no gatilho e no `esc_liga_pedir`. A volta continua pelo PEDIDO (dono aceita e escolhe o time, na virada).
+- ⏳ Não provado: POR QUE a cadeira dele virou bot (sala apagada). E no MEIO da temporada quem perdeu a linha em room_players ainda vê
+  "Você não está nessa sala" (lobby `enterRoom`) — só volta na virada. Se o Diego quiser volta no meio, é mudança de cliente (cadeira: cuidado).
+
+## 👑🌭 11/11 — Batismo Calabresos FC (silviovicente87)
+- ✅ Escudo (282×320, 29 KB), mascote "O Rei Calabresa" (281×440, 40 KB), manto preto #16100E + vermelho #C71D07 (medidos na camisa), camisa do salão, tier ouro.
+- ✅ Banco: esc_socios (sócio nº87 — o 86 fica guardado pro Double Duo, cuja conta ainda não existe), esc_nomes_batismo (Calabresos / FC / EC), user_colors ouro manual.
+- 🪑 SEM vaga na pirâmide (Diego: *"não precisa pôr ele em divisões"* — joga sempre na sala do K9). Sem número de fundador (batismo, regra 14/10).
+- ✅ Post: `scripts/posts/batismo-calabresos.png`. ⏳ Falta só o time de coração (se o Diego souber).
+
+## 👑😴 11/11 — Batismo Goti FC (klebim877) ❤️ São Paulo
+- ✅ Escudo (281×320, 29 KB), mascote "O Goti" (270×440, 42 KB), manto branco #FCF9F9 + vermelho #D70506 (+ preto #0C0909 em MANTO_TRI), camisa do salão, tier ouro.
+- ✅ Banco: esc_socios (sócio nº88, time de coração São Paulo), esc_nomes_batismo (Goti / FC / EC), user_colors ouro manual.
+- 🪑 SEM vaga na pirâmide (joga na sala do K9, igual ao Calabresos). Sem número de fundador (batismo, regra 14/10).
+- ✅ Post: `scripts/posts/batismo-goti.png`.
+
+## 🎩 12/11 — Kings: PRESIDENTE vira a 5ª posição do leilão (mockup `scripts/mockups/kings-presidentes.png`, esperando OK)
+- Diego: *"add todos esses presidentes como se fosse uma posição da Kings… presidente vem depois do atacante… não bota repetido… Gaules sem apelido"* + Juninho Manella (FURIA).
+- Decidido (1s 2s 3s 4s): o presidente comprado bate o 🎩 pênalti do presidente (nome na tela), não muda a força do time · TODOS com a mesma força (nem o Neymar acima) · Kelvin Oliveira fica como jogador E presidente · só na Kings (Partida Rápida e salas, os dois baralhos).
+- 29: Allan Stag (Dibrados) · Gaules (G3X) · Jon Vlogs, Luva de Pedreiro, Racha (Capim) · Paulinho o Loko, LuquEt4 (Dendele) · Toguro, Nobru, Cerol, Benja (Fluxo) · Yuri 22 (Desimpedidos Goti) · Ludmilla, Whindersson Nunes, Lucas Freestyle (FC Real Elite) · Kond (Funkbol) · Michel Elias, MC Hariel, Igão (Podpah Funkbol) · Neymar Jr., Cris Guedes, Juninho Manella (FURIA) · Kelvin Oliveira (G3X) · Coringa, Brabox (LOUD) · Nyvi Estephan, Falcão (Nyvelados) · Renatin (DesimpaiN) · Lucas Tylty (Dibrados).
+- ✅ FEITO no branch (12/11): motor (vaga LAT = presidente, ordem GOL·ZAG·MEI·ATA·🎩 via `ordemSetores`, presidentes fora da força/gols/2D, nome no pênalti do presidente) + carta nas cores do time (sem retrato, selo PRES) + faixa do presidente embaixo do campinho da Kings. Bancada `scripts/teste-presidentes`, foto `scripts/mockups/kings-presidentes-cartas.png`. Travas: `npm run kings-presidentes` + kings/kings-baralho/kings-sem-lateral/envelope-unico atualizados. ⏳ Esperando OK visual do Diego pra publicar.
+- 🔁 Juninho Manella SAIU (*"não coloque mais"*) → 28 presidentes. Força: TODOS IGUAIS (nem o Neymar acima).
+- 🎨 Carta do presidente = carta PADRÃO, mas no lugar da cor de categoria vai o VISUAL DO TIME na carta toda (sem boneco/avatar). Leilão igual, só a 5ª posição depois do ataque.
+- Cores (escudos pesquisados + 2 prints do Diego): FURIA preto/branco · LOUD verde-esmeralda/preto · Capim verde-bandeira/branco · Nyvelados preto/rosa-choque · Real Elite azul-royal/branco · Dendele azul-royal/amarelo-ouro · Funkbol magenta/preto · G3X branco com verde/amarelo · Fluxo vermelho-alaranjado/preto · DesimpaiN preto #040202/vermelho #DB3223 (+azul #4789D8) · Dibrados roxo #622F6F/#270E36.
+- 🟢 **PUBLICADO 12/11 (~10h, OK do Diego "pode sim")** pros testadores da Kings (Diego, K9, Chinesin): presidentes no leilão + carta nas cores do time + 🎩 pênalti do presidente com o disco entrando na arena (placar e 2D, dentro dos 5s da cobrança; foto `scripts/mockups/kings-penalti-presidente-cinema.png`).
+- 🎨 Real Elite remedido no escudo: azul `#0030F0` + rosa `#F03078` (Diego: *"tem rosa"*). ⏳ **Pendente**: as cores de Furia, Loud, Capim, Nyvelados, Dendele, Funkbol, G3X e Fluxo vieram de pesquisa, NÃO do escudo — pedi os escudos ao Diego pra medir. (Desimpain, Dibrados e Goti já medidos nas logos dele.)
+- 🟢 **12/11 ~17h: KINGS LEAGUE LIBERADA PRA TODOS** (Diego: *"pode publicar pra todos e coloca uma de graça, igual às salas rápidas… mesmos R$ 4,90… ou R$ 9,90 mensal, ou ver todos os planos"*). `KINGS_GERAL = true` (sport.ts). Criar sala da Kings conta como a sala grátis do dia — o gatilho `esc_sala_por_dia` já vale pra qualquer sala (nada mudou no banco). Sala continua sempre com senha. Selo NOVO no lugar do "🔒 Só Diego, K9 e Chinesin". Novidade na home. Vídeos (`scripts/video-kings-reels.mjs`) com "chegou"/"já no ar".
+- 🔓 **13/11: sala da Kings deixa de ser obrigatoriamente com senha** (Diego: *"não precisa ser com senha… ao criar sala o usuário decide. E quem não tiver plano pode entrar de graça… sempre criar apenas uma e entrar quantas quiser"*). Entrada Aberta/Com senha igual à sala rápida. Criar continua = sala grátis do dia; entrar sempre livre.
+- 🩷 **13/11: selo ROSA "👑 KINGS LEAGUE" nas salas abertas** (Diego: *"coloque selo rosa"*). A lista magra não traz a formação: a pergunta dos ids de sala Kings (já existia, pra esconder dos não-testadores) agora marca a sala e o selo rosa entra no lugar do selo do baralho.
+- 👑 **13/11: sala da Kings com o BARALHO DA KINGS = máx. 10 pessoas** (`KINGS_SALA_MAX`, lobby.tsx). Causa: sala FDBQPN com 16 pessoas → faltaram zagueiros reais e entraram 8 incógnitas (Valdir Trovoada, Gonçalves Maestro…, clube Mixto). Com jogadores padrão não tem limite. ⏳ Pra subir pra 20: faltam ~53 nomes da Kings (+4 GOL, +18 ZAG, +16 MEI, +15 ATA) — Diego vai juntar. E o campinho da Kings perdeu o emoji da categoria (só cor, posição e nome).
+- 🎩 **13/11: revelação do presidente mostra a CARTA aprovada** (cores do time, sem rosto) no lugar da linha de texto (Diego, print na sala do Futpoint).
+- 🏷️ **13/11: "Foi profissional" virou "Profissional"** (EN "Pro") em toda a tela (cartas, rótulos, técnicos, olheiro, Liga Draft). Só o nome; regra igual.
+
+- **13/11 — Fundador sem contato: lucassaboia14@gmail.com** (pagou o 🖋 Fundador e não falou com o Diego). Aviso id 68 em `esc_avisos_conta` com o WhatsApp e o Instagram do Diego. Quando ele chamar, seguir o roteiro de batismo (arte + as 4 linhas no banco).
+
+## 🐐☀️ 13/11 — Batismo FUNDADOR Cabritiiin F.C (lucassaboia14) — PUBLICADO
+- Várzea, no assento do bot Unidos da Resenha (A–D cheias de batismo; o Diego escolheu a Várzea). Berretinho segue na Série D.
+- Fundador nº101 (o nº100 está guardado pro Double Duo FC, que ainda não tem conta) · sócio nº89 · coração Ceará.
+- Escudo/mascote/camisa recortados da prancha verde (`recorta-prancha-chroma.py`); manto azul #0159C7 + branco #F6F6F6 medidos.
+- Banco: esc_socios, esc_fundadores, esc_nomes_batismo (cabritiiin / FC / EC / F.C); user_colors ouro já estava.
+- Gala única "Direto da Terra do Sol" (`gala-cabritiiin.tsx`), vídeo `scripts/posts/gala-cabritiiin.webm`. Sem som: falta o canto (Fundador tem direito).
+- Post: `scripts/posts/batismo-cabritiiin.png`.
+- Ficha do clube depois do Pix (Batismo/Fundador, WhatsApp obrigatório, aviso de 24h) publicada junto.
+- ⚠️ Lucas pagou também R$ 19,90 de escudo avulso (11/11) — o Diego decide se devolve.
+
+## 💳 13/11 — Planos: FICA TUDO COMO ESTÁ (decisão do Diego)
+- Discutimos mensal × plano de uma vez × pacote vitalício. Números de 30 dias: planos de uma vez ~R$ 1.800; mensais ativos ~R$ 710/mês (46 Salas + 17 Completo). Conclusão: não mudar a estrutura.
+- 🚫 Aviso "você pode cancelar o mensal" pra quem tem plano de uma vez + mensal ativo: o Diego NÃO gostou ("N gostei n"). Não repropor.
+- Pendente: EhuLaion FC (sergioricardocf16) — Batismo por R$ 55 (Diego mandou; Fundador preço normal). Precisa mexer no `esc_mp_preco` (trava a API 1–3 min) → esperando o Diego dizer agora ou de manhã.
+- Pendente: tela do batismo mostrava "+ R$ 55" pro Craque mensal (corrigida no branch, commit "preço da tela segue a régua do banco") → esperando OK pra publicar.
+- 💳 13/11 (noite): preços de hoje arrumados na TELA (`precos-servidor.ts`: Loja, vitrine, janela do batismo e upgrade do Lenda leem o
+  preço do banco). O banco (`docs/sql/precos-tela-e-especial-20261113.sql`: preço especial + `esc_mp_meus_precos`) roda de madrugada
+  (mexe em função → engasga as salas). Até lá a tela usa a conta local (já corrigida pro mensal).
+- ✅ 14/11 04h30: parte do servidor dos preços APLICADA (migration precos_tela_e_especial_20261113). EhuLaion: Batismo 55 · Fundador 99,90. `esc_mp_meus_precos` no ar.
+
+## 🗺️ 13/11 — Mapa da carreira: revisão aprovada, implementação privada
+- Diego: **“Pode fazer tudo já então”**, após a proposta de reorganizar cidade, agência, comércio, patrocinadores, residência e museu. Branch `melhorias/mapa-clube-20261113`, base `027be9db`. **Ainda não publicado.** A autorização desta rodada é de implementação; manter a chave pública do mapa DESLIGADA (`PRESIDENCY_STADIUM_RELEASED=false`) e o controle adicional por conta do Diego. A prévia é local.
+- Câmeras “Meu clube”/“Ver cidade”, rótulos com limite e afastamento por tela; Locais agrupados; gestão do clube separada da residência e da agência. Obras abrem o painel existente, sem montar outro mapa.
+- Agência transferida para lote fora do estádio, fachada/telhado legíveis e pátio corrigido conforme orientação. Loja da torcida identificada por fachada e toldo; Shopping Legends com categorias compactas e indicação de compra em dinheiro real. Totens dos patrocinadores dentro dos próprios terrenos. Rotas/circulação preservadas.
+- Museu opcional: exige loja, 4 etapas de 20 moedas (80 no total), débito atômico com etapa esperada, salvo por clube. Acervo/títulos existentes, história e sala 3D; sem novas receitas, títulos ou premiações automáticas. Campo privado retirado do estado enviado às salas; carreira solo conserva a obra ao salvar/reabrir.
+- Casa/garagem com interior sob demanda; somente móveis/veículos possuídos. Exposição dos móveis casa/camarote sem duplicação ou cobrança. Desenho do mapa suspenso enquanto painel de gestão está aberto e retomado ao fechar; interiores liberam recursos ao desmontar.
+- Verificações: build, `npm run bagagem`, `test-map-private-gate.cjs`, `test-approved-map-release.mjs` e bancada `scripts/teste-mapa-clube-20261113/verifica.mjs` passaram (110 verificações e 16 capturas em 320/390/1440; nenhum erro JS). Inclusos bloqueio de outra conta, obra repetida, saldo, save, geometria/rotas, sobreposição dos rótulos e pausa de desenho.
+- Integração `scripts/teste-mapa-clube-20261113/integracao.mjs`: obras e museu abrem/retornam pelo fluxo real da carreira; outra conta mantém a tela normal. Somente o navegador local recebe o módulo de liberação com a chave ativa; fonte/configuração pública permanecem desligadas. Novas conquistas internacionais guardam o id do clube para conservar o acervo após renomear; teste de fixtures internacionais cobre o vínculo.
+- `scripts/testa-carreira-limpa.mjs` encontra duas falhas **anteriores** em `kingsBaralho` (START e START_ONLINE); reproduzidas sem alterações na base `027be9db`. Não alterar a Kings para esta entrega.
+- Evidências locais: `/workspace/shared/mapa-clube-20261113/antes-depois.html`, `verificacao.json` e capturas; comparações anteriores em `/workspace/shared/analise-mapa-20261113/`. Nenhuma conta real ou sala online usada/modificada; banco e publicações não alterados.
+
+## 🏪 13/11 — Reforma dos estabelecimentos comerciais do mapa
+- Diego aprovou a análise de fachadas e localização (**“Ok faça”**). Continuação no branch `melhorias/mapa-clube-20261113`, sobre `8aca4cd8`; **sem publicação** e com `PRESIDENCY_STADIUM_RELEASED=false` preservado.
+- Loja da torcida: um pavimento, vidro e caixilhos escuros em duas faces, marquise, frisos dourados, claraboia e escudo somente quando fornecido pela identidade possuída. Porta física e rota de pedestres existentes mantidas. Câmara dedicada mostra a esquina trabalhada; fachada já aparece na abertura.
+- Shopping: claraboia e acabamento das coberturas, vitrines/entrada; identificação “Planos e itens” para distinguir da loja da carreira; câmera mais próxima no celular. Vadico com placa integrada, portal e veículos existentes mais bem distribuídos, sem conceder carros ao usuário.
+- Parceiros: dSouza, Tidex, OittoLabs e Campo Grande em avenida comercial ao sul do anel, com terrenos reservados, calçadas e ligação viária própria. Atualizadas as aproximações decorativas dos funcionários e do society. Links, logos oficiais e contratos não alterados. Letreiros, vitrines e portais reforçados; logos do teto acima dos novos coroamentos. O rótulo do grupo fica na avenida, sem cobrir as marcas.
+- Câmera de abertura reenquadrada para incluir os quatro parceiros; vistas individuais e geral dos patrocinadores acompanham a nova planta. Nenhuma alteração na câmera ou no tamanho do placar/campo 2D do jogo.
+- Hotel com recepção/marquise/pátio e identificação em duas fachadas; bar com vitrine, nome e entrada; quiosques com balcões e identificação de atendimento. Museu construído recebe acabamento também na face vista pela abertura. Arena mantém sua cúpula e ganha portal, retirando o outdoor de cima.
+- Padaria mantém placa, toldo e moldura fora do horário; porta fechada representa o fechamento. Atividade/pessoas continuam seguindo o calendário. Letreiros noturnos usam emissão do material existente, sem novas luzes dinâmicas.
+- Geometria estática nova agrupada por material e descartada com o entorno. Sem novas imagens de fornecedores, chamadas de backend, alterações de saldo, saves, resultados, contratos ou salas online. A mudança dos quarteirões decorativos é a reserva dos novos terrenos comerciais; a casa do presidente conserva o terreno e a arte.
+- Evidências de antes: `/workspace/shared/auditoria-comercios-20261113/`; depois e verificações: `/workspace/shared/comercios-reforma-20261113/depois/`. Bancadas reproduzíveis: `scripts/teste-comercios-mapa/verifica.mjs` e `horarios.mjs` (calendário inicial explícito por URL; sem depender de atualizações do servidor de desenvolvimento durante a captura).
+- ✅ Verificado: `test-approved-map-release.mjs`, `test-sponsor-premises.mjs`, `test-sponsor-city-integration.mjs` e `test-map-private-gate.cjs`; quatro terrenos livres, rede viária conectada, portas livres e logos oficiais sem cobertura. Patrocinadores: 29 malhas, 3.088 triângulos e os mesmos 141.332 bytes de logos; descarte de texturas/geometrias/materiais conferido.
+- ✅ Navegador local: 30 vistas em 320/390/1440, com os quatro parceiros dentro da abertura e sem rolagem lateral; mais 7 estados de museu/calendário, padaria aberta/fechada e comércio noturno; nenhum erro JS. Integração da carreira: obras/museu e bloqueio da outra conta passaram. Compilação de produção conferida.
+- 📷 Entrega com 21 comparações: `/workspace/shared/comercios-reforma-20261113/antes-depois-comercios.html`; PDFs menores por assunto: `01-loja-shopping.pdf`, `02-patrocinadores.pdf`, `03-outros-estabelecimentos.pdf`. Abertura e leitura do relatório verificadas no computador/celular; PDFs divididos e conferidos (7, 8 e 9 páginas, incluindo capa).
+
+## 🏙️ 14/11 — Implantação urbana do entorno aprovada
+- Diego aprovou o estudo de antes/depois de 13/11 e autorizou executar a reorganização completa. Estádio preservado; pode remover casas genéricas e refazer ruas. A Casa Luca permanece no bairro sudoeste, com o conjunto unido (prédio, jardim, piquenique, quadra e estacionamento acessível), ligação de pedestres à praça e acesso próprio pela rua.
+- Branch local `melhorias/mapa-clube-20261113`, sobre `af1a52df`; **nenhuma publicação**. Mapa público continua `PRESIDENCY_STADIUM_RELEASED=false`; autorização da conta verificada não foi alterada.
+- Implantação compartilhada em `presidencia-implantacao-urbana.ts`: praça frontal para torcedores, museu a oeste e loja térrea a leste; bar e alimentação na borda da praça; hotel e acesso técnico pelo oeste. Agência e shopping na avenida comercial norte. Patrocinadores misturados: Tidex/Vadico ao norte, dSouza a leste, OittoLabs/Campo Grande ao sul.
+- Quatro compras de estacionamento preservadas (20+20+20+10 moedas, capacidades acumuladas 9/16/46/79), agora quatro setores do mesmo conjunto lateral, com entrada externa e espinha comum. As vagas físicas continuam conferindo com a capacidade econômica existente. Terreno futuro permanece reservado e não aparece como estacionamento antes da compra.
+- Linha do metrô horizontal na parte superior e duas chegadas com escadas/praças; bar removido da chegada da passarela. Rotas dos pedestres, portais, colisores, ônibus, vans, caminhamento até os assentos e retorno acompanham a nova planta. A geometria do estádio, portões e motor da partida não mudaram.
+- Rede viária externa conectada, sem ruas procedurais dentro do campus ou da Casa Luca. Canteiros/fonte fora do eixo central; costuras de pedestres em todas as fases. Piso do transporte respeita a altura declarada pelo seu plano físico. Soleira da loja permanece livre de rodapé opaco. Casa Luca identificada na abertura; câmeras de estabelecimentos acompanham os endereços novos.
+- Casa do usuário e Arena preservadas. Rua de acesso pela frente da garagem. Entrega de carros passa a sair da Vadico visível junto ao shopping, em vez do endereço oculto legado; continua reagindo apenas à posse já confirmada, sem cobrar ou conceder carros.
+- Verificações locais: `scripts/testa-implantacao-urbana.mjs` (planta/estádio, privacidade, Casa Luca, museu, trajetos, entrega de Fusca e cinco estados do estacionamento); economia e piso físico do estacionamento; `test-sponsor-premises.mjs`, `test-sponsor-city-integration.mjs`, `test-map-private-gate.cjs`; lifecycle do transporte e continuidade veículo→assento→retorno. Este último passou com 12.602 verificações de continuidade, 12.368 sondagens dos pés e 3.200 quadros de posse dos assentos.
+- Bancada visual reproduzível: `scripts/teste-implantacao-urbana/`, sem sessão real, sem persistência e com rede externa bloqueada nos testes. Evidências e relatório em `/workspace/shared/implantacao-urbana-20261114/`; estudo conceitual anterior em `/workspace/shared/plano-urbano-20261113/`.
+- ✅ Compilação de produção final passou. Navegador: 21 verificações e 23 capturas em 1440/390/320, sem erros JS, sem rolagem lateral e sem problemas reportados de circulação/transporte. Incluídos quatro momentos de cada serviço (metrô/ônibus/van), cinco estados do estacionamento e iluminação noturna. Testes de geometria confirmam a entrega do Fusca até a vaga da garagem, sem alterar carteira real.
+- Acabamento final do estacionamento: piso asfaltado nas fileiras e corredores, áreas verdes entre elas e faixa livre para circulação; capacidade econômica e 79 vagas físicas preservadas. Compilação e os testes físicos/geométricos passaram novamente. Capturas finais e PDF de cinco páginas conferidos.
+- Revisão de Diego sobre os vazios: perguntou se o estacionamento lateral seria do shopping. Esclarecido: lateral = estádio; shopping possui vagas próprias ao norte. Sugestão para próximo refinamento: identificação explícita do estacionamento do estádio e paisagismo com função nos vazios (árvores, bancos, caminhos), mantendo moradias e campinho no bairro. Não houve pedido para mudar novamente a posição do estacionamento.
+- 🦁🔵 14/11: tema do clube do Chelsão da Massa FC (comprado 09/11, estava 'producao' sem tema montado) — montado (`chelsao`, padrão temaFundador azul+dourado) e status ativo no banco. ⚠️ Toda compra de `tema_clube` nasce 'producao': tem que montar o tema e virar 'ativo' (hoje não há aviso pra isso).
+- 🪞 14/11: robô do clube de batismo aparecia junto do dono na sala (Príncipe Rubro Negro × 'Principe' sem acento). `tiraClonesSala` compara sem acento/FC. Liga que já começou com o clone segue com ele até recomeçar.
+
+## 🦁🇧🇷 14/11 — Batismo Leões da Tuf EC (sergioricardocf16, ex-EhuLaion FC) — dado pelo Diego, PUBLICADO
+- Várzea, no assento do bot Chuteira Rachada FC. Sócio nº90, sem nº de fundador (regra 14/10). Nome da conta trocado pra Leões da Tuf EC.
+- Manto branco #FEFEFE + vermelho #E90201 (3ª cor azul #0132AF em MANTO_TRI). Banco: esc_socios, esc_nomes_batismo, user_colors ouro.
+- O preço especial de R$ 55 (esc_preco_especial) fica sem efeito: ele já é batismo.
+- Post: scripts/posts/batismo-leoestuf.png. Coração: não sabemos.
+
+## 📋🏆 14/11 — Liga Draft + Copa dos 8 (no branch)
+- Criar sala: Só a liga / Liga + Copa dos 8 (só a Copa dos 8, ordem do Diego). Prêmio: campeão/vice = moedas do 1º/2º da liga, semi 12, quartas 6, troféu pro campeão.
+- ✅ Banco liberado em 14/11 (migration liga_draft_copa8_20261114: draft aceita 'liga' ou 'liga_copa'). PUBLICADO com aviso: a ordem do draft é sempre pela tabela da LIGA.
+
+## 🛒 14/11 — Ambulantes na praça: investigação da prévia, sem mudança de produção
+
+- Reproduzida a praça vazia entre jogos e a mesma praça com seis barracas durante uma partida, em celular simulado no Leve. A regra existente esconde o grupo fora da jornada de jogo e aguarda chegada/descarga na preparação; a otimização não removeu os ambulantes.
+- Passaram a bancada de navegador, as 144.000 amostras das peruas e as verificações do dia de jogo. Sem acesso a conta, saves, salas ou banco; nenhuma publicação necessária.
+- A foto não revela a fase da sessão real; foi perguntado se havia partida rolando. Se havia, falta investigar o estado da jornada nessa sessão. Detalhes em `docs/mapa-ambulantes-20261114.md`; evidências em `/workspace/shared/mapa-ambulantes-20261114/`.

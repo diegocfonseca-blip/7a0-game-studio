@@ -53,6 +53,7 @@ import { GalaPiranhao, PIRANHAO_MS } from './gala-piranhao'
 import { GalaNeymarFC, NEYMARFC_MS } from './gala-neymarfc'
 import { GalaMonarca, MONARCA_MS } from './gala-monarca'
 import { GalaPaizao, PAIZAO_MS } from './gala-paizao'
+import { GalaCabritiiin, CABRITIIIN_MS } from './gala-cabritiiin'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -81,6 +82,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Piranhão FC': { ms: PIRANHAO_MS, Show: GalaPiranhao }, // 🐟🏛️ A Posse: Palácio, tapete vermelho, salva de 21 tiros, faixa presidencial e as piranhas (29/10, Fundador)
   'Lulubaba FC': { ms: LULUBABA_MS, Show: GalaLulubaba }, // 🧤🖤 O Paredão Alvinegro: estrela solitária, 3 chutes, o Goleiro pega no ângulo (29/10, virou Fundador)
   'Double Duo FC': { ms: DOUBLEDUO_MS, Show: GalaDoubleDuo }, // 👑💜 O Save: o jogo de manager abre, a escalação se desenha, os dois D viram o escudo e o Streamer sobe (09/11, Fundador nº100)
+  'Cabritiiin F.C': { ms: CABRITIIIN_MS, Show: GalaCabritiiin }, // 🐐☀️ Direto da Terra do Sol: o sol nasce no mar, jangada, listras azul e branca, o Cabritiiin desliza, brilho nos óculos, casco racha o chão (13/11, Fundador nº101)
   'dSouza FC': { ms: DSOUZA_MS, Show: GalaDsouza }, // 🐶💚 A Galeria: quadros de lenda acendem, a caixa dSouza cai, abre e o Pitbull sobe (28/10, Fundador)
   'Wen Milan B': { ms: WENMILAN_MS, Show: GalaWenMilan }, // 😈🔴⚫ fogo, tridente cravando, lambida na tela e a diabinha (17/10, Fundador)
 }

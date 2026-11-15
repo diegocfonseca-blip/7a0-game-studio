@@ -187,10 +187,14 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'danieltorresreus@gmail.com': 'ouro', // 👑 batismo FUNDADOR Monarca Tricolor (Série D, no assento do bot Excelsior SAF) + fundador nº99 + sócio nº85 (05/11, pago por fora no Pix).
   'enzocromero9@gmail.com': 'ouro', // 👑 batismo FUNDADOR Paizão FC (Série D, no assento do bot Monarca EC) + fundador nº98 + sócio nº82 (30/10).
   'bruno.cunha2007@gmail.com': 'ouro', // 👑 batismo FUNDADOR Piranhão FC (Série D, no assento do bot Continental Real) + fundador nº96 + sócio nº81 (29/10).
+  'klebim877@gmail.com': 'ouro', // 👑😴 batismo Goti FC (11/11; joga na sala do K9 — SEM vaga na pirâmide, decisão do Diego; ❤️ São Paulo). Batismo de 79,90: SEM número de fundador (regra 14/10).
+  'silviovicente87@gmail.com': 'ouro', // 👑🌭 batismo Calabresos FC (11/11; joga na sala do K9 — SEM vaga na pirâmide, decisão do Diego). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'danicorreafilho@gmail.com': 'ouro', // 🐆💜 batismo Milan Recifense (Série D, no assento do bot Dragão Imperial) + sócio (05/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'pedroglima50@gmail.com': 'ouro', // 👑 batismo Príncipe Rubro Negro (Série D, no assento do bot Aurora Suprema) + sócio (02/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo FUNDADOR Lulubaba FC (Série D, no assento do bot Fênix Dourada) + fundador nº95 + sócio nº80 (29/10; entrou como Batismo e subiu pra Fundador no mesmo dia).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
+  'lucassaboia14@gmail.com': 'ouro', // 👑 batismo FUNDADOR Cabritiiin F.C (Várzea, no assento do bot Unidos da Resenha) + fundador nº101 + sócio nº89 (13/11).
+  'sergioricardocf16@gmail.com': 'ouro', // 👑 batismo Leões da Tuf EC (Várzea, no assento do bot Chuteira Rachada FC) + sócio nº90 (14/11, dado pelo Diego). Sem nº de fundador (regra 14/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
   'sheeryarie772@gmail.com': 'ouro', // 👑 batismo FUNDADOR Neymar FC (Série D, no assento do bot Galáxia EC) + fundador nº97 + sócio nº77 (21/10; subiu de Batismo pra Fundador em 29/10).
   'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
@@ -315,6 +319,7 @@ const FUNDADOR_N: Record<string, number> = {
   // ⛔ LIGA QUANDO A CONTA EXISTIR (regra 07/09: mimo por e-mail antes da conta = quem criar primeiro leva):
   // 'doublecontatocomercial@gmail.com': 100, // 👑💜 Double Duo FC (09/11, plano Fundador) — o fundador nº100!
   'danieltorresreus@gmail.com': 99, // 👑⚪🔴⚫ Monarca Tricolor (05/11, plano Fundador)
+  'lucassaboia14@gmail.com': 101, // 🐐👑 Cabritiiin F.C (13/11, plano Fundador)
   'enzocromero9@gmail.com': 98, // 👑🎩 Paizão FC (30/10, plano Fundador)
   'sheeryarie772@gmail.com': 97, // 🐐👑 Neymar_FC (29/10, subiu de Batismo pra Fundador) // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
   'gfpicolo13@gmail.com': 93, // 📍 Futpoint FC (18/10, Diego deu o plano Fundador; o 92 está guardado pro Wen Milan B)
@@ -585,7 +590,11 @@ export async function carregaMedalhaDaSemana(): Promise<void> {
 export const MARCA_FAKE = ' 🎭FAKE'
 let nomeFake = false
 export function meuNomeFake(): boolean { return nomeFake }
+// ⏸️ 10/11 (Diego: *"tira essa porra de nome fake pra parar de pesar, depois vejo o que é"*): a consulta pesava no banco (~400 ms,
+// 73 mil vezes) e entrou na travada de 4 min das 16h14. DESLIGADA: ninguém leva o selo 🎭 FAKE até ele decidir. Religar = true.
+const NOME_FAKE_LIGADO = false
 export async function carregaNomeFake(): Promise<void> {
+  if (!NOME_FAKE_LIGADO) { nomeFake = false; return }
   try { const { data, error } = await supabase.rpc('esc_meu_nome_fake'); if (!error) nomeFake = data === true } catch { /* sem banco: sem selo */ }
 }
 // 💙 SELO DO PLANO CORAÇÃO (05/11, Diego): opcional, DESLIGADO até a pessoa ligar ("Mostrar meu selo"). É só um 💙 do lado do nome
@@ -603,12 +612,17 @@ export async function carregaSeloCoracao(liberada: boolean): Promise<void> {
 }
 /** 🛡️📧 02/11: nomes de conta que copiaram um batismo (o banco decide pelo e-mail) — o escudo do batismo não é desenhado pra eles */
 let nomesSemEscudoCarregado = false
-export async function carregaNomesSemEscudo(): Promise<void> {
-  if (nomesSemEscudoCarregado) return
-  try {
-    const { data, error } = await supabase.rpc('esc_nomes_sem_escudo')
-    if (!error && Array.isArray(data)) { registraNomesSemEscudo(data as string[]); nomesSemEscudoCarregado = true }
-  } catch { /* sem banco: fica como antes */ }
+let nomesSemEscudoPendente:Promise<void>|null=null
+export function carregaNomesSemEscudo(): Promise<void> {
+  if (nomesSemEscudoCarregado) return Promise.resolve()
+  if (nomesSemEscudoPendente) return nomesSemEscudoPendente
+  nomesSemEscudoPendente=Promise.resolve().then(async()=>{
+    try {
+      const { data, error } = await supabase.rpc('esc_nomes_sem_escudo')
+      if (!error && Array.isArray(data)) { registraNomesSemEscudo(data as string[]); nomesSemEscudoCarregado = true }
+    } catch { /* sem banco: fica como antes */ }
+  }).finally(()=>{nomesSemEscudoPendente=null})
+  return nomesSemEscudoPendente
 }
 /** separa o selo 🎭 FAKE do nome (pra desenhar ele como etiqueta vermelha) */
 export function separaFake(name: string): { nome: string; fake: boolean } {

@@ -102,6 +102,8 @@ export type ConfigPenaltisCampo = {
   invertido?: boolean
   /** ⏱️ segundos que a tela dá pra disputa (sala online / relógio do banco). A cena acelera por igual pra caber. */
   orcamento?: number
+  /** 👑 Kings: shootout em vez de pênalti (`campo2d-shootout.ts`) */
+  shootout?: boolean
 }
 export type EstadoPenaltisCampo = {
   reveladas: number; encerrado: boolean; mensagem: string; mensagemEn: string
@@ -140,17 +142,19 @@ export class DisputaPenaltisCampo {
   /** quanto a cena foi acelerada pra caber no orçamento (1 = ritmo natural) */
   readonly escala: number
   readonly times
+  /** 👑 Kings: a disputa é de SHOOTOUT (sai do meio-campo, 5 s, tenta driblar o goleiro) — ver `campo2d-shootout.ts` */
+  readonly shootout: boolean = false
   elapsed = 0
   preparado = false
-  private bolaInicial: Ponto = MARCA
-  private agenda: Trecho[][] = []
-  private inicio: Ponto[] = []
-  private ladoDe: Lado[] = []
-  private goleiros: [number, number] = [-1, -1]
-  private cobradores: number[] = []
-  private nomes: string[] = []
-  private seed: number
-  private naturalFim: number
+  protected bolaInicial: Ponto = MARCA
+  protected agenda: Trecho[][] = []
+  protected inicio: Ponto[] = []
+  protected ladoDe: Lado[] = []
+  protected goleiros: [number, number] = [-1, -1]
+  protected cobradores: number[] = []
+  protected nomes: string[] = []
+  protected seed: number
+  protected naturalFim: number
   readonly config: ConfigPenaltisCampo
 
   constructor(config: ConfigPenaltisCampo) {
@@ -165,16 +169,16 @@ export class DisputaPenaltisCampo {
   }
   /** instante (natural) em que o pé encosta na bola na cobrança k */
   contato(k: number) { return T.organizar + T.caminhar + PREPARO + k * T.passo }
-  private get t() { return this.elapsed / this.escala }
-  private lado(side: Lado): Lado { return (this.config.invertido ? 1 - side : side) as Lado }
-  private ladoQueBate(k: number): Lado { return this.lado(this.seq[k].side) }
-  private vai(i: number, t0: number, t1: number, pts: Ponto[], liso = false) {
+  protected get t() { return this.elapsed / this.escala }
+  protected lado(side: Lado): Lado { return (this.config.invertido ? 1 - side : side) as Lado }
+  protected ladoQueBate(k: number): Lado { return this.lado(this.seq[k].side) }
+  protected vai(i: number, t0: number, t1: number, pts: Ponto[], liso = false) {
     const ag = this.agenda[i], ult = ag[ag.length - 1]
     const de = ult ? ult.pts[ult.pts.length - 1] : this.inicio[i]
     const ini = Math.max(t0, ult ? ult.t1 : 0)
     ag.push({ t0: ini, t1: Math.max(ini + 1e-3, t1), pts: [de, ...pts], liso })
   }
-  private posicao(i: number, t: number): Ponto {
+  protected posicao(i: number, t: number): Ponto {
     let p = this.inicio[i]
     for (const s of this.agenda[i]) {
       if (t < s.t0) return p
@@ -290,7 +294,7 @@ export class DisputaPenaltisCampo {
     this.elapsed = Math.min(this.duracaoCena, this.elapsed + Math.max(0, segundos) * Math.max(.25, Math.min(4, velocidade)))
   }
   /** a cobrança "da vez" no instante natural t */
-  private daVez(t: number) {
+  protected daVez(t: number) {
     for (let k = 0; k < this.seq.length; k++) if (t < this.contato(k) + APOS) return k
     return this.seq.length - 1
   }

@@ -623,7 +623,7 @@ const GOL: C[] = [
   { name: "Marcos", club: "Palmeiras", year: 2002, fame: 5, lo: 90, hi: 95 },
   { name: "Dida", club: "Corinthians", year: 2000, fame: 4, lo: 83, hi: 90 },
   { name: "Fábio", club: "Cruzeiro", year: 2013, fame: 4, lo: 80, hi: 87 },
-  { name: "Jefferson", club: "Botafogo", year: 2013, fame: 3, lo: 72, hi: 79 },
+  { name: "Jefferson", club: "Botafogo", year: 2013, fame: 4, lo: 80, hi: 86 },
   { name: "Zetti", club: "São Paulo", year: 1993, fame: 3, lo: 75, hi: 82 },
   { name: "Carlos Germano", club: "Vasco", year: 1998, fame: 3, lo: 70, hi: 78 },
   { name: "Ronaldo Giovanelli", club: "Corinthians", year: 1990, fame: 3, lo: 68, hi: 77 },
@@ -639,7 +639,7 @@ const GOL: C[] = [
   { name: "Júlio César", club: "Flamengo", year: 2003, fame: 4, lo: 77, hi: 83 },
   { name: "Cássio", club: "Corinthians", year: 2012, fame: 4, lo: 81, hi: 87 },
   { name: "Weverton", club: "Palmeiras", year: 2019, fame: 4, lo: 77, hi: 83 },
-  { name: "Victor", club: "Atlético-MG", year: 2013, fame: 3, lo: 74, hi: 82 },
+  { name: "Victor", club: "Atlético-MG", year: 2013, fame: 4, lo: 81, hi: 87 },
   { name: "Danrlei", club: "Grêmio", year: 1997, fame: 3, lo: 70, hi: 78 },
   { name: "Aranha", club: "Santos", year: 2011, fame: 3, lo: 62, hi: 74 },
   { name: "Manga", club: "Botafogo", year: 1966, fame: 5, lo: 90, hi: 95, folk: true },
@@ -4253,6 +4253,8 @@ export const OLD_NAME: Record<string, string> = {
   'Milan Recifense': 'Dragão Imperial', // 🐆💜 batismo do danicorreafilho (05/11): assumiu o assento da Série D que era do bot Dragão Imperial — save antigo com Dragão Imperial vira Milan Recifense ao abrir.
   'Príncipe Rubro Negro': 'Aurora Suprema', // 👑🔴⚫ batismo do pedroglima50 (02/11): assumiu o assento da Série D que era do bot Aurora Suprema — save antigo com Aurora Suprema vira Príncipe Rubro Negro ao abrir.
   'Lulubaba FC': 'Fênix Dourada', // 🧤💛 batismo do lucasfonseca363 (29/10): assumiu o assento da Série D que era do bot Fênix Dourada — save antigo com Fênix Dourada vira Lulubaba FC ao abrir.
+  'Leões da Tuf EC': 'Chuteira Rachada FC', // 🦁🇧🇷 batismo do sergioricardocf16 (14/11): assumiu o assento da Várzea que era do bot Chuteira Rachada FC.
+  'Cabritiiin F.C': 'Unidos da Resenha', // 🐐👑 batismo FUNDADOR do lucassaboia14 (13/11): assumiu o assento da Várzea que era do bot Unidos da Resenha — save antigo com Unidos da Resenha vira Cabritiiin F.C ao abrir.
   'dSouza FC': 'Kombi United', // 🐶💚 batismo FUNDADOR do alexandre12cdm (28/10): assumiu o assento da Série C que era do bot Kombi United — save antigo com Kombi United vira dSouza FC ao abrir. (O Kombi United continua no jogo rápido.)
   'Vila Esporte Clube': 'Imperador SAF', // ⭐🦁 batismo do oluisantonio.contato (27/10): assumiu o assento da Série D que era do bot Imperador SAF — save antigo com Imperador SAF vira Vila Esporte Clube ao abrir.
   'Neymar_FC': 'Galáxia EC', // 🐐👑 batismo do sheeryarie772 (21/10): assumiu o assento da Série D que era do bot Galáxia EC — save antigo com Galáxia EC vira Neymar FC ao abrir.
@@ -4336,8 +4338,8 @@ export const CRIA_APELIDOS = [
 ]
 
 export const VARZEA_TEAMS: CareerTeam[] = [
-  { name: 'Bilu', team: 'Unidos da Resenha' },
-  { name: 'Careca', team: 'Chuteira Rachada FC' },
+  { name: 'Lucas', team: 'Cabritiiin F.C' }, // 🐐👑 clube BATIZADO por apoiador (lucassaboia14 — Cabritiiin F.C, ex-Unidos da Resenha, Várzea; plano FUNDADOR nº101 + sócio nº89; coração CEARÁ; escudo do bode de coroa e óculos escuros, mascote O Cabritiiin; azul #0159C7 + branco #F6F6F6 MEDIDOS na camisa, 13/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
+  { name: 'Sérgio', team: 'Leões da Tuf EC' }, // 🦁🇧🇷 clube BATIZADO por apoiador (sergioricardocf16 — Leões da Tuf EC, ex-Chuteira Rachada FC e ex-EhuLaion FC, Várzea; batismo dado pelo Diego; sócio nº90; escudo do leão de boné fazendo o L, mascote O Leão da Tuf; branco #FEFEFE + vermelho #E90201 MEDIDOS na camisa, 14/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Pastel', team: 'Atlético Pelada' },
   { name: 'Bode', team: 'Galáticos do Bairro' },
   { name: 'Zoinho', team: 'Real Domingueira' },

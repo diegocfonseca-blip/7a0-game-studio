@@ -290,6 +290,8 @@ export function AbaCla({ amigos, onPerfil, querCriar }: { amigos: { uid: string;
           <div key={b} style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: 5 }}><b style={{ ...OSW, fontSize: 17 }}>{a}</b><br /><span style={{ fontSize: 10.5, fontWeight: 700 }}>{b}</span></div>
         ))}
       </div>
+      {/* ⏱️ 10/11 (Diego: "avise sutilmente que o clã atualiza a cada 15 minutos embaixo"): o limite de vagas vem do cálculo do banco a cada 15 min */}
+      <p style={{ margin: '5px 0 0', textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: '#8a8270' }}>{tr('⏱️ As vagas do clã atualizam a cada 15 min', '⏱️ Clan slots refresh every 15 min')}</p>
       {c.pedidos.length > 0 && <div style={{ ...caixa, background: '#FFF3C4' }}>
         <p style={h3}>📩 {tr('Pedidos pra entrar', 'Join requests')} ({c.pedidos.length})</p>
         {c.pedidos.map(x => <div key={x.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 0', borderTop: '1px dashed #d8ccaa' }}>

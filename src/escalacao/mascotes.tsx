@@ -74,6 +74,8 @@ import cuiudosMascoteImg from './img/cuiudos-mascote.webp' // 🤠 Cuiudos FC (m
 import wenMilanMascoteImg from './img/wenmilan-mascote.webp' // 😈 Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import doubleduoMascoteImg from './img/doubleduo-mascote.webp' // 🎮 Double Duo FC (doublecontatocomercial): arte própria do dono, 09/11
+import calabresosMascoteImg from './img/calabresos-mascote.webp' // 🌭 Calabresos FC (silviovicente87): arte própria do dono, 11/11
+import gotiMascoteImg from './img/goti-mascote.webp' // 😴 Goti FC (klebim877): arte própria do dono, 11/11
 import monarcaMascoteImg from './img/monarca-tricolor-mascote.webp' // 👑 Monarca Tricolor (danieltorresreus): arte própria do dono, 05/11
 import paizaoMascoteImg from './img/paizao-mascote.webp' // 🎩 Paizão FC (enzocromero9): arte própria do dono, 30/10
 import piranhaoMascoteImg from './img/piranhao-mascote.webp' // 🏛️ Piranhão FC (bruno.cunha2007): arte própria do dono, 29/10
@@ -81,6 +83,8 @@ import milanRecifenseMascoteImg from './img/milan-recifense-mascote.webp' // �
 import principeMascoteImg from './img/principe-mascote.webp' // 👑 Príncipe Rubro Negro (pedroglima50): arte própria do dono, 02/11
 import lulubabaMascoteImg from './img/lulubaba-mascote.webp' // 🧤 Lulubaba FC (lucasfonseca363): arte própria do dono, 29/10
 import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
+import leoestufMascoteImg from './img/leoestuf-mascote.webp' // 🦁 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
+import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcMascoteImg from './img/neymarfc-mascote.webp' // 🐐 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
@@ -421,6 +425,16 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 👑 O MONARCA (mascote do Monarca Tricolor — danieltorresreus, 05/11): o goleiro-rei de preto, vermelho e branco, camisa 01 e
   // braçadeira de capitão, com a capa vermelha de arminho e a bola debaixo do braço. Arte do próprio dono. 📏 391×440, 39 KB — altura
   // 176. mascote_key = "monarca_rei".
+  // 😴 O GOTI (mascote do Goti FC — klebim877, 11/11): o próprio dono de venda nos olhos, relaxado no trono vermelho, camisa 22
+  // tricolor, pé na bola com a coroa. Arte do próprio dono. 📏 270×440, 42 KB — altura 176. mascote_key = "goti_rei".
+  goti_rei: (
+    <img src={gotiMascoteImg} height={176} width={Math.round(176 * 270 / 440)} alt="O Goti — Goti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🌭 O REI CALABRESA (mascote do Calabresos FC — silviovicente87, 11/11): a calabresa musculosa de coroa, óculos dourados e capa
+  // de arminho, braços cruzados, com o calção do clube. Arte do próprio dono. 📏 281×440, 40 KB — altura 176. mascote_key = "calabresos_rei".
+  calabresos_rei: (
+    <img src={calabresosMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Rei Calabresa — Calabresos FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🎮 O STREAMER (mascote do Double Duo FC — doublecontatocomercial, 09/11): o próprio dono, de braços cruzados com o uniforme
   // preto e roxo nº10 e o fone no pescoço, na frente do setup de stream (redes, monitor com o campinho, prancheta e o livro do
   // Leilão Legends). Arte do próprio dono. 📏 339×440, 43 KB — altura 176. mascote_key = "doubleduo_streamer".
@@ -448,6 +462,16 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
   // 🐶 O PITBULL (mascote do dSouza FC — alexandre12cdm, 28/10): o pitbull de boné e moletom dSouza FC carregando os quadros
   // das lendas, com as caixas da loja dele. Arte do próprio dono. 📏 398×440, 32 KB — altura 176. mascote_key = "dsouza_pitbull".
+  // 🐐👑 O CABRITIIIN (mascote do Cabritiiin F.C — lucassaboia14, 13/11): o bode de coroa e óculos escuros, braços cruzados,
+  // pé em cima da bola, camisa 10 listrada. Arte do próprio dono. 📏 300×440, 40 KB — altura 176. mascote_key = "cabritiiin_bode".
+  // 🦁🇧🇷 O LEÃO DA TUF (mascote do Leões da Tuf EC — sergioricardocf16, 14/11): o leão de boné virado e moletom do clube, fazendo
+  // o L, encostado no caixão. Arte do próprio dono. 📏 337×440, 43 KB — altura 176. mascote_key = "leoestuf_leao".
+  leoestuf_leao: (
+    <img src={leoestufMascoteImg} height={176} width={Math.round(176 * 337 / 440)} alt="O Leão da Tuf — Leões da Tuf EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  cabritiiin_bode: (
+    <img src={cabritiiinMascoteImg} height={176} width={Math.round(176 * 300 / 440)} alt="O Cabritiiin — Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   dsouza_pitbull: (
     <img src={dsouzaMascoteImg} height={176} width={Math.round(176 * 398 / 440)} alt="O Pitbull — dSouza FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1313,6 +1337,16 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Double Duo': 'doubleduo_streamer',
   'Double Duo EC': 'doubleduo_streamer',
   'Double Duo SC': 'doubleduo_streamer',
+  // 🌭 o Rei Calabresa carimba o gol do Calabresos FC (silviovicente87, 11/11).
+  'Calabresos FC': 'calabresos_rei',
+  'Calabresos': 'calabresos_rei',
+  'Calabresos EC': 'calabresos_rei',
+  'Calabresos SC': 'calabresos_rei',
+  // 😴 o Goti carimba o gol do Goti FC (klebim877, 11/11).
+  'Goti FC': 'goti_rei',
+  'Goti': 'goti_rei',
+  'Goti EC': 'goti_rei',
+  'Goti SC': 'goti_rei',
   // 👑 o Monarca carimba o gol do Monarca Tricolor (danieltorresreus, 05/11).
   'Monarca Tricolor': 'monarca_rei',
   'Monarca Tricolor FC': 'monarca_rei',
@@ -1349,6 +1383,17 @@ export const CARIMBO_GOL: Record<string, string> = {
   'dSouza': 'dsouza_pitbull',
   'dSouza EC': 'dsouza_pitbull',
   'dSouza SC': 'dsouza_pitbull',
+  // 🐐 o Cabritiiin carimba o gol do Cabritiiin F.C (lucassaboia14, 13/11).
+  // 🦁 o Leão da Tuf carimba o gol do Leões da Tuf EC (sergioricardocf16, 14/11).
+  'Leões da Tuf EC': 'leoestuf_leao',
+  'Leões da Tuf': 'leoestuf_leao',
+  'Leões da Tuf FC': 'leoestuf_leao',
+  'Leões da Tuf SC': 'leoestuf_leao',
+  'Cabritiiin F.C': 'cabritiiin_bode',
+  'Cabritiiin FC': 'cabritiiin_bode',
+  'Cabritiiin': 'cabritiiin_bode',
+  'Cabritiiin EC': 'cabritiiin_bode',
+  'Cabritiiin SC': 'cabritiiin_bode',
   // 🦁 o Leão carimba o gol do Vila Esporte Clube (oluisantonio.contato, 27/10).
   'Vila Esporte Clube': 'vila_leao',
   'Vila Esporte Clube FC': 'vila_leao',
@@ -1503,12 +1548,16 @@ export const MASCOTE_NOME: Record<string, string> = {
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
   piranhao_presidente: 'O Presidente', // 🏛️ Piranhão FC (bruno.cunha2007, 29/10)
   doubleduo_streamer: 'O Streamer', // 🎮 Double Duo FC (doublecontatocomercial, 09/11)
+  calabresos_rei: 'O Rei Calabresa', // 🌭 Calabresos FC (silviovicente87, 11/11)
+  goti_rei: 'O Goti', // 😴 Goti FC (klebim877, 11/11)
   monarca_rei: 'O Monarca', // 👑 Monarca Tricolor (danieltorresreus, 05/11)
   paizao_cartola: 'O Paizão', // 🎩 Paizão FC (enzocromero9, 30/10)
   principe_rubronegro: 'O Príncipe', // 👑 Príncipe Rubro Negro (pedroglima50, 02/11)
   puma_milan: 'O Puma', // 🐆 Milan Recifense (danicorreafilho, 05/11)
   lulubaba_goleiro: 'O Goleiro', // 🧤 Lulubaba FC (lucasfonseca363, 29/10)
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
+  leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
+  cabritiiin_bode: 'O Cabritiiin', // 🐐 Cabritiiin F.C (lucassaboia14, 13/11)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)
   neymarfc_bode: 'O Bode Rei', // 🐐 Neymar FC (sheeryarie772, 21/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)

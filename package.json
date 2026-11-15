@@ -88,6 +88,9 @@
     "carreira-gratis": "npx tsx scripts/testa-carreira-gratis.mts",
     "relampago": "npx tsx scripts/testa-relampago.mts",
     "espectador": "npx tsx scripts/testa-espectador.mts",
+    "liga-volta": "npx tsx scripts/testa-liga-volta.mts",
+    "save-velho": "npx tsx scripts/testa-save-velho.mts",
+    "343": "npx tsx scripts/testa-343.mts",
     "lotacao": "npx tsx scripts/testa-lotacao-jogo.mts",
     "envelope-unico": "npx tsx scripts/testa-envelope-unico.mts",
     "congela": "node scripts/testa-congela.mjs",
@@ -140,7 +143,12 @@
     "replay-assist": "npx tsx scripts/testa-replay-sem-assist.mts",
     "criterios-carreira": "npx tsx scripts/testa-criterios-carreira.mts 0 && npx tsx scripts/testa-calibracao-carreira.mts && node scripts/testa-criterios-reducer.mjs",
     "criterios-amostra": "npx tsx scripts/mede-calibracao-carreira.mts 600",
-    "salas-sim": "npx tsx scripts/simula-salas-online.mts"
+    "salas-sim": "npx tsx scripts/simula-salas-online.mts",
+    "sala-dorme": "npx tsx scripts/testa-sala-dorme.mts",
+    "kings-baralho": "npx tsx scripts/testa-kings-baralho.mts",
+    "kings-shootout": "npx tsx scripts/testa-kings-shootout-2d.mts",
+    "kings-sem-lateral": "npx tsx scripts/testa-kings-sem-lateral.mts",
+    "kings-presidentes": "npx tsx scripts/testa-kings-presidentes.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

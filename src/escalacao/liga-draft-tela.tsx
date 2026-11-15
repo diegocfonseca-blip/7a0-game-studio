@@ -428,6 +428,11 @@ function EtapaMinha({ d, you, souDono, restante, nome }: { d: DraftEstado; you: 
             {tab.map(([id, v]) => <Linha key={id} a={`${nome(+id)}${+id === you.id ? t(' (você)', ' (you)') : ''}`} b={`+${v} 🪙`} fundo={+id === you.id ? '#FFF1B8' : undefined} />)}
           </Caixa>
         )}
+        {Object.keys(d.premiosCopa ?? {}).length > 0 && (
+          <Caixa titulo={t('🏆 Moedas da Copa dos 8 · já no caixa', '🏆 Cup of 8 coins · already in the bank')}>
+            {Object.entries(d.premiosCopa ?? {}).sort((a, b) => b[1] - a[1]).map(([id, v]) => <Linha key={id} a={`${nome(+id)}${+id === you.id ? t(' (você)', ' (you)') : ''}`} b={`+${v} 🪙`} fundo={+id === you.id ? '#FFF1B8' : undefined} />)}
+          </Caixa>
+        )}
         <Caixa titulo={t('📋 Como é o draft', '📋 How the draft works')}>
           <p className="px-3 py-2 text-[12px] font-bold text-black/70 leading-snug">{t('Na ordem da tabela (o campeão primeiro), cada um aperta ✋ Pronto e tem 45 s pra pegar 1 jogador livre de todo o jogo — ou 🕵️ sondar o jogador de um amigo (aí perde a vez e o jogador vai pro leilão). Não deu pronto ou o tempo acabou: perde a vez.', 'In table order (champion first), each manager taps ✋ Ready and has 45 s to take 1 free player from the whole game — or 🕵️ scout a friend\'s player (losing the turn; the player goes to auction). Not ready or out of time: lose the turn.')}</p>
         </Caixa>

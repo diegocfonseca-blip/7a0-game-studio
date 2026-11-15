@@ -53,3 +53,10 @@ export function anotaTrava(t: Trava, semFreio = false): void {
     void supabase.from('esc_travas').insert(t).then(() => {}, () => {})
   } catch { /* caixa-preta nunca pode atrapalhar o jogo */ }
 }
+
+// 🚪 10/11 (Diego: "o importante é o usuário não cair da sala"): toda vez que alguém SAI, é tirado, ou é barrado ao voltar
+// pra uma sala, fica anotado o motivo (`extra.quando`). É só leitura do que aconteceu — não muda tela nem jogo. Sem isso,
+// quando a sala é apagada (caso do Realengo FC, 10/11) não sobra como saber por que a pessoa ficou de fora.
+export function anotaQueda(room_id: string | null | undefined, sala: string | null | undefined, quando: string, extra: Record<string, unknown> = {}): void {
+  anotaTrava({ room_id: room_id ?? null, sala: sala ?? null, papel: 'convidado', momento: 'envelope', setor: null, segundos: 0, reenvios: 0, extra: { quando, ...extra } }, true)
+}

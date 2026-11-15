@@ -18,7 +18,7 @@ export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;care
 }
 export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0]){const owner=useOwnerPresentation();return owner&&ownerOnlineScope(state)}
 
-type Slot='view'|'tactic'|'controls'|'ad'|'tabs'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
+type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
 type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>
 type Layout={accountName?:string;state?:OwnerState;enabled:boolean;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
@@ -82,6 +82,7 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
  useEffect(()=>{if(ctx.enabled&&!ctx.primary)ctx.claim(id)},[ctx.enabled,ctx.primary,ctx.claim,id])
  useEffect(()=>()=>ctx.release(id),[ctx.release,id])
  const view=useCallback((n:HTMLDivElement|null)=>ctx.target('view',n),[ctx.target])
+ const kings=useCallback((n:HTMLDivElement|null)=>ctx.target('kings',n),[ctx.target]) // 👑 11/11: avisos e shootout da Kings logo ABAIXO do placar (antes da tática e do anúncio)
  const tactic=useCallback((n:HTMLDivElement|null)=>ctx.target('tactic',n),[ctx.target])
  const controls=useCallback((n:HTMLDivElement|null)=>ctx.target('controls',n),[ctx.target])
  const ad=useCallback((n:HTMLDivElement|null)=>ctx.target('ad',n),[ctx.target])
@@ -91,7 +92,7 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
   {active&&<div key="tabs" className="ov3-tabs-slot" ref={tabs}/>}
   {active&&<div key="view" className="ov3-viewline"><span>{label??tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}</span><div ref={view}/></div>}
   <div key="native" className="ov3-native">{children}</div>
-  {active&&<><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-controls-slot" ref={controls}/><div className="ov3-ad-slot" ref={ad}/></>}
+  {active&&<><div className="ov3-kings-slot" ref={kings} style={{display:'flex',flexDirection:'column',gap:10}}/><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-controls-slot" ref={controls}/><div className="ov3-ad-slot" ref={ad}/></>}
  </section>
 }
 

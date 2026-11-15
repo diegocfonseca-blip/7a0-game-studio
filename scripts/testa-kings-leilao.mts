@@ -6,9 +6,9 @@ import type { EscState } from '../src/escalacao/types'
 let falhas = 0
 const ok = (c: boolean, m: string) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 
-function roda(league: 'br' | 'eu' | 'both', holandes: boolean, clubes: boolean) {
-  const nome = `${clubes ? 'clubes' : 'jogador'} · ${holandes ? 'tocaia' : 'envelope'} · ${clubes ? 'todos' : league}`
-  let s = reducer(structuredClone(INITIAL) as EscState, { type: 'START', teamName: 'Teste FC', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', league, holandes, clubes })
+function roda(league: 'br' | 'eu' | 'both', holandes: boolean, clubes: boolean, kingsBaralho = false) {
+  const nome = `${kingsBaralho ? 'JOGADORES DA KINGS' : clubes ? 'clubes' : 'jogador'} · ${holandes ? 'tocaia' : 'envelope'} · ${kingsBaralho ? 'kings' : clubes ? 'todos' : league}`
+  let s = reducer(structuredClone(INITIAL) as EscState, { type: 'START', teamName: 'Teste FC', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', league, holandes, clubes, kingsBaralho } as never)
   ok(s.managers.length === 10 && s.managers.every(m => m.formation === 'kings'), `${nome}: 10 times na formação kings`)
   ok(s.holandes === holandes && s.leilaoClubes === clubes, `${nome}: guardou o jeito do leilão escolhido`)
   if (s.screen === 'streamIntro') s = reducer(s, { type: 'START_STREAM_AUCTION' } as never)
@@ -34,6 +34,8 @@ function roda(league: 'br' | 'eu' | 'both', holandes: boolean, clubes: boolean) 
   ok(ruins.length === 0, `${nome}: os 10 com goleiro + 2 zag + 2 mei + 2 ata de verdade${ruins.length ? ' — faltou em ' + ruins.map(m => m.teamName).join(', ') : ''}`)
 }
 for (const clubes of [false, true]) for (const holandes of [false, true]) for (const league of (clubes ? ['both'] : ['br', 'eu', 'both']) as ('br' | 'eu' | 'both')[]) roda(league, holandes, clubes)
+// 👑 10/11: com os jogadores DA Kings League (envelope e Tocaia)
+for (const holandes of [false, true]) for (let i = 0; i < 4; i++) roda('br', holandes, false, true)
 
 // 👑 a TEMPORADA da Kings roda no motor de sempre: 9 rodadas, ninguém empata (shootout), pontos 3/2/1/0, mata-mata jogo único
 {

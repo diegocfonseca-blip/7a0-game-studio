@@ -1,4 +1,5 @@
 import catalog from './legend-avatars.json'
+import basketballCatalog from './basketball-avatars.json'
 
 // Presentation only: no card/save mutations. No guessing another club or year.
 const normalized = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()
@@ -10,12 +11,13 @@ export const legendAvatarKey = (name: string, club: string, year: number) => {
   const c = normalized(club)
   return `${normalized(name)}|${clubs[c] ?? c}|${year}`
 }
-const byIdentity = new Map(catalog.map(p => [legendAvatarKey(p.name, p.club, p.year), p]))
+const byIdentity = new Map([...catalog, ...basketballCatalog].map(p => [legendAvatarKey(p.name, p.club, p.year), p]))
 for (const [alias, name, club, year] of [
   ['Gérson Canhotinha de Ouro', 'Gérson', 'Botafogo', 1968],
   ['Cerezo', 'Toninho Cerezo', 'Atlético-MG', 1980],
   ["Samuel Eto'o", 'Samuel Eto’o', 'Barcelona', 2006],
   ['Marcelo', 'Marcelo Vieira', 'Real Madrid', 2017], // 26/09: a carta virou só "Marcelo" (pedido do Diego); o rosto continua o mesmo
+  ['Kelvin', 'Kelvin Oliveira (K9)', 'G3X', 2025], // 👑 10/11: o Kelvin do baralho da KINGS (outra carta, outro over) usa o MESMO rosto do K9 lenda do G3X
 ] as const) {
   const art = byIdentity.get(legendAvatarKey(name, club, year))
   if (art) byIdentity.set(legendAvatarKey(alias, club, year), art)

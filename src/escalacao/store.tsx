@@ -1,5 +1,7 @@
+import {investirMuseu} from './museu-clube'
+import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, lazy, Suspense } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { travaCarreiraGratis, marcaGratis } from './carreira-gratis' // 🔒 27/10: carreira grátis até a temporada 50
 import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
@@ -7,6 +9,8 @@ import type { CtxKings } from './kings-liga'
 import type { KingsBase } from './types'
 import { calendarioKings, chaveKings } from './kings'
 import { baralhoPokemon, setPokeModo } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
+import { CATALOGO_PRESIDENTES } from './kings-presidentes' // 🎩 12/11: os presidentes da Kings (5ª posição do leilão, vaga 'LAT')
+import { BARALHO_KINGS } from './kings-baralho' // 👑 10/11: o baralho PRÓPRIO da Kings (só entra com `kingsBaralho`)
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
@@ -25,7 +29,7 @@ import {alterarTetoPresidencia} from './presidencia-estadio-integrado'
 import {lancamentosPresidencia} from './presidencia-extrato'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltisComSequencia } from './penaltis'
-import { anotaTrava } from './caixa-preta'
+import { anotaTrava, anotaQueda } from './caixa-preta'
 import { agoraSala, ajustaRelogioSala, souODono } from './relogio' // ⏱️ um relógio só pra sala (o do dono) — ver relogio.ts
 import { publicOnlineVisual } from './online-release'
 import { publicCareerVisual } from './career-feature-release'
@@ -64,6 +68,19 @@ import { NBA_SLOTS_PER_POS } from './sportcfg'
 // partida (START / RESTORE_CAREER / CAREER_ADVANCE) e forçado pra BR no
 // online e no Manager, que sempre usam o baralho brasileiro.
 let ACTIVE_CATALOG = CATALOG
+// 🎩 KINGS (12/11): a ORDEM das posições no leilão. Sempre a de sempre (SECTORS); na Kings o presidente (vaga 'LAT', que a Kings
+// não usava) vem DEPOIS do ataque: GOL · ZAG · MEI · ATA · 🎩. Mesmo padrão do ACTIVE_CATALOG (global do módulo, reancorada pelo
+// estado em `reancoraEsporte` e em toda largada).
+const ORDEM_KINGS: Sector[] = ['GOL', 'ZAG', 'MEI', 'ATA', 'LAT']
+let ORDEM_ATIVA: Sector[] = SECTORS
+/** a ordem das posições do leilão desta partida (a tela lê a MESMA da do motor) */
+export function ordemSetores(): Sector[] { return ORDEM_ATIVA }
+/** 🎩 liga os presidentes da Kings: o catálogo da vaga 'LAT' vira a lista dos presidentes e a ordem põe ela no fim */
+function ancoraPresidentesKings(kings: boolean) {
+  if (!kings) { ORDEM_ATIVA = SECTORS; return }
+  ACTIVE_CATALOG = { ...ACTIVE_CATALOG, LAT: CATALOGO_PRESIDENTES } as unknown as typeof CATALOG
+  ORDEM_ATIVA = ORDEM_KINGS
+}
 // 🏀 ESPORTE ATIVO DO MOTOR — mesmo padrão do ACTIVE_CATALOG: 'futebol' por
 // padrão; só vira 'basquete' quando um jogo de basquete começa. Guarda a única
 // diferença de mecânica (QUANTIDADE de vagas por posição) sem tocar no futebol.
@@ -104,6 +121,7 @@ function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'to
   const base0 = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
   const base = regional ? comCartasRegionais(base0, regional) : base0
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
+  ORDEM_ATIVA = SECTORS
 }
 // 🏟️ BARALHO REGIONAL (10/10, regra do Diego): as cartas dos clubes pequenos só existem
 // na sala de COPA REGIONAL — e lá entram no leilão MISTURADAS com o baralho de sempre.
@@ -128,6 +146,7 @@ function comCartasRegionais(base: typeof CATALOG, regional: string): typeof CATA
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
 function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
   ACTIVE_SPORT = sport
+  ORDEM_ATIVA = SECTORS
   setDraftBasquete(sport === 'basquete') // 📋🏀 Liga Draft: elenco de 15 e quinteto no basquete
   if (sport === 'basquete') {
     ACTIVE_CATALOG = buildNbaCatalog() as unknown as typeof CATALOG
@@ -149,9 +168,11 @@ export function vagasBase(formation: FormationKey, pos: Sector): number { return
 // pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
 // o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
 // sempre (byte-idêntico pra quem não é basquete).
-function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string }): void {
+function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
   if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
   else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala)
+  if (s.kingsBaralho && s.sport !== 'basquete') ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG // 👑 a partida da Kings com o baralho dela
+  ancoraPresidentesKings(s.sport !== 'basquete' && !!s.managers?.some(m => m.formation === 'kings')) // 🎩 os presidentes (os dois baralhos)
 }
 
 // 🏀 franquias da NBA usadas como rivais CPU do basquete (o motor lê {team,name}
@@ -1098,7 +1119,16 @@ import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiber
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
 import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import { AvisoDonoFundo, salaEsperaODono } from './aviso-dono-fundo' // 🖥️ 20/10
-import { AvisoConta } from './aviso-conta' // 📣 21/10: aviso de moderação pra uma conta
+import { AvisoConta } from './aviso-conta'
+// 🖋📲 13/11: a ficha do clube (Batismo/Fundador) por cima de tudo até o WhatsApp ser salvo — preguiçosa, só baixa quem pagou
+const BriefingPendente = lazy(() => import('./pix-mp'))
+const FICHA_KEY = 'esc-ficha-clube-pendente', FICHA_EVT = 'esc-ficha-clube' // = FICHA_CLUBE_KEY/EVT do pix-mp.tsx
+function FichaClubeVigia() {
+  const le = () => { try { return !!localStorage.getItem(FICHA_KEY) } catch { return false } }
+  const [tem, setTem] = useState(le)
+  useEffect(() => { const f = () => setTem(le()); window.addEventListener(FICHA_EVT, f); return () => window.removeEventListener(FICHA_EVT, f) }, [])
+  return tem ? <Suspense fallback={null}><BriefingPendente /></Suspense> : null
+} // 📣 21/10: aviso de moderação pra uma conta
 import { co2Ganchos, co2Envia, co2Agora } from './co2'
 import { coletivaSana, respondeColetiva, somaH2H, fechaPromessas, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo, type ResultadoTemporada as ColetivaResultado } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
@@ -1106,6 +1136,7 @@ import { supabase } from '../lib/supabase'
 import { setModoEspectador } from './espectador'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
+import { salaDormindo, marcaMovimento, marcaTela, aoAcordar } from './sala-dorme' // 💤 sala parada 20 min na tela de fim para de perguntar ao banco
 import { radioPedacoLiberado } from './sport' // 📡✂️ rádio em pedaços (10/11): por enquanto só nas salas do Diego
 import { criaEmissor, criaReceptor, type PacoteCheio, type PacotePedaco } from './radio-pedaco'
 import { troca2DSalaLiberada } from './sport' // 📺⚡ troca 2D ↔ rápido na sala: por enquanto só a conta do Diego (vale a conta do DONO — o reducer só roda no aparelho dele)
@@ -1121,7 +1152,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, premiosCopaDraft, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -2184,7 +2215,9 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // Só quando nem `demand` cabe em reais (sala gigante) é que sobra fake.
     // `extra` = cartas a mais por posição além da demanda (online: +1, pra dar
     // opção/disputa — 2 jogadores viram 3 goleiros, 5 laterais, etc.).
-    const target = Math.max(1, Math.ceil(demand * margin), demand + extra)
+    // 👑 11/11 (Diego: *"Kings League só tem zag, meia e ataque"* — + o goleiro): setor que NINGUÉM usa (a lateral da formação 'kings')
+    // não ganha carta nenhuma. Antes o piso de 1 punha um lateral solto no leilão da Kings com os jogadores padrão. Só a 'kings' tem 0.
+    const target = demand === 0 ? 0 : Math.max(1, Math.ceil(demand * margin), demand + extra)
     const count = Math.max(demand, Math.min(target, realFree))
     plan[pos] = { count, catalog }
   }
@@ -2426,7 +2459,7 @@ function fairPrice(v: number): number {
 // gastador, pão-duro, obcecado, imprevisível ou equilibrado. 'equilibrado' (o padrão, e
 // o que partida rápida/salas sempre recebem) é o leilão de antes, sem mudar nem o rng.
 export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector, pensaComoGente = false): (Bid & { cardId: string })[] {
-  const pos = SECTORS[sectorIdx]
+  const pos = ORDEM_ATIVA[sectorIdx]
   // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
   // fim (FINISH_CEREMONY). Humano decide sozinho, então segue só com openSlots.
@@ -2439,7 +2472,7 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
   const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman
   if (reforco) need = 1
   if (need === 0 || m.money <= 0) return []
-  const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
+  const remaining = ORDEM_ATIVA.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
   const shape = 0.65 + m.aggression * 0.8
   // 👑 REPESCAGEM com LENDA na mesa: o bot fica mais esperto — orçamento normal
   // (4-9) quase nunca cobre o piso de uma lenda, e ela sumia de graça no monte
@@ -4989,7 +5022,8 @@ function ctxKings(s: EscState, homeId: number, awayId: number, rodada: number): 
       const pref = sq.filter(c => c.pos === 'ATA').length ? sq.filter(c => c.pos === 'ATA') : sq.filter(c => c.pos === 'MEI')
       return [...pref].sort((x, y) => y.fame - x.fame || y.hi - x.hi)[0]?.name ?? null
     },
-    linha: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name),
+    linha: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL' && !c.presidente).map(c => c.name),
+    presidente: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).find(c => c.presidente)?.name ?? null, // 🎩 12/11
   }
 }
 function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => number, scorers: ScorerRow[], assists: AssistRow[], _neutral: boolean, rodada: number): MatchResult {
@@ -4997,9 +5031,10 @@ function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => numb
   // `simMatch` do futebol de 11. Mesma semente = mesma partida em todo aparelho.
   const seed = sementeJogoKings(s.seed, rodada, homeId, awayId)
   const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
-  const elenco = (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).map(c => ({ name: c.name, pos: c.pos, lo: c.lo, hi: c.hi, fake: c.fake, club: c.club }))
+  // 🎩 o presidente NÃO entra em campo: fica fora da força, dos gols e das assistências (só bate o pênalti do presidente)
+  const elenco = (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => !c.presidente).map(c => ({ name: c.name, pos: c.pos, lo: c.lo, hi: c.hi, fake: c.fake, club: c.club }))
   const tat = (id: number) => s.managers.some(m => m.id === id && m.isHuman) ? s.tactics[id] : undefined
-  const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake })
+  const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake, bot: { h: !s.managers.some(m => m.id === homeId && m.isHuman), a: !s.managers.some(m => m.id === awayId && m.isHuman) } })
   const r: MatchResult = { homeId, awayId, hg: 0, ag: 0, highlights: [] }
   const base: KingsBase = { highlights: g.highlights, tmpS: g.tmpS, tmpA: g.tmpA, cartoes: g.cartoes, seed, rodada, decisoes: {}, art: { s: [], a: [] } }
   const art = aplicaRegrasKings(r, base, ctxKings(s, homeId, awayId, rodada))
@@ -5014,7 +5049,9 @@ function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => numb
 /** 👑 refaz um jogo da Kings com a escolha de canto da pessoa; devolve o jogo novo (ou null se não deu) */
 function refazJogoKings(s: EscState, r: MatchResult, key: string, canto: number, scorers: ScorerRow[], assists: AssistRow[]): MatchResult | null {
   const b = r.kingsBase
-  if (!b || b.decisoes[key] != null || !(r.kings?.duelos ?? []).some(d => d.key === key)) return null
+  // 🃏 10/11: além do canto da cobrança, as ESCOLHAS de carta (coringa: no que vira · suspensão: quem do rival sai)
+  const escolhaCarta = /^(coringa|susp):[ha]$/.test(key) && (r.kings?.cartas ?? []).some(c => (c.teamId === r.homeId ? 'h' : 'a') === key.slice(-1) && (key.startsWith('coringa') ? c.sorteada === 'coringa' : c.vale === 'suspensao'))
+  if (!b || b.decisoes[key] != null || (!escolhaCarta && !(r.kings?.duelos ?? []).some(d => d.key === key))) return null
   tiraListas(scorers, b.art, assists)
   const novo: MatchResult = { ...r, highlights: [] }
   const base: KingsBase = { ...b, decisoes: { ...b.decisoes, [key]: canto } }
@@ -5485,6 +5522,11 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
         : tier === 'weak' ? shuffled.filter(c => c.fame <= 2)
         : shuffled.filter(c => c.fame === 2 || c.fame === 3)
       picks = pool.slice(0, need)
+      // 👑 11/11: no baralho da KINGS (91 cartas, poucas de cada categoria) o bot completa com quem sobrou do baralho dela — nunca
+      // jogador falso (regra do Diego). Fora da Kings nada muda.
+      // 🎩 12/11: os presidentes (todos 'bom jogador') também completam por aqui, nos dois baralhos da Kings; e a conta do baralho da
+      // Kings olha o GOL (o catálogo virou um objeto novo quando ganhou os presidentes — comparar o objeto inteiro deixava de reconhecer)
+      if (picks.length < need && ((ACTIVE_CATALOG.GOL as unknown) === (BARALHO_KINGS.GOL as unknown) || (pos === 'LAT' && ORDEM_ATIVA === ORDEM_KINGS))) for (const c of shuffled) { if (picks.length >= need) break; if (!picks.includes(c)) picks.push(c) }
     }
     for (const c of picks) used.add(ident(c))
     let gi = 0
@@ -5514,6 +5556,15 @@ function makeBotSquad(formation: FormationKey, tier: Tier, rng: () => number, us
 const mesmoNomeTime = (a: string, b: string) => stripEmoji(a).trim().toLowerCase() === stripEmoji(b).trim().toLowerCase()
 function tiraClones(defs: { team: string; name: string }[], humanNames: string[]): { team: string; name: string }[] {
   return defs.filter(d => !humanNames.some(h => mesmoNomeTime(d.team, h)))
+}
+// 🪞 14/11 (sala do Príncipe Rubro Negro): nas SALAS ONLINE o robô do clube de batismo aparecia JUNTO com o dono, porque ele
+// jogava como "Principe Rubro Negro" (sem acento) e o clube é "Príncipe Rubro Negro" — o `mesmoNomeTime` só ignora caixa e
+// emoji. Aqui a régua é a do batismo (`chaveClube`: ignora acento, espaço, pontuação e FC/EC/SC). Vale só pra ESCOLHER os bots
+// quando uma partida/carreira começa (`makeManagers`); a migração de nome velho de save continua no `mesmoNomeTime` de sempre.
+const chaveSala = (n: string) => chaveClube(stripEmoji(n).trim())
+function tiraClonesSala(defs: { team: string; name: string }[], humanNames: string[]): { team: string; name: string }[] {
+  const humanos = new Set(humanNames.map(chaveSala))
+  return defs.filter(d => !humanos.has(chaveSala(d.team)))
 }
 
 type BotPlan = { id: number; tier: Tier; formation: FormationKey }
@@ -5556,9 +5607,9 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   // PRIMEIRO (viram os auction-rivals nomeados), depois o resto da D (sem repetir).
   // 🪞 regra do clone: tira da lista o robô com nome de humano da sala e, se a
   // conta não fechar, completa com reservas de outras divisões (sem clone também).
-  const poolBase = tiraClones(cpuNameOrder ?? TIMES_ELITE, humanNames)
+  const poolBase = tiraClonesSala(cpuNameOrder ?? TIMES_ELITE, humanNames)
   if (poolBase.length < totalCpus) {
-    const reservas = tiraClones([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
+    const reservas = tiraClonesSala([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
     for (const r of reservas) {
       if (poolBase.length >= totalCpus) break
       if (!poolBase.some(t => t.team === r.team)) poolBase.push(r)
@@ -5646,9 +5697,9 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'KINGS_DECIDIR'; key: string; canto: number }
+  | { type: 'KINGS_DECIDIR'; key: string; canto: number; /** 👑 11/11 (sala online): QUAL jogo (casa-fora) — com várias pessoas na sala tem mais de um jogo com gente */ jogo?: string }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -5689,7 +5740,7 @@ type Action =
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -5729,6 +5780,8 @@ type Action =
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
   | { type: 'PRESIDENCY_SAVE_BASE'; mgrId:number; value:PresidenteBaseSave }
   | { type: 'PRESIDENCY_TRADE'; mgrId:number; quote:PresidenciaOrcamento; confirmed:boolean }
+  | { type: 'MUSEU_INVEST'; mgrId:number; expectedStage:number }
+  | { type: 'PRESIDENCY_FURNITURE_HOME'; mgrId:number; ids:import('./presidencia-economia').PresidenciaItemId[] }
   | { type: 'PRESIDENCY_DISPLAY'; mgrId:number; display:DuplaGaragem }
   | { type: 'PRESIDENCY_ROOF'; mgrId:number; closed:boolean }
   | { type: 'STADIUM_PARKING_INVEST'; mgrId:number; expectedStage:EtapaEstacionamento }
@@ -5748,7 +5801,8 @@ type Action =
   | { type: 'MEDICO_AVISO_VISTO' }
   | { type: 'PREPARADOR_AVISO_VISTO' } // 🏋️💸 fecha o recibo do troco do preparador (19/09) // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
   | { type: 'TV_EXTRA_CREDIT'; coins: number; qtd: number } // 📺 cota extra de TV: o RPC tv_resgatar já virou aprovado→creditado no Supabase (atômico) — aqui só entra o crédito no caixa. Só carreira solo
-  | { type: 'KICK_PLAYER'; playerIndex: number }
+  | { type: 'KICK_PLAYER'; playerIndex: number; peloDono?: boolean }
+  | { type: 'RETOMA_TIME'; uid: string } // 🪑 10/11: quem tem time na liga e voltou reassume (só o dono tira o time de alguém)
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
@@ -6419,7 +6473,7 @@ function holResgate(state: EscState) {
   if (!mesa.length) return
   const rng = rngOf(state)
   const econ = state.careerOnline ? escadaEconFactor(state) : 0
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ORDEM_ATIVA[state.sectorIdx]
   for (const m of state.managers) {
     if (m.isHuman) continue
     if (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
@@ -6528,7 +6582,7 @@ export function paMesa(state: EscState, k: number): PaMesaVista | null {
   return { M: pa, card: state.currentCards[0] ?? null }
 }
 function paPoeCarta(state: EscState, k: number, card: Card | null) {
-  if (k === 0) { state.currentCards = card ? [card] : []; if (card) state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos)) }
+  if (k === 0) { state.currentCards = card ? [card] : []; if (card) state.sectorIdx = Math.max(0, ORDEM_ATIVA.indexOf(card.pos)) }
   else if (state.pa?.m2) state.pa.m2.card = card
 }
 /** quanto o clube já tem PRESO na outra mesa (está na frente lá): o caixa dele aqui é o que sobra */
@@ -6721,7 +6775,7 @@ function paMartelo(state: EscState, k = 0) {
   // o arremate entra pela MESMA porta do envelope: o lance do líder (+ o do 2º, pra resenha do "jogou fora").
   // 🔨🔨 a porta lê `currentCards`/`sectorIdx`: na mesa 2 a carta dela entra ali só durante o martelo e a da mesa 1 volta.
   const mesa1Antes = state.currentCards, setorAntes = state.sectorIdx
-  state.currentCards = [card]; state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos))
+  state.currentCards = [card]; state.sectorIdx = Math.max(0, ORDEM_ATIVA.indexOf(card.pos))
   const segundo = [...M.lances].reverse().find(l => l.mgr !== M.lider)
   state.pendingEnvelopes = { [M.lider]: [{ cardId: card.id, amount: M.preco }], ...(segundo ? { [segundo.mgr]: [{ cardId: card.id, amount: segundo.valor }] } : {}) }
   state.holFechando = true
@@ -6912,7 +6966,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
     state.submitted = []
     state.pendingEnvelopes = {}
     state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ((state.auctionSecs && state.auctionSecs > 0 ? state.auctionSecs * 1000 : ENVELOPE_MS))
-    if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[state.sectorIdx]).length === 0) sealAndResolve(state)
+    if (state.onlineMode !== 'online' && humansToSubmit(state, ORDEM_ATIVA[state.sectorIdx]).length === 0) sealAndResolve(state)
     return
   }
   // 🔨 PREGÃO ABERTO: a fila é o baralho inteiro embaralhado; abre uma vez e vai até o Monte
@@ -6921,7 +6975,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   if (state.pregaoAberto && !rescue && !state.careerOnline) { abrePregaoAberto(state); return }
   // ⚡ ENVELOPE ÚNICO (28/10): as 5 posições num envelope só, logo na abertura do leilão (nunca na carreira)
   if (state.envUnico && !rescue && !state.careerOnline && state.sectorIdx === 0 && state.sectorCursor === 0) { abreEnvelopeUnico(state); return }
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ORDEM_ATIVA[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
     // levas SÓ por espaço de tela: pega a próxima fatia de até BATCH_SIZE
@@ -6963,7 +7017,7 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // HORA. Sem isto, ninguém enviava envelope, o setor nunca era lacrado e o
   // jogo congelava com o jogador de espectador ("esperando a contratação").
   // No online não muda nada: lá o vigia de prazo já cuida disso.
-  if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[state.sectorIdx]).length === 0) {
+  if (state.onlineMode !== 'online' && humansToSubmit(state, ORDEM_ATIVA[state.sectorIdx]).length === 0) {
     sealAndResolve(state)
   }
 }
@@ -7212,8 +7266,8 @@ function selaEnvelopeUnico(state: EscState) {
   const sobras: Card[] = []
   // posição por posição, na ordem de sempre (GOL → ATA), com o MESMO motor de uma leva — a caixa de cada um vai
   // baixando a cada posição, igual ao leilão normal
-  for (let i = 0; i < SECTORS.length; i++) {
-    const ids = new Set((state.deck[SECTORS[i]] ?? []).map(c => c.id))
+  for (let i = 0; i < ORDEM_ATIVA.length; i++) {
+    const ids = new Set((state.deck[ORDEM_ATIVA[i]] ?? []).map(c => c.id))
     const cards = todas.filter(c => ids.has(c.id))
     if (cards.length === 0) continue
     state.sectorIdx = i
@@ -7243,7 +7297,7 @@ function selaEnvelopeUnico(state: EscState) {
   state.revealQueue = fila.filter(q => q.winner !== null || q.bids.length > 0)
   state.revealIdx = 0
   state.sectorIdx = SECTORS.length - 1
-  state.sectorCursor = (state.deck[SECTORS[SECTORS.length - 1]] ?? []).length
+  state.sectorCursor = (state.deck[ORDEM_ATIVA[ORDEM_ATIVA.length - 1]] ?? []).length
   state.euRevelando = true
   state.phase = 'reveal'
   state.phaseDeadline = null
@@ -7345,7 +7399,7 @@ function afterReveal(state: EscState) {
     return
   }
   const rng = rngOf(state)
-  const pos = SECTORS[state.sectorIdx]
+  const pos = ORDEM_ATIVA[state.sectorIdx]
   const unsold = state.currentCards
   if (state.phase === 'reveal') {
     // terminou uma leva do pregão principal — acumula os não vendidos
@@ -7744,7 +7798,7 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
  *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
-export const ZERA_NA_CARREIRA_NOVA = ['careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
@@ -7978,7 +8032,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🗜️ a lista dos jogadores da máquina vira SOMA no placar acumulado (mesmos números, sem repetir por temporada)
       s.careerIntlBotTotals = somaBotsIntl(s.careerIntlBotTotals, expected.botPlayerStats)
       const { botPlayerStats: _somado, ...entrada } = expected
-      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), entrada]
+      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), {...entrada, userClubId:s.managers[s.youIdx]?.id}]
       // 🏢➡️⚽ SAF nova: a taça internacional entra na coleção do 2º clube se era ELE no comando
       if (saf2On(s) && s.managers[s.youIdx]?.mine) {
         const seg = s.managers[s.youIdx]
@@ -8089,6 +8143,20 @@ function reducerBase(state: EscState, action: Action): EscState {
       if(!result.ok)return state
       for(const entry of lancamentosPresidencia(action.quote))logFin(result.value,'presidency',entry.label,entry.amount,undefined,action.mgrId)
       return result.value
+    }
+    case 'MUSEU_INVEST': {
+      if(!presidentWritesEnabled())return state
+      const purchase=investirMuseu(s,action.mgrId,action.expectedStage)
+      if(!purchase)return state
+      s.careerCoins={...s.careerCoins,[action.mgrId]:purchase.coins}
+      s.careerMuseums={...s.careerMuseums,[action.mgrId]:purchase.museum}
+      logFin(s,'stadium',`Museu do Clube · etapa ${purchase.museum.etapas}/4`,-20,undefined,action.mgrId)
+      return s
+    }
+    case 'PRESIDENCY_FURNITURE_HOME': {
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      const result=organizarMoveisNaCasa(s,action.mgrId,action.ids)
+      return result.ok?result.value:state
     }
     case 'PRESIDENCY_DISPLAY': {
       if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
@@ -8326,6 +8394,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // por ele — mesma lógica do auto-preenchimento por AFK.
       const m = s.managers.find(x => x.id === action.playerIndex)
       if (!m) return s
+      // 🪑 10/11 (Diego: *"o time dele só deve deixar de ser dele se o HOST remover"*): na liga, só a remoção feita pelo DONO
+      // apaga o crachá. Quem saiu/caiu sozinho continua com o crachá no `seatUids` — é a prova que deixa ele voltar pro
+      // mesmo time (RETOMA_TIME), em qualquer ponto da temporada.
+      if (action.peloDono && s.ligaMode && Array.isArray(s.seatUids) && s.seatUids[m.id]) s.seatUids[m.id] = ''
       if (!m.isHuman) {
         // já é RIVAL CPU (ex-humano que saiu): o host está EXCLUINDO — para de dar
         // lance e vira só preenchimento na tabela.
@@ -8342,7 +8414,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const humansLeft = s.managers.filter(x => x.isHuman).length
       m.auctionRival = humansLeft <= 1
       if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
-        const pos = SECTORS[s.sectorIdx]
+        const pos = ORDEM_ATIVA[s.sectorIdx]
         if (humansToSubmit(s, pos).every(id => s.submitted.includes(id))) sealAndResolve(s)
       } else if (s.phase === 'tiebreak') {
         const tb = s.tiebreaks[s.tiebreakIdx]
@@ -8387,6 +8459,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ⚡ MODO POKÉMON (25/10, só a conta do Diego): o leilão de sempre, com o baralho dos pokémon nos 5 lotes
       const poke = !!action.pokemon && !action.career && !action.dinastia
       if (poke) ACTIVE_CATALOG = baralhoPokemon(rng) as unknown as typeof CATALOG
+      // 👑 10/11 (Diego): Kings League com os jogadores DA Kings — baralho próprio, que nenhum outro leilão enxerga
+      s.kingsBaralho = !!action.kings && !!action.kingsBaralho && !action.career && !action.dinastia && !poke ? true : undefined
+      if (s.kingsBaralho) ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG
+      ancoraPresidentesKings(!!action.kings && !action.career && !action.dinastia && !poke) // 🎩 12/11: os presidentes da Kings (os dois baralhos)
       s.pokeLiga = undefined
       // carreira: começa na Série D. Partida rápida: sem divisão.
       s.careerDivision = action.career ? 'D' : null
@@ -9226,7 +9302,11 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'START_ONLINE': {
       // 🧱 LEILÃO DE CLUBES na sala: escolha do host — rápido e Minhas Ligas (28/09), nunca carreira.
       // 🏀 19/10: no basquete também — o pacote é a POSIÇÃO de uma franquia da NBA (o baralho ativo é o da NBA).
-      s.leilaoClubes = !!action.clubes && !action.career
+      // 👑 11/11 (Diego: *"sim"* pra Kings nas salas online, só pras contas da Kings): a sala nasce com a formação 'kings' (o dono
+      // escolhe na criação). É o MESMO motor da Kings da Partida Rápida: 10 times, 7 vagas, 100 moedas e a competição DELA (9 rodadas +
+      // mata-mata) — nada de Copa/Liberta/Champions, liga de 20, turno único, Clubes ou envelope único.
+      const kingsSala = action.formation === 'kings' && !action.career && action.sport !== 'basquete'
+      s.leilaoClubes = !!action.clubes && !action.career && !kingsSala
       s.leilaoSelecao = s.leilaoClubes && action.sport !== 'basquete' && !!action.selecao // 🏳️ 31/10
       s.leilaoDecada = s.leilaoClubes && action.sport !== 'basquete' && !!action.decada // 📅 31/10
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
@@ -9269,7 +9349,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
       // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
-      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
+      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; // 👑 11/11: na Kings também (Diego: *"cadê o envelope único?"*) s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
@@ -9288,6 +9368,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (nbaCareerRoom) s.nbaTier = 'street' // começa na base da pirâmide do basquete (Street League)
       if (onlineNba) setActiveSport('basquete', nbaCareerRoom ? 'career' : 'quick') // carreira = vagas de carreira; rápido = quinteto
       else setActiveCatalog(s.deckLeague, fracoInicial, s.regionalSala)
+      // 👑 sala da Kings com os jogadores DA Kings (o baralho próprio, que nenhum outro leilão enxerga)
+      s.kingsBaralho = kingsSala && !!action.kingsBaralho ? true : undefined
+      if (s.kingsBaralho) ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG
+      ancoraPresidentesKings(kingsSala) // 🎩 12/11: os presidentes da Kings (os dois baralhos)
       // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
       // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
       if (s.ligaDraft) { // 🏀 vale pro baralho da NBA também (um LeBron só por liga)
@@ -9309,7 +9393,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.ligaMode = !!action.liga // 🏆 é uma liga do "Minhas Ligas" (13/09): dono nunca passa a coroa; "📣 Chamar mais gente" só aqui
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
-      s.copaMode = (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      s.copaMode = kingsSala || (fechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
       // ⚡ RELÂMPAGO: a chave que o dono escolheu (16 ou 32). Se a sala tiver mais gente que a chave (não devia — a tela trava),
       // a chave cresce pra caber todo mundo: ninguém fica de fora do sorteio.
       s.relampagoChave = s.copaMode === 'relampago' ? chaveRelampago(action.relampagoChave, action.playerNames.length) : undefined
@@ -9317,10 +9401,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Minha Liga Draft (01/11) e agora vale pra toda sala com LIGA (rápido e Minhas Ligas). A ÚNICA mudança é completar com bots
       // até 10 em vez de 20 (18 rodadas). Fora: carreira, basquete, liga sem bots (o tamanho já é a galera), Relâmpago e Só
       // Champions (não têm liga). O que vem depois da liga já sabe lidar com tabela menor (é o mesmo caminho da liga sem bots).
-      s.tamanhoLiga = action.tamanhoLiga === 10 && !action.career && !onlineNba && !s.ligaFechada && !s.relampagoChave && s.copaMode !== 'champions' ? 10 : undefined
+      s.tamanhoLiga = !kingsSala && action.tamanhoLiga === 10 && !action.career && !onlineNba && !s.ligaFechada && !s.relampagoChave && s.copaMode !== 'champions' ? 10 : undefined
       // ⚡ TURNO ÚNICO (06/11): escolha do DONO ao criar a sala, carimbada aqui pra todo aparelho jogar igual (igual `escalaBots`).
       // Só vale com a tabela de 20 (`turnoUnicoVale` confere na hora de montar o calendário): liga de 10 segue as 18 rodadas de sempre.
-      s.turnoUnico = action.turnoUnico === true && !action.career && !onlineNba && !s.relampagoChave && s.copaMode !== 'champions' && s.tamanhoLiga !== 10 ? true : undefined
+      s.turnoUnico = !kingsSala && action.turnoUnico === true && !action.career && !onlineNba && !s.relampagoChave && s.copaMode !== 'champions' && s.tamanhoLiga !== 10 ? true : undefined
       // 🏀 carreira do basquete: o modo de copa segue o ANDAR — street = só pontos corridos
       // (sem playoffs); G League/NBA entram com playoffs. (Começa em street.)
       // 🏀 SANITIZA o modo de copa do basquete: a sala NUNCA roda competição de futebol
@@ -9422,7 +9506,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // bots. Nos outros modos, completa até 20 como sempre.
       // ⚡ Relâmpago: a sala tem EXATAMENTE o tamanho da chave (16 ou 32) — os bots que completam ganham elenco pronto, igual sempre.
       // 📏 Liga de 10 (Minha Liga Draft 01/11; toda sala com liga 04/11): bots completam até 10; com mais de 10 pessoas a liga cresce até caber todo mundo
-      const onlineLeagueSize = s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : s.tamanhoLiga === 10 ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
+      const onlineLeagueSize = kingsSala ? Math.max(10, action.playerNames.length) : s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : s.tamanhoLiga === 10 ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
       // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
@@ -9438,6 +9522,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         : poolSalaComBatismos(rng)
       const onlineRivalCount = action.career ? Math.max(0, Math.min(action.rivals ?? 0, onlineLeagueSize - action.playerNames.length)) : 0
       const { managers: onlineManagers, botPlans: onlinePlans } = makeManagers(action.playerNames, action.formation, onlineRivalCount, onlineLeagueSize, rng, namePool)
+      // 👑 sala da Kings: os BOTS também jogam a Kings (formação 'kings', 7 no elenco) — sem isto nasciam com time de 11
+      if (kingsSala) { for (const m of onlineManagers) m.formation = 'kings'; for (const p of onlinePlans) p.formation = 'kings' }
       // ⚠️ NÃO marca os rivais como `rival` (diferente do offline): na tabela online
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
@@ -9632,6 +9718,16 @@ function reducerBase(state: EscState, action: Action): EscState {
     // 🤝 DUPLA — o parceiro SAIU DE VERDADE (botão sair / caiu). Quem ficou passa
     // a mandar em tudo, senão o time ficaria sem quem lacra metade dos setores.
     // Só trocar de tela/perder o foco NÃO chega aqui.
+    case 'RETOMA_TIME': {
+      // 🪑 10/11: o técnico da liga saiu/caiu (o time ficou com a máquina) e VOLTOU. O crachá dele ainda está no `seatUids`
+      // (o dono não removeu) → o time volta a ser de gente, no ponto em que a partida está. Sem crachá, nada acontece.
+      if (!s.ligaMode || !action.uid || !Array.isArray(s.seatUids)) return state
+      const seat = s.seatUids.indexOf(action.uid)
+      const m = seat >= 0 ? s.managers.find(x => x.id === seat) : undefined
+      if (!m || m.isHuman) return state
+      m.isHuman = true; m.auctionRival = false
+      return s
+    }
     case 'DUPLA_SOLO': {
       const d = s.duplas?.[action.mgrId]
       if (!d) return s
@@ -9646,7 +9742,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // A checagem é aqui no reducer (lado do HOST) de propósito: esconder o botão
       // na tela do parceiro não basta — é exatamente essa a família de bug de
       // assento que já mordeu antes ("dei lance por outro").
-      if (!duplaPodeAgir(s.duplas, action.mgrId, SECTORS[s.sectorIdx], action.by)) return s
+      if (!duplaPodeAgir(s.duplas, action.mgrId, ORDEM_ATIVA[s.sectorIdx], action.by)) return s
       // 💰 A CAIXA É CONFERIDA AQUI, NO MOTOR — não só na tela.
       // 🐛 CAUSA DO "PAGUEI E NÃO LEVEI JOGADOR" (relato do Pedro pelo Diego, 20/08):
       // a conta de "só posso lançar até onde tenho" existia SÓ na tela. O motor
@@ -9657,7 +9753,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // tela não basta".
       s.pendingEnvelopes[action.mgrId] = envelopeQueCabe(s, action.mgrId, action.bids)
       s.submitted.push(action.mgrId)
-      const pos = SECTORS[s.sectorIdx]
+      const pos = ORDEM_ATIVA[s.sectorIdx]
       const need = humansToSubmit(s, pos)
       const allIn = need.every(id => s.submitted.includes(id))
       // ⏱️ host-manual (auctionSecs=0): NÃO fecha sozinho nem quando todos lacram —
@@ -9804,7 +9900,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // duplicado de um cliente que ficou pra trás). SEM cronômetro (host-manual,
       // auctionSecs=0 → phaseDeadline null): é o BOTÃO do host que sela — sempre vale.
       if (s.phaseDeadline && Date.now() < s.phaseDeadline) return s
-      const pos = SECTORS[s.sectorIdx]
+      const pos = ORDEM_ATIVA[s.sectorIdx]
       const need = humansToSubmit(s, pos)
       for (const id of need) {
         if (!s.submitted.includes(id)) {
@@ -11219,7 +11315,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!ehKings(s)) return s
       const qc = s.quickCopa
       if (qc && qc.phase !== 'done' && s.round >= (s.fixtures.length || TOTAL_ROUNDS)) {
-        const tie = qc.ties.find(t => t.kingsJogo?.kingsBase && t.legs.length === 1)
+        // 👑 11/11: na sala, o JOGO da escolha vem junto (pode ter mais de um confronto com gente na fase)
+        const tie = qc.ties.find(t => t.kingsJogo?.kingsBase && t.legs.length === 1 && (!action.jogo || `${t.kingsJogo.homeId}-${t.kingsJogo.awayId}` === action.jogo))
         if (!tie?.kingsJogo) return s
         if (!qc.scorers) qc.scorers = []
         if (!qc.assists) qc.assists = []
@@ -11240,7 +11337,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         }
         return s
       }
-      const i = s.lastResults.findIndex(r => !!r.kingsBase)
+      const i = s.lastResults.findIndex(r => !!r.kingsBase && (!action.jogo || `${r.homeId}-${r.awayId}` === action.jogo))
       if (i < 0) return s
       const velho = s.lastResults[i]
       if (!s.assists) s.assists = []
@@ -13053,8 +13150,14 @@ function reducerBase(state: EscState, action: Action): EscState {
           const m = s.managers.find(x => x.id === t.id && x.isHuman)
           if (m) { const pr = premioDaLiga(pos, s.league.length, s.draftPremios); premios[m.id] = s.sport === 'basquete' && !s.draftPremios ? Math.ceil(pr / 2) : pr; m.money += premios[m.id] } // 🏀 basquete: orçamento é 50 (não 100), então o prêmio padrão é a metade // 💰 05/11: tabela de 10 ou 20 (ou a do criador)
         })
+        // 🏆 14/11: Copa dos 8 da temporada (se a sala tem) — campeão/vice com as moedas da liga, semi 12, quartas 6; só gente
+        const premiosCopa: Record<number, number> = {}
+        if (s.copaMode === 'liga_copa') {
+          const pc = premiosCopaDraft(s.quickCopa, s.league.length, s.draftPremios, s.sport === 'basquete' && !s.draftPremios)
+          for (const [id, v] of Object.entries(pc)) { const m = s.managers.find(x => x.id === +id && x.isHuman); if (m && v > 0) { premiosCopa[m.id] = v; m.money += v } }
+        }
         const jaProntos = Object.keys(s.seasonVotes ?? {}).map(Number).filter(id => humanos.includes(id)) // ✋ quem já disse pronto no banner do fim
-        s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
+        s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, ...(Object.keys(premiosCopa).length ? { premiosCopa } : {}), sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
       } else s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: true }
       s.seasonVotes = {}
       s.screen = 'draft'
@@ -13509,12 +13612,23 @@ function sanearTitulos(s: EscState): void {
   if ((s.careerTitlesA ?? 0) > jogadas) s.careerTitlesA = jogadas
 }
 
+/** a carreira guardada no aparelho (`esc-solo-career`) é a mesma e está mais adiantada que `s`? */
+export function carreiraLocalNaFrente(s: Pick<EscState, 'seed' | 'seasonNo' | 'round'>, bruto?: string | null): boolean {
+  try {
+    const r = bruto !== undefined ? bruto : localStorage.getItem('esc-solo-career')
+    const l = r ? JSON.parse(r) as EscState : null
+    if (!l || l.seed !== s.seed) return false
+    return (l.seasonNo ?? 0) > (s.seasonNo ?? 0) || ((l.seasonNo ?? 0) === (s.seasonNo ?? 0) && (l.round ?? 0) > (s.round ?? 0))
+  } catch { return false }
+}
 function loadSoloInProgress(): EscState | null {
   try {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
     if (!raw) return null
     const s = JSON.parse(raw) as EscState
     if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen, s) && Array.isArray(s.managers) && s.managers.length > 0) {
+      // 📱 11/11: carreira — se a cópia da carreira no aparelho está MAIS adiantada que esta, esta é velha: não abre (vai pra home)
+      if (s.careerOnline && carreiraLocalNaFrente(s)) { localStorage.removeItem(SOLO_RESUME_KEY); return null }
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
       normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
@@ -14093,6 +14207,16 @@ export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
   const out: { slot: CareerSlot; active: boolean }[] = []
   if (act) out.push({ slot: act, active: true })
   for (const s of arch) out.push({ slot: s, active: false })
+  // 📱☁️ 10/11 (Lucas Barreto 30: carreira T113 "sumiu" do celular E do PC): com o aparelho CHEIO, as carreiras que desceram da
+  // nuvem e não couberam ficam só na memória — e a lista só olhava o aparelho. Se a carreira grande era OUTRA (não a que estava no
+  // aparelho), ela ficava invisível, mesmo inteira na nuvem. Agora toda carreira da nuvem aparece; abrir uma que não coube joga da
+  // memória (`activateCareerSlot`) e o "Sair e salvar" segue juntando com a nuvem, como sempre.
+  for (const m of carreirasEmMemoria) {
+    if (!isCareerSave(m?.save)) continue
+    const i = out.findIndex(o => o.slot.save.seed === m.save.seed)
+    if (i >= 0) { if (careerProgress(m) > careerProgress(out[i].slot)) out[i] = { slot: m, active: out[i].active }; continue }
+    out.push({ slot: m, active: false })
+  }
   return out.sort((a, b) => b.slot.at - a.slot.at)
 }
 // vai começar uma carreira NOVA: arquiva a atual (não perde) antes do START zerar.
@@ -14135,7 +14259,24 @@ export function activateCareerSlot(seed: number): EscState | null {
   const act = readActiveCareer()
   const slots = readCareerArchive()
   const idx = slots.findIndex(s => s.save.seed === seed)
-  if (idx < 0) return null
+  if (idx < 0) {
+    // 📱☁️ 10/11: a escolhida não está no aparelho — só na memória (desceu da nuvem e não coube). Tenta pôr no aparelho no lugar
+    // da atual (que vai pro arquivo); se não couber, devolve o aparelho EXATAMENTE como estava e joga a escolhida da memória.
+    const mem = carreirasEmMemoria.find(s => s.save.seed === seed)
+    if (!mem || !isCareerSave(mem.save)) return null
+    const arquivoNovo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...slots.filter(s => s.save.seed !== act.save.seed)] : slots
+    let coube = false
+    try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ }
+    if (writeCareerArchive(arquivoNovo)) {
+      try { localStorage.setItem('esc-solo-career', JSON.stringify(mem.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())); coube = true } catch { /* não coube */ }
+    }
+    if (!coube) {
+      writeCareerArchive(slots)
+      try { if (act) { localStorage.setItem('esc-solo-career', JSON.stringify(act.save)); localStorage.setItem('esc-solo-career-at', String(act.at)) } } catch { /* ignora */ }
+    }
+    carreiraEmMemoria = coube ? null : mem.save
+    return mem.save
+  }
   const chosen = slots[idx]
   const semEscolhida = slots.filter((_, i) => i !== idx)
   const novoArquivo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...semEscolhida.filter(s => s.save.seed !== act.save.seed)] : semEscolhida
@@ -14547,6 +14688,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // 📱 aparelho CHEIO (13/10, caso do Pé de Breque: "volto e estou na 189 de novo"): a versão certa fica
     // na MEMÓRIA e é ela que o "Continuar" abre — nunca a cópia velha que sobrou no aparelho.
     carreiraEmMemoria = gravou ? null : active.save // (o aviso de aparelho cheio só sai DENTRO da carreira, pelo autosave)
+    carreirasEmMemoria = gravou ? [] : all // 📱☁️ 10/11: TODAS as que desceram (a lista mostra as que não couberam)
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
@@ -14569,6 +14711,10 @@ async function nuvemNaFrente(locais: CareerSlot[]): Promise<boolean> {
 }
 // a carreira mais nova que NÃO coube no aparelho (só nesta aba)
 let carreiraEmMemoria: EscState | null = null
+// 📱☁️ 10/11: todas as carreiras da nuvem que o aparelho cheio não conseguiu guardar (a lista de carreiras mostra elas)
+let carreirasEmMemoria: CareerSlot[] = []
+/** só pras travas (`npm run troca`): simula o que a junção com a nuvem deixa na memória quando o aparelho está cheio */
+export function _carreirasEmMemoriaParaTeste(list: CareerSlot[], ativa: EscState | null) { carreirasEmMemoria = list; carreiraEmMemoria = ativa }
 /** a carreira ativa pra abrir: a do aparelho, ou a da memória se ela estiver MAIS adiantada (aparelho cheio) */
 export function carreiraAtivaPraAbrir(): EscState | null {
   let local: EscState | null = null
@@ -14680,7 +14826,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
       else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado())) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
-    } catch { /* quota cheia etc. — não trava o jogo */ }
+    } catch {
+      // 📱 11/11 (Lucas Barreto 30: *"jogo até a 114, salvo, e quando entro volta pro 113"*): aparelho CHEIO. A gravação falhava
+      // calada e a cópia VELHA ficava aqui — e é esta chave que o jogo abre direto ao ligar, antes de olhar a nuvem. Cópia que não
+      // dá pra atualizar sai: o jogo abre na home, junta com a nuvem e o "Continuar" abre a versão certa. (E sobra espaço pro
+      // salvamento da carreira, que é o que vale.)
+      try { localStorage.removeItem(SOLO_RESUME_KEY) } catch { /* ignora */ }
+    }
   }, [state])
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   // 📡✂️ RÁDIO EM PEDAÇOS (10/11, Diego: *"liga primeiro nas salas que eu criar"*). O dono manda a sala INTEIRA de vez em quando
@@ -14702,6 +14854,18 @@ export function EscProvider({ children }: { children: ReactNode }) {
     } else emissorRef.current = null // saiu do modo pedaço: quando voltar, começa por uma base nova
     ch.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(st) })
   }
+  // 💤 SALA DORME NA TELA DE FIM (sala-dorme.ts): toda mudança na partida conta como movimento; quem acorda pede/manda o estado
+  useEffect(() => {
+    if (state.onlineMode !== 'online') { marcaTela(undefined); return }
+    marcaTela(state.screen)
+    marcaMovimento()
+  }, [state])
+  useEffect(() => aoAcordar(() => {
+    const st = stateRef.current
+    if (st.onlineMode !== 'online' || !st.roomId) return
+    if (st.isHost) mandaEstado(st, true)
+    else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
+  }), [])
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
@@ -14878,10 +15042,29 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meId = stateRef.current.managers[stateRef.current.youIdx]?.id
     if (!isHostRef.current || mgrId === meId) return
     channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex: mgrId } })
-    rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId })
+    rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId, peloDono: true })
     const rid = stateRef.current.roomId
     if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', mgrId).then(() => {}) }
   }, [])
+
+  // 🪑 10/11 (Diego: *"se o usuário voltar, ele volta pro mesmo local onde o host tá comandando a sala"*): voltei pra liga e
+  // o meu time está com a máquina (eu tinha saído/caído) → peço pro dono devolver. Quem pede é o MEU aparelho, que está aqui
+  // de verdade — nunca a presença sozinha (ela atrasa e criaria técnico fantasma). Repete até o estado mostrar o time comigo.
+  const meuTimeComMaquina = state.onlineMode === 'online' && !state.isHost && !state.espectador && !!state.ligaMode && !!state.youUid
+    && Array.isArray(state.seatUids) && state.seatUids.indexOf(state.youUid) >= 0
+    && state.managers.find(m => m.id === state.seatUids!.indexOf(state.youUid!))?.isHuman === false
+  useEffect(() => {
+    if (!meuTimeComMaquina) return
+    const pede = () => {
+      const st = stateRef.current
+      if (!st.roomId || !st.youUid || onlineRef.current !== 'online' || isHostRef.current) return
+      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: { type: 'RETOMA_TIME', uid: st.youUid } })
+    }
+    anotaQueda(stateRef.current.roomId, stateRef.current.roomCode, 'voltou_pede_o_time', { tela: stateRef.current.screen })
+    const t0 = setTimeout(pede, 1200) // dá tempo de o canal da sala ligar
+    const t = setInterval(pede, 5000)
+    return () => { clearTimeout(t0); clearInterval(t) }
+  }, [meuTimeComMaquina])
 
   // "acabei de virar host": aviso grande e passageiro (o anterior saiu da sala)
   const [becameHost, setBecameHost] = useState(false)
@@ -15003,6 +15186,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // volta como fantasma, travando o setor à espera de um envelope que nunca vem.
     const inGame = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'liberta', 'end', 'draft'].includes(st.screen)
     if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
+      anotaQueda(rid, st.roomCode, 'saiu_por_conta_propria', { tela: st.screen, fase: st.phase, liga: !!st.ligaMode })
       // 🤝 DUPLA: se eu jogava de dois, o time NÃO vira CPU — seria injusto com
       // quem ficou. Em vez do KICK_PLAYER, aviso que ele assume TODAS as
       // categorias (senão metade dos setores ficaria sem quem lacra).
@@ -15190,6 +15374,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
+        marcaMovimento() // 💤 alguém acordou e pediu o estado: o dono acorda junto
         mandaEstado(stateRef.current, true) // 📡✂️ quem pede o estado ganha uma base nova (a sala toda recebe)
       })
     } else {
@@ -15243,6 +15428,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (payload.playerIndex !== stateRef.current.managers[stateRef.current.youIdx]?.id) return
       // trava esta sala: nunca reaparece o "voltar pra sala" neste aparelho.
       const rid = stateRef.current.roomId
+      anotaQueda(rid, stateRef.current.roomCode, 'tirado_pelo_dono', { tela: stateRef.current.screen })
       if (rid) {
         try {
           const K = 'esc-dismissed-rooms'
@@ -15480,6 +15666,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < HEARTBEAT_QUIETO_MS) return // teve jogada recente → já sincronizado
+      if (salaDormindo()) return // 💤 sala parada na tela de fim há 20 min: ninguém precisa do batimento
       mandaEstado(stateRef.current)
       lastStateSendRef.current = Date.now()
     }, 10_000)
@@ -15526,6 +15713,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const st = stateRef.current
           const uid = st.youUid // meu crachá (= auth uid). Sem uid não dá pra comparar → não mexe.
           if (!uid || !st.roomId || !st.isHost) return
+          if (salaDormindo()) return // 💤 sala parada na tela de fim: não pergunta nada (acorda no 1º toque)
           const { data: r } = await supabase.from('game_rooms').select('host_id, updated_at, tab:game_state->>__hostTab, claim:game_state->>__hostClaimAt').eq('id', st.roomId).maybeSingle()
           const row = r as { host_id?: string; updated_at?: string; tab?: string | null; claim?: string | null } | null
           const hostId = row?.host_id
@@ -15685,7 +15873,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '') + `|museu:${JSON.stringify(state.careerMuseums??null)}`
     const presidencySig = sig + assinaturaPresidencia(state)
     if (presidencySig === soloSigRef.current) return
     soloSigRef.current = presidencySig
@@ -15965,6 +16153,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     lastHostMsgRef.current = Date.now() // zera ao (re)entrar nessa vigília
     donoSumidoNoBancoRef.current = false // entrou agora: ninguém é acusado sem prova
     const iv = setInterval(() => {
+      if (salaDormindo()) return // 💤 sala parada na tela de fim: o convidado não pede nem pergunta nada (acorda no 1º toque)
       // 💸 04/10 (sem o "tô vivo"): o dono parado só fala a cada ~20-30s (heartbeat de estado),
       // então silêncio normal vai até 60s. A exceção é o MEU lance sem resposta: aí 8s já é
       // motivo pra pedir o estado — é o único caso em que a espera dói pra quem está jogando.
@@ -16195,6 +16384,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       // 45s, não 6s (04/10): sem o "tô vivo", o dono parado só fala a cada ~20-30s. Com 6s todo
       // convidado de toda sala voltaria a consultar o banco a cada 4s entre um estado e outro.
+      if (salaDormindo()) return // 💤 sala parada na tela de fim
       if (Date.now() - lastHostMsgRef.current < 45_000) return // tem dono vivo falando: nada a fazer
       if (Date.now() - voltaCoroaRef.current < 3_500) return
       voltaCoroaRef.current = Date.now()
@@ -16360,7 +16550,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       } catch { /* sem rede: segue com o que já tinha guardado */ }
       if (!vivo) return
       save() // salva JÁ ao entrar no jogo (fecha a janela dos 3s do 1º save)
-      iv = setInterval(save, 3000)
+      iv = setInterval(() => { if (!salaDormindo()) save() }, 3000) // 💤 parada 20 min na tela de fim: não grava o batimento
     })()
     return () => { vivo = false; save(); if (iv) clearInterval(iv); if (ivEspera) clearInterval(ivEspera) }
   }, [state.onlineMode, state.isHost, state.roomId])
@@ -16539,6 +16729,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       )}
       {/* 🖥️ dono que saiu da aba / computador travou no meio do leilão: avisa ELE (20/10, live do Fridão) */}
       <AvisoConta />
+      <FichaClubeVigia />
       <AvisoDonoFundo ativo={state.onlineMode === 'online' && state.isHost && !!state.roomId && salaEsperaODono(state.screen, state.phase)} />
       {showHostBanner && (
         <div style={{
@@ -16610,7 +16801,7 @@ export function sanitize(state: EscState): EscState {
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
   // 🔨 PREGÃO ABERTO (17/10): mesma regra — os tetos dos robôs (das duas mesas) ficam só no aparelho do dono
   const pa = state.pa ? { ...state.pa, tetos: {}, ...(state.pa.m2 ? { m2: { ...state.pa.m2, tetos: {} } } : {}) } : state.pa
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
+  return { ...state, careerMuseums:undefined, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
 // 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
 // Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.

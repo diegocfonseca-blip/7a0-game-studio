@@ -27,7 +27,7 @@ export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tr
  state:CarreiraPresidencia & CarreiraComEstadio & ConquistasCarreira & CronicaPresidencia & DivisaoPresidencia & {careerPresident?:{name:string;outfit:string};seasonNo?:number;managers:readonly {id:number;isHuman?:boolean;teamName?:string;squad?:readonly {paid?:number}[]}[]};
  mgrId:number;onSave:(value:PresidenteBaseSave)=>boolean;onBack:()=>void;
  onTrade?:(quote:PresidenciaOrcamento)=>boolean;onDisplay?:(pair:DuplaGaragem)=>boolean;
- onStadium?:()=>void;onRoof?:(closed:boolean)=>void;
+ onFurnitureHome?:(ids:import('./presidencia-economia').PresidenciaItemId[])=>boolean;onStadium?:()=>void;onRoof?:(closed:boolean)=>void;
  member?:MeuSocio|null;tierColor?:string;insideMap?:boolean;onFinances?:()=>void;profileOnly?:boolean;
 }){
  const [destination,G]=useState<'entry'|'garage'|'furniture'|'room'|null>(profileOnly?null:'entry')

@@ -138,3 +138,69 @@ esperar 2 minutos lá fora"*.
 - **Rádio**: nas fases de campo aberto (1×1 até 6×6 e a do dado) tem uma frase por minuto da Kings, todas com nome de
   jogador (banco `KINGS_FASE`); no resto, a Kings prefere as frases com jogador. Tudo SÓ na Kings.
 - Trava: `npm run kings-regras` confere giro, cartões e o % de frases com nome.
+
+## 📺 10/11 — CAMPO 2D DA KINGS (mockup `scripts/mockups/kings-campo2d.png`, Diego: *"aprovo… 2d como falei p desktop mantendo padrão e dispositivo móvel"*)
+- O MESMO campinho 2D (`Campo2D`), deitado no computador e em pé no celular, com a prop `kings` (`Kings2D`, montada por `kings2DDe` em
+  `kings-liga.ts` a partir do `KingsInfo` da partida). Só DESENHO: gols, cartões e resultado continuam os da regra da Kings.
+- Arena: piso preto com brilho roxo, linha branca, círculo do meio em NEON (azul da casa · rosa do visitante), o escudo de cada time
+  projetado no chão da sua metade. Sem chuva e sem noite.
+- Futebol 7 no motor (`tamanhoDoTime('kings') = 7`). Quem está em campo segue `emCampoKings` (1×1 … 7×7 e o dado; de linha = no máx. 6);
+  quem não está vai pro `banco` do `Jogo2D` (`emCampo`) e aparece na lateral, apagadinho. Cartão e carta de suspensão: o jogador vai pro
+  banco com o cartão do lado e o time joga com um a menos.
+- Do 38' da Kings em diante: bola vermelha/dourada com brilho e a borda do campo na cor. Selo da TV e "GOOOL" com o minuto da Kings.
+- Banners, faixa EM CAMPO e faixa dos efeitos continuam os de sempre (ficam fora do placar). Replay dos gols fica DESLIGADO na Kings.
+- 🔒 Só pras contas que veem a Kings (`useKingsLiberada`: Diego + henriquejunger07, 10/11 — o Rossini Money saiu da lista a pedido do Diego). Pros outros o botão do 2D some na Kings.
+- Medido: 200 jogos sem tela — 0 erro, placar do campinho = placar da regra em todos, nunca mais de 7 em campo. Fotos reais:
+  `scripts/mockups/kings-2d-real-*.png`.
+
+## 🔁 10/11 — REGULAMENTO NOVO (Diego mandou o print: *"17 até 20 gol vale 2 · 20 ao 23 vira o dado · 36 acaba o jogo (se empatar = shootout) se alguém tiver ganhando tipo 7-5 quem fizer 8 ganha"*)
+- ✖️2 **17'–20'**: todo gol dos DOIS times vale 2 (linha "✖️2 DO 17' AO 20'"; o que já vale 2 pela carta não dobra de novo).
+- 🎲 **Dado 20'–23'** (começo do 2º tempo): intervalo no 20', depois o dado, e no 23' volta o 7×7 (`MIN_DADO`/`MIN_DADO_FIM`).
+- ⏱️ **MATCH BALL no 36'** (`KingsInfo.mb`): o relógio da TELA para no 36' (`placarParaKTela`). Empatado → SHOOTOUT direto (nada depois
+  vale). Alguém na frente → vence quem chegar primeiro a líder + 1 (7×5 → quem fizer 8); o gol que decide acaba o jogo, o resto some do
+  placar e da artilharia; se ninguém decidir no tempo que sobra, quem está na frente faz o gol que fecha. A bola dourada/vermelha do 38'
+  SAIU (jogos já jogados seguem com o `bola` antigo).
+- 🃏 **As 6 cartas** que ele mandou: Gol 2× · Shootout · Jogador estrela · Pênalti · Coringa · Suspensão. O PÊNALTI INVERSO saiu da roleta.
+- Travas: `npm run kings` e `npm run kings-regras` (match ball empatado/na frente, jogo montado, 17–20, cartas).
+- 🃏 **Cartas, do jeito que o Diego descreveu (10/11)**: Gol em dobro 4 min · Pênalti · Shootout (iguais) · **Suspensão = VOCÊ escolhe
+  quem do rival sai 4 min** (`susp:h|a`) · **Coringa = VOCÊ escolhe a carta** (`coringa:h|a`, opções `OPCOES_CORINGA`; coringa que vira
+  suspensão pede as duas escolhas) · **Jogador estrela = TODO gol dele vale 2 até o 36'** (antes: só o próximo). Bot continua sorteando.
+  A escolha usa o MESMO caminho do canto do pênalti (`KINGS_DECIDIR` → `refazJogoKings`, mesma semente) e a cena `CenaEscolhaKings`
+  tem 7 s de contagem (não tocou = vale o sorteio). Se a escolha traz uma cobrança, o relógio refaz a lista de cenas e ela aparece em seguida.
+- 📺 **Kings no 2D, 2º pedido (10/11)**: *"1x1 2x2… tem que ter mais tempo pra poder ver os confrontos… os jogadores tem que tá mano a mano"*.
+  Com o 2D ligado, cada minuto das fases com pouca gente (1×1 até 6×6 e o dado) dura **12 s** (`KINGS_MS_POR_MIN_LENTO_2D`; placar normal
+  segue 5 s). E com até 5 de linha em campo o motor joga **mano a mano** (`Jogo2D.manoAMano`): sem a bola, cada um cola no seu
+  adversário. Medido: 800 jogos sem tela, 0 erro, placar sempre igual ao da regra.
+  🔁 Mesmo dia: o MANO A MANO SAIU (*"eu não disse ficar colado, quis só dizer que tava com o corredor vazio"*). Fica só o tempo de 12 s.
+- 🔁 **Kings no 2D, 3º acerto (10/11)**: os 12 s SAÍRAM (*"deixou o jogo muito lento… mantenha a velocidade padrão… mas dê pra ver uma
+  jogada em cada minuto"*). Agora: tempo de sempre + **uma chance desenhada em cada minuto da Kings com pouca gente** sem gol nem chance
+  (`chancesKings2D` no campo2d.tsx: chute pra fora / defesa / trave, da semente — placar não muda). **Trocar a marcha no meio não recomeça
+  mais o relógio** (marcha e tempo da rodada por ref no `useRelogioKings`) — era o "troquei a velocidade e travou". **E a Kings usa o
+  desenho de computador das salas** (`desk2` sem `!kingsS`): campinho, tabela e o resto nos mesmos lugares.
+  ⚠️ Lembrar: tudo isso só liga com `ehKings` — nada vaza pros outros modos (cobrança dele: *"Kings League é um tipo de jogo diferente"*).
+- ⏩ **Kings PARTIDA RÁPIDA: a marcha vale pro jogo TODO (10/11, noite; a sala online da Kings NÃO mudou — *"apenas do partida rápida"*)** — *"quero a velocidade do manual igual é nas salas online… tá muito lento… de
+  qualquer lance igual a velocidade"* + *"mesmo trocando a velocidade não tá mudando nada"*. Antes só o 7×7 acelerava (1×1–6×6, dado,
+  pontapé, carta e entradas eram fixos): do Normal pro 4× o jogo caía só de 3,7 pra 2,8 min. Agora tudo divide pela marcha
+  (`msCenaKings` + `kingsRoundMs` em screens.tsx), menos a cena em que alguém DECIDE (escolha do coringa/suspensão e o duelo), com piso
+  de leitura (3 s; entrada 1,2 s). No Campo 2D a Kings usa a marcha do 2D (1×–4×, igual às salas; padrão 2,5× na sala, 2× na rápida) —
+  antes o seletor do 2D era escondido na Kings e a marcha dele não chegava no relógio. Tempo máximo do jogo: 1× 3,7 · 2× 2,3 · 2,5× 2,0 ·
+  3× 1,9 · 4× 1,7 min.
+- 🔁 **Mesma noite (10/11), versão que vale**: *"não coloque mais campo 2D na Kings League"* (Kings sempre no placar) e, na PARTIDA RÁPIDA,
+  o placar anda no ritmo da sala online e fica a 60% nos lances decisivos (1×1–6×6, gol dobrado, dado, fim, carta, presidente) —
+  `trechosDecisivosKings`/`kingsRapidaRoundMs` em screens.tsx. A sala online da Kings segue na régua antiga (`kingsRoundMs`).
+- 👑🃏 **BARALHO PRÓPRIO DA KINGS + Kings virou TIPO DE LEILÃO (10/11, madrugada)**. A Kings saiu do botão grande lá de cima e virou a 4ª
+  opção de "Tipo de leilão" (🃏 Jogador · 🧱 Clubes · 🏳️ Seleções · 👑 Kings League), só pras contas da `KINGS_TESTERS`. Escolhida a
+  Kings, mais uma escolha: **👑 Jogadores da Kings League** (padrão) ou **🃏 Jogadores padrão**. O resto é o de sempre (envelope, Tocaia,
+  pregão aberto). 10 times, 7 vagas (GOL 1 · ZAG 2 · MEI 2 · ATA 2), 100 moedas, oferta e demanda de sempre (demanda + 1 por posição).
+  - Baralho: `src/escalacao/kings-baralho.ts` (91 cartas: 17 GOL · 23 ZAG · 25 MEI · 26 ATA, ano 2025). Arquivo SEPARADO: nenhum outro
+    leilão lê (`setActiveCatalog` não olha pra ele); só entra com `kingsBaralho` no START, e o `reancoraEsporte` repõe ele no F5.
+    Palavras dele: *"esses jogadores não irão vazar pra nenhum tipo de leilão a não ser da Kings"*.
+  - Categorias (*"só terão lenda, craque, bom jogador e foi profissional… o ruim será foi profissional"*): Lendário 5 · Craque 4 · Bom 2 ·
+    Ruim/"Pior do jogo" 1. Over = o que ele mandou (inclusive Ruim com over alto, ex.: William Jesus 76-80).
+  - **Kelvin** (G3X, 95-99, lenda) é OUTRA carta, não o "Kelvin Oliveira (K9)" do baralho BR — só o rosto é o mesmo (alias em
+    `legend-avatars.ts`). Os outros 90 ficam com o boneco neutro (sem referência de rosto).
+  - Envelope único e Várzea somem da tela quando a Kings está escolhida (o motor já ignorava — era botão mudo).
+  - Trava: `npm run kings-baralho` (só cartas da Kings no leilão dela, 100 moedas, sem jogador falso, 7 vagas fechadas, nunca vaza pro
+    leilão normal/Clubes/Kings com jogadores padrão) + `npm run kings` (envelope e Tocaia com o baralho da Kings).
+  - ⚠️ 20 times NÃO fecha com o baralho da Kings: são só 17 goleiros (20 times precisariam de 21). A Kings segue com 10 times.
+  - ✅ Yan Coringa é do Funkbol (o Diego confirmou; tinha vindo "Fibol").

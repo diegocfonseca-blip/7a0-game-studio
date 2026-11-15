@@ -98,6 +98,16 @@ function tone(freq: number, dur: number, type: OscillatorType, gain: number, del
   } catch { /* ignora */ }
 }
 
+/** Percussão curta do pagode do bairro. Usa o mesmo mute e contexto do jogo;
+ * sem arquivo, timer, melodia gravada ou conexão externa. */
+export function batidaPagodeBairro(passo:number,volume:number){
+ if(!Number.isFinite(volume)||volume<=0||!allowed||muted)return
+ const v=Math.min(.22,volume)
+ if(passo%4===0)tone(120,.12,'sine',v,0,60)
+ if(passo%4===2)tone(185,.075,'triangle',v*.65,0,95)
+ if(passo%2===1)noise(.035,v*.3,3500,1)
+}
+
 // estouro de ruído (batida/carimbo/apito)
 function noise(dur: number, gain: number, filter: number, q = 1, delay = 0) {
   const c = ac(); if (!c || !master) return

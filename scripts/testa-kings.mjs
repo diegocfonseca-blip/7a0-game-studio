@@ -1,6 +1,6 @@
 // 🧪 trava do motor da Kings League (`src/escalacao/kings.ts`) — regras da Kings League Brasil (docs/conceito-kings-league.md)
 // uso: npx tsx scripts/testa-kings.mjs
-import { KINGS_TIMES, KINGS_RODADAS, KINGS_FORMACAO, PONTOS_KINGS, calendarioKings, chaveKings, semisKings, simulaPartidaKings, anotaJogoKings, ordenaKings, presidenteBot, dueloKings, MIN_BOLA } from '../src/escalacao/kings.ts'
+import { KINGS_TIMES, KINGS_RODADAS, KINGS_FORMACAO, PONTOS_KINGS, calendarioKings, chaveKings, semisKings, simulaPartidaKings, anotaJogoKings, ordenaKings, presidenteBot, dueloKings, MIN_BOLA, MIN_DADO } from '../src/escalacao/kings.ts'
 let falhas = 0
 const ok = (c, msg) => { if (!c) { falhas++; console.log('❌', msg) } else console.log('✅', msg) }
 
@@ -26,7 +26,7 @@ for (let s = 1; s <= 400; s++) {
   const q = simulaPartidaKings({ idA: s % 10, idB: (s + 3) % 10, forcaA: 60 + (s % 30), forcaB: 70, seed: s, externos: [presidenteBot(s, 'A'), presidenteBot(s, 'B')] })
   if (JSON.stringify(p) !== JSON.stringify(q)) determin = false
   if (p.resultadoA === undefined || (p.golsA === p.golsB && !p.shootout)) empate = true
-  if (!p.eventos.some(e => e.tipo === 'dado' && e.min === 18) && !p.golDeOuro) dadoOk = false
+  if (!p.eventos.some(e => e.tipo === 'dado' && e.min === MIN_DADO) && !p.golDeOuro) dadoOk = false
   const bola = p.eventos.find(e => e.tipo === 'bola')
   if (!p.golDeOuro && (!bola || bola.min !== MIN_BOLA)) bolaOk = false
   if (bola?.cor === 'vermelha' && p.eventos.some(e => e.tipo === 'gol' && e.min >= MIN_BOLA && e.vale !== 2)) vermelhaDobra = false
@@ -35,7 +35,7 @@ for (let s = 1; s <= 400; s++) {
 }
 ok(!empate, 'nunca termina empatado (vai pro shootout)')
 ok(determin, 'mesma semente = mesma partida em todo aparelho')
-ok(dadoOk, 'o dado cai no minuto 18')
+ok(dadoOk, `o dado cai no minuto ${MIN_DADO}`)
 ok(bolaOk, 'bola dourada/vermelha no minuto 38')
 ok(vermelhaDobra, 'bola vermelha: todo gol depois do 38 vale 2')
 ok(ouroPara, 'gol de ouro encerra o jogo')

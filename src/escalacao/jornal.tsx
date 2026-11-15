@@ -13,6 +13,7 @@ import type { InternationalHistoryEntry } from './career-international-season'
 import { meuEstadioNome } from './manto' // 🏟️ nome batizado pelo sócio
 import { CareerNewspaperStories } from './jornal-career-visual'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09): a imagem compartilhada também
+import { rotuloFormacao } from './types' // 🛡️ 13/11: o 3-4-3 novo (chave '3-4-3z') aparece como "3-4-3"
 // 🖼️ as MESMAS ilustrações da tela (visual V22) — a imagem do compartilhar
 // passou a ser cópia do jornal que a pessoa acabou de ler, não um desenho à parte.
 import { carimboDoTime } from './mascotes' // 🐮 mascote do clube batizado, pro rodapé do elenco
@@ -1386,7 +1387,7 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
   x.fillStyle = escCor; x.font = `900 60px ${OSW}`
   x.fillText(cortar(o.teamName, `900 60px ${OSW}`, W - tx0 - 44), tx0, 122)
   x.fillStyle = manto ? 'rgba(255,255,255,0.9)' : (claro ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)'); x.font = `800 25px ${ARI}`
-  x.fillText(`${o.divName} · ${getLang() === 'en' ? ordinal(o.tablePos) : `${o.tablePos}º lugar`} · ${tr('Temporada', 'Season')} ${o.seasonNo} · ${o.formation}`, tx0, 164)
+  x.fillText(`${o.divName} · ${getLang() === 'en' ? ordinal(o.tablePos) : `${o.tablePos}º lugar`} · ${tr('Temporada', 'Season')} ${o.seasonNo} · ${rotuloFormacao(o.formation)}`, tx0, 164)
   const chips = [
     `🏆 ${o.titles} ${o.titles === 1 ? tr('título', 'title') : tr('títulos', 'titles')}`,
     `🏷️ ${tr('Elenco vale', 'Squad worth')} ${o.squadValue} 💵`,

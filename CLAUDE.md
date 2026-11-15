@@ -887,6 +887,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   jogo 6–8s em cada regra) e *"mais demorado por partida… mais que todos"* (~3 min por partida). Duplas fora por enquanto.
   🔨 **E o LEILÃO é o DE SEMPRE** (*"o leilão é sempre igual ao de sempre nosso"*): eu inventei um pregão próprio e ele cortou. Vale
   pra QUALQUER modo novo: o pregão é o do jogo (envelope/revelação/monte); muda só formação, vagas ou baralho.
+  🟢 **LIBERADA PRA TODOS EM 12/11** (`KINGS_GERAL`): criar sala da Kings = a sala grátis do dia, igual às salas rápidas (depois 🎟️ R$ 4,90 · ⭐ Craque Salas R$ 9,90/mês · todos os planos). 🔓 13/11: senha é ESCOLHA de quem cria (*"ao criar sala o usuário decide"*); entrar é de graça pra todos e quantas quiser. 🎩 Presidentes = 5ª posição do leilão (só na Kings), todos com a mesma força, carta nas cores do time.
   📺 **E A TEMPORADA TAMBÉM É A DE SEMPRE** (mesmo dia: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*): modo novo
   NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 
@@ -1012,6 +1013,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Pedido → o dono aceita e escolhe o time (bot ou no lugar de alguém) → entra na VIRADA da temporada, nunca no meio. Na Liga Draft, quem
   sai vira bot com o elenco (a liga não recomeça). Formato da próxima temporada (10→20, só ida) só muda com a liga parada. NADA de botão
   "pausar/encerrar a noite" (*"não precisa… já tem o sair da sala"*).
+- **🪑 NA LIGA, O TIME SÓ DEIXA DE SER DO JOGADOR QUANDO O DONO REMOVE (10/11, regra permanente, caso do Realengo FC na sala do Reffati).**
+  *"O time dele só deve deixar de ser dele se o host remover; enquanto não remove, se o usuário voltar, ele volta pro mesmo local onde o
+  host tá comandando a sala"* — no meio da temporada também, com ou sem plano. Saiu/caiu = a máquina toca o time, mas o crachá FICA no
+  `seatUids`; ao voltar, o aparelho dele pede `RETOMA_TIME` e o dono devolve. Só o `KICK_PLAYER` com `peloDono` (e a troca na virada) apaga
+  o crachá. Vale pra Liga Draft e Liga da Turma; sala rápida não mudou. Gente NOVA continua: plano + aceite do dono. Trava: `npm run liga-volta`.
 - **🔒📋 LIGA ESPERANDO A TURMA APARECE NAS SALAS ABERTAS (08/11, revê o "liga nunca na lista" de 29/08).** *"permita aparecer nas
   salas abertas a sala, porém com senha pra entrar sempre"*. Aparece enquanto o dono está na sala de espera (batimento de 30s); entrar
   pede SEMPRE a senha (`enterRoom`), e liga já começada segue só pra quem tem plano.
@@ -1145,6 +1151,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Draft do Futpoint: o Príncipe Rubro Negro (3 lendas + 8 craques, nenhum titular fraco) ganhava de times com 6 lendas e um perna-de-pau
   escalado (Digão 48–64 na zaga do Duarte). A simulação é por SETOR com os 11 titulares — lenda no ataque não tapa zagueiro ruim. Ele
   achou justo e mandou deixar. **Não aumentar o peso da lenda** sem ele pedir. (E "ficou em 16º três vezes" do Duarte = coincidência: 15º na T3.)
+
+- **🛡️ 3-4-3 = 3 ZAGUEIROS, 4 MEIAS, 3 ATACANTES, SEM LATERAL (13/11, opção 1 dele).** *"a formação 343 não deveria ter lateral"*.
+  Chave nova `'3-4-3z'` (na tela "3-4-3"); a `'3-4-3'` antiga (2 LAT + 1 ZAG) só vale pra quem já estava nela. Trava `npm run 343`.
+- **🏷️ A CATEGORIA SE CHAMA "PROFISSIONAL" (13/11).** *"a categoria foi profissional agora será profissional, o nome apenas"*. Só o nome na tela (PT "Profissional", EN "Pro"); a categoria (fame 1) não mudou. Texto novo já nasce com "Profissional".
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

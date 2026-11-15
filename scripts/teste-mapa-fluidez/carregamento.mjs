@@ -1,0 +1,20 @@
+import {chromium} from 'playwright-core'
+import {writeFileSync} from 'node:fs'
+import assert from 'node:assert/strict'
+const root='/workspace/shared/mapa-carregamento-fluidez-20261114',report={checks:[],errors:[]},browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader','--disable-dev-shm-usage','--mute-audio']})
+try{for(const phase of ['antes','depois'])for(const[device,width,height]of [['desktop',1440,1000],['celular',390,844]]){
+ const base=phase==='antes'?'http://127.0.0.1:4203':'http://127.0.0.1:4201',c=await browser.newContext({viewport:{width,height},locale:'pt-BR',reducedMotion:'reduce'})
+ await c.addInitScript(()=>localStorage.setItem('pc3-qualidade-v1','leve'));await c.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());await c.routeWebSocket('**/*',w=>w.close())
+ const p=await c.newPage();p.setDefaultTimeout(180000);p.on('pageerror',e=>report.errors.push({phase,device,message:e.message}))
+ await p.goto(base+'/7a0-game-studio/scripts/teste-mapa-fluidez/loading.html?hold=1',{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>window.qaHoldId>=1||!!document.querySelector('vite-error-overlay'));assert.equal(await p.locator('vite-error-overlay').count(),0,'Bancada precisa carregar sem erro de compilação')
+ assert.equal(await p.evaluate(()=>!!window.qaProfile.api),false);await p.locator('.pc3-stage').screenshot({path:`${root}/${phase}/${device}-espera-real.png`,timeout:90000})
+ if(phase==='depois'){assert.equal(await p.locator('.pc3-stage button:visible').count(),0);assert.match(await p.locator('[role=status]').innerText(),/PREPARANDO SEU MAPA/);assert.equal(await p.locator('.pc3-club-place').count(),0)}
+ await p.evaluate(()=>(window.qaReleased=true,window.qaRelease()));await p.waitForFunction(()=>!!window.qaProfile.api);await p.getByRole('button',{name:'Voltar à visão inicial do mapa',exact:true}).click()
+ if(phase==='depois'&&device==='celular'){
+  await p.getByRole('button',{name:'Ampliar mapa',exact:true}).click();const oldId=await p.evaluate(()=>window.qaHoldId);await p.evaluate(()=>{window.qaReleased=false;window.qaRoof()});await p.waitForFunction(id=>window.qaHoldId>id,oldId);await p.getByRole('button',{name:'Fechar mapa ampliado',exact:true}).click();assert.equal(await p.locator('[data-expanded=true]').count(),0,'Pode sair da tela cheia durante recarga');await p.evaluate(()=>(window.qaReleased=true,window.qaRelease()));await p.waitForFunction(()=>!!window.qaProfile.api)
+ }
+ report.checks.push({phase,device,loadingScreenshot:true,noFalseButtons:phase==='depois',readyAfterRelease:true,fullscreenExit:phase==='depois'&&device==='celular'});console.log('Espera conferida',phase,device);await c.close()
+}
+// A alternativa só aparece se o WebGL falhar, mantendo acesso às telas do clube.
+const c=await browser.newContext({viewport:{width:390,height:844},locale:'pt-BR'});await c.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(kind,...rest){return /webgl/i.test(kind)?null:get.call(this,kind,...rest)}});await c.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4201/')?r.continue():r.abort());await c.routeWebSocket('**/*',w=>w.close());const p=await c.newPage();p.setDefaultTimeout(120000);await p.goto('http://127.0.0.1:4201/7a0-game-studio/scripts/teste-mapa-fluidez/index.html',{waitUntil:'domcontentloaded'});await p.getByRole('alert').waitFor();await p.getByRole('button',{name:'Finanças',exact:true}).click();assert.equal(await p.evaluate(()=>window.qaDestination),'financas');assert.equal(await p.locator('.pc3-loading').count(),0);await p.locator('.pc3-stage').screenshot({path:root+'/depois/celular-falha-webgl.png'});report.checks.push({webglFailure:true,fallbackWorks:true});await c.close();assert.deepEqual(report.errors,[])
+}finally{writeFileSync(root+'/carregamento-verificacao.json',JSON.stringify(report,null,2));await browser.close()}

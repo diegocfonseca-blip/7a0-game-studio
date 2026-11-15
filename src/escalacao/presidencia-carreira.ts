@@ -1,12 +1,12 @@
 import {roupaModularValida,type RoupaModular} from './presidente-vestuario-modular'
 import {podeVestirComPosse,type PosseAvulsa} from './presidente-avulsas'
 import type {PlanoUnico} from './planos-regras'
-import {carteiraPresidenciaValida,confirmarPresidencia,type PresidenciaBem,type PresidenciaOrcamento,type PresidenciaCarteira} from './presidencia-economia'
+import {carteiraPresidenciaValida,confirmarPresidencia,itemPresidencia,type PresidenciaBem,type PresidenciaOrcamento,type PresidenciaCarteira,type PresidenciaItemId} from './presidencia-economia'
 import {duplaDaGaragem,duplaGaragemValida,type DuplaGaragem} from './presidencia-garagem'
 import {aparenciaValida,copiarAparencia,type PresidenteAparencia} from './presidente-aparencia'
 import {compraPresidenciaDisponivel} from './presidencia-artes-disponiveis'
 
-export type BensPresidencia={revision:number;owned:PresidenciaBem[];display?:DuplaGaragem}
+export type BensPresidencia={revision:number;owned:PresidenciaBem[];display?:DuplaGaragem;homeFurniture?:PresidenciaItemId[]}
 export type PresidenteBaseSave={version:5;name:string;outfit:RoupaModular;appearance?:PresidenteAparencia;sinceSeason?:number}
 export type CarreiraPresidencia={
  careerOnline?:boolean;onlineMode?:string;sport?:string;youIdx:number;seasonNo?:number;
@@ -38,7 +38,9 @@ export function carteiraDaCarreira(s:CarreiraPresidencia,mgrId:number):Presidenc
  const owned=s.careerPresidency?.[mgrId]
  if(owned!==undefined&&(!owned||typeof owned!=='object'))return null
  const wallet=owned===undefined?{cash:s.careerCoins?.[mgrId]??0,revision:0,owned:[]}:{cash:s.careerCoins?.[mgrId]??0,revision:owned.revision,owned:owned.owned}
- return carteiraPresidenciaValida(wallet)?{...wallet,owned:wallet.owned.map(b=>({...b}))}:null
+ if(!carteiraPresidenciaValida(wallet))return null
+ const homeFurniture=(Array.isArray(owned?.homeFurniture)?owned.homeFurniture:[]).filter(id=>wallet.owned.some(b=>b.id===id)&&!['carro','duas-rodas'].includes(itemPresidencia(id)?.slot??''))
+ return {...wallet,owned:wallet.owned.map(b=>({...b})),...(homeFurniture.length?{homeFurniture}:{})}
 }
 export function negociarNaCarreira<T extends CarreiraPresidencia>(state:T,mgrId:number,quote:PresidenciaOrcamento,confirmed:boolean){
  if(quote?.pedido?.kind==='buy'&&!compraPresidenciaDisponivel(quote.pedido.id))return {ok:false as const,error:'unknown-item' as const}
@@ -47,17 +49,25 @@ export function negociarNaCarreira<T extends CarreiraPresidencia>(state:T,mgrId:
  const result=confirmarPresidencia(wallet,quote,confirmed)
  if(!result.ok)return result
  const {cash,revision,owned}=result.value
+ const homeFurniture=wallet.homeFurniture?.filter(id=>owned.some(b=>b.id===id))
  const previous=state.careerPresidency?.[mgrId]?.display
  const display=previous===undefined?undefined:duplaDaGaragem(owned,previous)
- return {ok:true as const,value:{...state,careerCoins:{...state.careerCoins,[mgrId]:cash},careerPresidency:{...state.careerPresidency,[mgrId]:{revision,owned,...(display?{display}:{})}}}}
+ return {ok:true as const,value:{...state,careerCoins:{...state.careerCoins,[mgrId]:cash},careerPresidency:{...state.careerPresidency,[mgrId]:{revision,owned,...(display?{display}:{}),...(homeFurniture?.length?{homeFurniture}:{})}}}}
 }
 export function exibirDuplaNaCarreira<T extends CarreiraPresidencia>(state:T,mgrId:number,display:DuplaGaragem){
  const wallet=carteiraDaCarreira(state,mgrId)
  if(!wallet||!duplaGaragemValida(display,wallet.owned))return {ok:false as const,error:'invalid-state' as const}
  // Exposição não muda caixa/revisão econômica nem invalida orçamento de compra.
- return {ok:true as const,value:{...state,careerPresidency:{...state.careerPresidency,[mgrId]:{revision:wallet.revision,owned:wallet.owned,display:[...display] as DuplaGaragem}}}}
+ return {ok:true as const,value:{...state,careerPresidency:{...state.careerPresidency,[mgrId]:{...state.careerPresidency?.[mgrId],revision:wallet.revision,owned:wallet.owned,display:[...display] as DuplaGaragem}}}}
 }
 /** Alterações visuais/bens também precisam disparar o autosave, sem rodada. */
 export function assinaturaPresidencia(s:Pick<CarreiraPresidencia,'careerPresidency'|'careerPresidentBase'>){
  return s.careerPresidency||s.careerPresidentBase?JSON.stringify([s.careerPresidency??null,s.careerPresidentBase??null]):''
+}
+
+/** Expor em casa move a peça; não compra, não duplica nem altera a revisão do orçamento. */
+export function organizarMoveisNaCasa<T extends CarreiraPresidencia>(state:T,mgrId:number,ids:PresidenciaItemId[]){
+ const wallet=carteiraDaCarreira(state,mgrId)
+ if(!wallet||!Array.isArray(ids)||ids.length>13||new Set(ids).size!==ids.length||ids.some(id=>!wallet.owned.some(b=>b.id===id)||['carro','duas-rodas'].includes(itemPresidencia(id)?.slot??'')))return {ok:false as const}
+ return {ok:true as const,value:{...state,careerPresidency:{...state.careerPresidency,[mgrId]:{...state.careerPresidency?.[mgrId],revision:wallet.revision,owned:wallet.owned,homeFurniture:[...ids]}}}}
 }

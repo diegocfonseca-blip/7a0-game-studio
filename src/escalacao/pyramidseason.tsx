@@ -1,3 +1,4 @@
+import {MuseuClube,MuseuMelhoria} from './museu-clube-ui'
 import {CareerAuctionHint} from './career-start-guide'
 import {OwnerPrimary} from './owner-online-visual'
 import { careerVisualV2, CareerVisualProvider, CareerBrand, CareerHeading, CareerMarketSteps, CareerSection, CareerSectionLinks, CareerBalance, useCareerVisualV2 } from './career-visual-v2'
@@ -13,7 +14,7 @@ import {ArenaConsulta} from './arena-consulta'
 import type {ControleComplexo} from './presidencia-complexo-3d'
 import {ResidenciaClube} from './residencia-clube'
 import {GaragemCarreira} from './garagem-carreira'
-import {carteiraDaCarreira} from './presidencia-carreira'
+import {carteiraDaCarreira,organizarMoveisNaCasa} from './presidencia-carreira'
 import {ClubeMapaPainel} from './clube-mapa-painel'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import { podeAtivarRecepcaoM2, recepcaoM2Desde, versaoRecepcaoNaRodada, versaoRecepcaoNaCopa } from './motor2-recepcao-conta'
@@ -35,7 +36,7 @@ import type {DecisaoJogo} from './presidencia-lotacao-jogo'
 import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from './presidencia-complexo-jornada'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {divisaoDaFesta,ULTIMA_RODADA_LIGA} from './presidencia-complexo-final-regras'
-import { placarParaK } from './kings-liga'
+import { placarParaKTela as placarParaK, type Kings2D } from './kings-liga' // ⏱️ 10/11: na tela o relógio da Kings para no 36' (match ball)
 import {usePartidaNoMapa,partidaPublicada,reinicioPartidaPendente} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio,EstadoPartidaEstadio} from './presidencia-partida-model'
 import {criarRelogioLance} from './presidencia-lance-tempo'
@@ -66,7 +67,7 @@ import {PresidenciaClube} from './presidencia-clube'
 import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
 import {MapaGuardado,VagaDoMapa} from './mapa-guardado'
 import { publicaControleMapa, pedeCameraDoMapa, type ControleMapa } from './controle-partida-mapa'
-import {PRESIDENCY_STADIUM_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
+import {mapaEstadioDisponivel,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './online-match-visual'
@@ -77,7 +78,7 @@ import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:0
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
-import { SECTORS, FORMATIONS, FORMACOES_JOGO } from './types'
+import { SECTORS, FORMATIONS, FORMACOES_JOGO, rotuloFormacao } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
@@ -113,7 +114,7 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, useStatsPlacar } from './sport'
+import { useSaf2, useBotBanco, usePixMp, useCampo2DLiberado, useMotor2Carreira, useStatsPlacar, useKingsLiberada } from './sport'
 import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
@@ -3307,8 +3308,8 @@ export function LiveScoreCard(props: Parameters<typeof LiveScoreCardBody>[0]) {
   const mine=!!club&&!props.neutro&&[props.homeName,props.awayName,props.homeOwner,props.awayOwner].includes(club)
   return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props}/></OwnerPrimary>
 }
-function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm }:
-  { /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm, kings2d }:
+  { /** 👑📺 10/11: a partida da Kings pro Campo 2D (quem está em campo, cartões, bola do fim) */ kings2d?: Kings2D; /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3339,7 +3340,10 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // campinho 2D em si também tinha ficado só na conta dele. O 2D volta à régua de sempre (`useCampo2DLigado`): na sala online
   // quem manda é a sala (todo mundo vê igual, convidado nunca paga); fora dela, quem está liberado e pagou.
   const presidentFieldAccount = usePresidentPreview()
-  const c2d = useCampo2DLigado() && !basket
+  // 👑 Kings: o 2D só com os dados da partida dela e só pras contas que veem a Kings. (10/11 ele tirou; 11/11 pediu de volta pra
+  // decidir: *"coloque o campinho 2D também e depois eu decido se deixo ou tiro"*.)
+  const kings2dOk = useKingsLiberada()
+  const c2d = useCampo2DLigado() && !basket && (!relogioKings || (kings2dOk && !!kings2d))
   const statsPlacar = useStatsPlacar() // 📊 07/11: estatísticas no apito do placar cinema (só a conta do Diego até ele aprovar)
   const c2dX = useCampo2DExtras()
   const abaixoDosGols = useContext(AbaixoDosGolsCtx)
@@ -3797,7 +3801,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
-      estadio={c2dX.estadioDe(homeName)} replay={c2dX.offline} />
+      estadio={c2dX.estadioDe(homeName)} replay={c2dX.offline} kings={relogioKings ? kings2d : undefined} />
   ) : null
   // 📢 o telão SEMPRE embaixo do jogo (Diego 20/10) — em toda competição, online e offline
   // ⚽ 25/10 (Diego: *"embaixo do comentarista… vem gols que não tô vendo no 2D"*): os gols do jogo embaixo do campinho, igual ao
@@ -4148,7 +4152,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
                 de sempre (+ a atual, se for conta nova). Aqui é sempre a CONTA do
                 motor (sem maquiagem: intervalo é ajuste rápido). */}
             {((): FormationKey[] => {
-              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2'] as FormationKey[]
+              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2'] as FormationKey[]
               if (!quinze15) return base
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
@@ -4161,7 +4165,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
               return [...new Set<FormationKey>([...motores, mgr.formation])]
             })().map(f => {
               const cur = formation === f, can = cur || missFor(f).length === 0
-              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{f}{cur ? ' ✓' : ''}</button>
+              return <button key={f} disabled={!can} onClick={() => pickForm(f)} style={{ flex: '1 1 28%', minWidth: 52, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '6px 3px', fontWeight: 900, fontSize: 11.5, ...OSWALD, cursor: can && !cur ? 'pointer' : 'default', background: cur ? INK : '#fff', color: cur ? '#fff' : (can ? INK : '#b8b2a4'), opacity: can ? 1 : 0.6, boxShadow: cur ? `2px 2px 0 0 rgba(0,0,0,.35)` : 'none' }}>{rotuloFormacao(f)}{cur ? ' ✓' : ''}</button>
             })}
           </div>
           {/* tática */}
@@ -5570,7 +5574,7 @@ const TEC_GRAD: Record<DivTec, { grad: string; ink: string }> = {
 }
 const TEC_ESTILO: Record<string, string> = { retranca: '🛡️ Retranqueiro', posse: '🎩 Posse de bola', ofensiva: '⚽ Ofensivo', equilibrado: '⚖️ Equilibrado' }
 const TEC_ESTILO_EN: Record<string, string> = { retranca: '🛡️ Defensive', posse: '🎩 Possession', ofensiva: '⚽ Attacking', equilibrado: '⚖️ Balanced' }
-const CAT_TEC_EN: Record<DivTec, string> = { A: '👑 Legend', B: '⭐ Star', C: '💜 Prospect', D: '💚 Good player', V: '🤎 Ex-pro' }
+const CAT_TEC_EN: Record<DivTec, string> = { A: '👑 Legend', B: '⭐ Star', C: '💜 Prospect', D: '💚 Good player', V: '🤎 Pro' }
 const catTecRotulo = (d: DivTec) => (getLang() === 'en' ? CAT_TEC_EN[d] : CATEGORIA_TECNICO_ROTULO[d])
 function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFaixa?: boolean; misterio?: boolean }) {
   const t = tecnicoPorNome(nome)
@@ -5959,7 +5963,7 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
         </div>
         <p style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.06em', color: INK, background: olheiroGrad, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{olheiroNome}</span>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#5a5647' }}>{olheiroTier === 'ouro' ? tr('acha qualquer jogador, lenda inclusive', 'finds any player, legends included') : olheiroTier === 'prata' ? tr('acha de craque pra baixo', 'finds from star down') : tr('acha foi profissional, bom jogador e promessa', 'finds ex-pros, good players and prospects')}</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#5a5647' }}>{olheiroTier === 'ouro' ? tr('acha qualquer jogador, lenda inclusive', 'finds any player, legends included') : olheiroTier === 'prata' ? tr('acha de craque pra baixo', 'finds from star down') : tr('acha profissional, bom jogador e promessa', 'finds ex-pros, good players and prospects')}</span>
         </p>
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
           {pilula(posF === null, tr('Todas', 'All'), () => setPosF(null))}
@@ -6388,7 +6392,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
         }
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
         // 📋 Liga Draft (04/11): as 7 formações do jogo, acesas pelo que o elenco tem; o resto segue com as 5 de sempre
-        const listaForm: readonly FormationKey[] = escSt.minhaLigaDraft ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2']
+        const listaForm: readonly FormationKey[] = escSt.minhaLigaDraft ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2']
         const blocked = listaForm.filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
@@ -6403,13 +6407,13 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
                   <button key={vista ?? f} disabled={!can} onClick={() => { if (can && !cur) onSetFormation(f, vista) }}
                     title={vista ? tr('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined}
                     style={btnStyle(cur, can)}>
-                    {vista ?? f}{cur ? ' ✓' : ''}
+                    {vista ?? rotuloFormacao(f)}{cur ? ' ✓' : ''}
                   </button>
                 )
               })}
             </div>
             {blocked.length
-              ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{blocked[0]}</b> you\'re missing <b>{missFor(blocked[0]).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{blocked[0]}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
+              ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{rotuloFormacao(blocked[0])}</b> you\'re missing <b>{missFor(blocked[0]).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{rotuloFormacao(blocked[0])}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
               : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>{tr('✅ Você pode trocar de formação quando quiser — vale do próximo jogo.', '✅ You can change formation whenever you like — applies from the next match.')}</p>}
           </div>
         )
@@ -7700,7 +7704,7 @@ function CriseBanner({ crise, opcoes, onResolve }: {
             <button key={f.name} onClick={() => onResolve('folclorico', f)} style={{ display: 'block', width: '100%', textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', padding: '9px 10px', marginBottom: 8, cursor: 'pointer', boxShadow: `2px 2px 0 ${INK}` }}>
               <div style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD }}>{f.name}</div>
               <div style={{ fontSize: 8.5, fontWeight: 800, color: '#7a6b3f', marginTop: 1 }}>{f.club} · {f.year}</div>
-              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio ?? tr('Categoria "foi profissional" — jogou pouco, mas jogou.', '"Was a pro" category — didn\'t play much, but played.')}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', marginTop: 3, lineHeight: 1.35 }}>{f.bio ?? tr('Categoria "profissional" — jogou pouco, mas jogou.', '"Pro" category — didn\'t play much, but played.')}</div>
               <span style={{ display: 'inline-block', marginTop: 6, background: GREEN, color: '#fff', fontWeight: 900, fontSize: 8.5, borderRadius: 5, padding: '2px 8px', textTransform: 'uppercase' }}>{tr('Grátis', 'Free')}</span>
             </button>
           ))}
@@ -7739,7 +7743,7 @@ function CriseBanner({ crise, opcoes, onResolve }: {
           {tr('"Nunca gostei dele mesmo"', '"Never liked him anyway"')}
           <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.55)', marginTop: 2 }}>{tr('Chama alguém da base pro lugar dele.', 'Call someone up from the academy to replace him.')}</small>
         </button>
-        <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.4 }}>{tr('🤡 Aviso justo: seja base ou "foi profissional", ninguém aqui é bom de bola — mas topa jogar de graça.', '🤡 Fair warning: academy or "was a pro", nobody here is any good — but they\'ll play for free.')}</p>
+        <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.4 }}>{tr('🤡 Aviso justo: seja base ou "profissional", ninguém aqui é bom de bola — mas topa jogar de graça.', '🤡 Fair warning: academy or "was a pro", nobody here is any good — but they\'ll play for free.')}</p>
       </div>
     </div>
   )
@@ -8430,8 +8434,9 @@ export function PyramidSeasonScreen() {
   const [planosSalvar, setPlanosSalvar] = useState(false)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
-  const presidentPending = usePresidentPreviewPending() && PRESIDENCY_STADIUM_RELEASED // mapa oculto também não exibe sua espera de carregamento
+  const presidentPending = usePresidentPreviewPending() && mapaEstadioDisponivel(true) // espera só na conta candidata à prévia
   const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
+  const stadiumMapAvailable = mapaEstadioDisponivel(presidentAvailable)
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
   // 🔓 19/09: liberado pra TODO MUNDO (*"pode publicar p todos"*). `publicCareerVisual`
@@ -8515,9 +8520,9 @@ export function PyramidSeasonScreen() {
   // quem manda no tempo é o dono da sala, então lá não pausa.
   const pausaCentral = tab === 'central' && !state.co2
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena' | 'museu' | 'estrutura'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const clubeMapaApi=useRef<ControleComplexo|null>(null)
-  const mapaComoClube = presidentAvailable && PRESIDENCY_STADIUM_RELEASED && state.onlineMode!=='online' && !state.co2
+  const mapaComoClube = stadiumMapAvailable && state.onlineMode!=='online' && !state.co2
 
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube (liberada geral em 15/09; a porta de verdade é a OBRA da loja no estádio)
@@ -10179,7 +10184,7 @@ export function PyramidSeasonScreen() {
   const calLivre = calFase === 'dias' && !coletivaOpen && !eventoPendente && decisoesOk && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
   // 🏟️ 25/10 (Diego: "não consigo ver o jogo pelo mapa… deveria ter forma de passar o dia lá"): com o mapa 3D na aba Clube, a semana
   // anda ali também — senão o "o próximo jogo começa sozinho" do mapa nunca chegava (botão mudo)
-  const mapaNoClube = tab === 'estadio' && presidentAvailable && PRESIDENCY_STADIUM_RELEASED
+  const mapaNoClube = tab === 'estadio' && stadiumMapAvailable
   // 🗺️ 03/11 (Diego: *"quando acaba o jogo não aparece botão pra ele avançar pra próxima semana e nem ir pro próximo jogo… não aparece
   // nada. Simplesmente acaba o jogo. Ele que vai ter que trocar de aba manualmente e ir pra aba Central ou Jogos"*): no mapa a semana
   // NÃO anda e não tem botão de seguir — os dias só passam na Central e na aba Jogos.
@@ -10834,7 +10839,7 @@ export function PyramidSeasonScreen() {
   // 🛑 26/10 (3º print: *"continua aparecendo esse modal que eu disse que não quero"*): NADA de janela por cima. Chegou o dia, a
   // semana para e o próprio cartão da semana troca o ⏩ por "⚽ Ir pro jogo"; na aba Jogos fica o "▶ Começar o jogo".
   // 🏟️ Campo 3D (só onde o mapa existe — conta do Diego): vai pra aba Clube, dentro do mapa, na câmera de transmissão
-  const verNo3D = presidentAvailable && PRESIDENCY_STADIUM_RELEASED && calOn ? () => {
+  const verNo3D = stadiumMapAvailable && calOn ? () => {
     pedeCameraDoMapa('field2d'); setClubeSub('estadio'); escolheAba('estadio')
     setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
   } : null
@@ -11129,9 +11134,11 @@ export function PyramidSeasonScreen() {
   }
   const abrirDestinoNoMapa=(target:DestinoClubeMapa)=>setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)
   const PainelResidencia=mapaComoClube?ResidenciaClube:PresidenciaClube
-  const temPainelClube = clubeSub==='arena'&&mapaComoClube||clubeSub==='veiculos'&&mapaComoClube|| clubeSub==='financas'||clubeSub==='patrocinio'||clubeSub==='loja'&&lojaLib||clubeSub==='agencia'&&agenciaOk||clubeSub==='escritorio'&&!agenciaOk||clubeSub==='presidencia'&&(presidentAvailable||privateCareer&&PRESIDENT_ROOM_RELEASED)
+  const museuDisponivel=mapaComoClube && state.sport!=='basquete'
+  const temPainelClube = clubeSub==='estrutura'&&mapaComoClube||clubeSub==='museu'&&museuDisponivel|| clubeSub==='arena'&&mapaComoClube||clubeSub==='veiculos'&&mapaComoClube|| clubeSub==='financas'||clubeSub==='patrocinio'||clubeSub==='loja'&&lojaLib||clubeSub==='agencia'&&agenciaOk||clubeSub==='escritorio'&&!agenciaOk||clubeSub==='presidencia'&&(presidentAvailable||privateCareer&&PRESIDENT_ROOM_RELEASED)
   // Preserve the one map instance while the existing club screens open above it.
-  // Every purchase/reducer below is unchanged; navigating does not run a match.
+  // Existing purchases keep their rules; the optional museum has its own action.
+  // Navigating never runs a match.
   // 🗺️💾 04/11: o mapa mora no cofre (`mapa-guardado.tsx`) — sair da aba Clube não desmonta mais a cidade (solta em 5 min)
   // 🏆📋 CAMPEÃO DA DIVISÃO no mapa 3D (04/11, Diego aprovou): a mesma festa das finais, com o tema da série, mas SÓ depois que
   // a última rodada animou e o fim da temporada já apareceu na tela (`done`), e SÓ pro 1º da tabela final. É desenho no mapa:
@@ -11141,18 +11148,18 @@ export function PyramidSeasonScreen() {
   const festaTitulo: EstadoPartidaEstadio | undefined = presidentAvailable && divFesta && stadiumMatch && myMatch && (myMatch.hId === youId || myMatch.aId === youId) ? {
     context: { ...stadiumMatch, tituloDivisao: divFesta }, officialTeams: [myMatch.h, myMatch.a], minute: 93, period: 2, homeScore: myMatch.hg, awayScore: myMatch.ag, paused: true, finished: true,
     homeColor: myMatch.hId === youId ? myCol.solid : colors?.[myMatch.hId]?.solid ?? '#3A7CA5', awayColor: myMatch.aId === youId ? myCol.solid : colors?.[myMatch.aId]?.solid ?? '#C2452F' } : undefined
-  const mapaDoClube = !presidentPending && presidentAvailable && PRESIDENCY_STADIUM_RELEASED ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
-  const renderEstruturaDoClube=()=> (
+  const mapaDoClube = !presidentPending && stadiumMapAvailable ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
+  const renderEstruturaDoClube=(insidePanel=false)=> (
           <>
             {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
                 de temporada (antes de "Começar a temporada") — aqui é só status/leitura.
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentPending?<EstadioCarregando/>:presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
-              onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
+              onInvestParking={stadiumMapAvailable&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
               filial={myFilial}
               filialOptions={(() => {
                 // 🏢 só dá pra comprar clube que VAI FICAR na Série D: tira os 4
@@ -12505,9 +12512,9 @@ export function PyramidSeasonScreen() {
               )
             })()}
             {(mapaComoClube || !temPainelClube) && renderEstruturaDoClube()}
-            <ClubeMapaPainel enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={setClubeSub} onClose={()=>setClubeSub('estadio')}>
-            {clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
-              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><PainelResidencia onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
+            <ClubeMapaPainel enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={abrirDestinoNoMapa} onClose={()=>setClubeSub('estadio')}>
+            {clubeSub==='estrutura'&&mapaComoClube?renderEstruturaDoClube(true):clubeSub==='museu'&&museuDisponivel?<MuseuClube state={state} mgrId={youId} member={meuSocFesta} color={myCol.solid} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:youId,expectedStage})} onStore={()=>setClubeSub('estrutura')}/>:clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
+              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><PainelResidencia onFurnitureHome={ids=>{if(!presidentWritesEnabled()||!organizarMoveisNaCasa(state,youId,ids).ok)return false;dispatch({type:'PRESIDENCY_FURNITURE_HOME',mgrId:youId,ids});return true}} onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
                 if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
                 dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true
               }} onDisplay={display=>{
@@ -12926,11 +12933,11 @@ export function PyramidSeasonScreen() {
             {quinzeCarr && (
               <UnlockBanner k="tecnicos-chegaram" tag={tr('🎉 vocês pediram muito', '🎉 you asked a lot')} title={tr('🧢 Os técnicos chegaram!', '🧢 The head coaches are here!')} ctaBg={GREEN} ctaColor="#fff">
                 {getLang() === 'en' ? <>
-                Your club now has a <b>head coach</b>: there are <b>105 of them</b>, from 🤎 Was a pro to 👑 Legend, and <b>their level adds to your team</b> in every league match.
+                Your club now has a <b>head coach</b>: there are <b>105 of them</b>, from 🤎 Pro to 👑 Legend, and <b>their level adds to your team</b> in every league match.
                 <br /><br />🎽 The <b>15 formations</b> came along too — but <b>the coach is who unlocks them</b>: with no coach, the team only plays the system it already trains. The higher the coach\'s category, the more systems they bring (👑 Legend brings 5).
                 <br /><br />📍 <b>To hire one:</b> in the window <b>before the auction</b>, <b>🕵️ SCOUT</b> tab — you mark the coach you want and fight for them at the auction, in the envelope, just like a player. 🔨 <b>5-season</b> contract, salary on the payroll.
                 </> : <>
-                Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Foi profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
+                Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
                 <br /><br />🎽 E vieram junto as <b>15 formações</b> — mas <b>quem abre elas é o técnico</b>: sem técnico, o time joga só o esquema que já treina. Quanto maior a categoria dele, mais esquemas ele traz (👑 Lenda traz 5).
                 <br /><br />📍 <b>Pra contratar:</b> na janela <b>antes do leilão</b>, aba <b>🕵️ SONDAR</b> — você marca o técnico que quer e briga por ele no pregão, no envelope, igual jogador. 🔨 O tempo de contrato é <b>sorteado na assinatura</b> ({CONTRATO_PRAZOS.join(', ')} temporadas, a mesma escada do jogador), com salário na folha.
                 </>}
@@ -13144,7 +13151,7 @@ export function ReserveListScreen() {
           const d = (state.careerPlacements?.[`m${youId}`] ?? 'V') as 'A' | 'B' | 'C' | 'D' | 'V'
           const CATS: Record<string, string> = getLang() === 'en'
             ? { V: '🪵 Was a Pro + 🎯 Good Player', D: '🎯 Good Player + 💎 Prospect', C: '💎 Prospect + ⭐ Star', B: '💎 Prospect + ⭐ Star', A: '⭐ Star + 👑 Legend' }
-            : { V: '🪵 Foi Profissional + 🎯 Bom Jogador', D: '🎯 Bom Jogador + 💎 Promessa', C: '💎 Promessa + ⭐ Craque', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
+            : { V: '🪵 Profissional + 🎯 Bom Jogador', D: '🎯 Bom Jogador + 💎 Promessa', C: '💎 Promessa + ⭐ Craque', B: '💎 Promessa + ⭐ Craque', A: '⭐ Craque + 👑 Lenda' }
           return (
             <div style={{ ...box('#FFF7DB'), padding: 11, marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🪜 Mercado da', '🪜 Market of')} {d === 'V' ? '🌱 Várzea' : `Série ${d}`}</p>

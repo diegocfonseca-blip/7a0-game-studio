@@ -122,6 +122,9 @@ export interface Card {
   /** 🧱 LEILÃO DE CLUBES: esta "carta" é um PACOTE — o setor de um clube (todos os
    *  goleiros do Palmeiras…). Quem ganha convoca os que vão jogar depois do pregão. */
   pacote?: { clube: string; cartas: Card[]; /** 🏳️ pacote de seleção (31/10) */ selecao?: boolean; /** 📅 década do pacote, ex. 1990 (31/10) */ decada?: number }
+  /** 🎩 KINGS (12/11): esta carta é um PRESIDENTE (mora na vaga 'LAT' da Kings, que não tem lateral). Não entra em campo;
+   *  bate o pênalti do presidente. A carta leva as cores do time no lugar da cor da categoria (`kings-presidentes.ts`). */
+  presidente?: boolean
   cria?: boolean // 🌱 Cria da Base: tapa-buraco sem contrato, ruim de doer, invendável — some quando chega reforço // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
@@ -211,26 +214,33 @@ export interface EventoManchete { season: number; round: number; emoji: string; 
 // 4-2-4 e 5-4-1 entraram em 26/08 (martelo do Diego nas 15 formações), medidas
 // no motor real (25 temporadas × 4 perfis de elenco): nenhuma passa de 48% de
 // título nem no cenário mais favorável — mesma faixa das 5 antigas.
-export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1' | 'kings' | 'pokemon'
+// 🛡️ 13/11 (Diego: *"a formação 3-4-3 não deveria ter lateral… são 3 zagueiros, 4 meias e 3 atacantes"*, opção 1): o 3-4-3 que se
+// ESCOLHE daqui pra frente é o `'3-4-3z'` (3 ZAG · 4 MEI · 3 ATA, sem lateral). A chave `'3-4-3'` continua existindo e valendo
+// do jeito antigo (2 laterais + 1 zagueiro) só pra quem JÁ estava nela — ninguém fica com o time quebrado. Na tela os dois se
+// chamam "3-4-3" (`rotuloFormacao`).
+export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '3-4-3z' | '5-3-2' | '4-2-4' | '5-4-1' | 'kings' | 'pokemon'
+/** 👑 11/11 (Diego: *"formação coloca 2 2 2"*): o NOME que aparece na tela. A chave 'kings' continua no save/motor; a pessoa lê 2-2-2. */
+export const rotuloFormacao = (f: FormationKey | string | undefined): string => f === 'kings' ? '2-2-2' : f === '3-4-3z' ? '3-4-3' : (f ?? '')
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
   '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
-  '3-4-3': { GOL: 1, LAT: 2, ZAG: 1, MEI: 4, ATA: 3 }, // 🗡️ ousado: 3 na defesa (2 lat + 1 zag), 3 no ataque
+  '3-4-3': { GOL: 1, LAT: 2, ZAG: 1, MEI: 4, ATA: 3 }, // 🗡️ o 3-4-3 ANTIGO (2 lat + 1 zag): só quem já estava nele (13/11)
+  '3-4-3z': { GOL: 1, LAT: 0, ZAG: 3, MEI: 4, ATA: 3 }, // 🛡️ o 3-4-3 de verdade (13/11): 3 zagueiros, 4 meias, 3 atacantes
   '5-3-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 }, // 🧱 muralha: 5 na defesa (2 lat + 3 zag), retranca
   '4-2-4': { GOL: 1, LAT: 2, ZAG: 2, MEI: 2, ATA: 4 }, // 🔥 tudo no ataque: 4 atacantes DE VERDADE (exigência do Diego: "424 não pode ser 433")
   '5-4-1': { GOL: 1, LAT: 2, ZAG: 3, MEI: 4, ATA: 1 }, // 🚌 ônibus: 5 atrás + 4 meias segurando, 1 lá na frente
   // 👑 KINGS LEAGUE (15/10, só a conta do Diego): futebol 7 = goleiro + 6. Só nasce no START com `kings` — nenhuma
   // tela de escolha de formação oferece esta (o leilão de sempre monta 7 vagas por time).
-  kings: { GOL: 1, LAT: 0, ZAG: 2, MEI: 2, ATA: 2 },
+  kings: { GOL: 1, LAT: 1, ZAG: 2, MEI: 2, ATA: 2 }, // 🎩 12/11: a vaga 'LAT' da Kings é o PRESIDENTE (não entra em campo)
   // ⚡ MODO POKÉMON (25/10, só a conta do Diego, em teste): 6 pokémon nos 5 setores do motor, que viram LOTES (pokemon-modo.ts)
   pokemon: { GOL: 1, LAT: 1, ZAG: 1, MEI: 1, ATA: 2 },
 }
 
 /** ⚽ 04/11 (Diego): as formações "de verdade" que a carreira oferece — as mesmas abrem na convocação do Leilão de Clubes
  *  e das Copas de seleções (acende só a que o elenco fecha). Kings e Pokémon nunca entram aqui. */
-export const FORMACOES_JOGO: readonly FormationKey[] = ['4-3-3', '4-4-2', '4-5-1', '3-4-3', '5-3-2', '4-2-4', '5-4-1']
+export const FORMACOES_JOGO: readonly FormationKey[] = ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2', '4-2-4', '5-4-1']
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
 
@@ -489,7 +499,11 @@ export interface KingsInfo {
   dado: 1 | 2 | 3
   /** ⚽ quem ficou com a bola quando ela caiu da gaiola */
   posse?: number
-  bola: 'dourada' | 'vermelha'
+  /** (regra até 10/11) a bola do 38': dourada/vermelha — jogos novos usam `mb` */
+  bola?: 'dourada' | 'vermelha'
+  /** ⏱️ MATCH BALL (regra de 10/11): no 36' o relógio para. `empate` = foi direto pro shootout; senão `alvo` = quantos gols
+   *  vence (o líder + 1). `fim` = minuto do placar (0–93) em que o jogo acabou. */
+  mb?: { empate: boolean; alvo?: number; fim: number }
   /** decidido no gol de ouro (bola dourada) */
   ouro: boolean
   /** 🎩 o pênalti do presidente de cada time */
@@ -670,6 +684,8 @@ export interface CareerRival {
 export interface EscState {
   /** ⚡ MODO POKÉMON (partida rápida, só a conta do Diego): a liga de batalhas depois da cerimônia (`pokemon-liga.tsx`) */
   pokeLiga?: import('./pokemon-batalha').PokeLigaEstado
+  /** 👑 10/11: a partida da Kings usa o baralho PRÓPRIO dos jogadores da Kings League (`kings-baralho.ts`) */
+  kingsBaralho?: boolean
   screen: Screen
   // 🏀 esporte da partida atual: ausente/'futebol' = futebol (padrão, tudo como
   // hoje); 'basquete' = BidLegends. Só metadado — o motor usa o mesmo fluxo.
@@ -806,6 +822,7 @@ export interface EscState {
   /** 🌎 T40+: campanha internacional congelada por temporada; ausente nos saves antigos. */
   careerInternational?: import('./career-international-season').InternationalCampaign | null
   /** 🌎 Histórico por temporada, independente do clube representado; ausente nos saves antigos. */
+  careerMuseums?: Record<number, import('./museu-clube').MuseuClubeSave>
   careerInternationalHistory?: import('./career-international-season').InternationalHistoryEntry[]
   /** 🌎 placar ACUMULADO dos jogadores da máquina nas 3 competições internacionais: chave da carta
    *  (nome|clube|ano) → [jogos, gols, assistências], somando todas as temporadas. Substitui a lista
