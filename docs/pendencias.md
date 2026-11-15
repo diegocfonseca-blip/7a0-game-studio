@@ -1,3 +1,13 @@
+## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
+- O que o banco mostra: 17h02 ele recarregou (o botão Manual sumiu dali em diante = o aparelho dele deixou de ser dono); a sala seguiu
+  salva com youIdx 0 até 17h10 (final da Kings) e parou; 39 s depois o aparelho dele saiu (registro "saiu_por_conta_propria" com
+  isHost=false). Uma tela só (live sem sair da tela) — a hipótese de 2 abas caiu. Nenhum "rebaixou" e nenhuma queda de tela anotados.
+- Agora o jogo anota (esc_travas, só leitura): `perdeu_coroa` (dono deixou de ser dono na mesma sala, por qualquer caminho) e
+  `saiu_da_sala` (tela de antes/depois + se foi pelo botão SAIR). Próxima vez: ler esses registros da sala.
+- Junto: 🛟 o erro "reading 'LAT'" (3 telas quebradas desde 13/11) era formação desconhecida no campinho (FORMATIONS[f] undefined —
+  ex.: versão velha aberta cruzando com o 3-4-3 novo). Agora formação desconhecida desenha como 4-3-3 (screens.tsx + baseSlots).
+- Pendente: reproduzir a virada liga → mata-mata da Kings com o dono em 1º (direto na semi) em sala manual/stream.
+
 ## 🎮👑 15/11 — Batismo Reffatti FC (leoreffattig) — PUBLICADO
 - Várzea, no assento do bot Atlético Pelada (o Diego: "qualquer um que tenha bot"). Plano Batismo (sem nº de fundador) · sócio nº91 · coração: não sabemos.
 - Arte da prancha verde recortada À MÃO: o verde do desenho é idêntico ao do fundo (chroma 2,250,4), então saíram só o fundo de fora e os 3 vãos

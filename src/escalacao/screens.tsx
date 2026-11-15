@@ -1238,7 +1238,9 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
     const filled = (p: Sector) => m.squad.filter(c => c.pos === p)
     const buildRow = (p: Sector): { pos: Sector; card: WonCard | null }[] => {
       const have = filled(p)
-      const slots = FORMATIONS[m.formation][p]
+      // 🛟 15/11 (esc_quedas: 3 telas quebradas com "reading 'LAT'"): formação que este aparelho não conhece (versão velha aberta
+      // cruzando com o 3-4-3 novo, ou save estranho) desenhava undefined e derrubava a tela. Agora desenha como 4-3-3.
+      const slots = (FORMATIONS[m.formation] ?? FORMATIONS['4-3-3'])[p]
       // titular: os primeiros `slots` por posição. reserva (banco): os `slots`
       // seguintes — o leilão de reservas mira 22 (2× a formação), então cada
       // posição ganha um espelho no campinho de baixo.
