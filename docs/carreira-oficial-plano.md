@@ -82,6 +82,9 @@ Já temos **152 escudos** em `public/escudos-clubes/` (muitos estrangeiros). Fal
   só com resumos de busca → são RASCUNHO. Antes de qualquer carta entrar no jogo, refazer a conferência com esses sites
   liberados (Diego libera no ambiente "7a0-game-studio (com Brasileirinho)" e abre sessão nova).
 
+- 15/11: **nome da carta = o APELIDO** (como a torcida chama) quando imprensa e Transfermarkt divergem (*"Apelido"*): Douglas
+  Pelé, Carlão, Yuri, Jhonathan, Augusto Fassina, Richard Costa… (Série B parte 1). Vale pra todas as cartas do modo.
+
 ## 8. Perguntas abertas pro Diego
 1. "**Dois** novos modos": o segundo é qual? (Europa com ligas reais?)
 2. Série C com 28 e D com 96: é o formato de 2026/2027 da CBF? Conferir antes de codar.
