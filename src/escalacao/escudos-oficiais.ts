@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 131 escudos · 1175 KB somados.
+// 141 escudos · 1260 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -377,6 +377,56 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "Sampaio Corrêa": {
     "src": "escudos-clubes/sampaio-correa.webp",
     "w": 156,
+    "h": 160
+  },
+  "Mirassol": {
+    "src": "escudos-clubes/mirassol.webp",
+    "w": 142,
+    "h": 160
+  },
+  "Remo": {
+    "src": "escudos-clubes/remo.webp",
+    "w": 142,
+    "h": 160
+  },
+  "Athletic": {
+    "src": "escudos-clubes/athletic.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Atlético-GO": {
+    "src": "escudos-clubes/atletico-go.webp",
+    "w": 95,
+    "h": 160
+  },
+  "Botafogo-SP": {
+    "src": "escudos-clubes/botafogo-sp.webp",
+    "w": 118,
+    "h": 160
+  },
+  "Cuiabá": {
+    "src": "escudos-clubes/cuiaba.webp",
+    "w": 127,
+    "h": 160
+  },
+  "Novorizontino": {
+    "src": "escudos-clubes/novorizontino.webp",
+    "w": 160,
+    "h": 156
+  },
+  "Operário-PR": {
+    "src": "escudos-clubes/operario-pr.webp",
+    "w": 160,
+    "h": 160
+  },
+  "São Bernardo": {
+    "src": "escudos-clubes/sao-bernardo.webp",
+    "w": 160,
+    "h": 159
+  },
+  "Vila Nova": {
+    "src": "escudos-clubes/vila-nova.webp",
+    "w": 136,
     "h": 160
   },
   "Real Madrid": {
