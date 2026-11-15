@@ -88,3 +88,21 @@ Já temos **152 escudos** em `public/escudos-clubes/` (muitos estrangeiros). Fal
 3. Qual plano libera (sugestão: todos, desde o ⭐ Craque Salas)?
 4. As cartas novas entram na Partida Rápida e na carreira de time criado, ou só neste modo?
 5. Começa pela Fase 1 (A + B)?
+
+## 9. Onde o modo encaixa no código (estudo de 15/11 — nada mexido ainda)
+Regra de construção: **a carreira de time criado não muda nada**. Tudo novo fica atrás de uma marca no save
+(`s.oficial = { clube, desde }`) e de um gate só na conta do Diego até ele testar (`BRASIL_OFICIAL_*` em `sport.ts`).
+1. **Começo** — `START_CAREER_SOLO` (store.tsx ~8986): com `action.oficial`, o time do usuário = o clube real (nome = chave
+   do escudo), SEM leilão de estreia: o elenco vem de `sorteiaElenco` (brasil-oficial.ts). Colocação = divisão real de
+   cada clube (`CLUBES_BR`), sem Várzea; escada de categorias desligada; sem escolher rivais.
+2. **Elenco dos outros clubes** — `seedCpuSquads` (pyramidseason.tsx ~560) via `SEED_CPU_SQUADS`: com `s.oficial`, cada
+   clube real recebe o PRÓPRIO sorteio (mesma semente da carreira). As cartas que sobraram de cada clube formam o baralho
+   dos leilões de sempre.
+3. **Cartas novas** — num arquivo próprio (ex.: `data-oficial.ts`), somadas ao baralho SÓ quando `s.oficial` existe.
+   Nunca entram em `CATALOG`/`CATALOG_EU`/`CATALOG_WORLD` (que alimentam Partida Rápida, salas e carreira criada).
+4. **Acesso/queda** — `computePromotions` (pyramidseason.tsx ~568) hoje é "4 sobem / 4 caem"; no oficial vale a regra real
+   (Série B: 2 diretos + mata-mata do 3º ao 6º).
+5. **Copas** — Copa do Brasil (126 clubes, final única), Libertadores/Sul-Americana pela colocação, Supercopa (campeão
+   brasileiro × Copa do Brasil), Intercontinental (formato real). Reaproveitar o motor das copas que já existem.
+6. **Estadual** — passo novo no começo de cada temporada, antes da Série (Fase 3 do plano).
+7. **Visual** — escudo oficial em todo lugar (`escudos-oficiais.ts`), taças reais redesenhadas (`competicoes-visual.tsx`).
