@@ -116,6 +116,8 @@ import { PainelDonoLiga } from './painel-dono-liga'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
+import { useBrasilOficial } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
+import { EscolhaCarreira, EscolhaClubeOficial } from './brasil-oficial-tela'
 import { FaixaProximaCompeticao, proximasCompeticoes, useCopasDaSala, RODADAS_DO_AVISO } from './proxima-competicao'
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
@@ -3001,6 +3003,10 @@ export function EscSetup() {
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
   const [privateStep, setPrivateStep] = useState<1 | 2 | 3>(1)
+  // 🇧🇷 BRASIL OFICIAL (15/11): antes do "Crie seu clube", quem tem acesso escolhe a carreira (Meu clube × Brasil Oficial)
+  const oficialOn = useBrasilOficial()
+  const [modoCarreira, setModoCarreira] = useState<null | 'meu' | 'oficial'>(null)
+  const [clubeOficialSel, setClubeOficialSel] = useState<string | null>(null)
   const [rivalsNotice,setRivalsNotice] = useState('')
   const [presidentName, setPresidentName] = useState('')
   const [presidentOutfit, setPresidentOutfit] = useState<'casual' | 'polo' | 'social' | 'terno'>('terno')
@@ -3049,7 +3055,8 @@ export function EscSetup() {
     const clean = nomeDeTime(stripEmoji(name)) // 🔤 21/10 (Diego): "NEYMAR_FC" vira "Neymar_FC"
     if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
-    if (accountName !== null && clean && clean !== accountName) {
+    // 🇧🇷 Brasil Oficial: o "nome" é o do clube real escolhido — NUNCA vira o nome da conta
+    if (!clubeOficialSel && accountName !== null && clean && clean !== accountName) {
       // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa — só mudar maiúscula não confere
       const chk = clean.toLowerCase() === accountName.toLowerCase() ? { livre: true } as { livre: boolean; motivo?: string } : await nomeLivre(clean)
       if (!chk.livre) { setNameErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
@@ -3082,7 +3089,7 @@ export function EscSetup() {
         return
       }
       dispatch({
-        type: 'START_CAREER_SOLO', teamName: clean, formation, rivals,
+        type: 'START_CAREER_SOLO', teamName: clubeOficialSel ?? clean, formation, rivals, oficial: clubeOficialSel ? { clube: clubeOficialSel } : undefined,
         rivalTeams: picks, league: 'both', intro: true,
         president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
         presidentBase: modularSetup ? presidentDraft : undefined,
@@ -3106,9 +3113,15 @@ export function EscSetup() {
       if (nomeOfensivo(name)) { setNameErr(NOME_MSG.ofensivo); return }
       setNameErr(''); setPrivateStep(2)
     }
-    const nextFromPresident = () => setPrivateStep(3)
+    const nextFromPresident = () => { if (clubeOficialSel) void start(); else setPrivateStep(3) } // 🇧🇷 oficial: sem escolher rivais (os rivais são os clubes reais)
+    // 🇧🇷 BRASIL OFICIAL (15/11): a escolha da carreira e do clube real vêm ANTES do presidente
+    if (career && modularSetup && oficialOn && privateStep === 1 && modoCarreira !== 'meu' && !clubeOficialSel) {
+      return <Shell className="cse-shell" hideExit>{modoCarreira === 'oficial'
+        ? <EscolhaClubeOficial onVoltar={() => setModoCarreira(null)} onEscolher={c => { setClubeOficialSel(c); setName(c); setNameErr(''); setPrivateStep(2) }} />
+        : <EscolhaCarreira onMeuClube={() => setModoCarreira('meu')} onOficial={() => setModoCarreira('oficial')} />}</Shell>
+    }
     if(modularSetup){
-      const back=()=>privateStep===1?dispatch({type:'GO_LOBBY'}):setPrivateStep(privateStep===2?1:2)
+      const back=()=>privateStep===1?(oficialOn&&modoCarreira==='meu'?setModoCarreira(null):dispatch({type:'GO_LOBBY'})):privateStep===2&&clubeOficialSel?(setClubeOficialSel(null),setName(''),setPrivateStep(1)):setPrivateStep(privateStep===2?1:2)
       const ownClub=setupMember?.ativo?setupMember.escudoTime?.trim():null
       const choices=RIVAIS_BATISMO.filter(t=>chaveClube(t.team)!==chaveClube(name)&&(!ownClub||chaveClube(t.team)!==chaveClube(ownClub)))
       return <Shell className="cse-shell" hideExit><CareerSetupFrame step={privateStep} club={name} onBack={back}>

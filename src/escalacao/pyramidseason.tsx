@@ -87,6 +87,8 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
+import { CATALOG_OFICIAL } from './data-oficial' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo
+import { clubeOficial, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
@@ -560,6 +562,50 @@ export function buildPyramid(managers: Manager[], youId: number, seed: number, d
 export function seedCpuSquads(managers: Manager[], seed: number, deck: 'br' | 'eu' | 'both' | 'todos', comVarzea = false): Record<string, Card[]> {
   const out: Record<string, Card[]> = {}
   for (const [name, squad] of buildCpuSquads(managers, seed, deck, comVarzea)) out[name] = squad
+  return out
+}
+
+// 🇧🇷 BRASIL OFICIAL (15/11): os clubes REAIS das outras divisões ganham o PRÓPRIO elenco sorteado (as mesmas regras e a mesma
+// semente do clube do usuário, `iniciaBrasilOficial` no store); C e D (ainda não reais — Fase 1) seguem a receita de sempre.
+// Carta que já tem dono num clube real nunca aparece repetida num time de C/D.
+export function seedCpuSquadsOficial(state: { managers: Manager[]; seed: number; careerPlacements?: Record<string, string> | null }): Record<string, Card[]> {
+  const out: Record<string, Card[]> = {}
+  const base = catalogTodos()
+  const cat = {} as Record<Sector, Card[]>
+  for (const p of SECTORS) {
+    const vistas = new Set(base[p].map(c => `${c.name}|${c.club}|${c.year}`))
+    cat[p] = [...base[p], ...CATALOG_OFICIAL[p].filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)] as unknown as Card[]
+  }
+  const pl = state.careerPlacements ?? {}
+  const ident = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+  const donos = new Set<string>()
+  for (const m of state.managers) for (const c of m.squad) donos.add(ident(c))
+  const semente = (txt: string) => { let h = state.seed >>> 0; for (let i = 0; i < txt.length; i++) h = Math.imul(h ^ txt.charCodeAt(i), 0x01000193) >>> 0; return h }
+  for (const nome of Object.keys(pl)) {
+    if (nome.startsWith('m') && /^m\d+$/.test(nome)) continue
+    const cl = clubeOficial(nome)
+    if (!cl) continue
+    const el = sorteiaElenco(cartasDoClube(cl, cat), semente(cl.nome)).elenco
+    out[nome] = el.map((x, i) => ({ ...x.carta, pos: x.pos, id: `of-${x.pos}-${i}-${semente(nome) % 100000}` }) as Card)
+    for (const c of out[nome]) donos.add(ident(c))
+  }
+  // C e D (por enquanto as de sempre): a receita de fundo, sem nenhuma carta que já tenha dono
+  // (a carta repetida é trocada por outra carta REAL livre da mesma posição — nunca por jogador inventado, regra do Diego)
+  const fundo = buildCpuSquads(state.managers, state.seed, 'todos', true)
+  const livres: Record<Sector, Card[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+  const rngL = mulberry(semente('livres'))
+  for (const p of SECTORS) livres[p] = shuffle(cat[p].filter(c => !donos.has(ident(c))), rngL)
+  for (const sq of fundo.values()) for (const c of sq) donos.add(ident(c))
+  for (const p of SECTORS) livres[p] = livres[p].filter(c => !donos.has(ident(c)))
+  for (const [nome, sq] of fundo) {
+    if (out[nome] || !pl[nome] || (pl[nome] !== 'C' && pl[nome] !== 'D')) continue
+    out[nome] = sq.map((c, i) => {
+      const repetida = Object.entries(out).some(([n, l]) => n !== nome && l.some(x => ident(x) === ident(c)))
+      if (!repetida) return c
+      const novo = livres[c.pos].shift()
+      return novo ? ({ ...novo, pos: c.pos, id: `of-livre-${c.pos}-${i}-${semente(nome) % 100000}` } as Card) : c
+    })
+  }
   return out
 }
 
@@ -9865,7 +9911,7 @@ export function PyramidSeasonScreen() {
   // Idempotente (só semeia se ainda não existe).
   useEffect(() => {
     if (!state.careerOnline || state.cpuSquads) return
-    dispatch({ type: 'SEED_CPU_SQUADS', squads: seedCpuSquads(state.managers, state.seed, state.deckLeague, !!state.escadaOn) })
+    dispatch({ type: 'SEED_CPU_SQUADS', squads: state.oficial ? seedCpuSquadsOficial(state) : seedCpuSquads(state.managers, state.seed, state.deckLeague, !!state.escadaOn) })
   }, [state.careerOnline, state.cpuSquads, state.seed, state.deckLeague]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // RANKING da carreira online: cada cliente grava o SEU resultado do fim da

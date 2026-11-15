@@ -99,6 +99,17 @@ function applyUnlock(email?: string | null): void {
   if (!u && current === 'basquete') current = 'futebol'
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
+// 🇧🇷 BRASIL OFICIAL (15/11): carreira com clubes REAIS. Em construção → só a conta do Diego (a mesma lista do basquete)
+// até ele testar e mandar liberar. Plano em docs/carreira-oficial-plano.md. Liberar = trocar a régua aqui.
+let oficialTeste = false
+/** só pras travas (`npm run brasil-oficial`) */
+export function _forcaBrasilOficialParaTeste(v: boolean) { oficialTeste = v }
+export function brasilOficialLiberado(): boolean { return unlocked || oficialTeste }
+export function useBrasilOficial(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return unlocked
+}
 // 🌙 TEMA NOTURNO — decisão do Diego (03/08): por enquanto SÓ a conta dele vê o
 // botão e consegue ligar (vai virar REGALIA DE PLANO PAGO depois — aí a trava
 // troca de "lista de e-mails" pra "tier de apoio" num lugar só). Conta sem

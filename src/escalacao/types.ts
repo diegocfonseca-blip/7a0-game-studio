@@ -1230,6 +1230,8 @@ export interface EscState {
   dinastiaPaused?: boolean // Dinastia: temporada pausada na JANELA DO MEIO (metade do calendário)
   dinastiaMidUsed?: boolean // Dinastia: já abriu a janela do meio nesta temporada (não reabre)
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
+  /** 🇧🇷 BRASIL OFICIAL (15/11): carreira com clube REAL. Só existe nessa carreira; liga as cartas de `data-oficial.ts`. */
+  oficial?: { clube: string; desde: number }
   // 🎭 Identidade visual do presidente. Campo opcional para saves antigos e
   // puramente cosmético: não interfere em leilão, nível, dinheiro ou partidas.
   careerPresident?: {
