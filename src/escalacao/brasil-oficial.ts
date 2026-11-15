@@ -60,7 +60,7 @@ export const CLUBES_BR: ClubeOficial[] = [
  *  conferida em docs/brasil-oficial/clubes-mestra.md. ⚠️ A/B/C continuam SÓ em CLUBES_BR (é dela que a carreira monta a
  *  pirâmide); estes entram no modo pelas cartas e, na próxima etapa, pela Série D em grupos e pelas copas. */
 export const CLUBES_BR_OUTROS: ClubeOficial[] = CLUBES_MESTRA.filter(x => !x.abc).map(x => ({
-  nome: x.nome, div: x.grupoD ? 'D' : 'E', uf: x.uf, estadual: x.estadual ?? ESTADUAL[x.uf] ?? x.uf,
+  nome: x.nome, div: x.grupoD ? 'D' : 'E', uf: x.uf, estadual: x.estadual ?? '', // só o estadual que a lista mestra confirma (vazio = não mostra)
   ...(x.grupoD ? { grupoD: x.grupoD } : {}), ...(x.copa ? { copa: x.copa } : {}),
 }))
 export const CLUBES_BR_TODOS: ClubeOficial[] = [...CLUBES_BR, ...CLUBES_BR_OUTROS]
