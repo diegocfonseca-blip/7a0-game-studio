@@ -1,0 +1,67 @@
+# 🛡️ Carreira com CLUBES REAIS — planejamento (15/11)
+
+> Pedido do Diego (15/11): *"dois novos modos: Brasil com 4 divisões, Série A e B com 20, C com 28 e Série D com fase de
+> grupos reais com 96 times. Sem Várzea… o campo da Série D seria o mesmo da Várzea… clubes reais com divisões reais…
+> estaduais pra cada time real do usuário… Libertadores, Sul-Americana, Copa do Brasil real e Mundial, tudo real com base
+> na colocação"*. Só pra quem tem PLANO (decisão do mesmo dia); a carreira de time criado vira a porta de entrada grátis.
+> Status: **só planejamento, nada construído.** Mockup antes de codar.
+
+## 1. O que o modo é, em uma frase
+O usuário escolhe um **clube real** (Flamengo, Bangu, Santa Cruz…), começa na **divisão real dele**, joga o **estadual
+real** do clube no começo do ano, depois a **Série real**, a **Copa do Brasil**, e pela colocação vai pra
+**Libertadores / Sul-Americana** e **Mundial**.
+
+## 2. A pirâmide (Brasil)
+| Divisão | Clubes | Formato | Campo |
+|---|---|---|---|
+| Série A | 20 | pontos corridos, ida e volta | normal |
+| Série B | 20 | pontos corridos, ida e volta | normal |
+| Série C | 28 | ⚠️ conferir o formato oficial (CBF) antes de codar | normal |
+| Série D | 96 | fase de grupos real + mata-mata | **o de terra da Várzea** |
+| ~~Várzea~~ | — | não existe neste modo | — |
+
+Total: **164 clubes reais**. Sobe/desce pela regra real de cada série (a confirmar com o regulamento CBF do ano).
+
+## 3. O calendário de cada temporada (igual ao real)
+1. 🏟️ **Estadual** do estado do clube do usuário (Carioca, Paulista, Mineiro, Gaúcho, Pernambucano…), formato real de cada
+   um. Os outros estaduais rodam por baixo, sem tela (só o campeão aparece no jornal).
+2. 🏆 **Série** do clube + 🇧🇷 **Copa do Brasil** (mata-mata real, com os clubes classificados pelos estaduais/ranking).
+3. 🌎 **Libertadores** (G6 da Série A + campeão da Copa do Brasil) e **Sul-Americana** (7º–12º), formato real de grupos.
+4. 🌐 **Mundial** pro campeão da Libertadores.
+O roteiro de fim de temporada (jornal · caixa · Copa do Mundo · decisão) continua obrigatório, como na carreira de hoje.
+
+## 4. Elenco de cada clube
+- **Clube com mais de 22 cartas** (ex.: Flamengo 85): no começo da carreira, **sorteio de 22** entre as cartas do clube.
+  As que sobraram vão pro **leilão de sempre** da carreira.
+- **Clube com 11 a 21 cartas**: começa com o que tem.
+- **Clube sem cartas suficientes**: precisa de **pelo menos 11** cadastradas (inclusive os da Série D). É o maior trabalho.
+
+## 5. Cartas novas (o grosso do trabalho)
+Hoje o baralho Brasil tem **775 cartas de 51 clubes**: só **12 clubes têm 22+** e **35 têm menos de 11**. Pra 164 clubes com
+pelo menos 11 cada, faltam por volta de **1.300+ cartas novas** e ~**110 clubes novos**.
+Regras pras cartas novas:
+- **Famoso de cada clube** (bom ou ruim, "lendário" no sentido de conhecido); se não achar, **jogador atual do elenco real**.
+- **Uma pessoa só uma vez no baralho Brasil** (Rivaldo no Santa Cruz OU no Palmeiras, nunca nos dois). Única exceção já
+  existente: K9.
+- **Nada inventado**: carta só de jogador que existe/existiu de verdade naquele clube e ano (regra "não inventar pessoa").
+- Força pela **régua de 02/11** (Lenda 90–97 … Profissional 55–66), auge daquela carta.
+- 🚫 **As cartas novas NÃO entram no leilão das salas online** (marca própria na carta, ex.: `soOficial: true`).
+  ⚠️ Decidir: entram na Partida Rápida / carreira de time criado? (Sugestão: não — ficam só neste modo.)
+
+## 6. Escudos
+Já temos **152 escudos** em `public/escudos-clubes/` (muitos estrangeiros). Faltam os brasileiros das Séries B/C/D
+(~110). Arte: `.webp` leve (regra de peso dos batismos). ⚠️ Escudo é marca do clube — risco jurídico aceito pelo Diego?
+
+## 7. Ordem de construção (por fases, cada uma vai ao ar sozinha)
+1. **Fase 1 — Série A + B reais** (40 clubes), Copa do Brasil, Libertadores/Sul-Americana/Mundial pela colocação, sorteio
+   dos 22, só com plano. Precisa completar ~25 clubes com cartas e escudos.
+2. **Fase 2 — Série C (28) e Série D (96 em grupos, campo de terra).** O grosso das cartas novas.
+3. **Fase 3 — Estaduais** (27 estados; começar pelos grandes: RJ, SP, MG, RS, PE, BA…).
+4. **Fase 4 — atualização anual** das divisões reais (quem subiu/caiu no mundo real).
+
+## 8. Perguntas abertas pro Diego
+1. "**Dois** novos modos": o segundo é qual? (Europa com ligas reais?)
+2. Série C com 28 e D com 96: é o formato de 2026/2027 da CBF? Conferir antes de codar.
+3. Qual plano libera (sugestão: todos, desde o ⭐ Craque Salas)?
+4. As cartas novas entram na Partida Rápida e na carreira de time criado, ou só neste modo?
+5. Começa pela Fase 1 (A + B)?
