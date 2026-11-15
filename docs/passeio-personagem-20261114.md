@@ -1,5 +1,7 @@
 # Passeio do personagem — análise e correções, 14/11/2026
 
+Atualização: Diego aprovou as recomendações abaixo. A implementação seguinte e a condição de custo zero para chat estão em `docs/passeio-livre-20261114.md`.
+
 Diego pediu que abrir/fechar o teto não apareça durante o passeio, uma corrida um pouco mais rápida e uma análise mais profunda da experiência.
 
 ## Correções implementadas

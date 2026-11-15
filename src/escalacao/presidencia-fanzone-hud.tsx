@@ -4,14 +4,15 @@
 // cima de outro botão e o "sair" não pegava); durante o passeio os botões do mapa (+ − Ver tudo Girar, Controles) somem.
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 import { useT } from './lang'
-import type { CadeiraFanZone, FaseFanZone } from './presidencia-fanzone-3d'
+import type { CadeiraFanZone, FaseFanZone,criarFanZone } from './presidencia-fanzone-3d'
+import './presidencia-passeio-hud.css'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
 const btn: CSSProperties = { ...OSW, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 12px', boxShadow: `3px 3px 0 ${INK}`, fontSize: 13, cursor: 'pointer', pointerEvents: 'auto' }
 const verde: CSSProperties = { ...btn, background: GREEN, color: '#fff', width: '100%', fontSize: 15, padding: '10px 12px' }
 
-type Controle = { input: { x: number; y: number; correr: boolean }; ligar(): void; desligar(): void; entrar(): boolean; escolher(id: string): void; sentar(): boolean; levantar(): void; girar(dx: number, dy: number): void; irProPortao(): void; rumo(): { metros: number; angulo: number } }
+type Controle = ReturnType<typeof criarFanZone>
 
 export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZone; cadeiras: CadeiraFanZone[]; escolhida: string; fan: Controle | null }) {
   const t = useT()
@@ -28,17 +29,18 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZo
   if (fase === 'andando' || fase === 'portao') return (
     <div style={camada}>
       {arrasta(null)}
-      {chip(fase === 'portao' ? t('🎟️ Portão da torcida', '🎟️ Supporters gate') : t('🚶 Siga até o portão da torcida', '🚶 Head to the supporters gate'))}
-      {fase === 'andando' && <Bussola fan={fan} />}
+      <p className="fz-free-chip">{t('🚶 Passeio livre','🚶 Free walk')}</p>
+      <Bussola fan={fan} fase={fase}/>
       {fase === 'portao' && (
-        <div style={{ position: 'absolute', left: 12, right: 12, top: 96, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto', zIndex: 2 }}>
+        <div className="fz-gate-card" style={{ position: 'absolute', left: 12, right: 12, top: 176, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto', zIndex: 2 }}>
           <small style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 0 8px', fontWeight: 600 }}>{semCadeira ? t('A arquibancada da casa está lotada agora. Tenta de novo daqui a pouco.', 'The home stand is full right now. Try again in a bit.') : t('Entra e escolhe a sua cadeira no setor da casa.', 'Go in and pick your seat in the home stand.')}</small>
           <button type="button" style={verde} onClick={() => setSemCadeira(!fan.entrar())}>{t('Entrar no estádio', 'Enter the stadium')}</button>
         </div>
       )}
       <Joystick fan={fan} />
-      <button type="button" aria-pressed={correr} onClick={() => { const v = !correr; setCorrer(v); fan.input.correr = v }} style={{ ...btn, position: 'absolute', right: 14, bottom: 30, background: correr ? GOLD : '#fff', zIndex: 2 }}>{correr ? t('🏃 Correndo', '🏃 Running') : t('🚶 Andando', '🚶 Walking')}</button>
-      <p style={{ position: 'absolute', right: 14, bottom: 8, margin: 0, fontSize: 10.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px #000' }}>{t('arraste a tela pra girar', 'drag the screen to turn')}</p>
+      <div className="fz-walk-actions"><button type="button" style={btn} onClick={()=>fan.centralizar()}>{t('Centralizar','Recenter')}</button><button type="button" aria-pressed={correr} onClick={() => { const v = !correr; setCorrer(v); fan.input.correr = v }} style={{ ...btn,background: correr ? GOLD : '#fff' }}>{correr ? t('🏃 Correndo', '🏃 Running') : t('🚶 Andando', '🚶 Walking')}</button></div>
+      <p className="fz-walk-help"><span className="fz-touch-help">{t('Um dedo anda · outro olha','One finger walks · the other looks')}</span><span className="fz-keyboard-help">{t('WASD / setas · Shift corre · arraste para olhar','WASD / arrows · Shift runs · drag to look')}</span></p>
+      <AcaoProxima fan={fan}/>
     </div>
   )
   if (fase === 'escolhendo') return (
@@ -110,17 +112,25 @@ function Joystick({ fan }: { fan: Controle }) {
 }
 
 /** 🧭 07/11: a seta aponta pro portão da torcida (em relação à TELA, gira junto com a câmera) + os metros + o atalho */
-function Bussola({ fan }: { fan: Controle }) {
+function Bussola({ fan,fase }: { fan: Controle;fase:FaseFanZone }) {
   const t = useT()
   const [r, setR] = useState(() => fan.rumo())
-  useEffect(() => { const id = window.setInterval(() => setR(fan.rumo()), 120); return () => window.clearInterval(id) }, [fan])
+  const [destino,D]=useState(()=>fan.snapshot().destino)
+  useEffect(() => {D(fan.snapshot().destino);const id = window.setInterval(() => setR(fan.rumo()), 160); return () => window.clearInterval(id) }, [fan])
   return (
-    <div style={{ position: 'absolute', right: 10, top: 60, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, zIndex: 2 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '3px 8px 3px 4px', boxShadow: `2px 2px 0 ${INK}` }}>
+    <div className="fz-destination">
+      <label><span>{t('Destino','Destination')}</span><select aria-label={t('Destino do passeio','Walk destination')} value={destino} onChange={e=>{fan.escolherDestino(e.target.value);D(e.target.value);setR(fan.rumo())}}><option value="">{t('Sem destino','No destination')}</option>{fan.destinos().map(d=><option key={d.id} value={d.id}>{t(...d.nome)}</option>)}</select></label>
+      {destino&&<div className="fz-compass-value">
         <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: '50%', background: GREEN, color: '#fff', fontSize: 16, fontWeight: 900, transform: `rotate(${r.angulo}rad)` }}>↑</span>
-        <b style={{ ...OSW, fontSize: 12 }}>{t('Portão', 'Gate')} · {r.metros} m</b>
-      </div>
-      <button type="button" onClick={() => fan.irProPortao()} style={{ ...btn, fontSize: 11.5, padding: '5px 9px', boxShadow: `2px 2px 0 ${INK}` }}>{t('🎟️ Ir pro portão', '🎟️ Go to the gate')}</button>
+        <b style={{ ...OSW, fontSize: 12 }}>{r.metros} m</b>
+      </div>}
+      {destino==='portao'&&fase==='andando'&&<button type="button" onClick={() => fan.irProPortao()} style={{ ...btn, fontSize: 11.5, padding: '5px 9px', boxShadow: `2px 2px 0 ${INK}` }}>{t('🎟️ Ir pro portão', '🎟️ Go to the gate')}</button>}
     </div>
   )
+}
+function AcaoProxima({fan}:{fan:Controle}){
+ const t=useT(),[local,L]=useState(()=>fan.proximo())
+ useEffect(()=>{L(fan.proximo());const id=window.setInterval(()=>L(fan.proximo()),200);return()=>window.clearInterval(id)},[fan])
+ if(!local?.acao)return null
+ return <button type="button" className="fz-nearby-action" onClick={()=>fan.interagir()}><small>{t(...local.nome)}</small>{t(...local.acao)} →</button>
 }
