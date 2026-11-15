@@ -109,3 +109,19 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
    brasileiro × Copa do Brasil), Intercontinental (formato real). Reaproveitar o motor das copas que já existem.
 6. **Estadual** — passo novo no começo de cada temporada, antes da Série (Fase 3 do plano).
 7. **Visual** — escudo oficial em todo lugar (`escudos-oficiais.ts`), taças reais redesenhadas (`competicoes-visual.tsx`).
+
+## 10. Estado em 15/11 (fim do dia) — no branch, NÃO publicado
+✅ Feito (só aparece pra conta do Diego, `brasilOficialLiberado()` em sport.ts):
+- Tela "Que carreira você quer?" + "Escolha seu clube" (A/B, escudos oficiais) → presidente → começa (`brasil-oficial-tela.tsx`).
+- `START_CAREER_SOLO` com `oficial`: `iniciaBrasilOficial` (store) — 20 clubes reais da divisão, elencos sorteados (22), sem
+  leilão de estreia, a outra divisão (A/B) real no fundo com o sorteio dela (`seedCpuSquadsOficial`, pyramidseason).
+- 269 cartas novas conferidas em `data-oficial.ts` (gerado por `scripts/gera-cartas-oficial.py`), entram SÓ com `s.oficial`.
+- Trava: `npm run brasil-oficial` (escudos, sorteio, carreira nascendo certa, nada vazando pra carreira criada).
+⏭️ Falta (na ordem):
+1. Série C real (pesquisa rodando: 20 clubes 2026 + cartas) e Série D (96, grupos) — hoje C/D são as de sempre (provisório).
+2. Acesso/queda REAL: Série B = 2 diretos + mata-mata do 3º ao 6º (hoje é o 4 sobem/4 caem de sempre).
+3. Copa do Brasil no formato real (126 clubes, final única), Libertadores/Sul-Americana pelas vagas reais, Supercopa, Intercontinental.
+4. Estaduais (13) no começo da temporada.
+5. Taças reais redesenhadas (pesquisa das fotos rodando) + mockup.
+6. Nome do clube real na tela/escudo em todo lugar (conferir no teste do Diego).
+⚠️ `npm run carreira-limpa` já falhava antes (kingsBaralho), não é do Brasil Oficial.
