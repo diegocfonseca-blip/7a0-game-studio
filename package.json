@@ -148,7 +148,8 @@
     "kings-baralho": "npx tsx scripts/testa-kings-baralho.mts",
     "kings-shootout": "npx tsx scripts/testa-kings-shootout-2d.mts",
     "kings-sem-lateral": "npx tsx scripts/testa-kings-sem-lateral.mts",
-    "kings-presidentes": "npx tsx scripts/testa-kings-presidentes.mts"
+    "kings-presidentes": "npx tsx scripts/testa-kings-presidentes.mts",
+    "brasil-oficial": "npx tsx scripts/testa-brasil-oficial.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
