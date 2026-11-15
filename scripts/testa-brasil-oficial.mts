@@ -1,6 +1,7 @@
 // 🇧🇷 trava do Brasil Oficial (base pura): clubes, escudos e o sorteio dos 22.
 import { CATALOG } from '../src/escalacao/data.ts'
 import { ESCUDOS_OFICIAIS } from '../src/escalacao/escudos-oficiais.ts'
+import { CATALOG_OFICIAL } from '../src/escalacao/data-oficial.ts'
 import { CLUBES_BR, cartasDoClube, sorteiaElenco, fechaTime, clubesDaDivisao } from '../src/escalacao/brasil-oficial.ts'
 let erros = 0
 const falha = (m: string) => { erros++; console.log('❌', m) }
@@ -18,8 +19,14 @@ if (new Set(a.elenco).size !== 22) falha('Flamengo: carta repetida no elenco')
 if (a.elenco.map(x => x.carta.name).join() !== b.elenco.map(x => x.carta.name).join()) falha('mesma semente deu elenco diferente')
 if (a.elenco.map(x => x.carta.name).join() === d.elenco.map(x => x.carta.name).join()) falha('semente diferente deu o mesmo elenco')
 if (!fechaTime(a.elenco)) falha('Flamengo: os 22 sorteados não fecham um 11')
-// quantos clubes já fecham um 11 com as cartas de hoje (informativo)
-const prontos = CLUBES_BR.filter(c => fechaTime(cartasDoClube(c, CATALOG)))
-console.log(`ℹ️ ${prontos.length}/${CLUBES_BR.length} clubes já fecham um 11 com as cartas de hoje`)
+// 🇧🇷 com as cartas do modo (CATALOG + CATALOG_OFICIAL), TODO clube fecha um 11
+const juntas = Object.fromEntries((Object.keys(CATALOG) as (keyof typeof CATALOG)[]).map(p => [p, [...CATALOG[p], ...CATALOG_OFICIAL[p]]])) as typeof CATALOG
+for (const c of CLUBES_BR) if (!fechaTime(cartasDoClube(c, juntas))) falha(`não fecha um 11: ${c.nome}`)
+// toda carta do modo é de um clube do modo
+const nomes = new Set(CLUBES_BR.flatMap(c => [c.nome, ...(c.apelidos ?? [])]))
+for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (!nomes.has(x.club)) falha(`carta de clube fora do modo: ${x.name} (${x.club})`)
+// mesmo nome+clube+ano não pode existir nos dois baralhos
+const ja = new Set(Object.values(CATALOG).flat().map(x => `${x.name}|${x.club}|${x.year}`))
+for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (ja.has(`${x.name}|${x.club}|${x.year}`)) falha(`carta já existe no baralho: ${x.name} ${x.club} ${x.year}`)
 if (erros) { console.log(`❌ brasil-oficial: ${erros} erro(s)`); process.exit(1) }
 console.log('✅ brasil-oficial: 40 clubes com escudo, sorteio dos 22 estável e sem perder carta')
