@@ -1,4 +1,4 @@
-import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
+import {pedidoBemLiberado} from './presidencia-bens-liberacao'
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
@@ -8139,7 +8139,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return result.ok?result.value:state
     }
     case 'PRESIDENCY_TRADE': {
-      if(!pedidoVeiculoLiberado(action.quote.pedido))return state
+      if(!pedidoBemLiberado(action.quote.pedido))return state
       if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled(s))return state
       const result=negociarNaCarreira(s,action.mgrId,action.quote,action.confirmed)
       if(!result.ok)return state

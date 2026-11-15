@@ -148,7 +148,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   const AMBAR = '#FFB020', VERDE = '#4ADE80', CINZA = '#9A9A9A'
   const [texto, cor] = ((): [string, string] => {
     switch (s.estado) {
-      case 'bloqueado': return [t('🔒 Seu teste de 5 dias acabou · pra salvar novos avanços, escolha um plano', '🔒 Your 5-day trial is over · to save new progress, pick a plan'), '#FFB020']
+      case 'bloqueado': return [s.diasTeste===0?t('🔒 Seu teste de 5 dias acabou · pra salvar novos avanços, escolha um plano', '🔒 Your 5-day trial is over · to save new progress, pick a plan'):t('🔒 Entre na sua conta e confira seu acesso para salvar', '🔒 Sign in and check your saving access'), '#FFB020']
       case 'salvando': return [t('⏳ Salvando na nuvem…', '⏳ Saving to the cloud…'), '#fff']
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
       case 'salvo_7d': { const d = s.diasTeste ?? null; return [d != null ? t(`✅ Salvo · 🎁 teste grátis: falta${d === 1 ? '' : 'm'} ${d} dia${d === 1 ? '' : 's'}`, `✅ Saved · 🎁 free trial: ${d} day${d === 1 ? '' : 's'} left`) : t('✅ Salvo', '✅ Saved'), VERDE] }
@@ -296,7 +296,7 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           </div>}
 
-          {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
+          {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')} save={p.salvar}/>
           <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}

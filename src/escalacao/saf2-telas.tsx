@@ -64,7 +64,7 @@ export function Saf2SafPainel(p: {
   return (
     <div style={{ marginTop: 11 }}>
       {/* ② PRA VIRAR SEU 2º CLUBE */}
-      <div style={{ ...box(), padding: 11 }}>
+      {r.faltamTemporadas>0&&(<div style={{ ...box(), padding: 11 }}>
         <p style={{ ...OSW, fontWeight: 900, fontSize: 14.5, margin: 0, textTransform: 'uppercase' }}>{tr('Pra virar seu 2º clube', 'To become your 2nd club')}</p>
         <div style={linha}>
           <span>{tr('Temporadas como dono', 'Seasons as owner')}</span>
@@ -78,7 +78,7 @@ export function Saf2SafPainel(p: {
           : r.faltamTemporadas > 0
             ? tr(`Daqui a ${r.faltamTemporadas} ${r.faltamTemporadas === 1 ? 'temporada' : 'temporadas'} você pode assumir o comando.`, `In ${r.faltamTemporadas} ${r.faltamTemporadas === 1 ? 'season' : 'seasons'} you can take command.`)
             : tr('Pronto: você já pode assumir o comando.', 'Ready: you can take command now.')}</p>
-      </div>
+      </div>)}
 
       {/* ③ ASSUMIR O COMANDO */}
       <div style={{ ...box(CREME), padding: 11, marginTop: 10 }}>
@@ -137,13 +137,13 @@ export function Saf2SafPainel(p: {
 export function Saf2Regras() {
   const li = (t: ReactNode) => <li>{t}</li>
   return (
-    <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
+    <details className="clube-negocios-regras"><summary>{tr('Como funciona a SAF','How SAF ownership works')}</summary><ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
       {li(tr(`💰 A SAF custa ${fmt(PRECO_SAF)}. O bot continua no comando dela: você é o sócio.`, `💰 The SAF costs ${fmt(PRECO_SAF)}. The bot stays in charge: you are the partner.`))}
       {li(tr('🏆 Direito a 50% dos prêmios de campanha dela (e 50% da multa se ela cair).', '🏆 Entitled to 50% of its campaign prizes (and 50% of the fine if it is relegated).'))}
       {li(tr(`⚽ Depois de ${TEMPORADAS_PRA_ASSUMIR} temporadas como dono, quem apoia o jogo pode assumir o comando (${fmt(PRECO_COMANDO)}) e ela vira o seu 2º clube.`, `⚽ After ${TEMPORADAS_PRA_ASSUMIR} seasons as owner, supporters can take command (${fmt(PRECO_COMANDO)}) and it becomes your 2nd club.`))}
       {li(tr('🔄 Empréstimo só na virada da temporada: vale 1 temporada, volta sozinho no fim e cada lado paga metade do salário.', '🔄 Loans only at the season turn: they last 1 season, come back by themselves and each side pays half the wages.'))}
       {li(tr('💸 Dá pra vender na virada, pela divisão em que ela estiver. Quase sempre sai no prejuízo: o lucro máximo é 500.', '💸 You can sell at the season turn, by the division it is in. It is almost always a loss: the most you can make is 500.'))}
-    </ul>
+    </ul></details>
   )
 }
 export const saf2LoanSub = () => tr('Vale 1 temporada e volta sozinho no fim · metade do salário pra cada lado · só na virada (antes da 1ª rodada)', 'Lasts 1 season and comes back by itself · half the wages each side · only at the season turn (before round 1)')
@@ -236,7 +236,8 @@ export function Saf2Clube2Painel(p: {
       </div>
 
       {/* ⑦ VENDER O 2º CLUBE PELA COLEÇÃO DE TAÇAS */}
-      <div style={{ ...box(CREME), padding: 11, marginTop: 10 }}>
+      <details className="clube-negocios-venda" style={{ ...box(CREME), padding: 11, marginTop: 10 }}>
+        <summary>{tr(`Avaliar venda do ${p.seg.nome}`,`Review sale of ${p.seg.nome}`)}</summary>
         <Cabeca ic="💸" titulo={tr(`Vender o ${p.seg.nome}`, `Sell ${p.seg.nome}`)} sub={tr(`você investiu ${fmt(p.venda.investido)}`, `you invested ${fmt(p.venda.investido)}`)} />
         <p style={{ ...OSW, fontWeight: 900, fontSize: 13, margin: 0, textTransform: 'uppercase' }}>{tr('Taças ganhas com você', 'Trophies won with you')} · {p.tacas.length} {tr('de', 'of')} {TACAS_SAF2.length}</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginTop: 6 }}>
@@ -260,7 +261,7 @@ export function Saf2Clube2Painel(p: {
         {!p.janela && <Trava>{JANELA_TXT()}</Trava>}
         {p.janela && p.ativoId === p.seg.id && <Trava>🔄 {tr('Passe o comando pro seu clube principal pra vender o 2º clube (o principal nunca se vende).', 'Hand command back to your main club to sell the 2nd club (the main club is never sold).')}</Trava>}
         <p style={nota}>{tr('Cada taça conta uma vez só. Copa do Mundo não conta. Ganhar a mesma taça de novo não muda o valor. O clube continua no jogo, comandado pela máquina.', 'Each trophy counts once. The World Cup does not count. Winning the same trophy again does not change the value. The club stays in the game, run by the computer.')}</p>
-      </div>
+      </details>
     </div>
   )
 }

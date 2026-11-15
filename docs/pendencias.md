@@ -1,9 +1,34 @@
+## 🛋️ 15/11 — Compras de bens da casa e garagem em breve — IMPLEMENTADO, ainda não publicado
+
+- Diego esclareceu que os bens da casa também não podem ser comprados por enquanto. Móveis entram no mesmo bloqueio de compras dos veículos, com “Em breve” no catálogo e na residência.
+- A trava vale na apresentação e no reducer, inclusive para compras com um bem dado na troca ou orçamento preparado anteriormente. Não altera caixa, bens ou histórico quando a compra é recusada.
+- Bens existentes continuam visíveis e os móveis podem ser organizados entre casa e camarote. Negociação de veículos permanece suspensa; casas maiores continuam sem compra habilitada. Sem alteração de planos, obras do estádio ou salas online.
+- Complemento da revisão #498; teste local em `scripts/teste-carreira-acabamento-20261115/liberacao.mjs` cobre a recusa de compra/troca de móveis e a preservação da organização existente.
+
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 
 - Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
 - Veículos já possuídos visíveis, compra/venda/troca bloqueadas na UI e no reducer, com “Em breve” enquanto a arte é revisada. Móveis continuam no fluxo existente.
 - Corrige o exagero dos marcadores na visão sentada/passeio: limite visual de 1,1 m e bola de 0,4 m; câmera alta e fonte de posições preservadas. Placar deixa de ficar encoberto pela identificação da arquibancada.
 - Detalhes em `docs/mapa-publico-20261115.md`; capturas, testes e publicação em `/workspace/shared/mapa-publico-20261115/`. Chat por proximidade segue desligado, sem novos canais.
+
+
+## 🎨 15/11 — Acabamento da carreira, listagens e mapa — IMPLEMENTADO, testado localmente; ainda não publicado
+
+Diego aprovou executar a auditoria de 18 pontos (relatório em `/workspace/shared/auditoria-interface-carreira-20261115/`). Escopo: apresentação e navegação da carreira atual, preservando regras e direitos; não é o futuro modo de clubes reais.
+
+- **Finanças:** abre no período mais recente; totais correspondem ao período escolhido, com caixa atual separado. Em Todas, anos anteriores recolhidos; lançamentos zerados ficam consultáveis. Filtros do extrato não aparecem sobre o elenco atual/transferências.
+- **Loja e instruções:** a apresentação lê os mesmos 60 e 1 setor da regra; contraste respeita a cor do tier. Agência indica o endereço atual; Bico explica a escolha na virada; cadastro do personagem não promete entrar na antiga sala.
+- **Salvar:** ajuda usa a situação já calculada pela faixa Salvar; distingue bloqueio, teste por conta, cópia local e nuvem. Mostra o último intervalo confirmado quando existente. Não muda o teste de 5 dias, salvamento, planos ou banco. Bloqueio sem prova de teste vencido não afirma que os 5 dias acabaram.
+- **Personagem:** disponíveis primeiro, acesso às demais opções, catálogo com rolagem própria, prévia limitada e confirmação acessível. Camiseta branca continua primeira; cinco tons de pele gratuitos. Edição e compras conservam seus callbacks/direitos.
+- **Bens pessoais:** um cartão por móvel com local e mover. Miniaturas enquadram a região já desenhada nas artes originais; não altera os WebPs alinhados à cena. Casas futuras e veículos indicam Em breve; carros existentes ficam preservados, negociação continua bloqueada no domínio.
+- **Obras:** filtros Pendentes / Posso investir / Em andamento; concluídas recolhidas; Ver requisito direciona ao item que falta, inclusive ao gramado. SAF e agência têm acesso às obras pertinentes. Preços, rendas e compras intactos.
+- **Agência, museu e negócios:** agência vazia ensina a ganhar a primeira carta; seleção manual segue para quem tem coleção. Regras recuperáveis. Museu inaugurado prioriza taças e Ver sala 3D, com construção recolhida. Segundo clube não anuncia compra de outra SAF; venda continua com revisão/confirmação, agora recolhida.
+- **Partida:** opção compacta de Placar / Campo 2D / Estádio e Velocidade com estado Manual/Auto. Opt-in somente na carreira compatível com mapa; callbacks, dimensões de campo/placar e relógios preservados. Tutorial explica que a tática prepara o próximo jogo. Nenhum canal, autoridade ou troca de host modificado.
+- **Mapa:** Locais alinha Meu clube / Meus negócios / Minha vida aos atalhos, incluindo SAF/2º clube em tela cheia. Ações dos prédios nomeadas. Cobertura e sinalização física da loja mais legíveis sem mover terreno, ruas ou colisores. Correr/Andar descreve a ação do botão; teto segue oculto no passeio. Mapa público continua ligado conforme a publicação anterior.
+- **Verificação:** produção compila; 82 regras SAF e teste de salvar passaram. Chromium local em 320/390/1440, toque, save intacto na navegação, totais contra lançamentos, mover sem alterar propriedade, compra real de obra local por 20, museu 3D liberando canvas ao fechar, estágios SAF/segundo clube, mesma cena e tela cheia após painel. Compra/venda/troca de veículos recusadas; carro existente visível. Relógio/fonte comum, ida/volta, gol aos 92, velocidade e pênaltis passaram. Sem acesso a contas reais; sem medir FPS em telefone físico.
+- **Evidências:** `/workspace/shared/carreira-acabamento-20261115/`; antes/depois usa a mesma semente nas duas versões, com posição e alvo de câmera iguais para a loja. Scripts em `scripts/teste-carreira-acabamento-20261115/`. Ponto de partida: `485efcb8` (preservadas as atualizações de basquete). Nenhuma mudança em tabelas, Auth, RLS ou Realtime.
+
 
 ## 🗂️ 15/11 — Reorganização do Clube — FEITO na prévia privada
 

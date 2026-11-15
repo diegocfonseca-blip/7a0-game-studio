@@ -1659,7 +1659,7 @@ function EscritorioTab({ cards, st, hasFilial, bb = false }: { cards: EmpCard[];
     </>
   )
 }
-// ── 🕴️ AGÊNCIA 2.0 (aba Elenco › Agenciados) — SÓ carreira solo NOVA ────────
+// ── 🕴️ AGÊNCIA 2.0 (aba Clube › Minha agência) — SÓ carreira solo NOVA ────────
 // O técnico convoca até 22 cartas do ÁLBUM dele pra "ativa": só elas rendem
 // mensalidade por categoria (👑5 ⭐4 💎3 🎯2 🪵1 · folclórico +1) e comissão por
 // acontecimento (artilheiro/negociação no leilão — campeão NÃO paga, 16/09). A renda cai SEMPRE
@@ -1861,9 +1861,11 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
         {/* ③ o 22 deixa de ser número mágico — e a regra que o Diego ditou em
             19/09 fica escrita: *"quem não está ativo não recebe nada e nem o que
             ele teria ganhado. Só quando ativo, a partir daquele momento"*. */}
+        <details className="clube-agencia-ajuda"><summary>{tr('Como funcionam os 22 clientes','How the 22 clients work')}</summary>
         <p style={{ fontSize: 10, fontWeight: 700, color: '#6b6453', margin: '0 0 8px', lineHeight: 1.45 }}>{getLang() === 'en'
           ? <>You look after <b>22 at a time</b> — that's how many an agency can really follow. Only the active ones pay a fee. Whoever is out <b>earns nothing and stacks nothing</b> — they start earning the day they come in.</>
           : <>Você cuida de <b>22 ao mesmo tempo</b> — é quanta gente uma agência dá conta de acompanhar. Só quem está na ativa paga mensalidade. Quem está fora <b>não rende nada e não acumula nada</b> — passa a render no dia em que entra.</>}</p>
+        </details>
         {cards.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 9 }}>
             {[...cards].sort((a, b) => peso(b) - peso(a) || a.name.localeCompare(b.name)).map(c => (
@@ -1871,8 +1873,8 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
             ))}
           </div>
         ) : (
-          <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12, marginBottom: 9 }}>
-            {getLang() === 'en' ? <>Nobody active yet. You win agency cards by becoming <b>champion IN THIS career</b> (the title pack) — then just call up to 22 as active.</> : <>Ninguém na ativa ainda. As cartas da agência você ganha sendo <b>campeão NESTA carreira</b> (o pacote do título) — aí é só convocar até 22 pra ativa.</>}
+          <div style={{ padding: '8px 0', fontWeight: 600, color: '#514a37', fontSize: 12, marginBottom: 9, lineHeight: 1.5 }}>
+            {pool.length>0?tr('Você já tem cartas desta carreira. Escolha os clientes que entram na ativa.','You already have cards from this career. Choose which clients become active.'):tr('Sua agência começa com as cartas dos títulos desta carreira.','Your agency starts with the cards earned from titles in this career.')}
           </div>
         )}
         {/* ④ UM TOQUE RESOLVE. Quem gosta de mexer continua com o "na mão". */}
@@ -1881,9 +1883,9 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
             ⚡ {tr('Deixar os que mais rendem na ativa', 'Put the top earners on active duty')}
           </button>
         )}
-        <button onClick={() => setConvocando(true)} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: 9, fontWeight: 900, fontSize: 12, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
+        {pool.length>0?<button onClick={() => setConvocando(true)} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: 9, fontWeight: 900, fontSize: 12, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
           🧢 {tr('Escolher na mão', 'Pick by hand')}
-        </button>
+        </button>:<details className="clube-agencia-ajuda"><summary>{tr('Como ganhar minha primeira carta','How to earn my first card')}</summary><p>{tr('Ganhe um título nesta carreira e abra o pacote do campeão. As cartas recebidas entram na sua coleção da carreira; aqui você escolhe até 22 clientes na ativa.','Win a title in this career and open the champion’s pack. Your cards join the career collection; here you select up to 22 active clients.')}</p></details>}
       </div>
 
       {/* ⑤ 💤 QUEM ESTÁ DE FORA aparece, e diz quanto renderia — decisão com
@@ -1956,7 +1958,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
       <div style={{ ...box(), padding: '10px 12px', marginBottom: 10 }}>
         <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>{tr('📈 Comissões da agência', '📈 Agency commissions')}</div>
         {(!fatura || (fatura.rows.length === 0 && fatura.mensal === 0)) ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your active clients pay commission when they <b>finish top scorer</b> 🥇 of ANY competition (your division, the Cup, the World Cup), when they <b>win the Golden Ball</b> 🥇 (that is one more) or when they <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus clientes na ativa pagam comissão quando <b>terminam artilheiros</b> 🥇 de QUALQUER competição (a sua série, a Copa, a Copa do Mundo), quando <b>levam a Bola de Ouro</b> 🥇 (essa é mais uma) ou quando <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
+          <details className="clube-agencia-ajuda"><summary>{tr('Como ganhar comissões','How to earn commissions')}</summary>          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your active clients pay commission when they <b>finish top scorer</b> 🥇 of ANY competition (your division, the Cup, the World Cup), when they <b>win the Golden Ball</b> 🥇 (that is one more) or when they <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus clientes na ativa pagam comissão quando <b>terminam artilheiros</b> 🥇 de QUALQUER competição (a sua série, a Copa, a Copa do Mundo), quando <b>levam a Bola de Ouro</b> 🥇 (essa é mais uma) ou quando <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p></details>
         ) : (
           <>
             {fatura.mensal > 0 && (
@@ -2127,9 +2129,9 @@ function ConvocacaoAgencia({ current, pool, st, hasFilial, onClose, onSave }: { 
 // 🕴️ AGÊNCIA na área do estádio (Clube › Estrutura) — mockup aprovado pelo Diego
 // (03/08): a escada de desbloqueios mora ABAIXO do estádio/patrocínio, em caixa
 // escura pra não confundir com a obra. A agência em si (os 22 na ativa) segue em
-// Elenco › Agenciados — o botão no fim leva pra lá.
+// Clube › Minha agência — o botão no fim leva pra lá.
 const AG_EMOJI: Record<EmpCat, string> = { prof: '🪵', bom: '🎯', promessa: '💎', craque: '⭐', lenda: '👑' }
-function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSave | undefined; hasFilial: boolean; onVerAgenciados?: () => void }) {
+function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados, onWorks }: { st: StadiumSave | undefined; hasFilial: boolean; onVerAgenciados?: () => void; onWorks?:()=>void }) {
   const done = sectorsDone(st)
   const faltam: string[] = []
   for (const s of STADIUM_SECTORS) if (sectorPct(st, s.k) < 100) faltam.push(sectorNome(s))
@@ -2158,7 +2160,7 @@ function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSa
     <div style={{ ...box(), background: 'linear-gradient(160deg,#241E33,#0C0C0C 70%)', color: '#fff', padding: 12, marginBottom: 10 }}>
       <div style={{ fontSize: 9.5, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800, ...OSWALD }}>{tr('A obra destrava o escritório', 'Building unlocks the office')}</div>
       <div style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', color: GOLD, lineHeight: 1.1, margin: '2px 0 3px' }}>{tr('🕴️ Agência de Jogadores', '🕴️ Players\' Agency')}</div>
-      <p style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,.82)', lineHeight: 1.5, margin: '0 0 10px' }}>{en ? <>Each category you unlock here starts <b>earning coins per season</b> when active (Squad › Clients). Bigger club = bigger agency.</> : <>Cada categoria que você libera aqui passa a <b>render moedas por temporada</b> quando está na ativa (Elenco › Agenciados). Clube maior = agência maior.</>}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,.82)', lineHeight: 1.5, margin: '0 0 10px' }}>{en ? <>Each category you unlock here starts <b>earning coins per season</b> when active (Club › My agency). Bigger club = bigger agency.</> : <>Cada categoria que você libera aqui passa a <b>render moedas por temporada</b> quando está na ativa (Clube › Minha agência). Clube maior = agência maior.</>}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {ordem.map(k => {
           const ok = empCatUnlocked(k, st, hasFilial)
@@ -2180,8 +2182,9 @@ function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSa
         })}
       </div>
       <div style={{ fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', marginTop: 9, lineHeight: 1.45 }}>{en ? <>🃏 A <b>folk hero</b> card earns <b>+{AG_FOLK_BONUS} 🪙</b> on top — once its category is unlocked · commissions: 🥇 top scorer +1 · 💸 traded at the auction +1.</> : <>🃏 Carta <b>folclórica</b> rende <b>+{AG_FOLK_BONUS} 🪙</b> por cima — junto com a categoria dela liberada · comissões: 🥇 artilheiro +1 · 💸 negociado no leilão +1.</>}</div>
+      {onWorks&&faltam.length>0&&<button type="button" className="clube-agencia-obras" onClick={onWorks}>{tr('Ver obras e requisitos →','View construction and requirements →')}</button>}
       {onVerAgenciados && (
-        <button onClick={onVerAgenciados} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, padding: 10, fontWeight: 900, fontSize: 13, ...OSWALD, textTransform: 'uppercase', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: '3px 3px 0 rgba(0,0,0,.55)', marginTop: 10, cursor: 'pointer' }}>{tr('🧢 Ver meus agenciados — Elenco › Agenciados', '🧢 See my clients — Squad › Clients')}</button>
+        <button onClick={onVerAgenciados} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, padding: 10, fontWeight: 900, fontSize: 13, ...OSWALD, textTransform: 'uppercase', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: '3px 3px 0 rgba(0,0,0,.55)', marginTop: 10, cursor: 'pointer' }}>{tr('🧢 Ver meus agenciados — Clube › Minha agência', '🧢 See my clients — Club › My agency')}</button>
       )}
     </div>
   )
@@ -2632,18 +2635,15 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, club, bb = 
   const visualV2 = useCareerVisualV2()
   const [sub, setSub] = useState<'extrato' | 'transf'>('extrato')
   // extrato: do mais novo pro mais antigo, agrupado por temporada
-  const [filterSeason,setFilterSeason]=useState('all')
-  const [filterKind,setFilterKind]=useState('all')
   const rev = [...ledger].reverse()
-  const seasons = [...new Set(rev.map(e => e.season))]
+  const seasons = [...new Set(rev.map(e => e.season))].sort((a,b)=>b-a)
+  const [filterSeason,setFilterSeason]=useState(()=>String(seasons[0]??seasonNo))
+  const [filterKind,setFilterKind]=useState('all')
   const filteredRev=rev.filter(e=>(filterSeason==='all'||String(e.season)===filterSeason)&&(filterKind==='all'||(filterKind==='in'?e.amount>=0:e.amount<0)))
-  // 💰 RESUMO = temporada da movimentação MAIS RECENTE (a que encabeça o extrato).
-  // Bilheteria/folha/prêmios de uma temporada só são lançados na VIRADA do ano (já
-  // com o número da temporada que fechou), e aí o seasonNo já pulou pra próxima —
-  // então filtrar pelo seasonNo atual dava 0/0/0 mesmo tendo dados logo abaixo.
-  // Usar a temporada do topo do extrato mantém o resumo sempre casado com a lista.
-  const summarySeason = seasons[0] ?? seasonNo
-  const thisSeason = ledger.filter(e => e.season === summarySeason)
+  // O caixa é de agora; o resultado é somente do período escolhido no extrato.
+  // O filtro de movimentação reduz a lista, sem esconder despesas do resumo.
+  const summaryPeriod = filterSeason==='all'?tr('Todas as temporadas','All seasons'):tr(`Temporada ${filterSeason}`,`Season ${filterSeason}`)
+  const thisSeason = ledger.filter(e => filterSeason==='all'||String(e.season)===filterSeason)
   const entrou = thisSeason.filter(e => e.amount > 0).reduce((a, e) => a + e.amount, 0)
   const saiu = thisSeason.filter(e => e.amount < 0).reduce((a, e) => a - e.amount, 0)
   // transferências
@@ -2661,7 +2661,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, club, bb = 
   const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? (bb ? tr('🏟️ Obra na arena', '🏟️ Arena works') : tr('🏟️ Obra no estádio', '🏟️ Stadium works')) : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <div className={`ll-financial-layout${visualV2 ? ' cv2-finances' : ''}`}>
-      {club&&<p className="clube-financas-contexto">{tr(`Caixa do ${club}. Entradas e saídas abaixo correspondem à temporada ${summarySeason} do extrato; valores futuros não estão somados ao caixa.`,`Balance of ${club}. Income and expenses below refer to season ${summarySeason} in the statement; future values are not added to the balance.`)}</p>}
+      {club&&<p className="clube-financas-contexto">{tr(`Caixa atual do ${club}. O resultado abaixo reúne as entradas e saídas de: ${summaryPeriod}. Receitas futuras não estão somadas ao caixa.`,`Current balance of ${club}. The result below includes income and expenses for: ${summaryPeriod}. Future income is not included in the balance.`)}</p>}
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
       <div style={{ ...box(), background: caixa < 0 ? `linear-gradient(160deg, ${FIN_RED}, #7a1b10)` : `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '12px 14px', marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -2670,10 +2670,10 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, club, bb = 
             <div style={{ ...OSWALD, fontSize: 27, fontWeight: 900, lineHeight: 1, marginTop: 2 }}>🪙 {caixa < 0 ? `−${Math.abs(caixa)}` : caixa}</div>
             {caixa < 0 && <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.85)', marginTop: 3 }}>{tr('Folha maior que a caixa — contratar e investir travam até sair do vermelho.', 'Payroll bigger than the till — signing and investing are locked until you\'re out of the red.')}</div>}
           </div>
-          <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>{tr('Temporada', 'Season')} {summarySeason}</div>
+          <div style={{ textAlign: 'right', fontSize: 10, color: 'rgba(255,255,255,.7)', fontWeight: 700 }}>{summaryPeriod}</div>
         </div>
         <div style={{ display: 'flex', gap: 7, marginTop: 10 }}>
-          {([[tr('Entrou', 'In'), entrou, '#8ff0a8'], [tr('Saiu', 'Out'), saiu, '#ffb3a6'], [tr('Saldo', 'Balance'), entrou - saiu, GOLD]] as [string, number, string][]).map(([t, v, c], i) => (
+          {([[tr('Entrou', 'In'), entrou, '#8ff0a8'], [tr('Saiu', 'Out'), saiu, '#ffb3a6'], [tr('Resultado', 'Result'), entrou - saiu, GOLD]] as [string, number, string][]).map(([t, v, c], i) => (
             <div key={t} style={{ flex: 1, background: 'rgba(0,0,0,.22)', borderRadius: 9, padding: '6px 8px' }}>
               <div style={{ fontSize: 8.5, letterSpacing: .5, textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', fontWeight: 800 }}>{t}</div>
               <div style={{ ...OSWALD, fontSize: 15, fontWeight: 900, color: c }}>{i === 2 && v >= 0 ? '+' : i === 1 ? '−' : i === 0 ? '+' : v < 0 ? '−' : '+'}{Math.abs(v)}</div>
@@ -2703,7 +2703,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, club, bb = 
         )
       })()}
 
-      <div className="ll-financial-filters" data-active={filterSeason!=='all'||filterKind!=='all'}><label>{tr('Temporada','Season')}<select value={filterSeason} onChange={e=>setFilterSeason(e.target.value)}><option value="all">{tr('Todas','All')}</option>{seasons.map(sn=><option key={sn} value={sn}>{sn}</option>)}</select></label><label>{tr('Movimentação','Transaction')}<select value={filterKind} onChange={e=>setFilterKind(e.target.value)}><option value="all">{tr('Todas','All')}</option><option value="in">{tr('Entradas','Income')}</option><option value="out">{tr('Saídas','Expenses')}</option></select></label></div>
+      {sub==='extrato'&&<div className="ll-financial-filters" data-active={filterSeason!=='all'||filterKind!=='all'}><label>{tr('Temporada','Season')}<select value={filterSeason} onChange={e=>setFilterSeason(e.target.value)}><option value="all">{tr('Todas','All')}</option>{seasons.map(sn=><option key={sn} value={sn}>{sn}</option>)}</select></label><label>{tr('Movimentação','Transaction')}<select value={filterKind} onChange={e=>setFilterKind(e.target.value)}><option value="all">{tr('Todas','All')}</option><option value="in">{tr('Entradas','Income')}</option><option value="out">{tr('Saídas','Expenses')}</option></select></label></div>}
       <div className="ll-financial-detail">
       {/* sub-abas: 🧾 Extrato | 🔁 Transferências */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
@@ -2717,17 +2717,16 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues, club, bb = 
           ? <div style={{ ...box('#FBF6E9'), padding: 20, textAlign: 'center', fontWeight: 700, color: '#8a7d59' }}>{tr('Ainda não há lançamentos. Prêmios, bilheteria, salários, compras e vendas aparecem aqui conforme a carreira anda.', 'No entries yet. Prizes, gate money, salaries, purchases and sales show up here as the career goes on.')}</div>
           : filteredRev.length===0 ? <div role="status" style={{...box('#FBF6E9'),padding:20,fontWeight:700,color:'#625a4a'}}>{tr('Nenhum lançamento para estes filtros.','No entries match these filters.')}</div>
           : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {seasons.filter(sn=>filteredRev.some(e=>e.season===sn)).map(sn => (
-                <div key={sn} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>{tr('Temporada', 'Season')} {sn}</div>
-                  {filteredRev.filter(e => e.season === sn).map(e => (
-                    <FinLine key={e.id} label={ledgerLabel(e.label) || lbl(e.kind)} amount={e.amount} />
-                  ))}
-                </div>
-              ))}
+              {filterKind!=='all'&&<p className="clube-financas-contexto">{tr('O resumo inclui todas as movimentações do período. O filtro abaixo só altera a lista.','The summary includes every transaction in the period. This filter only changes the list.')}</p>}
+              {seasons.filter(sn=>filteredRev.some(e=>e.season===sn)).map(sn => {
+                const rows=filteredRev.filter(e=>e.season===sn),active=rows.filter(e=>e.amount!==0),zeros=rows.filter(e=>e.amount===0)
+                const lines=<><div className="clube-extrato-linhas">{active.map(e=><FinLine key={e.id} label={ledgerLabel(e.label)||lbl(e.kind)} amount={e.amount}/>)}</div>{zeros.length>0&&<details className="clube-extrato-zeros"><summary>{tr('Sem movimentação','No movement')} · {zeros.length}</summary><div className="clube-extrato-linhas">{zeros.map(e=><FinLine key={e.id} label={ledgerLabel(e.label)||lbl(e.kind)} amount={e.amount}/>)}</div></details>}</>
+                return filterSeason==='all'&&sn!==seasons[0]?<details key={sn} className="clube-extrato-temporada"><summary>{tr('Temporada','Season')} {sn} · {rows.length} {tr('lançamentos','entries')}</summary>{lines}</details>:<section key={sn} className="clube-extrato-temporada"><h3>{tr('Temporada','Season')} {sn}</h3>{lines}</section>
+              })}
             </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <p className="clube-financas-contexto">{tr('Elenco de agora e vendas registradas em todas as temporadas. Os valores não são receitas futuras.','Current squad and sales recorded across all seasons. Values are not future income.')}</p>
           {/* NO ELENCO: comprados, ainda no time — pago vs valor atual */}
           <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: .6, textTransform: 'uppercase', color: '#9a8f78', margin: '2px 2px 0' }}>{tr('No elenco', 'In the squad')} ({noElenco.length})</div>
           {noElenco.length === 0
@@ -5528,7 +5527,7 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
         style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, background: 'linear-gradient(180deg,#FFE07A,#F5B301)', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', color: INK }}>
         {busy ? tr('🎨 Gerando a arte…', '🎨 Building the image…') : tr('📤 COMPARTILHAR MEU ELENCO', '📤 SHARE MY SQUAD')}
       </button>
-      <p style={{ fontFamily: 'Arial, sans-serif', fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textAlign: 'center', marginTop: 5 }}>
+      <p style={{ fontFamily: 'Arial, sans-serif', fontSize: 12, fontWeight: 600, color: '#d7d0be', textAlign: 'center', marginTop: 8 }}>
         {tr('gera a imagem do teu time — mostra teu elenco e marca a gente! 📲 @leilaolegendscom', 'builds your team image — show off your squad and tag us! 📲 @leilaolegendscom')}
       </p>
     </div>
@@ -8338,7 +8337,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     setTimeout(() => setFase('quieto'), avisa7 ? 6000 : 2400)
   }, [])
   if (!ativo) return undefined
-  if (bloqueado) return { estado: 'bloqueado', onClick } // 🔒 04/11: sem plano não salva — o botão vira cadeado e abre os planos
+  if (bloqueado) return { estado: 'bloqueado', onClick, diasTeste:diasTesteSalvar() } // 🔒 04/11: sem plano não salva — o botão vira cadeado e abre os planos
   if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined, diasTeste: diasTesteSalvar() }
   if (logado === false && !logadoDev) return { estado: 'deslogado', onClick }
   if (soAparelho) return { estado: 'so_aparelho', onClick, onCraque: abreCraqueNuvem }
@@ -11178,6 +11177,7 @@ export function PyramidSeasonScreen() {
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={stadiumMapAvailable&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
+              onOpenWorks={mapaComoClube?()=>setClubeSub('estrutura'):undefined}
               filial={myFilial}
               filialOptions={(() => {
                 // 🏢 só dá pra comprar clube que VAI FICAR na Série D: tira os 4
@@ -11194,7 +11194,7 @@ export function PyramidSeasonScreen() {
                 for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
                 return null
               })()}
-              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
+              onBuyFilial={saf2Ui&&segundoClube(state)?undefined:team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
               onSellFilial={saf2Ui ? undefined : () => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
               filialSale={myFilial && !saf2Ui ? filialSaleValue(state, myFilial) : undefined}
               saf2={saf2Ui ? {
@@ -11246,7 +11246,7 @@ export function PyramidSeasonScreen() {
               torcidaPct={torcidaPct} chuvaHoje={chuvaHoje} />
             {(!mapaComoClube||business)&&<>
             {/* 🏗️ ESTRUTURA (Agência 2.0): patrocínio depois do estádio. A escada de
-                desbloqueios da Agência morava aqui — mudou pra Elenco › Agenciados
+                desbloqueios da Agência morava aqui — mudou pra Clube › Minha agência
                 (14/08, pedido do Diego: tudo de Agência num lugar só, junto da
                 escalação de verdade, em vez de espalhado em duas abas). */}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
@@ -12040,14 +12040,14 @@ export function PyramidSeasonScreen() {
           // logo abaixo (antes ficavam soltos, coladas uma coisa na outra).
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
-            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no estádio do mapa', '🏟️ Watch the match in the map stadium')}</button>}
+            {mapaComoClube?<Botao2D compact onStadium={verNo3D??undefined}/>:verNo3D&&<button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no estádio do mapa', '🏟️ Watch the match in the map stadium')}</button>}
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
+            <SimControls sem2d={mapaComoClube} compactPlayback={mapaComoClube} manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={avancarRodada}
               onSkip={avancarRodada}
               nextLabel={criseTrava ? tr('🚪 Decida quem fica no lugar dele', '🚪 Decide who replaces him') : halfMode && !halftimeDone ? tr('⏸️ Resolva o intervalo primeiro', '⏸️ Sort out half-time first') : penMode && !penaltyDone ? tr('⚽ Bata o pênalti primeiro', '⚽ Take the penalty first') : !roundReady ? tr('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : tr('▶️ Próxima rodada', '▶️ Next round')} />
           </div>
-          ) : <><Botao2D soComDireito /><ManualLockButton /></>
+          ) : <><Botao2D soComDireito compact={mapaComoClube} onStadium={verNo3D??undefined}/><ManualLockButton /></>
         )}
         {/* 🧹 RECIBOS DA VIRADA: o que já aconteceu e não depende de você — uma
             linha cada, DEPOIS da decisão e do botão verde. Nada some: cada linha
@@ -12077,14 +12077,14 @@ export function PyramidSeasonScreen() {
           manualAllowed ? (
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
-            {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no estádio do mapa', '🏟️ Watch the match in the map stadium')}</button>}
+            {mapaComoClube?<Botao2D compact onStadium={verNo3D??undefined}/>:verNo3D&&<button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no estádio do mapa', '🏟️ Watch the match in the map stadium')}</button>}
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
+            <SimControls sem2d={mapaComoClube} compactPlayback={mapaComoClube} manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
               onNext={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
               onSkip={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
               nextLabel={!copaReady ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…') : copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')} />
           </div>
-          ) : <><Botao2D soComDireito /><ManualLockButton /></>
+          ) : <><Botao2D soComDireito compact={mapaComoClube} onStadium={verNo3D??undefined}/><ManualLockButton /></>
         )}
         {/* 🎮 CONVIDADO (online) na Copa: vê o ritmo do host (read-only), reflete a troca */}
         {state.onlineMode === 'online' && !state.isHost && copaPlaying && (
@@ -12583,7 +12583,7 @@ export function PyramidSeasonScreen() {
                 onSetDestino={(id, dividir) => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id, dividir })}
                 onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} /></div>
               <CareerSection title={tr('Estrutura e coleções', 'Structure and collections')} id="cv2-agency-structure">
-              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)} />
+              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)} onWorks={()=>setClubeSub(mapaComoClube?'estrutura':'estadio')}/>
               {/* 📚 COLEÇÕES DE CLUBES (04/10): fechou um clube no álbum → recebe AQUI, nesta carreira. */}
               {colecoesOn && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
               </CareerSection>
@@ -12667,7 +12667,7 @@ export function PyramidSeasonScreen() {
                   return (
                     <div style={{ marginTop: 10 }}>
                       <UnlockBanner k="bico" tag={tr('🕴️ novo bico', '🕴️ new side job')} title={tr('Bico de Folga', 'Side Job')} ctaBg={GREEN} ctaColor="#fff">
-                        {tr('O clube ainda não paga bem — nos dias de folga, você pode trabalhar num dos patrocinadores pra ajudar no caixa. Escolha um abaixo, de graça. Troca quando quiser. Sobe pra Série C? Não precisa mais.', 'The club doesn\'t pay well yet — on your days off you can work for one of the sponsors to help the till. Pick one below, for free. Switch whenever you like. Reach Série C? You won\'t need it anymore.')}
+                        {tr('O clube ainda não paga bem — nos dias de folga, você pode trabalhar num dos patrocinadores pra ajudar no caixa. Você escolhe de graça na virada da temporada. Sobe pra Série C? Não precisa mais.', 'The club doesn\'t pay well yet — on your days off you can work for one of the sponsors to help the till. Pick one for free at the season turn. Reach Série C? You won\'t need it anymore.')}
                       </UnlockBanner>
                       {!bicoOn ? (
                         <div style={{ ...box('#FBF6E9'), padding: 12, textAlign: 'center' }}>

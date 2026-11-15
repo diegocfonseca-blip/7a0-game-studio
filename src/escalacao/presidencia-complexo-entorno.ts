@@ -527,7 +527,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     polygon('loja-piso',lot.footprint,GROUND,paving)
     for(const side of[-1,1])part('lateral',concrete,.26,h,d,side*w/2,GROUND+h/2,0,true)
     part('fundo',concrete,w,h,.26,0,GROUND+h/2,-d/2,true)
-    part('cobertura',dark,w+.5,.22,d+.5,0,GROUND+h,0)
+    part('cobertura',material('#929c98',.86),w+.5,.22,d+.5,0,GROUND+h,0)
     const clearGlass=material('#c5e2e9',.22,.05)
     clearGlass.transparent=true;clearGlass.opacity=.8;clearGlass.depthWrite=false
     const accent=material('#1d2328',.75)

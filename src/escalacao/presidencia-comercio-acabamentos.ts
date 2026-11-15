@@ -27,7 +27,7 @@ export function criarAcabamentosComerciais(parent:T.Object3D,state:EstadoComplex
  if(state.extras.loja){
   const {x,z,width:w,depth:d,height:h,heading:a}=LOJA_CLUBE_3D
   const part=(m:T.Material,bw:number,bh:number,bd:number,u:number,y:number,v:number)=>localBox(m,bw,bh,bd,x,z,u,y,v,a)
-  part(ink,w+.55,.3,d+.55,0,h+.4,0);part(cream,6,.35,5.4,3.2,h+.74,-4.5);part(glass,5.6,.18,5,3.2,h+1,-4.5);for(const u of[1.35,3.2,5.05])part(ink,.12,.2,5.1,u,h+1.12,-4.5);part(ink,w+.25,.44,.25,0,.4,-d/2);for(const side of[-1,1]){part(ink,.25,.44,d,side*w/2,.4,0);part(ink,(w-4.4)/2,.44,.25,side*(w/4+1.1),.4,d/2)}
+  part(mat('#929c98',.86),w+.55,.3,d+.55,0,h+.4,0);part(cream,6,.35,5.4,3.2,h+.74,-4.5);part(glass,5.6,.18,5,3.2,h+1,-4.5);for(const u of[1.35,3.2,5.05])part(ink,.12,.2,5.1,u,h+1.12,-4.5);part(ink,w+.25,.44,.25,0,.4,-d/2);for(const side of[-1,1]){part(ink,.25,.44,d,side*w/2,.4,0);part(ink,(w-4.4)/2,.44,.25,side*(w/4+1.1),.4,d/2)}
   // Finished corner facing +z in the opening view. The east door stays open.
   for(const v of[-7.4,-3.7,0,3.7,7.4]){part(glass,.1,2.75,3.5,-w/2-.17,2.18,v);part(ink,.2,3.25,.15,-w/2-.24,2.13,v-1.8)}
   part(ink,.3,1.1,d+.5,-w/2-.13,4.65,0);part(gold,.36,.12,d+.55,-w/2-.16,4.05,0)

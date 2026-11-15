@@ -1,4 +1,4 @@
-import {Children,isValidElement,type ReactNode} from 'react'
+import {Children,isValidElement,useState,type ReactNode} from 'react'
 import {useT} from './lang'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import './clube-organizacao.css'
@@ -19,9 +19,17 @@ export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,cl
 
 /** Concluídas ficam disponíveis para consulta; compras usam os callbacks existentes. */
 export function ObrasDoClube({enabled,children}:{enabled:boolean;children:ReactNode}){
- const t=useT();if(!enabled)return <>{children}</>
+ const t=useT(),[filter,F]=useState<'all'|'available'|'started'>('all')
+ if(!enabled)return <>{children}</>
  const all=Children.toArray(children),done=all.filter(c=>isValidElement<Record<string,unknown>>(c)&&c.props['data-work-done']),pending=all.filter(c=>!done.includes(c))
- return <div className="clube-obras-lista">{pending.length?<div className="clube-obras-grid">{pending}</div>:<p className="clube-obras-completas">{t('Tudo concluído nesta seção.','Everything in this section is complete.')}</p>}{done.length>0&&<details className="clube-obras-concluidas"><summary>{t('Concluídas','Completed')} · {done.length}</summary><div className="clube-obras-grid">{done}</div></details>}</div>
+ const matches=(c:ReactNode,key:string)=>isValidElement<Record<string,unknown>>(c)&&!!c.props[key]
+ const available=pending.filter(c=>matches(c,'data-work-available')),started=pending.filter(c=>matches(c,'data-work-started'))
+ const visible=filter==='available'?available:filter==='started'?started:pending
+ return <div className="clube-obras-lista">
+  {pending.length>0&&<nav className="clube-obras-filtros" aria-label={t('Filtrar obras','Filter construction')}>{[['all',t('Pendentes','Pending'),pending.length],['available',t('Posso investir','Can invest'),available.length],['started',t('Em andamento','In progress'),started.length]].map(([id,label,count])=><button type="button" key={id} aria-pressed={filter===id} onClick={()=>F(id as typeof filter)}>{label} · {count}</button>)}</nav>}
+  {visible.length?<div className="clube-obras-grid">{visible}</div>:<p className="clube-obras-completas" role="status">{!pending.length?t('Tudo concluído nesta seção.','Everything in this section is complete.'):filter==='available'?t('Nenhuma obra pode ser paga agora. Em Pendentes, confira moedas e requisitos.','No work can be paid for now. Check funds and requirements in Pending.'):t('Nenhuma obra em andamento nesta seção.','No construction in progress in this section.')}</p>}
+  {done.length>0&&<details className="clube-obras-concluidas"><summary>{t('Concluídas','Completed')} · {done.length}</summary><div className="clube-obras-grid">{done}</div></details>}
+ </div>
 }
 
 export function InformacoesDoEstadio({organized,label,children}:{organized:boolean;label?:string;children:ReactNode}){
