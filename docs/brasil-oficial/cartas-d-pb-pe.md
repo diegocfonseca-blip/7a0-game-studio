@@ -217,9 +217,10 @@ Fame 1 = jogador de elenco de clube pequeno; fame 2 = destaque/ídolo recente; f
 
 ## Retrô
 
+Já existe no baralho: Mascote (Retrô 2024, ATA) — conta pro time; abaixo vão as 10 novas.
+
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-<!-- Retrô já tem no baralho: Mascote | Retrô | 2024 | ATA (conta pro time) -->
 | Paulo Ricardo | GOL | 2026 | 1 | 53 | 65 | Em 2026 vestia a camisa do Retrô como goleiro; nascido em 1996, tem cara de quem custa pouco e rende muito. | In 2026 he wore Retrô's shirt as a goalkeeper; born in 1996, he looks like a bargain that delivers. | https://www.transfermarkt.com.br/retro-futebol-clube-brasil/kader/verein/76156/saison_id/2025 |  |
 | David Junio | LAT | 2026 | 1 | 52 | 64 | Lateral-direito do Retrô na temporada 2026, da turma nascida em 1994: ninguém conhece até ele decidir o jogo. | Retrô's right-back in the 2026 season, born in 1994: nobody knows him until he decides the game. | https://www.transfermarkt.com.br/retro-futebol-clube-brasil/kader/verein/76156/saison_id/2025 |  |
 | Lucas Sampaio | LAT | 2026 | 1 | 52 | 64 | Foi lateral-esquerdo do Retrô em 2026 e nasceu em 1995 — figurinha difícil de álbum de estadual. | He was Retrô's left-back in 2026, born in 1995 — a rare sticker from a state-league album. | https://www.transfermarkt.com.br/retro-futebol-clube-brasil/kader/verein/76156/saison_id/2025 |  |
