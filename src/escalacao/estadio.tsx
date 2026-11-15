@@ -1,5 +1,5 @@
 import {ObrasDoClube,InformacoesDoEstadio} from './clube-organizacao'
-import { useState, type ReactNode } from 'react'
+import { useState, useRef, type ReactNode } from 'react'
 import { Saf2Regras, saf2LoanSub } from './saf2-telas' // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com a chave)
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorVisual } from './career-sponsor-visual'
@@ -690,8 +690,9 @@ export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave |
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, clubPage, saf2, bb = false }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, clubPage, onOpenWorks, saf2, bb = false }: {
   clubPage?: 'map' | 'works' | 'business'
+  onOpenWorks?:()=>void
   initialSection?: 'sectors' | 'extras'
   museumImprovement?: ReactNode
   presidencyView?: ReactNode
@@ -771,6 +772,18 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   // passar pelo painel). O formzinho abre ABAIXO do desenho (StadiumSvg é
   // sagrado: sempre primeiro). Quem não é sócio não vê nada disso.
   const [structurePage, setStructurePage] = useState<'sectors' | 'extras'>(initialSection??'sectors')
+  const sectorsRef=useRef<HTMLElement>(null),extrasRef=useRef<HTMLElement>(null),[workFocus,setWorkFocus]=useState('')
+  const verRequisito=(key:string)=>{
+    let target=({refl:'geral',telao:'cadeiras',loja:'geral',asfalto:'geral',estac:'loja',praca:'loja',chopp:'praca',estacao:'estac',retratil:'cober'} as Record<string,string>)[key]
+    if(['camarote','cober','hotel','retratil'].includes(key)){
+      const required=key==='camarote'?['geral','cadeiras','visitante']:['geral','cadeiras','visitante','camarote','grama']
+      target=required.find(k=>!setorPagoNoProjeto(st,k))??target
+    }
+    const sector=['geral','cadeiras','visitante','camarote'].includes(target)
+    setStructurePage(sector?'sectors':'extras');setWorkFocus(key+':'+target)
+    requestAnimationFrame(()=>{const root=sector?sectorsRef.current:extrasRef.current;const el=target?root?.querySelector<HTMLElement>(`[data-work-id="${target}"]`):root;if(el){el.focus({preventScroll:true});el.scrollIntoView({block:'start',behavior:'auto'})}})
+  }
+
   const [edEstadio, setEdEstadio] = useState(false)
   const [nomeTmp, setNomeTmp] = useState('')
   const [salvandoNome, setSalvandoNome] = useState(false)
@@ -902,7 +915,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
       {clubPage!=='map'&&clubPage!=='business'&&<>
       {clubPage==='works'&&<div className="clube-obras-intro"><strong>{coins.toLocaleString('pt-BR')} 🪙</strong><p>{tr('Caixa disponível do clube no comando. Cada obra mostra o preço do próximo investimento.','Available balance of the managed club. Each upgrade shows the next investment price.')}</p></div>}
       {cinematic && <nav className="ll32-structure-tabs" aria-label={bb ? 'Obras da arena' : 'Obras do estádio'}><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
-      <section className={cinematic&&!clubPage ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
+      <section ref={sectorsRef} tabIndex={-1} className={cinematic&&!clubPage ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>{tr('🧱 Arquibancadas — investe aos poucos', '🧱 Stands — invest bit by bit')}</p>
       {/* 🌱 O GRAMADO SAIU DAQUI (Diego 16/09). Ele tem ZERO lugares — não é
           arquibancada, e ficava na lista como se fosse. Vai lá pra baixo, junto das
@@ -912,7 +925,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           poderia ver obras RE-TRANCAREM (a Cobertura pede 4 setores, o Hotel pede
           todos). Isto aqui é mudança de LUGAR NA TELA, não de regra — ninguém perde
           progresso nem desbloqueio. */}
-      <ObrasDoClube enabled={!!clubPage}>
+      <ObrasDoClube key={workFocus} enabled={!!clubPage}>
       {STADIUM_SECTORS.filter(s => s.k !== 'grama').map(s => {
         const p = sectorPct(st, s.k), full = projectLayout ? setorPagoNoProjeto(st,s.k) : p >= 100
         const locked = projectLayout && !podeInvestirNoProjeto(st,s.k)
@@ -928,7 +941,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         const stepPay = Math.min(STADIUM_STEP, Math.max(0, s.cost - investedRaw))
         const poor = coins < stepPay
         return (
-          <div key={s.k} data-work-done={full||undefined} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
+          <div key={s.k} tabIndex={-1} data-work-id={s.k} data-work-done={full||undefined} data-work-available={!full&&!poor&&!locked} data-work-started={!full&&p>0} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
                 <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{presidencyView && s.k==='camarote' ? tr('Camarotes e 2º andar','Boxes and upper tier') : bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
@@ -938,7 +951,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b>{typeof torcidaPct === 'number' && torcidaPct < 100 ? <span style={{ opacity: .75 }}> {tr(`(hoje +${Math.floor(s.inc * torcidaPct / 100)} — estádio ${torcidaPct}% cheio)`, `(today +${Math.floor(s.inc * torcidaPct / 100)} — stadium ${torcidaPct}% full)`)}</span> : null}{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</> : null}</div>
-              {locked&&<p style={{fontSize:11,margin:'4px 0 0'}}>{tr('Conclua Geral, Cadeiras e Visitante para construir o 2º andar.','Finish Terraces, Seats and Away end before the upper tier.')}</p>}
+              {locked&&<><p style={{fontSize:11,margin:'4px 0 0'}}>{tr('Conclua Geral, Cadeiras e Visitante para construir o 2º andar.','Finish Terraces, Seats and Away end before the upper tier.')}</p>{clubPage&&<button type="button" className="clube-ver-requisito" onClick={()=>verRequisito(s.k)}>{tr('Ver requisito →','View requirement →')}</button>}</>}
             </div>
             {clubPage&&!full&&<p className="clube-obra-context" data-insuficiente={poor}>{locked?tr('Conclua primeiro o andar inferior.','Complete the lower tier first.'):poor?tr(`Faltam ${stepPay-coins} moedas.`,`You need ${stepPay-coins} more coins.`):tr(`Após investir: ${coins-stepPay} moedas.`,`After investing: ${coins-stepPay} coins.`)}</p>}
             <button onClick={() => !full && !poor && !locked && onInvest(s.k)} disabled={full || poor || locked}
@@ -951,9 +964,9 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
 
       </ObrasDoClube>
       </section>
-      <section className={cinematic&&!clubPage ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'extras'}>
+      <section ref={extrasRef} tabIndex={-1} className={cinematic&&!clubPage ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'extras'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>{tr('✨ Melhorias — pagam e destravam 🔓', '✨ Upgrades — they pay and unlock 🔓')}</p>
-      <ObrasDoClube enabled={!!clubPage}>
+      <ObrasDoClube key={workFocus} enabled={!!clubPage}>
       {/* 🌱 o GRAMADO mora aqui desde 16/09 (ver o comentário lá em cima) */}
       {(() => {
         const s = STADIUM_SECTORS.find(x => x.k === 'grama')!
@@ -961,7 +974,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         const stepPay = Math.min(STADIUM_STEP, Math.max(0, s.cost - (st?.inv[s.k] ?? 0)))
         const poor = coins < stepPay
         return (
-          <div data-work-done={full||undefined} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
+          <div tabIndex={-1} data-work-id="grama" data-work-done={full||undefined} data-work-available={!full&&!poor} data-work-started={!full&&p>0} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
                 <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{bb && s.k==='grama' ? tr('🪵 Piso da quadra','🪵 Court floor') : sectorNome(s)}</span>
@@ -984,7 +997,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         if(e.k==='estac'&&parkingStages){
           const unlocked=hasExtra(st,'loja'),poor=!Number.isSafeInteger(coins)||coins<parking.nextCost
           const disabled=!parking.valid||parking.complete||!unlocked||poor
-          return <div key={e.k} data-work-done={parking.complete||undefined} data-parking-stage={parking.stage} style={{...box('#FBF6E9'),borderRadius:14,padding:'10px 11px',marginBottom:9,display:'flex',alignItems:'center',gap:11}}>
+          return <div key={e.k} tabIndex={-1} data-work-id={e.k} data-work-done={parking.complete||undefined} data-work-available={!disabled} data-work-started={!parking.complete&&parking.stage>0} data-parking-stage={parking.stage} style={{...box('#FBF6E9'),borderRadius:14,padding:'10px 11px',marginBottom:9,display:'flex',alignItems:'center',gap:11}}>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontWeight:900,fontSize:14.5,...OSW}}>{extraNome(e)}</div>
               {parking.valid?<>
@@ -992,7 +1005,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 <div role="progressbar" aria-label={tr('Etapas do estacionamento','Parking stages')} aria-valuemin={0} aria-valuemax={4} aria-valuenow={parking.stage} style={{height:9,background:'#e6dcc2',border:`1.5px solid ${INK}`,borderRadius:6,overflow:'hidden',margin:'5px 0'}}><div style={{height:'100%',width:`${parking.stage*25}%`,background:parking.complete?GOLD:ACC}}/></div>
                 <p style={{fontSize:10.5,fontWeight:700,margin:'4px 0',color:'rgba(0,0,0,.65)'}}>{tr('Investido','Invested')} {parking.investment}/{ESTACIONAMENTO_CUSTO_TOTAL} 💰 · {tr('cada etapa abre novas vagas','each stage opens more spaces')}</p>
                 <p style={{fontSize:10.5,fontWeight:700,margin:'4px 0',color:'rgba(0,0,0,.65)'}}>{parking.complete?tr('Renda +4/temp · requisito da estação concluído','Income +4/season · station requirement complete'):tr('Renda +4/temp e acesso à compra da estação na etapa 4/4.','Income +4/season and access to the station purchase at stage 4/4.')}</p>
-                {!parking.complete&&!unlocked&&<p style={{fontSize:11,margin:'4px 0'}}>{tr('Construa a Loja do Clube para começar.','Build the Club Store to begin.')}</p>}
+                {!parking.complete&&!unlocked&&<><p style={{fontSize:11,margin:'4px 0'}}>{tr('Construa a Loja do Clube para começar.','Build the Club Store to begin.')}</p>{clubPage&&<button type="button" className="clube-ver-requisito" onClick={()=>verRequisito(e.k)}>{tr('Ver requisito →','View requirement →')}</button>}</>}
                 {!parking.complete&&unlocked&&poor&&<p style={{fontSize:11,margin:'4px 0'}}>{tr(`São necessárias ${parking.nextCost} moedas para a próxima etapa.`,`The next stage requires ${parking.nextCost} coins.`)}</p>}
               </>:<p role="status" style={{fontSize:11,margin:'4px 0'}}>{tr('Não foi possível conferir a obra. Reabra a carreira antes de investir.','The construction could not be verified. Reopen your career before investing.')}</p>}
             </div>
@@ -1012,7 +1025,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           ? tr('rende com a venda de camisas e o fornecedor de material', 'earns from shirt sales and the kit supplier')
           : null
         return (
-          <div key={e.k} data-work-done={done||undefined} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: done || unlocked ? 1 : .55, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
+          <div key={e.k} tabIndex={-1} data-work-id={e.k} data-work-done={done||undefined} data-work-available={!done&&unlocked&&!poor} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: 1, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{e.k==='asfalto' ? tr('🛣️ Ruas internas e calçadas','🛣️ Internal streets and sidewalks') : extraNome(e)}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
@@ -1030,6 +1043,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                   : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{projectLayout ? requisitoExtraNoProjeto(e.k,getLang()==='en')??extraReq(e) : extraReq(e)}</b> · {tr('custaria', 'would cost')} {e.cost} 💰 · {rendeTxt??tr(`renderia +${e.inc}/temp`, `would earn +${e.inc}/season`)}{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
               </div>
             </div>
+            {clubPage&&!done&&!unlocked&&<button type="button" className="clube-ver-requisito" onClick={()=>verRequisito(e.k)}>{tr('Ver requisito →','View requirement →')}</button>}
             {clubPage&&!done&&unlocked&&<p className="clube-obra-context" data-insuficiente={poor}>{poor?tr(`Faltam ${e.cost-coins} moedas.`,`You need ${e.cost-coins} more coins.`):tr(`Após construir: ${coins-e.cost} moedas.`,`After building: ${coins-e.cost} coins.`)}</p>}
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: !done && unlocked && !poor ? 'pointer' : 'default', lineHeight: 1.15, ...OSW, background: done ? GOLD : (!unlocked || poor) ? '#d9cfb4' : INK, color: done ? INK : (!unlocked || poor) ? '#7d7358' : '#fff' }}>
@@ -1242,7 +1256,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           )
         }
         return (
-          <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: (allDone && logged) ? 1 : .6, borderStyle: (allDone && logged) ? 'solid' : 'dashed', boxShadow: (allDone && logged) ? `4px 4px 0 0 ${INK}` : 'none' }}>
+          <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '11px 12px', marginTop: 14, opacity: 1, borderStyle: (allDone && logged) ? 'solid' : 'dashed', boxShadow: (allDone && logged) ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <p style={{ fontWeight: 900, fontSize: 14.5, margin: 0, ...OSW }}>{tr('💼 COMPRAR UMA SAF', '💼 BUY A SAF')}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 6px' }}>
               {getLang() === 'en' ? (!logged
@@ -1255,6 +1269,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. E você <b>empresta e pega jogadores</b> dele: <b>+vagas conforme você sobe de série</b> (D 1 · C 2 · B 3 · A 4).</>
                 : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · a SAF custa 2.000 💰</>}
             </p>
+            {logged&&!allDone&&onOpenWorks&&<button type="button" className="clube-ver-requisito" onClick={onOpenWorks}>{tr('Ver obras pendentes →','View pending construction →')}</button>}
             {logged && allDone && regras}
             {logged && allDone && <div style={{ height: 7 }} />}
             {logged && allDone && !buying && saf2?.buyLock && (

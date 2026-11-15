@@ -28,7 +28,7 @@ import {
   torcidaDoEstadio, bonusObras, lojaConstruida, calculaVendas,
   type LojaSave, type PrecoLoja,
 } from './loja'
-import type { StadiumSave } from './estadiodata'
+import {STADIUM_EXTRAS,extraReq,sectorsDone,type StadiumSave} from './estadiodata'
 import { BICO_MARCAS, bicoValor, type BicoMarca, type BicoDiv } from './bico' // 🕴️ Bico de Folga
 import MOLDE_CAMISA from './img/camisa-molde-v1.webp'
 // 🎬 as duas telas da virada usam o MOLDE do Patrocinador Master (ll29/ll36) + as cenas
@@ -295,6 +295,9 @@ export function LojaTab({
   const arteFile = camisaSalaoDe(time)
   const arteBatismo = arteFile ? import.meta.env.BASE_URL + 'mantos-salao/' + arteFile : undefined
   const aberta = lojaConstruida(st)
+  const lojaObra=STADIUM_EXTRAS.find(e=>e.k==='loja')!
+  const rgb=/^#[0-9a-f]{6}$/i.test(minhaCor)?[1,3,5].map(i=>parseInt(minhaCor.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4):[1,1,1]
+  const actionInk=.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]>.179?INK:'#fff'
   const forn = loja?.forn
   const ativo = fornAtivo(forn, seasonNo)
   const fornMeta = ativo ? fornecedorDe(forn.fornId) : undefined
@@ -322,16 +325,16 @@ export function LojaTab({
         </div>
       </div>
       <Cartao titulo={tr('🔨 Como abrir', '🔨 How to open it')}
-        pe={tr('Primeiro 2 setores do estádio prontos, depois a obra da loja. Com ela de pé, a partir da próxima temporada entram as vendas e o fornecedor.',
-          'First 2 finished stands, then the store itself. With it up, from next season on the sales and the supplier kick in.')}>
+        pe={tr('Primeiro um setor do estádio pronto, depois a obra da loja. Com ela de pé, a partir da próxima temporada entram as vendas e o fornecedor.',
+          'First one finished stand, then the store itself. With it up, from next season on the sales and the supplier kick in.')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 34, height: 34, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 9, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🛍️</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5 }}>🛍️ {tr('Loja do Clube', 'Club Store')} · 80 🪙</div>
-            <div style={{ ...OSW, fontWeight: 400, fontSize: 10, opacity: .72 }}>{tr('precisa de 2 setores do estádio prontos', 'needs 2 finished stands')}</div>
+            <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5 }}>🛍️ {tr('Loja do Clube', 'Club Store')} · {lojaObra.cost} 🪙</div>
+            <div style={{ ...OSW, fontWeight: 400, fontSize: 10, opacity: .72 }}>{extraReq(lojaObra)} · {tr('concluídos','completed')}: {sectorsDone(st)}</div>
           </div>
         </div>
-        <button onClick={onIrEstrutura} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 11, background: minhaCor, color: '#fff', ...OSW, fontWeight: 700, fontSize: 12, textTransform: 'uppercase', padding: 8, marginTop: 8, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
+        <button onClick={onIrEstrutura} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 11, background: minhaCor, color: actionInk, ...OSW, fontWeight: 700, fontSize: 12, textTransform: 'uppercase', padding: 8, marginTop: 8, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
           {tr('Ir pra 🏗️ Estrutura', 'Go to 🏗️ Facilities')}</button>
       </Cartao>
       <Cartao titulo={tr('👕 E a camisa?', '👕 What about the shirt?')}

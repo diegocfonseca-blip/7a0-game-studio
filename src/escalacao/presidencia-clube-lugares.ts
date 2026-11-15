@@ -21,8 +21,8 @@ export function criarLugaresClube(parent:T.Object3D,state:EstadoComplexo,clubNam
  }
  if(state.extras.loja){
   const {x,z,height,heading,depth}=LOJA_CLUBE_3D
-  sign([getLang()==='en'?'FAN SHOP':'LOJA DA TORCIDA'],10,2.6,x,height+.58,z,true,0)
-  sign([getLang()==='en'?'FAN SHOP':'LOJA DA TORCIDA'],14,1.15,x+Math.sin(heading)*(depth/2+.35),4.65,z+Math.cos(heading)*(depth/2+.35),false,heading)
+  sign([getLang()==='en'?'FAN SHOP':'LOJA DA TORCIDA'],14,3.2,x,height+.58,z,true,0)
+  sign([getLang()==='en'?'FAN SHOP':'LOJA DA TORCIDA'],17,1.35,x+Math.sin(heading)*(depth/2+.35),4.65,z+Math.cos(heading)*(depth/2+.35),false,heading)
   if(crest){const map=new T.TextureLoader().load(crest,tex=>{if(disposed){tex.dispose();return}tex.colorSpace=T.SRGBColorSpace;onReady?.()});textures.add(map);const m=new T.MeshBasicMaterial({map,transparent:true,toneMapped:false,depthWrite:false});materials.add(m);mesh(new T.PlaneGeometry(1.9,1.9),m,x-7.1,2.3,z+depth/2+.38).castShadow=false}
 
 

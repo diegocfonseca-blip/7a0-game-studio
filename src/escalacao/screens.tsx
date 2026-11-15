@@ -6876,7 +6876,7 @@ export function QuickManualLock() {
 // 📺 o botão do CAMPO 2D mora junto do Manual em TODO controle de partida (Diego 20/10: *"botão manual e campo 2D"* e
 // *"serve para tudo"*). Fora da sala online a escolha é do aparelho e vale pra toda competição; na sala online quem decide
 // é o dono, ao criar (todo mundo tem que ver o mesmo jogo no mesmo tempo) — então lá o botão não aparece.
-export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {}) {
+export function Botao2D({ soComDireito = false, compact = false, onStadium }: { soComDireito?: boolean; compact?: boolean; onStadium?:()=>void } = {}) {
   const liberado = useCampo2DLiberado()
   const kingsVe = useKingsLiberada() // 👑📺 o 2D da Kings: as mesmas contas que veem a Kings
   const ligado = useCampo2DLigado()
@@ -6903,6 +6903,11 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
       </button>
     )} />
   )
+  if(compact&&state.careerOnline&&!state.co2)return <nav className="career-view-picker" aria-label={t('Visualização da partida','Match view')}>
+    <button type="button" aria-pressed={!ligado} onClick={()=>{if(ligado)trocaCampo2D()}}>{t('Placar','Scoreboard')}</button>
+    <button type="button" aria-pressed={ligado} onClick={()=>{if(!ligado)trocaCampo2D()}}>{t('Campo 2D','2D pitch')}</button>
+    {onStadium&&<button type="button" onClick={onStadium}>{t('Estádio','Stadium')}</button>}
+  </nav>
   if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={ligado?'campo':'placar'} onChange={e=>{if((e.target.value==='campo')!==ligado)trocaCampo2D()}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo">{t('Campo 2D','2D pitch')}</option></select></label></OwnerSlot>
   return (
     <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
@@ -6954,11 +6959,11 @@ export function TrocaCampo2DVisual({ agora, pendente, podeLigar, onTroca }: { ag
   )
 }
 
-export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode; sem2d?: boolean }) {
+export function SimControls(props: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode; sem2d?: boolean; compactPlayback?: boolean }) {
   // sem2d: a Copa do Mundo da SALA anda no relógio do BANCO (a troca do dono entra pelo próprio controle de lá)
   return <>{!props.sem2d && <Botao2D soComDireito={!!props.lock} />}<SimControlsBase {...props} /></> // (com o cadeado do Manual: o 2D só aparece pra quem já tem ele — Craque Salas; senão o cadeado cobre os dois)
 }
-function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode }) {
+function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel, lock, compactPlayback }: { manual: boolean; onToggle: () => void; onNext: () => void; onSkip?: () => void; canNext: boolean; nextLabel?: string; lock?: React.ReactNode; compactPlayback?:boolean }) {
   const previewAccount = useOnlinePreview()
   const ownerVisual = useOwnerLayout()
   const { state, dispatch } = useEsc()
@@ -6972,7 +6977,7 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   if (r2d.semManual) return <p style={{ margin: '0 0 8px', textAlign: 'center', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>{t('⚡ Automático 2× · sem botão Manual', '⚡ Auto 2× · no Manual button')}</p>
   if(ownerVisual) return <OwnerPlayback manual={manual} onToggle={onToggle} speed={c2dCtl?c2dCtl.cur:state.simSpeed??1} onSpeed={v=>{if(c2dCtl)c2dCtl.set(v);else dispatch({type:'SET_SIM_SPEED',speed:v})}} opts={c2dCtl?.opts} canNext={canNext} onNext={onNext} onSkip={onSkip} nextLabel={nextLabel}/>
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return <>
-    <OnlineRhythm manual={manual} onToggle={onToggle} speed={c2dCtl ? c2dCtl.cur : state.simSpeed ?? 1} onSpeed={speed => { if (c2dCtl) c2dCtl.set(speed); else dispatch({ type: 'SET_SIM_SPEED', speed }) }} opts={c2dCtl?.opts} />
+    {compactPlayback?<details className="career-speed-controls"><summary>{t('Velocidade','Speed')}<small>{manual?'Manual':'Auto'} · {(c2dCtl?c2dCtl.cur:state.simSpeed??1).toLocaleString(getLang()==='en'?'en-US':'pt-BR')}×</small></summary><OnlineRhythm manual={manual} onToggle={onToggle} speed={c2dCtl ? c2dCtl.cur : state.simSpeed ?? 1} onSpeed={speed => { if (c2dCtl) c2dCtl.set(speed); else dispatch({ type: 'SET_SIM_SPEED', speed }) }} opts={c2dCtl?.opts} /></details>:<OnlineRhythm manual={manual} onToggle={onToggle} speed={c2dCtl ? c2dCtl.cur : state.simSpeed ?? 1} onSpeed={speed => { if (c2dCtl) c2dCtl.set(speed); else dispatch({ type: 'SET_SIM_SPEED', speed }) }} opts={c2dCtl?.opts} />}
     {manual && <div className="ll25-actions">
       <button className="ll25-button" onClick={onNext} disabled={!canNext}>{label}</button>
       {onSkip && <button className="ll25-button" onClick={onSkip}>{t('PULAR', 'SKIP')}</button>}

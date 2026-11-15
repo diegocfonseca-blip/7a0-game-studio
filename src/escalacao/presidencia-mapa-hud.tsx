@@ -67,8 +67,8 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
     </div>}
    </div>
    {(ctl||ritmo)&&!replay&&<div className="pc3-match-controls">
-    <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{controlsOpen?t('Fechar controles','Close controls'):t('Controles','Controls')}{ritmo&&vivo&&<span>{rotuloVelocidadeCampo(ritmo.speed)}</span>}</button>
-    {controlsOpen&&<div className="pc3-match-controls-panel" role="group" aria-label={t('Controles da partida','Match controls')}>
+    <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{t('Velocidade','Speed')}<span>{ctl?.manual?'Manual':'Auto'}{ritmo&&vivo?' · '+rotuloVelocidadeCampo(ritmo.speed):''}</span></button>
+    {controlsOpen&&<div className="pc3-match-controls-panel" role="group" aria-label={t('Velocidade da partida','Match speed')}>
     {(ctl?.manualOk || (ritmo && vivo)) && <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
       {ctl && ctl.manualOk && <span style={grupo}><button type="button" style={chip(!ctl.manual)} onClick={() => { if (ctl.manual) ctl.alternaManual() }}>🔁 {t('AUTO', 'AUTO')}</button><button type="button" style={chip(ctl.manual)} onClick={() => { if (!ctl.manual) ctl.alternaManual() }}>🎮 MANUAL</button></span>}
       {ritmo && vivo && <span style={{...grupo,flexWrap:'wrap',maxWidth:'100%'}}>{VELOCIDADES_ESTADIO.map(v => <button key={v} type="button" aria-pressed={ritmo.speed===v} aria-label={t('Velocidade da partida','Match speed')+' '+rotuloVelocidadeCampo(v)} style={{...chip(ritmo.speed === v),minHeight:44,minWidth:44,fontSize:13}} onClick={() => ritmo.onSet(v)}>{rotuloVelocidadeCampo(v)}</button>)}</span>}

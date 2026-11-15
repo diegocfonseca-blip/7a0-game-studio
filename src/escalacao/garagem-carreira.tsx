@@ -1,4 +1,5 @@
 import {pedidoVeiculoLiberado,NEGOCIACAO_VEICULOS_LIBERADA} from './presidencia-veiculos-liberacao'
+import {BemMiniatura} from './presidencia-bem-miniatura'
 import {GaragemVista} from './garagem-vista'
 import {GaragemExperimentar} from './garagem-experimentar'
 import {modeloVeiculo} from './veiculos-modelos'
@@ -23,7 +24,7 @@ export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium
  const request=(kind:'buy'|'sell',id:PresidenciaItemId,replaceId?:PresidenciaItemId)=>{if(!pedidoVeiculoLiberado({id,replaceId})){N(t('Negociação de veículos em breve. Seus bens continuam preservados.','Vehicle trading is coming soon. Your assets are preserved.'));return}const r=orcarPresidencia(wallet,{kind,id,...(replaceId?{replaceId}:{})});if(!r.ok){N(t(...PRESIDENCIA_ERROS[r.error]));return}Q(r.value);N('');dialog.current?.showModal()}
  const products=filtrarCatalogoPresidencia({furniture,tab,owned:wallet.owned,search,order,english:getLang()==='en'}).filter(p=>compraPresidenciaDisponivel(p.id)||wallet.owned.some(b=>b.id===p.id))
  return <section className="gp-root">
-  <header className="gp-header"><h1>{furniture?t('MOBÍLIAS','FURNITURE'):soLoja?t('À VENDA NA VADICO','FOR SALE AT VADICO'):t('GARAGEM','GARAGE')}</h1><span className="gp-coins">{wallet.cash} {t('moedas','coins')}</span></header>
+  <header className="gp-header"><h1>{furniture?t('MOBÍLIAS','FURNITURE'):soLoja?t('CATÁLOGO DA VADICO','VADICO CATALOG'):t('GARAGEM','GARAGE')}</h1><span className="gp-coins">{wallet.cash} {t('moedas','coins')}</span></header>
   {stadium}
   {!furniture&&<>
   {!soLoja&&<GaragemVista owned={wallet.owned} display={display} stadium={stadiumSave} onDisplay={onDisplay}/>}
@@ -37,7 +38,7 @@ export function GaragemCarreira({wallet,display,onTrade,onDisplay,onBack,stadium
   <p role="status" className="gp-notice">{notice}</p>
   {products.length===0&&<p role="status">{t('Nenhum item encontrado. Tente outro nome ou categoria.','No items found. Try another name or category.')}</p>}
   <div className="gp-grid">{products.map(p=>{const owned=wallet.owned.find(b=>b.id===p.id),options=wallet.owned.filter(b=>itemPresidencia(b.id)?.slot===p.slot),replacement=options.some(b=>b.id===replacements[p.id])?replacements[p.id]:undefined;return <Box key={p.id} className="gp-product">
-   {arteCatalogoPresidencia(p.id)?<img loading="lazy" decoding="async" className="gp-product-art" src={import.meta.env.BASE_URL+arteCatalogoPresidencia(p.id)} alt={t(p.pt,p.en)}/>:<p>{t('Arte em preparação','Artwork in preparation')}</p>}
+   {arteCatalogoPresidencia(p.id)?<BemMiniatura id={p.id} className="gp-product-art"/>:<p>{t('Arte em preparação','Artwork in preparation')}</p>}
    <h2>{t(p.pt,p.en)}</h2><strong>{p.price} {t('moedas','coins')}</strong>
    {!owned&&(modeloVeiculo(p.id)||ARTES_VEICULOS[p.id]?.scene)&&<a className="gp-preview-link" href={'#preview-'+p.id} onClick={e=>{e.preventDefault();setPreview(p.id)}}>{t('VER MODELO 3D','VIEW 3D MODEL')}</a>}
    {!owned&&pedidoVeiculoLiberado({id:p.id})&&options.length>0&&<div className="gp-filters gp-trade-filter"><label>{t('DAR NA TROCA','TRADE IN')}<select aria-label={t('Dar na troca: ','Trade in: ')+t(p.pt,p.en)} value={replacement??''} onChange={e=>{const id=options.find(b=>b.id===e.target.value)?.id;R(prev=>({...prev,[p.id]:id}))}}><option value="">{t('Sem troca','No trade-in')}</option>{options.map(b=><option key={b.id} value={b.id}>{t(itemPresidencia(b.id)!.pt,itemPresidencia(b.id)!.en)} (+{valorRevenda(b.paid)})</option>)}</select></label></div>}

@@ -38,7 +38,7 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZo
         </div>
       )}
       <Joystick fan={fan} />
-      <div className="fz-walk-actions"><button type="button" style={btn} onClick={()=>fan.centralizar()}>{t('Centralizar','Recenter')}</button><button type="button" aria-pressed={correr} onClick={() => { const v = !correr; setCorrer(v); fan.input.correr = v }} style={{ ...btn,background: correr ? GOLD : '#fff' }}>{correr ? t('🏃 Correndo', '🏃 Running') : t('🚶 Andando', '🚶 Walking')}</button></div>
+      <div className="fz-walk-actions"><button type="button" style={btn} onClick={()=>fan.centralizar()}>{t('Centralizar','Recenter')}</button><button type="button" aria-pressed={correr} onClick={() => { const v = !correr; setCorrer(v); fan.input.correr = v }} style={{ ...btn,background: correr ? GOLD : '#fff' }}>{correr ? t('🚶 Andar', '🚶 Walk') : t('🏃 Correr', '🏃 Run')}</button></div>
       <p className="fz-walk-help"><span className="fz-touch-help">{t('Um dedo anda · outro olha','One finger walks · the other looks')}</span><span className="fz-keyboard-help">{t('WASD / setas · Shift corre · arraste para olhar','WASD / arrows · Shift runs · drag to look')}</span></p>
       <AcaoProxima fan={fan}/>
     </div>
