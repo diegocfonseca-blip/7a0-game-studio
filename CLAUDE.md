@@ -379,6 +379,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🃏 **TODO CLUBE DO MODO TEM CARTAS DE JOGADOR REAL** (15/11, *"todos têm que ter cartas… se não achar jogadores famosos do time
   dele, bota os jogadores reais"*): nada de clube "sem cartas" jogando pela força — vale Série D, estaduais e Copa do Brasil.
   Famoso do clube primeiro; não achou, elenco atual real. As cartas do modo nunca vão pra Partida Rápida nem pro online.
+  🚫 **Só se escolhe clube das Séries A–D** (15/11, *"não pode"*): clube só de estadual/Copa existe no modo como rival, nunca como o clube do usuário.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
   meias — contrate no leilão ou traga da SAF").

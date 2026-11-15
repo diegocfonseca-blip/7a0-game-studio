@@ -167,3 +167,5 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   mandava **95 cartas pro xará do baralho de sempre** (ex.: Ronaldo, goleiro do Atlético-GO 2023, virava o Ronaldo do Cruzeiro 1993).
   Agora save oficial usa a ficha de sempre + a do modo, e sem as cartas baixadas não é tocado. Só a conta do Diego tinha o modo;
   nada publicado. Trava no `npm run brasil-oficial`.
+- 🗳️ **Decisão do Diego (15/11): clube SEM divisão nacional (só estadual/Copa — div 'E', ex. Maricá, Galvez, Altos) NÃO pode ser
+  escolhido.** Escolha vai de A até D. Os clubes 'E' existem no modo como rivais (estaduais, Copa do Brasil, quem sobe da D).
