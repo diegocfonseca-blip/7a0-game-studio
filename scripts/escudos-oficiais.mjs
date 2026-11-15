@@ -183,7 +183,7 @@ const MAPA = {
   'FC Pantanal': Wk('https://upload.wikimedia.org/wikipedia/commons/2/26/FC_Pantanal-MS_%28BRA%29_2025.png'),
   'Chapada': Wk('https://upload.wikimedia.org/wikipedia/commons/5/5d/ChapadaFC.png'),
   'Nova Mutum': Wk('https://upload.wikimedia.org/wikipedia/pt/8/81/NovaMutumEC.png'),
-  'Sinop': Wk('https://upload.wikimedia.org/wikipedia/pt/0/05/SinopFCMT.png'),
+  // 'Sinop': a pt.wikipedia só tem o escudo do Sinop FC antigo; quem joga 2026 é o Clube Sport Sinop (outro clube) — fica no selo
   'Amazônia': Wk('https://upload.wikimedia.org/wikipedia/pt/7/72/Escudo_AIFC.png'),
   'Bragantino-PA': Wk('https://upload.wikimedia.org/wikipedia/pt/9/96/BragantinoCP2018.png'),
   'Cametá': Wk('https://upload.wikimedia.org/wikipedia/pt/3/3b/CametaSC.png'),

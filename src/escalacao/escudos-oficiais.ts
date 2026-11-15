@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 274 escudos · 2620 KB somados.
+// 303 escudos · 2877 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -421,8 +421,8 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   },
   "São Bernardo": {
     "src": "escudos-clubes/sao-bernardo.webp",
-    "w": 156,
-    "h": 160
+    "w": 160,
+    "h": 159
   },
   "Vila Nova": {
     "src": "escudos-clubes/vila-nova.webp",
@@ -1064,6 +1064,41 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
     "w": 127,
     "h": 160
   },
+  "Coruripe": {
+    "src": "escudos-clubes/coruripe.webp",
+    "w": 139,
+    "h": 160
+  },
+  "Cruzeiro-AL": {
+    "src": "escudos-clubes/cruzeiro-al.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Murici": {
+    "src": "escudos-clubes/murici.webp",
+    "w": 113,
+    "h": 160
+  },
+  "Itacoatiara": {
+    "src": "escudos-clubes/itacoatiara.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Parintins": {
+    "src": "escudos-clubes/parintins.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Princesa do Solimões": {
+    "src": "escudos-clubes/princesa-do-solimoes.webp",
+    "w": 121,
+    "h": 160
+  },
+  "São Raimundo-AM": {
+    "src": "escudos-clubes/sao-raimundo-am.webp",
+    "w": 120,
+    "h": 160
+  },
   "Independente-AP": {
     "src": "escudos-clubes/independente-ap.webp",
     "w": 118,
@@ -1074,9 +1109,89 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
     "w": 160,
     "h": 147
   },
+  "Quixadá": {
+    "src": "escudos-clubes/quixada.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Porto Vitória": {
+    "src": "escudos-clubes/porto-vitoria.webp",
+    "w": 126,
+    "h": 160
+  },
+  "ITZ": {
+    "src": "escudos-clubes/itz.webp",
+    "w": 159,
+    "h": 160
+  },
+  "Luminense": {
+    "src": "escudos-clubes/luminense.webp",
+    "w": 115,
+    "h": 160
+  },
+  "Tuntum": {
+    "src": "escudos-clubes/tuntum.webp",
+    "w": 130,
+    "h": 160
+  },
+  "Nova Mutum": {
+    "src": "escudos-clubes/nova-mutum.webp",
+    "w": 139,
+    "h": 160
+  },
+  "Amazônia": {
+    "src": "escudos-clubes/amazonia.webp",
+    "w": 148,
+    "h": 160
+  },
+  "Bragantino-PA": {
+    "src": "escudos-clubes/bragantino-pa.webp",
+    "w": 114,
+    "h": 160
+  },
   "Cametá": {
     "src": "escudos-clubes/cameta.webp",
     "w": 111,
+    "h": 160
+  },
+  "Capitão Poço": {
+    "src": "escudos-clubes/capitao-poco.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Santa Rosa": {
+    "src": "escudos-clubes/santa-rosa.webp",
+    "w": 137,
+    "h": 160
+  },
+  "São Francisco-PA": {
+    "src": "escudos-clubes/sao-francisco-pa.webp",
+    "w": 117,
+    "h": 160
+  },
+  "São Raimundo-PA": {
+    "src": "escudos-clubes/sao-raimundo-pa.webp",
+    "w": 127,
+    "h": 160
+  },
+  "Esporte de Patos": {
+    "src": "escudos-clubes/esporte-de-patos.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Nacional de Patos": {
+    "src": "escudos-clubes/nacional-de-patos.webp",
+    "w": 127,
+    "h": 160
+  },
+  "Pombal": {
+    "src": "escudos-clubes/pombal.webp",
+    "w": 143,
+    "h": 160
+  },
+  "Vitória das Tabocas": {
+    "src": "escudos-clubes/vitoria-das-tabocas.webp",
+    "w": 112,
     "h": 160
   },
   "Ji-Paraná": {
@@ -1089,9 +1204,34 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
     "w": 135,
     "h": 160
   },
+  "Carlos Renaux": {
+    "src": "escudos-clubes/carlos-renaux.webp",
+    "w": 113,
+    "h": 160
+  },
+  "Concórdia": {
+    "src": "escudos-clubes/concordia.webp",
+    "w": 132,
+    "h": 160
+  },
+  "América-SE": {
+    "src": "escudos-clubes/america-se.webp",
+    "w": 160,
+    "h": 158
+  },
   "Dorense": {
     "src": "escudos-clubes/dorense.webp",
     "w": 151,
+    "h": 160
+  },
+  "Falcon": {
+    "src": "escudos-clubes/falcon.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Capivariano": {
+    "src": "escudos-clubes/capivariano.webp",
+    "w": 146,
     "h": 160
   },
   "Real Madrid": {
