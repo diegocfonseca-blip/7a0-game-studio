@@ -1,3 +1,10 @@
+## 🛋️ 15/11 — Compras de bens da casa e garagem em breve — IMPLEMENTADO, ainda não publicado
+
+- Diego esclareceu que os bens da casa também não podem ser comprados por enquanto. Móveis entram no mesmo bloqueio de compras dos veículos, com “Em breve” no catálogo e na residência.
+- A trava vale na apresentação e no reducer, inclusive para compras com um bem dado na troca ou orçamento preparado anteriormente. Não altera caixa, bens ou histórico quando a compra é recusada.
+- Bens existentes continuam visíveis e os móveis podem ser organizados entre casa e camarote. Negociação de veículos permanece suspensa; casas maiores continuam sem compra habilitada. Sem alteração de planos, obras do estádio ou salas online.
+- Complemento da revisão #498; teste local em `scripts/teste-carreira-acabamento-20261115/liberacao.mjs` cobre a recusa de compra/troca de móveis e a preservação da organização existente.
+
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 
 - Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
