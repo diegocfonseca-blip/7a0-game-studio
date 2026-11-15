@@ -2606,8 +2606,8 @@ Falta (próximos passos):
 - [x] Topo do leilão (celular/PC) e dos Amigos com BIDLEGENDS no basquete (10/11).
 - [ ] **Nova carreira do basquete no passo a passo** (Seu time → A liga) — no ramo, esperando OK visual (`nba-criar-carreira.tsx`). Sem presidente/rivais de batismo (o basquete não tem presidência e a Street League é fixa). Se o Diego quiser presidente no basquete, precisa antes existir lugar pro presidente na carreira do basquete.
 - [ ] Carreira do basquete nas telas novas (visual v02 das 35 telas) — a carreira do basquete roda na `EscSeason`, não na pirâmide: é trabalho grande à parte.
-- [ ] Liga de 10 times / turno único no basquete (travado por `tam10Mostra`/`turnoMostra` com `!nbaSala`).
-- [ ] Tela final de campeão: fundo ainda é estádio de futebol.
+- [~] Liga de 10 times / turno único no basquete: DEIXADO DE FORA de propósito (15/11) — a temporada do basquete imita a NBA (conferências + playoffs); liga de 10/19 rodadas quebra isso. Só fazer se o Diego pedir.
+- [x] Tela final de campeão do basquete: arena no fundo + 'O ANEL É SEU' (15/11, no ramo).
 - [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).
 - [ ] Carreira v02 (35 telas), mapa 3D, coletiva, calendário, Campo 2D: só futebol por construção (a carreira do basquete usa a `EscSeason`).
 - [ ] Testar online com 2 aparelhos (sala de basquete com o visual novo).
