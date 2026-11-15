@@ -370,6 +370,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
    leem.
 
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
+- **15/11: MAPA E CAMPO DO ESTÁDIO LIBERADOS PARA TODOS NA CARREIRA COMPATÍVEL.** Supera as restrições anteriores de prévia só para Diego. Reorganização e passeio acompanham a liberação. A identidade da prévia continua privada. Veículos já adquiridos aparecem, mas compra/venda/troca ficam **EM BREVE** até revisar a arte; não retirar bens. Chat por proximidade continua desligado (Diego condicionou a custo adicional zero). Detalhes em `docs/mapa-publico-20261115.md`.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
   meias — contrate no leilão ou traga da SAF").

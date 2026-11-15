@@ -1,3 +1,4 @@
+import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
@@ -8133,19 +8134,20 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     // 🏟️ ESTÁDIO da carreira: investe aos poucos num setor (custa do caixa de moedas)
     case 'PRESIDENCY_SAVE_BASE': {
-      if(!presidentWritesEnabled())return state
+      if(!presidentWritesEnabled(s))return state
       const result=salvarPresidenteNaCarreira(s,action.mgrId,action.value,getPosseConta())
       return result.ok?result.value:state
     }
     case 'PRESIDENCY_TRADE': {
-      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      if(!pedidoVeiculoLiberado(action.quote.pedido))return state
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled(s))return state
       const result=negociarNaCarreira(s,action.mgrId,action.quote,action.confirmed)
       if(!result.ok)return state
       for(const entry of lancamentosPresidencia(action.quote))logFin(result.value,'presidency',entry.label,entry.amount,undefined,action.mgrId)
       return result.value
     }
     case 'MUSEU_INVEST': {
-      if(!presidentWritesEnabled())return state
+      if(!presidentWritesEnabled(s))return state
       const purchase=investirMuseu(s,action.mgrId,action.expectedStage)
       if(!purchase)return state
       s.careerCoins={...s.careerCoins,[action.mgrId]:purchase.coins}
@@ -8154,21 +8156,21 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'PRESIDENCY_FURNITURE_HOME': {
-      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled(s))return state
       const result=organizarMoveisNaCasa(s,action.mgrId,action.ids)
       return result.ok?result.value:state
     }
     case 'PRESIDENCY_DISPLAY': {
-      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled(s))return state
       const result=exibirDuplaNaCarreira(s,action.mgrId,action.display)
       return result.ok?result.value:state
     }
     case 'PRESIDENCY_ROOF': {
-      if(!PRESIDENCY_ROOF_RELEASED||!presidentWritesEnabled())return state
+      if(!PRESIDENCY_ROOF_RELEASED||!presidentWritesEnabled(s))return state
       return alterarTetoPresidencia(state,action.mgrId,action.closed)??state
     }
     case 'STADIUM_PARKING_INVEST': {
-      if (!PRESIDENCY_PARKING_STAGES_RELEASED || !presidentWritesEnabled() ||
+      if (!PRESIDENCY_PARKING_STAGES_RELEASED || !presidentWritesEnabled(s) ||
         !Number.isSafeInteger(action.mgrId) || action.mgrId < 0 || !podeAlterarPresidencia(s, action.mgrId)) return state
       const result = investirEstacionamento({ stadium: s.stadiums?.[action.mgrId],
         cash: s.careerCoins?.[action.mgrId] ?? 0, expectedStage: action.expectedStage })
@@ -8183,7 +8185,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const sec = STADIUM_SECTORS.find(x => x.k === action.sector); if (!sec) return s
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
       const invested = st.inv[action.sector] ?? 0
-      if (presidentWritesEnabled() && podeAlterarPresidencia(s, action.mgrId) && !podeInvestirNoProjeto(st, action.sector)) return s
+      if (presidentWritesEnabled(s) && podeAlterarPresidencia(s, action.mgrId) && !podeInvestirNoProjeto(st, action.sector)) return s
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       const pay = Math.min(STADIUM_STEP, sec.cost - invested, wallet)
       if (pay <= 0) return s
@@ -8195,7 +8197,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // 🏟️ compra uma melhoria DESTRAVADA (árvore de requisitos em estadiodata)
     case 'STADIUM_BUILD': {
       if (!s.careerOnline) return s
-      const privateProject = presidentWritesEnabled() && podeAlterarPresidencia(s, action.mgrId)
+      const privateProject = presidentWritesEnabled(s) && podeAlterarPresidencia(s, action.mgrId)
       const ext = privateProject && action.ext === 'asfalto' ? PAVIMENTACAO_ESTADIO : STADIUM_EXTRAS.find(x => x.k === action.ext); if (!ext) return s
       if (extraNovaOnly(action.ext) && !s.agenciaOn) return s // 🏥🍔🍻🚇🏨 médico/retrátil + estabelecimentos novos: só carreira nova
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()

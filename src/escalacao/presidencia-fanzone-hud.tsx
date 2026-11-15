@@ -24,7 +24,7 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZo
   }, [fan, fase])
   if (!fan || fase === 'fora') return null
   const camada: CSSProperties = { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 30 }
-  const chip = (txt: string) => <p style={{ position: 'absolute', left: 10, top: 60, margin: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 9px', ...OSW, fontSize: 12, boxShadow: `2px 2px 0 ${INK}`, zIndex: 2 }}>{txt}</p>
+  const chip = (txt: string) => <p style={{ position: 'absolute', left: 10, top: fase==='sentado'?undefined:60, bottom: fase==='sentado'?104:undefined, margin: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 9px', ...OSW, fontSize: 12, boxShadow: `2px 2px 0 ${INK}`, zIndex: 2 }}>{txt}</p>
   const arrasta = (filhos: ReactNode) => <Arrasto fan={fan}>{filhos}</Arrasto>
   if (fase === 'andando' || fase === 'portao') return (
     <div style={camada}>
