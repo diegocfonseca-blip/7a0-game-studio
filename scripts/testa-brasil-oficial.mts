@@ -60,6 +60,19 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   const semAcesso = reducer(INITIAL, base as never)
   if (semAcesso.oficial) falha('sem acesso o oficial não pode ligar')
   _forcaBrasilOficialParaTeste(true)
+  // 🇧🇷 cartas do modo ainda não baixadas: começar NÃO faz nada (a tela espera), e a ficha de save oficial não é tocada
+  const carga = await vite.ssrLoadModule('/src/escalacao/baralho-oficial-carga.ts')
+  const { __sincronizaNiveis } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
+  if (carga.baralhoOficial()) falha('o baralho do modo já veio carregado (devia ser um pedaço separado)')
+  if (reducer(INITIAL, base as never) !== INITIAL) falha('começou carreira oficial sem as cartas baixadas')
+  // xará de verdade: o baralho de sempre tem UM Ronaldo (Cruzeiro 1993) — a ficha antiga mandava o do Atlético-GO 2023 pra lá
+  const romulo = { name: 'Ronaldo', club: 'Atlético-GO', year: 2023, fame: 1, lo: 55, hi: 66, pos: 'ATA', id: 'x' }
+  const saveOf = { ...INITIAL, careerOnline: true, oficial: { clube: 'Remo', desde: 1 }, managers: [{ id: 0, squad: [{ ...romulo }] }] }
+  const antes = __sincronizaNiveis(saveOf).managers[0].squad[0]
+  if (antes.club !== 'Atlético-GO') falha(`ficha sem o baralho mexeu na carta do modo: Ronaldo foi pro ${antes.club}`)
+  await carga.carregaBaralhoOficial()
+  const depois = __sincronizaNiveis({ ...saveOf, managers: [{ id: 0, squad: [{ ...romulo }] }] }).managers[0].squad[0]
+  if (depois.club !== 'Atlético-GO' || depois.year !== 2023 || depois.fame === 5) falha(`ficha com o baralho trocou a carta do modo de clube: ${depois.club} ${depois.year}`)
   const s = reducer(INITIAL, base as never)
   if (!s.oficial || s.oficial.clube !== 'Remo') falha('não marcou a carreira como oficial')
   if (s.screen !== 'season') falha(`devia começar na temporada (sem leilão de estreia), está em ${s.screen}`)

@@ -2,12 +2,12 @@
 // 1) "Que carreira você quer?" — ✏️ Meu clube (a de sempre) · 🇧🇷 Brasil Oficial · 🇪🇺 Europa Oficial (em breve)
 // 2) "Escolha seu clube" — abas Série A/B, grade de escudos oficiais, caixa do clube escolhido e o botão de começar.
 // Só aparece pra quem tem `useBrasilOficial()` (por enquanto a conta do Diego). Todo texto nasce PT + EN.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { tr } from './lang'
 import { CLUBES_BR, clubesDaDivisao, cartasDoClube, ELENCO_INICIAL, type ClubeOficial } from './brasil-oficial'
 import { ESCUDOS_OFICIAIS } from './escudos-oficiais'
 import { CATALOG } from './data'
-import { CATALOG_OFICIAL_MODO as CATALOG_OFICIAL } from './baralho-oficial'
+import { baralhoOficial, carregaBaralhoOficial, type BaralhoOficial } from './baralho-oficial-carga' // baixa só aqui
 import type { Sector } from './types'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREME = '#F4ECD6'
@@ -19,7 +19,7 @@ function escudo(nome: string) {
   return e ? `${import.meta.env.BASE_URL}${e.src}` : null
 }
 // quantas cartas o clube tem neste modo (baralho de sempre + as cartas do Brasil Oficial)
-function totalCartas(c: ClubeOficial): number {
+function totalCartas(c: ClubeOficial, CATALOG_OFICIAL: BaralhoOficial): number {
   const juntas = {} as Record<Sector, { name: string; club: string; year: number; fame: number }[]>
   for (const p of Object.keys(CATALOG) as Sector[]) juntas[p] = [...CATALOG[p], ...CATALOG_OFICIAL[p]]
   return cartasDoClube(c, juntas).length
@@ -50,7 +50,11 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
   const [div, setDiv] = useState<'A' | 'B' | 'C'>('A')
   const [sel, setSel] = useState<string>(clubesDaDivisao('A')[0]?.nome ?? '')
   const clube = CLUBES_BR.find(c => c.nome === sel) ?? null
-  const n = useMemo(() => (clube ? totalCartas(clube) : 0), [clube])
+  // as cartas do modo descem quando esta tela abre; até chegarem, o botão de começar fica travado
+  const [baralho, setBaralho] = useState<BaralhoOficial | null>(baralhoOficial())
+  const [erro, setErro] = useState(false)
+  useEffect(() => { if (!baralho) carregaBaralhoOficial().then(setBaralho).catch(() => setErro(true)) }, [baralho])
+  const n = useMemo(() => (clube && baralho ? totalCartas(clube, baralho) : 0), [clube, baralho])
   const sorteados = Math.min(ELENCO_INICIAL, n)
   const tab = (d: 'A' | 'B' | 'C') => ({ flex: 1, textAlign: 'center' as const, border: `3px solid ${INK}`, borderRadius: 12, padding: 6, ...OSW, fontWeight: 900, fontSize: 14, cursor: 'pointer', background: div === d ? INK : '#fff', color: div === d ? GOLD : INK })
   return (
@@ -79,12 +83,14 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
           <div>
             <b style={{ ...OSW, fontSize: 18, fontWeight: 900, textTransform: 'uppercase' }}>{clube.nome}</b>
             <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🏆 {tr('Série', 'Série')} {clube.div} · 🏟️ {clube.estadual}</p>
+            {!baralho ? <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🎲 {erro ? tr('Não deu pra baixar as cartas. Confira a internet e abra de novo.', "Couldn't download the cards. Check your connection and reopen.") : tr('Baixando as cartas…', 'Downloading the cards…')}</p> : <>
             <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🎲 {n > ELENCO_INICIAL ? tr(`Elenco: ${sorteados} sorteados entre ${n} cartas`, `Squad: ${sorteados} drawn from ${n} cards`) : tr(`Elenco: as ${n} cartas do clube`, `Squad: all ${n} club cards`)}</p>
             {n > ELENCO_INICIAL && <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🔨 {tr(`As outras ${n - sorteados} vão pro leilão`, `The other ${n - sorteados} go to the auction`)}</p>}
+            </>}
           </div>
         </div>
       )}
-      <button disabled={!clube} onClick={() => clube && onEscolher(clube.nome)} style={{ ...caixa, marginTop: 14, width: '100%', background: GREEN, color: '#fff', padding: 12, ...OSW, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', cursor: 'pointer' }}>
+      <button disabled={!clube || !baralho} onClick={() => clube && baralho && onEscolher(clube.nome)} style={{ ...caixa, marginTop: 14, width: '100%', background: GREEN, color: '#fff', padding: 12, ...OSW, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', cursor: baralho ? 'pointer' : 'wait', opacity: baralho ? 1 : 0.6 }}>
         ⚽ {tr(`Começar com o ${clube?.nome ?? ''}`, `Start with ${clube?.nome ?? ''}`)}
       </button>
     </div>

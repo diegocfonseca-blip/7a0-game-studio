@@ -160,3 +160,10 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   Conferir de novo: Primavera-MT ("P" roxo) e Nacional-AM.
 - ⏭️ Próximo: escolher clube de D/E na tela; motor das competições (Série D em 16 grupos, acesso/queda real, Copa do Brasil 126,
   Libertadores/Sul-Americana, Supercopa, Intercontinental, estaduais); cartas sob demanda (peso) antes de publicar.
+- ✅ **Peso resolvido (15/11, noite)**: as cartas do modo viraram pedaço separado (`baralho-oficial-carga.ts`, ~607 KB cru), baixado
+  só por quem abre o Brasil Oficial. Arquivo principal −116 KB gz pra todo mundo. A escolha do clube baixa ao abrir (botão travado
+  até chegar) e a carreira oficial salva mostra "Baixando as cartas do Brasil Oficial…" até chegar (com "Tentar de novo").
+- 🐛 **Achado e consertado no caminho**: a atualização de ficha dos saves (`sincronizaNiveis`) não conhecia as cartas do modo e
+  mandava **95 cartas pro xará do baralho de sempre** (ex.: Ronaldo, goleiro do Atlético-GO 2023, virava o Ronaldo do Cruzeiro 1993).
+  Agora save oficial usa a ficha de sempre + a do modo, e sem as cartas baixadas não é tocado. Só a conta do Diego tinha o modo;
+  nada publicado. Trava no `npm run brasil-oficial`.

@@ -131,6 +131,8 @@ const OFICIAL_CACHE = new Map<typeof CATALOG, typeof CATALOG>()
 function comCartasOficiais(base: typeof CATALOG): typeof CATALOG {
   const pronto = OFICIAL_CACHE.get(base)
   if (pronto) return pronto
+  const CATALOG_OFICIAL = baralhoOficial()
+  if (!CATALOG_OFICIAL) return base // ainda não baixou: a tela da carreira oficial espera (`carregaBaralhoOficial`) antes de jogar
   const out = {} as typeof CATALOG
   for (const pos of SECTORS) {
     const vistas = new Set((base[pos] ?? []).map(c => `${c.name}|${c.club}|${c.year}`))
@@ -1128,7 +1130,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
-import { CATALOG_OFICIAL_MODO as CATALOG_OFICIAL } from './baralho-oficial'
+import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
 import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
@@ -5887,6 +5889,7 @@ type Action =
   | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
+  | { type: 'OFICIAL_PRONTO' } // 🇧🇷 as cartas do Brasil Oficial baixaram (baralho-oficial-carga.ts)
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'LIGA_RECEPCAO_M2' } // somente a conta autorizada, a partir do próximo jogo de liga
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
@@ -9048,6 +9051,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'START_CAREER_SOLO': {
+      // 🇧🇷 carreira oficial sem as cartas baixadas não começa (a tela só libera o botão depois de baixar)
+      if (action.oficial && !action.co2 && brasilOficialLiberado() && !baralhoOficial()) return state
       limpaMarcasDeModo(s)
       zeraCarreiraAnterior(s) // 🧹 03/11: o que é da CARREIRA anterior não vem junto
       // (acima: 🧼 nada do rápido nem da sala online entra na carreira, 21/10)
@@ -10984,6 +10989,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       const marco = marcoNovaRecepcaoM2(s, loggedEmail())
       if (marco) s.motor2RecepcaoDesde = marco
       return s
+    }
+    case 'OFICIAL_PRONTO': {
+      // 🇧🇷 as cartas do Brasil Oficial acabaram de baixar: reancora o baralho e roda a atualização de ficha que ficou esperando
+      if (!s.oficial || !baralhoOficial()) return s
+      const r = sincronizaNiveis(s)
+      reancoraEsporte(r)
+      return r
     }
     case 'LIGA_MOTOR2': {
       // ⚽🧠 (20/10) só carreira; liga UMA vez, a partir do próximo jogo (`round` = jogos já jogados = índice do próximo). O que
@@ -13894,7 +13906,7 @@ function faxinaCaixa(save: EscState): EscState {
 // emprestados pra SAF...). Andar no objeto inteiro pega todos, inclusive os
 // que vierem depois — lista de campos envelhece e esquece um.
 type FichaJogador = { fame: number; lo: number; hi: number; folk?: boolean; promessa?: boolean; bio?: string }
-const FICHA_ATUAL = (() => {
+const FICHA_GERAL = (() => {
   const exato = new Map<string, FichaJogador>()
   const porNome = new Map<string, FichaJogador>()
   const endereco = new Map<string, { club: string; year: number }>()
@@ -13920,6 +13932,25 @@ const FICHA_ATUAL = (() => {
   for (const n of repetidos) endereco.delete(n)
   return { exato, porNome, endereco }
 })()
+const FICHA_ATUAL = FICHA_GERAL // (bio da carta — fora da carreira oficial)
+// 🇧🇷 a ficha de um save do Brasil Oficial = a de sempre + as cartas do modo (com as mesmas travas de nome repetido)
+let FICHA_OFICIAL: typeof FICHA_GERAL | null = null
+function fichaOficial(): typeof FICHA_GERAL {
+  if (FICHA_OFICIAL) return FICHA_OFICIAL
+  const of = baralhoOficial()!
+  const exato = new Map(FICHA_GERAL.exato), porNome = new Map<string, FichaJogador>(), endereco = new Map<string, { club: string; year: number }>()
+  const contagem = new Map<string, number>()
+  const todas = [CATALOG_WORLD, CATALOG_EU, CATALOG, of].flatMap(cat => Object.values(cat).flat() as (FichaJogador & { name: string; club: string; year: number })[])
+  for (const c of todas) contagem.set(c.name, (contagem.get(c.name) ?? 0) + 1)
+  for (const c of todas) {
+    const ficha: FichaJogador = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bio: c.bio }
+    const k = `${c.name}|${clubCanon(c.club)}|${c.year}`
+    if (!exato.has(k)) exato.set(k, ficha)
+    if (contagem.get(c.name) === 1) { porNome.set(c.name, ficha); endereco.set(c.name, { club: clubCanon(c.club), year: c.year }) }
+  }
+  FICHA_OFICIAL = { exato, porNome, endereco }
+  return FICHA_OFICIAL
+}
 // 🏀 A MESMA REGRA PRO BASQUETE, EM MAPA SEPARADO. A regra permanente do Diego
 // (21/08) é "mexeu no jogador, TODO save atualiza" — mas a ficha acima só olha os
 // três baralhos de FUTEBOL, então um save de basquete ficava com a ficha velha
@@ -14061,6 +14092,10 @@ function curaIdRepetido(save: EscState): boolean {
   return mexeu
 }
 function sincronizaNiveis(save: EscState): EscState {
+  // 🇧🇷 save do Brasil Oficial sem as cartas do modo baixadas: NÃO mexe (a ficha de sempre não conhece as cartas do modo e
+  // "corrigia" o goleiro Rômulo do Chapada pro Rômulo do Novorizontino). Roda de novo no OFICIAL_PRONTO.
+  if (save.oficial && !baralhoOficial()) return save
+  const FICHA_ATUAL = save.oficial ? fichaOficial() : FICHA_GERAL
   save = compactaHistoricoIntl(save)
   // 🔨🐊 CARREIRA QUE NASCEU COM PREGÃO ABERTO/TOCAIA (21/10): tira a marca e, se o pregão estava aberto, reabre o leilão no
   // envelope de sempre (o que já foi arrematado fica com quem levou).

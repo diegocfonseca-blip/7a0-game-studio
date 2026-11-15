@@ -24,6 +24,7 @@ import { CareerOnlineGame } from './careeronline'
 import { tr, getLang } from './lang'
 import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10) // 🌐 BR/EN (12/09): avisos de app/sessão, tela de erro e página de e-mail
 import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
+import { baralhoOficial, carregaBaralhoOficial } from './baralho-oficial-carga' // 🇧🇷 cartas do Brasil Oficial só descem pra quem entra
 import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
 import { registraQueda } from './quedas' // 🚑 registro das quedas de tela (13/09)
@@ -54,9 +55,34 @@ function AvisoSemanaGlobal() {
   return <AvisoSemana tela={state.screen} />
 }
 
+// 🇧🇷 BRASIL OFICIAL (15/11): a carreira oficial só anda com as cartas do modo baixadas (elas moram num pedaço separado, pra
+// não pesar no jogo de quem nunca entra no modo). Enquanto baixa, esta tela segura tudo — nada de pregão/rodada com baralho faltando.
+function EsperaBaralhoOficial() {
+  const { dispatch } = useEsc()
+  const [erro, setErro] = useState(false)
+  const tenta = useCallback(() => {
+    setErro(false)
+    carregaBaralhoOficial().then(() => dispatch({ type: 'OFICIAL_PRONTO' })).catch(() => setErro(true))
+  }, [dispatch])
+  useEffect(() => { tenta() }, [tenta])
+  return (
+    <div className="pt-16 text-center" style={{ fontFamily: 'Oswald, sans-serif', padding: 24 }}>
+      <div className="text-5xl">🇧🇷</div>
+      <p style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: 18, marginTop: 10 }}>
+        {erro ? tr('Não deu pra baixar as cartas do Brasil Oficial', "Couldn't download the Official Brazil cards") : tr('Baixando as cartas do Brasil Oficial…', 'Downloading the Official Brazil cards…')}
+      </p>
+      {erro && <>
+        <p style={{ fontSize: 13, fontWeight: 600, margin: '6px 0 12px' }}>{tr('Confira a internet e tente de novo. Sua carreira está guardada.', 'Check your connection and try again. Your career is saved.')}</p>
+        <button onClick={tenta} style={{ border: '3px solid #0C0C0C', borderRadius: 12, boxShadow: '3px 3px 0 #0C0C0C', background: '#FFC400', padding: '8px 16px', fontWeight: 900, fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', cursor: 'pointer' }}>{tr('Tentar de novo', 'Try again')}</button>
+      </>}
+    </div>
+  )
+}
+
 function Router() {
   const { state, leaveRoom } = useEsc()
   useEffect(() => { window.scrollTo(0, 0) }, [state.screen, state.sectorIdx, state.phase])
+  if (state.oficial && state.careerOnline && !baralhoOficial() && state.screen !== 'intro' && state.screen !== 'lobby' && state.screen !== 'setup') return <EsperaBaralhoOficial />
   // 👁️ FANTASMA entre um leilão e outro (o dono voltou pra sala de espera): fica na espera dele, nunca na home nem na lista
   if (state.espectador && state.onlineMode === 'online' && state.roomId && (state.screen === 'lobby' || state.screen === 'intro'))
     return <EspectadorEspera sala={{ id: state.roomId, code: state.roomCode ?? '' }} onSair={() => { void leaveRoom() }} />
