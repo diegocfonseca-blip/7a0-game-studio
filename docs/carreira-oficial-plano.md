@@ -125,3 +125,13 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
 5. Taças reais redesenhadas (pesquisa das fotos rodando) + mockup.
 6. Nome do clube real na tela/escudo em todo lugar (conferir no teste do Diego).
 ⚠️ `npm run carreira-limpa` já falhava antes (kingsBaralho), não é do Brasil Oficial.
+
+## 11. 15/11 (noite) — Série C real + lista mestra + cartas de todos
+- ✅ Série C real 2026 no modo (20 clubes, 210 cartas, escudos); escolha do clube tem aba Série C.
+- ✅ Lista mestra (`docs/brasil-oficial/clubes-mestra.md`): 225 clubes (Série D 96 em 16 grupos, Copa do Brasil 126, 17 estaduais);
+  168 fora de A/B/C. Regra do Diego: TODOS com cartas reais.
+- 🔎 13 pesquisas em paralelo, por estado → `docs/brasil-oficial/cartas-d-<grupo>.md` (prompt-base no scratchpad, regras no
+  CLAUDE.md). Ao chegarem: conferir, somar no `gera-cartas-oficial.py` (mapa CLUBE + ARQS), escudos no `escudos-oficiais.mjs`
+  (acervo JoseArroyave tem quase todos), CLUBES_BR ganha os clubes de D/estaduais.
+- ⏭️ Depois: motor das competições (acesso/queda real, Copa do Brasil 126, Libertadores/Sul-Americana, Supercopa,
+  Intercontinental, estaduais, Série D em grupos) e o mockup das taças (`docs/brasil-oficial/trofeus-reais.md`).
