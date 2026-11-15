@@ -371,6 +371,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
 - **15/11: MAPA E CAMPO DO ESTÁDIO LIBERADOS PARA TODOS NA CARREIRA COMPATÍVEL.** Supera as restrições anteriores de prévia só para Diego. Reorganização e passeio acompanham a liberação. A identidade da prévia continua privada. Veículos já adquiridos aparecem, mas compra/venda/troca ficam **EM BREVE** até revisar a arte; não retirar bens. Chat por proximidade continua desligado (Diego condicionou a custo adicional zero). Detalhes em `docs/mapa-publico-20261115.md`.
+- **🇧🇷 BRASIL OFICIAL = TUDO REAL, NADA INVENTADO (15/11, regra permanente).** Palavras dele: *"quero que todos campeonatos
+  sejam reais, as regras e etc, sem invenção"*. No modo de clubes reais: clubes, divisões, formatos, quantos sobem/caem,
+  vagas de Libertadores/Sul-Americana, estaduais, Copa do Brasil, Supercopa, Intercontinental e troféus seguem o REAL, cada
+  dado com fonte aberta (pt.wikipedia/ge/Transfermarkt). Não achou = marca INCERTO e pergunta, nunca chuta. Pesquisa SEMPRE a
+  fundo (*"quero que pesquise a fundo"*). Plano em `docs/carreira-oficial-plano.md`; pesquisa em `docs/brasil-oficial/`.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
   meias — contrate no leilão ou traga da SAF").
