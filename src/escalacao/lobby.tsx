@@ -949,6 +949,7 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
+  const [draftCopa, setDraftCopa] = useState<'liga' | 'liga_copa'>('liga') // 📋🏆 14/11 (Diego): Liga Draft pode ter a Copa dos 8 depois da liga — SÓ a Copa dos 8
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' | 'liga_mundo' | 'liga_euro' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   const [relampagoChave, setRelampagoChave] = useState<16 | 32>(16) // ⚡ Relâmpago (28/10): chave de 16 ou 32, o dono escolhe
   const relampagoOn = useRelampagoLiberado() // ⚡ só a conta do Diego cria, por enquanto
@@ -2253,7 +2254,7 @@ export function EscLobby() {
     const turnoSala = !carreira && !elenco && !mundo && turnoVale // ⚡ 06/11: liga de 20 em turno único (19 rodadas, campo neutro)
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && hasManual && !carreira) ? { manual: true } : {}), ...(pode2d && room2d && getSport() !== 'basquete' ? { campo2d: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && !rapidoPregao && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : rapidoCopaMode === 'liga_euro' ? { copaMode: 'liga', mundoNaLiga: true, euroNaLiga: 24 } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode, ...(rapidoCopaMode === 'relampago' ? { relampagoChave } : {}) })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos', ...(getSport() !== 'basquete' && pacSelecao ? { pacSelecao: true } : {}), ...(getSport() !== 'basquete' && pacDecada ? { pacDecada: true } : {}) } : {}), ...((roomMode === 'rapido' || liga) && envUnicoOk && rapidoEnvUnico && !roomDuplas ? { envUnico: true } : (roomMode === 'rapido' || liga) && pregaoAbertoOk && rapidoPregao && rapidoCopaMode !== 'champions' ? { pregaoAberto: true } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}), ...(tam10Sala ? { tamanhoLiga: 10 } : {}) }), // 🏟️ 04/11: liga de 10 times
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
-      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}), ...(draftPiorSel ? { draftRegras: { piorPrimeiro: true } } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: 'liga', ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
+      ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}), ...(draftPiorSel ? { draftRegras: { piorPrimeiro: true } } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: draftCopa, ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
       mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}), // 🇪🇺 10/11: a marca da Euro também sai (sobrava se a pessoa tinha tocado em Liga + Eurocopa antes)
       ...(turnoSala ? { turnoUnico: true } : {}) }
     // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
@@ -4679,10 +4680,13 @@ export function EscLobby() {
                 </>
               ) : (ehDraft && roomMode === 'liga') ? (
                 <SegField label={tr('Depois da liga', 'After the league')}>
-                  <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 A liga · depois, 📋 a noite do draft', '📊 The league · then 📋 draft night')}</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('Sem Copa: acabou a tabela, vem o draft e a próxima temporada.', 'No Cup: the table ends, then the draft and the next season.')}</p>
-                  </div>
+                  {/* 📋🏆 14/11 (Diego: *"dê opção de ter copa após a liga… só com a Copa dos 8"*): vale pra TODA temporada; muda só no 🔁 Trocar o modo */}
+                  <Seg options={[['liga', tr('📊 Só a liga', '📊 League only')], ['liga_copa', tr('🏆 Liga + Copa dos 8', '🏆 League + Cup of 8')]] as ['liga' | 'liga_copa', string][]} value={draftCopa} onSet={setDraftCopa} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{draftCopa === 'liga_copa'
+                    ? tr('Acabou a tabela, os 8 primeiros jogam a Copa dos 8 · depois vem o draft. Vale toda temporada.', 'When the table ends, the top 8 play the Cup of 8 · then the draft. Every season.')
+                    : tr('Acabou a tabela, vem o draft e a próxima temporada. Vale toda temporada.', 'When the table ends, the draft and the next season. Every season.')}</p>
+                  {draftCopa === 'liga_copa' && <p className="text-[11px] font-black mt-1.5 leading-snug rounded-lg px-2 py-1.5" style={{ color: '#fff', background: 'rgba(255,196,0,.14)', border: '2px solid ' + GOLD }}>{tr('📋 A ordem do draft é sempre pela TABELA DA LIGA. A Copa não muda o draft: ela só vale moedas e troféu.', '📋 Draft order always follows the LEAGUE TABLE. The Cup doesn\'t change the draft: it only gives coins and a trophy.')}</p>}
+                  {draftCopa === 'liga_copa' && ehMinha && <p className="text-[10.5px] font-black mt-1 leading-snug" style={{ color: GOLD }}>{tr('💰 Copa: campeão leva as moedas do campeão da liga + troféu · vice, as do vice · semi 12 · quartas 6', '💰 Cup: champion gets the league champion\'s coins + trophy · runner-up, the runner-up\'s · semi 12 · quarters 6')}</p>}
                 </SegField>
               ) : nbaSala ? (
                 // 🏀 basquete: nada de competição de futebol. Street League = só a tabela;
@@ -5767,7 +5771,13 @@ export function EscLobby() {
                   {modoEdit.clubes && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Leilão de Clubes usa o baralho Todos (Brasil ou Europa sozinhos não têm clube suficiente).', '🔒 Club auction uses the All deck (Brazil or Europe alone don\'t have enough clubs).')}</p>}
                   {modoEdit.copa === 'champions' && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
                 </div>}
-                {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. Liga Draft não tem copa. */}
+                {/* 📋🏆 14/11: a Liga Draft troca só entre "só a liga" e "Liga + Copa dos 8" (ordem do Diego: só a Copa dos 8) */}
+                {!nbaSala && !!(gs as GS & { ligaDraft?: boolean })?.ligaDraft && <div>
+                  <p className="text-black/60 text-[10.5px] font-black uppercase mb-0.5" style={OSWALD}>{tr('Depois da liga', 'After the league')}</p>
+                  <Seg small options={[['liga', tr('📊 Só a liga', '📊 League only')], ['liga_copa', tr('🏆 Liga + Copa dos 8', '🏆 League + Cup of 8')]] as [CopaLiga, string][]} value={modoEdit.copa === 'liga_copa' ? 'liga_copa' : 'liga'} onSet={v => setModoEdit(m => m && { ...m, copa: v })} />
+                  {modoEdit.copa === 'liga_copa' && <p className="text-black/70 text-[10.5px] font-black mt-1 leading-snug">{tr('📋 A ordem do draft é sempre pela tabela da LIGA. A Copa só vale moedas e troféu.', '📋 Draft order always follows the LEAGUE table. The Cup only gives coins and a trophy.')}</p>}
+                </div>}
+                {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. */}
                 {!nbaSala && !(gs as GS & { ligaDraft?: boolean })?.ligaDraft && (() => {
                   const duplas = !!(gs as GS & { duplasMode?: boolean })?.duplasMode
                   const valores: CopaLiga[] = ['liga_copa', ...(libertaOn ? ['liga_liberta' as const] : []), 'champions', 'liga_mundo', ...(euroOn || copaDaLiga(gs) === 'liga_euro' ? ['liga_euro' as const] : []), 'liga', ...(regionalOn ? ['liga_riosp' as const, 'liga_sulminas' as const, 'liga_nordeste' as const] : [])]

@@ -822,6 +822,7 @@ export interface EscState {
   /** 🌎 T40+: campanha internacional congelada por temporada; ausente nos saves antigos. */
   careerInternational?: import('./career-international-season').InternationalCampaign | null
   /** 🌎 Histórico por temporada, independente do clube representado; ausente nos saves antigos. */
+  careerMuseums?: Record<number, import('./museu-clube').MuseuClubeSave>
   careerInternationalHistory?: import('./career-international-season').InternationalHistoryEntry[]
   /** 🌎 placar ACUMULADO dos jogadores da máquina nas 3 competições internacionais: chave da carta
    *  (nome|clube|ano) → [jogos, gols, assistências], somando todas as temporadas. Substitui a lista

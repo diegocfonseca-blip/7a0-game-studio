@@ -22,7 +22,7 @@ export function teamCoachAccess(){
  // 🚌 08/11: o ônibus dos times chega e sai pelo BAIRRO DO OESTE (rua de cima → rua x −186 → ramal de serviço → rua
  // interna oeste), nunca pela avenida. Desde a pista paralela de 04/11 a linha pública de ônibus roda a avenida inteira,
  // ida e volta; o caminho antigo (avenida → portão x 30 → frente do estádio) cruzava a linha dela na tela.
- const viaOeste=[{x:-240,z:-112},{x:-186,z:-112},{x:-186,z:-1},{x:-124,z:0},{x:-121,z:45},{x:-97,z:48}];
+ const viaOeste=[{x:-330,z:-100},{x:-220,z:-100},{x:-220,z:80},{x:-121,z:80},{x:-121,z:45},{x:-97,z:48}];
  const inbound=roundCoachRoute([...viaOeste,{x:-94,z:26},COACH_BAY]);
  const manoeuvre=roundCoachRoute([COACH_BAY,{x:-94,z:-32},{x:-107.6,z:-42},{x:-107.6,z:-60}],7.8);
  const turn=Array.from({length:80},(_,i)=>{const a=Math.PI+Math.PI*(i+1)/80;return{x:-99.8+Math.cos(a)*7.8,z:-60+Math.sin(a)*7.8,y:0}});

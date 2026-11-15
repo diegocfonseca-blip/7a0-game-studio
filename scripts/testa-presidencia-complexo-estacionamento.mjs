@@ -4,13 +4,14 @@ import {registerHooks} from 'node:module'
 import {fileURLToPath,pathToFileURL} from 'node:url'
 import * as THREE from 'three'
 registerHooks({resolve(s,c,n){if(s.startsWith('.')&&c.parentURL?.startsWith('file:')){const p=fileURLToPath(new URL(s,c.parentURL));if(fs.existsSync(p+'.ts'))return{url:pathToFileURL(p+'.ts').href,shortCircuit:true}}return n(s,c)},load(u,c,n){if(u.endsWith('/lang.ts'))return{format:'module',source:"export const getLang=()=> 'pt'",shortCircuit:true};return n(u,c)}})
-const {complexoDoEstadio,PLANTA_COMPLEXO,mapaParaMundo}=await import('../src/escalacao/presidencia-complexo-model.ts')
+const {complexoDoEstadio,PLANTA_COMPLEXO}=await import('../src/escalacao/presidencia-complexo-model.ts')
 const {gerarPlantaTransporte,PLANTAS_ESTACIONAMENTO_COMPLEXO}=await import('../src/escalacao/presidencia-complexo-transporte-model.ts')
 const {ESTACIONAMENTO_VAGAS_POR_LOTE}=await import('../src/escalacao/presidencia-estacionamento.ts')
 const {criarEntornoComplexo}=await import('../src/escalacao/presidencia-complexo-entorno.ts')
 const inside=(p,poly)=>{let result=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a.z>p.z)!==(b.z>p.z)&&p.x<(b.x-a.x)*(p.z-a.z)/(b.z-a.z)+a.x)result=!result}return result}
 const distance=(p,a,b)=>{const dx=b.x-a.x,dz=b.z-a.z,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz||1)));return Math.hypot(p.x-a.x-dx*t,p.z-a.z-dz*t)}
-const roads=[PLANTA_COMPLEXO.routes.roadOut.points,[[-65,269],[150,119],[295,48],[354,-65]].map(([x,y])=>mapaParaMundo({x,y}))]
+const {RUAS_CAMPUS}=await import('../src/escalacao/presidencia-implantacao-urbana.ts')
+const roads=[PLANTA_COMPLEXO.routes.roadOut.points,...RUAS_CAMPUS.map(r=>r.points)]
 const investments=[0,20,40,60,70],capacity=[0,9,16,46,79]
 for(const lot of PLANTAS_ESTACIONAMENTO_COMPLEXO){
   assert.equal(lot.slots.length,ESTACIONAMENTO_VAGAS_POR_LOTE[lot.id],'capacidade econômica deve corresponder às vagas reais')

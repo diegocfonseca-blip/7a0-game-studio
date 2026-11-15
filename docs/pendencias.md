@@ -1,3 +1,78 @@
+## 🗂️ 15/11 — Reorganização do Clube — FEITO na prévia privada
+
+- Diego pediu publicar também a proposta revisada: Meu clube, Meus negócios, Minha vida. Mapa em destaque, acessos ao lado/abaixo; casa/garagem juntas; SAF e segundo clube separados das obras.
+- Obras concluídas recolhidas, custos e saldo posterior explícitos; Finanças contextualiza o caixa e o extrato reais. Roteiro fica em Jogos; fora, só pendência real com acesso à etapa correta.
+- Detalhes em `docs/clube-organizacao-20261115.md`; capturas e testes em `/workspace/shared/clube-organizacao-20261115/`. Exclusivo da conta verificada de Diego, sem novas conexões, gastos de chat ou mudanças nas salas.
+
+## 🧭 14/11 — Passeio livre: destinos, câmera, portas e retomada — FEITO na prévia privada
+
+- Diego autorizou todas as melhorias recomendadas. Implementa destino opcional, centralizar, câmera respeitando volumes, ação perto dos estabelecimentos, retorno ao enquadramento anterior, retomada por qualidade e piso para calçadas/rampas/escadas.
+- NPCs, ambulantes e rotinas permanecem. Diego condicionou conversa entre usuários reais a não haver custo adicional. Não ativar multiplayer/chat: presença e posições compartilhadas podem aumentar Realtime e egress. Nenhum novo canal ou alteração nas salas.
+- Detalhes em `docs/passeio-livre-20261114.md`; testes e antes/depois em `/workspace/shared/passeio-livre-20261114/`. Público continua desligado; prévia só de Diego.
+
+## 🚶 14/11 — Passeio do personagem: teto, corrida, comandos e limites — CORREÇÕES NA PRÉVIA
+
+- Teto oculto durante caminhada, escolha de cadeira e arquibancada. Corrida 4,8 → 5,6 m/s, caminhada igual. Borda do mapa acompanha bairros e endereços atuais, incluindo casa e agência.
+- Corrige comandos presos ao perder foco/captura, conflitos entre dedos, corrida ao digitar e animação contra a parede. Movimento em pequenos trechos; reconfere a vaga ao sentar para não sobrepor a torcida.
+- Análise e recomendações separadas para destino opcional, câmera, interação nas portas, ajuda por aparelho e retomada de passeio ao trocar qualidade. Implementadas na entrega de passeio livre acima.
+- Detalhes em `docs/passeio-personagem-20261114.md`; testes, antes/depois e publicação em `/workspace/shared/passeio-personagem-20261114/`. Prévia privada continua restrita a Diego; sem salas, banco, prêmios ou moedas.
+
+## 🗂️ 14/11 — Aba Clube: aviso de encerramento deslocado e proposta visual — ANÁLISE E MOCKUPS · IMPLEMENTADA em 15/11
+
+- O aviso “aparece uma vez por temporada” pertence ao passo internacional/Copa do Mundo do encerramento, não ao mapa. Em Clube, fica sem a campanha e contradiz a trava de continuar. Proposta: roteiro em Jogos e acesso compacto para a pendência real; validação da sessão com mensagem distinta.
+- Mockups de celular/computador com mapa em destaque, gestão acessível, obras concluídas recolhidas e Finanças com contexto. Antes reproduz o layout da foto; depois é proposta, sem alterar a conta. Valores financeiros são ilustrativos.
+- Proposta implementada na entrega de 15/11, mantendo a prévia privada. Referência detalhada em `docs/proposta-clube-organizacao-20261114.md`; PDF e protótipo em `/workspace/shared/clube-organizacao-proposta-20261114/`.
+
+## ⏳ 14/11 — Carregamento limpo e menos trabalho gráfico no mapa — FEITO na prévia privada
+
+- O menu “Seu clube” deixa de aparecer na carga normal; permanece como alternativa em erro. Espera por etapas, sem porcentagem inventada, e controles liberados com o primeiro quadro. Replay e teto ficam abaixo do mapa, após a carga.
+- Padrão do mapa deixa de capturar seis vistas completas da cidade para reflexos; montagem da cidade e estádio dividida por uma pausa. Shopping agrupa peças fixas opacas, mantendo vidros, modelos, materiais e colisores.
+- No panorama local: desktop 1.015 → 787 chamadas, celular 953 → 725, mesmos triângulos; não é promessa de ganho equivalente de FPS. Perda do contexto gráfico invalida API/controles e preserva acesso ao clube.
+- Passaram: compilação, geometria/UVs, implantação urbana, trava privada, espera, tela cheia em recarga, falha de WebGL, navegação, painel cobrindo mapa, saída, teto da carreira e perda do contexto. Testes locais com respostas de conta simuladas; sem alterar contas ou salas reais.
+- Detalhes e limites em `docs/mapa-carregamento-fluidez-20261114.md`; evidências em `/workspace/shared/mapa-carregamento-fluidez-20261114/`. Público continua desligado.
+
+## 🌱 14/11 — Grama contínua no entorno do estádio — CORREÇÃO da prévia privada
+
+- Diego mostrou o contorno escuro em volta do estádio pronto. A correção anterior havia uniformizado somente o estado sem asfalto; o estádio pronto ainda recebia uma textura de grama exclusiva no polígono do terreno.
+- Agora o terreno do clube e a cidade usam o mesmo material e a mesma escala de textura em todas as etapas, eliminando a borda de cor. Mantém campo, calçadas, construções, geometria, sombras reais, compras e saves.
+- Conferência visual em desktop e celular, com o estádio pronto e o terreno inicial. Imagens e resultado da publicação em `/workspace/shared/mapa-grama-continua-20261114/`. Mapa público permanece desligado; prévia só na conta de Diego.
+
+## 🏟️ 14/11 — Arena maior e troca de setor com a dSouza — FEITO na prévia privada
+
+- Pedido de Diego: trocar a Arena Legends online de lugar com a dSouza e deixar uma arena maior que o campo do Grêmio. Arena no setor leste, dSouza no setor sul.
+- Arena oval em lote de 92 × 104 m, campo de 60 × 40 m (Grêmio: 55 × 35), seis níveis de arquibancadas, cobertura aberta, entrada e iluminação. Modelo agrupado em dez desenhos.
+- Atualizados acessos, clique, enquadramento e visita. Caminhos e estacionamento preservados; dSouza mantém três rotas de entrega. Nenhuma mudança em salas, economia ou saves; mapa continua exclusivo da conta de Diego.
+- Detalhes em `docs/mapa-arena-dsouza-20261114.md`; imagens, testes e publicação em `/workspace/shared/mapa-arena-dsouza-20261114/`.
+
+## 🧭 14/11 — Aproximação suave ao tocar nos estabelecimentos — FEITO na prévia privada
+
+- Esclarecimento de Diego: pode aproximar ao tocar, mas sem virar a câmera bruscamente e com retorno fácil. Agora o local aproxima automaticamente, mantendo a direção de observação, com movimento gradual de cerca de um segundo.
+- Retirado o passo extra “Ver de perto”; “Visão inicial” permanece no topo e faz a volta suavemente. Fechar o cartão retorna à vista anterior. Gesto, zoom e troca de destino podem interromper o movimento.
+- Testados museu, loja, agência, shopping, Vadico, Grêmio, hotel, feira e boteco em 1440, 390 e 320 px; cancelamento, Home, movimento reduzido e save inalterado. Teste determinístico com 1.001 quadros passou. Usa o laço gráfico existente, sem atualizações de banco ou relógio oficial.
+- Mapa público continua desligado, prévia exclusiva de Diego. Detalhes em `docs/mapa-aproximacao-suave-20261114.md`; imagens, verificações e publicação em `/workspace/shared/mapa-aproximacao-suave-20261114/`.
+
+## 🧭 14/11 — Mapa: etiquetas discretas e câmera previsível — FEITO na prévia privada
+
+- Etiquetas pequenas com área de toque de 44 px. Tocar no local abre informações sem mover a câmera; aproximação passa a ser explícita em “Ver de perto”. Fechar volta à visão anterior.
+- “Visão inicial” sempre acessível no topo para restaurar posição, zoom e rotação. Corrigida também a mancha borrada ao redor do campo sem asfalto, mantendo o campo de terra e os acessos.
+- Mantém a liberação exclusivamente para Diego e a chave pública desligada. Sem alterações de saves, moedas, partidas ou salas.
+- Detalhes em `docs/mapa-navegacao-20261114.md`; antes/depois, relatórios e resultado da publicação em `/workspace/shared/mapa-navegacao-20261114/`.
+
+## 🇧🇷 14/11 — Bairro vivo: futebol do Grêmio, feira, pipas, pagode e festa junina — FEITO E TESTADO para a prévia exclusiva
+
+- Diego aprovou as propostas (“Perfeito.. Pode fszer Tb.”). Mantém o campinho e a feira, corrige o flanelinha para a localização atual do estacionamento e acrescenta os eventos no calendário da carreira.
+- Futebol do Grêmio funciona ao aproximar mesmo no Leve, com dois goleiros, banco e câmera própria; feira usa fila e sacolas; pagode reserva uma mesa do boteco e respeita o som do mapa; pipas à tarde e festa somente em junho.
+- Sem mudança em partidas, salas online, economia ou banco. Prévia continua só para a conta confirmada de Diego; chave pública desligada.
+- Detalhes, limites e verificações em `docs/bairro-vivo-20261114.md`; imagens e relatórios em `/workspace/shared/bairro-vivo-20261114/`.
+- Passaram: compilação; 3.243 quadros da pelada; agenda e limites das pipas; rotina comercial nos níveis Leve e Padrão; tradições anteriores; acesso privado; passeio de carro preservado; navegador em 1440, 390 e 320 px, com calendário, mute e ocultação do flanelinha sem estacionamento. Antes/depois em seis páginas no mesmo diretório de evidências.
+
+## 🔒 14/11 — Publicação do mapa somente na conta de Diego — VALIDADA, autorizada para envio
+
+- Diego: “Ok pode publicar Na minha conta”. Integra o mapa, estabelecimentos, museu, bairro afastado e passeio com carro já aprovados à versão atual da `main`.
+- Liberação por chave própria de prévia, dependente da conta confirmada `diego.c.fonseca@gmail.com` e das permissões da carreira. A chave pública `PRESIDENCY_STADIUM_RELEASED` permanece `false`.
+- Nenhuma alteração em Auth, banco ou salas online. Publicação automática padrão preserva os arquivos da versão anterior para quem já está jogando.
+- Compilação de produção e trava de acesso passaram. Integração no navegador com a chave real: identidade local de Diego abre mapa/obras/museu; outra conta não vê o mapa. Evidências e estado do deploy em `/workspace/shared/mapa-publicacao-privada-20261114/`.
+
 ## ⏩👑 14/11 — Kings nas SALAS: o botão de velocidade quase não mudava nada — FEITO no branch
 Diego: *"quando ele aumenta a velocidade, deveria aumentar também mais um pouco… seja aumentar ou diminuir"* (só Kings, só sala online).
 Causa: na sala, só o 7×7 acelerava por inteiro; os lances decisivos (1×1…6×6, gol em dobro, dado, match ball) aceleravam pela RAIZ da
@@ -5,6 +80,13 @@ marcha e os avisos/campinho/dado/carta tinham tempo fixo — no 4× o jogo ficav
 vale por inteiro nos lances decisivos e nos avisos, no campinho que cresce, no dado e na carta (com piso pra animação não cortar). Ficam no
 tempo deles: escolha da carta, cobrança e o pontapé. Normal (1×) e o automático = igual a antes. Partida Rápida da Kings NÃO mudou.
 Código: `sala` em `msCenaKings`/`taxaDecisivaKings`/`duracaoKingsRapida`/`useRelogioKings` (screens.tsx). Reverter = reverter o commit.
+
+## 🏡 14/11 — Casa além da avenida e passeio de carro — FEITO LOCALMENTE, sem publicação
+
+- Diego aprovou afastar a casa do estádio e autorizou executar o bairro e o trajeto de carro (“Ok pode fazer tudo”). Casa pessoal em (432,455), além da avenida sul; cinco vizinhos, jardins, calçadas e ruas conectadas. Casa Luca preservada.
+- “Ir ao estádio de carro” usa carro comprado da garagem: saída de ré, ruas, vaga real no estacionamento e retorno explícito à mesma garagem. Requer estacionamento etapa 1. Pausa, acompanhar carro e explorar o mapa; computador e celular.
+- Não altera moedas, bens, calendário, partida, saves ou salas online. Mantém viagem ao recriar a cena por qualidade; ao recarregar a página, carro começa na garagem. Mapa continua com `PRESIDENCY_STADIUM_RELEASED=false`, sem liberação pública.
+- Testes: quatro modelos com ida/volta; requisitos e posse; retomada de cena e bloqueio por tráfego; implantação urbana e privacidade; navegador em 1440/390/320 px; `npm run build`. Detalhes em `docs/implantacao-urbana-mapa.md`; antes/depois em `/workspace/shared/casa-bairro-passeio-20261114/`.
 
 ## 👑 11/11 — Lipão da Fúria com avatar · arte aprovada para publicação
 
@@ -13468,3 +13550,61 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - 💳 13/11 (noite): preços de hoje arrumados na TELA (`precos-servidor.ts`: Loja, vitrine, janela do batismo e upgrade do Lenda leem o
   preço do banco). O banco (`docs/sql/precos-tela-e-especial-20261113.sql`: preço especial + `esc_mp_meus_precos`) roda de madrugada
   (mexe em função → engasga as salas). Até lá a tela usa a conta local (já corrigida pro mensal).
+- ✅ 14/11 04h30: parte do servidor dos preços APLICADA (migration precos_tela_e_especial_20261113). EhuLaion: Batismo 55 · Fundador 99,90. `esc_mp_meus_precos` no ar.
+
+## 🗺️ 13/11 — Mapa da carreira: revisão aprovada, implementação privada
+- Diego: **“Pode fazer tudo já então”**, após a proposta de reorganizar cidade, agência, comércio, patrocinadores, residência e museu. Branch `melhorias/mapa-clube-20261113`, base `027be9db`. **Ainda não publicado.** A autorização desta rodada é de implementação; manter a chave pública do mapa DESLIGADA (`PRESIDENCY_STADIUM_RELEASED=false`) e o controle adicional por conta do Diego. A prévia é local.
+- Câmeras “Meu clube”/“Ver cidade”, rótulos com limite e afastamento por tela; Locais agrupados; gestão do clube separada da residência e da agência. Obras abrem o painel existente, sem montar outro mapa.
+- Agência transferida para lote fora do estádio, fachada/telhado legíveis e pátio corrigido conforme orientação. Loja da torcida identificada por fachada e toldo; Shopping Legends com categorias compactas e indicação de compra em dinheiro real. Totens dos patrocinadores dentro dos próprios terrenos. Rotas/circulação preservadas.
+- Museu opcional: exige loja, 4 etapas de 20 moedas (80 no total), débito atômico com etapa esperada, salvo por clube. Acervo/títulos existentes, história e sala 3D; sem novas receitas, títulos ou premiações automáticas. Campo privado retirado do estado enviado às salas; carreira solo conserva a obra ao salvar/reabrir.
+- Casa/garagem com interior sob demanda; somente móveis/veículos possuídos. Exposição dos móveis casa/camarote sem duplicação ou cobrança. Desenho do mapa suspenso enquanto painel de gestão está aberto e retomado ao fechar; interiores liberam recursos ao desmontar.
+- Verificações: build, `npm run bagagem`, `test-map-private-gate.cjs`, `test-approved-map-release.mjs` e bancada `scripts/teste-mapa-clube-20261113/verifica.mjs` passaram (110 verificações e 16 capturas em 320/390/1440; nenhum erro JS). Inclusos bloqueio de outra conta, obra repetida, saldo, save, geometria/rotas, sobreposição dos rótulos e pausa de desenho.
+- Integração `scripts/teste-mapa-clube-20261113/integracao.mjs`: obras e museu abrem/retornam pelo fluxo real da carreira; outra conta mantém a tela normal. Somente o navegador local recebe o módulo de liberação com a chave ativa; fonte/configuração pública permanecem desligadas. Novas conquistas internacionais guardam o id do clube para conservar o acervo após renomear; teste de fixtures internacionais cobre o vínculo.
+- `scripts/testa-carreira-limpa.mjs` encontra duas falhas **anteriores** em `kingsBaralho` (START e START_ONLINE); reproduzidas sem alterações na base `027be9db`. Não alterar a Kings para esta entrega.
+- Evidências locais: `/workspace/shared/mapa-clube-20261113/antes-depois.html`, `verificacao.json` e capturas; comparações anteriores em `/workspace/shared/analise-mapa-20261113/`. Nenhuma conta real ou sala online usada/modificada; banco e publicações não alterados.
+
+## 🏪 13/11 — Reforma dos estabelecimentos comerciais do mapa
+- Diego aprovou a análise de fachadas e localização (**“Ok faça”**). Continuação no branch `melhorias/mapa-clube-20261113`, sobre `8aca4cd8`; **sem publicação** e com `PRESIDENCY_STADIUM_RELEASED=false` preservado.
+- Loja da torcida: um pavimento, vidro e caixilhos escuros em duas faces, marquise, frisos dourados, claraboia e escudo somente quando fornecido pela identidade possuída. Porta física e rota de pedestres existentes mantidas. Câmara dedicada mostra a esquina trabalhada; fachada já aparece na abertura.
+- Shopping: claraboia e acabamento das coberturas, vitrines/entrada; identificação “Planos e itens” para distinguir da loja da carreira; câmera mais próxima no celular. Vadico com placa integrada, portal e veículos existentes mais bem distribuídos, sem conceder carros ao usuário.
+- Parceiros: dSouza, Tidex, OittoLabs e Campo Grande em avenida comercial ao sul do anel, com terrenos reservados, calçadas e ligação viária própria. Atualizadas as aproximações decorativas dos funcionários e do society. Links, logos oficiais e contratos não alterados. Letreiros, vitrines e portais reforçados; logos do teto acima dos novos coroamentos. O rótulo do grupo fica na avenida, sem cobrir as marcas.
+- Câmera de abertura reenquadrada para incluir os quatro parceiros; vistas individuais e geral dos patrocinadores acompanham a nova planta. Nenhuma alteração na câmera ou no tamanho do placar/campo 2D do jogo.
+- Hotel com recepção/marquise/pátio e identificação em duas fachadas; bar com vitrine, nome e entrada; quiosques com balcões e identificação de atendimento. Museu construído recebe acabamento também na face vista pela abertura. Arena mantém sua cúpula e ganha portal, retirando o outdoor de cima.
+- Padaria mantém placa, toldo e moldura fora do horário; porta fechada representa o fechamento. Atividade/pessoas continuam seguindo o calendário. Letreiros noturnos usam emissão do material existente, sem novas luzes dinâmicas.
+- Geometria estática nova agrupada por material e descartada com o entorno. Sem novas imagens de fornecedores, chamadas de backend, alterações de saldo, saves, resultados, contratos ou salas online. A mudança dos quarteirões decorativos é a reserva dos novos terrenos comerciais; a casa do presidente conserva o terreno e a arte.
+- Evidências de antes: `/workspace/shared/auditoria-comercios-20261113/`; depois e verificações: `/workspace/shared/comercios-reforma-20261113/depois/`. Bancadas reproduzíveis: `scripts/teste-comercios-mapa/verifica.mjs` e `horarios.mjs` (calendário inicial explícito por URL; sem depender de atualizações do servidor de desenvolvimento durante a captura).
+- ✅ Verificado: `test-approved-map-release.mjs`, `test-sponsor-premises.mjs`, `test-sponsor-city-integration.mjs` e `test-map-private-gate.cjs`; quatro terrenos livres, rede viária conectada, portas livres e logos oficiais sem cobertura. Patrocinadores: 29 malhas, 3.088 triângulos e os mesmos 141.332 bytes de logos; descarte de texturas/geometrias/materiais conferido.
+- ✅ Navegador local: 30 vistas em 320/390/1440, com os quatro parceiros dentro da abertura e sem rolagem lateral; mais 7 estados de museu/calendário, padaria aberta/fechada e comércio noturno; nenhum erro JS. Integração da carreira: obras/museu e bloqueio da outra conta passaram. Compilação de produção conferida.
+- 📷 Entrega com 21 comparações: `/workspace/shared/comercios-reforma-20261113/antes-depois-comercios.html`; PDFs menores por assunto: `01-loja-shopping.pdf`, `02-patrocinadores.pdf`, `03-outros-estabelecimentos.pdf`. Abertura e leitura do relatório verificadas no computador/celular; PDFs divididos e conferidos (7, 8 e 9 páginas, incluindo capa).
+
+## 🏙️ 14/11 — Implantação urbana do entorno aprovada
+- Diego aprovou o estudo de antes/depois de 13/11 e autorizou executar a reorganização completa. Estádio preservado; pode remover casas genéricas e refazer ruas. A Casa Luca permanece no bairro sudoeste, com o conjunto unido (prédio, jardim, piquenique, quadra e estacionamento acessível), ligação de pedestres à praça e acesso próprio pela rua.
+- Branch local `melhorias/mapa-clube-20261113`, sobre `af1a52df`; **nenhuma publicação**. Mapa público continua `PRESIDENCY_STADIUM_RELEASED=false`; autorização da conta verificada não foi alterada.
+- Implantação compartilhada em `presidencia-implantacao-urbana.ts`: praça frontal para torcedores, museu a oeste e loja térrea a leste; bar e alimentação na borda da praça; hotel e acesso técnico pelo oeste. Agência e shopping na avenida comercial norte. Patrocinadores misturados: Tidex/Vadico ao norte, dSouza a leste, OittoLabs/Campo Grande ao sul.
+- Quatro compras de estacionamento preservadas (20+20+20+10 moedas, capacidades acumuladas 9/16/46/79), agora quatro setores do mesmo conjunto lateral, com entrada externa e espinha comum. As vagas físicas continuam conferindo com a capacidade econômica existente. Terreno futuro permanece reservado e não aparece como estacionamento antes da compra.
+- Linha do metrô horizontal na parte superior e duas chegadas com escadas/praças; bar removido da chegada da passarela. Rotas dos pedestres, portais, colisores, ônibus, vans, caminhamento até os assentos e retorno acompanham a nova planta. A geometria do estádio, portões e motor da partida não mudaram.
+- Rede viária externa conectada, sem ruas procedurais dentro do campus ou da Casa Luca. Canteiros/fonte fora do eixo central; costuras de pedestres em todas as fases. Piso do transporte respeita a altura declarada pelo seu plano físico. Soleira da loja permanece livre de rodapé opaco. Casa Luca identificada na abertura; câmeras de estabelecimentos acompanham os endereços novos.
+- Casa do usuário e Arena preservadas. Rua de acesso pela frente da garagem. Entrega de carros passa a sair da Vadico visível junto ao shopping, em vez do endereço oculto legado; continua reagindo apenas à posse já confirmada, sem cobrar ou conceder carros.
+- Verificações locais: `scripts/testa-implantacao-urbana.mjs` (planta/estádio, privacidade, Casa Luca, museu, trajetos, entrega de Fusca e cinco estados do estacionamento); economia e piso físico do estacionamento; `test-sponsor-premises.mjs`, `test-sponsor-city-integration.mjs`, `test-map-private-gate.cjs`; lifecycle do transporte e continuidade veículo→assento→retorno. Este último passou com 12.602 verificações de continuidade, 12.368 sondagens dos pés e 3.200 quadros de posse dos assentos.
+- Bancada visual reproduzível: `scripts/teste-implantacao-urbana/`, sem sessão real, sem persistência e com rede externa bloqueada nos testes. Evidências e relatório em `/workspace/shared/implantacao-urbana-20261114/`; estudo conceitual anterior em `/workspace/shared/plano-urbano-20261113/`.
+- ✅ Compilação de produção final passou. Navegador: 21 verificações e 23 capturas em 1440/390/320, sem erros JS, sem rolagem lateral e sem problemas reportados de circulação/transporte. Incluídos quatro momentos de cada serviço (metrô/ônibus/van), cinco estados do estacionamento e iluminação noturna. Testes de geometria confirmam a entrega do Fusca até a vaga da garagem, sem alterar carteira real.
+- Acabamento final do estacionamento: piso asfaltado nas fileiras e corredores, áreas verdes entre elas e faixa livre para circulação; capacidade econômica e 79 vagas físicas preservadas. Compilação e os testes físicos/geométricos passaram novamente. Capturas finais e PDF de cinco páginas conferidos.
+- Revisão de Diego sobre os vazios: perguntou se o estacionamento lateral seria do shopping. Esclarecido: lateral = estádio; shopping possui vagas próprias ao norte. Sugestão para próximo refinamento: identificação explícita do estacionamento do estádio e paisagismo com função nos vazios (árvores, bancos, caminhos), mantendo moradias e campinho no bairro. Não houve pedido para mudar novamente a posição do estacionamento.
+- 🦁🔵 14/11: tema do clube do Chelsão da Massa FC (comprado 09/11, estava 'producao' sem tema montado) — montado (`chelsao`, padrão temaFundador azul+dourado) e status ativo no banco. ⚠️ Toda compra de `tema_clube` nasce 'producao': tem que montar o tema e virar 'ativo' (hoje não há aviso pra isso).
+- 🪞 14/11: robô do clube de batismo aparecia junto do dono na sala (Príncipe Rubro Negro × 'Principe' sem acento). `tiraClonesSala` compara sem acento/FC. Liga que já começou com o clone segue com ele até recomeçar.
+
+## 🦁🇧🇷 14/11 — Batismo Leões da Tuf EC (sergioricardocf16, ex-EhuLaion FC) — dado pelo Diego, PUBLICADO
+- Várzea, no assento do bot Chuteira Rachada FC. Sócio nº90, sem nº de fundador (regra 14/10). Nome da conta trocado pra Leões da Tuf EC.
+- Manto branco #FEFEFE + vermelho #E90201 (3ª cor azul #0132AF em MANTO_TRI). Banco: esc_socios, esc_nomes_batismo, user_colors ouro.
+- O preço especial de R$ 55 (esc_preco_especial) fica sem efeito: ele já é batismo.
+- Post: scripts/posts/batismo-leoestuf.png. Coração: não sabemos.
+
+## 📋🏆 14/11 — Liga Draft + Copa dos 8 (no branch)
+- Criar sala: Só a liga / Liga + Copa dos 8 (só a Copa dos 8, ordem do Diego). Prêmio: campeão/vice = moedas do 1º/2º da liga, semi 12, quartas 6, troféu pro campeão.
+- ✅ Banco liberado em 14/11 (migration liga_draft_copa8_20261114: draft aceita 'liga' ou 'liga_copa'). PUBLICADO com aviso: a ordem do draft é sempre pela tabela da LIGA.
+
+## 🛒 14/11 — Ambulantes na praça: investigação da prévia, sem mudança de produção
+
+- Reproduzida a praça vazia entre jogos e a mesma praça com seis barracas durante uma partida, em celular simulado no Leve. A regra existente esconde o grupo fora da jornada de jogo e aguarda chegada/descarga na preparação; a otimização não removeu os ambulantes.
+- Passaram a bancada de navegador, as 144.000 amostras das peruas e as verificações do dia de jogo. Sem acesso a conta, saves, salas ou banco; nenhuma publicação necessária.
+- A foto não revela a fase da sessão real; foi perguntado se havia partida rolando. Se havia, falta investigar o estado da jornada nessa sessão. Detalhes em `docs/mapa-ambulantes-20261114.md`; evidências em `/workspace/shared/mapa-ambulantes-20261114/`.

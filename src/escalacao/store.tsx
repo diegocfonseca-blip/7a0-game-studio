@@ -1,3 +1,5 @@
+import {investirMuseu} from './museu-clube'
+import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, lazy, Suspense } from 'react'
 import { VEL2D_SALA_VALORES, VEL2D_SOLO_VALORES } from './vel2d-regra'
@@ -1150,7 +1152,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
-import { premioDaLiga, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, premiosCopaDraft, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -5555,6 +5557,15 @@ const mesmoNomeTime = (a: string, b: string) => stripEmoji(a).trim().toLowerCase
 function tiraClones(defs: { team: string; name: string }[], humanNames: string[]): { team: string; name: string }[] {
   return defs.filter(d => !humanNames.some(h => mesmoNomeTime(d.team, h)))
 }
+// 🪞 14/11 (sala do Príncipe Rubro Negro): nas SALAS ONLINE o robô do clube de batismo aparecia JUNTO com o dono, porque ele
+// jogava como "Principe Rubro Negro" (sem acento) e o clube é "Príncipe Rubro Negro" — o `mesmoNomeTime` só ignora caixa e
+// emoji. Aqui a régua é a do batismo (`chaveClube`: ignora acento, espaço, pontuação e FC/EC/SC). Vale só pra ESCOLHER os bots
+// quando uma partida/carreira começa (`makeManagers`); a migração de nome velho de save continua no `mesmoNomeTime` de sempre.
+const chaveSala = (n: string) => chaveClube(stripEmoji(n).trim())
+function tiraClonesSala(defs: { team: string; name: string }[], humanNames: string[]): { team: string; name: string }[] {
+  const humanos = new Set(humanNames.map(chaveSala))
+  return defs.filter(d => !humanos.has(chaveSala(d.team)))
+}
 
 type BotPlan = { id: number; tier: Tier; formation: FormationKey }
 // 🖋🎲 BATISMOS SE REVEZANDO NAS SALAS ONLINE (02/11, pedido do Diego: *"todo time de batismo ou fundador se
@@ -5596,9 +5607,9 @@ function makeManagers(humanNames: string[], formation: FormationKey, auctionCpus
   // PRIMEIRO (viram os auction-rivals nomeados), depois o resto da D (sem repetir).
   // 🪞 regra do clone: tira da lista o robô com nome de humano da sala e, se a
   // conta não fechar, completa com reservas de outras divisões (sem clone também).
-  const poolBase = tiraClones(cpuNameOrder ?? TIMES_ELITE, humanNames)
+  const poolBase = tiraClonesSala(cpuNameOrder ?? TIMES_ELITE, humanNames)
   if (poolBase.length < totalCpus) {
-    const reservas = tiraClones([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
+    const reservas = tiraClonesSala([...DIVISION_TEAMS['D'], ...DIVISION_TEAMS['C'], ...DIVISION_TEAMS['B'], ...DIVISION_TEAMS['A']], humanNames)
     for (const r of reservas) {
       if (poolBase.length >= totalCpus) break
       if (!poolBase.some(t => t.team === r.team)) poolBase.push(r)
@@ -5769,6 +5780,8 @@ type Action =
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
   | { type: 'PRESIDENCY_SAVE_BASE'; mgrId:number; value:PresidenteBaseSave }
   | { type: 'PRESIDENCY_TRADE'; mgrId:number; quote:PresidenciaOrcamento; confirmed:boolean }
+  | { type: 'MUSEU_INVEST'; mgrId:number; expectedStage:number }
+  | { type: 'PRESIDENCY_FURNITURE_HOME'; mgrId:number; ids:import('./presidencia-economia').PresidenciaItemId[] }
   | { type: 'PRESIDENCY_DISPLAY'; mgrId:number; display:DuplaGaragem }
   | { type: 'PRESIDENCY_ROOF'; mgrId:number; closed:boolean }
   | { type: 'STADIUM_PARKING_INVEST'; mgrId:number; expectedStage:EtapaEstacionamento }
@@ -7785,7 +7798,7 @@ export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 
  *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
-export const ZERA_NA_CARREIRA_NOVA = ['careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
@@ -8019,7 +8032,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🗜️ a lista dos jogadores da máquina vira SOMA no placar acumulado (mesmos números, sem repetir por temporada)
       s.careerIntlBotTotals = somaBotsIntl(s.careerIntlBotTotals, expected.botPlayerStats)
       const { botPlayerStats: _somado, ...entrada } = expected
-      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), entrada]
+      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), {...entrada, userClubId:s.managers[s.youIdx]?.id}]
       // 🏢➡️⚽ SAF nova: a taça internacional entra na coleção do 2º clube se era ELE no comando
       if (saf2On(s) && s.managers[s.youIdx]?.mine) {
         const seg = s.managers[s.youIdx]
@@ -8130,6 +8143,20 @@ function reducerBase(state: EscState, action: Action): EscState {
       if(!result.ok)return state
       for(const entry of lancamentosPresidencia(action.quote))logFin(result.value,'presidency',entry.label,entry.amount,undefined,action.mgrId)
       return result.value
+    }
+    case 'MUSEU_INVEST': {
+      if(!presidentWritesEnabled())return state
+      const purchase=investirMuseu(s,action.mgrId,action.expectedStage)
+      if(!purchase)return state
+      s.careerCoins={...s.careerCoins,[action.mgrId]:purchase.coins}
+      s.careerMuseums={...s.careerMuseums,[action.mgrId]:purchase.museum}
+      logFin(s,'stadium',`Museu do Clube · etapa ${purchase.museum.etapas}/4`,-20,undefined,action.mgrId)
+      return s
+    }
+    case 'PRESIDENCY_FURNITURE_HOME': {
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      const result=organizarMoveisNaCasa(s,action.mgrId,action.ids)
+      return result.ok?result.value:state
     }
     case 'PRESIDENCY_DISPLAY': {
       if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
@@ -13123,8 +13150,14 @@ function reducerBase(state: EscState, action: Action): EscState {
           const m = s.managers.find(x => x.id === t.id && x.isHuman)
           if (m) { const pr = premioDaLiga(pos, s.league.length, s.draftPremios); premios[m.id] = s.sport === 'basquete' && !s.draftPremios ? Math.ceil(pr / 2) : pr; m.money += premios[m.id] } // 🏀 basquete: orçamento é 50 (não 100), então o prêmio padrão é a metade // 💰 05/11: tabela de 10 ou 20 (ou a do criador)
         })
+        // 🏆 14/11: Copa dos 8 da temporada (se a sala tem) — campeão/vice com as moedas da liga, semi 12, quartas 6; só gente
+        const premiosCopa: Record<number, number> = {}
+        if (s.copaMode === 'liga_copa') {
+          const pc = premiosCopaDraft(s.quickCopa, s.league.length, s.draftPremios, s.sport === 'basquete' && !s.draftPremios)
+          for (const [id, v] of Object.entries(pc)) { const m = s.managers.find(x => x.id === +id && x.isHuman); if (m && v > 0) { premiosCopa[m.id] = v; m.money += v } }
+        }
         const jaProntos = Object.keys(s.seasonVotes ?? {}).map(Number).filter(id => humanos.includes(id)) // ✋ quem já disse pronto no banner do fim
-        s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
+        s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, ...(Object.keys(premiosCopa).length ? { premiosCopa } : {}), sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
       } else s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: true }
       s.seasonVotes = {}
       s.screen = 'draft'
@@ -15840,7 +15873,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '') + `|museu:${JSON.stringify(state.careerMuseums??null)}`
     const presidencySig = sig + assinaturaPresidencia(state)
     if (presidencySig === soloSigRef.current) return
     soloSigRef.current = presidencySig
@@ -16768,7 +16801,7 @@ export function sanitize(state: EscState): EscState {
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
   // 🔨 PREGÃO ABERTO (17/10): mesma regra — os tetos dos robôs (das duas mesas) ficam só no aparelho do dono
   const pa = state.pa ? { ...state.pa, tetos: {}, ...(state.pa.m2 ? { m2: { ...state.pa.m2, tetos: {} } } : {}) } : state.pa
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
+  return { ...state, careerMuseums:undefined, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
 // 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
 // Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.
