@@ -251,13 +251,13 @@ Regra nova (1 pessoa = 1 carta no baralho Brasil): cada nome conferido contra `s
 | Manauara | 1 | 2 | 2 | 3 | 3 | 11 |
 | Manaus | 1 | 2 | 2 | 3 | 3 | 11 |
 | Nacional-AM | 1 | 2 | 2 | 4 | 5 | 14 |
-| Parintins | 1 | 2 | 2 | 3 | 4 | 12 |
+| Parintins | 1 | 2 | 2 | 3 | 3 | 11 |
 | Princesa do Solimões | 1 | 2 | 2 | 4 | 3 | 12 |
 | São Raimundo-AM | 1 | 2 | 2 | 4 | 3 | 12 |
 | Independente-AP | 1 | 2 | 2 | 3 | 3 | 11 |
 | Oratório | 1 | 2 | 3 | 3 | 3 | 12 |
 | Trem | 1 | 2 | 2 | 3 | 3 | 11 |
-| **Total** | 14 | 28 | 30 | 46 | 45 | 163 |
+| **Total** | 14 | 28 | 30 | 46 | 44 | 162 |
 
 ## Descartados
 - **Willian Anicete (Parintins 2026)** — mesma pessoa da carta do Horizonte 2026 (TM id 316004), que fica. (15/11, conferência de repetidos)

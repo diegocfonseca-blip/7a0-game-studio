@@ -150,3 +150,13 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
      Transfermarkt: mesma pessoa = fica UMA carta; pessoa diferente = marcar xará.
   2. **Peso**: as cartas do modo estão no arquivo principal do jogo (+124 KB gz pra TODO jogador). Carregar sob demanda (só quem
      abre o Brasil Oficial) antes de soltar pra alguém além do Diego.
+
+## 13. 15/11 (noite, 3) — TODOS os 225 clubes com cartas reais
+- ✅ **2.353 cartas** do modo; **168/168** clubes fora de A/B/C fecham um 11 (Norte e CE/PI chegaram). Nenhuma pessoa repetida no
+  baralho Brasil (141 nomes conferidos no Transfermarkt; `docs/brasil-oficial/repetidos.md` é o retrato de antes).
+- ✅ **302 escudos oficiais** no jogo. Ficam no selo neutro (sem escudo em fonte aberta ou baixado errado): Penedense, Galícia,
+  Desportiva Ferroviária, Castanhal, Jaguar, Baré, Desportiva Aracaju, Guarany-SE, Confiança-PB, Capital-TO e Sinop (a Wikipédia
+  só tem o Sinop FC antigo). Maranguape, FC Pantanal e Chapada têm escudo na Wikipédia mas o download falhou — tentar de novo.
+  Conferir de novo: Primavera-MT ("P" roxo) e Nacional-AM.
+- ⏭️ Próximo: escolher clube de D/E na tela; motor das competições (Série D em 16 grupos, acesso/queda real, Copa do Brasil 126,
+  Libertadores/Sul-Americana, Supercopa, Intercontinental, estaduais); cartas sob demanda (peso) antes de publicar.
