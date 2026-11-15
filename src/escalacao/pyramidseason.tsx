@@ -936,16 +936,19 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }) {
+export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost: boolean | 5 | 6 | 7 | 8 = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans, m2Desde?: number, recepcaoDesde?: number, regrasM2?: { criterios?: boolean; disputadas?: number; intervaloAberto?: boolean }, calendario?: [number, number][][]) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
-  const fix = roundRobin(20)
+  // 🇧🇷 BRASIL OFICIAL (15/11): `calendario` = rodadas PRÓPRIAS (pares [casa, fora] direto nos índices de `teams`) — o motor
+  // dos campeonatos reais (campeonato-oficial.ts) monta fase de grupos, turno único e ida e volta com isso. Sem ele: o
+  // round-robin de 20 de sempre, byte a byte (o dado é consumido igual).
+  const fix = calendario ?? roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
   // embaralhamos QUAL time ocupa cada vaga (0..19) usando a semente da temporada.
   // Assim o adversário da rodada 1 (e a ordem toda) muda a cada ano — acaba o
   // "toda temporada começa contra o mesmo time". Determinístico (semente sincronizada
   // = mesmo calendário em todos os aparelhos no online). Relabelar vagas preserva o
   // round-robin completo (todo mundo joga com todo mundo, ida e volta).
-  const slot = shuffle(Array.from({ length: 20 }, (_, i) => i), mulberry((seed ^ 0x1B873593) >>> 0))
+  const slot = calendario ? teams.map((_, i) => i) : shuffle(Array.from({ length: 20 }, (_, i) => i), mulberry((seed ^ 0x1B873593) >>> 0))
   // credita os gols na artilharia da temporada e devolve os eventos (nome + minuto)
   // peso de artilharia por NÍVEL: um filler (nível ~40) quase não marca; um craque
   // (nível ~85) leva a maioria. Antes era só por posição — por isso Bola Murcha e
@@ -1012,7 +1015,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       }
     }
   }
-  const nr = Math.min(round, 38)
+  const nr = Math.min(round, calendario ? calendario.length : 38)
   for (let r = 0; r < nr; r++) for (const [hi, ai] of fix[r]) {
     const H = teams[slot[hi]], A = teams[slot[ai]]
     if (!H || !A) continue // série fora do padrão (save antigo) — nunca derruba o jogo
