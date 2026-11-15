@@ -1331,6 +1331,9 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
 // motor (PG→GOL · SG→LAT · SF→ZAG · PF→MEI · C→ATA); o rótulo sai via posTag.
 function NbaCourt({ m }: { m: Manager }) {
   const t = useT()
+  // 🏀 15/11 (Diego: *"no leilão qd tá ganhando um jogador N tá aparecendo a fofinha dele se for lenda na quadra"*): lenda com
+  // rosto pronto aparece com o rosto na quadra, igual ao campinho do futebol (mesma trava `useLegendPresentation`)
+  const rostos = useLegendPresentation()
   const SPOTS: { pos: Sector; x: number; y: number }[] = [
     { pos: 'ATA', x: 62, y: 22 }, // C · pivô (cesta)
     { pos: 'MEI', x: 38, y: 22 }, // PF · ala-pivô
@@ -1364,6 +1367,16 @@ function NbaCourt({ m }: { m: Manager }) {
       {SPOTS.map(({ pos, x, y }) => {
         const c = m.squad.find(cc => cc.pos === pos && !cc.fake)
         const tt = c ? tierOf(c) : null
+        const comRosto = !!c && rostos && !!avatarLote1(c.name, c.club, c.year)
+        if (c && tt && comRosto) return (
+          <div key={pos} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-58%)', width: 86, textAlign: 'center', zIndex: 3 }}>
+            <AvatarLote1 name={c.name} club={c.club} year={c.year} style={{ width: 86, margin: '0 auto -6px', filter: `drop-shadow(2px 2px 0 ${INK})` }} />
+            <div style={{ position: 'relative', border: `2.5px solid ${INK}`, borderRadius: 9, boxShadow: `2px 2px 0 0 ${INK}`, padding: '2px 4px', background: tt.grad }}>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 9, background: INK, color: '#fff', borderRadius: 5, padding: '0 5px', marginRight: 4 }}>{posTag(pos)}</span>
+              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: tt.ink }}>{surname(c.name)}</span>
+            </div>
+          </div>
+        )
         return (
           <div key={pos} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)', width: 82, textAlign: 'center', zIndex: 3 }}>
             <div style={{ border: `3px solid ${INK}`, borderRadius: 11, boxShadow: c ? `2px 3px 0 0 ${INK}` : 'none', padding: '5px 4px 6px', background: c && tt ? tt.grad : 'rgba(255,255,255,.35)', borderStyle: c ? 'solid' : 'dashed' }}>
@@ -6073,7 +6086,7 @@ function Reveal() {
   // só pro modo online rápido"). Solo e carreira seguem na lista de sempre, byte
   // por byte — se a mesa der qualquer problema, ela não alcança o resto do jogo.
   const mesaModo = online && !state.careerOnline
-  const privateReveal = avatarPreview && state.sport !== 'basquete'
+  const privateReveal = avatarPreview // 🏀 15/11 (Diego): no basquete a lenda também revela com a carta e o rosto
   const mesaOn = mesaModo && item.bids.length > 0 && !privateReveal
   const ehEnigma = item.card.id === state.mudoId
   const identityVisible = revealIdentityVisible(item.card.id === state.surpriseId || ehEnigma, hammered, sold)
@@ -7963,7 +7976,7 @@ export function EscSeason() {
 
   // 🖥️ desenho de computador novo: fora do basquete. 👑 10/11 (Diego: *"o visual do campinho, com tabela etc deve manter padrão das salas
   // online… os locais das coisas"*): a Kings entra no MESMO desenho (as cenas dela são por cima da tela inteira, não dependem dele)
-  const desk2 = desk2Conta && !bbS
+  const desk2 = desk2Conta && !bbS // 🏀 15/11: testado de novo — nos playoffs a tabela Leste/Oeste não cabe na coluna da direita
   const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
   // 👑📌 11/11 (Diego: *"a info, por exemplo jogador estrela escolhido… está abaixo do telão. Essas infos devem ficar abaixo do placar
   // cinema"*): EM CAMPO, os efeitos valendo e o shootout moram logo embaixo do placar grande (liga e mata-mata), não mais lá no fim.
@@ -8374,7 +8387,7 @@ export function EscSeason() {
                 : chS ? ([...qc.bracket.flatMap(b => b.ties), ...qc.ties].some(tt => tt.aId === you.id || tt.bId === you.id)
                   ? LS('❌ Você caiu — acompanhe a Champions chegando ao fim…', '❌ You are out — follow the Champions to the end…')
                   : LS('❌ Você não se classificou pro mata-mata — agora é só assistir a Champions chegando ao fim…', '❌ You did not reach the knockouts — now just watch the Champions to the end…'))
-                : libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : (kingsS && qc.kingsDireto === you.id && qc.phase === 'quartas' ? LS('👑 Você foi 1º da liga: está DIRETO NA SEMI. Assista as quartas pra saber quem te pega!', '👑 You topped the league: straight into the SEMI. Watch the quarters to see who you face!') : kingsS ? LS('Acompanhe o mata-mata da Kings chegando ao fim…', 'Follow the Kings knockout to the end…') : relS ? LS('Você já caiu — acompanhe o Relâmpago até a final…', 'You are out — follow the Lightning Knockout to the final…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…'))}</p>
+                : libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : (kingsS && qc.kingsDireto === you.id && qc.phase === 'quartas' ? LS('👑 Você foi 1º da liga: está DIRETO NA SEMI. Assista as quartas pra saber quem te pega!', '👑 You topped the league: straight into the SEMI. Watch the quarters to see who you face!') : kingsS ? LS('Acompanhe o mata-mata da Kings chegando ao fim…', 'Follow the Kings knockout to the end…') : relS ? LS('Você já caiu — acompanhe o Relâmpago até a final…', 'You are out — follow the Lightning Knockout to the final…') : bbS ? LS('Acompanhe os playoffs até as Finals…', 'Follow the playoffs to the Finals…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…'))}</p>
               </Box>
             )}
             {/* 🎮 No online, a leitura aprovada é sempre: cartaz → placar →

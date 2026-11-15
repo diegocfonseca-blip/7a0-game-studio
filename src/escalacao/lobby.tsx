@@ -6345,7 +6345,7 @@ export function EscLobby() {
       {!chatOff && <LobbyChatDock
         open={lobbyChatOpen} setOpen={openLobbyChat} unread={lobbyUnread}
         msgs={lobbyChat} myUid={user?.id} listRef={lobbyListRef} onSend={sendLobbyChat}
-        privateChat={ownerAccount&&!nbaSala} roomId={room.id} roomName={room.game_state?.roomName} people={players.length} />}
+        privateChat={ownerAccount} roomId={room.id} roomName={room.game_state?.roomName} people={players.length} />}
 
       {/* 🎈 CAMADA FLUTUANTE: as reações da zoeira sobem e somem POR CIMA de tudo —
           inclusive do chat aberto (z acima da gaveta). Não entra no chat. */}

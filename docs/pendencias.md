@@ -254,7 +254,7 @@ Código: `sala` em `msCenaKings`/`taxaDecisivaKings`/`duracaoKingsRapida`/`useRe
   se fosse a MESMA carreira do aparelho. Agora todas as que desceram ficam em `carreirasEmMemoria`, a lista mostra todas e
   `activateCareerSlot` abre a que não coube (no aparelho se couber; senão joga da memória sem mexer no que está no aparelho).
   Trava: `npm run troca` (caso 4c). O teste agora roda sem vigiar arquivos (`watch: null`): as pastas de agentes estouravam o limite.
-- ⏭️ Diego quer o botão SAIR com escolha "sair salvando / sair sem salvar" (hoje só existe "Sair e salvar") — MOCKUP antes.
+- ✅ 15/11 FEITO e PUBLICADO (*"pode fazer e publique"*): fim da carreira tem 💾 Sair e salvar (dourado) + 🚪 Só sair. Só sair → aviso "Sair sem salvar?" → confirmado, a carreira VOLTA pro último Salvar (a cópia da nuvem, `voltaProUltimoSalvo` no store; só no aparelho, só aquela carreira). Nunca salvou = não apaga nada e avisa; sem rede = não mexe. Fechar o jogo sem apertar nada continua guardando de onde parou. Mockup `scripts/mockups/sair-ou-salvar.png`.
 
 ## 💤 10/11 — Sala parada na TELA DE FIM dorme depois de 20 min (Diego: *"ok pode ser mas deixe com 20 min"*) · ✅ PUBLICADO 10/11 (*"Sim"*)
 - Achado do vigia: sala que acabou e ficou aberta (BHZBJB 14 h, KKXFY2) seguia perguntando ao banco a cada 3 s (quem está na sala +
@@ -2618,7 +2618,9 @@ Falta (próximos passos):
 - [x] Liga Draft do basquete PUBLICADA na main (10/11, *"sim e siga fazendo tudo"*).
 - [x] Topo do leilão (celular/PC) e dos Amigos com BIDLEGENDS no basquete (10/11).
 - [ ] **Nova carreira do basquete no passo a passo** (Seu time → A liga) — no ramo, esperando OK visual (`nba-criar-carreira.tsx`). Sem presidente/rivais de batismo (o basquete não tem presidência e a Street League é fixa). Se o Diego quiser presidente no basquete, precisa antes existir lugar pro presidente na carreira do basquete.
-- [ ] Carreira do basquete nas telas novas (visual v02 das 35 telas) — a carreira do basquete roda na `EscSeason`, não na pirâmide: é trabalho grande à parte.
+- [x] 15/11 PUBLICADO: rosto da lenda na quadra e na revelação do basquete (pedido do Diego) · chat novo da sala de espera no basquete · "Acompanhe os playoffs até as Finals" · partida/carreira de basquete que volta depois de recarregar reancora a NBA (antes voltava com as vagas do futebol).
+- [~] Desenho de PC de duas colunas no basquete: testado 15/11 e DEIXADO DE FORA — nos playoffs a tabela Leste/Oeste não cabe na coluna da direita.
+- [ ] Carreira do basquete nas telas novas (visual v02 das 35 telas) — 🟢 Diego mandou começar (15/11, *"Sim"*). Começar pela Central (home da carreira), mockup antes. — a carreira do basquete roda na `EscSeason`, não na pirâmide: é trabalho grande à parte.
 - [~] Liga de 10 times / turno único no basquete: DEIXADO DE FORA de propósito (15/11) — a temporada do basquete imita a NBA (conferências + playoffs); liga de 10/19 rodadas quebra isso. Só fazer se o Diego pedir.
 - [x] Tela final de campeão do basquete: arena no fundo + 'O ANEL É SEU' (15/11, no ramo).
 - [ ] Loja: mantos/gala aparecem no basquete sem versão própria (decisão do Diego).

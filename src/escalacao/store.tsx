@@ -13632,6 +13632,9 @@ function loadSoloInProgress(): EscState | null {
       // 📱 11/11: carreira — se a cópia da carreira no aparelho está MAIS adiantada que esta, esta é velha: não abre (vai pra home)
       if (s.careerOnline && carreiraLocalNaFrente(s)) { localStorage.removeItem(SOLO_RESUME_KEY); return null }
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
+      // 🏀 15/11: partida/carreira de BASQUETE que volta depois de recarregar a página: reancora o esporte (baralho da NBA + vagas do
+      // quinteto). Sem isso o motor voltava no futebol — vagas 1·2·2·3·3 e Monte com carta de futebol. O futebol não passa aqui.
+      if (s.sport === 'basquete') reancoraEsporte(s)
       normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
@@ -14626,6 +14629,31 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     if (isCareerSave(state)) anotaSubidaNuvem(state)
     return isCareerSave(state) && nuvemSemPlano(regra) ? 'nuvem7' : 'nuvem'
   } catch { /* best effort — o local sempre garante */ }
+}
+// 🚪 SAIR SEM SALVAR (15/11, Diego: *"normalmente jogos de salvar não parece com a B?"* → *"pode fazer e publique"*).
+// Igual videogame: saiu sem salvar, a carreira VOLTA pro último ponto em que ele apertou Salvar (é o que está na nuvem).
+// Só mexe NESTA carreira (seed) e só no aparelho; a nuvem e as outras carreiras ficam como estão. Fechar o jogo sem
+// apertar nada continua guardando de onde parou (bateria, travada) — só o toque confirmado volta.
+// 'sem_salvo' = essa carreira nunca foi salva (não tem pra onde voltar: nada é apagado) · 'sem_rede' = não deu pra ler.
+export async function voltaProUltimoSalvo(seed: number): Promise<'voltou' | 'sem_salvo' | 'sem_rede'> {
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (!data?.user) return 'sem_salvo'
+    const { data: row, error } = await supabase.from('esc_pyramid_saves').select('save').eq('user_id', data.user.id).maybeSingle()
+    if (error) return 'sem_rede'
+    const raw = row?.save as { __multi?: number; careers?: CareerSlot[] } | undefined
+    const lista: CareerSlot[] = raw && raw.__multi && Array.isArray(raw.careers) ? raw.careers : raw && isCareerSave(raw) ? [{ save: raw as unknown as EscState, at: Date.now() }] : []
+    const salvo = lista.find(c => isCareerSave(c?.save) && (c.save as EscState).seed === seed)
+    if (!salvo) return 'sem_salvo'
+    carreirasEmMemoria = carreirasEmMemoria.filter(c => (c.save as EscState).seed !== seed)
+    if (carreiraEmMemoria?.seed === seed) carreiraEmMemoria = null
+    try { localStorage.removeItem(SOLO_RESUME_KEY) } catch { /* ignora */ }
+    let gravou = false
+    try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ }
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(salvo.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())); gravou = true } catch { /* aparelho cheio */ }
+    if (!gravou) carreiraEmMemoria = salvo.save as EscState // o "Continuar" desta visita abre a salva
+    return 'voltou'
+  } catch { return 'sem_rede' }
 }
 // 💾 última subida da carreira pra nuvem, por carreira (seed): quando foi e em que rodada/temporada.
 // É só memória pra tela ("salvo há 12 min · você jogou 3 rodadas desde então"); não decide nada.
