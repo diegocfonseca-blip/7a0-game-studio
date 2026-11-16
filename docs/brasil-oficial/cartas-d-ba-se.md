@@ -323,7 +323,7 @@ Na URL do Transfermarkt o número depois de `%26` é o ano anterior (o site cham
 | Franklin | Porto-BA 2026 / Dorense 2025 | Pode ser o mesmo Franklin do Maranhão 2026 no baralho. |
 | Firmino | Porto-BA 2026 | Nome colide com o Firmino do baralho; havia outros atacantes. |
 | Leonardo, Renan, Dedé, Jefferson, Danilo, Dudu, Obina, Aldair, Neto, Wesley, William, Weverton, Pedro Henrique etc. | vários | Xarás de cartas já existentes; havia opção sem nome repetido, então ficaram de fora pra não confundir. |
-| Dante, Washington, Oséas, Servílio, Maneca, Marinho Peres, Toninho | Galícia (história) | Ídolos/revelados citados na Wikipedia do Galícia, mas sem página aberta com ANO + POSIÇÃO no Galícia; e o auge deles foi em clubes de outros estados ou do exterior (Oséas e Marinho Peres já estão no baralho). |
+| Dante, Washington, Oséas (✅ voltou 16/11), Servílio, Maneca, Marinho Peres (✅ voltou 16/11), Toninho | Galícia (história) | Ídolos/revelados citados na Wikipedia do Galícia, mas sem página aberta com ANO + POSIÇÃO no Galícia; e o auge deles foi em clubes de outros estados ou do exterior (Oséas e Marinho Peres já estão no baralho). |
 | "Dumblegore", "Mathraven", "Jaguar" | Bahia de Feira | Trecho da Wikipedia do Bahia de Feira com nomes claramente inventados (vandalismo) — ignorado. |
 
 ### Pessoas que jogaram em mais de um clube do lote (cada uma entrou UMA vez só)
@@ -333,3 +333,4 @@ Diki (Barcelona 2025, Porto-BA 2025/26 → ficou no **Juazeirense 2026**) · Hug
 - Quase tudo é elenco atual (2025/2026): esses clubes quase não têm ídolo histórico com página aberta mostrando ano + posição. A exceção é o **Bahia de Feira**, que ganhou 9 cartas do vice-campeonato baiano de **2019** (Jair, melhor goleiro do estadual, e Ebinho, 9 gols, como fame 2).
 - Força: clubes de Série D 2026 (Atlético-BA, Jacuipense, Juazeirense, Porto-BA, Lagarto, Sergipe) e o Bahia de Feira de 2019 ficaram um degrau acima (lo 52–55) dos que só jogam o estadual (lo 49–52). Fame 2 = 61–63 / 72–74.
 - Bios: só usam o que a página mostra (posição, jogos, gols, minutos), com humor leve.
+- **16/11 — correção:** ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta aqui (o Brasil Oficial é outro baralho). Entraram no **Galícia** Marinho Peres (1977, ídolo do clube) e Oséas (1991, revelado lá) — anos e posição pelas páginas dos jogadores. Dante segue fora (só base no Galícia; já tem carta OFICIAL) e Walter segue fora (já tem carta OFICIAL no Mirassol). Washington, Maneca, Servílio e Toninho: sem página aberta com ano no Galícia.

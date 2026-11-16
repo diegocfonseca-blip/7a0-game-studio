@@ -291,19 +291,19 @@ Total de cartas novas: **166** (Retrô: +1 já existente, Mascote 2024).
 |---|---|---|
 | Olávio | Campinense 2022 (artilheiro do Paraibano invicto) | mesma pessoa já está no baralho OFICIAL (Brusque 2026) |
 | Warley | Campinense 2012 (artilheiro com 22 gols) | ídolo do Treze, mas já está no baralho OFICIAL (Botafogo-PB 2013) |
-| Kieza | Nacional de Patos 2025 | já no baralho BR (Bahia 2015); auge em outro estado |
-| Pipico | Treze 2025 | já no baralho BR (Santa Cruz 2019) |
-| Vágner Love | Retrô 2025/2026 | já no baralho BR/EU |
+| Kieza | Nacional de Patos 2025 | já no baralho BR (Bahia 2015); auge em outro estado — 16/11: continua fora, já tem carta do Brasil Oficial na Desportiva Ferroviária (lote DF/ES/TO) |
+| Pipico | Treze 2025 | já no baralho BR (Santa Cruz 2019) — ✅ voltou (16/11) |
+| Vágner Love | Retrô 2025/2026 | já no baralho BR/EU — ✅ voltou (16/11) (Retrô 2025) |
 | Thiago Alagoano | Treze 2026 | já no baralho OFICIAL (Brusque 2019) |
 | Jefferson Paulino | Retrô 2026 | já no baralho OFICIAL (Brusque 2021) |
-| Yuri Mamute | Central 2026 | já no baralho BR (Grêmio 2014) |
-| Victor Ferraz | Serra Branca 2025 | já no baralho BR (Santos 2016) |
+| Yuri Mamute | Central 2026 | já no baralho BR (Grêmio 2014) — ✅ voltou (16/11) |
+| Victor Ferraz | Serra Branca 2025 | já no baralho BR (Santos 2016) — ✅ voltou (16/11) |
 | Diego Ivo | Treze 2025 | já no baralho OFICIAL (CRB 2022) |
 | Derley | Nacional de Patos 2025 | já no baralho OFICIAL/REGIONAL |
 | Gideão | Nacional de Patos 2025 | provável mesma pessoa do Gideão do Náutico (BR 2011) |
 | Leandro Amaro | Central 2025 | já no baralho REGIONAL (River-PI 2024) |
 | Feijão · Lelê · Bismark · Walce · Felipe Ferreira · Israel · Henrique Silva · Caíque · Saimon · Clayton | vários (Serra Branca, Maguary/Jaguar, Treze, Retrô, Central, Confiança-PB) | nome idêntico a carta do baralho BR/OFICIAL/REGIONAL e tudo indica ser a mesma pessoa (ou não deu pra provar que é outra) |
-| Dankler · Bruno Peres · Darley · Fabinho · Fernandinho · Rômulo | Retrô 2025/2026 | auge em clube de outro estado (regra 3) e/ou nome já no baralho |
+| Dankler · Bruno Peres (✅ voltou 16/11) · Darley · Fabinho · Fernandinho · Rômulo | Retrô 2025/2026 | auge em clube de outro estado (regra 3) e/ou nome já no baralho |
 | Didira · Moacir · Pedro Bambu · Leandro Costa | Central 2025/2026 | veteranos com auge fora deste lote; evitados pela regra 3 |
 | Edmundo | Campinense 2009 (artilheiro da Série B) | sem página aberta confirmando posição/ano do jogador; e confundiria com o Edmundo do Vasco |
 | Araponga · Araújo | Esporte de Patos / Campinense (anos 50–60) | Wikipedia cita, mas sem ano e posição confirmados |
@@ -311,3 +311,7 @@ Total de cartas novas: **166** (Retrô: +1 já existente, Mascote 2024).
 | Ninho | Atlético de Cajazeiras | chegou em 12/11/2026, depois da temporada |
 | Pablo · Diego Washington · Gabriel Resende | Confiança-PB / Vitória das Tabocas | passagem de poucos dias ou fora da temporada (histórico de transferências) |
 | Nomes genéricos já usados no baralho (Wesley, Weverton, Jackson, Leandro, Yuri, Juninho, Messias, Maurílio, Marlon, Jadson, Natan, Gilmar, Lincoln, Vitão, Esquerdinha, Marquinhos, Gilvan, Preto, Lucão, Maurício, Edgar, Jonathan) | vários | preferi outro jogador do mesmo elenco pra não criar xará à toa |
+
+## Dúvidas
+
+- **16/11 — correção:** ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta aqui (o Brasil Oficial é outro baralho; só não pode repetir dentro dele: `data-oficial.ts`, `cartas-regionais.ts` e os outros lotes). Entraram: **Retrô** Vágner Love e Bruno Peres (2025) · **Serra Branca** Victor Ferraz (2025) e Marcelo Toscano (2024, artilheiro do time no Paraibano) · **Treze** Pipico (2025) · **Central** Yuri Mamute (2026). Seguem fora: Gideão (sem página aberta que confirme a passagem), Edmundo do Campinense 2009 (outra pessoa, sem página), e os nomes que já estão no baralho OFICIAL/REGIONAL (Olávio, Warley, Thiago Alagoano, Jefferson Paulino, Diego Ivo, Derley, Leandro Amaro).

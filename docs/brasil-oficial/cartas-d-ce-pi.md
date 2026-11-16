@@ -234,8 +234,8 @@ Fame 1 = jogador de elenco de clube pequeno; fame 2 = ídolo/destaque do clube; 
 | jogador | clube/ano visto | motivo |
 |---|---|---|
 | Édson Cariús | Ferroviário 2018 (artilheiro da Série D campeã) · Tirol 2025 | mesma pessoa já tem carta OFICIAL (Floresta 2018) |
-| Magno Alves | Atlético-CE 2025 | já no baralho BR (Ceará 2010) |
-| Sérgio Alves · Valdiram · Valdir Papel · Iarley · Clemer · Jardel · Índio · Bruno Melo · Hércules (2000) | categorias da Wikipedia de Ferroviário/Atlético-CE | já no baralho BR/OFICIAL/REGIONAL |
+| Magno Alves | Atlético-CE 2025 | já no baralho BR (Ceará 2010) — ✅ voltou (16/11) |
+| Sérgio Alves · Valdiram · Valdir Papel · Iarley · Clemer · Jardel · Índio · Bruno Melo · Hércules (2000) | categorias da Wikipedia de Ferroviário/Atlético-CE | já no baralho BR/OFICIAL/REGIONAL — ✅ Iarley, Clemer e Jardel voltaram (16/11, Ferroviário). Seguem fora: Valdir Papel (já tem carta no Luverdense, lote MT), Índio e Hércules (OFICIAL), Bruno Melo (REGIONAL), Valdiram (passagem curta em 2011 sem nada registrado) e Sérgio Alves (a página aberta é de um homônimo lutador; sem fonte do Ferroviário) |
 | Douglas Dias | Ferroviário 2023 · Maracanã 2025/2026 | mesma pessoa da carta do Guarany de Bagé 2025 (TM id 76185) |
 | Tiago Santana | Ferroviário 2026 | mesma pessoa da carta do Carlos Renaux 2026 (TM id 869465) |
 | Mikael Raitz | Altos 2023–2026 | mesma pessoa da carta do Camboriú 2025 (TM id 858513) |
@@ -244,11 +244,15 @@ Fame 1 = jogador de elenco de clube pequeno; fame 2 = ídolo/destaque do clube; 
 | Mauro Iguatu · Luiz Meneses · Daelson · Palominha · Klenisson · Júnior Timbó · Kakim · Felipe Jacaré · Redson · Keynan · Adson · Reny Max · Ewerton Potiguar · Lucas Souza · Frank · Gean · Lucão · Gabriel Vieira · Cris · Otávio · Eduardo | vários clubes do lote (2021–2026) | nome idêntico a carta já feita em outro lote (PB/PE, GO/MS, TO, BA/SE, RR, PA, RJ/RS, AL) sem TM id pra separar — tudo indica ser a mesma pessoa (jogadores que rodam o Nordeste) |
 | Reginaldo · Franklin · Luis Fernando · Iago · Igor · Germano · Pio | Ferroviário/Atlético/Iguatu/Maranguape/Tirol | nome idêntico a carta OFICIAL/REGIONAL com posição/época compatível — evitado por segurança |
 | Marcos Aurélio | Altos 2022 | já no baralho OFICIAL/REGIONAL (Botafogo-PB 2019), nascido em 1984, mesma pessoa |
-| Zé Love | Iguatu 2023 | auge no Santos (outro estado) |
-| Jorge Henrique | Piauí 2024/2025 | auge no Corinthians (outro estado) |
-| Carlinhos Bala | categoria da Wikipedia do Altos | ídolo do Sport (outro estado) |
+| Zé Love | Iguatu 2023 | auge no Santos (outro estado) — 16/11: continua fora, já tem carta do Brasil Oficial no Brasiliense (lote DF/ES/TO) |
+| Jorge Henrique | Piauí 2024/2025 | auge no Corinthians (outro estado) — ✅ voltou (16/11) |
+| Carlinhos Bala | categoria da Wikipedia do Altos | ídolo do Sport (outro estado) — ✅ voltou (16/11) (Altos 2016) |
 | Juninho Arcanjo | Altos 2020/2021 | auge em clube fora do lote não confirmado; preferi Rodolfo Potiguar |
 | Paulo César (1979) | Ferroviário | artilheiro do Cearense de 1979, mas sem página do jogador e nome igual ao Paulo César do baralho BR |
 | Joãozinho · Jonathan | Maranguape 2008 | só citados na página do clube; nome igual a cartas existentes (Cruzeiro 1976/Luverdense 2024; Criciúma 2024) sem TM id pra separar |
 | Luis Gabriel | Maranguape 2025 | TM só diz "Defensores" (não dá pra cravar ZAG ou LAT) |
 | Wilker (TM 1047529) | Maranguape 2025 | sobrava; evitado pra não confundir com o Wilker do Maracanã-CE |
+
+## Dúvidas
+
+- **16/11 — correção:** ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta aqui (o Brasil Oficial é outro baralho; só não pode repetir dentro dele: `data-oficial.ts`, `cartas-regionais.ts` e os outros lotes). Entraram: **Ferroviário-CE** Iarley (2014), Clemer (1993), Jardel (2009) · **Atlético-CE** Magno Alves (2025) · **Altos** Carlinhos Bala (2016) · **Piauí** Jorge Henrique (2024). Paulo César (artilheiro de 1979) segue fora: a página dele não abriu e só a página do clube não diz a posição.

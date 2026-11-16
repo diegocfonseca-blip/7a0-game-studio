@@ -181,7 +181,7 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 | nome | clube | motivo |
 |---|---|---|
 | Rodrigo Ramos (GOL) | Imperatriz | Listado como ídolo na Wikipédia, mas é a MESMA pessoa da carta "Rodrigo Ramos – Maranhão 2018 – GOL" (OFICIAL) já no baralho (TM id 346865 passou pelo Maranhão em 2018). |
-| Ralf | Imperatriz | Listado como ídolo, mas o auge foi no Corinthians (outro estado). |
+| Ralf | Imperatriz | Listado como ídolo, mas o auge foi no Corinthians (outro estado). ✅ voltou (16/11, Imperatriz 2007) |
 | Lindoval (ATA) | Imperatriz | Ídolo citado na Wikipédia, mas nenhuma página aberta confirma ano + posição no Imperatriz (perfil do TM sem histórico). |
 | Jean, Vavá, Duílio, James, Fabinho, Ary Magrão, Valdo, Bento, Edimar Pereira | Imperatriz | Citados como históricos na Wikipédia sem ano/posição em página aberta. |
 | Raniere (GOL) | Imperatriz | Chegou só em junho/2015 (depois da final) e tem carreira longa fora do MA sem confirmação; preferido Alencar Baú. |
@@ -197,3 +197,7 @@ Fonte principal: Transfermarkt (elenco por temporada). **Atenção: no Transferm
 | Deco, Bruno, Dênis | Baré | Xarás de cartas do baralho; havia opção. |
 | Vitinho, Bebeto, Iarley | GAS | Xarás de jogadores famosos; havia opção. |
 | Henrique, Rodolfo, Arthur | ITZ | Xarás de cartas do baralho; havia opção. |
+
+## Dúvidas
+
+- **16/11 — correção:** ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta aqui (o Brasil Oficial é outro baralho; só não pode repetir dentro dele: `data-oficial.ts`, `cartas-regionais.ts` e os outros lotes). Entrou: **Imperatriz** Ralf (2007, vice-campeão maranhense). Sampaio Corrêa e Moto Club seguem com o baralho regional; Clemer (revelado no Moto Club) entrou no Ferroviário-CE 1993 (lote CE/PI) — a pessoa só pode ter uma carta no baralho.

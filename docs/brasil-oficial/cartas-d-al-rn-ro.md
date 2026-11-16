@@ -241,8 +241,8 @@ Novas = cartas deste arquivo; Total = novas + as que o clube já tem no baralho 
 | Euller Silva | Laguna 2025/26 | não consegui descartar que seja o Euller (CSA 2019) do baralho — sem certeza, fora |
 | Bill (Rosimar Amancio) | Laguna 2024/25 | auge em clubes de outros estados (Botafogo, Coritiba…) — fica pra quem pesquisa esses estados |
 | Marinho | Penedense 2003–06 | auge no Santos (outro estado); Wikipedia do Penedense só cita a venda dele |
-| Marcelo Toscano, Alef Manga, Léo Gamalho, Ciel (1982) | ASA | auge em clubes de outros estados |
-| Dênis Marques, Zé Love, Wallyson | Murici FC / ABC | auge em clubes de outros estados (e Murici FC ≠ Murici SC, o clube do lote) |
+| Marcelo Toscano, Alef Manga, Léo Gamalho, Ciel (1982) | ASA | auge em clubes de outros estados — ✅ Léo Gamalho voltou (16/11, ASA 2013); Marcelo Toscano entrou no Serra Branca 2024 (lote PB/PE); Ciel já tem carta no Ferroviário-CE; Alef Manga ficou só 2 meses (abr–jun/2019) |
+| Dênis Marques, Zé Love, Wallyson | Murici FC / ABC | auge em clubes de outros estados (e Murici FC ≠ Murici SC, o clube do lote) — ✅ Wallyson voltou (16/11, ABC 2007: é cria e ídolo do ABC) |
 | Dida (ASA 2026), João Paulo (ASA 2026), Aílton (ASA 2026), Jailson (ASA 2026) | ASA | xarás de cartas famosas (Dida do Corinthians, Jailson do Palmeiras…) — troquei por outros do elenco pra não confundir |
 | Edu, Jair, Gaspar, Dedé | Coruripe 2026 | xarás de cartas do baralho / nome de jogador famoso — troquei por outros do elenco |
 | Diogo (GOL), Hércules (ZAG), Pablo (ATA) | Cruzeiro-AL 2026 | xarás (Diogo Figueirense, Hércules Fortaleza; Pablo repetiria o nome do Pablo do Murici) — troquei |
@@ -254,3 +254,6 @@ Novas = cartas deste arquivo; Total = novas + as que o clube já tem no baralho 
 | Digão, Rafael, Álvaro | Porto Velho 2026 | xarás de cartas do baralho |
 | Jogadores "Defensores" sem posição (Victor Ramalho, Tanaka etc.) | vários | o Transfermarkt não diz se é zagueiro ou lateral — sem certeza da posição |
 
+## Dúvidas
+
+- **16/11 — correção:** ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta aqui (o Brasil Oficial é outro baralho; só não pode repetir dentro dele: `data-oficial.ts`, `cartas-regionais.ts` e os outros lotes). Entraram: **ASA** Léo Gamalho (2013, Copa do Nordeste) · **ABC** Wallyson (2007, 4 gols na final do Potiguar e acesso na Série C). CSA e América-RN seguem com as cartas do baralho regional.
