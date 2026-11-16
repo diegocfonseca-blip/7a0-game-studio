@@ -8002,6 +8002,16 @@ function reducerBase(state: EscState, action: Action): EscState {
   // MENU ONLINE (não no meio do jogo). A vaga no banco a host já apagou; o canal
   // é derrubado pelo próprio reset (onlineMode volta a 'cpu', sem roomId).
   if (action.type === 'KICKED_OUT') return { ...INITIAL, screen: 'lobby' }
+  // 📡 16/11: o Presence pode repetir a mesma lista (ex.: nova inscrição na reconexão).
+  // Não criar outro estado nem retransmitir a partida se cadeiras E crachás forem idênticos.
+  // Ordem, duplicatas de cadeira nas duplas e undefined ≠ [] são preservados.
+  // Isto só filtra SET_PRESENCE: pedidos de recuperação e heartbeat continuam respondendo.
+  if (action.type === 'SET_PRESENCE') {
+    const uids = action.uids ?? state.presenceUids
+    const mesmasCadeiras = state.presence.length === action.indices.length && state.presence.every((idx, i) => idx === action.indices[i])
+    const mesmosCrachas = uids === state.presenceUids || (uids !== undefined && state.presenceUids !== undefined && uids.length === state.presenceUids.length && uids.every((uid, i) => uid === state.presenceUids![i]))
+    if (mesmasCadeiras && mesmosCrachas) return state
+  }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
     case 'GO_LOBBY': { s.espectador = undefined; s.espHostUid = undefined; s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }

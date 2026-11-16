@@ -1,7 +1,7 @@
 import React,{useEffect} from 'react'
 import {createRoot} from 'react-dom/client'
 import {supabase} from '../../src/lib/supabase'
-import {EscProvider,useEsc,INITIAL,sanitize} from '../../src/escalacao/store'
+import {EscProvider,useEsc,INITIAL,sanitize,reducer} from '../../src/escalacao/store'
 
 // Rede inteiramente local: nenhuma conta ou sala real é usada nesta bancada.
 const W=window as any,guest=new URLSearchParams(location.search).has('guest')
@@ -20,11 +20,14 @@ supabase.from=((table:string)=>{
 supabase.rpc=(()=>Promise.resolve({data:[],error:null})) as any
 supabase.channel=((topic:string)=>{
  const handlers:any[]=[],ch:any={topic,state:'joined',handlers,on(type:string,filter:any,cb:any){handlers.push({type,filter,cb});return ch},subscribe(cb:any){queueMicrotask(()=>cb?.('SUBSCRIBED'));return ch},send(message:any){wire.push({topic,...message});return Promise.resolve('ok')},httpSend(event:string,payload:any){wire.push({topic,type:'broadcast',event,payload});return Promise.resolve({success:true})},track(){return Promise.resolve('ok')},untrack(){return Promise.resolve('ok')},unsubscribe(){ch.state='closed';return Promise.resolve('ok')},presenceState(){return{}},teardown(){return Promise.resolve()}}
+ ch.presenceState=()=>W.qaPresence??{}
  topics.push(ch);return ch
 }) as any
 supabase.getChannels=(()=>topics.filter(c=>c.state!=='closed')) as any
 supabase.removeChannel=(async(ch:any)=>ch.unsubscribe()) as any
 W.qaWire=wire;W.qaWrites=writes;W.qaSeed=seed
+W.qaReducer=reducer
+W.qaSyncPresence=(presence:any)=>{W.qaPresence=presence;for(const ch of [...topics])if(ch.state!=='closed'&&ch.topic===`escalacao:${roomId}`)for(const h of ch.handlers)if(h.type==='presence'&&h.filter.event==='sync')h.cb()}
 W.qaDeliver=(message:any)=>{for(const ch of [...topics])if(ch.state!=='closed'&&ch.topic===message.topic)for(const h of ch.handlers)if(h.type==='broadcast'&&h.filter.event===message.event)h.cb({payload:message.payload})}
 function Probe(){const {state,dispatch}=useEsc();useEffect(()=>{W.qa={state,dispatch,snapshot:()=>sanitize(state)}},[state,dispatch]);return <pre>{JSON.stringify({screen:state.screen,isHost:state.isHost,youUid:state.youUid,youIdx:state.youIdx})}</pre>}
 createRoot(document.getElementById('root')!).render(<EscProvider><Probe/></EscProvider>)
