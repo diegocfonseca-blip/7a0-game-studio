@@ -7252,7 +7252,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     const intl = internationalTitleCounts(x.intl, seasonNo ?? Infinity)
     return pontosDeTitulos({
       world: x.wc, copa: x.copas, supercopa: x.supercopa,
-      mundial: intl.mundial_titles, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles,
+      mundial: intl.mundial_titles, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf,
       A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
     })
   }
@@ -7293,6 +7293,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{tr('🏆 RANKING GERAL', '🏆 OVERALL RANKING')}</p>
       <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{getLang() === 'en' ? <>Every title is worth points and the rank ADDS them up: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Cup <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Tied? 💰 breaks it. The <b>top {VAGAS_MUNDO}</b> qualify for the 🌍 World Cup.</> : <>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata. Os <b>{VAGAS_MUNDO} primeiros</b> pegam vaga na 🌍 Copa do Mundo.</>}</p>
       {intlHistory.length > 0 && <p style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D', margin: '0 0 8px' }}>🌍 Copa do Mundo +{PTS_TITULO.mundo} · 🌐 Mundial de Clubes +{PTS_TITULO.mundial} · 🌎 Libertadores +{PTS_TITULO.libertadores} · 🌍 Champions +{PTS_TITULO.champions} · 🇧🇷 Copa do Brasil +{PTS_TITULO.copa}</p>}
+      {oficialCampeoes && <p style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D', margin: '0 0 8px' }}>🌎 Libertadores +{PTS_TITULO.libertadores} · 🌎 {tr('Sul-Americana', 'Sudamericana')} +{PTS_TITULO.sula}</p>}
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Títulos', 'Titles')}</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
@@ -7424,12 +7425,12 @@ export async function globalRankRpc(name: GlobalRankRpc, args: Record<string, nu
 // 🏅 01/10 (Diego, no 1º teste da carreira internacional): *"Copa do Mundo vale mais pontos,
 // agora vem o Mundial 60 pontos, depois Libertadores/Champions 50, depois o padrão (Copa do
 // Brasil, Série A…)"*. Antes: Mundial 50 · Libertadores/Champions 40.
-export const PTS_TITULO = { mundo: 200, mundial: 60, libertadores: 50, champions: 50, copa: 30, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
+export const PTS_TITULO = { mundo: 200, mundial: 60, libertadores: 50, champions: 50, sula: 25, copa: 30, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
 export function pontosDeTitulos(t: {
-  world?: number; mundial?: number; libertadores?: number; champions?: number; copa?: number; supercopa?: number; A?: number; B?: number; C?: number; D?: number; V?: number
+  world?: number; mundial?: number; libertadores?: number; champions?: number; sula?: number; copa?: number; supercopa?: number; A?: number; B?: number; C?: number; D?: number; V?: number
 }): number {
   return (t.world ?? 0) * PTS_TITULO.mundo + (t.copa ?? 0) * PTS_TITULO.copa
-    + (t.mundial ?? 0) * PTS_TITULO.mundial + (t.libertadores ?? 0) * PTS_TITULO.libertadores + (t.champions ?? 0) * PTS_TITULO.champions
+    + (t.mundial ?? 0) * PTS_TITULO.mundial + (t.libertadores ?? 0) * PTS_TITULO.libertadores + (t.champions ?? 0) * PTS_TITULO.champions + (t.sula ?? 0) * PTS_TITULO.sula
     + (t.A ?? 0) * PTS_TITULO.A + (t.supercopa ?? 0) * PTS_TITULO.supercopa
     + (t.B ?? 0) * PTS_TITULO.B + (t.C ?? 0) * PTS_TITULO.C
     + (t.D ?? 0) * PTS_TITULO.D + (t.V ?? 0) * PTS_TITULO.V
@@ -10643,15 +10644,15 @@ export function PyramidSeasonScreen() {
     const cmTitlesG: Record<string, number> = {}
     for (const m of cmMuralG) cmTitlesG[m.campeao] = (cmTitlesG[m.campeao] ?? 0) + 1
     // 🇧🇷 Libertadores real do Brasil Oficial: a MESMA conta do Rank (RankingTab), senão a vaga da Copa do Mundo discorda da tela
-    const libOfG: Record<string, number> = {}
-    if (state.oficial) for (const e of state.oficialCampeoes ?? []) if (e.liberta) libOfG[e.liberta] = (libOfG[e.liberta] ?? 0) + 1
+    const libOfG: Record<string, number> = {}, sulaOfG: Record<string, number> = {}
+    if (state.oficial) for (const e of state.oficialCampeoes ?? []) { if (e.liberta) libOfG[e.liberta] = (libOfG[e.liberta] ?? 0) + 1; if (e.sula) sulaOfG[e.sula] = (sulaOfG[e.sula] ?? 0) + 1 }
     const rws = DIVS.flatMap(d => tables[d]).map(t => {
       const key = teamKey(t)
       const olds = oldChain(key)
       const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
       const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
       const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
-      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [], libOf: libOfG[t.name] ?? 0 }
+      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [], libOf: libOfG[t.name] ?? 0, sulaOf: sulaOfG[t.name] ?? 0 }
     })
     // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
     // detalhe: é este sort que escolhe o TOP 32 que entra na Copa do
@@ -10661,7 +10662,7 @@ export function PyramidSeasonScreen() {
       const intl = internationalTitleCounts(x.intl, state.seasonNo)
       return pontosDeTitulos({
         world: x.wc, copa: x.copas, supercopa: x.supercopa,
-        mundial: intl.mundial_titles, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles,
+        mundial: intl.mundial_titles, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf,
         A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
       })
     }

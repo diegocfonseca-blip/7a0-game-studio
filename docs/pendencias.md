@@ -36,7 +36,7 @@
   `npm run baralho-oficial`. CLAUDE.md corrigido.
 - ✅ 16/11 (noite): **Libertadores e Sul-Americana no Ranking e no Hall de Troféus** da carreira (só Brasil Oficial, lidas de
   `oficialCampeoes`): Liberta soma como Libertadores (50 pts, a mesma do ranking e da vaga da Copa do Mundo — as duas contas andam
-  juntas); Sul-Americana ganha selo e caixa própria (vermelha) mas **0 ponto** até o Diego dizer quanto vale. ❓ Perguntar: quantos pontos?
+  juntas); Sul-Americana ganha selo e caixa própria (vermelha) e vale **25 pontos** (Diego: *"Pode ser"*, `PTS_TITULO.sula`; só no rank do save — o global não tem Sula).
   Também: 4 cartas da Conmebol (Herrera/Vargas U. de Chile 2011, Cadavid/Pedro Franco Millonarios) eram cópia EXATA do baralho Mundo e
   faziam a trava de vazamento falhar ao acaso — saíram dos lotes (o Mundo já entra no modo).
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx), artilharia da Libertadores, quem não
