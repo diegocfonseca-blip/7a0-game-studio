@@ -148,6 +148,25 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
       if ((fin.win === 'a' ? fin.a.name : fin.b.name) !== e1.resultado.campeao) falha('estadual: o vencedor da última página não é o campeão')
     }
   }
+  // 🇧🇷 COPA DO BRASIL REAL: 2026 = 28 na 1ª, 74 na 2ª, 4 na 3ª, 20 da Série A na 5ª; 126 clubes diferentes; 9 fases (1ª…Final);
+  // 1ª a 4ª jogo único, 5ª a semis ida e volta, final jogo único; tem campeão
+  {
+    const { entradasCopaBrasilOficial } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+    const { computeCopaBrasil } = await vite.ssrLoadModule('/src/escalacao/copa-brasil.ts')
+    const ent = entradasCopaBrasilOficial(mundo, s.seed)
+    const tam = ent?.map((f: unknown[]) => f.length).join(',')
+    if (tam !== '28,74,4,0,20') falha(`Copa do Brasil: entradas por fase ${tam} (devia 28,74,4,0,20)`)
+    const nomesCB = new Set(ent?.flat().map((e: { t: { name: string } }) => e.t.name))
+    if (nomesCB.size !== 126) falha(`Copa do Brasil: ${nomesCB.size} clubes diferentes (devia 126)`)
+    const cb = computeCopaBrasil(mundo, s.seed, 1, 1.2, false, {}, false, undefined, ent)
+    const fasesCB = [cb.round64, ...cb.rounds].filter(Boolean)
+    if (fasesCB.map((f: { name: string }) => f.name).join('|') !== '1ª fase|2ª fase|3ª fase|4ª fase|5ª fase|Oitavas|Quartas|Semifinal|Final') falha(`Copa do Brasil: fases ${fasesCB.map((f: { name: string }) => f.name)}`)
+    const pernas = fasesCB.map((f: { ties: { legs: unknown[] }[] }) => f.ties[0].legs.length).join('')
+    if (pernas !== '111122221') falha(`Copa do Brasil: jogos por fase ${pernas}`)
+    if (!cb.champion) falha('Copa do Brasil: sem campeão')
+    const ent2 = entradasCopaBrasilOficial(mundo, s.seed + 1)
+    if (ent2?.map((f: unknown[]) => f.length).join(',') !== '28,74,4,0,20') falha('Copa do Brasil: entradas mudam com a semente')
+  }
   // 🇧🇷 playoff da B NA TELA (`computePlayoffB`): 3º×6º e 4º×5º, ida na casa do pior, empate no agregado = melhor campanha, sem
   // pênalti; mesma semente = mesmo playoff; e o 1º e o 2º nunca jogam
   {

@@ -92,7 +92,10 @@ const ROUND_NAMES = ['Rodada de 64', 'Rodada de 32', 'Oitavas', 'Quartas', 'Semi
 const ROUND_LEGS: Record<string, 1 | 2> = { 'Rodada de 64': 1, 'Rodada de 32': 1, Oitavas: 2, Quartas: 2, Semifinal: 2, Final: 1 }
 const FREE_DRAW = new Set(['Rodada de 64', 'Rodada de 32']) // sorteio livre só até aqui
 
-export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2): CopaBrasilResult {
+/** 🇧🇷 BRASIL OFICIAL: quem ENTRA em cada fase da Copa do Brasil real (0 = 1ª fase … 4 = 5ª fase), com a divisão de cada um
+ *  (clube sem série nacional = 'V', o degrau mais baixo da régua de prestígio) */
+export type CopaBrasilOficialEntradas = { t: SimTeam; div: Div }[][]
+export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2, oficial?: CopaBrasilOficialEntradas): CopaBrasilResult {
   const empty: CopaBrasilResult = { groups: [], round64: null, rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
   const rng = mulberry((seed ^ (seasonNo * 0x9E3779B1) ^ 0xB0A5111) >>> 0)
   const withXI = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 38, t.squad, t.formation) } : t
@@ -115,7 +118,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
   // (Série A inteira + 8 melhores da B) e 72 na peneira, nos MESMOS arrays e na
   // MESMA ordem — então o sorteio sai igualzinho e NENHUM campeão já visto muda.
   const N = A.length + B.length + C.length + D.length + V.length
-  if (N < 68 || N > 128) return empty // fora disso não dá pra fechar 64 — quem chama cai na Copa Legends
+  if (!oficial && (N < 68 || N > 128)) return empty // fora disso não dá pra fechar 64 — quem chama cai na Copa Legends
   const nDireto = 128 - N
   // Prestígio manda em quem entra direto: Série A → B (pela colocação) → C → D →
   // Várzea. Os primeiros `nDireto` já estão na chave de 64; TODO o resto passa
@@ -249,6 +252,37 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals, legM2: mexeu ? [l1.m2, l2.m2] : undefined }
   }
 
+  // ── 🇧🇷 BRASIL OFICIAL · COPA DO BRASIL REAL (competicoes-reais.md, Copa do Brasil 2026): 126 clubes. 1ª fase com 28 (passam 14),
+  // 2ª com os 14 + 74 (88), 3ª com os 44 + 4 (48), 4ª com 24, 5ª com os 12 + os 20 da Série A (32). 1ª a 4ª em JOGO ÚNICO
+  // (empate = pênaltis); 5ª, oitavas, quartas e semis em IDA E VOLTA; FINAL em JOGO ÚNICO. ⚠️ INCERTO o sorteio real de cada fase
+  // (potes/regiões): aqui é livre até a 5ª e, das oitavas em diante, a chave trava (vencedor do jogo 1 pega o do jogo 2).
+  if (oficial) {
+    const NOMES = ['1ª fase', '2ª fase', '3ª fase', '4ª fase', '5ª fase', 'Oitavas', 'Quartas', 'Semifinal', 'Final']
+    const PERNAS = [1, 1, 1, 1, 2, 2, 2, 2, 1]
+    let cur: Entrant[] = []
+    const fases: CBRound[] = []
+    for (let f = 0; f < NOMES.length; f++) {
+      cur = [...cur, ...(oficial[f] ?? []).map(e => ({ t: withXI(e.t), div: e.div }))]
+      if (cur.length < 2) break
+      cur = cur.map(e => e.t.human ? { ...e, t: { ...e.t, xi: lineupAt(lineups, e.t.teamId, 38 + f + 1, e.t.squad, e.t.formation) } } : e)
+      const pool = f <= 4 ? shuffle(cur, rng) : cur
+      const ties: CBTie[] = [], next: Entrant[] = []
+      for (let i = 0; i + 1 < pool.length; i += 2) {
+        const tie = PERNAS[f] === 2 ? playTwoLegs(pool[i], pool[i + 1]) : playSingle(pool[i], pool[i + 1])
+        ties.push(tie); next.push(tie.win === 'a' ? pool[i] : pool[i + 1])
+      }
+      fases.push({ name: NOMES[f], ties, slot: 38 + f + 1 })
+      cur = next
+      if (cur.length === 1) break
+    }
+    const campeao = cur.length === 1 ? cur[0] : null
+    const fin = fases[fases.length - 1], ft = fin && fin.ties.length === 1 ? fin.ties[0] : null
+    const vice: Entrant | null = ft ? (ft.win === 'a' ? { t: ft.b, div: ft.bDiv } : { t: ft.a, div: ft.aDiv }) : null
+    const list = [...scorers.values()].sort((a, b) => b.goals - a.goals), listA = [...assists.values()].sort((a, b) => b.assists - a.assists)
+    return { groups: [], round64: fases[0] ?? null, rounds: fases.slice(1), champion: campeao?.t ?? null, championDiv: campeao?.div ?? null, vice: vice?.t ?? null, viceDiv: vice?.div ?? null,
+      scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), assistsAll: listA, topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, a => a.assists) }
+  }
+
   // ── FASE 1 — PENEIRA: com a pirâmide cheia são 72 times (Várzea + Série C +
   //    Série D + 12 piores da B), jogo único, sorteio livre. O tamanho é sempre
   //    2×(N−64), ou seja SEMPRE par — nunca sobra ninguém sem adversário. ──
@@ -335,7 +369,9 @@ export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number
   const fundo: Record<string, { tm: SimTeam; depth: number }> = {}
   const put = (tm: SimTeam, depth: number) => { const k = teamKey(tm); if (!fundo[k] || depth > fundo[k].depth) fundo[k] = { tm, depth } }
   if (r.round64) for (const t of r.round64.ties) { put(t.a, 0); put(t.b, 0) }
-  r.rounds.forEach((rd, ri) => { for (const t of rd.ties) { put(t.a, ri + 1); put(t.b, ri + 1) } })
+  // a chave real do Brasil Oficial tem mais fases (8 depois da 1ª): conta do FIM, nos mesmos degraus de pagamento de sempre
+  const sobra = Math.max(0, r.rounds.length - 6)
+  r.rounds.forEach((rd, ri) => { for (const t of rd.ties) { put(t.a, Math.max(0, ri + 1 - sobra)); put(t.b, Math.max(0, ri + 1 - sobra)) } })
   const payByDepth = [CB_PAY.peneira, CB_PAY.r64, CB_PAY.r32, CB_PAY.oitavas, CB_PAY.quartas, CB_PAY.semi, CB_PAY.vice]
   for (const k in fundo) {
     const { tm, depth } = fundo[k]
