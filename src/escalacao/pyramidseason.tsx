@@ -3131,8 +3131,10 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
 // Mata-mata. A Série A segue na `DivTable` de sempre.
 const VERDE_OF = '#DCF2E1', AMARELO_OF = '#FFF4C2', VERMELHO_OF = '#F9D8D3'
 function SeloOf({ t, bg }: { t: string; bg: string }) { return <span style={{ fontSize: 7, fontWeight: 900, borderRadius: 4, padding: '1px 3px', marginLeft: 2, background: bg, border: '1px solid rgba(0,0,0,.4)', color: INK }}>{t}</span> }
-function ChipsOf({ itens, on, set }: { itens: string[]; on: string; set: (s: string) => void }) {
-  return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, margin: '0 0 8px' }}>{itens.map(i => <button key={i} type="button" onClick={() => set(i)} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '3px 8px', ...OSWALD, fontWeight: 900, fontSize: 12, cursor: 'pointer', background: i === on ? INK : '#fff', color: i === on ? GOLD : INK }}>{i}</button>)}</div>
+// mesma faixa de etapas da repaginada (`.ll29-phases`, a das fases da Copa): rola de lado no celular, nunca quebra em 2 linhas;
+// a escolhida = amarelo com sombra dura (igual aos botões de divisão `.ll29-div-botoes`)
+function ChipsOf({ itens, on, set, rotulo }: { itens: string[]; on: string; set: (s: string) => void; rotulo: string }) {
+  return <nav className="ll29-phases" aria-label={rotulo}>{itens.map(i => <button key={i} type="button" aria-pressed={i === on} onClick={() => set(i)} style={{ flex: 'none', border: `2px solid ${INK}`, borderRadius: 8, padding: 8, ...OSWALD, fontWeight: 700, fontSize: 12, cursor: 'pointer', background: i === on ? GOLD : '#f4ecd6', color: INK, boxShadow: i === on ? `3px 3px 0 ${INK}` : 'none' }}>{i}</button>)}</nav>
 }
 function TabelaOf({ titulo, teams, faixa }: { titulo: string; teams: SimTeam[]; faixa: (i: number) => { bg: string; selo?: string } | null }) {
   return (
@@ -3174,7 +3176,7 @@ export function TabelaOficial({ div, tables, fases }: { div: Div; tables: Record
     return <>
       <TabelaOf titulo={tr('Série B · pontos corridos', 'Série B · league')} teams={t} faixa={i => i < 2 ? { bg: VERDE_OF, selo: tr('SOBE', 'UP') } : i < 6 ? { bg: AMARELO_OF, selo: 'PLAYOFF' } : i >= t.length - 4 ? { bg: VERMELHO_OF, selo: 'Z4' } : null} />
       {legendaOf(tr('🟩 1º e 2º sobem direto · 🟨 3º ao 6º vão pro playoff · 🟥 4 últimos caem', '🟩 1st and 2nd go straight up · 🟨 3rd to 6th go to the playoff · 🟥 bottom 4 go down'))}
-      {fases.B.playoff && <div style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+      {fases.B.playoff && <div className="ll29-games">
         <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🔥 {tr('PLAYOFF DE ACESSO', 'PROMOTION PLAYOFF')}</p>
         <p style={{ fontSize: 11, fontWeight: 600, margin: '2px 0 4px' }}>{tr('Ida e volta. Empate no total: passa a melhor campanha.', 'Two legs. Level on aggregate: the better league season goes through.')}</p>
         {fases.B.playoff.map(c => <ConfrontoOf key={c.a} c={c} voce={voce} />)}
@@ -3186,11 +3188,11 @@ export function TabelaOficial({ div, tables, fases }: { div: Div; tables: Record
     const on = nomes.includes(faseC) ? faseC : nomes[nomes.length - 1] ?? ''
     const doisGrupos = fases.C.formato === 'dois-grupos'
     return <>
-      <ChipsOf itens={nomes} on={on} set={setFaseC} />
+      <ChipsOf rotulo={tr('Fases da Série C', 'Série C phases')} itens={nomes} on={on} set={setFaseC} />
       {on === '1ª fase' && legendaOf(doisGrupos ? tr('Dois grupos de 14, turno e returno. Os 4 primeiros de cada grupo avançam; os 3 últimos de cada caem.', 'Two groups of 14, home and away. Top 4 of each group advance; bottom 3 of each go down.') : tr('Turno único. Os 8 primeiros avançam; os 2 últimos caem.', 'Single round robin. Top 8 advance; bottom 2 go down.'))}
       {on === '2ª fase' && legendaOf(tr('Os 8 primeiros formam 2 grupos de 4 (pontos zerados). Os 2 primeiros de cada grupo SOBEM.', 'The top 8 form 2 groups of 4 (points reset). The top 2 of each group go UP.'))}
       {fases.C.fases.filter(f => f.nome.startsWith(on)).map(f => <TabelaOf key={f.nome} titulo={f.nome} teams={f.tabela} faixa={i => on === '2ª fase' ? (i < 2 ? { bg: VERDE_OF, selo: tr('SOBE', 'UP') } : null) : doisGrupos ? (i < 4 ? { bg: VERDE_OF, selo: tr('AVANÇA', 'ADVANCE') } : i >= f.tabela.length - 3 ? { bg: VERMELHO_OF, selo: tr('CAI', 'DOWN') } : null) : (i < 8 ? { bg: VERDE_OF, selo: tr('AVANÇA', 'ADVANCE') } : i >= f.tabela.length - 2 ? { bg: VERMELHO_OF, selo: tr('CAI', 'DOWN') } : null)} />)}
-      {on === 'Final' && fases.C.final && <div style={{ ...box('#fff'), padding: 10 }}><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🏆 {tr('FINAL', 'FINAL')}</p><ConfrontoOf c={fases.C.final} voce={voce} /></div>}
+      {on === 'Final' && fases.C.final && <div className="ll29-games"><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0 }}>🏆 {tr('FINAL', 'FINAL')}</p><ConfrontoOf c={fases.C.final} voce={voce} /></div>}
     </>
   }
   if (div === 'D') {
@@ -3203,16 +3205,15 @@ export function TabelaOficial({ div, tables, fases }: { div: Div; tables: Record
     const kOn = kNomes.includes(koD) ? koD : kNomes[kNomes.length - 1] ?? ''
     const g = fases.D.grupos.find(x => x.nome === gOn)
     return <>
-      <ChipsOf itens={temKo ? [tr('Grupos', 'Groups'), tr('Mata-mata', 'Knockout')] : [tr('Grupos', 'Groups')]} on={modo === 'ko' ? tr('Mata-mata', 'Knockout') : tr('Grupos', 'Groups')} set={x => setModoD(x === tr('Mata-mata', 'Knockout') ? 'ko' : 'grupos')} />
+      <ChipsOf rotulo={tr('Série D', 'Série D')} itens={temKo ? [tr('Grupos', 'Groups'), tr('Mata-mata', 'Knockout')] : [tr('Grupos', 'Groups')]} on={modo === 'ko' ? tr('Mata-mata', 'Knockout') : tr('Grupos', 'Groups')} set={x => setModoD(x === tr('Mata-mata', 'Knockout') ? 'ko' : 'grupos')} />
       {modo === 'grupos' ? <>
-        <p style={{ fontWeight: 900, fontSize: 12, ...OSWALD, margin: '0 0 4px' }}>{tr('GRUPO', 'GROUP')}</p>
-        <ChipsOf itens={gNomes} on={gOn} set={setGrupoD} />
+        <ChipsOf rotulo={tr('Grupos da Série D', 'Série D groups')} itens={gNomes} on={gOn} set={setGrupoD} />
         {g && <TabelaOf titulo={`${tr('Grupo', 'Group')} ${g.nome} · 🟫 ${tr('campo de terra', 'dirt pitch')}`} teams={g.tabela} faixa={i => i < 4 ? { bg: VERDE_OF, selo: tr('AVANÇA', 'ADVANCE') } : null} />}
         {legendaOf(tr('Os 4 primeiros de cada grupo vão pro mata-mata (ida e volta). Sobem 6: os 4 semifinalistas + 2 do playoff.', 'The top 4 of each group go to the knockouts (two legs). 6 go up: the 4 semi-finalists + 2 from the playoff.'))}
       </> : <>
-        <ChipsOf itens={kNomes} on={kOn} set={setKoD} />
-        <div style={{ ...box('#fff'), padding: 10 }}><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{kOn}</p>
-          {(fases.D.mataMata.find(m => m.nome === kOn)?.confrontos ?? []).map(c => <ConfrontoOf key={c.a + c.b} c={c} voce={voce} />)}</div>
+        <ChipsOf rotulo={tr('Mata-mata da Série D', 'Série D knockouts')} itens={kNomes} on={kOn} set={setKoD} />
+        <div className="ll29-games"><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{kOn}</p>
+          <div className="ll29-match-grid" style={{ display: 'grid', gap: '0 10px' }}>{(fases.D.mataMata.find(m => m.nome === kOn)?.confrontos ?? []).map(c => <ConfrontoOf key={c.a + c.b} c={c} voce={voce} />)}</div></div>
       </>}
     </>
   }
