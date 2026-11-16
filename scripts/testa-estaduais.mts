@@ -10,7 +10,7 @@ const falha = (m: string) => { erros++; console.log('❌', m) }
 const rng = (s: number) => () => { s = (s * 1103515245 + 12345) >>> 0; return s / 4294967296 }
 const jogaDe = (seed: number): Joga => { const r = rng(seed); return () => ({ gc: Math.floor(r() * 4), gf: Math.floor(r() * 3) }) }
 const pen: Penaltis = (a, b) => (a < b ? a : b)
-const CAEM: Record<string, number> = { Carioca: 1, Paulista: 2, Mineiro: 2, 'Gaúcho': 2, Paranaense: 2, Catarinense: 3, Baiano: 2, Pernambucano: 0, Cearense: 2, Goiano: 2, Paraense: 2, Alagoano: 1 }
+const CAEM: Record<string, number> = { Carioca: 1, Paulista: 2, Mineiro: 2, 'Gaúcho': 2, Paranaense: 2, Catarinense: 3, Baiano: 2, Pernambucano: 0, Cearense: 2, Goiano: 2, Paraense: 2, Alagoano: 1, Amazonense: 1, Maranhense: 2, Paraibano: 2, Sergipano: 2, 'Mato-Grossense': 2 }
 for (const nome of Object.keys(ESTADUAIS)) {
   for (let k = 0; k < 20; k++) {
     const r = simulaEstadual(nome, 1000 + k, jogaDe(77 + k), pen)!

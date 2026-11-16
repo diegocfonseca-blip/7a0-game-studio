@@ -151,7 +151,7 @@
     "kings-presidentes": "npx tsx scripts/testa-kings-presidentes.mts",
     "brasil-oficial": "npx tsx scripts/testa-brasil-oficial.mts",
     "campeonato-oficial": "npx tsx scripts/testa-campeonato-oficial.mts",
-    "estaduais": "tsx scripts/testa-estaduais.mts"
+    "estaduais": "npx tsx scripts/testa-estaduais.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
