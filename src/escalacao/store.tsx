@@ -176,7 +176,7 @@ function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' 
 // vagas-base por posição: no futebol vem da FORMAÇÃO; no basquete é o padrão do
 // modo (toda posição igual). É o único ponto onde a QUANTIDADE muda por esporte.
 function baseSlots(formation: FormationKey, pos: Sector): number {
-  return ACTIVE_SPORT === 'basquete' ? NBA_BASE_SLOTS : FORMATIONS[formation][pos]
+  return ACTIVE_SPORT === 'basquete' ? NBA_BASE_SLOTS : (FORMATIONS[formation] ?? FORMATIONS['4-3-3'])[pos] // 🛟 15/11: formação desconhecida (versão velha) conta como 4-3-3 em vez de quebrar a tela
 }
 /** a MESMA régua de vagas que o motor usa (pra tela não ter regra própria — ver convocação dos Clubes) */
 export function vagasBase(formation: FormationKey, pos: Sector): number { return baseSlots(formation, pos) }
@@ -15005,6 +15005,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   }), [])
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
+  const saidaVoluntariaRef = useRef(0) // 🧾 15/11: quando o botão SAIR foi apertado por último (o vigia da coroa diferencia saída de queda)
   const stateRef = useRef(state)
   // 📮 canal (não assinado) da caixa de entrada do host — só sala de Champions (ver `hostInbox`)
   const inboxRef = useRef<{ sala: string; ch: ReturnType<typeof supabase.channel> } | null>(null)
@@ -15266,6 +15267,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const leaveRoom = useCallback(async () => {
     const st = stateRef.current
     const rid = st.roomId
+    saidaVoluntariaRef.current = Date.now() // 🧾 15/11: a saída daqui pra frente foi pelo botão SAIR (ver o vigia da coroa)
     // 👁️ FANTASMA SAINDO: não tem vaga, time nem coroa — só fecha a tela e volta pro menu (nada vai pra sala)
     if (st.espectador) { try { channelRef.current?.unsubscribe() } catch { /* ignora */ } channelRef.current = null; rawDispatch({ type: 'GO_LOBBY' }); return }
     // 🏆 MINHAS LIGAS (13/09): o DONO sair NÃO passa a coroa nem apaga a liga — a liga é
@@ -15921,6 +15923,26 @@ export function EscProvider({ children }: { children: ReactNode }) {
     }, 5000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
+
+  // 🧾 15/11 (sala XEBXDB do Reffatti, Kings: na FINAL o aparelho do dono deixou de ser dono e foi pro menu, sem nenhum registro):
+  // só ANOTA — não muda tela, coroa nem sala. (1) o aparelho que era dono deixa de ser, na mesma sala, por QUALQUER caminho;
+  // (2) o aparelho sai da sala — com a tela de antes e de depois, e se foi pelo botão SAIR (`leaveRoom`) ou não.
+  const vigiaSalaRef = useRef<{ room: string; code: string; host: boolean; screen: string; online: boolean } | null>(null)
+  useEffect(() => {
+    const prev = vigiaSalaRef.current
+    const cur = { room: state.roomId || '', code: state.roomCode || '', host: !!state.isHost, screen: state.screen, online: state.onlineMode === 'online' }
+    vigiaSalaRef.current = cur
+    if (!prev || !prev.room || !prev.online || state.espectador) return
+    const voluntario = Date.now() - saidaVoluntariaRef.current < 15_000
+    if (prev.room === cur.room && prev.host && !cur.host) {
+      anotaTrava({ room_id: prev.room, sala: prev.code || null, papel: 'host', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
+        extra: { quando: 'perdeu_coroa', tela: cur.screen, voluntario } }, true)
+    }
+    if (prev.room !== cur.room) {
+      anotaTrava({ room_id: prev.room, sala: prev.code || null, papel: prev.host ? 'host' : 'convidado', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
+        extra: { quando: 'saiu_da_sala', de_tela: prev.screen, para_tela: cur.screen, para_sala: cur.room || null, voluntario } }, true)
+    }
+  }, [state.roomId, state.isHost, state.screen, state.onlineMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 📮 O HOST LÊ O CAMINHO RESERVA (23/08): de 3 em 3s, durante o leilão, busca
   // lances que chegaram pelo banco (room_acoes) e aplica os que faltam. É a

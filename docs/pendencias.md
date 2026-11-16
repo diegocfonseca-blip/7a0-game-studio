@@ -4,6 +4,38 @@
 - 🔁 Mesmo dia, DECISÃO: *"caiu muito carreira, ninguém joga mais… melhor arriscar no modo novo com oficiais e deixar os times criados ser de entrada pro pessoal pagar os oficiais"*. Ou seja: carreira com time OFICIAL = modo novo, só com plano; carreira de time criado = a porta de entrada grátis. Já temos 152 escudos oficiais em `public/escudos-clubes/`.
 - Falta: qual plano libera (do Craque Salas pra cima?) e mockup da escolha na criação da carreira. Cuidado com marca registrada dos escudos.
 
+## ⚽🎩 15/11 — Kings: pênalti do presidente igual ao pênalti do campinho — PUBLICADO
+- Diego: *"o chute tá feio… tem que ser igual pênalti mesmo do campinho, não o pulinho do presidente"*. Mockup
+  `scripts/mockups/kings-penalti-presidente.png` (2ª versão com o campo da Kings: escuro, neon azul/rosa) → *"ok agora sim"*.
+- `PresidenteNaArena` (kings-cenas.tsx): campo maior; presidente espera na meia-lua, ao zerar CORRE até a bola, a bola voa pro canto
+  que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
+  regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
+
+## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
+- O que o banco mostra: 17h02 ele recarregou (o botão Manual sumiu dali em diante = o aparelho dele deixou de ser dono); a sala seguiu
+  salva com youIdx 0 até 17h10 (final da Kings) e parou; 39 s depois o aparelho dele saiu (registro "saiu_por_conta_propria" com
+  isHost=false). Uma tela só (live sem sair da tela) — a hipótese de 2 abas caiu. Nenhum "rebaixou" e nenhuma queda de tela anotados.
+- Agora o jogo anota (esc_travas, só leitura): `perdeu_coroa` (dono deixou de ser dono na mesma sala, por qualquer caminho) e
+  `saiu_da_sala` (tela de antes/depois + se foi pelo botão SAIR). Próxima vez: ler esses registros da sala.
+- Junto: 🛟 o erro "reading 'LAT'" (3 telas quebradas desde 13/11) era formação desconhecida no campinho (FORMATIONS[f] undefined —
+  ex.: versão velha aberta cruzando com o 3-4-3 novo). Agora formação desconhecida desenha como 4-3-3 (screens.tsx + baseSlots).
+- Pendente: reproduzir a virada liga → mata-mata da Kings com o dono em 1º (direto na semi) em sala manual/stream.
+
+## 🐆 16/11 — Batismo Lavras FC (hugopereirabrito) — PUBLICADO
+- Plano 🖋 Batismo (79,90): tier ouro, **sem número de fundador** (está em `SEM_FUNDADOR`). Sócio nº92.
+- Várzea, no lugar do bot Galáticos do Bairro (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 258×360 24 KB · mascote "A Pantera" 219×440 27 KB · manto `#0A0806`/`#F3AD03` · camisa na Loja (`lavras-camisa-v1.webp`).
+- Banco: `esc_socios` (92) · `esc_nomes_batismo` (Lavras + Lavrasfc, o gatilho fez FC/EC) · `user_colors` ouro manual. A conta já existia (criada 16/11 01:12 UTC) antes das linhas.
+- Post: `scripts/posts/batismo-lavras.png`.
+
+## 🎮👑 15/11 — Batismo Reffatti FC (leoreffattig) — PUBLICADO
+- Várzea, no assento do bot Atlético Pelada (o Diego: "qualquer um que tenha bot"). Plano Batismo (sem nº de fundador) · sócio nº91 · coração: não sabemos.
+- Arte da prancha verde recortada À MÃO: o verde do desenho é idêntico ao do fundo (chroma 2,250,4), então saíram só o fundo de fora e os 3 vãos
+  fechados (entre as pernas, o cabo do controle, a mão). Escudo 235×360 29 KB · mascote 291×440 36 KB · camisa da Loja 620×574 53 KB.
+- Manto branco #F9F4FB + verde-neon #2AF604 medidos; 3ª cor preta (MANTO_TRI reffatti_gamer).
+- Banco: esc_socios (91), esc_nomes_batismo (reffatti / FC / EC + reffattifc, o nome dele no jogo); user_colors ouro já estava.
+- Post: scripts/posts/batismo-reffatti.png ("Leo" tirado do e-mail — confirmar com o Diego o nome).
+
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 
 - Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
@@ -13564,7 +13596,7 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 ## 💳 13/11 — Planos: FICA TUDO COMO ESTÁ (decisão do Diego)
 - Discutimos mensal × plano de uma vez × pacote vitalício. Números de 30 dias: planos de uma vez ~R$ 1.800; mensais ativos ~R$ 710/mês (46 Salas + 17 Completo). Conclusão: não mudar a estrutura.
 - 🚫 Aviso "você pode cancelar o mensal" pra quem tem plano de uma vez + mensal ativo: o Diego NÃO gostou ("N gostei n"). Não repropor.
-- Pendente: EhuLaion FC (sergioricardocf16) — Batismo por R$ 55 (Diego mandou; Fundador preço normal). Precisa mexer no `esc_mp_preco` (trava a API 1–3 min) → esperando o Diego dizer agora ou de manhã.
+- ✅ FEITO 14/11 ~22h50 (Diego: "Ligar agora" → "Deixe como está"): EhuLaion FC (sergioricardocf16) — Batismo por R$ 55. `docs/sql/precos-tela-e-especial-20261113.sql` APLICADO (tabela `esc_preco_especial` + `esc_mp_preco` lendo ela + `esc_mp_meus_precos`). Fundador dele no preço normal.
 - Pendente: tela do batismo mostrava "+ R$ 55" pro Craque mensal (corrigida no branch, commit "preço da tela segue a régua do banco") → esperando OK pra publicar.
 - 💳 13/11 (noite): preços de hoje arrumados na TELA (`precos-servidor.ts`: Loja, vitrine, janela do batismo e upgrade do Lenda leem o
   preço do banco). O banco (`docs/sql/precos-tela-e-especial-20261113.sql`: preço especial + `esc_mp_meus_precos`) roda de madrugada
