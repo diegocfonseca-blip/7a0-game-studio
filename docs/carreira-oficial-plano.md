@@ -235,5 +235,14 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   (quartas/cai); (c) a escalação do usuário no estadual hoje é a automática (a troca de time durante o estadual não vale ainda);
   (d) recarregar no meio do estadual recomeça ele do 1º jogo (o resultado é o mesmo); (e) a data no topo é a das quartas-feiras
   da Copa (fev) — o estadual real é jan–mar.
+- ✅ **16/11: SEM COPA INVENTADA NO MODO** (*"Q merda é essa de copa Legends? Esse modo são copas originais"*): Copa Legends/Copa do
+  Brasil Legends fora do Brasil Oficial; Central sem ela na agenda; Master sem meta de copa/Supercopa (`semCopa`, tela e motor).
+- ✅ **16/11: COPA DO BRASIL REAL** (`entradasCopaBrasilOficial` + `computeCopaBrasil(..., entradas)`): 126 clubes de 2026 da lista
+  mestra (28 na 1ª, 74 na 2ª, 4 na 3ª, Série A na 5ª), 1ª a 4ª jogo único (pênaltis), 5ª a semis ida e volta, final jogo único.
+  Toca nas quartas-feiras como a copa de sempre. Prêmio pelos mesmos degraus, contados do fim da chave.
+  ⚠️ INCERTO: o sorteio real de cada fase (aqui livre até a 5ª, chave travada depois); de 2027 em diante as vagas reais saem dos
+  estaduais (cotas por estado) — provisório: a lista de 2026, com a Série A de agora na 5ª e quem caiu da A na 2ª.
+  ⏭️ Falta: Supercopa Rei real (campeão brasileiro × campeão da Copa, jogo único, abre a temporada seguinte) e as vagas da
+  Libertadores (campeão da Copa → grupos; vice → preliminar).
 - Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
   Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.
