@@ -5,6 +5,7 @@ import { CATALOG_OFICIAL } from '../src/escalacao/data-oficial.ts'
 import { CATALOG_OFICIAL_MODO } from '../src/escalacao/baralho-oficial.ts'
 import { CLUBES_BR, CLUBES_BR_OUTROS, CLUBES_BR_TODOS, cartasDoClube, sorteiaElenco, fechaTime, clubesDaDivisao } from '../src/escalacao/brasil-oficial.ts'
 import { existsSync, readFileSync } from 'node:fs'
+import { ESTRANGEIROS_LIBERTA_2026 } from '../src/escalacao/libertadores-oficial.ts'
 let erros = 0
 const falha = (m: string) => { erros++; console.log('❌', m) }
 if (clubesDaDivisao('A').length !== 20) falha('Série A precisa de 20')
@@ -39,7 +40,8 @@ const semCarta: string[] = []
 for (const c of CLUBES_BR_OUTROS) { if (!fechaTime(cartasDoClube(c, juntas))) (comLote.has(c.nome) ? falha(`não fecha um 11: ${c.nome}`) : semCarta.push(c.nome)) }
 if (semCarta.length) console.log(`⏳ ${semCarta.length} clubes ainda esperando lote de cartas: ${semCarta.join(', ')}`)
 // toda carta do modo é de um clube do modo
-const nomes = new Set(CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]))
+// (ou um estrangeiro da Libertadores — as cartas dele só existem pra ela)
+const nomes = new Set([...CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]), ...ESTRANGEIROS_LIBERTA_2026.map(e => e.nome)])
 for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (!nomes.has(x.club)) falha(`carta de clube fora do modo: ${x.name} (${x.club})`)
 // mesmo nome+clube+ano não pode existir nos dois baralhos
 const ja = new Set(Object.values(CATALOG).flat().map(x => `${x.name}|${x.club}|${x.year}`))
@@ -198,6 +200,30 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
         if (t.win !== esperado) falha(`playoff B: vencedor errado (${t.aggA}×${t.aggB} deu ${t.win})`)
       }
       if (JSON.stringify(computePlayoffB(tb, s.seed + k, 1)) !== JSON.stringify(po)) falha('playoff B: mesma semente, playoff diferente')
+    }
+  }
+  // 🏆 LIBERTADORES REAL: os 47 clubes de 2026 fecham time com cartas do PRÓPRIO clube; páginas na ordem real (1ª, 2ª, 3ª fase,
+  // 6 rodadas de grupo, oitavas, quartas, semi, final); 2 jogos por confronto até a semi e 1 na final; mesma semente = mesma
+  {
+    const { computeLibertadoresCarreira, fabricaTimesOficiais } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+    const { vagasLiberta } = await vite.ssrLoadModule('/src/escalacao/libertadores-oficial.ts')
+    const v = vagasLiberta(null)
+    const fab = fabricaTimesOficiais(mundo, s.seed)
+    const sem = [...v.grupos, ...v.fase2, ...v.fase1].filter((n: string) => !fab(n))
+    if (sem.length) falha(`Libertadores: ${sem.length} clube(s) sem time no baralho do modo: ${sem.join(', ')}`)
+    else {
+      const lib = computeLibertadoresCarreira(v, mundo, s.seed, 1)
+      if (!lib) falha('Libertadores: não montou')
+      else {
+        const fases = lib.rounds.map((r: { name: string }) => r.name.split(' · ')[1]).join('|')
+        if (fases !== '1ª fase|2ª fase|3ª fase|Fase de grupos|Fase de grupos|Fase de grupos|Fase de grupos|Fase de grupos|Fase de grupos|Oitavas de final|Quartas de final|Semifinal|Final') falha(`Libertadores: páginas ${fases}`)
+        const pernas = lib.rounds.map((r: { ties: { legs: unknown[] }[] }) => r.ties[0].legs.length).join('')
+        if (pernas !== '2221111112221') falha(`Libertadores: jogos por página ${pernas}`)
+        for (const r of lib.rounds) for (const t of r.ties) if (t.a.xi.length !== 11 || t.b.xi.length !== 11) { falha(`Libertadores: ${t.a.name} × ${t.b.name} sem 11 em campo`); break }
+        const fin = lib.rounds[lib.rounds.length - 1].ties[0]
+        if ((fin.win === 'a' ? fin.a.name : fin.b.name) !== lib.resultado.campeao) falha('Libertadores: o vencedor da final não é o campeão')
+        if (JSON.stringify(computeLibertadoresCarreira(v, mundo, s.seed, 1)?.resultado) !== JSON.stringify(lib.resultado)) falha('Libertadores: mesma semente, torneio diferente')
+      }
     }
   }
   // 🔁 três temporadas seguidas: as séries chegam no TAMANHO REAL de cada ano (2027: C 24 · 2028: C 28 · D sempre 96)
