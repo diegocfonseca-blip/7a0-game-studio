@@ -10,6 +10,15 @@
   Brasil manda 7, são 46 clubes, e o 32º lugar dos grupos fica com o melhor eliminado da 3ª fase (escolha minha pra fechar a conta).
 - ✅ Feito depois: prêmio por etapa (6·10·14·20·30·60, régua da Liberta internacional), festa de campeão (a `FestaCampeao` 'liberta'),
   calendário real, botão 'Começar o jogo da Libertadores', grupos em grade que se ajusta.
+- ✅ 16/11 (Diego: *"tem que ter os escudos… e os jogadores… famoso, bom ou ruim… senão os reais de hoje… não passará pra rápida e
+  salas online"*): **escudos oficiais** de 62 clubes de fora (32 da Liberta + 30 da Sula; sem acervo: Nacional Potosí, U. Católica-EQU,
+  Guabirá, Libertad-EQU, Macará, Alianza Atlético e América de Cali → selo B) e **22+ cartas reais em TODOS os 77 clubes de fora**
+  (lotes `cartas-conmebol-5..9` e `-s1..s9`, ~1.440 cartas; o elenco é sorteado entre elas). Trava nova:
+  `npx tsx scripts/confere-repetidos-conmebol.mts` (a mesma pessoa não pode estar em dois clubes do baralho do modo).
+- ✅ 16/11: **SUL-AMERICANA REAL** (`sul-americana-oficial.ts` + `computeSulaCarreira`): 56 clubes, 1ª fase por país, 8 grupos, playoff
+  com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
+  vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ⏭️ Falta a festa de campeão da Sula (não há arte
+  'sula' no `competicoes-visual`) e conferir na tela.
 - ⏭️ Falta: linha da Libertadores na Sala de Troféus/perfil, artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
