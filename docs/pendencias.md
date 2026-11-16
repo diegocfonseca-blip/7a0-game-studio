@@ -1,3 +1,11 @@
+## 🧱 16/11 — Chelsão / VPSMF8: nova sala herdava o Envelope Único anterior — CORREÇÃO PREPARADA
+
+- Identificada a sala dos prints: só o pacote GOL e dez lendas grátis por time. Antes dela, JTUXBJ ainda estava no Envelope Único aberto.
+- Reprodução no reducer confirmou: START_ONLINE desligava envUnico, mas a limpeza das quatro flags temporárias tinha ficado dentro de um comentário; o leilão normal fechava como se todas as posições já tivessem sido disputadas.
+- Restaura apenas essa limpeza na criação. Teste antes/depois: agora passa pelas cinco posições e convoca os jogadores dos pacotes; 24 transições entre modos preservadas, sem alterar salas reais.
+- Detalhes: `docs/chelsao-troca-leilao-20261116.md`; trava: `scripts/testa-troca-leilao-online.mts`. Preparada em branch separado, ainda sem publicação.
+- Build completo, regras existentes do Envelope Único e 16 cenários do simulador online passaram; nenhum dado de produção foi alterado.
+
 ## 📡 16/11 — Custos Realtime: presença idêntica sem retransmissão — TESTADA, PUBLICAÇÃO AUTORIZADA
 
 - Diego aprovou apenas a primeira medida: ignorar listas de presença exatamente iguais, mantendo entradas/saídas, UIDs, duplas, pedidos de recuperação e heartbeat.

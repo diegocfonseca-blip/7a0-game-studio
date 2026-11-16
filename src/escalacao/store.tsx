@@ -9362,7 +9362,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
       // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
-      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; // 👑 11/11: na Kings também (Diego: *"cadê o envelope único?"*) s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
+      // 👑 11/11: na Kings também (Diego: *"cadê o envelope único?"*).
+      s.envUnico = !action.career && !action.duplasMode && !!action.envUnico
+      // 🛟 16/11, VPSMF8: sala nova não herda a fase do Envelope Único da sala anterior.
+      s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
       // 📋 LIGA DRAFT (19/10): a 1ª temporada é o leilão de sempre, mas só com profissional e bom — o MESMO filtro da
       // Várzea, só que no baralho Todos e SEM virar sala de Várzea (nada de campo de terra; ordem do Diego).
