@@ -185,3 +185,14 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   Desempate CBF: pontos → vitórias → saldo → gols → confronto direto (2 empatados) → sorteio. Pesquisa em `formatos-futuros.md`.
   INCERTOS que ficaram com escolha provisória (anotada no código): grupos da 2ª fase da C 2027, final da C 2027 em ida e volta,
   formato da 2ª fase da C 2028 e quem cai (3 por grupo), chaveamento da D, pênalti no playoff da D.
+- ✅ **15/11 (noite, 4): o modo já roda as séries no formato REAL** — `simulaTemporadaOficial` (B playoff depois da 38ª, C em
+  fases, D com os 96 em grupos + mata-mata, datas espalhadas nas 38 rodadas sem spoiler), **aba Tabelas no formato real**
+  (mockup `scripts/mockups/brasil-oficial-tabelas.png` aprovado), **escudo oficial** dos clubes reais dentro da carreira do modo,
+  e **acesso/queda pelo regulamento** (`promocoesOficial`). Trava: 3 temporadas seguidas chegam em C 24 (2027) e C 28 (2028), D 96.
+  Carreira de sempre idêntica (prova: `npx tsx scripts/foto-simulacao-piramide.mts`, hash aeb8ae13…).
+- ⏭️ **Falta (tarefa seguinte): o usuário JOGAR o formato real da própria série** — playoff da B na tela (hoje é simulado
+  sozinho e aparece no quadro), C (turno único → 2ª fase → final) e D (grupos → mata-mata). Até lá começar em C ou D fica
+  travado com aviso; A e B abertos. ⚠️ Quem cair da A pra B no fim da temporada 1 cai numa B normal; o playoff dele seria
+  simulado sozinho. Quem cair até a C antes disso ficaria numa C sem tela própria — prioridade antes de publicar.
+- Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
+  Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.

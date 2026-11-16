@@ -55,8 +55,9 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
   const clube = CLUBES_BR_TODOS.find(c => c.nome === sel) ?? null
   // ⏳ a Série D REAL (grupos + mata-mata) ainda não roda: começar num clube dela fica travado com aviso — nada de cair numa D
   // de mentira (regra do Diego: tudo real). Liga quando o motor da D entrar.
-  const SERIE_D_PRONTA = false
-  const travadoD = clube?.div === 'D' && !SERIE_D_PRONTA
+  // (15/11, noite) a C também: as fases dela já rodam no fundo, mas jogar a 2ª fase e a final NA SUA tela ainda não
+  const SERIE_D_PRONTA = false, SERIE_C_PRONTA = false
+  const travadoD = (clube?.div === 'D' && !SERIE_D_PRONTA) || (clube?.div === 'C' && !SERIE_C_PRONTA)
   // as cartas do modo descem quando esta tela abre; até chegarem, o botão de começar fica travado
   const [baralho, setBaralho] = useState<BaralhoOficial | null>(baralhoOficial())
   const [erro, setErro] = useState(false)
@@ -110,7 +111,7 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
           </div>
         </div>
       )}
-      {travadoD && <p style={{ margin: '12px 0 0', fontSize: 12.5, fontWeight: 700, textAlign: 'center' }}>🔒 {tr('A Série D de verdade (grupos + mata-mata) está sendo montada. Logo dá pra começar com este clube.', 'The real Série D (groups + knockouts) is being built. You can start with this club soon.')}</p>}
+      {travadoD && <p style={{ margin: '12px 0 0', fontSize: 12.5, fontWeight: 700, textAlign: 'center' }}>🔒 {clube?.div === 'C' ? tr('A Série C de verdade (turno único, 2ª fase e final) está sendo montada na sua tela. Logo dá pra começar com este clube.', 'The real Série C (single round robin, 2nd phase and final) is being built. You can start with this club soon.') : tr('A Série D de verdade (grupos + mata-mata) está sendo montada. Logo dá pra começar com este clube.', 'The real Série D (groups + knockouts) is being built. You can start with this club soon.')}</p>}
       <button disabled={!clube || !baralho || travadoD} onClick={() => clube && baralho && !travadoD && onEscolher(clube.nome)} style={{ ...caixa, marginTop: 14, width: '100%', background: GREEN, color: '#fff', padding: 12, ...OSW, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', cursor: baralho && !travadoD ? 'pointer' : 'not-allowed', opacity: baralho && !travadoD ? 1 : 0.6 }}>
         ⚽ {tr(`Começar com o ${clube?.nome ?? ''}`, `Start with ${clube?.nome ?? ''}`)}
       </button>
