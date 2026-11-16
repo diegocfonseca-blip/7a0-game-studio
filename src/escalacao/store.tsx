@@ -5892,6 +5892,7 @@ type Action =
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
   | { type: 'OFICIAL_PRONTO' } // 🇧🇷 as cartas do Brasil Oficial baixaram (baralho-oficial-carga.ts)
+  | { type: 'ESTADUAL_FEITO'; estadual: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] } } // 🏟️ Brasil Oficial: o estadual da temporada terminou na tela
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'LIGA_RECEPCAO_M2' } // somente a conta autorizada, a partir do próximo jogo de liga
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
@@ -7827,7 +7828,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial'] as const satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais'] as const satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -7837,6 +7838,7 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const meu = clubeOficial(nome)
   if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C' && meu.div !== 'D')) return false // só-estadual não dá pra escolher (regra do Diego, 15/11)
   s.oficial = { clube: meu.nome, desde: 1 }
+  s.oficialEstaduais = undefined // 🏟️ estaduais são desta carreira
   s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
   s.deckLeague = 'todos'; setActiveCatalog('todos', false, undefined, true)
   const cat = ACTIVE_CATALOG
@@ -10999,6 +11001,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       const marco = marcoNovaRecepcaoM2(s, loggedEmail())
       if (marco) s.motor2RecepcaoDesde = marco
       return s
+    }
+    case 'ESTADUAL_FEITO': {
+      // 🏟️ grava UMA vez por temporada (a tela pode mandar de novo num recarregar)
+      if (!s.oficial || (s.oficialEstaduais ?? []).some(e => e.temporada === action.estadual.temporada)) return s
+      return { ...s, oficialEstaduais: [...(s.oficialEstaduais ?? []), action.estadual].slice(-60) }
     }
     case 'OFICIAL_PRONTO': {
       // 🇧🇷 as cartas do Brasil Oficial acabaram de baixar: reancora o baralho e roda a atualização de ficha que ficou esperando
