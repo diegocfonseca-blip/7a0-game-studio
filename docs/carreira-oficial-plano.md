@@ -202,5 +202,10 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   casa do pior, empate no agregado = melhor campanha, sem pênalti) entra como página pós-temporada na MESMA esteira da Supercopa
   (placar, Manual, campinho, motor novo no seu jogo) e é ELE que decide o acesso (`oficialEfetivo`); o quadro e o "subiu/ficou"
   só aparecem depois de jogado. Os gols do playoff não entram na artilharia (nem da liga nem da Copa) — anotado como pendente.
+- ✅ **16/11 (madrugada): SÉRIE D NA TELA** — dava pra escolher clube da D e a carreira caía na de SEMPRE (leilão de estreia):
+  `iniciaBrasilOficial` só aceitava A/B/C. Agora a D começa no modo, com a "turma" de 20 = o seu grupo inteiro + 14 da D sorteados
+  pela semente (os outros 76 entram pelo nome). Testado no navegador: grupos → 2ª, 3ª, 4ª fase, quartas, semi, final e playoff de
+  acesso, até a decisão da próxima temporada. Temporada da C também até o fim (com a trava da 38ª sem jogo seu consertada).
+  C e D continuam travadas no site (abrem só no servidor de teste com `window.__boTesteC`/`__boTesteD`).
 - Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
   Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.
