@@ -210,5 +210,12 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
 - ✅ **16/11: SÉRIES C e D DESTRAVADAS** na escolha de clube (`SERIE_C_PRONTA`/`SERIE_D_PRONTA = true`); o playoff da B testado na
   tela com o seu clube (chave de teste `window.__boForcaPlayoff`), e a manchete do O Martelo agora sai do desfecho real
   (`headlineOficial`). Task 22 FECHADA — o modo continua só na conta do Diego e só no branch (não está na main).
+- ⏭️ **Próximo (ordem do Diego, "Ok faça tudo")**: 2) estaduais → 3) Copa do Brasil real → 4) Libertadores/Sul-Americana/Supercopa/
+  Intercontinental → 5) troféus (mockup) → 6) detalhes. **Os estaduais vêm ANTES da Copa** porque são eles que dão as 102 vagas
+  dela a partir de 2027 (em 2026 a lista real dos 126 já está na mestra: 28 na 1ª fase, 74 na 2ª, 4 na 3ª, 20 da A na 5ª).
+  Estadual na tela = tela nova → mockup antes. Proposta: o estadual abre a temporada (jan–mar, igual ao real), como fase própria
+  antes da 1ª rodada da Série, com o placar/tabela de sempre; os 17 formatos estão em `competicoes-reais.md` (13 conferidos).
+  Prêmio da Copa do Brasil real: `copaBrasilRewards` paga por profundidade a partir do FIM da chave (a de 9 fases encaixa nos
+  mesmos 8 degraus de hoje sem mexer em quem já joga a de 6).
 - Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
   Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.
