@@ -370,6 +370,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
    leem.
 
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
+- **♻️ USAR O QUE O JOGO JÁ TEM (16/11, regra permanente).** Palavras dele: *"muitas coisas que já temos você pode usar igual, como
+  motor de leilão, de jogos, padrões visuais… jogabilidade e etc"*. Modo novo (Brasil Oficial incluso) usa o leilão de sempre, o motor
+  de partida de sempre (`simDivTo`/motor novo/`LiveScoreCard`/Campo 2D), as telas e componentes da repaginada e a mesma jogabilidade
+  (Manual, intervalo, pênalti, coletiva, calendário…). O que muda é só a REGRA por cima (formato, vagas, quem sobe). Mesma linha do
+  "o leilão é sempre o de sempre" (Kings) e do "tela de competição nova = as mesmas peças da Copa" (carreira internacional).
 - **📱🖥️ TODA TELA NOVA = NO PADRÃO REPAGINADO E CONFERIDA NO CELULAR E NO COMPUTADOR (16/11, regra permanente).** Palavras
   dele: *"você sempre tem que estar analisando o visual que a gente já utiliza no nosso jogo… padronizando e repaginado… cada
   tela deve funcionar bem para dispositivo móvel e bem para desktop"*. Antes de dar uma tela por pronta: (1) olhar como as telas
