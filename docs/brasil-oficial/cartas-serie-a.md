@@ -23,8 +23,6 @@ Todos os nomes foram conferidos contra `baralho-brasil-atual.txt` (nome e apelid
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Reinaldo | LAT | 2025 | 3 | 68 | 79 | Lateral-esquerdo que chegou em janeiro de 2025 e saiu do ano do 4º lugar histórico com a Bola de Prata de melhor lateral. | Left-back who arrived in January 2025 and left the historic 4th-place year with the Bola de Prata as the best full-back. | https://pt.wikipedia.org/wiki/Reinaldo_Manoel_da_Silva | também tem carta em São Paulo 2020 (baralho Brasil); não é o Reinaldo do Atlético-MG 1977 |
-| Alex Muralha | GOL | 2024 | 2 | 60 | 72 | Goleiro de três passagens pelo Leão Caipira — fechou 2024 como o 3º jogador com mais jogos da história do clube. | Goalkeeper with three spells at Mirassol — ended 2024 as the 3rd most-capped player in club history. | https://pt.wikipedia.org/wiki/Alex_Muralha | também tem carta em Flamengo 2017 (baralho Brasil) |
 
 ## Remo (1 → 12)
 
@@ -46,7 +44,6 @@ Todos os nomes foram conferidos contra `baralho-brasil-atual.txt` (nome e apelid
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Alef Manga | ATA | 2026 | 2 | 62 | 73 | Ponta-esquerda contratado pra volta do Remo à Série A em 2026, campeão da Supercopa Grão-Pará no mesmo ano. | Left winger signed for Remo's 2026 Série A return, Supercopa Grão-Pará winner that same year. | https://pt.wikipedia.org/wiki/Alef_Manga | também tem carta em Coritiba 2022 (baralho Brasil) |
 
 ## Red Bull Bragantino (4 → 11)
 
@@ -64,7 +61,6 @@ Todos os nomes foram conferidos contra `baralho-brasil-atual.txt` (nome e apelid
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Fabrício Bruno | ZAG | 2021 | 3 | 66 | 77 | Zagueiro do Massa Bruta vice da Sul-Americana de 2021 — eleito pra seleção do torneio junto com Léo Ortiz e Artur. | Bragantino centre-back in the 2021 Sudamericana runner-up side — named in the team of the tournament with Léo Ortiz and Artur. | https://pt.wikipedia.org/wiki/Fabr%C3%ADcio_Bruno | também tem carta em Cruzeiro 2025 (baralho Brasil) |
 
 ## Chapecoense (7 → 12)
 

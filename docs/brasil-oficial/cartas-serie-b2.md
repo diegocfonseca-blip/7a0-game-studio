@@ -27,8 +27,6 @@ Posições: volante = MEI · ponta = ATA. (~) = posição deduzida pela ordem da
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Fernandão | MEI | 1999 | 4 | 80 | 87 | Cria do Esmeraldino, ainda meia, ganhou cinco Goianos, duas Copas Centro-Oeste e a Série B antes de virar o Capitão América do Inter. | Goiás academy product who, still a midfielder, won five state titles, two Copa Centro-Oeste and the Série B before becoming Inter's "Captain America". | https://pt.wikipedia.org/wiki/Fernand%C3%A3o | também tem carta em Internacional 2006 (baralho Brasil) |
-| Rafael Tolói | ZAG | 2010 | 3 | 66 | 77 | Zagueiro da base esmeraldina, um dos destaques do Goiás vice-campeão da Sul-Americana de 2010. | Goiás academy centre-back, one of the standouts as Goiás reached the 2010 Sudamericana final. | https://pt.wikipedia.org/wiki/Rafael_Tol%C3%B3i | também tem carta em São Paulo 2014 (baralho Brasil) |
 
 > Amaral (xará): é Willian José de Souza (TM id 53788), outra pessoa — o Amaral do baralho é o do Corinthians 1998.
 
@@ -52,7 +50,6 @@ Posições: volante = MEI · ponta = ATA. (~) = posição deduzida pela ordem da
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Nenê | MEI | 2023 | 3 | 66 | 76 | Chegou aos 41 anos, foi eleito o melhor meia da Série B de 2023 e levou o Ju de volta à Série A. | Arrived aged 41, was voted the best midfielder of the 2023 Série B and took Juventude back to the top flight. | https://pt.wikipedia.org/wiki/Nen%C3%AA_(futebolista) | também tem carta em Vasco 2018 (baralho Brasil) |
 
 ## Londrina (tinha 0 → +13)
 
@@ -135,8 +132,6 @@ Posições: volante = MEI · ponta = ATA. (~) = posição deduzida pela ordem da
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Oscar | ZAG | 1977 | 4 | 78 | 85 | Bola de Prata da Ponte vice-paulista de 1977 — de lá virou titular da Seleção na Copa de 1978. | Bola de Prata winner with the 1977 Paulista runners-up Ponte Preta — and from there a Brazil starter at the 1978 World Cup. | https://pt.wikipedia.org/wiki/Oscar_Bernardi | também tem carta em São Paulo 1980 (baralho Brasil); não é o Oscar do Chelsea |
-| Luís Fabiano | ATA | 2000 | 3 | 66 | 77 | Cria da Macaca, foi artilheiro do time no Paulistão de 2000 com 11 gols — aí o São Paulo foi buscar. | Ponte Preta academy striker, the team's top scorer in the 2000 Paulistão with 11 goals — then São Paulo came for him. | https://pt.wikipedia.org/wiki/Lu%C3%ADs_Fabiano | também tem carta em São Paulo 2003 e Sevilla 2007 (baralhos Brasil e Europa) |
 
 ## São Bernardo (São Bernardo FC) (tinha 0 → +11)
 

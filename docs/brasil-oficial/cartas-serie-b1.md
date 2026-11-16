@@ -28,9 +28,6 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Euller (Filho do Vento) | ATA | 1993 | 3 | 67 | 78 | Cria do Coelho, ganhou ali o apelido de "Filho do Vento" e o Mineiro de 1993, o primeiro título da carreira. | America academy product who earned the "Son of the Wind" nickname there and the 1993 Mineiro, his first career title. | https://pt.wikipedia.org/wiki/Euller | também tem carta em Vasco 1998 (baralho Brasil) |
-| Gilberto Silva | MEI | 1997 | 3 | 66 | 77 | Largou a fábrica de doces pra voltar ao futebol em 1997 e já na primeira temporada foi o principal jogador do Coelho. | Quit a sweet factory to return to football in 1997 and was America's main player in his very first season. | https://pt.wikipedia.org/wiki/Gilberto_Silva | também tem carta em Atlético-MG 2002 e Arsenal 2004 (baralhos Brasil e Europa) |
-| Fred | ATA | 2004 | 3 | 68 | 79 | Revelado pelo Coelho, fez o gol mais rápido da história na Copinha de 2003 e foi vice-artilheiro do Mineiro de 2004 com 12 gols. | America academy striker who scored the fastest goal ever at the 2003 Copinha and was runner-up scorer in the 2004 Mineiro with 12. | https://pt.wikipedia.org/wiki/Frederico_Chaves_Guedes | também tem carta em Fluminense 2012 (baralho Brasil) |
 
 ## Athletic Club (São João del-Rei/MG) — 12 novas
 
@@ -70,7 +67,6 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Marlon Freitas | MEI | 2022 | 2 | 63 | 74 | Volante titular indiscutível do Dragão por três temporadas, campeão goiano em 2020 e 2022 antes de ir pro Botafogo. | The Dragon's undisputed starting midfielder for three seasons, Goiás champion in 2020 and 2022 before joining Botafogo. | https://pt.wikipedia.org/wiki/Marlon_Freitas | também tem carta em Botafogo 2024 (baralho Brasil) |
 
 ## Avaí — 12 novas
 
@@ -92,7 +88,6 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Vladimir | GOL | 2019 | 2 | 60 | 72 | Goleiro emprestado pelo Santos que fechou o gol do Avaí campeão catarinense de 2019 — e voltou em 2021. | Goalkeeper on loan from Santos who guarded Avaí's goal in the 2019 Santa Catarina title — and came back in 2021. | https://pt.wikipedia.org/wiki/Vladimir_(futebolista) | também tem carta em Santos 2015 (baralho Brasil) |
 
 ## Botafogo-SP (Ribeirão Preto) — 12 novas
 
@@ -115,8 +110,6 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Sócrates | MEI | 1976 | 4 | 79 | 89 | O Doutor começou no Pantera conciliando bola e faculdade de Medicina — e foi artilheiro do Paulistão de 1976 com 15 gols. | The Doctor started at Botafogo-SP juggling football and medical school — and was the 1976 Paulistão top scorer with 15 goals. | https://pt.wikipedia.org/wiki/S%C3%B3crates_(futebolista) | também tem carta em Corinthians 1983 (baralho Brasil) |
-| Raí | MEI | 1987 | 3 | 68 | 79 | Começou no Pantera aos 15 anos escondendo que era irmão do Sócrates — e de lá foi chamado pra Seleção na Copa América de 1987. | Started at Botafogo-SP aged 15 hiding that he was Sócrates' brother — and from there was called up for the 1987 Copa América. | https://pt.wikipedia.org/wiki/Ra%C3%AD | também tem carta em São Paulo 1992 (baralho Brasil) |
 
 ## Ceará (já tem 8: Apodi LAT, Zina MEI, 6 ATA) — 7 novas
 
@@ -150,8 +143,6 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Gum | ZAG | 2022 | 2 | 61 | 73 | Capitão desde a estreia em 2020, ficou quatro temporadas e 175 jogos e saiu como um dos ídolos da história recente do CRB. | Captain from his 2020 debut, stayed four seasons and 175 games and left as one of CRB's recent idols. | https://pt.wikipedia.org/wiki/Gum_(futebolista) | também tem carta em Fluminense 2012 (baralho Brasil) |
-| Neto Baiano | ATA | 2017 | 2 | 62 | 73 | Centroavante de três temporadas no CRB — artilheiro do time na Série B de 2017 com 8 gols. | Centre-forward with three seasons at CRB — the team's top scorer in the 2017 Série B with 8 goals. | https://pt.wikipedia.org/wiki/Neto_Baiano | também tem carta em Vitória 2009 (baralho Brasil) |
 
 ## Criciúma — 13 novas
 
@@ -175,7 +166,6 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Paulo Baier | LAT | 2002 | 3 | 66 | 77 | Ainda lateral-direito, fez três gols na final contra o Fortaleza e deu ao Tigre o título da Série B de 2002 — foi lá que virou "Paulo Baier". | Still a right-back, he scored a hat-trick in the final against Fortaleza to win Criciúma the 2002 Série B — and that's where he became "Paulo Baier". | https://pt.wikipedia.org/wiki/Paulo_Baier | também tem carta em Goiás 2005 (baralho Brasil) |
 
 ## Cuiabá — 12 novas
 
@@ -186,7 +176,7 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Matheus Alexandre | LAT | 2023 | 1 | 54 | 68 | Lateral-direito do elenco do Cuiabá em 2023. | Right-back in Cuiabá's 2023 squad. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2022/plus/1 |
 | Alan Empereur | ZAG | 2022 | 2 | 60 | 72 | Campeão da Libertadores pelo Palmeiras que virou muralha em Cuiabá. | Libertadores winner with Palmeiras who became a wall in Cuiabá. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2021/plus/1 |
 | Bruno Alves | ZAG | 2024 | 2 | 60 | 72 | Zagueiro rodado de clube grande que chegou do Grêmio. | Big-club centre-back who came from Grêmio. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2023/plus/1 |
-| Pepê | MEI | 2021 | 2 | 61 | 73 | Peça-chave do meio do Cuiabá na estreia na Série A. | Key midfield piece in Cuiabá's Série A debut. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2020/plus/1 |
+| Pepê | MEI | 2021 | 2 | 61 | 73 | Peça-chave do meio do Cuiabá na estreia na Série A. | Key midfield piece in Cuiabá's Série A debut. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2020/plus/1 — xará (outra pessoa, não é o Pepe do Santos 1962) |
 | Raniele | MEI | 2023 | 2 | 61 | 73 | Volante do Dourado que saiu dali direto pro Corinthians. | Golden One holding mid who went from there straight to Corinthians. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2022/plus/1 |
 | Rafael Gava | MEI | 2023 | 1 | 55 | 69 | Meia do elenco do Dourado em 2023. | Midfielder in the Golden One's 2023 squad. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2022/plus/1 |
 | Élton | ATA | 2021 | 2 | 60 | 72 | Centroavante do acesso de 2020 que seguiu no ataque na estreia na Série A. | Centre-forward from the 2020 promotion who stayed up front for the Série A debut. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2020/plus/1 + https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2019/plus/1 |
@@ -198,7 +188,6 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Deyverson | ATA | 2023 | 3 | 63 | 74 | Centroavante do Dourado na Série A — no 3 a 0 sobre o Flamengo em 2023 fez seu 4º gol contra o rubro-negro. | Cuiabá centre-forward in the Série A — in the 3-0 over Flamengo in 2023 he scored his 4th goal against them. | https://pt.wikipedia.org/wiki/Deyverson | também tem carta em Palmeiras 2021 (baralho Brasil) |
 
 ## Xarás (aprovados pelo dono: mesmo nome de carta existente, OUTRA pessoa) — 6 novas
 

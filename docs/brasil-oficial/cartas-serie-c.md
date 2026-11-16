@@ -190,8 +190,6 @@ Já no baralho Brasil: Roberto Firmino MEI 2010, Creedence ATA 2005. Novas: 9.
 | Fernandes | MEI | 2006 | 3 | 65 | 77 | Maior artilheiro da história do Figueirense: 108 gols em 403 jogos. | Figueirense's all-time top scorer: 108 goals in 403 games. | https://pt.wikipedia.org/wiki/Rodrigo_Fernandes_Valete |  |
 | Aldrovani | ATA | 2000 | 2 | 60 | 72 | Atacante marcado como Grande Ídolo na lista de jogadores notáveis do Figueira. | Striker marked as a Great Idol among Figueirense's notable players. | https://pt.wikipedia.org/wiki/Aldrovani + https://pt.wikipedia.org/wiki/Figueirense_Futebol_Clube |  |
 | Schwenck | ATA | 2006 | 2 | 61 | 73 | O Schwenckchenko, que fez dupla de sucesso com o Soares no Figueira em 2005 e 2006. | "Schwenckchenko", who formed a hit strike partnership with Soares at Figueirense in 2005 and 2006. | https://pt.wikipedia.org/wiki/Schwenck + https://pt.wikipedia.org/wiki/Figueirense_Futebol_Clube |  |
-| Filipe Luís | LAT | 2004 | 2 | 62 | 73 | Cria do Figueira que morou no alojamento do Scarpelli, bicampeão catarinense (2003 e 2004) antes de ir pro Ajax. | Figueirense academy kid who lived in the Scarpelli dorms, two-time state champion (2003 and 2004) before joining Ajax. | https://pt.wikipedia.org/wiki/Filipe_Lu%C3%ADs | também tem carta em Flamengo 2019 e Atlético de Madrid 2014 (baralhos Brasil e Europa) |
-| Edmundo | ATA | 2005 | 4 | 80 | 87 | Chegou aos 34 anos, foi artilheiro do Figueira no Brasileiro de 2005 e fez hat-trick nos 5 a 1 sobre o Vasco. | Arrived aged 34, was Figueirense's top scorer in the 2005 league and hit a hat-trick in a 5-1 win over Vasco. | https://pt.wikipedia.org/wiki/Edmundo_(futebolista) | também tem carta em Vasco 1997 e Fiorentina 1998 (baralhos Brasil e Europa) |
 
 ## Floresta
 
@@ -226,9 +224,6 @@ Já no baralho Brasil: Fumagalli MEI 2012, Amoroso ATA 1994, Evandro Roncatto AT
 | Tite | MEI | 1986 | 2 | 60 | 72 | Antes de virar técnico da Seleção, foi volante do Guarani vice-campeão brasileiro de 1986. | Before coaching Brazil, he was a holding midfielder for Guarani's 1986 Brazilian runners-up. | https://pt.wikipedia.org/wiki/Tite_(treinador_de_futebol) |  |
 | Bozó | ATA | 1978 | 2 | 63 | 75 | Ponta-esquerda do Bugre campeão brasileiro de 1978. | Left winger of Guarani's 1978 Brazilian champions. | https://pt.wikipedia.org/wiki/Bozó + https://pt.wikipedia.org/wiki/Guarani_Futebol_Clube |  |
 | Jorge Mendonça | ATA | 1981 | 3 | 66 | 78 | Chegou pra tapar o buraco do Renato e virou artilheiro do título da Taça de Prata de 1981. | Came in to fill Renato's boots and ended up top scorer of the 1981 Taça de Prata title. | https://pt.wikipedia.org/wiki/Jorge_Mendonça |  |
-| Careca | ATA | 1978 | 4 | 80 | 88 | Promovido aos profissionais aos 17 anos, fez o gol do título do Bugre campeão brasileiro de 1978. | Promoted to the first team at 17, he scored the title-winning goal for Guarani's 1978 Brazilian championship. | https://pt.wikipedia.org/wiki/Careca_(futebolista) | também tem carta em São Paulo 1986 e Napoli 1988 (baralhos Brasil e Europa) |
-| Evair | ATA | 1988 | 4 | 80 | 87 | Revelado no Bugre, perdeu a artilharia do Brasileiro de 1986 por um gol e foi artilheiro do Paulistão de 1988 com 19. | Guarani academy striker who missed the 1986 league golden boot by one goal and topped the 1988 Paulistão with 19. | https://pt.wikipedia.org/wiki/Evair | também tem carta em Palmeiras 1993 (baralho Brasil) |
-| Djalminha | MEI | 1994 | 4 | 80 | 87 | Bola de Prata em 1993, fez 21 gols no Paulistão de 1994 e formou o trio famoso com Amoroso e Luizão. | Bola de Prata in 1993, scored 21 in the 1994 Paulistão and formed a famous trio with Amoroso and Luizão. | https://pt.wikipedia.org/wiki/Djalminha | também tem carta em Palmeiras 1996 (baralho Brasil) |
 
 ## Inter de Limeira
 
@@ -283,7 +278,6 @@ Já no baralho Brasil: nenhuma. Novas: 11.
 | Gabriel Martinelli | ATA | 2019 | 2 | 61 | 75 | Começou no Ituano em 2018 antes de virar Arsenal e Seleção. | Started at Ituano in 2018 before becoming Arsenal and Brazil. | https://pt.wikipedia.org/wiki/Gabriel_Martinelli |  |
 | Roni | ATA | 2021 | 1 | 50 | 64 | Atacante do Galo de Itu na campanha do título da Série C de 2021. | Ituano forward in the 2021 Série C title run. | https://www.transfermarkt.com.br/ituano-futebol-clube-sp-/kader/verein/4773/saison_id/2020/plus/1 |  |
 | Bruno Mezenga | ATA | 2026 | 1 | 49 | 63 | Centroavante veterano do Ituano na Série C de 2026. | Veteran Ituano centre-forward in the 2026 Série C. | https://www.transfermarkt.com.br/ituano-futebol-clube-sp-/kader/verein/4773/saison_id/2025/plus/1 |  |
-| Juninho Paulista | MEI | 1993 | 3 | 66 | 77 | Revelado pelo Galo de Itu, jogou o Paulistão de 1993 e chamou a atenção do Telê, que o levou pro São Paulo. | Ituano academy product who played the 1993 Paulistão and caught Telê's eye, earning a move to São Paulo. | https://pt.wikipedia.org/wiki/Juninho_Paulista | também tem carta em São Paulo 1994 e Middlesbrough 1997 (baralhos Brasil e Europa) |
 
 ## Maranhão
 
@@ -337,9 +331,6 @@ Já no baralho Brasil: nenhuma. Novas: 12.
 | Zé Augusto | ATA | 2002 | 2 | 62 | 74 | O Terçado Voador: maior artilheiro do Paysandu no século XXI, com 90 gols. | The Flying Machete: Paysandu's top scorer of the 21st century, with 90 goals. | https://pt.wikipedia.org/wiki/Zé_Augusto_(futebolista) |  |
 | Vandick | ATA | 2002 | 2 | 63 | 75 | Relâmpago Baiano das conquistas da Série B de 2001 e da Copa dos Campeões de 2002. | The Bahia Lightning of the 2001 Série B and 2002 Copa dos Campeões triumphs. | https://pt.wikipedia.org/wiki/Vandick |  |
 | Cacaio | ATA | 1991 | 2 | 60 | 72 | Campeão e artilheiro da Série B de 1991 pelo Papão, com 14 gols. | Série B champion and top scorer with the Papão in 1991, with 14 goals. | https://pt.wikipedia.org/wiki/Cacaio |  |
-| Yago Pikachu | LAT | 2013 | 3 | 65 | 76 | Cria da Curuzu, foi destaque do Paraense invicto de 2013 com seis gols — e virou um dos ídolos do Papão. | Paysandu academy product who starred in the unbeaten 2013 Pará title with six goals — and became a club idol. | https://pt.wikipedia.org/wiki/Yago_Pikachu | também tem carta em Fortaleza 2021 (baralho Brasil) |
-| Robgol | ATA | 2003 | 3 | 67 | 78 | Fez 7 gols na Libertadores de 2003 e 15 no Brasileirão, três deles no 5 a 2 sobre o São Paulo — 91 gols pelo Papão. | Scored 7 in the 2003 Libertadores and 15 in the league, three in a 5-2 over São Paulo — 91 goals for Paysandu. | https://pt.wikipedia.org/wiki/Robgol | também tem carta em Bahia 2002 (baralho Brasil) |
-| Sandro Goiano | MEI | 2002 | 3 | 66 | 77 | Capitão do Papão tetracampeão paraense que ganhou a Série B de 2001, a Copa Norte e a Copa dos Campeões de 2002. | Captain of Paysandu's four-time Pará champions who won the 2001 Série B, the Copa Norte and the 2002 Copa dos Campeões. | https://pt.wikipedia.org/wiki/Sandro_Goiano | também tem carta em Grêmio 2005 (baralho Brasil) |
 
 ## Santa Cruz
 
@@ -352,7 +343,6 @@ Já no baralho Brasil: Givanildo Oliveira MEI 1976, Mazinho Deus Ébano MEI 1975
 | Danny Morais | ZAG | 2016 | 1 | 52 | 66 | Zagueiro do Tricolor do Arruda campeão do Nordeste em 2016. | Centre-back of the Santa Cruz side that won the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 |  |
 | Alemão | ZAG | 2016 | 1 | 51 | 65 | Zagueiro do elenco campeão do Nordeste em 2016. | Centre-back in the squad that won the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 | xará (não é o Alemão do Volta Redonda 2005 — este é profissional desde 2011; TM id 179020) |
 | Ramón | ATA | 1973 | 3 | 67 | 79 | Artilheiro do Brasileirão de 1973 com 21 gols e do penta pernambucano: 148 gols pelo Santa. | 1973 Brasileirão top scorer with 21 goals and star of five straight state titles: 148 goals for Santa. | https://pt.wikipedia.org/wiki/Ramón_da_Silva_Ramos |  |
-| Grafite | ATA | 2016 | 3 | 70 | 79 | Voltou pra casa e foi eleito o melhor da Copa do Nordeste e o craque do Pernambucano de 2016, os dois erguidos pelo Santa. | Came home and was voted best player of the Copa do Nordeste and of the 2016 Pernambucano, both won by Santa Cruz. | https://pt.wikipedia.org/wiki/Grafite_(futebolista) | também tem carta em São Paulo 2005 e Wolfsburg 2009 (baralhos Brasil e Europa) |
 | Rivaldo | MEI | 1991 | 3 | 68 | 79 | Começou no Santa ainda juvenil, assinou o primeiro contrato profissional em 1991 e saiu trocado por cinco jogadores do Mogi Mirim. | Started at Santa Cruz as a youngster, signed his first pro contract in 1991 and left in a swap for five Mogi Mirim players. | https://pt.wikipedia.org/wiki/Rivaldo | também tem carta em Palmeiras 1996 e Barcelona 1999 (baralhos Brasil e Europa); não é o Rivaldo do Trem (xará) |
 
 ## Volta Redonda

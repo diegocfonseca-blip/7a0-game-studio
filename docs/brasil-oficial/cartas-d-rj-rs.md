@@ -27,9 +27,6 @@ Já fecha time no baralho (2 GOL, 4 LAT, 5 ZAG, 5 MEI, 8 ATA). Só 2 cartas de 2
 |---|---|---|---|---|---|---|---|---|---|
 | Douglas Lima | MEI | 2026 | 1 | 52 | 64 | Meia canhoto do Bangu de 2026, contratado do Serrano. | Left-footed playmaker in Bangu's 2026 squad, signed from Serrano. | https://www.transfermarkt.com.br/bangu-atletico-clube-rj-/kader/verein/4745/saison_id/2025/plus/1 |  |
 | Patryck | ATA | 2026 | 1 | 52 | 64 | Centroavante de 2026 que atravessou o subúrbio: veio do Madureira. | 2026 centre-forward who just crossed the suburbs: he came from Madureira. | https://www.transfermarkt.com.br/bangu-atletico-clube-rj-/kader/verein/4745/saison_id/2025/plus/1 |  |
-| Domingos da Guia | ZAG | 1931 | 4 | 81 | 89 | O Divino Mestre foi lançado pelo Bangu no fim dos anos 1920 e chegou à Seleção em 1931 ainda com a camisa alvirrubra. | The "Divine Master" was launched by Bangu in the late 1920s and reached the national team in 1931 still in Bangu colours. | https://pt.wikipedia.org/wiki/Domingos_da_Guia · https://pt.wikipedia.org/wiki/Bangu_Atlético_Clube | também tem carta em Flamengo (baralho Brasil); no Bangu em 1929–1932 e 1948–1950 |
-| Zizinho | MEI | 1951 | 5 | 90 | 96 | Maior ídolo do Bangu: levou o time ao vice carioca de 1951 e fez 122 gols pelo clube, cinco deles num jogo só. | Bangu's greatest idol: led the team to second place in the 1951 Carioca and scored 122 goals for the club, five in a single game. | https://pt.wikipedia.org/wiki/Zizinho · https://pt.wikipedia.org/wiki/Bangu_Atlético_Clube | também tem carta em Flamengo (baralho Brasil); no Bangu de 1950 a 1957 |
-| Ademir da Guia | MEI | 1960 | 3 | 69 | 79 | Filho do Domingos, foi revelado pelo Bangu e eleito o melhor jogador da International Soccer League de 1960, nos Estados Unidos. | Son of Domingos, he came through at Bangu and was voted best player of the 1960 International Soccer League in the United States. | https://pt.wikipedia.org/wiki/Ademir_da_Guia · https://pt.wikipedia.org/wiki/Bangu_Atlético_Clube | também tem carta em Palmeiras (baralho Brasil); no Bangu em 1960–1961 (59 jogos, 14 gols) |
 
 ## Boavista-RJ
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -169,7 +166,6 @@ O maior ídolo (Claudio Milar) e o goleiro Eduardo Martini já estão no baralho
 | Marllon | MEI | 2025 | 1 | 52 | 64 | Meia ofensivo de 1,69 m do Guarany de 2025, chegado do Floresta. | 1.69 m attacking midfielder in Guarany's 2025 squad, arrived from Floresta. | https://www.transfermarkt.com.br/guarany-bage-futebol-clube/kader/verein/24903/saison_id/2024/plus/1 | (xará) — não é o Marllon zagueiro do Remo |
 | Luiz Felipe | MEI | 2026 | 1 | 52 | 64 | Meia canhoto do Guarany de 2026. | Left-footed playmaker in Guarany's 2026 squad. | https://www.transfermarkt.com.br/guarany-bage-futebol-clube/kader/verein/24903/saison_id/2025/plus/1 | xará (não é o Luiz Felipe centroavante da Tombense; TM id 548686) |
 | Wilson Júnior | ATA | 2025 | 1 | 52 | 64 | Ponta-direita do Guarany de 2025, vindo do Passo Fundo. | Guarany's 2025 right winger, from Passo Fundo. | https://www.transfermarkt.com.br/guarany-bage-futebol-clube/kader/verein/24903/saison_id/2024/plus/1 |  |
-| Adriano Gabiru | MEI | 2012 | 1 | 55 | 66 | O herói do Mundial de 2006 do Inter foi parar no Guarany de Bagé em 2012, pra jogar a Série C do Gauchão. | The hero of Inter's 2006 Club World Cup ended up at Guarany de Bagé in 2012, playing the third tier of the Gauchão. | https://pt.wikipedia.org/wiki/Guarany_Futebol_Clube | também tem carta em Internacional (baralho Brasil) |
 
 ## Inter-SM
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -236,7 +232,6 @@ Base: o campeão gaúcho de 2017 (bateu Grêmio na semi e Inter na final). O gol
 | Lucas Grafite | ATA | 2026 | 1 | 52 | 64 | Centroavante de 1,84 m do São José de 2026, vindo do Retrô. | 1.84 m centre-forward in São José's 2026 squad, from Retrô. | https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2025/plus/1 |  |
 | Igor Cássio | ATA | 2026 | 1 | 52 | 64 | Centroavante do Zequinha de 2026, contratado do Linense. | São José's 2026 centre-forward, signed from Linense. | https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2025/plus/1 |  |
 | Andrey Nunes | ATA | 2026 | 1 | 51 | 63 | Ponta-direita do São José em 2025 e 2026, chegado do Araucária. | Right winger for São José in 2025 and 2026, arrived from Araucária. | https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2025/plus/1 · https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2024/plus/1 |  |
-| Danrlei | GOL | 2007 | 2 | 62 | 73 | O goleiro ídolo do Grêmio chegou no meio do Gauchão de 2007: a contratação mais impactante da história do Zequinha. | The Grêmio idol keeper arrived mid-way through the 2007 Gauchão: the biggest signing in São José's history. | https://pt.wikipedia.org/wiki/Esporte_Clube_São_José | também tem carta em Grêmio (baralho Brasil) |
 
 ## São Luiz-RS
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |

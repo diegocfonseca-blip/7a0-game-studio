@@ -24,7 +24,6 @@ CSA e América-RN já fecham um time com as cartas que existem no baralho (CSA 2
 | Michel Douglas | ATA | 2026 | 1 | 53 | 65 | Centroavante que atravessou Alagoas: saiu do CSE e virou reforço do ASA em junho de 2026. | Centre-forward who crossed Alagoas: left CSE and joined ASA in June 2026. | https://www.transfermarkt.com.br/asa-de-arapiraca/kader/verein/20092/saison_id/2025/plus/1 |  |
 | Wandson | ATA | 2026 | 1 | 51 | 63 | Ponta-direita que chegou do Treze no começo de 2026 pra correr pelo lado do campo do Fantasma. | Right winger who arrived from Treze at the start of 2026 to run ASA's flank. | https://www.transfermarkt.com.br/asa-de-arapiraca/kader/verein/20092/saison_id/2025/plus/1 · https://pt.wikipedia.org/wiki/Agremiação_Sportiva_Arapiraquense |  |
 | Gustavo Ramos | ATA | 2026 | 1 | 51 | 63 | Ponta-direita que veio do Floresta em janeiro de 2026 pra cair pela direita do Fantasma. | Right winger who came from Floresta in January 2026 to bomb down ASA's right. | https://www.transfermarkt.com.br/asa-de-arapiraca/kader/verein/20092/saison_id/2025/plus/1 · https://pt.wikipedia.org/wiki/Agremiação_Sportiva_Arapiraquense |  |
-| Léo Gamalho | ATA | 2013 | 2 | 60 | 70 | Na Copa do Nordeste de 2013 fez o gol que classificou o ASA sobre o ABC nas quartas e mais três na semifinal contra o Ceará. | In the 2013 Copa do Nordeste he scored the goal that put ASA past ABC in the quarters and three more in the semi-final against Ceará. | https://pt.wikipedia.org/wiki/L%C3%A9o_Gamalho | também tem carta em Goiás (baralho Brasil) |
 
 ## Coruripe
 

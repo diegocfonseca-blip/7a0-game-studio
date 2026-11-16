@@ -718,11 +718,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   no baralho Europa) NÃO pode; Neymar Brasil + Neymar Europa pode. Antes de propor carta nova,
   conferir o baralho do clube e se a pessoa já está nele (script de conferência usado em 26/09:
   nome/sobrenome no mesmo baralho = conflito).
-  🇧🇷 **O BRASIL OFICIAL É UM BARALHO À PARTE (16/11, ele corrigiu: *"Jhon Arias não entrou por quê, se o baralho dele é Brasil?…
-  só disse que não pode no mesmo baralho"*).** As cartas do modo (`data-oficial.ts` + `docs/brasil-oficial/cartas-*.md`) formam o
-  baralho do Brasil Oficial: ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede a mesma pessoa de ter carta num clube
-  do modo (Jhon Arias Fluminense + Jhon Arias Atlético Nacional). Proibido é repetir DENTRO do baralho do Brasil Oficial. Trava:
-  `npx tsx scripts/confere-repetidos-conmebol.mts`.
+  🇧🇷 **NO BRASIL OFICIAL VALEM OS MESMOS 3 BARALHOS (16/11, ele corrigiu DUAS vezes; a 2ª: *"Eu disse que só pode no mesmo baralho e
+  não duas vezes… Neymar pode no Santos baralho Brasil, Neymar Barcelona Europa e Neymar Al Hilal do Mundo. É simples a regra"*).**
+  Carta do modo de clube BRASILEIRO é do baralho **Brasil**; de clube de FORA (Liberta/Sula) é do baralho **Mundo**. A pessoa que já tem
+  carta no baralho Brasil (data.ts) NÃO ganha outra num clube brasileiro do modo (Sócrates Corinthians ⇒ nada de Sócrates Botafogo-SP);
+  quem já está no Mundo não ganha outra em clube de fora (Maradona Boca ⇒ nada de Maradona Argentinos). Pode: Jhon Arias Fluminense
+  (Brasil) + Jhon Arias Santa Fe (Mundo). Xará (outra pessoa) passa, com "xará" escrito na linha do lote. Travas:
+  `npm run baralho-oficial` (3 baralhos) e `npx tsx scripts/confere-repetidos-conmebol.mts` (dentro do modo).
   ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
   Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 

@@ -27,6 +27,13 @@
   com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
   vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ⏭️ Falta a festa de campeão da Sula (não há arte
   'sula' no `competicoes-visual`) e conferir na tela.
+- ✅ 16/11 (noite) — **CORREÇÃO DA REGRA DO BARALHO** (Diego: *"Neymar pode no Santos baralho Brasil, Barcelona Europa e Al Hilal do Mundo… só
+  não duas vezes no mesmo"*). Eu tinha tratado o modo como baralho à parte e devolvido famosos que JÁ estavam no mesmo baralho. Agora:
+  clube brasileiro do modo = baralho Brasil, clube de fora = baralho Mundo. **119 cartas saíram** (Sócrates e Raí no Botafogo-SP, Careca
+  e Evair no Guarani, Djalma Santos, Félix, Zizinho, Jardel, Túlio, Maradona no Argentinos, Valderrama no Junior, Armani, Suárez,
+  Salas, Zamorano…); 5 xarás marcados (Digão Falcon, Adilson Baré, Rincón Luminense, Pepe Cuiabá). Todos os clubes seguem fechando
+  (D/estaduais com 11+, os de fora com 22+). Ficam os que estão em baralho DIFERENTE (ex.: Jhon Arias Santa Fe). Trava nova:
+  `npm run baralho-oficial`. CLAUDE.md corrigido.
 - ✅ 16/11 (noite): **Libertadores e Sul-Americana no Ranking e no Hall de Troféus** da carreira (só Brasil Oficial, lidas de
   `oficialCampeoes`): Liberta soma como Libertadores (50 pts, a mesma do ranking e da vaga da Copa do Mundo — as duas contas andam
   juntas); Sul-Americana ganha selo e caixa própria (vermelha) mas **0 ponto** até o Diego dizer quanto vale. ❓ Perguntar: quantos pontos?
