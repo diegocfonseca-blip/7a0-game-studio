@@ -129,6 +129,25 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
       if (!tempD.agenda.some((x: { casa: string; fora: string }) => x.casa === 'Galvez' || x.fora === 'Galvez')) falha('Série D: o seu clube sem jogo na agenda')
     }
   }
+  // 🏟️ o ESTADUAL do usuário vira as páginas da esteira (Remo → Parazão): toda página é do estadual, o Remo joga, todo time existe,
+  // mesma semente = mesmo estadual, e o campeão das páginas é o do resultado
+  {
+    const { computeEstadualCarreira, ehPaginaEstadual } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+    const e1 = computeEstadualCarreira('Paraense', mundo, s.seed, 1)
+    if (!e1 || !e1.rounds.length) falha('estadual: não montou as páginas do Parazão')
+    else {
+      if (!e1.rounds.every((r: { name: string }) => ehPaginaEstadual(r.name))) falha('estadual: página sem a marca do estadual')
+      const jogosRemo = e1.rounds.flatMap((r: { ties: { a: { name: string; you: boolean }; b: { name: string; you: boolean } }[] }) => r.ties).filter((t: { a: { name: string }; b: { name: string } }) => t.a.name === 'Remo' || t.b.name === 'Remo')
+      if (jogosRemo.length < 6) falha(`estadual: o Remo jogou só ${jogosRemo.length} jogos`)
+      if (!jogosRemo.some((t: { a: { you: boolean }; b: { you: boolean } }) => t.a.you || t.b.you)) falha('estadual: o Remo do usuário não está marcado como "você"')
+      const nomesP = new Set(e1.rounds.flatMap((r: { ties: { a: { name: string }; b: { name: string } }[] }) => r.ties.flatMap(t => [t.a.name, t.b.name])))
+      if (nomesP.size !== 12) falha(`estadual: Parazão com ${nomesP.size} clubes`)
+      for (const r of e1.rounds) for (const t of r.ties) if (t.a.xi.length !== 11 || t.b.xi.length !== 11) falha(`estadual: ${t.a.name} × ${t.b.name} sem 11 em campo`)
+      if (JSON.stringify(computeEstadualCarreira('Paraense', mundo, s.seed, 1)?.resultado) !== JSON.stringify(e1.resultado)) falha('estadual: mesma semente, estadual diferente')
+      const fin = e1.rounds[e1.rounds.length - 1].ties[0]
+      if ((fin.win === 'a' ? fin.a.name : fin.b.name) !== e1.resultado.campeao) falha('estadual: o vencedor da última página não é o campeão')
+    }
+  }
   // 🇧🇷 playoff da B NA TELA (`computePlayoffB`): 3º×6º e 4º×5º, ida na casa do pior, empate no agregado = melhor campanha, sem
   // pênalti; mesma semente = mesmo playoff; e o 1º e o 2º nunca jogam
   {

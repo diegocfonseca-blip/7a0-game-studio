@@ -91,6 +91,7 @@ import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 Brasil Ofic
 import { clubeOficial, cartasDoClube, sorteiaElenco, CLUBES_BR_OUTROS } from './brasil-oficial'
 const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c => c.nome)
 import { turnoUnico, turnoEReturno } from './campeonato-oficial'
+import { simulaEstadual, NOME_ESTADUAL, type ResultadoEstadual } from './estaduais'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
@@ -1845,6 +1846,106 @@ export function computePlayoffB(tabelaB: SimTeam[], seed: number, seasonNo: numb
       goals: [...g1, ...g2], legs: [[l1.hg, l1.ag], [l2.ag, l2.hg]] as [number, number][], legGoals: [g1, g2], legM2: legM2.some(Boolean) ? legM2 : undefined }
   })
   return { name: PLAYOFF_B, ties, slot: PLAYOFF_B_SLOT }
+}
+
+/** 🏟️ marca das páginas do ESTADUAL na esteira das copas (começam com isto) */
+export const ESTADUAL_PREFIXO = '🏟️ '
+export const ehPaginaEstadual = (nome?: string) => !!nome && nome.startsWith(ESTADUAL_PREFIXO)
+/**
+ * 🏟️ BRASIL OFICIAL · O ESTADUAL DO SEU CLUBE na carreira: monta o time de cada clube (os da pirâmide como estão; os só-estaduais
+ * pelo sorteio de sempre das cartas deles), joga o estadual no formato real (`estaduais.ts`) com a física das copas — e o motor
+ * novo no jogo do usuário — e devolve as PÁGINAS (`CopaRound`, uma por rodada/fase) que abrem a esteira da temporada, antes da
+ * 1ª rodada da Série. A escalação do usuário é a do slot 0 (antes da 1ª rodada). Determinístico (semente + temporada).
+ */
+export function computeEstadualCarreira(estadual: string, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2): { resultado: ResultadoEstadual; rounds: CopaRound[] } | null {
+  const todos = new Map<string, SimTeam>()
+  for (const d of DIVS) for (const t of world[d] ?? []) todos.set(t.name, t)
+  const base = catalogTodos(), CAT = baralhoOficial()
+  if (!CAT) return null
+  const cat = {} as Record<Sector, Card[]>
+  for (const p of SECTORS) { const vistas = new Set(base[p].map(c => `${c.name}|${c.club}|${c.year}`)); cat[p] = [...base[p], ...CAT[p].filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)] as unknown as Card[] }
+  const semente = (txt: string) => { let h = seed >>> 0; for (let i = 0; i < txt.length; i++) h = Math.imul(h ^ txt.charCodeAt(i), 0x01000193) >>> 0; return h }
+  const time = (nome: string): SimTeam | null => {
+    const t = todos.get(nome)
+    if (t) return t.human ? { ...t, xi: lineupAt(lineups, t.teamId, 0, t.squad, t.formation) } : t
+    const cl = clubeOficial(nome)
+    if (!cl) return null
+    const squad = sorteiaElenco(cartasDoClube(cl, cat), semente(cl.nome)).elenco.map((x, i) => ({ ...x.carta, pos: x.pos, id: `of-${x.pos}-${i}-${semente(nome) % 100000}` })) as unknown as PoolCard[]
+    const novo: SimTeam = { name: nome, you: false, human: false, rival: false, dorm: false, backstop: false, teamId: -1, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
+    todos.set(nome, novo)
+    return novo
+  }
+  const rng = mulberry((seed ^ Math.imul(seasonNo, 0x9E3779B1) ^ 0xE57AD0) >>> 0)
+  const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
+  const credit = (eq: PoolCard[], goals: number) => {
+    const evs: { name: string; min: number; id: string }[] = []
+    for (let g = 0; g < goals; g++) {
+      const pool = eq.filter(c => !ehFake(c)).map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0) * goalW(c) }))
+      const total = pool.reduce((s2, q) => s2 + q.w, 0); let r = rng() * total, pick = pool[0]?.c
+      for (const q of pool) { r -= q.w; if (r <= 0) { pick = q.c; break } }
+      const min = 1 + Math.floor(rng() * 90)
+      if (pick) evs.push({ name: pick.name, min, id: pick.id })
+    }
+    return evs
+  }
+  // o que cada partida foi (pra página da esteira): gols com autor e, no jogo do usuário, a entrada do motor novo
+  const det = new Map<string, { goals: Goal[]; m2?: EntradaM2 }>()
+  const chaveJ = (casa: string, fora: string, ctx: { fase: string; rodada: number; perna?: number }) => `${ctx.fase}|${ctx.rodada}|${ctx.perna ?? 0}|${casa}|${fora}`
+  let jogoN = 0
+  const joga = (casa: string, fora: string, ctx: { serie: string; fase: string; rodada: number; perna?: 1 | 2 }) => {
+    const H = time(casa), A = time(fora)
+    if (!H || !A) return { gc: 0, gf: 0 }
+    const th = TACS[Math.floor(rng() * 3)] as Tac, ta = TACS[Math.floor(rng() * 3)] as Tac
+    const fh = rollForm(H.xi, th, ta, rng), fa = rollForm(A.xi, ta, th, rng)
+    const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
+    fh.atk *= lkH; fh.def *= lkH; fa.atk *= lkA; fa.def *= lkA
+    const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
+    const G = realGoals ? GOAL_TUNE.v3 : GOAL_TUNE.v2
+    let hg = poisson(Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk)), rng)
+    let ag = poisson(Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk)), rng)
+    let hEvs: { name: string; min: number; id: string }[] = credit(H.xi, hg), aEvs = credit(A.xi, ag)
+    const jogo = ++jogoN
+    let m2: EntradaM2 | undefined
+    if (m2On && (H.human || A.human)) { const n = jogoCopaM2(seed, seasonNo, 'EST', jogo, H, A, th, ta, versao); m2 = n.e; hg = n.hg; ag = n.ag; hEvs = n.h.map(golCopaSemCarta); aEvs = n.a.map(golCopaSemCarta) }
+    det.set(chaveJ(casa, fora, ctx), { goals: [...hEvs.map(e => ({ ...e, home: true })), ...aEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min), m2 })
+    return { gc: hg, gf: ag }
+  }
+  // pênaltis: a disputa sorteada de verdade (placar e vencedor), guardada pra página mostrar o mesmo placar
+  const pensDe = new Map<string, [number, number]>()
+  const pen = (a: string, b: string, ctx: { fase: string }) => { const p = disputaPenaltis(rng); pensDe.set(`${ctx.fase}|${a}|${b}`, p); return p[0] > p[1] ? a : b }
+  const res = simulaEstadual(estadual, (seed ^ Math.imul(seasonNo, 0x85EBCA6B)) >>> 0, joga, pen)
+  if (!res) return null
+  const nomeEst = NOME_ESTADUAL[estadual] ?? estadual
+  const rounds: CopaRound[] = []
+  const T = (n: string) => todos.get(n)!
+  for (const f of res.fases) {
+    if (f.tabelas.length) {
+      // fase de pontos: uma página por rodada (jogo único, sem "classificado")
+      const js = res.jogos.filter(j => j.ctx.fase === f.nome)
+      const nRod = Math.max(0, ...js.map(j => j.ctx.rodada))
+      for (let r = 1; r <= nRod; r++) {
+        const ties: CopaTie[] = js.filter(j => j.ctx.rodada === r).map(j => {
+          const d = det.get(chaveJ(j.casa, j.fora, j.ctx))
+          return { a: T(j.casa), b: T(j.fora), aDiv: 'A' as Div, bDiv: 'A' as Div, aggA: j.gc, aggB: j.gf, win: j.gc >= j.gf ? 'a' as const : 'b' as const, goals: d?.goals ?? [], legs: [[j.gc, j.gf]] as [number, number][], legGoals: [d?.goals ?? []], legM2: d?.m2 ? [d.m2] : undefined }
+        })
+        if (ties.length) rounds.push({ name: `${ESTADUAL_PREFIXO}${nomeEst} · ${f.nome} · rodada ${r}/${nRod}`, ties, slot: 0 })
+      }
+    } else {
+      const ties: CopaTie[] = f.confrontos.map(c => {
+        // a = quem manda a ida (o pior em ida e volta; o mandante em jogo único) — o mesmo jeito da esteira das copas
+        const ida = c.jogos[0], volta = c.jogos[1]
+        const A0 = ida.casa, B0 = ida.fora
+        const d1 = det.get(chaveJ(ida.casa, ida.fora, ida.ctx)), d2 = volta ? det.get(chaveJ(volta.casa, volta.fora, volta.ctx)) : undefined
+        const g2 = (d2?.goals ?? []).map(g => ({ ...g, home: !g.home })) // na volta quem manda é o B
+        const aggA = ida.gc + (volta ? volta.gf : 0), aggB = ida.gf + (volta ? volta.gc : 0)
+        const legM2 = d1?.m2 || d2?.m2 ? [d1?.m2, d2?.m2].slice(0, volta ? 2 : 1) : undefined
+        return { a: T(A0), b: T(B0), aDiv: 'A' as Div, bDiv: 'A' as Div, aggA, aggB, pens: c.penaltis ? (() => { const p = pensDe.get(`${f.nome}|${c.a}|${c.b}`) ?? [5, 4]; const [pa, pb] = c.a === A0 ? p : [p[1], p[0]]; return [pa, pb] as [number, number] })() : undefined, win: c.vencedor === A0 ? 'a' as const : 'b' as const,
+          goals: [...(d1?.goals ?? []), ...g2], legs: volta ? [[ida.gc, ida.gf], [volta.gf, volta.gc]] : [[ida.gc, ida.gf]], legGoals: volta ? [d1?.goals ?? [], g2] : [d1?.goals ?? []], legM2 }
+      })
+      if (ties.length) rounds.push({ name: `${ESTADUAL_PREFIXO}${nomeEst} · ${f.nome}`, ties, slot: 0 })
+    }
+  }
+  return { resultado: res, rounds }
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
