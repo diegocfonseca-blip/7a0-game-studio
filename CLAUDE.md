@@ -718,6 +718,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   no baralho Europa) NÃO pode; Neymar Brasil + Neymar Europa pode. Antes de propor carta nova,
   conferir o baralho do clube e se a pessoa já está nele (script de conferência usado em 26/09:
   nome/sobrenome no mesmo baralho = conflito).
+  🇧🇷 **O BRASIL OFICIAL É UM BARALHO À PARTE (16/11, ele corrigiu: *"Jhon Arias não entrou por quê, se o baralho dele é Brasil?…
+  só disse que não pode no mesmo baralho"*).** As cartas do modo (`data-oficial.ts` + `docs/brasil-oficial/cartas-*.md`) formam o
+  baralho do Brasil Oficial: ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede a mesma pessoa de ter carta num clube
+  do modo (Jhon Arias Fluminense + Jhon Arias Atlético Nacional). Proibido é repetir DENTRO do baralho do Brasil Oficial. Trava:
+  `npx tsx scripts/confere-repetidos-conmebol.mts`.
   ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
   Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 
