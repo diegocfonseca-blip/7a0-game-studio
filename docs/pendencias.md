@@ -23,6 +23,14 @@
   ex.: versão velha aberta cruzando com o 3-4-3 novo). Agora formação desconhecida desenha como 4-3-3 (screens.tsx + baseSlots).
 - Pendente: reproduzir a virada liga → mata-mata da Kings com o dono em 1º (direto na semi) em sala manual/stream.
 
+## 🧔 16/11 — Batismo História dos Gigantes (will.a.n) — NO BRANCH, esperando OK pra publicar
+- Plano 🖋 Batismo (79,90, confirmado pelo Diego; não há Pix de batismo no banco, só 3 salas extras): tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº93.
+- Várzea, no lugar do bot Real Domingueira (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 339×360 28 KB · mascote "O Vovô Gigante" (nome dado por mim, confirmar) 440×432 41 KB · manto `#FEE9BD`/`#7A2B06` medidos na camisa · camisa na Loja (`hgigantes-camisa-v1.webp`).
+- Banco FEITO: `esc_socios` (93, `escudo_time` = História dos Gigantes, `time_coracao` vazio — não sabemos) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` ouro manual. A conta existia (criada 10/10).
+- Post: `scripts/posts/batismo-historia-dos-gigantes.png` (dono "Will" tirado do e-mail — confirmar o nome).
+- FALTA: deploy na main (só com o OK do Diego).
+
 ## 🐆 16/11 — Batismo Lavras FC (hugopereirabrito) — PUBLICADO
 - Plano 🖋 Batismo (79,90): tier ouro, **sem número de fundador** (está em `SEM_FUNDADOR`). Sócio nº92.
 - Várzea, no lugar do bot Galáticos do Bairro (`OLD_NAME` + `VARZEA_TEAMS`).
