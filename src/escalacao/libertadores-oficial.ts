@@ -205,3 +205,13 @@ export function simulaLibertadores(v: VagasLiberta, seed: number, joga: Joga, pe
   for (const f of [f3, f2, f1]) for (const t of f.perd) if (!out.includes(t)) out.push(t)
   return { estadual: NOME_LIBERTADORES, fases, jogos, campeao, vice, caem: [], classificacao: out, sulaGrupos: f3.perd, sulaPlayoff: terceiros }
 }
+
+/** 📅 o dia (mês, dia) de cada página da Libertadores, na ordem das páginas: 1ª, 2ª e 3ª fase, as 6 rodadas de grupo, oitavas,
+ *  quartas, semi e final. Fonte: calendário da Libertadores 2026 (pt.wikipedia): 1ª fase 3–12/fev, 2ª 17–26/fev, 3ª 3–12/mar,
+ *  grupos 7/abr–28/mai, oitavas 11–20/ago, quartas 8–17/set, semis 13–22/out, final 28/nov. Em ida e volta vale o dia da IDA.
+ *  ⚠️ INCERTO: o dia de cada rodada de grupo (a fonte só dá a janela 7/abr–28/mai) — aqui uma quarta a cada ~10 dias. */
+export const DATAS_LIBERTA: readonly [number, number][] = [
+  [2, 4], [2, 18], [3, 4],
+  [4, 8], [4, 15], [4, 22], [5, 6], [5, 20], [5, 27],
+  [8, 12], [9, 9], [10, 14], [11, 28],
+]

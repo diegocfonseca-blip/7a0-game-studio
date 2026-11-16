@@ -226,7 +226,7 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   fase vira uma página `CopaRound` com marca `estadual` e entra NA FRENTE da esteira da Copa (`copa.rounds`), tocada na rodada 0
   antes do "Começar a temporada"; a fase de liga não mostra "classificado"; (4) a tabela do estadual na coluna da direita só
   com o que já foi apitado; (5) a esteira da Copa no meio da temporada desloca pelo nº de páginas do estadual.
-  ⚠️ A partir de 2027 o estadual repete os clubes de 2026 (a Série A2 de cada estado não existe no modo) — perguntar ao Diego.
+  ⚠️ A partir de 2027 o estadual repete os clubes de 2026 (a Série A2 de cada estado não existe no modo) — ✅ 16/11 Diego: "sim", fica assim.
 - ✅ **16/11: ESTADUAL NA TELA** (só Brasil Oficial): na rodada 0 o botão vira "▶️ Começar o <estadual>"; as páginas tocam na esteira
   das copas (placar, Manual, campinho, motor novo no seu jogo), com a tabela do estadual ao vivo só com o que foi apitado e os
   outros jogos embaixo; jogo de pontos corridos não diz "avança". No fim grava `oficialEstaduais` (campeão, vice, rebaixados,
@@ -249,12 +249,12 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   (1ª fase 6, 2ª 16, 3ª 8 em ida e volta · 8 grupos de 4 em turno e returno · oitavas a semis ida e volta · final única, pênaltis).
   Temporada 1 = a lista REAL de 2026 (os 8 brasileiros e os 39 estrangeiros). Da 2ª em diante, as vagas brasileiras saem do ano
   anterior do modo: campeão da Copa + 1º–4º da Série A nos grupos, 5º e vice da Copa na 2ª fase, vaga repetida desce; o campeão da
-  Libertadores anterior tem vaga extra. Roda no fim da temporada, depois da Série e do playoff da B, na esteira das copas (placar,
+  Libertadores anterior tem vaga extra. Roda no calendário real (fev → nov), na esteira das copas (placar,
   Manual, campinho), com a tabela dos 8 grupos ao vivo. Estrangeiros com cartas reais do próprio clube (lotes
   `cartas-conmebol-1..4.md`). Trava: `npm run libertadores` + `npm run brasil-oficial`.
   ⚠️ INCERTO: (a) de 2027 em diante os estrangeiros continuam os de 2026 (o modo não joga as ligas deles); (b) campeão anterior
   ESTRANGEIRO: ele sobe pros grupos e a vaga extra fica com o Brasil (o próximo da Série A) — perguntar ao Diego; (c) potes e
-  sorteio das fases prévias por força, não pelo ranking da Conmebol; (d) a Liberta real corre de fev a nov, junto com a Série —
-  aqui ela vem em bloco depois da Série (como a carreira internacional de sempre).
+  sorteio das fases prévias por força, não pelo ranking da Conmebol; (d) ✅ 16/11 Diego: *"calendário real"* — cada página cai na semana do dia real (grupos: dia exato
+  de cada rodada INCERTO, uma quarta a cada ~10 dias entre 7/abr e 28/mai); a final (28/nov) passa da 38ª e fica pro fim.
   ⏭️ Falta: Sul-Americana (6º–12º + os eliminados da Liberta), Intercontinental real (Dérbi das Américas → Challenger → final
   contra o campeão europeu), festa/troféu da Liberta, e quem NÃO está na Liberta poder assistir.

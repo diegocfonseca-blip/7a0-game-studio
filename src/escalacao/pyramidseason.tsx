@@ -93,7 +93,7 @@ import { CLUBES_MESTRA } from './brasil-oficial-clubes'
 const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c => c.nome)
 import { turnoUnico, turnoEReturno, type Joga, type Penaltis } from './campeonato-oficial'
 import { simulaEstadual, NOME_ESTADUAL, ESTADUAIS, type ResultadoEstadual } from './estaduais'
-import { simulaLibertadores, vagasLiberta, ESTRANGEIROS_LIBERTA_2026, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
+import { simulaLibertadores, vagasLiberta, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
@@ -169,7 +169,7 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
 import { useColetiva, useCalendarioCarreira, useRaioX } from './sport'
-import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
+import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, anoDaTemporada, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
 import { useImagemBusto } from './presidente-avatar'
@@ -9770,10 +9770,11 @@ export function PyramidSeasonScreen() {
     const prev = state.oficialCampeoes?.find(e => e.temporada === n - 1)
     return prev?.serieATop ? vagasLiberta({ serieA: prev.serieATop, copa: prev.copa, copaVice: prev.copaVice, liberta: prev.liberta }) : null
   }, [state.oficial, state.seasonNo, state.oficialCampeoes])
-  // 🧪 só no servidor de teste (npm run dev): `window.__boLibertaJa = true` joga a Libertadores ANTES da temporada (pra ver as telas sem jogar 38 rodadas)
-  const libDev = import.meta.env.DEV && !!(window as unknown as { __boLibertaJa?: boolean }).__boLibertaJa && round === 0
-  const libertaCalc = useMemo(() => state.oficial && (done || libDev) && vagasLib ? computeLibertadoresCarreira(vagasLib, done ? tables : world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde < 38, recepcaoCopa) : null,
-    [state.oficial, done, libDev, vagasLib, tables, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 📅 16/11 (Diego: *"calendário real"*): ela nasce calculada na rodada 0 (como a Copa do Brasil com calendário) e cada página
+  // cai na semana do dia REAL dela (`DATAS_LIBERTA`) — da 1ª fase em fevereiro aos grupos em abril/maio e o mata-mata de agosto
+  // a outubro; a final (28/nov) passa da 38ª e fica pro fim da temporada. O elenco é o do mundo congelado da temporada.
+  const libertaCalc = useMemo(() => state.oficial && vagasLib ? computeLibertadoresCarreira(vagasLib, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null,
+    [state.oficial, vagasLib, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
   const meuNomeLib = state.managers[state.youIdx]?.teamName ?? ''
   const libertaMinha = !!libertaCalc && libertaCalc.resultado.classificacao.includes(meuNomeLib)
   // 🏟️ BRASIL OFICIAL · O ESTADUAL abre a temporada (mockup aprovado 16/11): antes da 1ª rodada da Série, o "Começar a temporada"
@@ -9794,15 +9795,34 @@ export function PyramidSeasonScreen() {
     const fora = prev.copa === prev.serieA ? prev.copaVice : prev.copa
     return fora ? computeSupercopaRei(prev.serieA, fora, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null
   }, [state.oficial, state.oficialCampeoes, state.seasonNo, round, estadualFeito, world, state.seed, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
-  const preRounds = useMemo(() => libDev && libertaCalc ? libertaCalc.rounds : [...(supercopaRei ? [supercopaRei] : []), ...(estadualCalc?.rounds ?? [])], [supercopaRei, estadualCalc, libDev, libertaCalc])
+  const preRounds = useMemo(() => [...(supercopaRei ? [supercopaRei] : []), ...(estadualCalc?.rounds ?? [])], [supercopaRei, estadualCalc])
   const estadualPendente = preRounds.length > 0 && !estadualFeito && !estadualOn
   const nomeEstadual = estadualNome ? (NOME_ESTADUAL[estadualNome] ?? estadualNome) : ''
+  // 📅 a esteira da temporada: as páginas do MEIO da temporada (Copa do Brasil + Libertadores) em ordem de semana, e depois as do
+  // fim (a final da Libertadores, que é em novembro, e o playoff da B). `semanasMeio[k]` = a rodada da Série em cuja semana a página
+  // k cai (a Copa do Brasil segue espalhada igual como sempre; a Libertadores no dia real).
+  const esteira = useMemo(() => {
+    const cb = copaBase?.rounds ?? []
+    const nCB = cb.filter(r => !foraDaCopa(r.name)).length
+    const meio: { r: CopaRound; s: number }[] = []
+    let k = 0
+    for (const r of cb) if (!foraDaCopa(r.name)) { meio.push({ r, s: Math.round((38 * (k + 1)) / (nCB + 1)) }); k++ }
+    const fim: CopaRound[] = []
+    if (libertaMinha && libertaCalc) {
+      const sn = state.seasonNo ?? 1, ano = anoDaTemporada(sn), r1 = diaDaRodada(sn, 1)
+      libertaCalc.rounds.forEach((r, i) => {
+        const [m, d] = DATAS_LIBERTA[i] ?? [12, 1]
+        const sem = Math.floor((Date.UTC(ano, m - 1, d) - r1) / (7 * 86400000)) + 1
+        if (sem <= 38) meio.push({ r, s: Math.max(1, sem) }); else fim.push(r)
+      })
+    }
+    meio.sort((a, b) => a.s - b.s) // estável: na mesma semana fica a ordem de cada competição
+    return { rounds: [...meio.map(x => x.r), ...cb.filter(r => foraDaCopa(r.name)), ...fim, ...(playoffB ? [playoffB] : [])], semanas: meio.map(x => x.s) }
+  }, [copaBase, playoffB, libertaMinha, libertaCalc, state.seasonNo])
   const copaComPlayoff = useMemo<CopaResult | null>(() => {
-    const extra = [...(playoffB ? [playoffB] : []), ...(libertaMinha ? libertaCalc!.rounds : [])]
-    return !extra.length ? copaBase
-      : copaBase ? { ...copaBase, rounds: [...copaBase.rounds, ...extra] }
-      : { rounds: extra, champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
-  }, [copaBase, playoffB, libertaMinha, libertaCalc])
+    if (!esteira.rounds.length) return copaBase
+    return copaBase ? { ...copaBase, rounds: esteira.rounds } : { rounds: esteira.rounds, champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
+  }, [copaBase, esteira])
   const copa = useMemo<CopaResult | null>(() => estadualOn && preRounds.length ? { rounds: preRounds, champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] } : copaComPlayoff, [estadualOn, preRounds, copaComPlayoff])
   const intlAuthReady = useInternacionalCarreiraAuthResolvida()
   const intlHistory = intlEnabled ? (state.careerInternationalHistory ?? []) : []
@@ -9940,8 +9960,9 @@ export function PyramidSeasonScreen() {
   // jogada na QUARTA da semana da rodada `copaSemanas[k]` da Liga. `copaMidOn` liga quando a quarta chega (no bloco do
   // calendário) e desliga quando a fase vira (copaRound sobe). A fase de quem já passou da semana dela conta como jogada
   // (abrir a carreira de novo não repete Copa velha).
-  const nCopaBase = copa ? copa.rounds.filter(r => !foraDaCopa(r.name)).length : 0
-  const copaSemanas = useMemo(() => Array.from({ length: nCopaBase }, (_, k) => Math.round((38 * (k + 1)) / (nCopaBase + 1))), [nCopaBase])
+  // (as semanas vêm da `esteira`: Copa do Brasil espalhada como sempre + Libertadores no dia real; durante o estadual não há meio)
+  const copaSemanas = useMemo(() => estadualOn ? [] : esteira.semanas, [estadualOn, esteira])
+  const nCopaBase = copaSemanas.length
   const copaPassadas = copaMid && !done ? copaSemanas.filter(r => r < round).length : 0
   const copaDevidas = copaMid && !done ? copaSemanas.filter(r => r <= round).length : 0
   const [copaMidOn, setCopaMidOn] = useState(false)
@@ -13768,7 +13789,7 @@ export function PyramidSeasonScreen() {
               {!(roteiroOn && tab === 'jogos') && !estadualOn && <nav className="ll29-phases" aria-label="Etapas da Copa">{copa.rounds.map((r,i)=>ehPaginaLiberta(r.name) ? null : <span key={i} aria-current={copaPlaying && i===copaRound ? 'step' : undefined}>{i<copaRound || copaFinished ? '✓ ' : ''}{r.name}</span>)}</nav>}
               {tab==='jogos' && !jogoTabela && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>}
               {libGruposOn && copa && <TabelaEstadualAoVivo pages={copa.rounds.slice(libIni)} ate={copaRound - libIni + (copaPos >= copaFaseTotal ? 1 : 0)} nome={NOME_LIBERTADORES} grupos={libGrupos} />}
-              {estadualOn && estadualCalc && !libDev && copaPlaying && !(copaFase?.name === SUPERCOPA_REI) && <TabelaEstadualAoVivo pages={estadualCalc.rounds} ate={copaRound - (supercopaRei ? 1 : 0) + (copaPos >= copaFaseTotal ? 1 : 0)} nome={nomeEstadual} />}
+              {estadualOn && estadualCalc && copaPlaying && !(copaFase?.name === SUPERCOPA_REI) && <TabelaEstadualAoVivo pages={estadualCalc.rounds} ate={copaRound - (supercopaRei ? 1 : 0) + (copaPos >= copaFaseTotal ? 1 : 0)} nome={nomeEstadual} />}
               {(tab==='tabelas' || jogoTabela) && <>
                 {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('CONFRONTOS DA FASE', 'TIES OF THE ROUND')}`}/>}
                 {copa.rounds.slice(0,copaFinished ? nCopaRounds : copaRound).map((r,i)=><details className="ll29-history" key={i}><summary>{r.name.toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name}/></details>)}
@@ -13790,7 +13811,7 @@ export function PyramidSeasonScreen() {
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${NOME_LIBERTADORES} · ${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>
                 {copa.rounds.slice(libIni, copaRound).reverse().filter(r => !r.ties[0]?.liga).map(r => <details className="ll29-history" key={r.name}><summary>{r.name.slice(LIBERTA_PREFIXO.length).toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name.slice(LIBERTA_PREFIXO.length)}/></details>)}
               </>
-              if (estadualOn && estadualCalc && !libDev && copaPlaying && copaFase && copaFase.name !== SUPERCOPA_REI) return <>
+              if (estadualOn && estadualCalc && copaPlaying && copaFase && copaFase.name !== SUPERCOPA_REI) return <>
                 <TabelaEstadualAoVivo pages={estadualCalc.rounds} ate={copaRound - (supercopaRei ? 1 : 0) + (copaPos >= copaFaseTotal ? 1 : 0)} nome={nomeEstadual} />
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${nomeEstadual} · ${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>
               </>

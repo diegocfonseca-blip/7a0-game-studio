@@ -1,11 +1,13 @@
 ## 🏆 16/11 — Brasil Oficial: LIBERTADORES REAL — feita no branch (não publicada)
 - Formato real de 2026 (47 clubes: 1ª/2ª/3ª fase ida e volta · 8 grupos de 4 · oitavas a semis ida e volta · final única). T1 = lista
   real de 2026; depois, vagas do ano anterior do modo (Copa + G4 nos grupos, 5º e vice da Copa na 2ª fase, vaga repetida desce, campeão
-  anterior com vaga extra). Roda depois da Série, na esteira das copas, com os 8 grupos ao vivo. 297 cartas reais de 28 clubes
+  anterior com vaga extra). Roda no calendário real, na esteira das copas, com os 8 grupos ao vivo. 297 cartas reais de 28 clubes
   estrangeiros (`docs/brasil-oficial/cartas-conmebol-1..4.md`). Travas: `npm run libertadores` e `npm run brasil-oficial`.
 - Testado no navegador (Flamengo, 1ª fase → final, PC 1280 e celular 390) com o atalho de teste `window.__boLibertaJa` (só no `npm run dev`).
-- ❓ Perguntas pro Diego: (1) carta do Juan Izquierdo (Liverpool-URU 2023, faleceu em 2024)? (2) campeão anterior estrangeiro: a vaga extra
-  fica com o Brasil? (3) Liberta em bloco depois da Série ou misturada nas rodadas (real é fev–nov)? (4) estaduais de 2027+ com os clubes de 2026?
+- ✅ Respostas do Diego (16/11): (1) carta do Juan Izquierdo **sim** (feita, bio só de futebol); (3) **calendário real** — cada página
+  da Liberta cai na semana do dia real (`DATAS_LIBERTA`), a final de 28/nov fica pro fim da temporada; (4) estaduais de 2027+ com os
+  clubes de 2026 **sim**. ❓ (2) ele não entendeu — reexpliquei (campeão de fora → a vaga extra do país dele vai pro próximo brasileiro
+  da Série A); esperando sim/não.
 - ⏭️ Falta: prêmio em moedas da Libertadores, troféu/festa de campeão e linha na Sala de Troféus, artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
