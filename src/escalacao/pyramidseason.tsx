@@ -7937,7 +7937,8 @@ function TabelaEstadualAoVivo({ pages, ate, nome, grupos }: { pages: CopaRound[]
     // 🏆 grupos (Libertadores): o SEU grupo primeiro, depois os outros, todos inteiros; verde = os 2 que vão às oitavas
     const meu = grupos.findIndex(g => g.times.some(t => L.get(t)?.you))
     const ordem = meu > 0 ? [grupos[meu], ...grupos.filter((_, i) => i !== meu)] : grupos
-    return <div className="ll29-table desk-grid2" style={{ marginTop: 10 }}>{ordem.map((g, gi) => caixa(`🏆 ${nome} · ${g.nome}`, rows.filter(r => g.times.includes(r.time)), gi === ordem.length - 1 ? tr('Só os jogos já apitados. Verde = vai às oitavas; o 3º cai pra Sul-Americana.', 'Only matches already played. Green = into the round of 16; 3rd drops to the Sudamericana.') : undefined))}</div>
+    // grade que se ajusta ao espaço: 2 por linha onde couber (página larga), 1 na coluna lateral do PC e no celular
+    return <div className="ll29-table" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', columnGap: 10 }}>{ordem.map((g, gi) => caixa(`🏆 ${nome} · ${g.nome}`, rows.filter(r => g.times.includes(r.time)), gi === ordem.length - 1 ? tr('Só os jogos já apitados. Verde = vai às oitavas; o 3º cai pra Sul-Americana.', 'Only matches already played. Green = into the round of 16; 3rd drops to the Sudamericana.') : undefined))}</div>
   }
   return (
     <div className="ll29-table" style={{ marginTop: 10 }}>
@@ -12913,7 +12914,7 @@ export function PyramidSeasonScreen() {
             onEscalacao={() => setTab('elenco')} onTatica={() => setTab('elenco')} />
         )}
         {/* ▶ 26/10: dia de jogo com o calendário — o jogo só começa no toque (vale pra todo plano, com ou sem Manual) */}
-        {esperandoInicio && tab === 'jogos' && <button className="ll-cx-controle" onClick={liberaJogo} style={{ width: '100%', marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 17, ...OSWALD, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{copaNaQuarta ? tr('▶ Começar o jogo da Copa', '▶ Start the Cup match') : tr('▶ Começar o jogo', '▶ Start the match')}</button>}
+        {esperandoInicio && tab === 'jogos' && <button className="ll-cx-controle" onClick={liberaJogo} style={{ width: '100%', marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 17, ...OSWALD, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{copaNaQuarta ? (ehPaginaLiberta(copa?.rounds[copaRound]?.name) ? tr('▶ Começar o jogo da Libertadores', '▶ Start the Libertadores match') : tr('▶ Começar o jogo da Copa', '▶ Start the Cup match')) : tr('▶ Começar o jogo', '▶ Start the match')}</button>}
         {/* 📺⚡ carreira em sala: o DONO troca 2D ↔ rápido (vale do próximo jogo/fase) — só aparece pra ele */}
         {!state.co2 && state.onlineMode === 'online' && !(seasonOver && !copaPlaying) && <TrocaCampo2DSala />}
         {!state.co2 && state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
