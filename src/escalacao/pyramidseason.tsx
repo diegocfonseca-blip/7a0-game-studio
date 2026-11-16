@@ -1959,6 +1959,15 @@ export function computeLibertadoresCarreira(vagas: VagasLiberta, world: Record<D
   const out = computeCompeticaoOficial({ nome: NOME_LIBERTADORES, prefixo: LIBERTA_PREFIXO, tag: 'LIB', sal: 0x11BE27, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaLibertadores(vagas, (seed ^ Math.imul(seasonNo, 0x27D4EB2F)) >>> 0, joga, pen, n => forca.get(n) ?? 0)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao)
   return out && res ? { resultado: res, rounds: out.rounds } : null
 }
+/** 💰 prêmio da Libertadores do Brasil Oficial pra um clube: a MESMA régua por etapa da Libertadores da carreira internacional
+ *  (`summarizeInternationalCampaign`, Diego 01/10): participou 6 · oitavas 10 · quartas 14 · semi 20 · vice 30 · campeão 60. */
+export function premioLibertadores(res: ResultadoLiberta, nome: string): number {
+  if (!res.classificacao.includes(nome)) return 0
+  if (res.campeao === nome) return 60
+  if (res.vice === nome) return 30
+  const caiuEm = (fase: string) => !!res.fases.find(f => f.nome === fase)?.confrontos.some(c => (c.a === nome || c.b === nome) && c.vencedor !== nome)
+  return caiuEm('Semifinal') ? 20 : caiuEm('Quartas de final') ? 14 : caiuEm('Oitavas de final') ? 10 : 6
+}
 function computeCompeticaoOficial(cfg: { nome: string; prefixo: string; tag: string; sal: number; slot: number; sim: (joga: Joga, pen: Penaltis) => ResultadoEstadual | null }, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2): { resultado: ResultadoEstadual; rounds: CopaRound[] } | null {
   const fab = fabricaTimesOficiais(world, seed)
   if (!fab) return null
@@ -10235,7 +10244,10 @@ export function PyramidSeasonScreen() {
     // 🥇 artilheiro com linha própria no extrato (17/10) — o dinheiro já está nos `rewards`, aqui ele ganha nome
     const artilheiros = artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, getLang() === 'en')
     const conquistas = conquistasDaTemporada(copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null) // 🎯 metas do Master
-    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), stadiumOcc, finalPos, artilheiros, conquistas })
+    // 🏆 Brasil Oficial: o prêmio da Libertadores (só do seu clube, que é quem tem caixa) entra junto
+    const lib: Record<number, number> = {}
+    if (libertaMinha && libertaCalc) { const v = premioLibertadores(libertaCalc.resultado, meuNomeLib); if (v) lib[youId] = v }
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), lib), stadiumOcc, finalPos, artilheiros, conquistas })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
