@@ -1,3 +1,10 @@
+## 📡 16/11 — Custos Realtime: presença idêntica sem retransmissão — CORREÇÃO PREPARADA
+
+- Diego aprovou apenas a primeira medida: ignorar listas de presença exatamente iguais, mantendo entradas/saídas, UIDs, duplas, pedidos de recuperação e heartbeat.
+- Filtro restrito a SET_PRESENCE, antes da cópia do estado; nenhuma alteração no protocolo, nas jogadas ou na coroa.
+- Dois EscProvider locais: cinco avisos iguais geravam cinco envios antes e zero depois; presença alterada e recuperação continuam enviando. Sem acesso a salas reais.
+- Detalhes e limites em `docs/presenca-identica-20261116.md`; bancada em `scripts/teste-presenca-identica/`. Economia mensal ainda não medida. Agrupamento de pedidos e sono da sala não entram nesta entrega.
+
 ## ⚽🎩 15/11 — Kings: pênalti do presidente igual ao pênalti do campinho — PUBLICADO
 - Diego: *"o chute tá feio… tem que ser igual pênalti mesmo do campinho, não o pulinho do presidente"*. Mockup
   `scripts/mockups/kings-penalti-presidente.png` (2ª versão com o campo da Kings: escuro, neon azul/rosa) → *"ok agora sim"*.
