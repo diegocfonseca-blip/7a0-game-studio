@@ -213,6 +213,8 @@ Todos os nomes foram conferidos contra as linhas BR, OFICIAL e REGIONAL do baral
 | Lima | ATA | 2013 | 3 | 68 | 79 | Maior artilheiro da história do Joinville (140 gols); em 2013 passou a marca do Nardela e foi o goleador do time na Série B. | Joinville's all-time top scorer (140 goals); in 2013 he broke Nardela's record and led the team's scoring in Série B. | https://pt.wikipedia.org/wiki/João_Maria_Lima_do_Nascimento · https://pt.wikipedia.org/wiki/Joinville_Esporte_Clube | xará: João Maria Lima do Nascimento; os "Lima" do Ceará 2021 e do América-RN 1998 no baralho são outras pessoas |
 | Osni Fontan | ATA | 1976 | 2 | 62 | 73 | Primeiro capitão e primeiro camisa 10 da história do JEC — ergueu a taça do Catarinense de 1976, logo no ano de fundação. | Joinville's first-ever captain and first number 10 — he lifted the 1976 state trophy in the club's very first year. | https://pt.wikipedia.org/wiki/Joinville_Esporte_Clube |  |
 | Mike | ATA | 2026 | 1 | 52 | 65 | Ponta-direita nascido em 1993, estava sem clube e achou casa no Joinville em abril de 2026, pra deixar o goleiro rival sem dormir. | Right winger born in 1993, was a free agent and found a home at Joinville in April 2026, to give rival keepers sleepless nights. | https://www.transfermarkt.com.br/joinville-ec-sc-/kader/verein/3330/saison_id/2025/plus/1 (elenco 25/26; contratado em 24/04/2026; perfil https://www.transfermarkt.com.br/mike/profil/spieler/227462 — Ponta-Direita) |  |
+| Perdigão | MEI | 2001 | 2 | 60 | 71 | Meia curitibano que vestiu a camisa do JEC em 2000–2001, os anos do bi catarinense. | Curitiba-born midfielder who wore Joinville's shirt in 2000–2001, the years of the back-to-back state titles. | https://pt.wikipedia.org/wiki/Perdigão_(futebolista) · https://pt.wikipedia.org/wiki/Joinville_Esporte_Clube | também tem carta em Internacional (baralho Brasil) |
+| Jael Cruel | ATA | 2014 | 2 | 60 | 71 | Centroavante contratado pra 2014, o ano do título da Série B que devolveu o JEC à elite. | Centre-forward signed for 2014, the year of the Série B title that took Joinville back to the top flight. | https://pt.wikipedia.org/wiki/Joinville_Esporte_Clube | também tem carta em Grêmio (baralho Brasil) |
 
 ## Marcílio Dias
 
@@ -227,7 +229,6 @@ Todos os nomes foram conferidos contra as linhas BR, OFICIAL e REGIONAL do baral
 | Lucas de Sá | MEI | 2026 | 1 | 51 | 64 | Meia ofensivo nascido em 1996, chegou do Brusque FC em março de 2026 pra ralar no meio-campo. | Attacking midfielder born in 1996, arrived from Brusque FC in March 2026 to grind it out in midfield. | https://www.transfermarkt.com.br/clube-nautico-marcilio-dias-sc-/kader/verein/4759/saison_id/2025/plus/1 (elenco 25/26; contratado em 13/03/2026; perfil https://www.transfermarkt.com.br/lucas-de-sa/profil/spieler/435339 — Meia Ofensivo) |  |
 | Roldan | MEI | 2026 | 1 | 51 | 64 | Meia nascido em 1996, chegou do Uberlândia EC em novembro de 2025 pra pensar o jogo e distribuir passe. | Midfielder born in 1996, arrived from Uberlândia EC in November 2025 to run the game and hand out passes. | https://www.transfermarkt.com.br/clube-nautico-marcilio-dias-sc-/kader/verein/4759/saison_id/2025/plus/1 (elenco 25/26; segue no clube hoje (coluna clube atual); perfil https://www.transfermarkt.com.br/roldan/profil/spieler/476354 — Meia Central) |  |
 | Lucas Batatinha | ATA | 2025 | 1 | 52 | 65 | Ponta-direita nascido em 1990, chegou do EC São Bento em agosto de 2024 pra estufar a rede. | Right winger born in 1990, arrived from EC São Bento in August 2024 to bulge the net. | https://www.transfermarkt.com.br/clube-nautico-marcilio-dias-sc-/kader/verein/4759/saison_id/2025/plus/1 (elenco 25/26; contratado em 23/08/2024, listado no elenco 25/26; perfil https://www.transfermarkt.com.br/lucas-batatinha/profil/spieler/537219 — Ponta-Direita) |  |
-| Luís Araújo | ATA | 2026 | 1 | 50 | 63 | Centroavante nascido em 2000, chegou do Itabirito FC em março de 2026 pra deixar o goleiro rival sem dormir. | Centre-forward born in 2000, arrived from Itabirito FC in March 2026 to give rival keepers sleepless nights. | https://www.transfermarkt.com.br/clube-nautico-marcilio-dias-sc-/kader/verein/4759/saison_id/2025/plus/1 (elenco 25/26; contratado em 17/03/2026; perfil https://www.transfermarkt.com.br/luis-araujo/profil/spieler/880119 — Centroavante) |  |
 | Rone Carlos | ATA | 2025 | 1 | 51 | 64 | Ponta-direita nascido em 1995, chegou do São José EC em outubro de 2025 pra estufar a rede. | Right winger born in 1995, arrived from São José EC in October 2025 to bulge the net. | https://www.transfermarkt.com.br/clube-nautico-marcilio-dias-sc-/kader/verein/4759/saison_id/2025/plus/1 (elenco 25/26; contratado em 17/10/2025, listado no elenco 25/26; perfil https://www.transfermarkt.com.br/rone-carlos/profil/spieler/673642 — Ponta-Direita) |  |
 | Zé Eduardo | ATA | 2025 | 1 | 50 | 63 | Centroavante nascido em 1999, chegou do Tombense FC em setembro de 2025 pra estufar a rede. | Centre-forward born in 1999, arrived from Tombense FC in September 2025 to bulge the net. | https://www.transfermarkt.com.br/clube-nautico-marcilio-dias-sc-/kader/verein/4759/saison_id/2025/plus/1 (elenco 25/26; contratado em 03/09/2025, listado no elenco 25/26; perfil https://www.transfermarkt.com.br/ze-eduardo/profil/spieler/738984 — Centroavante) |  |
 
@@ -263,10 +264,10 @@ Todos os nomes foram conferidos contra as linhas BR, OFICIAL e REGIONAL do baral
 | Camboriú | 1 | 2 | 3 | 3 | 3 | 12 |
 | Carlos Renaux | 1 | 2 | 2 | 4 | 3 | 12 |
 | Concórdia | 1 | 2 | 2 | 4 | 3 | 12 |
-| Joinville | 2 | 2 | 2 | 3 | 3 | 12 |
-| Marcílio Dias | 1 | 2 | 2 | 3 | 4 | 12 |
+| Joinville | 2 | 2 | 2 | 4 | 4 | 14 |
+| Marcílio Dias | 1 | 2 | 2 | 3 | 3 | 11 |
 | Santa Catarina | 1 | 2 | 2 | 4 | 3 | 12 |
-| **TOTAL** | | | | | | **174** |
+| **TOTAL** | | | | | | **175** |
 
 ## Descartados (com motivo)
 
@@ -284,7 +285,7 @@ Todos os nomes foram conferidos contra as linhas BR, OFICIAL e REGIONAL do baral
 - Natanael (LE, Joinville 2026) — é o mesmo Natanael do Coritiba 2021 (BR).
 - Jhony Douglas (Joinville 2026) — já está no Floresta 2026 (OFICIAL).
 - Gabriel Terra (Joinville 2026) — já está no Ypiranga 2026 (OFICIAL).
-- Perdigão (Joinville, gol na final de 2001) — o mesmo Perdigão do Internacional 2006 (BR).
+- Perdigão (Joinville, gol na final de 2001) — o mesmo Perdigão do Internacional 2006 (BR). ✅ voltou (16/11): baralho Brasil não impede carta no Brasil Oficial.
 - Valdir Appel (goleiro do Blumenau) — já está no Volta Redonda 1976 (OFICIAL).
 - Sidão (goleiro do Concórdia) — já está no São Paulo 2017 (BR).
 - Luís Carlos (goleiro do Andraus 2026) — provável mesmo Luís Carlos do Ceará 2015 (REGIONAL); sem certeza de que é outra pessoa, ficou fora.
@@ -309,7 +310,7 @@ Todos os nomes foram conferidos contra as linhas BR, OFICIAL e REGIONAL do baral
 - Daniel Frasson, Cabinho (Blumenau) — auge em Palmeiras/Fortaleza e Paysandu.
 - Fabinho Capixaba, Luiz Carlos Barbieri (Joinville) — auge em Palmeiras e Guarani.
 - Leandro Makelele (FC Cascavel 2017) — auge no Palmeiras/Santo André.
-- Jael (Joinville 2014) — já está no baralho como Jael Cruel (Grêmio).
+- Jael (Joinville 2014) — já está no baralho como Jael Cruel (Grêmio). ✅ voltou (16/11), com o nome "Jael Cruel".
 
 **Sem ano/posição confirmados em página aberta:**
 - Ídolos do Carlos Renaux listados na Wikipédia (Teixeirinha, Arno Mosimann, Afonsinho, Bologmini, Badinho, Petruscky…) — a página dá só o nome, sem ano; a página do Teixeirinha não abriu.
@@ -321,7 +322,12 @@ Todos os nomes foram conferidos contra as linhas BR, OFICIAL e REGIONAL do baral
 - Vinícius Michelon (Galo Maringá) — está no elenco 25/26 sem data de contratação e hoje já é do Paraná Clube: sem prova do ano.
 - Tharlis (Azuriz desde 2022) — não aparece nos elencos 2025/2026 do Transfermarkt; não precisou.
 
-**Duplicado entre clubes do lote (usado só uma vez):** Daniel Oliveira (Andraus × Foz), Hiago Monteiro (Foz × Cianorte), Ian Barreto (Joinville × Cascavel, não usado), Caio Mota (Blumenau × Concórdia), Welves (Blumenau × Carlos Renaux), Erverson (Joinville × Carlos Renaux, não usado), Lucas Mazetti (Galo × Marcílio, não usado), Golden (Carlos Renaux × Santa Catarina, não usado), João Augusto (Blumenau × Concórdia).
+**Duplicado entre clubes do lote (usado só uma vez):** Daniel Oliveira (Andraus × Foz), Hiago Monteiro (Foz × Cianorte), Ian Barreto (Joinville × Cascavel, não usado), Caio Mota (Blumenau × Concórdia), Welves (Blumenau × Carlos Renaux), Erverson (Joinville × Carlos Renaux, não usado), Lucas Mazetti (Galo × Marcílio, não usado), Golden (Carlos Renaux × Santa Catarina, não usado), João Augusto (Blumenau × Concórdia). **16/11:** Luís Araújo (Itabirito × Marcílio Dias, mesma pessoa — TM 880119, veio do Itabirito em mar/2026) estava nos dois lotes; ficou só no Itabirito (`cartas-d-mg-sp.md`) e saiu do Marcílio Dias.
 
 **Clubes mais fracos de fonte:** Andraus, Azuriz, Foz do Iguaçu, Galo Maringá, São Joseense, Blumenau, Camboriú, Carlos Renaux, Concórdia, Marcílio Dias e Santa Catarina só têm cartas do elenco 2026 (Transfermarkt) — a Wikipédia desses clubes não traz ídolo com ano e posição. Cascavel e Cianorte têm 3–4 ídolos; Joinville tem 7.
 
+## Dúvidas
+
+- **16/11 — ídolos que voltaram** (saíram antes só por ter carta no baralho Brasil, o que não impede carta no Brasil Oficial): Joinville ganhou Perdigão (2001, bi catarinense 2000/2001) e Jael Cruel (2014, título da Série B).
+- **16/11 — continuam fora:** Natanael, Sidão, Negreiros, Garrinsha (só elenco recente, sem marca no clube); Kempes (Joinville 2015, uma temporada só); Schwenck, Valdir Appel, Diego Jardel, Otacílio Neto, Ytalo, Jhony Douglas, Gabriel Terra, Alex Gonçalves, Matheus Cavichioli (já são carta do baralho do Brasil Oficial — mesma pessoa). Nos outros 13 clubes do lote a Wikipédia não traz nenhum ídolo com carta no baralho Brasil (Belletti fundou o FC Cascavel mas não jogou; os craques do Botafogo de 1958 e Roberto Dinamite/Rivellino só vieram em amistoso contra o Carlos Renaux).
+- **16/11 — Luís Araújo** saiu do Marcílio Dias: é a mesma pessoa da carta do Itabirito 2026 (lote MG-SP); o Marcílio fica com 11 cartas (3 ATA).

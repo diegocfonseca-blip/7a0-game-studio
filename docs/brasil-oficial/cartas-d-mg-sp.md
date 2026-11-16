@@ -165,13 +165,19 @@ Regras seguidas: ninguém aqui está no baralho Brasil (BR/OFICIAL/REGIONAL) nem
 | Toninho Guerreiro | ATA | 1962 | 2 | 64 | 75 | Cria de Bauru, fez 23 gols no Paulistão de 1962 pelo Noroeste e no fim do ano foi vendido ao Santos pra fazer dupla com Pelé. | A Bauru local, he scored 23 goals in the 1962 Paulistão for Noroeste and was sold at year's end to Santos to partner Pelé. | https://pt.wikipedia.org/wiki/Toninho_Guerreiro · https://pt.wikipedia.org/wiki/Esporte_Clube_Noroeste | ídolo histórico (seleção dos 100 anos); auge no Santos (mesmo estado, SP) |
 | Marlyson | ATA | 2026 | 1 | 55 | 66 | 8 gols em 19 jogos pelo Noroeste em 2026 — centroavante com faro pro barulho da rede. | 8 goals in 19 games for Noroeste in 2026 — a centre-forward with a nose for the sound of the net. | https://www.transfermarkt.com.br/esporte-clube-noroeste-sp-/leistungsdaten/verein/15047/reldata/%262025/plus/1 | TM: Centroavante, 19 jogos/8 gols em 2026 |
 | Pedro Felipe | ATA | 2026 | 1 | 53 | 65 | Centroavante que vestiu a camisa do Noroeste 16 vezes em 2026 e deixou 2 gols de lembrança. | A centre-forward who wore Noroeste's shirt 16 times in 2026 and left 2 goals as a souvenir. | https://www.transfermarkt.com.br/esporte-clube-noroeste-sp-/leistungsdaten/verein/15047/reldata/%262025/plus/1 | TM: Centroavante, 16 jogos/2 gols em 2026 |
+| Jairzinho | ATA | 1978 | 3 | 68 | 78 | O Furacão da Copa de 70 desembarcou em Bauru em 1978–79 e foi tratado como a grande contratação da história do Noroeste. | The Hurricane of the 1970 World Cup landed in Bauru in 1978–79 and was hailed as one of the biggest signings in Noroeste's history. | https://pt.wikipedia.org/wiki/Jairzinho · https://pt.wikipedia.org/wiki/Esporte_Clube_Noroeste | também tem carta em Botafogo (baralho Brasil); no Noroeste em 1978–1979 |
 
 ## Portuguesa
 
-O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 MEI, 7 ATA — Julinho, Enéas, Ipojucan, Brandãozinho…). Nenhuma carta nova necessária. Os ídolos que faltariam (Dener, Zé Roberto) já estão no baralho Brasil por outros clubes, então não podem entrar.
+O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 MEI, 7 ATA — Julinho, Enéas, Ipojucan, Brandãozinho…). **16/11:** ganhou os ídolos que tinham ficado de fora só por já terem carta no baralho Brasil (Dener, Zé Roberto, Djalma Santos, Félix, Leandro Amaral) — o Brasil Oficial é outro baralho, então podem entrar.
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
+| Djalma Santos | LAT | 1955 | 4 | 80 | 89 | Lateral-direito que despontou na Lusa: 510 jogos pela Portuguesa e bicampeão do Torneio Rio-São Paulo (1952 e 1955) antes de ir pro Palmeiras. | Right-back who broke through at Portuguesa: 510 games for the club and two Rio-São Paulo titles (1952 and 1955) before moving to Palmeiras. | https://pt.wikipedia.org/wiki/Djalma_Santos · https://pt.wikipedia.org/wiki/Associação_Portuguesa_de_Desportos | também tem carta em Palmeiras (baralho Brasil) |
+| Félix | GOL | 1962 | 3 | 69 | 79 | Goleiro que voltou à Lusa no fim de 1960 e foi titular absoluto de 1961 a 1963 — anos antes de ser o goleiro do tri no México. | Goalkeeper who returned to Portuguesa in late 1960 and was the undisputed starter from 1961 to 1963 — years before keeping goal for Brazil's 1970 World Cup win. | https://pt.wikipedia.org/wiki/Félix_Miélli_Venerando · https://pt.wikipedia.org/wiki/Associação_Portuguesa_de_Desportos | também tem carta em Fluminense (baralho Brasil) |
+| Dener | MEI | 1991 | 4 | 80 | 89 | O último grande craque da Lusa: campeão da Copa São Paulo de 1991 com gol na final e 101 jogos e 25 gols pelo time de cima. | Portuguesa's last great star: won the 1991 Copa São Paulo junior cup scoring in the final, then played 101 games and scored 25 goals for the first team. | https://pt.wikipedia.org/wiki/Dener_Augusto_de_Sousa · https://pt.wikipedia.org/wiki/Associação_Portuguesa_de_Desportos | também tem carta em Vasco (baralho Brasil); xará do Dener da Chapecoense 2016 (outra pessoa, lateral) |
+| Zé Roberto | MEI | 1996 | 3 | 69 | 79 | Revelado pela Lusa, jogou pela esquerda no time vice-campeão brasileiro de 1996 — o clube que, nas palavras dele, o projetou pro mundo. | A Portuguesa academy product who played on the left of the side that finished runner-up in the 1996 Brazilian league — the club he says launched him to the world. | https://pt.wikipedia.org/wiki/Zé_Roberto_(futebolista) · https://pt.wikipedia.org/wiki/Associação_Portuguesa_de_Desportos | também tem carta em Palmeiras e Bayern (baralho Brasil/Europa); xará do Zé Roberto do Atlético-GO 2021 (outra pessoa) |
+| Leandro Amaral | ATA | 1998 | 3 | 65 | 76 | Cria da Lusa que virou um dos maiores artilheiros da história do clube, com 105 gols. | Portuguesa academy striker who became one of the club's all-time top scorers, with 105 goals. | https://pt.wikipedia.org/wiki/Leandro_Câmara_do_Amaral · https://pt.wikipedia.org/wiki/Associação_Portuguesa_de_Desportos | também tem carta em Vasco (baralho Brasil); no time de cima de 1996 a 2000 |
 
 ## Primavera-SP
 
@@ -220,6 +226,7 @@ O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 
 | David Ribeiro | ATA | 2026 | 1 | 53 | 65 | 3 gols em 14 jogos pelo XV de Piracicaba em 2026 — ponta-esquerda com faro pro barulho da rede. | 3 goals in 14 games for XV de Piracicaba in 2026 — a left winger with a nose for the sound of the net. | https://www.transfermarkt.com.br/xv-de-piracicaba/leistungsdaten/verein/55335/reldata/%262025/plus/1 | TM: Ponta-Esquerda, 14 jogos/3 gols em 2026 |
 | Henry | ATA | 2026 | 1 | 51 | 63 | Centroavante que vestiu a camisa do XV de Piracicaba 13 vezes em 2026 e deixou 2 gols de lembrança. | A centre-forward who wore XV de Piracicaba's shirt 13 times in 2026 and left 2 goals as a souvenir. | https://www.transfermarkt.com.br/xv-de-piracicaba/leistungsdaten/verein/55335/reldata/%262025/plus/1 | TM: Centroavante, 13 jogos/2 gols em 2026 |
 | Paulo Marcelo | ATA | 2026 | 1 | 51 | 63 | 1 gol em 10 jogos pelo XV de Piracicaba em 2026 — centroavante com faro pro barulho da rede. | 1 goal in 10 games for XV de Piracicaba in 2026 — a centre-forward with a nose for the sound of the net. | https://www.transfermarkt.com.br/xv-de-piracicaba/leistungsdaten/verein/55335/reldata/%262025/plus/1 | TM: Centroavante, 10 jogos/1 gol em 2026 |
+| De Sordi | LAT | 1951 | 2 | 63 | 74 | Piracicabano que começou no XV em 1949 e saiu em 1952 pro São Paulo; está na seleção do centenário do XV. | Piracicaba-born right-back who started at XV in 1949 and left for São Paulo in 1952; he is in XV's centenary all-time team. | https://pt.wikipedia.org/wiki/Nílton_De_Sordi · https://pt.wikipedia.org/wiki/Esporte_Clube_XV_de_Novembro_(Piracicaba) | também tem carta em São Paulo (baralho Brasil); no XV de 1949 a 1952 |
 
 ## Água Santa
 
@@ -236,6 +243,7 @@ O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 
 | Levi | ATA | 2026 | 1 | 53 | 65 | Em 2026 somou 10 jogos e 6 gols pelo Água Santa; ponta-esquerda que não pede licença pra comemorar. | In 2026 he racked up 10 games and 6 goals for Água Santa; a left winger who never asks permission to celebrate. | https://www.transfermarkt.com.br/esporte-clube-agua-santa-sp-/leistungsdaten/verein/45176/reldata/%262025/plus/1 | TM: Ponta-Esquerda, 10 jogos/6 gols em 2026; xará (o Levi volante de outro lote é outra pessoa) |
 | João Guilherme | ATA | 2025 | 1 | 53 | 65 | Em 2025 somou 12 jogos e 7 gols pelo Água Santa; ponta-direita que não pede licença pra comemorar. | In 2025 he racked up 12 games and 7 goals for Água Santa; a right winger who never asks permission to celebrate. | https://www.transfermarkt.com.br/esporte-clube-agua-santa-sp-/leistungsdaten/verein/45176/reldata/%262024/plus/1 | TM: Ponta-Direita, 12 jogos/7 gols em 2025 · xará (não é o João Guilherme do Guarany-SE; TM id 808443) |
 | Gustavinho | ATA | 2026 | 1 | 50 | 61 | 3 gols em 10 jogos pelo Água Santa em 2026 — ponta-direita com faro pro barulho da rede. | 3 goals in 10 games for Água Santa in 2026 — a right winger with a nose for the sound of the net. | https://www.transfermarkt.com.br/esporte-clube-agua-santa-sp-/leistungsdaten/verein/45176/reldata/%262025/plus/1 | TM: Ponta-Direita, 10 jogos/3 gols em 2026 |
+| Neilton | ATA | 2024 | 2 | 62 | 73 | Ponta-esquerda cria do Água Santa que voltou pra casa em 2024 e marcou em São Januário no jogo contra o Vasco. | Left winger from Água Santa's academy who came home in 2024 and scored at São Januário against Vasco. | https://pt.wikipedia.org/wiki/Neilton_Mestzk · https://pt.wikipedia.org/wiki/Esporte_Clube_Água_Santa | também tem carta em Cruzeiro (baralho Brasil) |
 
 ## Totais por clube e posição
 
@@ -250,13 +258,13 @@ O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 
 | Uberlândia | 12 | 1 | 2 | 2 | 4 | 3 | 0 | sim |
 | URT | 11 | 1 | 2 | 2 | 3 | 3 | 0 | sim |
 | Capivariano | 11 | 1 | 2 | 2 | 3 | 3 | 0 | sim |
-| Noroeste | 12 | 1 | 2 | 2 | 4 | 3 | 0 | sim |
-| Portuguesa | 0 | 0 | 0 | 0 | 0 | 0 | 17 (2 GOL, 2 LAT, 2 ZAG, 5 MEI, 7 ATA — REGIONAL) | sim (já fechava) |
+| Noroeste | 13 | 1 | 2 | 2 | 4 | 4 | 0 | sim |
+| Portuguesa | 5 | 1 | 1 | 0 | 2 | 1 | 17 (2 GOL, 2 LAT, 2 ZAG, 5 MEI, 7 ATA — REGIONAL) | sim (já fechava) |
 | Primavera-SP | 11 | 1 | 2 | 2 | 3 | 3 | 0 | sim |
 | Velo Clube | 11 | 1 | 2 | 2 | 3 | 3 | 0 | sim |
-| XV de Piracicaba | 11 | 1 | 2 | 2 | 3 | 3 | 0 | sim |
-| Água Santa | 11 | 1 | 2 | 2 | 3 | 3 | 0 | sim |
-| **TOTAL** | **156** | **14** | **28** | **28** | **44** | **42** | | |
+| XV de Piracicaba | 12 | 1 | 3 | 2 | 3 | 3 | 0 | sim |
+| Água Santa | 12 | 1 | 2 | 2 | 3 | 4 | 0 | sim |
+| **TOTAL** | **164** | **15** | **30** | **28** | **46** | **45** | | |
 
 ## Descartados (com motivo)
 
@@ -268,8 +276,8 @@ O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 
 | Gatão, Vadinho | XV de Piracicaba | página da Wikipedia não abriu / sem página própria confirmando ano e posição |
 | Vivinho, Zé Carlos | Uberlândia 1984 | a página do clube não diz a posição |
 | Zé Carlos | Noroeste 1960 | página do clube não traz posição nem ano exato confirmado em ficha própria |
-| Dener, Zé Roberto | Portuguesa | já estão no baralho Brasil (Vasco 1994 / Palmeiras 2016) |
-| Vanderlei | Água Santa 2026 | goleiro ex-Santos, já no baralho (Santos 2017) |
+| Dener, Zé Roberto | Portuguesa | já estão no baralho Brasil (Vasco 1994 / Palmeiras 2016) — ✅ voltaram (16/11): baralho Brasil não impede carta no Brasil Oficial |
+| Vanderlei | Água Santa 2026 | goleiro ex-Santos, já no baralho (Santos 2017) — 16/11: continua fora, não marcou época no Água Santa (só elenco de 2026) |
 | Tomas Bastos | Uberlândia 2026 (10 gols) | já no baralho OFICIAL (Caxias 2026) |
 | Ligger, Afonso | Primavera-SP 2026 | mesmos nomes e posição já no OFICIAL (Itabaiana 2026 / Floresta 2026), provável mesma pessoa |
 | Felipe Azevedo, Wendel Lomar, Cássio Gabriel | Capivariano 2026 | já no OFICIAL (Botafogo-PB / Maringá / Anápolis 2026) |
@@ -293,3 +301,6 @@ O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 
 - **Gilmar Estevam (Democrata-GV 1991)**: artilheiro do Mineiro pelo Democrata; depois foi reserva no São Paulo campeão da Libertadores de 92. Considerei o Democrata o auge dele.
 - **Ditinho (URT 2000)**: o Transfermarkt mostra um "Ditinho" nascido em 1972 com 1 jogo pela URT no Mineiro 2026 (aos 54 anos!). Usei isso só como curiosidade na bio; a carta é a de 2000, confirmada na Wikipedia do clube.
 - **Ano das cartas de 2026**: Mineiro/Paulistão + Série D/Copa do Brasil 2026, pela página do Transfermarkt (que soma todas as competições do ano). Itabirito, Água Santa e parte dos goleiros usam 2025 quando o titular do clube foi de 2025.
+- **16/11 — ídolos que voltaram** (saíram antes só por ter carta no baralho Brasil/Europa, o que não impede carta no Brasil Oficial): Portuguesa ganhou Djalma Santos (1955), Félix (1962), Dener (1991), Zé Roberto (1996) e Leandro Amaral (1998); Noroeste ganhou Jairzinho (1978); XV de Piracicaba ganhou De Sordi (1951); Água Santa ganhou Neilton (2024, cria do clube).
+- **16/11 — ficaram de fora por já estarem no baralho do Brasil Oficial (mesma pessoa):** Evair (Portuguesa 1998 → já é carta do Guarani 1988), Clemer (Portuguesa 1996 → já é carta do Ferroviário-CE 1993) e Careca (já é carta do Guarani 1978). Alex Alves (Portuguesa 1996) ficou fora porque a Wikipédia mistura dois Alex Alves nessa época. Dadá Maravilha passou pelo XV em 1984–85, mas só 5 jogos — não entrou.
+- **Dener e Zé Roberto** levam "xará" na obs: no Brasil Oficial já existem um Dener (Chapecoense 2016, o lateral) e um Zé Roberto (Atlético-GO 2021), que são outras pessoas.

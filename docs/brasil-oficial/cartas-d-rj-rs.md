@@ -27,6 +27,9 @@ Já fecha time no baralho (2 GOL, 4 LAT, 5 ZAG, 5 MEI, 8 ATA). Só 2 cartas de 2
 |---|---|---|---|---|---|---|---|---|---|
 | Douglas Lima | MEI | 2026 | 1 | 52 | 64 | Meia canhoto do Bangu de 2026, contratado do Serrano. | Left-footed playmaker in Bangu's 2026 squad, signed from Serrano. | https://www.transfermarkt.com.br/bangu-atletico-clube-rj-/kader/verein/4745/saison_id/2025/plus/1 |  |
 | Patryck | ATA | 2026 | 1 | 52 | 64 | Centroavante de 2026 que atravessou o subúrbio: veio do Madureira. | 2026 centre-forward who just crossed the suburbs: he came from Madureira. | https://www.transfermarkt.com.br/bangu-atletico-clube-rj-/kader/verein/4745/saison_id/2025/plus/1 |  |
+| Domingos da Guia | ZAG | 1931 | 4 | 81 | 89 | O Divino Mestre foi lançado pelo Bangu no fim dos anos 1920 e chegou à Seleção em 1931 ainda com a camisa alvirrubra. | The "Divine Master" was launched by Bangu in the late 1920s and reached the national team in 1931 still in Bangu colours. | https://pt.wikipedia.org/wiki/Domingos_da_Guia · https://pt.wikipedia.org/wiki/Bangu_Atlético_Clube | também tem carta em Flamengo (baralho Brasil); no Bangu em 1929–1932 e 1948–1950 |
+| Zizinho | MEI | 1951 | 5 | 90 | 96 | Maior ídolo do Bangu: levou o time ao vice carioca de 1951 e fez 122 gols pelo clube, cinco deles num jogo só. | Bangu's greatest idol: led the team to second place in the 1951 Carioca and scored 122 goals for the club, five in a single game. | https://pt.wikipedia.org/wiki/Zizinho · https://pt.wikipedia.org/wiki/Bangu_Atlético_Clube | também tem carta em Flamengo (baralho Brasil); no Bangu de 1950 a 1957 |
+| Ademir da Guia | MEI | 1960 | 3 | 69 | 79 | Filho do Domingos, foi revelado pelo Bangu e eleito o melhor jogador da International Soccer League de 1960, nos Estados Unidos. | Son of Domingos, he came through at Bangu and was voted best player of the 1960 International Soccer League in the United States. | https://pt.wikipedia.org/wiki/Ademir_da_Guia · https://pt.wikipedia.org/wiki/Bangu_Atlético_Clube | também tem carta em Palmeiras (baralho Brasil); no Bangu em 1960–1961 (59 jogos, 14 gols) |
 
 ## Boavista-RJ
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -166,6 +169,7 @@ O maior ídolo (Claudio Milar) e o goleiro Eduardo Martini já estão no baralho
 | Marllon | MEI | 2025 | 1 | 52 | 64 | Meia ofensivo de 1,69 m do Guarany de 2025, chegado do Floresta. | 1.69 m attacking midfielder in Guarany's 2025 squad, arrived from Floresta. | https://www.transfermarkt.com.br/guarany-bage-futebol-clube/kader/verein/24903/saison_id/2024/plus/1 | (xará) — não é o Marllon zagueiro do Remo |
 | Luiz Felipe | MEI | 2026 | 1 | 52 | 64 | Meia canhoto do Guarany de 2026. | Left-footed playmaker in Guarany's 2026 squad. | https://www.transfermarkt.com.br/guarany-bage-futebol-clube/kader/verein/24903/saison_id/2025/plus/1 | xará (não é o Luiz Felipe centroavante da Tombense; TM id 548686) |
 | Wilson Júnior | ATA | 2025 | 1 | 52 | 64 | Ponta-direita do Guarany de 2025, vindo do Passo Fundo. | Guarany's 2025 right winger, from Passo Fundo. | https://www.transfermarkt.com.br/guarany-bage-futebol-clube/kader/verein/24903/saison_id/2024/plus/1 |  |
+| Adriano Gabiru | MEI | 2012 | 1 | 55 | 66 | O herói do Mundial de 2006 do Inter foi parar no Guarany de Bagé em 2012, pra jogar a Série C do Gauchão. | The hero of Inter's 2006 Club World Cup ended up at Guarany de Bagé in 2012, playing the third tier of the Gauchão. | https://pt.wikipedia.org/wiki/Guarany_Futebol_Clube | também tem carta em Internacional (baralho Brasil) |
 
 ## Inter-SM
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -232,6 +236,7 @@ Base: o campeão gaúcho de 2017 (bateu Grêmio na semi e Inter na final). O gol
 | Lucas Grafite | ATA | 2026 | 1 | 52 | 64 | Centroavante de 1,84 m do São José de 2026, vindo do Retrô. | 1.84 m centre-forward in São José's 2026 squad, from Retrô. | https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2025/plus/1 |  |
 | Igor Cássio | ATA | 2026 | 1 | 52 | 64 | Centroavante do Zequinha de 2026, contratado do Linense. | São José's 2026 centre-forward, signed from Linense. | https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2025/plus/1 |  |
 | Andrey Nunes | ATA | 2026 | 1 | 51 | 63 | Ponta-direita do São José em 2025 e 2026, chegado do Araucária. | Right winger for São José in 2025 and 2026, arrived from Araucária. | https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2025/plus/1 · https://www.transfermarkt.com.br/esporte-clube-sao-jose-rs-/kader/verein/7535/saison_id/2024/plus/1 |  |
+| Danrlei | GOL | 2007 | 2 | 62 | 73 | O goleiro ídolo do Grêmio chegou no meio do Gauchão de 2007: a contratação mais impactante da história do Zequinha. | The Grêmio idol keeper arrived mid-way through the 2007 Gauchão: the biggest signing in São José's history. | https://pt.wikipedia.org/wiki/Esporte_Clube_São_José | também tem carta em Grêmio (baralho Brasil) |
 
 ## São Luiz-RS
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -253,7 +258,7 @@ Base: o campeão gaúcho de 2017 (bateu Grêmio na semi e Inter na final). O gol
 | clube | GOL | LAT | ZAG | MEI | ATA | novas | já no baralho | total |
 |---|---|---|---|---|---|---|---|---|
 | America-RJ | 0 | 0 | 0 | 1 | 1 | 2 | 22 | 24 |
-| Bangu | 0 | 0 | 0 | 1 | 1 | 2 | 24 | 26 |
+| Bangu | 0 | 0 | 1 | 3 | 1 | 5 | 24 | 29 |
 | Boavista-RJ | 1 | 2 | 2 | 4 | 4 | 13 | 0 | 13 |
 | Madureira | 0 | 1 | 0 | 0 | 1 | 2 | 17 | 19 |
 | Maricá | 1 | 2 | 2 | 3 | 3 | 11 | 0 | 11 |
@@ -262,14 +267,14 @@ Base: o campeão gaúcho de 2017 (bateu Grêmio na semi e Inter na final). O gol
 | Sampaio Corrêa-RJ | 1 | 2 | 2 | 4 | 3 | 12 | 0 | 12 |
 | Avenida | 1 | 2 | 2 | 4 | 4 | 13 | 0 | 13 |
 | Brasil de Pelotas | 1 | 2 | 2 | 3 | 5 | 13 | 0 | 13 |
-| Guarany de Bagé | 1 | 2 | 2 | 3 | 4 | 12 | 0 | 12 |
+| Guarany de Bagé | 1 | 2 | 2 | 4 | 4 | 13 | 0 | 13 |
 | Inter-SM | 1 | 2 | 2 | 4 | 3 | 12 | 0 | 12 |
 | Monsoon | 1 | 2 | 2 | 4 | 4 | 13 | 0 | 13 |
 | Novo Hamburgo | 1 | 2 | 2 | 3 | 4 | 12 | 0 | 12 |
-| São José-RS | 1 | 2 | 3 | 4 | 3 | 13 | 0 | 13 |
+| São José-RS | 2 | 2 | 3 | 4 | 3 | 14 | 0 | 14 |
 | São Luiz-RS | 1 | 2 | 2 | 4 | 3 | 12 | 0 | 12 |
 
-**Total de cartas novas: 166.**
+**Total de cartas novas: 171** (166 + 5 ídolos que voltaram em 16/11).
 
 ## Descartados (com motivo)
 
@@ -303,8 +308,8 @@ Base: o campeão gaúcho de 2017 (bateu Grêmio na semi e Inter na final). O gol
 | Rafael Forster | Maricá | MESMA pessoa já no OFICIAL (São Bernardo 2025) |
 | Rodrigo Lindoso | Madureira | MESMA pessoa já no REGIONAL (Madureira 2011) |
 | Garrincha e Vavá | Portuguesa-RJ | só amistosos/fim de carreira, e já estão no baralho por Botafogo/Vasco |
-| Careca, Danrlei | São José-RS | já no baralho BR (São Paulo/Grêmio) |
-| Adriano Gabiru | Guarany de Bagé | já no BR (Internacional 2006) |
+| Careca, Danrlei | São José-RS | já no baralho BR (São Paulo/Grêmio) — Danrlei ✅ voltou (16/11); Careca continua fora: já é carta do Guarani 1978 no Brasil Oficial (mesma pessoa) |
+| Adriano Gabiru | Guarany de Bagé | já no BR (Internacional 2006) — ✅ voltou (16/11) |
 | Branco | Guarany de Bagé | só base no Guarany; já no BR (Fluminense) |
 | Saulzinho, Carlos Calvete | Guarany de Bagé | auge em clube de outro estado (Vasco / Santos e Grêmio) — evitado pra não cruzar com outros pesquisadores |
 | Salvador Rubilar, Leivas, Didi Pedalada e outros artilheiros antigos | Guarany de Bagé | só nome + período na tabela; posição/ano não confirmados com segurança além do que já entrou |
@@ -319,4 +324,6 @@ Base: o campeão gaúcho de 2017 (bateu Grêmio na semi e Inter na final). O gol
 - **Gerson Dida / Sandro / Pablo Thomaz (Maricá 2024)**: o ano 2024 vem da Wikipédia (título da Série A2 2024); o Transfermarkt confirma os três no elenco de 2025.
 - **Cláudio Pagodinho**: a Wikipédia confirma Boavista + 2014 + atacante, mas o histórico do Transfermarkt dele não lista o Boavista.
 - O Transfermarkt não tem elenco 2026 completo pros clubes do RS que só jogaram o Gauchão (Avenida, Guarany, Inter-SM, Monsoon) — usei 2025 quando o de 2026 estava vazio.
-
+- **16/11 — ídolos que voltaram** (saíram antes só por ter carta no baralho Brasil, o que não impede carta no Brasil Oficial): Bangu ganhou Domingos da Guia (1931), Zizinho (1951) e Ademir da Guia (1960); São José-RS ganhou Danrlei (2007); Guarany de Bagé ganhou Adriano Gabiru (2012).
+- **16/11 — continuam fora:** Garrincha e Vavá (Portuguesa-RJ, só amistoso/fim de carreira); Branco (Guarany, só base); Romário (America-RJ: a página do clube só o cita como presidente, não achei jogo dele confirmado); Evaristo de Macedo (Madureira: só 2 jogos no time de cima); Loco Abreu (Bangu 2017: a página só fala do anúncio); Adryan/Chay (Portuguesa-RJ) e Yuri Mamute (Inter-SM) são só elenco recente, não marcaram época.
+- **Careca no São José (1998)**: a página do clube diz que ele jogou "alguns jogos do Gauchão", mas ele já é carta do Guarani 1978 no Brasil Oficial — mesma pessoa, então não entra.

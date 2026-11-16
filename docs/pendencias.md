@@ -15,6 +15,14 @@
   Guabirá, Libertad-EQU, Macará, Alianza Atlético e América de Cali → selo B) e **22+ cartas reais em TODOS os 77 clubes de fora**
   (lotes `cartas-conmebol-5..9` e `-s1..s9`, ~1.440 cartas; o elenco é sorteado entre elas). Trava nova:
   `npx tsx scripts/confere-repetidos-conmebol.mts` (a mesma pessoa não pode estar em dois clubes do baralho do modo).
+- ✅ 16/11 (Diego: *"Jhon Arias não entrou por quê, se o baralho dele é Brasil?… só não pode no mesmo baralho"*): o Brasil Oficial é um
+  baralho À PARTE — os famosos que tinham ficado de fora só por ter carta em data.ts VOLTARAM (~200 cartas: Valderrama, Maradona e
+  Riquelme no Argentinos, Coates/Suárez, Valverde/Darwin, Arrascaeta, Armani/Borja, Jhon Arias no Santa Fe, Sócrates e Raí no
+  Botafogo-SP, Careca/Evair no Guarani, Rivaldo no Santa Cruz, Djalma Santos/Dener na Portuguesa, Zizinho e Domingos da Guia no Bangu,
+  Iarley/Clemer/Jardel no Ferroviário-CE, Túlio no Brasiliense, Dadá no Nacional-AM…). Trava de repetidos olha o baralho do modo
+  inteiro e lê "xará" em qualquer lote. Mesma pessoa em dois clubes do modo: Jackie Chan, Lucas Ramon e Luís Araújo (tirados de um).
+  ❓ Perguntar ao Diego: liberar a carta do Zenon (Guarani 1978, baralho regional, hoje escondida do modo)? Di María: a carta do Rosario
+  2005 (baralho Mundo) fica, ou troca pela da volta (2025/26)?
 - ✅ 16/11: **SUL-AMERICANA REAL** (`sul-americana-oficial.ts` + `computeSulaCarreira`): 56 clubes, 1ª fase por país, 8 grupos, playoff
   com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
   vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ⏭️ Falta a festa de campeão da Sula (não há arte
