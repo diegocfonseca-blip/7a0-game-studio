@@ -71,7 +71,8 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
   const clube = CLUBES_BR_TODOS.find(c => c.nome === sel) ?? null
   // ⏳ a Série C e a D REAIS na tela do usuário ainda não rodam: começar num clube delas fica travado com aviso — nada de cair
   // num campeonato de mentira (regra do Diego: tudo real). Liga quando a tela delas entrar.
-  const SERIE_D_PRONTA = false, SERIE_C_PRONTA = false
+  // 🧪 só no servidor de teste (npm run dev) dá pra abrir a C com window.__boTesteC = true; no site publicado continua travada
+  const SERIE_D_PRONTA = false, SERIE_C_PRONTA = import.meta.env.DEV && !!(window as unknown as { __boTesteC?: boolean }).__boTesteC
   const travado = (clube?.div === 'D' && !SERIE_D_PRONTA) || (clube?.div === 'C' && !SERIE_C_PRONTA)
   // as cartas do modo descem quando esta tela abre; até chegarem, o botão de começar fica travado
   const [baralho, setBaralho] = useState<BaralhoOficial | null>(baralhoOficial())
