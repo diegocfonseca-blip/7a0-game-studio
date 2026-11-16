@@ -19,6 +19,13 @@ Todos os nomes foram conferidos contra `baralho-brasil-atual.txt` (nome e apelid
 | Alesson | ATA | 2025 | 2 | 62 | 74 | Ponta veloz da campanha de 2025, daqueles que fazem lateral pedir substituição. | Speedy winger of the 2025 run, the kind who makes full-backs ask to be subbed off. | https://www.gazetaesportiva.com/times/sao-paulo/mirassol-x-sao-paulo-escalacoes-brasileirao-19-10-2025/ | https://pt.wikipedia.org/wiki/Alesson |
 | Carlos Eduardo | ATA | 2025 | 2 | 61 | 73 | Ponta ex-Palmeiras que chegou em 2025 e fez parte do 4º lugar histórico do Leão Caipira. | Ex-Palmeiras winger who arrived in 2025 and was part of Mirassol's historic 4th place. | https://www.lance.com.br/futebol-nacional/mirassol-e-ceara-estao-escalados-para-o-duelo-pelo-brasileirao.html | https://pt.wikipedia.org/wiki/Carlos_Eduardo_Ferreira_de_Souza |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Reinaldo | LAT | 2025 | 3 | 68 | 79 | Lateral-esquerdo que chegou em janeiro de 2025 e saiu do ano do 4º lugar histórico com a Bola de Prata de melhor lateral. | Left-back who arrived in January 2025 and left the historic 4th-place year with the Bola de Prata as the best full-back. | https://pt.wikipedia.org/wiki/Reinaldo_Manoel_da_Silva | também tem carta em São Paulo 2020 (baralho Brasil); não é o Reinaldo do Atlético-MG 1977 |
+| Alex Muralha | GOL | 2024 | 2 | 60 | 72 | Goleiro de três passagens pelo Leão Caipira — fechou 2024 como o 3º jogador com mais jogos da história do clube. | Goalkeeper with three spells at Mirassol — ended 2024 as the 3rd most-capped player in club history. | https://pt.wikipedia.org/wiki/Alex_Muralha | também tem carta em Flamengo 2017 (baralho Brasil) |
+
 ## Remo (1 → 12)
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | fonte | conferido em |
@@ -35,6 +42,12 @@ Todos os nomes foram conferidos contra `baralho-brasil-atual.txt` (nome e apelid
 | Jajá | ATA | 2026 | 2 | 61 | 73 | Ponta-esquerda que chegou em 2026 pra volta do Remo à Série A — nome curto, perna rápida. | Left winger who arrived in 2026 for Remo's Série A return — short name, quick legs. | https://muitainformacao.com.br/esporte/remo-x-coritiba-onde-assistir-ao-vivo-horario-e-provaveis-escalacoes-em-31-08-2026/ | https://www.transfermarkt.com.br/jaja/profil/spieler/726092 |
 | Alcino | ATA | 1975 | 3 | 67 | 78 | O "Negão Motora": artilheiro do tri paraense (73-74-75) e autor de um dos gols da vitória histórica sobre o Flamengo de Zico no Maracanã. | "Negão Motora": top scorer of Remo's three straight Pará titles (73-74-75) and scorer in the famous win over Zico's Flamengo at the Maracanã. | https://en.wikipedia.org/wiki/Alcino_(footballer) · https://www.oliberal.com/esportes/remo/ha-50-anos-remo-vencia-o-flamengo-de-zico-no-maracana-1.1040432 | https://pt.wikipedia.org/wiki/Alcino_(futebolista) |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Alef Manga | ATA | 2026 | 2 | 62 | 73 | Ponta-esquerda contratado pra volta do Remo à Série A em 2026, campeão da Supercopa Grão-Pará no mesmo ano. | Left winger signed for Remo's 2026 Série A return, Supercopa Grão-Pará winner that same year. | https://pt.wikipedia.org/wiki/Alef_Manga | também tem carta em Coritiba 2022 (baralho Brasil) |
+
 ## Red Bull Bragantino (4 → 11)
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | fonte | conferido em |
@@ -46,6 +59,12 @@ Todos os nomes foram conferidos contra `baralho-brasil-atual.txt` (nome e apelid
 | Artur | ATA | 2021 | 3 | 68 | 79 | Ponta-direita titular do Massa Bruta vice da Sul-Americana de 2021 — depois o Palmeiras foi buscar de volta. | Bragantino's starting right winger in the 2021 Sudamericana final run — later Palmeiras brought him back. | https://trivela.com.br/america-do-sul/sul-americana/o-bragantino-detona-o-libertad-tambem-em-assuncao-e-se-classifica-com-autoridade-a-final-da-sul-americana/ | https://pt.wikipedia.org/wiki/Artur_Victor · https://pt.wikipedia.org/wiki/Final_da_Copa_Sul-Americana_de_2021 |
 | Ytalo | ATA | 2021 | 2 | 63 | 74 | Centroavante titular na final da Sul-Americana de 2021, em Montevidéu. | Starting centre-forward in the 2021 Sudamericana final in Montevideo. | https://www.90min.com/pt-BR/posts/o-xi-ideal-combinado-das-semifinais-da-copa-sul-americana | https://pt.wikipedia.org/wiki/Ytalo_(futebolista) · https://pt.wikipedia.org/wiki/Final_da_Copa_Sul-Americana_de_2021 |
 | Helinho | ATA | 2021 | 2 | 62 | 74 | Ponta emprestado pelo São Paulo que entrou voando no time e foi titular na final de Montevidéu. | Winger on loan from São Paulo who flew into the side and started the final in Montevideo. | https://agenciabrasil.ebc.com.br/es/node/1428385 | https://www.transfermarkt.com.br/helinho/profil/spieler/412365 · https://pt.wikipedia.org/wiki/Final_da_Copa_Sul-Americana_de_2021 |
+
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Fabrício Bruno | ZAG | 2021 | 3 | 66 | 77 | Zagueiro do Massa Bruta vice da Sul-Americana de 2021 — eleito pra seleção do torneio junto com Léo Ortiz e Artur. | Bragantino centre-back in the 2021 Sudamericana runner-up side — named in the team of the tournament with Léo Ortiz and Artur. | https://pt.wikipedia.org/wiki/Fabr%C3%ADcio_Bruno | também tem carta em Cruzeiro 2025 (baralho Brasil) |
 
 ## Chapecoense (7 → 12)
 
@@ -69,6 +88,12 @@ Todos os 5 abaixo morreram no acidente de 28/11/2016. Bio em tom de homenagem, s
 | Toby | MEI | 1985 | 2 | 63 | 74 | Cria da base do Coxa e meia titular na final de 85 — o apelido veio do herói do romance "Negras Raízes". | Coritiba academy product and starting midfielder in the 1985 final — his nickname came from the hero of the novel "Roots". | https://www.bandab.com.br/esporte/times/coritiba/mexeram-com-a-gente-o-que-motivou-o-coritiba-ha-40-anos-final-brasileirao/amp/ | https://pt.wikipedia.org/wiki/Toby_(futebolista) · https://pt.wikipedia.org/wiki/Campeonato_Brasileiro_de_Futebol_de_1985 |
 | Lela | ATA | 1985 | 3 | 67 | 78 | Ponta do título de 85 que bateu pênalti na final sem tremer contra o Bangu. | Winger of the 1985 title who calmly converted in the shoot-out against Bangu. | https://www.lance.com.br/lancepedia/coritiba-campeao-brasileiro-de-1985.html | https://pt.wikipedia.org/wiki/Lela · https://pt.wikipedia.org/wiki/Campeonato_Brasileiro_de_Futebol_de_1985 |
 | Keirrison | ATA | 2008 | 3 | 70 | 80 | Dividiu a artilharia do Brasileirão de 2008 com 21 gols e fez 41 no ano — aí o Palmeiras foi buscar. | Shared the 2008 Brasileirão golden boot with 21 goals and scored 41 that year — then Palmeiras came calling. | https://www.tribunapr.com.br/esportes/keirrison-o-maior-artilheiro-da-historia-do-clube-em-uma-unica-temporada/ | https://pt.wikipedia.org/wiki/Keirrison |
+
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Alex | MEI | 2013 | 4 | 80 | 88 | O "Menino de Ouro" voltou pro clube que o revelou e, capitão, fez 2 gols na final e foi artilheiro do Paranaense de 2013. | The "Golden Boy" returned to the club that made him and, as captain, scored twice in the final and topped the 2013 Paraná scoring chart. | https://pt.wikipedia.org/wiki/Alexsandro_de_Souza | também tem carta em Cruzeiro 2003 (baralho Brasil); não é o Alex do Chelsea nem o do Galícia (xará) |
 
 ## Xarás aprovados pelo dono (mesmo nome de carta existente, OUTRA pessoa)
 
@@ -100,14 +125,14 @@ Total de cartas novas: 46 (40 + 6 xarás).
 **Revisão de nomes repetidos (15/11) — mesma pessoa de outra carta, carta tirada:**
 - Marcelinho (Remo 2026) — mesma pessoa que a carta Marcelinho do Confiança 2021 (baralho regional; TM id 681494: Confiança 2019–22 → Remo 2025). No lugar entrou Edson Kauã (LAT, do elenco real do clube no Transfermarkt).
 
-- **Reinaldo** (lateral, maior destaque do Mirassol 2025) — já é carta do São Paulo 2020.
-- **Alex Muralha** (goleiro com mais jogos pelo Mirassol) — já é carta do Flamengo 2017.
-- **Negueba** (Mirassol 2025) — já é carta do Flamengo 2012.
-- **Alef Manga** (Remo 2026, artilheiro) — já é carta do Coritiba 2022.
-- **Yago Pikachu** (Remo 2026) — já é carta do Fortaleza 2021.
-- **Alex** (ídolo do Coritiba) — já é carta do Cruzeiro 2003.
-- **Rafinha** (revelado no Coritiba) — já é carta do Flamengo 2019.
-- **Fabrício Bruno** (Bragantino 2021) — já é carta do Cruzeiro 2025 (mesma pessoa; achado na conferência a fundo, trocado pelo Natan).
+- **Reinaldo** (lateral, maior destaque do Mirassol 2025) — já é carta do São Paulo 2020. ✅ voltou (16/11) (Mirassol 2025)
+- **Alex Muralha** (goleiro com mais jogos pelo Mirassol) — já é carta do Flamengo 2017. ✅ voltou (16/11) (Mirassol 2024)
+- **Negueba** (Mirassol 2025) — já é carta do Flamengo 2012. ❌ continua fora (16/11): a pt.wikipedia dele (Guilherme Ferreira Pinto) não mostra passagem pelo Mirassol — Coreia e Tailândia desde 2018.
+- **Alef Manga** (Remo 2026, artilheiro) — já é carta do Coritiba 2022. ✅ voltou (16/11) (Remo 2026; "artilheiro" não confirmado — 6 gols em 40 jogos)
+- **Yago Pikachu** (Remo 2026) — já é carta do Fortaleza 2021. ➡️ voltou (16/11) no **Paysandu 2013** (cartas-serie-c.md), onde é ídolo; a mesma pessoa só uma vez no baralho do Brasil Oficial.
+- **Alex** (ídolo do Coritiba) — já é carta do Cruzeiro 2003. ✅ voltou (16/11) (Coritiba 2013)
+- **Rafinha** (revelado no Coritiba) — já é carta do Flamengo 2019. ❌ continua fora: só revelado, sem marca no Coxa.
+- **Fabrício Bruno** (Bragantino 2021) — já é carta do Cruzeiro 2025 (mesma pessoa; achado na conferência a fundo, trocado pelo Natan). ✅ voltou (16/11) (Bragantino 2021; o Natan fica)
 
 ### Xarás (antes deixados de fora)
 - Dener, Gil, Josimar (Chape 2016), Dida (Coritiba 1985), Marcelo e Biro-Biro (Bragantino 1990) ENTRARAM depois do OK do dono — ver seção "Xarás aprovados".
@@ -133,3 +158,13 @@ Cada uma das 45 cartas foi aberta em pelo menos uma página real (pt.wikipedia.o
 - **Removidas: 0.**
 - **Acrescentada depois: 1** — **Biro-Biro** (Bragantino 1990, LAT, xará): a conferência mostrou que é Gilberto Ribeiro de Carvalho, outra pessoa que não o Biro-Biro do Corinthians (Antônio José da Silva Filho). O dono liberou xará e mandou usar o APELIDO pelo qual a torcida conhece. Total agora: 46 cartas.
 - Mínimos por clube continuam batendo (ver tabela "Conferência" acima).
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo dono: ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta no Brasil Oficial — só não pode repetir DENTRO do baralho do Brasil Oficial. Entraram 5 cartas (blocos "Voltaram em 16/11" em cada clube), conferidas na pt.wikipedia:
+- **Mirassol**: Reinaldo (2025, Bola de Prata de lateral) · Alex Muralha (2024).
+- **Remo**: Alef Manga (2026).
+- **Red Bull Bragantino**: Fabrício Bruno (2021, seleção da Sul-Americana).
+- **Coritiba**: Alex (2013, capitão e artilheiro do Paranaense).
+- **Chapecoense**: nada — os famosos de 2016 já estão no baralho de sempre do clube.
+- Ficaram fora: Negueba (não achei passagem pelo Mirassol) e Rafinha (só revelado no Coxa). Yago Pikachu foi pro Paysandu.

@@ -24,6 +24,14 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Ademir | ATA | 2021 | 2 | 63 | 75 | Baixinho veloz que infernizou a Série A de 2021. | Speedy little winger who made 2021 Série A defenders miserable. | https://www.transfermarkt.com.br/america-futebol-clube-mg-/kader/verein/2863/saison_id/2020/plus/1 |
 | Zárate | ATA | 2021 | 2 | 64 | 76 | Argentino rodado que trocou o Boca pelo Independência. | Well-travelled Argentine who swapped Boca for the Independência. | https://www.transfermarkt.com.br/america-futebol-clube-mg-/kader/verein/2863/saison_id/2020/plus/1 |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Euller (Filho do Vento) | ATA | 1993 | 3 | 67 | 78 | Cria do Coelho, ganhou ali o apelido de "Filho do Vento" e o Mineiro de 1993, o primeiro título da carreira. | America academy product who earned the "Son of the Wind" nickname there and the 1993 Mineiro, his first career title. | https://pt.wikipedia.org/wiki/Euller | também tem carta em Vasco 1998 (baralho Brasil) |
+| Gilberto Silva | MEI | 1997 | 3 | 66 | 77 | Largou a fábrica de doces pra voltar ao futebol em 1997 e já na primeira temporada foi o principal jogador do Coelho. | Quit a sweet factory to return to football in 1997 and was America's main player in his very first season. | https://pt.wikipedia.org/wiki/Gilberto_Silva | também tem carta em Atlético-MG 2002 e Arsenal 2004 (baralhos Brasil e Europa) |
+| Fred | ATA | 2004 | 3 | 68 | 79 | Revelado pelo Coelho, fez o gol mais rápido da história na Copinha de 2003 e foi vice-artilheiro do Mineiro de 2004 com 12 gols. | America academy striker who scored the fastest goal ever at the 2003 Copinha and was runner-up scorer in the 2004 Mineiro with 12. | https://pt.wikipedia.org/wiki/Frederico_Chaves_Guedes | também tem carta em Fluminense 2012 (baralho Brasil) |
+
 ## Athletic Club (São João del-Rei/MG) — 12 novas
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em |
@@ -58,6 +66,12 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Luiz Fernando | ATA | 2024 | 2 | 61 | 73 | Ponta rápido que carregava o ataque do Dragão no Brasileirão de 2024. | Quick winger who carried the Dragon's attack in the 2024 Brasileirão. | https://www.transfermarkt.com.br/atletico-clube-goianiense/kader/verein/15172/saison_id/2023/plus/1 |
 | Valdeir | ATA | 1988 | 2 | 63 | 75 | Goianiense que começou no Dragão, tão veloz que ganhou o apelido de "The Flash". | Goiânia-born forward who started at the Dragon, so fast they called him "The Flash". | https://pt.wikipedia.org/wiki/Valdeir_Celso_Moreira |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Marlon Freitas | MEI | 2022 | 2 | 63 | 74 | Volante titular indiscutível do Dragão por três temporadas, campeão goiano em 2020 e 2022 antes de ir pro Botafogo. | The Dragon's undisputed starting midfielder for three seasons, Goiás champion in 2020 and 2022 before joining Botafogo. | https://pt.wikipedia.org/wiki/Marlon_Freitas | também tem carta em Botafogo 2024 (baralho Brasil) |
+
 ## Avaí — 12 novas
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em |
@@ -73,6 +87,12 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Pedro Castro | MEI | 2017 | 1 | 54 | 68 | Meio-campista do Avaí na Série A de 2017. | Central midfielder for Avaí in the 2017 Série A. | https://www.transfermarkt.com.br/avai-fc-sc-/kader/verein/2035/saison_id/2016/plus/1 |
 | Muriqui | ATA | 2009 | 2 | 62 | 74 | Atacante veloz do Avaí que brilhou na Série A de 2009. | Quick Avaí forward who shone in the 2009 Série A. | https://www.transfermarkt.com.br/avai-fc-sc-/kader/verein/2035/saison_id/2008/plus/1 |
 | Evando | ATA | 2009 | 2 | 60 | 72 | Centroavante goleador da subida e da Série A de 2009. | Goal-getting centre-forward from the promotion and the 2009 Série A. | https://www.transfermarkt.com.br/avai-fc-sc-/kader/verein/2035/saison_id/2008/plus/1 |
+
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Vladimir | GOL | 2019 | 2 | 60 | 72 | Goleiro emprestado pelo Santos que fechou o gol do Avaí campeão catarinense de 2019 — e voltou em 2021. | Goalkeeper on loan from Santos who guarded Avaí's goal in the 2019 Santa Catarina title — and came back in 2021. | https://pt.wikipedia.org/wiki/Vladimir_(futebolista) | também tem carta em Santos 2015 (baralho Brasil) |
 
 ## Botafogo-SP (Ribeirão Preto) — 12 novas
 
@@ -90,6 +110,13 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Zé Mário | ATA | 1977 | 2 | 61 | 73 | Ponta-direita do Pantera que fez o ataque com Sócrates e Geraldão. | Panther right winger who shared the attack with Sócrates and Geraldão. | https://pt.wikipedia.org/wiki/Botafogo_Futebol_Clube_(Ribeirão_Preto) · xará (não é o Zé Mário meia da Ponte Preta 1981, TM id 784779; TM id deste 1133341) |
 | Geraldão | ATA | 1974 | 3 | 64 | 76 | Atacante canhoto, artilheiro do Pantera quando um tal de Sócrates começava. | Left-footed striker, the Panther's goal machine when a certain Sócrates was starting out. | https://pt.wikipedia.org/wiki/Geraldo_Manteiga + https://pt.wikipedia.org/wiki/Botafogo_Futebol_Clube_(Ribeirão_Preto) |
 | Jonathan Cafú | ATA | 2025 | 1 | 56 | 70 | Atacante rodado no ataque do Pantera em 2025. | Well-travelled forward in the Panther's 2025 attack. | https://www.transfermarkt.com.br/botafogo-futebol-clube-sp-/kader/verein/9030/saison_id/2024/plus/1 |
+
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Sócrates | MEI | 1976 | 4 | 79 | 89 | O Doutor começou no Pantera conciliando bola e faculdade de Medicina — e foi artilheiro do Paulistão de 1976 com 15 gols. | The Doctor started at Botafogo-SP juggling football and medical school — and was the 1976 Paulistão top scorer with 15 goals. | https://pt.wikipedia.org/wiki/S%C3%B3crates_(futebolista) | também tem carta em Corinthians 1983 (baralho Brasil) |
+| Raí | MEI | 1987 | 3 | 68 | 79 | Começou no Pantera aos 15 anos escondendo que era irmão do Sócrates — e de lá foi chamado pra Seleção na Copa América de 1987. | Started at Botafogo-SP aged 15 hiding that he was Sócrates' brother — and from there was called up for the 1987 Copa América. | https://pt.wikipedia.org/wiki/Ra%C3%AD | também tem carta em São Paulo 1992 (baralho Brasil) |
 
 ## Ceará (já tem 8: Apodi LAT, Zina MEI, 6 ATA) — 7 novas
 
@@ -119,6 +146,13 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Fabinho | ATA | 2022 | 1 | 56 | 70 | Ponta do CRB na Série B de 2022. | CRB winger in the 2022 Série B. | https://www.transfermarkt.com.br/clube-de-regatas-brasil-al-/kader/verein/11449/saison_id/2021/plus/1 |
 | Douglas Baggio | ATA | 2025 | 1 | 55 | 69 | Ponta que chegou do Botafogo-SP em abril de 2025. | Winger who arrived from Botafogo-SP in April 2025. | https://www.transfermarkt.com.br/clube-de-regatas-brasil-al-/kader/verein/11449/saison_id/2024/plus/1 + https://www.transfermarkt.com.br/douglas-baggio/profil/spieler/191872 |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Gum | ZAG | 2022 | 2 | 61 | 73 | Capitão desde a estreia em 2020, ficou quatro temporadas e 175 jogos e saiu como um dos ídolos da história recente do CRB. | Captain from his 2020 debut, stayed four seasons and 175 games and left as one of CRB's recent idols. | https://pt.wikipedia.org/wiki/Gum_(futebolista) | também tem carta em Fluminense 2012 (baralho Brasil) |
+| Neto Baiano | ATA | 2017 | 2 | 62 | 73 | Centroavante de três temporadas no CRB — artilheiro do time na Série B de 2017 com 8 gols. | Centre-forward with three seasons at CRB — the team's top scorer in the 2017 Série B with 8 goals. | https://pt.wikipedia.org/wiki/Neto_Baiano | também tem carta em Vitória 2009 (baralho Brasil) |
+
 ## Criciúma — 13 novas
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em |
@@ -137,6 +171,12 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Jairo Lenzi | ATA | 1991 | 2 | 61 | 73 | Ponta-esquerda campeão da Copa do Brasil que jogou tanto na Libertadores de 92 que quase foi convocado. | Left winger and Copa do Brasil winner whose 1992 Libertadores nearly earned him a Brazil call-up. | https://pt.wikipedia.org/wiki/Jairo_Lenzi |
 | Arthur Caíke | ATA | 2024 | 1 | 57 | 71 | Ponta que chegou em abril e jogou a Série A de 2024 pelo Tigre. | Winger who arrived in April and played the 2024 Série A for the Tiger. | https://www.transfermarkt.com.br/criciuma-esporte-clube/kader/verein/7178/saison_id/2023/plus/1 + https://www.transfermarkt.com.br/arthur-caike/profil/spieler/224481 |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Paulo Baier | LAT | 2002 | 3 | 66 | 77 | Ainda lateral-direito, fez três gols na final contra o Fortaleza e deu ao Tigre o título da Série B de 2002 — foi lá que virou "Paulo Baier". | Still a right-back, he scored a hat-trick in the final against Fortaleza to win Criciúma the 2002 Série B — and that's where he became "Paulo Baier". | https://pt.wikipedia.org/wiki/Paulo_Baier | também tem carta em Goiás 2005 (baralho Brasil) |
+
 ## Cuiabá — 12 novas
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em |
@@ -153,6 +193,12 @@ Legenda: fame 5 Lenda · 4 Craque · 3 Bom alto · 2 Bom · 1 Profissional.
 | Clayson | ATA | 2021 | 2 | 61 | 73 | Ponta da legião ex-Corinthians do Cuiabá na Série A. | Winger from Cuiabá's ex-Corinthians legion in Série A. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2020/plus/1 |
 | Jenison | ATA | 2020 | 2 | 59 | 71 | Centroavante ídolo do Dourado no ano do acesso à Série A. | Golden One idol up front in the year of promotion to Série A. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2019/plus/1 |
 | Isidro Pitta | ATA | 2023 | 2 | 60 | 72 | Centroavante paraguaio do Dourado na Série A de 2023. | Paraguayan centre-forward for the Golden One in the 2023 Série A. | https://www.transfermarkt.com.br/cuiaba-ec-mt-/kader/verein/28022/saison_id/2022/plus/1 |
+
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Deyverson | ATA | 2023 | 3 | 63 | 74 | Centroavante do Dourado na Série A — no 3 a 0 sobre o Flamengo em 2023 fez seu 4º gol contra o rubro-negro. | Cuiabá centre-forward in the Série A — in the 3-0 over Flamengo in 2023 he scored his 4th goal against them. | https://pt.wikipedia.org/wiki/Deyverson | também tem carta em Palmeiras 2021 (baralho Brasil) |
 
 ## Xarás (aprovados pelo dono: mesmo nome de carta existente, OUTRA pessoa) — 6 novas
 
@@ -202,7 +248,7 @@ Novas por fame: fame 3 = 5 (Jair Bala, Marquinhos, Geraldão, Vina, Bolasie) · 
 - Uendel (Cuiabá 2021) — mesma pessoa que a carta Uendel do Avaí 2009 (baralho regional; TM id 74747). No lugar entrou Lucas Hernández (LAT, do elenco real do clube no Transfermarkt).
 
 
-- **Já no baralho (mesma pessoa):** Marlon Freitas (Atlético-GO; está como Botafogo 2024) · Euller, Gilberto Silva, Fred, Fábio Júnior (América-MG) · Patric (América-MG; está como Atlético-MG 2018) · Aloísio Boi Bandido, Wellington Paulista (América-MG) · Natanael (Atlético-GO; está como Coritiba) · Deyverson, Paulão, Marllon (Cuiabá) · Betão, Cléber Santana, Edílson, Bruno Cortez/Cortez, Vladimir (Avaí) · Gum, Neto Baiano (CRB) · Trauco, Paulo Baier, Newton (Criciúma) · Sócrates, Raí, Doni, Cicinho, Diego Alves (Botafogo-SP) · Thiago Galhardo (Ceará).
+- **Já no baralho (mesma pessoa):** Marlon Freitas (Atlético-GO; está como Botafogo 2024) ✅ voltou (16/11) · Euller ✅ voltou (16/11), Gilberto Silva ✅ voltou (16/11), Fred ✅ voltou (16/11), Fábio Júnior (América-MG) · Patric (América-MG; está como Atlético-MG 2018) · Aloísio Boi Bandido, Wellington Paulista (América-MG) · Natanael (Atlético-GO; está como Coritiba) · Deyverson ✅ voltou (16/11), Paulão, Marllon (Cuiabá) · Betão, Cléber Santana, Edílson, Bruno Cortez/Cortez, Vladimir ✅ voltou (16/11) (Avaí) · Gum ✅ voltou (16/11), Neto Baiano ✅ voltou (16/11) (CRB) · Trauco, Paulo Baier ✅ voltou (16/11), Newton (Criciúma) · Sócrates ✅ voltou (16/11), Raí ✅ voltou (16/11), Doni, Cicinho, Diego Alves (Botafogo-SP) · Thiago Galhardo (Ceará).
 - **Pessoas evitadas por serem do outro pesquisador / ídolo de clube dele:** nenhuma das escolhidas tem o auge em Goiás, Juventude, Londrina, Náutico, Novorizontino, Operário-PR, Ponte Preta, São Bernardo, Sport ou Vila Nova. (Dalbert passou pelo Sport em 2024–25, Soares pelo Londrina nos anos 80, Arthur Caíke pelo Sport e Goiás, Edson pelo Goiás em 2024 — em nenhum deles foi o auge.)
 - **Sem confirmação suficiente (fora):** Fernando (Cuiabá) · Orivaldo, Saul Oliveira, Cavallazzi (Avaí) · Willian Popó/Willian Souza (Avaí 2009) · **Pedro Bala** (Atlético-GO 1970) e **Vanderlei** (Criciúma 1991) — ver abaixo.
 - **Confirmados mas não usados (reserva, se precisar):** Criciúma 1991 — Alexandre (GOL), Vilmar e Altair (ZAG), Gelson (MEI), todos na predefinição do elenco campeão da Copa do Brasil de 1991 na pt.wikipedia.
@@ -226,3 +272,12 @@ Cada uma das 110 cartas foi aberta em página real (coluna "conferido em"): elen
   - **Pedro Bala (Atlético-GO 1970, GOL) → Fernando Miguel (Atlético-GO 2021, GOL, fame 1 55–69)** — Pedro Bala não tem página na pt.wikipedia nem cita no artigo do clube; Fernando Miguel confirmado no elenco de 2021 do TM e no histórico (empréstimo do Vasco, 24/03/2021).
   - **Vanderlei (Criciúma 1991, ATA, xará) → Arthur Caíke (Criciúma 2024, ATA, fame 1 57–71)** — Vanderlei não aparece no elenco campeão de 1991 da pt.wikipedia e a única fonte (ultimadivisao) está bloqueada; Arthur Caíke confirmado no elenco de 2024 e no histórico (chegou em 12/04/2024). Sai da seção de xarás.
 - **Removidas:** nenhuma.
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo dono: ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta no Brasil Oficial — só não pode repetir DENTRO do baralho do Brasil Oficial. Da lista "Já no baralho" acima, entraram 13 (blocos "Voltaram em 16/11" em cada clube), todas conferidas na pt.wikipedia:
+- **América-MG**: Euller (1993 — nome igual ao da carta dele, "Euller (Filho do Vento)") · Gilberto Silva (1997) · Fred (2004).
+- **Atlético-GO**: Marlon Freitas (2022). **Avaí**: Vladimir (2019, GOL). **Botafogo-SP**: Sócrates (1976, artilheiro do Paulistão) · Raí (1987).
+- **CRB**: Gum (2022) · Neto Baiano (2017). **Criciúma**: Paulo Baier (2002, LAT — era lateral-direito no título da Série B). **Cuiabá**: Deyverson (2023).
+- **Continuam fora** (a página aberta não mostra marca no clube ou não deu pra confirmar): Fábio Júnior (a página achada é de outro Fábio Júnior), Patric, Aloísio Boi Bandido, Wellington Paulista (só 2022, sem destaque), Natanael (Atlético-GO 2020–21: elenco comum), Paulão e Marllon (Cuiabá; existe um Marllon no Guarany de Bagé), Betão e Edílson (nomes já usados por outras pessoas no Brasil Oficial), Cléber Santana (o auge é a Chape), Bruno Cortez, Trauco, Newton, Doni, Cicinho e Diego Alves (só base no Botafogo-SP), Thiago Galhardo (Ceará já tem 15).
+- **Ceará** e **Athletic**: nada novo.

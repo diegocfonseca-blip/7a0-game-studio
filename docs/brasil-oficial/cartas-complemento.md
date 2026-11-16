@@ -33,6 +33,10 @@ Xará permitido: Tinga do Fortaleza (Guilherme de Jesus da Silva) não é o Ting
 | Hércules | MEI | 2023 | 3 | 65 | 77 | Volante piauiense que o Fortaleza comprou por R$ 200 mil e vendeu ao Fluminense por cerca de R$ 29 milhões. | Midfielder from Piauí whom Fortaleza bought for R$200k and sold to Fluminense for about R$29m. | https://pt.wikipedia.org/wiki/Hércules_(futebolista) · https://www.transfermarkt.com.br/fortaleza-ec/kader/verein/10870/saison_id/2022 |
 | Lucas Sasha | MEI | 2023 | 2 | 62 | 73 | Voltou de mais de uma década na Europa pra virar líder do meio tricolor — campeão cearense de 2023. | Came back after more than a decade in Europe to lead Fortaleza's midfield — 2023 Ceará state champion. | https://pt.wikipedia.org/wiki/Lucas_Sasha · https://www.transfermarkt.com.br/fortaleza-ec/kader/verein/10870/saison_id/2022 |
 
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo dono: ter carta no baralho Brasil (`data.ts`) não impede carta no Brasil Oficial. Mesmo assim, nada entrou aqui: Athletico-PR (12), Bahia (16), Vitória (11) e Fortaleza (11) já têm muitas cartas no baralho Brasil, e os descartados de cima (Robson Bambu, Léo Pereira, Paulo André, Titi) não são ídolos desses clubes. Bruno Pacheco e Zé Welison continuam fora porque já estão no próprio Brasil Oficial.
+
 ## Xarás revistos (cartas de baralhos que não se editam — nenhuma linha aqui vira carta)
 
 Conferência de 15/11 dos nomes repetidos entre o baralho de sempre (data.ts) e o regional (cartas-regionais.ts): são pessoas diferentes.

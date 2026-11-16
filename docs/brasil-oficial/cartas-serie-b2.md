@@ -23,6 +23,13 @@ Posições: volante = MEI · ponta = ATA. (~) = posição deduzida pela ordem da
 | Rodrigo Tabata | MEI | 2005 | 2 | 63 | 75 | Meia do Goiás de 2005, o da melhor campanha esmeraldina no Brasileirão. | Playmaker in the 2005 Goiás side that produced the club's best league finish. | https://pt.wikipedia.org/wiki/Goi%C3%A1s_Esporte_Clube · https://www.transfermarkt.com.br/goias-ec/kader/verein/3197/saison_id/2004/plus/1 |
 | Amaral (xará) | MEI | 2012 | 2 | 61 | 73 | Volante e capitão do Goiás campeão da Série B 2012, dupla de meio com o Thiago Mendes. | Holding mid and captain of the 2012 Série B champions, partnering Thiago Mendes in midfield. | https://pt.wikipedia.org/wiki/Thiago_Mendes · https://www.transfermarkt.com.br/goias-ec/kader/verein/3197/saison_id/2011/plus/1 |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Fernandão | MEI | 1999 | 4 | 80 | 87 | Cria do Esmeraldino, ainda meia, ganhou cinco Goianos, duas Copas Centro-Oeste e a Série B antes de virar o Capitão América do Inter. | Goiás academy product who, still a midfielder, won five state titles, two Copa Centro-Oeste and the Série B before becoming Inter's "Captain America". | https://pt.wikipedia.org/wiki/Fernand%C3%A3o | também tem carta em Internacional 2006 (baralho Brasil) |
+| Rafael Tolói | ZAG | 2010 | 3 | 66 | 77 | Zagueiro da base esmeraldina, um dos destaques do Goiás vice-campeão da Sul-Americana de 2010. | Goiás academy centre-back, one of the standouts as Goiás reached the 2010 Sudamericana final. | https://pt.wikipedia.org/wiki/Rafael_Tol%C3%B3i | também tem carta em São Paulo 2014 (baralho Brasil) |
+
 > Amaral (xará): é Willian José de Souza (TM id 53788), outra pessoa — o Amaral do baralho é o do Corinthians 1998.
 
 ## Juventude (tinha 0 → +12)
@@ -40,6 +47,12 @@ Posições: volante = MEI · ponta = ATA. (~) = posição deduzida pela ordem da
 | Márcio Mixirica | ATA | 1999 | 2 | 61 | 74 | Fez o 2º gol do 2 a 1 no Botafogo, na ida da final, e 4 na campanha: o Mixirica azedou a Copa do Brasil 1999 pros grandes. | Scored the second in the 2-1 over Botafogo in the first leg of the final, 4 in the run: a sour fruit for the big boys in 1999. | https://pt.wikipedia.org/wiki/M%C3%A1rcio_Mixirica |
 | Gabriel Taliari | ATA | 2024 | 2 | 61 | 73 | Chegou emprestado no ano do acesso (2023) e foi comprado de vez pra encarar a Série A 2024. | Arrived on loan in the 2023 promotion year and was bought outright for the 2024 Série A. | https://pt.wikipedia.org/wiki/Gabriel_Taliari |
 | Erick Farias | ATA | 2024 | 1 | 57 | 70 | Atacante do Juventude no Brasileirão 2024; no início de 2025 foi vendido pro Ulsan, da Coreia. | Juventude forward in the 2024 Brasileirão; sold to Korea's Ulsan in early 2025. | https://www.transfermarkt.com.br/ceapi/transferHistory/list/535037 |
+
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Nenê | MEI | 2023 | 3 | 66 | 76 | Chegou aos 41 anos, foi eleito o melhor meia da Série B de 2023 e levou o Ju de volta à Série A. | Arrived aged 41, was voted the best midfielder of the 2023 Série B and took Juventude back to the top flight. | https://pt.wikipedia.org/wiki/Nen%C3%AA_(futebolista) | também tem carta em Vasco 2018 (baralho Brasil) |
 
 ## Londrina (tinha 0 → +13)
 
@@ -119,6 +132,13 @@ Posições: volante = MEI · ponta = ATA. (~) = posição deduzida pela ordem da
 | William Pottker | ATA | 2016 | 3 | 66 | 79 | Artilheiro do Brasileirão 2016 com 14 gols, dividindo a coroa com Diego Souza e Fred. | 2016 Brasileirão joint top scorer with 14 goals, sharing the crown with Diego Souza and Fred. | https://pt.wikipedia.org/wiki/William_Pottker · https://www.transfermarkt.com.br/aa-ponte-preta/kader/verein/1134/saison_id/2015/plus/1 |
 | Rildo | ATA | 2013 | 1 | 57 | 70 | Atacante titular da Ponte nos dois jogos da final da Sul-Americana 2013. | Starting forward for Ponte in both legs of the 2013 Copa Sudamericana final. | https://pt.wikipedia.org/wiki/Final_da_Copa_Sul-Americana_de_2013 |
 
+**Voltaram em 16/11** (já têm carta no baralho Brasil/Europa/Mundo, que é outro baralho — pode):
+
+| nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
+|---|---|---|---|---|---|---|---|---|---|
+| Oscar | ZAG | 1977 | 4 | 78 | 85 | Bola de Prata da Ponte vice-paulista de 1977 — de lá virou titular da Seleção na Copa de 1978. | Bola de Prata winner with the 1977 Paulista runners-up Ponte Preta — and from there a Brazil starter at the 1978 World Cup. | https://pt.wikipedia.org/wiki/Oscar_Bernardi | também tem carta em São Paulo 1980 (baralho Brasil); não é o Oscar do Chelsea |
+| Luís Fabiano | ATA | 2000 | 3 | 66 | 77 | Cria da Macaca, foi artilheiro do time no Paulistão de 2000 com 11 gols — aí o São Paulo foi buscar. | Ponte Preta academy striker, the team's top scorer in the 2000 Paulistão with 11 goals — then São Paulo came for him. | https://pt.wikipedia.org/wiki/Lu%C3%ADs_Fabiano | também tem carta em São Paulo 2003 e Sevilla 2007 (baralhos Brasil e Europa) |
+
 ## São Bernardo (São Bernardo FC) (tinha 0 → +11)
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em |
@@ -194,22 +214,22 @@ Posições: volante = MEI · ponta = ATA. (~) = posição deduzida pela ordem da
 - Diego Torres (Vila Nova 2025) — mesma pessoa que a carta Diego Torres do CRB 2020 (baralho regional; TM id 142340: CRB 2020–22 → Vila Nova jan–jun/2025). No lugar entrou Jean Mota (MEI, do elenco real do clube no Transfermarkt).
 - Ricardo Bueno (Operário-PR 2020) — mesma pessoa que a carta Ricardo Bueno do CSA 2019 (baralho regional; TM id 110650: CSA 2019 → Operário 2020–21). No lugar entrou Douglas Coutinho (ATA, do elenco real do clube no Transfermarkt).
 
-- Túlio Maravilha (Vila Nova e Goiás) — já é Botafogo 1995.
-- Fernandão (Goiás) — já é Internacional 2006.
-- Iarley (Goiás 2012) — já é Internacional 2006.
-- Durval (Sport 2008) — já é Santos 2013.
-- Sandro Goiano (Sport 2008) — já é Grêmio 2005.
-- Rafael Tolói (Goiás) — já é São Paulo 2014.
-- Kieza (Náutico) — já é Bahia 2015.
+- Túlio Maravilha (Vila Nova e Goiás) — já é Botafogo 1995. ❌ continua fora (16/11): outra pesquisa já pôs ele no Brasiliense 2002 do Brasil Oficial.
+- Fernandão (Goiás) — já é Internacional 2006. ✅ voltou (16/11) (Goiás 1999)
+- Iarley (Goiás 2012) — já é Internacional 2006. ❌ continua fora: a outra pesquisa (Série D) vai pôr ele no Ferroviário-CE — uma vez só no baralho do Brasil Oficial.
+- Durval (Sport 2008) — já é Santos 2013. ❌ continua fora (16/11): outra pesquisa já pôs ele no Brasiliense 2004 do Brasil Oficial.
+- Sandro Goiano (Sport 2008) — já é Grêmio 2005. ➡️ voltou (16/11) no **Paysandu 2002** (cartas-serie-c.md), onde foi capitão por anos.
+- Rafael Tolói (Goiás) — já é São Paulo 2014. ✅ voltou (16/11) (Goiás 2010)
+- Kieza (Náutico) — já é Bahia 2015. ❌ continua fora (16/11): outra pesquisa já pôs ele na Desportiva Ferroviária 2008 do Brasil Oficial (no Náutico ele foi artilheiro da Série B 2011 — se o dono preferir, troca).
 - Alan Ruschel (Juventude) — já é Chapecoense 2016.
-- Nenê (Juventude) — já é Vasco 2018.
+- Nenê (Juventude) — já é Vasco 2018. ✅ voltou (16/11) (Juventude 2023)
 - Jadson (Juventude) — provavelmente o mesmo Jadson do Corinthians 2015.
 - Gilberto (Juventude) — provavelmente o mesmo do Bahia 2020.
 - Negueba (Londrina 2017 / Juventude 2025) — já é Flamengo 2012.
 - Egídio (Goiás 2012) — já é Cruzeiro 2014.
 - Fellipe Bastos (Ponte 2013) — já é "Felipe Bastos" Vasco 2011.
-- Oscar (Ponte 1977) — já é São Paulo 1980.
-- Luís Fabiano / Washington (Ponte) — já estão no baralho.
+- Oscar (Ponte 1977) — já é São Paulo 1980. ✅ voltou (16/11) (Ponte Preta 1977)
+- Luís Fabiano / Washington (Ponte) — já estão no baralho. Luís Fabiano ✅ voltou (16/11) (Ponte Preta 2000); Washington continua fora.
 - Jemerson, Lucas Lima, Pará (São Bernardo 2026) — já são Atlético-MG, Santos e Santos.
 - Muriel (Náutico 2026) — já é Fluminense 2020.
 - Evitados por serem do outro pesquisador (auge em Criciúma/Ceará etc.): Gustavo (GOL Juventude 2025, veio do Criciúma).
@@ -261,3 +281,12 @@ Páginas abertas: Transfermarkt (elencos por temporada e histórico de transfer�
 **Acrescentadas:** Germano (MEI Londrina 2017), pra repor o meio depois que o Xaxá foi pro ataque.
 
 **Xarás incluídos:** Amaral (Goiás 2012) e Dirceu (Londrina 2017).
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo dono: ter carta no baralho Brasil/Europa/Mundo (`data.ts`) NÃO impede carta no Brasil Oficial — só não pode repetir DENTRO do baralho do Brasil Oficial. Entraram 6 (blocos "Voltaram em 16/11"), conferidas na pt.wikipedia:
+- **Goiás**: Fernandão (1999, ainda meia) · Rafael Tolói (2010, vice da Sul-Americana).
+- **Juventude**: Nenê (2023, melhor meia da Série B e acesso).
+- **Ponte Preta**: Oscar (1977, Bola de Prata) · Luís Fabiano (2000, artilheiro do time no Paulistão).
+- **Sport, Náutico, Vila Nova**: nada — Durval, Kieza e Túlio já foram usados por outra pesquisa em clubes da Série D, e Sandro Goiano ficou no Paysandu.
+- Continuam fora: Alan Ruschel, Jadson e Gilberto (Juventude — sem marca no clube), Egídio (Goiás), Fellipe Bastos (Ponte), Negueba, Washington, e os do São Bernardo/Náutico 2026 (Jemerson, Lucas Lima, Pará, Muriel — ainda sem história no clube).
