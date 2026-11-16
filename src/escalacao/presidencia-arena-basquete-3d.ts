@@ -25,11 +25,11 @@ function anelArredondado(hx: number, hz: number, r: number, hx2: number, hz2: nu
   return s
 }
 
-export type OpcoesArena = { cortado?: boolean; cor?: string; cor2?: string; nome?: string }
+export type OpcoesArena = { cortado?: boolean; cor?: string; cor2?: string; nome?: string; /** no mapa a quadra já vem do `criarCampo3D` */ semQuadra?: boolean }
 
-export function criarArenaBasquete3D(scene: THREE.Scene, o: OpcoesArena = {}): void {
+export function criarArenaBasquete3D(scene: THREE.Object3D, o: OpcoesArena = {}): void {
   const cor = o.cor ?? '#1B7A3D', cor2 = o.cor2 ?? '#FFC400'
-  criarQuadra3D(scene)
+  if (!o.semQuadra) criarQuadra3D(scene as THREE.Scene)
   const mat = (color: string, extra: Partial<THREE.MeshStandardMaterialParameters> = {}) => new THREE.MeshStandardMaterial({ color, roughness: .7, ...extra })
   const add = (geo: THREE.BufferGeometry, m: THREE.Material, x = 0, y = 0, z = 0) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); return mesh }
 

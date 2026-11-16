@@ -84,6 +84,8 @@ import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 import {criarCasaLuca} from './presidencia-casa-luca-3d'
+import {getSport} from './sport'
+import {criarArenaBasquete3D} from './presidencia-arena-basquete-3d'
 import {AREAS_CASA_LUCA,LIMITES_COMPLEXO_CASA_LUCA} from './presidencia-casa-luca-planta'
 import {abrirDoacaoLuca,abrirPlanoCoracao,MuralLuca} from './casa-luca'
 
@@ -271,7 +273,12 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
   const surround=criarEntornoComplexo(scene,cityState,()=>wake.current(),{name:clubName,crest:collectionRef.current.identityArt?.crest,residence:managementEnabled,arena:managementEnabled,museum:museumEnabled})
   // Cidade e estádio não prendem mais a página no mesmo bloco de montagem.
   await respira();if(cancelado){surround.dispose();controls.dispose();return}
-  const architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice,semSala:managementEnabled&&!isOffice&&!isWindow})
+  const arquiteturaFutebol=criarArquiteturaComplexo(scene,state,{interior:isOffice,semSala:managementEnabled&&!isOffice&&!isWindow})
+  // 🏀 16/11 (Diego: *"o mapa é todo voltado p basquete e N mais futebol"*): no basquete o estádio de futebol some e no lugar entra a ARENA
+  // aprovada (prédio fechado, arquibancada colada na quadra, telão). Sem cadeiras do estádio = sem torcida de futebol andando pra elas.
+  const mapaBasquete=getSport()==='basquete'
+  if(mapaBasquete){arquiteturaFutebol.root.visible=false;const arena=new THREE.Group();arena.name='arena-basquete';criarArenaBasquete3D(arena,{cortado:true,semQuadra:true,nome:clubName?`${clubName.toUpperCase()} ARENA`:undefined});scene.add(arena)}
+  const architecture=mapaBasquete?{...arquiteturaFutebol,seats:[],seatAccess:[],counts:{...arquiteturaFutebol.counts,presidentBox:0}}:arquiteturaFutebol
   let museum:ReturnType<typeof criarPredioMuseu>|undefined
   refreshMuseum.current=()=>{museum?.dispose();if(museumEnabled){museum=criarPredioMuseu(museumRef.current??0);museum.root.position.set(LOTE_MUSEU_CLUBE.x,0,LOTE_MUSEU_CLUBE.z);scene.add(museum.root)}wake.current()}
   refreshMuseum.current()
