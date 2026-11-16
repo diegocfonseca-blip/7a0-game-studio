@@ -8422,7 +8422,13 @@ export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** �
           ) : (
             <StadiumTab st={state.stadiums?.[youId]} coins={coins}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
-              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb />
+              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb
+              // 🏀🗺️ 16/11 (Diego: *"pq apareceu essa maquete se já tem o mapa p todos… mapa q tem q ser p basquete"*): na ABA Clube
+              // da carreira o MESMO mapa da cidade do futebol, com a arena de basquete no lugar do estádio (quadra + cestas).
+              presidencyView={inline ? <PresidenciaEstadioCamera homeClubId={youId} stadium={state.stadiums?.[youId]}
+                career={{ key: `${state.seed}:${state.seasonNo ?? 1}:${youId}`, state, mgrId: youId,
+                  cidade: { ultimoJogo: null, cor: myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid, cor2: myApoioPerk()?.light ?? APOIO_PERKS.bege.light },
+                  day: { division: state.nbaTier === 'nba' ? 'A' : state.nbaTier === 'gleague' ? 'B' : 'D', support: state.careerTorcida?.[`m${youId}`] ?? 50 } }} /> : undefined} />
           )}
         </div>
       </div>
