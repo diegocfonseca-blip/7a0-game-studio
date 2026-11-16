@@ -14847,8 +14847,24 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
   }, [ligado, prazo])
 }
 
+// 🧾 16/11 (sala GGWNX6 do Lavras FC: o dono perdeu a coroa no fim da liga e voltou na CADEIRA de outro, que escolheu a seleção dele):
+// só ANOTA, nunca muda o estado. Guarda QUAL ação tirou a coroa e qual trocou o meu técnico dentro da mesma sala, pro vigia da sala
+// (no provedor) gravar junto do registro — o que faltava pra achar o caminho que faz isso.
+export const vigiaReducer: { coroa: string | null; cadeira: { acao: string; de: number | null; para: number | null } | null } = { coroa: null, cadeira: null }
+function reducerComVigia(s: EscState, a: Action): EscState {
+  const r = reducer(s, a)
+  try {
+    if (r !== s && s.onlineMode === 'online' && s.roomId && r.roomId === s.roomId) {
+      if (s.isHost && !r.isHost) vigiaReducer.coroa = a.type
+      const de = s.managers?.[s.youIdx]?.id ?? null, para = r.managers?.[r.youIdx]?.id ?? null
+      if (de != null && para != null && de !== para) vigiaReducer.cadeira = { acao: a.type, de, para }
+    }
+  } catch { /* o vigia nunca atrapalha o jogo */ }
+  return r
+}
+
 export function EscProvider({ children }: { children: ReactNode }) {
-  const [state, rawDispatch] = useReducer(reducer, INITIAL, init => loadSoloInProgress() ?? init)
+  const [state, rawDispatch] = useReducer(reducerComVigia, INITIAL, init => loadSoloInProgress() ?? init)
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {
@@ -15829,13 +15845,19 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const voluntario = Date.now() - saidaVoluntariaRef.current < 15_000
     if (prev.room === cur.room && prev.host && !cur.host) {
       anotaTrava({ room_id: prev.room, sala: prev.code || null, papel: 'host', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
-        extra: { quando: 'perdeu_coroa', tela: cur.screen, voluntario } }, true)
+        extra: { quando: 'perdeu_coroa', tela: cur.screen, voluntario, acao: vigiaReducer.coroa } }, true)
+      vigiaReducer.coroa = null
+    }
+    if (prev.room === cur.room && vigiaReducer.cadeira) {
+      const c = vigiaReducer.cadeira; vigiaReducer.cadeira = null
+      anotaTrava({ room_id: prev.room, sala: prev.code || null, papel: cur.host ? 'host' : 'convidado', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
+        extra: { quando: 'trocou_cadeira', tela: cur.screen, acao: c.acao, de: c.de, para: c.para, voluntario } }, true)
     }
     if (prev.room !== cur.room) {
       anotaTrava({ room_id: prev.room, sala: prev.code || null, papel: prev.host ? 'host' : 'convidado', momento: 'envelope', setor: null, segundos: 0, reenvios: 0,
         extra: { quando: 'saiu_da_sala', de_tela: prev.screen, para_tela: cur.screen, para_sala: cur.room || null, voluntario } }, true)
     }
-  }, [state.roomId, state.isHost, state.screen, state.onlineMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.roomId, state.isHost, state.screen, state.onlineMode, state.youIdx, state.managers]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 📮 O HOST LÊ O CAMINHO RESERVA (23/08): de 3 em 3s, durante o leilão, busca
   // lances que chegaram pelo banco (room_acoes) e aplica os que faltam. É a

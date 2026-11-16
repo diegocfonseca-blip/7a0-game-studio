@@ -1,3 +1,12 @@
+## 🪑 16/11 — Sala GGWNX6 (Lavras FC, liga + Copa do Mundo): dono perdeu a coroa no fim da liga e voltou na CADEIRA do 1º colocado
+- 02:55:13 UTC a Copa do Mundo da sala abriu; 02:55:22 último save do dono; 02:55:30 `perdeu_coroa` do Lavras (tela end, sem apertar
+  SAIR, sem "rebaixou"); em seguida ~10 convidados recarregaram. Ele voltou e, segundo o Diego, caiu no lugar do Mano 3 Meses (1º da
+  tabela, primeira escolha) e escolheu o Brasil por ele. No banco: room_players e seatUids certos (Lavras 0, Mano 8), copa do Mano =
+  Brasil, Copa parada em `bandeira` na vez do Mano. Sala abandonada (Diego: "já desistiram").
+- Causa AINDA ABERTA. No branch (falta publicar): o vigia grava QUAL ação tirou a coroa (`acao` no `perdeu_coroa`) e um registro
+  novo `trocou_cadeira` (meu técnico mudou dentro da mesma sala, com a ação, de e para). Próxima vez: ler esc_travas da sala.
+- No branch também (falta OK pra publicar): convocação das salas 100 s + relógio grande nas Copas (mockups/relogio-convocacao.png).
+
 ## ⚽🎩 15/11 — Kings: pênalti do presidente igual ao pênalti do campinho — PUBLICADO
 - Diego: *"o chute tá feio… tem que ser igual pênalti mesmo do campinho, não o pulinho do presidente"*. Mockup
   `scripts/mockups/kings-penalti-presidente.png` (2ª versão com o campo da Kings: escuro, neon azul/rosa) → *"ok agora sim"*.
