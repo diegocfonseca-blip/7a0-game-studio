@@ -8,7 +8,9 @@
   da Liberta cai na semana do dia real (`DATAS_LIBERTA`), a final de 28/nov fica pro fim da temporada; (4) estaduais de 2027+ com os
   clubes de 2026 **sim**. (2) campeão de fora: *"Se ganhou o Boca não abre"* — nenhuma vaga a mais; o
   Brasil manda 7, são 46 clubes, e o 32º lugar dos grupos fica com o melhor eliminado da 3ª fase (escolha minha pra fechar a conta).
-- ⏭️ Falta: prêmio em moedas da Libertadores, troféu/festa de campeão e linha na Sala de Troféus, artilharia da Libertadores, quem não
+- ✅ Feito depois: prêmio por etapa (6·10·14·20·30·60, régua da Liberta internacional), festa de campeão (a `FestaCampeao` 'liberta'),
+  calendário real, botão 'Começar o jogo da Libertadores', grupos em grade que se ajusta.
+- ⏭️ Falta: linha da Libertadores na Sala de Troféus/perfil, artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
 

@@ -10149,8 +10149,25 @@ export function PyramidSeasonScreen() {
         out.push({ key: 'supercopa', comp: 'supercopa', linha: `${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}`, artilheiro: top(gols), garcom: top(pas), pens: !!t.pens })
       }
     }
+    // 🏆 Brasil Oficial: a final da Libertadores ganha (a página da final já passou na esteira) — a festa da Libertadores das salas
+    if (copa && libertaMinha && libertaCalc && libertaCalc.resultado.campeao === meuNomeLib) {
+      const iFinLib = copa.rounds.findIndex(r => ehPaginaLiberta(r.name) && r.name.endsWith(' · Final'))
+      if (iFinLib >= 0 && copaRound > iFinLib) {
+        const t = copa.rounds[iFinLib].ties[0]
+        const gols = new Map<string, DestaqueFesta>(), pas = new Map<string, DestaqueFesta>()
+        for (const r of libertaCalc.rounds) for (const tie of r.ties) for (const g of tie.goals) {
+          const time = g.home ? tie.a.name : tie.b.name
+          if (g.id) { const k = `${g.id}|${time}`, x = gols.get(k); if (x) x.n++; else gols.set(k, { nome: g.name, time, n: 1 }) }
+          if (g.assist) { const k = `${g.assistId ?? g.assist}|${time}`, x = pas.get(k); if (x) x.n++; else pas.set(k, { nome: g.assist, time, n: 1 }) }
+        }
+        const top = (m: Map<string, DestaqueFesta>) => [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome))[0] ?? null
+        out.push({ key: 'liberta', comp: 'liberta', nomeComp: ['Libertadores', 'Libertadores'],
+          linha: t ? `${tr('final', 'final')}: ${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}` : '',
+          pens: !!t?.pens, artilheiro: top(gols), garcom: top(pas) })
+      }
+    }
     return out
-  }, [done, me, tables, shown, copa, copaRun, copaRound, superChamp, superTie, copaBrOk, state.seasonNo, state.careerOnline, state.onlineMode])
+  }, [done, me, tables, shown, copa, copaRun, copaRound, superChamp, superTie, copaBrOk, state.seasonNo, state.careerOnline, state.onlineMode, libertaMinha, libertaCalc, meuNomeLib])
   const [festasVistasC, setFestasVistasC] = useState<string[]>(() => { try { return JSON.parse(sessionStorage.getItem(festaBaseC) ?? '[]') as string[] } catch { return [] } })
   useEffect(() => { try { setFestasVistasC(JSON.parse(sessionStorage.getItem(festaBaseC) ?? '[]') as string[]) } catch { setFestasVistasC([]) } }, [festaBaseC])
   const festaAgoraC = festasC.find(f => !festasVistasC.includes(f.key)) ?? null
