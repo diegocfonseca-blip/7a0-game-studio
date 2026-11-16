@@ -93,6 +93,7 @@ import { CLUBES_MESTRA } from './brasil-oficial-clubes'
 const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c => c.nome)
 import { turnoUnico, turnoEReturno, type Joga, type Penaltis } from './campeonato-oficial'
 import { simulaEstadual, NOME_ESTADUAL, ESTADUAIS, type ResultadoEstadual } from './estaduais'
+import { ESTRANGEIROS_SULA_2026 } from './sul-americana-oficial'
 import { simulaLibertadores, vagasLiberta, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
@@ -1873,7 +1874,7 @@ export function fabricaTimesOficiais(world: Record<Div, SimTeam[]>, seed: number
     const t = todos.get(nome)
     if (t) return t
     // 🌎 clube estrangeiro (Libertadores): o elenco sai das cartas com o nome dele no baralho, igual ao clube brasileiro
-    const br = clubeOficial(nome), cl = br ?? (ESTRANGEIROS_LIBERTA_2026.some(e => e.nome === nome) ? { nome } as ClubeOficial : null)
+    const br = clubeOficial(nome), cl = br ?? ([...ESTRANGEIROS_LIBERTA_2026, ...ESTRANGEIROS_SULA_2026].some(e => e.nome === nome) ? { nome } as ClubeOficial : null)
     if (!cl) return null
     const cartas = cartasDoClube(cl, cat)
     if (!br && (Object.keys(MINIMO_TIME) as Sector[]).some(p => cartas.filter(x => x.pos === p).length < MINIMO_TIME[p])) return null

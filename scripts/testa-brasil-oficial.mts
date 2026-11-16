@@ -6,6 +6,7 @@ import { CATALOG_OFICIAL_MODO } from '../src/escalacao/baralho-oficial.ts'
 import { CLUBES_BR, CLUBES_BR_OUTROS, CLUBES_BR_TODOS, cartasDoClube, sorteiaElenco, fechaTime, clubesDaDivisao } from '../src/escalacao/brasil-oficial.ts'
 import { existsSync, readFileSync } from 'node:fs'
 import { ESTRANGEIROS_LIBERTA_2026 } from '../src/escalacao/libertadores-oficial.ts'
+import { ESTRANGEIROS_SULA_2026 } from '../src/escalacao/sul-americana-oficial.ts'
 let erros = 0
 const falha = (m: string) => { erros++; console.log('❌', m) }
 if (clubesDaDivisao('A').length !== 20) falha('Série A precisa de 20')
@@ -41,7 +42,7 @@ for (const c of CLUBES_BR_OUTROS) { if (!fechaTime(cartasDoClube(c, juntas))) (c
 if (semCarta.length) console.log(`⏳ ${semCarta.length} clubes ainda esperando lote de cartas: ${semCarta.join(', ')}`)
 // toda carta do modo é de um clube do modo
 // (ou um estrangeiro da Libertadores — as cartas dele só existem pra ela)
-const nomes = new Set([...CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]), ...ESTRANGEIROS_LIBERTA_2026.map(e => e.nome)])
+const nomes = new Set([...CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]), ...ESTRANGEIROS_LIBERTA_2026.map(e => e.nome), ...ESTRANGEIROS_SULA_2026.map(e => e.nome)])
 for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (!nomes.has(x.club)) falha(`carta de clube fora do modo: ${x.name} (${x.club})`)
 // mesmo nome+clube+ano não pode existir nos dois baralhos
 const ja = new Set(Object.values(CATALOG).flat().map(x => `${x.name}|${x.club}|${x.year}`))

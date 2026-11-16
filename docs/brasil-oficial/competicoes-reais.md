@@ -266,6 +266,25 @@ https://pt.wikipedia.org/wiki/Copa_Sul-Americana_de_2026 · https://pt.wikipedia
 - ✅ **Final da Sul-Americana**: **21/11**, Estádio Metropolitano Roberto Meléndez, Barranquilla, **Atlético-MG × Boca Juniors**.
   Na Sul-Americana, o 3º de cada grupo da Libertadores cai para os playoffs das oitavas.
 
+### Sul-Americana 2026 — participantes e formato (pesquisa de 16/11)
+Fonte: https://pt.wikipedia.org/wiki/Copa_Sul-Americana_de_2026 (o meio da página — grupos e mata-mata — veio só em resumo: ⚠️ conferir)
+- **56 clubes**: 44 diretos (Argentina 6, Brasil 6, os outros 8 países 4 cada) + 12 vindos da Libertadores (4 eliminados da 3ª
+  fase → grupos; 8 terceiros de grupo → playoffs).
+- **Argentina (grupos)**: River Plate, Racing, Deportivo Riestra, San Lorenzo, Tigre, Barracas Central.
+- **Brasil (grupos)**: São Paulo, Grêmio, Bragantino, Atlético-MG, Santos, Vasco (os 6 melhores da Série A 2025 sem Libertadores).
+- **1ª fase (jogo único entre clubes do MESMO país, mando por sorteio; 32 → 16)**:
+  Bolívia: San Antonio Bulo Bulo, Blooming, Independiente Petrolero, Guabirá · Chile: Universidad de Chile, Audax Italiano, Palestino,
+  Cobresal · Colômbia: Atlético Nacional, América de Cali, Atlético Bucaramanga, Millonarios · Equador: Orense, Libertad (EQU), Macará,
+  Deportivo Cuenca · Paraguai: Sportivo Trinidense, Nacional (PAR), Recoleta, Olimpia · Peru: Alianza Atlético, Melgar, Deportivo
+  Garcilaso, Cienciano · Uruguai: Defensor Sporting, Boston River, Racing (Montevidéu), Montevideo City Torque · Venezuela: Academia
+  Puerto Cabello, Monagas, Caracas, Metropolitanos.
+- **Grupos**: 32 (16 da 1ª fase + 12 diretos + 4 da Libertadores), 8 grupos de 4, ida e volta. 1º → oitavas; 2º → playoff contra um
+  3º de grupo da Libertadores (ida e volta, sem sorteio). Oitavas, quartas e semis ida e volta; **final em jogo único** (21/11/2026,
+  Barranquilla: Atlético-MG × Boca Juniors).
+- **Calendário**: 1ª fase 3–5/mar · grupos 7–9/abr, 14–16/abr, 28–30/abr, 5–7/mai, 19–21/mai, 26–28/mai · playoffs 21–23/jul e
+  28–30/jul · oitavas 11–13/ago e 18–20/ago · quartas 8–10/set e 15–17/set · semis 13–14/out e 20–21/out · final 21/nov.
+- ✏️ Vaga brasileira (regra 2027, já anotada acima): do 6º ao 11º da Série A, descendo com as repetições.
+
 ### Supercopa do Brasil ("Supercopa Rei") 2026
 Fonte: https://pt.wikipedia.org/wiki/Supercopa_Rei_de_2026
 - ✅ Jogam o campeão brasileiro e o campeão da Copa do Brasil do ano anterior, em **jogo único**.
