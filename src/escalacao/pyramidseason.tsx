@@ -8996,7 +8996,7 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
             // ANDAR (Street=D não tem marca; G League=B e NBA=A pagam). intl=false (o basquete
             // não tem carreira internacional). A marca cai no caixa na virada (applyMasterHistoria).
             <div style={{ paddingTop: 8 }}>
-              <MasterBanner div={div} seasonNo={state.seasonNo ?? 1} contrato={state.careerMaster?.[youId]}
+              <MasterBanner semCopa={!!state.oficial} div={div} seasonNo={state.seasonNo ?? 1} contrato={state.careerMaster?.[youId]}
                 seed={state.seed} mgrId={youId} intl={false}
                 onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
                 onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
@@ -9606,7 +9606,7 @@ export function PyramidSeasonScreen() {
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
   const cbUnlocked = useCopaBrasilLiberada()
-  const copaBR = useMemo(() => ((done || copaMid) && cbUnlocked) ? computeCopaBrasil(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa) : null, [done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
+  const copaBR = useMemo(() => ((done || copaMid) && cbUnlocked && !state.oficial) ? computeCopaBrasil(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa) : null, [state.oficial, done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
   // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
   // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
   // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
@@ -9622,10 +9622,13 @@ export function PyramidSeasonScreen() {
   // que foi o que aconteceu com ele por 106 temporadas, sem nenhum aviso.
   const copaBrOk = !!copaBR?.champion
   const copaBase = useMemo(() => {
+    // 🇧🇷 BRASIL OFICIAL: nada de copa inventada (Copa Legends / Copa do Brasil Legends). Diego, 16/11: *"Q merda é essa de copa
+    // Legends? Esse modo são copas originais"*. Até a Copa do Brasil REAL entrar, a temporada do modo não tem copa nacional.
+    if (state.oficial) return null
     if (!done && !copaMid) return null
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
     return computeCopa(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa)
-  }, [done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
+  }, [state.oficial, done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
   // 🇧🇷 BRASIL OFICIAL · PLAYOFF DA SÉRIE B NA TELA: terminou a 38ª entre o 3º e o 6º da B, o playoff (3º×6º e 4º×5º, ida e volta)
   // entra como mais uma página da esteira pós-temporada — a MESMA da Supercopa (placar, Manual, campinho, intervalo). É este
   // resultado (e não o simulado de fundo) que decide quem sobe; a tabela só mostra o playoff depois de ele ser jogado.
@@ -11790,7 +11793,7 @@ export function PyramidSeasonScreen() {
     }
     // 🗓️ agenda: a Copa nacional, a Libertadores (quando a carreira já tem) e a Copa do Mundo
     const agenda: CentralAgenda[] = []
-    agenda.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
+    if (!state.oficial) agenda.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
       sub: !seasonOver ? ['depois da rodada 38', 'after round 38'] : copaPlaying ? ['rolando agora', 'live now'] : copaFinished ? ['encerrada', 'over'] : ['começa em seguida', 'up next'] })
     if (intlEnabled) agenda.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
       sub: sn < 40 ? [`abre na temporada 40 (faltam ${40 - sn})`, `opens in season 40 (${40 - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
@@ -12651,7 +12654,7 @@ export function PyramidSeasonScreen() {
                   <>
                     {/* 🏆 1 — MASTER: sem contrato = os 4 papéis; com contrato = a faixa
                         de leitura (que não é passo, é só informação). */}
-                    <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={sn}
+                    <MasterBanner semCopa={!!state.oficial} cinematic={privateCareer} div={me.div} seasonNo={sn}
                       contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online')}
                       onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
                       onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}

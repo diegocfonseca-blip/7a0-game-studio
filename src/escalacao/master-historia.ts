@@ -57,8 +57,9 @@ function hash(txt: string): number {
 }
 /** as metas que FAZEM SENTIDO pra este clube: na Várzea não dá pra cair; na A não dá pra subir; as internacionais só a
  *  partir da temporada 40, na carreira solo (`intl`). */
-export function metasDaDivisao(div: string, intl = false): MasterMetaId[] {
-  const out: MasterMetaId[] = ['campeao', 'metade', 'artilheiro', 'copa_campeao', 'copa_final', 'art_copa', 'super_campeao']
+export function metasDaDivisao(div: string, intl = false, semCopa = false): MasterMetaId[] {
+  // 🇧🇷 `semCopa`: Brasil Oficial sem copa nacional (até a Copa do Brasil real entrar) — meta de copa seria impossível
+  const out: MasterMetaId[] = semCopa ? ['campeao', 'metade', 'artilheiro'] : ['campeao', 'metade', 'artilheiro', 'copa_campeao', 'copa_final', 'art_copa', 'super_campeao']
   out.push(div === 'A' ? 'g4' : 'acesso')
   if (div !== 'V') out.push('nao_cair')
   // as internacionais só pra quem está perto de ser convidado (Série A e B) — meta impossível só frustra
@@ -71,8 +72,8 @@ export function masterMetaBonus(div: string, meta: MasterMetaId): number {
   return Math.max(1, Math.round((MASTER_BASE[div] ?? 0) * MASTER_METAS[meta].mult))
 }
 /** a meta que a marca traz NESTA virada, pra ESTE clube. Presa na semente: a tela mostra e o motor assina a mesma. */
-export function masterMetaOferta(seed: number, season: number, mgrId: number, brandId: string, div: string, intl = false): MasterMeta {
-  const lista = metasDaDivisao(div, intl)
+export function masterMetaOferta(seed: number, season: number, mgrId: number, brandId: string, div: string, intl = false, semCopa = false): MasterMeta {
+  const lista = metasDaDivisao(div, intl, semCopa)
   const meta = lista[hash(`${seed}|${season}|${mgrId}|${brandId}|meta`) % lista.length]
   return { meta, bonus: masterMetaBonus(div, meta) }
 }
@@ -115,10 +116,10 @@ function acabouAgora(c: MasterContratoHist | undefined, season: number): c is Ma
   return !!c && c.desde + c.anos === season
 }
 /** 📞 a proposta de renovação desta virada (ou null). `div` = a divisão de AGORA. */
-export function masterOfertaRenovacao(c: MasterContratoHist | undefined, season: number, div: string, seed: number, mgrId: number, intl = false):
+export function masterOfertaRenovacao(c: MasterContratoHist | undefined, season: number, div: string, seed: number, mgrId: number, intl = false, semCopa = false):
   { brandId: string; anos: number; div: string; porTemporada: number } & MasterMeta | null {
   if (!acabouAgora(c, season) || !c.foiBem || c.recusouRenovar || c.rescindido != null) return null
-  const m = masterMetaOferta(seed, season, mgrId, `${c.brandId}-renova`, div, intl)
+  const m = masterMetaOferta(seed, season, mgrId, `${c.brandId}-renova`, div, intl, semCopa)
   return { brandId: c.brandId, anos: c.anos, div, porTemporada: Math.round(masterPorTemporada(div, c.anos) * RENOVA_MULT), ...m }
 }
 /** a marca que NÃO entra nos papéis desta virada: a que você recusou ou a que rescindiu */

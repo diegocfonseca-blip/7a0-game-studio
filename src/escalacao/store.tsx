@@ -10033,9 +10033,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // você recusou ou que rescindiu não volta nesta virada — as MESMAS regras que a tela usa (master-historia.ts)
       const ant = s.careerMaster?.[id]
       const intl = masterIntlAberto(season, s.onlineMode === 'online')
-      if (masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, intl)) return s
+      if (masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, intl, !!s.oficial)) return s
       if (masterMarcaFora(ant, season) === prazo.brandId) return s
-      const mt = masterMetaOferta(s.seed ?? 0, season, id, prazo.brandId, div, intl)
+      const mt = masterMetaOferta(s.seed ?? 0, season, id, prazo.brandId, div, intl, !!s.oficial)
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: prazo.brandId, anos: prazo.anos, div, desde: season, porTemporada: masterPorTemporada(div, prazo.anos), meta: mt.meta, bonus: mt.bonus } }
       return s
     }
@@ -10045,7 +10045,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
       const season = s.seasonNo ?? 1
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-      const of = masterOfertaRenovacao(s.careerMaster?.[id], season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'))
+      const of = masterOfertaRenovacao(s.careerMaster?.[id], season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'), !!s.oficial)
       if (!of) return s
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: of.brandId, anos: of.anos, div, desde: season, porTemporada: of.porTemporada, meta: of.meta, bonus: of.bonus, renovado: true } }
       return s
@@ -10057,7 +10057,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const season = s.seasonNo ?? 1
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
       const ant = s.careerMaster?.[id]
-      if (!ant || !masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'))) return s
+      if (!ant || !masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'), !!s.oficial)) return s
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { ...ant, recusouRenovar: true } }
       return s
     }
