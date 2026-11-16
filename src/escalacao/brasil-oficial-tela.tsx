@@ -69,11 +69,9 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
   const doGrupo = (g: string) => clubesDaDivisao('D').filter(c => c.grupoD === g)
   const [sel, setSel] = useState<string>(clubesDaDivisao('A')[0]?.nome ?? '')
   const clube = CLUBES_BR_TODOS.find(c => c.nome === sel) ?? null
-  // ⏳ a Série C e a D REAIS na tela do usuário ainda não rodam: começar num clube delas fica travado com aviso — nada de cair
-  // num campeonato de mentira (regra do Diego: tudo real). Liga quando a tela delas entrar.
-  // 🧪 só no servidor de teste (npm run dev) dá pra abrir a C com window.__boTesteC = true (e a D com __boTesteD); no site publicado continua travada
-  const teste = import.meta.env.DEV ? (window as unknown as { __boTesteC?: boolean; __boTesteD?: boolean }) : {}
-  const SERIE_D_PRONTA = !!teste.__boTesteD, SERIE_C_PRONTA = !!teste.__boTesteC
+  // ✅ 16/11: B (com playoff), C (fases + final) e D (grupos + mata-mata) jogam na tela no formato real — testadas de ponta a
+  // ponta no navegador. A trava continua aqui (um `false` fecha a série de novo, com aviso) caso alguma precise sair do ar.
+  const SERIE_D_PRONTA = true, SERIE_C_PRONTA = true
   const travado = (clube?.div === 'D' && !SERIE_D_PRONTA) || (clube?.div === 'C' && !SERIE_C_PRONTA)
   // as cartas do modo descem quando esta tela abre; até chegarem, o botão de começar fica travado
   const [baralho, setBaralho] = useState<BaralhoOficial | null>(baralhoOficial())

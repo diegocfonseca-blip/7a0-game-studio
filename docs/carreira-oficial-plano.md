@@ -207,5 +207,8 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   pela semente (os outros 76 entram pelo nome). Testado no navegador: grupos → 2ª, 3ª, 4ª fase, quartas, semi, final e playoff de
   acesso, até a decisão da próxima temporada. Temporada da C também até o fim (com a trava da 38ª sem jogo seu consertada).
   C e D continuam travadas no site (abrem só no servidor de teste com `window.__boTesteC`/`__boTesteD`).
+- ✅ **16/11: SÉRIES C e D DESTRAVADAS** na escolha de clube (`SERIE_C_PRONTA`/`SERIE_D_PRONTA = true`); o playoff da B testado na
+  tela com o seu clube (chave de teste `window.__boForcaPlayoff`), e a manchete do O Martelo agora sai do desfecho real
+  (`headlineOficial`). Task 22 FECHADA — o modo continua só na conta do Diego e só no branch (não está na main).
 - Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
   Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.
