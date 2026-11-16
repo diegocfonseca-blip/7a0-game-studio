@@ -348,7 +348,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
   const game=criarPartidaComplexo(scene,save,matchRef.current,()=>{renderer.shadowMap.needsUpdate=true;wake.current()},()=>presidentRef.current,matchPresentation)
   // 🪧 03/11: placa do Patrocinador Master (fachada + telão, só com contrato ativo) e as placas de patrocínio em volta do gramado.
   // Ela sai junto com o campo (mesmo ciclo de vida), sem mexer na lista de limpeza do mapa.
-  const placasEstadio=criarPlacasComplexo(cenaFutebol,state,()=>wake.current()),soltaCampo=game.dispose;game.dispose=()=>{placasEstadio.dispose();soltaCampo()}
+  const placasEstadio=criarPlacasComplexo(scene,state,()=>wake.current()),soltaCampo=game.dispose;game.dispose=()=>{placasEstadio.dispose();soltaCampo()}
   const localLife=criarVidaLocais(scene,surround.root,surround.solids,managementEnabled&&!ajuste.leve,()=>wake.current(),!isOffice&&!isWindow)
   const stadiumAccess=criarAcessosEstadio(cenaFutebol,state)
   const stadiumStaff=criarEquipeApoioEstadio(cenaFutebol,()=>wake.current(),matchPresentation==='3d')

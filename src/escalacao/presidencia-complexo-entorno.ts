@@ -1,4 +1,5 @@
 import {PRACA_TORCEDOR,RESERVA_CAMPUS,RUAS_CAMPUS,RUAS_SERVICO_CAMPUS} from './presidencia-implantacao-urbana'
+import {getSport} from './sport'
 import {criarAcabamentosComerciais} from './presidencia-comercio-acabamentos'
 import {LOTE_MUSEU_CLUBE} from './museu-clube-predio'
 import {ARENA_ONLINE} from './arena-planta'
@@ -545,13 +546,15 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     part('balcao',wood,4.2,1.1,1.1,0,.71,-3.5,true)
     part('porta-fundo',glass,2,3.1,.08,0,1.71,-d/2+.16)
     const shirt=new THREE.Shape()
-    const outline=[[-.33,.63],[-.63,.45],[-.48,.13],[-.32,.21],[-.32,-.52],[.32,-.52],[.32,.21],[.48,.13],[.63,.45],[.33,.63],[.15,.51],[-.15,.51]]
+    // 🏀 16/11: no basquete a loja vende REGATA (cava funda, sem manga) — no futebol, a camisa de sempre
+    const regata=getSport()==='basquete'
+    const outline=regata?[[-.30,.63],[-.36,.36],[-.32,.10],[-.32,-.52],[.32,-.52],[.32,.10],[.36,.36],[.30,.63],[.13,.63],[.08,.42],[-.08,.42],[-.13,.63]]:[[-.33,.63],[-.63,.45],[-.48,.13],[-.32,.21],[-.32,-.52],[.32,-.52],[.32,.21],[.48,.13],[.63,.45],[.33,.63],[.15,.51],[-.15,.51]]
     outline.forEach(([u,v],i)=>i?shirt.lineTo(u,v):shirt.moveTo(u,v));shirt.closePath()
     const shirtGeometry=own(new THREE.ExtrudeGeometry(shirt,{depth:.075,bevelEnabled:false}))
     for(const side of[-1,1])for(let i=0;i<3;i++){
       const p=at(side*5.05+(i-1)*1.5,d/2-1)
       const garment=add(shirtGeometry,i%2?dark:white);garment.name='loja-camisa';garment.position.set(p.x,2.05,p.z);garment.rotation.y=yaw
-      part('gola',dark,.32,.09,.1,side*5.05+(i-1)*1.5,2.61,d/2-.97)
+      if(!regata)part('gola',dark,.32,.09,.1,side*5.05+(i-1)*1.5,2.61,d/2-.97)
       part('cachecol',i%2?white:accent,.38,.09,.7,side*5.05+(i-1)*1.4,.99,d/2-.85)
     }
     fixture('loja-luz-vitrine',lot.door!.threshold.x,3.35,lot.door!.threshold.z,'entrance',GROUND,yaw)

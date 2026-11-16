@@ -8,6 +8,10 @@ import * as THREE from 'three'
 import { criarQuadra3D, QUADRA_S } from './presidencia-quadra-3d'
 
 const L = 28 * QUADRA_S / 2, W = 15 * QUADRA_S / 2
+/** 📺 onde fica o telão de 4 faces (centro da arena): as placas do patrocinador usam a mesma conta */
+export const TELAO_ARENA = { y: 11 * 1.05 + 12, faceZ: 6.05 }
+/** meia quadra (comprimento, largura) em metros do mapa — pras placas de beira de quadra */
+export const QUADRA_MEIA = { L, W }
 
 function anelArredondado(hx: number, hz: number, r: number, hx2: number, hz2: number, r2: number): THREE.Shape {
   // as curvas são PARALELAS (raio = distância até a quadra + 2): fileira, corredor e parede andam juntos nas quinas
@@ -88,9 +92,9 @@ export function criarArenaBasquete3D(scene: THREE.Object3D, o: OpcoesArena = {})
   pessoas.count = n; scene.add(pessoas)
 
   // 🪑 cadeiras de beira de quadra (courtside) + mesa dos oficiais
-  for (const lado of [-1, 1]) add(new THREE.BoxGeometry(2 * L - 10, .9, 1.6), mat(cor), 0, .45, lado * (W + 2.2))
-  add(new THREE.BoxGeometry(14, 1.6, 2.2), mat('#0C0C0C'), 0, .8, -(W + 4.2))
-  add(new THREE.BoxGeometry(13.6, 1.0, .1), mat(cor2, { emissive: cor2, emissiveIntensity: .5 }), 0, 1.0, -(W + 3.05))
+  for (const lado of [-1, 1]) add(new THREE.BoxGeometry(2 * L - 10, .9, 1.6), mat(cor), 0, .45, lado * (W + 2.7)) // atrás das placas de beira de quadra
+  add(new THREE.BoxGeometry(14, 1.6, 2.2), mat('#0C0C0C'), 0, .8, -(W + 2.7))
+  add(new THREE.BoxGeometry(13.6, 1.0, .1), mat(cor2, { emissive: cor2, emissiveIntensity: .5 }), 0, 1.0, -(W + 1.55))
 
   // 🧱 PAREDE DO PRÉDIO e a cúpula
   const parede = new THREE.ExtrudeGeometry(anelArredondado(L + fim2, W + fim2, 6 + fim2, L + fim2 + 2, W + fim2 + 2, 8 + fim2), { depth: alto2 + 4, bevelEnabled: false, curveSegments: 12 })
@@ -144,7 +148,7 @@ export function criarArenaBasquete3D(scene: THREE.Object3D, o: OpcoesArena = {})
     })()
     const tela = new THREE.MeshStandardMaterial({ map: telaTex, emissive: '#ffffff', emissiveMap: telaTex, emissiveIntensity: .9 })
     const caixa = mat('#111114')
-    const yT = alto1 + 12
+    const yT = TELAO_ARENA.y // = alto1 + 12
     add(new THREE.BoxGeometry(18, 10, 12), caixa, 0, yT, 0)
     for (const [x, z, ry, w] of [[0, 6.05, 0, 17], [0, -6.05, Math.PI, 17], [9.05, 0, Math.PI / 2, 11], [-9.05, 0, -Math.PI / 2, 11]] as const) {
       const p = add(new THREE.PlaneGeometry(w, 8.4), tela, x, yT, z); p.rotation.y = ry

@@ -283,7 +283,7 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   // a arara de cano (dois pés, o cano em cima) com 6 camisas penduradas de frente pra quem passa, e a lona no chão com mais
   for(const s of [-1,1])pecas.push(l.peca(s*1.3,0,.9,.05,1.8,.05,'#9aa0a3'),l.peca(s*1.3,0,.02,.06,.04,.6,'#9aa0a3'))
   pecas.push(l.peca(0,0,1.78,2.65,.04,.04,'#9aa0a3'),l.peca(0,1.0,.015,1.8,.02,1.0,'#2F6FB5'))
-  for(let k=0;k<6;k++){const s=-1.05+k*.42,f=.04*(k%2);camisas.push(l.peca(s,f,1.3,.48,.64,.02,'#ffffff',{yaw:(k-2.5)*.04}),l.peca(s,f,1.55,.76,.18,.02,'#ffffff',{yaw:(k-2.5)*.04}))}
+  for(let k=0;k<6;k++){const s=-1.05+k*.42,f=.04*(k%2);camisas.push(l.peca(s,f,1.3,.48,.64,.02,'#ffffff',{yaw:(k-2.5)*.04}),l.peca(s,f,1.55,getSport()==='basquete'?.3:.76,.18,.02,'#ffffff',{yaw:(k-2.5)*.04}))/* 🏀 regata: sem manga */}
   for(let k=0;k<4;k++)camisas.push(l.peca(-.6+k*.4,1.0,.04,.4,.03,.5,'#ffffff',{yaw:.2*k}))
   lote(cenas.jogo,'pirata-pecas',pecas)
   pirataClube=lote(cenas.jogo,'pirata-camisas',camisas)
