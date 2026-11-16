@@ -6,6 +6,7 @@ import {criarCulturaBairro,type VistaCulturaBairro} from './bairro-cultura-3d'
 // (lona listrada, terra, letreiros e a capa do jornal), nenhuma luz e nenhuma sombra nova. As pessoas são os mesmos civis da
 // cidade (carregados só quando aparecem, com LOD) e tudo anda pelo `update` que o mapa já chama no quadro dele — fora da tela o mapa pausa junto com a feira. Qualquer erro aqui fica aqui: o mapa segue de pé.
 import * as THREE from 'three'
+import {getSport} from './sport'
 import {customerJourney} from './cidade3d/activity-route.mjs'
 import {createCivilian} from './cidade3d/civilians.mjs'
 import {residentVisibility} from './cidade3d/resident-visibility.mjs'
@@ -136,7 +137,8 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   const y=192+linhas.length*54-14
   g.fillStyle=OURO;g.fillRect(22,y,W-44,40);g.fillStyle=TINTA;g.font=`700 19px ${FONTE}`;g.fillText(m.linha.toUpperCase().slice(0,30),W/2,y+27,W-56)
   // "fotinho" da matéria: gramado e uma bola, sem rosto de ninguém
-  g.fillStyle=VERDE;g.fillRect(22,y+54,W-44,H-y-80);g.fillStyle='#ffffff';g.beginPath();g.arc(W/2,y+54+(H-y-80)/2,14,0,Math.PI*2);g.fill()
+  const bbCapa=getSport()==='basquete' // 🏀 no basquete a foto é a quadra de madeira com a bola laranja
+  g.fillStyle=bbCapa?'#C98F55':VERDE;g.fillRect(22,y+54,W-44,H-y-80);g.fillStyle=bbCapa?'#E07B2E':'#ffffff';g.beginPath();g.arc(W/2,y+54+(H-y-80)/2,14,0,Math.PI*2);g.fill()
   capa.needsUpdate=true
  }
  const desenhaLetreiro=()=>{
@@ -180,10 +182,24 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  const campinho=new THREE.Group();campinho.name='campinho-de-terra';root.add(campinho)
  const LX=8.6,LZ=5.4 // meio comprimento e meia largura do campinho (cabe na praça de 23 m)
  let bolaMesh:THREE.Mesh|undefined
- const bolaEm=(s:number,c:P)=>({x:c.x+Math.sin(s*.47)*Math.cos(s*.13)*(LX-1.6)+Math.sin(s*1.9)*.6,z:c.z+Math.sin(s*.71+1)*(LZ-1.3)})
+ // 🏀 16/11 (Diego: *"o mapa é todo voltado p basquete"*): no basquete o campinho de terra vira QUADRINHA DE RUA — cimento, garrafão,
+ // linha de 3 e UMA cesta (meia quadra), com 6 moleques num 3×3 e a bola laranja quicando perto do aro. No futebol nada muda.
+ const bbB=getSport()==='basquete'
+ const bolaEm=(s:number,c:P)=>bbB
+  ?{x:c.x-LX+2.2+(1+Math.sin(s*.53))*2.2+Math.sin(s*1.7)*.4,z:c.z+Math.sin(s*.61+1)*(LZ-1.8)}
+  :{x:c.x+Math.sin(s*.47)*Math.cos(s*.13)*(LX-1.6)+Math.sin(s*1.9)*.6,z:c.z+Math.sin(s*.71+1)*(LZ-1.3)}
  if(lugares.campinho){
   const c=lugares.campinho
-  const terra=canvasTex(256,160,g=>{
+  const terra=canvasTex(256,160,bbB?g=>{
+   // cimento da quadrinha, com manchas, as linhas pintadas e o garrafão na ponta da cesta (lado esquerdo)
+   g.fillStyle='#8f9294';g.fillRect(0,0,256,160)
+   for(let i=0;i<1200;i++){const r=hash('c'+i);g.fillStyle=['rgba(120,124,126,.5)','rgba(168,170,170,.45)','rgba(100,104,106,.4)'][r%3];g.fillRect(r%256,(r>>>8)%160,1+(r>>>16)%2,1)}
+   g.fillStyle='rgba(194,69,47,.75)';g.fillRect(6,52,62,56)
+   g.strokeStyle='rgba(244,240,223,.9)';g.lineWidth=2.5;g.strokeRect(6,6,244,148);g.strokeRect(6,52,62,56)
+   g.beginPath();g.arc(68,80,18,-Math.PI/2,Math.PI/2);g.stroke()
+   g.beginPath();g.moveTo(6,14);g.lineTo(40,14);g.arc(20,80,104,-Math.asin(66/104),Math.asin(66/104));g.lineTo(6,146);g.stroke()
+   g.beginPath();g.moveTo(250,6);g.lineTo(250,154);g.stroke()
+  }:g=>{
    g.fillStyle='#b07a45';g.fillRect(0,0,256,160)
    for(let i=0;i<1400;i++){const r=hash('t'+i);g.fillStyle=['rgba(140,92,50,.55)','rgba(196,146,92,.5)','rgba(150,100,56,.45)','rgba(205,160,104,.45)'][r%4];g.fillRect(r%256,(r>>>8)%160,1+(r>>>16)%2,1)}
    // tufos de mato na beira e no meio do terrão, onde ninguém pisa
@@ -194,28 +210,38 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   });textures.add(terra)
   const chao=new THREE.Mesh(plano,mat({map:terra,roughness:1}));chao.name='campinho-terra';chao.rotation.x=-Math.PI/2;chao.position.set(c.x,CAMPO_Y,c.z);chao.scale.set(LX*2+2,LZ*2+2,1);chao.receiveShadow=true;campinho.add(chao)
   const caixas:Caixa[]=[]
+  if(bbB){
+   // a cesta da quadrinha: poste de ferro, tabela branca com o quadradinho e o aro laranja (o aro é um anel, logo abaixo)
+   caixas.push({x:c.x-LX-.35,y:CAMPO_Y+1.6,z:c.z,w:.14,h:3.2,d:.14,yaw:0,c:'#3a3d40'})
+   caixas.push({x:c.x-LX-.05,y:CAMPO_Y+3.05,z:c.z,w:.6,h:.1,d:.1,yaw:0,c:'#3a3d40'})
+   caixas.push({x:c.x-LX+.25,y:CAMPO_Y+3.2,z:c.z,w:.05,h:.95,d:1.5,yaw:0,c:'#f4f1e6'})
+   caixas.push({x:c.x-LX+.28,y:CAMPO_Y+3.1,z:c.z,w:.02,h:.4,d:.52,yaw:0,c:'#C2452F'})
+  }else{
   // trave de madeira num lado (dois paus e o travessão) …
   for(const s of [-1,1])caixas.push({x:c.x-LX,y:CAMPO_Y+.8,z:c.z+s*1.5,w:.12,h:1.6,d:.12,yaw:0,c:'#8a5a2b'})
   caixas.push({x:c.x-LX,y:CAMPO_Y+1.62,z:c.z,w:.12,h:.12,d:3.12,yaw:0,c:'#7a4e24'})
   // … e no outro, o gol marcado com dois pares de chinelo
   for(const s of [-1,1])for(const k of [-.07,.07])caixas.push({x:c.x+LX+k*1.2,y:CAMPO_Y+.02,z:c.z+s*1.4+k,w:.26,h:.025,d:.1,yaw:s*.3+k*4,c:s>0?'#2F6FB5':'#ffffff'})
+  }
   // mochilas e garrafinha largadas na beira
   caixas.push({x:c.x-2,y:CAMPO_Y+.18,z:c.z+LZ+.7,w:.35,h:.36,d:.22,yaw:.3,c:'#C2452F'},{x:c.x-1.4,y:CAMPO_Y+.18,z:c.z+LZ+.8,w:.35,h:.36,d:.22,yaw:-.2,c:'#2F6FB5'},{x:c.x-.9,y:CAMPO_Y+.14,z:c.z+LZ+.6,w:.09,h:.28,d:.09,yaw:0,c:'#cfe08a'})
   campinho.add(lote('campinho-pecas',caixas))
-  bolaMesh=new THREE.Mesh(own(new THREE.IcosahedronGeometry(.13,1)),mat({color:'#ffffff',roughness:.6}));bolaMesh.name='campinho-bola';bolaMesh.visible=false;campinho.add(bolaMesh)
+  if(bbB){const aro=new THREE.Mesh(own(new THREE.TorusGeometry(.23,.025,6,20)),mat({color:'#E8503A',roughness:.4}));aro.name='quadrinha-aro';aro.rotation.x=Math.PI/2;aro.position.set(c.x-LX+.55,CAMPO_Y+3.05,c.z);campinho.add(aro)}
+  bolaMesh=new THREE.Mesh(own(new THREE.IcosahedronGeometry(bbB?.15:.13,1)),mat({color:bbB?'#E07B2E':'#ffffff',roughness:.6}));bolaMesh.name='campinho-bola';bolaMesh.visible=false;campinho.add(bolaMesh)
   // 10 moleques: um goleiro em cada lado e o resto atrás da bola, cada um com seu atraso e seu jeito
-  for(let i=0;i<10;i++){
+  for(let i=0;i<(bbB?6:10);i++){
    const lado=i%2?1:-1,camisa=i%2?'#f4ecd6':'#C2452F'
    pessoa('moleque-'+i,'pelada',i%3===2?'child-girl':'child-boy',i<2?'#3a3a3a':camisa,s=>{
     const b=bolaEm(s,c)
     let x:number,z:number
-    if(i<2){x=c.x+(i?LX-.6:-LX+.6);z=c.z+Math.max(-1.3,Math.min(1.3,(b.z-c.z)*.35))}
+    if(i<2&&!bbB){x=c.x+(i?LX-.6:-LX+.6);z=c.z+Math.max(-1.3,Math.min(1.3,(b.z-c.z)*.35))}
     else{
      const lag=.25+i*.12,bb=bolaEm(s-lag,c),r=.6+(i%4)*.7,ang=s*(.5+i*.07)+i
      x=bb.x+Math.cos(ang)*r+lado*(i%3)*.5;z=bb.z+Math.sin(ang)*r*.7
     }
     x=Math.max(c.x-LX+.3,Math.min(c.x+LX-.3,x));z=Math.max(c.z-LZ+.3,Math.min(c.z+LZ-.3,z))
-    return{x,z,heading:Math.atan2(b.x-x,b.z-z),speed:i<2?.25:1.8,distance:s*(i<2?.3:2.1)}})
+    if(bbB)x=Math.min(x,c.x+1.5) // 3×3 na meia quadra da cesta
+    return{x,z,heading:Math.atan2(b.x-x,b.z-z),speed:i<2&&!bbB?.25:1.8,distance:s*(i<2&&!bbB?.3:2.1)}})
   }
  }
 
@@ -245,7 +271,7 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
  function update(seconds:number,camera?:THREE.Camera,height=720){
   diaUpdate(seconds,camera,height);cultura.update(seconds,camera,height)
   const ativo={feira:enabled&&vida.feira,banca:true,pelada:enabled&&vida.pelada}
-  if(bolaMesh&&lugares.campinho){bolaMesh.visible=ativo.pelada;if(ativo.pelada){const b=bolaEm(seconds,lugares.campinho);bolaMesh.position.set(b.x,CAMPO_Y+.13+Math.abs(Math.sin(seconds*3.1))*.32,b.z);bolaMesh.rotation.set(seconds*4,seconds*2.3,0)}}
+  if(bolaMesh&&lugares.campinho){bolaMesh.visible=ativo.pelada;if(ativo.pelada){const b=bolaEm(seconds,lugares.campinho);bolaMesh.position.set(b.x,CAMPO_Y+(bbB?.15+Math.abs(Math.sin(seconds*4.2))*.9:.13+Math.abs(Math.sin(seconds*3.1))*.32),b.z);bolaMesh.rotation.set(seconds*4,seconds*2.3,0)}}
   let moleques=0,bagIndex=0;bags.userData.carrying=0
   for(const p of pessoas){
    let on=ativo[p.grupo]
@@ -266,6 +292,7 @@ export function criarTradicoesBairro(scene:THREE.Scene,input:{bairro?:BairroEnto
   if(kind!=='feira'&&kind!=='banca'&&kind!=='campinho')return diaVista(kind,aspect)
   if(kind==='feira'&&lugares.feira){const q=quadroDaRua(lugares.feira),m=q.at(q.L*.38,1.3),o=q.at(-1.5-2.4*k,-4.2);return{target:[m.x,1,m.z],camera:[o.x,2.3+1.4*k,o.z]}} // da esquina, olhando a rua da feira inteira
   if(kind==='banca'&&lugares.banca){const b=lugares.banca,fx=Math.sin(b.yaw),fz=Math.cos(b.yaw),sx=Math.cos(b.yaw),sz=-Math.sin(b.yaw),tx=b.x+fx*1.3+sx*.8,tz=b.z+fz*1.3+sz*.8;return{target:[tx,1.3,tz],camera:[tx+fx*6.6*k+sx*3*k,2.4+1.1*k,tz+fz*6.6*k+sz*3*k]}}
+  if(kind==='campinho'&&lugares.campinho&&bbB){const c=lugares.campinho;return{target:[c.x-LX+3,1.2,c.z],camera:[c.x+5+4*k,5+3*k,c.z+7+4*k]}} // 🏀 de frente pra cesta, com o 3×3 no meio
   if(kind==='campinho'&&lugares.campinho){const c=lugares.campinho;return{target:[c.x-1.5,.3,c.z],camera:[c.x+LX+9*k,4+5*k,c.z+5*k]}} // de trás do gol de chinelo, olhando o campinho todo
   return undefined
  }
