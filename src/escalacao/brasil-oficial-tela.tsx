@@ -1,6 +1,10 @@
-// ─── 🇧🇷 BRASIL OFICIAL: as duas telas de entrada (mockup `scripts/mockups/carreira-brasil-oficial.png`, aprovado 15/11) ──────
+// ─── 🇧🇷 BRASIL OFICIAL: as duas telas de entrada (mockups aprovados 15/11: `scripts/mockups/carreira-brasil-oficial.png` e
+// `brasil-oficial-serie-d.png`) ──────────────────────────────────────────────────────────────────────────────────────────
 // 1) "Que carreira você quer?" — ✏️ Meu clube (a de sempre) · 🇧🇷 Brasil Oficial · 🇪🇺 Europa Oficial (em breve)
-// 2) "Escolha seu clube" — abas Série A/B, grade de escudos oficiais, caixa do clube escolhido e o botão de começar.
+// 2) "Escolha seu clube" — Séries A/B/C/D (a D por grupo A1…A16), clube escolhido e o botão de começar.
+// 📱🖥️ 16/11 (regra do Diego: *"padronizando e repaginado… celular e desktop"*): as duas moram no MESMO quadro da criação de
+// carreira repaginada (`CareerSetupFrame` + `.cse-*` de career-setup-guide.css): verde-escuro com etapas no topo, papel creme,
+// e no computador duas colunas (escolha à esquerda, o clube à direita); no celular vira uma coluna só.
 // Só aparece pra quem tem `useBrasilOficial()` (por enquanto a conta do Diego). Todo texto nasce PT + EN.
 import { useEffect, useMemo, useState } from 'react'
 import { tr } from './lang'
@@ -8,15 +12,19 @@ import { CLUBES_BR_TODOS, clubesDaDivisao, cartasDoClube, ELENCO_INICIAL, type C
 import { ESCUDOS_OFICIAIS } from './escudos-oficiais'
 import { CATALOG } from './data'
 import { baralhoOficial, carregaBaralhoOficial, type BaralhoOficial } from './baralho-oficial-carga' // baixa só aqui
+import { CareerSetupFrame } from './career-setup-guide'
 import type { Sector } from './types'
 
-const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREME = '#F4ECD6'
-const OSW = { fontFamily: 'Oswald, sans-serif' } as const
-const caixa = { border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, background: '#fff' } as const
+const INK = '#0C0C0C', GOLD = '#FFC400'
+const etapas = () => [tr('Carreira', 'Career'), tr('Clube real', 'Real club'), tr('Presidente', 'President'), tr('Começar', 'Start')]
 
 function escudo(nome: string) {
   const e = (ESCUDOS_OFICIAIS as Record<string, { src: string; w: number; h: number }>)[nome]
-  return e ? `${import.meta.env.BASE_URL}${e.src}` : null
+  return e ? { src: `${import.meta.env.BASE_URL}${e.src}`, w: e.w, h: e.h } : null
+}
+function Escudo({ nome, size }: { nome: string; size: number }) {
+  const e = escudo(nome)
+  return e ? <img src={e.src} alt="" width={Math.round(size * e.w / e.h)} height={size} style={{ flexShrink: 0, objectFit: 'contain' }} /> : <span aria-hidden="true" style={{ fontSize: size * 0.8, lineHeight: 1 }}>🛡️</span>
 }
 // quantas cartas o clube tem neste modo (baralho de sempre + as cartas do Brasil Oficial)
 function totalCartas(c: ClubeOficial, CATALOG_OFICIAL: BaralhoOficial): number {
@@ -25,24 +33,32 @@ function totalCartas(c: ClubeOficial, CATALOG_OFICIAL: BaralhoOficial): number {
   return cartasDoClube(c, juntas).length
 }
 
-export function EscolhaCarreira({ onMeuClube, onOficial }: { onMeuClube: () => void; onOficial: () => void }) {
-  const opt = (bg: string, extra?: object) => ({ ...caixa, background: bg, padding: 14, marginBottom: 14, width: '100%', textAlign: 'left' as const, cursor: 'pointer', ...extra })
+export function EscolhaCarreira({ onMeuClube, onOficial, onVoltar }: { onMeuClube: () => void; onOficial: () => void; onVoltar: () => void }) {
+  const opcao = (on: boolean) => ({ display: 'block', width: '100%', textAlign: 'left' as const, background: on ? '#FFF6D6' : '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 12, boxShadow: on ? `3px 3px 0 ${INK}` : 'none', padding: '14px 16px', marginBottom: 12 })
+  const sub = { display: 'block', font: '13px/1.55 Arial, sans-serif', color: '#514c3e', marginTop: 6 } as const
   return (
-    <div style={{ maxWidth: 420, margin: '0 auto', padding: 16 }}>
-      <h1 style={{ ...OSW, fontWeight: 900, fontSize: 24, textTransform: 'uppercase', margin: '4px 0 12px' }}>{tr('Que carreira você quer?', 'Which career do you want?')}</h1>
-      <button onClick={onMeuClube} style={opt('#fff')}>
-        <b style={{ ...OSW, fontSize: 19, fontWeight: 900, textTransform: 'uppercase', display: 'block' }}>✏️ {tr('Meu clube', 'My club')}</b>
-        <small style={{ fontSize: 12, fontWeight: 600, color: '#444', display: 'block', marginTop: 4, lineHeight: 1.35 }}>{tr('Crie seu time do zero e suba da Várzea até a Série A. Como sempre foi.', 'Create your team from scratch and climb from the Várzea to Série A. As always.')}</small>
-      </button>
-      <button onClick={onOficial} style={opt('#FFF6D6')}>
-        <b style={{ ...OSW, fontSize: 19, fontWeight: 900, textTransform: 'uppercase', display: 'block' }}>🇧🇷 {tr('Brasil Oficial', 'Official Brazil')} <span style={{ display: 'inline-block', background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 7px', fontSize: 11, marginLeft: 6 }}>🔒 {tr('PLANO', 'PLAN')}</span></b>
-        <small style={{ fontSize: 12, fontWeight: 600, color: '#444', display: 'block', marginTop: 4, lineHeight: 1.35 }}>{tr('Escolha um clube REAL (Flamengo, Bahia, Remo…), na divisão real dele. Copa do Brasil, Libertadores, Sul-Americana e Mundial pela sua colocação.', 'Pick a REAL club (Flamengo, Bahia, Remo…) in its real division. Copa do Brasil, Libertadores, Sul-Americana and the Club World Cup by your league position.')}</small>
-      </button>
-      <div style={{ ...opt('#F7F2E6', { cursor: 'default', opacity: 0.5 }) }}>
-        <b style={{ ...OSW, fontSize: 19, fontWeight: 900, textTransform: 'uppercase', display: 'block' }}>🇪🇺 {tr('Europa Oficial', 'Official Europe')}</b>
-        <small style={{ fontSize: 12, fontWeight: 600, color: '#444' }}>{tr('Em breve.', 'Coming soon.')}</small>
+    <CareerSetupFrame step={1} club="" onBack={onVoltar} etapas={etapas()} topo={tr('NOVA CARREIRA', 'NEW CAREER')}>
+      <header className="cse-intro"><small>{tr('ESCOLHA O JEITO DE JOGAR', 'CHOOSE HOW TO PLAY')}</small><h1>{tr('Que carreira você quer?', 'Which career do you want?')}</h1></header>
+      <div className="cse-rivals-grid">
+        <div className="cse-paper">
+          <button type="button" onClick={onMeuClube} style={opcao(false)}>
+            <b style={{ font: '700 21px Oswald, sans-serif', textTransform: 'uppercase' }}>✏️ {tr('Meu clube', 'My club')}</b>
+            <span style={sub}>{tr('Crie seu time do zero e suba da Várzea até a Série A. Como sempre foi.', 'Create your team from scratch and climb from the Várzea to Série A. As always.')}</span>
+          </button>
+          <button type="button" onClick={onOficial} style={opcao(true)}>
+            <b style={{ font: '700 21px Oswald, sans-serif', textTransform: 'uppercase' }}>🇧🇷 {tr('Brasil Oficial', 'Official Brazil')} <span style={{ display: 'inline-block', background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 7px', fontSize: 11, marginLeft: 6, verticalAlign: 'middle' }}>🔒 {tr('PLANO', 'PLAN')}</span></b>
+            <span style={sub}>{tr('Escolha um clube REAL (Flamengo, Bahia, Remo…), na divisão real dele. Copa do Brasil, Libertadores, Sul-Americana e Mundial pela sua colocação.', 'Pick a REAL club (Flamengo, Bahia, Remo…) in its real division. Copa do Brasil, Libertadores, Sul-Americana and the Club World Cup by your league position.')}</span>
+          </button>
+          <div style={{ ...opcao(false), opacity: 0.55, marginBottom: 0 }}>
+            <b style={{ font: '700 21px Oswald, sans-serif', textTransform: 'uppercase' }}>🇪🇺 {tr('Europa Oficial', 'Official Europe')}</b>
+            <span style={sub}>{tr('Em breve.', 'Coming soon.')}</span>
+          </div>
+        </div>
+        <aside className="cse-explainer"><span aria-hidden="true">🇧🇷</span><h2>{tr('Tudo de verdade.', 'All real.')}</h2>
+          <p>{tr('No Brasil Oficial os clubes, as séries, o formato de cada campeonato e quem sobe e quem cai seguem o futebol real. Os jogadores são cartas reais de cada clube.', 'In Official Brazil the clubs, the divisions, each competition’s format and who goes up and down follow real football. The players are real cards from each club.')}</p>
+        </aside>
       </div>
-    </div>
+    </CareerSetupFrame>
   )
 }
 
@@ -53,68 +69,52 @@ export function EscolhaClubeOficial({ onEscolher, onVoltar }: { onEscolher: (clu
   const doGrupo = (g: string) => clubesDaDivisao('D').filter(c => c.grupoD === g)
   const [sel, setSel] = useState<string>(clubesDaDivisao('A')[0]?.nome ?? '')
   const clube = CLUBES_BR_TODOS.find(c => c.nome === sel) ?? null
-  // ⏳ a Série D REAL (grupos + mata-mata) ainda não roda: começar num clube dela fica travado com aviso — nada de cair numa D
-  // de mentira (regra do Diego: tudo real). Liga quando o motor da D entrar.
-  // (15/11, noite) a C também: as fases dela já rodam no fundo, mas jogar a 2ª fase e a final NA SUA tela ainda não
+  // ⏳ a Série C e a D REAIS na tela do usuário ainda não rodam: começar num clube delas fica travado com aviso — nada de cair
+  // num campeonato de mentira (regra do Diego: tudo real). Liga quando a tela delas entrar.
   const SERIE_D_PRONTA = false, SERIE_C_PRONTA = false
-  const travadoD = (clube?.div === 'D' && !SERIE_D_PRONTA) || (clube?.div === 'C' && !SERIE_C_PRONTA)
+  const travado = (clube?.div === 'D' && !SERIE_D_PRONTA) || (clube?.div === 'C' && !SERIE_C_PRONTA)
   // as cartas do modo descem quando esta tela abre; até chegarem, o botão de começar fica travado
   const [baralho, setBaralho] = useState<BaralhoOficial | null>(baralhoOficial())
   const [erro, setErro] = useState(false)
   useEffect(() => { if (!baralho) carregaBaralhoOficial().then(setBaralho).catch(() => setErro(true)) }, [baralho])
   const n = useMemo(() => (clube && baralho ? totalCartas(clube, baralho) : 0), [clube, baralho])
   const sorteados = Math.min(ELENCO_INICIAL, n)
-  const tab = (d: 'A' | 'B' | 'C' | 'D') => ({ flex: 1, textAlign: 'center' as const, border: `3px solid ${INK}`, borderRadius: 12, padding: 6, ...OSW, fontWeight: 900, fontSize: 14, cursor: 'pointer', background: div === d ? INK : '#fff', color: div === d ? GOLD : INK })
+  const lista = div === 'D' ? doGrupo(grupo) : clubesDaDivisao(div)
+  const chip = (on: boolean) => ({ background: on ? GOLD : '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, boxShadow: on ? `2px 2px 0 ${INK}` : 'none', padding: '8px 4px', font: '700 15px Oswald, sans-serif' })
   return (
-    <div style={{ maxWidth: 420, margin: '0 auto', padding: 16, background: CREME }}>
-      <button onClick={onVoltar} style={{ background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', padding: 0, marginBottom: 6 }}>← {tr('Voltar', 'Back')}</button>
-      <h1 style={{ ...OSW, fontWeight: 900, fontSize: 24, textTransform: 'uppercase', margin: '4px 0 12px' }}>{tr('Brasil Oficial', 'Official Brazil')}</h1>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <button style={tab('A')} onClick={() => { setDiv('A'); setSel(clubesDaDivisao('A')[0].nome) }}>SÉRIE A</button>
-        <button style={tab('B')} onClick={() => { setDiv('B'); setSel(clubesDaDivisao('B')[0].nome) }}>SÉRIE B</button>
-        <button style={tab('C')} onClick={() => { setDiv('C'); setSel(clubesDaDivisao('C')[0].nome) }}>SÉRIE C</button>
-        <button style={tab('D')} onClick={() => { setDiv('D'); setSel(doGrupo(grupo)[0]?.nome ?? '') }}>SÉRIE D</button>
-      </div>
-      {div === 'D' && <>
-        <div style={{ ...caixa, boxShadow: 'none', borderRadius: 14, padding: '8px 10px', marginBottom: 10, fontSize: 12, fontWeight: 600 }}>
-          🟫 <b>{tr('Série D:', 'Série D:')}</b> {tr('96 clubes em 16 grupos de 6, jogando no campo de terra. Os 4 primeiros de cada grupo vão pro mata-mata e 6 sobem pra Série C.', '96 clubs in 16 groups of 6, playing on the dirt pitch. The top 4 of each group go to the knockouts and 6 are promoted to Série C.')}
-        </div>
-        <div style={{ ...OSW, fontWeight: 900, fontSize: 13, marginBottom: 4 }}>{tr('GRUPO', 'GROUP')}</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 6 }}>
-          {Array.from({ length: 16 }, (_, i) => `A${i + 1}`).map(g => (
-            <button key={g} onClick={() => { setGrupo(g); setSel(doGrupo(g)[0]?.nome ?? '') }} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '3px 7px', ...OSW, fontWeight: 900, fontSize: 12, cursor: 'pointer', background: grupo === g ? INK : '#fff', color: grupo === g ? GOLD : INK }}>{g}</button>
-          ))}
-        </div>
-      </>}
-      <div style={{ display: 'grid', gridTemplateColumns: div === 'D' ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)', gap: 8 }}>
-        {(div === 'D' ? doGrupo(grupo) : clubesDaDivisao(div)).map(c => {
-          const src = escudo(c.nome)
-          return (
-            <button key={c.nome} onClick={() => setSel(c.nome)} style={{ background: sel === c.nome ? GOLD : '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '6px 2px', textAlign: 'center', fontSize: 10.5, fontWeight: 800, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', ...OSW }}>
-              {src ? <img src={src} alt="" style={{ height: 38, display: 'block', margin: '0 auto 3px' }} /> : <div style={{ height: 38 }}>🛡️</div>}
-              {c.nome}
-            </button>
-          )
-        })}
-      </div>
-      {clube && (
-        <div style={{ ...caixa, marginTop: 14, padding: 12, display: 'flex', gap: 12, alignItems: 'center' }}>
-          {escudo(clube.nome) && <img src={escudo(clube.nome)!} alt="" style={{ height: 70 }} />}
-          <div>
-            <b style={{ ...OSW, fontSize: 18, fontWeight: 900, textTransform: 'uppercase' }}>{clube.nome}</b>
-            <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🏆 {tr('Série', 'Série')} {clube.div}{clube.grupoD ? ` · ${tr('Grupo', 'Group')} ${clube.grupoD} · 🟫 ${tr('campo de terra', 'dirt pitch')}` : ''}</p>
-            {clube.estadual && <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🏟️ {clube.estadual}</p>}
-            {!baralho ? <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🎲 {erro ? tr('Não deu pra baixar as cartas. Confira a internet e abra de novo.', "Couldn't download the cards. Check your connection and reopen.") : tr('Baixando as cartas…', 'Downloading the cards…')}</p> : <>
-            <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🎲 {n > ELENCO_INICIAL ? tr(`Elenco: ${sorteados} sorteados entre ${n} cartas`, `Squad: ${sorteados} drawn from ${n} cards`) : tr(`Elenco: as ${n} cartas do clube`, `Squad: all ${n} club cards`)}</p>
-            {n > ELENCO_INICIAL && <p style={{ margin: '2px 0', fontSize: 12.5, fontWeight: 700 }}>🔨 {tr(`As outras ${n - sorteados} vão pro leilão`, `The other ${n - sorteados} go to the auction`)}</p>}
-            </>}
+    <CareerSetupFrame step={2} club={clube?.nome ?? ''} onBack={onVoltar} etapas={etapas()} topo={tr('NOVA CARREIRA · BRASIL OFICIAL', 'NEW CAREER · OFFICIAL BRAZIL')}>
+      <header className="cse-intro"><small>{tr('CLUBES E SÉRIES DE 2026', '2026 CLUBS AND DIVISIONS')}</small><h1>{tr('Escolha seu clube.', 'Pick your club.')}</h1>
+        <p>{tr('Cada clube começa na série real dele, com as cartas reais do elenco.', 'Each club starts in its real division, with its real squad cards.')}</p></header>
+      <div className="cse-rivals-grid">
+        <div className="cse-paper">
+          <div role="group" aria-label={tr('Série', 'Division')} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+            {(['A', 'B', 'C', 'D'] as const).map(d => <button key={d} type="button" aria-pressed={div === d} style={chip(div === d)} onClick={() => { setDiv(d); setSel((d === 'D' ? doGrupo(grupo) : clubesDaDivisao(d))[0]?.nome ?? '') }}>{tr('SÉRIE', 'SÉRIE')} {d}</button>)}
+          </div>
+          {div === 'D' && <>
+            <p className="cse-note" style={{ marginBottom: 12 }}>🟫 <b>{tr('Série D:', 'Série D:')}</b> {tr('96 clubes em 16 grupos de 6, jogando no campo de terra. Os 4 primeiros de cada grupo vão pro mata-mata e 6 sobem pra Série C.', '96 clubs in 16 groups of 6, playing on the dirt pitch. The top 4 of each group go to the knockouts and 6 are promoted to Série C.')}</p>
+            <label>{tr('Grupo', 'Group')}</label>
+            <div role="group" aria-label={tr('Grupo', 'Group')} style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 6 }}>
+              {Array.from({ length: 16 }, (_, i) => `A${i + 1}`).map(g => <button key={g} type="button" aria-pressed={grupo === g} style={{ ...chip(grupo === g), font: '700 13px Oswald, sans-serif', minHeight: 40 }} onClick={() => { setGrupo(g); setSel(doGrupo(g)[0]?.nome ?? '') }}>{g}</button>)}
+            </div>
+          </>}
+          <div className="cse-clubs" role="group" aria-label={tr('Clubes', 'Clubs')}>
+            {lista.map(c => <button key={c.nome} type="button" aria-pressed={sel === c.nome} onClick={() => setSel(c.nome)}><Escudo nome={c.nome} size={32} /><span>{c.nome}</span>{sel === c.nome && <b aria-hidden="true">✓</b>}</button>)}
           </div>
         </div>
-      )}
-      {travadoD && <p style={{ margin: '12px 0 0', fontSize: 12.5, fontWeight: 700, textAlign: 'center' }}>🔒 {clube?.div === 'C' ? tr('A Série C de verdade (turno único, 2ª fase e final) está sendo montada na sua tela. Logo dá pra começar com este clube.', 'The real Série C (single round robin, 2nd phase and final) is being built. You can start with this club soon.') : tr('A Série D de verdade (grupos + mata-mata) está sendo montada. Logo dá pra começar com este clube.', 'The real Série D (groups + knockouts) is being built. You can start with this club soon.')}</p>}
-      <button disabled={!clube || !baralho || travadoD} onClick={() => clube && baralho && !travadoD && onEscolher(clube.nome)} style={{ ...caixa, marginTop: 14, width: '100%', background: GREEN, color: '#fff', padding: 12, ...OSW, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', cursor: baralho && !travadoD ? 'pointer' : 'not-allowed', opacity: baralho && !travadoD ? 1 : 0.6 }}>
-        ⚽ {tr(`Começar com o ${clube?.nome ?? ''}`, `Start with ${clube?.nome ?? ''}`)}
-      </button>
-    </div>
+        <aside className="cse-explainer" aria-live="polite">
+          {clube && <>
+            <figure style={{ display: 'flex', justifyContent: 'center', margin: '0 0 6px' }}><Escudo nome={clube.nome} size={96} /></figure>
+            <h2 style={{ textAlign: 'center', textTransform: 'uppercase' }}>{clube.nome}</h2>
+            <p>🏆 {tr('Série', 'Série')} {clube.div}{clube.grupoD ? ` · ${tr('Grupo', 'Group')} ${clube.grupoD} · 🟫 ${tr('campo de terra', 'dirt pitch')}` : ''}</p>
+            {clube.estadual && <p>🏟️ {clube.estadual}</p>}
+            <p>🎲 {!baralho ? (erro ? tr('Não deu pra baixar as cartas. Confira a internet e abra de novo.', "Couldn't download the cards. Check your connection and reopen.") : tr('Baixando as cartas…', 'Downloading the cards…')) : n > ELENCO_INICIAL ? tr(`Elenco: ${sorteados} sorteados entre ${n} cartas. As outras ${n - sorteados} vão pro leilão.`, `Squad: ${sorteados} drawn from ${n} cards. The other ${n - sorteados} go to the auction.`) : tr(`Elenco: as ${n} cartas do clube.`, `Squad: all ${n} club cards.`)}</p>
+            {travado && <p style={{ color: '#ffe6a0' }}>🔒 {clube.div === 'C' ? tr('A Série C de verdade (turno único, 2ª fase e final) está sendo montada na sua tela. Logo dá pra começar com este clube.', 'The real Série C (single round robin, 2nd phase and final) is being built. You can start with this club soon.') : tr('A Série D de verdade (grupos + mata-mata) está sendo montada. Logo dá pra começar com este clube.', 'The real Série D (groups + knockouts) is being built. You can start with this club soon.')}</p>}
+            <button type="button" className="csg-primary" style={{ width: '100%', marginTop: 14, opacity: baralho && !travado ? 1 : 0.55, cursor: baralho && !travado ? 'pointer' : 'not-allowed' }} disabled={!baralho || travado} onClick={() => baralho && !travado && onEscolher(clube.nome)}>
+              ⚽ {tr(`Começar com o ${clube.nome}`, `Start with ${clube.nome}`)}
+            </button>
+          </>}
+        </aside>
+      </div>
+    </CareerSetupFrame>
   )
 }

@@ -3118,7 +3118,7 @@ export function EscSetup() {
     if (career && modularSetup && oficialOn && privateStep === 1 && modoCarreira !== 'meu' && !clubeOficialSel) {
       return <Shell className="cse-shell" hideExit>{modoCarreira === 'oficial'
         ? <EscolhaClubeOficial onVoltar={() => setModoCarreira(null)} onEscolher={c => { setClubeOficialSel(c); setName(c); setNameErr(''); setPrivateStep(2) }} />
-        : <EscolhaCarreira onMeuClube={() => setModoCarreira('meu')} onOficial={() => setModoCarreira('oficial')} />}</Shell>
+        : <EscolhaCarreira onVoltar={() => dispatch({ type: 'GO_LOBBY' })} onMeuClube={() => setModoCarreira('meu')} onOficial={() => setModoCarreira('oficial')} />}</Shell>
     }
     if(modularSetup){
       const back=()=>privateStep===1?(oficialOn&&modoCarreira==='meu'?setModoCarreira(null):dispatch({type:'GO_LOBBY'})):privateStep===2&&clubeOficialSel?(setClubeOficialSel(null),setName(''),setPrivateStep(1)):setPrivateStep(privateStep===2?1:2)
