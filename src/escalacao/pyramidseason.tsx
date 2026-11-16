@@ -10531,6 +10531,9 @@ export function PyramidSeasonScreen() {
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv).filter(d => d !== 'V' || (tables.V?.length ?? 0) > 0) // 🌱 Várzea só aparece quando existe
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
+  // 🇧🇷 Brasil Oficial: a 38ª pode não ter jogo do SEU clube (C/D: caiu fora antes da final) — não há partida pra esperar o apito,
+  // então o fim da temporada entra na hora (senão a tela ficava parada em "Resultados revelados", sem botão nenhum)
+  useEffect(() => { if (seasonOver && state.oficial && !myMatch) setEndShown(true) }, [seasonOver, state.oficial, myMatch])
   const stadiumMatch:ContextoPartidaEstadio|undefined=presidentAvailable&&myMatch?(()=>{
     const teams=Object.values(live.tables).flat(),home=teams.find(t=>t.teamId===myMatch.hId),away=teams.find(t=>t.teamId===myMatch.aId)
     if(!home||!away)return undefined
