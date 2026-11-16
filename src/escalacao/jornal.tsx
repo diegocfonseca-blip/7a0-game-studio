@@ -454,12 +454,34 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
   return { h: raw.h.replace('{t}', team.toUpperCase()), s: raw.s.replace('{t}', team) }
 }
 
+// 🇧🇷 BRASIL OFICIAL: a manchete sai do DESFECHO de verdade (quem sobe/cai pelo regulamento real), não da posição —
+// na B o 3º não "sobe no grito" (vai pro playoff), e na C/D a posição é a fase em que o clube parou.
+function stampOficial(tipo: 'campeao' | 'acesso' | 'queda' | 'ficou'): { txt: string; color: string } | null {
+  return tipo === 'campeao' ? { txt: 'CAMPEÃO', color: '#B23A2A' } : tipo === 'acesso' ? { txt: 'ACESSO', color: '#1B7A3D' } : tipo === 'queda' ? { txt: 'REBAIXADO', color: '#B23A2A' } : null
+}
+export function headlineOficial(div: Div, pos: number, team: string, o: { tipo: 'campeao' | 'acesso' | 'queda' | 'ficou'; para: string; playoff: boolean }): Headline {
+  const T = team.toUpperCase(), en = getLang() === 'en'
+  const porPos = seasonHeadline(div, pos, team)
+  if (o.tipo === 'campeao' || o.tipo === 'queda') return porPos.h && (o.tipo === 'campeao' ? pos === 1 : pos >= 17) ? porPos
+    : o.tipo === 'campeao' ? { h: en ? `${T} ARE CHAMPIONS!` : `${T} É CAMPEÃO!`, s: en ? `Title of Série ${div} — and a party that went on till sunrise.` : `Título da Série ${div} — e uma festa que só acabou de manhã.` }
+    : { h: en ? `${T} GO DOWN` : `CAIU: ${T} DEIXA A SÉRIE ${div}`, s: en ? `Relegated to ${o.para}. Time to rebuild.` : `Rebaixado pra ${o.para}. Hora de reconstruir.` }
+  if (o.tipo === 'acesso') return o.playoff
+    ? { h: en ? `${T} WIN THE PLAY-OFF AND GO UP!` : `${T} VENCE O PLAYOFF E SOBE!`, s: en ? `Two legs of nerves and a ticket to ${o.para}.` : `Dois jogos de nervos e a passagem pra ${o.para} no bolso.` }
+    : { h: en ? `${T} WIN PROMOTION!` : `${T} CONQUISTA O ACESSO!`, s: en ? `Next stop: ${o.para}.` : `Próxima parada: ${o.para}.` }
+  // ficou: na A e no meio da B a manchete por posição já diz a verdade
+  if (div === 'A' || (div === 'B' && pos >= 7 && pos <= 16)) return porPos
+  if (o.playoff) return { h: en ? `${T} FALL AT THE LAST HURDLE` : `${T} CAI NO PLAYOFF E FICA NA B`, s: en ? 'Knocked on the door of promotion and it didn’t open.' : 'Bateu na porta do acesso e ela não abriu.' }
+  return { h: en ? `${T} STAY IN SÉRIE ${div}` : `${T} FICA PELO CAMINHO NA SÉRIE ${div}`, s: en ? 'The format is unforgiving: one bad week and the season is over.' : 'O regulamento não perdoa: uma semana ruim e a temporada acabou.' }
+}
+
 // 🕴️ notícia do CADERNO DO EMPRESÁRIO (página 2 — Agência 2.0, carreira nova):
 // só emoção, SEM moeda (decisão do Diego) — a grana aparece na Cerimônia/aba.
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, clubInternational, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, coletiva, privateVisual = false }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, clubInternational, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, coletiva, privateVisual = false, oficial }: {
+  /** 🇧🇷 Brasil Oficial: o desfecho REAL (playoff da B, fases da C/D) — a manchete por posição é da carreira de sempre (4 sobem, 4 caem) */
+  oficial?: { tipo: 'campeao' | 'acesso' | 'queda' | 'ficou'; para: string; playoff: boolean }
   /** 🎙️ COLETIVA (19/10): promessas cobradas + frases que marcaram a temporada (página própria) */
   coletiva?: AgNews[]
   privateVisual?: boolean
@@ -544,8 +566,8 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     '"Agente de verdade não aparece na foto — aparece na história."',
   ][seasonNo % 4]
   const mine = tables[me.div]?.find(t => t.you)
-  const hl = seasonHeadline(me.div, me.pos, me.team)
-  const stamp = stampOf(me.div, me.pos, (tables.V?.length ?? 0) > 0)
+  const hl = oficial ? headlineOficial(me.div, me.pos, me.team, oficial) : seasonHeadline(me.div, me.pos, me.team)
+  const stamp = oficial ? stampOficial(oficial.tipo) : stampOf(me.div, me.pos, (tables.V?.length ?? 0) > 0)
 
   // desenha a CAPA do jornal em imagem (canvas) — é ela que vai no compartilhar,
   // não texto. Mesma cara da capa na tela: cabeçalho, manchete, foto carimbada,

@@ -12202,7 +12202,7 @@ export function PyramidSeasonScreen() {
           onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr} />}
         {/* 📰 PASSO 1: a NOTÍCIA. Primeiro o jornal, que é o que a cabeça quer saber. */}
         {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
-          <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copaBase} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
+          <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copaBase} oficial={state.oficial && desfecho ? { tipo: desfecho.tipo, para: desfecho.para, playoff: !!playoffB } : undefined} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
             clubInternational={intlEnabled ? intlHistory.find(entry => entry.season === state.seasonNo) : undefined}
             /* 📼 O JORNAL LEMBRA (Diego 24/08): manchetes de HISTÓRIA calculadas
                da crônica da carreira + o resultado desta temporada (que ainda
