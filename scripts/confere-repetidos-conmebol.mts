@@ -1,35 +1,28 @@
 // 🃏 o MESMO jogador não pode estar duas vezes no MESMO baralho (regra do Diego, 26/09; 16/11: *"só disse que não pode no mesmo
-// baralho"*). As cartas dos lotes Conmebol (docs/brasil-oficial/cartas-conmebol-*.md) moram no baralho do BRASIL OFICIAL — então
-// confere só contra as outras cartas desse baralho (data-oficial.ts) e entre os próprios lotes. Ter carta no baralho Brasil, Europa
-// ou Mundo (data.ts) NÃO impede: o Jhon Arias do Fluminense (Brasil) pode ter carta no Atlético Nacional (Brasil Oficial).
-// Linha marcada "xará" na obs é outra pessoa e passa. Uso: npx tsx scripts/confere-repetidos-conmebol.mts
+// baralho"*). O Brasil Oficial tem baralho próprio: as cartas de `data-oficial.ts` (geradas de docs/brasil-oficial/cartas-*.md).
+// Ter carta no baralho Brasil, Europa ou Mundo (data.ts) NÃO impede: o Jhon Arias do Fluminense (Brasil) pode ter carta no
+// Atlético Nacional (Brasil Oficial). Confere: (1) o baralho gerado (`data-oficial.ts`) e (2) os lotes ainda não gerados cujo
+// cabeçalho já é o nome do clube (cartas-d-*, cartas-conmebol-*). Linha com "xará" na obs = outra pessoa, passa.
+// Uso: npx tsx scripts/confere-repetidos-conmebol.mts
 import { readFileSync, readdirSync } from 'node:fs'
 import { CATALOG_OFICIAL } from '../src/escalacao/data-oficial.ts'
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
-const base = new Map<string, Set<string>>()
-const add = (n: string, c: string) => { const k = norm(n); (base.get(k) ?? base.set(k, new Set()).get(k)!).add(c) }
-const lotes: { nome: string; clube: string; arq: string; xara: boolean }[] = []
-for (const f of readdirSync('docs/brasil-oficial').filter(f => f.startsWith('cartas-conmebol-'))) {
+const clubes = new Map<string, Set<string>>(), xara = new Set<string>()
+const add = (n: string, c: string) => { const k = norm(n); (clubes.get(k) ?? clubes.set(k, new Set()).get(k)!).add(c) }
+for (const l of Object.values(CATALOG_OFICIAL)) for (const c of l) add(c.name, c.club)
+let total = 0
+for (const f of readdirSync('docs/brasil-oficial').filter(f => /^cartas-(d|conmebol)-.*\.md$/.test(f))) {
   let clube = ''
   for (const ln of readFileSync('docs/brasil-oficial/' + f, 'utf8').split('\n')) {
     if (ln.startsWith('## ')) { clube = ln.slice(3).trim(); continue }
-    if (!ln.startsWith('|') || /^\|\s*(nome|-)/i.test(ln) || /dúvidas/i.test(clube)) continue
+    if (!ln.startsWith('|') || /^\|\s*(nome|-)/i.test(ln) || /dúvidas|descart|xar|confer|tota|ponto/i.test(clube)) continue
     const cel = ln.split('|').map(x => x.trim())
     if (!['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(cel[2])) continue
-    lotes.push({ nome: cel[1], clube, arq: f, xara: /xar/i.test(cel[10] ?? '') })
+    total++
+    if (/xar/i.test(cel[10] ?? '')) { xara.add(norm(cel[1])); continue }
+    add(cel[1], clube)
   }
 }
-const deLote = new Set(lotes.map(x => `${norm(x.nome)}|${x.clube}`))
-for (const l of Object.values(CATALOG_OFICIAL)) for (const c of l) if (!deLote.has(`${norm(c.name)}|${c.club}`)) add(c.name, c.club)
 let n = 0
-const vistos = new Map<string, string>()
-for (const x of lotes) {
-  if (x.xara) continue
-  const k = norm(x.nome)
-  const outros = [...(base.get(k) ?? [])].filter(c => c !== x.clube)
-  if (outros.length) { n++; console.log(`⚠️ ${x.nome} (${x.clube}, ${x.arq}) já tem carta no baralho do Brasil Oficial em: ${outros.join(', ')}`) }
-  const v = vistos.get(k)
-  if (v && v !== x.clube) { n++; console.log(`⚠️ ${x.nome} em dois lotes: ${v} e ${x.clube} (${x.arq})`) }
-  vistos.set(k, x.clube)
-}
-console.log(n ? `❌ ${n} nome(s) pra conferir` : `✅ ${lotes.length} cartas dos lotes Conmebol, nenhum nome repetido em outro clube`)
+for (const [k, cs] of clubes) if (cs.size > 1 && !xara.has(k)) { n++; console.log(`⚠️ "${k}" em ${cs.size} clubes do baralho do Brasil Oficial: ${[...cs].join(', ')}`) }
+console.log(n ? `❌ ${n} nome(s) pra conferir (mesma pessoa? se for xará, escreva "xará" na obs)` : `✅ baralho do Brasil Oficial (${total} cartas nos lotes d/conmebol + o gerado): nenhum nome em dois clubes`)
