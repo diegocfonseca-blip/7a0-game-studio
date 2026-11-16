@@ -19,6 +19,9 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 | Sandy | ATA | 2020 | 2 | 58 | 70 | Recuperou a bola e chutou de longe pra abrir a virada na final da Copa Verde 2020. | Won the ball back and struck from distance to start the comeback in the 2020 Copa Verde final. | https://www.transfermarkt.com.br/brasiliense-futebol-clube-df-/leistungsdaten/verein/3973/reldata/%262019/plus/1 ; https://pt.wikipedia.org/wiki/Brasiliense_Futebol_Clube | TM: ponta-direita, 30 jogos |
 | Igor Castro | ATA | 2004 | 2 | 58 | 71 | Centroavante de 34 jogos no ano em que o Jacaré foi campeão da Série B. | Centre-forward with 34 games in the year the Jacaré won the Série B. | https://www.transfermarkt.com.br/brasiliense-futebol-clube-df-/leistungsdaten/verein/3973/reldata/%262003/plus/1 | TM: centroavante, 34 jogos |
 | Montanha | ATA | 2026 | 1 | 50 | 62 | Ponta de 18 anos que já jogou 20 partidas pelo Jacaré em 2026. | An 18-year-old winger who already played 20 games for the Jacaré in 2026. | https://www.transfermarkt.com.br/brasiliense-futebol-clube-df-/leistungsdaten/verein/3973/reldata/%262025/plus/1 | xará do Montanha (América-RN 1998, REGIONAL — outra pessoa); TM: ponta-dir., 20 jogos |
+| Durval | ZAG | 2004 | 2 | 60 | 72 | Zagueiro que fez o gol decisivo contra o Fortaleza na campanha do título da Série B de 2004, o primeiro título nacional do Jacaré. | Centre-back who scored the decisive goal against Fortaleza on the way to the 2004 Série B title, the Jacaré's first national trophy. | https://pt.wikipedia.org/wiki/Brasiliense_Futebol_Clube ; https://pt.wikipedia.org/wiki/Durval_(futebolista) | também tem carta em Santos 2013 (baralho Brasil); ✅ voltou (16/11) |
+| Túlio Maravilha | ATA | 2002 | 3 | 66 | 78 | Centroavante dos 15 gols em 25 jogos pelo Jacaré e um dos artilheiros da Série C de 2002, vencida pelo clube, com 11 gols. | Striker with 15 goals in 25 games for the Jacaré and joint top scorer of the 2002 Série C, won by the club, with 11 goals. | https://pt.wikipedia.org/wiki/Túlio_Maravilha ; https://pt.wikipedia.org/wiki/Brasiliense_Futebol_Clube | também tem carta em Botafogo 1995 (baralho Brasil); ✅ voltou (16/11) |
+| Zé Love | ATA | 2020 | 2 | 56 | 68 | Artilheiro da Série D de 2020 com 12 gols, completou o cruzamento do lateral Diogo na final da Copa Verde que o Jacaré levantou. | Top scorer of the 2020 Série D with 12 goals, he finished full-back Diogo's cross in the Copa Verde final the Jacaré went on to win. | https://pt.wikipedia.org/wiki/Zé_Love ; https://pt.wikipedia.org/wiki/Brasiliense_Futebol_Clube | também tem carta em Santos 2010 (baralho Brasil); ✅ voltou (16/11) |
 
 ## Capital
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -50,6 +53,8 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 | Cassius | ATA | 2010 | 3 | 66 | 78 | Maior artilheiro da história do Ceilândia, com 101 gols, e peça do título de 2010. | Ceilândia's all-time top scorer with 101 goals and part of the 2010 title team. | https://pt.wikipedia.org/wiki/Ceil%C3%A2ndia_Esporte_Clube ; https://www.transfermarkt.com.br/ceilandia-esporte-clube-df-/leistungsdaten/verein/12279/reldata/%262009/plus/1 | TM: centroavante |
 | Edson Reis | ATA | 2025 | 1 | 51 | 63 | Centroavante de 19 jogos pelo Gato em 2025. | Centre-forward with 19 games for the Gato in 2025. | https://www.transfermarkt.com.br/ceilandia-esporte-clube-df-/leistungsdaten/verein/12279/reldata/%262024/plus/1 | TM: centroavante, 19 jogos |
 | Patrikão | ATA | 2026 | 1 | 50 | 62 | Centroavante de nome grande: 16 jogos pelo Ceilândia em 2026. | A big-named striker: 16 games for Ceilândia in 2026. | https://www.transfermarkt.com.br/ceilandia-esporte-clube-df-/leistungsdaten/verein/12279/reldata/%262025/plus/1 | TM: centroavante, 16 jogos |
+| Dimba | ATA | 2012 | 2 | 57 | 69 | Segundo maior artilheiro da história do Gato, com 35 gols, formou o "Ataque centenário" do título candango de 2012. | Second-highest scorer in the Gato's history with 35 goals, he formed the "centenary attack" of the 2012 state title. | https://pt.wikipedia.org/wiki/Ceilândia_Esporte_Clube ; https://pt.wikipedia.org/wiki/Allan_Dellon | também tem carta em Goiás 2003 (baralho Brasil); ✅ voltou (16/11) |
+| Allan Dellon | MEI | 2010 | 2 | 60 | 72 | Meia que fez dois gols no 3 a 1 sobre o Brasiliense na ida da final de 2010, o primeiro título estadual do Ceilândia. | Midfielder who scored twice in the 3-1 over Brasiliense in the first leg of the 2010 final, Ceilândia's first state title. | https://pt.wikipedia.org/wiki/Allan_Dellon ; https://pt.wikipedia.org/wiki/Ceilândia_Esporte_Clube | sem carta no baralho Brasil; ✅ voltou (16/11) — ídolo citado na página do clube |
 
 ## Gama
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -65,6 +70,7 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 | Romualdo | ATA | 2001 | 3 | 63 | 76 | Atacante de 25 jogos em 2001; abriu de cabeça a goleada sobre o Guarani. | Striker with 25 games in 2001; he headed in the opener in the rout of Guarani. | https://www.transfermarkt.com.br/sociedade-esportiva-do-gama-df-/leistungsdaten/verein/7014/reldata/%262000/plus/1 ; https://pt.wikipedia.org/wiki/Sociedade_Esportiva_do_Gama | TM: atacante, 25 jogos |
 | Anderson Barbosa | ATA | 2001 | 2 | 59 | 71 | O "atacante Anderson" que participou de dois gols na goleada de 2001 sobre o Guarani. | The "striker Anderson" who set up two goals in the 2001 rout of Guarani. | https://www.transfermarkt.com.br/sociedade-esportiva-do-gama-df-/leistungsdaten/verein/7014/reldata/%262000/plus/1 ; https://pt.wikipedia.org/wiki/Sociedade_Esportiva_do_Gama | TM: centroavante, 27 jogos |
 | Kennedy | ATA | 2026 | 1 | 53 | 66 | Ponta-esquerda de 37 jogos pelo Periquito em 2026. | Left winger with 37 games for the Periquito in 2026. | https://www.transfermarkt.com.br/sociedade-esportiva-do-gama-df-/leistungsdaten/verein/7014/reldata/%262025/plus/1 | TM: ponta-esq., 37 jogos · xará (não é o Kennedy do IAPE nem o do Camboriú; TM id 1006286) |
+| Nen | ZAG | 1998 | 2 | 61 | 73 | Zagueiro revelado pro sucesso no Gama, campeão da Série B de 1998 antes de ir para o Palmeiras. | Centre-back who made his name at Gama, winning the 1998 Série B before moving to Palmeiras. | https://pt.wikipedia.org/wiki/Nen ; https://pt.wikipedia.org/wiki/Sociedade_Esportiva_do_Gama | sem carta no baralho Brasil; ✅ voltou (16/11) — Gama 1998–2003 |
 
 ## Desportiva Ferroviária
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -80,6 +86,8 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 | Botelho | ATA | 1980 | 3 | 68 | 80 | Melhor ponta-esquerda do Brasileirão de 1980 pela Placar: a única Bola de Prata da história capixaba. | Best left winger of the 1980 Brasileirão per Placar: the only Bola de Prata in Espírito Santo history. | https://pt.wikipedia.org/wiki/Botelho_(futebolista) ; https://pt.wikipedia.org/wiki/Associa%C3%A7%C3%A3o_Desportiva_Ferrovi%C3%A1ria_Vale_do_Rio_Doce | Wikipedia: atacante (ponta-esquerda), Desportiva 1980 |
 | Edinho | ATA | 2016 | 3 | 63 | 76 | Voltou como ídolo, ganhou a camisa 10 e fez de pênalti o gol do título capixaba de 2016. | Came back as an idol, got the No. 10 shirt and scored the penalty that won the 2016 state title. | https://pt.wikipedia.org/wiki/%C3%89der_Luciano ; https://pt.wikipedia.org/wiki/Associa%C3%A7%C3%A3o_Desportiva_Ferrovi%C3%A1ria_Vale_do_Rio_Doce | xará do Edinho (Santos 1994, BR — outra pessoa); Wikipedia: Éder Luciano, atacante |
 | Tiago Moura | ATA | 2026 | 1 | 52 | 64 | Centroavante de 13 jogos na Desportiva de 2026. | Centre-forward with 13 games for the 2026 Desportiva. | https://www.transfermarkt.com.br/desportiva-ferroviaria-es-/leistungsdaten/verein/22013/reldata/%262025/plus/1 | TM: centroavante |
+| Kieza | ATA | 2008 | 2 | 58 | 70 | Artilheiro da Copa Espírito Santo de 2008 com 12 gols pela Tiva, que levou o título — o primeiro da carreira dele. | Top scorer of the 2008 Copa Espírito Santo with 12 goals for the Tiva, who won it — his first career title. | https://pt.wikipedia.org/wiki/Kieza | também tem carta em Bahia 2015 (baralho Brasil); ✅ voltou (16/11) |
+| Fio Maravilha | ATA | 1973 | 1 | 56 | 67 | O ídolo do Flamengo jogou 14 partidas pela Desportiva no Brasileiro de 1973 e passou em branco. | The Flamengo idol played 14 games for Desportiva in the 1973 Brasileiro and never found the net. | https://pt.wikipedia.org/wiki/Fio_Maravilha | também tem carta em Flamengo 1970 (baralho Brasil); ✅ voltou (16/11) |
 
 ## Porto Vitória
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -133,7 +141,7 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 | Foguete | LAT | 2026 | 1 | 51 | 63 | Lateral-direito com nome de foguete: 25 jogos pelo Vitória em 2026. | A right-back called Rocket: 25 games for Vitória in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 | TM: lat. dir., 25 jogos |
 | Thiago Magatão | LAT | 2026 | 1 | 51 | 63 | Lateral-esquerdo de 24 jogos pelo Vitória-ES em 2026. | Left-back with 24 games for Vitória-ES in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 | TM: lat. esq., 24 jogos |
 | Guilherme Truyts | ZAG | 2026 | 1 | 52 | 64 | Zagueiro de 24 jogos pelo Alvianil em 2026. | Centre-back with 24 games for the Alvianil in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 | TM: 24 jogos |
-| Maílson | ZAG | 2026 | 1 | 51 | 63 | Zagueiro de 14 jogos pelo Vitória-ES em 2026. | Centre-back with 14 games for Vitória-ES in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 | TM: 14 jogos |
+| Maílson | ZAG | 2026 | 1 | 51 | 63 | Zagueiro de 14 jogos pelo Vitória-ES em 2026. | Centre-back with 14 games for Vitória-ES in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 ; https://tribunaonline.com.br/_/281536 | TM: 14 jogos; xará do Mailson (Águia de Marabá 2023) — outra pessoa: este é o Maílson Alves, nascido em 1988, vindo do Thrissur Magic (Índia); o do Águia tinha 32 anos em 2023 e veio do UNIRB (16/11) |
 | Gualberto | MEI | 2026 | 1 | 51 | 63 | Volante de 25 jogos pelo Vitória em 2026. | Holding midfielder with 25 games for Vitória in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 | TM: volante, 25 jogos |
 | Carlos Vitor | MEI | 2026 | 1 | 52 | 64 | Meia ofensivo de 25 jogos pelo Alvianil em 2026. | Attacking midfielder with 25 games for the Alvianil in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 | TM: meia ofensivo, 25 jogos |
 | Gustavo Tonoli | MEI | 2026 | 1 | 51 | 63 | Meia central de 19 jogos pelo Vitória-ES em 2026. | Central midfielder with 19 games for Vitória-ES in 2026. | https://www.transfermarkt.com.br/vitoria-futebol-clube-es-/leistungsdaten/verein/32934/reldata/%262025/plus/1 | TM: meia central, 19 jogos |
@@ -190,11 +198,11 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 ## Totais por clube e posição
 | clube | GOL | LAT | ZAG | MEI | ATA | total |
 |---|---|---|---|---|---|---|
-| Brasiliense | 1 | 2 | 2 | 3 | 3 | 11 |
+| Brasiliense | 1 | 2 | 3 | 3 | 5 | 14 |
 | Capital | 1 | 2 | 2 | 3 | 3 | 11 |
-| Ceilândia | 1 | 2 | 2 | 4 | 3 | 12 |
-| Gama | 1 | 2 | 2 | 3 | 3 | 11 |
-| Desportiva Ferroviária | 1 | 2 | 2 | 3 | 3 | 11 |
+| Ceilândia | 1 | 2 | 2 | 5 | 4 | 14 |
+| Gama | 1 | 2 | 3 | 3 | 3 | 12 |
+| Desportiva Ferroviária | 1 | 2 | 2 | 3 | 5 | 13 |
 | Porto Vitória | 1 | 2 | 2 | 3 | 3 | 11 |
 | Real Noroeste | 1 | 2 | 2 | 3 | 3 | 11 |
 | Rio Branco-ES | 1 | 2 | 2 | 3 | 3 | 11 |
@@ -202,7 +210,7 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 | Araguaína | 2 | 2 | 2 | 3 | 3 | 12 |
 | Capital-TO | 1 | 2 | 2 | 3 | 3 | 11 |
 | Tocantinópolis | 1 | 2 | 2 | 3 | 3 | 11 |
-| **TOTAL** | 13 | 24 | 24 | 37 | 36 | 134 |
+| **TOTAL** | 13 | 24 | 26 | 38 | 41 | 142 |
 
 ## Descartados (com motivo)
 
@@ -211,28 +219,28 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 
 | nome | clube / ano | motivo |
 |---|---|---|
-| Durval | Brasiliense 2004 (gol do acesso) | auge no Sport/Santos (outro estado) |
-| Zé Love | Brasiliense 2020–21 | auge no Santos (SP) |
-| Túlio Maravilha | Brasiliense 2002 / Gama | auge no Botafogo (RJ) |
+| Durval | Brasiliense 2004 (gol do acesso) | auge no Sport/Santos (outro estado) — ✅ voltou (16/11) |
+| Zé Love | Brasiliense 2020–21 | auge no Santos (SP) — ✅ voltou (16/11) |
+| Túlio Maravilha | Brasiliense 2002 / Gama | auge no Botafogo (RJ) — ✅ voltou (16/11), no Brasiliense 2002 |
 | Marcelinho Carioca, Vampeta, Iranildo | Brasiliense 2005 | auge em Corinthians/Flamengo (outro estado) |
 | David Braz, Apodi, Marcelo Cirino, Jean Pyerre, Marlone, Pedro Talisca | Brasiliense 2026 | auge em clubes de outros estados |
 | Marcos Júnior, Tartá | Brasiliense 2025/26 | possível homônimo de ex-Fluminense; idade não bate com certeza — na dúvida, fora |
 | Weldon, Val Baiano | Brasiliense 2002/2004 | auge provável em outro estado; sem certeza |
 | Gustavo Henrique | Brasiliense/Gama | já existe "Gustavo Henrique (Náutico 2026, OFICIAL)" — pode ser a mesma pessoa |
-| Dimba | Ceilândia 2010–13 | auge no Goiás (artilheiro do Brasileirão 2003) |
-| Allan Dellon | Ceilândia 2010/2012 | auge no Vitória-BA |
+| Dimba | Ceilândia 2010–13 | auge no Goiás (artilheiro do Brasileirão 2003) — ✅ voltou (16/11) |
+| Allan Dellon | Ceilândia 2010/2012 | auge no Vitória-BA — ✅ voltou (16/11) |
 | Risadinha | Ceilândia | ídolo citado na Wikipedia, mas sem ano nem posição confirmados |
 | Lucas Mingoti | Ceilândia 2025 | já no baralho (River-PI 2024, REGIONAL) — provável mesma pessoa |
 | Marquinho | Ceilândia 2026 | xará de Marquinho (Botafogo-SP 2025); trocado por outro atacante pra evitar confusão |
 | Carlos Henrique | Ceilândia 2026 | xará de carta do Londrina; havia zagueiro alternativo |
 | Wilson Goiano | Gama 2001 | auge no Goiás/Botafogo (outro estado) |
-| Nen | Gama 1998–2003 | depois foi titular do Palmeiras (2004–07) — auge provável em SP |
+| Nen | Gama 1998–2003 | depois foi titular do Palmeiras (2004–07) — auge provável em SP — ✅ voltou (16/11) |
 | Rodrigo Beckham | Gama 1998 | auge no Botafogo/Everton |
 | Nunes (Anderson Francisco Nunes) | Gama 2006/2019/2020 | ídolo do Gama, mas fez carreira longa em SP (Santo André/Bragantino) — na dúvida, fora |
 | Ronaldo Giovanelli, Márcio Santos, Paulo Nunes | Gama 2001–02 | auge em Corinthians/Grêmio/Palmeiras etc. |
 | Henrique Almeida | Gama 2026 | auge em outro estado |
-| Kieza | Desportiva 2008/2026 | revelado na Tiva, mas auge em Náutico/Bahia |
-| Fio Maravilha | Desportiva 1973 | auge no Flamengo |
+| Kieza | Desportiva 2008/2026 | revelado na Tiva, mas auge em Náutico/Bahia — ✅ voltou (16/11), Desportiva 2008 |
+| Fio Maravilha | Desportiva 1973 | auge no Flamengo — ✅ voltou (16/11) |
 | Humberto Monteiro | Desportiva 1965–67 | auge no Atlético-MG |
 | Wesley Dias | Desportiva 2026 | xará (ou mesma pessoa?) de Wesley Dias do Botafogo-SP 2025 — na dúvida, fora |
 | Kempes, Ailton Canela | Vitória-ES | auge na Chapecoense (SC) |
@@ -245,3 +253,11 @@ Pesquisa de 15/11/2026. Fontes: pt.wikipedia.org e transfermarkt.com.br (página
 | Edson, Wanderson | Capital-TO | nomes iguais a cartas OFICIAL/REGIONAL; trocados |
 | Gil (artilheiro 1993), Célio (goleiro) | Tocantinópolis | Wikipedia cita, mas sem posição/ano suficientes pra cravar |
 | Murilo | Tocantinópolis 2026 | já usei o Murilo do Rio Branco-ES (outra pessoa); evitei dois xarás iguais |
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo Diego: o Brasil Oficial é um baralho À PARTE — ter carta no baralho Brasil/Europa/Mundo (`data.ts`) não impede carta aqui. Por isso voltaram famosos que tinham ficado fora só por isso (ou por "auge em outro estado").
+
+- **Entraram:** Durval (Brasiliense 2004), Túlio Maravilha (Brasiliense 2002), Zé Love (Brasiliense 2020), Dimba (Ceilândia 2012), Allan Dellon (Ceilândia 2010), Nen (Gama 1998), Kieza (Desportiva 2008), Fio Maravilha (Desportiva 1973).
+- **Continuam fora:** Marcelinho Carioca, Vampeta e Iranildo (Brasiliense 2005 — passagem curta, sem página aberta dizendo o que fizeram lá); Wilson Goiano e Rodrigo Beckham (Gama — sem posição/ano fechados nas páginas abertas); Ronaldo Giovanelli, Márcio Santos e Paulo Nunes (Gama 2001–02 — passagem rápida no fim da carreira); Humberto Monteiro (Desportiva — sem página aberta com ano e posição); Kempes e Ailton Canela (Vitória-ES — não marcaram o clube); Weldon (Brasiliense 2001, artilheiro do Candangão — sem carta em lugar nenhum, fica pra uma próxima rodada de ídolos).
+- **Maílson (Vitória-ES 2026) × Mailson (Águia de Marabá 2023):** a trava apontou; são duas pessoas (idades diferentes), marcado "xará" na obs.

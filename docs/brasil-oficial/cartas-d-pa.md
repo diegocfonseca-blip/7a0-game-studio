@@ -22,7 +22,7 @@ Nenhum destes 10 clubes tinha carta no baralho (BR/OFICIAL/REGIONAL) — todas a
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
 | Thassyo | GOL | 2025 | 1 | 52 | 62 | Goleiro que trocou o Amazônia pelo Tubarão do Caeté em fevereiro de 2025. | Keeper who swapped Amazônia for the "Caeté Shark" in February 2025. | https://www.transfermarkt.com.br/bragantino-clube-do-para-pa-/kader/verein/66814/saison_id/2024/plus/1 |  |
-| Hercules | LAT | 2025 | 1 | 52 | 62 | Lateral-esquerdo que chegou do São Paulo em janeiro de 2025. | Left-back who arrived from São Paulo FC in January 2025. | https://www.transfermarkt.com.br/bragantino-clube-do-para-pa-/kader/verein/66814/saison_id/2024/plus/1 |  |
+| Hercules | LAT | 2025 | 1 | 52 | 62 | Lateral-esquerdo que chegou do São Paulo em janeiro de 2025. | Left-back who arrived from São Paulo FC in January 2025. | https://www.transfermarkt.com.br/bragantino-clube-do-para-pa-/kader/verein/66814/saison_id/2024/plus/1 || xará do Hércules (Fortaleza 2023, volante vendido ao Fluminense) — outra pessoa: este é lateral-esquerdo vindo do São Paulo (16/11) |
 | Leandro Cabecinha | LAT | 2026 | 1 | 52 | 62 | Lateral-esquerdo de apelido miúdo que veio do Itupiranga em 2026. | Left-back with a "Little Head" nickname who came from Itupiranga in 2026. | https://www.transfermarkt.com.br/bragantino-clube-do-para-pa-/kader/verein/66814/saison_id/2025/plus/1 |  |
 | Victor Souza | ZAG | 2025 | 1 | 52 | 62 | Zagueiro que chegou do Iguatu, do Ceará, em janeiro de 2025. | Centre-back who joined from Ceará side Iguatu in January 2025. | https://www.transfermarkt.com.br/bragantino-clube-do-para-pa-/kader/verein/66814/saison_id/2024/plus/1 | xará (outra pessoa: Victor Souza, goleiro do Botafogo-SP/CRB) |
 | Taygor | ZAG | 2026 | 1 | 52 | 62 | Zagueiro que veio do Paro FC, do Butão, para Bragança em 2026 — volta ao mundo pra jogar no Pará. | Centre-back who came from Bhutan's Paro FC to Bragança in 2026 — round the world to play in Pará. | https://www.transfermarkt.com.br/bragantino-clube-do-para-pa-/kader/verein/66814/saison_id/2025/plus/1 |  |
@@ -114,7 +114,6 @@ Nenhum destes 10 clubes tinha carta no baralho (BR/OFICIAL/REGIONAL) — todas a
 | Thárcio Santos | MEI | 2025 | 1 | 52 | 62 | Meia ofensivo que chegou do Marajó em fevereiro de 2025. | Attacking midfielder who joined from Marajó in February 2025. | https://www.transfermarkt.com.br/sao-francisco-futebol-clube-pa-/kader/verein/54907/saison_id/2024/plus/1 |  |
 | Chaveirinho | ATA | 2026 | 1 | 52 | 62 | Ponta-direita de apelido de chaveiro, chegou do Fluminense EC em fevereiro de 2026. | Right winger with a "Little Keyring" nickname, joined from Fluminense EC in February 2026. | https://www.transfermarkt.com.br/sao-francisco-futebol-clube-pa-/kader/verein/54907/saison_id/2025/plus/1 |  |
 | Waldir | ATA | 2026 | 1 | 52 | 62 | Ponta-esquerda nascido em 1990 que veio do Audax Rio em 2026. | Left winger born in 1990 who came from Audax Rio in 2026. | https://www.transfermarkt.com.br/sao-francisco-futebol-clube-pa-/kader/verein/54907/saison_id/2025/plus/1 |  |
-| Jackie Chan | ATA | 2025 | 1 | 52 | 62 | Ponta-esquerda xará do astro do kung fu: chegou do Mixto (MT) em janeiro de 2025. | Left winger who shares a name with the kung fu star: arrived from Mato Grosso's Mixto in January 2025. | https://www.transfermarkt.com.br/sao-francisco-futebol-clube-pa-/kader/verein/54907/saison_id/2024/plus/1 |  |
 | Mauro Praia | ATA | 2024 | 1 | 52 | 62 | Atacante de apelido de verão que veio do Caeté para a temporada 2024. | Forward with a summery "Beach" nickname who came from Caeté for the 2024 season. | https://www.transfermarkt.com.br/sao-francisco-futebol-clube-pa-/kader/verein/54907/saison_id/2023/plus/1 |  |
 
 ## São Raimundo-PA
@@ -175,15 +174,16 @@ Nenhum destes 10 clubes tinha carta no baralho (BR/OFICIAL/REGIONAL) — todas a
 | Capitão Poço | 1 | 2 | 3 | 4 | 4 | 14 |
 | Castanhal | 1 | 2 | 3 | 3 | 4 | 13 |
 | Santa Rosa | 1 | 2 | 2 | 4 | 4 | 13 |
-| São Francisco-PA | 1 | 2 | 3 | 4 | 4 | 14 |
+| São Francisco-PA | 1 | 2 | 3 | 4 | 3 | 13 |
 | São Raimundo-PA | 1 | 2 | 2 | 4 | 4 | 13 |
 | Tuna Luso | 1 | 2 | 2 | 4 | 3 | 12 |
 | Águia de Marabá | 1 | 2 | 2 | 3 | 3 | 11 |
-| **TOTAL** | 10 | 21 | 24 | 37 | 36 | 128 |
+| **TOTAL** | 10 | 21 | 24 | 37 | 35 | 127 |
 
 ## Descartados (com motivo)
 
 **Revisão de nomes repetidos (15/11) — mesma pessoa de outra carta, carta tirada:**
+- Jackie Chan (São Francisco-PA 2025) — mesma pessoa que a carta Jackie Chan do Nova Mutum 2026 (Ivanilson Barbosa Chaul: Mixto → São Francisco jan/2025 → Bragantino-PA mar/2025 → Fast → Nova Mutum jan/2026, segundo o Soccerway https://us.soccerway.com/player/jackie-chan/zH54nSUR/transfers). Ficou só no Nova Mutum, onde jogou mais (16/11).
 - Adilson (Amazônia 2022) — mesma pessoa que a carta Adilson do Baré 2026 (TM id 986693 nos dois elencos).
 - Perema (Amazônia 2026) — mesma pessoa que a carta Perema da Aparecidense 2025 (TM id 520377).
 - Yan Mafra (Capitão Poço 2026) — mesma pessoa que a carta Yan Mafra do IAPE 2026 (TM id 837026).
@@ -210,3 +210,11 @@ Nenhum destes 10 clubes tinha carta no baralho (BR/OFICIAL/REGIONAL) — todas a
 | Jogadores repetidos entre clubes do lote (Alan Maia, PH Gama, Ramonzinho, Debu, Everson Bilau, Marcinho, Daniel GTA, Wander Silva, Yan Mafra, Douglas Santos, Márcio, Adauto Júnior, Vitor Maranhão etc.) | vários | Cada pessoa entrou em UM clube só; nas outras listas foi descartada. |
 | Jogadores com posição "Defensores" no TM (ex.: Cauã Ramires, Bruno Pantoja) | vários | Posição não define LAT × ZAG. |
 | Datas de chegada do TM em elencos antigos | todos | Em várias páginas antigas o "No time desde" mostra a passagem MAIS RECENTE (ex.: Wander Silva no Águia 2023 com chegada em 2025). Por isso o ano da carta = estar na lista daquela temporada, e a bio só cita chegada quando a data cabe na temporada. |
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo Diego: o Brasil Oficial é um baralho À PARTE — ter carta no baralho Brasil/Europa/Mundo (`data.ts`) não impede carta aqui. Por isso voltaram famosos que tinham ficado fora só por isso (ou por "auge em outro estado").
+
+- **Nenhuma carta nova:** Felipe Gedoz (Castanhal 2024) marcou época foi no Remo — fica pra carta do Remo; Erick Flores e Aleílson já têm carta no próprio baralho do Brasil Oficial (Boavista-RJ e Trem); Welthon (Capitão Poço 2026) e Vitor Junior (Castanhal 2024) não marcaram o clube; os ídolos da Tuna (B 1985, C 1992) e o elenco da Série D 2009 do São Raimundo continuam sem página aberta com nomes e posições.
+- **Jackie Chan (São Francisco-PA 2025) saiu:** a trava apontou e é a mesma pessoa do Jackie Chan do Nova Mutum 2026 (ficou lá).
+- **Hercules (Bragantino-PA 2025) × Hércules (Fortaleza 2023):** a trava apontou; são duas pessoas (lateral-esquerdo × volante), marcado "xará" na obs.

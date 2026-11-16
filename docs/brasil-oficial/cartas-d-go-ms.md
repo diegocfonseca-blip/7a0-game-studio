@@ -146,6 +146,7 @@ Clubes por id no Transfermarkt: ABECAT = **Agro Esporte Clube** (id 115027; a Wi
 | Daniel Bahia | ATA | 2025 | 1 | 50 | 62 | Centroavante canhoto de 1,85 m nascido em 1998: área, canhota e torcida pedindo gol. | A 1.85 m left-footed centre-forward born in 1998: the box, the left foot and a crowd begging for goals. | https://www.transfermarkt.com.br/associacao-esportiva-jataiense-go-/kader/verein/25244/saison_id/2024/plus/1 |  |
 | Erick Luis | ATA | 2025 | 1 | 50 | 62 | Centroavante de 1,83 m nascido em 1992: o homem de referência do ataque da Jataiense em 2025. | A 1.83 m centre-forward born in 1992: the reference point of Jataiense's attack in 2025. | https://www.transfermarkt.com.br/associacao-esportiva-jataiense-go-/kader/verein/25244/saison_id/2024/plus/1 |  |
 | Tcharles | ATA | 2025 | 1 | 49 | 61 | Ponta-direita de 1,68 m nascido em 1999: nome soletrado do jeito que se fala e drible do jeito que se sente. | A 1.68 m right winger born in 1999: a name spelled the way it sounds, a dribble played the way it feels. | https://www.transfermarkt.com.br/associacao-esportiva-jataiense-go-/kader/verein/25244/saison_id/2024/plus/1 |  |
+| Borges | ATA | 2004 | 2 | 60 | 72 | Fez 9 gols no Goiano de 2004 e levou o Jataiense à semifinal — a vitrine que o mandou pro São Caetano. | Scored 9 goals in the 2004 Goiano and took Jataiense to the semi-finals — the showcase that sent him to São Caetano. | https://pt.wikipedia.org/wiki/Borges_(futebolista) | também tem carta em Santos 2011 (baralho Brasil); ✅ voltou (16/11) |
 
 ## FC Pantanal
 
@@ -201,6 +202,7 @@ Clubes por id no Transfermarkt: ABECAT = **Agro Esporte Clube** (id 115027; a Wi
 | Luisinho | ATA | 2026 | 1 | 52 | 64 | Ponta-direita de 1,75 m nascido em 1991: o veterano da beirada do Operário em 2026. | A 1.75 m right winger born in 1991: Operário's veteran on the wing in 2026. | https://www.transfermarkt.com.br/operario-futebol-clube-ms-/kader/verein/32386/saison_id/2025/plus/1 | xará do nome (Luisinho Lemos do America-RJ, outra pessoa) |
 | Matheus Bidick | ATA | 2025 | 1 | 51 | 63 | Ponta-direita de 1,73 m nascido em 1993: velocidade pela direita do Operário em 2025. | A 1.73 m right winger born in 1993: pace down Operário's right in 2025. | https://www.transfermarkt.com.br/operario-futebol-clube-ms-/kader/verein/32386/saison_id/2024/plus/1 |  |
 | Sampaio | ATA | 2025 | 1 | 51 | 63 | Centroavante de 1,78 m nascido em 1995: o 9 do Operário-MS em 2025. | A 1.78 m centre-forward born in 1995: Operário-MS's number nine in 2025. | https://www.transfermarkt.com.br/operario-futebol-clube-ms-/kader/verein/32386/saison_id/2024/plus/1 |  |
+| Manga | GOL | 1977 | 4 | 79 | 89 | Goleiro considerado a maior figura que passou pelo futebol sul-mato-grossense: semifinalista do Brasileiro de 1977 com o Operário. | Keeper rated the greatest figure ever to play in Mato Grosso do Sul football: a 1977 Brasileiro semi-finalist with Operário. | https://pt.wikipedia.org/wiki/Manga_(futebolista) | também tem carta em Botafogo 1966 (baralho Brasil); ✅ voltou (16/11) — Bola de Prata 1978 ainda pelo Operário |
 
 ## Totais por clube e posição
 
@@ -213,11 +215,11 @@ Clubes por id no Transfermarkt: ABECAT = **Agro Esporte Clube** (id 115027; a Wi
 | CRAC | 1 | 2 | 2 | 4 | 3 | 12 |
 | Goiatuba | 1 | 2 | 3 | 4 | 3 | 13 |
 | Inhumas | 1 | 2 | 3 | 4 | 3 | 13 |
-| Jataiense | 1 | 2 | 3 | 4 | 3 | 13 |
+| Jataiense | 1 | 2 | 3 | 4 | 4 | 14 |
 | FC Pantanal | 1 | 2 | 3 | 3 | 4 | 13 |
 | Ivinhema | 1 | 2 | 2 | 4 | 4 | 13 |
-| Operário-MS | 1 | 2 | 3 | 4 | 4 | 14 |
-| **TOTAL** | 11 | 22 | 29 | 41 | 37 | 140 |
+| Operário-MS | 2 | 2 | 3 | 4 | 4 | 15 |
+| **TOTAL** | 12 | 22 | 29 | 41 | 38 | 142 |
 
 ## Descartados (com motivo)
 
@@ -235,8 +237,8 @@ Clubes por id no Transfermarkt: ABECAT = **Agro Esporte Clube** (id 115027; a Wi
 
 **Já estão no baralho Brasil (mesma pessoa):**
 - Wendell Lira (passou pela Anapolina) — já é carta do Goianésia 2015 (BR).
-- Manga (Bola de Prata 1977 pelo Operário) — já é carta do Botafogo 1966 (BR).
-- Borges (Jataiense 2004, citado na página do clube) — já é carta do Santos 2011 (BR).
+- Manga (Bola de Prata 1977 pelo Operário) — já é carta do Botafogo 1966 (BR). ✅ voltou (16/11), Operário-MS 1977 (pela Wikipedia a Bola de Prata pelo Operário foi a de 1978).
+- Borges (Jataiense 2004, citado na página do clube) — já é carta do Santos 2011 (BR). ✅ voltou (16/11)
 - Lucas Mingoti (ABECAT 2025) — já é carta do River-PI 2024 (REGIONAL), mesmo zagueiro.
 - Renan Gorne (Aparecidense 2025) — já é carta do Ypiranga 2026 (OFICIAL).
 - Cléo Silva (CRAC 2025) — já é carta do Barra 2025 (OFICIAL).
@@ -252,3 +254,10 @@ Clubes por id no Transfermarkt: ABECAT = **Agro Esporte Clube** (id 115027; a Wi
 **Mesmo jogador em dois clubes do lote (usado uma vez só):** Matheus Chaves (Anapolina/Aparecidense → Aparecidense), Iago Martins (Centro Oeste/CRAC → Centro Oeste), Bugarin (Operário/Ivinhema → Ivinhema), Marcel (Operário/FC Pantanal → Operário-MS), Everton (Goiatuba/Inhumas → Goiatuba). Fora por aparecer em dois elencos do mesmo ano e evitar dúvida: Léo Souza (Anapolina e Operário 2025), Lucas Straub (ABECAT e Goiatuba 2025), Tássio, Wendel, Elieser, Alex Choco, Selson, Rafael Sales, Gustavo Corona, Breno Mohamed, Michel, Eduardo Menezes.
 
 **Trocado para evitar confusão de apelido:** Cebolinha (Jataiense) — apelido igual ao do Everton Cebolinha (BR); entrou Tcharles no lugar.
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo Diego: o Brasil Oficial é um baralho À PARTE — ter carta no baralho Brasil/Europa/Mundo (`data.ts`) não impede carta aqui. Por isso voltaram famosos que tinham ficado fora só por isso (ou por "auge em outro estado").
+
+- **Entraram:** Manga (Operário-MS 1977, a semifinal do Brasileiro) e Borges (Jataiense 2004, 9 gols no Goiano).
+- **Continuam fora:** Wendell Lira, Léo Lima e Túlio Maravilha (Anapolina — fim de carreira, não marcaram o clube; e o Túlio já entrou no Brasiliense 2002 — 1 pessoa = 1 carta no baralho do Brasil Oficial); Renan Gorne, Cléo Silva e Lucas Mingoti (já têm carta no próprio baralho do Brasil Oficial); os nomes de "auge em outro estado" do Operário-MS (passagens curtas).

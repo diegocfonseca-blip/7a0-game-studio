@@ -139,6 +139,10 @@ Regra nova (1 pessoa = 1 carta no baralho Brasil): cada nome conferido contra `s
 | Bendelack | ATA | 1980 | 2 | 62 | 74 | Ponta-direita santareno, veloz e driblador, campeão em 1979 e 1980 na reta do hexa do Nacional. | Fast, tricky right winger from Santarém, state champion in 1979 and 1980 during Nacional's six-in-a-row. | https://pt.wikipedia.org/wiki/Nacional_Futebol_Clube_(Amazonas) | ídolo; auge no Nacional (também jogou no Jorge Wilstermann e no Cruzeiro) |
 | Raulino | ATA | 1986 | 2 | 60 | 72 | Atacante que fez o gol do tetra de 1986 sobre o rival Rio Negro e foi o artilheiro do Naça naquele ano, com 11 gols. | Forward who scored the 1986 title-clinching goal against rivals Rio Negro and was Nacional's top scorer that year with 11. | https://pt.wikipedia.org/wiki/Nacional_Futebol_Clube_(Amazonas) | ídolo |
 | Léo | ATA | 2014 | 3 | 63 | 75 | "O Índio Negro": centroavante carioca tricampeão amazonense (2012, 2014 e 2015), com 34 gols em 73 jogos pelo Nacional. | "O Índio Negro": Rio-born centre-forward and three-time state champion (2012, 2014, 2015), with 34 goals in 73 games for Nacional. | https://pt.wikipedia.org/wiki/Nacional_Futebol_Clube_(Amazonas) | ídolo; xará (não é o Léo do Santos nem o Léo do Novo Hamburgo, lateral, TM id 520697) |
+| Cerezo | MEI | 1974 | 3 | 66 | 77 | Antes de virar craque da Seleção, veio emprestado pelo Atlético-MG e foi campeão amazonense de 1974 pelo Naça. | Before becoming a Brazil star, he came on loan from Atlético-MG and won the 1974 Amazonas state title with Nacional. | https://pt.wikipedia.org/wiki/Toninho_Cerezo ; https://pt.wikipedia.org/wiki/Nacional_Futebol_Clube_(Amazonas) | também tem carta em Atlético-MG 1980 (baralho Brasil); ✅ voltou (16/11) |
+| Paulo Isidoro | MEI | 1974 | 2 | 62 | 73 | Emprestado pelo Atlético-MG, fez parte do time invicto do Naça campeão amazonense de 1974. | On loan from Atlético-MG, he was part of the unbeaten Nacional side that won the 1974 state title. | https://pt.wikipedia.org/wiki/Paulo_Isidoro ; https://pt.wikipedia.org/wiki/Nacional_Futebol_Clube_(Amazonas) | também tem carta em Grêmio 1980 (baralho Brasil); ✅ voltou (16/11) |
+| Dadá Maravilha | ATA | 1984 | 3 | 64 | 75 | Um dos maiores goleadores do futebol brasileiro foi o artilheiro do Nacional em 1984. | One of Brazilian football's greatest goalscorers was Nacional's top scorer in 1984. | https://pt.wikipedia.org/wiki/Nacional_Futebol_Clube_(Amazonas) | também tem carta em Atlético-MG 1971 (baralho Brasil); ✅ voltou (16/11) |
+| Hernane Brocador | ATA | 2026 | 2 | 60 | 72 | Eleito o melhor jogador do Barezão de 2026, vencido pelo Naça — o 44º título amazonense do clube. | Voted best player of the 2026 Amazonas championship, won by Nacional — the club's 44th state title. | https://pt.wikipedia.org/wiki/Campeonato_Amazonense_de_Futebol_de_2026 | também tem carta em Flamengo 2013 (baralho Brasil); ✅ voltou (16/11) |
 
 ## Parintins
 
@@ -250,14 +254,14 @@ Regra nova (1 pessoa = 1 carta no baralho Brasil): cada nome conferido contra `s
 | Itacoatiara | 1 | 2 | 2 | 4 | 3 | 12 |
 | Manauara | 1 | 2 | 2 | 3 | 3 | 11 |
 | Manaus | 1 | 2 | 2 | 3 | 3 | 11 |
-| Nacional-AM | 1 | 2 | 2 | 4 | 5 | 14 |
+| Nacional-AM | 1 | 2 | 2 | 6 | 7 | 18 |
 | Parintins | 1 | 2 | 2 | 3 | 3 | 11 |
 | Princesa do Solimões | 1 | 2 | 2 | 4 | 3 | 12 |
 | São Raimundo-AM | 1 | 2 | 2 | 4 | 3 | 12 |
 | Independente-AP | 1 | 2 | 2 | 3 | 3 | 11 |
 | Oratório | 1 | 2 | 3 | 3 | 3 | 12 |
 | Trem | 1 | 2 | 2 | 3 | 3 | 11 |
-| **Total** | 14 | 28 | 30 | 46 | 44 | 162 |
+| **Total** | 14 | 28 | 30 | 48 | 46 | 166 |
 
 ## Descartados
 - **Willian Anicete (Parintins 2026)** — mesma pessoa da carta do Horizonte 2026 (TM id 316004), que fica. (15/11, conferência de repetidos)
@@ -288,6 +292,13 @@ Regra nova (1 pessoa = 1 carta no baralho Brasil): cada nome conferido contra `s
 
 **Mesma pessoa em dois clubes deste lote (fica só em um):** Matheus Silva (Vasco-AC 2025 → ficou no Galvez), Passarinho (Vasco-AC 2025 → Galvez), Carlos Gabriel (Galvez 2026 → Humaitá 2025), Tião Farias (Independência 2025 → Independente-AP 2026), Rafael Bretas (Oratório 2025 → Independência 2026), Leozinho (Galvez 2026 → Vasco-AC), Eduardo Lopes (não usado), Miliano (Nacional/Princesa → Manaus), Renanzinho (Nacional 2026 → Manaus 2025), Wendel (Trem 2025 → Nacional 2026), Aleílson (Independente-AP/Princesa → Trem), Lucas Rondineles (Trem 2026 → Independente-AP 2025), Léo Reis (Trem 2026 → Oratório 2025), Magno Ribeiro e Fabinho (Trem → Oratório), Jonas Moreira e Foguete (Princesa → Trem), Felipe Sousa e Léo Pará (Manaus 2026 → Itacoatiara), Eugênio Neto (não usado: aparece no Nacional e no Manaus em 2026), Marcão goleiro (não usado no Acre; ver obs do Marcão do Itacoatiara).
 
-**Famosos de outro estado / auge fora (regra dos outros pesquisadores):** Hernane Brocador e Sassá (Nacional 2026 — auge no Flamengo/Botafogo), Kevin Mercado e Andrés Andrade (Nacional 2026 — carreira no Equador/Colômbia), Caio Mancha (Nacional 2026), Ramires (Parintins 2026 — auge no Vila Nova/Goiás), Rafinha (Parintins 2026 — auge no Ceará), Carlos Caaporã (Parintins 2026 — carreira no Nordeste), Toninho Cerezo, Paulo Isidoro, Alfredo Mostarda, Jairzinho, Dadá Maravilha, Edu, França, Iriney e Campos (Nacional — auge em outros clubes).
+**Famosos de outro estado / auge fora (regra dos outros pesquisadores):** Hernane Brocador (✅ voltou 16/11) e Sassá (Nacional 2026 — auge no Flamengo/Botafogo), Kevin Mercado e Andrés Andrade (Nacional 2026 — carreira no Equador/Colômbia), Caio Mancha (Nacional 2026), Ramires (Parintins 2026 — auge no Vila Nova/Goiás), Rafinha (Parintins 2026 — auge no Ceará), Carlos Caaporã (Parintins 2026 — carreira no Nordeste), Toninho Cerezo (✅ voltou 16/11, como "Cerezo"), Paulo Isidoro (✅ voltou 16/11), Alfredo Mostarda, Jairzinho, Dadá Maravilha (✅ voltou 16/11), Edu, França, Iriney e Campos (Nacional — auge em outros clubes).
 
 **Sem certeza (posição ou pessoa):** Abuda (Independente-AP 2025 — o lote DF/ES/TO já descartou como "possível ex-Corinthians"), Fabio Linderberg (Independente-AP — TM só diz "Defensor"), Daniel Guerreiro, Jefer, Dioguinho, Luan Ribeiro, Jessé, Lukinha, Matheus e Felipinho (Itacoatiara — sem posição clara nas fontes), Ju Alagoano (Parintins 2026 — sem posição), Allyson Luz, Max Nóbrega, Levy e Weslem (Princesa 2026 — fora da lista com posição ou já em outro clube), Ademir (São Raimundo 1999-2005 — veio do Moto Club, auge incerto), Eric (zagueiro anunciado por Princesa e São Raimundo em 2026 — ficou de fora para não errar o clube).
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo Diego: o Brasil Oficial é um baralho À PARTE — ter carta no baralho Brasil/Europa/Mundo (`data.ts`) não impede carta aqui. Por isso voltaram famosos que tinham ficado fora só por isso (ou por "auge em outro estado").
+
+- **Entraram (Nacional-AM):** Cerezo 1974 (emprestado pelo Atlético-MG, campeão amazonense; nome igual à carta dele no baralho Brasil), Paulo Isidoro 1974, Dadá Maravilha 1984 (artilheiro do clube) e Hernane Brocador 2026 (melhor jogador do Barezão 2026, campeão).
+- **Continuam fora:** Jairzinho (a página do Nacional diz que chegou em 1979, mas a página dele põe essa passagem no Fast Clube — fontes brigam); Alfredo Mostarda (empréstimo em 1969 ou 1970 — as páginas discordam do ano); Edu (1984 — nome igual ao do Edu do Brusque no baralho do Brasil Oficial e sem página do jogador pra confirmar quem é); França e Iriney (só base do Nacional); Sassá (fez história no Amazonas campeão da Série C 2023, não no Nacional — deixado pra carta do Amazonas); Thiago Spice (já tem carta no próprio baralho do Brasil Oficial).

@@ -38,6 +38,7 @@ Pesquisa de 15/11/2026, só fonte aberta (Transfermarkt BR + Wikipedia PT). **Ne
 | Tozin | ATA | 2015 | 2 | 61 | 74 | Centroavante de 13 gols em 22 jogos em 2015: se a bola sobrava na área, já era. | Centre-forward with 13 goals in 22 games in 2015: if the ball dropped in the box, game over. | https://www.transfermarkt.com.br/luverdense-esporte-clube-mt-/leistungsdaten/verein/21599/reldata/%262014/plus/1 · https://pt.wikipedia.org/wiki/Luverdense_Esporte_Clube |  |
 | Rafael Silva | ATA | 2017 | 2 | 59 | 71 | Camisa 9 da Copa Verde invicta de 2017: 45 jogos e 8 gols, o time não vivia sem ele. | No. 9 of the unbeaten 2017 Copa Verde: 45 games and 8 goals, the team couldn't live without him. | https://www.transfermarkt.com.br/luverdense-esporte-clube-mt-/leistungsdaten/verein/21599/reldata/%262016/plus/1 · https://pt.wikipedia.org/wiki/Luverdense_Esporte_Clube | TM id 349447 · xará (não é o Rafael Silva da Portuguesa-RJ; TM id 349447) |
 | Joãozinho | ATA | 2024 | 1 | 54 | 66 | Artilheiro do Mato-Grossense de 2024 e autor do gol na ida contra o Mixto que valeu a vaga na Série D. | Top scorer of the 2024 Mato-Grossense, and his goal against Mixto in the first leg earned the Série D spot. | https://www.transfermarkt.com.br/luverdense-esporte-clube-mt-/leistungsdaten/verein/21599/reldata/%262023/plus/1 · https://pt.wikipedia.org/wiki/Luverdense_Esporte_Clube | xará (não é o Joãozinho do Cruzeiro 1976; TM id 560324) |
+| Valdir Papel | ATA | 2012 | 1 | 52 | 64 | O andarilho de mais de 30 clubes marcou na goleada de 3 a 0 sobre o Mixto na semifinal da Copa Pantanal de 2012. | The journeyman of 30-plus clubs scored in the 3-0 rout of Mixto in the 2012 Copa Pantanal semi-final. | https://pt.wikipedia.org/wiki/Luverdense_Esporte_Clube | também tem carta em Vasco 2006 (baralho Brasil); ✅ voltou (16/11) |
 
 ## Mixto
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
@@ -157,7 +158,7 @@ Pesquisa de 15/11/2026, só fonte aberta (Transfermarkt BR + Wikipedia PT). **Ne
 | clube | GOL | LAT | ZAG | MEI | ATA | total |
 |---|---|---|---|---|---|---|
 | Chapada | 1 | 2 | 2 | 4 | 3 | 12 |
-| Luverdense | 1 | 3 | 2 | 4 | 4 | 14 |
+| Luverdense | 1 | 2 | 2 | 4 | 5 | 14 |
 | Mixto | 1 | 2 | 2 | 4 | 4 | 13 |
 | Nova Mutum | 1 | 2 | 2 | 3 | 4 | 12 |
 | Operário VG | 1 | 3 | 2 | 4 | 3 | 13 |
@@ -165,7 +166,7 @@ Pesquisa de 15/11/2026, só fonte aberta (Transfermarkt BR + Wikipedia PT). **Ne
 | Sinop | 1 | 2 | 2 | 3 | 4 | 12 |
 | União Rondonópolis | 1 | 3 | 3 | 3 | 3 | 13 |
 | Várzea Grande | 2 | 2 | 2 | 4 | 3 | 13 |
-| **todos** | 10 | 22 | 19 | 32 | 31 | 114 |
+| **todos** | 10 | 21 | 19 | 32 | 32 | 114 |
 
 ## Descartados (com motivo)
 
@@ -181,7 +182,7 @@ Pesquisa de 15/11/2026, só fonte aberta (Transfermarkt BR + Wikipedia PT). **Ne
 |---|---|---|
 | Raul Prata | Luverdense (2012–2026) | mesma pessoa já está no baralho (CRB 2022, OFICIAL) |
 | Diogo Silva | Luverdense 2016–2018 (GOL) | mesma pessoa já está no baralho (CRB 2022, OFICIAL) |
-| Valdir Papel | Luverdense 2012 | já está no baralho (Vasco 2006, BR) |
+| Valdir Papel | Luverdense 2012 | já está no baralho (Vasco 2006, BR) — ✅ voltou (16/11) |
 | Douglas Baggio, Marcos Aurélio, Cléo Silva | Luverdense 2016–2017 | já estão no baralho (CRB, Botafogo-PB, Barra) |
 | Fransérgio | Luverdense 2025 / Sinop 2026 | já está no baralho (Operário-PR 2025) e o auge foi fora (Inter/Braga) |
 | Matheus Kayser | Luverdense 2024 | já está no baralho (Barra 2026) |
@@ -204,3 +205,11 @@ Pesquisa de 15/11/2026, só fonte aberta (Transfermarkt BR + Wikipedia PT). **Ne
 | Jean Patrick | Chapada 2026 / Luverdense 2014–16 | ficaria repetido entre clubes; o elenco já fechava sem ele |
 | Lucas Straub, Ricardo Liell, Danilo Borges, Igor Vieira, Elias Lara, Gabriel Neves, Bennê, Tiarinha, Andrey Gradici, Vitor Gottems, Léo Campos | vários clubes de MT | jogaram em 2+ clubes do lote; cada um entrou em UM clube só (o da carta acima) |
 | Atletas do Sinop FC (2016–2021) | Sinop FC | clube diferente do "Sinop" do Mato-Grossense 2026 (que é o CS Sinop) |
+
+## Dúvidas (revisão de 16/11)
+
+Regra corrigida pelo Diego: o Brasil Oficial é um baralho À PARTE — ter carta no baralho Brasil/Europa/Mundo (`data.ts`) não impede carta aqui. Por isso voltaram famosos que tinham ficado fora só por isso (ou por "auge em outro estado").
+
+- **Entrou:** Valdir Papel (Luverdense 2012, gol na semifinal da Copa Pantanal).
+- **Continuam fora:** Raul Prata, Diogo Silva, Douglas Baggio, Marcos Aurélio, Cléo Silva, Fransérgio e Matheus Kayser (já têm carta no próprio baralho do Brasil Oficial — essa regra continua); Ruy Cabeção (Mixto 2014), Tiago Volpi (Luverdense 2011), Adriano Gabiru e Perdigão (Mixto 2010, dispensados depois de 3 rodadas) — nenhuma página aberta diz que marcaram o clube.
+- **Jackie Chan:** a trava apontou Nova Mutum 2026 × São Francisco-PA 2025 — é a MESMA pessoa (Ivanilson Barbosa Chaul); ficou só no Nova Mutum, a do São Francisco saiu (ver `cartas-d-pa.md`).
