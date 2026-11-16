@@ -217,5 +217,15 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   antes da 1ª rodada da Série, com o placar/tabela de sempre; os 17 formatos estão em `competicoes-reais.md` (13 conferidos).
   Prêmio da Copa do Brasil real: `copaBrasilRewards` paga por profundidade a partir do FIM da chave (a de 9 fases encaixa nos
   mesmos 8 degraus de hoje sem mexer em quem já joga a de 6).
+- ✅ **16/11: MOTOR DOS ESTADUAIS** (`src/escalacao/estaduais.ts`, trava `npm run estaduais`): os 17 estaduais da lista mestra no
+  formato real de 2026 (pesquisa em `competicoes-reais.md` + `estaduais-faltantes.md`), INCERTOS marcados no código. Puro: devolve
+  fases, campeão, vice, rebaixados e a CLASSIFICAÇÃO FINAL (de onde saem as vagas da Copa do Brasil). Mockup da tela aprovado
+  (*"Sim e siga"*): `scripts/mockups/brasil-oficial-estadual-{pc,celular}.png`.
+  ⏭️ **Ligar na tela (plano)**: (1) `timesDoEstadual` monta os SimTeam dos clubes só-estaduais (E) pelo sorteio de sempre;
+  (2) o `joga` usa a física das copas (+ motor novo no jogo do usuário) e guarda gols/campinho de cada partida; (3) cada rodada/
+  fase vira uma página `CopaRound` com marca `estadual` e entra NA FRENTE da esteira da Copa (`copa.rounds`), tocada na rodada 0
+  antes do "Começar a temporada"; a fase de liga não mostra "classificado"; (4) a tabela do estadual na coluna da direita só
+  com o que já foi apitado; (5) a esteira da Copa no meio da temporada desloca pelo nº de páginas do estadual.
+  ⚠️ A partir de 2027 o estadual repete os clubes de 2026 (a Série A2 de cada estado não existe no modo) — perguntar ao Diego.
 - Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
   Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.
