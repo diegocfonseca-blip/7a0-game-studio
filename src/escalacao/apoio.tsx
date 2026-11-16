@@ -195,6 +195,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
   'lucassaboia14@gmail.com': 'ouro', // 👑 batismo FUNDADOR Cabritiiin F.C (Várzea, no assento do bot Unidos da Resenha) + fundador nº101 + sócio nº89 (13/11).
   'sergioricardocf16@gmail.com': 'ouro', // 👑 batismo Leões da Tuf EC (Várzea, no assento do bot Chuteira Rachada FC) + sócio nº90 (14/11, dado pelo Diego). Sem nº de fundador (regra 14/10).
+  'leoreffattig@gmail.com': 'ouro', // 👑 batismo Reffatti FC (Várzea, no assento do bot Atlético Pelada) + sócio nº91 (15/11). Sem nº de fundador (regra 14/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
   'sheeryarie772@gmail.com': 'ouro', // 👑 batismo FUNDADOR Neymar FC (Série D, no assento do bot Galáxia EC) + fundador nº97 + sócio nº77 (21/10; subiu de Batismo pra Fundador em 29/10).
   'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
