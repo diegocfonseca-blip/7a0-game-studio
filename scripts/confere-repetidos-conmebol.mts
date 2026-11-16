@@ -23,6 +23,9 @@ for (const f of readdirSync('docs/brasil-oficial').filter(f => /^cartas-(d|conme
     add(cel[1], clube)
   }
 }
+// xará marcado em QUALQUER lote (as séries A–C têm a marca no meio da linha, não numa coluna fixa)
+for (const f of readdirSync('docs/brasil-oficial').filter(f => f.startsWith('cartas-') && f.endsWith('.md')))
+  for (const ln of readFileSync('docs/brasil-oficial/' + f, 'utf8').split('\n')) if (ln.startsWith('|') && /xar[áa]/i.test(ln)) xara.add(norm(ln.split('|')[1] ?? ''))
 let n = 0
 for (const [k, cs] of clubes) if (cs.size > 1 && !xara.has(k)) { n++; console.log(`⚠️ "${k}" em ${cs.size} clubes do baralho do Brasil Oficial: ${[...cs].join(', ')}`) }
 console.log(n ? `❌ ${n} nome(s) pra conferir (mesma pessoa? se for xará, escreva "xará" na obs)` : `✅ baralho do Brasil Oficial (${total} cartas nos lotes d/conmebol + o gerado): nenhum nome em dois clubes`)
