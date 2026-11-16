@@ -7928,7 +7928,7 @@ function TabelaEstadualAoVivo({ pages, ate, nome, grupos }: { pages: CopaRound[]
     // 🏆 grupos (Libertadores): o SEU grupo primeiro, depois os outros, todos inteiros; verde = os 2 que vão às oitavas
     const meu = grupos.findIndex(g => g.times.some(t => L.get(t)?.you))
     const ordem = meu > 0 ? [grupos[meu], ...grupos.filter((_, i) => i !== meu)] : grupos
-    return <div className="ll29-table" style={{ marginTop: 10 }}>{ordem.map((g, gi) => caixa(`🏆 ${nome} · ${g.nome}`, rows.filter(r => g.times.includes(r.time)), gi === ordem.length - 1 ? tr('Só os jogos já apitados. Verde = vai às oitavas; o 3º cai pra Sul-Americana.', 'Only matches already played. Green = into the round of 16; 3rd drops to the Sudamericana.') : undefined))}</div>
+    return <div className="ll29-table desk-grid2" style={{ marginTop: 10 }}>{ordem.map((g, gi) => caixa(`🏆 ${nome} · ${g.nome}`, rows.filter(r => g.times.includes(r.time)), gi === ordem.length - 1 ? tr('Só os jogos já apitados. Verde = vai às oitavas; o 3º cai pra Sul-Americana.', 'Only matches already played. Green = into the round of 16; 3rd drops to the Sudamericana.') : undefined))}</div>
   }
   return (
     <div className="ll29-table" style={{ marginTop: 10 }}>
@@ -13783,6 +13783,12 @@ export function PyramidSeasonScreen() {
               if (libGruposOn && copa && copaFase) return <>
                 <TabelaEstadualAoVivo pages={copa.rounds.slice(libIni)} ate={copaRound - libIni + (copaPos >= copaFaseTotal ? 1 : 0)} nome={NOME_LIBERTADORES} grupos={libGrupos} />
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${NOME_LIBERTADORES} · ${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>
+              </>
+              // 🏆 mata-mata/fases prévias da Libertadores: só ela (nada de chave da Copa do Brasil misturada) — os jogos da noite e o
+              // que a Libertadores já jogou, da fase mais recente pra trás
+              if (copaPlaying && copa && copaFase && libIni >= 0 && ehPaginaLiberta(copaFase.name)) return <>
+                <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${NOME_LIBERTADORES} · ${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>
+                {copa.rounds.slice(libIni, copaRound).reverse().filter(r => !r.ties[0]?.liga).map(r => <details className="ll29-history" key={r.name}><summary>{r.name.slice(LIBERTA_PREFIXO.length).toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name.slice(LIBERTA_PREFIXO.length)}/></details>)}
               </>
               if (estadualOn && estadualCalc && !libDev && copaPlaying && copaFase && copaFase.name !== SUPERCOPA_REI) return <>
                 <TabelaEstadualAoVivo pages={estadualCalc.rounds} ate={copaRound - (supercopaRei ? 1 : 0) + (copaPos >= copaFaseTotal ? 1 : 0)} nome={nomeEstadual} />
