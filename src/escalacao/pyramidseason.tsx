@@ -13594,6 +13594,11 @@ export function PyramidSeasonScreen() {
               const minute = done ? 93 : scoreClock.round===round ? scoreClock.minute : 0
               // 📊 aba única, semana de COPA (quarta): chaveamento no lugar da tabela + os jogos da Copa da noite embaixo.
               // `reveal={copaRound}`: a fase que está rolando ainda não entra no chaveamento (anti-spoiler)
+              // 🏟️ estadual rodando: a tabela DELE (só o que foi apitado) + os jogos da rodada — nada da Copa nem da Série aqui
+              if (estadualOn && estadualCalc && copaPlaying && copaFase) return <>
+                <TabelaEstadualAoVivo pages={estadualCalc.rounds} ate={copaRound + (copaPos >= copaFaseTotal ? 1 : 0)} nome={nomeEstadual} />
+                <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${nomeEstadual} · ${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>
+              </>
               if (jogoTabela && tab === 'jogos' && copaPlaying && copa && copaFase) return <>
                 <CopaBracket copa={copaBase ?? copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('JOGOS DA COPA', 'CUP MATCHES')}`}/>

@@ -227,5 +227,13 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   antes do "Começar a temporada"; a fase de liga não mostra "classificado"; (4) a tabela do estadual na coluna da direita só
   com o que já foi apitado; (5) a esteira da Copa no meio da temporada desloca pelo nº de páginas do estadual.
   ⚠️ A partir de 2027 o estadual repete os clubes de 2026 (a Série A2 de cada estado não existe no modo) — perguntar ao Diego.
+- ✅ **16/11: ESTADUAL NA TELA** (só Brasil Oficial): na rodada 0 o botão vira "▶️ Começar o <estadual>"; as páginas tocam na esteira
+  das copas (placar, Manual, campinho, motor novo no seu jogo), com a tabela do estadual ao vivo só com o que foi apitado e os
+  outros jogos embaixo; jogo de pontos corridos não diz "avança". No fim grava `oficialEstaduais` (campeão, vice, rebaixados,
+  classificação) e o botão volta a ser "Começar a temporada". Testado no navegador (Paysandu no Parazão).
+  ⏭️ Falta: (a) o estadual na aba Tabelas depois de jogado (resultado/campeão) e na Sala de Troféus; (b) faixas na tabela
+  (quartas/cai); (c) a escalação do usuário no estadual hoje é a automática (a troca de time durante o estadual não vale ainda);
+  (d) recarregar no meio do estadual recomeça ele do 1º jogo (o resultado é o mesmo); (e) a data no topo é a das quartas-feiras
+  da Copa (fev) — o estadual real é jan–mar.
 - Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
   Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.
