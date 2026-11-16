@@ -189,10 +189,18 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   fases, D com os 96 em grupos + mata-mata, datas espalhadas nas 38 rodadas sem spoiler), **aba Tabelas no formato real**
   (mockup `scripts/mockups/brasil-oficial-tabelas.png` aprovado), **escudo oficial** dos clubes reais dentro da carreira do modo,
   e **acesso/queda pelo regulamento** (`promocoesOficial`). Trava: 3 temporadas seguidas chegam em C 24 (2027) e C 28 (2028), D 96.
-  Carreira de sempre idêntica (prova: `npx tsx scripts/foto-simulacao-piramide.mts`, hash aeb8ae13…).
+  Carreira de sempre idêntica (prova: `npx tsx scripts/foto-simulacao-piramide.mts`, hash 7450e107… desde o batismo Lavras FC de 16/11, que trocou um bot da Várzea).
 - ⏭️ **Falta (tarefa seguinte): o usuário JOGAR o formato real da própria série** — playoff da B na tela (hoje é simulado
   sozinho e aparece no quadro), C (turno único → 2ª fase → final) e D (grupos → mata-mata). Até lá começar em C ou D fica
   travado com aviso; A e B abertos. ⚠️ Quem cair da A pra B no fim da temporada 1 cai numa B normal; o playoff dele seria
   simulado sozinho. Quem cair até a C antes disso ficaria numa C sem tela própria — prioridade antes de publicar.
+- ✅ **16/11: SÉRIE C NA TELA testada de ponta a ponta no navegador** (Paysandu: 1ª fase → 2ª fase → final, rodada sem jogo
+  pula sozinha) e **cabeçalho do modo**: "Brasileirão" no lugar de "Liga Legends", C/D com a fase e o jogo ("1ª fase · jogo 5/19")
+  no lugar de "Rodada x/38", contrato de TV sem o texto da várzea. A C continua travada no site; no servidor de teste abre com
+  `window.__boTesteC = true`.
+- ✅ **16/11: PLAYOFF DA SÉRIE B NA TELA** (`computePlayoffB`): terminou entre o 3º e o 6º, o playoff (3º×6º e 4º×5º, ida na
+  casa do pior, empate no agregado = melhor campanha, sem pênalti) entra como página pós-temporada na MESMA esteira da Supercopa
+  (placar, Manual, campinho, motor novo no seu jogo) e é ELE que decide o acesso (`oficialEfetivo`); o quadro e o "subiu/ficou"
+  só aparecem depois de jogado. Os gols do playoff não entram na artilharia (nem da liga nem da Copa) — anotado como pendente.
 - Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
   Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.

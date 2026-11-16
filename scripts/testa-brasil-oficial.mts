@@ -102,13 +102,33 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   for (const t of Object.values(mundo).flat() as { name: string; xi: unknown[] }[]) if (t.xi.length !== 11) falha(`pirâmide: ${t.name} não escala 11`)
   // 🇧🇷 a temporada no formato real fecha: B com playoff (4 sobem), C em fases (4 sobem, 2 caem), D com 96 (6 sobem)
   const { simulaTemporadaOficial } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
-  const fim = simulaTemporadaOficial(mundo, s.seed, 38, 2026).oficial
+  const fimTudo = simulaTemporadaOficial(mundo, s.seed, 38, 2026), fim = fimTudo.oficial
   if (fim.B.sobem?.length !== 4) falha(`temporada: B com ${fim.B.sobem?.length} acessos`)
   if (fim.C.sobem?.length !== 4 || fim.C.caem?.length !== 2 || !fim.C.campeao) falha(`temporada: C sobem ${fim.C.sobem} caem ${fim.C.caem} campeão ${fim.C.campeao}`)
   if (fim.D.sobem?.length !== 6 || new Set(fim.D.sobem).size !== 6 || !fim.D.campeao) falha(`temporada: D sobem ${fim.D.sobem}`)
   const meio = simulaTemporadaOficial(mundo, s.seed, 20, 2026)
   if (meio.oficial.C.campeao || meio.oficial.D.campeao || meio.oficial.B.playoff) falha('temporada: campeão/playoff aparecendo no meio da temporada (spoiler)')
   if (JSON.stringify(simulaTemporadaOficial(mundo, s.seed, 38, 2026).oficial) !== JSON.stringify(fim)) falha('temporada: mesma semente deu temporada diferente')
+  // 🇧🇷 playoff da B NA TELA (`computePlayoffB`): 3º×6º e 4º×5º, ida na casa do pior, empate no agregado = melhor campanha, sem
+  // pênalti; mesma semente = mesmo playoff; e o 1º e o 2º nunca jogam
+  {
+    const { computePlayoffB, PLAYOFF_B } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+    const tb = fimTudo.tables.B
+    for (let k = 0; k < 40; k++) {
+      const po = computePlayoffB(tb, s.seed + k, 1)
+      if (!po || po.name !== PLAYOFF_B || po.ties.length !== 2) { falha('playoff B: não montou os 2 confrontos'); break }
+      const [x, y] = po.ties
+      if (x.a.name !== tb[5].name || x.b.name !== tb[2].name || y.a.name !== tb[4].name || y.b.name !== tb[3].name) falha('playoff B: confrontos fora de 3º×6º e 4º×5º')
+      for (const t of po.ties) {
+        if (t.pens) falha('playoff B: teve pênalti (o regulamento não tem)')
+        if (t.legs.length !== 2) falha('playoff B: não é ida e volta')
+        if (t.aggA !== t.legs[0][0] + t.legs[1][0] || t.aggB !== t.legs[0][1] + t.legs[1][1]) falha('playoff B: agregado não bate com os jogos')
+        const esperado = t.aggA > t.aggB ? 'a' : 'b'
+        if (t.win !== esperado) falha(`playoff B: vencedor errado (${t.aggA}×${t.aggB} deu ${t.win})`)
+      }
+      if (JSON.stringify(computePlayoffB(tb, s.seed + k, 1)) !== JSON.stringify(po)) falha('playoff B: mesma semente, playoff diferente')
+    }
+  }
   // 🔁 três temporadas seguidas: as séries chegam no TAMANHO REAL de cada ano (2027: C 24 · 2028: C 28 · D sempre 96)
   {
     const { promocoesOficial } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')

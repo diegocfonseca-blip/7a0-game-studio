@@ -1,6 +1,6 @@
 // 📸 FOTO DA SIMULAÇÃO DA PIRÂMIDE (15/11): imprime um hash de tabelas+jogos+artilharia de 2 carreiras fixas. Rodar ANTES e
 // DEPOIS de mexer no motor da pirâmide: o hash tem que ser o MESMO (a carreira de sempre não pode mudar). Hash de 15/11:
-// aeb8ae13379a190f2c5afc1c2f97686a751a3092bb7dd64a3822de75fb60f58e (re-semeado por carreira desde 15/11, noite)
+// 7450e107dec6896e04a220d2c5eb1fd0c494ec933f4c980e9cc7626d370c936c (16/11: o batismo Lavras FC trocou um bot da Várzea; antes aeb8ae13…)
 let x = 123456789; Math.random = () => { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return ((x >>> 0) % 1000000) / 1000000 }
 Date.now = () => 1763251200000
 const { createServer } = await import('/home/user/7a0-game-studio/node_modules/vite/dist/node/index.js')

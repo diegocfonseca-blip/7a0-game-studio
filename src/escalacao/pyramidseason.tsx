@@ -1782,6 +1782,71 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), assistsAll: listA, topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
 }
 
+/** 🇧🇷 nome da fase do playoff da Série B no carrossel pós-temporada (é a MESMA esteira da Supercopa) */
+export const PLAYOFF_B = 'Playoff Série B'
+/** o slot de escalação do playoff (bem acima dos da Copa, pra nunca cruzar com fase nenhuma) */
+export const PLAYOFF_B_SLOT = 38 + 20
+/**
+ * 🇧🇷 BRASIL OFICIAL — o PLAYOFF DA SÉRIE B quando o SEU clube terminou entre o 3º e o 6º.
+ * Regulamento (docs/brasil-oficial/formatos-futuros.md): 3º×6º e 4º×5º, ida e volta, a volta na casa de quem fez a melhor
+ * campanha; empate no agregado = passa a melhor campanha (sem pênalti). Os 2 vencedores sobem junto do 1º e do 2º.
+ * Fica FORA do `simulaTemporadaOficial` de propósito: é jogado na tela depois da 38ª (na mesma esteira de páginas da Supercopa),
+ * com a escalação que a pessoa deixar pro playoff e o motor novo nos jogos dela — e é ESTE resultado que decide o acesso.
+ * `a` = pior campanha (manda a ida), `b` = melhor campanha (manda a volta).
+ */
+export function computePlayoffB(tabelaB: SimTeam[], seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2): CopaRound | null {
+  if (tabelaB.length < 6) return null
+  const rng = mulberry((seed ^ Math.imul(seasonNo, 0x9E3779B1) ^ 0xB1A70FF) >>> 0)
+  const xi = (t: SimTeam): SimTeam => t.human ? { ...t, xi: lineupAt(lineups, t.teamId, PLAYOFF_B_SLOT, t.squad, t.formation) } : t
+  const goalW = (c: PoolCard) => { const n = Math.max(0, (mid(c) - 40) / 42); return 0.12 + n * n * 1.8 }
+  const credit = (eq: PoolCard[], goals: number): { name: string; min: number; id: string }[] => {
+    const evs: { name: string; min: number; id: string }[] = []
+    const day = new Map<string, number>()
+    for (const c of eq) day.set(c.id, 0.4 + rng() * 2.2)
+    for (let g = 0; g < goals; g++) {
+      const pool = eq.filter(c => !ehFake(c)).map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0) * goalW(c) * (day.get(c.id) ?? 1) }))
+      const total = pool.reduce((s, q) => s + q.w, 0); let r = rng() * total, pick = pool[0]?.c
+      for (const q of pool) { r -= q.w; if (r <= 0) { pick = q.c; break } }
+      const min = 1 + Math.floor(rng() * 90)
+      if (pick) evs.push({ name: pick.name, min, id: pick.id })
+    }
+    return evs
+  }
+  let jogoN = 0
+  const leg = (H: SimTeam, A: SimTeam) => {
+    const th = TACS[Math.floor(rng() * 3)] as Tac, ta = TACS[Math.floor(rng() * 3)] as Tac
+    const fh = rollForm(H.xi, th, ta, rng), fa = rollForm(A.xi, ta, th, rng)
+    const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
+    fh.atk *= lkH; fh.def *= lkH; fa.atk *= lkA; fa.def *= lkA
+    const qual = (atk: number) => Math.max(0.5, Math.min(capElite, atk / 66))
+    const G = realGoals ? GOAL_TUNE.v3 : GOAL_TUNE.v2
+    const lh = Math.max(0.08, (G.base + (fh.atk - fa.def) * G.coef + G.home) * qual(fh.atk))
+    const la = Math.max(0.08, (G.base + (fa.atk - fh.def) * G.coef) * qual(fa.atk))
+    let hg = poisson(lh, rng), ag = poisson(la, rng)
+    let hEvs: { name: string; min: number; id: string; assist?: string; assistId?: string }[] = credit(H.xi, hg), aEvs: typeof hEvs = credit(A.xi, ag)
+    const jogo = ++jogoN
+    let m2: EntradaM2 | undefined
+    // ⚽🧠 jogo de gente: o motor novo decide (a conta acima já gastou o dado igual, então o outro confronto não muda)
+    if (m2On && (H.human || A.human)) {
+      const n = jogoCopaM2(seed, seasonNo, 'PB', jogo, H, A, th, ta, versao)
+      m2 = n.e; hg = n.hg; ag = n.ag; hEvs = n.h.map(golCopaSemCarta); aEvs = n.a.map(golCopaSemCarta)
+    }
+    return { hg, ag, hEvs, aEvs, m2 }
+  }
+  const t = tabelaB.map(xi)
+  const ties: CopaTie[] = [[t[5], t[2]], [t[4], t[3]]].map(([a, b]) => {
+    const l1 = leg(a, b) // ida: a (pior campanha) em casa
+    const l2 = leg(b, a) // volta: b (melhor campanha) em casa
+    const g1: Goal[] = [...l1.hEvs.map(e => ({ ...e, home: true })), ...l1.aEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
+    const g2: Goal[] = [...l2.aEvs.map(e => ({ ...e, home: true })), ...l2.hEvs.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
+    const aggA = l1.hg + l2.ag, aggB = l1.ag + l2.hg
+    const legM2 = [l1.m2, l2.m2]
+    return { a, b, aDiv: 'B' as Div, bDiv: 'B' as Div, aggA, aggB, win: aggA > aggB ? 'a' as const : 'b' as const, // empate = melhor campanha (b)
+      goals: [...g1, ...g2], legs: [[l1.hg, l1.ag], [l2.ag, l2.hg]] as [number, number][], legGoals: [g1, g2], legM2: legM2.some(Boolean) ? legM2 : undefined }
+  })
+  return { name: PLAYOFF_B, ties, slot: PLAYOFF_B_SLOT }
+}
+
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
 // time. Mesmo formato do seasonRewards/scorerRewards pra fundir nos args da
 // virada de temporada. 🚫 Sem piso desde 22/09 — ver o comentário em scorerRewards.
@@ -9426,11 +9491,24 @@ export function PyramidSeasonScreen() {
   // temporada cai na COPA LEGENDS de sempre em vez de ficar SEM COPA NENHUMA —
   // que foi o que aconteceu com ele por 106 temporadas, sem nenhum aviso.
   const copaBrOk = !!copaBR?.champion
-  const copa = useMemo(() => {
+  const copaBase = useMemo(() => {
     if (!done && !copaMid) return null
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
     return computeCopa(copaMid ? world : tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa)
   }, [done, copaMid, world, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
+  // 🇧🇷 BRASIL OFICIAL · PLAYOFF DA SÉRIE B NA TELA: terminou a 38ª entre o 3º e o 6º da B, o playoff (3º×6º e 4º×5º, ida e volta)
+  // entra como mais uma página da esteira pós-temporada — a MESMA da Supercopa (placar, Manual, campinho, intervalo). É este
+  // resultado (e não o simulado de fundo) que decide quem sobe; a tabela só mostra o playoff depois de ele ser jogado.
+  const playoffB = useMemo(() => {
+    if (!state.oficial || !done) return null
+    const tb = tables.B ?? []
+    const i = tb.findIndex(t => t.you)
+    if (i < 2 || i > 5) return null
+    return computePlayoffB(tb, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Desde != null && m2Desde < 38, recepcaoCopa)
+  }, [state.oficial, done, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Desde, recepcaoCopa])
+  const copa = useMemo<CopaResult | null>(() => !playoffB ? copaBase
+    : copaBase ? { ...copaBase, rounds: [...copaBase.rounds, playoffB] }
+    : { rounds: [playoffB], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }, [copaBase, playoffB])
   const intlAuthReady = useInternacionalCarreiraAuthResolvida()
   const intlHistory = intlEnabled ? (state.careerInternationalHistory ?? []) : []
   const intlCampaign = intlEnabled && state.careerInternational?.season === state.seasonNo ? state.careerInternational : null
@@ -9567,7 +9645,7 @@ export function PyramidSeasonScreen() {
   // jogada na QUARTA da semana da rodada `copaSemanas[k]` da Liga. `copaMidOn` liga quando a quarta chega (no bloco do
   // calendário) e desliga quando a fase vira (copaRound sobe). A fase de quem já passou da semana dela conta como jogada
   // (abrir a carreira de novo não repete Copa velha).
-  const nCopaBase = copa ? copa.rounds.filter(r => r.name !== 'Supercopa').length : 0
+  const nCopaBase = copa ? copa.rounds.filter(r => r.name !== 'Supercopa' && r.name !== PLAYOFF_B).length : 0
   const copaSemanas = useMemo(() => Array.from({ length: nCopaBase }, (_, k) => Math.round((38 * (k + 1)) / (nCopaBase + 1))), [nCopaBase])
   const copaPassadas = copaMid && !done ? copaSemanas.filter(r => r < round).length : 0
   const copaDevidas = copaMid && !done ? copaSemanas.filter(r => r <= round).length : 0
@@ -9577,6 +9655,15 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (copaRoundMid.current !== copaRound) { copaRoundMid.current = copaRound; setCopaMidOn(false) } }, [copaRound])
   const copaPlaying = done ? !!copa && nCopaRounds > 0 && copaRound < nCopaRounds : copaMid && copaMidOn && !!copa && copaRound < nCopaBase
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // 🇧🇷 as fases oficiais que valem pra tela e pro acesso. Com o SEU playoff da B (jogado na tela), ele substitui o simulado de
+  // fundo: é ele que decide quem sobe, e o quadro só mostra o placar depois de jogado (antes disso o playoff nem aparece).
+  const oficialEfetivo = useMemo<FasesOficiais | undefined>(() => {
+    const o = shown.oficial
+    if (!o || !playoffB) return o
+    const conf: ConfrontoSim[] = playoffB.ties.map(t => ({ a: t.b.name, b: t.a.name, ida: [t.legs[0][0], t.legs[0][1]] as [number, number], volta: [t.legs[1][1], t.legs[1][0]] as [number, number], vencedor: t.win === 'a' ? t.a.name : t.b.name }))
+    const tb = tables.B ?? []
+    return { ...o, B: copaFinished ? { playoff: conf, sobem: [tb[0]?.name, tb[1]?.name, ...conf.map(c => c.vencedor!)].filter(Boolean) as string[] } : { playoff: null, sobem: o.B.sobem } }
+  }, [shown.oficial, playoffB, tables, copaFinished])
   useEffect(()=>{
     if(!m2Ok||!copa)return
     // Pular uma fase também oficializa seus jogos, mas nunca os próximos.
@@ -9646,7 +9733,7 @@ export function PyramidSeasonScreen() {
   // bloco próprio, só se você chegou a jogá-la.
   const copaRun = useMemo<CopaRun | undefined>(() => {
     if (!copa) return undefined
-    const rds = copa.rounds.filter(r => r.name !== 'Supercopa')
+    const rds = copa.rounds.filter(r => r.name !== 'Supercopa' && r.name !== PLAYOFF_B)
     let lastIdx = -1, lastTie: CopaTie | null = null
     rds.forEach((r, i) => { const t = r.ties.find(x => x.a.you || x.b.you); if (t) { lastIdx = i; lastTie = t } })
     if (lastIdx < 0 || !lastTie) return undefined
@@ -9821,7 +9908,7 @@ export function PyramidSeasonScreen() {
   }, [multiPending, multiTravada])
   // fase da Copa tocando agora (pra mostrar DISCRETO no cabeçalho, no lugar da divisão)
   const copaFase = copaPlaying && copa ? copa.rounds[copaRound] : null
-  const copaFaseName = copaFase ? (copaFase.name === 'Final' ? 'Final' : copaFase.name) : ''
+  const copaFaseName = copaFase ? (copaFase.name === 'Final' ? 'Final' : copaFase.name === PLAYOFF_B ? tr('Playoff de acesso', 'Promotion play-off') : copaFase.name) : ''
   // 🐛 (16/08) antes assumia "só a Final é jogo único, resto é ida e volta" —
   // válido pra Copa Legends (4 fases) mas ERRADO pra Copa do Brasil (Peneira,
   // Rodada de 64 e Rodada de 32 também são jogo único) e pra Supercopa (jogo
@@ -10953,14 +11040,15 @@ export function PyramidSeasonScreen() {
   const telaDesfechoOk = useTelaDesfecho()
   const desfecho = useMemo(() => {
     if (!done || !me) return null
+    if (playoffB && !copaFinished) return null // 🇧🇷 no playoff da B: o desfecho (subiu/ficou) só depois de jogá-lo
     const tm = (tables[me.div] ?? []).find(t => t.you)
     if (!tm) return null
-    const nova = ((shown.oficial ? promocoesOficial(tables, shown.oficial, state.seed, clubesSemDivisao()) : computePromotions(tables))[teamKey(tm)] ?? me.div) as Div
+    const nova = ((oficialEfetivo ? promocoesOficial(tables, oficialEfetivo, state.seed, clubesSemDivisao()) : computePromotions(tables))[teamKey(tm)] ?? me.div) as Div
     const subiu = DIV_RANK[nova] > DIV_RANK[me.div]
     const caiu = DIV_RANK[nova] < DIV_RANK[me.div]
     const tipo: DesfechoTipo = me.champ ? 'campeao' : subiu ? 'acesso' : caiu ? 'queda' : 'ficou'
     return { tipo, de: DIV_NAME[me.div], para: DIV_NAME[nova], pos: me.pos, time: tm.name }
-  }, [done, me, tables])
+  }, [done, me, tables, oficialEfetivo, playoffB, copaFinished])
   const desfKey = `esc-desfecho-${state.seed}-${state.seasonNo}`
   const [desfechoOn, setDesfechoOn] = useState(false)
   const podeDesfecho = telaDesfechoOk && !!desfecho && done && copaFinished && !copaPlaying && !festaOnC
@@ -11311,8 +11399,8 @@ export function PyramidSeasonScreen() {
   // nacional (Copa do Brasil/Legends) enquanto ela está no ar. ANTI-SPOILER: placar só de fase JÁ apitada
   // (a de agora só quando acabou de animar); fase que não chegou fica "?" — quem passa ainda não se sabe.
   const copaChaveCentral = useMemo(() => {
-    if (!copaPlaying || !copa || copaFase?.name === 'Supercopa') return null
-    const idx = copa.rounds.map((_, i) => i).filter(i => copa.rounds[i].name !== 'Supercopa' && copa.rounds[i].ties.length <= 4)
+    if (!copaPlaying || !copa || copaFase?.name === 'Supercopa' || copaFase?.name === PLAYOFF_B) return null
+    const idx = copa.rounds.map((_, i) => i).filter(i => copa.rounds[i].name !== 'Supercopa' && copa.rounds[i].name !== PLAYOFF_B && copa.rounds[i].ties.length <= 4)
     if (!idx.length) return null
     const colunas = idx.map(i => {
       const r = copa.rounds[i]
@@ -11441,9 +11529,9 @@ export function PyramidSeasonScreen() {
     // onde você caiu na Copa (a última fase em que apareceu e perdeu)
     const quedaCopa = (ate: number) => { for (let i = Math.min(ate, (copa?.rounds.length ?? 0) - 1); i >= 0; i--) { const t = copa!.rounds[i].ties.find(x => x.a.teamId === youId || x.b.teamId === youId); if (t) { const ganhou = (t.win === 'a') === (t.a.teamId === youId); return ganhou ? null : { fase: copa!.rounds[i].name, por: t.a.teamId === youId ? t.b.name : t.a.name } } } return null }
     if (copaPlaying && copaFase) {
-      const supercopa = copaFase.name === 'Supercopa'
-      const nome: [string, string] = supercopa ? ['Supercopa', 'Super Cup'] : copaNome
-      const arte: CentralArte = supercopa ? 'super' : copaArte
+      const supercopa = copaFase.name === 'Supercopa', playoff = copaFase.name === PLAYOFF_B
+      const nome: [string, string] = supercopa ? ['Supercopa', 'Super Cup'] : playoff ? ['Série B', 'Série B'] : copaNome
+      const arte: CentralArte = supercopa ? 'super' : playoff ? 'estadio' : copaArte
       const jogoUnico = copaNLegs === 1
       if (myCopaTie) {
         compProximo = { rodada: copaRound + 1, casa: myCopaTie.a.name, fora: myCopaTie.b.name, rolando: !copaReady, arte,
@@ -11486,9 +11574,9 @@ export function PyramidSeasonScreen() {
       }
     } else if (mundoPendente) {
       compPalco = { arte: 'mundo', rotulo: tr('🌍 Copa do Mundo', '🌍 World Cup'), frase: tr('É ano de Copa do Mundo — ela abre o fim de temporada, em Jogos.', 'It’s a World Cup year — it opens the season wrap-up, in Matches.') }
-    } else if (done && copa && copaFinished && copa.rounds.length) {
-      // liga e Copa encerradas: o giro mostra a decisão da Copa
-      const final = copa.rounds[copa.rounds.length - 1]
+    } else if (done && copaBase && copaFinished && copaBase.rounds.length) {
+      // liga e Copa encerradas: o giro mostra a decisão da Copa (o playoff da B não é a Copa)
+      const final = copaBase.rounds[copaBase.rounds.length - 1]
       compGiro = giroDaFase(final, `📣 ${final.name === 'Supercopa' ? tr('Supercopa', 'Super Cup') : tr(copaNome[0], copaNome[1])} · ${final.name}`)
     }
     const jornal = redacaoDaCentral({
@@ -11904,10 +11992,11 @@ export function PyramidSeasonScreen() {
             que ela entrou"). */}
         {(() => {
           const supercopaFase = copaFase?.name === 'Supercopa'
-          const bg = !copaPlaying ? INK : supercopaFase ? SUPERCOPA_HOLO : copaBrOk ? COPA_BR_HOLO : `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)`
-          const label = supercopaFase ? '🏆🔵 Supercopa Legends' : copaBrOk ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
-          const sub = supercopaFase ? tr('Campeão da Liga × Campeão da Copa do Brasil', 'League champion × Copa do Brasil champion') : copaBrOk ? tr('100 clubes · mata-mata puro, sem grupos', '100 clubs · pure knockout, no groups') : tr('Os 4 melhores de cada série (A·B·C·D) no mata-mata', 'The top 4 of each division (A·B·C·D) in a knockout')
-          const artClass = !privateCareer ? '' : !copaPlaying ? ' ll25-career-league' : supercopaFase ? ' ll25-career-super' : copaBrOk ? ' ll25-career-copa-br' : ' ll25-career-copa'
+          const playoffFase = copaFase?.name === PLAYOFF_B // 🇧🇷 o playoff da Série B (Brasil Oficial) usa a esteira das copas, mas é a liga
+          const bg = !copaPlaying || playoffFase ? INK : supercopaFase ? SUPERCOPA_HOLO : copaBrOk ? COPA_BR_HOLO : `linear-gradient(100deg,${COPA_LEG_GREEN},#0a1f13)`
+          const label = playoffFase ? '⚽ Brasileirão · Série B' : supercopaFase ? '🏆🔵 Supercopa Legends' : copaBrOk ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
+          const sub = playoffFase ? tr('3º×6º e 4º×5º · empate no agregado: passa a melhor campanha · os 2 vencedores sobem', '3rd×6th and 4th×5th · level on aggregate: better league finish goes through · both winners go up') : supercopaFase ? tr('Campeão da Liga × Campeão da Copa do Brasil', 'League champion × Copa do Brasil champion') : copaBrOk ? tr('100 clubes · mata-mata puro, sem grupos', '100 clubs · pure knockout, no groups') : tr('Os 4 melhores de cada série (A·B·C·D) no mata-mata', 'The top 4 of each division (A·B·C·D) in a knockout')
+          const artClass = !privateCareer ? '' : !copaPlaying || playoffFase ? ' ll25-career-league' : supercopaFase ? ' ll25-career-super' : copaBrOk ? ' ll25-career-copa-br' : ' ll25-career-copa'
           // 🌎 CAMPANHA INTERNACIONAL NA TELA (Diego 02/10: *"nada a ver ficar aparecendo a Série
           // A"*): o cabeçalho fixo vira o da Libertadores/Champions/Mundial, com a fase — igual
           // ao da Copa do Brasil quando ela está rolando.
@@ -11919,13 +12008,13 @@ export function PyramidSeasonScreen() {
           }
           if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage
             varzea={me?.div === 'V'}
-            kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
+            kind={!copaPlaying || playoffFase ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
             title={`${calBarra?.selo && tab === 'jogos' ? `${calBarra.selo.toUpperCase()} · ` : ''}${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : state.oficial ? 'BRASILEIRÃO' : 'LIGA LEGENDS'}`}
             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : faseOficialAgora ? `${faseOficialAgora.fase} · ${tr('jogo', 'match')} ${faseOficialAgora.n}/${faseOficialAgora.total}` : tr('Rodada ', 'Round ')+round+'/38'}`}
             detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : ''}
             status={copaPlaying ? copaPos >= copaFaseTotal ? tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties') : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : tr('Bola rolando', 'Ball rolling')}>
             <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>motivoTorcida(h.motivo)).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
-            {copaPlaying && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}
+            {copaPlaying && !playoffFase && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}
           </CareerCompetitionStage>
           return (
         <div className={privateCareer ? `ll25-career-hero${artClass}` : undefined} style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
@@ -12108,7 +12197,7 @@ export function PyramidSeasonScreen() {
           onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr} />}
         {/* 📰 PASSO 1: a NOTÍCIA. Primeiro o jornal, que é o que a cabeça quer saber. */}
         {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
-          <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
+          <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copaBase} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
             clubInternational={intlEnabled ? intlHistory.find(entry => entry.season === state.seasonNo) : undefined}
             /* 📼 O JORNAL LEMBRA (Diego 24/08): manchetes de HISTÓRIA calculadas
                da crônica da carreira + o resultado desta temporada (que ainda
@@ -12589,7 +12678,7 @@ export function PyramidSeasonScreen() {
           const sb = scorerRewards(divTop)
           const cr = copaBrOk && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-          const newPlacements = shown.oficial ? promocoesOficial(tables, shown.oficial, state.seed, clubesSemDivisao()) : computePromotions(tables)
+          const newPlacements = oficialEfetivo ? promocoesOficial(tables, oficialEfetivo, state.seed, clubesSemDivisao()) : computePromotions(tables)
           const torcDeltas = torcidaDeltas(tables, newPlacements)
           // 🎟️ OCUPAÇÃO por técnico (carreira nova): quão cheio o estádio ficou pela
           // colocação final → vira a renda (piso + construído × ocupação, no reducer).
@@ -13341,7 +13430,7 @@ export function PyramidSeasonScreen() {
               {(tab==='tabelas' || jogoTabela) && <>
                 {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('CONFRONTOS DA FASE', 'TIES OF THE ROUND')}`}/>}
                 {copa.rounds.slice(0,copaFinished ? nCopaRounds : copaRound).map((r,i)=><details className="ll29-history" key={i}><summary>{r.name.toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safTeamName} title={r.name}/></details>)}
-                <details className="ll29-history"><summary>{tr('LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO', 'LEAGUE OVER · STANDINGS AND PRIZES')}</summary><PyramidTables oficial={shown.oficial} tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
+                <details className="ll29-history"><summary>{tr('LIGA ENCERRADA · CLASSIFICAÇÕES E PREMIAÇÃO', 'LEAGUE OVER · STANDINGS AND PRIZES')}</summary><PyramidTables oficial={oficialEfetivo} tables={tables} order={ord} colors={colors} myDiv={myDiv} final safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/><PrizesBox/></details>
               </>}
             </> : (() => {
               const division = divisionView && ord.includes(divisionView) ? divisionView : myDiv ?? ord[0]
@@ -13349,7 +13438,7 @@ export function PyramidSeasonScreen() {
               // 📊 aba única, semana de COPA (quarta): chaveamento no lugar da tabela + os jogos da Copa da noite embaixo.
               // `reveal={copaRound}`: a fase que está rolando ainda não entra no chaveamento (anti-spoiler)
               if (jogoTabela && tab === 'jogos' && copaPlaying && copa && copaFase) return <>
-                <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
+                <CopaBracket copa={copaBase ?? copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('JOGOS DA COPA', 'CUP MATCHES')}`}/>
               </>
               return <>
@@ -13357,7 +13446,7 @@ export function PyramidSeasonScreen() {
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
                 {/* 🖥️ no computador a divisão vira botões (23/10); o select acima some lá e segue no celular */}
                 <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={d===division} onClick={()=>setDivisionView(d)}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}</div>
-                {(tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table">{shown.oficial && division !== 'A' ? <TabelaOficial div={division} tables={tables} fases={shown.oficial} /> : <DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/>}</div>}
+                {(tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table">{oficialEfetivo && division !== 'A' ? <TabelaOficial div={division} tables={tables} fases={oficialEfetivo} /> : <DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/>}</div>}
                 <div id="cv2-other-games">{tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}</div>
               </>
             })()}
@@ -13402,10 +13491,10 @@ export function PyramidSeasonScreen() {
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
-          <CopaBracket copa={copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
+          <CopaBracket copa={copaBase ?? copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} />
         ) : (
           <>
-            <PyramidTables oficial={shown.oficial} tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
+            <PyramidTables oficial={oficialEfetivo} tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />
             <PrizesBox />
           </>
         )}
