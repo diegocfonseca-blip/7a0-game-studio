@@ -6091,7 +6091,7 @@ function enterCerimonia(st: EscState) {
   if (st.leilaoClubes && !st.leilaoClubesConvocado) {
     if (st.managers.some(m => m.isHuman && m.modoClubes)) {
       st.screen = 'convocacao'; st.phaseDeadline = null
-      st.convocacaoDeadline = Date.now() + CONVOCACAO_MS
+      st.convocacaoDeadline = Date.now() + CONVOCACAO_MS + (st.onlineMode === 'online' ? 10_000 : 0) // ⏱️ 16/11 (Diego): +10 s nas salas online
       st.convocacaoFeitos = []; st.convocacaoEscolhas = {}; st.convocacaoDuplaFeitos = []
       return
     }

@@ -41,7 +41,7 @@ import { ChatWidget, GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from '.
 import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
-import { CONVOCACAO_MS } from './store'
+import { RelogioConvocacao, SEG_CONVOCA_SALA } from './relogio-convocacao'
 import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-competicao'
 import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento, quemAgePeloEstado, soQuemEstaNaSala, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, type DuplaDoEstado } from './dupla-copa'
 import {
@@ -66,7 +66,7 @@ const nomeLado = (id: CopaRegionalId, l: 0 | 1) => { const s = COPAS_REGIONAIS[i
 export const SEG_ESCOLHA = 40
 const SEG_AVISO = 15
 const SEG_BANNER = 15
-export const SEG_CONVOCA = Math.round(CONVOCACAO_MS / 1000)
+export const SEG_CONVOCA = SEG_CONVOCA_SALA // ⏱️ 16/11: 90 → 100 (Diego)
 
 // a escolha de UMA pessoa (mesma forma da Copa do Mundo: `pais` aqui é o CLUBE)
 interface Pick { pais: string; xiKeys: string[]; form: Formation }
@@ -492,7 +492,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
           {fase?.fase === 'convocacao' && (
             <div className="ll27-convoca">
               <h3>{temTime(minha) ? tr('✅ TIME CONVOCADO', '✅ TEAM CALLED UP') : soAssisto ? (en ? `⏳ ${dupla!.nomeAge.toUpperCase()} IS CALLING UP THE 11` : `⏳ ${dupla!.nomeAge.toUpperCase()} ESTÁ CONVOCANDO OS 11`) : tr('⚽ CONVOQUE OS 11', '⚽ CALL UP THE 11')}</h3>
-              <Barra seg={seg} total={SEG_CONVOCA} />
+              <RelogioConvocacao seg={seg} total={SEG_CONVOCA} />
               {minha && !temTime(minha) && !soAssisto && <div style={{ marginTop: 10 }}><button className="ll27-portao-botao verde" onClick={() => setConvocaAberta(true)}>{tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP')}</button></div>}
               {temTime(minha) && <p className="ll27-portao-aviso" style={{ marginTop: 8 }}><SeloClube clube={minha!.pais} size={22} /> <b>{minha!.pais}</b> {tr('com 11 no papel. A copa começa quando o tempo acabar (ou quando todo mundo terminar).', 'with 11 on paper. The cup starts when time runs out (or when everyone finishes).')}</p>}
             </div>
