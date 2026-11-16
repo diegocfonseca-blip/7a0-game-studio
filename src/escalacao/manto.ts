@@ -157,6 +157,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🎮👑 Reffatti FC — BRANCO e VERDE-NEON, MEDIDOS na camisa que o dono mandou (15/11): branco do corpo (#F9F4FB) e o verde
   // das faixas (#2AF604). O PRETO das faixas é a 3ª cor (MANTO_TRI).
   'leoreffattig@gmail.com': ['#F9F4FB', '#2AF604'],
+  // 🐆👑 Lavras FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (16/11): preto do corpo (#0A0806) e o dourado das
+  // faixas/gola (#F3AD03).
+  'hugopereirabrito@gmail.com': ['#0A0806', '#F3AD03'],
   // ⭐🦁 Vila Esporte Clube — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (27/10): preto das listras/mangas (58%, #0C0C0C)
   // e o branco das listras (32%, #DADADA).
   'oluisantonio.contato@gmail.com': ['#0C0C0C', '#DADADA'],

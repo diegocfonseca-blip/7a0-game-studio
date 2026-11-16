@@ -85,6 +85,7 @@ import lulubabaMascoteImg from './img/lulubaba-mascote.webp' // 🧤 Lulubaba FC
 import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import leoestufMascoteImg from './img/leoestuf-mascote.webp' // 🦁 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
 import reffattiMascoteImg from './img/reffatti-mascote.webp' // 🎮 Reffatti FC (leoreffattig): arte própria do dono, 15/11
+import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcMascoteImg from './img/neymarfc-mascote.webp' // 🐐 Neymar FC (sheeryarie772): arte própria do dono, 21/10
@@ -469,6 +470,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // controle na mão e tênis de coroa. Arte do próprio dono. 📏 291×440, 36 KB — altura 176. mascote_key = "reffatti_gamer".
   reffatti_gamer: (
     <img src={reffattiMascoteImg} height={176} width={Math.round(176 * 291 / 440)} alt="O Reffatti — Reffatti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐆👑 A PANTERA (mascote do Lavras FC — hugopereirabrito, 16/11): pantera negra de braços cruzados, uniforme preto e dourado
+  // com coroa. Arte do próprio dono. 📏 219×440, 27 KB — altura 176 (sombra do chão tirada). mascote_key = "lavras_pantera".
+  lavras_pantera: (
+    <img src={lavrasMascoteImg} height={176} width={Math.round(176 * 219 / 440)} alt="A Pantera — Lavras FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦁🇧🇷 O LEÃO DA TUF (mascote do Leões da Tuf EC — sergioricardocf16, 14/11): o leão de boné virado e moletom do clube, fazendo
   // o L, encostado no caixão. Arte do próprio dono. 📏 337×440, 43 KB — altura 176. mascote_key = "leoestuf_leao".
@@ -1396,6 +1402,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Reffattifc': 'reffatti_gamer',
   'Reffatti EC': 'reffatti_gamer',
   'Reffatti SC': 'reffatti_gamer',
+  // 🐆 a Pantera carimba o gol do Lavras FC (hugopereirabrito, 16/11).
+  'Lavras FC': 'lavras_pantera',
+  'Lavras': 'lavras_pantera',
+  'Lavrasfc': 'lavras_pantera',
+  'Lavras EC': 'lavras_pantera',
+  'Lavras SC': 'lavras_pantera',
   // 🦁 o Leão da Tuf carimba o gol do Leões da Tuf EC (sergioricardocf16, 14/11).
   'Leões da Tuf EC': 'leoestuf_leao',
   'Leões da Tuf': 'leoestuf_leao',
@@ -1569,6 +1581,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   lulubaba_goleiro: 'O Goleiro', // 🧤 Lulubaba FC (lucasfonseca363, 29/10)
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
   reffatti_gamer: 'O Reffatti', // 🎮 Reffatti FC (leoreffattig, 15/11)
+  lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)
   leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
   cabritiiin_bode: 'O Cabritiiin', // 🐐 Cabritiiin F.C (lucassaboia14, 13/11)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)
