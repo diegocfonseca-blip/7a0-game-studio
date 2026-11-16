@@ -41,3 +41,13 @@ Isso explica a sequência relatada: menu inesperado, dono sem coroa, “você”
 - `npm run sala` tem duas verificações textuais que já falham **também na base sem esta correção**: fiação de duas saídas para a espera e seletor da barra inferior. Não foram alteradas neste trabalho.
 
 Evidências locais: `/workspace/shared/lavras-reentrada-20261116/`. Nenhuma mudança publicada.
+
+## Complemento: participantes saindo antes da Copa
+
+Diego autorizou testar e alterar a GGWNX6 após o encerramento da noite. Foi preservada uma cópia completa da sala, participantes e fase da Copa em `/workspace/shared/lavras-reentrada-20261116/sala-antes.json`; não foi necessário alterar a sala real para confirmar o mecanismo.
+
+Nos logs entre 23:10 e 00:05 de Brasília, apareceram quatro requisições DELETE de vagas nesta sala: Cabulosojp às 23:55:36, Vascodadepressao às 23:55:41, Fiel Torcedor FC às 23:56:01 e Gui às 23:57:31. Cada requisição foi autenticada como o próprio participante removido. Vascodadepressao voltou às 23:56:01, com o assento 16 correto.
+
+Essas remoções ocorreram depois de a Copa abrir (23:55:13) e de o dono perder a identidade local (23:55:30). O log não registra o gesto de interface que originou a exclusão: não é suficiente para chamar todas de saídas voluntárias, nem para atribuí-las a uma expulsão automática. As rotas de saída/retomada da aplicação podem apagar a própria vaga.
+
+A ida involuntária ao menu tem um mecanismo confirmado: a navegação do convidado chegava ao dono; o estado da tela do dono era reenviado à sala. Esse caminho é comum aos modos online, não específico do Lavras ou da Copa. A correção preparada impede essa navegação remota e a posterior adoção da identidade de outro participante. Os logs históricos não permitem provar que todas as queixas anteriores tiveram exatamente a mesma causa.
