@@ -108,8 +108,11 @@ export function brasilOficialLiberado(): boolean { return unlocked || oficialTes
 export function useBrasilOficial(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
-  return unlocked
+  return unlocked || oficialTeste
 }
+// 🧪 só no modo de desenvolvimento (o build de produção apaga este bloco): liga o Brasil Oficial no navegador de teste, pra
+// conferir as telas sem a conta do Diego. `window.__brasilOficialDev()` no console.
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__brasilOficialDev = () => { oficialTeste = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 // 🌙 TEMA NOTURNO — decisão do Diego (03/08): por enquanto SÓ a conta dele vê o
 // botão e consegue ligar (vai virar REGALIA DE PLANO PAGO depois — aí a trava
 // troca de "lista de e-mails" pra "tier de apoio" num lugar só). Conta sem
