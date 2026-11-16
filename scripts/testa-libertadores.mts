@@ -36,5 +36,26 @@ for (const v of [v1, v2, v3]) for (let k = 0; k < 15; k++) {
   if (r.sulaGrupos.length !== 4 - (47 - N) || r.sulaPlayoff.length !== 8) falha('Sula com tamanho errado')
   if (k === 0 && JSON.stringify(simulaLibertadores(v, 500, jogaDe(9), pen, forca)) !== JSON.stringify(r)) falha('mesma semente, Libertadores diferente')
 }
+// 🌎 Sul-Americana: 56 clubes (32 na 1ª fase por país, 12 diretos, 4 da 3ª fase da Liberta, 8 terceiros no playoff)
+{
+  const { vagasSula, simulaSulAmericana } = await import('../src/escalacao/sul-americana-oficial.ts')
+  const vl = vagasLiberta(null)
+  const vs = vagasSula(null, [...vl.grupos, ...vl.fase2, ...vl.fase1])
+  if (vs.grupos.length !== 12 || vs.fase1.length !== 32) falha(`Sula 2026: ${vs.grupos.length} diretos / ${vs.fase1.length} na 1ª fase`)
+  for (let k = 0; k < 15; k++) {
+    const lib = simulaLibertadores(vl, 900 + k, jogaDe(30 + k), pen, () => 1)
+    const r = simulaSulAmericana(vs, { grupos: lib.sulaGrupos, playoff: lib.sulaPlayoff }, 700 + k, jogaDe(50 + k), pen, t => t.length)
+    const tam = r.fases.map(f => f.tabelas.length ? f.tabelas.reduce((x, t) => x + t.tabela.length, 0) : f.confrontos.length)
+    if (JSON.stringify(tam) !== JSON.stringify([16, 32, 8, 8, 4, 2, 1])) { falha(`Sula: tamanhos ${tam}`); break }
+    if (r.classificacao.length !== 56 || new Set(r.classificacao).size !== 56) falha(`Sula: classificação com ${r.classificacao.length}`)
+    for (const c of r.fases[0].confrontos) if (vs.pais[c.a] !== vs.pais[c.b]) falha(`Sula 1ª fase com países diferentes: ${c.a} × ${c.b}`)
+    if (r.classificacao[0] !== r.campeao) falha('Sula: campeão fora do topo')
+  }
+  // a vaga do campeão da Sula: brasileiro entra nos grupos (8 brasileiros com campeão da Liberta brasileiro) e o Lanús sai
+  const v4 = vagasLiberta({ serieA: A, copa: 'Vasco', copaVice: 'Grêmio', liberta: 'Palmeiras', sula: 'São Paulo' })
+  if (!v4.grupos.includes('São Paulo') || v4.grupos.includes('Lanús') || v4.grupos.length !== 28) falha(`Sula campeão brasileiro: ${v4.grupos.length} nos grupos`)
+  const v5 = vagasLiberta({ serieA: A, copa: 'Vasco', copaVice: 'Grêmio', liberta: 'Palmeiras', sula: 'Racing' }, { Racing: 'ARG' })
+  if (!v5.grupos.includes('Racing') || v5.grupos.includes('Lanús') || v5.grupos.length !== 28 || v5.pais.Racing !== 'ARG') falha('Sula campeão estrangeiro de fora da Liberta não herdou a vaga do Lanús')
+}
 if (erros) { console.log(`❌ libertadores: ${erros} erro(s)`); process.exit(1) }
-console.log('✅ libertadores: 47 clubes no formato real (1ª 6 · 2ª 16 · 3ª 8 · grupos 8×4 · oitavas a semis ida e volta · final única), vagas brasileiras descem certo, país não repete no grupo')
+console.log('✅ libertadores + sul-americana: 47 clubes no formato real (1ª 6 · 2ª 16 · 3ª 8 · grupos 8×4 · oitavas a semis ida e volta · final única), vagas brasileiras descem certo, país não repete no grupo')

@@ -224,6 +224,20 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
         const fin = lib.rounds[lib.rounds.length - 1].ties[0]
         if ((fin.win === 'a' ? fin.a.name : fin.b.name) !== lib.resultado.campeao) falha('Libertadores: o vencedor da final não é o campeão')
         if (JSON.stringify(computeLibertadoresCarreira(v, mundo, s.seed, 1)?.resultado) !== JSON.stringify(lib.resultado)) falha('Libertadores: mesma semente, torneio diferente')
+        const { computeSulaCarreira } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+        const { vagasSula } = await vite.ssrLoadModule('/src/escalacao/sul-americana-oficial.ts')
+        const vs = vagasSula(null, [...v.grupos, ...v.fase2, ...v.fase1])
+        const semS = [...vs.grupos, ...vs.fase1].filter((n: string) => !fab(n))
+        if (semS.length) falha(`Sul-Americana: ${semS.length} clube(s) sem time no baralho do modo: ${semS.join(', ')}`)
+        else {
+          const sula = computeSulaCarreira(vs, { grupos: lib.resultado.sulaGrupos, playoff: lib.resultado.sulaPlayoff }, mundo, s.seed, 1)
+          if (!sula) falha('Sul-Americana: não montou')
+          else {
+            const pernasS = sula.rounds.map((r: { ties: { legs: unknown[] }[] }) => r.ties[0].legs.length).join('')
+            if (pernasS !== '111111122221') falha(`Sul-Americana: jogos por página ${pernasS}`)
+            for (const r of sula.rounds) for (const t of r.ties) if (t.a.xi.length !== 11 || t.b.xi.length !== 11) { falha(`Sul-Americana: ${t.a.name} × ${t.b.name} sem 11 em campo`); break }
+          }
+        }
         const { premioLibertadores } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
         const r = lib.resultado
         if (premioLibertadores(r, r.campeao) !== 60 || premioLibertadores(r, r.vice) !== 30 || premioLibertadores(r, r.classificacao[r.classificacao.length - 1]) !== 6 || premioLibertadores(r, 'Clube Que Não Existe') !== 0) falha('Libertadores: prêmio por etapa fora da régua (60/30/…/6/0)')

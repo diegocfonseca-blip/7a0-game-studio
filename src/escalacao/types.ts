@@ -1236,7 +1236,7 @@ export interface EscState {
    *  é dela que saem as vagas da Copa do Brasil do ano seguinte). Gravado no fim (`ESTADUAL_FEITO`): o resultado mostrado nunca
    *  muda depois, mesmo que a escalação mude. */
   /** 🏆 Brasil Oficial: os campeões de cada temporada (Série A e Copa do Brasil) — é deles a Supercopa Rei da temporada seguinte */
-  oficialCampeoes?: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string }[]
+  oficialCampeoes?: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string; sula?: string }[]
   oficialEstaduais?: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] }[]
   // 🎭 Identidade visual do presidente. Campo opcional para saves antigos e
   // puramente cosmético: não interfere em leilão, nível, dinheiro ou partidas.

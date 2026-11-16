@@ -5892,7 +5892,7 @@ type Action =
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
   | { type: 'OFICIAL_PRONTO' } // 🇧🇷 as cartas do Brasil Oficial baixaram (baralho-oficial-carga.ts)
-  | { type: 'CAMPEOES_OFICIAIS'; campeoes: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string } } // 🏆 Brasil Oficial: campeões da temporada (pra Supercopa Rei)
+  | { type: 'CAMPEOES_OFICIAIS'; campeoes: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string; sula?: string } } // 🏆 Brasil Oficial: campeões da temporada (pra Supercopa Rei)
   | { type: 'ESTADUAL_FEITO'; estadual: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] } } // 🏟️ Brasil Oficial: o estadual da temporada terminou na tela
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'LIGA_RECEPCAO_M2' } // somente a conta autorizada, a partir do próximo jogo de liga

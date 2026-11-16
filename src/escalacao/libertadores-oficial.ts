@@ -66,13 +66,25 @@ export type VagasLiberta = { grupos: string[]; fase2: string[]; fase1: string[];
  * O lugar que sobra nos grupos fica com o MELHOR ELIMINADO da 3ª fase (ver `simulaLibertadores`; ⚠️ INCERTO, escolha minha
  * pra fechar os 32 sem inventar clube).
  */
-export function vagasLiberta(anterior: { serieA: string[]; copa: string; copaVice: string; liberta?: string } | null): VagasLiberta {
+/** 🌎 `sula` = o campeão da Sul-Americana do ano anterior do modo: ele herda a vaga que em 2026 era do Lanús (campeão da Sula 2025),
+ *  direto nos grupos. Já classificado: se é brasileiro, a vaga desce na Série A; se é de fora, ela não abre (o 32º lugar fica com o
+ *  melhor eliminado da 3ª fase, igual ao caso do campeão da Libertadores). */
+export function vagasLiberta(anterior: { serieA: string[]; copa: string; copaVice: string; liberta?: string; sula?: string } | null, paisDe: Record<string, string> = {}): VagasLiberta {
   const pais: Record<string, string> = {}
   for (const e of ESTRANGEIROS_LIBERTA_2026) pais[e.nome] = e.pais
   const estr = ESTRANGEIROS_LIBERTA_2026.map(e => ({ ...e }))
   if (!anterior) {
     for (const n of [...BRASILEIROS_LIBERTA_2026.grupos, ...BRASILEIROS_LIBERTA_2026.fase2]) pais[n] = 'BRA'
     return { grupos: [...BRASILEIROS_LIBERTA_2026.grupos, ...estr.filter(e => e.fase === 'grupos').map(e => e.nome)], fase2: [...BRASILEIROS_LIBERTA_2026.fase2, ...estr.filter(e => e.fase === 'fase2').map(e => e.nome)], fase1: estr.filter(e => e.fase === 'fase1').map(e => e.nome), pais }
+  }
+  // a vaga do campeão da Sul-Americana (a do Lanús em 2026)
+  let sulaBR: string | null = null
+  if (anterior.sula && anterior.sula !== 'Lanús') {
+    const iL = estr.findIndex(e => e.nome === 'Lanús')
+    if (iL >= 0) estr.splice(iL, 1)
+    const ja = estr.some(e => e.nome === anterior.sula)
+    if (!ja && paisDe[anterior.sula]) { estr.push({ nome: anterior.sula, pais: paisDe[anterior.sula], fase: 'grupos' }); pais[anterior.sula] = paisDe[anterior.sula] }
+    else if (!ja) sulaBR = anterior.sula
   }
   const campEstr = anterior.liberta ? estr.find(e => e.nome === anterior.liberta) : undefined
   const campBR = anterior.liberta && !campEstr ? anterior.liberta : null
@@ -82,8 +94,8 @@ export function vagasLiberta(anterior: { serieA: string[]; copa: string; copaVic
     if (troca) troca.fase = campEstr.fase
     campEstr.fase = 'grupos'
   }
-  const nGrupos = 5 + (campBR ? 1 : 0), nFase2 = 2 // campeão da Copa + G4 (+ a extra do campeão brasileiro) · 5º e vice da Copa
-  const ordem = [...(campBR ? [campBR] : []), anterior.copa, ...anterior.serieA]
+  const nGrupos = 5 + (campBR ? 1 : 0) + (sulaBR ? 1 : 0), nFase2 = 2 // campeão da Copa + G4 (+ a extra do campeão brasileiro) · 5º e vice da Copa
+  const ordem = [...(campBR ? [campBR] : []), ...(sulaBR ? [sulaBR] : []), anterior.copa, ...anterior.serieA]
   const G: string[] = []
   for (const n of ordem) { if (G.length >= nGrupos) break; if (n && !G.includes(n)) G.push(n) }
   const F2: string[] = []
