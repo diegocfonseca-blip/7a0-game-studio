@@ -10287,6 +10287,24 @@ export function PyramidSeasonScreen() {
     }
     return [...m.values()].sort((a, b) => b.goals - a.goals).slice(0, 20)
   }, [copa, copaRound, copaFinished])
+  // 🇧🇷🏆 BRASIL OFICIAL: artilharia PRÓPRIA da Libertadores e da Sul-Americana (16/11). As páginas delas moram na mesma esteira da
+  // Copa (prefixo 🏆/🌎), então a conta é a mesma da Copa: só o que JÁ foi apitado entra — ninguém lê o artilheiro antes do jogo.
+  const conmebolScorers = useMemo(() => {
+    const out = { liberta: [] as SeasonScorer[], sula: [] as SeasonScorer[] }
+    if (!state.oficial || !copa) return out
+    const upto = copaFinished ? copa.rounds.length : copaRound
+    for (const [k, eh] of [['liberta', ehPaginaLiberta], ['sula', ehPaginaSula]] as const) {
+      const m = new Map<string, SeasonScorer>()
+      for (let r = 0; r < upto; r++) if (eh(copa.rounds[r].name)) for (const tie of copa.rounds[r].ties) for (const g of tie.goals) {
+        const t = g.home ? tie.a : tie.b, div = g.home ? tie.aDiv : tie.bDiv
+        const key = t.name + '|' + g.name, row = m.get(key)
+        if (row) row.goals++
+        else m.set(key, { name: g.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm })
+      }
+      out[k] = [...m.values()].sort((a, b) => b.goals - a.goals).slice(0, 20)
+    }
+    return out
+  }, [state.oficial, copa, copaRound, copaFinished])
   const copaAssistsShown = useMemo(() => careerCupAssists((copa?.rounds ?? []).map(r => foraDaCopa(r.name) && r.name !== 'Supercopa' ? { ...r, ties: [] } : r), copaFinished ? (copa?.rounds.length ?? 0) : copaRound), [copa, copaRound, copaFinished])
   // ao TERMINAR de animar a Copa, marca no save (pra não re-animar ao retomar)
   useEffect(() => {
@@ -13755,6 +13773,8 @@ export function PyramidSeasonScreen() {
                 {done && copa && copaScorersShown.length > 0
                   ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16}.`)} />
                   : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
+                {conmebolScorers.liberta.length > 0 && <ArtilhariaBox scorers={conmebolScorers.liberta} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · LIBERTADORES`} sub={tr('Gols da Libertadores até o último jogo apitado — top 20.', 'Libertadores goals up to the last match played — top 20.')} />}
+                {conmebolScorers.sula.length > 0 && <ArtilhariaBox scorers={conmebolScorers.sula} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🌎 ARTILHARIA', '🌎 TOP SCORERS')} · ${tr('SUL-AMERICANA', 'SUDAMERICANA')}`} sub={tr('Gols da Sul-Americana até o último jogo apitado — top 20.', 'Sudamericana goals up to the last match played — top 20.')} />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols de liga e de copa somados de todas as temporadas — top 20. Cada CARTA conta a sua (o clube vai embaixo do nome).', 'League and cup goals added up across every season — top 20. Each CARD keeps its own tally (the club shows under the name).')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
               </>
             )}
