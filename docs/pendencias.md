@@ -15,6 +15,13 @@
   ex.: versão velha aberta cruzando com o 3-4-3 novo). Agora formação desconhecida desenha como 4-3-3 (screens.tsx + baseSlots).
 - Pendente: reproduzir a virada liga → mata-mata da Kings com o dono em 1º (direto na semi) em sala manual/stream.
 
+## 🐆 16/11 — Batismo Lavras FC (hugopereirabrito) — PUBLICADO
+- Plano 🖋 Batismo (79,90): tier ouro, **sem número de fundador** (está em `SEM_FUNDADOR`). Sócio nº92.
+- Várzea, no lugar do bot Galáticos do Bairro (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 258×360 24 KB · mascote "A Pantera" 219×440 27 KB · manto `#0A0806`/`#F3AD03` · camisa na Loja (`lavras-camisa-v1.webp`).
+- Banco: `esc_socios` (92) · `esc_nomes_batismo` (Lavras + Lavrasfc, o gatilho fez FC/EC) · `user_colors` ouro manual. A conta já existia (criada 16/11 01:12 UTC) antes das linhas.
+- Post: `scripts/posts/batismo-lavras.png`.
+
 ## 🎮👑 15/11 — Batismo Reffatti FC (leoreffattig) — PUBLICADO
 - Várzea, no assento do bot Atlético Pelada (o Diego: "qualquer um que tenha bot"). Plano Batismo (sem nº de fundador) · sócio nº91 · coração: não sabemos.
 - Arte da prancha verde recortada À MÃO: o verde do desenho é idêntico ao do fundo (chroma 2,250,4), então saíram só o fundo de fora e os 3 vãos
