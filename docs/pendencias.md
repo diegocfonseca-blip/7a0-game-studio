@@ -6,8 +6,8 @@
 - Testado no navegador (Flamengo, 1ª fase → final, PC 1280 e celular 390) com o atalho de teste `window.__boLibertaJa` (só no `npm run dev`).
 - ✅ Respostas do Diego (16/11): (1) carta do Juan Izquierdo **sim** (feita, bio só de futebol); (3) **calendário real** — cada página
   da Liberta cai na semana do dia real (`DATAS_LIBERTA`), a final de 28/nov fica pro fim da temporada; (4) estaduais de 2027+ com os
-  clubes de 2026 **sim**. ❓ (2) ele não entendeu — reexpliquei (campeão de fora → a vaga extra do país dele vai pro próximo brasileiro
-  da Série A); esperando sim/não.
+  clubes de 2026 **sim**. (2) campeão de fora: *"Se ganhou o Boca não abre"* — nenhuma vaga a mais; o
+  Brasil manda 7, são 46 clubes, e o 32º lugar dos grupos fica com o melhor eliminado da 3ª fase (escolha minha pra fechar a conta).
 - ⏭️ Falta: prêmio em moedas da Libertadores, troféu/festa de campeão e linha na Sala de Troféus, artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).

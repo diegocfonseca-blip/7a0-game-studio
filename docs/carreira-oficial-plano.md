@@ -252,8 +252,9 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   Libertadores anterior tem vaga extra. Roda no calendário real (fev → nov), na esteira das copas (placar,
   Manual, campinho), com a tabela dos 8 grupos ao vivo. Estrangeiros com cartas reais do próprio clube (lotes
   `cartas-conmebol-1..4.md`). Trava: `npm run libertadores` + `npm run brasil-oficial`.
-  ⚠️ INCERTO: (a) de 2027 em diante os estrangeiros continuam os de 2026 (o modo não joga as ligas deles); (b) campeão anterior
-  ESTRANGEIRO: ele sobe pros grupos e a vaga extra fica com o Brasil (o próximo da Série A) — perguntar ao Diego; (c) potes e
+  ⚠️ INCERTO: (a) de 2027 em diante os estrangeiros continuam os de 2026 (o modo não joga as ligas deles); (b) ✅ campeão anterior
+  ESTRANGEIRO (Diego 16/11, *"Se ganhou o Boca não abre"*): sem vaga extra, Brasil manda 7 (46 clubes) e o 32º lugar dos grupos é do
+  melhor eliminado da 3ª fase; (c) potes e
   sorteio das fases prévias por força, não pelo ranking da Conmebol; (d) ✅ 16/11 Diego: *"calendário real"* — cada página cai na semana do dia real (grupos: dia exato
   de cada rodada INCERTO, uma quarta a cada ~10 dias entre 7/abr e 28/mai); a final (28/nov) passa da 38ª e fica pro fim.
   ⏭️ Falta: Sul-Americana (6º–12º + os eliminados da Liberta), Intercontinental real (Dérbi das Américas → Challenger → final

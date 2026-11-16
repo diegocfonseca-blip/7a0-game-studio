@@ -61,9 +61,10 @@ export type VagasLiberta = { grupos: string[]; fase2: string[]; fase1: string[];
  * modo (regra de 2027, competicoes-reais.md): campeão da Copa do Brasil e 1º–4º da Série A nos grupos; 5º e vice da Copa na
  * 2ª fase; vaga repetida desce pra o próximo da Série A ainda sem vaga. O campeão da Libertadores anterior tem vaga extra nos
  * grupos (se já tinha vaga, a dele desce na Série A — foi o caso real do Flamengo em 2026).
- * ⚠️ INCERTO: se o campeão anterior é ESTRANGEIRO, a vaga extra dele seria do país dele (clube que o modo não tem). Escolha
- * provisória: ele sobe pros grupos no lugar do último do país dele, que desce uma fase, e a vaga extra fica com o Brasil
- * (o próximo da Série A, nos grupos) — o Brasil manda sempre 8, como em 2026, e o formato de 47 não quebra. Perguntar ao Diego.
+ * 🛑 Campeão anterior ESTRANGEIRO (Diego, 16/11: *"Se ganhou o Boca não abre"*): não abre vaga a mais pra ninguém. Ele vai pros
+ * grupos (se tinha vaga de fase prévia, troca com o último do país dele nos grupos) e o Brasil manda as 7 de sempre — são 46.
+ * O lugar que sobra nos grupos fica com o MELHOR ELIMINADO da 3ª fase (ver `simulaLibertadores`; ⚠️ INCERTO, escolha minha
+ * pra fechar os 32 sem inventar clube).
  */
 export function vagasLiberta(anterior: { serieA: string[]; copa: string; copaVice: string; liberta?: string } | null): VagasLiberta {
   const pais: Record<string, string> = {}
@@ -81,7 +82,7 @@ export function vagasLiberta(anterior: { serieA: string[]; copa: string; copaVic
     if (troca) troca.fase = campEstr.fase
     campEstr.fase = 'grupos'
   }
-  const nGrupos = 6, nFase2 = 2 // 5 vagas de grupo + a extra do campeão (ver o ⚠️ INCERTO acima) · 5º e vice da Copa
+  const nGrupos = 5 + (campBR ? 1 : 0), nFase2 = 2 // campeão da Copa + G4 (+ a extra do campeão brasileiro) · 5º e vice da Copa
   const ordem = [...(campBR ? [campBR] : []), anterior.copa, ...anterior.serieA]
   const G: string[] = []
   for (const n of ordem) { if (G.length >= nGrupos) break; if (n && !G.includes(n)) G.push(n) }
@@ -145,7 +146,13 @@ export function simulaLibertadores(v: VagasLiberta, seed: number, joga: Joga, pe
   const f3 = fasePreliminar('3ª fase', f2.venc, r, joga, pen)
   for (const f of [f1, f2, f3]) { fases.push(f.fase); jogos.push(...f.jogos) }
   // grupos: turno e returno, 6 rodadas, todos os grupos na mesma rodada
-  const grupos = sorteiaGrupos([...v.grupos, ...f3.venc], forca, v.pais, r, cabeca)
+  // 46 clubes (campeão anterior estrangeiro, sem vaga extra): o 32º lugar dos grupos é do melhor eliminado da 3ª fase (saldo nos
+  // dois jogos, depois gols marcados, depois a ordem do sorteio)
+  const sobra = Math.max(0, 32 - v.grupos.length - f3.venc.length)
+  const saldo = (t: string) => { let s2 = 0, g = 0; for (const c of f3.fase.confrontos) for (const j of c.jogos) { if (j.casa === t) { s2 += j.gc - j.gf; g += j.gc } else if (j.fora === t) { s2 += j.gf - j.gc; g += j.gf } } return [s2, g] }
+  const sortudos = [...f3.perd].sort((a, b) => saldo(b)[0] - saldo(a)[0] || saldo(b)[1] - saldo(a)[1]).slice(0, sobra)
+  f3.perd = f3.perd.filter(t => !sortudos.includes(t))
+  const grupos = sorteiaGrupos([...v.grupos, ...f3.venc, ...sortudos], forca, v.pais, r, cabeca)
   const L = new Map<string, Linha>()
   for (const g of grupos) for (const t of g) L.set(t, { time: t, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, pts: 0 })
   const rods = turnoEReturno(4)
