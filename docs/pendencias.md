@@ -30,6 +30,13 @@
 - Banco: esc_socios (91), esc_nomes_batismo (reffatti / FC / EC + reffattifc, o nome dele no jogo); user_colors ouro já estava.
 - Post: scripts/posts/batismo-reffatti.png ("Leo" tirado do e-mail — confirmar com o Diego o nome).
 
+## 🪑 16/11 — Lavras FC / GGWNX6: menu e retorno trocavam a identidade do dono — CORREÇÃO PREPARADA, não publicada
+
+- Leituras da produção confirmaram a Copa aberta às 23:55, perda local da coroa sem troca do host no banco e requisição autenticada como Lavras gravando a escolha na linha do Mano 3 Meses.
+- Dois EscProvider locais reproduziram a causa: GO_LOBBY_ONLINE e RESTORE_ONLINE de um convidado eram enviados ao dono, cujos receptores aplicavam o pacote de identidade dele.
+- Menu e retomada passam a ser locais; as duas entradas do dono rejeitam navegação/identidade vindas de outros aparelhos, inclusive abas antigas. Ações de jogo preservadas; nenhuma alteração na sala real ou no banco.
+- Reprodução antes/depois, build, 16 cenários do simulador e teste da Copa passaram. Duas falhas textuais antigas de `npm run sala` foram confirmadas também na base. Detalhes em `docs/lavras-reentrada-20261116.md`.
+
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 
 - Diego autorizou publicar o mapa, a reorganização e o passeio para todos na carreira compatível. Preserva o clube no comando, permissões de plano e autoridade das salas; identidade da prévia privada continua separada.
