@@ -7835,7 +7835,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
 // ⚠️ Séries A, B e C são reais; a D ainda é a de sempre até a D real (96 em grupos) entrar (pendência no plano).
 function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const meu = clubeOficial(nome)
-  if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C')) return false // D e só-estadual ainda não dá pra escolher
+  if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C' && meu.div !== 'D')) return false // só-estadual não dá pra escolher (regra do Diego, 15/11)
   s.oficial = { clube: meu.nome, desde: 1 }
   s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
   s.deckLeague = 'todos'; setActiveCatalog('todos', false, undefined, true)
@@ -7849,8 +7849,12 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   }
   const elencoDe = (clube: typeof meu) => sorteiaElenco(cartasDoClube(clube, cat as unknown as Record<Sector, Card[]>), semente(clube.nome)).elenco.map((x, i) => paraWon(clube.nome, x, i))
   const formacao = s.managers[0]?.formation ?? '4-3-3'
-  const daDiv = CLUBES_BR.filter(c => c.div === meu.div)
-  const ordem = [meu, ...daDiv.filter(c => c.nome !== meu.nome)]
+  // 🟫 Série D: a "sua" turma de 20 (os do seu grupo primeiro, o resto da D sorteado pela semente) — os outros 76 da D entram
+  // pelo nome, igual às outras séries; a temporada no formato real (16 grupos de 6) não depende de quem é "turma"
+  const daDiv = meu.div === 'D'
+    ? (() => { const r = mulberry((s.seed ^ 0x0D96D) >>> 0); const outros = clubesDaDivisao('D').filter(c => c.nome !== meu.nome && c.grupoD !== meu.grupoD); for (let i = outros.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [outros[i], outros[j]] = [outros[j], outros[i]] } return [...clubesDaDivisao('D').filter(c => c.grupoD === meu.grupoD), ...outros].slice(0, 20) })()
+    : CLUBES_BR.filter(c => c.div === meu.div)
+  const ordem = [meu, ...daDiv.filter(c => c.nome !== meu.nome)].slice(0, 20)
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const elencos = ordem.map(c => elencoDe(c))
   // o rival só joga 4-4-2 se o elenco tiver 4 meias (clube com 11 cartas, tipo o Mirassol, entraria com 10) — senão 4-3-3
@@ -7865,7 +7869,7 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   for (const m of s.managers) pl[`m${m.id}`] = meu.div
   for (const c of CLUBES_BR) if (c.div !== meu.div) pl[c.nome] = c.div
   // 🟫 Série D: os 96 clubes REAIS de 2026, nos 16 grupos (a temporada no formato real mora em `simulaTemporadaOficial`)
-  for (const c of clubesDaDivisao('D')) pl[c.nome] = 'D'
+  for (const c of clubesDaDivisao('D')) if (!ordem.some(o => o.nome === c.nome)) pl[c.nome] = 'D'
   s.careerPlacements = pl
   s.careerDivision = meu.div
   s.clubCash = seedClubCash({}, pl)

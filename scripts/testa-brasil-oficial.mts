@@ -109,6 +109,26 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   const meio = simulaTemporadaOficial(mundo, s.seed, 20, 2026)
   if (meio.oficial.C.campeao || meio.oficial.D.campeao || meio.oficial.B.playoff) falha('temporada: campeão/playoff aparecendo no meio da temporada (spoiler)')
   if (JSON.stringify(simulaTemporadaOficial(mundo, s.seed, 38, 2026).oficial) !== JSON.stringify(fim)) falha('temporada: mesma semente deu temporada diferente')
+  // 🟫 começar na SÉRIE D: carreira oficial (não cai na carreira de sempre), 96 na D, você no seu grupo, o grupo inteiro na sua turma
+  {
+    const d = reducer(INITIAL, { ...base, teamName: 'Galvez', oficial: { clube: 'Galvez' } } as never)
+    if (!d.oficial || d.oficial.clube !== 'Galvez') falha('Série D: começou sem ser Brasil Oficial (caiu na carreira de sempre)')
+    else {
+      if (d.careerDivision !== 'D') falha(`Série D: divisão ${d.careerDivision}`)
+      if (d.managers.length !== 20 || d.managers[0].teamName !== 'Galvez') falha('Série D: turma errada')
+      const nD = Object.values(d.careerPlacements ?? {}).filter(v => v === 'D').length
+      if (nD !== 96) falha(`Série D: ${nD} clubes (devia 96)`)
+      const grupo = BO.clubesDaDivisao('D').filter((c: { grupoD?: string }) => c.grupoD === BO.clubeOficial('Galvez').grupoD).map((c: { nome: string }) => c.nome)
+      if (!grupo.every((n: string) => d.managers.some((m: { teamName: string }) => m.teamName === n))) falha('Série D: o seu grupo não está inteiro na sua turma')
+      const fd = seedCpuSquadsOficial(d)
+      const md = buildPyramid(d.managers, 0, d.seed, d.deckLeague, d.careerPlacements, fd, true)
+      if (md.D.length !== 96 || !md.D.some((t: { you: boolean }) => t.you)) falha(`Série D: pirâmide com ${md.D.length} na D`)
+      const nomes = md.D.map((t: { name: string }) => t.name)
+      if (new Set(nomes).size !== 96) falha('Série D: clube repetido na D')
+      const tempD = simulaTemporadaOficial(md, d.seed, 38, 2026).oficial
+      if (!tempD.agenda.some((x: { casa: string; fora: string }) => x.casa === 'Galvez' || x.fora === 'Galvez')) falha('Série D: o seu clube sem jogo na agenda')
+    }
+  }
   // 🇧🇷 playoff da B NA TELA (`computePlayoffB`): 3º×6º e 4º×5º, ida na casa do pior, empate no agregado = melhor campanha, sem
   // pênalti; mesma semente = mesmo playoff; e o 1º e o 2º nunca jogam
   {
