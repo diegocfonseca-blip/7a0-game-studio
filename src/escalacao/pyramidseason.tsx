@@ -9501,7 +9501,9 @@ export function PyramidSeasonScreen() {
   // resultado (e não o simulado de fundo) que decide quem sobe; a tabela só mostra o playoff depois de ele ser jogado.
   const playoffB = useMemo(() => {
     if (!state.oficial || !done) return null
-    const tb = tables.B ?? []
+    let tb = tables.B ?? []
+    // 🧪 só no servidor de teste (npm run dev): `window.__boForcaPlayoff = true` põe o seu clube em 3º pra ver o playoff na tela
+    if (import.meta.env.DEV && (window as unknown as { __boForcaPlayoff?: boolean }).__boForcaPlayoff && tb.some(t => t.you)) { const eu = tb.find(t => t.you)!; tb = [...tb.filter(t => !t.you)]; tb.splice(2, 0, eu) }
     const i = tb.findIndex(t => t.you)
     if (i < 2 || i > 5) return null
     return computePlayoffB(tb, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Desde != null && m2Desde < 38, recepcaoCopa)
