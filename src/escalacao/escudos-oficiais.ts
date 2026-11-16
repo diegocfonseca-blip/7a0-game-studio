@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 303 escudos · 2877 KB somados.
+// 334 escudos · 3103 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -292,6 +292,166 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "U. de Chile": {
     "src": "escudos-clubes/u-de-chile.webp",
     "w": 122,
+    "h": 160
+  },
+  "Lanús": {
+    "src": "escudos-clubes/lanus.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Platense": {
+    "src": "escudos-clubes/platense.webp",
+    "w": 125,
+    "h": 160
+  },
+  "Estudiantes": {
+    "src": "escudos-clubes/estudiantes.webp",
+    "w": 98,
+    "h": 160
+  },
+  "Independiente Rivadavia": {
+    "src": "escudos-clubes/independiente-rivadavia.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Rosario Central": {
+    "src": "escudos-clubes/rosario-central.webp",
+    "w": 140,
+    "h": 160
+  },
+  "Argentinos Juniors": {
+    "src": "escudos-clubes/argentinos-juniors.webp",
+    "w": 132,
+    "h": 160
+  },
+  "Always Ready": {
+    "src": "escudos-clubes/always-ready.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Bolívar": {
+    "src": "escudos-clubes/bolivar.webp",
+    "w": 145,
+    "h": 160
+  },
+  "The Strongest": {
+    "src": "escudos-clubes/the-strongest.webp",
+    "w": 130,
+    "h": 160
+  },
+  "Coquimbo Unido": {
+    "src": "escudos-clubes/coquimbo-unido.webp",
+    "w": 82,
+    "h": 160
+  },
+  "Universidad Católica": {
+    "src": "escudos-clubes/universidad-catolica.webp",
+    "w": 46,
+    "h": 160
+  },
+  "O'Higgins": {
+    "src": "escudos-clubes/o-higgins.webp",
+    "w": 107,
+    "h": 160
+  },
+  "Huachipato": {
+    "src": "escudos-clubes/huachipato.webp",
+    "w": 137,
+    "h": 160
+  },
+  "Santa Fe": {
+    "src": "escudos-clubes/santa-fe.webp",
+    "w": 125,
+    "h": 160
+  },
+  "Junior Barranquilla": {
+    "src": "escudos-clubes/junior-barranquilla.webp",
+    "w": 139,
+    "h": 160
+  },
+  "Deportes Tolima": {
+    "src": "escudos-clubes/deportes-tolima.webp",
+    "w": 130,
+    "h": 160
+  },
+  "Independiente Medellín": {
+    "src": "escudos-clubes/independiente-medellin.webp",
+    "w": 147,
+    "h": 160
+  },
+  "Independiente del Valle": {
+    "src": "escudos-clubes/independiente-del-valle.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Libertad": {
+    "src": "escudos-clubes/libertad.webp",
+    "w": 160,
+    "h": 85
+  },
+  "Cerro Porteño": {
+    "src": "escudos-clubes/cerro-porteno.webp",
+    "w": 149,
+    "h": 160
+  },
+  "Guaraní-PAR": {
+    "src": "escudos-clubes/guarani-par.webp",
+    "w": 122,
+    "h": 160
+  },
+  "2 de Mayo": {
+    "src": "escudos-clubes/2-de-mayo.webp",
+    "w": 142,
+    "h": 160
+  },
+  "Universitario": {
+    "src": "escudos-clubes/universitario.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Cusco": {
+    "src": "escudos-clubes/cusco.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Nacional-URU": {
+    "src": "escudos-clubes/nacional-uru.webp",
+    "w": 157,
+    "h": 160
+  },
+  "Peñarol": {
+    "src": "escudos-clubes/penarol.webp",
+    "w": 120,
+    "h": 160
+  },
+  "Liverpool-URU": {
+    "src": "escudos-clubes/liverpool-uru.webp",
+    "w": 111,
+    "h": 160
+  },
+  "Juventud": {
+    "src": "escudos-clubes/juventud.webp",
+    "w": 119,
+    "h": 160
+  },
+  "Universidad Central": {
+    "src": "escudos-clubes/universidad-central.webp",
+    "w": 109,
+    "h": 160
+  },
+  "Deportivo La Guaira": {
+    "src": "escudos-clubes/deportivo-la-guaira.webp",
+    "w": 94,
+    "h": 160
+  },
+  "Carabobo": {
+    "src": "escudos-clubes/carabobo.webp",
+    "w": 122,
+    "h": 160
+  },
+  "Deportivo Táchira": {
+    "src": "escudos-clubes/deportivo-tachira.webp",
+    "w": 106,
     "h": 160
   },
   "Bangu": {

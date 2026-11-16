@@ -90,7 +90,7 @@ for (const pais of readdirSync(path.join(FB, 'badges'))) { const d = path.join(F
 const mlsSvg = code => { const m = req(path.join(MLS, 'dist/logos', `${code}.js`)); const C = m.default ?? Object.values(m).find(v => typeof v === 'function'); return renderToStaticMarkup(React.createElement(C, { size: 400, width: 400, height: 400 })) }
 const U = c => ({ svg: () => mlsSvg(c) }), W = c => ({ fl: c })
 const C = a => ({ git: [FCL, 'src/data/logos/' + a] }), S = a => ({ git: [SPL, a] }), H = id => ({ svg: () => hugoSvg(id) })
-const J = n => ({ svg: () => readFileSync(doGit(JA, `logos/brazil/${n}.svg`), 'utf8') }), B = c => ({ git: [BFN, `clubs/bra/${c}/crest.png`] })
+const J = n => ({ svg: () => readFileSync(doGit(JA, `logos/brazil/${n}.svg`), 'utf8') }), JP = (pais, n) => ({ svg: () => readFileSync(doGit(JA, `logos/${pais}/${n}.svg`), 'utf8') }), B = c => ({ git: [BFN, `clubs/bra/${c}/crest.png`] })
 // 🇧🇷 15/11: escudo baixado da página do clube na Wikipédia (upload.wikimedia.org) — clubes pequenos que nenhum acervo tem
 const Wk = u => ({ url: u })
 const E = n => ({ png: n }), F = n => ({ svgFile: fbSvgs.get(n) ?? '', n }), R = c => ({ svg: () => rbSvg(c) })
@@ -119,6 +119,17 @@ const MAPA = {
   'Necaxa': S('north-america/mx-mexico/necaxa.gif'), 'Pumas': S('north-america/mx-mexico/pumas.gif'), 'Tigres': S('north-america/mx-mexico/tigres.gif'),
   'Toluca': S('north-america/mx-mexico/toluca.gif'), 'Stoke City': S('europe/en-england/stoke.png'), 'Atlético Nacional': S('south-america/co-colombia/atleticonacional.png'),
   'Alianza Lima': S('south-america/pe-peru/alianzalima.gif'), 'U. de Chile': S('south-america/cl-chile/udechile.gif'),
+  // 🏆 Brasil Oficial: os estrangeiros da Libertadores 2026 (16/11, Diego: "tem que ter os escudos") — football-badges (MIT),
+  // JoseArroyave e sportlogos. Sem escudo em acervo nenhum (ficam no selo estilo B): Nacional Potosí e Universidad Católica-EQU.
+  'Lanús': F('lanus'), 'Platense': F('platense'), 'Estudiantes': F('estudiantes-de-la-plata'), 'Independiente Rivadavia': F('independiente-rivadavia'),
+  'Rosario Central': F('rosario-central'), 'Argentinos Juniors': JP('argentina', 'Argeninos_Juniors'), 'Always Ready': F('always-ready'), 'Bolívar': F('bolivar'),
+  'The Strongest': JP('bolivia', 'The_Strongest'), 'Coquimbo Unido': F('coquimbo-unido'), 'Universidad Católica': F('universidad-catolica'),
+  "O'Higgins": JP('chile', "O'Higgins"), 'Huachipato': JP('chile', 'Huachipato'), 'Santa Fe': F('independiente-santa-fe'), 'Junior Barranquilla': F('atletico-junior'),
+  'Deportes Tolima': F('deportes-tolima'), 'Independiente Medellín': F('independiente-medellin'), 'Independiente del Valle': F('independiente-del-valle'),
+  'Libertad': F('libertad'), 'Cerro Porteño': F('cerro-porteno'), 'Guaraní-PAR': S('south-america/py-paraguay/guarani.png'), '2 de Mayo': JP('paraguay', '2_de_Mayo'),
+  'Universitario': F('universitario'), 'Cusco': F('cusco'), 'Nacional-URU': JP('uruguay', 'Nacional'), 'Peñarol': F('penarol'), 'Liverpool-URU': JP('uruguay', 'Liverpool'),
+  'Juventud': JP('uruguay', 'Juventud'), 'Universidad Central': F('universidad-central'), 'Deportivo La Guaira': F('deportivo-la-guaira'), 'Carabobo': JP('venezuela', 'Carabobo_FC'),
+  'Deportivo Táchira': S('south-america/ve-venezuela/deportivotachira.png'),
   // 🌵 copas regionais (30/10)
   'Bangu': J('Bangu'), 'America-RJ': J('America_Football_Club_(RJ)'), 'Madureira': J('Madureira_Esporte_Clube'),
   'Volta Redonda': J('Volta_Redonda'), 'Guarani': J('Guarani'), 'Juventude': J('Juventude'), 'Caxias': J('Caxias'),
