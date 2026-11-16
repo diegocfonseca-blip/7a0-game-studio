@@ -109,6 +109,26 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   const meio = simulaTemporadaOficial(mundo, s.seed, 20, 2026)
   if (meio.oficial.C.campeao || meio.oficial.D.campeao || meio.oficial.B.playoff) falha('temporada: campeão/playoff aparecendo no meio da temporada (spoiler)')
   if (JSON.stringify(simulaTemporadaOficial(mundo, s.seed, 38, 2026).oficial) !== JSON.stringify(fim)) falha('temporada: mesma semente deu temporada diferente')
+  // 🔁 três temporadas seguidas: as séries chegam no TAMANHO REAL de cada ano (2027: C 24 · 2028: C 28 · D sempre 96)
+  {
+    const { promocoesOficial } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+    const semDiv = BO.CLUBES_BR_OUTROS.filter((c: { div: string }) => c.div === 'E').map((c: { nome: string }) => c.nome)
+    let pl = s.careerPlacements as Record<string, string>, m = mundo, campeoes: string[] = []
+    for (const ano of [2026, 2027, 2028]) {
+      const res = simulaTemporadaOficial(m, s.seed + ano, 38, ano)
+      campeoes.push(`${ano}: C ${res.oficial.C.campeao} · D ${res.oficial.D.campeao}`)
+      pl = promocoesOficial(res.tables, res.oficial, s.seed, semDiv)
+      const prox = ano + 1
+      const tam = { A: 20, B: 20, C: prox === 2027 ? 24 : 28, D: 96 } as Record<string, number>
+      for (const d of ['A', 'B', 'C', 'D']) { const n = Object.values(pl).filter(v => v === d).length; if (n !== tam[d]) falha(`${prox}: Série ${d} com ${n} clubes (devia ${tam[d]})`) }
+      const fundo2 = seedCpuSquadsOficial({ managers: s.managers, seed: s.seed, careerPlacements: pl })
+      m = buildPyramid(s.managers, 0, s.seed, s.deckLeague, pl, fundo2, true)
+      for (const d of ['A', 'B', 'C', 'D'] as const) if (m[d].length !== tam[d]) falha(`${prox}: pirâmide montada com Série ${d} de ${m[d].length}`)
+      const falsos = Object.values(m).flat().filter((t: { name: string; teamId: number }) => t.teamId < 0 && !BO.clubeOficial(t.name))
+      if (falsos.length) falha(`${prox}: clube que não é real na pirâmide: ${falsos.slice(0, 3).map((t: { name: string }) => t.name)}`)
+    }
+    console.log('   ' + campeoes.join(' | '))
+  }
   for (const c of [...clubesDaDivisao('B'), ...clubesDaDivisao('C')]) if (!fundo[c.nome] || !fechaTime(fundo[c.nome])) falha(`fundo: ${c.nome} sem elenco que feche um 11`)
   const todos = [...ids, ...Object.values(fundo).flat().filter(c => c.club !== 'Várzea').map(c => `${c.name}|${c.club}|${c.year}`)]
   const rep = todos.filter((k, i) => todos.indexOf(k) !== i)

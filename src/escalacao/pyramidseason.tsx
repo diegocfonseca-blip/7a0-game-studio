@@ -88,7 +88,8 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
-import { clubeOficial, cartasDoClube, sorteiaElenco } from './brasil-oficial'
+import { clubeOficial, cartasDoClube, sorteiaElenco, CLUBES_BR_OUTROS } from './brasil-oficial'
+const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c => c.nome)
 import { turnoUnico, turnoEReturno } from './campeonato-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
@@ -625,6 +626,30 @@ export function computePromotions(tables: Record<Div, SimTeam[]>): Record<string
     const U = DIVS[i], L = DIVS[i + 1] // U = de cima, L = de baixo
     for (const t of (tables[U] ?? []).slice(-4)) pl[teamKey(t)] = L // caem
     for (const t of (tables[L] ?? []).slice(0, 4)) pl[teamKey(t)] = U // sobem
+  }
+  return pl
+}
+
+/**
+ * 🇧🇷 BRASIL OFICIAL: quem sobe e quem cai pelo REGULAMENTO REAL (formatos-futuros.md). A: 4 caem · B: 2 diretos + os 2 do
+ * playoff sobem, 4 caem · C: os 4 da 2ª fase sobem; caem 2 (2026/2027) ou 6 (2028+) · D: 6 sobem, ninguém cai.
+ * A D do ano seguinte = quem ficou + quem caiu da C, completada até 96 com clubes reais SEM divisão (sorteio pela semente).
+ * ⚠️ PROVISÓRIO até o motor dos estaduais: na vida real a vaga na D vem pelo estadual (INCERTO como reproduzir sem ele).
+ */
+export function promocoesOficial(tables: Record<Div, SimTeam[]>, fases: FasesOficiais, seed: number, foraDaPiramide: string[]): Record<string, string> {
+  const pl: Record<string, string> = {}
+  const key = (nome: string) => { for (const d of DIVS) { const t = (tables[d] ?? []).find(x => x.name === nome); if (t) return teamKey(t) } return nome }
+  for (const d of DIVS) for (const t of (tables[d] ?? [])) pl[teamKey(t)] = d
+  for (const t of (tables.A ?? []).slice(-4)) pl[teamKey(t)] = 'B'
+  for (const n of fases.B.sobem ?? []) pl[key(n)] = 'A'
+  for (const t of (tables.B ?? []).slice(-4)) pl[teamKey(t)] = 'C'
+  for (const n of fases.C.sobem ?? []) pl[key(n)] = 'B'
+  for (const n of fases.C.caem ?? []) pl[key(n)] = 'D'
+  for (const n of fases.D.sobem ?? []) pl[key(n)] = 'C'
+  const naD = Object.values(pl).filter(v => v === 'D').length
+  if (naD < 96) {
+    const r = mulberry(hashNome(`D|completa|${fases.ano}`, seed))
+    for (const n of shuffle(foraDaPiramide.filter(n => !pl[n]), r).slice(0, 96 - naD)) pl[n] = 'D'
   }
   return pl
 }
@@ -10866,7 +10891,7 @@ export function PyramidSeasonScreen() {
     if (!done || !me) return null
     const tm = (tables[me.div] ?? []).find(t => t.you)
     if (!tm) return null
-    const nova = (computePromotions(tables)[teamKey(tm)] ?? me.div) as Div
+    const nova = ((shown.oficial ? promocoesOficial(tables, shown.oficial, state.seed, clubesSemDivisao()) : computePromotions(tables))[teamKey(tm)] ?? me.div) as Div
     const subiu = DIV_RANK[nova] > DIV_RANK[me.div]
     const caiu = DIV_RANK[nova] < DIV_RANK[me.div]
     const tipo: DesfechoTipo = me.champ ? 'campeao' : subiu ? 'acesso' : caiu ? 'queda' : 'ficou'
@@ -12501,7 +12526,7 @@ export function PyramidSeasonScreen() {
           const sb = scorerRewards(divTop)
           const cr = copaBrOk && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-          const newPlacements = computePromotions(tables)
+          const newPlacements = shown.oficial ? promocoesOficial(tables, shown.oficial, state.seed, clubesSemDivisao()) : computePromotions(tables)
           const torcDeltas = torcidaDeltas(tables, newPlacements)
           // 🎟️ OCUPAÇÃO por técnico (carreira nova): quão cheio o estádio ficou pela
           // colocação final → vira a renda (piso + construído × ocupação, no reducer).
