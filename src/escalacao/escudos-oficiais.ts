@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 334 escudos · 3103 KB somados.
+// 364 escudos · 3346 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -452,6 +452,156 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "Deportivo Táchira": {
     "src": "escudos-clubes/deportivo-tachira.webp",
     "w": 106,
+    "h": 160
+  },
+  "Racing": {
+    "src": "escudos-clubes/racing.webp",
+    "w": 132,
+    "h": 160
+  },
+  "Deportivo Riestra": {
+    "src": "escudos-clubes/deportivo-riestra.webp",
+    "w": 138,
+    "h": 160
+  },
+  "San Lorenzo": {
+    "src": "escudos-clubes/san-lorenzo.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Tigre": {
+    "src": "escudos-clubes/tigre.webp",
+    "w": 102,
+    "h": 160
+  },
+  "Barracas Central": {
+    "src": "escudos-clubes/barracas-central.webp",
+    "w": 110,
+    "h": 160
+  },
+  "San Antonio Bulo Bulo": {
+    "src": "escudos-clubes/san-antonio-bulo-bulo.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Blooming": {
+    "src": "escudos-clubes/blooming.webp",
+    "w": 85,
+    "h": 160
+  },
+  "Independiente Petrolero": {
+    "src": "escudos-clubes/independiente-petrolero.webp",
+    "w": 143,
+    "h": 160
+  },
+  "Audax Italiano": {
+    "src": "escudos-clubes/audax-italiano.webp",
+    "w": 131,
+    "h": 160
+  },
+  "Palestino": {
+    "src": "escudos-clubes/palestino.webp",
+    "w": 123,
+    "h": 160
+  },
+  "Cobresal": {
+    "src": "escudos-clubes/cobresal.webp",
+    "w": 124,
+    "h": 160
+  },
+  "Atlético Bucaramanga": {
+    "src": "escudos-clubes/atletico-bucaramanga.webp",
+    "w": 143,
+    "h": 160
+  },
+  "Millonarios": {
+    "src": "escudos-clubes/millonarios.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Orense": {
+    "src": "escudos-clubes/orense.webp",
+    "w": 142,
+    "h": 160
+  },
+  "Deportivo Cuenca": {
+    "src": "escudos-clubes/deportivo-cuenca.webp",
+    "w": 110,
+    "h": 160
+  },
+  "Sportivo Trinidense": {
+    "src": "escudos-clubes/sportivo-trinidense.webp",
+    "w": 139,
+    "h": 160
+  },
+  "Nacional-PAR": {
+    "src": "escudos-clubes/nacional-par.webp",
+    "w": 145,
+    "h": 160
+  },
+  "Recoleta": {
+    "src": "escudos-clubes/recoleta.webp",
+    "w": 120,
+    "h": 160
+  },
+  "Olimpia": {
+    "src": "escudos-clubes/olimpia.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Melgar": {
+    "src": "escudos-clubes/melgar.webp",
+    "w": 102,
+    "h": 160
+  },
+  "Deportivo Garcilaso": {
+    "src": "escudos-clubes/deportivo-garcilaso.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Cienciano": {
+    "src": "escudos-clubes/cienciano.webp",
+    "w": 110,
+    "h": 160
+  },
+  "Defensor Sporting": {
+    "src": "escudos-clubes/defensor-sporting.webp",
+    "w": 120,
+    "h": 160
+  },
+  "Boston River": {
+    "src": "escudos-clubes/boston-river.webp",
+    "w": 160,
+    "h": 94
+  },
+  "Racing-URU": {
+    "src": "escudos-clubes/racing-uru.webp",
+    "w": 116,
+    "h": 160
+  },
+  "Montevideo City Torque": {
+    "src": "escudos-clubes/montevideo-city-torque.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Academia Puerto Cabello": {
+    "src": "escudos-clubes/academia-puerto-cabello.webp",
+    "w": 141,
+    "h": 160
+  },
+  "Monagas": {
+    "src": "escudos-clubes/monagas.webp",
+    "w": 122,
+    "h": 160
+  },
+  "Caracas": {
+    "src": "escudos-clubes/caracas.webp",
+    "w": 108,
+    "h": 160
+  },
+  "Metropolitanos": {
+    "src": "escudos-clubes/metropolitanos.webp",
+    "w": 150,
     "h": 160
   },
   "Bangu": {
