@@ -85,6 +85,7 @@ import lulubabaMascoteImg from './img/lulubaba-mascote.webp' // 🧤 Lulubaba FC
 import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import leoestufMascoteImg from './img/leoestuf-mascote.webp' // 🦁 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
 import reffattiMascoteImg from './img/reffatti-mascote.webp' // 🎮 Reffatti FC (leoreffattig): arte própria do dono, 15/11
+import hgigantesMascoteImg from './img/hgigantes-mascote.webp' // 🧔 História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
@@ -470,6 +471,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // controle na mão e tênis de coroa. Arte do próprio dono. 📏 291×440, 36 KB — altura 176. mascote_key = "reffatti_gamer".
   reffatti_gamer: (
     <img src={reffattiMascoteImg} height={176} width={Math.round(176 * 291 / 440)} alt="O Reffatti — Reffatti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🧔⚽ O VOVÔ GIGANTE (mascote do História dos Gigantes — will.a.n, 16/11): vovô de boina e suspensório, braços abertos, pé na bola
+  // de capotão. Arte do próprio dono. 📏 440×432, 41 KB — altura 176 (sombra do chão tirada). mascote_key = "hgigantes_vovo".
+  hgigantes_vovo: (
+    <img src={hgigantesMascoteImg} height={176} width={Math.round(176 * 440 / 432)} alt="O Vovô Gigante — História dos Gigantes" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐆👑 A PANTERA (mascote do Lavras FC — hugopereirabrito, 16/11): pantera negra de braços cruzados, uniforme preto e dourado
   // com coroa. Arte do próprio dono. 📏 219×440, 27 KB — altura 176 (sombra do chão tirada). mascote_key = "lavras_pantera".
@@ -1402,6 +1408,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Reffattifc': 'reffatti_gamer',
   'Reffatti EC': 'reffatti_gamer',
   'Reffatti SC': 'reffatti_gamer',
+  // 🧔 o Vovô Gigante carimba o gol do História dos Gigantes (will.a.n, 16/11).
+  'História dos Gigantes': 'hgigantes_vovo',
+  'História dos Gigantes FC': 'hgigantes_vovo',
+  'História dos Gigantes EC': 'hgigantes_vovo',
+  'História dos Gigantes SC': 'hgigantes_vovo',
   // 🐆 a Pantera carimba o gol do Lavras FC (hugopereirabrito, 16/11).
   'Lavras FC': 'lavras_pantera',
   'Lavras': 'lavras_pantera',
@@ -1581,6 +1592,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   lulubaba_goleiro: 'O Goleiro', // 🧤 Lulubaba FC (lucasfonseca363, 29/10)
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
   reffatti_gamer: 'O Reffatti', // 🎮 Reffatti FC (leoreffattig, 15/11)
+  hgigantes_vovo: 'O Vovô Gigante', // 🧔 História dos Gigantes (will.a.n, 16/11)
   lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)
   leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
   cabritiiin_bode: 'O Cabritiiin', // 🐐 Cabritiiin F.C (lucassaboia14, 13/11)

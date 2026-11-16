@@ -88,6 +88,7 @@ const BATISMOS = [
   ['alexandre12cdm@gmail.com', 'dSouza FC'], // 🐶💚 Série C (28/10, Fundador) — no assento do bot Kombi United
   ['sergioricardocf16@gmail.com', 'Leões da Tuf EC'], // 🦁🇧🇷 Várzea (14/11, batismo) — no assento do bot Chuteira Rachada FC
   ['leoreffattig@gmail.com', 'Reffatti FC'], // 🎮👑 Várzea (15/11, batismo) — no assento do bot Atlético Pelada
+  ['will.a.n@hotmail.com', 'História dos Gigantes'], // 🧔⚽ Várzea (16/11, batismo) — no assento do bot Real Domingueira
   ['hugopereirabrito@gmail.com', 'Lavras FC'], // 🐆👑 Várzea (16/11, batismo) — no assento do bot Galáticos do Bairro
   ['lucassaboia14@gmail.com', 'Cabritiiin F.C'], // 🐐👑 Várzea (13/11, Fundador) — no assento do bot Unidos da Resenha
   ['oluisantonio.contato@gmail.com', 'Vila Esporte Clube'], // ⭐🦁 Série D (27/10) — assento do bot Imperador SAF
@@ -150,7 +151,7 @@ const SOCIOS = [
 
 // 🖋 REGRA NOVA (14/10, Diego): *"melhor deixar fundador só qm faz o fundador… mas qm já tem número de fundador deixe como
 // está"*. Batismo de 79,90 feito daqui pra frente NÃO ganha número — entra aqui. (Quem compra o plano Fundador ganha.)
-const SEM_FUNDADOR = new Set(['klebim877@gmail.com', 'silviovicente87@gmail.com', 'danicorreafilho@gmail.com', 'pedroglima50@gmail.com', 'ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com', 'sergioricardocf16@gmail.com', 'leoreffattig@gmail.com', 'hugopereirabrito@gmail.com'])
+const SEM_FUNDADOR = new Set(['klebim877@gmail.com', 'silviovicente87@gmail.com', 'danicorreafilho@gmail.com', 'pedroglima50@gmail.com', 'ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com', 'sergioricardocf16@gmail.com', 'leoreffattig@gmail.com', 'hugopereirabrito@gmail.com', 'will.a.n@hotmail.com'])
 const olha = ([email, clube], ehSocio) => {
   const k = chave(clube); const falta = []
   if (!LOGOS.has(k)) falta.push('escudo próprio')

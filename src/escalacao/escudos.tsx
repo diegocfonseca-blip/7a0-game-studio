@@ -81,6 +81,7 @@ import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba 
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import leoestufEscudoImg from './img/leoestuf-escudo.webp' // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
 import reffattiEscudoImg from './img/reffatti-escudo.webp' // 🎮👑 Reffatti FC (leoreffattig): arte própria do dono, 15/11
+import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
@@ -984,6 +985,11 @@ const lulubabaEscudoRender = (size: number) => (
 const reffattiEscudoRender = (size: number) => (
   <img src={reffattiEscudoImg} height={size} width={Math.round(size * 235 / 360)} alt="Reffatti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🧔⚽ HISTÓRIA DOS GIGANTES (will.a.n, batismo de 16/11) — Várzea, no assento do bot Real Domingueira. 📏 339×360, 28 KB.
+// Escudo redondo creme/marrom com a bola de capotão e "DO FUTEBOL". Fundo verde chroma tirado; conferido sobre vermelho.
+const hgigantesEscudoRender = (size: number) => (
+  <img src={hgigantesEscudoImg} height={size} width={Math.round(size * 339 / 360)} alt="História dos Gigantes" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
 // Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
 const lavrasEscudoRender = (size: number) => (
@@ -1733,6 +1739,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Reffattifc': reffattiEscudoRender,
   'Reffatti EC': reffattiEscudoRender,
   'Reffatti SC': reffattiEscudoRender,
+  // 🧔⚽ História dos Gigantes (will.a.n) — BATISMO. As 4 formas do nome (regra 20/08). O Real Domingueira continua no jogo rápido.
+  'História dos Gigantes': hgigantesEscudoRender,
+  'História dos Gigantes FC': hgigantesEscudoRender,
+  'História dos Gigantes EC': hgigantesEscudoRender,
+  'História dos Gigantes SC': hgigantesEscudoRender,
   // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
   // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'Lavras FC': lavrasEscudoRender,

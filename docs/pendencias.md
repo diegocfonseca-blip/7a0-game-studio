@@ -6,6 +6,13 @@
 - Causa AINDA ABERTA. No branch (falta publicar): o vigia grava QUAL ação tirou a coroa (`acao` no `perdeu_coroa`) e um registro
   novo `trocou_cadeira` (meu técnico mudou dentro da mesma sala, com a ação, de e para). Próxima vez: ler esc_travas da sala.
 - No branch também (falta OK pra publicar): convocação das salas 100 s + relógio grande nas Copas (mockups/relogio-convocacao.png).
+## 📡 16/11 — Custos Realtime: presença idêntica sem retransmissão — TESTADA, PUBLICAÇÃO AUTORIZADA
+
+- Diego aprovou apenas a primeira medida: ignorar listas de presença exatamente iguais, mantendo entradas/saídas, UIDs, duplas, pedidos de recuperação e heartbeat.
+- Filtro restrito a SET_PRESENCE, antes da cópia do estado; nenhuma alteração no protocolo, nas jogadas ou na coroa.
+- Dois EscProvider locais: cinco avisos iguais geravam cinco envios antes e zero depois; presença alterada e recuperação continuam enviando. Sem acesso a salas reais.
+- Detalhes e limites em `docs/presenca-identica-20261116.md`; bancada em `scripts/teste-presenca-identica/`. Economia mensal ainda não medida. Agrupamento de pedidos e sono da sala não entram nesta entrega.
+- Diego autorizou publicar o PR #500: *“Ok siga p publicar”*. Publicação pelo fluxo normal da main, mantendo a versão anterior para quem já está jogando; sem migração ou alteração de dados de salas.
 
 ## ⚽🎩 15/11 — Kings: pênalti do presidente igual ao pênalti do campinho — PUBLICADO
 - Diego: *"o chute tá feio… tem que ser igual pênalti mesmo do campinho, não o pulinho do presidente"*. Mockup
@@ -24,6 +31,14 @@
   ex.: versão velha aberta cruzando com o 3-4-3 novo). Agora formação desconhecida desenha como 4-3-3 (screens.tsx + baseSlots).
 - Pendente: reproduzir a virada liga → mata-mata da Kings com o dono em 1º (direto na semi) em sala manual/stream.
 
+## 🧔 16/11 — Batismo História dos Gigantes (will.a.n) — NO BRANCH, esperando OK pra publicar
+- Plano 🖋 Batismo (79,90, confirmado pelo Diego; não há Pix de batismo no banco, só 3 salas extras): tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº93.
+- Várzea, no lugar do bot Real Domingueira (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 339×360 28 KB · mascote "O Vovô Gigante" (nome dado por mim, confirmar) 440×432 41 KB · manto `#FEE9BD`/`#7A2B06` medidos na camisa · camisa na Loja (`hgigantes-camisa-v1.webp`).
+- Banco FEITO: `esc_socios` (93, `escudo_time` = História dos Gigantes, `time_coracao` vazio — não sabemos) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` ouro manual. A conta existia (criada 10/10).
+- Post: `scripts/posts/batismo-historia-dos-gigantes.png` (dono "Will" tirado do e-mail — confirmar o nome).
+- FALTA: deploy na main (só com o OK do Diego).
+
 ## 🐆 16/11 — Batismo Lavras FC (hugopereirabrito) — PUBLICADO
 - Plano 🖋 Batismo (79,90): tier ouro, **sem número de fundador** (está em `SEM_FUNDADOR`). Sócio nº92.
 - Várzea, no lugar do bot Galáticos do Bairro (`OLD_NAME` + `VARZEA_TEAMS`).
@@ -38,6 +53,13 @@
 - Manto branco #F9F4FB + verde-neon #2AF604 medidos; 3ª cor preta (MANTO_TRI reffatti_gamer).
 - Banco: esc_socios (91), esc_nomes_batismo (reffatti / FC / EC + reffattifc, o nome dele no jogo); user_colors ouro já estava.
 - Post: scripts/posts/batismo-reffatti.png ("Leo" tirado do e-mail — confirmar com o Diego o nome).
+
+## 🪑 16/11 — Lavras FC / GGWNX6: menu e retorno trocavam a identidade do dono — CORREÇÃO PREPARADA, não publicada
+
+- Leituras da produção confirmaram a Copa aberta às 23:55, perda local da coroa sem troca do host no banco e requisição autenticada como Lavras gravando a escolha na linha do Mano 3 Meses.
+- Dois EscProvider locais reproduziram a causa: GO_LOBBY_ONLINE e RESTORE_ONLINE de um convidado eram enviados ao dono, cujos receptores aplicavam o pacote de identidade dele.
+- Menu e retomada passam a ser locais; as duas entradas do dono rejeitam navegação/identidade vindas de outros aparelhos, inclusive abas antigas. Ações de jogo preservadas; nenhuma alteração na sala real ou no banco.
+- Reprodução antes/depois, build, 16 cenários do simulador e teste da Copa passaram. Duas falhas textuais antigas de `npm run sala` foram confirmadas também na base. Detalhes em `docs/lavras-reentrada-20261116.md`.
 
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 
