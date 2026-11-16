@@ -44,5 +44,7 @@ garantem ausência de todo bug em redes reais. A economia mensal deste filtro
 ainda não foi medida. Não anunciar redução percentual da fatura com base nos
 cinco eventos sintéticos.
 
-Correção preparada em branch isolado; esta entrega não publica na main nem
-altera dados ou configuração do Supabase.
+Correção preparada e testada em branch isolado (PR #500). Após a entrega dos
+resultados, Diego autorizou publicar: “Ok siga p publicar”. A publicação usa o
+fluxo normal da main, preservando as versões anteriores para quem já está
+jogando. Não altera dados ou configuração do Supabase.
