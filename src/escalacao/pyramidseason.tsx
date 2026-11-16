@@ -1976,6 +1976,9 @@ export function computeSulaCarreira(vagas: VagasSula, daLiberta: { grupos: strin
 }
 /** 💰 prêmio da Sul-Americana: a régua da Copa do Brasil (`CB_PAY`: oitavas 6 · quartas 10 · semi 16 · vice 25 · campeão 50), e 4
  *  por participar (⚠️ número meu: a Sul-Americana fica um degrau abaixo da Libertadores) */
+// 🥇 prêmio do artilheiro das competições Conmebol do Brasil Oficial (Diego 16/11: 30 Libertadores · 20 Sul-Americana)
+export const ART_LIBERTA_OFICIAL = 30
+export const ART_SULA_OFICIAL = 20
 export function premioSula(res: ResultadoSula, nome: string): number {
   if (!res.classificacao.includes(nome)) return 0
   if (res.campeao === nome) return 50
@@ -10336,6 +10339,14 @@ export function PyramidSeasonScreen() {
     const lib: Record<number, number> = {}
     if (libertaMinha && libertaCalc) { const v = premioLibertadores(libertaCalc.resultado, meuNomeLib); if (v) lib[youId] = v }
     if (sulaMinha && sulaCalc) { const v = premioSula(sulaCalc.resultado, meuNomeLib); if (v) lib[youId] = (lib[youId] ?? 0) + v }
+    // 🥇 artilheiro da Libertadores (30 🪙) e da Sul-Americana (20 🪙) — Diego 16/11 *"Sim"*; só clube de gente tem caixa
+    for (const [lista, moedas, nomeC] of [[conmebolScorers.liberta, ART_LIBERTA_OFICIAL, 'Libertadores'], [conmebolScorers.sula, ART_SULA_OFICIAL, getLang() === 'en' ? 'Sudamericana' : 'Sul-Americana']] as const) {
+      const a = [...lista].sort((x, y) => y.goals - x.goals || x.name.localeCompare(y.name))[0]
+      if (!a?.human || a.teamId < 0 || a.goals <= 0) continue
+      lib[a.teamId] = (lib[a.teamId] ?? 0) + moedas
+      const g = getLang() === 'en' ? `${a.goals} goal${a.goals === 1 ? '' : 's'}` : `${a.goals} gol${a.goals === 1 ? '' : 's'}`
+      artilheiros.push({ mgr: a.teamId, coins: moedas, txt: getLang() === 'en' ? `🥇 Top scorer of the ${nomeC}: ${a.name} (${g})` : `🥇 Artilheiro da ${nomeC}: ${a.name} (${g})` })
+    }
     dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), lib), stadiumOcc, finalPos, artilheiros, conquistas })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])

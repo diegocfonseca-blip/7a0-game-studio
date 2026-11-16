@@ -40,8 +40,9 @@
   Também: 4 cartas da Conmebol (Herrera/Vargas U. de Chile 2011, Cadavid/Pedro Franco Millonarios) eram cópia EXATA do baralho Mundo e
   faziam a trava de vazamento falhar ao acaso — saíram dos lotes (o Mundo já entra no modo).
 - ✅ 16/11 (noite): **artilharia própria da Libertadores e da Sul-Americana** na aba Rank (mesma `ArtilhariaBox` da Copa, só com os
-  jogos JÁ apitados — sem spoiler). ⚠️ Falta o PRINT pro Diego antes de publicar (é caixa nova na tela) e decidir se o artilheiro delas
-  ganha prêmio no caixa (hoje não ganha nada no Brasil Oficial; na carreira internacional são 30 🪙).
+  jogos JÁ apitados — sem spoiler). ⚠️ Falta o PRINT pro Diego antes de publicar (é caixa nova na tela) . 🥇 Prêmio do artilheiro (Diego *"Sim"*): **Libertadores 30 🪙 · Sul-Americana 20 🪙**
+  pro clube de gente, com linha própria no extrato (`ART_LIBERTA_OFICIAL`/`ART_SULA_OFICIAL`). ⏭️ Falta: a comissão de 1 🪙 da Agência
+  (artilheiro de QUALQUER competição) ainda não olha Liberta/Sula do modo.
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx), artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
