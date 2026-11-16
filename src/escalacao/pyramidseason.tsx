@@ -9770,8 +9770,10 @@ export function PyramidSeasonScreen() {
     const prev = state.oficialCampeoes?.find(e => e.temporada === n - 1)
     return prev?.serieATop ? vagasLiberta({ serieA: prev.serieATop, copa: prev.copa, copaVice: prev.copaVice, liberta: prev.liberta }) : null
   }, [state.oficial, state.seasonNo, state.oficialCampeoes])
-  const libertaCalc = useMemo(() => state.oficial && done && vagasLib ? computeLibertadoresCarreira(vagasLib, tables, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde < 38, recepcaoCopa) : null,
-    [state.oficial, done, vagasLib, tables, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🧪 só no servidor de teste (npm run dev): `window.__boLibertaJa = true` joga a Libertadores ANTES da temporada (pra ver as telas sem jogar 38 rodadas)
+  const libDev = import.meta.env.DEV && !!(window as unknown as { __boLibertaJa?: boolean }).__boLibertaJa && round === 0
+  const libertaCalc = useMemo(() => state.oficial && (done || libDev) && vagasLib ? computeLibertadoresCarreira(vagasLib, done ? tables : world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde < 38, recepcaoCopa) : null,
+    [state.oficial, done, libDev, vagasLib, tables, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
   const meuNomeLib = state.managers[state.youIdx]?.teamName ?? ''
   const libertaMinha = !!libertaCalc && libertaCalc.resultado.classificacao.includes(meuNomeLib)
   // 🏟️ BRASIL OFICIAL · O ESTADUAL abre a temporada (mockup aprovado 16/11): antes da 1ª rodada da Série, o "Começar a temporada"
@@ -9792,7 +9794,7 @@ export function PyramidSeasonScreen() {
     const fora = prev.copa === prev.serieA ? prev.copaVice : prev.copa
     return fora ? computeSupercopaRei(prev.serieA, fora, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null
   }, [state.oficial, state.oficialCampeoes, state.seasonNo, round, estadualFeito, world, state.seed, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
-  const preRounds = useMemo(() => [...(supercopaRei ? [supercopaRei] : []), ...(estadualCalc?.rounds ?? [])], [supercopaRei, estadualCalc])
+  const preRounds = useMemo(() => [...(libDev && libertaCalc ? libertaCalc.rounds : []), ...(supercopaRei ? [supercopaRei] : []), ...(estadualCalc?.rounds ?? [])], [supercopaRei, estadualCalc, libDev, libertaCalc])
   const estadualPendente = preRounds.length > 0 && !estadualFeito && !estadualOn
   const nomeEstadual = estadualNome ? (NOME_ESTADUAL[estadualNome] ?? estadualNome) : ''
   const copaComPlayoff = useMemo<CopaResult | null>(() => {

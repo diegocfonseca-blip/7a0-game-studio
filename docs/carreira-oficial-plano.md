@@ -244,5 +244,17 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   estaduais (cotas por estado) — provisório: a lista de 2026, com a Série A de agora na 5ª e quem caiu da A na 2ª.
   ⏭️ Falta: Supercopa Rei real (campeão brasileiro × campeão da Copa, jogo único, abre a temporada seguinte) e as vagas da
   Libertadores (campeão da Copa → grupos; vice → preliminar).
-- Também falta: Copa do Brasil real (126, com os estaduais), Libertadores/Sul-Americana pelas vagas reais, estaduais.
-  Hoje a carreira do modo usa a Copa Legends (top 4 de cada série) porque a Copa do Brasil antiga só fecha com 68–128 clubes.
+- ✅ **16/11: SUPERCOPA REI REAL** (campeão brasileiro × campeão da Copa do ano anterior, jogo único, abre a temporada).
+- ✅ **16/11: LIBERTADORES REAL** (`libertadores-oficial.ts` + `computeLibertadoresCarreira`): 47 clubes no formato de 2026
+  (1ª fase 6, 2ª 16, 3ª 8 em ida e volta · 8 grupos de 4 em turno e returno · oitavas a semis ida e volta · final única, pênaltis).
+  Temporada 1 = a lista REAL de 2026 (os 8 brasileiros e os 39 estrangeiros). Da 2ª em diante, as vagas brasileiras saem do ano
+  anterior do modo: campeão da Copa + 1º–4º da Série A nos grupos, 5º e vice da Copa na 2ª fase, vaga repetida desce; o campeão da
+  Libertadores anterior tem vaga extra. Roda no fim da temporada, depois da Série e do playoff da B, na esteira das copas (placar,
+  Manual, campinho), com a tabela dos 8 grupos ao vivo. Estrangeiros com cartas reais do próprio clube (lotes
+  `cartas-conmebol-1..4.md`). Trava: `npm run libertadores` + `npm run brasil-oficial`.
+  ⚠️ INCERTO: (a) de 2027 em diante os estrangeiros continuam os de 2026 (o modo não joga as ligas deles); (b) campeão anterior
+  ESTRANGEIRO: ele sobe pros grupos e a vaga extra fica com o Brasil (o próximo da Série A) — perguntar ao Diego; (c) potes e
+  sorteio das fases prévias por força, não pelo ranking da Conmebol; (d) a Liberta real corre de fev a nov, junto com a Série —
+  aqui ela vem em bloco depois da Série (como a carreira internacional de sempre).
+  ⏭️ Falta: Sul-Americana (6º–12º + os eliminados da Liberta), Intercontinental real (Dérbi das Américas → Challenger → final
+  contra o campeão europeu), festa/troféu da Liberta, e quem NÃO está na Liberta poder assistir.
