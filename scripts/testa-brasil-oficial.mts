@@ -167,6 +167,19 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
     const ent2 = entradasCopaBrasilOficial(mundo, s.seed + 1)
     if (ent2?.map((f: unknown[]) => f.length).join(',') !== '28,74,4,0,20') falha('Copa do Brasil: entradas mudam com a semente')
   }
+  // 🏆 SUPERCOPA REI: jogo único entre dois clubes reais, sempre com vencedor (pênaltis no empate), mesma semente = mesmo jogo
+  {
+    const { computeSupercopaRei, SUPERCOPA_REI } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+    for (let k = 0; k < 30; k++) {
+      const r = computeSupercopaRei('Flamengo', 'Corinthians', mundo, s.seed + k, 2)
+      if (!r || r.name !== SUPERCOPA_REI || r.ties.length !== 1) { falha('Supercopa Rei: não montou o jogo'); break }
+      const t = r.ties[0]
+      if (t.legs.length !== 1) falha('Supercopa Rei: não é jogo único')
+      if (t.aggA === t.aggB && !t.pens) falha('Supercopa Rei: empate sem pênaltis')
+      if (t.goals.length !== t.aggA + t.aggB) falha('Supercopa Rei: gols não batem com o placar')
+    }
+    if (JSON.stringify(computeSupercopaRei('Flamengo', 'Corinthians', mundo, 5, 2)) !== JSON.stringify(computeSupercopaRei('Flamengo', 'Corinthians', mundo, 5, 2))) falha('Supercopa Rei: mesma semente, jogo diferente')
+  }
   // 🇧🇷 playoff da B NA TELA (`computePlayoffB`): 3º×6º e 4º×5º, ida na casa do pior, empate no agregado = melhor campanha, sem
   // pênalti; mesma semente = mesmo playoff; e o 1º e o 2º nunca jogam
   {
