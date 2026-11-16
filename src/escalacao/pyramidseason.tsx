@@ -7212,7 +7212,10 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number; V?: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0, V: 0 }
-function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed, brasil, intlHistory = [] }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; supercopaHonors?: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number; brasil?: boolean; intlHistory?: InternationalHistoryEntry[] }) {
+function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed, brasil, intlHistory = [], oficialCampeoes }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; supercopaHonors?: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number; brasil?: boolean; intlHistory?: InternationalHistoryEntry[]; oficialCampeoes?: { liberta?: string; sula?: string }[] }) {
+  // 🇧🇷 Brasil Oficial (16/11): Libertadores e Sul-Americana REAIS gravam o campeão pelo NOME em `oficialCampeoes`.
+  const libOf: Record<string, number> = {}, sulaOf: Record<string, number> = {}
+  for (const e of oficialCampeoes ?? []) { if (e.liberta) libOf[e.liberta] = (libOf[e.liberta] ?? 0) + 1; if (e.sula) sulaOf[e.sula] = (sulaOf[e.sula] ?? 0) + 1 }
   // 🏆 o nome exibido do troféu de Copa troca conforme a conta é tester ou
   // não (mesmo contador careerCopaHonors serve pras duas — Diego 16/08:
   // "não são coisas novas, só alterou o nome e o formato", ninguém perde
@@ -7234,7 +7237,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     // campeão pelo NOME, então a ponte tem que ser pela corrente de NOMES
     // (oldChain do NOME) — antes usava só oldChain(key)='m{id}' (vazio p/ humano),
     // e o 🌍 sumia da linha ao renomear (bug 10/08).
-    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, supercopa: pick(supercopaHonors ?? {}) ?? 0, money, wc: [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0), intl: t.teamId === youId ? intlHistory : [] }
+    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, supercopa: pick(supercopaHonors ?? {}) ?? 0, money, wc: [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0), intl: t.teamId === youId ? intlHistory : [], libOf: libOf[t.name] ?? 0, sulaOf: sulaOf[t.name] ?? 0 }
   })
   // ordem (docs/conceito-copa-brasil.md §7.3, FECHADO — Supercopa é o único
   // critério NOVO, logo depois da Copa; a Copa em si NÃO trocou de posição
@@ -7249,7 +7252,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     const intl = internationalTitleCounts(x.intl, seasonNo ?? Infinity)
     return pontosDeTitulos({
       world: x.wc, copa: x.copas, supercopa: x.supercopa,
-      mundial: intl.mundial_titles, libertadores: intl.libertadores_titles, champions: intl.champions_titles,
+      mundial: intl.mundial_titles, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles,
       A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
     })
   }
@@ -7267,15 +7270,18 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   const mySupercopa = supercopaHonors?.[`m${youId}`] ?? 0
   const myWorld = cmMural.filter(m => m.voce).length
   const myIntlCounts = internationalTitleCounts(intlHistory, seasonNo ?? Infinity)
-  const myIntl = { lib: myIntlCounts.libertadores_titles, champ: myIntlCounts.champions_titles, mundial: myIntlCounts.mundial_titles }
+  const meuNome = rows.find(r => r.t.teamId === youId)?.t.name ?? ''
+  const mySula = sulaOf[meuNome] ?? 0
+  const myIntl = { lib: myIntlCounts.libertadores_titles + (libOf[meuNome] ?? 0), champ: myIntlCounts.champions_titles, mundial: myIntlCounts.mundial_titles }
   // ⚠️ o total TEM que somar a VÁRZEA também (faltava — o título de Várzea
   // aparecia na fileira de troféus embaixo mas NÃO entrava no "Total: X 🏆",
   // então quem começou a carreira na Várzea via um troféu a menos na conta).
-  const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld + myIntl.lib + myIntl.champ + myIntl.mundial
+  const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld + myIntl.lib + myIntl.champ + myIntl.mundial + mySula
   const trofeus = [
     ...(myWorld > 0 ? [{ key: 'mundo', label: tr('Copa do Mundo', 'World Cup'), n: myWorld, bg: INK, c: GOLD }] : []),
     ...(myIntl.mundial > 0 ? [{ key: 'mundial', label: 'Mundial de Clubes', n: myIntl.mundial, bg: '#7C3AED', c: '#fff' }] : []),
     ...(myIntl.lib > 0 ? [{ key: 'libertadores', label: 'Libertadores', n: myIntl.lib, bg: '#1B7A3D', c: '#fff' }] : []),
+    ...(mySula > 0 ? [{ key: 'sula', label: 'Sul-Americana', n: mySula, bg: '#C2452F', c: '#fff' }] : []),
     ...(myIntl.champ > 0 ? [{ key: 'champions', label: 'Champions League', n: myIntl.champ, bg: '#0D4FCC', c: '#fff' }] : []),
     ...(myCopas > 0 ? [{ key: 'copa', label: copaLabel, n: myCopas, bg: brasil ? '#0EA658' : GOLD, c: brasil ? '#fff' : INK }] : []),
     ...(mySupercopa > 0 ? [{ key: 'super', label: 'Supercopa', n: mySupercopa, bg: '#0D4FCC', c: '#fff' }] : []),
@@ -7294,7 +7300,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
             const you = r.t.teamId === youId && r.t.teamId >= 0
             const intlTitles = internationalTitleCounts(r.intl, seasonNo ?? Infinity)
             const intlMundial = intlTitles.mundial_titles
-            const intlLibertadores = intlTitles.libertadores_titles
+            const intlLibertadores = intlTitles.libertadores_titles + r.libOf
             const intlChampions = intlTitles.champions_titles
             // 🌍 a linha do último classificado ganha o corte da vaga da Copa do
             // Mundo — quem está em cima dela está dentro, quem está embaixo não.
@@ -7318,11 +7324,12 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {/* 🌱 o V entra na conta (07/09): clube que só tem título de Várzea aparecia "—", como se nunca tivesse ganhado nada */}
-                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc + intlMundial + intlLibertadores + intlChampions) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc + intlMundial + intlLibertadores + intlChampions + r.sulaOf) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › Supercopa › B › C › D), pra bater com o que decide quem fica na frente */}
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{tr('🌍Mundo', '🌍World')}{r.wc > 1 ? r.wc : ''}</span>}
                     {intlMundial > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌐Mundial{intlMundial > 1 ? intlMundial : ''}</span>}
                     {intlLibertadores > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#1B7A3D', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Libertadores{intlLibertadores > 1 ? intlLibertadores : ''}</span>}
+                    {r.sulaOf > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#C2452F', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Sul-Americana{r.sulaOf > 1 ? r.sulaOf : ''}</span>}
                     {intlChampions > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Champions{intlChampions > 1 ? intlChampions : ''}</span>}
                     {(r.h.A ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.h.A}</span>}
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: brasil ? '#fff' : INK, background: brasil ? '#0EA658' : GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{brasil ? '🏆🇧🇷' : tr('🏆Copa', '🏆Cup')}{r.copas > 1 ? r.copas : ''}</span>}
@@ -10635,13 +10642,16 @@ export function PyramidSeasonScreen() {
     const cmMuralG = state.seed != null ? (loadCopaSave(state.seed)?.mural ?? []) : []
     const cmTitlesG: Record<string, number> = {}
     for (const m of cmMuralG) cmTitlesG[m.campeao] = (cmTitlesG[m.campeao] ?? 0) + 1
+    // 🇧🇷 Libertadores real do Brasil Oficial: a MESMA conta do Rank (RankingTab), senão a vaga da Copa do Mundo discorda da tela
+    const libOfG: Record<string, number> = {}
+    if (state.oficial) for (const e of state.oficialCampeoes ?? []) if (e.liberta) libOfG[e.liberta] = (libOfG[e.liberta] ?? 0) + 1
     const rws = DIVS.flatMap(d => tables[d]).map(t => {
       const key = teamKey(t)
       const olds = oldChain(key)
       const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
       const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
       const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
-      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [] }
+      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [], libOf: libOfG[t.name] ?? 0 }
     })
     // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
     // detalhe: é este sort que escolhe o TOP 32 que entra na Copa do
@@ -10651,7 +10661,7 @@ export function PyramidSeasonScreen() {
       const intl = internationalTitleCounts(x.intl, state.seasonNo)
       return pontosDeTitulos({
         world: x.wc, copa: x.copas, supercopa: x.supercopa,
-        mundial: intl.mundial_titles, libertadores: intl.libertadores_titles, champions: intl.champions_titles,
+        mundial: intl.mundial_titles, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles,
         A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
       })
     }
@@ -10673,7 +10683,7 @@ export function PyramidSeasonScreen() {
     const meusNoTop = rws.slice(0, 32).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
     return { top16, meusNoTop, principalId }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory])
+  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory, state.oficial, state.oficialCampeoes])
   // 🌍 ANO DE COPA DO MUNDO: ELA VEM ANTES DO JORNAL (Diego 26/09: *"a copa do
   // mundo deveria ser jogada antes então de chegar o passo 1 do jornal"*). Motivo:
   // a Bola de Ouro sai no jornal e soma gol + assistência de TODAS as competições —
@@ -13715,7 +13725,7 @@ export function PyramidSeasonScreen() {
             })()}
             <div className="ll-rank-layout cv2-rank-layout"><div className="ll-rank-results">
             {rankSub === 'clubes' ? (
-              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} />
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} oficialCampeoes={state.oficial ? state.oficialCampeoes : undefined} />
             ) : rankSub === 'garcons' ? (
               <>
               {/* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O

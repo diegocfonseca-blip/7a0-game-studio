@@ -27,7 +27,12 @@
   com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
   vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ⏭️ Falta a festa de campeão da Sula (não há arte
   'sula' no `competicoes-visual`) e conferir na tela.
-- ⏭️ Falta: linha da Libertadores na Sala de Troféus/perfil, artilharia da Libertadores, quem não
+- ✅ 16/11 (noite): **Libertadores e Sul-Americana no Ranking e no Hall de Troféus** da carreira (só Brasil Oficial, lidas de
+  `oficialCampeoes`): Liberta soma como Libertadores (50 pts, a mesma do ranking e da vaga da Copa do Mundo — as duas contas andam
+  juntas); Sul-Americana ganha selo e caixa própria (vermelha) mas **0 ponto** até o Diego dizer quanto vale. ❓ Perguntar: quantos pontos?
+  Também: 4 cartas da Conmebol (Herrera/Vargas U. de Chile 2011, Cadavid/Pedro Franco Millonarios) eram cópia EXATA do baralho Mundo e
+  faziam a trava de vazamento falhar ao acaso — saíram dos lotes (o Mundo já entra no modo).
+- ⏭️ Falta: Libertadores no perfil (amigos.tsx), artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
 
