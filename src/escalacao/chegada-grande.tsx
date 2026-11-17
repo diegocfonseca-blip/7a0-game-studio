@@ -13,7 +13,10 @@ export function ChegadaGrande({ titulo, confronto, clube, onPular, children }: {
   return (
     <div style={{ position: 'relative', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 ${INK}`, margin: '0 0 10px', background: '#000' }}>
       {/* o mapa encaixa aqui (VagaDoMapa); a altura é fixa pra a página não pular */}
-      <div style={{ height: 340, overflow: 'hidden', pointerEvents: 'none' }}>{children}</div>
+      {/* dentro do quadro só a IMAGEM do mapa: botões, chips e avisos dele (Locais, Passear, tela cheia, "passamos pro Leve"…) somem —
+          eles cobriam o título (teste de 17/11). O mapa continua o mesmo; na aba Clube tudo volta. */}
+      <style>{'.ll-chegada-mapa *{visibility:hidden!important}.ll-chegada-mapa canvas{visibility:visible!important}'}</style>
+      <div className="ll-chegada-mapa" style={{ height: 340, overflow: 'hidden', pointerEvents: 'none' }}>{children}</div>
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(180deg,#0008 0%,transparent 28%,transparent 58%,#000d 100%)' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, top: 10, textAlign: 'center', pointerEvents: 'none' }}>
         <b style={{ ...OSW, display: 'block', fontSize: 26, color: GOLD, textShadow: `0 3px 0 ${INK}` }}>{titulo}</b>

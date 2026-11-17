@@ -11402,6 +11402,12 @@ export function PyramidSeasonScreen() {
     return { titulo, confronto: `${euNomeChegada} × ${pj.adv.name}`, clube: euNomeChegada }
   })()
   const chegadaProx = (preJogoCidade ?? (chegadaGrande ? preJogoAba : null))?.agenda
+  // 🎥 a câmera do mapa vai pro desembarque do ônibus quando o quadro abre (o mapa leva uns segundos pra ficar pronto: tenta de novo)
+  useEffect(() => {
+    if (!chegadaGrande) return
+    const ts = [1200, 3500, 7000].map(ms => window.setTimeout(() => clubeMapaApi.current?.view('coach-arrival'), ms))
+    return () => ts.forEach(t => window.clearTimeout(t))
+  }, [chegadaGrandeKey, !!chegadaGrande]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
