@@ -10789,10 +10789,12 @@ export function PyramidSeasonScreen() {
   // está nela (é ano de Copa e você está no TOP 32), o roteiro abre na Copa, e a
   // Bola de Ouro, o histórico da temporada e a comissão da Agência ESPERAM ela
   // acabar. Ano sem Copa (9 em cada 10) segue exatamente como era.
-  const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1) : { ano: false, jogada: false }),
+  // 🇧🇷 Brasil Oficial (Diego 17/11): sem Copa do Mundo até a temporada 50; dali em diante ela chega por CONVITE (a seleção da sua posição)
+  const cmAncora = state.oficial ? 50 : 100
+  const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1, cmAncora) : { ano: false, jogada: false }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state.seed, state.seasonNo, state.copaMundoStats, state.copaMundoMural])
-  const mundoAntes = done && !!state.careerOnline && state.onlineMode !== 'online' && (state.seasonNo ?? 1) >= 100 && cmAgenda.ano
+    [state.seed, state.seasonNo, state.copaMundoStats, state.copaMundoMural, cmAncora])
+  const mundoAntes = done && !!state.careerOnline && state.onlineMode !== 'online' && (state.seasonNo ?? 1) >= cmAncora && cmAgenda.ano
     // (depois de jogada ela FICA na frente, mesmo se o ranking mexer com o prêmio dela)
     && (cmVaga.top16.some(r => r.you) || state.copaMundoStats?.season === state.seasonNo)
   const mundoPendente = mundoAntes && !cmAgenda.jogada && state.copaMundoStats?.season !== state.seasonNo
@@ -13271,7 +13273,7 @@ export function PyramidSeasonScreen() {
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
+            return <CopaMundoGate anchor={cmAncora} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}

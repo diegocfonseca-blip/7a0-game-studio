@@ -239,18 +239,18 @@ export function mergedMundialMural(seed: number, cloudMural?: { season: number; 
 // (corrige o save antigo que tinha nascido com âncora 110). Quem já jogou uma Copa
 // mantém a agenda dele (não bagunça o que já rolou).
 const COPA_ANCHOR = 100
-function ensureSave(seed: number): CopaSave {
+function ensureSave(seed: number, anchor = COPA_ANCHOR): CopaSave {
   const cur = loadCopaSave(seed)
   if (cur) {
     // 🧯 blob antigo/parcial: garante os campos (sem isso, save sem played/mural
     // dava tela branca no fim de temporada inteiro — bug 10/08)
     if (!Array.isArray(cur.played)) cur.played = []
     if (!Array.isArray(cur.mural)) cur.mural = []
-    if (cur.played.length === 0 && cur.anchor !== COPA_ANCHOR) { cur.anchor = COPA_ANCHOR }
+    if (cur.played.length === 0 && cur.anchor !== anchor) { cur.anchor = anchor }
     saveCopaSave(seed, cur)
     return cur
   }
-  const fresh: CopaSave = { anchor: COPA_ANCHOR, mural: [], played: [] }
+  const fresh: CopaSave = { anchor, mural: [], played: [] }
   saveCopaSave(seed, fresh)
   return fresh
 }
@@ -258,8 +258,9 @@ export const isCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo >= s.anc
 // 🌍 é ano de Copa do Mundo nesta carreira? E ela já foi jogada? (26/09: nos anos
 // de Copa, o roteiro do fim de temporada abre NELA, antes do jornal — ordem do
 // Diego, pra Bola de Ouro já sair com os gols da Copa.) Lê a MESMA agenda do portão.
-export function copaMundoDaTemporada(seed: number, seasonNo: number): { ano: boolean; jogada: boolean } {
-  const s = ensureSave(seed)
+/** 🇧🇷 `anchor`: a 1ª temporada de Copa da carreira (100 na de sempre; 50 no Brasil Oficial — Diego 17/11) */
+export function copaMundoDaTemporada(seed: number, seasonNo: number, anchor = COPA_ANCHOR): { ano: boolean; jogada: boolean } {
+  const s = ensureSave(seed, anchor)
   return { ano: isCopaSeason(s, seasonNo), jogada: s.played.includes(seasonNo) }
 }
 export const nextCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo <= s.anchor ? s.anchor : s.anchor + Math.ceil((seasonNo - s.anchor) / 10) * 10
@@ -513,7 +514,7 @@ export function bestXISemRepetir(pool: Record<Sec, PoolCard[]>, f: Formation): P
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, motor2 = false, versaoM2 }: { /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, motor2 = false, versaoM2, anchor = COPA_ANCHOR, convite = false }: { /** 🇧🇷 Brasil Oficial (17/11): a Copa abre na temporada `anchor` (50) e chega por CONVITE — a seleção da mesma posição do seu clube no ranking; aceita ou recusa */ anchor?: number; convite?: boolean; /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
   // solto, a pessoa tinha que sair da tela e procurar a aba na mão.
   const rankLink = onGoRank
@@ -529,7 +530,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
   // e o jogo não registrava NADA. Agora o portão relê o save quando a Copa
   // fecha: edição decidida = botão some, ninguém joga a mesma Copa 2 vezes.
   const [saveVer, setSaveVer] = useState(0)
-  const save = useMemo(() => ensureSave(seed), [seed, saveVer])
+  const save = useMemo(() => ensureSave(seed, anchor), [seed, saveVer, anchor])
   // 🌍 BACKFILL do espelho (Diego 14/08): toda vez que essa tela abre, aproveita
   // pra mandar o mural LOCAL inteiro pro save (a ação já dedupa por temporada —
   // só entra o que ainda não tinha). Sem isso, só entrariam títulos NOVOS a
@@ -544,19 +545,19 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
   // ranking das seleções (nº de cartas — atualiza sozinho quando o baralho engorda)
   const paises16 = useMemo(() => rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais), [])
 
-  if (seasonNo < COPA_ANCHOR) return (
+  if (seasonNo < anchor) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      {internationalCareer && <div className="ov3-surface" style={{ background: seasonNo >= 40 ? '#E3F2DC' : '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9 }}>
+      {internationalCareer && !convite && <div className="ov3-surface" style={{ background: seasonNo >= 40 ? '#E3F2DC' : '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0 }}>{seasonNo >= 40 ? '✓' : '🔒'} TEMPORADA 40 · 🌎 FUTEBOL INTERNACIONAL DE CLUBES</p>
         <p style={{ fontSize: 10, fontWeight: 800, margin: '4px 0' }}>CONMEBOL Libertadores · UEFA Champions League · Mundial de Clubes</p>
         <div className="ov3-surface" style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}><div style={{ width: `${Math.min(100, seasonNo / 40 * 100)}%`, height: '100%', background: '#1B7A3D' }} /></div>
         <small>{seasonNo >= 40 ? 'Disponível nesta carreira. A campanha nacional define sua prioridade de escolha.' : `Faltam ${40 - seasonNo} temporadas para desbloquear.`}</small>
       </div>}
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>{tr('🔒 Copa do Mundo Legends', '🔒 Legends World Cup')}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season 100</b> — and only clubs in the <b>TOP 32 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 32 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season {anchor}</b> — and only clubs in the <b>TOP 32 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada {anchor}</b> — e só entra quem estiver no <b>TOP 32 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
       <div className="ov3-surface" style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
-        <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
-        <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>{tr('temporada', 'season')} {seasonNo} {tr('de', 'of')} 100</b>
+        <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo / anchor * 100)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
+        <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>{tr('temporada', 'season')} {seasonNo} {tr('de', 'of')} {anchor}</b>
       </div>
     </div>
   )
@@ -586,7 +587,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
         <span style={{ position: 'relative' }}>{tr('🌍 DISPUTAR A COPA DO MUNDO', '🌍 PLAY THE WORLD CUP')}</span>
         <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>{tr('chegou a hora — ela só volta na temporada', 'the time has come — it only returns in season')} {seasonNo + 10}!</span>
       </button>
-      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} motor2={motor2} versaoM2={versaoM2} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
+      {open && <CopaMundo convite={convite} seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} motor2={motor2} versaoM2={versaoM2} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
     </>
   )
 }
@@ -605,7 +606,7 @@ export const CMModal = ({ children, wide = false, cinematic = false, onlineBroad
     </div>
   </div>, document.body)}
 
-function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, onClose, motor2 = false, versaoM2 }: { motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, onClose, motor2 = false, versaoM2, convite = false }: { convite?: boolean; motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
   // um gerador compartilhado com estado fazia o resultado mudar sozinho)
   // 🔒 ANTI-HACK DO F5 (14/08): se ESTA temporada já tem torneio carimbado
@@ -670,6 +671,17 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myPais, myXI, myForm, top16, paises16, nCopa, congeladas])
 
+  if (phase === 'select' && convite) {
+    // ✉️ CONVITE (Brasil Oficial, Diego 17/11): a seleção da MESMA posição do seu clube no ranking dos 32 te chama. Aceitou = convoca;
+    // recusou = a Copa desta temporada fica sem você (a edição conta como passada, o roteiro segue).
+    const pais = paises16[myPos] ?? paises16[paises16.length - 1] ?? 'Brasil'
+    return (
+      <CMModal>
+        <ConviteSelecao pais={pais} pos={myPos} clube={top16[myPos]?.name ?? tr('Você', 'You')} onAceita={() => { setMyPais(pais); setPhase('convoke') }}
+          onRecusa={() => { const cur = loadCopaSave(seed) ?? save; saveCopaSave(seed, { ...cur, played: [...new Set([...cur.played, seasonNo])] }); onStats?.([]); onClose() }} />
+      </CMModal>
+    )
+  }
   if (phase === 'select') return (
     <CMModal>
       <SelecaoScreen paises16={paises16} myPos={myPos} myClub={top16[myPos]?.name ?? tr('Você', 'You')} onPick={p => { setMyPais(p); setPhase('convoke') }} onClose={onClose} />
@@ -701,6 +713,27 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
     </CMModal>
   )
   return null
+}
+
+// ── ✉️ tela 1 do Brasil Oficial: o CONVITE da seleção (aceitar ou recusar) ──
+export function ConviteSelecao({ pais, pos, clube, onAceita, onRecusa }: { pais: string; pos: number; clube: string; onAceita: () => void; onRecusa: () => void }) {
+  return (
+    <>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase', color: INK }}>{tr('✉️ Chegou um convite', '✉️ An invitation arrived')}</p>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.65)', textAlign: 'center', margin: '6px 0 12px', lineHeight: 1.45 }}>
+        {getLang() === 'en' ? <><b>{clube}</b> is <b>{ordinal(pos + 1)} in the club ranking</b> — and the {ordinal(pos + 1)} national team in the World Cup ranking wants you as its coach.</> : <><b>{clube}</b> é o <b>{ordinal(pos + 1)} do ranking de clubes</b> — e a {pos + 1}ª seleção do ranking da Copa quer você como técnico.</>}
+      </p>
+      <div style={{ ...box('#fff'), padding: '14px 12px', textAlign: 'center', marginBottom: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
+        <div style={{ fontSize: 44, lineHeight: 1 }}>{flagOf(pais)}</div>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 22, margin: '6px 0 0', textTransform: 'uppercase', color: INK }}>{pais}</p>
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={onRecusa} style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 8px', fontWeight: 900, ...OSWALD, fontSize: 14, background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Recusar', 'Decline')}</button>
+        <button onClick={onAceita} style={{ flex: 1, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 8px', fontWeight: 900, ...OSWALD, fontSize: 14, background: GOLD, color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('✓ Aceitar e convocar', '✓ Accept and call up')}</button>
+      </div>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center', margin: '8px 0 0' }}>{tr('Recusou? A Copa desta temporada segue sem você.', 'Declined? This season’s Cup goes on without you.')}</p>
+    </>
+  )
 }
 
 // ── tela 1: escolha da seleção (trava pela posição no ranking de clubes) ──

@@ -27,6 +27,11 @@
   com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
   vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ⏭️ Falta a festa de campeão da Sula (não há arte
   'sula' no `competicoes-visual`) e conferir na tela.
+- ✅ 17/11 — **COPA DO MUNDO NO BRASIL OFICIAL: SÓ DA TEMPORADA 50 EM DIANTE, E POR CONVITE** (Diego: *"somente após chegar na
+  temporada 50 e com convite e não mais escolhendo… recebe convite pelo ranking dos mesmos 32… se aceita ou não comandar a seleção do
+  rank onde ele tá"* → *"Isso mesmo"*). No modo oficial a âncora é 50 (`cmAncora`; carreira normal segue 100). No lugar da lista de
+  seleções aparece `ConviteSelecao`: o clube em 5º no ranking é chamado pela 5ª seleção. Aceitar = convoca; recusar = a Copa daquela
+  temporada roda sem ele (fica marcada como jogada). A caixa de "Copa internacional" do portão some no oficial. Carreira normal: nada mudou.
 - ✅ 16/11 (noite) — **CORREÇÃO DA REGRA DO BARALHO** (Diego: *"Neymar pode no Santos baralho Brasil, Barcelona Europa e Al Hilal do Mundo… só
   não duas vezes no mesmo"*). Eu tinha tratado o modo como baralho à parte e devolvido famosos que JÁ estavam no mesmo baralho. Agora:
   clube brasileiro do modo = baralho Brasil, clube de fora = baralho Mundo. **119 cartas saíram** (Sócrates e Raí no Botafogo-SP, Careca
