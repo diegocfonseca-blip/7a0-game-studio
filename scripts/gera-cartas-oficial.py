@@ -3,12 +3,14 @@
 # Rodar de novo sempre que uma lista mudar: python3 scripts/gera-cartas-oficial.py
 import re, json, unicodedata
 import glob
-ARQS = ['docs/brasil-oficial/cartas-serie-a.md', 'docs/brasil-oficial/cartas-serie-b1.md', 'docs/brasil-oficial/cartas-serie-b2.md', 'docs/brasil-oficial/cartas-complemento.md', 'docs/brasil-oficial/cartas-serie-c.md'] + sorted(glob.glob('docs/brasil-oficial/cartas-d-*.md')) + sorted(glob.glob('docs/brasil-oficial/cartas-conmebol-*.md'))
+ARQS = ['docs/brasil-oficial/cartas-serie-a.md', 'docs/brasil-oficial/cartas-serie-b1.md', 'docs/brasil-oficial/cartas-serie-b2.md', 'docs/brasil-oficial/cartas-complemento.md', 'docs/brasil-oficial/cartas-serie-c.md'] + sorted(glob.glob('docs/brasil-oficial/cartas-d-*.md')) + sorted(glob.glob('docs/brasil-oficial/cartas-conmebol-*.md')) + ['docs/brasil-oficial/cartas-intercontinental.md']
 # lotes da Série D / estaduais / Copa: o cabeçalho da seção É o nome do clube na lista mestra (brasil-oficial-clubes.ts)
 # 🏆 clubes estrangeiros da Libertadores: o cabeçalho É o nome (o mesmo de ESTRANGEIROS_LIBERTA_2026)
 CONMEBOL = set()
 for _f in ('src/escalacao/libertadores-oficial.ts', 'src/escalacao/sul-americana-oficial.ts'):
   _t = open(_f, encoding='utf-8').read(); CONMEBOL |= set(re.findall(r"nome: '([^']+)', pais:", _t)) | set(re.findall(r'nome: "([^"]+)", pais:', _t))
+# 🌐 os de fora da Intercontinental 2026 (o PSG já tem cartas de sobra em data.ts)
+INTER = {'Toluca', 'Mamelodi Sundowns', 'Al-Ahli', 'Auckland FC'}
 MESTRA = {json.loads(l.strip().rstrip(','))['nome'] for l in open('src/escalacao/brasil-oficial-clubes.ts', encoding='utf-8') if l.strip().startswith('{')}
 # cabeçalho da seção → nome do clube no jogo (a chave do escudo, igual a CLUBES_BR em brasil-oficial.ts)
 CLUBE = [('Amazonas','Amazonas'),('Anápolis','Anápolis'),('Barra-SC','Barra'),('Botafogo-PB','Botafogo-PB'),('Brusque','Brusque'),('Caxias','Caxias'),('Confiança','Confiança'),('Ferroviária','Ferroviária'),('Figueirense','Figueirense'),('Floresta','Floresta'),('Guarani','Guarani'),('Inter de Limeira','Inter de Limeira'),('Itabaiana','Itabaiana'),('Ituano','Ituano'),('Maranhão','Maranhão'),('Maringá','Maringá'),('Paysandu','Paysandu'),('Santa Cruz','Santa Cruz'),('Volta Redonda','Volta Redonda'),('Ypiranga-RS','Ypiranga'),('Athletico-PR','Athletico-PR'),('Bahia','Bahia'),('Vitória','Vitória'),('Fortaleza','Fortaleza'),('Mirassol','Mirassol'),('Remo','Remo'),('Red Bull Bragantino','Bragantino'),('Bragantino','Bragantino'),('Chapecoense','Chapecoense'),
@@ -32,7 +34,7 @@ for arq in ARQS:
   clube = None; cab = None
   for ln in open(arq, encoding='utf-8'):
     if ln.startswith('## '):
-      h = ln[3:].strip(); clube = (h if h in MESTRA else None) if '/cartas-d-' in arq else (h if h in CONMEBOL else None) if '/cartas-conmebol-' in arq else clube_de(h); cab = None
+      h = ln[3:].strip(); clube = (h if h in MESTRA else None) if '/cartas-d-' in arq else (h if h in CONMEBOL else None) if '/cartas-conmebol-' in arq else (h if h in INTER else None) if '/cartas-intercontinental' in arq else clube_de(h); cab = None
       if h.lower().startswith(('conferência','totais','pontos','descartados','dúvidas','xarás revistos')): clube = None; cab = 'fora'
       elif h.lower().startswith('xarás'): clube = 'XARA'
       continue

@@ -8,8 +8,9 @@ import { CATALOG, CATALOG_WORLD } from '../src/escalacao/data.ts'
 import { CATALOG_OFICIAL } from '../src/escalacao/data-oficial.ts'
 import { ESTRANGEIROS_LIBERTA_2026 } from '../src/escalacao/libertadores-oficial.ts'
 import { ESTRANGEIROS_SULA_2026 } from '../src/escalacao/sul-americana-oficial.ts'
+import { CLUBES_INTERCONTINENTAL } from '../src/escalacao/intercontinental-oficial.ts'
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s*\(.*\)\s*/g, '').trim()
-const fora = new Set([...ESTRANGEIROS_LIBERTA_2026, ...ESTRANGEIROS_SULA_2026].map((c: { nome: string }) => c.nome))
+const fora = new Set([...[...ESTRANGEIROS_LIBERTA_2026, ...ESTRANGEIROS_SULA_2026].map((c: { nome: string }) => c.nome), ...CLUBES_INTERCONTINENTAL])
 type Carta = { name: string; club: string; year: number }
 const base: Record<'BR' | 'MUNDO', Map<string, Carta[]>> = { BR: new Map(), MUNDO: new Map() }
 const pus = (m: Map<string, Carta[]>, c: Carta) => { const k = norm(c.name); (m.get(k) ?? m.set(k, []).get(k)!).push(c) }

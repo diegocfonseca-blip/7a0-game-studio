@@ -187,6 +187,9 @@ const MAPA = {
   'Noroeste': J('Noroeste'), 'Portuguesa': J('Associação_Portuguesa_de_Desportos'), 'Primavera-SP': J('Primavera'), 'Velo Clube': J('Velo_Clube'),
   'XV de Piracicaba': J('XV_de_Piracicaba'), 'Água Santa': J('Esporte_Clube_Água_Santa'), 'Araguaína': J('Araguaína_Futebol_e_Regatas'), 'Tocantinópolis': J('Tocantinópolis_Esporte_Clube'),
   // 🇧🇷 Brasil Oficial (15/11): os que nenhum acervo tem — escudo da página do clube na pt.wikipedia
+  // 🌐 Intercontinental 2026 (17/11): os dois que nenhum acervo tem — escudo da página do clube na pt.wikipedia
+  'Mamelodi Sundowns': Wk('https://upload.wikimedia.org/wikipedia/pt/9/93/Mamelodi_Sundowns_FC.png'),
+  'Auckland FC': Wk('https://upload.wikimedia.org/wikipedia/commons/a/aa/Auckland_FC_logo.svg'),
   'Vasco-AC': Wk('https://upload.wikimedia.org/wikipedia/pt/a/ac/ADVascoAC.png'),
   'Coruripe': Wk('https://upload.wikimedia.org/wikipedia/pt/b/b4/EscudoAACoruripe.png'),
   'Cruzeiro-AL': Wk('https://upload.wikimedia.org/wikipedia/pt/9/96/ECCruzeiroAL.png'),

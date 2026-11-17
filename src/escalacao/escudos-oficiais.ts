@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 364 escudos · 3346 KB somados.
+// 366 escudos · 3362 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -1367,6 +1367,16 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "Tocantinópolis": {
     "src": "escudos-clubes/tocantinopolis.webp",
     "w": 160,
+    "h": 160
+  },
+  "Mamelodi Sundowns": {
+    "src": "escudos-clubes/mamelodi-sundowns.webp",
+    "w": 160,
+    "h": 135
+  },
+  "Auckland FC": {
+    "src": "escudos-clubes/auckland-fc.webp",
+    "w": 111,
     "h": 160
   },
   "Vasco-AC": {
