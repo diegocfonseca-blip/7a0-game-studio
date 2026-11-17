@@ -64,6 +64,11 @@
   na 5ª · 4 campeões na 3ª · 102 dos estaduais por cota de federação 6/5/4/3, os 28 piores no ranking CBF na 1ª fase; 2027 = 128 clubes,
   Copa Verde sai e entram Copa Norte/Centro-Oeste/Sul-Sudeste). ⏭️ Falta LIGAR no modo: cotas por estado a partir dos estaduais
   simulados (o modo só tem 17 dos 27), régua própria pro ranking CBF (não é dado aberto) e os INCERTOS de 2027 (corte 1ª/2ª fase).
+- 🐛 17/11 (achado no teste da Intercontinental, VALE PRA CARREIRA NORMAL TAMBÉM — está no ar): a COLETIVA da copa abria aos ~3' do jogo
+  SEGUINTE já com o placar final dele (spoiler). Causa: o "fase pronta" (`copaReady`) da fase anterior valia por um render depois da
+  virada. Agora o pronto guarda DE QUAL fase é (`copaReadyDe`/`copaPronta`) e coletiva, botão "Próxima fase", chave da Central e cartão do
+  próximo jogo leem ele. Coletiva também não abre mais em rodada de pontos corridos (estadual/grupos falavam em "eliminação"). "1 confronto".
+  Teste da Intercontinental: telas certas (cabeçalho, Toluca/Sundowns com escudo, pênaltis), sem erro; festa de campeão não chegou a ser vista.
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx) — ⚠️ os títulos do perfil vêm do SERVIDOR (soma das carreiras na nuvem), então
   pôr Liberta/Sula/Intercontinental do Brasil Oficial lá exige mexer na função do banco; fazer junto da liberação do modo, artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol

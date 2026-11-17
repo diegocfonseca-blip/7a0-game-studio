@@ -10042,6 +10042,10 @@ export function PyramidSeasonScreen() {
   }
   const [copaPos, setCopaPos] = useState(0) // relógio da fase (0..nLegs*90) no nível da TELA (o placar fica em cima das abas)
   const [copaReady, setCopaReady] = useState(false) // 🎮 no manual, libera a "Próxima fase" quando a fase acaba de animar
+  // 🚫 SPOILER DA COLETIVA (17/11, achado no teste): na virada pra fase seguinte o `copaReady` da fase ANTERIOR ainda vale por um
+  // render, e a coletiva abria com o jogo NOVO (já sorteado) — placar final na tela aos 3'. Guarda DE QUAL fase é o "pronto".
+  const copaReadyDe = useRef(-1)
+  const copaPronta = copaReady && copaReadyDe.current === copaRound // o "pronto" vale só pra fase de AGORA
   // 🎙️ COLETIVA COMO PASSO (20/10): com a sala de imprensa aberta (ou esperando), a Copa NÃO vira de fase sozinha — o
   // avanço automático fica guardado e sai quando a coletiva fecha (o próximo jogo nunca aparece antes dela)
   const coletivaSegura = useRef(false), copaEsperaColetiva = useRef(false)
@@ -10518,7 +10522,7 @@ export function PyramidSeasonScreen() {
     // do campinho ainda está rolando nesta tela (aparelho lento), o botão e o avanço esperam a última cobrança (até 8 s a mais)
     let segura: ReturnType<typeof setTimeout> | null = null
     const semDisputa = (f: () => void) => () => { const ini = Date.now(); const tenta = () => { if (disputaRolandoNaTela() && Date.now() - ini < 8000) segura = setTimeout(tenta, 250); else f() }; tenta() }
-    const rdy = pensNoCampo ? null : setTimeout(semDisputa(() => setCopaReady(true)), Math.max(0,dur+250+penMs-already)) // 🎬 07/11: era 0,9 × dur — o botão (e a chave da Central, a coletiva) acendia com o fim da volta (ou a disputa) ainda rolando
+    const rdy = pensNoCampo ? null : setTimeout(semDisputa(() => { copaReadyDe.current = copaRound; setCopaReady(true) }), Math.max(0,dur+250+penMs-already)) // 🎬 07/11: era 0,9 × dur — o botão (e a chave da Central, a coletiva) acendia com o fim da volta (ou a disputa) ainda rolando
     const adv = manual || pensNoCampo ? null : setTimeout(semDisputa(avancaCopaAuto), Math.max(0,dur+2200+penMs-already))
     return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); if (rdy) clearTimeout(rdy); if (adv) clearTimeout(adv); if (segura) clearTimeout(segura) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
@@ -10528,7 +10532,7 @@ export function PyramidSeasonScreen() {
     if(!copaPlaying||!(copaCampo||pensNoCampo)||!copaCampoEncerrado)return
     if (myCopaTie?.pens && pensCampoFinalizado !== chavePensCampo) return
     // O campo concluiu a última cobrança; agora pode liberar/avançar a fase.
-    const rdy=setTimeout(()=>setCopaReady(true),250)
+    const rdy=setTimeout(()=>{copaReadyDe.current=copaRound;setCopaReady(true)},250)
     const adv=manual?null:setTimeout(avancaCopaAuto,2200)
     return()=>{clearTimeout(rdy);if(adv)clearTimeout(adv)}
   },[copaPlaying,copaCampo,pensNoCampo,copaCampoEncerrado,copaRound,manual,!!myCopaTie?.pens,pensCampoFinalizado,chavePensCampo])
@@ -11412,6 +11416,7 @@ export function PyramidSeasonScreen() {
   // 🏆 na Copa: eliminado · véspera da final (ganhou a semi) · campeão
   const montaCtxCopa = useCallback((): { ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null } } | null => {
     if (!copa || !copaFase || !myCopaTie || !me || !myDiv) return null
+    if ((myCopaTie as { liga?: boolean }).liga) return null // rodada de pontos corridos (estadual, grupos): não existe "eliminado" nem "final"
     const youIsA = !!myCopaTie.a.you
     const won = (myCopaTie.win === 'a') === youIsA
     const ehFinal = copaFase.name === 'Final' || copaFase.name === 'Supercopa'
@@ -11435,7 +11440,7 @@ export function PyramidSeasonScreen() {
   useEffect(() => {
     if (!coletivaOn || coletivaPronta || done && !copaPlaying) return
     const naLiga = !copaPlaying && round >= 1 && roundReady && revealed >= round && !!myMatch && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
-    const naCopa = copaPlaying && copaReady && !!myCopaTie
+    const naCopa = copaPlaying && copaPronta && copaReadyDe.current === copaRound && !!myCopaTie
     if (!naLiga && !naCopa) return
     const chave = naCopa ? `${sn}:c${copaRound}` : `${sn}:${round}`
     if (coletivaOfertada.current.has(chave)) return
@@ -11445,7 +11450,7 @@ export function PyramidSeasonScreen() {
     if (!feito) return
     const pronta = montaColetiva(feito.ctx, coletivaSave, state.seed ?? 1)
     if (pronta) setColetivaPronta({ pronta, ctx: feito.ctx, alvo: feito.alvo, chave })
-  }, [coletivaOn, coletivaPronta, done, copaPlaying, round, roundReady, revealed, myMatch, halfMode, halftimeDone, penMode, penaltyDone, copaReady, myCopaTie, copaRound, sn, coletivaSave, montaCtxCopa, montaCtxLiga, state.seed])
+  }, [coletivaOn, coletivaPronta, done, copaPlaying, round, roundReady, revealed, myMatch, halfMode, halftimeDone, penMode, penaltyDone, copaPronta, myCopaTie, copaRound, sn, coletivaSave, montaCtxCopa, montaCtxLiga, state.seed])
   useEffect(() => { setColetivaPronta(null) }, [state.seasonNo]) // temporada nova, mesa limpa
   // ⭐ APRESENTAÇÃO DAS LENDAS (22/10, Diego: *"pode fazer a letra A e C junto"*): no começo da temporada (rodada 0), se o
   // leilão trouxe LENDA pro seu clube, elas sentam na bancada da coletiva — todas juntas numa tela só. Uma vez por temporada.
@@ -11797,7 +11802,7 @@ export function PyramidSeasonScreen() {
   const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
   const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!seasonOver || copaPlaying) ? {
     manualOk: manualAllowed, manual, velocidade: campo2d ? vel2dCarr : state.simSpeed ?? 1, // 📺 06/11: com o 2D a marcha é a do campinho (a mesma da aba Jogos)
-    podeAvancar: copaPlaying ? copaReady : ligaPodeAvancar,
+    podeAvancar: copaPlaying ? copaPronta : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
     alternaManual: toggleManualCareer, mudaVelocidade: v => { if (campo2d) { if (r2dCarr.teste) setVel2D(v) } else dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
@@ -11931,12 +11936,12 @@ export function PyramidSeasonScreen() {
     if (!idx.length) return null
     const colunas = idx.map(i => {
       const r = copa.rounds[i]
-      const visto = i < copaRound || (i === copaRound && copaReady)
+      const visto = i < copaRound || (i === copaRound && copaPronta)
       const chegou = i <= copaRound
       return { nome: r.name, jogos: r.ties.map(tie => chegou ? { a: tie.a.name, b: tie.b.name, ga: visto ? tie.aggA : undefined, gb: visto ? tie.aggB : undefined, venceA: visto ? tie.win === 'a' : undefined, youA: tie.a.you, youB: tie.b.you } : null) }
     })
     return { titulo: `🏆 ${copaBrOk ? 'Copa do Brasil' : tr('Copa Legends', 'Legends Cup')} · ${tr('chave', 'bracket')}`, colunas }
-  }, [copaPlaying, copa, copaFase, copaRound, copaReady, copaBrOk])
+  }, [copaPlaying, copa, copaFase, copaRound, copaPronta, copaBrOk])
   const copaArtCentral = useMemo(() => (copaChaveCentral ? copaScorersShown.slice(0, 3).map(x => ({ nome: x.name, time: x.teamName, gols: x.goals, you: x.you })) : null), [copaChaveCentral, copaScorersShown])
   // 🛤️ TRILHA DA TEMPORADA (22/10, mockup aprovado *"Rank e jogos aprovado"*): no topo da aba Jogos, onde você está
   // no ano — Liga → Copa → Supercopa → internacional → Copa do Mundo. Só entra etapa que vale pra você (internacional da
@@ -12061,8 +12066,8 @@ export function PyramidSeasonScreen() {
       const arte: CentralArte = supercopa ? 'super' : playoff ? 'estadio' : copaArte
       const jogoUnico = copaNLegs === 1
       if (myCopaTie) {
-        compProximo = { rodada: copaRound + 1, casa: myCopaTie.a.name, fora: myCopaTie.b.name, rolando: !copaReady, arte,
-          rotulo: `🏆 ${tr(nome[0], nome[1])} · ${copaFaseName}${!copaReady ? tr(' · rolando', ' · live') : ''}`,
+        compProximo = { rodada: copaRound + 1, casa: myCopaTie.a.name, fora: myCopaTie.b.name, rolando: !copaPronta, arte,
+          rotulo: `🏆 ${tr(nome[0], nome[1])} · ${copaFaseName}${!copaPronta ? tr(' · rolando', ' · live') : ''}`,
           frase: jogoUnico ? tr('🎯 Mata-mata em jogo único — empatou, vai pros pênaltis', '🎯 One-off knockout — a draw goes to penalties') : tr('🎯 Ida e volta — vale o placar somado', '🎯 Two legs — aggregate score counts') }
         compManchete = { pt: `${nome[0]} · ${copaFaseName}: ${euNome} encara ${myCopaTie.a.teamId === youId ? myCopaTie.b.name : myCopaTie.a.name}`, en: `${nome[1]} · ${copaFaseName}: ${euNome} face ${myCopaTie.a.teamId === youId ? myCopaTie.b.name : myCopaTie.a.name}`, sub: jogoUnico ? ['Jogo único: quem perder, está fora.', 'One-off: lose and you are out.'] : ['Ida e volta: quem somar mais, avança.', 'Two legs: higher aggregate goes through.'] }
       } else {
@@ -12171,7 +12176,7 @@ export function PyramidSeasonScreen() {
       sub: sn < 100 ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + 10 : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + 10 : proxMundo}`] })
     // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
     const botao = (() => {
-      if (copaPlaying) return { label: myCopaTie ? (copaReady ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr('🏆 Jogo da Copa rolando — assistir', '🏆 Cup match live — watch')) : tr('🏆 Assistir a Copa', '🏆 Watch the Cup'), sub: tr('o controle da Copa está em Jogos', 'the Cup controls are in Matches'), onClick: vai('jogos') }
+      if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr('🏆 Jogo da Copa rolando — assistir', '🏆 Cup match live — watch')) : tr('🏆 Assistir a Copa', '🏆 Watch the Cup'), sub: tr('o controle da Copa está em Jogos', 'the Cup controls are in Matches'), onClick: vai('jogos') }
       if (intlNoAr) return { label: compProximo ? tr('🌎 Jogar a noite internacional', '🌎 Play the international night') : tr('🌎 Abrir o futebol internacional', '🌎 Open international football'), sub: tr('em Jogos, no passo da competição', 'in Matches, at the competition step'), onClick: vai('jogos') }
       if (mundoPendente) return { label: tr('🌍 Jogar a Copa do Mundo', '🌍 Play the World Cup'), sub: tr('ela abre o roteiro, em Jogos', 'it opens the wrap-up, in Matches'), onClick: vai('jogos') }
       if (done) return { label: tr('🏁 Fim de temporada — ver', '🏁 Season over — see'), sub: tr('o roteiro está na aba Jogos', 'the wrap-up is in Matches'), onClick: vai('jogos') }
@@ -12541,7 +12546,7 @@ export function PyramidSeasonScreen() {
             kind={interFase ? 'mundial' : libFase ? 'liberta' : !copaPlaying || playoffFase ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
             title={`${calBarra?.selo && tab === 'jogos' ? `${calBarra.selo.toUpperCase()} · ` : ''}${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : state.oficial ? 'BRASILEIRÃO' : 'LIGA LEGENDS'}`}
             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : faseOficialAgora ? `${faseOficialAgora.fase} · ${tr('jogo', 'match')} ${faseOficialAgora.n}/${faseOficialAgora.total}` : tr('Rodada ', 'Round ')+round+'/38'}`}
-            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : ''}
+            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${(copaFase?.ties.length ?? 0) === 1 ? tr('confronto', 'tie') : tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : ''}
             status={copaPlaying ? copaPos >= copaFaseTotal ? (copaFase?.ties[0]?.liga ? tr('Rodada encerrada · confira os resultados e a tabela', 'Round over · check the results and the table') : tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties')) : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : tr('Bola rolando', 'Ball rolling')}>
             <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>motivoTorcida(h.motivo)).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
             {copaPlaying && !playoffFase && !libFase && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}
@@ -13137,10 +13142,10 @@ export function PyramidSeasonScreen() {
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {verNo3D && <button onClick={verNo3D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🏟️ Ver o jogo no estádio do mapa', '🏟️ Watch the match in the map stadium')}</button>}
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaPronta}
               onNext={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
               onSkip={() => { if (coletivaOpen) { abreColetiva(() => setCopaRound(r => r + 1)); return } setCopaRound(r => r + 1) }}
-              nextLabel={!copaReady ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…') : copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')} />
+              nextLabel={!copaPronta ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…') : copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')} />
           </div>
           ) : <><Botao2D soComDireito /><ManualLockButton /></>
         )}
