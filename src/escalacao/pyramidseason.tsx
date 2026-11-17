@@ -11350,36 +11350,53 @@ export function PyramidSeasonScreen() {
     }
     return confrontoDaRodada(world[myDiv] ?? [], (seasonSeed ^ (myDiv.charCodeAt(0) * 2654435761)) >>> 0, r).find(([h, a]) => h.teamId === youId || a.teamId === youId)
   }
-  const preJogoCidade = (() => {
-    if (!calOn || !mapaNoClube || !myDiv || round < 1 || round >= 38 || calFase !== 'dias' || !calDiasOk) return null
+  // 🚌 a chegada do ônibus no mapa (dia de jogo em CASA). `paraJogos` (17/11): a mesma conta, pra aba Jogos mostrar a chegada
+  // em jogo grande — e agora também na quarta de Copa (Copa do Brasil/Legends, Libertadores, Sul-Americana: Diego, *"tem que ter em
+  // todas competições"*). A da aba Jogos NÃO liga o `chegando` (que segura o automático): só empresta a agenda pro mapa.
+  const montaPreJogo = () => {
+    if (!calOn || !myDiv || round < 1 || round >= 38 || calFase !== 'dias') return null
+    // 🏆 quarta de Copa: a fase pendente, se você joga a ida EM CASA (o mesmo id que o jogo da Copa usa no mapa)
+    if (copaPendente && meNaFaseCopa && calI >= CAL_QUARTA && copa) {
+      const fase = copa.rounds[copaRound], tie = fase?.ties.find(t => t.a.teamId === youId || t.b.teamId === youId)
+      if (!fase || !tie || tie.a.teamId !== youId) return null
+      const fixtureId = `${seasonSeed}:copa:${copaRound}:${fase.name}:leg:0:${tie.a.teamId}:${tie.b.teamId}`
+      const agenda = agendaFasesComplexo({ seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, fixtureId, competition: 'cup', homeClubId: tie.a.teamId, previousMatchdays: 38, phaseMatchdays: diasDasFasesCopaComplexo(copa.rounds), phaseIndex: copaRound, legIndex: 0 })
+      if (!agenda) return null
+      return { kind: 'c' as const, fase: fase.name, adv: tie.b, agenda, arrivalTeams: { fixtureId: agenda.fixtureId, teams: [tie.a, tie.b].map(team => ({ name: team.name, color: colors?.[team.teamId]?.solid ?? (team.teamId === youId ? myCol.solid : '#3A7CA5'), players: (team.human ? lineupAt(careerLineup, team.teamId, round + 1, team.squad, team.formation) : team.xi).map(c => ({ id: c.id, name: c.name, pos: c.pos, club: c.club, year: c.year })) })) } }
+    }
+    if (!calDiasOk) return null
     const r = round + 1, pr = parDaRodada(r)
     if (!pr || pr[0].teamId !== youId) return null
     const agenda=agendaLigaComplexo({ fixtureId: `${seasonSeed}:${r}:${pr[0].teamId}:${pr[1].teamId}`, seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, round: r, homeClubId: pr[0].teamId })
     if(!agenda)return null
-    return {agenda,arrivalTeams:{fixtureId:agenda.fixtureId,teams:pr.map(team=>({name:team.name,color:colors?.[team.teamId]?.solid??(team.teamId===youId?myCol.solid:'#3A7CA5'),players:(team.human?lineupAt(careerLineup,team.teamId,r,team.squad,team.formation):team.xi).map(c=>({id:c.id,name:c.name,pos:c.pos,club:c.club,year:c.year}))}))}}
+    return {kind:'l' as const,fase:'',adv:pr[1],agenda,arrivalTeams:{fixtureId:agenda.fixtureId,teams:pr.map(team=>({name:team.name,color:colors?.[team.teamId]?.solid??(team.teamId===youId?myCol.solid:'#3A7CA5'),players:(team.human?lineupAt(careerLineup,team.teamId,r,team.squad,team.formation):team.xi).map(c=>({id:c.id,name:c.name,pos:c.pos,club:c.club,year:c.year}))}))}}
 
-  })()
-  const chegadaProx=preJogoCidade?.agenda
+  }
+  const preJogoCidade = mapaNoClube && !copaPendente ? montaPreJogo() : null // a chegada de sempre da aba Clube (só liga, como era)
+  const preJogoAba = tab === 'jogos' && stadiumMapAvailable ? montaPreJogo() : null
   const [chegadaFeita, setChegadaFeita] = useState('')
-  const chegadaKey = chegadaProx ? `${calSn}:${round}` : ''
-  const chegando = !!chegadaProx && chegadaFeita !== chegadaKey
+  const chegadaKey = preJogoCidade ? `${calSn}:${round}` : ''
+  const chegando = !!preJogoCidade && chegadaFeita !== chegadaKey
   // 🚌🎉 JOGO GRANDE EM CASA (17/11, mockup aprovado): clássico (rival/arquirrival da carreira ou outro humano) ou reta final
   // (rodada 30+ brigando no G6) — a MESMA régua da lotação do estádio. A aba Jogos mostra a chegada do ônibus no mapa
   // (`ChegadaGrande`); no automático ela dura um pouco mais (9 s em vez de 3) e "Pular chegada" corta na hora.
   const [chegadaPulada, setChegadaPulada] = useState('')
+  const euNomeChegada = state.managers.find(m => m.id === youId)?.teamName ?? ''
+  const chegadaGrandeKey = preJogoAba ? `${calSn}:${round}:${preJogoAba.kind}` : ''
   const chegadaGrande = (() => {
-    if (!chegando || !stadiumMapAvailable || chegadaPulada === chegadaKey) return null
-    const pr = parDaRodada(round + 1)
-    if (!pr || pr[0].teamId !== youId) return null
-    const adv = pr[1]
+    const pj = preJogoAba
+    if (!pj || chegadaPulada === chegadaGrandeKey || jogoOk === chegadaGrandeKey) return null // pulou ou já começou o jogo
     const rivais = state.managers.filter(m => m.rival && !m.isHuman).map(m => m.teamName)
-    const classico = adv.human || rivais.includes(adv.name) || adv.name === coletivaSave.arquirrival
+    const classico = pj.adv.human || rivais.includes(pj.adv.name) || pj.adv.name === coletivaSave.arquirrival
+    const final = pj.kind === 'c' && (/(^|· )Final$/.test(pj.fase) || pj.fase === 'Supercopa'), semi = pj.kind === 'c' && /Semi/.test(pj.fase)
     const minhaPos = myDiv ? (tables[myDiv] ?? []).findIndex((t: SimTeam) => t.you) + 1 : 0
-    const reta = round + 1 >= 30 && minhaPos > 0 && minhaPos <= 6
-    if (!classico && !reta) return null
-    return { titulo: classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in'), confronto: `${pr[0].name} × ${adv.name}`, clube: pr[0].name }
+    const reta = pj.kind === 'l' && round + 1 >= 30 && minhaPos > 0 && minhaPos <= 6
+    if (!classico && !final && !semi && !reta) return null
+    const titulo = final ? tr('🏆 Final', '🏆 Final') : semi ? tr('🏆 Semifinal', '🏆 Semi-final') : classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in')
+    return { titulo, confronto: `${euNomeChegada} × ${pj.adv.name}`, clube: euNomeChegada }
   })()
-  useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), chegadaGrande ? 9000 : CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey, !!chegadaGrande]) // eslint-disable-line react-hooks/exhaustive-deps
+  const chegadaProx = (preJogoCidade ?? (chegadaGrande ? preJogoAba : null))?.agenda
+  useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
     const out: { r: number; m: SimMatch }[] = []
@@ -12339,7 +12356,7 @@ export function PyramidSeasonScreen() {
   const festaTitulo: EstadoPartidaEstadio | undefined = presidentAvailable && divFesta && stadiumMatch && myMatch && (myMatch.hId === youId || myMatch.aId === youId) ? {
     context: { ...stadiumMatch, tituloDivisao: divFesta }, officialTeams: [myMatch.h, myMatch.a], minute: 93, period: 2, homeScore: myMatch.hg, awayScore: myMatch.ag, paused: true, finished: true,
     homeColor: myMatch.hId === youId ? myCol.solid : colors?.[myMatch.hId]?.solid ?? '#3A7CA5', awayColor: myMatch.aId === youId ? myCol.solid : colors?.[myMatch.aId]?.solid ?? '#C2452F' } : undefined
-  const mapaDoClube = !presidentPending && stadiumMapAvailable ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:preJogoCidade?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
+  const mapaDoClube = !presidentPending && stadiumMapAvailable ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:(preJogoCidade??(chegadaGrande?preJogoAba:null))?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
   const renderEstruturaDoClube=(insidePanel=false,business=false)=> (
           <>
             {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
@@ -12924,7 +12941,7 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {tab === 'jogos' && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaKey)}><VagaDoMapa /></ChegadaGrande>}
+        {tab === 'jogos' && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>}
         {tab === 'jogos' && calBarra?.proxCard}
         {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some

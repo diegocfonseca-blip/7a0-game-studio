@@ -13793,7 +13793,11 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   🚌 17/11 (Diego: *"ok pode seguir"* no mockup `scripts/mockups/onibus-jogo-grande-*.png`): (3) FEITA no branch — `ChegadaGrande`
   na aba Jogos: em jogo grande EM CASA da liga (clássico = rival/arquirrival/humano, ou reta final rodada 30+ no G6 — a mesma régua da
   lotação), no dia do jogo, o mapa de verdade com o ônibus chegando + título + "Pular chegada". No automático a chegada dura 9 s em vez
-  de 3 (só em jogo grande); nunca segura o botão de começar. ⚠️ Final de Copa em casa ainda não tem chegada no mapa (o dia de jogo do
-  mapa só conhece a liga).
+  de 3 (só em jogo grande); nunca segura o botão de começar.
+  🔁 17/11 (Diego: *"por que só liga?… tem que ter em todas competições"*): agora também na QUARTA de Copa — Copa do Brasil/Legends,
+  Libertadores, Sul-Americana (ida em casa; grande = final, semi ou clássico). E a chegada da aba Jogos não atrasa mais nada: fica na
+  tela enquanto você não começa o jogo (sumiu o "9 s"); quem segura o automático continua sendo só a chegada de sempre da aba Clube.
+  ⏭️ Falta: os jogos FORA da semana (final da Liberta/Sula e Intercontinental depois da liga, Supercopa, playoff da B) — ali não
+  existe "dia de espera" antes do jogo; pra não criar passo novo, a ideia é mostrar a chegada na tela de resultado da fase anterior.
   ⏭️ Falta: (4) mais gente em volta do estádio no dia de jogo (e gente no clube de lazer/balada) — mockup antes.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
