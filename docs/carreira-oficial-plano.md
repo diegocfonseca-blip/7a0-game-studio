@@ -231,7 +231,7 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   das copas (placar, Manual, campinho, motor novo no seu jogo), com a tabela do estadual ao vivo só com o que foi apitado e os
   outros jogos embaixo; jogo de pontos corridos não diz "avança". No fim grava `oficialEstaduais` (campeão, vice, rebaixados,
   classificação) e o botão volta a ser "Começar a temporada". Testado no navegador (Paysandu no Parazão).
-  ⏭️ Falta: (a) o estadual na aba Tabelas depois de jogado (resultado/campeão) — ✅ 17/11 já entra no Hall de Troféus (caixa com o nome do estadual, sem ponto no ranking: ❓ Diego decide quanto vale); (b) faixas na tabela
+  ⏭️ Falta: (a) o estadual na aba Tabelas depois de jogado (resultado/campeão) — ✅ 17/11 já entra no Hall de Troféus (caixa com o nome do estadual) e vale 5 pts no ranking (Diego 17/11, "ok" — igual à Série C); (b) faixas na tabela
   (quartas/cai); (c) a escalação do usuário no estadual hoje é a automática (a troca de time durante o estadual não vale ainda);
   (d) ✅ 17/11: recarregar no meio do estadual agora CONTINUA de onde parou (botão "Continuar o <estadual>", página guardada numa chave só do aparelho, `esc-estadual-pag`; ainda não testado no navegador); (e) a data no topo é a das quartas-feiras
   da Copa (fev) — o estadual real é jan–mar.

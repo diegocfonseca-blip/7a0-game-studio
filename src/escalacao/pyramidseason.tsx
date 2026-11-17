@@ -7245,6 +7245,8 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   // 🇧🇷 Brasil Oficial (16/11): Libertadores e Sul-Americana REAIS gravam o campeão pelo NOME em `oficialCampeoes`.
   const libOf: Record<string, number> = {}, sulaOf: Record<string, number> = {}, interOf: Record<string, number> = {} // 🌐 Intercontinental conta como Mundial
   for (const e of oficialCampeoes ?? []) { if (e.liberta) libOf[e.liberta] = (libOf[e.liberta] ?? 0) + 1; if (e.sula) sulaOf[e.sula] = (sulaOf[e.sula] ?? 0) + 1; if (e.intercontinental) interOf[e.intercontinental] = (interOf[e.intercontinental] ?? 0) + 1 }
+  const estOf: Record<string, number> = {} // 🏟️ estadual: 5 pts (Diego 17/11, "ok" — igual à Série C)
+  for (const e of oficialEstaduais ?? []) estOf[e.campeao] = (estOf[e.campeao] ?? 0) + 1
   // 🏆 o nome exibido do troféu de Copa troca conforme a conta é tester ou
   // não (mesmo contador careerCopaHonors serve pras duas — Diego 16/08:
   // "não são coisas novas, só alterou o nome e o formato", ninguém perde
@@ -7266,7 +7268,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     // campeão pelo NOME, então a ponte tem que ser pela corrente de NOMES
     // (oldChain do NOME) — antes usava só oldChain(key)='m{id}' (vazio p/ humano),
     // e o 🌍 sumia da linha ao renomear (bug 10/08).
-    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, supercopa: pick(supercopaHonors ?? {}) ?? 0, money, wc: [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0), intl: t.teamId === youId ? intlHistory : [], libOf: libOf[t.name] ?? 0, sulaOf: sulaOf[t.name] ?? 0, interOf: interOf[t.name] ?? 0 }
+    return { t, key, h: pick(honors) ?? EMPTY_HONORS, copas: pick(copaHonors) ?? 0, supercopa: pick(supercopaHonors ?? {}) ?? 0, money, wc: [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitles[o] ?? 0), 0), intl: t.teamId === youId ? intlHistory : [], libOf: libOf[t.name] ?? 0, sulaOf: sulaOf[t.name] ?? 0, interOf: interOf[t.name] ?? 0, estOf: estOf[t.name] ?? 0 }
   })
   // ordem (docs/conceito-copa-brasil.md §7.3, FECHADO — Supercopa é o único
   // critério NOVO, logo depois da Copa; a Copa em si NÃO trocou de posição
@@ -7281,7 +7283,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     const intl = internationalTitleCounts(x.intl, seasonNo ?? Infinity)
     return pontosDeTitulos({
       world: x.wc, copa: x.copas, supercopa: x.supercopa,
-      mundial: intl.mundial_titles + x.interOf, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf,
+      mundial: intl.mundial_titles + x.interOf, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf, estadual: x.estOf,
       A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
     })
   }
@@ -7326,7 +7328,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{tr('🏆 RANKING GERAL', '🏆 OVERALL RANKING')}</p>
       <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{getLang() === 'en' ? <>Every title is worth points and the rank ADDS them up: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Cup <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Tied? 💰 breaks it. The <b>top {VAGAS_MUNDO}</b> qualify for the 🌍 World Cup.</> : <>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata. Os <b>{VAGAS_MUNDO} primeiros</b> pegam vaga na 🌍 Copa do Mundo.</>}</p>
       {intlHistory.length > 0 && <p style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D', margin: '0 0 8px' }}>🌍 Copa do Mundo +{PTS_TITULO.mundo} · 🌐 Mundial de Clubes +{PTS_TITULO.mundial} · 🌎 Libertadores +{PTS_TITULO.libertadores} · 🌍 Champions +{PTS_TITULO.champions} · 🇧🇷 Copa do Brasil +{PTS_TITULO.copa}</p>}
-      {oficialCampeoes && <p style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D', margin: '0 0 8px' }}>🌎 Libertadores +{PTS_TITULO.libertadores} · 🌎 {tr('Sul-Americana', 'Sudamericana')} +{PTS_TITULO.sula}</p>}
+      {oficialCampeoes && <p style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D', margin: '0 0 8px' }}>🌎 Libertadores +{PTS_TITULO.libertadores} · 🌎 {tr('Sul-Americana', 'Sudamericana')} +{PTS_TITULO.sula} · 🏟️ {tr('Estadual', 'State league')} +{PTS_TITULO.estadual}</p>}
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Títulos', 'Titles')}</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
@@ -7358,11 +7360,12 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {/* 🌱 o V entra na conta (07/09): clube que só tem título de Várzea aparecia "—", como se nunca tivesse ganhado nada */}
-                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc + intlMundial + intlLibertadores + intlChampions + r.sulaOf) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc + intlMundial + intlLibertadores + intlChampions + r.sulaOf + r.estOf) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › Supercopa › B › C › D), pra bater com o que decide quem fica na frente */}
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{tr('🌍Mundo', '🌍World')}{r.wc > 1 ? r.wc : ''}</span>}
                     {intlMundial > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌐Mundial{intlMundial > 1 ? intlMundial : ''}</span>}
                     {intlLibertadores > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#1B7A3D', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Libertadores{intlLibertadores > 1 ? intlLibertadores : ''}</span>}
+                    {r.estOf > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#E8503A', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏟️{r.estOf > 1 ? r.estOf : ''}</span>}
                     {r.sulaOf > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#C2452F', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Sul-Americana{r.sulaOf > 1 ? r.sulaOf : ''}</span>}
                     {intlChampions > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Champions{intlChampions > 1 ? intlChampions : ''}</span>}
                     {(r.h.A ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.h.A}</span>}
@@ -7458,12 +7461,12 @@ export async function globalRankRpc(name: GlobalRankRpc, args: Record<string, nu
 // 🏅 01/10 (Diego, no 1º teste da carreira internacional): *"Copa do Mundo vale mais pontos,
 // agora vem o Mundial 60 pontos, depois Libertadores/Champions 50, depois o padrão (Copa do
 // Brasil, Série A…)"*. Antes: Mundial 50 · Libertadores/Champions 40.
-export const PTS_TITULO = { mundo: 200, mundial: 60, libertadores: 50, champions: 50, sula: 25, copa: 30, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
+export const PTS_TITULO = { mundo: 200, mundial: 60, libertadores: 50, champions: 50, sula: 25, copa: 30, estadual: 5, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
 export function pontosDeTitulos(t: {
-  world?: number; mundial?: number; libertadores?: number; champions?: number; sula?: number; copa?: number; supercopa?: number; A?: number; B?: number; C?: number; D?: number; V?: number
+  world?: number; mundial?: number; libertadores?: number; champions?: number; sula?: number; estadual?: number; copa?: number; supercopa?: number; A?: number; B?: number; C?: number; D?: number; V?: number
 }): number {
   return (t.world ?? 0) * PTS_TITULO.mundo + (t.copa ?? 0) * PTS_TITULO.copa
-    + (t.mundial ?? 0) * PTS_TITULO.mundial + (t.libertadores ?? 0) * PTS_TITULO.libertadores + (t.champions ?? 0) * PTS_TITULO.champions + (t.sula ?? 0) * PTS_TITULO.sula
+    + (t.mundial ?? 0) * PTS_TITULO.mundial + (t.libertadores ?? 0) * PTS_TITULO.libertadores + (t.champions ?? 0) * PTS_TITULO.champions + (t.sula ?? 0) * PTS_TITULO.sula + (t.estadual ?? 0) * PTS_TITULO.estadual
     + (t.A ?? 0) * PTS_TITULO.A + (t.supercopa ?? 0) * PTS_TITULO.supercopa
     + (t.B ?? 0) * PTS_TITULO.B + (t.C ?? 0) * PTS_TITULO.C
     + (t.D ?? 0) * PTS_TITULO.D + (t.V ?? 0) * PTS_TITULO.V
@@ -10738,13 +10741,15 @@ export function PyramidSeasonScreen() {
     // 🇧🇷 Libertadores real do Brasil Oficial: a MESMA conta do Rank (RankingTab), senão a vaga da Copa do Mundo discorda da tela
     const libOfG: Record<string, number> = {}, sulaOfG: Record<string, number> = {}, interOfG: Record<string, number> = {}
     if (state.oficial) for (const e of state.oficialCampeoes ?? []) { if (e.liberta) libOfG[e.liberta] = (libOfG[e.liberta] ?? 0) + 1; if (e.sula) sulaOfG[e.sula] = (sulaOfG[e.sula] ?? 0) + 1; if (e.intercontinental) interOfG[e.intercontinental] = (interOfG[e.intercontinental] ?? 0) + 1 }
+    const estOfG: Record<string, number> = {}
+    if (state.oficial) for (const e of state.oficialEstaduais ?? []) estOfG[e.campeao] = (estOfG[e.campeao] ?? 0) + 1
     const rws = DIVS.flatMap(d => tables[d]).map(t => {
       const key = teamKey(t)
       const olds = oldChain(key)
       const pick = <V,>(rec: Record<string, V>): V | undefined => rec[key] ?? olds.map(o => rec[o]).find(v => v !== undefined)
       const money = t.human ? (state.careerCoins?.[t.teamId] ?? 0) : Math.round(pick(cc) ?? 0)
       const wc = [...new Set([t.name, key, ...olds, ...oldChain(t.name)])].reduce((n, o) => n + (cmTitlesG[o] ?? 0), 0)
-      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [], libOf: libOfG[t.name] ?? 0, sulaOf: sulaOfG[t.name] ?? 0, interOf: interOfG[t.name] ?? 0 }
+      return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [], libOf: libOfG[t.name] ?? 0, sulaOf: sulaOfG[t.name] ?? 0, interOf: interOfG[t.name] ?? 0, estOf: estOfG[t.name] ?? 0 }
     })
     // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
     // detalhe: é este sort que escolhe o TOP 32 que entra na Copa do
@@ -10754,7 +10759,7 @@ export function PyramidSeasonScreen() {
       const intl = internationalTitleCounts(x.intl, state.seasonNo)
       return pontosDeTitulos({
         world: x.wc, copa: x.copas, supercopa: x.supercopa,
-        mundial: intl.mundial_titles + x.interOf, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf,
+        mundial: intl.mundial_titles + x.interOf, libertadores: intl.libertadores_titles + x.libOf, champions: intl.champions_titles, sula: x.sulaOf, estadual: x.estOf,
         A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
       })
     }
@@ -10776,7 +10781,7 @@ export function PyramidSeasonScreen() {
     const meusNoTop = rws.slice(0, 32).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
     return { top16, meusNoTop, principalId }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory, state.oficial, state.oficialCampeoes])
+  }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory, state.oficial, state.oficialCampeoes, state.oficialEstaduais])
   // 🌍 ANO DE COPA DO MUNDO: ELA VEM ANTES DO JORNAL (Diego 26/09: *"a copa do
   // mundo deveria ser jogada antes então de chegar o passo 1 do jornal"*). Motivo:
   // a Bola de Ouro sai no jornal e soma gol + assistência de TODAS as competições —
