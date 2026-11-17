@@ -78,7 +78,8 @@ import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não 
 import { careerCupAssists } from './career-match-model'
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00 (mesma conta em toda tela)
 import { exactPenaltyRows } from './online-penalties'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa, clubCanon } from './data'
+import { SELOS } from './selos-clubes'
 import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, rotuloFormacao } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
@@ -11362,7 +11363,14 @@ export function PyramidSeasonScreen() {
     const fixtureId = `${seasonSeed}:copa:${fi}:${fase.name}:leg:0:${tie.a.teamId}:${tie.b.teamId}`
     const agenda = agendaFasesComplexo({ seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, fixtureId, competition: 'cup', homeClubId: tie.a.teamId, previousMatchdays: 38, phaseMatchdays: diasDasFasesCopaComplexo(copa.rounds), phaseIndex: fi, legIndex: 0 })
     if (!agenda) return null
-    return { kind, fase: fase.name, adv: tie.b, agenda, arrivalTeams: { fixtureId: agenda.fixtureId, teams: [tie.a, tie.b].map(team => ({ name: team.name, color: colors?.[team.teamId]?.solid ?? (team.teamId === youId ? myCol.solid : '#3A7CA5'), players: (team.human ? lineupAt(careerLineup, team.teamId, round + 1, team.squad, team.formation) : team.xi).map(c => ({ id: c.id, name: c.name, pos: c.pos, club: c.club, year: c.year })) })) } }
+    return { kind, fase: fase.name, adv: tie.b, agenda, arrivalTeams: { fixtureId: agenda.fixtureId, teams: [tie.a, tie.b].map(team => ({ name: team.name, color: colors?.[team.teamId]?.solid ?? (team.teamId === youId ? myCol.solid : '#3A7CA5'), ...corDoOnibus(team.name), players: (team.human ? lineupAt(careerLineup, team.teamId, round + 1, team.squad, team.formation) : team.xi).map(c => ({ id: c.id, name: c.name, pos: c.pos, club: c.club, year: c.year })) })) } }
+  }
+  // 🚌🎨 17/11 (Diego: "o ônibus deveria ser da cor do time"): no Brasil Oficial os clubes são REAIS — o ônibus (e a delegação, as
+  // bandeiras da rua) sai nas cores do clube de verdade (as mesmas do selo do Leilão de Clubes). Na carreira de sempre fica como era.
+  const corDoOnibus = (nome: string): { color?: string; secondaryColor?: string } => {
+    if (!state.oficial) return {}
+    const s = SELOS[clubCanon(nome)] ?? SELOS[nome]
+    return s ? { color: s.c1, secondaryColor: s.c2 } : {}
   }
   const montaPreJogo = () => {
     if (!calOn || !myDiv || round < 1 || round >= 38 || calFase !== 'dias') return null
@@ -11373,7 +11381,7 @@ export function PyramidSeasonScreen() {
     if (!pr || pr[0].teamId !== youId) return null
     const agenda=agendaLigaComplexo({ fixtureId: `${seasonSeed}:${r}:${pr[0].teamId}:${pr[1].teamId}`, seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, round: r, homeClubId: pr[0].teamId })
     if(!agenda)return null
-    return {kind:'l' as const,fase:'',adv:pr[1],agenda,arrivalTeams:{fixtureId:agenda.fixtureId,teams:pr.map(team=>({name:team.name,color:colors?.[team.teamId]?.solid??(team.teamId===youId?myCol.solid:'#3A7CA5'),players:(team.human?lineupAt(careerLineup,team.teamId,r,team.squad,team.formation):team.xi).map(c=>({id:c.id,name:c.name,pos:c.pos,club:c.club,year:c.year}))}))}}
+    return {kind:'l' as const,fase:'',adv:pr[1],agenda,arrivalTeams:{fixtureId:agenda.fixtureId,teams:pr.map(team=>({name:team.name,color:colors?.[team.teamId]?.solid??(team.teamId===youId?myCol.solid:'#3A7CA5'),...corDoOnibus(team.name),players:(team.human?lineupAt(careerLineup,team.teamId,r,team.squad,team.formation):team.xi).map(c=>({id:c.id,name:c.name,pos:c.pos,club:c.club,year:c.year}))}))}}
 
   }
   const preJogoCidade = mapaNoClube && !copaPendente ? montaPreJogo() : null // a chegada de sempre da aba Clube (só liga, como era)
