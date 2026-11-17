@@ -90,7 +90,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
-import { clubeOficial, cartasDoClube, sorteiaElenco, CLUBES_BR_OUTROS, MINIMO_TIME, type ClubeOficial } from './brasil-oficial'
+import { clubeOficial, cartasDoClube, sorteiaElenco, CLUBES_BR_OUTROS, CLUBES_BR_TODOS, MINIMO_TIME, type ClubeOficial } from './brasil-oficial'
 import { CLUBES_MESTRA } from './brasil-oficial-clubes'
 const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c => c.nome)
 import { turnoUnico, turnoEReturno, type Joga, type Penaltis } from './campeonato-oficial'
@@ -1901,9 +1901,76 @@ export function fabricaTimesOficiais(world: Record<Div, SimTeam[]>, seed: number
  * (cotas por estado) e dos campeões do ano — INCERTO até a pesquisa das cotas: aqui a lista de 2026 vale, a Série A de AGORA
  * entra na 5ª e quem caiu da A vai pra 2ª; 1ª e 2ª fase continuam com 28 e 74 (os de série mais baixa na 1ª).
  */
-export function entradasCopaBrasilOficial(world: Record<Div, SimTeam[]>, seed: number): { t: SimTeam; div: Div }[][] | null {
+export type CtxCopaBrasilOficial = {
+  seasonNo: number
+  /** campeões da Série C e da Série D da temporada ANTERIOR do modo (entram na 3ª fase) */
+  prev?: { campeaoC?: string; campeaoD?: string } | null
+  /** classificação final do estadual (do campeão ao último) — é dela que sai a cota do estado */
+  classificacao?: (estadual: string) => string[] | null
+}
+// 🇧🇷 17/11 (Diego: "faça como foi em 26… parecido"): a cota de vagas de cada federação = a de 2026 (Ranking Nacional de
+// Federações 2026: 6·6·5·5·5·4…3 = 102), contada na própria lista real de 2026 (critério 3 = quem entrou na 1ª ou 2ª fase).
+const COTA_UF_2026: Record<string, number> = (() => {
+  const c: Record<string, number> = {}
+  for (const x of CLUBES_MESTRA) if (x.copa === '1ª fase' || x.copa === '2ª fase') c[x.uf] = (c[x.uf] ?? 0) + 1
+  return c
+})()
+/**
+ * 🇧🇷 COPA DO BRASIL de 2027 em diante, do jeito de 2026 (`docs/brasil-oficial/copa-do-brasil-vagas.md`):
+ *  · 5ª fase: os 20 da Série A do ano;
+ *  · 3ª fase (4 vagas, critério 2): campeão da Série C e da Série D do ano anterior do modo + as vagas da Copa do Nordeste e da
+ *    Copa Verde, que o modo não joga — ⚠️ INCERTO/escolha minha: ficam com quem as teve em 2026 (Confiança e Paysandu);
+ *    vaga de quem já está classificado desce pro próximo da lista (regra minha: não achei a regra escrita do vice nesses casos);
+ *  · 102 vagas dos estados (critério 3) com a COTA DE 2026 de cada um: pela classificação do estadual (os 17 que o modo joga);
+ *    estado sem estadual no modo = os clubes dele que jogaram a Copa de 2026, na mesma ordem, e depois os outros pela divisão.
+ *    Sempre pulando quem já entrou por outro caminho ("excluídos os anteriores") — a vaga nunca troca de estado.
+ *  · 1ª × 2ª fase: o Ranking Nacional de Clubes não é aberto → ⚠️ régua minha: os 28 de divisão mais baixa vão pra 1ª.
+ */
+function entradasCopaBrasil2027(world: Record<Div, SimTeam[]>, time: (nome: string) => { t: SimTeam; div: Div } | null, ctx: CtxCopaBrasilOficial): { t: SimTeam; div: Div }[][] {
+  const out: { t: SimTeam; div: Div }[][] = [[], [], [], [], []]
+  const dentro = new Set<string>()
+  const pega = (nome: string | undefined) => { if (!nome || dentro.has(nome)) return null; const x = time(nome); if (!x || x.div === 'A') return null; dentro.add(nome); return x }
+  for (const t of world.A ?? []) { const x = time(t.name); if (x) { out[4].push(x); dentro.add(t.name) } }
+  const rank: Record<Div, number> = { A: 0, B: 1, C: 2, D: 3, V: 4 }
+  // ── critério 2 (3ª fase) ──
+  const nome = (n: string) => clubeOficial(n)?.nome ?? n
+  const crit2 = [ctx.prev?.campeaoC, ctx.prev?.campeaoD, 'Confiança', 'Paysandu', 'Ponte Preta', 'Barra'].map(n => n && nome(n))
+  for (const n of crit2) { if (out[2].length >= 4) break; const x = pega(n ?? undefined); if (x) out[2].push(x) }
+  // (save velho sem os campeões da C/D e a lista acima esgotada: o melhor de fora pela divisão fecha as 4 — régua minha, pra a chave fechar)
+  for (const n of DIVS.flatMap(d => (world[d] ?? []).map(t => t.name))) { if (out[2].length >= 4) break; const x = pega(n); if (x) out[2].push(x) }
+  // ── critério 3 (102 dos estados) ──
+  const lista26 = CLUBES_MESTRA.filter(c => c.copa === '1ª fase' || c.copa === '2ª fase').map(c => ({ nome: nome(c.nome), uf: c.uf, f: c.copa === '1ª fase' ? 0 : 1 }))
+  const fase26 = new Map(lista26.map(c => [c.nome, c.f]))
+  const doEstado = (uf: string) => [...CLUBES_BR_TODOS.filter(c => c.uf === uf)]
+  const estaduais: { x: { t: SimTeam; div: Div }; ordem: number }[] = []
+  for (const uf of Object.keys(COTA_UF_2026).sort()) {
+    const cota = COTA_UF_2026[uf]
+    const clubes = doEstado(uf)
+    const est = clubes.find(c => c.estadual)?.estadual ?? ''
+    const cls = est ? ctx.classificacao?.(est) ?? null : null
+    const ordem: string[] = []
+    const poe = (n: string) => { const k = nome(n); if (!ordem.includes(k)) ordem.push(k) }
+    if (cls) cls.forEach(poe)
+    lista26.filter(c => c.uf === uf).forEach(c => poe(c.nome))
+    clubes.map(c => ({ n: c.nome, d: time(c.nome)?.div })).filter(c => c.d).sort((a, b) => rank[a.d!] - rank[b.d!]).forEach(c => poe(c.n))
+    let n = 0
+    for (const k of ordem) { if (n >= cota) break; const x = pega(k); if (x) { estaduais.push({ x, ordem: n }); n++ } }
+  }
+  // estado sem clube suficiente no modo: a vaga que sobrou vai pro melhor de fora pela divisão (régua minha, pra fechar a chave)
+  if (estaduais.length < 102) {
+    const resto = DIVS.flatMap(d => (world[d] ?? []).map(t => t.name)).filter(n => !dentro.has(n))
+    for (const n of resto) { if (estaduais.length >= 102) break; const x = pega(n); if (x) estaduais.push({ x, ordem: 9 }) }
+  }
+  const ord = estaduais.slice(0, 102).sort((a, b) => rank[a.x.div] - rank[b.x.div] || (fase26.get(b.x.t.name) ?? 0) - (fase26.get(a.x.t.name) ?? 0) || a.ordem - b.ordem)
+  const n1 = Math.min(28, ord.length - (ord.length % 2 ? 1 : 0)) // a 1ª fase tem que ser PAR (ninguém fica sem adversário)
+  out[1] = ord.slice(0, ord.length - n1).map(e => e.x)
+  out[0] = ord.slice(ord.length - n1).map(e => e.x)
+  return out
+}
+export function entradasCopaBrasilOficial(world: Record<Div, SimTeam[]>, seed: number, ctx?: CtxCopaBrasilOficial): { t: SimTeam; div: Div }[][] | null {
   const time = fabricaTimesOficiais(world, seed)
   if (!time) return null
+  if (ctx && ctx.seasonNo > 1) return entradasCopaBrasil2027(world, time, ctx)
   const A = new Set((world.A ?? []).map(t => t.name))
   // a fase de entrada mora na LISTA MESTRA (a das Séries A–C não carrega o campo `copa`); o nome passa pelo do modo
   const lista = CLUBES_MESTRA.filter(c => c.copa).map(c => ({ nome: clubeOficial(c.nome)?.nome ?? c.nome, copa: c.copa }))
@@ -9818,13 +9885,28 @@ export function PyramidSeasonScreen() {
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
   const cbUnlocked = useCopaBrasilLiberada()
+  // 🇧🇷 17/11: de 2027 em diante a Copa do Brasil do modo sai das vagas de 2026 (cota por estado + campeões da C/D do ano anterior).
+  // A cota do estado segue a classificação do estadual: o SEU, como foi jogado; os outros 16, simulados por baixo (mesma semente).
+  const ctxCopaOficial = useMemo((): CtxCopaBrasilOficial | undefined => {
+    if (!state.oficial) return undefined
+    const n = state.seasonNo ?? 1
+    if (n <= 1) return { seasonNo: n }
+    const prev = state.oficialCampeoes?.find(e => e.temporada === n - 1) ?? null
+    const meu = state.oficialEstaduais?.find(e => e.temporada === n)
+    const cache = new Map<string, string[] | null>()
+    return { seasonNo: n, prev, classificacao: (est: string) => {
+      if (meu && meu.nome && (meu.nome === est || NOME_ESTADUAL[est] === meu.nome) && meu.classificacao.length) return meu.classificacao
+      if (!cache.has(est)) { let c: string[] | null = null; try { c = computeEstadualCarreira(est, world, state.seed, n, capElite, realGoals)?.resultado.classificacao ?? null } catch { c = null } cache.set(est, c) }
+      return cache.get(est) ?? null
+    } }
+  }, [state.oficial, state.seasonNo, state.oficialCampeoes, state.oficialEstaduais, world, state.seed, capElite, realGoals])
   // 🇧🇷 no Brasil Oficial a Copa do Brasil é a REAL (126 clubes, 9 fases — `entradasCopaBrasilOficial`), sem esperar desbloqueio
   const copaBR = useMemo(() => {
     if (!(done || copaMid)) return null
     const base = copaMid ? world : tables
-    if (state.oficial) { const ent = entradasCopaBrasilOficial(base, state.seed); return ent ? computeCopaBrasil(base, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ent) : null }
+    if (state.oficial) { const ent = entradasCopaBrasilOficial(base, state.seed, ctxCopaOficial); return ent ? computeCopaBrasil(base, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ent) : null }
     return cbUnlocked ? computeCopaBrasil(base, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa) : null
-  }, [state.oficial, done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa])
+  }, [state.oficial, done, copaMid, world, cbUnlocked, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa, m2Copa, recepcaoCopa, ctxCopaOficial])
   // 🏆🔵 SUPERCOPA LEGENDS: campeão da Série A × campeão da Copa do Brasil,
   // jogo único, logo depois que a Copa do Brasil termina (docs/conceito-
   // copa-brasil.md § 5). Já sai calculada junto (é determinística — não
@@ -10137,7 +10219,7 @@ export function PyramidSeasonScreen() {
     // mudava as dependências e o efeito rodava sem parar ("Maximum update depth exceeded" no fim de toda temporada do modo)
     if ((state.oficialCampeoes ?? []).some(e => e.temporada === (state.seasonNo ?? 1))) return
     const lib = libertaCalc?.resultado
-    dispatch({ type: 'CAMPEOES_OFICIAIS', campeoes: { temporada: state.seasonNo ?? 1, serieA: tables.A[0].name, serieAVice: tables.A[1].name, copa: copaBR.champion.name, copaVice: copaBR.vice.name, serieATop: tables.A.map(t => t.name), ...(lib ? { liberta: lib.campeao, libertaVice: lib.vice } : {}), ...(sulaCalc ? { sula: sulaCalc.resultado.campeao } : {}), ...(interCalc ? { intercontinental: interCalc.resultado.campeao } : {}) } })
+    dispatch({ type: 'CAMPEOES_OFICIAIS', campeoes: { temporada: state.seasonNo ?? 1, serieA: tables.A[0].name, serieAVice: tables.A[1].name, copa: copaBR.champion.name, copaVice: copaBR.vice.name, serieATop: tables.A.map(t => t.name), ...(live.oficial?.C.campeao ? { campeaoC: live.oficial.C.campeao } : {}), ...(live.oficial?.D.campeao ? { campeaoD: live.oficial.D.campeao } : {}), ...(lib ? { liberta: lib.campeao, libertaVice: lib.vice } : {}), ...(sulaCalc ? { sula: sulaCalc.resultado.campeao } : {}), ...(interCalc ? { intercontinental: interCalc.resultado.campeao } : {}) } })
   }, [state.oficial, done, copaFinished, copaBR, tables, state.seasonNo, libertaCalc, sulaCalc, state.oficialCampeoes]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🇧🇷 as fases oficiais que valem pra tela e pro acesso. Com o SEU playoff da B (jogado na tela), ele substitui o simulado de
   // fundo: é ele que decide quem sobe, e o quadro só mostra o placar depois de jogado (antes disso o playoff nem aparece).

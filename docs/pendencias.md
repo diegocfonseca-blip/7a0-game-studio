@@ -82,6 +82,12 @@
   na 5ª · 4 campeões na 3ª · 102 dos estaduais por cota de federação 6/5/4/3, os 28 piores no ranking CBF na 1ª fase; 2027 = 128 clubes,
   Copa Verde sai e entram Copa Norte/Centro-Oeste/Sul-Sudeste). ⏭️ Falta LIGAR no modo: cotas por estado a partir dos estaduais
   simulados (o modo só tem 17 dos 27), régua própria pro ranking CBF (não é dado aberto) e os INCERTOS de 2027 (corte 1ª/2ª fase).
+  ✅ 17/11 (Diego: *"faça como foi em 26 então… parecido"*): LIGADA no branch (`entradasCopaBrasil2027`). Da 2ª temporada em diante:
+  20 da Série A na 5ª · 3ª fase = campeões da C e da D do ano anterior do modo (gravados agora em `oficialCampeoes.campeaoC/D`) +
+  as vagas do Nordeste e da Verde, que o modo não joga, com quem as teve em 2026 (Confiança, Paysandu) · 102 pela COTA DE 2026 de
+  cada estado, na ordem do estadual (o seu como foi jogado; os outros 16 simulados por baixo; estado sem estadual = a ordem de 2026 e
+  depois a divisão), pulando quem já entrou · 1ª fase = os 28 de divisão mais baixa (régua minha, RNC não é aberto). Formato 126 de
+  2026 (não 128). Trava no `npm run brasil-oficial`.
 - 🐛 17/11 (achado no teste da Intercontinental, VALE PRA CARREIRA NORMAL TAMBÉM — está no ar): a COLETIVA da copa abria aos ~3' do jogo
   SEGUINTE já com o placar final dele (spoiler). Causa: o "fase pronta" (`copaReady`) da fase anterior valia por um render depois da
   virada. Agora o pronto guarda DE QUAL fase é (`copaReadyDe`/`copaPronta`) e coletiva, botão "Próxima fase", chave da Central e cartão do

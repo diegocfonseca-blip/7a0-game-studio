@@ -170,6 +170,28 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
     if (!cb.champion) falha('Copa do Brasil: sem campeão')
     const ent2 = entradasCopaBrasilOficial(mundo, s.seed + 1)
     if (ent2?.map((f: unknown[]) => f.length).join(',') !== '28,74,4,0,20') falha('Copa do Brasil: entradas mudam com a semente')
+    // 🇧🇷 17/11: 2027+ = do jeito de 2026 (Série A na 5ª · campeões da C/D + 2 vagas regionais na 3ª · 102 pela cota de cada estado)
+    const { computeEstadualCarreira } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+    const { CLUBES_MESTRA } = await vite.ssrLoadModule('/src/escalacao/brasil-oficial-clubes.ts')
+    const { clubeOficial } = await vite.ssrLoadModule('/src/escalacao/brasil-oficial.ts')
+    const cls = (est: string) => computeEstadualCarreira(est, mundo, s.seed, 2)?.resultado.classificacao ?? null
+    const campC = mundo.C?.[0]?.name, campD = mundo.D?.[0]?.name
+    const e27 = entradasCopaBrasilOficial(mundo, s.seed, { seasonNo: 2, prev: { campeaoC: campC, campeaoD: campD }, classificacao: cls })
+    const t27 = e27?.map((f: unknown[]) => f.length).join(',')
+    if (t27 !== '28,74,4,0,20') falha(`Copa do Brasil 2027: entradas por fase ${t27} (devia 28,74,4,0,20)`)
+    const n27 = e27?.flat().map((e: { t: { name: string } }) => e.t.name) ?? []
+    if (new Set(n27).size !== 126) falha(`Copa do Brasil 2027: ${new Set(n27).size} clubes diferentes (devia 126)`)
+    const terc = (e27?.[2] ?? []).map((e: { t: { name: string } }) => e.t.name)
+    for (const c of [campC, campD]) if (c && !terc.includes(c)) falha(`Copa do Brasil 2027: campeão da C/D ${c} fora da 3ª fase`)
+    if ((e27?.[4] ?? []).some((e: { div: string }) => e.div !== 'A')) falha('Copa do Brasil 2027: clube fora da Série A na 5ª fase')
+    // a cota de cada estado (a de 2026) é respeitada: nenhum estado passa da cota
+    const cota: Record<string, number> = {}, usado: Record<string, number> = {}
+    for (const x of CLUBES_MESTRA) if (x.copa === '1ª fase' || x.copa === '2ª fase') cota[x.uf] = (cota[x.uf] ?? 0) + 1
+    for (const e of [...(e27?.[0] ?? []), ...(e27?.[1] ?? [])]) { const uf = clubeOficial(e.t.name)?.uf; if (uf) usado[uf] = (usado[uf] ?? 0) + 1 }
+    for (const uf of Object.keys(usado)) if (usado[uf] > (cota[uf] ?? 0) + 2) falha(`Copa do Brasil 2027: ${uf} com ${usado[uf]} vagas (cota ${cota[uf] ?? 0})`)
+    const cb27 = computeCopaBrasil(mundo, s.seed, 2, 1.2, false, {}, false, undefined, e27)
+    if (!cb27.champion) falha('Copa do Brasil 2027: sem campeão')
+    console.log(`  Copa do Brasil 2027: 3ª fase = ${terc.join(', ')} · campeão ${cb27.champion?.name}`)
   }
   // 🏆 SUPERCOPA REI: jogo único entre dois clubes reais, sempre com vencedor (pênaltis no empate), mesma semente = mesmo jogo
   {
