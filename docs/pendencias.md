@@ -13767,3 +13767,7 @@ vendidas; Central com "ENQUANTO ISSO NA SEDE" (cena filmada do mapa + texto + VE
    chegando no estádio do mapa com mais torcida, fotógrafos, bandeiras e torcedor em cima do ônibus; dá pra pular. Não entra no lugar
    do placar/2D durante o jogo — só ANTES. Só carreira (é onde existe o mapa).
 4. **Mapa com pouco NPC** — encher mais o mapa de gente, medindo o peso no celular (regra de não travar).
+🔁 17/11 (Diego cobrou: *"comentei contigo sobre isso, lembra?"*), detalhes a mais: na Central, acontecimentos BONS e RUINS
+**filmados em tempo real no mapa** — ex.: venda de camisas subindo; **jogador fugindo da concentração pra ir pra balada** (aí o mapa
+precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia de jogo.** **Ônibus chegando com festa na aba Jogos**
+só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
