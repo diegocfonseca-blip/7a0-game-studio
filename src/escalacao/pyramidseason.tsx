@@ -11425,7 +11425,15 @@ export function PyramidSeasonScreen() {
     const pula = () => {
       const api = clubeMapaApi.current; if (!api?.adiantarProOnibus || chegadaFeitaRef.current !== marca) return
       api.view('matchday')
-      if (api.adiantarProOnibus() || ++tentativas >= 12) return
+      if (api.adiantarProOnibus()) {
+        // 🛣️ o começo do trajeto passa entre sobrados (a câmera do ônibus fica atrás de telhado, teste de 17/11): assim que o ônibus
+        // sai, pula pro trecho de estrada aberta, uns 20 s antes de ele chegar no estádio
+        let n = 0
+        const estrada = () => { const a = clubeMapaApi.current; if (!a?.adiantarOnibusNaEstrada || chegadaFeitaRef.current !== marca) return; if (a.adiantarOnibusNaEstrada(45) || ++n >= 8) return; window.setTimeout(estrada, 500) }
+        window.setTimeout(estrada, 1200)
+        return
+      }
+      if (++tentativas >= 12) return
       window.setTimeout(pula, 1000)
     }
     // (sem limpar o relógio na saída do efeito: a 2ª passada cai na trava acima e o pulo se perderia; o `pula` se confere sozinho)
