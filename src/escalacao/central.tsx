@@ -88,14 +88,14 @@ function CartaoRaioX({ r }: { r: RaioX }) {
  *  acontecimento; fechou, não volta (guarda só a ÚLTIMA chave fechada — uma entrada só no aparelho, nunca cresce). */
 export type CentralSede = { chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
 const SEDE_FECHADA = 'esc-sede-fechada'
-function CartaoSede({ s, onMapa }: { s: CentralSede; onMapa: () => void }) {
+function CartaoSede({ s, onMapa, cls }: { s: CentralSede; onMapa: () => void; cls: string }) {
   const t = useT()
   const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) === s.chave } catch { return false } })
   useEffect(() => { try { setFechada(localStorage.getItem(SEDE_FECHADA) === s.chave) } catch { setFechada(false) } }, [s.chave])
   if (fechada) return null
   const fecha = () => { try { localStorage.setItem(SEDE_FECHADA, s.chave) } catch { /* segue só nesta tela */ } setFechada(true) }
   return (
-    <div className="ll-central-card ll-c-sede" style={{ background: CREME, color: INK, overflow: 'hidden', padding: 0 }}>
+    <div className={`ll-central-card ll-c-sede ${cls}`} style={{ background: CREME, color: INK, overflow: 'hidden', padding: 0 }}>
       <div style={{ position: 'relative', height: 190, background: `#1f1a13 url(${s.img}) center / cover` }}>
         <span style={{ ...OSW, position: 'absolute', left: 10, top: 10, background: INK, color: GOLD, fontSize: 11, letterSpacing: '.12em', padding: '4px 8px', borderRadius: 8 }}>🎥 {s.rotulo}</span>
         {s.hora && <span style={{ ...OSW, position: 'absolute', right: 10, top: 10, background: RED, color: '#fff', fontSize: 11, letterSpacing: '.1em', padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}` }}>● {s.hora}</span>}
@@ -327,6 +327,7 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           </div>}
 
+          {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-cel" onMapa={() => p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
@@ -416,7 +417,7 @@ export function CentralCarreira(p: CentralProps) {
         </div>
 
         <div className="ll-central-dir">
-          {p.sede && <CartaoSede s={p.sede} onMapa={() => p.onTab('estadio')} />}
+          {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-pc" onMapa={() => p.onTab('estadio')} />}
           {/* 📰 O MARTELO do meio da temporada */}
           <div className="ll-central-card ll-central-martelo ll-c-martelo" style={{ background: '#FBF5E4', borderRadius: 8 }}>
             <div style={{ padding: '10px 13px 6px', textAlign: 'center', borderBottom: `3px double ${INK}` }}>

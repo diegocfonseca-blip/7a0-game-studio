@@ -13772,4 +13772,11 @@ vendidas; Central com "ENQUANTO ISSO NA SEDE" (cena filmada do mapa + texto + VE
 precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia de jogo.** **Ônibus chegando com festa na aba Jogos**
   📐 17/11: mockup das ideias 1 (semana com mais notícias reais) e 2 (cena da sede na Central, com a NOITADA que já existe) em
   `scripts/mockups/semana-e-sede-390.png`/`-1280.png` — esperando OK.
+  ✅ 17/11 (Diego: *"pode fazer dessa forma aí"* + *"a balada não precisa ficar próximo do estádio"*): FEITAS no branch —
+  (1) dias passando: 1 linha a mais do assunto do PRÓPRIO dia (seg artilheiro da série · qui desfalque do adversário de domingo · sáb
+  noitada), `recadoDoDia` → `mais`; (2) Central "🎥 Enquanto isso no bairro" (`CartaoSede`): noitada › carreata › obra › boteco
+  depois do jogo › feira de sábado, fotos do próprio mapa (`img/sede-*.webp`, ~10 KB cada), Ver no mapa / Fechar (fechou não volta,
+  1 chave só no aparelho); (3) 🪩 BALADA no mapa (`presidencia-balada-bairro.ts`): no quarteirão MAIS LONGE do estádio, neon rosa,
+  cordão vermelho, globo espelhado, luz roxa à noite; em Locais → Bairro. Foto: `scripts/mockups/mapa-balada-noite.png`.
+  ⏭️ Faltam: (3) ônibus em festa em jogo grande e (4) mais gente em volta do estádio no dia de jogo — mockup antes.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.

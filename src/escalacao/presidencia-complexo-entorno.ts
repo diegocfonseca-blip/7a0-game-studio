@@ -1,3 +1,4 @@
+import {criarBaladaBairro,type BaladaBairro} from './presidencia-balada-bairro' // 🪩 17/11
 import {PRACA_TORCEDOR,RESERVA_CAMPUS,RUAS_CAMPUS,RUAS_SERVICO_CAMPUS} from './presidencia-implantacao-urbana'
 import {criarAcabamentosComerciais} from './presidencia-comercio-acabamentos'
 import {LOTE_MUSEU_CLUBE} from './museu-clube-predio'
@@ -1024,16 +1025,20 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const quadraCasaLuca=club?.residence?occupied.find(p=>p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z&&!pubBlocks.includes(p)):undefined
   // 💙 06/11: o complexo cresceu — o quarteirão das 2 casas ao sul (−113, 193) vira a quadra adaptada + estacionamento da Casa Luca
   const quadraCasaLucaSul=quadraCasaLuca?occupied.find(p=>p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z&&!pubBlocks.includes(p)):undefined
+  // 🪩 17/11 (Diego: "a balada não precisa ficar próximo do estádio"): o quarteirão MAIS LONGE do estádio, numa ponta do bairro
+  const quadraBalada=occupied.filter(p=>!pubBlocks.includes(p)&&!(p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z)&&!(p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z)).sort((a,b)=>Math.hypot(b.x,b.z)-Math.hypot(a.x,a.z))[0]
+  let balada:BaladaBairro|null=null
   for(const p of occupied){
     box('bairro-quarteirao',paving,23,.16,23,p.x,.08,p.z)
     if(p===quadraCasaLuca||p===quadraCasaLucaSul)continue
     for(const side of [-1,1]){
       const x=p.x+side*5.6,z=p.z-2,choice=hash(x,z)
+      if(side===-1&&p===quadraBalada&&!balada){balada=criarBaladaBairro(root,{x,z});solids.push({id:'balada-bairro',minX:x-5.1,maxX:x+5.1,minZ:z-5,maxZ:z+5,base:0,top:5.5,footprint:[{x:x-5.1,z:z-5},{x:x+5.1,z:z-5},{x:x+5.1,z:z+5},{x:x-5.1,z:z+5}]});continue}
       const pub=pubBlocks.indexOf(p);if(side===1&&pub>=0)botecos.push(criarBotecoBairro(root,{id:pub?'bar-da-esquina':'oswaldo',name:pub?'Bar da Esquina':'Boteco do Oswaldo',x,z,color:pub?'#366445':'#a83227'}));else{const r=residence(x,z,choice>.94?3:choice>.77?2:choice>.36?1:0);casasBairro.push({x,z,w:r.w,d:r.d,h:r.h,andares:r.floors})}
     }
     // 🌳 08/11: no quarteirão do boteco a árvore sai do meio da calçada — ali é a roda de conversa dos moradores (`residentHotspots`,
     // x = boteco − 5,3) e a gente aparecia dentro do tronco. Vai pro jardim da casa vizinha, a 7 m da roda.
-    plant({x:pubBlocks.includes(p)?p.x-7:p.x,z:p.z+8.6},4.6,false,true,.08)
+    plant({x:pubBlocks.includes(p)?p.x-7:p===quadraBalada?p.x+8:p.x,z:p.z+8.6},4.6,false,true,.08) // 🪩 a árvore não tampa a fachada da balada
   }
   const ruasCortadas=new Set(quadraCasaLuca&&quadraCasaLucaSul?RUAS_CORTADAS_CASA_LUCA:[])
   const cityRoads=new Set<string>(),ruasBairro:[PontoComplexo,PontoComplexo][]=[] // 🍅 04/11: os trechos de rua do bairro (a feira livre escolhe um)
@@ -1491,8 +1496,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   solids.push(...shopping.solids);root.userData.shopping=shopping.root.userData.shopping;root.userData.commercialFinishes=commercialFinishes.root.userData.commercialFinishes
   root.userData.dealership=dealership.metadata
   let disposed=false
-  return {root,solids,doors,transport,botecos,establishments:entered,residence:ownerHome,casaLuca:!!quadraCasaLuca,casaLucaSul:!!quadraCasaLucaSul,bairro:{quadras:occupied.filter(p=>p!==quadraCasaLuca&&p!==quadraCasaLucaSul) as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
-    botecos.forEach(pub=>pub.dispose())
+  return {root,solids,doors,transport,botecos,balada,establishments:entered,residence:ownerHome,casaLuca:!!quadraCasaLuca,casaLucaSul:!!quadraCasaLucaSul,bairro:{quadras:occupied.filter(p=>p!==quadraCasaLuca&&p!==quadraCasaLucaSul) as readonly PontoComplexo[],ruas:ruasBairro as readonly (readonly [PontoComplexo,PontoComplexo])[],campinho,praca:pracaBairro,casas:casasBairro},dispose(){
+    botecos.forEach(pub=>pub.dispose());balada?.dispose()
     if(disposed)return;disposed=true;ownerHome?.dispose();clubPlaces.dispose();commercialFinishes.dispose();sponsors.dispose();dealership.dispose();shopping.dispose();scene.remove(root);root.clear()
     geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose())
   }}
