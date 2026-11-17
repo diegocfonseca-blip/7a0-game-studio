@@ -45,8 +45,12 @@
   conta o artilheiro da Liberta/Sula do modo. (⚠️ `npm run agencia` já quebrava antes: o script não carrega `.webp`.)
 - 🔨 17/11: **INTERCONTINENTAL REAL** começada: `intercontinental-oficial.ts` (formato 2026, 5 jogos únicos: playoff AAP Al-Ahli×Auckland
   26/08 · Copa AAP Sundowns×vencedor 19/09 · Dérbi das Américas campeão da Liberta×Toluca 09/12 · Challenger 12/12 · final×PSG 16/12),
-  com trava no `npm run libertadores`. ⏭️ Falta: cartas reais de Toluca/Sundowns/Al-Ahli/Auckland (pesquisa rodando →
-  `docs/brasil-oficial/cartas-intercontinental.md`), escudos, ligar na esteira/prêmio/ranking (pontos do Mundial) e MOCKUP da tela.
+  com trava no `npm run libertadores`. ✅ 17/11: 88 cartas reais (Toluca, Sundowns, Al-Ahli, Auckland com 24 cada,
+  `cartas-intercontinental.md`), escudos do Sundowns e do Auckland, e LIGADA na carreira: só entra quando o SEU clube é campeão da
+  Libertadores (páginas Dérbi → Challenger → final, no fim da temporada), festa = arte do Mundial com nome "Copa Intercontinental",
+  prêmio = régua do Mundial (campeão +25 · vice +10), ranking = conta como Mundial (60 pts, Hall "Intercontinental"), campeão no
+  histórico (`oficialCampeoes.intercontinental`). ⏭️ Falta: testar no navegador (precisa ganhar a Liberta) e o PRINT pro Diego.
+  ❓ Dúvidas da pesquisa pro Diego: Mendy/Sakai/Paulo da Silva estão no baralho Mundo com carta de clube europeu (Chelsea/Marseille/Sunderland).
   ⚠️ INCERTO: prorrogação (a fonte não diz; aqui empate = pênaltis, como as outras copas do jogo).
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx), artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
