@@ -110,6 +110,13 @@ import { StadiumTab, StadiumSvg, MasterBanner, MasterFaixa, sponsorLogoEstampa, 
 import { CareerStadiumView } from './career-stadium-view'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos'
+import { carreataAtiva, obrasEmCanteiro, humorDoBoteco } from './presidencia-cidade-viva' // 🎥 a cena do bairro na Central (17/11)
+import sedeBotecoFesta from './img/sede-boteco-festa.webp'
+import sedeBotecoTriste from './img/sede-boteco-triste.webp'
+import sedeObra from './img/sede-obra-loja.webp'
+import sedeCarreata from './img/sede-carreata.webp'
+import sedeFeira from './img/sede-feira.webp'
+import sedeNoite from './img/sede-noite.webp'
 import { FestaCampeao, TunelFinal, Trofeu, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { StatsDoPlacar } from './stats-placar-ui' // 📊 07/11: o resumo do apito do 2D também no placar cinema
 import { statsPlacarVisivel } from './stats-placar'
@@ -132,7 +139,7 @@ import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLi
 import {DesktopRankSummary} from './desktop-layout'
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
-import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps, RaioX } from './central'
+import type { CentralSede, CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps, RaioX } from './central'
 import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
@@ -12260,7 +12267,35 @@ export function PyramidSeasonScreen() {
       if (penMode && !penaltyDone) return { label: tr('⚽ Bata o pênalti', '⚽ Take the penalty'), onClick: avancarRodada }
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: () => { avancarRodada(); escolheAba('jogos') } } // ⏸️ o jogo roda onde aparece (na Central ele fica pausado)
     })()
-    return <CentralCarreira onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    // 🎥 ENQUANTO ISSO NO BAIRRO (17/11, Diego aprovou o mockup): UMA cena, só do que já acontece no mapa/na carreira —
+    // na ordem de importância: noitada (o causo da temporada) › carreata › obra › boteco depois do jogo › feira de sábado
+    const sede = ((): CentralSede | null => {
+      if (!stadiumMapAvailable) return null
+      const k = `${sn}:${round}`
+      const ev = evAtual && evAtual.season === sn && evAtual.mgrId === youId && evAtual.tipo === 'noitada' && (evAtual.status === 'banco' ? (evAtual.volta ?? 0) > round : evAtual.status === 'campo' && evAtual.round === round) ? evAtual : null
+      if (ev) return { chave: `${k}:noitada`, img: sedeNoite, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), hora: tr('2H DA MANHÃ', '2 AM'), chapeu: tr('🍾 Noitada · fora da concentração', '🍾 Night out · away from the team hotel'), tom: 'ruim',
+        titulo: tr(`${ev.nome} foi pra balada`, `${ev.nome} went clubbing`),
+        texto: ev.status === 'campo' ? tr(`Você bancou: ele joga no cafezinho. A torcida reza.`, `You backed him: he plays on coffee alone. The fans pray.`) : tr(`Ele ficou no banco pra pôr o sono em dia${ev.subNome ? ` — ${ev.subNome} entra no lugar` : ''}.`, `He was benched to catch up on sleep${ev.subNome ? ` — ${ev.subNome} takes his place` : ''}.`) }
+      if (carreataAtiva(state, youId)) return { chave: `${k}:carreata`, img: sedeCarreata, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🚌 Carreata', '🚌 Victory parade'), tom: 'bom',
+        titulo: tr('A cidade é sua', 'The city is yours'), texto: tr('O ônibus aberto roda o bairro com a taça até o próximo jogo.', 'The open-top bus tours the neighbourhood with the trophy until the next match.') }
+      const obra = obrasEmCanteiro(state.stadiums?.[youId], sn, round)[0]
+      if (obra) {
+        const nome: Record<string, [string, string]> = { loja: ['A loja oficial', 'The club shop'], estac: ['O estacionamento', 'The car park'], praca: ['A praça', 'The plaza'], chopp: ['A choperia', 'The beer bar'], estacao: ['A estação do metrô', 'The metro station'], hotel: ['O hotel', 'The hotel'] }
+        const n = nome[obra.obra] ?? ['A obra', 'The building']
+        return { chave: `${k}:obra:${obra.obra}`, img: sedeObra, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🏗️ Obra', '🏗️ Construction'), tom: 'bom',
+          titulo: tr(`${n[0]} está em obras`, `${n[1]} is under construction`), texto: tr('Tapume e guindaste no mapa — fica pronta depois do próximo jogo.', 'Hoarding and a crane on the map — ready after the next match.') }
+      }
+      const ultimo = roundReady && myMatch ? { gf: myMatch.hId === youId ? myMatch.hg : myMatch.ag, ga: myMatch.hId === youId ? myMatch.ag : myMatch.hg } : null
+      const humor = humorDoBoteco(ultimo)
+      if (humor !== 'normal') return { chave: `${k}:boteco:${humor}`, img: humor === 'festa' ? sedeBotecoFesta : sedeBotecoTriste, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🍻 Boteco do Oswaldo', '🍻 Oswaldo\'s bar'), tom: humor === 'festa' ? 'bom' : 'ruim',
+        titulo: humor === 'festa' ? tr('Boteco em festa', 'Party at the bar') : tr('Boteco cabisbaixo', 'Gloomy at the bar'),
+        texto: humor === 'festa' ? tr(`Depois do ${ultimo!.gf} a ${ultimo!.ga}, o boteco lotou de camisa do clube.`, `After the ${ultimo!.gf}-${ultimo!.ga}, the bar is packed with club shirts.`) : tr(`Depois do ${ultimo!.gf} a ${ultimo!.ga}, só gente cabisbaixa no balcão. "Fica pra próxima."`, `After the ${ultimo!.gf}-${ultimo!.ga}, only long faces at the bar. "Next time."`) }
+      const dia = calBarra?.hoje
+      if (dia != null && new Date(dia).getUTCDay() === 6) return { chave: `${k}:feira`, img: sedeFeira, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🧺 Feira de sábado', '🧺 Saturday market'),
+        titulo: tr('A feira está montada', 'The market is up'), texto: tr('Sábado de manhã tem feira na rua do bairro — fruta, pastel e caldo de cana.', 'Saturday morning market on the neighbourhood street — fruit, pastries and sugarcane juice.') }
+      return null
+    })()
+    return <CentralCarreira sede={sede} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={null /* 26/10 (Diego: *"tire o rank global da central, deixe na aba do rank"*) */}
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}

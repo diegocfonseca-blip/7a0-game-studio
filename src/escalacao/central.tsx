@@ -83,7 +83,38 @@ function CartaoRaioX({ r }: { r: RaioX }) {
     </div>
   )
 }
+/** 🎥 ENQUANTO ISSO NO BAIRRO (17/11, mockup aprovado pelo Diego): UMA cena do mapa do clube por vez, só do que já está
+ *  acontecendo de verdade (noitada do baladeiro, obra comprada, boteco depois do jogo, carreata, feira). `chave` = o
+ *  acontecimento; fechou, não volta (guarda só a ÚLTIMA chave fechada — uma entrada só no aparelho, nunca cresce). */
+export type CentralSede = { chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
+const SEDE_FECHADA = 'esc-sede-fechada'
+function CartaoSede({ s, onMapa }: { s: CentralSede; onMapa: () => void }) {
+  const t = useT()
+  const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) === s.chave } catch { return false } })
+  useEffect(() => { try { setFechada(localStorage.getItem(SEDE_FECHADA) === s.chave) } catch { setFechada(false) } }, [s.chave])
+  if (fechada) return null
+  const fecha = () => { try { localStorage.setItem(SEDE_FECHADA, s.chave) } catch { /* segue só nesta tela */ } setFechada(true) }
+  return (
+    <div className="ll-central-card ll-c-sede" style={{ background: CREME, color: INK, overflow: 'hidden', padding: 0 }}>
+      <div style={{ position: 'relative', height: 190, background: `#1f1a13 url(${s.img}) center / cover` }}>
+        <span style={{ ...OSW, position: 'absolute', left: 10, top: 10, background: INK, color: GOLD, fontSize: 11, letterSpacing: '.12em', padding: '4px 8px', borderRadius: 8 }}>🎥 {s.rotulo}</span>
+        {s.hora && <span style={{ ...OSW, position: 'absolute', right: 10, top: 10, background: RED, color: '#fff', fontSize: 11, letterSpacing: '.1em', padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}` }}>● {s.hora}</span>}
+      </div>
+      <div style={{ padding: '12px 14px 14px' }}>
+        <small style={{ ...OSW, fontSize: 10, letterSpacing: '.12em', color: s.tom === 'bom' ? '#1B7A3D' : '#C2452F' }}>{s.chapeu}</small>
+        <h3 style={{ ...OSW, fontSize: 22, lineHeight: 1.05, margin: '2px 0 4px' }}>{s.titulo}</h3>
+        <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600, color: '#3a3527' }}>{s.texto}</p>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={onMapa} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: GOLD, color: INK, cursor: 'pointer' }}>📍 {t('Ver no mapa', 'See on the map')}</button>
+          <button type="button" onClick={fecha} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: '#fff', color: INK, cursor: 'pointer' }}>{t('Fechar', 'Close')}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
 export type CentralProps = {
+  /** 🎥 a cena do bairro (só quando o mapa do clube existe nesta carreira e algo está acontecendo nele) */
+  sede?: CentralSede | null
   seasonNo: number
   round: number
   divName: string
@@ -385,6 +416,7 @@ export function CentralCarreira(p: CentralProps) {
         </div>
 
         <div className="ll-central-dir">
+          {p.sede && <CartaoSede s={p.sede} onMapa={() => p.onTab('estadio')} />}
           {/* 📰 O MARTELO do meio da temporada */}
           <div className="ll-central-card ll-central-martelo ll-c-martelo" style={{ background: '#FBF5E4', borderRadius: 8 }}>
             <div style={{ padding: '10px 13px 6px', textAlign: 'center', borderBottom: `3px double ${INK}` }}>

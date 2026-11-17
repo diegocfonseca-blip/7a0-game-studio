@@ -90,7 +90,7 @@ export function recadoDoDia(t: number, c: CtxRecado): Recado {
         : escolhe([tr(`Derrota pro ${u.adv} liga o alerta`, `Loss to ${u.adv} sounds the alarm`), tr(`${u.gf} a ${u.ga}: semana de cobrança no CT`, `${u.gf}-${u.ga}: a tough week at the training ground`), tr(`Torcida cobra reação`, `Fans demand a reaction`)], t)
     const a = c.artilheiro
     const mais = a && a.gols > 0 ? { e: '⚽', t: a.meu ? tr(`Artilheiro da ${c.divNome}: ${a.nome}, do seu time, com ${a.gols} ${a.gols === 1 ? 'gol' : 'gols'}.`, `${c.divNome} top scorer: ${a.nome}, from your team, with ${a.gols} ${a.gols === 1 ? 'goal' : 'goals'}.`) : tr(`Artilheiro da ${c.divNome}: ${a.nome}, com ${a.gols} ${a.gols === 1 ? 'gol' : 'gols'}.`, `${c.divNome} top scorer: ${a.nome}, with ${a.gols} ${a.gols === 1 ? 'goal' : 'goals'}.`), tom: a.meu ? 'bom' as const : undefined } : undefined
-    return { k: tr('📰 O MARTELO · segunda', '📰 THE HAMMER · Monday'), titulo, texto: tr(`${c.pos ? `${c.pos}º lugar na ${c.divNome}, ${c.meusPts ?? 0} pontos.` : ''}`, `${c.pos ? `${c.pos}th in the ${c.divNome}, ${c.meusPts ?? 0} points.` : ''}`), mais }
+    return { k: tr('📰 O MARTELO · segunda', '📰 THE HAMMER · Monday'), titulo, texto: tr(`${c.pos ? `${c.pos}º lugar na ${c.divNome}, ${c.meusPts ?? 0} ${(c.meusPts ?? 0) === 1 ? 'ponto' : 'pontos'}.` : ''}`, `${c.pos ? `${c.pos}th in the ${c.divNome}, ${c.meusPts ?? 0} ${(c.meusPts ?? 0) === 1 ? 'point' : 'points'}.` : ''}`), mais }
   }
   if (dow === 2) { // terça: boletim do elenco
     const partes: string[] = []
