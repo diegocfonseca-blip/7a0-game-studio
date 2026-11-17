@@ -1,5 +1,6 @@
 // 🇧🇷 trava do Brasil Oficial (base pura): clubes, escudos e o sorteio dos 22.
 import { CATALOG } from '../src/escalacao/data.ts'
+import { CLUBES_INTERCONTINENTAL } from '../src/escalacao/intercontinental-oficial.ts'
 import { ESCUDOS_OFICIAIS } from '../src/escalacao/escudos-oficiais.ts'
 import { CATALOG_OFICIAL } from '../src/escalacao/data-oficial.ts'
 import { CATALOG_OFICIAL_MODO } from '../src/escalacao/baralho-oficial.ts'
@@ -42,7 +43,7 @@ for (const c of CLUBES_BR_OUTROS) { if (!fechaTime(cartasDoClube(c, juntas))) (c
 if (semCarta.length) console.log(`⏳ ${semCarta.length} clubes ainda esperando lote de cartas: ${semCarta.join(', ')}`)
 // toda carta do modo é de um clube do modo
 // (ou um estrangeiro da Libertadores — as cartas dele só existem pra ela)
-const nomes = new Set([...CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]), ...ESTRANGEIROS_LIBERTA_2026.map(e => e.nome), ...ESTRANGEIROS_SULA_2026.map(e => e.nome)])
+const nomes = new Set([...CLUBES_BR_TODOS.flatMap(c => [c.nome, ...(c.apelidos ?? [])]), ...ESTRANGEIROS_LIBERTA_2026.map(e => e.nome), ...ESTRANGEIROS_SULA_2026.map(e => e.nome), ...CLUBES_INTERCONTINENTAL])
 for (const l of Object.values(CATALOG_OFICIAL)) for (const x of l) if (!nomes.has(x.club)) falha(`carta de clube fora do modo: ${x.name} (${x.club})`)
 // mesmo nome+clube+ano não pode existir nos dois baralhos
 const ja = new Set(Object.values(CATALOG).flat().map(x => `${x.name}|${x.club}|${x.year}`))
