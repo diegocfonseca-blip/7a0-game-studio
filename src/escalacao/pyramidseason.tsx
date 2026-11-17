@@ -11410,13 +11410,26 @@ export function PyramidSeasonScreen() {
   // porta é pedida de novo a cada vez que o mapa fica pronto (`mapaProntoN`), uma vez por montagem.
   // 🚌 17/11 (Diego: "Ok" pro ônibus chegar logo): a porta aparece uns 4 s e o relógio do dia de jogo pula até o ônibus sair —
   // a câmera automática do ônibus segue ele e depois volta pra porta. Só no quadro; na aba Clube a chegada segue no tempo dela.
+  // ⚠️ depois do pulo NUNCA chamar a vista de novo: trocar de vista = "o usuário pegou a câmera" e cancela a câmera do ônibus
+  // (teste de 17/11). Por isso roda UMA vez por chegada + montagem do mapa (`chegadaFeitaRef`), e a vista da porta é pedida de novo
+  // logo ANTES do pulo (o encaixe do mapa no quadro pode ter devolvido a câmera pra vista de cima) — assim, quando o ônibus acaba,
+  // a câmera dele volta pra porta.
+  const chegadaFeitaRef = useRef('')
   useEffect(() => {
-    if (!chegadaGrande) return
-    clubeMapaApi.current?.view('matchday')
-    let tentativas = 0, t = 0
-    const pula = () => { const api = clubeMapaApi.current; if (!api?.adiantarProOnibus) return; if (api.adiantarProOnibus() || ++tentativas >= 12) return; t = window.setTimeout(pula, 1000) }
-    t = window.setTimeout(pula, 4000)
-    return () => window.clearTimeout(t)
+    if (!chegadaGrande || !clubeMapaApi.current) return
+    const marca = `${chegadaGrandeKey}#${mapaProntoN}`
+    if (chegadaFeitaRef.current === marca) return
+    chegadaFeitaRef.current = marca
+    clubeMapaApi.current.view('matchday')
+    let tentativas = 0
+    const pula = () => {
+      const api = clubeMapaApi.current; if (!api?.adiantarProOnibus || chegadaFeitaRef.current !== marca) return
+      api.view('matchday')
+      if (api.adiantarProOnibus() || ++tentativas >= 12) return
+      window.setTimeout(pula, 1000)
+    }
+    // (sem limpar o relógio na saída do efeito: a 2ª passada cai na trava acima e o pulo se perderia; o `pula` se confere sozinho)
+    window.setTimeout(pula, 4000)
   }, [chegadaGrandeKey, !!chegadaGrande, mapaProntoN]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
