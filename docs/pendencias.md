@@ -60,6 +60,10 @@
   Papa Bouba Diop (Fulham) e Partey (Atlético) e a do Adebayor no Real Madrid (ele mandou ficar a do Arsenal). Iván Hurtado deixou de ser
   "Equador 2002" e virou Emelec 1994 (auge, bicampeão). No Brasil Oficial voltaram Caicedo (IDV), Almirón (Lanús), Cardozo (Libertad),
   Derlis (Olimpia) e entraram Mendy (Al-Ahli), Sakai (Auckland), Paulo da Silva (Toluca).
+- 🔎 17/11: **pesquisa das VAGAS REAIS da Copa do Brasil** pronta em `docs/brasil-oficial/copa-do-brasil-vagas.md` (2026: 20 da Série A
+  na 5ª · 4 campeões na 3ª · 102 dos estaduais por cota de federação 6/5/4/3, os 28 piores no ranking CBF na 1ª fase; 2027 = 128 clubes,
+  Copa Verde sai e entram Copa Norte/Centro-Oeste/Sul-Sudeste). ⏭️ Falta LIGAR no modo: cotas por estado a partir dos estaduais
+  simulados (o modo só tem 17 dos 27), régua própria pro ranking CBF (não é dado aberto) e os INCERTOS de 2027 (corte 1ª/2ª fase).
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx) — ⚠️ os títulos do perfil vêm do SERVIDOR (soma das carreiras na nuvem), então
   pôr Liberta/Sula/Intercontinental do Brasil Oficial lá exige mexer na função do banco; fazer junto da liberação do modo, artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
