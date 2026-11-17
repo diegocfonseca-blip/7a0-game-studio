@@ -11402,11 +11402,15 @@ export function PyramidSeasonScreen() {
     return { titulo, confronto: `${euNomeChegada} × ${pj.adv.name}`, clube: euNomeChegada }
   })()
   const chegadaProx = (preJogoCidade ?? (chegadaGrande ? preJogoAba : null))?.agenda
-  // 🎥 a câmera do mapa vai pro desembarque do ônibus quando o quadro abre (o mapa leva uns segundos pra ficar pronto: tenta de novo)
+  // 🎥 quando o quadro abre, a câmera vai UMA vez pra festa da porta (fila da torcida, bandeiras, barracas) — e para aí: quando o
+  // ônibus chega, a câmera automática do mapa (`presidencia-onibus-camera.ts`) segue ele sozinha. Ficar chamando a vista de novo
+  // atrapalhava essa câmera. O mapa pode levar uns segundos pra abrir: espera ele ficar pronto (até 30 s).
   useEffect(() => {
     if (!chegadaGrande) return
-    const ts = [1200, 3500, 7000].map(ms => window.setTimeout(() => clubeMapaApi.current?.view('coach-arrival'), ms))
-    return () => ts.forEach(t => window.clearTimeout(t))
+    let feito = false
+    const iv = window.setInterval(() => { const api = clubeMapaApi.current; if (feito || !api) return; feito = true; api.view('matchday'); window.clearInterval(iv) }, 1000)
+    const fim = window.setTimeout(() => window.clearInterval(iv), 30000)
+    return () => { window.clearInterval(iv); window.clearTimeout(fim) }
   }, [chegadaGrandeKey, !!chegadaGrande]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
