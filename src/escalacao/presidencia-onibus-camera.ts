@@ -35,8 +35,8 @@ export function enquadraOnibus(o:OnibusNoMapa,como:'chegando'|'porta',retrato:bo
  const k=retrato?1.35:1
  if(como==='chegando'){
   // 17/11: era de lado (5 m) e baixa (7,5 m) — nas ruas com casa colada a câmera entrava DENTRO da casa (teste do quadro de
-  // chegada: parede bege na tela o trajeto inteiro). Agora fica no eixo da rua e acima dos telhados.
-  const atras=16*k,lado=0,alto=13*k
+  // chegada: parede bege na tela o trajeto inteiro). Agora fica no eixo da rua e bem acima dos telhados (13 m ainda raspava nos sobrados do começo do trajeto).
+  const atras=15*k,lado=0,alto=22*k
   return {camera:[o.x-fx*atras+lx*lado,o.y+alto,o.z-fz*atras+lz*lado],target:[o.x+fx*5,o.y+1.6,o.z+fz*5]}
  }
  // na porta: de lado, pra ver os jogadores descendo
