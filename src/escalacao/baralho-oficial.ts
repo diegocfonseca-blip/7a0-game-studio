@@ -10,7 +10,7 @@ import { CLUBES_BR_TODOS } from './brasil-oficial'
 // 🃏 MESMA PESSOA em duas cartas (conferido no Transfermarkt em 15/11): no modo fica só a carta mais importante; a outra some
 // SÓ daqui (o baralho regional continua igual nas copas regionais). Regra do Diego: a mesma pessoa uma vez no baralho Brasil.
 const ESCONDIDAS = new Set([
-  'Zenon|Guarani|1978', // fica o do Corinthians 1983 (baralho de sempre)
+  // (Zenon: 17/11 virou o contrário — fica o Guarani 1978 e o Corinthians 1983 some do modo, `BASE_ESCONDIDA_NO_MODO`)
   'Pintado|América-MG|1997', // fica o do São Paulo 1993
   'Wilson|Figueirense|2007', // fica o Figueirense 2010 (fame 3)
   'Lucas Ramon|Londrina|2017', // fica o Mirassol 2025 (está no regional E na pesquisa: some dos dois)

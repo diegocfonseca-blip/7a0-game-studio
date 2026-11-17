@@ -138,7 +138,7 @@ function comCartasOficiais(base: typeof CATALOG): typeof CATALOG {
   for (const pos of SECTORS) {
     const vistas = new Set((base[pos] ?? []).map(c => `${c.name}|${c.club}|${c.year}`))
     const extras = (CATALOG_OFICIAL[pos] ?? []).filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)
-    out[pos] = [...(base[pos] ?? []), ...extras] as typeof CATALOG[typeof pos]
+    out[pos] = [...semBaseEscondida(base[pos] ?? []), ...extras] as typeof CATALOG[typeof pos]
   }
   OFICIAL_CACHE.set(base, out)
   return out
@@ -1132,7 +1132,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 }
 import type { CareerTeam } from './data'
 import { ligaEscudosOficiais } from './escudos'
-import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
+import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
 import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)

@@ -89,7 +89,7 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
-import { baralhoOficial } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
+import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
 import { clubeOficial, cartasDoClube, sorteiaElenco, CLUBES_BR_OUTROS, MINIMO_TIME, type ClubeOficial } from './brasil-oficial'
 import { CLUBES_MESTRA } from './brasil-oficial-clubes'
 const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c => c.nome)
@@ -609,7 +609,7 @@ export function seedCpuSquadsOficial(state: { managers: Manager[]; seed: number;
   const cat = {} as Record<Sector, Card[]>
   for (const p of SECTORS) {
     const vistas = new Set(base[p].map(c => `${c.name}|${c.club}|${c.year}`))
-    cat[p] = [...base[p], ...CATALOG_OFICIAL[p].filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)] as unknown as Card[]
+    cat[p] = [...semBaseEscondida(base[p]), ...CATALOG_OFICIAL[p].filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)] as unknown as Card[]
   }
   const pl = state.careerPlacements ?? {}
   const ident = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
@@ -1879,7 +1879,7 @@ export function fabricaTimesOficiais(world: Record<Div, SimTeam[]>, seed: number
   const base = catalogTodos(), CAT = baralhoOficial()
   if (!CAT) return null
   const cat = {} as Record<Sector, Card[]>
-  for (const p of SECTORS) { const vistas = new Set(base[p].map(c => `${c.name}|${c.club}|${c.year}`)); cat[p] = [...base[p], ...CAT[p].filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)] as unknown as Card[] }
+  for (const p of SECTORS) { const vistas = new Set(base[p].map(c => `${c.name}|${c.club}|${c.year}`)); cat[p] = [...semBaseEscondida(base[p]), ...CAT[p].filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)] as unknown as Card[] }
   const semente = (txt: string) => { let h = seed >>> 0; for (let i = 0; i < txt.length; i++) h = Math.imul(h ^ txt.charCodeAt(i), 0x01000193) >>> 0; return h }
   return (nome: string) => {
     const t = todos.get(nome)

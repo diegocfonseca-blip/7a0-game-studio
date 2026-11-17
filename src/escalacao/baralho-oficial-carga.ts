@@ -18,3 +18,10 @@ export function carregaBaralhoOficial(): Promise<BaralhoOficial> {
   if (!PROMESSA) PROMESSA = import('./baralho-oficial').then(m => (BARALHO = m.CATALOG_OFICIAL_MODO)).catch(e => { PROMESSA = null; throw e })
   return PROMESSA
 }
+
+// 🃏 17/11 (Diego: "sim troca a carta"): carta do baralho de SEMPRE que some só DENTRO do Brasil Oficial, porque a mesma pessoa
+// entra no modo por outra carta do baralho Brasil (regra: a mesma pessoa uma vez só no baralho). Fora do modo nada muda.
+//   · Zenon: fica o Guarani 1978 (vice brasileiro, o ano do auge) no lugar do Corinthians 1983.
+export const BASE_ESCONDIDA_NO_MODO = new Set(['Zenon|Corinthians|1983'])
+export const semBaseEscondida = <T extends { name: string; club: string; year: number }>(cs: readonly T[]): T[] =>
+  cs.filter(c => !BASE_ESCONDIDA_NO_MODO.has(`${c.name}|${c.club}|${c.year}`))

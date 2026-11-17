@@ -22,7 +22,8 @@
   Iarley/Clemer/Jardel no Ferroviário-CE, Túlio no Brasiliense, Dadá no Nacional-AM…). Trava de repetidos olha o baralho do modo
   inteiro e lê "xará" em qualquer lote. Mesma pessoa em dois clubes do modo: Jackie Chan, Lucas Ramon e Luís Araújo (tirados de um).
   ✅ 17/11: Di María fica o Rosario 2005; Mendy/Sakai/Paulo da Silva ok (Europa × Mundo). Zenon: ele disse "sim", mas Guarani 1978 e
-  Corinthians 1983 são os dois baralho Brasil — perguntei se troca a do Corinthians pela do Guarani SÓ no modo; esperando.
+  Corinthians 1983 são os dois baralho Brasil → Diego: "sim troca a carta". FEITO: no modo fica o Guarani 1978 e o Corinthians 1983
+  some só ali (`BASE_ESCONDIDA_NO_MODO`, baralho-oficial-carga.ts); fora do modo nada muda.
   ❓ Perguntar ao Diego: liberar a carta do Zenon (Guarani 1978, baralho regional, hoje escondida do modo)? Di María: a carta do Rosario
   2005 (baralho Mundo) fica, ou troca pela da volta (2025/26)?
 - ✅ 16/11: **SUL-AMERICANA REAL** (`sul-americana-oficial.ts` + `computeSulaCarreira`): 56 clubes, 1ª fase por país, 8 grupos, playoff
