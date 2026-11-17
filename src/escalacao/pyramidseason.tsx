@@ -11899,6 +11899,16 @@ export function PyramidSeasonScreen() {
         cansados: condGas ? myXI.filter(c => (condGas[c.id] ?? 100) < GAS_CANSADO).length : 0,
         suspensos: fora && suspenso?.tipo !== 'lesao' ? [fora] : [], machucados: fora && suspenso?.tipo === 'lesao' ? [fora] : [],
         copaQuarta: copaPendente ? (meNaFaseCopa ? { fase: copaNome(copaRound), adv: advCopa(copaRound) ?? undefined } : { fase: copaNome(copaRound), fora: true }) : undefined,
+        // 📰 17/11: a linha a mais de cada dia — só do que já aconteceu (artilharia das rodadas jogadas, DM do adversário já revelado)
+        artilheiro: (() => { const a = scorersAll.filter(x => x.div === myDiv).sort((x, y) => y.goals - x.goals)[0]; return a ? { nome: a.name, gols: a.goals, meu: !!a.you } : undefined })(),
+        advFora: (() => {
+          if (!pp || !botPlans) return undefined
+          const plano = planosBots[pp.adv], ri = rProx - 1
+          if (!plano) return undefined
+          const nome = (id: string) => (world[myDiv] ?? []).find(t => t.name === pp.adv)?.squad.find(c => c.id === id)?.name ?? ''
+          return plano.lesoes.filter(l => l.r < ri && l.r < round && l.r + 1 + l.rodadas > ri).map(l => nome(l.id)).filter(Boolean)
+        })(),
+        noitada: suspenso?.tipo === 'noitada' ? fora : undefined,
       }
       recado = recadoDoDia(calI > 0 ? hoje : diaDaRodada(calSn, round) + 86400000, ctx)
     }
