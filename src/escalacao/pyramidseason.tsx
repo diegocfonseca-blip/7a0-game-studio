@@ -67,6 +67,7 @@ import {podeAlterarPresidencia,negociarNaCarreira,exibirDuplaNaCarreira} from '.
 import {PresidenciaClube} from './presidencia-clube'
 import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
 import {MapaGuardado,VagaDoMapa} from './mapa-guardado'
+import { ChegadaGrande } from './chegada-grande' // 🚌🎉 chegada do ônibus em jogo grande (17/11)
 import { publicaControleMapa, pedeCameraDoMapa, type ControleMapa } from './controle-partida-mapa'
 import {mapaEstadioDisponivel,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
@@ -11362,7 +11363,23 @@ export function PyramidSeasonScreen() {
   const [chegadaFeita, setChegadaFeita] = useState('')
   const chegadaKey = chegadaProx ? `${calSn}:${round}` : ''
   const chegando = !!chegadaProx && chegadaFeita !== chegadaKey
-  useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
+  // 🚌🎉 JOGO GRANDE EM CASA (17/11, mockup aprovado): clássico (rival/arquirrival da carreira ou outro humano) ou reta final
+  // (rodada 30+ brigando no G6) — a MESMA régua da lotação do estádio. A aba Jogos mostra a chegada do ônibus no mapa
+  // (`ChegadaGrande`); no automático ela dura um pouco mais (9 s em vez de 3) e "Pular chegada" corta na hora.
+  const [chegadaPulada, setChegadaPulada] = useState('')
+  const chegadaGrande = (() => {
+    if (!chegando || !stadiumMapAvailable || chegadaPulada === chegadaKey) return null
+    const pr = parDaRodada(round + 1)
+    if (!pr || pr[0].teamId !== youId) return null
+    const adv = pr[1]
+    const rivais = state.managers.filter(m => m.rival && !m.isHuman).map(m => m.teamName)
+    const classico = adv.human || rivais.includes(adv.name) || adv.name === coletivaSave.arquirrival
+    const minhaPos = myDiv ? (tables[myDiv] ?? []).findIndex((t: SimTeam) => t.you) + 1 : 0
+    const reta = round + 1 >= 30 && minhaPos > 0 && minhaPos <= 6
+    if (!classico && !reta) return null
+    return { titulo: classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in'), confronto: `${pr[0].name} × ${adv.name}`, clube: pr[0].name }
+  })()
+  useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), chegadaGrande ? 9000 : CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey, !!chegadaGrande]) // eslint-disable-line react-hooks/exhaustive-deps
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
     const out: { r: number; m: SimMatch }[] = []
@@ -12907,6 +12924,7 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
+        {tab === 'jogos' && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaKey)}><VagaDoMapa /></ChegadaGrande>}
         {tab === 'jogos' && calBarra?.proxCard}
         {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
