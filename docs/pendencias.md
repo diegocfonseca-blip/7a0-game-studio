@@ -13770,4 +13770,6 @@ vendidas; Central com "ENQUANTO ISSO NA SEDE" (cena filmada do mapa + texto + VE
 🔁 17/11 (Diego cobrou: *"comentei contigo sobre isso, lembra?"*), detalhes a mais: na Central, acontecimentos BONS e RUINS
 **filmados em tempo real no mapa** — ex.: venda de camisas subindo; **jogador fugindo da concentração pra ir pra balada** (aí o mapa
 precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia de jogo.** **Ônibus chegando com festa na aba Jogos**
+  📐 17/11: mockup das ideias 1 (semana com mais notícias reais) e 2 (cena da sede na Central, com a NOITADA que já existe) em
+  `scripts/mockups/semana-e-sede-390.png`/`-1280.png` — esperando OK.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
