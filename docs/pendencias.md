@@ -13815,5 +13815,7 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   🚌 Diego *"Ok"* pro ônibus chegar logo: no QUADRO (só nele) a porta aparece ~4 s e o relógio do dia de jogo pula até o ônibus poder sair
   (75 s + Kombis das barracas montadas, ~110 s — `onibusLiberadoEm`/`adiantarProOnibus`); a câmera automática segue ele. A câmera do ônibus
   agora fica no eixo da rua e a 13 m (antes 5 m de lado e 7,5 m de altura: entrava nas casas — vale também pra aba Clube).
-  ⏭️ Falta conferir no print: a câmera nova sem parede na frente no celular e a volta pra porta no fim.
+  ✅ Conferido (9b3aaf7): porta com torcida → ônibus já na estrada aberta (pula 45 s do trajeto entre sobrados) → chega no portão e os
+  jogadores descem (~100 s). Fotos: `scripts/mockups/chegada-*.png`. A câmera só volta pra porta depois do 2º ônibus (cena longa, é tempo morto).
+  ⚠️ No teste o mapa remonta 1–2× (cai pro Leve no navegador sem placa de vídeo) e a cena recomeça — conferir num celular de verdade.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
