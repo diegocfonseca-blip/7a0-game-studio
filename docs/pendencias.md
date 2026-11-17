@@ -13700,3 +13700,4 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - 🔁 17/11 (mais tarde): Diego fechou o **1º torneio** = UMA sexta 21h, ⭐ Champions de 36, inscrição R$ 5, meta da lista = 36,
   campeão leva 🖋 Plano Batismo (escudo + mascote); 2º e 3º A DECIDIR. Convite no fim das salas: `scripts/mockups/torneio-lista-fim-sala.png`
   (cartão com "🙋 Quero jogar" + contador X/36; ✕ fecha pra sempre; depois de entrar vira faixinha). Aguardando OK pra construir.
+  · Pódio do exemplo: Neymarzetti · Cativeiro FC · Guimarães SCI. Transmissão = canal do Futpoint FC (vai no convite).
