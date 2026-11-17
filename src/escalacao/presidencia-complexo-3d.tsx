@@ -788,7 +788,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     controls.target.set(0,1.1,37.2);camera.position.set(14,6,23)
    }
    else if(next==='clube-lazer'){
-    const c=surround.clubeLazer;if(!c){view('original');return}const a=c.centro,k=camera.aspect<.85?1.5:1;controls.target.set(a.x,1,a.z);camera.position.set(a.x+22*k,26*k,a.z+30*k)
+    const c=surround.clubeLazer;if(!c){view('original');return}const a=c.centro,k=camera.aspect<.85?1.5:1;controls.target.set(a.x,1,a.z);camera.position.set(a.x+27*k,33*k,a.z+37*k)
    }
    else if(next==='balada'){
     const b=surround.balada;if(!b){view('original');return}const p=b.root.position,k=camera.aspect<.85?1.4:1;controls.target.set(p.x,p.y+2.6,p.z+4);camera.position.set(p.x-9*k,p.y+6*k,p.z+19*k)
@@ -1092,7 +1092,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     <button type="button" onClick={()=>go('boteco-oswaldo')}>Boteco do Oswaldo</button>
     <button type="button" onClick={()=>go('bar-esquina')}>Bar da Esquina</button>
     <button type="button" onClick={()=>go('balada')}>{t('Balada','Nightclub')}</button>
-    <button type="button" onClick={()=>go('clube-lazer')}>{t('Clube de lazer (futevôlei e society)','Leisure club (footvolley and 5-a-side)')}</button>
+    <button type="button" onClick={()=>go('clube-lazer')}>{t('Clube (piscina e futevôlei)','Club (pool and footvolley)')}</button>
     {lugarDeHorario('feira',t('Feira livre','Street market'))}<button type="button" onClick={()=>go('banca')}>{t('Banca de jornal','Newsstand')}</button><button type="button" onClick={()=>go('campinho')}>{t('Campinho de terra','Dirt pitch')}</button>
     {([['pipas',t('Pipas na praça','Kites in the square'),culturaBairro.pipas,t('À tarde','Afternoons')],['pagode',t('Pagode no boteco','Music at the pub'),culturaBairro.pagode,t('Sábado e domingo à noite','Saturday and Sunday nights')],['festa-junina',t('Festa junina','June festival'),culturaBairro.junina,t('Em junho, à tarde e à noite','June afternoons and nights')]] as [VistaComplexo,string,boolean,string][]).map(([id,label,open,when])=><button key={id} type="button" disabled={!open} className={!open?'pc3-place-off':undefined} onClick={()=>go(id)}><span>{label}</span>{!open&&<small>{when}</small>}</button>)}
     {lugarDeHorario('padaria',t('Padaria','Bakery'))}{lugarDeHorario('praca-bairro',t('Praça (dominó e carrinhos)','Square (dominoes and carts)'))}{lugarDeHorario('espetinho',t('Espetinho e podrão','Skewers and burger trailer'))}

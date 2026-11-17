@@ -1029,8 +1029,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // 🪩 17/11 (Diego: "a balada não precisa ficar próximo do estádio"): o quarteirão MAIS LONGE do estádio, numa ponta do bairro
   const quadraBalada=occupied.filter(p=>!pubBlocks.includes(p)&&!(p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z)&&!(p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z)).sort((a,b)=>Math.hypot(b.x,b.z)-Math.hypot(a.x,a.z))[0]
   let balada:BaladaBairro|null=null
-  // 🏐 17/11 (Diego: "um clubezinho com dois campinhos de futevôlei e churrasqueira… e dois campos de futebol… distante do estádio"):
-  // dois quarteirões VIZINHOS numa ponta do bairro (os mais longe do estádio depois da balada) — um de areia, o outro society
+  // 🏐🏊 17/11 (Diego: "clube com piscina… churrasqueira em gazebo… e dois campos de futevôlei lado a lado", longe do estádio):
+  // dois quarteirões VIZINHOS numa ponta do bairro (os mais longe do estádio depois da balada) — um das quadras, o outro da piscina
   const livres=occupied.filter(p=>p!==quadraBalada&&!pubBlocks.includes(p)&&!(p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z)&&!(p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z)).sort((a,b)=>Math.hypot(b.x,b.z)-Math.hypot(a.x,a.z))
   let quadraAreia:PontoComplexo|undefined,quadraSociety:PontoComplexo|undefined
   for(const a of livres){const b=livres.find(q=>q!==a&&Math.abs(q.x-a.x)+Math.abs(q.z-a.z)===29);if(b){quadraAreia=a;quadraSociety=b;break}}
@@ -1046,8 +1046,8 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     // x = boteco − 5,3) e a gente aparecia dentro do tronco. Vai pro jardim da casa vizinha, a 7 m da roda.
     plant({x:pubBlocks.includes(p)?p.x-7:p===quadraBalada?p.x+8:p.x,z:p.z+8.6},4.6,false,true,.08) // 🪩 a árvore não tampa a fachada da balada
   }
-  const clubeLazer=quadraAreia&&quadraSociety?criarClubeLazer(root,{areia:quadraAreia,society:quadraSociety}):null
-  if(quadraAreia&&quadraSociety)for(const q of [quadraAreia,quadraSociety])solids.push({id:'clube-lazer-'+(q===quadraAreia?'areia':'society'),minX:q.x-11.5,maxX:q.x+11.5,minZ:q.z-11.5,maxZ:q.z+11.5,base:0,top:2.2,footprint:[{x:q.x-11.5,z:q.z-11.5},{x:q.x+11.5,z:q.z-11.5},{x:q.x+11.5,z:q.z+11.5},{x:q.x-11.5,z:q.z+11.5}]})
+  const clubeLazer=quadraAreia&&quadraSociety?criarClubeLazer(root,{quadras:quadraAreia,lazer:quadraSociety}):null
+  if(quadraAreia&&quadraSociety)for(const q of [quadraAreia,quadraSociety])solids.push({id:'clube-lazer-'+(q===quadraAreia?'quadras':'piscina'),minX:q.x-11.5,maxX:q.x+11.5,minZ:q.z-11.5,maxZ:q.z+11.5,base:0,top:2.2,footprint:[{x:q.x-11.5,z:q.z-11.5},{x:q.x+11.5,z:q.z-11.5},{x:q.x+11.5,z:q.z+11.5},{x:q.x-11.5,z:q.z+11.5}]})
   const ruasCortadas=new Set(quadraCasaLuca&&quadraCasaLucaSul?RUAS_CORTADAS_CASA_LUCA:[])
   const cityRoads=new Set<string>(),ruasBairro:[PontoComplexo,PontoComplexo][]=[] // 🍅 04/11: os trechos de rua do bairro (a feira livre escolhe um)
   for(const p of occupied)for(const [dx,dz] of [[29,0],[-29,0],[0,29],[0,-29]]){
