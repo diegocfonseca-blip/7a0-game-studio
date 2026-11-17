@@ -33,7 +33,8 @@
   numa carreira de verdade (não deu pra forçar o título no teste). ✅ 17/11 (noite): VISTA no navegador — festas da Libertadores (Flamengo),
   Intercontinental (Flamengo, final x PSG) e Sul-Americana (Atlético-MG) aparecem certas, sem spoiler. Achado e consertado: a Sala de Taças
   (`conquistasDaCarreira`) e O MARTELO não mostravam Liberta/Sula/Intercontinental do modo (agora leem `oficialCampeoes`).
-  ⚠️ Visto no teste: 5× aviso do React "Maximum update depth exceeded" (tela não identificada) — investigar.
+  ✅ Aviso "Maximum update depth exceeded" ACHADO e consertado: o efeito que grava `CAMPEOES_OFICIAIS` mandava de novo a cada render no
+  fim da temporada do modo (o reducer recusa mas devolve cópia). Agora o efeito não manda se a temporada já está gravada.
   ⚠️ `scripts/testa-presidencia-complexo-carreira.mjs` já falha (dia do jogo 'domingo' × 'quarta' esperado) — não é dessas mudanças.
 - ✅ 17/11 — **QUEM NÃO ESTÁ NA LIBERTA/SULA ACOMPANHA PELA ESCOLHA DE DIVISÃO** (Diego: *"só na aba Tabelas"* — e nada de aba nova:
   Jogos + Tabela continua uma aba só). Na escolha de divisão entram "🏆 Libertadores" e "🌎 Sul-Americana" (só pra quem está fora de cada

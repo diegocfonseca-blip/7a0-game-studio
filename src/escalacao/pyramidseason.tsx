@@ -10133,9 +10133,12 @@ export function PyramidSeasonScreen() {
   // 🏆 fim da temporada do modo: grava os campeões (Série A + Copa do Brasil) — a Supercopa Rei da próxima sai daqui
   useEffect(() => {
     if (!state.oficial || !done || !copaFinished || !copaBR?.champion || !copaBR.vice || !(tables.A?.length >= 2)) return
+    // ⚠️ 17/11: já gravado = não manda de novo. O reducer devolve uma CÓPIA do estado mesmo recusando, então mandar de novo
+    // mudava as dependências e o efeito rodava sem parar ("Maximum update depth exceeded" no fim de toda temporada do modo)
+    if ((state.oficialCampeoes ?? []).some(e => e.temporada === (state.seasonNo ?? 1))) return
     const lib = libertaCalc?.resultado
     dispatch({ type: 'CAMPEOES_OFICIAIS', campeoes: { temporada: state.seasonNo ?? 1, serieA: tables.A[0].name, serieAVice: tables.A[1].name, copa: copaBR.champion.name, copaVice: copaBR.vice.name, serieATop: tables.A.map(t => t.name), ...(lib ? { liberta: lib.campeao, libertaVice: lib.vice } : {}), ...(sulaCalc ? { sula: sulaCalc.resultado.campeao } : {}), ...(interCalc ? { intercontinental: interCalc.resultado.campeao } : {}) } })
-  }, [state.oficial, done, copaFinished, copaBR, tables, state.seasonNo, libertaCalc, sulaCalc]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.oficial, done, copaFinished, copaBR, tables, state.seasonNo, libertaCalc, sulaCalc, state.oficialCampeoes]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🇧🇷 as fases oficiais que valem pra tela e pro acesso. Com o SEU playoff da B (jogado na tela), ele substitui o simulado de
   // fundo: é ele que decide quem sobe, e o quadro só mostra o placar depois de jogado (antes disso o playoff nem aparece).
   const oficialEfetivo = useMemo<FasesOficiais | undefined>(() => {
