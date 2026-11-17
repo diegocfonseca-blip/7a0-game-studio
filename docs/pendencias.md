@@ -13800,5 +13800,11 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   ✅ E os jogos FORA da semana (Diego: *"são todas competições… mas só em momentos muito importantes"*): Supercopa, finais da
   Liberta/Sula e Intercontinental depois da liga e o playoff da B — a chegada da PRÓXIMA fase aparece na tela de resultado da fase
   que acabou, antes do "Ir pra próxima fase" (nenhum passo novo). Grande = final, semi, playoff de acesso ou clássico.
-  ⏭️ Falta: (4) mais gente em volta do estádio no dia de jogo (e gente no clube de lazer/balada) — mockup antes.
+  👥 17/11: (4) FEITA no branch — `presidencia-figurantes.ts` (gente parada em lote, 3 desenhos pro grupo todo, balanço no shader):
+  multidão na fila do portão/praça/portão visitante em dia de jogo em casa (cresce com a lotação: até 120 no PC, 40 no celular/Leve;
+  some durante o jogo, volta ~2 min depois do apito) · clube de lazer de dia (piscina, quadras, gazebo; à noite só o churrasco) ·
+  fila + segurança na balada à noite. Fotos: `mapa-multidao-portao.png`, `mapa-clube-gente.png`, `mapa-balada-fila.png`.
+  ⏭️ A conferir: a multidão depois do apito (o teste não pegou) e a câmera do quadro da chegada (às vezes fica na visão alta da cidade
+  em vez de descer pro ônibus). E num teste a partida da liga começou sozinha com o quadro da chegada aberto — verificar se é do
+  atalho de teste (SIM_MANY) ou se o automático está passando por cima do "Começar o jogo".
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
