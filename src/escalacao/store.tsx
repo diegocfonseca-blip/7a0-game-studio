@@ -5703,6 +5703,7 @@ type Action =
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
+  | { type: 'CLOSE_NBA_BOOKS' } // 🏀💰 17/11: fecha o caixa da temporada no passo 💰 do roteiro (uma vez só, booksSeason)
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
@@ -8707,6 +8708,15 @@ function reducerBase(state: EscState, action: Action): EscState {
     // RESERVAS. Você MANTÉM o quinteto e leiloa só as vagas novas (T2: 5→10). Os
     // outros times ficam no quinteto (5), como a Série D do futebol fica no XI.
     // Autocontido no basquete (guardado por nbaCareer) — o futebol não passa aqui.
+    case 'CLOSE_NBA_BOOKS': {
+      // 🏀💰 17/11 (roteiro do fim de temporada no basquete, igual ao futebol): o passo 💰 CAIXA fecha o caixa da temporada
+      // ANTES da decisão, pra pessoa ver o que entrou e saiu. É o MESMO fechamento que o NEXT_NBA_SEASON fazia — e o
+      // `applySeasonMoney` só roda UMA vez por temporada (booksSeason), então apertar Próxima depois não paga de novo.
+      if (s.sport !== 'basquete' || !s.nbaCareer || s.onlineMode === 'online' || s.screen !== 'end') return state
+      if (s.booksSeason === (s.seasonNo ?? 1)) return state
+      applySeasonMoney(s, nbaSeasonRewards(sortedTable(s.league), s.nbaTier ?? 'street'))
+      return s
+    }
     case 'NEXT_NBA_SEASON': {
       if (s.sport !== 'basquete' || !s.nbaCareer) return s
       // 💰 ECONOMIA (Camada 1 do futebol): fecha o caixa da temporada que ACABOU —

@@ -12741,6 +12741,66 @@ function BafoCascata() {
   )
 }
 
+// 🏀🎬 a barra dos 3 passos do fim de temporada do basquete (mesmo desenho da `RoteiroFim` do futebol, sem o 🌍 Mundo)
+const PASSOS_BB = [{ ic: '📰', pt: 'Jornal', en: 'Paper' }, { ic: '💰', pt: 'Caixa', en: 'Money' }, { ic: '🔨', pt: 'Próxima', en: 'Next' }] as const
+function RoteiroBB({ passo, onIr }: { passo: number; onIr: (n: number) => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+      {PASSOS_BB.map((p, i) => {
+        const n = i + 1, feito = n < passo, ativo = n === passo
+        return (
+          <Fragment key={p.pt}>
+            {i > 0 && <div style={{ flex: 1, height: 3, background: n <= passo ? INK : 'rgba(12,12,12,.18)', marginTop: 14 }} />}
+            <button onClick={() => { if (feito) onIr(n) }} disabled={!feito} aria-label={tr(p.pt, p.en)}
+              style={{ flex: 'none', width: 58, background: 'none', border: 'none', padding: 0, cursor: feito ? 'pointer' : 'default', textAlign: 'center' }}>
+              <span style={{ display: 'flex', width: 30, height: 30, margin: '0 auto', border: `2.5px solid ${INK}`, borderRadius: 9, alignItems: 'center', justifyContent: 'center', fontSize: 14,
+                background: ativo ? GOLD : feito ? INK : '#fff', color: feito ? '#fff' : INK, boxShadow: ativo ? `2px 2px 0 ${INK}` : 'none' }}>{feito ? '✓' : p.ic}</span>
+              <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: .4, marginTop: 3, color: ativo ? INK : 'rgba(12,12,12,.45)' }}>{tr(p.pt, p.en).toUpperCase()}</span>
+            </button>
+          </Fragment>
+        )
+      })}
+    </div>
+  )
+}
+function BotaoPassoBB({ texto, sub, onClick }: { texto: string; sub?: string; onClick: () => void }) {
+  return (
+    <div>
+      <button onClick={onClick} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>{texto}</button>
+      {sub && <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(12,12,12,.5)', margin: '5px 0 0' }}>{sub}</p>}
+    </div>
+  )
+}
+/** 💰 o passo do CAIXA: o que entrou e saiu nesta temporada (as linhas do extrato), com o saldo de agora */
+function CaixaBB({ onContinue }: { onContinue: () => void }) {
+  const { state } = useEsc()
+  const you = state.managers[state.youIdx]
+  const sn = state.seasonNo ?? 1
+  const linhas = (state.careerLedger ?? []).filter(e => e.season === sn && ['reward', 'gate', 'salary', 'sponsor', 'empresario', 'saf', 'bico'].includes(e.kind) && e.amount !== 0) // o FECHAMENTO da temporada (os mesmos lançamentos do caixa do futebol)
+  const entra = linhas.filter(e => e.amount > 0).reduce((n, e) => n + e.amount, 0), sai = -linhas.filter(e => e.amount < 0).reduce((n, e) => n + e.amount, 0)
+  const saldo = Math.round(state.careerCoins?.[you.id] ?? 0)
+  return (
+    <>
+      <Box className="p-0 overflow-hidden">
+        <div style={{ ...OSWALD, background: INK, color: '#fff', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <b style={{ fontSize: 17, letterSpacing: '.05em' }}>💰 {tr(`CAIXA DA TEMPORADA ${sn}`, `SEASON ${sn} MONEY`)}</b>
+          <span style={{ fontSize: 12, color: GOLD }}>{tr('saldo', 'balance')} {saldo} 🪙</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: `3px solid ${INK}` }}>
+          <div style={{ padding: '10px 12px', background: '#E7F4EA', borderRight: `3px solid ${INK}` }}><small style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D' }}>{tr('ENTROU', 'IN')}</small><b style={{ ...OSWALD, display: 'block', fontSize: 24, color: '#1B7A3D' }}>+{entra}</b></div>
+          <div style={{ padding: '10px 12px', background: '#FBE7E3' }}><small style={{ fontSize: 10, fontWeight: 800, color: '#C2452F' }}>{tr('SAIU', 'OUT')}</small><b style={{ ...OSWALD, display: 'block', fontSize: 24, color: '#C2452F' }}>{sai ? `−${sai}` : '0'}</b></div>
+        </div>
+        {linhas.length ? linhas.map((e, i) => (
+          <div key={e.id ?? i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderTop: i ? '2px solid rgba(0,0,0,.07)' : undefined, fontSize: 12.5, fontWeight: 700 }}>
+            <span style={{ flex: 1, minWidth: 0 }}>{e.label}</span>
+            <b style={{ ...OSWALD, fontSize: 15, color: e.amount > 0 ? '#1B7A3D' : '#C2452F' }}>{e.amount > 0 ? '+' : '−'}{Math.abs(e.amount)} 🪙</b>
+          </div>
+        )) : <p style={{ margin: 0, padding: '12px 14px', fontSize: 12, fontWeight: 700, color: 'rgba(12,12,12,.55)' }}>{tr('Esta temporada não teve movimento no caixa.', 'No money moved this season.')}</p>}
+      </Box>
+      <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('agora, a próxima temporada', 'next up: the new season')} onClick={onContinue} />
+    </>
+  )
+}
 export function EscEnd() {
   const { state, dispatch, kickPlayer } = useEsc()
   const previewEnd = useOnlinePreview()
@@ -12751,6 +12811,8 @@ export function EscEnd() {
   const [endLang] = useLang()
   const kEnd = ehKings(state) // 👑 Kings League: o mata-mata dela, com o nome dela
   const bbEnd = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
+  // 🏀 17/11: no basquete o título da liga é o andar da carreira (Street League / G League / NBA), nunca "Liga Legends"
+  const ligaNomeEnd = !bbEnd ? 'Liga Legends' : !state.nbaCareer ? 'NBA' : state.nbaTier === 'nba' ? 'NBA' : state.nbaTier === 'gleague' ? 'G League' : 'Street League'
   // 🏆 quantos passam por conferência — a MESMA régua do `seedQuickCopa` (8 em
   // conferência de 12+, 4 nas menores). O texto tem que dizer o número REAL, senão
   // promete vaga pra quem vai ficar de fora.
@@ -12772,6 +12834,9 @@ export function EscEnd() {
   const semTituloLiga = semLiga || kEnd
   const youWon = !semTituloLiga && champ.id === you.id
   const online = state.onlineMode === 'online'
+  // 🏀🎬 17/11: ROTEIRO DO FIM DE TEMPORADA no basquete (o mesmo do futebol: *"Roteiro sempre."*) — 📰 Jornal → 💰 Caixa → 🔨 Próxima.
+  // Só na carreira solo do basquete; o resto da tela de fim não muda. O passo 1 é a tela de sempre (campeão, tabela, jornal).
+  const [passoBB, setPassoBB] = useState(1)
   // 🐊 FESTÃO DA MASCOTE (aprovado no GIF): só o CAMPEÃO vê, pós-apito, 1x por
   // temporada (sessionStorage), toque pula. Diego 11/08: valia só pro campeão
   // da LIGA — ganhar a COPA DOS 8 (mata-mata) não disparava a festa. Agora os
@@ -12851,6 +12916,7 @@ export function EscEnd() {
   const COPA_GATE_S = kEnd ? 5 : 30 // 👑 11/11 (Diego: *"tem que ser 5 s após a tabela"*): na Kings o mata-mata começa 5 s depois
   // (fora da Kings: 30 s do quadro "COPA DOS 8 · fica ligado", que mostra o chaveamento antes de começar)
   const copaPending = !!state.quickCopa && state.quickCopa.phase !== 'done'
+  const roteiroBB = bbEnd && !!state.nbaCareer && !online && !copaPending && !state.dinastia
   // 🌎 LIBERTADORES: a liga acabou numa sala 'liga_liberta' e a fase de grupos
   // ainda não começou → entra o BANNERZÃO de abertura (pedido do Diego 20/08:
   // *"o banner grande da libertadores c visual bonito e brilhante e c as regras…
@@ -13089,7 +13155,7 @@ export function EscEnd() {
         <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
-            <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
+            <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>{ligaNomeEnd}</p>
             <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           </div>
           <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
@@ -13108,7 +13174,7 @@ export function EscEnd() {
       <Box bg={INK} className="p-4 text-center" shadow={6}>
         <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
         <div className="mt-2 rounded-xl border-2 py-2.5 px-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
-          <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>Liga Legends</p>
+          <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>{ligaNomeEnd}</p>
           <p className="font-black text-xl" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,.62)' }}>
             {youWon ? LE('O pregão foi seu, o campeonato foi seu. Resenha eterna.', 'The auction was yours, the title was yours. Eternal bragging rights.') : `${kEnd ? LE('1º da fase de liga', '1st in the league phase') : LE('Campeão', 'Champion')}: ${champ.name}. ${!bbEnd && youPos >= zoneBot(table.length) ? LE('Rebaixado — o leilão cobra caro.', 'Relegated — the auction bites back.') : (proxNomeFim ? `${LE('Agora tem', 'Up next:')} ${proxNomeFim} ↑` : LE('Ano que vem tem pregão de novo.', 'Next year the auction returns.'))}`}
@@ -13137,8 +13203,8 @@ export function EscEnd() {
   )
   const ligaBlocks = (
     <>
-      <TableBox highlight={you.id} title="🏆 LIGA LEGENDS" />
-      <TopScorersBox highlight={you.id} title={LE('⚽ ARTILHARIA DA LIGA LEGENDS', '⚽ LIGA LEGENDS TOP SCORERS')} />
+      <TableBox highlight={you.id} title={`🏆 ${ligaNomeEnd.toUpperCase()}`} />
+      <TopScorersBox highlight={you.id} title={bbEnd ? LE(`🏀 CESTINHAS DA ${ligaNomeEnd.toUpperCase()}`, `🏀 ${ligaNomeEnd.toUpperCase()} TOP SCORERS`) : LE('⚽ ARTILHARIA DA LIGA LEGENDS', '⚽ LIGA LEGENDS TOP SCORERS')} />
     </>
   )
   // 🏆 Copa dos 8: quem é campeão da Copa ganha carta À PARTE do título da liga
@@ -13210,8 +13276,10 @@ export function EscEnd() {
   return (
     <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
       {festaNode}
-      {ownerVisual&&!semTituloLiga&&<OwnerChampionBanner title={LE('Liga Legends','Liga Legends')} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={`${champ.pts} ${LE('pontos','points')}`}/>}
+      {ownerVisual&&!semTituloLiga&&<OwnerChampionBanner title={ligaNomeEnd} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={`${champ.pts} ${LE('pontos','points')}`}/>}
       <RankResultWriter />
+      {roteiroBB && <RoteiroBB passo={passoBB} onIr={n => { setPassoBB(n); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
+      <div hidden={roteiroBB && passoBB !== 1} className="space-y-5">
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
           Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}
       {semLiga ? (
@@ -13543,14 +13611,17 @@ export function EscEnd() {
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
       {online && !state.nbaCareer && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
-      <ShareResultPanel opts={shareOpts} />
+      </div>
+      {roteiroBB && passoBB === 1 && <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s money comes next')} onClick={() => { dispatch({ type: 'CLOSE_NBA_BOOKS' }); setPassoBB(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
+      {roteiroBB && passoBB === 2 && <CaixaBB onContinue={() => { setPassoBB(3); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
+      {(!roteiroBB || passoBB === 1) && <ShareResultPanel opts={shareOpts} />}
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
           fantasma com o elenco da sala (a origem do caso do Paduz). A raiz já está
           fechada no START_ONLINE — este `!online` é a segunda trava. */}
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending ? null : <NbaCareerEndPanel />) : (online || copaPending || libPending) ? null : (<>
+      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending || (roteiroBB && passoBB !== 3) ? null : <NbaCareerEndPanel />) : (online || copaPending || libPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2 ov3-surface" style={{ background: '#FEF3C7' }}>
