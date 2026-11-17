@@ -55,6 +55,11 @@
   histórico (`oficialCampeoes.intercontinental`). ⏭️ Falta: testar no navegador (precisa ganhar a Liberta) e o PRINT pro Diego.
   ❓ Dúvidas da pesquisa pro Diego: Mendy/Sakai/Paulo da Silva estão no baralho Mundo com carta de clube europeu (Chelsea/Marseille/Sunderland).
   ⚠️ INCERTO: prorrogação (a fonte não diz; aqui empate = pênaltis, como as outras copas do jogo).
+- ✅ 17/11 (Diego: *"sempre é jogador, ano e time"*): **66 cartas de clube europeu saíram do baralho Mundo** — 64 foram pro Europa
+  (Essien, Kagawa, Caicedo, Almirón, Cardozo, Kanouté, Milla, Adebayor Arsenal, Sakai, Paulo da Silva…), saíram as cópias do Mendy,
+  Papa Bouba Diop (Fulham) e Partey (Atlético) e a do Adebayor no Real Madrid (ele mandou ficar a do Arsenal). Iván Hurtado deixou de ser
+  "Equador 2002" e virou Emelec 1994 (auge, bicampeão). No Brasil Oficial voltaram Caicedo (IDV), Almirón (Lanús), Cardozo (Libertad),
+  Derlis (Olimpia) e entraram Mendy (Al-Ahli), Sakai (Auckland), Paulo da Silva (Toluca).
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx), artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).

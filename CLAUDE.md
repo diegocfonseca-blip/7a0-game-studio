@@ -725,6 +725,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   quem já está no Mundo não ganha outra em clube de fora (Maradona Boca ⇒ nada de Maradona Argentinos). Pode: Jhon Arias Fluminense
   (Brasil) + Jhon Arias Santa Fe (Mundo). Xará (outra pessoa) passa, com "xará" escrito na linha do lote. Travas:
   `npm run baralho-oficial` (3 baralhos) e `npx tsx scripts/confere-repetidos-conmebol.mts` (dentro do modo).
+  🏟️ **O BARALHO É O DO CLUBE, NUNCA O DO PAÍS (17/11, *"não pode ter jogador com país… sempre é jogador, ano e time"*).** Clube
+  brasileiro = Brasil, europeu = Europa, resto = Mundo. Carta com seleção no lugar do clube (o "Iván Hurtado · Equador") não existe:
+  vira o clube do auge dele. O Lote Copa de 02/08 tinha posto 66 cartas de clube europeu no baralho Mundo pra fechar seleções — erro;
+  foram pro Europa em 17/11 (a Copa do Mundo acha cada um pelo país em TODOS os baralhos, então nenhuma seleção perde ninguém).
   ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
   Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 

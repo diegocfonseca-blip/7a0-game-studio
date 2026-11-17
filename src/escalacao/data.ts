@@ -3193,7 +3193,6 @@ const L48_EU_MEI: C[] = [
   { name: "Leon Goretzka", club: "Bayern", year: 2020, fame: 4, lo: 83, hi: 89 },
 ]
 const L48_EU_ATA: C[] = [
-  { name: "Emmanuel Adebayor", club: "Real Madrid", year: 2011, fame: 3, lo: 72, hi: 81 },
   { name: "Jesé Rodríguez", club: "Real Madrid", year: 2014, fame: 2, lo: 70, hi: 82, promessa: true },
   { name: "Diego Milito", club: "Inter", year: 2010, fame: 4, lo: 85, hi: 91 },
   { name: "Mario Gómez", club: "Bayern", year: 2011, fame: 4, lo: 82, hi: 89 },
@@ -3203,6 +3202,11 @@ const L48_EU_ATA: C[] = [
 // 📅 Lote 49 (10/11, Diego: *"quero adicionar só os famosos… e aonde você adicionaria o auge"*): os famosos da lista do
 //    Gabriel "Chelsão" que NÃO tinham carta (ou só tinham em OUTRO baralho), cada um no clube e ano do AUGE. Régua de 02/11.
 const L49_EU_GOL: C[] = [
+  // 🔁 17/11 (Diego: "sempre é jogador, ano e time" — o baralho é o do CLUBE, nunca o do país): estas eram do baralho Mundo com clube europeu; a Copa do Mundo acha cada um pelo país igual
+  { name: 'Eiji Kawashima', club: 'Standard Liège', year: 2012, fame: 3, lo: 64, hi: 76, bio: 'Goleiro viajado do Japão, titular em três Copas do Mundo seguidas.' },
+  { name: 'Thomas N’Kono', club: 'Espanyol', year: 1985, fame: 3, lo: 74, hi: 82, bio: 'Lenda camaronesa da Copa de 82 — tão bom que o Buffon batizou o filho de Thomas em homenagem a ele.' },
+  { name: 'Tony Sylva', club: 'Lille', year: 2004, fame: 3, lo: 64, hi: 76, bio: 'Goleiro seguro da geração de ouro de Senegal que espantou a França em 2002.' },
+  { name: 'Bono', club: 'Sevilla', year: 2023, fame: 3, lo: 74, hi: 82, bio: 'Goleiro marroquino do título da Liga Europa pelo Sevilla e da campanha histórica do Marrocos na Copa de 2022, quando pegou pênaltis e levou o time até a semifinal.' },
   { name: "Neto", club: "Valencia", year: 2019, fame: 3, lo: 72, hi: 80, bio: "Goleiro brasileiro titular do Valencia campeão da Copa do Rei de 2019." },
   { name: "Willy Caballero", club: "Man City", year: 2016, fame: 3, lo: 70, hi: 78 },
   { name: "Bart Verbruggen", club: "Brighton", year: 2025, fame: 3, lo: 71, hi: 79 },
@@ -3210,18 +3214,61 @@ const L49_EU_GOL: C[] = [
   { name: "Aaron Ramsdale", club: "Arsenal", year: 2022, fame: 3, lo: 72, hi: 80 },
 ]
 const L49_EU_LAT: C[] = [
+  // 🔁 17/11 (Diego: "sempre é jogador, ano e time" — o baralho é o do CLUBE, nunca o do país): estas eram do baralho Mundo com clube europeu; a Copa do Mundo acha cada um pelo país igual
+  { name: 'Yukinari Sugawara', club: 'AZ Alkmaar', year: 2023, fame: 3, lo: 65, hi: 77, bio: 'Lateral japonês trabalhador — subiu e desceu a faixa direita do AZ sem cansar nunca.' },
+  { name: 'Iván Piris', club: 'Udinese', year: 2015, fame: 3, lo: 62, hi: 74, bio: 'Lateral-direito paraguaio de passagem pela Roma e pela Udinese.' },
+  { name: 'Yuto Nagatomo', club: 'Inter', year: 2013, fame: 3, lo: 69, hi: 79, bio: 'Lateral incansável do Japão — anos de Inter de Milão e recordista de Copas.' },
+  { name: 'Atsuto Uchida', club: 'Schalke', year: 2011, fame: 3, lo: 68, hi: 79, bio: 'Lateral-direito elegante do Japão, titular do Schalke na semi da Champions.' },
+  { name: 'Lauren', club: 'Arsenal', year: 2004, fame: 3, lo: 73, hi: 81, bio: "Lateral dos 'Invencíveis' do Arsenal e bicampeão africano com Camarões — marcação de ferro." },
+  { name: 'Benoît Assou-Ekotto', club: 'Tottenham', year: 2011, fame: 3, lo: 64, hi: 76, bio: 'Lateral-esquerdo camaronês do Tottenham, famoso pela sinceridade fora de campo.' },
+  { name: 'Pierre Womé', club: 'Inter', year: 2006, fame: 3, lo: 63, hi: 75, bio: 'Lateral canhoto potente de Camarões, veterano da Inter e do Bologna.' },
+  { name: 'Timothée Atouba', club: 'Tottenham', year: 2005, fame: 3, lo: 63, hi: 75, bio: 'Lateral-esquerdo veloz de Camarões — Basel, Tottenham e Hamburgo.' },
+  { name: 'Ferdinand Coly', club: 'Parma', year: 2006, fame: 3, lo: 63, hi: 75, bio: 'Lateral-direito de Senegal na campanha das quartas da Copa de 2002.' },
+  { name: 'Habib Beye', club: 'Newcastle', year: 2008, fame: 3, lo: 64, hi: 76, bio: 'Lateral senegalês capitão do Marseille e do Newcastle — hoje treinador.' },
+  { name: 'Youssouf Sabaly', club: 'Real Betis', year: 2022, fame: 3, lo: 64, hi: 76, bio: 'Lateral senegalês campeão africano em 2021 e da Copa do Rei pelo Betis.' },
+  { name: 'Pape Souaré', club: 'Crystal Palace', year: 2016, fame: 1, lo: 55, hi: 71, bio: 'Lateral-esquerdo de Senegal no Crystal Palace, carreira interrompida por um grave acidente.' },
+  { name: 'Serge Aurier', club: 'PSG', year: 2016, fame: 3, lo: 70, hi: 79, bio: 'Lateral-direito marfinense de fôlego e cruzamento, titular do PSG dos títulos franceses e capitão da Costa do Marfim.' },
   { name: 'Hiroki Sakai', club: 'Marseille', year: 2018, fame: 3, lo: 64, hi: 76, bio: 'Lateral raçudo do Japão que subia a linha toda no Marseille.' }, // 🔁 17/11: do baralho Mundo pro Europa (clube europeu)
   { name: "Antonio Valencia", club: "Man United", year: 2012, fame: 3, lo: 74, hi: 82 },
   { name: "Luke Shaw", club: "Man United", year: 2021, fame: 3, lo: 74, hi: 83 },
   { name: "Ryan Bertrand", club: "Southampton", year: 2015, fame: 3, lo: 72, hi: 80 },
 ]
 const L49_EU_ZAG: C[] = [
+  // 🔁 17/11 (Diego: "sempre é jogador, ano e time" — o baralho é o do CLUBE, nunca o do país): estas eram do baralho Mundo com clube europeu; a Copa do Mundo acha cada um pelo país igual
+  { name: 'Rigobert Song', club: 'RC Lens', year: 2002, fame: 3, lo: 71, hi: 80, bio: 'Capitão eterno de Camarões — quatro Copas e um coração de leão indomável.' },
+  { name: 'Lamine Diatta', club: 'Rennes', year: 2002, fame: 3, lo: 63, hi: 75, bio: 'Xerife da zaga de Senegal na campanha mágica das quartas da Copa de 2002.' },
+  { name: 'Pape Abou Cissé', club: 'Olympiacos', year: 2019, fame: 1, lo: 56, hi: 72, bio: 'Zagueirão altíssimo de Senegal, torre grega no Olympiacos.' },
+  { name: 'Yaya Banana', club: 'Olympiacos', year: 2018, fame: 3, lo: 62, hi: 74, folk: true, bio: 'Zagueiro camaronês de Maroua que rodou Tunísia, França e Grécia até chegar ao Olympiacos — e ficou famoso no Brasil pelo nome antes do futebol.' },
+  { name: 'Maya Yoshida', club: 'Southampton', year: 2016, fame: 3, lo: 70, hi: 78, bio: 'Capitão zagueiro do Japão na Premier League — sério, técnico e líder.' },
+  { name: 'Takehiro Tomiyasu', club: 'Arsenal', year: 2022, fame: 3, lo: 71, hi: 80, bio: 'Defensor versátil do Arsenal — joga nas duas laterais e na zaga com a mesma classe.' },
+  { name: 'Nicolas N’Koulou', club: 'Marseille', year: 2013, fame: 3, lo: 65, hi: 77, bio: 'Zagueiro elegante de Camarões, muralha do Marseille e do Torino.' },
+  { name: 'Sébastien Bassong', club: 'Tottenham', year: 2010, fame: 3, lo: 63, hi: 75, bio: 'Central camaronês de passagem pela Premier — Newcastle, Tottenham e Norwich.' },
+  { name: 'Abdou Diallo', club: 'PSG', year: 2021, fame: 3, lo: 65, hi: 77, bio: 'Zagueiro/lateral senegalês do PSG — campeão africano em 2021.' },
+  { name: 'Iván Córdoba', club: 'Inter', year: 2010, fame: 4, lo: 79, hi: 86, bio: 'Zagueiro colombiano baixinho e de marcação impecável, capitão da Inter da tríplice coroa de 2010 e autor do gol do título da Colômbia na Copa América de 2001.' },
   { name: 'Paulo da Silva', club: 'Sunderland', year: 2010, fame: 3, lo: 68, hi: 78, bio: 'Zagueirão e capitão histórico do Paraguai — recordista de jogos pela seleção.' }, // 🔁 17/11 (Diego: "é só botar Europa nos times certos"): carta de clube europeu passou do baralho Mundo pro Europa — a Copa do Mundo acha ele pelo país do mesmo jeito
   { name: "Nathan Aké", club: "Man City", year: 2023, fame: 3, lo: 74, hi: 82 },
   { name: "Marc Guéhi", club: "Crystal Palace", year: 2025, fame: 3, lo: 75, hi: 83 },
   { name: "Jonathan Woodgate", club: "Real Madrid", year: 2005, fame: 1, lo: 58, hi: 66, folk: true },
 ]
 const L49_EU_MEI: C[] = [
+  // 🔁 17/11 (Diego: "sempre é jogador, ano e time" — o baralho é o do CLUBE, nunca o do país): estas eram do baralho Mundo com clube europeu; a Copa do Mundo acha cada um pelo país igual
+  { name: 'Derlis González', club: 'Dínamo Kyiv', year: 2015, fame: 3, lo: 64, hi: 76, bio: 'Atacante-meia que carregou o Paraguai à semi da Copa América de 2015 nos pênaltis.' },
+  { name: 'Khalilou Fadiga', club: 'Auxerre', year: 2002, fame: 3, lo: 67, hi: 77, bio: 'Meia craque da geração dourada de Senegal na Copa de 2002 — drible e categoria.' },
+  { name: 'Shinji Kagawa', club: 'Dortmund', year: 2012, fame: 4, lo: 79, hi: 87, bio: 'O japonês que encantou o Dortmund com dois títulos alemães. O nome faz rir no Brasil — mas em campo era pura categoria.' },
+  { name: 'Moisés Caicedo', club: 'Brighton', year: 2023, fame: 4, lo: 79, hi: 87, bio: 'Volante equatoriano de pulmão infinito — desarma, sai jogando e virou um dos mais caros do mundo.' },
+  { name: 'Miguel Almirón', club: 'Newcastle', year: 2022, fame: 3, lo: 67, hi: 77, bio: 'Meia-atacante veloz do Paraguai — do Atlético-MG ao Newcastle da Premier League.' },
+  { name: 'Carlos Paredes', club: 'Porto', year: 2001, fame: 3, lo: 63, hi: 75, bio: 'Volante paraguaio de motor infinito — Porto, Reggina e três Copas.' },
+  { name: 'Shunsuke Nakamura', club: 'Celtic', year: 2007, fame: 4, lo: 79, hi: 87, bio: 'O mestre das faltas do Japão — gols impossíveis pelo Celtic na Champions, canhota mágica.' },
+  { name: 'Shinji Ono', club: 'Feyenoord', year: 2002, fame: 3, lo: 67, hi: 77, bio: 'Meia talentosíssimo do Japão, campeão da Copa da UEFA pelo Feyenoord em 2002.' },
+  { name: 'Geremi', club: 'Chelsea', year: 2005, fame: 3, lo: 67, hi: 77, bio: 'Meia/lateral camaronês de faltas venenosas — Real Madrid, Chelsea e bicampeão africano.' },
+  { name: 'Alex Song', club: 'Arsenal', year: 2011, fame: 3, lo: 67, hi: 77, bio: 'Volante camaronês do Arsenal e do Barcelona — desarme e lançamento de primeira.' },
+  { name: 'Modeste M’bami', club: 'PSG', year: 2004, fame: 3, lo: 63, hi: 75, bio: 'Volante possante de Camarões, ouro olímpico em 2000 e anos de PSG.' },
+  { name: 'André-Frank Zambo Anguissa', club: 'Napoli', year: 2023, fame: 3, lo: 71, hi: 80, bio: 'Motor do meio-campo do Napoli campeão italiano — força e chegada de Camarões.' },
+  { name: 'Idrissa Gana Gueye', club: 'PSG', year: 2019, fame: 3, lo: 67, hi: 77, bio: 'Ladrão de bolas de Senegal — pulmão infinito no Everton e no PSG, campeão africano.' },
+  { name: 'Aliou Cissé', club: 'Birmingham', year: 2002, fame: 3, lo: 62, hi: 74, bio: 'Capitão-volante de Senegal em 2002 — hoje o técnico campeão africano da seleção.' },
+  { name: 'Salif Diao', club: 'Liverpool', year: 2002, fame: 3, lo: 62, hi: 74, bio: 'Volante senegalês do Liverpool, símbolo da campanha surpreendente de 2002.' },
+  { name: 'Cheikhou Kouyaté', club: 'West Ham', year: 2016, fame: 3, lo: 63, hi: 75, bio: 'Volante/zagueiro alto e forte de Senegal — capitão de raça no West Ham e no Palace.' },
+  { name: 'Michael Essien', club: 'Chelsea', year: 2007, fame: 4, lo: 79, hi: 86, bio: 'O Bisão. Volante ganês que corria por dois no Chelsea de Mourinho, marcava como zagueiro e soltava a bomba de fora da área.' },
   { name: "Matías Almeyda", club: "Lazio", year: 2000, fame: 3, lo: 74, hi: 82 },
   { name: "Javier Pastore", club: "PSG", year: 2012, fame: 3, lo: 75, hi: 83 },
   { name: "Freddy Guarín", club: "Porto", year: 2011, fame: 3, lo: 73, hi: 81 },
@@ -3246,6 +3293,27 @@ const L49_EU_MEI: C[] = [
   { name: "Weston McKennie", club: "Juventus", year: 2021, fame: 3, lo: 70, hi: 79 },
 ]
 const L49_EU_ATA: C[] = [
+  // 🔁 17/11 (Diego: "sempre é jogador, ano e time" — o baralho é o do CLUBE, nunca o do país): estas eram do baralho Mundo com clube europeu; a Copa do Mundo acha cada um pelo país igual
+  { name: 'Kazuyoshi Miura', club: 'Genoa', year: 1994, fame: 3, lo: 67, hi: 77, bio: "'King Kazu' — pioneiro do futebol japonês, jogou profissional até depois dos 50 anos." },
+  { name: 'Roger Milla', club: 'Montpellier', year: 1988, fame: 4, lo: 77, hi: 85, bio: 'A lenda da dança na bandeirinha — colocou a África no mapa das Copas em 1990 aos 38 anos.' },
+  { name: 'Ismaïla Sarr', club: 'Watford', year: 2020, fame: 3, lo: 67, hi: 77, bio: 'Ponta veloz de Senegal, campeão africano — pesadelo dos laterais pelo Watford.' },
+  { name: "Papa Waigo", club: "Fiorentina", year: 2008, fame: 3, lo: 64, hi: 76, bio: "Centroavante senegalês de força física — passagem pela Fiorentina." },
+  { name: 'Takefusa Kubo', club: 'Real Sociedad', year: 2024, fame: 3, lo: 76, hi: 84, promessa: true, bio: 'A joia japonesa do drible, dono da bola no Real Sociedad. Baixinho endiabrado que enlouquece marcador.' },
+  { name: 'Hirving Lozano', club: 'Napoli', year: 2020, fame: 3, lo: 64, hi: 76, bio: '"Chucky" — ponta mexicano explosivo, herói da vitória sobre a Alemanha na Copa de 2018 e destaque no Napoli.' },
+  { name: 'Óscar Cardozo', club: 'Benfica', year: 2010, fame: 3, lo: 71, hi: 80, bio: 'Artilheiro paraguaio matador de pênaltis — ídolo goleador do Benfica.' },
+  { name: 'Shinji Okazaki', club: 'Leicester', year: 2016, fame: 3, lo: 67, hi: 77, bio: 'Atacante trabalhador do Japão — peça do milagre do Leicester campeão inglês de 2016.' },
+  { name: 'Kaoru Mitoma', club: 'Brighton', year: 2023, fame: 3, lo: 71, hi: 80, bio: "Ponta driblador do Japão — o 'homem do drible' que fez o Brighton voar na Premier." },
+  { name: 'Yuya Osako', club: 'Werder Bremen', year: 2018, fame: 3, lo: 63, hi: 75, bio: 'Centroavante técnico do Japão — segurava a bola e girava a defesa no Werder Bremen.' },
+  { name: 'Patrick Mboma', club: 'Parma', year: 2000, fame: 3, lo: 71, hi: 80, bio: 'Centroavante potente de Camarões — bicampeão africano e ouro olímpico em 2000.' },
+  { name: 'Vincent Aboubakar', club: 'Porto', year: 2018, fame: 3, lo: 67, hi: 77, bio: 'Matador de Camarões — gol do título africano em 2017 e artilheiro da Copa de 2022.' },
+  { name: 'Eric Maxim Choupo-Moting', club: 'Bayern', year: 2021, fame: 3, lo: 64, hi: 76, bio: 'Atacante camaronês que virou campeão da Champions e da Bundesliga pelo Bayern.' },
+  { name: 'Karl Toko Ekambi', club: 'Lyon', year: 2021, fame: 3, lo: 63, hi: 75, bio: 'Ponta-goleador de Camarões, artilheiro pelo Villarreal e pelo Lyon.' },
+  { name: 'Demba Ba', club: 'Newcastle', year: 2012, fame: 3, lo: 67, hi: 77, bio: 'Centroavante senegalês matador — gols pelo Newcastle e pelo Chelsea na Premier League.' },
+  { name: 'Papiss Cissé', club: 'Newcastle', year: 2012, fame: 3, lo: 67, hi: 77, bio: 'Parceiro de Demba Ba no Newcastle — autor de um dos gols mais lindos da história da Premier.' },
+  { name: 'Claudio Caniggia', club: 'Atalanta', year: 1990, fame: 4, lo: 79, hi: 86, folk: true, bio: 'O Filho do Vento. Argentino de velocidade assustadora e cabelo ao vento, fez os gols que tiraram o Brasil e a Itália da Copa de 1990.' },
+  { name: 'Frédéric Kanouté', club: 'Sevilla', year: 2007, fame: 4, lo: 77, hi: 84, bio: 'Melhor jogador africano de 2007 defendendo o Mali. Atacante alto e técnico, foi o dono do ataque do Sevilla das duas Copas da UEFA seguidas.' },
+  { name: 'Emmanuel Adebayor', club: 'Arsenal', year: 2008, fame: 4, lo: 77, hi: 85, bio: 'Togolês de 1,90m com toque de meia, fez 30 gols numa temporada pelo Arsenal e foi eleito o melhor da África em 2008.' },
+  { name: 'Asamoah Gyan', club: 'Sunderland', year: 2011, fame: 3, lo: 74, hi: 82, folk: true, bio: 'Maior artilheiro da história de Gana em Copas. Herói de 2010 e, no mesmo torneio, o homem do pênalti perdido nos acréscimos contra o Uruguai.' },
   { name: "Lisandro López", club: "Porto", year: 2008, fame: 3, lo: 75, hi: 83 },
   { name: "Jackson Martínez", club: "Porto", year: 2014, fame: 3, lo: 75, hi: 83 },
   { name: "Duván Zapata", club: "Atalanta", year: 2019, fame: 3, lo: 74, hi: 82 },
@@ -3324,7 +3392,7 @@ const ZAG_WORLD: C[] = [
   { name: "Marcelo Balboa", club: "Colorado Rapids", year: 2000, fame: 3, lo: 63, hi: 75, bio: "O rabo-de-cavalo e as bicicletas do zagueiro símbolo dos EUA na Copa de 94 — pioneiro do futebol americano moderno." },
   { name: "Yuji Nakazawa", club: "Yokohama F. Marinos", year: 2005, fame: 3, lo: 63, hi: 75 },
   { name: "Eddie Pope", club: "DC United", year: 1998, fame: 3, lo: 63, hi: 75 },
-  { name: "Iván Hurtado", club: "Equador", year: 2002, fame: 3, lo: 63, hi: 75 },
+  { name: "Iván Hurtado", club: "Emelec", year: 1994, fame: 3, lo: 63, hi: 75, bio: "Zagueiro do Emelec bicampeão equatoriano em 1993 e 1994, onde começou a se destacar; depois foi o recordista de jogos da seleção do Equador." }, // 🔁 17/11 (Diego: "não pode ter jogador com país… sempre é jogador, ano e time"): era club "Equador" 2002; virou o clube do auge dele (pt.wikipedia: 116 jogos e 2 títulos)
   { name: "Fernando Quirarte", club: "Chivas", year: 1986, fame: 3, lo: 63, hi: 75 },
   { name: "Rafael Albrecht", club: "San Lorenzo", year: 1968, fame: 3, lo: 63, hi: 75 },
   { name: "Choi Jin-cheul", club: "Jeonbuk", year: 2002, fame: 3, lo: 68, hi: 76 },
@@ -3389,83 +3457,27 @@ const ATA_WORLD: C[] = [
 // fechar 22 (rumo à Copa do Mundo de 20 seleções). País etiquetado em paises.ts.
 const NOVOS_WORLD_GOL: C[] = [
   { name: 'Yoshikatsu Kawaguchi', club: 'Yokohama F. Marinos', year: 2000, fame: 3, lo: 71, hi: 80, bio: 'Goleirão do Japão em quatro Copas — reflexos e liderança na Copa de 2002 em casa.' },
-  { name: 'Eiji Kawashima', club: 'Standard Liège', year: 2012, fame: 3, lo: 64, hi: 76, bio: 'Goleiro viajado do Japão, titular em três Copas do Mundo seguidas.' },
-  { name: 'Thomas N’Kono', club: 'Espanyol', year: 1985, fame: 3, lo: 74, hi: 82, bio: 'Lenda camaronesa da Copa de 82 — tão bom que o Buffon batizou o filho de Thomas em homenagem a ele.' },
-  { name: 'Tony Sylva', club: 'Lille', year: 2004, fame: 3, lo: 64, hi: 76, bio: 'Goleiro seguro da geração de ouro de Senegal que espantou a França em 2002.' },
 ]
 const NOVOS_WORLD_ZAG: C[] = [
-  { name: 'Maya Yoshida', club: 'Southampton', year: 2016, fame: 3, lo: 70, hi: 78, bio: 'Capitão zagueiro do Japão na Premier League — sério, técnico e líder.' },
-  { name: 'Takehiro Tomiyasu', club: 'Arsenal', year: 2022, fame: 3, lo: 71, hi: 80, bio: 'Defensor versátil do Arsenal — joga nas duas laterais e na zaga com a mesma classe.' },
   { name: 'Tsuneyasu Miyamoto', club: 'Gamba Osaka', year: 2002, fame: 3, lo: 63, hi: 75, bio: 'O capitão da máscara na Copa de 2002 — cérebro da defesa japonesa em casa.' },
-  { name: 'Rigobert Song', club: 'RC Lens', year: 2002, fame: 3, lo: 71, hi: 80, bio: 'Capitão eterno de Camarões — quatro Copas e um coração de leão indomável.' },
-  { name: 'Nicolas N’Koulou', club: 'Marseille', year: 2013, fame: 3, lo: 65, hi: 77, bio: 'Zagueiro elegante de Camarões, muralha do Marseille e do Torino.' },
-  { name: 'Sébastien Bassong', club: 'Tottenham', year: 2010, fame: 3, lo: 63, hi: 75, bio: 'Central camaronês de passagem pela Premier — Newcastle, Tottenham e Norwich.' },
-  { name: 'Lamine Diatta', club: 'Rennes', year: 2002, fame: 3, lo: 63, hi: 75, bio: 'Xerife da zaga de Senegal na campanha mágica das quartas da Copa de 2002.' },
-  { name: 'Abdou Diallo', club: 'PSG', year: 2021, fame: 3, lo: 65, hi: 77, bio: 'Zagueiro/lateral senegalês do PSG — campeão africano em 2021.' },
-  { name: 'Pape Abou Cissé', club: 'Olympiacos', year: 2019, fame: 1, lo: 56, hi: 72, bio: 'Zagueirão altíssimo de Senegal, torre grega no Olympiacos.' },
 ]
 const NOVOS_WORLD_LAT: C[] = [
-  { name: 'Yukinari Sugawara', club: 'AZ Alkmaar', year: 2023, fame: 3, lo: 65, hi: 77, bio: 'Lateral japonês trabalhador — subiu e desceu a faixa direita do AZ sem cansar nunca.' },
   { name: 'Khuliso Mudau', club: 'Mamelodi Sundowns', year: 2023, fame: 3, lo: 62, hi: 74, bio: 'Lateral-direito sul-africano do Sundowns, motor incansável da seleção Bafana Bafana.' },
   { name: 'Claudio Morel Rodríguez', club: 'Boca Juniors', year: 2007, fame: 3, lo: 67, hi: 79, bio: 'Lateral-esquerdo aguerrido do Paraguai e da Boca campeã da Libertadores de 2007.' },
   { name: 'Denis Caniza', club: 'Cruz Azul', year: 2005, fame: 3, lo: 64, hi: 76, bio: 'Lateral guerreiro que jogou QUATRO Copas do Mundo pelo Paraguai.' },
-  { name: 'Iván Piris', club: 'Udinese', year: 2015, fame: 3, lo: 62, hi: 74, bio: 'Lateral-direito paraguaio de passagem pela Roma e pela Udinese.' },
-  { name: 'Yuto Nagatomo', club: 'Inter', year: 2013, fame: 3, lo: 69, hi: 79, bio: 'Lateral incansável do Japão — anos de Inter de Milão e recordista de Copas.' },
-  { name: 'Atsuto Uchida', club: 'Schalke', year: 2011, fame: 3, lo: 68, hi: 79, bio: 'Lateral-direito elegante do Japão, titular do Schalke na semi da Champions.' },
-  { name: 'Lauren', club: 'Arsenal', year: 2004, fame: 3, lo: 73, hi: 81, bio: "Lateral dos 'Invencíveis' do Arsenal e bicampeão africano com Camarões — marcação de ferro." },
-  { name: 'Benoît Assou-Ekotto', club: 'Tottenham', year: 2011, fame: 3, lo: 64, hi: 76, bio: 'Lateral-esquerdo camaronês do Tottenham, famoso pela sinceridade fora de campo.' },
-  { name: 'Pierre Womé', club: 'Inter', year: 2006, fame: 3, lo: 63, hi: 75, bio: 'Lateral canhoto potente de Camarões, veterano da Inter e do Bologna.' },
-  { name: 'Timothée Atouba', club: 'Tottenham', year: 2005, fame: 3, lo: 63, hi: 75, bio: 'Lateral-esquerdo veloz de Camarões — Basel, Tottenham e Hamburgo.' },
-  { name: 'Ferdinand Coly', club: 'Parma', year: 2006, fame: 3, lo: 63, hi: 75, bio: 'Lateral-direito de Senegal na campanha das quartas da Copa de 2002.' },
-  { name: 'Habib Beye', club: 'Newcastle', year: 2008, fame: 3, lo: 64, hi: 76, bio: 'Lateral senegalês capitão do Marseille e do Newcastle — hoje treinador.' },
-  { name: 'Youssouf Sabaly', club: 'Real Betis', year: 2022, fame: 3, lo: 64, hi: 76, bio: 'Lateral senegalês campeão africano em 2021 e da Copa do Rei pelo Betis.' },
-  { name: 'Pape Souaré', club: 'Crystal Palace', year: 2016, fame: 1, lo: 55, hi: 71, bio: 'Lateral-esquerdo de Senegal no Crystal Palace, carreira interrompida por um grave acidente.' },
 ]
 const NOVOS_WORLD_MEI: C[] = [
-  { name: 'Shinji Kagawa', club: 'Dortmund', year: 2012, fame: 4, lo: 79, hi: 87, bio: 'O japonês que encantou o Dortmund com dois títulos alemães. O nome faz rir no Brasil — mas em campo era pura categoria.' },
-  { name: 'Moisés Caicedo', club: 'Brighton', year: 2023, fame: 4, lo: 79, hi: 87, bio: 'Volante equatoriano de pulmão infinito — desarma, sai jogando e virou um dos mais caros do mundo.' },
-  { name: 'Papa Bouba Diop', club: 'Fulham', year: 2004, fame: 3, lo: 63, hi: 75, folk: true, bio: 'Volante gigante de Senegal — imortalizado pelo gol que derrubou a França campeã na estreia da Copa de 2002.' },
   { name: 'Gilberto Mora', club: 'Tijuana', year: 2024, fame: 3, lo: 74, hi: 84, promessa: true, bio: 'Menino-prodígio mexicano do Tijuana — dos mais novos a se destacar no país, promessa que já joga como gente grande.' },
   { name: 'Cristian Riveros', club: 'Cruz Azul', year: 2009, fame: 3, lo: 66, hi: 77, bio: 'Meia box-to-box do Paraguai nas quartas da Copa de 2010 — chegada e gol.' },
-  { name: 'Miguel Almirón', club: 'Newcastle', year: 2022, fame: 3, lo: 67, hi: 77, bio: 'Meia-atacante veloz do Paraguai — do Atlético-MG ao Newcastle da Premier League.' },
   { name: 'Julio César Romero', club: 'New York Cosmos', year: 1982, fame: 4, lo: 78, hi: 85, bio: "'Romerito' — melhor da América em 1985, craque do Fluminense campeão e do Cosmos de Pelé." },
-  { name: 'Carlos Paredes', club: 'Porto', year: 2001, fame: 3, lo: 63, hi: 75, bio: 'Volante paraguaio de motor infinito — Porto, Reggina e três Copas.' },
   { name: 'Nelson Cuevas', club: 'River Plate', year: 2002, fame: 3, lo: 63, hi: 75, bio: 'Meia-atacante driblador do Paraguai, ídolo do River e herói da Copa de 2002.' },
-  { name: 'Derlis González', club: 'Dínamo Kyiv', year: 2015, fame: 3, lo: 64, hi: 76, bio: 'Atacante-meia que carregou o Paraguai à semi da Copa América de 2015 nos pênaltis.' },
-  { name: 'Shunsuke Nakamura', club: 'Celtic', year: 2007, fame: 4, lo: 79, hi: 87, bio: 'O mestre das faltas do Japão — gols impossíveis pelo Celtic na Champions, canhota mágica.' },
   { name: 'Yasuhito Endo', club: 'Gamba Osaka', year: 2010, fame: 3, lo: 67, hi: 77, bio: 'Cérebro do meio-campo japonês por mais de uma década — recordista de jogos pela seleção.' },
-  { name: 'Shinji Ono', club: 'Feyenoord', year: 2002, fame: 3, lo: 67, hi: 77, bio: 'Meia talentosíssimo do Japão, campeão da Copa da UEFA pelo Feyenoord em 2002.' },
-  { name: 'Geremi', club: 'Chelsea', year: 2005, fame: 3, lo: 67, hi: 77, bio: 'Meia/lateral camaronês de faltas venenosas — Real Madrid, Chelsea e bicampeão africano.' },
-  { name: 'Alex Song', club: 'Arsenal', year: 2011, fame: 3, lo: 67, hi: 77, bio: 'Volante camaronês do Arsenal e do Barcelona — desarme e lançamento de primeira.' },
-  { name: 'Modeste M’bami', club: 'PSG', year: 2004, fame: 3, lo: 63, hi: 75, bio: 'Volante possante de Camarões, ouro olímpico em 2000 e anos de PSG.' },
-  { name: 'André-Frank Zambo Anguissa', club: 'Napoli', year: 2023, fame: 3, lo: 71, hi: 80, bio: 'Motor do meio-campo do Napoli campeão italiano — força e chegada de Camarões.' },
-  { name: 'Idrissa Gana Gueye', club: 'PSG', year: 2019, fame: 3, lo: 67, hi: 77, bio: 'Ladrão de bolas de Senegal — pulmão infinito no Everton e no PSG, campeão africano.' },
-  { name: 'Khalilou Fadiga', club: 'Auxerre', year: 2002, fame: 3, lo: 67, hi: 77, bio: 'Meia craque da geração dourada de Senegal na Copa de 2002 — drible e categoria.' },
-  { name: 'Aliou Cissé', club: 'Birmingham', year: 2002, fame: 3, lo: 62, hi: 74, bio: 'Capitão-volante de Senegal em 2002 — hoje o técnico campeão africano da seleção.' },
-  { name: 'Salif Diao', club: 'Liverpool', year: 2002, fame: 3, lo: 62, hi: 74, bio: 'Volante senegalês do Liverpool, símbolo da campanha surpreendente de 2002.' },
-  { name: 'Cheikhou Kouyaté', club: 'West Ham', year: 2016, fame: 3, lo: 63, hi: 75, bio: 'Volante/zagueiro alto e forte de Senegal — capitão de raça no West Ham e no Palace.' },
 ]
 const NOVOS_WORLD_ATA: C[] = [
-  { name: "Papa Waigo", club: "Fiorentina", year: 2008, fame: 3, lo: 64, hi: 76, bio: "Centroavante senegalês de força física — passagem pela Fiorentina." },
-  { name: 'Takefusa Kubo', club: 'Real Sociedad', year: 2024, fame: 3, lo: 76, hi: 84, promessa: true, bio: 'A joia japonesa do drible, dono da bola no Real Sociedad. Baixinho endiabrado que enlouquece marcador.' },
   { name: 'Milton Caraglio', club: 'Cruz Azul', year: 2018, fame: 3, lo: 62, hi: 74, folk: true, bio: 'Centroavante argentino faro de área — e um nome que no Brasil rende piada garantida.' },
   { name: 'Carlos Vela', club: 'LAFC', year: 2019, fame: 3, lo: 65, hi: 77, bio: 'Craque mexicano de canhota abençoada — recordista de gols numa temporada mágica pelo LAFC nos Estados Unidos.' },
-  { name: 'Hirving Lozano', club: 'Napoli', year: 2020, fame: 3, lo: 64, hi: 76, bio: '"Chucky" — ponta mexicano explosivo, herói da vitória sobre a Alemanha na Copa de 2018 e destaque no Napoli.' },
-  { name: 'Óscar Cardozo', club: 'Benfica', year: 2010, fame: 3, lo: 71, hi: 80, bio: 'Artilheiro paraguaio matador de pênaltis — ídolo goleador do Benfica.' },
   { name: 'José Saturnino Cardozo', club: 'Toluca', year: 2003, fame: 3, lo: 71, hi: 80, bio: 'Maior artilheiro da história do Toluca e do Paraguai — faro de gol lendário no México.' },
   { name: 'Roberto Cabañas', club: 'América de Cali', year: 1986, fame: 3, lo: 71, hi: 80, bio: 'Atacante paraguaio dos anos 80 — Cosmos, América de Cali dos vices da Liberta e Copa 86.' },
-  { name: 'Shinji Okazaki', club: 'Leicester', year: 2016, fame: 3, lo: 67, hi: 77, bio: 'Atacante trabalhador do Japão — peça do milagre do Leicester campeão inglês de 2016.' },
-  { name: 'Kazuyoshi Miura', club: 'Genoa', year: 1994, fame: 3, lo: 67, hi: 77, bio: "'King Kazu' — pioneiro do futebol japonês, jogou profissional até depois dos 50 anos." },
-  { name: 'Kaoru Mitoma', club: 'Brighton', year: 2023, fame: 3, lo: 71, hi: 80, bio: "Ponta driblador do Japão — o 'homem do drible' que fez o Brighton voar na Premier." },
-  { name: 'Yuya Osako', club: 'Werder Bremen', year: 2018, fame: 3, lo: 63, hi: 75, bio: 'Centroavante técnico do Japão — segurava a bola e girava a defesa no Werder Bremen.' },
-  { name: 'Roger Milla', club: 'Montpellier', year: 1988, fame: 4, lo: 77, hi: 85, bio: 'A lenda da dança na bandeirinha — colocou a África no mapa das Copas em 1990 aos 38 anos.' },
-  { name: 'Patrick Mboma', club: 'Parma', year: 2000, fame: 3, lo: 71, hi: 80, bio: 'Centroavante potente de Camarões — bicampeão africano e ouro olímpico em 2000.' },
-  { name: 'Vincent Aboubakar', club: 'Porto', year: 2018, fame: 3, lo: 67, hi: 77, bio: 'Matador de Camarões — gol do título africano em 2017 e artilheiro da Copa de 2022.' },
-  { name: 'Eric Maxim Choupo-Moting', club: 'Bayern', year: 2021, fame: 3, lo: 64, hi: 76, bio: 'Atacante camaronês que virou campeão da Champions e da Bundesliga pelo Bayern.' },
-  { name: 'Karl Toko Ekambi', club: 'Lyon', year: 2021, fame: 3, lo: 63, hi: 75, bio: 'Ponta-goleador de Camarões, artilheiro pelo Villarreal e pelo Lyon.' },
-  { name: 'Demba Ba', club: 'Newcastle', year: 2012, fame: 3, lo: 67, hi: 77, bio: 'Centroavante senegalês matador — gols pelo Newcastle e pelo Chelsea na Premier League.' },
-  { name: 'Papiss Cissé', club: 'Newcastle', year: 2012, fame: 3, lo: 67, hi: 77, bio: 'Parceiro de Demba Ba no Newcastle — autor de um dos gols mais lindos da história da Premier.' },
-  { name: 'Ismaïla Sarr', club: 'Watford', year: 2020, fame: 3, lo: 67, hi: 77, bio: 'Ponta veloz de Senegal, campeão africano — pesadelo dos laterais pelo Watford.' },
 ]
 // 🌍 LOTE COPA 24 (17/08, escolha do Diego) — parte MUNDO. A leva inteira são 65
 // famosos de Croácia/Dinamarca/Peru/Equador pra cada seleção fechar 22 e a Copa
@@ -3544,32 +3556,22 @@ const L29_WORLD_ATA: C[] = [
 // 🃏 `folk` entra em quem é lembrado pela HISTÓRIA e não só pelo futebol (é a
 //    régua que Okocha, Madjer e o Usain Bolt já usam).
 const L32_WORLD_GOL: C[] = [
-  { name: 'Bono', club: 'Sevilla', year: 2023, fame: 3, lo: 74, hi: 82, bio: 'Goleiro marroquino do título da Liga Europa pelo Sevilla e da campanha histórica do Marrocos na Copa de 2022, quando pegou pênaltis e levou o time até a semifinal.' },
 ]
 const L32_WORLD_LAT: C[] = [
-  { name: 'Serge Aurier', club: 'PSG', year: 2016, fame: 3, lo: 70, hi: 79, bio: 'Lateral-direito marfinense de fôlego e cruzamento, titular do PSG dos títulos franceses e capitão da Costa do Marfim.' },
 ]
 const L32_WORLD_ZAG: C[] = [
-  { name: 'Iván Córdoba', club: 'Inter', year: 2010, fame: 4, lo: 79, hi: 86, bio: 'Zagueiro colombiano baixinho e de marcação impecável, capitão da Inter da tríplice coroa de 2010 e autor do gol do título da Colômbia na Copa América de 2001.' },
   // 🇨🇲 L33 (22/09) · o Diego sabia quem era e queria o clube do auge. Pesquisado:
   //    Yaya Banana, de Maroua, zagueiro. Carreira em ES Tunis (2009-12), Sochaux na
   //    França, Platanias na Grécia e OLYMPIACOS (2017-19) — o maior clube por onde
   //    passou, e é esse o auge da carta. Depois Jordânia, Índia e França amadora.
-  { name: 'Yaya Banana', club: 'Olympiacos', year: 2018, fame: 3, lo: 62, hi: 74, folk: true, bio: 'Zagueiro camaronês de Maroua que rodou Tunísia, França e Grécia até chegar ao Olympiacos — e ficou famoso no Brasil pelo nome antes do futebol.' },
 ]
 const L32_WORLD_MEI: C[] = [
   { name: 'Ariel Ortega', club: 'River Plate', year: 1997, fame: 4, lo: 79, hi: 86, folk: true, bio: 'El Burrito. Argentino de drible curto e desequilíbrio puro, ídolo máximo do River — e tão explosivo fora de campo quanto dentro.' },
   { name: 'Gallardo', club: 'River Plate', year: 1997, fame: 4, lo: 79, hi: 86, bio: 'Meia argentino de passe milimétrico, a Muñeca do River dos anos 90 — depois virou o treinador mais vitorioso da história do clube.' },
-  { name: 'Michael Essien', club: 'Chelsea', year: 2007, fame: 4, lo: 79, hi: 86, bio: 'O Bisão. Volante ganês que corria por dois no Chelsea de Mourinho, marcava como zagueiro e soltava a bomba de fora da área.' },
-  { name: 'Thomas Partey', club: 'Atlético de Madrid', year: 2020, fame: 3, lo: 74, hi: 82, bio: 'Volante ganês de porte físico e chegada ao ataque, peça do Atlético de Madrid de Simeone antes de virar titular do Arsenal.' },
   { name: 'Lakhdar Belloumi', club: 'GCR Mascara', year: 1982, fame: 3, lo: 74, hi: 82, folk: true, bio: 'Melhor jogador africano de 1981 e autor do gol que completou a maior zebra da história das Copas: Argélia 2 × 1 Alemanha Ocidental, em 1982.' },
 ]
 const L32_WORLD_ATA: C[] = [
   { name: 'Martín Palermo', club: 'Boca Juniors', year: 2000, fame: 4, lo: 78, hi: 86, folk: true, bio: 'O Louco. Maior artilheiro da história do Boca e campeão do mundo em 2000 — e também o homem que perdeu três pênaltis num único jogo da Copa América.' },
-  { name: 'Claudio Caniggia', club: 'Atalanta', year: 1990, fame: 4, lo: 79, hi: 86, folk: true, bio: 'O Filho do Vento. Argentino de velocidade assustadora e cabelo ao vento, fez os gols que tiraram o Brasil e a Itália da Copa de 1990.' },
-  { name: 'Frédéric Kanouté', club: 'Sevilla', year: 2007, fame: 4, lo: 77, hi: 84, bio: 'Melhor jogador africano de 2007 defendendo o Mali. Atacante alto e técnico, foi o dono do ataque do Sevilla das duas Copas da UEFA seguidas.' },
-  { name: 'Emmanuel Adebayor', club: 'Arsenal', year: 2008, fame: 4, lo: 77, hi: 85, bio: 'Togolês de 1,90m com toque de meia, fez 30 gols numa temporada pelo Arsenal e foi eleito o melhor da África em 2008.' },
-  { name: 'Asamoah Gyan', club: 'Sunderland', year: 2011, fame: 3, lo: 74, hi: 82, folk: true, bio: 'Maior artilheiro da história de Gana em Copas. Herói de 2010 e, no mesmo torneio, o homem do pênalti perdido nos acréscimos contra o Uruguai.' },
 ]
 // 🧱 LOTE 35 (26/09) — parte MUNDO (Boca, River e Cruz Azul: clubes de FORA do Brasil e da Europa). Ver o comentário do LOTE 35 acima do CATALOG_EU.
 const L35_WORLD_GOL: C[] = [
