@@ -1,3 +1,9 @@
+## 🎨 16/11 — Avatares das oito lendas restantes de Europa e Mundo
+
+- Oito retratos individuais com arte sem feições, uniformes de época sem marcas, e WebP com alfa 600×400: Banks (Leicester 1966), Antognoni (Fiorentina 1982), Peyroteo (Sporting 1947), Vozinha (Colo-Colo 2026), Pedro Rocha (Peñarol 1965), Spencer (Peñarol 1961), Kempes (Rosario Central 1973) e Di Stéfano (Millonarios 1949).
+- Cadastro por nome, clube e ano. Âncora histórica de Kempes: referência visual da passagem pelo Rosario Central iniciada em 1974 segundo o clube, mantendo a identidade já cadastrada de 1973.
+- Prévias exibidas e usuário orientou seguir. Os checks do catálogo de futebol e do basquete passaram.
+
 ## 📡 16/11 — Custos Realtime: presença idêntica sem retransmissão — TESTADA, PUBLICAÇÃO AUTORIZADA
 
 - Diego aprovou apenas a primeira medida: ignorar listas de presença exatamente iguais, mantendo entradas/saídas, UIDs, duplas, pedidos de recuperação e heartbeat.

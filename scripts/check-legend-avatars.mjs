@@ -5,7 +5,7 @@ import ts from 'typescript'
 const catalog=JSON.parse(fs.readFileSync('src/escalacao/legend-avatars.json','utf8'))
 const exports={}
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/legend-avatars.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports,require:path=>path==='./basketball-avatars.json'?JSON.parse(fs.readFileSync('src/escalacao/basketball-avatars.json','utf8')):catalog})
-assert.equal(catalog.length,200)
+assert.equal(catalog.length,208)
 const paths=new Set()
 for(const p of catalog){
  assert.equal(exports.legendAvatar(p.name,p.club,p.year)?.src,p.src)
