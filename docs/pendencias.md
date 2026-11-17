@@ -13805,6 +13805,8 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   some durante o jogo, volta ~2 min depois do apito) · clube de lazer de dia (piscina, quadras, gazebo; à noite só o churrasco) ·
   fila + segurança na balada à noite. Fotos: `mapa-multidao-portao.png`, `mapa-clube-gente.png`, `mapa-balada-fila.png`.
   ⏭️ A conferir: a multidão depois do apito (o teste não pegou) e a câmera do quadro da chegada (às vezes fica na visão alta da cidade
-  em vez de descer pro ônibus). E num teste a partida da liga começou sozinha com o quadro da chegada aberto — verificar se é do
-  atalho de teste (SIM_MANY) ou se o automático está passando por cima do "Começar o jogo".
+  em vez de descer pro ônibus). E num teste a partida da liga começou sozinha com o quadro da chegada aberto. 🔎 Investigado
+  (17/11): no código o apito da liga no automático SÓ sai com `jogoOk` (setado por 3 toques: "▶ Começar o jogo", "Ir pro jogo" da
+  Central e o botão principal) — o controle do mapa não avança e o quadro da chegada não mexe nisso. O robô do teste tinha um laço que
+  apertava "Começar o jogo" sozinho e não registrava os cliques; não deu pra reproduzir. Se algum jogador relatar, olhar de novo.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
