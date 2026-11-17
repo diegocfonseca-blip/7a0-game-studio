@@ -5,8 +5,9 @@
 // portão com a placa do clube. Só cenário (não cobra, não paga, não grava nada no save) — caixas mescladas, placa em canvas.
 import * as THREE from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
+import {criarFigurantes,type Figurante} from './presidencia-figurantes'
 
-export type ClubeLazer={id:'clube-lazer';name:string;root:THREE.Group;centro:{x:number;z:number};solidos:{id:string;minX:number;maxX:number;minZ:number;maxZ:number;top:number}[];dispose:()=>void}
+export type ClubeLazer={id:'clube-lazer';name:string;root:THREE.Group;centro:{x:number;z:number};solidos:{id:string;minX:number;maxX:number;minZ:number;maxZ:number;top:number}[];/** 👥 de dia tem gente (piscina, quadras, gazebo); de noite só o pessoal do churrasco */periodo:(p:'day'|'night'|string,t:number)=>void;dispose:()=>void}
 
 /** `quadras` = o quarteirão das 2 quadras de futevôlei · `lazer` = o quarteirão da piscina + gazebo (com o portão) */
 export function criarClubeLazer(parent:THREE.Object3D,spec:{quadras:{x:number;z:number};lazer:{x:number;z:number};name?:string}):ClubeLazer{
@@ -74,9 +75,19 @@ export function criarClubeLazer(parent:THREE.Object3D,spec:{quadras:{x:number;z:
   const m=new THREE.MeshStandardMaterial({map:texture,roughness:.85});ms.add(m);const g=new THREE.PlaneGeometry(4.6,.9);gs.add(g)
   const sign=new THREE.Mesh(g,m);sign.position.set(CX,y+3.2,maxZ+.12);root.add(sign)
  }
+ // 👥 17/11: gente no clube (figurantes parados em lote — custo de 3 desenhos). De dia: nadando, jogando futevôlei, no gazebo.
+ const gente=criarFigurantes(parent,24,'clube-lazer-gente'),noite=criarFigurantes(parent,6,'clube-lazer-gente-noite')
+ {const cores=['#e8503a','#ffc400','#1b7a3d','#2f6fdb','#ffffff','#7c3aed'],dia:Figurante[]=[],gaz:Figurante[]=[]
+  const px=L.x-3,pz=L.z-2.5
+  for(const [i,[dx,dz]] of [[-3.5,-1],[-1.2,1.2],[1.4,-.6],[3.2,1],[.2,.2]].entries())dia.push({x:px+dx,y:y+.17,z:pz+dz,camisa:cores[i%cores.length],pose:'nadando'})
+  for(const [k,dz] of [-5.4,5.4].entries())for(const [i,[dx,ddz]] of [[-4.5,-1.6],[-4,1.6],[4.5,1.4],[4,-1.5]].entries())dia.push({x:Q.x+dx,y:y+.1,z:Q.z+dz+ddz,heading:dx<0?Math.PI/2:-Math.PI/2,camisa:k?'#ffffff':cores[(i+2)%cores.length]})
+  const gx=L.x+6,gz=L.z+5.2
+  for(const [i,dx] of [-.8,.8].entries())for(const s2 of [-1,1])gaz.push({x:gx+dx,y:y+.08,z:gz+.6+s2*.85,heading:s2<0?0:Math.PI,camisa:cores[(i*2+(s2>0?1:0))%cores.length],pose:'sentado'})
+  gaz.push({x:gx+.4,y:y+.08,z:gz-1.4,heading:Math.PI,camisa:'#ffffff'}) // o churrasqueiro
+  gente.set([...dia,...gaz]);noite.set(gaz)}
  // junta as caixas por material (mesmo truque do boteco) — placa e peças rodadas (cone/cilindro) entram no lote também
  const groups=new Map<THREE.Material,THREE.BufferGeometry[]>()
  for(const child of [...root.children]){if(!(child instanceof THREE.Mesh)||Array.isArray(child.material)||child.material.map)continue;child.updateMatrix();const list=groups.get(child.material)??[];list.push(child.geometry.clone().applyMatrix4(child.matrix));groups.set(child.material,list);child.removeFromParent()}
  for(const [m,parts] of groups){const g=mergeGeometries(parts.map(p=>p.index?p.toNonIndexed():p),false);parts.forEach(p=>p.dispose());if(!g)throw Error('Invalid clube-lazer geometry batch');gs.add(g);const o=new THREE.Mesh(g,m);o.castShadow=m!==net&&m!==line&&m!==water&&m!==waterDeep;o.receiveShadow=true;root.add(o)}
- return{id:'clube-lazer',name,root,centro:{x:CX,z:CZ},solidos,dispose(){root.removeFromParent();gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());ts.forEach(t=>t.dispose())}}
+ return{id:'clube-lazer',name,root,centro:{x:CX,z:CZ},solidos,periodo(p,t){const n=p==='night';gente.mostrar(!n);noite.mostrar(n);gente.tempo(t);noite.tempo(t)},dispose(){gente.dispose();noite.dispose();root.removeFromParent();gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());ts.forEach(t=>t.dispose())}}
 }

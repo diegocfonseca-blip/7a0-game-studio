@@ -11,12 +11,13 @@ import {MATCHDAY_COACH_DELAY,matchdayFanPoints,matchdayStage,stadiumExteriorVisi
 import {criarPropsDiaJogo} from './presidencia-dia-jogo-props'
 import {criarBandeirasDiaJogo} from './presidencia-dia-jogo-bandeiras'
 import {criarEnfeitesRuaDiaJogo} from './presidencia-dia-jogo-ruas'
+import {criarFigurantes,type Figurante} from './presidencia-figurantes'
 import type {AssentoComplexo} from './presidencia-complexo-arquitetura'
 import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import {PLANTA_COMPLEXO,caminhosTorcidaComplexo,type EstadoComplexo} from './presidencia-complexo-model'
 import type {IdentidadeDiaJogo} from './presidencia-identidade-dia-jogo'
 
-export type DadosDiaJogo={journey?:JornadaComplexo;teams:IdentidadeDiaJogo[];supporters:number;mobile:boolean}
+export type DadosDiaJogo={journey?:JornadaComplexo;teams:IdentidadeDiaJogo[];supporters:number;mobile:boolean;/** 👥 0–1: o quanto o estádio enche (clássico/final/decisão enchem mais) — só a MULTIDÃO parada da porta usa */lotacao?:number}
 /** Decorative city attendance sample, separate from official seat tickets and
  * revenue. Exterior bodies are hidden after crossing the real gate, standing
  * for the trip to the stands. Their routes continue for an ordered departure;
@@ -32,6 +33,24 @@ export function criarDiaDeJogo(scene:THREE.Scene,state:EstadoComplexo,seats:read
  type Person={body:Civilian;pose:ReturnType<ReturnType<typeof activityRoute>['at']>|null;loaded:boolean}
  const person=(id:string,outfitColor?:string,variant?:string):Person=>{const p={body:createCivilian(root,{id,outfitColor,variant}),pose:null,loaded:false};p.body.ready.then(ok=>{p.loaded=ok});return p}
  const vendors=props.stalls.map((s,i)=>({id:s.id,side:s.side,delivery:vendorDelivery(s,i,ground),vanIndex:s.kind==='cooler'?-1:props.stalls.slice(0,i).filter(p=>p.kind!=='cooler').length,person:person('matchday-vendor-'+s.id,s.color,i%2?'adult-woman':'adult-man'),position:s.vendor,inbound:activityRoute(measured(s.side==='away'?[{x:s.vendor.x+8,y:0,z:s.vendor.z+8},s.vendor]:[{x:s.vendor.x-6,y:0,z:s.vendor.z+13},s.vendor]),1.05),outbound:activityRoute(measured(s.side==='away'?[s.vendor,{x:s.vendor.x+8,y:0,z:s.vendor.z+8}]:[s.vendor,{x:s.vendor.x-6,y:0,z:s.vendor.z+13}]),1.0)}))
+ // 👥 MULTIDÃO DA PORTA (17/11, Diego: "mais NPCs no entorno do estádio em dia de jogo"): gente parada em lote (3 desenhos pro
+ // grupo inteiro) na fila do portão, na praça e no portão visitante. Cresce com a lotação do jogo; no celular/Leve, bem menos.
+ const MULTIDAO_MAX=140,multidao=criarFigurantes(root,MULTIDAO_MAX,'matchday-multidao')
+ const montaMultidao=(input:DadosDiaJogo)=>{
+  const lot=Math.max(0,Math.min(1,input.lotacao??.5)),n=Math.round((input.mobile?40:120)*(.3+.7*lot)),casa=input.teams[0]?.color??'#eeeeee',fora=input.teams[1]?.color??'#b83228'
+  const r=(i:number,k:number)=>{let h=Math.imul((i+1)*2654435761^k*40503,2246822519);h^=h>>>13;return (h>>>0)/4294967296}
+  const camisa=(i:number,cor:string)=>{const u=r(i,9);return u<.72?cor:u<.86?'#f2f2f2':u<.94?'#1a1a1a':'#c9c9c9'}
+  const temFora=state.progress.visitante>0,lista:Figurante[]=[]
+  for(let i=0;i<n;i++){
+   const u=r(i,1),lado=r(i,2)<.5?-1:1
+   let x:number,z:number,heading:number,cor=casa
+   if(temFora&&u<.22){x=102+r(i,3)*22;z=8.5+lado*(1.6+r(i,4)*2.6);heading=Math.PI/2+(r(i,5)-.5)*1.2;cor=fora}       // portão visitante
+   else if(u<.6){x=-3.3+lado*(1.5+r(i,3)*2.8);z=84+r(i,4)*28;heading=Math.PI+(r(i,5)-.5)*1.4}                  // fila do portão da casa (os que andam passam no meio)
+   else{x=lado*(2+r(i,3)*7);z=118+r(i,4)*80;heading=(r(i,5)-.5)*Math.PI*2}                                     // praça (o meio fica livre pro caminho)
+   lista.push({x,y:ground(x,z),z,heading,camisa:camisa(i,cor)})
+  }
+  multidao.set(lista)
+ }
  const vans=criarPeruasAmbulantes(root,props.stalls.filter(s=>s.kind!=='cooler').map(s=>s.color))
 
  const customers=props.stalls.map((s,i)=>{
@@ -47,7 +66,7 @@ export function criarDiaDeJogo(scene:THREE.Scene,state:EstadoComplexo,seats:read
  const dayClock=stadiumDayClock();let dayFrame:StadiumDayFrame|undefined,serviceTime=0,serviceLast=0
  let requested:DadosDiaJogo|undefined,current:DadosDiaJogo|undefined,key='',lastTime=0,origin=0,offset=0,elapsed=0,departureAt:number|undefined,active=false,readyForCoaches=false,stage='idle',fanLimit=0,hasPresentedEvent=false
  const colorPerson=(p:Person,color:string)=>p.body.root.traverse(n=>{if(n instanceof THREE.Mesh)for(const m of Array.isArray(n.material)?n.material:[n.material])if(m instanceof THREE.MeshStandardMaterial&&['Shirt','Clothes'].includes(m.name))m.color.set(color)})
- const begin=(input:DadosDiaJogo,time:number)=>{current={...input,journey:input.journey?{...input.journey}:undefined,teams:input.teams.map(t=>({...t}))};key=input.journey!.key;origin=time;offset=!hasPresentedEvent&&['playing','interval','departure'].includes(input.journey!.phase)?180:0;hasPresentedEvent=true;elapsed=offset;departureAt=undefined;fanLimit=Math.min(input.mobile?3:4,Math.max(2,1+Math.floor(Math.log2(1+input.supporters/10000))));serviceTime=0;serviceLast=time;customers.forEach(c=>{c.exit=undefined});flags.configure(input.teams);streets.configure(input.teams[0],input.mobile);props.setClubColors(input.teams.map(t=>t.color));fans.forEach(f=>{f.exitStart=null;f.exit=undefined;f.pose=f.inbound.at(elapsed-f.index*2.9)});fans.forEach(f=>colorPerson(f.person,input.teams[f.side==='home'?0:1]?.color??(f.side==='home'?'#eeeeee':'#b83228')))}
+ const begin=(input:DadosDiaJogo,time:number)=>{montaMultidao(input);current={...input,journey:input.journey?{...input.journey}:undefined,teams:input.teams.map(t=>({...t}))};key=input.journey!.key;origin=time;offset=!hasPresentedEvent&&['playing','interval','departure'].includes(input.journey!.phase)?180:0;hasPresentedEvent=true;elapsed=offset;departureAt=undefined;fanLimit=Math.min(input.mobile?3:4,Math.max(2,1+Math.floor(Math.log2(1+input.supporters/10000))));serviceTime=0;serviceLast=time;customers.forEach(c=>{c.exit=undefined});flags.configure(input.teams);streets.configure(input.teams[0],input.mobile);props.setClubColors(input.teams.map(t=>t.color));fans.forEach(f=>{f.exitStart=null;f.exit=undefined;f.pose=f.inbound.at(elapsed-f.index*2.9)});fans.forEach(f=>colorPerson(f.person,input.teams[f.side==='home'?0:1]?.color??(f.side==='home'?'#eeeeee':'#b83228')))}
  const leave=()=>{if(departureAt!==undefined)return;departureAt=elapsed;for(const f of fans){const pose=f.pose??f.inbound.at(elapsed-f.index*2.9);f.exitStart={...pose};let run=0;const prefix:CityPoint[]=[f.inbound.points[0]];for(let i=1;i<f.inbound.points.length;i++){const a=f.inbound.points[i-1],b=f.inbound.points[i],d=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);if(run+d>=pose.distance-1e-7)break;prefix.push(b);run+=d}const publicRoute=caminhosTorcidaComplexo(state)[f.side].filter(p=>f.side==='home'?p.z>=115:p.x>=120).reverse();const extension=measured(publicRoute.map(p=>({...p,y:0})));f.exit=pose.distance>.02?activityRoute([{x:pose.x,y:pose.y,z:pose.z},...prefix.reverse(),...extension],1.15):undefined}}
  fans.forEach(f=>f.person.body.ready.then(()=>{if(current)colorPerson(f.person,current.teams[f.side==='home'?0:1]?.color??'#eeeeee')}))
  function configure(input:DadosDiaJogo,time:number){
@@ -88,11 +107,12 @@ export function criarDiaDeJogo(scene:THREE.Scene,state:EstadoComplexo,seats:read
    }
    c.pose=leaving&&c.exit?{...c.exit.at(exitTime),phase:'leaving'}:c.journey.at(serviceTime);apply(c.person,c.pose,time,camera,height,(stallWork.has(c.id)?stallWork.get(c.id)!.setup>.95:dayFrame.phase!=='arrival'||pregameFrame(dayFrame).setup>.9)&&(!leaving||!!c.exit&&!c.pose.done))
   }
+  multidao.tempo(time);multidao.mostrar(dayFrame.phase==='arrival'||leaving&&exitTime<120) // no jogo eles estão lá dentro; na saída somem aos poucos com a cidade
   props.root.visible=dayFrame.joinedLate||dayFrame.phase!=='arrival'||elapsed>=PREGAME.streets;props.update(time,{...dayFrame,setup:dayFrame.phase==='arrival'?pregameFrame(dayFrame).setup:dayFrame.setup},stallWork);flags.update(time)
 
   const entered=fans.filter(f=>f.index===0&&f.phase!=='off').every(f=>f.phase==='inside')
   stage=dayFrame.stage==='playing'?'match':dayFrame.stage==='gates-open'?matchdayStage(elapsed,current.journey?.phase??'idle',entered):dayFrame.stage
   readyForCoaches=!leaving&&current.journey?.phase==='arrival'&&elapsed>=MATCHDAY_COACH_DELAY&&entered&&vendors.every(v=>v.person.loaded&&(!v.delivery||v.delivery.at(dayFrame).setup>=1))
  }
- return{root,configure,update,day:()=>dayFrame,coachesAllowed:()=>readyForCoaches,coachStart:()=>origin+Math.max(0,MATCHDAY_COACH_DELAY-offset),key:()=>key,inspect:()=>({active,key,requestedKey:requested?.journey?.key,elapsed,stage,cycle:dayFrame,coachesAllowed:readyForCoaches,coachEarliest:MATCHDAY_COACH_DELAY,fanLimit,source:'decorative match-day city sample; no tickets, attendance revenue or economy writes',fans:fans.map(f=>({side:f.side,index:f.index,phase:f.phase,pose:f.pose,exteriorVisible:f.exteriorVisible,visible:f.person.body.root.visible,ready:f.person.loaded})),vendors:vendors.map(v=>({id:v.id,position:v.position,ready:v.person.loaded,transport:v.delivery?'van':'on-foot',pose:v.person.pose,delivery:v.delivery?{parking:v.delivery.parking,timing:v.delivery.timing,frame:v.delivery.at(dayFrame),routes:{in:v.delivery.incoming.points,out:v.delivery.outgoing.points,cargo:v.delivery.cargo.points,driver:v.delivery.exitDriver.points}}:null})),vans:vans.inspect(),customers:customers.map(c=>({id:c.id,pose:c.pose,route:c.journey.inbound.points})),flags:flags.inspect(),streets:streets.inspect(),routes:fans.map(f=>({side:f.side,index:f.index,points:f.inbound.points}))}),dispose(){[...fans.map(f=>f.person),...vendors.map(v=>v.person),...customers.map(c=>c.person),...guards.map(g=>g.person)].forEach(p=>p.body.dispose());vans.dispose();props.dispose();flags.dispose();streets.dispose();root.removeFromParent()}}
+ return{root,configure,update,day:()=>dayFrame,coachesAllowed:()=>readyForCoaches,coachStart:()=>origin+Math.max(0,MATCHDAY_COACH_DELAY-offset),key:()=>key,inspect:()=>({multidao:{...multidao.inspect(),visivel:multidao.root.visible,pai:root.visible},active,key,requestedKey:requested?.journey?.key,elapsed,stage,cycle:dayFrame,coachesAllowed:readyForCoaches,coachEarliest:MATCHDAY_COACH_DELAY,fanLimit,source:'decorative match-day city sample; no tickets, attendance revenue or economy writes',fans:fans.map(f=>({side:f.side,index:f.index,phase:f.phase,pose:f.pose,exteriorVisible:f.exteriorVisible,visible:f.person.body.root.visible,ready:f.person.loaded})),vendors:vendors.map(v=>({id:v.id,position:v.position,ready:v.person.loaded,transport:v.delivery?'van':'on-foot',pose:v.person.pose,delivery:v.delivery?{parking:v.delivery.parking,timing:v.delivery.timing,frame:v.delivery.at(dayFrame),routes:{in:v.delivery.incoming.points,out:v.delivery.outgoing.points,cargo:v.delivery.cargo.points,driver:v.delivery.exitDriver.points}}:null})),vans:vans.inspect(),customers:customers.map(c=>({id:c.id,pose:c.pose,route:c.journey.inbound.points})),flags:flags.inspect(),streets:streets.inspect(),routes:fans.map(f=>({side:f.side,index:f.index,points:f.inbound.points}))}),dispose(){[...fans.map(f=>f.person),...vendors.map(v=>v.person),...customers.map(c=>c.person),...guards.map(g=>g.person)].forEach(p=>p.body.dispose());vans.dispose();props.dispose();flags.dispose();streets.dispose();root.removeFromParent()}}
 }

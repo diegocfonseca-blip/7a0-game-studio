@@ -593,6 +593,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
 
    sponsorLife.update(seconds,camera,el.clientHeight,journeyRef.current?.period??'day',contextoBairroDoMapa(cidadeVivaRef.current,journeyRef.current,matchRef.current))
    localLife.update(seconds,camera,el.clientHeight,journeyRef.current?.period??'day')
+   surround.clubeLazer?.periodo(journeyRef.current?.period??'day',seconds);surround.balada?.periodo(journeyRef.current?.period??'day',seconds) // 👥 17/11
    casaLuca?.update(seconds,camera,el.clientHeight,journeyRef.current?.period??'day')
    const sourceMatch=matchRef.current
    const dayJourney=journeyRef.current&&sourceMatch&&sourceMatch.context.id===journeyRef.current.fixtureId?{...journeyRef.current,phase:sourceMatch.finished?'departure' as const:sourceMatch.paused&&sourceMatch.minute===45?'interval' as const:'playing' as const}:journeyRef.current
@@ -600,7 +601,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    const tripRosters=arrivalRef.current?.fixtureId===dayJourney?.fixtureId?arrivalRef.current:liveRosters
    const currentTeams=tripRosters?.teams??(matchRef.current?.officialTeams?.map((name,i)=>({name,color:i?matchRef.current!.awayColor:matchRef.current!.homeColor}))??[])
    stadiumAccess.configure(currentTeams,sourceMatch?.viewerClubId!==undefined?sourceMatch.viewerClubId===sourceMatch.context.awayClubId?'away':'home':fora?'away':'home')
-   matchday.configure({journey:dayJourney,teams:currentTeams,supporters:populationRef.current.attendance?.supporters??0,mobile:softwareGPU||el.clientWidth<600},seconds)
+   matchday.configure({journey:dayJourney,teams:currentTeams,supporters:populationRef.current.attendance?.supporters??0,mobile:softwareGPU||el.clientWidth<600||mobileGraphics,lotacao:(populationRef.current.attendance?.attendance??50)/100},seconds)
    matchday.update(seconds,camera,el.clientHeight)
    cidade.configure(cidadeVivaRef.current,{mobile:softwareGPU||el.clientWidth<600,enabled:populationRef.current.enabled}) // 🏙️ antes do boteco: o humor entra no mesmo quadro
    finalDay.update({match:sourceMatch,journey:dayJourney,teams:currentTeams,frame:game.frame(),subjects:game.subjects().length?game.subjects():lastFieldSubjects,residents:residents.count(),mobile:softwareGPU||el.clientWidth<600,seconds},camera,el.clientHeight)
