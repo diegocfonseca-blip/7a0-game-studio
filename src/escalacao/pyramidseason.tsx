@@ -7241,7 +7241,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
 // TÍTULOS (Série A → B → C → D) e depois DINHEIRO, com desempate em cascata. ──
 type Honors = { A: number; B: number; C: number; D: number; V?: number }
 const EMPTY_HONORS: Honors = { A: 0, B: 0, C: 0, D: 0, V: 0 }
-function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed, brasil, intlHistory = [], oficialCampeoes }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; supercopaHonors?: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number; brasil?: boolean; intlHistory?: InternationalHistoryEntry[]; oficialCampeoes?: { liberta?: string; sula?: string; intercontinental?: string }[] }) {
+function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCash, colors, youId, seasonNo, myDiv, safTeam, seed, brasil, intlHistory = [], oficialCampeoes, oficialEstaduais }: { tables: Record<Div, SimTeam[]>; honors: Record<string, Honors>; copaHonors: Record<string, number>; supercopaHonors?: Record<string, number>; coins: Record<number, number>; clubCash: Record<string, number>; colors: Record<number, FCol>; youId: number; seasonNo?: number; myDiv?: Div | null; safTeam?: string; seed?: number; brasil?: boolean; intlHistory?: InternationalHistoryEntry[]; oficialCampeoes?: { liberta?: string; sula?: string; intercontinental?: string }[]; oficialEstaduais?: { nome: string; campeao: string }[] }) {
   // 🇧🇷 Brasil Oficial (16/11): Libertadores e Sul-Americana REAIS gravam o campeão pelo NOME em `oficialCampeoes`.
   const libOf: Record<string, number> = {}, sulaOf: Record<string, number> = {}, interOf: Record<string, number> = {} // 🌐 Intercontinental conta como Mundial
   for (const e of oficialCampeoes ?? []) { if (e.liberta) libOf[e.liberta] = (libOf[e.liberta] ?? 0) + 1; if (e.sula) sulaOf[e.sula] = (sulaOf[e.sula] ?? 0) + 1; if (e.intercontinental) interOf[e.intercontinental] = (interOf[e.intercontinental] ?? 0) + 1 }
@@ -7301,15 +7301,19 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   const myIntlCounts = internationalTitleCounts(intlHistory, seasonNo ?? Infinity)
   const meuNome = rows.find(r => r.t.teamId === youId)?.t.name ?? ''
   const mySula = sulaOf[meuNome] ?? 0
+  // 🏟️ estaduais ganhos (Brasil Oficial): só na estante, sem ponto no ranking até o Diego dizer quanto vale
+  const myEst = (oficialEstaduais ?? []).filter(e => e.campeao === meuNome).length
+  const nomeEst = (oficialEstaduais ?? []).find(e => e.campeao === meuNome)?.nome ?? ''
   const myIntl = { lib: myIntlCounts.libertadores_titles + (libOf[meuNome] ?? 0), champ: myIntlCounts.champions_titles, mundial: myIntlCounts.mundial_titles + (interOf[meuNome] ?? 0) }
   // ⚠️ o total TEM que somar a VÁRZEA também (faltava — o título de Várzea
   // aparecia na fileira de troféus embaixo mas NÃO entrava no "Total: X 🏆",
   // então quem começou a carreira na Várzea via um troféu a menos na conta).
-  const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld + myIntl.lib + myIntl.champ + myIntl.mundial + mySula
+  const totalT = myH.A + myH.B + myH.C + myH.D + (myH.V ?? 0) + myCopas + mySupercopa + myWorld + myIntl.lib + myIntl.champ + myIntl.mundial + mySula + myEst
   const trofeus = [
     ...(myWorld > 0 ? [{ key: 'mundo', label: tr('Copa do Mundo', 'World Cup'), n: myWorld, bg: INK, c: GOLD }] : []),
     ...(myIntl.mundial > 0 ? [{ key: 'mundial', label: oficialCampeoes ? 'Intercontinental' : 'Mundial de Clubes', n: myIntl.mundial, bg: '#7C3AED', c: '#fff' }] : []),
     ...(myIntl.lib > 0 ? [{ key: 'libertadores', label: 'Libertadores', n: myIntl.lib, bg: '#1B7A3D', c: '#fff' }] : []),
+    ...(myEst > 0 ? [{ key: 'estadual', label: (NOME_ESTADUAL[nomeEst] ?? nomeEst) || tr('Estadual', 'State league'), n: myEst, bg: '#E8503A', c: '#fff' }] : []),
     ...(mySula > 0 ? [{ key: 'sula', label: 'Sul-Americana', n: mySula, bg: '#C2452F', c: '#fff' }] : []),
     ...(myIntl.champ > 0 ? [{ key: 'champions', label: 'Champions League', n: myIntl.champ, bg: '#0D4FCC', c: '#fff' }] : []),
     ...(myCopas > 0 ? [{ key: 'copa', label: copaLabel, n: myCopas, bg: brasil ? '#0EA658' : GOLD, c: brasil ? '#fff' : INK }] : []),
@@ -13820,7 +13824,7 @@ export function PyramidSeasonScreen() {
             })()}
             <div className="ll-rank-layout cv2-rank-layout"><div className="ll-rank-results">
             {rankSub === 'clubes' ? (
-              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} oficialCampeoes={state.oficial ? state.oficialCampeoes : undefined} />
+              <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} oficialCampeoes={state.oficial ? state.oficialCampeoes : undefined} oficialEstaduais={state.oficial ? state.oficialEstaduais : undefined} />
             ) : rankSub === 'garcons' ? (
               <>
               {/* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O
