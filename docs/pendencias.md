@@ -92,6 +92,11 @@
   campeão, a final e os campeões da temporada inteira. Causa: a chave (`copaBase`, 9 fases) recebia o índice da ESTEIRA (que conta
   estadual, Supercopa Rei, Liberta…). Consertado com `revealCopaBase` (só no Brasil Oficial). Visto também: a multidão do portão volta
   depois do apito (~2 min) ✓; nos primeiros ~20 s do jogo ela ainda aparecia antes de o mapa remontar — conferir num aparelho de verdade.
+  ✅ Spoiler conferido no navegador (temporadas 1 e 2, 4ª/5ª fase/oitavas): só as fases já jogadas; no fim, final e campeão aparecem.
+  ✅ Link "👉 Ver fases e resultados na aba Tabelas" (fim de temporada) não fazia NADA com Jogos+Tabela juntos (VALE PRA CARREIRA NORMAL,
+  está no ar) → agora desce até os resultados. Jornal do modo dizia "Copa do Brasil Legends" → "Copa do Brasil".
+  ⏭️ Visto: nas listas de fases passadas, um confronto decidido nos pênaltis às vezes mostra "PÊNALTIS — × — Decisão em andamento…"
+  (é a animação dos pênaltis recomeçando quando a lista monta; `CompactPenalties`). Cosmético; olhar com calma.
 - 🐛 17/11 (achado no teste da Intercontinental, VALE PRA CARREIRA NORMAL TAMBÉM — está no ar): a COLETIVA da copa abria aos ~3' do jogo
   SEGUINTE já com o placar final dele (spoiler). Causa: o "fase pronta" (`copaReady`) da fase anterior valia por um render depois da
   virada. Agora o pronto guarda DE QUAL fase é (`copaReadyDe`/`copaPronta`) e coletiva, botão "Próxima fase", chave da Central e cartão do
