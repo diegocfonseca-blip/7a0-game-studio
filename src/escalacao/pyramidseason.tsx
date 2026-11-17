@@ -7984,7 +7984,7 @@ function ConmebolEspectador({ nome, pages, grupos, prefixo, verdes, rodapeGrupos
   if (!pages.length) return <div className="ll29-games"><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{nome}</p><p style={{ fontSize: 11.5, fontWeight: 700, margin: '4px 0 0' }}>{tr(`Ainda não começou. O primeiro jogo é em ${comecaEm}.`, `It hasn't started yet. The first match is on ${comecaEm}.`)}</p></div>
   const temGrupo = pages.some(p => / · rodada \d+\/\d+$/.test(p.name))
   return <>
-    <p style={{ fontSize: 11, fontWeight: 700, margin: '0 0 6px', color: 'rgba(0,0,0,.6)' }}>{tr(`Seu clube não está na ${nome} deste ano — aqui dá pra acompanhar o que já foi jogado.`, `Your club is not in this year's ${nome} — here you can follow what has been played.`)}</p>
+    <p style={{ fontSize: 11.5, fontWeight: 700, margin: '0 0 4px', color: INK, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 11px' }}>{tr(`Seu clube não está na ${nome} deste ano — aqui dá pra acompanhar o que já foi jogado.`, `Your club is not in this year's ${nome} — here you can follow what has been played.`)}</p>
     {temGrupo && <TabelaEstadualAoVivo pages={pages} ate={pages.length} nome={nome} grupos={grupos} verdes={verdes} rodapeGrupos={rodapeGrupos} />}
     {[...pages].reverse().filter(r => !r.ties[0]?.liga).map((r, i) => <details className="ll29-history" key={r.name} open={i === 0}><summary>{r.name.slice(prefixo.length).toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safName} title={r.name.slice(prefixo.length)}/></details>)}
   </>
@@ -9945,7 +9945,7 @@ export function PyramidSeasonScreen() {
     const corta = (rounds: CopaRound[], datas: readonly [number, number][]) => rounds.filter((_, i) => {
       const [m, d] = datas[i] ?? [12, 1]
       const sem = Math.floor((Date.UTC(ano, m - 1, d) - r1) / (7 * 86400000)) + 1
-      return seasonOver || sem < round
+      return seasonOver || sem <= round // `round` = rodadas JÁ jogadas: o meio de semana da última rodada jogada já aconteceu
     })
     const quando = (datas: readonly [number, number][]) => { const [m, d] = datas[0] ?? [2, 1]; return new Date(Date.UTC(ano, m - 1, d)).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'pt-BR', { day: 'numeric', month: 'long', timeZone: 'UTC' }) }
     const grupos = (c: { resultado: { fases: { nome: string; tabelas: { nome: string; tabela: { time: string }[] }[] }[] } }) => c.resultado.fases.find(f => f.nome === 'Fase de grupos')?.tabelas.map(t => ({ nome: t.nome, times: t.tabela.map(l => l.time) }))
