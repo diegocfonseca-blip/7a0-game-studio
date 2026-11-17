@@ -13809,4 +13809,11 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   (17/11): no código o apito da liga no automático SÓ sai com `jogoOk` (setado por 3 toques: "▶ Começar o jogo", "Ir pro jogo" da
   Central e o botão principal) — o controle do mapa não avança e o quadro da chegada não mexe nisso. O robô do teste tinha um laço que
   apertava "Começar o jogo" sozinho e não registrava os cliques; não deu pra reproduzir. Se algum jogador relatar, olhar de novo.
+  🎥 17/11 (tarde): câmera do quadro CONSERTADA no branch. Causas: (a) o palco do mapa vinha com a altura da aba Clube (~650 px) e o quadro
+  de 340 mostrava só o céu → o palco encolhe pra 340 dentro do quadro; (b) o mapa remonta (cai pro Leve) e voltava pra vista de cima →
+  a vista da porta é pedida de novo a cada montagem (uma vez por chegada+montagem, nunca depois do pulo, senão cancela a câmera do ônibus).
+  🚌 Diego *"Ok"* pro ônibus chegar logo: no QUADRO (só nele) a porta aparece ~4 s e o relógio do dia de jogo pula até o ônibus poder sair
+  (75 s + Kombis das barracas montadas, ~110 s — `onibusLiberadoEm`/`adiantarProOnibus`); a câmera automática segue ele. A câmera do ônibus
+  agora fica no eixo da rua e a 13 m (antes 5 m de lado e 7,5 m de altura: entrava nas casas — vale também pra aba Clube).
+  ⏭️ Falta conferir no print: a câmera nova sem parede na frente no celular e a volta pra porta no fim.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
