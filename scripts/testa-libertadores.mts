@@ -1,6 +1,7 @@
 // 🏆 trava da Libertadores do Brasil Oficial (`npm run libertadores`): 47 clubes no formato real de 2026, cada fase com o
 // tamanho certo, ninguém joga 2× na rodada dos grupos, mesmo país não cai junto no grupo, vagas brasileiras descem certo.
 import { simulaLibertadores, vagasLiberta, ESTRANGEIROS_LIBERTA_2026 } from '../src/escalacao/libertadores-oficial.ts'
+import { simulaIntercontinental, FASES_INTERCONTINENTAL, CLUBES_INTERCONTINENTAL } from '../src/escalacao/intercontinental-oficial.ts'
 import type { Joga, Penaltis } from '../src/escalacao/campeonato-oficial.ts'
 let erros = 0
 const falha = (m: string) => { erros++; console.log('❌', m) }
@@ -57,5 +58,15 @@ for (const v of [v1, v2, v3]) for (let k = 0; k < 15; k++) {
   const v5 = vagasLiberta({ serieA: A, copa: 'Vasco', copaVice: 'Grêmio', liberta: 'Palmeiras', sula: 'Racing' }, { Racing: 'ARG' })
   if (!v5.grupos.includes('Racing') || v5.grupos.includes('Lanús') || v5.grupos.length !== 28 || v5.pais.Racing !== 'ARG') falha('Sula campeão estrangeiro de fora da Liberta não herdou a vaga do Lanús')
 }
+// 🌐 Intercontinental: 5 jogos únicos na ordem real, o campeão da Liberta entra no Dérbi, o PSG só na final, 6 clubes classificados
+for (let sd = 1; sd <= 30; sd++) {
+  const ic = simulaIntercontinental('Flamengo', jogaDe(sd), pen)
+  if (ic.fases.map(f => f.nome).join('|') !== FASES_INTERCONTINENTAL.join('|')) falha('intercontinental: fases fora de ordem')
+  if (ic.jogos.length !== 5 || ic.fases.some(f => f.confrontos.length !== 1)) falha('intercontinental: não são 5 jogos únicos')
+  const der = ic.fases[2].confrontos[0], fin = ic.fases[4].confrontos[0]
+  if (der.a !== 'Flamengo' || der.b !== 'Toluca') falha(`dérbi: ${der.a} × ${der.b}`)
+  if (fin.b !== 'PSG' || ic.fases.slice(0, 4).some(f => f.confrontos[0].a === 'PSG' || f.confrontos[0].b === 'PSG')) falha('PSG fora da final ou antes dela')
+  if (new Set(ic.classificacao).size !== 6 || !['Flamengo', ...CLUBES_INTERCONTINENTAL].every(n => ic.classificacao.includes(n))) falha(`classificação: ${ic.classificacao}`)
+}
 if (erros) { console.log(`❌ libertadores: ${erros} erro(s)`); process.exit(1) }
-console.log('✅ libertadores + sul-americana: 47 clubes no formato real (1ª 6 · 2ª 16 · 3ª 8 · grupos 8×4 · oitavas a semis ida e volta · final única), vagas brasileiras descem certo, país não repete no grupo')
+console.log('✅ libertadores + sul-americana: 47 clubes no formato real (1ª 6 · 2ª 16 · 3ª 8 · grupos 8×4 · oitavas a semis ida e volta · final única), vagas brasileiras descem certo, país não repete no grupo · intercontinental 5 jogos únicos na ordem real')

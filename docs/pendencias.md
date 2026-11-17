@@ -43,6 +43,11 @@
   jogos JÁ apitados — sem spoiler). ⚠️ Falta o PRINT pro Diego antes de publicar (é caixa nova na tela) . 🥇 Prêmio do artilheiro (Diego *"Sim"*): **Libertadores 30 🪙 · Sul-Americana 20 🪙**
   pro clube de gente, com linha própria no extrato (`ART_LIBERTA_OFICIAL`/`ART_SULA_OFICIAL`). ✅ E a comissão de 1 🪙 da Agência agora
   conta o artilheiro da Liberta/Sula do modo. (⚠️ `npm run agencia` já quebrava antes: o script não carrega `.webp`.)
+- 🔨 17/11: **INTERCONTINENTAL REAL** começada: `intercontinental-oficial.ts` (formato 2026, 5 jogos únicos: playoff AAP Al-Ahli×Auckland
+  26/08 · Copa AAP Sundowns×vencedor 19/09 · Dérbi das Américas campeão da Liberta×Toluca 09/12 · Challenger 12/12 · final×PSG 16/12),
+  com trava no `npm run libertadores`. ⏭️ Falta: cartas reais de Toluca/Sundowns/Al-Ahli/Auckland (pesquisa rodando →
+  `docs/brasil-oficial/cartas-intercontinental.md`), escudos, ligar na esteira/prêmio/ranking (pontos do Mundial) e MOCKUP da tela.
+  ⚠️ INCERTO: prorrogação (a fonte não diz; aqui empate = pênaltis, como as outras copas do jogo).
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx), artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
