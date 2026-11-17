@@ -13797,7 +13797,8 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   🔁 17/11 (Diego: *"por que só liga?… tem que ter em todas competições"*): agora também na QUARTA de Copa — Copa do Brasil/Legends,
   Libertadores, Sul-Americana (ida em casa; grande = final, semi ou clássico). E a chegada da aba Jogos não atrasa mais nada: fica na
   tela enquanto você não começa o jogo (sumiu o "9 s"); quem segura o automático continua sendo só a chegada de sempre da aba Clube.
-  ⏭️ Falta: os jogos FORA da semana (final da Liberta/Sula e Intercontinental depois da liga, Supercopa, playoff da B) — ali não
-  existe "dia de espera" antes do jogo; pra não criar passo novo, a ideia é mostrar a chegada na tela de resultado da fase anterior.
+  ✅ E os jogos FORA da semana (Diego: *"são todas competições… mas só em momentos muito importantes"*): Supercopa, finais da
+  Liberta/Sula e Intercontinental depois da liga e o playoff da B — a chegada da PRÓXIMA fase aparece na tela de resultado da fase
+  que acabou, antes do "Ir pra próxima fase" (nenhum passo novo). Grande = final, semi, playoff de acesso ou clássico.
   ⏭️ Falta: (4) mais gente em volta do estádio no dia de jogo (e gente no clube de lazer/balada) — mockup antes.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.

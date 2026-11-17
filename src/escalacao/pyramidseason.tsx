@@ -11353,17 +11353,20 @@ export function PyramidSeasonScreen() {
   // 🚌 a chegada do ônibus no mapa (dia de jogo em CASA). `paraJogos` (17/11): a mesma conta, pra aba Jogos mostrar a chegada
   // em jogo grande — e agora também na quarta de Copa (Copa do Brasil/Legends, Libertadores, Sul-Americana: Diego, *"tem que ter em
   // todas competições"*). A da aba Jogos NÃO liga o `chegando` (que segura o automático): só empresta a agenda pro mapa.
+  // a chegada de uma FASE de copa (`fi`): só se você joga a ida EM CASA — o mesmo id que o jogo da Copa usa no mapa
+  const chegadaDaFase = (fi: number, kind: 'c' | 'f') => {
+    if (!copa) return null
+    const fase = copa.rounds[fi], tie = fase?.ties.find(t => t.a.teamId === youId || t.b.teamId === youId)
+    if (!fase || !tie || tie.a.teamId !== youId) return null
+    const fixtureId = `${seasonSeed}:copa:${fi}:${fase.name}:leg:0:${tie.a.teamId}:${tie.b.teamId}`
+    const agenda = agendaFasesComplexo({ seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, fixtureId, competition: 'cup', homeClubId: tie.a.teamId, previousMatchdays: 38, phaseMatchdays: diasDasFasesCopaComplexo(copa.rounds), phaseIndex: fi, legIndex: 0 })
+    if (!agenda) return null
+    return { kind, fase: fase.name, adv: tie.b, agenda, arrivalTeams: { fixtureId: agenda.fixtureId, teams: [tie.a, tie.b].map(team => ({ name: team.name, color: colors?.[team.teamId]?.solid ?? (team.teamId === youId ? myCol.solid : '#3A7CA5'), players: (team.human ? lineupAt(careerLineup, team.teamId, round + 1, team.squad, team.formation) : team.xi).map(c => ({ id: c.id, name: c.name, pos: c.pos, club: c.club, year: c.year })) })) } }
+  }
   const montaPreJogo = () => {
     if (!calOn || !myDiv || round < 1 || round >= 38 || calFase !== 'dias') return null
     // 🏆 quarta de Copa: a fase pendente, se você joga a ida EM CASA (o mesmo id que o jogo da Copa usa no mapa)
-    if (copaPendente && meNaFaseCopa && calI >= CAL_QUARTA && copa) {
-      const fase = copa.rounds[copaRound], tie = fase?.ties.find(t => t.a.teamId === youId || t.b.teamId === youId)
-      if (!fase || !tie || tie.a.teamId !== youId) return null
-      const fixtureId = `${seasonSeed}:copa:${copaRound}:${fase.name}:leg:0:${tie.a.teamId}:${tie.b.teamId}`
-      const agenda = agendaFasesComplexo({ seasonKey: `${state.seed}:${state.seasonNo ?? 1}`, fixtureId, competition: 'cup', homeClubId: tie.a.teamId, previousMatchdays: 38, phaseMatchdays: diasDasFasesCopaComplexo(copa.rounds), phaseIndex: copaRound, legIndex: 0 })
-      if (!agenda) return null
-      return { kind: 'c' as const, fase: fase.name, adv: tie.b, agenda, arrivalTeams: { fixtureId: agenda.fixtureId, teams: [tie.a, tie.b].map(team => ({ name: team.name, color: colors?.[team.teamId]?.solid ?? (team.teamId === youId ? myCol.solid : '#3A7CA5'), players: (team.human ? lineupAt(careerLineup, team.teamId, round + 1, team.squad, team.formation) : team.xi).map(c => ({ id: c.id, name: c.name, pos: c.pos, club: c.club, year: c.year })) })) } }
-    }
+    if (copaPendente && meNaFaseCopa && calI >= CAL_QUARTA) return chegadaDaFase(copaRound, 'c')
     if (!calDiasOk) return null
     const r = round + 1, pr = parDaRodada(r)
     if (!pr || pr[0].teamId !== youId) return null
@@ -11373,7 +11376,9 @@ export function PyramidSeasonScreen() {
 
   }
   const preJogoCidade = mapaNoClube && !copaPendente ? montaPreJogo() : null // a chegada de sempre da aba Clube (só liga, como era)
-  const preJogoAba = tab === 'jogos' && stadiumMapAvailable ? montaPreJogo() : null
+  // 🏁 fora da semana (Supercopa, finais da Liberta/Sula e Intercontinental depois da liga, playoff): não existe "dia de espera" —
+  // a chegada da PRÓXIMA fase aparece na tela de resultado da fase que acabou, antes do "Ir pra próxima fase" (nenhum passo novo)
+  const preJogoAba = tab === 'jogos' && stadiumMapAvailable ? (montaPreJogo() ?? (copaPlaying && copaPronta && !(copaMid && !done) ? chegadaDaFase(copaRound + 1, 'f') : null)) : null
   const [chegadaFeita, setChegadaFeita] = useState('')
   const chegadaKey = preJogoCidade ? `${calSn}:${round}` : ''
   const chegando = !!preJogoCidade && chegadaFeita !== chegadaKey
@@ -11382,17 +11387,18 @@ export function PyramidSeasonScreen() {
   // (`ChegadaGrande`); no automático ela dura um pouco mais (9 s em vez de 3) e "Pular chegada" corta na hora.
   const [chegadaPulada, setChegadaPulada] = useState('')
   const euNomeChegada = state.managers.find(m => m.id === youId)?.teamName ?? ''
-  const chegadaGrandeKey = preJogoAba ? `${calSn}:${round}:${preJogoAba.kind}` : ''
+  const chegadaGrandeKey = preJogoAba ? `${calSn}:${round}:${preJogoAba.kind}${preJogoAba.kind === 'f' ? ':' + preJogoAba.fase : ''}` : ''
   const chegadaGrande = (() => {
     const pj = preJogoAba
     if (!pj || chegadaPulada === chegadaGrandeKey || jogoOk === chegadaGrandeKey) return null // pulou ou já começou o jogo
     const rivais = state.managers.filter(m => m.rival && !m.isHuman).map(m => m.teamName)
     const classico = pj.adv.human || rivais.includes(pj.adv.name) || pj.adv.name === coletivaSave.arquirrival
-    const final = pj.kind === 'c' && (/(^|· )Final$/.test(pj.fase) || pj.fase === 'Supercopa'), semi = pj.kind === 'c' && /Semi/.test(pj.fase)
+    const final = pj.kind !== 'l' && (/(^|· )Final$/.test(pj.fase) || /Supercopa/.test(pj.fase)), semi = pj.kind !== 'l' && /Semi/.test(pj.fase)
     const minhaPos = myDiv ? (tables[myDiv] ?? []).findIndex((t: SimTeam) => t.you) + 1 : 0
     const reta = pj.kind === 'l' && round + 1 >= 30 && minhaPos > 0 && minhaPos <= 6
-    if (!classico && !final && !semi && !reta) return null
-    const titulo = final ? tr('🏆 Final', '🏆 Final') : semi ? tr('🏆 Semifinal', '🏆 Semi-final') : classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in')
+    const playoff = pj.kind !== 'l' && pj.fase === PLAYOFF_B // 🔥 o playoff de acesso da B é sempre jogo de vida ou morte
+    if (!classico && !final && !semi && !reta && !playoff) return null
+    const titulo = final ? tr('🏆 Final', '🏆 Final') : playoff ? tr('🔥 Playoff de acesso', '🔥 Promotion play-off') : semi ? tr('🏆 Semifinal', '🏆 Semi-final') : classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in')
     return { titulo, confronto: `${euNomeChegada} × ${pj.adv.name}`, clube: euNomeChegada }
   })()
   const chegadaProx = (preJogoCidade ?? (chegadaGrande ? preJogoAba : null))?.agenda
