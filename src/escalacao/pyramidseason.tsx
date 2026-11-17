@@ -7978,7 +7978,18 @@ export function posicaoCopaNoCampo(legIndex:number,minute:number,nLegs:number){
 type MinutoCopaCampo=(legIndex:number,minute:number)=>void
 /** 🏟️ a classificação do ESTADUAL que está rolando, só com o que já foi apitado (as rodadas de pontos das páginas anteriores e a de
  *  agora quando ela acabou de animar) — nunca o resultado de jogo que ainda não passou na tela */
-function TabelaEstadualAoVivo({ pages, ate, nome, grupos }: { pages: CopaRound[]; ate: number; nome: string; grupos?: { nome: string; times: string[] }[] }) {
+/** 👀 Brasil Oficial (17/11, Diego: "só na aba Tabelas"): quem NÃO está na Libertadores/Sul-Americana acompanha ela na aba
+ *  Tabelas — sem passo novo no ritmo. Só aparece o que já foi jogado no calendário real (`pages` já vem cortado, anti-spoiler). */
+function ConmebolEspectador({ nome, pages, grupos, prefixo, verdes, rodapeGrupos, comecaEm, colors, safName }: { nome: string; pages: CopaRound[]; grupos?: { nome: string; times: string[] }[]; prefixo: string; verdes?: number; rodapeGrupos?: string; comecaEm: string; colors: Record<number, FCol>; safName?: string }) {
+  if (!pages.length) return <div className="ll29-games"><p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: 0, textTransform: 'uppercase' }}>{nome}</p><p style={{ fontSize: 11.5, fontWeight: 700, margin: '4px 0 0' }}>{tr(`Ainda não começou. O primeiro jogo é em ${comecaEm}.`, `It hasn't started yet. The first match is on ${comecaEm}.`)}</p></div>
+  const temGrupo = pages.some(p => / · rodada \d+\/\d+$/.test(p.name))
+  return <>
+    <p style={{ fontSize: 11, fontWeight: 700, margin: '0 0 6px', color: 'rgba(0,0,0,.6)' }}>{tr(`Seu clube não está na ${nome} deste ano — aqui dá pra acompanhar o que já foi jogado.`, `Your club is not in this year's ${nome} — here you can follow what has been played.`)}</p>
+    {temGrupo && <TabelaEstadualAoVivo pages={pages} ate={pages.length} nome={nome} grupos={grupos} verdes={verdes} rodapeGrupos={rodapeGrupos} />}
+    {[...pages].reverse().filter(r => !r.ties[0]?.liga).map((r, i) => <details className="ll29-history" key={r.name} open={i === 0}><summary>{r.name.slice(prefixo.length).toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safName} title={r.name.slice(prefixo.length)}/></details>)}
+  </>
+}
+function TabelaEstadualAoVivo({ pages, ate, nome, grupos, verdes = 2, rodapeGrupos }: { pages: CopaRound[]; ate: number; nome: string; grupos?: { nome: string; times: string[] }[]; /** quantos do grupo pintam de verde (Sula: só o 1º vai direto às oitavas) */ verdes?: number; rodapeGrupos?: string }) {
   const L = new Map<string, { time: string; you: boolean; j: number; v: number; e: number; d: number; gp: number; gc: number; pts: number }>()
   const linha = (t: SimTeam) => L.get(t.name) ?? L.set(t.name, { time: t.name, you: t.you, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, pts: 0 }).get(t.name)!
   for (const p of pages) for (const t of p.ties) { linha(t.a); linha(t.b) }
@@ -7995,7 +8006,7 @@ function TabelaEstadualAoVivo({ pages, ate, nome, grupos }: { pages: CopaRound[]
         <p style={{ ...OSWALD, fontWeight: 800, fontSize: 16, margin: '0 0 6px', textTransform: 'uppercase' }}>{titulo}</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead><tr style={{ ...OSWALD, fontSize: 12, textAlign: 'left' }}><th>#</th><th>{tr('Time', 'Team')}</th><th>P</th><th>J</th><th>V</th><th>SG</th></tr></thead>
-          <tbody>{lista.map((r, i) => <tr key={r.time} style={{ borderTop: '1px solid #e3dac0', background: r.you ? '#ffe9a6' : grupos && i < 2 ? '#dcefd9' : undefined, fontWeight: r.you ? 800 : 500 }}>
+          <tbody>{lista.map((r, i) => <tr key={r.time} style={{ borderTop: '1px solid #e3dac0', background: r.you ? '#ffe9a6' : grupos && i < verdes ? '#dcefd9' : undefined, fontWeight: r.you ? 800 : 500 }}>
             <td style={{ padding: '3px 4px' }}>{i + 1}</td><td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Escudo nome={r.time} size={18} />{r.you ? '👤 ' : ''}{r.time}</span></td><td><b>{r.pts}</b></td><td>{r.j}</td><td>{r.v}</td><td>{r.gp - r.gc}</td></tr>)}</tbody>
         </table>
         {rodape && <p style={{ fontSize: 11.5, fontWeight: 700, margin: '6px 0 0', color: '#3a3527' }}>{rodape}</p>}
@@ -8006,7 +8017,7 @@ function TabelaEstadualAoVivo({ pages, ate, nome, grupos }: { pages: CopaRound[]
     const meu = grupos.findIndex(g => g.times.some(t => L.get(t)?.you))
     const ordem = meu > 0 ? [grupos[meu], ...grupos.filter((_, i) => i !== meu)] : grupos
     // grade que se ajusta ao espaço: 2 por linha onde couber (página larga), 1 na coluna lateral do PC e no celular
-    return <div className="ll29-table" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', columnGap: 10 }}>{ordem.map((g, gi) => caixa(`🏆 ${nome} · ${g.nome}`, rows.filter(r => g.times.includes(r.time)), gi === ordem.length - 1 ? tr('Só os jogos já apitados. Verde = vai às oitavas; o 3º cai pra Sul-Americana.', 'Only matches already played. Green = into the round of 16; 3rd drops to the Sudamericana.') : undefined))}</div>
+    return <div className="ll29-table" style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', columnGap: 10 }}>{ordem.map((g, gi) => caixa(`🏆 ${nome} · ${g.nome}`, rows.filter(r => g.times.includes(r.time)), gi === ordem.length - 1 ? (rodapeGrupos ?? tr('Só os jogos já apitados. Verde = vai às oitavas; o 3º cai pra Sul-Americana.', 'Only matches already played. Green = into the round of 16; 3rd drops to the Sudamericana.')) : undefined))}</div>
   }
   return (
     <div className="ll29-table" style={{ marginTop: 10 }}>
@@ -9926,6 +9937,24 @@ export function PyramidSeasonScreen() {
     meio.sort((a, b) => a.s - b.s) // estável: na mesma semana fica a ordem de cada competição
     return { rounds: [...meio.map(x => x.r), ...cb.filter(r => foraDaCopa(r.name)), ...fim, ...(playoffB ? [playoffB] : [])], semanas: meio.map(x => x.s) }
   }, [copaBase, playoffB, libertaMinha, libertaCalc, sulaMinha, sulaCalc, interMinha, interCalc, meuNomeLib, state.seasonNo])
+  // 👀 Libertadores/Sul-Americana pra quem NÃO está nelas (Diego 17/11: "só na aba Tabelas"): só as páginas cuja semana REAL já
+  // passou (rodada da Série anterior à de agora, ou a liga já acabou) — o resto ainda não aconteceu e não aparece (anti-spoiler)
+  const espectadorConmebol = useMemo(() => {
+    if (!state.oficial) return null
+    const sn = state.seasonNo ?? 1, ano = anoDaTemporada(sn), r1 = diaDaRodada(sn, 1)
+    const corta = (rounds: CopaRound[], datas: readonly [number, number][]) => rounds.filter((_, i) => {
+      const [m, d] = datas[i] ?? [12, 1]
+      const sem = Math.floor((Date.UTC(ano, m - 1, d) - r1) / (7 * 86400000)) + 1
+      return seasonOver || sem < round
+    })
+    const quando = (datas: readonly [number, number][]) => { const [m, d] = datas[0] ?? [2, 1]; return new Date(Date.UTC(ano, m - 1, d)).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'pt-BR', { day: 'numeric', month: 'long', timeZone: 'UTC' }) }
+    const grupos = (c: { resultado: { fases: { nome: string; tabelas: { nome: string; tabela: { time: string }[] }[] }[] } }) => c.resultado.fases.find(f => f.nome === 'Fase de grupos')?.tabelas.map(t => ({ nome: t.nome, times: t.tabela.map(l => l.time) }))
+    return {
+      lib: !libertaMinha && libertaCalc ? { pages: corta(libertaCalc.rounds, DATAS_LIBERTA), comeca: quando(DATAS_LIBERTA), grupos: grupos(libertaCalc) } : null,
+      sula: !sulaMinha && sulaCalc ? { pages: corta(sulaCalc.rounds, DATAS_SULA), comeca: quando(DATAS_SULA), grupos: grupos(sulaCalc) } : null,
+    }
+  }, [state.oficial, state.seasonNo, libertaMinha, libertaCalc, sulaMinha, sulaCalc, round, seasonOver])
+  const [contView, setContView] = useState<'lib' | 'sula' | null>(null)
   const copaComPlayoff = useMemo<CopaResult | null>(() => {
     if (!esteira.rounds.length) return copaBase
     return copaBase ? { ...copaBase, rounds: esteira.rounds } : { rounds: esteira.rounds, champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }
@@ -13998,6 +14027,7 @@ export function PyramidSeasonScreen() {
               </>}
             </> : (() => {
               const division = divisionView && ord.includes(divisionView) ? divisionView : myDiv ?? ord[0]
+              const contOn = (tab === 'tabelas' || jogoTabela) && contView && espectadorConmebol?.[contView] ? contView : null
               const minute = done ? 93 : scoreClock.round===round ? scoreClock.minute : 0
               // 📊 aba única, semana de COPA (quarta): chaveamento no lugar da tabela + os jogos da Copa da noite embaixo.
               // `reveal={copaRound}`: a fase que está rolando ainda não entra no chaveamento (anti-spoiler)
@@ -14022,11 +14052,12 @@ export function PyramidSeasonScreen() {
               </>
               return <>
                 {visualV2 && <CareerSectionLinks items={[{id:'cv2-standings',label:tr('Classificação','Standings')},{id:'cv2-other-games',label:tr('Outros jogos','Other matches')}]} />}
-                <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={division} onChange={e=>setDivisionView(e.target.value as Div)}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}</select></label>
+                <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={contOn ?? division} onChange={e=>{ const v = e.target.value; if (v === 'lib' || v === 'sula') setContView(v); else { setContView(null); setDivisionView(v as Div) } }}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.lib && <option value="lib">🏆 Libertadores</option>}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.sula && <option value="sula">🌎 Sul-Americana</option>}</select></label>
                 {/* 🖥️ no computador a divisão vira botões (23/10); o select acima some lá e segue no celular */}
-                <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={d===division} onClick={()=>setDivisionView(d)}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}</div>
-                {(tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table">{oficialEfetivo && division !== 'A' ? <TabelaOficial div={division} tables={tables} fases={oficialEfetivo} /> : <DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/>}</div>}
-                <div id="cv2-other-games">{tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}</div>
+                <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={!contOn && d===division} onClick={()=>{ setContView(null); setDivisionView(d) }}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.lib && <button type="button" aria-pressed={contOn==='lib'} onClick={()=>setContView('lib')}>🏆 Libertadores</button>}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.sula && <button type="button" aria-pressed={contOn==='sula'} onClick={()=>setContView('sula')}>🌎 Sul-Americana</button>}</div>
+                {contOn && espectadorConmebol && (() => { const c = contOn === 'lib' ? espectadorConmebol.lib! : espectadorConmebol.sula!; return <div id="cv2-standings"><ConmebolEspectador nome={contOn === 'lib' ? NOME_LIBERTADORES : NOME_SULA} pages={c.pages} grupos={c.grupos} prefixo={contOn === 'lib' ? LIBERTA_PREFIXO : SULA_PREFIXO} verdes={contOn === 'sula' ? 1 : 2} rodapeGrupos={contOn === 'sula' ? tr('Só os jogos já apitados. Verde = vai direto às oitavas; o 2º joga o playoff contra um 3º da Libertadores.', 'Only matches already played. Green = straight into the round of 16; 2nd plays the play-off against a Libertadores 3rd.') : undefined} comecaEm={c.comeca} colors={colors} safName={safTeamName} /></div> })()}
+                {!contOn && (tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table">{oficialEfetivo && division !== 'A' ? <TabelaOficial div={division} tables={tables} fases={oficialEfetivo} /> : <DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/>}</div>}
+                <div id="cv2-other-games">{!contOn && tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}</div>
               </>
             })()}
 
