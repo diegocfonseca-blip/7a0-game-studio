@@ -1,0 +1,20 @@
+{
+  "data": "Vem aí? Depende de você",
+  "titulo": "🏆 Torneio Legends",
+  "destaque": {
+    "passos": [
+      { "emoji": "🌙", "titulo": "Seg a Sex", "sub": "uma sala por noite" },
+      { "emoji": "💸", "titulo": "R$ 5", "sub": "por noite" },
+      { "emoji": "🖋", "titulo": "Fundador", "sub": "pro campeão da semana" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "**Toda noite um torneio**, de segunda a sexta, e **cada dia um modo** (Tocaia, Pregão aberto, Clubes, Envelope único e Relâmpago)." },
+    { "tag": "novidade", "texto": "**Ganhou a noite, leva prêmio na hora**: ⭐ plano Craque + selo 🏆 no nome." },
+    { "tag": "novidade", "texto": "Toda noite soma **pontos na tabela da semana**. No fim: 🥇 **Fundador** · 🥈 **Batismo** · 🥉 **Lenda**." },
+    { "tag": "regra", "texto": "**R$ 5 por noite** ou o **Passe da Semana por R$ 20** (as 5 noites)." }
+  ],
+  "rodape": "Quer jogar? Entra na lista 🙋",
+  "rodapeSub": "Responde EU JOGO aqui na comunidade. Se juntar 40 nomes, o torneio sai!",
+  "saida": "scripts/posts/aviso-2026-11-17-torneio-lista.png"
+}

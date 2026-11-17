@@ -13690,3 +13690,10 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - Reproduzida a praça vazia entre jogos e a mesma praça com seis barracas durante uma partida, em celular simulado no Leve. A regra existente esconde o grupo fora da jornada de jogo e aguarda chegada/descarga na preparação; a otimização não removeu os ambulantes.
 - Passaram a bancada de navegador, as 144.000 amostras das peruas e as verificações do dia de jogo. Sem acesso a conta, saves, salas ou banco; nenhuma publicação necessária.
 - A foto não revela a fase da sessão real; foi perguntado se havia partida rolando. Se havia, falta investigar o estado da jornada nessa sessão. Detalhes em `docs/mapa-ambulantes-20261114.md`; evidências em `/workspace/shared/mapa-ambulantes-20261114/`.
+
+## 17/11 — 🏆 Torneio Legends: LISTA DE INTERESSE antes de construir
+- Diego com medo de flopar. Decisão: postar na comunidade um aviso pedindo "EU JOGO"; **só construir se juntar ~40 nomes**.
+- Aviso: `scripts/avisos/2026-11-17-torneio-lista.json` → `scripts/posts/aviso-2026-11-17-torneio-lista.png`.
+- Formato que está no aviso (proposta, AINDA NÃO DECIDIDO): seg a sex, 1 sala por noite a R$ 5 (Passe da Semana R$ 20), cada dia um modo
+  (seg Tocaia · ter Pregão aberto · qua Clubes · qui Envelope único · sex Relâmpago), campeão da noite leva ⭐ Craque + selo 🏆,
+  pontos da semana (1º 10 · 2º 7 · 3º 5 · jogou 1) → 🥇 Fundador · 🥈 Batismo · 🥉 Lenda. Nada de código feito.
