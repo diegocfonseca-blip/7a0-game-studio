@@ -233,7 +233,7 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   classificação) e o botão volta a ser "Começar a temporada". Testado no navegador (Paysandu no Parazão).
   ⏭️ Falta: (a) o estadual na aba Tabelas depois de jogado (resultado/campeão) e na Sala de Troféus; (b) faixas na tabela
   (quartas/cai); (c) a escalação do usuário no estadual hoje é a automática (a troca de time durante o estadual não vale ainda);
-  (d) recarregar no meio do estadual recomeça ele do 1º jogo (o resultado é o mesmo); (e) a data no topo é a das quartas-feiras
+  (d) ✅ 17/11: recarregar no meio do estadual agora CONTINUA de onde parou (botão "Continuar o <estadual>", página guardada numa chave só do aparelho, `esc-estadual-pag`; ainda não testado no navegador); (e) a data no topo é a das quartas-feiras
   da Copa (fev) — o estadual real é jan–mar.
 - ✅ **16/11: SEM COPA INVENTADA NO MODO** (*"Q merda é essa de copa Legends? Esse modo são copas originais"*): Copa Legends/Copa do
   Brasil Legends fora do Brasil Oficial; Central sem ela na agenda; Master sem meta de copa/Supercopa (`semCopa`, tela e motor).

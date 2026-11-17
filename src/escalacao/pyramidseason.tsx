@@ -1978,6 +1978,15 @@ export function computeSulaCarreira(vagas: VagasSula, daLiberta: { grupos: strin
  *  por participar (⚠️ número meu: a Sul-Americana fica um degrau abaixo da Libertadores) */
 // 🥇 prêmio do artilheiro das competições Conmebol do Brasil Oficial (Diego 16/11: 30 Libertadores · 20 Sul-Americana)
 export const ART_LIBERTA_OFICIAL = 30
+// 🏟️ ESTADUAL: em que página do estadual o usuário parou (16/11). Recarregar no meio fazia o estadual recomeçar do 1º jogo.
+// UMA chave só no aparelho, sobrescrita (nada por sala/temporada pra limpar); os resultados são os mesmos, só o ponto de parada.
+const EST_PAG_KEY = 'esc-estadual-pag'
+function estadualPagSalva(seed: number, temporada: number): number {
+  try { const v = JSON.parse(localStorage.getItem(EST_PAG_KEY) ?? 'null'); return v && v.seed === seed && v.t === temporada && v.p > 0 ? v.p : 0 } catch { return 0 }
+}
+function guardaEstadualPag(seed: number, temporada: number, p: number) {
+  try { localStorage.setItem(EST_PAG_KEY, JSON.stringify({ seed, t: temporada, p })) } catch { /* sem espaço: só não lembra */ }
+}
 export const ART_SULA_OFICIAL = 20
 export function premioSula(res: ResultadoSula, nome: string): number {
   if (!res.classificacao.includes(nome)) return 0
@@ -10027,6 +10036,8 @@ export function PyramidSeasonScreen() {
   // (abrir a carreira de novo não repete Copa velha).
   // (as semanas vêm da `esteira`: Copa do Brasil espalhada como sempre + Libertadores no dia real; durante o estadual não há meio)
   const copaSemanas = useMemo(() => estadualOn ? [] : esteira.semanas, [estadualOn, esteira])
+  useEffect(() => { if (estadualOn && copaRound > 0 && copaRound < preRounds.length && !copaOnline) guardaEstadualPag(state.seed, state.seasonNo ?? 1, copaRound) }, [estadualOn, copaRound]) // eslint-disable-line react-hooks/exhaustive-deps
+  const estadualRetoma = estadualPendente && !copaOnline ? Math.min(estadualPagSalva(state.seed, state.seasonNo ?? 1), Math.max(0, preRounds.length - 1)) : 0
   const nCopaBase = copaSemanas.length
   const copaPassadas = copaMid && !done ? copaSemanas.filter(r => r < round).length : 0
   const copaDevidas = copaMid && !done ? copaSemanas.filter(r => r <= round).length : 0
@@ -12122,7 +12133,7 @@ export function PyramidSeasonScreen() {
       if (done) return { label: tr('🏁 Fim de temporada — ver', '🏁 Season over — see'), sub: tr('o roteiro está na aba Jogos', 'the wrap-up is in Matches'), onClick: vai('jogos') }
       if (seasonOver) return { label: tr('🏁 Liga encerrada — ver', '🏁 League over — see'), onClick: vai('jogos') }
       if (round === 0) return decisoesOk
-        ? { label: estadualPendente ? (supercopaRei ? tr('▶ Começar a Supercopa Rei', '▶ Start the Supercopa Rei') : tr(`▶ Começar o ${nomeEstadual}`, `▶ Start the ${nomeEstadual}`)) : tr('▶ Começar a temporada', '▶ Start the season'), sub: estadualPendente ? tr('o estadual abre a temporada; a Série vem depois', 'the state league opens the season; the Série comes next') : tr('o botão de sempre, no mesmo lugar', 'the usual button, same place'), onClick: () => { if (estadualPendente) { setCopaRound(0); setEstadualOn(true); escolheAba('jogos'); return } if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } } }
+        ? { label: estadualPendente ? (estadualRetoma > 0 ? tr(`▶ Continuar o ${nomeEstadual}`, `▶ Continue the ${nomeEstadual}`) : supercopaRei ? tr('▶ Começar a Supercopa Rei', '▶ Start the Supercopa Rei') : tr(`▶ Começar o ${nomeEstadual}`, `▶ Start the ${nomeEstadual}`)) : tr('▶ Começar a temporada', '▶ Start the season'), sub: estadualPendente ? tr('o estadual abre a temporada; a Série vem depois', 'the state league opens the season; the Série comes next') : tr('o botão de sempre, no mesmo lugar', 'the usual button, same place'), onClick: () => { if (estadualPendente) { setCopaRound(estadualRetoma); setEstadualOn(true); escolheAba('jogos'); return } if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } } }
         : { label: tr('Preparar minha estreia →', 'Prepare my first match →'), sub: tr('patrocínio / Master antes da 1ª rodada', 'sponsor / Master before round 1'), onClick: vai('jogos') }
       if (!manualAllowed) return { label: tr('📺 Ver a rodada ao vivo', '📺 Watch the round live'), sub: tr('no automático a rodada anda sozinha', 'in auto mode the round runs by itself'), onClick: vai('jogos') }
       if (rolando) return { label: tr(`⏳ Rodada ${round} rolando — assistir`, `⏳ Round ${round} live — watch`), onClick: vai('jogos') }
@@ -13032,9 +13043,9 @@ export function PyramidSeasonScreen() {
         {!state.co2 && state.onlineMode === 'online' && !(seasonOver && !copaPlaying) && <TrocaCampo2DSala />}
         {!state.co2 && state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           round === 0 ? (
-            <button className="ll-cx-controle" onClick={() => { if (decisoesOk && estadualPendente) { setCopaRound(0); setEstadualOn(true); return } if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
+            <button className="ll-cx-controle" onClick={() => { if (decisoesOk && estadualPendente) { setCopaRound(estadualRetoma); setEstadualOn(true); return } if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
               style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: decisoesOk ? GREEN : '#cfc6ae', color: decisoesOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: decisoesOk ? 'pointer' : 'default', marginBottom: 10 }}>
-              {decisoesOk ? (estadualPendente ? (supercopaRei ? tr('▶️ Começar a Supercopa Rei', '▶️ Start the Supercopa Rei') : tr(`▶️ Começar o ${nomeEstadual}`, `▶️ Start the ${nomeEstadual}`)) : tr('▶️ Começar a temporada', '▶️ Start the season')) : criseTrava ? tr('🚪 Decida quem fica no lugar dele aí em cima', '🚪 Decide who replaces him up there first') : !masterOk ? tr('🏆 Assine um contrato Master aí em cima', '🏆 Sign a Master contract up there first') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
+              {decisoesOk ? (estadualPendente ? (estadualRetoma > 0 ? tr(`▶️ Continuar o ${nomeEstadual}`, `▶️ Continue the ${nomeEstadual}`) : supercopaRei ? tr('▶️ Começar a Supercopa Rei', '▶️ Start the Supercopa Rei') : tr(`▶️ Começar o ${nomeEstadual}`, `▶️ Start the ${nomeEstadual}`)) : tr('▶️ Começar a temporada', '▶️ Start the season')) : criseTrava ? tr('🚪 Decida quem fica no lugar dele aí em cima', '🚪 Decide who replaces him up there first') : !masterOk ? tr('🏆 Assine um contrato Master aí em cima', '🏆 Sign a Master contract up there first') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
             </button>
           ) : manualAllowed ? (
           // 🧹 LIMPEZA VISUAL (Diego 13/08 — "tá confuso, botão manual deveria ter um
