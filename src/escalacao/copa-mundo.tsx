@@ -196,7 +196,7 @@ export const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.
 // OUTRA seleção (relato de usuário: "quando não dá certo eu atualizo e troco").
 // Com o carimbo, o F5 volta pro MESMO torneio (mesma seleção, mesmo time, mesmo
 // resultado — a simulação é semeada). Limpa quando a final é gravada.
-export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean; /** 🌍 quantas seleções esta Copa tem (32 desde 02/10). Copa velha (sem o campo) termina com 24 — crescer no meio mudaria o chaveamento */ n?: number; /** 💪 nasceu com o peso de força novo (14/10)? Copa velha termina com o peso velho */ forte?: boolean; /** ⚽🧠 nasceu com o motor novo decidindo o jogo da sua seleção (carreira, 21/10)? */ m2?: boolean; /** Regra fixada quando o torneio nasceu. */ versaoM2?: VersaoM2; /** 🧊 as 32 seleções CONGELADAS (21/10): carta inteira, pra o torneio ser o mesmo ao reabrir */ ents?: EntCongelada[]; /** ⏯️ a última fase já VISTA (21/10): reabrir continua daqui */ passo?: number } | null }
+export type CopaSave = { anchor: number; /** 🇧🇷 de quantas em quantas temporadas a Copa volta (10 na de sempre; 4 no Brasil Oficial — Diego 17/11). Sem o campo = 10 */ ciclo?: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean; /** 🌍 quantas seleções esta Copa tem (32 desde 02/10). Copa velha (sem o campo) termina com 24 — crescer no meio mudaria o chaveamento */ n?: number; /** 💪 nasceu com o peso de força novo (14/10)? Copa velha termina com o peso velho */ forte?: boolean; /** ⚽🧠 nasceu com o motor novo decidindo o jogo da sua seleção (carreira, 21/10)? */ m2?: boolean; /** Regra fixada quando o torneio nasceu. */ versaoM2?: VersaoM2; /** 🧊 as 32 seleções CONGELADAS (21/10): carta inteira, pra o torneio ser o mesmo ao reabrir */ ents?: EntCongelada[]; /** ⏯️ a última fase já VISTA (21/10): reabrir continua daqui */ passo?: number } | null }
 // 🧊⏯️ COPA QUE NÃO RECOMEÇA (21/10, caso do Gimenes Junior Barranquila: *"eu tinha acabado de eliminar a Inglaterra nas quartas,
 // ao invés de ir pra semi a competição reiniciou em um grupo diferente"*). A Copa guardava só a SUA seleção e simulava o resto de
 // novo a cada abertura: fechou/recarregou no meio, voltava pro 1º passo — e se o catálogo mudou no meio (carta nova, nível novo),
@@ -239,7 +239,8 @@ export function mergedMundialMural(seed: number, cloudMural?: { season: number; 
 // (corrige o save antigo que tinha nascido com âncora 110). Quem já jogou uma Copa
 // mantém a agenda dele (não bagunça o que já rolou).
 const COPA_ANCHOR = 100
-function ensureSave(seed: number, anchor = COPA_ANCHOR): CopaSave {
+const COPA_CICLO = 10
+function ensureSave(seed: number, anchor = COPA_ANCHOR, ciclo = COPA_CICLO): CopaSave {
   const cur = loadCopaSave(seed)
   if (cur) {
     // 🧯 blob antigo/parcial: garante os campos (sem isso, save sem played/mural
@@ -247,23 +248,24 @@ function ensureSave(seed: number, anchor = COPA_ANCHOR): CopaSave {
     if (!Array.isArray(cur.played)) cur.played = []
     if (!Array.isArray(cur.mural)) cur.mural = []
     if (cur.played.length === 0 && cur.anchor !== anchor) { cur.anchor = anchor }
+    if (cur.played.length === 0 && (cur.ciclo ?? COPA_CICLO) !== ciclo) { cur.ciclo = ciclo }
     saveCopaSave(seed, cur)
     return cur
   }
-  const fresh: CopaSave = { anchor, mural: [], played: [] }
+  const fresh: CopaSave = { anchor, ciclo, mural: [], played: [] }
   saveCopaSave(seed, fresh)
   return fresh
 }
-export const isCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo >= s.anchor && (seasonNo - s.anchor) % 10 === 0
+export const isCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo >= s.anchor && (seasonNo - s.anchor) % (s.ciclo ?? COPA_CICLO) === 0
 // 🌍 é ano de Copa do Mundo nesta carreira? E ela já foi jogada? (26/09: nos anos
 // de Copa, o roteiro do fim de temporada abre NELA, antes do jornal — ordem do
 // Diego, pra Bola de Ouro já sair com os gols da Copa.) Lê a MESMA agenda do portão.
 /** 🇧🇷 `anchor`: a 1ª temporada de Copa da carreira (100 na de sempre; 50 no Brasil Oficial — Diego 17/11) */
-export function copaMundoDaTemporada(seed: number, seasonNo: number, anchor = COPA_ANCHOR): { ano: boolean; jogada: boolean } {
-  const s = ensureSave(seed, anchor)
+export function copaMundoDaTemporada(seed: number, seasonNo: number, anchor = COPA_ANCHOR, ciclo = COPA_CICLO): { ano: boolean; jogada: boolean } {
+  const s = ensureSave(seed, anchor, ciclo)
   return { ano: isCopaSeason(s, seasonNo), jogada: s.played.includes(seasonNo) }
 }
-export const nextCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo <= s.anchor ? s.anchor : s.anchor + Math.ceil((seasonNo - s.anchor) / 10) * 10
+export const nextCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo <= s.anchor ? s.anchor : s.anchor + Math.ceil((seasonNo - s.anchor) / (s.ciclo ?? COPA_CICLO)) * (s.ciclo ?? COPA_CICLO)
 
 // ── simulação (seedada; resultados só aparecem quando a rodada é jogada) ──
 export type Entrant = { club: string; you: boolean; pais: string; xi: PoolCard[]; str: number; /** 🎭 seleção com DONO de gente na sala (online) — pênalti mais lento (25/09) */ humano?: boolean; /** 📐 a formação (o motor novo escala por ela) */ form?: string }
@@ -514,7 +516,7 @@ export function bestXISemRepetir(pool: Record<Sec, PoolCard[]>, f: Formation): P
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, motor2 = false, versaoM2, anchor = COPA_ANCHOR, convite = false }: { /** 🇧🇷 Brasil Oficial (17/11): a Copa abre na temporada `anchor` (50) e chega por CONVITE — a seleção da mesma posição do seu clube no ranking; aceita ou recusa */ anchor?: number; convite?: boolean; /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false, motor2 = false, versaoM2, anchor = COPA_ANCHOR, ciclo = COPA_CICLO, convite = false }: { /** 🇧🇷 de quantas em quantas temporadas (4 no Brasil Oficial) */ ciclo?: number; /** 🇧🇷 Brasil Oficial (17/11): a Copa abre na temporada `anchor` (50) e chega por CONVITE — a seleção da mesma posição do seu clube no ranking; aceita ou recusa */ anchor?: number; convite?: boolean; /** ⚽🧠 o motor novo decide o jogo da sua seleção (só carreira) */ motor2?: boolean; versaoM2?: VersaoM2; seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number, meu?: boolean) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
   // solto, a pessoa tinha que sair da tela e procurar a aba na mão.
   const rankLink = onGoRank
@@ -530,7 +532,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
   // e o jogo não registrava NADA. Agora o portão relê o save quando a Copa
   // fecha: edição decidida = botão some, ninguém joga a mesma Copa 2 vezes.
   const [saveVer, setSaveVer] = useState(0)
-  const save = useMemo(() => ensureSave(seed, anchor), [seed, saveVer, anchor])
+  const save = useMemo(() => ensureSave(seed, anchor, ciclo), [seed, saveVer, anchor, ciclo])
   // 🌍 BACKFILL do espelho (Diego 14/08): toda vez que essa tela abre, aproveita
   // pra mandar o mural LOCAL inteiro pro save (a ação já dedupa por temporada —
   // só entra o que ainda não tinha). Sem isso, só entrariam títulos NOVOS a

@@ -10791,9 +10791,11 @@ export function PyramidSeasonScreen() {
   // acabar. Ano sem Copa (9 em cada 10) segue exatamente como era.
   // 🇧🇷 Brasil Oficial (Diego 17/11): sem Copa do Mundo até a temporada 50; dali em diante ela chega por CONVITE (a seleção da sua posição)
   const cmAncora = state.oficial ? 50 : 100
-  const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1, cmAncora) : { ano: false, jogada: false }),
+  // 🇧🇷 Brasil Oficial: a Copa volta de 4 em 4 (Diego 17/11: "tb será de 4 em 4 anos"); a de sempre segue de 10 em 10
+  const cmCiclo = state.oficial ? 4 : 10
+  const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1, cmAncora, cmCiclo) : { ano: false, jogada: false }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state.seed, state.seasonNo, state.copaMundoStats, state.copaMundoMural, cmAncora])
+    [state.seed, state.seasonNo, state.copaMundoStats, state.copaMundoMural, cmAncora, cmCiclo])
   const mundoAntes = done && !!state.careerOnline && state.onlineMode !== 'online' && (state.seasonNo ?? 1) >= cmAncora && cmAgenda.ano
     // (depois de jogada ela FICA na frente, mesmo se o ranking mexer com o prêmio dela)
     && (cmVaga.top16.some(r => r.you) || state.copaMundoStats?.season === state.seasonNo)
@@ -12158,7 +12160,7 @@ export function PyramidSeasonScreen() {
       copaChegando: [
         ...(!seasonOver && 38 - round <= 5 ? [{ nome: (copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']) as [string, string], rodadasFaltam: 38 - round }] : []),
         ...(intlEnabled && sn === 39 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
-        ...(sn >= 99 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : sn + 1 >= 100 && (sn + 1 - 100) % 10 === 0 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
+        ...(sn >= cmAncora - 1 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : sn + 1 >= cmAncora && (sn + 1 - cmAncora) % cmCiclo === 0 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
       ],
     })
     if (compManchete) jornal.manchete = compManchete
@@ -13273,7 +13275,7 @@ export function PyramidSeasonScreen() {
             // ONLINE o convidado roteia AUTOMATICAMENTE pro host (mesmo cano do
             // lance de leilão), o host anota no caixa oficial e sincroniza pra sala.
             // Ninguém aperta nada: é conversa entre os celulares.
-            return <CopaMundoGate anchor={cmAncora} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
+            return <CopaMundoGate anchor={cmAncora} ciclo={cmCiclo} convite={!!state.oficial} seasonNo={state.seasonNo} seed={state.seed} top16={top16} myPos={top16.findIndex(r => r.you)} internationalCareer={intlEnabled} motor2={m2Desde != null} versaoM2={versaoComCriterios(recepcaoDesde !== undefined ? VERSAO_RECEPCAO_M2 : undefined, criteriosDaTemporada(state))}
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
