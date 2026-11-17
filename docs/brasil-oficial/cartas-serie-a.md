@@ -89,7 +89,6 @@ Todos os 5 abaixo morreram no acidente de 28/11/2016. Bio em tom de homenagem, s
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Alex | MEI | 2013 | 4 | 80 | 88 | O "Menino de Ouro" voltou pro clube que o revelou e, capitão, fez 2 gols na final e foi artilheiro do Paranaense de 2013. | The "Golden Boy" returned to the club that made him and, as captain, scored twice in the final and topped the 2013 Paraná scoring chart. | https://pt.wikipedia.org/wiki/Alexsandro_de_Souza | também tem carta em Cruzeiro 2003 (baralho Brasil); não é o Alex do Chelsea nem o do Galícia (xará) |
 
 ## Xarás aprovados pelo dono (mesmo nome de carta existente, OUTRA pessoa)
 

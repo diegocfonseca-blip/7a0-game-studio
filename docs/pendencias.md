@@ -34,6 +34,9 @@
   Salas, Zamorano…); 5 xarás marcados (Digão Falcon, Adilson Baré, Rincón Luminense, Pepe Cuiabá). Todos os clubes seguem fechando
   (D/estaduais com 11+, os de fora com 22+). Ficam os que estão em baralho DIFERENTE (ex.: Jhon Arias Santa Fe). Trava nova:
   `npm run baralho-oficial`. CLAUDE.md corrigido.
+  🔁 17/11: a trava tinha um furo — a marca de xará valia pro NOME inteiro (o "Rivaldo" xará do Trem escondia o Rivaldo do Santa Cruz,
+  mesma pessoa do Palmeiras). Agora vale só pra carta marcada (nome + ano). Saíram mais 5: Rivaldo (Santa Cruz 1991), Dener e Zé
+  Roberto (Portuguesa), Alex (Coritiba 2013) e Riquelme (Argentinos 2014); 11 xarás marcados (Dener/Gil/Josimar da Chape, Dida, etc.).
 - ✅ 16/11 (noite): **Libertadores e Sul-Americana no Ranking e no Hall de Troféus** da carreira (só Brasil Oficial, lidas de
   `oficialCampeoes`): Liberta soma como Libertadores (50 pts, a mesma do ranking e da vaga da Copa do Mundo — as duas contas andam
   juntas); Sul-Americana ganha selo e caixa própria (vermelha) e vale **25 pontos** (Diego: *"Pode ser"*, `PTS_TITULO.sula`; só no rank do save — o global não tem Sula).

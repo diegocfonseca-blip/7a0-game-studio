@@ -343,7 +343,6 @@ Já no baralho Brasil: Givanildo Oliveira MEI 1976, Mazinho Deus Ébano MEI 1975
 | Danny Morais | ZAG | 2016 | 1 | 52 | 66 | Zagueiro do Tricolor do Arruda campeão do Nordeste em 2016. | Centre-back of the Santa Cruz side that won the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 |  |
 | Alemão | ZAG | 2016 | 1 | 51 | 65 | Zagueiro do elenco campeão do Nordeste em 2016. | Centre-back in the squad that won the 2016 Nordeste Cup. | https://www.transfermarkt.com.br/santa-cruz-futebol-clube-pe-/kader/verein/1785/saison_id/2015/plus/1 | xará (não é o Alemão do Volta Redonda 2005 — este é profissional desde 2011; TM id 179020) |
 | Ramón | ATA | 1973 | 3 | 67 | 79 | Artilheiro do Brasileirão de 1973 com 21 gols e do penta pernambucano: 148 gols pelo Santa. | 1973 Brasileirão top scorer with 21 goals and star of five straight state titles: 148 goals for Santa. | https://pt.wikipedia.org/wiki/Ramón_da_Silva_Ramos |  |
-| Rivaldo | MEI | 1991 | 3 | 68 | 79 | Começou no Santa ainda juvenil, assinou o primeiro contrato profissional em 1991 e saiu trocado por cinco jogadores do Mogi Mirim. | Started at Santa Cruz as a youngster, signed his first pro contract in 1991 and left in a swap for five Mogi Mirim players. | https://pt.wikipedia.org/wiki/Rivaldo | também tem carta em Palmeiras 1996 e Barcelona 1999 (baralhos Brasil e Europa); não é o Rivaldo do Trem (xará) |
 
 ## Volta Redonda
 

@@ -21,13 +21,16 @@ for (const l of Object.values(CATALOG_OFICIAL)) for (const c of l as Carta[]) pu
 // linha do lote com "xará" = outra pessoa com o mesmo nome (conferida na pesquisa) — passa
 const xara = new Set<string>()
 for (const f of readdirSync('docs/brasil-oficial').filter(f => f.startsWith('cartas-') && f.endsWith('.md')))
-  for (const ln of readFileSync('docs/brasil-oficial/' + f, 'utf8').split('\n')) if (ln.startsWith('|') && /xar[áa]/i.test(ln)) xara.add(norm(ln.split('|')[1] ?? ''))
+  for (const ln of readFileSync('docs/brasil-oficial/' + f, 'utf8').split('\n')) if (ln.startsWith('|') && /xar[áa]/i.test(ln) && !/também tem carta/i.test(ln)) { const c = ln.split('|').map(x => x.trim()); const ano = c.slice(2, 6).find(x => /^\d{4}$/.test(x)) ?? ''; xara.add(norm(c[1] ?? '') + '|' + ano) }
+// ⚠️ a marca de xará vale só pra CARTA marcada (nome + ano), nunca pro nome inteiro: o "Rivaldo" do Trem 2026 é xará, mas o
+// Rivaldo do Santa Cruz 1991 é o mesmo do Palmeiras (17/11, furo achado no print do teste)
 const mesma = (a: Carta, b: Carta) => a.name === b.name && a.club === b.club && a.year === b.year
 let n = 0
 for (const d of ['BR', 'MUNDO'] as const) for (const [k, cs] of modo[d]) {
-  if (xara.has(k)) continue
-  const ja = (base[d].get(k) ?? []).filter(b => !cs.some(c => mesma(b, c)))
-  if (ja.length || cs.length > 1) { n++; console.log(`${d}\t${k}\tmodo: ${cs.map(c => c.club + ' ' + c.year).join(', ')}\tjá no baralho: ${ja.map(c => c.club + ' ' + c.year).join(', ')}`) }
+  const csR = cs.filter(c => !xara.has(k + '|' + c.year))
+  if (!csR.length) continue
+  const ja = (base[d].get(k) ?? []).filter(b => !csR.some(c => mesma(b, c)))
+  if (ja.length || (cs.length > 1 && csR.length > 0 && cs.length - csR.length < cs.length - 1)) { n++; console.log(`${d}\t${k}\tmodo: ${csR.map(c => c.club + ' ' + c.year).join(', ')}\tjá no baralho: ${ja.map(c => c.club + ' ' + c.year).join(', ')}`) }
 }
 console.log(n ? `❌ ${n} pessoa(s) repetida(s) no mesmo baralho` : '✅ nenhuma pessoa repetida no mesmo baralho (Brasil / Mundo)')
 if (n) process.exit(1)

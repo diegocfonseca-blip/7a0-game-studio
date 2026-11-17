@@ -172,8 +172,6 @@ O clube JÁ fecha o time no baralho (17 cartas REGIONAL: 2 GOL, 2 LAT, 2 ZAG, 5 
 
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em | obs |
 |---|---|---|---|---|---|---|---|---|---|
-| Dener | MEI | 1991 | 4 | 80 | 89 | O último grande craque da Lusa: campeão da Copa São Paulo de 1991 com gol na final e 101 jogos e 25 gols pelo time de cima. | Portuguesa's last great star: won the 1991 Copa São Paulo junior cup scoring in the final, then played 101 games and scored 25 goals for the first team. | https://pt.wikipedia.org/wiki/Dener_Augusto_de_Sousa · https://pt.wikipedia.org/wiki/Associação_Portuguesa_de_Desportos | também tem carta em Vasco (baralho Brasil); xará do Dener da Chapecoense 2016 (outra pessoa, lateral) |
-| Zé Roberto | MEI | 1996 | 3 | 69 | 79 | Revelado pela Lusa, jogou pela esquerda no time vice-campeão brasileiro de 1996 — o clube que, nas palavras dele, o projetou pro mundo. | A Portuguesa academy product who played on the left of the side that finished runner-up in the 1996 Brazilian league — the club he says launched him to the world. | https://pt.wikipedia.org/wiki/Zé_Roberto_(futebolista) · https://pt.wikipedia.org/wiki/Associação_Portuguesa_de_Desportos | também tem carta em Palmeiras e Bayern (baralho Brasil/Europa); xará do Zé Roberto do Atlético-GO 2021 (outra pessoa) |
 
 ## Primavera-SP
 
