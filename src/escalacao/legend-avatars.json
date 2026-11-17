@@ -1398,5 +1398,61 @@
     "year": 2025,
     "src": "/avatars/lendas-v3/lipao-furia-2025.webp",
     "transparent": true
+  },
+  {
+    "name": "Gordon Banks",
+    "club": "Leicester",
+    "year": 1966,
+    "src": "/avatars/lendas-v3/gordon-banks-leicester-1966.webp",
+    "transparent": true
+  },
+  {
+    "name": "Giancarlo Antognoni",
+    "club": "Fiorentina",
+    "year": 1982,
+    "src": "/avatars/lendas-v3/giancarlo-antognoni-fiorentina-1982.webp",
+    "transparent": true
+  },
+  {
+    "name": "Fernando Peyroteo",
+    "club": "Sporting",
+    "year": 1947,
+    "src": "/avatars/lendas-v3/fernando-peyroteo-sporting-1947.webp",
+    "transparent": true
+  },
+  {
+    "name": "Vozinha",
+    "club": "Colo-Colo",
+    "year": 2026,
+    "src": "/avatars/lendas-v3/vozinha-colo-colo-2026.webp",
+    "transparent": true
+  },
+  {
+    "name": "Pedro Rocha",
+    "club": "Peñarol",
+    "year": 1965,
+    "src": "/avatars/lendas-v3/pedro-rocha-penarol-1965.webp",
+    "transparent": true
+  },
+  {
+    "name": "Alberto Spencer",
+    "club": "Peñarol",
+    "year": 1961,
+    "src": "/avatars/lendas-v3/alberto-spencer-penarol-1961.webp",
+    "transparent": true
+  },
+  {
+    "name": "Mario Kempes",
+    "club": "Rosario Central",
+    "year": 1973,
+    "src": "/avatars/lendas-v3/mario-kempes-rosario-central-1973.webp",
+    "transparent": true
+  },
+  {
+    "name": "Alfredo Di Stéfano",
+    "club": "Millonarios",
+    "year": 1949,
+    "src": "/avatars/lendas-v3/alfredo-di-stefano-millonarios-1949.webp",
+    "transparent": true
   }
 ]
