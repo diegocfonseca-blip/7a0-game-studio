@@ -10212,6 +10212,12 @@ export function PyramidSeasonScreen() {
     setEstadualOn(false); setCopaRound(0)
   }, [estadualOn, preRounds, copaRound]) // eslint-disable-line react-hooks/exhaustive-deps
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // 🚫 SPOILER (17/11, teste da 2ª temporada do Brasil Oficial): a chave da Copa do Brasil (`copaBase`, só as 9 fases dela) recebia
+  // como "fases reveladas" o índice da ESTEIRA (`copaRound`), que conta também estadual, Supercopa Rei, playoff e Libertadores — na
+  // 5ª fase já passava de 9 e a tela mostrava campeão, final e os campeões da temporada inteira. Aqui conta só as fases da Copa.
+  const revealCopaBase = state.oficial && copaBase && copaBase !== copa
+    ? (copaFinished ? copaBase.rounds.length : Math.min(copaBase.rounds.length, (copa?.rounds ?? []).slice(0, copaRound).filter(r => !foraDaCopa(r.name)).length))
+    : null
   // 🏆 fim da temporada do modo: grava os campeões (Série A + Copa do Brasil) — a Supercopa Rei da próxima sai daqui
   useEffect(() => {
     if (!state.oficial || !done || !copaFinished || !copaBR?.champion || !copaBR.vice || !(tables.A?.length >= 2)) return
@@ -14286,7 +14292,7 @@ export function PyramidSeasonScreen() {
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${nomeEstadual} · ${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>
               </>
               if (jogoTabela && tab === 'jogos' && copaPlaying && copa && copaFase) return <>
-                <CopaBracket copa={copaBase ?? copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} real={!!state.oficial} />
+                <CopaBracket copa={copaBase ?? copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={revealCopaBase ?? copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} real={!!state.oficial} />
                 <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('JOGOS DA COPA', 'CUP MATCHES')}`}/>
               </>
               return <>
@@ -14340,7 +14346,7 @@ export function PyramidSeasonScreen() {
           </>
           )
         ) : done && copa && copa.rounds.length > 0 ? (
-          <CopaBracket copa={copaBase ?? copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={copaFinished ? nCopaRounds : copaRound} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} real={!!state.oficial} />
+          <CopaBracket copa={copaBase ?? copa} colors={colors} youId={youId} tables={tables} ord={ord} myDiv={myDiv} reveal={revealCopaBase ?? (copaFinished ? nCopaRounds : copaRound)} scorers={scorers} seasonNo={state.seasonNo} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} brasil={copaBrOk} copaBR={copaBR} real={!!state.oficial} />
         ) : (
           <>
             <PyramidTables oficial={oficialEfetivo} tables={tables} order={ord} colors={colors} myDiv={myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} />

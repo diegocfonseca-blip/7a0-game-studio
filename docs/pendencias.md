@@ -88,6 +88,10 @@
   cada estado, na ordem do estadual (o seu como foi jogado; os outros 16 simulados por baixo; estado sem estadual = a ordem de 2026 e
   depois a divisão), pulando quem já entrou · 1ª fase = os 28 de divisão mais baixa (régua minha, RNC não é aberto). Formato 126 de
   2026 (não 128). Trava no `npm run brasil-oficial`.
+  🐛 17/11 (achado no teste da 2ª temporada): SPOILER na tela da Copa do Brasil do modo — na 5ª fase (rodada 19) a chave já mostrava o
+  campeão, a final e os campeões da temporada inteira. Causa: a chave (`copaBase`, 9 fases) recebia o índice da ESTEIRA (que conta
+  estadual, Supercopa Rei, Liberta…). Consertado com `revealCopaBase` (só no Brasil Oficial). Visto também: a multidão do portão volta
+  depois do apito (~2 min) ✓; nos primeiros ~20 s do jogo ela ainda aparecia antes de o mapa remontar — conferir num aparelho de verdade.
 - 🐛 17/11 (achado no teste da Intercontinental, VALE PRA CARREIRA NORMAL TAMBÉM — está no ar): a COLETIVA da copa abria aos ~3' do jogo
   SEGUINTE já com o placar final dele (spoiler). Causa: o "fase pronta" (`copaReady`) da fase anterior valia por um render depois da
   virada. Agora o pronto guarda DE QUAL fase é (`copaReadyDe`/`copaPronta`) e coletiva, botão "Próxima fase", chave da Central e cartão do
