@@ -31,7 +31,7 @@
   temporada 50 e com convite e não mais escolhendo… recebe convite pelo ranking dos mesmos 32… se aceita ou não comandar a seleção do
   rank onde ele tá"* → *"Isso mesmo"*). No modo oficial a âncora é 50 (`cmAncora`; carreira normal segue 100). No lugar da lista de
   seleções aparece `ConviteSelecao`: o clube em 5º no ranking é chamado pela 5ª seleção. Aceitar = convoca; recusar = a Copa daquela
-  temporada roda sem ele (fica marcada como jogada). **Volta de 4 em 4** (50, 54, 58…; Diego: *"tb será de 4 em 4 anos"*, `cmCiclo`/`CopaSave.ciclo`). A caixa de "Copa internacional" do portão some no oficial. Carreira normal: nada mudou.
+  temporada roda sem ele (fica marcada como jogada). **Volta de 4 em 4** (50, 54, 58…; Diego: *"tb será de 4 em 4 anos"*, `cmCiclo`/`CopaSave.ciclo`). A caixa de "Copa internacional" do portão some no oficial. 🤫 **Nenhum texto explica que o convite sai do ranking** (Diego: *"não precisa dar dicas sobre o ranking… vamos fingir entre a gente"*): o convite diz só "Argentina quer o técnico do X"; fora dos 32, "nenhuma seleção te chamou desta vez". Carreira normal: nada mudou.
 - ✅ 16/11 (noite) — **CORREÇÃO DA REGRA DO BARALHO** (Diego: *"Neymar pode no Santos baralho Brasil, Barcelona Europa e Al Hilal do Mundo… só
   não duas vezes no mesmo"*). Eu tinha tratado o modo como baralho à parte e devolvido famosos que JÁ estavam no mesmo baralho. Agora:
   clube brasileiro do modo = baralho Brasil, clube de fora = baralho Mundo. **119 cartas saíram** (Sócrates e Raí no Botafogo-SP, Careca

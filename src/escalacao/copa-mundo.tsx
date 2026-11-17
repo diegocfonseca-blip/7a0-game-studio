@@ -556,7 +556,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
         <small>{seasonNo >= 40 ? 'Disponível nesta carreira. A campanha nacional define sua prioridade de escolha.' : `Faltam ${40 - seasonNo} temporadas para desbloquear.`}</small>
       </div>}
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>{tr('🔒 Copa do Mundo Legends', '🔒 Legends World Cup')}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season {anchor}</b> — and only clubs in the <b>TOP 32 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada {anchor}</b> — e só entra quem estiver no <b>TOP 32 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{convite /* 🤫 Brasil Oficial: o convite não se explica (Diego 17/11: "não precisa dar dicas sobre o ranking") */ ? (getLang() === 'en' ? <>A tournament of national teams: it opens in <b>season {anchor}</b>. When the time comes, a national team may call you to be its coach.</> : <>Torneio de seleções: abre na <b>temporada {anchor}</b>. Quando chegar a hora, uma seleção pode te chamar pra ser o técnico.</>) : getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season {anchor}</b> — and only clubs in the <b>TOP 32 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada {anchor}</b> — e só entra quem estiver no <b>TOP 32 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
       <div className="ov3-surface" style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo / anchor * 100)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
         <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>{tr('temporada', 'season')} {seasonNo} {tr('de', 'of')} {anchor}</b>
@@ -577,7 +577,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
   if (!inTop16) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>{tr('🔒 Copa do Mundo Legends — temporada', '🔒 Legends World Cup — season')} {seasonNo}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>It's a Cup season, but <b>your club is not in the TOP 32 of the club ranking</b> {rankLink}. Win titles and save money to climb the board — the next edition is in <b>{proxima}</b>.</> : <>É temporada de Copa, mas <b>seu clube não está no TOP 32 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</>}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{convite ? (getLang() === 'en' ? <>It's a Cup season, but <b>no national team called you this time</b>. The next edition is in <b>{proxima}</b>.</> : <>É temporada de Copa, mas <b>nenhuma seleção te chamou desta vez</b>. A próxima edição é na <b>{proxima}</b>.</>) : getLang() === 'en' ? <>It's a Cup season, but <b>your club is not in the TOP 32 of the club ranking</b> {rankLink}. Win titles and save money to climb the board — the next edition is in <b>{proxima}</b>.</> : <>É temporada de Copa, mas <b>seu clube não está no TOP 32 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</>}</p>
     </div>
   )
 
@@ -587,7 +587,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
       <button onClick={() => setOpen(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', marginBottom: 9, position: 'relative', overflow: 'hidden' }}>
         <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />
         <span style={{ position: 'relative' }}>{tr('🌍 DISPUTAR A COPA DO MUNDO', '🌍 PLAY THE WORLD CUP')}</span>
-        <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>{tr('chegou a hora — ela só volta na temporada', 'the time has come — it only returns in season')} {seasonNo + 10}!</span>
+        <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>{tr('chegou a hora — ela só volta na temporada', 'the time has come — it only returns in season')} {seasonNo + ciclo}!</span>
       </button>
       {open && <CopaMundo convite={convite} seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} motor2={motor2} versaoM2={versaoM2} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
     </>
@@ -718,12 +718,12 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
 }
 
 // ── ✉️ tela 1 do Brasil Oficial: o CONVITE da seleção (aceitar ou recusar) ──
-export function ConviteSelecao({ pais, pos, clube, onAceita, onRecusa }: { pais: string; pos: number; clube: string; onAceita: () => void; onRecusa: () => void }) {
+export function ConviteSelecao({ pais, clube, onAceita, onRecusa }: { pais: string; pos?: number; clube: string; onAceita: () => void; onRecusa: () => void }) {
   return (
     <>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: 0, textAlign: 'center', textTransform: 'uppercase', color: INK }}>{tr('✉️ Chegou um convite', '✉️ An invitation arrived')}</p>
       <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.65)', textAlign: 'center', margin: '6px 0 12px', lineHeight: 1.45 }}>
-        {getLang() === 'en' ? <><b>{clube}</b> is <b>{ordinal(pos + 1)} in the club ranking</b> — and the {ordinal(pos + 1)} national team in the World Cup ranking wants you as its coach.</> : <><b>{clube}</b> é o <b>{ordinal(pos + 1)} do ranking de clubes</b> — e a {pos + 1}ª seleção do ranking da Copa quer você como técnico.</>}
+        {getLang() === 'en' ? <><b>{pais}</b> wants the coach of <b>{clube}</b> on the bench at the World Cup.</> : <><b>{pais}</b> quer o técnico do <b>{clube}</b> no banco da Copa do Mundo.</>}
       </p>
       <div style={{ ...box('#fff'), padding: '14px 12px', textAlign: 'center', marginBottom: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
         <div style={{ fontSize: 44, lineHeight: 1 }}>{flagOf(pais)}</div>
