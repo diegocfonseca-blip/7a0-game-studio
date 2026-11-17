@@ -9341,6 +9341,7 @@ export function PyramidSeasonScreen() {
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena' | 'museu' | 'estrutura' | 'negocios'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const clubeMapaApi=useRef<ControleComplexo|null>(null)
+  const [mapaProntoN,setMapaProntoN]=useState(0)
   const mapaComoClube = stadiumMapAvailable && state.onlineMode!=='online' && !state.co2
 
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
@@ -11405,13 +11406,12 @@ export function PyramidSeasonScreen() {
   // 🎥 quando o quadro abre, a câmera vai UMA vez pra festa da porta (fila da torcida, bandeiras, barracas) — e para aí: quando o
   // ônibus chega, a câmera automática do mapa (`presidencia-onibus-camera.ts`) segue ele sozinha. Ficar chamando a vista de novo
   // atrapalhava essa câmera. O mapa pode levar uns segundos pra abrir: espera ele ficar pronto (até 30 s).
+  // 🔁 o mapa pode ser REMONTADO no meio (ex.: o aparelho travou e ele caiu pro Leve) e volta na vista de cima — então a vista da
+  // porta é pedida de novo a cada vez que o mapa fica pronto (`mapaProntoN`), uma vez por montagem.
   useEffect(() => {
     if (!chegadaGrande) return
-    let feito = false
-    const iv = window.setInterval(() => { const api = clubeMapaApi.current; if (feito || !api) return; feito = true; api.view('matchday'); window.clearInterval(iv) }, 1000)
-    const fim = window.setTimeout(() => window.clearInterval(iv), 30000)
-    return () => { window.clearInterval(iv); window.clearTimeout(fim) }
-  }, [chegadaGrandeKey, !!chegadaGrande]) // eslint-disable-line react-hooks/exhaustive-deps
+    clubeMapaApi.current?.view('matchday')
+  }, [chegadaGrandeKey, !!chegadaGrande, mapaProntoN]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
@@ -12372,7 +12372,7 @@ export function PyramidSeasonScreen() {
   const festaTitulo: EstadoPartidaEstadio | undefined = presidentAvailable && divFesta && stadiumMatch && myMatch && (myMatch.hId === youId || myMatch.aId === youId) ? {
     context: { ...stadiumMatch, tituloDivisao: divFesta }, officialTeams: [myMatch.h, myMatch.a], minute: 93, period: 2, homeScore: myMatch.hg, awayScore: myMatch.ag, paused: true, finished: true,
     homeColor: myMatch.hId === youId ? myCol.solid : colors?.[myMatch.hId]?.solid ?? '#3A7CA5', awayColor: myMatch.aId === youId ? myCol.solid : colors?.[myMatch.aId]?.solid ?? '#C2452F' } : undefined
-  const mapaDoClube = !presidentPending && stadiumMapAvailable ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api;if(import.meta.env.DEV){const w=window as unknown as {__mapaApi?:unknown;__mapaReady?:number};w.__mapaApi=api;w.__mapaReady=(w.__mapaReady??0)+1}}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:(preJogoCidade??(chegadaGrande?preJogoAba:null))?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
+  const mapaDoClube = !presidentPending && stadiumMapAvailable ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api;setMapaProntoN(n=>n+1);if(import.meta.env.DEV){const w=window as unknown as {__mapaApi?:unknown;__mapaReady?:number};w.__mapaApi=api;w.__mapaReady=(w.__mapaReady??0)+1}}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:(preJogoCidade??(chegadaGrande?preJogoAba:null))?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
   const renderEstruturaDoClube=(insidePanel=false,business=false)=> (
           <>
             {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início

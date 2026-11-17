@@ -14,8 +14,10 @@ export function ChegadaGrande({ titulo, confronto, clube, onPular, children }: {
     <div style={{ position: 'relative', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 ${INK}`, margin: '0 0 10px', background: '#000' }}>
       {/* o mapa encaixa aqui (VagaDoMapa); a altura é fixa pra a página não pular */}
       {/* dentro do quadro só a IMAGEM do mapa: botões, chips e avisos dele (Locais, Passear, tela cheia, "passamos pro Leve"…) somem —
-          eles cobriam o título (teste de 17/11). O mapa continua o mesmo; na aba Clube tudo volta. */}
-      <style>{'.ll-chegada-mapa *{visibility:hidden!important}.ll-chegada-mapa canvas{visibility:visible!important}'}</style>
+          eles cobriam o título (teste de 17/11). O mapa continua o mesmo; na aba Clube tudo volta.
+          O palco do mapa encolhe pra altura do quadro: com a altura da aba Clube (~650 px) o quadro mostrava só a metade de cima
+          (o céu) e a porta do estádio, que fica no meio da tela do mapa, ficava escondida. */}
+      <style>{'.ll-chegada-mapa *{visibility:hidden!important}.ll-chegada-mapa canvas{visibility:visible!important}.ll-chegada-mapa .pc3-stage{height:340px!important;min-height:0!important;max-height:340px!important}'}</style>
       <div className="ll-chegada-mapa" style={{ height: 340, overflow: 'hidden', pointerEvents: 'none' }}>{children}</div>
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(180deg,#0008 0%,transparent 28%,transparent 58%,#000d 100%)' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, top: 10, textAlign: 'center', pointerEvents: 'none' }}>
