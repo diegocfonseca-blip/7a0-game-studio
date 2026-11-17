@@ -11408,9 +11408,15 @@ export function PyramidSeasonScreen() {
   // atrapalhava essa câmera. O mapa pode levar uns segundos pra abrir: espera ele ficar pronto (até 30 s).
   // 🔁 o mapa pode ser REMONTADO no meio (ex.: o aparelho travou e ele caiu pro Leve) e volta na vista de cima — então a vista da
   // porta é pedida de novo a cada vez que o mapa fica pronto (`mapaProntoN`), uma vez por montagem.
+  // 🚌 17/11 (Diego: "Ok" pro ônibus chegar logo): a porta aparece uns 4 s e o relógio do dia de jogo pula até o ônibus sair —
+  // a câmera automática do ônibus segue ele e depois volta pra porta. Só no quadro; na aba Clube a chegada segue no tempo dela.
   useEffect(() => {
     if (!chegadaGrande) return
     clubeMapaApi.current?.view('matchday')
+    let tentativas = 0, t = 0
+    const pula = () => { const api = clubeMapaApi.current; if (!api?.adiantarProOnibus) return; if (api.adiantarProOnibus() || ++tentativas >= 12) return; t = window.setTimeout(pula, 1000) }
+    t = window.setTimeout(pula, 4000)
+    return () => window.clearTimeout(t)
   }, [chegadaGrandeKey, !!chegadaGrande, mapaProntoN]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
