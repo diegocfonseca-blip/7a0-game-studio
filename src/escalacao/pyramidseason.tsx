@@ -9862,9 +9862,12 @@ export function PyramidSeasonScreen() {
   const sulaMinha = !!sulaCalc && sulaCalc.resultado.classificacao.includes(meuNomeLib)
   // 🌐 INTERCONTINENTAL (17/11): o campeão da Libertadores do ano vai ao Dérbi das Américas (Toluca) → Challenger → final (PSG).
   // Calculada sempre (o campeão vai pro histórico); só entra na tela quando o campeão da Liberta é o SEU clube.
-  const interCalc = useMemo(() => state.oficial && libertaCalc ? computeIntercontinentalCarreira(libertaCalc.resultado.campeao, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null,
-    [state.oficial, libertaCalc, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
-  const interMinha = !!interCalc && libertaMinha && libertaCalc?.resultado.campeao === meuNomeLib
+  // 🧪 só no servidor de teste (npm run dev; o build de produção apaga): `window.__boInterJa = true` joga a Intercontinental ANTES da
+  // temporada, com o SEU clube no lugar do campeão da Libertadores (pra ver as telas sem ganhar a Liberta de verdade)
+  const interDev = import.meta.env.DEV && !!(window as unknown as { __boInterJa?: boolean }).__boInterJa && round === 0 && !!state.oficial
+  const interCalc = useMemo(() => state.oficial && (libertaCalc || interDev) ? computeIntercontinentalCarreira(interDev ? meuNomeLib : libertaCalc!.resultado.campeao, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null,
+    [state.oficial, libertaCalc, interDev, meuNomeLib, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
+  const interMinha = !!interCalc && (interDev || (libertaMinha && libertaCalc?.resultado.campeao === meuNomeLib))
   // 🏟️ BRASIL OFICIAL · O ESTADUAL abre a temporada (mockup aprovado 16/11): antes da 1ª rodada da Série, o "Começar a temporada"
   // liga a esteira das copas com as páginas do estadual do seu clube (o placar, o Manual e o campinho de sempre). Enquanto ele
   // roda, a esteira mostra SÓ ele; quando termina, o resultado é gravado no save (`ESTADUAL_FEITO`) e a Série começa.
@@ -9883,7 +9886,7 @@ export function PyramidSeasonScreen() {
     const fora = prev.copa === prev.serieA ? prev.copaVice : prev.copa
     return fora ? computeSupercopaRei(prev.serieA, fora, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null
   }, [state.oficial, state.oficialCampeoes, state.seasonNo, round, estadualFeito, world, state.seed, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
-  const preRounds = useMemo(() => [...(supercopaRei ? [supercopaRei] : []), ...(estadualCalc?.rounds ?? [])], [supercopaRei, estadualCalc])
+  const preRounds = useMemo(() => [...(interDev && interCalc ? interCalc.rounds.filter(r => r.ties.some(t => t.a.name === meuNomeLib || t.b.name === meuNomeLib)) : []), ...(supercopaRei ? [supercopaRei] : []), ...(estadualCalc?.rounds ?? [])], [supercopaRei, estadualCalc, interDev, interCalc, meuNomeLib])
   const estadualPendente = preRounds.length > 0 && !estadualFeito && !estadualOn
   const nomeEstadual = estadualNome ? (NOME_ESTADUAL[estadualNome] ?? estadualNome) : ''
   // 📅 a esteira da temporada: as páginas do MEIO da temporada (Copa do Brasil + Libertadores) em ordem de semana, e depois as do
