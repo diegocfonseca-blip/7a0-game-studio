@@ -117,6 +117,7 @@ import sedeObra from './img/sede-obra-loja.webp'
 import sedeCarreata from './img/sede-carreata.webp'
 import sedeFeira from './img/sede-feira.webp'
 import sedeNoite from './img/sede-noite.webp'
+import sedeClube from './img/sede-clube.webp'
 import { FestaCampeao, TunelFinal, Trofeu, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { StatsDoPlacar } from './stats-placar-ui' // 📊 07/11: o resumo do apito do 2D também no placar cinema
 import { statsPlacarVisivel } from './stats-placar'
@@ -10697,7 +10698,7 @@ export function PyramidSeasonScreen() {
     // própria mistura por temporada.
     const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], hist: state.eventoHist, avoidName: evAtual?.nome, gas: condGas ?? undefined })
     if (!d) return false
-    const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente' }
+    const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente', ...(d.variante ? { variante: d.variante } : {}) }
     if (!d.reservas.length) {
       // 🌱 SEM RESERVA na posição (Diego 13/08 — "malandrinho que joga só com 11" +
       // "era pra ter aparecido um banner, escolher 3 da base"): antes não travava
@@ -11916,6 +11917,7 @@ export function PyramidSeasonScreen() {
           return plano.lesoes.filter(l => l.r < ri && l.r < round && l.r + 1 + l.rodadas > ri).map(l => nome(l.id)).filter(Boolean)
         })(),
         noitada: suspenso?.tipo === 'noitada' ? fora : undefined,
+        noitadaFutevolei: suspenso?.tipo === 'noitada' && suspenso.variante === 'futevolei',
       }
       recado = recadoDoDia(calI > 0 ? hoje : diaDaRodada(calSn, round) + 86400000, ctx)
     }
@@ -12273,6 +12275,9 @@ export function PyramidSeasonScreen() {
       if (!stadiumMapAvailable) return null
       const k = `${sn}:${round}`
       const ev = evAtual && evAtual.season === sn && evAtual.mgrId === youId && evAtual.tipo === 'noitada' && (evAtual.status === 'banco' ? (evAtual.volta ?? 0) > round : evAtual.status === 'campo' && evAtual.round === round) ? evAtual : null
+      if (ev && ev.variante === 'futevolei') return { chave: `${k}:futevolei`, img: sedeClube, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), hora: tr('10H DA MANHÃ', '10 AM'), chapeu: tr('🏐 Faltou o treino', '🏐 Skipped training'), tom: 'ruim',
+        titulo: tr(`${ev.nome} foi jogar futevôlei`, `${ev.nome} went to play footvolley`),
+        texto: ev.status === 'campo' ? tr('Trocou o treino pela areia do clube do bairro. Você bancou: ele joga assim mesmo.', 'He swapped training for the club sand. You backed him: he plays anyway.') : tr(`Trocou o treino pela areia do clube do bairro e ficou no banco${ev.subNome ? ` — ${ev.subNome} entra no lugar` : ''}.`, `He swapped training for the club sand and was benched${ev.subNome ? ` — ${ev.subNome} takes his place` : ''}.`) }
       if (ev) return { chave: `${k}:noitada`, img: sedeNoite, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), hora: tr('2H DA MANHÃ', '2 AM'), chapeu: tr('🍾 Noitada · fora da concentração', '🍾 Night out · away from the team hotel'), tom: 'ruim',
         titulo: tr(`${ev.nome} foi pra balada`, `${ev.nome} went clubbing`),
         texto: ev.status === 'campo' ? tr(`Você bancou: ele joga no cafezinho. A torcida reza.`, `You backed him: he plays on coffee alone. The fans pray.`) : tr(`Ele ficou no banco pra pôr o sono em dia${ev.subNome ? ` — ${ev.subNome} entra no lugar` : ''}.`, `He was benched to catch up on sleep${ev.subNome ? ` — ${ev.subNome} takes his place` : ''}.`) }

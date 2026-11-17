@@ -236,7 +236,30 @@ const HIST_LESAO_EN = [
   '{n} felt his groin during the official photo shoot, striking a "volley" pose. The photo came out great. 📷',
 ]
 
+// 🏐 FUTEVÔLEI NO LUGAR DO TREINO (17/11, Diego: "Renato Gaúcho, Ronaldinho Gaúcho, Romário, Edmundo… às vezes, raramente,
+// faltando um treino pra jogar futevôlei"). Não é regra nova: é um JEITO da noitada (mesmo efeito — 1 jogo, banco ou escala assim
+// mesmo). Pros 3 baladeiros vira futevôlei 1 vez em 4 (sorteio PRESO no nome+temporada, sem gastar o dado do jogo); o Edmundo,
+// que não é baladeiro, entra no sorteio com peso 1 (o menor), só pelo futevôlei. A cena vai pro clube de lazer do mapa.
+export const FUTEVOLEIROS = new Set(['Renato Gaúcho', 'Ronaldinho Gaúcho', 'Romário', 'Edmundo'])
+const HIST_FUTEVOLEI = [
+  'O {n} faltou o treino da manhã. Acharam ele no clube do bairro, descalço na areia, numa dupla de futevôlei que "não podia perder de jeito nenhum". 🏐',
+  'O preparador ligou três vezes. O {n} atendeu na quarta, ofegante: "tô na areia, professor, é treino também". Era futevôlei valendo churrasco. 🏐',
+  'O {n} mandou atestado de "dor no joelho". Uma hora depois, foto dele dando shark attack na quadra de areia do clube rodou em todo grupo da cidade. 📸',
+  'O {n} sumiu do CT. Apareceu no clube de lazer com a camisa amarrada na cabeça, desafiando a dupla da casa. Ganhou. O técnico não achou graça. 🏐',
+  'Faltou ao treino tático pra "manter o toque de bola" no futevôlei. A argumentação do {n} foi tão boa que quase convenceu. Quase. 🏐',
+]
+const HIST_FUTEVOLEI_EN = [
+  'The {n} skipped morning training. They found him at the neighbourhood club, barefoot on the sand, in a footvolley pair that "just could not lose". 🏐',
+  'The fitness coach called three times. The {n} answered on the fourth, out of breath: "I am on the sand, coach, this is training too". It was footvolley for a barbecue. 🏐',
+  'The {n} sent a sick note for "a sore knee". An hour later, a photo of him doing a shark attack on the club sand court was in every group chat in town. 📸',
+  'The {n} vanished from training. He turned up at the leisure club with his shirt tied around his head, challenging the home pair. He won. The coach was not amused. 🏐',
+  'He skipped tactical training to "keep his touch sharp" at footvolley. The {n}\'s argument was so good it almost worked. Almost. 🏐',
+]
+const hashTxt = (t: string) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0 }
+
 export interface EventoSorteado {
+  /** 🏐 a noitada virou futevôlei (só muda a história e a cena; o efeito é o da noitada) */
+  variante?: 'futevolei'
   tipo: EventoTipo
   card: EventoCard
   rodadas: number
@@ -274,11 +297,12 @@ export function sorteiaEvento(args: {
   const alvo = EVENTO_MIN_ROUND + Math.floor(rng() * (EVENTO_MAX_ROUND - EVENTO_MIN_ROUND + 1))
   if (round < alvo) return null
   // candidatos do XI ATUAL (o evento é sempre com um titular seu)
-  const pool: { c: EventoCard; tipo: EventoTipo }[] = []
+  const pool: { c: EventoCard; tipo: EventoTipo; fute?: true }[] = []
   for (const c of xi) {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
+    if (t !== '🍾 baladeiro' && FUTEVOLEIROS.has(c.name)) pool.push({ c, tipo: 'noitada', fute: true }) // 🏐 Edmundo: peso 1, só o futevôlei
     // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts)
     { const peso = gas ? pesoLesao(gas[c.id] ?? 100) : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
   }
@@ -300,11 +324,15 @@ export function sorteiaEvento(args: {
   const rodadas = pick.tipo === 'noitada' ? 1 : pick.tipo === 'expulsao' ? 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 5)
   const en = getLang() === 'en'
   const textos = pick.tipo === 'noitada' ? (en ? HIST_NOITADA_EN : HIST_NOITADA) : pick.tipo === 'expulsao' ? (en ? HIST_EXPULSAO_EN : HIST_EXPULSAO) : (en ? HIST_LESAO_EN : HIST_LESAO)
-  const historia = textos[Math.floor(rng() * textos.length)].replace('{n}', pick.c.name)
+  let historia = textos[Math.floor(rng() * textos.length)].replace('{n}', pick.c.name)
+  // 🏐 o dado acima é gasto IGUAL; a troca pro futevôlei sai de um sorteio preso no nome+temporada (não muda nada do resto)
+  const hf = hashTxt(`${seed}:${seasonNo}:${pick.c.name}:fute`)
+  const futevolei = pick.tipo === 'noitada' && FUTEVOLEIROS.has(pick.c.name) && (pick.fute || (Math.imul(hf ^ (hf >>> 16), 0x45d9f3b) >>> 0) % 4 === 0)
+  if (futevolei) { const lista = en ? HIST_FUTEVOLEI_EN : HIST_FUTEVOLEI; historia = lista[(hf >>> 3) % lista.length].replace('{n}', pick.c.name) }
   const xiIds = new Set(xi.map(c => c.id))
   // reserva = MESMA posição, fora do XI (cria e emprestado valem — estão no elenco e jogam)
   const reservas = squad.filter(c => c.pos === pick.c.pos && !xiIds.has(c.id))
-  return { tipo: pick.tipo, card: pick.c, rodadas, historia, reservas }
+  return { tipo: pick.tipo, card: pick.c, rodadas, historia, reservas, ...(futevolei ? { variante: 'futevolei' as const } : {}) }
 }
 
 // ─── 🩹 histórias da LESÃO POR DESGASTE ({n} = nome · {j} = jogos seguidos) ──
@@ -358,9 +386,17 @@ export function eventoTituloBanner(tipo: EventoTipo, rodadas: number, desgaste =
   if (desgaste) return en ? `😓 WORN OUT — OUT ${rodadas} ${rodadas === 1 ? 'ROUND' : 'ROUNDS'}` : `😓 LESÃO POR DESGASTE — FORA ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
   return en ? `🩹 INJURED — OUT ${rodadas} ${rodadas === 1 ? 'ROUND' : 'ROUNDS'}` : `🩹 LESIONADO — FORA ${rodadas} ${rodadas === 1 ? 'RODADA' : 'RODADAS'}`
 }
-export function mancheteDecisao(ev: { tipo: EventoTipo; nome: string; rodadas: number; status: string; subNome?: string; round: number; desgaste?: boolean }): { emoji: string; titulo: string; sub: string } {
+export function mancheteDecisao(ev: { tipo: EventoTipo; nome: string; rodadas: number; status: string; subNome?: string; round: number; desgaste?: boolean; variante?: 'futevolei' }): { emoji: string; titulo: string; sub: string } {
   const en = getLang() === 'en'
   const rod = en ? `${ev.rodadas} ${ev.rodadas === 1 ? 'round' : 'rounds'}` : `${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`
+  if (ev.tipo === 'noitada' && ev.variante === 'futevolei') {
+    if (en) return ev.status === 'campo'
+      ? { emoji: '🏐', titulo: `${ev.nome} plays with sand still in his boots`, sub: `He skipped training for footvolley and the manager picked him anyway in round ${ev.round + 1}.` }
+      : { emoji: '🏐', titulo: `${ev.nome} benched for skipping training to play footvolley`, sub: `Dropped from round ${ev.round + 1}${ev.subNome ? ` — ${ev.subNome} took the spot` : ''}. The sand will wait.` }
+    return ev.status === 'campo'
+      ? { emoji: '🏐', titulo: `${ev.nome} joga com areia na chuteira`, sub: `Faltou o treino pra jogar futevôlei e o técnico escalou assim mesmo na rodada ${ev.round + 1}.` }
+      : { emoji: '🏐', titulo: `${ev.nome} vai pro banco por trocar o treino pelo futevôlei`, sub: `Cortado da rodada ${ev.round + 1}${ev.subNome ? ` — ${ev.subNome} assumiu a vaga` : ''}. A areia espera.` }
+  }
   if (ev.tipo === 'noitada') {
     if (en) {
       return ev.status === 'campo'

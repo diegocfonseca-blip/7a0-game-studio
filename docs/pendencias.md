@@ -13784,5 +13784,11 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   futevôlei lado a lado"*): um quarteirão com as 2 quadras de futevôlei lado a lado; o vizinho com PISCINA (deck, espreguiçadeiras,
   guarda-sóis) e GAZEBO de 8 águas com a churrasqueira, mesa e bancos. 🔁 3ª versão (*"o clube é tudo junto… cercado fechado"*):
   os 2 quarteirões viram UM terreno — a rua do meio é cortada (`ruasCortadas`, igual à Casa Luca) e um muro só cerca tudo. Em Locais → Bairro. Foto: `scripts/mockups/mapa-clube-lazer.png`. Ainda sem gente jogando (entra junto da ideia 4).
+  🏐 17/11 (Diego: *"Renato Gaúcho, Ronaldinho Gaúcho, Romário, Edmundo… às vezes, raramente, faltando um treino pra jogar
+  futevôlei"*): é um JEITO da noitada (`FUTEVOLEIROS` em eventos.ts) — mesmo efeito (1 jogo, banco ou escala assim mesmo), história,
+  manchete, linha do sábado e cena da Central (`img/sede-clube.webp`) de futevôlei no clube. Os 3 baladeiros: 1 em 4 dos causos deles
+  (sorteio preso no nome+temporada, sem gastar o dado do jogo — times sem eles: 3.000/3.000 temporadas iguais ao de antes). Edmundo
+  (pavio curto) entra no sorteio com peso 1 só pelo futevôlei — times com ele sorteiam diferente dali pra frente (temporada já
+  sorteada não muda).
   ⏭️ Faltam: (3) ônibus em festa em jogo grande e (4) mais gente em volta do estádio no dia de jogo — mockup antes.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.

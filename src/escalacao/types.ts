@@ -193,6 +193,8 @@ export interface EventoAtivo {
   pos: Sector
   rodadas: number  // jogos fora (noitada 1 · expulsão 1-3 · lesão 1-5)
   historia: string // o texto do banner (sorteado uma vez, não muda no reload)
+  /** 🏐 17/11: a noitada foi pro futevôlei no clube do bairro (só história e cena; o efeito é o da noitada) */
+  variante?: 'futevolei'
   // pendente = banner na tela (trava o avanço) · banco = trocou (volta na rodada `volta`)
   // campo = "escalar assim mesmo" (queda pequena SÓ naquele jogo) · manchete = sem reserva, só zoeira
   status: 'pendente' | 'banco' | 'campo' | 'manchete'
