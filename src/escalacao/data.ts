@@ -3210,11 +3210,13 @@ const L49_EU_GOL: C[] = [
   { name: "Aaron Ramsdale", club: "Arsenal", year: 2022, fame: 3, lo: 72, hi: 80 },
 ]
 const L49_EU_LAT: C[] = [
+  { name: 'Hiroki Sakai', club: 'Marseille', year: 2018, fame: 3, lo: 64, hi: 76, bio: 'Lateral raçudo do Japão que subia a linha toda no Marseille.' }, // 🔁 17/11: do baralho Mundo pro Europa (clube europeu)
   { name: "Antonio Valencia", club: "Man United", year: 2012, fame: 3, lo: 74, hi: 82 },
   { name: "Luke Shaw", club: "Man United", year: 2021, fame: 3, lo: 74, hi: 83 },
   { name: "Ryan Bertrand", club: "Southampton", year: 2015, fame: 3, lo: 72, hi: 80 },
 ]
 const L49_EU_ZAG: C[] = [
+  { name: 'Paulo da Silva', club: 'Sunderland', year: 2010, fame: 3, lo: 68, hi: 78, bio: 'Zagueirão e capitão histórico do Paraguai — recordista de jogos pela seleção.' }, // 🔁 17/11 (Diego: "é só botar Europa nos times certos"): carta de clube europeu passou do baralho Mundo pro Europa — a Copa do Mundo acha ele pelo país do mesmo jeito
   { name: "Nathan Aké", club: "Man City", year: 2023, fame: 3, lo: 74, hi: 82 },
   { name: "Marc Guéhi", club: "Crystal Palace", year: 2025, fame: 3, lo: 75, hi: 83 },
   { name: "Jonathan Woodgate", club: "Real Madrid", year: 2005, fame: 1, lo: 58, hi: 66, folk: true },
@@ -3389,11 +3391,9 @@ const NOVOS_WORLD_GOL: C[] = [
   { name: 'Yoshikatsu Kawaguchi', club: 'Yokohama F. Marinos', year: 2000, fame: 3, lo: 71, hi: 80, bio: 'Goleirão do Japão em quatro Copas — reflexos e liderança na Copa de 2002 em casa.' },
   { name: 'Eiji Kawashima', club: 'Standard Liège', year: 2012, fame: 3, lo: 64, hi: 76, bio: 'Goleiro viajado do Japão, titular em três Copas do Mundo seguidas.' },
   { name: 'Thomas N’Kono', club: 'Espanyol', year: 1985, fame: 3, lo: 74, hi: 82, bio: 'Lenda camaronesa da Copa de 82 — tão bom que o Buffon batizou o filho de Thomas em homenagem a ele.' },
-  { name: 'Édouard Mendy', club: 'Chelsea', year: 2021, fame: 3, lo: 74, hi: 82, bio: 'Muralha senegalesa — campeão da Champions com o Chelsea e da Copa Africana com Senegal.' },
   { name: 'Tony Sylva', club: 'Lille', year: 2004, fame: 3, lo: 64, hi: 76, bio: 'Goleiro seguro da geração de ouro de Senegal que espantou a França em 2002.' },
 ]
 const NOVOS_WORLD_ZAG: C[] = [
-  { name: 'Paulo da Silva', club: 'Sunderland', year: 2010, fame: 3, lo: 68, hi: 78, bio: 'Zagueirão e capitão histórico do Paraguai — recordista de jogos pela seleção.' },
   { name: 'Maya Yoshida', club: 'Southampton', year: 2016, fame: 3, lo: 70, hi: 78, bio: 'Capitão zagueiro do Japão na Premier League — sério, técnico e líder.' },
   { name: 'Takehiro Tomiyasu', club: 'Arsenal', year: 2022, fame: 3, lo: 71, hi: 80, bio: 'Defensor versátil do Arsenal — joga nas duas laterais e na zaga com a mesma classe.' },
   { name: 'Tsuneyasu Miyamoto', club: 'Gamba Osaka', year: 2002, fame: 3, lo: 63, hi: 75, bio: 'O capitão da máscara na Copa de 2002 — cérebro da defesa japonesa em casa.' },
@@ -3412,7 +3412,6 @@ const NOVOS_WORLD_LAT: C[] = [
   { name: 'Iván Piris', club: 'Udinese', year: 2015, fame: 3, lo: 62, hi: 74, bio: 'Lateral-direito paraguaio de passagem pela Roma e pela Udinese.' },
   { name: 'Yuto Nagatomo', club: 'Inter', year: 2013, fame: 3, lo: 69, hi: 79, bio: 'Lateral incansável do Japão — anos de Inter de Milão e recordista de Copas.' },
   { name: 'Atsuto Uchida', club: 'Schalke', year: 2011, fame: 3, lo: 68, hi: 79, bio: 'Lateral-direito elegante do Japão, titular do Schalke na semi da Champions.' },
-  { name: 'Hiroki Sakai', club: 'Marseille', year: 2018, fame: 3, lo: 64, hi: 76, bio: 'Lateral raçudo do Japão que subia a linha toda no Marseille.' },
   { name: 'Lauren', club: 'Arsenal', year: 2004, fame: 3, lo: 73, hi: 81, bio: "Lateral dos 'Invencíveis' do Arsenal e bicampeão africano com Camarões — marcação de ferro." },
   { name: 'Benoît Assou-Ekotto', club: 'Tottenham', year: 2011, fame: 3, lo: 64, hi: 76, bio: 'Lateral-esquerdo camaronês do Tottenham, famoso pela sinceridade fora de campo.' },
   { name: 'Pierre Womé', club: 'Inter', year: 2006, fame: 3, lo: 63, hi: 75, bio: 'Lateral canhoto potente de Camarões, veterano da Inter e do Bologna.' },

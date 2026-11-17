@@ -5,6 +5,38 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU' | 'MUNDO'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "entrou",
+    "nome": "Hiroki Sakai",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-16"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Paulo da Silva",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-11-16"
+  },
+  {
+    "tipo": "saiu",
+    "nome": "Édouard Mendy",
+    "baralho": "MUNDO",
+    "data": "2026-11-16"
+  },
+  {
+    "tipo": "saiu",
+    "nome": "Hiroki Sakai",
+    "baralho": "MUNDO",
+    "data": "2026-11-16"
+  },
+  {
+    "tipo": "saiu",
+    "nome": "Paulo da Silva",
+    "baralho": "MUNDO",
+    "data": "2026-11-16"
+  },
+  {
     "tipo": "nivel",
     "nome": "Jefferson",
     "baralho": "BR",
@@ -389,41 +421,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Raúl Jiménez",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Adama Traoré",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ivan Toney",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Bryan Mbeumo",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Igor Thiago",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-11-10"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Richarlison",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-11-10"
