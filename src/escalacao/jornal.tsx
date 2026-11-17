@@ -479,7 +479,9 @@ export function headlineOficial(div: Div, pos: number, team: string, o: { tipo: 
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, clubInternational, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, coletiva, privateVisual = false, oficial }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, clubInternational, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, coletiva, privateVisual = false, oficial, conmebol }: {
+  /** 🇧🇷 17/11 Brasil Oficial: Libertadores, Sul-Americana e Copa Intercontinental REAIS desta temporada (campeão pelo nome) */
+  conmebol?: { liberta?: string; sula?: string; intercontinental?: string } | null
   /** 🇧🇷 Brasil Oficial: o desfecho REAL (playoff da B, fases da C/D) — a manchete por posição é da carreira de sempre (4 sobem, 4 caem) */
   oficial?: { tipo: 'campeao' | 'acesso' | 'queda' | 'ficou'; para: string; playoff: boolean }
   /** 🎙️ COLETIVA (19/10): promessas cobradas + frases que marcaram a temporada (página própria) */
@@ -765,6 +767,9 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
           institution, sub: isYou ? `${tr('Representando', 'Representing')} ${institution}` : undefined })
       }
     }
+    // 🇧🇷 17/11: no Brasil Oficial as copas da CONMEBOL e a Intercontinental entram aqui também (o teste viu o jornal sem elas)
+    for (const [label, champ, col] of [['CONMEBOL LIBERTADORES', conmebol?.liberta, '#A45D12'], ['CONMEBOL SUL-AMERICANA', conmebol?.sula, '#2B3038'], [tr('COPA INTERCONTINENTAL', 'INTERCONTINENTAL CUP'), conmebol?.intercontinental, '#713E9F']] as const)
+      if (champ) donos.push({ col, label, champ, isYou: champ === me.team })
     // 🌍 e o Mundial deixa de sair rotulado como "Artilheiro: <seleção>" — ali é a
     // seleção campeã, não artilheiro nenhum (na tela já era texto solto).
     if (mundial) donos.push({ col: '#2563EB', label: tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP'), champ: mundial.selecao, isYou: !!mundial.voce, sub: mundial.campeao })
@@ -1197,6 +1202,21 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
               <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: item.color }}>{item.title}</div>
               <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{isYou ? clubInternational.userTeam : item.club} <span style={{ fontSize: 8, fontWeight: 900, color: isYou ? '#b98600' : '#8a8266' }}>campeão{isYou ? ' ⭐ você' : ''}</span></div>
               {isYou && <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 2 }}>Representando <SeloClube clube={item.club} size={15} /> {item.club}</div>}
+            </div>
+          </div>
+        })}
+        {conmebol && ([
+          { title: '🌎 CONMEBOL Libertadores', club: conmebol.liberta, color: '#A45D12' },
+          { title: '🌎 CONMEBOL Sul-Americana', club: conmebol.sula, color: '#2B3038' },
+          { title: tr('🌐 Copa Intercontinental', '🌐 Intercontinental Cup'), club: conmebol.intercontinental, color: '#713E9F' },
+        ]).filter(i => i.club).map(item => {
+          const isYou = item.club === me.team
+          return <div key={item.title} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px 7px 0', borderTop: '1.5px solid rgba(0,0,0,.12)', background: isYou ? '#fdf6dd' : undefined }}>
+            <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: item.color }} />
+            <div style={{ flex: 'none', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><SeloClube clube={item.club!} size={27} /></div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: item.color }}>{item.title}</div>
+              <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{item.club} <span style={{ fontSize: 8, fontWeight: 900, color: isYou ? '#b98600' : '#8a8266' }}>{tr('campeão', 'champion')}{isYou ? tr(' ⭐ você', ' ⭐ you') : ''}</span></div>
             </div>
           </div>
         })}

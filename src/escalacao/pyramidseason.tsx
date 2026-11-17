@@ -12940,6 +12940,7 @@ export function PyramidSeasonScreen() {
         {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
           <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copaBase} oficial={state.oficial && desfecho ? { tipo: desfecho.tipo, para: desfecho.para, playoff: !!playoffB } : undefined} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
             clubInternational={intlEnabled ? intlHistory.find(entry => entry.season === state.seasonNo) : undefined}
+            conmebol={state.oficial ? state.oficialCampeoes?.find(e => e.temporada === (state.seasonNo ?? 1)) ?? null : null}
             /* 📼 O JORNAL LEMBRA (Diego 24/08): manchetes de HISTÓRIA calculadas
                da crônica da carreira + o resultado desta temporada (que ainda
                não está gravado — a crônica só grava na virada). */

@@ -6,6 +6,9 @@ export type ConquistasCarreira={
  careerHonors?:Record<string,{A:number;B:number;C:number;D:number;V?:number}>;
  careerCopaHonors?:Record<string,number>;
  careerSupercopaHonors?:Record<string,number>;
+ /** 🇧🇷 Brasil Oficial: Libertadores, Sul-Americana e Intercontinental REAIS gravam o campeão pelo NOME do clube */
+ oficial?:unknown;
+ oficialCampeoes?:readonly {liberta?:string;sula?:string;intercontinental?:string}[];
 }
 /** Lê somente contadores do clube selecionado. Repetições viram quantidade,
  * não novos modelos de troféu; jamais reconstrói títulos por temporada/divisão. */
@@ -21,7 +24,10 @@ export function conquistasDaCarreira(state:ConquistasCarreira,mgrId:number,engli
  for(const [id,label]of [['libertadores','Libertadores'],['champions','Champions League'],['mundial',english?'Club World Cup':'Mundial de Clubes']]as const){
   const seasons=new Set<number>();let count=0
   for(const h of international){if(seasons.has(h.season))continue;seasons.add(h.season);if(Number.isSafeInteger(h[id])&&h[id]>0)count+=h[id]}
-  raw.push({id,competition:id,label,count})
+  // 🇧🇷 17/11: no Brasil Oficial a Libertadores e o Mundial (lá é a Copa Intercontinental) vêm do `oficialCampeoes`, pelo nome do clube
+  if(state.oficial&&club?.teamName){const nome=club.teamName;count+=(state.oficialCampeoes??[]).filter(e=>(id==='libertadores'?e.liberta:id==='mundial'?e.intercontinental:undefined)===nome).length}
+  raw.push({id,competition:id,label:state.oficial&&id==='mundial'?(english?'Intercontinental Cup':'Copa Intercontinental'):label,count})
  }
+ if(state.oficial&&club?.teamName){const nome=club.teamName;raw.push({id:'sula',competition:'sula',label:english?'Copa Sudamericana':'Sul-Americana',count:(state.oficialCampeoes??[]).filter(e=>e.sula===nome).length})}
  return agruparTrofeus(raw)
 }
