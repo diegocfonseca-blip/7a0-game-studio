@@ -9941,19 +9941,17 @@ export function PyramidSeasonScreen() {
   // passou (rodada da Série anterior à de agora, ou a liga já acabou) — o resto ainda não aconteceu e não aparece (anti-spoiler)
   const espectadorConmebol = useMemo(() => {
     if (!state.oficial) return null
-    const sn = state.seasonNo ?? 1, ano = anoDaTemporada(sn), r1 = diaDaRodada(sn, 1)
-    const corta = (rounds: CopaRound[], datas: readonly [number, number][]) => rounds.filter((_, i) => {
-      const [m, d] = datas[i] ?? [12, 1]
-      const sem = Math.floor((Date.UTC(ano, m - 1, d) - r1) / (7 * 86400000)) + 1
-      return seasonOver || sem <= round // `round` = rodadas JÁ jogadas: o meio de semana da última rodada jogada já aconteceu
-    })
+    const sn = state.seasonNo ?? 1, ano = anoDaTemporada(sn)
+    // cada página com o DIA real dela; quem corta é a tela, pelo dia do calendário de agora (`diaHojeCal`) — por rodada dava
+    // spoiler (o jogo de quarta aparecia na segunda) ou atraso de uma semana
+    const corta = (rounds: CopaRound[], datas: readonly [number, number][]) => rounds.map((r, i) => { const [m, d] = datas[i] ?? [12, 1]; return { r, t: Date.UTC(ano, m - 1, d) } })
     const quando = (datas: readonly [number, number][]) => { const [m, d] = datas[0] ?? [2, 1]; return new Date(Date.UTC(ano, m - 1, d)).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'pt-BR', { day: 'numeric', month: 'long', timeZone: 'UTC' }) }
     const grupos = (c: { resultado: { fases: { nome: string; tabelas: { nome: string; tabela: { time: string }[] }[] }[] } }) => c.resultado.fases.find(f => f.nome === 'Fase de grupos')?.tabelas.map(t => ({ nome: t.nome, times: t.tabela.map(l => l.time) }))
     return {
       lib: !libertaMinha && libertaCalc ? { pages: corta(libertaCalc.rounds, DATAS_LIBERTA), comeca: quando(DATAS_LIBERTA), grupos: grupos(libertaCalc) } : null,
       sula: !sulaMinha && sulaCalc ? { pages: corta(sulaCalc.rounds, DATAS_SULA), comeca: quando(DATAS_SULA), grupos: grupos(sulaCalc) } : null,
     }
-  }, [state.oficial, state.seasonNo, libertaMinha, libertaCalc, sulaMinha, sulaCalc, round, seasonOver])
+  }, [state.oficial, state.seasonNo, libertaMinha, libertaCalc, sulaMinha, sulaCalc])
   const [contView, setContView] = useState<'lib' | 'sula' | null>(null)
   const copaComPlayoff = useMemo<CopaResult | null>(() => {
     if (!esteira.rounds.length) return copaBase
@@ -11276,6 +11274,8 @@ export function PyramidSeasonScreen() {
   // 🏆 a fase da Copa DESTA semana ainda não foi jogada? (a quarta é o 3º dia vazio: seg · ter · QUA)
   const copaPendente = copaMid && !done && round > 0 && copaRound < copaDevidas
   const CAL_QUARTA = 3
+  // 👀 o dia de HOJE no calendário (domingo da última rodada jogada + os dias que já passaram); antes da 1ª rodada, a véspera dela
+  const diaHojeCal = seasonOver ? Infinity : round === 0 ? diaDaRodada(calSn, 1) - 86400000 : diaDaRodada(calSn, round) + (calOn ? calI : 0) * 86400000
   const meNaFaseCopa = !!copa?.rounds[copaRound]?.ties.some(t => t.a.teamId === youId || t.b.teamId === youId)
   // a semana anda com o jogo da rodada já apitado e nada pendente — e PARA na quarta se tiver Copa.
   // 🔁 26/10 (Diego, print no MANUAL: *"quando acaba o jogo já aparece o próximo adversário… como se não tivesse passado os dias"*):
@@ -14055,7 +14055,7 @@ export function PyramidSeasonScreen() {
                 <label className="ll29-filter">{tr('DIVISÃO', 'DIVISION')}<select className="ll25-button" value={contOn ?? division} onChange={e=>{ const v = e.target.value; if (v === 'lib' || v === 'sula') setContView(v); else { setContView(null); setDivisionView(v as Div) } }}>{ord.map(d=><option value={d} key={d}>{DIV_NAME[d]}{d===myDiv ? tr(' · SEU CLUBE', ' · YOUR CLUB') : ''}</option>)}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.lib && <option value="lib">🏆 Libertadores</option>}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.sula && <option value="sula">🌎 Sul-Americana</option>}</select></label>
                 {/* 🖥️ no computador a divisão vira botões (23/10); o select acima some lá e segue no celular */}
                 <div className="ll29-div-botoes" role="group" aria-label={tr('Divisão', 'Division')}>{ord.map(d=><button key={d} type="button" aria-pressed={!contOn && d===division} onClick={()=>{ setContView(null); setDivisionView(d) }}>{d===myDiv ? '⭐ ' : ''}{DIV_NAME[d]}</button>)}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.lib && <button type="button" aria-pressed={contOn==='lib'} onClick={()=>setContView('lib')}>🏆 Libertadores</button>}{(tab==='tabelas' || jogoTabela) && espectadorConmebol?.sula && <button type="button" aria-pressed={contOn==='sula'} onClick={()=>setContView('sula')}>🌎 Sul-Americana</button>}</div>
-                {contOn && espectadorConmebol && (() => { const c = contOn === 'lib' ? espectadorConmebol.lib! : espectadorConmebol.sula!; return <div id="cv2-standings"><ConmebolEspectador nome={contOn === 'lib' ? NOME_LIBERTADORES : NOME_SULA} pages={c.pages} grupos={c.grupos} prefixo={contOn === 'lib' ? LIBERTA_PREFIXO : SULA_PREFIXO} verdes={contOn === 'sula' ? 1 : 2} rodapeGrupos={contOn === 'sula' ? tr('Só os jogos já apitados. Verde = vai direto às oitavas; o 2º joga o playoff contra um 3º da Libertadores.', 'Only matches already played. Green = straight into the round of 16; 2nd plays the play-off against a Libertadores 3rd.') : undefined} comecaEm={c.comeca} colors={colors} safName={safTeamName} /></div> })()}
+                {contOn && espectadorConmebol && (() => { const c = contOn === 'lib' ? espectadorConmebol.lib! : espectadorConmebol.sula!; return <div id="cv2-standings"><ConmebolEspectador nome={contOn === 'lib' ? NOME_LIBERTADORES : NOME_SULA} pages={c.pages.filter(p => p.t < diaHojeCal).map(p => p.r)} grupos={c.grupos} prefixo={contOn === 'lib' ? LIBERTA_PREFIXO : SULA_PREFIXO} verdes={contOn === 'sula' ? 1 : 2} rodapeGrupos={contOn === 'sula' ? tr('Só os jogos já apitados. Verde = vai direto às oitavas; o 2º joga o playoff contra um 3º da Libertadores.', 'Only matches already played. Green = straight into the round of 16; 2nd plays the play-off against a Libertadores 3rd.') : undefined} comecaEm={c.comeca} colors={colors} safName={safTeamName} /></div> })()}
                 {!contOn && (tab==='tabelas' || jogoTabela) && <div id="cv2-standings" className="ll29-table">{oficialEfetivo && division !== 'A' ? <TabelaOficial div={division} tables={tables} fases={oficialEfetivo} /> : <DivTable div={division} teams={tables[division]} colors={colors} mine={division===myDiv} final={done} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}/>}</div>}
                 <div id="cv2-other-games">{!contOn && tab==='jogos' && round > 0 && <CareerLeagueGames key={`${division}-${round}`} limite={3} verTodos={n => tr(`ver os ${n} jogos ›`, `see all ${n} matches ›`)} matches={matches[division] ?? []} hideId={division === myDiv ? youId : undefined} minute={minute} title={`${DIV_NAME[division]} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`} />}</div>
               </>
