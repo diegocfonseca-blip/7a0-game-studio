@@ -60,7 +60,8 @@
   Papa Bouba Diop (Fulham) e Partey (Atlético) e a do Adebayor no Real Madrid (ele mandou ficar a do Arsenal). Iván Hurtado deixou de ser
   "Equador 2002" e virou Emelec 1994 (auge, bicampeão). No Brasil Oficial voltaram Caicedo (IDV), Almirón (Lanús), Cardozo (Libertad),
   Derlis (Olimpia) e entraram Mendy (Al-Ahli), Sakai (Auckland), Paulo da Silva (Toluca).
-- ⏭️ Falta: Libertadores no perfil (amigos.tsx), artilharia da Libertadores, quem não
+- ⏭️ Falta: Libertadores no perfil (amigos.tsx) — ⚠️ os títulos do perfil vêm do SERVIDOR (soma das carreiras na nuvem), então
+  pôr Liberta/Sula/Intercontinental do Brasil Oficial lá exige mexer na função do banco; fazer junto da liberação do modo, artilharia da Libertadores, quem não
   está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
 
