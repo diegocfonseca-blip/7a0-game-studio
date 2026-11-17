@@ -27,6 +27,10 @@
   com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
   vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ⏭️ Falta a festa de campeão da Sula (não há arte
   'sula' no `competicoes-visual`) e conferir na tela.
+- ✅ 17/11 — **QUEM NÃO ESTÁ NA LIBERTA/SULA ACOMPANHA PELA ESCOLHA DE DIVISÃO** (Diego: *"só na aba Tabelas"* — e nada de aba nova:
+  Jogos + Tabela continua uma aba só). Na escolha de divisão entram "🏆 Libertadores" e "🌎 Sul-Americana" (só pra quem está fora de cada
+  uma); grupos (Liberta: 2 verdes · Sula: 1 verde) e mata-mata já jogados (`ConmebolEspectador`). Anti-spoiler pelo DIA do calendário
+  (`diaHojeCal`): jogo de quarta só aparece a partir de quinta. Testado no navegador (Manauara, Série D, rodadas 0/3/17/29, 390 e 1280).
 - ✅ 17/11 — **COPA DO MUNDO NO BRASIL OFICIAL: SÓ DA TEMPORADA 50 EM DIANTE, E POR CONVITE** (Diego: *"somente após chegar na
   temporada 50 e com convite e não mais escolhendo… recebe convite pelo ranking dos mesmos 32… se aceita ou não comandar a seleção do
   rank onde ele tá"* → *"Isso mesmo"*). No modo oficial a âncora é 50 (`cmAncora`; carreira normal segue 100). No lugar da lista de
@@ -75,8 +79,8 @@
   próximo jogo leem ele. Coletiva também não abre mais em rodada de pontos corridos (estadual/grupos falavam em "eliminação"). "1 confronto".
   Teste da Intercontinental: telas certas (cabeçalho, Toluca/Sundowns com escudo, pênaltis), sem erro; festa de campeão não chegou a ser vista.
 - ⏭️ Falta: Libertadores no perfil (amigos.tsx) — ⚠️ os títulos do perfil vêm do SERVIDOR (soma das carreiras na nuvem), então
-  pôr Liberta/Sula/Intercontinental do Brasil Oficial lá exige mexer na função do banco; fazer junto da liberação do modo, artilharia da Libertadores, quem não
-  está nela poder assistir, Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
+  pôr Liberta/Sula/Intercontinental do Brasil Oficial lá exige mexer na função do banco; fazer junto da liberação do modo, artilharia da Libertadores, ~~quem não
+  está nela poder assistir~~ (feito 17/11), Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
   que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
 
 ## 🛡️ 15/11 — IDEIA: CARREIRA COM TIMES DE ESCUDO OFICIAL (só ideia, nada feito)
