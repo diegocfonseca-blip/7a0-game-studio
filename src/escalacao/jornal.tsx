@@ -1170,7 +1170,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
             <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: brasil ? '#0EA658' : '#F5B301' }} />
             <div style={{ flex: 'none', width: 24, height: 24, borderRadius: 7, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, background: brasil ? '#0EA658' : '#F5B301' }}>🏆</div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: brasil ? '#0a6b3c' : '#b98600' }}>{brasil ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'}</div>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: brasil ? '#0a6b3c' : '#b98600' }}>{brasil ? (oficial || conmebol ? '🏆🇧🇷 Copa do Brasil' : '🏆🇧🇷 Copa do Brasil Legends') : '🏆 Copa Legends'}</div>
               <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{copa.champion.name} <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: copa.champion.you ? '#b98600' : '#8a8266', marginLeft: 3 }}>campeão da Copa{copa.champion.you ? ' ⭐ você' : ''}</span></div>
               {copa.topScorer && <div style={{ fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 1.5 }}>⚽ Artilheiro da Copa: <b>{copa.topScorer.name}</b> ({copa.topScorer.teamName}) · {copa.topScorer.goals} gols</div>}
             </div>

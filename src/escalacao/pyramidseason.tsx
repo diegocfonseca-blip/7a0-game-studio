@@ -13078,7 +13078,7 @@ export function PyramidSeasonScreen() {
             })()} />
         )}
         {copaFinished && copa?.champion && (!roteiroOn || fimPasso === 1) && (
-          <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? tr('👉 Ver fases e resultados na aba Tabelas', '👉 See rounds and results in the Tables tab') : tr('👉 ver o chaveamento da Copa na aba Tabelas', '👉 see the Cup bracket in the Tables tab')}</button>
+          <button onClick={() => { if (!jogoTabela) { setTab('tabelas'); return } /* 17/11: com Jogos + Tabela juntos, os resultados já estão nesta página, embaixo — o link desce até eles (antes não fazia nada) */ const d = document.querySelector<HTMLDetailsElement>('details.ll29-history'); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }) } }} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{jogoTabela ? tr('👉 Ver fases e resultados aqui embaixo', '👉 See rounds and results below') : privateCareer ? tr('👉 Ver fases e resultados na aba Tabelas', '👉 See rounds and results in the Tables tab') : tr('👉 ver o chaveamento da Copa na aba Tabelas', '👉 see the Cup bracket in the Tables tab')}</button>
         )}
         {/* ➡️ o toque que fecha o passo 1 */}
         {roteiroOn && fimPasso === 1 && (
