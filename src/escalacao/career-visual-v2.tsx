@@ -5,8 +5,12 @@ import logo from './img/logo-ll.webp'
 import './career-visual-v2.css'
 
 /** Presentation only. Room clocks, permissions and career rules remain with their existing owners. */
-export function careerVisualV2(state: { careerOnline?: boolean; onlineMode?: string; sport?: string; co2?: unknown }): boolean {
-  return !!state.careerOnline && state.onlineMode !== 'online' && !state.co2 && state.sport !== 'basquete'
+export function careerVisualV2(state: { careerOnline?: boolean; onlineMode?: string; sport?: string; co2?: unknown; screen?: string }): boolean {
+  if (!state.careerOnline || state.onlineMode === 'online' || state.co2) return false
+  // 🏀 17/11: no basquete o visual novo vale SÓ no leilão (lance, revelação e monte). O resto da carreira
+  // do basquete tem telas próprias (Central, abas, roteiro) e não passa por aqui.
+  if (state.sport === 'basquete') return state.screen === 'auction' || state.screen === 'monte'
+  return true
 }
 const CareerVisualContext = createContext(false)
 export function CareerVisualProvider({ enabled, children }: { enabled: boolean; children: ReactNode }) {

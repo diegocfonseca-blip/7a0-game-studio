@@ -921,7 +921,7 @@ export function GameFooter() {
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
   if (privatePreview && state.careerIntent && state.screen === 'setup' && state.sport === 'basquete') return null
-  if (careerVisualV2(state) || (state.screen === 'setup' && state.careerIntent && state.sport !== 'basquete')) return <footer className="csg-footer"><div className="csg-footer-inner"><div><strong>LEILÃO LEGENDS</strong><p>{tr('Seu clube. Sua história. Uma temporada de cada vez.','Your club. Your story. One season at a time.')}</p></div><nav aria-label={tr('Links do rodapé','Footer links')}><LojaButton naCarreira={state.screen!=='setup'}>{tr('Loja do clube','Club shop')} →</LojaButton><button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">Instagram</a><a href="mailto:contato@leilaolegends.com">{tr('Contato','Contact')}</a></nav></div></footer>
+  if (careerVisualV2(state) || (state.screen === 'setup' && state.careerIntent && state.sport !== 'basquete')) return <footer className="csg-footer"><div className="csg-footer-inner"><div><strong>{state.sport === 'basquete' ? 'BIDLEGENDS' : 'LEILÃO LEGENDS'}</strong><p>{tr('Seu clube. Sua história. Uma temporada de cada vez.','Your club. Your story. One season at a time.')}</p></div><nav aria-label={tr('Links do rodapé','Footer links')}>{state.sport !== 'basquete' && <LojaButton naCarreira={state.screen!=='setup'}>{tr('Loja do clube','Club shop')} →</LojaButton>}<button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">Instagram</a><a href="mailto:contato@leilaolegends.com">{tr('Contato','Contact')}</a></nav></div></footer>
   // The private lobby supplies its own shop card. Keep contact here, outside
   // Router, without reviving the legacy support banner underneath it.
   if (ownerAccount && state.sport !== 'basquete' && (state.screen === 'lobby' || ownerOnlineScope(state))) return <footer className="ow-contact-footer">
@@ -5982,6 +5982,8 @@ function MesaMartelo({ bids, winner, voided, hammered, youId, managers, centro, 
 function Reveal() {
   const avatarPreview = useLegendPresentation()
   const { state, dispatch } = useEsc()
+  // 🏀 17/11: no leilão novo do basquete o fundo é escuro no celular — os rótulos soltos ganham tinta clara
+  const bbClaro = state.sport === 'basquete' && careerVisualV2(state) ? ' cv2-bb-claro' : ''
   const cinema = useRevealCinema() // 🔨🎬 festão da Lenda: só na conta liberada (Diego)
   const item = state.revealQueue[state.revealIdx]
   const you = state.managers[state.youIdx]
@@ -6109,8 +6111,8 @@ function Reveal() {
           Ela continua VIVA em todo o resto (solo, carreira, outras fases) e o
           conteúdo segue no Manual. */}
       {careerVisualV2(state)?<CareerAuctionHint stage="revelacao"/>:state.sport !== 'basquete' && !mesaModo && <NarradorDica fase="revelacao" texto="👀 Abriram os envelopes! O maior lance leva a carta. Cobriram o seu? QUASE! Se recompõe e vem mais esperto na próxima leva. 🔨" />}
-      <p className="text-center text-xs font-black uppercase text-black/70 pt-1">
-        Revelação {state.revealIdx + 1} / {state.revealQueue.length} · pote crescente
+      <p className={`text-center text-xs font-black uppercase text-black/70 pt-1${bbClaro}`}>
+        {tr('Revelação', 'Reveal')} {state.revealIdx + 1} / {state.revealQueue.length} · {tr('pote crescente', 'growing pot')}
       </p>
       <motion.div key={item.card.id} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
         <motion.div animate={sold ? { x: [0, -11, 11, -8, 8, -4, 4, 0] } : undefined}
@@ -6344,12 +6346,12 @@ function Reveal() {
         extraMs={(tie ? (tie.viaRoulette ? 3200 : 1500) : 0)
           + (item.card.id === state.surpriseId && sold ? 1600 : 0)
           + (isLast ? 1200 : 0)} />
-      <p className="text-center text-xs font-bold text-black/60 py-1">
-        {canDrive ? '🎬 Passando automaticamente…' : '🔨 O host está conduzindo a revelação…'}
+      <p className={`text-center text-xs font-bold text-black/60 py-1${bbClaro}`}>
+        {canDrive ? tr('🎬 Passando automaticamente…', '🎬 Moving on automatically…') : tr('🔨 O host está conduzindo a revelação…', '🔨 The host is running the reveal…')}
       </p>
       {/* 🏟️ rótulo do campinho: sem ele o gramado aparecia solto e não ficava claro
           que aquele time é o SEU (outra ideia boa do GPT, 17/08). */}
-      <p className="text-center font-black uppercase" style={{ ...OSWALD, fontSize: 10, letterSpacing: '.1em', color: 'rgba(0,0,0,.45)', marginBottom: 3 }}>{state.sport === 'basquete' ? tr('Seu quinteto', 'Your five') : 'Sua escalação'}</p>
+      <p className={`text-center font-black uppercase${bbClaro}`} style={{ ...OSWALD, fontSize: 10, letterSpacing: '.1em', color: 'rgba(0,0,0,.45)', marginBottom: 3 }}>{state.sport === 'basquete' ? tr('Seu quinteto', 'Your five') : 'Sua escalação'}</p>
       <YourPitch small />
     </Shell>
   )
