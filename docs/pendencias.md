@@ -21,13 +21,19 @@
   Botafogo-SP, Careca/Evair no Guarani, Rivaldo no Santa Cruz, Djalma Santos/Dener na Portuguesa, Zizinho e Domingos da Guia no Bangu,
   Iarley/Clemer/Jardel no Ferroviário-CE, Túlio no Brasiliense, Dadá no Nacional-AM…). Trava de repetidos olha o baralho do modo
   inteiro e lê "xará" em qualquer lote. Mesma pessoa em dois clubes do modo: Jackie Chan, Lucas Ramon e Luís Araújo (tirados de um).
+  ✅ 17/11: Di María fica o Rosario 2005; Mendy/Sakai/Paulo da Silva ok (Europa × Mundo). Zenon: ele disse "sim", mas Guarani 1978 e
+  Corinthians 1983 são os dois baralho Brasil — perguntei se troca a do Corinthians pela do Guarani SÓ no modo; esperando.
   ❓ Perguntar ao Diego: liberar a carta do Zenon (Guarani 1978, baralho regional, hoje escondida do modo)? Di María: a carta do Rosario
   2005 (baralho Mundo) fica, ou troca pela da volta (2025/26)?
 - ✅ 16/11: **SUL-AMERICANA REAL** (`sul-americana-oficial.ts` + `computeSulaCarreira`): 56 clubes, 1ª fase por país, 8 grupos, playoff
   com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
   vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ✅ 17/11 (Diego: "ok" no mockup): festa de campeão da Sula ligada
   (`FestaCampeao` comp 'sula', taça prata/anel dourado/base preta) + taça desenhada na estante e selo grafite/dourado no rank. ⏭️ Falta ver a festa
-  numa carreira de verdade (não deu pra forçar o título no teste).
+  numa carreira de verdade (não deu pra forçar o título no teste). ✅ 17/11 (noite): VISTA no navegador — festas da Libertadores (Flamengo),
+  Intercontinental (Flamengo, final x PSG) e Sul-Americana (Atlético-MG) aparecem certas, sem spoiler. Achado e consertado: a Sala de Taças
+  (`conquistasDaCarreira`) e O MARTELO não mostravam Liberta/Sula/Intercontinental do modo (agora leem `oficialCampeoes`).
+  ⚠️ Visto no teste: 5× aviso do React "Maximum update depth exceeded" (tela não identificada) — investigar.
+  ⚠️ `scripts/testa-presidencia-complexo-carreira.mjs` já falha (dia do jogo 'domingo' × 'quarta' esperado) — não é dessas mudanças.
 - ✅ 17/11 — **QUEM NÃO ESTÁ NA LIBERTA/SULA ACOMPANHA PELA ESCOLHA DE DIVISÃO** (Diego: *"só na aba Tabelas"* — e nada de aba nova:
   Jogos + Tabela continua uma aba só). Na escolha de divisão entram "🏆 Libertadores" e "🌎 Sul-Americana" (só pra quem está fora de cada
   uma); grupos (Liberta: 2 verdes · Sula: 1 verde) e mata-mata já jogados (`ConmebolEspectador`). Anti-spoiler pelo DIA do calendário
