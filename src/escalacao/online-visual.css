@@ -214,3 +214,6 @@
   /* os jogos da fase da Copa: um embaixo do outro na coluna estreita (o 2 por linha espremia os nomes) */
   .ll-desk2 .ll-dir-in .ll26-phase-matches > div { grid-template-columns: 1fr !important; }
 }
+
+/* 🏀 17/11: na coluna da direita do PC as duas conferências (Leste/Oeste) ficam uma embaixo da outra */
+.ll-dir .ll-duas-conf{grid-template-columns:1fr!important}

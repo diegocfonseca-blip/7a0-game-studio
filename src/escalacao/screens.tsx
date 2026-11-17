@@ -7540,8 +7540,10 @@ export function EscSeason() {
   const ownerVisual = useOwnerOnlineVisual(state)
   // 🎬 VISUAL DE TRANSMISSÃO APROVADO (21/09): agora é público no online
   // normal de futebol. Carreira online e basquete continuam com suas peles próprias.
-  const cinemaPreview = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete'
-  const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
+  const cinemaPreview = state.onlineMode === 'online' && !state.careerOnline // 🏀 17/11: a sala de basquete também (Diego: *"todo modo online"*)
+  // 🏀 17/11 (Diego: *"primeiro todo modo online e partida rápida"*): o basquete fora da carreira ganha o MESMO jogo do futebol
+  // (abas Partida/Tabela/Estatísticas/Elenco, todos os jogos da rodada). A carreira do basquete segue com a tela dela.
+  const privateVisual = (previewAccount || publicOnlineVisual(state)) && (state.sport !== 'basquete' || !state.careerOnline)
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
   const leagueStartedAt = useRoundPresentationStart(state.round, state.onlineMode === 'online' && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined) // ⏱️ 07/11: os outros jogos também entram no minuto certo
   const [seasonLang] = useLang()
@@ -8071,7 +8073,7 @@ export function EscSeason() {
 
   // 🖥️ desenho de computador novo: fora do basquete. 👑 10/11 (Diego: *"o visual do campinho, com tabela etc deve manter padrão das salas
   // online… os locais das coisas"*): a Kings entra no MESMO desenho (as cenas dela são por cima da tela inteira, não dependem dele)
-  const desk2 = desk2Conta && !bbS // 🏀 15/11: testado de novo — nos playoffs a tabela Leste/Oeste não cabe na coluna da direita
+  const desk2 = desk2Conta && (!bbS || !state.careerOnline) // 🏀 15/11: na carreira a tabela Leste/Oeste não coube na direita; 17/11: fora da carreira as conferências EMPILHAM na coluna da direita (`.ll-dir .ll-duas-conf`)
   const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
   // 👑📌 11/11 (Diego: *"a info, por exemplo jogador estrela escolhido… está abaixo do telão. Essas infos devem ficar abaixo do placar
   // cinema"*): EM CAMPO, os efeitos valendo e o shootout moram logo embaixo do placar grande (liga e mata-mata), não mais lá no fim.
@@ -9332,7 +9334,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
         </div>
       </div>
       {duasConf ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 ll-duas-conf">
           {tabelaConf(leste, L('🔵 LESTE', '🔵 EAST'))}
           {tabelaConf(oeste, L('🔴 OESTE', '🔴 WEST'))}
         </div>
@@ -13278,7 +13280,7 @@ export function EscEnd() {
   return (
     <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
       {festaNode}
-      {ownerVisual&&!semTituloLiga&&<OwnerChampionBanner title={ligaNomeEnd} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={`${champ.pts} ${LE('pontos','points')}`}/>}
+      {ownerVisual&&!semTituloLiga&&<OwnerChampionBanner title={ligaNomeEnd} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={bbEnd ? `${champ.w}-${champ.l}` /* 🏀 17/11: campanha V-D, nunca "228 pontos" */ : `${champ.pts} ${LE('pontos','points')}`}/>}
       <RankResultWriter />
       {roteiroBB && <RoteiroBB passo={passoBB} onIr={n => { setPassoBB(n); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       <div hidden={roteiroBB && passoBB !== 1} className="space-y-5">
