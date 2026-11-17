@@ -10911,6 +10911,11 @@ export function PyramidSeasonScreen() {
       // artilheiro de qualquer competição, ou mais uma se for bola de ouro
       // também"*). São linhas separadas de propósito: quem foi artilheiro E melhor
       // do mundo leva as duas, porque são duas conquistas.
+      // 🇧🇷 Brasil Oficial: artilheiro da Libertadores e da Sul-Americana também é "qualquer competição" (regra 20/09)
+      for (const [lista, nomeC] of [[conmebolScorers.liberta, 'Libertadores'], [conmebolScorers.sula, 'Sul-Americana']] as const) {
+        const a = [...lista].sort((x, y) => y.goals - x.goals || x.name.localeCompare(y.name))[0]
+        if (a && a.goals > 0 && nomes.has(a.name)) rows.push({ emoji: '🥇', texto: `${a.name} foi o artilheiro da ${nomeC} (${a.goals} gols)`, coins: 1, nome: a.name })
+      }
       if (melhorDoAno && nomes.has(melhorDoAno.name)) rows.push({ emoji: '🥇', texto: `${melhorDoAno.name} levou a Bola de Ouro (${melhorDoAno.goals} gols + ${melhorDoAno.assists} assistências)`, coins: 1, nome: melhorDoAno.name })
     }
     dispatch({ type: 'AGENCIA_SEASON_EVENTS', season: state.seasonNo ?? 1, rows })
