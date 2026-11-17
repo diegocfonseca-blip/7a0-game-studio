@@ -23,17 +23,15 @@ export function criarClubeLazer(parent:THREE.Object3D,spec:{quadras:{x:number;z:
  const box=(w:number,h:number,d:number,x:number,y:number,z:number,m:THREE.Material)=>{const o=add(new THREE.BoxGeometry(w,h,d),m,x,y,z);o.castShadow=h>.2;return o}
  const solidos:ClubeLazer['solidos']=[]
  const y=.17
- // muro baixo em volta dos dois quarteirões (o lado colado entre eles fica aberto — é o mesmo clube)
- const muro=(cx:number,cz:number,aberto:'n'|'s'|'l'|'o'|null,portao:boolean)=>{
-  if(aberto!=='n')box(23,.7,.18,cx,y+.35,cz-11.4,wall)
-  if(aberto!=='s'){if(portao)for(const s of [-1,1])box(9.6,.7,.18,cx+s*6.7,y+.35,cz+11.4,wall);else box(23,.7,.18,cx,y+.35,cz+11.4,wall)}
-  if(aberto!=='o')box(.18,.7,23,cx-11.4,y+.35,cz,wall)
-  if(aberto!=='l')box(.18,.7,23,cx+11.4,y+.35,cz,wall)
- }
  const Q=spec.quadras,L=spec.lazer
- const lado=(a:{x:number;z:number},b:{x:number;z:number}):'n'|'s'|'l'|'o'=>b.x>a.x?'l':b.x<a.x?'o':b.z>a.z?'s':'n'
+ // 🔁 3ª versão (Diego: "o clube é tudo junto… tipo um clube cercado fechado"): os 2 quarteirões viram UM terreno — a rua do meio
+ // é cortada (presidencia-complexo-entorno.ts) e um muro só cerca tudo; o portão com a placa fica no meio do lado da frente (+z)
+ const minX=Math.min(Q.x,L.x)-11.5,maxX=Math.max(Q.x,L.x)+11.5,minZ=Math.min(Q.z,L.z)-11.5,maxZ=Math.max(Q.z,L.z)+11.5
+ const CX=(minX+maxX)/2,CZ=(minZ+maxZ)/2,W=maxX-minX,D=maxZ-minZ
+ box(W,.06,D,CX,y+.03,CZ,grass)
+ box(W,.9,.2,CX,y+.45,minZ,wall);box(.2,.9,D,minX,y+.45,CZ,wall);box(.2,.9,D,maxX,y+.45,CZ,wall)
+ for(const s of [-1,1]){const len=W/2-2.1;box(len,.9,.2,CX+s*(2.1+len/2),y+.45,maxZ,wall)}
  // ── quarteirão das quadras: 2 quadras de futevôlei LADO A LADO, com grama em volta ──────────────────────────────────
- box(22.6,.05,22.6,Q.x,y+.025,Q.z,grass)
  for(const dz of [-5.4,5.4]){
   const x=Q.x,z=Q.z+dz,W=16,D=8
   box(W+1.4,.08,D+1.4,x,y+.07,z,sand)
@@ -41,9 +39,7 @@ export function criarClubeLazer(parent:THREE.Object3D,spec:{quadras:{x:number;z:
   for(const s of [-1,1])box(.1,2.5,.1,x,y+1.25,z+s*(D/2+.4),post)
   box(.04,.9,D+.8,x,y+2,z,net);box(.06,.06,D+.9,x,y+2.45,z,line)
  }
- muro(Q.x,Q.z,lado(Q,L),false)
  // ── quarteirão do lazer: piscina com deck + gazebo com churrasqueira ─────────────────────────────────────────────────
- box(22.6,.05,22.6,L.x,y+.025,L.z,grass)
  {const px=L.x-3,pz=L.z-2.5
   box(13.4,.12,8.4,px,y+.06,pz,deck)                   // deck de madeira
   box(10.4,.14,5.4,px,y+.1,pz,tile)                    // borda de azulejo
@@ -67,21 +63,20 @@ export function criarClubeLazer(parent:THREE.Object3D,spec:{quadras:{x:number;z:
   box(2.6,.08,1,gx,y+.82,gz+.6,table);for(const s of [-1,1])box(2.6,.08,.32,gx,y+.48,gz+.6+s*.85,table)
   for(const lx of [-1.1,1.1])box(.08,.78,.08,gx+lx,y+.39,gz+.6,wood)
   solidos.push({id:'clube-lazer-gazebo',minX:gx-1,maxX:gx+1,minZ:gz-2.6,maxZ:gz-1.6,top:3})}
- muro(L.x,L.z,lado(L,Q),true)
  // portão com a placa do clube, na frente do quarteirão do lazer
- for(const s of [-1,1])box(.35,3,.35,L.x+s*1.9,y+1.5,L.z+11.4,wall)
- box(4.8,1.05,.12,L.x,y+3.2,L.z+11.42,wall)
+ for(const s of [-1,1])box(.35,3,.35,CX+s*1.9,y+1.5,maxZ,wall)
+ box(4.8,1.05,.12,CX,y+3.2,maxZ+.02,wall)
  if(typeof document!=='undefined'){
   const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=200;const ctx=canvas.getContext('2d')!
   ctx.fillStyle='#1d86b8';ctx.fillRect(0,0,1024,200);ctx.strokeStyle='#ffc400';ctx.lineWidth=12;ctx.strokeRect(10,10,1004,180)
   ctx.fillStyle='#fff6d8';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 110px Oswald, sans-serif';ctx.fillText(name.toUpperCase(),512,104,980)
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;ts.add(texture)
   const m=new THREE.MeshStandardMaterial({map:texture,roughness:.85});ms.add(m);const g=new THREE.PlaneGeometry(4.6,.9);gs.add(g)
-  const sign=new THREE.Mesh(g,m);sign.position.set(L.x,y+3.2,L.z+11.52);root.add(sign)
+  const sign=new THREE.Mesh(g,m);sign.position.set(CX,y+3.2,maxZ+.12);root.add(sign)
  }
  // junta as caixas por material (mesmo truque do boteco) — placa e peças rodadas (cone/cilindro) entram no lote também
  const groups=new Map<THREE.Material,THREE.BufferGeometry[]>()
  for(const child of [...root.children]){if(!(child instanceof THREE.Mesh)||Array.isArray(child.material)||child.material.map)continue;child.updateMatrix();const list=groups.get(child.material)??[];list.push(child.geometry.clone().applyMatrix4(child.matrix));groups.set(child.material,list);child.removeFromParent()}
  for(const [m,parts] of groups){const g=mergeGeometries(parts.map(p=>p.index?p.toNonIndexed():p),false);parts.forEach(p=>p.dispose());if(!g)throw Error('Invalid clube-lazer geometry batch');gs.add(g);const o=new THREE.Mesh(g,m);o.castShadow=m!==net&&m!==line&&m!==water&&m!==waterDeep;o.receiveShadow=true;root.add(o)}
- return{id:'clube-lazer',name,root,centro:{x:(Q.x+L.x)/2,z:(Q.z+L.z)/2},solidos,dispose(){root.removeFromParent();gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());ts.forEach(t=>t.dispose())}}
+ return{id:'clube-lazer',name,root,centro:{x:CX,z:CZ},solidos,dispose(){root.removeFromParent();gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());ts.forEach(t=>t.dispose())}}
 }

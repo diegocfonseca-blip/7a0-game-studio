@@ -788,7 +788,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     controls.target.set(0,1.1,37.2);camera.position.set(14,6,23)
    }
    else if(next==='clube-lazer'){
-    const c=surround.clubeLazer;if(!c){view('original');return}const a=c.centro,k=camera.aspect<.85?1.5:1;controls.target.set(a.x,1,a.z);camera.position.set(a.x+27*k,33*k,a.z+37*k)
+    const c=surround.clubeLazer;if(!c){view('original');return}const a=c.centro,k=camera.aspect<.85?1.5:1;controls.target.set(a.x,1,a.z);camera.position.set(a.x+34*k,42*k,a.z+46*k)
    }
    else if(next==='balada'){
     const b=surround.balada;if(!b){view('original');return}const p=b.root.position,k=camera.aspect<.85?1.4:1;controls.target.set(p.x,p.y+2.6,p.z+4);camera.position.set(p.x-9*k,p.y+6*k,p.z+19*k)

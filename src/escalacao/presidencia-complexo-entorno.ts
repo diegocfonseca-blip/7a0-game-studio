@@ -1047,8 +1047,15 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
     plant({x:pubBlocks.includes(p)?p.x-7:p===quadraBalada?p.x+8:p.x,z:p.z+8.6},4.6,false,true,.08) // 🪩 a árvore não tampa a fachada da balada
   }
   const clubeLazer=quadraAreia&&quadraSociety?criarClubeLazer(root,{quadras:quadraAreia,lazer:quadraSociety}):null
-  if(quadraAreia&&quadraSociety)for(const q of [quadraAreia,quadraSociety])solids.push({id:'clube-lazer-'+(q===quadraAreia?'quadras':'piscina'),minX:q.x-11.5,maxX:q.x+11.5,minZ:q.z-11.5,maxZ:q.z+11.5,base:0,top:2.2,footprint:[{x:q.x-11.5,z:q.z-11.5},{x:q.x+11.5,z:q.z-11.5},{x:q.x+11.5,z:q.z+11.5},{x:q.x-11.5,z:q.z+11.5}]})
   const ruasCortadas=new Set(quadraCasaLuca&&quadraCasaLucaSul?RUAS_CORTADAS_CASA_LUCA:[])
+  if(quadraAreia&&quadraSociety){
+   // 🏊 o clube é UM terreno cercado: a rua entre os dois quarteirões não é desenhada (mesmo jeito da Casa Luca) e o terreno todo é sólido
+   const Q=quadraAreia,L=quadraSociety
+   const a=L.x!==Q.x?{x:Math.max(Q.x,L.x)-14.5,z:Q.z-14.5}:{x:Q.x-14.5,z:Math.max(Q.z,L.z)-14.5},b=L.x!==Q.x?{x:a.x,z:a.z+29}:{x:a.x+29,z:a.z}
+   ruasCortadas.add([a.x,a.z,b.x,b.z].join(':'))
+   const minX=Math.min(Q.x,L.x)-11.5,maxX=Math.max(Q.x,L.x)+11.5,minZ=Math.min(Q.z,L.z)-11.5,maxZ=Math.max(Q.z,L.z)+11.5
+   solids.push({id:'clube-lazer',minX,maxX,minZ,maxZ,base:0,top:2.2,footprint:[{x:minX,z:minZ},{x:maxX,z:minZ},{x:maxX,z:maxZ},{x:minX,z:maxZ}]})
+  }
   const cityRoads=new Set<string>(),ruasBairro:[PontoComplexo,PontoComplexo][]=[] // 🍅 04/11: os trechos de rua do bairro (a feira livre escolhe um)
   for(const p of occupied)for(const [dx,dz] of [[29,0],[-29,0],[0,29],[0,-29]]){
     const a={x:p.x+dx/2-(dz?14.5:0),z:p.z+dz/2-(dx?14.5:0)}

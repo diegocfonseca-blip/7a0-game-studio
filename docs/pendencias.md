@@ -13782,6 +13782,7 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   estádio"*): CLUBE DE LAZER no mapa (`presidencia-clube-lazer.ts`, "Clube Recreio") em 2 quarteirões vizinhos numa ponta do bairro:
   🔁 2ª versão (a 1ª, com society, ele não gostou: *"quero clube com piscina… churrasqueira em gazebo… e dois campos de
   futevôlei lado a lado"*): um quarteirão com as 2 quadras de futevôlei lado a lado; o vizinho com PISCINA (deck, espreguiçadeiras,
-  guarda-sóis) e GAZEBO de 8 águas com a churrasqueira, mesa e bancos; muro baixo e portão com placa. Em Locais → Bairro. Foto: `scripts/mockups/mapa-clube-lazer.png`. Ainda sem gente jogando (entra junto da ideia 4).
+  guarda-sóis) e GAZEBO de 8 águas com a churrasqueira, mesa e bancos. 🔁 3ª versão (*"o clube é tudo junto… cercado fechado"*):
+  os 2 quarteirões viram UM terreno — a rua do meio é cortada (`ruasCortadas`, igual à Casa Luca) e um muro só cerca tudo. Em Locais → Bairro. Foto: `scripts/mockups/mapa-clube-lazer.png`. Ainda sem gente jogando (entra junto da ideia 4).
   ⏭️ Faltam: (3) ônibus em festa em jogo grande e (4) mais gente em volta do estádio no dia de jogo — mockup antes.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
