@@ -13697,3 +13697,6 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - Formato que está no aviso (proposta, AINDA NÃO DECIDIDO): seg a sex, 1 sala por noite a R$ 5 (Passe da Semana R$ 20), cada dia um modo
   (seg Tocaia · ter Pregão aberto · qua Clubes · qui Envelope único · sex Relâmpago), campeão da noite leva ⭐ Craque + selo 🏆,
   pontos da semana (1º 10 · 2º 7 · 3º 5 · jogou 1) → 🥇 Fundador · 🥈 Batismo · 🥉 Lenda. Nada de código feito.
+- 🔁 17/11 (mais tarde): Diego fechou o **1º torneio** = UMA sexta 21h, ⭐ Champions de 36, inscrição R$ 5, meta da lista = 36,
+  campeão leva 🖋 Plano Batismo (escudo + mascote); 2º e 3º A DECIDIR. Convite no fim das salas: `scripts/mockups/torneio-lista-fim-sala.png`
+  (cartão com "🙋 Quero jogar" + contador X/36; ✕ fecha pra sempre; depois de entrar vira faixinha). Aguardando OK pra construir.
