@@ -110,7 +110,7 @@ import { StadiumTab, StadiumSvg, MasterBanner, MasterFaixa, sponsorLogoEstampa, 
 import { CareerStadiumView } from './career-stadium-view'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos'
-import { FestaCampeao, TunelFinal, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { FestaCampeao, TunelFinal, Trofeu, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { StatsDoPlacar } from './stats-placar-ui' // 📊 07/11: o resumo do apito do 2D também no placar cinema
 import { statsPlacarVisivel } from './stats-placar'
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
@@ -7316,7 +7316,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     ...(myIntl.mundial > 0 ? [{ key: 'mundial', label: oficialCampeoes ? 'Intercontinental' : 'Mundial de Clubes', n: myIntl.mundial, bg: '#7C3AED', c: '#fff' }] : []),
     ...(myIntl.lib > 0 ? [{ key: 'libertadores', label: 'Libertadores', n: myIntl.lib, bg: '#1B7A3D', c: '#fff' }] : []),
     ...(myEst > 0 ? [{ key: 'estadual', label: (NOME_ESTADUAL[nomeEst] ?? nomeEst) || tr('Estadual', 'State league'), n: myEst, bg: '#E8503A', c: '#fff' }] : []),
-    ...(mySula > 0 ? [{ key: 'sula', label: 'Sul-Americana', n: mySula, bg: '#C2452F', c: '#fff' }] : []),
+    ...(mySula > 0 ? [{ key: 'sula', label: 'Sul-Americana', n: mySula, bg: '#2B3038', c: '#C9A227' /* cores da taça real (Diego 17/11: ok) */ }] : []),
     ...(myIntl.champ > 0 ? [{ key: 'champions', label: 'Champions League', n: myIntl.champ, bg: '#0D4FCC', c: '#fff' }] : []),
     ...(myCopas > 0 ? [{ key: 'copa', label: copaLabel, n: myCopas, bg: brasil ? '#0EA658' : GOLD, c: brasil ? '#fff' : INK }] : []),
     ...(mySupercopa > 0 ? [{ key: 'super', label: 'Supercopa', n: mySupercopa, bg: '#0D4FCC', c: '#fff' }] : []),
@@ -7366,7 +7366,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                     {intlMundial > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌐Mundial{intlMundial > 1 ? intlMundial : ''}</span>}
                     {intlLibertadores > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#1B7A3D', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Libertadores{intlLibertadores > 1 ? intlLibertadores : ''}</span>}
                     {r.estOf > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#E8503A', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏟️{r.estOf > 1 ? r.estOf : ''}</span>}
-                    {r.sulaOf > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#C2452F', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Sul-Americana{r.sulaOf > 1 ? r.sulaOf : ''}</span>}
+                    {r.sulaOf > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#C9A227', background: '#2B3038', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Sul-Americana{r.sulaOf > 1 ? r.sulaOf : ''}</span>}
                     {intlChampions > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Champions{intlChampions > 1 ? intlChampions : ''}</span>}
                     {(r.h.A ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.h.A}</span>}
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: brasil ? '#fff' : INK, background: brasil ? '#0EA658' : GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{brasil ? '🏆🇧🇷' : tr('🏆Copa', '🏆Cup')}{r.copas > 1 ? r.copas : ''}</span>}
@@ -7395,7 +7395,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {trofeus.map(t => (
             <div key={t.key} style={{ width: 82, border: `2.5px solid ${INK}`, borderRadius: 12, background: t.bg, color: t.c, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 6px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: 30, lineHeight: 1 }}>🏆</div>
+              {t.key === 'sula' ? <div style={{ height: 30, display: 'flex', justifyContent: 'center' }}><Trofeu comp="sula" size={30} sombra={2} /></div> : <div style={{ fontSize: 30, lineHeight: 1 }}>🏆</div>}
               <div style={{ fontWeight: 900, fontSize: 15, ...OSWALD, marginTop: 2 }}>×{t.n}</div>
               <div style={{ fontWeight: 800, fontSize: 9, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.2, marginTop: 1, opacity: 0.92 }}>{t.label}</div>
             </div>
@@ -10296,6 +10296,23 @@ export function PyramidSeasonScreen() {
           pens: !!t?.pens, artilheiro: top(gols), garcom: top(pas) })
       }
     }
+    // 🌎 Sul-Americana ganha (Diego 17/11, "ok" no mockup): festa própria, nas cores da taça real (prata, anel dourado, base preta)
+    if (copa && sulaMinha && sulaCalc && sulaCalc.resultado.campeao === meuNomeLib) {
+      const sFin = copa.rounds.findIndex(r => ehPaginaSula(r.name) && r.name.endsWith(' · Final'))
+      if (sFin >= 0 && copaRound > sFin) {
+        const t = copa.rounds[sFin].ties[0]
+        const gols = new Map<string, DestaqueFesta>(), pas = new Map<string, DestaqueFesta>()
+        for (const r of sulaCalc.rounds) for (const tie of r.ties) for (const g of tie.goals) {
+          const time = g.home ? tie.a.name : tie.b.name
+          if (g.id) { const k = `${g.id}|${time}`, x = gols.get(k); if (x) x.n++; else gols.set(k, { nome: g.name, time, n: 1 }) }
+          if (g.assist) { const k = `${g.assistId ?? g.assist}|${time}`, x = pas.get(k); if (x) x.n++; else pas.set(k, { nome: g.assist, time, n: 1 }) }
+        }
+        const top = (m: Map<string, DestaqueFesta>) => [...m.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome))[0] ?? null
+        out.push({ key: 'sula', comp: 'sula', nomeComp: ['Sul-Americana', 'Sudamericana'],
+          linha: t ? `${tr('final', 'final')}: ${t.a.name} ${t.aggA}×${t.aggB} ${t.b.name}${t.pens ? ` (${tr('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]})` : ''}` : '',
+          pens: !!t?.pens, artilheiro: top(gols), garcom: top(pas) })
+      }
+    }
     // 🌐 Intercontinental ganha: a festa do Mundial que já existe, com o nome da competição real
     if (copa && interMinha && interCalc && interCalc.resultado.campeao === meuNomeLib) {
       const iFin = copa.rounds.findIndex(r => ehPaginaInter(r.name) && r.name.endsWith(' · Final'))
@@ -10314,7 +10331,7 @@ export function PyramidSeasonScreen() {
       }
     }
     return out
-  }, [done, me, tables, shown, copa, copaRun, copaRound, superChamp, superTie, copaBrOk, state.seasonNo, state.careerOnline, state.onlineMode, libertaMinha, libertaCalc, meuNomeLib, interMinha, interCalc])
+  }, [done, me, tables, shown, copa, copaRun, copaRound, superChamp, superTie, copaBrOk, state.seasonNo, state.careerOnline, state.onlineMode, libertaMinha, libertaCalc, sulaMinha, sulaCalc, meuNomeLib, interMinha, interCalc])
   const [festasVistasC, setFestasVistasC] = useState<string[]>(() => { try { return JSON.parse(sessionStorage.getItem(festaBaseC) ?? '[]') as string[] } catch { return [] } })
   useEffect(() => { try { setFestasVistasC(JSON.parse(sessionStorage.getItem(festaBaseC) ?? '[]') as string[]) } catch { setFestasVistasC([]) } }, [festaBaseC])
   const festaAgoraC = festasC.find(f => !festasVistasC.includes(f.key)) ?? null

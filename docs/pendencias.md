@@ -25,8 +25,9 @@
   2005 (baralho Mundo) fica, ou troca pela da volta (2025/26)?
 - ✅ 16/11: **SUL-AMERICANA REAL** (`sul-americana-oficial.ts` + `computeSulaCarreira`): 56 clubes, 1ª fase por país, 8 grupos, playoff
   com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
-  vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ⏭️ Falta a festa de campeão da Sula (não há arte
-  'sula' no `competicoes-visual`) e conferir na tela.
+  vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ✅ 17/11 (Diego: "ok" no mockup): festa de campeão da Sula ligada
+  (`FestaCampeao` comp 'sula', taça prata/anel dourado/base preta) + taça desenhada na estante e selo grafite/dourado no rank. ⏭️ Falta ver a festa
+  numa carreira de verdade (não deu pra forçar o título no teste).
 - ✅ 17/11 — **QUEM NÃO ESTÁ NA LIBERTA/SULA ACOMPANHA PELA ESCOLHA DE DIVISÃO** (Diego: *"só na aba Tabelas"* — e nada de aba nova:
   Jogos + Tabela continua uma aba só). Na escolha de divisão entram "🏆 Libertadores" e "🌎 Sul-Americana" (só pra quem está fora de cada
   uma); grupos (Liberta: 2 verdes · Sula: 1 verde) e mata-mata já jogados (`ConmebolEspectador`). Anti-spoiler pelo DIA do calendário
