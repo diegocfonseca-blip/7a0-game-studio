@@ -7,6 +7,14 @@
 - ⏭️ A nuvem só limpa quando a pessoa abre o jogo (não tem robô no banco pra quem nunca mais volta). ⏭️ Carreira online (sala) não entra
   na conta de "1 carreira" — só os saves de carreira (solo e Brasil Oficial).
 
+## 18/11 — 🇧🇷 Brasil Oficial: Copa do Mundo desde a T1 (convite + ranking) e agenda da Central
+- Diego (print do Santa Cruz): *"libertadores e copa do mundo N pode mais ser bloqueadas"* → *"sim esse o começo mas C base ainda em convites e ranking"*.
+  `cmAncora` oficial 50 → **1** (T1 = 2026, ano de Copa real; depois de 4 em 4). Continua por CONVITE pela posição no ranking dos 32.
+  Carreira já começada: a âncora só muda se nenhuma Copa foi jogada (`ensureSave`). Carreira normal segue T40/T100.
+- Agenda da Central no oficial: Libertadores real (está nela ✓ / vaga sai da Série A e da Copa do Brasil), Copa do Mundo
+  "é este ano · convite no fim da temporada" ou "próxima edição: temporada N" (de 4 em 4).
+- ⏳ Próximo: redesenho do COMEÇO da Central (mockup primeiro — patrocínio/Master no momento certo, menos confuso).
+
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)
 - Pra TODOS: link "ver fases e resultados" que desce até os resultados · pênaltis de fase encerrada prontos na lista · câmera do ônibus
   da aba Clube a 22 m no eixo da rua · cartas de clube europeu do Mundo → Europa (17/11) · "1 ponto"/"1 confronto" no singular.

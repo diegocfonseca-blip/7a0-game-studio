@@ -10948,8 +10948,10 @@ export function PyramidSeasonScreen() {
   // está nela (é ano de Copa e você está no TOP 32), o roteiro abre na Copa, e a
   // Bola de Ouro, o histórico da temporada e a comissão da Agência ESPERAM ela
   // acabar. Ano sem Copa (9 em cada 10) segue exatamente como era.
-  // 🇧🇷 Brasil Oficial (Diego 17/11): sem Copa do Mundo até a temporada 50; dali em diante ela chega por CONVITE (a seleção da sua posição)
-  const cmAncora = state.oficial ? 50 : 100
+  // 🇧🇷 Brasil Oficial: a Copa do Mundo chega por CONVITE (a seleção da sua posição no ranking dos 32). 18/11 (Diego: "não pode
+  // mais ser bloqueada… esse o começo, mas com base ainda em convites e ranking"): desde a 1ª temporada (= 2026, ano de Copa de
+  // verdade) e de 4 em 4. Era a partir da 50 (17/11). Carreira já começada: o `ensureSave` só troca a âncora se nenhuma Copa foi jogada.
+  const cmAncora = state.oficial ? 1 : 100
   // 🇧🇷 Brasil Oficial: a Copa volta de 4 em 4 (Diego 17/11: "tb será de 4 em 4 anos"); a de sempre segue de 10 em 10
   const cmCiclo = state.oficial ? 4 : 10
   const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1, cmAncora, cmCiclo) : { ano: false, jogada: false }),
@@ -12443,7 +12445,7 @@ export function PyramidSeasonScreen() {
       sub: sn < 40 ? [`abre na temporada 40 (faltam ${40 - sn})`, `opens in season 40 (${40 - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
     const proxMundo = sn <= cmAncora ? cmAncora : cmAncora + Math.ceil((sn - cmAncora) / cmCiclo) * cmCiclo
     agenda.push({ arte: 'mundo', titulo: ['Copa do Mundo', 'World Cup'],
-      sub: sn < cmAncora ? (state.oficial ? [`convite pra comandar uma seleção a partir da temporada ${cmAncora}`, `invitation to coach a national team from season ${cmAncora}`] : [`desbloqueia na temporada 100`, `unlocks in season 100`]) : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + cmCiclo : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + cmCiclo : proxMundo}`] })
+      sub: sn < cmAncora ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada && state.oficial ? ['é este ano · as seleções mandam convite no fim da temporada', 'this year · national teams send invitations at season end'] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + cmCiclo : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + cmCiclo : proxMundo}`] })
     // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
     const botao = (() => {
       if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr('🏆 Jogo da Copa rolando — assistir', '🏆 Cup match live — watch')) : tr('🏆 Assistir a Copa', '🏆 Watch the Cup'), sub: tr('o controle da Copa está em Jogos', 'the Cup controls are in Matches'), onClick: vai('jogos') }
