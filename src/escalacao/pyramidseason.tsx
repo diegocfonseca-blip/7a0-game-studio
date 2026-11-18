@@ -117,7 +117,8 @@ import sedeBotecoFesta from './img/sede-boteco-festa.webp'
 import sedeBotecoTriste from './img/sede-boteco-triste.webp'
 import sedeObra from './img/sede-obra-loja.webp'
 import sedeCarreata from './img/sede-carreata.webp'
-import sedeFeira from './img/sede-feira.webp'
+import estadioNoite from './img/online-estadio-v25.webp'
+import { estadioDoClube } from './estadios-oficial'
 import sedeNoite from './img/sede-noite.webp'
 import sedeClube from './img/sede-clube.webp'
 import { FestaCampeao, TunelFinal, Trofeu, type CompId, type DestaqueFesta } from './competicoes-visual' // 🏆 festa do campeão + túnel da final na carreira (24/10) // 🛡️ brasão do clube (desenhado por código, do NOME)
@@ -11514,6 +11515,12 @@ export function PyramidSeasonScreen() {
   const [chegadaFeita, setChegadaFeita] = useState('')
   const chegadaKey = preJogoCidade ? `${calSn}:${round}` : ''
   const chegando = !!preJogoCidade && chegadaFeita !== chegadaKey
+  // 🎟️ a 1ª partida EM CASA da carreira (só temporada 1, liga): a rodada e o adversário — a Central e a chegada da aba Jogos leem daqui
+  const estreiaCasa = useMemo(() => {
+    if ((state.seasonNo ?? 1) !== 1 || !myDiv) return null
+    for (let r = 1; r <= 38; r++) { const pr = parDaRodada(r); if (pr && pr[0].teamId === youId) return r === round + 1 ? { r, adv: pr[1].name } : null }
+    return null
+  }, [state.seasonNo, myDiv, round, youId]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🚌🎉 JOGO GRANDE EM CASA (17/11, mockup aprovado): clássico (rival/arquirrival da carreira ou outro humano) ou reta final
   // (rodada 30+ brigando no G6) — a MESMA régua da lotação do estádio. A aba Jogos mostra a chegada do ônibus no mapa
   // (`ChegadaGrande`); no automático ela dura um pouco mais (9 s em vez de 3) e "Pular chegada" corta na hora.
@@ -11529,9 +11536,10 @@ export function PyramidSeasonScreen() {
     const minhaPos = myDiv ? (tables[myDiv] ?? []).findIndex((t: SimTeam) => t.you) + 1 : 0
     const reta = pj.kind === 'l' && round + 1 >= 30 && minhaPos > 0 && minhaPos <= 6
     const playoff = pj.kind !== 'l' && pj.fase === PLAYOFF_B // 🔥 o playoff de acesso da B é sempre jogo de vida ou morte
-    if (!classico && !final && !semi && !reta && !playoff) return null
-    const titulo = final ? tr('🏆 Final', '🏆 Final') : playoff ? tr('🔥 Playoff de acesso', '🔥 Promotion play-off') : semi ? tr('🏆 Semifinal', '🏆 Semi-final') : classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in')
-    return { titulo, confronto: `${euNomeChegada} × ${pj.adv.name}`, clube: euNomeChegada }
+    const estreia = pj.kind === 'l' && !!estreiaCasa // 🎟️ 18/11: a 1ª partida em casa da carreira também tem a chegada da torcida
+    if (!classico && !final && !semi && !reta && !playoff && !estreia) return null
+    const titulo = estreia ? tr('🏟️ Estreia em casa', '🏟️ First home game') : final ? tr('🏆 Final', '🏆 Final') : playoff ? tr('🔥 Playoff de acesso', '🔥 Promotion play-off') : semi ? tr('🏆 Semifinal', '🏆 Semi-final') : classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in')
+    return { titulo, confronto: `${euNomeChegada} × ${pj.adv.name}${state.oficial && pj.kind === 'l' ? ` · ${estadioDoClube(euNomeChegada).nome}` : ''}`, clube: euNomeChegada }
   })()
   const chegadaProx = (preJogoCidade ?? (chegadaGrande ? preJogoAba : null))?.agenda
   // 🎥 quando o quadro abre, a câmera vai UMA vez pra festa da porta (fila da torcida, bandeiras, barracas) — e para aí: quando o
@@ -12540,6 +12548,14 @@ export function PyramidSeasonScreen() {
       if (!stadiumMapAvailable) return null
       if (round === 0) return null // 18/11 (Diego: "a feira está montada não tem sentido aparecer… de início"): na pré-temporada a Central é só a lista "Antes da estreia"
       const k = `${sn}:${round}`
+      // 🎟️ 18/11 (Diego: *"no momento que vai chegar próximo do jogo, o primeiro jogo só… a torcida está chegando no estádio…
+      // falando o nome do estádio"*): na semana da 1ª partida EM CASA da carreira, a cena é a torcida indo pro estádio (uma vez só)
+      if (estreiaCasa && chegando) {
+        const est = estadioDoClube(euNome).nome
+        return { chave: `${k}:estreia-casa`, img: estadioNoite, rotulo: tr('Dia de jogo', 'Match day'), chapeu: tr('🎟️ Estreia em casa', '🎟️ First home game'), tom: 'bom', vista: 'matchday',
+          titulo: tr(`A torcida está chegando no ${est}`, `The fans are heading to ${est}`),
+          texto: tr(`Primeiro jogo da carreira em casa: ${euNome} × ${estreiaCasa.adv}. A rua do estádio já está enchendo.`, `First home game of the career: ${euNome} v ${estreiaCasa.adv}. The street outside is filling up.`) }
+      }
       const ev = evAtual && evAtual.season === sn && evAtual.mgrId === youId && evAtual.tipo === 'noitada' && (evAtual.status === 'banco' ? (evAtual.volta ?? 0) > round : evAtual.status === 'campo' && evAtual.round === round) ? evAtual : null
       if (ev && ev.variante === 'futevolei') return { chave: `${k}:futevolei`, img: sedeClube, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), hora: tr('10H DA MANHÃ', '10 AM'), chapeu: tr('🏐 Faltou o treino', '🏐 Skipped training'), tom: 'ruim',
         titulo: tr(`${ev.nome} foi jogar futevôlei`, `${ev.nome} went to play footvolley`),
@@ -12561,9 +12577,7 @@ export function PyramidSeasonScreen() {
       if (humor !== 'normal') return { chave: `${k}:boteco:${humor}`, img: humor === 'festa' ? sedeBotecoFesta : sedeBotecoTriste, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🍻 Boteco do Oswaldo', '🍻 Oswaldo\'s bar'), tom: humor === 'festa' ? 'bom' : 'ruim',
         titulo: humor === 'festa' ? tr('Boteco em festa', 'Party at the bar') : tr('Boteco cabisbaixo', 'Gloomy at the bar'),
         texto: humor === 'festa' ? tr(`Depois do ${ultimo!.gf} a ${ultimo!.ga}, o boteco lotou de camisa do clube.`, `After the ${ultimo!.gf}-${ultimo!.ga}, the bar is packed with club shirts.`) : tr(`Depois do ${ultimo!.gf} a ${ultimo!.ga}, só gente cabisbaixa no balcão. "Fica pra próxima."`, `After the ${ultimo!.gf}-${ultimo!.ga}, only long faces at the bar. "Next time."`) }
-      const dia = calBarra?.hoje
-      if (dia != null && new Date(dia).getUTCDay() === 6) return { chave: `${k}:feira`, img: sedeFeira, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🧺 Feira de sábado', '🧺 Saturday market'),
-        titulo: tr('A feira está montada', 'The market is up'), texto: tr('Sábado de manhã tem feira na rua do bairro — fruta, pastel e caldo de cana.', 'Saturday morning market on the neighbourhood street — fruit, pastries and sugarcane juice.') }
+      // 🧺 18/11 (Diego: "a feira não é um momento importante pro cara querer ver"): a feira de sábado saiu da Central
       return null
     })()
     // 📍 18/11 (Diego: *"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*): cada cena leva o mapa direto pro lugar dela
