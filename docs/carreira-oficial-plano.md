@@ -274,3 +274,6 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
 - ✅ **BOT FAZ TUDO QUE O USUÁRIO FAZ** (18/11): todos os clubes do modo ganham premiação, pagam salário, renovam contrato.
 - ✅ **Condição física desde o INÍCIO** no Brasil Oficial (não espera a Série C).
 - 🔍 Pedido: analisar como é hoje comprar/renovar TÉCNICO e PREPARADOR FÍSICO e propor melhoria.
+- ✅ **CATEGORIA NO LEILÃO PELA SÉRIE** (18/11, régua dele): **D** profissional e bom jogador · **C** bom jogador e promessa · **B**
+  promessa e craque · **A** craque e lenda. Vale no leilão de abertura, no da virada (`buildDeck(..., filtroOficialDe(s))`) e nos
+  reservas que os bots soltam. Regra única: `categoriaOficialOk` (store). O SONDADO segue a régua do olheiro, não esta.

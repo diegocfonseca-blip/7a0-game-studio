@@ -2029,6 +2029,21 @@ export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: bool
     case 'A': return !c.promessa && f >= 4
   }
 }
+/** 🇧🇷 BRASIL OFICIAL (18/11, régua do Diego): a categoria que aparece no leilão depende da SUA série —
+ *  D: profissional e bom jogador · C: bom jogador e promessa · B: promessa e craque · A: craque e lenda. */
+export function categoriaOficialOk(div: string, c: { fame?: number; promessa?: boolean }): boolean {
+  const f = c.fame ?? 1
+  if (div === 'A') return !c.promessa && f >= 4
+  if (div === 'B') return !!c.promessa || f === 4
+  if (div === 'C') return !!c.promessa || (f >= 2 && f <= 3)
+  return !c.promessa && f <= 3 // D
+}
+function filtroOficialDe(s: EscState): ((c: Card) => boolean) | undefined {
+  if (!s.oficial) return undefined
+  const y = s.managers[s.youIdx]?.id ?? 0
+  const div = s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'D'
+  return c => categoriaOficialOk(div, c)
+}
 // divisão que manda no baralho AGORA (a SUA divisão) — null = mercado normal
 function escadaDivOf(s: EscState): EscadaDiv | null {
   if (!s.escadaOn || s.escadaLivre) return null
@@ -2224,7 +2239,7 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
 const MISTURA_FOI_PRO = 0.25
 // 👑 chance de uma vaga de LENDA virar CRAQUE no baralho do rápido (Diego 26/09: *"1 em cada 5 lendas… craque isso aí"*)
 const MISTURA_LENDA = 0.2
-function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
+function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null, filtro?: (c: Card) => boolean): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const takenNow = new Set<string>() // 🔄 rodízio: idents pegos nesta leva (vira a memória do próximo baralho)
@@ -2234,7 +2249,8 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
     // 🪜 escada: o catálogo do setor é FILTRADO pras categorias da divisão —
     // trava dura (nem o "completa com qualquer real" fura a régua).
-    const shuffled = shuffle(escada ? ACTIVE_CATALOG[pos].filter(c => escadaAllows(escada, c)) : ACTIVE_CATALOG[pos], rng)
+    const base0 = escada ? ACTIVE_CATALOG[pos].filter(c => escadaAllows(escada, c)) : ACTIVE_CATALOG[pos]
+    const shuffled = shuffle(filtro ? base0.filter(c => filtro(c as Card)) : base0, rng) // 🇧🇷 Brasil Oficial: categoria pela série (`categoriaOficialOk`)
     // 🔄 RODÍZIO: joga quem caiu na leva passada pro FIM (empate mantém a ordem
     // embaralhada, então continua aleatório). As cotas pegam do começo → preferem
     // cartas que NÃO acabaram de aparecer. Só reordena; não muda nenhuma %.
@@ -7923,7 +7939,7 @@ function abreLeilaoAberturaOficial(s: EscState, semente: (txt: string) => number
     if (!divsOk.has(clube.div)) continue
     for (const x of sorteiaElenco(cartasDoClube(clube, cat), semente(clube.nome)).sobra) {
       const k = ident(x.carta)
-      if (donos.has(k) || vistos.has(k) || x.carta.fake) continue
+      if (donos.has(k) || vistos.has(k) || x.carta.fake || !categoriaOficialOk(s.careerDivision ?? 'D', x.carta)) continue // 🇧🇷 categoria pela série
       vistos.add(k)
       porPos[x.pos].push({ ...x.carta, pos: x.pos, id: `ab-${x.pos}-${porPos[x.pos].length}` } as Card)
     }
@@ -9271,7 +9287,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const used = new Set<string>()
       // 🪜 escada ligada: leilão de estreia = degrau D (foi-prof + bom) e bots
       // montados no modo várzea (fracos primeiro) — mesmo nível do usuário.
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s), filtroOficialDe(s))
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used, !!s.escadaOn)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -12405,7 +12421,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const { managers, botPlans } = makeManagers(humanNames, formation, 0, LEAGUE_SIZE, rng)
       s.managers = managers
       const used = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s), filtroOficialDe(s))
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -12959,7 +12975,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // RESERVAS (2ª temporada): baralho SÓ COM REAIS (noFake) — reserva é opcional,
         // então nada de incógnito enchendo o leilão. Os bots do mercado (não-escolhidos)
         // também soltam suas reservas REAIS pro baralho, e são eles que disputam (0/1).
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, true, false, escadaDivOf(s))
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, true, false, escadaDivOf(s), filtroOficialDe(s))
         const nBots = Math.max(1, Math.floor(nMain / 2))
         const chosen = shuffle(s.managers.filter(isMktBot), rng).slice(0, nBots)
         for (const bot of chosen) {
@@ -12968,7 +12984,8 @@ function reducerBase(state: EscState, action: Action): EscState {
           for (const pos of SECTORS) {
             const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
             const spare = realInPos.slice(FORMATIONS[bot.formation][pos])
-            for (const c of spare) { bot.squad = bot.squad.filter(x => x.id !== c.id); s.deck[pos].push({ ...c, seller: bot.id }) }
+            const ofOk = filtroOficialDe(s) // 🇧🇷 Brasil Oficial: reserva de outra categoria fica no clube (não aparece no seu leilão)
+            for (const c of spare) { if (ofOk && !ofOk(c)) continue; bot.squad = bot.squad.filter(x => x.id !== c.id); s.deck[pos].push({ ...c, seller: bot.id }) }
           }
         }
         for (const pos of SECTORS) marketSellers[pos] = chosen.map(b => b.id)

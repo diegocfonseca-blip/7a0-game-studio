@@ -56,7 +56,7 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   // (via vite, igual ao `npm run troca`: o store e a tela da temporada precisam do import.meta.env do vite)
   const { createServer } = await import('vite')
   const vite = await createServer({ server: { middlewareMode: true, watch: null }, appType: 'custom', logLevel: 'silent' })
-  const { reducer, INITIAL } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
+  const { reducer, INITIAL, categoriaOficialOk } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
   const { _forcaBrasilOficialParaTeste } = await vite.ssrLoadModule('/src/escalacao/sport.ts')
   const { seedCpuSquadsOficial } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
   const base = { type: 'START_CAREER_SOLO', teamName: 'Remo', formation: '4-3-3', rivals: 5, league: 'both', oficial: { clube: 'Remo' } } as const
@@ -86,6 +86,7 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
     for (const m of s.managers) for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const)
       if ((m.aberturaBase?.[p] ?? -1) !== m.squad.filter(c => c.pos === p).length) falha(`${m.teamName}: base da abertura errada em ${p}`)
     const dono = new Set(s.managers.flatMap(m => m.squad.map(c => `${c.name}|${c.club}|${c.year}`)))
+    for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const) for (const c of s.deck[p]) if (!categoriaOficialOk(s.careerDivision ?? 'D', c)) falha(`categoria fora da série ${s.careerDivision} no leilão de abertura: ${c.name} (fame ${c.fame}${c.promessa ? ' promessa' : ''})`)
     for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const) for (const c of s.deck[p]) if (dono.has(`${c.name}|${c.club}|${c.year}`)) falha(`carta com dono no leilão de abertura: ${c.name}`)
   }
   if (s.managers.length !== 20) falha(`a divisão do Remo devia ter 20 clubes, tem ${s.managers.length}`)
