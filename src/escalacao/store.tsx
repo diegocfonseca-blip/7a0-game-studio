@@ -55,7 +55,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSI
 import { stripEmoji, myApoioPerk, loggedEmail } from './apoio'
 import { marcoNovaRecepcaoM2 } from './motor2-recepcao-conta'
 import { fichasDoPlano } from './planos-regras'
-import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
+import { tecnicoPorNome, poolDaDiv, pisoTecnico, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
 import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHANCE, loucuraFator, perfilPagaAcima, type PerfilBot } from './perfis-bot'
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -7095,8 +7095,8 @@ function sealAndResolveTec(state: EscState) {
   // de 4× o piso da categoria — antes cada venda virava piso da próxima e o bot dava
   // o dobro em cima, sem fim (Parreira a 12.426). E o BOT SÓ DÁ LANCE DO QUE TEM NO
   // BOLSO, igual no leilão de jogador (um clube com 1 moeda "pagou" 12 mil).
-  const teto = tetoTecnico(lote.nome)
-  const base = Math.min(teto, t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso)
+  const teto = tetoTecnico(lote.nome, !!state.oficial)
+  const base = Math.min(teto, t ? Math.max(pisoTecnico(t.div, !!state.oficial), lote.piso) : lote.piso)
   const minL = Math.max(1, Math.min(lote.piso, teto))
   const donoM = lote.clube ? state.managers.find(m => m.teamName === lote.clube) : undefined
   const bids: Bid[] = []
@@ -11960,7 +11960,7 @@ function reducerBase(state: EscState, action: Action): EscState {
             // 🧢💰 01/10: a inflação para em 2× (antes, na temporada 116, era 5,6× em cima
             // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
             // respeita o teto da categoria.
-            const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, PISO_TECNICO[tN.div]) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)))
+            const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, pisoTecnico(tN.div, !!s.oficial)) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)), !!s.oficial)
             map[m.teamName] = nomeN
             desde[m.teamName] = { t: s.seasonNo, r: 0 }
             pago[nomeN] = preco // o mercado aprende com a compra do bot também
@@ -13085,7 +13085,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           if (!tecnicoPorNome(nome)) continue
           const clube = Object.entries(s.careerTecnicos ?? {}).find(([, n]) => n === nome)?.[0] ?? null
           if (clube === s.managers[s.youIdx]?.teamName) continue // já é seu
-          s.tecLote = { nome, clube, piso: Math.max(1, precoTecnicoSano(nome, s.careerTecnicoPago?.[nome])) } // 🧢💰 piso nunca acima do teto da categoria
+          s.tecLote = { nome, clube, piso: Math.max(1, precoTecnicoSano(nome, s.careerTecnicoPago?.[nome], !!s.oficial)) } // 🧢💰 piso nunca acima do teto da categoria
           break // teto de 1 por temporada — só existe um
         }
         s.aliciarTecnicos = []
@@ -14383,7 +14383,7 @@ function sincronizaNiveis(save: EscState): EscState {
   if (save.careerTecnicoPago) {
     let pago: Record<string, number> | null = null
     for (const [nome, v] of Object.entries(save.careerTecnicoPago)) {
-      const sano = precoTecnicoSano(nome, v)
+      const sano = precoTecnicoSano(nome, v, !!save.oficial)
       if (sano !== v) { pago ??= { ...save.careerTecnicoPago }; pago[nome] = sano; mexeu++ }
     }
     if (pago) save.careerTecnicoPago = pago
