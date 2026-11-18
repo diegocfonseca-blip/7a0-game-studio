@@ -259,3 +259,12 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   de cada rodada INCERTO, uma quarta a cada ~10 dias entre 7/abr e 28/mai); a final (28/nov) passa da 38ª e fica pro fim.
   ⏭️ Falta: Sul-Americana (6º–12º + os eliminados da Liberta), Intercontinental real (Dérbi das Américas → Challenger → final
   contra o campeão europeu), festa/troféu da Liberta, e quem NÃO está na Liberta poder assistir.
+
+## 🔨 18/11 — Começo da carreira e leilão (decisões do Diego)
+- **Leilão de abertura igual pra TODOS (usuário e bots): 5 vagas, uma por posição (GOL · ZAG · LAT · MEI · ATA)** — *"pode ser 5
+  pra todos… um pra goleiro, um pra zagueiro, um pra lateral, um pra meia e um pra atacante. Fechamos dessa forma"*. Começa com o
+  elenco do clube (sorteio de até 22) e soma até 5. O leilão de toda virada (sondar + vender + pregão) continua.
+- **Rivais escolhidos (3/5/7/9) NÃO existem no Brasil Oficial** (já era assim; ele confirmou: *"é besteira"*).
+- Em estudo (proposta mandada 18/11, esperando OK): caixa inicial pela RECEITA REAL do clube (fonte aberta), comprimida pra caber no
+  jogo (~40 🪙 o mais pobre da D → ~400 🪙 Flamengo/Palmeiras); quem disputa o leilão = os 19 clubes da SUA série (os outros reforçam
+  sozinhos, fora da tela); o bot calcula o lance pela categoria + over (régua do "bot que pensa", 13/10), limitado pelo caixa real.
