@@ -43,7 +43,7 @@ const G_OURO = 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)'
 export type CentralJogo = { h: string; a: string; hg: number; ag: number; hId: number; aId: number }
 export type CentralArte = 'estadio' | 'copaBr' | 'copaLeg' | 'super' | 'liberta' | 'champions' | 'mundial' | 'mundo'
 /** 🗓️ 18/11: a agenda é a lista dos PRÓXIMOS JOGOS do seu clube — data, competição, fase e adversário (`casa` null = mata-mata, ida e volta) */
-export type CentralAgenda = { dia: number; comp: [string, string]; fase?: string; /** 📍 fora de casa: o estádio do adversário daquela linha (18/11: em casa não mostra — o seu estádio na linha do rival confundia) */ onde?: string; adv: string; casa: boolean | null; arte?: 'copaBr' | 'liberta' }
+export type CentralAgenda = { dia: number; comp: [string, string]; fase?: string; /** 📍 onde é o jogo: o estádio do mandante (em casa: "no seu estádio · <nome>") — Diego 18/11 quer o nome nos dois casos */ onde?: string; adv: string; casa: boolean | null; arte?: 'copaBr' | 'liberta' }
 export type RaioX = {
   nome: string
   formacao: string
@@ -440,7 +440,7 @@ export function CentralCarreira(p: CentralProps) {
                 <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0, flex: 1 }}>
                   <b style={{ ...OSW, fontSize: 13.5, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.adv}</b>
                   <small style={{ color: '#555', fontWeight: 700, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{en ? a.comp[1] : a.comp[0]}{a.fase ? ` · ${a.fase}` : ''}</small>
-                  {a.onde && <small style={{ color: '#7a5a1e', fontWeight: 800, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {a.onde}</small>}
+                  {a.onde && <small style={{ color: '#7a5a1e', fontWeight: 800, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {a.casa ? t('no seu estádio', 'at your ground') + ' · ' : ''}{a.onde}</small>}
                 </span>
                 {a.casa != null && <Chip bg="#fff">{a.casa ? t('🏟️ casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
               </div>

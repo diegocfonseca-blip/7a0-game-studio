@@ -12570,7 +12570,7 @@ export function PyramidSeasonScreen() {
           const partes = est ? pg.name.slice(ESTADUAL_PREFIXO.length).split(' · ') : [pg.name]
           const nome = est ? (NOME_ESTADUAL[partes[0]] ?? partes[0]) : pg.name
           const ld = advDe(tie.a, tie.b)
-          agenda.push({ dia: diaPreTemporada(sn), comp: [nome, nome], fase: est ? partes.slice(1).join(' · ') : undefined, onde: state.oficial && !ld.casa ? estadioDoClube(ld.adv).nome : undefined, ...ld, arte: 'copaBr' })
+          agenda.push({ dia: diaPreTemporada(sn), comp: [nome, nome], fase: est ? partes.slice(1).join(' · ') : undefined, onde: state.oficial ? estadioDoClube(ld.casa ? euNome : ld.adv).nome : undefined, ...ld, arte: 'copaBr' })
         }
       }
       // ⚽ a liga: os próximos jogos da fase que está correndo
@@ -12581,7 +12581,7 @@ export function PyramidSeasonScreen() {
           const par = parDaRodada(r)
           if (!par) continue
           const lado = advDe(par[0], par[1])
-          agenda.push({ dia: diaDaRodada(sn, r), comp: ligaNome, ...lado, onde: state.oficial && !lado.casa ? estadioDoClube(lado.adv).nome : undefined }) // 🏟️ no Oficial, ONDE é o jogo (o estádio do mandante)
+          agenda.push({ dia: diaDaRodada(sn, r), comp: ligaNome, ...lado, onde: state.oficial ? estadioDoClube(lado.casa ? euNome : lado.adv).nome : undefined }) // 🏟️ no Oficial, ONDE é o jogo (o estádio do mandante)
           n++
         }
       }
