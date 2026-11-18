@@ -12436,11 +12436,14 @@ export function PyramidSeasonScreen() {
     const agenda: CentralAgenda[] = []
     if (!state.oficial) agenda.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
       sub: !seasonOver ? ['depois da rodada 38', 'after round 38'] : copaPlaying ? ['rolando agora', 'live now'] : copaFinished ? ['encerrada', 'over'] : ['começa em seguida', 'up next'] })
-    if (intlEnabled) agenda.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
+    // 🇧🇷 18/11 (Diego, Santa Cruz): no Brasil Oficial a Libertadores é a REAL desde a 1ª temporada — nada de "abre na 40"
+    if (state.oficial) agenda.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
+      sub: libertaMinha ? ['você está nela este ano ✓', 'you are in it this year ✓'] : vagasLib ? ['sem vaga este ano · ela sai da Série A e da Copa do Brasil', 'no spot this year · spots come from Serie A and the Copa do Brasil'] : ['a vaga sai da Série A e da Copa do Brasil', 'spots come from Serie A and the Copa do Brasil'] })
+    else if (intlEnabled) agenda.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
       sub: sn < 40 ? [`abre na temporada 40 (faltam ${40 - sn})`, `opens in season 40 (${40 - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
-    const proxMundo = sn <= 100 ? 100 : 100 + Math.ceil((sn - 100) / 10) * 10
+    const proxMundo = sn <= cmAncora ? cmAncora : cmAncora + Math.ceil((sn - cmAncora) / cmCiclo) * cmCiclo
     agenda.push({ arte: 'mundo', titulo: ['Copa do Mundo', 'World Cup'],
-      sub: sn < 100 ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + 10 : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + 10 : proxMundo}`] })
+      sub: sn < cmAncora ? (state.oficial ? [`convite pra comandar uma seleção a partir da temporada ${cmAncora}`, `invitation to coach a national team from season ${cmAncora}`] : [`desbloqueia na temporada 100`, `unlocks in season 100`]) : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + cmCiclo : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + cmCiclo : proxMundo}`] })
     // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
     const botao = (() => {
       if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr('🏆 Jogo da Copa rolando — assistir', '🏆 Cup match live — watch')) : tr('🏆 Assistir a Copa', '🏆 Watch the Cup'), sub: tr('o controle da Copa está em Jogos', 'the Cup controls are in Matches'), onClick: vai('jogos') }
