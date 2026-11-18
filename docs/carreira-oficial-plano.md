@@ -279,3 +279,7 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   - **Exceção (18/11, ele confirmou)**: a régua vale só pro que APARECE no leilão. Jogador que já é do clube fica no clube, seja qual
     for a categoria (o Flamengo caído na D continua com o Arrascaeta craque). Reserva que bot da SÉRIE solta vai pro pregão em qualquer categoria (*"se o jogador já tava na série, ele pode sim aparecer"*): a régua
     vale só pra carta NOVA que vem do catálogo/sobra de fora.
+- ✅ **SÓ CARTA DE CLUBE BRASILEIRO NO LEILÃO** (18/11, *"só ter cartas de jogadores que jogaram em times brasileiros"*): vale o CLUBE da
+  carta, não a nacionalidade (Depay Corinthians entra; Júlio César Inter não). Abertura, virada, sobras dos bots e o "famoso" sorteado.
+  Regra única: `cartaDeClubeBrasileiro` (store). São 3.459 cartas (55 lendas, 144 craques). 🌍 Europa/Mundo virão depois como ESCOLHA na
+  criação da carreira (só Brasil · Brasil + Inglaterra/Espanha · tudo) — ele quer começar a fazer e pôr "em breve".

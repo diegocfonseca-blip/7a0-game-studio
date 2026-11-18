@@ -56,7 +56,7 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   // (via vite, igual ao `npm run troca`: o store e a tela da temporada precisam do import.meta.env do vite)
   const { createServer } = await import('vite')
   const vite = await createServer({ server: { middlewareMode: true, watch: null }, appType: 'custom', logLevel: 'silent' })
-  const { reducer, INITIAL, categoriaOficialOk } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
+  const { reducer, INITIAL, categoriaOficialOk, cartaDeClubeBrasileiro } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
   const { _forcaBrasilOficialParaTeste } = await vite.ssrLoadModule('/src/escalacao/sport.ts')
   const { seedCpuSquadsOficial } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
   const base = { type: 'START_CAREER_SOLO', teamName: 'Remo', formation: '4-3-3', rivals: 5, league: 'both', oficial: { clube: 'Remo' } } as const
@@ -90,6 +90,9 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
     for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const) for (const c of s.deck[p]) if (dono.has(`${c.name}|${c.club}|${c.year}`)) falha(`carta com dono no leilão de abertura: ${c.name}`)
   }
   if (s.managers.length !== 20) falha(`a divisão do Remo devia ter 20 clubes, tem ${s.managers.length}`)
+  // 🇧🇷 18/11: o leilão do Oficial só traz carta de CLUBE brasileiro (vale o clube, não a nacionalidade)
+  if (!cartaDeClubeBrasileiro({ club: 'Corinthians' }) || cartaDeClubeBrasileiro({ club: 'Inter de Milão' }) || cartaDeClubeBrasileiro({ club: 'Real Madrid' })) falha('régua "só clube brasileiro" errada')
+  if (s.screen === 'auction') for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const) for (const c of s.deck[p]) if (!cartaDeClubeBrasileiro(c)) falha(`carta de clube de fora no leilão de abertura: ${c.name} (${c.club})`)
   // 🏋️ 18/11: no Oficial o bot também tem PREPARADOR e paga do caixa (semeiaTecnicos via ALICIAR_SEED, rodada 0)
   {
     const s2 = reducer(s, { type: 'ALICIAR_SEED' } as never)

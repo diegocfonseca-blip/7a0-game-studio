@@ -1143,7 +1143,7 @@ import type { CareerTeam } from './data'
 import { ligaEscudosOficiais } from './escudos'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
 import { brasilOficialLiberado, previaCentral } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
-import { clubeOficial, CLUBES_BR, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
+import { clubeOficial, CLUBES_BR, CLUBES_BR_TODOS, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
@@ -1333,7 +1333,7 @@ export function sobrasReais(s: EscState): Record<Sector, Card[]> {
   const out = {} as Record<Sector, Card[]>
   for (const pos of SECTORS) {
     out[pos] = ACTIVE_CATALOG[pos]
-      .filter(c => !donos.has(ident(c as Card)))
+      .filter(c => !donos.has(ident(c as Card)) && (!s.oficial || cartaDeClubeBrasileiro(c))) // 🇧🇷 Oficial: só clube brasileiro
       .map(c => ({ ...c, pos } as Card))
       .sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
   }
@@ -2285,7 +2285,15 @@ function filtroOficialDe(s: EscState): ((c: Card) => boolean) | undefined {
   if (!s.oficial) return undefined
   const y = s.managers[s.youIdx]?.id ?? 0
   const div = s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'D'
-  return c => categoriaOficialOk(div, c)
+  return c => categoriaOficialOk(div, c) && cartaDeClubeBrasileiro(c)
+}
+/** 🇧🇷 18/11 (Diego: *"só ter cartas de jogadores que jogaram em times brasileiros"*): no Brasil Oficial o leilão só traz carta de
+ *  CLUBE brasileiro — vale o clube da carta, não a nacionalidade (Depay Corinthians entra; Júlio César Inter fica pra quando a Europa
+ *  for lançada como modo). */
+let NOMES_BR: Set<string> | null = null
+export function cartaDeClubeBrasileiro(c: { club: string }): boolean {
+  NOMES_BR ??= new Set(CLUBES_BR_TODOS.flatMap(x => [x.nome, ...(x.apelidos ?? [])]))
+  return NOMES_BR.has(c.club)
 }
 // divisão que manda no baralho AGORA (a SUA divisão) — null = mercado normal
 function escadaDivOf(s: EscState): EscadaDiv | null {
@@ -13059,8 +13067,9 @@ function reducerBase(state: EscState, action: Action): EscState {
             marketSellers[pos].push(owner.id)
             if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
-            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && famosoOk(c as Card)), rng)[0]
-              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && (!escM || escadaAllows(escM, c))), rng)[0]
+            const brOk = (c: { club: string }) => !s.oficial || cartaDeClubeBrasileiro(c) // 🇧🇷 Oficial: só clube brasileiro
+            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && famosoOk(c as Card) && brOk(c)), rng)[0]
+              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && (!escM || escadaAllows(escM, c)) && brOk(c)), rng)[0]
             if (fam) { used.add(ident(fam)); const fl = s.marketValues?.[ident(fam)] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
         }
