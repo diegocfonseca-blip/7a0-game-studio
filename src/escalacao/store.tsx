@@ -117,13 +117,32 @@ export function catalogTodos(): typeof CATALOG {
   }
   return CATALOG_TODOS_CACHE
 }
-function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'todos' | undefined, varzea = false, regional?: string) {
+function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'todos' | undefined, varzea = false, regional?: string, oficial = false) {
   ACTIVE_SPORT = 'futebol'
   setDraftBasquete(false) // 📋 Liga Draft: régua do futebol (22 · XI da formação)
   const base0 = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
-  const base = regional ? comCartasRegionais(base0, regional) : base0
+  const base1 = regional ? comCartasRegionais(base0, regional) : base0
+  const base = oficial ? comCartasOficiais(base1) : base1
+  ligaEscudosOficiais(oficial) // 🇧🇷 clube real com escudo oficial só dentro do Brasil Oficial
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
   ORDEM_ATIVA = SECTORS
+}
+// 🇧🇷 BRASIL OFICIAL (15/11, regra do Diego): as cartas novas dos clubes reais existem SÓ na carreira Brasil Oficial
+// (`s.oficial`). Nunca entram no rápido, nas salas nem na carreira de time criado — quem chama passa `oficial` só com `s.oficial`.
+const OFICIAL_CACHE = new Map<typeof CATALOG, typeof CATALOG>()
+function comCartasOficiais(base: typeof CATALOG): typeof CATALOG {
+  const pronto = OFICIAL_CACHE.get(base)
+  if (pronto) return pronto
+  const CATALOG_OFICIAL = baralhoOficial()
+  if (!CATALOG_OFICIAL) return base // ainda não baixou: a tela da carreira oficial espera (`carregaBaralhoOficial`) antes de jogar
+  const out = {} as typeof CATALOG
+  for (const pos of SECTORS) {
+    const vistas = new Set((base[pos] ?? []).map(c => `${c.name}|${c.club}|${c.year}`))
+    const extras = (CATALOG_OFICIAL[pos] ?? []).filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(({ bioEn: _en, ...c }) => c)
+    out[pos] = [...semBaseEscondida(base[pos] ?? []), ...extras] as typeof CATALOG[typeof pos]
+  }
+  OFICIAL_CACHE.set(base, out)
+  return out
 }
 // 🏟️ BARALHO REGIONAL (10/10, regra do Diego): as cartas dos clubes pequenos só existem
 // na sala de COPA REGIONAL — e lá entram no leilão MISTURADAS com o baralho de sempre.
@@ -170,9 +189,9 @@ export function vagasBase(formation: FormationKey, pos: Sector): number { return
 // pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
 // o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
 // sempre (byte-idêntico pra quem não é basquete).
-function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
+function reancoraEsporte(s: { oficial?: unknown; careerOnline?: boolean; sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
   if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
-  else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala)
+  else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala, !!s.oficial && !!s.careerOnline)
   if (s.kingsBaralho && s.sport !== 'basquete') ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG // 👑 a partida da Kings com o baralho dela
   ancoraPresidentesKings(s.sport !== 'basquete' && !!s.managers?.some(m => m.formation === 'kings')) // 🎩 os presidentes (os dois baralhos)
 }
@@ -1113,6 +1132,10 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
+import { ligaEscudosOficiais } from './escudos'
+import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
+import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
+import { clubeOficial, CLUBES_BR, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
@@ -5708,7 +5731,7 @@ type Action =
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
-  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave; co2?: { sala: string; nomes: string[]; assento: number } } // carreira OFFLINE na pirâmide (co2 = 🌐 carreira online v2: N clubes de gente, cada aparelho é o seu) (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'START_CAREER_SOLO'; oficial?: { clube: string }; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave; co2?: { sala: string; nomes: string[]; assento: number } } // carreira OFFLINE na pirâmide (co2 = 🌐 carreira online v2: N clubes de gente, cada aparelho é o seu) (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean; pago?: boolean } // 🔒 `pago`: a tela diz se a conta tem plano (carreira grátis vai até a 50)
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
@@ -5869,6 +5892,9 @@ type Action =
   | { type: 'CO2_ABRE'; save: EscState } // 🌐 v2: reabre o MEU clube (save do aparelho ou da nuvem do jogo)
   | { type: 'CO2_GAVETAS'; gavetas: GavetaPublica[]; ate?: number } // `ate` = a rodada começou: a MINHA gaveta do banco congela o meu clube até esse jogo // 🌐 carreira online v2: chegaram as gavetas dos outros clubes
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
+  | { type: 'OFICIAL_PRONTO' } // 🇧🇷 as cartas do Brasil Oficial baixaram (baralho-oficial-carga.ts)
+  | { type: 'CAMPEOES_OFICIAIS'; campeoes: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string; sula?: string; intercontinental?: string } } // 🏆 Brasil Oficial: campeões da temporada (pra Supercopa Rei)
+  | { type: 'ESTADUAL_FEITO'; estadual: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] } } // 🏟️ Brasil Oficial: o estadual da temporada terminou na tela
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'LIGA_RECEPCAO_M2' } // somente a conta autorizada, a partir do próximo jogo de liga
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
@@ -7804,7 +7830,62 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev'] as const satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes'] as const satisfies readonly (keyof EscState)[]
+// 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
+// real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
+// as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
+// da carreira (mesmo sorteio em qualquer aparelho). Devolve false (e não mexe em nada) se o clube não existir no modo.
+// ⚠️ Séries A, B e C são reais; a D ainda é a de sempre até a D real (96 em grupos) entrar (pendência no plano).
+function iniciaBrasilOficial(s: EscState, nome: string): boolean {
+  const meu = clubeOficial(nome)
+  if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C' && meu.div !== 'D')) return false // só-estadual não dá pra escolher (regra do Diego, 15/11)
+  s.oficial = { clube: meu.nome, desde: 1 }
+  s.oficialEstaduais = undefined // 🏟️ estaduais são desta carreira
+  s.oficialCampeoes = undefined
+  s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
+  s.deckLeague = 'todos'; setActiveCatalog('todos', false, undefined, true)
+  const cat = ACTIVE_CATALOG
+  const semente = (txt: string) => { let h = s.seed >>> 0; for (let i = 0; i < txt.length; i++) h = Math.imul(h ^ txt.charCodeAt(i), 0x01000193) >>> 0; return h }
+  const rngC = mulberry((s.seed ^ 0x0F1C1A1) >>> 0)
+  const paraWon = (clube: string, x: { pos: Sector; carta: Card }, i: number): WonCard => {
+    const c = { ...x.carta, pos: x.pos, id: `of-${x.pos}-${chaveClube(clube)}-${i}` } as Card
+    const preco = justoDaCarta(s, c)
+    return { ...c, paid: preco, buyPrice: preco, via: 'bot', ...(s.contratosOn ? { contratoAte: 1 + contratoDur(5, rngC) - 1 } : {}) } as WonCard
+  }
+  const elencoDe = (clube: typeof meu) => sorteiaElenco(cartasDoClube(clube, cat as unknown as Record<Sector, Card[]>), semente(clube.nome)).elenco.map((x, i) => paraWon(clube.nome, x, i))
+  const formacao = s.managers[0]?.formation ?? '4-3-3'
+  // 🟫 Série D: a "sua" turma de 20 (os do seu grupo primeiro, o resto da D sorteado pela semente) — os outros 76 da D entram
+  // pelo nome, igual às outras séries; a temporada no formato real (16 grupos de 6) não depende de quem é "turma"
+  const daDiv = meu.div === 'D'
+    ? (() => { const r = mulberry((s.seed ^ 0x0D96D) >>> 0); const outros = clubesDaDivisao('D').filter(c => c.nome !== meu.nome && c.grupoD !== meu.grupoD); for (let i = outros.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [outros[i], outros[j]] = [outros[j], outros[i]] } return [...clubesDaDivisao('D').filter(c => c.grupoD === meu.grupoD), ...outros].slice(0, 20) })()
+    : CLUBES_BR.filter(c => c.div === meu.div)
+  const ordem = [meu, ...daDiv.filter(c => c.nome !== meu.nome)].slice(0, 20)
+  const forms: FormationKey[] = ['4-3-3', '4-4-2']
+  const elencos = ordem.map(c => elencoDe(c))
+  // o rival só joga 4-4-2 se o elenco tiver 4 meias (clube com 11 cartas, tipo o Mirassol, entraria com 10) — senão 4-3-3
+  const formacaoQueCabe = (f: FormationKey, sq: WonCard[]): FormationKey => f === '4-4-2' && sq.filter(x => x.pos === 'MEI').length < 4 ? '4-3-3' : f
+  s.managers = ordem.map((c, i) => ({
+    id: i, name: i === 0 ? (s.managers[0]?.name ?? c.nome) : c.nome, teamName: c.nome, isHuman: i === 0, auctionRival: i === 0,
+    formation: i === 0 ? formacao : formacaoQueCabe(forms[Math.floor(rngC() * forms.length)], elencos[i]), money: i === 0 ? 100 : 0, squad: elencos[i],
+    aggression: 0.5, starHunger: 0.5,
+  } as Manager))
+  s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
+  const pl: Record<string, string> = {}
+  for (const m of s.managers) pl[`m${m.id}`] = meu.div
+  for (const c of CLUBES_BR) if (c.div !== meu.div) pl[c.nome] = c.div
+  // 🟫 Série D: os 96 clubes REAIS de 2026, nos 16 grupos (a temporada no formato real mora em `simulaTemporadaOficial`)
+  for (const c of clubesDaDivisao('D')) if (!ordem.some(o => o.nome === c.nome)) pl[c.nome] = 'D'
+  s.careerPlacements = pl
+  s.careerDivision = meu.div
+  s.clubCash = seedClubCash({}, pl)
+  s.cpuSquads = undefined // os clubes das outras divisões ganham o elenco no SEED_CPU_SQUADS (com o sorteio deles, ver pyramidseason)
+  s.careerCoins = { 0: 100 }
+  s.league = buildLeague(s.managers, false)
+  s.fixtures = calendarioDaLiga(s)
+  s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
+  s.screen = 'season'
+  return true
+}
 function zeraCarreiraAnterior(s: EscState): void {
   for (const k of ZERA_NA_CARREIRA_NOVA) (s as unknown as Record<string, unknown>)[k] = undefined
   s.rivalries = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {} // (campos obrigatórios: zeram pro vazio, não pra undefined)
@@ -8995,6 +9076,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'START_CAREER_SOLO': {
+      // 🇧🇷 carreira oficial sem as cartas baixadas não começa (a tela só libera o botão depois de baixar)
+      if (action.oficial && !action.co2 && brasilOficialLiberado() && !baralhoOficial()) return state
       limpaMarcasDeModo(s)
       zeraCarreiraAnterior(s) // 🧹 03/11: o que é da CARREIRA anterior não vem junto
       // (acima: 🧼 nada do rápido nem da sala online entra na carreira, 21/10)
@@ -9163,6 +9246,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🔨 tela de regras antes do 1º pregão da carreira (mantém o modal de rivais
       // no setup; isto é só a página nova ao avançar).
       s.co2 = action.co2 ? { sala: action.co2.sala, assento: s.youIdx, gavetas: [], comanda: true } : undefined
+      // 🇧🇷 BRASIL OFICIAL (15/11): tudo acima (faxina, caixa, livro, presidente) vale igual; daqui o clube real assume.
+      if (action.oficial && !action.co2 && brasilOficialLiberado() && iniciaBrasilOficial(s, action.oficial.clube)) return s
       if (action.intro) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -9261,7 +9346,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🧮 e passa a trava de sanidade: título a mais que temporada jogada é
       // sujeira de outra carreira — some aqui, na abertura (ver `sanearTitulos`).
       sanearTitulos(action.saved)
-      setActiveCatalog(action.saved.deckLeague)
+      setActiveCatalog(action.saved.deckLeague, false, undefined, !!action.saved.oficial)
       // nunca retoma numa tela lateral (álbum/ranking) — cai sempre no jogo.
       const scr = (action.saved.screen === 'album' || action.saved.screen === 'ranking') ? 'season' : action.saved.screen
       // 🏛️ MULTICLUBES: na carreira NORMAL o técnico é sempre o assento 0. Mas com
@@ -9961,9 +10046,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       // você recusou ou que rescindiu não volta nesta virada — as MESMAS regras que a tela usa (master-historia.ts)
       const ant = s.careerMaster?.[id]
       const intl = masterIntlAberto(season, s.onlineMode === 'online')
-      if (masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, intl)) return s
+      if (masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, intl, !!s.oficial)) return s
       if (masterMarcaFora(ant, season) === prazo.brandId) return s
-      const mt = masterMetaOferta(s.seed ?? 0, season, id, prazo.brandId, div, intl)
+      const mt = masterMetaOferta(s.seed ?? 0, season, id, prazo.brandId, div, intl, !!s.oficial)
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: prazo.brandId, anos: prazo.anos, div, desde: season, porTemporada: masterPorTemporada(div, prazo.anos), meta: mt.meta, bonus: mt.bonus } }
       return s
     }
@@ -9973,7 +10058,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
       const season = s.seasonNo ?? 1
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-      const of = masterOfertaRenovacao(s.careerMaster?.[id], season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'))
+      const of = masterOfertaRenovacao(s.careerMaster?.[id], season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'), !!s.oficial)
       if (!of) return s
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: of.brandId, anos: of.anos, div, desde: season, porTemporada: of.porTemporada, meta: of.meta, bonus: of.bonus, renovado: true } }
       return s
@@ -9985,7 +10070,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const season = s.seasonNo ?? 1
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
       const ant = s.careerMaster?.[id]
-      if (!ant || !masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'))) return s
+      if (!ant || !masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id, masterIntlAberto(season, s.onlineMode === 'online'), !!s.oficial)) return s
       s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { ...ant, recusouRenovar: true } }
       return s
     }
@@ -10929,6 +11014,22 @@ function reducerBase(state: EscState, action: Action): EscState {
       const marco = marcoNovaRecepcaoM2(s, loggedEmail())
       if (marco) s.motor2RecepcaoDesde = marco
       return s
+    }
+    case 'CAMPEOES_OFICIAIS': {
+      if (!s.oficial || (s.oficialCampeoes ?? []).some(e => e.temporada === action.campeoes.temporada)) return s
+      return { ...s, oficialCampeoes: [...(s.oficialCampeoes ?? []), action.campeoes].slice(-60) }
+    }
+    case 'ESTADUAL_FEITO': {
+      // 🏟️ grava UMA vez por temporada (a tela pode mandar de novo num recarregar)
+      if (!s.oficial || (s.oficialEstaduais ?? []).some(e => e.temporada === action.estadual.temporada)) return s
+      return { ...s, oficialEstaduais: [...(s.oficialEstaduais ?? []), action.estadual].slice(-60) }
+    }
+    case 'OFICIAL_PRONTO': {
+      // 🇧🇷 as cartas do Brasil Oficial acabaram de baixar: reancora o baralho e roda a atualização de ficha que ficou esperando
+      if (!s.oficial || !baralhoOficial()) return s
+      const r = sincronizaNiveis(s)
+      reancoraEsporte(r)
+      return r
     }
     case 'LIGA_MOTOR2': {
       // ⚽🧠 (20/10) só carreira; liga UMA vez, a partir do próximo jogo (`round` = jogos já jogados = índice do próximo). O que
@@ -12187,7 +12288,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       guardaCansacoBots(s, action.botCarry) // 🔁 rival com banco: o gás dos bots atravessa a virada + marca a 1ª temporada deles
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
       s.seasonVotes = {} // temporada nova: zera a votação
-      setActiveCatalog(s.deckLeague, false, s.regionalSala) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
+      setActiveCatalog(s.deckLeague, false, s.regionalSala, !!s.oficial) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos, action.artilheiros, action.conquistas) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
@@ -12459,7 +12560,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // pode dar lance de volta), marca "elenco fundo" (mira 22) e o orçamento é a
       // CAIXA. No fim (FINISH_CEREMONY), a caixa vira o que sobrou e tira o fundo.
       if (!s.careerOnline) return s
-      setActiveCatalog(s.deckLeague)
+      setActiveCatalog(s.deckLeague, false, undefined, !!s.oficial)
       healCpuSquads(s) // 🔒 conserta save antigo: se uma ficha de fundo ficou com um jogador que
       // um técnico já tem, tira daqui ANTES do Mercado — senão o Mercado soltava a cópia no leilão
       s.marketLog = [] // zera o resumo dos bots pra este leilão
@@ -12888,7 +12989,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s
         s.careerGratisAte = marcaGratis(s.seasonNo, !!action.pago, s.careerGratisAte)
       }
-      setActiveCatalog(s.deckLeague) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
+      setActiveCatalog(s.deckLeague, false, undefined, !!s.oficial) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
       const res = resolveCareerEnd(s)
       if (res.wonTitle) s.careerTitles++
       if (res.wonTitle && s.careerDivision === 'A') s.careerTitlesA++ // estrela ⭐
@@ -13839,7 +13940,7 @@ function faxinaCaixa(save: EscState): EscState {
 // emprestados pra SAF...). Andar no objeto inteiro pega todos, inclusive os
 // que vierem depois — lista de campos envelhece e esquece um.
 type FichaJogador = { fame: number; lo: number; hi: number; folk?: boolean; promessa?: boolean; bio?: string }
-const FICHA_ATUAL = (() => {
+const FICHA_GERAL = (() => {
   const exato = new Map<string, FichaJogador>()
   const porNome = new Map<string, FichaJogador>()
   const endereco = new Map<string, { club: string; year: number }>()
@@ -13865,6 +13966,25 @@ const FICHA_ATUAL = (() => {
   for (const n of repetidos) endereco.delete(n)
   return { exato, porNome, endereco }
 })()
+const FICHA_ATUAL = FICHA_GERAL // (bio da carta — fora da carreira oficial)
+// 🇧🇷 a ficha de um save do Brasil Oficial = a de sempre + as cartas do modo (com as mesmas travas de nome repetido)
+let FICHA_OFICIAL: typeof FICHA_GERAL | null = null
+function fichaOficial(): typeof FICHA_GERAL {
+  if (FICHA_OFICIAL) return FICHA_OFICIAL
+  const of = baralhoOficial()!
+  const exato = new Map(FICHA_GERAL.exato), porNome = new Map<string, FichaJogador>(), endereco = new Map<string, { club: string; year: number }>()
+  const contagem = new Map<string, number>()
+  const todas = [CATALOG_WORLD, CATALOG_EU, CATALOG, of].flatMap(cat => Object.values(cat).flat() as (FichaJogador & { name: string; club: string; year: number })[])
+  for (const c of todas) contagem.set(c.name, (contagem.get(c.name) ?? 0) + 1)
+  for (const c of todas) {
+    const ficha: FichaJogador = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bio: c.bio }
+    const k = `${c.name}|${clubCanon(c.club)}|${c.year}`
+    if (!exato.has(k)) exato.set(k, ficha)
+    if (contagem.get(c.name) === 1) { porNome.set(c.name, ficha); endereco.set(c.name, { club: clubCanon(c.club), year: c.year }) }
+  }
+  FICHA_OFICIAL = { exato, porNome, endereco }
+  return FICHA_OFICIAL
+}
 // 🏀 A MESMA REGRA PRO BASQUETE, EM MAPA SEPARADO. A regra permanente do Diego
 // (21/08) é "mexeu no jogador, TODO save atualiza" — mas a ficha acima só olha os
 // três baralhos de FUTEBOL, então um save de basquete ficava com a ficha velha
@@ -14006,6 +14126,10 @@ function curaIdRepetido(save: EscState): boolean {
   return mexeu
 }
 function sincronizaNiveis(save: EscState): EscState {
+  // 🇧🇷 save do Brasil Oficial sem as cartas do modo baixadas: NÃO mexe (a ficha de sempre não conhece as cartas do modo e
+  // "corrigia" o goleiro Rômulo do Chapada pro Rômulo do Novorizontino). Roda de novo no OFICIAL_PRONTO.
+  if (save.oficial && !baralhoOficial()) return save
+  const FICHA_ATUAL = save.oficial ? fichaOficial() : FICHA_GERAL
   save = compactaHistoricoIntl(save)
   // 🔨🐊 CARREIRA QUE NASCEU COM PREGÃO ABERTO/TOCAIA (21/10): tira a marca e, se o pregão estava aberto, reabre o leilão no
   // envelope de sempre (o que já foi arrematado fica com quem levou).
@@ -14317,6 +14441,11 @@ export function activateCareerSlot(seed: number): EscState | null {
 // ATIVA, promove a mais recente do arquivo pra ativa (pra o "Continuar" não sumir
 // da home enquanto ainda houver carreiras).
 export function deleteCareerSlot(seed: number) {
+  // 🗑️ 18/11 (Diego: "aperto pra excluir e não exclui… tenho sempre que atualizar a página"): a carreira que desceu da NUVEM
+  // fica também na MEMÓRIA (`carreirasEmMemoria`/`carreiraEmMemoria`, aparelho cheio) e a lista lê de lá — apagar só do
+  // aparelho fazia ela voltar na hora. Agora sai da memória também.
+  carreirasEmMemoria = carreirasEmMemoria.filter(c => (c.save as EscState).seed !== seed)
+  if (carreiraEmMemoria?.seed === seed) carreiraEmMemoria = null
   const act = readActiveCareer()
   if (act && act.save.seed === seed) {
     const arch = readCareerArchive()

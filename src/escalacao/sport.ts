@@ -99,6 +99,27 @@ function applyUnlock(email?: string | null): void {
   if (!u && current === 'basquete') current = 'futebol'
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
+// 🇧🇷 BRASIL OFICIAL (15/11): carreira com clubes REAIS. Em construção → só a conta do Diego (a mesma lista do basquete)
+// até ele testar e mandar liberar. Plano em docs/carreira-oficial-plano.md. Liberar = trocar a régua aqui.
+let oficialTeste = false
+/** só pras travas (`npm run brasil-oficial`) */
+export function _forcaBrasilOficialParaTeste(v: boolean) { oficialTeste = v }
+export function brasilOficialLiberado(): boolean { return unlocked || oficialTeste }
+export function useBrasilOficial(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return unlocked || oficialTeste
+}
+// 👀 18/11 (Diego: "publique… e tudo p minha conta só até agora"): as novidades de 17/11 (ônibus em jogo grande, balada e clube
+// de lazer no mapa, mais gente no portão, 1 linha a mais nos dias, cena do bairro na Central, futevôlei na noitada) ficam SÓ na
+// conta dele até ele mandar liberar. Liberar = trocar a régua aqui (mesma lista do Brasil Oficial).
+// 🟢 18/11 (Diego: "isso tudo aqui já pode pra todos… carreira antiga também"): LIBERADO PRA TODOS. `false` aqui = volta só pra conta dele.
+const NOVIDADES_17_11_GERAL = true
+export function previaDiego(): boolean { return NOVIDADES_17_11_GERAL || unlocked || oficialTeste }
+export function usePreviaDiego(): boolean { const so = useBrasilOficial(); return NOVIDADES_17_11_GERAL || so }
+// 🧪 só no modo de desenvolvimento (o build de produção apaga este bloco): liga o Brasil Oficial no navegador de teste, pra
+// conferir as telas sem a conta do Diego. `window.__brasilOficialDev()` no console.
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__brasilOficialDev = () => { oficialTeste = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 // 🌙 TEMA NOTURNO — decisão do Diego (03/08): por enquanto SÓ a conta dele vê o
 // botão e consegue ligar (vai virar REGALIA DE PLANO PAGO depois — aí a trava
 // troca de "lista de e-mails" pra "tier de apoio" num lugar só). Conta sem

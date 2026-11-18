@@ -90,7 +90,9 @@ for (const pais of readdirSync(path.join(FB, 'badges'))) { const d = path.join(F
 const mlsSvg = code => { const m = req(path.join(MLS, 'dist/logos', `${code}.js`)); const C = m.default ?? Object.values(m).find(v => typeof v === 'function'); return renderToStaticMarkup(React.createElement(C, { size: 400, width: 400, height: 400 })) }
 const U = c => ({ svg: () => mlsSvg(c) }), W = c => ({ fl: c })
 const C = a => ({ git: [FCL, 'src/data/logos/' + a] }), S = a => ({ git: [SPL, a] }), H = id => ({ svg: () => hugoSvg(id) })
-const J = n => ({ svg: () => readFileSync(doGit(JA, `logos/brazil/${n}.svg`), 'utf8') }), B = c => ({ git: [BFN, `clubs/bra/${c}/crest.png`] })
+const J = n => ({ svg: () => readFileSync(doGit(JA, `logos/brazil/${n}.svg`), 'utf8') }), JP = (pais, n) => ({ svg: () => readFileSync(doGit(JA, `logos/${pais}/${n}.svg`), 'utf8') }), B = c => ({ git: [BFN, `clubs/bra/${c}/crest.png`] })
+// 🇧🇷 15/11: escudo baixado da página do clube na Wikipédia (upload.wikimedia.org) — clubes pequenos que nenhum acervo tem
+const Wk = u => ({ url: u })
 const E = n => ({ png: n }), F = n => ({ svgFile: fbSvgs.get(n) ?? '', n }), R = c => ({ svg: () => rbSvg(c) })
 const MAPA = {
   // 🇧🇷
@@ -117,12 +119,116 @@ const MAPA = {
   'Necaxa': S('north-america/mx-mexico/necaxa.gif'), 'Pumas': S('north-america/mx-mexico/pumas.gif'), 'Tigres': S('north-america/mx-mexico/tigres.gif'),
   'Toluca': S('north-america/mx-mexico/toluca.gif'), 'Stoke City': S('europe/en-england/stoke.png'), 'Atlético Nacional': S('south-america/co-colombia/atleticonacional.png'),
   'Alianza Lima': S('south-america/pe-peru/alianzalima.gif'), 'U. de Chile': S('south-america/cl-chile/udechile.gif'),
+  // 🏆 Brasil Oficial: os estrangeiros da Libertadores 2026 (16/11, Diego: "tem que ter os escudos") — football-badges (MIT),
+  // JoseArroyave e sportlogos. Sem escudo em acervo nenhum (ficam no selo estilo B): Nacional Potosí e Universidad Católica-EQU.
+  'Lanús': F('lanus'), 'Platense': F('platense'), 'Estudiantes': F('estudiantes-de-la-plata'), 'Independiente Rivadavia': F('independiente-rivadavia'),
+  'Rosario Central': F('rosario-central'), 'Argentinos Juniors': JP('argentina', 'Argeninos_Juniors'), 'Always Ready': F('always-ready'), 'Bolívar': F('bolivar'),
+  'The Strongest': JP('bolivia', 'The_Strongest'), 'Coquimbo Unido': F('coquimbo-unido'), 'Universidad Católica': F('universidad-catolica'),
+  "O'Higgins": JP('chile', "O'Higgins"), 'Huachipato': JP('chile', 'Huachipato'), 'Santa Fe': F('independiente-santa-fe'), 'Junior Barranquilla': F('atletico-junior'),
+  'Deportes Tolima': F('deportes-tolima'), 'Independiente Medellín': F('independiente-medellin'), 'Independiente del Valle': F('independiente-del-valle'),
+  'Libertad': F('libertad'), 'Cerro Porteño': F('cerro-porteno'), 'Guaraní-PAR': S('south-america/py-paraguay/guarani.png'), '2 de Mayo': JP('paraguay', '2_de_Mayo'),
+  'Universitario': F('universitario'), 'Cusco': F('cusco'), 'Nacional-URU': JP('uruguay', 'Nacional'), 'Peñarol': F('penarol'), 'Liverpool-URU': JP('uruguay', 'Liverpool'),
+  'Juventud': JP('uruguay', 'Juventud'), 'Universidad Central': F('universidad-central'), 'Deportivo La Guaira': F('deportivo-la-guaira'), 'Carabobo': JP('venezuela', 'Carabobo_FC'),
+  'Deportivo Táchira': S('south-america/ve-venezuela/deportivotachira.png'),
+  // 🏆 Brasil Oficial: os estrangeiros da Sul-Americana 2026 (16/11) — JoseArroyave. Sem escudo em acervo nenhum: Guabirá, Libertad-EQU,
+  // Macará, Alianza Atlético (e o América de Cali, que já estava na lista de espera)
+  'Racing': JP('argentina', 'Racing_Club'), 'Deportivo Riestra': JP('argentina', 'Deportivo_Riestra'), 'San Lorenzo': JP('argentina', 'San_Lorenzo_de_Almagro'),
+  'Tigre': JP('argentina', 'Tigre'), 'Barracas Central': JP('argentina', 'Barracas_Central'), 'San Antonio Bulo Bulo': JP('bolivia', 'CD_San_Antonio_Bulo_Bulo'),
+  'Blooming': JP('bolivia', 'Blooming'), 'Independiente Petrolero': JP('bolivia', 'Independiente_Petrolero'), 'Audax Italiano': JP('chile', 'Audax_Italiano'),
+  'Palestino': JP('chile', 'Palestino'), 'Cobresal': JP('chile', 'Cobresal'), 'Atlético Bucaramanga': JP('colombia', 'Bucaramanga'), 'Millonarios': JP('colombia', 'Millonarios'),
+  'Orense': JP('ecuador', 'Orense'), 'Deportivo Cuenca': JP('ecuador', 'Deportivo_Cuenca'), 'Sportivo Trinidense': JP('paraguay', 'Trinidense'),
+  'Nacional-PAR': JP('paraguay', 'Nacional'), 'Recoleta': JP('paraguay', 'Club_Deportivo_Recoleta'), 'Olimpia': JP('paraguay', 'Olimpia'),
+  'Melgar': JP('peru', 'FBC_Melgar'), 'Deportivo Garcilaso': JP('peru', 'Deportivo_Garcilaso'), 'Cienciano': JP('peru', 'Cienciano_del_Cusco'),
+  'Defensor Sporting': JP('uruguay', 'Defensor_Sporting'), 'Boston River': JP('uruguay', 'Boston_River'), 'Racing-URU': JP('uruguay', 'Racing'),
+  'Montevideo City Torque': JP('uruguay', 'Montevideo_City_Torque'), 'Academia Puerto Cabello': JP('venezuela', 'Academia_Puerto_Cabello'),
+  'Monagas': JP('venezuela', 'Monagas_SC'), 'Caracas': JP('venezuela', 'Caracas'), 'Metropolitanos': JP('venezuela', 'Metropolitanos_FC'),
   // 🌵 copas regionais (30/10)
   'Bangu': J('Bangu'), 'America-RJ': J('America_Football_Club_(RJ)'), 'Madureira': J('Madureira_Esporte_Clube'),
   'Volta Redonda': J('Volta_Redonda'), 'Guarani': J('Guarani'), 'Juventude': J('Juventude'), 'Caxias': J('Caxias'),
   'Figueirense': J('Figueirense'), 'Avaí': J('Avai'), 'Londrina': J('Londrina'), 'ABC': J('ABC_Futebol_Clube'),
   'Botafogo-PB': J('Botafogo_PB'), 'CSA': J('CSA'), 'CRB': B('crb'), 'Criciúma': B('criciuma'),
   'Paraná': H('parana'), 'Sampaio Corrêa': H('sampaio-correa'),
+  // 🇧🇷 Brasil Oficial (15/11, Diego: "todos os times com escudos oficiais") — Séries A/B de 2026 que faltavam
+  'Mirassol': J('Mirassol'), 'Remo': J('Clube_do_Remo'), 'Athletic': J('Athletic'), 'Atlético-GO': J('Atlético_Goianiense'),
+  'Botafogo-SP': J('Botafogo_SP'), 'Cuiabá': J('Cuiabá'), 'Novorizontino': J('Grêmio_Novorizontino'),
+  'Operário-PR': J('Operário_Ferroviário'), 'São Bernardo': J('São_Bernardo'), // ⚠️ o SVG vem sem viewBox e sai CORTADO: o .webp do repo foi refeito à mão (15/11) — depois de rodar, `git checkout public/escudos-clubes/sao-bernardo.webp` e w 160 / h 159 no índice
+  'Vila Nova': J('Vila_Nova'),
+  // 🇧🇷 Série C 2026 (15/11)
+  'Amazonas': J('Amazonas'), 'Anápolis': J('Anápolis'), 'Barra': J('Barra'), 'Brusque': J('Brusque'), 'Confiança': J('Confiança'),
+  'Ferroviária': J('Ferroviaria'), 'Floresta': J('Floresta'), 'Inter de Limeira': J('Inter_de_Limeira'), 'Itabaiana': J('Itabaiana'),
+  'Ituano': J('Ituano'), 'Maranhão': J('Maranhão'), 'Maringá': J('Maringá'), 'Paysandu': J('Paysandu'), 'Ypiranga': J('Ypiranga'),
+  // 🇧🇷 Brasil Oficial: Série D 2026, estaduais e Copa do Brasil (15/11) — acervo JoseArroyave
+  'Galvez': J('Galvez_Esporte_Clube'), 'Humaitá': J('Sport_Clube_Humaitá'), 'Independência': J('Independência_Futebol_Clube'), 'ASA': J('ASA_de_Arapiraca'),
+  'CSE': J('CSE'), 'Manauara': J('Manauara_Esporte_Clube'), 'Manaus': J('Manaus_Futebol_Clube'), 'Nacional-AM': J('Nacional_Futebol_Clube'),
+  'Oratório': J('Oratório_Recreativo_Clube'), 'Trem': J('Trem_Desportivo_Clube'), 'Atlético-BA': J('Atlético_de_Alagoinhas'), 'Bahia de Feira': J('Bahia_de_Feira'),
+  'Barcelona de Ilhéus': J('Barcelona_de_Ilhéus'), 'Jacuipense': J('EC_Jacuipense'), 'Jequié': J('Jequié'), 'Juazeirense': J('Juazeirense'),
+  'Porto-BA': J('Porto-BA'), 'Atlético-CE': J('Futebol_Clube_Atlético_Cearense'), 'Ferroviário-CE': J('Ferroviário_Atlético_Clube'), 'Iguatu': J('Associação_Desportiva_Iguatu'),
+  'Maracanã-CE': J('Maracanã_Esporte_Clube'), 'Tirol': J('Centro_de_Formação_de_Atletas_Tirol'), 'Brasiliense': J('Brasiliense_Futebol_Clube'), 'Capital': J('Capital_Clube_de_Futebol'),
+  'Ceilândia': J('Ceilândia_Esporte_Clube'), 'Gama': J('Sociedade_Esportiva_do_Gama'), 'Real Noroeste': J('Real_Noroeste'), 'Rio Branco-ES': J('Rio_Branco-ES'),
+  'Vitória-ES': J('Vitória-ES'), 'ABECAT': J('ABECAT_Ouvidorense'), 'Anapolina': J('Anapolina'), 'Aparecidense': J('Associação_Atlética_Aparecidense'),
+  'Centro Oeste': J('Centro_Oeste_FC'), 'CRAC': J('CRAC'), 'Goiatuba': J('Goiatuba_Esporte_Clube'), 'Inhumas': J('Inhumas_Esporte_Clube'),
+  'Jataiense': J('Jataiense'), 'IAPE': J('Instituto_de_Administração_de_Projetos_Educacionais_Futebol_Clube'), 'Imperatriz': J('Sociedade_Imperatriz_de_Desportos'), 'Moto Club': J('Moto_Club_de_São_Luís'),
+  'Betim': J('Betim_Futebol'), 'Democrata-GV': J('Democrata-GV'), 'Itabirito': J('Itabirito_FC'), 'North': J('North_Esporte_Clube'),
+  'Pouso Alegre': J('Pouso_Alegre_Futebol_Clube'), 'Tombense': J('Tombense_FC'), 'Uberlândia': J('Uberlândia_Esporte_Clube'), 'URT': J('URT'),
+  'Ivinhema': J('Ivinhema_Futebol_Clube'), 'Operário-MS': J('Operário-MS'), 'Luverdense': J('Luverdense_Esporte_Clube'), 'Mixto': J('Mixto_Esporte_Clube'),
+  'Operário VG': J('Operário_Várzea-Grandense'), 'Primavera-MT': J('Primavera_Atlético_Clube'), 'União Rondonópolis': J('União_Esporte_Clube'), 'Várzea Grande': J('Várzea_Grande_Esporte_Clube'),
+  'Tuna Luso': J('Tuna_Luso_Brasileira'), 'Águia de Marabá': J('Águia_de_Marabá_Futebol_Clube'), 'Campinense': J('Campinense'), 'Serra Branca': J('Serra_Branca_EC'),
+  'Sousa': J('Sousa_Esporte_Clube'), 'Treze': J('Treze_FC'), 'Central': J('Central_Sport_Club'), 'Decisão': J('Decisão_Goiana_FC'),
+  'Maguary': J('Associação_Atlética_Maguary'), 'Retrô': J('Retrô_FC'), 'Altos': J('Associação_Atlética_de_Altos'), 'Fluminense-PI': J('Fluminense_Esporte_Clube'),
+  'Parnahyba': J('Parnahyba_Sport_Club'), 'Piauí': J('Piauí_Esporte_Clube'), 'Andraus': J('Andraus'), 'Azuriz': J('Azuriz_FC'),
+  'Cascavel': J('FC_Cascavel'), 'Cianorte': J('Cianorte_FC'), 'Foz do Iguaçu': J('Foz_do_Iguaçu_FC'), 'Galo Maringá': J('Galo_Maringá'),
+  'São Joseense': J('São_Joseense'), 'Boavista-RJ': J('Boavista_SC'), 'Maricá': J('Maricá_FC'), 'Nova Iguaçu': J('Nova_Iguaçu_FC'),
+  'Portuguesa-RJ': J('Associação_Atlética_Portuguesa_(RJ)'), 'Sampaio Corrêa-RJ': J('Sampaio_Corrêa-RJ'), 'América-RN': J('América_de_Natal'), 'Laguna': J('Clube_Laguna_SAF'),
+  'Guaporé': J('Guaporé_Futebol_Clube'), 'Porto Velho': J('Porto_Velho_Esporte_Clube'), 'GAS': J('Grêmio_Atlético_Sampaio_(GAS)'), 'Monte Roraima': J('Monte_Roraima'),
+  'São Raimundo-RR': J('São_Raimundo-RR'), 'Avenida': J('Avenida'), 'Brasil de Pelotas': J('Brasil_de_Pelotas'), 'Guarany de Bagé': J('Guarany_de_Bagé'),
+  'Inter-SM': J('Internacional_de_Santa_Maria'), 'Monsoon': J('Monsoon_FC'), 'Novo Hamburgo': J('Novo_Hamburgo'), 'São José-RS': J('EC_São_José'),
+  'São Luiz-RS': J('EC_São_Luiz'), 'Blumenau': J('Blumenau_Esporte_Clube'), 'Joinville': J('Joinville_Esporte_Clube'), 'Marcílio Dias': J('Marcílio_Dias'),
+  'Santa Catarina': J('Santa_Catarina_Clube'), 'Atlético Gloriense': J('Atlético_Gloriense'), 'Lagarto': J('Lagarto_FC'), 'Sergipe': J('Club_Sportivo_Sergipe'),
+  'Noroeste': J('Noroeste'), 'Portuguesa': J('Associação_Portuguesa_de_Desportos'), 'Primavera-SP': J('Primavera'), 'Velo Clube': J('Velo_Clube'),
+  'XV de Piracicaba': J('XV_de_Piracicaba'), 'Água Santa': J('Esporte_Clube_Água_Santa'), 'Araguaína': J('Araguaína_Futebol_e_Regatas'), 'Tocantinópolis': J('Tocantinópolis_Esporte_Clube'),
+  // 🇧🇷 Brasil Oficial (15/11): os que nenhum acervo tem — escudo da página do clube na pt.wikipedia
+  // 🌐 Intercontinental 2026 (17/11): os dois que nenhum acervo tem — escudo da página do clube na pt.wikipedia
+  'Mamelodi Sundowns': Wk('https://upload.wikimedia.org/wikipedia/pt/9/93/Mamelodi_Sundowns_FC.png'),
+  'Auckland FC': Wk('https://upload.wikimedia.org/wikipedia/commons/a/aa/Auckland_FC_logo.svg'),
+  'Vasco-AC': Wk('https://upload.wikimedia.org/wikipedia/pt/a/ac/ADVascoAC.png'),
+  'Coruripe': Wk('https://upload.wikimedia.org/wikipedia/pt/b/b4/EscudoAACoruripe.png'),
+  'Cruzeiro-AL': Wk('https://upload.wikimedia.org/wikipedia/pt/9/96/ECCruzeiroAL.png'),
+  'Murici': Wk('https://upload.wikimedia.org/wikipedia/commons/7/77/Murici_FC_%282017%29.png'),
+  'Itacoatiara': Wk('https://upload.wikimedia.org/wikipedia/pt/a/a7/Itacoatiara_FC-49.png'),
+  'Parintins': Wk('https://upload.wikimedia.org/wikipedia/pt/f/f9/ParintinsFC.png'),
+  'Princesa do Solimões': Wk('https://upload.wikimedia.org/wikipedia/pt/1/1d/Princesa_do_Solim%C3%B5es-AM.png'),
+  'São Raimundo-AM': Wk('https://upload.wikimedia.org/wikipedia/commons/7/7d/S%C3%A3o_Raimundo-AM_2017.png'),
+  'Independente-AP': Wk('https://upload.wikimedia.org/wikipedia/pt/f/ff/Logo_Independente-AP.png'),
+  'Horizonte': Wk('https://upload.wikimedia.org/wikipedia/commons/a/a8/Horizonte_Futebol_Clube.png'),
+  'Maranguape': Wk('https://upload.wikimedia.org/wikipedia/commons/d/d3/Escudo_do_Maranguape_com_Estrelas.png'),
+  'Quixadá': Wk('https://upload.wikimedia.org/wikipedia/pt/d/d8/Quixada_logo.png'),
+  'Porto Vitória': Wk('https://upload.wikimedia.org/wikipedia/pt/f/fa/Escudo_Porto_Vit%C3%B3ria.png'),
+  'ITZ': Wk('https://upload.wikimedia.org/wikipedia/pt/c/c9/ITZ_Sport.png'),
+  'Luminense': Wk('https://upload.wikimedia.org/wikipedia/pt/2/28/Luminense_AC.png'),
+  'Tuntum': Wk('https://upload.wikimedia.org/wikipedia/pt/7/7c/Escudo_Tuntum_EC.png'),
+  'FC Pantanal': Wk('https://upload.wikimedia.org/wikipedia/commons/2/26/FC_Pantanal-MS_%28BRA%29_2025.png'),
+  'Chapada': Wk('https://upload.wikimedia.org/wikipedia/commons/5/5d/ChapadaFC.png'),
+  'Nova Mutum': Wk('https://upload.wikimedia.org/wikipedia/pt/8/81/NovaMutumEC.png'),
+  // 'Sinop': a pt.wikipedia só tem o escudo do Sinop FC antigo; quem joga 2026 é o Clube Sport Sinop (outro clube) — fica no selo
+  'Amazônia': Wk('https://upload.wikimedia.org/wikipedia/pt/7/72/Escudo_AIFC.png'),
+  'Bragantino-PA': Wk('https://upload.wikimedia.org/wikipedia/pt/9/96/BragantinoCP2018.png'),
+  'Cametá': Wk('https://upload.wikimedia.org/wikipedia/pt/3/3b/CametaSC.png'),
+  'Capitão Poço': Wk('https://upload.wikimedia.org/wikipedia/pt/0/02/Escudo_CPEC.png'),
+  'Santa Rosa': Wk('https://upload.wikimedia.org/wikipedia/pt/1/19/SantaRosaEC.png'),
+  'São Francisco-PA': Wk('https://upload.wikimedia.org/wikipedia/pt/b/b8/S%C3%A3o_Francisco_Futebol_Clube_Santar%C3%A9m_Par%C3%A1.png'),
+  'São Raimundo-PA': Wk('https://upload.wikimedia.org/wikipedia/pt/2/29/SaoRaimundoPA.png'),
+  'Esporte de Patos': Wk('https://upload.wikimedia.org/wikipedia/pt/c/c8/Esporte_Clube_de_Patos_logo.png'),
+  'Nacional de Patos': Wk('https://upload.wikimedia.org/wikipedia/pt/3/32/NacionalPatos.png'),
+  'Pombal': Wk('https://upload.wikimedia.org/wikipedia/pt/0/0a/Escudo_Pombal.png'),
+  'Vitória das Tabocas': Wk('https://upload.wikimedia.org/wikipedia/pt/1/1e/AADVitoriaT.png'),
+  'Ji-Paraná': Wk('https://upload.wikimedia.org/wikipedia/pt/5/54/Ji-Paran%C3%A1FutebolClube.png'),
+  'Camboriú': Wk('https://upload.wikimedia.org/wikipedia/pt/1/17/Escudo_do_Cambori%C3%BA_FC_%282022%29.png'),
+  'Carlos Renaux': Wk('https://upload.wikimedia.org/wikipedia/pt/f/f1/CACarlos_Renaux.png'),
+  'Concórdia': Wk('https://upload.wikimedia.org/wikipedia/pt/1/16/Conc%C3%B3rdia_Atl%C3%A9tico_Clube.png'),
+  'América-SE': Wk('https://upload.wikimedia.org/wikipedia/pt/2/22/AmericaSE.png'),
+  'Dorense': Wk('https://upload.wikimedia.org/wikipedia/pt/e/ef/Dorense_FC_escudo.png'),
+  'Falcon': Wk('https://upload.wikimedia.org/wikipedia/pt/6/6f/Falcon_FC.png'),
+  'Capivariano': Wk('https://upload.wikimedia.org/wikipedia/commons/4/43/Capivariano_FC.png'),
   // 🌍 football-logos.cc (baixa quando o host estiver liberado)
   'Blackburn': W('england/blackburn-rovers'), 'América de Cali': W('colombia/america-de-cali'),
   // 🇪🇺
@@ -151,7 +257,15 @@ const TMP = path.join(FONTES, 'png'); mkdirSync(TMP, { recursive: true })
 const indice = {}, falta = []
 for (const [chave, src] of Object.entries(MAPA)) {
   const png = path.join(TMP, slug(chave) + '.png')
-  if (src.git) {
+  if (src.url) {
+    const ext = src.url.split('?')[0].split('.').pop().toLowerCase()
+    const dst = path.join(FONTES, 'wk-' + slug(chave) + '.' + ext)
+    if (!existsSync(dst)) try { execSync(`curl -sSfL -m 30 -A "Mozilla/5.0 (X11; Linux x86_64)" -o "${dst}" "${src.url}"`, { stdio: 'ignore' }) } catch { falta.push(chave); continue }
+    if (ext === 'svg') {
+      await pg.setContent(`<html><body style="margin:0;background:transparent"><div id="zzcaixa" style="width:400px;height:400px;display:flex;align-items:center;justify-content:center">${readFileSync(dst, 'utf8')}</div><style>#zzcaixa svg{width:400px;height:400px}</style></body></html>`)
+      await pg.locator("#zzcaixa").screenshot({ path: png, omitBackground: true })
+    } else writeFileSync(png, readFileSync(dst))
+  } else if (src.git) {
     writeFileSync(png, readFileSync(doGit(src.git[0], src.git[1])))
   } else if (src.fl) {
     const baixado = flBaixa(src.fl)

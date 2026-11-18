@@ -2,6 +2,8 @@
 import '../../src/index.css'
 import { createRoot } from 'react-dom/client'
 import { TunelFinal, FestaCampeao, Trofeu, COMPS, type CompId } from '../../src/escalacao/competicoes-visual'
+import '../../src/App.tsx'
+import { ConviteSelecao } from '../../src/escalacao/copa-mundo'
 import escudo from '../../src/escalacao/img/guimaraes-escudo.webp'
 import mascote from '../../src/escalacao/img/guimaraes-mascote.webp'
 const v = new URLSearchParams(location.search).get('v') ?? 'tunel'
@@ -16,6 +18,10 @@ if (v === 'trofeus') root.render(
       <b style={{ fontFamily: 'Oswald', fontWeight: 900, textTransform: 'uppercase', color: COMPS[c].titulo, fontSize: 14, filter: 'drop-shadow(2px 2px 0 #000)' }}>{COMPS[c].nome[0]}</b>
     </div>)}
   </div>)
+else if (v === 'convite') root.render(<div style={{ background: 'rgba(0,0,0,.72)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10 }}><div style={{ background: '#F4ECD6', border: '4px solid #000', borderRadius: 18, boxShadow: '4px 4px 0 #000', padding: 16, width: '100%', maxWidth: 400 }}><ConviteSelecao pais="Argentina" pos={4} clube="Flamengo" onAceita={() => {}} onRecusa={() => {}} /></div></div>)
+else if (v === 'festaSula') root.render(<FestaCampeao comp="sula" nomeComp={['Sul-Americana', 'Sudamericana']} nome="Fluminense" crest={<img src={import.meta.env.BASE_URL + "escudos-clubes/fluminense.webp"} style={{ height: 150, width: 'auto' }} />}
+  linha="final: Fluminense 2×1 Racing · Temporada 3" souCampeao onDone={() => {}} artilheiro={{ nome: 'Germán Cano', time: 'Fluminense', n: 7 }} garcom={{ nome: 'Ganso', time: 'Fluminense', n: 4 }} />)
+else if (v === 'trofeuSula') root.render(<div style={{ display: 'flex', gap: 14, padding: 16, background: '#F4ECD6', justifyContent: 'center' }}>{(['liberta', 'sula', 'mundial'] as CompId[]).map(c => <div key={c} style={{ width: 150, border: '3px solid #000', borderRadius: 14, background: COMPS[c].bg, boxShadow: '3px 3px 0 #000', padding: '10px 4px 8px', textAlign: 'center' }}><div style={{ display: 'flex', justifyContent: 'center' }}><Trofeu comp={c} size={100} /></div><b style={{ fontFamily: 'Oswald', fontWeight: 900, textTransform: 'uppercase', color: COMPS[c].titulo, fontSize: 14 }}>{COMPS[c].nome[0]}</b></div>)}</div>)
 else if (v.startsWith('festa')) {
   const copa = v === 'festaCopa'
   root.render(<FestaCampeao comp={copa ? 'copabr' : 'carB'} nome="Guimarães SCI" crest={<Esc s={150} />} mascote={<img src={mascote} style={{ width: '100%' }} />}

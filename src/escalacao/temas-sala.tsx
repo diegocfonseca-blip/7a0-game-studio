@@ -7,6 +7,7 @@
 // · Quem escolhe é o DONO da sala, e só entre os temas da CONTA dele (`TEMAS_DA_CONTA`, pelo e-mail do batismo — regra
 //   28/09). Fica gravado em `game_state.tema`; os convidados recebem por um aviso único no canal (nada periódico).
 // · Arte = os .webp do batismo que já existem (0 KB novo); morcego/lua/neve são CSS.
+import { CLUBES_TEMA_CORACAO_LISTA } from './temas-coracao-lista'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { supabase } from '../lib/supabase'
 import { ESCUDOS_OFICIAIS } from './escudos-oficiais'
@@ -162,7 +163,7 @@ const LISTRA_ESPECIAL: Record<string, { listra: string; listraMini: string; band
     bandeira: 'linear-gradient(180deg,#C8102E 0 44%,#F2F2F2 44% 56%,#111 56% 100%)',
   },
 }
-export const CLUBES_TEMA_CORACAO: ClubeCoracaoTema[] = Object.entries(ESCUDOS_OFICIAIS)
+export const CLUBES_TEMA_CORACAO: ClubeCoracaoTema[] = Object.entries(ESCUDOS_OFICIAIS).filter(([nome]) => CLUBES_TEMA_CORACAO_LISTA.has(nome))
   .map(([nome, e]) => {
     const slug = e.src.replace(/^.*\//, '').replace(/\.webp$/, '')
     const sl = SELOS[nome]

@@ -48,6 +48,6 @@ export function CareerCupGames({ ties, pos, title, renderPens }: { ties: CopaTie
       homeScore={v.hg} awayScore={v.ag} mine={tie.a.you || tie.b.you} goals={v.goals}
       status={`${v.leg} · ${v.done ? 'ENCERRADO' : `${v.minute}′ · AO VIVO`}`}
       detail={<>{v.n===2 && <p>{tie.a.name} × {tie.b.name}<br/>{v.index>0 && <>Ida: {tie.legs[0][0]} × {tie.legs[0][1]} · </>}<b>Agregado: {v.aggregate[0]} × {v.aggregate[1]}</b></p>}
-        {v.done && (tie.pens ? renderPens(tie) : <p><b>{tie.win==='a' ? tie.a.name : tie.b.name} venceu o confronto</b></p>)}</>} />
+        {v.done && !tie.liga && (tie.pens ? renderPens(tie) : <p><b>{tie.win==='a' ? tie.a.name : tie.b.name} venceu o confronto</b></p>)}</>} />
   })}</div>{!ties.length && <p>Não há outros jogos nesta fase.</p>}</section>
 }

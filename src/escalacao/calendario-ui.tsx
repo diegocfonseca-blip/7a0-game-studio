@@ -100,7 +100,7 @@ export function CalendarioBarra(p: Props) {
       </div>
       {mostraDia && p.recado && <div className="ll-cal-dia">
         <div className="ll-cal-num"><span>{hoje.curto}</span><b>{hoje.dia}</b><span>{hoje.mes}</span></div>
-        <div className="ll-cal-rec"><div className="k">{p.recado.k}</div><h4>{p.recado.titulo}</h4>{p.recado.texto && <p>{p.recado.texto}</p>}</div>
+        <div className="ll-cal-rec"><div className="k">{p.recado.k}</div><h4>{p.recado.titulo}</h4>{p.recado.texto && <p>{p.recado.texto}</p>}{p.recado.mais && <p>{p.recado.mais.e} {p.recado.mais.t}</p>}</div>
       </div>}
       {mostraDia && <div className="ll-cal-sem">{semana.map(d => {
         const f = fmtDia(d), tipo = p.diasDeJogo?.[d]
@@ -147,6 +147,7 @@ const CSS_PROX = `
 .ll-calp .rec{display:flex;gap:9px;align-items:flex-start;margin-top:10px;background:#fff;color:#0C0C0C;border:2px solid #0C0C0C;border-radius:11px;padding:7px 10px}
 .ll-calp .rec .q{flex:1;min-width:0}.ll-calp .rec small{display:block;font:800 10px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#C2452F}
 .ll-calp .rec b{display:block;font:800 15px/1.1 Oswald,sans-serif;text-transform:uppercase}.ll-calp .rec p{margin:2px 0 0;font-weight:600;font-size:12px;color:#4a4536}
+.ll-calp .rec p.mais{margin-top:6px;padding-top:6px;border-top:2px dashed #d8cfb4;color:#2c2820}.ll-calp .rec p.mais em{font-style:normal}.ll-calp .rec p.mais.bom{color:#14612f}.ll-calp .rec p.mais.ruim{color:#9c2f1e}
 .ll-calp .go{display:block;width:100%;margin-top:10px;background:#FFC400;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:12px;box-shadow:0 4px 0 #000;font:800 17px Oswald,sans-serif;text-transform:uppercase;padding:9px;cursor:pointer}
 .ll-calp .go:active{transform:translateY(2px);box-shadow:0 2px 0 #000}
 `
@@ -172,7 +173,7 @@ export function CalendarioProximo(p: PropsProx) {
         return <div key={d} className={`${tipo ?? ''}${d === p.hoje ? ' hoje' : ''}${d < p.hoje ? ' foi' : ''}`}>{x.curto}<b>{x.dia}</b>{tipo && <i>{tipo === 'liga' ? tr('LIGA', 'LEAGUE') : tr('COPA', 'CUP')}</i>}</div>
       })}</div>
       {p.auto && <div className="tm"><i style={{ width: `${tempo}%` }} /></div>}
-      {p.recado && <div className="rec"><div className="q"><small>{p.recado.k}</small><b>{p.recado.titulo}</b>{p.recado.texto && <p>{p.recado.texto}</p>}</div></div>}
+      {p.recado && <div className="rec"><div className="q"><small>{p.recado.k}</small><b>{p.recado.titulo}</b>{p.recado.texto && <p>{p.recado.texto}</p>}{p.recado.mais && <p className={`mais${p.recado.mais.tom ? ' ' + p.recado.mais.tom : ''}`}><em>{p.recado.mais.e}</em> {p.recado.mais.t}</p>}</div></div>}
       {p.irJogo ? <button className="go" onClick={p.irJogo} style={{ background: '#1B7A3D', color: '#fff' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
         : p.auto ? (!p.semPular && <button className="go" onClick={p.onPular}>{tr('⏩ Pular pro jogo', '⏩ Skip to the match')}</button>)
         : <button className="go" onClick={p.onProximo}>{tr('▶ Próximo adversário', '▶ Next opponent')}</button>}

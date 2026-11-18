@@ -67,8 +67,13 @@ export interface CtxRecado {
   ultimo?: { gf: number; ga: number; adv: string }
   cansados: number; suspensos: string[]; machucados: string[]
   copaQuarta?: { fase: string; adv?: string; fora?: boolean } // 🏆 a quarta desta semana tem fase da Copa
+  // 📰 17/11 (Diego: "cada dia fala só do próprio dia… no máximo 1 linha a mais do mesmo assunto") — tudo do que o jogo já sabe
+  artilheiro?: { nome: string; gols: number; meu: boolean } // segunda: quem lidera a artilharia da sua série (só rodadas já jogadas)
+  advFora?: string[] // quinta: quem o adversário do domingo perdeu por lesão (o DM do bot, só o que já foi revelado)
+  noitada?: string // sábado: o titular que foi pra noitada (o causo da temporada, `EventoAtivo` tipo 'noitada')
+  noitadaFutevolei?: boolean // 🏐 a noitada foi trocar o treino pelo futevôlei no clube do bairro
 }
-export interface Recado { k: string; titulo: string; texto: string }
+export interface Recado { k: string; titulo: string; texto: string; /** a linha a mais do MESMO assunto do dia (17/11) */ mais?: { e: string; t: string; tom?: 'bom' | 'ruim' } }
 // a mesma semana sempre escolhe a mesma frase (preso no dia), mas cada semana muda
 const escolhe = <T,>(lista: T[], t: number): T => lista[Math.abs(Math.floor(t / DIA_MS)) % lista.length]
 
@@ -84,7 +89,9 @@ export function recadoDoDia(t: number, c: CtxRecado): Recado {
     const titulo = v ? escolhe([tr(`Vitória sobre o ${u.adv} anima a semana`, `Win over ${u.adv} lifts the week`), tr(`${u.gf} a ${u.ga}: a torcida dorme feliz`, `${u.gf}-${u.ga}: the fans sleep happy`), tr(`Três pontos e moral em alta`, `Three points and morale up`)], t)
       : e ? escolhe([tr(`Empate com o ${u.adv} deixa gosto amargo`, `Draw with ${u.adv} leaves a bitter taste`), tr(`${u.gf} a ${u.ga}: um ponto e muita resenha`, `${u.gf}-${u.ga}: one point and a lot of talk`)], t)
         : escolhe([tr(`Derrota pro ${u.adv} liga o alerta`, `Loss to ${u.adv} sounds the alarm`), tr(`${u.gf} a ${u.ga}: semana de cobrança no CT`, `${u.gf}-${u.ga}: a tough week at the training ground`), tr(`Torcida cobra reação`, `Fans demand a reaction`)], t)
-    return { k: tr('📰 O MARTELO · segunda', '📰 THE HAMMER · Monday'), titulo, texto: tr(`${c.pos ? `${c.pos}º lugar na ${c.divNome}, ${c.meusPts ?? 0} pontos.` : ''}`, `${c.pos ? `${c.pos}th in the ${c.divNome}, ${c.meusPts ?? 0} points.` : ''}`) }
+    const a = c.artilheiro
+    const mais = a && a.gols > 0 ? { e: '⚽', t: a.meu ? tr(`Artilheiro da ${c.divNome}: ${a.nome}, do seu time, com ${a.gols} ${a.gols === 1 ? 'gol' : 'gols'}.`, `${c.divNome} top scorer: ${a.nome}, from your team, with ${a.gols} ${a.gols === 1 ? 'goal' : 'goals'}.`) : tr(`Artilheiro da ${c.divNome}: ${a.nome}, com ${a.gols} ${a.gols === 1 ? 'gol' : 'gols'}.`, `${c.divNome} top scorer: ${a.nome}, with ${a.gols} ${a.gols === 1 ? 'goal' : 'goals'}.`), tom: a.meu ? 'bom' as const : undefined } : undefined
+    return { k: tr('📰 O MARTELO · segunda', '📰 THE HAMMER · Monday'), titulo, texto: tr(`${c.pos ? `${c.pos}º lugar na ${c.divNome}, ${c.meusPts ?? 0} ${(c.meusPts ?? 0) === 1 ? 'ponto' : 'pontos'}.` : ''}`, `${c.pos ? `${c.pos}th in the ${c.divNome}, ${c.meusPts ?? 0} ${(c.meusPts ?? 0) === 1 ? 'point' : 'points'}.` : ''}`), mais }
   }
   if (dow === 2) { // terça: boletim do elenco
     const partes: string[] = []
@@ -104,14 +111,17 @@ export function recadoDoDia(t: number, c: CtxRecado): Recado {
       : c.lider ? escolhe([tr(`${c.lider} segura a ponta`, `${c.lider} holds on at the top`), tr(`${c.lider} lidera a ${c.divNome}`, `${c.lider} leads the ${c.divNome}`)], t) : tr('A divisão esquenta', 'The division heats up')
     const texto = c.pos === 1 ? tr('Você é o time a ser batido nesta rodada.', 'You are the team to beat this round.')
       : gap != null ? tr(`${gap === 0 ? 'Mesmo número de pontos que o líder.' : `${gap} ${gap === 1 ? 'ponto' : 'pontos'} pro líder.`}`, `${gap === 0 ? 'Level on points with the leader.' : `${gap} ${gap === 1 ? 'point' : 'points'} behind the leader.`}`) : ''
-    return { k: tr('📰 Rivais · quinta', '📰 Rivals · Thursday'), titulo, texto }
+    const f = c.advFora ?? []
+    const mais = f.length && c.proxAdv ? { e: '🩹', t: tr(`O ${c.proxAdv}, seu adversário de domingo, está sem ${f.join(', ')} (lesão).`, `${c.proxAdv}, Sunday's opponent, is without ${f.join(', ')} (injury).`), tom: 'bom' as const } : undefined
+    return { k: tr('📰 Rivais · quinta', '📰 Rivals · Thursday'), titulo, texto, mais }
   }
   if (dow === 5) { // sexta: a véspera
     const titulo = c.proxClassico ? tr(`Clássico contra o ${adv}!`, `Derby against ${adv}!`) : escolhe([tr(`Clima de jogo: ${adv}`, `Match mood: ${adv}`), tr(`O ${adv} vem aí`, `${adv} is coming`), tr(`Véspera contra o ${adv}`, `Eve of the ${adv} game`)], t)
     return { k: tr('🔥 Véspera · sexta', '🔥 Match eve · Friday'), titulo, texto: tr(`Domingo, 16h, ${casa}.`, `Sunday, 4pm, ${casa}.`) }
   }
   if (dow === 6) { // sábado: concentração
-    return { k: tr('🏨 Concentração · sábado', '🏨 Team hotel · Saturday'), titulo: fora.length ? tr(`${fora.length === 1 ? 'Um desfalque' : `${fora.length} desfalques`} pro domingo`, `${fora.length === 1 ? 'One absence' : `${fora.length} absences`} for Sunday`) : tr('Time completo pro domingo', 'Full team for Sunday'), texto: fora.length ? tr(`${fora.join(', ')}. Dá tempo de mexer no Elenco.`, `${fora.join(', ')}. There is still time to change the squad.`) : tr('Ninguém suspenso nem machucado.', 'Nobody suspended or injured.') }
+    const mais = c.noitada ? (c.noitadaFutevolei ? { e: '🏐', t: tr(`${c.noitada} faltou o treino pra jogar futevôlei no clube do bairro.`, `${c.noitada} skipped training to play footvolley at the neighbourhood club.`), tom: 'ruim' as const } : { e: '🍾', t: tr(`${c.noitada} fugiu da concentração e foi pra balada.`, `${c.noitada} sneaked out of the team hotel to go clubbing.`), tom: 'ruim' as const }) : undefined
+    return { mais, k: tr('🏨 Concentração · sábado', '🏨 Team hotel · Saturday'), titulo: fora.length ? tr(`${fora.length === 1 ? 'Um desfalque' : `${fora.length} desfalques`} pro domingo`, `${fora.length === 1 ? 'One absence' : `${fora.length} absences`} for Sunday`) : tr('Time completo pro domingo', 'Full team for Sunday'), texto: fora.length ? tr(`${fora.join(', ')}. Dá tempo de mexer no Elenco.`, `${fora.join(', ')}. There is still time to change the squad.`) : tr('Ninguém suspenso nem machucado.', 'Nobody suspended or injured.') }
   }
   return { k: tr('⚽ Dia de jogo', '⚽ Match day'), titulo: tr(`Hoje: ${adv}`, `Today: ${adv}`), texto: casa }
 }

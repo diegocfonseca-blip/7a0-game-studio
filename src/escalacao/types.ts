@@ -193,6 +193,8 @@ export interface EventoAtivo {
   pos: Sector
   rodadas: number  // jogos fora (noitada 1 · expulsão 1-3 · lesão 1-5)
   historia: string // o texto do banner (sorteado uma vez, não muda no reload)
+  /** 🏐 17/11: a noitada foi pro futevôlei no clube do bairro (só história e cena; o efeito é o da noitada) */
+  variante?: 'futevolei'
   // pendente = banner na tela (trava o avanço) · banco = trocou (volta na rodada `volta`)
   // campo = "escalar assim mesmo" (queda pequena SÓ naquele jogo) · manchete = sem reserva, só zoeira
   status: 'pendente' | 'banco' | 'campo' | 'manchete'
@@ -1230,6 +1232,14 @@ export interface EscState {
   dinastiaPaused?: boolean // Dinastia: temporada pausada na JANELA DO MEIO (metade do calendário)
   dinastiaMidUsed?: boolean // Dinastia: já abriu a janela do meio nesta temporada (não reabre)
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
+  /** 🇧🇷 BRASIL OFICIAL (15/11): carreira com clube REAL. Só existe nessa carreira; liga as cartas de `data-oficial.ts`. */
+  oficial?: { clube: string; desde: number }
+  /** 🏟️ Brasil Oficial: o ESTADUAL de cada temporada, guardado quando termina (campeão, rebaixados e a classificação final —
+   *  é dela que saem as vagas da Copa do Brasil do ano seguinte). Gravado no fim (`ESTADUAL_FEITO`): o resultado mostrado nunca
+   *  muda depois, mesmo que a escalação mude. */
+  /** 🏆 Brasil Oficial: os campeões de cada temporada (Série A e Copa do Brasil) — é deles a Supercopa Rei da temporada seguinte */
+  oficialCampeoes?: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string; sula?: string; intercontinental?: string; /** 17/11: campeões da C e da D (vaga na 3ª fase da Copa do Brasil seguinte) */ campeaoC?: string; campeaoD?: string }[]
+  oficialEstaduais?: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] }[]
   // 🎭 Identidade visual do presidente. Campo opcional para saves antigos e
   // puramente cosmético: não interfere em leilão, nível, dinheiro ou partidas.
   careerPresident?: {

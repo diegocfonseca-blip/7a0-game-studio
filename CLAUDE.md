@@ -370,7 +370,26 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
    leem.
 
 ## 💛 Gostos do Diego (aprendidos na prática — respeitar)
+- **♻️ USAR O QUE O JOGO JÁ TEM (16/11, regra permanente).** Palavras dele: *"muitas coisas que já temos você pode usar igual, como
+  motor de leilão, de jogos, padrões visuais… jogabilidade e etc"*. Modo novo (Brasil Oficial incluso) usa o leilão de sempre, o motor
+  de partida de sempre (`simDivTo`/motor novo/`LiveScoreCard`/Campo 2D), as telas e componentes da repaginada e a mesma jogabilidade
+  (Manual, intervalo, pênalti, coletiva, calendário…). O que muda é só a REGRA por cima (formato, vagas, quem sobe). Mesma linha do
+  "o leilão é sempre o de sempre" (Kings) e do "tela de competição nova = as mesmas peças da Copa" (carreira internacional).
+- **📱🖥️ TODA TELA NOVA = NO PADRÃO REPAGINADO E CONFERIDA NO CELULAR E NO COMPUTADOR (16/11, regra permanente).** Palavras
+  dele: *"você sempre tem que estar analisando o visual que a gente já utiliza no nosso jogo… padronizando e repaginado… cada
+  tela deve funcionar bem para dispositivo móvel e bem para desktop"*. Antes de dar uma tela por pronta: (1) olhar como as telas
+  vizinhas da repaginada fazem (classes e CSS que já existem, ex. `career-desktop.css`, `ll29-*`, `cv2-*`) e reaproveitar, nada
+  de estilo solto inventado; (2) tirar print em ~390 px (celular) E ~1280 px (computador) e conferir os dois.
 - **15/11: MAPA E CAMPO DO ESTÁDIO LIBERADOS PARA TODOS NA CARREIRA COMPATÍVEL.** Supera as restrições anteriores de prévia só para Diego. Reorganização e passeio acompanham a liberação. A identidade da prévia continua privada. Veículos já adquiridos aparecem, mas compra/venda/troca ficam **EM BREVE** até revisar a arte; não retirar bens. Chat por proximidade continua desligado (Diego condicionou a custo adicional zero). Detalhes em `docs/mapa-publico-20261115.md`.
+- **🇧🇷 BRASIL OFICIAL = TUDO REAL, NADA INVENTADO (15/11, regra permanente).** Palavras dele: *"quero que todos campeonatos
+  sejam reais, as regras e etc, sem invenção"*. No modo de clubes reais: clubes, divisões, formatos, quantos sobem/caem,
+  vagas de Libertadores/Sul-Americana, estaduais, Copa do Brasil, Supercopa, Intercontinental e troféus seguem o REAL, cada
+  dado com fonte aberta (pt.wikipedia/ge/Transfermarkt). Não achou = marca INCERTO e pergunta, nunca chuta. Pesquisa SEMPRE a
+  fundo (*"quero que pesquise a fundo"*). Plano em `docs/carreira-oficial-plano.md`; pesquisa em `docs/brasil-oficial/`.
+  🃏 **TODO CLUBE DO MODO TEM CARTAS DE JOGADOR REAL** (15/11, *"todos têm que ter cartas… se não achar jogadores famosos do time
+  dele, bota os jogadores reais"*): nada de clube "sem cartas" jogando pela força — vale Série D, estaduais e Copa do Brasil.
+  Famoso do clube primeiro; não achou, elenco atual real. As cartas do modo nunca vão pra Partida Rápida nem pro online.
+  🚫 **Só se escolhe clube das Séries A–D** (15/11, *"não pode"*): clube só de estadual/Copa existe no modo como rival, nunca como o clube do usuário.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
   meias — contrate no leilão ou traga da SAF").
@@ -699,6 +718,17 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   no baralho Europa) NÃO pode; Neymar Brasil + Neymar Europa pode. Antes de propor carta nova,
   conferir o baralho do clube e se a pessoa já está nele (script de conferência usado em 26/09:
   nome/sobrenome no mesmo baralho = conflito).
+  🇧🇷 **NO BRASIL OFICIAL VALEM OS MESMOS 3 BARALHOS (16/11, ele corrigiu DUAS vezes; a 2ª: *"Eu disse que só pode no mesmo baralho e
+  não duas vezes… Neymar pode no Santos baralho Brasil, Neymar Barcelona Europa e Neymar Al Hilal do Mundo. É simples a regra"*).**
+  Carta do modo de clube BRASILEIRO é do baralho **Brasil**; de clube de FORA (Liberta/Sula) é do baralho **Mundo**. A pessoa que já tem
+  carta no baralho Brasil (data.ts) NÃO ganha outra num clube brasileiro do modo (Sócrates Corinthians ⇒ nada de Sócrates Botafogo-SP);
+  quem já está no Mundo não ganha outra em clube de fora (Maradona Boca ⇒ nada de Maradona Argentinos). Pode: Jhon Arias Fluminense
+  (Brasil) + Jhon Arias Santa Fe (Mundo). Xará (outra pessoa) passa, com "xará" escrito na linha do lote. Travas:
+  `npm run baralho-oficial` (3 baralhos) e `npx tsx scripts/confere-repetidos-conmebol.mts` (dentro do modo).
+  🏟️ **O BARALHO É O DO CLUBE, NUNCA O DO PAÍS (17/11, *"não pode ter jogador com país… sempre é jogador, ano e time"*).** Clube
+  brasileiro = Brasil, europeu = Europa, resto = Mundo. Carta com seleção no lugar do clube (o "Iván Hurtado · Equador") não existe:
+  vira o clube do auge dele. O Lote Copa de 02/08 tinha posto 66 cartas de clube europeu no baralho Mundo pra fechar seleções — erro;
+  foram pro Europa em 17/11 (a Copa do Mundo acha cada um pelo país em TODOS os baralhos, então nenhuma seleção perde ninguém).
   ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
   Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 

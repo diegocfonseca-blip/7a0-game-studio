@@ -6,6 +6,134 @@
 - Causa AINDA ABERTA. No branch (falta publicar): o vigia grava QUAL ação tirou a coroa (`acao` no `perdeu_coroa`) e um registro
   novo `trocou_cadeira` (meu técnico mudou dentro da mesma sala, com a ação, de e para). Próxima vez: ler esc_travas da sala.
 - No branch também (falta OK pra publicar): convocação das salas 100 s + relógio grande nas Copas (mockups/relogio-convocacao.png).
+## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)
+- Pra TODOS: link "ver fases e resultados" que desce até os resultados · pênaltis de fase encerrada prontos na lista · câmera do ônibus
+  da aba Clube a 22 m no eixo da rua · cartas de clube europeu do Mundo → Europa (17/11) · "1 ponto"/"1 confronto" no singular.
+- 🟢 18/11 (Diego: "já pode p todos… carreira antiga também"): LIBERADO PRA TODOS (`NOVIDADES_17_11_GERAL = true`, sport.ts): ônibus em jogo grande na aba Jogos, balada e clube de lazer no mapa,
+  multidão no portão, linha a mais dos dias, "Enquanto isso no bairro" na Central, futevôlei na noitada; e todo o Brasil Oficial.
+  Liberar = trocar a régua de `previaDiego` em sport.ts.
+- Cuidados antes de publicar (auditoria do diff): as novidades da home NÃO anunciam as cartas que só trocaram de baralho (o arquivo
+  gerado voltou ao da main; a foto do catálogo ficou atualizada); o tema de time de coração da Loja continua com os 131 clubes de antes
+  (`temas-coracao-lista.ts`) — os ~235 escudos novos do modo não viram tema preto e branco pra ninguém; a chegada da aba Clube na semana
+  de Copa ficou exatamente como era. Os escudos oficiais novos (Remo, Confiança, Moto Club…) aparecem também pros outros onde o jogo
+  já usa escudo oficial. O arquivo principal ficou ~150 KB maior (código do Brasil Oficial não é carregado sob demanda) — ⏭️ separar.
+- Perfil: Libertadores e Intercontinental do Brasil Oficial entram em `libertadores_titles`/`mundial_titles` do `esc_pyramid_rank_snap`.
+  ⏭️ Sul-Americana no perfil pede coluna nova (`sula_titles`) + `esc_perfil_publico` — mudança de banco, fazer fora do horário de pico.
+
+## 🏆 16/11 — Brasil Oficial: LIBERTADORES REAL — feita no branch (não publicada)
+- Formato real de 2026 (47 clubes: 1ª/2ª/3ª fase ida e volta · 8 grupos de 4 · oitavas a semis ida e volta · final única). T1 = lista
+  real de 2026; depois, vagas do ano anterior do modo (Copa + G4 nos grupos, 5º e vice da Copa na 2ª fase, vaga repetida desce, campeão
+  anterior com vaga extra). Roda no calendário real, na esteira das copas, com os 8 grupos ao vivo. 297 cartas reais de 28 clubes
+  estrangeiros (`docs/brasil-oficial/cartas-conmebol-1..4.md`). Travas: `npm run libertadores` e `npm run brasil-oficial`.
+- Testado no navegador (Flamengo, 1ª fase → final, PC 1280 e celular 390) com o atalho de teste `window.__boLibertaJa` (só no `npm run dev`).
+- ✅ Respostas do Diego (16/11): (1) carta do Juan Izquierdo **sim** (feita, bio só de futebol); (3) **calendário real** — cada página
+  da Liberta cai na semana do dia real (`DATAS_LIBERTA`), a final de 28/nov fica pro fim da temporada; (4) estaduais de 2027+ com os
+  clubes de 2026 **sim**. (2) campeão de fora: *"Se ganhou o Boca não abre"* — nenhuma vaga a mais; o
+  Brasil manda 7, são 46 clubes, e o 32º lugar dos grupos fica com o melhor eliminado da 3ª fase (escolha minha pra fechar a conta).
+- ✅ Feito depois: prêmio por etapa (6·10·14·20·30·60, régua da Liberta internacional), festa de campeão (a `FestaCampeao` 'liberta'),
+  calendário real, botão 'Começar o jogo da Libertadores', grupos em grade que se ajusta.
+- ✅ 16/11 (Diego: *"tem que ter os escudos… e os jogadores… famoso, bom ou ruim… senão os reais de hoje… não passará pra rápida e
+  salas online"*): **escudos oficiais** de 62 clubes de fora (32 da Liberta + 30 da Sula; sem acervo: Nacional Potosí, U. Católica-EQU,
+  Guabirá, Libertad-EQU, Macará, Alianza Atlético e América de Cali → selo B) e **22+ cartas reais em TODOS os 77 clubes de fora**
+  (lotes `cartas-conmebol-5..9` e `-s1..s9`, ~1.440 cartas; o elenco é sorteado entre elas). Trava nova:
+  `npx tsx scripts/confere-repetidos-conmebol.mts` (a mesma pessoa não pode estar em dois clubes do baralho do modo).
+- ✅ 16/11 (Diego: *"Jhon Arias não entrou por quê, se o baralho dele é Brasil?… só não pode no mesmo baralho"*): o Brasil Oficial é um
+  baralho À PARTE — os famosos que tinham ficado de fora só por ter carta em data.ts VOLTARAM (~200 cartas: Valderrama, Maradona e
+  Riquelme no Argentinos, Coates/Suárez, Valverde/Darwin, Arrascaeta, Armani/Borja, Jhon Arias no Santa Fe, Sócrates e Raí no
+  Botafogo-SP, Careca/Evair no Guarani, Rivaldo no Santa Cruz, Djalma Santos/Dener na Portuguesa, Zizinho e Domingos da Guia no Bangu,
+  Iarley/Clemer/Jardel no Ferroviário-CE, Túlio no Brasiliense, Dadá no Nacional-AM…). Trava de repetidos olha o baralho do modo
+  inteiro e lê "xará" em qualquer lote. Mesma pessoa em dois clubes do modo: Jackie Chan, Lucas Ramon e Luís Araújo (tirados de um).
+  ✅ 17/11: Di María fica o Rosario 2005; Mendy/Sakai/Paulo da Silva ok (Europa × Mundo). Zenon: ele disse "sim", mas Guarani 1978 e
+  Corinthians 1983 são os dois baralho Brasil → Diego: "sim troca a carta". FEITO: no modo fica o Guarani 1978 e o Corinthians 1983
+  some só ali (`BASE_ESCONDIDA_NO_MODO`, baralho-oficial-carga.ts); fora do modo nada muda.
+  ❓ Perguntar ao Diego: liberar a carta do Zenon (Guarani 1978, baralho regional, hoje escondida do modo)? Di María: a carta do Rosario
+  2005 (baralho Mundo) fica, ou troca pela da volta (2025/26)?
+- ✅ 16/11: **SUL-AMERICANA REAL** (`sul-americana-oficial.ts` + `computeSulaCarreira`): 56 clubes, 1ª fase por país, 8 grupos, playoff
+  com os 3ºs da Liberta, oitavas a semis ida e volta, final única; calendário real; recebe os eliminados da Liberta; campeão herda a
+  vaga do Lanús; prêmio na régua da Copa do Brasil (participou 4 — número meu). ✅ 17/11 (Diego: "ok" no mockup): festa de campeão da Sula ligada
+  (`FestaCampeao` comp 'sula', taça prata/anel dourado/base preta) + taça desenhada na estante e selo grafite/dourado no rank. ⏭️ Falta ver a festa
+  numa carreira de verdade (não deu pra forçar o título no teste). ✅ 17/11 (noite): VISTA no navegador — festas da Libertadores (Flamengo),
+  Intercontinental (Flamengo, final x PSG) e Sul-Americana (Atlético-MG) aparecem certas, sem spoiler. Achado e consertado: a Sala de Taças
+  (`conquistasDaCarreira`) e O MARTELO não mostravam Liberta/Sula/Intercontinental do modo (agora leem `oficialCampeoes`).
+  ✅ Aviso "Maximum update depth exceeded" ACHADO e consertado: o efeito que grava `CAMPEOES_OFICIAIS` mandava de novo a cada render no
+  fim da temporada do modo (o reducer recusa mas devolve cópia). Agora o efeito não manda se a temporada já está gravada.
+  ⚠️ `scripts/testa-presidencia-complexo-carreira.mjs` já falha (dia do jogo 'domingo' × 'quarta' esperado) — não é dessas mudanças.
+- ✅ 17/11 — **QUEM NÃO ESTÁ NA LIBERTA/SULA ACOMPANHA PELA ESCOLHA DE DIVISÃO** (Diego: *"só na aba Tabelas"* — e nada de aba nova:
+  Jogos + Tabela continua uma aba só). Na escolha de divisão entram "🏆 Libertadores" e "🌎 Sul-Americana" (só pra quem está fora de cada
+  uma); grupos (Liberta: 2 verdes · Sula: 1 verde) e mata-mata já jogados (`ConmebolEspectador`). Anti-spoiler pelo DIA do calendário
+  (`diaHojeCal`): jogo de quarta só aparece a partir de quinta. Testado no navegador (Manauara, Série D, rodadas 0/3/17/29, 390 e 1280).
+- ✅ 17/11 — **COPA DO MUNDO NO BRASIL OFICIAL: SÓ DA TEMPORADA 50 EM DIANTE, E POR CONVITE** (Diego: *"somente após chegar na
+  temporada 50 e com convite e não mais escolhendo… recebe convite pelo ranking dos mesmos 32… se aceita ou não comandar a seleção do
+  rank onde ele tá"* → *"Isso mesmo"*). No modo oficial a âncora é 50 (`cmAncora`; carreira normal segue 100). No lugar da lista de
+  seleções aparece `ConviteSelecao`: o clube em 5º no ranking é chamado pela 5ª seleção. Aceitar = convoca; recusar = a Copa daquela
+  temporada roda sem ele (fica marcada como jogada). **Volta de 4 em 4** (50, 54, 58…; Diego: *"tb será de 4 em 4 anos"*, `cmCiclo`/`CopaSave.ciclo`). A caixa de "Copa internacional" do portão some no oficial. 🤫 **Nenhum texto explica que o convite sai do ranking** (Diego: *"não precisa dar dicas sobre o ranking… vamos fingir entre a gente"*): o convite diz só "Argentina quer o técnico do X"; fora dos 32, "nenhuma seleção te chamou desta vez". Carreira normal: nada mudou.
+- ✅ 16/11 (noite) — **CORREÇÃO DA REGRA DO BARALHO** (Diego: *"Neymar pode no Santos baralho Brasil, Barcelona Europa e Al Hilal do Mundo… só
+  não duas vezes no mesmo"*). Eu tinha tratado o modo como baralho à parte e devolvido famosos que JÁ estavam no mesmo baralho. Agora:
+  clube brasileiro do modo = baralho Brasil, clube de fora = baralho Mundo. **119 cartas saíram** (Sócrates e Raí no Botafogo-SP, Careca
+  e Evair no Guarani, Djalma Santos, Félix, Zizinho, Jardel, Túlio, Maradona no Argentinos, Valderrama no Junior, Armani, Suárez,
+  Salas, Zamorano…); 5 xarás marcados (Digão Falcon, Adilson Baré, Rincón Luminense, Pepe Cuiabá). Todos os clubes seguem fechando
+  (D/estaduais com 11+, os de fora com 22+). Ficam os que estão em baralho DIFERENTE (ex.: Jhon Arias Santa Fe). Trava nova:
+  `npm run baralho-oficial`. CLAUDE.md corrigido.
+  🔁 17/11: a trava tinha um furo — a marca de xará valia pro NOME inteiro (o "Rivaldo" xará do Trem escondia o Rivaldo do Santa Cruz,
+  mesma pessoa do Palmeiras). Agora vale só pra carta marcada (nome + ano). Saíram mais 5: Rivaldo (Santa Cruz 1991), Dener e Zé
+  Roberto (Portuguesa), Alex (Coritiba 2013) e Riquelme (Argentinos 2014); 11 xarás marcados (Dener/Gil/Josimar da Chape, Dida, etc.).
+- ✅ 16/11 (noite): **Libertadores e Sul-Americana no Ranking e no Hall de Troféus** da carreira (só Brasil Oficial, lidas de
+  `oficialCampeoes`): Liberta soma como Libertadores (50 pts, a mesma do ranking e da vaga da Copa do Mundo — as duas contas andam
+  juntas); Sul-Americana ganha selo e caixa própria (vermelha) e vale **25 pontos** (Diego: *"Pode ser"*, `PTS_TITULO.sula`; só no rank do save — o global não tem Sula).
+  Também: 4 cartas da Conmebol (Herrera/Vargas U. de Chile 2011, Cadavid/Pedro Franco Millonarios) eram cópia EXATA do baralho Mundo e
+  faziam a trava de vazamento falhar ao acaso — saíram dos lotes (o Mundo já entra no modo).
+- ✅ 16/11 (noite): **artilharia própria da Libertadores e da Sul-Americana** na aba Rank (mesma `ArtilhariaBox` da Copa, só com os
+  jogos JÁ apitados — sem spoiler). ⚠️ Falta o PRINT pro Diego antes de publicar (é caixa nova na tela) . 🥇 Prêmio do artilheiro (Diego *"Sim"*): **Libertadores 30 🪙 · Sul-Americana 20 🪙**
+  pro clube de gente, com linha própria no extrato (`ART_LIBERTA_OFICIAL`/`ART_SULA_OFICIAL`). ✅ E a comissão de 1 🪙 da Agência agora
+  conta o artilheiro da Liberta/Sula do modo. (⚠️ `npm run agencia` já quebrava antes: o script não carrega `.webp`.)
+- 🔨 17/11: **INTERCONTINENTAL REAL** começada: `intercontinental-oficial.ts` (formato 2026, 5 jogos únicos: playoff AAP Al-Ahli×Auckland
+  26/08 · Copa AAP Sundowns×vencedor 19/09 · Dérbi das Américas campeão da Liberta×Toluca 09/12 · Challenger 12/12 · final×PSG 16/12),
+  com trava no `npm run libertadores`. ✅ 17/11: 88 cartas reais (Toluca, Sundowns, Al-Ahli, Auckland com 24 cada,
+  `cartas-intercontinental.md`), escudos do Sundowns e do Auckland, e LIGADA na carreira: só entra quando o SEU clube é campeão da
+  Libertadores (páginas Dérbi → Challenger → final, no fim da temporada), festa = arte do Mundial com nome "Copa Intercontinental",
+  prêmio = régua do Mundial (campeão +25 · vice +10), ranking = conta como Mundial (60 pts, Hall "Intercontinental"), campeão no
+  histórico (`oficialCampeoes.intercontinental`). ⏭️ Falta: testar no navegador (precisa ganhar a Liberta) e o PRINT pro Diego.
+  ❓ Dúvidas da pesquisa pro Diego: Mendy/Sakai/Paulo da Silva estão no baralho Mundo com carta de clube europeu (Chelsea/Marseille/Sunderland).
+  ⚠️ INCERTO: prorrogação (a fonte não diz; aqui empate = pênaltis, como as outras copas do jogo).
+- ✅ 17/11 (Diego: *"sempre é jogador, ano e time"*): **66 cartas de clube europeu saíram do baralho Mundo** — 64 foram pro Europa
+  (Essien, Kagawa, Caicedo, Almirón, Cardozo, Kanouté, Milla, Adebayor Arsenal, Sakai, Paulo da Silva…), saíram as cópias do Mendy,
+  Papa Bouba Diop (Fulham) e Partey (Atlético) e a do Adebayor no Real Madrid (ele mandou ficar a do Arsenal). Iván Hurtado deixou de ser
+  "Equador 2002" e virou Emelec 1994 (auge, bicampeão). No Brasil Oficial voltaram Caicedo (IDV), Almirón (Lanús), Cardozo (Libertad),
+  Derlis (Olimpia) e entraram Mendy (Al-Ahli), Sakai (Auckland), Paulo da Silva (Toluca).
+- 🔎 17/11: **pesquisa das VAGAS REAIS da Copa do Brasil** pronta em `docs/brasil-oficial/copa-do-brasil-vagas.md` (2026: 20 da Série A
+  na 5ª · 4 campeões na 3ª · 102 dos estaduais por cota de federação 6/5/4/3, os 28 piores no ranking CBF na 1ª fase; 2027 = 128 clubes,
+  Copa Verde sai e entram Copa Norte/Centro-Oeste/Sul-Sudeste). ⏭️ Falta LIGAR no modo: cotas por estado a partir dos estaduais
+  simulados (o modo só tem 17 dos 27), régua própria pro ranking CBF (não é dado aberto) e os INCERTOS de 2027 (corte 1ª/2ª fase).
+  ✅ 17/11 (Diego: *"faça como foi em 26 então… parecido"*): LIGADA no branch (`entradasCopaBrasil2027`). Da 2ª temporada em diante:
+  20 da Série A na 5ª · 3ª fase = campeões da C e da D do ano anterior do modo (gravados agora em `oficialCampeoes.campeaoC/D`) +
+  as vagas do Nordeste e da Verde, que o modo não joga, com quem as teve em 2026 (Confiança, Paysandu) · 102 pela COTA DE 2026 de
+  cada estado, na ordem do estadual (o seu como foi jogado; os outros 16 simulados por baixo; estado sem estadual = a ordem de 2026 e
+  depois a divisão), pulando quem já entrou · 1ª fase = os 28 de divisão mais baixa (régua minha, RNC não é aberto). Formato 126 de
+  2026 (não 128). Trava no `npm run brasil-oficial`.
+  🐛 17/11 (achado no teste da 2ª temporada): SPOILER na tela da Copa do Brasil do modo — na 5ª fase (rodada 19) a chave já mostrava o
+  campeão, a final e os campeões da temporada inteira. Causa: a chave (`copaBase`, 9 fases) recebia o índice da ESTEIRA (que conta
+  estadual, Supercopa Rei, Liberta…). Consertado com `revealCopaBase` (só no Brasil Oficial). Visto também: a multidão do portão volta
+  depois do apito (~2 min) ✓; nos primeiros ~20 s do jogo ela ainda aparecia antes de o mapa remontar — conferir num aparelho de verdade.
+  ✅ Spoiler conferido no navegador (temporadas 1 e 2, 4ª/5ª fase/oitavas): só as fases já jogadas; no fim, final e campeão aparecem.
+  ✅ Link "👉 Ver fases e resultados na aba Tabelas" (fim de temporada) não fazia NADA com Jogos+Tabela juntos (VALE PRA CARREIRA NORMAL,
+  está no ar) → agora desce até os resultados. Jornal do modo dizia "Copa do Brasil Legends" → "Copa do Brasil".
+  ✅ (consertado 18/11, `PensShootout pronto`) Visto: nas listas de fases passadas, um confronto decidido nos pênaltis às vezes mostra "PÊNALTIS — × — Decisão em andamento…"
+  (é a animação dos pênaltis recomeçando quando a lista monta; `CompactPenalties`). Cosmético; olhar com calma.
+- 🐛 17/11 (achado no teste da Intercontinental, VALE PRA CARREIRA NORMAL TAMBÉM — está no ar): a COLETIVA da copa abria aos ~3' do jogo
+  SEGUINTE já com o placar final dele (spoiler). Causa: o "fase pronta" (`copaReady`) da fase anterior valia por um render depois da
+  virada. Agora o pronto guarda DE QUAL fase é (`copaReadyDe`/`copaPronta`) e coletiva, botão "Próxima fase", chave da Central e cartão do
+  próximo jogo leem ele. Coletiva também não abre mais em rodada de pontos corridos (estadual/grupos falavam em "eliminação"). "1 confronto".
+  Teste da Intercontinental: telas certas (cabeçalho, Toluca/Sundowns com escudo, pênaltis), sem erro; festa de campeão não chegou a ser vista.
+- ⏭️ Falta: Libertadores no perfil (amigos.tsx) — ⚠️ os títulos do perfil vêm do SERVIDOR (soma das carreiras na nuvem), então
+  pôr Liberta/Sula/Intercontinental do Brasil Oficial lá exige mexer na função do banco; fazer junto da liberação do modo, artilharia da Libertadores, ~~quem não
+  está nela poder assistir~~ (feito 17/11), Sul-Americana (6º–12º + os eliminados), Intercontinental real; reconferir no Transfermarkt as cartas Conmebol
+  que a rede não deixou abrir (lotes 3 e 4 sem `saison_id`; anotado nas Dúvidas de cada arquivo).
+
+## 🛡️ 15/11 — IDEIA: CARREIRA COM TIMES DE ESCUDO OFICIAL (só ideia, nada feito)
+- Diego: *"tô pensando em fazer o modo carreira agora c/ escudos oficial"*. Decisão dele: **só joga com time oficial quem tem plano** (*"só vai jogar c/ times oficial quem tiver plano pow"*).
+- Eu sugeri NÃO vender mascote pro time oficial (concorre com o Batismo e mascote de clube é marca do clube); ele não fechou nada sobre isso.
+- 🔁 Mesmo dia, DECISÃO: *"caiu muito carreira, ninguém joga mais… melhor arriscar no modo novo com oficiais e deixar os times criados ser de entrada pro pessoal pagar os oficiais"*. Ou seja: carreira com time OFICIAL = modo novo, só com plano; carreira de time criado = a porta de entrada grátis. Já temos 152 escudos oficiais em `public/escudos-clubes/`.
+- Falta: qual plano libera (do Craque Salas pra cima?) e mockup da escolha na criação da carreira. Cuidado com marca registrada dos escudos.
 ## 🎨 16/11 — Avatares das oito lendas restantes de Europa e Mundo
 
 - Oito retratos individuais com arte sem feições, uniformes de época sem marcas, e WebP com alfa 600×400: Banks (Leicester 1966), Antognoni (Fiorentina 1982), Peyroteo (Sporting 1947), Vozinha (Colo-Colo 2026), Pedro Rocha (Peñarol 1965), Spencer (Peñarol 1961), Kempes (Rosario Central 1973) e Di Stéfano (Millonarios 1949).
@@ -37,13 +165,13 @@
   ex.: versão velha aberta cruzando com o 3-4-3 novo). Agora formação desconhecida desenha como 4-3-3 (screens.tsx + baseSlots).
 - Pendente: reproduzir a virada liga → mata-mata da Kings com o dono em 1º (direto na semi) em sala manual/stream.
 
-## 🧔 16/11 — Batismo História dos Gigantes (will.a.n) — NO BRANCH, esperando OK pra publicar
+## 🧔 16/11 — Batismo História dos Gigantes (will.a.n) — PUBLICADO (16/11, deploy verde)
 - Plano 🖋 Batismo (79,90, confirmado pelo Diego; não há Pix de batismo no banco, só 3 salas extras): tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº93.
 - Várzea, no lugar do bot Real Domingueira (`OLD_NAME` + `VARZEA_TEAMS`).
 - Escudo 339×360 28 KB · mascote "O Vovô Gigante" (nome dado por mim, confirmar) 440×432 41 KB · manto `#FEE9BD`/`#7A2B06` medidos na camisa · camisa na Loja (`hgigantes-camisa-v1.webp`).
 - Banco FEITO: `esc_socios` (93, `escudo_time` = História dos Gigantes, `time_coracao` vazio — não sabemos) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` ouro manual. A conta existia (criada 10/10).
 - Post: `scripts/posts/batismo-historia-dos-gigantes.png` (dono "Will" tirado do e-mail — confirmar o nome).
-- FALTA: deploy na main (só com o OK do Diego).
+- Publicado na main com OK do Diego (só o commit do batismo, cherry-pick; o Brasil Oficial segue no branch).
 
 ## 🐆 16/11 — Batismo Lavras FC (hugopereirabrito) — PUBLICADO
 - Plano 🖋 Batismo (79,90): tier ouro, **sem número de fundador** (está em `SEM_FUNDADOR`). Sócio nº92.
@@ -13691,6 +13819,71 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - Passaram a bancada de navegador, as 144.000 amostras das peruas e as verificações do dia de jogo. Sem acesso a conta, saves, salas ou banco; nenhuma publicação necessária.
 - A foto não revela a fase da sessão real; foi perguntado se havia partida rolando. Se havia, falta investigar o estado da jornada nessa sessão. Detalhes em `docs/mapa-ambulantes-20261114.md`; evidências em `/workspace/shared/mapa-ambulantes-20261114/`.
 
+## 15/11 (noite) — 4 ideias do Diego vistas no Brasileirinho (A FAZER, mockup antes de cada uma)
+Palavras dele: *"tem coisas legais dele que poderíamos ter no nosso"*. Prints: semana passando dia a dia com transferências e camisas
+vendidas; Central com "ENQUANTO ISSO NA SEDE" (cena filmada do mapa + texto + VER NO MAPA); chegada do ônibus antes de clássico.
+**Não copiar a cara deles** — tudo no visual do nosso jogo (creme/bordas/Oswald) e usando o MAPA que já temos.
+1. **Semana com mais acontecimentos** — cada dia que passa (calendário que já existe, `calendario-ui.tsx`) ganha mais coisas do
+   próprio jogo (transferências dos bots, camisas vendidas, obras, lesões…), crescendo com o tempo, SEM mudar o jeito que os dias
+   passam hoje e sem passo novo (regra do ritmo; o dia de jogo continua parando — regra de 26/10).
+2. **Central com cena filmada do mapa** — um cartão na Central mostrando um momento real do mapa do clube (loja vendendo camisa,
+   obra que ficou pronta…) com o texto e o botão de ir ao mapa. Só da Central (regra "uma coisa só em cada aba").
+3. **Jogo grande = ônibus chegando em festa** — em clássico, final ou jogo decisivo, antes do jogo na aba Jogos aparece o ônibus
+   chegando no estádio do mapa com mais torcida, fotógrafos, bandeiras e torcedor em cima do ônibus; dá pra pular. Não entra no lugar
+   do placar/2D durante o jogo — só ANTES. Só carreira (é onde existe o mapa).
+4. **Mapa com pouco NPC** — encher mais o mapa de gente, medindo o peso no celular (regra de não travar).
+🔁 17/11 (Diego cobrou: *"comentei contigo sobre isso, lembra?"*), detalhes a mais: na Central, acontecimentos BONS e RUINS
+**filmados em tempo real no mapa** — ex.: venda de camisas subindo; **jogador fugindo da concentração pra ir pra balada** (aí o mapa
+precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia de jogo.** **Ônibus chegando com festa na aba Jogos**
+  📐 17/11: mockup das ideias 1 (semana com mais notícias reais) e 2 (cena da sede na Central, com a NOITADA que já existe) em
+  `scripts/mockups/semana-e-sede-390.png`/`-1280.png` — esperando OK.
+  ✅ 17/11 (Diego: *"pode fazer dessa forma aí"* + *"a balada não precisa ficar próximo do estádio"*): FEITAS no branch —
+  (1) dias passando: 1 linha a mais do assunto do PRÓPRIO dia (seg artilheiro da série · qui desfalque do adversário de domingo · sáb
+  noitada), `recadoDoDia` → `mais`; (2) Central "🎥 Enquanto isso no bairro" (`CartaoSede`): noitada › carreata › obra › boteco
+  depois do jogo › feira de sábado, fotos do próprio mapa (`img/sede-*.webp`, ~10 KB cada), Ver no mapa / Fechar (fechou não volta,
+  1 chave só no aparelho); (3) 🪩 BALADA no mapa (`presidencia-balada-bairro.ts`): no quarteirão MAIS LONGE do estádio, neon rosa,
+  cordão vermelho, globo espelhado, luz roxa à noite; em Locais → Bairro. Foto: `scripts/mockups/mapa-balada-noite.png`.
+  🏐 17/11 (Diego: *"um clubezinho com dois campinhos de futevôlei e churrasqueira… e dois campos de futebol… distante do
+  estádio"*): CLUBE DE LAZER no mapa (`presidencia-clube-lazer.ts`, "Clube Recreio") em 2 quarteirões vizinhos numa ponta do bairro:
+  🔁 2ª versão (a 1ª, com society, ele não gostou: *"quero clube com piscina… churrasqueira em gazebo… e dois campos de
+  futevôlei lado a lado"*): um quarteirão com as 2 quadras de futevôlei lado a lado; o vizinho com PISCINA (deck, espreguiçadeiras,
+  guarda-sóis) e GAZEBO de 8 águas com a churrasqueira, mesa e bancos. 🔁 3ª versão (*"o clube é tudo junto… cercado fechado"*):
+  os 2 quarteirões viram UM terreno — a rua do meio é cortada (`ruasCortadas`, igual à Casa Luca) e um muro só cerca tudo. Em Locais → Bairro. Foto: `scripts/mockups/mapa-clube-lazer.png`. Ainda sem gente jogando (entra junto da ideia 4).
+  🏐 17/11 (Diego: *"Renato Gaúcho, Ronaldinho Gaúcho, Romário, Edmundo… às vezes, raramente, faltando um treino pra jogar
+  futevôlei"*): é um JEITO da noitada (`FUTEVOLEIROS` em eventos.ts) — mesmo efeito (1 jogo, banco ou escala assim mesmo), história,
+  manchete, linha do sábado e cena da Central (`img/sede-clube.webp`) de futevôlei no clube. Os 3 baladeiros: 1 em 4 dos causos deles
+  (sorteio preso no nome+temporada, sem gastar o dado do jogo — times sem eles: 3.000/3.000 temporadas iguais ao de antes). Edmundo
+  (pavio curto) entra no sorteio com peso 1 só pelo futevôlei — times com ele sorteiam diferente dali pra frente (temporada já
+  sorteada não muda).
+  🚌 17/11 (Diego: *"ok pode seguir"* no mockup `scripts/mockups/onibus-jogo-grande-*.png`): (3) FEITA no branch — `ChegadaGrande`
+  na aba Jogos: em jogo grande EM CASA da liga (clássico = rival/arquirrival/humano, ou reta final rodada 30+ no G6 — a mesma régua da
+  lotação), no dia do jogo, o mapa de verdade com o ônibus chegando + título + "Pular chegada". No automático a chegada dura 9 s em vez
+  de 3 (só em jogo grande); nunca segura o botão de começar.
+  🔁 17/11 (Diego: *"por que só liga?… tem que ter em todas competições"*): agora também na QUARTA de Copa — Copa do Brasil/Legends,
+  Libertadores, Sul-Americana (ida em casa; grande = final, semi ou clássico). E a chegada da aba Jogos não atrasa mais nada: fica na
+  tela enquanto você não começa o jogo (sumiu o "9 s"); quem segura o automático continua sendo só a chegada de sempre da aba Clube.
+  ✅ E os jogos FORA da semana (Diego: *"são todas competições… mas só em momentos muito importantes"*): Supercopa, finais da
+  Liberta/Sula e Intercontinental depois da liga e o playoff da B — a chegada da PRÓXIMA fase aparece na tela de resultado da fase
+  que acabou, antes do "Ir pra próxima fase" (nenhum passo novo). Grande = final, semi, playoff de acesso ou clássico.
+  👥 17/11: (4) FEITA no branch — `presidencia-figurantes.ts` (gente parada em lote, 3 desenhos pro grupo todo, balanço no shader):
+  multidão na fila do portão/praça/portão visitante em dia de jogo em casa (cresce com a lotação: até 120 no PC, 40 no celular/Leve;
+  some durante o jogo, volta ~2 min depois do apito) · clube de lazer de dia (piscina, quadras, gazebo; à noite só o churrasco) ·
+  fila + segurança na balada à noite. Fotos: `mapa-multidao-portao.png`, `mapa-clube-gente.png`, `mapa-balada-fila.png`.
+  ⏭️ A conferir: a multidão depois do apito (o teste não pegou) e a câmera do quadro da chegada (às vezes fica na visão alta da cidade
+  em vez de descer pro ônibus). E num teste a partida da liga começou sozinha com o quadro da chegada aberto. 🔎 Investigado
+  (17/11): no código o apito da liga no automático SÓ sai com `jogoOk` (setado por 3 toques: "▶ Começar o jogo", "Ir pro jogo" da
+  Central e o botão principal) — o controle do mapa não avança e o quadro da chegada não mexe nisso. O robô do teste tinha um laço que
+  apertava "Começar o jogo" sozinho e não registrava os cliques; não deu pra reproduzir. Se algum jogador relatar, olhar de novo.
+  🎥 17/11 (tarde): câmera do quadro CONSERTADA no branch. Causas: (a) o palco do mapa vinha com a altura da aba Clube (~650 px) e o quadro
+  de 340 mostrava só o céu → o palco encolhe pra 340 dentro do quadro; (b) o mapa remonta (cai pro Leve) e voltava pra vista de cima →
+  a vista da porta é pedida de novo a cada montagem (uma vez por chegada+montagem, nunca depois do pulo, senão cancela a câmera do ônibus).
+  🚌 Diego *"Ok"* pro ônibus chegar logo: no QUADRO (só nele) a porta aparece ~4 s e o relógio do dia de jogo pula até o ônibus poder sair
+  (75 s + Kombis das barracas montadas, ~110 s — `onibusLiberadoEm`/`adiantarProOnibus`); a câmera automática segue ele. A câmera do ônibus
+  agora fica no eixo da rua e a 13 m (antes 5 m de lado e 7,5 m de altura: entrava nas casas — vale também pra aba Clube).
+  ✅ Conferido (9b3aaf7): porta com torcida → ônibus já na estrada aberta (pula 45 s do trajeto entre sobrados) → chega no portão e os
+  jogadores descem (~100 s). Fotos: `scripts/mockups/chegada-*.png`. A câmera só volta pra porta depois do 2º ônibus (cena longa, é tempo morto).
+  ⚠️ No teste o mapa remonta 1–2× (cai pro Leve no navegador sem placa de vídeo) e a cena recomeça — conferir num celular de verdade.
+só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
 ## 17/11 — 🏆 Torneio Legends: LISTA DE INTERESSE antes de construir
 - Diego com medo de flopar. Decisão: postar na comunidade um aviso pedindo "EU JOGO"; **só construir se juntar ~40 nomes**.
 - Aviso: `scripts/avisos/2026-11-17-torneio-lista.json` → `scripts/posts/aviso-2026-11-17-torneio-lista.png`.
@@ -13702,7 +13895,7 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
   (cartão com "🙋 Quero jogar" + contador X/36; ✕ fecha pra sempre; depois de entrar vira faixinha). Aguardando OK pra construir.
   · Pódio do exemplo: Neymarzetti · Cativeiro FC · Guimarães SCI. Transmissão = canal do Futpoint FC (vai no convite).
 
-## 🧤🐓 18/11 — Batismo FUNDADOR Duarte FC (luizfelipeduarte212) — NO BRANCH, esperando OK do Diego pra publicar
+## 🧤🐓 18/11 — Batismo FUNDADOR Duarte FC (luizfelipeduarte212) — PUBLICADO (OK do Diego)
 - Várzea, no assento do bot Ressaca United. Fundador nº102 · sócio nº94 · coração Atlético Mineiro (deduzido do pedido do canto).
 - Pagou o Fundador no Pix em 18/11 (subida, R$ 60). Em 17/11 eu tinha ligado o Lenda (user_colors ouro) a pedido do Diego.
 - Escudo/mascote/camisa recortados da prancha verde; manto preto #101010 + branco #F1F1F0, dourado #F7D50A de 3ª cor (MANTO_TRI duarte_paredao).

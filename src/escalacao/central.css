@@ -9,6 +9,8 @@
 .ll-central-grid { display: flex; flex-wrap: wrap; gap: 0 12px; }
 .ll-central-esq, .ll-central-dir, .ll-central-lado { display: contents; }
 .ll-central-card { flex: 0 0 100%; min-width: 0; border: 3px solid #0C0C0C; border-radius: 18px; box-shadow: 4px 4px 0 #000; margin-bottom: 14px; overflow: hidden; background: #fff; color: #0C0C0C; }
+/* 🎥 a cena do bairro: no celular logo depois do camarote; no monitor no topo da coluna da direita */
+.ll-c-sede { order: 1; } .ll-c-sede-pc { display: none; }
 .ll-c-hero { order: 1; } .ll-c-giro { order: 2; } .ll-c-martelo { order: 3; } .ll-c-mercado { order: 4; } .ll-c-tabela { order: 5; } .ll-c-agenda { order: 6; }
 .ll-c-tabela, .ll-c-agenda { flex: 0 0 calc(50% - 6px); }
 .ll-central-card button.ll-central-link { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
@@ -26,6 +28,8 @@
   .ll-central-lado { display: block; grid-area: lado; min-width: 0; }
   .ll-central-dir { display: flex; flex-direction: column; min-width: 0; }
   .ll-c-hero { grid-area: hero; } .ll-c-tabela { grid-area: tabela; }
+  /* 🎥 no monitor a cena do bairro mora no TOPO da coluna da direita (acima da imprensa e do Martelo) */
+  .ll-c-sede-cel { display: none; } .ll-c-sede-pc { display: block; order: -1; }
   .ll-central-card { margin-bottom: 16px; }
   /* o mercado engole a sobra de altura da coluna da direita; o "ver os N negócios" fica no pé */
   .ll-central-dir .ll-central-card { flex: 0 0 auto; }
