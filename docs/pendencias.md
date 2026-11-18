@@ -1,3 +1,17 @@
+## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)
+- Pra TODOS: link "ver fases e resultados" que desce até os resultados · pênaltis de fase encerrada prontos na lista · câmera do ônibus
+  da aba Clube a 22 m no eixo da rua · cartas de clube europeu do Mundo → Europa (17/11) · "1 ponto"/"1 confronto" no singular.
+- SÓ NA CONTA DO DIEGO (`previaDiego`/`usePreviaDiego`, sport.ts): ônibus em jogo grande na aba Jogos, balada e clube de lazer no mapa,
+  multidão no portão, linha a mais dos dias, "Enquanto isso no bairro" na Central, futevôlei na noitada; e todo o Brasil Oficial.
+  Liberar = trocar a régua de `previaDiego` em sport.ts.
+- Cuidados antes de publicar (auditoria do diff): as novidades da home NÃO anunciam as cartas que só trocaram de baralho (o arquivo
+  gerado voltou ao da main; a foto do catálogo ficou atualizada); o tema de time de coração da Loja continua com os 131 clubes de antes
+  (`temas-coracao-lista.ts`) — os ~235 escudos novos do modo não viram tema preto e branco pra ninguém; a chegada da aba Clube na semana
+  de Copa ficou exatamente como era. Os escudos oficiais novos (Remo, Confiança, Moto Club…) aparecem também pros outros onde o jogo
+  já usa escudo oficial. O arquivo principal ficou ~150 KB maior (código do Brasil Oficial não é carregado sob demanda) — ⏭️ separar.
+- Perfil: Libertadores e Intercontinental do Brasil Oficial entram em `libertadores_titles`/`mundial_titles` do `esc_pyramid_rank_snap`.
+  ⏭️ Sul-Americana no perfil pede coluna nova (`sula_titles`) + `esc_perfil_publico` — mudança de banco, fazer fora do horário de pico.
+
 ## 🏆 16/11 — Brasil Oficial: LIBERTADORES REAL — feita no branch (não publicada)
 - Formato real de 2026 (47 clubes: 1ª/2ª/3ª fase ida e volta · 8 grupos de 4 · oitavas a semis ida e volta · final única). T1 = lista
   real de 2026; depois, vagas do ano anterior do modo (Copa + G4 nos grupos, 5º e vice da Copa na 2ª fase, vaga repetida desce, campeão
