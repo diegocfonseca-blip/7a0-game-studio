@@ -10,7 +10,7 @@ import { CompromissoCarreira } from './compromissos-carreira-ui'
 // funções do motor e só mostra botão que o reducer aceita.
 import { useState } from 'react'
 import type { Manager, WonCard } from './types'
-import { useEsc, valorOficial, renewOptions, renewCost, type RenewAnos } from './store'
+import { useEsc, valorOficial, renewOptions, renewCost, divOficialDe, type RenewAnos } from './store'
 import { preparadorDe, precoRenovacaoPreparador } from './preparadores'
 import { chaveCarry, condicaoAtiva } from './condicao'
 import { FAME_TIER, PROMESSA_TIER } from './screens'
@@ -66,7 +66,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
   const prep = state.careerOnline && state.onlineMode !== 'online' ? preparadorDe(state.careerPreparador?.[mgr.teamName]) : undefined
   const fimPrep = state.careerPreparadorContrato?.[mgr.teamName]
   const prepVencido = !!prep && fimPrep != null && fimPrep < state.seasonNo
-  const custoPrep = prep ? precoRenovacaoPreparador(prep) : 0
+  const custoPrep = prep ? precoRenovacaoPreparador(prep, divOficialDe(state)) : 0
 
   const pendentes = [...expirados, ...expDorm].filter(c => !soltos.has(c.id))
   const nDecidir = pendentes.length + (tecVencido ? 1 : 0) + (prepVencido ? 1 : 0)

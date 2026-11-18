@@ -87,7 +87,7 @@ import type { EventoCard } from './eventos'
 import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry, GAS_CANSADO } from './condicao'
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
-import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
+import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, precoPrep, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
 import { clubeOficial, cartasDoClube, sorteiaElenco, CLUBES_BR_OUTROS, CLUBES_BR_TODOS, MINIMO_TIME, type ClubeOficial } from './brasil-oficial'
@@ -100,7 +100,7 @@ import { simulaIntercontinental, CLUBES_INTERCONTINENTAL, NOME_INTERCONTINENTAL,
 import { simulaLibertadores, vagasLiberta, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
-import { useEsc, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, divOficialDe, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -5933,7 +5933,7 @@ function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, s
       const salTec = nomeTec ? Math.round((stEl.careerTecnicoPago?.[nomeTec] ?? 0) / 10) : 0
       // 🏋️ o salário do PREPARADOR entra aqui junto com o do técnico — o número da
       // tela tem que ser o mesmo que o vira-temporada cobra de verdade (store.tsx).
-      const salPrep = quinze ? salarioPreparador(preparadorDe(stEl.careerPreparador?.[mgr.teamName])) : 0
+      const salPrep = quinze ? salarioPreparador(preparadorDe(stEl.careerPreparador?.[mgr.teamName]), divOficialDe(stEl)) : 0
       const folha = squadPayroll(mgr.squad as WonCard[]) + salTec + salPrep
       return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
@@ -6488,6 +6488,7 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
   const { state, dispatch } = useEsc()
   const [loja, setLoja] = useState(false)
   const prep = preparadorDe(state.careerPreparador?.[mgr.teamName])
+  const divOf = divOficialDe(state) // 🇧🇷 no Brasil Oficial o preço é o da série
   const fimPrep = state.careerPreparadorContrato?.[mgr.teamName]
   const faltaPrep = faltaContrato(fimPrep, state.seasonNo)
   const prepVencido = fimPrep != null && faltaPrep <= 0
@@ -6516,7 +6517,7 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
                 </span>
               </div>
               <p style={{ fontSize: 9.5, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0' }}>
-                💰 {prep.preco} · 💸 {tr('salário', 'salary')} {salarioPreparador(prep)}/{tr('temporada', 'season')} · 📝 {tr('contrato', 'contract')}: {contrato(fimPrep, faltaPrep)}
+                💰 {precoPrep(prep, divOf)} · 💸 {tr('salário', 'salary')} {salarioPreparador(prep, divOf)}/{tr('temporada', 'season')} · 📝 {tr('contrato', 'contract')}: {contrato(fimPrep, faltaPrep)}
                 {/* 🤖 diz o ESTADO e ONDE fica o interruptor (Rei da Bola, 19/09: "sumiu o botão") */}
                 {temAutomatico(prep) ? <b style={{ color: GREEN }}> · 🤖 {!condicaoAtiva(state)
                   ? tr('automático liberado — liga junto com o gás, na Série C', 'auto unlocked — turns on with energy, in Serie C')
@@ -6526,9 +6527,9 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
               </p>
               {prepVencido && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                  <button onClick={() => dispatch({ type: 'RENOVAR_PREPARADOR' })} disabled={moedas < precoRenovacaoPreparador(prep)}
+                  <button onClick={() => dispatch({ type: 'RENOVAR_PREPARADOR' })} disabled={moedas < precoRenovacaoPreparador(prep, divOf)}
                     style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: moedas < precoRenovacaoPreparador(prep) ? '#CBBF9E' : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: moedas < precoRenovacaoPreparador(prep) ? 'not-allowed' : 'pointer' }}>
-                    {tr('📝 RENOVAR', '📝 RENEW')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{precoRenovacaoPreparador(prep)} 🪙 ({tr('metade do preço', 'half price')}) · {CONTRATO_PRAZOS.join(' · ')} {tr('temporadas (sorteio)', 'seasons (drawn)')}</span>
+                    {tr('📝 RENOVAR', '📝 RENEW')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{precoRenovacaoPreparador(prep, divOf)} 🪙 ({tr('metade do preço', 'half price')}) · {CONTRATO_PRAZOS.join(' · ')} {tr('temporadas (sorteio)', 'seasons (drawn)')}</span>
                   </button>
                   <button onClick={() => dispatch({ type: 'DISPENSAR_PREPARADOR' })}
                     style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
@@ -6558,6 +6559,8 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
 }
 // 🏋️ a lojinha dos quatro — abre no botão CONTRATAR do Departamento Técnico
 function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; onEscolher: (key: string) => void; onFechar: () => void }) {
+  const { state: stLoja } = useEsc()
+  const divOf = divOficialDe(stLoja) // 🇧🇷 no Brasil Oficial o preço é o da série
   return (
     <div onClick={onFechar} style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto', padding: 13, margin: 'auto', borderRadius: 16 }}>
@@ -6569,7 +6572,7 @@ function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; on
         </p>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 8px', color: '#5a5647' }}>💰 {tr('seu caixa', 'your cash')}: {moedas} 🪙</p>
         {PREPARADORES.map(p => {
-          const pode = moedas >= p.preco
+          const pode = moedas >= precoPrep(p, divOf)
           return (
             <div key={p.key} style={{ border: `3px solid ${INK}`, borderRadius: 14, background: APOIO_PERKS[p.tier].grad, boxShadow: `3px 3px 0 0 ${INK}`, padding: 3, marginBottom: 8 }}>
               <div style={{ background: 'rgba(255,255,255,.93)', borderRadius: 11, padding: '9px 11px' }}>
@@ -6583,9 +6586,9 @@ function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; on
                 </p>
                 <button onClick={() => pode && onEscolher(p.key)} disabled={!pode}
                   style={{ width: '100%', marginTop: 8, border: `3px solid ${INK}`, borderRadius: 10, background: pode ? INK : '#CBBF9E', color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 15, padding: '8px', boxShadow: `3px 3px 0 0 rgba(0,0,0,.35)`, cursor: pode ? 'pointer' : 'not-allowed' }}>
-                  {p.preco} 🪙
+                  {precoPrep(p, divOf)} 🪙
                   <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, opacity: .78, marginTop: 1 }}>
-                    {pode ? tr(`salário ${salarioPreparador(p)}/temporada · contrato ${CONTRATO_PRAZOS.join('/')} (sorteio)`, `salary ${salarioPreparador(p)}/season · ${CONTRATO_PRAZOS.join('/')}-season contract (drawn)`) : tr('moedas insuficientes', 'not enough coins')}
+                    {pode ? tr(`salário ${salarioPreparador(p, divOf)}/temporada · contrato ${CONTRATO_PRAZOS.join('/')} (sorteio)`, `salary ${salarioPreparador(p, divOf)}/season · ${CONTRATO_PRAZOS.join('/')}-season contract (drawn)`) : tr('moedas insuficientes', 'not enough coins')}
                   </span>
                 </button>
               </div>

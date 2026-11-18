@@ -45,7 +45,7 @@ import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaTo
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
 import { condicaoAtiva, divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
-import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
+import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, precoPrep, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
@@ -372,7 +372,7 @@ function pagaExDono(s: EscState, nomeTec: string, preco: number, contratanteTeam
 /** Folha conhecida do clube, sem empréstimos compartilhados da SAF. Mesma base da cobrança. */
 export function folhaBaseDoClube(s: EscState, m: Manager): number {
   const tecnico=s.careerTecnicos?.[m.teamName]
-  return squadPayroll(m.squad as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
+  return squadPayroll(m.squad as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]), divOficialDe(s))
 }
 
 function chargeSalaries(s: EscState) {
@@ -2028,6 +2028,13 @@ export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: bool
     case 'B': return !!c.promessa || (!c.promessa && f === 4)
     case 'A': return !c.promessa && f >= 4
   }
+}
+/** 🇧🇷 a série do SEU clube no Brasil Oficial (null fora dele) — régua de preço de preparador/técnico */
+export function divOficialDe(s: Pick<EscState, 'oficial' | 'managers' | 'youIdx' | 'careerPlacements' | 'careerDivision'>): string | null {
+  if (!s.oficial) return null
+  const y = s.managers[s.youIdx]?.id ?? 0
+  const d = s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'D'
+  return d === 'A' || d === 'B' || d === 'C' || d === 'D' ? d : 'D'
 }
 /** 🇧🇷 BRASIL OFICIAL (18/11, régua do Diego): a categoria que aparece no leilão depende da SUA série —
  *  D: profissional e bom jogador · C: bom jogador e promessa · B: promessa e craque · A: craque e lenda. */
@@ -12058,8 +12065,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!p) return s
       if (s.careerPreparador?.[you.teamName]) return s // já tem um — dispensa o atual antes
       const coins = s.careerCoins?.[you.id] ?? 0
-      if (coins < p.preco) return s
-      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
+      const precoP = precoPrep(p, divOficialDe(s)) // 🇧🇷 no Oficial o preço é o da série
+      if (coins < precoP) return s
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - precoP }
       s.careerPreparador = { ...(s.careerPreparador ?? {}), [you.teamName]: p.key }
       // 🤖 o automático NASCE DESLIGADO (19/09). A preferência podia ter ficado ligada
       // de 13–15/09, quando era de graça: quem comprava o 👑 Lenda achava o botão já
@@ -12070,10 +12078,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       const fimNovo = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
       const anosNovo = fimNovo - s.seasonNo + 1
       s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimNovo }
-      logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -p.preco)
+      logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -precoP)
       s.aliciarLog = {
         titulo: `🏋️ ${p.nome} é do ${you.teamName}!`,
-        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora 1 rodada no banco vale ${Math.floor(p.banco / 1.4)} jogos de fôlego (era 2) e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
+        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${precoP} 🪙. Salário de ${salarioPreparador(p, divOficialDe(s))} por temporada, na folha. Agora 1 rodada no banco vale ${Math.floor(p.banco / 1.4)} jogos de fôlego (era 2) e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
         venceu: true,
       }
       return s
@@ -12089,7 +12097,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const fim = s.careerPreparadorContrato?.[you.teamName]
       if (fim == null || fim >= s.seasonNo) return s
       const coins = s.careerCoins?.[you.id] ?? 0
-      const custo = precoRenovacaoPreparador(p)
+      const custo = precoRenovacaoPreparador(p, divOficialDe(s))
       if (coins < custo) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - custo }
       const fimRenov = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
