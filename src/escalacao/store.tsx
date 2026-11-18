@@ -2029,6 +2029,28 @@ export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: bool
     case 'A': return !c.promessa && f >= 4
   }
 }
+/** 🇧🇷 BRASIL OFICIAL (18/11, item (a) aprovado): contrato de técnico/preparador vencido que NÃO foi renovado na janela =
+ *  ele vai embora quando o leilão começa (na carreira de sempre ele ficava pra sempre sem pagar renovação). Mesmas regras do
+ *  "deixar ir": sem multa, técnico vai pra SEM CLUBE e, se alguém contratar, você recupera metade. O aviso mora na janela. */
+function deixaComissaoVencidaIr(s: EscState): void {
+  const you = s.managers[s.youIdx]
+  if (!you?.isHuman) return
+  const t = you.teamName
+  const nome = s.careerTecnicos?.[t], fimT = s.careerTecnicoContrato?.[t]
+  if (nome && fimT != null && fimT < s.seasonNo) {
+    s.careerTecnicos = { ...(s.careerTecnicos ?? {}), [t]: null }
+    const ct = { ...(s.careerTecnicoContrato ?? {}) }; delete ct[t]; s.careerTecnicoContrato = ct
+    s.careerTecnicoExDono = { ...(s.careerTecnicoExDono ?? {}), [nome]: t }
+    limpaHeranca(s, t)
+    ;(s.marketLog = s.marketLog ?? []).push(`👋 ${nome} foi embora: o contrato acabou e não foi renovado. Ele está SEM CLUBE — se alguém contratar, você recupera metade.`)
+  }
+  const p = preparadorDe(s.careerPreparador?.[t]), fimP = s.careerPreparadorContrato?.[t]
+  if (p && fimP != null && fimP < s.seasonNo) {
+    s.careerPreparador = { ...(s.careerPreparador ?? {}), [t]: null }
+    const cp = { ...(s.careerPreparadorContrato ?? {}) }; delete cp[t]; s.careerPreparadorContrato = cp
+    ;(s.marketLog = s.marketLog ?? []).push(`👋 ${p.nome} foi embora: o contrato acabou e não foi renovado. O banco volta a devolver o de sempre.`)
+  }
+}
 /** 🇧🇷 a série do SEU clube no Brasil Oficial (null fora dele) — régua de preço de preparador/técnico */
 export function divOficialDe(s: Pick<EscState, 'oficial' | 'managers' | 'youIdx' | 'careerPlacements' | 'careerDivision'>): string | null {
   if (!s.oficial) return null
@@ -13075,6 +13097,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.reserveListed = {}
+      if (s.oficial) deixaComissaoVencidaIr(s) // 🇧🇷 Oficial (18/11): técnico/preparador vencido que você não renovou na janela vai embora agora
       s.reserveAuction = true
       // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é IDÊNTICO
       // ao leilão normal, só vem antes do goleiro; como uma posição nova"): o

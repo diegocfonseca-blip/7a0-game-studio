@@ -216,10 +216,10 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
       ))}
 
       {tecVencido && nomeTec && <>{tag(tr('🧢 TÉCNICO', '🧢 HEAD COACH'))}{cartaComissao('tec', '🧢', nomeTec,
-        en ? `Served out his contract (expired in S${fimTec}). Renew = new length drawn · let go = no fee.` : `Cumpriu o contrato (venceu na T${fimTec}). Renovar = tempo novo sorteado · deixar ir = sem multa.`,
+        en ? `Served out his contract (expired in S${fimTec}). Renew = new length drawn · let go = no fee.${state.oficial ? ' ⚠️ If you don’t renew, he leaves when the auction starts.' : ''}` : `Cumpriu o contrato (venceu na T${fimTec}). Renovar = tempo novo sorteado · deixar ir = sem multa.${state.oficial ? ' ⚠️ Se não renovar, ele vai embora quando o leilão começar.' : ''}`,
         custoTec, () => dispatch({ type: 'RENOVAR_TECNICO' }), () => dispatch({ type: 'DISPENSAR_TECNICO' }))}</>}
       {prepVencido && prep && <>{tag(tr('🏋️ PREPARADOR', '🏋️ FITNESS COACH'))}{cartaComissao('prep', '🏋️', prep.nome,
-        en ? `Contract expired (S${fimPrep}). Renewing costs half the hiring price.` : `Contrato venceu (T${fimPrep}). Renovar custa metade do preço de contratar.`,
+        en ? `Contract expired (S${fimPrep}). Renewing costs half the hiring price.${state.oficial ? ' ⚠️ If you don’t renew, he leaves when the auction starts.' : ''}` : `Contrato venceu (T${fimPrep}). Renovar custa metade do preço de contratar.${state.oficial ? ' ⚠️ Se não renovar, ele vai embora quando o leilão começar.' : ''}`,
         custoPrep, () => dispatch({ type: 'RENOVAR_PREPARADOR' }), () => dispatch({ type: 'DISPENSAR_PREPARADOR' }))}</>}
 
       {expirados.length > 0 && <>
