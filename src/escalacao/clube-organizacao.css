@@ -7,3 +7,6 @@
 .clube-obras-grid>div{flex-wrap:wrap}.clube-obras-grid>div>.clube-obra-context{flex:1 1 100%;order:2}.clube-estadio-detalhes{color:#0c0c0c}
 
 .clube-organizacao-mapa>.clube-estadio-detalhes{background:#f4ecd6;border:3px solid #0c0c0c;border-radius:12px;padding:4px 12px;margin:0 0 12px;color:#0c0c0c}
+
+/* 🏀 18/11: o Clube do basquete mora no fundo creme */
+.clube-organizacao-claro .clube-organizacao-acessos,.clube-organizacao-claro .clube-organizacao-acessos h2{color:#0c0c0c}

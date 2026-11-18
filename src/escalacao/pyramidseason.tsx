@@ -8427,6 +8427,7 @@ export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** �
   const en = getLang() === 'en'
   const L = (pt: string, e: string) => en ? e : pt
   const [sub, setSub] = useState<'estadio' | 'patrocinio' | 'financas' | 'escritorio' | 'multi'>('estadio')
+  const [painelBB, setPainelBB] = useState<DestinoClubeMapa | null>(null) // 🏀🗺️ 18/11: o painel aberto por cima do mapa (Clube novo)
   const youId = state.managers[state.youIdx]?.id ?? state.youIdx
   const coins = state.careerCoins?.[youId] ?? 0
   const myCards = state.empresarioCards ?? []
@@ -8441,28 +8442,9 @@ export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** �
     .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D')
     .map(m => m.teamName)
   const isLenda = myApoioPerk()?.tier === 'ouro'
-  const tabs: [typeof sub, string, string][] = [
-    ['estadio', '🏟️', L('Arena', 'Arena')],
-    ['patrocinio', '👕', L('Patrocínio', 'Sponsor')],
-    ['financas', '💰', L('Finanças', 'Finances')],
-    ['escritorio', '💼', L('Agência', 'Agency')],
-    ['multi', '🏛️', L('2º Clube', '2nd Club')],
-  ]
-  return (
-    <div style={inline ? undefined : { position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      {!inline && <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />}
-      <div style={inline ? { background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden' } : { position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
-          {!inline && <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>}
-        </div>
-        <div style={{ display: 'flex', gap: 6, padding: 10 }}>
-          {tabs.map(([s, ic, label]) => (
-            <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
-          ))}
-        </div>
-        <div style={inline ? { padding: '0 12px 20px' } : { flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
-          {sub === 'escritorio' ? (
+  // 🏀🗺️ 18/11: o conteúdo de cada pedaço do Clube (aba antiga e painéis do Clube novo usam o MESMO)
+  const conteudo = (sub: 'estadio' | 'patrocinio' | 'financas' | 'escritorio' | 'multi', pagina?: 'map' | 'works') => (
+    sub === 'escritorio' ? (
             <EscritorioTab cards={myCards} st={state.stadiums?.[youId]} hasFilial={false} bb />
           ) : sub === 'patrocinio' ? (
             // 👕 Patrocinador Master do basquete: mesmos 4 papéis do futebol, pagando pelo
@@ -8484,16 +8466,59 @@ export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** �
             <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={isLenda}
               onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} bb />
           ) : (
-            <StadiumTab st={state.stadiums?.[youId]} coins={coins}
+            <StadiumTab st={state.stadiums?.[youId]} coins={coins} clubPage={pagina}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb
               // 🏀🗺️ 16/11 (Diego: *"pq apareceu essa maquete se já tem o mapa p todos… mapa q tem q ser p basquete"*): na ABA Clube
               // da carreira o MESMO mapa da cidade do futebol, com a arena de basquete no lugar do estádio (quadra + cestas).
-              presidencyView={inline ? <PresidenciaEstadioCamera homeClubId={youId} stadium={state.stadiums?.[youId]}
+              presidencyView={inline && pagina !== 'works' ? <PresidenciaEstadioCamera homeClubId={youId} stadium={state.stadiums?.[youId]}
                 career={{ key: `${state.seed}:${state.seasonNo ?? 1}:${youId}`, state, mgrId: youId,
                   cidade: { ultimoJogo: null, cor: myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid, cor2: myApoioPerk()?.light ?? APOIO_PERKS.bege.light },
                   day: { division: state.nbaTier === 'nba' ? 'A' : state.nbaTier === 'gleague' ? 'B' : 'D', support: state.careerTorcida?.[`m${youId}`] ?? 50 } }} /> : undefined} />
-          )}
+          )
+  )
+  // 🏀🗺️ 18/11 (Diego aprovou o mockup `basquete-clube-proposta.png`: *"pode fazer"*): a ABA Clube da carreira do basquete no MESMO
+  // formato do Clube do futebol — o mapa com a arena primeiro, o caixa numa etiqueta pequena no título (*"essa moeda grandona
+  // atrapalha"*), e botões grandes que abrem cada assunto num painel por cima do mapa. Regras, preços e obras não mudam.
+  if (inline) {
+    const subDe = (d: DestinoClubeMapa | null): typeof sub | null => d === 'financas' ? 'financas' : d === 'patrocinio' ? 'patrocinio' : d === 'estrutura' ? 'estadio' : d === 'agencia' || d === 'escritorio' ? 'escritorio' : d === 'negocios' ? 'multi' : null
+    const aberto = subDe(painelBB)
+    const clube = state.managers[state.youIdx]?.teamName ?? ''
+    return (
+      <div className="bb-clube-novo">
+        <header style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 2px 12px' }}>
+          <h2 style={{ ...OSWALD, fontWeight: 900, fontSize: 26, textTransform: 'uppercase', margin: 0, lineHeight: 1.1 }}>{L('Seu clube', 'Your club')}</h2>
+          <span title={L('Caixa do clube', 'Club balance')} style={{ ...OSWALD, fontWeight: 900, fontSize: 15, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 11px', background: '#fff', boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>{coins.toLocaleString('pt-BR')} 🪙</span>
+        </header>
+        <ClubeOrganizacao bb semCaixa onSelect={d => setPainelBB(d)} store={false} museum={false} home={false} balance={coins} club={clube}>{conteudo('estadio', 'map')}</ClubeOrganizacao>
+        <ClubeMapaPainel enabled active={aberto ? painelBB : null} club={clube} agency onSelect={d => setPainelBB(d)} onClose={() => setPainelBB(null)}>
+          {aberto ? conteudo(aberto, aberto === 'estadio' ? 'works' : undefined) : null}
+        </ClubeMapaPainel>
+      </div>
+    )
+  }
+  const tabs: [typeof sub, string, string][] = [
+    ['estadio', '🏟️', L('Arena', 'Arena')],
+    ['patrocinio', '👕', L('Patrocínio', 'Sponsor')],
+    ['financas', '💰', L('Finanças', 'Finances')],
+    ['escritorio', '💼', L('Agência', 'Agency')],
+    ['multi', '🏛️', L('2º Clube', '2nd Club')],
+  ]
+  return (
+    <div style={inline ? undefined : { position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      {!inline && <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />}
+      <div style={inline ? { background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden' } : { position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
+          {!inline && <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>}
+        </div>
+        <div style={{ display: 'flex', gap: 6, padding: 10 }}>
+          {tabs.map(([s, ic, label]) => (
+            <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
+          ))}
+        </div>
+        <div style={inline ? { padding: '0 12px 20px' } : { flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
+          {conteudo(sub)}
         </div>
       </div>
     </div>
@@ -11531,7 +11556,7 @@ export function PyramidSeasonScreen() {
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
         {visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
         {visualV2 && tab === 'jogos' && !done && round > 0 && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
-        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
+        {visualV2 && tab !== 'jogos' && <CareerHeading chip={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
         <div className="ll-cx-lado">
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
@@ -12602,7 +12627,7 @@ export function PyramidSeasonScreen() {
                 </SubAbasGrudadas>
               )
             })()}
-            {mapaComoClube?<ClubeOrganizacao onSelect={abrirDestinoNoMapa} store={lojaLib&&hasExtra(state.stadiums?.[youId],'loja')} museum={museuDisponivel} home={presidentAvailable} balance={state.careerCoins?.[youId]??0} club={state.managers[state.youIdx]?.teamName??''}>{renderEstruturaDoClube()}</ClubeOrganizacao>:!temPainelClube&&renderEstruturaDoClube()}
+            {mapaComoClube?<ClubeOrganizacao onSelect={abrirDestinoNoMapa} store={lojaLib&&hasExtra(state.stadiums?.[youId],'loja')} museum={museuDisponivel} home={presidentAvailable} balance={state.careerCoins?.[youId]??0} club={state.managers[state.youIdx]?.teamName??''} semCaixa={visualV2}>{renderEstruturaDoClube()}</ClubeOrganizacao>:!temPainelClube&&renderEstruturaDoClube()}
             <ClubeMapaPainel enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={abrirDestinoNoMapa} onClose={()=>setClubeSub('estadio')}>
             {clubeSub==='negocios'&&mapaComoClube?renderEstruturaDoClube(true,true):clubeSub==='estrutura'&&mapaComoClube?renderEstruturaDoClube(true):clubeSub==='museu'&&museuDisponivel?<MuseuClube state={state} mgrId={youId} member={meuSocFesta} color={myCol.solid} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:youId,expectedStage})} onStore={()=>setClubeSub('estrutura')}/>:clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled(state)||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled(state)||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
               <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><PainelResidencia onFurnitureHome={ids=>{if(!presidentWritesEnabled(state)||!organizarMoveisNaCasa(state,youId,ids).ok)return false;dispatch({type:'PRESIDENCY_FURNITURE_HOME',mgrId:youId,ids});return true}} onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{

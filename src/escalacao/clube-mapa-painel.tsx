@@ -1,5 +1,6 @@
 import {useCareerVisualV2} from './career-visual-v2'
 import {useT} from './lang'
+import {getSport} from './sport'
 import {useEffect,useRef,type ReactNode} from 'react'
 import {createPortal} from 'react-dom'
 import {nomeAgenciaClube,type DestinoClubeMapa} from './clube-mapa-destinos'
@@ -7,7 +8,7 @@ import './clube-mapa.css'
 export function ClubeMapaPainel({enabled,active,club,onSelect,onClose,children}:{enabled:boolean;active:DestinoClubeMapa|null;club:string;agency:boolean;onSelect:(target:DestinoClubeMapa)=>void;onClose:()=>void;children:ReactNode}){
  const t=useT(),visualV2=useCareerVisualV2()
  const panel=useRef<HTMLElement>(null),close=useRef(onClose);close.current=onClose
- const open=enabled&&!!active,title=active==='museu'?t('Museu do clube','Club museum'):active==='estrutura'?t('Estrutura e obras','Facilities and construction'):active==='arena'?t('Arena Legends','Arena Legends'):active==='loja'?t('Loja da torcida','Supporters’ store'):active==='patrocinio'?t('Patrocínios do clube','Club sponsorships'):active==='negocios'?t('SAF e segundo clube','SAF and second club'):active==='financas'?t('Finanças do clube','Club finances'):active==='presidencia'?t('Casa e garagem','Home and garage'):active==='veiculos'?t('Vadico Veículos','Vadico Veículos'):nomeAgenciaClube(club)
+ const open=enabled&&!!active,title=active==='museu'?t('Museu do clube','Club museum'):active==='estrutura'?(getSport()==='basquete'?t('Arena e obras','Arena and construction'):t('Estrutura e obras','Facilities and construction')):active==='arena'?t('Arena Legends','Arena Legends'):active==='loja'?t('Loja da torcida','Supporters’ store'):active==='patrocinio'?t('Patrocínios do clube','Club sponsorships'):active==='negocios'?t('SAF e segundo clube','SAF and second club'):active==='financas'?t('Finanças do clube','Club finances'):active==='presidencia'?t('Casa e garagem','Home and garage'):active==='veiculos'?t('Vadico Veículos','Vadico Veículos'):nomeAgenciaClube(club)
  useEffect(()=>{
   if(!open)return
   const el=panel.current;if(!el)return
@@ -39,7 +40,7 @@ export function ClubeMapaPainel({enabled,active,club,onSelect,onClose,children}:
  return createPortal(<div className={`clube-mapa-backdrop ll25-career ll29-career ll25-tab-estadio ll25-clube-${active}${visualV2?' cv2-root cv2-club':''}`} onClick={e=>{if(e.target===e.currentTarget)close.current()}}>
  <section ref={panel} tabIndex={-1} role="dialog" aria-modal="true" className="clube-mapa-painel clube-organizado" aria-label={title}>
   <header><div><small>{active==='arena'?t('Consulta de salas abertas','Open rooms'):active==='presidencia'?t('Seu espaço pessoal','Your personal space'):club}</small><h2>{title}</h2></div><button type="button" data-map-panel-close onClick={onClose}>{t('← Voltar ao mapa','← Back to the map')}</button></header>
-  {['financas','patrocinio','estrutura'].includes(active)&&<nav aria-label={t('Gestão do clube','Club management')}><button aria-pressed={active==='financas'} onClick={()=>onSelect('financas')}>{t('Finanças','Finances')}</button><button aria-pressed={active==='patrocinio'} onClick={()=>onSelect('patrocinio')}>{t('Patrocínios e contratos','Sponsorships and contracts')}</button><button aria-pressed={active==='estrutura'} onClick={()=>onSelect('estrutura')}>{t('Estrutura e obras','Facilities')}</button></nav>}
+  {['financas','patrocinio','estrutura'].includes(active)&&<nav aria-label={t('Gestão do clube','Club management')}><button aria-pressed={active==='financas'} onClick={()=>onSelect('financas')}>{t('Finanças','Finances')}</button><button aria-pressed={active==='patrocinio'} onClick={()=>onSelect('patrocinio')}>{t('Patrocínios e contratos','Sponsorships and contracts')}</button><button aria-pressed={active==='estrutura'} onClick={()=>onSelect('estrutura')}>{getSport()==='basquete'?t('Arena e obras','Arena'):t('Estrutura e obras','Facilities')}</button></nav>}
   {active==='negocios'&&<p className="clube-mapa-context">{t('Participações, segundo clube e condições para assumir ou transferir o comando. Cada clube mantém seu próprio caixa.','Ownership, second club and conditions for taking or handing over management. Each club keeps its own balance.')}</p>}
   {['agencia','escritorio'].includes(active)&&<p className="clube-mapa-context">{t('Agenciados, cartas e atividades da sua agência.','Clients, cards and agency activities.')}</p>}
   <div className="clube-mapa-conteudo">{children}</div>
