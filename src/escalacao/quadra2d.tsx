@@ -11,6 +11,7 @@ import { legendAvatar } from './legend-avatars'
 import { PlacaGol } from './patrocinio-visual'
 import { basketClockLabel } from './sportcfg'
 import { getLang } from './lang'
+import { campoNaTela } from './campo2d-modo'
 
 export type JogadorQuadra = { name: string; club?: string; year?: number; num: number }
 export type LadoQuadra = { nome: string; sigla: string; cor: string; jogadores: JogadorQuadra[] }
@@ -165,6 +166,8 @@ export function Quadra2D({ plano, minuto, minutoMs, fechado, casa, fora, pausado
   /** 🎙️ a fala do começo e do apito final (a rádio do basquete de sempre) */ falaAbertura: string; falaFinal: string
 }) {
   const celular = useCelular()
+  // 📢 com a quadra na tela, o telão solto da página se esconde (o da quadra fica logo abaixo dela) — nunca dois telões
+  useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, [])
   const t = useTempoLiso(minuto, minutoMs, fechado || !!pausado)
   const cena = useMemo(() => cenaEm(plano, t), [plano, t])
   const dir = atacaDireita(cena.of, t)
@@ -217,6 +220,38 @@ export function Quadra2D({ plano, minuto, minutoMs, fechado, casa, fora, pausado
     {!celular && <PlacaGol lado="baixo" alt={22} />}
     {!celular && <div className="q2d-arq" aria-hidden="true">{torcida(casa.cor, fora.cor, 2)}</div>}
     <p className="q2d-narr" aria-live="polite">🎙️ {fala}</p>
+    {fechado && <ResumoQuadra plano={plano} casa={casa} fora={fora} />}
+  </div>
+}
+
+/** 📊 FIM DE JOGO · O RESUMO — o mesmo cartão do Campo 2D do futebol, com os números do basquete. Tudo sai do MESMO roteiro
+ *  que a quadra mostrou (e o roteiro usa os pontos de cada jogador da estatística), então nada aqui contradiz a tela. */
+function ResumoQuadra({ plano, casa, fora }: { plano: PlanoQuadra; casa: LadoQuadra; fora: LadoQuadra }) {
+  const en = getLang() === 'en'
+  const conta = (lado: 'casa' | 'fora', f: (l: Lance) => boolean) => plano.lances.filter(l => l.lado === lado && f(l)).length
+  const defesa = (lado: 'casa' | 'fora', tipo: 'toco' | 'roubo') => plano.lances.filter(l => l.lado !== lado && l.tipo === tipo).length
+  const linhas: [string, number, number][] = [
+    [en ? 'THREES' : 'BOLAS DE 3', conta('casa', l => l.pts === 3), conta('fora', l => l.pts === 3)],
+    [en ? 'FREE THROWS' : 'LANCES LIVRES', conta('casa', l => l.tipo === 'lance'), conta('fora', l => l.tipo === 'lance')],
+    [en ? 'BLOCKS' : 'TOCOS', defesa('casa', 'toco'), defesa('fora', 'toco')],
+    [en ? 'STEALS' : 'ROUBOS', defesa('casa', 'roubo'), defesa('fora', 'roubo')],
+  ]
+  const pts = new Map<string, { nome: string; p: number; cor: string }>()
+  for (const l of plano.lances) {
+    const lado = l.lado === 'casa' ? casa : fora, j = lado.jogadores[l.quem]
+    if (!j || l.pts === 0) continue
+    const k = `${l.lado}|${l.quem}`, at = pts.get(k)
+    pts.set(k, { nome: j.name.replace(/\s*\([^)]*\)\s*/g, ' ').trim(), p: (at?.p ?? 0) + l.pts, cor: lado.cor })
+  }
+  const cestinha = [...pts.values()].sort((a, b) => b.p - a.p)[0]
+  const tot = plano.casaFim + plano.foraFim || 1
+  return <div className="q2d-res">
+    <p className="q2d-res-tit">📊 {en ? 'FINAL · THE SUMMARY' : 'FIM DE JOGO · O RESUMO'}</p>
+    <div className="q2d-res-times"><span><i style={{ background: casa.cor }} />{casa.sigla}</span><span>{fora.sigla}<i style={{ background: fora.cor }} /></span></div>
+    <div className="q2d-res-barra"><b style={{ width: `${(plano.casaFim / tot) * 100}%`, background: casa.cor }} /><b style={{ flex: 1, background: fora.cor }} /></div>
+    <div className="q2d-res-linha"><strong>{plano.casaFim}</strong><span>{en ? 'POINTS' : 'PONTOS'}</span><strong>{plano.foraFim}</strong></div>
+    {linhas.map(([rot, a, b]) => <div key={rot} className="q2d-res-linha"><strong>{a}</strong><span>{rot}</span><strong>{b}</strong></div>)}
+    {cestinha && <div className="q2d-res-mvp"><span>⭐ {en ? 'TOP SCORER' : 'CESTINHA DO JOGO'}</span><b>{cestinha.nome} · {cestinha.p} {en ? 'PTS' : 'PTS'} <i style={{ background: cestinha.cor }} /></b></div>}
   </div>
 }
 
@@ -234,6 +269,15 @@ const CSS = `
 .q2d-dot{width:12px;height:12px;border:2px solid #000;border-radius:3px;display:inline-block}
 .q2d-rel{margin-left:6px;font-size:15px}.q2d-24{margin-left:4px;background:#C2452F;color:#fff;border-radius:6px;padding:0 6px;font-size:14px}
 .q2d-narr{margin:10px 0 0;background:#fff;border:3px solid #000;border-radius:12px;padding:10px 14px;font:700 15px Inter,system-ui,sans-serif;color:#0C0C0C;line-height:1.35}
+.q2d-res{margin-top:10px;background:#F4ECD6;border:3px solid #000;border-radius:14px;padding:12px 14px;color:#0C0C0C;font-family:Oswald,sans-serif}
+.q2d-res-tit{margin:0 0 8px;text-align:center;font-weight:900;font-size:19px}
+.q2d-res-times{display:flex;justify-content:space-between;font-weight:900;font-size:17px}.q2d-res-times span{display:flex;align-items:center;gap:6px}
+.q2d-res-times i,.q2d-res-mvp i{width:13px;height:13px;border:2px solid #000;border-radius:3px;display:inline-block}
+.q2d-res-barra{display:flex;height:9px;border:2px solid #000;border-radius:6px;overflow:hidden;margin:6px 0 8px}.q2d-res-barra b{display:block;height:100%}
+.q2d-res-linha{display:flex;justify-content:space-between;align-items:center;padding:3px 0}.q2d-res-linha strong{font-size:21px;min-width:36px}.q2d-res-linha strong:last-child{text-align:right}
+.q2d-res-linha span{font-weight:700;font-size:13px;letter-spacing:.06em;color:#0009}
+.q2d-res-mvp{margin-top:8px;background:#0C0C0C;color:#fff;border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.q2d-res-mvp span{color:#FFC400;font-weight:900;font-size:13px;white-space:nowrap}.q2d-res-mvp b{font-size:16px;display:flex;align-items:center;gap:6px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .q2d-arq{display:flex;flex-wrap:wrap;gap:3px;padding:4px 10px;max-height:26px;overflow:hidden}.q2d-arq i{width:8px;height:8px;border-radius:50%;display:block;opacity:.9}
 `
 
