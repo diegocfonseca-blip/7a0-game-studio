@@ -24,6 +24,12 @@
 - Ainda NÃO entra no álbum/pacote de cartinha do basquete (o pacote sorteia só do baralho NBA). Perguntar se quer as do Mundo no álbum também.
 - Ele pediu "muito mais cartas": dá pra crescer depois (pivôs 18 e alas-pivô 21 são os menores).
 
+### 🏀 18/11 (11) — Conferência do fluxo do basquete + Quadra 2D (pedido do Diego)
+- Joguei na tela, do fim da liga até o anel (Partida Rápida, 30 times): Liga → Play-In (1ª rodada e "a última vaga") → 1ª rodada → semis de conferência → finais de conferência → Finals → "O ANEL É SEU". Séries melhor de 7, sem erro na tela. O controle "Acelerar e pular" aparece (com 🔒 pra quem não tem plano).
+- Corrigido: "Aguardando a bola ao alto da Copa" → "…dos Playoffs".
+- Sala online usa o MESMO motor (o dono toca, o resto acompanha). Falta o teste de verdade com 2 aparelhos (Diego).
+- 📺 **Quadra 2D do basquete: NÃO existe ainda.** Hoje o 2D é só do futebol, e no basquete ele fica escondido de propósito (senão abria o campinho de futebol). Diego pediu *"o campo 2d deve funcionar pro Basquete real"*. Próximo passo: MOCKUP da quadra 2D (5×5, quadra de madeira, mesmo visual do campinho) pra aprovação antes de codar.
+
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
 - O que o banco mostra: 17h02 ele recarregou (o botão Manual sumiu dali em diante = o aparelho dele deixou de ser dono); a sala seguiu
   salva com youIdx 0 até 17h10 (final da Kings) e parou; 39 s depois o aparelho dele saiu (registro "saiu_por_conta_propria" com

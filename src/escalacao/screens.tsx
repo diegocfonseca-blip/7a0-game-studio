@@ -8593,7 +8593,7 @@ export function EscSeason() {
                 )
               })() : aberturaOn ? null : ( // 🎬 com a abertura no palco, o "aguardando o pontapé" seria o mesmo recado duas vezes
                 <Box bg="#fff" className="p-6" shadow={6}>
-                  <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
+                  <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the playoff jump ball…' : '🏀 Aguardando a bola ao alto dos Playoffs…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
                 </Box>
               )
             ) : finalAlheiaQ && finalAlheiaQ.legs.length > 0 ? (() => {
