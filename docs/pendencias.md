@@ -13701,3 +13701,13 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
   campeão leva 🖋 Plano Batismo (escudo + mascote); 2º e 3º A DECIDIR. Convite no fim das salas: `scripts/mockups/torneio-lista-fim-sala.png`
   (cartão com "🙋 Quero jogar" + contador X/36; ✕ fecha pra sempre; depois de entrar vira faixinha). Aguardando OK pra construir.
   · Pódio do exemplo: Neymarzetti · Cativeiro FC · Guimarães SCI. Transmissão = canal do Futpoint FC (vai no convite).
+
+## 🧤🐓 18/11 — Batismo FUNDADOR Duarte FC (luizfelipeduarte212) — NO BRANCH, esperando OK do Diego pra publicar
+- Várzea, no assento do bot Ressaca United. Fundador nº102 · sócio nº94 · coração Atlético Mineiro (deduzido do pedido do canto).
+- Pagou o Fundador no Pix em 18/11 (subida, R$ 60). Em 17/11 eu tinha ligado o Lenda (user_colors ouro) a pedido do Diego.
+- Escudo/mascote/camisa recortados da prancha verde; manto preto #101010 + branco #F1F1F0, dourado #F7D50A de 3ª cor (MANTO_TRI duarte_paredao).
+- Banco FEITO: esc_socios, esc_fundadores (102), esc_nomes_batismo (Duarte / FC / EC), user_colors ouro.
+- Gala única "São Victor" (`gala-duarte.tsx`, vídeo `scripts/posts/gala-duarte.webm`): pênalti contra, O Paredão defende com o pé.
+  Fato: a defesa do Victor com o pé foi nas QUARTAS da Libertadores 2013 (Tijuana), não na final — a gala não diz "final".
+- ⏳ SEM CANTO: não existe canto do Atlético Mineiro no jogo (nenhum outro usuário tem). Falta o Diego mandar o áudio → `sfx/torcida-galo-v1.mp3` + sound.ts + gala.
+- Post: `scripts/posts/batismo-duarte.png` (dono = "Felipe", tirado do e-mail — confirmar com o Diego).
