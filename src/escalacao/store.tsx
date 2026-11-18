@@ -4278,7 +4278,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     const POS_W: Record<string, number> = { GOL: 3, LAT: 4, ZAG: 3.5, MEI: 3, ATA: 3 } // PG/SG/SF/PF/C
     // 📺🏀 18/11: os pontos de CADA jogador neste jogo (os mesmos que vão pra cestinha), pra a Quadra 2D mostrar exatamente quem fez
     // quanto. Só nos jogos com gente (é o jogo que aparece na tela). Não consome dado nenhum.
-    const bbPts: Record<number, { n: string; p: number }[]> = {}
+    const bbPts: Record<number, { n: string; p: number; a?: number; r?: number }[]> = {}
     const creditPts = (id: number, pts: number, prefix: string) => {
       const m = state.managers.find(x => x.id === id)
       if (!m || m.squad.length === 0) return
@@ -4320,7 +4320,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       rotation.forEach((p, i) => {
         const share = i === rotation.length - 1 ? left : Math.max(0, Math.min(left, Math.round(pts * shareW[i] / shareTot)))
         left -= share
-        if (involveHuman) (bbPts[id] ??= []).push({ n: p.name, p: share })
+        if (involveHuman) (bbPts[id] ??= []).push({ n: p.name, p: share, a: ast[i], r: reb[i] }) // pontos · assistências · rebotes DESTE jogo
         // 🃏🚫 tapa-buraco PONTUA no jogo (o placar é dele também), mas não entra
         // na cestinha nem nas estatísticas. Mesma regra do futebol — ordem do Diego, 19/09.
         if (p.fake) return

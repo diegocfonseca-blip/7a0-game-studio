@@ -28,6 +28,11 @@ export type Lance = {
   casa: number; fora: number
   /** quem defendeu (toco/roubo) — índice no quinteto do outro lado */
   defensor?: number
+  /** quem pegou o REBOTE do arremesso errado — índice no quinteto do outro lado (quem defendia) */
+  reb?: number
+  /** 🎬 jogada em DESTAQUE: a quadra encena por inteiro (~30 por jogo, espaçadas). As outras cestas sobem no placar como
+   *  "cesta rápida", com o nome na faixa — o mesmo placar, os mesmos donos, em qualquer tela (quadra ou placar cinema). */
+  destaque?: boolean
 }
 export type PlanoQuadra = { lances: Lance[]; casaFim: number; foraFim: number }
 
@@ -134,7 +139,10 @@ function cestasDosJogadores(pts: number[], r: () => number): Item[] {
 
 /** 🏀 o roteiro do jogo. `seed` = a mesma semente do placar (ex.: sementeDasChances). Elencos = o quinteto (PG..C).
  *  `ptsCasa/ptsFora` = os pontos de cada um do quinteto NAQUELE jogo (a mesma conta das estatísticas); sem eles, o roteiro sorteia. */
-export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCasa: JogadorPlano[] = [], elFora: JogadorPlano[] = [], ptsCasa?: number[], ptsFora?: number[]): PlanoQuadra {
+export type ExtraPlano = { astCasa?: number[]; astFora?: number[]; rebCasa?: number[]; rebFora?: number[] }
+/** distância mínima (minutos do relógio 0–93) entre duas jogadas em destaque — dá ~2 s de tela no jogo de 1 min */
+export const GAP_DESTAQUE = 4
+export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCasa: JogadorPlano[] = [], elFora: JogadorPlano[] = [], ptsCasa?: number[], ptsFora?: number[], extra: ExtraPlano = {}): PlanoQuadra {
   const r = rngDe(seed ^ 0xB45E7)
   const soma = (a?: number[]) => (a ?? []).reduce((x, y) => x + Math.max(0, Math.round(y)), 0)
   const valePts = (a: number[] | undefined, fim: number) => !!a && a.length > 0 && soma(a) === Math.round(fim)
@@ -200,6 +208,40 @@ export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCa
     })
     t += dur
   })
+  // 🅰️ ASSISTÊNCIAS que batem com a estatística do jogo: cada um dá exatamente o nº de passes da AST dele (nunca pra si mesmo)
+  const r2 = rngDe(seed ^ 0xA5515)
+  for (const [lado, ast] of [['casa', extra.astCasa], ['fora', extra.astFora]] as const) {
+    if (!ast || !ast.some(x => x > 0)) continue
+    const cestas = lances.filter(l => l.lado === lado && l.pts >= 2)
+    cestas.forEach(l => { l.passe = -1 })
+    const fila: number[] = []
+    ast.forEach((n, i) => { for (let k = 0; k < Math.max(0, Math.round(n)); k++) fila.push(i) })
+    for (let i = fila.length - 1; i > 0; i--) { const j = Math.floor(r2() * (i + 1)); [fila[i], fila[j]] = [fila[j], fila[i]] }
+    const ordem = [...cestas]; for (let i = ordem.length - 1; i > 0; i--) { const j = Math.floor(r2() * (i + 1)); [ordem[i], ordem[j]] = [ordem[j], ordem[i]] }
+    for (const passador of fila) {
+      const alvo = ordem.find(l => l.passe < 0 && l.quem !== passador)
+      if (alvo) alvo.passe = passador
+    }
+  }
+  // 🏀 REBOTE de todo arremesso errado: quem defendia, pelo nº de rebotes de cada um no jogo (ou pela posição)
+  for (const l of lances) if (l.tipo === 'erro') {
+    const rb = l.lado === 'casa' ? extra.rebFora : extra.rebCasa
+    l.reb = escolhe(rb && rb.some(x => x > 0) ? rb.map(x => Math.max(0.2, x)) : [0.5, 0.6, 1, 1.6, 2], r2)
+  }
+  // 🎬 as jogadas em DESTAQUE (~30): enterrada, bola de 3, toco, roubo e as cestas do cestinha pesam mais; o fim do jogo pesa mais;
+  // sempre com GAP_DESTAQUE entre uma e outra (a quadra precisa de ~2 s pra mostrar cada uma inteira)
+  const somaQuem = (lado: 'casa' | 'fora') => { const m = [0, 0, 0, 0, 0]; for (const l of lances) if (l.lado === lado) m[l.quem] += l.pts; return m.indexOf(Math.max(...m)) }
+  const cestinha = { casa: somaQuem('casa'), fora: somaQuem('fora') }
+  const PESO_D: Record<TipoLance, number> = { enterrada: 3.6, tres: 3, toco: 3, roubo: 2.4, bandeja: 1.6, gancho: 1.6, meia: 1.4, erro: 0.9, lance: 0.25 }
+  const cand = lances.map((l, i) => ({ i, w: (PESO_D[l.tipo] + (l.quem === cestinha[l.lado] && l.pts > 0 ? 1.5 : 0) + (l.t1 > 86 ? 2 : 0)) * (0.7 + r2() * 0.6) }))
+    .sort((a, b) => b.w - a.w)
+  const escolhidos: number[] = []
+  for (const c of cand) {
+    const t = lances[c.i].t1
+    if (t < 2.5) continue
+    if (escolhidos.every(e => Math.abs(lances[e].t1 - t) >= GAP_DESTAQUE)) escolhidos.push(c.i)
+  }
+  for (const e of escolhidos) lances[e].destaque = true
   return { lances, casaFim: pc, foraFim: pf }
 }
 

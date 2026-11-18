@@ -5,8 +5,8 @@
 // segue a bola e mostra a meia-quadra do ataque (com a quadra inteira os 10 ficavam espremidos).
 // 🎯 cesta de 3 sai de FORA da linha, 2 de dentro, lance livre da linha (regra do Diego, a trava é `npm run quadra2d`).
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { QUADRA, posseEm, placarEm, type Lance, type PlanoQuadra } from './quadra2d-plano'
-import { cenaEm, atacaDireita } from './quadra2d-cena'
+import { QUADRA, placarEm, type Lance, type PlanoQuadra } from './quadra2d-plano'
+import { cenaEm, indiceDaCena, cestaRapidaEm } from './quadra2d-cena'
 import { falaDoLance } from './narracao-basquete'
 import { legendAvatar } from './legend-avatars'
 import { PlacaGol } from './patrocinio-visual'
@@ -105,51 +105,64 @@ export function Quadra2D({ plano, minuto, minutoMs, fechado, casa, fora, pausado
   // 📢 com a quadra na tela, o telão solto da página se esconde (o da quadra fica logo abaixo dela) — nunca dois telões
   useEffect(() => { campoNaTela(1); return () => campoNaTela(-1) }, [])
   const t = useTempoLiso(minuto, minutoMs, fechado || !!pausado)
-  const cena = useMemo(() => cenaEm(plano, t), [plano, t])
-  const dir = atacaDireita(cena.of, t)
-  const ofLado = cena.of === 'casa' ? casa : fora, dfLado = cena.of === 'casa' ? fora : casa
-  // pés (atacando pra direita) → px na tela. Computador: a quadra inteira, espelhando quando o ataque é pra esquerda.
-  // Celular: meia-quadra em pé, o aro do ataque SEMPRE embaixo (a câmera segue a bola).
-  const tela = (p: [number, number]): [number, number] => {
-    if (celular) return [H - p[1] * S, p[0] * S]
-    return dir ? [p[0] * S, p[1] * S] : [W - p[0] * S, H - p[1] * S]
-  }
-  // cor do garrafão de cada lado: quem defende aquela cesta (casa defende a esquerda no 1º tempo)
-  const corEsq = t < 46.5 ? casa.cor : fora.cor, corDir = celular ? dfLado.cor /* no celular o aro de baixo é sempre o do ataque da vez */ : t < 46.5 ? fora.cor : casa.cor
+  const idx = useMemo(() => indiceDaCena(plano), [plano])
+  const cena = useMemo(() => cenaEm(plano, t, idx), [plano, t, idx])
+  // 📍 tudo em pés ABSOLUTOS (quadra de 94 × 50). Computador: a quadra inteira deitada. Celular: em pé, e a CÂMERA segue a bola
+  // (uma janela de ~52 pés que anda junto com ela — como a bola nunca pula, a câmera também não).
+  const JAN = 52
+  const camX = Math.max(0, Math.min(QUADRA.comp - JAN, cena.bola[0] - JAN / 2))
+  const tela = (p: [number, number]): [number, number] => (celular ? [H - p[1] * S, p[0] * S] : [p[0] * S, p[1] * S])
+  // cor do garrafão: quem DEFENDE aquela cesta (a casa defende a da esquerda no 1º tempo)
+  const corEsq = t < 46.5 ? casa.cor : fora.cor, corDir = t < 46.5 ? fora.cor : casa.cor
   const r = celular ? 31 : 26
   const fichas: { k: string; p: [number, number]; j: JogadorQuadra; cor: string; bola: boolean; semNome?: boolean }[] = []
-  cena.defesa.forEach((p, i) => { const j = dfLado.jogadores[i]; if (j) fichas.push({ k: `d${i}`, p: tela(p), j, cor: dfLado.cor, bola: false, semNome: celular /* no celular só o ataque leva nome (senão os nomes se atropelam) */ }) })
-  cena.ataque.forEach((p, i) => { const j = ofLado.jogadores[i]; if (j) fichas.push({ k: `a${i}`, p: tela(p), j, cor: ofLado.cor, bola: cena.comBola === i }) })
+  // quem defende vem primeiro (fica embaixo); no celular só quem ataca leva o nome (senão os nomes se atropelam)
+  for (const lado of (cena.of === 'casa' ? ['fora', 'casa'] : ['casa', 'fora']) as ('casa' | 'fora')[]) {
+    const time = lado === 'casa' ? casa : fora
+    ;(lado === 'casa' ? cena.casa : cena.fora).forEach((p, i) => {
+      const j = time.jogadores[i]
+      if (j) fichas.push({ k: `${lado}${i}`, p: tela(p), j, cor: time.cor, bola: !!cena.comBola && cena.comBola.lado === lado && cena.comBola.i === i, semNome: celular && lado !== cena.of })
+    })
+  }
   const [bx, by] = tela(cena.bola)
   // o placar sai do MESMO roteiro, no mesmo instante da quadra (a cesta entra no placar quando a bola cai, nunca antes)
   const pl = fechado ? { casa: plano.casaFim, fora: plano.foraFim } : placarEm(plano, t)
   const placarCasa = pl.casa, placarFora = pl.fora
-  // 🎙️ a fala: a jogada que acabou de acontecer (ou a que está terminando)
+  // 🎙️ a fala: a última jogada em DESTAQUE que a quadra já mostrou (a mesma que o placar cinema narra)
   const en = getLang() === 'en'
   const fala = (() => {
     if (fechado) return falaFinal
-    const { atual, i } = posseEm(plano, t)
-    const ref = atual && t >= atual.t0 + (atual.t1 - atual.t0) * 0.8 ? atual : plano.lances[i - 1]
-    if (!ref || t < 1.2) return falaAbertura
-    const el = ref.lado === 'casa' ? casa : fora, ou = ref.lado === 'casa' ? fora : casa
-    return falaDoLance(ref, el.jogadores[ref.quem]?.name ?? el.nome, ref.defensor != null ? ou.jogadores[ref.defensor]?.name ?? '' : ou.jogadores[4]?.name ?? '', el.nome, ou.nome, seed, en).txt
+    const ref = [...idx.destaques].reverse().find(l => l.t1 <= t + 0.05)
+    if (!ref) return falaAbertura
+    return falaDaJogada(ref, casa, fora, seed, en)
   })()
+  // ⚡ a CESTA RÁPIDA (não encenada) — o nome dela aparece na faixa, pra todo ponto do placar ter dono na tela
+  const rapida = fechado ? undefined : cestaRapidaEm(plano, t)
   const relogio = basketClockLabel(Math.floor(t), getLang() === 'en' ? 'FINAL' : 'FIM')
-  const viewBox = celular ? `-20 ${47 * S - 30} ${H + 40} ${47 * S + 60}` : `-30 -30 ${W + 60} ${H + 60}`
+  const viewBox = celular ? `-20 ${camX * S - 30} ${H + 40} ${JAN * S + 60}` : `-30 -40 ${W + 60} ${H + 70}`
   const placar = <div className="q2d-placar">
     <span className="q2d-dot" style={{ background: casa.cor }} />{casa.sigla} <b>{placarCasa}</b><em>×</em><b>{placarFora}</b> {fora.sigla}<span className="q2d-dot" style={{ background: fora.cor }} />
     <span className="q2d-rel">{relogio}</span>{!fechado && <span className="q2d-24">⏱ {cena.relogio24}</span>}
   </div>
+  const faixaRapida = <div className="q2d-rapida" aria-live="polite">{rapida ? <>⚡ <b>+{rapida.pts}</b> {(rapida.lado === 'casa' ? casa : fora).jogadores[rapida.quem]?.name.replace(/\s*\([^)]*\)\s*/g, ' ').trim() ?? (rapida.lado === 'casa' ? casa : fora).nome} <i style={{ background: (rapida.lado === 'casa' ? casa : fora).cor }} /></> : '\u00a0'}</div>
   const svg = <svg viewBox={viewBox} className="q2d-svg" style={{ ['--q2d-esq' as never]: corEsq, ['--q2d-dir' as never]: corDir }} role="img" aria-label={`${casa.nome} ${placarCasa} × ${placarFora} ${fora.nome}`}>
     <rect x={-40} y={-40} width={W + 80} height={W + 80} fill="#1a1410" />
     {celular ? <g transform={`translate(${H},0) rotate(90)`}><Quadra id="m" /></g> : <Quadra id="d" />}
     {fichas.map(f => <Ficha key={f.k} id={f.k} x={f.p[0]} y={f.p[1]} r={r} j={f.j} cor={f.cor} comBola={f.bola} celular={celular} semNome={f.semNome} />)}
-    <circle cx={bx + (cena.comBola != null ? 14 : 0)} cy={by - (cena.comBola != null ? 12 : cena.bolaNoAr ? 10 : 0)} r={celular ? 13 : 10} fill="#E8701A" stroke={INK} strokeWidth={2.5} />
-    {cena.selo && cena.seloEm && (() => { const [ax, ay] = tela(cena.seloEm); const sx = celular ? ax : ax + (dir ? -60 : 60), sy = celular ? ay - 95 : ay - 70; /* em cima do aro, longe das fichas */ const w = cena.selo.length * (celular ? 17 : 13) + 26; return <g><rect x={sx - w / 2} y={sy - 22} width={w} height={celular ? 46 : 38} rx={10} fill="#FFC400" stroke={INK} strokeWidth={3} /><text x={sx} y={sy + (celular ? 10 : 5)} textAnchor="middle" fontFamily="Oswald" fontWeight={900} fontSize={celular ? 30 : 24} fill={INK}>{cena.selo}</text></g> })()}
+    <circle cx={bx + (cena.comBola ? 14 : 0)} cy={by - (cena.comBola ? 12 : cena.bolaNoAr ? 10 : 0)} r={celular ? 13 : 10} fill="#E8701A" stroke={INK} strokeWidth={2.5} />
+    {cena.selo && cena.seloEm && (() => {
+      const [ax, ay] = tela(cena.seloEm), direita = cena.seloEm[0] > QUADRA.comp / 2
+      // em cima do aro, pro lado de dentro da quadra (longe das fichas)
+      // no computador o selo fica FORA da quadra, na borda de cima, em cima da cesta (nunca cobre jogador)
+      const sx = celular ? ax : ax + (direita ? -50 : 50), sy = celular ? ay + (direita ? -95 : 95) : -4
+      const w = cena.selo.length * (celular ? 17 : 13) + 26
+      return <g><rect x={sx - w / 2} y={sy - 22} width={w} height={celular ? 46 : 38} rx={10} fill="#FFC400" stroke={INK} strokeWidth={3} /><text x={sx} y={sy + (celular ? 10 : 5)} textAnchor="middle" fontFamily="Oswald" fontWeight={900} fontSize={celular ? 30 : 24} fill={INK}>{cena.selo}</text></g>
+    })()}
   </svg>
   return <div className={`q2d ${celular ? 'q2d-cel' : 'q2d-pc'}`}>
     <style>{CSS}</style>
     {placar}
+    {faixaRapida}
     {!celular && <div className="q2d-arq" aria-hidden="true">{torcida(casa.cor, fora.cor, 1)}</div>}
     {!celular && <PlacaGol lado="cima" alt={22} />}
     {svg}
@@ -158,6 +171,19 @@ export function Quadra2D({ plano, minuto, minutoMs, fechado, casa, fora, pausado
     <p className="q2d-narr" aria-live="polite">🎙️ {fala}</p>
     {fechado && <ResumoQuadra plano={plano} casa={casa} fora={fora} />}
   </div>
+}
+
+/** 🎙️ a fala de uma jogada do roteiro — a MESMA no placar cinema e na quadra (o jogo é um só; só muda o tempo) */
+export function falaDaJogada(l: Lance, casa: { nome: string; jogadores: { name: string }[] }, fora: { nome: string; jogadores: { name: string }[] }, seed: number, en: boolean): string {
+  const el = l.lado === 'casa' ? casa : fora, ou = l.lado === 'casa' ? fora : casa
+  const quem = l.tipo === 'erro' && l.reb != null ? ou.jogadores[l.reb]?.name ?? ou.nome : el.jogadores[l.quem]?.name ?? el.nome
+  const def = l.defensor != null ? ou.jogadores[l.defensor]?.name ?? '' : l.reb != null ? ou.jogadores[l.reb]?.name ?? '' : ''
+  const base = falaDoLance(l, quem, def, el.nome, ou.nome, seed, en).txt
+  // 🅰️ a assistência de verdade entra na fala quando teve passe
+  const passou = l.passe >= 0 && l.pts >= 2 ? el.jogadores[l.passe]?.name : undefined
+  // frase que já diz que foi sozinho/isolado/de contra-ataque solo não ganha o "assistência de…" (não se contradiz)
+  const solo = /sozinh|isola|cria e acerta|alone|isolation|by himself|fominha/i.test(base)
+  return passou && !solo && !/passe|kick-out|pass\b|assist/i.test(base) ? `${base} ${en ? `Assist: ${passou}.` : `Assistência de ${passou}.`}` : base
 }
 
 /** 📊 FIM DE JOGO · O RESUMO — o mesmo cartão do Campo 2D do futebol, com os números do basquete. Tudo sai do MESMO roteiro
@@ -214,6 +240,7 @@ const CSS = `
 .q2d-res-linha span{font-weight:700;font-size:13px;letter-spacing:.06em;color:#0009}
 .q2d-res-mvp{margin-top:8px;background:#0C0C0C;color:#fff;border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .q2d-res-mvp span{color:#FFC400;font-weight:900;font-size:13px;white-space:nowrap}.q2d-res-mvp b{font-size:16px;display:flex;align-items:center;gap:6px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.q2d-rapida{text-align:center;color:#F4ECD6;font:700 14px Oswald,sans-serif;min-height:20px;margin:-2px 0 6px}.q2d-rapida b{color:#FFC400}.q2d-rapida i{width:10px;height:10px;border:2px solid #000;border-radius:3px;display:inline-block;vertical-align:-1px;margin-left:4px}
 .q2d-arq{display:flex;flex-wrap:wrap;gap:3px;padding:4px 10px;max-height:26px;overflow:hidden}.q2d-arq i{width:8px;height:8px;border-radius:50%;display:block;opacity:.9}
 `
 

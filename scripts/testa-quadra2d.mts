@@ -55,6 +55,33 @@ ok(!foraDaLinha3(89, 5) && foraDaLinha3(89, 1.5) && foraDaLinha3(60, 25) && !for
   }
   ok(erradas === 0 && cadaUm === 0, `com os pontos do jogo: cada jogador faz na quadra exatamente os pontos da estatística (${cadaUm} diferentes em 1500 jogos)`)
 }
+// 🏃 18/11 (Diego: *"movimentação… passes, rebotes, assistências… estão bons?"*): medido quadro a quadro no jogo de 1 min (30 quadros/s)
+{
+  const { cenaEm, indiceDaCena } = await import('../src/escalacao/quadra2d-cena.ts')
+  let pior = 0, poucas = 0, astErrada = 0, rebSemDono = 0
+  for (const seed of [11, 222, 3333, 44444, 555555, 777, 999, 12345]) {
+    const astC = [9, 4, 3, 3, 2], astF = [8, 5, 4, 2, 2]
+    const p = planoQuadra(seed, 104, 98, [], [], [30, 22, 20, 18, 14], [25, 20, 21, 18, 14], { astCasa: astC, astFora: astF, rebCasa: [3, 4, 6, 9, 11], rebFora: [4, 4, 5, 10, 12] })
+    const idx = indiceDaCena(p)
+    if (idx.destaques.length < 10) poucas++
+    const fps = 30, dt = 93 / (60 * fps)
+    let prev: number[][] | null = null
+    for (let t = 0; t <= 93; t += dt) {
+      const c = cenaEm(p, t, idx), pos = [...c.casa, ...c.fora]
+      if (prev) pos.forEach((q, i) => { pior = Math.max(pior, Math.hypot(q[0] - prev![i][0], q[1] - prev![i][1]) * fps) })
+      prev = pos
+    }
+    for (const [lado, alvo] of [['casa', astC], ['fora', astF]] as const) {
+      const a = [0, 0, 0, 0, 0]; for (const l of p.lances) if (l.lado === lado && l.pts >= 2 && l.passe >= 0) a[l.passe]++
+      if (a.some((v, i) => v !== alvo[i])) astErrada++
+    }
+    for (const l of p.lances) if (l.tipo === 'erro' && l.reb == null) rebSemDono++
+  }
+  ok(pior <= 52, `ninguém teleporta: o mais rápido corre ${Math.round(pior)} pés/s na tela (limite 52)`)
+  ok(poucas === 0, 'pelo menos 10 jogadas em destaque por jogo')
+  ok(astErrada === 0, 'as assistências da quadra batem com as da estatística do jogo')
+  ok(rebSemDono === 0, 'todo arremesso errado tem quem pegou o rebote')
+}
 // e o jogo de verdade entrega esses pontos (somam o placar do time)
 {
   const mem = new Map<string, string>()

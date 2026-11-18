@@ -7203,7 +7203,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
   /** 👑 Kings: frases que a rádio É OBRIGADA a dar naquele minuto (cartão) */ radioExtra?: { min: number; txt: string }[]
   homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean
   goals: { name: string; min: number; home: boolean }[]; roundKey: number; roundMs: number
-  classico?: boolean; basket?: { h: number; a: number; /** 📺🏀 pontos de cada jogador neste jogo (casa/fora) — a Quadra 2D */ ph?: { n: string; p: number }[]; pa?: { n: string; p: number }[] }; enhancedOnline?: boolean
+  classico?: boolean; basket?: { h: number; a: number; /** 📺🏀 pontos de cada jogador neste jogo (casa/fora) — a Quadra 2D */ ph?: { n: string; p: number; a?: number; r?: number }[]; pa?: { n: string; p: number; a?: number; r?: number }[] }; enhancedOnline?: boolean
   retro?: { rival: string; r?: Retro } | null
 ; elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[]; fCasa?: string; fFora?: string }}) {
   const caixa = useRef<HTMLDivElement | null>(null)
