@@ -36,7 +36,7 @@ import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, rotuloFormacao, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
-import { NBA_MUNDO_TOTAL } from './data-basquete-mundo'
+import { NBA_MUNDO_TOTAL, CATALOG_NBA_MUNDO } from './data-basquete-mundo'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
@@ -10794,7 +10794,7 @@ const ALL_POOL: WonCard[] = (() => {
 const NBA_TABELA = 'user_cards_nba'
 function nbaPool(): WonCard[] {
   const en = getLang() === 'en'
-  return SECTORS.flatMap((s, i) => CATALOG_NBA[NBA_POS_ORDER[i]].map((c, j) => ({
+  return SECTORS.flatMap((s, i) => [...CATALOG_NBA[NBA_POS_ORDER[i]], ...CATALOG_NBA_MUNDO[NBA_POS_ORDER[i]]].map((c, j) => ({ // 🌍 18/11 (Diego: *"as cartas do mundo também devem sair no pacote do álbum"*)
     id: `nba-${i}-${j}`, name: c.name, club: c.club, year: c.year, pos: s, fame: c.fame as Card['fame'],
     folk: c.folk, promessa: c.promessa, bio: en ? c.bioEn : c.bioPt, lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard)))
 }
@@ -11230,7 +11230,7 @@ function EscAlbumNba() {
       <div className="text-center -mt-1">
         <h2 className="font-black text-4xl" style={OSWALD}>{tr('📖 MEU ÁLBUM', '📖 MY ALBUM')}</h2>
         <p className="font-semibold text-black/60 mt-1">{tr('Campeão ganha uma carta-lembrança da NBA por título — no CPU ou no online. Vai colecionando as lendas.', 'A champion earns one NBA keepsake card per title — vs CPU or online. Keep collecting the legends.')}</p>
-        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{NBA_TOTAL} {tr('lendas da NBA', 'NBA legends')}{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
+        {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{NBA_TOTAL + NBA_MUNDO_TOTAL} {tr('cartas do basquete', 'basketball cards')}{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
       </div>
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
         {TABS.map(t => (
@@ -13041,6 +13041,11 @@ export function EscEnd() {
   // promete vaga pra quem vai ficar de fora.
   // 🏀 18/11: com Playoffs, a liga é só a TEMPORADA REGULAR — o anel é dos Playoffs (NBA de verdade). Só a liga = a liga dá o anel.
   const bbTemporadaRegular = bbEnd && !!state.quickCopa
+  // 🃏🏀 18/11 (Diego: *"ganha o campeão do lado leste ou oeste e depois o campeão dos playoffs"*): com Playoffs, a MELHOR CAMPANHA
+  // não ganha cartinha — ganham o campeão de cada CONFERÊNCIA (quem vence a final de conferência) e o campeão das Finals (mais uma).
+  // Só no rápido/salas (a carreira do basquete segue a regra dela).
+  const semCartaLigaBB = bbTemporadaRegular && !state.careerOnline
+  const confFinal = semCartaLigaBB ? state.quickCopa?.bracket.find(b => b.phase === 'semis') : undefined
   // 🏀 18/11: Playoffs acabaram → o destaque grande do topo é o ANEL (campeão das Finals), não a melhor campanha
   const bbAnel = bbTemporadaRegular && state.quickCopa?.phase === 'done' && state.quickCopa.champion ? state.quickCopa.champion : null
   const bbAnelFinal = (() => { const f = bbAnel ? state.quickCopa?.bracket.find(b => b.phase === 'final')?.ties[0] : undefined; if (!f) return null; const a = f.legs.filter(g => g[0] > g[1]).length, b = f.legs.length - a; return `Finals: ${f.aName} ${a} × ${b} ${f.bName}` })()
@@ -13048,6 +13053,7 @@ export function EscEnd() {
   // 🌐 BR/EN (11/09): valia só pro basquete; agora o fim de jogo do futebol também lê o idioma
   const LE = (pt: string, en: string) => endLang === 'en' ? en : pt
   const you = state.managers[state.youIdx]
+  const confCampeaoEuSou = !!confFinal && confFinal.ties.some(t => t.winner === you.id) // 🃏 campeão de conferência (depois do `you`)
   const table = sortedTable(state.league)
   const champ = table[0]
   const youPos = table.findIndex(t => t.id === you.id) + 1
@@ -13417,14 +13423,14 @@ export function EscEnd() {
     <>
       {/* 🏀 no basquete o pacote sai do baralho da NBA e vai pro ÁLBUM DA NBA (`nba`); na carreira a
           carta também entra na 💼 Agência (`agenciaNba`), igual ao futebol */}
-      {online && youWon && state.roomId && (
+      {online && youWon && !semCartaLigaBB && state.roomId && (
         <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}`)} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
-      {streamRoom && !youWon && ligaChampHuman && (
+      {streamRoom && !youWon && ligaChampHuman && !semCartaLigaBB && (
         <StreamSpectatorCard champName={champ.name} card={streamLigaCard} />
       )}
-      {!online && youWon && (
+      {!online && youWon && !semCartaLigaBB && (
         <CardCollectPrompt you={you} seasonKey={state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`} origin="cpu" onClaimed={setMyCard} nba={bbEnd} {...agenciaNba(state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`)} />
       )}
     </>
@@ -13477,6 +13483,14 @@ export function EscEnd() {
           <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}:copa`)} />
         ) : !online ? (
           <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`} origin="cpu" onClaimed={setMyCard} nba={bbEnd} {...agenciaNba(`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:copa`)} />
+        ) : null
+      )}
+      {/* 🏀🃏 campeão de CONFERÊNCIA (Leste/Oeste) ganha a sua cartinha — depois da do anel, pra nunca abrir dois pacotes juntos */}
+      {confCampeaoEuSou && (!copaChampIsYou || copaCardStatus === 'revealed') && (
+        online && state.roomId ? (
+          <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:conf`} origin="online" onClaimed={bcastCard('copa')} nba motivo={LE('Campeão de conferência', 'Conference champion')} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}:conf`)} />
+        ) : !online ? (
+          <CardCollectPrompt you={you} seasonKey={`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:conf`} origin="cpu" onClaimed={setMyCard} nba motivo={LE('Campeão de conferência', 'Conference champion')} {...agenciaNba(`${state.dinastia ? `dinastia:${state.seed}:${state.seasonNo}` : `cpu:${state.seed}:${state.seasonNo}`}:conf`)} />
         ) : null
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão da Copa) assiste o pacote do campeão */}

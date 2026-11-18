@@ -65,6 +65,12 @@ for (const tam of [30, 20, 10] as const) {
   const todas = s.quickCopa.bracket.filter((b: any) => b.phase !== 'playin').flatMap((b: any) => b.ties)
   const fora = todas.filter((t: any) => { const va = t.legs.filter((l: number[]) => l[0] > l[1]).length, vb = t.legs.length - va; return Math.max(va, vb) !== 4 || t.legs.length > 7 || t.legs.length < 4 })
   ok(fora.length === 0, `${tam}: toda série de playoff é melhor de 7 (${todas.length} séries, ${fora.length} fora da regra)`)
+  // 🃏 18/11: a cartinha de CONFERÊNCIA sai da fase 'semis' (a final de conferência) — 2 confrontos, e quem vence é finalista
+  {
+    const conf = s.quickCopa.bracket.find((b: any) => b.phase === 'semis'), fin = s.quickCopa.bracket.find((b: any) => b.phase === 'final')
+    const venc = (conf?.ties ?? []).map((t: any) => t.winner).sort().join(','), finalistas = [fin?.ties[0]?.aId, fin?.ties[0]?.bId].sort().join(',')
+    ok(conf?.ties.length === 2 && venc === finalistas, `${tam}: final de conferência = 'semis' (2 séries) e os vencedores fazem as Finals`)
+  }
   const esperado = tam === 30 ? 16 : tam === 20 ? 8 : 4
   const primeira = s.quickCopa.bracket.find((b: any) => b.phase !== 'playin')
   ok(primeira.ties.length * 2 === esperado, `${tam}: ${esperado} times nos playoffs (deu ${primeira.ties.length * 2})`)

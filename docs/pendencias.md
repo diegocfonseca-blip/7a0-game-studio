@@ -11,7 +11,7 @@
 - Depois da liga: bloco **PLAY-IN** (ou PLAYOFFS), com "PLAY-IN · 1ª RODADA", regulamento da NBA e botão "INICIAR O PLAY-IN" — saiu "Copa dos 8 / Quartas de final".
 - Playoffs acabaram: o destaque grande do topo é o **campeão das Finals** ("O ANEL É SEU", "Finals: X 4 × 0 Y"); o cartão repetido de baixo some (mesmo teatro não aparece 2 vezes).
 - Textos velhos que diziam "melhor de 3" agora leem o formato da sala (melhor de 7).
-- ❓ A cartinha "Você foi campeão!" continua saindo pra melhor campanha da temporada regular (regra "todo título dá cartinha"). Perguntar ao Diego se a melhor campanha conta como título.
+- ✅ RESPONDIDO (18/11, *"ganha o campeão do lado leste ou oeste e depois o campeão dos playoffs"*): com Playoffs, a melhor campanha NÃO ganha cartinha; ganha o campeão de cada CONFERÊNCIA (quem vence a final de conferência — fase `semis` do bracket, chave `:conf`) e o campeão das Finals ganha mais uma (`:copa`). O pacote da conferência abre DEPOIS do pacote do anel (nunca dois juntos). Só rápido/salas; "só a liga" segue dando a cartinha pro campeão da liga. Trava em `npm run sala-nba`.
 - Prints: `scripts/mockups/basquete-fim-{liga-celular,anel-celular,anel-pc}.png`. Aguardando OK do Diego.
 
 ### 🏀🌍 18/11 (10) — Dois baralhos no basquete: 🏀 NBA e 🌍 NBA + Mundo (pedido do Diego)
@@ -21,7 +21,7 @@
 - Só jogador CONHECIDO (qualquer nível). Oscar entra como lenda. Jogador com carta da NBA pode ter carta no Mundo (outro baralho).
 - Proposta com 120 cartas: `scripts/basquete/mundo-proposta.json` e o print `scripts/mockups/basquete-baralho-mundo-proposta.png`. Diego confirmou o Oscar = lenda no Caserta 1987 (*"Sim"*); Teodosić corrigido pra Olympiacos 2010 (o MVP foi lá).
 - ✅ FEITO NO BRANCH (18/11): `src/escalacao/data-basquete-mundo.ts` (120 cartas, régua de força da NBA, bio PT/EN), `state.nbaMundo` (só rápido/salas; carreira nunca), escolha "🃏 Baralho: 🏀 NBA / 🌍 NBA + Mundo" na Partida Rápida e na criação de sala rápida. Rosto: neutro (o rosto é por nome+clube+ano). Trava `npm run baralho-mundo-nba`. Prints `scripts/mockups/basquete-baralho-escolha-{rapida,sala}.png` — ✅ **APROVADO** pelo Diego (18/11, *"Pode"*). Fica no branch até ele mandar publicar.
-- Ainda NÃO entra no álbum/pacote de cartinha do basquete (o pacote sorteia só do baralho NBA). Perguntar se quer as do Mundo no álbum também.
+- ✅ RESPONDIDO (18/11, *"sim, as cartas do mundo também devem sair no pacote do álbum"*): o pacote do álbum do basquete sorteia NBA + Mundo; o álbum conta "X/552 cartas do basquete".
 - Ele pediu "muito mais cartas": dá pra crescer depois (pivôs 18 e alas-pivô 21 são os menores).
 
 ### 🏀 18/11 (11) — Conferência do fluxo do basquete + Quadra 2D (pedido do Diego)
