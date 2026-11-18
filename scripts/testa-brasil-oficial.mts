@@ -90,6 +90,17 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
     for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const) for (const c of s.deck[p]) if (dono.has(`${c.name}|${c.club}|${c.year}`)) falha(`carta com dono no leilão de abertura: ${c.name}`)
   }
   if (s.managers.length !== 20) falha(`a divisão do Remo devia ter 20 clubes, tem ${s.managers.length}`)
+  // 🏋️ 18/11: no Oficial o bot também tem PREPARADOR e paga do caixa (semeiaTecnicos via ALICIAR_SEED, rodada 0)
+  {
+    const s2 = reducer(s, { type: 'ALICIAR_SEED' } as never)
+    const comPrep = s2.managers.filter((m: { isHuman: boolean; teamName: string }) => !m.isHuman && s2.careerPreparador?.[m.teamName])
+    if (!comPrep.length) falha('nenhum bot comprou preparador no Oficial')
+    for (const m of comPrep) {
+      if (s2.careerPreparadorContrato?.[m.teamName] == null) falha(`${m.teamName}: preparador sem contrato`)
+      const antes = s.clubCash?.['m' + m.id] ?? Math.round(m.money ?? 0), depois = s2.clubCash?.['m' + m.id] ?? 0
+      if (!(depois < antes)) falha(`${m.teamName}: comprou preparador e não pagou (${antes} → ${depois})`)
+    }
+  }
   if (s.managers[0].teamName !== 'Remo' || !s.managers[0].isHuman) falha('o assento 0 tem que ser o Remo do usuário')
   const nomesA = new Set(clubesDaDivisao('A').map(c => c.nome))
   if (!s.managers.every(m => nomesA.has(m.teamName))) falha('time fora da Série A real na divisão do Remo')

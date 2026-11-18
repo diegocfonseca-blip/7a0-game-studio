@@ -6725,6 +6725,13 @@ export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
   const lotes = state.careerMercado?.season === sn ? state.careerMercado.lotes : []
   const transf = [...lotes].sort((a, b) => b.paid - a.paid)
   const meusAcabando = (mgr.squad as WonCard[]).filter(c => !c.cria && c.contratoAte != null && c.contratoAte <= sn).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos))
+  // 🧢🏋️ 18/11 (item (a)): a comissão também aparece aqui — no Oficial, quem vence e não é renovado na janela vai embora
+  const meuTec = tecMap[mgr.teamName] ?? null, fimMeuTec = state.careerTecnicoContrato?.[mgr.teamName]
+  const meuPrep = preparadorDe(state.careerPreparador?.[mgr.teamName]), fimMeuPrep = state.careerPreparadorContrato?.[mgr.teamName]
+  const comissaoAcabando = [
+    ...(meuTec && fimMeuTec != null && fimMeuTec <= sn ? [{ ic: '🧢', nome: meuTec, fim: fimMeuTec }] : []),
+    ...(meuPrep && fimMeuPrep != null && fimMeuPrep <= sn ? [{ ic: '🏋️', nome: meuPrep.nome, fim: fimMeuPrep }] : []),
+  ]
   const olheiroNome = olheiroTier === 'ouro' ? tr('👑 Olheiro Lenda', '👑 Legend Scout') : olheiroTier === 'prata' ? tr('⭐ Olheiro Craque', '⭐ Star Scout') : tr('🕵️ Olheiro básico', '🕵️ Basic scout')
   const caixa: React.CSSProperties = { background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: '4px 4px 0 #000', padding: '12px 12px 8px', marginBottom: 14 }
   const titulo = (t: string) => <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', margin: 0 }}>{t}</p>
@@ -6854,7 +6861,9 @@ export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
         <div style={caixa}>
           {titulo(tr('📋 Seus contratos acabando', '📋 Your expiring contracts'))}
           {sub(tr('Quem do SEU elenco fica livre no fim da temporada. Renovar ou deixar ir continua na janela, como sempre.', 'Who in YOUR squad gets free at the end of the season. Renew or let go in the window, as always.'))}
-          {!meusAcabando.length && <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6553', margin: '0 0 8px' }}>{tr('Ninguém do seu elenco fica livre nesta temporada.', 'Nobody in your squad gets free this season.')}</p>}
+          {comissaoAcabando.map(x => linha(`cm:${x.nome}`, <span style={{ flex: 'none', width: 34, height: 46, border: `2.5px solid ${INK}`, borderRadius: 7, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{x.ic}</span>,
+            x.nome, tr(`acaba na T${x.fim} · renove na janela ou ele vai embora`, `ends in S${x.fim} · renew in the window or he leaves`), true, false, null))}
+          {!meusAcabando.length && !comissaoAcabando.length && <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6553', margin: '0 0 8px' }}>{tr('Ninguém do seu elenco fica livre nesta temporada.', 'Nobody in your squad gets free this season.')}</p>}
           {meusAcabando.map(c => linha(`m:${c.id}`, <span style={{ flex: 'none', width: 34, height: 46, border: `2.5px solid ${INK}`, borderRadius: 7, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{c.pos}</span>,
             c.name, tr(`acaba na T${c.contratoAte} · renovar na janela`, `ends in S${c.contratoAte} · renew in the window`), true, false, null))}
         </div>
