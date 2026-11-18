@@ -1,3 +1,4 @@
+import {previaDiego} from './sport' // 👀 18/11
 import {criarBaladaBairro,type BaladaBairro} from './presidencia-balada-bairro' // 🪩 17/11
 import {criarClubeLazer} from './presidencia-clube-lazer' // 🏐 17/11
 import {PRACA_TORCEDOR,RESERVA_CAMPUS,RUAS_CAMPUS,RUAS_SERVICO_CAMPUS} from './presidencia-implantacao-urbana'
@@ -1027,13 +1028,14 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // 💙 06/11: o complexo cresceu — o quarteirão das 2 casas ao sul (−113, 193) vira a quadra adaptada + estacionamento da Casa Luca
   const quadraCasaLucaSul=quadraCasaLuca?occupied.find(p=>p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z&&!pubBlocks.includes(p)):undefined
   // 🪩 17/11 (Diego: "a balada não precisa ficar próximo do estádio"): o quarteirão MAIS LONGE do estádio, numa ponta do bairro
-  const quadraBalada=occupied.filter(p=>!pubBlocks.includes(p)&&!(p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z)&&!(p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z)).sort((a,b)=>Math.hypot(b.x,b.z)-Math.hypot(a.x,a.z))[0]
+  const previa=previaDiego() // 👀 balada e clube de lazer: só na conta do Diego por enquanto (sem ela, o bairro fica como era)
+  const quadraBalada=!previa?undefined:occupied.filter(p=>!pubBlocks.includes(p)&&!(p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z)&&!(p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z)).sort((a,b)=>Math.hypot(b.x,b.z)-Math.hypot(a.x,a.z))[0]
   let balada:BaladaBairro|null=null
   // 🏐🏊 17/11 (Diego: "clube com piscina… churrasqueira em gazebo… e dois campos de futevôlei lado a lado", longe do estádio):
   // dois quarteirões VIZINHOS numa ponta do bairro (os mais longe do estádio depois da balada) — um das quadras, o outro da piscina
   const livres=occupied.filter(p=>p!==quadraBalada&&!pubBlocks.includes(p)&&!(p.x===CASA_LUCA.x&&p.z===CASA_LUCA.z)&&!(p.x===QUADRA_CASA_LUCA_SUL.x&&p.z===QUADRA_CASA_LUCA_SUL.z)).sort((a,b)=>Math.hypot(b.x,b.z)-Math.hypot(a.x,a.z))
   let quadraAreia:PontoComplexo|undefined,quadraSociety:PontoComplexo|undefined
-  for(const a of livres){const b=livres.find(q=>q!==a&&Math.abs(q.x-a.x)+Math.abs(q.z-a.z)===29);if(b){quadraAreia=a;quadraSociety=b;break}}
+  if(previa)for(const a of livres){const b=livres.find(q=>q!==a&&Math.abs(q.x-a.x)+Math.abs(q.z-a.z)===29);if(b){quadraAreia=a;quadraSociety=b;break}}
   for(const p of occupied){
     box('bairro-quarteirao',paving,23,.16,23,p.x,.08,p.z)
     if(p===quadraCasaLuca||p===quadraCasaLucaSul||p===quadraAreia||p===quadraSociety)continue

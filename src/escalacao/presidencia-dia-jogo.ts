@@ -1,3 +1,4 @@
+import {previaDiego} from './sport'
 import {vendorDelivery} from './cidade3d/vendor-delivery.mjs'
 import {acelerarRaios} from './presidencia-raio-rapido'
 import {criarPeruasAmbulantes} from './presidencia-perua-ambulante'
@@ -36,7 +37,8 @@ export function criarDiaDeJogo(scene:THREE.Scene,state:EstadoComplexo,seats:read
  // 👥 MULTIDÃO DA PORTA (17/11, Diego: "mais NPCs no entorno do estádio em dia de jogo"): gente parada em lote (3 desenhos pro
  // grupo inteiro) na fila do portão, na praça e no portão visitante. Cresce com a lotação do jogo; no celular/Leve, bem menos.
  const MULTIDAO_MAX=140,multidao=criarFigurantes(root,MULTIDAO_MAX,'matchday-multidao')
- const montaMultidao=(input:DadosDiaJogo)=>{
+ const montaMultidao=(input:DadosDiaJogo)=>{if(!previaDiego()){multidao.set([]);return} // 👀 18/11: só na conta do Diego por enquanto
+
   const lot=Math.max(0,Math.min(1,input.lotacao??.5)),n=Math.round((input.mobile?40:120)*(.3+.7*lot)),casa=input.teams[0]?.color??'#eeeeee',fora=input.teams[1]?.color??'#b83228'
   const r=(i:number,k:number)=>{let h=Math.imul((i+1)*2654435761^k*40503,2246822519);h^=h>>>13;return (h>>>0)/4294967296}
   const camisa=(i:number,cor:string)=>{const u=r(i,9);return u<.72?cor:u<.86?'#f2f2f2':u<.94?'#1a1a1a':'#c9c9c9'}

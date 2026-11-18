@@ -110,6 +110,11 @@ export function useBrasilOficial(): boolean {
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
   return unlocked || oficialTeste
 }
+// 👀 18/11 (Diego: "publique… e tudo p minha conta só até agora"): as novidades de 17/11 (ônibus em jogo grande, balada e clube
+// de lazer no mapa, mais gente no portão, 1 linha a mais nos dias, cena do bairro na Central, futevôlei na noitada) ficam SÓ na
+// conta dele até ele mandar liberar. Liberar = trocar a régua aqui (mesma lista do Brasil Oficial).
+export function previaDiego(): boolean { return unlocked || oficialTeste }
+export function usePreviaDiego(): boolean { return useBrasilOficial() }
 // 🧪 só no modo de desenvolvimento (o build de produção apaga este bloco): liga o Brasil Oficial no navegador de teste, pra
 // conferir as telas sem a conta do Diego. `window.__brasilOficialDev()` no console.
 if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__brasilOficialDev = () => { oficialTeste = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }

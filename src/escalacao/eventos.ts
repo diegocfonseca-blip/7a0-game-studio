@@ -11,6 +11,7 @@
 import type { Sector, EventoTipo } from './types'
 import { getLang } from './lang' // 🌐 BR/EN (12/09): a história sai no idioma do site
 import { pesoLesao } from './condicao' // 😓 gás: peso do cansado no sorteio da lesão (régua única)
+import { previaDiego } from './sport' // 👀 18/11
 
 // carta "mínima" que o sorteio precisa (WonCard e PoolCard da tela servem)
 // 🪪 club/year existem pra DESEMPATAR XARÁ (ver `traitDe`). São opcionais porque
@@ -236,6 +237,7 @@ const HIST_LESAO_EN = [
   '{n} felt his groin during the official photo shoot, striking a "volley" pose. The photo came out great. 📷',
 ]
 
+// 👀 18/11: o futevôlei fica só na conta do Diego até ele liberar (`previaDiego`, sport.ts) — sem ela, o sorteio é o de antes
 // 🏐 FUTEVÔLEI NO LUGAR DO TREINO (17/11, Diego: "Renato Gaúcho, Ronaldinho Gaúcho, Romário, Edmundo… às vezes, raramente,
 // faltando um treino pra jogar futevôlei"). Não é regra nova: é um JEITO da noitada (mesmo efeito — 1 jogo, banco ou escala assim
 // mesmo). Pros 3 baladeiros vira futevôlei 1 vez em 4 (sorteio PRESO no nome+temporada, sem gastar o dado do jogo); o Edmundo,
@@ -302,7 +304,7 @@ export function sorteiaEvento(args: {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
-    if (t !== '🍾 baladeiro' && FUTEVOLEIROS.has(c.name)) pool.push({ c, tipo: 'noitada', fute: true }) // 🏐 Edmundo: peso 1, só o futevôlei
+    if (previaDiego() && t !== '🍾 baladeiro' && FUTEVOLEIROS.has(c.name)) pool.push({ c, tipo: 'noitada', fute: true }) // 🏐 Edmundo: peso 1, só o futevôlei
     // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts)
     { const peso = gas ? pesoLesao(gas[c.id] ?? 100) : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
   }
@@ -327,7 +329,7 @@ export function sorteiaEvento(args: {
   let historia = textos[Math.floor(rng() * textos.length)].replace('{n}', pick.c.name)
   // 🏐 o dado acima é gasto IGUAL; a troca pro futevôlei sai de um sorteio preso no nome+temporada (não muda nada do resto)
   const hf = hashTxt(`${seed}:${seasonNo}:${pick.c.name}:fute`)
-  const futevolei = pick.tipo === 'noitada' && FUTEVOLEIROS.has(pick.c.name) && (pick.fute || (Math.imul(hf ^ (hf >>> 16), 0x45d9f3b) >>> 0) % 4 === 0)
+  const futevolei = previaDiego() && pick.tipo === 'noitada' && FUTEVOLEIROS.has(pick.c.name) && (pick.fute || (Math.imul(hf ^ (hf >>> 16), 0x45d9f3b) >>> 0) % 4 === 0)
   if (futevolei) { const lista = en ? HIST_FUTEVOLEI_EN : HIST_FUTEVOLEI; historia = lista[(hf >>> 3) % lista.length].replace('{n}', pick.c.name) }
   const xiIds = new Set(xi.map(c => c.id))
   // reserva = MESMA posição, fora do XI (cria e emprestado valem — estão no elenco e jogam)

@@ -75,7 +75,7 @@ import {criarFanZone,limitesFanZone,type EstadoPasseioPessoa,type FaseFanZone,ty
 import {FanZoneHud} from './presidencia-fanzone-hud'
 import {criarPisoPasseio} from './presidencia-passeio-geometria'
 import {destinosDoPasseio,painelDoPasseio} from './presidencia-passeio-destinos'
-import {useFanZoneLiberada} from './sport'
+import {useFanZoneLiberada,usePreviaDiego} from './sport'
 import {useT,getLang} from './lang'
 import {INFO_PATROCINADORES,ehPatrocinadorCidade} from './presidencia-patrocinadores-info'
 import {criarColecaoSala} from './presidencia-sala-colecao-3d'
@@ -138,7 +138,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
  const popAplicado=useRef(''),jornadaAplicada=useRef('')
  // 🩺 04/11 (Diego: *"botei Leve e não mudou nada"*): o que a placa de vídeo do aparelho é e quantos quadros por segundo o mapa faz AGORA
  const [diag,setDiag]=useState<{gpu:string;soft:boolean;fps:number|null}|null>(null)
- const fanZoneOk=useFanZoneLiberada(),fanRef=useRef<ReturnType<typeof criarFanZone>|null>(null),fzFaseRef=useRef<FaseFanZone>('fora')
+ const previaMapa=usePreviaDiego(),fanZoneOk=useFanZoneLiberada(),fanRef=useRef<ReturnType<typeof criarFanZone>|null>(null),fzFaseRef=useRef<FaseFanZone>('fora')
  const [fzFase,setFzFase]=useState<FaseFanZone>('fora'),passeando=fanZoneOk&&fzFase!=='fora',[fzCadeiras,setFzCadeiras]=useState<CadeiraFanZone[]>([]),[fzEscolhida,setFzEscolhida]=useState('')
  useEffect(()=>{onWalkChange?.(passeando);return()=>onWalkChange?.(false)},[passeando,onWalkChange])
  const caiPraLeve=useRef(()=>{});caiPraLeve.current=()=>{if(nivelRef.current==='leve')return;guardaNivelMapa('leve');setCaiuProLeve(true);setNivel('leve')}
@@ -1092,8 +1092,8 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     {journey?.hosting&&journey.phase!=='idle'&&<><button type="button" onClick={()=>go('coach-arrival')}>{t('Ônibus e desembarque','Bus and drop-off')}</button><button type="button" onClick={()=>go('coach-door')}>{t('Porta do ônibus · atletas','Bus door · players')}</button><button type="button" onClick={()=>go('team-entrance')}>{t('Serviço e delegações','Service and squads')}</button><button type="button" onClick={()=>go('team-field')}>{t('Entrada das equipes no campo','Teams walking out')}</button></>}
     <button type="button" onClick={()=>go('boteco-oswaldo')}>Boteco do Oswaldo</button>
     <button type="button" onClick={()=>go('bar-esquina')}>Bar da Esquina</button>
-    <button type="button" onClick={()=>go('balada')}>{t('Balada','Nightclub')}</button>
-    <button type="button" onClick={()=>go('clube-lazer')}>{t('Clube (piscina e futevôlei)','Club (pool and footvolley)')}</button>
+    {previaMapa&&<><button type="button" onClick={()=>go('balada')}>{t('Balada','Nightclub')}</button>
+    <button type="button" onClick={()=>go('clube-lazer')}>{t('Clube (piscina e futevôlei)','Club (pool and footvolley)')}</button></>}
     {lugarDeHorario('feira',t('Feira livre','Street market'))}<button type="button" onClick={()=>go('banca')}>{t('Banca de jornal','Newsstand')}</button><button type="button" onClick={()=>go('campinho')}>{t('Campinho de terra','Dirt pitch')}</button>
     {([['pipas',t('Pipas na praça','Kites in the square'),culturaBairro.pipas,t('À tarde','Afternoons')],['pagode',t('Pagode no boteco','Music at the pub'),culturaBairro.pagode,t('Sábado e domingo à noite','Saturday and Sunday nights')],['festa-junina',t('Festa junina','June festival'),culturaBairro.junina,t('Em junho, à tarde e à noite','June afternoons and nights')]] as [VistaComplexo,string,boolean,string][]).map(([id,label,open,when])=><button key={id} type="button" disabled={!open} className={!open?'pc3-place-off':undefined} onClick={()=>go(id)}><span>{label}</span>{!open&&<small>{when}</small>}</button>)}
     {lugarDeHorario('padaria',t('Padaria','Bakery'))}{lugarDeHorario('praca-bairro',t('Praça (dominó e carrinhos)','Square (dominoes and carts)'))}{lugarDeHorario('espetinho',t('Espetinho e podrão','Skewers and burger trailer'))}

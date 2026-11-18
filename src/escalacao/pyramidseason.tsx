@@ -180,7 +180,7 @@ import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
-import { useColetiva, useCalendarioCarreira, useRaioX } from './sport'
+import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego } from './sport'
 import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, anoDaTemporada, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
@@ -9885,6 +9885,7 @@ export function PyramidSeasonScreen() {
   // baixo (chaveamento, placar ao vivo, prêmios, `copaRound`) funciona sem
   // precisar saber qual das duas Copas está rolando.
   const cbUnlocked = useCopaBrasilLiberada()
+  const previa = usePreviaDiego() // 👀 18/11: novidades de 17/11 só na conta do Diego (ônibus em jogo grande, cena do bairro, linha a mais dos dias)
   // 🇧🇷 17/11: de 2027 em diante a Copa do Brasil do modo sai das vagas de 2026 (cota por estado + campeões da C/D do ano anterior).
   // A cota do estado segue a classificação do estadual: o SEU, como foi jogado; os outros 16, simulados por baixo (mesma semente).
   const ctxCopaOficial = useMemo((): CtxCopaBrasilOficial | undefined => {
@@ -11490,7 +11491,7 @@ export function PyramidSeasonScreen() {
   const chegadaGrandeKey = preJogoAba ? `${calSn}:${round}:${preJogoAba.kind}${preJogoAba.kind === 'f' ? ':' + preJogoAba.fase : ''}` : ''
   const chegadaGrande = (() => {
     const pj = preJogoAba
-    if (!pj || chegadaPulada === chegadaGrandeKey || jogoOk === chegadaGrandeKey) return null // pulou ou já começou o jogo
+    if (!previa || !pj || chegadaPulada === chegadaGrandeKey || jogoOk === chegadaGrandeKey) return null // pulou ou já começou o jogo
     const rivais = state.managers.filter(m => m.rival && !m.isHuman).map(m => m.teamName)
     const classico = pj.adv.human || rivais.includes(pj.adv.name) || pj.adv.name === coletivaSave.arquirrival
     const final = pj.kind !== 'l' && (/(^|· )Final$/.test(pj.fase) || /Supercopa/.test(pj.fase)), semi = pj.kind !== 'l' && /Semi/.test(pj.fase)
@@ -12084,15 +12085,15 @@ export function PyramidSeasonScreen() {
         suspensos: fora && suspenso?.tipo !== 'lesao' ? [fora] : [], machucados: fora && suspenso?.tipo === 'lesao' ? [fora] : [],
         copaQuarta: copaPendente ? (meNaFaseCopa ? { fase: copaNome(copaRound), adv: advCopa(copaRound) ?? undefined } : { fase: copaNome(copaRound), fora: true }) : undefined,
         // 📰 17/11: a linha a mais de cada dia — só do que já aconteceu (artilharia das rodadas jogadas, DM do adversário já revelado)
-        artilheiro: (() => { const a = scorersAll.filter(x => x.div === myDiv).sort((x, y) => y.goals - x.goals)[0]; return a ? { nome: a.name, gols: a.goals, meu: !!a.you } : undefined })(),
+        artilheiro: !previa ? undefined : (() => { const a = scorersAll.filter(x => x.div === myDiv).sort((x, y) => y.goals - x.goals)[0]; return a ? { nome: a.name, gols: a.goals, meu: !!a.you } : undefined })(),
         advFora: (() => {
-          if (!pp || !botPlans) return undefined
+          if (!previa || !pp || !botPlans) return undefined
           const plano = planosBots[pp.adv], ri = rProx - 1
           if (!plano) return undefined
           const nome = (id: string) => (world[myDiv] ?? []).find(t => t.name === pp.adv)?.squad.find(c => c.id === id)?.name ?? ''
           return plano.lesoes.filter(l => l.r < ri && l.r < round && l.r + 1 + l.rodadas > ri).map(l => nome(l.id)).filter(Boolean)
         })(),
-        noitada: suspenso?.tipo === 'noitada' ? fora : undefined,
+        noitada: previa && suspenso?.tipo === 'noitada' ? fora : undefined,
         noitadaFutevolei: suspenso?.tipo === 'noitada' && suspenso.variante === 'futevolei',
       }
       recado = recadoDoDia(calI > 0 ? hoje : diaDaRodada(calSn, round) + 86400000, ctx)
@@ -12448,6 +12449,7 @@ export function PyramidSeasonScreen() {
     // 🎥 ENQUANTO ISSO NO BAIRRO (17/11, Diego aprovou o mockup): UMA cena, só do que já acontece no mapa/na carreira —
     // na ordem de importância: noitada (o causo da temporada) › carreata › obra › boteco depois do jogo › feira de sábado
     const sede = ((): CentralSede | null => {
+      if (!previa) return null // 👀 18/11: a cena do bairro na Central, só na conta do Diego por enquanto
       if (!stadiumMapAvailable) return null
       const k = `${sn}:${round}`
       const ev = evAtual && evAtual.season === sn && evAtual.mgrId === youId && evAtual.tipo === 'noitada' && (evAtual.status === 'banco' ? (evAtual.volta ?? 0) > round : evAtual.status === 'campo' && evAtual.round === round) ? evAtual : null
