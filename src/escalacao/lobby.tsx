@@ -4705,7 +4705,7 @@ export function EscLobby() {
                     ? tr('As 30 franquias reais: Leste 15 · Oeste 15. Cada um da sala entra no lugar de uma franquia. 82 jogos pra cada time.', 'The 30 real franchises: East 15 · West 15. Everyone in the room takes a franchise\'s place. 82 games each.')
                     : nbaTamSel === 20
                       ? tr('Leste 10 · Oeste 10. Cada um enfrenta todos 2 vezes: 38 jogos.', 'East 10 · West 10. Everyone plays everyone twice: 38 games.')
-                      : tr('Tabela única, sem conferência. Cada um enfrenta todos 4 vezes: 36 jogos.', 'One table, no conferences. Everyone plays everyone 4 times: 36 games.')}</p>
+                      : tr('Leste 5 · Oeste 5. Cada um enfrenta todos 4 vezes: 36 jogos.', 'East 5 · West 5. Everyone plays everyone 4 times: 36 games.')}</p>
                 </SegField>
                 <SegField label={tr('Formato', 'Format')}>
                   <Seg options={[['playoffs', tr('🎟️ Liga + Play-In + Playoffs', '🎟️ League + Play-In + Playoffs')], ['liga', tr('📊 Só a liga', '📊 League only')]] as ['liga' | 'playoffs', string][]}
@@ -4716,7 +4716,7 @@ export function EscLobby() {
                       ? tr('1º ao 6º de cada conferência vão direto. 7º ao 10º disputam o Play-In pelas 2 últimas vagas. Playoffs com 16 times, toda série melhor de 7.', '1st to 6th of each conference go straight in. 7th to 10th play the Play-In for the last 2 spots. 16-team playoffs, every series best of 7.')
                       : nbaTamSel === 20
                         ? tr('1º e 2º de cada conferência vão direto. 3º ao 6º disputam o Play-In pelas 2 últimas vagas. Playoffs com 8 times, toda série melhor de 7.', '1st and 2nd of each conference go straight in. 3rd to 6th play the Play-In for the last 2 spots. 8-team playoffs, every series best of 7.')
-                        : tr('1º e 2º vão direto. 3º ao 6º disputam o Play-In pelas 2 últimas vagas. Semifinal e final, toda série melhor de 7.', '1st and 2nd go straight in. 3rd to 6th play the Play-In for the last 2 spots. Semi-final and final, every series best of 7.')}</p>
+                        : tr('O 1º de cada conferência vai direto. 2º×3º e 4º×5º, e os vencedores brigam pela 2ª vaga. Final de conferência e Finals, toda série melhor de 7.', 'The 1st of each conference goes straight in. 2nd×3rd and 4th×5th, and the winners fight for the 2nd spot. Conference finals and Finals, every series best of 7.')}</p>
                 </SegField>
               </>) : nbaSala ? (
                 // 🏀 basquete: nada de competição de futebol. Street League = só a tabela;

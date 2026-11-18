@@ -36,18 +36,18 @@ for (const tam of [30, 20, 10] as const) {
   ok(s0.nbaSala?.tam === tam && s0.league.length === tam, `${tam}: liga com ${tam} times (deu ${s0.league.length})`)
   const jogos = tam === 30 ? 82 : tam === 20 ? 38 : 36
   ok(s0.fixtures.length === jogos, `${tam}: ${jogos} jogos por time (deu ${s0.fixtures.length})`)
-  if (tam !== 10) {
+  {
     const c = s0.nbaConf ?? {}
     const nl = Object.values(c).filter(v => v === 'L').length, no = Object.values(c).filter(v => v === 'O').length
     ok(nl === tam / 2 && no === tam / 2, `${tam}: Leste ${nl} × Oeste ${no}`)
     const errado = s0.managers.filter((m: any) => !m.isHuman && ((NBA_LESTE.includes(m.teamName) && c[m.id] !== 'L') || (NBA_OESTE.includes(m.teamName) && c[m.id] !== 'O')))
     ok(errado.length === 0, `${tam}: toda franquia na conferência real`)
-  } else ok(!s0.nbaConf, '10: tabela única, sem conferência')
+  }
   const { s: s1, cupViu } = temporada(s0)
   ok(!cupViu, `${tam}: sem NBA Cup`)
   const qc = s1.quickCopa
   ok(qc?.phase === 'playin' && qc.bo === 7, `${tam}: depois da liga vem o Play-In (fase ${qc?.phase})`)
-  const grupos = tam === 10 ? 1 : 2
+  const grupos = 2 // 🏀 18/11: a de 10 também divide (5 × 5)
   ok(qc.ties.length === grupos * 2, `${tam}: Play-In rodada 1 com ${grupos * 2} jogos (deu ${qc.ties.length})`)
   // posições do Play-In batem com a tabela
   let s = s1

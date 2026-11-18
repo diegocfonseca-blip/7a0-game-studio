@@ -221,8 +221,7 @@ const NBA_PRO_TEAMS: { team: string; name: string }[] = [
  *  com franquias DAQUELA conferência até a metade da liga. Na sala de 10 não tem conferência: sorteia entre as 30. */
 function poolSalaNba(tam: 30 | 20 | 10, nGente: number, rng: () => number): { team: string; name: string }[] {
   const mk = (t: string) => ({ team: t, name: t })
-  if (tam === 10) return shuffle([...NBA_LESTE, ...NBA_OESTE], rng).map(mk)
-  const metade = tam / 2
+  const metade = tam / 2 // 🏀 18/11: a sala de 10 também divide (5 × 5) — Diego: *"eu gosto dividindo também se for 10"*
   const genteL = Math.ceil(nGente / 2), genteO = nGente - genteL
   const l = shuffle([...NBA_LESTE], rng), o = shuffle([...NBA_OESTE], rng)
   const bl = Math.max(0, metade - genteL), bo = Math.max(0, metade - genteO)
@@ -4499,7 +4498,7 @@ function finishSeason(s: EscState) {
   else if (s.copaMode === 'liga_copa' && !s.quickCopa && s.sport === 'basquete' && s.nbaSala) {
     s.quickCopa = seedSalaNba(s)
     s.news = [s.quickCopa.phase === 'playin'
-      ? tr(`🎟️ Fim da temporada regular — chegou o PLAY-IN! ${s.nbaSala.tam === 30 ? '7º ao 10º' : '3º ao 6º'} brigam pelas últimas vagas. Depois, PLAYOFFS melhor de 7.`, `🎟️ Regular season over — the PLAY-IN is here! ${s.nbaSala.tam === 30 ? '7th to 10th' : '3rd to 6th'} fight for the last spots. Then the best-of-7 PLAYOFFS.`)
+      ? tr(`🎟️ Fim da temporada regular — chegou o PLAY-IN! ${s.nbaSala.tam === 30 ? '7º ao 10º' : s.nbaSala.tam === 10 ? '2º ao 5º' : '3º ao 6º'} brigam pelas últimas vagas. Depois, PLAYOFFS melhor de 7.`, `🎟️ Regular season over — the PLAY-IN is here! ${s.nbaSala.tam === 30 ? '7th to 10th' : s.nbaSala.tam === 10 ? '2nd to 5th' : '3rd to 6th'} fight for the last spots. Then the best-of-7 PLAYOFFS.`)
       : tr('🏆 Fim da temporada regular — chegaram os PLAYOFFS! Toda série é melhor de 7.', '🏆 Regular season over — the PLAYOFFS are here! Every series is best of 7.')]
   }
   else if (s.copaMode === 'liga_copa' && !s.quickCopa) {
@@ -4905,7 +4904,7 @@ export function copaMandoA(legIdx: number, bb: boolean, bo?: number): boolean {
 /** 🏀 sala NBA: os grupos da classificação (Leste e Oeste pela conferência real; tabela única na sala de 10), cada um na ordem da tabela. */
 function gruposSalaNba(s: EscState): { conf: 'L' | 'O' | 'U'; ids: number[] }[] {
   const tab = sortedTable(s.league)
-  if (!s.nbaSala || s.nbaSala.tam === 10 || !s.nbaConf) return [{ conf: 'U', ids: tab.map(t => t.id) }]
+  if (!s.nbaSala || !s.nbaConf) return [{ conf: 'U', ids: tab.map(t => t.id) }]
   const conf = s.nbaConf
   return (['L', 'O'] as const).map(c => ({ conf: c, ids: tab.filter(t => (conf[t.id] ?? (t.id % 2 === 0 ? 'L' : 'O')) === c).map(t => t.id) }))
 }
@@ -4930,7 +4929,8 @@ function playoffsSalaNba(s: EscState, grupos: number[][]): Pick<QuickCopaState, 
  *  3º–6º): 7×8 e 9×10 em jogo único; depois o perdedor do 7×8 encara o vencedor do 9×10. Grupo curto demais = sem Play-In (só os
  *  diretos + os 2 seguintes). Toda série dos playoffs é melhor de 7. */
 function seedSalaNba(s: EscState): QuickCopaState {
-  const dir = s.nbaSala?.tam === 30 ? 6 : 2
+  // 🏀 sala de 10 (5 por conferência): só o 1º vai direto; 2º×3º e 4º×5º, e os vencedores se enfrentam pela 2ª vaga (opção A do Diego)
+  const dir = s.nbaSala?.tam === 30 ? 6 : s.nbaSala?.tam === 10 ? 1 : 2
   const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
   const mk = (a: number, b: number): QuickCopaTie => ({ aId: a, bId: b, aName: nome(a), bName: nome(b), legs: [], winner: null })
   const grupos = gruposSalaNba(s).map(g => g.ids.length >= dir + 4
@@ -9656,7 +9656,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
       s.managers = onlineManagers
-      if (s.nbaSala && s.nbaSala.tam !== 10) s.nbaConf = conferenciasNba(s.managers) // 🏀 Leste/Oeste pelo time REAL; a galera completa o lado que falta
+      if (s.nbaSala) s.nbaConf = conferenciasNba(s.managers) // 🏀 Leste/Oeste pelo time REAL; a galera completa o lado que falta
       // 🏀 caixa do basquete: 50 pro quinteto (5) = ~10/jogador, o MESMO equilíbrio
       // do futebol (100 pra 11). Com os 100 do futebol dava pra pagar caro em todos.
       // Só quem DISPUTA o pregão (humanos e rivais de leilão) — os bots de tabela
@@ -11570,13 +11570,14 @@ function reducerBase(state: EscState, action: Action): EscState {
           const pi = qc.playin
           const nomeDe = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
           const perde = (t: QuickCopaTie) => (t.winner === t.aId ? t.bId : t.aId)
+          const umaVaga = s.nbaSala?.tam === 10 // 🏀 sala de 10: o Play-In vale UMA vaga (vencedor do 2×3 × vencedor do 4×5)
           if (pi.rodada === 1) {
-            pi.grupos.forEach((g, i) => { const t78 = qc.ties[i * 2], t910 = qc.ties[i * 2 + 1]; g.vagaA = t78.winner!; g.perdA = perde(t78); g.vencB = t910.winner! })
+            pi.grupos.forEach((g, i) => { const t78 = qc.ties[i * 2], t910 = qc.ties[i * 2 + 1]; g.vagaA = umaVaga ? undefined : t78.winner!; g.perdA = umaVaga ? t78.winner! : perde(t78); g.vencB = t910.winner! })
             qc.ties = pi.grupos.map(g => ({ aId: g.perdA!, bId: g.vencB!, aName: nomeDe(g.perdA!), bName: nomeDe(g.vencB!), legs: [], winner: null }))
             pi.rodada = 2
             s.news = [tr('🎟️ Play-In: agora vale a ÚLTIMA vaga — quem perder está fora.', '🎟️ Play-In: now it is for the LAST spot — lose and you are out.'), ...s.news].slice(0, 12)
           } else {
-            const grupos = pi.grupos.map((g, i) => [...g.direto, g.vagaA!, qc.ties[i].winner!])
+            const grupos = pi.grupos.map((g, i) => [...g.direto, ...(g.vagaA != null ? [g.vagaA] : []), qc.ties[i].winner!])
             const po = playoffsSalaNba(s, grupos)
             qc.phase = po.phase; qc.ties = po.ties
             qc.playin = undefined
@@ -11683,7 +11684,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏀 no basquete a chave é a da NBA: 1ª rodada → semis de conf. → finais de conf. → FINALS
       const bbGiro = s.sport === 'basquete'
       const phaseWord = bbGiro
-        ? (playin ? 'PLAY-IN' : isFinal ? 'FINALS' : qc.phase === 'semis' ? (s.nbaSala?.tam === 10 ? 'SEMIFINAL' : 'FINAIS DE CONF.') : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
+        ? (playin ? 'PLAY-IN' : isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
         : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'r32' ? 'RODADA DE 32' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
       const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : relampago ? 'Relâmpago' : 'Copa'
       const legWord = bbGiro ? (playin ? '' : ` · jogo ${qc.legIdx + 1}`) : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
