@@ -13905,7 +13905,7 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - ⏳ SEM CANTO: não existe canto do Atlético Mineiro no jogo (nenhum outro usuário tem). Falta o Diego mandar o áudio → `sfx/torcida-galo-v1.mp3` + sound.ts + gala.
 - Post: `scripts/posts/batismo-duarte.png` (dono = "Felipe", tirado do e-mail — confirmar com o Diego).
 
-## 👁️👑 18/11 — Batismo FUNDADOR Obelisko FC (felipefazzio) — NO BRANCH, esperando OK do Diego
+## 👁️👑 18/11 — Batismo FUNDADOR Obelisko FC (felipefazzio) — PUBLICADO (OK do Diego)
 - Pagou o Fundador (R$ 99,90) no Pix em 18/11. Várzea, no assento do bot Trave Torta EC. Fundador nº103 · sócio nº95 · coração Flamengo.
 - Arte: mascote e camisa da 1ª prancha; escudo da 2ª ("ATORMENTADOR", o que o Diego escolheu) — 284×320 (a 360 passava do teto de 30 KB).
 - Manto preto #0F0E18 + roxo #862EE0, azul #4853AB de 3ª cor (MANTO_TRI obelisko_atormentador). Mascote "O Atormentador".
