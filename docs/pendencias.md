@@ -38,7 +38,12 @@
     Copa do Brasil fase a fase (…3·4·5·6 · oitavas 8 · quartas 12 · semi 20 · vice 35 · campeão 60). Libertadores pré 4 · grupos 8 ·
     oitavas 12 · quartas 18 · semi 25 · vice 40 · campeão 80. Sul-Americana 3·5·6·7·10·15·25·45. Intercontinental 10/20/40.
     Cada prêmio tem LINHA PRÓPRIA no extrato ("🌎 Libertadores · caiu nas quartas"). O aviso e o cartão da TV leem a mesma régua.
-    ⏳ Falta: o aviso "💰 você ganhou +X" NA HORA da eliminação de cada copa (hoje aparece no extrato do fim da temporada).
+    ✅ 18/11: o aviso "💰 <copa> · <fase> · +X" aparece na aba Jogos quando a campanha numa copa TERMINA na tela (Copa do Brasil,
+    Libertadores, Sul-Americana; o estadual e a Supercopa Rei já pagam na hora). ✕ fecha pra sempre. ⚠️ Ainda NÃO visto rodando numa
+    partida (precisa jogar até a eliminação) — conferir no 1º teste do Diego.
+  · ✅ 18/11 achados no teste do automático (sem plano): camarote "LIGA ENCERRADA" na rodada em que o time FOLGA (C/D real) · Martelo
+    "briga no topo com 0 pontos" com a rodada ao vivo · estadual aparecendo como "Copa do Brasil · você caiu na fase rodada 7/7". Corrigidos.
+  · ⏳ A cena "A torcida está chegando no <estádio>" ainda não foi vista rodando (a carreira de teste não chegou no 1º jogo em casa).
   · 🏟️ 18/11 (Diego: *"todos os times do jogo deveriam ter nome do estádio… o ideal é que sejam os nomes reais"*): os 228 clubes do
     Oficial ganharam o estádio REAL de 2026, todos com fonte (`estadios-oficial.ts`, lista em `docs/brasil-oficial/estadios.md`).
     Sem fonte → "Estádio do <clube>" (`inventado`), liberado por ele — hoje nenhum caiu nisso. Decididos: Palmeiras = Nubank Parque,
