@@ -1547,3 +1547,7 @@ export const SPORT_BRAND: Record<Sport, { name: string; emoji: string; tab: stri
   futebol: { name: 'Leilão Legends', emoji: '⚽', tab: 'Futebol' },
   basquete: { name: 'BidLegends', emoji: '🏀', tab: 'Basquete' },
 }
+
+/** 🏀 18/11 (Diego): salas de basquete por etapas — por enquanto só o ⚡ Rápido. Liga da Turma, Liga Draft e Carreira online
+ *  aparecem com EM BREVE na criação de sala. `true` = libera os três de novo (como era até 17/11). */
+export const BASQUETE_LIGAS_ONLINE = false

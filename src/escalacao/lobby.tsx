@@ -43,7 +43,7 @@ type DeckChoice = DeckCarreira | 'world'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
-import { useKingsLiberada } from './sport'
+import { useKingsLiberada, BASQUETE_LIGAS_ONLINE } from './sport'
 // 👑 13/11 (Diego: *"limite a 10… se por da Kings deixe com 10 times apenas… jogadores padrão aí tudo bem"*): a sala com o BARALHO da
 // Kings tem no máximo 10 pessoas — com mais, faltava zagueiro de verdade e o jogo completava com jogador de mentira (sala FDBQPN, 16 pessoas).
 // Mais nomes da Kings no baralho = sobe este número (pra 20 faltam ~53: +4 GOL, +18 ZAG, +16 MEI, +15 ATA).
@@ -4056,7 +4056,10 @@ export function EscLobby() {
         ]
         // 🏀 no BidLegends existem Rápido, Minhas ligas e a 🌐 Carreira (online do basquete).
         // O Bafo é do futebol — some da lista aqui pra não mostrar cartão que não abre.
-        const MODOS = TODOS_MODOS.filter(m => (m.v !== 'elenco' || salaElenco) && (!nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !(m.draft && !m.minha)))) // 🃏 26/10 (Diego: "o bafo deixa oculto, pra não confundir"): o Bafo só aparece pra conta que já pode criar // 📋🏀 10/11: a Liga Draft de hoje (minha) também no basquete, com o baralho da NBA; a antiga continua só no futebol
+        const MODOS = (TODOS_MODOS.filter(m => (m.v !== 'elenco' || salaElenco) && (!nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !(m.draft && !m.minha)))))
+          // 🏀 18/11 (Diego: *"qd eu liberar p rapaziada vai ser rotineiro só p modo rápido.. liga da turma e liga draft ficará com selo em
+          // breve, carreira online também"*): no basquete só o ⚡ Rápido cria sala; os outros aparecem com EM BREVE (sem configurar, sem criar).
+          .map(m => nbaSala && !BASQUETE_LIGAS_ONLINE && m.v !== 'rapido' ? { ...m, on: false, emTeste: true, selo: undefined } : m) // 🃏 26/10 (Diego: "o bafo deixa oculto, pra não confundir"): o Bafo só aparece pra conta que já pode criar // 📋🏀 10/11: a Liga Draft de hoje (minha) também no basquete, com o baralho da NBA; a antiga continua só no futebol
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
         // configuração DAQUELE modo, não "o básico" da sala (bronca do Diego 29/08:
