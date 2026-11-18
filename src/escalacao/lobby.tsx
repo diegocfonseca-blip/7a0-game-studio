@@ -4246,7 +4246,7 @@ export function EscLobby() {
           ...(nbaSala ? [] : [[tr('Formação', 'Formation'), kingsCriar ? '2-2-2' : formation] as [string, string]]), // 🏀 quinteto: sem formação
           [tr('Campeonato', 'Championship'), kingsCriar ? tr('10 times · 9 rodadas', '10 teams · 9 rounds') : nbaSala ? (roomMode === 'rapido' ? tr(`${nbaTamSel} times · ${nbaTamSel === 30 ? 82 : nbaTamSel === 20 ? 38 : 36} jogos`, `${nbaTamSel} teams · ${nbaTamSel === 30 ? 82 : nbaTamSel === 20 ? 38 : 36} games`) : tr('Temporada da NBA', 'NBA season')) : rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
           [tr('Depois da liga', 'After the league'), kingsCriar ? tr('Mata-mata da Kings', 'Kings knockouts') : ehDraft ? tr('Liga + draft', 'League + draft') : nbaSala ? (roomMode === 'rapido' && nbaFormSel === 'liga' ? tr('📊 Só a liga', '📊 League only') : roomMode === 'rapido' ? tr('🎟️ Play-In + Playoffs', '🎟️ Play-In + Playoffs') : tr('🏀 Playoffs', '🏀 Playoffs')) : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
-          [tr('Partida', 'Match'), `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`],
+          [tr('Partida', 'Match'), `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? (getSport() === 'basquete' ? tr('Quadra 2D', '2D court') : tr('Campo 2D', '2D pitch')) : tr('Placar padrão', 'Standard scoreboard')}`],
           [tr('Entrada', 'Entry'), roomMode === 'liga' || roomLocked ? tr('Com senha', 'Password') : tr('Aberta', 'Open')],
           [tr('Conversa', 'Chat'), roomChat ? tr('Chat ligado', 'Chat on') : tr('Sem chat', 'No chat')],
           ...(roomStream ? [[tr('Transmissão', 'Stream'), tr('Modo Stream', 'Stream mode')] as [string, string]] : []),
@@ -4255,7 +4255,7 @@ export function EscLobby() {
           [tr('O leilão', 'The auction')]: rLeilao,
           [tr('O time', 'The team')]: resumoTime,
           [tr('O campeonato', 'The championship')]: (createRows.find(([label]) => label === tr('Campeonato', 'Championship'))?.[1] ?? '') + ` · ${ehDraft ? tr('📋 Draft', '📋 Draft') : nbaSala ? (roomMode === 'rapido' && nbaFormSel === 'liga' ? tr('📊 Só a liga', '📊 League only') : roomMode === 'rapido' ? tr('🎟️ Play-In + Playoffs', '🎟️ Play-In + Playoffs') : tr('🏀 Playoffs', '🏀 Playoffs')) : rCopa[rapidoCopaMode] ?? ''}`,
-          [tr('A partida', 'The match')]: `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`,
+          [tr('A partida', 'The match')]: `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? (getSport() === 'basquete' ? tr('Quadra 2D', '2D court') : tr('Campo 2D', '2D pitch')) : tr('Placar padrão', 'Standard scoreboard')}`,
           [tr('A sala', 'The room')]: resumoSala,
           [tr('Os rivais', 'The rivals')]: tr('Ajuste quem joga com vocês', 'Choose who plays with you'),
         }
@@ -4891,9 +4891,9 @@ export function EscLobby() {
                 </SegField>
               )}
               {/* 📺 26/10: o Campo 2D aparece pra todos — quem ainda não tem, vê a meta do Instagram (3 mil) e que criar é do plano */}
-              {getSport() !== 'basquete' && ( /* 📺 em TODO tipo de sala, carreira também (Diego 20/10) */
+              {(getSport() !== 'basquete' || roomMode === 'rapido') && ( /* 📺 em TODO tipo de sala, carreira também (Diego 20/10) · 🏀 18/11: a Quadra 2D no rápido do basquete */
                 <SegField label={tr('Jogo', 'Match view')}>
-                  <Seg options={[[false, tr('📊 Placar padrão', '📊 Standard scoreboard')], [true, tr('⭐ 📺 Campo 2D', '⭐ 📺 2D pitch')]] as [boolean, string][]} value={room2d && pode2d} onSet={v => { if (!v || pode2d) setRoom2d(v); else setAviso2d(true) }}
+                  <Seg options={[[false, tr('📊 Placar padrão', '📊 Standard scoreboard')], [true, getSport() === 'basquete' ? tr('⭐ 📺 Quadra 2D', '⭐ 📺 2D court') : tr('⭐ 📺 Campo 2D', '⭐ 📺 2D pitch')]] as [boolean, string][]} value={room2d && pode2d} onSet={v => { if (!v || pode2d) setRoom2d(v); else setAviso2d(true) }}
                     selos={{ true: tr('NOVO', 'NEW') }} selosBrilho={['true']} /> {/* 🟢 05/11: liberado — sai a faixa da meta do Insta, entra o NOVO verde (Diego) */}
                   {aviso2d && !pode2d ? (
                     <p className="text-[11px] font-bold mt-1.5 leading-snug rounded-lg border-2 px-2.5 py-2" style={{ background: '#F3EDFF', borderColor: '#7C3AED', color: INK }}>
@@ -4902,7 +4902,7 @@ export function EscLobby() {
                         : (getLang() === 'en' ? <>⭐ <b>Creating a 2D room needs a plan.</b> Playing in someone else's 2D room is free.</> : <>⭐ <b>Criar sala com o 2D é do plano.</b> Jogar na sala 2D de outra pessoa é grátis.</>)}
                     </p>
                   ) : (
-                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{room2d && pode2d ? tr('📺 Todo jogo da sala aparece no campinho 2D — liga, copas, tudo. Todo mundo vê igual.', '📺 Every match in the room is shown on the 2D pitch — league, cups, everything. Everyone sees the same.') : tr('📊 O placar de sempre, no ritmo normal do online.', '📊 The usual scoreboard, at the normal online pace.')}</p>
+                    <p className="text-white/40 text-[10.5px] font-bold mt-1.5 leading-snug">{room2d && pode2d ? (getSport() === 'basquete' ? tr('📺 Todo jogo da sala aparece na quadra 2D — liga, Play-In e Playoffs. 1 minuto por jogo. Todo mundo vê igual.', '📺 Every game in the room is shown on the 2D court — league, Play-In and Playoffs. 1 minute per game. Everyone sees the same.') : tr('📺 Todo jogo da sala aparece no campinho 2D — liga, copas, tudo. Todo mundo vê igual.', '📺 Every match in the room is shown on the 2D pitch — league, cups, everything. Everyone sees the same.')) : tr('📊 O placar de sempre, no ritmo normal do online.', '📊 The usual scoreboard, at the normal online pace.')}</p>
                   )}
                 </SegField>
               )}

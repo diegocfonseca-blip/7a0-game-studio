@@ -67,6 +67,14 @@ export function useCampo2DLigado(): boolean {
   return liberado && p && (pg || !!s?.careerOnline)
 }
 
+/** 🏀📺 18/11: a QUADRA 2D do basquete está ligada aqui? É a mesma chave do 2D (aparelho/sala), só que no basquete — e só no
+ *  rápido e nas salas (a carreira do basquete fica pra depois, ordem do Diego: *"o carreira vc deixa por último"*). */
+export function useQuadra2DLigada(): boolean {
+  const on = useCampo2DLigado()
+  const s = useEscTalvez()?.state
+  return on && s?.sport === 'basquete' && !s?.careerOnline
+}
+
 /** o que a tela do jogo sabe e o campinho usa: nome do técnico (carreira) e a tática de cada clube (🧱 −1 · ⚖️ 0 · 🔥 +1) */
 export function useCampo2DExtras(): { tecnicoDe: (nome: string) => string | null; taticaDe: (nome: string) => number; estadioDe: (nome: string) => { grama: number; lotacao: number } | undefined; meuTime: string | null; offline: boolean } {
   const s = useEscTalvez()?.state

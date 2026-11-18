@@ -118,7 +118,7 @@ export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCa
   const emb = <T,>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a }
   const agrupa = (lista: TipoLance[]): TipoLance[][] => {
     const ll = lista.filter(t => t === 'lance').length
-    const outros = emb(lista.filter(t => t !== 'lance')).map(t => [t])
+    const outros = emb(lista.filter(t => t !== 'lance')).map((t): TipoLance[] => [t])
     const pares: TipoLance[][] = []
     for (let k = 0; k < Math.floor(ll / 2); k++) pares.push(['lance', 'lance'])
     if (ll % 2) pares.push(['lance'])

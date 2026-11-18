@@ -73,6 +73,8 @@ import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './online-match-visual'
 import { falaBasquete } from './narracao-basquete' // 🏀🎙️ a rádio do basquete (18/11)
+import { Quadra2D, quintetoDe, siglaDe } from './quadra2d' // 🏀📺 a Quadra 2D (18/11, mockup aprovado)
+import { planoQuadra, placarEm } from './quadra2d-plano'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
@@ -108,7 +110,7 @@ import { statsPlacarVisivel } from './stats-placar'
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS } from './campo2d-motor'
 import { useRitmo2D, useVel2DAqui, setVel2D } from './ritmo2d'
-import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
+import { useCampo2DLigado, useCampo2DExtras, useQuadra2DLigada } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
@@ -3349,6 +3351,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // decidir: *"coloque o campinho 2D também e depois eu decido se deixo ou tiro"*.)
   const kings2dOk = useKingsLiberada()
   const c2d = useCampo2DLigado() && !basket && (!relogioKings || (kings2dOk && !!kings2d))
+  // 🏀📺 18/11: com o 2D ligado, o basquete ganha a QUADRA 2D (`quadra2d.tsx`) no lugar do placar cinema. O futebol nem passa aqui (`!!basket`).
+  const q2dBB = useQuadra2DLigada() && !!basket
   const statsPlacar = useStatsPlacar() // 📊 07/11: estatísticas no apito do placar cinema (só a conta do Diego até ele aprovar)
   const c2dX = useCampo2DExtras()
   const abaixoDosGols = useContext(AbaixoDosGolsCtx)
@@ -3553,9 +3557,14 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   }, [proximoGol?.min, proximoGol?.home, voo?.dentro, roundKey,privateField])
   // 🧹 rodada nova ou tela fechada: nenhuma bola fica no ar
   useEffect(() => () => { if (vooTimer.current) { clearTimeout(vooTimer.current); vooTimer.current = null } }, [roundKey])
-  // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total.
-  const hg = basket ? Math.round(basket.h * (done ? 1 : min / 93)) : shown.filter(g => g.home).length
-  const ag = basket ? Math.round(basket.a * (done ? 1 : min / 93)) : shown.filter(g => !g.home).length
+  // 🏀📺 o ROTEIRO da quadra (quem arremessa, de onde, quanto vale) — fecha sempre no placar do jogo; mesma semente em todo aparelho
+  const planoBB = useMemo(() => basket && q2dBB ? planoQuadra(sementeDasChances(roundKey, homeName, awayName), basket.h, basket.a, quintetoDe(elencos?.casa as never), quintetoDe(elencos?.fora as never)) : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [basket?.h, basket?.a, q2dBB, roundKey, homeName, awayName, elencos?.casa, elencos?.fora])
+  const placarQ = planoBB ? placarEm(planoBB, done ? 93 : min) : null
+  // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total (ou o placar da quadra, com o 2D).
+  const hg = basket ? (placarQ ? placarQ.casa : Math.round(basket.h * (done ? 1 : min / 93))) : shown.filter(g => g.home).length
+  const ag = basket ? (placarQ ? placarQ.fora : Math.round(basket.a * (done ? 1 : min / 93))) : shown.filter(g => !g.home).length
   // eventos (lances) mostrados — no futebol batem com os gols; no basquete são os
   // ~6 lances de destaque. O SELO (gol/cesta) dispara por evento, não por ponto.
   const evH = shown.filter(g => g.home).length, evA = shown.filter(g => !g.home).length
@@ -3822,6 +3831,19 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   ) : null
   const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa>{campo2dEl}</div>:null
   const campo2dComTelao = c2d&&campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
+  if (q2dBB && planoBB && basket) {
+    const semente = sementeDasChances(roundKey, homeName, awayName)
+    const elenco = (lst?: { name: string; pos: string; fake?: boolean; club?: string }[]) => (lst ?? []).filter(c => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup').map(c => ({ name: c.name, pos: c.pos }))
+    const baseFala = { seed: semente, casa: nomeLimpo(homeName), fora: nomeLimpo(awayName), cestas: [], elencoCasa: elenco(elencos?.casa as never), elencoFora: elenco(elencos?.fora as never), en: emIngles }
+    return <>
+      <Quadra2D plano={planoBB} minuto={min} minutoMs={Math.max(400, roundMs * 0.82) / 93} fechado={!!finished || min >= 93} pausado={!!pausado} seed={semente}
+        casa={{ nome: nomeLimpo(homeName), sigla: siglaDe(nomeLimpo(homeName)), cor: homeColor, jogadores: quintetoDe(elencos?.casa as never) }}
+        fora={{ nome: nomeLimpo(awayName), sigla: siglaDe(nomeLimpo(awayName)), cor: awayColor, jogadores: quintetoDe(elencos?.fora as never) }}
+        falaAbertura={falaBasquete({ ...baseFala, min: 0, fechado: false, pc: 0, pf: 0 }).txt}
+        falaFinal={falaBasquete({ ...baseFala, min: 93, fechado: true, pc: basket.h, pf: basket.a }).txt} />
+      {abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} />
+    </>
+  }
   if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}</>
   if (cinematic) return <>{fonteMapaEscondida}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}

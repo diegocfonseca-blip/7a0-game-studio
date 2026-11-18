@@ -87,7 +87,7 @@ export function useControleVel2D(c2d: boolean): null | { opts: OpcaoVel2D[]; cur
   const ctx = useEscTalvez()
   const local = useVel2D()
   const s = ctx?.state
-  if (!c2d || !s || s.sport === 'basquete') return null
+  if (!c2d || !s || (s.sport === 'basquete' && s.careerOnline)) return null // 🏀 18/11: a quadra 2D do rápido/salas também tem as marchas
   const modo = modoVel2D(s)
   if (modo === 'solo') return { opts: VEL2D_SOLO_OPTS, cur: s.careerOnline ? (vel2DEscolhida() ?? VEL2D_CARREIRA_PADRAO) : local, set: setVel2D }
   const opts = modo === 'sala' ? VEL2D_SALA_OPTS : VEL2D_SOLO_OPTS

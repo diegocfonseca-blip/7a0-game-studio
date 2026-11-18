@@ -86,6 +86,14 @@ export function vel2dDoContexto(s: EstadoVel, guardada: number | null, temManual
 }
 /** o `roundMs` do jogo 2D nessa velocidade (o placar anima 0,82 disso = 90 s ÷ v) */
 export const dur2DDaVel = (v: number) => Math.round(DUR_2D_BASE_MS / v)
+/** 🏀📺 18/11 (Diego: *"1 minuto poderia ser o padrão da velocidade por jogo no campo 2d"*): na QUADRA 2D do basquete o jogo dura
+ *  60 s na marcha PADRÃO de cada modo (sala 2,5× · rápida 2× · carreira 1,5×); as outras marchas aceleram/atrasam a partir daí. */
+export const DUR_2D_BB_MS = Math.round(60_000 / 0.82)
+export function dur2DBBDaVel(v: number, s: EstadoVel): number {
+  const m = modoVel2D(s)
+  const padrao = m === 'sala' ? VEL2D_SALA_PADRAO : m === 'carreiraOnline' ? VEL2D_CARREIRA_PADRAO : VEL2D_SOLO_PADRAO
+  return Math.round(DUR_2D_BB_MS * padrao / v)
+}
 /** segundos de jogo na tela */
 export const seg2DDaVel = (v: number) => Math.round(DUR_2D_BASE_MS * 0.82 / v) / 1000
 

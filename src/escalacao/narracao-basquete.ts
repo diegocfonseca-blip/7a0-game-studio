@@ -349,3 +349,23 @@ export function falaBasquete(e: EntradaNarracaoBB): FalaBB {
 
 /** 📏 quantas frases existem (pra trava `npm run narracao-bb`) */
 export const BANCO_NARRACAO_BB = { ABERTURA, DOIS, TRES, ENTERRADA, TOCO, ROUBO, REBOTE, PASSE, LIVRE, CLIMA, DISPARADA, APERTADO, FIM_Q, INTERVALO, ULTIMO_Q, FINAL }
+
+// 📺🏀 QUADRA 2D (18/11): a rádio narra a JOGADA QUE A QUADRA ESTÁ MOSTRANDO (o roteiro de `quadra2d-plano.ts`), não um
+// lance sorteado à parte — se o Jordan acertou de 3 do canto, a fala é de 3; se foi toco do Ewing, a fala é do toco do Ewing.
+// A bola de 3 só fala de "zona morta/canto" quando o arremesso saiu MESMO do canto.
+export type LanceNarrado = { tipo: 'tres' | 'enterrada' | 'bandeja' | 'meia' | 'gancho' | 'lance' | 'erro' | 'toco' | 'roubo'; pts: number; t0: number; y: number }
+export function falaDoLance(l: LanceNarrado, quem: string, defensor: string, time: string, outro: string, seed: number, en: boolean): FalaBB {
+  const salt = Math.floor(l.t0 * 100) + quem.length * 7
+  const canto = l.y <= 3 || l.y >= 47
+  const semCanto = (b: readonly Par[]) => (canto ? b : b.filter(([pt]) => !/zona morta/i.test(pt)))
+  const v = { j: quem, t: time, o: outro }
+  switch (l.tipo) {
+    case 'tres': return { min: '', tipo: 'gol', txt: preenche(pick(semCanto(TRES), seed, salt), en, v) }
+    case 'enterrada': return { min: '', tipo: 'gol', txt: preenche(pick(ENTERRADA, seed, salt), en, v) }
+    case 'bandeja': case 'meia': case 'gancho': return { min: '', tipo: 'gol', txt: preenche(pick(DOIS, seed, salt), en, v) }
+    case 'lance': return { min: '', tipo: 'gol', txt: preenche(pick(LIVRE, seed, salt), en, v) }
+    case 'toco': return { min: '', tipo: 'lance', txt: preenche(pick(TOCO, seed, salt), en, { ...v, j: defensor || quem, t: outro, o: time }) }
+    case 'roubo': return { min: '', tipo: 'lance', txt: preenche(pick(ROUBO, seed, salt), en, { ...v, j: defensor || quem, t: outro, o: time }) }
+    default: return { min: '', tipo: 'lance', txt: preenche(pick(REBOTE, seed, salt), en, { ...v, j: defensor || quem, t: outro, o: time }) }
+  }
+}

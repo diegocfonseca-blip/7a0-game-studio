@@ -11,11 +11,11 @@ import estadioCerArt from './img/online-estadio-v25.webp'
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type CompId } from './competicoes-visual' // 🏆 túnel da final e festa do campeão (23/10)
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
-import { useCampo2DLigado, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
+import { useCampo2DLigado, useQuadra2DLigada, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { DisputaShootoutCampo } from './campo2d-shootout' // 👑🥅 a conta do tempo do shootout da Kings
 import { usePenaltisCampo } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
-import { dur2DDaVel } from './vel2d-regra'
+import { dur2DDaVel, dur2DBBDaVel } from './vel2d-regra'
 import { useRitmo2D, useVel2D, useVel2DAqui, useControleVel2D, RITMO2D_TESTE, useRitmo2dSemManual, setRitmo2dSemManual } from './ritmo2d'
 import { OPCOES_CORINGA, PLACAR_BOLA, PLACAR_DADO, PLACAR_DADO_FIM, PLACAR_DOBRO_INI, PLACAR_MB, PLACAR_INTERVALO, placarParaK, placarParaKTela, kParaPlacar, kings2DDe, type Kings2D } from './kings-liga'
 import { PixMP } from './pix-mp'
@@ -6991,7 +6991,7 @@ export function QuickManualLock() {
     <div style={{ marginBottom: 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
         <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontFamily: 'Oswald, sans-serif' }}>
-          <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('Acelerar e pular', 'Speed up and skip')}</span>
+          <span>{com2d ? tr(`🎮 Manual + 📺 ${getSport() === 'basquete' ? 'Quadra 2D' : 'Campo 2D'}`, `🎮 Manual + 📺 ${getSport() === 'basquete' ? '2D court' : '2D pitch'}`) : tr('Acelerar e pular', 'Speed up and skip')}</span>
           <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('🔒 Desbloquear', '🔒 Unlock')}</span>
         </button>
       )} />
@@ -7017,21 +7017,21 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
     return () => clearTimeout(tm)
   }, [pagou2d])
   if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
-  if (!liberado || state.sport === 'basquete') return null
+  if (!liberado || (state.sport === 'basquete' && state.careerOnline)) return null // 🏀📺 18/11: a Quadra 2D no rápido do basquete (carreira fica pra depois)
   if (ehKings(state) && !kingsVe) return null // 👑📺 11/11: o 2D da Kings voltou pra ele testar (*"depois eu decido se deixo ou tiro"*)
   if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
   if (!temDireito) return (
     <ApoieButton startScreen="choice" trigger={open => (
       <button onClick={open} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-        <span>{t('📺 Ver o jogo no Campo 2D', '📺 Watch on the 2D pitch')}</span>
+        <span>{t(`📺 Ver o jogo ${getSport() === 'basquete' ? 'na Quadra 2D' : 'no Campo 2D'}`, `📺 Watch on the ${getSport() === 'basquete' ? '2D court' : '2D pitch'}`)}</span>
         <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{t('🔒 Craque', '🔒 Craque')}</span>
       </button>
     )} />
   )
-  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={ligado?'campo':'placar'} onChange={e=>{if((e.target.value==='campo')!==ligado)trocaCampo2D()}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo">{t('Campo 2D','2D pitch')}</option></select></label></OwnerSlot>
+  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={ligado?'campo':'placar'} onChange={e=>{if((e.target.value==='campo')!==ligado)trocaCampo2D()}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo">{getSport() === 'basquete' ? t('Quadra 2D','2D court') : t('Campo 2D','2D pitch')}</option></select></label></OwnerSlot>
   return (
     <button onClick={trocaCampo2D} style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', fontWeight: 900, fontSize: 13, fontFamily: 'Oswald, sans-serif', background: ligado ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
-      {ligado ? t('📺 Campo 2D: LIGADO', '📺 2D pitch: ON') : t('📺 Ver o jogo no Campo 2D', '📺 Watch the match on the 2D pitch')}
+      {ligado ? t(`📺 ${getSport() === 'basquete' ? 'Quadra 2D' : 'Campo 2D'}: LIGADO`, `📺 ${getSport() === 'basquete' ? '2D court' : '2D pitch'}: ON`) : t(`📺 Ver o jogo ${getSport() === 'basquete' ? 'na Quadra 2D' : 'no Campo 2D'}`, `📺 Watch the match on the ${getSport() === 'basquete' ? '2D court' : '2D pitch'}`)}
     </button>
   )
 }
@@ -7046,7 +7046,7 @@ export function TrocaCampo2DSala() {
   const temDireito = useTem2D() // 05/11: Craque Salas também liga (mesma régua de criar a sala com 2D)
   const contaOk = useTroca2DSala() // 🟢 05/11: liberado pra todo dono de sala
   const kingsVe = useKingsLiberada() // 👑📺 11/11 (Diego: *"serve pra qualquer modo e sala… deve aparecer pra poder trocar"*): na sala da Kings também
-  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || (ehKings(state) && !kingsVe)) return null
+  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || (state.sport === 'basquete' && state.careerOnline) || (ehKings(state) && !kingsVe)) return null
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
   const salaRapida = !state.ligaMode && !state.careerOnline // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
@@ -7061,17 +7061,17 @@ export function TrocaCampo2DVisual({ agora, pendente, podeLigar, onTroca }: { ag
   if (!agora && !alvo && !podeLigar) return null // sala rápida e dono sem o 2D: nada a oferecer
   const quer = !alvo // apertar leva pro outro lado do que vai valer
   const podeApertar = !quer || podeLigar || pendente // ligar exige o 2D liberado; desmarcar/voltar pro rápido, sempre
-  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={alvo?'campo':'placar'} onChange={e=>{const on=e.target.value==='campo';if(on!==alvo&&(!on||podeLigar||pendente))onTroca(on)}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo" disabled={!podeLigar&&!agora}>{t('Campo 2D','2D pitch')}</option></select>{pendente&&<small>{t('Marcado para o próximo jogo','Scheduled for the next match')}</small>}</label></OwnerSlot>
+  if(ownerVisual) return <OwnerSlot name="view"><label><span className="ll25-sr">{t('Visualização','View')}</span><select aria-label={t('Visualização','View')} value={alvo?'campo':'placar'} onChange={e=>{const on=e.target.value==='campo';if(on!==alvo&&(!on||podeLigar||pendente))onTroca(on)}}><option value="placar">{t('Placar rápido','Quick scoreboard')}</option><option value="campo" disabled={!podeLigar&&!agora}>{getSport() === 'basquete' ? t('Quadra 2D','2D court') : t('Campo 2D','2D pitch')}</option></select>{pendente&&<small>{t('Marcado para o próximo jogo','Scheduled for the next match')}</small>}</label></OwnerSlot>
   return (
     <div style={{ marginBottom: 8 }}>
       <button onClick={() => podeApertar && onTroca(quer)} disabled={!podeApertar}
         style={{ width: '100%', border: `2px solid ${INK}`, borderRadius: 11, padding: '7px 10px', fontWeight: 800, fontSize: 12, fontFamily: 'Oswald, sans-serif', background: pendente ? '#FFF4CC' : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: podeApertar ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
         <span style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: .6, background: agora ? GREEN : '#5a5647', color: '#fff', borderRadius: 999, padding: '2px 7px' }}>{agora ? t('AGORA: 📺 2D', 'NOW: 📺 2D') : t('AGORA: ⚡ RÁPIDO', 'NOW: ⚡ QUICK')}</span>
-        <span>{pendente ? t('↩️ Desfazer a troca', '↩️ Undo the switch') : quer ? t('📺 Trocar pro Campo 2D', '📺 Switch to the 2D pitch') : t('⚡ Trocar pro placar rápido', '⚡ Switch to the quick scoreboard')}</span>
+        <span>{pendente ? t('↩️ Desfazer a troca', '↩️ Undo the switch') : quer ? t(`📺 Trocar ${getSport() === 'basquete' ? 'pra Quadra 2D' : 'pro Campo 2D'}`, `📺 Switch to the ${getSport() === 'basquete' ? '2D court' : '2D pitch'}`) : t('⚡ Trocar pro placar rápido', '⚡ Switch to the quick scoreboard')}</span>
       </button>
       <p style={{ margin: '4px 2px 0', fontSize: 10, fontWeight: 700, color: pendente ? '#7a5b00' : 'rgba(0,0,0,.5)', textAlign: 'center' }}>
         {pendente
-          ? (alvo ? t('⏳ Campo 2D marcado: vale a partir do próximo jogo, pra sala toda.', '⏳ 2D pitch set: starts from the next match, for the whole room.')
+          ? (alvo ? t(`⏳ ${getSport() === 'basquete' ? 'Quadra 2D' : 'Campo 2D'} marcado: vale a partir do próximo jogo, pra sala toda.`, `⏳ ${getSport() === 'basquete' ? '2D court' : '2D pitch'} set: starts from the next match, for the whole room.`)
                   : t('⏳ Placar rápido marcado: vale a partir do próximo jogo, pra sala toda.', '⏳ Quick scoreboard set: starts from the next match, for the whole room.'))
           : t('Só você (dono) troca. Vale a partir do próximo jogo, nunca no meio.', 'Only you (host) can switch. Starts from the next match, never mid-game.')}
       </p>
@@ -7090,7 +7090,7 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   const t = useT() // 🌐 BR/EN
   const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
   const r2d = useRitmo2D()
-  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state)) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state) && (state.sport !== 'basquete' || !state.careerOnline)) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
   // ⏩📺 05/11: teste "sem botão Manual" (Partida Rápida com 2D, conta do Diego) — some o Manual, fica o automático 2×
@@ -7153,7 +7153,7 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
   const r2d = useRitmo2D()
   // ⏩📺 06/11 (Diego): no 2D a marcha é ABSOLUTA e mora fora do simSpeed — offline no aparelho (vale no auto também), online no
   // estado da sala (`SET_VEL_2D`, só o dono). Fora do 2D, o seletor e o simSpeed de sempre.
-  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state))
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state) && (state.sport !== 'basquete' || !state.careerOnline))
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return null
   if (r2d.semManual) return null
   const opcoes = c2dCtl ? c2dCtl.opts.map(o => ({ v: o.v, label: t(o.pt, o.en) })) : SPEED_OPTS
@@ -7733,9 +7733,10 @@ export function EscSeason() {
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
   // 📺 Campo 2D ligado (aparelho no offline, a sala no online): cada jogo dura 1:30, em toda competição
   const c2d = useCampo2DLigado() && state.sport !== 'basquete' && !kingsS
+  const c2dBB = useQuadra2DLigada() // 🏀📺 18/11: a Quadra 2D (1 min por jogo na marcha padrão — Diego)
   // ⏩📺 06/11 (Diego): no 2D a velocidade é ABSOLUTA (`vel2d-regra.ts`) e NÃO divide pelo simSpeed — era o 3× × 3 = 9× da sala 4RVDD8
   const vel2dAqui = useVel2DAqui()
-  const baseRoundMs = c2d ? dur2DDaVel(vel2dAqui) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
+  const baseRoundMs = c2d ? dur2DDaVel(vel2dAqui) : c2dBB ? dur2DBBDaVel(vel2dAqui, state) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
   // 👑 11/11 (Diego: *"a velocidade deve ser idêntica como tá hoje no Partida Rápida… a Kings tá perfeita lá em tudo"*): a SALA ONLINE da Kings
   // anda igual à Partida Rápida. Na sala a rodada tem que durar o MESMO em todo aparelho (o dono avança por ela): vale o jogo com gente
   // que precisa de MAIS tempo — ninguém tem o jogo cortado. (Na Partida Rápida a lista é só o seu jogo, então nada muda lá.)
@@ -7769,7 +7770,7 @@ export function EscSeason() {
   // próxima começa ~2,5 s depois da última disputa — antes a rodada esperava os 16% de "folga" da conta velha (~15 s parado).
   const kingsApitoMs = kingsJogosCedo.length ? Math.max(...kingsJogosCedo.map(j => duracaoKingsRapida(j.r, kingsMarcha, j.eu, online))) + 1500 : 0
   const kingsPensMax = Math.max(kingsPensOutros, ...kingsJogosCedo.map(j => kingsPensMs(j.r)))
-  const roundMs = kingsRapida ? (kingsApitoMs ? Math.round(kingsApitoMs + kingsPensMax + 2500) : kingsRapidaRoundMs(undefined, kingsMarcha, you.id)) : Math.round(baseRoundMs / (c2d ? 1 : speedFactor))
+  const roundMs = kingsRapida ? (kingsApitoMs ? Math.round(kingsApitoMs + kingsPensMax + 2500) : kingsRapidaRoundMs(undefined, kingsMarcha, you.id)) : Math.round(baseRoundMs / (c2d || c2dBB ? 1 : speedFactor))
   const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs // (o vigia do fim da liga lê o valor de agora)
   // 👑🥅 11/11 (Diego: *"meu primeiro jogo foi pro shootout mas nem vi… não deixou passar"*): a conta do tempo da rodada é uma
   // ESTIMATIVA — se o relógio do jogo andou mais devagar que ela (cenas, escolhas, a tela abrindo atrasada), a rodada virava antes
@@ -7787,7 +7788,7 @@ export function EscSeason() {
     const p = kProntoRef.current
     return !!p && p.r === state.round && agora >= p.at
   }
-  const copaSf = c2d ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
+  const copaSf = c2d || c2dBB ? 1 : speedFactor // 📺 o jogo de copa do 2D também já vem na velocidade final
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   // 🏆 total de rodadas real: 20 times = 38 (como sempre); Liga Fechada = calendário
@@ -8048,7 +8049,7 @@ export function EscSeason() {
   // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
-  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? dur2DDaVel(vel2dAqui) : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
+  const copaLegMs = kingsS ? roundMs * speedFactor : c2d ? dur2DDaVel(vel2dAqui) : c2dBB ? dur2DBBDaVel(vel2dAqui, state) : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
   // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
