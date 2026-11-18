@@ -12984,8 +12984,9 @@ function reducerBase(state: EscState, action: Action): EscState {
           for (const pos of SECTORS) {
             const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
             const spare = realInPos.slice(FORMATIONS[bot.formation][pos])
-            const ofOk = filtroOficialDe(s) // 🇧🇷 Brasil Oficial: reserva de outra categoria fica no clube (não aparece no seu leilão)
-            for (const c of spare) { if (ofOk && !ofOk(c)) continue; bot.squad = bot.squad.filter(x => x.id !== c.id); s.deck[pos].push({ ...c, seller: bot.id }) }
+            // 🇧🇷 Brasil Oficial (18/11): reserva de bot da série entra no pregão em QUALQUER categoria — *"se o jogador já tava na série,
+            // ele pode sim aparecer"*. A régua da série vale só pra carta NOVA (do catálogo), não pra quem já jogava aqui.
+            for (const c of spare) { bot.squad = bot.squad.filter(x => x.id !== c.id); s.deck[pos].push({ ...c, seller: bot.id }) }
           }
         }
         for (const pos of SECTORS) marketSellers[pos] = chosen.map(b => b.id)
