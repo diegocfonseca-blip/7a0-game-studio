@@ -14,6 +14,13 @@
 - ❓ A cartinha "Você foi campeão!" continua saindo pra melhor campanha da temporada regular (regra "todo título dá cartinha"). Perguntar ao Diego se a melhor campanha conta como título.
 - Prints: `scripts/mockups/basquete-fim-{liga-celular,anel-celular,anel-pc}.png`. Aguardando OK do Diego.
 
+### 🏀🌍 18/11 (10) — Dois baralhos no basquete: 🏀 NBA e 🌍 NBA + Mundo (pedido do Diego)
+- Hoje o basquete só tem o baralho NBA (432 cartas, todas de franquia da NBA; o Huertas é a carta do Lakers 2016). Ele fica como está.
+- Novo **🌍 Mundo**: cartas de clubes de FORA da NBA. No basquete, **os times da Europa entram no Mundo** (diferente do futebol, que tem baralho Europa próprio). Palavras dele: *"times da Europa entram no baralho mundo.. Diferente do futebol"*.
+- O Mundo **nunca joga sozinho**: a escolha é "🏀 NBA" ou "🌍 NBA + Mundo".
+- Só jogador CONHECIDO (qualquer nível). Oscar entra como lenda. Jogador com carta da NBA pode ter carta no Mundo (outro baralho).
+- Proposta com 120 cartas: `scripts/basquete/mundo-proposta.json` e o print `scripts/mockups/basquete-baralho-mundo-proposta.png`. **AGUARDANDO OK** da lista. Depois vêm os números (lo/hi na régua), as bios PT/EN e o print da tela de escolha.
+
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
 - O que o banco mostra: 17h02 ele recarregou (o botão Manual sumiu dali em diante = o aparelho dele deixou de ser dono); a sala seguiu
   salva com youIdx 0 até 17h10 (final da Kings) e parou; 39 s depois o aparelho dele saiu (registro "saiu_por_conta_propria" com
