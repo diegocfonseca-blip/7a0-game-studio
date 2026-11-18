@@ -845,6 +845,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🖋 Rivais = TODOS os batismos/fundadores da pirâmide, misturados, sem mostrar a divisão; o escolhido começa com você e outro clube
   ocupa o lugar dele (*"terá q ter 20 times nas 5 divisões"* — sempre 20 em V, D, C, B e A, nenhum repetido).
   🔁 Complemento de 10/11: Diego confirmou **tons de pele também livres no gratuito** e pediu **camiseta branca gratuita PRIMEIRA na listagem**. Na criação, “Conhecer o Batismo” deve abrir a **Loja nova na categoria Planos**, e a prévia do presidente no desktop deve ter altura limitada sem esticar a arte. Proposta de entrada aprovada: básico pronto, nome/pele e Continuar próximos; catálogo extra só em Personalizar. Isso não libera roupas/cabelo/barba pagos.
+- **🗑️ 18/11: SEM PLANO = 1 CARREIRA SÓ, E CARREIRA PARADA 5 DIAS É EXCLUÍDA (regra do Diego, revê o "nada é apagado" de 08/11).**
+  Palavras dele: *"de graça ele só pode ter um modo carreira, independentemente de qual… só um slot"* · *"em 5 dias sem jogar aquele save
+  exclui a carreira… e fica avisado pra ele quando tiver chegando próximo"*. Respostas dele (18/11): quem JÁ tem mais de uma → *"exclui se o
+  save tem mais de 5 dias sem jogar e deixe um apenas pra ele"* · some **da nuvem E do aparelho** · depois dos 5 dias de teste *"joga porém não
+  salva na nuvem e também não salva no celular"* (a regra de 08/11 segue). Só vale pra quem o jogo SABE que não tem plano (nunca apaga na
+  dúvida). Ficha extra comprada na Loja soma vaga.
 - **🎁 08/11: TESTE DE 5 DIAS PRA SALVAR A CARREIRA (substitui o "1 dia sem salvar apaga" de 07/11).** Texto dele: *"🎁 Seus primeiros
   5 dias salvando a carreira são grátis! … Depois do teste, você pode continuar jogando gratuitamente. Para salvar novos avanços, é
   necessário um plano"*. Os 5 dias começam no 1º salvamento (botão OU automático do aparelho) de quem não tem plano, contados por CONTA
