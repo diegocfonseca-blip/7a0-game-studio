@@ -269,3 +269,19 @@ export function siglaDe(nome: string): string {
   const pal = limpo.split(/\s+/).filter(p => p.length > 2)
   return (pal.length >= 3 ? pal.slice(0, 3).map(p => p[0]).join('') : (pal[0] ?? limpo).slice(0, 3)).toUpperCase() || 'BL'
 }
+
+/** 🏀 quem jogou ESTE jogo: o quinteto (os 5 em quadra) + o banco que pontuou/deu passe (carreira com reservas). Assim o roteiro
+ *  fecha com a estatística de TODO MUNDO — o ponto do reserva vira cesta rápida com o nome dele. */
+export function elencoDoJogo(squad?: { name: string; pos?: string; club?: string; year?: number; lo?: number; hi?: number }[], pts?: { n: string; p: number; a?: number }[]): (JogadorQuadra & { nivel: number; pos: number })[] {
+  const ordem = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
+  const q = quintetoDe(squad).map((j, i) => ({ ...j, pos: i }))
+  if (!pts) return q
+  const no = new Set(q.map(j => j.name))
+  const num = (n: string) => { let h = 7; for (const ch of n) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return 1 + (h % 54) }
+  const banco = pts.filter(x => !no.has(x.n) && (x.p > 0 || (x.a ?? 0) > 0)).map(x => {
+    const c = (squad ?? []).find(s => s.name === x.n)
+    const f = c ? ((c.lo ?? 60) + (c.hi ?? 70)) / 2 : 65
+    return { name: x.n, club: c?.club, year: c?.year, num: num(x.n), nivel: Math.max(0, Math.min(1, (f - 55) / 40)), pos: Math.max(0, ordem.indexOf(c?.pos ?? 'ZAG')) }
+  })
+  return [...q, ...banco]
+}

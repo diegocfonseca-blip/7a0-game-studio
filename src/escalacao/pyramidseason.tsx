@@ -73,8 +73,9 @@ import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './online-match-visual'
 import { falaBasquete } from './narracao-basquete' // 🏀🎙️ a rádio do basquete (18/11)
-import { Quadra2D, quintetoDe, siglaDe, falaDaJogada } from './quadra2d' // 🏀📺 a Quadra 2D (18/11, mockup aprovado)
+import { Quadra2D, siglaDe, falaDaJogada, elencoDoJogo } from './quadra2d' // 🏀📺 a Quadra 2D (18/11, mockup aprovado)
 import { planoQuadra, placarEm } from './quadra2d-plano'
+import { indiceDaCena } from './quadra2d-cena'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
@@ -3562,12 +3563,14 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // o placar cinema sobe pelas mesmas cestas, com os mesmos donos e a mesma rádio da quadra; só muda o tempo.
   const planoBB = useMemo(() => {
     if (!basket) return null
-    const qc = quintetoDe(elencos?.casa as never), qf = quintetoDe(elencos?.fora as never)
-    // os pontos de cada um do quinteto NESTE jogo (os mesmos da estatística) — quem não está no quinteto não entra (o roteiro então sorteia)
+    const qc = elencoDoJogo(elencos?.casa as never, basket.ph), qf = elencoDoJogo(elencos?.fora as never, basket.pa)
+    // os pontos de cada um (quinteto + banco que jogou) NESTE jogo (os mesmos da estatística) — quem não está no quinteto não entra (o roteiro então sorteia)
     const pts = (q: { name: string }[], l?: { n: string; p: number }[]) => (l ? q.map(j => l.filter(x => x.n === j.name).reduce((a, x) => a + x.p, 0)) : undefined)
     const de = (q: { name: string }[], l: { n: string; a?: number; r?: number }[] | undefined, k: 'a' | 'r') => (l ? q.map(j => l.filter(x => x.n === j.name).reduce((s2, x) => s2 + (x[k] ?? 0), 0)) : undefined)
-    return planoQuadra(sementeDasChances(roundKey, homeName, awayName), basket.h, basket.a, qc, qf, pts(qc, basket.ph), pts(qf, basket.pa),
+    const plano = planoQuadra(sementeDasChances(roundKey, homeName, awayName), basket.h, basket.a, qc, qf, pts(qc, basket.ph), pts(qf, basket.pa),
       { astCasa: de(qc, basket.ph, 'a'), astFora: de(qf, basket.pa, 'a'), rebCasa: de(qc, basket.ph, 'r'), rebFora: de(qf, basket.pa, 'r') })
+    indiceDaCena(plano) // fecha AQUI quais jogadas a quadra consegue encenar — o placar cinema vê exatamente as mesmas
+    return plano
   },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [basket?.h, basket?.a, basket?.ph, basket?.pa, q2dBB, roundKey, homeName, awayName, elencos?.casa, elencos?.fora])
@@ -3575,9 +3578,9 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // as cestas em DESTAQUE do roteiro que o relógio já mostrou — a mesma lista no placar cinema e na quadra (nunca antes da hora)
   const cestasBB = useMemo(() => {
     if (!planoBB) return null
-    const qc = quintetoDe(elencos?.casa as never), qf = quintetoDe(elencos?.fora as never)
+    const qc = elencoDoJogo(elencos?.casa as never, basket?.ph), qf = elencoDoJogo(elencos?.fora as never, basket?.pa)
     return planoBB.lances.filter(l => l.destaque && l.pts > 0).map(l => ({ name: ((l.lado === 'casa' ? qc : qf)[l.quem]?.name ?? (l.lado === 'casa' ? homeName : awayName)), min: Math.max(1, Math.round(l.t1)), home: l.lado === 'casa' }))
-  }, [planoBB, elencos?.casa, elencos?.fora, homeName, awayName])
+  }, [planoBB, elencos?.casa, elencos?.fora, homeName, awayName, basket?.ph, basket?.pa])
   // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total (ou o placar da quadra, com o 2D).
   const hg = basket ? (placarQ ? placarQ.casa : Math.round(basket.h * (done ? 1 : min / 93))) : shown.filter(g => g.home).length
   const ag = basket ? (placarQ ? placarQ.fora : Math.round(basket.a * (done ? 1 : min / 93))) : shown.filter(g => !g.home).length
@@ -3854,8 +3857,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     const baseFala = { seed: semente, casa: nomeLimpo(homeName), fora: nomeLimpo(awayName), cestas: [], elencoCasa: elenco(elencos?.casa as never), elencoFora: elenco(elencos?.fora as never), en: emIngles }
     return <>
       <Quadra2D plano={planoBB} minuto={min} minutoMs={Math.max(400, roundMs * 0.82) / 93} fechado={!!finished || min >= 93} pausado={!!pausado} seed={semente}
-        casa={{ nome: nomeLimpo(homeName), sigla: siglaDe(nomeLimpo(homeName)), cor: homeColor, jogadores: quintetoDe(elencos?.casa as never) }}
-        fora={{ nome: nomeLimpo(awayName), sigla: siglaDe(nomeLimpo(awayName)), cor: awayColor, jogadores: quintetoDe(elencos?.fora as never) }}
+        casa={{ nome: nomeLimpo(homeName), sigla: siglaDe(nomeLimpo(homeName)), cor: homeColor, jogadores: elencoDoJogo(elencos?.casa as never, basket.ph) }}
+        fora={{ nome: nomeLimpo(awayName), sigla: siglaDe(nomeLimpo(awayName)), cor: awayColor, jogadores: elencoDoJogo(elencos?.fora as never, basket.pa) }}
         falaAbertura={falaBasquete({ ...baseFala, min: 0, fechado: false, pc: 0, pf: 0 }).txt}
         falaFinal={falaBasquete({ ...baseFala, min: 93, fechado: true, pc: basket.h, pf: basket.a }).txt} />
       {abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} />
@@ -3891,7 +3894,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
             const passo = Math.max(3, Math.round(93 * 2600 / Math.max(1500, roundMs)))
             const m0 = Math.floor(min / passo) * passo
             const ref = [...planoBB.lances].reverse().find(l => l.destaque && l.t1 <= m0)
-            const qc = quintetoDe(elencos?.casa as never), qf = quintetoDe(elencos?.fora as never)
+            const qc = elencoDoJogo(elencos?.casa as never, basket.ph), qf = elencoDoJogo(elencos?.fora as never, basket.pa)
             if (ref) return { min: '', tipo: ref.pts > 0 ? 'gol' as const : 'lance' as const, txt: falaDaJogada(ref, { nome: nomeLimpo(homeName), jogadores: qc }, { nome: nomeLimpo(awayName), jogadores: qf }, semente, emIngles) }
           }
           return falaBasquete({ ...baseBB, min: planoBB && !fechado ? 0 : min, fechado, pc: hg, pf: ag, pcFim: basket.h, pfFim: basket.a, minPorFala: 93 * 2600 / Math.max(1500, roundMs),

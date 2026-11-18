@@ -58,12 +58,14 @@ ok(!foraDaLinha3(89, 5) && foraDaLinha3(89, 1.5) && foraDaLinha3(60, 25) && !for
 // 🏃 18/11 (Diego: *"movimentação… passes, rebotes, assistências… estão bons?"*): medido quadro a quadro no jogo de 1 min (30 quadros/s)
 {
   const { cenaEm, indiceDaCena } = await import('../src/escalacao/quadra2d-cena.ts')
-  let pior = 0, poucas = 0, astErrada = 0, rebSemDono = 0
-  for (const seed of [11, 222, 3333, 44444, 555555, 777, 999, 12345]) {
+  let pior = 0, poucas = 0, astErrada = 0, rebSemDono = 0, porQuarto = 0, instavel = 0
+  for (const seed of [11, 222, 3333, 44444, 555555, 777, 999, 12345, ...Array.from({ length: 40 }, (_, i) => 9000 + i * 7919)]) {
     const astC = [9, 4, 3, 3, 2], astF = [8, 5, 4, 2, 2]
     const p = planoQuadra(seed, 104, 98, [], [], [30, 22, 20, 18, 14], [25, 20, 21, 18, 14], { astCasa: astC, astFora: astF, rebCasa: [3, 4, 6, 9, 11], rebFora: [4, 4, 5, 10, 12] })
     const idx = indiceDaCena(p)
     if (idx.destaques.length < 10) poucas++
+    for (const [ini, fim] of [[0, 23.25], [23.25, 46.5], [46.5, 69.75], [69.75, 93.01]]) if (idx.destaques.filter(l => l.t1 >= ini && l.t1 < fim).length < 3) porQuarto++
+    if (indiceDaCena(p).destaques.length !== idx.destaques.length) instavel++
     const fps = 30, dt = 93 / (60 * fps)
     let prev: number[][] | null = null
     for (let t = 0; t <= 93; t += dt) {
@@ -79,6 +81,8 @@ ok(!foraDaLinha3(89, 5) && foraDaLinha3(89, 1.5) && foraDaLinha3(60, 25) && !for
   }
   ok(pior <= 52, `ninguém teleporta: o mais rápido corre ${Math.round(pior)} pés/s na tela (limite 52)`)
   ok(poucas === 0, 'pelo menos 10 jogadas em destaque por jogo')
+  ok(porQuarto === 0, `pelo menos 3 jogadas encenadas em CADA quarto (Diego) — ${porQuarto} quartos abaixo`)
+  ok(instavel === 0, 'a escolha das jogadas é estável (placar cinema e quadra veem as mesmas)')
   ok(astErrada === 0, 'as assistências da quadra batem com as da estatística do jogo')
   ok(rebSemDono === 0, 'todo arremesso errado tem quem pegou o rebote')
 }

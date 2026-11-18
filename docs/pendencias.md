@@ -45,6 +45,7 @@
     - Quadra contínua (`quadra2d-cena.ts`, pura): coordenada absoluta, transição com o tempo que a distância pede — o mais rápido corre ~50 pés/s, ninguém teleporta (antes: 2.390 pés/s). ~12–14 jogadas em destaque por jogo de 1 min (cabe isso com corrida de verdade; as outras viram "⚡ cesta rápida" com o nome na faixa).
     - Celular: a câmera segue a bola pela quadra inteira. Computador: o "+2/+3" fica fora da quadra, em cima da cesta.
     - Travas em `npm run quadra2d` (velocidade, assistência, rebote, destaques). Prints `scripts/mockups/basquete-quadra2d-v2-{celular,pc}.png`.
+    - ✅ Diego aprovou (*"Sim. Siga"*). Ajustes da mesma conversa: (1) eu disse "marcha mais lenta pra ver mais jogadas" — ERRADO, ele corrigiu: a quantidade é a mesma em qualquer marcha/placar, só muda a velocidade (virou regra no CLAUDE.md); (2) **mínimo de 3 jogadas encenadas por quarto** (`MIN_POR_QUARTO`, as "garantidas"); (3) quais jogadas a quadra encena é decidido UMA vez no `LiveScoreCard` (`indiceDaCena` logo depois do roteiro) — o placar cinema vê as mesmas; (4) o tempo entre duas jogadas encenadas depende de a bola trocar de lado (~7 min de relógio) ou não (~4); (5) o BANCO (carreira) entra no roteiro: ponto de reserva é sempre cesta rápida com o nome dele (`elencoDoJogo`).
   - Falta: teste com 2 aparelhos; carreira do basquete.
 
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta

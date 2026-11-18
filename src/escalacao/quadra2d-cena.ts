@@ -8,7 +8,8 @@
 //   • tudo em coordenada ABSOLUTA da quadra (pés, 94 × 50): entre uma jogada e outra todo mundo CORRE de onde estava até onde a
 //     próxima começa (ninguém some e aparece), e a bola vai junto de quem a leva;
 //   • o passe sai de quem deu a ASSISTÊNCIA de verdade, o rebote é de quem pegou o rebote de verdade (os números do jogo).
-import { QUADRA, type Lance, type PlanoQuadra } from './quadra2d-plano'
+import { QUADRA, QUARTOS, MIN_POR_QUARTO, type Lance, type PlanoQuadra } from './quadra2d-plano'
+const quartoDe = (t: number) => QUARTOS.findIndex(([a, b]) => t >= a && t < b)
 import { getLang } from './lang'
 
 export type P = [number, number]
@@ -124,15 +125,24 @@ export function indiceDaCena(plano: PlanoQuadra): IndiceCena {
   const destaques: Lance[] = [], ini: number[] = []
   const dist = (a: Pose, b: Pose) => Math.max(...[...a.casa, ...a.fora].map((p, i) => Math.hypot(p[0] - [...b.casa, ...b.fora][i][0], p[1] - [...b.casa, ...b.fora][i][1])))
   for (const l of todos) {
-    const ant = destaques[destaques.length - 1]
-    const antFim = ant ? ant.t1 + POS : 0.4
-    const a = ant ? poseDaJogada(ant, 1 + POS / DUR, antFim) : poseInicial(antFim)
-    const b = poseDaJogada(l, 0, l.t1 - DUR)
-    const precisa = dist(a, b) / VEL_MAX + 0.15
-    const s = Math.max(antFim + precisa, l.t1 - DUR)
-    // sem tempo pra correr E mostrar a jogada (≥ 1,4 minuto): ela vira cesta rápida (a faixa mostra o nome)
-    if (l.t1 - s < 1.4) { l.destaque = false; continue }
-    destaques.push(l); ini.push(s)
+    for (;;) {
+      const ant = destaques[destaques.length - 1]
+      const antFim = ant ? ant.t1 + POS : 0.4
+      const a = ant ? poseDaJogada(ant, 1 + POS / DUR, antFim) : poseInicial(antFim)
+      const b = poseDaJogada(l, 0, l.t1 - DUR)
+      const precisa = dist(a, b) / VEL_MAX + 0.15
+      const s = Math.max(antFim + precisa, l.t1 - DUR)
+      if (l.t1 - s >= 1.4) { destaques.push(l); ini.push(s); break }
+      // sem tempo pra correr E mostrar a jogada (≥ 1,4 minuto): uma das duas vira cesta rápida (a faixa mostra o nome).
+      // 🕐 a GARANTIDA do quarto (mínimo do Diego) nunca sai: se a nova é garantida e a anterior não, sai a anterior
+      if (l.garantida && ant && !ant.garantida) { ant.destaque = false; destaques.pop(); ini.pop(); continue }
+      if (l.garantida && ant?.garantida) {
+        // duas garantidas brigando pelo mesmo tempo: sai a do quarto que tem SOBRANDO (o mínimo é por quarto)
+        const doQuarto = (x: Lance) => todos.filter(y => y.destaque && quartoDe(y.t1) === quartoDe(x.t1)).length
+        if (doQuarto(l) <= MIN_POR_QUARTO && doQuarto(ant) > MIN_POR_QUARTO) { ant.destaque = false; destaques.pop(); ini.pop(); continue }
+      }
+      l.destaque = false; break
+    }
   }
   return { destaques, ini }
 }
