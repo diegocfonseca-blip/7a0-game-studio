@@ -117,6 +117,11 @@ export function useBrasilOficial(): boolean {
 const NOVIDADES_17_11_GERAL = true
 export function previaDiego(): boolean { return NOVIDADES_17_11_GERAL || unlocked || oficialTeste }
 export function usePreviaDiego(): boolean { const so = useBrasilOficial(); return NOVIDADES_17_11_GERAL || so }
+// 📺 18/11 (Diego: "pode publicar tudo na minha conta já"): a Central nova de 18/11 (Próximos jogos, lista "Antes da estreia", TV depois
+// do 1º jogo, sem feira, torcida chegando na estreia em casa, "Ver no mapa" no lugar certo) SÓ na conta dele. Liberar = `true` aqui.
+const CENTRAL_18_11_GERAL = false
+export function previaCentral(): boolean { return CENTRAL_18_11_GERAL || unlocked || oficialTeste }
+export function usePreviaCentral(): boolean { const so = useBrasilOficial(); return CENTRAL_18_11_GERAL || so }
 // 🧪 só no modo de desenvolvimento (o build de produção apaga este bloco): liga o Brasil Oficial no navegador de teste, pra
 // conferir as telas sem a conta do Diego. `window.__brasilOficialDev()` no console.
 if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__brasilOficialDev = () => { oficialTeste = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }

@@ -1,3 +1,4 @@
+import {CareerAuctionHint} from './career-start-guide'
 import {MuseuClube,MuseuMelhoria} from './museu-clube-ui'
 import {OwnerPrimary} from './owner-online-visual'
 import { careerVisualV2, CareerVisualProvider, CareerBrand, CareerHeading, CareerMarketSteps, CareerSection, CareerSectionLinks, CareerBalance, useCareerVisualV2 } from './career-visual-v2'
@@ -118,6 +119,7 @@ import sedeBotecoTriste from './img/sede-boteco-triste.webp'
 import sedeObra from './img/sede-obra-loja.webp'
 import sedeCarreata from './img/sede-carreata.webp'
 import estadioNoite from './img/online-estadio-v25.webp'
+import sedeFeira from './img/sede-feira.webp'
 import { estadioDoClube } from './estadios-oficial'
 import { tvOficial, CAMPEAO_OFICIAL, ACESSO_OFICIAL, QUEDA_OFICIAL, ESTADUAL_OFICIAL, SUPERCOPA_REI_OFICIAL, LIBERTA_OFICIAL, SULA_OFICIAL, INTER_OFICIAL, CDB_OFICIAL, cdbOficialPorFim } from './economia-oficial'
 import sedeNoite from './img/sede-noite.webp'
@@ -144,7 +146,7 @@ import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLi
 import {DesktopRankSummary} from './desktop-layout'
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
-import type { CentralSede, CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps, RaioX } from './central'
+import type { CentralSede, CentralAgenda, CentralAgendaVelha, CentralJogo, CentralArte, FaixaSalvarProps, RaioX } from './central'
 import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
@@ -182,7 +184,7 @@ import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
-import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego } from './sport'
+import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego, usePreviaCentral } from './sport'
 import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, anoDaTemporada, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
@@ -9961,6 +9963,7 @@ export function PyramidSeasonScreen() {
   const cbUnlocked = useCopaBrasilLiberada()
   // 🗑️ 18/11: abrir/jogar a carreira conta como "jogou" na regra dos 5 dias de quem não tem plano (o save pode estar travado)
   useEffect(() => { if (state.onlineMode !== 'online') marcaCarreiraJogada(state.seed) }, [state.seed, state.seasonNo, round, state.onlineMode])
+  const novaCentral = usePreviaCentral() // 📺 18/11: a Central nova (Próximos jogos, Antes da estreia, TV depois do 1º jogo…) só na conta do Diego
   const previa = usePreviaDiego() // 👀 18/11: novidades de 17/11 só na conta do Diego (ônibus em jogo grande, cena do bairro, linha a mais dos dias)
   // 🇧🇷 17/11: de 2027 em diante a Copa do Brasil do modo sai das vagas de 2026 (cota por estado + campeões da C/D do ano anterior).
   // A cota do estado segue a classificação do estadual: o SEU, como foi jogado; os outros 16, simulados por baixo (mesma semente).
@@ -11652,7 +11655,7 @@ export function PyramidSeasonScreen() {
     const minhaPos = myDiv ? (tables[myDiv] ?? []).findIndex((t: SimTeam) => t.you) + 1 : 0
     const reta = pj.kind === 'l' && round + 1 >= 30 && minhaPos > 0 && minhaPos <= 6
     const playoff = pj.kind !== 'l' && pj.fase === PLAYOFF_B // 🔥 o playoff de acesso da B é sempre jogo de vida ou morte
-    const estreia = pj.kind === 'l' && !!estreiaCasa // 🎟️ 18/11: a 1ª partida em casa da carreira também tem a chegada da torcida
+    const estreia = novaCentral && pj.kind === 'l' && !!estreiaCasa // 🎟️ 18/11: a 1ª partida em casa da carreira também tem a chegada da torcida
     if (!classico && !final && !semi && !reta && !playoff && !estreia) return null
     const titulo = estreia ? tr('🏟️ Estreia em casa', '🏟️ First home game') : final ? tr('🏆 Final', '🏆 Final') : playoff ? tr('🔥 Playoff de acesso', '🔥 Promotion play-off') : semi ? tr('🏆 Semifinal', '🏆 Semi-final') : classico ? tr('⚔️ Clássico', '⚔️ Derby') : tr('🔥 Reta final', '🔥 Title run-in')
     return { titulo, confronto: `${euNomeChegada} × ${pj.adv.name}${state.oficial && pj.kind === 'l' ? ` · ${estadioDoClube(euNomeChegada).nome}` : ''}`, clube: euNomeChegada }
@@ -12593,6 +12596,15 @@ export function PyramidSeasonScreen() {
     // a data e o time que vai jogar, só isso"*). Antes ela listava Libertadores/Copa do Mundo até pra quem não joga nelas. Agora só
     // entra jogo SEU, com data, competição e adversário. Anti-spoiler: da liga só a fase que está correndo (a 2ª fase da C/D depende
     // de resultado); de cada copa só a PRÓXIMA página dela (a seguinte depende de passar) e só se o seu clube está nela.
+    // 📺 quem ainda não tem a Central nova (só a conta do Diego tem, 18/11) segue com a agenda velha das copas
+    const agendaVelha: CentralAgendaVelha[] = []
+    if (!state.oficial) agendaVelha.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
+      sub: !seasonOver ? ['depois da rodada 38', 'after round 38'] : copaPlaying ? ['rolando agora', 'live now'] : copaFinished ? ['encerrada', 'over'] : ['começa em seguida', 'up next'] })
+    if (intlEnabled) agendaVelha.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
+      sub: sn < 40 ? [`abre na temporada 40 (faltam ${40 - sn})`, `opens in season 40 (${40 - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
+    const proxMundo = sn <= 100 ? 100 : 100 + Math.ceil((sn - 100) / 10) * 10
+    agendaVelha.push({ arte: 'mundo', titulo: ['Copa do Mundo', 'World Cup'],
+      sub: sn < 100 ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + 10 : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + 10 : proxMundo}`] })
     const agenda: CentralAgenda[] = []
     {
       const DIA = 86400000
@@ -12660,6 +12672,7 @@ export function PyramidSeasonScreen() {
       if (seasonOver) return { label: tr('🏁 Liga encerrada — ver', '🏁 League over — see'), onClick: vai('jogos') }
       if (round === 0) return decisoesOk
         ? { label: estadualPendente ? (estadualRetoma > 0 ? tr(`▶ Continuar o ${nomeEstadual}`, `▶ Continue the ${nomeEstadual}`) : supercopaRei ? tr('▶ Começar a Supercopa Rei', '▶ Start the Supercopa Rei') : tr(`▶ Começar o ${nomeEstadual}`, `▶ Start the ${nomeEstadual}`)) : tr('▶ Começar a temporada', '▶ Start the season'), sub: estadualPendente ? tr('o estadual abre a temporada; a Série vem depois', 'the state league opens the season; the Série comes next') : tr('o botão de sempre, no mesmo lugar', 'the usual button, same place'), onClick: () => { if (estadualPendente) { setCopaRound(estadualRetoma); setEstadualOn(true); escolheAba('jogos'); return } if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } } }
+        : !novaCentral ? { label: tr('Preparar minha estreia →', 'Prepare my first match →'), sub: tr('patrocínio / Master antes da 1ª rodada', 'sponsor / Master before round 1'), onClick: vai('jogos') }
         : { label: passosVirada.passos[0] === 'master' ? tr('🏆 Escolher o Master →', '🏆 Choose the Master →') : tr('✍️ Resolver o próximo passo →', '✍️ Sort out the next step →'), sub: tr('abre o escritório, na aba Jogos', 'opens the office, in Matches'),
             onClick: () => { escolheAba('jogos'); setTimeout(() => document.querySelector('[data-passos-virada]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350) } }
       if (!manualAllowed) return { label: tr('📺 Ver a rodada ao vivo', '📺 Watch the round live'), sub: tr('no automático a rodada anda sozinha', 'in auto mode the round runs by itself'), onClick: vai('jogos') }
@@ -12674,11 +12687,11 @@ export function PyramidSeasonScreen() {
     const sede = ((): CentralSede | null => {
       if (!previa) return null // 👀 18/11: a cena do bairro na Central, só na conta do Diego por enquanto
       if (!stadiumMapAvailable) return null
-      if (round === 0) return null // 18/11 (Diego: "a feira está montada não tem sentido aparecer… de início"): na pré-temporada a Central é só a lista "Antes da estreia"
+      if (novaCentral && round === 0) return null // 18/11 (Diego: "a feira está montada não tem sentido aparecer… de início"): na pré-temporada a Central é só a lista "Antes da estreia"
       const k = `${sn}:${round}`
       // 🎟️ 18/11 (Diego: *"no momento que vai chegar próximo do jogo, o primeiro jogo só… a torcida está chegando no estádio…
       // falando o nome do estádio"*): na semana da 1ª partida EM CASA da carreira, a cena é a torcida indo pro estádio (uma vez só)
-      if (estreiaCasa && chegando) {
+      if (novaCentral && estreiaCasa && chegando) {
         const est = estadioDoClube(euNome).nome
         return { chave: `${k}:estreia-casa`, img: estadioNoite, rotulo: tr('Dia de jogo', 'Match day'), chapeu: tr('🎟️ Estreia em casa', '🎟️ First home game'), tom: 'bom', vista: 'matchday',
           titulo: tr(`A torcida está chegando no ${est}`, `The fans are heading to ${est}`),
@@ -12705,11 +12718,14 @@ export function PyramidSeasonScreen() {
       if (humor !== 'normal') return { chave: `${k}:boteco:${humor}`, img: humor === 'festa' ? sedeBotecoFesta : sedeBotecoTriste, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🍻 Boteco do Oswaldo', '🍻 Oswaldo\'s bar'), tom: humor === 'festa' ? 'bom' : 'ruim',
         titulo: humor === 'festa' ? tr('Boteco em festa', 'Party at the bar') : tr('Boteco cabisbaixo', 'Gloomy at the bar'),
         texto: humor === 'festa' ? tr(`Depois do ${ultimo!.gf} a ${ultimo!.ga}, o boteco lotou de camisa do clube.`, `After the ${ultimo!.gf}-${ultimo!.ga}, the bar is packed with club shirts.`) : tr(`Depois do ${ultimo!.gf} a ${ultimo!.ga}, só gente cabisbaixa no balcão. "Fica pra próxima."`, `After the ${ultimo!.gf}-${ultimo!.ga}, only long faces at the bar. "Next time."`) }
-      // 🧺 18/11 (Diego: "a feira não é um momento importante pro cara querer ver"): a feira de sábado saiu da Central
+      // 🧺 18/11 (Diego: "a feira não é um momento importante pro cara querer ver"): a feira de sábado saiu da Central NOVA
+      const dia = calBarra?.hoje
+      if (!novaCentral && dia != null && new Date(dia).getUTCDay() === 6) return { chave: `${k}:feira`, img: sedeFeira, rotulo: tr('Enquanto isso no bairro', 'Meanwhile in the neighbourhood'), chapeu: tr('🧺 Feira de sábado', '🧺 Saturday market'),
+        titulo: tr('A feira está montada', 'The market is up'), texto: tr('Sábado de manhã tem feira na rua do bairro — fruta, pastel e caldo de cana.', 'Saturday morning market on the neighbourhood street — fruit, pastries and sugarcane juice.') }
       return null
     })()
     // 📍 18/11 (Diego: *"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*): cada cena leva o mapa direto pro lugar dela
-    if (sede) {
+    if (sede && novaCentral) {
       const c = sede.chave, obraId = c.split(':obra:')[1]
       const OBRA_VISTA: Record<string, string> = { loja: 'loja', estac: 'estacionamento', praca: 'praca', chopp: 'chopp', estacao: 'estacao', hotel: 'hotel', metro: 'metro', onibus: 'onibus', shopping: 'shopping' }
       sede.vista = c.endsWith(':futevolei') ? 'clube-lazer' : c.endsWith(':noitada') ? 'balada' : c.endsWith(':carreata') ? 'city-street' : obraId ? (OBRA_VISTA[obraId] ?? 'region') : c.includes(':boteco:') ? 'boteco-oswaldo' : c.endsWith(':feira') ? 'feira' : undefined
@@ -12720,11 +12736,11 @@ export function PyramidSeasonScreen() {
       setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
     return <CentralCarreira sede={sede} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
-      preTemporada={round === 0 && !seasonOver && !copaPlaying ? {
+      preTemporada={novaCentral && round === 0 && !seasonOver && !copaPlaying ? {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
       } : null}
-      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
+      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} agendaVelha={novaCentral ? null : agendaVelha} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={null /* 26/10 (Diego: *"tire o rank global da central, deixe na aba do rank"*) */}
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
       semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} raioX={compProximo || compPalco || estreiaEstadual ? null : raioX} />
@@ -13038,7 +13054,8 @@ export function PyramidSeasonScreen() {
         {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
-        {/* 18/11: a dica "Seu primeiro jogo, sem complicação" saiu — a lista "Antes da estreia" da Central faz esse papel */}
+        {/* 18/11: a dica "Seu primeiro jogo, sem complicação" saiu da Central nova — a lista "Antes da estreia" faz esse papel */}
+        {!novaCentral && visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
         {visualV2 && tab === 'jogos' && !done && round > 0 && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
         {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
@@ -13355,7 +13372,7 @@ export function PyramidSeasonScreen() {
         {(() => {
           // 📺 18/11 (Diego: "uma coisa de cada vez… faz o patrocinador, aí depois aparece alguma informação do contrato de TV"): o aviso
           // da TV saiu da pré-temporada — aparece DEPOIS do 1º jogo (foi a 1ª transmissão), nunca junto com o Master
-          const temTV = round >= 1 && !copaPlaying && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div)
+          const temTV = (novaCentral ? round >= 1 && !copaPlaying : round === 0) && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div)
           // 📺 AVISO ÚNICO DA COTA EXTRA (Diego 23/08): *"quando acabar a temporada
           // de QUALQUER usuário, conta antiga ou nova, deve aparecer um banner na
           // cara dele UMA vez sobre a cota extra"*. Round 0 = a virada (a temporada

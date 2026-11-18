@@ -43,6 +43,8 @@ const G_OURO = 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)'
 export type CentralJogo = { h: string; a: string; hg: number; ag: number; hId: number; aId: number }
 export type CentralArte = 'estadio' | 'copaBr' | 'copaLeg' | 'super' | 'liberta' | 'champions' | 'mundial' | 'mundo'
 /** 🗓️ 18/11: a agenda é a lista dos PRÓXIMOS JOGOS do seu clube — data, competição, fase e adversário (`casa` null = mata-mata, ida e volta) */
+/** a agenda de antes de 18/11 (copas e Copa do Mundo) — quem ainda não tem a Central nova */
+export type CentralAgendaVelha = { arte: 'copaBr' | 'copaLeg' | 'liberta' | 'mundo'; titulo: [string, string]; sub: [string, string] }
 export type CentralAgenda = { dia: number; comp: [string, string]; fase?: string; /** 📍 onde é o jogo: o estádio do mandante (em casa: "no seu estádio · <nome>") — Diego 18/11 quer o nome nos dois casos */ onde?: string; adv: string; casa: boolean | null; arte?: 'copaBr' | 'liberta' }
 export type RaioX = {
   nome: string
@@ -145,6 +147,8 @@ export type CentralProps = {
   /** 💸 todos os negócios do pregão desta temporada (de todo clube), do maior pro menor */
   mercado: { negocios: { name: string; pos: string; paid: number; team: string; you: boolean }[]; maisCaro: Contratacao | null }
   agenda: CentralAgenda[]
+  /** 📺 sem a Central nova (18/11, só na conta do Diego): a agenda velha das copas */
+  agendaVelha?: CentralAgendaVelha[] | null
   /** 🌍 22/10: o ranking global de usuários (top 5 + a sua carreira) no lugar da antiga "Caixa dos rivais" */
   rankGlobal?: { linhas: { pos: number; nome: string; pts: number; you: boolean }[]; abrir: () => void } | null
   /** 🏆 CENTRAL NA COPA (22/10, ideia C aprovada): a chave das fases finais e os artilheiros da Copa.
@@ -173,6 +177,7 @@ export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste gráti
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
   onCraque?: () => void }
 
+const ARTES = { copaBr: copaBrArt, copaLeg: copaLegArt, liberta: libertaArt, mundo: mundoArt }
 const FUNDOS: Record<CentralArte, string> = { estadio: estadioArt, copaBr: copaBrArt, copaLeg: copaLegArt, super: superArt, liberta: libertaArt, champions: championsArt, mundial: mundialArt, mundo: mundoArt }
 // 💾 a faixa do SALVAR, logo abaixo do título da Central (04/10). Palavras do Diego ao aprovar a
 // ideia: *"sim, faz"*. Motivo: desde 04/10 a nuvem só recebe a carreira quando a pessoa aperta
@@ -281,7 +286,7 @@ export function CentralCarreira(p: CentralProps) {
     <div style={{ textAlign: 'center', minWidth: 0 }}>
       <Disco nome={nome} size={78} />
       <b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
-      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{p.preTemporada || p.proximo?.arte ? '\u00a0' : posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
+      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{p.preTemporada || (!p.agendaVelha && p.proximo?.arte) ? '\u00a0' : posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
       <Forma f={p.formas[nome]} />
     </div>
   )
@@ -425,8 +430,20 @@ export function CentralCarreira(p: CentralProps) {
               ))}
             </div>
           )}
+          {/* 🗓️ AGENDA das copas → abre Jogos. No desktop sobe pra baixo do camarote, em linha */}
+          {p.agendaVelha && <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
+            <Cabecalho titulo={t('🗓️ Agenda', '🗓️ Calendar')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
+            <div className="ll-central-agenda-lista">
+            {p.agendaVelha.map((a, i) => (
+              <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 8 }}>
+                <span style={{ width: 44, height: 34, flex: 'none', border: `2px solid ${INK}`, borderRadius: 7, background: `url(${ARTES[a.arte]}) center / cover` }} />
+                <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0 }}><b style={{ ...OSW, fontSize: 12, display: 'block' }}>{en ? a.titulo[1] : a.titulo[0]}</b><small style={{ color: '#555', fontWeight: 700 }}>{en ? a.sub[1] : a.sub[0]}</small></span>
+              </div>
+            ))}
+            </div>
+          </div>}
           {/* 🗓️ AGENDA = os próximos jogos do seu clube (18/11) → abre Jogos */}
-          {p.agenda.length > 0 && <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
+          {!p.agendaVelha && p.agenda.length > 0 && <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
             <Cabecalho titulo={t('🗓️ Próximos jogos', '🗓️ Upcoming matches')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
             <div className="ll-central-agenda-lista">
             {p.agenda.map((a, i) => { const d = new Date(a.dia); const dow = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); const mes = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { month: 'short', timeZone: 'UTC' }).replace('.', ''); return (

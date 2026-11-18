@@ -14713,7 +14713,9 @@ export function useSalvarBloqueado(): boolean {
 // aparelho — com aviso antes. Quem já tinha várias: as paradas há mais de 5 dias saem e fica UMA (a jogada por último). Ficha extra
 // comprada na Loja soma vaga. Só age quando o jogo SABE que a conta não tem plano (sem conta também conta como sem plano); na dúvida
 // (login/banco carregando ou sem rede) NÃO apaga nada. Desligar = `false`.
-export const LIMPA_CARREIRA_GRATIS = true
+// 🔒 18/11 (Diego: "pode publicar tudo na minha conta já"): a regra só vale pra quem NÃO tem plano, e a conta dele tem — então
+// "na conta dele" = desligada pra todo mundo por enquanto. Ligar pra todos = `true`.
+export const LIMPA_CARREIRA_GRATIS = false
 export const DIAS_CARREIRA_GRATIS = 5
 const JOGADA_KEY = 'esc-carreira-jogada' // { [seed]: ms da última vez que a carreira foi ABERTA pra jogar } (o save pode estar travado)
 function jogadas(): Record<string, number> { try { const o = JSON.parse(localStorage.getItem(JOGADA_KEY) ?? '{}'); return o && typeof o === 'object' ? o : {} } catch { return {} } }
