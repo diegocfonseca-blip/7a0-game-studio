@@ -2,6 +2,7 @@ import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
 import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
+import { OnlineCreateLayout, OnlineCreateSection } from './online-create-layout' // 🧩 18/11: a Partida Rápida na moldura da criação de sala
 import {CareerWelcome,CareerAuctionHint} from './career-start-guide'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
@@ -3233,29 +3234,10 @@ export function EscSetup() {
       </Shell>
     )
   }
-  return (
-    <Shell>
-      <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
-        className="flex items-center gap-1 text-black/60 font-black text-sm pt-4 -mb-2 active:opacity-60" style={OSWALD}>
-        <span className="text-lg leading-none">🏠</span> {t('Voltar ao início', 'Back to start')}
-      </button>
-      <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? t('🪜 CARREIRA · VÁRZEA', '🪜 CAREER · SUNDAY LEAGUE') : t('🪜 CARREIRA · SÉRIE D', '🪜 CAREER · TIER D')) : t('MONTE SUA SALA', 'SET UP YOUR ROOM')}</h2>
-      {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada()
-        ? t('Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.', 'Start in the SUNDAY LEAGUE (5th tier, park football) and climb to the top flight. The market grows with you — from park player to legend. You can save and come back later.')
-        : t('Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.', 'Start in Tier D and climb to the top. Same auction — what changes is moving up a division every season. You can save and come back later.')}</p>}
-      {career && (
-        <Box bg="#FFF6DE" className="p-4 space-y-1.5">
-          <p className="font-black text-sm" style={OSWALD}>{t('⚡ Como funciona a Carreira', '⚡ How Career mode works')}</p>
-          <p className="text-xs font-bold text-black/75">🪜 {getLang() === 'en' ? (escadaLiberada() ? <><b>5-tier pyramid:</b> start in VÁRZEA (grassroots park football 🍺) and climb to Série A — up or down every season, based on your finish.</> : <><b>4-tier pyramid:</b> start in Série D and climb to A — up or down every season, based on your finish.</>) : escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
-          <p className="text-xs font-bold text-black/75">🔨 <b>{t('Mesmo leilão do modo rápido:', 'Same auction as quick match:')}</b> {t('monta o time no pregão e disputa o campeonato de 38 rodadas.', 'build your squad at the auction and play a 38-round league.')}</p>
-          <p className="text-xs font-bold text-black/75">🔥 <b>{t('Rivais pra vida toda:', 'Rivals for life:')}</b> {t('têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.', 'they live their own life in the pyramid and only face you when they are in your division.')}</p>
-          <p className="text-xs font-bold text-black/75">🏆 <b>{t('Títulos acumulam:', 'Titles stack up:')}</b> {t('cada título da Série A vira uma ⭐ no seu escudo.', 'every top-flight title becomes a ⭐ on your crest.')}</p>
-          <p className="text-xs font-bold text-black/75">💾 <b>{t('Salva e continua:', 'Save and continue:')}</b> {t('pare e volte depois, em qualquer aparelho.', 'stop and come back later, on any device.')}</p>
-        </Box>
-      )}
-      {/* 👑 10/11 (Diego): a KINGS LEAGUE saiu daqui de cima e virou o 4º TIPO DE LEILÃO (Jogador · Clubes · Seleções · Kings) */}
-      {/* ⚡ MODO POKÉMON (25/10) — o leilão de sempre com os pokémon, e depois da cerimônia a liga de batalhas
-          (`pokemon-liga.tsx`). Só a conta do Diego vê (`usePokemonLiberado`). Sem Clubes (decisão dele). */}
+  // 🧩 18/11 (Diego: *"a partida rápida tá com visual antigo… já reformulamos tudo nas salas online… tem que remodelar com base no
+  // padrão novo"*): a Partida Rápida usa a MESMA moldura da criação de sala online (`OnlineCreateLayout`: blocos numerados que abrem e
+  // fecham, resumo e o botão embaixo). Os campos são os de sempre — só mudaram de lugar. A carreira segue com a tela dela.
+  const pokeBtnRapido = (<>
       {!career && pokeOn && !bbSetup && (
         <button onClick={() => { setPoke(k => !k); setKings(false) }} className="w-full text-left active:translate-y-0.5"
           style={{ background: poke ? '#0C0C0C' : '#fff', color: poke ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: poke ? '4px 4px 0 #FFC400' : 'none', padding: '12px 14px' }}>
@@ -3265,7 +3247,8 @@ export function EscSetup() {
             : t('Toque pra ligar. Leilão de pokémon e batalhas no lugar do futebol.', 'Tap to turn on. A Pokémon auction and battles instead of football.')}</span>
         </button>
       )}
-      <Box className="p-4 space-y-4">
+  </>)
+  const blocoTipo = (<>
         {!career && clubesOn && !pokeLigado && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Tipo de leilão', 'Auction type')}</p>
@@ -3328,6 +3311,8 @@ export function EscSetup() {
             </p>
           </div>
         )}
+  </>)
+  const blocoBaralho = (<>
         {career ? (
           <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? tr('🌎 Baralho: Brasileirão + Europa + MUNDO juntos', '🌎 Deck: Brasileirão + Europe + WORLD together') : tr('🌎 Baralho fixo: Brasileirão + Europa juntos', '🌎 Fixed deck: Brasileirão + Europe together')}</p>
@@ -3385,6 +3370,8 @@ export function EscSetup() {
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
+  </>)
+  const blocoTeste2D = (<>
         {/* ⏩📺 05/11 (teste do Diego): como fica o 2D numa partida COM ou SEM o botão Manual (o automático é sempre 2×) */}
         {c2dSetup && !bbSetup && (
           <div>
@@ -3402,6 +3389,8 @@ export function EscSetup() {
               : t('Automático = 2× (45 s). No Manual: 🐢 Lento (3 min) · Normal (1:30) · 2× · 3× (30 s) · 4× (22 s).', 'Auto = 2× (45 s). With Manual: 🐢 Slow (3 min) · Normal (1:30) · 2× · 3× (30 s) · 4× (22 s).')}</p>
           </div>
         )}
+  </>)
+  const blocoNba = (<>
         {bbSetup && (
           <div className="space-y-3">
             {/* 🏀 18/11: a MESMA escolha da sala online — tamanho da liga (conferências reais) e o formato. Os rivais acima são só quem
@@ -3434,6 +3423,8 @@ export function EscSetup() {
             </div>
           </div>
         )}
+  </>)
+  const blocoDepois = (<>
         {!career && !kingsLigado && !pokeLigado && !bbSetup && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
@@ -3488,6 +3479,8 @@ export function EscSetup() {
             )}
           </div>
         )}
+  </>)
+  const blocoPregao = (<>
         {/* 🔻 COMO É O PREGÃO — só no jogo rápido, e o padrão é SEMPRE o leilão
             de hoje. É um modo à parte: escolher holandês não muda nada do resto
             (mesmo baralho, mesma quantidade de jogadores, mesmas vagas, mesmas
@@ -3552,6 +3545,8 @@ export function EscSetup() {
             </p>
           </div>
         )}
+  </>)
+  const blocoNome = (<>
         <div>
           <p className="text-xs font-black uppercase mb-1">{t('Nome do seu time', 'Your team name')}</p>
           <input
@@ -3565,6 +3560,8 @@ export function EscSetup() {
             <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).', '🔗 This is your account name — it counts vs CPU, in career and online. Editing here changes it everywhere (stats included).')}</p>
           )}
         </div>
+  </>)
+  const blocoTime = (<>
         {pokeLigado ? (
           <p className="text-[11px] font-bold text-black/65">{t('⚡ Pokémon: 6 por time e 10 treinadores (você + 9 bots). Liga de 9 batalhas, depois semifinal e final.', '⚡ Pokémon: 6 per team and 10 trainers (you + 9 bots). A 9-battle league, then semifinal and final.')}</p>
         ) : kingsLigado ? (
@@ -3598,6 +3595,90 @@ export function EscSetup() {
           <p className="text-[11px] font-semibold text-black/60 mt-1.5 leading-snug"><b>{t('Mais rivais:', 'More rivals:')}</b> {t('mais técnicos brigando no leilão e maior variedade de jogadores.', 'more managers fighting at the auction and a wider spread of players.')} <b>{t('Menos rivais:', 'Fewer rivals:')}</b> {t('menos técnicos brigando e jogo mais rápido.', 'fewer managers fighting and a quicker game.')}</p>
         </div>
         </>}
+  </>)
+  if (!career) {
+    const jeito = envUnicoOk && envUnico ? t('⚡ Envelope único', '⚡ Single envelope') : pregaoAbertoOk && pregaoAb ? t('🔨 Pregão aberto', '🔨 Open bidding') : holandes ? t('🐊 Tocaia', '🐊 Ambush') : t('✉️ Envelope cego', '✉️ Sealed bid')
+    const tipoTxt = kingsLigado ? '👑 Kings League' : pokeLigado ? '⚡ Pokémon' : clubesOn && clubes ? (pacSel ? t('🏳️ Seleções', '🏳️ Nations') : t('🧱 Clubes', '🧱 Clubs')) : t('🃏 Jogador', '🃏 Player')
+    const COPA_TXT: Record<string, [string, string]> = { liga: ['📊 Só a liga', '📊 League only'], liga_copa: ['🏆 Liga + Copa dos 8', '🏆 League + Cup of 8'], liga_liberta: ['🌎 Liga + Libertadores', '🌎 League + Libertadores'], liga_champions: ['⭐ Liga + Champions', '⭐ League + Champions'], champions: ['⭐ Só Champions', '⭐ Champions only'], relampago: ['⚡ Relâmpago', '⚡ Lightning'] }
+    const campTxt = bbSetup ? `${nbaTamQ} ${t('times', 'teams')} · ${nbaFormQ === 'liga' ? t('só a liga', 'league only') : 'Play-In + Playoffs'}` : kingsLigado ? t('Kings League · 10 times', 'Kings League · 10 teams') : pokeLigado ? t('Liga de batalhas', 'Battle league') : t(...(COPA_TXT[copaMode] ?? [copaMode, copaMode]))
+    const timeTxt = `${name.trim() || t('seu time', 'your team')} · ${bbSetup ? t('quinteto da NBA', 'NBA five') : formation} · ${rivals} ${t('rivais', 'rivals')}`
+    const resumos: Record<string, string> = { [t('O leilão', 'The auction')]: `${tipoTxt} · ${jeito}`, [t('O time', 'The team')]: timeTxt, [t('O campeonato', 'The championship')]: campTxt, [t('A partida', 'The match')]: t('Teste do 2D', '2D test') }
+    const linhas: [string, string][] = [[t('Modo', 'Mode'), bbSetup ? t('⚡ Partida Rápida · 🏀 NBA', '⚡ Quick match · 🏀 NBA') : t('⚡ Partida Rápida', '⚡ Quick match')], [t('Leilão', 'Auction'), `${tipoTxt} · ${jeito}`], [t('Time', 'Team'), timeTxt], [t('Campeonato', 'Championship'), campTxt]]
+    return (
+      <Shell>
+        <style>{'.ll-qs .cs-claro{background:#F4ECD6;border:4px solid #0C0C0C;border-radius:24px;box-shadow:5px 5px 0 #0C0C0C;padding:12px;color:#0C0C0C}'}</style>
+        <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="flex items-center gap-1 font-black text-sm pt-4 -mb-2 active:opacity-60" style={{ ...OSWALD, color: '#c9c5b8' }}>
+          <span className="text-lg leading-none">🏠</span> {t('Voltar ao início', 'Back to start')}
+        </button>
+        <div className="pt-2">
+          <p className="text-[11px] font-black uppercase tracking-[.16em]" style={{ ...OSWALD, color: GOLD }}>{bbSetup ? t('⚡ Partida rápida · você contra a máquina', '⚡ Quick match · you vs the machine') : t('⚡ Partida rápida · você contra a máquina', '⚡ Quick match · you vs the machine')}</p>
+          <h1 className="font-black uppercase leading-[.95] mt-1" style={{ ...OSWALD, fontSize: 40, color: '#F4ECD6' }}>{t('Monte sua', 'Set up your')} <span style={{ color: GOLD }}>{t('partida.', 'match.')}</span></h1>
+          <p className="text-sm font-semibold mt-1" style={{ color: '#c9c5b8' }}>{bbSetup ? t('Leilão do seu quinteto, temporada da NBA e a briga pelo anel. Sem marcar horário.', 'Auction your five, play an NBA season and chase the ring. No schedule needed.') : t('Leilão, campeonato e a briga pelo título. Sem marcar horário.', 'Auction, league and the race for the title. No schedule needed.')}</p>
+        </div>
+        <div className="ll-qs">
+          <OnlineCreateLayout enabled rotulo={t('SUA PARTIDA', 'YOUR MATCH')} modes={<div className="space-y-3" style={{ background: CREAM, color: INK, border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}`, padding: 12 }}>
+            <div className="flex items-center gap-3">
+              <span className="grid place-items-center rounded-xl shrink-0" style={{ width: 44, height: 44, background: GOLD, border: `3px solid ${INK}`, fontSize: 22 }}>⚡</span>
+              <span><b className="block uppercase" style={{ ...OSWALD, fontSize: 18 }}>{t('Partida rápida', 'Quick match')}</b><span className="block text-[12px] font-semibold" style={{ color: '#6b6250' }}>{t('Uma temporada contra a máquina. Começa agora.', 'One season against the machine. Starts now.')}</span></span>
+            </div>
+            {pokeBtnRapido}
+          </div>} rows={linhas} summaries={resumos}
+            name={name.trim() || t('Seu time', 'Your team')}
+            button={<Btn onClick={start} className="w-full text-lg" bg={GREEN}><span className="text-white">{t('AVANÇAR 🔨', 'CONTINUE 🔨')}</span></Btn>}
+            responsibility={null} error={nameErr ? <p>{nameErr}</p> : null} errorKey={nameErr}
+            notice={t('Escolha como quer jogar.', 'Choose how you want to play.')}>
+            <OnlineCreateSection num={1} title={t('O leilão', 'The auction')} icon="🔨" sub={t('Como os jogadores vão ser comprados', 'How the players get bought')}>{blocoTipo}{blocoPregao}</OnlineCreateSection>
+            <OnlineCreateSection num={2} title={t('O time', 'The team')} icon="🃏" sub={t('Nome, baralho e os rivais', 'Name, deck and rivals')}>{blocoNome}{blocoBaralho}{blocoTime}</OnlineCreateSection>
+            <OnlineCreateSection num={3} title={t('O campeonato', 'The championship')} icon="🏆" sub={t('O que vem depois do leilão', 'What comes after the auction')}>{blocoNba}{blocoDepois}</OnlineCreateSection>
+            {c2dSetup && !bbSetup && <OnlineCreateSection num={4} title={t('A partida', 'The match')} icon="📺">{blocoTeste2D}</OnlineCreateSection>}
+          </OnlineCreateLayout>
+        </div>
+        <CardAccountNote />
+      </Shell>
+    )
+  }
+
+  return (
+    <Shell>
+      <button onClick={() => dispatch({ type: 'GO_LOBBY' })}
+        className="flex items-center gap-1 text-black/60 font-black text-sm pt-4 -mb-2 active:opacity-60" style={OSWALD}>
+        <span className="text-lg leading-none">🏠</span> {t('Voltar ao início', 'Back to start')}
+      </button>
+      <h2 className="font-black text-3xl pt-2" style={OSWALD}>{career ? (escadaLiberada() ? t('🪜 CARREIRA · VÁRZEA', '🪜 CAREER · SUNDAY LEAGUE') : t('🪜 CARREIRA · SÉRIE D', '🪜 CAREER · TIER D')) : t('MONTE SUA SALA', 'SET UP YOUR ROOM')}</h2>
+      {career && <p className="text-sm font-bold text-black/60 -mt-1">{escadaLiberada()
+        ? t('Comece na VÁRZEA (5ª divisão, peladão raiz) e suba até a Série A. O mercado sobe junto com você — de perna-de-pau a lenda. Dá pra salvar e voltar depois.', 'Start in the SUNDAY LEAGUE (5th tier, park football) and climb to the top flight. The market grows with you — from park player to legend. You can save and come back later.')
+        : t('Comece na Série D e suba até a A. O leilão é o mesmo — o que muda é subir de divisão a cada temporada. Dá pra salvar e voltar depois.', 'Start in Tier D and climb to the top. Same auction — what changes is moving up a division every season. You can save and come back later.')}</p>}
+      {career && (
+        <Box bg="#FFF6DE" className="p-4 space-y-1.5">
+          <p className="font-black text-sm" style={OSWALD}>{t('⚡ Como funciona a Carreira', '⚡ How Career mode works')}</p>
+          <p className="text-xs font-bold text-black/75">🪜 {getLang() === 'en' ? (escadaLiberada() ? <><b>5-tier pyramid:</b> start in VÁRZEA (grassroots park football 🍺) and climb to Série A — up or down every season, based on your finish.</> : <><b>4-tier pyramid:</b> start in Série D and climb to A — up or down every season, based on your finish.</>) : escadaLiberada() ? <><b>Pirâmide de 5 divisões:</b> começa na VÁRZEA (peladão raiz 🍺) e sobe até a Série A — sobe ou desce a cada temporada, conforme sua colocação.</> : <><b>Pirâmide de 4 divisões:</b> começa na Série D e sobe até a A — sobe ou desce a cada temporada, conforme sua colocação.</>}</p>
+          <p className="text-xs font-bold text-black/75">🔨 <b>{t('Mesmo leilão do modo rápido:', 'Same auction as quick match:')}</b> {t('monta o time no pregão e disputa o campeonato de 38 rodadas.', 'build your squad at the auction and play a 38-round league.')}</p>
+          <p className="text-xs font-bold text-black/75">🔥 <b>{t('Rivais pra vida toda:', 'Rivals for life:')}</b> {t('têm vida própria na pirâmide e só te enfrentam quando estão na sua divisão.', 'they live their own life in the pyramid and only face you when they are in your division.')}</p>
+          <p className="text-xs font-bold text-black/75">🏆 <b>{t('Títulos acumulam:', 'Titles stack up:')}</b> {t('cada título da Série A vira uma ⭐ no seu escudo.', 'every top-flight title becomes a ⭐ on your crest.')}</p>
+          <p className="text-xs font-bold text-black/75">💾 <b>{t('Salva e continua:', 'Save and continue:')}</b> {t('pare e volte depois, em qualquer aparelho.', 'stop and come back later, on any device.')}</p>
+        </Box>
+      )}
+      {/* 👑 10/11 (Diego): a KINGS LEAGUE saiu daqui de cima e virou o 4º TIPO DE LEILÃO (Jogador · Clubes · Seleções · Kings) */}
+      {/* ⚡ MODO POKÉMON (25/10) — o leilão de sempre com os pokémon, e depois da cerimônia a liga de batalhas
+          (`pokemon-liga.tsx`). Só a conta do Diego vê (`usePokemonLiberado`). Sem Clubes (decisão dele). */}
+      {!career && pokeOn && !bbSetup && (
+        <button onClick={() => { setPoke(k => !k); setKings(false) }} className="w-full text-left active:translate-y-0.5"
+          style={{ background: poke ? '#0C0C0C' : '#fff', color: poke ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: poke ? '4px 4px 0 #FFC400' : 'none', padding: '12px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: poke ? '#FFC400' : INK, display: 'block' }}>{poke ? '✅' : '⬜'} ⚡ POKÉMON <span style={{ fontSize: 11, background: '#7C3AED', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>{t('TESTE · SÓ VOCÊ VÊ', 'TEST · ONLY YOU SEE IT')}</span></span>
+          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{poke
+            ? t('Ligado: o leilão de sempre (envelope, Tocaia ou pregão aberto) com 100 moedas e 6 pokémon por time. Depois, 9 batalhas de 3 contra 3 e o mata-mata, com 9 bots.', 'On: the usual auction (sealed bid, Ambush or open bidding) with 100 coins and 6 Pokémon per team. Then 9 battles of 3 vs 3 and the knockout, with 9 bots.')
+            : t('Toque pra ligar. Leilão de pokémon e batalhas no lugar do futebol.', 'Tap to turn on. A Pokémon auction and battles instead of football.')}</span>
+        </button>
+      )}
+      <Box className="p-4 space-y-4">
+        {blocoTipo}
+        {blocoBaralho}
+        {blocoTeste2D}
+        {blocoNba}
+        {blocoDepois}
+        {blocoPregao}
+        {blocoNome}
+        {blocoTime}
         {career && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('🔥 Escolha seus rivais', '🔥 Pick your rivals')} <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
