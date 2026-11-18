@@ -9,6 +9,7 @@ import { estiloPisca, PISCA_GOL_MS, gritoGol } from './radio-pisca' // 📻 a fa
 import { usePatrocinio, type Competicao } from './patrocinio' // 💼 'apresentada por' (16/10)
 import { LedEstadio } from './patrocinio-visual' // 🏟️ LED do estádio (16/10)
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
+import { ehBasquete } from './marca' // 🏀 placar cinema com a quadra no fundo
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
 import {tempoLance,type RelogioLance} from './presidencia-lance-tempo'
@@ -108,7 +109,7 @@ export function OnlineScorePresentation(p: {
     if (viuCena.current) { viuCena.current = false; setPisca(null) }
   }, [p.goalSide])
   const piscaGol = pisca ? estiloPisca() : undefined
-  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
+  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''}${p.enhanced && ehBasquete() ? ' ll26-score-bb' : ''} ${p.enhanced && p.goalSide && !ehBasquete() ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
     {!semFaixa && <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
       {p.goalSide ? p.stamp : p.narration}
     </div>}
@@ -130,7 +131,7 @@ export function OnlineScorePresentation(p: {
         {p.palco && <b className={`ll32-veredito ll32-v-${p.palco.fim}`}>{p.palco.veredito}</b>}
       </div>
     )}
-    {p.enhanced && p.goalSide && <div key={p.eventKey} className={`ll26-goal-scene ll26-goal-${p.goalSide}`} aria-hidden="true">
+    {p.enhanced && p.goalSide && !ehBasquete() /* 🏀 cesta sai toda hora: nada de cena de GOOOL cobrindo o placar */ && <div key={p.eventKey} className={`ll26-goal-scene ll26-goal-${p.goalSide}`} aria-hidden="true">
       <div className="ll26-goal-rays" />
       <div className="ll26-goal-mascot">{p.mascot}</div>
       <strong>{tr('GOOOL!', 'GOOOAL!')}</strong>

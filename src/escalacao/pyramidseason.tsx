@@ -3379,7 +3379,9 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // do Diego (*"pode publicar p todos"*). Uma chave só, `CAREER_VISUAL_RELEASED` — pôr
   // `false` devolve a carreira ao visual antigo inteirinha, sem tocar no online.
   const carreiraPublica = CAREER_VISUAL_RELEASED && !!enhancedCareer
-  const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline) || carreiraPublica) && !basket
+  // 🏀 18/11 (Diego: *"como fica… com jogo rolando o placar cinema"*): o basquete também ganha o placar cinema — com a quadra no fundo
+  // (`ll26-score-bb`) e sem o golzinho de futebol (`palcoOn={!basket}`).
+  const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline) || carreiraPublica)
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
@@ -3874,7 +3876,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
     narration={relatoOficial?.narration ?? fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {/* 📊 07/11: o MESMO resumo do apito do 2D, no placar cinema — só depois do FIM (e da última cobrança de pênalti) */}
-    {statsPlacarVisivel({ liberado: statsPlacar, fechado, basket, kings: !!relogioKings, penaltis: estadoPenaltis ?? disputaPenaltis?.estado ?? null }) && (
+    {statsPlacarVisivel({ liberado: statsPlacar, fechado, basket: !!basket, kings: !!relogioKings, penaltis: estadoPenaltis ?? disputaPenaltis?.estado ?? null }) && (
       // (⭐ o rádio já disse quem foi o CRAQUE DO JOGO: o cartão diz o MESMO nome — nunca dois "melhores" diferentes na tela)
       <StatsDoPlacar corCasa={homeColor} corFora={awayColor} craqueRadio={!relatoOficial && radioLances.length > 0 ? craqueDoJogo(shown) : null} entrada={{
         roundKey, roundMs, gols: goals,

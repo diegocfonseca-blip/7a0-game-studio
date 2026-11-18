@@ -523,3 +523,6 @@
 .ll43-uma .ll43-ln{padding:0}
 .ll43-uma .ll43-ln>b{color:#1B7A3D}
 .ll43-uma .ll43-tx{color:#0C0C0C}
+
+/* 🏀 18/11: placar cinema do basquete — a quadra no fundo no lugar do estádio de futebol */
+.ll26-score.ll26-score-bb{background:radial-gradient(ellipse at 50% 0,rgba(255,196,0,.16),transparent 65%),linear-gradient(120deg,rgba(32,16,6,.84),rgba(12,7,3,.92)),url('./img/home-bidlegends-v01.webp') center/cover}
