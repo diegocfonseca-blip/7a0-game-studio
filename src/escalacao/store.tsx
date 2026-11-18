@@ -14441,6 +14441,11 @@ export function activateCareerSlot(seed: number): EscState | null {
 // ATIVA, promove a mais recente do arquivo pra ativa (pra o "Continuar" não sumir
 // da home enquanto ainda houver carreiras).
 export function deleteCareerSlot(seed: number) {
+  // 🗑️ 18/11 (Diego: "aperto pra excluir e não exclui… tenho sempre que atualizar a página"): a carreira que desceu da NUVEM
+  // fica também na MEMÓRIA (`carreirasEmMemoria`/`carreiraEmMemoria`, aparelho cheio) e a lista lê de lá — apagar só do
+  // aparelho fazia ela voltar na hora. Agora sai da memória também.
+  carreirasEmMemoria = carreirasEmMemoria.filter(c => (c.save as EscState).seed !== seed)
+  if (carreiraEmMemoria?.seed === seed) carreiraEmMemoria = null
   const act = readActiveCareer()
   if (act && act.save.seed === seed) {
     const arch = readCareerArchive()

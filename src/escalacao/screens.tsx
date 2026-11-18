@@ -1931,18 +1931,27 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
                 <button onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('▶️ Continuar', '▶️ Continue')}</button>
-                {confirmKey === String(slot.save.seed ?? i) ? (
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <button onClick={() => del(slot)} style={{ background: '#C2452F', color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 900, fontSize: 11, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('🗑️ Apagar', '🗑️ Delete')}</button>
-                    <button onClick={() => setConfirmKey(null)} aria-label={t('Cancelar', 'Cancel')} style={{ background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer', opacity: 0.6, lineHeight: 1 }}>✕</button>
-                  </div>
-                ) : (
-                  <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
-                )}
+                <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
               </div>
             </div>
           )
         })}
+        {/* 🗑️ 18/11 (Diego: "deveria ter uma confirmação pra excluir… apertar sim e excluir definitivamente"): janela própria do jogo
+            (window.confirm é bloqueado no navegador do WhatsApp/Instagram) — diz QUAL carreira e que não tem volta */}
+        {(() => { const alvo = confirmKey ? list.find(({ slot }, i) => String(slot.save.seed ?? i) === confirmKey) : undefined; if (!alvo) return null
+          const you = alvo.slot.save.managers?.[alvo.slot.save.youIdx ?? 0], nome = you?.teamName ?? you?.name ?? t('Meu time', 'My team')
+          return <div onClick={() => setConfirmKey(null)} style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div className="ov3-surface" role="alertdialog" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, padding: 16, textAlign: 'center' }}>
+              <p style={{ fontSize: 30, margin: 0 }}>🗑️</p>
+              <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textTransform: 'uppercase', margin: '4px 0 6px' }}>{t('Excluir esta carreira?', 'Delete this career?')}</p>
+              <p style={{ fontSize: 13.5, fontWeight: 800, margin: '0 0 4px' }}>{nome} · {t('Temporada', 'Season')} {alvo.slot.save.seasonNo ?? 1}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6250', margin: '0 0 14px', lineHeight: 1.4 }}>{t('Ela sai do aparelho e da nuvem de vez. Não dá pra desfazer.', 'It is removed from this device and the cloud for good. This cannot be undone.')}</p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setConfirmKey(null)} style={{ flex: 1, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{t('Cancelar', 'Cancel')}</button>
+                <button onClick={() => del(alvo.slot)} style={{ flex: 1, background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{t('Sim, excluir', 'Yes, delete')}</button>
+              </div>
+            </div>
+          </div> })()}
         {(() => { const lim = careerSlotLimit(list.length); const cheio = list.length >= lim; return (<>
         <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
         {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, compre uma 💾 ficha extra na 🛒 Loja do Clube, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, buy an 💾 extra slot in the 🛒 Club Shop, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
