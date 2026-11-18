@@ -2029,6 +2029,32 @@ export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: bool
     case 'A': return !c.promessa && f >= 4
   }
 }
+/** 🇧🇷 BRASIL OFICIAL (18/11, *"pro usuário não entender qual é o limite e depois sempre ganhar"*): o lance máximo do bot numa
+ *  carta é um PEDAÇO do caixa dele, sorteado a cada carta — lenda 35–70% · craque 20–40% · promessa/bom 10–25% · profissional 3–10%.
+ *  Nunca um número fixo: muda com o clube, o caixa, a carta e a temporada. Categoria de baixo sempre pode pagar pelo menos o piso
+ *  (senão clube pobre nunca compraria nada). 🤪 LOUCURA: 4% das vezes um clube com 200+ 🪙 fica obcecado por lenda/craque e vai até 85%.
+ *  O exagero nunca sobe o piso da carta (trava de sempre, `travaPisoDoBot`). */
+function tetoBotOficial(m: Manager, c: Card | undefined, rng: () => number): number {
+  const caixa = Math.max(0, Math.round(m.money ?? 0))
+  if (!c || caixa <= 0) return 0
+  const f = c.fame ?? 1, alto = !c.promessa && f >= 4
+  const [lo, hi] = !c.promessa && f >= 5 ? [0.35, 0.70] : !c.promessa && f === 4 ? [0.20, 0.40] : (c.promessa || f >= 2) ? [0.10, 0.25] : [0.03, 0.10]
+  let pct = lo + rng() * (hi - lo)
+  if (alto && caixa >= 200 && rng() < 0.04) pct = 0.85 // 🤪 loucura
+  const piso = Math.max(1, Math.round((c as WonCard).paid ?? 1))
+  const teto = Math.round(caixa * pct)
+  return Math.min(caixa, alto ? teto : Math.max(teto, Math.round(piso * 1.2)))
+}
+/** 🇧🇷 Brasil Oficial (18/11, "bot faz tudo que o usuário faz"): o bot paga do caixa dele (`clubCash['m<id>']`, o mesmo que o leilão
+ *  usa). false = não tinha dinheiro (nada é cobrado). */
+function botPaga(s: EscState, m: Manager, valor: number): boolean {
+  const v = Math.max(0, Math.round(valor))
+  if (!v) return true
+  const k = 'm' + m.id, caixa = s.clubCash?.[k] ?? Math.round(m.money ?? 0)
+  if (caixa < v) return false
+  s.clubCash = { ...(s.clubCash ?? {}), [k]: caixa - v }
+  return true
+}
 /** 🧢 semeia/atualiza o mercado de técnicos da SUA série (era o corpo do ALICIAR_SEED). Desde 18/11 o Brasil Oficial chama isto
  *  sozinho na virada (item (d)): o mercado de técnicos anda mesmo que ninguém abra o Sondar. */
 function semeiaTecnicos(s: EscState): void {
@@ -2148,6 +2174,8 @@ function semeiaTecnicos(s: EscState): void {
         // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
         // respeita o teto da categoria.
         const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, pisoTecnico(tN.div, !!s.oficial)) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)), !!s.oficial)
+        // 🇧🇷 Oficial (18/11, item (c)): o bot PAGA o técnico do caixa dele, igual a você — sem dinheiro, fica sem (e o técnico volta pro mercado)
+        if (s.oficial && !botPaga(s, m, preco)) { livres.push(nomeN); continue }
         map[m.teamName] = nomeN
         desde[m.teamName] = { t: s.seasonNo, r: 0 }
         pago[nomeN] = preco // o mercado aprende com a compra do bot também
@@ -2161,6 +2189,8 @@ function semeiaTecnicos(s: EscState): void {
       if (m.isHuman || !map[m.teamName]) continue
       const fim = (s.careerTecnicoContrato ?? {})[m.teamName]
       if (fim != null && fim < s.seasonNo && rngV() < 0.6) {
+        // 🇧🇷 Oficial (item (c)): renovar custa o valor dele, igual pra você; sem caixa, deixa vencer (fica aliciável)
+        if (s.oficial && !botPaga(s, m, s.careerTecnicoPago?.[map[m.teamName]!] ?? 0)) continue
         s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
         mudou = true
       }
@@ -7429,7 +7459,9 @@ function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedC
         const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
         const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
         for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
-          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard), ...(b.reforco ? { reforco: true } : {}) })
+          // 🇧🇷 Oficial: o teto é um PEDAÇO DO CAIXA do clube pela categoria (+ loucura rara) — ver `tetoBotOficial`
+          const cap = state.oficial ? tetoBotOficial(m, state.currentCards.find(c => c.id === b.cardId), rng) : capPerCard
+          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, cap), ...(b.reforco ? { reforco: true } : {}) })
         }
       }
     }

@@ -14002,3 +14002,15 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   perto do piso das cartas. Os ricos da série (Guarani, Paysandu) compram. Falta: limite do bot = % do caixa por categoria + loucura.
 - ⏳ Falta: bot faz tudo que o usuário faz (prêmio, salário, renovação, técnico/preparador pago) — ver
   `docs/brasil-oficial/tecnico-preparador-analise.md` (bots contratam/renovam técnico DE GRAÇA e não têm preparador).
+
+### 🧢🏋️ 18/11 — Brasil Oficial: técnico, preparador e lance do bot (só conta do Diego, no branch; *"sim"* pra (a)–(e) + preços)
+- ✅ Preparador pela série (`PRECO_PREP_OFICIAL`, preparadores.ts): D 8·15·25·40 · C 12·25·40·60 · B 20·40·60·90 · A 30·60·90·140;
+  salário 10%, renovação metade. Técnico: teto D 12 · C 20 · B 35 · A 60, piso ¼ (`TETO_TECNICO_OFICIAL`, `pisoTecnico`).
+- ✅ (a) vencido sem renovar vai embora quando o leilão começa (`deixaComissaoVencidaIr`), com ⚠️ na mesa de contratos.
+- ✅ (c) parte: bot PAGA contratar/renovar técnico do caixa (`botPaga`); sem dinheiro, fica sem.
+- ✅ (d) mercado de técnicos anda sozinho na virada (`semeiaTecnicos`, extraído do ALICIAR_SEED).
+- ✅ (e) multa aparece antes do lance (mesa do pregão do técnico).
+- ✅ Lance do bot = pedaço do caixa pela categoria + 🤪 loucura 4% (`tetoBotOficial`). Testado: na abertura da Série C 8 dos 19 bots
+  compraram (antes 1–3); leilão até a cerimônia sem erro.
+- ⏳ Falta (c)/(33): bot com PREPARADOR, salário de jogador/técnico e prêmios pros bots (economia completa dos bots).
+- ⚠️ Teste `npm run tecnicos` não roda neste ambiente (import de .webp) — já era assim.
