@@ -87,6 +87,21 @@ for (const tam of [30, 20, 10] as const) {
   ok(media('GOL', 'ast') > media('ATA', 'ast') * 2, 'armador dá muito mais assistência que pivô')
   ok(media('ATA', 'toc') > media('GOL', 'toc') * 3, 'pivô dá muito mais toco que armador')
 }
+// 🏀 a mesma escolha na Partida Rápida OFFLINE (START_NBA): 30 times, conferências reais, Play-In
+{
+  let s: any = reducer({} as any, { type: 'NEW_GAME' } as any)
+  s = reducer(s, { type: 'START_NBA', teamName: 'Garrafão do Zé', rivals: 5, nbaTam: 30, nbaFormato: 'playoffs' } as any)
+  const leiloam = s.managers.filter((m: any) => m.isHuman || m.auctionRival).length
+  const c = s.nbaConf ?? {}
+  ok(s.managers.length === 30 && Object.values(c).filter(v => v === 'L').length === 15, `offline: 30 franquias, Leste 15 (leilão com ${leiloam} técnicos)`)
+  ok(leiloam === 6, 'offline: só você + os 5 rivais escolhidos disputam o leilão')
+  const cartas = todasAsCartas('nba' as any); const usados = new Set<string>(); let k = 0
+  for (const m of s.managers) m.squad = SECTORS.map((pos: string) => { const cc = cartas.find((x: any) => x.pos === pos && !usados.has(x.name))!; usados.add(cc.name); return { ...cc, id: `o${k++}`, paid: 5, via: 'leilao' } })
+  s.screen = 'cerimonia'; s = reducer(s, { type: 'FINISH_CEREMONY' } as any)
+  ok(s.fixtures.length === 82, `offline: 82 jogos (deu ${s.fixtures.length})`)
+  const { s: s2 } = temporada(s)
+  ok(s2.quickCopa?.phase === 'playin', 'offline: depois da liga vem o Play-In')
+}
 // só a liga: nada depois da tabela
 {
   const s0 = sala(30, 'liga', ['Garrafão do Zé', 'Rua 9'])

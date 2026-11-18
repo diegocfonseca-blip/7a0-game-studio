@@ -2958,6 +2958,9 @@ export function EscSetup() {
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
+  // 🏀 18/11: a sala NBA no rápido offline — tamanho da liga e formato (as mesmas escolhas da sala online)
+  const [nbaTamQ, setNbaTamQ] = useState<30 | 20 | 10>(30)
+  const [nbaFormQ, setNbaFormQ] = useState<'liga' | 'playoffs'>('playoffs')
   const [league, setLeague] = useState<'br' | 'eu' | 'both'>('br') // baralho: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos
   const [copaMode, setCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'>('liga_copa')
   // 🆕 05/11 (Diego: *"modos faltando lá no partida rápida… igual das salas rápidas online"*): as MESMAS escolhas da sala
@@ -3092,7 +3095,7 @@ export function EscSetup() {
         presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
-    else if (bbSetup) dispatch({ type: 'START_NBA', teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
+    else if (bbSetup) dispatch({ type: 'START_NBA', nbaTam: nbaTamQ, nbaFormato: nbaFormQ, teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
     else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
       relampagoChave: copaMode === 'relampago' ? relChave : undefined, tamanhoLiga: tamLiga === 10 && copaMode !== 'relampago' && copaMode !== 'champions' ? 10 : undefined,
       selecao: clubesOn && clubes && pacSel && !kingsLigado || undefined, decada: clubesOn && clubes && pacDec && !kingsLigado || undefined, varzea: league === 'br' && !(clubesOn && clubes) && !kingsLigado && varzeaR || undefined })
@@ -3400,12 +3403,34 @@ export function EscSetup() {
           </div>
         )}
         {bbSetup && (
-          <div>
-            <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
-            {/* a MESMA régua do START_NBA: 7+ rivais = Playoffs (top 8); menos = só a liga */}
-            <div className="border-[3px] border-black rounded-xl px-3 py-2 ov3-surface" style={{ background: '#fff' }}>
-              <p className="font-black text-sm" style={OSWALD}>{rivals >= 7 ? t('🏀 Liga + Playoffs', '🏀 League + Playoffs') : t('📊 Só a liga', '📊 League only')}</p>
-              <p className="text-[11px] font-semibold text-black/55 mt-0.5">{rivals >= 7 ? t('Os 8 melhores vão aos PLAYOFFS (melhor de 3) e o campeão leva o anel 💍.', 'The top 8 go to the PLAYOFFS (best of 3) and the champion takes the ring 💍.') : t('Com 3 ou 5 rivais é só a tabela. Escolha 7 ou 9 rivais pra ter Playoffs.', 'With 3 or 5 rivals it is just the table. Pick 7 or 9 rivals to get Playoffs.')}</p>
+          <div className="space-y-3">
+            {/* 🏀 18/11: a MESMA escolha da sala online — tamanho da liga (conferências reais) e o formato. Os rivais acima são só quem
+                briga com você no leilão; o resto da liga são franquias com elenco pronto. */}
+            <div>
+              <p className="text-xs font-black uppercase mb-1">{t('🏀 Times na liga', '🏀 Teams in the league')}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {([[30, t('30 · NBA real', '30 · real NBA')], [20, t('20 times', '20 teams')], [10, t('10 times', '10 teams')]] as const).map(([v, label]) => (
+                  <button key={v} onClick={() => setNbaTamQ(v)} className="border-[3px] border-black rounded-xl py-2 font-black text-sm ov3-surface"
+                    style={{ backgroundColor: nbaTamQ === v ? GOLD : '#fff', boxShadow: nbaTamQ === v ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
+                ))}
+              </div>
+              <p className="text-[11px] font-semibold text-black/55 mt-1">{nbaTamQ === 30
+                ? t('As 30 franquias: Leste 15 · Oeste 15. 82 jogos pra cada time.', 'The 30 franchises: East 15 · West 15. 82 games each.')
+                : nbaTamQ === 20 ? t('Leste 10 · Oeste 10. 38 jogos.', 'East 10 · West 10. 38 games.') : t('Leste 5 · Oeste 5. 36 jogos.', 'East 5 · West 5. 36 games.')}</p>
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase mb-1">{t('Formato', 'Format')}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {([['playoffs', t('🎟️ Liga + Play-In + Playoffs', '🎟️ League + Play-In + Playoffs')], ['liga', t('📊 Só a liga', '📊 League only')]] as const).map(([v, label]) => (
+                  <button key={v} onClick={() => setNbaFormQ(v)} className="border-[3px] border-black rounded-xl py-2 font-black text-sm ov3-surface"
+                    style={{ backgroundColor: nbaFormQ === v ? GOLD : '#fff', boxShadow: nbaFormQ === v ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
+                ))}
+              </div>
+              <p className="text-[11px] font-semibold text-black/55 mt-1">{nbaFormQ === 'liga'
+                ? t('Campeão = melhor campanha. Acabou a tabela, acabou a temporada.', 'Champion = best record. When the table ends, the season ends.')
+                : nbaTamQ === 30 ? t('1º ao 6º de cada conferência direto; 7º ao 10º no Play-In. Playoffs com 16, toda série melhor de 7.', '1st–6th of each conference go straight in; 7th–10th play the Play-In. 16-team playoffs, every series best of 7.')
+                : nbaTamQ === 20 ? t('1º e 2º de cada conferência direto; 3º ao 6º no Play-In. Playoffs com 8, toda série melhor de 7.', '1st and 2nd of each conference go straight in; 3rd–6th play the Play-In. 8-team playoffs, every series best of 7.')
+                : t('O 1º de cada conferência direto; 2º×3º e 4º×5º, os vencedores pela 2ª vaga. Final de conferência e Finals, melhor de 7.', 'The 1st of each conference goes straight in; 2nd×3rd and 4th×5th, the winners fight for the 2nd spot. Conference finals and Finals, best of 7.')}</p>
             </div>
           </div>
         )}

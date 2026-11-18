@@ -5805,7 +5805,7 @@ type Action =
   | { type: 'KINGS_DECIDIR'; key: string; canto: number; /** 👑 11/11 (sala online): QUAL jogo (casa-fora) — com várias pessoas na sala tem mais de um jogo com gente */ jogo?: string }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
-  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA'; /** 🏀 18/11: a mesma sala NBA no rápido offline (tamanho + formato) */ nbaTam?: 30 | 20 | 10; nbaFormato?: 'liga' | 'playoffs'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'CLOSE_NBA_BOOKS' } // 🏀💰 17/11: fecha o caixa da temporada no passo 💰 do roteiro (uma vez só, booksSeason)
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -8693,8 +8693,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerRivalCount = action.rivals; s.careerRivals = []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0
       const rivals = Math.max(1, action.rivals)
-      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_TEAMS)
+      // 🏀 18/11 SALA NBA também offline (Diego: *"sim segue"*): a liga tem 30/20/10 franquias nas conferências reais; os `rivals`
+      // continuam sendo só quem disputa o LEILÃO com você — o resto da liga são bots com elenco pronto (igual à sala online).
+      if (action.nbaTam) {
+        s.nbaSala = { tam: action.nbaTam, formato: action.nbaFormato === 'liga' ? 'liga' : 'playoffs' }
+        s.copaMode = s.nbaSala.formato === 'liga' ? 'liga' : 'liga_copa'
+      }
+      const { managers, botPlans } = s.nbaSala
+        ? makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, Math.max(s.nbaSala.tam, rivals + 1), rng, poolSalaNba(s.nbaSala.tam, 1, rng))
+        : makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_TEAMS)
       s.managers = managers; s.youIdx = 0
+      if (s.nbaSala) s.nbaConf = conferenciasNba(s.managers)
       // 💰 orçamento do rápido do basquete = 50 (não 100). São só 5 jogadores (o
       // quinteto); 50 dá ~10/jogador, o MESMO equilíbrio do futebol (100 pra 11).
       // Com 100 dava 20/jogador e dava pra pagar caro em todo mundo — inflava.
