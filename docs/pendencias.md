@@ -211,6 +211,16 @@
   que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
   regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
 
+### 🏀 18/11 (14) — "Faça todos" (Diego): link do jornal, escudos NBA, Loja, teste de 2 aparelhos
+- ✅ **Link do jornal do basquete** (no branch): o jornal da sala/partida rápida do basquete (`ed.bb`) agora leva "bidlegendsarena.com" no rodapé
+  (tela e imagem) e o texto de compartilhar diz "BidLegends… https://bidlegendsarena.com". Futebol igual.
+- 🎨 **Escudos das 30 franquias** — mockup `scripts/mockups/basquete-escudos-nba-proposta.png`, **esperando OK**: sem logo oficial (marca da NBA),
+  escudo no estilo do jogo com as CORES REAIS + a sigla oficial (LAL, BOS…). Clube de gente segue com o escudo dele.
+- ⛔ **Loja no basquete**: travada pela cobrança em DÓLAR (preços combinados em 19/10: Craque 9,99 · Lenda 19,99 · Batismo 49,99 · Fundador 79,99).
+  Falta a conta Stripe ou PayPal do Diego. Alternativa possível enquanto isso: abrir a Loja em REAIS (Pix) no basquete só pra quem joga em PT.
+- 🔁 **Teste de 2 aparelhos**: o que dá pra fazer aqui está feito (`npm run sala-nba-online`: dono + convidado pelo SYNC_STATE nos 3 tamanhos, mesmo
+  campeão, ninguém troca de assento). O teste de verdade (2 celulares numa sala) só o Diego faz, com o basquete liberado pra conta dele.
+
 ### 🏀🏟️ 18/11 (13) — O JOGO DENTRO DA ARENA DO MAPA (carreira do basquete), no branch — ✅ APROVADO pelo Diego (*"sim"*)
 - Diego (17/11): *"o jogo da arena vai ser também com base na aba de jogos quando tiver no campo 2d"*. Feito agora que a Quadra 2D existe.
 - Com o jogo rolando, a aba 🏢 Clube ABRE (antes só Jogos abria) e o mapa mostra **"Ver partida"**: o MESMO jogo da aba Jogos (mesmo roteiro, mesmas jogadas, mesma narração) com os marcadores no piso da arena, a bola LARANJA e o relógio do quarto (Q2 6:27) no placar do mapa. Vale com a Quadra 2D ligada ou com o placar cinema.

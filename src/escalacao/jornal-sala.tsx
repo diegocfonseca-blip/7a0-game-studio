@@ -768,7 +768,9 @@ export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { st
     travaRef.current = true; setBusy(true)
     try {
       const blob = await buildSalaBlob(ed)
-      const txt = tr(`📰 "${ed.manchete}" — Leilão Legends. Monta o teu time: https://leilaolegends.com`, `📰 "${ed.manchete}" — Leilão Legends. Build your team: https://leilaolegends.com`)
+      // 🏀 18/11 (Diego: *"faça todos"*): o jornal do basquete leva o link e a marca do BidLegends
+      const txt = ed.bb ? tr(`📰 "${ed.manchete}" — BidLegends. Monta o teu time: https://bidlegendsarena.com`, `📰 "${ed.manchete}" — BidLegends. Build your team: https://bidlegendsarena.com`)
+        : tr(`📰 "${ed.manchete}" — Leilão Legends. Monta o teu time: https://leilaolegends.com`, `📰 "${ed.manchete}" — Leilão Legends. Build your team: https://leilaolegends.com`)
       if (blob) {
         const file = new File([blob], ed.offline ? 'o-martelo-torneio.png' : 'o-martelo-sala.png', { type: 'image/png' })
         const sd = { files: [file], title: 'O MARTELO', text: txt }
