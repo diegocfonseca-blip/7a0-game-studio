@@ -96,6 +96,7 @@ export function OnlineScorePresentation(p: {
     const antes = golsAntes.current
     golsAntes.current = nGols
     if (antes == null || nGols <= antes) { if (nGols < (antes ?? 0)) setPisca(null); return }
+    if (ehBasquete()) return // 🏀 18/11: no basquete cesta sai toda hora — nada de grito de GOOOL piscando; a rádio narra a cesta
     viuCena.current = !!p.goalSide // gol em cima de gol: a cena já está aberta
     setPisca({ k: nGols, lado: p.goals[nGols - 1]?.home ? 'h' : 'a' })
     const t = setTimeout(() => setPisca(null), PISCA_GOL_MS) // reserva: tela sem cena de gol

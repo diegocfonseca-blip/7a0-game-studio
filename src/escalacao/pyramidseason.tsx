@@ -72,6 +72,7 @@ import {mapaEstadioDisponivel,PRESIDENCY_PARKING_STAGES_RELEASED} from './presid
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './online-match-visual'
+import { falaBasquete } from './narracao-basquete' // 🏀🎙️ a rádio do basquete (18/11)
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
@@ -3833,11 +3834,19 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
     narracaoNoRadio
-    radio={relatoOficial ? {min:relatoOficial.narration?String(relatoOficial.narrationMinute):'',txt:relatoOficial.narration} : basket || radioLances.length === 0 ? null : (() => {
+    radio={relatoOficial ? {min:relatoOficial.narration?String(relatoOficial.narrationMinute):'',txt:relatoOficial.narration} : !basket && radioLances.length === 0 ? null : (() => {
       // 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10, opção B do Diego): o rádio leva TUDO, na ordem de prioridade —
       // apito final · gol (selo + autor + lance) · chance do golzinho · apito inicial/intervalo · cartão da Kings ·
       // a frase do rádio · retrospecto. A fala que sai fica apagadinha embaixo da nova.
       const atual: FalaRadio = (() => {
+        // 🏀🎙️ 18/11 (Diego: *"a narração fica na parte de baixo do placar cinema… variedades enormes de narrações com base em basquete"*):
+        // o basquete tem a rádio dele (`narracao-basquete.ts`) — cesta (de 2, de 3, enterrada), toco, roubo, rebote, passe, lance livre,
+        // quartos, intervalo e o placar. Só narra o que JÁ está na tela (as cestas mostradas e o placar parcial).
+        if (basket) {
+          const elenco = (lst?: { name: string; pos: string; fake?: boolean; club?: string }[]) => (lst ?? []).filter(c => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup').map(c => ({ name: c.name, pos: c.pos }))
+          return falaBasquete({ seed: sementeDasChances(roundKey, homeName, awayName), min, fechado, casa: nomeLimpo(homeName), fora: nomeLimpo(awayName), pc: hg, pf: ag,
+            cestas: shown.map(g => ({ name: g.name, min: g.min, home: g.home })), elencoCasa: elenco(elencos?.casa as never), elencoFora: elenco(elencos?.fora as never), en: emIngles })
+        }
         if (fechado) {
           const c = craqueDoJogo(shown)
           if (c) return { tag: tr('⭐ CRAQUE DO JOGO', '⭐ PLAYER OF THE MATCH'), tom: 'craque' as const, min: '', txt: fraseCraque(c, nomeLimpo(c.home ? homeName : awayName), emIngles) }
