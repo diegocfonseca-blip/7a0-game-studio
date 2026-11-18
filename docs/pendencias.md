@@ -20,7 +20,7 @@
 - O Mundo **nunca joga sozinho**: a escolha é "🏀 NBA" ou "🌍 NBA + Mundo".
 - Só jogador CONHECIDO (qualquer nível). Oscar entra como lenda. Jogador com carta da NBA pode ter carta no Mundo (outro baralho).
 - Proposta com 120 cartas: `scripts/basquete/mundo-proposta.json` e o print `scripts/mockups/basquete-baralho-mundo-proposta.png`. Diego confirmou o Oscar = lenda no Caserta 1987 (*"Sim"*); Teodosić corrigido pra Olympiacos 2010 (o MVP foi lá).
-- ✅ FEITO NO BRANCH (18/11): `src/escalacao/data-basquete-mundo.ts` (120 cartas, régua de força da NBA, bio PT/EN), `state.nbaMundo` (só rápido/salas; carreira nunca), escolha "🃏 Baralho: 🏀 NBA / 🌍 NBA + Mundo" na Partida Rápida e na criação de sala rápida. Rosto: neutro (o rosto é por nome+clube+ano). Trava `npm run baralho-mundo-nba`. Prints `scripts/mockups/basquete-baralho-escolha-{rapida,sala}.png` — **aguardando OK visual**.
+- ✅ FEITO NO BRANCH (18/11): `src/escalacao/data-basquete-mundo.ts` (120 cartas, régua de força da NBA, bio PT/EN), `state.nbaMundo` (só rápido/salas; carreira nunca), escolha "🃏 Baralho: 🏀 NBA / 🌍 NBA + Mundo" na Partida Rápida e na criação de sala rápida. Rosto: neutro (o rosto é por nome+clube+ano). Trava `npm run baralho-mundo-nba`. Prints `scripts/mockups/basquete-baralho-escolha-{rapida,sala}.png` — ✅ **APROVADO** pelo Diego (18/11, *"Pode"*). Fica no branch até ele mandar publicar.
 - Ainda NÃO entra no álbum/pacote de cartinha do basquete (o pacote sorteia só do baralho NBA). Perguntar se quer as do Mundo no álbum também.
 - Ele pediu "muito mais cartas": dá pra crescer depois (pivôs 18 e alas-pivô 21 são os menores).
 
