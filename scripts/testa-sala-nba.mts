@@ -75,6 +75,18 @@ for (const tam of [30, 20, 10] as const) {
   }
 }
 
+// 📊 estatísticas do basquete (18/11): os 5 números existem e ficam numa faixa de NBA
+{
+  const { s } = temporada(sala(30, 'playoffs', ['Garrafão do Zé', 'Rua 9']))
+  const rows = s.scorers.filter((r: any) => (r.j ?? 0) > 20)
+  const lider = (k: string) => Math.max(...rows.map((r: any) => (k === 'pts' ? r.goals : r[k]) / r.j))
+  const faixas: [string, number, number][] = [['pts', 22, 40], ['reb', 8, 17], ['ast', 6, 14], ['rou', 1.2, 3.5], ['toc', 1.2, 4]]
+  for (const [k, lo, hi] of faixas) { const v = lider(k); ok(v >= lo && v <= hi, `estatística: líder de ${k} com ${v.toFixed(1)} por jogo (faixa ${lo}–${hi})`) }
+  const media = (pos: string, k: string) => { const r = rows.filter((x: any) => x.pos === pos); return r.reduce((a: number, x: any) => a + x[k] / x.j, 0) / Math.max(1, r.length) }
+  ok(media('ATA', 'reb') > media('GOL', 'reb') * 2, 'pivô pega muito mais rebote que armador')
+  ok(media('GOL', 'ast') > media('ATA', 'ast') * 2, 'armador dá muito mais assistência que pivô')
+  ok(media('ATA', 'toc') > media('GOL', 'toc') * 3, 'pivô dá muito mais toco que armador')
+}
 // só a liga: nada depois da tabela
 {
   const s0 = sala(30, 'liga', ['Garrafão do Zé', 'Rua 9'])

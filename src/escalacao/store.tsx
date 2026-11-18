@@ -4283,7 +4283,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       // jogo). O nível manda na média; o dia deixa um coadjuvante brilhar às vezes.
       const pool = m.squad.map(c => {
         const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-        return { name: c.name, fake: ehFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
+        return { name: c.name, pos: c.pos, nivel: n, fake: ehFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
       })
       pool.sort((a, b) => b.w - a.w)
       // 🏀 só a ROTAÇÃO pontua (topo ~9); banco fundo quase não marca, igual à NBA.
@@ -4296,16 +4296,35 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       const shareW = rotation.map((_, i) => Math.pow(DECAY, i))
       const shareTot = shareW.reduce((s, x) => s + x, 0) || 1
       let left = pts
+      // 📊 18/11 (Diego: *"no basquete quero as principais estatísticas"*): rebotes, assistências, roubos e tocos de quem jogou.
+      // Dado PRÓPRIO (`srng`), nunca o do jogo: o placar e tudo que vem depois ficam iguais byte a byte. O total do time no jogo
+      // é sorteado perto da média da NBA e repartido pelos minutos (o posto na rotação) × a posição × um pouco do nível.
+      const srng = mulberry(((state.seed ^ Math.imul(state.round + 1, 0x9E3779B1) ^ Math.imul(id + 7, 40503) ^ Math.imul(pts, 2246822519) ^ (scorersList === state.scorers ? 0 : 0x5EED)) >>> 0))
+      const STAT_W: Record<'reb' | 'ast' | 'rou' | 'toc', Record<string, number>> = {
+        reb: { GOL: 0.5, LAT: 0.6, ZAG: 1.0, MEI: 1.6, ATA: 2.0 },
+        ast: { GOL: 2.6, LAT: 1.2, ZAG: 1.0, MEI: 0.6, ATA: 0.5 },
+        rou: { GOL: 1.4, LAT: 1.3, ZAG: 1.0, MEI: 0.7, ATA: 0.6 },
+        toc: { GOL: 0.15, LAT: 0.3, ZAG: 0.7, MEI: 1.5, ATA: 2.4 },
+      }
+      const totais = { reb: 33 + srng() * 10, ast: 20 + srng() * 10, rou: 5 + srng() * 5, toc: 3 + srng() * 4 }
+      const minutos = rotation.map((_, i) => Math.pow(0.86, i))
+      const statsDo = (k: 'reb' | 'ast' | 'rou' | 'toc') => {
+        const w = rotation.map((p, i) => minutos[i] * (STAT_W[k][p.pos] ?? 1) * (0.7 + p.nivel * 0.6) * (0.55 + srng() * 0.9))
+        const tot = w.reduce((a2, b2) => a2 + b2, 0) || 1
+        return w.map(x => Math.round(totais[k] * x / tot))
+      }
+      const reb = statsDo('reb'), ast = statsDo('ast'), rou = statsDo('rou'), toc = statsDo('toc')
       rotation.forEach((p, i) => {
         const share = i === rotation.length - 1 ? left : Math.max(0, Math.min(left, Math.round(pts * shareW[i] / shareTot)))
         left -= share
-        if (share <= 0) return
         // 🃏🚫 tapa-buraco PONTUA no jogo (o placar é dele também), mas não entra
-        // na cestinha. Mesma regra do futebol — ordem do Diego, 19/09.
+        // na cestinha nem nas estatísticas. Mesma regra do futebol — ordem do Diego, 19/09.
         if (p.fake) return
-        const row = scorersList.find(s => s.name === p.name && s.teamId === id)
-        if (row) row.goals += share
-        else scorersList.push({ name: p.name, teamId: id, teamName: prefix, goals: share })
+        let row = scorersList.find(s => s.name === p.name && s.teamId === id)
+        if (!row) { row = { name: p.name, teamId: id, teamName: prefix, goals: 0 }; scorersList.push(row) }
+        row.goals += share
+        row.j = (row.j ?? 0) + 1; row.pos = p.pos
+        row.reb = (row.reb ?? 0) + reb[i]; row.ast = (row.ast ?? 0) + ast[i]; row.rou = (row.rou ?? 0) + rou[i]; row.toc = (row.toc ?? 0) + toc[i]
       })
       if (involveHuman) {
         const top = pool.slice(0, 3)

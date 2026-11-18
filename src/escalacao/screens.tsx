@@ -19,7 +19,7 @@ import { useRitmo2D, useVel2D, useVel2DAqui, useControleVel2D, RITMO2D_TESTE, us
 import { OPCOES_CORINGA, PLACAR_BOLA, PLACAR_DADO, PLACAR_DADO_FIM, PLACAR_DOBRO_INI, PLACAR_MB, PLACAR_INTERVALO, placarParaK, placarParaKTela, kParaPlacar, kings2DDe, type Kings2D } from './kings-liga'
 import { PixMP } from './pix-mp'
 import { CenaPontape, textoEntra, FaixaAvisoKings, CenaDado, CenaCarta, CenaDuelo, CenaEscolhaKings, cartaRotulo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
-import type { MatchResult, CartaKingsInfo } from './types'
+import type { MatchResult, CartaKingsInfo, ScorerRow } from './types'
 import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -7483,6 +7483,7 @@ function ElencoBB() {
       ))}
       <p style={{ margin: 0, padding: '8px 12px 10px', fontSize: 10.5, fontWeight: 700, color: '#6a6250', borderTop: '2px solid rgba(0,0,0,.08)' }}>{tr('🏀 Em cada jogo até 9 do elenco entram na rotação e dividem os pontos — quem tem nível maior joga mais. Em amarelo, o seu cestinha.', '🏀 Each game up to 9 players rotate and share the points — higher level plays more. Highlighted: your top scorer.')}</p>
     </Box>
+    <ElencoStatsBB teamId={you.id} /> {/* 📊 18/11: médias de cada jogador */}
   </>
 }
 function CentralBB({ onJogos, onClube }: { onJogos: () => void; onClube: () => void }) {
@@ -8149,10 +8150,10 @@ export function EscSeason() {
       <TabsCentralBB aba={abaBB} onAba={setAbaBB} travada={false} />
       {abaBB === 'central' && <CentralBB onJogos={() => setAbaBB('jogos')} onClube={() => setAbaBB('clube')} />}
       {abaBB === 'elenco' && <ElencoBB />}
-      {abaBB === 'rank' && <>
+      {abaBB === 'rank' && (temBbStats(state.scorers) ? <BbStatsBox highlight={you.id} /> : <>
         <TopScorersBox highlight={you.id} title={LS('🏀 CESTINHA DA LIGA', '🏀 SCORING LEADERS')} />
         <TopAssistsBox highlight={you.id} competition="liga" showEmpty />
-      </>}
+      </>)}
       {abaBB === 'clube' && <BbClubeOverlay inline onClose={() => setAbaBB('central')} />}
     </Shell>
   )
@@ -8803,19 +8804,20 @@ export function EscSeason() {
       </div>
       <div hidden={(privateVisual && visualTab !== 'estatisticas') || centralBB} className="space-y-5">
         {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
-        {state.copaMode !== 'champions' && <TopScorersBox highlight={you.id} title={LS('⚽ ARTILHARIA DA LIGA LEGENDS', '⚽ LIGA LEGENDS TOP SCORERS')} hold={!resultRevealed} />}
+        {bbS && temBbStats(state.scorers) ? <BbStatsBox highlight={you.id} hold={!resultRevealed} /> /* 📊 18/11: basquete com as 5 estatísticas */ : state.copaMode !== 'champions' && <TopScorersBox highlight={you.id} title={LS('⚽ ARTILHARIA DA LIGA LEGENDS', '⚽ LIGA LEGENDS TOP SCORERS')} hold={!resultRevealed} />}
         {/* 🐛 08/09 (Diego: *"fica aparecendo 'disponíveis após o apito' e não mostra
             nada, sendo que artilheiro lotado"*): na LIGA o quadro ficava preso a
             `resultRevealed`, que no online AUTOMÁTICO é falso ~85% de cada rodada —
             e as rodadas emendam, então os garçons quase nunca apareciam. A liga volta
             ao que sempre valeu (quadro sempre visível); a Copa mantém a trava do
             relógio (93'), que fecha de verdade no apito. */}
-        {(!privateVisual || !copaLive || (copaMin >= 93 && copaAdvReady)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">{LS('Assistências disponíveis após o apito final.', 'Assists available after the final whistle.')}</Box>}
+        {bbS && temBbStats(state.scorers) ? null : (!privateVisual || !copaLive || (copaMin >= 93 && copaAdvReady)) ? <TopAssistsBox highlight={you.id} competition={privateVisual && copaLive ? 'copa' : 'liga'} showEmpty={privateVisual} /> : <Box className="p-4">{LS('Assistências disponíveis após o apito final.', 'Assists available after the final whistle.')}</Box>}
       </div>
       <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
       <div hidden={(privateVisual && visualTab !== 'elenco') || centralBB} className="space-y-5">
       {/* 📋🏆 Minha Liga Draft: elenco de até 22 → a aba Elenco é a MESMA da carreira (trocar titular e formação) */}
       {state.minhaLigaDraft ? <EscalacaoMinha /> : <YourPitch small />}
+      {bbS && <ElencoStatsBB teamId={you.id} hold={!resultRevealed} />}
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
           times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
           já acabou, os elencos são públicos (tabela/artilharia já mostram tudo).
@@ -8889,6 +8891,86 @@ function RivalTracker() {
   )
 }
 
+// ─── 📊 18/11 ESTATÍSTICAS DO BASQUETE (Diego: *"no basquete quero as principais estatísticas"*) ────────────────────
+// Pontos, rebotes, assistências, roubos e tocos de cada jogador, em MÉDIA POR JOGO (igual à NBA). Moram nas linhas da cestinha
+// (`ScorerRow.j/reb/ast/rou/toc`, escritas em `simMatch`). 🙈 Mesmo anti-spoiler da cestinha: com o seu jogo rolando, vale a cópia
+// de antes da rodada (`scorersPrev`). Save antigo sem os números: quem chama cai na cestinha de sempre.
+type BbStat = 'pts' | 'reb' | 'ast' | 'rou' | 'toc'
+const BB_STAT_VAL = (r: ScorerRow, k: BbStat) => (k === 'pts' ? r.goals : (r[k] ?? 0)) / Math.max(1, r.j ?? 1)
+const BB_POS_LABEL: Record<string, string> = { GOL: 'PG', LAT: 'SG', ZAG: 'SF', MEI: 'PF', ATA: 'C' }
+function useBbStatsFonte(hold: boolean): ScorerRow[] {
+  const { state } = useEsc()
+  return hold && state.scorersPrev && state.round > 0 && state.lastResults.length > 0 ? state.scorersPrev : state.scorers
+}
+export function temBbStats(rows: ScorerRow[]) { return rows.some(r => (r.j ?? 0) > 0) }
+function BbStatsBox({ highlight, hold = false }: { highlight: number; hold?: boolean }) {
+  const [blLang] = useLang()
+  const L = (pt: string, en: string) => (blLang === 'en' ? en : pt)
+  const fonte = useBbStatsFonte(hold).filter(r => (r.j ?? 0) > 0)
+  const maxJ = Math.max(0, ...fonte.map(r => r.j ?? 0))
+  // quem jogou pouco não lidera média (régua da NBA: precisa ter jogado boa parte da temporada)
+  const elegiveis = fonte.filter(r => (r.j ?? 0) >= Math.max(1, Math.floor(maxJ * 0.5)))
+  const num = (x: number) => (blLang === 'en' ? x.toFixed(1) : x.toFixed(1).replace('.', ','))
+  const top = (k: BbStat, n: number) => [...elegiveis].sort((a, b) => BB_STAT_VAL(b, k) - BB_STAT_VAL(a, k) || a.name.localeCompare(b.name)).slice(0, n)
+  const meta: { k: BbStat; sigla: string; nome: string; ic: string }[] = [
+    { k: 'pts', sigla: 'PTS', nome: L('Cestinha', 'Points'), ic: '🏀' },
+    { k: 'reb', sigla: 'REB', nome: L('Rebotes', 'Rebounds'), ic: '🧲' },
+    { k: 'ast', sigla: 'AST', nome: L('Assistências', 'Assists'), ic: '🅰️' },
+    { k: 'rou', sigla: L('ROU', 'STL'), nome: L('Roubos', 'Steals'), ic: '🧤' },
+    { k: 'toc', sigla: L('TOC', 'BLK'), nome: L('Tocos', 'Blocks'), ic: '✋' },
+  ]
+  if (!elegiveis.length) return <Box className="p-3"><p className="font-black text-sm mb-1 text-black" style={OSWALD}>{L('📊 ESTATÍSTICAS', '📊 STATS')}</p><p className="text-xs text-black/60 font-semibold">{L('Ainda sem jogos. Bola quicando…', 'No games yet. Ball is bouncing…')}</p></Box>
+  const tabela = (k: BbStat, sigla: string, n: number) => (
+    <table className="w-full text-xs">
+      <thead><tr className="text-left text-black/60 font-black"><th className="w-5">#</th><th>{L('Jogador', 'Player')}</th><th className="text-right">{sigla}</th></tr></thead>
+      <tbody>{top(k, n).map((r, i) => (
+        <tr key={`${r.name}-${r.teamId}`} className="border-t border-black/10" style={{ background: r.teamId === highlight ? '#FFF0B8' : undefined }}>
+          <td className="py-1 font-black">{i + 1}</td>
+          <td className="py-1"><b className="text-black">{r.name}</b><span className="block text-[10px] text-black/55 font-semibold">{r.teamName}</span></td>
+          <td className="py-1 text-right font-black text-black">{num(BB_STAT_VAL(r, k))}</td>
+        </tr>))}</tbody>
+    </table>
+  )
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-[.14em] mb-2" style={{ ...OSWALD, color: GOLD }}>{L('Líderes da liga · média por jogo', 'League leaders · per game')}</p>
+        <div className="grid grid-cols-5 gap-1.5">{meta.map(m => { const r = top(m.k, 1)[0]; return (
+          <div key={m.k} className="rounded-xl text-center py-1.5 px-1 ov3-surface" style={{ background: CREAM, color: INK, border: `2.5px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}` }}>
+            <small className="block font-black text-[10px] text-black/55" style={OSWALD}>{m.sigla}</small>
+            <strong className="block font-black text-lg leading-tight" style={OSWALD}>{r ? num(BB_STAT_VAL(r, m.k)) : '–'}</strong>
+            <span className="block text-[9.5px] font-bold truncate">{r ? r.name.replace(/\s*\(.*\)\s*/g, ' ').trim().split(' ').slice(-1)[0] : ''}</span>
+          </div>) })}</div>
+      </div>
+      {meta.slice(0, 3).map(m => <Box key={m.k} className="p-3"><p className="font-black text-sm mb-2 text-black" style={OSWALD}>{m.ic} {m.nome.toUpperCase()}</p>{tabela(m.k, m.sigla, 5)}</Box>)}
+      <Box className="p-3"><p className="font-black text-sm mb-2 text-black" style={OSWALD}>🧤 {L('ROUBOS', 'STEALS')} · ✋ {L('TOCOS', 'BLOCKS')}</p>{tabela('rou', meta[3].sigla, 3)}<div className="h-3" />{tabela('toc', meta[4].sigla, 3)}</Box>
+    </div>
+  )
+}
+/** 📊 a tabela do SEU time: média por jogo de cada jogador (só quem já entrou em quadra). */
+export function ElencoStatsBB({ teamId, hold = false }: { teamId: number; hold?: boolean }) {
+  const [blLang] = useLang()
+  const L = (pt: string, en: string) => (blLang === 'en' ? en : pt)
+  const rows = useBbStatsFonte(hold).filter(r => r.teamId === teamId && (r.j ?? 0) > 0).sort((a, b) => BB_STAT_VAL(b, 'pts') - BB_STAT_VAL(a, 'pts'))
+  if (!rows.length) return null
+  const num = (x: number) => (blLang === 'en' ? x.toFixed(1) : x.toFixed(1).replace('.', ','))
+  const cols: [BbStat, string][] = [['pts', 'PTS'], ['reb', 'REB'], ['ast', 'AST'], ['rou', L('ROU', 'STL')], ['toc', L('TOC', 'BLK')]]
+  return (
+    <Box className="p-3">
+      <p className="font-black text-sm mb-2 text-black" style={OSWALD}>{L('📊 SEU TIME · MÉDIA POR JOGO', '📊 YOUR TEAM · PER GAME')}</p>
+      <table className="w-full text-xs">
+        <thead><tr className="text-black/60 font-black"><th className="text-left">{L('Jogador', 'Player')}</th><th className="text-right">J</th>{cols.map(([, s2]) => <th key={s2} className="text-right">{s2}</th>)}</tr></thead>
+        <tbody>{rows.map(r => (
+          <tr key={r.name} className="border-t border-black/10">
+            <td className="py-1"><b className="text-black">{r.name}</b> <span className="text-[10px] text-black/50 font-bold">{BB_POS_LABEL[r.pos ?? ''] ?? ''}</span></td>
+            <td className="py-1 text-right">{r.j}</td>
+            {cols.map(([k]) => <td key={k} className="py-1 text-right font-bold text-black">{num(BB_STAT_VAL(r, k))}</td>)}
+          </tr>))}</tbody>
+      </table>
+      <p className="text-[10px] font-bold text-black/45 mt-2">{L('Médias por jogo, igual à NBA. Só conta quem já entrou em quadra.', 'Per-game averages, like the NBA. Only players who have played.')}</p>
+    </Box>
+  )
+}
 function TopScorersBox({ highlight, title = getLang() === 'en' ? '⚽ TOP SCORERS · LIVE' : '⚽ ARTILHARIA · TEMPO REAL', hold = false, fonte }: { highlight: number; title?: string; hold?: boolean; fonte?: { name: string; teamId: number; teamName: string; goals: number }[] }) {
   const { state } = useEsc()
   const [blLang] = useLang()

@@ -644,6 +644,10 @@ export interface ScorerRow {
   teamId: number
   teamName: string
   goals: number
+  /** 🏀 18/11 estatísticas do BASQUETE (no basquete `goals` = pontos): jogos, rebotes, assistências, roubos e tocos. Futebol não usa. */
+  j?: number; reb?: number; ast?: number; rou?: number; toc?: number
+  /** 🏀 posição da carta (GOL..ATA = PG..C), pra tabela do elenco */
+  pos?: string
 }
 // 🅰️ GARÇOM no modo RÁPIDO (24/08) — irmã da ScorerRow, contando passes pro gol.
 export interface AssistRow {
