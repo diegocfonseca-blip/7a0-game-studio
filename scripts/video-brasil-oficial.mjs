@@ -59,7 +59,7 @@ for (const [i, c] of CENAS.entries()) {
 await br.close()
 // cada cena 3,2 s com zoom lento; transição de 0,5 s
 const D = 3.2, X = 0.5, args = ['-y']
-for (const f of quadros) args.push('-loop', '1', '-t', String(D), '-i', f)
+for (const f of quadros) args.push('-i', f) // 1 quadro só: o zoompan gera os D segundos (com -loop ele multiplicava)
 const filtros = quadros.map((_, i) => `[${i}:v]scale=1188:2112,zoompan=z='min(zoom+0.0009,1.1)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${Math.round(D * 30)}:s=1080x1920:fps=30,setsar=1[v${i}]`)
 let ult = 'v0', off = 0
 for (let i = 1; i < quadros.length; i++) { off += D - X; filtros.push(`[${ult}][v${i}]xfade=transition=fade:duration=${X}:offset=${off.toFixed(2)}[x${i}]`); ult = `x${i}` }
