@@ -710,6 +710,8 @@ export interface EscState {
   /** 🏀 18/11: SALA NBA (rápido online do basquete): tamanho da liga (30 = NBA real, 20, 10) e formato (só a liga ou liga +
    *  Play-In + Playoffs melhor de 7). Sem o campo = a sala de antes (20 times, Leste/Oeste por id, playoffs top 4 e NBA Cup). */
   nbaSala?: { tam: 30 | 20 | 10; formato: 'liga' | 'playoffs' }
+  /** 🌍 18/11: baralho "NBA + Mundo" (clubes de fora da NBA, Europa inclusa). Ausente = só NBA. Só no rápido/salas. */
+  nbaMundo?: boolean
   /** 🏀 conferência de cada time na sala NBA de 30/20 (L = Leste · O = Oeste), pelo time REAL de cada franquia. */
   nbaConf?: Record<number, 'L' | 'O'>
   seed: number

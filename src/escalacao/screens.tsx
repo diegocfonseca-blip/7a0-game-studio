@@ -36,6 +36,7 @@ import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, rotuloFormacao, duplaPodeAgir, desfazParCruzado, type DuplaCat } from './types'
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
+import { NBA_MUNDO_TOTAL } from './data-basquete-mundo'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
@@ -2961,6 +2962,7 @@ export function EscSetup() {
   const [rivals, setRivals] = useState(5)
   // 🏀 18/11: a sala NBA no rápido offline — tamanho da liga e formato (as mesmas escolhas da sala online)
   const [nbaTamQ, setNbaTamQ] = useState<30 | 20 | 10>(30)
+  const [nbaMundoQ, setNbaMundoQ] = useState(false) // 🌍 18/11: baralho "NBA + Mundo"
   const [nbaFormQ, setNbaFormQ] = useState<'liga' | 'playoffs'>('playoffs')
   const [league, setLeague] = useState<'br' | 'eu' | 'both'>('br') // baralho: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos
   const [copaMode, setCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'>('liga_copa')
@@ -3096,7 +3098,7 @@ export function EscSetup() {
         presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
-    else if (bbSetup) dispatch({ type: 'START_NBA', nbaTam: nbaTamQ, nbaFormato: nbaFormQ, teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
+    else if (bbSetup) dispatch({ type: 'START_NBA', nbaTam: nbaTamQ, nbaFormato: nbaFormQ, nbaMundo: nbaMundoQ, teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
     else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico && !career && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
       relampagoChave: copaMode === 'relampago' ? relChave : undefined, tamanhoLiga: tamLiga === 10 && copaMode !== 'relampago' && copaMode !== 'champions' ? 10 : undefined,
       selecao: clubesOn && clubes && pacSel && !kingsLigado || undefined, decada: clubesOn && clubes && pacDec && !kingsLigado || undefined, varzea: league === 'br' && !(clubesOn && clubes) && !kingsLigado && varzeaR || undefined })
@@ -3319,9 +3321,18 @@ export function EscSetup() {
             <p className="text-[11px] font-bold text-black/65 mt-1">{getLang() === 'en' ? (escadaLiberada() ? <>In Career the deck is <b>Brasileirão + Europe + World together</b> (~850 names) — it takes all of them to properly fill the <b>100 teams across 5 tiers</b> (from Várzea to Série A). Each tier's market only trades its own categories.</> : <>In Career the deck is always the <b>Brasileirão peaks + the Europe peaks together</b> (~700 names) — it takes both to properly fill the <b>80 teams across 4 tiers</b>. There is no BR-only or Europe-only deck here.</>) : escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
           </div>
         ) : bbSetup ? (
-          <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#EAF3FF' }}>
-            <p className="font-black text-sm" style={OSWALD}>{t('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
-            <p className="text-[11px] font-bold text-black/65 mt-1">{t('As lendas da NBA, de verdade — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'The real NBA legends — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
+          <div>
+            {/* 🌍 18/11 (Diego): dois baralhos no basquete — NBA sozinho, ou NBA + Mundo (clubes de fora da NBA, Europa inclusa). O Mundo nunca joga sozinho. */}
+            <p className="text-xs font-black uppercase mb-1">{t('🃏 Baralho', '🃏 Deck')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([[false, t('🏀 NBA', '🏀 NBA')], [true, t('🌍 NBA + Mundo', '🌍 NBA + World')]] as const).map(([v, label]) => (
+                <button key={String(v)} onClick={() => setNbaMundoQ(v)} className="border-[3px] border-black rounded-xl py-2 font-black text-sm ov3-surface"
+                  style={{ backgroundColor: nbaMundoQ === v ? GOLD : '#fff', boxShadow: nbaMundoQ === v ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>{label}</button>
+              ))}
+            </div>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">{nbaMundoQ
+              ? t(`As cartas da NBA + ${NBA_MUNDO_TOTAL} de fora dela: Europa, Brasil, Argentina, China… (Oscar, Galis, Sabonis no Real Madrid). O quinteto (5) sai no leilão.`, `The NBA cards + ${NBA_MUNDO_TOTAL} from outside it: Europe, Brazil, Argentina, China… (Oscar, Galis, Sabonis at Real Madrid). Your starting five (5) comes out of the auction.`)
+              : t('Só jogador com carta da NBA — do craque ao mico de draft. O quinteto (5) sai no leilão.', 'Only players with NBA cards — from superstars to draft busts. Your starting five (5) comes out of the auction.')}</p>
           </div>
         ) : pokeLigado ? (
           <div className="border-[3px] border-black rounded-xl p-3 ov3-surface" style={{ background: '#FFF6CC' }}>
@@ -3601,9 +3612,9 @@ export function EscSetup() {
     const tipoTxt = kingsLigado ? '👑 Kings League' : pokeLigado ? '⚡ Pokémon' : clubesOn && clubes ? (pacSel ? t('🏳️ Seleções', '🏳️ Nations') : t('🧱 Clubes', '🧱 Clubs')) : t('🃏 Jogador', '🃏 Player')
     const COPA_TXT: Record<string, [string, string]> = { liga: ['📊 Só a liga', '📊 League only'], liga_copa: ['🏆 Liga + Copa dos 8', '🏆 League + Cup of 8'], liga_liberta: ['🌎 Liga + Libertadores', '🌎 League + Libertadores'], liga_champions: ['⭐ Liga + Champions', '⭐ League + Champions'], champions: ['⭐ Só Champions', '⭐ Champions only'], relampago: ['⚡ Relâmpago', '⚡ Lightning'] }
     const campTxt = bbSetup ? `${nbaTamQ} ${t('times', 'teams')} · ${nbaFormQ === 'liga' ? t('só a liga', 'league only') : 'Play-In + Playoffs'}` : kingsLigado ? t('Kings League · 10 times', 'Kings League · 10 teams') : pokeLigado ? t('Liga de batalhas', 'Battle league') : t(...(COPA_TXT[copaMode] ?? [copaMode, copaMode]))
-    const timeTxt = `${name.trim() || t('seu time', 'your team')} · ${bbSetup ? t('quinteto da NBA', 'NBA five') : formation} · ${rivals} ${t('rivais', 'rivals')}`
+    const timeTxt = `${name.trim() || t('seu time', 'your team')} · ${bbSetup ? (nbaMundoQ ? t('NBA + Mundo', 'NBA + World') : t('baralho NBA', 'NBA deck')) : formation} · ${rivals} ${t('rivais', 'rivals')}`
     const resumos: Record<string, string> = { [t('O leilão', 'The auction')]: `${tipoTxt} · ${jeito}`, [t('O time', 'The team')]: timeTxt, [t('O campeonato', 'The championship')]: campTxt, [t('A partida', 'The match')]: t('Teste do 2D', '2D test') }
-    const linhas: [string, string][] = [[t('Modo', 'Mode'), bbSetup ? t('⚡ Partida Rápida · 🏀 NBA', '⚡ Quick match · 🏀 NBA') : t('⚡ Partida Rápida', '⚡ Quick match')], [t('Leilão', 'Auction'), `${tipoTxt} · ${jeito}`], [t('Time', 'Team'), timeTxt], [t('Campeonato', 'Championship'), campTxt]]
+    const linhas: [string, string][] = [[t('Modo', 'Mode'), bbSetup ? (nbaMundoQ ? t('⚡ Partida Rápida · 🌍 NBA + Mundo', '⚡ Quick match · 🌍 NBA + World') : t('⚡ Partida Rápida · 🏀 NBA', '⚡ Quick match · 🏀 NBA')) : t('⚡ Partida Rápida', '⚡ Quick match')], [t('Leilão', 'Auction'), `${tipoTxt} · ${jeito}`], [t('Time', 'Team'), timeTxt], [t('Campeonato', 'Championship'), campTxt]]
     return (
       <Shell>
         <style>{'.ll-qs .cs-claro{background:#F4ECD6;border:4px solid #0C0C0C;border-radius:24px;box-shadow:5px 5px 0 #0C0C0C;padding:12px;color:#0C0C0C}'}</style>
