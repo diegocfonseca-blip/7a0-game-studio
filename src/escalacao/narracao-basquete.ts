@@ -274,6 +274,11 @@ export type EntradaNarracaoBB = {
   /** placar que JÁ está na tela */
   pc: number
   pf: number
+  /** placar FINAL do jogo (só pra calcular o placar do começo de cada posse; nunca aparece antes do apito) */
+  pcFim?: number
+  pfFim?: number
+  /** quantos minutos do relógio (0–93) cada fala fica na tela — o jogo rápido passa em segundos, a fala precisa durar ~2,6 s */
+  minPorFala?: number
   /** cestas já mostradas (nome + minuto + lado) */
   cestas: { name: string; min: number; home: boolean }[]
   /** elencos de verdade (sem tapa-buraco), pra narrar defesa/rebote/passe com nome */
@@ -286,18 +291,24 @@ const POS_TOCO = ['ATA', 'MEI', 'ZAG'], POS_ROUBO = ['GOL', 'LAT', 'ZAG'], POS_R
 /** 🎙️ a fala do rádio AGORA. Troca a cada ~3 minutos do relógio (uma posse narrada), sempre presa na semente. */
 export function falaBasquete(e: EntradaNarracaoBB): FalaBB {
   const { seed, min, en } = e
-  const placar = `${e.pc} × ${e.pf}`
-  const lider = e.pc > e.pf ? e.casa : e.fora
-  const dif = Math.abs(e.pc - e.pf)
+  // ⏱️ 18/11 (Diego: *"tá apagada a narração"*): a fala fica PARADA durante a posse inteira (~3 minutos do relógio). Antes ela
+  // usava o placar parcial, que muda a cada tique — a frase trocava o tempo todo e a animação de entrada nunca terminava (texto
+  // apagadinho). Agora tudo sai do COMEÇO da posse: o placar daquele instante e a cesta mais recente até ali.
+  const passo = Math.max(3, Math.round(e.minPorFala ?? 3)) // ⏱️ minutos do relógio por fala (quem chama converte ~2,6 s de tela)
+  const slot = Math.floor(min / passo), m0 = slot * passo
+  const naHora = (fim: number | undefined, agora: number) => (fim != null ? Math.round(fim * Math.min(1, m0 / 93)) : agora)
+  const pc = e.fechado ? e.pc : naHora(e.pcFim, e.pc), pf = e.fechado ? e.pf : naHora(e.pfFim, e.pf)
+  const placar = `${pc} × ${pf}`
+  const lider = pc > pf ? e.casa : e.fora
+  const dif = Math.abs(pc - pf)
   const base = { p: placar, a: lider, d: dif }
   if (e.fechado) return { min: '', tipo: 'jogo', txt: preenche(pick(FINAL, seed, 999), en, base) }
   const q = quarto(min)
   const relogio = '' // o relógio do quarto já está no placar (e a faixa põe ′ depois do minuto — "Q2′" ficava torto)
-  const slot = Math.floor(min / 3)
   // marcos do jogo: abertura, fim de quarto, intervalo e último quarto (janela de ~2 minutos depois da buzina)
-  if (min < 3) { const casaComeca = sorteia(seed, 1) % 2 === 0; return { min: '', tipo: 'jogo', txt: preenche(pick(ABERTURA, seed, 2), en, { t: casaComeca ? e.casa : e.fora, o: casaComeca ? e.fora : e.casa }) } }
+  if (m0 === 0) { const casaComeca = sorteia(seed, 1) % 2 === 0; return { min: '', tipo: 'jogo', txt: preenche(pick(ABERTURA, seed, 2), en, { t: casaComeca ? e.casa : e.fora, o: casaComeca ? e.fora : e.casa }) } }
   for (const fq of QUARTOS_FIM) {
-    if (min >= fq && min < fq + 2) {
+    if (passo <= 8 && m0 <= fq && fq < m0 + passo) { // jogo rápido demais (poucas falas): as falas vão pras cestas, não pros quartos
       const qq = fq === 23 ? 1 : fq === 46 ? 2 : 3
       if (qq === 2) return { min: relogio, tipo: 'jogo', txt: preenche(pick(INTERVALO, seed, 46), en, { ...base, o: e.pc >= e.pf ? e.fora : e.casa }) }
       if (qq === 3) return { min: relogio, tipo: 'jogo', txt: `${preenche(pick(FIM_Q, seed, 70), en, { ...base, q: 3 })} ${preenche(pick(ULTIMO_Q, seed, 71), en, base)}` }
@@ -305,7 +316,7 @@ export function falaBasquete(e: EntradaNarracaoBB): FalaBB {
     }
   }
   // a cesta MAIS RECENTE já mostrada nos últimos 2 minutos ganha a fala (com o tipo de cesta sorteado)
-  const recente = [...e.cestas].filter(c => c.min <= min && min - c.min < 2).sort((a, b) => b.min - a.min)[0]
+  const recente = [...e.cestas].filter(c => c.min <= m0 && m0 - c.min < passo).sort((a, b) => b.min - a.min)[0]
   if (recente) {
     const t = recente.home ? e.casa : e.fora, o = recente.home ? e.fora : e.casa
     const salt = Math.floor(recente.min) * 31 + recente.name.length

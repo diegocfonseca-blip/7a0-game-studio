@@ -3844,7 +3844,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
         // quartos, intervalo e o placar. Só narra o que JÁ está na tela (as cestas mostradas e o placar parcial).
         if (basket) {
           const elenco = (lst?: { name: string; pos: string; fake?: boolean; club?: string }[]) => (lst ?? []).filter(c => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup').map(c => ({ name: c.name, pos: c.pos }))
-          return falaBasquete({ seed: sementeDasChances(roundKey, homeName, awayName), min, fechado, casa: nomeLimpo(homeName), fora: nomeLimpo(awayName), pc: hg, pf: ag,
+          return falaBasquete({ seed: sementeDasChances(roundKey, homeName, awayName), min, fechado, casa: nomeLimpo(homeName), fora: nomeLimpo(awayName), pc: hg, pf: ag, pcFim: basket.h, pfFim: basket.a, minPorFala: 93 * 2600 / Math.max(1500, roundMs),
             cestas: shown.map(g => ({ name: g.name, min: g.min, home: g.home })), elencoCasa: elenco(elencos?.casa as never), elencoFora: elenco(elencos?.fora as never), en: emIngles })
         }
         if (fechado) {

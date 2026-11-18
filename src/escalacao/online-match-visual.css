@@ -526,3 +526,8 @@
 
 /* 🏀 18/11: placar cinema do basquete — a quadra no fundo no lugar do estádio de futebol */
 .ll26-score.ll26-score-bb{background:radial-gradient(ellipse at 50% 0,rgba(255,196,0,.16),transparent 65%),linear-gradient(120deg,rgba(32,16,6,.84),rgba(12,7,3,.92)),url('./img/home-bidlegends-v01.webp') center/cover}
+/* 🏀 18/11 (Diego: *"os pontos estão espremidos"*): placar de basquete tem 2–3 algarismos — o miolo alarga e o número fica numa linha só */
+.ll26-score-bb .ll25-duel,.ll26-score-bb.ll30-big .ll25-duel{grid-template-columns:minmax(0,1fr) 132px minmax(0,1fr)}
+.ll26-score-bb .ll25-numbers strong,.ll26-score-bb.ll30-big .ll25-numbers strong{white-space:nowrap;font-size:30px;line-height:1.35}
+.ll26-score-bb .ll25-numbers span,.ll26-score-bb.ll30-big .ll25-numbers span{font-size:16px}
+@media(min-width:768px){.ll26-score-bb .ll25-duel,.ll26-score-bb.ll30-big .ll25-duel{grid-template-columns:1fr 190px 1fr}.ll26-score-bb .ll25-numbers strong,.ll26-score-bb.ll30-big .ll25-numbers strong{font-size:44px}}
