@@ -371,7 +371,12 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   for(const road of RUAS_CAMPUS)street(road.id,road.points,road.width,road.walk)
   const east=RUAS_CAMPUS[1].points,west=RUAS_CAMPUS[0].points
   for(const road of RUAS_PATROCINADORES_CIDADE)street(road.id,road.points,road.width,road.walk)
-  ribbon('calcada-registrada',PLANTA_COMPLEXO.routes.sidewalk.points,3.9,GROUND,paving)
+  // 🔗 18/11: a calçada da frente do clube parava ~7 m antes das calçadas das ruas leste e oeste (sobrava grama no meio). Só o desenho
+  // encosta nelas; a rota registrada (quem anda) continua a mesma.
+  {const pts=PLANTA_COMPLEXO.routes.sidewalk.points.map(p=>({...p})),a=pts[0],z=pts[pts.length-1]
+   if(a&&a.x>-212&&a.x<-200)a.x=-212
+   if(z&&z.x<322&&z.x>310)z.x=322
+   ribbon('calcada-registrada',pts,3.9,GROUND,paving)}
   const markings=(points:readonly PontoComplexo[])=>{
     for(let i=1;i<points.length;i++){
       const a=points[i-1],b=points[i],length=Math.hypot(b.x-a.x,b.z-a.z),yaw=-Math.atan2(b.z-a.z,b.x-a.x)
@@ -388,7 +393,19 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   const routeY=state.extras.asfalto?GROUND:GROUND-.025
   // These public paths remain at street level at every stadium stage.
   // They share the physical gate contract, not the old office driveway.
-  for(const [side,points] of Object.entries(fanPaths))ribbon(`acesso-torcida-${side}`,points,4.4,routeY,routeSurface)
+  // 🔗 18/11 (Diego: *"as terminações não tão boas, se encontrando"*): no clube que ainda é só o campinho de várzea, o caminho da
+  // torcida parava ~20 m antes do campo (ele vai até o portão do estádio GRANDE, que ainda não existe), e o dos visitantes começava
+  // no meio da grama, sem chegar na rua do estacionamento. Só o DESENHO estica até encostar: a rota de quem anda não muda.
+  const semArquibancada=state.valid&&!state.lowerComplete&&['geral','cadeiras','visitante','camarote'].every(k=>!(state.progress[k]>0))
+  const semEstacionamento=!(state.parking.stage>0)
+  const desenhoTorcida=(side:string,points:readonly PontoComplexo[])=>{
+    let pts=[...points]
+    if(semArquibancada&&side==='home')pts=[...pts,{x:0,z:44}]
+    if(semArquibancada&&side==='away')pts=[...pts,{x:64,z:6}]
+    if(semEstacionamento&&side==='away'&&pts[0].x===155&&pts[0].z===100)pts=[{x:277,z:100},...pts]
+    return pts
+  }
+  for(const [side,points] of Object.entries(fanPaths))ribbon(`acesso-torcida-${side}`,desenhoTorcida(side,points),4.4,routeY,routeSurface)
   for(const id of ['entrance','entranceBare','shop','food','beer','hotel','station']){
     if(id==='entrance'&&!state.extras.asfalto||id==='entranceBare'&&state.extras.asfalto)continue
     const key=({shop:'loja',food:'praca',beer:'chopp',hotel:'hotel',station:'estacao'} as Record<string,string>)[id]
@@ -1277,7 +1294,13 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
       floor.geometry.computeVertexNormals()
     }
   }
-  for(const walk of pedestrianPlan.walks)drawGradedWalk(walk.id,walk.points,walk.width,walk.material==='club'?routeSurface:paving)
+  // 🔗 18/11: a calçada que cruza a praça parava no meio da grama (ela aponta pro estacionamento, que ainda não foi construído).
+  // Sem estacionamento, o desenho segue reto até a calçada da rua do lado leste.
+  const desenhoPasseio=(walk:{id:string;points:readonly {x:number;z:number;y:number}[]})=>{
+    const last=walk.points[walk.points.length-1]
+    return walk.id==='pedestre-praca-transversal'&&semEstacionamento&&last?[...walk.points,{x:321,z:last.z,y:last.y}]:walk.points
+  }
+  for(const walk of pedestrianPlan.walks)drawGradedWalk(walk.id,desenhoPasseio(walk),walk.width,walk.material==='club'?routeSurface:paving)
   root.userData.pedestrianNetwork=pedestrianPlan.metadata
   const crossingWalks=[
     {id:'sidewalk',polygon:faixaTransporteComplexo(PLANTA_COMPLEXO.routes.sidewalk.points,4.1)},
