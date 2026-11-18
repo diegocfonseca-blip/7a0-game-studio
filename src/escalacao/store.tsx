@@ -13204,7 +13204,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!s.careerDivision) return s
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
       if (s.onlineMode !== 'online') { // 🔒 27/10: carreira grátis (solo) — sem plano, para no fim da 50 (ou +10 pra quem já estava acima); a tela mostra o porquê e os planos
-        if (travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s
+        if (!s.oficial && travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s // 🇧🇷 Oficial: sem limite de temporada (18/11)
         s.careerGratisAte = marcaGratis(s.seasonNo, !!action.pago, s.careerGratisAte)
       }
       setActiveCatalog(s.deckLeague, false, undefined, !!s.oficial) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
@@ -14895,7 +14895,10 @@ try {
     regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
   })
 } catch { /* sem cliente (bancada): segue salvando */ }
-export function salvarBloqueado(): boolean {
+/** 🇧🇷 `oficial` (18/11, Diego: *"pode salvar sim… sem plano salva apenas no celular, não salva na nuvem"*): no Brasil Oficial o
+ *  APARELHO salva sempre — sem o teste de 5 dias. A nuvem fica só pra quem tem plano (`savePyramidCloud`). */
+export function salvarBloqueado(oficial = false): boolean {
+  if (oficial) return false
   if (SALVAR_TESTE_5D && !SALVAR_SO_COM_PLANO) {
     if (pagoPeloCodigo()) return false
     if (authUidSalvar === null) return true // sem conta não tem teste (precisa de conta pra contar os 5 dias)
@@ -14910,10 +14913,10 @@ export function salvarBloqueado(): boolean {
   if (authUidSalvar && regraCache?.uid === authUidSalvar) return !regraCache.r.pago
   return false // ainda não sabe: não arrisca tirar o save de quem paga
 }
-export function useSalvarBloqueado(): boolean {
+export function useSalvarBloqueado(oficial = false): boolean {
   const [, setT] = useState(0)
   useEffect(() => { const f = () => setT(x => x + 1); regraOuvintes.add(f); return () => { regraOuvintes.delete(f) } }, [])
-  return salvarBloqueado()
+  return salvarBloqueado(oficial)
 }
 // 🗑️ 18/11 (Diego): SEM PLANO = 1 CARREIRA SÓ (qualquer modo de carreira) e carreira parada 5 DIAS é excluída — da nuvem e do
 // aparelho — com aviso antes. Quem já tinha várias: as paradas há mais de 5 dias saem e fica UMA (a jogada por último). Ficha extra
@@ -14942,12 +14945,24 @@ export function semPlanoConhecido(): boolean {
 export const vagasGratis = () => Math.min(1 + fichasExtras(), MAX_CAREER_SLOTS)
 /** dias que faltam pra carreira ser excluída (null = não se aplica: tem plano ou não sabe) */
 export function diasParaExcluir(slot: CareerSlot): number | null {
-  if (!LIMPA_CARREIRA_GRATIS || !semPlanoConhecido()) return null
+  if ((!LIMPA_CARREIRA_GRATIS && !(slot.save as EscState).oficial) || !semPlanoConhecido()) return null // 🇧🇷 Oficial: vale desde 18/11
   return Math.max(0, Math.ceil((ultimaVezJogada(slot) + DIAS_CARREIRA_GRATIS * 86_400_000 - Date.now()) / 86_400_000))
 }
 /** apaga as carreiras de quem não tem plano que passaram de 5 dias paradas e as que sobram além das vagas. Devolve os nomes apagados. */
 export function limpaCarreirasGratis(): string[] {
-  if (!LIMPA_CARREIRA_GRATIS || !semPlanoConhecido()) return []
+  if (!semPlanoConhecido()) return []
+  // 🇧🇷 18/11 (Diego): no Brasil Oficial, SEM PLANO, carreira parada 5 dias é excluída (com o aviso de dias que já existe). As outras
+  // carreiras seguem a regra geral, que continua desligada (`LIMPA_CARREIRA_GRATIS`).
+  if (!LIMPA_CARREIRA_GRATIS) {
+    const limiteO = DIAS_CARREIRA_GRATIS * 86_400_000, agoraO = Date.now(), fora: string[] = []
+    for (const { slot } of listAllCareers()) {
+      if (!(slot.save as EscState).oficial || agoraO - ultimaVezJogada(slot) <= limiteO) continue
+      const you = slot.save.managers?.[slot.save.youIdx ?? 0]
+      deleteCareerSlot(slot.save.seed)
+      fora.push(you?.teamName ?? you?.name ?? '')
+    }
+    return fora
+  }
   const lista = listAllCareers().map(x => x.slot).sort((a, b) => ultimaVezJogada(b) - ultimaVezJogada(a))
   const limite = DIAS_CARREIRA_GRATIS * 86_400_000, agora = Date.now(), vagas = vagasGratis(), apagadas: string[] = []
   lista.forEach((slot, i) => {
@@ -15000,8 +15015,12 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     if (isCareerSave(state)) {
       const rg = await nuvemRegra(uid, true)
       // 🎁 08/11: conta sem plano — o 1º toque em Salvar começa os 5 dias; passou, não grava mais
+      // 🇧🇷 18/11: Brasil Oficial sem plano = SÓ no aparelho (nada de teste de 5 dias nem nuvem)
+      if (state.oficial) { if (!(rg?.pago || pagoPeloCodigo())) return 'aparelho' }
+      else {
       if (SALVAR_TESTE_5D && rg && !rg.pago && !pagoPeloCodigo()) { const ate = await iniciaTesteSalvar(uid); if (ate != null && Date.now() > ate) return 'bloqueado' }
       if (salvarBloqueado()) return 'bloqueado'
+      }
     } // 🔒 04/11: sem plano não salva
     ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
     // ☁️⭐ conta grátis: só as carreiras que JÁ estavam na nuvem continuam subindo (ver `nuvemRegra`)
@@ -15270,7 +15289,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     try {
       // 🌐 carreira online v2 NUNCA vira "partida solo em andamento" (senão abriria como solo, sem os amigos)
       if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
-      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado())) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
+      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado(!!state.oficial))) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch {
       // 📱 11/11 (Lucas Barreto 30: *"jogo até a 114, salvo, e quando entro volta pro 113"*): aparelho CHEIO. A gravação falhava
@@ -16350,8 +16369,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     soloSigRef.current = presidencySig
     // 📱 cota cheia: antes era ignorado calado (e o jogo abria a cópia velha depois). Agora avisa (13/10).
     // 🔒 04/11: sem plano a carreira não grava no aparelho — fica só na memória desta aba (o "Continuar" da mesma visita funciona)
-    if (salvarBloqueado()) { carreiraEmMemoria = { ...state }; return }
-    comecaTesteNoAparelho() // 🎁 08/11: o 1º salvamento automático também começa os 5 dias (fecha a brecha de nunca apertar Salvar)
+    if (salvarBloqueado(!!state.oficial)) { carreiraEmMemoria = { ...state }; return }
+    if (!state.oficial) comecaTesteNoAparelho() // (o Brasil Oficial não tem teste de 5 dias: salva sempre no aparelho) // 🎁 08/11: o 1º salvamento automático também começa os 5 dias (fecha a brecha de nunca apertar Salvar)
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())); avisaSemEspaco(false) } catch { avisaSemEspaco(true) }
     // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])

@@ -14027,3 +14027,12 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - ✅ 7 Bots com preparador + pagando técnico/preparador SÓ em carreira NOVA (`s.botComissao`, preço do catálogo de sempre).
 - ❌ Ficaram de fora (decisão): gás desde o início, leilão de abertura/caixa real/régua de categoria, preços novos de comissão.
 - 👉 Liberar pra todos = `CENTRAL_18_11_GERAL = true` (sport.ts) — liga Central nova, Mercado e os itens 3–7 de uma vez.
+
+### 🟢 18/11 (noite) — BRASIL OFICIAL LIBERADO PRA TODOS (*"publique pra todos já!"*)
+- `BRASIL_OFICIAL_GERAL = true` (sport.ts). As prévias da carreira de sempre seguem só na conta do Diego: `usePreviaCentral`/`usePreviaDiego`
+  agora leem `useSoDiego()` (antes liam `useBrasilOficial`, e liberar o modo liberaria a Central junto). No Oficial a Central nova e o
+  Mercado valem pra todos (`novaCentral`/`mercadoOn` com `|| state.oficial`).
+- Sem plano no Oficial: `salvarBloqueado(oficial)` = false (aparelho sempre) · `savePyramidCloud` devolve 'aparelho' · sem teste de 5 dias ·
+  `limpaCarreirasGratis` apaga carreira OFICIAL parada 5 dias (as outras seguem a regra geral, desligada) · trava da T50 não vale.
+- Novidade na home: "🇧🇷 Chegou o Brasil Oficial".
+- ⏳ Europa Oficial: só com plano (quando for feita). Selo de plano do cartão Brasil Oficial saiu (18/11).

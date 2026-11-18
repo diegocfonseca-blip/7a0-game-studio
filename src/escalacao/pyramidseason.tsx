@@ -9513,7 +9513,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const [logado, setLogado] = useState<boolean | null>(null)
   const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d'>('quieto')
   const soAparelho = useNuvemSoAparelho(state.seed) // ☁️⭐ conta grátis + carreira nova (07/10)
-  const bloqueado = useSalvarBloqueado() // 🔒 04/11: sem plano, carreira não salva
+  const bloqueado = useSalvarBloqueado(!!state.oficial) // 🔒 04/11: sem plano, carreira não salva
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!ativo) return
@@ -9526,7 +9526,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const logadoDev = import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-central-dev-logado') === '1' } catch { return false } })()
   const onClick = useCallback(async () => {
     const st = stRef.current
-    if (salvarBloqueado()) return // 🔒 04/11: sem plano o botão só abre os planos (a faixa cuida disso)
+    if (salvarBloqueado(!!state.oficial)) return // 🔒 04/11: sem plano o botão só abre os planos (a faixa cuida disso)
     try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     setFase('salvando')
     let res: 'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | undefined
@@ -9645,7 +9645,7 @@ export function PyramidSeasonScreen() {
   const [saf2MigrarDepois, setSaf2MigrarDepois] = useState(false)
   const soAparelhoPe = useNuvemSoAparelho(state.seed) // ☁️⭐ legenda do "Sair e salvar" (07/10)
   const [planosSair, setPlanosSair] = useState(false) // ☁️ 19/10: sem plano, "Sair e salvar" mostra os planos
-  const salvarTravado = useSalvarBloqueado() // 🔒 04/11: sem plano a carreira não salva
+  const salvarTravado = useSalvarBloqueado(!!state.oficial) // 🔒 04/11: sem plano a carreira não salva
   const [planosSalvar, setPlanosSalvar] = useState(false)
   // 🚪 15/11: "Só sair" pergunta antes e, confirmado, volta a carreira pro último salvamento (`voltaProUltimoSalvo`)
   const [sairSem, setSairSem] = useState<null | 'pergunta' | 'voltando' | 'sem_salvo' | 'sem_rede'>(null)
@@ -10229,8 +10229,8 @@ export function PyramidSeasonScreen() {
   useEffect(() => { if (state.onlineMode !== 'online') marcaCarreiraJogada(state.seed) }, [state.seed, state.seasonNo, round, state.onlineMode])
   // 🛒 aba Mercado (18/11): nasceu no Brasil Oficial e foi levada pra carreira de sempre (*"pode fazer tudo daí"*) — por enquanto só na
   // conta do Diego (`usePreviaCentral`); carreira em sala online fica fora (o Sondar também é só offline)
-  const mercadoOn = usePreviaCentral() && !!state.careerOnline && state.onlineMode !== 'online' && !state.roomId
-  const novaCentral = usePreviaCentral() // 📺 18/11: a Central nova (Próximos jogos, Antes da estreia, TV depois do 1º jogo…) só na conta do Diego
+  const mercadoOn = (usePreviaCentral() || !!state.oficial) && !!state.careerOnline && state.onlineMode !== 'online' && !state.roomId
+  const novaCentral = usePreviaCentral() || !!state.oficial // 📺 18/11: a Central nova (Próximos jogos, Antes da estreia, TV depois do 1º jogo…) só na conta do Diego
   const previa = usePreviaDiego() // 👀 18/11: novidades de 17/11 só na conta do Diego (ônibus em jogo grande, cena do bairro, linha a mais dos dias)
   // 🇧🇷 17/11: de 2027 em diante a Copa do Brasil do modo sai das vagas de 2026 (cota por estado + campeões da C/D do ano anterior).
   // A cota do estado segue a classificação do estadual: o SEU, como foi jogado; os outros 16, simulados por baixo (mesma semente).

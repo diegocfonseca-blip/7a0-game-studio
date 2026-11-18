@@ -11912,7 +11912,7 @@ function CareerEndPanel() {
   // plano ainda carregando, vale a tela de sempre (os direitos já chegam no login, bem antes do fim da temporada).
   const direitosC = useDireitos()
   const pagante = ehPagante(myApoioPerk()?.tier, direitosC) || (!!loggedEmail() && !direitosC)
-  const travadoGratis = state.onlineMode !== 'online' && travaCarreiraGratis(state.seasonNo, pagante, state.careerGratisAte)
+  const travadoGratis = state.onlineMode !== 'online' && !state.oficial && travaCarreiraGratis(state.seasonNo, pagante, state.careerGratisAte) // 🇧🇷 Oficial: sem limite de temporada
   const ateGratis = limiteGratis(state.seasonNo, state.careerGratisAte)
   const div = state.careerDivision!
   const you = state.managers[state.youIdx]

@@ -381,6 +381,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   vizinhas da repaginada fazem (classes e CSS que já existem, ex. `career-desktop.css`, `ll29-*`, `cv2-*`) e reaproveitar, nada
   de estilo solto inventado; (2) tirar print em ~390 px (celular) E ~1280 px (computador) e conferir os dois.
 - **15/11: MAPA E CAMPO DO ESTÁDIO LIBERADOS PARA TODOS NA CARREIRA COMPATÍVEL.** Supera as restrições anteriores de prévia só para Diego. Reorganização e passeio acompanham a liberação. A identidade da prévia continua privada. Veículos já adquiridos aparecem, mas compra/venda/troca ficam **EM BREVE** até revisar a arte; não retirar bens. Chat por proximidade continua desligado (Diego condicionou a custo adicional zero). Detalhes em `docs/mapa-publico-20261115.md`.
+- **🇧🇷🟢 BRASIL OFICIAL LIBERADO PRA TODOS (18/11, *"publique pra todos já!"*).** Regras dele pra quem NÃO tem plano: **salva só no
+  aparelho** (nunca na nuvem, sem o teste de 5 dias) · **1 carreira só** · **carreira parada 5 dias é excluída** (com o aviso de dias) ·
+  **sem limite de temporada** (a trava da T50 não vale no modo) · **Manual só com plano ou avulso** · **over de craque e lenda só com plano**
+  (olheiro). 🇪🇺 A **Europa Oficial** vai ser **só com plano** desde o início. Desligar o modo = `BRASIL_OFICIAL_GERAL = false` (sport.ts);
+  as prévias da carreira de sempre (Central nova, Mercado…) continuam só na conta dele (`useSoDiego`/`CENTRAL_18_11_GERAL`).
 - **🇧🇷 BRASIL OFICIAL = TUDO REAL, NADA INVENTADO (15/11, regra permanente).** Palavras dele: *"quero que todos campeonatos
   sejam reais, as regras e etc, sem invenção"*. No modo de clubes reais: clubes, divisões, formatos, quantos sobem/caem,
   vagas de Libertadores/Sul-Americana, estaduais, Copa do Brasil, Supercopa, Intercontinental e troféus seguem o REAL, cada
