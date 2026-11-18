@@ -13071,18 +13071,24 @@ export function PyramidSeasonScreen() {
                 for (const d of DIVS) { const i = tables[d].findIndex(t => t.name === fn); if (i >= 0) return { div: d, pos: i + 1 } }
                 return null
               })()}
-              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
+              onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId, pagante: saf2Pagante })}
               onSellFilial={saf2Ui ? undefined : () => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
               filialSale={myFilial && !saf2Ui ? filialSaleValue(state, myFilial) : undefined}
               saf2={saf2Ui ? {
                 // 🏢➡️⚽ empréstimo da SAF só na janela (virada); fora dela a tela explica o porquê e o caminho
-                buyLock: segundoClube(state) ? tr('Você já tem um 2º clube: a escada é uma só (SAF → 2º clube). Pra comprar uma SAF nova, venda o 2º clube antes.', 'You already have a 2nd club: there is a single ladder (SAF → 2nd club). To buy a new SAF, sell the 2nd club first.') : null,
+                // 🇧🇷 Brasil Oficial (18/11, Diego): SAF só com o time na Série A e só pra quem tem plano. Mesma régua do motor (BUY_FILIAL).
+                semComando: !!state.oficial,
+                buyLockExtra: state.oficial && divOficialDe(state) === 'A' && !saf2Pagante ? <ApoieButton startScreen="choice" trigger={(open) => <button onClick={open} style={{ background: 'transparent', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', fontSize: 10.5 }}>{tr('Ver os planos', 'See the plans')}</button>} /> : undefined,
+                buyLock: state.oficial && divOficialDe(state) !== 'A' ? tr('No Brasil Oficial a SAF só abre com o seu time na Série A. Suba até lá e ela destrava.', 'In Official Brazil the SAF only opens with your club in Série A. Get there and it unlocks.')
+                  : state.oficial && !saf2Pagante ? tr('No Brasil Oficial a SAF é só pra quem tem plano.', 'In Official Brazil the SAF is only for plan holders.')
+                  : segundoClube(state) ? tr('Você já tem um 2º clube: a escada é uma só (SAF → 2º clube). Pra comprar uma SAF nova, venda o 2º clube antes.', 'You already have a 2nd club: there is a single ladder (SAF → 2nd club). To buy a new SAF, sell the 2nd club first.') : null,
                 loanLock: saf2Jan ? null : tr('Empréstimo com a SAF só na virada da temporada (antes da 1ª rodada). Os de agora voltam sozinhos no fim desta temporada.', 'Loans with the SAF only at the season turn (before round 1). Current ones come back by themselves at the end of this season.'),
                 painel: myFilial && !segundoClube(state) ? (
                   <Saf2SafPainel team={myFilial.team} div={saf2DivDaSaf(state)} desde={myFilial.since} seasonNo={state.seasonNo ?? 1} semEspera={state.saf2?.semEspera}
                     caixaPrincipal={Math.round(state.careerCoins?.[clubePrincipal(state)?.id ?? youId] ?? 0)} pagante={saf2Pagante} janela={saf2Jan}
                     ativoEhPrincipal={!state.managers[state.youIdx]?.mine}
                     planosBtn={<ApoieButton startScreen="choice" trigger={(open) => <button onClick={open} style={{ background: 'transparent', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', fontSize: 10.5 }}>{tr('Ver os planos', 'See the plans')}</button>} />}
+                    semComando={!!state.oficial}
                     onAssumir={() => dispatch({ type: 'SAF2_ASSUMIR', pagante: saf2Pagante })}
                     onVender={() => dispatch({ type: 'SAF2_VENDER_SAF' })} />
                 ) : null,
@@ -13223,7 +13229,7 @@ export function PyramidSeasonScreen() {
                 onTransferir={cardId => dispatch({ type: 'SAF2_TRANSFERIR', cardId })}
                 onVender={() => dispatch({ type: 'SAF2_VENDER_2O' })} />
             })()}
-            {state.onlineMode !== 'online' && !saf2Ui && !state.co2 /* 🌐 v2: sem 2º clube */ && (() => {
+            {state.onlineMode !== 'online' && !saf2Ui && !state.co2 /* 🌐 v2: sem 2º clube */ && !state.oficial /* 🇧🇷 Oficial: sem 2º clube (18/11) */ && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
                 // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista

@@ -14036,3 +14036,9 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   `limpaCarreirasGratis` apaga carreira OFICIAL parada 5 dias (as outras seguem a regra geral, desligada) · trava da T50 não vale.
 - Novidade na home: "🇧🇷 Chegou o Brasil Oficial".
 - ⏳ Europa Oficial: só com plano (quando for feita). Selo de plano do cartão Brasil Oficial saiu (18/11).
+
+## 18/11 — 🏢 SAF no Brasil Oficial (pedido do Diego)
+- ✅ Sem 2º clube no Oficial (`BUY_MULTICLUBE` e `SAF2_ASSUMIR` barrados; tela esconde o relógio/"assumir o comando").
+- ✅ SAF = 2.000 🪙, só com o time na Série A e só com plano (`BUY_FILIAL` com `pagante`; tela mostra 🔒 com o porquê + "Ver os planos").
+- Mantido: estádio 100% completo continua exigido (regra de sempre da SAF). Perguntar ao Diego se quer tirar no Oficial.
+

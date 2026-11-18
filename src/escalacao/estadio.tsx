@@ -700,7 +700,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com `useSaf2()`): troca as regras velhas pelas novas, mostra o
   // painel novo (relógio das 10 temporadas · assumir o comando · vender pela divisão) e a trava da janela
   // dos empréstimos. Sem esta prop a seção da SAF fica EXATAMENTE como sempre foi.
-  saf2?: { painel: ReactNode; loanLock?: string | null; buyLock?: string | null }
+  saf2?: { painel: ReactNode; loanLock?: string | null; buyLock?: string | null; buyLockExtra?: ReactNode; semComando?: boolean }
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -1051,7 +1051,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         const logged = !!loggedEmail()
         const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && extras.every(e => hasExtra(st, e.k))
         const canBuy = logged && allDone && coins >= 2000
-        const regras = saf2 ? <Saf2Regras /> : getLang() === 'en' ? (
+        const regras = saf2 ? <Saf2Regras semComando={saf2.semComando} /> : getLang() === 'en' ? (
           <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
             <li>💰 The SAF costs <b>2,000</b> · one-off purchase · the rights are yours <b>forever in this career</b> (no selling, no swapping)</li>
             <li>🏆 Entitled to <b>50% of campaign profits</b> (title and promotion) — they land in your till at the turn of the season</li>
@@ -1258,7 +1258,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
             {logged && allDone && regras}
             {logged && allDone && <div style={{ height: 7 }} />}
             {logged && allDone && !buying && saf2?.buyLock && (
-              <p style={{ fontSize: 10.5, fontWeight: 800, background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', margin: 0, lineHeight: 1.4 }}>🔒 {saf2.buyLock}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 800, background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', margin: 0, lineHeight: 1.4 }}>🔒 {saf2.buyLock}{saf2.buyLockExtra ? <> {saf2.buyLockExtra}</> : null}</p>
             )}
             {logged && allDone && !buying && !saf2?.buyLock && (
               <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}

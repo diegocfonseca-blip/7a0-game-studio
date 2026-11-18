@@ -6131,7 +6131,7 @@ type Action =
   // 🛍️ LOJA DO CLUBE (15/09; liberada geral no mesmo dia — sport.ts/LOJA_GERAL)
   | { type: 'LOJA_PRECO'; preco: import('./loja').PrecoLoja; mgrId?: number } // 💰 preço da camisa da temporada (a aposta)
   | { type: 'LOJA_FORNECEDOR'; fornId: string; mgrId?: number } // 👟 assina o fornecedor de material (o prazo vem da marca; o valor congela na divisão de hoje)
-  | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
+  | { type: 'BUY_FILIAL'; team: string; mgrId?: number; pagante?: boolean } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
   | { type: 'SELL_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): vende o 2º clube. Volta 4.000 e desconta 300 (o churrasco). SÓ o 2º clube — o principal nunca.
   | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
@@ -10468,6 +10468,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || s.careerFilial) return s
+      // 🇧🇷 Brasil Oficial (18/11, Diego): SAF só com o time na Série A e só pra quem tem plano (a tela lê a mesma régua)
+      if (s.oficial && (divOficialDe(s) !== 'A' || !action.pagante)) return s
       if (saf2On(s) && s.multiClube) return s // 🏢➡️⚽ escada única: com 2º clube não se compra SAF (venda o 2º clube antes)
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
@@ -10492,7 +10494,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // sua liga) no SEU 2º clube. Vira um assento independente (id próprio → caixa,
       // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
       const PRECO = 4000
-      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube || s.co2) return s // 🌐 v2: sem 2º clube
+      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube || s.co2 || s.oficial) return s // 🌐 v2 e 🇧🇷 Oficial: sem 2º clube
       if (saf2On(s)) return s // 🏢➡️⚽ SAF nova: o 2º clube só nasce da SAF (SAF2_ASSUMIR), nunca mais comprado direto
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
@@ -10786,7 +10788,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // ─── 🏢➡️⚽ SAF QUE VIRA 2º CLUBE (13/10) ─────────────────────────────────────
     // Toda trava daqui é a MESMA função que a tela lê (`saf2.ts`) — nunca regra própria.
     case 'SAF2_ASSUMIR': {
-      if (!saf2On(s) || s.screen !== 'season') return s
+      if (!saf2On(s) || s.screen !== 'season' || s.oficial) return s // 🇧🇷 Oficial: a SAF nunca vira 2º clube (18/11)
       const you = clubePrincipal(s)
       if (!you || s.managers[s.youIdx]?.id !== you.id) return s
       const r = podeAssumir({
