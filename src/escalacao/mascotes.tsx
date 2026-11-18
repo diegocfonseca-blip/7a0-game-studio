@@ -88,6 +88,8 @@ import reffattiMascoteImg from './img/reffatti-mascote.webp' // 🎮 Reffatti FC
 import hgigantesMascoteImg from './img/hgigantes-mascote.webp' // 🧔 História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
+import duarteMascoteImg from './img/duarte-mascote.webp' // 🧤 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
+import obeliskoMascoteImg from './img/obelisko-mascote.webp' // 👁️ Obelisko FC (felipefazzio): arte própria do dono, 18/11
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcMascoteImg from './img/neymarfc-mascote.webp' // 🐐 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
@@ -486,6 +488,17 @@ export const MASCOTES: Record<string, ReactNode> = {
   // o L, encostado no caixão. Arte do próprio dono. 📏 337×440, 43 KB — altura 176. mascote_key = "leoestuf_leao".
   leoestuf_leao: (
     <img src={leoestufMascoteImg} height={176} width={Math.round(176 * 337 / 440)} alt="O Leão da Tuf — Leões da Tuf EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🧤👑 O PAREDÃO (mascote do Duarte FC — luizfelipeduarte212, 18/11): o goleiro camisa 1 caído de lado, defendendo com o PÉ
+  // pro alto (a pose da defesa do Victor que o dono pediu). Arte do próprio dono. 📏 440×335, 41 KB — é LARGO, então a largura
+  // fica em 176. mascote_key = "duarte_paredao".
+  // 👁️👑 O ATORMENTADOR (mascote do Obelisko FC — felipefazzio, 18/11): o colosso de armadura azul, garra estendida pra frente.
+  // Arte do próprio dono. 📏 374×440, 43 KB — altura 176. mascote_key = "obelisko_atormentador".
+  obelisko_atormentador: (
+    <img src={obeliskoMascoteImg} height={176} width={Math.round(176 * 374 / 440)} alt="O Atormentador — Obelisko FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  duarte_paredao: (
+    <img src={duarteMascoteImg} width={176} height={Math.round(176 * 335 / 440)} alt="O Paredão — Duarte FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   cabritiiin_bode: (
     <img src={cabritiiinMascoteImg} height={176} width={Math.round(176 * 300 / 440)} alt="O Cabritiiin — Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -1424,6 +1437,16 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Leões da Tuf': 'leoestuf_leao',
   'Leões da Tuf FC': 'leoestuf_leao',
   'Leões da Tuf SC': 'leoestuf_leao',
+  // 🧤 o Paredão carimba o gol do Duarte FC (luizfelipeduarte212, 18/11).
+  // 👁️ o Atormentador carimba o gol do Obelisko FC (felipefazzio, 18/11).
+  'Obelisko FC': 'obelisko_atormentador',
+  'Obelisko': 'obelisko_atormentador',
+  'Obelisko EC': 'obelisko_atormentador',
+  'Obelisko SC': 'obelisko_atormentador',
+  'Duarte FC': 'duarte_paredao',
+  'Duarte': 'duarte_paredao',
+  'Duarte EC': 'duarte_paredao',
+  'Duarte SC': 'duarte_paredao',
   'Cabritiiin F.C': 'cabritiiin_bode',
   'Cabritiiin FC': 'cabritiiin_bode',
   'Cabritiiin': 'cabritiiin_bode',
@@ -1595,6 +1618,8 @@ export const MASCOTE_NOME: Record<string, string> = {
   hgigantes_vovo: 'O Vovô Gigante', // 🧔 História dos Gigantes (will.a.n, 16/11)
   lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)
   leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
+  obelisko_atormentador: 'O Atormentador', // 👁️ Obelisko FC (felipefazzio, 18/11)
+  duarte_paredao: 'O Paredão', // 🧤 Duarte FC (luizfelipeduarte212, 18/11)
   cabritiiin_bode: 'O Cabritiiin', // 🐐 Cabritiiin F.C (lucassaboia14, 13/11)
   vila_leao: 'O Leão', // 🦁 Vila Esporte Clube (oluisantonio.contato, 27/10)
   neymarfc_bode: 'O Bode Rei', // 🐐 Neymar FC (sheeryarie772, 21/10)

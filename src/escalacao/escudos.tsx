@@ -85,6 +85,8 @@ import reffattiEscudoImg from './img/reffatti-escudo.webp' // 🎮👑 Reffatti 
 import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
+import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
+import obeliskoEscudoImg from './img/obelisko-escudo.webp' // 👁️👑 Obelisko FC (felipefazzio): arte própria do dono, 18/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
@@ -1001,6 +1003,17 @@ const lavrasEscudoRender = (size: number) => (
 const leoestufEscudoRender = (size: number) => (
   <img src={leoestufEscudoImg} height={size} width={Math.round(size * 278 / 360)} alt="Leões da Tuf EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🧤👑 DUARTE FC (luizfelipeduarte212, batismo FUNDADOR de 18/11) — Várzea, no assento do bot Ressaca United. 📏 277×360, 27 KB.
+// O goleiro camisa 1 de luva erguida e o galo, listrado preto e branco, estrela dourada e picaretas. Fundo verde chroma tirado; conferido sobre vermelho.
+// 👁️👑 OBELISKO FC (felipefazzio, batismo FUNDADOR de 18/11) — Várzea, no assento do bot Trave Torta EC. 📏 284×320, 30 KB
+// (320 de altura porque o escudo é muito detalhado e a 360 passava do teto). O colosso azul de braços abertos, moldura dourada com
+// o Olho de Hórus e a faixa "ATORMENTADOR" — o 2º escudo que o dono mandou, o escolhido pelo Diego. Conferido sobre creme.
+const obeliskoEscudoRender = (size: number) => (
+  <img src={obeliskoEscudoImg} height={size} width={Math.round(size * 284 / 320)} alt="Obelisko FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const duarteEscudoRender = (size: number) => (
+  <img src={duarteEscudoImg} height={size} width={Math.round(size * 277 / 360)} alt="Duarte FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const cabritiiinEscudoRender = (size: number) => (
   <img src={cabritiiinEscudoImg} height={size} width={Math.round(size * 302 / 360)} alt="Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1757,6 +1770,18 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Leões da Tuf': leoestufEscudoRender,
   'Leões da Tuf FC': leoestufEscudoRender,
   'Leões da Tuf SC': leoestufEscudoRender,
+  // 🧤👑 Duarte FC (luizfelipeduarte212) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Ressaca United (bot que cedeu o
+  // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  // 👁️👑 Obelisko FC (felipefazzio) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Trave Torta EC (bot que cedeu o
+  // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  'Obelisko FC': obeliskoEscudoRender,
+  'Obelisko': obeliskoEscudoRender,
+  'Obelisko EC': obeliskoEscudoRender,
+  'Obelisko SC': obeliskoEscudoRender,
+  'Duarte FC': duarteEscudoRender,
+  'Duarte': duarteEscudoRender,
+  'Duarte EC': duarteEscudoRender,
+  'Duarte SC': duarteEscudoRender,
   'Cabritiiin F.C': cabritiiinEscudoRender,
   'Cabritiiin FC': cabritiiinEscudoRender,
   'Cabritiiin': cabritiiinEscudoRender,

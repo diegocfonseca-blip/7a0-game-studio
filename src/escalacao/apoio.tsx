@@ -193,6 +193,8 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'pedroglima50@gmail.com': 'ouro', // 👑 batismo Príncipe Rubro Negro (Série D, no assento do bot Aurora Suprema) + sócio (02/11). Batismo de 79,90: SEM número de fundador (regra 14/10).
   'lucasfonseca363@gmail.com': 'ouro', // 👑 batismo FUNDADOR Lulubaba FC (Série D, no assento do bot Fênix Dourada) + fundador nº95 + sócio nº80 (29/10; entrou como Batismo e subiu pra Fundador no mesmo dia).
   'alexandre12cdm@gmail.com': 'ouro', // 👑 batismo FUNDADOR dSouza FC (Série C, no assento do bot Kombi United) + fundador nº94 + sócio nº79 (28/10).
+  'felipefazzio@gmail.com': 'ouro', // 👑 batismo FUNDADOR Obelisko FC (Várzea, no assento do bot Trave Torta EC) + fundador nº103 + sócio nº95 (18/11).
+  'luizfelipeduarte212@gmail.com': 'ouro', // 👑 batismo FUNDADOR Duarte FC (Várzea, no assento do bot Ressaca United) + fundador nº102 + sócio nº94 (18/11).
   'lucassaboia14@gmail.com': 'ouro', // 👑 batismo FUNDADOR Cabritiiin F.C (Várzea, no assento do bot Unidos da Resenha) + fundador nº101 + sócio nº89 (13/11).
   'sergioricardocf16@gmail.com': 'ouro', // 👑 batismo Leões da Tuf EC (Várzea, no assento do bot Chuteira Rachada FC) + sócio nº90 (14/11, dado pelo Diego). Sem nº de fundador (regra 14/10).
   'leoreffattig@gmail.com': 'ouro', // 👑 batismo Reffatti FC (Várzea, no assento do bot Atlético Pelada) + sócio nº91 (15/11). Sem nº de fundador (regra 14/10).
@@ -322,6 +324,8 @@ const FUNDADOR_N: Record<string, number> = {
   // ⛔ LIGA QUANDO A CONTA EXISTIR (regra 07/09: mimo por e-mail antes da conta = quem criar primeiro leva):
   // 'doublecontatocomercial@gmail.com': 100, // 👑💜 Double Duo FC (09/11, plano Fundador) — o fundador nº100!
   'danieltorresreus@gmail.com': 99, // 👑⚪🔴⚫ Monarca Tricolor (05/11, plano Fundador)
+  'felipefazzio@gmail.com': 103, // 👁️👑 Obelisko FC (18/11, plano Fundador)
+  'luizfelipeduarte212@gmail.com': 102, // 🧤👑 Duarte FC (18/11, plano Fundador)
   'lucassaboia14@gmail.com': 101, // 🐐👑 Cabritiiin F.C (13/11, plano Fundador)
   'enzocromero9@gmail.com': 98, // 👑🎩 Paizão FC (30/10, plano Fundador)
   'sheeryarie772@gmail.com': 97, // 🐐👑 Neymar_FC (29/10, subiu de Batismo pra Fundador) // 🐟🏛️ Piranhão FC (29/10, plano Fundador) // 🧤🖤 Lulubaba FC (29/10, subiu de Batismo pra Fundador)
