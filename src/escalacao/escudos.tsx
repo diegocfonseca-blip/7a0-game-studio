@@ -15,6 +15,8 @@
 // 🖼️ EXCEÇÃO APROVADA (Diego, 10/08): batismo pode usar ARTE PRÓPRIA em imagem
 // quando o dono manda o arquivo (caso Tôka10). Regra prática: webp comprimido,
 // kit inteiro ≤ ~40 KB (o site tem ~3 MB, então isso é ~1% — irrelevante).
+import { ESCUDOS_NBA } from './escudos-nba'
+import { getSport } from './sport'
 import { escudosOficiaisLigados } from './escudo-oficial-chave'
 import { ESCUDOS_OFICIAIS } from './escudos-oficiais'
 import type { ReactNode } from 'react'
@@ -2008,6 +2010,9 @@ const logoPronta = (n: string) => {
 export { ligaEscudosOficiais } from './escudo-oficial-chave'
 export function Escudo({ nome: nomeCru, size = 30, title, automatic=false }: { nome: string; size?: number; title?: string; automatic?:boolean }) {
   const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 mesmo escudo com ou sem o selo do tier
+  // 🏀🛡️ 18/11 (Diego: *"pedi escudos oficiais"*): no basquete, as 30 franquias da NBA usam o logo OFICIAL (public/escudos-nba)
+  const nba = getSport() === 'basquete' && !automatic ? ESCUDOS_NBA[nome] : undefined
+  if (nba) return <img src={`${import.meta.env.BASE_URL}${nba.src}`} alt={title ?? nome} title={title ?? nome} width={Math.round(size * nba.w / nba.h)} height={size} style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   const of = escudosOficiaisLigados() && !automatic ? (ESCUDOS_OFICIAIS as Record<string, { src: string; w: number; h: number }>)[nome] : undefined
   if (of) return <img src={`${import.meta.env.BASE_URL}${of.src}`} alt={title ?? nome} title={title ?? nome} width={Math.round(size * of.w / of.h)} height={size} style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   // logo artesanal: bate pelo nome EXATO; se não achar, tenta o nome ATUAL do

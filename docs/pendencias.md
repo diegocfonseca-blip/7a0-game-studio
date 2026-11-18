@@ -214,8 +214,11 @@
 ### 🏀 18/11 (14) — "Faça todos" (Diego): link do jornal, escudos NBA, Loja, teste de 2 aparelhos
 - ✅ **Link do jornal do basquete** (no branch): o jornal da sala/partida rápida do basquete (`ed.bb`) agora leva "bidlegendsarena.com" no rodapé
   (tela e imagem) e o texto de compartilhar diz "BidLegends… https://bidlegendsarena.com". Futebol igual.
-- 🎨 **Escudos das 30 franquias** — mockup `scripts/mockups/basquete-escudos-nba-proposta.png`, **esperando OK**: sem logo oficial (marca da NBA),
-  escudo no estilo do jogo com as CORES REAIS + a sigla oficial (LAL, BOS…). Clube de gente segue com o escudo dele.
+- ✅ **Escudos OFICIAIS das 30 franquias** (Diego: *"pedi escudos oficiais cara"* — a proposta de escudo com cores+sigla foi recusada).
+  Mesma decisão do futebol (28/09): risco de marca registrada avisado, decisão dele. Fonte: npm `react-nba-logos@1.1.3` (ISC), convertido por
+  `node scripts/escudos-nba.mjs` em `public/escudos-nba/<sigla>.webp` (160 px, recortado, 216 KB somados, fora do bundle) + índice gerado
+  `src/escalacao/escudos-nba.ts`. O `Escudo` usa o logo só no basquete (`getSport()`). Tirar uma franquia = apagar o arquivo e a linha (volta pro
+  genérico). Prints `basquete-escudos-nba-oficiais-{pc,celular}.png`.
 - ⛔ **Loja no basquete**: travada pela cobrança em DÓLAR (preços combinados em 19/10: Craque 9,99 · Lenda 19,99 · Batismo 49,99 · Fundador 79,99).
   Falta a conta Stripe ou PayPal do Diego. Alternativa possível enquanto isso: abrir a Loja em REAIS (Pix) no basquete só pra quem joga em PT.
 - 🔁 **Teste de 2 aparelhos**: o que dá pra fazer aqui está feito (`npm run sala-nba-online`: dono + convidado pelo SYNC_STATE nos 3 tamanhos, mesmo
