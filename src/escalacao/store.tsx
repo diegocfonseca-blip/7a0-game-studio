@@ -13777,6 +13777,8 @@ export function careerSlotLimit(count: number): number {
   // 💳 planos v2 (08/10): a régua mora em planos-regras.ts; o Craque mensal entra como ouro enquanto
   // vale (myApoioPerk já devolve o tier efetivo). Venceu = volta pra régua do que ela tinha, e o
   // grandfather abaixo segura as carreiras que ela já criou.
+  // 🗑️ 18/11: sem plano é 1 vaga (+ fichas compradas), sem o "quem já tem fica" — as que sobram somem pela limpeza dos 5 dias
+  if (LIMPA_CARREIRA_GRATIS && semPlanoConhecido()) return vagasGratis()
   const base = Math.min(fichasDoPlano(myApoioPerk()?.tier, souBarao()) + fichasExtras(), MAX_CAREER_SLOTS)
   return Math.max(base, Math.min(count, MAX_CAREER_SLOTS))
 }
@@ -14694,6 +14696,59 @@ export function useSalvarBloqueado(): boolean {
   const [, setT] = useState(0)
   useEffect(() => { const f = () => setT(x => x + 1); regraOuvintes.add(f); return () => { regraOuvintes.delete(f) } }, [])
   return salvarBloqueado()
+}
+// 🗑️ 18/11 (Diego): SEM PLANO = 1 CARREIRA SÓ (qualquer modo de carreira) e carreira parada 5 DIAS é excluída — da nuvem e do
+// aparelho — com aviso antes. Quem já tinha várias: as paradas há mais de 5 dias saem e fica UMA (a jogada por último). Ficha extra
+// comprada na Loja soma vaga. Só age quando o jogo SABE que a conta não tem plano (sem conta também conta como sem plano); na dúvida
+// (login/banco carregando ou sem rede) NÃO apaga nada. Desligar = `false`.
+export const LIMPA_CARREIRA_GRATIS = true
+export const DIAS_CARREIRA_GRATIS = 5
+const JOGADA_KEY = 'esc-carreira-jogada' // { [seed]: ms da última vez que a carreira foi ABERTA pra jogar } (o save pode estar travado)
+function jogadas(): Record<string, number> { try { const o = JSON.parse(localStorage.getItem(JOGADA_KEY) ?? '{}'); return o && typeof o === 'object' ? o : {} } catch { return {} } }
+/** marca que a carreira foi aberta agora (é o "jogou" da regra dos 5 dias — o save de quem acabou o teste não grava mais) */
+export function marcaCarreiraJogada(seed: number | undefined): void {
+  if (seed == null) return
+  try { const o = jogadas(); o[String(seed)] = Date.now(); localStorage.setItem(JOGADA_KEY, JSON.stringify(o)) } catch { /* ignora */ }
+}
+export function ultimaVezJogada(slot: CareerSlot): number { return Math.max(slot.at || 0, jogadas()[String(slot.save.seed)] ?? 0) }
+/** true só quando o jogo SABE que a conta não tem plano (sem conta = sem plano) */
+export function semPlanoConhecido(): boolean {
+  if (pagoPeloCodigo()) return false
+  if (authUidSalvar === null) return true
+  if (!authUidSalvar) return false
+  return regraCache?.uid === authUidSalvar && !regraCache.r.pago
+}
+/** vagas de carreira de quem não tem plano: 1 + fichas extras compradas */
+export const vagasGratis = () => Math.min(1 + fichasExtras(), MAX_CAREER_SLOTS)
+/** dias que faltam pra carreira ser excluída (null = não se aplica: tem plano ou não sabe) */
+export function diasParaExcluir(slot: CareerSlot): number | null {
+  if (!LIMPA_CARREIRA_GRATIS || !semPlanoConhecido()) return null
+  return Math.max(0, Math.ceil((ultimaVezJogada(slot) + DIAS_CARREIRA_GRATIS * 86_400_000 - Date.now()) / 86_400_000))
+}
+/** apaga as carreiras de quem não tem plano que passaram de 5 dias paradas e as que sobram além das vagas. Devolve os nomes apagados. */
+export function limpaCarreirasGratis(): string[] {
+  if (!LIMPA_CARREIRA_GRATIS || !semPlanoConhecido()) return []
+  const lista = listAllCareers().map(x => x.slot).sort((a, b) => ultimaVezJogada(b) - ultimaVezJogada(a))
+  const limite = DIAS_CARREIRA_GRATIS * 86_400_000, agora = Date.now(), vagas = vagasGratis(), apagadas: string[] = []
+  lista.forEach((slot, i) => {
+    if (i < vagas && agora - ultimaVezJogada(slot) <= limite) return
+    const you = slot.save.managers?.[slot.save.youIdx ?? 0]
+    deleteCareerSlot(slot.save.seed)
+    apagadas.push(you?.teamName ?? you?.name ?? '')
+  })
+  return apagadas
+}
+/** roda a limpeza assim que o plano da conta fica conhecido (e a cada mudança de login/plano). Devolve o que foi apagado nesta visita. */
+export function useLimpezaCarreirasGratis(): string[] {
+  const [apagadas, setApagadas] = useState<string[]>([])
+  useEffect(() => {
+    // a ficha extra comprada vem do banco: só limpa depois de conferir o saldo (senão apagaria a carreira de uma vaga paga)
+    let vivo = true, fichasOk = false
+    const roda = () => { if (!vivo || !fichasOk) return; const a = limpaCarreirasGratis(); if (a.length) setApagadas(x => [...x, ...a]) }
+    carregaFichasExtras().then(() => { fichasOk = true; roda() }, () => {})
+    regraOuvintes.add(roda); return () => { vivo = false; regraOuvintes.delete(roda) }
+  }, [])
+  return apagadas
 }
 /** a carreira pode ir pra nuvem? (a MESMA regra serve a tela e o salvar — nada de botão mudo)
  *  ☁️ 26/10 (Diego): a conta GRÁTIS também salva na nuvem — mas, sem plano, 7 dias sem apertar Salvar e a carreira sai da

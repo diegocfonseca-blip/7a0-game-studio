@@ -40,6 +40,8 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado } from './store' // 🗑️ 18/11
+import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
@@ -1854,6 +1856,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
                   <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1}</span>
                 </div>
                 <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
+                {(() => { const d = diasParaExcluir(slot); return d == null ? null : <span style={{ display: 'block', fontSize: 10.5, fontWeight: 900, color: d <= 2 ? '#C2452F' : '#8B8168', marginTop: 2 }}>⏳ {t(`sem plano: exclui em ${d} ${d === 1 ? 'dia' : 'dias'} se não jogar`, `no plan: deleted in ${d} ${d === 1 ? 'day' : 'days'} if not played`)}</span> })()}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
                 <button onClick={() => open(slot, ativa)} style={{ ...botao(GREEN, '#fff'), padding: '7px 11px', fontSize: 12.5 }}>{t('▶️ Continuar', '▶️ Continue')}</button>
@@ -1876,6 +1879,27 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
       </div>
     </div>
   )
+}
+
+// 🗑️ 18/11 (Diego): sem plano, carreira parada 5 dias é excluída (nuvem e aparelho) — "fica avisado pra ele quando tiver chegando
+// próximo". Este quadro roda a limpeza assim que o plano é conhecido, conta o que saiu e avisa a que está a 2 dias ou menos de sair.
+function AvisoCarreiraGratis({ escuro = false }: { escuro?: boolean }) {
+  const t = useT()
+  const apagadas = useLimpezaCarreirasGratis()
+  useSalvarBloqueado() // redesenha quando o plano da conta chega
+  const [planos, setPlanos] = useState(false)
+  const perto = listAllCareers().map(x => ({ slot: x.slot, d: diasParaExcluir(x.slot) })).filter(x => x.d != null && x.d <= 2)
+  if (!apagadas.length && !perto.length) return null
+  const nomeDe = (slot: CareerSlot) => { const y = slot.save.managers?.[slot.save.youIdx ?? 0]; return y?.teamName ?? y?.name ?? t('sua carreira', 'your career') }
+  return <div className="ov3-surface" role="status" style={{ background: escuro ? '#FFE3DD' : '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 12px', margin: '0 0 10px', color: INK }}>
+    {apagadas.length > 0 && <p style={{ fontSize: 13, fontWeight: 800, margin: '0 0 6px', lineHeight: 1.4 }}>🗑️ {t(`Sem plano, carreira parada 5 dias é excluída. Saiu: ${apagadas.filter(Boolean).join(', ')}.`, `Without a plan, a career left 5 days is deleted. Removed: ${apagadas.filter(Boolean).join(', ')}.`)}</p>}
+    {perto.map(({ slot, d }) => <p key={String(slot.save.seed)} style={{ fontSize: 13, fontWeight: 800, margin: '0 0 6px', lineHeight: 1.4 }}>⏳ {d === 0
+      ? t(`${nomeDe(slot)} será excluída hoje se você não jogar.`, `${nomeDe(slot)} will be deleted today if you do not play.`)
+      : t(`${nomeDe(slot)} será excluída em ${d} ${d === 1 ? 'dia' : 'dias'} se você não jogar.`, `${nomeDe(slot)} will be deleted in ${d} ${d === 1 ? 'day' : 'days'} if you do not play.`)}</p>)}
+    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px' }}>{t('Com qualquer plano a carreira fica salva pra sempre.', 'With any plan your career stays saved forever.')}</p>
+    <button onClick={() => setPlanos(true)} style={{ width: '100%', background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px', fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{t('⭐ Ver planos', '⭐ See plans')}</button>
+    {planos && <JanelaNuvemPlanos onClose={() => setPlanos(false)} />}
+  </div>
 }
 
 // 🪜 MINHAS CARREIRAS — lista de todos os saves (ativa + arquivo). Começar uma nova
@@ -1911,6 +1935,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        <AvisoCarreiraGratis />
         {avisoTroca && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
         {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
         {list.map(({ slot, active }, i) => {
@@ -2660,6 +2685,7 @@ export function EscIntro() {
           </button>
         </div>
       )}
+      <AvisoCarreiraGratis />
       {solo && (
         <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <p className="font-black text-sm text-white leading-tight" style={OSWALD}>

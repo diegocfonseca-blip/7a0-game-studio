@@ -1,3 +1,12 @@
+## 🗑️ 18/11 — SEM PLANO: 1 CARREIRA SÓ E CARREIRA PARADA 5 DIAS É EXCLUÍDA (feito no branch, esperando OK do visual)
+- Regra do Diego (ver CLAUDE.md, 18/11). Código: `LIMPA_CARREIRA_GRATIS`/`limpaCarreirasGratis`/`useLimpezaCarreirasGratis`/
+  `diasParaExcluir`/`marcaCarreiraJogada` (store.tsx) · `careerSlotLimit` sem plano = 1 (+ fichas compradas), sem o "quem já tem fica" ·
+  `AvisoCarreiraGratis` na home e em Minhas Carreiras (screens.tsx) · abrir a carreira marca "jogou" (pyramidseason.tsx).
+- Só age quando o jogo SABE que não tem plano; espera o saldo de fichas extras do banco antes de limpar. Mockup:
+  `scripts/mockups/carreira-gratis-aviso-390.png`. Desligar = `LIMPA_CARREIRA_GRATIS = false`.
+- ⏭️ A nuvem só limpa quando a pessoa abre o jogo (não tem robô no banco pra quem nunca mais volta). ⏭️ Carreira online (sala) não entra
+  na conta de "1 carreira" — só os saves de carreira (solo e Brasil Oficial).
+
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)
 - Pra TODOS: link "ver fases e resultados" que desce até os resultados · pênaltis de fase encerrada prontos na lista · câmera do ônibus
   da aba Clube a 22 m no eixo da rua · cartas de clube europeu do Mundo → Europa (17/11) · "1 ponto"/"1 confronto" no singular.
