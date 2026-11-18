@@ -5739,6 +5739,7 @@ type Action =
   | { type: 'CAREER_ADVANCE'; keep: boolean; pago?: boolean } // 🔒 `pago`: a tela diz se a conta tem plano (carreira grátis vai até a 50)
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
+  | { type: 'DE_OLHO'; tec?: string | null; jog?: { chave: string; nome: string; clube: string; pos: string } | null } // 👀 Mercado (Brasil Oficial): marca/desmarca de olho (1 técnico + 1 jogador; trocar substitui)
   | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string; squad?: WonCard[] } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
   | { type: 'RENOVAR_TECNICO' } // 📝 contrato do técnico venceu (5 anos): +5 temporadas pagando o valor dele
   | { type: 'DISPENSAR_TECNICO' } // 📝 contrato venceu: deixa ir sem multa
@@ -7895,6 +7896,7 @@ function zeraCarreiraAnterior(s: EscState): void {
 }
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
+  s.deOlho = undefined // 👀 Mercado (18/11): o "de olho" é da carreira — nunca passa pra uma carreira nova
 }
 /** 🎽 a formação está no cardápio do técnico deste clube agora? A MESMA conta pra tela do A/B e pro reducer (23/10). */
 export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'careerFormacaoExtra' | 'onlineMode'>, m: Manager, f: FormationKey, v?: string): boolean {
@@ -11905,6 +11907,16 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!mudou) return s
       s.careerTecnicos = map
       s.careerTecnicosDesde = desde
+      return s
+    }
+    case 'DE_OLHO': {
+      // 👀 MERCADO (Brasil Oficial, 18/11, mockup `scripts/mockups/mercado-oficial.png`, *"ok pode fazer assim"*). Só GUARDA o alvo:
+      // nada muda no clube dele e nada é cobrado. Na janela, o Sondar converte em ALICIAR_MARCAR (as travas de verdade moram lá).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      const cur = { ...(s.deOlho ?? {}) }
+      if (action.tec !== undefined) cur.tec = action.tec && action.tec !== cur.tec ? action.tec : undefined
+      if (action.jog !== undefined) cur.jog = action.jog && action.jog.chave !== cur.jog?.chave ? action.jog : undefined
+      s.deOlho = cur.tec || cur.jog ? cur : undefined
       return s
     }
     case 'ALICIAR_MARCAR': {

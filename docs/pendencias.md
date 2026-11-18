@@ -13975,3 +13975,16 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   (shader na grama do `presidencia-complexo-entorno.ts`): manchas grandes, touceiras, florzinhas só de perto. Mapa NÃO diminuiu.
 - Antes × depois: `scripts/mockups/grama-textura.png`. **Não publicar na main sem o OK dele.**
 - ✅ Terminações (18/11, depois do *"pode fazer tudo aí"*): no clube só com o campinho de várzea, o caminho da torcida chega no campo, o dos visitantes liga na rua do estacionamento, a calçada transversal vai até a rua leste e a calçada da frente encosta nas ruas leste/oeste. Só DESENHO (rotas de quem anda iguais). Foto: `scripts/mockups/mapa-caminhos.png`. Publicado na main em 18/11 (commit 6f11e61). Reverter = `git revert 6f11e61 ce285f3`. Mockup da maquete (`clube-maquete`) foi RECUSADO: diminuiu o mapa.
+
+### 🛒 18/11 — Aba MERCADO na carreira Brasil Oficial (FEITA, só na conta do Diego, ainda no branch)
+- Mockup aprovado (2ª versão): `scripts/mockups/mercado-oficial.png` (*"ok pode fazer assim"*). Código: `MercadoAba` (pyramidseason.tsx),
+  ação `DE_OLHO` + campo `deOlho` (store/types). Gate: `state.oficial && usePreviaCentral()` (`mercadoOn`).
+- Clubes da SUA série na ordem da tabela (abre/fecha), busca, filtro de posição/técnico e "só quem fica livre / todos os contratos",
+  técnicos sem clube (4 + ver todos), transferências da temporada (`careerMercado`), seus contratos acabando (`contratoAte <= T`).
+- 📊 **Over aparece** (*"usuário craque vê over até craque e usuário lenda vê over até lendas"*): todo jogador que o olheiro alcança
+  (`sondarLiberado`) mostra a faixa lo–hi; quem está acima continua sem aparecer.
+- 👀 De olho na temporada → na janela (ReserveListScreen, roda DEPOIS do seasonNo++) o `AliciarSection` converte em `ALICIAR_MARCAR`
+  (travas de sempre) e apaga a marca. "Fica livre na janela" = `contratoCpuFalta(...) === 1` hoje; técnico = contrato `<= T`.
+- Cartão 💸 da Central: o link vira "mercado" e leva pra aba (com a aba ligada).
+- ⚠️ Falta conferir numa virada DE VERDADE que o "de olho" vira o sondado (não deu pra chegar no fim da temporada no teste).
+- Transferências de TÉCNICO não existem no registro (`careerMercado` só tem jogador) — o filtro de técnicos do mockup ficou de fora.

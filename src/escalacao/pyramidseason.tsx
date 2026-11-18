@@ -6629,6 +6629,220 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   )
 }
 
+// 🛒 ABA MERCADO (Brasil Oficial, 18/11 — mockup `scripts/mockups/mercado-oficial.png`, *"ok pode fazer assim"*). Pedido: *"uma aba
+// sobre mercado ou transferências… mantendo nosso padrão de sondar jogadores e técnicos"*. AS REGRAS DO SONDAR NÃO MUDAM (1 técnico +
+// 1 jogador por janela, só quem fica sem contrato, olheiro pela categoria, carta virada). O que a aba acrescenta: ficar DE OLHO
+// durante a temporada em quem fica livre no fim dela — na janela, o Sondar transforma isso no sondado (ver `deOlho` no AliciarSection).
+// A lista é a da SUA série de agora (subiu/caiu, muda junto), clube por clube na ordem da tabela, com busca e filtros.
+export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
+  const { state, dispatch } = useEsc()
+  const [busca, setBusca] = useState('')
+  const [posF, setPosF] = useState<Sector | 'TEC' | null>(null)
+  const [soLivres, setSoLivres] = useState(true)
+  const [aberto, setAberto] = useState<string | null>(null)
+  const [verTodasTransf, setVerTodasTransf] = useState(false)
+  const sn = state.seasonNo ?? 1
+  const olheiroTier = myApoioPerk()?.tier
+  const divAtual = (state.careerPlacements?.[`m${mgr.id}`] ?? state.careerDivision ?? 'D') as DivTec
+  const mundo = useMemo(
+    () => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial),
+    [state.managers, state.youIdx, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, state.oficial],
+  )
+  // os clubes da série — a MESMA conta do Sondar (bots da sua divisão + rivais escolhidos + times de fundo)
+  const clubes = useMemo(() => {
+    const pl = state.careerPlacements ?? {}
+    const fundoSquad = new Map((mundo[divAtual as Div] ?? []).filter(t => t.teamId < 0).map(t => [t.name, t.squad as unknown as WonCard[]]))
+    const rivaisTime = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
+    const out: { teamName: string; squad: WonCard[]; fundo?: boolean }[] = []
+    const vistos = new Set<string>()
+    for (const m of state.managers) {
+      if (m.isHuman) continue
+      const dm = pl[`m${m.id}`]
+      if (dm !== divAtual && !m.auctionOnly && !rivaisTime.has(newestTeamName(m.teamName))) continue
+      vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[] })
+    }
+    for (const [k, v] of Object.entries(pl)) {
+      if (v !== divAtual || /^m\d+$/.test(k)) continue
+      const nome = newestTeamName(k)
+      if (vistos.has(nome)) continue
+      vistos.add(nome); out.push({ teamName: nome, squad: fundoSquad.get(nome) ?? [], fundo: true })
+    }
+    const lugar = new Map(ordem.map((n, i) => [n, i]))
+    return out.sort((x, y) => (lugar.get(x.teamName) ?? 99) - (lugar.get(y.teamName) ?? 99) || x.teamName.localeCompare(y.teamName))
+  }, [state.managers, state.careerPlacements, state.careerRivals, divAtual, mundo, ordem])
+  useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, divAtual]) // 🧢 sorteia os técnicos da série (o mesmo do Sondar; idempotente, vai pro save)
+  const [verTecs, setVerTecs] = useState(false)
+  if (state.onlineMode === 'online') return null
+  const rivais = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
+  const lugar = new Map(ordem.map((n, i) => [n, i + 1]))
+  const tecMap = state.careerTecnicos ?? {}
+  const deOlho = state.deOlho ?? {}
+  const norm = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  const q = norm(busca.trim())
+  // 📝 contrato: a janela roda DEPOIS do seasonNo++ (store, virada), então "fica livre na janela" = falta 1 hoje
+  const contratoJog = (id: string) => { const f = contratoCpuFalta(id, state.seed, sn); return { livre: f === 1, ate: f === 0 ? sn + 4 : sn + f - 1 } }
+  const contratoTec = (clube: string) => { const fim = state.careerTecnicoContrato?.[clube]; return { livre: fim == null || fim <= sn, ate: fim ?? sn } }
+  let escondidos = 0
+  type Jog = { card: WonCard; livre: boolean; ate: number; chave: string }
+  const blocos = clubes.map(c => {
+    const jogs: Jog[] = []
+    for (const x of c.squad) {
+      if (ehFake(x) || x.cria || x.emprestado) continue
+      if (!sondarLiberado(x, olheiroTier)) { escondidos++; continue }
+      const k = contratoJog(x.id)
+      jogs.push({ card: x, ...k, chave: `${x.name}|${x.club}|${x.year}` })
+    }
+    jogs.sort((a, b) => Number(b.livre) - Number(a.livre) || SECTORS.indexOf(a.card.pos) - SECTORS.indexOf(b.card.pos))
+    const tecNome = tecMap[c.teamName] ?? null
+    const tec = tecNome ? { nome: tecNome, ...contratoTec(c.teamName) } : null
+    return { ...c, jogs, tec }
+  })
+  const passa = (nome: string, pos: Sector | 'TEC', livre: boolean) => (!soLivres || livre) && (!posF || posF === pos) && (!q || norm(nome).includes(q))
+  const usados = new Set(Object.values(tecMap).filter(Boolean))
+  const tecLivres = poolDaDiv(divAtual).filter(t => !usados.has(t.nome))
+  const divRot = divAtual === 'V' ? 'Várzea' : `${tr('Série', 'Serie')} ${divAtual}`
+  const lotes = state.careerMercado?.season === sn ? state.careerMercado.lotes : []
+  const transf = [...lotes].sort((a, b) => b.paid - a.paid)
+  const meusAcabando = (mgr.squad as WonCard[]).filter(c => !c.cria && c.contratoAte != null && c.contratoAte <= sn).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos))
+  const olheiroNome = olheiroTier === 'ouro' ? tr('👑 Olheiro Lenda', '👑 Legend Scout') : olheiroTier === 'prata' ? tr('⭐ Olheiro Craque', '⭐ Star Scout') : tr('🕵️ Olheiro básico', '🕵️ Basic scout')
+  const caixa: React.CSSProperties = { background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: '4px 4px 0 #000', padding: '12px 12px 8px', marginBottom: 14 }
+  const titulo = (t: string) => <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', margin: 0 }}>{t}</p>
+  const sub = (t: React.ReactNode) => <p style={{ fontSize: 12, fontWeight: 600, color: '#4a4536', margin: '2px 0 10px', lineHeight: 1.4 }}>{t}</p>
+  const pil = (on: boolean, rot: string, onClick: () => void) => (
+    <button key={rot} type="button" onClick={onClick} style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, background: on ? INK : '#fff', color: on ? '#fff' : INK, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>{rot}</button>
+  )
+  const virada = (pos: string) => (
+    <span style={{ flex: 'none', width: 34, height: 46, border: `2.5px solid ${INK}`, borderRadius: 7, background: `repeating-linear-gradient(45deg, ${GOLD} 0 5px, #f2b400 5px 10px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 10, lineHeight: 1 }}>
+      <span style={{ fontSize: 15 }}>?</span>{pos}
+    </span>
+  )
+  const bone = <span style={{ flex: 'none', width: 34, height: 46, border: `2.5px solid ${INK}`, borderRadius: 7, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🧢</span>
+  const botao = (on: boolean, onClick: () => void) => (
+    <button type="button" onClick={onClick} style={{ flex: 'none', ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', border: `2.5px solid ${on ? GREEN : INK}`, background: on ? GREEN : GOLD, color: on ? '#fff' : INK, borderRadius: 10, padding: '5px 8px', boxShadow: '2px 2px 0 #000', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+      {on ? tr('✔ De olho', '✔ Watching') : tr('👀 De olho', '👀 Watch')}
+    </button>
+  )
+  const linha = (key: string, icone: React.ReactNode, nome: string, info: React.ReactNode, livre: boolean, on: boolean, acao: React.ReactNode) => (
+    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, background: on ? '#E6F3EA' : livre ? '#fff' : '#efe9d8', border: `2.5px solid ${on ? GREEN : INK}`, borderRadius: 11, padding: '5px 8px', marginBottom: 6, opacity: livre || on ? 1 : .72 }}>
+      {icone}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ ...OSWALD, fontWeight: 800, fontSize: 14.5, textTransform: 'uppercase', margin: 0, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</p>
+        <p style={{ fontSize: 11, fontWeight: 700, color: livre ? '#C2452F' : '#6b6553', margin: '2px 0 0' }}>{info}</p>
+      </div>
+      {acao}
+    </div>
+  )
+  const cadeado = (ate: number) => <span style={{ flex: 'none', ...OSWALD, fontWeight: 800, fontSize: 10.5, color: '#6b6553' }}>🔒 T{ate}</span>
+  const ficaLivre = tr(`⏳ fica livre no fim da T${sn}`, `⏳ free at the end of S${sn}`)
+  const ate = (t: number) => tr(`contrato até a T${t}`, `contract until S${t}`)
+  const vaga = (ic: string, rot: string, txt: string | null) => (
+    <div style={{ flex: 1, minWidth: 0, border: `3px ${txt ? 'solid' : 'dashed'} ${txt ? GREEN : INK}`, background: txt ? '#E6F3EA' : 'rgba(255,255,255,.6)', borderRadius: 13, padding: '8px 9px' }}>
+      <p style={{ ...OSWALD, fontWeight: 800, fontSize: 11, letterSpacing: '.06em', color: '#5a5647', margin: 0 }}>{ic} {rot}</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', margin: '3px 0 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{txt ? `✔ ${txt}` : tr('escolha 1 abaixo', 'pick 1 below')}</p>
+    </div>
+  )
+  const filtrando = !!q || !!posF
+  return (
+    <div className="ll-mercado" style={{ paddingBottom: 8 }}>
+      <p style={{ fontSize: 12.5, fontWeight: 600, margin: '0 0 12px', lineHeight: 1.5, color: '#d9d0b8' }}>
+        {tr('A janela abre depois da última rodada', 'The window opens after the last round')} · <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, border: '2px solid #d9d0b8', borderRadius: 999, padding: '1px 8px', whiteSpace: 'nowrap' }}>{olheiroNome}</span>
+      </p>
+      <div className="ll-mercado-grade">
+      <div style={caixa}>
+        {titulo(tr('🕵️ Sondar · 1 técnico + 1 jogador', '🕵️ Scout · 1 coach + 1 player'))}
+        {sub(<>{tr('Fique ', 'Keep ')}<b>{tr('de olho', 'an eye')}</b>{tr(' durante a temporada em quem tem contrato acabando. Na janela, ele vira o seu ', ' during the season on whoever’s contract is ending. In the window he becomes your ')}<b>{tr('sondado', 'scouting target')}</b>{tr(' e vai pro pregão, igual sempre. Dá pra trocar até lá.', ' and goes to the auction, as always. You can change until then.')}</>)}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          {vaga('🧢', tr('TÉCNICO', 'COACH'), deOlho.tec ?? null)}
+          {vaga('⚽', tr('JOGADOR', 'PLAYER'), deOlho.jog ? deOlho.jog.nome : null)}
+        </div>
+        <input value={busca} onChange={e => setBusca(e.target.value)} placeholder={tr('🔎 Buscar jogador ou técnico…', '🔎 Search player or coach…')}
+          style={{ width: '100%', boxSizing: 'border-box', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', fontSize: 14, fontWeight: 600, marginBottom: 8, background: '#fff' }} />
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 6 }}>
+          {pil(!posF, tr('TODOS', 'ALL'), () => setPosF(null))}
+          {SECTORS.map(p => pil(posF === p, p, () => setPosF(posF === p ? null : p)))}
+          {pil(posF === 'TEC', tr('🧢 TÉC', '🧢 COACH'), () => setPosF(posF === 'TEC' ? null : 'TEC'))}
+        </div>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 11 }}>
+          {pil(soLivres, tr('⏳ SÓ QUEM FICA LIVRE', '⏳ ONLY WHO GETS FREE'), () => setSoLivres(true))}
+          {pil(!soLivres, tr('TODOS OS CONTRATOS', 'ALL CONTRACTS'), () => setSoLivres(false))}
+        </div>
+        <p style={{ ...OSWALD, fontWeight: 800, fontSize: 11.5, letterSpacing: '.08em', color: '#5a5647', margin: '0 0 7px', textTransform: 'uppercase' }}>{divRot} · {clubes.length} {tr('clubes · na ordem da tabela', 'clubs · table order')}</p>
+        {blocos.map(c => {
+          const js = c.jogs.filter(j => passa(j.card.name, j.card.pos, j.livre))
+          const tecOk = c.tec && passa(c.tec.nome, 'TEC', c.tec.livre)
+          if (filtrando && !js.length && !tecOk) return null
+          const nLivres = c.jogs.filter(j => j.livre).length
+          const resumo = [
+            nLivres ? tr(`${nLivres} jogador${nLivres > 1 ? 'es ficam' : ' fica'} livre${nLivres > 1 ? 's' : ''}`, `${nLivres} player${nLivres > 1 ? 's get' : ' gets'} free`) : tr('nenhum jogador fica livre', 'no player gets free'),
+            c.tec ? (c.tec.livre ? tr('técnico fica livre', 'coach gets free') : tr(`técnico com contrato até a T${c.tec.ate}`, `coach signed until S${c.tec.ate}`)) : '',
+            c.fundo && !c.squad.length ? tr('elenco não aparece (time de fundo)', 'squad not shown') : '',
+          ].filter(Boolean).join(' · ')
+          const open = aberto === c.teamName || filtrando
+          return (
+            <div key={c.teamName} style={{ border: `3px solid ${INK}`, borderRadius: 14, background: '#fff', marginBottom: 8, boxShadow: '2px 2px 0 #000', overflow: 'hidden' }}>
+              <button type="button" onClick={() => setAberto(aberto === c.teamName ? null : c.teamName)} style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 10px', background: open ? '#FFF6D6' : '#fff', border: 'none', borderBottom: open ? `2px solid ${INK}` : 'none', cursor: 'pointer', textAlign: 'left', color: INK }}>
+                <span style={{ ...OSWALD, fontWeight: 800, fontSize: 12, color: '#6b6553', width: 24, flex: 'none' }}>{lugar.get(c.teamName) ? `${lugar.get(c.teamName)}º` : ''}</span>
+                <Escudo nome={c.teamName} size={28} />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', lineHeight: 1.1 }}>{nomeLimpo(c.teamName) || c.teamName}{rivais.has(newestTeamName(c.teamName)) && <span style={{ fontSize: 10, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '0 5px', marginLeft: 6, verticalAlign: 2 }}>RIVAL</span>}</span>
+                  <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#5a5647', marginTop: 1 }}>{resumo}</span>
+                </span>
+                <span style={{ ...OSWALD, fontSize: 15, flex: 'none' }}>{open ? '▲' : '▼'}</span>
+              </button>
+              {open && (
+                <div style={{ padding: '8px 8px 2px' }}>
+                  {js.map(j => {
+                    const on = deOlho.jog?.chave === j.chave
+                    return linha(`j:${j.chave}`, virada(j.card.pos), j.card.name, <><b style={{ color: INK }}>over {j.card.lo}–{j.card.hi}</b> · {j.livre ? ficaLivre : ate(j.ate)}</>, j.livre, on,
+                      j.livre || on ? botao(on, () => dispatch({ type: 'DE_OLHO', jog: { chave: j.chave, nome: j.card.name, clube: c.teamName, pos: j.card.pos } })) : cadeado(j.ate))
+                  })}
+                  {tecOk && c.tec && linha(`t:${c.tec.nome}`, bone, c.tec.nome, c.tec.livre ? ficaLivre : ate(c.tec.ate), c.tec.livre, deOlho.tec === c.tec.nome,
+                    c.tec.livre || deOlho.tec === c.tec.nome ? botao(deOlho.tec === c.tec.nome, () => dispatch({ type: 'DE_OLHO', tec: c.tec!.nome })) : cadeado(c.tec.ate))}
+                  {!js.length && !tecOk && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#6b6553', margin: '2px 0 8px' }}>{soLivres ? tr('Ninguém daqui fica livre nesta temporada.', 'Nobody here gets free this season.') : tr('Ninguém pra mostrar.', 'Nobody to show.')}</p>}
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {(!posF || posF === 'TEC') && (() => {
+          const ls = tecLivres.filter(t => !q || norm(t.nome).includes(q))
+          if (!ls.length) return null
+          return (
+            <div style={{ border: `3px dashed ${INK}`, borderRadius: 14, padding: '8px 10px', margin: '4px 0 8px', background: 'rgba(255,255,255,.6)' }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', margin: '0 0 6px' }}>🆓 {tr('Técnicos sem clube', 'Free coaches')} · {ls.length}</p>
+              {(verTecs || q ? ls : ls.slice(0, 4)).map(t => linha(`l:${t.nome}`, bone, t.nome, <>{t.pais} {tr('sem clube · livre já', 'no club · free now')}</>, true, deOlho.tec === t.nome, botao(deOlho.tec === t.nome, () => dispatch({ type: 'DE_OLHO', tec: t.nome }))))}
+              {!q && ls.length > 4 && <button type="button" onClick={() => setVerTecs(v => !v)} style={{ width: '100%', ...OSWALD, fontWeight: 800, fontSize: 12, textTransform: 'uppercase', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', margin: '0 0 4px' }}>{verTecs ? tr('ver menos', 'show less') : tr(`ver todos (${ls.length})`, `show all (${ls.length})`)}</button>}
+            </div>
+          )
+        })()}
+        {escondidos > 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '6px 0 4px', lineHeight: 1.4 }}>🔒 {tr(`Mais ${escondidos} jogador${escondidos > 1 ? 'es estão' : ' está'} acima do seu olheiro.`, `${escondidos} more player${escondidos > 1 ? 's are' : ' is'} above your scout.`)} {olheiroTier === 'ouro' ? '' : olheiroTier === 'prata' ? tr('👑 Olheiro Lenda acha lendas.', '👑 Legend Scout finds legends.') : tr('⭐ Olheiro Craque acha craques; 👑 Olheiro Lenda acha lendas.', '⭐ Star Scout finds stars; 👑 Legend Scout finds legends.')}</p>}
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#6b6553', margin: '0 0 4px', lineHeight: 1.4 }}>{tr('O over aparece até onde o seu olheiro alcança (básico: profissional, bom e promessa · ⭐ Craque: até craque · 👑 Lenda: até lenda). Se o clube renovar com ele antes da janela, ele não vem.', 'The rating shows as far as your scout reaches (basic: pro, good and prospect · ⭐ Star: up to stars · 👑 Legend: up to legends). If the club renews him before the window, he doesn’t come.')}</p>
+      </div>
+      <div>
+        <div style={caixa}>
+          {titulo(tr('📰 Transferências', '📰 Transfers'))}
+          {sub(tr(`Quem foi pra onde nos leilões da T${sn}.`, `Who went where in the S${sn} auctions.`))}
+          {!transf.length && <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6553', margin: '0 0 8px' }}>{tr('Nenhum negócio anotado nesta temporada ainda.', 'No deals recorded this season yet.')}</p>}
+          {(verTodasTransf ? transf : transf.slice(0, 8)).map((l, i) => {
+            const voce = l.teamId === mgr.id
+            return linha(`tr:${i}`, <span style={{ fontSize: 20, flex: 'none' }}>{l.via === 'monte' ? '🃏' : '🔨'}</span>, l.name,
+              <span style={{ color: '#4a4536' }}>{l.pos} · → <b>{nomeLimpo(l.team) || l.team}{voce ? tr(' (você)', ' (you)') : ''}</b> · {l.paid} 🪙</span>, false, voce, null)
+          })}
+          {transf.length > 8 && <button type="button" onClick={() => setVerTodasTransf(v => !v)} style={{ width: '100%', ...OSWALD, fontWeight: 800, fontSize: 12, textTransform: 'uppercase', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', margin: '0 0 6px' }}>{verTodasTransf ? tr('ver menos', 'show less') : tr(`ver todos (${transf.length})`, `show all (${transf.length})`)}</button>}
+        </div>
+        <div style={caixa}>
+          {titulo(tr('📋 Seus contratos acabando', '📋 Your expiring contracts'))}
+          {sub(tr('Quem do SEU elenco fica livre no fim da temporada. Renovar ou deixar ir continua na janela, como sempre.', 'Who in YOUR squad gets free at the end of the season. Renew or let go in the window, as always.'))}
+          {!meusAcabando.length && <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6553', margin: '0 0 8px' }}>{tr('Ninguém do seu elenco fica livre nesta temporada.', 'Nobody in your squad gets free this season.')}</p>}
+          {meusAcabando.map(c => linha(`m:${c.id}`, <span style={{ flex: 'none', width: 34, height: 46, border: `2.5px solid ${INK}`, borderRadius: 7, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{c.pos}</span>,
+            c.name, tr(`acaba na T${c.contratoAte} · renovar na janela`, `ends in S${c.contratoAte} · renew in the window`), true, false, null))}
+        </div>
+      </div>
+      </div>
+    </div>
+  )
+}
+
 // 🔬 exportado só pra bancada de conferência (`scripts/teste-sondar/`)
 export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () => void }) {
   const { state, dispatch } = useEsc()
@@ -6744,6 +6958,23 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   const jogLivres = jogs.filter(j => j.falta <= 0).length
   const nomeTecMarcado = marcadosT[0] ?? null
   const jogMarcado = jogs.find(j => marcadosJ.includes(j.card.id)) ?? null
+  // 👀 MERCADO (Brasil Oficial, 18/11): quem o técnico deixou DE OLHO durante a temporada chega aqui como o sondado — passando pelo
+  // MESMO ALICIAR_MARCAR (contrato, olheiro e teto de 1+1 continuam valendo lá). Quem não deu (renovou, saiu da série, olheiro não
+  // alcança) simplesmente não vira sondado. Roda uma vez e apaga a marca.
+  const deOlho = state.deOlho
+  useEffect(() => {
+    if (!deOlho) return
+    if (deOlho.tec && !marcadosT.length) {
+      const t = tecs.find(x => x.nome === deOlho.tec && x.falta <= 0)
+      if (t) dispatch({ type: 'ALICIAR_MARCAR', tec: t.nome })
+    }
+    if (deOlho.jog && !marcadosJ.length) {
+      const j = jogs.find(x => `${x.card.name}|${x.card.club}|${x.card.year}` === deOlho.jog!.chave && x.falta <= 0 && sondarLiberado(x.card, olheiroTier))
+      if (j) dispatch({ type: 'ALICIAR_MARCAR', cardId: j.card.id, ...(j.clube.fundo ? { card: j.card, clube: j.clube.teamName, squad: j.clube.squad } : {}) })
+    }
+    dispatch({ type: 'DE_OLHO', tec: null, jog: null })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deOlho])
   const fecha = (e?: { stopPropagation(): void }) => { e?.stopPropagation(); setPasso('inicio'); window.scrollTo({ top: 0 }) }
   const pilula = (on: boolean, rotulo: string, onClick: () => void) => (
     <button key={rotulo} onClick={onClick} style={{ fontSize: 10.5, fontWeight: 900, border: `2px solid ${INK}`, borderRadius: 999, padding: '3px 10px', background: on ? INK : '#fff', color: on ? '#fff' : INK, cursor: 'pointer' }}>{rotulo}</button>
@@ -8912,7 +9143,7 @@ function SocioBaraoBanner() {
 // com o conteúdo e sumiam (quem estava no fim do Elenco tinha que rolar tudo
 // de volta pra ver os Jogos).
 // 🔒 Por enquanto só na conta do Diego (`useBarraCarreira`), pra ele ver antes.
-type AbaCarr = 'central' | 'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'
+type AbaCarr = 'central' | 'jogos' | 'tabelas' | 'elenco' | 'mercado' | 'ranking' | 'estadio'
 // ícones desenhados (duotone) — mesmo traço da barra da home, 0 KB de imagem
 function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
   const fill = cor === '#7C3AED' ? 'rgba(124,58,237,.22)' : cor === '#FFC400' ? 'rgba(255,196,0,.25)' : 'rgba(12,12,12,.10)'
@@ -8923,22 +9154,25 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
       {nome === 'jogos' && <><rect x={3.5} y={5} width={17} height={15.5} rx={2.4} {...p} fill={fill} /><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" {...p} /><circle cx={12} cy={15} r={2.4} {...p} /></>}
       {nome === 'tabelas' && <><rect x={3.5} y={4} width={17} height={16} rx={2.4} {...p} fill={fill} /><path d="M3.5 9h17M3.5 14.5h17M9 4v16" {...p} /></>}
       {nome === 'elenco' && <><path d="M12 3.5l7 2.6v5.3c0 4.3-3 7.6-7 9.1-4-1.5-7-4.8-7-9.1V6.1z" {...p} fill={fill} /><path d="M9.2 12.3l1.9 1.9 3.7-3.9" {...p} /></>}
+      {nome === 'mercado' && <><path d="M3.5 5h2.6l2.2 10.2h10.2l2-7.4H7.2" {...p} fill={fill} /><circle cx={10} cy={19} r={1.6} {...p} /><circle cx={17} cy={19} r={1.6} {...p} /></>}
       {nome === 'ranking' && <><path d="M7 3.5h10v5.2a5 5 0 0 1-10 0z" {...p} fill={fill} /><path d="M7 5.2H4.3v1.6A3.2 3.2 0 0 0 7 9.9M17 5.2h2.7v1.6A3.2 3.2 0 0 1 17 9.9M12 13.7v3.1M8.6 20.5h6.8" {...p} /></>}
       {nome === 'estadio' && <><path d="M4 20.5V10l8-5.5 8 5.5v10.5z" {...p} fill={fill} /><path d="M8.5 20.5v-4.6h7v4.6M8.5 12.4h7" {...p} /></>}
     </svg>
   )
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
-const ABAS_CARR_EN: Record<AbaCarr, string> = { central: 'Central', jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
+const ABAS_CARR_EN: Record<AbaCarr, string> = { central: 'Central', jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', mercado: 'Market', ranking: 'Rank', estadio: 'Club' }
 // 🧭 27/10 (Diego, depois de olhar o Brasileirinho: *"abas em cima e melhoradas pois acho tão apagadas, e também do móvel as
 // abas de baixo melhoradas… além da logo Leilão Legends no PC lá no header"*). Mockup aprovado: scripts/mockups/abas-carreira-*.png.
 // CELULAR: a barra continua EMBAIXO, mas com ícone e nome em preto de verdade (antes cinza 45%), letra maior, e a aba aberta vira
 // um botão preto com o ícone dourado. COMPUTADOR (carreira nova, ≥1024px): a MESMA barra mora em cima (já era assim desde a
 // carreira desktop) — agora com a logo, o cartão do clube e as abas como botões do jogo. O visual mora em `career-abas.css`.
 // ⚠️ Regra dele no mesmo dia: UMA coisa só em cada aba — esta barra só troca de aba, nunca junta pedaços de abas diferentes.
-function BarraCarreira({ tab, setTab, ponto, pontoClube, combined=false, central=false, contagem, aoVivo=false, clube }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor?: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; aoVivo?: boolean; contagem?: Partial<Record<AbaCarr, number>>; clube?: { nome: string; sub: string } }) {
+function BarraCarreira({ tab, setTab, ponto, pontoClube, combined=false, central=false, mercado=false, contagem, aoVivo=false, clube }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; mercado?: boolean; cor?: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean; aoVivo?: boolean; contagem?: Partial<Record<AbaCarr, number>>; clube?: { nome: string; sub: string } }) {
   // 📺 a Central entra na FRENTE da barra, só pra quem tem (03/10)
-  const abas: [AbaCarr, string][] = central ? [['central', 'Central'], ...ABAS_CARR] : ABAS_CARR
+  const abas0: [AbaCarr, string][] = central ? [['central', 'Central'], ...ABAS_CARR] : ABAS_CARR
+  // 🛒 18/11: a aba Mercado entra depois do Elenco (Brasil Oficial, só na conta do Diego por enquanto)
+  const abas: [AbaCarr, string][] = mercado ? abas0.flatMap(a => a[0] === 'elenco' ? [a, ['mercado', 'Mercado'] as [AbaCarr, string]] : [a]) : abas0
   return (
     <>
       {/* 🔊 o botão de som mora no canto de baixo — sobe pra não brigar com a barra
@@ -9963,6 +10197,7 @@ export function PyramidSeasonScreen() {
   const cbUnlocked = useCopaBrasilLiberada()
   // 🗑️ 18/11: abrir/jogar a carreira conta como "jogou" na regra dos 5 dias de quem não tem plano (o save pode estar travado)
   useEffect(() => { if (state.onlineMode !== 'online') marcaCarreiraJogada(state.seed) }, [state.seed, state.seasonNo, round, state.onlineMode])
+  const mercadoOn = !!state.oficial && usePreviaCentral() && state.onlineMode !== 'online' // 🛒 aba Mercado (18/11): Brasil Oficial, só na conta do Diego
   const novaCentral = usePreviaCentral() // 📺 18/11: a Central nova (Próximos jogos, Antes da estreia, TV depois do 1º jogo…) só na conta do Diego
   const previa = usePreviaDiego() // 👀 18/11: novidades de 17/11 só na conta do Diego (ônibus em jogo grande, cena do bairro, linha a mais dos dias)
   // 🇧🇷 17/11: de 2027 em diante a Copa do Brasil do modo sai das vagas de 2026 (cota por estado + campeões da C/D do ano anterior).
@@ -12740,7 +12975,7 @@ export function PyramidSeasonScreen() {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
       } : null}
-      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} agendaVelha={novaCentral ? null : agendaVelha} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
+      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} onMercado={mercadoOn ? () => escolheAba('mercado') : undefined} agenda={agenda} agendaVelha={novaCentral ? null : agendaVelha} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
       rankGlobal={null /* 26/10 (Diego: *"tire o rank global da central, deixe na aba do rank"*) */}
       copaChave={copaChaveCentral} copaArtilheiros={copaArtCentral} fotoLendas={fotoLendas}
       semana={calOn && calFase === 'dias' ? calBarra?.proxCard : undefined} raioX={compProximo || compPalco || estreiaEstadual ? null : raioX} />
@@ -12986,7 +13221,7 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira clube={privateCareer && me ? { nome: state.managers[state.youIdx]?.teamName ?? me.team, sub: [`T${state.seasonNo ?? 1}`, DIV_NAME[me.div], !done && round > 0 ? `${me.pos}º ${tr('lugar', 'place')}` : '', done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`].filter(Boolean).join(' · ') } : undefined} tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} contagem={contagemAbas} combined={jogoTabela} aoVivo={jogoTabela && (calFase === 'jogo' || calFase === 'copa') && !done} />}
+      {barraOn && <BarraCarreira clube={privateCareer && me ? { nome: state.managers[state.youIdx]?.teamName ?? me.team, sub: [`T${state.seasonNo ?? 1}`, DIV_NAME[me.div], !done && round > 0 ? `${me.pos}º ${tr('lugar', 'place')}` : '', done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`].filter(Boolean).join(' · ') } : undefined} tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} mercado={mercadoOn} contagem={contagemAbas} combined={jogoTabela} aoVivo={jogoTabela && (calFase === 'jogo' || calFase === 'copa') && !done} />}
       {desfechoOn && desfecho && (
         <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
@@ -13057,13 +13292,13 @@ export function PyramidSeasonScreen() {
         {/* 18/11: a dica "Seu primeiro jogo, sem complicação" saiu da Central nova — a lista "Antes da estreia" faz esse papel */}
         {!novaCentral && visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
         {visualV2 && tab === 'jogos' && !done && round > 0 && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
-        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
+        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
         <div className="ll-cx-lado">
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
             (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
             recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
-        <div style={tab === 'central' || (tab === 'estadio' && presidentAvailable) ? { display: 'none' } : undefined}>
+        <div style={tab === 'central' || tab === 'mercado' || (tab === 'estadio' && presidentAvailable) ? { display: 'none' } : undefined}>
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
             saber qual é qual só de olhar), verde escuro na Copa Legends (quem
@@ -14085,7 +14320,7 @@ export function PyramidSeasonScreen() {
           ))}
         </div>
 
-        {tab === 'central' && centralOn ? renderCentral() : tab === 'estadio' ? (
+        {tab === 'central' && centralOn ? renderCentral() : tab === 'mercado' && mercadoOn && me ? <MercadoAba mgr={state.managers[state.youIdx]} ordem={(me ? tables[me.div] ?? [] : []).map(t => t.name)} /> : tab === 'estadio' ? (
           <>
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
                 Agora tudo (Estádio · Finanças · Agência) vale online também,

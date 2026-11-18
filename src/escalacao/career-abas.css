@@ -42,3 +42,8 @@
   .ll29-career .ll-career-navigation .ll-aba { flex: 1; justify-content: center; padding: 7px 6px; }
   .ll29-career .ll-aba-n { font-size: 13.5px; }
 }
+
+/* 🛒 aba Mercado (Brasil Oficial, 18/11): no computador, Sondar à esquerda e Transferências + Seus contratos à direita */
+@media (min-width: 1024px) {
+  .ll-mercado-grade { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+}

@@ -1304,6 +1304,10 @@ export interface EscState {
   // Ninguém cobriu? O alvo FICA onde está. Técnico por NOME, jogador por cardId.
   aliciarTecnicos?: string[]
   aliciarJogadores?: string[]
+  /** 👀 MERCADO (Brasil Oficial, 18/11): de olho DURANTE a temporada em quem fica livre no fim dela. Na janela, a tela do Sondar
+   *  transforma isso no sondado de verdade (ALICIAR_MARCAR, com as travas de sempre) e apaga. Jogador vai pela chave da carta
+   *  (nome|clube|ano) — o cardId não serve de chave porque muda. */
+  deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }
   // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é idêntico ao
   // leilão normal, só vem antes do goleiro; é como uma posição nova apenas"):
   // quando você alicia um técnico, ele vira este lote e o pregão REAL abre com
