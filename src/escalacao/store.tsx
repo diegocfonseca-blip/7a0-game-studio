@@ -2029,6 +2029,164 @@ export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: bool
     case 'A': return !c.promessa && f >= 4
   }
 }
+/** 🧢 semeia/atualiza o mercado de técnicos da SUA série (era o corpo do ALICIAR_SEED). Desde 18/11 o Brasil Oficial chama isto
+ *  sozinho na virada (item (d)): o mercado de técnicos anda mesmo que ninguém abra o Sondar. */
+function semeiaTecnicos(s: EscState): void {
+  // dá um técnico a cada clube CPU da sua divisão que ainda não tem, tirando
+  // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
+  // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
+  if (!s.careerOnline) return
+  // 🐛 FIX 28/08 (Diego: "meu amigo já está na SÉRIE A e apareceu Lisca Doido,
+  // Joel Santana, Guto Ferreira — técnico de VÁRZEA"): eu usava
+  // `s.careerDivision`, que na PIRÂMIDE fica congelado na divisão de FUNDAÇÃO
+  // (quem começou na Várzea segue 'V' pra sempre). A divisão de VERDADE mora
+  // em `careerPlacements['m<id>']` e muda a cada acesso/queda — o próprio
+  // store já avisava isso em myCareerDiv ("NUNCA cair em careerDivision").
+  // Agora o pool de técnicos segue a divisão ATUAL: subiu de série, o mercado
+  // de técnicos sobe junto, igual acontece com as cartas de jogador.
+  const youIdSeed = s.managers[s.youIdx]?.id ?? s.youIdx
+  const div = ((s.careerPlacements?.[`m${youIdSeed}`] ?? s.careerDivision ?? 'D') as DivTecnico)
+  const map = { ...(s.careerTecnicos ?? {}) }
+  // 🩹 CURA de quem já foi semeado com a divisão errada: técnico que não é da
+  // divisão de agora volta pro pool e o clube pega um da categoria certa.
+  // Só nos clubes de CPU, e o `desde` é remarcado — placar já visto não muda.
+  const desdeCura = { ...(s.careerTecnicosDesde ?? {}) }
+  let curou = false
+  // cura TODO clube já semeado (manager ou time de fundo), não só os managers
+  for (const nomeClube of Object.keys(map)) {
+    const n = map[nomeClube]
+    if (!n) continue
+    const tt = tecnicoPorNome(n)
+    if (tt && tt.div !== div) { delete map[nomeClube]; curou = true }
+  }
+  // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
+  // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
+  // mesmos times... o certo deveria sempre ter ali os rivais + trocar pelos times
+  // da divisão atual o restante"*. Na pirâmide os seus 19 bots se ESPALHAM pelas
+  // séries (no save dele, na T15, só 3 estavam na C junto com ele) — os outros 16
+  // adversários da Série C são TIMES DE FUNDO, que moram só em `careerPlacements`
+  // (chave = nome do clube; manager usa `m<id>`). Eles nunca tinham técnico, então
+  // nem apareciam no Sondar. Agora entram: rivais escolhidos SEMPRE, mais todo
+  // mundo (manager ou fundo) que está na sua divisão agora.
+  const naMinhaDiv = new Set<string>()
+  for (const [k, v] of Object.entries(s.careerPlacements ?? {})) if (v === div && !/^m\d+$/.test(k)) naMinhaDiv.add(newestTeamName(k))
+  const rivaisTime = new Set((s.careerRivals ?? []).map(r => newestTeamName(r.team)))
+  for (const m of s.managers) {
+    if (m.isHuman) continue
+    const dm = s.careerPlacements?.[`m${m.id}`]
+    if (dm === div || m.auctionOnly || rivaisTime.has(newestTeamName(m.teamName))) naMinhaDiv.add(m.teamName)
+  }
+  // 🔓 TÉCNICO DE CLUBE QUE SAIU DA MINHA DIVISÃO VOLTA PRO MERCADO (09/10, save do
+  // Elton — Série A, temporada 387). O relato: *"todos os times, quando ele vai
+  // sondar, estão sem técnico… e não aparece ninguém sem clube"*. O que tinha
+  // acontecido: o pool da Série A tem 22 nomes; a cada temporada um clube CAÍA pra B
+  // levando o técnico junto, e nada devolvia o técnico — ele sumia do mercado pra
+  // sempre. Em 387 temporadas os 22 estavam presos em clubes da C, da D e da Várzea,
+  // o clube que subia pra A ganhava `null` e o Sondar virava deserto. Agora: clube que
+  // não está na minha divisão (nem é rival/convidado do meu leilão, nem gente) solta o
+  // técnico; chave `null` de clube que foi embora é limpa junto. Placar já visto não
+  // muda: técnico só pesa em rodada ainda não jogada (`desdeR`).
+  const desde = { ...(s.careerTecnicosDesde ?? {}) }
+  const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
+  const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.teamName))
+  let soltou = false
+  for (const nomeClube of Object.keys(map)) {
+    if (gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
+    delete map[nomeClube]; delete desde[nomeClube]; delete ctAll[nomeClube]; soltou = true
+  }
+  const usados = new Set(Object.values(map).filter((x): x is string => !!x))
+  const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
+  const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
+  for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
+  const clubes = [...naMinhaDiv].sort()
+  let mudou = soltou
+  // clube sem técnico (chave nova OU `null` de quando o mercado estava vazio) pega um
+  // livre, se houver; se não houver ninguém livre, fica `null` como antes
+  for (const c of clubes) {
+    if (map[c]) continue
+    const n = livres.shift() ?? null
+    if (!n && c in map) continue
+    map[c] = n; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true
+  }
+  if (curou) {
+    // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
+    const ctCura = { ...(s.careerTecnicoContrato ?? {}) }
+    for (const m of s.managers) if (!m.isHuman && map[m.teamName] && desdeCura[m.teamName]) delete ctCura[m.teamName]
+    s.careerTecnicoContrato = ctCura
+    mudou = true
+  }
+  // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
+  // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
+  for (const c of clubes) {
+    const n = map[c]
+    if (!n || ctAll[c] != null) continue
+    let h = 0
+    for (const ch of n + c) h = (h * 31 + ch.charCodeAt(0)) | 0
+    ctAll[c] = s.seasonNo + ((h >>> 0) % 5) - 1 // -1..+3: alguns já vencidos, resto escalonado
+    mudou = true
+  }
+  s.careerTecnicoContrato = ctAll
+  // 🤖 VIDA DOS BOTS (27/08, regra do Diego: bots espertos, que sabem a
+  // categoria e podem trocar de técnico e de formação) — SÓ NA RODADA 0 e
+  // 1× por temporada: no meio da temporada, trocar técnico/formação de bot
+  // re-simularia rodada já vista e MUDARIA PLACAR (proibido, lei da casa).
+  if (s.round === 0 && s.tecnicosVidaSeason !== s.seasonNo) {
+    s.tecnicosVidaSeason = s.seasonNo
+    const rngV = mulberry((((s.seed ^ 0x7EC1DA) + s.seasonNo * 104729) | 0) >>> 0)
+    const pago = { ...(s.careerTecnicoPago ?? {}) }
+    // bot SEM técnico contrata um livre da divisão (e a inflação aperta: a
+    // cada temporada o mercado fica ~4% mais caro — "as coisas vão ficando
+    // mais caras", palavras do Diego)
+    for (const m of s.managers) {
+      if (m.isHuman || map[m.teamName]) continue
+      if (!livres.length) break
+      if (rngV() < 0.6) {
+        const nomeN = livres.shift()!
+        const tN = tecnicoPorNome(nomeN)
+        if (!tN) continue
+        // 🧢💰 01/10: a inflação para em 2× (antes, na temporada 116, era 5,6× em cima
+        // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
+        // respeita o teto da categoria.
+        const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, pisoTecnico(tN.div, !!s.oficial)) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)), !!s.oficial)
+        map[m.teamName] = nomeN
+        desde[m.teamName] = { t: s.seasonNo, r: 0 }
+        pago[nomeN] = preco // o mercado aprende com a compra do bot também
+        pagaExDono(s, nomeN, preco) // ex-dono humano recupera metade
+        mudou = true
+      }
+    }
+    // 📝 bot com contrato de técnico VENCIDO decide: maioria renova (+5), o
+    // resto deixa vencido — esses ficam ALICIÁVEIS pra você.
+    for (const m of s.managers) {
+      if (m.isHuman || !map[m.teamName]) continue
+      const fim = (s.careerTecnicoContrato ?? {})[m.teamName]
+      if (fim != null && fim < s.seasonNo && rngV() < 0.6) {
+        s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
+        mudou = true
+      }
+    }
+    // bot com técnico pode TROCAR DE FORMAÇÃO pra uma do repertório do
+    // técnico dele — só se o elenco preencher a conta (nunca entra em campo
+    // manco). Com elencos de 11 moldados isso raramente cabe HOJE; quando os
+    // bots ganharem elenco fundo, passa a acontecer sozinho.
+    for (const m of s.managers) {
+      if (m.isHuman) continue
+      const nomeT = map[m.teamName]
+      if (!nomeT) continue
+      const tt = tecnicoPorNome(nomeT)
+      if (!tt || rngV() >= 0.35) continue
+      const opcoes = fichaDoTecnico(tt).formacoes
+        .map(r => formacaoPorRotulo(r)?.motor)
+        .filter((x): x is FormationKey => !!x && x !== m.formation)
+      const cabiveis = opcoes.filter(f => SECTORS.every(pos => m.squad.filter(c => c.pos === pos && !c.fake).length >= FORMATIONS[f][pos]))
+      if (cabiveis.length) { m.formation = cabiveis[Math.floor(rngV() * cabiveis.length)]; m.formationView = undefined; mudou = true }
+    }
+    s.careerTecnicoPago = pago
+  }
+  if (!mudou) return
+  s.careerTecnicos = map
+  s.careerTecnicosDesde = desde
+}
 /** 🇧🇷 BRASIL OFICIAL (18/11, item (a) aprovado): contrato de técnico/preparador vencido que NÃO foi renovado na janela =
  *  ele vai embora quando o leilão começa (na carreira de sempre ele ficava pra sempre sem pagar renovação). Mesmas regras do
  *  "deixar ir": sem multa, técnico vai pra SEM CLUBE e, se alguém contratar, você recupera metade. O aviso mora na janela. */
@@ -11867,160 +12025,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     // ── 🧢 ALICIAR (26/08, em teste na conta do Diego — gate formacoes15On na UI) ──
     case 'ALICIAR_SEED': {
-      // dá um técnico a cada clube CPU da sua divisão que ainda não tem, tirando
-      // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
-      // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
-      if (!s.careerOnline) return s
-      // 🐛 FIX 28/08 (Diego: "meu amigo já está na SÉRIE A e apareceu Lisca Doido,
-      // Joel Santana, Guto Ferreira — técnico de VÁRZEA"): eu usava
-      // `s.careerDivision`, que na PIRÂMIDE fica congelado na divisão de FUNDAÇÃO
-      // (quem começou na Várzea segue 'V' pra sempre). A divisão de VERDADE mora
-      // em `careerPlacements['m<id>']` e muda a cada acesso/queda — o próprio
-      // store já avisava isso em myCareerDiv ("NUNCA cair em careerDivision").
-      // Agora o pool de técnicos segue a divisão ATUAL: subiu de série, o mercado
-      // de técnicos sobe junto, igual acontece com as cartas de jogador.
-      const youIdSeed = s.managers[s.youIdx]?.id ?? s.youIdx
-      const div = ((s.careerPlacements?.[`m${youIdSeed}`] ?? s.careerDivision ?? 'D') as DivTecnico)
-      const map = { ...(s.careerTecnicos ?? {}) }
-      // 🩹 CURA de quem já foi semeado com a divisão errada: técnico que não é da
-      // divisão de agora volta pro pool e o clube pega um da categoria certa.
-      // Só nos clubes de CPU, e o `desde` é remarcado — placar já visto não muda.
-      const desdeCura = { ...(s.careerTecnicosDesde ?? {}) }
-      let curou = false
-      // cura TODO clube já semeado (manager ou time de fundo), não só os managers
-      for (const nomeClube of Object.keys(map)) {
-        const n = map[nomeClube]
-        if (!n) continue
-        const tt = tecnicoPorNome(n)
-        if (tt && tt.div !== div) { delete map[nomeClube]; curou = true }
-      }
-      // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
-      // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
-      // mesmos times... o certo deveria sempre ter ali os rivais + trocar pelos times
-      // da divisão atual o restante"*. Na pirâmide os seus 19 bots se ESPALHAM pelas
-      // séries (no save dele, na T15, só 3 estavam na C junto com ele) — os outros 16
-      // adversários da Série C são TIMES DE FUNDO, que moram só em `careerPlacements`
-      // (chave = nome do clube; manager usa `m<id>`). Eles nunca tinham técnico, então
-      // nem apareciam no Sondar. Agora entram: rivais escolhidos SEMPRE, mais todo
-      // mundo (manager ou fundo) que está na sua divisão agora.
-      const naMinhaDiv = new Set<string>()
-      for (const [k, v] of Object.entries(s.careerPlacements ?? {})) if (v === div && !/^m\d+$/.test(k)) naMinhaDiv.add(newestTeamName(k))
-      const rivaisTime = new Set((s.careerRivals ?? []).map(r => newestTeamName(r.team)))
-      for (const m of s.managers) {
-        if (m.isHuman) continue
-        const dm = s.careerPlacements?.[`m${m.id}`]
-        if (dm === div || m.auctionOnly || rivaisTime.has(newestTeamName(m.teamName))) naMinhaDiv.add(m.teamName)
-      }
-      // 🔓 TÉCNICO DE CLUBE QUE SAIU DA MINHA DIVISÃO VOLTA PRO MERCADO (09/10, save do
-      // Elton — Série A, temporada 387). O relato: *"todos os times, quando ele vai
-      // sondar, estão sem técnico… e não aparece ninguém sem clube"*. O que tinha
-      // acontecido: o pool da Série A tem 22 nomes; a cada temporada um clube CAÍA pra B
-      // levando o técnico junto, e nada devolvia o técnico — ele sumia do mercado pra
-      // sempre. Em 387 temporadas os 22 estavam presos em clubes da C, da D e da Várzea,
-      // o clube que subia pra A ganhava `null` e o Sondar virava deserto. Agora: clube que
-      // não está na minha divisão (nem é rival/convidado do meu leilão, nem gente) solta o
-      // técnico; chave `null` de clube que foi embora é limpa junto. Placar já visto não
-      // muda: técnico só pesa em rodada ainda não jogada (`desdeR`).
-      const desde = { ...(s.careerTecnicosDesde ?? {}) }
-      const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
-      const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.teamName))
-      let soltou = false
-      for (const nomeClube of Object.keys(map)) {
-        if (gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
-        delete map[nomeClube]; delete desde[nomeClube]; delete ctAll[nomeClube]; soltou = true
-      }
-      const usados = new Set(Object.values(map).filter((x): x is string => !!x))
-      const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
-      const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
-      for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
-      const clubes = [...naMinhaDiv].sort()
-      let mudou = soltou
-      // clube sem técnico (chave nova OU `null` de quando o mercado estava vazio) pega um
-      // livre, se houver; se não houver ninguém livre, fica `null` como antes
-      for (const c of clubes) {
-        if (map[c]) continue
-        const n = livres.shift() ?? null
-        if (!n && c in map) continue
-        map[c] = n; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true
-      }
-      if (curou) {
-        // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
-        const ctCura = { ...(s.careerTecnicoContrato ?? {}) }
-        for (const m of s.managers) if (!m.isHuman && map[m.teamName] && desdeCura[m.teamName]) delete ctCura[m.teamName]
-        s.careerTecnicoContrato = ctCura
-        mudou = true
-      }
-      // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
-      // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
-      for (const c of clubes) {
-        const n = map[c]
-        if (!n || ctAll[c] != null) continue
-        let h = 0
-        for (const ch of n + c) h = (h * 31 + ch.charCodeAt(0)) | 0
-        ctAll[c] = s.seasonNo + ((h >>> 0) % 5) - 1 // -1..+3: alguns já vencidos, resto escalonado
-        mudou = true
-      }
-      s.careerTecnicoContrato = ctAll
-      // 🤖 VIDA DOS BOTS (27/08, regra do Diego: bots espertos, que sabem a
-      // categoria e podem trocar de técnico e de formação) — SÓ NA RODADA 0 e
-      // 1× por temporada: no meio da temporada, trocar técnico/formação de bot
-      // re-simularia rodada já vista e MUDARIA PLACAR (proibido, lei da casa).
-      if (s.round === 0 && s.tecnicosVidaSeason !== s.seasonNo) {
-        s.tecnicosVidaSeason = s.seasonNo
-        const rngV = mulberry((((s.seed ^ 0x7EC1DA) + s.seasonNo * 104729) | 0) >>> 0)
-        const pago = { ...(s.careerTecnicoPago ?? {}) }
-        // bot SEM técnico contrata um livre da divisão (e a inflação aperta: a
-        // cada temporada o mercado fica ~4% mais caro — "as coisas vão ficando
-        // mais caras", palavras do Diego)
-        for (const m of s.managers) {
-          if (m.isHuman || map[m.teamName]) continue
-          if (!livres.length) break
-          if (rngV() < 0.6) {
-            const nomeN = livres.shift()!
-            const tN = tecnicoPorNome(nomeN)
-            if (!tN) continue
-            // 🧢💰 01/10: a inflação para em 2× (antes, na temporada 116, era 5,6× em cima
-            // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
-            // respeita o teto da categoria.
-            const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, pisoTecnico(tN.div, !!s.oficial)) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)), !!s.oficial)
-            map[m.teamName] = nomeN
-            desde[m.teamName] = { t: s.seasonNo, r: 0 }
-            pago[nomeN] = preco // o mercado aprende com a compra do bot também
-            pagaExDono(s, nomeN, preco) // ex-dono humano recupera metade
-            mudou = true
-          }
-        }
-        // 📝 bot com contrato de técnico VENCIDO decide: maioria renova (+5), o
-        // resto deixa vencido — esses ficam ALICIÁVEIS pra você.
-        for (const m of s.managers) {
-          if (m.isHuman || !map[m.teamName]) continue
-          const fim = (s.careerTecnicoContrato ?? {})[m.teamName]
-          if (fim != null && fim < s.seasonNo && rngV() < 0.6) {
-            s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
-            mudou = true
-          }
-        }
-        // bot com técnico pode TROCAR DE FORMAÇÃO pra uma do repertório do
-        // técnico dele — só se o elenco preencher a conta (nunca entra em campo
-        // manco). Com elencos de 11 moldados isso raramente cabe HOJE; quando os
-        // bots ganharem elenco fundo, passa a acontecer sozinho.
-        for (const m of s.managers) {
-          if (m.isHuman) continue
-          const nomeT = map[m.teamName]
-          if (!nomeT) continue
-          const tt = tecnicoPorNome(nomeT)
-          if (!tt || rngV() >= 0.35) continue
-          const opcoes = fichaDoTecnico(tt).formacoes
-            .map(r => formacaoPorRotulo(r)?.motor)
-            .filter((x): x is FormationKey => !!x && x !== m.formation)
-          const cabiveis = opcoes.filter(f => SECTORS.every(pos => m.squad.filter(c => c.pos === pos && !c.fake).length >= FORMATIONS[f][pos]))
-          if (cabiveis.length) { m.formation = cabiveis[Math.floor(rngV() * cabiveis.length)]; m.formationView = undefined; mudou = true }
-        }
-        s.careerTecnicoPago = pago
-      }
-      if (!mudou) return s
-      s.careerTecnicos = map
-      s.careerTecnicosDesde = desde
+      semeiaTecnicos(s)
       return s
     }
     case 'DE_OLHO': {
@@ -12546,6 +12551,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.round = 0; s.champion = null
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveListed = {}
+      if (s.oficial) semeiaTecnicos(s) // 🇧🇷 Oficial (18/11, item (d)): o mercado de técnicos anda sozinho na virada
       s.screen = 'reserveList'
       // 🔒 "mesmo time": mesma tela de contratos, mas SEM leilão depois — o relógio
       // (que só faz sentido esperando todo mundo listar pro pregão) fica de fora.
