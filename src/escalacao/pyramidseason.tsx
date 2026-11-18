@@ -74,7 +74,8 @@ import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './online-match-visual'
 import { falaBasquete } from './narracao-basquete' // 🏀🎙️ a rádio do basquete (18/11)
-import { Quadra2D, siglaDe, falaDaJogada, elencoDoJogo } from './quadra2d' // 🏀📺 a Quadra 2D (18/11, mockup aprovado)
+import { Quadra2D, siglaDe, falaDaJogada, elencoDoJogo } from './quadra2d'
+import { QuadraNoMapa } from './quadra2d-mapa' // 🏀📺 a Quadra 2D (18/11, mockup aprovado)
 import { planoQuadra, placarEm } from './quadra2d-plano'
 import { indiceDaCena } from './quadra2d-cena'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
@@ -4714,6 +4715,15 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   ) : null
   const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa>{campo2dEl}</div>:null
   const campo2dComTelao = c2d&&campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
+  // 🏀🗺️ 18/11: o MESMO jogo vai pra arena do mapa (aba Clube) — placar cinema ou quadra, tanto faz: é o mesmo roteiro
+  const quadraMapa = basket && planoBB && stadiumMatch ? (() => {
+    const fechadoM = !!finished || min >= 93, semM = sementeDasChances(roundKey, homeName, awayName)
+    const ladoM = (nome: string, cor: string, sq: unknown, pts?: { n: string; p: number; a?: number }[]) => ({ nome: nomeLimpo(nome), sigla: siglaDe(nomeLimpo(nome)), cor, jogadores: elencoDoJogo(sq as never, pts) })
+    const cM = ladoM(homeName, homeColor, elencos?.casa, basket.ph), fM = ladoM(awayName, awayColor, elencos?.fora, basket.pa)
+    const refM = fechadoM ? null : [...planoBB.lances].reverse().find(l => l.destaque && l.t1 <= min)
+    return <QuadraNoMapa plano={planoBB} minuto={min} minutoMs={Math.max(400, roundMs * 0.82) / 93} fechado={fechadoM} pausado={!!pausado} casa={cM} fora={fM}
+      contexto={stadiumMatch} fala={refM ? falaDaJogada(refM, cM, fM, semM, emIngles) : ''} />
+  })() : null
   if (q2dBB && planoBB && basket) {
     const semente = sementeDasChances(roundKey, homeName, awayName)
     const elenco = (lst?: { name: string; pos: string; fake?: boolean; club?: string }[]) => (lst ?? []).filter(c => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup').map(c => ({ name: c.name, pos: c.pos }))
@@ -4724,11 +4734,11 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
         fora={{ nome: nomeLimpo(awayName), sigla: siglaDe(nomeLimpo(awayName)), cor: awayColor, jogadores: elencoDoJogo(elencos?.fora as never, basket.pa) }}
         falaAbertura={falaBasquete({ ...baseFala, min: 0, fechado: false, pc: 0, pf: 0 }).txt}
         falaFinal={falaBasquete({ ...baseFala, min: 93, fechado: true, pc: basket.h, pf: basket.a }).txt} />
-      {abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} />
+      {quadraMapa}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} />
     </>
   }
   if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}</>
-  if (cinematic) return <>{fonteMapaEscondida}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+  if (cinematic) return <>{fonteMapaEscondida}{quadraMapa}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
@@ -4815,7 +4825,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     {abaixoDosGols}
    </>
   return (<>
-    {fonteMapaEscondida}
+    {fonteMapaEscondida}{quadraMapa}
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative', ...(basket ? { color: INK } : null) /* 🏀 17/11: no fundo escuro do visual novo os nomes das cestas herdavam o creme e sumiam */ }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}

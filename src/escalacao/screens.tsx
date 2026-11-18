@@ -7244,7 +7244,8 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm, kings2d, disputaPenaltis, estadoPenaltis }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos, minutoFixo, relogioKings, radioExtra, inicioEm, kings2d, disputaPenaltis, estadoPenaltis, stadiumMatch }: {
+  /** 🏀🗺️ 18/11: o jogo da carreira do basquete também vai pra arena do mapa */ stadiumMatch?: import('./presidencia-partida-model').ContextoPartidaEstadio
   /** 👑🥅 o shootout da Kings no campinho */ disputaPenaltis?: import('./campo2d-penaltis').DisputaPenaltisCampo; estadoPenaltis?: import('./campo2d-penaltis').EstadoPenaltisCampo
   /** 👑📺 a partida da Kings pro Campo 2D */ kings2d?: Kings2D
   /** ⏱️ 07/11: hora em que o dono começou esta rodada (quem chega atrasado entra no minuto certo) */ inicioEm?: number
@@ -7270,7 +7271,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
   return (
     <>
       <div ref={caixa}>
-        <LiveScoreCard enhancedOnline={enhancedOnline}
+        <LiveScoreCard stadiumMatch={stadiumMatch} enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
           basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} displayMinute={minutoFixo} relogioKings={relogioKings} radioExtra={radioExtra} inicioEm={inicioEm} kings2d={kings2d} disputaPenaltis={disputaPenaltis} estadoPenaltis={estadoPenaltis} />
@@ -7621,7 +7622,7 @@ function TabsCentralBB({ aba, onAba, travada }: { aba: AbaBB; onAba: (a: AbaBB) 
   // só Jogos fica livre — as outras esperam o apito (anti-spoiler: tabela, cestinhas e jornal ainda não sabem do jogo).
   const abas: [AbaBB, string, string][] = [['central', '📺', 'Central'], ['jogos', '🏀', tr('Jogos', 'Games')], ['elenco', '👥', tr('Elenco', 'Roster')], ['rank', '🏆', 'Rank'], ['clube', '🏢', tr('Clube', 'Club')]]
   return <div style={{ display: 'flex', gap: 6 }}>{abas.map(([id, ic, rot]) => {
-    const off = id !== 'jogos' && travada
+    const off = id !== 'jogos' && id !== 'clube' && travada // 🏀🗺️ 18/11: o Clube abre com jogo rolando (o jogo passa na arena do mapa)
     return <button key={id} type="button" onClick={() => onAba(id)} disabled={off}
       style={{ ...OSWALD, flex: 1, padding: '7px 2px', fontSize: 10.5, fontWeight: 900, letterSpacing: '.04em', textTransform: 'uppercase', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 ${INK}`, background: aba === id ? GOLD : '#fff', color: INK, opacity: off ? .45 : 1, cursor: off ? 'default' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
       <span style={{ fontSize: 16, lineHeight: 1.1 }}>{ic}</span>{rot}</button>
@@ -7783,6 +7784,10 @@ export function EscSeason() {
   // 📺 Campo 2D ligado (aparelho no offline, a sala no online): cada jogo dura 1:30, em toda competição
   const c2d = useCampo2DLigado() && state.sport !== 'basquete' && !kingsS
   const c2dBB = useQuadra2DLigada() // 🏀📺 18/11: a Quadra 2D (1 min por jogo na marcha padrão — Diego)
+  // 🏀🗺️ 18/11: na carreira do basquete (offline) o jogo do seu clube também passa na ARENA do mapa (aba Clube) — o mesmo canal do
+  // futebol (contexto com o id do jogo e os dois clubes). Salas, rápida e carreira online: nada muda.
+  const bbMapaCtx = (r: { homeId: number; awayId: number }) => state.sport === 'basquete' && !!state.nbaCareer && !!state.careerOnline && state.onlineMode !== 'online' && !state.co2
+    ? { id: `bb:${state.seed}:${state.seasonNo ?? 1}:${state.round}:${r.homeId}x${r.awayId}`, homeClubId: r.homeId, awayClubId: r.awayId, home: [], away: [] } : undefined
   // ⏩📺 06/11 (Diego): no 2D a velocidade é ABSOLUTA (`vel2d-regra.ts`) e NÃO divide pelo simSpeed — era o 3× × 3 = 9× da sala 4RVDD8
   const vel2dAqui = useVel2DAqui()
   const baseRoundMs = c2d ? dur2DDaVel(vel2dAqui) : c2dBB ? dur2DBBDaVel(vel2dAqui, state) : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
@@ -7895,6 +7900,7 @@ export function EscSeason() {
   // 🏀📺 15/11: a CENTRAL da carreira do basquete (só a carreira solo, durante a temporada regular). Igual ao futebol, a
   // liga fica PAUSADA enquanto você está na Central, e a aba só abre entre um jogo e outro (nunca no meio de um jogo = sem spoiler).
   const [abaBB, setAbaBB] = useState<AbaBB>('central')
+  const [clubeDoJogo, setClubeDoJogo] = useState(false) // 🏀🗺️ 18/11: abriu o Clube COM o jogo rolando (o jogo segue na arena do mapa)
   const [rodadaAoAbrir] = useState(state.round) // o jogo que já estava salvo ao abrir já foi visto (não é spoiler)
   useEffect(() => {
     if (seasonSettled) { setResultRevealed(true); return }
@@ -7977,11 +7983,16 @@ export function EscSeason() {
   // "flag de pausa" à parte: a própria existência da chave já diz que é a vez dela.
   const centralBB = bbS && !!state.nbaCareer && !!state.careerOnline && !online && state.round < totalRounds && !(state.nbaCup && state.nbaCup.phase !== 'done')
   const centralTravada = state.round > rodadaAoAbrir && !resultRevealed // jogo rolando: a Central espera o apito (anti-spoiler)
-  const naCentralBB = centralBB && abaBB !== 'jogos' && !centralTravada // fora da aba Jogos a liga fica parada (igual à Central)
+  const naCentralBB = centralBB && abaBB !== 'jogos' && !centralTravada && !(abaBB === 'clube' && clubeDoJogo) // fora da aba Jogos a liga fica parada (igual à Central)
+  // 🏀🗺️ 18/11: com o jogo rolando, a aba CLUBE também abre (igual ao futebol): o jogo passa na arena do mapa. O placar continua
+  // montado (escondido) — o relógio, a narração e o mapa seguem dele; nada de tabela/cestinha/jornal antes do apito (anti-spoiler).
+  // Fica na MESMA tela até ele sair do Clube (trocar de tela a cada apito remontaria o mapa), e a liga para quando o jogo acaba.
+  const clubeNoJogo = centralBB && abaBB === 'clube' && clubeDoJogo
+  const trocaAbaBB = (a: AbaBB) => { setClubeDoJogo(a === 'clube' && centralTravada); setAbaBB(a) }
   const cup = state.nbaCup
   const cupLive = state.sport === 'basquete' && !!cup && cup.phase !== 'done'
   useEffect(() => {
-    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive || naCentralBB) return
+    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive || naCentralBB || clubeNoJogo) return // 🏀🗺️ no Clube: termina o jogo da arena e para
     if (kPenSegura && resultRevealed) return // 👑🥅 o shootout da Kings ainda rola no campinho: espera ele acabar // Dinastia: para na janela do meio; Cup: a liga espera; manual: avança no botão
     // 📺⏱️ 05/11 (Diego: *"está demorando pra aparecer o campinho 2D nas salas online"*): na LARGADA (rodada 0) ainda não
     // tem jogo nenhum na tela — a espera é só a tela "Aguardando o pontapé inicial". Ela usava o `roundMs` da rodada, que
@@ -7995,7 +8006,7 @@ export function EscSeason() {
     }
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, naCentralBB])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, naCentralBB, clubeNoJogo])
   // toca a Cup fase a fase, no mesmo ritmo do mata-mata do fim de temporada.
   const cupKey = cup ? `${cup.phase}:${cup.ties.map(t => t.legs.length).join(',')}` : ''
   const cupJustAdvanced = cupLive && !!cup && cup.ties.every(t => t.legs.length === 0)
@@ -8352,7 +8363,9 @@ export function EscSeason() {
     }>
       {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
       {desk2 && <div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setDirCol} /></div>}
-      {centralBB && <TabsCentralBB aba="jogos" onAba={setAbaBB} travada={centralTravada} />}
+      {centralBB && <TabsCentralBB aba={clubeNoJogo ? 'clube' : 'jogos'} onAba={trocaAbaBB} travada={centralTravada} />}
+      {clubeNoJogo && <BbClubeOverlay inline onClose={() => trocaAbaBB('jogos')} />}
+      <div style={{ display: clubeNoJogo ? 'none' : 'contents' }}>
       {faixaProxAtiva && <FaixaProximaCompeticao lista={proximasCompeticoes(copasDaSala)} />}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →
@@ -8734,6 +8747,7 @@ export function EscSeason() {
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
           enhancedOnline={privateVisual} retro={retroDe(oppId)}
+          stadiumMatch={bbMapaCtx(myLast)}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag, ph: myLast.bbPts?.[myLast.homeId], pa: myLast.bbPts?.[myLast.awayId] } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad, fCasa: state.managers.find(m => m.id === myLast.homeId)?.formation, fFora: state.managers.find(m => m.id === myLast.awayId)?.formation }}
           minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(myLast.kings, myLast.homeId) : undefined}
           disputaPenaltis={kLigaPen === myLast ? kPen.sessao : undefined} estadoPenaltis={kLigaPen === myLast ? kPen.estado : undefined}
@@ -9025,6 +9039,7 @@ export function EscSeason() {
           seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />
       )}
       <FraseCopa />
+      </div>
     </Shell>
     </TemaCompCtx.Provider>
   )

@@ -6,6 +6,8 @@ import type { EstadoPartidaEstadio } from './presidencia-partida-model'
 import { useControleMapa } from './controle-partida-mapa'
 import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './presidencia-velocidade'
 import { useT } from './lang'
+import { getSport } from './sport'
+import { basketClockLabel } from './sportcfg' // 🏀 18/11: no basquete o relógio do mapa é o do quarto (Q2 5:12), igual ao placar
 import { FestaGolCampo2D, useFestaCampo2D, TelaoGolMapa, useTelaoCampo2D } from './campo2d-festa'
 import { estiloPisca, gritoGol } from './radio-pisca'
 import { ResumoApitoCampo2D, BotaoReplayCampo2D, useApitoCampo2D, useQuaseCampo2D, QUASE_CSS, estiloQuase } from './campo2d-resumo-ui'
@@ -45,7 +47,7 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
       <span style={{ background: INK, color: '#fffaf0', padding: '5px 8px', fontSize: 16, display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 10, height: 10, borderRadius: '50%', background: match.homeColor, border: '1.5px solid #fffaf0' }} />{sigla(nh)}</span>
       <span style={{ background: INK, color: '#fff', padding: '4px 10px', fontSize: 20 }}>{match.homeScore} – {match.awayScore}</span>
       <span style={{ background: INK, color: '#fffaf0', padding: '5px 8px', fontSize: 16, display: 'flex', alignItems: 'center', gap: 4 }}>{sigla(na)}<i style={{ width: 10, height: 10, borderRadius: '50%', background: match.awayColor, border: '1.5px solid #fffaf0' }} /></span>
-      <span style={{ background: match.finished ? '#ddd' : replay ? '#E8E0CC' : GOLD, color: INK, padding: '4px 8px', fontSize: 14, display: 'flex', alignItems: 'center' }}>{penaltis ? `${t('PÊN', 'PENS')} ${penaltis.score[0]}–${penaltis.score[1]}` : match.finished ? t('FIM', 'FT') : <>{replay ? <span style={{ marginRight: 4 }} aria-hidden="true">🔁</span> : !match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{Math.min(93, Math.max(0, Math.floor(match.minute)))}'</>}</span>
+      <span style={{ background: match.finished ? '#ddd' : replay ? '#E8E0CC' : GOLD, color: INK, padding: '4px 8px', fontSize: 14, display: 'flex', alignItems: 'center' }}>{penaltis ? `${t('PÊN', 'PENS')} ${penaltis.score[0]}–${penaltis.score[1]}` : match.finished ? (getSport() === 'basquete' ? 'FINAL' : t('FIM', 'FT')) : <>{replay ? <span style={{ marginRight: 4 }} aria-hidden="true">🔁</span> : !match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{getSport() === 'basquete' ? basketClockLabel(match.minute) : `${Math.min(93, Math.max(0, Math.floor(match.minute)))}'`}</>}</span>
     </span>
   return <>{festa && <div className="pc3-match-festa" aria-live="polite"><FestaGolCampo2D festa={festa} larg={Math.min(typeof window !== 'undefined' ? window.innerWidth : 390, 520)} /></div>}
    <div className="pc3-match-score">

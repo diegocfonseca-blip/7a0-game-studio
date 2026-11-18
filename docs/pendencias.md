@@ -211,6 +211,13 @@
   que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
   regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
 
+### 🏀🏟️ 18/11 (13) — O JOGO DENTRO DA ARENA DO MAPA (carreira do basquete), no branch, esperando OK visual
+- Diego (17/11): *"o jogo da arena vai ser também com base na aba de jogos quando tiver no campo 2d"*. Feito agora que a Quadra 2D existe.
+- Com o jogo rolando, a aba 🏢 Clube ABRE (antes só Jogos abria) e o mapa mostra **"Ver partida"**: o MESMO jogo da aba Jogos (mesmo roteiro, mesmas jogadas, mesma narração) com os marcadores no piso da arena, a bola LARANJA e o relógio do quarto (Q2 6:27) no placar do mapa. Vale com a Quadra 2D ligada ou com o placar cinema.
+- Como: `quadra2d-mapa.tsx` (`QuadraNoMapa`) publica o placar pro mapa (`usePublicarPartidaSimples`, sem o motor 3D do futebol) e as posições (`publicarSuperficieCampo2D`, só quando o mapa pede); o mapa usa o `criarCampo2DNoMapa` de sempre. Contexto do jogo só na carreira OFFLINE do basquete (`bbMapaCtx`).
+- Regra do ritmo: no Clube o jogo que está rolando TERMINA e a liga PARA (igual a sair da aba Jogos); a tela não troca a cada apito (o mapa não remonta).
+- Prints `scripts/mockups/basquete-jogo-na-arena-{pc,celular}.png`. Futebol: só ganhou a bola laranja e o relógio de quarto QUANDO é basquete (`getSport()`), nada muda pra ele.
+
 ### 🏀🗺️ 18/11 (12) — Aba Clube no formato novo (basquete) + caixa em etiqueta (futebol e basquete)
 - Mockup `scripts/mockups/basquete-clube-proposta.png` — Diego: *"essa moeda grandona atrapalha e diminuiu o mapa"* → o caixa virou ETIQUETA pequena ao lado de "SEU CLUBE"; aprovado (*"pode fazer e que isso valha também pros dois modos da carreira de futebol"*).
 - 🏀 Basquete (no branch): a aba Clube agora é o MESMO formato do Clube do futebol (`ClubeOrganizacao` + `ClubeMapaPainel`): mapa com a arena primeiro, "Meu clube" (Finanças · Arena e obras · Patrocínios) e "Meus negócios" (Minha agência · 2º clube), cada um abrindo o painel por cima do mapa com "← Voltar ao mapa". Sem loja, sem museu, sem Casa e garagem (o basquete não tem esses painéis ainda). Mesmo conteúdo de antes (`conteudo()` em `BbClubeOverlay`) — regras, preços e obras não mudaram.
