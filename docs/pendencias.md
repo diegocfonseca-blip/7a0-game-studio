@@ -13,7 +13,17 @@
   Carreira já começada: a âncora só muda se nenhuma Copa foi jogada (`ensureSave`). Carreira normal segue T40/T100.
 - Agenda da Central no oficial: Libertadores real (está nela ✓ / vaga sai da Série A e da Copa do Brasil), Copa do Mundo
   "é este ano · convite no fim da temporada" ou "próxima edição: temporada N" (de 4 em 4).
-- ⏳ Próximo: redesenho do COMEÇO da Central (mockup primeiro — patrocínio/Master no momento certo, menos confuso).
+- ✅ 18/11 (Diego: *"tem que ser a agenda do time real dos próximos jogos… mostrando a data e o time… esse negócio de TV no
+  início tá confuso… analise tudo da central e mude"*), NO BRANCH, sem publicar:
+  · 🗓️ Agenda = **Próximos jogos** do SEU clube (até 5): data, adversário (escudo), competição/fase, casa/fora. Estadual na
+    pré-temporada, a liga (só a fase que corre — anti-spoiler), e de cada copa só a PRÓXIMA página e só se você está nela.
+    Libertadores/Copa do Mundo saíram da agenda (só aparecem quando é jogo seu).
+  · 🏁 Camarote na rodada 0 = lista **Antes da estreia**: 📺 TV (✓ já no caixa — o cartão "BORA!" não aparece mais quando a
+    Central abre) · 🏆 Master (o botão "Escolher o Master" leva DIRETO ao escritório na aba Jogos) · ⚽ Estreia.
+  · Estadual abre a temporada → o camarote mostra o jogo do ESTADUAL (não o 1º da Série). Na C/D o selo conta "1º da Série C"
+    (não "rodada 2"). Sem "Você é o líder" com 0 ponto; a tabela diz "ninguém jogou ainda".
+  · Saíram as duas dicas que repetiam o mesmo: "Seu primeiro jogo, sem complicação" (Jogos) e "Vamos ao primeiro jogo?" (Central).
+  · `passosVirada` virou a conta ÚNICA dos passos da virada (escritório da aba Jogos e Central leem a mesma).
 
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)
 - Pra TODOS: link "ver fases e resultados" que desce até os resultados · pênaltis de fase encerrada prontos na lista · câmera do ônibus
