@@ -2030,6 +2030,7 @@ function BidLegendsHome() {
   const t = useT()
   const { dispatch } = useEsc()
   const nbaSolo = useResumableNbaCareer() // 🏀 carreira do basquete salva (continuar)
+  const resumable = useResumableRoom() // 🏀📡 18/11: sala online em andamento (o mesmo "CONTINUAR SALA" do futebol — faltava no basquete)
   const [contaAberta, setContaAberta] = useState(false)
   const [verSalao, setVerSalao] = useState(false)
   const amigosOn = useAmigos()
@@ -2050,9 +2051,10 @@ function BidLegendsHome() {
     sportSwitcher={<SeletorEsporte />}
     notifications={amigosOn ? <SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /> : undefined}
     title={<h1>{t('O SEU QUINTETO', 'YOUR FIVE')}<br /> {t('COMEÇA', 'STARTS')} <em>{t('NO LANCE.', 'WITH A BID.')}</em></h1>}
-    resume={nbaSolo ? <>
-      <button type="button" onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
-      <button type="button" onClick={() => setCarreiras('lista')}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button>
+    resume={(resumable || nbaSolo) ? <>
+      {resumable && <><button type="button" onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button type="button" onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
+      {nbaSolo && <><button type="button" onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
+      <button type="button" onClick={() => setCarreiras('lista')}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
     </> : undefined}
     notices={amigosOn ? <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} /> : undefined}
     shop={<LojaButton className="hv3-extra hv3-shop"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></svg><span className="hv3-text"><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Planos, identidade do clube, moedas e muito mais.', 'Plans, club identity, coins and more.')}</small></span><span aria-hidden="true">→</span></LojaButton>}

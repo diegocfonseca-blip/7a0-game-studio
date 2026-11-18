@@ -27,7 +27,8 @@
 ### 🏀 18/11 (11) — Conferência do fluxo do basquete + Quadra 2D (pedido do Diego)
 - Joguei na tela, do fim da liga até o anel (Partida Rápida, 30 times): Liga → Play-In (1ª rodada e "a última vaga") → 1ª rodada → semis de conferência → finais de conferência → Finals → "O ANEL É SEU". Séries melhor de 7, sem erro na tela. O controle "Acelerar e pular" aparece (com 🔒 pra quem não tem plano).
 - Corrigido: "Aguardando a bola ao alto da Copa" → "…dos Playoffs".
-- Sala online usa o MESMO motor (o dono toca, o resto acompanha). Falta o teste de verdade com 2 aparelhos (Diego).
+- Sala online: (a) trava nova `npm run sala-nba-online` — dono + convidado lado a lado pelo SYNC_STATE, 30/20/10 times (20 com NBA + Mundo): o convidado vê tudo igual, nunca troca de assento nem vira dono, mesmo campeão; (b) tela do DONO com o banco simulado: "CONTINUAR SALA" → contagem → Play-In 1ª rodada → a última vaga → Playoffs jogo 1 (melhor de 7), salvando a sala a cada passo. Falta o teste de verdade com 2 aparelhos (Diego).
+- 🩹 Corrigido: a home do basquete NÃO tinha o "CONTINUAR SALA" (quem caía da sala não tinha o atalho de volta, como no futebol). Agora tem o mesmo botão do futebol.
 - 📺 **Quadra 2D do basquete: NÃO existe ainda.** Hoje o 2D é só do futebol, e no basquete ele fica escondido de propósito (senão abria o campinho de futebol). Diego pediu *"o campo 2d deve funcionar pro Basquete real"*. Próximo passo: MOCKUP da quadra 2D (5×5, quadra de madeira, mesmo visual do campinho) pra aprovação antes de codar.
 
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
