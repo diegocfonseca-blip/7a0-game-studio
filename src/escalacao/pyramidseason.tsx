@@ -7918,7 +7918,7 @@ export function pensRevealDelay(pens: [number, number], lento = false, seqReal?:
   const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
   return 0.7 + Math.max(a, b, 10) * pensPasso(lento) + 0.6
 }
-export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false, shootout=false, campo }: { campo?: EstadoPenaltisCampo; /** 👑 Kings: é SHOOTOUT (1×1 do meio-campo), não pênalti — muda só o nome na tela */ shootout?: boolean; pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
+export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false, shootout=false, campo, pronto=false }: { /** 17/11: disputa de fase JÁ encerrada (lista de resultados) — mostra pronta, sem refazer a animação (ficava 'Decisão em andamento…') */ pronto?: boolean; campo?: EstadoPenaltisCampo; /** 👑 Kings: é SHOOTOUT (1×1 do meio-campo), não pênalti — muda só o nome na tela */ shootout?: boolean; pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -7931,7 +7931,7 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
   const seq = sequenciaVisualPenaltis(pens, aName, bName, seqReal)
   const nSlots = Math.max(5, pens[0], pens[1], Math.ceil(seq.length / 2))
   const suddenDeath = nSlots > 5 // morte súbita de qualquer tamanho (6×5, 7×6…)
-  const step = pensPasso(lento), lead = 0.7
+  const step = pronto ? 0 : pensPasso(lento), lead = pronto ? 0 : 0.7
   // resultado de cada time na ORDEM das cobranças dele + índice global (delay)
   const rows: { ok: boolean; at: number }[][] = [[], []]
   seq.forEach((k, gi) => rows[k.side].push({ ok: k.ok, at: gi }))
@@ -8224,7 +8224,7 @@ function CopaMatchList(props: { ties: CopaTie[]; pos: number; colors: Record<num
 }
 function CopaMatchListInner({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
   const privateMatches = useOnlinePreview() || CAREER_VISUAL_RELEASED   // 🔓 19/09: liberado geral
-  if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} aSquad={tie.a.xi} bSquad={tie.b.xi} lento={copaTemGente(tie)}/>} />
+  if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout pronto={pos >= 9999} compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} aSquad={tie.a.xi} bSquad={tie.b.xi} lento={copaTemGente(tie)}/>} />
   const nameCol = (t: SimTeam) => t.you ? (colors[t.teamId]?.solid ?? INK) : (safName && t.name === safName) ? (colors[t.teamId]?.solid ?? INK) : (t.human || t.rival) ? (colors[t.teamId]?.solid ?? INK) : INK
   const markOf = (t: SimTeam) => t.you ? '👤 ' : (safName && t.name === safName) ? '💼 ' : t.rival ? '⚔️ ' : t.dorm ? '🏛️ ' : t.human ? '🔥 ' : ''
   return (
