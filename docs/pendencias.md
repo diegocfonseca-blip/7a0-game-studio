@@ -23,6 +23,10 @@
   · Estadual abre a temporada → o camarote mostra o jogo do ESTADUAL (não o 1º da Série). Na C/D o selo conta "1º da Série C"
     (não "rodada 2"). Sem "Você é o líder" com 0 ponto; a tabela diz "ninguém jogou ainda".
   · Saíram as duas dicas que repetiam o mesmo: "Seu primeiro jogo, sem complicação" (Jogos) e "Vamos ao primeiro jogo?" (Central).
+  · 🎥 "Enquanto isso no bairro" NÃO aparece na pré-temporada (*"a feira está montada não tem sentido aparecer… de início"*), e o
+    📍 "Ver no mapa" agora leva DIRETO ao lugar da cena (*"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*):
+    feira → feira · noitada → balada · futevôlei → clube de lazer · boteco → Boteco do Oswaldo · carreata → ruas · obra → o
+    terreno da obra. Caminho: `pedeVistaDoMapa` (controle-partida-mapa.ts) → o mapa chama o MESMO `go()` do menu Locais.
   · `passosVirada` virou a conta ÚNICA dos passos da virada (escritório da aba Jogos e Central leem a mesma).
 
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)

@@ -81,7 +81,7 @@ import {INFO_PATROCINADORES,ehPatrocinadorCidade} from './presidencia-patrocinad
 import {criarColecaoSala} from './presidencia-sala-colecao-3d'
 import type {TrofeuPresidencia} from './presidencia-trofeus'
 import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
-import {tiraCameraPedida,assinaCameraPedida} from './controle-partida-mapa'
+import {tiraCameraPedida,assinaCameraPedida,tiraVistaPedida,assinaVistaPedida} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 import {criarCasaLuca} from './presidencia-casa-luca-3d'
 import {AREAS_CASA_LUCA,LIMITES_COMPLEXO_CASA_LUCA} from './presidencia-casa-luca-planta'
@@ -1015,6 +1015,8 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
  const matchStarted=useRef<string|null>(null),builtKey=useRef(''),matchId=match&&!match.finished?match.context.id:null
  useEffect(()=>{const k=matchId+'|'+saveKey;if(!loaded||isWindow||isOffice||!matchId||builtKey.current!==saveKey||matchStarted.current===k)return;matchStarted.current=k;if(!userExploring.current)api.current?.view('field')},[loaded,matchId,isWindow,isOffice,saveKey])
  const go=(destination:VistaComplexo)=>{userExploring.current=true;if(destination==='original')api.current?.resetView();else if(lugarComCartao(destination))api.current?.openPlace(destination);else api.current?.view(destination);root.current?.querySelector('canvas')?.focus({preventScroll:true});setPlacesOpen(false)}
+ const goRef=useRef(go);goRef.current=go
+ useEffect(()=>{if(!loaded)return;const atende=()=>{if(!api.current)return;const v=tiraVistaPedida();if(v){if(matchCamera!=='free')api.current.setMatchCamera('free');setTimeout(()=>goRef.current(v as VistaComplexo),matchCamera!=='free'?120:0)}};atende();return assinaVistaPedida(atende)},[loaded]) // eslint-disable-line react-hooks/exhaustive-deps -- 📍 o lugar que a Central pediu (cena do bairro)
  // 🕐 feira, padaria, praça e espetinho só têm movimento em certo dia/hora: o menu lê a MESMA vida do bairro que o 3D desenha
  // (contextoBairroDoMapa → vidaDoBairro). Fora do horário o lugar aparece travado, dizendo quando funciona.
  const contextoBairro=contextoBairroDoMapa(cidadeViva,journey,match),vidaBairro=vidaDoBairro(contextoBairro),culturaBairro=culturaDoBairro(contextoBairro)
