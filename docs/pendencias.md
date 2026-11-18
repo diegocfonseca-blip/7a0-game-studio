@@ -13707,7 +13707,7 @@ Compartilhar convite e chamar amigos passaram para o cabeçalho, junto do códig
 - Pagou o Fundador no Pix em 18/11 (subida, R$ 60). Em 17/11 eu tinha ligado o Lenda (user_colors ouro) a pedido do Diego.
 - Escudo/mascote/camisa recortados da prancha verde; manto preto #101010 + branco #F1F1F0, dourado #F7D50A de 3ª cor (MANTO_TRI duarte_paredao).
 - Banco FEITO: esc_socios, esc_fundadores (102), esc_nomes_batismo (Duarte / FC / EC), user_colors ouro.
-- Gala única "São Victor" (`gala-duarte.tsx`, vídeo `scripts/posts/gala-duarte.webm`): pênalti contra, O Paredão defende com o pé.
+- Gala única (`gala-duarte.tsx`, vídeo `scripts/posts/gala-duarte.webm`). 2ª versão (o Diego não gostou das frases da 1ª): quase sem texto — refletor na bola, O Paredão defende com o pé, REPLAY de TV em câmera lenta com zoom no pé, listras, escudo e só o nome do clube.
   Fato: a defesa do Victor com o pé foi nas QUARTAS da Libertadores 2013 (Tijuana), não na final — a gala não diz "final".
 - ⏳ SEM CANTO: não existe canto do Atlético Mineiro no jogo (nenhum outro usuário tem). Falta o Diego mandar o áudio → `sfx/torcida-galo-v1.mp3` + sound.ts + gala.
 - Post: `scripts/posts/batismo-duarte.png` (dono = "Felipe", tirado do e-mail — confirmar com o Diego).
