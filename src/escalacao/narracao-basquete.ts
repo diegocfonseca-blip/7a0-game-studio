@@ -292,10 +292,10 @@ export function falaBasquete(e: EntradaNarracaoBB): FalaBB {
   const base = { p: placar, a: lider, d: dif }
   if (e.fechado) return { min: '', tipo: 'jogo', txt: preenche(pick(FINAL, seed, 999), en, base) }
   const q = quarto(min)
-  const relogio = `Q${q}`
+  const relogio = '' // o relógio do quarto já está no placar (e a faixa põe ′ depois do minuto — "Q2′" ficava torto)
   const slot = Math.floor(min / 3)
   // marcos do jogo: abertura, fim de quarto, intervalo e último quarto (janela de ~2 minutos depois da buzina)
-  if (min < 3) { const casaComeca = sorteia(seed, 1) % 2 === 0; return { min: 'Q1', tipo: 'jogo', txt: preenche(pick(ABERTURA, seed, 2), en, { t: casaComeca ? e.casa : e.fora, o: casaComeca ? e.fora : e.casa }) } }
+  if (min < 3) { const casaComeca = sorteia(seed, 1) % 2 === 0; return { min: '', tipo: 'jogo', txt: preenche(pick(ABERTURA, seed, 2), en, { t: casaComeca ? e.casa : e.fora, o: casaComeca ? e.fora : e.casa }) } }
   for (const fq of QUARTOS_FIM) {
     if (min >= fq && min < fq + 2) {
       const qq = fq === 23 ? 1 : fq === 46 ? 2 : 3
