@@ -13911,5 +13911,5 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Manto preto #0F0E18 + roxo #862EE0, azul #4853AB de 3ª cor (MANTO_TRI obelisko_atormentador). Mascote "O Atormentador".
 - Banco FEITO: esc_socios, esc_fundadores (103), esc_nomes_batismo (Obelisko / FC / EC); user_colors ouro já estava (o Pix ligou).
 - Canto: `sfx/torcida-obelisko-v1.mp3` = 14 s da abertura instrumental que o Diego mandou (mono 56k, −20,6 dB), ligado na carreira (sound.ts). ⚠️ Música com dono (avisado ao Diego, 18/11).
-- ⏳ GALA ÚNICA: Fundador tem direito; ainda não feita (perguntar a ideia ao Diego). Post: `scripts/posts/batismo-obelisko.png`.
+- Gala única "A Invocação" (`gala-obelisko.tsx`, vídeo `scripts/posts/gala-obelisko.webm`, toca o canto): 3 cartas viram tributo, obelisco racha, O Atormentador se ergue, ficha nível 10 · DIVINO · ATK/DEF 4000, soco trinca a tela, escudo. Só fatos da carta (3 tributos, 4000/4000, Divino, nível 10). Post: `scripts/posts/batismo-obelisko.png`.
 - Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
