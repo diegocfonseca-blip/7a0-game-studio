@@ -13904,3 +13904,11 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   Fato: a defesa do Victor com o pé foi nas QUARTAS da Libertadores 2013 (Tijuana), não na final — a gala não diz "final".
 - ⏳ SEM CANTO: não existe canto do Atlético Mineiro no jogo (nenhum outro usuário tem). Falta o Diego mandar o áudio → `sfx/torcida-galo-v1.mp3` + sound.ts + gala.
 - Post: `scripts/posts/batismo-duarte.png` (dono = "Felipe", tirado do e-mail — confirmar com o Diego).
+
+## 👁️👑 18/11 — Batismo FUNDADOR Obelisko FC (felipefazzio) — NO BRANCH, esperando OK do Diego
+- Pagou o Fundador (R$ 99,90) no Pix em 18/11. Várzea, no assento do bot Trave Torta EC. Fundador nº103 · sócio nº95 · coração Flamengo.
+- Arte: mascote e camisa da 1ª prancha; escudo da 2ª ("ATORMENTADOR", o que o Diego escolheu) — 284×320 (a 360 passava do teto de 30 KB).
+- Manto preto #0F0E18 + roxo #862EE0, azul #4853AB de 3ª cor (MANTO_TRI obelisko_atormentador). Mascote "O Atormentador".
+- Banco FEITO: esc_socios, esc_fundadores (103), esc_nomes_batismo (Obelisko / FC / EC); user_colors ouro já estava (o Pix ligou).
+- ⏳ GALA ÚNICA: Fundador tem direito; ainda não feita (perguntar a ideia ao Diego). Post: `scripts/posts/batismo-obelisko.png`.
+- Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
