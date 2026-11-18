@@ -46,7 +46,7 @@ export function EscolhaCarreira({ onMeuClube, onOficial, onVoltar }: { onMeuClub
             <span style={sub}>{tr('Crie seu time do zero e suba da Várzea até a Série A. Como sempre foi.', 'Create your team from scratch and climb from the Várzea to Série A. As always.')}</span>
           </button>
           <button type="button" onClick={onOficial} style={opcao(true)}>
-            <b style={{ font: '700 21px Oswald, sans-serif', textTransform: 'uppercase' }}>🇧🇷 {tr('Brasil Oficial', 'Official Brazil')} <span style={{ display: 'inline-block', background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 7px', fontSize: 11, marginLeft: 6, verticalAlign: 'middle' }}>🔒 {tr('PLANO', 'PLAN')}</span></b>
+            <b style={{ font: '700 21px Oswald, sans-serif', textTransform: 'uppercase' }}>🇧🇷 {tr('Brasil Oficial', 'Official Brazil')}</b>{/* 18/11 (Diego): sem selo de plano no cartão */}
             <span style={sub}>{tr('Escolha um clube REAL (Flamengo, Bahia, Remo…), na divisão real dele. Copa do Brasil, Libertadores, Sul-Americana e Mundial pela sua colocação.', 'Pick a REAL club (Flamengo, Bahia, Remo…) in its real division. Copa do Brasil, Libertadores, Sul-Americana and the Club World Cup by your league position.')}</span>
           </button>
           <div style={{ ...opcao(false), opacity: 0.55, marginBottom: 0 }}>
