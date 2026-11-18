@@ -126,7 +126,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   comCorDoNome(n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null, n) // 🎨 02/11: + cor adicional
-type GS = EscState & { __game?: string; pregaoAberto?: boolean; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean; liveUrl?: string }
+type GS = EscState & { __game?: string; pregaoAberto?: boolean; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean; liveUrl?: string; nbaTam?: 30 | 20 | 10; nbaFormato?: 'liga' | 'playoffs' }
 
 /** 🧱🏳️📅 o nome do tipo de pacote da sala (31/10): Clubes · Seleções, e "por década" quando for */
 function tipoPacote(gs: { clubes?: boolean; pacSelecao?: boolean; pacDecada?: boolean } | undefined, curto = false): string {
@@ -900,6 +900,9 @@ export function EscLobby() {
   const [draftPiorSel, setDraftPiorSel] = useState(false) // 🔢 09/11: ordem do draft (false = campeão primeiro)
   const premiosTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [ligaTamanho, setLigaTamanho] = useState<20 | 10>(20)
+  // 🏀 18/11 SALA NBA (rápido do basquete): tamanho da liga e formato (Diego: *"30 times reais, 20 e 10… liga apenas por pts, liga + play in + playoffs"*)
+  const [nbaTamSel, setNbaTamSel] = useState<30 | 20 | 10>(30)
+  const [nbaFormSel, setNbaFormSel] = useState<'liga' | 'playoffs'>('playoffs')
   useEffect(() => { setDraftPremiosSel(null) }, [ligaTamanho]) // 💰 mudou o tamanho = volta pro padrão daquele tamanho // 📋🏆 Minha Liga Draft (01/11): 20 times (padrão) ou 10, bots completam
   const [ligaPw, setLigaPw] = useState('') // 🔒 senha OBRIGATÓRIA da liga (Diego 29/08)
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
@@ -1929,6 +1932,7 @@ export function EscLobby() {
       locked: gs?.locked, pwHash: gs?.pwHash, // preserva a senha da sala pelo autosave
       copaMode: gs?.copaMode, // 🏆 rápido: liga só ou liga + Copa dos 8 (escolha do host na criação)
       relampagoChave: gs?.relampagoChave, // ⚡ Relâmpago: chave de 16 ou 32
+      nbaTam: gs?.nbaTam, nbaFormato: gs?.nbaFormato, // 🏀 18/11 sala NBA: tamanho e formato
       // 🏆 LIGA: a contagem de temporadas CONTINUA quando a turma passa pela sala de
       // espera (13/09 — antes toda volta pela espera recomeçava em "Temporada 1", e a
       // estante já tinha 13). O game_state guarda a ÚLTIMA temporada encerrada (o
@@ -2256,7 +2260,8 @@ export function EscLobby() {
       // 📋 LIGA DRAFT (19/10): o que é fixo no modo (caixa "Já vem pronto" do mockup) — jogador, baralho Todos, só a liga, solo
       ...(liga && ehDraft ? { ligaDraft: true, ...(ehMinha ? { minhaLigaDraft: true, ...(ligaComBots && ligaTamanho === 10 ? { tamanhoLiga: 10 } : {}), ...(draftPremiosSel ? { draftPremios: draftPremiosSel } : {}), ...(draftPiorSel ? { draftRegras: { piorPrimeiro: true } } : {}) } : {}), deck: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', deckSala: ehMinha && !rapidoClubes ? rapidoDeck : 'todos', copaMode: draftCopa, ...(ehMinha ? {} : { clubes: undefined }), // 🧱 06/11: Liga Draft escolhe Jogador/Clubes/Seleções (clubes = baralho Todos)
       mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, varzea: undefined, duplasMode: undefined } : {}), // 🇪🇺 10/11: a marca da Euro também sai (sobrava se a pessoa tinha tocado em Liga + Eurocopa antes)
-      ...(turnoSala ? { turnoUnico: true } : {}) }
+      ...(turnoSala ? { turnoUnico: true } : {}),
+      ...(getSport() === 'basquete' && roomMode === 'rapido' && !carreira ? { nbaTam: nbaTamSel, nbaFormato: nbaFormSel } : {}) } // 🏀 18/11 sala NBA
     // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
     if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
@@ -4237,8 +4242,8 @@ export function EscLobby() {
           [tr('Leilão', 'Auction'), `${kingsCriar ? '👑 Kings League' : rapidoClubes ? tipoPacote({ clubes: true, pacSelecao, pacDecada }) : tr('Jogador', 'Player')} · ${rLeilao}`],
           [tr('Time', 'Team'), nbaSala ? `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · 🏀 NBA` : `${roomDuplas ? tr('Duplas', 'Duos') : tr('Solo', 'Solo')} · ${rDeck}${!rapidoClubes && rapidoDeck === 'br' ? ` · ${rapidoVarzea ? tr('Várzea', 'Grassroots') : tr('Todos', 'All')}` : ''}`],
           ...(nbaSala ? [] : [[tr('Formação', 'Formation'), kingsCriar ? '2-2-2' : formation] as [string, string]]), // 🏀 quinteto: sem formação
-          [tr('Campeonato', 'Championship'), kingsCriar ? tr('10 times · 9 rodadas', '10 teams · 9 rounds') : nbaSala ? tr('Temporada da NBA', 'NBA season') : rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
-          [tr('Depois da liga', 'After the league'), kingsCriar ? tr('Mata-mata da Kings', 'Kings knockouts') : ehDraft ? tr('Liga + draft', 'League + draft') : nbaSala ? tr('🏀 Playoffs', '🏀 Playoffs') : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
+          [tr('Campeonato', 'Championship'), kingsCriar ? tr('10 times · 9 rodadas', '10 teams · 9 rounds') : nbaSala ? (roomMode === 'rapido' ? tr(`${nbaTamSel} times · ${nbaTamSel === 30 ? 82 : nbaTamSel === 20 ? 38 : 36} jogos`, `${nbaTamSel} teams · ${nbaTamSel === 30 ? 82 : nbaTamSel === 20 ? 38 : 36} games`) : tr('Temporada da NBA', 'NBA season')) : rapidoCopaMode === 'relampago' ? tr(`${relampagoChave} times · Relâmpago`, `${relampagoChave} teams · Knockout`) : tr(`${tam10Vale ? 10 : 20} times · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rodadas`, `${tam10Vale ? 10 : 20} teams · ${tam10Vale ? 18 : turnoVale ? 19 : 38} rounds`)],
+          [tr('Depois da liga', 'After the league'), kingsCriar ? tr('Mata-mata da Kings', 'Kings knockouts') : ehDraft ? tr('Liga + draft', 'League + draft') : nbaSala ? (roomMode === 'rapido' && nbaFormSel === 'liga' ? tr('📊 Só a liga', '📊 League only') : roomMode === 'rapido' ? tr('🎟️ Play-In + Playoffs', '🎟️ Play-In + Playoffs') : tr('🏀 Playoffs', '🏀 Playoffs')) : rapidoCopaMode === 'liga_euro' ? tr('Liga + Eurocopa', 'League + Euro') : rCopa[rapidoCopaMode] ?? ''],
           [tr('Partida', 'Match'), `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`],
           [tr('Entrada', 'Entry'), roomMode === 'liga' || roomLocked ? tr('Com senha', 'Password') : tr('Aberta', 'Open')],
           [tr('Conversa', 'Chat'), roomChat ? tr('Chat ligado', 'Chat on') : tr('Sem chat', 'No chat')],
@@ -4247,7 +4252,7 @@ export function EscLobby() {
         const createSummaries: Record<string, string> = {
           [tr('O leilão', 'The auction')]: rLeilao,
           [tr('O time', 'The team')]: resumoTime,
-          [tr('O campeonato', 'The championship')]: (createRows.find(([label]) => label === tr('Campeonato', 'Championship'))?.[1] ?? '') + ` · ${ehDraft ? tr('📋 Draft', '📋 Draft') : nbaSala ? tr('🏀 Playoffs', '🏀 Playoffs') : rCopa[rapidoCopaMode] ?? ''}`,
+          [tr('O campeonato', 'The championship')]: (createRows.find(([label]) => label === tr('Campeonato', 'Championship'))?.[1] ?? '') + ` · ${ehDraft ? tr('📋 Draft', '📋 Draft') : nbaSala ? (roomMode === 'rapido' && nbaFormSel === 'liga' ? tr('📊 Só a liga', '📊 League only') : roomMode === 'rapido' ? tr('🎟️ Play-In + Playoffs', '🎟️ Play-In + Playoffs') : tr('🏀 Playoffs', '🏀 Playoffs')) : rCopa[rapidoCopaMode] ?? ''}`,
           [tr('A partida', 'The match')]: `${roomManual && hasManual ? tr('Manual', 'Manual') : tr('Automático', 'Automatic')} · ${room2d && pode2d ? tr('Campo 2D', '2D pitch') : tr('Placar padrão', 'Standard scoreboard')}`,
           [tr('A sala', 'The room')]: resumoSala,
           [tr('Os rivais', 'The rivals')]: tr('Ajuste quem joga com vocês', 'Choose who plays with you'),
@@ -4691,7 +4696,29 @@ export function EscLobby() {
                   {draftCopa === 'liga_copa' && <p className="text-[11px] font-black mt-1.5 leading-snug rounded-lg px-2 py-1.5" style={{ color: '#fff', background: 'rgba(255,196,0,.14)', border: '2px solid ' + GOLD }}>{tr('📋 A ordem do draft é sempre pela TABELA DA LIGA. A Copa não muda o draft: ela só vale moedas e troféu.', '📋 Draft order always follows the LEAGUE TABLE. The Cup doesn\'t change the draft: it only gives coins and a trophy.')}</p>}
                   {draftCopa === 'liga_copa' && ehMinha && <p className="text-[10.5px] font-black mt-1 leading-snug" style={{ color: GOLD }}>{tr('💰 Copa: campeão leva as moedas do campeão da liga + troféu · vice, as do vice · semi 12 · quartas 6', '💰 Cup: champion gets the league champion\'s coins + trophy · runner-up, the runner-up\'s · semi 12 · quarters 6')}</p>}
                 </SegField>
-              ) : nbaSala ? (
+              ) : nbaSala && roomMode === 'rapido' ? (<>
+                {/* 🏀 18/11 SALA NBA: tamanho e formato (mockup aprovado; NBA Cup fora por enquanto). Explicação embaixo de cada escolha. */}
+                <SegField label={tr('🏀 Times na liga', '🏀 Teams in the league')}>
+                  <Seg options={[[30, tr('30 · NBA real', '30 · real NBA')], [20, tr('20 times', '20 teams')], [10, tr('10 times', '10 teams')]] as [30 | 20 | 10, string][]}
+                    value={nbaTamSel} onSet={v => setNbaTamSel(v)} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{nbaTamSel === 30
+                    ? tr('As 30 franquias reais: Leste 15 · Oeste 15. Cada um da sala entra no lugar de uma franquia. 82 jogos pra cada time.', 'The 30 real franchises: East 15 · West 15. Everyone in the room takes a franchise\'s place. 82 games each.')
+                    : nbaTamSel === 20
+                      ? tr('Leste 10 · Oeste 10. Cada um enfrenta todos 2 vezes: 38 jogos.', 'East 10 · West 10. Everyone plays everyone twice: 38 games.')
+                      : tr('Tabela única, sem conferência. Cada um enfrenta todos 4 vezes: 36 jogos.', 'One table, no conferences. Everyone plays everyone 4 times: 36 games.')}</p>
+                </SegField>
+                <SegField label={tr('Formato', 'Format')}>
+                  <Seg options={[['playoffs', tr('🎟️ Liga + Play-In + Playoffs', '🎟️ League + Play-In + Playoffs')], ['liga', tr('📊 Só a liga', '📊 League only')]] as ['liga' | 'playoffs', string][]}
+                    value={nbaFormSel} onSet={v => setNbaFormSel(v)} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{nbaFormSel === 'liga'
+                    ? tr('Campeão = melhor campanha. Acabou a tabela, acabou a temporada.', 'Champion = best record. When the table ends, the season ends.')
+                    : nbaTamSel === 30
+                      ? tr('1º ao 6º de cada conferência vão direto. 7º ao 10º disputam o Play-In pelas 2 últimas vagas. Playoffs com 16 times, toda série melhor de 7.', '1st to 6th of each conference go straight in. 7th to 10th play the Play-In for the last 2 spots. 16-team playoffs, every series best of 7.')
+                      : nbaTamSel === 20
+                        ? tr('1º e 2º de cada conferência vão direto. 3º ao 6º disputam o Play-In pelas 2 últimas vagas. Playoffs com 8 times, toda série melhor de 7.', '1st and 2nd of each conference go straight in. 3rd to 6th play the Play-In for the last 2 spots. 8-team playoffs, every series best of 7.')
+                        : tr('1º e 2º vão direto. 3º ao 6º disputam o Play-In pelas 2 últimas vagas. Semifinal e final, toda série melhor de 7.', '1st and 2nd go straight in. 3rd to 6th play the Play-In for the last 2 spots. Semi-final and final, every series best of 7.')}</p>
+                </SegField>
+              </>) : nbaSala ? (
                 // 🏀 basquete: nada de competição de futebol. Street League = só a tabela;
                 // G League/NBA = PLAYOFFS por conferência (automático). Sem seletor.
                 <SegField label={tr('Depois da liga', 'After the league')}>

@@ -37,7 +37,7 @@ import { FORMATIONS, SECTORS, rotuloFormacao, duplaPodeAgir, desfazParCruzado, t
 import { CATALOG_NBA, NBA_TOTAL } from './data-basquete'
 import { NBA_POS_ORDER } from './basquete-deck'
 import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, idDe as idNbaCarreira } from './nba-carreiras'
-import { ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
@@ -8168,10 +8168,11 @@ export function EscSeason() {
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
           {copaLive && qc ? (cupNow
             ? `🏆 NBA CUP · ${qc.phase === 'quartas' ? LS('QUARTAS', 'QUARTERS') : qc.phase === 'semis' ? LS('SEMIFINAL', 'SEMIFINAL') : LS('FINAL', 'FINAL')}`
-            : `${chS ? '⭐ CHAMPIONS' : libS ? '🌎 LIBERTA' : relS ? LS('⚡ RELÂMPAGO', '⚡ LIGHTNING') : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA', 'CUP')}`} · ${qc.phase === 'repescao' ? LS('REPESCÃO', 'PLAYOFF') : qc.phase === 'r32' ? LS('RODADA DE 32', 'R32') : qc.phase === 'oitavas' ? (bbS ? LS('1ª RODADA', 'FIRST ROUND') : LS('OITAVAS', 'R16')) : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : LS('QUARTAS', 'QUARTERS')) : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}`) : `${LS('RODADA', 'ROUND')} ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
+            : `${chS ? '⭐ CHAMPIONS' : libS ? '🌎 LIBERTA' : relS ? LS('⚡ RELÂMPAGO', '⚡ LIGHTNING') : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA', 'CUP')}`} · ${qc.phase === 'playin' ? 'PLAY-IN' : qc.phase === 'repescao' ? LS('REPESCÃO', 'PLAYOFF') : qc.phase === 'r32' ? LS('RODADA DE 32', 'R32') : qc.phase === 'oitavas' ? (bbS ? LS('1ª RODADA', 'FIRST ROUND') : LS('OITAVAS', 'R16')) : qc.phase === 'quartas' ? (bbS ? LS('SEMIS DE CONF.', 'CONF. SEMIS') : LS('QUARTAS', 'QUARTERS')) : qc.phase === 'semis' ? (bbS ? LS('FINAIS DE CONF.', 'CONF. FINALS') : 'SEMI') : (bbS ? LS('FINAIS', 'FINALS') : 'FINAL')}`) : `${LS('RODADA', 'ROUND')} ${Math.min(privateVisual ? Math.max(1, state.round) : state.round + 1, totalRounds)}/${totalRounds}`}
         </span>
         <span className="font-black text-sm" style={OSWALD}>{(() => {
           // ⭐ Só Champions: não existe liga, então nada de "15º · 0 pts" — mostra a perna
+          if (bbSerie && copaLive && qc) return qc.phase === 'playin' ? LS('JOGO ÚNICO', 'ONE GAME') : `${LS('JOGO', 'GAME')} ${qc.legIdx + 1} · ${LS('MELHOR DE', 'BEST OF')} ${qc.bo ?? 3}` // 🏀 série, não ida/volta
           if ((privateVisual || state.copaMode === 'champions' || relS) && copaLive && qc) return qc.phase === 'final' ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.legIdx === 0 ? LS('IDA', '1ST LEG') : LS('VOLTA', '2ND LEG')
           const disp = !resultRevealed && state.lastResults.length > 0 ? sortedTable(leagueBeforeResults(state.league, state.lastResults)) : table
           const pos = disp.findIndex(t => t.id === you.id) + 1
@@ -8189,12 +8190,12 @@ export function EscSeason() {
         const phaseLabel = cupNow
           ? (qc.phase === 'quartas' ? LS('Quartas de Final', 'Quarter-finals') : qc.phase === 'semis' ? LS('Semifinal', 'Semi-final') : LS('Final', 'Final'))
           : bbS
-            ? (qc.phase === 'oitavas' ? LS('1ª Rodada', 'First Round') : qc.phase === 'quartas' ? LS('Semis de Conferência', 'Conference Semi-finals') : qc.phase === 'semis' ? LS('Finais de Conferência', 'Conference Finals') : 'Finals')
+            ? (qc.phase === 'playin' ? `Play-In · ${qc.playin?.rodada === 2 ? LS('a última vaga', 'the last spot') : LS('1ª rodada', 'round 1')}` : qc.phase === 'oitavas' ? LS('1ª Rodada', 'First Round') : qc.phase === 'quartas' ? LS('Semis de Conferência', 'Conference Semi-finals') : qc.phase === 'semis' ? (state.nbaSala?.tam === 10 ? LS('Semifinal', 'Semi-final') : LS('Finais de Conferência', 'Conference Finals')) : 'Finals')
             : (qc.phase === 'repescao' ? LS('Repescão', 'Playoff') : qc.phase === 'r32' ? LS('Rodada de 32', 'Round of 32') : qc.phase === 'oitavas' ? LS('Oitavas de Final', 'Round of 16') : qc.phase === 'quartas' ? LS('Quartas de Final', 'Quarter-finals') : qc.phase === 'semis' ? LS('Semifinal', 'Semi-final') : 'Final')
         const legLabel = cupNow
           ? LS('Jogo único · quem perde está fora', 'One game · lose and you are out')
           : bbSerie
-            ? `${LS('Jogo', 'Game')} ${qc.legIdx + 1} ${LS('· melhor de 3', '· best of 3')}`
+            ? (qc.phase === 'playin' ? LS('Jogo único · quem perde pode estar fora', 'One game · the loser may be out') : `${LS('Jogo', 'Game')} ${qc.legIdx + 1} ${(qc.bo ?? 3) === 7 ? LS('· melhor de 7', '· best of 7') : LS('· melhor de 3', '· best of 3')}`)
             : kingsS ? (qc.phase === 'final' ? LS('Final · jogo único', 'Final · one-off') : LS('Jogo único · empate vai pro shootout', 'One-off · level goes to a shootout'))
             : qc.phase === 'final' ? LS('Jogo único · campo neutro', 'One-off · neutral ground') : qc.legIdx === 0 ? LS('Jogo de ida', 'First leg') : LS('Jogo de volta', 'Second leg')
         const myTie = qc.ties.find(t => t.aId === you.id || t.bId === you.id)
@@ -8220,11 +8221,13 @@ export function EscSeason() {
           const nLegs = tie.legs.length
           // 🏀 SÉRIE MELHOR DE 3 (14/09): no basquete o que vale é quantos JOGOS cada um
           // venceu — somar pontos de dois jogos ("agregado") é conta de futebol.
-          const serieA = tie.legs.filter(l => l[0] > l[1]).length
-          const serieB = nLegs - serieA
+          const clockDone = copaMin >= 93
+          // 🙈 18/11: a série só conta jogo que JÁ ACABOU na tela — o jogo rolando não entra (senão "3 × 0" aparecia no meio do jogo 3)
+          const legsVistas = clockDone || !tie.legs.length ? tie.legs : tie.legs.slice(0, -1)
+          const serieA = legsVistas.filter(l => l[0] > l[1]).length
+          const serieB = legsVistas.length - serieA
           const fullAggA = tie.legs.reduce((s2, l) => s2 + l[0], 0)
           const fullAggB = tie.legs.reduce((s2, l) => s2 + l[1], 0)
-          const clockDone = copaMin >= 93
           // placar AO VIVO: pernas já fechadas + a perna atual progredindo no relógio.
           let showA = fullAggA, showB = fullAggB
           let minsA: number[] = [], minsB: number[] = []
@@ -8267,16 +8270,16 @@ export function EscSeason() {
           const justScored = live && lastGoalMin >= 0 && copaMin - lastGoalMin <= 1
           const barPct = Math.max(0, Math.min(100, Math.round((copaMin / 90) * 100)))
           if (privateVisual) {
-            const reverse = nLegs > 1
+            const reverse = bbSerie ? nLegs > 0 && !copaMandoA(nLegs - 1, true, qc.bo) : nLegs > 1 // 🏀 mando da série (2-2-1-1-1 no melhor de 7)
             const prevA = tie.legs.slice(0, -1).reduce((s, l) => s + l[0], 0)
             const prevB = tie.legs.slice(0, -1).reduce((s, l) => s + l[1], 0)
             const owner = (id: number) => state.managers.find(m => m.id === id && m.isHuman)?.name ?? 'BOT'
             const h = reverse ? tie.bName : tie.aName, a = reverse ? tie.aName : tie.bName
-            return <CompetitionMatch key={`${tie.aId}-${tie.bId}`} goals={(tie.lastPresentationGoals??tie.lastHighlights??[]).filter(lanceEhGol).filter(g=>clockDone||g.min<=copaMin).map(g=>({name:g.text,min:g.min,home:g.teamId===(reverse?tie.bId:tie.aId)}))} home={h} away={a} homeCrest={<Escudo nome={h} size={28} />} awayCrest={<Escudo nome={a} size={28} />} homeOwner={owner(reverse ? tie.bId : tie.aId)} awayOwner={owner(reverse ? tie.aId : tie.bId)} mine={mine}
+            return <CompetitionMatch basket={bbS} key={`${tie.aId}-${tie.bId}`} goals={(tie.lastPresentationGoals??tie.lastHighlights??[]).filter(lanceEhGol).filter(g=>clockDone||g.min<=copaMin).map(g=>({name:g.text,min:g.min,home:g.teamId===(reverse?tie.bId:tie.aId)}))} home={h} away={a} homeCrest={<Escudo nome={h} size={28} />} awayCrest={<Escudo nome={a} size={28} />} homeOwner={owner(reverse ? tie.bId : tie.aId)} awayOwner={owner(reverse ? tie.aId : tie.bId)} mine={mine}
               homeScore={nLegs ? reverse ? showB-prevB : showA-prevA : '–'} awayScore={nLegs ? reverse ? showA-prevA : showB-prevB : '–'}
-              status={`${bbSerie ? `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}` : cupNow || (kingsS && qc.phase !== 'final') ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
-              detail={<>{reverse && (bbSerie
-                ? <p><b>{LS('Série', 'Series')}: {tie.aName} {serieA} × {serieB} {tie.bName}</b> <span style={{ opacity: .7 }}>({LS('melhor de 3', 'best of 3')})</span></p>
+              status={`${bbSerie ? (qc.phase === 'playin' ? 'PLAY-IN' : `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}`) : cupNow || (kingsS && qc.phase !== 'final') ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
+              detail={<>{(bbSerie ? nLegs > 1 && qc.phase !== 'playin' : reverse) && (bbSerie
+                ? <p><b>{LS('Série', 'Series')}: {tie.aName} {serieA} × {serieB} {tie.bName}</b> <span style={{ opacity: .7 }}>({(qc.bo ?? 3) === 7 ? LS('melhor de 7', 'best of 7') : LS('melhor de 3', 'best of 3')})</span></p>
                 : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout campo={tie === meuTiePen ? penCampo.estado : undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />)}{!tie.pens&&!escondeVencedor&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
           }
           return (
@@ -8317,7 +8320,7 @@ export function EscSeason() {
               </div>
               <div style={{ padding: '6px 10px 9px' }}>
                 {privateVisual && nLegs>1 && (bbSerie
-                  ? <p className="text-center text-xs font-bold text-black">{LS('SÉRIE', 'SERIES')}: {serieA} × {serieB} <span style={{ opacity: .6 }}>({LS('melhor de 3', 'best of 3')})</span></p>
+                  ? <p className="text-center text-xs font-bold text-black">{LS('SÉRIE', 'SERIES')}: {serieA} × {serieB} <span style={{ opacity: .6 }}>({(qc.bo ?? 3) === 7 ? LS('melhor de 7', 'best of 7') : LS('melhor de 3', 'best of 3')})</span></p>
                   : <p className="text-center text-xs font-bold text-black">{LS('AGREGADO', 'AGGREGATE')}: {showA} × {showB} · {LS('Ida', '1st leg')}: {tie.legs[0][0]} × {tie.legs[0][1]}</p>)}
                 {privateVisual && settled && !escondeVencedor && <p className="text-center text-xs font-bold" style={{color:GREEN,...(pd>0?{opacity:0,animation:`cmWinPop .2s ease ${pd}s forwards`}:{})}}>{tie.winner===tie.aId?tie.aName:tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avança', 'advances')}</p>}
                 {justScored && <p className="text-center mt-1"><span style={{ ...copaCenterChip, fontSize: 9, fontWeight: 900, color: '#FFD778' }}>{LS('⚽ GOOOL agora!', '⚽ GOAL just now!')}</span></p>}
@@ -8445,8 +8448,9 @@ export function EscSeason() {
                 // a volta decidia a vaga, o card já pulava pro agregado e a volta
                 // não aparecia. Agora ida e volta rolam as duas, cada uma no seu tempo.
                 const lastLegIdx = myTie.legs.length - 1
-                const legHomeId = lastLegIdx === 0 ? myTie.aId : myTie.bId
-                const legAwayId = lastLegIdx === 0 ? myTie.bId : myTie.aId
+                const casaA = bbSerie ? copaMandoA(lastLegIdx, true, qc.bo) : lastLegIdx === 0 // 🏀 mando da série · ⚽ ida/volta
+                const legHomeId = casaA ? myTie.aId : myTie.bId
+                const legAwayId = casaA ? myTie.bId : myTie.aId
                 const homeIsYou = legHomeId === you.id
                 const oppId = homeIsYou ? legAwayId : legHomeId
                 const oppIsHuman = state.managers.some(m => m.id === oppId && m.isHuman)
@@ -8456,7 +8460,7 @@ export function EscSeason() {
                 const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
                   <>
-                    <LiveScoreCard enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`} disputaPenaltis={myTie === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={myTie === meuTiePen ? penCampo.estado : undefined}
+                    <LiveScoreCard basket={bbS ? (() => { const lg = myTie.legs[lastLegIdx]; return casaA ? { h: lg[0], a: lg[1] } : { h: lg[1], a: lg[0] } })() : undefined} /* 🏀 18/11: placar de basquete nos playoffs (sem isto saía "GOOOL") */ enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`} disputaPenaltis={myTie === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={myTie === meuTiePen ? penCampo.estado : undefined}
                       homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
@@ -8464,7 +8468,7 @@ export function EscSeason() {
                       roundMs={Math.round(copaLegMs / copaSf)} classico={oppIsHuman} retro={retroDe(oppId)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(kJogo?.kings, kJogo?.homeId) : undefined}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === legHomeId)?.squad, fora: state.managers.find(m => m.id === legAwayId)?.squad, fCasa: state.managers.find(m => m.id === legHomeId)?.formation, fFora: state.managers.find(m => m.id === legAwayId)?.formation }} />
                     {kingsInfo}
-                    {myTie.legs.length === 2 && (
+                    {myTie.legs.length === 2 && !bbSerie /* 🏀 série não tem "ida": o placar da série já aparece no cartão */ && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
                     )}
                   </>
@@ -8481,10 +8485,11 @@ export function EscSeason() {
               const corDe = (id: number) => state.managers.some(m => m.id === id && m.isHuman) ? (perkFromSelo(state.managers.find(m => m.id === id)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
               const donoDe = (id: number) => { const m = state.managers.find(mm => mm.id === id && mm.isHuman); return m ? (m.name || m.teamName) : LS('FINALISTA', 'FINALIST') }
               const lastIdx = ft.legs.length - 1
-              const hId = lastIdx === 0 ? ft.aId : ft.bId, aId = lastIdx === 0 ? ft.bId : ft.aId
+              const casaF = bbSerie ? copaMandoA(lastIdx, true, qc.bo) : lastIdx === 0 // 🏀 mando da série
+              const hId = casaF ? ft.aId : ft.bId, aId = casaF ? ft.bId : ft.aId
               const goals = (ft.lastHighlights ?? []).filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === hId }))
               return (
-                <LiveScoreCard neutro enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
+                <LiveScoreCard neutro basket={bbS ? (casaF ? { h: ft.legs[lastIdx][0], a: ft.legs[lastIdx][1] } : { h: ft.legs[lastIdx][1], a: ft.legs[lastIdx][0] }) : undefined} enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
                   homeName={nameOf(hId)} awayName={nameOf(aId)} homeColor={corDe(hId)} awayColor={corDe(aId)} homeOwner={donoDe(hId)} awayOwner={donoDe(aId)}
                   youIsHome={false} goals={goals} roundKey={ft.legs.length + 20} roundMs={Math.round(copaLegMs / copaSf)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
                   footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === hId)?.squad, fora: state.managers.find(m => m.id === aId)?.squad, fCasa: state.managers.find(m => m.id === hId)?.formation, fFora: state.managers.find(m => m.id === aId)?.formation }} />
@@ -8790,10 +8795,10 @@ export function EscSeason() {
             return <RoundMatchPresentation basket={bbS} startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kingsPens={kingsS ? r.kings?.pens : undefined} />
           })}
         </div></section>}
-        {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({repescao:'PLAYOFF',r32:'ROUND OF 32',oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({repescao:'REPESCÃO',r32:'RODADA DE 32',oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
+        {privateVisual && copaLive && qc && qc.bracket.map((b, bi) => <details key={`${b.phase}-${bi}`} className="ll26-bracket-history"><summary>{bbS ? (b.phase === 'playin' ? (bi === 0 ? LS('PLAY-IN · 1ª RODADA', 'PLAY-IN · ROUND 1') : LS('PLAY-IN · A ÚLTIMA VAGA', 'PLAY-IN · THE LAST SPOT')) : b.phase === 'oitavas' ? LS('1ª RODADA', 'FIRST ROUND') : b.phase === 'quartas' ? LS('SEMIS DE CONFERÊNCIA', 'CONF. SEMI-FINALS') : b.phase === 'semis' ? (state.nbaSala?.tam === 10 ? LS('SEMIFINAL', 'SEMI-FINAL') : LS('FINAIS DE CONFERÊNCIA', 'CONF. FINALS')) : 'FINALS') : enS ? ({playin:'PLAY-IN',repescao:'PLAYOFF',r32:'ROUND OF 32',oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({playin:'PLAY-IN',repescao:'REPESCÃO',r32:'RODADA DE 32',oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch basket={bbS} key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
         {/* ⭐ Só Champions: não teve liga — a tabela dela (toda zerada) não aparece */}
         {state.copaMode === 'champions' ? null : privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
-      naDireita(<TableBox highlight={you.id} holdResults={!resultRevealed} title={bbS && state.nbaCareer ? (state.nbaTier === 'nba' ? '🏆 NBA' : state.nbaTier === 'gleague' ? '🏆 G LEAGUE' : '🏆 STREET LEAGUE') : "🏆 LIGA LEGENDS"} cinema={cinemaPreview} />)
+      naDireita(<TableBox highlight={you.id} holdResults={!resultRevealed} title={bbS && state.nbaCareer ? (state.nbaTier === 'nba' ? '🏆 NBA' : state.nbaTier === 'gleague' ? '🏆 G LEAGUE' : '🏆 STREET LEAGUE') : bbS && state.nbaSala ? '🏆 NBA' : "🏆 LIGA LEGENDS"} cinema={cinemaPreview} />)
         }
       </div>
       <div hidden={(privateVisual && visualTab !== 'estatisticas') || centralBB} className="space-y-5">
@@ -9218,21 +9223,28 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
   const kg = ehKings(state) // 👑 Kings: 1º = SEMI, 2º–7º = QUARTAS, sem rebaixamento; a coluna do empate vira SH (jogos no shootout)
   const league = holdResults && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league
   const table = sortedTable(league)
-  const leste = confTier ? table.filter(t => t.id % 2 === 0) : []
-  const oeste = confTier ? table.filter(t => t.id % 2 !== 0) : []
+  // 🏀 18/11 SALA NBA: conferência REAL de cada time (`nbaConf`); a sala de 10 é tabela única. Zonas: playoffs direto (verde, PO) e
+  // Play-In (amarelo, PI) — a MESMA régua do `seedSalaNba` (30: 1º–6º + 7º–10º · 20/10: 1º–2º + 3º–6º).
+  const sala = bb ? state.nbaSala : undefined
+  const confDe = (id: number) => (sala && state.nbaConf ? state.nbaConf[id] ?? (id % 2 === 0 ? 'L' : 'O') : id % 2 === 0 ? 'L' : 'O')
+  const semConf = !!sala && sala.tam === 10
+  const leste = confTier && !semConf ? table.filter(t => confDe(t.id) === 'L') : []
+  const oeste = confTier && !semConf ? table.filter(t => confDe(t.id) === 'O') : []
+  const salaDir = sala ? (sala.tam === 30 ? 6 : 2) : 0
+  const salaPI = sala ? salaDir + 4 : 0
   // 🏆 vagas de playoff POR CONFERÊNCIA — a MESMA régua do `seedQuickCopa`: 8 em
   // conferência grande (12+ times: NBA tem 15, G League 12), chave 1×8/4×5/3×6/2×7;
   // 4 em liga menor (sala online de 20 = 10 por lado), que dá os mesmos 40% de
   // classificados da Copa dos 8 do futebol. Se mudar lá, muda aqui — senão a tela
   // marcaria como classificado quem o motor deixa de fora.
   const duasConf = confTier && leste.length >= 4 && oeste.length >= 4
-  const vagasPO = leste.length >= 12 && oeste.length >= 12 ? 8 : 4
-  const confOf = (id: number) => id % 2 === 0 ? '🔵 ' : '🔴 '
+  const vagasPO = sala ? salaDir : leste.length >= 12 && oeste.length >= 12 ? 8 : 4
+  const confOf = (id: number) => confDe(id) === 'L' ? '🔵 ' : '🔴 '
   // 🖊️ UMA linha da tabela. `vagas` = quantos de cima se classificam naquela
   // tabela (0 = ninguém, caso da Street League, que é só pontos corridos);
   // `zonaFut` liga a zona de rebaixamento — no basquete NINGUÉM CAI (a pirâmide
   // dele só sobe), então pintar faixa vermelha ali seria mentira na tela.
-  const linha = (t: typeof table[number], rank: number, nTab: number, vagas: number, zonaFut: boolean) => {
+  const linha = (t: typeof table[number], rank: number, nTab: number, vagas: number, zonaFut: boolean, piAte = 0) => {
     const isMgr = state.managers.some(m => m.id === t.id)
     const isYou = t.id === highlight
     // rival de carreira (fixo, vida própria na pirâmide) OU, no online,
@@ -9244,7 +9256,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
     // prata brilhante…); gratuito = bege chapado. Rival de carreira = salmão.
     const youPerk = isYou ? myApoioPerk() : null
     const rivPerk = isOnlineRival ? perkFromSelo(state.managers.find(m => m.id === t.id)?.teamName ?? '') : null
-    const fundoZona = kg ? (rank === 1 ? '#FFE79A' : rank <= 7 ? '#D8F0DE' : undefined) : zonaFut ? zoneColor(rank, nTab) : (vagas > 0 && rank <= vagas ? '#D8F0DE' : undefined)
+    const fundoZona = kg ? (rank === 1 ? '#FFE79A' : rank <= 7 ? '#D8F0DE' : undefined) : zonaFut ? zoneColor(rank, nTab) : (vagas > 0 && rank <= vagas ? '#D8F0DE' : piAte > 0 && rank <= piAte ? '#FFF0B8' : undefined)
     const rowBg = isYou
       ? (youPerk ? youPerk.grad : APOIO_PERKS.bege.light)
       : isOnlineRival
@@ -9258,7 +9270,8 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
           <span className="flex items-center gap-1">
             {rank}
             {kg ? (rank <= 7 && <span className="text-[7px] font-black rounded px-1" style={{ background: rank === 1 ? GOLD : '#fff', border: '1px solid rgba(0,0,0,.4)', color: INK }}>{rank === 1 ? 'SEMI' : L('QF', 'QF')}</span>)
-              : vagas > 0 && rank <= vagas && <span className="text-[7px] font-black rounded px-1" style={{ background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>{bb ? 'PO' : `G${vagas}`}</span>}
+              : vagas > 0 && rank <= vagas ? <span className="text-[7px] font-black rounded px-1" style={{ background: sala ? GREEN : GOLD, border: '1px solid rgba(0,0,0,.4)', color: sala ? '#fff' : INK }}>{bb ? 'PO' : `G${vagas}`}</span>
+              : piAte > 0 && rank <= piAte && <span className="text-[7px] font-black rounded px-1" style={{ background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>PI</span>}
             {!kg && zonaFut && rank >= zoneBot(nTab) && <span className="text-[7px] font-black rounded px-1" style={{ background: '#F9D8D3', border: '1px solid rgba(0,0,0,.4)', color: INK }}>Z{zoneN(nTab)}</span>}
           </span>
         </td>
@@ -9267,7 +9280,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
         <td className="max-w-[150px]">
           <span className="flex items-center gap-1.5 min-w-0">
             {!bb && <Escudo nome={t.name} size={18} />}
-            <span className="truncate">{confTier && !duasConf ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</span>
+            <span className="truncate">{confTier && !duasConf && !semConf ? confOf(t.id) : ''}{isRival ? '🔥 ' : isMgr ? '👤 ' : ''}{t.name}</span>
           </span>
         </td>
         {bb ? (
@@ -9306,7 +9319,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
         style={{ ...OSWALD, background: GOLD, color: INK, border: '2px solid #000', boxShadow: '2px 2px 0 #000' }}>{nome}</p>
       <table className="w-full text-xs">
         {cabeca()}
-        <tbody>{times.map((t, i) => linha(t, i + 1, times.length, vagasPO, false))}</tbody>
+        <tbody>{times.map((t, i) => linha(t, i + 1, times.length, vagasPO, false, salaPI))}</tbody>
       </table>
     </div>
   )
@@ -9315,9 +9328,10 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
-          {bb ? (confTier && (
+          {bb ? (confTier && (<>
             <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Playoffs', 'Playoffs')}</span>
-          )) : kg ? (
+            {sala && <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#FFF0B8', border: '1px solid rgba(0,0,0,.3)' }} />Play-In</span>}
+          </>)) : kg ? (
             <>
               <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#FFE79A', border: '1px solid rgba(0,0,0,.3)' }} />SEMI</span>
               <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Quartas', 'Quarters')}</span>
@@ -9340,12 +9354,12 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
         </div>
       ) : (
         <>
-          {confTier && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste', '🔵 East · 🔴 West')}</p>}
+          {confTier && !semConf && <p className="text-[10px] font-bold text-black/55 mb-1.5">{L('🔵 Leste · 🔴 Oeste', '🔵 East · 🔴 West')}</p>}
           <table className="w-full text-xs">
             {cabeca()}
             <tbody>
               {table.map((t, i) => linha(t, i + 1, table.length,
-                bb ? (confTier ? Math.min(8, table.length) : 0) : soLiga && !zonasDraft ? 0 : copaN(table.length), !bb && (!soLiga || zonasDraft)))}
+                bb ? (confTier ? (sala ? salaDir : Math.min(8, table.length)) : 0) : soLiga && !zonasDraft ? 0 : copaN(table.length), !bb && (!soLiga || zonasDraft), confTier && sala ? salaPI : 0))}
             </tbody>
           </table>
         </>
@@ -9353,7 +9367,10 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
       {kg && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L('👑 Pontos: vitória 3 · vitória no shootout 2 · derrota no shootout 1 · derrota 0. SH = jogos que foram pro shootout. 1º direto na semi · 2º ao 7º nas quartas.', '👑 Points: win 3 · shootout win 2 · shootout loss 1 · loss 0. SH = games that went to a shootout. 1st straight to the semi · 2nd–7th in the quarters.')}</p>}
       {zonasDraft && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L(`🟢 G${copaN(table.length)} em cima · 🔴 Z${zoneN(table.length)} embaixo — só pra diferenciar: na Liga Draft ninguém cai e não tem Copa.`, `🟢 Top ${copaN(table.length)} · 🔴 bottom ${zoneN(table.length)} — just to tell them apart: in the Draft League nobody goes down and there is no Cup.`)}</p>}
       {!bb && !kg && !soLiga && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{tr(`🏆 G${copaN(table.length)} = os ${copaN(table.length)} primeiros — quando a liga acaba, disputam a Copa dos 8.`, `🏆 G${copaN(table.length)} = the top ${copaN(table.length)} — when the league ends, they play the Cup of 8.`)}</p>}
-      {duasConf && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L(
+      {sala && confTier && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L(
+        `🏆 PO = ${salaDir === 6 ? '1º ao 6º' : '1º e 2º'}${semConf ? '' : ' de cada conferência'} direto nos playoffs · 🎟️ PI = ${salaDir === 6 ? '7º ao 10º' : '3º ao 6º'} no Play-In (2 vagas). Toda série é melhor de 7.`,
+        `🏆 PO = ${salaDir === 6 ? '1st to 6th' : '1st and 2nd'}${semConf ? '' : ' of each conference'} straight into the playoffs · 🎟️ PI = ${salaDir === 6 ? '7th to 10th' : '3rd to 6th'} in the Play-In (2 spots). Every series is best of 7.`)}</p>}
+      {duasConf && !sala && <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L(
         `🏆 PO = os ${vagasPO} primeiros de CADA conferência vão aos playoffs${vagasPO === 8 ? ' (1×8 · 4×5 · 3×6 · 2×7)' : ''}. Leste e Oeste só se cruzam nas Finals.`,
         `🏆 PO = the top ${vagasPO} of EACH conference make the playoffs${vagasPO === 8 ? ' (1×8 · 4×5 · 3×6 · 2×7)' : ''}. East and West only meet in the Finals.`)}</p>}
     </Box>
@@ -12290,7 +12307,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         duplasMode: state.duplasMode, duplas: state.duplasMode ? duplas : undefined, youUid: meuUid ?? state.youUid,
         seatUids: uniq.map(p => p.user_id), // 🪑 quem senta em cada assento — é por ISTO que o convidado se reancora no time certo
-        deck: state.deckLeague, varzea: state.varzea, regional: state.regionalSala, rematch: Date.now(), copaMode: state.copaMode, kingsBaralho: state.kingsBaralho, // 👑 a sala da Kings segue com o baralho dela no novo leilão
+        deck: state.deckLeague, varzea: state.varzea, regional: state.regionalSala, rematch: Date.now(), copaMode: state.copaMode, nbaTam: state.nbaSala?.tam, nbaFormato: state.nbaSala?.formato, /* 🏀 18/11: a revanche segue a sala NBA */ kingsBaralho: state.kingsBaralho, // 👑 a sala da Kings segue com o baralho dela no novo leilão
         // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
         // 🏆 a sala CONTINUA a contagem: o "novo leilão" é a próxima temporada da
         // mesma resenha, não um recomeço do zero. Sem isto o `seasonNo` voltava
@@ -13104,11 +13121,11 @@ export function EscEnd() {
     if (!qc) return ''
     if (qc.champion?.id === you.id) return LE('🏆 Campeão!', '🏆 Champion!')
     // 🌎 'oitavas' só aparece na Libertadores (a Copa dos 8 começa nas quartas)
-    let last: 'repescao' | 'r32' | 'oitavas' | 'quartas' | 'semis' | 'final' | null = null, lost = false
+    let last: 'playin' | 'repescao' | 'r32' | 'oitavas' | 'quartas' | 'semis' | 'final' | null = null, lost = false
     for (const b of qc.bracket) { const t = b.ties.find(x => x.aId === you.id || x.bId === you.id); if (t) { last = b.phase; lost = t.winner != null && t.winner !== you.id } }
     if (!last) return state.copaMode === 'liga_liberta' ? LE('Não se classificou', 'Did not qualify') : chEnd ? LE('Caiu antes das oitavas', 'Out before the round of 16') : bbEnd ? LE('Fora dos playoffs', 'Missed the playoffs') : LE('Fora do top 8', 'Outside the top 8')
     if (last === 'final') return lost ? LE('🥈 Vice', '🥈 Runner-up') : LE('🏆 Campeão!', '🏆 Champion!')
-    return last === 'repescao' ? LE('Caiu no repescão', 'Out in the playoff') : last === 'r32' ? LE('Caiu na rodada de 32', 'Out in the round of 32') : last === 'semis' ? LE('Caiu na semi', 'Out in the semis') : last === 'quartas' ? LE('Caiu nas quartas', 'Out in the quarters') : LE('Caiu nas oitavas', 'Out in the round of 16')
+    return last === 'playin' ? LE('Caiu no Play-In', 'Out in the Play-In') : last === 'repescao' ? LE('Caiu no repescão', 'Out in the playoff') : last === 'r32' ? LE('Caiu na rodada de 32', 'Out in the round of 32') : last === 'semis' ? LE('Caiu na semi', 'Out in the semis') : last === 'quartas' ? LE('Caiu nas quartas', 'Out in the quarters') : LE('Caiu nas oitavas', 'Out in the round of 16')
   })()
   // 👀 "VOCÊ!" é por quem VÊ (compara o id do campeão com o MEU time), não pelo
   // flag global champion.you (que no online marcava todo humano como "você").

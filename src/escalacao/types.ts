@@ -569,11 +569,17 @@ export interface QuickCopaTie {
 // ⭐ 'repescao' existe SÓ pra Champions (25/09): o repescão (9º–24º, ida e volta) roda no
 // MESMO motor do mata-mata — relógio, pênaltis e cobrança manual iguais aos da Copa.
 // ⚡ 'r32' existe SÓ pro Mata-mata Relâmpago com chave de 32 (28/10): a "Rodada de 32", antes das oitavas.
-export type CopaFase = 'repescao' | 'r32' | 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
+// 🏀 'playin' existe SÓ na sala NBA do basquete (18/11): o Play-In antes dos playoffs (jogo único, 2 rodadas).
+export type CopaFase = 'playin' | 'repescao' | 'r32' | 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
 export interface QuickCopaState {
   phase: CopaFase
   ties: QuickCopaTie[]  // confrontos da fase ATUAL
-  legIdx: 0 | 1 | 2      // ⚽ perna sendo jogada (final usa só a 0 — jogo único) · 🏀 jogo 1/2/3 da série melhor de 3
+  legIdx: number         // ⚽ perna sendo jogada (0 ida · 1 volta; final usa só a 0) · 🏀 jogo da série (0 = jogo 1)
+  /** 🏀 18/11 (Diego: *"playoffs é sempre melhor de 7"*): quantos jogos a série pode ter. Sem o campo = 3 (série antiga, salva antes). */
+  bo?: 3 | 7
+  /** 🏀 Play-In da sala NBA: cada grupo (conferência, ou 'U' na sala de 10) com os classificados DIRETOS e os 4 do Play-In na ordem
+   *  da tabela. Rodada 1 = 7º×8º e 9º×10º; rodada 2 = perdedor do 7×8 × vencedor do 9×10. */
+  playin?: { rodada: 1 | 2; grupos: { conf: 'L' | 'O' | 'U'; direto: number[]; seeds: number[]; vagaA?: number; perdA?: number; vencB?: number }[] }
   bracket: { phase: Exclude<CopaFase, 'done'>; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
@@ -697,6 +703,11 @@ export interface EscState {
   // 🏀 andar da pirâmide do basquete: 'street' (base) → 'gleague' → 'nba' (topo).
   // Sobe quando você termina no top 4. Muda os adversários (crews→afiliados→franquias).
   nbaTier?: 'street' | 'gleague' | 'nba'
+  /** 🏀 18/11: SALA NBA (rápido online do basquete): tamanho da liga (30 = NBA real, 20, 10) e formato (só a liga ou liga +
+   *  Play-In + Playoffs melhor de 7). Sem o campo = a sala de antes (20 times, Leste/Oeste por id, playoffs top 4 e NBA Cup). */
+  nbaSala?: { tam: 30 | 20 | 10; formato: 'liga' | 'playoffs' }
+  /** 🏀 conferência de cada time na sala NBA de 30/20 (L = Leste · O = Oeste), pelo time REAL de cada franquia. */
+  nbaConf?: Record<number, 'L' | 'O'>
   seed: number
   // online
   onlineMode: OnlineMode
