@@ -398,7 +398,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   no formato real (*"se sobem 6 da Série D, ganham os 6"*); toda competição paga por fase (*"vai sendo eliminado mas ganha alguma coisa,
   mesmo que seja merreca… sempre deixando claro pro usuário"*). Régua única em `economia-oficial.ts`.
   🏢 **SAF NO OFICIAL (18/11)**: *"N quero q tenha compra de segundo clube… apenas saf… só se tiver o time na série A… 2k… somente qm tem plano"*.
-  Sem 2º clube (nem comprado, nem a SAF virando 2º clube); SAF = 2.000, só com o SEU time na Série A e só com plano (cadeado + Ver os planos). Régua em `BUY_FILIAL`.
+  Sem 2º clube (nem comprado, nem a SAF virando 2º clube). 🔁 Mesmo dia: SAF = **1.500** (`PRECO_SAF_OFICIAL`), só com o SEU time na **Série A** + **estádio 100% completo** + **plano** (cadeado + Ver os planos). Venda segura o lucro máx de 500 (vale no máx 2.000). Régua em `BUY_FILIAL`.
   🚫 **Só se escolhe clube das Séries A–D** (15/11, *"não pode"*): clube só de estadual/Copa existe no modo como rival, nunca como o clube do usuário.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2

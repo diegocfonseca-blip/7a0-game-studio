@@ -7,8 +7,8 @@
 import { useState, type CSSProperties, type ReactNode } from 'react'
 import { tr, getLang } from './lang'
 import {
-  podeAssumir, temporadasComoDono, valorVendaSaf, VALOR_SAF_DIV, PRECO_SAF, PRECO_COMANDO, TEMPORADAS_PRA_ASSUMIR,
-  TACAS_SAF2, TACA_NOME, valorTacas, lucroVenda, REEMBOLSO_SAF, REEMBOLSO_2O_CLUBE, EMPRESTIMOS_ENTRE_CLUBES, semLance, type TacaSaf2,
+  podeAssumir, temporadasComoDono, valorVendaSaf, PRECO_COMANDO, TEMPORADAS_PRA_ASSUMIR,
+  TACAS_SAF2, TACA_NOME, precoSafDe, valorTacas, lucroVenda, REEMBOLSO_SAF, REEMBOLSO_2O_CLUBE, EMPRESTIMOS_ENTRE_CLUBES, semLance, type TacaSaf2,
 } from './saf2'
 
 const INK = '#0C0C0C'
@@ -57,8 +57,9 @@ export function Saf2SafPainel(p: {
   const [vendendo, setVendendo] = useState(false)
   const temporadas = temporadasComoDono(p.desde, p.seasonNo)
   const r = podeAssumir({ temSaf: true, tem2o: false, janela: p.janela, pagante: p.pagante, seasonNo: p.seasonNo, safDesde: p.desde, semEspera: p.semEspera, caixa: p.caixaPrincipal })
-  const valor = valorVendaSaf(p.div)
-  const lucro = lucroVenda(valor, PRECO_SAF)
+  const valor = valorVendaSaf(p.div, p.semComando)
+  const pago = precoSafDe(p.semComando) // 🇧🇷 Oficial (semComando) pagou 1.500
+  const lucro = lucroVenda(valor, pago)
   const pct = p.semEspera ? 100 : Math.min(100, Math.round(temporadas / TEMPORADAS_PRA_ASSUMIR * 100))
   const check = (ok: boolean, txt: ReactNode, val: ReactNode) => (
     <div style={linha}><span style={{ color: ok ? GREEN : INK }}>{ok ? '✓' : '✗'} {txt}</span><b style={{ ...OSW, color: ok ? GREEN : RED }}>{val}</b></div>
@@ -113,9 +114,9 @@ export function Saf2SafPainel(p: {
           </>
         ) : (
           <>
-            <Cabeca ic="💸" titulo={tr('Vender a SAF', 'Sell the SAF')} sub={tr(`você pagou ${fmt(PRECO_SAF)} com ela na Série D`, `you paid ${fmt(PRECO_SAF)} with it in Série D`)} />
+            <Cabeca ic="💸" titulo={tr('Vender a SAF', 'Sell the SAF')} sub={tr(`você pagou ${fmt(pago)} com ela na Série D`, `you paid ${fmt(pago)} with it in Série D`)} />
             {(['V', 'D', 'C', 'B', 'A'] as const).map(d => {
-              const v = VALOR_SAF_DIV[d], l = lucroVenda(v, PRECO_SAF), aqui = d === p.div
+              const v = valorVendaSaf(d, p.semComando), l = lucroVenda(v, pago), aqui = d === p.div
               return (
                 <div key={d} style={{ ...linha, background: aqui ? '#FFF3CF' : '#fff' }}>
                   <span>{divNome(d)}{aqui ? tr(' ← ela está aqui', ' ← it is here') : ''}</span>
@@ -128,7 +129,7 @@ export function Saf2SafPainel(p: {
               : <Botao desligado>💸 {tr(`Vender por ${fmt(valor)} 🪙`, `Sell for ${fmt(valor)} 🪙`)}</Botao>}
             {!p.janela && <Trava>{JANELA_TXT()}</Trava>}
             {p.janela && !p.ativoEhPrincipal && <Trava>🔄 {tr('Passe o comando pro seu clube principal pra vender.', 'Hand command back to your main club to sell.')}</Trava>}
-            <p style={nota}>{tr('Só dá lucro se ela estiver na Série A. E o lucro nunca passa de 500.', 'It only makes a profit if it is in Série A. And the profit never goes above 500.')}</p>
+            <p style={nota}>{p.semComando ? tr('O lucro nunca passa de 500.', 'The profit never goes above 500.') : tr('Só dá lucro se ela estiver na Série A. E o lucro nunca passa de 500.', 'It only makes a profit if it is in Série A. And the profit never goes above 500.')}</p>
             <button onClick={() => setVendendo(false)} style={{ width: '100%', marginTop: 6, background: 'transparent', border: 'none', fontWeight: 800, fontSize: 11, color: 'rgba(0,0,0,.5)', textDecoration: 'underline', cursor: 'pointer' }}>{tr('voltar', 'back')}</button>
           </>
         )}
@@ -142,7 +143,7 @@ export function Saf2Regras({ semComando = false }: { semComando?: boolean } = {}
   const li = (t: ReactNode) => <li>{t}</li>
   return (
     <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
-      {li(tr(`💰 A SAF custa ${fmt(PRECO_SAF)}. O bot continua no comando dela: você é o sócio.`, `💰 The SAF costs ${fmt(PRECO_SAF)}. The bot stays in charge: you are the partner.`))}
+      {li(tr(`💰 A SAF custa ${fmt(precoSafDe(semComando))}. O bot continua no comando dela: você é o sócio.`, `💰 The SAF costs ${fmt(precoSafDe(semComando))}. The bot stays in charge: you are the partner.`))}
       {li(tr('🏆 Direito a 50% dos prêmios de campanha dela (e 50% da multa se ela cair).', '🏆 Entitled to 50% of its campaign prizes (and 50% of the fine if it is relegated).'))}
       {!semComando && li(tr(`⚽ Depois de ${TEMPORADAS_PRA_ASSUMIR} temporadas como dono, quem apoia o jogo pode assumir o comando (${fmt(PRECO_COMANDO)}) e ela vira o seu 2º clube.`, `⚽ After ${TEMPORADAS_PRA_ASSUMIR} seasons as owner, supporters can take command (${fmt(PRECO_COMANDO)}) and it becomes your 2nd club.`))}
       {semComando && li(tr('🇧🇷 No Brasil Oficial a SAF fica sempre com o bot: ela não vira 2º clube.', '🇧🇷 In Official Brazil the SAF always stays with the bot: it never becomes a 2nd club.'))}

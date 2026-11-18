@@ -13078,6 +13078,7 @@ export function PyramidSeasonScreen() {
                 // 🏢➡️⚽ empréstimo da SAF só na janela (virada); fora dela a tela explica o porquê e o caminho
                 // 🇧🇷 Brasil Oficial (18/11, Diego): SAF só com o time na Série A e só pra quem tem plano. Mesma régua do motor (BUY_FILIAL).
                 semComando: !!state.oficial,
+                precoSaf: state.oficial ? 1500 : 2000,
                 buyLockExtra: state.oficial && divOficialDe(state) === 'A' && !saf2Pagante ? <ApoieButton startScreen="choice" trigger={(open) => <button onClick={open} style={{ background: 'transparent', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', fontSize: 10.5 }}>{tr('Ver os planos', 'See the plans')}</button>} /> : undefined,
                 buyLock: state.oficial && divOficialDe(state) !== 'A' ? tr('No Brasil Oficial a SAF só abre com o seu time na Série A. Suba até lá e ela destrava.', 'In Official Brazil the SAF only opens with your club in Série A. Get there and it unlocks.')
                   : state.oficial && !saf2Pagante ? tr('No Brasil Oficial a SAF é só pra quem tem plano.', 'In Official Brazil the SAF is only for plan holders.')

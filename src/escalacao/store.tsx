@@ -1182,7 +1182,7 @@ import { PATROCINIO_BOT } from './bots-banco' // 🔁 rival com banco (13/10)
 import { botBancoLiberado, econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
 import { BATISMOS, chaveClube } from './batismos' // 🖋 bots de batismo/fundador se revezando nas salas online (02/11)
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
-import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
+import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, precoSafDe, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
@@ -10474,18 +10474,19 @@ function reducerBase(state: EscState, action: Action): EscState {
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const coins = s.careerCoins?.[you.id] ?? 0
-      if (coins < 2000) return s
+      const precoSaf = precoSafDe(!!s.oficial) // 🇧🇷 Oficial: 1.500
+      if (coins < precoSaf) return s
       const st = s.stadiums?.[you.id]
       const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => (extraNovaOnly(e.k) && !s.agenciaOn) || hasExtra(st, e.k))
       if (!ready) return s
       if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
-      s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
+      s.careerCoins = { ...s.careerCoins, [you.id]: coins - precoSaf }
       // 🏢 congela os títulos que o clube JÁ tinha (da vida dele antes de você):
       // esses NÃO contam pro valor de venda — só o que ele ganhar sob seu comando.
       const h0 = s.careerHonors?.[action.team]
       const titlesAtBuy = h0 ? (h0.A + h0.B + h0.C + h0.D) : 0
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy }
-      logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
+      logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -precoSaf) // 🧾 compra da SAF entra no extrato
       s.safJaTeve = true // 🏢 Lenda da Agência destravada pra sempre (23/10)
       return s
     }
@@ -10804,7 +10805,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const you = clubePrincipal(s)
       if (!you || s.managers[s.youIdx]?.id !== you.id) return s
       const team = s.careerFilial.team
-      const valor = valorVendaSaf(saf2DivDaSaf(s))
+      const valor = valorVendaSaf(saf2DivDaSaf(s), !!s.oficial)
       revertFilialLoans(s) // empréstimos com a SAF voltam antes de vender
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + valor }
       logFin(s, 'safsell', `🏢 Venda da SAF · ${team}`, valor, undefined, you.id)

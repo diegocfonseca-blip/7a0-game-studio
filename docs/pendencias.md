@@ -14039,6 +14039,6 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 
 ## 18/11 — 🏢 SAF no Brasil Oficial (pedido do Diego)
 - ✅ Sem 2º clube no Oficial (`BUY_MULTICLUBE` e `SAF2_ASSUMIR` barrados; tela esconde o relógio/"assumir o comando").
-- ✅ SAF = 2.000 🪙, só com o time na Série A e só com plano (`BUY_FILIAL` com `pagante`; tela mostra 🔒 com o porquê + "Ver os planos").
-- Mantido: estádio 100% completo continua exigido (regra de sempre da SAF). Perguntar ao Diego se quer tirar no Oficial.
+- ✅ SAF = 1.500 🪙 (Diego mudou de 2.000 no mesmo dia), Série A + estádio completo + plano. Venda no máx 2.000 (lucro máx 500). Antes: só com o time na Série A e só com plano (`BUY_FILIAL` com `pagante`; tela mostra 🔒 com o porquê + "Ver os planos").
+- Estádio 100% completo: Diego confirmou que fica.
 
