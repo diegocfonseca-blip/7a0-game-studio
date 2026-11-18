@@ -14014,3 +14014,7 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   compraram (antes 1–3); leilão até a cerimônia sem erro.
 - ⏳ Falta (c)/(33): bot com PREPARADOR, salário de jogador/técnico e prêmios pros bots (economia completa dos bots).
 - ⚠️ Teste `npm run tecnicos` não roda neste ambiente (import de .webp) — já era assim.
+- ✅ 18/11 (noite): **economia completa dos bots no Oficial** — TV pela régua do modo (`tvOficial`), folha com salário do técnico
+  (pago ÷ 10) e do preparador; bot COMPRA preparador (o melhor que cabe em ~25% do caixa, 50% de chance por virada) e renova pela
+  metade se tiver dinheiro, e o preparador dele vale no cansaço (`planoCansacoBot` com `banco`); prêmios dos bots pela mesma régua do
+  usuário (`clubRewardsOficial`: campeão, acesso de cada um que sobe, desconto pra quem cai). Teto do caixa do bot = 2× o caixa inicial.

@@ -1011,11 +1011,11 @@ export function folhaDoBot(squad: readonly Card[] | undefined): number {
 }
 /** o balanço de UM clube bot numa virada (puro — a trava `npm run econ-bots` testa isto) */
 // 🤝 `patrocinio` (13/10, rival com banco): a 3ª receita do bot — `PATROCINIO_BOT` (bots-banco.ts). 0 = como era.
-export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
-  const tv = TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6
+export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0, tvOficialBot?: number, tetoOficial?: number): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
+  const tv = tvOficialBot ?? TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6 // 🇧🇷 Oficial: TV pela régua do modo (série + porte)
   const saldo = tv + bilheteria + patrocinio - folha
   let novo = Math.max(0, caixa + saldo)
-  const teto = BOT_CAIXA_TETO[div] ?? 150
+  const teto = Math.max(BOT_CAIXA_TETO[div] ?? 150, tetoOficial ?? 0)
   // passou do teto? o excedente vira obra. Quem JÁ estava acima (save antigo) não perde nada.
   if (saldo > 0 && novo > teto) novo = Math.max(caixa, teto)
   return { tv, bilheteria, folha, saldo, caixa: Math.round(novo), ...(patrocinio ? { patrocinio } : {}) }
@@ -1032,7 +1032,13 @@ function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> 
     const squad = k.startsWith('m') && /^m\d+$/.test(k)
       ? s.managers.find(m => `m${m.id}` === k)?.squad
       : (s.cpuSquads?.[k] as Card[] | undefined)
-    const b = balancoBot(div, folhaDoBot(squad), cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0)
+    // 🇧🇷 Oficial (18/11, "o bot faz tudo que o usuário faz"): TV pela régua do modo, e a folha inclui o salário do TÉCNICO
+    // (pago ÷ 10) e do PREPARADOR (10% do preço da série) — igual à sua (`folhaBaseDoClube`).
+    const nomeK = k.startsWith('m') && /^m\d+$/.test(k) ? (s.managers.find(m => `m${m.id}` === k)?.teamName ?? k) : k
+    const tecK = s.oficial ? s.careerTecnicos?.[nomeK] : null
+    const comissao = s.oficial ? (tecK ? Math.round((s.careerTecnicoPago?.[tecK] ?? 0) / 10) : 0) + salarioPreparador(preparadorDe(s.careerPreparador?.[nomeK]), div) : 0
+    const b = balancoBot(div, folhaDoBot(squad) + comissao, cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0,
+      s.oficial ? tvOficial(div, nomeK) : undefined, s.oficial ? caixaInicialOficial(nomeK, div) * 2 : undefined)
     cash[k] = b.caixa
     rel[k] = b
   }
@@ -2193,6 +2199,25 @@ function semeiaTecnicos(s: EscState): void {
         if (s.oficial && !botPaga(s, m, s.careerTecnicoPago?.[map[m.teamName]!] ?? 0)) continue
         s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
         mudou = true
+      }
+    }
+    // 🏋️ Oficial (18/11, item (c)): o bot também tem PREPARADOR — compra o melhor que cabe em ~25% do caixa, renova quando vence se
+    // tiver dinheiro (metade do preço), senão fica sem. Mesmos preços e prazos sorteados do usuário.
+    if (s.oficial) for (const m of s.managers) {
+      if (m.isHuman) continue
+      const t = m.teamName, atual = preparadorDe(s.careerPreparador?.[t]), fimP = s.careerPreparadorContrato?.[t]
+      const divB = (s.careerPlacements?.[`m${m.id}`] ?? div) as string
+      const caixaB = s.clubCash?.['m' + m.id] ?? Math.round(m.money ?? 0)
+      if (atual && fimP != null && fimP < s.seasonNo) {
+        if (botPaga(s, m, precoRenovacaoPreparador(atual, divB))) s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [t]: fimDoContrato(s.seasonNo, rngV) }
+        else { s.careerPreparador = { ...(s.careerPreparador ?? {}), [t]: null }; const cp = { ...(s.careerPreparadorContrato ?? {}) }; delete cp[t]; s.careerPreparadorContrato = cp }
+        continue
+      }
+      if (atual || rngV() < 0.5) continue
+      const cabe = [...PREPARADORES].reverse().find(p => precoPrep(p, divB) <= caixaB * 0.25)
+      if (cabe && botPaga(s, m, precoPrep(cabe, divB))) {
+        s.careerPreparador = { ...(s.careerPreparador ?? {}), [t]: cabe.key }
+        s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [t]: fimDoContrato(s.seasonNo, rngV) }
       }
     }
     // bot com técnico pode TROCAR DE FORMAÇÃO pra uma do repertório do

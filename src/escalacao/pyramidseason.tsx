@@ -723,6 +723,24 @@ export function premiosLigaOficial(tables: Record<Div, SimTeam[]>, fases: FasesO
   }
   return { rewards, linhas }
 }
+/** 🇧🇷 Oficial (18/11, "o bot faz tudo que o usuário faz"): os BOTS ganham pela MESMA régua do usuário — campeão da série, acesso
+ *  pra cada um que sobe, desconto pra quem cai. Vai pro caixa deles (`clubCash`, por teamKey). */
+export function clubRewardsOficial(tables: Record<Div, SimTeam[]>, fases: FasesOficiais, newPl: Record<string, string>): Record<string, number> {
+  const out: Record<string, number> = {}
+  const RANK: Record<string, number> = { A: 4, B: 3, C: 2, D: 1 }
+  const campeao: Record<string, string | undefined> = { A: tables.A?.[0]?.name, B: tables.B?.[0]?.name, C: fases.C.campeao, D: fases.D.campeao }
+  for (const d of ['A', 'B', 'C', 'D'] as Div[]) for (const t of tables[d] ?? []) {
+    if (t.human) continue
+    const k = teamKey(t)
+    let v = 0
+    if (campeao[d] === t.name) v += CAMPEAO_OFICIAL[d] ?? 0
+    const nd = newPl[k], r0 = RANK[d] ?? 0, r1 = nd ? (RANK[nd] ?? 0) : r0
+    if (r1 > r0) v += ACESSO_OFICIAL[d] ?? 0
+    else if (r1 < r0 && nd) v -= QUEDA_OFICIAL[d] ?? 0
+    if (v) out[k] = (out[k] ?? 0) + v
+  }
+  return out
+}
 // 🇧🇷 Copa do Brasil do Oficial: cada fase vale algo (contado do fim — `cdbOficialPorFim`), campeão 60; o artilheiro segue com o
 // bônus de sempre (`CB_SCORER_BONUS`, a linha dele sai de `artilheirosDaTemporada`)
 export function premiosCdbOficial(r: CopaBrasilResult, en: boolean): { rewards: Record<number, number>; linhas: PremioLinha[] } {
@@ -9879,7 +9897,7 @@ export function PyramidSeasonScreen() {
       if (t.human) continue
       const inicio: Record<string, number> = {}
       for (const c of t.squad as WonCard[]) { const g = carry[chaveCarry(c)]; if (g != null) inicio[c.id] = g }
-      out[t.name] = planoCansacoBot({ squad: t.squad, need: t.formation ? FORMATIONS[t.formation] : NEED, inicio, seed: seasonSeed, seasonNo: state.seasonNo ?? 1, nome: t.name, rodadas: 38 })
+      out[t.name] = planoCansacoBot({ squad: t.squad, need: t.formation ? FORMATIONS[t.formation] : NEED, inicio, seed: seasonSeed, seasonNo: state.seasonNo ?? 1, nome: t.name, rodadas: 38, ...(state.oficial ? { banco: preparadorDe(state.careerPreparador?.[t.name])?.banco } : {}) }) // 🏋️ Oficial: o bot também tem preparador
     }
     return out
   }, [botFadigaOn, world, state.managers, state.youIdx, state.botCarry, seasonSeed, state.seasonNo])
@@ -14033,7 +14051,7 @@ export function PyramidSeasonScreen() {
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
-          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos, artilheiros: artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, enFim), conquistas: conquistasDaTemporada(copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null) })
+          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(state.oficial && oficialEfetivo ? clubRewardsOficial(tables, oficialEfetivo, newPlacements as Record<string, string>) : clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos, artilheiros: artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, enFim), conquistas: conquistasDaTemporada(copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null) })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
