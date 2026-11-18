@@ -15,6 +15,8 @@
 // 🖼️ EXCEÇÃO APROVADA (Diego, 10/08): batismo pode usar ARTE PRÓPRIA em imagem
 // quando o dono manda o arquivo (caso Tôka10). Regra prática: webp comprimido,
 // kit inteiro ≤ ~40 KB (o site tem ~3 MB, então isso é ~1% — irrelevante).
+import { escudosOficiaisLigados } from './escudo-oficial-chave'
+import { ESCUDOS_OFICIAIS } from './escudos-oficiais'
 import type { ReactNode } from 'react'
 import tokaEscudoImg from './img/toka10-escudo.webp'
 import erosEscudoImg from './img/eros-escudo.webp'
@@ -81,7 +83,11 @@ import lulubabaEscudoImg from './img/lulubaba-escudo.webp' // 🧤💛 Lulubaba 
 import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (alexandre12cdm): arte própria do dono, 28/10
 import leoestufEscudoImg from './img/leoestuf-escudo.webp' // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
 import reffattiEscudoImg from './img/reffatti-escudo.webp' // 🎮👑 Reffatti FC (leoreffattig): arte própria do dono, 15/11
+import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ História dos Gigantes (will.a.n): arte própria do dono, 16/11
+import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
+import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
+import obeliskoEscudoImg from './img/obelisko-escudo.webp' // 👁️👑 Obelisko FC (felipefazzio): arte própria do dono, 18/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
@@ -983,10 +989,31 @@ const lulubabaEscudoRender = (size: number) => (
 const reffattiEscudoRender = (size: number) => (
   <img src={reffattiEscudoImg} height={size} width={Math.round(size * 235 / 360)} alt="Reffatti FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🧔⚽ HISTÓRIA DOS GIGANTES (will.a.n, batismo de 16/11) — Várzea, no assento do bot Real Domingueira. 📏 339×360, 28 KB.
+// Escudo redondo creme/marrom com a bola de capotão e "DO FUTEBOL". Fundo verde chroma tirado; conferido sobre vermelho.
+const hgigantesEscudoRender = (size: number) => (
+  <img src={hgigantesEscudoImg} height={size} width={Math.round(size * 339 / 360)} alt="História dos Gigantes" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
+// Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
+const lavrasEscudoRender = (size: number) => (
+  <img src={lavrasEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Lavras FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🦁🇧🇷 LEÕES DA TUF EC (sergioricardocf16, batismo de 14/11, dado pelo Diego) — Várzea, no assento do bot Chuteira Rachada FC.
 // 📏 278×360, 29 KB. O leão de boné e moletom fazendo o L, branco/vermelho/azul. Fundo verde chroma tirado; conferido sobre vermelho.
 const leoestufEscudoRender = (size: number) => (
   <img src={leoestufEscudoImg} height={size} width={Math.round(size * 278 / 360)} alt="Leões da Tuf EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🧤👑 DUARTE FC (luizfelipeduarte212, batismo FUNDADOR de 18/11) — Várzea, no assento do bot Ressaca United. 📏 277×360, 27 KB.
+// O goleiro camisa 1 de luva erguida e o galo, listrado preto e branco, estrela dourada e picaretas. Fundo verde chroma tirado; conferido sobre vermelho.
+// 👁️👑 OBELISKO FC (felipefazzio, batismo FUNDADOR de 18/11) — Várzea, no assento do bot Trave Torta EC. 📏 284×320, 30 KB
+// (320 de altura porque o escudo é muito detalhado e a 360 passava do teto). O colosso azul de braços abertos, moldura dourada com
+// o Olho de Hórus e a faixa "ATORMENTADOR" — o 2º escudo que o dono mandou, o escolhido pelo Diego. Conferido sobre creme.
+const obeliskoEscudoRender = (size: number) => (
+  <img src={obeliskoEscudoImg} height={size} width={Math.round(size * 284 / 320)} alt="Obelisko FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const duarteEscudoRender = (size: number) => (
+  <img src={duarteEscudoImg} height={size} width={Math.round(size * 277 / 360)} alt="Duarte FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const cabritiiinEscudoRender = (size: number) => (
   <img src={cabritiiinEscudoImg} height={size} width={Math.round(size * 302 / 360)} alt="Cabritiiin F.C" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -1727,11 +1754,35 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Reffattifc': reffattiEscudoRender,
   'Reffatti EC': reffattiEscudoRender,
   'Reffatti SC': reffattiEscudoRender,
+  // 🧔⚽ História dos Gigantes (will.a.n) — BATISMO. As 4 formas do nome (regra 20/08). O Real Domingueira continua no jogo rápido.
+  'História dos Gigantes': hgigantesEscudoRender,
+  'História dos Gigantes FC': hgigantesEscudoRender,
+  'História dos Gigantes EC': hgigantesEscudoRender,
+  'História dos Gigantes SC': hgigantesEscudoRender,
+  // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
+  // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  'Lavras FC': lavrasEscudoRender,
+  'Lavras': lavrasEscudoRender,
+  'Lavrasfc': lavrasEscudoRender,
+  'Lavras EC': lavrasEscudoRender,
+  'Lavras SC': lavrasEscudoRender,
   // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16) — BATISMO. As 4 formas do nome (regra 20/08).
   'Leões da Tuf EC': leoestufEscudoRender,
   'Leões da Tuf': leoestufEscudoRender,
   'Leões da Tuf FC': leoestufEscudoRender,
   'Leões da Tuf SC': leoestufEscudoRender,
+  // 🧤👑 Duarte FC (luizfelipeduarte212) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Ressaca United (bot que cedeu o
+  // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  // 👁️👑 Obelisko FC (felipefazzio) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Trave Torta EC (bot que cedeu o
+  // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  'Obelisko FC': obeliskoEscudoRender,
+  'Obelisko': obeliskoEscudoRender,
+  'Obelisko EC': obeliskoEscudoRender,
+  'Obelisko SC': obeliskoEscudoRender,
+  'Duarte FC': duarteEscudoRender,
+  'Duarte': duarteEscudoRender,
+  'Duarte EC': duarteEscudoRender,
+  'Duarte SC': duarteEscudoRender,
   'Cabritiiin F.C': cabritiiinEscudoRender,
   'Cabritiiin FC': cabritiiinEscudoRender,
   'Cabritiiin': cabritiiinEscudoRender,
@@ -1951,8 +2002,14 @@ const logoPronta = (n: string) => {
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos
 // e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
+// 🇧🇷 BRASIL OFICIAL (15/11): durante a carreira do modo, clube REAL aparece com o escudo OFICIAL (o mesmo do leilão de clubes,
+// `escudos-oficiais.ts`, arquivo fora do bundle). Liga/desliga junto do baralho do modo (`setActiveCatalog` no store); fora do
+// modo nada muda.
+export { ligaEscudosOficiais } from './escudo-oficial-chave'
 export function Escudo({ nome: nomeCru, size = 30, title, automatic=false }: { nome: string; size?: number; title?: string; automatic?:boolean }) {
   const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 mesmo escudo com ou sem o selo do tier
+  const of = escudosOficiaisLigados() && !automatic ? (ESCUDOS_OFICIAIS as Record<string, { src: string; w: number; h: number }>)[nome] : undefined
+  if (of) return <img src={`${import.meta.env.BASE_URL}${of.src}`} alt={title ?? nome} title={title ?? nome} width={Math.round(size * of.w / of.h)} height={size} style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   // logo artesanal: bate pelo nome EXATO; se não achar, tenta o nome ATUAL do
   // batismo (save antigo que ficou com o nome velho — ex.: "Cuiabagre" →
   // "Império Samambaia"). Assim a logo comprada aparece mesmo em carreira antiga.

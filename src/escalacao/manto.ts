@@ -157,6 +157,18 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🎮👑 Reffatti FC — BRANCO e VERDE-NEON, MEDIDOS na camisa que o dono mandou (15/11): branco do corpo (#F9F4FB) e o verde
   // das faixas (#2AF604). O PRETO das faixas é a 3ª cor (MANTO_TRI).
   'leoreffattig@gmail.com': ['#F9F4FB', '#2AF604'],
+  // 🧤👑 Duarte FC — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (18/11): preto 57% do manto (#101010), branco 26%
+  // (#F1F1F0). O PRETO vem primeiro porque listra clara na tela creme some. O DOURADO da gola e dos punhos é a 3ª cor (MANTO_TRI).
+  'luizfelipeduarte212@gmail.com': ['#101010', '#F1F1F0'],
+  // 👁️👑 Obelisko FC — PRETO e ROXO, MEDIDOS na camisa que o dono mandou (18/11): preto 61% do manto (#0F0E18) e o roxo das
+  // faixas (#862EE0). O AZUL do monstro no peito (#4853AB) é a 3ª cor (MANTO_TRI).
+  'felipefazzio@gmail.com': ['#0F0E18', '#862EE0'],
+  // 🧔⚽ História dos Gigantes — CREME e MARROM, MEDIDOS na camisa que o dono mandou (16/11): creme do corpo (#FEE9BD) e o marrom
+  // da faixa/gola (#7A2B06).
+  'will.a.n@hotmail.com': ['#FEE9BD', '#7A2B06'],
+  // 🐆👑 Lavras FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (16/11): preto do corpo (#0A0806) e o dourado das
+  // faixas/gola (#F3AD03).
+  'hugopereirabrito@gmail.com': ['#0A0806', '#F3AD03'],
   // ⭐🦁 Vila Esporte Clube — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (27/10): preto das listras/mangas (58%, #0C0C0C)
   // e o branco das listras (32%, #DADADA).
   'oluisantonio.contato@gmail.com': ['#0C0C0C', '#DADADA'],
@@ -367,6 +379,8 @@ export function meuMantoAngle(): number {
 const MANTO_TRI: Record<string, string> = {
   leoestuf_leao: '#0132AF', // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16) — 3ª cor AZUL: as faixas azuis da camisa (medida na arte dele, 14/11)
   reffatti_gamer: '#0C0C0C', // 🎮👑 Reffatti FC (leoreffattig) — 3ª cor PRETA: a faixa diagonal e as golas da camisa (15/11)
+  duarte_paredao: '#F7D50A', // 🧤👑 Duarte FC (luizfelipeduarte212) — 3ª cor DOURADA: gola e punhos da camisa (18/11)
+  obelisko_atormentador: '#4853AB', // 👁️👑 Obelisko FC (felipefazzio) — 3ª cor AZUL: o monstro estampado no peito da camisa (18/11)
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   reidabola_leao: '#ECE1D9', // 👑🦁 Rei da Bola FC (caiobegnamii) — 3ª cor BRANCO-CREME: a base da camisa, medida na arte dele (16/09)
   toka: '#013088', // 🧢 Tôka10 — 3ª cor AZUL: a touca (que é o escudo) e o calção, medidos na arte dele (16/09)

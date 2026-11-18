@@ -48,6 +48,7 @@ import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
 import { rankingSelecoes } from './paises'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
+import { RelogioConvocacao, SEG_CONVOCA_SALA } from './relogio-convocacao'
 import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-competicao'
 import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento, quemAgePeloEstado, soQuemEstaNaSala, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, type DuplaDoEstado } from './dupla-copa'
 import {
@@ -461,7 +462,7 @@ interface LinhaSala { user_id: string; player_index: number; manager_name: strin
 //     escolha de seleção do modo Copa do Mundo passe pra 45s por seleção"*). A
 //     convocação e o banner não mudaram.
 //   · 13/10: bandeira 45 → 40s (Diego: *"baixe o tempo de escolha pra 40s"*).
-const SEG_BANDEIRA = 40, SEG_BANNER = 15, SEG_CONVOCA = 90
+const SEG_BANDEIRA = 40, SEG_BANNER = 15, SEG_CONVOCA = SEG_CONVOCA_SALA // ⏱️ 16/11: 90 → 100 (Diego)
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
@@ -757,7 +758,7 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
         {fase === 'convocacao' && (
           <div className="ll27-convoca">
             <h3>{temTime(minha) ? tr('✅ TIME CONVOCADO', '✅ TEAM CALLED UP') : dupla?.soAssisto ? (en ? `⏳ ${dupla.nomeAge.toUpperCase()} IS CALLING UP THE 11` : `⏳ ${dupla.nomeAge.toUpperCase()} ESTÁ CONVOCANDO OS 11`) : tr('⚽ CONVOQUE OS 11', '⚽ CALL UP THE 11')}</h3>
-            <Relogio seg={seg} total={SEG_CONVOCA} />
+            <RelogioConvocacao seg={seg} total={SEG_CONVOCA} />
             {minha && !temTime(minha) && !dupla?.soAssisto && <div style={{ marginTop: 10 }}>{botaoGrande(tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP'), aoConvocar, GREEN)}</div>}
             {temTime(minha) && (
               <p className="ll27-portao-aviso" style={{ marginTop: 8 }}>

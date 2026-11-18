@@ -76,7 +76,8 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
   const fila: { pri: number; n: Noticia }[] = []
   const noticias = { push: (n: Noticia, pri = 5) => { fila.push({ pri, n }) } }
   const t = e.tabela
-  if (!t.length || e.round < 1) return { manchete: null, noticias: [] }
+  // 18/11: tabela toda zerada = nenhum jogo revelado ainda (rodada ao vivo, ou o seu time folgou) — nada de "briga no topo com 0 pontos"
+  if (!t.length || e.round < 1 || t.every(x => x.pts === 0)) return { manchete: null, noticias: [] }
   const lider = t[0], vice = t[1]
   const euIdx = t.findIndex(x => x.you)
   const eu = euIdx >= 0 ? t[euIdx] : null

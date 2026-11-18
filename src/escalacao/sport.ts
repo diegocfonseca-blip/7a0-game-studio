@@ -99,6 +99,32 @@ function applyUnlock(email?: string | null): void {
   if (!u && current === 'basquete') current = 'futebol'
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
+// 🇧🇷 BRASIL OFICIAL (15/11): carreira com clubes REAIS. Em construção → só a conta do Diego (a mesma lista do basquete)
+// até ele testar e mandar liberar. Plano em docs/carreira-oficial-plano.md. Liberar = trocar a régua aqui.
+let oficialTeste = false
+/** só pras travas (`npm run brasil-oficial`) */
+export function _forcaBrasilOficialParaTeste(v: boolean) { oficialTeste = v }
+export function brasilOficialLiberado(): boolean { return unlocked || oficialTeste }
+export function useBrasilOficial(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return unlocked || oficialTeste
+}
+// 👀 18/11 (Diego: "publique… e tudo p minha conta só até agora"): as novidades de 17/11 (ônibus em jogo grande, balada e clube
+// de lazer no mapa, mais gente no portão, 1 linha a mais nos dias, cena do bairro na Central, futevôlei na noitada) ficam SÓ na
+// conta dele até ele mandar liberar. Liberar = trocar a régua aqui (mesma lista do Brasil Oficial).
+// 🟢 18/11 (Diego: "isso tudo aqui já pode pra todos… carreira antiga também"): LIBERADO PRA TODOS. `false` aqui = volta só pra conta dele.
+const NOVIDADES_17_11_GERAL = true
+export function previaDiego(): boolean { return NOVIDADES_17_11_GERAL || unlocked || oficialTeste }
+export function usePreviaDiego(): boolean { const so = useBrasilOficial(); return NOVIDADES_17_11_GERAL || so }
+// 📺 18/11 (Diego: "pode publicar tudo na minha conta já"): a Central nova de 18/11 (Próximos jogos, lista "Antes da estreia", TV depois
+// do 1º jogo, sem feira, torcida chegando na estreia em casa, "Ver no mapa" no lugar certo) SÓ na conta dele. Liberar = `true` aqui.
+const CENTRAL_18_11_GERAL = false
+export function previaCentral(): boolean { return CENTRAL_18_11_GERAL || unlocked || oficialTeste }
+export function usePreviaCentral(): boolean { const so = useBrasilOficial(); return CENTRAL_18_11_GERAL || so }
+// 🧪 só no modo de desenvolvimento (o build de produção apaga este bloco): liga o Brasil Oficial no navegador de teste, pra
+// conferir as telas sem a conta do Diego. `window.__brasilOficialDev()` no console.
+if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__brasilOficialDev = () => { oficialTeste = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 // 🌙 TEMA NOTURNO — decisão do Diego (03/08): por enquanto SÓ a conta dele vê o
 // botão e consegue ligar (vai virar REGALIA DE PLANO PAGO depois — aí a trava
 // troca de "lista de e-mails" pra "tier de apoio" num lugar só). Conta sem
@@ -765,7 +791,7 @@ const COLECOES_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let colecoesOk = COLECOES_GERAL
 function applyColecoesUnlock(email?: string | null): void {
   let dev = false
-  try { dev = import.meta.env.DEV && localStorage.getItem('esc-colecoes-dev') === '1' } catch { /* ignora */ }
+  try { dev = import.meta.env?.DEV && localStorage.getItem('esc-colecoes-dev') === '1' } catch { /* ignora */ }
   const u = COLECOES_GERAL || dev || (!!email && COLECOES_TESTERS.has(email.toLowerCase()))
   if (u === colecoesOk) return
   colecoesOk = u
@@ -1205,7 +1231,7 @@ let centralOk = CENTRAL_GERAL
 function applyCentralUnlock(email?: string | null): void {
   // 🧪 só no `vite` de bancada (import.meta.env.DEV some do build): o harness de fotos roda
   // sem login, então liga a Central por uma chave local. Em produção isto não existe.
-  const bancada = import.meta.env.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-central-dev') === '1'
+  const bancada = import.meta.env?.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-central-dev') === '1'
   const u = CENTRAL_GERAL || bancada || (!!email && CENTRAL_TESTERS.has(email.toLowerCase()))
   if (u === centralOk) return
   centralOk = u
@@ -1240,7 +1266,7 @@ const COLETIVA_GERAL = true
 const COLETIVA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let coletivaOk = COLETIVA_GERAL
 function applyColetiva(email?: string | null): void {
-  const bancada = import.meta.env.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-coletiva-dev') === '1'
+  const bancada = import.meta.env?.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-coletiva-dev') === '1'
   const u = COLETIVA_GERAL || bancada || (!!email && COLETIVA_TESTERS.has(email.toLowerCase()))
   if (u === coletivaOk) return
   coletivaOk = u

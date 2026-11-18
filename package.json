@@ -153,7 +153,12 @@
     "kings-presidentes": "npx tsx scripts/testa-kings-presidentes.mts",
     "baralho-mundo-nba": "npx tsx scripts/testa-baralho-mundo-nba.mts",
     "sala-nba-online": "npx tsx scripts/testa-sala-nba-online.mts",
-    "quadra2d": "npx tsx scripts/testa-quadra2d.mts"
+    "quadra2d": "npx tsx scripts/testa-quadra2d.mts",
+    "brasil-oficial": "npx tsx scripts/testa-brasil-oficial.mts",
+    "campeonato-oficial": "npx tsx scripts/testa-campeonato-oficial.mts",
+    "estaduais": "npx tsx scripts/testa-estaduais.mts",
+    "libertadores": "npx tsx scripts/testa-libertadores.mts",
+    "baralho-oficial": "npx tsx scripts/confere-baralho-oficial.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

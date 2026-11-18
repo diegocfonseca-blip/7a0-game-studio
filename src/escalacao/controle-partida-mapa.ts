@@ -48,3 +48,11 @@ const ouvintesCamera = new Set<() => void>()
 export function pedeCameraDoMapa(c: string) { cameraPedida = c; ouvintesCamera.forEach(f => f()) }
 export function tiraCameraPedida(): string | null { const c = cameraPedida; cameraPedida = null; return c }
 export function assinaCameraPedida(f: () => void) { ouvintesCamera.add(f); return () => { ouvintesCamera.delete(f) } }
+
+// 📍 18/11 (Diego: *"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*): o "Ver no mapa" da cena do bairro
+// na Central PEDE o lugar (feira, balada, boteco…) e o mapa voa pra lá assim que estiver pronto — o mesmo caminho do menu Locais
+let vistaPedida: string | null = null
+const ouvintesVista = new Set<() => void>()
+export function pedeVistaDoMapa(v: string) { vistaPedida = v; ouvintesVista.forEach(f => f()) }
+export function tiraVistaPedida(): string | null { const v = vistaPedida; vistaPedida = null; return v }
+export function assinaVistaPedida(f: () => void) { ouvintesVista.add(f); return () => { ouvintesVista.delete(f) } }

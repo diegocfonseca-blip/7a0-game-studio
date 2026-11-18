@@ -42,6 +42,8 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado } from './store' // 🗑️ 18/11
+import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
@@ -120,6 +122,8 @@ import { PainelDonoLiga } from './painel-dono-liga'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
+import { useBrasilOficial } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
+import { EscolhaCarreira, EscolhaClubeOficial } from './brasil-oficial-tela'
 import { FaixaProximaCompeticao, proximasCompeticoes, useCopasDaSala, RODADAS_DO_AVISO } from './proxima-competicao'
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
@@ -1856,6 +1860,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
                   <span style={{ fontSize: 11, fontWeight: 800, color: '#4a4740', ...OSWALD }}>{t('Temporada', 'Season')} {slot.save.seasonNo ?? 1}</span>
                 </div>
                 <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
+                {(() => { const d = diasParaExcluir(slot); return d == null ? null : <span style={{ display: 'block', fontSize: 10.5, fontWeight: 900, color: d <= 2 ? '#C2452F' : '#8B8168', marginTop: 2 }}>⏳ {t(`sem plano: exclui em ${d} ${d === 1 ? 'dia' : 'dias'} se não jogar`, `no plan: deleted in ${d} ${d === 1 ? 'day' : 'days'} if not played`)}</span> })()}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
                 <button onClick={() => open(slot, ativa)} style={{ ...botao(GREEN, '#fff'), padding: '7px 11px', fontSize: 12.5 }}>{t('▶️ Continuar', '▶️ Continue')}</button>
@@ -1878,6 +1883,27 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
       </div>
     </div>
   )
+}
+
+// 🗑️ 18/11 (Diego): sem plano, carreira parada 5 dias é excluída (nuvem e aparelho) — "fica avisado pra ele quando tiver chegando
+// próximo". Este quadro roda a limpeza assim que o plano é conhecido, conta o que saiu e avisa a que está a 2 dias ou menos de sair.
+function AvisoCarreiraGratis({ escuro = false }: { escuro?: boolean }) {
+  const t = useT()
+  const apagadas = useLimpezaCarreirasGratis()
+  useSalvarBloqueado() // redesenha quando o plano da conta chega
+  const [planos, setPlanos] = useState(false)
+  const perto = listAllCareers().map(x => ({ slot: x.slot, d: diasParaExcluir(x.slot) })).filter(x => x.d != null && x.d <= 2)
+  if (!apagadas.length && !perto.length) return null
+  const nomeDe = (slot: CareerSlot) => { const y = slot.save.managers?.[slot.save.youIdx ?? 0]; return y?.teamName ?? y?.name ?? t('sua carreira', 'your career') }
+  return <div className="ov3-surface" role="status" style={{ background: escuro ? '#FFE3DD' : '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 0 ${INK}`, padding: '10px 12px', margin: '0 0 10px', color: INK }}>
+    {apagadas.length > 0 && <p style={{ fontSize: 13, fontWeight: 800, margin: '0 0 6px', lineHeight: 1.4 }}>🗑️ {t(`Sem plano, carreira parada 5 dias é excluída. Saiu: ${apagadas.filter(Boolean).join(', ')}.`, `Without a plan, a career left 5 days is deleted. Removed: ${apagadas.filter(Boolean).join(', ')}.`)}</p>}
+    {perto.map(({ slot, d }) => <p key={String(slot.save.seed)} style={{ fontSize: 13, fontWeight: 800, margin: '0 0 6px', lineHeight: 1.4 }}>⏳ {d === 0
+      ? t(`${nomeDe(slot)} será excluída hoje se você não jogar.`, `${nomeDe(slot)} will be deleted today if you do not play.`)
+      : t(`${nomeDe(slot)} será excluída em ${d} ${d === 1 ? 'dia' : 'dias'} se você não jogar.`, `${nomeDe(slot)} will be deleted in ${d} ${d === 1 ? 'day' : 'days'} if you do not play.`)}</p>)}
+    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px' }}>{t('Com qualquer plano a carreira fica salva pra sempre.', 'With any plan your career stays saved forever.')}</p>
+    <button onClick={() => setPlanos(true)} style={{ width: '100%', background: GOLD, color: INK, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px', fontWeight: 900, fontSize: 14, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>{t('⭐ Ver planos', '⭐ See plans')}</button>
+    {planos && <JanelaNuvemPlanos onClose={() => setPlanos(false)} />}
+  </div>
 }
 
 // 🪜 MINHAS CARREIRAS — lista de todos os saves (ativa + arquivo). Começar uma nova
@@ -1913,6 +1939,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        <AvisoCarreiraGratis />
         {avisoTroca && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
         {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
         {list.map(({ slot, active }, i) => {
@@ -1933,18 +1960,27 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
                 <button onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('▶️ Continuar', '▶️ Continue')}</button>
-                {confirmKey === String(slot.save.seed ?? i) ? (
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <button onClick={() => del(slot)} style={{ background: '#C2452F', color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', fontWeight: 900, fontSize: 11, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('🗑️ Apagar', '🗑️ Delete')}</button>
-                    <button onClick={() => setConfirmKey(null)} aria-label={t('Cancelar', 'Cancel')} style={{ background: 'transparent', border: 'none', fontSize: 15, fontWeight: 900, cursor: 'pointer', opacity: 0.6, lineHeight: 1 }}>✕</button>
-                  </div>
-                ) : (
-                  <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
-                )}
+                <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
               </div>
             </div>
           )
         })}
+        {/* 🗑️ 18/11 (Diego: "deveria ter uma confirmação pra excluir… apertar sim e excluir definitivamente"): janela própria do jogo
+            (window.confirm é bloqueado no navegador do WhatsApp/Instagram) — diz QUAL carreira e que não tem volta */}
+        {(() => { const alvo = confirmKey ? list.find(({ slot }, i) => String(slot.save.seed ?? i) === confirmKey) : undefined; if (!alvo) return null
+          const you = alvo.slot.save.managers?.[alvo.slot.save.youIdx ?? 0], nome = you?.teamName ?? you?.name ?? t('Meu time', 'My team')
+          return <div onClick={() => setConfirmKey(null)} style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div className="ov3-surface" role="alertdialog" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 360, background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, padding: 16, textAlign: 'center' }}>
+              <p style={{ fontSize: 30, margin: 0 }}>🗑️</p>
+              <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD, textTransform: 'uppercase', margin: '4px 0 6px' }}>{t('Excluir esta carreira?', 'Delete this career?')}</p>
+              <p style={{ fontSize: 13.5, fontWeight: 800, margin: '0 0 4px' }}>{nome} · {t('Temporada', 'Season')} {alvo.slot.save.seasonNo ?? 1}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6250', margin: '0 0 14px', lineHeight: 1.4 }}>{t('Ela sai do aparelho e da nuvem de vez. Não dá pra desfazer.', 'It is removed from this device and the cloud for good. This cannot be undone.')}</p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setConfirmKey(null)} style={{ flex: 1, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{t('Cancelar', 'Cancel')}</button>
+                <button onClick={() => del(alvo.slot)} style={{ flex: 1, background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 8px', fontWeight: 900, fontSize: 15, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{t('Sim, excluir', 'Yes, delete')}</button>
+              </div>
+            </div>
+          </div> })()}
         {(() => { const lim = careerSlotLimit(list.length); const cheio = list.length >= lim; return (<>
         <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
         {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, compre uma 💾 ficha extra na 🛒 Loja do Clube, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, buy an 💾 extra slot in the 🛒 Club Shop, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
@@ -2655,6 +2691,7 @@ export function EscIntro() {
           </button>
         </div>
       )}
+      <AvisoCarreiraGratis />
       {solo && (
         <div className="rounded-2xl border-4 border-black p-3 mb-1 space-y-2.5" style={{ background: '#6C43C0', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <p className="font-black text-sm text-white leading-tight" style={OSWALD}>
@@ -3013,6 +3050,10 @@ export function EscSetup() {
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
   const [privateStep, setPrivateStep] = useState<1 | 2 | 3>(1)
+  // 🇧🇷 BRASIL OFICIAL (15/11): antes do "Crie seu clube", quem tem acesso escolhe a carreira (Meu clube × Brasil Oficial)
+  const oficialOn = useBrasilOficial()
+  const [modoCarreira, setModoCarreira] = useState<null | 'meu' | 'oficial'>(null)
+  const [clubeOficialSel, setClubeOficialSel] = useState<string | null>(null)
   const [rivalsNotice,setRivalsNotice] = useState('')
   const [presidentName, setPresidentName] = useState('')
   const [presidentOutfit, setPresidentOutfit] = useState<'casual' | 'polo' | 'social' | 'terno'>('terno')
@@ -3061,7 +3102,8 @@ export function EscSetup() {
     const clean = nomeDeTime(stripEmoji(name)) // 🔤 21/10 (Diego): "NEYMAR_FC" vira "Neymar_FC"
     if (nomeOfensivo(clean)) { setNameErr(NOME_MSG.ofensivo); return } // 🚫 21/10: nome com preconceito não vira time
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
-    if (accountName !== null && clean && clean !== accountName) {
+    // 🇧🇷 Brasil Oficial: o "nome" é o do clube real escolhido — NUNCA vira o nome da conta
+    if (!clubeOficialSel && accountName !== null && clean && clean !== accountName) {
       // 🔒 nome único (tipo @ do Instagram): nome de outra conta ou batismo alheio não passa — só mudar maiúscula não confere
       const chk = clean.toLowerCase() === accountName.toLowerCase() ? { livre: true } as { livre: boolean; motivo?: string } : await nomeLivre(clean)
       if (!chk.livre) { setNameErr(NOME_MSG[chk.motivo ?? 'em_uso']); return }
@@ -3094,7 +3136,7 @@ export function EscSetup() {
         return
       }
       dispatch({
-        type: 'START_CAREER_SOLO', teamName: clean, formation, rivals,
+        type: 'START_CAREER_SOLO', teamName: clubeOficialSel ?? clean, formation, rivals, oficial: clubeOficialSel ? { clube: clubeOficialSel } : undefined,
         rivalTeams: picks, league: 'both', intro: true,
         president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
         presidentBase: modularSetup ? presidentDraft : undefined,
@@ -3118,13 +3160,20 @@ export function EscSetup() {
       if (nomeOfensivo(name)) { setNameErr(NOME_MSG.ofensivo); return }
       setNameErr(''); setPrivateStep(2)
     }
-    const nextFromPresident = () => setPrivateStep(3)
+    const nextFromPresident = () => { if (clubeOficialSel) void start(); else setPrivateStep(3) } // 🇧🇷 oficial: sem escolher rivais (os rivais são os clubes reais)
+    // 🇧🇷 BRASIL OFICIAL (15/11): a escolha da carreira e do clube real vêm ANTES do presidente
+    if (career && modularSetup && oficialOn && privateStep === 1 && modoCarreira !== 'meu' && !clubeOficialSel) {
+      return <Shell className="cse-shell" hideExit>{modoCarreira === 'oficial'
+        ? <EscolhaClubeOficial onVoltar={() => setModoCarreira(null)} onEscolher={c => { setClubeOficialSel(c); setName(c); setNameErr(''); setPrivateStep(2) }} />
+        : <EscolhaCarreira onVoltar={() => dispatch({ type: 'GO_LOBBY' })} onMeuClube={() => setModoCarreira('meu')} onOficial={() => setModoCarreira('oficial')} />}</Shell>
+    }
     if(modularSetup){
-      const back=()=>privateStep===1?dispatch({type:'GO_LOBBY'}):setPrivateStep(privateStep===2?1:2)
+      const back=()=>privateStep===1?(oficialOn&&modoCarreira==='meu'?setModoCarreira(null):dispatch({type:'GO_LOBBY'})):privateStep===2&&clubeOficialSel?(setClubeOficialSel(null),setName(''),setPrivateStep(1)):setPrivateStep(privateStep===2?1:2)
       const ownClub=setupMember?.ativo?setupMember.escudoTime?.trim():null
       const choices=RIVAIS_BATISMO.filter(t=>chaveClube(t.team)!==chaveClube(name)&&(!ownClub||chaveClube(t.team)!==chaveClube(ownClub)))
-      return <Shell className="cse-shell" hideExit><CareerSetupFrame step={privateStep} club={name} onBack={back}>
-       {privateStep===1?<CriarClubePresidencia name={name} accountName={accountName} onName={v=>{const clean=stripEmoji(v);setName(clean);setRivalPicks(p=>p.filter(team=>chaveClube(team)!==chaveClube(clean)));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} support={<LojaButton ancora="loja-planos" className="cse-secondary">{tr('CONHECER O BATISMO NA LOJA →','EXPLORE NAMING IN THE SHOP →')}</LojaButton>}/>:privateStep===2?<PresidenteFormulario guided value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/>:<CareerRivalsSetup rivals={rivals} picks={rivalPicks} options={choices} onCount={changeRivals} onToggle={toggleRival} onDefaults={()=>{setRivalPicks([]);setRivalsNotice('')}} onStart={()=>void start()} error={nameErr} notice={rivalsNotice}/>}
+      // 🇧🇷 no Brasil Oficial a etapa do presidente é a 3ª do caminho do modo (Carreira · Clube real · Presidente · Começar) e não tem rivais
+      return <Shell className="cse-shell" hideExit><CareerSetupFrame step={clubeOficialSel ? 3 : privateStep} club={name} onBack={back} {...(clubeOficialSel ? { etapas: [tr('Carreira', 'Career'), tr('Clube real', 'Real club'), tr('Presidente', 'President'), tr('Começar', 'Start')], topo: tr('NOVA CARREIRA · BRASIL OFICIAL', 'NEW CAREER · OFFICIAL BRAZIL') } : {})}>
+       {privateStep===1?<CriarClubePresidencia name={name} accountName={accountName} onName={v=>{const clean=stripEmoji(v);setName(clean);setRivalPicks(p=>p.filter(team=>chaveClube(team)!==chaveClube(clean)));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} support={<LojaButton ancora="loja-planos" className="cse-secondary">{tr('CONHECER O BATISMO NA LOJA →','EXPLORE NAMING IN THE SHOP →')}</LojaButton>}/>:privateStep===2?<PresidenteFormulario guided rotuloAvancar={clubeOficialSel ? tr('COMEÇAR A CARREIRA →', 'START THE CAREER →') : undefined} value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/>:<CareerRivalsSetup rivals={rivals} picks={rivalPicks} options={choices} onCount={changeRivals} onToggle={toggleRival} onDefaults={()=>{setRivalPicks([]);setRivalsNotice('')}} onStart={()=>void start()} error={nameErr} notice={rivalsNotice}/>}
       </CareerSetupFrame></Shell>
     }
     return (
