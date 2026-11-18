@@ -7,6 +7,16 @@
 - ⏭️ A nuvem só limpa quando a pessoa abre o jogo (não tem robô no banco pra quem nunca mais volta). ⏭️ Carreira online (sala) não entra
   na conta de "1 carreira" — só os saves de carreira (solo e Brasil Oficial).
 
+## 18/11 (tarde) — 🚀 PUBLICADO NA MAIN, SÓ NA CONTA DO DIEGO (*"pode publicar tudo na minha conta já"*)
+- Central nova (Próximos jogos com estádio, "Antes da estreia" só com Master, TV depois do 1º jogo, sem feira, torcida chegando na
+  estreia em casa, "Ver no mapa" no lugar certo) atrás de `CENTRAL_18_11_GERAL = false` (sport.ts) — os outros seguem com a Central de
+  antes. Liberar pra todos = `true` + devolver a linha da novidade em `novidades.ts`.
+- Brasil Oficial (já só dele): estádios reais, economia real, Copa do Mundo desde a T1, aviso de prêmio por copa, correções do estadual.
+- Regra do plano grátis (1 carreira, 5 dias parada = excluída): no código mas DESLIGADA (`LIMPA_CARREIRA_GRATIS = false`) — a conta
+  dele tem plano, então "na conta dele" não faz efeito. Ligar = `true` quando ele mandar.
+- Valem pra todos (consertos, sem visual novo): valor certo no aviso da TV (20/30/40/50) e o Martelo sem "briga no topo com 0 pontos".
+- ⚠️ `npm run carreira-gratis` falha numa conferência antiga (espera `careerGratisAte` no fim de `MARCAS_DE_MODO`) — a falha já existia.
+
 ## 18/11 — 🇧🇷 Brasil Oficial: Copa do Mundo desde a T1 (convite + ranking) e agenda da Central
 - Diego (print do Santa Cruz): *"libertadores e copa do mundo N pode mais ser bloqueadas"* → *"sim esse o começo mas C base ainda em convites e ranking"*.
   `cmAncora` oficial 50 → **1** (T1 = 2026, ano de Copa real; depois de 4 em 4). Continua por CONVITE pela posição no ranking dos 32.
