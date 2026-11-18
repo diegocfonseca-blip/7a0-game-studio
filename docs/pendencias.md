@@ -112,6 +112,19 @@
 - Eu sugeri NÃO vender mascote pro time oficial (concorre com o Batismo e mascote de clube é marca do clube); ele não fechou nada sobre isso.
 - 🔁 Mesmo dia, DECISÃO: *"caiu muito carreira, ninguém joga mais… melhor arriscar no modo novo com oficiais e deixar os times criados ser de entrada pro pessoal pagar os oficiais"*. Ou seja: carreira com time OFICIAL = modo novo, só com plano; carreira de time criado = a porta de entrada grátis. Já temos 152 escudos oficiais em `public/escudos-clubes/`.
 - Falta: qual plano libera (do Craque Salas pra cima?) e mockup da escolha na criação da carreira. Cuidado com marca registrada dos escudos.
+## 🎨 16/11 — Avatares das oito lendas restantes de Europa e Mundo
+
+- Oito retratos individuais com arte sem feições, uniformes de época sem marcas, e WebP com alfa 600×400: Banks (Leicester 1966), Antognoni (Fiorentina 1982), Peyroteo (Sporting 1947), Vozinha (Colo-Colo 2026), Pedro Rocha (Peñarol 1965), Spencer (Peñarol 1961), Kempes (Rosario Central 1973) e Di Stéfano (Millonarios 1949).
+- Cadastro por nome, clube e ano. Âncora histórica de Kempes: referência visual da passagem pelo Rosario Central iniciada em 1974 segundo o clube, mantendo a identidade já cadastrada de 1973.
+- Prévias exibidas e usuário orientou seguir. Os checks do catálogo de futebol e do basquete passaram.
+
+## 📡 16/11 — Custos Realtime: presença idêntica sem retransmissão — TESTADA, PUBLICAÇÃO AUTORIZADA
+
+- Diego aprovou apenas a primeira medida: ignorar listas de presença exatamente iguais, mantendo entradas/saídas, UIDs, duplas, pedidos de recuperação e heartbeat.
+- Filtro restrito a SET_PRESENCE, antes da cópia do estado; nenhuma alteração no protocolo, nas jogadas ou na coroa.
+- Dois EscProvider locais: cinco avisos iguais geravam cinco envios antes e zero depois; presença alterada e recuperação continuam enviando. Sem acesso a salas reais.
+- Detalhes e limites em `docs/presenca-identica-20261116.md`; bancada em `scripts/teste-presenca-identica/`. Economia mensal ainda não medida. Agrupamento de pedidos e sono da sala não entram nesta entrega.
+- Diego autorizou publicar o PR #500: *“Ok siga p publicar”*. Publicação pelo fluxo normal da main, mantendo a versão anterior para quem já está jogando; sem migração ou alteração de dados de salas.
 
 ## ⚽🎩 15/11 — Kings: pênalti do presidente igual ao pênalti do campinho — PUBLICADO
 - Diego: *"o chute tá feio… tem que ser igual pênalti mesmo do campinho, não o pulinho do presidente"*. Mockup
@@ -152,6 +165,13 @@
 - Manto branco #F9F4FB + verde-neon #2AF604 medidos; 3ª cor preta (MANTO_TRI reffatti_gamer).
 - Banco: esc_socios (91), esc_nomes_batismo (reffatti / FC / EC + reffattifc, o nome dele no jogo); user_colors ouro já estava.
 - Post: scripts/posts/batismo-reffatti.png ("Leo" tirado do e-mail — confirmar com o Diego o nome).
+
+## 🪑 16/11 — Lavras FC / GGWNX6: menu e retorno trocavam a identidade do dono — CORREÇÃO PREPARADA, não publicada
+
+- Leituras da produção confirmaram a Copa aberta às 23:55, perda local da coroa sem troca do host no banco e requisição autenticada como Lavras gravando a escolha na linha do Mano 3 Meses.
+- Dois EscProvider locais reproduziram a causa: GO_LOBBY_ONLINE e RESTORE_ONLINE de um convidado eram enviados ao dono, cujos receptores aplicavam o pacote de identidade dele.
+- Menu e retomada passam a ser locais; as duas entradas do dono rejeitam navegação/identidade vindas de outros aparelhos, inclusive abas antigas. Ações de jogo preservadas; nenhuma alteração na sala real ou no banco.
+- Reprodução antes/depois, build, 16 cenários do simulador e teste da Copa passaram. Duas falhas textuais antigas de `npm run sala` foram confirmadas também na base. Detalhes em `docs/lavras-reentrada-20261116.md`.
 
 ## 🌍 15/11 — Mapa e campo do estádio para todos; veículos em breve — FEITO, liberação pública autorizada
 

@@ -1,4 +1,5 @@
 import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
+import {retornoDeSalaLocal,acaoDaSalaLocal,acaoRemotaDaSalaPermitida} from './online-acoes-locais'
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
 import { iniciarCriteriosDaTemporada } from './criterios-carreira'
@@ -6116,7 +6117,7 @@ function enterCerimonia(st: EscState) {
   if (st.leilaoClubes && !st.leilaoClubesConvocado) {
     if (st.managers.some(m => m.isHuman && m.modoClubes)) {
       st.screen = 'convocacao'; st.phaseDeadline = null
-      st.convocacaoDeadline = Date.now() + CONVOCACAO_MS
+      st.convocacaoDeadline = Date.now() + CONVOCACAO_MS + (st.onlineMode === 'online' ? 10_000 : 0) // ⏱️ 16/11 (Diego): +10 s nas salas online
       st.convocacaoFeitos = []; st.convocacaoEscolhas = {}; st.convocacaoDuplaFeitos = []
       return
     }
@@ -8082,6 +8083,16 @@ function reducerBase(state: EscState, action: Action): EscState {
   // MENU ONLINE (não no meio do jogo). A vaga no banco a host já apagou; o canal
   // é derrubado pelo próprio reset (onlineMode volta a 'cpu', sem roomId).
   if (action.type === 'KICKED_OUT') return { ...INITIAL, screen: 'lobby' }
+  // 📡 16/11: o Presence pode repetir a mesma lista (ex.: nova inscrição na reconexão).
+  // Não criar outro estado nem retransmitir a partida se cadeiras E crachás forem idênticos.
+  // Ordem, duplicatas de cadeira nas duplas e undefined ≠ [] são preservados.
+  // Isto só filtra SET_PRESENCE: pedidos de recuperação e heartbeat continuam respondendo.
+  if (action.type === 'SET_PRESENCE') {
+    const uids = action.uids ?? state.presenceUids
+    const mesmasCadeiras = state.presence.length === action.indices.length && state.presence.every((idx, i) => idx === action.indices[i])
+    const mesmosCrachas = uids === state.presenceUids || (uids !== undefined && state.presenceUids !== undefined && uids.length === state.presenceUids.length && uids.every((uid, i) => uid === state.presenceUids![i]))
+    if (mesmasCadeiras && mesmosCrachas) return state
+  }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
     case 'GO_LOBBY': { s.espectador = undefined; s.espHostUid = undefined; s.screen = 'intro'; s.onlineMode = 'cpu'; s.dinastia = false; s.dinastiaBudget = undefined; s.dinastiaPaused = false; s.dinastiaMidUsed = false; return s }
@@ -15377,8 +15388,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const dispatch = useCallback((action: Action) => {
     // 👁️ FANTASMA (28/10): só assiste. Nada sai deste aparelho pro dono (nem lance, nem voto) e nada muda o estado que ele
     // está vendo — a não ser SAIR. Nem o "liberar a vaga" roda: ele nunca teve vaga.
-    // ASSISTIR é gesto LOCAL deste aparelho: nunca vai pro dono de sala nenhuma.
-    if (action.type === 'ASSISTIR_ONLINE') { rawDispatch(action); return }
+    // Menu e retomada são LOCAIS mesmo quando o convidado ainda está online.
+    // Sala GGWNX6 (16/11): o retorno do convidado trocou o uid e a coroa do dono.
+    if (retornoDeSalaLocal(action)) {
+      if(action.type==='RESTORE_ONLINE'&&action.isHost)claimForcadoRef.current=false
+      rawDispatch(action);return
+    }
     if (stateRef.current.espectador) {
       if (['GO_LOBBY', 'NEW_GAME', 'GO_ALBUM', 'GO_RANKING'].includes(action.type)) rawDispatch(action)
       return
@@ -15421,7 +15436,6 @@ export function EscProvider({ children }: { children: ReactNode }) {
       })()
       return
     }
-    if (action.type === 'RESTORE_ONLINE' && action.isHost) claimForcadoRef.current = false
     if (action.type === 'START_ONLINE' && action.isHost) claimForcadoRef.current = true
     // Sair de uma partida online (NOVO PREGÃO / voltar pra home) deve LIBERAR
     // sua vaga na sala. Sem isso você fica "fantasma": um restart puxa você como
@@ -15430,7 +15444,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // 🏆 dono de liga mantém a cadeira (17/10): a liga é dele do começo ao fim
       leaveOnlineRoom(stateRef.current.roomId, !!stateRef.current.careerOnline || (isHostRef.current && !!stateRef.current.ligaMode))
     }
-    if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
+    if (onlineRef.current === 'online' && !isHostRef.current && !acaoDaSalaLocal(action)) {
       // 📮 SALA DE CHAMPIONS: o recado vai SÓ pro dono (caixa de entrada dele), não pra sala
       // inteira. Com 27 pessoas, cada lance espalhado virava 26 entregas e o servidor
       // começava a perder mensagem no fim do envelope. Se a entrega falhar, cai no rádio de
@@ -15528,7 +15542,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     medidorPapel(!!state.isHost, !!state.espectador) // 👁️ o fantasma conta como 'espectador' (é o que mostra se o chat chega nele)
 
     if (state.isHost) {
-      ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
+      ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => {if(acaoRemotaDaSalaPermitida(payload))rawDispatch(payload)})
       ch.on('broadcast', { event: 'request_state' }, () => {
         marcaMovimento() // 💤 alguém acordou e pediu o estado: o dono acorda junto
         mandaEstado(stateRef.current, true) // 📡✂️ quem pede o estado ganha uma base nova (a sala toda recebe)
@@ -15739,7 +15753,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     let retry: ReturnType<typeof setTimeout> | null = null
     const religa = () => { if (vivo && !retry) retry = setTimeout(() => { retry = null; if (vivo) setCaixaTentativa(n => n + 1) }, 2000) }
     inbox = instrumenta(canalLimpo(`escalacao-in:${rid}`, { config: { broadcast: { self: false, ack: false } } }), 'caixa-dono', rid) // 📏
-    inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
+    inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => {if(acaoRemotaDaSalaPermitida(payload))rawDispatch(payload)})
     inbox.subscribe(status => { if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') religa() })
     const onVis = () => { if (typeof document !== 'undefined' && document.visibilityState === 'visible') religa() }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
