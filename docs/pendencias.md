@@ -5,6 +5,15 @@
   que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
   regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
 
+### 🏀 18/11 (9) — Tela de FIM da partida no visual novo (basquete, fora da carreira)
+- A tela de fim do basquete (Partida Rápida e salas) passou pro visual novo, igual ao futebol. Carreira continua como estava.
+- Com Playoffs, a liga vira **TEMPORADA REGULAR**: o 1º leva "🥇 MELHOR CAMPANHA" (o anel é decidido nos Playoffs), nunca "É campeão / o anel é seu".
+- Depois da liga: bloco **PLAY-IN** (ou PLAYOFFS), com "PLAY-IN · 1ª RODADA", regulamento da NBA e botão "INICIAR O PLAY-IN" — saiu "Copa dos 8 / Quartas de final".
+- Playoffs acabaram: o destaque grande do topo é o **campeão das Finals** ("O ANEL É SEU", "Finals: X 4 × 0 Y"); o cartão repetido de baixo some (mesmo teatro não aparece 2 vezes).
+- Textos velhos que diziam "melhor de 3" agora leem o formato da sala (melhor de 7).
+- ❓ A cartinha "Você foi campeão!" continua saindo pra melhor campanha da temporada regular (regra "todo título dá cartinha"). Perguntar ao Diego se a melhor campanha conta como título.
+- Prints: `scripts/mockups/basquete-fim-{liga-celular,anel-celular,anel-pc}.png`. Aguardando OK do Diego.
+
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
 - O que o banco mostra: 17h02 ele recarregou (o botão Manual sumiu dali em diante = o aparelho dele deixou de ser dono); a sala seguiu
   salva com youIdx 0 até 17h10 (final da Kings) e parou; 39 s depois o aparelho dele saiu (registro "saiu_por_conta_propria" com

@@ -8530,8 +8530,8 @@ export function EscSeason() {
                         : <>Sobraram <b style={{ color: GOLD }}>16 clubes</b> — os 8 primeiros da tabela e os 8 que passaram no repescão. Daqui pra frente é ida e volta, e quem perder <b>vai pra casa</b>. A final é <b>jogo único</b>. Quem levantar a taça ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum!</>)
                       : bbS
                       ? (seasonLang === 'en'
-                        ? <>The top 8 of <b>each conference</b> face off: 1×8, 4×5, 3×6, 2×7. Every series is <b>best of 3</b>. East and West only meet in the <b>Finals</b> — and the champion takes the <b style={{ color: GOLD }}>ring</b> to the album! 🏀</>
-                        : <>O top 8 de <b>cada conferência</b> se enfrenta: 1×8, 4×5, 3×6, 2×7. Toda série é <b>melhor de 3</b>. Leste e Oeste só se cruzam nas <b>Finals</b> — e o campeão leva o <b style={{ color: GOLD }}>anel</b> pro álbum! 🏀</>)
+                        ? <>The top 8 of <b>each conference</b> face off: 1×8, 4×5, 3×6, 2×7. Every series is <b>best of {state.quickCopa?.bo ?? 3}</b>. East and West only meet in the <b>Finals</b> — and the champion takes the <b style={{ color: GOLD }}>ring</b> to the album! 🏀</>
+                        : <>O top 8 de <b>cada conferência</b> se enfrenta: 1×8, 4×5, 3×6, 2×7. Toda série é <b>melhor de {state.quickCopa?.bo ?? 3}</b>. Leste e Oeste só se cruzam nas <b>Finals</b> — e o campeão leva o <b style={{ color: GOLD }}>anel</b> pro álbum! 🏀</>)
                       : enS
                       ? <>The league's top 8 face off over two legs: 1st×8th, 2nd×7th, 3rd×6th, 4th×5th. Winners reach the semi-final — and the final is a single match. The Cup champion earns <b style={{ color: GOLD }}>another card</b> for the album, on top of the league card!</>
                       : <>Os 8 melhores da liga se enfrentam ida e volta: 1º×8º, 2º×7º, 3º×6º, 4º×5º. Quem passar cai na semifinal — e a final é jogo único. O campeão da Copa ganha <b style={{ color: GOLD }}>outra carta</b> pro álbum, além da carta da liga!</>}
@@ -13014,7 +13014,7 @@ export function EscEnd() {
   const { state, dispatch, kickPlayer } = useEsc()
   const previewEnd = useOnlinePreview()
   const ownerVisual=useOwnerOnlineVisual(state)
-  const privateEnd = (previewEnd || publicOnlineVisual(state)) && state.sport !== 'basquete'
+  const privateEnd = (previewEnd || publicOnlineVisual(state)) && (state.sport !== 'basquete' || !state.careerOnline)
   const [manualPref] = useSimMode()
   const [streamManual] = useStreamSimMode()
   const [endLang] = useLang()
@@ -13025,6 +13025,11 @@ export function EscEnd() {
   // 🏆 quantos passam por conferência — a MESMA régua do `seedQuickCopa` (8 em
   // conferência de 12+, 4 nas menores). O texto tem que dizer o número REAL, senão
   // promete vaga pra quem vai ficar de fora.
+  // 🏀 18/11: com Playoffs, a liga é só a TEMPORADA REGULAR — o anel é dos Playoffs (NBA de verdade). Só a liga = a liga dá o anel.
+  const bbTemporadaRegular = bbEnd && !!state.quickCopa
+  // 🏀 18/11: Playoffs acabaram → o destaque grande do topo é o ANEL (campeão das Finals), não a melhor campanha
+  const bbAnel = bbTemporadaRegular && state.quickCopa?.phase === 'done' && state.quickCopa.champion ? state.quickCopa.champion : null
+  const bbAnelFinal = (() => { const f = bbAnel ? state.quickCopa?.bracket.find(b => b.phase === 'final')?.ties[0] : undefined; if (!f) return null; const a = f.legs.filter(g => g[0] > g[1]).length, b = f.legs.length - a; return `Finals: ${f.aName} ${a} × ${b} ${f.bName}` })()
   const bbVagas = state.league.filter(t => t.id % 2 === 0).length >= 12 && state.league.filter(t => t.id % 2 !== 0).length >= 12 ? 8 : 4
   // 🌐 BR/EN (11/09): valia só pro basquete; agora o fim de jogo do futebol também lê o idioma
   const LE = (pt: string, en: string) => endLang === 'en' ? en : pt
@@ -13364,8 +13369,8 @@ export function EscEnd() {
         <p className="font-black text-2xl truncate" style={{ ...OSWALD, color: '#fff' }}>{you.teamName}</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
-            <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>{ligaNomeEnd}</p>
-            <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>{youWon ? LE('🏆 Campeão', '🏆 Champion') : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
+            <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>{bbTemporadaRegular ? LE(`${ligaNomeEnd} · temporada regular`, `${ligaNomeEnd} · regular season`) : ligaNomeEnd}</p>
+            <p className="font-black text-lg" style={{ ...OSWALD, color: '#fff' }}>{youWon ? (bbTemporadaRegular ? LE('🥇 Melhor campanha', '🥇 Best record') : LE('🏆 Campeão', '🏆 Champion')) : `${ordinal(youPos, endLang)} ${LE('lugar', 'place')}`}</p>
           </div>
           <div className="rounded-xl border-2 py-2" style={{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(255,255,255,.06)' }}>
             <p className="text-[10px] font-black uppercase tracking-wide" style={{ color: GOLD }}>{copaNome}</p>
@@ -13439,7 +13444,7 @@ export function EscEnd() {
   ) : null
   const copaBlocks = (
     <>
-      {state.quickCopa?.champion && (() => {
+      {state.quickCopa?.champion && !(ownerVisual && bbAnel) && (() => {
         // 🏆 CAMPEÃO EM CARTÃO (Diego 13/10, mockup nº 3): escudo grande, dono (se gente) e a final em uma linha.
         const qc = state.quickCopa, ch = qc.champion!
         const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
@@ -13451,7 +13456,7 @@ export function EscEnd() {
         return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : relEnd ? LE('CAMPEÃO DO RELÂMPAGO ⚡', 'LIGHTNING KNOCKOUT CHAMPION ⚡') : kEnd ? LE('CAMPEÃO DA KINGS LEAGUE', 'KINGS LEAGUE CHAMPION') : bbEnd ? LE('💍 CAMPEÃO DOS PLAYOFFS', '💍 PLAYOFF CHAMPION') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
           nome={ch.name} crest={<Escudo nome={ch.name} size={64} />} meu={ch.id === you.id}
           trofeu={kEnd || bbEnd ? undefined : <Trofeu comp={libEnd ? 'liberta' : chEnd ? 'champions' : relEnd ? 'relampago' : 'copa8'} size={64} />}
-          sub={ch.id === you.id ? LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
+          sub={ch.id === you.id ? (bbEnd ? LE('🎉 É VOCÊ! O anel é seu.', '🎉 IT’S YOU! The ring is yours.') : LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.')) : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
       })()}
       {copaChampIsYou && (
         online && state.roomId ? (
@@ -13485,7 +13490,8 @@ export function EscEnd() {
   return (
     <Shell hideExit={online} className={online && !copaPending && !libPending && !mundoPendente ? 'online-end-art' : ''}>
       {festaNode}
-      {ownerVisual&&!semTituloLiga&&<OwnerChampionBanner title={ligaNomeEnd} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={bbEnd ? `${champ.w}-${champ.l}` /* 🏀 17/11: campanha V-D, nunca "228 pontos" */ : `${champ.pts} ${LE('pontos','points')}`}/>}
+      {ownerVisual&&bbAnel&&<OwnerChampionBanner title={LE(`${ligaNomeEnd} · CAMPEÃO DOS PLAYOFFS`, `${ligaNomeEnd} · PLAYOFF CHAMPION`)} name={bbAnel.name} crest={<Escudo nome={bbAnel.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={bbAnel.id === you.id} mascot={MASCOTES[mascoteKeyDoTime(bbAnel.name)??'']} legends={(state.managers.find(m=>m.id===bbAnel.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={bbAnelFinal ?? undefined}/>}
+      {ownerVisual&&!semTituloLiga&&!bbAnel&&<OwnerChampionBanner title={bbTemporadaRegular ? LE(`${ligaNomeEnd} · TEMPORADA REGULAR`, `${ligaNomeEnd} · REGULAR SEASON`) : ligaNomeEnd} head={bbTemporadaRegular ? LE('MELHOR CAMPANHA!', 'BEST RECORD!') : undefined} faixa={bbTemporadaRegular ? (youWon ? LE('A MELHOR CAMPANHA É SUA · O ANEL É NOS PLAYOFFS', 'BEST RECORD IS YOURS · THE RING IS WON IN THE PLAYOFFS') : LE('O ANEL É DECIDIDO NOS PLAYOFFS', 'THE RING IS WON IN THE PLAYOFFS')) : undefined} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={bbEnd ? `${champ.w}-${champ.l}` /* 🏀 17/11: campanha V-D, nunca "228 pontos" */ : `${champ.pts} ${LE('pontos','points')}`}/>}
       <RankResultWriter />
       {roteiroBB && <RoteiroBB passo={passoBB} onIr={n => { setPassoBB(n); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       <div hidden={roteiroBB && passoBB !== 1} className="space-y-5">
@@ -13638,11 +13644,11 @@ export function EscEnd() {
           </Box>
         )
       })()}
-      {copaPending && state.quickCopa && (privateEnd ? <CompetitionStage kind="copa8" title={LE('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'LEAGUE OVER · NEXT COMPETITION')} phase={kEnd ? LE('Mata-mata da Kings', 'Kings knockout') : LE('Copa dos 8', 'Cup of 8')} detail={kEnd ? LE('O 1º espera na semi, do 2º ao 7º jogam as quartas. Tudo jogo único — quem ganhar a final é o campeão da Kings League.', '1st waits in the semi, 2nd–7th play the quarters. All single games — the final winner is the Kings League champion.') : LE('Os oito primeiros disputam uma nova taça. O campeão ganha outra carta.', 'The top eight play for a new trophy. The champion earns another card.')} status={manual || pacedRoom ? LE('Aguardando o host iniciar', 'Waiting for the host to start') : LE(`A Copa começa em ${copaLeft}s`, `The Cup starts in ${copaLeft}s`)}>
-        <div className="ll26-cup-entry"><h3>{LE('QUARTAS DE FINAL', 'QUARTER-FINALS')}</h3>
+      {copaPending && state.quickCopa && (privateEnd ? <CompetitionStage kind="copa8" title={LE('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'LEAGUE OVER · NEXT COMPETITION')} phase={bbEnd ? (state.quickCopa.phase === 'playin' ? 'Play-In' : 'Playoffs') : kEnd ? LE('Mata-mata da Kings', 'Kings knockout') : LE('Copa dos 8', 'Cup of 8')} detail={bbEnd ? (state.quickCopa.phase === 'playin' ? LE('Quem ficou entre o 7º e o 10º briga pelas últimas vagas dos Playoffs. Depois, séries melhor de 7 até as Finais — quem vencer leva o anel.', 'Teams 7th to 10th fight for the last playoff spots. Then best-of-7 series up to the Finals — the winner takes the ring.') : LE(`Leste × Oeste. Séries melhor de ${state.quickCopa.bo ?? 3} até as Finais — quem vencer leva o anel.`, `East × West. Best-of-${state.quickCopa.bo ?? 3} series up to the Finals — the winner takes the ring.`)) : kEnd ? LE('O 1º espera na semi, do 2º ao 7º jogam as quartas. Tudo jogo único — quem ganhar a final é o campeão da Kings League.', '1st waits in the semi, 2nd–7th play the quarters. All single games — the final winner is the Kings League champion.') : LE('Os oito primeiros disputam uma nova taça. O campeão ganha outra carta.', 'The top eight play for a new trophy. The champion earns another card.')} status={manual || pacedRoom ? LE('Aguardando o host iniciar', 'Waiting for the host to start') : bbEnd ? LE(`Começa em ${copaLeft}s`, `Starts in ${copaLeft}s`) : LE(`A Copa começa em ${copaLeft}s`, `The Cup starts in ${copaLeft}s`)}>
+        <div className="ll26-cup-entry"><h3>{bbEnd ? (state.quickCopa.phase === 'playin' ? LE('PLAY-IN · 1ª RODADA', 'PLAY-IN · ROUND 1') : state.quickCopa.phase === 'final' ? 'FINALS' : LE('PRIMEIRA RODADA', 'FIRST ROUND')) : LE('QUARTAS DE FINAL', 'QUARTER-FINALS')}</h3>
           {state.quickCopa.ties.map(t => <div className="ll26-draw-row" key={`${t.aId}-${t.bId}`}><span><Escudo nome={t.aName} size={25} />{t.aName}</span><b>×</b><span><Escudo nome={t.bName} size={25} />{t.bName}</span></div>)}
-          <details className="ll26-format"><summary>{LE('REGULAMENTO', 'FORMAT')}</summary><p>{LE('1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta. Final em jogo único. Empatou no agregado: pênaltis.', '1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs. Single-match final. Level on aggregate: penalties.')}</p></details>
-          {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={GOLD} className="w-full">{kEnd ? LE('INICIAR O MATA-MATA', 'START THE KNOCKOUT') : LE('INICIAR COPA DOS 8', 'START THE CUP OF 8')}</Btn>}
+          <details className="ll26-format"><summary>{LE('REGULAMENTO', 'FORMAT')}</summary><p>{bbEnd ? LE(`Play-In: 7º × 8º (quem vence entra) e 9º × 10º; o perdedor do 7×8 pega o vencedor do 9×10 pela última vaga. Playoffs: 1º × 8º, 4º × 5º, 3º × 6º e 2º × 7º de cada conferência. Toda série é melhor de ${state.quickCopa.bo ?? 3}. Os campeões do Leste e do Oeste fazem as Finais pelo anel.`, `Play-In: 7th × 8th (winner is in) and 9th × 10th; the 7×8 loser meets the 9×10 winner for the last spot. Playoffs: 1st × 8th, 4th × 5th, 3rd × 6th and 2nd × 7th in each conference. Every series is best of ${state.quickCopa.bo ?? 3}. The East and West champions meet in the Finals for the ring.`) : LE('1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta. Final em jogo único. Empatou no agregado: pênaltis.', '1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs. Single-match final. Level on aggregate: penalties.')}</p></details>
+          {canDriveCopa && <Btn onClick={() => dispatch({ type: 'START_COPA' })} bg={GOLD} className="w-full">{bbEnd ? (state.quickCopa.phase === 'playin' ? LE('INICIAR O PLAY-IN', 'START THE PLAY-IN') : LE('INICIAR OS PLAYOFFS', 'START THE PLAYOFFS')) : kEnd ? LE('INICIAR O MATA-MATA', 'START THE KNOCKOUT') : LE('INICIAR COPA DOS 8', 'START THE CUP OF 8')}</Btn>}
         </div>
       </CompetitionStage> : (
         <Box bg={GOLD} className="p-4 space-y-2" shadow={6}>
@@ -13650,8 +13656,8 @@ export function EscEnd() {
           <p className="text-sm font-bold text-center text-black/75">
             {bbEnd
               ? (endLang === 'en'
-                ? <><b>Playoffs — East × West.</b> Top {bbVagas} of each conference{bbVagas === 8 ? ' (1×8, 4×5, 3×6, 2×7)' : ''}. Every series is <b>best of 3</b>. Each conference crowns its champion, and the two meet in the <b>Finals</b> for the <b>ring</b>! 🏀</>
-                : <><b>Playoffs — Leste × Oeste.</b> Top {bbVagas} de cada conferência{bbVagas === 8 ? ' (1×8, 4×5, 3×6, 2×7)' : ''}. Toda série é <b>melhor de 3</b>. Cada lado decide seu campeão, e os dois se cruzam nas <b>Finais</b> pelo <b>anel</b>! 🏀</>)
+                ? <><b>Playoffs — East × West.</b> Top {bbVagas} of each conference{bbVagas === 8 ? ' (1×8, 4×5, 3×6, 2×7)' : ''}. Every series is <b>best of {state.quickCopa.bo ?? 3}</b>. Each conference crowns its champion, and the two meet in the <b>Finals</b> for the <b>ring</b>! 🏀</>
+                : <><b>Playoffs — Leste × Oeste.</b> Top {bbVagas} de cada conferência{bbVagas === 8 ? ' (1×8, 4×5, 3×6, 2×7)' : ''}. Toda série é <b>melhor de {state.quickCopa.bo ?? 3}</b>. Cada lado decide seu campeão, e os dois se cruzam nas <b>Finais</b> pelo <b>anel</b>! 🏀</>)
               : endLang === 'en'
                 ? <>The league's top 8 enter a separate Cup — two legs, semis and a single final. 1st plays 8th, 2nd plays 7th, 3rd plays 6th, 4th plays 5th. The Cup champion earns <b>another card</b> for the album!</>
                 : <>Os 8 melhores da liga entram numa Copa à parte — ida e volta, semifinal e final única. O 1º pega o 8º, o 2º pega o 7º, o 3º pega o 6º, o 4º pega o 5º. Quem for campeão da Copa ganha <b>outra carta</b> pro álbum!</>}
