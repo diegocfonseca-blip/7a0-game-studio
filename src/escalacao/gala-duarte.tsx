@@ -1,16 +1,17 @@
-// ─── 🧤🐓 ENTRADA ÚNICA DO DUARTE FC: "SÃO VICTOR" ─────────────────────────────────────────────────────────────────
+// ─── 🧤🐓 ENTRADA ÚNICA DO DUARTE FC: "O REPLAY" ───────────────────────────────────────────────────────────────────
 //
 // Pedido do Diego (18/11, batismo FUNDADOR do luizfelipeduarte212): *"faça entrada de gala personalizada principalmente pelo
 // goleiro Victor defendendo pênalti igual ele tá nessa pose"*. A mascote (arte do dono) é O Paredão: o goleiro camisa 1 caído
-// de lado, defendendo com o PÉ esticado pro alto — a defesa do Victor (Atlético Mineiro, Libertadores 2013), a que deu o
-// apelido de "São Victor". ⚠️ Fato conferido: aquela defesa foi nas QUARTAS, contra o Tijuana — não na final. Por isso a
-// gala não fala em "final" nem em minuto: só o lance (pênalti contra no último lance) e o apelido, que é público.
-// 1) noite de estádio: os refletores varrem o céu; legenda "ÚLTIMO LANCE · PÊNALTI CONTRA"
-// 2) a bola na marca, pulinho, e o chute vem na direção do gol
-// 3) O Paredão entra deslizando de lado e ESPALMA COM O PÉ: estalo 💥, flash, a tela treme, a bola sobe pra fora
-// 4) carimbo "DEFENDEU!" e as listras PRETA e BRANCA do manto varrem a tela
-// 5) o escudo acende com a estrela dourada girando atrás; O Paredão vai pro canto
-// 6) a frase bate — PÊNALTI CONTRA? AQUI TEM SÃO VICTOR — e a faixa "CHEGOU NA SALA · O PAREDÃO"
+// de lado, defendendo com o PÉ esticado pro alto (a pose da defesa do Victor, Libertadores 2013 — foi nas QUARTAS, contra o
+// Tijuana; nada aqui diz "final").
+// 2ª versão (mesmo dia): ele gostou da defesa, mas não das frases (*"N sei se gostei das frases"*). Então a gala agora é quase
+// sem texto — conta a história com imagem, como uma transmissão de TV:
+// 1) escuro, só um refletor em cima da bola na marca do pênalti
+// 2) o lance ao vivo: bola na marca, chute, O Paredão desliza e espalma com o PÉ — a tela treme
+// 3) 🔁 REPLAY de TV: a câmera dá zoom no pé e repete o lance em câmera lenta, com a tarja vermelha de replay
+// 4) as listras PRETA e BRANCA do manto varrem a tela
+// 5) o escudo cai com a estrela dourada girando atrás; O Paredão vai pro canto
+// 6) só o nome do clube, grande, e "CHEGOU NA SALA"
 // Mesmo esquema das outras galas únicas: palco 420×760 escalado, camada fixa sem clique, fora do reducer, sem localStorage.
 // Sem som próprio por enquanto: não existe canto do Atlético no jogo ainda (o Diego vai mandar).
 import { useEffect, useState } from 'react'
@@ -19,13 +20,29 @@ import { Escudo } from './escudos'
 import { tr } from './lang'
 import paredaoImg from './img/duarte-mascote.webp' // 440×335, O Paredão defendendo com o pé (a bola fica no canto de cima)
 
-export const DUARTE_MS = 8600
+export const DUARTE_MS = 9000
 const T = DUARTE_MS
 const pct = (ms: number) => (ms / T * 100).toFixed(1) + '%'
 const PRETO = '#101010', BRANCO = '#F1F1F0', OURO = '#F7D50A'
 const KW = 400, KH = Math.round(KW * 335 / 440), KX = 10, KY = 360 // O Paredão no palco
 const BX = Math.round(KX + KW * 0.905), BY = Math.round(KY + KH * 0.09) // onde o pé encontra a bola
-const CHUTE = 2500, DEFESA = 2850
+const CHUTE = 1700, DEFESA = 2050 // ao vivo
+const R0 = 2600, RCHUTE = 3000, RDEFESA = 3900, R1 = 4500 // o replay (mais lento)
+
+// a mesma cena (gol, bola, goleiro) serve pro ao vivo e pro replay: só mudam os tempos
+function lance(p: string, chute: number, defesa: number, entra: number) {
+  return `
+.${p}-bola{position:absolute;left:0;top:0;z-index:11;font-size:30px;line-height:1;opacity:0;animation:${p}Bola ${T}ms linear forwards}
+@keyframes ${p}Bola{0%,${pct(entra)}{opacity:0;transform:translate(194px,660px) scale(1.2)}${pct(entra + 100)}{opacity:1;transform:translate(194px,660px) scale(1.2)}${pct(chute)}{opacity:1;transform:translate(194px,660px) scale(1.2) rotate(0)}${pct(defesa - 10)}{opacity:1;transform:translate(${BX - 18}px,${BY - 18}px) scale(.95) rotate(540deg)}${pct(defesa)}{opacity:0}100%{opacity:0}}
+.${p}-reb{position:absolute;left:0;top:0;z-index:11;font-size:28px;line-height:1;opacity:0;animation:${p}Reb ${T}ms cubic-bezier(.2,.7,.4,1) forwards}
+@keyframes ${p}Reb{0%,${pct(defesa)}{opacity:0;transform:translate(${BX - 16}px,${BY - 16}px)}${pct(defesa + 20)}{opacity:1}${pct(defesa + 480)}{opacity:1;transform:translate(470px,40px) rotate(-720deg)}${pct(defesa + 500)}{opacity:0}100%{opacity:0}}
+.${p}-gk{position:absolute;left:${KX}px;top:${KY}px;width:${KW}px;height:${KH}px;z-index:10;opacity:0;animation:${p}Gk ${T}ms cubic-bezier(.25,1.1,.45,1) forwards}
+@keyframes ${p}Gk{0%,${pct(chute)}{opacity:0;transform:translateX(-380px) rotate(8deg)}${pct(defesa)}{opacity:1;transform:none}${pct(defesa + 140)}{transform:translateY(-6px) rotate(-2deg)}${pct(defesa + 280)}{transform:none}100%{opacity:1;transform:none}}
+.${p}-gk img{width:100%;height:100%;display:block;clip-path:polygon(0 0,83.6% 0,83.6% 19.1%,100% 19.1%,100% 100%,0 100%);filter:drop-shadow(5px 7px 0 rgba(0,0,0,.55))}
+.${p}-est{position:absolute;left:${BX - 40}px;top:${BY - 40}px;width:80px;height:80px;z-index:12;font-size:58px;line-height:80px;text-align:center;opacity:0;animation:${p}Est ${T}ms ease forwards}
+@keyframes ${p}Est{0%,${pct(defesa)}{opacity:0;transform:scale(.2)}${pct(defesa + 60)}{opacity:1;transform:scale(1.4)}${pct(defesa + 380)}{opacity:0;transform:scale(1)}100%{opacity:0}}
+`
+}
 
 const CSS = `
 .gdu{position:fixed;inset:0;z-index:99990;pointer-events:none;overflow:hidden;animation:gduVis ${T}ms ease forwards}
@@ -34,57 +51,53 @@ const CSS = `
 .gdu-palco{position:absolute;left:50%;top:50%;width:420px;height:760px;overflow:hidden}
 .gdu-treme{position:absolute;inset:0;animation:gduTreme ${T}ms linear forwards}
 @keyframes gduTreme{0%,${pct(DEFESA)}{transform:none}${pct(DEFESA + 40)}{transform:translate(8px,6px)}${pct(DEFESA + 110)}{transform:translate(-7px,-4px)}${pct(DEFESA + 190)}{transform:translate(4px,3px)}${pct(DEFESA + 280)}{transform:none}100%{transform:none}}
-/* refletores */
+/* o campo */
 .gdu-luz{position:absolute;top:-40px;width:120px;height:560px;margin-left:-60px;transform-origin:50% 0;z-index:1;
-  background:linear-gradient(180deg,rgba(255,250,220,.55),rgba(255,250,220,0));clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);animation:gduLuz 3400ms ease-in-out infinite alternate}
+  background:linear-gradient(180deg,rgba(255,250,220,.5),rgba(255,250,220,0));clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);animation:gduLuz 3400ms ease-in-out infinite alternate}
 @keyframes gduLuz{0%{transform:rotate(-24deg)}100%{transform:rotate(24deg)}}
+.gdu-campo{position:absolute;inset:0}
 .gdu-gram{position:absolute;left:0;right:0;top:470px;bottom:0;z-index:2;background:repeating-linear-gradient(180deg,#1f7a3a 0 34px,#1a6b33 34px 68px)}
 .gdu-gol{position:absolute;left:50%;top:300px;width:330px;height:172px;margin-left:-165px;z-index:3;border:7px solid #fff;border-bottom:none;border-radius:4px 4px 0 0;
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 2px,transparent 2px 13px),repeating-linear-gradient(0deg,rgba(255,255,255,.28) 0 2px,transparent 2px 13px);animation:gduRede ${T}ms linear forwards}
-@keyframes gduRede{0%,${pct(DEFESA)}{transform:none}${pct(DEFESA + 90)}{transform:scaleY(.97)}${pct(DEFESA + 200)}{transform:none}100%{transform:none}}
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 2px,transparent 2px 13px),repeating-linear-gradient(0deg,rgba(255,255,255,.28) 0 2px,transparent 2px 13px)}
 .gdu-marca{position:absolute;left:206px;top:690px;width:9px;height:9px;border-radius:50%;background:#fff;z-index:3}
-.gdu-legenda{position:absolute;left:0;right:0;top:110px;z-index:8;text-align:center;font:700 17px Oswald,sans-serif;letter-spacing:.3em;color:${OURO};text-shadow:2px 2px 0 rgba(0,0,0,.7);opacity:0;animation:gduLeg ${T}ms ease forwards}
-@keyframes gduLeg{0%,${pct(500)}{opacity:0;transform:translateY(10px)}${pct(1000)}{opacity:1;transform:none}${pct(2300)}{opacity:1}${pct(2600)}{opacity:0}100%{opacity:0}}
-.gdu-legenda b{display:block;font:700 46px/1 Oswald,sans-serif;letter-spacing:.04em;color:#fff;margin-top:6px}
-/* a bola: pulinho na marca, chute, some no pé */
-.gdu-bola{position:absolute;left:0;top:0;z-index:11;font-size:30px;line-height:1;opacity:0;animation:gduBola ${T}ms linear forwards}
-@keyframes gduBola{0%,${pct(1500)}{opacity:0;transform:translate(194px,660px) scale(1.2)}${pct(1700)}{opacity:1;transform:translate(194px,660px) scale(1.2)}${pct(1950)}{transform:translate(194px,630px) scale(1.2)}${pct(2200)}{transform:translate(194px,660px) scale(1.2)}${pct(CHUTE)}{transform:translate(194px,660px) scale(1.2) rotate(0)}${pct(DEFESA - 10)}{opacity:1;transform:translate(${BX - 18}px,${BY - 18}px) scale(.95) rotate(540deg)}${pct(DEFESA)}{opacity:0}100%{opacity:0}}
-/* a bola rebatida subindo pra fora */
-.gdu-rebote{position:absolute;left:0;top:0;z-index:11;font-size:28px;line-height:1;opacity:0;animation:gduReb ${T}ms cubic-bezier(.2,.7,.4,1) forwards}
-@keyframes gduReb{0%,${pct(DEFESA)}{opacity:0;transform:translate(${BX - 16}px,${BY - 16}px)}${pct(DEFESA + 20)}{opacity:1}${pct(DEFESA + 500)}{opacity:1;transform:translate(470px,40px) rotate(-720deg)}${pct(DEFESA + 520)}{opacity:0}100%{opacity:0}}
-/* O PAREDÃO */
-.gdu-gk{position:absolute;left:${KX}px;top:${KY}px;width:${KW}px;height:${KH}px;z-index:10;opacity:0;transform-origin:30% 100%;animation:gduGk ${T}ms cubic-bezier(.25,1.1,.45,1) forwards}
-@keyframes gduGk{0%,${pct(CHUTE)}{opacity:0;transform:translateX(-380px) rotate(8deg)}${pct(DEFESA)}{opacity:1;transform:none}${pct(DEFESA + 120)}{transform:translateY(-6px) rotate(-2deg)}${pct(DEFESA + 260)}{transform:none}${pct(4600)}{opacity:1;transform:none}${pct(5200)}{opacity:1;transform:translate(0px,-60px) scale(.5)}100%{opacity:1;transform:translate(0px,-60px) scale(.5)}}
-.gdu-gk img{width:100%;height:100%;display:block;clip-path:polygon(0 0,83.6% 0,83.6% 19.1%,100% 19.1%,100% 100%,0 100%);filter:drop-shadow(5px 7px 0 rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(247,213,10,.35))}
-.gdu-estalo{position:absolute;left:${BX - 40}px;top:${BY - 40}px;width:80px;height:80px;z-index:12;font-size:58px;line-height:80px;text-align:center;opacity:0;animation:gduEst ${T}ms ease forwards}
-@keyframes gduEst{0%,${pct(DEFESA)}{opacity:0;transform:scale(.2)}${pct(DEFESA + 60)}{opacity:1;transform:scale(1.4)}${pct(DEFESA + 380)}{opacity:0;transform:scale(1)}100%{opacity:0}}
+/* o refletor só na bola, na marca do pênalti */
+.gdu-escuro{position:absolute;inset:0;z-index:14;background:radial-gradient(circle at 210px 675px,rgba(5,8,14,0) 55px,rgba(5,8,14,.93) 115px);animation:gduEscuro ${T}ms linear forwards}
+@keyframes gduEscuro{0%,${pct(1350)}{opacity:.92}${pct(1650)}{opacity:0}100%{opacity:0}}
+${lance('gdv', CHUTE, DEFESA, 200)}
 .gdu-flash{position:absolute;inset:0;z-index:20;background:#fffbe6;opacity:0;animation:gduFlash ${T}ms linear forwards}
-@keyframes gduFlash{0%,${pct(DEFESA)}{opacity:0}${pct(DEFESA + 40)}{opacity:.6}${pct(DEFESA + 260)}{opacity:0}100%{opacity:0}}
-.gdu-carimbo{position:absolute;left:50%;top:150px;z-index:15;font:700 64px/1 Oswald,sans-serif;color:${OURO};background:${PRETO};border:5px solid ${OURO};border-radius:16px;padding:6px 18px;
-  box-shadow:5px 5px 0 #000;white-space:nowrap;opacity:0;animation:gduCar ${T}ms cubic-bezier(.2,1.5,.4,1) forwards}
-@keyframes gduCar{0%,${pct(DEFESA + 100)}{opacity:0;transform:translateX(-50%) scale(2.4) rotate(-8deg)}${pct(DEFESA + 300)}{opacity:1;transform:translateX(-50%) scale(1) rotate(-6deg)}${pct(3900)}{opacity:1;transform:translateX(-50%) scale(1) rotate(-6deg)}${pct(4100)}{opacity:0}100%{opacity:0}}
+@keyframes gduFlash{0%,${pct(DEFESA)}{opacity:0}${pct(DEFESA + 40)}{opacity:.6}${pct(DEFESA + 260)}{opacity:0}${pct(RDEFESA)}{opacity:0}${pct(RDEFESA + 40)}{opacity:.35}${pct(RDEFESA + 260)}{opacity:0}100%{opacity:0}}
+/* 🔁 O REPLAY: um campo inteiro por cima, com zoom no pé, câmera lenta e cara de TV */
+.gdu-rep{position:absolute;inset:0;z-index:13;overflow:hidden;opacity:0;animation:gduRep ${T}ms linear forwards}
+@keyframes gduRep{0%,${pct(R0)}{opacity:0}${pct(R0 + 150)}{opacity:1}${pct(R1 - 150)}{opacity:1}${pct(R1)}{opacity:0}100%{opacity:0}}
+.gdu-rep-cam{position:absolute;inset:0;transform-origin:${BX}px ${BY}px;animation:gduCam ${T}ms ease-in-out forwards;filter:saturate(.75) contrast(1.1)}
+@keyframes gduCam{0%,${pct(R0)}{transform:scale(1)}${pct(RCHUTE)}{transform:scale(1.25)}${pct(RDEFESA)}{transform:scale(2)}${pct(R1)}{transform:scale(2.1)}100%{transform:scale(2.1)}}
+.gdu-rep-tv{position:absolute;inset:0;z-index:30;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px);box-shadow:inset 0 0 90px rgba(0,0,0,.7)}
+.gdu-rep-tag{position:absolute;left:16px;top:18px;z-index:31;display:flex;align-items:center;gap:8px;background:#C2452F;color:#fff;border:3px solid #0C0C0C;border-radius:10px;padding:4px 10px;font:700 20px Oswald,sans-serif;letter-spacing:.12em;box-shadow:3px 3px 0 #000}
+.gdu-rep-tag i{width:10px;height:10px;border-radius:50%;background:#fff;animation:gduPisca 600ms steps(2) infinite}
+@keyframes gduPisca{50%{opacity:0}}
+${lance('gdr', RCHUTE, RDEFESA, R0)}
 /* a cortina de listras preta e branca */
-.gdu-cort{position:absolute;inset:0;z-index:13;display:flex;pointer-events:none}
+.gdu-cort{position:absolute;inset:0;z-index:17;display:flex;pointer-events:none}
 .gdu-cort i{flex:1;height:100%;transform:translateY(-102%);animation:gduFaixa ${T}ms cubic-bezier(.6,0,.3,1) forwards}
-@keyframes gduFaixa{0%,${pct(3900)}{transform:translateY(-102%)}${pct(4400)}{transform:translateY(0)}${pct(4650)}{transform:translateY(0)}${pct(5150)}{transform:translateY(102%)}100%{transform:translateY(102%)}}
-/* o escudo com a estrela dourada */
-.gdu-esc{position:absolute;left:50%;top:170px;width:230px;height:250px;margin-left:-115px;z-index:9;display:flex;align-items:center;justify-content:center;opacity:0;
+@keyframes gduFaixa{0%,${pct(R1 - 300)}{transform:translateY(-102%)}${pct(R1 + 200)}{transform:translateY(0)}${pct(R1 + 450)}{transform:translateY(0)}${pct(R1 + 950)}{transform:translateY(102%)}100%{transform:translateY(102%)}}
+/* depois da cortina: o goleiro no canto e o escudo */
+.gdu-canto{position:absolute;left:${KX}px;top:${KY}px;width:${KW}px;height:${KH}px;z-index:10;opacity:0;transform-origin:30% 100%;animation:gduCanto ${T}ms ease forwards}
+@keyframes gduCanto{0%,${pct(R1 + 300)}{opacity:0;transform:translate(0px,-40px) scale(.5)}${pct(R1 + 400)}{opacity:1}100%{opacity:1;transform:translate(0px,-40px) scale(.5)}}
+.gdu-canto img{width:100%;height:100%;display:block;filter:drop-shadow(4px 5px 0 rgba(0,0,0,.55))}
+.gdu-sumir{position:absolute;inset:0;z-index:10;animation:gduSome ${T}ms linear forwards}
+@keyframes gduSome{0%,${pct(R1 + 300)}{opacity:1}${pct(R1 + 320)}{opacity:0}100%{opacity:0}}
+.gdu-esc{position:absolute;left:50%;top:150px;width:240px;height:260px;margin-left:-120px;z-index:9;display:flex;align-items:center;justify-content:center;opacity:0;
   filter:drop-shadow(0 0 24px rgba(247,213,10,.7)) drop-shadow(5px 6px 0 rgba(0,0,0,.55));animation:gduEsc ${T}ms cubic-bezier(.2,1.3,.4,1) forwards}
-@keyframes gduEsc{0%,${pct(4700)}{opacity:0;transform:scale(.2) translateY(-60px)}${pct(5150)}{opacity:1;transform:scale(1.12)}${pct(5400)}{transform:scale(1)}100%{opacity:1;transform:scale(1)}}
-.gdu-raios{position:absolute;left:50%;top:295px;width:470px;height:470px;margin:-235px 0 0 -235px;z-index:8;border-radius:50%;
+@keyframes gduEsc{0%,${pct(R1 + 600)}{opacity:0;transform:scale(2.6) translateY(-40px)}${pct(R1 + 900)}{opacity:1;transform:scale(.94)}${pct(R1 + 1100)}{transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+.gdu-raios{position:absolute;left:50%;top:280px;width:480px;height:480px;margin:-240px 0 0 -240px;z-index:8;border-radius:50%;
   background:repeating-conic-gradient(rgba(247,213,10,.55) 0 8deg,rgba(255,255,255,.12) 8deg 22deg);-webkit-mask:radial-gradient(circle,#000 28%,transparent 68%);mask:radial-gradient(circle,#000 28%,transparent 68%);opacity:0;animation:gduRaios ${T}ms linear forwards}
-@keyframes gduRaios{0%,${pct(4700)}{opacity:0;transform:rotate(0) scale(.5)}${pct(5100)}{opacity:1;transform:rotate(30deg) scale(1)}100%{opacity:1;transform:rotate(150deg) scale(1)}}
-/* a frase e a faixa */
-.gdu-frase{position:absolute;left:0;right:0;top:40px;z-index:14;text-align:center;font:700 25px/1.12 Oswald,sans-serif;color:#fff;text-shadow:3px 3px 0 #000;letter-spacing:.02em}
-.gdu-frase span{display:inline-block;opacity:0;animation:gduPalavra ${T}ms cubic-bezier(.2,1.5,.4,1) forwards}
-@keyframes gduPalavra{0%{opacity:0;transform:translateY(-40px)}6%{opacity:1;transform:translateY(4px)}9%{transform:none}96%{opacity:1}100%{opacity:1}}
-.gdu-frase em{font-style:normal;color:${OURO}}
-.gdu-faixa{position:absolute;left:24px;right:24px;top:620px;z-index:14;background:${PRETO};border:4px solid ${OURO};border-radius:16px;box-shadow:4px 4px 0 #000;padding:8px 8px 9px;text-align:center;opacity:0;animation:gduFaixaS ${T}ms cubic-bezier(.2,1.3,.4,1) forwards}
-@keyframes gduFaixaS{0%,${pct(6200)}{opacity:0;transform:scale(.4)}${pct(6550)}{opacity:1;transform:scale(1.06)}${pct(6750)}{transform:scale(1)}${pct(8200)}{opacity:1}100%{opacity:0}}
-.gdu-faixa small{display:block;font:700 13px Oswald,sans-serif;letter-spacing:.22em;color:${OURO}}
-.gdu-faixa b{display:block;font:700 27px/1.05 Oswald,sans-serif;color:#fff;margin-top:2px}
-.gdu-faixa em{display:inline-block;font-style:normal;font:700 13px Oswald,sans-serif;color:#0C0C0C;background:linear-gradient(90deg,${OURO},#fff6b0,${OURO});border-radius:7px;padding:2px 9px;margin-top:5px;letter-spacing:.14em}
-@media (prefers-reduced-motion:reduce){.gdu-luz,.gdu-legenda,.gdu-bola,.gdu-rebote,.gdu-estalo,.gdu-flash,.gdu-carimbo,.gdu-cort,.gdu-raios{display:none}.gdu-treme,.gdu-gol{animation:none}.gdu-esc,.gdu-gk,.gdu-faixa,.gdu-frase span{animation:none;opacity:1}}
+@keyframes gduRaios{0%,${pct(R1 + 800)}{opacity:0;transform:rotate(0) scale(.5)}${pct(R1 + 1100)}{opacity:1;transform:rotate(30deg) scale(1)}100%{opacity:1;transform:rotate(150deg) scale(1)}}
+/* só o nome */
+.gdu-nome{position:absolute;left:16px;right:16px;top:560px;z-index:14;text-align:center;opacity:0;animation:gduNome ${T}ms cubic-bezier(.2,1.3,.4,1) forwards}
+@keyframes gduNome{0%,${pct(R1 + 1300)}{opacity:0;transform:scale(.4)}${pct(R1 + 1650)}{opacity:1;transform:scale(1.06)}${pct(R1 + 1850)}{transform:scale(1)}${pct(8600)}{opacity:1}100%{opacity:0}}
+.gdu-nome small{display:inline-block;font:700 14px Oswald,sans-serif;letter-spacing:.24em;color:#0C0C0C;background:${OURO};border:3px solid #0C0C0C;border-radius:9px;padding:3px 12px;box-shadow:3px 3px 0 #000}
+.gdu-nome b{display:block;margin-top:8px;font:700 54px/1 Oswald,sans-serif;color:#fff;text-transform:uppercase;text-shadow:4px 4px 0 #000;-webkit-text-stroke:2px #000}
+@media (prefers-reduced-motion:reduce){.gdu-luz,.gdu-escuro,.gdu-flash,.gdu-rep,.gdu-cort,.gdu-raios,.gdv-bola,.gdv-reb,.gdv-est{display:none}.gdu-treme{animation:none}.gdu-esc,.gdu-canto,.gdu-nome{animation:none;opacity:1}}
 `
 
 function useEscala() {
@@ -94,38 +107,49 @@ function useEscala() {
   return s
 }
 
+const Campo = () => (
+  <>
+    {[60, 360].map((x, i) => <i key={i} className="gdu-luz" style={{ left: x, animationDelay: `${i * -1700}ms` }} />)}
+    <div className="gdu-gram" />
+    <div className="gdu-gol" />
+    <div className="gdu-marca" />
+  </>
+)
+const Lance = ({ p }: { p: string }) => (
+  <>
+    <div className={`${p}-bola`}>⚽</div>
+    <div className={`${p}-gk`}><img src={paredaoImg} alt="" /></div>
+    <div className={`${p}-est`}>💥</div>
+    <div className={`${p}-reb`}>⚽</div>
+  </>
+)
+
 export function GalaDuarte({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
   void grito
-  const frase = [tr('PÊNALTI CONTRA?', 'PENALTY AGAINST?'), tr('AQUI TEM', 'HERE WE HAVE'), 'SÃO VICTOR 🙏']
   return createPortal(
     <div key={chave} className="gdu" aria-hidden>
       <style>{CSS}</style>
       <div className="gdu-ceu" />
       <div className="gdu-palco" style={{ transform: `translate(-50%,-50%) scale(${s})` }}>
        <div className="gdu-treme">
-        {[60, 360].map((x, i) => <i key={i} className="gdu-luz" style={{ left: x, animationDelay: `${i * -1700}ms` }} />)}
-        <div className="gdu-gram" />
-        <div className="gdu-gol" />
-        <div className="gdu-marca" />
-        <div className="gdu-legenda">{tr('ÚLTIMO LANCE', 'LAST KICK')}<b>{tr('PÊNALTI CONTRA 😱', 'PENALTY AGAINST 😱')}</b></div>
-        <div className="gdu-bola">⚽</div>
-        <div className="gdu-gk"><img src={paredaoImg} alt="" /></div>
-        <div className="gdu-estalo">💥</div>
-        <div className="gdu-rebote">⚽</div>
-        <div className="gdu-carimbo">{tr('DEFENDEU!', 'SAVED!')}</div>
+        <Campo />
+        <div className="gdu-sumir"><Lance p="gdv" /></div>
+        <div className="gdu-escuro" />
+        <div className="gdu-rep">
+          <div className="gdu-rep-cam"><div className="gdu-ceu" /><Campo /><Lance p="gdr" /></div>
+          <div className="gdu-rep-tv" />
+          <div className="gdu-rep-tag"><i />{tr('REPLAY', 'REPLAY')}</div>
+        </div>
         <div className="gdu-raios" />
-        <div className="gdu-esc"><Escudo nome={clube} size={220} /></div>
-        <div className="gdu-cort">
-          {Array.from({ length: 8 }, (_, i) => <i key={i} style={{ background: i % 2 ? BRANCO : PRETO, animationDelay: `${i * 35}ms` }} />)}
-        </div>
-        <div className="gdu-frase">
-          {frase.map((p, i) => <span key={i} style={{ display: 'block', animationDelay: `${5300 + i * 300}ms` }}>{i === 2 ? <em style={{ fontSize: 38 }}>{p}</em> : p}</span>)}
-        </div>
-        <div className="gdu-faixa">
+        <div className="gdu-esc"><Escudo nome={clube} size={230} /></div>
+        <div className="gdu-canto"><img src={paredaoImg} alt="" /></div>
+        <div className="gdu-nome">
           <small>{tr('🧤 CHEGOU NA SALA', '🧤 JUST ARRIVED')}</small>
           <b>{mostra}</b>
-          <em>{tr('O PAREDÃO', 'THE WALL')}</em>
+        </div>
+        <div className="gdu-cort">
+          {Array.from({ length: 8 }, (_, i) => <i key={i} style={{ background: i % 2 ? BRANCO : PRETO, animationDelay: `${i * 35}ms` }} />)}
         </div>
         <div className="gdu-flash" />
        </div>

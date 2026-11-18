@@ -25,7 +25,7 @@ await p.evaluate(`(async()=>{
   await new Promise(r=>setTimeout(r,700))
   createRoot(root).render(h(G.GalaDuarte,{clube:'Duarte FC',chave:'v',mostra:'Duarte FC',grito:'DUARTE'}))
 })()`)
-await p.waitForTimeout(9600)
+await p.waitForTimeout(10000)
 await ctx.close(); await b.close(); await vite.close()
 const f = readdirSync('/tmp/claude-0/vidd').filter(x => x.endsWith('.webm')).map(x => '/tmp/claude-0/vidd/' + x).pop()
 renameSync(f, 'scripts/posts/gala-duarte.webm'); console.log('🎬 scripts/posts/gala-duarte.webm')
