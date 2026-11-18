@@ -10303,6 +10303,34 @@ export function PyramidSeasonScreen() {
     setEstadualOn(false); setCopaRound(0)
   }, [estadualOn, preRounds, copaRound]) // eslint-disable-line react-hooks/exhaustive-deps
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // 💰 18/11 (Diego: *"vai sendo eliminado mas ganha alguma coisa… sempre deixando claro pro usuário"*): no Brasil Oficial, quando a
+  // ÚLTIMA página do seu clube numa copa já passou na tela (caiu, ou a copa acabou), um aviso diz quanto aquela campanha rendeu. Mesma
+  // régua do caixa (`economia-oficial.ts`); o dinheiro entra no fechamento da temporada. Fechou o aviso, não volta (`fechaAviso`).
+  const [premiosFechados, setPremiosFechados] = useState<string[]>([])
+  const premiosCopaNaTela = useMemo(() => {
+    const out: { chave: string; titulo: string; v: number }[] = []
+    if (!state.oficial || estadualOn || !copa) return out
+    const en = getLang() === 'en', sn = state.seasonNo ?? 1
+    const vista = copaFinished ? copa.rounds.length : copaRound
+    const meuNaPagina = (k: number) => !!copa.rounds[k]?.ties.some(t => t.a.teamId === youId || t.b.teamId === youId)
+    const grupos: { id: string; filtro: (n: string) => boolean; calc: () => { v: number; fase: [string, string] } | null; nome: string }[] = [
+      { id: 'cdb', nome: 'Copa do Brasil', filtro: n => !foraDaCopa(n), calc: () => { if (!copaBR) return null; const l = premiosCdbOficial(copaBR, en).linhas.find(x => x.mgr === youId); return l ? { v: l.coins, fase: [l.txt.split(' · ').slice(1).join(' · '), l.txt.split(' · ').slice(1).join(' · ')] } : null } },
+      { id: 'lib', nome: 'Libertadores', filtro: n => ehPaginaLiberta(n), calc: () => libertaMinha && libertaCalc ? premioLibertadoresDet(libertaCalc.resultado, meuNomeLib) : null },
+      { id: 'sula', nome: en ? 'Sudamericana' : 'Sul-Americana', filtro: n => ehPaginaSula(n), calc: () => sulaMinha && sulaCalc ? premioSulaDet(sulaCalc.resultado, meuNomeLib) : null },
+    ]
+    for (const g of grupos) {
+      const idx = copa.rounds.map((r, k) => g.filtro(r.name) ? k : -1).filter(k => k >= 0)
+      const minhas = idx.filter(meuNaPagina)
+      if (!minhas.length) continue
+      const ultima = minhas[minhas.length - 1]
+      if (ultima >= vista) continue // a campanha ainda não terminou na tela (anti-spoiler)
+      const chave = `premio-copa:${state.seed}:${sn}:${g.id}`
+      if (premiosFechados.includes(chave) || avisoFechado(chave)) continue
+      const d = g.calc()
+      if (d?.v) out.push({ chave, titulo: `${g.nome} · ${en ? d.fase[1] : d.fase[0]}`, v: d.v })
+    }
+    return out
+  }, [state.oficial, state.seed, state.seasonNo, estadualOn, copa, copaFinished, copaRound, youId, copaBR, libertaMinha, libertaCalc, sulaMinha, sulaCalc, meuNomeLib, premiosFechados]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🚫 SPOILER (17/11, teste da 2ª temporada do Brasil Oficial): a chave da Copa do Brasil (`copaBase`, só as 9 fases dela) recebia
   // como "fases reveladas" o índice da ESTEIRA (`copaRound`), que conta também estadual, Supercopa Rei, playoff e Libertadores — na
   // 5ª fase já passava de 9 e a tela mostrava campeão, final e os campeões da temporada inteira. Aqui conta só as fases da Copa.
@@ -12374,14 +12402,17 @@ export function PyramidSeasonScreen() {
     const rolando = calOn ? calJogoRolando : round > 0 && (revealed < round || !roundReady) // 📅 com o calendário, o MESMO apito da barra
     const rNext = round === 0 ? 1 : rolando ? round : round + 1
     const proximo = (() => {
-      const rJ = rolando ? rNext : proximaComJogo(rNext) // 🇧🇷 na C/D oficial a sua série não joga toda rodada: o próximo jogo pode estar mais à frente
+      // 🇧🇷 na C/D oficial a sua série não joga toda rodada: o próximo jogo pode estar mais à frente. 18/11: rodada rolando em que você
+      // FOLGA também procura o próximo (antes ficava sem jogo e o camarote dizia "Liga encerrada" na rodada 1)
+      const rJ = rolando && parDaRodada(rNext) ? rNext : proximaComJogo(rolando ? rNext + 1 : rNext)
+      const rolandoMeu = rolando && rJ === rNext
       if (seasonOver || rJ > 38) return null
       const par = parDaRodada(rJ)
       // 🇧🇷 18/11: na C/D real a série não joga toda rodada — o selo conta o SEU jogo da fase ("2º jogo"), não a rodada do calendário
       const g = agendaOficial?.find(x => x.r === rJ)
       const nJogo = g ? agendaOficial!.filter(x => x.fase === g.fase && x.r <= rJ).length : 0
-      const rotulo = g ? (rolando ? tr(`⚽ ${nJogo}º jogo da ${DIV_NAME[myDiv]} rolando`, `⚽ ${DIV_NAME[myDiv]} match ${nJogo} live`) : tr(`⚽ Próximo jogo · ${nJogo}º da ${DIV_NAME[myDiv]}`, `⚽ Next match · ${DIV_NAME[myDiv]} game ${nJogo}`)) : undefined
-      return par ? { rodada: rJ, casa: par[0].name, fora: par[1].name, rolando, rotulo } : null
+      const rotulo = g ? (rolandoMeu ? tr(`⚽ ${nJogo}º jogo da ${DIV_NAME[myDiv]} rolando`, `⚽ ${DIV_NAME[myDiv]} match ${nJogo} live`) : tr(`⚽ Próximo jogo · ${nJogo}º da ${DIV_NAME[myDiv]}`, `⚽ Next match · ${DIV_NAME[myDiv]} game ${nJogo}`)) : undefined
+      return par ? { rodada: rJ, casa: par[0].name, fora: par[1].name, rolando: rolandoMeu, rotulo } : null
     })()
     // 🔎 RAIO-X DO ADVERSÁRIO (31/10): só o que o jogo JÁ sabe do rival da próxima rodada da liga. O XI e o cansaço
     // saem do MESMO plano que o motor usa (`planosBots`); sem o gás ligado, cansaço fica de fora e o XI é o melhor 11.
@@ -12445,21 +12476,28 @@ export function PyramidSeasonScreen() {
     const giroDaFase = (r: CopaRound | undefined, titulo: string) => r ? { rodada: 0, titulo, total: r.ties.length,
       jogos: [...r.ties].sort((x, y) => Number(y.a.teamId === youId || y.b.teamId === youId) - Number(x.a.teamId === youId || x.b.teamId === youId)).map(t => ({ h: t.a.name, a: t.b.name, hg: t.aggA, ag: t.aggB, hId: t.a.teamId, aId: t.b.teamId })) } : null
     // onde você caiu na Copa (a última fase em que apareceu e perdeu)
-    const quedaCopa = (ate: number) => { for (let i = Math.min(ate, (copa?.rounds.length ?? 0) - 1); i >= 0; i--) { const t = copa!.rounds[i].ties.find(x => x.a.teamId === youId || x.b.teamId === youId); if (t) { const ganhou = (t.win === 'a') === (t.a.teamId === youId); return ganhou ? null : { fase: copa!.rounds[i].name, por: t.a.teamId === youId ? t.b.name : t.a.name } } } return null }
+    // 🇧🇷 18/11: no Oficial a esteira mistura estadual, Copa do Brasil, Libertadores, Sul-Americana… — cada página diz de QUAL
+    // competição é, e a "queda" só se procura dentro da MESMA competição (antes o estadual aparecia como "Copa do Brasil · você caiu")
+    const famDe = (n: string) => ehPaginaEstadual(n) ? 'est' : n === SUPERCOPA_REI ? 'srei' : ehPaginaLiberta(n) ? 'lib' : ehPaginaSula(n) ? 'sula' : ehPaginaInter(n) ? 'inter' : n === PLAYOFF_B ? 'pob' : n === 'Supercopa' ? 'super' : 'copa'
+    const famAgora = copaFase ? famDe(copaFase.name) : 'copa'
+    const compNomeAgora: [string, string] = famAgora === 'est' ? [nomeEstadual, nomeEstadual] : famAgora === 'srei' ? ['Supercopa Rei', 'Supercopa Rei'] : famAgora === 'lib' ? ['Libertadores', 'Libertadores'] : famAgora === 'sula' ? ['Sul-Americana', 'Sudamericana'] : famAgora === 'inter' ? ['Intercontinental', 'Intercontinental'] : famAgora === 'pob' ? ['Série B', 'Série B'] : famAgora === 'super' ? ['Supercopa', 'Super Cup'] : state.oficial ? ['Copa do Brasil', 'Copa do Brasil'] : copaNome
+    const limpaFase = (n: string) => famDe(n) === 'copa' || famDe(n) === 'pob' || famDe(n) === 'super' || famDe(n) === 'srei' ? n : n.slice(n.indexOf(' ') + 1).split(' · ').slice(1).join(' · ')
+    const quedaCopa = (ate: number) => { for (let i = Math.min(ate, (copa?.rounds.length ?? 0) - 1); i >= 0; i--) { if (famDe(copa!.rounds[i].name) !== famAgora) continue; const t = copa!.rounds[i].ties.find(x => x.a.teamId === youId || x.b.teamId === youId); if (t) { const ganhou = (t.win === 'a') === (t.a.teamId === youId); return ganhou ? null : { fase: copa!.rounds[i].name, por: t.a.teamId === youId ? t.b.name : t.a.name } } } return null }
     if (copaPlaying && copaFase) {
       const supercopa = copaFase.name === 'Supercopa', playoff = copaFase.name === PLAYOFF_B
-      const nome: [string, string] = supercopa ? ['Supercopa', 'Super Cup'] : playoff ? ['Série B', 'Série B'] : copaNome
-      const arte: CentralArte = supercopa ? 'super' : playoff ? 'estadio' : copaArte
+      const nome: [string, string] = supercopa ? ['Supercopa', 'Super Cup'] : playoff ? ['Série B', 'Série B'] : famAgora === 'est' ? [nomeEstadual, nomeEstadual] : famAgora === 'srei' ? ['Supercopa Rei', 'Supercopa Rei'] : famAgora === 'lib' ? ['Libertadores', 'Libertadores'] : famAgora === 'sula' ? ['Sul-Americana', 'Sudamericana'] : famAgora === 'inter' ? ['Intercontinental', 'Intercontinental'] : state.oficial ? ['Copa do Brasil', 'Copa do Brasil'] : copaNome
+      const arte: CentralArte = supercopa || famAgora === 'srei' ? 'super' : playoff || famAgora === 'est' ? 'estadio' : famAgora === 'lib' || famAgora === 'sula' || famAgora === 'inter' ? 'liberta' : copaArte
       const jogoUnico = copaNLegs === 1
       if (myCopaTie) {
         compProximo = { rodada: copaRound + 1, casa: myCopaTie.a.name, fora: myCopaTie.b.name, rolando: !copaPronta, arte,
           rotulo: `🏆 ${tr(nome[0], nome[1])} · ${copaFaseName}${!copaPronta ? tr(' · rolando', ' · live') : ''}`,
-          frase: jogoUnico ? tr('🎯 Mata-mata em jogo único — empatou, vai pros pênaltis', '🎯 One-off knockout — a draw goes to penalties') : tr('🎯 Ida e volta — vale o placar somado', '🎯 Two legs — aggregate score counts') }
+          frase: myCopaTie.liga ? tr('📊 Pontos corridos — vitória vale 3, empate 1', '📊 League format — 3 for a win, 1 for a draw') : jogoUnico ? tr('🎯 Mata-mata em jogo único — empatou, vai pros pênaltis', '🎯 One-off knockout — a draw goes to penalties') : tr('🎯 Ida e volta — vale o placar somado', '🎯 Two legs — aggregate score counts') }
         compManchete = { pt: `${nome[0]} · ${copaFaseName}: ${euNome} encara ${myCopaTie.a.teamId === youId ? myCopaTie.b.name : myCopaTie.a.name}`, en: `${nome[1]} · ${copaFaseName}: ${euNome} face ${myCopaTie.a.teamId === youId ? myCopaTie.b.name : myCopaTie.a.name}`, sub: jogoUnico ? ['Jogo único: quem perder, está fora.', 'One-off: lose and you are out.'] : ['Ida e volta: quem somar mais, avança.', 'Two legs: higher aggregate goes through.'] }
       } else {
-        const q = quedaCopa(copaRound - 1)
-        compPalco = { arte, rotulo: `🏆 ${tr(nome[0], nome[1])} · ${copaFaseName}`, frase: supercopa ? tr('A Supercopa é entre os campeões — hoje você assiste.', 'The Super Cup is between champions — today you watch.') : q ? tr(`Você caiu na fase "${q.fase}" (${q.por}) — a Copa segue sem você.`, `You went out in "${q.fase}" (${q.por}) — the Cup goes on without you.`) : tr('Você não está nesta fase — dá pra assistir os jogos.', 'You are not in this round — you can watch the games.') }
-        compManchete = q && !supercopa ? { pt: `${nome[0]}: ${euNome} caiu na fase "${q.fase}" diante do ${q.por}`, en: `${nome[1]}: ${euNome} went out in "${q.fase}" to ${q.por}`, sub: [`${copaFaseName} rolando sem você.`, `${copaFaseName} is on without you.`] } : null
+        const pontosCorridos = !!copaFase.ties[0]?.liga
+        const q = pontosCorridos ? null : quedaCopa(copaRound - 1)
+        compPalco = { arte, rotulo: `🏆 ${tr(nome[0], nome[1])} · ${copaFaseName}`, frase: supercopa ? tr('A Supercopa é entre os campeões — hoje você assiste.', 'The Super Cup is between champions — today you watch.') : pontosCorridos ? tr('🛋️ Seu time folga nesta rodada — dá pra assistir os jogos.', '🛋️ Your team sits this round out — you can watch the games.') : q ? tr(`Você caiu na fase "${limpaFase(q.fase)}" (${q.por}) — a ${nome[0]} segue sem você.`, `You went out in "${limpaFase(q.fase)}" (${q.por}) — the ${nome[1]} goes on without you.`) : tr('Você não está nesta fase — dá pra assistir os jogos.', 'You are not in this round — you can watch the games.') }
+        compManchete = q && !supercopa ? { pt: `${nome[0]}: ${euNome} caiu na fase "${limpaFase(q.fase)}" diante do ${q.por}`, en: `${nome[1]}: ${euNome} went out in "${limpaFase(q.fase)}" to ${q.por}`, sub: [`${copaFaseName} rolando sem você.`, `${copaFaseName} is on without you.`] } : null
       }
       compGiro = copaRound > 0 ? giroDaFase(copa!.rounds[copaRound - 1], `📣 ${tr(nome[0], nome[1])} · ${copa!.rounds[copaRound - 1].name}`) : null
     } else if (intlNoAr) {
@@ -12615,7 +12653,7 @@ export function PyramidSeasonScreen() {
       : proximo
     // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
     const botao = (() => {
-      if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr('🏆 Jogo da Copa rolando — assistir', '🏆 Cup match live — watch')) : tr('🏆 Assistir a Copa', '🏆 Watch the Cup'), sub: tr('o controle da Copa está em Jogos', 'the Cup controls are in Matches'), onClick: vai('jogos') }
+      if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr(`🏆 Jogo da ${compNomeAgora[0]} rolando — assistir`, `🏆 ${compNomeAgora[1]} match live — watch`)) : tr(`🏆 Assistir a ${compNomeAgora[0]}`, `🏆 Watch the ${compNomeAgora[1]}`), sub: tr('o controle do jogo está em Jogos', 'the match controls are in Matches'), onClick: vai('jogos') }
       if (intlNoAr) return { label: compProximo ? tr('🌎 Jogar a noite internacional', '🌎 Play the international night') : tr('🌎 Abrir o futebol internacional', '🌎 Open international football'), sub: tr('em Jogos, no passo da competição', 'in Matches, at the competition step'), onClick: vai('jogos') }
       if (mundoPendente) return { label: tr('🌍 Jogar a Copa do Mundo', '🌍 Play the World Cup'), sub: tr('ela abre o roteiro, em Jogos', 'it opens the wrap-up, in Matches'), onClick: vai('jogos') }
       if (done) return { label: tr('🏁 Fim de temporada — ver', '🏁 Season over — see'), sub: tr('o roteiro está na aba Jogos', 'the wrap-up is in Matches'), onClick: vai('jogos') }
@@ -12682,7 +12720,7 @@ export function PyramidSeasonScreen() {
       setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
     return <CentralCarreira sede={sede} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
-      preTemporada={round === 0 && !seasonOver ? {
+      preTemporada={round === 0 && !seasonOver && !copaPlaying ? {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
       } : null}
@@ -13295,6 +13333,16 @@ export function PyramidSeasonScreen() {
         )}
         {tab === 'jogos' && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>}
         {tab === 'jogos' && calBarra?.proxCard}
+        {tab === 'jogos' && premiosCopaNaTela.map(pm => (
+          <div key={pm.chave} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#FFF6D6', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '8px 0' }}>
+            <span style={{ fontSize: 22 }}>💰</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <b style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', display: 'block' }}>{pm.titulo} · +{pm.v} 🪙</b>
+              <small style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647' }}>{tr('Entra no caixa no fim da temporada · fica no extrato', 'Paid into the till at season end · shows in your statement')}</small>
+            </span>
+            <button type="button" aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(pm.chave); setPremiosFechados(v => [...v, pm.chave]) }} style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, fontWeight: 900, padding: '4px 9px', cursor: 'pointer' }}>✕</button>
+          </div>
+        ))}
         {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +

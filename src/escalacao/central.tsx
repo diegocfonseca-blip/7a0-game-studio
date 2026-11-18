@@ -281,7 +281,7 @@ export function CentralCarreira(p: CentralProps) {
     <div style={{ textAlign: 'center', minWidth: 0 }}>
       <Disco nome={nome} size={78} />
       <b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
-      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{p.preTemporada ? '\u00a0' : posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
+      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{p.preTemporada || p.proximo?.arte ? '\u00a0' : posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
       <Forma f={p.formas[nome]} />
     </div>
   )
