@@ -31,10 +31,14 @@
     aparece o da TV"*): a TV SAIU da pré-temporada. O aviso dela aparece só DEPOIS do 1º jogo (aba Jogos), uma vez por divisão.
     🐛 E o aviso MENTIA o valor: mostrava D 5 · C 10 · B 15 · A 20 (lista à mão) e o caixa paga D 20 · C 30 · B 40 · A 50
     (`TV_COTA`, régua de 15/09); também dizia "direto no caixa" e a cota cai no FIM da temporada. Agora lê `TV_COTA` e diz quando paga.
-  · ⏳ PROPOSTA pendente (Diego: *"tem que ver esse contrato de TV com base nas divisões, com base no time… reformular valores de
-    moeda, de premiação com base na divisão"*): no Brasil Oficial a TV e os prêmios seguirem o real — TV por divisão E tamanho do
-    clube (grande ganha mais, como no Brasileirão de verdade) e o prêmio de acesso/queda pelo formato real de cada série (hoje o
-    "top 4" é o da pirâmide inventada). Esperando o OK dele antes de mexer em valor.
+  · ✅ 18/11 ECONOMIA DO BRASIL OFICIAL (aprovada: *"Ok"*), em `economia-oficial.ts` (régua única; a carreira de sempre não muda):
+    TV D 20 · C 30 · B 40 (12 grandes 45) · A grande 70 / médio 55 / pequeno 45 (grande = 12 grandes; médio = campeão brasileiro
+    ou da Copa do Brasil). Liga: campeão D 25 · C 35 · B 50 · A 80 (o REAL: C e D pela final); TODO clube que sobe D→C 15 · C→B 20 ·
+    B→A 30; todo que cai A −20 · B −15 · C −10. Estadual 2/4/6/10 e Supercopa Rei 10/20 pagos NA HORA (fim da pré-temporada).
+    Copa do Brasil fase a fase (…3·4·5·6 · oitavas 8 · quartas 12 · semi 20 · vice 35 · campeão 60). Libertadores pré 4 · grupos 8 ·
+    oitavas 12 · quartas 18 · semi 25 · vice 40 · campeão 80. Sul-Americana 3·5·6·7·10·15·25·45. Intercontinental 10/20/40.
+    Cada prêmio tem LINHA PRÓPRIA no extrato ("🌎 Libertadores · caiu nas quartas"). O aviso e o cartão da TV leem a mesma régua.
+    ⏳ Falta: o aviso "💰 você ganhou +X" NA HORA da eliminação de cada copa (hoje aparece no extrato do fim da temporada).
   · 🏟️ 18/11 (Diego: *"todos os times do jogo deveriam ter nome do estádio… o ideal é que sejam os nomes reais"*): os 228 clubes do
     Oficial ganharam o estádio REAL de 2026, todos com fonte (`estadios-oficial.ts`, lista em `docs/brasil-oficial/estadios.md`).
     Sem fonte → "Estádio do <clube>" (`inventado`), liberado por ele — hoje nenhum caiu nisso. Decididos: Palmeiras = Nubank Parque,

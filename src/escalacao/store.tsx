@@ -555,10 +555,12 @@ function applyTVIncome(s: EscState) {
   const ids = online ? s.managers.filter(m => m.isHuman).map(h => h.id) : (dorm != null ? [y, dorm] : [y])
   for (const id of ids) {
     const div = s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V'
-    const cota = TV_COTA[div] ?? 0
+    // 🇧🇷 18/11: no Brasil Oficial a TV paga pela divisão E pelo porte do clube (`economia-oficial.ts`)
+    const nomeClube = s.managers.find(m => m.id === id)?.teamName ?? ''
+    const cota = s.oficial ? tvOficial(div, nomeClube) : (TV_COTA[div] ?? 0)
     if (cota > 0) {
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + cota }
-      logFin(s, 'reward', '📺 Cota de TV', cota, undefined, id, true)
+      logFin(s, 'reward', s.oficial ? tr(`📺 Cota de TV · Série ${div}${div === 'A' || div === 'B' ? ` · ${NOME_PORTE[porteOficial(nomeClube)][0]}` : ''}`, `📺 TV money · Série ${div}${div === 'A' || div === 'B' ? ` · ${NOME_PORTE[porteOficial(nomeClube)][1]}` : ''}`) : '📺 Cota de TV', cota, undefined, id, true)
     }
   }
 }
@@ -1140,6 +1142,7 @@ import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ cop
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
+import { tvOficial, porteOficial, NOME_PORTE } from './economia-oficial'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
 import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
@@ -5894,7 +5897,7 @@ type Action =
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
   | { type: 'OFICIAL_PRONTO' } // 🇧🇷 as cartas do Brasil Oficial baixaram (baralho-oficial-carga.ts)
   | { type: 'CAMPEOES_OFICIAIS'; campeoes: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string; sula?: string; intercontinental?: string } } // 🏆 Brasil Oficial: campeões da temporada (pra Supercopa Rei)
-  | { type: 'ESTADUAL_FEITO'; estadual: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] } } // 🏟️ Brasil Oficial: o estadual da temporada terminou na tela
+  | { type: 'ESTADUAL_FEITO'; estadual: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] }; /** 💰 18/11: prêmios do estadual/Supercopa Rei (pagos na hora) */ premios?: { coins: number; txt: string }[] } // 🏟️ Brasil Oficial: o estadual da temporada terminou na tela
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'LIGA_RECEPCAO_M2' } // somente a conta autorizada, a partir do próximo jogo de liga
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
@@ -11022,7 +11025,16 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'ESTADUAL_FEITO': {
       // 🏟️ grava UMA vez por temporada (a tela pode mandar de novo num recarregar)
       if (!s.oficial || (s.oficialEstaduais ?? []).some(e => e.temporada === action.estadual.temporada)) return s
-      return { ...s, oficialEstaduais: [...(s.oficialEstaduais ?? []), action.estadual].slice(-60) }
+      const out = { ...s, oficialEstaduais: [...(s.oficialEstaduais ?? []), action.estadual].slice(-60) }
+      // 💰 18/11: o prêmio do estadual e da Supercopa Rei cai NA HORA (a tela calcula com a régua de `economia-oficial.ts`;
+      // aqui só credita, uma vez — a mesma trava da temporada acima)
+      const eu = out.managers[out.youIdx]?.id ?? out.youIdx
+      for (const p of action.premios ?? []) {
+        if (!(p.coins > 0)) continue
+        out.careerCoins = { ...(out.careerCoins ?? {}), [eu]: (out.careerCoins?.[eu] ?? 0) + p.coins }
+        logFin(out, 'reward', p.txt, p.coins, undefined, eu)
+      }
+      return out
     }
     case 'OFICIAL_PRONTO': {
       // 🇧🇷 as cartas do Brasil Oficial acabaram de baixar: reancora o baralho e roda a atualização de ficha que ficou esperando

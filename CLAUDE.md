@@ -389,6 +389,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🃏 **TODO CLUBE DO MODO TEM CARTAS DE JOGADOR REAL** (15/11, *"todos têm que ter cartas… se não achar jogadores famosos do time
   dele, bota os jogadores reais"*): nada de clube "sem cartas" jogando pela força — vale Série D, estaduais e Copa do Brasil.
   Famoso do clube primeiro; não achou, elenco atual real. As cartas do modo nunca vão pra Partida Rápida nem pro online.
+  💰 **ECONOMIA DO OFICIAL (18/11, *"Ok"*)**: TV pela divisão E pelo porte do clube; prêmio de subir/cair pra TODO clube que sobe/cai
+  no formato real (*"se sobem 6 da Série D, ganham os 6"*); toda competição paga por fase (*"vai sendo eliminado mas ganha alguma coisa,
+  mesmo que seja merreca… sempre deixando claro pro usuário"*). Régua única em `economia-oficial.ts`.
   🚫 **Só se escolhe clube das Séries A–D** (15/11, *"não pode"*): clube só de estadual/Copa existe no modo como rival, nunca como o clube do usuário.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
