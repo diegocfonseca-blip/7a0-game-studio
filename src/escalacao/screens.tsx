@@ -5346,6 +5346,19 @@ function Envelope() {
               📰 <b>Bastidor:</b> {historiaSondagem(state.tecLote.nome, state.tecLote.clube ? 'tec' : 'livre', state.tecLote.clube, state.seasonNo ?? 0)}
             </p>
           )}
+          {/* ⚠️ Brasil Oficial (18/11, item (e)): a MULTA aparece ANTES do lance — antes só se descobria depois de ganhar.
+              A conta é a mesma do motor (sealAndResolveTec): trocar de técnico custa o valor que você pagou pelo atual. */}
+          {tecMesa && state.tecLote && state.oficial && (() => {
+            const meuTime = state.managers[state.youIdx]?.teamName ?? ''
+            const atual = state.careerTecnicos?.[meuTime]
+            const multa = atual ? Math.round(state.careerTecnicoPago?.[atual] ?? 0) : 0
+            if (!atual || atual === state.tecLote.nome || multa <= 0) return null
+            return (
+              <p className="mt-1.5 text-[11.5px] font-bold border-[2.5px] border-black rounded-lg px-2.5 py-1.5" style={{ background: '#FFE3D6', color: INK, lineHeight: 1.45 }}>
+                ⚠️ {L(`Se você ganhar, paga também a MULTA de ${multa} 🪙 pra liberar o ${atual}, seu técnico atual.`, `If you win, you also pay a ${multa} 🪙 FEE to release ${atual}, your current coach.`)}
+              </p>
+            )
+          })()}
           {!rescue && totalBatches > 1 && (
             <div className="mt-1.5 inline-flex items-center gap-1.5 border-[3px] border-black rounded-full px-3 py-1"
               style={{ backgroundColor: '#2E6FB0', boxShadow: `2px 2px 0 0 ${INK}` }}>
