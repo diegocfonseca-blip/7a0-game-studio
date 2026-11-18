@@ -4276,6 +4276,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     const hNameB = nomeDoTime(homeId)
     const aNameB = nomeDoTime(awayId)
     const POS_W: Record<string, number> = { GOL: 3, LAT: 4, ZAG: 3.5, MEI: 3, ATA: 3 } // PG/SG/SF/PF/C
+    // 📺🏀 18/11: os pontos de CADA jogador neste jogo (os mesmos que vão pra cestinha), pra a Quadra 2D mostrar exatamente quem fez
+    // quanto. Só nos jogos com gente (é o jogo que aparece na tela). Não consome dado nenhum.
+    const bbPts: Record<number, { n: string; p: number }[]> = {}
     const creditPts = (id: number, pts: number, prefix: string) => {
       const m = state.managers.find(x => x.id === id)
       if (!m || m.squad.length === 0) return
@@ -4317,6 +4320,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       rotation.forEach((p, i) => {
         const share = i === rotation.length - 1 ? left : Math.max(0, Math.min(left, Math.round(pts * shareW[i] / shareTot)))
         left -= share
+        if (involveHuman) (bbPts[id] ??= []).push({ n: p.name, p: share })
         // 🃏🚫 tapa-buraco PONTUA no jogo (o placar é dele também), mas não entra
         // na cestinha nem nas estatísticas. Mesma regra do futebol — ordem do Diego, 19/09.
         if (p.fake) return
@@ -4349,7 +4353,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         }
       }
     }
-    return { homeId, awayId, hg: hp, ag: ap, highlights }
+    return { homeId, awayId, hg: hp, ag: ap, highlights, ...(involveHuman ? { bbPts } : {}) }
   }
 
   // atribui os gols a um jogador real e credita na artilharia da temporada
@@ -5084,7 +5088,7 @@ function playNbaCupRound(s: EscState): void {
     // em Las Vegas) — `neutral` tira a vantagem de casa dos dois lados.
     const r = simMatch(s, tie.aId, tie.bId, rng, cup.scorers, isFinal, cup.assists)
     tie.legs.push([r.hg, r.ag])
-    tie.lastHighlights = r.highlights
+    tie.lastHighlights = r.highlights; tie.lastBbPts = r.bbPts // 📺🏀 a Quadra 2D do jogo da série
     tie.lastPresentationGoals = r.presentationGoals
     // 🛡️ jogo de basquete não empata (a prorrogação já acontece dentro do próprio
     // jogo). Isto aqui é rede de segurança: se um dia vier empate, a PRORROGAÇÃO
@@ -11465,7 +11469,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (!novo) return s
         const emCasaA = novo.homeId === tie.aId
         tie.legs[0] = emCasaA ? [novo.hg, novo.ag] : [novo.ag, novo.hg]
-        tie.lastHighlights = novo.highlights
+        tie.lastHighlights = novo.highlights; tie.lastBbPts = novo.bbPts
         tie.lastKings = novo.kings
         tie.kingsJogo = novo
         if (novo.kings?.pens) {
@@ -11674,7 +11678,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const r = kingsCopa ? jogoKings(s, homeId, awayId, rng, qc.scorers, qc.assists, isFinal, 100 + qc.bracket.length) : simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
         const leg: [number, number] = emCasaA ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [pontos/gols de A, de B]
         tie.legs.push(leg)
-        tie.lastHighlights = r.highlights
+        tie.lastHighlights = r.highlights; tie.lastBbPts = r.bbPts // 📺🏀 a Quadra 2D do jogo da série
         tie.lastPresentationGoals = r.presentationGoals
         if (kingsCopa) { tie.lastKings = r.kings; tie.kingsJogo = r.kingsBase ? r : undefined }
         if (bbSerie) {

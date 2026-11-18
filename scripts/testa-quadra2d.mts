@@ -37,5 +37,42 @@ ok(a === b, 'mesma entrada = mesmo roteiro (a sala inteira vê igual)')
 ok(placarEm(planoQuadra(42, 101, 97), 0).casa === 0, 'no apito inicial o placar é 0 × 0 (sem spoiler)')
 // canto: a linha reta fica a 3 pés da lateral — dentro dela é 2
 ok(!foraDaLinha3(89, 5) && foraDaLinha3(89, 1.5) && foraDaLinha3(60, 25) && !foraDaLinha3(75, 25), 'linha de 3 medida como na NBA (canto e arco)')
+// 📊 18/11: com os pontos de cada jogador do jogo, a quadra dá a cada um EXATAMENTE os pontos da estatística dele
+{
+  let erradas = 0, cadaUm = 0
+  for (let s = 1; s <= 1500; s++) {
+    const pc = [5, 4, 3, 2, 1].map((w, i) => 4 + ((s * (i + 3) * 37) % 30) + w)
+    const pf = [3, 5, 2, 4, 1].map((w, i) => 2 + ((s * (i + 5) * 53) % 28) + w)
+    const h = pc.reduce((a, b) => a + b, 0), a = pf.reduce((a2, b) => a2 + b, 0)
+    const p = planoQuadra(s * 104729, h, a, [], [], pc, pf)
+    if (p.casaFim !== h || p.foraFim !== a) erradas++
+    for (const [lado, alvo] of [['casa', pc], ['fora', pf]] as const) {
+      const soma = [0, 0, 0, 0, 0]
+      for (const l of p.lances) if (l.lado === lado) soma[l.quem] += l.pts
+      if (soma.some((v, i) => v !== alvo[i])) cadaUm++
+    }
+    for (const l of p.lances) if ((l.pts === 3 && !foraDaLinha3(l.x, l.y)) || (l.pts === 2 && foraDaLinha3(l.x, l.y))) erradas++
+  }
+  ok(erradas === 0 && cadaUm === 0, `com os pontos do jogo: cada jogador faz na quadra exatamente os pontos da estatística (${cadaUm} diferentes em 1500 jogos)`)
+}
+// e o jogo de verdade entrega esses pontos (somam o placar do time)
+{
+  const mem = new Map<string, string>()
+  ;(globalThis as any).localStorage = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => { mem.set(k, v) }, removeItem: (k: string) => { mem.delete(k) } }
+  const { reducer } = await import('../src/escalacao/store.tsx')
+  const { todasAsCartas } = await import('../src/escalacao/liga-draft.ts')
+  const { SECTORS } = await import('../src/escalacao/types.ts')
+  let st: any = reducer({} as any, { type: 'NEW_GAME' } as any)
+  st = reducer(st, { type: 'START_ONLINE', roomId: 'q', roomCode: 'Q', isHost: true, playerIndex: 0, playerNames: ['A', 'B'], formation: '4-3-3', sport: 'basquete', nbaTam: 10, nbaFormato: 'playoffs' } as any)
+  const cartas = todasAsCartas('nba' as any); const usados = new Set<string>(); let k = 0
+  for (const m of st.managers) m.squad = SECTORS.map((pos: string) => { const c = cartas.find((x: any) => x.pos === pos && !usados.has(x.name))!; usados.add(c.name); return { ...c, id: `c${k++}`, paid: 5, via: 'leilao' } })
+  st.screen = 'cerimonia'; st = reducer(st, { type: 'FINISH_CEREMONY' } as any)
+  let bate = 0, jogos = 0
+  for (let i = 0; i < 20; i++) {
+    st = reducer(st, { type: 'PLAY_ROUND' } as any)
+    for (const r of st.lastResults) if (r.bbPts) { jogos++; const s1 = (r.bbPts[r.homeId] ?? []).reduce((a: number, x: any) => a + x.p, 0), s2 = (r.bbPts[r.awayId] ?? []).reduce((a: number, x: any) => a + x.p, 0); if (s1 === r.hg && s2 === r.ag) bate++ }
+  }
+  ok(jogos > 0 && bate === jogos, `o jogo guarda os pontos de cada jogador e eles somam o placar (${bate}/${jogos} jogos com gente)`)
+}
 if (falhas) { console.log(`\n${falhas} FALHA(S)`); process.exit(1) }
 console.log('\nTUDO OK'); process.exit(0)

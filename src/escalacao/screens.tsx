@@ -7203,7 +7203,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
   /** 👑 Kings: frases que a rádio É OBRIGADA a dar naquele minuto (cartão) */ radioExtra?: { min: number; txt: string }[]
   homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean
   goals: { name: string; min: number; home: boolean }[]; roundKey: number; roundMs: number
-  classico?: boolean; basket?: { h: number; a: number }; enhancedOnline?: boolean
+  classico?: boolean; basket?: { h: number; a: number; /** 📺🏀 pontos de cada jogador neste jogo (casa/fora) — a Quadra 2D */ ph?: { n: string; p: number }[]; pa?: { n: string; p: number }[] }; enhancedOnline?: boolean
   retro?: { rival: string; r?: Retro } | null
 ; elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[]; fCasa?: string; fFora?: string }}) {
   const caixa = useRef<HTMLDivElement | null>(null)
@@ -8581,7 +8581,7 @@ export function EscSeason() {
                 const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
                   <>
-                    <LiveScoreCard basket={bbS ? (() => { const lg = myTie.legs[lastLegIdx]; return casaA ? { h: lg[0], a: lg[1] } : { h: lg[1], a: lg[0] } })() : undefined} /* 🏀 18/11: placar de basquete nos playoffs (sem isto saía "GOOOL") */ enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`} disputaPenaltis={myTie === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={myTie === meuTiePen ? penCampo.estado : undefined}
+                    <LiveScoreCard basket={bbS ? (() => { const lg = myTie.legs[lastLegIdx]; const pc = myTie.lastBbPts?.[casaA ? myTie.aId : myTie.bId], pf = myTie.lastBbPts?.[casaA ? myTie.bId : myTie.aId]; return casaA ? { h: lg[0], a: lg[1], ph: pc, pa: pf } : { h: lg[1], a: lg[0], ph: pc, pa: pf } })() : undefined} /* 🏀 18/11: placar de basquete nos playoffs (sem isto saía "GOOOL") */ enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`} disputaPenaltis={myTie === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={myTie === meuTiePen ? penCampo.estado : undefined}
                       homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
@@ -8610,7 +8610,7 @@ export function EscSeason() {
               const hId = casaF ? ft.aId : ft.bId, aId = casaF ? ft.bId : ft.aId
               const goals = (ft.lastHighlights ?? []).filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === hId }))
               return (
-                <LiveScoreCard neutro basket={bbS ? (casaF ? { h: ft.legs[lastIdx][0], a: ft.legs[lastIdx][1] } : { h: ft.legs[lastIdx][1], a: ft.legs[lastIdx][0] }) : undefined} enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
+                <LiveScoreCard neutro basket={bbS ? (casaF ? { h: ft.legs[lastIdx][0], a: ft.legs[lastIdx][1], ph: ft.lastBbPts?.[ft.aId], pa: ft.lastBbPts?.[ft.bId] } : { h: ft.legs[lastIdx][1], a: ft.legs[lastIdx][0], ph: ft.lastBbPts?.[ft.bId], pa: ft.lastBbPts?.[ft.aId] }) : undefined} enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
                   homeName={nameOf(hId)} awayName={nameOf(aId)} homeColor={corDe(hId)} awayColor={corDe(aId)} homeOwner={donoDe(hId)} awayOwner={donoDe(aId)}
                   youIsHome={false} goals={goals} roundKey={ft.legs.length + 20} roundMs={Math.round(copaLegMs / copaSf)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
                   footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === hId)?.squad, fora: state.managers.find(m => m.id === aId)?.squad, fCasa: state.managers.find(m => m.id === hId)?.formation, fFora: state.managers.find(m => m.id === aId)?.formation }} />
@@ -8685,7 +8685,7 @@ export function EscSeason() {
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
           enhancedOnline={privateVisual} retro={retroDe(oppId)}
-          basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad, fCasa: state.managers.find(m => m.id === myLast.homeId)?.formation, fFora: state.managers.find(m => m.id === myLast.awayId)?.formation }}
+          basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag, ph: myLast.bbPts?.[myLast.homeId], pa: myLast.bbPts?.[myLast.awayId] } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad, fCasa: state.managers.find(m => m.id === myLast.homeId)?.formation, fFora: state.managers.find(m => m.id === myLast.awayId)?.formation }}
           minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kings2d={kingsS ? kings2DDe(myLast.kings, myLast.homeId) : undefined}
           disputaPenaltis={kLigaPen === myLast ? kPen.sessao : undefined} estadoPenaltis={kLigaPen === myLast ? kPen.estado : undefined}
           inicioEm={online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : undefined}

@@ -3315,7 +3315,7 @@ export function LiveScoreCard(props: Parameters<typeof LiveScoreCardBody>[0]) {
   return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props}/></OwnerPrimary>
 }
 function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm, kings2d }:
-  { /** 👑📺 10/11: a partida da Kings pro Campo 2D (quem está em campo, cartões, bola do fim) */ kings2d?: Kings2D; /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+  { /** 👑📺 10/11: a partida da Kings pro Campo 2D (quem está em campo, cartões, bola do fim) */ kings2d?: Kings2D; /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number; /** 📺🏀 pontos de cada jogador neste jogo (casa/fora) — a Quadra 2D */ ph?: { n: string; p: number }[]; pa?: { n: string; p: number }[] }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3558,9 +3558,15 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // 🧹 rodada nova ou tela fechada: nenhuma bola fica no ar
   useEffect(() => () => { if (vooTimer.current) { clearTimeout(vooTimer.current); vooTimer.current = null } }, [roundKey])
   // 🏀📺 o ROTEIRO da quadra (quem arremessa, de onde, quanto vale) — fecha sempre no placar do jogo; mesma semente em todo aparelho
-  const planoBB = useMemo(() => basket && q2dBB ? planoQuadra(sementeDasChances(roundKey, homeName, awayName), basket.h, basket.a, quintetoDe(elencos?.casa as never), quintetoDe(elencos?.fora as never)) : null,
+  const planoBB = useMemo(() => {
+    if (!basket || !q2dBB) return null
+    const qc = quintetoDe(elencos?.casa as never), qf = quintetoDe(elencos?.fora as never)
+    // os pontos de cada um do quinteto NESTE jogo (os mesmos da estatística) — quem não está no quinteto não entra (o roteiro então sorteia)
+    const pts = (q: { name: string }[], l?: { n: string; p: number }[]) => (l ? q.map(j => l.filter(x => x.n === j.name).reduce((a, x) => a + x.p, 0)) : undefined)
+    return planoQuadra(sementeDasChances(roundKey, homeName, awayName), basket.h, basket.a, qc, qf, pts(qc, basket.ph), pts(qf, basket.pa))
+  },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [basket?.h, basket?.a, q2dBB, roundKey, homeName, awayName, elencos?.casa, elencos?.fora])
+    [basket?.h, basket?.a, basket?.ph, basket?.pa, q2dBB, roundKey, homeName, awayName, elencos?.casa, elencos?.fora])
   const placarQ = planoBB ? placarEm(planoBB, done ? 93 : min) : null
   // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total (ou o placar da quadra, com o 2D).
   const hg = basket ? (placarQ ? placarQ.casa : Math.round(basket.h * (done ? 1 : min / 93))) : shown.filter(g => g.home).length

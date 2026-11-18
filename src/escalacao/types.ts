@@ -544,6 +544,8 @@ export interface MatchResult {
   hg: number
   ag: number
   highlights: MatchHighlight[] // só preenchido no jogo do humano
+  /** 📺🏀 basquete: pontos de cada jogador NESTE jogo, por id do time (só jogo com gente) — a Quadra 2D distribui as cestas por eles */
+  bbPts?: Record<number, { n: string; p: number }[]>
 }
 
 // 🏆 COPA DOS 8 — modo rápido (online e offline). Top-8 da liga, seedado
@@ -559,6 +561,8 @@ export interface QuickCopaTie {
   ot?: boolean             // 🏀 o desempate foi PRORROGAÇÃO (basquete), não pênaltis (14/09)
   winner: number | null    // id de quem passou (null = ainda rolando)
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
+  /** 📺🏀 pontos de cada jogador no ÚLTIMO jogo da série (por id do time) — a Quadra 2D */
+  lastBbPts?: Record<number, { n: string; p: number }[]>
   /** 👑 Kings: o que a regra da Kings fez no último jogo (banners do relógio) */
   lastKings?: KingsInfo
   /** 👑 Kings: o último jogo inteiro, se tem gente nele (pra refazer quando a pessoa escolhe o canto) */

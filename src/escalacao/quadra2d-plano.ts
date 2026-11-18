@@ -108,30 +108,57 @@ function cestasDoTime(pts: number, r: () => number): TipoLance[] {
 }
 
 export type JogadorPlano = { name: string; nivel?: number }
+type Item = { tipo: TipoLance; quem?: number }
 
-/** 🏀 o roteiro do jogo. `seed` = a mesma semente do placar (ex.: sementeDasChances). Elencos = o quinteto (PG..C). */
-export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCasa: JogadorPlano[] = [], elFora: JogadorPlano[] = []): PlanoQuadra {
+// 🏀 18/11 (Diego, "o que vale é o que a tela mostra"): quando o jogo diz QUANTOS PONTOS cada um fez (os mesmos que vão pras
+// estatísticas da temporada), as cestas saem DE CADA JOGADOR — a soma de cada um fecha no que a estatística dele mostra.
+// Bola de 3 pela posição (armador/ala-armador chutam mais de longe, pivô quase nunca), ~15% em lance livre.
+const TAXA3 = [0.4, 0.42, 0.33, 0.2, 0.06]
+function cestasDosJogadores(pts: number[], r: () => number): Item[] {
+  const out: Item[] = []
+  pts.forEach((p0, quem) => {
+    const P = Math.max(0, Math.round(p0))
+    let tres = Math.max(0, Math.round(P * TAXA3[quem] * (0.75 + r() * 0.5) / 3))
+    let ll = Math.max(0, Math.round(P * (0.1 + r() * 0.1)))
+    let resto = P - tres * 3 - ll
+    while (resto < 0 && tres > 0) { tres--; resto += 3 }
+    if (resto < 0) { ll += resto; resto = 0 }
+    if (resto % 2 === 1) { resto -= 1; ll += 1 }
+    for (let k = 0; k < tres; k++) out.push({ tipo: 'tres', quem })
+    const dentro = quem >= 3 ? ['enterrada', 'gancho', 'bandeja', 'meia'] as const : ['bandeja', 'meia', 'meia', 'enterrada'] as const
+    for (let k = 0; k < resto / 2; k++) out.push({ tipo: dentro[Math.floor(r() * dentro.length)], quem })
+    for (let k = 0; k < ll; k++) out.push({ tipo: 'lance', quem })
+  })
+  return out
+}
+
+/** 🏀 o roteiro do jogo. `seed` = a mesma semente do placar (ex.: sementeDasChances). Elencos = o quinteto (PG..C).
+ *  `ptsCasa/ptsFora` = os pontos de cada um do quinteto NAQUELE jogo (a mesma conta das estatísticas); sem eles, o roteiro sorteia. */
+export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCasa: JogadorPlano[] = [], elFora: JogadorPlano[] = [], ptsCasa?: number[], ptsFora?: number[]): PlanoQuadra {
   const r = rngDe(seed ^ 0xB45E7)
-  const cc = cestasDoTime(Math.max(0, Math.round(casaFim)), r)
-  const cf = cestasDoTime(Math.max(0, Math.round(foraFim)), r)
-  // embaralha cada lista (os lances livres saem em dupla: a falta dá 2 tiros seguidos)
+  const soma = (a?: number[]) => (a ?? []).reduce((x, y) => x + Math.max(0, Math.round(y)), 0)
+  const valePts = (a: number[] | undefined, fim: number) => !!a && a.length > 0 && soma(a) === Math.round(fim)
+  const cc: Item[] = valePts(ptsCasa, casaFim) ? cestasDosJogadores(ptsCasa!, r) : cestasDoTime(Math.max(0, Math.round(casaFim)), r).map(tipo => ({ tipo }))
+  const cf: Item[] = valePts(ptsFora, foraFim) ? cestasDosJogadores(ptsFora!, r) : cestasDoTime(Math.max(0, Math.round(foraFim)), r).map(tipo => ({ tipo }))
+  // embaralha cada lista (os lances livres saem em dupla, do MESMO batedor: a falta dá 2 tiros seguidos)
   const emb = <T,>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a }
-  const agrupa = (lista: TipoLance[]): TipoLance[][] => {
-    const ll = lista.filter(t => t === 'lance').length
-    const outros = emb(lista.filter(t => t !== 'lance')).map((t): TipoLance[] => [t])
-    const pares: TipoLance[][] = []
-    for (let k = 0; k < Math.floor(ll / 2); k++) pares.push(['lance', 'lance'])
-    if (ll % 2) pares.push(['lance'])
+  const agrupa = (lista: Item[]): Item[][] => {
+    const outros = emb(lista.filter(t => t.tipo !== 'lance')).map((t): Item[] => [t])
+    const porQuem = new Map<number | undefined, Item[]>()
+    for (const t of lista) if (t.tipo === 'lance') { const k = t.quem; porQuem.set(k, [...(porQuem.get(k) ?? []), t]) }
+    const pares: Item[][] = []
+    for (const ls of porQuem.values()) for (let k = 0; k < ls.length; k += 2) pares.push(ls.slice(k, k + 2))
     for (const p of pares) outros.splice(Math.floor(r() * (outros.length + 1)), 0, p)
     return outros
   }
   const gc = agrupa(cc), gf = agrupa(cf)
   // posses que NÃO pontuam (erro, toco, roubo) — dão vida e alternam a bola
-  const vazias = (n: number): TipoLance[][] => Array.from({ length: n }, () => { const v = r(); return [v < 0.55 ? 'erro' : v < 0.78 ? 'toco' : 'roubo'] as TipoLance[] })
+  const vazias = (n: number): Item[][] => Array.from({ length: n }, () => { const v = r(); return [{ tipo: (v < 0.55 ? 'erro' : v < 0.78 ? 'toco' : 'roubo') as TipoLance }] })
   const posC = [...gc, ...vazias(Math.round(gc.length * 0.32))]
   const posF = [...gf, ...vazias(Math.round(gf.length * 0.32))]
   // espalha as vazias no meio das cheias
-  const misturaVazias = (l: TipoLance[][]) => { const cheias = l.filter(p => !['erro', 'toco', 'roubo'].includes(p[0])); const vz = l.filter(p => ['erro', 'toco', 'roubo'].includes(p[0])); for (const v of vz) cheias.splice(Math.floor(r() * (cheias.length + 1)), 0, v); return cheias }
+  const ehVazia = (p: Item[]) => ['erro', 'toco', 'roubo'].includes(p[0].tipo)
+  const misturaVazias = (l: Item[][]) => { const cheias = l.filter(p => !ehVazia(p)); const vz = l.filter(ehVazia); for (const v of vz) cheias.splice(Math.floor(r() * (cheias.length + 1)), 0, v); return cheias }
   const seqC = misturaVazias(posC), seqF = misturaVazias(posF)
   // intercala as posses dos dois lados (quem tem mais posses ganha algumas seguidas)
   const ordem: ('casa' | 'fora')[] = []
@@ -146,7 +173,7 @@ export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCa
     vez = extra && r() < 0.35 ? extra : (vez === 'casa' ? 'fora' : 'casa')
   }
   // tempo de cada posse: proporcional (lance livre é rápido), com jitter; ocupa 1..92
-  const pesoT = (p: TipoLance[]) => p[0] === 'lance' ? 0.55 : 1
+  const pesoT = (p: Item[]) => p[0].tipo === 'lance' ? 0.55 : 1
   ic = 0; iF = 0
   const posses = ordem.map(l => (l === 'casa' ? seqC[ic++] : seqF[iF++]))
   const w = posses.map(p => pesoT(p) * (0.75 + r() * 0.5))
@@ -158,11 +185,12 @@ export function planoQuadra(seed: number, casaFim: number, foraFim: number, elCa
     const dur = (FIM - 1.4) * w[k] / tot
     const lado = ordem[k], el = lado === 'casa' ? elCasa : elFora
     const n = p.length
-    p.forEach((tipo, j) => {
+    p.forEach((item, j) => {
+      const tipo = item.tipo
       const t0 = t + dur * (j / n), t1 = t + dur * ((j + 1) / n)
       const pesos = (PESO[tipo] ?? PESO.erro).map((x, i) => x * (0.6 + nivelDe(el, i) * 0.8))
-      // lance livre: o mesmo batedor nas duas
-      const quem = tipo === 'lance' && j > 0 ? lances[lances.length - 1].quem : escolhe(pesos, r)
+      // quem arremessa: o dono da cesta (quando o jogo diz os pontos de cada um) · lance livre: o mesmo batedor nas duas
+      const quem = item.quem != null ? item.quem : tipo === 'lance' && j > 0 ? lances[lances.length - 1].quem : escolhe(pesos, r)
       const passe = tipo === 'lance' || tipo === 'roubo' || r() < 0.38 ? -1 : escolhe([3, 1.4, 1.2, 0.9, 0.7], r, quem)
       const pts = (tipo === 'tres' ? 3 : tipo === 'lance' ? 1 : tipo === 'erro' || tipo === 'toco' || tipo === 'roubo' ? 0 : 2) as Lance['pts']
       if (lado === 'casa') pc += pts; else pf += pts

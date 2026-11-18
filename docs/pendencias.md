@@ -36,6 +36,7 @@
   - ⏱️ 60 s por jogo na marcha padrão (`dur2DBBDaVel`), as marchas do Manual aceleram/atrasam — liga e Play-In/Playoffs. Trava no `npm run vel-2d`.
   - Testado na sala online (dono, banco simulado): o jogo inteiro em ~1 min, placar subindo em cesta de verdade e fechando no resultado. Prints `scripts/mockups/basquete-quadra2d-real-{celular,pc}.png`.
   - ✅ Diego deu OK (18/11, *"Ok"*) pra ficar assim e ele testar quando liberar. Fica no branch até ele mandar publicar.
+  - 📊 18/11 (depois do OK): a quadra usa os PONTOS DE CADA JOGADOR do jogo (os mesmos que vão pra cestinha/estatística): `simMatch` guarda `bbPts` no resultado (só jogo com gente) e `lastBbPts` na série do Play-In/Playoffs; o roteiro dá a cada um exatamente os pontos dele (Jordan com 31 na estatística = 31 na quadra). Trava em `npm run quadra2d`.
   - Falta: teste com 2 aparelhos; carreira do basquete; a "festa" do fim de jogo do 2D (o do futebol tem resumo/festa).
 
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
