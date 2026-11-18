@@ -13902,5 +13902,6 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Arte: mascote e camisa da 1ª prancha; escudo da 2ª ("ATORMENTADOR", o que o Diego escolheu) — 284×320 (a 360 passava do teto de 30 KB).
 - Manto preto #0F0E18 + roxo #862EE0, azul #4853AB de 3ª cor (MANTO_TRI obelisko_atormentador). Mascote "O Atormentador".
 - Banco FEITO: esc_socios, esc_fundadores (103), esc_nomes_batismo (Obelisko / FC / EC); user_colors ouro já estava (o Pix ligou).
+- Canto: `sfx/torcida-obelisko-v1.mp3` = 14 s da abertura instrumental que o Diego mandou (mono 56k, −20,6 dB), ligado na carreira (sound.ts). ⚠️ Música com dono (avisado ao Diego, 18/11).
 - ⏳ GALA ÚNICA: Fundador tem direito; ainda não feita (perguntar a ideia ao Diego). Post: `scripts/posts/batismo-obelisko.png`.
 - Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
