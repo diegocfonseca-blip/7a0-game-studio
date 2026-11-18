@@ -28,7 +28,7 @@ import './online-visual.css'
 import {requestOnlineDestination,type OnlineDestination} from './desktop-online-navigation'
 import {DesktopHeader,AuctionDesktopLayout,AuctionSlot} from './desktop-layout'
 import {MobileAuctionHeader} from './mobile-auction-header'
-import {useTelaPC, useRelampagoLiberado} from './sport'
+import {useTelaPC, useRelampagoLiberado, previaCentral} from './sport'
 import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
@@ -5348,7 +5348,7 @@ function Envelope() {
           )}
           {/* ⚠️ Brasil Oficial (18/11, item (e)): a MULTA aparece ANTES do lance — antes só se descobria depois de ganhar.
               A conta é a mesma do motor (sealAndResolveTec): trocar de técnico custa o valor que você pagou pelo atual. */}
-          {tecMesa && state.tecLote && state.oficial && (() => {
+          {tecMesa && state.tecLote && (state.oficial || previaCentral()) && (() => {
             const meuTime = state.managers[state.youIdx]?.teamName ?? ''
             const atual = state.careerTecnicos?.[meuTime]
             const multa = atual ? Math.round(state.careerTecnicoPago?.[atual] ?? 0) : 0

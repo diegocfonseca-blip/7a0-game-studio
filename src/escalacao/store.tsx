@@ -1035,8 +1035,8 @@ function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> 
     // 🇧🇷 Oficial (18/11, "o bot faz tudo que o usuário faz"): TV pela régua do modo, e a folha inclui o salário do TÉCNICO
     // (pago ÷ 10) e do PREPARADOR (10% do preço da série) — igual à sua (`folhaBaseDoClube`).
     const nomeK = k.startsWith('m') && /^m\d+$/.test(k) ? (s.managers.find(m => `m${m.id}` === k)?.teamName ?? k) : k
-    const tecK = s.oficial ? s.careerTecnicos?.[nomeK] : null
-    const comissao = s.oficial ? (tecK ? Math.round((s.careerTecnicoPago?.[tecK] ?? 0) / 10) : 0) + salarioPreparador(preparadorDe(s.careerPreparador?.[nomeK]), div) : 0
+    const tecK = s.oficial || s.botComissao ? s.careerTecnicos?.[nomeK] : null
+    const comissao = s.oficial || s.botComissao ? (tecK ? Math.round((s.careerTecnicoPago?.[tecK] ?? 0) / 10) : 0) + salarioPreparador(preparadorDe(s.careerPreparador?.[nomeK]), s.oficial ? div : null) : 0
     const b = balancoBot(div, folhaDoBot(squad) + comissao, cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0,
       s.oficial ? tvOficial(div, nomeK) : undefined, s.oficial ? caixaInicialOficial(nomeK, div) * 2 : undefined)
     cash[k] = b.caixa
@@ -1142,7 +1142,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { ligaEscudosOficiais } from './escudos'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
-import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
+import { brasilOficialLiberado, previaCentral } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
 import { CARTAS_REGIONAIS } from './cartas-regionais'
@@ -2181,7 +2181,7 @@ function semeiaTecnicos(s: EscState): void {
         // respeita o teto da categoria.
         const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, pisoTecnico(tN.div, !!s.oficial)) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)), !!s.oficial)
         // 🇧🇷 Oficial (18/11, item (c)): o bot PAGA o técnico do caixa dele, igual a você — sem dinheiro, fica sem (e o técnico volta pro mercado)
-        if (s.oficial && !botPaga(s, m, preco)) { livres.push(nomeN); continue }
+        if ((s.oficial || s.botComissao) && !botPaga(s, m, preco)) { livres.push(nomeN); continue }
         map[m.teamName] = nomeN
         desde[m.teamName] = { t: s.seasonNo, r: 0 }
         pago[nomeN] = preco // o mercado aprende com a compra do bot também
@@ -2196,17 +2196,17 @@ function semeiaTecnicos(s: EscState): void {
       const fim = (s.careerTecnicoContrato ?? {})[m.teamName]
       if (fim != null && fim < s.seasonNo && rngV() < 0.6) {
         // 🇧🇷 Oficial (item (c)): renovar custa o valor dele, igual pra você; sem caixa, deixa vencer (fica aliciável)
-        if (s.oficial && !botPaga(s, m, s.careerTecnicoPago?.[map[m.teamName]!] ?? 0)) continue
+        if ((s.oficial || s.botComissao) && !botPaga(s, m, s.careerTecnicoPago?.[map[m.teamName]!] ?? 0)) continue
         s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
         mudou = true
       }
     }
     // 🏋️ Oficial (18/11, item (c)): o bot também tem PREPARADOR — compra o melhor que cabe em ~25% do caixa, renova quando vence se
     // tiver dinheiro (metade do preço), senão fica sem. Mesmos preços e prazos sorteados do usuário.
-    if (s.oficial) for (const m of s.managers) {
+    if (s.oficial || s.botComissao) for (const m of s.managers) {
       if (m.isHuman) continue
       const t = m.teamName, atual = preparadorDe(s.careerPreparador?.[t]), fimP = s.careerPreparadorContrato?.[t]
-      const divB = (s.careerPlacements?.[`m${m.id}`] ?? div) as string
+      const divB = s.oficial ? (s.careerPlacements?.[`m${m.id}`] ?? div) as string : null // fora do Oficial: o preço de sempre do catálogo
       const caixaB = s.clubCash?.['m' + m.id] ?? Math.round(m.money ?? 0)
       if (atual && fimP != null && fimP < s.seasonNo) {
         if (botPaga(s, m, precoRenovacaoPreparador(atual, divB))) s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [t]: fimDoContrato(s.seasonNo, rngV) }
@@ -2245,12 +2245,13 @@ function semeiaTecnicos(s: EscState): void {
 /** 🇧🇷 BRASIL OFICIAL (18/11, item (a) aprovado): contrato de técnico/preparador vencido que NÃO foi renovado na janela =
  *  ele vai embora quando o leilão começa (na carreira de sempre ele ficava pra sempre sem pagar renovação). Mesmas regras do
  *  "deixar ir": sem multa, técnico vai pra SEM CLUBE e, se alguém contratar, você recupera metade. O aviso mora na janela. */
-function deixaComissaoVencidaIr(s: EscState): void {
+function deixaComissaoVencidaIr(s: EscState, soDestaVirada = false): void {
   const you = s.managers[s.youIdx]
   if (!you?.isHuman) return
   const t = you.teamName
   const nome = s.careerTecnicos?.[t], fimT = s.careerTecnicoContrato?.[t]
-  if (nome && fimT != null && fimT < s.seasonNo) {
+  const venceuAgora = (fim: number) => fim < s.seasonNo && (!soDestaVirada || fim === s.seasonNo - 1)
+  if (nome && fimT != null && venceuAgora(fimT)) {
     s.careerTecnicos = { ...(s.careerTecnicos ?? {}), [t]: null }
     const ct = { ...(s.careerTecnicoContrato ?? {}) }; delete ct[t]; s.careerTecnicoContrato = ct
     s.careerTecnicoExDono = { ...(s.careerTecnicoExDono ?? {}), [nome]: t }
@@ -2258,7 +2259,7 @@ function deixaComissaoVencidaIr(s: EscState): void {
     ;(s.marketLog = s.marketLog ?? []).push(`👋 ${nome} foi embora: o contrato acabou e não foi renovado. Ele está SEM CLUBE — se alguém contratar, você recupera metade.`)
   }
   const p = preparadorDe(s.careerPreparador?.[t]), fimP = s.careerPreparadorContrato?.[t]
-  if (p && fimP != null && fimP < s.seasonNo) {
+  if (p && fimP != null && venceuAgora(fimP)) {
     s.careerPreparador = { ...(s.careerPreparador ?? {}), [t]: null }
     const cp = { ...(s.careerPreparadorContrato ?? {}) }; delete cp[t]; s.careerPreparadorContrato = cp
     ;(s.marketLog = s.marketLog ?? []).push(`👋 ${p.nome} foi embora: o contrato acabou e não foi renovado. O banco volta a devolver o de sempre.`)
@@ -9432,6 +9433,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // criada DAQUI PRA FRENTE — carreira antiga não ganha a flag e continua
       // fora dos rankings (global e da home). Ver sport.ts.
       s.agenciaOn = agenciaLiberada() || undefined
+      s.botComissao = previaCentral() || undefined // 🤖 18/11: carreira nova — bots com preparador e pagando a comissão (só na conta do Diego até ele liberar)
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       // 🪜 ESCADA DE CATEGORIAS: SÓ carreira NOVA (de qualquer conta, desde 03/08).
       // Começa presa ao degrau da divisão; libera geral após 2 temporadas na Série A.
@@ -9601,6 +9603,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.simV = 8
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
+      s.botComissao = previaCentral() || undefined // 🤖 18/11: carreira nova — bots com preparador e pagando a comissão (só na conta do Diego até ele liberar)
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       s.escadaOn = escadaLiberada() || undefined
       s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
@@ -12608,7 +12611,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.round = 0; s.champion = null
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveListed = {}
-      if (s.oficial) semeiaTecnicos(s) // 🇧🇷 Oficial (18/11, item (d)): o mercado de técnicos anda sozinho na virada
+      if (s.oficial || previaCentral()) semeiaTecnicos(s) // 🧢 18/11 (item (d)): o mercado de técnicos anda sozinho na virada (Oficial sempre; carreira de sempre só na conta do Diego até liberar)
       s.screen = 'reserveList'
       // 🔒 "mesmo time": mesma tela de contratos, mas SEM leilão depois — o relógio
       // (que só faz sentido esperando todo mundo listar pro pregão) fica de fora.
@@ -13161,6 +13164,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.reserveListed = {}
       if (s.oficial) deixaComissaoVencidaIr(s) // 🇧🇷 Oficial (18/11): técnico/preparador vencido que você não renovou na janela vai embora agora
+      else if (previaCentral()) deixaComissaoVencidaIr(s, true) // 🟡 carreira de sempre: SÓ quem venceu NESTA virada (quem já estava vencido de antes fica — ninguém perde de surpresa)
       s.reserveAuction = true
       // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é IDÊNTICO
       // ao leilão normal, só vem antes do goleiro; como uma posição nova"): o

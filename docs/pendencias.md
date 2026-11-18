@@ -14018,3 +14018,12 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   (pago ÷ 10) e do preparador; bot COMPRA preparador (o melhor que cabe em ~25% do caixa, 50% de chance por virada) e renova pela
   metade se tiver dinheiro, e o preparador dele vale no cansaço (`planoCansacoBot` com `banco`); prêmios dos bots pela mesma régua do
   usuário (`clubRewardsOficial`: campeão, acesso de cada um que sobe, desconto pra quem cai). Teto do caixa do bot = 2× o caixa inicial.
+
+### 🔁 18/11 (noite) — do Brasil Oficial pra CARREIRA DE SEMPRE (só na conta do Diego até ele liberar; gate `previaCentral`/`usePreviaCentral`)
+- ✅ 1 Aba 🛒 Mercado (`mercadoOn` sem `state.oficial`; só offline). ✅ 2 Central nova (já estava atrás do mesmo gate).
+- ✅ 3 Multa antes do lance do técnico. ✅ 4 Mercado de técnicos anda sozinho na virada (`semeiaTecnicos`).
+- ✅ 5 Aviso "💰 você ganhou X" da Copa (Legends/do Brasil) ao fim dela (`copaRewards`, fecha pra sempre no ✕).
+- ✅ 6 Comissão vencida vai embora — SÓ quem venceu NESTA virada (`deixaComissaoVencidaIr(s, true)`), com aviso na mesa.
+- ✅ 7 Bots com preparador + pagando técnico/preparador SÓ em carreira NOVA (`s.botComissao`, preço do catálogo de sempre).
+- ❌ Ficaram de fora (decisão): gás desde o início, leilão de abertura/caixa real/régua de categoria, preços novos de comissão.
+- 👉 Liberar pra todos = `CENTRAL_18_11_GERAL = true` (sport.ts) — liga Central nova, Mercado e os itens 3–7 de uma vez.

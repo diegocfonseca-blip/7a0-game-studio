@@ -9906,7 +9906,7 @@ export function PyramidSeasonScreen() {
       if (t.human) continue
       const inicio: Record<string, number> = {}
       for (const c of t.squad as WonCard[]) { const g = carry[chaveCarry(c)]; if (g != null) inicio[c.id] = g }
-      out[t.name] = planoCansacoBot({ squad: t.squad, need: t.formation ? FORMATIONS[t.formation] : NEED, inicio, seed: seasonSeed, seasonNo: state.seasonNo ?? 1, nome: t.name, rodadas: 38, ...(state.oficial ? { banco: preparadorDe(state.careerPreparador?.[t.name])?.banco } : {}) }) // 🏋️ Oficial: o bot também tem preparador
+      out[t.name] = planoCansacoBot({ squad: t.squad, need: t.formation ? FORMATIONS[t.formation] : NEED, inicio, seed: seasonSeed, seasonNo: state.seasonNo ?? 1, nome: t.name, rodadas: 38, ...(state.oficial || state.botComissao ? { banco: preparadorDe(state.careerPreparador?.[t.name])?.banco } : {}) }) // 🏋️ Oficial: o bot também tem preparador
     }
     return out
   }, [botFadigaOn, world, state.managers, state.youIdx, state.botCarry, seasonSeed, state.seasonNo])
@@ -10227,7 +10227,9 @@ export function PyramidSeasonScreen() {
   const cbUnlocked = useCopaBrasilLiberada()
   // 🗑️ 18/11: abrir/jogar a carreira conta como "jogou" na regra dos 5 dias de quem não tem plano (o save pode estar travado)
   useEffect(() => { if (state.onlineMode !== 'online') marcaCarreiraJogada(state.seed) }, [state.seed, state.seasonNo, round, state.onlineMode])
-  const mercadoOn = !!state.oficial && usePreviaCentral() && state.onlineMode !== 'online' // 🛒 aba Mercado (18/11): Brasil Oficial, só na conta do Diego
+  // 🛒 aba Mercado (18/11): nasceu no Brasil Oficial e foi levada pra carreira de sempre (*"pode fazer tudo daí"*) — por enquanto só na
+  // conta do Diego (`usePreviaCentral`); carreira em sala online fica fora (o Sondar também é só offline)
+  const mercadoOn = usePreviaCentral() && !!state.careerOnline && state.onlineMode !== 'online' && !state.roomId
   const novaCentral = usePreviaCentral() // 📺 18/11: a Central nova (Próximos jogos, Antes da estreia, TV depois do 1º jogo…) só na conta do Diego
   const previa = usePreviaDiego() // 👀 18/11: novidades de 17/11 só na conta do Diego (ônibus em jogo grande, cena do bairro, linha a mais dos dias)
   // 🇧🇷 17/11: de 2027 em diante a Copa do Brasil do modo sai das vagas de 2026 (cota por estado + campeões da C/D do ano anterior).
@@ -10577,8 +10579,23 @@ export function PyramidSeasonScreen() {
   const [premiosFechados, setPremiosFechados] = useState<string[]>([])
   const premiosCopaNaTela = useMemo(() => {
     const out: { chave: string; titulo: string; v: number }[] = []
-    if (!state.oficial || estadualOn || !copa) return out
+    if (estadualOn || !copa) return out
     const en = getLang() === 'en', sn = state.seasonNo ?? 1
+    // 🏆 18/11 (levado pra carreira de sempre, só na conta do Diego até ele liberar): a Copa paga POR FASE (`copaRewards`) — o aviso
+    // diz quanto você ganhou e onde parou, no mesmo lugar e com o mesmo ✕ do Brasil Oficial
+    if (!state.oficial) {
+      if (!novaCentral || !copaFinished) return out
+      const chave = `premio-copa:${state.seed}:${sn}:copa`
+      if (premiosFechados.includes(chave) || avisoFechado(chave)) return out
+      const minhas = copa.rounds.map((r, k) => r.ties.some(t => t.a.teamId === youId || t.b.teamId === youId) ? k : -1).filter(k => k >= 0)
+      if (!minhas.length) return out
+      const v = copaRewards(copa).rewards[youId] ?? 0
+      if (!v) return out
+      const ult = minhas[minhas.length - 1], campeao = copa.champion?.teamId === youId && !!copa.champion?.human
+      const fase = campeao ? (en ? 'champions' : 'campeão') : ult === copa.rounds.length - 1 ? (en ? 'runners-up' : 'vice') : (en ? `out in the ${copa.rounds[ult].name}` : `caiu na ${copa.rounds[ult].name}`)
+      out.push({ chave, titulo: `${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'} · ${fase}`, v })
+      return out
+    }
     const vista = copaFinished ? copa.rounds.length : copaRound
     const meuNaPagina = (k: number) => !!copa.rounds[k]?.ties.some(t => t.a.teamId === youId || t.b.teamId === youId)
     const grupos: { id: string; filtro: (n: string) => boolean; calc: () => { v: number; fase: [string, string] } | null; nome: string }[] = [
@@ -10598,7 +10615,7 @@ export function PyramidSeasonScreen() {
       if (d?.v) out.push({ chave, titulo: `${g.nome} · ${en ? d.fase[1] : d.fase[0]}`, v: d.v })
     }
     return out
-  }, [state.oficial, state.seed, state.seasonNo, estadualOn, copa, copaFinished, copaRound, youId, copaBR, libertaMinha, libertaCalc, sulaMinha, sulaCalc, meuNomeLib, premiosFechados]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.oficial, novaCentral, state.seed, state.seasonNo, estadualOn, copa, copaFinished, copaRound, youId, copaBR, libertaMinha, libertaCalc, sulaMinha, sulaCalc, meuNomeLib, premiosFechados]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🚫 SPOILER (17/11, teste da 2ª temporada do Brasil Oficial): a chave da Copa do Brasil (`copaBase`, só as 9 fases dela) recebia
   // como "fases reveladas" o índice da ESTEIRA (`copaRound`), que conta também estadual, Supercopa Rei, playoff e Libertadores — na
   // 5ª fase já passava de 9 e a tela mostrava campeão, final e os campeões da temporada inteira. Aqui conta só as fases da Copa.

@@ -1310,6 +1310,9 @@ export interface EscState {
   /** 👀 MERCADO (Brasil Oficial, 18/11): de olho DURANTE a temporada em quem fica livre no fim dela. Na janela, a tela do Sondar
    *  transforma isso no sondado de verdade (ALICIAR_MARCAR, com as travas de sempre) e apaga. Jogador vai pela chave da carta
    *  (nome|clube|ano) — o cardId não serve de chave porque muda. */
+  /** 🤖 18/11: carreira NOVA (criada com a regra ligada) em que os BOTS têm preparador e pagam técnico/preparador do caixa — a carreira
+   *  que já estava rolando fica como era (equilíbrio). O Brasil Oficial tem isso sempre. */
+  botComissao?: boolean
   /** 🔨 Brasil Oficial: o leilão em andamento é o de ABERTURA (5 vagas, 1 por posição, pra todos) */
   oficialAbertura?: boolean
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }
