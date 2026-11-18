@@ -35,6 +35,12 @@
     moeda, de premiação com base na divisão"*): no Brasil Oficial a TV e os prêmios seguirem o real — TV por divisão E tamanho do
     clube (grande ganha mais, como no Brasileirão de verdade) e o prêmio de acesso/queda pelo formato real de cada série (hoje o
     "top 4" é o da pirâmide inventada). Esperando o OK dele antes de mexer em valor.
+  · 🏟️ 18/11 (Diego: *"todos os times do jogo deveriam ter nome do estádio… o ideal é que sejam os nomes reais"*): os 228 clubes do
+    Oficial ganharam o estádio REAL de 2026, todos com fonte (`estadios-oficial.ts`, lista em `docs/brasil-oficial/estadios.md`).
+    Sem fonte → "Estádio do <clube>" (`inventado`), liberado por ele — hoje nenhum caiu nisso. Decididos: Palmeiras = Nubank Parque,
+    Santa Cruz = Arena de Pernambuco (2026), Bragantino = Cícero de Souza Marques (reforma). Aparece: Próximos jogos da Central,
+    a cena "A torcida está chegando no <estádio>" (1ª partida em casa, uma vez só) e a chegada da estreia em casa na aba Jogos.
+    A feira saiu da Central (*"não é um momento importante"*).
   · `passosVirada` virou a conta ÚNICA dos passos da virada (escritório da aba Jogos e Central leem a mesma).
 
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)

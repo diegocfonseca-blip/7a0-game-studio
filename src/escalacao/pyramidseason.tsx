@@ -12491,7 +12491,8 @@ export function PyramidSeasonScreen() {
           if (agendaOficial) { const g = agendaOficial.find(x => x.r === r); if (!g || (faseOficialAgora && g.fase !== faseOficialAgora.fase)) continue }
           const par = parDaRodada(r)
           if (!par) continue
-          agenda.push({ dia: diaDaRodada(sn, r), comp: ligaNome, ...advDe(par[0], par[1]) })
+          const lado = advDe(par[0], par[1])
+          agenda.push({ dia: diaDaRodada(sn, r), comp: ligaNome, ...lado, fase: state.oficial ? estadioDoClube(lado.casa ? euNome : lado.adv).nome : undefined }) // 🏟️ no Oficial, o estádio do jogo
           n++
         }
       }
