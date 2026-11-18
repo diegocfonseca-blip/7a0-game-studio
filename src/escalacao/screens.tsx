@@ -11,7 +11,7 @@ import estadioCerArt from './img/online-estadio-v25.webp'
 import { TunelFinal, FestaCampeao, Trofeu, TemaCompCtx, FraseCopa, COMPS, type CompId } from './competicoes-visual' // 🏆 túnel da final e festa do campeão (23/10)
 import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
-import { useCampo2DLigado, useQuadra2DLigada, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
+import { useCampo2DLigado, useQuadra2DLigada, bbSemQuadra, trocaCampo2D, marcaPago2D, useCampoNaTela } from './campo2d-modo'
 import { DisputaShootoutCampo } from './campo2d-shootout' // 👑🥅 a conta do tempo do shootout da Kings
 import { usePenaltisCampo } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import { useCampo2DLiberado, useCampo2DTester, useDesktopNovo, useTroca2DSala } from './sport'
@@ -7017,7 +7017,7 @@ export function Botao2D({ soComDireito = false }: { soComDireito?: boolean } = {
     return () => clearTimeout(tm)
   }, [pagou2d])
   if (state.onlineMode === 'online') return null // 📺⚡ na sala o 2D é da SALA: o botão do dono (`TrocaCampo2DSala`) mora solto em cada competição
-  if (!liberado || (state.sport === 'basquete' && state.careerOnline)) return null // 🏀📺 18/11: a Quadra 2D no rápido do basquete (carreira fica pra depois)
+  if (!liberado || bbSemQuadra(state)) return null // 🏀📺 18/11: a Quadra 2D no rápido e na carreira offline do basquete (carreira online ainda não existe)
   if (ehKings(state) && !kingsVe) return null // 👑📺 11/11: o 2D da Kings voltou pra ele testar (*"depois eu decido se deixo ou tiro"*)
   if (!temDireito && soComDireito) return null // (o cadeado do Manual ao lado já oferece os dois)
   if (!temDireito) return (
@@ -7090,7 +7090,7 @@ function SimControlsBase({ manual, onToggle, onNext, onSkip, canNext, nextLabel,
   const t = useT() // 🌐 BR/EN
   const label = nextLabel ?? t('▶️ Próxima rodada', '▶️ Next round')
   const r2d = useRitmo2D()
-  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state) && (state.sport !== 'basquete' || !state.careerOnline)) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state) && !bbSemQuadra(state)) // ⏩📺 06/11: no 2D a marcha é absoluta (sala 1,5–4× · carreira/rápida 1–4×)
   // 🔒 sem apoio no modo rápido offline: o toggle vira cadeado (leva pro Apoie)
   if (lock) return <>{lock}</>
   // ⏩📺 05/11: teste "sem botão Manual" (Partida Rápida com 2D, conta do Diego) — some o Manual, fica o automático 2×
@@ -7153,7 +7153,7 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
   const r2d = useRitmo2D()
   // ⏩📺 06/11 (Diego): no 2D a marcha é ABSOLUTA e mora fora do simSpeed — offline no aparelho (vale no auto também), online no
   // estado da sala (`SET_VEL_2D`, só o dono). Fora do 2D, o seletor e o simSpeed de sempre.
-  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state) && (state.sport !== 'basquete' || !state.careerOnline))
+  const c2dCtl = useControleVel2D(useCampo2DLigado() && !ehKings(state) && !bbSemQuadra(state))
   if ((previewAccount || publicOnlineVisual(state) || publicCareerVisual(state)) && state.sport !== 'basquete') return null
   if (r2d.semManual) return null
   const opcoes = c2dCtl ? c2dCtl.opts.map(o => ({ v: o.v, label: t(o.pt, o.en) })) : SPEED_OPTS

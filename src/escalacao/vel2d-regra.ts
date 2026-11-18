@@ -91,7 +91,7 @@ export const dur2DDaVel = (v: number) => Math.round(DUR_2D_BASE_MS / v)
 export const DUR_2D_BB_MS = Math.round(60_000 / 0.82)
 export function dur2DBBDaVel(v: number, s: EstadoVel): number {
   const m = modoVel2D(s)
-  const padrao = m === 'sala' ? VEL2D_SALA_PADRAO : m === 'carreiraOnline' ? VEL2D_CARREIRA_PADRAO : VEL2D_SOLO_PADRAO
+  const padrao = m === 'sala' ? VEL2D_SALA_PADRAO : (m === 'carreiraOnline' || s.careerOnline) ? VEL2D_CARREIRA_PADRAO : VEL2D_SOLO_PADRAO // (a carreira OFFLINE tem careerOnline = true)
   return Math.round(DUR_2D_BB_MS * padrao / v)
 }
 /** segundos de jogo na tela */

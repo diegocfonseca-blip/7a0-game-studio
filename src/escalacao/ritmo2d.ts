@@ -8,7 +8,7 @@
 //     pra ele ver como seria numa sala criada sem o Manual.
 // Desligar o teste = `RITMO2D_TESTE = false` (volta tudo ao de antes: 1:30 e as marchas antigas).
 import { useEffect, useState } from 'react'
-import { useCampo2DLigado } from './campo2d-modo'
+import { useCampo2DLigado, bbSemQuadra } from './campo2d-modo'
 import { useCampo2DTester } from './sport'
 import { useEscTalvez } from './store'
 import { useHasManual } from './apoio'
@@ -87,7 +87,7 @@ export function useControleVel2D(c2d: boolean): null | { opts: OpcaoVel2D[]; cur
   const ctx = useEscTalvez()
   const local = useVel2D()
   const s = ctx?.state
-  if (!c2d || !s || (s.sport === 'basquete' && s.careerOnline)) return null // 🏀 18/11: a quadra 2D do rápido/salas também tem as marchas
+  if (!c2d || !s || bbSemQuadra(s)) return null // 🏀 18/11: a quadra 2D do rápido/salas/carreira offline também tem as marchas
   const modo = modoVel2D(s)
   if (modo === 'solo') return { opts: VEL2D_SOLO_OPTS, cur: s.careerOnline ? (vel2DEscolhida() ?? VEL2D_CARREIRA_PADRAO) : local, set: setVel2D }
   const opts = modo === 'sala' ? VEL2D_SALA_OPTS : VEL2D_SOLO_OPTS

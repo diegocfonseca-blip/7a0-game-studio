@@ -226,6 +226,7 @@ function torcida(a: string, b: string, semente: number) {
 const CSS = `
 .q2d{position:relative;background:#12100e;border:3px solid #000;border-radius:18px;padding:10px;box-shadow:4px 4px 0 #000;margin-bottom:10px}
 .q2d-svg{display:block;width:100%;height:auto}
+.q2d-pc{max-width:900px;margin-left:auto;margin-right:auto} /* 🏀 na carreira a tela é larga: a quadra não passa da altura da tela */
 .q2d-placar{display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:3px solid #000;border-radius:12px;padding:5px 10px;font:900 18px Oswald,sans-serif;color:#0C0C0C;box-shadow:3px 3px 0 #000;margin:0 auto 8px;width:max-content;max-width:100%}
 .q2d-placar b{color:#c48a00}.q2d-placar em{font-style:normal;font-size:13px;color:#0007}
 .q2d-dot{width:12px;height:12px;border:2px solid #000;border-radius:3px;display:inline-block}
