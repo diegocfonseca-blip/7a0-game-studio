@@ -277,3 +277,5 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
 - ✅ **CATEGORIA NO LEILÃO PELA SÉRIE** (18/11, régua dele): **D** profissional e bom jogador · **C** bom jogador e promessa · **B**
   promessa e craque · **A** craque e lenda. Vale no leilão de abertura, no da virada (`buildDeck(..., filtroOficialDe(s))`) e nos
   reservas que os bots soltam. Regra única: `categoriaOficialOk` (store). O SONDADO segue a régua do olheiro, não esta.
+  - **Exceção (18/11, ele confirmou)**: a régua vale só pro que APARECE no leilão. Jogador que já é do clube fica no clube, seja qual
+    for a categoria (o Flamengo caído na D continua com o Arrascaeta craque). Reserva de bot fora da régua não vai pro pregão: fica no clube.
