@@ -9750,6 +9750,15 @@ export function PyramidSeasonScreen() {
           copa_titles: copasOk, supercopa_titles: supersOk, world_titles: worldOk, money,
         })
         if (baseRankError) { clearPendingRank(); return }
+        // 🇧🇷 18/11 (Diego: "já pode fazer"): no Brasil Oficial a Libertadores e a Copa Intercontinental reais vão pro PERFIL pelas
+        // MESMAS colunas da carreira internacional (o perfil soma libertadores_titles e mundial_titles). Só conta campeão pelo nome do
+        // clube em `oficialCampeoes` e nunca mais que as temporadas jogadas. (Sul-Americana pede coluna nova no banco — depois.)
+        if (state.oficial) {
+          const nome = you.teamName, oc = state.oficialCampeoes ?? []
+          const lib = Math.min(jogadas, oc.filter(e => e.liberta === nome).length), inter = Math.min(jogadas, oc.filter(e => e.intercontinental === nome).length)
+          await supabase.from('esc_pyramid_rank_snap').update({ libertadores_titles: lib, mundial_titles: inter })
+            .eq('user_id', data.user.id).eq('career_id', state.seed ?? 0).eq('season_no', state.seasonNo)
+        }
         // Compatível com o banco atual: o retrato antigo continua funcionando
         // enquanto as três colunas novas aguardam migração e revisão das RPCs.
         // UPDATE não cria linha se o primeiro UPSERT falhou. Repetir sobrescreve,
@@ -11464,10 +11473,10 @@ export function PyramidSeasonScreen() {
     const s = SELOS[clubCanon(nome)] ?? SELOS[nome]
     return s ? { color: s.c1, secondaryColor: s.c2 } : {}
   }
-  const montaPreJogo = () => {
+  const montaPreJogo = (soLiga = false) => {
     if (!calOn || !myDiv || round < 1 || round >= 38 || calFase !== 'dias') return null
     // 🏆 quarta de Copa: a fase pendente, se você joga a ida EM CASA (o mesmo id que o jogo da Copa usa no mapa)
-    if (copaPendente && meNaFaseCopa && calI >= CAL_QUARTA) return chegadaDaFase(copaRound, 'c')
+    if (!soLiga && copaPendente && meNaFaseCopa && calI >= CAL_QUARTA) return chegadaDaFase(copaRound, 'c')
     if (!calDiasOk) return null
     const r = round + 1, pr = parDaRodada(r)
     if (!pr || pr[0].teamId !== youId) return null
@@ -11476,7 +11485,7 @@ export function PyramidSeasonScreen() {
     return {kind:'l' as const,fase:'',adv:pr[1],agenda,arrivalTeams:{fixtureId:agenda.fixtureId,teams:pr.map(team=>({name:team.name,color:colors?.[team.teamId]?.solid??(team.teamId===youId?myCol.solid:'#3A7CA5'),...corDoOnibus(team.name),players:(team.human?lineupAt(careerLineup,team.teamId,r,team.squad,team.formation):team.xi).map(c=>({id:c.id,name:c.name,pos:c.pos,club:c.club,year:c.year}))}))}}
 
   }
-  const preJogoCidade = mapaNoClube && !copaPendente ? montaPreJogo() : null // a chegada de sempre da aba Clube (só liga, como era)
+  const preJogoCidade = mapaNoClube ? montaPreJogo(true) : null // a chegada de sempre da aba Clube (só liga, exatamente como era — também na semana de Copa)
   // 🏁 fora da semana (Supercopa, finais da Liberta/Sula e Intercontinental depois da liga, playoff): não existe "dia de espera" —
   // a chegada da PRÓXIMA fase aparece na tela de resultado da fase que acabou, antes do "Ir pra próxima fase" (nenhum passo novo)
   const preJogoAba = tab === 'jogos' && stadiumMapAvailable ? (montaPreJogo() ?? (copaPlaying && copaPronta && !(copaMid && !done) ? chegadaDaFase(copaRound + 1, 'f') : null)) : null
