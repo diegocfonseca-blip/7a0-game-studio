@@ -35,8 +35,8 @@ def quadra(gid):
   o.append(f'<rect x="1.5" y="1.5" width="{W-3}" height="{H-3}" {L}/>')
   return '\n'.join(o)
 # jogadores (x,y em pés) — ataque dourado indo pra DIREITA
-casa=[('Magic','magic-johnson',32,'PG',63,26),('Jordan','michael-jordan',23,'SG',89,5),('Bird','larry-bird',33,'SF',69,44),('Malone','karl-malone',32,'PF',76,33),('Shaq','shaquille-oneal',34,'C',83,14)]
-fora=[('Frazier','walt-frazier',10,'PG',69,24),('Starks','',3,'SG',83,9),('Reed','willis-reed',19,'SF',75,42),('Oakley','',34,'PF',81,36),('Ewing','patrick-ewing',33,'C',88,18)]
+casa=[('Magic','magic-johnson',32,'PG',63,26),('Jordan','michael-jordan',23,'SG',89,1.5),('Bird','larry-bird',33,'SF',69,44),('Malone','karl-malone',32,'PF',76,33),('Shaq','shaquille-oneal',34,'C',83,14)]
+fora=[('Frazier','walt-frazier',10,'PG',69,24),('Starks','',3,'SG',84,6),('Reed','willis-reed',19,'SF',75,42),('Oakley','',34,'PF',81,36),('Ewing','patrick-ewing',33,'C',88,18)]
 def fichas(rot):
   o=[]
   for lista,cor,txt in ((casa,'#FFC400','#0C0C0C'),(fora,'#1B4FA8','#fff')):
@@ -44,7 +44,7 @@ def fichas(rot):
       px,py=x*S,y*S
       o.append((nome,img,num,cor,txt,px,py))
   return o
-MOB={'Magic':(350,540),'Frazier':(250,565),'Bird':(70,640),'Reed':(150,700),'Malone':(80,830),'Oakley':(170,815),'Shaq':(260,760),'Ewing':(345,720),'Starks':(425,730),'Jordan':(450,870)}
+MOB={'Magic':(350,540),'Frazier':(250,565),'Bird':(70,640),'Reed':(150,700),'Malone':(80,830),'Oakley':(170,815),'Shaq':(260,760),'Ewing':(345,720),'Starks':(420,760),'Jordan':(484,870)}
 def svg(rot, gid):
   w,h=(W,H) if not rot else (H,W)
   tr = '' if not rot else f'transform="translate({H},0) rotate(90)"'
@@ -54,7 +54,7 @@ def svg(rot, gid):
   g.append(f'<g {tr}>'+quadra(gid)+'</g>')
   def P(x,y): return (x,y) if not rot else (H-y,x)
   # passe/rastro da bola: Magic -> Jordan
-  ax,ay=P(63*S,26*S) if not rot else MOB['Magic']; bx_,by_=P(89*S,5*S) if not rot else MOB['Jordan']
+  ax,ay=P(63*S,26*S) if not rot else MOB['Magic']; bx_,by_=P(89*S,1.5*S) if not rot else MOB['Jordan']
   g.append(f'<line x1="{ax}" y1="{ay}" x2="{bx_}" y2="{by_}" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-dasharray="2 10" stroke-linecap="round"/>')
   for nome,img,num,cor,txt,px,py in fichas(rot):
     x,y=(P(px,py) if not rot else MOB[nome]); r=38 if rot else 26
@@ -65,11 +65,11 @@ def svg(rot, gid):
     curto=nome
     g.append(f'<rect x="{x-(42 if rot else 34)}" y="{y+r+2}" width="{84 if rot else 68}" height="{26 if rot else 20}" rx="5" fill="#0C0C0C" fill-opacity=".82"/><text x="{x}" y="{y+r+(22 if rot else 17)}" text-anchor="middle" font-family="Oswald" font-weight="700" font-size="{21 if rot else 15}" fill="#fff">{curto}</text>')
   # bola com o Jordan + seta
-  x,y=P(89*S,5*S) if not rot else MOB['Jordan']
+  x,y=P(89*S,1.5*S) if not rot else MOB['Jordan']
   g.append(f'<circle cx="{x+20}" cy="{y-14}" r="10" fill="#E8701A" stroke="#0C0C0C" stroke-width="2.5"/><path d="M{x+10},{y-14} h20 M{x+20},{y-24} v20" stroke="#0C0C0C" stroke-width="1.5"/>')
   g.append(f'<path d="M{x-9},{y-48} h18 l-9,12 z" fill="#fff" stroke="#0C0C0C" stroke-width="2"/>')
   # +3 flutuando sobre a cesta do último lance (exemplo de efeito)
-  x,y=P(89*S,5*S) if not rot else MOB['Jordan']
+  x,y=P(89*S,1.5*S) if not rot else MOB['Jordan']
   bxo,byo=(x-250,y-35) if not rot else (x-170,y+40)
   g.append(f'<g><rect x="{bxo}" y="{byo}" width="92" height="40" rx="10" fill="#FFC400" stroke="#0C0C0C" stroke-width="3"/><text x="{bxo+46}" y="{byo+29}" text-anchor="middle" font-family="Oswald" font-weight="900" font-size="26" fill="#0C0C0C">+3 🔥</text></g>')
   g.append('</svg>')
