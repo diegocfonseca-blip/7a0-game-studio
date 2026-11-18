@@ -13876,3 +13876,23 @@ precisa TER a balada); vários outros. **Mais NPCs no entorno do estádio em dia
   jogadores descem (~100 s). Fotos: `scripts/mockups/chegada-*.png`. A câmera só volta pra porta depois do 2º ônibus (cena longa, é tempo morto).
   ⚠️ No teste o mapa remonta 1–2× (cai pro Leve no navegador sem placa de vídeo) e a cena recomeça — conferir num celular de verdade.
 só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prints do Brasileirinho) — não estão no repo.
+## 17/11 — 🏆 Torneio Legends: LISTA DE INTERESSE antes de construir
+- Diego com medo de flopar. Decisão: postar na comunidade um aviso pedindo "EU JOGO"; **só construir se juntar ~40 nomes**.
+- Aviso: `scripts/avisos/2026-11-17-torneio-lista.json` → `scripts/posts/aviso-2026-11-17-torneio-lista.png`.
+- Formato que está no aviso (proposta, AINDA NÃO DECIDIDO): seg a sex, 1 sala por noite a R$ 5 (Passe da Semana R$ 20), cada dia um modo
+  (seg Tocaia · ter Pregão aberto · qua Clubes · qui Envelope único · sex Relâmpago), campeão da noite leva ⭐ Craque + selo 🏆,
+  pontos da semana (1º 10 · 2º 7 · 3º 5 · jogou 1) → 🥇 Fundador · 🥈 Batismo · 🥉 Lenda. Nada de código feito.
+- 🔁 17/11 (mais tarde): Diego fechou o **1º torneio** = UMA sexta 21h, ⭐ Champions de 36, inscrição R$ 5, meta da lista = 36,
+  campeão leva 🖋 Plano Batismo (escudo + mascote); 2º e 3º A DECIDIR. Convite no fim das salas: `scripts/mockups/torneio-lista-fim-sala.png`
+  (cartão com "🙋 Quero jogar" + contador X/36; ✕ fecha pra sempre; depois de entrar vira faixinha). Aguardando OK pra construir.
+  · Pódio do exemplo: Neymarzetti · Cativeiro FC · Guimarães SCI. Transmissão = canal do Futpoint FC (vai no convite).
+
+## 🧤🐓 18/11 — Batismo FUNDADOR Duarte FC (luizfelipeduarte212) — NO BRANCH, esperando OK do Diego pra publicar
+- Várzea, no assento do bot Ressaca United. Fundador nº102 · sócio nº94 · coração Atlético Mineiro (deduzido do pedido do canto).
+- Pagou o Fundador no Pix em 18/11 (subida, R$ 60). Em 17/11 eu tinha ligado o Lenda (user_colors ouro) a pedido do Diego.
+- Escudo/mascote/camisa recortados da prancha verde; manto preto #101010 + branco #F1F1F0, dourado #F7D50A de 3ª cor (MANTO_TRI duarte_paredao).
+- Banco FEITO: esc_socios, esc_fundadores (102), esc_nomes_batismo (Duarte / FC / EC), user_colors ouro.
+- Gala única "São Victor" (`gala-duarte.tsx`, vídeo `scripts/posts/gala-duarte.webm`): pênalti contra, O Paredão defende com o pé.
+  Fato: a defesa do Victor com o pé foi nas QUARTAS da Libertadores 2013 (Tijuana), não na final — a gala não diz "final".
+- ⏳ SEM CANTO: não existe canto do Atlético Mineiro no jogo (nenhum outro usuário tem). Falta o Diego mandar o áudio → `sfx/torcida-galo-v1.mp3` + sound.ts + gala.
+- Post: `scripts/posts/batismo-duarte.png` (dono = "Felipe", tirado do e-mail — confirmar com o Diego).

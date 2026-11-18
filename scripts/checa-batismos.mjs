@@ -90,6 +90,7 @@ const BATISMOS = [
   ['leoreffattig@gmail.com', 'Reffatti FC'], // 🎮👑 Várzea (15/11, batismo) — no assento do bot Atlético Pelada
   ['will.a.n@hotmail.com', 'História dos Gigantes'], // 🧔⚽ Várzea (16/11, batismo) — no assento do bot Real Domingueira
   ['hugopereirabrito@gmail.com', 'Lavras FC'], // 🐆👑 Várzea (16/11, batismo) — no assento do bot Galáticos do Bairro
+  ['luizfelipeduarte212@gmail.com', 'Duarte FC'], // 🧤👑 Várzea (18/11, Fundador) — no assento do bot Ressaca United
   ['lucassaboia14@gmail.com', 'Cabritiiin F.C'], // 🐐👑 Várzea (13/11, Fundador) — no assento do bot Unidos da Resenha
   ['oluisantonio.contato@gmail.com', 'Vila Esporte Clube'], // ⭐🦁 Série D (27/10) — assento do bot Imperador SAF
   ['sheeryarie772@gmail.com', 'Neymar_FC'], // 🐐👑 Série D (21/10; Fundador em 29/10) — assento do bot Galáxia EC

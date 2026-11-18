@@ -4258,6 +4258,7 @@ export const OLD_NAME: Record<string, string> = {
   'Reffatti FC': 'Atlético Pelada', // 🎮👑 batismo do leoreffattig (15/11): assumiu o assento da Várzea que era do bot Atlético Pelada — save antigo com Atlético Pelada vira Reffatti FC ao abrir.
   'História dos Gigantes': 'Real Domingueira', // 🧔⚽ batismo do will.a.n (16/11): assumiu o assento da Várzea que era do bot Real Domingueira — save antigo com Real Domingueira vira História dos Gigantes ao abrir.
   'Lavras FC': 'Galáticos do Bairro', // 🐆👑 batismo do hugopereirabrito (16/11): assumiu o assento da Várzea que era do bot Galáticos do Bairro — save antigo com Galáticos do Bairro vira Lavras FC ao abrir.
+  'Duarte FC': 'Ressaca United', // 🧤👑 batismo FUNDADOR do luizfelipeduarte212 (18/11): assumiu o assento da Várzea que era do bot Ressaca United — save antigo com Ressaca United vira Duarte FC ao abrir.
   'Cabritiiin F.C': 'Unidos da Resenha', // 🐐👑 batismo FUNDADOR do lucassaboia14 (13/11): assumiu o assento da Várzea que era do bot Unidos da Resenha — save antigo com Unidos da Resenha vira Cabritiiin F.C ao abrir.
   'dSouza FC': 'Kombi United', // 🐶💚 batismo FUNDADOR do alexandre12cdm (28/10): assumiu o assento da Série C que era do bot Kombi United — save antigo com Kombi United vira dSouza FC ao abrir. (O Kombi United continua no jogo rápido.)
   'Vila Esporte Clube': 'Imperador SAF', // ⭐🦁 batismo do oluisantonio.contato (27/10): assumiu o assento da Série D que era do bot Imperador SAF — save antigo com Imperador SAF vira Vila Esporte Clube ao abrir.
@@ -4347,7 +4348,7 @@ export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Leo', team: 'Reffatti FC' }, // 🎮👑 clube BATIZADO por apoiador (leoreffattig — Reffatti FC, ex-Atlético Pelada, Várzea; batismo; sócio nº91; escudo do streamer de boné, fone e coroa apontando, mascote O Reffatti; branco #F9F4FB + verde-neon #2AF604 MEDIDOS na camisa, 15/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Hugo', team: 'Lavras FC' }, // 🐆👑 clube BATIZADO por apoiador (hugopereirabrito — Lavras FC, ex-Galáticos do Bairro, Várzea; batismo; escudo preto e dourado da pantera, mascote A Pantera; preto #0A0806 + dourado #F3AD03 MEDIDOS na camisa, 16/11).
   { name: 'Will', team: 'História dos Gigantes' }, // 🧔⚽ clube BATIZADO por apoiador (will.a.n — História dos Gigantes, ex-Real Domingueira, Várzea; batismo; escudo da bola de capotão 'do futebol', mascote O Vovô Gigante; creme #FEE9BD + marrom #7A2B06 MEDIDOS na camisa, 16/11). ⚠️ No POST não se diz de quem era o assento (regra 05/09).
-  { name: 'Tico', team: 'Ressaca United' },
+  { name: 'Felipe', team: 'Duarte FC' }, // 🧤👑 clube BATIZADO por apoiador (luizfelipeduarte212 — Duarte FC, ex-Ressaca United, Várzea; plano FUNDADOR nº102 + sócio nº94; coração ATLÉTICO MINEIRO; escudo do goleiro de luva erguida com o galo, mascote O Paredão; preto #101010 + branco #F1F1F0 MEDIDOS na camisa, dourado de 3ª cor, 18/11). `OLD_NAME` leva save antigo pro nome novo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Sarrafo', team: 'Trave Torta EC' },
   { name: 'Nem', team: 'Barcelona da Vila' },
   { name: 'Pituca', team: 'Juventude do Churrasco' },
