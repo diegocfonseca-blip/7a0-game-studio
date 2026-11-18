@@ -152,7 +152,8 @@
     "kings-sem-lateral": "npx tsx scripts/testa-kings-sem-lateral.mts",
     "kings-presidentes": "npx tsx scripts/testa-kings-presidentes.mts",
     "baralho-mundo-nba": "npx tsx scripts/testa-baralho-mundo-nba.mts",
-    "sala-nba-online": "npx tsx scripts/testa-sala-nba-online.mts"
+    "sala-nba-online": "npx tsx scripts/testa-sala-nba-online.mts",
+    "quadra2d": "npx tsx scripts/testa-quadra2d.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
