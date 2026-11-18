@@ -127,7 +127,8 @@ export function previaDiego(): boolean { return NOVIDADES_17_11_GERAL || unlocke
 export function usePreviaDiego(): boolean { const so = useSoDiego(); return NOVIDADES_17_11_GERAL || so }
 // 📺 18/11 (Diego: "pode publicar tudo na minha conta já"): a Central nova de 18/11 (Próximos jogos, lista "Antes da estreia", TV depois
 // do 1º jogo, sem feira, torcida chegando na estreia em casa, "Ver no mapa" no lugar certo) SÓ na conta dele. Liberar = `true` aqui.
-const CENTRAL_18_11_GERAL = false
+// 🟢 18/11 (Diego: "pode publicar p todos já"): LIBERADO PRA TODOS. `false` aqui = volta só pra conta dele.
+const CENTRAL_18_11_GERAL = true
 export function previaCentral(): boolean { return CENTRAL_18_11_GERAL || unlocked || oficialTeste }
 export function usePreviaCentral(): boolean { const so = useSoDiego(); return CENTRAL_18_11_GERAL || so }
 // 🧪 só no modo de desenvolvimento (o build de produção apaga este bloco): liga o Brasil Oficial no navegador de teste, pra

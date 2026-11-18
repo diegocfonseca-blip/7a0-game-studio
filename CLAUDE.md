@@ -385,7 +385,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   aparelho** (nunca na nuvem, sem o teste de 5 dias) · **1 carreira só** · **carreira parada 5 dias é excluída** (com o aviso de dias) ·
   **sem limite de temporada** (a trava da T50 não vale no modo) · **Manual só com plano ou avulso** · **over de craque e lenda só com plano**
   (olheiro). 🇪🇺 A **Europa Oficial** vai ser **só com plano** desde o início. Desligar o modo = `BRASIL_OFICIAL_GERAL = false` (sport.ts);
-  as prévias da carreira de sempre (Central nova, Mercado…) continuam só na conta dele (`useSoDiego`/`CENTRAL_18_11_GERAL`).
+  as prévias da carreira de sempre (Central nova, Mercado…) também foram pra TODOS no mesmo dia (*"pode publicar p todos já"*, `CENTRAL_18_11_GERAL = true`).
 - **🇧🇷 BRASIL OFICIAL = TUDO REAL, NADA INVENTADO (15/11, regra permanente).** Palavras dele: *"quero que todos campeonatos
   sejam reais, as regras e etc, sem invenção"*. No modo de clubes reais: clubes, divisões, formatos, quantos sobem/caem,
   vagas de Libertadores/Sul-Americana, estaduais, Copa do Brasil, Supercopa, Intercontinental e troféus seguem o REAL, cada
