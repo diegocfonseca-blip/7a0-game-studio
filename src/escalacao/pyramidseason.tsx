@@ -9364,6 +9364,7 @@ export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** �
   const L = (pt: string, e: string) => en ? e : pt
   const [sub, setSub] = useState<'estadio' | 'patrocinio' | 'financas' | 'escritorio' | 'multi'>('estadio')
   const [painelBB, setPainelBB] = useState<DestinoClubeMapa | null>(null) // 🏀🗺️ 18/11: o painel aberto por cima do mapa (Clube novo)
+  const meuSocBB = useMeuSocio() // 🏀🏠 18/11: Casa e garagem (o mesmo painel do futebol)
   const youId = state.managers[state.youIdx]?.id ?? state.youIdx
   const coins = state.careerCoins?.[youId] ?? 0
   const myCards = state.empresarioCards ?? []
@@ -9420,15 +9421,29 @@ export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** �
     const subDe = (d: DestinoClubeMapa | null): typeof sub | null => d === 'financas' ? 'financas' : d === 'patrocinio' ? 'patrocinio' : d === 'estrutura' ? 'estadio' : d === 'agencia' || d === 'escritorio' ? 'escritorio' : d === 'negocios' ? 'multi' : null
     const aberto = subDe(painelBB)
     const clube = state.managers[state.youIdx]?.teamName ?? ''
+    // 🏠 18/11 (Diego: *"sim"*): Casa e garagem no Clube do basquete — o MESMO painel do futebol (casa, garagem, troféus, móveis,
+    // personagem) e a mesma trava (`podeAlterarPresidencia`: só carreira solo). Nada de regra nova: as ações são as do futebol.
+    const casaOk = PRESIDENT_INTEGRATION_RELEASED && podeAlterarPresidencia(state, youId)
+    const corTier = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
+    const casa = painelBB === 'presidencia' && casaOk ? <ResidenciaClube onFurnitureHome={ids => { if (!presidentWritesEnabled(state) || !organizarMoveisNaCasa(state, youId, ids).ok) return false; dispatch({ type: 'PRESIDENCY_FURNITURE_HOME', mgrId: youId, ids }); return true }}
+      onVadico={() => setPainelBB('veiculos')} insideMap onFinances={() => setPainelBB('financas')} key={youId} state={state} mgrId={youId} member={meuSocBB} tierColor={corTier}
+      onBack={() => setPainelBB(null)} onStadium={() => setPainelBB(null)} onRoof={closed => dispatch({ type: 'PRESIDENCY_ROOF', mgrId: youId, closed })}
+      onTrade={quote => { if (!presidentWritesEnabled(state) || !negociarNaCarreira(state, youId, quote, true).ok) return false; dispatch({ type: 'PRESIDENCY_TRADE', mgrId: youId, quote, confirmed: true }); return true }}
+      onDisplay={display => { if (!presidentWritesEnabled(state) || !exibirDuplaNaCarreira(state, youId, display).ok) return false; dispatch({ type: 'PRESIDENCY_DISPLAY', mgrId: youId, display }); return true }}
+      onSave={value => { if (!presidentWritesEnabled(state)) return false; dispatch({ type: 'PRESIDENCY_SAVE_BASE', mgrId: youId, value }); return true }} />
+      : painelBB === 'veiculos' && casaOk ? <GaragemCarreira soLoja wallet={carteiraDaCarreira(state, youId)} display={state.careerPresidency?.[youId]?.display} onBack={() => setPainelBB(null)}
+        onTrade={quote => { if (!presidentWritesEnabled(state) || !negociarNaCarreira(state, youId, quote, true).ok) return false; dispatch({ type: 'PRESIDENCY_TRADE', mgrId: youId, quote, confirmed: true }); return true }}
+        onDisplay={display => { if (!presidentWritesEnabled(state) || !exibirDuplaNaCarreira(state, youId, display).ok) return false; dispatch({ type: 'PRESIDENCY_DISPLAY', mgrId: youId, display }); return true }} />
+      : null
     return (
       <div className="bb-clube-novo">
         <header style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 2px 12px' }}>
           <h2 style={{ ...OSWALD, fontWeight: 900, fontSize: 26, textTransform: 'uppercase', margin: 0, lineHeight: 1.1 }}>{L('Seu clube', 'Your club')}</h2>
           <span title={L('Caixa do clube', 'Club balance')} style={{ ...OSWALD, fontWeight: 900, fontSize: 15, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 11px', background: '#fff', boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>{coins.toLocaleString('pt-BR')} 🪙</span>
         </header>
-        <ClubeOrganizacao bb semCaixa onSelect={d => setPainelBB(d)} store={false} museum={false} home={false} balance={coins} club={clube}>{conteudo('estadio', 'map')}</ClubeOrganizacao>
-        <ClubeMapaPainel enabled active={aberto ? painelBB : null} club={clube} agency onSelect={d => setPainelBB(d)} onClose={() => setPainelBB(null)}>
-          {aberto ? conteudo(aberto, aberto === 'estadio' ? 'works' : undefined) : null}
+        <ClubeOrganizacao bb semCaixa onSelect={d => setPainelBB(d)} store={false} museum={false} home={casaOk} balance={coins} club={clube}>{conteudo('estadio', 'map')}</ClubeOrganizacao>
+        <ClubeMapaPainel enabled active={aberto || casa ? painelBB : null} club={clube} agency onSelect={d => setPainelBB(d)} onClose={() => setPainelBB(null)}>
+          {casa ?? (aberto ? conteudo(aberto, aberto === 'estadio' ? 'works' : undefined) : null)}
         </ClubeMapaPainel>
       </div>
     )

@@ -216,7 +216,8 @@
 - 🏀 Basquete (no branch): a aba Clube agora é o MESMO formato do Clube do futebol (`ClubeOrganizacao` + `ClubeMapaPainel`): mapa com a arena primeiro, "Meu clube" (Finanças · Arena e obras · Patrocínios) e "Meus negócios" (Minha agência · 2º clube), cada um abrindo o painel por cima do mapa com "← Voltar ao mapa". Sem loja, sem museu, sem Casa e garagem (o basquete não tem esses painéis ainda). Mesmo conteúdo de antes (`conteudo()` em `BbClubeOverlay`) — regras, preços e obras não mudaram.
 - ⚽ Futebol (no branch): o bloco grande "Caixa do clube no comando" saiu do Clube; o caixa fica na etiqueta do título (`CareerHeading chip`), no celular e no computador. Vale pra carreira offline (a carreira online não tem essa página).
 - Prints: `basquete-clube-novo-{celular,pc}.png`, `carreira-clube-caixa-etiqueta-{celular,pc}.png`. Fica no branch até ele mandar publicar.
-- Falta (se ele quiser): Casa e garagem no Clube do basquete.
+- ✅ 18/11 (Diego: *"sim e também faltou a grama com textura que já botei no futebol"*): **Casa e garagem** no Clube do basquete — o MESMO painel do futebol (`ResidenciaClube` + `GaragemCarreira`, mesma trava `podeAlterarPresidencia`). **Grama com textura**: estava na main (`presidencia-grama-viva.ts`) e o branch estava 257 commits atrás — trouxe a main pro branch e o mapa do basquete já sai com ela (é o mesmo mapa). Prints `basquete-clube-casa-garagem.png`, `basquete-mapa-grama-textura.png`.
+- 🔧 Junto do merge: a main tinha quebrado os testes do Node (o store passou a importar `escudos.tsx`, que puxa .webp; e `import.meta.env.DEV` sem env). A chave do escudo oficial foi pra `escudo-oficial-chave.ts` e o DEV virou `import.meta.env?.DEV`. O jogo não muda nada.
 
 ### 🏀 18/11 (9) — Tela de FIM da partida no visual novo (basquete, fora da carreira)
 - A tela de fim do basquete (Partida Rápida e salas) passou pro visual novo, igual ao futebol. Carreira continua como estava.
