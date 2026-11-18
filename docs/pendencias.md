@@ -35,6 +35,7 @@
   - Liga quando o 2D está ligado (`useQuadra2DLigada`: rápido e salas; carreira do basquete fica pra depois). Sala: o dono escolhe "📊 Placar padrão / ⭐ 📺 Quadra 2D" na criação (mesma regra do 2D do futebol: criar é do plano, entrar é grátis). Partida Rápida: o botão do 2D junto do Manual (do plano).
   - ⏱️ 60 s por jogo na marcha padrão (`dur2DBBDaVel`), as marchas do Manual aceleram/atrasam — liga e Play-In/Playoffs. Trava no `npm run vel-2d`.
   - Testado na sala online (dono, banco simulado): o jogo inteiro em ~1 min, placar subindo em cesta de verdade e fechando no resultado. Prints `scripts/mockups/basquete-quadra2d-real-{celular,pc}.png`.
+  - ✅ Diego deu OK (18/11, *"Ok"*) pra ficar assim e ele testar quando liberar. Fica no branch até ele mandar publicar.
   - Falta: teste com 2 aparelhos; carreira do basquete; a "festa" do fim de jogo do 2D (o do futebol tem resumo/festa).
 
 ## 🧾 15/11 — Sala XEBXDB do Reffatti (Kings): dono perdeu a coroa na FINAL e foi pro menu — REGISTRO publicado, causa ainda aberta
