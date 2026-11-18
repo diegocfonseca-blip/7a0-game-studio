@@ -1,7 +1,7 @@
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)
 - Pra TODOS: link "ver fases e resultados" que desce até os resultados · pênaltis de fase encerrada prontos na lista · câmera do ônibus
   da aba Clube a 22 m no eixo da rua · cartas de clube europeu do Mundo → Europa (17/11) · "1 ponto"/"1 confronto" no singular.
-- SÓ NA CONTA DO DIEGO (`previaDiego`/`usePreviaDiego`, sport.ts): ônibus em jogo grande na aba Jogos, balada e clube de lazer no mapa,
+- 🟢 18/11 (Diego: "já pode p todos… carreira antiga também"): LIBERADO PRA TODOS (`NOVIDADES_17_11_GERAL = true`, sport.ts): ônibus em jogo grande na aba Jogos, balada e clube de lazer no mapa,
   multidão no portão, linha a mais dos dias, "Enquanto isso no bairro" na Central, futevôlei na noitada; e todo o Brasil Oficial.
   Liberar = trocar a régua de `previaDiego` em sport.ts.
 - Cuidados antes de publicar (auditoria do diff): as novidades da home NÃO anunciam as cartas que só trocaram de baralho (o arquivo
