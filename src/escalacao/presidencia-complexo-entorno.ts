@@ -1,3 +1,4 @@
+import {gramaViva} from './presidencia-grama-viva'
 import {previaDiego} from './sport' // 👀 18/11
 import {criarBaladaBairro,type BaladaBairro} from './presidencia-balada-bairro' // 🪩 17/11
 import {criarClubeLazer} from './presidencia-clube-lazer' // 🏐 17/11
@@ -136,7 +137,7 @@ export function criarEntornoComplexo(scene:THREE.Scene, state:EstadoComplexo,onR
   // A large repeated octave across open land forms visible bands at map scale.
   // Retain fine surface detail there without repeating broad stains every 4 m.
   const dirt=material('#96815f',1,0,noise('#96815f',.065,false,0))
-  const grass=material('#63844e',1,0,noise('#63844e',.045,false,0))
+  const grass=gramaViva(material('#63844e',1,0,noise('#63844e',.045,false,0)))
   const asphalt=material('#555a56',.96,0,noise('#555a56',.06))
   const paving=material('#cec9b9',.91,0,noise('#cec9b9',.025,true))
   paving.userData.civilianPavement=true

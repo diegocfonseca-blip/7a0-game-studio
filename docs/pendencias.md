@@ -13969,3 +13969,9 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Canto: `sfx/torcida-obelisko-v1.mp3` = 14 s da abertura instrumental que o Diego mandou (mono 56k, −20,6 dB), ligado na carreira (sound.ts). ⚠️ Música com dono (avisado ao Diego, 18/11).
 - Gala única "A Invocação" (`gala-obelisko.tsx`, vídeo `scripts/posts/gala-obelisko.webm`, toca o canto): 3 cartas viram tributo, obelisco racha, O Atormentador se ergue, ficha nível 10 · DIVINO · ATK/DEF 4000, soco trinca a tela, escudo. Só fatos da carta (3 tributos, 4000/4000, Divino, nível 10). Post: `scripts/posts/batismo-obelisko.png`.
 - Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
+
+### 🌿 18/11 — Mapa: grama com textura (ESPERANDO OK do Diego, só no branch)
+- Pedido: *"o verde não tem textura… fica muito liso e feio"* (comparou com o Brasileirinho). Feito em `presidencia-grama-viva.ts`
+  (shader na grama do `presidencia-complexo-entorno.ts`): manchas grandes, touceiras, florzinhas só de perto. Mapa NÃO diminuiu.
+- Antes × depois: `scripts/mockups/grama-textura.png`. **Não publicar na main sem o OK dele.**
+- Próximo: as "terminações" (caminho de terra/calçada que acabam no meio da grama). Mockup da maquete (`clube-maquete`) foi RECUSADO: diminuiu o mapa.
