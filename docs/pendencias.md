@@ -27,6 +27,14 @@
     📍 "Ver no mapa" agora leva DIRETO ao lugar da cena (*"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*):
     feira → feira · noitada → balada · futevôlei → clube de lazer · boteco → Boteco do Oswaldo · carreata → ruas · obra → o
     terreno da obra. Caminho: `pedeVistaDoMapa` (controle-partida-mapa.ts) → o mapa chama o MESMO `go()` do menu Locais.
+  · 📺 18/11 (2ª rodada, Diego: *"contrato de TV já marcado não tá legal… uma coisa de cada vez… faz o patrocinador, aí depois
+    aparece o da TV"*): a TV SAIU da pré-temporada. O aviso dela aparece só DEPOIS do 1º jogo (aba Jogos), uma vez por divisão.
+    🐛 E o aviso MENTIA o valor: mostrava D 5 · C 10 · B 15 · A 20 (lista à mão) e o caixa paga D 20 · C 30 · B 40 · A 50
+    (`TV_COTA`, régua de 15/09); também dizia "direto no caixa" e a cota cai no FIM da temporada. Agora lê `TV_COTA` e diz quando paga.
+  · ⏳ PROPOSTA pendente (Diego: *"tem que ver esse contrato de TV com base nas divisões, com base no time… reformular valores de
+    moeda, de premiação com base na divisão"*): no Brasil Oficial a TV e os prêmios seguirem o real — TV por divisão E tamanho do
+    clube (grande ganha mais, como no Brasileirão de verdade) e o prêmio de acesso/queda pelo formato real de cada série (hoje o
+    "top 4" é o da pirâmide inventada). Esperando o OK dele antes de mexer em valor.
   · `passosVirada` virou a conta ÚNICA dos passos da virada (escritório da aba Jogos e Central leem a mesma).
 
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)

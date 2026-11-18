@@ -11368,15 +11368,6 @@ export function PyramidSeasonScreen() {
     if (mostraBico) passos.push('bico')
     return { passos, temLoja, mostraBico, lj, st, dv }
   })()
-  // 📺 a TV entra no caixa sozinha: na Central ela vira uma linha "✓ feito" da lista (e não mais o cartão com "BORA!" na aba Jogos).
-  // Guardada por temporada+divisão só nesta tela, pra a linha continuar lá depois de marcada como vista.
-  const tvNovaAgora = round === 0 && !!me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div)
-  const [tvNaLista, setTvNaLista] = useState<string | null>(null)
-  useEffect(() => {
-    if (tab !== 'central' || !tvNovaAgora || !me) return
-    setTvNaLista(`${state.seasonNo ?? 1}:${me.div}`)
-    dispatch({ type: 'TV_BANNER_SEEN', div: me.div })
-  }, [tab, tvNovaAgora]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🧹 recibo do patrocínio da temporada PASSADA (rotina, não conquista): sai do
   // caminho da decisão e vira linha depois do botão verde.
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
@@ -12588,7 +12579,6 @@ export function PyramidSeasonScreen() {
     }
     return <CentralCarreira sede={sede} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       preTemporada={round === 0 && !seasonOver ? {
-        tv: tvNaLista === `${sn}:${me?.div}` ? { cota: ({ D: 5, C: 10, B: 15, A: 20 } as Record<string, number>)[me?.div ?? ''] ?? 0 } : null,
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
       } : null}
@@ -13211,7 +13201,9 @@ export function PyramidSeasonScreen() {
             depois de escolher (não "some" como os outros), então não faz sentido
             como item de fila — segue exatamente onde já estava, mais abaixo. */}
         {(() => {
-          const temTV = round === 0 && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div)
+          // 📺 18/11 (Diego: "uma coisa de cada vez… faz o patrocinador, aí depois aparece alguma informação do contrato de TV"): o aviso
+          // da TV saiu da pré-temporada — aparece DEPOIS do 1º jogo (foi a 1ª transmissão), nunca junto com o Master
+          const temTV = round >= 1 && !copaPlaying && me && state.onlineMode !== 'online' && ['D', 'C', 'B', 'A'].includes(me.div) && !(state.tvBannerSeen ?? []).includes(me.div)
           // 📺 AVISO ÚNICO DA COTA EXTRA (Diego 23/08): *"quando acabar a temporada
           // de QUALQUER usuário, conta antiga ou nova, deve aparecer um banner na
           // cara dele UMA vez sobre a cota extra"*. Round 0 = a virada (a temporada
@@ -13252,14 +13244,14 @@ export function PyramidSeasonScreen() {
           // compartilhado).
           if (temTV) fila.push({
             key: 'tv', render: () => {
-              const cota = ({ D: 5, C: 10, B: 15, A: 20 } as Record<string, number>)[me!.div] ?? 0
+              const cota = TV_COTA[me!.div] ?? 0 // 18/11: era uma lista à mão (5/10/15/20) que mentia — a cota que PAGA é a `TV_COTA` (20/30/40/50)
               const primeira = !(state.tvBannerSeen ?? []).length
               return (
                 <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#2b2b2b,#0C0C0C)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
                   <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>{tr('📺 Contrato de TV', '📺 TV deal')}</span>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{getLang() === 'en' ? (primeira ? <><span style={{ color: GOLD }}>TV found</span> your club!</> : <>TV deal <span style={{ color: GOLD }}>upgraded</span>!</>) : primeira ? <>A <span style={{ color: GOLD }}>TV descobriu</span> seu clube!</> : <>Contrato de TV <span style={{ color: GOLD }}>melhorou</span>!</>}</p>
                   <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0', color: '#EDE7D3' }}>{getLang() === 'en' ? (primeira ? (state.oficial ? <><b>Série {me!.div}</b> on the telly! — <b>Rede Martelo TV</b> signed your club's broadcast deal for the season. 📡</> : <>"Out of the Sunday-league mud and into <b>Série {me!.div}</b>?! Now you're on the telly, pal!" — <b>Rede Martelo TV</b> signed your club's first broadcast deal. 📡</>) : <>Up to <b>Série {me!.div}</b> and the audience grew — <b>Rede Martelo TV</b> renewed for more money. 📡</>) : primeira ? (state.oficial ? <>A <b>Série {me!.div}</b> tá na telinha, cumpadi! — a <b>Rede Martelo TV</b> fechou o contrato de transmissão do seu clube na temporada. 📡</> : <>"Saiu da lama da várzea e chegou na <b>Série {me!.div}</b>?! Agora tem jogo na telinha, cumpadi!" — a <b>Rede Martelo TV</b> assinou o 1º contrato de transmissão do seu clube. 📡</>) : <>Subiu pra <b>Série {me!.div}</b> e a audiência cresceu — a <b>Rede Martelo TV</b> renovou por mais grana. 📡</>}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} {tr('por temporada', 'per season')} <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>{tr('· direto no caixa', '· straight into the till')}</span></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '12px 0 0', fontWeight: 900, fontSize: 15 }}>🪙 +{cota} {tr('por temporada', 'per season')} <span style={{ opacity: .85, fontWeight: 700, fontSize: 12 }}>{tr('· cai no caixa no fim da temporada', '· paid into the till at season end')}</span></div>
                   <p style={{ fontSize: 10, fontWeight: 800, margin: '9px 0 0', color: GOLD }}>{tr('Tudo do contrato mora em: 🏟️ Clube › 🤝 Patrocínio', 'Everything about the deal lives in: 🏟️ Club › 🤝 Sponsorship')}</p>
                   <button onClick={() => dispatch({ type: 'TV_BANNER_SEEN', div: me!.div })} style={{ width: '100%', background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 15, padding: '11px 0', marginTop: 10, textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('Bora! 📺', 'Let\'s go! 📺')}</button>
                 </div>

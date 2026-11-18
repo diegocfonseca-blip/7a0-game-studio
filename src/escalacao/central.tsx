@@ -130,7 +130,7 @@ export type CentralProps = {
   proximo: { rodada: number; casa: string; fora: string; rolando: boolean; rotulo?: string; frase?: string; arte?: CentralArte } | null
   /** 🏁 ANTES DA ESTREIA (18/11, Diego: *"começa o modo carreira e já aparece meio confuso… esse negócio de TV no início tá
    *  confuso"*): na rodada 0 o camarote vira uma lista curta — 📺 TV (já no caixa) · 🏆 Master · ⚽ estreia — e o botão é o passo da vez */
-  preTemporada?: { tv: { cota: number } | null; master: string | null; travado: boolean } | null
+  preTemporada?: { master: string | null; travado: boolean } | null
   /** 🔎 RAIO-X DO ADVERSÁRIO (31/10, só na conta do Diego por enquanto): o que o jogo JÁ sabe do rival da próxima
    *  rodada da liga — formação, estilo, os 3 melhores do XI, cansaço (só com o gás ligado) e últimos 5. Nada inventado. */
   raioX?: RaioX | null
@@ -338,7 +338,6 @@ export function CentralCarreira(p: CentralProps) {
                 return (
                   <div style={{ display: 'grid', gap: 6, margin: '12px 0' }}>
                     <b style={{ ...OSW, fontSize: 12, letterSpacing: '.1em', color: GOLD, textAlign: 'left' }}>{t('🏁 Antes da estreia', '🏁 Before kick-off')}</b>
-                    {pt.tv && linha('tv', 'ok', t('📺 Contrato de TV', '📺 TV deal'), t(`A Rede Martelo TV fechou com o clube: +${pt.tv.cota} 🪙 por temporada, direto no caixa.`, `Rede Martelo TV signed with the club: +${pt.tv.cota} 🪙 per season, straight to the bank.`))}
                     {pt.master ? linha('m', 'ok', t('🏆 Patrocinador Master', '🏆 Master sponsor'), t(`Assinado: ${pt.master}.`, `Signed: ${pt.master}.`))
                       : linha('m', 'vez', t('🏆 Patrocinador Master', '🏆 Master sponsor'), t('Marcas na mesa, cada uma com prazo e meta. Escolha uma.', 'Brands on the table, each with a length and a goal. Pick one.'))}
                     {linha('j', pt.travado ? 'trava' : 'vez', t('⚽ Estreia', '⚽ First match'), pt.travado ? t('Abre depois do Master.', 'Opens after the Master.') : t('Tudo pronto. É só começar.', 'All set. Just kick off.'))}
