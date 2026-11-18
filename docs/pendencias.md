@@ -13988,3 +13988,17 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Cartão 💸 da Central: o link vira "mercado" e leva pra aba (com a aba ligada).
 - ⚠️ Falta conferir numa virada DE VERDADE que o "de olho" vira o sondado (não deu pra chegar no fim da temporada no teste).
 - Transferências de TÉCNICO não existem no registro (`careerMercado` só tem jogador) — o filtro de técnicos do mockup ficou de fora.
+
+### 🔨 18/11 — Brasil Oficial: começo da carreira (só conta do Diego, no branch)
+- ✅ **Leilão de abertura** (`abreLeilaoAberturaOficial`, store): todo clube da série (você + 19 bots) leva até 1 por posição
+  (`Manager.aberturaBase` → `slotsOf`/`openSlots`). Baralho = sobra do sorteio dos clubes da SUA faixa (série ± 1), sem carta com dono.
+  Bots entram como `backstop` (cinto de sempre). Fim da cerimônia limpa tudo e grava o troco dos bots no `clubCash`. Testado de ponta a
+  ponta (Santa Cruz, Série C): abre, revela, monte, cerimônia, temporada com 38 jogos. Trava: `testa-brasil-oficial.mts` atualizada.
+- ✅ **Caixa inicial pela receita real** (`caixaInicialOficial`/`RECEITA_OFICIAL`, economia-oficial.ts): log da receita, R$ 10 mi → 40 ·
+  Flamengo (R$ 2,09 bi) → 400. Fontes em `docs/brasil-oficial/receitas-clubes.md` (A 19/20, B 12/20, C 3, D 1 com número; o resto na
+  régua A 160 · B 100 · C 65 · D 40). Vila Nova fora até confirmar a fonte. Rede da sessão só abria ge e wikipedia.
+- ✅ **Gás desde a 1ª rodada** no Oficial (`condicaoDesde = seasonNo` no `iniciaBrasilOficial`).
+- ⚠️ **Observado no teste**: os bots pobres (65 🪙, Série C) quase não compram na abertura — o cinto deles (caixa ÷ vagas × 1,6) fica
+  perto do piso das cartas. Os ricos da série (Guarani, Paysandu) compram. Falta: limite do bot = % do caixa por categoria + loucura.
+- ⏳ Falta: bot faz tudo que o usuário faz (prêmio, salário, renovação, técnico/preparador pago) — ver
+  `docs/brasil-oficial/tecnico-preparador-analise.md` (bots contratam/renovam técnico DE GRAÇA e não têm preparador).

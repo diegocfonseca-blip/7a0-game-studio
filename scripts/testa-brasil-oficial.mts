@@ -79,7 +79,15 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
   if (depois.club !== 'Atlético-GO' || depois.year !== 2023 || depois.fame === 5) falha(`ficha com o baralho trocou a carta do modo de clube: ${depois.club} ${depois.year}`)
   const s = reducer(INITIAL, base as never)
   if (!s.oficial || s.oficial.clube !== 'Remo') falha('não marcou a carreira como oficial')
-  if (s.screen !== 'season') falha(`devia começar na temporada (sem leilão de estreia), está em ${s.screen}`)
+  // 🔨 18/11 (Diego): começa com o LEILÃO DE ABERTURA — 1 vaga por posição pra todos os 20 clubes da série
+  if (s.screen !== 'auction' && s.screen !== 'season') falha(`devia abrir o leilão de abertura, está em ${s.screen}`)
+  if (s.screen === 'auction') {
+    if (!s.oficialAbertura) falha('leilão de abertura sem a marca oficialAbertura')
+    for (const m of s.managers) for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const)
+      if ((m.aberturaBase?.[p] ?? -1) !== m.squad.filter(c => c.pos === p).length) falha(`${m.teamName}: base da abertura errada em ${p}`)
+    const dono = new Set(s.managers.flatMap(m => m.squad.map(c => `${c.name}|${c.club}|${c.year}`)))
+    for (const p of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const) for (const c of s.deck[p]) if (dono.has(`${c.name}|${c.club}|${c.year}`)) falha(`carta com dono no leilão de abertura: ${c.name}`)
+  }
   if (s.managers.length !== 20) falha(`a divisão do Remo devia ter 20 clubes, tem ${s.managers.length}`)
   if (s.managers[0].teamName !== 'Remo' || !s.managers[0].isHuman) falha('o assento 0 tem que ser o Remo do usuário')
   const nomesA = new Set(clubesDaDivisao('A').map(c => c.nome))

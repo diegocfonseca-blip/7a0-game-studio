@@ -282,6 +282,9 @@ export interface Manager {
   // (XI + banco = 2× a formação por posição). Fora do leilão de reservas fica
   // undefined, então o leilão normal (T1/solo/dinastia/rápido) segue mirando 11.
   deepSquad?: boolean
+  /** 🔨 Brasil Oficial (18/11): leilão de ABERTURA — quantas cartas o clube tinha em cada posição quando ele abriu. Enquanto existe,
+   *  o alvo do pregão é isso + 1 (uma vaga por posição, igual pra todos). Some no fim da cerimônia. */
+  aberturaBase?: Partial<Record<Sector, number>>
   // 🔁 carreira (14/10): jogadores que perderam a vaga pra um reforço do bot e vão ser LISTADOS no próximo leilão
   // (o bot recebe o dinheiro da venda, igual quem lista). Só bot rival; humano nunca.
   aVender?: string[]
@@ -1307,6 +1310,8 @@ export interface EscState {
   /** 👀 MERCADO (Brasil Oficial, 18/11): de olho DURANTE a temporada em quem fica livre no fim dela. Na janela, a tela do Sondar
    *  transforma isso no sondado de verdade (ALICIAR_MARCAR, com as travas de sempre) e apaga. Jogador vai pela chave da carta
    *  (nome|clube|ano) — o cardId não serve de chave porque muda. */
+  /** 🔨 Brasil Oficial: o leilão em andamento é o de ABERTURA (5 vagas, 1 por posição, pra todos) */
+  oficialAbertura?: boolean
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }
   // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é idêntico ao
   // leilão normal, só vem antes do goleiro; é como uma posição nova apenas"):

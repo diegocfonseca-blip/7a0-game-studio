@@ -1142,7 +1142,7 @@ import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ cop
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
-import { tvOficial, porteOficial, NOME_PORTE } from './economia-oficial'
+import { tvOficial, porteOficial, NOME_PORTE, caixaInicialOficial } from './economia-oficial'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
 import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
@@ -1398,6 +1398,9 @@ export function slotsOf(m: Manager, pos: Sector): number {
   if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
   // 🧱 leilão de clubes: no pregão cada técnico leva UM pacote por setor (a convocação vem depois)
   if (m.modoClubes) return 1
+  // 🔨 Brasil Oficial (18/11): no leilão de ABERTURA cada clube leva UMA por posição — *"5 pra todos… um pra goleiro, um pra zagueiro,
+  // um pra lateral, um pra meia e um pra atacante"*. Vale pro usuário e pros bots, igual.
+  if (m.aberturaBase) return (m.aberturaBase[pos] ?? 0) + 1
   // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
   // ⛔ AQUI NÃO ENTRA O +1 POR POSIÇÃO (correção do Diego, 16/09): *"o leilão de
   // reserva são 11 jogadores sempre… poder comprar mais cinco não tem nada a ver
@@ -1430,6 +1433,7 @@ export function filled(m: Manager, pos: Sector): number {
 // sozinho: vaga sem lance é vaga vazia.
 // Bot/rival seguem no alvo do pregão, exatamente como era.
 export function openSlots(m: Manager, pos: Sector): number {
+  if (m.aberturaBase) return Math.max(0, (m.aberturaBase[pos] ?? 0) + 1 - filled(m, pos)) // 🔨 abertura do Brasil Oficial: 1 por posição
   // ⚠️ SÓ COM O PREGÃO ABERTO (`deepSquad`). Fora dele o alvo volta pra 11 e este
   // número é usado pra outras coisas (o "−N 🕳️" do gerenciar, a vez do monte);
   // mexer nele o ano inteiro faria a tela dizer que falta gente sem faltar.
@@ -2497,7 +2501,7 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
   // dá lance mais"). Com o banco de 22, o bot chegava ao leilão SEM vaga e não disputava nada. Agora, na carreira (bot que
   // pensa como gente), elenco cheio ainda dá UM lance por setor — só em carta BEM melhor que o pior titular dele. Se ganhar,
   // o jogador que perde a vaga vai a leilão no próximo leilão (`marcaAVender`) e o dinheiro da venda é do bot.
-  const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman
+  const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman && !m.aberturaBase
   if (reforco) need = 1
   if (need === 0 || m.money <= 0) return []
   const remaining = ORDEM_ATIVA.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
@@ -7883,11 +7887,69 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   s.careerDivision = meu.div
   s.clubCash = seedClubCash({}, pl)
   s.cpuSquads = undefined // os clubes das outras divisões ganham o elenco no SEED_CPU_SQUADS (com o sorteio deles, ver pyramidseason)
-  s.careerCoins = { 0: 100 }
+  // 💰 caixa inicial pela RECEITA REAL do clube (18/11) — o seu e o de cada bot da série
+  const caixa0 = caixaInicialOficial(meu.nome, meu.div)
+  s.careerCoins = { 0: caixa0 }
+  s.careerLedger = []
+  logFin(s, 'opening', '🏁 Saldo inicial', caixa0)
+  s.managers.forEach((m, i) => { m.money = i === 0 ? caixa0 : caixaInicialOficial(m.teamName, meu.div) })
   s.league = buildLeague(s.managers, false)
   s.fixtures = calendarioDaLiga(s)
+  // 😓 18/11 (Diego: *"condição física já pode começar desde o início"*): no Brasil Oficial o gás vale desde a 1ª rodada, em qualquer
+  // série (inclusive a D). `condicaoDesdeR` vazio = não é a cura de 12/09 (que desliga quem ligou no meio da temporada fora de C/B/A).
+  s.condicaoDesde = s.seasonNo ?? 1; s.condicaoDesdeR = undefined
   s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
+  // 🔨 LEILÃO DE ABERTURA (18/11, Diego: *"5 pra todos… um pra goleiro, um pra zagueiro, um pra lateral, um pra meia e um pra
+  // atacante"*). Cada clube da série começa com o elenco dele e pode levar UMA carta por posição (usuário e bots, igual). O baralho é
+  // a SOBRA do sorteio de cada clube real (A–D): a mesma semente que monta os elencos, então quem não entrou nos 22 de ninguém.
+  // Sem carta sobrando o leilão não abre e a temporada começa direto (nunca trava).
+  if (abreLeilaoAberturaOficial(s, semente, cat as unknown as Record<Sector, Card[]>, rngC)) return true
   s.screen = 'season'
+  return true
+}
+/** 🔨 monta e abre o leilão de abertura do Brasil Oficial. false = não tinha carta (segue pra temporada). */
+function abreLeilaoAberturaOficial(s: EscState, semente: (txt: string) => number, cat: Record<Sector, Card[]>, rngC: () => number): boolean {
+  const ident = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+  const donos = new Set<string>()
+  for (const m of s.managers) for (const c of m.squad) donos.add(ident(c))
+  const porPos: Record<Sector, Card[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+  const vistos = new Set<string>()
+  // 🎯 o mercado é o da SUA faixa: sobra dos clubes da sua série e das vizinhas (A: A+B · B: A–C · C: B–D · D: C+D). Clube da C não
+  // vê o leilão cheio de lenda do Flamengo que nunca vai poder pagar — e o bot também não (testado 18/11: com tudo misturado, quase
+  // ninguém comprava nada).
+  const ordemDiv = ['A', 'B', 'C', 'D'], iDiv = Math.max(0, ordemDiv.indexOf(s.careerDivision ?? 'D'))
+  const divsOk = new Set(ordemDiv.filter((_, i) => Math.abs(i - iDiv) <= 1))
+  for (const clube of [...CLUBES_BR, ...clubesDaDivisao('D')]) {
+    if (!divsOk.has(clube.div)) continue
+    for (const x of sorteiaElenco(cartasDoClube(clube, cat), semente(clube.nome)).sobra) {
+      const k = ident(x.carta)
+      if (donos.has(k) || vistos.has(k) || x.carta.fake) continue
+      vistos.add(k)
+      porPos[x.pos].push({ ...x.carta, pos: x.pos, id: `ab-${x.pos}-${porPos[x.pos].length}` } as Card)
+    }
+  }
+  const demanda = s.managers.length // 1 vaga por clube em cada posição
+  const deck = {} as Record<Sector, Card[]>
+  for (const pos of SECTORS) {
+    const lista = porPos[pos]
+    for (let i = lista.length - 1; i > 0; i--) { const j = Math.floor(rngC() * (i + 1)); [lista[i], lista[j]] = [lista[j], lista[i]] }
+    deck[pos] = lista.slice(0, Math.ceil(demanda * 1.5)).map(c => ({ ...c, paid: justoDaCarta(s, c) }))
+  }
+  if (SECTORS.every(p => !deck[p].length)) return false
+  for (const m of s.managers) {
+    const base: Partial<Record<Sector, number>> = {}
+    for (const pos of SECTORS) base[pos] = m.squad.filter(c => c.pos === pos).length
+    m.aberturaBase = base
+    if (!m.isHuman) m.backstop = true // 🤖 o bot da série entra no pregão (mesmo cinto do bot de mercado: nunca estoura o bolso numa carta só)
+  }
+  s.oficialAbertura = true
+  s.deck = deck
+  s.stock = {} as Record<Sector, number>
+  for (const pos of SECTORS) s.stock[pos] = deck[pos].length
+  s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.monteOrder = []; s.monteIdx = 0
+  s.reserveAuction = false
+  s.screen = 'auction'
+  startAuctionPhase(s, false)
   return true
 }
 function zeraCarreiraAnterior(s: EscState): void {
@@ -10876,6 +10938,13 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false }; if (!m.isHuman && !m.rival) m.deepSquad = false } // 🔁 o bot volta a mirar 11 fora do pregão (o banco que comprou fica)
         s.marketSellers = {} as Record<Sector, number[]>
         s.reserveAuction = false
+      }
+      if (s.oficialAbertura) {
+        // 🔨 fim do leilão de abertura do Brasil Oficial: o troco dos bots vira o caixa deles e a regra de "1 por posição" sai
+        const cash = { ...(s.clubCash ?? {}) }
+        for (const m of s.managers) { if (!m.isHuman) { cash['m' + m.id] = Math.max(0, Math.round(m.money)); m.backstop = false }; m.aberturaBase = undefined }
+        s.clubCash = cash
+        s.oficialAbertura = undefined
       }
       s.screen = 'season'
       return s
@@ -15070,6 +15139,7 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
 
 export function EscProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, INITIAL, init => loadSoloInProgress() ?? init)
+  if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__escState = state // 🔎 só no teste local (vite dev)
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {

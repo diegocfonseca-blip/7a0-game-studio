@@ -45,3 +45,30 @@ export function cdbOficialPorFim(doFim: number): number {
   if (doFim === 3) return CDB_OFICIAL.oitavas
   return Math.max(2, 10 - doFim)
 }
+
+/** 💰 CAIXA INICIAL (18/11, *"topei"*): pela RECEITA REAL do clube, comprimida pra caber no jogo — ~40 🪙 o mais pobre da Série D até
+ *  ~400 🪙 Flamengo/Palmeiras (10× de diferença, a ordem é a da vida real). `RECEITA_OFICIAL` (R$ milhões, com fonte em
+ *  `docs/brasil-oficial/receitas-clubes.md`) manda quando o clube tem número; sem número, vale a régua por série e porte. */
+export const RECEITA_OFICIAL: Record<string, number> = {
+  // Série A (R$ milhões, receita 2025 — 2024 onde indicado no doc). Chapecoense: INCERTO (sem balanço achado).
+  Flamengo: 2089, Palmeiras: 1783, Botafogo: 1400, 'São Paulo': 1070, Fluminense: 1020, Corinthians: 971, Internacional: 776,
+  'Grêmio': 737, 'Atlético-MG': 727, Santos: 678.5, Cruzeiro: 677, Vasco: 628, Bahia: 557.1, 'Athletico-PR': 512.7, Bragantino: 425.2,
+  'Vitória': 253, Mirassol: 179.9, Coritiba: 138.9, Remo: 82.9,
+  // Série B (8 INCERTOS ficam na régua; Vila Nova fora até confirmar a fonte)
+  Fortaleza: 231.5, 'Ceará': 221.5, 'Cuiabá': 218.8, Sport: 174.1, Juventude: 143, 'Atlético-GO': 77.1, CRB: 47.4, 'Goiás': 45.4,
+  'Avaí': 41.5, 'Operário-PR': 39.5, 'Náutico': 30.8,
+  // Série C e D (quase não há balanço público)
+  Paysandu: 65.9, Guarani: 64.8, 'Santa Cruz': 30.3, Portuguesa: 13.9,
+}
+const CAIXA_SEM_RECEITA: Record<string, number> = { A: 160, B: 100, C: 65, D: 40 }
+export function caixaInicialOficial(nome: string, div: string): number {
+  const r = RECEITA_OFICIAL[nome]
+  if (r && r > 0) {
+    // escala de log: R$ 10 mi → 40 · Flamengo (R$ 2,09 bi) → 400 (cada vez que a receita dobra, ~+47 🪙)
+    const v = 40 + (Math.log2(Math.max(10, r) / 10) / Math.log2(2089 / 10)) * 360
+    return Math.round(Math.max(40, Math.min(400, v)) / 5) * 5
+  }
+  const p = porteOficial(nome)
+  if (div === 'A') return p === 'grande' ? 300 : p === 'medio' ? 190 : CAIXA_SEM_RECEITA.A
+  return CAIXA_SEM_RECEITA[div] ?? 40
+}
