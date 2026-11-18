@@ -265,6 +265,12 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   pra todos… um pra goleiro, um pra zagueiro, um pra lateral, um pra meia e um pra atacante. Fechamos dessa forma"*. Começa com o
   elenco do clube (sorteio de até 22) e soma até 5. O leilão de toda virada (sondar + vender + pregão) continua.
 - **Rivais escolhidos (3/5/7/9) NÃO existem no Brasil Oficial** (já era assim; ele confirmou: *"é besteira"*).
-- Em estudo (proposta mandada 18/11, esperando OK): caixa inicial pela RECEITA REAL do clube (fonte aberta), comprimida pra caber no
+- ✅ APROVADO 18/11 (*"topei"* · *"pode fazer tudo aí que a gente combinou"*): caixa inicial pela RECEITA REAL do clube (fonte aberta), comprimida pra caber no
   jogo (~40 🪙 o mais pobre da D → ~400 🪙 Flamengo/Palmeiras); quem disputa o leilão = os 19 clubes da SUA série (os outros reforçam
   sozinhos, fora da tela); o bot calcula o lance pela categoria + over (régua do "bot que pensa", 13/10), limitado pelo caixa real.
+- ✅ **Limite do bot = PEDAÇO DO CAIXA do próprio clube, nunca número fixo** (*"pro usuário não entender qual é o limite e depois
+  sempre ganhar"*): lenda 35–70% · craque 20–40% · promessa/bom 10–25% · profissional 3–10%, ponto sorteado por carta + necessidade +
+  perfil. Ordem das categorias nunca inverte. **Loucura** rara: clube rico obcecado passa da faixa. O exagero nunca sobe o piso.
+- ✅ **BOT FAZ TUDO QUE O USUÁRIO FAZ** (18/11): todos os clubes do modo ganham premiação, pagam salário, renovam contrato.
+- ✅ **Condição física desde o INÍCIO** no Brasil Oficial (não espera a Série C).
+- 🔍 Pedido: analisar como é hoje comprar/renovar TÉCNICO e PREPARADOR FÍSICO e propor melhoria.
