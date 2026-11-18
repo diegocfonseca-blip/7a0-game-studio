@@ -211,7 +211,7 @@
   que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
   regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
 
-### 🏀🏟️ 18/11 (13) — O JOGO DENTRO DA ARENA DO MAPA (carreira do basquete), no branch, esperando OK visual
+### 🏀🏟️ 18/11 (13) — O JOGO DENTRO DA ARENA DO MAPA (carreira do basquete), no branch — ✅ APROVADO pelo Diego (*"sim"*)
 - Diego (17/11): *"o jogo da arena vai ser também com base na aba de jogos quando tiver no campo 2d"*. Feito agora que a Quadra 2D existe.
 - Com o jogo rolando, a aba 🏢 Clube ABRE (antes só Jogos abria) e o mapa mostra **"Ver partida"**: o MESMO jogo da aba Jogos (mesmo roteiro, mesmas jogadas, mesma narração) com os marcadores no piso da arena, a bola LARANJA e o relógio do quarto (Q2 6:27) no placar do mapa. Vale com a Quadra 2D ligada ou com o placar cinema.
 - Como: `quadra2d-mapa.tsx` (`QuadraNoMapa`) publica o placar pro mapa (`usePublicarPartidaSimples`, sem o motor 3D do futebol) e as posições (`publicarSuperficieCampo2D`, só quando o mapa pede); o mapa usa o `criarCampo2DNoMapa` de sempre. Contexto do jogo só na carreira OFFLINE do basquete (`bbMapaCtx`).
