@@ -13887,7 +13887,7 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   (cartão com "🙋 Quero jogar" + contador X/36; ✕ fecha pra sempre; depois de entrar vira faixinha). Aguardando OK pra construir.
   · Pódio do exemplo: Neymarzetti · Cativeiro FC · Guimarães SCI. Transmissão = canal do Futpoint FC (vai no convite).
 
-## 🧤🐓 18/11 — Batismo FUNDADOR Duarte FC (luizfelipeduarte212) — NO BRANCH, esperando OK do Diego pra publicar
+## 🧤🐓 18/11 — Batismo FUNDADOR Duarte FC (luizfelipeduarte212) — PUBLICADO (OK do Diego)
 - Várzea, no assento do bot Ressaca United. Fundador nº102 · sócio nº94 · coração Atlético Mineiro (deduzido do pedido do canto).
 - Pagou o Fundador no Pix em 18/11 (subida, R$ 60). Em 17/11 eu tinha ligado o Lenda (user_colors ouro) a pedido do Diego.
 - Escudo/mascote/camisa recortados da prancha verde; manto preto #101010 + branco #F1F1F0, dourado #F7D50A de 3ª cor (MANTO_TRI duarte_paredao).
