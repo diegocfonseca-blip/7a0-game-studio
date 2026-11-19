@@ -363,8 +363,11 @@ function applyVice(email?: string | null): void {
 const MAPA_3D_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 export const MAPA_3D_GERAL = false
 let mapa3dOk = MAPA_3D_GERAL
+let mapa3dQA = false
+/** 🧪 só a bancada (`scripts/mapa3d/bancada.html`) chama: liga o 3D do mapa sem login */
+export function qaLigaMapa3D(): void { mapa3dQA = true; applyMapa3d(null) }
 function applyMapa3d(email?: string | null): void {
-  const u = MAPA_3D_GERAL || (!!email && MAPA_3D_TESTERS.has(email.toLowerCase()))
+  const u = MAPA_3D_GERAL || mapa3dQA || (!!email && MAPA_3D_TESTERS.has(email.toLowerCase()))
   if (u === mapa3dOk) return
   mapa3dOk = u
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })

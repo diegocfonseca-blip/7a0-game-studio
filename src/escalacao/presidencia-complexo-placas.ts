@@ -18,6 +18,7 @@ import { sponsorBrandOf } from './estadiodata'
 import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
 import type { EstadoComplexo } from './presidencia-complexo-model'
 import { masterDoMapa, observarMasterDoMapa } from './presidencia-complexo-master'
+import { mapa3dLiberado } from './sport'
 
 const CREME = '#F4ECD6', TINTA = '#0C0C0C', OURO = '#FFC400'
 const PLACA_MS = 7000 // o mesmo ritmo das placas do campinho 2D
@@ -80,6 +81,77 @@ const VAO = 6 // metros livres entre uma placa e a outra
 // mapa olha o campo DE CIMA, e a placa em pé aparecia de lado (fina) ou de costas. Agora ela é maior e DEITADA pra trás (como o
 // "tapete 3D" das transmissões): a frente vira pro céu e pro gramado, e dá pra ler a marca de cima e da arquibancada.
 const ALTURA = 2.8, BASE = .04, INCLINA = 1.15 // ~66° deitada pra trás (topo longe do campo)
+
+// 📺 19/11 (Diego: *"precisa umas melhoradas nas placas de propaganda… tudo que é muito liso fica fake"*): no MAPA EM 3D (câmera de TV
+// na lateral) as placas viram PAINEL DE LED de verdade — em pé, ~1 m de altura, uma faixa CONTÍNUA de cada lado (sem os vãos da
+// versão vista de cima), cada painel com a marca repetida, a grade de pontinhos do LED, o brilho em cima e a moldura preta. As
+// marcas e o rodízio de 7 s são os MESMOS. Só com o 3D do mapa ligado (`mapa3dLiberado`); o mapa 2D continua com as deitadas.
+const LADOS_LED: Lado[] = [
+  { x0: -50.4, z0: 37.6, x1: 50.4, z1: 37.6, n: 8, nx: 0, nz: -1 }, // sul: de frente pro gramado (a TV vê as costas, como no estádio)
+  { x0: 42, z0: -39.6, x1: -42, z1: -39.6, n: 7, nx: 0, nz: 1 },     // norte: atrás dos bancos, de frente pra câmera de TV
+]
+const LED_ALTURA = .95, LED_VAO = .22
+function criarPlacasLed(root: T.Group, onChange: () => void) {
+  const marcas = placasDoCampo()
+  if (!marcas.length) return { redesenha() {}, dispose() {} }
+  const n = marcas.length, W = 1024, RH = 88 // painel de ~12 × 0,95 m (≈12:1): a marca entra 2 vezes, cada uma em ~6:1
+  const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = RH * n
+  const g = canvas.getContext('2d')!
+  const map = texturaCanvas(canvas); map.wrapT = T.RepeatWrapping; map.anisotropy = 8
+  let desligado = false
+  const desenha = () => {
+    if (desligado) return
+    marcas.forEach((p, r) => {
+      const y = r * RH
+      desenhaMarca(g, p, 0, y, W / 2, RH, desenha); desenhaMarca(g, p, W / 2, y, W / 2, RH, desenha)
+      // 💡 LED: grade de pontinhos (linhas e colunas escuras finas), brilho no topo, sombra no pé e a moldura preta
+      g.fillStyle = 'rgba(0,0,0,.20)'
+      for (let yy = y; yy < y + RH; yy += 3) g.fillRect(0, yy, W, 1)
+      for (let xx = 0; xx < W; xx += 3) g.fillRect(xx, y, 1, RH)
+      const brilho = g.createLinearGradient(0, y, 0, y + RH)
+      brilho.addColorStop(0, 'rgba(255,255,255,.22)'); brilho.addColorStop(.18, 'rgba(255,255,255,.05)'); brilho.addColorStop(.7, 'rgba(0,0,0,0)'); brilho.addColorStop(1, 'rgba(0,0,0,.28)')
+      g.fillStyle = brilho; g.fillRect(0, y, W, RH)
+      g.fillStyle = '#050505'; g.fillRect(0, y, W, 5); g.fillRect(0, y + RH - 6, W, 6); g.fillRect(W / 2 - 2, y, 4, RH)
+    })
+    map.needsUpdate = true; onChange()
+  }
+  desenha()
+  const frentes: T.BufferGeometry[] = [], costas: T.BufferGeometry[] = []
+  let k = 0
+  for (const lado of LADOS_LED) {
+    const dx = (lado.x1 - lado.x0) / lado.n, dz = (lado.z1 - lado.z0) / lado.n, largura = Math.hypot(dx, dz) - LED_VAO
+    const giro = Math.atan2(lado.nx, lado.nz)
+    for (let i = 0; i < lado.n; i++, k++) {
+      const cx = lado.x0 + dx * (i + .5), cz = lado.z0 + dz * (i + .5), linha = (k * 3) % n // painéis vizinhos com marcas diferentes
+      const frente = new T.PlaneGeometry(largura, LED_ALTURA), uv = frente.getAttribute('uv')
+      const topo = 1 - linha / n - .02 / n, pe = 1 - (linha + 1) / n + .02 / n
+      for (let j = 0; j < uv.count; j++) uv.setY(j, uv.getY(j) > .5 ? topo : pe)
+      frente.translate(0, LED_ALTURA / 2, 0); frente.rotateX(-.1); frente.rotateY(giro); frente.translate(cx, .12, cz); frentes.push(frente)
+      const caixa = new T.BoxGeometry(largura + .06, LED_ALTURA + .14, .3)
+      caixa.translate(0, LED_ALTURA / 2, -.16); caixa.rotateX(-.1); caixa.rotateY(giro); caixa.translate(cx, .1, cz); costas.push(caixa.toNonIndexed()); caixa.dispose()
+      // pezinhos (o painel não flutua)
+      for (const lx of [-largura * .4, largura * .4]) { const pe2 = new T.BoxGeometry(.08, .14, .5); pe2.translate(lx, .07, -.2); pe2.rotateY(giro); pe2.translate(cx, 0, cz); costas.push(pe2.toNonIndexed()); pe2.dispose() }
+    }
+  }
+  const geoFrente = mergeGeometries(frentes)!, geoCostas = mergeGeometries(costas)!
+  frentes.forEach(f => f.dispose()); costas.forEach(c => c.dispose())
+  const matFrente = new T.MeshBasicMaterial({ map, toneMapped: false })
+  const matCostas = new T.MeshStandardMaterial({ color: '#16181b', roughness: .55, metalness: .35 })
+  const placas = new T.Mesh(geoFrente, matFrente), estrutura = new T.Mesh(geoCostas, matCostas)
+  placas.name = 'placas-patrocinio-led'; estrutura.name = 'placas-patrocinio-led-estrutura'; estrutura.castShadow = true
+  let vez = -1
+  placas.onBeforeRender = () => {
+    const agora = Math.floor(Date.now() / PLACA_MS)
+    if (agora === vez) return
+    vez = agora; map.offset.y = -(agora % n) / n
+  }
+  root.add(placas, estrutura)
+  void document.fonts?.ready.then(desenha)
+  return {
+    redesenha: desenha,
+    dispose() { desligado = true; geoFrente.dispose(); geoCostas.dispose(); matFrente.dispose(); matCostas.dispose(); map.dispose() },
+  }
+}
 
 function criarPlacasDoGramado(root: T.Group, onChange: () => void) {
   const marcas = placasDoCampo()
@@ -181,7 +253,7 @@ function criarPlacaMaster(root: T.Group, state: EstadoComplexo, brandId: string,
 /** As placas do estádio do mapa: as da beira do gramado (sempre que o estádio é válido) e as do Master (só com contrato). */
 export function criarPlacasComplexo(scene: T.Scene, state: EstadoComplexo, onChange: () => void) {
   const root = new T.Group(); root.name = 'placas-estadio'; scene.add(root)
-  const gramado = state.valid ? criarPlacasDoGramado(root, onChange) : { redesenha() {}, dispose() {} }
+  const gramado = state.valid ? (mapa3dLiberado() ? criarPlacasLed(root, onChange) : criarPlacasDoGramado(root, onChange)) : { redesenha() {}, dispose() {} }
   let master: { dispose(): void } | null = null, marca: string | null = null
   const trocaMaster = (brandId: string | null) => {
     if (brandId === marca) return
