@@ -1935,7 +1935,8 @@ export const ehPaginaEstadual = (nome?: string) => !!nome && nome.startsWith(EST
  */
 /** 🇧🇷 os times do Brasil Oficial por NOME: o da pirâmide como está (com a divisão) e o clube sem série nacional montado pelo
  *  sorteio de sempre das cartas dele (mesma semente = mesmo elenco). `null` = sem baralho do modo ou clube desconhecido. */
-export function fabricaTimesOficiais(world: Record<Div, SimTeam[]>, seed: number): ((nome: string) => { t: SimTeam; div: Div } | null) | null {
+/** `giro` = a temporada, quando os clubes de FORA sorteiam o elenco de novo todo ano (19/11); sem ele, o elenco de sempre */
+export function fabricaTimesOficiais(world: Record<Div, SimTeam[]>, seed: number, giro?: number): ((nome: string) => { t: SimTeam; div: Div } | null) | null {
   const todos = new Map<string, { t: SimTeam; div: Div }>()
   for (const d of DIVS) for (const t of world[d] ?? []) todos.set(t.name, { t, div: d })
   const base = catalogTodos(), CAT = baralhoOficial()
@@ -1951,7 +1952,7 @@ export function fabricaTimesOficiais(world: Record<Div, SimTeam[]>, seed: number
     if (!cl) return null
     const cartas = cartasDoClube(cl, cat)
     if (!br && (Object.keys(MINIMO_TIME) as Sector[]).some(p => cartas.filter(x => x.pos === p).length < MINIMO_TIME[p])) return null
-    const squad = sorteiaElenco(cartas, semente(cl.nome)).elenco.map((x, i) => ({ ...x.carta, pos: x.pos, id: `of-${x.pos}-${i}-${semente(nome) % 100000}` })) as unknown as PoolCard[]
+    const squad = sorteiaElenco(cartas, semente(!br && giro ? `${cl.nome}|T${giro}` : cl.nome)).elenco.map((x, i) => ({ ...x.carta, pos: x.pos, id: `of-${x.pos}-${i}-${semente(nome) % 100000}` })) as unknown as PoolCard[]
     const novo = { t: { name: nome, you: false, human: false, rival: false, dorm: false, backstop: false, teamId: -1, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 } as SimTeam, div: 'V' as Div }
     todos.set(nome, novo)
     return novo
@@ -2090,14 +2091,14 @@ export const ehPaginaLiberta = (nome?: string) => !!nome && nome.startsWith(LIBE
 export const LIBERTA_SLOT = PLAYOFF_B_SLOT + 1
 /** página da esteira que NÃO é da copa nacional (conta de artilharia, calendário e a chave da Copa não olham pra ela) */
 export const foraDaCopa = (n: string) => n === 'Supercopa' || n === PLAYOFF_B || n === SUPERCOPA_REI || ehPaginaConmebol(n) || ehPaginaEstadual(n)
-export function computeLibertadoresCarreira(vagas: VagasLiberta, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, m2On = false, versao?: VersaoM2): { resultado: ResultadoLiberta; rounds: CopaRound[] } | null {
-  const fab = fabricaTimesOficiais(world, seed)
+export function computeLibertadoresCarreira(vagas: VagasLiberta, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, m2On = false, versao?: VersaoM2, giro?: number): { resultado: ResultadoLiberta; rounds: CopaRound[] } | null {
+  const fab = fabricaTimesOficiais(world, seed, giro)
   if (!fab) return null
   const todos = [...vagas.grupos, ...vagas.fase2, ...vagas.fase1]
   const forca = new Map<string, number>()
   for (const n of todos) { const x = fab(n); if (!x) return null; forca.set(n, x.t.xi.reduce((s, c) => s + mid(c), 0)) }
   let res: ResultadoLiberta | null = null
-  const out = computeCompeticaoOficial({ nome: NOME_LIBERTADORES, prefixo: LIBERTA_PREFIXO, tag: 'LIB', sal: 0x11BE27, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaLibertadores(vagas, (seed ^ Math.imul(seasonNo, 0x27D4EB2F)) >>> 0, joga, pen, n => forca.get(n) ?? 0)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao)
+  const out = computeCompeticaoOficial({ nome: NOME_LIBERTADORES, prefixo: LIBERTA_PREFIXO, tag: 'LIB', sal: 0x11BE27, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaLibertadores(vagas, (seed ^ Math.imul(seasonNo, 0x27D4EB2F)) >>> 0, joga, pen, n => forca.get(n) ?? 0)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao, giro)
   return out && res ? { resultado: res, rounds: out.rounds } : null
 }
 /** 🌎 a Sul-Americana do Brasil Oficial na esteira das copas (formato real de 2026). Recebe da Libertadores do MESMO ano os 4
@@ -2109,12 +2110,12 @@ export const ehPaginaSula = (nome?: string) => !!nome && nome.startsWith(SULA_PR
 export const INTER_PREFIXO = '🌐 '
 export const ehPaginaInter = (nome?: string) => !!nome && nome.startsWith(INTER_PREFIXO + NOME_INTERCONTINENTAL)
 export const ehPaginaConmebol = (nome?: string) => ehPaginaLiberta(nome) || ehPaginaSula(nome) || ehPaginaInter(nome)
-export function computeIntercontinentalCarreira(libertadores: string, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, m2On = false, versao?: VersaoM2): { resultado: ResultadoIntercontinental; rounds: CopaRound[] } | null {
-  const fab = fabricaTimesOficiais(world, seed)
+export function computeIntercontinentalCarreira(libertadores: string, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, m2On = false, versao?: VersaoM2, giro?: number): { resultado: ResultadoIntercontinental; rounds: CopaRound[] } | null {
+  const fab = fabricaTimesOficiais(world, seed, giro)
   if (!fab) return null
   for (const n of [libertadores, ...CLUBES_INTERCONTINENTAL]) if (!fab(n)) return null
   let res: ResultadoIntercontinental | null = null
-  const out = computeCompeticaoOficial({ nome: NOME_INTERCONTINENTAL, prefixo: INTER_PREFIXO, tag: 'ICF', sal: 0x1C0F2, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaIntercontinental(libertadores, joga, pen)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao)
+  const out = computeCompeticaoOficial({ nome: NOME_INTERCONTINENTAL, prefixo: INTER_PREFIXO, tag: 'ICF', sal: 0x1C0F2, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaIntercontinental(libertadores, joga, pen)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao, giro)
   return out && res ? { resultado: res, rounds: out.rounds } : null
 }
 /** 💰 prêmio da Intercontinental: a régua do Mundial da carreira internacional (vice +10 · campeão +25) */
@@ -2125,13 +2126,13 @@ export function premioIntercontinentalDet(res: ResultadoIntercontinental, nome: 
   return { v: INTER_OFICIAL.participou, fase: ['participou', 'took part'] }
 }
 export function premioIntercontinental(res: ResultadoIntercontinental, nome: string): number { return premioIntercontinentalDet(res, nome)?.v ?? 0 }
-export function computeSulaCarreira(vagas: VagasSula, daLiberta: { grupos: string[]; playoff: string[] }, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, m2On = false, versao?: VersaoM2): { resultado: ResultadoSula; rounds: CopaRound[] } | null {
-  const fab = fabricaTimesOficiais(world, seed)
+export function computeSulaCarreira(vagas: VagasSula, daLiberta: { grupos: string[]; playoff: string[] }, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, m2On = false, versao?: VersaoM2, giro?: number): { resultado: ResultadoSula; rounds: CopaRound[] } | null {
+  const fab = fabricaTimesOficiais(world, seed, giro)
   if (!fab) return null
   const forca = new Map<string, number>()
   for (const n of [...vagas.grupos, ...vagas.fase1, ...daLiberta.grupos, ...daLiberta.playoff]) { const x = fab(n); if (!x) return null; forca.set(n, x.t.xi.reduce((s, c) => s + mid(c), 0)) }
   let res: ResultadoSula | null = null
-  const out = computeCompeticaoOficial({ nome: NOME_SULA, prefixo: SULA_PREFIXO, tag: 'SUL', sal: 0x5017A, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaSulAmericana(vagas, daLiberta, (seed ^ Math.imul(seasonNo, 0x165667B1)) >>> 0, joga, pen, n => forca.get(n) ?? 0)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao)
+  const out = computeCompeticaoOficial({ nome: NOME_SULA, prefixo: SULA_PREFIXO, tag: 'SUL', sal: 0x5017A, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaSulAmericana(vagas, daLiberta, (seed ^ Math.imul(seasonNo, 0x165667B1)) >>> 0, joga, pen, n => forca.get(n) ?? 0)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao, giro)
   return out && res ? { resultado: res, rounds: out.rounds } : null
 }
 /** 💰 prêmio da Sul-Americana: a régua da Copa do Brasil (`CB_PAY`: oitavas 6 · quartas 10 · semi 16 · vice 25 · campeão 50), e 4
@@ -2181,8 +2182,8 @@ export function premioLibertadoresDet(res: ResultadoLiberta, nome: string): { v:
     : { v: L.pre, fase: ['caiu na pré-Libertadores', 'out in the qualifying rounds'] }
 }
 export function premioLibertadores(res: ResultadoLiberta, nome: string): number { return premioLibertadoresDet(res, nome)?.v ?? 0 }
-function computeCompeticaoOficial(cfg: { nome: string; prefixo: string; tag: string; sal: number; slot: number; sim: (joga: Joga, pen: Penaltis) => ResultadoEstadual | null }, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2): { resultado: ResultadoEstadual; rounds: CopaRound[] } | null {
-  const fab = fabricaTimesOficiais(world, seed)
+function computeCompeticaoOficial(cfg: { nome: string; prefixo: string; tag: string; sal: number; slot: number; sim: (joga: Joga, pen: Penaltis) => ResultadoEstadual | null }, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, lineups: RoundLineups = {}, m2On = false, versao?: VersaoM2, giro?: number): { resultado: ResultadoEstadual; rounds: CopaRound[] } | null {
+  const fab = fabricaTimesOficiais(world, seed, giro)
   if (!fab) return null
   const todos = new Map<string, SimTeam>()
   const time = (nome: string): SimTeam | null => {
@@ -10302,8 +10303,10 @@ export function PyramidSeasonScreen() {
   // 📅 16/11 (Diego: *"calendário real"*): ela nasce calculada na rodada 0 (como a Copa do Brasil com calendário) e cada página
   // cai na semana do dia REAL dela (`DATAS_LIBERTA`) — da 1ª fase em fevereiro aos grupos em abril/maio e o mata-mata de agosto
   // a outubro; a final (28/nov) passa da 38ª e fica pro fim da temporada. O elenco é o do mundo congelado da temporada.
-  const libertaCalc = useMemo(() => state.oficial && vagasLib ? computeLibertadoresCarreira(vagasLib, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null,
-    [state.oficial, vagasLib, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🎲 19/11: clube de FORA sorteia o elenco de novo a cada temporada (a partir da `giro` gravada no save; save antigo = da próxima)
+  const giroFora = state.oficial?.giro != null && (state.seasonNo ?? 1) >= state.oficial.giro ? (state.seasonNo ?? 1) : undefined
+  const libertaCalc = useMemo(() => state.oficial && vagasLib ? computeLibertadoresCarreira(vagasLib, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa, giroFora) : null,
+    [state.oficial, vagasLib, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa, giroFora]) // eslint-disable-line react-hooks/exhaustive-deps
   const meuNomeLib = state.managers[state.youIdx]?.teamName ?? ''
   const libertaMinha = !!libertaCalc && libertaCalc.resultado.classificacao.includes(meuNomeLib)
   // 🌎 SUL-AMERICANA (16/11, Diego: escudos e cartas de todos os clubes da Liberta e da Sul-Americana): as vagas reais (2026 = a
@@ -10315,16 +10318,16 @@ export function PyramidSeasonScreen() {
     const prev = n > 1 ? state.oficialCampeoes?.find(e => e.temporada === n - 1) : null
     if (n > 1 && !prev?.serieATop) return null
     const v = vagasSula(prev?.serieATop ?? null, [...vagasLib.grupos, ...vagasLib.fase2, ...vagasLib.fase1])
-    return computeSulaCarreira(v, { grupos: libertaCalc.resultado.sulaGrupos, playoff: libertaCalc.resultado.sulaPlayoff }, world, state.seed, n, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa)
-  }, [state.oficial, libertaCalc, vagasLib, state.seasonNo, state.oficialCampeoes, world, state.seed, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
+    return computeSulaCarreira(v, { grupos: libertaCalc.resultado.sulaGrupos, playoff: libertaCalc.resultado.sulaPlayoff }, world, state.seed, n, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa, giroFora)
+  }, [state.oficial, libertaCalc, vagasLib, state.seasonNo, state.oficialCampeoes, world, state.seed, capElite, realGoals, m2Desde, recepcaoCopa, giroFora]) // eslint-disable-line react-hooks/exhaustive-deps
   const sulaMinha = !!sulaCalc && sulaCalc.resultado.classificacao.includes(meuNomeLib)
   // 🌐 INTERCONTINENTAL (17/11): o campeão da Libertadores do ano vai ao Dérbi das Américas (Toluca) → Challenger → final (PSG).
   // Calculada sempre (o campeão vai pro histórico); só entra na tela quando o campeão da Liberta é o SEU clube.
   // 🧪 só no servidor de teste (npm run dev; o build de produção apaga): `window.__boInterJa = true` joga a Intercontinental ANTES da
   // temporada, com o SEU clube no lugar do campeão da Libertadores (pra ver as telas sem ganhar a Liberta de verdade)
   const interDev = import.meta.env.DEV && !!(window as unknown as { __boInterJa?: boolean }).__boInterJa && round === 0 && !!state.oficial
-  const interCalc = useMemo(() => state.oficial && (libertaCalc || interDev) ? computeIntercontinentalCarreira(interDev ? meuNomeLib : libertaCalc!.resultado.campeao, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa) : null,
-    [state.oficial, libertaCalc, interDev, meuNomeLib, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa]) // eslint-disable-line react-hooks/exhaustive-deps
+  const interCalc = useMemo(() => state.oficial && (libertaCalc || interDev) ? computeIntercontinentalCarreira(interDev ? meuNomeLib : libertaCalc!.resultado.campeao, world, state.seed, state.seasonNo ?? 1, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa, giroFora) : null,
+    [state.oficial, libertaCalc, interDev, meuNomeLib, world, state.seed, state.seasonNo, capElite, realGoals, m2Desde, recepcaoCopa, giroFora]) // eslint-disable-line react-hooks/exhaustive-deps
   const interMinha = !!interCalc && (interDev || (libertaMinha && libertaCalc?.resultado.campeao === meuNomeLib))
   // 🏟️ BRASIL OFICIAL · O ESTADUAL abre a temporada (mockup aprovado 16/11): antes da 1ª rodada da Série, o "Começar a temporada"
   // liga a esteira das copas com as páginas do estadual do seu clube (o placar, o Manual e o campinho de sempre). Enquanto ele

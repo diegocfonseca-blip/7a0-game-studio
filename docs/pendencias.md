@@ -14042,3 +14042,8 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - ✅ SAF = 1.500 🪙 (Diego mudou de 2.000 no mesmo dia), Série A + estádio completo + plano. Venda no máx 2.000 (lucro máx 500). Antes: só com o time na Série A e só com plano (`BUY_FILIAL` com `pagante`; tela mostra 🔒 com o porquê + "Ver os planos").
 - Estádio 100% completo: Diego confirmou que fica.
 
+## 19/11 — 🎲 Brasil Oficial: clubes de fora sorteiam o elenco todo ano (pedido do Diego)
+- ✅ Libertadores/Sul-Americana/Intercontinental: os clubes participantes continuam os REAIS de 2026 (decisão dele: *"deixe como foi os times q jogaram 2026"*).
+- ✅ O ELENCO dos clubes de FORA é sorteado de novo a cada temporada entre as cartas do clube (quem tem só 22 ou menos fica sempre igual). `oficial.giro` no save: carreira nova = desde a T1; save antigo = a partir da próxima temporada (gravado no fim da temporada, `OFICIAL_CAMPEOES`). Clube brasileiro não muda (tem elenco próprio). Trava em `npm run brasil-oficial`.
+- ℹ️ Champions/Mundial: o representante da Europa é o PSG (o real de 2026) todo ano — o modo não joga a Champions.
+
