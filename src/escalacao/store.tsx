@@ -17362,7 +17362,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
       const hon = st.careerHonors?.['m' + youId]
       const titles = division ? (pyramid ? (hon ? hon.A + hon.B + hon.C + hon.D : 0) : st.careerTitles) : undefined
       const coins = division ? Math.round(pyramid ? (st.careerCoins?.[youId] ?? 0) : (ativo?.money ?? 0)) : undefined
-      const career = division ? { season: st.seasonNo, division, coins, titles } : undefined
+      // 🇧🇷 19/11 (Diego: *"o painel mostra V de várzea e nem várzea tem"*): o Brasil Oficial vai marcado, com a SÉRIE real do clube
+      const career = division ? { season: st.seasonNo, division: st.oficial ? (divOficialDe(st) ?? division) : division, coins, titles, modo: st.oficial ? 'oficial' : 'carreira' } : undefined
       // online é sempre baralho brasileiro; solo (rápida/carreira) manda o escolhido
       const deck = liveMode === 'online' ? undefined : st.deckLeague
       heartbeat(liveMode, principal.name, st.screen, career, deck)
