@@ -1135,6 +1135,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (21) **O CAMPO 2D DO MAPA (aba Clube, só carreira) SEGUE SEMPRE O DA ABA JOGOS (07/11, regra permanente).** *"deve ser sempre
   baseado no que tem no campo 2D da aba de jogos… não preciso repetir isso sempre"*. Toda novidade do campinho da aba Jogos entra
   TAMBÉM no do mapa na mesma entrega (e vice-versa), sem ele pedir de novo.
+  🏟️ **19/11: O CAMPO DO MAPA VOLTA PRO 3D, A ABA JOGOS FICA NO 2D** (*"gostaria de ver novamente em 3D com jogadores com base no último
+  boneco… e não mais aquele jogo de botão… só no campo do mapa. Na aba de jogos mantém igual"*). Abertura girando o estádio antes do jogo
+  e câmera de TV que acompanha a jogada (`'tv'`, padrão do 3D). Gate `MAPA_3D_GERAL` (sport.ts), só na conta dele até o OK. Com isso a
+  regra (21) passa a valer só pro mapa no 2D.
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
   🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.

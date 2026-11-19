@@ -14125,3 +14125,9 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
   · Trava `npm run vice-city`. As travas npx tsx que carregam o store estavam quebradas pra todo mundo (imagem .webp e
     `import.meta.env`): `scripts/node-stub-reg.mjs` conserta (`npm run pregao-aberto` já usa).
   · Falta: testar numa sala de verdade com 2+ contas antes de liberar; O MARTELO edição Vice e a carta 🚨 Procurado (sugeri tirar).
+
+## 🏟️ 19/11 — Mapa volta pro 3D (boneco novo), só na conta do Diego — NO BRANCH, esperando OK
+- Pedido: *"melhorar muito o momento que clica em ver jogo em 3D… giro no estádio até enquadrar o campo e iniciar o apito… a câmera que acompanha a jogada nesse zoom… em 3D com o último boneco… só no campo do mapa. Na aba de jogos mantém igual"*.
+- Feito: `MAPA_3D_GERAL`/`useMapa3D` (sport.ts) → `presidencia-estadio-camera.tsx` passa `matchPresentation='3d'`; câmera nova `'tv'` (enquadramento: mais aberta e mais baixa que a Transmissão, segue a bola pela lateral) é a padrão do 3D; `abrir()` no controle de câmera = espiral de 7 s do alto até a câmera de TV; o "Ver o jogo no estádio do mapa" da aba Jogos pede `'abertura'`.
+- Bancada: `scripts/mapa3d/bancada.html` (partida com cartas do baralho BR, sem login). Vídeo `scripts/mockups/mapa3d-abertura.mp4`, celular `scripts/mockups/mapa3d-celular.png`.
+- Falta: OK do Diego; medir no celular de verdade (o 3D pesa mais que o 2D); o apito continua sendo no "Começar o jogo" (nenhum jogo começa sozinho — regra de 26/10).

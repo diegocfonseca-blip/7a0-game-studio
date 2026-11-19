@@ -10,12 +10,18 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  let saved:{position:Vector3;target:Vector3;fov:number}|undefined,framing:{x:number;y:number;visible:boolean}|undefined
  let forcado:CameraPartidaContinua|undefined,distGuardada:number|undefined,corte=false
  let fixedZoom=1,controlsBeforeFixed:boolean|undefined
+ // 🏟️ 19/11 (Diego: *"uma visualização de giro no estádio até chegar o momento de enquadrar o campo"*): ABERTURA de transmissão.
+ // A câmera nasce alta, longe, girando em volta do estádio, e desce em espiral até a câmera de TV. Só mexe na câmera (nunca no jogo).
+ let abertura:{ini:number;dur:number}|undefined
+ const ABERTURA_MS=7000
  const restoreControls=()=>{if(controlsBeforeFixed!==undefined){controls.enabled=controlsBeforeFixed;controlsBeforeFixed=undefined}}
  const enterFree=(restore=true)=>{restoreControls();mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
  return {
   setMode(next:CameraPartidaContinua){if(next===mode)return;restoreControls();if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;if((next==='fixed'||next==='field2d')){controlsBeforeFixed=controls.enabled??true;controls.enabled=false}returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
   zoomFixed(factor:number){if(mode!=='fixed'&&mode!=='field2d'||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,mode==='field2d'?.48:.7,1.6);moving=true;return true},
-  explore(){enterFree(false)},
+  explore(){abertura=undefined;enterFree(false)},
+  abrir(now:number,dur=ABERTURA_MS){abertura={ini:now,dur};moving=true},
+  get abrindo(){return !!abertura},
   update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number},forcar?:CameraPartidaContinua,ataque:1|-1=1){
    ball=foco??ball.presentation??ball // (🤝 `foco`: depois do apito a TV segue os jogadores indo pro meio, não a bola parada)
    // Slow devices must consume real elapsed camera time instead of needing
@@ -31,7 +37,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    const modo=forcado??mode
    const fit=modo!=='free'?enquadramentoFutebol(camera,ball,subjects,modo,ataque):null
    if(fit){
-    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast'||fit.preset==='follow'||(fit.preset==='fixed'||fit.preset==='field2d'))distance=fit.distance*((fit.preset==='fixed'||fit.preset==='field2d')?fixedZoom:1) // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
+    if(distance===undefined||fit.preset==='goal'||fit.preset==='broadcast'||fit.preset==='tv'||fit.preset==='follow'||(fit.preset==='fixed'||fit.preset==='field2d'))distance=fit.distance*((fit.preset==='fixed'||fit.preset==='field2d')?fixedZoom:1) // (📺 a TV fica parada na arquibancada: o zoom é a lente, não a distância)
     // Expand promptly for a receiver/high ball; close in only after a sustained
     // smaller play area. Crossing a neighbour-selection boundary cannot make
     // the lens pump in and out on every stride.
@@ -42,7 +48,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
     else zoomInSince=undefined
    }
    let fov=fit?.fov??saved!.fov
-   if(fit&&(modo==='broadcast'||modo==='tele')){
+   if(fit&&(modo==='broadcast'||modo==='tele'||modo==='tv')){
     if(lens===undefined||lensMode!==modo||corte){lens=fov;lensCloseSince=undefined}
     else if(fov>lens+.01){lens=fov;lensCloseSince=undefined}
     else if(fov<lens-1.5){
@@ -72,6 +78,17 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    // 🎥 'Acompanhar o lance' virou de lado (a bola trocou de dono e o ataque é pro outro gol): CORTE seco pra trás da jogada nova
    if(fit?.preset==='follow'&&Math.abs(camera.position.x-target.x)>4&&Math.sign(position.x-target.x)!==Math.sign(camera.position.x-target.x)){camera.position.copy(position);controls.target.copy(target)}
    if(corte&&fit){camera.position.copy(position);controls.target.copy(target);camera.fov=fov;camera.updateProjectionMatrix();corte=false}
+   if(abertura&&fit&&mode!=='free'){
+    // espiral: começa a 210 m do centro, 95 m de altura, do lado oposto à TV, e gira ~200° até cair na posição da câmera de TV
+    const k=MathUtils.clamp((now-abertura.ini)/abertura.dur,0,1),e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2
+    const fim=Math.atan2(position.z,position.x),raioFim=Math.hypot(position.x,position.z),ang=fim+(1-e)*Math.PI*1.12
+    const raio=MathUtils.lerp(210,raioFim,e),alt=MathUtils.lerp(95,position.y,e)
+    camera.position.set(Math.cos(ang)*raio,alt,Math.sin(ang)*raio);controls.target.lerpVectors(new Vector3(0,4,0),target,e)
+    if(camera.fov!==MathUtils.lerp(52,fov,e)){camera.fov=MathUtils.lerp(52,fov,e);camera.updateProjectionMatrix()}
+    camera.lookAt(controls.target);camera.updateMatrixWorld(true);moving=true
+    if(k>=1){abertura=undefined;corte=false}
+    return
+   }
    const amount=1-Math.exp(-dt/MathUtils.lerp(.24,.03,edge));camera.position.lerp(position,amount);controls.target.lerp(target,amount)
    const nextFov=MathUtils.lerp(camera.fov,fov,1-Math.exp(-dt/.22))
    if(Math.abs(nextFov-camera.fov)>1e-7){camera.fov=nextFov;camera.updateProjectionMatrix()}

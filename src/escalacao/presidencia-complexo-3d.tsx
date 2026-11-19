@@ -91,6 +91,7 @@ export type VistaComplexo='gecg-futebol'|'pipas'|'pagode'|'festa-junina'|'passei
 /** 🔋 quanto tempo a cidade continua andando depois do último toque no mapa */
 const VIVO_MS=12000
 const CAMERAS_PARTIDA:readonly {value:CameraPartidaContinua;label:readonly [string,string]}[]=[
+ {value:'tv',label:['Câmera de TV','TV camera']},
  {value:'broadcast',label:['Transmissão','Broadcast']},
  {value:'fixed',label:['Lateral fixa','Fixed sideline']},
  {value:'follow',label:['Acompanhar o lance','Follow the play']},
@@ -564,7 +565,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     }
     camera.lookAt(controls.target);camera.updateMatrixWorld()
    }
-   if(fieldWatchPending&&matchRef.current){fieldWatchPending=false;setFootballCamera(matchPresentation==='2d'?'field2d':'broadcast')}
+   if(fieldWatchPending&&matchRef.current){fieldWatchPending=false;setFootballCamera(matchPresentation==='2d'?'field2d':'tv')}
    if(game.subjects().length&&matchRef.current){lastFieldFixture=matchRef.current.context.id;lastFieldSubjects=game.subjects().map(p=>({...p}))}
    game.setSpectatorView?.(fan.ativo())
    game.update(matchRef.current,performance.now(),camera,el.clientHeight)
@@ -697,7 +698,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
    activePlace=lugarComCartao(next)?next:null;setBrowsingPlace(!!activePlace&&!!placeReturnCamera)
    busCam.tocou() // (trocar de lugar = o usuário pegou a câmera)
    if(managementEnabled&&!isOffice&&next==='room')next='casa-usuario'
-   if(next==='field'&&matchRef.current&&!isOffice&&!isWindow){setFootballCamera(matchPresentation==='2d'?'field2d':'broadcast');return}
+   if(next==='field'&&matchRef.current&&!isOffice&&!isWindow){setFootballCamera(matchPresentation==='2d'?'field2d':'tv');return}
    fieldWatchPending=next==='field'&&!isOffice&&!isWindow
    matchCameraController.explore()
    if(isOffice&&!['room','office','president','shelf'].includes(next))next='room'
@@ -916,7 +917,9 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
   // Clock publications and texture callbacks share the pending visual frame.
   // The scoreboard's simulation keeps its own clock, including offscreen.
   const resume=()=>{if(disposed||compilando||contextLost)return;if(!visible||document.hidden||blockedByPanel()){game.setViewportVisible?.(false);stadiumListener.update(false,0);cancelAnimationFrame(raf);raf=0;last=0;return}game.setViewportVisible?.(true);if(raf)return;last=0;raf=requestAnimationFrame(tick)};wake.current=resume
-  function setFootballCamera(value:CameraPartidaContinua){
+  function setFootballCamera(value:CameraPartidaContinua|'abertura'){
+   // 🏟️ 19/11: 'abertura' = o giro em volta do estádio que termina na câmera de TV (só no 3D; no 2D vira o campinho de sempre)
+   const abrir=value==='abertura';if(abrir)value='tv'
    if(matchPresentation==='2d'&&value!=='free')value='field2d'
    mapFlight.cancel();userExploring.current=value==='free';busCam.tocou()
    if(isOffice||isWindow||!matchRef.current)return
@@ -926,7 +929,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     if(matchCameraController.inspect().mode==='free')savedMapView=mode
     mode='field';setSelectedView('field')
    }else{mode=savedMapView;setSelectedView(savedMapView)}
-   matchCameraController.setMode(value);resume()
+   matchCameraController.setMode(value as CameraPartidaContinua);if(abrir&&matchPresentation==='3d')matchCameraController.abrir(performance.now());resume()
   }
   refreshPopulation.current=()=>{if(disposed)return;crowd.update(populationRef.current.crowdPopulation);if(rebuildPopulation())resume();else render()}
   refreshFurniture.current=()=>{if(disposed)return;const deliveryChanged=deliveries.sync(walletRef.current,duplaDaGaragem(walletRef.current?.owned??[],garageRef.current)),changed=!semSala&&furniture.update(walletRef.current),bodyChanged=!semSala&&(!managementEnabled||isOffice||['room','office','president','shelf'].includes(mode))&&presidentBody.update(presidentRef.current,walletRef.current),collectionChanged=!semSala&&collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage);if(changed||bodyChanged||collectionChanged||deliveryChanged){roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});sharpenTextures();render();resume()}}
