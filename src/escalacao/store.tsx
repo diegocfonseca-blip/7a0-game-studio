@@ -8366,7 +8366,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
 function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const meu = clubeOficial(nome)
   if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C' && meu.div !== 'D')) return false // só-estadual não dá pra escolher (regra do Diego, 15/11)
-  s.oficial = { clube: meu.nome, desde: 1 }
+  s.oficial = { clube: meu.nome, desde: 1, giro: 1 } // 🎲 19/11: carreira nova já nasce com o elenco dos clubes de fora sorteado todo ano
   s.oficialEstaduais = undefined // 🏟️ estaduais são desta carreira
   s.oficialCampeoes = undefined
   s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
@@ -11623,7 +11623,10 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CAMPEOES_OFICIAIS': {
       if (!s.oficial || (s.oficialCampeoes ?? []).some(e => e.temporada === action.campeoes.temporada)) return s
-      return { ...s, oficialCampeoes: [...(s.oficialCampeoes ?? []), action.campeoes].slice(-60) }
+      // 🎲 19/11 (Diego: "o time deles deve ser sorteado… em toda temporada"): save que já existia passa a sortear os clubes de fora
+      // a partir da PRÓXIMA temporada — a de agora já foi jogada com o elenco de sempre e não pode mudar.
+      const giro = s.oficial.giro ?? (action.campeoes.temporada + 1)
+      return { ...s, oficial: { ...s.oficial, giro }, oficialCampeoes: [...(s.oficialCampeoes ?? []), action.campeoes].slice(-60) }
     }
     case 'ESTADUAL_FEITO': {
       // 🏟️ grava UMA vez por temporada (a tela pode mandar de novo num recarregar)

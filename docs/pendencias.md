@@ -14087,6 +14087,12 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - ✅ SAF = 1.500 🪙 (Diego mudou de 2.000 no mesmo dia), Série A + estádio completo + plano. Venda no máx 2.000 (lucro máx 500). Antes: só com o time na Série A e só com plano (`BUY_FILIAL` com `pagante`; tela mostra 🔒 com o porquê + "Ver os planos").
 - Estádio 100% completo: Diego confirmou que fica.
 
+## 19/11 — 🎲 Brasil Oficial: clubes de fora sorteiam o elenco todo ano (pedido do Diego)
+- ✅ Libertadores/Sul-Americana/Intercontinental: os clubes participantes continuam os REAIS de 2026 (decisão dele: *"deixe como foi os times q jogaram 2026"*).
+- ✅ O ELENCO dos clubes de FORA é sorteado de novo a cada temporada entre as cartas do clube (quem tem só 22 ou menos fica sempre igual). `oficial.giro` no save: carreira nova = desde a T1; save antigo = a partir da próxima temporada (gravado no fim da temporada, `OFICIAL_CAMPEOES`). Clube brasileiro não muda (tem elenco próprio). Trava em `npm run brasil-oficial`.
+- ℹ️ Champions/Mundial: o representante da Europa é o PSG (o real de 2026) todo ano — o modo não joga a Champions.
+
+
 ## 👑⚫ 19/11 — Batismo Ceará SP Club (lucasnicodemosqq) — PUBLICADO (Diego: "sim publica")
 - Pix de batismo (79,90) pago em 18/11 às 21:23 (`esc_mp_pedidos`), plano 🖋 Batismo: tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº96.
 - Várzea, no lugar do bot Barcelona da Vila (`OLD_NAME` + `VARZEA_TEAMS`).
@@ -14107,6 +14113,9 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
   · Conserto junto: o REGULAMENTO da Eurocopa mostrava o código cru na tela (`euro ? tr(...)`).
   · ⚠️ Falta: na LISTA de salas, sala de Copa América aparece como "liga+euro" (a coluna `ls_copa2` do banco diz 'euro' pras duas) — dentro da sala está certo.
   · ⚠️ Bolívia tem 1 goleiro só (os conhecidos já têm carta no baralho Mundo do Brasil Oficial). Achado lateral: Juan Carlos Arce tem 2 cartas MUNDO em `data-oficial.ts` (linhas ~3626 e ~3762).
+
+## 🇪🇺 19/11 — Brasil Oficial: o campeão da Europa no Mundial é sorteado todo ano (pedido do Diego)
+- *"sorteia sempre os melhores times do mundo, sempre podendo até repetir todo ano… começando pelo PSG que foi o último"*: 1ª temporada = PSG (o real); da 2ª em diante, sorteio preso na semente entre 12 gigantes (`CAMPEOES_EUROPA`, `europaDaTemporada` em `intercontinental-oficial.ts`), repetição permitida. Save antigo só sorteia a partir da próxima temporada (mesma marca `oficial.giro` do sorteio de elencos). Os outros convidados (Toluca, Sundowns, Al-Ahli, Auckland) seguem os de 2026. Trava em `npm run brasil-oficial`.
 - ✅ 19/11 CONSTRUÍDO (no branch, SÓ NA CONTA DO DIEGO — `VICE_CITY_GERAL = false`, sport.ts):
   · motor em `store.tsx` (`viceAbre/viceUsa/viceAplica/viceBusted/viceDepoisDoMartelo/viceTravaLance`), catálogo em `vice-city.ts`,
     tela em `vice-city-ui.tsx` (faixa do último golpe em cima da mesa + mão de cartas + o que vale contra você + segredo do X9/Sniper).
