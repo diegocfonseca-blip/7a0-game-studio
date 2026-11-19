@@ -1184,7 +1184,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **🧭 FLUXO DA CENTRAL (19/11, *"pode fazer tudo p todos"*, `FLUXO_CENTRAL_GERAL = true`).** Os dias e os acontecimentos (ônibus,
   feira, festa…) passam SÓ na Central; no dia do jogo a Central pergunta **📺 Campo 2D** (vai pra aba Jogos, pronto pro OK) ou **🏟️ Campo 3D**
   (vai pro estádio do mapa, com "← Voltar pra Central" em cima). A aba Jogos não mostra jogo parado ("o jogo começa pela Central").
-  O 1º jogo da temporada continua saindo do "Começar a temporada" direto na aba Jogos, como sempre foi.
+  🔁 Mesmo dia (*"faça tb"*): a ESTREIA da temporada também pergunta — no lugar do "Começar a temporada" vêm "📺 Começar no Campo 2D"
+  e "🏟️ Começar no Campo 3D" (Central e aba Jogos, `comecaEstreia`).
 - **📅 CALENDÁRIO: O DIA DE JOGO NUNCA PULA SOZINHO (26/10, regra dele).** *"Não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"*. A semana passa na Central e PARA no dia do jogo; o cartão da semana mostra "⚽ Ir pro jogo". **Nada de janela por cima da tela** (*"esse modal que eu disse que não quero"*) e nada de relógio que leva pra aba Jogos. E também **nenhum jogo começa sozinho** (nem na aba Jogos: botão "▶ Começar o jogo") e **ninguém é levado de volta pra Central** depois do apito — *"o usuário tem que tá livre pra dar uma volta nas abas"*.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
