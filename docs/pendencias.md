@@ -263,8 +263,11 @@
   melhor 2º de cada conferência → quartas (1×4, 2×3) → semis na conferência → final Leste × Oeste, jogo único, no motor da Cup de
   sempre (`nbaCup`/`playNbaCupRound`, que já tinha tela). Desempate: vitórias → confronto → saldo → pontos. Trava: `npm run eua-oficial`.
   ⚠️ Diferença pro real (anotada): na NBA quartas e semis CONTAM na tabela (só a final não); aqui o mata-mata inteiro fica fora.
-- ⏳ EUA Oficial, a fazer: **tabela dos grupos da Cup na tela** (hoje só aparece a notícia quando os grupos fecham + o mata-mata;
-  mockup antes), Draft com loteria, os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
+- ✅ 19/11 tabela dos grupos da NBA Cup na aba Jogos, embaixo da tabela da NBA (`EuaCupGruposBox`, screens.tsx; prints
+  `scripts/mockups/basquete-eua-cup-grupos-*.png`) — Diego: *"Tá aprovado, tá tudo bem"*.
+- ⚠️ Visto no teste (avisado ao Diego, sem decisão ainda): franquia com muita lenda antiga (Celtics, Lakers) fica muito forte e as
+  com poucas cartas (Pelicans, Nets, Mavericks) ficam fracas — os Pelicans fizeram 0-14.
+- ⏳ EUA Oficial, a fazer: Draft com loteria, os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
