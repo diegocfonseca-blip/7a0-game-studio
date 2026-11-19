@@ -14157,3 +14157,11 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 5. Faixa "É CAMPEÃO DA …" do quickCopa (store.tsx ~12176) só em PT.
 6. Kings: "dia" do jogador é por nome — xarás em times opostos ficam com o mesmo dia.
 - Conferir: título da Euro/Copa América vai pro esc_results com season_key ':copamundo' — ver se o Rank conta como Copa do Mundo.
+
+## 🇧🇷 19/11 — Simulação do Brasil Oficial começando na Série D (`scripts/simula-brasil-oficial.mts`)
+- Força do 11 titular (nível médio) dos bots: D mediana 58 · C 62,5 · B 68,6 · A 78,7 (A vai até 84–86).
+- Clube da D no começo, sem reforço: mediana 59,5; sobe em ~6–8% das temporadas (a D real sobe 6 de 96).
+- Chance de subir pela força: D precisa de ~66–70 pra ter ~40% · C de ~66–70 pra 40% e 70+ pra 63%+ · B de 70–74 pra 41% e 74+ pra ~80%.
+- ⚠️ Fora da curva: na D, **America-RJ 77 e Portuguesa 76,6** (mais fortes que quase toda a Série B) e, na C, **Guarani 77** —
+  são cartas de época/lenda desses clubes. Proposta levada ao Diego: limitar no elenco dos BOTS da D e da C as cartas acima da categoria da série.
+- Painel: a carreira do Oficial agora vai marcada (`career_modo` em `live_beats`) — "🇧🇷 Brasil Oficial · Série X".
