@@ -1465,6 +1465,13 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
+## 🕵️ VIGIA DE CONTA DUPLA — 19/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **Éden FC** (isaacvpn2023) × **Fluminense** (caiom3244, criada ONTEM 18/11) — 5 temporadas só os dois, 5 ligas × 0, logins com
+  3 min de diferença, a conta de apoio nunca jogou sala cheia.
+- Médios (só anotado): davi20062010 × lukinharegis222 (ambas 31/10, 6 temp., 5×0, logins 31 min, perdedor 2 salas cheias) · gabrielcostadelima ×
+  danielleitecastro1 (5 temp., 4×0, perdedor nunca em sala cheia, mas logins distantes e contas de set/out) · valmirdecarvalho3 × ph.vasques
+  (perdedor 14 salas cheias — parece amigo) · matheus03janeiro × igorpdemoura11 (ambas 11/11, 0×3, perdedor 1 sala cheia).
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 09/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **wislleyrc12 × wislley427** — mesmo nome "wislley" nos dois e-mails, as duas criadas 31/08, logins com 13 min, 9 temporadas
   só os dois, 0 × 4 ligas. ⚠️ A perdedora (wislleyrc12) jogou 33 salas cheias — é conta ATIVA dele, não conta morta de apoio.
