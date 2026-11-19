@@ -997,8 +997,10 @@ export function EscLobby() {
   const tam10Mostra = !nbaSala && (roomMode === 'rapido' || (roomMode === 'liga' && !ehDraft && ligaComBots))
   const tam10Travado = rapidoCopaMode === 'relampago' || rapidoCopaMode === 'champions'
   // 🌴 19/11 (Diego: *"n era 10 pregão e 20 Tocaia?"*): Vice City é Pregão aberto = liga de 10 times, sempre (20 fica travado)
-  const viceForca10 = roomMode === 'rapido' && viceSala && viceVe && !nbaSala
-  const tam10Vale = viceForca10 || ligaTamanho === 10 && ((tam10Mostra && !tam10Travado) || (roomMode === 'liga' && ehMinha && ligaComBots))
+  // 🌴 19/11 (Diego: "inclua a opção de 20 times… mantendo o 10 como padrão já escolhido"): o Vice City não força mais 10 — só nasce em 10
+  const viceAqui = roomMode === 'rapido' && viceSala && viceVe && !nbaSala
+  const [viceCartasSel, setViceCartasSel] = useState<3 | 4 | 5>(3)
+  const tam10Vale = ligaTamanho === 10 && ((tam10Mostra && !tam10Travado) || (roomMode === 'liga' && ehMinha && ligaComBots))
   const chaveSel = roomMode === 'rapido' && viceSala && viceVe ? 'vice' : roomMode === 'rapido' && kingsSala && kingsVe ? 'kings' : roomMode === 'liga' ? (minhaSel ? 'liga-minha' : ligaDraftSel ? 'liga-draft' : 'liga') : roomMode
   const chaveModo = (m: { v: string; draft?: boolean; minha?: boolean; kings?: boolean; vice?: boolean }) => m.vice ? 'vice' : m.kings ? 'kings' : m.v === 'liga' ? (m.minha ? 'liga-minha' : m.draft ? 'liga-draft' : 'liga') : m.v
   const amigosOn = useAmigos() // 👥 18/10: amigos + perfil (pra todos desde 19/10)
@@ -1894,6 +1896,7 @@ export function EscLobby() {
       holandes: !!gs?.holandes,
       pregaoAberto: !!gs?.pregaoAberto, // 🔨 pregão aberto (17/10): escolha do dono gravada na sala
       vice: !!gs?.pregaoAberto && !!(gs as GS & { vice?: boolean })?.vice, // 🌴 Vice City (19/11): pregão aberto com cartas de golpe
+      viceCartas: (gs as GS & { viceCartas?: number })?.viceCartas, // 🃏 19/11: 3 · 4 · 5 cartas de golpe
       envUnico: !!(gs as GS & { envUnico?: boolean })?.envUnico, // ⚡ envelope único (28/10)
       clubes: !!gs?.clubes, // 🧱 leilão de clubes: escolha do host, gravada na sala
       selecao: !!gs?.clubes && !!(gs as GS & { pacSelecao?: boolean })?.pacSelecao, // 🏳️ 31/10
@@ -2267,7 +2270,7 @@ export function EscLobby() {
     // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
     if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
     // 🌴 19/11: sala Vice City — sempre Pregão aberto, sem duplas/clubes/Champions (o golpe acontece com uma carta por vez na mesa)
-    if (viceVe && viceSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { vice: true, pregaoAberto: true, holandes: undefined, envUnico: undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, duplasMode: undefined, ...(rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago' ? { copaMode: 'liga', relampagoChave: undefined } : {}) })
+    if (viceVe && viceSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { vice: true, viceCartas: viceCartasSel, pregaoAberto: true, holandes: undefined, envUnico: undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, duplasMode: undefined, ...(rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago' ? { copaMode: 'liga', relampagoChave: undefined } : {}) })
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -4310,7 +4313,7 @@ export function EscLobby() {
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button aria-pressed={sel} key={chaveModo(m)} disabled={viceTravado} onClick={() => { if (viceTravado) return; setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
+                  <button aria-pressed={sel} key={chaveModo(m)} disabled={viceTravado} onClick={() => { if (viceTravado) return; setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if ((m as { vice?: boolean }).vice && !viceSala) { setLigaTamanho(10); setTurnoUnicoSel(true); setViceCartasSel(3) } if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
                     style={{ background: viceCard ? (sel ? 'linear-gradient(135deg,#FF2E93,#FFC400)' : 'linear-gradient(135deg,#FF2E93,#FF7CC8)') : sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta || viceCard ? 1 : 0.55, cursor: viceTravado ? 'not-allowed' : undefined, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
                     {m.topo && !meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1" style={{ background: INK, color: GOLD, borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', ...OSWALD }}>{m.topo}</span>}
@@ -4743,10 +4746,12 @@ export function EscLobby() {
                     regionais = a máquina completa as vagas). Relâmpago e Só Champions NÃO têm liga: o 10 fica travado. */}
                 {tam10Mostra && (
                   <SegField label={tr('🏟️ Times na liga', '🏟️ Teams in the league')}>
-                    <Seg options={[[20, tr('20 times (padrão)', '20 teams (default)')], [10, tr('10 times', '10 teams')]] as [20 | 10, string][]}
-                      value={viceForca10 ? 10 : tam10Travado ? 20 : ligaTamanho} onSet={v => setLigaTamanho(v)} travados={viceForca10 ? ['20'] : tam10Travado ? ['10'] : []} />
+                    <Seg options={(viceAqui ? [[10, tr('⚡ 10 times (padrão, mais curto)', '⚡ 10 teams (default, shorter)')], [20, tr('🐢 20 times (demora mais)', '🐢 20 teams (takes longer)')]] : [[20, tr('20 times (padrão)', '20 teams (default)')], [10, tr('10 times', '10 teams')]]) as [20 | 10, string][]}
+                      value={tam10Travado ? 20 : ligaTamanho} onSet={v => setLigaTamanho(v)} travados={tam10Travado ? ['10'] : []} />
                     <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                      {viceForca10 ? tr('🌴 Vice City é Pregão aberto: liga de 10 times (18 rodadas), pra o leilão não ficar longo demais.', '🌴 Vice City is an open auction: 10-team league (18 rounds), so the auction doesn\'t drag on.') : tam10Travado
+                      {viceAqui && !tam10Travado ? (ligaTamanho === 10
+                        ? tr('🌴 10 times = o Vice City mais curto: pregão menor e liga de 18 rodadas. Quer partida rápida? Fica no 10.', '🌴 10 teams = the shortest Vice City: smaller auction and an 18-round league. Want a quick game? Stay on 10.')
+                        : tr('🐢 20 times DEMORA MAIS: o pregão tem o dobro de cartas (sempre uma por vez na mesa) e a liga é maior. Até 10 técnicos de gente; os bots completam os 20.', '🐢 20 teams TAKES LONGER: the auction has twice the cards (still one at a time on the table) and the league is bigger. Up to 10 human managers; bots fill up to 20.')) : tam10Travado
                         ? (rapidoCopaMode === 'relampago'
                           ? tr('🔒 10 times não vale aqui: o ⚡ Relâmpago não tem liga — o tamanho é o da chave (16 ou 32).', '🔒 10 teams doesn\'t apply here: ⚡ Lightning has no league — the size is the draw (16 or 32).')
                           : tr('🔒 10 times não vale aqui: a ⭐ Só Champions não tem liga — é a tabela de 36.', '🔒 10 teams doesn\'t apply here: ⭐ Champions only has no league — it is the table of 36.'))
@@ -4759,7 +4764,7 @@ export function EscLobby() {
                 {/* ⚡ TURNO ÚNICO (06/11): logo abaixo dos times na liga — só com 20 (a de 10 já tem as 18 dela) */}
                 {turnoMostra && !(ehDraft && roomMode === 'liga') && (
                   <SegField label={tr('📅 Rodadas da liga', '📅 League rounds')}>
-                    <Seg options={[[false, tr('🏟️ 38 rodadas · ida e volta (padrão)', '🏟️ 38 rounds · home and away (default)')], [true, tr('⚡ 19 rodadas · só ida', '⚡ 19 rounds · one leg')]] as [boolean, string][]}
+                    <Seg options={(viceAqui ? [[true, tr('⚡ 19 rodadas · só ida (padrão, mais curto)', '⚡ 19 rounds · one leg (default, shorter)')], [false, tr('🐢 38 rodadas · ida e volta (demora mais)', '🐢 38 rounds · home and away (takes longer)')]] : [[false, tr('🏟️ 38 rodadas · ida e volta (padrão)', '🏟️ 38 rounds · home and away (default)')], [true, tr('⚡ 19 rodadas · só ida', '⚡ 19 rounds · one leg')]]) as [boolean, string][]}
                       value={turnoUnicoSel} onSet={v => setTurnoUnicoSel(v)} />
                     <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                       {turnoUnicoSel
@@ -4767,6 +4772,13 @@ export function EscLobby() {
                         : tr('🏟️ Ida e volta: 38 jogos, metade em casa e metade fora (o de sempre).', '🏟️ Home and away: 38 games, half at home and half away (the usual).')}
                       {roomMode === 'liga' && !ligaComBots ? tr(' Sem bots, só vale se a tabela fechar 20 times.', ' With no bots, it only applies if the table reaches 20 teams.') : ''}
                     </p>
+                  </SegField>
+                )}
+                {/* 🃏 19/11 (Diego: "deixar padrão 3 cartas de golpe, ou você ter 4 ou 5… para decidir") */}
+                {viceAqui && (
+                  <SegField label={tr('🃏 Cartas de golpe por técnico', '🃏 Heist cards per manager')}>
+                    <Seg options={[[3, tr('3 (padrão)', '3 (default)')], [4, '4'], [5, '5']] as [3 | 4 | 5, string][]} value={viceCartasSel} onSet={v => setViceCartasSel(v)} />
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{tr('Todo mundo recebe as cartas no sorteio do começo. Mais cartas = mais golpe, mais confusão.', 'Everyone gets their cards in the opening draw. More cards = more heists, more chaos.')}</p>
                   </SegField>
                 )}
                 <SegField label={tr('Depois da liga', 'After the league')}>

@@ -825,6 +825,8 @@ export interface EscState {
   pregaoAberto?: boolean
   /** 🌴 sala Vice City (19/11): pregão aberto com cartas de golpe */
   viceCity?: boolean
+  /** 🃏 19/11: quantas cartas de golpe cada técnico recebe (3 padrão · 4 · 5), escolha de quem cria */
+  viceCartas?: number
   /** ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png): as 5 posições num envelope só, 180s, uma revelação */
   envUnico?: boolean
   /** ⚡ o envelope único está aberto (a fila tem as cartas das 5 posições) / a revelação única está rolando */

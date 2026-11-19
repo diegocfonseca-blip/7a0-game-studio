@@ -14237,3 +14237,11 @@ Estadual (Brasil Oficial), copas que rodam como fase (copa de fim de temporada, 
 2D = aba Jogos com "▶ Começar o jogo"; 3D = mapa com "▶ Começar o jogo" em cima (vale também pra liga e estreia). Testado: Paysandu, Parazão
 rodada 1 no 3D (Re-Pa no Mangueirão) e rodada 2 no 2D. Copa da quarta (Copa do Brasil/Liberta/Sula do calendário) já passava pela Central.
 FALTA conferir/levar: a 🌎 campanha internacional (Liberta/Champions de convite, tela própria) e a 🌍 Copa do Mundo do roteiro (tela própria).
+
+## 🌴 19/11 — Vice City: 10 ou 20 times, 19 ou 38 rodadas, 3/4/5 cartas de golpe — PUBLICADO
+Diego: *"inclua a opção de 20 times… 10 como padrão… 19 rodadas ou 38… deixando claro que demora mais… 3 cartas de golpe ou 4 ou 5"*.
+Criar sala Vice City nasce em 10 times (18 rodadas); 20 times = 19 rodadas (padrão) ou 38, com texto "demora mais". Cartas de golpe
+3 (padrão) · 4 · 5 (`viceCartas` na sala → `state.viceCartas`). Gente continua até 10 (bots completam); a mesa do pregão no Vice City é SEMPRE
+uma carta (o duplo de 11+ clubes não liga, senão o golpe embolaria). Competições: todas menos Champions e Relâmpago (já era assim no código;
+o Diego disse que só via a Copa dos 8 — não reproduzi sem login; conferir com ele num print se continuar).
+⚠️ `npm run carreira-limpa` já reprovava ANTES desta mudança por `kingsBaralho` (outra sessão) — falta pôr em MARCAS_DE_MODO ou NEUTROS.
