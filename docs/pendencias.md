@@ -14117,3 +14117,7 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
   · Trava `npm run vice-city`. As travas npx tsx que carregam o store estavam quebradas pra todo mundo (imagem .webp e
     `import.meta.env`): `scripts/node-stub-reg.mjs` conserta (`npm run pregao-aberto` já usa).
   · Falta: testar numa sala de verdade com 2+ contas antes de liberar; O MARTELO edição Vice e a carta 🚨 Procurado (sugeri tirar).
+
+## 🧹 19/11 — Painel do Criador dava "statement timeout" (Diego: "antigamente eu via quem tava online") — CONSERTADO
+- `live_beats` (o "tô aqui" de cada aparelho) só era limpa quando o #admin abria; juntou 1,1 mi de linhas desde 08/11 e a limpeza dentro do painel estourava os 8 s.
+- Liguei no banco o job `limpa-live-beats` (a cada 5 min, até 100 mil linhas com > 10 min). SQL em `docs/sql/limpa-live-beats-cron.sql`. Não depende mais de abrir o painel.
