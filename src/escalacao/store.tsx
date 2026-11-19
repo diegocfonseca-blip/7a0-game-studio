@@ -8540,9 +8540,8 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
 }
 /** 🏀🇺🇸 EUA OFICIAL (19/11, plano em docs/carreira-eua-oficial-plano.md). Monta a carreira por cima do START_NBA_CAREER: a liga é a
  *  NBA de verdade — as 30 franquias, cada uma com as cartas DELA (as antigas do auge + as novas só da carreira, `extras`), nas
- *  conferências reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA). Sem sobe e desce (decisão do Diego). Elenco
- *  de cada franquia = 15 (3 por posição, os melhores; posição curta completa com o melhor que sobrar). Devolve false se a franquia não
- *  existir (e não mexe em nada). */
+ *  conferências reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA). Sem sobe e desce (decisão do Diego). Cada
+ *  franquia começa com o quinteto SORTEADO entre as cartas dela. Devolve false se a franquia não existir (e não mexe em nada). */
 /** 🏀🏆 NBA Cup real (EUA Oficial): anota os jogos de GRUPO desta rodada (o 1º encontro de cada dupla do grupo no calendário — são
  *  jogos da temporada, já contaram na tabela) e, quando os 6 grupos fecham, monta o mata-mata de 8 no motor da Cup de sempre. */
 function registraCupEua(s: EscState, results: { homeId: number; awayId: number; hg: number; ag: number }[]): void {
@@ -8578,14 +8577,16 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   const add = (pos: Sector, c: Card) => { const f = EUA_LINHAGEM[c.club] ?? c.club; if (EUA_FRANQUIAS.includes(f)) (porFranquia[f] ??= []).push({ pos, c }) }
   for (const pos of SECTORS) for (const c of cat[pos]) add(pos, c as unknown as Card)
   for (const c of extras ?? []) if (c && SECTORS.includes(c.pos as Sector)) add(c.pos as Sector, c)
-  const forca = (c: Card) => (c.fame ?? 1) * 1000 + (c.lo ?? 0) + (c.hi ?? 0)
   // 🔨 o que não coube nos 15 de cada franquia (o Celtics tem 27 cartas) vai pro LEILÃO DE ABERTURA, igual ao Brasil Oficial
   const sobras: Record<Sector, Card[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+  // 🎲 19/11 (Diego: *"na NBA os times começam apenas com titulares… se o Lakers tiver 100 cartas, sorte apenas pros titulares"*): cada
+  // franquia começa com o QUINTETO — 1 por posição, SORTEADO entre as cartas dela (preso na semente da carreira). O resto fica sem time:
+  // vai pro leilão de abertura e pro Draft. O elenco cresce como na carreira de sempre (T2 rotação de 10, T3+ elenco de 15).
+  const rngQ = mulberry((s.seed ^ 0x0E0A0D5) >>> 0)
   const elencoDe = (f: string): WonCard[] => {
-    const todas = [...(porFranquia[f] ?? [])].sort((a, b) => forca(b.c) - forca(a.c))
+    const todas = porFranquia[f] ?? []
     const pega: typeof todas = []
-    for (const pos of SECTORS) pega.push(...todas.filter(x => x.pos === pos).slice(0, 3))
-    for (const x of todas) { if (pega.length >= 15) break; if (!pega.includes(x)) pega.push(x) }
+    for (const pos of SECTORS) { const daPos = todas.filter(x => x.pos === pos); if (daPos.length) pega.push(daPos[Math.floor(rngQ() * daPos.length)]) }
     for (const x of todas) if (!pega.includes(x)) sobras[x.pos].push({ ...x.c, pos: x.pos, id: `ab-${x.pos}-${sobras[x.pos].length}` } as Card)
     return pega.map((x, i) => {
       const c = { ...x.c, pos: x.pos, id: `eua-${x.pos}-${f.replace(/\s+/g, '')}-${i}` } as Card
@@ -8597,7 +8598,7 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   const eu = s.managers[0]
   s.managers = ordem.map((f, i) => ({
     id: i, name: i === 0 ? (eu?.name ?? f) : f, teamName: f, isHuman: i === 0, auctionRival: i === 0, formation: eu?.formation ?? '4-3-3',
-    money: i === 0 ? (eu?.money ?? 0) : 0, squad: elencoDe(f), aggression: 0.5, starHunger: 0.5, nbaSlots: 3,
+    money: i === 0 ? (eu?.money ?? 0) : 0, squad: elencoDe(f), aggression: 0.5, starHunger: 0.5,
   } as Manager))
   s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
   s.careerRivalCount = ordem.length - 1; s.careerRivals = []
@@ -9636,7 +9637,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // só VOCÊ cresce: T2 → rotação (2/posição = 10), T3+ → elenco cheio (3/pos
       // = 15). Os outros times ficam no quinteto (nbaSlots undefined). Elencos de
       // todos preservados da temporada passada.
-      you.nbaSlots = s.euaOficial || s.seasonNo >= 3 ? 3 : 2 // 🏀🇺🇸 EUA Oficial: a franquia já nasce com os 15
+      you.nbaSlots = s.seasonNo >= 3 ? 3 : 2
       for (const m of s.managers) m.deepSquad = false
       // 🪜 SUBIR DE LIGA: terminou no TOP 4 da temporada que acabou? sobe um andar
       // (Street → G League → NBA). Você LEVA seu elenco; os adversários viram os do
@@ -9772,7 +9773,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // TODOS os humanos crescem (o offline cresce só o youIdx): T2 → rotação (2/pos = 10),
       // T3+ → elenco cheio (3/pos = 15). Os bots (crews) ficam no quinteto (sem nbaSlots).
       const humans = s.managers.filter(m => m.isHuman)
-      for (const m of humans) m.nbaSlots = s.euaOficial || s.seasonNo >= 3 ? 3 : 2
+      for (const m of humans) m.nbaSlots = s.seasonNo >= 3 ? 3 : 2
       for (const m of s.managers) m.deepSquad = false
       // 🪜 SUBIR DE ANDAR — a CREW sobe JUNTA: se o MELHOR humano terminou no TOP 4 e
       // existe andar acima (Street → G League → NBA), o quarto inteiro sobe. Ninguém cai.

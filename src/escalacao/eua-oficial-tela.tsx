@@ -76,7 +76,7 @@ export function EscolhaFranquiaEUA({ onEscolher, onVoltar, ocupado, erro }: { on
             <h2 style={{ textAlign: 'center', textTransform: 'uppercase' }}>{f.nome}</h2>
             <p>🏀 {f.conf === 'Leste' ? tr('Conferência Leste', 'Eastern Conference') : tr('Conferência Oeste', 'Western Conference')} · {tr(`Divisão ${f.div}`, `${f.divEn} Division`)}</p>
             <p>📅 {tr('82 jogos na temporada regular, Play-In e Playoffs melhor de 7 até as Finais.', '82 regular-season games, Play-In and best-of-7 Playoffs through the Finals.')}</p>
-            <p>🃏 {tr('Elenco: as 15 melhores cartas da franquia (os ídolos dela e, onde faltava gente, os jogadores de hoje).', "Roster: the franchise's 15 best cards (its legends and, where it was short, today's players).")}</p>
+            <p>🎲 {tr('Começa com o quinteto SORTEADO entre todas as cartas da franquia. O resto fica sem time: vai pro leilão e pro Draft.', "Starts with a starting five DRAWN from all the franchise's cards. The rest are free agents: they go to the auction and the Draft.")}</p>
             <p>🔒 {tr('Sem sobe e desce: a franquia é sua pra sempre nesta carreira.', 'No promotion or relegation: the franchise is yours for this whole career.')}</p>
             {erro && <p role="alert" className="cse-error">{erro}</p>}
             <button type="button" className="csg-primary" style={{ width: '100%', marginTop: 14, opacity: ocupado ? 0.6 : 1 }} disabled={ocupado} onClick={() => !ocupado && onEscolher(f.chave)}>

@@ -267,6 +267,12 @@
   `scripts/mockups/basquete-eua-cup-grupos-*.png`) — Diego: *"Tá aprovado, tá tudo bem"*.
 - ⚠️ Visto no teste (avisado ao Diego, sem decisão ainda): franquia com muita lenda antiga (Celtics, Lakers) fica muito forte e as
   com poucas cartas (Pelicans, Nets, Mavericks) ficam fracas — os Pelicans fizeram 0-14.
+- 🔁 19/11 (Diego: *"na NBA os times começam apenas com titulares… se o Lakers tiver 100 cartas, sorte apenas pros titulares"*):
+  cada franquia agora começa só com o QUINTETO, 1 por posição, SORTEADO entre todas as cartas dela (preso na semente). O resto fica sem
+  time (leilão de abertura + Draft) e o elenco cresce como na carreira de sempre (T2 = 10, T3+ = 15). Acaba com a franquia de 15 lendas.
+- ⏳ Draft (decisão 19/11): regra da NBA (loteria dos 14 fora dos playoffs, 4 primeiras sorteadas, 14% pros 3 piores; o resto do pior pro
+  melhor), mas **1 escolha por time** (*"faz só uma escolha por time"*), só com cartas SEM time na carreira (ninguém pega de outro time).
+  Aproveitar da Liga Draft o suspense do anúncio e o relógio.
 - ⏳ EUA Oficial, a fazer: Draft com loteria, os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
