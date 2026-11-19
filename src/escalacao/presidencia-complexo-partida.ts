@@ -7,7 +7,8 @@ import type {StadiumSave} from './estadiodata'
 import type {PresidenteBaseSave} from './presidencia-carreira'
 import {progressoVisualSetor} from './presidencia-estadio-camadas'
 import {materialSolo3D} from './presidencia-solo-3d'
-import {materialGramado3D} from './presidencia-gramado-material-3d'
+import {materialGramado3D,desgasteGramadoCompartilhado} from './presidencia-gramado-material-3d'
+import {mapa3dLiberado} from './sport'
 import {faixasGramado3D} from './presidencia-gramado-3d'
 import {BANCO_Z,TECNICO_Z,FUNDO_AREA_TECNICA_Z} from './presidencia-area-tecnica'
 import {entradaOficialCompleta,atletasEmCampo,type AtletaEstadio,type EstadoPartidaEstadio} from './presidencia-partida-model'
@@ -45,7 +46,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  // TextureLoader replaces this valid pixel with the real image on success.
  if(!grass.image){grass.image=new ImageData(new Uint8ClampedArray([85,120,42,255]),1,1);grass.needsUpdate=true}
  const progress=stadium?progressoVisualSetor(stadium,'grama'):0
- const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass)),dirt=materialSolo3D()
+ const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass,!readable2D&&!registered&&mapa3dLiberado()?desgasteGramadoCompartilhado():undefined)),dirt=materialSolo3D()
  for(const band of faixasGramado3D(progress)){
   const geometry=new THREE.PlaneGeometry(band.width,68),uv=geometry.getAttribute('uv')
   // One continuous grass texture across the 105 m field, including partial strips.
