@@ -3,7 +3,7 @@
 // Ideia do Diego (19/11, pra pegar o hype do lançamento do GTA 6): um modo de sala com o leilão de sempre (Pregão aberto) e
 // CARTAS DE GOLPE pra usar contra os rivais. Mockup aprovado: `scripts/mockups/vice-city-pregao.png` (*"Pode fazer adorei"*).
 // Regras que ele fechou (todas em `docs/pendencias.md`, 19/11):
-//  · cada técnico de GENTE recebe até 2 cartas sorteadas (pode repetir): uma no começo do pregão, outra na metade
+//  · cada técnico de GENTE recebe 3 cartas sorteadas (pode repetir), TODAS antes da 1ª carta, com a janela do sorteio (19/11, v2)
 //  · quem LEVA golpe ganha 1 ⭐ (toda carta dá 1). As estrelas são ESCONDIDAS — só o 🎯 Sniper mostra o ranking
 //  · o 1º a chegar em 5 ⭐ leva BUSTED (uma vez por sala): perde os 3 MELHORES, que viram cartas reais de categoria
 //    Profissional da mesma posição e NÃO voltam pra mesa; ganha 1 🚗 Roubo de carro de vingança
@@ -33,7 +33,7 @@ export const GOLPES: Record<GolpeId, Golpe> = {
   assalto: { id: 'assalto', emoji: '🏦', nome: ['Assalto ao banco', 'Bank heist'], faz: ['Tira 10 moedas do caixa dele pra você', 'Takes 10 coins from their cash to you'], alvo: true, peso: 2 },
   blitz: { id: 'blitz', emoji: '🚔', nome: ['Blitz', 'Roadblock'], faz: ['Ele fica 10 s sem poder dar lance', 'They can’t bid for 10 s'], alvo: true, peso: 4 },
   barreira: { id: 'barreira', emoji: '🚧', nome: ['Barreira', 'Barrier'], faz: ['Ele fica uma rodada (uma carta) sem dar lance', 'They sit out one round (one card)'], alvo: true, peso: 4 },
-  cadeia: { id: 'cadeia', emoji: '🔒', nome: ['Cadeia', 'Jail'], faz: ['Ele perde a próxima carta que levar (volta pra mesa)', 'They lose the next card they win (back to the table)'], alvo: true, peso: 3 },
+  cadeia: { id: 'cadeia', emoji: '🔒', nome: ['Cadeia', 'Jail'], faz: ['O jogador mais caro dele volta pra mesa NA HORA (ele recebe o dinheiro)', 'Their priciest player goes back to the table NOW (they get the money back)'], alvo: true, peso: 3 },
   multa: { id: 'multa', emoji: '🧾', nome: ['Multa', 'Fine'], faz: ['A próxima carta dele custa 30% a mais', 'Their next card costs 30% more'], alvo: true, peso: 4 },
   tanque: { id: 'tanque', emoji: '⛽', nome: ['Tanque vazio', 'Empty tank'], faz: ['Por 15 s ele só dá lance até 10 moedas', 'For 15 s they can only bid up to 10 coins'], alvo: true, peso: 4 },
   tiroteio: { id: 'tiroteio', emoji: '🔫', nome: ['Tiroteio', 'Shootout'], faz: ['O caixa dele congela por 10 s', 'Their cash freezes for 10 s'], alvo: true, peso: 3 },
@@ -52,8 +52,10 @@ export const GOLPE_IDS = Object.keys(GOLPES) as GolpeId[]
 
 /** ⭐ quantas estrelas dão BUSTED */
 export const VICE_BUSTED_EM = 5
-/** 🃏 quantas cartas de golpe cada técnico recebe no pregão inteiro (1 no começo + 1 na metade) */
-export const VICE_CARTAS_POR_TECNICO = 2
+/** 🃏 quantas cartas de golpe cada técnico recebe — TODAS no sorteio do começo (19/11 v2: era 1 no começo + 1 na metade) */
+export const VICE_CARTAS_POR_TECNICO = 3
+/** 🎰 a janela do sorteio das cartas: a 1ª carta da mesa só começa a correr depois dela */
+export const VICE_SORTEIO_MS = 7_000
 /** 👥 a sala Vice City é Pregão aberto até 10 (uma carta na mesa por vez — o golpe acontece na frente de todo mundo) */
 export const VICE_MAX_JOGADORES = 10
 export const VICE_BLITZ_MS = 10_000
@@ -81,7 +83,7 @@ export function anuncioGolpe(id: GolpeId, quem: string, alvo?: string, extra?: s
     case 'assalto': return [`🏦 ${quem} assaltou o ${a}: ${extra ?? VICE_ASSALTO} moedas!`, `🏦 ${quem} robbed ${a}: ${extra ?? VICE_ASSALTO} coins!`]
     case 'blitz': return [`🚔 BLITZ! ${quem} travou o ${a}: 10 s sem dar lance`, `🚔 ROADBLOCK! ${quem} stopped ${a}: 10 s without bidding`]
     case 'barreira': return [`🚧 ${quem} pôs uma barreira no ${a}: uma rodada sem lance`, `🚧 ${quem} blocked ${a}: one round without bids`]
-    case 'cadeia': return [`🔒 ${quem} mandou o ${a} pra cadeia: a próxima carta dele volta pra mesa`, `🔒 ${quem} jailed ${a}: their next card goes back to the table`]
+    case 'cadeia': return [`🔒 ${quem} mandou o ${a} pra cadeia: ${extra ?? 'o jogador mais caro dele'} voltou pra mesa`, `🔒 ${quem} jailed ${a}: ${extra ?? 'their priciest player'} went back to the table`]
     case 'multa': return [`🧾 ${quem} multou o ${a}: a próxima carta dele custa +30%`, `🧾 ${quem} fined ${a}: their next card costs +30%`]
     case 'tanque': return [`⛽ ${quem} esvaziou o tanque do ${a}: 15 s só com lance até 10`, `⛽ ${quem} drained ${a}’s tank: 15 s, bids up to 10 only`]
     case 'tiroteio': return [`🔫 Tiroteio! ${quem} congelou o caixa do ${a} por 10 s`, `🔫 Shootout! ${quem} froze ${a}’s cash for 10 s`]

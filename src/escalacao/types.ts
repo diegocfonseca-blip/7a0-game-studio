@@ -396,8 +396,10 @@ export type PregaoAbertoState = {
 export type ViceState = {
   /** as cartas na mão de cada técnico de gente (ids de `GOLPES`, vice-city.ts) */
   mao: Record<number, string[]>
-  /** quantas cartas cada um já recebeu (máx. 2: uma no começo, outra na metade) */
+  /** quantas cartas cada um já recebeu (3, todas no sorteio do começo; salas antigas: 2) */
   recebidas: Record<number, number>
+  /** 🎰 até quando a janela do sorteio das cartas fica na tela (hora do dono) */
+  sorteioAte?: number
   /** ⭐ estrelas escondidas: quem LEVA golpe ganha 1 */
   estrelas: Record<number, number>
   /** 🚨 quem já tomou BUSTED (só 1 por sala) */

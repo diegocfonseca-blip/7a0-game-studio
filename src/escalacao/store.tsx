@@ -43,7 +43,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import type { ViceState } from './types'
-import { GOLPES, sorteiaGolpe, anuncioGolpe, VICE_BUSTED_EM, VICE_CARTAS_POR_TECNICO, VICE_BLITZ_MS, VICE_TIROTEIO_MS, VICE_TANQUE_MS, VICE_TANQUE_TETO, VICE_ASSALTO, VICE_MULTA, type GolpeId } from './vice-city'
+import { GOLPES, sorteiaGolpe, anuncioGolpe, VICE_BUSTED_EM, VICE_CARTAS_POR_TECNICO, VICE_SORTEIO_MS, VICE_BLITZ_MS, VICE_TIROTEIO_MS, VICE_TANQUE_MS, VICE_TANQUE_TETO, VICE_ASSALTO, VICE_MULTA, type GolpeId } from './vice-city'
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
 import { condicaoAtiva, divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
@@ -6962,8 +6962,9 @@ function viceDistribui(state: EscState, ate: number) {
 function viceAbre(state: EscState) {
   if (!state.viceCity || !state.pa || state.leilaoClubes) return
   state.pa.vice = viceNovo()
-  viceDistribui(state, 1)
-  viceFeed(state, ['🌴 Bem-vindo a Vice City: cada técnico recebeu uma carta de golpe. A outra chega no meio do pregão.', '🌴 Welcome to Vice City: every manager got a heist card. The second one comes halfway through.'])
+  for (let i = 1; i <= VICE_CARTAS_POR_TECNICO; i++) viceDistribui(state, i) // 🎰 19/11 v2: as 3 de uma vez, no sorteio
+  state.pa.vice.sorteioAte = Date.now() + VICE_SORTEIO_MS
+  viceFeed(state, [`🌴 Bem-vindo a Vice City: cada técnico recebeu ${VICE_CARTAS_POR_TECNICO} cartas de golpe.`, `🌴 Welcome to Vice City: every manager got ${VICE_CARTAS_POR_TECNICO} heist cards.`])
 }
 /** chamado a cada carta nova na mesa: na metade da fila chega a 2ª carta de golpe */
 function viceNaCarta(state: EscState) {
@@ -7044,7 +7045,20 @@ function viceAplica(state: EscState, id: GolpeId, ben: Manager, vit: Manager): s
       v.barreiraIdx[vit.id] = naMesa && lider !== vit.id ? pa.idx : pa.idx + 1
       return undefined
     }
-    case 'cadeia': v.cadeia[vit.id] = true; return undefined
+    case 'cadeia': {
+      // 🔒 19/11 v2 (Diego: "o usuário sabendo pode pegar carta ruim"): vale NA HORA — o jogador mais caro que ele já levou neste
+      // pregão volta pra mesa e ele recebe o que pagou. Ninguém tem como fugir escolhendo carta ruim.
+      const c = viceMaisCaro(vit)
+      if (!c) return null
+      const i = vit.squad.findIndex(x => x.id === c.id)
+      vit.squad.splice(i, 1)
+      vit.money += c.paid ?? 0
+      if (v.ultimo[vit.id] === c.id) delete v.ultimo[vit.id]
+      const { paid: _p, buyPrice: _b, via: _v, ...volta } = c as WonCard & { buyPrice?: number; via?: string }
+      void _p; void _b; void _v
+      state.pa!.fila.push({ ...volta } as Card)
+      return c.name
+    }
     case 'multa': v.multa[vit.id] = true; return undefined
     case 'lavagem': v.lavagem[vit.id] = ben.id; return undefined
     case 'delacao': return String(Math.floor(vit.money))
@@ -7122,6 +7136,10 @@ function viceUsa(state: EscState, mgrId: number, id: GolpeId, alvoId?: number): 
   if (v.busted === undefined && (v.estrelas[vit.id] ?? 0) >= VICE_BUSTED_EM) viceBusted(state, vit.id)
   return true
 }
+/** 🔒 o jogador mais caro que ele levou NESTE pregão (pago > 0, nunca de mentira) — o alvo da Cadeia */
+export function viceMaisCaro(m: Manager): WonCard | undefined {
+  return m.squad.filter(c => !c.fake && (c.paid ?? 0) > 0).sort((a, b) => (b.paid ?? 0) - (a.paid ?? 0))[0]
+}
 /** dá pra usar esse golpe nesse rival AGORA? (a tela acende o botão com a MESMA conta do motor) */
 export function viceAlvoServe(state: EscState, id: GolpeId, mgrId: number, alvoId: number): boolean {
   const v = state.pa?.vice
@@ -7133,6 +7151,7 @@ export function viceAlvoServe(state: EscState, id: GolpeId, mgrId: number, alvoI
     return !!c && openSlots(eu, c.pos) > 0
   }
   if (id === 'assalto') return Math.floor(alvo.money) > 0
+  if (id === 'cadeia') return !!viceMaisCaro(alvo)
   if (id === 'sequestro') return SECTORS.some(pos => alvo.squad.some(c => c.pos === pos && !c.fake) && eu.squad.some(c => c.pos === pos))
   return true
 }
@@ -7192,6 +7211,8 @@ function abrePregaoAberto(state: EscState) {
   viceAbre(state) // 🌴 Vice City: as cartas de golpe nascem antes da 1ª carta
   paProximaCarta(state, 0)
   if (duplo && state.pa) paProximaCarta(state, 1)
+  // 🎰 Vice City: a 1ª carta só corre depois da janela do sorteio (ninguém perde carta olhando as cartas de golpe)
+  if (state.pa?.vice?.sorteioAte) for (const k of [0, 1]) { const M = paMesa(state, k)?.M; if (M?.deadline) M.deadline += VICE_SORTEIO_MS }
 }
 /** acabou a fila e não tem carta em mesa nenhuma: fecha o pregão */
 function paTalvezFecha(state: EscState) {
@@ -7297,6 +7318,7 @@ function paTickMesa(state: EscState, k: number) {
   // ⏳ no online o martelo espera uma folguinha depois do 0 da tela: o lance de quem apertou no último instante ainda
   // está viajando até o dono. Na tela continua "5s"; quem apertou no 0 não perde pra internet.
   if (M.deadline !== null && Date.now() >= M.deadline + (state.onlineMode === 'online' ? PA_FOLGA_ONLINE_MS : 0)) { paMartelo(state, k); return }
+  if ((pa.vice?.sorteioAte ?? 0) > Date.now()) return // 🎰 Vice City: robô não lança enquanto a sala vê o sorteio das cartas
   const rng = paRng(state, k * 13)
   const minimo = paMinimo(state, k)
   const cands = paRobosQueDisputam(state).filter(m => m.id !== M.lider && !viceTravaLance(state, m.id, minimo) && (M.tetos[m.id] ?? 0) >= minimo && Math.floor(m.money) - paComprometido(state, m.id, k) >= minimo && openSlots(m, card.pos) > 0)

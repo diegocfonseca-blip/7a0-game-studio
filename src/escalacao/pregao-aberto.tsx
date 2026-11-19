@@ -13,7 +13,7 @@ import { openSlots } from './store'
 import { agoraSala } from './relogio'
 import { getSport } from './sport'
 import { POS_LABELS } from './sportcfg'
-import { ViceCityFaixa, ViceCityMao, ViceDecor, VICE_TEMA_CSS } from './vice-city-ui'
+import { ViceCityFaixa, ViceCityMao, ViceDecor, VICE_TEMA_CSS, ViceOverlays } from './vice-city-ui'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
@@ -67,6 +67,7 @@ export function PregaoAberto() {
       {pa.vice && <style>{VICE_TEMA_CSS}</style>}
       <div className={pa.vice ? 'space-y-3 vice-tema' : 'space-y-3'}>
         {pa.vice && <ViceDecor />}
+        {pa.vice && <ViceOverlays />}
         {/* 🏷️ o nome do modo em cima: quem entrou na sala descobre AQUI em que pregão está */}
         <AuctionSlot name="intro">
         <div style={{ background: pa.vice ? 'linear-gradient(90deg,#2a0b4d,#5b1a6e)' : INK, color: '#fff', border: `3px solid ${pa.vice ? '#ff4fd8' : INK}`, borderRadius: 13, padding: '8px 11px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: pa.vice ? '0 0 16px rgba(255,79,216,.7), 4px 4px 0 0 #0C0C0C' : `4px 4px 0 0 ${INK}` }}>

@@ -1,6 +1,7 @@
 // 🌴 trava do VICE CITY (19/11): roda uma Partida Rápida inteira de Pregão aberto com as cartas de golpe ligadas, no motor de
 // verdade (reducer), e confere:
-//   · todo técnico de gente recebe 1 carta no começo e a 2ª na metade (nunca mais de 2, fora a de vingança do BUSTED)
+//   · todo técnico de gente recebe 3 cartas no sorteio do começo (19/11 v2) e nunca mais (fora a de vingança do BUSTED)
+//   · 🔒 Cadeia vale NA HORA: o jogador mais caro dele volta pra mesa com o dinheiro
 //   · cada golpe é anunciado no feed, tira a carta da mão e dá 1 ⭐ escondida pra quem LEVOU
 //   · Blitz / Barreira / Tanque vazio barram o lance (a tela e o motor leem `viceTravaLance`)
 //   · Roubo de carro tira o último jogador do rival sem pagar; Assalto move 10 moedas; Colete segura; Fuga devolve
@@ -8,8 +9,8 @@
 //   · o pregão fecha redondo, sem carta duplicada e sem caixa negativo
 //   npx tsx scripts/testa-vice-city.mts
 import assert from 'node:assert/strict'
-import { reducer, paPodeLancar, paMinimo, PA_TICK_MS, viceTravaLance } from '../src/escalacao/store'
-import type { EscState } from '../src/escalacao/types'
+import { reducer, paPodeLancar, paMinimo, PA_TICK_MS, viceTravaLance, viceAlvoServe } from '../src/escalacao/store'
+import type { EscState, WonCard } from '../src/escalacao/types'
 import { GOLPES, VICE_BUSTED_EM, type GolpeId } from '../src/escalacao/vice-city'
 
 const nowRef = { t: 1_800_000_000_000 }
@@ -24,7 +25,9 @@ assert.equal(s.phase, 'pregao', 'abriu no pregão')
 const v0 = s.pa!.vice!
 assert.ok(v0, 'estado das cartas nasceu')
 const me = s.managers[s.youIdx]
-assert.equal((v0.mao[me.id] ?? []).length, 1, '1 carta no começo')
+assert.equal((v0.mao[me.id] ?? []).length, 3, '3 cartas no sorteio do começo')
+assert.ok((v0.sorteioAte ?? 0) > Date.now(), 'janela do sorteio aberta')
+
 assert.ok(v0.feed.length >= 1, 'boas-vindas no feed')
 const robo = s.managers.find(m => !m.isHuman)!
 assert.equal(v0.mao[robo.id], undefined, 'robô não recebe carta')
@@ -65,12 +68,28 @@ assert.ok(viceTravaLance(s, me.id, 50), 'fuga: o tanque vazio voltou pra mim')
 assert.equal(viceTravaLance(s, me.id, 5), null, 'tanque vazio deixa lance até 10')
 avanca(16_000)
 
+// 🔒 Cadeia (v2): sem jogador pago não dá; com jogador pago, o mais caro volta pra mesa NA HORA e o dinheiro volta
+{
+  let c = structuredClone(s)
+  const rb = c.managers.find(m => m.id === robo.id)!
+  rb.squad = rb.squad.filter(x => !(x.paid ?? 0))
+  assert.equal(viceAlvoServe(c, 'cadeia', me.id, robo.id), false, 'cadeia sem jogador pago não acende')
+  const caro = { ...((c.deck.ATA ?? [])[0] ?? c.pa!.fila[c.pa!.fila.length - 1]), id: 'teste-caro', paid: 33 } as never as WonCard
+  rb.squad.push(caro)
+  const din0 = rb.money, fila0 = c.pa!.fila.length
+  da(c, me.id, ['cadeia'])
+  c = usa(c, 'cadeia', robo.id)
+  const rb2 = c.managers.find(m => m.id === robo.id)!
+  assert.ok(!rb2.squad.some(x => x.id === 'teste-caro'), 'cadeia: o mais caro saiu do elenco')
+  assert.equal(rb2.money, din0 + 33, 'cadeia: o dinheiro voltou')
+  assert.equal(c.pa!.fila.length, fila0 + 1, 'cadeia: a carta voltou pra mesa')
+}
 // joga o pregão inteiro: eu dou lance de vez em quando e uso o que tiver na mão; confere o resto no caminho
 let guard = 0, golpes = 0, receberam2 = false
 while (s.phase === 'pregao' && s.pa && guard++ < 40000) {
   const v = s.pa?.vice
-  if (v && (v.recebidas[me.id] ?? 0) === 2) receberam2 = true
-  if (v && (v.recebidas[me.id] ?? 0) > 2) assert.fail('mais de 2 cartas recebidas')
+  if (v && (v.recebidas[me.id] ?? 0) === 3) receberam2 = true
+  if (v && (v.recebidas[me.id] ?? 0) > 3) assert.fail('mais de 3 cartas recebidas')
   // usa a primeira carta da mão num alvo que sirva
   const mao = (v?.mao[me.id] ?? []) as GolpeId[]
   if (mao.length && guard % 40 === 0) {
@@ -88,7 +107,7 @@ while (s.phase === 'pregao' && s.pa && guard++ < 40000) {
   for (const m of s.managers) assert.ok(m.money >= 0, `caixa nunca negativo (${m.teamName} ${m.money})`)
 }
 assert.ok(!s.pa, 'o pregão fechou')
-assert.ok(receberam2, '2ª carta chegou na metade')
+assert.ok(receberam2, 'as 3 cartas ficaram (nenhuma chega no meio)')
 // sem carta duplicada entre elencos
 const ids = s.managers.flatMap(m => m.squad.map(c => c.id))
 assert.equal(new Set(ids).size, ids.length, 'nenhuma carta em dois elencos')
