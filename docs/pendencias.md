@@ -14246,7 +14246,7 @@ uma carta (o duplo de 11+ clubes não liga, senão o golpe embolaria). Competiç
 o Diego disse que só via a Copa dos 8 — não reproduzi sem login; conferir com ele num print se continuar).
 ⚠️ `npm run carreira-limpa` já reprovava ANTES desta mudança por `kingsBaralho` (outra sessão) — falta pôr em MARCAS_DE_MODO ou NEUTROS.
 
-## 🚨 19/11 — Vice City: BUSTED só pro 1º com 5 estrelas, pena no fim do pregão, giroflex + sirene — NO BRANCH, esperando OK do visual
+## 🚨 19/11 — Vice City: BUSTED só pro 1º com 5 estrelas, pena no fim do pregão, giroflex + sirene — ✅ APROVADO E PUBLICADO
 Diego: *"trocar por 5 jogadores profissionais… no final, quando ele montar tudo… só para o primeiro que tomou 5 estrelas… banner piscando com
 sirene da polícia… dizendo quem foi… ninguém mais toma 5 estrelas"*. Motor: `viceBusted` só marca + anuncia; `viceBustedPena` (em `paFecha`) troca os 5
 melhores (acima de Profissional) por 5 Profissionais reais da mesma posição; depois do 1º, ninguém mais leva estrela. Tela: tela toda piscando
