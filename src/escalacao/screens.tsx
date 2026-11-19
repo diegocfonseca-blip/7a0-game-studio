@@ -77,6 +77,7 @@ import {CareerSetupFrame,CareerRivalsSetup} from './career-setup-guide'
 import {identidadeDaConta} from './presidencia-identidade-conta'
 import { NbaCriarCarreira } from './nba-criar-carreira' // 🏀 nova carreira do basquete no passo a passo (10/11)
 import { EscolhaCarreiraBB, EscolhaFranquiaEUA } from './eua-oficial-tela' // 🏀🇺🇸 EUA Oficial (19/11, só na conta do Diego)
+import { parCup, tabelaGrupo } from './eua-cup' // 🏀🏆 NBA Cup real (EUA Oficial)
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
@@ -9031,6 +9032,8 @@ export function EscSeason() {
         {state.copaMode === 'champions' ? null : privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
       naDireita(<TableBox highlight={you.id} holdResults={!resultRevealed} title={bbS && state.nbaCareer ? (state.nbaTier === 'nba' ? '🏆 NBA' : state.nbaTier === 'gleague' ? '🏆 G LEAGUE' : '🏆 STREET LEAGUE') : bbS && state.nbaSala ? '🏆 NBA' : "🏆 LIGA LEGENDS"} cinema={cinemaPreview} />)
         }
+        {/* 🏀🏆 EUA Oficial: a fase de grupos da NBA Cup (6 grupos reais de 5) */}
+        {bbS && state.euaOficial && state.euaCup && !(state.nbaCup?.phase === 'done') && naDireita(<EuaCupGruposBox highlight={you.id} holdResults={!resultRevealed} />)}
       </div>
       <div hidden={(privateVisual && visualTab !== 'estatisticas') || centralBB} className="space-y-5">
         {copaLive && copaMin >= 93 && <CopaScorersBox highlight={you.id} />}
@@ -9510,6 +9513,63 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
     </div></OwnerSlot>
+  )
+}
+
+// 🏀🏆 NBA CUP REAL (EUA Oficial): os 6 grupos de 5, no MESMO visual da tabela Leste/Oeste (Box, etiqueta dourada, linha da conferência).
+// Verde = líder do grupo (vai às quartas) · amarelo = o melhor 2º da conferência agora (wild card). Anti-spoiler: enquanto o jogo da
+// rodada anima, os jogos de grupo DESTA rodada ainda não entram (igual à tabela da liga).
+function EuaCupGruposBox({ highlight, holdResults }: { highlight: number; holdResults?: boolean }) {
+  const { state } = useEsc()
+  const [blLang] = useLang()
+  const L = (pt: string, en: string) => (blLang === 'en' ? en : pt)
+  const cup = state.euaCup
+  if (!cup) return null
+  const nome = (id: number) => state.managers.find(m => m.id === id)?.teamName ?? ''
+  const destaRodada = new Set(holdResults ? state.lastResults.map(r => parCup(nome(r.homeId), nome(r.awayId))) : [])
+  const jogos = Object.fromEntries(Object.entries(cup.jogos).filter(([k]) => cup.fechado && !holdResults ? true : !destaRodada.has(k)))
+  const meu = state.managers.find(m => m.id === highlight)?.teamName
+  const wild = (conf: 'L' | 'O') => cup.grupos.filter(g => g.conf === conf).flatMap(g => tabelaGrupo(g, jogos).slice(1)).sort((a, b) => b.v - a.v || (b.pf - b.pc) - (a.pf - a.pc) || b.pf - a.pf)[0]?.time
+  const wildL = wild('L'), wildO = wild('O')
+  const grupo = (g: typeof cup.grupos[number]) => {
+    const tab = tabelaGrupo(g, jogos)
+    return (
+      <div key={g.nome} className="min-w-0">
+        <p className="font-black text-[11px] mb-1.5 inline-block px-2 py-0.5 rounded-lg" style={{ ...OSWALD, background: GOLD, color: INK, border: '2px solid #000', boxShadow: '2px 2px 0 #000' }}>
+          {g.conf === 'L' ? '🔵 ' : '🔴 '}{L(g.nome.toUpperCase(), g.nome.replace('Leste', 'East').replace('Oeste', 'West').toUpperCase())}
+        </p>
+        <table className="w-full text-xs">
+          <thead><tr className="text-left text-black/70 font-black"><th className="pr-1">#</th><th>{L('Time', 'Team')}</th><th className="text-center">V</th><th className="text-center">D</th><th className="text-center">SC</th></tr></thead>
+          <tbody>{tab.map((t, i) => {
+            const eu = t.time === meu, wc = t.time === (g.conf === 'L' ? wildL : wildO)
+            const bg = eu ? (myApoioPerk()?.grad ?? APOIO_PERKS.bege.light) : i === 0 && t.jogos > 0 ? '#D8F0DE' : wc && t.jogos > 0 ? '#FFF0B8' : undefined
+            return (
+              <tr key={t.time} className={`border-t border-black/10 font-semibold${eu ? ' ll31-my-team' : ''}`} style={{ background: bg, fontWeight: eu ? 800 : 500 }}>
+                <td className="pr-1">{i + 1}</td>
+                <td className="max-w-[150px]"><span className="truncate block">{eu ? '👤 ' : ''}{t.time}</span></td>
+                <td className="text-center">{t.v}</td><td className="text-center">{t.d}</td>
+                <td className="text-center">{t.pf - t.pc > 0 ? '+' : ''}{t.pf - t.pc}</td>
+              </tr>
+            )
+          })}</tbody>
+        </table>
+      </div>
+    )
+  }
+  return (
+    <Box className="p-3 overflow-x-auto">
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-black text-sm" style={OSWALD}>{L('🏆 NBA CUP · FASE DE GRUPOS', '🏆 NBA CUP · GROUP STAGE')}</p>
+        <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#D8F0DE', border: '1px solid rgba(0,0,0,.3)' }} />{L('Líder', 'Leader')}</span>
+          <span className="flex items-center gap-1"><i className="w-2.5 h-2.5 rounded-sm inline-block ov3-surface" style={{ backgroundColor: '#FFF0B8', border: '1px solid rgba(0,0,0,.3)' }} />Wild card</span>
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">{cup.grupos.map(grupo)}</div>
+      <p className="text-[10px] font-bold text-black/45 text-center mt-2">{L(
+        '🏀 Cada time joga 1 vez contra os outros 4 do grupo (vale na tabela). Passam os 3 líderes + o melhor 2º de cada conferência. Depois é mata-mata em jogo único, e Leste × Oeste só na final.',
+        '🏀 Each team plays the other 4 in its group once (it counts in the standings). The 3 group winners + the best runner-up of each conference go through. Then it is single-game knockout, and East × West only in the final.')}</p>
+    </Box>
   )
 }
 
