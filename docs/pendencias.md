@@ -14214,3 +14214,6 @@ Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
   FAIXA GRANDE no meio da tela de todos por 3 s, com quem usou e em quem (relógio não para) · ③ ESTRELAS DE PROCURADO: quem leva golpe vê as
   próprias ★ no canto e a tela pisca a sirene ("🚨 Você está sendo procurado") · 🔒 Cadeia vale NA HORA: o jogador mais caro que o alvo já levou
   volta pra mesa e ele recebe o dinheiro (antes avisava e dava pra fugir pegando carta ruim). Trava `npm run vice-city`.
+
+## 🟢 19/11 — Estatísticas no placar normal (STATS_PLACAR_GERAL) e Raio-X do adversário na Central (RAIOX_GERAL) LIBERADOS PRA TODOS
+Diego: *"isso aqui já pode"*. Desligar = voltar a `false` no sport.ts.
