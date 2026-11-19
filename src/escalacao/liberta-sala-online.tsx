@@ -787,7 +787,7 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
         motivo={tr('🏆 Campeão da Libertadores', '🏆 Libertadores champion')}
         seasonKey={`libsala:${roomId}:${ficha.seed}:${ficha.edicao}`} origin="online" />}
       {done && !festaVista && <FestaCampeao comp="liberta" nome={entrants[mundo.campeao].pais} crest={sel(mundo.campeao, 150)}
-        mascote={ownerVisual ? MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club) ?? ''] : undefined} lendas={ownerVisual ? entrants[mundo.campeao].xi.filter(c => c.fame >= 5).map(c => ({ nome: c.name, club: c.club, year: c.year })) : undefined} souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaVista(true); try { sessionStorage.setItem(festaKey, '1') } catch { /* segue */ } }}
+        mascote={ownerVisual ? MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club) ?? ''] : undefined} lendas={ownerVisual ? entrants[mundo.campeao].xi.filter(c => c.fame >= 5).map(c => ({ nome: c.name, club: c.club, year: c.year })) : undefined} souCampeao={isYou(mundo.campeao)} souVice={isYou(mundo.final.h) || isYou(mundo.final.a)} onDone={() => { setFestaVista(true); try { sessionStorage.setItem(festaKey, '1') } catch { /* segue */ } }}
         artilheiro={(() => { const r = artilhariaLiberta(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = garconsLiberta(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
       {done && (() => {

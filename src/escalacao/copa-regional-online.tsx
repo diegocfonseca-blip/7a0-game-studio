@@ -814,7 +814,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         motivo={`${tr('🏆 Campeão da','🏆 Champion of')} ${nomeCopa(copa)}`}
         seasonKey={`regional:${roomId}:${ficha.seed}:${ficha.edicao}:${copa}`} origin="online" />}
       {done && !festaRegVista && <FestaCampeao comp={copa} nome={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={150} />}
-        mascote={ownerVisual?MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']:undefined} lendas={ownerVisual?entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year})):undefined} souCampeao={isYou(mundo.campeao)} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }}
+        mascote={ownerVisual?MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']:undefined} lendas={ownerVisual?entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year})):undefined} souCampeao={isYou(mundo.campeao)} souVice={(() => { const f = mundo.ko[mundo.ko.length - 1]?.ties[0]; return !!f && (isYou(f.h) || isYou(f.a)) })()} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }}
         artilheiro={(() => { const r = artilhariaRegional(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = garconsRegional(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
       {done && (() => {

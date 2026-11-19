@@ -176,7 +176,7 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
-import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
+import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA, playChute, playDefesa, playQuase, playSubiu, playCaiu, playCaixa } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
 import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
@@ -5213,6 +5213,8 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
   const reveal = (k: 'gol' | 'def' | 'fora') => {
     setKind(k); setRevWord(k === 'gol' ? penPick(PEN_GO()) : k === 'def' ? penPick(PEN_DE()) : penPick(PEN_FO())); setDots(''); setPhase('rev')
     if (k === 'gol') setCeleb(true)
+    // 🔊 19/11: o pênalti que VOCÊ bate — gol = grito da torcida · defendeu = luva · pra fora = "uhhh"
+    if (k === 'gol') crowdRoar(1.15, 2600); else if (k === 'def') playDefesa(); else playQuase()
     after(560, () => { setSub(k === 'gol' ? penPick(PEN_GO_S()) : k === 'def' ? penPick(PEN_DE_S()) : penPick(PEN_FO_S())) })
   }
   // ── VOCÊ BATE: barra de força + mira
@@ -5237,7 +5239,7 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     const stop = posx.current, sw = swRef.current, aimZ = aim ?? 4
     const err = Math.abs(stop - 0.5), half = sw / 2, onTarget = err <= half, reads = Math.random() < 0.32
-    setPhase('anim'); setLine(`${tr('⚽ Vai', '⚽ Here goes')} ${taker?.name ?? tr('o cobrador', 'the taker')}...`)
+    setPhase('anim'); playChute(); setLine(`${tr('⚽ Vai', '⚽ Here goes')} ${taker?.name ?? tr('o cobrador', 'the taker')}...`)
     let k: 'gol' | 'def' | 'fora', kz: number
     if (!onTarget) { k = 'fora'; kz = Math.floor(Math.random() * 6); moveKeeper(kz); flyBall(aimZ, true) }
     // 🎯 acertou o VERDE: sempre bola no gol — só defende se o goleiro "ler" o
@@ -5251,7 +5253,7 @@ export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName,
   // ── BATE SOZINHO: suspense mais longo, pontinhos um a um
   const shootAlone = () => {
     if (busy || !taker) return
-    setPhase('anim')
+    setPhase('anim'); playChute()
     const r = Math.random()
     const k: 'gol' | 'def' | 'fora' = r < 0.28 + skill * 0.62 ? 'gol' : r < 0.28 + skill * 0.62 + 0.20 ? 'def' : 'fora'
     const aimZ = Math.floor(Math.random() * 6)
@@ -9322,6 +9324,12 @@ function TelaDesfecho({ tipo, time, de, para, pos, temporada, levou, torcidaDe, 
 }) {
   const d = desfI18n(tipo)
   const mudou = de !== para
+  // 🔊 19/11: subiu (ou campeão) = fanfarra · caiu = descida · e as moedas do que entrou no caixa logo depois
+  useEffect(() => {
+    if (tipo === 'acesso' || tipo === 'campeao') playSubiu(); else if (tipo === 'queda') playCaiu()
+    const tm = levou.some(l => l.bom) ? setTimeout(() => playCaixa(), 1300) : undefined
+    return () => { if (tm) clearTimeout(tm) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
       <div style={{ width: '100%', maxWidth: 392, maxHeight: '92vh', overflowY: 'auto', border: `4px solid ${INK}`, borderRadius: 20, background: '#F4ECD6', boxShadow: `5px 5px 0 0 ${INK}`, overflowX: 'hidden' }}>

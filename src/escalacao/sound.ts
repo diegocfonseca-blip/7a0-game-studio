@@ -163,6 +163,54 @@ export function playMp3Gala(url: string, ms: number): () => void {
   } catch { /* ignora */ }
   return () => { ts.forEach(clearTimeout); try { a?.pause() } catch { /* ignora */ } a = null }
 }
+// ─── 🔊 SONS NOVOS (19/11, Diego: *"analise tudo… pode fazer tudo"*) ───────────────────────────────────
+// Todos sintetizados (0 KB), no MESMO mudo/volume dos outros. Quem chama decide PRA QUEM toca (regra: martelo só pra
+// quem ganha; sirene só pra quem levou o golpe…). Lista e onde cada um toca: docs/pendencias.md (19/11, sons).
+/** 🔔 "dou-lhe uma… duas…": batida de madeira mais forte nos últimos segundos antes do martelo (n = 3, 2, 1) */
+export function playDouLhe(n: number) { const f = n <= 1 ? 1320 : n === 2 ? 1100 : 920; noise(0.05, 0.45, 1900, 4); tone(f, 0.16, 'triangle', 0.42); tone(f / 2, 0.12, 'sine', 0.3, 0.01) }
+/** 😱 cobriram o seu lance: dois tons caindo ("uh-oh") */
+export function playCoberto() { tone(620, 0.14, 'square', 0.16); tone(440, 0.26, 'square', 0.16, 0.13, 400) }
+/** ⏰ o tempo acabou: buzina curta grave */
+export function playTempoEsgotado() { tone(180, 0.45, 'sawtooth', 0.22); tone(186, 0.45, 'sawtooth', 0.16, 0.005) }
+/** 😅 QUASE! perdeu por pouco: deslizada triste */
+export function playQuase() { tone(523, 0.22, 'triangle', 0.3, 0, 494); tone(440, 0.5, 'triangle', 0.3, 0.2, 330) }
+/** 🃏 pegou carta do Monte: virada de carta */
+export function playMonte() { noise(0.07, 0.45, 2600, 1.2); tone(760, 0.08, 'triangle', 0.22, 0.04); tone(1140, 0.1, 'triangle', 0.2, 0.09) }
+/** 🚨 sirene de polícia (golpe que você levou) */
+export function playSirene(seg = 1.4) {
+  const c = ac(); if (!c || !master) return
+  try {
+    const t = c.currentTime, o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain()
+    o.type = 'sawtooth'; o.frequency.value = 850; lfo.type = 'triangle'; lfo.frequency.value = 2.2; lg.gain.value = 260
+    lfo.connect(lg); lg.connect(o.frequency)
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1000; bp.Q.value = 0.8
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.05)
+    g.gain.setValueAtTime(0.16, t + seg - 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + seg)
+    o.connect(bp); bp.connect(g); g.connect(master)
+    o.start(t); lfo.start(t); o.stop(t + seg + 0.02); lfo.stop(t + seg + 0.02)
+  } catch { /* ignora */ }
+}
+/** ⭐ ganhou uma estrela de procurado: "plim" */
+export function playEstrela() { tone(1568, 0.25, 'sine', 0.3); tone(2093, 0.35, 'sine', 0.22, 0.07) }
+/** 🚔 BUSTED: pancada grave + sirene longa */
+export function playBusted() { tone(70, 0.5, 'sine', 0.6, 0, 40); noise(0.25, 0.5, 260, 0.6); playSirene(2.6) }
+/** 💥 você usou uma carta de golpe: "fuuush" + pancada */
+export function playGolpe() { noise(0.28, 0.35, 900, 0.5); tone(300, 0.25, 'sawtooth', 0.16, 0, 90); tone(95, 0.22, 'sine', 0.45, 0.2, 55) }
+/** 👆 é a sua vez de escolher: "dim-dom" */
+export function playSuaVez() { tone(988, 0.3, 'sine', 0.34); tone(740, 0.45, 'sine', 0.34, 0.2) }
+/** ⚽ pênalti: o chute (pancada seca na bola) */
+export function playChute() { noise(0.06, 0.6, 520, 0.9); tone(150, 0.1, 'sine', 0.5, 0, 70) }
+/** 🧤 pênalti: o goleiro defendeu (tapa na bola + "ôôô" curto) */
+export function playDefesa() { noise(0.08, 0.5, 1500, 1); tone(330, 0.5, 'sawtooth', 0.04, 0.12, 250); noise(0.6, 0.1, 500, 0.7, 0.12) }
+/** 😢 eliminado / vice: o "uóóó" do trombone triste */
+export function playEliminado() { [392, 370, 349].forEach((f, i) => tone(f, 0.32, 'sawtooth', 0.12, i * 0.3)); tone(330, 0.9, 'sawtooth', 0.12, 0.9, 300) }
+/** ⬆️ subiu de divisão: fanfarra curta subindo */
+export function playSubiu() { [523, 659, 784].forEach((f, i) => tone(f, 0.18, 'square', 0.14, i * 0.13)); tone(1047, 0.6, 'square', 0.16, 0.39); playChime() }
+/** ⬇️ caiu de divisão: descida grave */
+export function playCaiu() { [392, 311, 262].forEach((f, i) => tone(f, 0.3, 'triangle', 0.3, i * 0.24)); tone(196, 0.8, 'triangle', 0.3, 0.72, 150) }
+/** 💰 dinheiro entrando no caixa: cascata de moedas */
+export function playCaixa() { for (let i = 0; i < 6; i++) { tone(1180 + i * 60, 0.09, 'triangle', 0.32, i * 0.07); tone(1560 + i * 60, 0.1, 'triangle', 0.24, i * 0.07 + 0.04) } }
+
 // 📣 apito do juiz: tom agudo com trinado + sopro
 export function playWhistle() {
   const c = ac(); if (!c || !master) return

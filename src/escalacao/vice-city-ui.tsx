@@ -3,6 +3,7 @@
 // `viceUsa` do store (o dono da sala decide); aqui só se desenha e se manda `VICE_USAR`. As regras usam as MESMAS funções do
 // motor (`viceAlvoServe`, `viceTravaLance`) — nada de regra própria na tela (regra de ouro contra botão mudo).
 import { useEffect, useRef, useState } from 'react'
+import { playSirene, playEstrela, playBusted, playGolpe } from './sound'
 import { useEsc, viceAlvoServe, viceTravaLance } from './store'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
@@ -239,6 +240,7 @@ export function ViceOverlays() {
     if (ult.id <= visto.current) return
     visto.current = ult.id
     if (ult.pt.startsWith('🌴')) return
+    if (ult.busted) playBusted() // 🚔 19/11: BUSTED toca pra sala toda (é o momento do pregão)
     setFaixa(ult)
     const tm = setTimeout(() => setFaixa(f => (f && f.id === ult.id ? null : f)), 3200)
     return () => clearTimeout(tm)
@@ -248,9 +250,13 @@ export function ViceOverlays() {
   const antes = useRef(minhas)
   const [sirene, setSirene] = useState(0)
   useEffect(() => {
-    if (minhas > antes.current) { setSirene(Date.now()); const tm = setTimeout(() => setSirene(0), 3000); antes.current = minhas; return () => clearTimeout(tm) }
+    if (minhas > antes.current) { playSirene(); playEstrela(); setSirene(Date.now()); const tm = setTimeout(() => setSirene(0), 3000); antes.current = minhas; return () => clearTimeout(tm) }
     antes.current = minhas
   }, [minhas])
+  // 💥 19/11: a carta saiu da SUA mão = você usou um golpe → som de ataque (só pra você)
+  const nMao = mao.length
+  const maoAntes = useRef(nMao)
+  useEffect(() => { if (nMao < maoAntes.current) playGolpe(); maoAntes.current = nMao }, [nMao])
   if (!v || !you) return null
   return (
     <>

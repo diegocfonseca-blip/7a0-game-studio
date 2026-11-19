@@ -1,3 +1,13 @@
+## 🔊✅ 19/11 — SONS NOVOS FEITOS (Diego: *"pode fazer tudo"*) — no branch, esperando ordem de publicar
+Todos sintetizados (0 KB) em `sound.ts`, no mesmo mudo. Onde cada um toca:
+- 🔨 pregão aberto/Vice: martelo SÓ pra quem arrematou (era pra sala toda) · 😱 `playCoberto` pra quem perdeu a liderança · 🔔 `playDouLhe` nos 3 últimos s (só com lance na mesa).
+- 🌴 Vice: 🚨 `playSirene`+⭐ `playEstrela` pra quem ganhou estrela · 🚔 `playBusted` pra sala toda · 💥 `playGolpe` pra quem usou carta (mão encolheu).
+- ✉️ envelope e envelope único: ⏰ `playTempoEsgotado` quando zera sem lacrar · 😅 `playQuase` na revelação pra quem perdeu por 1–2 moedas.
+- 🃏 Monte: `playMonte` quando a pilha encolhe · 👆 `playSuaVez` na sua vez do Monte, do draft e da escolha de seleção/clube (Copa, Copa América, Liberta — trocou o apito de `useChamaNaVez`).
+- ⚽ pênaltis: `playChute` + gol (grito) ou 🧤 `playDefesa` em cada cobrança da disputa (`CompactPenalties`: salas, carreira, shootout) e no pênalti que você bate (fora = `playQuase`).
+- 😢 `playEliminado` no lugar do grito na festa do campeão pra quem perdeu a FINAL (salas: copa da sala, Copa do Mundo/América, Liberta; liga = o 2º colocado).
+- 🏁 carreira: `TelaDesfecho` toca ⬆️ `playSubiu` (acesso/campeão) ou ⬇️ `playCaiu`, e 💰 `playCaixa` se entrou dinheiro.
+
 ## 🔊 19/11 — AUDITORIA DOS SONS (pedido do Diego: "analise tudo… o que precisa ser feito"), SÓ LEVANTAMENTO, nada mexido
 Sons que existem (`sound.ts`): 🪙 moeda (subir lance no envelope/env. único, pegar na Tocaia) · 🔒 carimbo (lacrar envelope) · ⏱️ tique
 (últimos 5 s do envelope/env. único, cada degrau da Tocaia, cada lance do pregão aberto, troca de etapa do draft) · 🔨 martelo (revelação

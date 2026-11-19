@@ -45,7 +45,7 @@ import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado } from '
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
-import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -4898,6 +4898,8 @@ function EnvelopeUnico() {
   }
   useEffect(() => { if (iSubmitted) setPending(false) }, [iSubmitted])
   useEffect(() => { if (remaining >= 1 && remaining <= 5 && !iSubmitted && precisaLacrar) playTick() }, [remaining]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ⏰ 19/11: o tempo zerou sem você lacrar → buzina (o jogo lacra sozinho)
+  useEffect(() => { if (remaining === 0 && state.phaseDeadline && !iSubmitted && precisaLacrar) playTempoEsgotado() }, [remaining]) // eslint-disable-line react-hooks/exhaustive-deps
   // online: reenvia enquanto o dono não confirmou (mesma rede do envelope de sempre)
   useEffect(() => {
     if (!online || !pending || iSubmitted || !you) return
@@ -5112,6 +5114,8 @@ function Envelope() {
   }, [iSubmitted])
   // ⏱️ tique-taque nos últimos 5s (só enquanto ainda não lacrou)
   useEffect(() => { if (remaining >= 1 && remaining <= 5 && !iSubmitted) playTick() }, [remaining, iSubmitted])
+  // ⏰ 19/11: o tempo zerou sem você lacrar → buzina (o jogo lacra sozinho)
+  useEffect(() => { if (remaining === 0 && state.phaseDeadline && !iSubmitted) playTempoEsgotado() }, [remaining]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // enquanto não confirma, reenvia de tempos em tempos — cobre o host que
   // ficou um instante sem conexão (app em segundo plano etc.) e reconecta
@@ -6099,6 +6103,14 @@ function Reveal() {
     const iSold = sold && meId != null && sellerId != null && sellerId === meId && it.winner !== meId
     const timers: ReturnType<typeof setTimeout>[] = []
     if (iWon || iSold) timers.push(setTimeout(() => playHammer(), delayMs))
+    // 😅 19/11: QUASE! — você perdeu por 1 ou 2 moedas (a mesma conta da faixa "QUASE!" da tela), só pra você
+    if (sold && meId != null && !iWon) {
+      const win = it.bids.find(b => b.mgr === it.winner)
+      const losers = it.bids.filter(b => b.mgr !== it.winner && !it.voided.includes(b.mgr))
+      const best = losers.length ? Math.max(...losers.map(b => b.amount)) : -1
+      const meu = losers.find(b => b.mgr === meId)
+      if (win && meu && meu.amount === best && win.amount - best >= 1 && win.amount - best <= 2) timers.push(setTimeout(() => playQuase(), delayMs + 200))
+    }
     // 🎙️ ÁUDIO DA LENDA (meme "faah"): só pra QUEM pega a lenda no martelo — ou pra
     // quem VENDE uma lenda listada (a venda dele fechando). Vale em todos os modos
     // que usam o reveal; respeita o mudo (playMp3). Substitui o antigo chime.
@@ -6478,6 +6490,12 @@ export function EscMonte() {
   const valid = comMotivo.filter(x => x.bloq !== 'vaga' && x.bloq !== 'reservado')
   const online = state.onlineMode === 'online'
   const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
+  // 🃏 19/11: alguém pegou carta do Monte (a pilha encolheu) → virada de carta; 👆 chegou a SUA vez → "dim-dom"
+  const nMonte = state.monte.length
+  const monteAntes = useRef(nMonte)
+  useEffect(() => { if (nMonte < monteAntes.current) playMonte(); monteAntes.current = nMonte }, [nMonte])
+  const minhaVezMonte = isYourTurn && monteMinhaVez
+  useEffect(() => { if (minhaVezMonte) playSuaVez() }, [minhaVezMonte])
 
   // contagem regressiva (só online, quando há prazo)
   const [now, setNow] = useState(() => agoraSala())
@@ -12756,16 +12774,16 @@ export function EscEnd() {
   // mascote saiu daqui (o mesmo teatro não aparece duas vezes). 1x por temporada (sessionStorage), toque pula.
   const minhaMasc = meuSoc?.ativo && meuSoc.mascoteKey && MASCOTES[meuSoc.mascoteKey] ? meuSoc.mascoteKey : null
   const festaBase = `esc-festa2-${state.roomId ?? 'cpu'}-${state.seed}-${state.seasonNo}`
-  const festas: { key: string; comp: CompId; id: number; nome: string; linha: string }[] = (() => {
+  const festas: { key: string; comp: CompId; id: number; nome: string; linha: string; vice?: number }[] = (() => {
     if (state.sport === 'basquete' || kEnd) return []
-    const out: { key: string; comp: CompId; id: number; nome: string; linha: string }[] = []
+    const out: { key: string; comp: CompId; id: number; nome: string; linha: string; vice?: number }[] = []
     const tab = sortedTable(state.league)
-    if (!semTituloLiga && tab[0]) out.push({ key: 'liga', comp: 'liga', id: tab[0].id, nome: tab[0].name, linha: `${tab[0].pts} pts${tab[1] ? ` · ${LE('vice', 'runner-up')}: ${tab[1].name}` : ''}` })
+    if (!semTituloLiga && tab[0]) out.push({ key: 'liga', comp: 'liga', id: tab[0].id, nome: tab[0].name, linha: `${tab[0].pts} pts${tab[1] ? ` · ${LE('vice', 'runner-up')}: ${tab[1].name}` : ''}`, vice: tab[1]?.id })
     const qc = state.quickCopa
     if (qc?.champion && qc.phase === 'done') {
       const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
       const linha = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : ''
-      out.push({ key: 'copa', comp: state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha })
+      out.push({ key: 'copa', comp: state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha, vice: fin ? (fin.aId === qc.champion.id ? fin.bId : fin.aId) : undefined })
     }
     return out
   })()
@@ -12800,7 +12818,7 @@ export function EscEnd() {
     const g1 = [...gols].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
     const a1 = [...pas].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name))[0]
     return <FestaCampeao key={festaAgora.key} comp={festaAgora.comp} nome={festaAgora.nome} crest={<Escudo nome={festaAgora.nome} size={160} />}
-      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} onDone={fecharFesta} tema={temaFesta}
+      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} souVice={festaAgora.vice === you.id} onDone={fecharFesta} tema={temaFesta}
       artilheiro={g1 && g1.goals > 0 ? { nome: g1.name, time: g1.teamName, n: g1.goals } : null}
       garcom={a1 && a1.assists > 0 ? { nome: a1.name, time: a1.teamName, n: a1.assists } : null} />
   })() : null

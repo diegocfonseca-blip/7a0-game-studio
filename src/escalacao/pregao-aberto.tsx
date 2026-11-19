@@ -7,7 +7,7 @@ import { Shell, AuctionBar, CollectibleCard, YourPitch, RivalsStrip, nomePacote 
 import {AuctionSlot} from './desktop-layout'
 import { SeloPacote } from './selo-clube'
 import { useT } from './lang'
-import { playTick, playHammer } from './sound'
+import { playTick, playHammer, playDouLhe, playCoberto } from './sound'
 import type { Sector, Card } from './types'
 import { openSlots } from './store'
 import { agoraSala } from './relogio'
@@ -49,7 +49,31 @@ export function PregaoAberto() {
   useEffect(() => { if (nLances > 0 && nLances !== lastRef.current) playTick(); lastRef.current = nLances }, [nLances])
   const nVend = pa?.vendidos.length ?? 0
   const vendRef = useRef(nVend)
-  useEffect(() => { if (nVend > vendRef.current) playHammer(); vendRef.current = nVend }, [nVend])
+  // 🔨 19/11: o martelo é SÓ de quem arrematou (regra do Diego: "martelo só pra quem ganha") — antes tocava pra sala toda
+  const ultimoMgr = pa?.vendidos[0]?.mgr ?? null
+  useEffect(() => { if (nVend > vendRef.current && ultimoMgr != null && ultimoMgr === state.managers[state.youIdx]?.id) playHammer(); vendRef.current = nVend }, [nVend]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 😱 19/11: cobriram o SEU lance (você era o líder de uma mesa e deixou de ser) — só pra você
+  const meuId = state.managers[state.youIdx]?.id
+  const lideres = paMesasAtivas(state).map(k => { const v = paMesa(state, k); return v ? `${v.card?.id ?? ''}:${v.M.lider ?? ''}` : '' }).join('|')
+  const lideresRef = useRef(lideres)
+  useEffect(() => {
+    const antes = lideresRef.current.split('|'), agoraL = lideres.split('|')
+    agoraL.forEach((x, i) => { const [cid, l] = x.split(':'), [cid0, l0] = (antes[i] ?? '').split(':'); if (cid && cid === cid0 && l0 === String(meuId) && l !== String(meuId)) playCoberto() })
+    lideresRef.current = lideres
+  }, [lideres]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🔔 19/11: "dou-lhe uma… duas…" — batida mais forte nos 3 últimos segundos antes do martelo (pra todos, é o relógio da mesa)
+  const douLheRef = useRef<Record<number, string>>({})
+  useEffect(() => {
+    for (const k of paMesasAtivas(state)) {
+      const v = paMesa(state, k); const dl = v?.M.deadline
+      if (!v?.card || !dl || !v.M.lances.length) continue
+      const seg = Math.ceil((dl - agora) / 1000)
+      if (seg < 1 || seg > 3) continue
+      const chave = `${dl}:${seg}`
+      if (douLheRef.current[k] === chave) continue
+      douLheRef.current[k] = chave; playDouLhe(seg)
+    }
+  }, [agora]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!pa || !you) return <Shell bar={<AuctionBar />}><div className="pt-10 text-center text-5xl">🔨</div></Shell>
   const posVagas = card ? openSlots(you, card.pos) : 0
