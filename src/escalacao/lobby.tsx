@@ -2533,6 +2533,16 @@ export function EscLobby() {
         }
       } catch { /* a lista segue */ }
     }
+    // 🌴 19/11 (Diego: *"as salas abertas que tiver jogando tem que ter um selo de Vice City da cor temática"*): a mesma pergunta
+    // minúscula (só os ids) marca a sala Vice City pro selo neon na lista.
+    if (ids.length) {
+      try {
+        const { data: vc } = await supabase.from('game_rooms').select('id').in('id', ids).eq('game_state->>vice', 'true')
+        const vices = new Set((vc ?? []).map(x => (x as { id: string }).id))
+        if (vices.size) for (let i = 0; i < list.length; i++) if (vices.has(list[i].id))
+          list[i] = { ...list[i], game_state: { ...(list[i].game_state as GS), vice: true } as GS }
+      } catch { /* a lista segue */ }
+    }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
       // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
       // Ele derrubou duas ideias minhas, e nas duas estava certo:
@@ -4073,7 +4083,7 @@ export function EscLobby() {
           // 🌴 19/11 (Diego: *"pode fazer adorei"*): Vice City, o pregão aberto com cartas de golpe — só pra quem `useViceCity` libera
           // 🔜 19/11 (Diego: *"coloque p todos só q rosa o fundo e em breve. N deixe apertarem"*): todo mundo VÊ o cartão (fundo rosa,
           // EM BREVE) mas não aperta; só quem `useViceCity` libera joga.
-          ...(!nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: viceVe, ...(viceVe ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : {}) }] : []),
+          ...(!nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: viceVe, ...(viceVe ? { selo: tr('EM TESTES', 'IN TESTING'), seloVerde: true } : {}) /* 🏷️ 19/11: selo EM TESTES (Diego) */ }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -5120,6 +5130,9 @@ export function EscLobby() {
                     {(r.game_state as { formation?: string } | undefined)?.formation === 'kings'
                       ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
                       : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
+                    {(r.game_state as { vice?: boolean } | undefined)?.vice && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#ff4fd8,#7a1d7e)', color: '#fff', boxShadow: '0 0 6px #ff4fd8, 2px 2px 0 #000', textShadow: '0 0 4px #4ff3ff', ...OSWALD }} title="Vice City">🌴 VICE CITY</span>
+                    )}
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Sala de duplas: cada time é comandado por 2 pessoas', 'Duos room: each team is run by 2 people')}>{tr('🤝 DUPLAS', '🤝 DUOS')}</span>
                     )}
