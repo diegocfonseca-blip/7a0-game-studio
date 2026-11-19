@@ -13990,6 +13990,23 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Gala única "A Invocação" (`gala-obelisko.tsx`, vídeo `scripts/posts/gala-obelisko.webm`, toca o canto): 3 cartas viram tributo, obelisco racha, O Atormentador se ergue, ficha nível 10 · DIVINO · ATK/DEF 4000, soco trinca a tela, escudo. Só fatos da carta (3 tributos, 4000/4000, Divino, nível 10). Post: `scripts/posts/batismo-obelisko.png`.
 - Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
 
+## 🌴🐊 19/11 — TOCAIA VICE (ideia pra pegar o hype do GTA 6) — só MOCKUP, nada de código
+Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superado). Regras que o Diego fechou:
+- Na hora de criar sala: Tocaia padrão OU Tocaia Vice. Nada com nome/logo/personagem do GTA (paródia só de clima).
+- Cada usuário recebe ATÉ 2 cartas de golpe sorteadas (pode repetir; funciona com 36 na Champions).
+- Ataque: Roubo de carro (rouba o último fisgado, SEM pagar) · Assalto ao banco (10 moedas) · Blitz (10 s sem fisgar) · Barreira (1 rodada
+  sem dar lance — o nome "Preso" virou Barreira) · Cadeia (perde a próxima fisgada, volta pra mesa) · Multa (+30%) · Tanque vazio (15 s só
+  carta < 10) · Tiroteio (caixa congela 10 s) · Delação (mostra o caixa pra sala) · Sequestro (troca um jogador seu pelo dele) · Lavagem
+  (metade do que ele pagar vai pra você). Defesa/própria: Colete · Fuga de helicóptero · Propina (½ preço) · X9 (3 próximas) · Funilaria
+  (zera estrelas) · Bolsa misteriosa. FORA: Carro-bomba, Pneu furado, Barreira-antiga (20 s numa posição). "Procurado" sugeri tirar (sem resposta).
+- ⭐ Quem LEVA golpe ganha 1 estrela (toda carta dá 1). O 1º a chegar em 5 = BUSTED (só 1 vez por sala): perde os 3 MELHORES, que viram
+  cartas reais de categoria Profissional da mesma posição e NÃO voltam pra mesa; ganha 1 Roubo de carro de vingança.
+- SEM toque de recolher. SEM Monte (igual Pregão aberto): vaga vazia no fim = jogador sorteado das sobras, de graça.
+- 🌴 **19/11: Vice City aparece pra TODOS na criação de sala** (fundo rosa + EM BREVE, não dá pra apertar; *"coloque p todos só q rosa o fundo e em breve. N deixe apertarem"*). Só a conta do Diego joga. Liberar de verdade = `VICE_CITY_GERAL = true` + linha em novidades.ts + reels.
+
+- 🔁 19/11 (mais tarde): virou MODO PRÓPRIO "🌴 Vice City" na fileira de cima (selo NOVO), por dentro sala rápida. Jeito do lance: Pregão
+  aberto (até 10, padrão) ou Tocaia (até 20). Sem Champions. Estrelas ESCONDIDAS; carta nova 🎯 Sniper mostra o ranking só pra quem usou.
+  Mockup: `scripts/mockups/vice-city-pregao.png`. Esperando OK pra construir.
 ### 🌿 18/11 — Mapa: grama com textura (APROVADA e PUBLICADA pra todos em 18/11 — ele respondeu *"Sim"* pra publicar)
 - Pedido: *"o verde não tem textura… fica muito liso e feio"* (comparou com o Brasileirinho). Feito em `presidencia-grama-viva.ts`
   (shader na grama do `presidencia-complexo-entorno.ts`): manchas grandes, touceiras, florzinhas só de perto. Mapa NÃO diminuiu.

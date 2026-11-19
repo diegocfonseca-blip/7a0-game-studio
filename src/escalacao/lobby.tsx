@@ -4069,7 +4069,9 @@ export function EscLobby() {
           // 👑 11/11 (Diego: *"Kings League tem que estar em cima, junto com Liga Draft e outros"*): um MODO da sala, só pras contas da Kings
           ...(kingsVe && !nbaSala ? [{ v: 'rapido' as const, kings: true, ic: '👑', nome: 'Kings League', frase: tr('7 contra 7, 10 times e as regras da Kings League Brasil.', '7 v 7, 10 teams and the Kings League Brasil rules.'), on: true, selo: tr('NOVO', 'NEW'), seloVerde: true }] : []),
           // 🌴 19/11 (Diego: *"pode fazer adorei"*): Vice City, o pregão aberto com cartas de golpe — só pra quem `useViceCity` libera
-          ...(viceVe && !nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: true, selo: tr('NOVO', 'NEW'), seloVerde: true }] : []),
+          // 🔜 19/11 (Diego: *"coloque p todos só q rosa o fundo e em breve. N deixe apertarem"*): todo mundo VÊ o cartão (fundo rosa,
+          // EM BREVE) mas não aperta; só quem `useViceCity` libera joga.
+          ...(!nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: viceVe, ...(viceVe ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : {}) }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
           { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
@@ -4289,14 +4291,16 @@ export function EscLobby() {
                 // (*"deixa eu ver também como uma pessoa que não pode jogar"*).
                 const emBreve = !m.on || (previewComum && m.emTeste)
                 const meta = !nbaSala ? m.meta : undefined // 📸 a meta é do Instagram do futebol
+                const viceCard = !!(m as { vice?: boolean }).vice
+                const viceTravado = viceCard && !viceVe // 🌴 EM BREVE pra todos: aparece, mas não aperta
                 return (
                   // 👆 dá pra tocar mesmo no que ainda não abriu — é assim que a
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
+                  <button aria-pressed={sel} key={chaveModo(m)} disabled={viceTravado} onClick={() => { if (viceTravado) return; setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
-                    style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
+                    style={{ background: viceCard ? (sel ? 'linear-gradient(135deg,#FF2E93,#FFC400)' : 'linear-gradient(135deg,#FF2E93,#FF7CC8)') : sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta || viceCard ? 1 : 0.55, cursor: viceTravado ? 'not-allowed' : undefined, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
                     {m.topo && !meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1" style={{ background: INK, color: GOLD, borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', ...OSWALD }}>{m.topo}</span>}
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
                     <span className="min-w-0">
@@ -4305,7 +4309,7 @@ export function EscLobby() {
                         {m.selo && <span className={`text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5${m.seloVerde ? ' seg-selo-brilho' : ''}`} style={{ ...(m.seloVerde ? { background: GREEN, color: '#fff' } : { background: sel ? '#fff' : GOLD, color: '#000' }), ...OSWALD }}>{m.selo}</span>}
                         {emBreve && !meta && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>{tr('EM BREVE', 'COMING SOON')}</span>}
                       </span>
-                      <span className="block text-[10.5px] font-semibold leading-tight mt-0.5" style={{ color: sel ? '#3b3000' : '#6b6250' }}>{m.frase}</span>
+                      <span className="block text-[10.5px] font-semibold leading-tight mt-0.5" style={{ color: viceCard ? '#2a0016' : sel ? '#3b3000' : '#6b6250' }}>{m.frase}</span>
                     </span>
                   </button>
                 )
