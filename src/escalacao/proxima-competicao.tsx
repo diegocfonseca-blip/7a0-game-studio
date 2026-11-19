@@ -24,7 +24,7 @@ export const RODADAS_DO_AVISO = 5
 /** marcas da SALA (não estão no estado do jogo): Copa do Mundo e Copa regional depois da liga.
  *  Uma leitura só, e só quando `ativo` (as últimas rodadas) — não lê nada no resto da liga. */
 export function useCopasDaSala(roomId: string | null | undefined, ativo: boolean) {
-  const [r, setR] = useState<{ mundo: boolean; euro?: boolean; regional: CopaRegionalId | null } | null>(null)
+  const [r, setR] = useState<{ mundo: boolean; euro?: boolean; america?: boolean; regional: CopaRegionalId | null } | null>(null)
   useEffect(() => {
     if (!ativo || !roomId || r) return
     let vivo = true
@@ -33,7 +33,7 @@ export function useCopasDaSala(roomId: string | null | undefined, ativo: boolean
         if (!vivo) return
         const d = data as { flag?: string; reg?: string; euro?: string } | null
         const reg = d?.reg && d.reg in COPAS_REGIONAIS ? d.reg as CopaRegionalId : null
-        setR({ mundo: String(d?.flag) === 'true', euro: !!d?.euro, regional: reg }) // 🇪🇺 31/10: Liga + Eurocopa usa a mesma porta
+        setR({ mundo: String(d?.flag) === 'true', euro: !!d?.euro && d.euro !== '16', america: d?.euro === '16', regional: reg }) // 🇪🇺 31/10: Liga + Eurocopa usa a mesma porta
       }, () => {})
     return () => { vivo = false }
   }, [ativo, roomId, r])
@@ -44,10 +44,11 @@ export type ProximaCompeticao = { emoji: string; nome: string; quem: string }
 
 // Só as que têm CONVOCAÇÃO depois da liga (Copa do Mundo e regionais). Diego 13/10: na Copa dos 8,
 // Libertadores e Champions da sala não tem convocação — o time entra sozinho, ninguém perde nada.
-export function proximasCompeticoes(sala: { mundo: boolean; euro?: boolean; regional: CopaRegionalId | null } | null): ProximaCompeticao[] {
+export function proximasCompeticoes(sala: { mundo: boolean; euro?: boolean; america?: boolean; regional: CopaRegionalId | null } | null): ProximaCompeticao[] {
   const en = getLang() === 'en'
   const out: ProximaCompeticao[] = []
-  if (sala?.mundo && sala.euro) out.push({ emoji: '🇪🇺', nome: tr('Eurocopa', 'Euro'), quem: tr('todo mundo escolhe uma seleção da Europa e convoca', 'everyone picks a European nation and calls up') })
+  if (sala?.mundo && sala.america) out.push({ emoji: '🌎', nome: tr('Copa América', 'Copa América'), quem: tr('todo mundo escolhe uma seleção das Américas e convoca', 'everyone picks a nation from the Americas and calls up') })
+  else if (sala?.mundo && sala.euro) out.push({ emoji: '🇪🇺', nome: tr('Eurocopa', 'Euro'), quem: tr('todo mundo escolhe uma seleção da Europa e convoca', 'everyone picks a European nation and calls up') })
   else if (sala?.mundo) out.push({ emoji: '🌐', nome: tr('Copa do Mundo', 'World Cup'), quem: tr('todo mundo escolhe seleção e convoca', 'everyone picks a nation and calls up') })
   if (sala?.regional) {
     const c = COPAS_REGIONAIS[sala.regional]

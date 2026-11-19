@@ -14054,3 +14054,11 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Decisões dele: escolha pela ORDEM DA TABELA da liga · o time do leilão SOME (igual Copa do Mundo) · clubes OFICIAIS com escudo oficial (os 36 sul-americanos com 11+ cartas) · Copa América com regra real (16 seleções, 4 grupos, quartas em jogo único).
 - Cartas novas pras 6 seleções que faltam (Bolívia, Venezuela, Canadá, Jamaica, Panamá, Costa Rica): proposta em `docs/copa-america-cartas-propostas.md` (64 cartas). **Elas NÃO entram nos baralhos das salas online** (ordem dele) — só servem pra convocação das seleções.
 - Mockup da escolha do clube: `scripts/mockups/liberta-clubes-390.png` / `-1280.png` (esperando OK).
+- ✅ 19/11 (Diego: *"vai acertar o ano certinho, o clube certinho… essas cartas novas não entram nas salas online"*): **COPA AMÉRICA FEITA no branch, só na conta dele** (`AMERICA_GERAL = false`, sport.ts).
+  · Marca da sala = `euroNaLiga: 16` (24 = Euro, 16 = Copa América); opção "🌎 Liga + Copa América" na prateleira CONVOCANDO (criar e editar sala).
+  · 16 seleções reais de 2024 (`AMERICA_16`); 4 grupos → quartas, jogo único (o motor da Copa de 16 que já existia, com o relógio do banco pulando as oitavas).
+  · 65 cartas CONFERIDAS (clube/ano/posição) em `cartas-selecoes-extra.ts` — só a convocação (`countryPool`) enxerga; nenhum baralho de leilão. Tabela + fontes: `docs/copa-america-cartas-propostas.md`.
+  · Escudos oficiais das 6 federações (JoseArroyave) em `img/nations-v25/` + bandeira e cor. Tema/troféu próprio (`america` em competicoes-visual).
+  · Conserto junto: o REGULAMENTO da Eurocopa mostrava o código cru na tela (`euro ? tr(...)`).
+  · ⚠️ Falta: na LISTA de salas, sala de Copa América aparece como "liga+euro" (a coluna `ls_copa2` do banco diz 'euro' pras duas) — dentro da sala está certo.
+  · ⚠️ Bolívia tem 1 goleiro só (os conhecidos já têm carta no baralho Mundo do Brasil Oficial). Achado lateral: Juan Carlos Arce tem 2 cartas MUNDO em `data-oficial.ts` (linhas ~3626 e ~3762).
