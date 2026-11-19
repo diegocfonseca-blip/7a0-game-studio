@@ -239,6 +239,8 @@
 - ✅ (1) Diego: *"Pode"* — escolhe uma das 30 franquias, **sem sobe e desce**.
 - ✅ Mockup da tela "Escolha sua franquia" APROVADO (19/11, *"Sim"*): `eua-oficial-tela.tsx` + `scripts/mockups/basquete-eua-oficial-franquia-*.png` (ainda não ligada).
 - ✅ (2) G League fica DE FORA na 1ª fase (19/11, Diego: *"Sim"*); pode entrar depois se ele pedir.
+- ✅ Elencos reais 2026-27 pesquisados e conferidos no Basketball-Reference: `docs/eua-oficial/elencos-2026-27.json` (530 jogadores, 9 a conferir).
+- ⏳ Próximo: virar carta (nível pela régua de 02/11 + bio PT/EN), marcadas SÓ carreira. Perguntado ao Diego se o elenco inicial é o real de hoje.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐

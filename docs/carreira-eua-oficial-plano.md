@@ -46,3 +46,14 @@ O que JÁ existe no jogo e serve direto: as conferências reais, os 82 jogos, o 
 2. **Fase 2** — NBA Cup real e o Draft com loteria.
 3. **Fase 3** — agência livre / trocas / teto salarial (o que o Diego quiser do sistema real).
 4. **Fase 4** — atualização anual (elencos reais de cada temporada).
+
+## 7. Elencos reais 2026-27 — PESQUISADOS (19/11)
+- Arquivo: `docs/eua-oficial/elencos-2026-27.json` — 30 franquias, 530 jogadores (contrato normal + two-way), cada um com posição,
+  país, nota factual e a fonte. Pesquisa em notícias (Hoops Rumors, SI, CBS, Spotrac…) e **conferida no Basketball-Reference
+  2027** (posição, país, jogos/minutos/pontos desta temporada), lido em 19/11/2026.
+- Bateu quase tudo: só **9 jogadores** marcados `conferir` (assinaram nos últimos dias ou podem ter saído: Zack Austin/Riley Minix
+  CLE, Keshon Gilbert ATL, Jahmir Young MIA, Jonas Aidoo UTA, Nicolas Batum LAC, Nick Smith LAL, Dylan Cardwell/Killian Hayes SAC).
+- Grandes mudanças da off-season 2026 (confirmadas): Knicks campeões 2026 (Brunson MVP das Finais) · Jaylen Brown ⇄ Paul George ·
+  LeBron nos 76ers · Kawhi de volta a Toronto · Giannis no Heat · Trae Young e Anthony Davis nos Wizards · Morant nos Blazers ·
+  LaMelo nos Wolves · AJ Dybantsa 1ª escolha do Draft (Wizards).
+- 🌐 Os sites NBA.com, ESPN e Basketball-Reference foram liberados na rede da sessão em 19/11 (antes estavam bloqueados).
