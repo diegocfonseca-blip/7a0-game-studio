@@ -87,7 +87,7 @@ export interface CopaFicha {
   /** ⚔️ nasceu com TÁTICA (23/10)? Copa velha termina sem — ver `TATICA_DESDE` */
   tatica?: boolean
   /** 🇪🇺 é a EUROCOPA da sala (24 seleções da Europa) — vem da marca `euroNaLiga` da sala */
-  euro?: 24
+  euro?: CopaVar
 }
 
 // 🏺 O INSTANTE EM QUE O SORTEIO POR POTES ENTROU NO AR (Diego, 20/09: *"a Copa
@@ -116,14 +116,26 @@ export function selecoesFortesDaMaquina(): Set<string> { return SELECOES_GRANDES
 const MAQUINA_FRACA_MENOS = 1
 
 /** as 32 seleções do jogo (Copa de 32, 02/10), na ordem de quem tem mais carta no baralho */
-export const paisesDaCopa = (euro?: 24): string[] => euro ? paisesDaEuro() : rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
+export const paisesDaCopa = (euro?: CopaVar): string[] => euro === 16 ? paisesDaAmerica() : euro ? paisesDaEuro() : rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
+/** 🇪🇺🌎 a copa CONVOCADA depois da liga: 24 = Eurocopa · 16 = Copa América (19/11). Vem da marca `euroNaLiga` da sala. */
+export type CopaVar = 24 | 16
+export const nomeCopaVar = (v?: CopaVar): string => v === 16 ? tr('Copa América', 'Copa América') : v ? tr('Eurocopa', 'Euro') : tr('Copa do Mundo', 'World Cup')
+// 🌎 COPA AMÉRICA DA SALA (19/11, Diego: *"copa América C regra da copa América"*): as 16 do formato REAL de 2024 — as 10 da Conmebol
+// + as 6 convidadas da Concacaf. 4 grupos de 4, passam 2 → quartas, tudo em jogo único (`formatoCopa(16)`, o mesmo da Copa de 16).
+// As 6 que não tinham carta suficiente ganharam cartas SÓ pra este modo (`cartas-selecoes-extra.ts`): elas NÃO entram em baralho de leilão.
+export const AMERICA_16 = ['Brasil', 'Argentina', 'Uruguai', 'Colômbia', 'Equador', 'Paraguai', 'Chile', 'Peru', 'Bolívia', 'Venezuela',
+  'México', 'EUA', 'Canadá', 'Costa Rica', 'Jamaica', 'Panamá']
+export const paisesDaAmerica = (): string[] => {
+  const n = (p: string) => { const pool = countryPool(p); return Object.values(pool).reduce((a, l) => a + l.length, 0) }
+  return [...AMERICA_16].map(p => ({ p, c: n(p) })).sort((a, b) => b.c - a.c).map(x => x.p)
+}
 // 🇪🇺 EUROCOPA DA SALA (31/10, Diego: *"Eurocopa são 24 seleções… 6 grupos de 4, passam os 2 primeiros + os 4 melhores terceiros"*):
 // as 24 seleções TRADICIONAIS da Europa (todas fecham time desde o Lote 46), da que tem mais carta pra que tem menos. O formato
 // sai do nº de times (`formatoCopa(24)` = 6 grupos + 4 melhores 3ºs → oitavas), o mesmo motor da Copa do Mundo.
 export const EUROPA_24 = new Set(['Inglaterra', 'França', 'Espanha', 'Itália', 'Holanda', 'Alemanha', 'Portugal', 'Bélgica', 'Croácia', 'Dinamarca',
   'Escócia', 'Turquia', 'Suécia', 'Sérvia', 'Irlanda', 'Polônia', 'Rússia', 'Romênia', 'Noruega', 'Ucrânia', 'Rep. Tcheca', 'Suíça', 'Áustria', 'Grécia'])
 export const paisesDaEuro = (): string[] => rankingSelecoes().filter(p => EUROPA_24.has(p.pais)).map(p => p.pais)
-export const timesDaCopa = (euro?: 24): number => euro ?? COPA_TEAMS
+export const timesDaCopa = (euro?: CopaVar): number => euro ?? COPA_TEAMS
 
 // ── o host monta a ficha: gente primeiro, máquina completando até 24 ─────────
 // A ordem é ESTÁVEL (ordenada pelo uid) pra que dois hosts, ou o mesmo host
@@ -466,7 +478,7 @@ const SEG_BANDEIRA = 40, SEG_BANNER = 15, SEG_CONVOCA = SEG_CONVOCA_SALA // ⏱�
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
-const piorLivre = (pegos: Set<string>, euro?: 24): string => {
+const piorLivre = (pegos: Set<string>, euro?: CopaVar): string => {
   const todas = paisesDaCopa(euro) // já vem da melhor pra pior (nº de cartas)
   for (let i = todas.length - 1; i >= 0; i--) if (!pegos.has(todas[i])) return todas[i]
   return todas[todas.length - 1]
@@ -485,7 +497,7 @@ export function montaFichaDaLiga(
   picks: Map<string, CopaPick>,
   seed: number,
   edicao: number,
-  euro?: 24, // 🇪🇺 31/10
+  euro?: CopaVar, // 🇪🇺 31/10
 ): CopaFicha {
   const times: CopaTime[] = []
   const pegos = new Set<string>()
@@ -561,7 +573,7 @@ function Relogio({ seg, total, cor = GOLD }: { seg: number; total: number; cor?:
 // monitor, e SEM caixa com rolagem — a lista é a própria tela. Quem não é a vez
 // vê a mesma grade (só sem poder tocar): fica sabendo quem já levou o quê.
 function GradeDeSelecoes({ pegas, marcado, podeMarcar, aoMarcar, euro }: {
-  euro?: 24
+  euro?: CopaVar
   pegas: Map<string, string>
   marcado: string | null
   podeMarcar: boolean
@@ -592,7 +604,7 @@ function GradeDeSelecoes({ pegas, marcado, podeMarcar, aoMarcar, euro }: {
 // embaixo, maior, a escolha dos países"*. Quando vira a MINHA vez, a tela rola
 // até aqui sozinha (`scrollIntoView`), que é o "aparecer de cara" sem tapar nada.
 function EscolheBandeira({ pegas, seg, aoConfirmar, euro }: {
-  euro?: 24
+  euro?: CopaVar
   pegas: Map<string, string>
   seg: number
   aoConfirmar: (pais: string) => void
@@ -659,7 +671,7 @@ function BannerDaCopa({ seg }: { seg: number }) {
 export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa, aoRemover, dupla = null, duplaDe }: {
   /** 🤝 eu sou de dupla: quem convoca por ela e se eu só assisto (15/10) */
   dupla?: { soAssisto: boolean; nomeAge: string } | null
-  euro?: 24
+  euro?: CopaVar
   duplaDe?: (assento: number) => { nomeAge: string; nomeOutro: string } | null
   nLiga: number
   fase: FaseCopa | null
@@ -697,7 +709,7 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
     <button onClick={onClick} disabled={disabled} className={`ll27-portao-botao${cor === GREEN ? ' verde' : ''}`}>{txt}</button>
   )
   return (
-    <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={euro ? tr('Eurocopa · 24 seleções', 'Euro · 24 nations') : tr('Copa do Mundo', 'World Cup')} detail={detail} status={status}>
+    <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={euro === 16 ? tr('Copa América · 16 seleções', 'Copa América · 16 nations') : euro ? tr('Eurocopa · 24 seleções', 'Euro · 24 nations') : tr('Copa do Mundo', 'World Cup')} detail={detail} status={status}>
       <div className="ll26-cup-entry">
         {dupla?.soAssisto && <AvisoDupla quem={dupla.nomeAge} />}
         {/* 🔜 NÃO SAI (Diego 13/10): quem está na fila e ainda não escolheu vê que ainda joga */}
@@ -731,13 +743,13 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
         {/* ainda não começou: o dono puxa — só depois da 1ª leitura bem-sucedida do banco */}
         {!fase && lido && (souDono
           ? <>
-              {botaoGrande(comecando ? tr('⏳ Começando…', '⏳ Starting…') : (euro ? tr('🇪🇺 COMEÇAR A EUROCOPA', '🇪🇺 START THE EURO') : tr('🌐 COMEÇAR A COPA DO MUNDO', '🌐 START THE WORLD CUP')), aoComecar, GOLD, comecando)}
+              {botaoGrande(comecando ? tr('⏳ Começando…', '⏳ Starting…') : (euro === 16 ? tr('🌎 COMEÇAR A COPA AMÉRICA', '🌎 START THE COPA AMÉRICA') : euro ? tr('🇪🇺 COMEÇAR A EUROCOPA', '🇪🇺 START THE EURO') : tr('🌐 COMEÇAR A COPA DO MUNDO', '🌐 START THE WORLD CUP')), aoComecar, GOLD, comecando)}
               <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 2px 0', lineHeight: 1.45 }}>
                 {en ? <>From then on the clock runs: <b>{SEG_BANDEIRA}s</b> for each one to pick a national team, in table order, and then <b>{SEG_CONVOCA}s</b> for everyone to call up their 11 together.</> : <>A partir daí o relógio corre: <b>{SEG_BANDEIRA}s</b> pra cada um escolher a seleção, na ordem da tabela, e depois <b>{SEG_CONVOCA}s</b> pra todos convocarem os 11 juntos.</>}
               </p>
             </>
-          : <p className="ll27-portao-aviso">{(euro ? tr('⏳ O dono da sala abre a Eurocopa — segura aí.', '⏳ The room owner opens the Euro — hang on.') : tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.'))}</p>)}
-        <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>euro ? tr('24 seleções da Europa em 6 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo + os 4 melhores terceiros = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11.', '24 European nations in 6 groups of 4, single round-robin (3 rounds); the top 2 of each group plus the 4 best third-placed teams go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever does not call up gets the worst 11.') : {tr(`${COPA_TEAMS} seleções em 8 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 8 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
+          : <p className="ll27-portao-aviso">{(euro === 16 ? tr('⏳ O dono da sala abre a Copa América — segura aí.', '⏳ The room owner opens the Copa América — hang on.') : euro ? tr('⏳ O dono da sala abre a Eurocopa — segura aí.', '⏳ The room owner opens the Euro — hang on.') : tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.'))}</p>)}
+        <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>{euro === 16 ? tr('16 seleções (as 10 da América do Sul + 6 convidadas da Concacaf, como na Copa América de 2024) em 4 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 8. Quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11.', '16 national teams (the 10 from South America + 6 CONCACAF guests, as in the 2024 Copa América) in 4 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 8. Quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever does not call up gets the worst 11.') : euro ? tr('24 seleções da Europa em 6 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo + os 4 melhores terceiros = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11.', '24 European nations in 6 groups of 4, single round-robin (3 rounds); the top 2 of each group plus the 4 best third-placed teams go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever does not call up gets the worst 11.') : tr(`${COPA_TEAMS} seleções em 8 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 8 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
 
         {/* fase 1 — a bandeira: quem é a vez escolhe AQUI; os outros veem a grade travada */}
         {fase === 'bandeira' && (souAVez
@@ -813,7 +825,7 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
 
 export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classificacaoToda, matchSeed, aoStatus, seasonNo = 1, aoRemover, assentos, duplas, euro: euroProp }: {
   /** 🇪🇺 31/10: a sala é Liga + EUROCOPA (24 seleções da Europa) */
-  euro?: 24
+  euro?: CopaVar
   /** 🪑 quem senta em cada assento e as duplas — do ESTADO da partida (20/10, sala ZESM9K): manda mais que o número do banco */
   assentos?: string[]
   duplas?: Record<number, DuplaDoEstado>
@@ -842,14 +854,14 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   // na partida. O portão confere de novo na hora em que abre — se qualquer uma das duas disser Euro, é Euro. Assim a lista
   // de seleções (que vai pelo NOME, e o dono troca nome fora da lista pela pior que sobrou) nunca sai da Copa do Mundo
   // numa sala de Eurocopa.
-  const [euroSala, setEuroSala] = useState<24 | undefined>(undefined)
+  const [euroSala, setEuroSala] = useState<CopaVar | undefined>(undefined)
   useEffect(() => {
     let vivo = true
     void supabase.from('game_rooms').select('euro:game_state->>euroNaLiga').eq('id', roomId).maybeSingle()
-      .then(({ data }) => { const e = (data as { euro?: string } | null)?.euro; if (vivo && (e === '24' || e === 'true')) setEuroSala(24) }, () => {})
+      .then(({ data }) => { const e = (data as { euro?: string } | null)?.euro; if (vivo && (e === '24' || e === 'true')) setEuroSala(24); else if (vivo && e === '16') setEuroSala(16) /* 🌎 19/11: 16 = Copa América */ }, () => {})
     return () => { vivo = false }
   }, [roomId])
-  const euro: 24 | undefined = euroProp ?? euroSala
+  const euro: CopaVar | undefined = euroProp ?? euroSala
   // 🇪🇺 Euro: só os 24 primeiros da tabela entram na fila (sala de até 20 = todo mundo joga)
   const classificacao = useMemo(() => euro ? classificacaoToda.slice(0, euro) : classificacaoToda, [classificacaoToda, euro])
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
@@ -1075,7 +1087,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
     <>
       <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
       {/* na convocação a tela dos 11 já abre sozinha: lá só vibra/apita, sem cartão (não gasta toque do relógio) */}
-      {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={euro ? tr(`Eurocopa · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `Euro · you have ${SEG_BANDEIRA}s to pick your nation`) : tr(`Copa do Mundo · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `World Cup · you have ${SEG_BANDEIRA}s to pick your nation`)} botao={tr('Escolher minha seleção', 'Pick my nation')} aoFechar={chama.fechar} />}
+      {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={euro ? tr(`${nomeCopaVar(euro)} · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `${nomeCopaVar(euro)} · you have ${SEG_BANDEIRA}s to pick your nation`) : tr(`Copa do Mundo · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `World Cup · you have ${SEG_BANDEIRA}s to pick your nation`)} botao={tr('Escolher minha seleção', 'Pick my nation')} aoFechar={chama.fechar} />}
       {/* 🚪 O PORTÃO (19/09): o banner grande da Copa no TOPO do fim da liga, com a
           fila, a grade das seleções e a convocação embaixo dele — o mesmo desenho
           da Copa dos 8/Libertadores. Antes a escolha da bandeira subia num modal

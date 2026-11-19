@@ -259,3 +259,27 @@ Regra de construção: **a carreira de time criado não muda nada**. Tudo novo f
   de cada rodada INCERTO, uma quarta a cada ~10 dias entre 7/abr e 28/mai); a final (28/nov) passa da 38ª e fica pro fim.
   ⏭️ Falta: Sul-Americana (6º–12º + os eliminados da Liberta), Intercontinental real (Dérbi das Américas → Challenger → final
   contra o campeão europeu), festa/troféu da Liberta, e quem NÃO está na Liberta poder assistir.
+
+## 🔨 18/11 — Começo da carreira e leilão (decisões do Diego)
+- **Leilão de abertura igual pra TODOS (usuário e bots): 5 vagas, uma por posição (GOL · ZAG · LAT · MEI · ATA)** — *"pode ser 5
+  pra todos… um pra goleiro, um pra zagueiro, um pra lateral, um pra meia e um pra atacante. Fechamos dessa forma"*. Começa com o
+  elenco do clube (sorteio de até 22) e soma até 5. O leilão de toda virada (sondar + vender + pregão) continua.
+- **Rivais escolhidos (3/5/7/9) NÃO existem no Brasil Oficial** (já era assim; ele confirmou: *"é besteira"*).
+- ✅ APROVADO 18/11 (*"topei"* · *"pode fazer tudo aí que a gente combinou"*): caixa inicial pela RECEITA REAL do clube (fonte aberta), comprimida pra caber no
+  jogo (~40 🪙 o mais pobre da D → ~400 🪙 Flamengo/Palmeiras); quem disputa o leilão = os 19 clubes da SUA série (os outros reforçam
+  sozinhos, fora da tela); o bot calcula o lance pela categoria + over (régua do "bot que pensa", 13/10), limitado pelo caixa real.
+- ✅ **Limite do bot = PEDAÇO DO CAIXA do próprio clube, nunca número fixo** (*"pro usuário não entender qual é o limite e depois
+  sempre ganhar"*): lenda 35–70% · craque 20–40% · promessa/bom 10–25% · profissional 3–10%, ponto sorteado por carta + necessidade +
+  perfil. Ordem das categorias nunca inverte. **Loucura** rara: clube rico obcecado passa da faixa. O exagero nunca sobe o piso.
+- ✅ **BOT FAZ TUDO QUE O USUÁRIO FAZ** (18/11): todos os clubes do modo ganham premiação, pagam salário, renovam contrato.
+- ✅ **Condição física desde o INÍCIO** no Brasil Oficial (não espera a Série C).
+- 🔍 Pedido: analisar como é hoje comprar/renovar TÉCNICO e PREPARADOR FÍSICO e propor melhoria.
+- ✅ **CATEGORIA NO LEILÃO PELA SÉRIE** (18/11, régua dele): **D** profissional e bom jogador · **C** bom jogador e promessa · **B**
+  promessa e craque · **A** craque e lenda. Vale no leilão de abertura e no da virada (`buildDeck(..., filtroOficialDe(s))`) — só pra carta nova. Regra única: `categoriaOficialOk` (store). O SONDADO segue a régua do olheiro, não esta.
+  - **Exceção (18/11, ele confirmou)**: a régua vale só pro que APARECE no leilão. Jogador que já é do clube fica no clube, seja qual
+    for a categoria (o Flamengo caído na D continua com o Arrascaeta craque). Reserva que bot da SÉRIE solta vai pro pregão em qualquer categoria (*"se o jogador já tava na série, ele pode sim aparecer"*): a régua
+    vale só pra carta NOVA que vem do catálogo/sobra de fora.
+- ✅ **SÓ CARTA DE CLUBE BRASILEIRO NO LEILÃO** (18/11, *"só ter cartas de jogadores que jogaram em times brasileiros"*): vale o CLUBE da
+  carta, não a nacionalidade (Depay Corinthians entra; Júlio César Inter não). Abertura, virada, sobras dos bots e o "famoso" sorteado.
+  Regra única: `cartaDeClubeBrasileiro` (store). São 3.459 cartas (55 lendas, 144 craques). 🌍 Europa/Mundo virão depois como ESCOLHA na
+  criação da carreira (só Brasil · Brasil + Inglaterra/Espanha · tudo) — ele quer começar a fazer e pôr "em breve".

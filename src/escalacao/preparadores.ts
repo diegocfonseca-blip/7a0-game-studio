@@ -84,11 +84,21 @@ export const PREPARADORES: Preparador[] = [
 export const preparadorDe = (key?: string | null): Preparador | null =>
   (key ? PREPARADORES.find(p => p.key === key) ?? null : null)
 
+/** 🇧🇷 BRASIL OFICIAL (18/11, *"sim"*): o preço vai pela SÉRIE do seu clube — 800 não cabia num caixa de 40 a 400 🪙.
+ *  D 8·15·25·40 · C 12·25·40·60 · B 20·40·60·90 · A 30·60·90·140 (Faria · Pintus · Paixão · Seirulo). Fora do Oficial, o de sempre. */
+export const PRECO_PREP_OFICIAL: Record<string, Record<string, number>> = {
+  D: { faria: 8, pintus: 15, paixao: 25, seirulo: 40 },
+  C: { faria: 12, pintus: 25, paixao: 40, seirulo: 60 },
+  B: { faria: 20, pintus: 40, paixao: 60, seirulo: 90 },
+  A: { faria: 30, pintus: 60, paixao: 90, seirulo: 140 },
+}
+/** preço de contratar — `div` só vem preenchido no Brasil Oficial (`divOficialDe` no store) */
+export const precoPrep = (p: Preparador | null, div?: string | null): number => (p ? (div ? PRECO_PREP_OFICIAL[div]?.[p.key] : undefined) ?? p.preco : 0)
 /** salário por temporada — a MESMA conta do técnico (10% do preço) */
-export const salarioPreparador = (p: Preparador | null): number => (p ? Math.round(p.preco / 10) : 0)
+export const salarioPreparador = (p: Preparador | null, div?: string | null): number => (p ? Math.max(1, Math.round(precoPrep(p, div) / 10)) : 0)
 
 /** 📝 renovar custa METADE do preço de contratação (Diego 19/09) — vale pros quatro */
-export const precoRenovacaoPreparador = (p: Preparador | null): number => (p ? Math.round(p.preco / 2) : 0)
+export const precoRenovacaoPreparador = (p: Preparador | null, div?: string | null): number => (p ? Math.round(precoPrep(p, div) / 2) : 0)
 
 // 🔋 O QUE O PREPARADOR FAZ, EM PALAVRAS QUE NÃO CONFUNDEM (Diego 19/09): *"tá mt
 // confuso esse negócio de joga 8 seguidas e senta 1… o jogador q nem tem preparador

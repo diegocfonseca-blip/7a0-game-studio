@@ -389,6 +389,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   tela deve funcionar bem para dispositivo móvel e bem para desktop"*. Antes de dar uma tela por pronta: (1) olhar como as telas
   vizinhas da repaginada fazem (classes e CSS que já existem, ex. `career-desktop.css`, `ll29-*`, `cv2-*`) e reaproveitar, nada
   de estilo solto inventado; (2) tirar print em ~390 px (celular) E ~1280 px (computador) e conferir os dois.
+- **🇧🇷🟢 BRASIL OFICIAL LIBERADO PRA TODOS (18/11, *"publique pra todos já!"*).** Regras dele pra quem NÃO tem plano: **salva só no
+  aparelho** (nunca na nuvem, sem o teste de 5 dias) · **1 carreira só** · **carreira parada 5 dias é excluída** (com o aviso de dias) ·
+  **sem limite de temporada** (a trava da T50 não vale no modo) · **Manual só com plano ou avulso** · **over de craque e lenda só com plano**
+  (olheiro). 🇪🇺 A **Europa Oficial** vai ser **só com plano** desde o início. Desligar o modo = `BRASIL_OFICIAL_GERAL = false` (sport.ts);
+  as prévias da carreira de sempre (Central nova, Mercado…) também foram pra TODOS no mesmo dia (*"pode publicar p todos já"*, `CENTRAL_18_11_GERAL = true`).
 - **🇧🇷 BRASIL OFICIAL = TUDO REAL, NADA INVENTADO (15/11, regra permanente).** Palavras dele: *"quero que todos campeonatos
   sejam reais, as regras e etc, sem invenção"*. No modo de clubes reais: clubes, divisões, formatos, quantos sobem/caem,
   vagas de Libertadores/Sul-Americana, estaduais, Copa do Brasil, Supercopa, Intercontinental e troféus seguem o REAL, cada
@@ -400,6 +405,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   💰 **ECONOMIA DO OFICIAL (18/11, *"Ok"*)**: TV pela divisão E pelo porte do clube; prêmio de subir/cair pra TODO clube que sobe/cai
   no formato real (*"se sobem 6 da Série D, ganham os 6"*); toda competição paga por fase (*"vai sendo eliminado mas ganha alguma coisa,
   mesmo que seja merreca… sempre deixando claro pro usuário"*). Régua única em `economia-oficial.ts`.
+  🏢 **SAF NO OFICIAL (18/11)**: *"N quero q tenha compra de segundo clube… apenas saf… só se tiver o time na série A… 2k… somente qm tem plano"*.
+  Sem 2º clube (nem comprado, nem a SAF virando 2º clube). 🔁 Mesmo dia: SAF = **1.500** (`PRECO_SAF_OFICIAL`), só com o SEU time na **Série A** + **estádio 100% completo** + **plano** (cadeado + Ver os planos). Venda segura o lucro máx de 500 (vale no máx 2.000). Régua em `BUY_FILIAL`.
   🚫 **Só se escolhe clube das Séries A–D** (15/11, *"não pode"*): clube só de estadual/Copa existe no modo como rival, nunca como o clube do usuário.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2

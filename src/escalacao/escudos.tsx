@@ -86,6 +86,7 @@ import dsouzaEscudoImg from './img/dsouza-escudo.webp' // 🐶💚 dSouza FC (al
 import leoestufEscudoImg from './img/leoestuf-escudo.webp' // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
 import reffattiEscudoImg from './img/reffatti-escudo.webp' // 🎮👑 Reffatti FC (leoreffattig): arte própria do dono, 15/11
 import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ História dos Gigantes (will.a.n): arte própria do dono, 16/11
+import cearaspEscudoImg from './img/cearasp-escudo.webp' // 👑⚫ Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
@@ -996,6 +997,11 @@ const reffattiEscudoRender = (size: number) => (
 const hgigantesEscudoRender = (size: number) => (
   <img src={hgigantesEscudoImg} height={size} width={Math.round(size * 339 / 360)} alt="História dos Gigantes" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 👑⚫ CEARÁ SP CLUB (lucasnicodemosqq, batismo de 19/11) — Várzea, no assento do bot Barcelona da Vila. 📏 312×360, 30 KB.
+// Escudo preto e branco listrado com coroa, louros e o farol com coqueiro. Fundo verde chroma tirado; conferido sobre vermelho.
+const cearaspEscudoRender = (size: number) => (
+  <img src={cearaspEscudoImg} height={size} width={Math.round(size * 312 / 360)} alt="Ceará SP Club" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
 // Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
 const lavrasEscudoRender = (size: number) => (
@@ -1761,6 +1767,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'História dos Gigantes FC': hgigantesEscudoRender,
   'História dos Gigantes EC': hgigantesEscudoRender,
   'História dos Gigantes SC': hgigantesEscudoRender,
+  // 👑⚫ Ceará SP Club (lucasnicodemosqq) — BATISMO. As formas do nome (regra 20/08), com e sem acento. O Barcelona da Vila continua no jogo rápido.
+  'Ceará SP Club': cearaspEscudoRender,
+  'Ceara SP Club': cearaspEscudoRender,
+  'Ceará SP Club FC': cearaspEscudoRender,
+  'Ceará SP Club EC': cearaspEscudoRender,
+  'Ceará SP Club SC': cearaspEscudoRender,
   // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
   // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'Lavras FC': lavrasEscudoRender,

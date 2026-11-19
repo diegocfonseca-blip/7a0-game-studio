@@ -163,6 +163,8 @@ export type CentralProps = {
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
+  /** 🛒 18/11: com a aba Mercado (Brasil Oficial) o cartão 💸 leva pra ela em vez do extrato */
+  onMercado?: () => void
   onClubDestination?: (target: 'financas' | 'agencia') => void
   /** 💾 SALVAR À VISTA (04/10): desde que a nuvem só recebe no botão, ele mora no topo da Central.
    *  `estado`: 'em_dia' (nuvem igual ao jogo) · 'atrasado' (jogou desde a última subida) · 'nunca' ·
@@ -505,7 +507,7 @@ export function CentralCarreira(p: CentralProps) {
           {/* 💸 MERCADO: a sala de leilão */}
           <div className="ll-central-card ll-c-mercado" style={{ background: `#1a120a url(${leilaoArt}) 85% center / cover`, color: CREME, borderColor: '#847657' }}>
             <div style={{ background: 'linear-gradient(90deg,#0C0C0Cf2 45%,#0C0C0C8c)' }}>
-              <Cabecalho titulo={t('💸 Mercado', '💸 Market')} sub={t('o que rolou nos leilões', 'auction business')} link={t('extrato', 'ledger')} onClick={() => p.onTab('estadio')} />
+              <Cabecalho titulo={t('💸 Mercado', '💸 Market')} sub={t('o que rolou nos leilões', 'auction business')} link={p.onMercado ? t('mercado', 'market') : t('extrato', 'ledger')} onClick={() => p.onMercado ? p.onMercado() : p.onTab('estadio')} />
               {(mercadoTodo ? p.mercado.negocios : p.mercado.negocios.slice(0, 8)).map((c, i) => (
               <div key={i} className={`ll-central-row ll-central-deal${!mercadoTodo && i >= 5 ? ' ll-central-not-desk' : ''}`} style={{ gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
                 <Escudo nome={c.team} size={26} />

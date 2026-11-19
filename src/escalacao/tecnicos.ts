@@ -78,8 +78,11 @@ export const tecnicoPorNome = (nome: string): Tecnico | undefined => TECNICOS.fi
 // Técnico fora da lista mede pela régua da A. `precoTecnicoSano` é a cura que todo
 // save passa ao abrir (`sincronizaNiveis`).
 export const TETO_TECNICO_X = 4
-export const tetoTecnico = (nome: string): number => TETO_TECNICO_X * PISO_TECNICO[tecnicoPorNome(nome)?.div ?? 'A']
-export const precoTecnicoSano = (nome: string, v: number | undefined): number => Math.max(0, Math.min(tetoTecnico(nome), Math.round(Number(v) || 0)))
+// 🇧🇷 BRASIL OFICIAL (18/11, *"sim"*): técnico na escala do caixa do modo (40–400 🪙) — teto D 12 · C 20 · B 35 · A 60, piso = ¼.
+export const TETO_TECNICO_OFICIAL: Record<DivTecnico, number> = { A: 60, B: 35, C: 20, D: 12, V: 5 }
+export const pisoTecnico = (div: DivTecnico, oficial = false): number => oficial ? Math.max(1, Math.round(TETO_TECNICO_OFICIAL[div] / TETO_TECNICO_X)) : PISO_TECNICO[div]
+export const tetoTecnico = (nome: string, oficial = false): number => { const d = tecnicoPorNome(nome)?.div ?? 'A'; return oficial ? TETO_TECNICO_OFICIAL[d] : TETO_TECNICO_X * PISO_TECNICO[d] }
+export const precoTecnicoSano = (nome: string, v: number | undefined, oficial = false): number => Math.max(0, Math.min(tetoTecnico(nome, oficial), Math.round(Number(v) || 0)))
 export const poolDaDiv = (div: DivTecnico): Tecnico[] => TECNICOS.filter(t => t.div === div)
 // a ficha completa pra montar a CARTA do técnico (formato de carta de jogador)
 export function fichaDoTecnico(t: Tecnico): { fame: number; promessa: boolean; lo: number; hi: number; formacoes: string[] } {

@@ -56,8 +56,11 @@ function melhorXI(squad: CartaBot[], need: Record<Sec, number>, fora: Set<string
 export function planoCansacoBot(args: {
   squad: CartaBot[]; need: Record<Sec, number>; inicio?: Record<string, number>
   seed: number; seasonNo: number; nome: string; rodadas: number
+  /** 🏋️ Brasil Oficial (18/11): quanto o banco devolve por rodada — o do preparador do bot. Sem = GAS_BANCO de sempre. */
+  banco?: number
 }): PlanoBot {
   const { squad, need, inicio, seed, seasonNo, nome, rodadas } = args
+  const bancoBot = args.banco ?? GAS_BANCO
   const gas: Record<string, number> = {}
   for (const c of squad) gas[c.id] = Math.max(0, Math.min(100, inicio?.[c.id] ?? 100))
   const xi: string[][] = []
@@ -98,7 +101,7 @@ export function planoCansacoBot(args: {
       }
     }
     const emCampo = new Set(ids)
-    for (const c of squad) gas[c.id] = Math.round((emCampo.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + GAS_BANCO)) * 10) / 10
+    for (const c of squad) gas[c.id] = Math.round((emCampo.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + bancoBot)) * 10) / 10
   }
   return { xi, mods, gasFim: gas, lesoes, poupados }
 }

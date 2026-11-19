@@ -166,6 +166,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🧔⚽ História dos Gigantes — CREME e MARROM, MEDIDOS na camisa que o dono mandou (16/11): creme do corpo (#FEE9BD) e o marrom
   // da faixa/gola (#7A2B06).
   'will.a.n@hotmail.com': ['#FEE9BD', '#7A2B06'],
+  // 👑⚫ Ceará SP Club — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (19/11): preto das listras (#060606) e o branco (#F3F4F4).
+  // O AZUL dos frisos (#0863E9) é a 3ª cor (MANTO_TRI).
+  'lucasnicodemosqq@gmail.com': ['#060606', '#F3F4F4'],
   // 🐆👑 Lavras FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (16/11): preto do corpo (#0A0806) e o dourado das
   // faixas/gola (#F3AD03).
   'hugopereirabrito@gmail.com': ['#0A0806', '#F3AD03'],
@@ -381,6 +384,7 @@ const MANTO_TRI: Record<string, string> = {
   reffatti_gamer: '#0C0C0C', // 🎮👑 Reffatti FC (leoreffattig) — 3ª cor PRETA: a faixa diagonal e as golas da camisa (15/11)
   duarte_paredao: '#F7D50A', // 🧤👑 Duarte FC (luizfelipeduarte212) — 3ª cor DOURADA: gola e punhos da camisa (18/11)
   obelisko_atormentador: '#4853AB', // 👁️👑 Obelisko FC (felipefazzio) — 3ª cor AZUL: o monstro estampado no peito da camisa (18/11)
+  cearasp_rei: '#0863E9', // 👑⚫ Ceará SP Club (lucasnicodemosqq) — 3ª cor AZUL: os frisos da camisa (19/11)
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   reidabola_leao: '#ECE1D9', // 👑🦁 Rei da Bola FC (caiobegnamii) — 3ª cor BRANCO-CREME: a base da camisa, medida na arte dele (16/09)
   toka: '#013088', // 🧢 Tôka10 — 3ª cor AZUL: a touca (que é o escudo) e o calção, medidos na arte dele (16/09)
