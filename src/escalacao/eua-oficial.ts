@@ -1,4 +1,4 @@
-// ─── 🏀🇺🇸 EUA OFICIAL: as 30 franquias da NBA, na conferência e na divisão REAIS (temporada 2025-26) ─────────────────────
+// ─── 🏀🇺🇸 EUA OFICIAL: as 30 franquias da NBA, na conferência e na divisão REAIS (temporada 2026-27) ─────────────────────
 // Fonte: NBA.com/standings (divisões) — a mesma divisão desde 2004-05. Plano completo: docs/carreira-eua-oficial-plano.md.
 // Decisão do Diego (19/11, "Pode"): o usuário escolhe UMA franquia e fica nela — sem sobe e desce, como nos EUA.
 // A chave (`chave`) é o nome do clube nas cartas e no ESCUDOS_NBA; `nome` é o nome completo (cidade + apelido).

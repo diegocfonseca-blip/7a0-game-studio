@@ -238,7 +238,7 @@
   `carreiraBasqueteLiberada()` em sport.ts). Hoje o basquete só aparece pro Diego, então nada muda na tela de ninguém.
 - ✅ (1) Diego: *"Pode"* — escolhe uma das 30 franquias, **sem sobe e desce**.
 - ✅ Mockup da tela "Escolha sua franquia" APROVADO (19/11, *"Sim"*): `eua-oficial-tela.tsx` + `scripts/mockups/basquete-eua-oficial-franquia-*.png` (ainda não ligada).
-- ⏳ Ainda em aberto: (2) G League entra?
+- ✅ (2) G League fica DE FORA na 1ª fase (19/11, Diego: *"Sim"*); pode entrar depois se ele pedir.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐

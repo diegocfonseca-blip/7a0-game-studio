@@ -15,9 +15,9 @@ O motor é o de sempre (leilão, `simMatch` do basquete, Quadra 2D, placar cinem
 - ✅ **DECIDIDO (19/11, Diego: *"Pode"*)**: o usuário escolhe **uma das 30 franquias da NBA** e fica nela — **sem sobe e desce**
   (não há divisão de baixo pra cair nem pra subir).
 - A G League existe de verdade (time afiliado de cada franquia), mas é liga de desenvolvimento, não "segunda divisão".
-  ⚠️ Decidir com o Diego: a G League entra (como 2º elenco/afiliado) ou fica de fora na 1ª fase?
+  ✅ DECIDIDO (19/11, *"Sim"*): a G League fica DE FORA na 1ª fase (pode entrar depois, se ele pedir).
 
-## 3. A temporada real (2025-26)
+## 3. A temporada real (2026-27 — começou em 20/10/2026)
 | Etapa | Real |
 |---|---|
 | Liga | 30 franquias · 2 conferências (Leste/Oeste) · 6 divisões (Atlântico, Central, Sudeste, Noroeste, Pacífico, Sudoeste) · **82 jogos** |
@@ -32,7 +32,7 @@ O que JÁ existe no jogo e serve direto: as conferências reais, os 82 jogos, o 
 - Hoje: **432 cartas da NBA** em 37 clubes (muitas são lendas de épocas diferentes). Por franquia: Celtics 27 · Lakers 26 · Warriors 23 ·
   Blazers 20 · Cavaliers 18 … Pelicans 3 · Thunder 8 · Nets 7 · Wizards 7 · Mavericks 7. Nomes históricos separados (Sonics, Bullets,
   Royals, Bobcats…) — decidir se contam pra franquia de hoje.
-- Faltam ~**96 cartas** só pra cada franquia chegar a 15 com as que já existem; pra elenco REAL de hoje (2025-26) o número é bem maior.
+- Faltam ~**96 cartas** só pra cada franquia chegar a 15 com as que já existem; pra elenco REAL de hoje (2026-27) o número é bem maior.
 
 ## 5. Cartas novas (só da carreira)
 - **Jogador real, daquela franquia e daquele ano** (regra "não inventar pessoa"). Força pela régua de 02/11.

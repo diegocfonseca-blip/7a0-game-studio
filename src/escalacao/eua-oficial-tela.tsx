@@ -24,7 +24,7 @@ export function EscolhaFranquiaEUA({ onEscolher, onVoltar }: { onEscolher: (chav
   const chip = (on: boolean) => ({ background: on ? GOLD : '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, boxShadow: on ? `2px 2px 0 ${INK}` : 'none', padding: '10px 4px', font: '700 16px Oswald, sans-serif', textTransform: 'uppercase' as const })
   return (
     <CareerSetupFrame step={2} club={f?.nome ?? ''} onBack={onVoltar} etapas={etapas()} marca={MARCA()} topo={tr('NOVA CARREIRA · EUA OFICIAL', 'NEW CAREER · OFFICIAL USA')}>
-      <header className="cse-intro"><small>{tr('AS 30 FRANQUIAS DA NBA · 2025-26', 'THE 30 NBA FRANCHISES · 2025-26')}</small><h1>{tr('Escolha sua franquia.', 'Pick your franchise.')}</h1>
+      <header className="cse-intro"><small>{tr('AS 30 FRANQUIAS DA NBA · 2026-27', 'THE 30 NBA FRANCHISES · 2026-27')}</small><h1>{tr('Escolha sua franquia.', 'Pick your franchise.')}</h1>
         <p>{tr('Como nos EUA: não tem sobe e desce. Você fica na sua franquia e briga pelo título todo ano.', 'Just like in the USA: no promotion or relegation. You stay with your franchise and fight for the title every year.')}</p></header>
       <div className="cse-rivals-grid">
         <div className="cse-paper">
