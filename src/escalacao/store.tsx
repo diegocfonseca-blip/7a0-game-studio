@@ -6990,16 +6990,30 @@ export function viceTravaLance(state: EscState, mgrId: number, valor?: number): 
   return null
 }
 const viceForca = (c: WonCard | Card) => (c.hi ?? 0) + (c.lo ?? 0) + (c.fame ?? 0) * 10
-/** 🚨 BUSTED: os 3 melhores viram cartas reais de categoria Profissional da MESMA posição (sem voltar pra mesa) */
+/** 🚨 BUSTED (19/11 v3, Diego: *"só para o primeiro que tomou 5 estrelas… no final, quando ele montar tudo, vai ser trocado por 5
+ *  jogadores profissionais… os melhores"*): o 1º a chegar em 5 estrelas é PEGO na hora (a sala inteira vê, com sirene) e daí em diante
+ *  ninguém mais leva estrela nem BUSTED. A pena cai no FIM do pregão (`viceBustedPena`, chamado em `paFecha`): os 5 melhores dele viram
+ *  5 cartas reais de categoria Profissional da MESMA posição. */
 function viceBusted(state: EscState, alvo: number) {
   const v = state.pa?.vice
   const m = state.managers.find(x => x.id === alvo)
   if (!v || !m || v.busted !== undefined) return
   v.busted = alvo
+  ;(v.mao[alvo] = v.mao[alvo] ?? []).push('roubo')
+  viceFeed(state, [`🚨 BUSTED! A polícia pegou ${m.teamName}: foi o 1º a levar ${VICE_BUSTED_EM} estrelas. No fim do pregão os 5 melhores dele viram 5 Profissionais. Agora ninguém mais leva estrela.`, `🚨 BUSTED! The police caught ${m.teamName}: first to take ${VICE_BUSTED_EM} stars. When the auction ends, their 5 best become 5 Pros. Nobody else gets stars now.`], true)
+  ;(state.marketLog = state.marketLog ?? []).push(`🚨 BUSTED: ${m.teamName} foi o 1º a levar 5 estrelas na sala Vice City.`)
+}
+function viceBustedPena(state: EscState) {
+  const v = state.pa?.vice
+  if (!v || v.busted === undefined || v.bustedFeito) return
+  v.bustedFeito = true
+  const alvo = v.busted
+  const m = state.managers.find(x => x.id === alvo)
+  if (!m) return
   const rng = viceRng(state)
   const nomes = new Set<string>(state.managers.flatMap(x => x.squad.map(c => c.name)))
   if (state.pa) for (const c of state.pa.fila) nomes.add(c.name)
-  const melhores = m.squad.filter(c => !c.fake).sort((a, b) => viceForca(b) - viceForca(a)).slice(0, 3)
+  const melhores = m.squad.filter(c => !c.fake && (c.fame ?? 1) > 1).sort((a, b) => viceForca(b) - viceForca(a)).slice(0, 5)
   const trocas: string[] = []
   for (const c of melhores) {
     const cands = ((ACTIVE_CATALOG[c.pos] ?? []) as Card[]).filter(x => (x.fame ?? 1) === 1 && !x.fake && !x.promessa && !nomes.has(x.name))
@@ -7011,10 +7025,7 @@ function viceBusted(state: EscState, alvo: number) {
     m.squad[i] = { ...novo, pos: c.pos, id: `vice-busted-${alvo}-${i}-${v.n}`, paid: 0, buyPrice: 0, via: 'monte' } as WonCard
     trocas.push(c.name)
   }
-  ;(v.mao[alvo] = v.mao[alvo] ?? []).push('roubo')
-  const perdeu = trocas.length ? [`perdeu ${trocas.join(', ')}`, `lost ${trocas.join(', ')}`] : ['ainda não tinha jogador pra perder', 'had no players to lose yet']
-  viceFeed(state, [`🚨 BUSTED! ${m.teamName} levou ${VICE_BUSTED_EM} golpes e ${perdeu[0]} — ganhou um 🚗 Roubo de carro de vingança`, `🚨 BUSTED! ${m.teamName} took ${VICE_BUSTED_EM} hits and ${perdeu[1]} — got a revenge 🚗 Car theft`], true)
-  ;(state.marketLog = state.marketLog ?? []).push(`🚨 BUSTED: ${m.teamName} foi o mais caçado da sala Vice City.`)
+  if (trocas.length) (state.marketLog = state.marketLog ?? []).push(`🚨 Pena do BUSTED: ${m.teamName} perdeu ${trocas.join(', ')} — no lugar, ${trocas.length} Profissional(is).`)
 }
 /** o golpe pega: aplica o efeito com `vit` levando e `ben` ganhando. Devolve o texto extra do anúncio (ou null = não deu) */
 function viceAplica(state: EscState, id: GolpeId, ben: Manager, vit: Manager): string | null | undefined {
@@ -7135,6 +7146,7 @@ function viceUsa(state: EscState, mgrId: number, id: GolpeId, alvoId?: number): 
     return true
   }
   viceFeed(state, anuncioGolpe(id, ben.teamName, vit.teamName, extra))
+  if (v.busted !== undefined) return true // 🚨 19/11: a polícia já pegou o 1º — ninguém mais leva estrela
   v.estrelas[vit.id] = (v.estrelas[vit.id] ?? 0) + 1
   if (v.busted === undefined && (v.estrelas[vit.id] ?? 0) >= VICE_BUSTED_EM) viceBusted(state, vit.id)
   return true
@@ -7434,6 +7446,7 @@ function paFecha(state: EscState) {
   const pa = state.pa
   if (!pa) return
   const dados = paCompletaElencos(state, pa.sobras)
+  viceBustedPena(state) // 🚨 19/11: a pena do BUSTED cai com o elenco montado (5 melhores → 5 Profissionais)
   if (dados > 0) (state.marketLog = state.marketLog ?? []).push(state.leilaoClubes
     ? `🎁 Sem Monte no pregão aberto: ${dados} setor(es) vazio(s) ganharam um pacote que sobrou, de graça.`
     : `🎁 Sem Monte no pregão aberto: ${dados} vaga(s) vazia(s) ganharam jogador profissional ou bom, de graça.`)

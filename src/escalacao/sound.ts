@@ -164,6 +164,10 @@ export function playMp3Gala(url: string, ms: number): () => void {
   return () => { ts.forEach(clearTimeout); try { a?.pause() } catch { /* ignora */ } a = null }
 }
 // 📣 apito do juiz: tom agudo com trinado + sopro
+/** 🚨 19/11 (Diego: "banner piscando com sirene da polícia"): sirene de viatura sintetizada, sobe e desce 4 vezes (~3 s, 0 KB) */
+export function playSirene() {
+  for (let i = 0; i < 4; i++) { tone(620, 0.38, 'sawtooth', 0.16, i * 0.76, 1180); tone(1180, 0.38, 'sawtooth', 0.16, i * 0.76 + 0.38, 620) }
+}
 export function playWhistle() {
   const c = ac(); if (!c || !master) return
   try {

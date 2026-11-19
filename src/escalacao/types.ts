@@ -404,6 +404,8 @@ export type ViceState = {
   estrelas: Record<number, number>
   /** 🚨 quem já tomou BUSTED (só 1 por sala) */
   busted?: number
+  /** 🚨 19/11: a pena (5 melhores → 5 Profissionais) já caiu no fim do pregão */
+  bustedFeito?: boolean
   /** o último jogador que cada um levou no martelo (alvo do 🚗 Roubo de carro) */
   ultimo: Record<number, string>
   /** efeitos correndo: até quando (ms, hora do dono) ou "vale na próxima carta" (true) */

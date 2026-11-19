@@ -5,7 +5,7 @@
 //   · cada golpe é anunciado no feed, tira a carta da mão e dá 1 ⭐ escondida pra quem LEVOU
 //   · Blitz / Barreira / Tanque vazio barram o lance (a tela e o motor leem `viceTravaLance`)
 //   · Roubo de carro tira o último jogador do rival sem pagar; Assalto move 10 moedas; Colete segura; Fuga devolve
-//   · BUSTED: só 1 por sala, troca os 3 melhores por cartas REAIS de categoria Profissional (nunca jogador de mentira)
+//   · BUSTED: só o 1º com 5 estrelas; no FIM do pregão os 5 melhores viram cartas REAIS de categoria Profissional (nunca jogador de mentira)
 //   · o pregão fecha redondo, sem carta duplicada e sem caixa negativo
 //   npx tsx scripts/testa-vice-city.mts
 import assert from 'node:assert/strict'
@@ -126,17 +126,29 @@ const eu = b.managers[b.youIdx]
 for (let i = 0; i < VICE_BUSTED_EM; i++) { b = structuredClone(b); da(b, eu.id, ['delacao']); b = usa(b, 'delacao', alvoId) }
 const vb = b.pa!.vice!
 assert.equal(vb.busted, alvoId, 'BUSTED no 5º golpe')
-const alvoDepois = b.managers.find(m => m.id === alvoId)!
-const sairam = alvoAntes.filter(n => !alvoDepois.squad.some(c => c.name === n))
-assert.ok(sairam.length >= 1 && sairam.length <= 3, `BUSTED troca até 3 (${sairam.length})`)
-for (const c of alvoDepois.squad) assert.ok(!c.fake, 'nunca jogador de mentira no BUSTED')
+// 🚨 19/11 v3: na hora só é PEGO (sirene pra sala) — o elenco não muda até o fim do pregão
+assert.deepEqual(b.managers.find(m => m.id === alvoId)!.squad.map(c => c.name), alvoAntes, 'BUSTED não mexe no elenco na hora')
 assert.ok((vb.mao[alvoId] ?? []).includes('roubo'), 'BUSTED ganha Roubo de carro de vingança')
 assert.ok(vb.feed.some(f => f.busted), 'BUSTED anunciado')
-// 2º BUSTED não existe
+// 2º BUSTED não existe, e depois do 1º ninguém mais leva estrela
 const outro = b.managers.find(m => !m.isHuman && m.id !== alvoId)!.id
+const estrelasOutro = b.pa!.vice!.estrelas[outro] ?? 0
 for (let i = 0; i < VICE_BUSTED_EM; i++) { b = structuredClone(b); da(b, eu.id, ['delacao']); b = usa(b, 'delacao', outro) }
 assert.equal(b.pa!.vice!.busted, alvoId, 'só 1 BUSTED por sala')
-console.log(`✅ BUSTED: ${alvoDepois.teamName} perdeu ${sairam.join(', ')}`)
+assert.equal(b.pa!.vice!.estrelas[outro] ?? 0, estrelasOutro, 'depois do BUSTED ninguém mais leva estrela')
+// a pena cai no FIM do pregão: os 5 melhores (acima de Profissional) viram Profissionais reais
+const forca = (c: { hi?: number; lo?: number; fame?: number }) => (c.hi ?? 0) + (c.lo ?? 0) + (c.fame ?? 0) * 10
+let g9 = 0
+while (b.phase === 'pregao' && b.pa && g9++ < 40000) { avanca(PA_TICK_MS); b = reducer(b, { type: 'PREGAO_ABERTO_TICK' } as never) }
+assert.ok(!b.pa, 'o pregão do BUSTED fechou')
+const alvoDepois = b.managers.find(m => m.id === alvoId)!
+const pena = alvoDepois.squad.filter(c => c.id.startsWith('vice-busted-'))
+assert.ok(pena.length >= 1 && pena.length <= 5, `BUSTED troca até 5 no fim (${pena.length})`)
+for (const c of pena) assert.equal(c.fame ?? 1, 1, 'quem entra é Profissional')
+for (const c of alvoDepois.squad) assert.ok(!c.fake, 'nunca jogador de mentira no BUSTED')
+const sairam = pena.map(c => c.name)
+void forca
+console.log(`✅ BUSTED: ${alvoDepois.teamName} ganhou no fim ${sairam.length} Profissionais (${sairam.join(', ')})`)
 
 // 🚗 Roubo de carro: leva o último jogador do rival, de graça
 let r = reducer({} as EscState, { type: 'NEW_GAME' } as never)
