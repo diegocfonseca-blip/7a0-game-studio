@@ -130,7 +130,7 @@ import { statsPlacarVisivel } from './stats-placar'
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS } from './campo2d-motor'
 import { useRitmo2D, useVel2DAqui, setVel2D } from './ritmo2d'
-import { useCampo2DLigado, useCampo2DExtras } from './campo2d-modo'
+import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
@@ -184,7 +184,7 @@ import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
-import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego, usePreviaCentral, mapa3dLiberado } from './sport'
+import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego, usePreviaCentral, mapa3dLiberado, useFluxoCentral } from './sport'
 import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, anoDaTemporada, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
@@ -11825,7 +11825,8 @@ export function PyramidSeasonScreen() {
   // 🗺️ 03/11 (Diego: *"quando acaba o jogo não aparece botão pra ele avançar pra próxima semana e nem ir pro próximo jogo… não aparece
   // nada. Simplesmente acaba o jogo. Ele que vai ter que trocar de aba manualmente e ir pra aba Central ou Jogos"*): no mapa a semana
   // NÃO anda e não tem botão de seguir — os dias só passam na Central e na aba Jogos.
-  const calNaTela = tab === 'central' || tab === 'jogos'
+  const fluxoCentral = useFluxoCentral() // 🧭 19/11 fluxo novo: os dias passam SÓ na Central
+  const calNaTela = tab === 'central' || (tab === 'jogos' && !fluxoCentral)
   // 🏆 a temporada que começa com o calendário ligado joga a Copa nas quartas (marca uma vez, na rodada 0)
   useEffect(() => { if (calOn && round === 0 && !done && state.calCopaSeason !== calSn) dispatch({ type: 'CAL_COPA_LIGA', season: calSn }) }, [calOn, round, done, state.calCopaSeason, calSn, dispatch])
   // 🏆 a fase da Copa DESTA semana ainda não foi jogada? (a quarta é o 3º dia vazio: seg · ter · QUA)
@@ -11930,6 +11931,12 @@ export function PyramidSeasonScreen() {
   // (rodada 30+ brigando no G6) — a MESMA régua da lotação do estádio. A aba Jogos mostra a chegada do ônibus no mapa
   // (`ChegadaGrande`); no automático ela dura um pouco mais (9 s em vez de 3) e "Pular chegada" corta na hora.
   const [chegadaPulada, setChegadaPulada] = useState('')
+  // 🧭 19/11 FLUXO NOVO (mockup `fluxo-central-jogo.png`): a Central manda no dia a dia e, no dia do jogo, pergunta 📺 2D ou 🏟️ 3D.
+  // `escolha2d` = a chave do jogo em que a pessoa escolheu 2D (a aba Jogos só mostra o "▶ Começar" depois disso);
+  // `daCentral` = veio da Central pro mapa (aparece o "← Voltar pra Central" no mapa).
+  const [escolha2d, setEscolha2d] = useState('')
+  const [daCentral, setDaCentral] = useState(false)
+  useEffect(() => { if (tab === 'central') setDaCentral(false) }, [tab])
   const euNomeChegada = state.managers.find(m => m.id === youId)?.teamName ?? ''
   const chegadaGrandeKey = preJogoAba ? `${calSn}:${round}:${preJogoAba.kind}${preJogoAba.kind === 'f' ? ':' + preJogoAba.fase : ''}` : ''
   const chegadaGrande = (() => {
@@ -12570,14 +12577,23 @@ export function PyramidSeasonScreen() {
     // na quarta de Copa o "⏩ Pular pro jogo" mandava a semana pro DOMINGO e a fase da Copa ficava pra trás. Agora, com Copa sua na
     // semana, ele para NA QUARTA (nunca passa dela) — e lá aparece o "▶ Começar o jogo" (no Manual também).
     const copaMinhaNaSemana = copaPendente && meNaFaseCopa && !copaMidOn
-    const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaMinhaNaSemana || (copaPendente && calI < CAL_QUARTA) ? Math.max(calI, CAL_QUARTA) : calTotal }); escolheAba('jogos') }
-    const proximoAdv = () => { escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() }
+    const vaiProJogo = () => { setCalPasso({ r: round, s: calSn, i: copaMinhaNaSemana || (copaPendente && calI < CAL_QUARTA) ? Math.max(calI, CAL_QUARTA) : calTotal }); if (!fluxoCentral) escolheAba('jogos') } // 🧭 no fluxo novo o pulo fica na Central (a escolha 2D/3D aparece ali)
+    const proximoAdv = () => { if (fluxoCentral && naCentral) { setCalPasso({ r: round, s: calSn, i: copaPendente && calI < CAL_QUARTA ? CAL_QUARTA : calTotal }); return } escolheAba('jogos'); if (copaPendente && calI < CAL_QUARTA) setCalPasso({ r: round, s: calSn, i: CAL_QUARTA }); else avancarRodada() } // 🧭 no fluxo novo o Manual também chega no dia e escolhe 2D/3D na Central
     // 🗓️ 24/10 (mockup aprovado): na aba Jogos a data vai pro cabeçalho e os dias passam NO LUGAR DO PLACAR (`calProx`);
     // a Central segue com o cartão do dia em cima; as outras abas ficam com a faixa fina (⏸️ nos dias, 🔴 ao vivo no jogo)
+    const diaDoJogoNaCentral = naCentral && calFase === 'dias' && !coletivaOpen && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38))
+    const chaveCentral = `${calSn}:${round}:${copaPendente ? 'c' : 'l'}`
     const proxCard = (tab === 'jogos' || naCentral) && calFase === 'dias' ? <CalendarioProximo hoje={hoje} meu={me?.team ?? state.managers[state.youIdx]?.teamName ?? ''} prox={prox}
       escudo={n => <Escudo nome={n} size={64} />} passo={calI} total={calTotal} auto recado={recado} jogos={jogos} diasDeJogo={diasDeJogo}
-      rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={naCentral || (copaMinhaNaSemana && calI >= CAL_QUARTA) || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
-      irJogo={naCentral && calFase === 'dias' && !coletivaOpen && ((copaPendente && calI >= CAL_QUARTA && meNaFaseCopa && !copaMidOn) || (!copaPendente && calI >= calTotal && round >= 1 && round < 38)) ? () => { setJogoOk(`${calSn}:${round}:${copaPendente ? 'c' : 'l'}`); escolheAba('jogos') } : undefined} /> : null
+      rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={(naCentral && !fluxoCentral) || (copaMinhaNaSemana && calI >= CAL_QUARTA) || (calI >= calTotal && !(copaPendente && calI < CAL_QUARTA))}
+      irJogo={!fluxoCentral && diaDoJogoNaCentral ? () => { setJogoOk(chaveCentral); escolheAba('jogos') } : undefined}
+      escolha={fluxoCentral && diaDoJogoNaCentral ? {
+        d2: () => { ligaCampo2D(true); setEscolha2d(chaveCentral); escolheAba('jogos') },
+        // 🏟️ 3D: o jogo começa e o mapa abre no estádio com o giro de abertura (o mapa só gira com a partida já montada)
+        d3: () => { ligaCampo2D(false); setDaCentral(true); setJogoOk(chaveCentral); setClubeSub('estadio'); escolheAba('estadio')
+          setTimeout(() => pedeCameraDoMapa(mapa3dLiberado() ? 'abertura' : 'field2d'), 700)
+          setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) },
+      } : null} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
     // 📊 25/10 (Diego: *"a gente não combinou que não era pra aparecer mais o jogo rolando nas abas de elenco e rank?"*): com
@@ -13018,6 +13034,7 @@ export function PyramidSeasonScreen() {
     }
     const sedeNoMapa = (vista?: string) => {
       if (vista) pedeVistaDoMapa(vista)
+      if (fluxoCentral) setDaCentral(true) // 🧭 no mapa aparece o "← Voltar pra Central"
       setClubeSub('estadio'); escolheAba('estadio')
       setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
@@ -13356,6 +13373,9 @@ export function PyramidSeasonScreen() {
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
             (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
             recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
+        {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
+        {fluxoCentral && daCentral && tab === 'estadio' && <button onClick={() => { setDaCentral(false); escolheAba('central') }}
+          style={{ position: 'sticky', top: 8, zIndex: 30, width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
         <div style={tab === 'central' || tab === 'mercado' || (tab === 'estadio' && presidentAvailable) ? { display: 'none' } : undefined}>
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
@@ -13641,8 +13661,14 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {tab === 'jogos' && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>}
-        {tab === 'jogos' && calBarra?.proxCard}
+        {tab === 'jogos' && !fluxoCentral && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>}
+        {tab === 'jogos' && (!fluxoCentral ? calBarra?.proxCard : calOn && calFase === 'dias' && !escolha2d.startsWith(`${calSn}:${round}:`) ? (
+          // 🧭 19/11 (fluxo novo): fora do jogo a aba Jogos não mostra placar nem os dias passando — o jogo começa pela Central
+          <div style={{ border: `2.5px dashed ${GOLD}`, borderRadius: 14, padding: '14px 12px', margin: '0 0 10px', textAlign: 'center', background: '#14110C', color: '#f4ecd6' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase' }}>{tr('⏳ Nenhum jogo rolando agora', '⏳ No match on right now')}</p>
+            <p style={{ fontSize: 12.5, fontWeight: 700, margin: '4px 0 10px', color: '#d8cfb4' }}>{tr('O jogo começa pela Central, no dia do jogo, quando você escolher 📺 2D ou 🏟️ 3D.', 'The match starts from the Hub on match day, when you pick 📺 2D or 🏟️ 3D.')}</p>
+            <button onClick={() => escolheAba('central')} style={{ border: `3px solid ${INK}`, borderRadius: 12, padding: '9px 14px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('📺 Ir pra Central', '📺 Go to the Hub')}</button>
+          </div>) : null)}
         {tab === 'jogos' && premiosCopaNaTela.map(pm => (
           <div key={pm.chave} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#FFF6D6', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '8px 0' }}>
             <span style={{ fontSize: 22 }}>💰</span>
@@ -13932,7 +13958,7 @@ export function PyramidSeasonScreen() {
             onEscalacao={() => setTab('elenco')} onTatica={() => setTab('elenco')} />
         )}
         {/* ▶ 26/10: dia de jogo com o calendário — o jogo só começa no toque (vale pra todo plano, com ou sem Manual) */}
-        {esperandoInicio && tab === 'jogos' && <button className="ll-cx-controle" onClick={liberaJogo} style={{ width: '100%', marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 17, ...OSWALD, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{copaNaQuarta ? (ehPaginaInter(copa?.rounds[copaRound]?.name) ? tr('▶ Começar o jogo da Intercontinental', '▶ Start the Intercontinental match') : ehPaginaSula(copa?.rounds[copaRound]?.name) ? tr('▶ Começar o jogo da Sul-Americana', '▶ Start the Sudamericana match') : ehPaginaLiberta(copa?.rounds[copaRound]?.name) ? tr('▶ Começar o jogo da Libertadores', '▶ Start the Libertadores match') : tr('▶ Começar o jogo da Copa', '▶ Start the Cup match')) : tr('▶ Começar o jogo', '▶ Start the match')}</button>}
+        {esperandoInicio && tab === 'jogos' && (!fluxoCentral || escolha2d.startsWith(`${calSn}:${round}:`)) && <button className="ll-cx-controle" onClick={liberaJogo} style={{ width: '100%', marginBottom: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 17, ...OSWALD, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{copaNaQuarta ? (ehPaginaInter(copa?.rounds[copaRound]?.name) ? tr('▶ Começar o jogo da Intercontinental', '▶ Start the Intercontinental match') : ehPaginaSula(copa?.rounds[copaRound]?.name) ? tr('▶ Começar o jogo da Sul-Americana', '▶ Start the Sudamericana match') : ehPaginaLiberta(copa?.rounds[copaRound]?.name) ? tr('▶ Começar o jogo da Libertadores', '▶ Start the Libertadores match') : tr('▶ Começar o jogo da Copa', '▶ Start the Cup match')) : tr('▶ Começar o jogo', '▶ Start the match')}</button>}
         {/* 📺⚡ carreira em sala: o DONO troca 2D ↔ rápido (vale do próximo jogo/fase) — só aparece pra ele */}
         {!state.co2 && state.onlineMode === 'online' && !(seasonOver && !copaPlaying) && <TrocaCampo2DSala />}
         {!state.co2 && state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
@@ -14378,7 +14404,12 @@ export function PyramidSeasonScreen() {
           ))}
         </div>
 
-        {tab === 'central' && centralOn ? renderCentral() : tab === 'mercado' && mercadoOn && me ? <MercadoAba mgr={state.managers[state.youIdx]} ordem={(me ? tables[me.div] ?? [] : []).map(t => t.name)} /> : tab === 'estadio' ? (
+        {tab === 'central' && centralOn ? <>{fluxoCentral && chegadaGrande && <>
+          {/* 🧭 19/11: o acontecimento (ônibus chegando…) aparece SÓ na Central — dá pra ver ao vivo no mapa ou pular */}
+          <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>
+          <button onClick={() => { setDaCentral(true); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) }}
+            style={{ width: '100%', margin: '0 0 12px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: '#F4ECD6', color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('📍 Ver no mapa ao vivo', '📍 Watch it live on the map')}</button>
+        </>}{renderCentral()}</> : tab === 'mercado' && mercadoOn && me ? <MercadoAba mgr={state.managers[state.youIdx]} ordem={(me ? tables[me.div] ?? [] : []).map(t => t.name)} /> : tab === 'estadio' ? (
           <>
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
                 Agora tudo (Estádio · Finanças · Agência) vale online também,

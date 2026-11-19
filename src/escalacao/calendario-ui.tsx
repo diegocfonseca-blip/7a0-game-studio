@@ -134,6 +134,8 @@ interface PropsProx {
   semPular?: boolean
   /** 26/10: chegou o dia do jogo — o cartão mostra "⚽ Ir pro jogo" (o jogo só começa no toque) */
   irJogo?: () => void
+  /** 🧭 19/11 (fluxo novo): no dia do jogo, a Central pergunta COMO ver — 📺 Campo 2D (aba Jogos) ou 🏟️ Campo 3D (estádio do mapa) */
+  escolha?: { d2: () => void; d3: () => void } | null
   onProximo?: () => void
 }
 const CSS_PROX = `
@@ -174,7 +176,15 @@ export function CalendarioProximo(p: PropsProx) {
       })}</div>
       {p.auto && <div className="tm"><i style={{ width: `${tempo}%` }} /></div>}
       {p.recado && <div className="rec"><div className="q"><small>{p.recado.k}</small><b>{p.recado.titulo}</b>{p.recado.texto && <p>{p.recado.texto}</p>}{p.recado.mais && <p className={`mais${p.recado.mais.tom ? ' ' + p.recado.mais.tom : ''}`}><em>{p.recado.mais.e}</em> {p.recado.mais.t}</p>}</div></div>}
-      {p.irJogo ? <button className="go" onClick={p.irJogo} style={{ background: '#1B7A3D', color: '#fff' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
+      {p.escolha ? <div style={{ marginTop: 10 }}>
+        <b style={{ display: 'block', textAlign: 'center', font: '800 16px Oswald,sans-serif', textTransform: 'uppercase', color: '#FFC400' }}>{tr('Como você quer ver o jogo?', 'How do you want to watch?')}</b>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="go" onClick={p.escolha.d2} style={{ flex: 1, background: '#1B7A3D', color: '#fff' }}>{tr('📺 Campo 2D', '📺 2D pitch')}</button>
+          <button className="go" onClick={p.escolha.d3} style={{ flex: 1, background: '#7C3AED', color: '#fff' }}>{tr('🏟️ Campo 3D', '🏟️ 3D pitch')}</button>
+        </div>
+        <small style={{ display: 'block', textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: '#b9ad8e', marginTop: 6 }}>{tr('2D abre na aba Jogos + Tabela, pronto pro seu OK · 3D abre no estádio do mapa', '2D opens in Matches + Table, ready for your OK · 3D opens in the map stadium')}</small>
+      </div>
+        : p.irJogo ? <button className="go" onClick={p.irJogo} style={{ background: '#1B7A3D', color: '#fff' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
         : p.auto ? (!p.semPular && <button className="go" onClick={p.onPular}>{tr('⏩ Pular pro jogo', '⏩ Skip to the match')}</button>)
         : <button className="go" onClick={p.onProximo}>{tr('▶ Próximo adversário', '▶ Next opponent')}</button>}
       {p.jogos && p.jogos.length > 0 && <div className="ll-cal-jogos" style={{ padding: '12px 0 0' }}><h5>⚽ {tr('Seus jogos', 'Your matches')}</h5><ul style={{ margin: 0, padding: 0 }}>{p.jogos.map((j, i) => {
