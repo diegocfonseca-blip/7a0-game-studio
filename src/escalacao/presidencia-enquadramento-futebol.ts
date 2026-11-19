@@ -1,10 +1,11 @@
 import {MathUtils,PerspectiveCamera,Vector3} from 'three'
 export type AlvoCameraFutebol={mx:number;mz:number;priority?:boolean;visible?:boolean;presentation?:{x:number;z:number}}
 export type BolaCameraFutebol={x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}}
-export type CameraFutebolPreset='broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'|'fixed'|'field2d'
+export type CameraFutebolPreset='tv'|'broadcast'|'follow'|'tele'|'wide'|'goal'|'tactical'|'fixed'|'field2d'
 const PRESETS={
  follow:{fov:50,elevation:.5,depth:.86,halfWidth:10,halfDepth:7,radius:18,count:6,minimum:24},
  broadcast:{fov:46,elevation:.64,depth:.77,halfWidth:12,halfDepth:7,radius:19,count:6,minimum:28},
+ tv:{fov:46,elevation:.6,depth:.8,halfWidth:20,halfDepth:9,radius:24,count:8,minimum:40},
  tele:{fov:36,elevation:.52,depth:.85,halfWidth:8,halfDepth:5,radius:13,count:4,minimum:25},
  wide:{fov:52,elevation:.78,depth:.63,halfWidth:20,halfDepth:12,radius:28,count:10,minimum:42},
  goal:{fov:48,elevation:.63,depth:.78,halfWidth:11,halfDepth:8,radius:19,count:6,minimum:32},
@@ -49,7 +50,11 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
  // 📺 25/10 (Diego: "câmeras… quero futebol real, como PES/FIFA"): a TRANSMISSÃO é a câmera de TV de verdade — fica PARADA no alto
  // da arquibancada principal, no meio-campo (anda só um pouco junto do lance), e só GIRA e dá ZOOM atrás da bola. Antes ela voava em
  // cima do campo, a ~40° pra baixo, e os jogadores viravam formiguinhas. Mesmos metros: nunca aumenta boneco, só a lente fecha.
- if(typeof preset!=='boolean'&&(mode==='broadcast'||mode==='tele')){
+ // 📺 19/11 (Diego, com print de referência: *"gostei mais desse estilo aqui que acompanha a jogada e nesse zoom aqui padrão"*): a
+ // CÂMERA DE TV do 3D do mapa = a Transmissão, mas mais ABERTA (meio campo na tela, arquibancada e placas atrás) e um pouco mais
+ // baixa, andando junto com a bola pela lateral. É a câmera padrão do 3D do mapa.
+ const tvAberta=typeof preset!=='boolean'&&mode==='tv'
+ if(typeof preset!=='boolean'&&(mode==='broadcast'||mode==='tele'||mode==='tv')){
   // (a LATERAL PRÓXIMA é a mesma câmera de TV, só que no anel de baixo, colada no campo: mais perto e mais fechada. Se o lance não cabe
   // nela — bola muito alta, no canto colado — ela sobe pra posição da TV principal naquele quadro)
   target.set(MathUtils.clamp(ball.x,-54,54),focusHeight,MathUtils.clamp(ball.z,-36,36)) // (a TV gira até a bandeirinha: mira na bola mesmo)
@@ -69,12 +74,12 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
    // Track parallel to the local action at a stable downward angle. Landscape
    // keeps the existing grandstand camera; tactical remains its own preset.
    const cam=portrait
-    ?new Vector3(MathUtils.clamp(target.x*.9,-50,50),tele?18:32,target.z+28)
-    :tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),9,48):new Vector3(MathUtils.clamp(target.x*.32,-16,16),23,76)
+    ?new Vector3(MathUtils.clamp(target.x*.9,-50,50),tele?18:tvAberta?22:32,target.z+(tvAberta?30:28))
+    :tele?new Vector3(MathUtils.clamp(target.x*.9,-50,50),9,48):tvAberta?new Vector3(MathUtils.clamp(target.x*.75,-38,38),17,50):new Vector3(MathUtils.clamp(target.x*.32,-16,16),23,76)
    const forward=target.clone().sub(cam).normalize(),right=new Vector3().crossVectors(forward,new Vector3(0,1,0)).normalize(),up=new Vector3().crossVectors(right,forward)
    const dist0=cam.distanceTo(target)
    // (o pedaço de campo que a TV mostra em volta da bola: ~34 m de largura deitado, ~22 m em pé; a lateral, bem menos)
-   let tanH=(tele?(portrait?4.5:9):(portrait?5.5:17))/dist0,tanV=0
+   let tanH=(tele?(portrait?4.5:9):tvAberta?(portrait?9:19):(portrait?5.5:17))/dist0,tanV=0
    for(const pt of fitPts){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.82);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/.78)}
    return{cam,dist0,need:Math.max(tanV,tanH/aspect)}
   }
