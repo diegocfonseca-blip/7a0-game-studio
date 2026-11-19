@@ -12,7 +12,7 @@ const pega=(s,n,off)=>CATALOG[s].slice(off,off+n).map(c=>({name:c.name,pos:s,clu
 const time=off=>[...pega('GOL',1,off),...pega('LAT',2,off*2),...pega('ZAG',2,off*2),...pega('MEI',3,off*3),...pega('ATA',3,off*3)]
 const casa=time(0),fora=time(5),input=entradaM2({seed:4242,casa,fora,fCasa:'4-3-3',fFora:'4-3-3',tatica:[0,0],bots:[false,true]})
 const roster=cs=>cs.map((p,i)=>({id:p.name+i,name:p.name,pos:p.pos}))
-const stadium={inv:{grama:100,geral:100,cadeiras:100,visitante:100},ext:[]}
+const stadium=new URLSearchParams(location.search).has('varzea')?{inv:{},ext:[]}:{inv:{grama:100,geral:100,cadeiras:100,visitante:100},ext:[]}
 const base={viewerClubId:0,officialInput:input,officialTeams:['Flamingo','Tricolor'],context:{id:'bancada-mapa3d',homeClubId:0,awayClubId:1,home:roster(casa),away:roster(fora),stadium},minute:0,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#c2452f',awayColor:'#1b7a3d'}
 const root=createRoot(document.getElementById('root'));let api,minute=0,paused=true
 const pres=new URLSearchParams(location.search).get('p')||'3d'
