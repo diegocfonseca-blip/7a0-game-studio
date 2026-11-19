@@ -1,3 +1,23 @@
+## 🏆 19/11 — LIGA + LIBERTADORES NAS SALAS, COM CLUBES REAIS (no branch, só na conta do Diego)
+- Pedido do Diego (mockup aprovado `scripts/mockups/liberta-clubes-390.png`/`-1280.png`): acabou a liga da sala, TODO time escolhe um
+  clube sul-americano DE VERDADE na ordem da tabela (gente escolhe em 40s; bot leva o melhor que sobrou; quem dormiu leva o pior) e
+  convoca 11 das cartas DESSE clube (time do leilão fica de fora). 32 clubes (a máquina completa com os mais fortes livres), formato
+  real: 8 grupos em turno e returno, 2 passam, oitavas (1º × 2º de outro grupo, volta na casa do 1º), quartas e semi em ida e volta
+  (agregado; empate = pênaltis, sem gol fora), final única. Pool = os 36 clubes que fecham 11 com os baralhos normais (`poolDoClube`).
+- Código: motor puro `src/escalacao/liberta-sala.ts` · tela `src/escalacao/liberta-sala-online.tsx` (adaptada da copa regional:
+  `room_players.copa` + `esc_copa_salas`, fora do reducer/assentos) · opção "🏆 Liga + Libertadores" na prateleira CONVOCANDO do
+  criar sala (lobby.tsx) · porta em screens.tsx · faixa "depois da liga" em proxima-competicao.tsx. Trava: `npm run liberta-sala`.
+  Bancada: `DEPLOY_BASE=/ npx vite` → `/scripts/teste-liberta-sala/?v=grade` ou `?passo=N`.
+- Marca da sala = `regionalNaLiga: 'liberta'` (o banco já copia pra `ls_copa2`, o novo leilão/liga_modo já carregam). Todo
+  `COPAS_REGIONAIS[...]` passa por `ehCopaRegional`, que diz não pra 'liberta'. O `copaMode 'liga_liberta'` antigo NÃO foi mexido.
+- Relógio = o `esc_regional_clock` que já existe, sem SQL: p_rodadas 12 (6 de grupo + ida/volta de oitavas/quartas/semi), p_ko 1 (final).
+- Gate: `LIBERTA_SALA_GERAL = false` (sport.ts, `useLibertaSalaLiberada`). Liberar = `true` (+ linha em novidades.ts com `en`).
+- ⏭️ FALTA: (1) trocar pra Libertadores em liga já criada (Minhas Ligas → editar modo): a função do banco `esc_liga_modo2` só aceita
+  liga/liga_copa/liga_liberta/champions/liga_mundo/regionais — a tela avisa o porquê; precisa de SQL novo com OK do Diego. ⚠️ O mesmo
+  vale HOJE pra `liga_euro` e `liga_america` (o banco devolve "erro" — achado em 19/11, não consertado). (2) Teste de verdade com 2+
+  aparelhos numa sala (só deu pra testar o motor e a tela na bancada). (3) Cartão de tática das copas não entra (é preso no formato da
+  regional). (4) Print pro Diego conferir a tela do torneio (grupos, ida/volta, final) antes de liberar.
+
 ## 🗑️ 18/11 — SEM PLANO: 1 CARREIRA SÓ E CARREIRA PARADA 5 DIAS É EXCLUÍDA (feito no branch, esperando OK do visual)
 - Regra do Diego (ver CLAUDE.md, 18/11). Código: `LIMPA_CARREIRA_GRATIS`/`limpaCarreirasGratis`/`useLimpezaCarreirasGratis`/
   `diasParaExcluir`/`marcaCarreiraJogada` (store.tsx) · `careerSlotLimit` sem plano = 1 (+ fichas compradas), sem o "quem já tem fica" ·

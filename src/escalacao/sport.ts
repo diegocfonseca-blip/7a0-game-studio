@@ -487,6 +487,11 @@ export function useEuroLiberada(): boolean {
 // mandar liberar. Liberar = `AMERICA_GERAL = true`.
 const AMERICA_GERAL = false
 export function useAmericaLiberada(): boolean { const so = useSoDiego(); return AMERICA_GERAL || so }
+// 🏆 LIGA + LIBERTADORES NAS SALAS (19/11, Diego): acabou a liga, cada um escolhe um clube sul-americano DE VERDADE na ordem da
+// tabela e convoca 11 das cartas dele; 32 clubes, formato real (8 grupos em turno e returno, ida e volta até a semi, final única).
+// Motor em `liberta-sala.ts`, tela em `liberta-sala-online.tsx`. Só na conta do Diego até ele mandar. Liberar = `LIBERTA_SALA_GERAL = true`.
+const LIBERTA_SALA_GERAL = false
+export function useLibertaSalaLiberada(): boolean { const so = useSoDiego(); return LIBERTA_SALA_GERAL || so }
 export function useRelampagoLiberado(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
