@@ -48,7 +48,7 @@ import { useKingsLiberada } from './sport'
 // Kings tem no máximo 10 pessoas — com mais, faltava zagueiro de verdade e o jogo completava com jogador de mentira (sala FDBQPN, 16 pessoas).
 // Mais nomes da Kings no baralho = sobe este número (pra 20 faltam ~53: +4 GOL, +18 ZAG, +16 MEI, +15 ATA).
 const KINGS_SALA_MAX = 10
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useRegionalLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
+import { useLigaLiberada, useSalaElencoLiberada, useChampionsLiberada, useRegionalLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
 // NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
@@ -1001,7 +1001,6 @@ export function EscLobby() {
   const [perfilUid, setPerfilUid] = useState<string | null>(null)
   const [verAmigos, setVerAmigos] = useState(false) // 👥 19/10: "Chamar amigos" na sala de espera abre a lista com 📣 CHAMAR
   const meuRival = useMeuRival() // 🔥 o rival ganha uma chama do lado do nome na lista de técnicos
-  const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const championsOn = useChampionsLiberada() // ⭐ Champions: EM BREVE pra geral; só a conta do Diego joga
   // 🏟️ COPAS REGIONAIS (10/10): só a conta do Diego vê, até o OK dele. Copa que o baralho
   // ainda não fecha (menos de 2 clubes por lado) aparece travada com "em breve".
@@ -4773,17 +4772,18 @@ export function EscLobby() {
                       SEU TIME do leilão e o que se joga CONVOCANDO (o time vem do país/clube). */}
                   {(() => {
                     type ModoCopa = 'liga_copa' | 'liga_liberta' | 'champions' | 'relampago' | 'liga_mundo' | 'liga_euro' | 'liga_america' | 'liga_libsala' | 'liga' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
-                    const todas: [ModoCopa, string][] = [...((libertaOn
-                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
-                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
+                    // 🏆 19/11 (Diego: "não tem mais a libertadores na parte de cima… agora será só essa de convocar"): a Liberta antiga (time do leilão) saiu da prateleira
+                    const todas: [ModoCopa, string][] = [...(([['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
                       // 🏟️ as copas regionais (liberadas pra todos em 11/10)
                       // ⚡ Relâmpago (28/10): só sala rápida, sem duplas, e por enquanto só a conta do Diego cria
                       // 🇪🇺 Liga + Eurocopa (31/10): na prateleira de CONVOCAR, selo NOVO
                       ...(euroOn ? [['liga_euro', tr('🇪🇺 Liga + Eurocopa', '🇪🇺 League + Euro')] as ['liga_euro', string]] : []),
                       // 🌎 Liga + Copa América (19/11): a mesma porta da Euro, 16 seleções do formato real. Só na conta do Diego até liberar.
-                      ...(americaOn ? [['liga_america', tr('🌎 Liga + Copa América', '🌎 League + Copa América')] as ['liga_america', string]] : []),
+                      // 🔒 19/11 (Diego: "publique p todos… deixe oculto sem poder apertar e coloque em breve pros dois"): aparece pra todos com
+                      // EM BREVE e travada; só destrava na conta dele (`americaOn`/`libSalaOn`) pra ele testar.
+                      ...(getSport() !== 'basquete' ? [['liga_america', tr('🌎 Liga + Copa América', '🌎 League + Copa América')] as ['liga_america', string]] : []),
                       // 🏆 Liga + Libertadores (19/11): clubes REAIS, escolhidos na ordem da tabela, formato real. Só na conta do Diego até liberar.
-                      ...(libSalaOn && getSport() !== 'basquete' ? [['liga_libsala', tr('🏆 Liga + Libertadores', '🏆 League + Libertadores')] as ['liga_libsala', string]] : []),
+                      ...(getSport() !== 'basquete' ? [['liga_libsala', tr('🏆 Liga + Libertadores', '🏆 League + Libertadores')] as ['liga_libsala', string]] : []),
                       ...(relampagoOn && roomMode === 'rapido' && !roomDuplas ? [['relampago', tr('⚡ Mata-mata Relâmpago', '⚡ Lightning Knockout')] as ['relampago', string]] : []),
                       ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
                     const convoca = (v: ModoCopa) => v === 'liga_mundo' || v === 'liga_euro' || v === 'liga_america' || v === 'liga_libsala' || regionalId(v) !== null
@@ -4792,8 +4792,8 @@ export function EscLobby() {
                         <p className="font-black mt-2 mb-1" style={{ fontSize: 10.5, letterSpacing: 1, color: 'rgba(255,255,255,.55)', ...OSWALD }}>{titulo}</p>
                         <Seg options={lista}
                           value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
-                          travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas]}
-                          selosBrilho={['relampago']} selos={{ liga_mundo: seloNovo(), liga_euro: tr('novo', 'new'), liga_america: tr('novo', 'new'), liga_libsala: tr('novo', 'new'), relampago: tr('novo', 'new'), /* 🏷️ 28/10: saiu de 'em testes' (Diego) */ ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
+                          travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas, ...(americaOn ? [] : ['liga_america' as const]), ...(libSalaOn ? [] : ['liga_libsala' as const])]}
+                          selosBrilho={['relampago']} selos={{ liga_mundo: seloNovo(), liga_euro: tr('novo', 'new'), liga_america: americaOn ? tr('novo', 'new') : tr('em breve', 'soon'), liga_libsala: libSalaOn ? tr('novo', 'new') : tr('em breve', 'soon'), relampago: tr('novo', 'new'), /* 🏷️ 28/10: saiu de 'em testes' (Diego) */ ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
                       </>
                     )
                     return <>
@@ -5804,7 +5804,7 @@ export function EscLobby() {
                 {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. */}
                 {!nbaSala && !(gs as GS & { ligaDraft?: boolean })?.ligaDraft && (() => {
                   const duplas = !!(gs as GS & { duplasMode?: boolean })?.duplasMode
-                  const valores: CopaLiga[] = ['liga_copa', ...(libertaOn ? ['liga_liberta' as const] : []), 'champions', 'liga_mundo', ...(euroOn || copaDaLiga(gs) === 'liga_euro' ? ['liga_euro' as const] : []), ...(americaOn || copaDaLiga(gs) === 'liga_america' ? ['liga_america' as const] : []), ...(libSalaOn || copaDaLiga(gs) === 'liga_libsala' ? ['liga_libsala' as const] : []), 'liga', ...(regionalOn ? ['liga_riosp' as const, 'liga_sulminas' as const, 'liga_nordeste' as const] : [])]
+                  const valores: CopaLiga[] = ['liga_copa', ...(copaDaLiga(gs) === 'liga_liberta' ? ['liga_liberta' as const] : []), 'champions', 'liga_mundo', ...(euroOn || copaDaLiga(gs) === 'liga_euro' ? ['liga_euro' as const] : []), ...(americaOn || copaDaLiga(gs) === 'liga_america' ? ['liga_america' as const] : []), ...(libSalaOn || copaDaLiga(gs) === 'liga_libsala' ? ['liga_libsala' as const] : []), 'liga', ...(regionalOn ? ['liga_riosp' as const, 'liga_sulminas' as const, 'liga_nordeste' as const] : [])]
                   const todas = valores.map(v => [v, nomeCopaLiga(v)] as [CopaLiga, string])
                   const convoca = (v: CopaLiga) => v === 'liga_mundo' || v === 'liga_euro' || v === 'liga_america' || v === 'liga_libsala' || regionalId(v) !== null
                   const travadas: CopaLiga[] = [...(championsOn && modoEdit.lance !== 'pregao' && !duplas ? [] : ['champions' as const]), ...regionalTravadas]
