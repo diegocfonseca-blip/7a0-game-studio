@@ -90,8 +90,15 @@ export function useSport(): [Sport, (s: Sport) => void] {
 // vale mesmo no leilaolegends.com quando o Diego entra na conta dele.
 const BASQUETE_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 
+// 🏀🔒 19/11 (Diego: *"modo carreira irá ficar em breve no basquete"*): quando o BidLegends abrir pra todos, a CARREIRA do basquete
+// fica com o selo EM BREVE (vai virar a "EUA Oficial" — plano em docs/carreira-eua-oficial-plano.md). Só as contas testers seguem
+// entrando. Liberar pra todos = `true` aqui. (A régua é a LISTA de testers, não o `unlocked`, que vira geral no lançamento.)
+const BASQUETE_CARREIRA_GERAL = false
+let basqueteTester = false
+export function carreiraBasqueteLiberada(): boolean { return BASQUETE_CARREIRA_GERAL || basqueteTester }
 function applyUnlock(email?: string | null): void {
   const u = !!email && BASQUETE_TESTERS.has(email.toLowerCase())
+  basqueteTester = u
   if (u === unlocked) return
   unlocked = u
   // deslogou / trocou pra conta comum: volta pro futebol NA HORA (nada de

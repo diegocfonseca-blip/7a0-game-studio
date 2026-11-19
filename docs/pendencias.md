@@ -231,6 +231,13 @@
   que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
   regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
 
+### 🏀🇺🇸 19/11 — CARREIRA DO BASQUETE = EUA OFICIAL (só planejamento)
+- Diego: a carreira do basquete fica EM BREVE e vai ser refeita **com base no Brasil Oficial, mas igual aos EUA** (tudo real), com
+  cartas novas SÓ da carreira (fora das salas online e da Partida Rápida). Plano: `docs/carreira-eua-oficial-plano.md`.
+- Feito: selo EM BREVE no cartão "Modo Carreira" da home do basquete pra quem não é tester (`BASQUETE_CARREIRA_GERAL = false`,
+  `carreiraBasqueteLiberada()` em sport.ts). Hoje o basquete só aparece pro Diego, então nada muda na tela de ninguém.
+- ⏳ Esperando o Diego: (1) escolher uma das 30 franquias, sem sobe/desce (é assim nos EUA)? (2) G League entra?
+
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
   carreira online do basquete segue EM BREVE (`BASQUETE_CARREIRA_ONLINE = false`).
