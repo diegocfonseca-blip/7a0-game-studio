@@ -14197,3 +14197,10 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 Pedido do Diego: *"não ficou claro o campo da casa do adversário… deve aparecer mais claro o nome de cada estádio"*. Embaixo do placar
 do mapa (2D e 3D) entra uma faixa: `🏟️ <estádio do mandante> · casa do <mandante>`; quando o seu clube joga FORA ela fica roxa e diz
 "🚌 fora de casa, na casa do X". Prints: `scripts/mockups/estadio-nome-fora.png` / `estadio-nome-casa.png`. No branch, não publicado.
+
+## 🧭 19/11 — Fluxo da Central LIBERADO PRA TODOS
+Testado numa carreira nova de ponta a ponta (leilão → Master → rodada 1 → Central → pular → escolha → 2D na aba Jogos com "Começar o jogo"
+→ rodada 3 em 3D no mapa → "Voltar pra Central"). Consertado no teste: o "← Voltar pra Central" ficava escondido (estava dentro da coluna que
+some na aba do mapa) e cobria os botões da câmera; agora fica em cima do mapa, sem grudar. A faixa do estádio ficou curta ("🚌 você joga fora").
+Ainda a ver: o 1º jogo da temporada não passa pela escolha 2D/3D (sai do "Começar a temporada" direto pra aba Jogos, como antes).
+Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
