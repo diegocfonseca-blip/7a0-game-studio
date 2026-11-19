@@ -14126,6 +14126,9 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
     `import.meta.env`): `scripts/node-stub-reg.mjs` conserta (`npm run pregao-aberto` já usa).
   · Falta: testar numa sala de verdade com 2+ contas antes de liberar; O MARTELO edição Vice e a carta 🚨 Procurado (sugeri tirar).
 
+## 🧹 19/11 — Painel do Criador dava "statement timeout" (Diego: "antigamente eu via quem tava online") — CONSERTADO
+- `live_beats` (o "tô aqui" de cada aparelho) só era limpa quando o #admin abria; juntou 1,1 mi de linhas desde 08/11 e a limpeza dentro do painel estourava os 8 s.
+- Liguei no banco o job `limpa-live-beats` (a cada 5 min, até 100 mil linhas com > 10 min). SQL em `docs/sql/limpa-live-beats-cron.sql`. Não depende mais de abrir o painel.
 ## 🏟️ 19/11 — Mapa volta pro 3D (boneco novo), só na conta do Diego — NO BRANCH, esperando OK
 - Pedido: *"melhorar muito o momento que clica em ver jogo em 3D… giro no estádio até enquadrar o campo e iniciar o apito… a câmera que acompanha a jogada nesse zoom… em 3D com o último boneco… só no campo do mapa. Na aba de jogos mantém igual"*.
 - Feito: `MAPA_3D_GERAL`/`useMapa3D` (sport.ts) → `presidencia-estadio-camera.tsx` passa `matchPresentation='3d'`; câmera nova `'tv'` (enquadramento: mais aberta e mais baixa que a Transmissão, segue a bola pela lateral) é a padrão do 3D; `abrir()` no controle de câmera = espiral de 7 s do alto até a câmera de TV; o "Ver o jogo no estádio do mapa" da aba Jogos pede `'abertura'`.
@@ -14139,3 +14142,18 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
   banners — risco de marca registrada quando abrir pro público; (2) na tela de DESEMPATE do basquete em inglês aparece texto em PT
   ("DESEMPATE", "SEU RE-LANCE", "MANTER", "Mínimo", "Você", "TEMPO"); (3) na Partida Rápida o Pregão aberto e o Envelope único ainda
   têm o selo NEW/NOVO (só tiramos das salas em 19/11).
+## 19/11 — Revisão das competições das salas online (pedido do Diego: "analise todas competições")
+✅ Feito (no branch, ainda não publicado):
+- 🏆 Libertadores das salas ganhou o cartão de ⚔️ TÁTICA (retranca/equilíbrio/ataque), igual às regionais e à Copa do Mundo. Usa o
+  mesmo banco das regionais (tipo 'regional', esc_regional_clock) — sem mudar servidor. Dado da tática é próprio: os outros jogos não mudam.
+- 🌎 Copa América (16): botão do sorteio dizia "Jogar as oitavas" (agora "as quartas"); barra de etapas mostrava OITAVAS (some na de 16);
+  texto dos grupos dizia "+ os 4 melhores 3ºs" também na de 16 e na de 32 (agora só na de 24); sorteio dizia "Dezesseis seleções" (agora "Oito");
+  campeão na sala dizia "CAMPEÃO DO MUNDO" na Euro/América (agora o nome certo); tempo de pênalti das quartas da de 16 ia errado pro relógio do banco.
+🟡 Achados que encostam em coisa AO VIVO — propostos ao Diego, esperando OK:
+1. Liga Draft: quem caiu e o dono reabre a sala no outro dia pode perder o time (`montaCarry` em liga-draft.ts exige isHuman; devia casar pelo crachá).
+2. Kings: jogo gente × gente, o toque do goleiro vira o chute do batedor (mesma chave em KINGS_DECIDIR); e toque atrasado pode refazer jogo já mostrado.
+3. Liga Draft: vez de quem saiu fica parada até o dono apertar "Pular"; quem caiu na hora de abrir o draft fica fora da fila.
+4. Champions: oitavas montadas na ordem 1º×…, o 1º e o 2º podem se cruzar nas quartas (devia ser chave 1-8, 4-5, 2-7, 3-6 como a Copa dos 8).
+5. Faixa "É CAMPEÃO DA …" do quickCopa (store.tsx ~12176) só em PT.
+6. Kings: "dia" do jogador é por nome — xarás em times opostos ficam com o mesmo dia.
+- Conferir: título da Euro/Copa América vai pro esc_results com season_key ':copamundo' — ver se o Rank conta como Copa do Mundo.

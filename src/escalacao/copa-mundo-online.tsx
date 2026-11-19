@@ -277,6 +277,8 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   const extraForStep=(step:number)=>{
     const clockWorld=worldRef.current
     if(!clockWorld)return 0
+    // 🌎 Copa de 16 (sem oitavas): o banco pula do sorteio direto pras quartas, então o 'next' do sorteio leva o tempo das quartas
+    if(step===PASSO_COPA.OITAVAS&&!clockWorld.r16.length)step=PASSO_COPA.QUARTAS
     const ties=step===PASSO_COPA.OITAVAS?clockWorld.r16:step===PASSO_COPA.QUARTAS?clockWorld.qf:step===PASSO_COPA.SEMI?clockWorld.sf:[]
     if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen,koTemGente(entrants,clockWorld.final))*1000)
     return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen,koTemGente(entrants,t))*1000:0)))

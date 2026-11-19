@@ -46,6 +46,8 @@ import { RelogioConvocacao, SEG_CONVOCA_SALA } from './relogio-convocacao'
 import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-competicao'
 import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento, quemAgePeloEstado, soQuemEstaNaSala, minhaDuplaPeloEstado, duplaDoAssentoPeloEstado, type DuplaDoEstado } from './dupla-copa'
 import { poolDoClube, type GolRegional } from './copa-regional'
+import { useTaticasCopa, CartaoTaticaCopa } from './copa-taticas-online' // ⚔️ tática (igual às regionais)
+import { montaQualTatica } from './copa-taticas'
 import {
   LIB, LIBERTA_VAGAS, LETRAS_GRUPO, clubesLiberta, piorClubeLiberta, simulaLibertaSala, tabelaDoGrupo, montaFichaLiberta, entrantesLiberta,
   jogosDoPasso, faseDoPasso, libRodaBola, libComResumo, artilhariaLiberta, garconsLiberta,
@@ -489,12 +491,14 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
   passoBancada?: number
 }) {
   const entrants = useMemo(() => entrantesLiberta(ficha, meuUid), [ficha, meuUid])
-  const mundo: MundoLiberta = useMemo(() => simulaLibertaSala(entrants, ficha.seed), [entrants, ficha.seed])
+  const mundoRef = useRef<MundoLiberta | null>(null)
   const festaKey = `esc-festa-libsala-${roomId}-${ficha.edicao}`
   const [festaVista, setFestaVista] = useState(() => { try { return sessionStorage.getItem(festaKey) === '1' } catch { return false } })
   const temGente = (h: number, a: number) => !!(entrants[h].humano || entrants[a].humano)
   // 🥅 o tempo dos pênaltis entra no `extra` do passo: só na VOLTA (agregado empatado) e na final
   const extraDoPasso = (s: number) => {
+    const mundo = mundoRef.current
+    if (!mundo) return 0
     if (s === LIB.FINAL) return mundo.final.pen ? Math.round(pensRevealDelay(mundo.final.pen, temGente(mundo.final.h, mundo.final.a)) * 1000) : 0
     if (s === LIB.OIT_VOLTA || s === LIB.QF_VOLTA || s === LIB.SF_VOLTA) {
       const f = faseDoPasso(mundo, s)
@@ -504,7 +508,18 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
   }
   const c2dSala = useCampo2DLigado()
   const relogioBanco = useRelogioLiberta(roomId, ficha.edicao, ficha.seed, souDono, extraDoPasso, c2dSala)
-  const relogio = semRelogio ? undefined : relogioBanco
+  // ⚔️ TÁTICA (igual às regionais, `copa-taticas.ts`): só linhas CONGELADAS do banco; a tela espera a que decide o jogo da
+  // vez. Usa o MESMO relógio/tabela das regionais (tipo 'regional', a chave é sala + edição + semente). Sem relógio no
+  // banco (bancada/fallback) não tem tática — cada aparelho andaria sozinho.
+  const comTatica = !semRelogio
+  const tat = useTaticasCopa('regional', roomId, ficha.edicao, ficha.seed, comTatica ? relogioBanco?.row : undefined, meuUid)
+  const uidsDaFicha = useMemo(() => ficha.times.map(t => t.uid), [ficha])
+  const qual = useMemo(() => (comTatica ? montaQualTatica(tat.linhas, uidsDaFicha) : undefined), [comTatica, tat.linhas, uidsDaFicha])
+  const mundo: MundoLiberta = useMemo(() => simulaLibertaSala(entrants, ficha.seed, qual), [entrants, ficha.seed, qual])
+  mundoRef.current = mundo
+  const ultimoPronto = useRef<Row | null>(null)
+  if (tat.pronto && relogioBanco?.row) ultimoPronto.current = relogioBanco.row
+  const relogio = semRelogio ? undefined : relogioBanco && !tat.pronto ? { ...relogioBanco, row: ultimoPronto.current } : relogioBanco
 
   // 🛟 sem relógio no banco: cada aparelho anda sozinho, no automático
   const [passoLocal, setPassoLocal] = useState(semRelogio ? passoBancada : 0)
@@ -695,6 +710,8 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
     <TemaCompCtx.Provider value="liberta">
       <CompetitionStage kind="liberta" title={NOME.toUpperCase()} phase={etapa} detail={tr('8 grupos em turno e returno · ida e volta até a semi · final única', '8 groups home and away · two legs until the semis · one-off final')}>{abertura}</CompetitionStage>
       <GiroDaRodada cinema />
+      {/* ⚔️ o cartão de tática — só pra quem tem clube nesta copa e enquanto ainda falta jogo (igual às regionais) */}
+      {comTatica && relogio?.row && !!meuUid && ficha.times.some(t => t.uid === meuUid) && relogio.row.step < LIB.FINAL && <CartaoTaticaCopa minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t => void tat.escolher(t)} />}
       {/* FASE DE GRUPOS: o meu jogo ao vivo em cima, as 8 tabelas inteiras, os outros jogos da rodada */}
       {step >= 1 && step <= LIB.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]
