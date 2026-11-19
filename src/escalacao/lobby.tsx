@@ -996,7 +996,9 @@ export function EscLobby() {
   // seletor dela, que usa o MESMO `ligaTamanho`). Relâmpago e Só Champions mostram o 10 travado (não têm liga).
   const tam10Mostra = !nbaSala && (roomMode === 'rapido' || (roomMode === 'liga' && !ehDraft && ligaComBots))
   const tam10Travado = rapidoCopaMode === 'relampago' || rapidoCopaMode === 'champions'
-  const tam10Vale = ligaTamanho === 10 && ((tam10Mostra && !tam10Travado) || (roomMode === 'liga' && ehMinha && ligaComBots))
+  // 🌴 19/11 (Diego: *"n era 10 pregão e 20 Tocaia?"*): Vice City é Pregão aberto = liga de 10 times, sempre (20 fica travado)
+  const viceForca10 = roomMode === 'rapido' && viceSala && viceVe && !nbaSala
+  const tam10Vale = viceForca10 || ligaTamanho === 10 && ((tam10Mostra && !tam10Travado) || (roomMode === 'liga' && ehMinha && ligaComBots))
   const chaveSel = roomMode === 'rapido' && viceSala && viceVe ? 'vice' : roomMode === 'rapido' && kingsSala && kingsVe ? 'kings' : roomMode === 'liga' ? (minhaSel ? 'liga-minha' : ligaDraftSel ? 'liga-draft' : 'liga') : roomMode
   const chaveModo = (m: { v: string; draft?: boolean; minha?: boolean; kings?: boolean; vice?: boolean }) => m.vice ? 'vice' : m.kings ? 'kings' : m.v === 'liga' ? (m.minha ? 'liga-minha' : m.draft ? 'liga-draft' : 'liga') : m.v
   const amigosOn = useAmigos() // 👥 18/10: amigos + perfil (pra todos desde 19/10)
@@ -4732,9 +4734,9 @@ export function EscLobby() {
                 {tam10Mostra && (
                   <SegField label={tr('🏟️ Times na liga', '🏟️ Teams in the league')}>
                     <Seg options={[[20, tr('20 times (padrão)', '20 teams (default)')], [10, tr('10 times', '10 teams')]] as [20 | 10, string][]}
-                      value={tam10Travado ? 20 : ligaTamanho} onSet={v => setLigaTamanho(v)} travados={tam10Travado ? ['10'] : []} />
+                      value={viceForca10 ? 10 : tam10Travado ? 20 : ligaTamanho} onSet={v => setLigaTamanho(v)} travados={viceForca10 ? ['20'] : tam10Travado ? ['10'] : []} />
                     <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                      {tam10Travado
+                      {viceForca10 ? tr('🌴 Vice City é Pregão aberto: liga de 10 times (18 rodadas), pra o leilão não ficar longo demais.', '🌴 Vice City is an open auction: 10-team league (18 rounds), so the auction doesn\'t drag on.') : tam10Travado
                         ? (rapidoCopaMode === 'relampago'
                           ? tr('🔒 10 times não vale aqui: o ⚡ Relâmpago não tem liga — o tamanho é o da chave (16 ou 32).', '🔒 10 teams doesn\'t apply here: ⚡ Lightning has no league — the size is the draw (16 or 32).')
                           : tr('🔒 10 times não vale aqui: a ⭐ Só Champions não tem liga — é a tabela de 36.', '🔒 10 teams doesn\'t apply here: ⭐ Champions only has no league — it is the table of 36.'))
