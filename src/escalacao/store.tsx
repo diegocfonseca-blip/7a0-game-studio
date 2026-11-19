@@ -64,6 +64,7 @@ import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
 import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala, marcaSalaDosMimos } from './mimos'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
+import { GRUPOS_2026, sorteiaGrupos, parCup, gruposCompletos, classificadosCup } from './eua-cup' // 🏀🏆 NBA Cup real do EUA Oficial
 import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { CATALOG_NBA_MUNDO } from './data-basquete-mundo' // 🌍 18/11: ficha das cartas do baralho Mundo
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -8468,7 +8469,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'oficialAbertura', 'deOlho'] as const satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'oficialAbertura', 'deOlho'] as const satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8542,6 +8543,32 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
  *  conferências reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA). Sem sobe e desce (decisão do Diego). Elenco
  *  de cada franquia = 15 (3 por posição, os melhores; posição curta completa com o melhor que sobrar). Devolve false se a franquia não
  *  existir (e não mexe em nada). */
+/** 🏀🏆 NBA Cup real (EUA Oficial): anota os jogos de GRUPO desta rodada (o 1º encontro de cada dupla do grupo no calendário — são
+ *  jogos da temporada, já contaram na tabela) e, quando os 6 grupos fecham, monta o mata-mata de 8 no motor da Cup de sempre. */
+function registraCupEua(s: EscState, results: { homeId: number; awayId: number; hg: number; ag: number }[]): void {
+  const cup = s.euaCup
+  if (!s.euaOficial || !cup || cup.fechado) return
+  const nome = (id: number) => s.managers.find(m => m.id === id)?.teamName ?? ''
+  const grupoDe = new Map<string, string>()
+  for (const g of cup.grupos) for (const t of g.times) grupoDe.set(t, g.nome)
+  for (const r of results) {
+    const c = nome(r.homeId), f = nome(r.awayId)
+    if (!c || !f || grupoDe.get(c) !== grupoDe.get(f) || !grupoDe.get(c)) continue
+    const k = parCup(c, f)
+    if (!cup.jogos[k]) cup.jogos[k] = { casa: c, fora: f, pc: r.hg, pf: r.ag }
+  }
+  if (!gruposCompletos(cup)) return
+  cup.fechado = true
+  const cls = classificadosCup(cup)
+  const idDe = (t: string) => s.managers.find(m => m.teamName === t)?.id
+  const mk = (a: string, b: string): QuickCopaTie | null => { const ia = idDe(a), ib = idDe(b); return ia == null || ib == null ? null : { aId: ia, bId: ib, aName: a, bName: b, legs: [], winner: null } }
+  const ties = [mk(cls.L[0], cls.L[3]), mk(cls.L[1], cls.L[2]), mk(cls.O[0], cls.O[3]), mk(cls.O[1], cls.O[2])]
+  s.nbaCupFeita = s.seasonNo
+  if (ties.some(t => !t)) return // 🛡️ sem os 8 a chave não existe — a Cup não trava a temporada
+  s.nbaCup = { phase: 'quartas', ties: ties as QuickCopaTie[], legIdx: 0, bracket: [], scorers: [], assists: [] }
+  s.news = [tr(`🏆 Fim da fase de grupos da NBA CUP! Nas quartas: ${[...cls.L, ...cls.O].join(', ')}. Jogo único — quem perder está fora.`,
+    `🏆 NBA CUP group stage is over! Quarter-finals: ${[...cls.L, ...cls.O].join(', ')}. Single game — lose and you are out.`), ...s.news].slice(0, 12)
+}
 const EUA_LINHAGEM: Record<string, string> = { Sonics: 'Thunder', SuperSonics: 'Thunder', Bullets: 'Wizards', Royals: 'Kings', Bobcats: 'Hornets', Braves: 'Clippers', Nationals: 'Sixers', Blazers: 'Trail Blazers' }
 const EUA_FRANQUIAS = [...NBA_LESTE, ...NBA_OESTE]
 function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolean {
@@ -8575,6 +8602,7 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
   s.careerRivalCount = ordem.length - 1; s.careerRivals = []
   s.euaOficial = { franquia }
+  s.euaCup = { temporada: s.seasonNo ?? 1, grupos: GRUPOS_2026.map(g => ({ ...g, times: [...g.times] })), jogos: {} } // 🏆 os grupos REAIS de 2026
   s.nbaTier = 'nba'
   s.nbaSala = { tam: 30, formato: 'playoffs' }; s.copaMode = 'liga_copa'
   s.nbaConf = conferenciasNba(s.managers)
@@ -9615,6 +9643,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       // andar de cima (crews → afiliados → franquias). Ninguém cai (base amadora).
       const lastTable = sortedTable(s.league)
       const youPos = lastTable.findIndex(t => t.id === you.id) + 1
+      // 🏀🏆 EUA Oficial: os grupos da próxima NBA Cup saem do SORTEIO REAL (potes pela campanha que acabou, por conferência)
+      if (s.euaOficial) {
+        const ordem = (c: 'L' | 'O') => lastTable.filter(t => s.nbaConf?.[t.id] === c).map(t => s.managers.find(m => m.id === t.id)?.teamName ?? '').filter(Boolean)
+        s.euaCup = { temporada: s.seasonNo, grupos: sorteiaGrupos(ordem('L'), ordem('O'), rng), jogos: {} }
+      }
       const tier: NbaTier = s.nbaTier ?? 'street'
       const promoted = youPos >= 1 && youPos <= 4 && NBA_TIERS[tier].next != null
       if (promoted) {
@@ -12197,6 +12230,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const neutro = !kingsLiga && ligaJogoNeutro(s)
         const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!, false, s.round) : neutro ? simMatch(s, h, a, rng, s.scorers, true) : simMatch(s, h, a, rng))
         results.forEach(r => kingsLiga ? aplicaResultadoKings(s.league, r) : applyResult(s.league, r))
+        registraCupEua(s, results) // 🏀🏆 EUA Oficial: jogos de grupo da NBA Cup (já contaram na tabela)
         // rivalidade: só confrontos entre dois humanos contam
         results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
         // carreira: retrospecto contra seus rivais fixos que estão na sua divisão

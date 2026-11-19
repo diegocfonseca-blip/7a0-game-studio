@@ -257,7 +257,14 @@
   Thomas/Celtics, Derek Fisher/Lakers): cada franquia (você e os bots) leva até +1 por posição, o mesmo pregão de abertura do Brasil
   Oficial (`abreLeilaoAberturaCom`, agora usado pelos dois; no basquete o `slotsOf` respeita o `aberturaBase`). Bots dão lance com o
   caixa deles (`clubCash`). E o cartão de Minhas carreiras mostra **🇺🇸 EUA OFICIAL**.
-- ⏳ EUA Oficial, a fazer: NBA Cup real, Draft com loteria, os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
+- ✅ 19/11 (Diego: *"Sim"*): **NBA Cup REAL** (`eua-cup.ts`, fonte ESPN nov/2026). 6 grupos de 5 (3 Leste, 3 Oeste): na T1 os
+  grupos sorteados de VERDADE pra 2026, da T2 em diante o sorteio real (potes de 3 pela campanha anterior, por conferência). Jogo de
+  grupo = o 1º encontro da dupla no calendário de 82 (conta na tabela, como na NBA); fecha na rodada 29. Passam os 3 vencedores + o
+  melhor 2º de cada conferência → quartas (1×4, 2×3) → semis na conferência → final Leste × Oeste, jogo único, no motor da Cup de
+  sempre (`nbaCup`/`playNbaCupRound`, que já tinha tela). Desempate: vitórias → confronto → saldo → pontos. Trava: `npm run eua-oficial`.
+  ⚠️ Diferença pro real (anotada): na NBA quartas e semis CONTAM na tabela (só a final não); aqui o mata-mata inteiro fica fora.
+- ⏳ EUA Oficial, a fazer: **tabela dos grupos da Cup na tela** (hoje só aparece a notícia quando os grupos fecham + o mata-mata;
+  mockup antes), Draft com loteria, os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
