@@ -52,12 +52,13 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
  <div class="big" style="top:330px"><span class="tag">🎮 O GTA 6 CHEGOU</span></div>
  <div class="big neon" style="top:560px;font-size:140px">E TODO MUNDO<br>SÓ FALA<br>DISSO</div>
 </div>
-<!-- 1 e o bolso? -->
+<!-- 1 e o bolso? e a mulher? -->
 <div class="cena" data-s="1">
- <div class="big" style="top:260px;font-size:110px;text-shadow:0 0 20px #4ff3ff,6px 6px 0 #000">MAS E O BOLSO?</div>
- <div class="big" id="carteira" style="top:520px;font-size:330px;line-height:1">👛</div>
- <div class="big" style="top:930px;font-size:92px;text-shadow:6px 6px 0 #000">TÁ LISO? 😅</div>
- <div class="big ciano" style="top:1100px;font-size:120px">RELAXA.</div>
+ <div class="big" style="top:210px;font-size:104px;text-shadow:0 0 20px #4ff3ff,6px 6px 0 #000">MAS E O BOLSO? 💸</div>
+ <div class="big" style="top:350px;font-size:54px;text-shadow:4px 4px 0 #000">O JOGO É CARO</div>
+ <div class="big" style="top:560px;font-size:104px;text-shadow:0 0 20px #ff4fd8,6px 6px 0 #000">E A MULHER? 🙅‍♀️</div>
+ <div class="big" style="top:700px;font-size:54px;line-height:1.15;text-shadow:4px 4px 0 #000">"VOCÊ NÃO TEM TEMPO<br>PRA ISSO!"</div>
+ <div class="big ciano" style="top:1000px;font-size:150px">RELAXA.</div>
 </div>
 <!-- 2 de graça -->
 <div class="cena" data-s="2">
@@ -110,7 +111,7 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
 </div>
 <div class="flash" id="flash"></div>
 <script>
-const DUR=window.DUR_NARRA||[3.6, 3.2, 2.8, 3.8, 5.2, 6.0, 3.8, 5.0] // 🎙️ provisório: recortar no áudio do Diego
+const DUR=window.DUR_NARRA||[3.6, 5.6, 2.8, 3.8, 5.2, 6.0, 3.8, 5.0] // 🎙️ provisório: recortar no áudio do Diego
 const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
 window.TOTAL=acc
 const cl=x=>Math.min(1,Math.max(0,x))
@@ -130,11 +131,10 @@ window.render=t=>{
     const vis=a>=0&&a<d+0.2
     el.style.opacity=vis?Math.min(cl(a/0.2),i===cenas.length-1?1:cl((d+0.2-a)/0.2)):0
     if(!vis)return
-    el.querySelectorAll('.big').forEach((b,j)=>{const k=back((a-0.08-j*0.16)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-j*0.16)/0.2)})
+    el.querySelectorAll('.big').forEach((b,j)=>{const g=i===1?[0,0.5,1.7,2.2,4.1][j]??j*0.16:j*0.16;const k=back((a-0.08-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
     el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-3+Math.sin(a*6)*1.5}deg)`})
     el.querySelectorAll('.carta').forEach((c,j)=>{if(c.id==='craque')return;const k=back((a-0.5-j*0.18)/0.45);c.style.transform=`perspective(800px) rotateY(${(1-k)*90}deg) scale(${Math.max(0,k)})`})
     el.querySelectorAll('.faixa').forEach(f=>{const k=back((a-0.9)/0.35);f.style.transform=`scale(${Math.max(0,k)}) rotate(${(1-k)*-8}deg)`;if(a>0.9&&a<1.05)flash=.6;f.style.marginLeft=(a>0.9&&a<1.4)?`${Math.sin(a*90)*14}px`:'0'})
-    if(i===1){const c=document.getElementById('carteira');c.style.transform=`rotate(${Math.sin(a*9)*10}deg)`}
     if(i===2){const g=document.getElementById('gratis');const k=back((a-0.7)/0.35);g.style.transform=`scale(${a<0.7?0:2.2-1.2*k}) rotate(-4deg)`;g.style.opacity=a<0.7?0:1;if(a>0.7&&a<0.85)flash=.6}
     if(i===4){[1,2,3].forEach((n,j)=>{const l=document.getElementById('l'+n);const k=back((a-1.6-j*0.35)/0.3);l.style.transform=`scale(${Math.max(0,k)}) rotate(${(j-1)*4}deg)`})}
     if(i===5){const n=Math.min(5,Math.max(0,Math.floor((a-2.2)/0.45)+1));document.getElementById('est').innerHTML='★'.repeat(n)+'<span>'+'★'.repeat(5-n)+'</span>'}

@@ -6,7 +6,7 @@ Quando o Diego mandar o áudio: medir as pausas (silencedetect) e trocar o `DUR`
 | Cena | Tela | Fala |
 |---|---|---|
 | 1 | O GTA 6 chegou | "O GTA 6 chegou… e todo mundo só fala disso." |
-| 2 | E o bolso? | "Mas e o bolso? Tá liso? Relaxa." |
+| 2 | E o bolso? E a mulher? | "Mas e o bolso, que o jogo é caro? E a mulher, que diz que você não tem tempo pra isso? Relaxa." |
 | 3 | De graça | "E se existisse um jogo… de graça…" |
 | 4 | Presidente e técnico | "…onde você é o presidente e o técnico do seu clube?" |
 | 5 | Leilão de lendas | "Onde você monta o time num leilão de lendas do futebol, dando lance contra os seus amigos?" |
