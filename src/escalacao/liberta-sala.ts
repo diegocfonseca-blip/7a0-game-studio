@@ -18,6 +18,7 @@
 // aparelho: ninguém manda resultado, cada um recalcula.
 import { clubeFechaTime, forcaDoClube, mulberry, placar, gols, completaXIClube, xiPorChavesClube, xiDaMaquinaClube, forcaDoXI, type GolRegional } from './copa-regional'
 import { disputaPenaltis } from './penaltis'
+import { fatoresTatica, temTatica, dadoDaTatica, type QualTatica } from './copa-taticas' // ⚔️ tática da sala (igual às regionais)
 import type { Entrant, Formation } from './copa-mundo'
 
 // 🌎 os 36 clubes que fecham um time de 11 com os baralhos normais (lista do Diego, 19/11).
@@ -126,6 +127,7 @@ function sorteiaGrupos(entrants: Entrant[], r: () => number): number[][] {
   return grupos
 }
 
+function poissonLib(r: () => number, lambda: number) { let k = 0, p = 1; const L = Math.exp(-lambda); do { k++; p *= r() } while (p > L); return Math.min(6, k - 1) }
 function jogo(r: () => number, entrants: Entrant[], h: number, a: number, seed: number, ck: string): JogoLib {
   const [gh, ga] = placar(r, entrants[h], entrants[a])
   return { h, a, gh, ga, ev: gols(r, gh, ga, entrants[h], entrants[a], seed, ck) }
@@ -135,10 +137,26 @@ function jogo(r: () => number, entrants: Entrant[], h: number, a: number, seed: 
  * `entrants` = os 32 da ficha (qualquer ordem). O sorteio dos grupos e das oitavas usa um dado
  * PRÓPRIO; os jogos usam outro — mexer no sorteio nunca muda a régua dos placares.
  */
-export function simulaLibertaSala(entrants: Entrant[], seed: number): MundoLiberta {
+export function simulaLibertaSala(entrants: Entrant[], seed: number, tat?: QualTatica): MundoLiberta {
   if (entrants.length !== LIBERTA_VAGAS) throw new Error(`Libertadores da sala precisa de ${LIBERTA_VAGAS} clubes (veio ${entrants.length})`)
   const sorteio = mulberry((seed ^ 0x11BE47A) >>> 0)
   const rng = mulberry((seed ^ 0x2E610A1) >>> 0)
+  // ⚔️ TÁTICA (mesma régua das regionais, `copa-taticas.ts`): jogo com tática de gente sai de um DADO PRÓPRIO, DEPOIS de o
+  // dado do torneio já ter andado igual — nenhum outro jogo muda. Sem `tat`, a copa é exatamente a de sempre.
+  const comTatica = (h: number, a: number, passo: number, ck: string): { j: JogoLib; r: () => number } | null => {
+    if (!tat) return null
+    const th = tat(h, passo), ta = tat(a, passo)
+    if (!temTatica(th, ta)) return null
+    const r = dadoDaTatica(seed >>> 0, ck, th, ta)
+    const adv = entrants[h].str - entrants[a].str
+    const [fh, fa] = fatoresTatica(th, ta)
+    const gh = poissonLib(r, Math.max(0.25, 1.25 + adv * 0.05) * fh), ga = poissonLib(r, Math.max(0.25, 1.25 - adv * 0.05) * fa)
+    return { j: { h, a, gh, ga, ev: gols(r, gh, ga, entrants[h], entrants[a], seed, ck) }, r }
+  }
+  const jogoT = (h: number, a: number, passo: number, ck: string): { j: JogoLib; r?: () => number } => {
+    const normal = jogo(rng, entrants, h, a, seed, ck)
+    return comTatica(h, a, passo, ck) ?? { j: normal }
+  }
   const grupos = sorteiaGrupos(entrants, sorteio)
   // 6 rodadas: 1–3 turno, 4–6 returno (mando invertido)
   const rodadas: JogoLib[][] = []
@@ -148,7 +166,7 @@ export function simulaLibertaSala(entrants: Entrant[], seed: number): MundoLiber
     grupos.forEach((g, gi) => {
       for (const [x, y] of base) {
         const [h, a] = rd < 3 ? [g[x], g[y]] : [g[y], g[x]]
-        js.push(jogo(rng, entrants, h, a, seed, `g${gi}|r${rd}|${h}|${a}`))
+        js.push(jogoT(h, a, rd + 1, `g${gi}|r${rd}|${h}|${a}`).j) // rodada rd = passo rd+1
       }
     })
     rodadas.push(js)
@@ -176,18 +194,24 @@ export function simulaLibertaSala(entrants: Entrant[], seed: number): MundoLiber
   const chaves = ordemPrim.map((p, i) => [ordemSeg[i], p] as [number, number])
   for (let i = chaves.length - 1; i > 0; i--) { const k = Math.floor(sorteio() * (i + 1)); [chaves[i], chaves[k]] = [chaves[k], chaves[i]] }
 
-  const idaEVolta = (h: number, a: number, ck: string): ConfrontoLib => {
-    const ida = jogo(rng, entrants, h, a, seed, `${ck}|ida`)
-    const volta = jogo(rng, entrants, a, h, seed, `${ck}|volta`)
+  const idaEVolta = (h: number, a: number, ck: string, passoIda: number): ConfrontoLib => {
+    const i0 = jogo(rng, entrants, h, a, seed, `${ck}|ida`)
+    const v0 = jogo(rng, entrants, a, h, seed, `${ck}|volta`)
+    const agg0: [number, number] = [i0.gh + v0.ga, i0.ga + v0.gh]
+    const pen0 = agg0[0] === agg0[1] ? disputaPenaltis(rng) : undefined // o dado do torneio anda SEMPRE igual
+    // ⚔️ depois de gastar o dado do torneio: a tática (se tiver) troca o placar de cada jogo
+    const ti = comTatica(h, a, passoIda, `${ck}|ida`), tv = comTatica(a, h, passoIda + 1, `${ck}|volta`)
+    const ida = ti?.j ?? i0, volta = tv?.j ?? v0
     const agg: [number, number] = [ida.gh + volta.ga, ida.ga + volta.gh]
-    const pen = agg[0] === agg[1] ? disputaPenaltis(rng) : undefined
+    const dadoPen = tv?.r ?? ti?.r
+    const pen = agg[0] !== agg[1] ? undefined : !ti && !tv ? pen0 : disputaPenaltis(dadoPen!)
     const winner = agg[0] > agg[1] ? h : agg[1] > agg[0] ? a : pen![0] > pen![1] ? a : h
     return { h, a, ida, volta, agg, ...(pen ? { pen } : {}), winner }
   }
   const ko: MundoLiberta['ko'] = []
   let vivos: [number, number][] = chaves // [manda a ida, manda a volta]
-  for (const tipo of ['oitavas', 'quartas', 'semi'] as FaseLibTipo[]) {
-    const ties = vivos.map(([h, a], i) => idaEVolta(h, a, `${tipo}|${i}`))
+  for (const [fi, tipo] of (['oitavas', 'quartas', 'semi'] as FaseLibTipo[]).entries()) {
+    const ties = vivos.map(([h, a], i) => idaEVolta(h, a, `${tipo}|${i}`, LIB.OIT_IDA + fi * 2))
     ko.push({ tipo, ties })
     const w = ties.map(t => t.winner)
     vivos = []
@@ -195,8 +219,11 @@ export function simulaLibertaSala(entrants: Entrant[], seed: number): MundoLiber
   }
   const [f1, f2] = vivos[0]
   const fh = melhor(f1, f2), fa = fh === f1 ? f2 : f1
-  const fj = jogo(rng, entrants, fh, fa, seed, 'final')
-  const fpen = fj.gh === fj.ga ? disputaPenaltis(rng) : undefined
+  const f0 = jogo(rng, entrants, fh, fa, seed, 'final')
+  const fpen0 = f0.gh === f0.ga ? disputaPenaltis(rng) : undefined
+  const tf = comTatica(fh, fa, LIB.FINAL, 'final')
+  const fj = tf?.j ?? f0
+  const fpen = fj.gh !== fj.ga ? undefined : tf ? disputaPenaltis(tf.r) : fpen0
   const final: FinalLib = { h: fh, a: fa, g: [fj.gh, fj.ga], ev: fj.ev, ...(fpen ? { pen: fpen } : {}), winner: fj.gh > fj.ga ? fh : fj.ga > fj.gh ? fa : fpen![0] > fpen![1] ? fh : fa }
   return { grupos, rodadas, classificados, ko, final, campeao: final.winner }
 }

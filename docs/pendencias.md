@@ -14127,3 +14127,19 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - Bancada: `scripts/mapa3d/bancada.html` (partida com cartas do baralho BR, sem login). Vídeo `scripts/mockups/mapa3d-abertura.mp4`, celular `scripts/mockups/mapa3d-celular.png`.
 - 19/11 (2ª leva, *"melhoradas nas placas… texturas dos gramados… tudo que é muito liso fica fake"*): no 3D as placas viram painel de LED em pé (faixa contínua, grade de pontinhos, brilho, moldura, pezinhos; mesmas marcas e rodízio) e o gramado ganha manchas de tom, desgaste na boca do gol/pequena área/pênalti/meio/corredor do bandeirinha e quebra da repetição da textura (`presidencia-gramado-material-3d.ts`). Print `scripts/mockups/mapa3d-placas-gramado.png`.
 - Falta: OK do Diego; medir no celular de verdade (o 3D pesa mais que o 2D); o apito continua sendo no "Começar o jogo" (nenhum jogo começa sozinho — regra de 26/10).
+
+## 19/11 — Revisão das competições das salas online (pedido do Diego: "analise todas competições")
+✅ Feito (no branch, ainda não publicado):
+- 🏆 Libertadores das salas ganhou o cartão de ⚔️ TÁTICA (retranca/equilíbrio/ataque), igual às regionais e à Copa do Mundo. Usa o
+  mesmo banco das regionais (tipo 'regional', esc_regional_clock) — sem mudar servidor. Dado da tática é próprio: os outros jogos não mudam.
+- 🌎 Copa América (16): botão do sorteio dizia "Jogar as oitavas" (agora "as quartas"); barra de etapas mostrava OITAVAS (some na de 16);
+  texto dos grupos dizia "+ os 4 melhores 3ºs" também na de 16 e na de 32 (agora só na de 24); sorteio dizia "Dezesseis seleções" (agora "Oito");
+  campeão na sala dizia "CAMPEÃO DO MUNDO" na Euro/América (agora o nome certo); tempo de pênalti das quartas da de 16 ia errado pro relógio do banco.
+🟡 Achados que encostam em coisa AO VIVO — propostos ao Diego, esperando OK:
+1. Liga Draft: quem caiu e o dono reabre a sala no outro dia pode perder o time (`montaCarry` em liga-draft.ts exige isHuman; devia casar pelo crachá).
+2. Kings: jogo gente × gente, o toque do goleiro vira o chute do batedor (mesma chave em KINGS_DECIDIR); e toque atrasado pode refazer jogo já mostrado.
+3. Liga Draft: vez de quem saiu fica parada até o dono apertar "Pular"; quem caiu na hora de abrir o draft fica fora da fila.
+4. Champions: oitavas montadas na ordem 1º×…, o 1º e o 2º podem se cruzar nas quartas (devia ser chave 1-8, 4-5, 2-7, 3-6 como a Copa dos 8).
+5. Faixa "É CAMPEÃO DA …" do quickCopa (store.tsx ~12176) só em PT.
+6. Kings: "dia" do jogador é por nome — xarás em times opostos ficam com o mesmo dia.
+- Conferir: título da Euro/Copa América vai pro esc_results com season_key ':copamundo' — ver se o Rank conta como Copa do Mundo.
