@@ -111,7 +111,7 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
 </div>
 <div class="flash" id="flash"></div>
 <script>
-const DUR=window.DUR_NARRA||[3.6, 5.6, 2.8, 3.8, 5.2, 6.0, 3.8, 5.0] // 🎙️ provisório: recortar no áudio do Diego
+const DUR=window.DUR_NARRA||[3.84, 6.43, 3.02, 3.14, 4.91, 6.56, 3.07, 7.53] // 🎙️ cortado nas pausas do áudio do ElevenLabs (narracao.mp3)
 const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
 window.TOTAL=acc
 const cl=x=>Math.min(1,Math.max(0,x))
@@ -131,13 +131,13 @@ window.render=t=>{
     const vis=a>=0&&a<d+0.2
     el.style.opacity=vis?Math.min(cl(a/0.2),i===cenas.length-1?1:cl((d+0.2-a)/0.2)):0
     if(!vis)return
-    el.querySelectorAll('.big').forEach((b,j)=>{const g=i===1?[0,0.5,1.7,2.2,4.1][j]??j*0.16:j*0.16;const k=back((a-0.08-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
+    el.querySelectorAll('.big').forEach((b,j)=>{const g=i===1?[0.15,0.7,2.25,2.8,4.9][j]??j*0.16:j*0.16;const k=back((a-0.08-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
     el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-3+Math.sin(a*6)*1.5}deg)`})
     el.querySelectorAll('.carta').forEach((c,j)=>{if(c.id==='craque')return;const k=back((a-0.5-j*0.18)/0.45);c.style.transform=`perspective(800px) rotateY(${(1-k)*90}deg) scale(${Math.max(0,k)})`})
     el.querySelectorAll('.faixa').forEach(f=>{const k=back((a-0.9)/0.35);f.style.transform=`scale(${Math.max(0,k)}) rotate(${(1-k)*-8}deg)`;if(a>0.9&&a<1.05)flash=.6;f.style.marginLeft=(a>0.9&&a<1.4)?`${Math.sin(a*90)*14}px`:'0'})
-    if(i===2){const g=document.getElementById('gratis');const k=back((a-0.7)/0.35);g.style.transform=`scale(${a<0.7?0:2.2-1.2*k}) rotate(-4deg)`;g.style.opacity=a<0.7?0:1;if(a>0.7&&a<0.85)flash=.6}
+    if(i===2){const g=document.getElementById('gratis');const k=back((a-2.05)/0.35);g.style.transform=`scale(${a<2.05?0:2.2-1.2*k}) rotate(-4deg)`;g.style.opacity=a<2.05?0:1;if(a>2.05&&a<2.2)flash=.6}
     if(i===4){[1,2,3].forEach((n,j)=>{const l=document.getElementById('l'+n);const k=back((a-1.6-j*0.35)/0.3);l.style.transform=`scale(${Math.max(0,k)}) rotate(${(j-1)*4}deg)`})}
-    if(i===5){const n=Math.min(5,Math.max(0,Math.floor((a-2.2)/0.45)+1));document.getElementById('est').innerHTML='★'.repeat(n)+'<span>'+'★'.repeat(5-n)+'</span>'}
+    if(i===5){const n=Math.min(5,Math.max(0,Math.floor((a-3.3)/0.45)+1));document.getElementById('est').innerHTML='★'.repeat(n)+'<span>'+'★'.repeat(5-n)+'</span>'}
     if(i===6){['fone','fone2'].forEach((id,j)=>{const f=document.getElementById(id);const k=back((a-0.2-j*0.3)/0.6);f.style.transform=`translateY(${(1-k)*1000}px) rotate(${(1-k)*(j?6:-6)+(j?3:-3)}deg)`;f.querySelector('img').style.transform=`translateY(${-Math.max(0,a-1.2)*60}px)`})}
     el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`})
     el.querySelectorAll('.btn').forEach(b=>{const k=back((a-0.9)/0.45);b.style.transform=`scale(${Math.max(0,k)*(1+0.03*Math.sin(a*7))})`})
