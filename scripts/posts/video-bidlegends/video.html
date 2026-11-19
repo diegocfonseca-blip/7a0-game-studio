@@ -25,6 +25,16 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#F4ECD6;position:relati
 .carta small{display:block;font-size:34px;color:#6b6250;margin-top:2px;font-family:Arial,sans-serif;font-weight:700}
 .carta.lenda{background:linear-gradient(135deg,#fff3c4,#FFC400);}
 .carta.mico{background:#e9e1cc}
+.lenda{position:absolute;width:450px;height:630px;border:7px solid #0C0C0C;border-radius:36px;box-shadow:12px 14px 0 #0C0C0C;background:linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70);overflow:hidden;padding:24px;display:flex;flex-direction:column;justify-content:space-between;color:#0C0C0C}
+.lenda .topo{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
+.lenda .pos{background:#0C0C0C;color:#fff;border:3px solid rgba(255,255,255,.25);border-radius:14px;font-size:34px;padding:2px 14px}
+.lenda .lbl{color:#7a4d00;font-size:30px;letter-spacing:1px}
+.lenda .av{position:relative;z-index:1;align-self:center;width:330px;height:250px;border-radius:26px;background:rgba(255,255,255,.42);border:5px solid rgba(0,0,0,.28);overflow:hidden;box-shadow:inset 0 0 30px rgba(255,255,255,.7)}
+.lenda .av img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.lenda .nm{position:relative;z-index:2;font-size:56px;line-height:1.05;white-space:nowrap}
+.lenda .cl{font-family:Arial,sans-serif;font-weight:800;font-size:28px;opacity:.62;margin-top:4px}
+.lenda .st{font-size:32px;letter-spacing:4px;margin-top:6px}
+.lenda .holo{position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.85) 48%,transparent 62%);background-size:250% 250%}
 .env{position:absolute;left:190px;width:700px;height:470px;background:#F4ECD6;border:10px solid #0C0C0C;border-radius:30px;box-shadow:14px 14px 0 #0C0C0C}
 .env:before{content:'';position:absolute;left:0;right:0;top:0;height:240px;background:linear-gradient(160deg,transparent 49.5%,#0C0C0C 49.5% 51%,transparent 51%),linear-gradient(-160deg,transparent 49.5%,#0C0C0C 49.5% 51%,transparent 51%)}
 .selo{position:absolute;left:50%;top:170px;width:170px;height:170px;margin-left:-85px;border-radius:50%;background:#C2452F;border:8px solid #0C0C0C;display:flex;align-items:center;justify-content:center;font-size:80px}
@@ -57,13 +67,11 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#F4ECD6;position:relati
  <div class="big" style="top:1010px;font-size:66px;text-shadow:5px 5px 0 #000" data-t="t2b"></div>
 </div>
 <div class="cena" data-s="3">
- <div class="big titulo" style="top:150px;font-size:118px" data-t="t3"></div>
- <div class="carta lenda" style="left:60px;top:560px"><span class="pos">SG</span><span class="cat">👑</span><b>Michael Jordan</b><small>Bulls · 1996</small></div>
- <div class="carta lenda" style="left:580px;top:660px"><span class="pos">SF</span><span class="cat">👑</span><b>LeBron James</b><small>Cavaliers · 2016</small></div>
- <div class="carta lenda" style="left:60px;top:850px"><span class="pos">PG</span><span class="cat">👑</span><b>Stephen Curry</b><small>Warriors · 2016</small></div>
- <div class="carta lenda" style="left:580px;top:950px"><span class="pos">PG</span><span class="cat">👑</span><b>Luka Dončić</b><small>Mavericks · 2024</small></div>
- <div class="carta mico" style="left:60px;top:1140px"><span class="pos">SG</span><span class="cat">🃏</span><b>JR Smith</b><small>Cavaliers · 2018</small></div>
- <div class="carta mico" style="left:580px;top:1240px"><span class="pos">C</span><span class="cat">🃏</span><b style="font-size:44px">Boban Marjanović</b><small>Clippers · 2019</small></div>
+ <div class="big titulo" style="top:130px;font-size:116px" data-t="t3"></div>
+ <div class="lenda" style="left:70px;top:520px"><div class="topo"><span class="pos">SG</span><span class="lbl">👑 LENDA</span></div><div class="av"><img src="michael-jordan.webp"></div><div><div class="nm">Michael Jordan</div><div class="cl">Bulls · 1996</div><div class="st">⭐⭐⭐⭐⭐</div></div><div class="holo"></div></div>
+ <div class="lenda" style="left:560px;top:560px"><div class="topo"><span class="pos">SF</span><span class="lbl">👑 LENDA</span></div><div class="av"><img src="lebron-james.webp"></div><div><div class="nm">LeBron James</div><div class="cl">Cavaliers · 2016</div><div class="st">⭐⭐⭐⭐⭐</div></div><div class="holo"></div></div>
+ <div class="lenda" style="left:70px;top:1190px"><div class="topo"><span class="pos">PG</span><span class="lbl">👑 LENDA</span></div><div class="av"><img src="stephen-curry.webp"></div><div><div class="nm">Stephen Curry</div><div class="cl">Warriors · 2016</div><div class="st">⭐⭐⭐⭐⭐</div></div><div class="holo"></div></div>
+ <div class="lenda" style="left:560px;top:1230px"><div class="topo"><span class="pos">PG</span><span class="lbl">👑 LENDA</span></div><div class="av"><img src="luka-doncic.webp"></div><div><div class="nm">Luka Dončić</div><div class="cl">Mavericks · 2024</div><div class="st">⭐⭐⭐⭐⭐</div></div><div class="holo"></div></div>
 </div>
 <div class="cena" data-s="4">
  <div class="big titulo" style="top:200px;font-size:124px" data-t="t4"></div>
@@ -99,7 +107,7 @@ const T={
  t1:['SEU QUINTETO COMEÇA COM UM LANCE','YOUR FIVE STARTS WITH A BID'],
  t2:['5 POSIÇÕES.<br><span class="ouro">1 LANCE SECRETO.</span>','5 SPOTS.<br><span class="ouro">1 SECRET BID.</span>'],
  t2b:['MONTE O SEU QUINTETO NO LEILÃO','BUILD YOUR STARTING FIVE AT AUCTION'],
- t3:['LENDAS, CRAQUES<br><span class="ouro">E OS MICOS QUE<br>VOCÊ AMA</span>','LEGENDS, STARS<br><span class="ouro">AND THE MEMES<br>YOU LOVE</span>'],
+ t3:['AS LENDAS<br><span class="ouro">NO SEU QUINTETO</span>','THE LEGENDS<br><span class="ouro">IN YOUR FIVE</span>'],
  t4:['NINGUÉM VÊ<br><span class="ouro">O SEU LANCE</span>','NOBODY SEES<br><span class="ouro">YOUR BID</span>'],
  t4b:['ATÉ A REVELAÇÃO… 👀','UNTIL THE REVEAL… 👀'],
  t4c:['MARTELO!<br>LUKA É SEU','SOLD!<br>LUKA IS YOURS'],
@@ -112,7 +120,7 @@ const T={
  cta:['▶ JOGAR AGORA','▶ PLAY NOW'],
 }
 document.querySelectorAll('[data-t]').forEach(e=>{e.innerHTML=T[e.dataset.t][L==='en'?1:0]})
-const DUR=[3.0,3.0,3.2,3.6,4.2,3.6,3.6,4.0]
+const DUR=[3.0,3.0,3.2,4.2,4.2,3.6,3.6,4.0]
 const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
 window.TOTAL=acc
 const cl=x=>Math.min(1,Math.max(0,x)),ease=x=>1-Math.pow(1-cl(x),3)
@@ -133,6 +141,7 @@ window.render=t=>{
     el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-3+Math.sin(a*6)*1.5}deg)`})
     el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`;if(i===1&&a>0.35&&a<0.5)flash=.5})
     el.querySelectorAll('.chip').forEach((c,j)=>{const k=back((a-0.5-j*0.14)/0.4);c.style.transform=`translateY(${(1-k)*300+Math.sin(a*6+j)*8}px) scale(${Math.max(0,k)})`;c.classList.toggle('on',Math.floor((a-0.8)/0.35)%5===j)})
+    el.querySelectorAll('.lenda').forEach((c,j)=>{const k=back((a-0.45-j*0.22)/0.5);c.style.transform=`perspective(1200px) rotateY(${(1-k)*100}deg) rotate(${j%2?2.5:-2.5}deg) scale(${Math.max(0,k)})`;const h=c.querySelector('.holo');h.style.backgroundPosition=`${180-((a*80+j*40)%260)}% ${180-((a*80+j*40)%260)}%`})
     el.querySelectorAll('.carta').forEach((c,j)=>{const k=back((a-0.45-j*0.2)/0.45);c.style.transform=`perspective(900px) rotateY(${(1-k)*90}deg) rotate(${j%2?2:-2}deg) scale(${Math.max(0,k)})`})
     if(i===4){const e=document.getElementById('env'),k=back((a-0.3)/0.5);e.style.transform=`scale(${Math.max(0,k)}) rotate(${Math.sin(a*8)*(a<2.2?1.5:0)}deg)`
       const m=document.getElementById('martelo'),k2=back((a-2.4)/0.35);m.style.transform=`scale(${Math.max(0,k2)}) rotate(${(1-k2)*-8}deg)`;m.style.opacity=a<2.4?0:1;if(a>2.4&&a<2.55)flash=.65}
