@@ -14229,3 +14229,9 @@ Diego: *"isso aqui já pode"*. Desligar = voltar a `false` no sport.ts.
 O modo nasce com o elenco real (22), mas a troca seguia a regra da carreira de sempre ("T1 joga com os 11", `canSub = seasonNo >= 2`
 na tela e `seasonNo < 2` no SET_LINEUP/SALVA_ESCALACAO/APLICA_ESCALACAO). Agora o Brasil Oficial troca desde a T1, nos dois lados.
 Testado: Athletico-PR, Fabiano (reserva) entrou no lugar do Renan Lodi.
+
+## 🧭 19/11 — Fluxo da Central em TODA competição (pedido do Diego) — PUBLICADO
+Estadual (Brasil Oficial), copas que rodam como fase (copa de fim de temporada, Supercopa) agora esperam a escolha 📺 2D / 🏟️ 3D na Central;
+2D = aba Jogos com "▶ Começar o jogo"; 3D = mapa com "▶ Começar o jogo" em cima (vale também pra liga e estreia). Testado: Paysandu, Parazão
+rodada 1 no 3D (Re-Pa no Mangueirão) e rodada 2 no 2D. Copa da quarta (Copa do Brasil/Liberta/Sula do calendário) já passava pela Central.
+FALTA conferir/levar: a 🌎 campanha internacional (Liberta/Champions de convite, tela própria) e a 🌍 Copa do Mundo do roteiro (tela própria).
