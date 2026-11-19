@@ -236,7 +236,9 @@
   cartas novas SÓ da carreira (fora das salas online e da Partida Rápida). Plano: `docs/carreira-eua-oficial-plano.md`.
 - Feito: selo EM BREVE no cartão "Modo Carreira" da home do basquete pra quem não é tester (`BASQUETE_CARREIRA_GERAL = false`,
   `carreiraBasqueteLiberada()` em sport.ts). Hoje o basquete só aparece pro Diego, então nada muda na tela de ninguém.
-- ⏳ Esperando o Diego: (1) escolher uma das 30 franquias, sem sobe/desce (é assim nos EUA)? (2) G League entra?
+- ✅ (1) Diego: *"Pode"* — escolhe uma das 30 franquias, **sem sobe e desce**.
+- ⏳ Mockup da tela "Escolha sua franquia" (mesmo quadro do Brasil Oficial, Leste/Oeste + 6 divisões, escudos oficiais) — esperando OK.
+- ⏳ Ainda em aberto: (2) G League entra?
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐

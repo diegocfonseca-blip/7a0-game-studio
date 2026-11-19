@@ -12,7 +12,8 @@ são nos EUA, com fonte aberta (NBA.com, Basketball-Reference, Wikipedia). Não 
 O motor é o de sempre (leilão, `simMatch` do basquete, Quadra 2D, placar cinema, roteiro do fim de temporada) — muda a REGRA por cima.
 
 ## 2. A diferença grande pro Brasil: nos EUA NÃO EXISTE SOBE E DESCE
-- O usuário escolhe **uma das 30 franquias da NBA** e fica nela (não há divisão de baixo pra cair nem pra subir).
+- ✅ **DECIDIDO (19/11, Diego: *"Pode"*)**: o usuário escolhe **uma das 30 franquias da NBA** e fica nela — **sem sobe e desce**
+  (não há divisão de baixo pra cair nem pra subir).
 - A G League existe de verdade (time afiliado de cada franquia), mas é liga de desenvolvimento, não "segunda divisão".
   ⚠️ Decidir com o Diego: a G League entra (como 2º elenco/afiliado) ou fica de fora na 1ª fase?
 
