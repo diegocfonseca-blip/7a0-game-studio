@@ -174,11 +174,11 @@ export function ViceDecor() {
 export const VICE_TELAS = ['cerimonia', 'monte', 'season', 'liberta', 'champions', 'convocacao', 'end'] as const
 export const VICE_SALA_CSS = `
 .vice-sala.vice-sala{background-color:#14072e!important;background-image:linear-gradient(180deg,#14072e 0%,#3b1265 24%,#7a1d7e 46%,#c43a8e 64%,#ff6a7a 76%,#ffb26b 84%,#2a0c45 85%,#160828 100%)!important;
-  background-size:cover!important;background-attachment:fixed!important;position:relative}
-.vice-sala>*:not(.vice-sala-decor){position:relative;z-index:1}
+  background-size:cover!important;background-attachment:fixed!important;isolation:isolate}
+/* ⚠️ nada de position nos filhos: a tabela do computador é presa no canto (absolute/fixed) e se perdia (19/11, "tá torto no desktop") */
 .vice-sala>div.sticky{background:linear-gradient(90deg,#2a0b4d,#5b1a6e,#2a0b4d)!important;color:#fff!important;border-bottom:3px solid #ff4fd8!important;box-shadow:0 0 18px rgba(255,79,216,.6)!important}
 .vice-sala>div.sticky *{color:inherit}
-.vice-sala-decor{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.vice-sala-decor{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
 .vice-sala-decor .vice-sol{top:62%;width:340px;height:340px;margin:-170px 0 0 -170px;opacity:.75}
 .vice-sala-decor .vice-grade{height:16%}
 .vice-sala-decor .vice-palma{bottom:15%;font-size:150px;opacity:.75}

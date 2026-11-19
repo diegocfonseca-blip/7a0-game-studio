@@ -14198,3 +14198,4 @@ Pedido do Diego: *"não ficou claro o campo da casa do adversário… deve apare
 do mapa (2D e 3D) entra uma faixa: `🏟️ <estádio do mandante> · casa do <mandante>`; quando o seu clube joga FORA ela fica roxa e diz
 "🚌 fora de casa, na casa do X". Prints: `scripts/mockups/estadio-nome-fora.png` / `estadio-nome-casa.png`. No branch, não publicado.
 - ✅ 19/11: Vice City liberado também pro Futpoint FC (VICE_CITY_TESTERS), pra testarem juntos.
+- ✅ 19/11: tema Vice City (pôr do sol neon) no fundo da sala inteira — revelação, monte, temporada, copas, fim (aprovado; desktop corrigido: nada de position nos filhos do Shell).

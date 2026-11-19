@@ -29,14 +29,14 @@ for (const [w, h, tam] of [[390, 1300, 'cel'], [1280, 900, 'pc']]) for (const te
     s = S.reducer(s, { type: 'START', teamName: 'Neymarzetti', formation: '4-3-3', rivals: 9, career: false, league: 'both', copaMode: 'liga', intro: true, pregaoAberto: true, vice: true })
     s = S.reducer(s, { type: 'REPLAY_SEASON' })
     if ('${tela}' === 'season') { s = S.reducer(s, { type: 'PLAY_ROUND' }) }
-    s = { ...s, screen: '${tela}', viceCity: true }
+    s = { ...s, screen: '${tela}', viceCity: ${process.env.SEMVICE ? 'false' : 'true'} }
     localStorage.setItem('esc-solo-inprogress-v1', JSON.stringify(s))
     const Sc = await import('/src/escalacao/screens.tsx')
     createRoot(root).render(h(S.EscProvider, null, h('${tela}' === 'season' ? Sc.EscSeason : Sc.EscCerimonia)))
     await new Promise(r => setTimeout(r, 2500))
   })()`)
   await p.waitForTimeout(3500)
-  const f = `${OUT}/vice-sala-${tela}-${tam}.png`
+  const f = `${OUT}/${process.env.SEMVICE ? 'sem-' : ''}vice-sala-${tela}-${tam}.png`
   await p.screenshot({ path: f }); console.log('📸', f)
   await ctx.close()
 }
