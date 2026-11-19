@@ -13,6 +13,7 @@ import { openSlots } from './store'
 import { agoraSala } from './relogio'
 import { getSport } from './sport'
 import { POS_LABELS } from './sportcfg'
+import { ViceCityFaixa, ViceCityMao } from './vice-city-ui'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
@@ -69,7 +70,7 @@ export function PregaoAberto() {
         <div style={{ background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 13, padding: '8px 11px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: `4px 4px 0 0 ${INK}` }}>
           <span style={{ fontSize: 24 }}>🔨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{t('Pregão aberto', 'Open outcry')}</p>
+            <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{pa.vice ? t('🌴 Vice City · Pregão aberto', '🌴 Vice City · Open outcry') : t('Pregão aberto', 'Open outcry')}</p>
             {/* ⏳ FALTAM N CARTAS (17/10, Diego: "uma alertazinha… pra pessoa entender que tá acabando"): nas últimas 11 da fila */}
             {restantes > 0 && restantes <= PA_ALERTA_FIM ? (
               <p style={{ display: 'inline-block', margin: '3px 0 0', background: '#E8503A', border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>
@@ -90,6 +91,8 @@ export function PregaoAberto() {
         </div>
         </AuctionSlot>
 
+        {/* 🌴 Vice City: o último golpe pra sala inteira, em cima da mesa */}
+        {pa.vice && <ViceCityFaixa />}
         {/* 🔨🔨 uma mesa (até 10 clubes) ou duas lado a lado (11+, Diego 17/10) — a MESMA mesa desenhada 1 ou 2 vezes */}
         {mesas.length === 1
           ? <MesaPregao k={0} agora={agora} />
@@ -102,6 +105,8 @@ export function PregaoAberto() {
                 : t(`Cada carta tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelas duas — ou só pela que você precisa.`, `Each card has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)}</p>
             </>}
 
+        {/* 🌴 Vice City: a sua mão de cartas de golpe, logo embaixo da mesa (à mão, sem rolar) */}
+        {pa.vice && <ViceCityMao />}
         {/* 📣 o último martelo (zoeira curta — nada de teatro duplicado) */}
         {ultimo && (
           <div style={{ background: ultimo.mgr === you.id ? GREEN : '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 10px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10 }}>
