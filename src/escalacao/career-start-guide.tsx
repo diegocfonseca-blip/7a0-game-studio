@@ -5,6 +5,7 @@ import {useT} from './lang'
 import {condicaoAtiva} from './condicao'
 import {nextCareerGuideUnlock} from './career-guide-model'
 import {careerVisualV2} from './career-visual-v2'
+import {previaCentral} from './sport'
 import logo from './img/logo-ll.webp'
 import stadium from './img/online-estadio-v25.webp'
 import './career-start-guide.css'
@@ -63,7 +64,8 @@ export function CareerCentralGuide({onSquad,onMatches}:{onSquad:()=>void;onMatch
   'guia-lendas':{key:'guia-lendas',title:t('As lendas chegaram ao leilão','Legends have reached your auction'),text:t('Na Série A, seu leilão passa a incluir craques e lendas. Nome famoso não basta: confira o clube e o ano da carta.','In Série A, your auction includes stars and legends. A famous name is not enough: check the club and year.'),action:t('Entendi','Got it')},
  }
  const unlock=unlockKey?notices[unlockKey]:null
- const intro=(state.seasonNo??1)===1&&state.round===0&&!state.careerSeen?.['guia-primeiro-jogo']&&!state.careerSeen?.['guia-basico']
+ // 18/11 (Diego: "começa o modo carreira e já aparece meio confuso"): o cartão "Vamos ao primeiro jogo?" saiu — a lista "Antes da estreia" do camarote da Central faz esse papel
+ const intro=!previaCentral()&&(state.seasonNo??1)===1&&state.round===0&&!state.careerSeen?.['guia-primeiro-jogo']&&!state.careerSeen?.['guia-basico'] // só some na Central nova (conta do Diego)
  return <>
   {unlock?<section className="csg-unlock"><span>✦ {t('NOVO NA SUA CARREIRA','NEW IN YOUR CAREER')}</span><h2>{unlock.title}</h2><p>{unlock.text}</p><div className="csg-unlock-actions"><button type="button" onClick={()=>{dispatch({type:'MARK_CAREER_SEEN',key:unlock.key});if(unlock.key==='condicao')onSquad()}}>{unlock.action}</button>{unlock.key==='condicao'&&<button type="button" className="csg-text-button" onClick={()=>dispatch({type:'MARK_CAREER_SEEN',key:unlock.key})}>{t('Entendi, ver depois','Got it, view later')}</button>}</div></section>:intro?<aside className="csg-first-game"><div><small>{t('SEU TIME ESTÁ PRONTO','YOUR TEAM IS READY')}</small><h2>{t('Vamos ao primeiro jogo?','Ready for the first match?')}</h2><p>{t('Confira o Elenco e depois abra Jogos e tabela para acompanhar a partida. As abas ficam sempre na barra de navegação.','Check your Squad, then open Matches and table to follow the match. Tabs stay in the navigation bar.')}</p></div><button type="button" onClick={onSquad}>{t('Conferir meu elenco →','Check my squad →')}</button><button className="csg-text-button" type="button" onClick={()=>{dispatch({type:'MARK_CAREER_SEEN',key:'guia-primeiro-jogo'});onMatches()}}>{t('Já conferi · ir para Jogos','Already checked · go to Matches')}</button></aside>:null}
   <div className="csg-help-row"><button type="button" className="csg-text-button" onClick={()=>setHelp(!help)} aria-expanded={help}>? {t('Guia da carreira','Career guide')} {help?'−':'+'}</button></div>

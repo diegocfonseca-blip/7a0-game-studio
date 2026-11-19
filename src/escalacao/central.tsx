@@ -42,7 +42,10 @@ const G_OURO = 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)'
 
 export type CentralJogo = { h: string; a: string; hg: number; ag: number; hId: number; aId: number }
 export type CentralArte = 'estadio' | 'copaBr' | 'copaLeg' | 'super' | 'liberta' | 'champions' | 'mundial' | 'mundo'
-export type CentralAgenda = { arte: 'copaBr' | 'copaLeg' | 'liberta' | 'mundo'; titulo: [string, string]; sub: [string, string] }
+/** 🗓️ 18/11: a agenda é a lista dos PRÓXIMOS JOGOS do seu clube — data, competição, fase e adversário (`casa` null = mata-mata, ida e volta) */
+/** a agenda de antes de 18/11 (copas e Copa do Mundo) — quem ainda não tem a Central nova */
+export type CentralAgendaVelha = { arte: 'copaBr' | 'copaLeg' | 'liberta' | 'mundo'; titulo: [string, string]; sub: [string, string] }
+export type CentralAgenda = { dia: number; comp: [string, string]; fase?: string; /** 📍 onde é o jogo: o estádio do mandante (em casa: "no seu estádio · <nome>") — Diego 18/11 quer o nome nos dois casos */ onde?: string; adv: string; casa: boolean | null; arte?: 'copaBr' | 'liberta' }
 export type RaioX = {
   nome: string
   formacao: string
@@ -86,7 +89,7 @@ function CartaoRaioX({ r }: { r: RaioX }) {
 /** 🎥 ENQUANTO ISSO NO BAIRRO (17/11, mockup aprovado pelo Diego): UMA cena do mapa do clube por vez, só do que já está
  *  acontecendo de verdade (noitada do baladeiro, obra comprada, boteco depois do jogo, carreata, feira). `chave` = o
  *  acontecimento; fechou, não volta (guarda só a ÚLTIMA chave fechada — uma entrada só no aparelho, nunca cresce). */
-export type CentralSede = { chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
+export type CentralSede = { /** 📍 o lugar do mapa onde a cena acontece (o "Ver no mapa" voa pra lá) */ vista?: string; chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
 const SEDE_FECHADA = 'esc-sede-fechada'
 function CartaoSede({ s, onMapa, cls }: { s: CentralSede; onMapa: () => void; cls: string }) {
   const t = useT()
@@ -115,6 +118,8 @@ function CartaoSede({ s, onMapa, cls }: { s: CentralSede; onMapa: () => void; cl
 export type CentralProps = {
   /** 🎥 a cena do bairro (só quando o mapa do clube existe nesta carreira e algo está acontecendo nele) */
   sede?: CentralSede | null
+  /** 📍 abre o mapa já no lugar da cena */
+  onSedeMapa?: (vista?: string) => void
   seasonNo: number
   round: number
   divName: string
@@ -125,6 +130,9 @@ export type CentralProps = {
    *  após a liga devem ir mexendo também na central"*): `rotulo` troca o selo, `frase` troca a linha de
    *  baixo e `arte` troca o fundo pela arte da copa. Sem eles, é a liga de sempre. */
   proximo: { rodada: number; casa: string; fora: string; rolando: boolean; rotulo?: string; frase?: string; arte?: CentralArte } | null
+  /** 🏁 ANTES DA ESTREIA (18/11, Diego: *"começa o modo carreira e já aparece meio confuso… esse negócio de TV no início tá
+   *  confuso"*): na rodada 0 o camarote vira uma lista curta — 📺 TV (já no caixa) · 🏆 Master · ⚽ estreia — e o botão é o passo da vez */
+  preTemporada?: { master: string | null; travado: boolean } | null
   /** 🔎 RAIO-X DO ADVERSÁRIO (31/10, só na conta do Diego por enquanto): o que o jogo JÁ sabe do rival da próxima
    *  rodada da liga — formação, estilo, os 3 melhores do XI, cansaço (só com o gás ligado) e últimos 5. Nada inventado. */
   raioX?: RaioX | null
@@ -139,6 +147,8 @@ export type CentralProps = {
   /** 💸 todos os negócios do pregão desta temporada (de todo clube), do maior pro menor */
   mercado: { negocios: { name: string; pos: string; paid: number; team: string; you: boolean }[]; maisCaro: Contratacao | null }
   agenda: CentralAgenda[]
+  /** 📺 sem a Central nova (18/11, só na conta do Diego): a agenda velha das copas */
+  agendaVelha?: CentralAgendaVelha[] | null
   /** 🌍 22/10: o ranking global de usuários (top 5 + a sua carreira) no lugar da antiga "Caixa dos rivais" */
   rankGlobal?: { linhas: { pos: number; nome: string; pts: number; you: boolean }[]; abrir: () => void } | null
   /** 🏆 CENTRAL NA COPA (22/10, ideia C aprovada): a chave das fases finais e os artilheiros da Copa.
@@ -152,6 +162,8 @@ export type CentralProps = {
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
+  /** 🛒 18/11: com a aba Mercado (Brasil Oficial) o cartão 💸 leva pra ela em vez do extrato */
+  onMercado?: () => void
   onClubDestination?: (target: 'financas' | 'agencia') => void
   /** 💾 SALVAR À VISTA (04/10): desde que a nuvem só recebe no botão, ele mora no topo da Central.
    *  `estado`: 'em_dia' (nuvem igual ao jogo) · 'atrasado' (jogou desde a última subida) · 'nunca' ·
@@ -253,6 +265,7 @@ export function CentralCarreira(p: CentralProps) {
   const frase = (() => {
     if (p.proximo?.frase) return p.proximo.frase
     if (!p.proximo && p.palco?.frase) return p.palco.frase
+    if (p.preTemporada) return null // 🏁 antes do 1º jogo ninguém é líder com 0 ponto — a lista "Antes da estreia" fala no lugar
     if (!p.proximo || !adv || minhaPos == null || advPos == null) return null
     const d = ptsDe(adv) - ptsDe(p.euNome)
     if (advPos === 1 && minhaPos !== 1) return t(`🔥 Você pega o líder · ${d > 0 ? `vencer te deixa a ${Math.max(0, d - 3)} ponto${d - 3 === 1 ? '' : 's'}` : 'e pode assumir a ponta'}`, `🔥 You face the leader · ${d > 0 ? `a win leaves you ${Math.max(0, d - 3)} point${d - 3 === 1 ? '' : 's'} behind` : 'and could take the top spot'}`)
@@ -275,7 +288,7 @@ export function CentralCarreira(p: CentralProps) {
     <div style={{ textAlign: 'center', minWidth: 0 }}>
       <Disco nome={nome} size={78} />
       <b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
-      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
+      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{p.preTemporada || (!p.agendaVelha && p.proximo?.arte) ? '\u00a0' : posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
       <Forma f={p.formas[nome]} />
     </div>
   )
@@ -321,26 +334,44 @@ export function CentralCarreira(p: CentralProps) {
                 </div>
               )}
               {frase && <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#FFE79A', margin: '10px 0' }}>{frase}</p>}
+              {p.preTemporada && (() => {
+                const pt = p.preTemporada
+                const linha = (k: string, est: 'ok' | 'vez' | 'trava', titulo: string, txt: string) => (
+                  <div key={k} style={{ display: 'flex', gap: 9, alignItems: 'center', background: est === 'vez' ? 'rgba(255,196,0,.16)' : 'rgba(0,0,0,.45)', border: `2px solid ${est === 'vez' ? GOLD : 'rgba(255,255,255,.2)'}`, borderRadius: 11, padding: '7px 9px', opacity: est === 'trava' ? .7 : 1 }}>
+                    <span style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: est === 'ok' ? '#1B7A3D' : est === 'vez' ? GOLD : '#444', color: est === 'vez' ? INK : '#fff', border: `2px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSW, fontSize: 13 }}>{est === 'ok' ? '✓' : est === 'vez' ? '!' : '🔒'}</span>
+                    <span style={{ minWidth: 0, textAlign: 'left' }}><b style={{ ...OSW, display: 'block', fontSize: 13 }}>{titulo}</b><small style={{ display: 'block', fontSize: 10.5, fontWeight: 700, opacity: .85, lineHeight: 1.3 }}>{txt}</small></span>
+                  </div>
+                )
+                return (
+                  <div style={{ display: 'grid', gap: 6, margin: '12px 0' }}>
+                    <b style={{ ...OSW, fontSize: 12, letterSpacing: '.1em', color: GOLD, textAlign: 'left' }}>{t('🏁 Antes da estreia', '🏁 Before kick-off')}</b>
+                    {pt.master ? linha('m', 'ok', t('🏆 Patrocinador Master', '🏆 Master sponsor'), t(`Assinado: ${pt.master}.`, `Signed: ${pt.master}.`))
+                      : linha('m', 'vez', t('🏆 Patrocinador Master', '🏆 Master sponsor'), t('Marcas na mesa, cada uma com prazo e meta. Escolha uma.', 'Brands on the table, each with a length and a goal. Pick one.'))}
+                    {linha('j', pt.travado ? 'trava' : 'vez', t('⚽ Estreia', '⚽ First match'), pt.travado ? t('Abre depois do Master.', 'Opens after the Master.') : t('Tudo pronto. É só começar.', 'All set. Just kick off.'))}
+                  </div>
+                )
+              })()}
               <button type="button" onClick={p.botao.onClick} disabled={p.botao.disabled}
                 style={{ ...OSW, width: '100%', background: p.botao.disabled ? '#5a5a5a' : G_OURO, color: p.botao.disabled ? '#ddd' : INK, border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 19, letterSpacing: '.04em', cursor: p.botao.disabled ? 'default' : 'pointer', marginTop: frase ? 0 : 10 }}>{p.botao.label}</button>
               {p.botao.sub && <small style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 800, opacity: .6, marginTop: 6 }}>{p.botao.sub}</small>}
             </div>
           </div>}
 
-          {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-cel" onMapa={() => p.onTab('estadio')} />}
+          {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
             <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
+            {p.preTemporada ? <p style={{ margin: 0, padding: '10px 13px', fontSize: 12, fontWeight: 700, color: '#5a5647' }}>{t('Ninguém jogou ainda. A tabela começa a contar no 1º jogo.', 'Nobody has played yet. The table starts counting from the first match.')}</p> :
             <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
               {tabelaCurta.map(x => { const pos = posDe(x.name) ?? 0; return (
                 <div key={x.name} className={`ll-central-row${noCelular.has(x.name) ? '' : ' ll-central-not-desk'}`} style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
                   <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{x.pts}</b>
                 </div>
               ) })}
-            </button>
+            </button>}
           </div>
           <div className="ll-central-lado">
           {/* 📣 O GIRO: só a rodada já revelada. Celular: 3 jogos (o seu, o do líder, o jogaço);
@@ -402,22 +433,44 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           )}
           {/* 🗓️ AGENDA das copas → abre Jogos. No desktop sobe pra baixo do camarote, em linha */}
-          <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
+          {p.agendaVelha && <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
             <Cabecalho titulo={t('🗓️ Agenda', '🗓️ Calendar')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
             <div className="ll-central-agenda-lista">
-            {p.agenda.map((a, i) => (
+            {p.agendaVelha.map((a, i) => (
               <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 8 }}>
                 <span style={{ width: 44, height: 34, flex: 'none', border: `2px solid ${INK}`, borderRadius: 7, background: `url(${ARTES[a.arte]}) center / cover` }} />
                 <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0 }}><b style={{ ...OSW, fontSize: 12, display: 'block' }}>{en ? a.titulo[1] : a.titulo[0]}</b><small style={{ color: '#555', fontWeight: 700 }}>{en ? a.sub[1] : a.sub[0]}</small></span>
               </div>
             ))}
             </div>
-          </div>
+          </div>}
+          {/* 🗓️ AGENDA = os próximos jogos do seu clube (18/11) → abre Jogos */}
+          {!p.agendaVelha && p.agenda.length > 0 && <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
+            <Cabecalho titulo={t('🗓️ Próximos jogos', '🗓️ Upcoming matches')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
+            <div className="ll-central-agenda-lista">
+            {p.agenda.map((a, i) => { const d = new Date(a.dia); const dow = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); const mes = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { month: 'short', timeZone: 'UTC' }).replace('.', ''); return (
+              <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 9, alignItems: 'center' }}>
+                <span style={{ width: 44, flex: 'none', textAlign: 'center', border: `2px solid ${INK}`, borderRadius: 8, background: i === 0 ? GOLD : '#fff', lineHeight: 1.05, padding: '3px 0' }}>
+                  <small style={{ ...OSW, display: 'block', fontSize: 9, letterSpacing: '.06em' }}>{dow}</small>
+                  <b style={{ ...OSW, display: 'block', fontSize: 16 }}>{d.getUTCDate()}</b>
+                  <small style={{ ...OSW, display: 'block', fontSize: 9 }}>{mes}</small>
+                </span>
+                <Escudo nome={a.adv} size={26} />
+                <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0, flex: 1 }}>
+                  <b style={{ ...OSW, fontSize: 13.5, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.adv}</b>
+                  <small style={{ color: '#555', fontWeight: 700, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{en ? a.comp[1] : a.comp[0]}{a.fase ? ` · ${a.fase}` : ''}</small>
+                  {a.onde && <small style={{ color: '#7a5a1e', fontWeight: 800, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {a.casa ? t('no seu estádio', 'at your ground') + ' · ' : ''}{a.onde}</small>}
+                </span>
+                {a.casa != null && <Chip bg="#fff">{a.casa ? t('🏟️ casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
+              </div>
+            ) })}
+            </div>
+          </div>}
           </div>
         </div>
 
         <div className="ll-central-dir">
-          {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-pc" onMapa={() => p.onTab('estadio')} />}
+          {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-pc" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {/* 📰 O MARTELO do meio da temporada */}
           <div className="ll-central-card ll-central-martelo ll-c-martelo" style={{ background: '#FBF5E4', borderRadius: 8 }}>
             <div style={{ padding: '10px 13px 6px', textAlign: 'center', borderBottom: `3px double ${INK}` }}>
@@ -446,7 +499,7 @@ export function CentralCarreira(p: CentralProps) {
           {/* 💸 MERCADO: a sala de leilão */}
           <div className="ll-central-card ll-c-mercado" style={{ background: `#1a120a url(${leilaoArt}) 85% center / cover`, color: CREME, borderColor: '#847657' }}>
             <div style={{ background: 'linear-gradient(90deg,#0C0C0Cf2 45%,#0C0C0C8c)' }}>
-              <Cabecalho titulo={t('💸 Mercado', '💸 Market')} sub={t('o que rolou nos leilões', 'auction business')} link={t('extrato', 'ledger')} onClick={() => p.onTab('estadio')} />
+              <Cabecalho titulo={t('💸 Mercado', '💸 Market')} sub={t('o que rolou nos leilões', 'auction business')} link={p.onMercado ? t('mercado', 'market') : t('extrato', 'ledger')} onClick={() => p.onMercado ? p.onMercado() : p.onTab('estadio')} />
               {(mercadoTodo ? p.mercado.negocios : p.mercado.negocios.slice(0, 8)).map((c, i) => (
               <div key={i} className={`ll-central-row ll-central-deal${!mercadoTodo && i >= 5 ? ' ll-central-not-desk' : ''}`} style={{ gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
                 <Escudo nome={c.team} size={26} />

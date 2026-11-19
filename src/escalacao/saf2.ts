@@ -14,6 +14,9 @@
 // clube antigos seguem exatamente como sempre foram.
 
 export const PRECO_SAF = 2000
+/** 🇧🇷 Brasil Oficial (18/11, Diego): a SAF custa 1.500 (e só com o time na Série A + estádio completo + plano) */
+export const PRECO_SAF_OFICIAL = 1500
+export const precoSafDe = (oficial?: boolean): number => (oficial ? PRECO_SAF_OFICIAL : PRECO_SAF)
 export const PRECO_COMANDO = 4000
 export const TEMPORADAS_PRA_ASSUMIR = 10
 export const LUCRO_MAXIMO = 500
@@ -27,8 +30,10 @@ export const EMPRESTIMOS_ENTRE_CLUBES = 2
 
 // 💸 SAF vale pela DIVISÃO em que ela está na hora da venda. Só dá lucro se estiver na Série A.
 export const VALOR_SAF_DIV: Record<string, number> = { V: 500, D: 1000, C: 1500, B: 2000, A: 2500 }
-export function valorVendaSaf(div: string | null | undefined): number {
-  return VALOR_SAF_DIV[div ?? 'D'] ?? VALOR_SAF_DIV.D
+export function valorVendaSaf(div: string | null | undefined, oficial = false): number {
+  const v = VALOR_SAF_DIV[div ?? 'D'] ?? VALOR_SAF_DIV.D
+  // 🇧🇷 Oficial: pagou 1.500, então o lucro máximo de 500 (regra de 13/10) segura a venda em 2.000
+  return oficial ? Math.min(v, PRECO_SAF_OFICIAL + 500) : v
 }
 
 // 🏆 2º clube vale pela COLEÇÃO DE TAÇAS ganhas com ele (cada tipo conta UMA vez).

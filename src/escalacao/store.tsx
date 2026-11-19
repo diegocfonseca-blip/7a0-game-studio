@@ -45,7 +45,7 @@ import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaTo
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
 import { condicaoAtiva, divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
-import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
+import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, precoPrep, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
@@ -55,7 +55,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSI
 import { stripEmoji, myApoioPerk, loggedEmail } from './apoio'
 import { marcoNovaRecepcaoM2 } from './motor2-recepcao-conta'
 import { fichasDoPlano } from './planos-regras'
-import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
+import { tecnicoPorNome, poolDaDiv, pisoTecnico, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
 import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHANCE, loucuraFator, perfilPagaAcima, type PerfilBot } from './perfis-bot'
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -372,7 +372,7 @@ function pagaExDono(s: EscState, nomeTec: string, preco: number, contratanteTeam
 /** Folha conhecida do clube, sem empréstimos compartilhados da SAF. Mesma base da cobrança. */
 export function folhaBaseDoClube(s: EscState, m: Manager): number {
   const tecnico=s.careerTecnicos?.[m.teamName]
-  return squadPayroll(m.squad as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
+  return squadPayroll(m.squad as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]), divOficialDe(s))
 }
 
 function chargeSalaries(s: EscState) {
@@ -555,10 +555,12 @@ function applyTVIncome(s: EscState) {
   const ids = online ? s.managers.filter(m => m.isHuman).map(h => h.id) : (dorm != null ? [y, dorm] : [y])
   for (const id of ids) {
     const div = s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V'
-    const cota = TV_COTA[div] ?? 0
+    // 🇧🇷 18/11: no Brasil Oficial a TV paga pela divisão E pelo porte do clube (`economia-oficial.ts`)
+    const nomeClube = s.managers.find(m => m.id === id)?.teamName ?? ''
+    const cota = s.oficial ? tvOficial(div, nomeClube) : (TV_COTA[div] ?? 0)
     if (cota > 0) {
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + cota }
-      logFin(s, 'reward', '📺 Cota de TV', cota, undefined, id, true)
+      logFin(s, 'reward', s.oficial ? tr(`📺 Cota de TV · Série ${div}${div === 'A' || div === 'B' ? ` · ${NOME_PORTE[porteOficial(nomeClube)][0]}` : ''}`, `📺 TV money · Série ${div}${div === 'A' || div === 'B' ? ` · ${NOME_PORTE[porteOficial(nomeClube)][1]}` : ''}`) : '📺 Cota de TV', cota, undefined, id, true)
     }
   }
 }
@@ -1009,11 +1011,11 @@ export function folhaDoBot(squad: readonly Card[] | undefined): number {
 }
 /** o balanço de UM clube bot numa virada (puro — a trava `npm run econ-bots` testa isto) */
 // 🤝 `patrocinio` (13/10, rival com banco): a 3ª receita do bot — `PATROCINIO_BOT` (bots-banco.ts). 0 = como era.
-export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
-  const tv = TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6
+export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0, tvOficialBot?: number, tetoOficial?: number): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
+  const tv = tvOficialBot ?? TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6 // 🇧🇷 Oficial: TV pela régua do modo (série + porte)
   const saldo = tv + bilheteria + patrocinio - folha
   let novo = Math.max(0, caixa + saldo)
-  const teto = BOT_CAIXA_TETO[div] ?? 150
+  const teto = Math.max(BOT_CAIXA_TETO[div] ?? 150, tetoOficial ?? 0)
   // passou do teto? o excedente vira obra. Quem JÁ estava acima (save antigo) não perde nada.
   if (saldo > 0 && novo > teto) novo = Math.max(caixa, teto)
   return { tv, bilheteria, folha, saldo, caixa: Math.round(novo), ...(patrocinio ? { patrocinio } : {}) }
@@ -1030,7 +1032,13 @@ function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> 
     const squad = k.startsWith('m') && /^m\d+$/.test(k)
       ? s.managers.find(m => `m${m.id}` === k)?.squad
       : (s.cpuSquads?.[k] as Card[] | undefined)
-    const b = balancoBot(div, folhaDoBot(squad), cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0)
+    // 🇧🇷 Oficial (18/11, "o bot faz tudo que o usuário faz"): TV pela régua do modo, e a folha inclui o salário do TÉCNICO
+    // (pago ÷ 10) e do PREPARADOR (10% do preço da série) — igual à sua (`folhaBaseDoClube`).
+    const nomeK = k.startsWith('m') && /^m\d+$/.test(k) ? (s.managers.find(m => `m${m.id}` === k)?.teamName ?? k) : k
+    const tecK = s.oficial || s.botComissao ? s.careerTecnicos?.[nomeK] : null
+    const comissao = s.oficial || s.botComissao ? (tecK ? Math.round((s.careerTecnicoPago?.[tecK] ?? 0) / 10) : 0) + salarioPreparador(preparadorDe(s.careerPreparador?.[nomeK]), s.oficial ? div : null) : 0
+    const b = balancoBot(div, folhaDoBot(squad) + comissao, cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0,
+      s.oficial ? tvOficial(div, nomeK) : undefined, s.oficial ? caixaInicialOficial(nomeK, div) * 2 : undefined)
     cash[k] = b.caixa
     rel[k] = b
   }
@@ -1134,12 +1142,13 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { ligaEscudosOficiais } from './escudos'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
-import { brasilOficialLiberado } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
-import { clubeOficial, CLUBES_BR, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
+import { brasilOficialLiberado, previaCentral } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
+import { clubeOficial, CLUBES_BR, CLUBES_BR_TODOS, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
+import { tvOficial, porteOficial, NOME_PORTE, caixaInicialOficial } from './economia-oficial'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { masterMetaOferta, masterMetaBatidaFecho, masterMetaBatidaIntl, masterIntlAberto, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora, MASTER_METAS } from './master-historia' // 🏆📞 Master com história (17/10)
 import { mesclaClubes, type GavetaPublica } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
@@ -1173,7 +1182,7 @@ import { PATROCINIO_BOT } from './bots-banco' // 🔁 rival com banco (13/10)
 import { botBancoLiberado, econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
 import { BATISMOS, chaveClube } from './batismos' // 🖋 bots de batismo/fundador se revezando nas salas online (02/11)
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
-import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
+import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, precoSafDe, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
@@ -1324,7 +1333,7 @@ export function sobrasReais(s: EscState): Record<Sector, Card[]> {
   const out = {} as Record<Sector, Card[]>
   for (const pos of SECTORS) {
     out[pos] = ACTIVE_CATALOG[pos]
-      .filter(c => !donos.has(ident(c as Card)))
+      .filter(c => !donos.has(ident(c as Card)) && (!s.oficial || cartaDeClubeBrasileiro(c))) // 🇧🇷 Oficial: só clube brasileiro
       .map(c => ({ ...c, pos } as Card))
       .sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
   }
@@ -1395,6 +1404,9 @@ export function slotsOf(m: Manager, pos: Sector): number {
   if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
   // 🧱 leilão de clubes: no pregão cada técnico leva UM pacote por setor (a convocação vem depois)
   if (m.modoClubes) return 1
+  // 🔨 Brasil Oficial (18/11): no leilão de ABERTURA cada clube leva UMA por posição — *"5 pra todos… um pra goleiro, um pra zagueiro,
+  // um pra lateral, um pra meia e um pra atacante"*. Vale pro usuário e pros bots, igual.
+  if (m.aberturaBase) return (m.aberturaBase[pos] ?? 0) + 1
   // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
   // ⛔ AQUI NÃO ENTRA O +1 POR POSIÇÃO (correção do Diego, 16/09): *"o leilão de
   // reserva são 11 jogadores sempre… poder comprar mais cinco não tem nada a ver
@@ -1427,6 +1439,7 @@ export function filled(m: Manager, pos: Sector): number {
 // sozinho: vaga sem lance é vaga vazia.
 // Bot/rival seguem no alvo do pregão, exatamente como era.
 export function openSlots(m: Manager, pos: Sector): number {
+  if (m.aberturaBase) return Math.max(0, (m.aberturaBase[pos] ?? 0) + 1 - filled(m, pos)) // 🔨 abertura do Brasil Oficial: 1 por posição
   // ⚠️ SÓ COM O PREGÃO ABERTO (`deepSquad`). Fora dele o alvo volta pra 11 e este
   // número é usado pra outras coisas (o "−N 🕳️" do gerenciar, a vez do monte);
   // mexer nele o ano inteiro faria a tela dizer que falta gente sem faltar.
@@ -2022,6 +2035,266 @@ export function escadaAllows(div: EscadaDiv, c: { fame?: number; promessa?: bool
     case 'A': return !c.promessa && f >= 4
   }
 }
+/** 🇧🇷 BRASIL OFICIAL (18/11, *"pro usuário não entender qual é o limite e depois sempre ganhar"*): o lance máximo do bot numa
+ *  carta é um PEDAÇO do caixa dele, sorteado a cada carta — lenda 35–70% · craque 20–40% · promessa/bom 10–25% · profissional 3–10%.
+ *  Nunca um número fixo: muda com o clube, o caixa, a carta e a temporada. Categoria de baixo sempre pode pagar pelo menos o piso
+ *  (senão clube pobre nunca compraria nada). 🤪 LOUCURA: 4% das vezes um clube com 200+ 🪙 fica obcecado por lenda/craque e vai até 85%.
+ *  O exagero nunca sobe o piso da carta (trava de sempre, `travaPisoDoBot`). */
+function tetoBotOficial(m: Manager, c: Card | undefined, rng: () => number): number {
+  const caixa = Math.max(0, Math.round(m.money ?? 0))
+  if (!c || caixa <= 0) return 0
+  const f = c.fame ?? 1, alto = !c.promessa && f >= 4
+  const [lo, hi] = !c.promessa && f >= 5 ? [0.35, 0.70] : !c.promessa && f === 4 ? [0.20, 0.40] : (c.promessa || f >= 2) ? [0.10, 0.25] : [0.03, 0.10]
+  let pct = lo + rng() * (hi - lo)
+  if (alto && caixa >= 200 && rng() < 0.04) pct = 0.85 // 🤪 loucura
+  const piso = Math.max(1, Math.round((c as WonCard).paid ?? 1))
+  const teto = Math.round(caixa * pct)
+  return Math.min(caixa, alto ? teto : Math.max(teto, Math.round(piso * 1.2)))
+}
+/** 🇧🇷 Brasil Oficial (18/11, "bot faz tudo que o usuário faz"): o bot paga do caixa dele (`clubCash['m<id>']`, o mesmo que o leilão
+ *  usa). false = não tinha dinheiro (nada é cobrado). */
+function botPaga(s: EscState, m: Manager, valor: number): boolean {
+  const v = Math.max(0, Math.round(valor))
+  if (!v) return true
+  const k = 'm' + m.id, caixa = s.clubCash?.[k] ?? Math.round(m.money ?? 0)
+  if (caixa < v) return false
+  s.clubCash = { ...(s.clubCash ?? {}), [k]: caixa - v }
+  return true
+}
+/** 🧢 semeia/atualiza o mercado de técnicos da SUA série (era o corpo do ALICIAR_SEED). Desde 18/11 o Brasil Oficial chama isto
+ *  sozinho na virada (item (d)): o mercado de técnicos anda mesmo que ninguém abra o Sondar. */
+function semeiaTecnicos(s: EscState): void {
+  // dá um técnico a cada clube CPU da sua divisão que ainda não tem, tirando
+  // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
+  // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
+  if (!s.careerOnline) return
+  // 🐛 FIX 28/08 (Diego: "meu amigo já está na SÉRIE A e apareceu Lisca Doido,
+  // Joel Santana, Guto Ferreira — técnico de VÁRZEA"): eu usava
+  // `s.careerDivision`, que na PIRÂMIDE fica congelado na divisão de FUNDAÇÃO
+  // (quem começou na Várzea segue 'V' pra sempre). A divisão de VERDADE mora
+  // em `careerPlacements['m<id>']` e muda a cada acesso/queda — o próprio
+  // store já avisava isso em myCareerDiv ("NUNCA cair em careerDivision").
+  // Agora o pool de técnicos segue a divisão ATUAL: subiu de série, o mercado
+  // de técnicos sobe junto, igual acontece com as cartas de jogador.
+  const youIdSeed = s.managers[s.youIdx]?.id ?? s.youIdx
+  const div = ((s.careerPlacements?.[`m${youIdSeed}`] ?? s.careerDivision ?? 'D') as DivTecnico)
+  const map = { ...(s.careerTecnicos ?? {}) }
+  // 🩹 CURA de quem já foi semeado com a divisão errada: técnico que não é da
+  // divisão de agora volta pro pool e o clube pega um da categoria certa.
+  // Só nos clubes de CPU, e o `desde` é remarcado — placar já visto não muda.
+  const desdeCura = { ...(s.careerTecnicosDesde ?? {}) }
+  let curou = false
+  // cura TODO clube já semeado (manager ou time de fundo), não só os managers
+  for (const nomeClube of Object.keys(map)) {
+    const n = map[nomeClube]
+    if (!n) continue
+    const tt = tecnicoPorNome(n)
+    if (tt && tt.div !== div) { delete map[nomeClube]; curou = true }
+  }
+  // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
+  // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
+  // mesmos times... o certo deveria sempre ter ali os rivais + trocar pelos times
+  // da divisão atual o restante"*. Na pirâmide os seus 19 bots se ESPALHAM pelas
+  // séries (no save dele, na T15, só 3 estavam na C junto com ele) — os outros 16
+  // adversários da Série C são TIMES DE FUNDO, que moram só em `careerPlacements`
+  // (chave = nome do clube; manager usa `m<id>`). Eles nunca tinham técnico, então
+  // nem apareciam no Sondar. Agora entram: rivais escolhidos SEMPRE, mais todo
+  // mundo (manager ou fundo) que está na sua divisão agora.
+  const naMinhaDiv = new Set<string>()
+  for (const [k, v] of Object.entries(s.careerPlacements ?? {})) if (v === div && !/^m\d+$/.test(k)) naMinhaDiv.add(newestTeamName(k))
+  const rivaisTime = new Set((s.careerRivals ?? []).map(r => newestTeamName(r.team)))
+  for (const m of s.managers) {
+    if (m.isHuman) continue
+    const dm = s.careerPlacements?.[`m${m.id}`]
+    if (dm === div || m.auctionOnly || rivaisTime.has(newestTeamName(m.teamName))) naMinhaDiv.add(m.teamName)
+  }
+  // 🔓 TÉCNICO DE CLUBE QUE SAIU DA MINHA DIVISÃO VOLTA PRO MERCADO (09/10, save do
+  // Elton — Série A, temporada 387). O relato: *"todos os times, quando ele vai
+  // sondar, estão sem técnico… e não aparece ninguém sem clube"*. O que tinha
+  // acontecido: o pool da Série A tem 22 nomes; a cada temporada um clube CAÍA pra B
+  // levando o técnico junto, e nada devolvia o técnico — ele sumia do mercado pra
+  // sempre. Em 387 temporadas os 22 estavam presos em clubes da C, da D e da Várzea,
+  // o clube que subia pra A ganhava `null` e o Sondar virava deserto. Agora: clube que
+  // não está na minha divisão (nem é rival/convidado do meu leilão, nem gente) solta o
+  // técnico; chave `null` de clube que foi embora é limpa junto. Placar já visto não
+  // muda: técnico só pesa em rodada ainda não jogada (`desdeR`).
+  const desde = { ...(s.careerTecnicosDesde ?? {}) }
+  const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
+  const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.teamName))
+  let soltou = false
+  for (const nomeClube of Object.keys(map)) {
+    if (gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
+    delete map[nomeClube]; delete desde[nomeClube]; delete ctAll[nomeClube]; soltou = true
+  }
+  const usados = new Set(Object.values(map).filter((x): x is string => !!x))
+  const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
+  const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
+  for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
+  const clubes = [...naMinhaDiv].sort()
+  let mudou = soltou
+  // clube sem técnico (chave nova OU `null` de quando o mercado estava vazio) pega um
+  // livre, se houver; se não houver ninguém livre, fica `null` como antes
+  for (const c of clubes) {
+    if (map[c]) continue
+    const n = livres.shift() ?? null
+    if (!n && c in map) continue
+    map[c] = n; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true
+  }
+  if (curou) {
+    // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
+    const ctCura = { ...(s.careerTecnicoContrato ?? {}) }
+    for (const m of s.managers) if (!m.isHuman && map[m.teamName] && desdeCura[m.teamName]) delete ctCura[m.teamName]
+    s.careerTecnicoContrato = ctCura
+    mudou = true
+  }
+  // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
+  // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
+  for (const c of clubes) {
+    const n = map[c]
+    if (!n || ctAll[c] != null) continue
+    let h = 0
+    for (const ch of n + c) h = (h * 31 + ch.charCodeAt(0)) | 0
+    ctAll[c] = s.seasonNo + ((h >>> 0) % 5) - 1 // -1..+3: alguns já vencidos, resto escalonado
+    mudou = true
+  }
+  s.careerTecnicoContrato = ctAll
+  // 🤖 VIDA DOS BOTS (27/08, regra do Diego: bots espertos, que sabem a
+  // categoria e podem trocar de técnico e de formação) — SÓ NA RODADA 0 e
+  // 1× por temporada: no meio da temporada, trocar técnico/formação de bot
+  // re-simularia rodada já vista e MUDARIA PLACAR (proibido, lei da casa).
+  if (s.round === 0 && s.tecnicosVidaSeason !== s.seasonNo) {
+    s.tecnicosVidaSeason = s.seasonNo
+    const rngV = mulberry((((s.seed ^ 0x7EC1DA) + s.seasonNo * 104729) | 0) >>> 0)
+    const pago = { ...(s.careerTecnicoPago ?? {}) }
+    // bot SEM técnico contrata um livre da divisão (e a inflação aperta: a
+    // cada temporada o mercado fica ~4% mais caro — "as coisas vão ficando
+    // mais caras", palavras do Diego)
+    for (const m of s.managers) {
+      if (m.isHuman || map[m.teamName]) continue
+      if (!livres.length) break
+      if (rngV() < 0.6) {
+        const nomeN = livres.shift()!
+        const tN = tecnicoPorNome(nomeN)
+        if (!tN) continue
+        // 🧢💰 01/10: a inflação para em 2× (antes, na temporada 116, era 5,6× em cima
+        // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
+        // respeita o teto da categoria.
+        const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, pisoTecnico(tN.div, !!s.oficial)) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)), !!s.oficial)
+        // 🇧🇷 Oficial (18/11, item (c)): o bot PAGA o técnico do caixa dele, igual a você — sem dinheiro, fica sem (e o técnico volta pro mercado)
+        if ((s.oficial || s.botComissao) && !botPaga(s, m, preco)) { livres.push(nomeN); continue }
+        map[m.teamName] = nomeN
+        desde[m.teamName] = { t: s.seasonNo, r: 0 }
+        pago[nomeN] = preco // o mercado aprende com a compra do bot também
+        pagaExDono(s, nomeN, preco) // ex-dono humano recupera metade
+        mudou = true
+      }
+    }
+    // 📝 bot com contrato de técnico VENCIDO decide: maioria renova (+5), o
+    // resto deixa vencido — esses ficam ALICIÁVEIS pra você.
+    for (const m of s.managers) {
+      if (m.isHuman || !map[m.teamName]) continue
+      const fim = (s.careerTecnicoContrato ?? {})[m.teamName]
+      if (fim != null && fim < s.seasonNo && rngV() < 0.6) {
+        // 🇧🇷 Oficial (item (c)): renovar custa o valor dele, igual pra você; sem caixa, deixa vencer (fica aliciável)
+        if ((s.oficial || s.botComissao) && !botPaga(s, m, s.careerTecnicoPago?.[map[m.teamName]!] ?? 0)) continue
+        s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
+        mudou = true
+      }
+    }
+    // 🏋️ Oficial (18/11, item (c)): o bot também tem PREPARADOR — compra o melhor que cabe em ~25% do caixa, renova quando vence se
+    // tiver dinheiro (metade do preço), senão fica sem. Mesmos preços e prazos sorteados do usuário.
+    if (s.oficial || s.botComissao) for (const m of s.managers) {
+      if (m.isHuman) continue
+      const t = m.teamName, atual = preparadorDe(s.careerPreparador?.[t]), fimP = s.careerPreparadorContrato?.[t]
+      const divB = s.oficial ? (s.careerPlacements?.[`m${m.id}`] ?? div) as string : null // fora do Oficial: o preço de sempre do catálogo
+      const caixaB = s.clubCash?.['m' + m.id] ?? Math.round(m.money ?? 0)
+      if (atual && fimP != null && fimP < s.seasonNo) {
+        if (botPaga(s, m, precoRenovacaoPreparador(atual, divB))) s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [t]: fimDoContrato(s.seasonNo, rngV) }
+        else { s.careerPreparador = { ...(s.careerPreparador ?? {}), [t]: null }; const cp = { ...(s.careerPreparadorContrato ?? {}) }; delete cp[t]; s.careerPreparadorContrato = cp }
+        continue
+      }
+      if (atual || rngV() < 0.5) continue
+      const cabe = [...PREPARADORES].reverse().find(p => precoPrep(p, divB) <= caixaB * 0.25)
+      if (cabe && botPaga(s, m, precoPrep(cabe, divB))) {
+        s.careerPreparador = { ...(s.careerPreparador ?? {}), [t]: cabe.key }
+        s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [t]: fimDoContrato(s.seasonNo, rngV) }
+      }
+    }
+    // bot com técnico pode TROCAR DE FORMAÇÃO pra uma do repertório do
+    // técnico dele — só se o elenco preencher a conta (nunca entra em campo
+    // manco). Com elencos de 11 moldados isso raramente cabe HOJE; quando os
+    // bots ganharem elenco fundo, passa a acontecer sozinho.
+    for (const m of s.managers) {
+      if (m.isHuman) continue
+      const nomeT = map[m.teamName]
+      if (!nomeT) continue
+      const tt = tecnicoPorNome(nomeT)
+      if (!tt || rngV() >= 0.35) continue
+      const opcoes = fichaDoTecnico(tt).formacoes
+        .map(r => formacaoPorRotulo(r)?.motor)
+        .filter((x): x is FormationKey => !!x && x !== m.formation)
+      const cabiveis = opcoes.filter(f => SECTORS.every(pos => m.squad.filter(c => c.pos === pos && !c.fake).length >= FORMATIONS[f][pos]))
+      if (cabiveis.length) { m.formation = cabiveis[Math.floor(rngV() * cabiveis.length)]; m.formationView = undefined; mudou = true }
+    }
+    s.careerTecnicoPago = pago
+  }
+  if (!mudou) return
+  s.careerTecnicos = map
+  s.careerTecnicosDesde = desde
+}
+/** 🇧🇷 BRASIL OFICIAL (18/11, item (a) aprovado): contrato de técnico/preparador vencido que NÃO foi renovado na janela =
+ *  ele vai embora quando o leilão começa (na carreira de sempre ele ficava pra sempre sem pagar renovação). Mesmas regras do
+ *  "deixar ir": sem multa, técnico vai pra SEM CLUBE e, se alguém contratar, você recupera metade. O aviso mora na janela. */
+function deixaComissaoVencidaIr(s: EscState, soDestaVirada = false): void {
+  const you = s.managers[s.youIdx]
+  if (!you?.isHuman) return
+  const t = you.teamName
+  const nome = s.careerTecnicos?.[t], fimT = s.careerTecnicoContrato?.[t]
+  const venceuAgora = (fim: number) => fim < s.seasonNo && (!soDestaVirada || fim === s.seasonNo - 1)
+  if (nome && fimT != null && venceuAgora(fimT)) {
+    s.careerTecnicos = { ...(s.careerTecnicos ?? {}), [t]: null }
+    const ct = { ...(s.careerTecnicoContrato ?? {}) }; delete ct[t]; s.careerTecnicoContrato = ct
+    s.careerTecnicoExDono = { ...(s.careerTecnicoExDono ?? {}), [nome]: t }
+    limpaHeranca(s, t)
+    ;(s.marketLog = s.marketLog ?? []).push(`👋 ${nome} foi embora: o contrato acabou e não foi renovado. Ele está SEM CLUBE — se alguém contratar, você recupera metade.`)
+  }
+  const p = preparadorDe(s.careerPreparador?.[t]), fimP = s.careerPreparadorContrato?.[t]
+  if (p && fimP != null && venceuAgora(fimP)) {
+    s.careerPreparador = { ...(s.careerPreparador ?? {}), [t]: null }
+    const cp = { ...(s.careerPreparadorContrato ?? {}) }; delete cp[t]; s.careerPreparadorContrato = cp
+    ;(s.marketLog = s.marketLog ?? []).push(`👋 ${p.nome} foi embora: o contrato acabou e não foi renovado. O banco volta a devolver o de sempre.`)
+  }
+}
+/** 🇧🇷 a série do SEU clube no Brasil Oficial (null fora dele) — régua de preço de preparador/técnico */
+export function divOficialDe(s: Pick<EscState, 'oficial' | 'managers' | 'youIdx' | 'careerPlacements' | 'careerDivision'>): string | null {
+  if (!s.oficial) return null
+  const y = s.managers[s.youIdx]?.id ?? 0
+  const d = s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'D'
+  return d === 'A' || d === 'B' || d === 'C' || d === 'D' ? d : 'D'
+}
+/** 🇧🇷 BRASIL OFICIAL (18/11, régua do Diego): a categoria que aparece no leilão depende da SUA série —
+ *  D: profissional e bom jogador · C: bom jogador e promessa · B: promessa e craque · A: craque e lenda. */
+export function categoriaOficialOk(div: string, c: { fame?: number; promessa?: boolean }): boolean {
+  const f = c.fame ?? 1
+  if (div === 'A') return !c.promessa && f >= 4
+  if (div === 'B') return !!c.promessa || f === 4
+  if (div === 'C') return !!c.promessa || (f >= 2 && f <= 3)
+  return !c.promessa && f <= 3 // D
+}
+function filtroOficialDe(s: EscState): ((c: Card) => boolean) | undefined {
+  if (!s.oficial) return undefined
+  const y = s.managers[s.youIdx]?.id ?? 0
+  const div = s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'D'
+  return c => categoriaOficialOk(div, c) && cartaDeClubeBrasileiro(c)
+}
+/** 🇧🇷 18/11 (Diego: *"só ter cartas de jogadores que jogaram em times brasileiros"*): no Brasil Oficial o leilão só traz carta de
+ *  CLUBE brasileiro — vale o clube da carta, não a nacionalidade (Depay Corinthians entra; Júlio César Inter fica pra quando a Europa
+ *  for lançada como modo). */
+let NOMES_BR: Set<string> | null = null
+export function cartaDeClubeBrasileiro(c: { club: string }): boolean {
+  NOMES_BR ??= new Set(CLUBES_BR_TODOS.flatMap(x => [x.nome, ...(x.apelidos ?? [])]))
+  return NOMES_BR.has(c.club)
+}
 // divisão que manda no baralho AGORA (a SUA divisão) — null = mercado normal
 function escadaDivOf(s: EscState): EscadaDiv | null {
   if (!s.escadaOn || s.escadaLivre) return null
@@ -2217,7 +2490,7 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
 const MISTURA_FOI_PRO = 0.25
 // 👑 chance de uma vaga de LENDA virar CRAQUE no baralho do rápido (Diego 26/09: *"1 em cada 5 lendas… craque isso aí"*)
 const MISTURA_LENDA = 0.2
-function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
+function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null, filtro?: (c: Card) => boolean): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const takenNow = new Set<string>() // 🔄 rodízio: idents pegos nesta leva (vira a memória do próximo baralho)
@@ -2227,7 +2500,8 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     const demand = managers.reduce((s, m) => s + slotsOf(m, pos), 0)
     // 🪜 escada: o catálogo do setor é FILTRADO pras categorias da divisão —
     // trava dura (nem o "completa com qualquer real" fura a régua).
-    const shuffled = shuffle(escada ? ACTIVE_CATALOG[pos].filter(c => escadaAllows(escada, c)) : ACTIVE_CATALOG[pos], rng)
+    const base0 = escada ? ACTIVE_CATALOG[pos].filter(c => escadaAllows(escada, c)) : ACTIVE_CATALOG[pos]
+    const shuffled = shuffle(filtro ? base0.filter(c => filtro(c as Card)) : base0, rng) // 🇧🇷 Brasil Oficial: categoria pela série (`categoriaOficialOk`)
     // 🔄 RODÍZIO: joga quem caiu na leva passada pro FIM (empate mantém a ordem
     // embaralhada, então continua aleatório). As cotas pegam do começo → preferem
     // cartas que NÃO acabaram de aparecer. Só reordena; não muda nenhuma %.
@@ -2494,7 +2768,7 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
   // dá lance mais"). Com o banco de 22, o bot chegava ao leilão SEM vaga e não disputava nada. Agora, na carreira (bot que
   // pensa como gente), elenco cheio ainda dá UM lance por setor — só em carta BEM melhor que o pior titular dele. Se ganhar,
   // o jogador que perde a vaga vai a leilão no próximo leilão (`marcaAVender`) e o dinheiro da venda é do bot.
-  const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman
+  const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman && !m.aberturaBase
   if (reforco) need = 1
   if (need === 0 || m.money <= 0) return []
   const remaining = ORDEM_ATIVA.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
@@ -5736,6 +6010,7 @@ type Action =
   | { type: 'CAREER_ADVANCE'; keep: boolean; pago?: boolean } // 🔒 `pago`: a tela diz se a conta tem plano (carreira grátis vai até a 50)
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
+  | { type: 'DE_OLHO'; tec?: string | null; jog?: { chave: string; nome: string; clube: string; pos: string } | null } // 👀 Mercado (Brasil Oficial): marca/desmarca de olho (1 técnico + 1 jogador; trocar substitui)
   | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string; squad?: WonCard[] } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
   | { type: 'RENOVAR_TECNICO' } // 📝 contrato do técnico venceu (5 anos): +5 temporadas pagando o valor dele
   | { type: 'DISPENSAR_TECNICO' } // 📝 contrato venceu: deixa ir sem multa
@@ -5856,7 +6131,7 @@ type Action =
   // 🛍️ LOJA DO CLUBE (15/09; liberada geral no mesmo dia — sport.ts/LOJA_GERAL)
   | { type: 'LOJA_PRECO'; preco: import('./loja').PrecoLoja; mgrId?: number } // 💰 preço da camisa da temporada (a aposta)
   | { type: 'LOJA_FORNECEDOR'; fornId: string; mgrId?: number } // 👟 assina o fornecedor de material (o prazo vem da marca; o valor congela na divisão de hoje)
-  | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
+  | { type: 'BUY_FILIAL'; team: string; mgrId?: number; pagante?: boolean } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
   | { type: 'SELL_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): vende o 2º clube. Volta 4.000 e desconta 300 (o churrasco). SÓ o 2º clube — o principal nunca.
   | { type: 'SWITCH_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): passa o comando pro outro clube (só entre temporadas). O que sai dorme.
@@ -5894,7 +6169,7 @@ type Action =
   | { type: 'GUARDA_M2'; novos: Record<string, import('./motor2/carreira').GuardadoM2> } // 💾 resultados do motor novo vão pro save
   | { type: 'OFICIAL_PRONTO' } // 🇧🇷 as cartas do Brasil Oficial baixaram (baralho-oficial-carga.ts)
   | { type: 'CAMPEOES_OFICIAIS'; campeoes: { temporada: number; serieA: string; serieAVice: string; copa: string; copaVice: string; serieATop?: string[]; liberta?: string; libertaVice?: string; sula?: string; intercontinental?: string } } // 🏆 Brasil Oficial: campeões da temporada (pra Supercopa Rei)
-  | { type: 'ESTADUAL_FEITO'; estadual: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] } } // 🏟️ Brasil Oficial: o estadual da temporada terminou na tela
+  | { type: 'ESTADUAL_FEITO'; estadual: { temporada: number; nome: string; campeao: string; vice: string; caem: string[]; classificacao: string[] }; /** 💰 18/11: prêmios do estadual/Supercopa Rei (pagos na hora) */ premios?: { coins: number; txt: string }[] } // 🏟️ Brasil Oficial: o estadual da temporada terminou na tela
   | { type: 'LIGA_MOTOR2' } // ⚽🧠 carreira: o motor novo passa a decidir o seu jogo a partir do PRÓXIMO (uma vez; nunca desliga sozinho)
   | { type: 'LIGA_RECEPCAO_M2' } // somente a conta autorizada, a partir do próximo jogo de liga
   | { type: 'SET_PENALTY'; mgrId: number; round: number; scored: boolean; taker: string } // ⚽ carreira offline: grava o resultado do pênalti decisivo (só aquele jogo; round = índice 0-based do jogo)
@@ -7064,8 +7339,8 @@ function sealAndResolveTec(state: EscState) {
   // de 4× o piso da categoria — antes cada venda virava piso da próxima e o bot dava
   // o dobro em cima, sem fim (Parreira a 12.426). E o BOT SÓ DÁ LANCE DO QUE TEM NO
   // BOLSO, igual no leilão de jogador (um clube com 1 moeda "pagou" 12 mil).
-  const teto = tetoTecnico(lote.nome)
-  const base = Math.min(teto, t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso)
+  const teto = tetoTecnico(lote.nome, !!state.oficial)
+  const base = Math.min(teto, t ? Math.max(pisoTecnico(t.div, !!state.oficial), lote.piso) : lote.piso)
   const minL = Math.max(1, Math.min(lote.piso, teto))
   const donoM = lote.clube ? state.managers.find(m => m.teamName === lote.clube) : undefined
   const bids: Bid[] = []
@@ -7218,7 +7493,9 @@ function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedC
         const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
         const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
         for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
-          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard), ...(b.reforco ? { reforco: true } : {}) })
+          // 🇧🇷 Oficial: o teto é um PEDAÇO DO CAIXA do clube pela categoria (+ loucura rara) — ver `tetoBotOficial`
+          const cap = state.oficial ? tetoBotOficial(m, state.currentCards.find(c => c.id === b.cardId), rng) : capPerCard
+          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, cap), ...(b.reforco ? { reforco: true } : {}) })
         }
       }
     }
@@ -7879,11 +8156,69 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   s.careerDivision = meu.div
   s.clubCash = seedClubCash({}, pl)
   s.cpuSquads = undefined // os clubes das outras divisões ganham o elenco no SEED_CPU_SQUADS (com o sorteio deles, ver pyramidseason)
-  s.careerCoins = { 0: 100 }
+  // 💰 caixa inicial pela RECEITA REAL do clube (18/11) — o seu e o de cada bot da série
+  const caixa0 = caixaInicialOficial(meu.nome, meu.div)
+  s.careerCoins = { 0: caixa0 }
+  s.careerLedger = []
+  logFin(s, 'opening', '🏁 Saldo inicial', caixa0)
+  s.managers.forEach((m, i) => { m.money = i === 0 ? caixa0 : caixaInicialOficial(m.teamName, meu.div) })
   s.league = buildLeague(s.managers, false)
   s.fixtures = calendarioDaLiga(s)
+  // 😓 18/11 (Diego: *"condição física já pode começar desde o início"*): no Brasil Oficial o gás vale desde a 1ª rodada, em qualquer
+  // série (inclusive a D). `condicaoDesdeR` vazio = não é a cura de 12/09 (que desliga quem ligou no meio da temporada fora de C/B/A).
+  s.condicaoDesde = s.seasonNo ?? 1; s.condicaoDesdeR = undefined
   s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
+  // 🔨 LEILÃO DE ABERTURA (18/11, Diego: *"5 pra todos… um pra goleiro, um pra zagueiro, um pra lateral, um pra meia e um pra
+  // atacante"*). Cada clube da série começa com o elenco dele e pode levar UMA carta por posição (usuário e bots, igual). O baralho é
+  // a SOBRA do sorteio de cada clube real (A–D): a mesma semente que monta os elencos, então quem não entrou nos 22 de ninguém.
+  // Sem carta sobrando o leilão não abre e a temporada começa direto (nunca trava).
+  if (abreLeilaoAberturaOficial(s, semente, cat as unknown as Record<Sector, Card[]>, rngC)) return true
   s.screen = 'season'
+  return true
+}
+/** 🔨 monta e abre o leilão de abertura do Brasil Oficial. false = não tinha carta (segue pra temporada). */
+function abreLeilaoAberturaOficial(s: EscState, semente: (txt: string) => number, cat: Record<Sector, Card[]>, rngC: () => number): boolean {
+  const ident = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+  const donos = new Set<string>()
+  for (const m of s.managers) for (const c of m.squad) donos.add(ident(c))
+  const porPos: Record<Sector, Card[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+  const vistos = new Set<string>()
+  // 🎯 o mercado é o da SUA faixa: sobra dos clubes da sua série e das vizinhas (A: A+B · B: A–C · C: B–D · D: C+D). Clube da C não
+  // vê o leilão cheio de lenda do Flamengo que nunca vai poder pagar — e o bot também não (testado 18/11: com tudo misturado, quase
+  // ninguém comprava nada).
+  const ordemDiv = ['A', 'B', 'C', 'D'], iDiv = Math.max(0, ordemDiv.indexOf(s.careerDivision ?? 'D'))
+  const divsOk = new Set(ordemDiv.filter((_, i) => Math.abs(i - iDiv) <= 1))
+  for (const clube of [...CLUBES_BR, ...clubesDaDivisao('D')]) {
+    if (!divsOk.has(clube.div)) continue
+    for (const x of sorteiaElenco(cartasDoClube(clube, cat), semente(clube.nome)).sobra) {
+      const k = ident(x.carta)
+      if (donos.has(k) || vistos.has(k) || x.carta.fake || !categoriaOficialOk(s.careerDivision ?? 'D', x.carta)) continue // 🇧🇷 categoria pela série
+      vistos.add(k)
+      porPos[x.pos].push({ ...x.carta, pos: x.pos, id: `ab-${x.pos}-${porPos[x.pos].length}` } as Card)
+    }
+  }
+  const demanda = s.managers.length // 1 vaga por clube em cada posição
+  const deck = {} as Record<Sector, Card[]>
+  for (const pos of SECTORS) {
+    const lista = porPos[pos]
+    for (let i = lista.length - 1; i > 0; i--) { const j = Math.floor(rngC() * (i + 1)); [lista[i], lista[j]] = [lista[j], lista[i]] }
+    deck[pos] = lista.slice(0, Math.ceil(demanda * 1.5)).map(c => ({ ...c, paid: justoDaCarta(s, c) }))
+  }
+  if (SECTORS.every(p => !deck[p].length)) return false
+  for (const m of s.managers) {
+    const base: Partial<Record<Sector, number>> = {}
+    for (const pos of SECTORS) base[pos] = m.squad.filter(c => c.pos === pos).length
+    m.aberturaBase = base
+    if (!m.isHuman) m.backstop = true // 🤖 o bot da série entra no pregão (mesmo cinto do bot de mercado: nunca estoura o bolso numa carta só)
+  }
+  s.oficialAbertura = true
+  s.deck = deck
+  s.stock = {} as Record<Sector, number>
+  for (const pos of SECTORS) s.stock[pos] = deck[pos].length
+  s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.monteOrder = []; s.monteIdx = 0
+  s.reserveAuction = false
+  s.screen = 'auction'
+  startAuctionPhase(s, false)
   return true
 }
 function zeraCarreiraAnterior(s: EscState): void {
@@ -7892,6 +8227,7 @@ function zeraCarreiraAnterior(s: EscState): void {
 }
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
+  s.deOlho = undefined // 👀 Mercado (18/11): o "de olho" é da carreira — nunca passa pra uma carreira nova
 }
 /** 🎽 a formação está no cardápio do técnico deste clube agora? A MESMA conta pra tela do A/B e pro reducer (23/10). */
 export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'careerFormacaoExtra' | 'onlineMode'>, m: Manager, f: FormationKey, v?: string): boolean {
@@ -9105,6 +9441,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // criada DAQUI PRA FRENTE — carreira antiga não ganha a flag e continua
       // fora dos rankings (global e da home). Ver sport.ts.
       s.agenciaOn = agenciaLiberada() || undefined
+      s.botComissao = previaCentral() || undefined // 🤖 18/11: carreira nova — bots com preparador e pagando a comissão (só na conta do Diego até ele liberar)
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       // 🪜 ESCADA DE CATEGORIAS: SÓ carreira NOVA (de qualquer conta, desde 03/08).
       // Começa presa ao degrau da divisão; libera geral após 2 temporadas na Série A.
@@ -9204,7 +9541,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const used = new Set<string>()
       // 🪜 escada ligada: leilão de estreia = degrau D (foi-prof + bom) e bots
       // montados no modo várzea (fracos primeiro) — mesmo nível do usuário.
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s), filtroOficialDe(s))
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used, !!s.escadaOn)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -9274,6 +9611,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.simV = 8
       s.contratosOn = true
       s.agenciaOn = agenciaLiberada() || undefined
+      s.botComissao = previaCentral() || undefined // 🤖 18/11: carreira nova — bots com preparador e pagando a comissão (só na conta do Diego até ele liberar)
       s.agenciados = []; s.agenciaEventos = undefined; s.agenciaFatura = undefined; s.agenciaHist = {}
       s.escadaOn = escadaLiberada() || undefined
       s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
@@ -10130,22 +10468,25 @@ function reducerBase(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || s.careerFilial) return s
+      // 🇧🇷 Brasil Oficial (18/11, Diego): SAF só com o time na Série A e só pra quem tem plano (a tela lê a mesma régua)
+      if (s.oficial && (divOficialDe(s) !== 'A' || !action.pagante)) return s
       if (saf2On(s) && s.multiClube) return s // 🏢➡️⚽ escada única: com 2º clube não se compra SAF (venda o 2º clube antes)
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const coins = s.careerCoins?.[you.id] ?? 0
-      if (coins < 2000) return s
+      const precoSaf = precoSafDe(!!s.oficial) // 🇧🇷 Oficial: 1.500
+      if (coins < precoSaf) return s
       const st = s.stadiums?.[you.id]
       const ready = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && STADIUM_EXTRAS.every(e => (extraNovaOnly(e.k) && !s.agenciaOn) || hasExtra(st, e.k))
       if (!ready) return s
       if (s.careerRivals.some(r => r.team === action.team) || you.teamName === action.team) return s
-      s.careerCoins = { ...s.careerCoins, [you.id]: coins - 2000 }
+      s.careerCoins = { ...s.careerCoins, [you.id]: coins - precoSaf }
       // 🏢 congela os títulos que o clube JÁ tinha (da vida dele antes de você):
       // esses NÃO contam pro valor de venda — só o que ele ganhar sob seu comando.
       const h0 = s.careerHonors?.[action.team]
       const titlesAtBuy = h0 ? (h0.A + h0.B + h0.C + h0.D) : 0
       s.careerFilial = { team: action.team, since: s.seasonNo, earned: 0, titlesAtBuy }
-      logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -2000) // 🧾 compra da SAF entra no extrato
+      logFin(s, 'safbuy', `🏢 Compra da SAF · ${action.team}`, -precoSaf) // 🧾 compra da SAF entra no extrato
       s.safJaTeve = true // 🏢 Lenda da Agência destravada pra sempre (23/10)
       return s
     }
@@ -10154,7 +10495,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // sua liga) no SEU 2º clube. Vira um assento independente (id próprio → caixa,
       // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
       const PRECO = 4000
-      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube || s.co2) return s // 🌐 v2: sem 2º clube
+      if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube || s.co2 || s.oficial) return s // 🌐 v2 e 🇧🇷 Oficial: sem 2º clube
       if (saf2On(s)) return s // 🏢➡️⚽ SAF nova: o 2º clube só nasce da SAF (SAF2_ASSUMIR), nunca mais comprado direto
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
@@ -10448,7 +10789,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // ─── 🏢➡️⚽ SAF QUE VIRA 2º CLUBE (13/10) ─────────────────────────────────────
     // Toda trava daqui é a MESMA função que a tela lê (`saf2.ts`) — nunca regra própria.
     case 'SAF2_ASSUMIR': {
-      if (!saf2On(s) || s.screen !== 'season') return s
+      if (!saf2On(s) || s.screen !== 'season' || s.oficial) return s // 🇧🇷 Oficial: a SAF nunca vira 2º clube (18/11)
       const you = clubePrincipal(s)
       if (!you || s.managers[s.youIdx]?.id !== you.id) return s
       const r = podeAssumir({
@@ -10464,7 +10805,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const you = clubePrincipal(s)
       if (!you || s.managers[s.youIdx]?.id !== you.id) return s
       const team = s.careerFilial.team
-      const valor = valorVendaSaf(saf2DivDaSaf(s))
+      const valor = valorVendaSaf(saf2DivDaSaf(s), !!s.oficial)
       revertFilialLoans(s) // empréstimos com a SAF voltam antes de vender
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + valor }
       logFin(s, 'safsell', `🏢 Venda da SAF · ${team}`, valor, undefined, you.id)
@@ -10872,6 +11213,13 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.marketSellers = {} as Record<Sector, number[]>
         s.reserveAuction = false
       }
+      if (s.oficialAbertura) {
+        // 🔨 fim do leilão de abertura do Brasil Oficial: o troco dos bots vira o caixa deles e a regra de "1 por posição" sai
+        const cash = { ...(s.clubCash ?? {}) }
+        for (const m of s.managers) { if (!m.isHuman) { cash['m' + m.id] = Math.max(0, Math.round(m.money)); m.backstop = false }; m.aberturaBase = undefined }
+        s.clubCash = cash
+        s.oficialAbertura = undefined
+      }
       s.screen = 'season'
       return s
     }
@@ -11022,7 +11370,16 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'ESTADUAL_FEITO': {
       // 🏟️ grava UMA vez por temporada (a tela pode mandar de novo num recarregar)
       if (!s.oficial || (s.oficialEstaduais ?? []).some(e => e.temporada === action.estadual.temporada)) return s
-      return { ...s, oficialEstaduais: [...(s.oficialEstaduais ?? []), action.estadual].slice(-60) }
+      const out = { ...s, oficialEstaduais: [...(s.oficialEstaduais ?? []), action.estadual].slice(-60) }
+      // 💰 18/11: o prêmio do estadual e da Supercopa Rei cai NA HORA (a tela calcula com a régua de `economia-oficial.ts`;
+      // aqui só credita, uma vez — a mesma trava da temporada acima)
+      const eu = out.managers[out.youIdx]?.id ?? out.youIdx
+      for (const p of action.premios ?? []) {
+        if (!(p.coins > 0)) continue
+        out.careerCoins = { ...(out.careerCoins ?? {}), [eu]: (out.careerCoins?.[eu] ?? 0) + p.coins }
+        logFin(out, 'reward', p.txt, p.coins, undefined, eu)
+      }
+      return out
     }
     case 'OFICIAL_PRONTO': {
       // 🇧🇷 as cartas do Brasil Oficial acabaram de baixar: reancora o baralho e roda a atualização de ficha que ficou esperando
@@ -11739,160 +12096,17 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     // ── 🧢 ALICIAR (26/08, em teste na conta do Diego — gate formacoes15On na UI) ──
     case 'ALICIAR_SEED': {
-      // dá um técnico a cada clube CPU da sua divisão que ainda não tem, tirando
-      // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
-      // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
-      if (!s.careerOnline) return s
-      // 🐛 FIX 28/08 (Diego: "meu amigo já está na SÉRIE A e apareceu Lisca Doido,
-      // Joel Santana, Guto Ferreira — técnico de VÁRZEA"): eu usava
-      // `s.careerDivision`, que na PIRÂMIDE fica congelado na divisão de FUNDAÇÃO
-      // (quem começou na Várzea segue 'V' pra sempre). A divisão de VERDADE mora
-      // em `careerPlacements['m<id>']` e muda a cada acesso/queda — o próprio
-      // store já avisava isso em myCareerDiv ("NUNCA cair em careerDivision").
-      // Agora o pool de técnicos segue a divisão ATUAL: subiu de série, o mercado
-      // de técnicos sobe junto, igual acontece com as cartas de jogador.
-      const youIdSeed = s.managers[s.youIdx]?.id ?? s.youIdx
-      const div = ((s.careerPlacements?.[`m${youIdSeed}`] ?? s.careerDivision ?? 'D') as DivTecnico)
-      const map = { ...(s.careerTecnicos ?? {}) }
-      // 🩹 CURA de quem já foi semeado com a divisão errada: técnico que não é da
-      // divisão de agora volta pro pool e o clube pega um da categoria certa.
-      // Só nos clubes de CPU, e o `desde` é remarcado — placar já visto não muda.
-      const desdeCura = { ...(s.careerTecnicosDesde ?? {}) }
-      let curou = false
-      // cura TODO clube já semeado (manager ou time de fundo), não só os managers
-      for (const nomeClube of Object.keys(map)) {
-        const n = map[nomeClube]
-        if (!n) continue
-        const tt = tecnicoPorNome(n)
-        if (tt && tt.div !== div) { delete map[nomeClube]; curou = true }
-      }
-      // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
-      // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
-      // mesmos times... o certo deveria sempre ter ali os rivais + trocar pelos times
-      // da divisão atual o restante"*. Na pirâmide os seus 19 bots se ESPALHAM pelas
-      // séries (no save dele, na T15, só 3 estavam na C junto com ele) — os outros 16
-      // adversários da Série C são TIMES DE FUNDO, que moram só em `careerPlacements`
-      // (chave = nome do clube; manager usa `m<id>`). Eles nunca tinham técnico, então
-      // nem apareciam no Sondar. Agora entram: rivais escolhidos SEMPRE, mais todo
-      // mundo (manager ou fundo) que está na sua divisão agora.
-      const naMinhaDiv = new Set<string>()
-      for (const [k, v] of Object.entries(s.careerPlacements ?? {})) if (v === div && !/^m\d+$/.test(k)) naMinhaDiv.add(newestTeamName(k))
-      const rivaisTime = new Set((s.careerRivals ?? []).map(r => newestTeamName(r.team)))
-      for (const m of s.managers) {
-        if (m.isHuman) continue
-        const dm = s.careerPlacements?.[`m${m.id}`]
-        if (dm === div || m.auctionOnly || rivaisTime.has(newestTeamName(m.teamName))) naMinhaDiv.add(m.teamName)
-      }
-      // 🔓 TÉCNICO DE CLUBE QUE SAIU DA MINHA DIVISÃO VOLTA PRO MERCADO (09/10, save do
-      // Elton — Série A, temporada 387). O relato: *"todos os times, quando ele vai
-      // sondar, estão sem técnico… e não aparece ninguém sem clube"*. O que tinha
-      // acontecido: o pool da Série A tem 22 nomes; a cada temporada um clube CAÍA pra B
-      // levando o técnico junto, e nada devolvia o técnico — ele sumia do mercado pra
-      // sempre. Em 387 temporadas os 22 estavam presos em clubes da C, da D e da Várzea,
-      // o clube que subia pra A ganhava `null` e o Sondar virava deserto. Agora: clube que
-      // não está na minha divisão (nem é rival/convidado do meu leilão, nem gente) solta o
-      // técnico; chave `null` de clube que foi embora é limpa junto. Placar já visto não
-      // muda: técnico só pesa em rodada ainda não jogada (`desdeR`).
-      const desde = { ...(s.careerTecnicosDesde ?? {}) }
-      const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
-      const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.teamName))
-      let soltou = false
-      for (const nomeClube of Object.keys(map)) {
-        if (gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
-        delete map[nomeClube]; delete desde[nomeClube]; delete ctAll[nomeClube]; soltou = true
-      }
-      const usados = new Set(Object.values(map).filter((x): x is string => !!x))
-      const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
-      const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
-      for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
-      const clubes = [...naMinhaDiv].sort()
-      let mudou = soltou
-      // clube sem técnico (chave nova OU `null` de quando o mercado estava vazio) pega um
-      // livre, se houver; se não houver ninguém livre, fica `null` como antes
-      for (const c of clubes) {
-        if (map[c]) continue
-        const n = livres.shift() ?? null
-        if (!n && c in map) continue
-        map[c] = n; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true
-      }
-      if (curou) {
-        // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
-        const ctCura = { ...(s.careerTecnicoContrato ?? {}) }
-        for (const m of s.managers) if (!m.isHuman && map[m.teamName] && desdeCura[m.teamName]) delete ctCura[m.teamName]
-        s.careerTecnicoContrato = ctCura
-        mudou = true
-      }
-      // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
-      // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
-      for (const c of clubes) {
-        const n = map[c]
-        if (!n || ctAll[c] != null) continue
-        let h = 0
-        for (const ch of n + c) h = (h * 31 + ch.charCodeAt(0)) | 0
-        ctAll[c] = s.seasonNo + ((h >>> 0) % 5) - 1 // -1..+3: alguns já vencidos, resto escalonado
-        mudou = true
-      }
-      s.careerTecnicoContrato = ctAll
-      // 🤖 VIDA DOS BOTS (27/08, regra do Diego: bots espertos, que sabem a
-      // categoria e podem trocar de técnico e de formação) — SÓ NA RODADA 0 e
-      // 1× por temporada: no meio da temporada, trocar técnico/formação de bot
-      // re-simularia rodada já vista e MUDARIA PLACAR (proibido, lei da casa).
-      if (s.round === 0 && s.tecnicosVidaSeason !== s.seasonNo) {
-        s.tecnicosVidaSeason = s.seasonNo
-        const rngV = mulberry((((s.seed ^ 0x7EC1DA) + s.seasonNo * 104729) | 0) >>> 0)
-        const pago = { ...(s.careerTecnicoPago ?? {}) }
-        // bot SEM técnico contrata um livre da divisão (e a inflação aperta: a
-        // cada temporada o mercado fica ~4% mais caro — "as coisas vão ficando
-        // mais caras", palavras do Diego)
-        for (const m of s.managers) {
-          if (m.isHuman || map[m.teamName]) continue
-          if (!livres.length) break
-          if (rngV() < 0.6) {
-            const nomeN = livres.shift()!
-            const tN = tecnicoPorNome(nomeN)
-            if (!tN) continue
-            // 🧢💰 01/10: a inflação para em 2× (antes, na temporada 116, era 5,6× em cima
-            // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
-            // respeita o teto da categoria.
-            const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, PISO_TECNICO[tN.div]) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)))
-            map[m.teamName] = nomeN
-            desde[m.teamName] = { t: s.seasonNo, r: 0 }
-            pago[nomeN] = preco // o mercado aprende com a compra do bot também
-            pagaExDono(s, nomeN, preco) // ex-dono humano recupera metade
-            mudou = true
-          }
-        }
-        // 📝 bot com contrato de técnico VENCIDO decide: maioria renova (+5), o
-        // resto deixa vencido — esses ficam ALICIÁVEIS pra você.
-        for (const m of s.managers) {
-          if (m.isHuman || !map[m.teamName]) continue
-          const fim = (s.careerTecnicoContrato ?? {})[m.teamName]
-          if (fim != null && fim < s.seasonNo && rngV() < 0.6) {
-            s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [m.teamName]: s.seasonNo + 4 }
-            mudou = true
-          }
-        }
-        // bot com técnico pode TROCAR DE FORMAÇÃO pra uma do repertório do
-        // técnico dele — só se o elenco preencher a conta (nunca entra em campo
-        // manco). Com elencos de 11 moldados isso raramente cabe HOJE; quando os
-        // bots ganharem elenco fundo, passa a acontecer sozinho.
-        for (const m of s.managers) {
-          if (m.isHuman) continue
-          const nomeT = map[m.teamName]
-          if (!nomeT) continue
-          const tt = tecnicoPorNome(nomeT)
-          if (!tt || rngV() >= 0.35) continue
-          const opcoes = fichaDoTecnico(tt).formacoes
-            .map(r => formacaoPorRotulo(r)?.motor)
-            .filter((x): x is FormationKey => !!x && x !== m.formation)
-          const cabiveis = opcoes.filter(f => SECTORS.every(pos => m.squad.filter(c => c.pos === pos && !c.fake).length >= FORMATIONS[f][pos]))
-          if (cabiveis.length) { m.formation = cabiveis[Math.floor(rngV() * cabiveis.length)]; m.formationView = undefined; mudou = true }
-        }
-        s.careerTecnicoPago = pago
-      }
-      if (!mudou) return s
-      s.careerTecnicos = map
-      s.careerTecnicosDesde = desde
+      semeiaTecnicos(s)
+      return s
+    }
+    case 'DE_OLHO': {
+      // 👀 MERCADO (Brasil Oficial, 18/11, mockup `scripts/mockups/mercado-oficial.png`, *"ok pode fazer assim"*). Só GUARDA o alvo:
+      // nada muda no clube dele e nada é cobrado. Na janela, o Sondar converte em ALICIAR_MARCAR (as travas de verdade moram lá).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      const cur = { ...(s.deOlho ?? {}) }
+      if (action.tec !== undefined) cur.tec = action.tec && action.tec !== cur.tec ? action.tec : undefined
+      if (action.jog !== undefined) cur.jog = action.jog && action.jog.chave !== cur.jog?.chave ? action.jog : undefined
+      s.deOlho = cur.tec || cur.jog ? cur : undefined
       return s
     }
     case 'ALICIAR_MARCAR': {
@@ -11949,8 +12163,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!p) return s
       if (s.careerPreparador?.[you.teamName]) return s // já tem um — dispensa o atual antes
       const coins = s.careerCoins?.[you.id] ?? 0
-      if (coins < p.preco) return s
-      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
+      const precoP = precoPrep(p, divOficialDe(s)) // 🇧🇷 no Oficial o preço é o da série
+      if (coins < precoP) return s
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - precoP }
       s.careerPreparador = { ...(s.careerPreparador ?? {}), [you.teamName]: p.key }
       // 🤖 o automático NASCE DESLIGADO (19/09). A preferência podia ter ficado ligada
       // de 13–15/09, quando era de graça: quem comprava o 👑 Lenda achava o botão já
@@ -11961,10 +12176,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       const fimNovo = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
       const anosNovo = fimNovo - s.seasonNo + 1
       s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimNovo }
-      logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -p.preco)
+      logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -precoP)
       s.aliciarLog = {
         titulo: `🏋️ ${p.nome} é do ${you.teamName}!`,
-        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora 1 rodada no banco vale ${Math.floor(p.banco / 1.4)} jogos de fôlego (era 2) e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
+        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${precoP} 🪙. Salário de ${salarioPreparador(p, divOficialDe(s))} por temporada, na folha. Agora 1 rodada no banco vale ${Math.floor(p.banco / 1.4)} jogos de fôlego (era 2) e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
         venceu: true,
       }
       return s
@@ -11980,7 +12195,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const fim = s.careerPreparadorContrato?.[you.teamName]
       if (fim == null || fim >= s.seasonNo) return s
       const coins = s.careerCoins?.[you.id] ?? 0
-      const custo = precoRenovacaoPreparador(p)
+      const custo = precoRenovacaoPreparador(p, divOficialDe(s))
       if (coins < custo) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - custo }
       const fimRenov = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
@@ -12312,7 +12527,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const { managers, botPlans } = makeManagers(humanNames, formation, 0, LEAGUE_SIZE, rng)
       s.managers = managers
       const used = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
+      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s), filtroOficialDe(s))
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -12407,6 +12622,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.round = 0; s.champion = null
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveListed = {}
+      if (s.oficial || previaCentral()) semeiaTecnicos(s) // 🧢 18/11 (item (d)): o mercado de técnicos anda sozinho na virada (Oficial sempre; carreira de sempre só na conta do Diego até liberar)
       s.screen = 'reserveList'
       // 🔒 "mesmo time": mesma tela de contratos, mas SEM leilão depois — o relógio
       // (que só faz sentido esperando todo mundo listar pro pregão) fica de fora.
@@ -12854,8 +13070,9 @@ function reducerBase(state: EscState, action: Action): EscState {
             marketSellers[pos].push(owner.id)
             if (pick.ownerBot) pick.ownerBot.backstop = true // bot da liga: caixa via clubCash; fica em 11 (só repõe o que perdeu)
           } else {
-            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && famosoOk(c as Card)), rng)[0]
-              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && (!escM || escadaAllows(escM, c))), rng)[0]
+            const brOk = (c: { club: string }) => !s.oficial || cartaDeClubeBrasileiro(c) // 🇧🇷 Oficial: só clube brasileiro
+            const fam = shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && famosoOk(c as Card) && brOk(c)), rng)[0]
+              ?? shuffle(ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && (!escM || escadaAllows(escM, c)) && brOk(c)), rng)[0]
             if (fam) { used.add(ident(fam)); const fl = s.marketValues?.[ident(fam)] ?? 0; deck[pos].push({ ...fam, id: `mkt-${pos}-${bt}`, pos, ...(fl > 0 ? { paid: fl } : {}) } as Card) }
           }
         }
@@ -12866,7 +13083,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // RESERVAS (2ª temporada): baralho SÓ COM REAIS (noFake) — reserva é opcional,
         // então nada de incógnito enchendo o leilão. Os bots do mercado (não-escolhidos)
         // também soltam suas reservas REAIS pro baralho, e são eles que disputam (0/1).
-        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, true, false, escadaDivOf(s))
+        s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, true, false, escadaDivOf(s), filtroOficialDe(s))
         const nBots = Math.max(1, Math.floor(nMain / 2))
         const chosen = shuffle(s.managers.filter(isMktBot), rng).slice(0, nBots)
         for (const bot of chosen) {
@@ -12875,6 +13092,8 @@ function reducerBase(state: EscState, action: Action): EscState {
           for (const pos of SECTORS) {
             const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
             const spare = realInPos.slice(FORMATIONS[bot.formation][pos])
+            // 🇧🇷 Brasil Oficial (18/11): reserva de bot da série entra no pregão em QUALQUER categoria — *"se o jogador já tava na série,
+            // ele pode sim aparecer"*. A régua da série vale só pra carta NOVA (do catálogo), não pra quem já jogava aqui.
             for (const c of spare) { bot.squad = bot.squad.filter(x => x.id !== c.id); s.deck[pos].push({ ...c, seller: bot.id }) }
           }
         }
@@ -12956,6 +13175,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.reserveListed = {}
+      if (s.oficial) deixaComissaoVencidaIr(s) // 🇧🇷 Oficial (18/11): técnico/preparador vencido que você não renovou na janela vai embora agora
+      else if (previaCentral()) deixaComissaoVencidaIr(s, true) // 🟡 carreira de sempre: SÓ quem venceu NESTA virada (quem já estava vencido de antes fica — ninguém perde de surpresa)
       s.reserveAuction = true
       // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é IDÊNTICO
       // ao leilão normal, só vem antes do goleiro; como uma posição nova"): o
@@ -12966,7 +13187,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           if (!tecnicoPorNome(nome)) continue
           const clube = Object.entries(s.careerTecnicos ?? {}).find(([, n]) => n === nome)?.[0] ?? null
           if (clube === s.managers[s.youIdx]?.teamName) continue // já é seu
-          s.tecLote = { nome, clube, piso: Math.max(1, precoTecnicoSano(nome, s.careerTecnicoPago?.[nome])) } // 🧢💰 piso nunca acima do teto da categoria
+          s.tecLote = { nome, clube, piso: Math.max(1, precoTecnicoSano(nome, s.careerTecnicoPago?.[nome], !!s.oficial)) } // 🧢💰 piso nunca acima do teto da categoria
           break // teto de 1 por temporada — só existe um
         }
         s.aliciarTecnicos = []
@@ -12986,7 +13207,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!s.careerDivision) return s
       if (s.co2) return s // 🌐 v2: a virada é de TODOS — em construção (cada aparelho virando sozinho desencontraria a pirâmide)
       if (s.onlineMode !== 'online') { // 🔒 27/10: carreira grátis (solo) — sem plano, para no fim da 50 (ou +10 pra quem já estava acima); a tela mostra o porquê e os planos
-        if (travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s
+        if (!s.oficial && travaCarreiraGratis(s.seasonNo, !!action.pago, s.careerGratisAte)) return s // 🇧🇷 Oficial: sem limite de temporada (18/11)
         s.careerGratisAte = marcaGratis(s.seasonNo, !!action.pago, s.careerGratisAte)
       }
       setActiveCatalog(s.deckLeague, false, undefined, !!s.oficial) // mantém o baralho da carreira (reload zera o ponteiro do módulo)
@@ -13777,6 +13998,8 @@ export function careerSlotLimit(count: number): number {
   // 💳 planos v2 (08/10): a régua mora em planos-regras.ts; o Craque mensal entra como ouro enquanto
   // vale (myApoioPerk já devolve o tier efetivo). Venceu = volta pra régua do que ela tinha, e o
   // grandfather abaixo segura as carreiras que ela já criou.
+  // 🗑️ 18/11: sem plano é 1 vaga (+ fichas compradas), sem o "quem já tem fica" — as que sobram somem pela limpeza dos 5 dias
+  if (LIMPA_CARREIRA_GRATIS && semPlanoConhecido()) return vagasGratis()
   const base = Math.min(fichasDoPlano(myApoioPerk()?.tier, souBarao()) + fichasExtras(), MAX_CAREER_SLOTS)
   return Math.max(base, Math.min(count, MAX_CAREER_SLOTS))
 }
@@ -14262,7 +14485,7 @@ function sincronizaNiveis(save: EscState): EscState {
   if (save.careerTecnicoPago) {
     let pago: Record<string, number> | null = null
     for (const [nome, v] of Object.entries(save.careerTecnicoPago)) {
-      const sano = precoTecnicoSano(nome, v)
+      const sano = precoTecnicoSano(nome, v, !!save.oficial)
       if (sano !== v) { pago ??= { ...save.careerTecnicoPago }; pago[nome] = sano; mexeu++ }
     }
     if (pago) save.careerTecnicoPago = pago
@@ -14675,7 +14898,10 @@ try {
     regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
   })
 } catch { /* sem cliente (bancada): segue salvando */ }
-export function salvarBloqueado(): boolean {
+/** 🇧🇷 `oficial` (18/11, Diego: *"pode salvar sim… sem plano salva apenas no celular, não salva na nuvem"*): no Brasil Oficial o
+ *  APARELHO salva sempre — sem o teste de 5 dias. A nuvem fica só pra quem tem plano (`savePyramidCloud`). */
+export function salvarBloqueado(oficial = false): boolean {
+  if (oficial) return false
   if (SALVAR_TESTE_5D && !SALVAR_SO_COM_PLANO) {
     if (pagoPeloCodigo()) return false
     if (authUidSalvar === null) return true // sem conta não tem teste (precisa de conta pra contar os 5 dias)
@@ -14690,10 +14916,77 @@ export function salvarBloqueado(): boolean {
   if (authUidSalvar && regraCache?.uid === authUidSalvar) return !regraCache.r.pago
   return false // ainda não sabe: não arrisca tirar o save de quem paga
 }
-export function useSalvarBloqueado(): boolean {
+export function useSalvarBloqueado(oficial = false): boolean {
   const [, setT] = useState(0)
   useEffect(() => { const f = () => setT(x => x + 1); regraOuvintes.add(f); return () => { regraOuvintes.delete(f) } }, [])
-  return salvarBloqueado()
+  return salvarBloqueado(oficial)
+}
+// 🗑️ 18/11 (Diego): SEM PLANO = 1 CARREIRA SÓ (qualquer modo de carreira) e carreira parada 5 DIAS é excluída — da nuvem e do
+// aparelho — com aviso antes. Quem já tinha várias: as paradas há mais de 5 dias saem e fica UMA (a jogada por último). Ficha extra
+// comprada na Loja soma vaga. Só age quando o jogo SABE que a conta não tem plano (sem conta também conta como sem plano); na dúvida
+// (login/banco carregando ou sem rede) NÃO apaga nada. Desligar = `false`.
+// 🔒 18/11 (Diego: "pode publicar tudo na minha conta já"): a regra só vale pra quem NÃO tem plano, e a conta dele tem — então
+// "na conta dele" = desligada pra todo mundo por enquanto. Ligar pra todos = `true`.
+export const LIMPA_CARREIRA_GRATIS = false
+export const DIAS_CARREIRA_GRATIS = 5
+const JOGADA_KEY = 'esc-carreira-jogada' // { [seed]: ms da última vez que a carreira foi ABERTA pra jogar } (o save pode estar travado)
+function jogadas(): Record<string, number> { try { const o = JSON.parse(localStorage.getItem(JOGADA_KEY) ?? '{}'); return o && typeof o === 'object' ? o : {} } catch { return {} } }
+/** marca que a carreira foi aberta agora (é o "jogou" da regra dos 5 dias — o save de quem acabou o teste não grava mais) */
+export function marcaCarreiraJogada(seed: number | undefined): void {
+  if (seed == null) return
+  try { const o = jogadas(); o[String(seed)] = Date.now(); localStorage.setItem(JOGADA_KEY, JSON.stringify(o)) } catch { /* ignora */ }
+}
+export function ultimaVezJogada(slot: CareerSlot): number { return Math.max(slot.at || 0, jogadas()[String(slot.save.seed)] ?? 0) }
+/** true só quando o jogo SABE que a conta não tem plano (sem conta = sem plano) */
+export function semPlanoConhecido(): boolean {
+  if (pagoPeloCodigo()) return false
+  if (authUidSalvar === null) return true
+  if (!authUidSalvar) return false
+  return regraCache?.uid === authUidSalvar && !regraCache.r.pago
+}
+/** vagas de carreira de quem não tem plano: 1 + fichas extras compradas */
+export const vagasGratis = () => Math.min(1 + fichasExtras(), MAX_CAREER_SLOTS)
+/** dias que faltam pra carreira ser excluída (null = não se aplica: tem plano ou não sabe) */
+export function diasParaExcluir(slot: CareerSlot): number | null {
+  if ((!LIMPA_CARREIRA_GRATIS && !(slot.save as EscState).oficial) || !semPlanoConhecido()) return null // 🇧🇷 Oficial: vale desde 18/11
+  return Math.max(0, Math.ceil((ultimaVezJogada(slot) + DIAS_CARREIRA_GRATIS * 86_400_000 - Date.now()) / 86_400_000))
+}
+/** apaga as carreiras de quem não tem plano que passaram de 5 dias paradas e as que sobram além das vagas. Devolve os nomes apagados. */
+export function limpaCarreirasGratis(): string[] {
+  if (!semPlanoConhecido()) return []
+  // 🇧🇷 18/11 (Diego): no Brasil Oficial, SEM PLANO, carreira parada 5 dias é excluída (com o aviso de dias que já existe). As outras
+  // carreiras seguem a regra geral, que continua desligada (`LIMPA_CARREIRA_GRATIS`).
+  if (!LIMPA_CARREIRA_GRATIS) {
+    const limiteO = DIAS_CARREIRA_GRATIS * 86_400_000, agoraO = Date.now(), fora: string[] = []
+    for (const { slot } of listAllCareers()) {
+      if (!(slot.save as EscState).oficial || agoraO - ultimaVezJogada(slot) <= limiteO) continue
+      const you = slot.save.managers?.[slot.save.youIdx ?? 0]
+      deleteCareerSlot(slot.save.seed)
+      fora.push(you?.teamName ?? you?.name ?? '')
+    }
+    return fora
+  }
+  const lista = listAllCareers().map(x => x.slot).sort((a, b) => ultimaVezJogada(b) - ultimaVezJogada(a))
+  const limite = DIAS_CARREIRA_GRATIS * 86_400_000, agora = Date.now(), vagas = vagasGratis(), apagadas: string[] = []
+  lista.forEach((slot, i) => {
+    if (i < vagas && agora - ultimaVezJogada(slot) <= limite) return
+    const you = slot.save.managers?.[slot.save.youIdx ?? 0]
+    deleteCareerSlot(slot.save.seed)
+    apagadas.push(you?.teamName ?? you?.name ?? '')
+  })
+  return apagadas
+}
+/** roda a limpeza assim que o plano da conta fica conhecido (e a cada mudança de login/plano). Devolve o que foi apagado nesta visita. */
+export function useLimpezaCarreirasGratis(): string[] {
+  const [apagadas, setApagadas] = useState<string[]>([])
+  useEffect(() => {
+    // a ficha extra comprada vem do banco: só limpa depois de conferir o saldo (senão apagaria a carreira de uma vaga paga)
+    let vivo = true, fichasOk = false
+    const roda = () => { if (!vivo || !fichasOk) return; const a = limpaCarreirasGratis(); if (a.length) setApagadas(x => [...x, ...a]) }
+    carregaFichasExtras().then(() => { fichasOk = true; roda() }, () => {})
+    regraOuvintes.add(roda); return () => { vivo = false; regraOuvintes.delete(roda) }
+  }, [])
+  return apagadas
 }
 /** a carreira pode ir pra nuvem? (a MESMA regra serve a tela e o salvar — nada de botão mudo)
  *  ☁️ 26/10 (Diego): a conta GRÁTIS também salva na nuvem — mas, sem plano, 7 dias sem apertar Salvar e a carreira sai da
@@ -14725,8 +15018,12 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     if (isCareerSave(state)) {
       const rg = await nuvemRegra(uid, true)
       // 🎁 08/11: conta sem plano — o 1º toque em Salvar começa os 5 dias; passou, não grava mais
+      // 🇧🇷 18/11: Brasil Oficial sem plano = SÓ no aparelho (nada de teste de 5 dias nem nuvem)
+      if (state.oficial) { if (!(rg?.pago || pagoPeloCodigo())) return 'aparelho' }
+      else {
       if (SALVAR_TESTE_5D && rg && !rg.pago && !pagoPeloCodigo()) { const ate = await iniciaTesteSalvar(uid); if (ate != null && Date.now() > ate) return 'bloqueado' }
       if (salvarBloqueado()) return 'bloqueado'
+      }
     } // 🔒 04/11: sem plano não salva
     ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
     // ☁️⭐ conta grátis: só as carreiras que JÁ estavam na nuvem continuam subindo (ver `nuvemRegra`)
@@ -15005,12 +15302,13 @@ function reducerComVigia(s: EscState, a: Action): EscState {
 
 export function EscProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducerComVigia, INITIAL, init => loadSoloInProgress() ?? init)
+  if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__escState = state // 🔎 só no teste local (vite dev)
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {
       // 🌐 carreira online v2 NUNCA vira "partida solo em andamento" (senão abriria como solo, sem os amigos)
       if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
-      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado())) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
+      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado(!!state.oficial))) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch {
       // 📱 11/11 (Lucas Barreto 30: *"jogo até a 114, salvo, e quando entro volta pro 113"*): aparelho CHEIO. A gravação falhava
@@ -16096,8 +16394,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     soloSigRef.current = presidencySig
     // 📱 cota cheia: antes era ignorado calado (e o jogo abria a cópia velha depois). Agora avisa (13/10).
     // 🔒 04/11: sem plano a carreira não grava no aparelho — fica só na memória desta aba (o "Continuar" da mesma visita funciona)
-    if (salvarBloqueado()) { carreiraEmMemoria = { ...state }; return }
-    comecaTesteNoAparelho() // 🎁 08/11: o 1º salvamento automático também começa os 5 dias (fecha a brecha de nunca apertar Salvar)
+    if (salvarBloqueado(!!state.oficial)) { carreiraEmMemoria = { ...state }; return }
+    if (!state.oficial) comecaTesteNoAparelho() // (o Brasil Oficial não tem teste de 5 dias: salva sempre no aparelho) // 🎁 08/11: o 1º salvamento automático também começa os 5 dias (fecha a brecha de nunca apertar Salvar)
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())); avisaSemEspaco(false) } catch { avisaSemEspaco(true) }
     // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])

@@ -381,6 +381,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   vizinhas da repaginada fazem (classes e CSS que já existem, ex. `career-desktop.css`, `ll29-*`, `cv2-*`) e reaproveitar, nada
   de estilo solto inventado; (2) tirar print em ~390 px (celular) E ~1280 px (computador) e conferir os dois.
 - **15/11: MAPA E CAMPO DO ESTÁDIO LIBERADOS PARA TODOS NA CARREIRA COMPATÍVEL.** Supera as restrições anteriores de prévia só para Diego. Reorganização e passeio acompanham a liberação. A identidade da prévia continua privada. Veículos já adquiridos aparecem, mas compra/venda/troca ficam **EM BREVE** até revisar a arte; não retirar bens. Chat por proximidade continua desligado (Diego condicionou a custo adicional zero). Detalhes em `docs/mapa-publico-20261115.md`.
+- **🇧🇷🟢 BRASIL OFICIAL LIBERADO PRA TODOS (18/11, *"publique pra todos já!"*).** Regras dele pra quem NÃO tem plano: **salva só no
+  aparelho** (nunca na nuvem, sem o teste de 5 dias) · **1 carreira só** · **carreira parada 5 dias é excluída** (com o aviso de dias) ·
+  **sem limite de temporada** (a trava da T50 não vale no modo) · **Manual só com plano ou avulso** · **over de craque e lenda só com plano**
+  (olheiro). 🇪🇺 A **Europa Oficial** vai ser **só com plano** desde o início. Desligar o modo = `BRASIL_OFICIAL_GERAL = false` (sport.ts);
+  as prévias da carreira de sempre (Central nova, Mercado…) também foram pra TODOS no mesmo dia (*"pode publicar p todos já"*, `CENTRAL_18_11_GERAL = true`).
 - **🇧🇷 BRASIL OFICIAL = TUDO REAL, NADA INVENTADO (15/11, regra permanente).** Palavras dele: *"quero que todos campeonatos
   sejam reais, as regras e etc, sem invenção"*. No modo de clubes reais: clubes, divisões, formatos, quantos sobem/caem,
   vagas de Libertadores/Sul-Americana, estaduais, Copa do Brasil, Supercopa, Intercontinental e troféus seguem o REAL, cada
@@ -389,6 +394,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🃏 **TODO CLUBE DO MODO TEM CARTAS DE JOGADOR REAL** (15/11, *"todos têm que ter cartas… se não achar jogadores famosos do time
   dele, bota os jogadores reais"*): nada de clube "sem cartas" jogando pela força — vale Série D, estaduais e Copa do Brasil.
   Famoso do clube primeiro; não achou, elenco atual real. As cartas do modo nunca vão pra Partida Rápida nem pro online.
+  💰 **ECONOMIA DO OFICIAL (18/11, *"Ok"*)**: TV pela divisão E pelo porte do clube; prêmio de subir/cair pra TODO clube que sobe/cai
+  no formato real (*"se sobem 6 da Série D, ganham os 6"*); toda competição paga por fase (*"vai sendo eliminado mas ganha alguma coisa,
+  mesmo que seja merreca… sempre deixando claro pro usuário"*). Régua única em `economia-oficial.ts`.
+  🏢 **SAF NO OFICIAL (18/11)**: *"N quero q tenha compra de segundo clube… apenas saf… só se tiver o time na série A… 2k… somente qm tem plano"*.
+  Sem 2º clube (nem comprado, nem a SAF virando 2º clube). 🔁 Mesmo dia: SAF = **1.500** (`PRECO_SAF_OFICIAL`), só com o SEU time na **Série A** + **estádio 100% completo** + **plano** (cadeado + Ver os planos). Venda segura o lucro máx de 500 (vale no máx 2.000). Régua em `BUY_FILIAL`.
   🚫 **Só se escolhe clube das Séries A–D** (15/11, *"não pode"*): clube só de estadual/Copa existe no modo como rival, nunca como o clube do usuário.
 - **Segurança acima de feature**: prefere bloquear com aviso claro a deixar
   acontecer algo estranho. Toda trava explica O PORQUÊ e O CAMINHO ("faltam 2
@@ -845,6 +855,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🖋 Rivais = TODOS os batismos/fundadores da pirâmide, misturados, sem mostrar a divisão; o escolhido começa com você e outro clube
   ocupa o lugar dele (*"terá q ter 20 times nas 5 divisões"* — sempre 20 em V, D, C, B e A, nenhum repetido).
   🔁 Complemento de 10/11: Diego confirmou **tons de pele também livres no gratuito** e pediu **camiseta branca gratuita PRIMEIRA na listagem**. Na criação, “Conhecer o Batismo” deve abrir a **Loja nova na categoria Planos**, e a prévia do presidente no desktop deve ter altura limitada sem esticar a arte. Proposta de entrada aprovada: básico pronto, nome/pele e Continuar próximos; catálogo extra só em Personalizar. Isso não libera roupas/cabelo/barba pagos.
+- **🗑️ 18/11: SEM PLANO = 1 CARREIRA SÓ, E CARREIRA PARADA 5 DIAS É EXCLUÍDA (regra do Diego, revê o "nada é apagado" de 08/11).**
+  Palavras dele: *"de graça ele só pode ter um modo carreira, independentemente de qual… só um slot"* · *"em 5 dias sem jogar aquele save
+  exclui a carreira… e fica avisado pra ele quando tiver chegando próximo"*. Respostas dele (18/11): quem JÁ tem mais de uma → *"exclui se o
+  save tem mais de 5 dias sem jogar e deixe um apenas pra ele"* · some **da nuvem E do aparelho** · depois dos 5 dias de teste *"joga porém não
+  salva na nuvem e também não salva no celular"* (a regra de 08/11 segue). Só vale pra quem o jogo SABE que não tem plano (nunca apaga na
+  dúvida). Ficha extra comprada na Loja soma vaga.
 - **🎁 08/11: TESTE DE 5 DIAS PRA SALVAR A CARREIRA (substitui o "1 dia sem salvar apaga" de 07/11).** Texto dele: *"🎁 Seus primeiros
   5 dias salvando a carreira são grátis! … Depois do teste, você pode continuar jogando gratuitamente. Para salvar novos avanços, é
   necessário um plano"*. Os 5 dias começam no 1º salvamento (botão OU automático do aparelho) de quem não tem plano, contados por CONTA

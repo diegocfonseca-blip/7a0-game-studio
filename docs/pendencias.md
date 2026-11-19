@@ -6,6 +6,70 @@
 - Causa AINDA ABERTA. No branch (falta publicar): o vigia grava QUAL ação tirou a coroa (`acao` no `perdeu_coroa`) e um registro
   novo `trocou_cadeira` (meu técnico mudou dentro da mesma sala, com a ação, de e para). Próxima vez: ler esc_travas da sala.
 - No branch também (falta OK pra publicar): convocação das salas 100 s + relógio grande nas Copas (mockups/relogio-convocacao.png).
+## 🗑️ 18/11 — SEM PLANO: 1 CARREIRA SÓ E CARREIRA PARADA 5 DIAS É EXCLUÍDA (feito no branch, esperando OK do visual)
+- Regra do Diego (ver CLAUDE.md, 18/11). Código: `LIMPA_CARREIRA_GRATIS`/`limpaCarreirasGratis`/`useLimpezaCarreirasGratis`/
+  `diasParaExcluir`/`marcaCarreiraJogada` (store.tsx) · `careerSlotLimit` sem plano = 1 (+ fichas compradas), sem o "quem já tem fica" ·
+  `AvisoCarreiraGratis` na home e em Minhas Carreiras (screens.tsx) · abrir a carreira marca "jogou" (pyramidseason.tsx).
+- Só age quando o jogo SABE que não tem plano; espera o saldo de fichas extras do banco antes de limpar. Mockup:
+  `scripts/mockups/carreira-gratis-aviso-390.png`. Desligar = `LIMPA_CARREIRA_GRATIS = false`.
+- ⏭️ A nuvem só limpa quando a pessoa abre o jogo (não tem robô no banco pra quem nunca mais volta). ⏭️ Carreira online (sala) não entra
+  na conta de "1 carreira" — só os saves de carreira (solo e Brasil Oficial).
+
+## 18/11 (tarde) — 🚀 PUBLICADO NA MAIN, SÓ NA CONTA DO DIEGO (*"pode publicar tudo na minha conta já"*)
+- Central nova (Próximos jogos com estádio, "Antes da estreia" só com Master, TV depois do 1º jogo, sem feira, torcida chegando na
+  estreia em casa, "Ver no mapa" no lugar certo) atrás de `CENTRAL_18_11_GERAL = false` (sport.ts) — os outros seguem com a Central de
+  antes. Liberar pra todos = `true` + devolver a linha da novidade em `novidades.ts`.
+- Brasil Oficial (já só dele): estádios reais, economia real, Copa do Mundo desde a T1, aviso de prêmio por copa, correções do estadual.
+- Regra do plano grátis (1 carreira, 5 dias parada = excluída): no código mas DESLIGADA (`LIMPA_CARREIRA_GRATIS = false`) — a conta
+  dele tem plano, então "na conta dele" não faz efeito. Ligar = `true` quando ele mandar.
+- Valem pra todos (consertos, sem visual novo): valor certo no aviso da TV (20/30/40/50) e o Martelo sem "briga no topo com 0 pontos".
+- ⚠️ `npm run carreira-gratis` falha numa conferência antiga (espera `careerGratisAte` no fim de `MARCAS_DE_MODO`) — a falha já existia.
+
+## 18/11 — 🇧🇷 Brasil Oficial: Copa do Mundo desde a T1 (convite + ranking) e agenda da Central
+- Diego (print do Santa Cruz): *"libertadores e copa do mundo N pode mais ser bloqueadas"* → *"sim esse o começo mas C base ainda em convites e ranking"*.
+  `cmAncora` oficial 50 → **1** (T1 = 2026, ano de Copa real; depois de 4 em 4). Continua por CONVITE pela posição no ranking dos 32.
+  Carreira já começada: a âncora só muda se nenhuma Copa foi jogada (`ensureSave`). Carreira normal segue T40/T100.
+- Agenda da Central no oficial: Libertadores real (está nela ✓ / vaga sai da Série A e da Copa do Brasil), Copa do Mundo
+  "é este ano · convite no fim da temporada" ou "próxima edição: temporada N" (de 4 em 4).
+- ✅ 18/11 (Diego: *"tem que ser a agenda do time real dos próximos jogos… mostrando a data e o time… esse negócio de TV no
+  início tá confuso… analise tudo da central e mude"*), NO BRANCH, sem publicar:
+  · 🗓️ Agenda = **Próximos jogos** do SEU clube (até 5): data, adversário (escudo), competição/fase, casa/fora. Estadual na
+    pré-temporada, a liga (só a fase que corre — anti-spoiler), e de cada copa só a PRÓXIMA página e só se você está nela.
+    Libertadores/Copa do Mundo saíram da agenda (só aparecem quando é jogo seu).
+  · 🏁 Camarote na rodada 0 = lista **Antes da estreia**: 📺 TV (✓ já no caixa — o cartão "BORA!" não aparece mais quando a
+    Central abre) · 🏆 Master (o botão "Escolher o Master" leva DIRETO ao escritório na aba Jogos) · ⚽ Estreia.
+  · Estadual abre a temporada → o camarote mostra o jogo do ESTADUAL (não o 1º da Série). Na C/D o selo conta "1º da Série C"
+    (não "rodada 2"). Sem "Você é o líder" com 0 ponto; a tabela diz "ninguém jogou ainda".
+  · Saíram as duas dicas que repetiam o mesmo: "Seu primeiro jogo, sem complicação" (Jogos) e "Vamos ao primeiro jogo?" (Central).
+  · 🎥 "Enquanto isso no bairro" NÃO aparece na pré-temporada (*"a feira está montada não tem sentido aparecer… de início"*), e o
+    📍 "Ver no mapa" agora leva DIRETO ao lugar da cena (*"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*):
+    feira → feira · noitada → balada · futevôlei → clube de lazer · boteco → Boteco do Oswaldo · carreata → ruas · obra → o
+    terreno da obra. Caminho: `pedeVistaDoMapa` (controle-partida-mapa.ts) → o mapa chama o MESMO `go()` do menu Locais.
+  · 📺 18/11 (2ª rodada, Diego: *"contrato de TV já marcado não tá legal… uma coisa de cada vez… faz o patrocinador, aí depois
+    aparece o da TV"*): a TV SAIU da pré-temporada. O aviso dela aparece só DEPOIS do 1º jogo (aba Jogos), uma vez por divisão.
+    🐛 E o aviso MENTIA o valor: mostrava D 5 · C 10 · B 15 · A 20 (lista à mão) e o caixa paga D 20 · C 30 · B 40 · A 50
+    (`TV_COTA`, régua de 15/09); também dizia "direto no caixa" e a cota cai no FIM da temporada. Agora lê `TV_COTA` e diz quando paga.
+  · ✅ 18/11 ECONOMIA DO BRASIL OFICIAL (aprovada: *"Ok"*), em `economia-oficial.ts` (régua única; a carreira de sempre não muda):
+    TV D 20 · C 30 · B 40 (12 grandes 45) · A grande 70 / médio 55 / pequeno 45 (grande = 12 grandes; médio = campeão brasileiro
+    ou da Copa do Brasil). Liga: campeão D 25 · C 35 · B 50 · A 80 (o REAL: C e D pela final); TODO clube que sobe D→C 15 · C→B 20 ·
+    B→A 30; todo que cai A −20 · B −15 · C −10. Estadual 2/4/6/10 e Supercopa Rei 10/20 pagos NA HORA (fim da pré-temporada).
+    Copa do Brasil fase a fase (…3·4·5·6 · oitavas 8 · quartas 12 · semi 20 · vice 35 · campeão 60). Libertadores pré 4 · grupos 8 ·
+    oitavas 12 · quartas 18 · semi 25 · vice 40 · campeão 80. Sul-Americana 3·5·6·7·10·15·25·45. Intercontinental 10/20/40.
+    Cada prêmio tem LINHA PRÓPRIA no extrato ("🌎 Libertadores · caiu nas quartas"). O aviso e o cartão da TV leem a mesma régua.
+    ✅ 18/11: o aviso "💰 <copa> · <fase> · +X" aparece na aba Jogos quando a campanha numa copa TERMINA na tela (Copa do Brasil,
+    Libertadores, Sul-Americana; o estadual e a Supercopa Rei já pagam na hora). ✕ fecha pra sempre. ⚠️ Ainda NÃO visto rodando numa
+    partida (precisa jogar até a eliminação) — conferir no 1º teste do Diego.
+  · ✅ 18/11 achados no teste do automático (sem plano): camarote "LIGA ENCERRADA" na rodada em que o time FOLGA (C/D real) · Martelo
+    "briga no topo com 0 pontos" com a rodada ao vivo · estadual aparecendo como "Copa do Brasil · você caiu na fase rodada 7/7". Corrigidos.
+  · ⏳ A cena "A torcida está chegando no <estádio>" ainda não foi vista rodando (a carreira de teste não chegou no 1º jogo em casa).
+  · 🏟️ 18/11 (Diego: *"todos os times do jogo deveriam ter nome do estádio… o ideal é que sejam os nomes reais"*): os 228 clubes do
+    Oficial ganharam o estádio REAL de 2026, todos com fonte (`estadios-oficial.ts`, lista em `docs/brasil-oficial/estadios.md`).
+    Sem fonte → "Estádio do <clube>" (`inventado`), liberado por ele — hoje nenhum caiu nisso. Decididos: Palmeiras = Nubank Parque,
+    Santa Cruz = Arena de Pernambuco (2026), Bragantino = Cícero de Souza Marques (reforma). Aparece: Próximos jogos da Central,
+    a cena "A torcida está chegando no <estádio>" (1ª partida em casa, uma vez só) e a chegada da estreia em casa na aba Jogos.
+    A feira saiu da Central (*"não é um momento importante"*).
+  · `passosVirada` virou a conta ÚNICA dos passos da virada (escritório da aba Jogos e Central leem a mesma).
+
 ## 🚀 18/11 (madrugada) — PUBLICADO NA MAIN com OK do Diego (*"publique todas correções… e tudo p minha conta só até agora"*)
 - Pra TODOS: link "ver fases e resultados" que desce até os resultados · pênaltis de fase encerrada prontos na lista · câmera do ônibus
   da aba Clube a 22 m no eixo da rua · cartas de clube europeu do Mundo → Europa (17/11) · "1 ponto"/"1 confronto" no singular.
@@ -13929,3 +13993,82 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - 🔁 19/11 (mais tarde): virou MODO PRÓPRIO "🌴 Vice City" na fileira de cima (selo NOVO), por dentro sala rápida. Jeito do lance: Pregão
   aberto (até 10, padrão) ou Tocaia (até 20). Sem Champions. Estrelas ESCONDIDAS; carta nova 🎯 Sniper mostra o ranking só pra quem usou.
   Mockup: `scripts/mockups/vice-city-pregao.png`. Esperando OK pra construir.
+### 🌿 18/11 — Mapa: grama com textura (APROVADA e PUBLICADA pra todos em 18/11 — ele respondeu *"Sim"* pra publicar)
+- Pedido: *"o verde não tem textura… fica muito liso e feio"* (comparou com o Brasileirinho). Feito em `presidencia-grama-viva.ts`
+  (shader na grama do `presidencia-complexo-entorno.ts`): manchas grandes, touceiras, florzinhas só de perto. Mapa NÃO diminuiu.
+- Antes × depois: `scripts/mockups/grama-textura.png`. **Não publicar na main sem o OK dele.**
+- ✅ Terminações (18/11, depois do *"pode fazer tudo aí"*): no clube só com o campinho de várzea, o caminho da torcida chega no campo, o dos visitantes liga na rua do estacionamento, a calçada transversal vai até a rua leste e a calçada da frente encosta nas ruas leste/oeste. Só DESENHO (rotas de quem anda iguais). Foto: `scripts/mockups/mapa-caminhos.png`. Publicado na main em 18/11 (commit 6f11e61). Reverter = `git revert 6f11e61 ce285f3`. Mockup da maquete (`clube-maquete`) foi RECUSADO: diminuiu o mapa.
+
+### 🛒 18/11 — Aba MERCADO na carreira Brasil Oficial (FEITA, só na conta do Diego, ainda no branch)
+- Mockup aprovado (2ª versão): `scripts/mockups/mercado-oficial.png` (*"ok pode fazer assim"*). Código: `MercadoAba` (pyramidseason.tsx),
+  ação `DE_OLHO` + campo `deOlho` (store/types). Gate: `state.oficial && usePreviaCentral()` (`mercadoOn`).
+- Clubes da SUA série na ordem da tabela (abre/fecha), busca, filtro de posição/técnico e "só quem fica livre / todos os contratos",
+  técnicos sem clube (4 + ver todos), transferências da temporada (`careerMercado`), seus contratos acabando (`contratoAte <= T`).
+- 📊 **Over aparece** (*"usuário craque vê over até craque e usuário lenda vê over até lendas"*): todo jogador que o olheiro alcança
+  (`sondarLiberado`) mostra a faixa lo–hi; quem está acima continua sem aparecer.
+- 👀 De olho na temporada → na janela (ReserveListScreen, roda DEPOIS do seasonNo++) o `AliciarSection` converte em `ALICIAR_MARCAR`
+  (travas de sempre) e apaga a marca. "Fica livre na janela" = `contratoCpuFalta(...) === 1` hoje; técnico = contrato `<= T`.
+- Cartão 💸 da Central: o link vira "mercado" e leva pra aba (com a aba ligada).
+- ⚠️ Falta conferir numa virada DE VERDADE que o "de olho" vira o sondado (não deu pra chegar no fim da temporada no teste).
+- Transferências de TÉCNICO não existem no registro (`careerMercado` só tem jogador) — o filtro de técnicos do mockup ficou de fora.
+
+### 🔨 18/11 — Brasil Oficial: começo da carreira (só conta do Diego, no branch)
+- ✅ **Leilão de abertura** (`abreLeilaoAberturaOficial`, store): todo clube da série (você + 19 bots) leva até 1 por posição
+  (`Manager.aberturaBase` → `slotsOf`/`openSlots`). Baralho = sobra do sorteio dos clubes da SUA faixa (série ± 1), sem carta com dono.
+  Bots entram como `backstop` (cinto de sempre). Fim da cerimônia limpa tudo e grava o troco dos bots no `clubCash`. Testado de ponta a
+  ponta (Santa Cruz, Série C): abre, revela, monte, cerimônia, temporada com 38 jogos. Trava: `testa-brasil-oficial.mts` atualizada.
+- ✅ **Caixa inicial pela receita real** (`caixaInicialOficial`/`RECEITA_OFICIAL`, economia-oficial.ts): log da receita, R$ 10 mi → 40 ·
+  Flamengo (R$ 2,09 bi) → 400. Fontes em `docs/brasil-oficial/receitas-clubes.md` (A 19/20, B 12/20, C 3, D 1 com número; o resto na
+  régua A 160 · B 100 · C 65 · D 40). Vila Nova fora até confirmar a fonte. Rede da sessão só abria ge e wikipedia.
+- ✅ **Gás desde a 1ª rodada** no Oficial (`condicaoDesde = seasonNo` no `iniciaBrasilOficial`).
+- ⚠️ **Observado no teste**: os bots pobres (65 🪙, Série C) quase não compram na abertura — o cinto deles (caixa ÷ vagas × 1,6) fica
+  perto do piso das cartas. Os ricos da série (Guarani, Paysandu) compram. Falta: limite do bot = % do caixa por categoria + loucura.
+- ⏳ Falta: bot faz tudo que o usuário faz (prêmio, salário, renovação, técnico/preparador pago) — ver
+  `docs/brasil-oficial/tecnico-preparador-analise.md` (bots contratam/renovam técnico DE GRAÇA e não têm preparador).
+
+### 🧢🏋️ 18/11 — Brasil Oficial: técnico, preparador e lance do bot (só conta do Diego, no branch; *"sim"* pra (a)–(e) + preços)
+- ✅ Preparador pela série (`PRECO_PREP_OFICIAL`, preparadores.ts): D 8·15·25·40 · C 12·25·40·60 · B 20·40·60·90 · A 30·60·90·140;
+  salário 10%, renovação metade. Técnico: teto D 12 · C 20 · B 35 · A 60, piso ¼ (`TETO_TECNICO_OFICIAL`, `pisoTecnico`).
+- ✅ (a) vencido sem renovar vai embora quando o leilão começa (`deixaComissaoVencidaIr`), com ⚠️ na mesa de contratos.
+- ✅ (c) parte: bot PAGA contratar/renovar técnico do caixa (`botPaga`); sem dinheiro, fica sem.
+- ✅ (d) mercado de técnicos anda sozinho na virada (`semeiaTecnicos`, extraído do ALICIAR_SEED).
+- ✅ (e) multa aparece antes do lance (mesa do pregão do técnico).
+- ✅ Lance do bot = pedaço do caixa pela categoria + 🤪 loucura 4% (`tetoBotOficial`). Testado: na abertura da Série C 8 dos 19 bots
+  compraram (antes 1–3); leilão até a cerimônia sem erro.
+- ⏳ Falta (c)/(33): bot com PREPARADOR, salário de jogador/técnico e prêmios pros bots (economia completa dos bots).
+- ⚠️ Teste `npm run tecnicos` não roda neste ambiente (import de .webp) — já era assim.
+- ✅ 18/11 (noite): **economia completa dos bots no Oficial** — TV pela régua do modo (`tvOficial`), folha com salário do técnico
+  (pago ÷ 10) e do preparador; bot COMPRA preparador (o melhor que cabe em ~25% do caixa, 50% de chance por virada) e renova pela
+  metade se tiver dinheiro, e o preparador dele vale no cansaço (`planoCansacoBot` com `banco`); prêmios dos bots pela mesma régua do
+  usuário (`clubRewardsOficial`: campeão, acesso de cada um que sobe, desconto pra quem cai). Teto do caixa do bot = 2× o caixa inicial.
+
+### 🔁 18/11 (noite) — do Brasil Oficial pra CARREIRA DE SEMPRE (só na conta do Diego até ele liberar; gate `previaCentral`/`usePreviaCentral`)
+- ✅ 1 Aba 🛒 Mercado (`mercadoOn` sem `state.oficial`; só offline). ✅ 2 Central nova (já estava atrás do mesmo gate).
+- ✅ 3 Multa antes do lance do técnico. ✅ 4 Mercado de técnicos anda sozinho na virada (`semeiaTecnicos`).
+- ✅ 5 Aviso "💰 você ganhou X" da Copa (Legends/do Brasil) ao fim dela (`copaRewards`, fecha pra sempre no ✕).
+- ✅ 6 Comissão vencida vai embora — SÓ quem venceu NESTA virada (`deixaComissaoVencidaIr(s, true)`), com aviso na mesa.
+- ✅ 7 Bots com preparador + pagando técnico/preparador SÓ em carreira NOVA (`s.botComissao`, preço do catálogo de sempre).
+- ❌ Ficaram de fora (decisão): gás desde o início, leilão de abertura/caixa real/régua de categoria, preços novos de comissão.
+- ✅ 18/11: LIBERADO PRA TODOS ("pode publicar p todos já") — `CENTRAL_18_11_GERAL = true` (Central nova, Mercado e os itens 3–7). Voltar = `false`.
+
+### 🟢 18/11 (noite) — BRASIL OFICIAL LIBERADO PRA TODOS (*"publique pra todos já!"*)
+- `BRASIL_OFICIAL_GERAL = true` (sport.ts). As prévias da carreira de sempre seguem só na conta do Diego: `usePreviaCentral`/`usePreviaDiego`
+  agora leem `useSoDiego()` (antes liam `useBrasilOficial`, e liberar o modo liberaria a Central junto). No Oficial a Central nova e o
+  Mercado valem pra todos (`novaCentral`/`mercadoOn` com `|| state.oficial`).
+- Sem plano no Oficial: `salvarBloqueado(oficial)` = false (aparelho sempre) · `savePyramidCloud` devolve 'aparelho' · sem teste de 5 dias ·
+  `limpaCarreirasGratis` apaga carreira OFICIAL parada 5 dias (as outras seguem a regra geral, desligada) · trava da T50 não vale.
+- Novidade na home: "🇧🇷 Chegou o Brasil Oficial".
+- ⏳ Europa Oficial: só com plano (quando for feita). Selo de plano do cartão Brasil Oficial saiu (18/11).
+
+## 18/11 — 🏢 SAF no Brasil Oficial (pedido do Diego)
+- ✅ Sem 2º clube no Oficial (`BUY_MULTICLUBE` e `SAF2_ASSUMIR` barrados; tela esconde o relógio/"assumir o comando").
+- ✅ SAF = 1.500 🪙 (Diego mudou de 2.000 no mesmo dia), Série A + estádio completo + plano. Venda no máx 2.000 (lucro máx 500). Antes: só com o time na Série A e só com plano (`BUY_FILIAL` com `pagante`; tela mostra 🔒 com o porquê + "Ver os planos").
+- Estádio 100% completo: Diego confirmou que fica.
+
+## 👑⚫ 19/11 — Batismo Ceará SP Club (lucasnicodemosqq) — PUBLICADO (Diego: "sim publica")
+- Pix de batismo (79,90) pago em 18/11 às 21:23 (`esc_mp_pedidos`), plano 🖋 Batismo: tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº96.
+- Várzea, no lugar do bot Barcelona da Vila (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 312×360 30 KB · mascote "O Rei" (nome dado por mim, confirmar; o briefing pedia pantera, mas a arte que veio é o jogador) 219×440 31 KB · manto `#060606`/`#F3F4F4` medidos na camisa + azul `#0863E9` (MANTO_TRI) · camisa na Loja (`cearasp-camisa-v1.webp`).
+- Banco FEITO: `esc_socios` (96, `escudo_time` = Ceará SP Club, coração Flamengo) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
+- Post: `scripts/posts/batismo-ceara-sp-club.png` (dono "Lucas" tirado do e-mail — confirmar).
+- ✅ Publicado na main em 19/11 (só o batismo; o sorteio dos elencos de fora segue no branch).

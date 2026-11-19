@@ -690,6 +690,7 @@ export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave |
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
+const fmtN = (n: number, l: 'pt' | 'en') => n.toLocaleString(l === 'en' ? 'en-US' : 'pt-BR')
 export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, clubPage, saf2, bb = false }: {
   clubPage?: 'map' | 'works' | 'business'
   initialSection?: 'sectors' | 'extras'
@@ -700,7 +701,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
   // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com `useSaf2()`): troca as regras velhas pelas novas, mostra o
   // painel novo (relógio das 10 temporadas · assumir o comando · vender pela divisão) e a trava da janela
   // dos empréstimos. Sem esta prop a seção da SAF fica EXATAMENTE como sempre foi.
-  saf2?: { painel: ReactNode; loanLock?: string | null; buyLock?: string | null }
+  saf2?: { painel: ReactNode; loanLock?: string | null; buyLock?: string | null; buyLockExtra?: ReactNode; semComando?: boolean; precoSaf?: number }
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -1050,8 +1051,9 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
         // pode ter expirado mesmo pra quem já jogou online). Só some se não for solo.
         const logged = !!loggedEmail()
         const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && extras.every(e => hasExtra(st, e.k))
-        const canBuy = logged && allDone && coins >= 2000
-        const regras = saf2 ? <Saf2Regras /> : getLang() === 'en' ? (
+        const precoSaf = saf2?.precoSaf ?? 2000
+        const canBuy = logged && allDone && coins >= precoSaf
+        const regras = saf2 ? <Saf2Regras semComando={saf2.semComando} /> : getLang() === 'en' ? (
           <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
             <li>💰 The SAF costs <b>2,000</b> · one-off purchase · the rights are yours <b>forever in this career</b> (no selling, no swapping)</li>
             <li>🏆 Entitled to <b>50% of campaign profits</b> (title and promotion) — they land in your till at the turn of the season</li>
@@ -1249,21 +1251,21 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 ? <>🔒 <b style={{ color: '#9a4b00' }}>Log in</b> (or log in again — your session may have dropped) to buy the SAF. Your career progress stays saved to the account.</>
                 : allDone
                 ? <>Buy the <b>SAF of a Série D club</b> and become its owner: you acquire the right to <b>50% of its campaign profits</b> (and take on half the loss on relegation). The club keeps playing on its own — no auction against you. And you <b>loan and borrow players</b> from it: <b>more slots as you climb divisions</b> (D 1 · C 2 · B 3 · A 4).</>
-                : <>🔒 unlocks with: <b style={{ color: '#9a4b00' }}>Stadium 100% complete</b> (stands + upgrades) · the SAF costs 2,000 💰</>) : !logged
+                : <>🔒 unlocks with: <b style={{ color: '#9a4b00' }}>Stadium 100% complete</b> (stands + upgrades) · the SAF costs {fmtN(precoSaf, 'en')} 💰</>) : !logged
                 ? <>🔒 <b style={{ color: '#9a4b00' }}>Faça login</b> (ou entre de novo — sua sessão pode ter caído) pra comprar a SAF. Seu progresso da carreira fica salvo na conta.</>
                 : allDone
                 ? <>Compre a <b>SAF de um clube da Série D</b> e vire dono: você adquire o direito a <b>50% dos lucros de campanha</b> dele (e assume metade do prejuízo na queda). O clube segue jogando por conta própria — sem leilão contra você. E você <b>empresta e pega jogadores</b> dele: <b>+vagas conforme você sobe de série</b> (D 1 · C 2 · B 3 · A 4).</>
-                : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · a SAF custa 2.000 💰</>}
+                : <>🔒 destrava com: <b style={{ color: '#9a4b00' }}>Estádio 100% completo</b> (setores + melhorias) · a SAF custa {fmtN(precoSaf, 'pt')} 💰</>}
             </p>
             {logged && allDone && regras}
             {logged && allDone && <div style={{ height: 7 }} />}
             {logged && allDone && !buying && saf2?.buyLock && (
-              <p style={{ fontSize: 10.5, fontWeight: 800, background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', margin: 0, lineHeight: 1.4 }}>🔒 {saf2.buyLock}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 800, background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', margin: 0, lineHeight: 1.4 }}>🔒 {saf2.buyLock}{saf2.buyLockExtra ? <> {saf2.buyLockExtra}</> : null}</p>
             )}
             {logged && allDone && !buying && !saf2?.buyLock && (
               <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}
                 style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 0', fontWeight: 900, fontSize: 13.5, ...OSW, background: canBuy ? INK : '#d9cfb4', color: canBuy ? '#fff' : '#7d7358', cursor: canBuy ? 'pointer' : 'default' }}>
-                {canBuy ? tr('💼 Comprar a SAF de um clube · −2.000 💰', '💼 Buy a club\'s SAF · −2,000 💰') : tr(`Junte 2.000 💰 (tem ${coins})`, `Save up 2,000 💰 (you have ${coins})`)}
+                {canBuy ? tr(`💼 Comprar a SAF de um clube · −${fmtN(precoSaf, 'pt')} 💰`, `💼 Buy a club's SAF · −${fmtN(precoSaf, 'en')} 💰`) : tr(`Junte ${fmtN(precoSaf, 'pt')} 💰 (tem ${coins})`, `Save up ${fmtN(precoSaf, 'en')} 💰 (you have ${coins})`)}
               </button>
             )}
             {logged && allDone && buying && (
@@ -1271,7 +1273,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
                 <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>{tr('Escolha o clube (Série D atual):', 'Pick the club (current Série D):')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   {(filialOptions ?? []).map(t => (
-                    <button key={t} onClick={() => { if (window.confirm(saf2 ? tr(`Comprar a SAF do ${t} por 2.000 💰? O bot continua no comando dela; você é o sócio.`, `Buy the ${t} SAF for 2,000 💰? The bot stays in charge; you are the partner.`) : tr(`Comprar a SAF do ${t} por 2.000 💰? Você vira dono dos direitos dele pra sempre nesta carreira.`, `Buy the ${t} SAF for 2,000 💰? You own its rights forever in this career.`))) { onBuyFilial(t); setBuying(false) } }}
+                    <button key={t} onClick={() => { if (window.confirm(saf2 ? tr(`Comprar a SAF do ${t} por ${fmtN(precoSaf, 'pt')} 💰? O bot continua no comando dela; você é o sócio.`, `Buy the ${t} SAF for ${fmtN(precoSaf, 'en')} 💰? The bot stays in charge; you are the partner.`) : tr(`Comprar a SAF do ${t} por ${fmtN(precoSaf, 'pt')} 💰? Você vira dono dos direitos dele pra sempre nesta carreira.`, `Buy the ${t} SAF for ${fmtN(precoSaf, 'en')} 💰? You own its rights forever in this career.`))) { onBuyFilial(t); setBuying(false) } }}
                       style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</button>
                   ))}
                 </div>
