@@ -29,3 +29,6 @@ agora cada um tem cartas de golpe na mão." · "Viu o rival indo atrás da lenda
 dar lance." · "Ganhou o Ronaldinho? Cuidado, que alguém pode roubar ele de você. De graça." · "Cada golpe que você leva vira uma
 estrela de procurado. Chegou em cinco, é busted: você perde os seus três melhores jogadores." · "É sala online, pra jogar com até dez
 amigos." · "Cria a tua sala no Vice City e chama a galera. Leilão Legends." Cenas: [4.81, 2.8, 5.46, 7.53, 6.37, 9.76, 3.95, 5.37] = 46 s.
+
+## ✅ Versão final (19/11): narração do ElevenLabs (voz "James - Husky Engaging and Bold") que o Diego gerou
+Cenas cortadas nas pausas do áudio: [4.39, 2.16, 5.21, 6.05, 5.35, 8.17, 2.97, 5.2] = 39,5 s (`video-narrado.html`). Saída: `scripts/posts/vice-city-reels-elevenlabs.mp4`.
