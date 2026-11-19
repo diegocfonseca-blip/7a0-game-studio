@@ -14217,3 +14217,8 @@ Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
 
 ## 🟢 19/11 — Estatísticas no placar normal (STATS_PLACAR_GERAL) e Raio-X do adversário na Central (RAIOX_GERAL) LIBERADOS PRA TODOS
 Diego: *"isso aqui já pode"*. Desligar = voltar a `false` no sport.ts.
+
+## 🐛 19/11 — Brasil Oficial: não dava pra trocar reserva ↔ titular na Temporada 1
+O modo nasce com o elenco real (22), mas a troca seguia a regra da carreira de sempre ("T1 joga com os 11", `canSub = seasonNo >= 2`
+na tela e `seasonNo < 2` no SET_LINEUP/SALVA_ESCALACAO/APLICA_ESCALACAO). Agora o Brasil Oficial troca desde a T1, nos dois lados.
+Testado: Athletico-PR, Fabiano (reserva) entrou no lugar do Renan Lodi.
