@@ -184,10 +184,10 @@ export type ConfrontoRegional = { h: number; a: number; g: [number, number]; ev:
 export type FaseKo = { tipo: 'quartas' | 'semi' | 'final'; ties: ConfrontoRegional[] }
 export interface MundoRegional { n: number; rodadas: JogoRegional[][]; ko: FaseKo[]; campeao: number; classificados: [number[], number[]] }
 
-function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+export function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 const hash = (s: string, h: number) => { for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0; return h >>> 0 }
 function poisson(r: () => number, lambda: number) { let k = 0, p = 1; const L = Math.exp(-lambda); do { k++; p *= r() } while (p > L); return Math.min(6, k - 1) }
-const placar = (r: () => number, a: Entrant, b: Entrant): [number, number] => {
+export const placar = (r: () => number, a: Entrant, b: Entrant): [number, number] => {
   const adv = a.str - b.str
   return [poisson(r, Math.max(0.25, 1.25 + adv * 0.05)), poisson(r, Math.max(0.25, 1.25 - adv * 0.05))]
 }
@@ -208,7 +208,7 @@ function garcom(base: number, ck: string, xi: PoolCard[], quem: string, min: num
   for (const p of pool) { x -= p.w; if (x <= 0) return p.c.name }
   return pool[pool.length - 1]?.c.name
 }
-function gols(r: () => number, gh: number, ga: number, h: Entrant, a: Entrant, base: number, ck: string): GolRegional[] {
+export function gols(r: () => number, gh: number, ga: number, h: Entrant, a: Entrant, base: number, ck: string): GolRegional[] {
   const ev: GolRegional[] = []
   for (let i = 0; i < gh; i++) ev.push({ home: true, min: 2 + Math.floor(r() * 89), name: autor(r, h.xi) })
   for (let i = 0; i < ga; i++) ev.push({ home: false, min: 2 + Math.floor(r() * 89), name: autor(r, a.xi) })
