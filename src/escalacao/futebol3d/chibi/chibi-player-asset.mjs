@@ -66,9 +66,16 @@ function kitMask(root){
  for(let pass=0;pass<3;pass++){const old=output.slice();for(let y=1;y<size-1;y++)for(let x=1;x<size-1;x++){const at=(y*size+x)*4;if(old[at+3])continue;for(const q of[at-4,at+4,at-size*4,at+size*4])if(old[q+3]){output.set(old.subarray(q,q+4),at);break}}}
  const texture=new T.DataTexture(output,size,size,T.RGBAFormat);texture.flipY=false;texture.colorSpace=T.NoColorSpace;texture.minFilter=texture.magFilter=T.NearestFilter;texture.generateMipmaps=false;texture.needsUpdate=true;return texture;
 }
+// 📱 19/11 (Diego: *"não tá dando pra ver o jogo de tão lento… também quero no celular"*): no celular vai o boneco LEVE — o mesmo
+// boneco (ossos, UV, movimentos), com 20% dos triângulos (`scripts/futebol3d/gera-jogador-leve.mjs`). 22 bonecos de ~40 mil triângulos
+// eram ~880 mil por quadro só de jogador. `localStorage['esc3d-boneco-leve']` = '1' força o leve, '0' força o cheio.
+export function bonecoLeve(){
+ try{const f=localStorage.getItem('esc3d-boneco-leve');if(f==='1')return true;if(f==='0')return false}catch{/* sem armazenamento */}
+ try{return typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches}catch{return false}
+}
 let promise;
 export function carregaJogadorNovo(){return promise??=(async()=>{
- const [source,gltf]=await Promise.all([loadFootballSource(),new GLTFLoader().loadAsync(new URL('../assets/jogador-estilizado-v1.glb',import.meta.url).href)]);const nativeNames=new Map();for(const b of bones(gltf.scene)){nativeNames.set(b.name,alias(b.name));b.name=alias(b.name)}
+ const [source,gltf]=await Promise.all([loadFootballSource(),new GLTFLoader().loadAsync(bonecoLeve()?new URL('../assets/jogador-estilizado-leve.glb',import.meta.url).href:new URL('../assets/jogador-estilizado-v1.glb',import.meta.url).href)]);const nativeNames=new Map();for(const b of bones(gltf.scene)){nativeNames.set(b.name,alias(b.name));b.name=alias(b.name)}
  for(const c of gltf.animations)for(const t of c.tracks)for(const[old,next]of nativeNames)if(t.name.startsWith(old+'.')){t.name=next+t.name.slice(old.length);break}
  const box=new T.Box3().setFromObject(gltf.scene),scale=1.78/(box.max.y-box.min.y),src=clone(source.gltf.scene),dst=clone(gltf.scene);src.scale.multiplyScalar(source.escala);dst.scale.multiplyScalar(scale);const sr=snapshot(src),tr=snapshot(dst),clips=new Map();let processed=0;
  for(const[name,clip]of source.clips){clips.set(name,retargetClip(clip,src,dst,sr,tr));if(++processed%5===0)await new Promise(r=>setTimeout(r,0))}

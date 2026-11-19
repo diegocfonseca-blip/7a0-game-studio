@@ -4,6 +4,8 @@ import React from 'react';import {createRoot} from 'react-dom/client';import {fl
 import Complexo from '../../src/escalacao/presidencia-complexo-3d.tsx';
 import {CATALOG} from '../../src/escalacao/data.ts';
 import {entradaM2} from '../../src/escalacao/motor2/carreira.ts';
+import * as THREE from 'three';
+const _r=THREE.WebGLRenderer.prototype.render;THREE.WebGLRenderer.prototype.render=function(sc,cam){_r.call(this,sc,cam);window.__info={calls:this.info.render.calls,tris:this.info.render.triangles,geo:this.info.memory.geometries,tex:this.info.memory.textures,pr:this.getPixelRatio(),w:this.domElement.width,h:this.domElement.height};window.__scene=sc;window.__cam=cam};
 import {qaLigaMapa3D} from '../../src/escalacao/sport.ts';qaLigaMapa3D();
 try{
 const pega=(s,n,off)=>CATALOG[s].slice(off,off+n).map(c=>({name:c.name,pos:s,club:c.club,year:c.year,fame:c.fame,lo:c.lo,hi:c.hi}))
