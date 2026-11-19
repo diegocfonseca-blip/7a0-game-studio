@@ -96,6 +96,10 @@ const BASQUETE_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 const BASQUETE_CARREIRA_GERAL = false
 let basqueteTester = false
 export function carreiraBasqueteLiberada(): boolean { return BASQUETE_CARREIRA_GERAL || basqueteTester }
+/** 🏀🇺🇸 19/11: a carreira EUA Oficial (franquia real da NBA, sem sobe e desce) — por enquanto SÓ na conta do Diego (testers).
+ *  Liberar pra todos = `EUA_OFICIAL_GERAL = true`. */
+const EUA_OFICIAL_GERAL = false
+export function euaOficialLiberado(): boolean { return EUA_OFICIAL_GERAL || basqueteTester }
 function applyUnlock(email?: string | null): void {
   const u = !!email && BASQUETE_TESTERS.has(email.toLowerCase())
   basqueteTester = u

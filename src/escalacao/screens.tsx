@@ -29,7 +29,7 @@ import './online-visual.css'
 import {requestOnlineDestination,type OnlineDestination} from './desktop-online-navigation'
 import {DesktopHeader,AuctionDesktopLayout,AuctionSlot} from './desktop-layout'
 import {MobileAuctionHeader} from './mobile-auction-header'
-import {useTelaPC, useRelampagoLiberado, previaCentral} from './sport'
+import {useTelaPC, useRelampagoLiberado, previaCentral, euaOficialLiberado} from './sport'
 import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
@@ -76,6 +76,7 @@ import {CriarClubePresidencia} from './presidencia-criar-clube'
 import {CareerSetupFrame,CareerRivalsSetup} from './career-setup-guide'
 import {identidadeDaConta} from './presidencia-identidade-conta'
 import { NbaCriarCarreira } from './nba-criar-carreira' // 🏀 nova carreira do basquete no passo a passo (10/11)
+import { EscolhaCarreiraBB, EscolhaFranquiaEUA } from './eua-oficial-tela' // 🏀🇺🇸 EUA Oficial (19/11, só na conta do Diego)
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
@@ -1800,6 +1801,9 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
   const [nome, setNome] = useState('')
   const [nomeErr, setNomeErr] = useState('')
   const [checando, setChecando] = useState(false)
+  const [modoBB, setModoBB] = useState<null | 'meu' | 'eua'>(null) // 🏀🇺🇸 Meu time × EUA Oficial
+  const [euaBaixando, setEuaBaixando] = useState(false)
+  const [euaErr, setEuaErr] = useState('')
   // o nome da conta já vem preenchido (igual ao futebol); dá pra trocar só pra esta carreira
   useEffect(() => { supabase.auth.getUser().then(({ data }) => { const dn = String(data?.user?.user_metadata?.display_name ?? '').trim(); if (dn) setNome(n => n.trim() ? n : dn) }, () => {}) }, [])
   const lim = careerSlotLimit(list.length)
@@ -1824,9 +1828,27 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
     dispatch({ type: 'START_NBA_CAREER', teamName: limpo || t('Meu Time', 'My Team') })
   }
   const botao = (bg: string, fg: string) => ({ background: bg, color: fg, border: `2px solid ${INK}`, borderRadius: 9, fontWeight: 900, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' as const })
+  // 🏀🇺🇸 19/11: EUA Oficial — antes do nome, a escolha da carreira (só pra quem tem `euaOficialLiberado()`)
+  const fechaNova = () => list.length > 0 && !comecaNova ? (setNomeando(false), setModoBB(null)) : onClose()
+  const comecarEua = async (franquia: string) => {
+    if (euaBaixando) return
+    setEuaErr(''); setEuaBaixando(true)
+    try {
+      const { cartasEuaComoCard } = await import('./eua-oficial-cartas') // as cartas novas só descem pra quem começa o modo
+      if (!guardaAtivaNba()) { setAviso(true); setEuaBaixando(false); return }
+      dispatch({ type: 'START_EUA_CAREER', franquia, extras: cartasEuaComoCard() })
+    } catch {
+      setEuaErr(t('Não deu pra baixar as cartas. Confira a internet e tente de novo.', "Couldn't download the cards. Check your connection and try again."))
+      setEuaBaixando(false)
+    }
+  }
+  const casca = (filho: React.ReactNode) => <div className="palco cse-shell" style={{ position: 'fixed', inset: 0, zIndex: 99998, overflowY: 'auto' }}><div className="ll-shell-content" style={{ margin: '0 auto' }}>{filho}</div></div>
+  if (nomeando && euaOficialLiberado() && modoBB === null) return casca(<EscolhaCarreiraBB onMeuTime={() => setModoBB('meu')} onEua={() => setModoBB('eua')} onVoltar={fechaNova} />)
+  if (nomeando && modoBB === 'eua') return casca(<EscolhaFranquiaEUA onEscolher={f => void comecarEua(f)} onVoltar={() => { setModoBB(null); setEuaErr('') }} ocupado={euaBaixando}
+    erro={euaErr || (aviso ? t('⚠️ Seu aparelho ficou sem espaço pra guardar a carreira atual. NADA foi apagado. Apague uma carreira que não usa mais em Minhas carreiras e tente de novo.', '⚠️ Your device ran out of room to keep your current career. NOTHING was deleted. Delete a career you no longer use in My careers and try again.') : '')} />)
   // 🏀 10/11: nova carreira = a MESMA página passo a passo da carreira do futebol (Seu time → A liga), não mais a janelinha
   if (nomeando) return <NbaCriarCarreira nome={nome} onNome={v => { setNome(stripEmoji(v)); setNomeErr('') }} erro={nomeErr} checando={checando}
-    onComecar={() => void comecar()} onVoltar={() => list.length > 0 && !comecaNova ? setNomeando(false) : onClose()}
+    onComecar={() => void comecar()} onVoltar={() => euaOficialLiberado() ? setModoBB(null) : list.length > 0 && !comecaNova ? setNomeando(false) : onClose()}
     avisoAparelho={aviso ? t('⚠️ Seu aparelho ficou sem espaço pra guardar a carreira atual. NADA foi apagado. Apague uma carreira que não usa mais em Minhas carreiras e tente de novo.', '⚠️ Your device ran out of room to keep your current career. NOTHING was deleted. Delete a career you no longer use in My careers and try again.') : undefined} />
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99998, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '18px 12px' }}>
@@ -7657,7 +7679,8 @@ function ElencoBB() {
   const you = state.managers[state.youIdx]
   const pts: Record<string, number> = {}
   for (const x of state.scorers ?? []) if (x.teamId === you.id) pts[x.name] = x.goals
-  const cat = (f: number) => f >= 5 ? tr('👑 Lenda', '👑 Legend') : f === 4 ? tr('⭐ Craque', '⭐ Star') : f === 3 ? tr('🌱 Promessa', '🌱 Prospect') : f === 2 ? tr('🎯 Bom', '🎯 Good') : tr('🪵 Profissional', '🪵 Pro')
+  // 🏷️ 19/11: mesma régua do baralho (data-basquete.ts): fama 3 e 2 = Bom; Promessa é a marca `promessa`, não a fama 3
+  const cat = (f: number, promessa?: boolean) => f >= 5 ? tr('👑 Lenda', '👑 Legend') : f === 4 ? tr('⭐ Craque', '⭐ Star') : promessa ? tr('🌱 Promessa', '🌱 Prospect') : f >= 2 ? tr('🎯 Bom', '🎯 Good') : tr('🪵 Profissional', '🪵 Pro')
   const lista = [...you.squad].sort((a, b) => SECTOR_KEYS.indexOf(a.pos as Sector) - SECTOR_KEYS.indexOf(b.pos as Sector) || (b.lo + b.hi) - (a.lo + a.hi))
   return <>
     <YourPitch small />
@@ -7668,7 +7691,7 @@ function ElencoBB() {
       {lista.map(c => (
         <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderTop: '2px solid rgba(0,0,0,.08)', background: (pts[c.name] ?? 0) > 0 && pts[c.name] === Math.max(...Object.values(pts)) ? '#FFF3C4' : undefined, fontSize: 12 }}>
           <b style={{ ...OSWALD, width: 26, fontSize: 12 }}>{posTag(c.pos)}</b>
-          <span style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b><small style={{ color: '#6a6250', fontWeight: 700 }}>{c.club} {c.year} · {cat(c.fame)}</small></span>
+          <span style={{ flex: 1, minWidth: 0 }}><b style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b><small style={{ color: '#6a6250', fontWeight: 700 }}>{c.club} {c.year} · {cat(c.fame, c.promessa)}</small></span>
           <b style={{ ...OSWALD, fontSize: 16 }}>{pts[c.name] ?? 0}</b>
         </div>
       ))}
@@ -7706,7 +7729,8 @@ function CentralBB({ onJogos, onClube }: { onJogos: () => void; onClube: () => v
   const ultimos = state.round > 0 ? state.lastResults.map(r => ({ h: nome(r.homeId), a: nome(r.awayId), hg: r.hg, ag: r.ag, hId: r.homeId, aId: r.awayId })) : []
   const meus = ultimos.filter(j => j.hId === you.id || j.aId === you.id)
   const giro = ultimos.length ? { rodada: state.round, total: ultimos.length, titulo: tr(`📣 Giro do jogo ${state.round}`, `📣 Around game ${state.round}`), jogos: [...meus, ...ultimos.filter(j => !meus.includes(j))] } : null
-  const negocios = state.managers.flatMap(m => m.squad.filter(c => !c.fake && (c.paid ?? 0) > 0).map(c => ({ name: c.name, pos: posTag(c.pos), paid: c.paid ?? 0, team: m.teamName, you: m.id === you.id })))
+  // 🏀🇺🇸 EUA Oficial: o elenco de estreia de cada franquia não foi comprado em leilão (via 'bot') — não é negócio do pregão
+  const negocios = state.managers.flatMap(m => m.squad.filter(c => !c.fake && (c.paid ?? 0) > 0 && !(state.euaOficial && c.via === 'bot')).map(c => ({ name: c.name, pos: posTag(c.pos), paid: c.paid ?? 0, team: m.teamName, you: m.id === you.id })))
     .sort((a, b) => b.paid - a.paid).slice(0, 20)
   const caro = negocios[0]
   const cestinhas = [...(state.scorers ?? [])].sort((a, b) => b.goals - a.goals).slice(0, 40).map(x => ({ name: x.name, team: x.teamName, pts: x.goals, you: x.teamId === you.id }))

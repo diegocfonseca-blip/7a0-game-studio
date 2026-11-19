@@ -246,8 +246,15 @@
   16 franquias (Pelicans +12, Nets +8, Mavericks +8, Hornets +5…) — `data-basquete-eua.ts`, GERADO por
   `npx tsx scripts/gera-cartas-eua.mts`, SÓ carreira. Quem já tem carta no baralho NBA não ganha outra. ⚠️ Errei antes: tinha posto
   437 (o elenco atual inteiro) e ele não pediu isso. Trava: `npm run eua-so-carreira`.
-- ⏳ Próximo: ligar o modo (escolher franquia → elenco inicial sorteado da franquia, resto pro leilão → liga 82 jogos + Play-In +
-  Playoffs), na conta do Diego primeiro. Os 9 `conferir` ficam de fora até checar.
+- ✅ 19/11 LIGADO SÓ NA CONTA DO DIEGO (Diego: *"Sim"*; `EUA_OFICIAL_GERAL = false` em sport.ts, abre pra quem tem `basqueteTester`):
+  Minhas carreiras → ➕ → "Que carreira você quer?" (✏️ Meu time · 🇺🇸 EUA Oficial) → Escolha sua franquia → começa DIRETO na
+  temporada (`START_EUA_CAREER` → `iniciaEuaOficial`, store.tsx): 30 franquias, cada uma com as 15 melhores cartas DELA (3 por posição),
+  Leste/Oeste reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA), sem sobe e desce, T2 segue na NBA. As cartas
+  novas descem só quando a pessoa começa o modo (`eua-oficial-cartas.ts`, import dinâmico). Trava: `npm run eua-oficial`.
+  Também: selo do elenco do basquete corrigido (fama 3 aparecia como "Promessa"; agora é Bom, e Promessa só com a marca).
+  E a trava `carreira-limpa` voltou a passar (nbaSala/nbaConf/nbaMundo/kingsBaralho em MARCAS_DE_MODO; oficialAbertura/deOlho zerados).
+- ⏳ EUA Oficial, a fazer: leilão de abertura com a SOBRA das franquias (Celtics tem 27, só 15 jogam — igual ao Brasil Oficial),
+  NBA Cup real, Draft com loteria, os 9 `conferir`, o rótulo "🇺🇸 EUA Oficial" no cartão de Minhas carreiras (hoje mostra "💍 NBA").
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐

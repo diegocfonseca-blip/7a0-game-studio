@@ -6111,6 +6111,7 @@ type Action =
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; /** 🏀 18/11: a mesma sala NBA no rápido offline (tamanho + formato) */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_EUA_CAREER'; franquia: string; extras: Card[] } // 🏀🇺🇸 carreira EUA Oficial (19/11): franquia real na NBA, sem sobe e desce. `extras` = as cartas novas só da carreira (data-basquete-eua, baixadas pela tela)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'CLOSE_NBA_BOOKS' } // 🏀💰 17/11: fecha o caixa da temporada no passo 💰 do roteiro (uma vez só, booksSeason)
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -8456,7 +8457,7 @@ export function viraCampo2D(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm', 'nbaSala', 'nbaConf', 'nbaMundo', 'kingsBaralho'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
  *  do estado que sobrou da anterior; estes campos são da CARREIRA e não eram zerados em lugar nenhum — dívida/crise, torcida,
  *  crônica, motor novo (`motor2Desde` velho travava o botão até a temporada antiga!), resultados do motor (`m2Res`), prêmios já
@@ -8467,7 +8468,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes'] as const satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'oficialAbertura', 'deOlho'] as const satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8533,6 +8534,62 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   // a SOBRA do sorteio de cada clube real (A–D): a mesma semente que monta os elencos, então quem não entrou nos 22 de ninguém.
   // Sem carta sobrando o leilão não abre e a temporada começa direto (nunca trava).
   if (abreLeilaoAberturaOficial(s, semente, cat as unknown as Record<Sector, Card[]>, rngC)) return true
+  s.screen = 'season'
+  return true
+}
+/** 🏀🇺🇸 EUA OFICIAL (19/11, plano em docs/carreira-eua-oficial-plano.md). Monta a carreira por cima do START_NBA_CAREER: a liga é a
+ *  NBA de verdade — as 30 franquias, cada uma com as cartas DELA (as antigas do auge + as novas só da carreira, `extras`), nas
+ *  conferências reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA). Sem sobe e desce (decisão do Diego). Elenco
+ *  de cada franquia = 15 (3 por posição, os melhores; posição curta completa com o melhor que sobrar). Devolve false se a franquia não
+ *  existir (e não mexe em nada). */
+const EUA_LINHAGEM: Record<string, string> = { Sonics: 'Thunder', SuperSonics: 'Thunder', Bullets: 'Wizards', Royals: 'Kings', Bobcats: 'Hornets', Braves: 'Clippers', Nationals: 'Sixers', Blazers: 'Trail Blazers' }
+const EUA_FRANQUIAS = [...NBA_LESTE, ...NBA_OESTE]
+function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolean {
+  if (!EUA_FRANQUIAS.includes(franquia)) return false
+  const cat = buildNbaCatalog(false)
+  const porFranquia: Record<string, { pos: Sector; c: Card }[]> = {}
+  const add = (pos: Sector, c: Card) => { const f = EUA_LINHAGEM[c.club] ?? c.club; if (EUA_FRANQUIAS.includes(f)) (porFranquia[f] ??= []).push({ pos, c }) }
+  for (const pos of SECTORS) for (const c of cat[pos]) add(pos, c as unknown as Card)
+  for (const c of extras ?? []) if (c && SECTORS.includes(c.pos as Sector)) add(c.pos as Sector, c)
+  const forca = (c: Card) => (c.fame ?? 1) * 1000 + (c.lo ?? 0) + (c.hi ?? 0)
+  const elencoDe = (f: string): WonCard[] => {
+    const todas = [...(porFranquia[f] ?? [])].sort((a, b) => forca(b.c) - forca(a.c))
+    const pega: typeof todas = []
+    for (const pos of SECTORS) pega.push(...todas.filter(x => x.pos === pos).slice(0, 3))
+    for (const x of todas) { if (pega.length >= 15) break; if (!pega.includes(x)) pega.push(x) }
+    return pega.map((x, i) => {
+      const c = { ...x.c, pos: x.pos, id: `eua-${x.pos}-${f.replace(/\s+/g, '')}-${i}` } as Card
+      const preco = justoDaCarta(s, c)
+      return { ...c, paid: preco, buyPrice: preco, via: 'bot' } as WonCard
+    })
+  }
+  const ordem = [franquia, ...EUA_FRANQUIAS.filter(f => f !== franquia)]
+  const eu = s.managers[0]
+  s.managers = ordem.map((f, i) => ({
+    id: i, name: i === 0 ? (eu?.name ?? f) : f, teamName: f, isHuman: i === 0, auctionRival: i === 0, formation: eu?.formation ?? '4-3-3',
+    money: i === 0 ? (eu?.money ?? 0) : 0, squad: elencoDe(f), aggression: 0.5, starHunger: 0.5, nbaSlots: 3,
+  } as Manager))
+  s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
+  s.careerRivalCount = ordem.length - 1; s.careerRivals = []
+  s.euaOficial = { franquia }
+  s.nbaTier = 'nba'
+  s.nbaSala = { tam: 30, formato: 'playoffs' }; s.copaMode = 'liga_copa'
+  s.nbaConf = conferenciasNba(s.managers)
+  const pl: Record<string, string> = {}
+  for (const m of s.managers) pl[`m${m.id}`] = tierDivKey('nba')
+  s.careerPlacements = pl
+  s.clubCash = seedClubCash({}, pl)
+  s.quickCopa = null; s.nbaCup = null; s.nbaCupFeita = null; s.liberta = null; s.champions = null
+  // sem leilão de estreia: cada franquia já entra com o elenco dela (como o Brasil Oficial). O leilão de sempre vem na virada.
+  s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+  for (const pos of SECTORS) s.stock[pos] = 0
+  s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []
+  s.reserveAuction = false; s.reserveListed = {}
+  s.careerMercado = undefined; s.marketLog = [] // o pregão que a carreira de sempre preparou não aconteceu: o mercado começa vazio
+  const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+  s.league = buildLeague(s.managers, false)
+  s.fixtures = calendarioDaLiga(s)
+  s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
   s.screen = 'season'
   return true
 }
@@ -9429,7 +9486,15 @@ function reducerBase(state: EscState, action: Action): EscState {
     // cheia de 20 times, pontos corridos. O leilão de reservas (crescer pra
     // rotação 10 → elenco 15), os desbloqueios por temporada e salvar/continuar
     // são o próximo passo. O futebol não passa por aqui.
+    case 'START_EUA_CAREER': {
+      // 🏀🇺🇸 a carreira de sempre do basquete (economia, save, identidade) e, por cima, a NBA de verdade
+      if (!EUA_FRANQUIAS.includes(action.franquia)) return state
+      const base = reducerBase(state, { type: 'START_NBA_CAREER', teamName: action.franquia })
+      if (base === state || !iniciaEuaOficial(base, action.franquia, action.extras)) return state
+      return base
+    }
     case 'START_NBA_CAREER': {
+      s.euaOficial = undefined // 🏀🇺🇸 a carreira de sempre (Street League) nunca herda o EUA Oficial
       s.nbaSala = undefined; s.nbaConf = undefined; s.nbaMundo = undefined // 🏀 18/11: a sala NBA (e o baralho Mundo) é só do rápido — partida/carreira nova não herda
       s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       s.seed = Math.floor(Math.random() * 1e9)
@@ -9531,7 +9596,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // só VOCÊ cresce: T2 → rotação (2/posição = 10), T3+ → elenco cheio (3/pos
       // = 15). Os outros times ficam no quinteto (nbaSlots undefined). Elencos de
       // todos preservados da temporada passada.
-      you.nbaSlots = s.seasonNo >= 3 ? 3 : 2
+      you.nbaSlots = s.euaOficial || s.seasonNo >= 3 ? 3 : 2 // 🏀🇺🇸 EUA Oficial: a franquia já nasce com os 15
       for (const m of s.managers) m.deepSquad = false
       // 🪜 SUBIR DE LIGA: terminou no TOP 4 da temporada que acabou? sobe um andar
       // (Street → G League → NBA). Você LEVA seu elenco; os adversários viram os do
@@ -9662,7 +9727,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // TODOS os humanos crescem (o offline cresce só o youIdx): T2 → rotação (2/pos = 10),
       // T3+ → elenco cheio (3/pos = 15). Os bots (crews) ficam no quinteto (sem nbaSlots).
       const humans = s.managers.filter(m => m.isHuman)
-      for (const m of humans) m.nbaSlots = s.seasonNo >= 3 ? 3 : 2
+      for (const m of humans) m.nbaSlots = s.euaOficial || s.seasonNo >= 3 ? 3 : 2
       for (const m of s.managers) m.deepSquad = false
       // 🪜 SUBIR DE ANDAR — a CREW sobe JUNTA: se o MELHOR humano terminou no TOP 4 e
       // existe andar acima (Street → G League → NBA), o quarto inteiro sobe. Ninguém cai.

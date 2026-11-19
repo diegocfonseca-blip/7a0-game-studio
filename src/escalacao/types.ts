@@ -1372,6 +1372,9 @@ export interface EscState {
   botComissao?: boolean
   /** 🔨 Brasil Oficial: o leilão em andamento é o de ABERTURA (5 vagas, 1 por posição, pra todos) */
   oficialAbertura?: boolean
+  /** 🏀🇺🇸 EUA OFICIAL (19/11): carreira do basquete com UMA das 30 franquias reais, na NBA, sem sobe e desce. `franquia` = a chave
+   *  da franquia (a mesma das cartas e do ESCUDOS_NBA). Só existe nessa carreira. */
+  euaOficial?: { franquia: string }
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }
   // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é idêntico ao
   // leilão normal, só vem antes do goleiro; é como uma posição nova apenas"):

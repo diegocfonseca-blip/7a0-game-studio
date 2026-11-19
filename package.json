@@ -162,7 +162,8 @@
     "libertadores": "npx tsx scripts/testa-libertadores.mts",
     "baralho-oficial": "npx tsx scripts/confere-baralho-oficial.mts",
     "ligas-nba": "npx tsx scripts/testa-ligas-nba.mts",
-    "eua-so-carreira": "npx tsx scripts/testa-eua-so-carreira.mts"
+    "eua-so-carreira": "npx tsx scripts/testa-eua-so-carreira.mts",
+    "eua-oficial": "npx tsx scripts/testa-eua-oficial.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
