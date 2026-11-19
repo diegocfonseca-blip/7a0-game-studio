@@ -124,3 +124,46 @@ export function ViceCityMao() {
     </div>
   )
 }
+
+// 🌆 O TEMA DA TELA (19/11, Diego no 1º print: *"muito pouca cor rosa néon e poucos detalhes de Vice City… jacaré num canto, carro…
+// mais cores igual você tinha feito no mockup"*). A tela inteira do pregão vira o pôr do sol neon do mockup: céu roxo→rosa→laranja,
+// sol listrado, coqueiros, chão de grade rosa, um 🐊 no canto, carro e helicóptero cruzando. Tudo CSS/emoji (0 KB de arte).
+export const VICE_TEMA_CSS = `
+.vice-tema{position:relative;overflow:hidden;border:3px solid #0C0C0C;border-radius:18px;padding:12px 10px 120px;box-shadow:0 0 0 3px #ff4fd8,0 0 26px rgba(255,79,216,.55),5px 5px 0 #0C0C0C;
+  background:linear-gradient(180deg,#14072e 0%,#3b1265 22%,#7a1d7e 42%,#ff4f8b 63%,#ffb26b 74%,#3a1250 75%,#160828 100%)}
+.vice-tema>*:not(.vice-decor){position:relative;z-index:2}
+.vice-tema .ov3-page-muted{color:#ffe1f6!important;text-shadow:0 1px 3px #000}
+.vice-decor{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.vice-sol{position:absolute;left:50%;top:58%;width:280px;height:280px;margin:-140px 0 0 -140px;border-radius:50%;opacity:.85;
+  background:repeating-linear-gradient(180deg,#ffd36b 0 16px,rgba(255,211,107,0) 16px 24px),radial-gradient(circle,#ffe08a,#ff6a8b);-webkit-mask:linear-gradient(#000 0 55%,transparent 55%);mask:linear-gradient(#000 0 55%,transparent 55%)}
+.vice-grade{position:absolute;left:-60px;right:-60px;bottom:0;height:24%;transform:perspective(320px) rotateX(52deg);transform-origin:50% 100%;
+  background:repeating-linear-gradient(90deg,rgba(79,243,255,.75) 0 2px,transparent 2px 52px),repeating-linear-gradient(0deg,rgba(255,79,216,.75) 0 2px,transparent 2px 34px);animation:viceGrade 1.6s linear infinite}
+@keyframes viceGrade{to{background-position:0 0,0 34px}}
+.vice-palma{position:absolute;bottom:22%;font-size:110px;line-height:1;filter:brightness(0) drop-shadow(0 0 10px rgba(255,79,216,.6));opacity:.9}
+.vice-estrela{position:absolute;color:#fff;font-size:10px;opacity:.7;animation:vicePisca 2.4s ease-in-out infinite}
+@keyframes vicePisca{50%{opacity:.15}}
+.vice-jacare{position:absolute;right:8px;bottom:8px;font-size:34px;filter:drop-shadow(0 0 8px #4ff3ff);animation:viceJacare 3s ease-in-out infinite}
+@keyframes viceJacare{50%{transform:translateY(-4px) rotate(-6deg)}}
+.vice-carro{position:absolute;bottom:13%;left:-60px;font-size:38px;filter:drop-shadow(0 0 10px #ff4fd8);animation:viceCarro 7s linear infinite}
+@keyframes viceCarro{0%{transform:translateX(0) scaleX(-1)}100%{transform:translateX(calc(100vw + 120px)) scaleX(-1)}}
+.vice-heli{position:absolute;top:28%;right:-60px;font-size:28px;animation:viceHeli 11s linear infinite}
+@keyframes viceHeli{0%{transform:translateX(0)}100%{transform:translateX(calc(-100vw - 140px))}}
+.vice-letreiro{position:absolute;left:10px;bottom:9px;font:900 15px Oswald,sans-serif;letter-spacing:.2em;color:#fff;text-shadow:0 0 6px #ff4fd8,0 0 14px #ff4fd8,2px 2px 0 #000}
+@media (prefers-reduced-motion:reduce){.vice-grade,.vice-carro,.vice-heli,.vice-jacare,.vice-estrela{animation:none}}
+`
+export function ViceDecor() {
+  const estrelas = [[8, 6], [22, 14], [40, 4], [63, 10], [80, 5], [92, 16], [55, 20], [15, 26]]
+  return (
+    <div className="vice-decor" aria-hidden>
+      {estrelas.map(([x, y], i) => <i key={i} className="vice-estrela" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${i * 0.3}s` }}>✦</i>)}
+      <div className="vice-sol" />
+      <span className="vice-palma" style={{ left: -26 }}>🌴</span>
+      <span className="vice-palma" style={{ right: -30, transform: 'scaleX(-1)', fontSize: 130 }}>🌴</span>
+      <span className="vice-heli">🚁</span>
+      <div className="vice-grade" />
+      <span className="vice-carro">🏎️</span>
+      <span className="vice-jacare">🐊</span>
+      <span className="vice-letreiro">VICE CITY</span>
+    </div>
+  )
+}
