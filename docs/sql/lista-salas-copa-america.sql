@@ -8,3 +8,4 @@
 --     when new.game_state->>'mundoNaLiga' = 'true' and coalesce(new.game_state->>'euroNaLiga', '') not in ('', 'null') then 'euro'
 --     when new.game_state->>'mundoNaLiga' = 'true' then 'mundo' end);
 -- ↩️ Desfazer: tirar a linha do 'america' (volta a gravar 'euro').
+-- ✅ APLICADO em 19/11 depois do deploy do aparelho (migration lista_salas_copa_america).

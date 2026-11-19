@@ -14163,6 +14163,8 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - Conferir: título da Euro/Copa América vai pro esc_results com season_key ':copamundo' — ver se o Rank conta como Copa do Mundo.
 - ✅ 19/11 (Diego: "publica… p todos já"): `AMERICA_GERAL = true` e `LIBERTA_SALA_GERAL = true` + linha nas novidades. Falta: na LISTA de salas
   a Copa América aparece como "Liga + Eurocopa" (o gatilho `game_rooms_colunas_magras` grava ls_copa2='euro' pra qualquer euroNaLiga) —
+  ✅ FEITO 19/11: gatilho grava ls_copa2='america' e o lobby lê (docs/sql/lista-salas-copa-america.sql).
+- ✅ 19/11 (Diego: "volte a libertadores q tinha antes Tb sem convocar pra ter os dois"): a 🌎 Liga + Liberta (time do leilão) voltou na prateleira do SEU TIME, ao lado da 🏆 Liga + Libertadores (convocando).
   conserto = 1 linha no gatilho ('america' quando euroNaLiga=16) + lobby ler 'america'; mexe no banco, esperando OK.
 
 ## 🇧🇷 19/11 — Simulação do Brasil Oficial começando na Série D (`scripts/simula-brasil-oficial.mts`)
