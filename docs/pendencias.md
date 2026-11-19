@@ -14204,3 +14204,5 @@ Testado numa carreira nova de ponta a ponta (leilão → Master → rodada 1 →
 some na aba do mapa) e cobria os botões da câmera; agora fica em cima do mapa, sem grudar. A faixa do estádio ficou curta ("🚌 você joga fora").
 Ainda a ver: o 1º jogo da temporada não passa pela escolha 2D/3D (sai do "Começar a temporada" direto pra aba Jogos, como antes).
 Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
+- ✅ 19/11: Vice City liberado também pro Futpoint FC (VICE_CITY_TESTERS), pra testarem juntos.
+- ✅ 19/11: tema Vice City (pôr do sol neon) no fundo da sala inteira — revelação, monte, temporada, copas, fim (aprovado; desktop corrigido: nada de position nos filhos do Shell).

@@ -348,7 +348,7 @@ export function useKingsLiberada(): boolean {
 
 // 🌴 VICE CITY (19/11, Diego: *"pode fazer adorei"* — mockup `scripts/mockups/vice-city-pregao.png`): sala online de Pregão aberto com
 // cartas de golpe. Nasce só na conta do Diego; `VICE_CITY_GERAL = true` libera pra todo mundo.
-const VICE_CITY_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+const VICE_CITY_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com']) // + Futpoint FC (19/11, Diego: "publique p mim e futpoint testarmos")
 export const VICE_CITY_GERAL = false
 let viceOk = VICE_CITY_GERAL
 function applyVice(email?: string | null): void {
