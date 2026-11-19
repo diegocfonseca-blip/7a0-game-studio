@@ -1,3 +1,4 @@
+import { estadioDoClube } from './estadios-oficial'
 import { observarSuperficieCampo2D, superficieCampo2D } from './campo2d-superficie'
 // Score and narration stay above the pitch. Playback controls are expanded
 // explicitly so the career map remains readable on a narrow mobile screen.
@@ -39,6 +40,7 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
   const aoVivo = vivo && !replay // replay rola o relógio, mas o jogo já acabou: nada de bolinha vermelha nem de mexer no time
   if (!match && !ctl) return null
   const [nh, na] = match?.officialTeams ?? [t('Casa', 'Home'), t('Fora', 'Away')]
+  const foraDeCasa = !!match && match.viewerClubId != null && match.viewerClubId === match.context.awayClubId
   const chip = (on: boolean): CSSProperties => ({ ...RESET, font: 'inherit', fontSize: 10.5, fontWeight: 800, padding: '4px 7px', border: 0, background: on ? GOLD : 'transparent', color: on ? INK : '#fff', cursor: 'pointer', pointerEvents: 'auto' })
   const grupo: CSSProperties = { display: 'inline-flex', border: '2px solid #fff', borderRadius: 9, overflow: 'hidden', flex: 'none' }
   const placar = match && <span className="pc3-scoreboard" style={{ display: 'inline-flex', alignItems: 'stretch', border: '2px solid #fffaf0', borderRadius: 9, overflow: 'hidden', background:INK, boxShadow:'2px 3px 0 #0c0c0c', ...OSW, flex: 'none' }}>
@@ -57,6 +59,11 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
       {!vivo && !replay && ctl?.dia && <span className="pc3-hud-data" style={{ ...OSW, fontSize: 11.5, color: GOLD, flex: 'none', background: INK, border: '2px solid #fffaf0', borderRadius: 8, padding: '3px 7px', boxShadow: '2px 2px 0 #0c0c0c' }}>{ctl.dia}</span>}
       {!vivo && !replay && ctl?.chegando && <span style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', flex: 'none', background: '#0c0c0cd9', borderRadius: 7, padding: '3px 7px' }}>{t('🏟️ Dia de jogo! A torcida está chegando — apito às 16h', '🏟️ Match day! The fans are arriving — kick-off at 4pm')}</span>}
     </div>
+    {/* 🏟️ 19/11 (Diego: *"não ficou claro pro usuário o campo da casa do adversário… deve aparecer mais claro o nome de cada estádio"*):
+        o nome do estádio do MANDANTE, e quando o seu clube joga fora, isso fica escrito */}
+    {match && <div className="pc3-hud-estadio" style={{ ...OSW, fontSize: 12, marginTop: 4, background: foraDeCasa ? '#7C3AED' : INK, color: '#fffaf0', border: '2px solid #fffaf0', borderRadius: 8, padding: '3px 8px', boxShadow: '2px 2px 0 #0c0c0c', display: 'inline-block', maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      🏟️ {estadioDoClube(nh).nome} · {foraDeCasa ? t(`🚌 fora de casa, na casa do ${nh}`, `🚌 away, at ${nh}'s ground`) : t(`casa do ${nh}`, `${nh}'s ground`)}
+    </div>}
     {aoVivo && torcedores > 0 && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFE79A', marginTop: 3, background: '#0c0c0cbb', borderRadius: 5, padding: '2px 7px' }}>👥 {torcedores.toLocaleString(t('pt-BR', 'en-US'))} {t('torcedores', 'fans')}</div>}
     {penaltis ? <div className="pc3-match-narration">🥅 {penaltis.narration}</div> : vivo && festa ? <div key={`g${festa.lado}|${festa.autor}|${festa.min}`} className="pc3-match-narration ll44-gol-pisca" style={estiloPisca()}><span className="ll44-grito">{gritoGol((match?.officialTeams ?? [nh, na])[festa.lado], t('pt', 'en') === 'en', festa.autor, festa.min)}</span></div>
       : vivo && quase ? <><style>{QUASE_CSS}</style><div key={'q' + quase.k} className="pc3-match-narration" data-quase-campo2d={quase.tipo} style={estiloQuase()}>😱 {quase.txt}</div></>
