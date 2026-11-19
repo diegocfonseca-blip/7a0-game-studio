@@ -14279,3 +14279,12 @@ Trava `npm run vice-city` atualizada e passando.
 Diego: *"posso marcar 20, mas ter 15 usuários… completados com 5 bots… igual é sempre"*. Sala de 10 times = até 10 pessoas; de 20 = até 20.
 A mesa do Vice City segue com UMA carta por vez (o golpe mira a carta da mesa). Com muita gente o pregão fica mais longo — se ele quiser as duas
 mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 e testar antes.
+
+## 19/11 — 🛡️ Escudo avulso entregue: Deportivo La Puñeta
+- Arte do dono recortada em círculo (fundo preto virou transparente), `src/escalacao/img/puneta-escudo.webp` (360px, 29 KB).
+- Segue o E-MAIL de quem pagou (`ESCUDO_AVULSO_CONTAS` em `manto.ts` → chave `'zz avulso deportivo la puneta'` em `LOGOS_PRONTAS`).
+  Motivo: existem DUAS contas com o clube "Deportivo La Puñeta" e só uma pagou — por nome a outra herdaria.
+- Banco: `esc_artes_conta` (escudo) dessa conta passou de `producao` → `pronto`.
+- Vale só na tela do próprio dono (igual escudo de batismo); os outros veem o automático. Pros outros verem = Etapa 3 dos mimos (pendente).
+- Ainda em produção: escudos avulsos de vieiracaio688 (10/11) e lucassaboia14 (11/11).
+- Reverter: tirar a linha do `ESCUDO_AVULSO_CONTAS` (ou `git revert` do commit).

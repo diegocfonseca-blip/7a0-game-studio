@@ -21,6 +21,7 @@ import tokaEscudoImg from './img/toka10-escudo.webp'
 import erosEscudoImg from './img/eros-escudo.webp'
 import sapekEscudoImg from './img/sapek-escudo.webp'
 import arrudaEscudoImg from './img/arruda-escudo.webp'
+import punetaEscudoImg from './img/puneta-escudo.webp' // 🛡️ escudo AVULSO pago (19/11) — só a conta que pagou vê, via ESCUDO_AVULSO_CONTAS (manto.ts)
 import coringasEscudoImg from './img/coringas-escudo.webp'
 import nataEscudoImg from './img/nata-escudo.webp'
 import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
@@ -561,6 +562,9 @@ const sapekEscudoRender = (size: number) => (
 // chave apertada medida na imagem (fundo g-max(r,b) >= 128, gramado <= 129 —
 // rampa 132→148) e o escudo separado por COMPONENTE, porque a cauda da cobra
 // invade a faixa de colunas dele sem encostar. Conferido sobre creme: gramado inteiro.
+const punetaEscudoRender = (size: number) => (
+  <img src={punetaEscudoImg} height={size} width={size} alt="Deportivo La Puñeta" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const arrudaEscudoRender = (size: number) => (
   <img src={arrudaEscudoImg} height={size} width={Math.round(size * 360 / 260)} alt="Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1261,6 +1265,9 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Sapekeiros': sapekEscudoRender,
   // 🏟️🇧🇷 Tricolor do Arruda FC (souzact12) — ex-Legado EC, Série A. Os nomes
   // sem "FC" continuam registrados: quem pegou o save da 1ª hora não fica sem escudo.
+  // 🛡️ ESCUDO AVULSO (pago no Pix, 19/11): chave que ninguém digita — o nome de verdade ('Deportivo La Puñeta')
+  // tem dois donos no jogo, então o escudo segue o E-MAIL de quem pagou (ESCUDO_AVULSO_CONTAS em manto.ts).
+  'zz avulso deportivo la puneta': punetaEscudoRender,
   'Tricolor do Arruda FC': arrudaEscudoRender,
   'Tricolor do Arruda': arrudaEscudoRender,
   // 🃏⚫⚪ Coringas do Diniz (lucas_calefi) — ex-Vanguarda Nacional, Série A. O nome
