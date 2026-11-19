@@ -4400,7 +4400,7 @@ export function EscLobby() {
                   </p>
                 </SegField>
               )}
-              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga' && !ehMinha) && !(kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala) && ( /* 🧱 06/11: a Liga Draft também escolhe */
+              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga' && !ehMinha) && !(kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala) && !(viceVe && viceSala && roomMode === 'rapido' && !nbaSala) /* 🌴 Vice City: só jogador */ && ( /* 🧱 06/11: a Liga Draft também escolhe */
                 <SegField label={tr('O que vai a leilão', 'What goes to auction')}>
                   {/* 🏳️ 31/10: o 3º tipo, Seleções, é o MESMO motor do Clubes (pacote = setor de uma seleção). No basquete não existe. */}
                   <Seg options={(nbaSala
@@ -4531,7 +4531,7 @@ export function EscLobby() {
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto. 🚫 Nem na sala "🌐 Copa do Mundo" direta (Diego 15/10):
                 lá não tem leilão, e a escolha de seleção não sabe de dupla (cada um escolheria a sua). */}
-            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && !(kingsVe && kingsSala && roomMode === 'rapido') && (
+            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && !(kingsVe && kingsSala && roomMode === 'rapido') && !(viceVe && viceSala && roomMode === 'rapido' && !nbaSala) /* 🌴 Vice City: sem duplas */ && (
               <div>
                 <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
                   <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
@@ -4802,6 +4802,7 @@ export function EscLobby() {
                       ...(getSport() !== 'basquete' ? [['liga_libsala', tr('🏆 Liga + Libertadores', '🏆 League + Libertadores')] as ['liga_libsala', string]] : []),
                       ...(relampagoOn && roomMode === 'rapido' && !roomDuplas ? [['relampago', tr('⚡ Mata-mata Relâmpago', '⚡ Lightning Knockout')] as ['relampago', string]] : []),
                       ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
+                    if ((viceVe && viceSala && roomMode === 'rapido' && !nbaSala)) { for (let i = todas.length - 1; i >= 0; i--) if (todas[i][0] === 'champions' || todas[i][0] === 'relampago') todas.splice(i, 1) } // 🌴 Vice City: sem Champions e sem Relâmpago
                     const convoca = (v: ModoCopa) => v === 'liga_mundo' || v === 'liga_euro' || v === 'liga_america' || v === 'liga_libsala' || regionalId(v) !== null
                     const prateleira = (titulo: string, lista: [ModoCopa, string][]) => lista.length === 0 ? null : (
                       <>
