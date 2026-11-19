@@ -14197,3 +14197,4 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 Pedido do Diego: *"não ficou claro o campo da casa do adversário… deve aparecer mais claro o nome de cada estádio"*. Embaixo do placar
 do mapa (2D e 3D) entra uma faixa: `🏟️ <estádio do mandante> · casa do <mandante>`; quando o seu clube joga FORA ela fica roxa e diz
 "🚌 fora de casa, na casa do X". Prints: `scripts/mockups/estadio-nome-fora.png` / `estadio-nome-casa.png`. No branch, não publicado.
+- ✅ 19/11: Vice City liberado também pro Futpoint FC (VICE_CITY_TESTERS), pra testarem juntos.
