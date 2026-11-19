@@ -14150,3 +14150,4 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - ✅ 19/11 (Diego: "publica… p todos já"): `AMERICA_GERAL = true` e `LIBERTA_SALA_GERAL = true` + linha nas novidades. Falta: na LISTA de salas
   a Copa América aparece como "Liga + Eurocopa" (o gatilho `game_rooms_colunas_magras` grava ls_copa2='euro' pra qualquer euroNaLiga) —
   ✅ FEITO 19/11: gatilho grava ls_copa2='america' e o lobby lê (docs/sql/lista-salas-copa-america.sql).
+- ✅ 19/11 (Diego: "volte a libertadores q tinha antes Tb sem convocar pra ter os dois"): a 🌎 Liga + Liberta (time do leilão) voltou na prateleira do SEU TIME, ao lado da 🏆 Liga + Libertadores (convocando).
