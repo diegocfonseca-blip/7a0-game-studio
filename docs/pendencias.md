@@ -6,6 +6,26 @@
 - Causa AINDA ABERTA. No branch (falta publicar): o vigia grava QUAL ação tirou a coroa (`acao` no `perdeu_coroa`) e um registro
   novo `trocou_cadeira` (meu técnico mudou dentro da mesma sala, com a ação, de e para). Próxima vez: ler esc_travas da sala.
 - No branch também (falta OK pra publicar): convocação das salas 100 s + relógio grande nas Copas (mockups/relogio-convocacao.png).
+## 🏆 19/11 — LIGA + LIBERTADORES NAS SALAS, COM CLUBES REAIS (no branch, só na conta do Diego)
+- Pedido do Diego (mockup aprovado `scripts/mockups/liberta-clubes-390.png`/`-1280.png`): acabou a liga da sala, TODO time escolhe um
+  clube sul-americano DE VERDADE na ordem da tabela (gente escolhe em 40s; bot leva o melhor que sobrou; quem dormiu leva o pior) e
+  convoca 11 das cartas DESSE clube (time do leilão fica de fora). 32 clubes (a máquina completa com os mais fortes livres), formato
+  real: 8 grupos em turno e returno, 2 passam, oitavas (1º × 2º de outro grupo, volta na casa do 1º), quartas e semi em ida e volta
+  (agregado; empate = pênaltis, sem gol fora), final única. Pool = os 36 clubes que fecham 11 com os baralhos normais (`poolDoClube`).
+- Código: motor puro `src/escalacao/liberta-sala.ts` · tela `src/escalacao/liberta-sala-online.tsx` (adaptada da copa regional:
+  `room_players.copa` + `esc_copa_salas`, fora do reducer/assentos) · opção "🏆 Liga + Libertadores" na prateleira CONVOCANDO do
+  criar sala (lobby.tsx) · porta em screens.tsx · faixa "depois da liga" em proxima-competicao.tsx. Trava: `npm run liberta-sala`.
+  Bancada: `DEPLOY_BASE=/ npx vite` → `/scripts/teste-liberta-sala/?v=grade` ou `?passo=N`.
+- Marca da sala = `regionalNaLiga: 'liberta'` (o banco já copia pra `ls_copa2`, o novo leilão/liga_modo já carregam). Todo
+  `COPAS_REGIONAIS[...]` passa por `ehCopaRegional`, que diz não pra 'liberta'. O `copaMode 'liga_liberta'` antigo NÃO foi mexido.
+- Relógio = o `esc_regional_clock` que já existe, sem SQL: p_rodadas 12 (6 de grupo + ida/volta de oitavas/quartas/semi), p_ko 1 (final).
+- Gate: `LIBERTA_SALA_GERAL = false` (sport.ts, `useLibertaSalaLiberada`). Liberar = `true` (+ linha em novidades.ts com `en`).
+- ⏭️ FALTA: (1) trocar pra Libertadores em liga já criada (Minhas Ligas → editar modo): a função do banco `esc_liga_modo2` só aceita
+  liga/liga_copa/liga_liberta/champions/liga_mundo/regionais — a tela avisa o porquê; precisa de SQL novo com OK do Diego. ⚠️ O mesmo
+  vale HOJE pra `liga_euro` e `liga_america` (o banco devolve "erro" — achado em 19/11, não consertado). (2) Teste de verdade com 2+
+  aparelhos numa sala (só deu pra testar o motor e a tela na bancada). (3) Cartão de tática das copas não entra (é preso no formato da
+  regional). (4) Print pro Diego conferir a tela do torneio (grupos, ida/volta, final) antes de liberar.
+
 ## 🗑️ 18/11 — SEM PLANO: 1 CARREIRA SÓ E CARREIRA PARADA 5 DIAS É EXCLUÍDA (feito no branch, esperando OK do visual)
 - Regra do Diego (ver CLAUDE.md, 18/11). Código: `LIMPA_CARREIRA_GRATIS`/`limpaCarreirasGratis`/`useLimpezaCarreirasGratis`/
   `diasParaExcluir`/`marcaCarreiraJogada` (store.tsx) · `careerSlotLimit` sem plano = 1 (+ fichas compradas), sem o "quem já tem fica" ·
@@ -14072,6 +14092,19 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - Banco FEITO: `esc_socios` (96, `escudo_time` = Ceará SP Club, coração Flamengo) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
 - Post: `scripts/posts/batismo-ceara-sp-club.png` (dono "Lucas" tirado do e-mail — confirmar).
 - ✅ Publicado na main em 19/11 (só o batismo; o sorteio dos elencos de fora segue no branch).
+
+## 🌎🏆 19/11 — Copa América + Libertadores com clubes reais nas salas (pedido do Diego) — EM DESENHO
+- Decisões dele: escolha pela ORDEM DA TABELA da liga · o time do leilão SOME (igual Copa do Mundo) · clubes OFICIAIS com escudo oficial (os 36 sul-americanos com 11+ cartas) · Copa América com regra real (16 seleções, 4 grupos, quartas em jogo único).
+- Cartas novas pras 6 seleções que faltam (Bolívia, Venezuela, Canadá, Jamaica, Panamá, Costa Rica): proposta em `docs/copa-america-cartas-propostas.md` (64 cartas). **Elas NÃO entram nos baralhos das salas online** (ordem dele) — só servem pra convocação das seleções.
+- Mockup da escolha do clube: `scripts/mockups/liberta-clubes-390.png` / `-1280.png` (esperando OK).
+- ✅ 19/11 (Diego: *"vai acertar o ano certinho, o clube certinho… essas cartas novas não entram nas salas online"*): **COPA AMÉRICA FEITA no branch, só na conta dele** (`AMERICA_GERAL = false`, sport.ts).
+  · Marca da sala = `euroNaLiga: 16` (24 = Euro, 16 = Copa América); opção "🌎 Liga + Copa América" na prateleira CONVOCANDO (criar e editar sala).
+  · 16 seleções reais de 2024 (`AMERICA_16`); 4 grupos → quartas, jogo único (o motor da Copa de 16 que já existia, com o relógio do banco pulando as oitavas).
+  · 65 cartas CONFERIDAS (clube/ano/posição) em `cartas-selecoes-extra.ts` — só a convocação (`countryPool`) enxerga; nenhum baralho de leilão. Tabela + fontes: `docs/copa-america-cartas-propostas.md`.
+  · Escudos oficiais das 6 federações (JoseArroyave) em `img/nations-v25/` + bandeira e cor. Tema/troféu próprio (`america` em competicoes-visual).
+  · Conserto junto: o REGULAMENTO da Eurocopa mostrava o código cru na tela (`euro ? tr(...)`).
+  · ⚠️ Falta: na LISTA de salas, sala de Copa América aparece como "liga+euro" (a coluna `ls_copa2` do banco diz 'euro' pras duas) — dentro da sala está certo.
+  · ⚠️ Bolívia tem 1 goleiro só (os conhecidos já têm carta no baralho Mundo do Brasil Oficial). Achado lateral: Juan Carlos Arce tem 2 cartas MUNDO em `data-oficial.ts` (linhas ~3626 e ~3762).
 - ✅ 19/11 CONSTRUÍDO (no branch, SÓ NA CONTA DO DIEGO — `VICE_CITY_GERAL = false`, sport.ts):
   · motor em `store.tsx` (`viceAbre/viceUsa/viceAplica/viceBusted/viceDepoisDoMartelo/viceTravaLance`), catálogo em `vice-city.ts`,
     tela em `vice-city-ui.tsx` (faixa do último golpe em cima da mesa + mão de cartas + o que vale contra você + segredo do X9/Sniper).

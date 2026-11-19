@@ -86,6 +86,7 @@ import { PyramidOverlay } from './pyramid'
 import { pedaco } from './recarga'
 const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
+const LibertaSalaLazy = lazy(pedaco(() => import('./liberta-sala-online').then(m => ({ default: m.LibertaSalaGate })))) // 🏆 Liga + Libertadores com clubes reais (19/11)
 import { CampinhoKings } from './kings-campinho'
 import { pokeModo, pokeDe, nomeDoLote } from './pokemon-modo' // ⚡ modo Pokémon (25/10, só a conta do Diego)
 import { ChipsTipo, ArtePoke, TimePokemon } from './pokemon-arte'
@@ -12949,9 +12950,13 @@ export function EscEnd() {
   // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
   // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
   const [mundoNaLiga, setMundoNaLiga] = useState(false)
-  const [euroNaLiga, setEuroNaLiga] = useState<24 | undefined>(undefined) // 🇪🇺 31/10: a Copa depois da liga é a EUROCOPA (24 seleções)
+  const [euroNaLiga, setEuroNaLiga] = useState<24 | 16 | undefined>(undefined) // 🇪🇺 31/10: a Copa depois da liga é a EUROCOPA (24 seleções)
   // 🏟️ COPA REGIONAL (10/10): mesma porta da Copa do Mundo — a marca `regionalNaLiga` é da SALA
   const [regionalNaLiga, setRegionalNaLiga] = useState<CopaRegionalId | null>(null)
+  // 🏆 LIGA + LIBERTADORES (19/11): a marca da sala é `regionalNaLiga: 'liberta'` — reaproveita a porta da regional (o banco
+  // já copia essa marca pra lista de salas, o `liga_modo`/novo leilão já carregam ela). Todo lugar que indexa COPAS_REGIONAIS
+  // passa por `ehCopaRegional`, que diz NÃO pra 'liberta' — então ela nunca vira regional por engano.
+  const [libertaNaLiga, setLibertaNaLiga] = useState(false)
   const [mundoChecado, setMundoChecado] = useState(false)
   // 🌍 a noite só acaba DEPOIS da Copa (Diego 01/09: *"a votação é somente quando
   // acabar tudo, a liga e a Copa do Mundo — mesma coisa o jornal"*). Enquanto
@@ -12961,12 +12966,12 @@ export function EscEnd() {
   // piscar o jornal na cara e sumir.
   const [mundoPendente, setMundoPendente] = useState(false)
   // 🚪 a liga recolhe embaixo do portão enquanto a Copa do Mundo não acaba (19/09)
-  const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga) && !copaPending && !libPending && mundoPendente
+  const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga || libertaNaLiga) && !copaPending && !libPending && mundoPendente
   // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
   // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
-  const proxNomeFim = mundoEsperando ? (regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
+  const proxNomeFim = mundoEsperando ? (libertaNaLiga ? 'Libertadores' : regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
-  useEffect(() => { if (mundoNaLiga || regionalNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga])
+  useEffect(() => { if (mundoNaLiga || regionalNaLiga || libertaNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga, libertaNaLiga])
   useEffect(() => {
     if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
     let vivo = true
@@ -12974,7 +12979,7 @@ export function EscEnd() {
       .then(({ data }) => {
         if (!vivo) return
         const d = data as { flag?: string; reg?: string; euro?: string } | null
-        setEuroNaLiga(d?.euro === '24' || d?.euro === 'true' ? 24 : undefined)
+        setEuroNaLiga(d?.euro === '24' || d?.euro === 'true' ? 24 : d?.euro === '16' ? 16 : undefined) // 🌎 19/11: 16 = Copa América
         // 🛡️ sala com as DUAS marcas (achado 15/10, sala "Rio-SP no YouTube" do Futpoint): abria a Copa do Mundo E o
         // Rio × SP juntos, lendo as MESMAS escolhas — "2 listas" e a convocação do São Paulo vazia (procurava o PAÍS São
         // Paulo). Uma copa só por noite: a regional, que é a escolha mais específica, ganha.
@@ -12982,9 +12987,11 @@ export function EscEnd() {
         // NUNCA abre copa de seleção/regional no fim — vai sempre pro draft, mesmo que alguma marca tenha sobrado na sala.
         const draftSala = !!(state.ligaDraft || state.minhaLigaDraft)
         const reg = !draftSala && ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
+        const lib = !draftSala && d?.reg === 'liberta' // 🏆 19/11
         if (draftSala) setEuroNaLiga(undefined)
-        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg)
+        setMundoNaLiga(!draftSala && String(d?.flag) === 'true' && !reg && !lib)
         setRegionalNaLiga(reg)
+        setLibertaNaLiga(lib)
         setMundoChecado(true)
       }, () => {})
     return () => { vivo = false }
@@ -13407,6 +13414,22 @@ export function EscEnd() {
         </Suspense></CercaDaCopa>
       )}
       {/* 🏟️ COPA REGIONAL (10/10): igual à Copa do Mundo — tela por cima da sala parada, fora do motor */}
+      {/* 🏆 LIGA + LIBERTADORES (19/11): a mesma porta da regional — tela por cima da sala parada, fora do motor */}
+      {online && state.roomId && libertaNaLiga && !copaPending && !libPending && (
+        <CercaDaCopa><Suspense fallback={null}>
+          <LibertaSalaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
+            matchSeed={state.seed}
+            seasonNo={state.seasonNo ?? 1}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            aoRemover={(id, nome) => {
+              if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
+            }}
+            classificacao={table.map(t => {
+              const m = state.managers.find(mm => mm.id === t.id)
+              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
+            })} />
+        </Suspense></CercaDaCopa>
+      )}
       {online && state.roomId && regionalNaLiga && !copaPending && !libPending && (
         <CercaDaCopa><Suspense fallback={null}>
           <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
@@ -13456,7 +13479,7 @@ export function EscEnd() {
           nova nem passa por aqui (`careerOnline` vai pro PyramidSeasonScreen). */}
       {/* ⭐ Só Champions: o jornal tem EDIÇÃO CHAMPIONS (`montaEdicaoChampions`) — pedido do Diego 25/09 */}
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
-        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
+        <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && libertaNaLiga ? { ...campeaoDoMundo, copa: 'Libertadores' } : campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
@@ -13474,7 +13497,7 @@ export function EscEnd() {
           const pos = posDe(m.id)
           const cupTitles: TituloSalaRapida[] = []
           if (!chTab && !relPos && copaDone && state.quickCopa?.champion?.id === m.id) cupTitles.push(libEnd ? 'libertadores' : 'copa')
-          if (campeaoDoMundo?.nome === m.teamName) cupTitles.push(regionalNaLiga ? 'regional' : 'mundial')
+          if (campeaoDoMundo?.nome === m.teamName) cupTitles.push(libertaNaLiga ? 'libertadores' : regionalNaLiga ? 'regional' : 'mundial')
           return {
             managerId: m.id,
             teamName: m.teamName,

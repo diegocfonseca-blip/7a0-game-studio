@@ -15,6 +15,7 @@
     "novidades": "node scripts/novidades-jogadores.mjs",
     "reddit": "node scripts/reddit-radar.mjs",
     "paises": "node scripts/paises-check.mjs",
+    "liberta-sala": "npx tsx scripts/testa-liberta-sala.mts",
     "escudos-selecao": "node scripts/testa-escudos-selecao.mjs",
     "vigias": "node scripts/checa-vigias-online.mjs",
     "rank": "node scripts/checa-rank-liga.mjs",
