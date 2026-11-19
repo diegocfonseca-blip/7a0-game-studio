@@ -14252,3 +14252,8 @@ sirene da polícia… dizendo quem foi… ninguém mais toma 5 estrelas"*. Motor
 melhores (acima de Profissional) por 5 Profissionais reais da mesma posição; depois do 1º, ninguém mais leva estrela. Tela: tela toda piscando
 vermelho/azul por 6,5 s + `playSirene()` (sintetizada, 0 KB) + chip "🚔 Polícia pegou X". Prints: `scripts/mockups/vice-busted-sirene-*.png`.
 Trava `npm run vice-city` atualizada e passando.
+
+## 🌴 19/11 — Vice City com 20 times aceita até 20 pessoas (bots completam) — PUBLICADO
+Diego: *"posso marcar 20, mas ter 15 usuários… completados com 5 bots… igual é sempre"*. Sala de 10 times = até 10 pessoas; de 20 = até 20.
+A mesa do Vice City segue com UMA carta por vez (o golpe mira a carta da mesa). Com muita gente o pregão fica mais longo — se ele quiser as duas
+mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 e testar antes.
