@@ -14019,6 +14019,8 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - SEM toque de recolher. SEM Monte (igual Pregão aberto): vaga vazia no fim = jogador sorteado das sobras, de graça.
 - 🌴 **19/11: Vice City aparece pra TODOS na criação de sala** (fundo rosa + EM BREVE, não dá pra apertar; *"coloque p todos só q rosa o fundo e em breve. N deixe apertarem"*). Só a conta do Diego joga. Liberar de verdade = `VICE_CITY_GERAL = true` + linha em novidades.ts + reels.
 
+- 🟢 **19/11 (noite): LIBERADO PRA TODOS** (*"Pode publicar p todos já"*, depois da legenda do Reels pro Instagram): `VICE_CITY_GERAL = true`
+  + linha em novidades.ts. Reverter = voltar a chave pra `false` (volta a ficar EM BREVE pra todos e só Diego/Futpoint jogam).
 - 🔁 19/11 (mais tarde): virou MODO PRÓPRIO "🌴 Vice City" na fileira de cima (selo NOVO), por dentro sala rápida. Jeito do lance: Pregão
   aberto (até 10, padrão) ou Tocaia (até 20). Sem Champions. Estrelas ESCONDIDAS; carta nova 🎯 Sniper mostra o ranking só pra quem usou.
   Mockup: `scripts/mockups/vice-city-pregao.png`. Esperando OK pra construir.
