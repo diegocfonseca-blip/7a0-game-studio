@@ -1,0 +1,88 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Osw;src:url(fluxo-oswald.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F4ECD6;font-family:Arial,sans-serif;color:#0C0C0C;padding:30px 24px;width:1720px}
+h1{font-family:Osw;font-size:46px;text-transform:uppercase}
+.sub{font-size:19px;margin:6px 0 22px;color:#4b4535}
+.linha{display:flex;gap:18px;align-items:flex-start}
+.passo{width:390px}
+.num{display:inline-flex;align-items:center;gap:10px;font-family:Osw;font-size:22px;text-transform:uppercase;margin-bottom:10px}
+.num b{background:#0C0C0C;color:#FFC400;border-radius:50%;width:36px;height:36px;display:grid;place-items:center}
+.cel{width:390px;height:780px;background:#11140f;border:5px solid #0C0C0C;border-radius:34px;overflow:hidden;box-shadow:6px 6px 0 #0C0C0C;color:#F4ECD6;position:relative}
+.top{padding:16px 16px 8px}
+.k{font-family:Osw;color:#FFC400;font-size:13px;letter-spacing:2px}
+.t{font-family:Osw;font-size:28px;text-transform:uppercase;line-height:1.05}
+.dias{display:flex;gap:5px;padding:6px 12px}
+.dia{flex:1;text-align:center;border:2px solid #2a2f27;border-radius:10px;padding:5px 0;font-family:Osw;font-size:13px;color:#9a9483}
+.dia.f{color:#4a473f}.dia.h{background:#FFC400;color:#0C0C0C;border-color:#0C0C0C}.dia.j{border-color:#1B7A3D;color:#7FE3A0}
+.noti{margin:8px 12px;background:#1d221b;border:2px solid #2f362c;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.35}
+.noti b{font-family:Osw;font-size:15px;color:#FFC400;letter-spacing:.5px}
+.video{margin:10px 12px;border:3px solid #0C0C0C;border-radius:16px;overflow:hidden;position:relative;height:250px;background:#333}
+.video img{width:100%;height:100%;object-fit:cover}
+.video .tag{position:absolute;left:10px;top:10px;background:#E8503A;color:#fff;font-family:Osw;font-size:13px;padding:3px 9px;border-radius:8px;border:2px solid #0C0C0C}
+.video .leg{position:absolute;left:10px;bottom:10px;background:rgba(12,12,12,.85);border-radius:10px;padding:6px 10px;font-family:Osw;font-size:16px}
+.btn{display:block;margin:8px 12px;border:3px solid #0C0C0C;border-radius:14px;box-shadow:4px 4px 0 #000;text-align:center;font-family:Osw;font-size:19px;text-transform:uppercase;padding:12px 6px;color:#0C0C0C}
+.ouro{background:#FFC400}.creme{background:#F4ECD6}.verde{background:#1B7A3D;color:#fff}.roxo{background:#7C3AED;color:#fff}
+.dois{display:flex;gap:8px;margin:0 12px}.dois .btn{flex:1;margin:8px 0;font-size:17px}
+.conf{margin:10px 12px;border:3px solid #FFC400;border-radius:16px;padding:14px;text-align:center;background:#1d221b}
+.esc{display:flex;justify-content:space-around;align-items:center;font-family:Osw;font-size:22px;margin:6px 0}
+.esc i{font-style:normal;width:64px;height:64px;border-radius:50%;background:#F4ECD6;color:#0C0C0C;display:grid;place-items:center;font-size:28px;border:3px solid #0C0C0C;margin:0 auto 4px}
+.pq{font-family:Osw;font-size:20px;text-transform:uppercase;text-align:center;margin:14px 12px 4px}
+.mini{font-size:12.5px;color:#a8a290;text-align:center;margin:2px 14px}
+.mapa{height:100%;background:linear-gradient(180deg,#9fc08a,#6d9a55);position:relative}
+.mapa .rua{position:absolute;left:130px;top:0;width:90px;height:100%;background:#8b7652}
+.mapa .bus{position:absolute;left:150px;top:300px;width:50px;height:110px;background:#e9e1cc;border:3px solid #0C0C0C;border-radius:8px}
+.mapa .povo{position:absolute;font-size:22px}
+.mapa .cab{position:absolute;left:12px;right:12px;top:12px;background:rgba(12,12,12,.85);border-radius:12px;padding:10px;font-family:Osw;font-size:17px}
+.mapa .volta{position:absolute;left:12px;right:12px;bottom:14px}
+.mapa .volta .btn{margin:8px 0}
+.aba{padding:10px 12px}
+.tab{background:#1d221b;border:2px solid #2f362c;border-radius:12px;font-size:13px}
+.tab div{display:flex;justify-content:space-between;padding:7px 10px;border-top:1px solid #2f362c}
+.vazio{margin:12px;border:2px dashed #FFC400;border-radius:14px;padding:14px;text-align:center;font-size:14px;line-height:1.4;color:#e9e1cc}
+.nav{position:absolute;bottom:0;left:0;right:0;display:flex;background:#0C0C0C;border-top:2px solid #2a2f27}
+.nav span{flex:1;text-align:center;font-family:Osw;font-size:11px;padding:9px 0;color:#bbb}
+.nav span.on{background:#FFC400;color:#0C0C0C}
+.seta{font-family:Osw;font-size:15px;margin-top:10px;color:#3d382b;line-height:1.35}
+</style></head><body>
+<h1>🧭 Central manda no dia a dia · você escolhe 2D ou 3D</h1>
+<p class="sub">Os dias passam na Central, com a notícia de cada dia. Acontecimento (ônibus, feira, boate, clássico, festa da torcida) aparece só na Central. O jogo só começa pela Central, e é ali que você escolhe como assistir.</p>
+<div class="linha">
+
+<div class="passo"><div class="num"><b>1</b> Dias passando na Central</div>
+<div class="cel"><div class="top"><div class="k">BRASILIENSE · TEMPORADA 1 · SÉRIE D</div><div class="t">Central da carreira</div></div>
+<div class="dias"><div class="dia f">SEG<br>9</div><div class="dia f">TER<br>10</div><div class="dia h">QUA<br>11</div><div class="dia">QUI<br>12</div><div class="dia">SEX<br>13</div><div class="dia j">SÁB<br>14 ⚽</div></div>
+<div class="noti"><b>📰 QUARTA, 11 · NOTÍCIA DO DIA</b><br>Feira do bairro lotada: a torcida já fala do jogo de sábado contra o Luverdense.</div>
+<div class="video" style="background:linear-gradient(180deg,#86a86e 0 40%,#6f8f58 40%)"><div style="position:absolute;left:120px;top:0;width:110px;height:100%;background:#9a9890;border-left:6px solid #e9e1cc;border-right:6px solid #e9e1cc"></div><div style="position:absolute;left:130px;top:70px;font-size:110px;transform:rotate(90deg)">🚌</div><div style="position:absolute;left:40px;top:150px;font-size:30px">🧍🧍</div><div style="position:absolute;right:30px;top:120px;font-size:30px">🧍🧍🧍</div><span class="tag">● ACONTECENDO AGORA</span><span class="leg">🚌 O ônibus do Brasiliense chegou</span></div>
+<a class="btn creme">📍 Ver no mapa ao vivo</a>
+<a class="btn ouro">⏭ Pular pro dia do jogo</a>
+<div class="nav"><span class="on">CENTRAL</span><span>JOGOS + TABELA</span><span>ELENCO</span><span>RANK</span><span>CLUBE</span></div></div>
+<p class="seta">Acontecimento = só aqui na Central. Tocou em "Ver no mapa", a câmera voa pro lugar e mostra ao vivo.</p></div>
+
+<div class="passo"><div class="num"><b>2</b> No mapa, ao vivo</div>
+<div class="cel"><div class="mapa"><div class="rua"></div><div class="bus"></div>
+<span class="povo" style="left:90px;top:330px">🧍</span><span class="povo" style="left:230px;top:360px">🧍</span><span class="povo" style="left:100px;top:420px">🧍</span><span class="povo" style="left:240px;top:300px">🧍</span>
+<div class="cab">🚌 O ÔNIBUS DO BRASILIENSE CHEGOU<div style="font-family:Arial;font-size:13px;color:#ddd;margin-top:3px">A torcida recebe o time na porta do estádio</div></div>
+<div class="volta"><a class="btn ouro">← Voltar pra Central</a></div></div>
+<div class="nav"><span>CENTRAL</span><span>JOGOS + TABELA</span><span>ELENCO</span><span>RANK</span><span class="on">CLUBE</span></div></div>
+<p class="seta">Só um botão: voltar pra Central. O mapa nunca começa jogo nem passa dia.</p></div>
+
+<div class="passo"><div class="num"><b>3</b> Dia do jogo: você escolhe</div>
+<div class="cel"><div class="top"><div class="k">BRASILIENSE · TEMPORADA 1 · SÉRIE D</div><div class="t">Central da carreira</div></div>
+<div class="dias"><div class="dia f">QUA<br>11</div><div class="dia f">QUI<br>12</div><div class="dia f">SEX<br>13</div><div class="dia h">SÁB<br>14 ⚽</div><div class="dia">DOM<br>15</div><div class="dia">SEG<br>16</div></div>
+<div class="conf"><div class="k">⚽ DIA DE JOGO · SÉRIE D · RODADA 2</div>
+<div class="esc"><div><i>LUV</i>Luverdense</div><div style="color:#FFC400">×</div><div><i>BRA</i>Brasiliense</div></div></div>
+<div class="pq">Como você quer ver o jogo?</div>
+<div class="dois"><a class="btn verde">📺 Campo 2D</a><a class="btn roxo">🏟️ Campo 3D</a></div>
+<p class="mini">2D abre na aba Jogos + Tabela, pronto pra você dar o OK · 3D abre no estádio do mapa</p>
+<a class="btn creme" style="font-size:15px;margin-top:12px">🚌 Rever o ônibus chegando</a>
+<div class="nav"><span class="on">CENTRAL</span><span>JOGOS + TABELA</span><span>ELENCO</span><span>RANK</span><span>CLUBE</span></div></div>
+<p class="seta">Os 2 botões só aparecem no dia do jogo. Sem acontecimento, a Central já cai direto aqui.</p></div>
+
+<div class="passo"><div class="num"><b>4</b> Jogos + Tabela fora do jogo</div>
+<div class="cel"><div class="top"><div class="k">SÉRIE D · GRUPO A5</div><div class="t">Jogos + tabela</div></div>
+<div class="vazio">⏳ Nenhum jogo rolando agora.<br>O jogo começa pela <b>Central</b>, no dia do jogo, quando você escolher 2D ou 3D.</div>
+<div class="aba"><div class="tab"><div><b>#</b><b>Clube</b><b>P</b></div><div><span>1</span><span>Luverdense</span><span>3</span></div><div><span>2</span><span>Brasiliense</span><span>3</span></div><div><span>3</span><span>Gama</span><span>1</span></div><div><span>4</span><span>Ceilândia</span><span>1</span></div><div><span>5</span><span>Capital</span><span>0</span></div><div><span>6</span><span>Real Noroeste</span><span>0</span></div></div></div>
+<div class="nav"><span>CENTRAL</span><span class="on">JOGOS + TABELA</span><span>ELENCO</span><span>RANK</span><span>CLUBE</span></div></div>
+<p class="seta">Sem placar nem jogo rolando enquanto você passeia pelas abas. Escolheu 2D? Aqui aparece o campinho pronto, esperando o seu OK.</p></div>
+</div></body></html>

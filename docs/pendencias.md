@@ -14180,3 +14180,13 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
   `scripts/futebol3d/gera-jogador-leve.mjs`); `localStorage['esc3d-boneco-leve']` '1'/'0' força. E com a câmera de jogo no celular a vista
   termina a 200 m com névoa (a cidade lá longe sai do desenho); mapa livre e o giro de abertura seguem normais.
 - Não feito: esconder a cidade inteira durante o jogo (na Várzea, sem arquibancada, ela aparece atrás do campo). Falta o teste no celular dele.
+
+## 🧭 19/11 — Fluxo novo Central → jogo (pedido do Diego, MOCKUP enviado, esperando OK) — `scripts/mockups/fluxo-central-jogo.png`
+- *"tá muito misturado a tabela de jogo com o mapa, com a aba de central"*. Regras dele:
+  1. Os dias passam SÓ na Central, com a notícia de cada dia na faixa de datas.
+  2. Acontecimento (ônibus chegando, feira, boate, clássico, festa da torcida, loja…) aparece SÓ na Central, com o videozinho;
+     botões: "📍 Ver no mapa ao vivo" (a câmera voa pro lugar) e "⏭ Pular" (pro dia do jogo). No mapa, só "← Voltar pra Central".
+  3. O jogo só começa pela Central, no dia do jogo: botões "📺 Campo 2D" (leva pra aba Jogos + Tabela com o campinho pronto pro OK)
+     e "🏟️ Campo 3D" (leva pro estádio do mapa). Sem acontecimento, a Central cai direto nessa escolha.
+  4. A aba Jogos + Tabela NÃO mostra jogo/placar enquanto não tem jogo rolando.
+- Dúvida levada: quem não tem o 3D (hoje todo mundo menos ele) vê só o botão 2D?
