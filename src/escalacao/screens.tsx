@@ -1788,6 +1788,7 @@ const NBA_ANDAR: Record<string, { pt: string; en: string; cor: string }> = {
   street: { pt: '🛝 STREET LEAGUE', en: '🛝 STREET LEAGUE', cor: '#1E7A3D' },
   gleague: { pt: '🔷 G LEAGUE', en: '🔷 G LEAGUE', cor: '#8C97A3' },
   nba: { pt: '💍 NBA', en: '💍 NBA', cor: '#E7A21F' },
+  eua: { pt: '🇺🇸 EUA OFICIAL', en: '🇺🇸 OFFICIAL USA', cor: '#1E4E9C' },
 }
 function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; comecaNova?: boolean }) {
   const { dispatch } = useEsc()
@@ -1870,7 +1871,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
         </>) : (<>
         {list.map(({ slot, ativa }, i) => {
           const you = slot.save.managers?.[slot.save.youIdx ?? 0]
-          const andar = NBA_ANDAR[slot.save.nbaTier ?? 'street'] ?? NBA_ANDAR.street
+          const andar = slot.save.euaOficial ? NBA_ANDAR.eua : NBA_ANDAR[slot.save.nbaTier ?? 'street'] ?? NBA_ANDAR.street // 🏀🇺🇸 EUA Oficial tem selo próprio
           const caixa = slot.save.careerCoins?.[you?.id ?? 0] ?? 0
           const key = idNbaCarreira(slot.save) + i
           return (

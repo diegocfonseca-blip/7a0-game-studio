@@ -1433,7 +1433,7 @@ const extraDoDono = (m: Manager): number => (ACTIVE_SPORT === 'basquete' || MODO
 export function slotsOf(m: Manager, pos: Sector): number {
   // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
   // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
-  if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
+  if (ACTIVE_SPORT === 'basquete') return m.aberturaBase ? (m.aberturaBase[pos] ?? 0) + 1 : m.nbaSlots ?? NBA_BASE_SLOTS // 🔨 abertura do EUA Oficial: +1 por posição
   // 🧱 leilão de clubes: no pregão cada técnico leva UM pacote por setor (a convocação vem depois)
   if (m.modoClubes) return 1
   // 🔨 Brasil Oficial (18/11): no leilão de ABERTURA cada clube leva UMA por posição — *"5 pra todos… um pra goleiro, um pra zagueiro,
@@ -8552,11 +8552,14 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   for (const pos of SECTORS) for (const c of cat[pos]) add(pos, c as unknown as Card)
   for (const c of extras ?? []) if (c && SECTORS.includes(c.pos as Sector)) add(c.pos as Sector, c)
   const forca = (c: Card) => (c.fame ?? 1) * 1000 + (c.lo ?? 0) + (c.hi ?? 0)
+  // 🔨 o que não coube nos 15 de cada franquia (o Celtics tem 27 cartas) vai pro LEILÃO DE ABERTURA, igual ao Brasil Oficial
+  const sobras: Record<Sector, Card[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
   const elencoDe = (f: string): WonCard[] => {
     const todas = [...(porFranquia[f] ?? [])].sort((a, b) => forca(b.c) - forca(a.c))
     const pega: typeof todas = []
     for (const pos of SECTORS) pega.push(...todas.filter(x => x.pos === pos).slice(0, 3))
     for (const x of todas) { if (pega.length >= 15) break; if (!pega.includes(x)) pega.push(x) }
+    for (const x of todas) if (!pega.includes(x)) sobras[x.pos].push({ ...x.c, pos: x.pos, id: `ab-${x.pos}-${sobras[x.pos].length}` } as Card)
     return pega.map((x, i) => {
       const c = { ...x.c, pos: x.pos, id: `eua-${x.pos}-${f.replace(/\s+/g, '')}-${i}` } as Card
       const preco = justoDaCarta(s, c)
@@ -8579,6 +8582,7 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   for (const m of s.managers) pl[`m${m.id}`] = tierDivKey('nba')
   s.careerPlacements = pl
   s.clubCash = seedClubCash({}, pl)
+  for (const m of s.managers) if (!m.isHuman) m.money = Math.max(0, Math.round(s.clubCash[`m${m.id}`] ?? 0)) // 🤖 o bot dá lance no leilão de abertura com o caixa dele
   s.quickCopa = null; s.nbaCup = null; s.nbaCupFeita = null; s.liberta = null; s.champions = null
   // sem leilão de estreia: cada franquia já entra com o elenco dela (como o Brasil Oficial). O leilão de sempre vem na virada.
   s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
@@ -8590,6 +8594,9 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   s.league = buildLeague(s.managers, false)
   s.fixtures = calendarioDaLiga(s)
   s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
+  // 🔨 LEILÃO DE ABERTURA: cada franquia (você e os bots) pode levar UMA carta por posição da sobra. Sem sobra, começa direto.
+  for (const pos of SECTORS) sobras[pos] = sobras[pos].filter(c => !c.fake).map(c => ({ ...c, paid: justoDaCarta(s, c) }))
+  if (abreLeilaoAberturaCom(s, sobras, mulberry((s.seed ^ 0x0E0A0B1) >>> 0))) return true
   s.screen = 'season'
   return true
 }
@@ -8614,6 +8621,11 @@ function abreLeilaoAberturaOficial(s: EscState, semente: (txt: string) => number
       porPos[x.pos].push({ ...x.carta, pos: x.pos, id: `ab-${x.pos}-${porPos[x.pos].length}` } as Card)
     }
   }
+  return abreLeilaoAberturaCom(s, porPos, rngC)
+}
+/** 🔨 o pregão de ABERTURA (1 por posição pra cada clube, usuário e bots) com as cartas que sobraram — do Brasil Oficial e do EUA
+ *  Oficial. false = não tinha carta (segue pra temporada). */
+function abreLeilaoAberturaCom(s: EscState, porPos: Record<Sector, Card[]>, rngC: () => number): boolean {
   const demanda = s.managers.length // 1 vaga por clube em cada posição
   const deck = {} as Record<Sector, Card[]>
   for (const pos of SECTORS) {

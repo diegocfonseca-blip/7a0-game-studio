@@ -253,8 +253,11 @@
   novas descem só quando a pessoa começa o modo (`eua-oficial-cartas.ts`, import dinâmico). Trava: `npm run eua-oficial`.
   Também: selo do elenco do basquete corrigido (fama 3 aparecia como "Promessa"; agora é Bom, e Promessa só com a marca).
   E a trava `carreira-limpa` voltou a passar (nbaSala/nbaConf/nbaMundo/kingsBaralho em MARCAS_DE_MODO; oficialAbertura/deOlho zerados).
-- ⏳ EUA Oficial, a fazer: leilão de abertura com a SOBRA das franquias (Celtics tem 27, só 15 jogam — igual ao Brasil Oficial),
-  NBA Cup real, Draft com loteria, os 9 `conferir`, o rótulo "🇺🇸 EUA Oficial" no cartão de Minhas carreiras (hoje mostra "💍 NBA").
+- ✅ 19/11 (Diego: *"Siga"*): **leilão de abertura** com a SOBRA das franquias (o que não coube nos 15 — 47 cartas, tipo Isaiah
+  Thomas/Celtics, Derek Fisher/Lakers): cada franquia (você e os bots) leva até +1 por posição, o mesmo pregão de abertura do Brasil
+  Oficial (`abreLeilaoAberturaCom`, agora usado pelos dois; no basquete o `slotsOf` respeita o `aberturaBase`). Bots dão lance com o
+  caixa deles (`clubCash`). E o cartão de Minhas carreiras mostra **🇺🇸 EUA OFICIAL**.
+- ⏳ EUA Oficial, a fazer: NBA Cup real, Draft com loteria, os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
