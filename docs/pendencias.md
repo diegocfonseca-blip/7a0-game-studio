@@ -14072,3 +14072,12 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - Banco FEITO: `esc_socios` (96, `escudo_time` = Ceará SP Club, coração Flamengo) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
 - Post: `scripts/posts/batismo-ceara-sp-club.png` (dono "Lucas" tirado do e-mail — confirmar).
 - ✅ Publicado na main em 19/11 (só o batismo; o sorteio dos elencos de fora segue no branch).
+- ✅ 19/11 CONSTRUÍDO (no branch, SÓ NA CONTA DO DIEGO — `VICE_CITY_GERAL = false`, sport.ts):
+  · motor em `store.tsx` (`viceAbre/viceUsa/viceAplica/viceBusted/viceDepoisDoMartelo/viceTravaLance`), catálogo em `vice-city.ts`,
+    tela em `vice-city-ui.tsx` (faixa do último golpe em cima da mesa + mão de cartas + o que vale contra você + segredo do X9/Sniper).
+  · Sala online: modo "🌴 Vice City" na fileira de cima (lobby), força Pregão aberto, sala de 10, sem duplas/clubes/Champions.
+    Partida Rápida: botão "Ligar Vice City" embaixo do Pregão aberto (pra testar sozinho contra os robôs).
+  · Robô não recebe carta, mas pode levar golpe. Feito SÓ no Pregão aberto — a versão Tocaia (até 20) ficou pra depois.
+  · Trava `npm run vice-city`. As travas npx tsx que carregam o store estavam quebradas pra todo mundo (imagem .webp e
+    `import.meta.env`): `scripts/node-stub-reg.mjs` conserta (`npm run pregao-aberto` já usa).
+  · Falta: testar numa sala de verdade com 2+ contas antes de liberar; O MARTELO edição Vice e a carta 🚨 Procurado (sugeri tirar).
