@@ -1,3 +1,15 @@
+## 🔊 19/11 — AUDITORIA DOS SONS (pedido do Diego: "analise tudo… o que precisa ser feito"), SÓ LEVANTAMENTO, nada mexido
+Sons que existem (`sound.ts`): 🪙 moeda (subir lance no envelope/env. único, pegar na Tocaia) · 🔒 carimbo (lacrar envelope) · ⏱️ tique
+(últimos 5 s do envelope/env. único, cada degrau da Tocaia, cada lance do pregão aberto, troca de etapa do draft) · 🔨 martelo (revelação
+e Tocaia só pra quem ganha/vende; draft) · 👑 `lenda.mp3` (arrematou lenda na revelação) · 🏟️ torcida ambiente + 🥅 gol (todo placar
+`LiveScoreCard`, salas e carreira, 2D incluso) · 📣 apito (início de competição/jogo de copa) · 🥅 trave (só Campo 2D) · 🏆 festa do campeão
+(canto do clube ou grito de gol) · zoeiras do lobby (ditador, bom dia…) · galas.
+❌ Furo: o 🔨 do PREGÃO ABERTO (e Vice City) toca pra TODO MUNDO em toda venda (`pregao-aberto.tsx:52`) — fura a regra "martelo só pra quem ganha".
+Sem som hoje (proposta, esperando o Diego escolher): pregão aberto/Vice "dou-lhe uma, duas" nos últimos 3 s · alguém cobriu seu lance ·
+Monte (pegar carta) · golpes do Vice City (sirene/estrela/BUSTED) · sua vez de escolher (draft, convocação Copa/Liberta) · fim do tempo
+do envelope (lacrou sozinho) · revelação "QUASE!" · pênalti (batida, defesa, gol) e shootout da Kings · subiu/caiu e título na virada da
+carreira · vice/eliminação.
+
 ## 🪑 16/11 — Sala GGWNX6 (Lavras FC, liga + Copa do Mundo): dono perdeu a coroa no fim da liga e voltou na CADEIRA do 1º colocado
 - 02:55:13 UTC a Copa do Mundo da sala abriu; 02:55:22 último save do dono; 02:55:30 `perdeu_coroa` do Lavras (tela end, sem apertar
   SAIR, sem "rebaixou"); em seguida ~10 convidados recarregaram. Ele voltou e, segundo o Diego, caiu no lugar do Mano 3 Meses (1º da
