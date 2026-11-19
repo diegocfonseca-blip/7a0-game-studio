@@ -389,6 +389,40 @@ export type PregaoAbertoState = {
    *  posição DIFERENTE da 1ª, com lance e relógio próprios. A mesa 1 continua morando nos campos de cima + `currentCards[0]`. */
   duplo?: boolean
   m2?: PaMesa
+  /** 🌴 VICE CITY (19/11): as cartas de golpe, as estrelas e os efeitos correndo (só existe na sala Vice City) */
+  vice?: ViceState
+}
+/** 🌴 o estado das cartas de golpe — mora DENTRO do pregão (some com ele no fim). Chave = id do técnico. */
+export type ViceState = {
+  /** as cartas na mão de cada técnico de gente (ids de `GOLPES`, vice-city.ts) */
+  mao: Record<number, string[]>
+  /** quantas cartas cada um já recebeu (máx. 2: uma no começo, outra na metade) */
+  recebidas: Record<number, number>
+  /** ⭐ estrelas escondidas: quem LEVA golpe ganha 1 */
+  estrelas: Record<number, number>
+  /** 🚨 quem já tomou BUSTED (só 1 por sala) */
+  busted?: number
+  /** o último jogador que cada um levou no martelo (alvo do 🚗 Roubo de carro) */
+  ultimo: Record<number, string>
+  /** efeitos correndo: até quando (ms, hora do dono) ou "vale na próxima carta" (true) */
+  blitzAte: Record<number, number>
+  tiroteioAte: Record<number, number>
+  tanqueAte: Record<number, number>
+  /** 🚧 barreira: o índice da fila da carta em que ele não pode dar lance */
+  barreiraIdx: Record<number, number>
+  cadeia: Record<number, boolean>
+  multa: Record<number, boolean>
+  /** 💸 lavagem: alvo → quem recebe a metade */
+  lavagem: Record<number, number>
+  propina: Record<number, boolean>
+  colete: Record<number, boolean>
+  fuga: Record<number, boolean>
+  /** 📡🎯 o segredo que só quem usou vê: X9 (nomes das próximas cartas) e Sniper (o ranking naquele momento) */
+  segredo: Record<number, { tipo: 'x9' | 'sniper'; linhas: string[]; ate: number }>
+  /** 📣 o que aconteceu, pra sala inteira (mais novo em cima) */
+  feed: { id: number; pt: string; en: string; t: number; busted?: boolean }[]
+  /** contador pra id do feed e pro dado andar */
+  n: number
 }
 /** 🔨🔨 a 2ª mesa do pregão aberto: os MESMOS campos da 1ª, mais a carta dela */
 export type PaMesa = {
@@ -787,6 +821,8 @@ export interface EscState {
   convocacaoFormacao?: Record<number, FormationKey>
   /** 🔨 modo PREGÃO ABERTO ligado nesta partida (16/10, em teste) */
   pregaoAberto?: boolean
+  /** 🌴 sala Vice City (19/11): pregão aberto com cartas de golpe */
+  viceCity?: boolean
   /** ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png): as 5 posições num envelope só, 180s, uma revelação */
   envUnico?: boolean
   /** ⚡ o envelope único está aberto (a fila tem as cartas das 5 posições) / a revelação única está rolando */

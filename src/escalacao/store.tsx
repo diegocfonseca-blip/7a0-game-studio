@@ -42,6 +42,8 @@ import type {
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame, HolandesState,
 } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
+import type { ViceState } from './types'
+import { GOLPES, sorteiaGolpe, anuncioGolpe, VICE_BUSTED_EM, VICE_CARTAS_POR_TECNICO, VICE_BLITZ_MS, VICE_TIROTEIO_MS, VICE_TANQUE_MS, VICE_TANQUE_TETO, VICE_ASSALTO, VICE_MULTA, type GolpeId } from './vice-city'
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
 import { condicaoAtiva, divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
@@ -5998,7 +6000,7 @@ type Action =
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number; /** 👑 11/11 (sala online): QUAL jogo (casa-fora) — com várias pessoas na sala tem mais de um jogo com gente */ jogo?: string }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -6040,7 +6042,7 @@ type Action =
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -6112,6 +6114,7 @@ type Action =
   | { type: 'HOLANDES_TICK' }
   // 🔨 PREGÃO ABERTO: o relógio de 1s (martelo + lance dos robôs) e o lance de gente. No online só o host tica.
   | { type: 'PREGAO_ABERTO_TICK' }
+  | { type: 'VICE_USAR'; mgrId: number; golpe: string; alvo?: number; by?: string } // 🌴 Vice City: usar uma carta de golpe
   | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string; mesa?: number; cardId?: string } // 🔨🔨 mesa 0 ou 1 (duas mesas a partir de 11 clubes)
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'VIRA_CAMPO2D'; by?: string } // 📺⚡ o relógio da Copa do BANCO (Copa do Mundo/Euro/regionais) aplica a troca marcada ANTES de pedir o próximo passo
@@ -6921,6 +6924,247 @@ function paMaisLendas(state: EscState, fila: Card[], rng: () => number) {
     falta--
   }
 }
+// ─── 🌴 VICE CITY: o motor das cartas de golpe (19/11) ────────────────────────────────────────────────────────────
+// Regras e catálogo em `vice-city.ts`. Tudo aqui roda SÓ no aparelho de quem manda (dono da sala / partida rápida): o
+// convidado manda `VICE_USAR` e o dono decide, igual ao lance do pregão. O estado mora dentro do `pa` e some com ele.
+function viceRng(state: EscState): () => number {
+  const v = state.pa?.vice
+  const n = v ? v.n++ : 0
+  return mulberry(state.seed + 7_777_777 + n * 104_729 + (state.pa?.idx ?? 0) * 31)
+}
+function viceNovo(): ViceState {
+  return { mao: {}, recebidas: {}, estrelas: {}, ultimo: {}, blitzAte: {}, tiroteioAte: {}, tanqueAte: {}, barreiraIdx: {}, cadeia: {}, multa: {}, lavagem: {}, propina: {}, colete: {}, fuga: {}, segredo: {}, feed: [], n: 0 }
+}
+function viceFeed(state: EscState, txt: [string, string], busted = false) {
+  const v = state.pa?.vice
+  if (!v) return
+  v.feed.unshift({ id: ++v.n, pt: txt[0], en: txt[1], t: Date.now(), ...(busted ? { busted: true } : {}) })
+  if (v.feed.length > 12) v.feed.length = 12
+}
+/** 🃏 dá 1 carta pra cada técnico de GENTE que ainda não recebeu `ate` cartas (1 no começo, 2 na metade) */
+function viceDistribui(state: EscState, ate: number) {
+  const v = state.pa?.vice
+  if (!v) return
+  for (const m of state.managers) {
+    if (!m.isHuman) continue
+    if ((v.recebidas[m.id] ?? 0) >= ate) continue
+    v.recebidas[m.id] = (v.recebidas[m.id] ?? 0) + 1
+    ;(v.mao[m.id] = v.mao[m.id] ?? []).push(sorteiaGolpe(viceRng(state)))
+  }
+}
+function viceAbre(state: EscState) {
+  if (!state.viceCity || !state.pa || state.leilaoClubes) return
+  state.pa.vice = viceNovo()
+  viceDistribui(state, 1)
+  viceFeed(state, ['🌴 Bem-vindo a Vice City: cada técnico recebeu uma carta de golpe. A outra chega no meio do pregão.', '🌴 Welcome to Vice City: every manager got a heist card. The second one comes halfway through.'])
+}
+/** chamado a cada carta nova na mesa: na metade da fila chega a 2ª carta de golpe */
+function viceNaCarta(state: EscState) {
+  const pa = state.pa, v = pa?.vice
+  if (!pa || !v) return
+  if (pa.idx >= Math.floor(pa.fila.length / 2) && state.managers.some(m => m.isHuman && (v.recebidas[m.id] ?? 0) < VICE_CARTAS_POR_TECNICO)) {
+    viceDistribui(state, VICE_CARTAS_POR_TECNICO)
+    viceFeed(state, ['🃏 Metade do pregão: chegou a 2ª carta de golpe pra todo mundo!', '🃏 Halfway there: everyone got their 2nd heist card!'])
+  }
+}
+/** 🚫 a trava que vale pro LANCE (tela e motor leem a mesma): Blitz, Tiroteio, Barreira e Tanque vazio */
+export function viceTravaLance(state: EscState, mgrId: number, valor?: number): [string, string] | null {
+  const v = state.pa?.vice
+  if (!v) return null
+  const agora = agoraSala()
+  if ((v.blitzAte[mgrId] ?? 0) > agora) return ['🚔 Blitz: você está parado', '🚔 Roadblock: you are stopped']
+  if ((v.tiroteioAte[mgrId] ?? 0) > agora) return ['🔫 Tiroteio: seu caixa está congelado', '🔫 Shootout: your cash is frozen']
+  if (state.pa && v.barreiraIdx[mgrId] === state.pa.idx) return ['🚧 Barreira: esta carta você não disputa', '🚧 Barrier: you sit this card out']
+  if ((v.tanqueAte[mgrId] ?? 0) > agora && valor !== undefined && valor > VICE_TANQUE_TETO) return [`⛽ Tanque vazio: lance até ${VICE_TANQUE_TETO}`, `⛽ Empty tank: bids up to ${VICE_TANQUE_TETO}`]
+  return null
+}
+const viceForca = (c: WonCard | Card) => (c.hi ?? 0) + (c.lo ?? 0) + (c.fame ?? 0) * 10
+/** 🚨 BUSTED: os 3 melhores viram cartas reais de categoria Profissional da MESMA posição (sem voltar pra mesa) */
+function viceBusted(state: EscState, alvo: number) {
+  const v = state.pa?.vice
+  const m = state.managers.find(x => x.id === alvo)
+  if (!v || !m || v.busted !== undefined) return
+  v.busted = alvo
+  const rng = viceRng(state)
+  const nomes = new Set<string>(state.managers.flatMap(x => x.squad.map(c => c.name)))
+  if (state.pa) for (const c of state.pa.fila) nomes.add(c.name)
+  const melhores = m.squad.filter(c => !c.fake).sort((a, b) => viceForca(b) - viceForca(a)).slice(0, 3)
+  const trocas: string[] = []
+  for (const c of melhores) {
+    const cands = ((ACTIVE_CATALOG[c.pos] ?? []) as Card[]).filter(x => (x.fame ?? 1) === 1 && !x.fake && !x.promessa && !nomes.has(x.name))
+    if (!cands.length) continue // sem Profissional livre: o jogador fica (nunca entra jogador de mentira)
+    const novo = cands[Math.floor(rng() * cands.length)]
+    nomes.add(novo.name)
+    const i = m.squad.findIndex(x => x.id === c.id)
+    if (i < 0) continue
+    m.squad[i] = { ...novo, pos: c.pos, id: `vice-busted-${alvo}-${i}-${v.n}`, paid: 0, buyPrice: 0, via: 'monte' } as WonCard
+    trocas.push(c.name)
+  }
+  ;(v.mao[alvo] = v.mao[alvo] ?? []).push('roubo')
+  const perdeu = trocas.length ? [`perdeu ${trocas.join(', ')}`, `lost ${trocas.join(', ')}`] : ['ainda não tinha jogador pra perder', 'had no players to lose yet']
+  viceFeed(state, [`🚨 BUSTED! ${m.teamName} levou ${VICE_BUSTED_EM} golpes e ${perdeu[0]} — ganhou um 🚗 Roubo de carro de vingança`, `🚨 BUSTED! ${m.teamName} took ${VICE_BUSTED_EM} hits and ${perdeu[1]} — got a revenge 🚗 Car theft`], true)
+  ;(state.marketLog = state.marketLog ?? []).push(`🚨 BUSTED: ${m.teamName} foi o mais caçado da sala Vice City.`)
+}
+/** o golpe pega: aplica o efeito com `vit` levando e `ben` ganhando. Devolve o texto extra do anúncio (ou null = não deu) */
+function viceAplica(state: EscState, id: GolpeId, ben: Manager, vit: Manager): string | null | undefined {
+  const v = state.pa!.vice!
+  const agora = Date.now()
+  switch (id) {
+    case 'roubo': {
+      const cid = v.ultimo[vit.id]
+      const i = cid ? vit.squad.findIndex(c => c.id === cid) : -1
+      if (i < 0) return null
+      const c = vit.squad[i]
+      if (openSlots(ben, c.pos) <= 0) return null
+      vit.squad.splice(i, 1)
+      ben.squad.push({ ...c, via: 'monte' } as WonCard)
+      delete v.ultimo[vit.id]
+      return c.name
+    }
+    case 'assalto': {
+      const x = Math.max(0, Math.min(VICE_ASSALTO, Math.floor(vit.money)))
+      vit.money -= x; ben.money += x
+      return String(x)
+    }
+    case 'blitz': v.blitzAte[vit.id] = agora + VICE_BLITZ_MS; return undefined
+    case 'tiroteio': v.tiroteioAte[vit.id] = agora + VICE_TIROTEIO_MS; return undefined
+    case 'tanque': v.tanqueAte[vit.id] = agora + VICE_TANQUE_MS; return undefined
+    case 'barreira': {
+      const pa = state.pa!
+      const naMesa = paMesa(state, 0)?.card
+      const lider = pa.lider
+      // na mesa e ainda dá tempo de disputar: vale ESTA carta; senão, a próxima
+      v.barreiraIdx[vit.id] = naMesa && lider !== vit.id ? pa.idx : pa.idx + 1
+      return undefined
+    }
+    case 'cadeia': v.cadeia[vit.id] = true; return undefined
+    case 'multa': v.multa[vit.id] = true; return undefined
+    case 'lavagem': v.lavagem[vit.id] = ben.id; return undefined
+    case 'delacao': return String(Math.floor(vit.money))
+    case 'sequestro': {
+      let melhor: { pos: Sector; a: WonCard; b: WonCard; ganho: number } | null = null
+      for (const pos of SECTORS) {
+        const deles = vit.squad.filter(c => c.pos === pos && !c.fake)
+        const meus = ben.squad.filter(c => c.pos === pos)
+        if (!deles.length || !meus.length) continue
+        const b = deles.reduce((x, y) => viceForca(y) > viceForca(x) ? y : x)
+        const a = meus.reduce((x, y) => viceForca(y) < viceForca(x) ? y : x)
+        const ganho = viceForca(b) - viceForca(a)
+        if (!melhor || ganho > melhor.ganho) melhor = { pos, a, b, ganho }
+      }
+      if (!melhor || melhor.ganho <= 0) return null
+      const ia = ben.squad.findIndex(c => c.id === melhor!.a.id), ib = vit.squad.findIndex(c => c.id === melhor!.b.id)
+      if (ia < 0 || ib < 0) return null
+      ben.squad[ia] = { ...melhor.b }; vit.squad[ib] = { ...melhor.a }
+      return melhor.b.name
+    }
+    default: return undefined
+  }
+}
+function viceUsa(state: EscState, mgrId: number, id: GolpeId, alvoId?: number): boolean {
+  const pa = state.pa, v = pa?.vice
+  const eu = state.managers.find(m => m.id === mgrId)
+  if (!pa || !v || !eu || !eu.isHuman) return false
+  const mao = v.mao[mgrId] ?? []
+  const k = mao.indexOf(id)
+  if (k < 0 || !GOLPES[id]) return false
+  const g = GOLPES[id]
+  if (!g.alvo) {
+    mao.splice(k, 1)
+    if (id === 'colete') v.colete[mgrId] = true
+    else if (id === 'fuga') v.fuga[mgrId] = true
+    else if (id === 'propina') v.propina[mgrId] = true
+    else if (id === 'funilaria') v.estrelas[mgrId] = 0
+    else if (id === 'x9') v.segredo[mgrId] = { tipo: 'x9', linhas: pa.fila.slice(pa.idx + 1, pa.idx + 4).map(c => `${c.pos} · ${c.name} (${c.club} ${c.year})`), ate: Date.now() + 15_000 }
+    else if (id === 'sniper') {
+      const linhas = state.managers.filter(m => m.isHuman || (v.estrelas[m.id] ?? 0) > 0).map(m => ({ t: m.teamName, e: v.estrelas[m.id] ?? 0 }))
+        .sort((a, b) => b.e - a.e).map(x => `${'★'.repeat(x.e)}${'☆'.repeat(Math.max(0, VICE_BUSTED_EM - x.e))} ${x.t}`)
+      v.segredo[mgrId] = { tipo: 'sniper', linhas, ate: Date.now() + 15_000 }
+    } else if (id === 'bolsa') {
+      const novo = sorteiaGolpe(viceRng(state), ['bolsa'])
+      mao.push(novo)
+      viceFeed(state, anuncioGolpe('bolsa', eu.teamName, undefined, `${GOLPES[novo].emoji} ${GOLPES[novo].nome[0]}`))
+      return true
+    }
+    viceFeed(state, anuncioGolpe(id, eu.teamName))
+    return true
+  }
+  const alvo = state.managers.find(m => m.id === alvoId)
+  if (!alvo || alvo.id === mgrId) return false
+  // as que dependem de alvo "possível" são conferidas ANTES de gastar a carta (o botão da tela lê a mesma conta)
+  if (!viceAlvoServe(state, id, mgrId, alvo.id)) return false
+  mao.splice(k, 1)
+  if (v.colete[alvo.id]) {
+    delete v.colete[alvo.id]
+    viceFeed(state, [`🛡️ ${eu.teamName} tentou ${g.emoji} ${g.nome[0]} no ${alvo.teamName}… o colete segurou!`, `🛡️ ${eu.teamName} tried ${g.emoji} ${g.nome[1]} on ${alvo.teamName}… the vest held!`])
+    return true
+  }
+  let ben: Manager = eu, vit: Manager = alvo
+  if (v.fuga[alvo.id]) {
+    delete v.fuga[alvo.id]
+    ben = alvo; vit = eu
+    viceFeed(state, [`🚁 O ${alvo.teamName} fugiu de helicóptero e devolveu o ${g.emoji} ${g.nome[0]} pro ${eu.teamName}!`, `🚁 ${alvo.teamName} escaped by chopper and sent the ${g.emoji} ${g.nome[1]} back to ${eu.teamName}!`])
+  }
+  const extra = viceAplica(state, id, ben, vit)
+  if (extra === null) {
+    viceFeed(state, [`${g.emoji} ${ben.teamName} tentou ${g.nome[0]} no ${vit.teamName}, mas não deu (nada pra pegar ou sem vaga)`, `${g.emoji} ${ben.teamName} tried ${g.nome[1]} on ${vit.teamName}, but it didn’t work`])
+    return true
+  }
+  viceFeed(state, anuncioGolpe(id, ben.teamName, vit.teamName, extra))
+  v.estrelas[vit.id] = (v.estrelas[vit.id] ?? 0) + 1
+  if (v.busted === undefined && (v.estrelas[vit.id] ?? 0) >= VICE_BUSTED_EM) viceBusted(state, vit.id)
+  return true
+}
+/** dá pra usar esse golpe nesse rival AGORA? (a tela acende o botão com a MESMA conta do motor) */
+export function viceAlvoServe(state: EscState, id: GolpeId, mgrId: number, alvoId: number): boolean {
+  const v = state.pa?.vice
+  const eu = state.managers.find(m => m.id === mgrId), alvo = state.managers.find(m => m.id === alvoId)
+  if (!v || !eu || !alvo || eu.id === alvo.id) return false
+  if (id === 'roubo') {
+    const cid = v.ultimo[alvo.id]
+    const c = cid ? alvo.squad.find(x => x.id === cid) : undefined
+    return !!c && openSlots(eu, c.pos) > 0
+  }
+  if (id === 'assalto') return Math.floor(alvo.money) > 0
+  if (id === 'sequestro') return SECTORS.some(pos => alvo.squad.some(c => c.pos === pos && !c.fake) && eu.squad.some(c => c.pos === pos))
+  return true
+}
+/** 🔨 depois do martelo: o que vale na hora de pagar (cadeia, multa, propina, lavagem) e quem foi o último a levar */
+function viceDepoisDoMartelo(state: EscState, winner: number, card: Card, pago: number) {
+  const v = state.pa?.vice
+  const w = state.managers.find(m => m.id === winner)
+  if (!v || !w) return
+  const i = w.squad.findIndex(c => c.id === card.id)
+  if (v.cadeia[winner] && i >= 0) {
+    delete v.cadeia[winner]
+    w.squad.splice(i, 1)
+    w.money += pago
+    state.pa!.fila.push({ ...card })
+    viceFeed(state, [`🔒 ${w.teamName} levou ${card.name}, mas estava na cadeia: dinheiro de volta e a carta volta pra mesa`, `🔒 ${w.teamName} won ${card.name}, but was in jail: money back and the card returns to the table`])
+    return
+  }
+  if (i >= 0) v.ultimo[winner] = card.id
+  if (v.multa[winner]) {
+    delete v.multa[winner]
+    const x = Math.min(Math.max(0, Math.floor(w.money)), Math.ceil(pago * VICE_MULTA))
+    w.money -= x
+    if (x > 0) viceFeed(state, [`🧾 A multa chegou: ${w.teamName} pagou +${x} pelo ${card.name}`, `🧾 The fine arrived: ${w.teamName} paid +${x} for ${card.name}`])
+  }
+  if (v.propina[winner]) {
+    delete v.propina[winner]
+    const x = Math.floor(pago / 2)
+    w.money += x
+    if (x > 0) viceFeed(state, [`💵 Propina: ${w.teamName} levou ${card.name} pela metade (+${x} de volta)`, `💵 Bribe: ${w.teamName} got ${card.name} at half price (+${x} back)`])
+  }
+  const lav = v.lavagem[winner]
+  if (lav !== undefined) {
+    delete v.lavagem[winner]
+    const b = state.managers.find(m => m.id === lav)
+    const x = Math.min(Math.max(0, Math.floor(w.money)), Math.floor(pago / 2))
+    if (b && x > 0) { w.money -= x; b.money += x; viceFeed(state, [`💸 Lavagem: ${x} moedas do ${w.teamName} foram pro ${b.teamName}`, `💸 Laundering: ${x} coins from ${w.teamName} went to ${b.teamName}`]) }
+  }
+}
+
 // ➕ SOBRA = A DO ENVELOPE/TOCAIA (17/10, Diego: *"no padrão da regra do Tocaia e do Envelope… oferta e demanda"*): o baralho
 // já vem com a demanda + 1 carta por posição. A "+1 por clube" existiu por algumas horas e saiu — não repropor.
 function abrePregaoAberto(state: EscState) {
@@ -6938,6 +7182,7 @@ function abrePregaoAberto(state: EscState) {
     ...(duplo ? { duplo: true, m2: { card: null, preco: 0, lider: null, lances: [], deadline: null, tetos: {} } } : {}) }
   state.phase = 'pregao'
   state.submitted = []; state.pendingEnvelopes = {}; state.revealQueue = []; state.revealIdx = 0; state.phaseDeadline = null
+  viceAbre(state) // 🌴 Vice City: as cartas de golpe nascem antes da 1ª carta
   paProximaCarta(state, 0)
   if (duplo && state.pa) paProximaCarta(state, 1)
 }
@@ -6966,6 +7211,7 @@ function paProximaCarta(state: EscState, k = 0) {
     const card = pa.fila[pa.idx]
     if (!paAlguemQuer(state, card)) { pa.sobras.push(card); continue } // ninguém pode: nem perde tempo na mesa
     paPoeCarta(state, k, card)
+    viceNaCarta(state) // 🌴 na metade da fila chega a 2ª carta de golpe
     const M = paMesa(state, k)!.M
     M.preco = 0; M.lider = null; M.lances = []
     M.tetos = paTetos(state, card, 31 + k * 17)
@@ -7004,6 +7250,7 @@ export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?
   if (mv.M.viraAte && agoraSala() < mv.M.viraAte) return false // a carta anterior ainda está virando na mesa
   const v = Math.floor(Number(valor))
   if (!Number.isFinite(v) || v < paMinimo(state, k)) return false
+  if (viceTravaLance(state, mgrId, v)) return false // 🌴 Blitz, Tiroteio, Barreira, Tanque vazio (a tela lê a MESMA trava)
   return v <= Math.floor(m.money) - paComprometido(state, mgrId, k) // 🔨🔨 o que já está preso na outra mesa não conta
 }
 function paRegistraLance(state: EscState, mgrId: number, valor: number, k = 0) {
@@ -7045,7 +7292,7 @@ function paTickMesa(state: EscState, k: number) {
   if (M.deadline !== null && Date.now() >= M.deadline + (state.onlineMode === 'online' ? PA_FOLGA_ONLINE_MS : 0)) { paMartelo(state, k); return }
   const rng = paRng(state, k * 13)
   const minimo = paMinimo(state, k)
-  const cands = paRobosQueDisputam(state).filter(m => m.id !== M.lider && (M.tetos[m.id] ?? 0) >= minimo && Math.floor(m.money) - paComprometido(state, m.id, k) >= minimo && openSlots(m, card.pos) > 0)
+  const cands = paRobosQueDisputam(state).filter(m => m.id !== M.lider && !viceTravaLance(state, m.id, minimo) && (M.tetos[m.id] ?? 0) >= minimo && Math.floor(m.money) - paComprometido(state, m.id, k) >= minimo && openSlots(m, card.pos) > 0)
   if (!cands.length) return
   const m = cands[Math.floor(rng() * cands.length)]
   const folga = M.tetos[m.id] - minimo
@@ -7058,7 +7305,9 @@ function paTickMesa(state: EscState, k: number) {
   const abertura = M.lider === null ? Math.max(minimo, Math.round(M.tetos[m.id] * (0.35 + rng() * 0.25))) : minimo
   const salto = folga >= 6 && rng() < 0.35 ? 3 : folga >= 3 && rng() < 0.5 ? 2 : 1
   const teto = Math.min(M.tetos[m.id], Math.floor(m.money) - paComprometido(state, m.id, k))
-  paRegistraLance(state, m.id, Math.min(abertura + salto - 1, teto), k)
+  const valorRobo = Math.min(abertura + salto - 1, teto)
+  if (viceTravaLance(state, m.id, valorRobo)) return // 🌴 o robô também respeita o Tanque vazio
+  paRegistraLance(state, m.id, valorRobo, k)
 }
 /** uma, duas, três… vendido! (ou ninguém quis → sobra) — e a carta seguinte entra na mesa */
 function paMartelo(state: EscState, k = 0) {
@@ -7089,6 +7338,7 @@ function paMartelo(state: EscState, k = 0) {
   pa.vendidos.unshift({ cardId: card.id, nome: card.pacote?.clube ?? card.name, pos: card.pos, mgr: q?.winner ?? null, time: w?.teamName ?? null, preco: q?.paid ?? M.preco, segundo: segundo?.valor ?? 0 })
   if (pa.vendidos.length > 60) pa.vendidos.length = 60
   if (!q || q.winner == null) pa.sobras.push(card) // não devia acontecer (lance válido), mas carta nunca some
+  else viceDepoisDoMartelo(state, q.winner, card, q.paid ?? M.preco) // 🌴 cadeia, multa, propina, lavagem e o alvo do Roubo
   state.revealQueue = []; state.revealIdx = 0; state.pendingEnvelopes = {}
   state.tiebreaks = []; state.tiebreakIdx = 0; state.tiebreakPending = {}
   state.phase = 'pregao'
@@ -8093,7 +8343,7 @@ export function viraCampo2D(s: EscState): void {
  *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
-export const MARCAS_DE_MODO = ['pregaoAberto', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
+export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm'] as const satisfies readonly (keyof EscState)[]
@@ -8911,6 +9161,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.holandes = !!action.holandes
       // 🔨 pregão aberto (16/10, em teste): só no rápido; é um jeito de lance à parte, então desliga a Tocaia
       s.pregaoAberto = !action.career && !action.dinastia && !!action.pregaoAberto
+      s.viceCity = s.pregaoAberto && !!action.vice // 🌴 19/11: Vice City = pregão aberto com cartas de golpe
       s.paPresentes = undefined
       if (s.pregaoAberto) s.holandes = false
       // ⚡ envelope único (28/10): só no rápido; é o 4º jeito de dar lance, então desliga os outros dois
@@ -9004,7 +9255,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.reserveAuction = false; s.reserveListed = {} // não herda "modo reservas" de um jogo anterior (mesmo fix do rápido)
       s.sport = 'basquete'; s.nbaCareer = false // jogo rápido (não é carreira)
       // 🔨 o jeito do lance é DESTA partida: antes ele vinha da última partida de futebol (ficava ligado no estado)
-      s.pregaoAberto = !!action.pregaoAberto; s.holandes = !s.pregaoAberto && !!action.holandes; s.pa = undefined
+      s.pregaoAberto = !!action.pregaoAberto; s.holandes = !s.pregaoAberto && !!action.holandes; s.pa = undefined; s.viceCity = false
       // ⚡ 09/11: envelope único também no rápido do basquete (igual ao futebol); e nunca herda da partida anterior
       s.envUnico = !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
@@ -9784,6 +10035,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // envelope. O motor é seguro com a NBA: fila e sobras saem do ACTIVE_CATALOG (trava `npm run pregao-aberto-nba`).
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
+      s.viceCity = s.pregaoAberto && !action.duplasMode && !!action.vice // 🌴 19/11: Vice City = pregão aberto com cartas de golpe (sem duplas)
       // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
       s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; // 👑 11/11: na Kings também (Diego: *"cadê o envelope único?"*) s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
@@ -10213,6 +10465,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       const antes = paAssinatura(s)
       paTick(s)
       if (paAssinatura(s) === antes) return state
+      return s
+    }
+    case 'VICE_USAR': {
+      if (s.phase !== 'pregao' || !s.pa?.vice) return s
+      if (!(action.golpe in GOLPES)) return s
+      viceUsa(s, action.mgrId, action.golpe as GolpeId, action.alvo)
       return s
     }
     case 'PREGAO_ABERTO_LANCE': {

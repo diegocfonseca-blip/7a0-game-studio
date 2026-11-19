@@ -14091,3 +14091,12 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 
 ## 🇪🇺 19/11 — Brasil Oficial: o campeão da Europa no Mundial é sorteado todo ano (pedido do Diego)
 - *"sorteia sempre os melhores times do mundo, sempre podendo até repetir todo ano… começando pelo PSG que foi o último"*: 1ª temporada = PSG (o real); da 2ª em diante, sorteio preso na semente entre 12 gigantes (`CAMPEOES_EUROPA`, `europaDaTemporada` em `intercontinental-oficial.ts`), repetição permitida. Save antigo só sorteia a partir da próxima temporada (mesma marca `oficial.giro` do sorteio de elencos). Os outros convidados (Toluca, Sundowns, Al-Ahli, Auckland) seguem os de 2026. Trava em `npm run brasil-oficial`.
+- ✅ 19/11 CONSTRUÍDO (no branch, SÓ NA CONTA DO DIEGO — `VICE_CITY_GERAL = false`, sport.ts):
+  · motor em `store.tsx` (`viceAbre/viceUsa/viceAplica/viceBusted/viceDepoisDoMartelo/viceTravaLance`), catálogo em `vice-city.ts`,
+    tela em `vice-city-ui.tsx` (faixa do último golpe em cima da mesa + mão de cartas + o que vale contra você + segredo do X9/Sniper).
+  · Sala online: modo "🌴 Vice City" na fileira de cima (lobby), força Pregão aberto, sala de 10, sem duplas/clubes/Champions.
+    Partida Rápida: botão "Ligar Vice City" embaixo do Pregão aberto (pra testar sozinho contra os robôs).
+  · Robô não recebe carta, mas pode levar golpe. Feito SÓ no Pregão aberto — a versão Tocaia (até 20) ficou pra depois.
+  · Trava `npm run vice-city`. As travas npx tsx que carregam o store estavam quebradas pra todo mundo (imagem .webp e
+    `import.meta.env`): `scripts/node-stub-reg.mjs` conserta (`npm run pregao-aberto` já usa).
+  · Falta: testar numa sala de verdade com 2+ contas antes de liberar; O MARTELO edição Vice e a carta 🚨 Procurado (sugeri tirar).
