@@ -11539,7 +11539,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ATUAL (round = próximo jogo), como a tática. Libera a partir da 2ª
       // temporada (quando há reservas). Sem re-simular o que já passou.
       // 🏀 basquete usa a liga viva (o sim ignora careerLineup) e não tem essa tela — trava defensiva.
-      if (!s.careerOnline || s.sport === 'basquete' || s.seasonNo < 2) return s
+      if (!s.careerOnline || s.sport === 'basquete' || (s.seasonNo < 2 && !s.oficial)) return s // 🇧🇷 19/11: no Brasil Oficial o elenco já nasce com 22 → troca desde a T1
       // durante a temporada grava na rodada atual (próximo jogo). NO FIM (done,
       // round = 38) grava ALÉM das 38 já jogadas — assim NÃO re-simula o
       // campeonato que acabou, mas o pinHumanLineups pega essa última escalação e
@@ -11557,7 +11557,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'SALVA_ESCALACAO': {
       // 💾 ESCALAÇÃO A/B (23/10): guarda o time em campo (formação + os 11, por CARTA). Mesmas portas do SET_LINEUP:
       // só carreira de futebol, da 2ª temporada em diante (quando tem banco pra alternar).
-      if (!s.careerOnline || s.sport === 'basquete' || s.seasonNo < 2) return s
+      if (!s.careerOnline || s.sport === 'basquete' || (s.seasonNo < 2 && !s.oficial)) return s // 🇧🇷 19/11: no Brasil Oficial o elenco já nasce com 22 → troca desde a T1
       const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
       if (!m || !FORMATIONS[action.formation]) return s
       const esc = salvaEscalacao(m.squad, action.ids, action.formation, action.view, s.seasonNo, s.round)
@@ -11572,7 +11572,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // TUDO OU NADA (Diego: *"ele não pode seguir a partida faltando um jogador"*): 11 cartas reais e distintas do elenco,
       // nenhum suspenso, fechando a formação, formação no cardápio do técnico (a MESMA função do seletor). Se a troca de
       // formação ou a escalação não pegar, devolve o estado de antes — nunca fica meio trocado.
-      if (!s.careerOnline || s.sport === 'basquete' || s.seasonNo < 2) return s
+      if (!s.careerOnline || s.sport === 'basquete' || (s.seasonNo < 2 && !s.oficial)) return s // 🇧🇷 19/11: no Brasil Oficial o elenco já nasce com 22 → troca desde a T1
       const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
       const need = FORMATIONS[action.formation]
       if (!m || !need) return s

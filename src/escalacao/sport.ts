@@ -718,7 +718,7 @@ export function useCampo2DLiberado(): boolean {
 
 // 📊 ESTATÍSTICAS NO PLACAR CINEMA (07/11, Diego: o resumo do apito do 2D também no placar normal). Só a conta dele até ele
 // aprovar; liberar = STATS_PLACAR_GERAL = true. Regra e conta em stats-placar.ts · trava `npm run stats-placar`.
-const STATS_PLACAR_GERAL = false
+const STATS_PLACAR_GERAL = true // 🟢 19/11: liberado pra todos (Diego: "isso aqui já pode")
 const STATS_PLACAR_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let statsPlacarOk = STATS_PLACAR_GERAL
 let statsPlacarBancada = false // 🧪 a bancada liga e o login (sem conta) não desliga
@@ -1319,7 +1319,7 @@ export function useCentralCarreira(): boolean {
 
 // ─── 🔎 RAIO-X DO ADVERSÁRIO NA CENTRAL (31/10) — só na conta do Diego até ele aprovar ────────────────────
 // Pedido dele (análise carreira × FM): formação, estilo, os 3 melhores, cansaço e últimos 5 do rival, na Central.
-const RAIOX_GERAL = false
+const RAIOX_GERAL = true // 🟢 19/11: liberado pra todos (Diego: "isso aqui já pode")
 const RAIOX_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let raioxOk = RAIOX_GERAL
 function applyRaioX(email?: string | null): void {

@@ -14204,7 +14204,10 @@ do mapa (2D e 3D) entra uma faixa: `🏟️ <estádio do mandante> · casa do <m
 Testado numa carreira nova de ponta a ponta (leilão → Master → rodada 1 → Central → pular → escolha → 2D na aba Jogos com "Começar o jogo"
 → rodada 3 em 3D no mapa → "Voltar pra Central"). Consertado no teste: o "← Voltar pra Central" ficava escondido (estava dentro da coluna que
 some na aba do mapa) e cobria os botões da câmera; agora fica em cima do mapa, sem grudar. A faixa do estádio ficou curta ("🚌 você joga fora").
-Ainda a ver: o 1º jogo da temporada não passa pela escolha 2D/3D (sai do "Começar a temporada" direto pra aba Jogos, como antes).
+✅ A estreia da temporada também pergunta 2D/3D (feito no mesmo dia).
+🐛 19/11 (Duarte FC, print "undefined is not an object (evaluating 'e.b.teamId')"): a tela da carreira procurava o time do usuário nos
+confrontos da copa e quebrava num confronto sem o 2º time. Blindado com `?.` em todas as buscas `t.b.teamId === youId` do pyramidseason.
+Ainda a ver: QUAL copa gerou o confronto sem time (não tenho o save dele).
 Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
 - ✅ 19/11: Vice City liberado também pro Futpoint FC (VICE_CITY_TESTERS), pra testarem juntos.
 - ✅ 19/11: tema Vice City (pôr do sol neon) no fundo da sala inteira — revelação, monte, temporada, copas, fim (aprovado; desktop corrigido: nada de position nos filhos do Shell).
@@ -14213,3 +14216,11 @@ Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
   FAIXA GRANDE no meio da tela de todos por 3 s, com quem usou e em quem (relógio não para) · ③ ESTRELAS DE PROCURADO: quem leva golpe vê as
   próprias ★ no canto e a tela pisca a sirene ("🚨 Você está sendo procurado") · 🔒 Cadeia vale NA HORA: o jogador mais caro que o alvo já levou
   volta pra mesa e ele recebe o dinheiro (antes avisava e dava pra fugir pegando carta ruim). Trava `npm run vice-city`.
+
+## 🟢 19/11 — Estatísticas no placar normal (STATS_PLACAR_GERAL) e Raio-X do adversário na Central (RAIOX_GERAL) LIBERADOS PRA TODOS
+Diego: *"isso aqui já pode"*. Desligar = voltar a `false` no sport.ts.
+
+## 🐛 19/11 — Brasil Oficial: não dava pra trocar reserva ↔ titular na Temporada 1
+O modo nasce com o elenco real (22), mas a troca seguia a regra da carreira de sempre ("T1 joga com os 11", `canSub = seasonNo >= 2`
+na tela e `seasonNo < 2` no SET_LINEUP/SALVA_ESCALACAO/APLICA_ESCALACAO). Agora o Brasil Oficial troca desde a T1, nos dois lados.
+Testado: Athletico-PR, Fabiano (reserva) entrou no lugar do Renan Lodi.
