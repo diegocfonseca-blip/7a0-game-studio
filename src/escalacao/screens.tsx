@@ -12940,7 +12940,7 @@ export function EscEnd() {
   // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
   // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
   const [mundoNaLiga, setMundoNaLiga] = useState(false)
-  const [euroNaLiga, setEuroNaLiga] = useState<24 | undefined>(undefined) // 🇪🇺 31/10: a Copa depois da liga é a EUROCOPA (24 seleções)
+  const [euroNaLiga, setEuroNaLiga] = useState<24 | 16 | undefined>(undefined) // 🇪🇺 31/10: a Copa depois da liga é a EUROCOPA (24 seleções)
   // 🏟️ COPA REGIONAL (10/10): mesma porta da Copa do Mundo — a marca `regionalNaLiga` é da SALA
   const [regionalNaLiga, setRegionalNaLiga] = useState<CopaRegionalId | null>(null)
   const [mundoChecado, setMundoChecado] = useState(false)
@@ -12955,7 +12955,7 @@ export function EscEnd() {
   const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga) && !copaPending && !libPending && mundoPendente
   // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
   // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
-  const proxNomeFim = mundoEsperando ? (regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
+  const proxNomeFim = mundoEsperando ? (regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
   useEffect(() => { if (mundoNaLiga || regionalNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga])
   useEffect(() => {
@@ -12965,7 +12965,7 @@ export function EscEnd() {
       .then(({ data }) => {
         if (!vivo) return
         const d = data as { flag?: string; reg?: string; euro?: string } | null
-        setEuroNaLiga(d?.euro === '24' || d?.euro === 'true' ? 24 : undefined)
+        setEuroNaLiga(d?.euro === '24' || d?.euro === 'true' ? 24 : d?.euro === '16' ? 16 : undefined) // 🌎 19/11: 16 = Copa América
         // 🛡️ sala com as DUAS marcas (achado 15/10, sala "Rio-SP no YouTube" do Futpoint): abria a Copa do Mundo E o
         // Rio × SP juntos, lendo as MESMAS escolhas — "2 listas" e a convocação do São Paulo vazia (procurava o PAÍS São
         // Paulo). Uma copa só por noite: a regional, que é a escolha mais específica, ganha.

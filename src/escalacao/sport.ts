@@ -482,6 +482,11 @@ export function useEuroLiberada(): boolean {
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
   return euroOk
 }
+// 🌎 LIGA + COPA AMÉRICA NAS SALAS (19/11, Diego: *"copa América igual fizemos a eurocopa… C regra da copa América"*): a MESMA porta
+// da Eurocopa, com as 16 seleções do formato real de 2024 (10 da Conmebol + 6 convidadas da Concacaf). Só na conta do Diego até ele
+// mandar liberar. Liberar = `AMERICA_GERAL = true`.
+const AMERICA_GERAL = false
+export function useAmericaLiberada(): boolean { const so = useSoDiego(); return AMERICA_GERAL || so }
 export function useRelampagoLiberado(): boolean {
   const [, force] = useState(0)
   useEffect(() => onSportChange(() => force(n => n + 1)), [])
