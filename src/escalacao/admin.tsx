@@ -110,7 +110,7 @@ function jumpReasons(j: JumpInfo | undefined): string[] {
 
 type DailyRow = { day: string; plays: number; cpu: number; online: number; visits: number }
 type UserRow = { name: string; sid: string; total: number; today: number; last_play: string; registered: boolean }
-type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; registered?: boolean; careerCoins?: number | null; careerTitles?: number | null; uid?: string | null }
+type LiveRow = { name: string; mode: string; screen: string; playing: boolean; ago: number; careerSeason?: number | null; careerDivision?: string | null; deckLeague?: string | null; careerModo?: string | null; registered?: boolean; careerCoins?: number | null; careerTitles?: number | null; uid?: string | null }
 // elenco da carreira de um usuário CADASTRADO (lido do save na nuvem, só admin)
 type SquadCard = { name: string; pos: string; lo?: number; hi?: number; paid?: number; fame?: number; fake?: boolean; reforco?: boolean }
 type SquadView = { team: string; season?: number; division?: string | null; coins?: string | null; formation?: string; updated?: string; squad: SquadCard[] }
@@ -129,7 +129,7 @@ type Dash = {
   visitors_today: number; visitors_total: number
   daily: DailyRow[]; users: UserRow[]; careers: CareerRow[]
 }
-const DIV_LABEL: Record<string, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D' }
+const DIV_LABEL: Record<string, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea' }
 
 const SCREEN_LABEL: Record<string, string> = {
   intro: 'Na home', lobby: 'Na sala (esperando)',
@@ -1777,7 +1777,7 @@ function Dashboard({ email }: { email: string }) {
                   <span style={{ opacity: 0.6 }}> · {SCREEN_LABEL[p.screen] || p.screen}</span>
                   {p.playing && <span style={{ opacity: 0.6 }}> · {MODE_LABEL[p.mode] || p.mode}</span>}
                   {p.mode === 'career' && p.careerDivision && (
-                    <span style={{ opacity: 0.85, color: '#C9A9FF', fontWeight: 700 }}> · {DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
+                    <span style={{ opacity: 0.85, color: p.careerModo === 'oficial' ? '#7FE3A0' : '#C9A9FF', fontWeight: 700 }}> · {p.careerModo === 'oficial' ? '🇧🇷 Brasil Oficial' : p.careerModo === 'carreira' ? '🪜 Carreira' : ''}{p.careerModo ? ' · ' : ''}{DIV_LABEL[p.careerDivision] || p.careerDivision} · T{p.careerSeason ?? 1}</span>
                   )}
                   {p.uid && cheats[p.uid] && (
                     <span title={`🔒 LACRE não bateu: esse save foi EDITADO NA MÃO (${cheats[p.uid].detail}). Convicção alta — o carimbo secreto não fecha com os números. Nada é feito com a conta; você decide.`} style={{ color: '#FF2D2D', fontWeight: 900 }}> · 🔒 mexeu na mão</span>
