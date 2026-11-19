@@ -240,7 +240,14 @@
 - ✅ Mockup da tela "Escolha sua franquia" APROVADO (19/11, *"Sim"*): `eua-oficial-tela.tsx` + `scripts/mockups/basquete-eua-oficial-franquia-*.png` (ainda não ligada).
 - ✅ (2) G League fica DE FORA na 1ª fase (19/11, Diego: *"Sim"*); pode entrar depois se ele pedir.
 - ✅ Elencos reais 2026-27 pesquisados e conferidos no Basketball-Reference: `docs/eua-oficial/elencos-2026-27.json` (530 jogadores, 9 a conferir).
-- ⏳ Próximo: virar carta (nível pela régua de 02/11 + bio PT/EN), marcadas SÓ carreira. Perguntado ao Diego se o elenco inicial é o real de hoje.
+- ✅ 19/11 (Diego: *"começa pelo nosso padrão pelas cartas que já tinham do auge… e você só acrescenta as novas"*): cada franquia = as cartas
+  ANTIGAS dela (o auge, ex. Celtics 27) + as NOVAS de 2026-27. **437 cartas novas** em `data-basquete-eua.ts` (GERADO por
+  `npx tsx scripts/gera-cartas-eua.mts`), SÓ carreira. 84 jogadores que já tinham carta (LeBron, Curry, Giannis, Jokić…) ficam só com a
+  antiga (mesma pessoa só em baralho diferente). Nível: prêmio recente (All-Star 2026/All-NBA 2025-26) ou 21+ pts → Craque (10);
+  calouro/2º ano top-10 do draft → Promessa (12); titular → Bom; rotação → Bom; resto → Profissional. Bio só com fato (números do
+  Basketball-Reference). Trava: `npm run eua-so-carreira`.
+- ⏳ Próximo: ligar o modo (escolher franquia → elenco inicial sorteado da franquia, resto pro leilão → liga 82 jogos + Play-In +
+  Playoffs), na conta do Diego primeiro. Os 9 `conferir` ficam de fora até checar.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
