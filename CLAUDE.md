@@ -445,6 +445,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **Sempre quer saber se dá pra reverter** ("qualquer bug eu posso voltar
   atrás né?") — responder isso proativamente a cada entrega.
 - Sons: martelo só pra QUEM ganha (ou vende) — nada de som genérico pra todos.
+- **🔊 O JOGO COMEÇA COM SOM (19/11, regra dele).** *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*. Só fica mudo quem
+  apertou 🔇 (escolha lembrada no aparelho, `esc-sound-muted = '1'`). Não voltar o padrão pro mudo. (O navegador ainda só toca depois do 1º toque.)
 - **O desenho do estádio (StadiumSvg) é sagrado**: tem que ser a PRIMEIRA coisa
   visível ao abrir a área do clube ("via o estádio de cara, eu achava bonito").
   Qualquer coisa nova naquela área entra ABAIXO dele, nunca antes.

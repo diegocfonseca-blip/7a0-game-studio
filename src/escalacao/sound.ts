@@ -10,7 +10,8 @@ import { modoEspectador } from './espectador'
 // 🔓 JÁ LIBERADO PRA TODO MUNDO (`setSoundAllowed(true)` no `index.tsx`). Este
 //    comentário dizia "só pro login do Diego" e estava velho — corrigido em 18/09,
 //    quando ele perguntou *"e aí, cadê?"* e eu vim conferir de verdade.
-// 🔇 MUTE: começa MUDO; a pessoa liga no botão. Escolha lembrada no aparelho.
+// 🔊 19/11 (Diego: *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*): o som começa LIGADO; só fica mudo
+//    quem apertou 🔇 antes (a escolha fica lembrada no aparelho). Antes começava mudo pra todo mundo.
 // 🌐 AUTOPLAY: o navegador só deixa tocar DEPOIS do 1º toque — então nada
 //    surpreende quem só abriu o jogo. O AudioContext acorda no 1º gesto.
 //
@@ -18,8 +19,8 @@ import { modoEspectador } from './espectador'
 // pode quebrar o jogo.
 
 let allowed = false
-let muted = true
-try { muted = localStorage.getItem('esc-sound-muted') !== '0' } catch { /* padrão: mudo */ }
+let muted = false
+try { muted = localStorage.getItem('esc-sound-muted') === '1' } catch { /* padrão: com som */ }
 
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
