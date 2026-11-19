@@ -14132,3 +14132,10 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - Bancada: `scripts/mapa3d/bancada.html` (partida com cartas do baralho BR, sem login). Vídeo `scripts/mockups/mapa3d-abertura.mp4`, celular `scripts/mockups/mapa3d-celular.png`.
 - 19/11 (2ª leva, *"melhoradas nas placas… texturas dos gramados… tudo que é muito liso fica fake"*): no 3D as placas viram painel de LED em pé (faixa contínua, grade de pontinhos, brilho, moldura, pezinhos; mesmas marcas e rodízio) e o gramado ganha manchas de tom, desgaste na boca do gol/pequena área/pênalti/meio/corredor do bandeirinha e quebra da repetição da textura (`presidencia-gramado-material-3d.ts`). Print `scripts/mockups/mapa3d-placas-gramado.png`.
 - Falta: OK do Diego; medir no celular de verdade (o 3D pesa mais que o 2D); o apito continua sendo no "Começar o jogo" (nenhum jogo começa sozinho — regra de 26/10).
+
+## 🏀 19/11 — Reels de lançamento do BidLegends (PT + EN)
+- `scripts/posts/video-bidlegends/` (LEIAME). Entregues ao Diego os dois mp4. Sem logo da NBA/franquia.
+- ⚠️ Achados no caminho (não consertados ainda): (1) a arte da home do BidLegends (`home-bidlegends-v01.webp`) tem o LOGO DA NBA nos
+  banners — risco de marca registrada quando abrir pro público; (2) na tela de DESEMPATE do basquete em inglês aparece texto em PT
+  ("DESEMPATE", "SEU RE-LANCE", "MANTER", "Mínimo", "Você", "TEMPO"); (3) na Partida Rápida o Pregão aberto e o Envelope único ainda
+  têm o selo NEW/NOVO (só tiramos das salas em 19/11).

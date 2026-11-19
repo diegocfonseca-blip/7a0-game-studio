@@ -1,0 +1,146 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Osw;src:url(oswald-latin-700-normal.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#07070c}
+body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#F4ECD6;position:relative}
+#fundo{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 18%,#3a1d0c 0%,#160d10 42%,#07070c 75%)}
+#holofotes{position:absolute;inset:0;background:conic-gradient(from 160deg at 18% -5%,transparent 0deg,rgba(255,196,0,.13) 8deg,transparent 18deg),conic-gradient(from 182deg at 82% -5%,transparent 0deg,rgba(255,140,40,.13) 8deg,transparent 18deg)}
+#quadra{position:absolute;left:-300px;right:-300px;bottom:-60px;height:900px;transform:perspective(900px) rotateX(48deg);transform-origin:50% 100%;
+ background:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 70px),linear-gradient(180deg,#c98a4a,#a8682f);border-top:10px solid #F4ECD6}
+#quadra:before{content:'';position:absolute;left:50%;top:-10px;width:640px;height:640px;margin-left:-320px;border:10px solid #F4ECD6;border-radius:50%;}
+#garrafao{position:absolute;left:50%;bottom:0;width:440px;height:520px;margin-left:-220px;background:rgba(194,69,47,.85);border:10px solid #F4ECD6;border-bottom:0}
+.estr{position:absolute;width:6px;height:6px;border-radius:50%;background:#FFC400;opacity:.5}
+.cena{position:absolute;inset:0;opacity:0}
+.big{position:absolute;left:50px;right:50px;text-align:center;text-transform:uppercase}
+.titulo{font-size:170px;line-height:.92;color:#F4ECD6;text-shadow:9px 9px 0 #0C0C0C}
+.ouro{color:#FFC400}.laranja{color:#ff8a2a}
+.tag{display:inline-block;background:#FFC400;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:22px;box-shadow:8px 8px 0 #0C0C0C;padding:12px 34px;font-size:50px}
+.logo{position:absolute;left:50%;top:330px;width:300px;height:300px;margin-left:-150px;border:16px solid #FFC400;border-radius:48px;background:#0C0C0C;display:flex;align-items:center;justify-content:center;font-size:170px;color:#FFC400;letter-spacing:-6px;box-shadow:12px 12px 0 #000,0 0 80px rgba(255,196,0,.35)}
+.chip{position:absolute;width:176px;height:176px;border-radius:50%;background:#F4ECD6;color:#0C0C0C;border:8px solid #0C0C0C;box-shadow:8px 8px 0 #0C0C0C;display:flex;align-items:center;justify-content:center;font-size:72px}
+.chip.on{background:#FFC400}
+.carta{position:absolute;width:440px;height:200px;background:#fff;color:#0C0C0C;border:8px solid #0C0C0C;border-radius:30px;box-shadow:10px 10px 0 #0C0C0C;padding:22px 26px;text-align:left}
+.carta .pos{display:inline-block;background:#0C0C0C;color:#fff;border-radius:40px;padding:2px 20px;font-size:34px;vertical-align:middle}
+.carta .cat{float:right;font-size:44px}
+.carta b{display:block;font-size:50px;letter-spacing:-1px;line-height:1.05;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.carta small{display:block;font-size:34px;color:#6b6250;margin-top:2px;font-family:Arial,sans-serif;font-weight:700}
+.carta.lenda{background:linear-gradient(135deg,#fff3c4,#FFC400);}
+.carta.mico{background:#e9e1cc}
+.env{position:absolute;left:190px;width:700px;height:470px;background:#F4ECD6;border:10px solid #0C0C0C;border-radius:30px;box-shadow:14px 14px 0 #0C0C0C}
+.env:before{content:'';position:absolute;left:0;right:0;top:0;height:240px;background:linear-gradient(160deg,transparent 49.5%,#0C0C0C 49.5% 51%,transparent 51%),linear-gradient(-160deg,transparent 49.5%,#0C0C0C 49.5% 51%,transparent 51%)}
+.selo{position:absolute;left:50%;top:170px;width:170px;height:170px;margin-left:-85px;border-radius:50%;background:#C2452F;border:8px solid #0C0C0C;display:flex;align-items:center;justify-content:center;font-size:80px}
+.faixa{position:absolute;left:70px;right:70px;background:#1B7A3D;border:9px solid #0C0C0C;border-radius:30px;box-shadow:12px 12px 0 #0C0C0C;text-align:center;padding:30px;color:#fff}
+.fone{position:absolute;left:170px;width:740px;height:1330px;top:470px;border:14px solid #0C0C0C;border-radius:70px;overflow:hidden;box-shadow:0 0 70px rgba(255,196,0,.35),20px 20px 0 #0C0C0C;background:#0C0C0C}
+.fone img{width:100%;display:block}
+.modo{position:absolute;left:80px;right:80px;height:220px;border:9px solid #0C0C0C;border-radius:34px;box-shadow:12px 12px 0 #0C0C0C;display:flex;align-items:center;gap:30px;padding:0 40px;color:#0C0C0C}
+.modo i{font-style:normal;font-size:110px}
+.modo b{font-size:66px;line-height:1;text-transform:uppercase;display:block}
+.modo small{font-size:36px;font-family:Arial,sans-serif;font-weight:700;opacity:.8;display:block;margin-top:8px}
+.btn{position:absolute;left:110px;right:110px;background:#FFC400;color:#0C0C0C;border:10px solid #0C0C0C;border-radius:34px;box-shadow:14px 14px 0 #0C0C0C;text-align:center;font-size:80px;padding:26px 0;text-transform:uppercase}
+.bola{position:absolute;font-size:150px;filter:drop-shadow(8px 8px 0 #000)}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+</style></head><body>
+<div id="mundo"><div id="fundo"></div><div id="holofotes"></div><div id="estrelas"></div><div id="quadra"><div id="garrafao"></div></div>
+ <span class="bola" id="bola" style="left:0;top:0">🏀</span></div>
+
+<div class="cena" data-s="0">
+ <div class="big" style="top:300px"><span class="tag" data-t="tag0"></span></div>
+ <div class="big titulo" style="top:520px" data-t="t0"></div>
+</div>
+<div class="cena" data-s="1">
+ <div class="logo" id="logo">BL</div>
+ <div class="big titulo" style="top:700px;font-size:190px">BID<span class="ouro">LEGENDS</span></div>
+ <div class="big" style="top:930px;font-size:62px;letter-spacing:6px;text-shadow:5px 5px 0 #000" data-t="t1"></div>
+</div>
+<div class="cena" data-s="2">
+ <div class="big titulo" style="top:200px;font-size:130px" data-t="t2"></div>
+ <div class="chip on" style="left:60px;top:720px">PG</div><div class="chip" style="left:258px;top:720px">SG</div><div class="chip" style="left:452px;top:720px">SF</div><div class="chip" style="left:646px;top:720px">PF</div><div class="chip" style="left:840px;top:720px">C</div>
+ <div class="big" style="top:1010px;font-size:66px;text-shadow:5px 5px 0 #000" data-t="t2b"></div>
+</div>
+<div class="cena" data-s="3">
+ <div class="big titulo" style="top:150px;font-size:118px" data-t="t3"></div>
+ <div class="carta lenda" style="left:60px;top:560px"><span class="pos">SG</span><span class="cat">👑</span><b>Michael Jordan</b><small>Bulls · 1996</small></div>
+ <div class="carta lenda" style="left:580px;top:660px"><span class="pos">SF</span><span class="cat">👑</span><b>LeBron James</b><small>Cavaliers · 2016</small></div>
+ <div class="carta lenda" style="left:60px;top:850px"><span class="pos">PG</span><span class="cat">👑</span><b>Stephen Curry</b><small>Warriors · 2016</small></div>
+ <div class="carta lenda" style="left:580px;top:950px"><span class="pos">PG</span><span class="cat">👑</span><b>Luka Dončić</b><small>Mavericks · 2024</small></div>
+ <div class="carta mico" style="left:60px;top:1140px"><span class="pos">SG</span><span class="cat">🃏</span><b>JR Smith</b><small>Cavaliers · 2018</small></div>
+ <div class="carta mico" style="left:580px;top:1240px"><span class="pos">C</span><span class="cat">🃏</span><b style="font-size:44px">Boban Marjanović</b><small>Clippers · 2019</small></div>
+</div>
+<div class="cena" data-s="4">
+ <div class="big titulo" style="top:200px;font-size:124px" data-t="t4"></div>
+ <div class="env" id="env" style="top:640px"><div class="selo">🔒</div></div>
+ <div class="big" style="top:1170px;font-size:60px;text-shadow:5px 5px 0 #000" data-t="t4b"></div>
+ <div class="faixa" id="martelo" style="top:1330px"><div style="font-size:110px;line-height:1">🔨</div><div style="font-size:84px;line-height:1.05;text-transform:uppercase" data-t="t4c"></div></div>
+</div>
+<div class="cena" data-s="5">
+ <div class="big titulo" style="top:150px;font-size:110px" data-t="t5"></div>
+ <div class="fone" id="fone"><img src="leilao.png"></div>
+</div>
+<div class="cena" data-s="6">
+ <div class="big titulo" style="top:180px;font-size:124px" data-t="t6"></div>
+ <div class="modo" style="top:560px;background:#FFC400"><i>⚡</i><div><b data-t="m1"></b><small data-t="m1b"></small></div></div>
+ <div class="modo" style="top:850px;background:#c9b3ff"><i>🌐</i><div><b data-t="m2"></b><small data-t="m2b"></small></div></div>
+ <div class="modo" style="top:1140px;background:#bfe6c9"><i>🏆</i><div><b data-t="m3"></b><small data-t="m3b"></small></div></div>
+</div>
+<div class="cena" data-s="7">
+ <div class="logo" style="top:260px">BL</div>
+ <div class="big titulo" style="top:620px;font-size:170px">BID<span class="ouro">LEGENDS</span></div>
+ <div class="big" style="top:840px;font-size:58px;text-shadow:5px 5px 0 #000" data-t="t7"></div>
+ <div class="btn" style="top:1050px" data-t="cta"></div>
+ <div class="big ouro" style="top:1320px;font-size:72px;letter-spacing:2px;text-shadow:5px 5px 0 #000">bidlegendsarena.com</div>
+ <div class="big" style="top:1440px;font-size:46px;text-shadow:4px 4px 0 #000">🇧🇷 PT · 🇺🇸 EN</div>
+</div>
+<div class="flash" id="flash"></div>
+
+<script>
+const L=new URLSearchParams(location.search).get('l')==='en'?'en':'pt'
+const T={
+ tag0:['🔨 DA EQUIPE DO LEILÃO LEGENDS','🔨 FROM THE LEILÃO LEGENDS TEAM'],
+ t0:['O LEILÃO<br>ÀS CEGAS<br><span class="laranja">AGORA NA<br>QUADRA 🏀</span>','THE BLIND<br>AUCTION<br><span class="laranja">IS NOW ON<br>THE COURT 🏀</span>'],
+ t1:['SEU QUINTETO COMEÇA COM UM LANCE','YOUR FIVE STARTS WITH A BID'],
+ t2:['5 POSIÇÕES.<br><span class="ouro">1 LANCE SECRETO.</span>','5 SPOTS.<br><span class="ouro">1 SECRET BID.</span>'],
+ t2b:['MONTE O SEU QUINTETO NO LEILÃO','BUILD YOUR STARTING FIVE AT AUCTION'],
+ t3:['LENDAS, CRAQUES<br><span class="ouro">E OS MICOS QUE<br>VOCÊ AMA</span>','LEGENDS, STARS<br><span class="ouro">AND THE MEMES<br>YOU LOVE</span>'],
+ t4:['NINGUÉM VÊ<br><span class="ouro">O SEU LANCE</span>','NOBODY SEES<br><span class="ouro">YOUR BID</span>'],
+ t4b:['ATÉ A REVELAÇÃO… 👀','UNTIL THE REVEAL… 👀'],
+ t4c:['MARTELO!<br>LUKA É SEU','SOLD!<br>LUKA IS YOURS'],
+ t5:['JÁ DÁ PRA<br><span class="ouro">DAR LANCE</span>','PLACE YOUR<br><span class="ouro">BIDS NOW</span>'],
+ t6:['3 JEITOS<br><span class="ouro">DE JOGAR</span>','3 WAYS<br><span class="ouro">TO PLAY</span>'],
+ m1:['Partida rápida','Quick match'],m1b:['Leilão + temporada numa noite','Auction + season in one night'],
+ m2:['Salas online','Online rooms'],m2b:['Pregão com os amigos','Bid against your friends'],
+ m3:['Carreira','Career'],m3b:['Da Street League até a NBA','From the Street League to the NBA'],
+ t7:['O NOVO JOGO DO LEILÃO LEGENDS','THE NEW GAME FROM LEILÃO LEGENDS'],
+ cta:['▶ JOGAR AGORA','▶ PLAY NOW'],
+}
+document.querySelectorAll('[data-t]').forEach(e=>{e.innerHTML=T[e.dataset.t][L==='en'?1:0]})
+const DUR=[3.0,3.0,3.2,3.6,4.2,3.6,3.6,4.0]
+const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
+window.TOTAL=acc
+const cl=x=>Math.min(1,Math.max(0,x)),ease=x=>1-Math.pow(1-cl(x),3)
+const back=x=>{x=cl(x);const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}
+const est=document.getElementById('estrelas');for(let i=0;i<46;i++){const s=document.createElement('i');s.className='estr';s.style.left=(i*37%100)+'%';s.style.top=(i*53%42)+'%';est.appendChild(s)}
+const cenas=[...document.querySelectorAll('.cena')]
+window.render=t=>{
+  document.querySelectorAll('.estr').forEach((s,i)=>s.style.opacity=.15+.6*Math.abs(Math.sin(t*1.7+i)))
+  // 🏀 a bola quica atravessando a tela o vídeo inteiro
+  const ph=(t*.42)%1,bx=-160+ph*1400,by=1200-Math.abs(Math.sin(t*4.2))*380
+  document.getElementById('bola').style.transform=`translate(${bx}px,${by}px) rotate(${t*360}deg)`
+  let flash=0
+  cenas.forEach((el,i)=>{
+    const a=t-ST[i],d=DUR[i],vis=a>=0&&a<d+0.2
+    el.style.opacity=vis?Math.min(cl(a/0.2),i===cenas.length-1?1:cl((d+0.2-a)/0.2)):0
+    if(!vis)return
+    el.querySelectorAll('.big').forEach((b,j)=>{const k=back((a-0.08-j*0.16)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-j*0.16)/0.2)})
+    el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-3+Math.sin(a*6)*1.5}deg)`})
+    el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`;if(i===1&&a>0.35&&a<0.5)flash=.5})
+    el.querySelectorAll('.chip').forEach((c,j)=>{const k=back((a-0.5-j*0.14)/0.4);c.style.transform=`translateY(${(1-k)*300+Math.sin(a*6+j)*8}px) scale(${Math.max(0,k)})`;c.classList.toggle('on',Math.floor((a-0.8)/0.35)%5===j)})
+    el.querySelectorAll('.carta').forEach((c,j)=>{const k=back((a-0.45-j*0.2)/0.45);c.style.transform=`perspective(900px) rotateY(${(1-k)*90}deg) rotate(${j%2?2:-2}deg) scale(${Math.max(0,k)})`})
+    if(i===4){const e=document.getElementById('env'),k=back((a-0.3)/0.5);e.style.transform=`scale(${Math.max(0,k)}) rotate(${Math.sin(a*8)*(a<2.2?1.5:0)}deg)`
+      const m=document.getElementById('martelo'),k2=back((a-2.4)/0.35);m.style.transform=`scale(${Math.max(0,k2)}) rotate(${(1-k2)*-8}deg)`;m.style.opacity=a<2.4?0:1;if(a>2.4&&a<2.55)flash=.65}
+    if(i===5){const f=document.getElementById('fone'),k=back((a-0.2)/0.6);f.style.transform=`translateY(${(1-k)*900}px) rotate(${(1-k)*5}deg)`;f.querySelector('img').style.transform=`translateY(${-Math.max(0,a-1.2)*120}px)`}
+    el.querySelectorAll('.modo').forEach((c,j)=>{const k=back((a-0.5-j*0.25)/0.45);c.style.transform=`translateX(${(1-k)*(j%2?-1200:1200)}px)`})
+    el.querySelectorAll('.btn').forEach(b=>{const k=back((a-0.9)/0.45);b.style.transform=`scale(${Math.max(0,k)*(1+0.03*Math.sin(a*7))})`})
+  })
+  document.getElementById('flash').style.opacity=flash
+}
+window.render(0)
+</script></body></html>
