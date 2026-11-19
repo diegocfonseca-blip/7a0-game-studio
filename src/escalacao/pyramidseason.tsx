@@ -13311,11 +13311,15 @@ export function PyramidSeasonScreen() {
           </>
   )
 
+  // 🧭 19/11 (Diego: "não deveria ter essa aba de partida… agora aí fica só a classificação e outros jogos"): no fluxo da Central, sem
+  // jogo escolhido no 📺 2D, a aba Jogos é SÓ a tabela — sem a aba Partida, sem o aviso e sem os botões de jogo (o jogo começa pela Central).
+  const aguardaCentral = tab === 'jogos' && fluxoCentral && ((calOn && calFase === 'dias' && !escolha2d.startsWith(`${calSn}:${round}:`)) || (copaSegura && escolha2d !== chaveCopa))
+  const areaVista = aguardaCentral ? 'tabela' : visualArea
   return (
     <CareerVisualProvider enabled={visualV2}>
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
     <MapaGuardado mapa={mapaDoClube}>
-    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}${visualV2 ? ` cv2-root cv2-career cv2-view-${tab}${visualArea === 'tabela' ? ' cv2-focus-table' : ''}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}${visualV2 ? ` cv2-root cv2-career cv2-view-${tab}${areaVista === 'tabela' ? ' cv2-focus-table' : ''}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       {visualV2 && <CareerBrand club={state.managers[state.youIdx]?.teamName ?? ''} />}
       <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
       <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
@@ -13394,7 +13398,7 @@ export function PyramidSeasonScreen() {
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
         {/* 18/11: a dica "Seu primeiro jogo, sem complicação" saiu da Central nova — a lista "Antes da estreia" faz esse papel */}
         {!novaCentral && visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
-        {visualV2 && tab === 'jogos' && !done && round > 0 && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
+        {visualV2 && tab === 'jogos' && !done && round > 0 && !aguardaCentral && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
         {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
         {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
@@ -13695,7 +13699,7 @@ export function PyramidSeasonScreen() {
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
         {tab === 'jogos' && !fluxoCentral && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>}
-        {tab === 'jogos' && (!fluxoCentral ? calBarra?.proxCard : (calOn && calFase === 'dias' && !escolha2d.startsWith(`${calSn}:${round}:`)) || (copaSegura && escolha2d !== chaveCopa) ? (
+        {tab === 'jogos' && (!fluxoCentral ? calBarra?.proxCard : aguardaCentral && !visualV2 ? (
           // 🧭 19/11 (fluxo novo): fora do jogo a aba Jogos não mostra placar nem os dias passando — o jogo começa pela Central
           <div style={{ border: `2.5px dashed ${GOLD}`, borderRadius: 14, padding: '14px 12px', margin: '0 0 10px', textAlign: 'center', background: '#14110C', color: '#f4ecd6' }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase' }}>{tr('⏳ Nenhum jogo rolando agora', '⏳ No match on right now')}</p>

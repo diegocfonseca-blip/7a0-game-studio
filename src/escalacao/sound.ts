@@ -177,8 +177,8 @@ export function playTempoEsgotado() { tone(180, 0.45, 'sawtooth', 0.22); tone(18
 export function playQuase() { tone(523, 0.22, 'triangle', 0.3, 0, 494); tone(440, 0.5, 'triangle', 0.3, 0.2, 330) }
 /** 🃏 pegou carta do Monte: virada de carta */
 export function playMonte() { noise(0.07, 0.45, 2600, 1.2); tone(760, 0.08, 'triangle', 0.22, 0.04); tone(1140, 0.1, 'triangle', 0.2, 0.09) }
-/** 🚨 sirene de polícia (golpe que você levou) */
-export function playSirene(seg = 1.4) {
+/** 🚨 sirene CURTA de polícia (golpe que você levou — ganhou estrela). A sirene longa do BUSTED é a `playSirene` lá embaixo. */
+export function playSireneCurta(seg = 1.4) {
   const c = ac(); if (!c || !master) return
   try {
     const t = c.currentTime, o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain()
@@ -194,7 +194,7 @@ export function playSirene(seg = 1.4) {
 /** ⭐ ganhou uma estrela de procurado: "plim" */
 export function playEstrela() { tone(1568, 0.25, 'sine', 0.3); tone(2093, 0.35, 'sine', 0.22, 0.07) }
 /** 🚔 BUSTED: pancada grave + sirene longa */
-export function playBusted() { tone(70, 0.5, 'sine', 0.6, 0, 40); noise(0.25, 0.5, 260, 0.6); playSirene(2.6) }
+export function playBusted() { tone(70, 0.5, 'sine', 0.6, 0, 40); noise(0.25, 0.5, 260, 0.6); playSireneCurta(2.6) }
 /** 💥 você usou uma carta de golpe: "fuuush" + pancada */
 export function playGolpe() { noise(0.28, 0.35, 900, 0.5); tone(300, 0.25, 'sawtooth', 0.16, 0, 90); tone(95, 0.22, 'sine', 0.45, 0.2, 55) }
 /** 👆 é a sua vez de escolher: "dim-dom" */
