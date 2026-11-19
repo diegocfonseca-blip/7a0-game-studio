@@ -1,3 +1,4 @@
+import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
@@ -1048,6 +1049,8 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
   const ownerVisual = useOwnerOnlineVisual(state)
+  // 🌴 19/11: a sala do Vice City leva o pôr do sol neon do pregão pra revelação, temporada, copas e fim (só o fundo)
+  const viceSala = !!state.viceCity && (VICE_TELAS as readonly string[]).includes(state.screen)
   const visualV2 = careerVisualV2(state)
   const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
@@ -1115,7 +1118,8 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   }, [desktopWidth, state.screen])
   return (
     <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
-    <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+    <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}${viceSala ? ' vice-sala' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+      {viceSala && <><style>{VICE_TEMA_CSS + VICE_SALA_CSS}</style><ViceSalaDecor /></>}
       {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
         <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
