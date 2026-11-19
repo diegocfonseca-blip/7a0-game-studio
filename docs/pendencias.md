@@ -14163,5 +14163,5 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - Clube da D no começo, sem reforço: mediana 59,5; sobe em ~6–8% das temporadas (a D real sobe 6 de 96).
 - Chance de subir pela força: D precisa de ~66–70 pra ter ~40% · C de ~66–70 pra 40% e 70+ pra 63%+ · B de 70–74 pra 41% e 74+ pra ~80%.
 - ⚠️ Fora da curva: na D, **America-RJ 77 e Portuguesa 76,6** (mais fortes que quase toda a Série B) e, na C, **Guarani 77** —
-  são cartas de época/lenda desses clubes. Proposta levada ao Diego: limitar no elenco dos BOTS da D e da C as cartas acima da categoria da série.
+  são cartas de época/lenda desses clubes. Proposta levada ao Diego (limitar as cartas acima da categoria no elenco dos bots da D/C) → **resposta: NÃO** (19/11). Fica como está; não repropor.
 - Painel: a carreira do Oficial agora vai marcada (`career_modo` em `live_beats`) — "🇧🇷 Brasil Oficial · Série X".
