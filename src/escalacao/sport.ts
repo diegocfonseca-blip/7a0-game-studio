@@ -523,12 +523,12 @@ export function useEuroLiberada(): boolean {
 // 🌎 LIGA + COPA AMÉRICA NAS SALAS (19/11, Diego: *"copa América igual fizemos a eurocopa… C regra da copa América"*): a MESMA porta
 // da Eurocopa, com as 16 seleções do formato real de 2024 (10 da Conmebol + 6 convidadas da Concacaf). Só na conta do Diego até ele
 // mandar liberar. Liberar = `AMERICA_GERAL = true`.
-const AMERICA_GERAL = false
+const AMERICA_GERAL = true
 export function useAmericaLiberada(): boolean { const so = useSoDiego(); return AMERICA_GERAL || so }
 // 🏆 LIGA + LIBERTADORES NAS SALAS (19/11, Diego): acabou a liga, cada um escolhe um clube sul-americano DE VERDADE na ordem da
 // tabela e convoca 11 das cartas dele; 32 clubes, formato real (8 grupos em turno e returno, ida e volta até a semi, final única).
 // Motor em `liberta-sala.ts`, tela em `liberta-sala-online.tsx`. Só na conta do Diego até ele mandar. Liberar = `LIBERTA_SALA_GERAL = true`.
-const LIBERTA_SALA_GERAL = false
+const LIBERTA_SALA_GERAL = true
 export function useLibertaSalaLiberada(): boolean { const so = useSoDiego(); return LIBERTA_SALA_GERAL || so }
 export function useRelampagoLiberado(): boolean {
   const [, force] = useState(0)

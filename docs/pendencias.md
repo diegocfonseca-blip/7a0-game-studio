@@ -14147,3 +14147,6 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 5. Faixa "É CAMPEÃO DA …" do quickCopa (store.tsx ~12176) só em PT.
 6. Kings: "dia" do jogador é por nome — xarás em times opostos ficam com o mesmo dia.
 - Conferir: título da Euro/Copa América vai pro esc_results com season_key ':copamundo' — ver se o Rank conta como Copa do Mundo.
+- ✅ 19/11 (Diego: "publica… p todos já"): `AMERICA_GERAL = true` e `LIBERTA_SALA_GERAL = true` + linha nas novidades. Falta: na LISTA de salas
+  a Copa América aparece como "Liga + Eurocopa" (o gatilho `game_rooms_colunas_magras` grava ls_copa2='euro' pra qualquer euroNaLiga) —
+  conserto = 1 linha no gatilho ('america' quando euroNaLiga=16) + lobby ler 'america'; mexe no banco, esperando OK.
