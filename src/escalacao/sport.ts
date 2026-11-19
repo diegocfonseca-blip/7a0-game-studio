@@ -361,7 +361,7 @@ function applyVice(email?: string | null): void {
 // também"*): os dias e os acontecimentos (ônibus chegando…) ficam SÓ na Central; no dia do jogo a Central pergunta 📺 Campo 2D ou
 // 🏟️ Campo 3D; a aba Jogos não mostra jogo parado; o mapa ganha "← Voltar pra Central". Nasce na conta do Diego; `FLUXO_CENTRAL_GERAL`.
 const FLUXO_CENTRAL_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-export const FLUXO_CENTRAL_GERAL = false
+export const FLUXO_CENTRAL_GERAL = true
 let fluxoCentralOk = FLUXO_CENTRAL_GERAL
 function applyFluxoCentral(email?: string | null): void {
   const u = FLUXO_CENTRAL_GERAL || (!!email && FLUXO_CENTRAL_TESTERS.has(email.toLowerCase()))

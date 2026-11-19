@@ -12592,7 +12592,7 @@ export function PyramidSeasonScreen() {
         // 🏟️ 3D: o jogo começa e o mapa abre no estádio com o giro de abertura (o mapa só gira com a partida já montada)
         d3: () => { ligaCampo2D(false); setDaCentral(true); setJogoOk(chaveCentral); setClubeSub('estadio'); escolheAba('estadio')
           setTimeout(() => pedeCameraDoMapa(mapa3dLiberado() ? 'abertura' : 'field2d'), 700)
-          setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) },
+          setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) },
       } : null} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
     // nem no jogo, nem nos dias, nem na Copa; ela já tem o próprio cartão da rodada em cima
@@ -13036,7 +13036,7 @@ export function PyramidSeasonScreen() {
       if (vista) pedeVistaDoMapa(vista)
       if (fluxoCentral) setDaCentral(true) // 🧭 no mapa aparece o "← Voltar pra Central"
       setClubeSub('estadio'); escolheAba('estadio')
-      setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
+      setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
     return <CentralCarreira sede={sede} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       preTemporada={novaCentral && round === 0 && !seasonOver && !copaPlaying ? {
@@ -13369,13 +13369,13 @@ export function PyramidSeasonScreen() {
         {visualV2 && tab === 'jogos' && !done && round > 0 && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
         {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
+        {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
+        {fluxoCentral && daCentral && tab === 'estadio' && <button data-voltar-central onClick={() => { setDaCentral(false); escolheAba('central') }}
+          style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
         <div className="ll-cx-lado">
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
             (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
             recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
-        {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
-        {fluxoCentral && daCentral && tab === 'estadio' && <button onClick={() => { setDaCentral(false); escolheAba('central') }}
-          style={{ position: 'sticky', top: 8, zIndex: 30, width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
         <div style={tab === 'central' || tab === 'mercado' || (tab === 'estadio' && presidentAvailable) ? { display: 'none' } : undefined}>
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
@@ -14407,7 +14407,7 @@ export function PyramidSeasonScreen() {
         {tab === 'central' && centralOn ? <>{fluxoCentral && chegadaGrande && <>
           {/* 🧭 19/11: o acontecimento (ônibus chegando…) aparece SÓ na Central — dá pra ver ao vivo no mapa ou pular */}
           <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>
-          <button onClick={() => { setDaCentral(true); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => document.querySelector('[data-presidencia-complexo-carreira]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) }}
+          <button onClick={() => { setDaCentral(true); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) }}
             style={{ width: '100%', margin: '0 0 12px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: '#F4ECD6', color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('📍 Ver no mapa ao vivo', '📍 Watch it live on the map')}</button>
         </>}{renderCentral()}</> : tab === 'mercado' && mercadoOn && me ? <MercadoAba mgr={state.managers[state.youIdx]} ordem={(me ? tables[me.div] ?? [] : []).map(t => t.name)} /> : tab === 'estadio' ? (
           <>
