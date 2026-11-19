@@ -14165,3 +14165,11 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - ⚠️ Fora da curva: na D, **America-RJ 77 e Portuguesa 76,6** (mais fortes que quase toda a Série B) e, na C, **Guarani 77** —
   são cartas de época/lenda desses clubes. Proposta levada ao Diego (limitar as cartas acima da categoria no elenco dos bots da D/C) → **resposta: NÃO** (19/11). Fica como está; não repropor.
 - Painel: a carreira do Oficial agora vai marcada (`career_modo` em `live_beats`) — "🇧🇷 Brasil Oficial · Série X".
+
+## 📱 19/11 — 3D do mapa leve no celular (Diego: *"não tá dando pra ver o jogo de tão lento… também quero no celular"*)
+- Medido na bancada (`scripts/mapa3d/bancada.html`): o gargalo era a placa de vídeo, não o processador. Cada jogador (boneco estilizado) tinha
+  39.863 triângulos → 22 em campo ≈ 880 mil por quadro.
+- Feito: no celular (`pointer: coarse`) carrega `jogador-estilizado-leve.glb` (7.971 triângulos, mesmos ossos/UV/movimentos —
+  `scripts/futebol3d/gera-jogador-leve.mjs`); `localStorage['esc3d-boneco-leve']` '1'/'0' força. E com a câmera de jogo no celular a vista
+  termina a 200 m com névoa (a cidade lá longe sai do desenho); mapa livre e o giro de abertura seguem normais.
+- Não feito: esconder a cidade inteira durante o jogo (na Várzea, sem arquibancada, ela aparece atrás do campo). Falta o teste no celular dele.
