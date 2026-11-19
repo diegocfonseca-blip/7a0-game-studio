@@ -14209,3 +14209,8 @@ Ainda a ver: QUAL copa gerou o confronto sem time (não tenho o save dele).
 Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
 - ✅ 19/11: Vice City liberado também pro Futpoint FC (VICE_CITY_TESTERS), pra testarem juntos.
 - ✅ 19/11: tema Vice City (pôr do sol neon) no fundo da sala inteira — revelação, monte, temporada, copas, fim (aprovado; desktop corrigido: nada de position nos filhos do Shell).
+- ✅ 19/11 Vice City v2 (mockup `scripts/mockups/vice-city-v2.png`, Diego: "Perfeito"): ① 3 cartas de golpe sorteadas TODAS no começo, com a
+  janela "🎰 Suas cartas de golpe" (7 s, só o dono vê; a 1ª carta da mesa e os robôs esperam) — acabou a carta do meio do pregão · ② todo golpe vira
+  FAIXA GRANDE no meio da tela de todos por 3 s, com quem usou e em quem (relógio não para) · ③ ESTRELAS DE PROCURADO: quem leva golpe vê as
+  próprias ★ no canto e a tela pisca a sirene ("🚨 Você está sendo procurado") · 🔒 Cadeia vale NA HORA: o jogador mais caro que o alvo já levou
+  volta pra mesa e ele recebe o dinheiro (antes avisava e dava pra fugir pegando carta ruim). Trava `npm run vice-city`.

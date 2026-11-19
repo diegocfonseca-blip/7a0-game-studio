@@ -2,7 +2,7 @@
 // Mora DENTRO do pregão aberto (`pregao-aberto.tsx`): a faixa do último golpe em cima da mesa e, embaixo, a sua mão. O motor é o
 // `viceUsa` do store (o dono da sala decide); aqui só se desenha e se manda `VICE_USAR`. As regras usam as MESMAS funções do
 // motor (`viceAlvoServe`, `viceTravaLance`) — nada de regra própria na tela (regra de ouro contra botão mudo).
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEsc, viceAlvoServe, viceTravaLance } from './store'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
@@ -83,7 +83,7 @@ export function ViceCityMao() {
       )}
       <p style={{ ...OSW, margin: 0, fontSize: 13, letterSpacing: '.14em', color: NEON, textShadow: `0 0 6px ${NEON}` }}>{t('🃏 Suas cartas de golpe', '🃏 Your heist cards')}</p>
       {mao.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, opacity: .8 }}>{(v.recebidas[you.id] ?? 0) < 2 ? t('Sem carta agora. A próxima chega no meio do pregão.', 'No card right now. The next one arrives halfway through.') : t('Você já usou suas cartas.', 'You have used your cards.')}</p>
+        <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, opacity: .8 }}>{t('Você já usou suas cartas.', 'You have used your cards.')}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
           {mao.map((g, i) => {
@@ -120,7 +120,7 @@ export function ViceCityMao() {
           {escolhendo === 'roubo' && <p style={{ margin: '6px 0 0', fontSize: 10.5, fontWeight: 700, opacity: .8 }}>{t('Só dá se você ainda tiver vaga na posição do jogador.', 'Only works if you still have a slot in that player’s position.')}</p>}
         </div>
       )}
-      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, opacity: .75, lineHeight: 1.35 }}>{t(`Todo golpe aparece pra sala. Quem leva golpe ganha ⭐ escondida; o 1º a chegar em ${VICE_BUSTED_EM} leva BUSTED e perde os 3 melhores.`, `Every hit is shown to the room. Whoever is hit gets a hidden ⭐; the first to reach ${VICE_BUSTED_EM} is BUSTED and loses their 3 best.`)}</p>
+      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 700, opacity: .75, lineHeight: 1.35 }}>{t(`Todo golpe aparece pra sala. Quem leva golpe ganha ⭐ (só ele vê as dele); o 1º a chegar em ${VICE_BUSTED_EM} leva BUSTED e perde os 3 melhores.`, `Every hit is shown to the room. Whoever is hit gets a ⭐ (only they see their own); the first to reach ${VICE_BUSTED_EM} is BUSTED and loses their 3 best.`)}</p>
     </div>
   )
 }
@@ -201,5 +201,98 @@ export function ViceSalaDecor() {
       <span className="vice-jacare">🐊</span>
       <span className="vice-letreiro">VICE CITY</span>
     </div>
+  )
+}
+
+// ─── 🌴 VICE CITY v2 (19/11, mockup `scripts/mockups/vice-city-v2.png`, Diego: *"Perfeito"*) ──────────────────────────────
+// ① o SORTEIO das 3 cartas antes do pregão (só o dono das cartas vê as dele) · ② todo golpe vira FAIXA GRANDE no meio da tela
+// de todo mundo por 3 s, com quem usou e em quem (o relógio NÃO para) · ③ ESTRELAS DE PROCURADO: quem leva golpe vê as dele no
+// canto, e a tela pisca a sirene na hora. As estrelas dos outros continuam segredo (só o 🎯 Sniper mostra).
+const VICE_V2_CSS = `
+@keyframes viceVira{0%{transform:rotateY(180deg) scale(.7);opacity:0}60%{transform:rotateY(0) scale(1.06);opacity:1}100%{transform:none;opacity:1}}
+.vice-sorteio-c{animation:viceVira .7s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes viceFaixa{0%{transform:translateX(-110%)}12%{transform:translateX(0)}88%{transform:translateX(0);opacity:1}100%{transform:translateX(110%);opacity:0}}
+.vice-faixa-golpe{animation:viceFaixa 3.2s ease-in-out both}
+@keyframes viceSirene{0%,100%{border-color:#ff2b2b}50%{border-color:#2b6bff}}
+.vice-sirene{animation:viceSirene .35s linear 8}
+@keyframes viceEstrela{0%{transform:scale(2.2);opacity:0}100%{transform:none;opacity:1}}
+.vice-estrela-nova{display:inline-block;animation:viceEstrela .6s cubic-bezier(.2,1.4,.4,1)}
+`
+export function ViceOverlays() {
+  const { state } = useEsc()
+  const t = useT()
+  const v = state.pa?.vice
+  const you = state.managers[state.youIdx]
+  const [agora, setAgora] = useState(agoraSala())
+  useEffect(() => { const iv = setInterval(() => setAgora(agoraSala()), 250); return () => clearInterval(iv) }, [])
+  // ① sorteio: aparece enquanto a janela corre (todo mundo entra junto) e dá pra fechar no toque
+  const [fechouSorteio, setFechouSorteio] = useState(false)
+  const mao = (v && you ? (v.mao[you.id] ?? []) : []) as GolpeId[]
+  const sorteio = !!v && !!you && !fechouSorteio && (v.sorteioAte ?? 0) > agora && mao.length > 0
+  // ② a faixa do golpe: só o que acontece DEPOIS que a tela abriu (quem entra no meio não recebe a reprise)
+  const visto = useRef<number | null>(null)
+  const [faixa, setFaixa] = useState<{ id: number; pt: string; en: string; busted?: boolean } | null>(null)
+  const ult = v?.feed[0]
+  useEffect(() => {
+    if (!ult) return
+    if (visto.current === null) { visto.current = ult.id; return }
+    if (ult.id <= visto.current) return
+    visto.current = ult.id
+    if (ult.pt.startsWith('🌴')) return
+    setFaixa(ult)
+    const tm = setTimeout(() => setFaixa(f => (f && f.id === ult.id ? null : f)), 3200)
+    return () => clearTimeout(tm)
+  }, [ult?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ③ estrelas: as minhas, e a sirene quando sobe
+  const minhas = v && you ? (v.estrelas[you.id] ?? 0) : 0
+  const antes = useRef(minhas)
+  const [sirene, setSirene] = useState(0)
+  useEffect(() => {
+    if (minhas > antes.current) { setSirene(Date.now()); const tm = setTimeout(() => setSirene(0), 3000); antes.current = minhas; return () => clearTimeout(tm) }
+    antes.current = minhas
+  }, [minhas])
+  if (!v || !you) return null
+  return (
+    <>
+      <style>{VICE_V2_CSS}</style>
+      {minhas > 0 && (
+        <div aria-label={t('suas estrelas de procurado', 'your wanted stars')} style={{ position: 'fixed', right: 12, top: 74, zIndex: 60, background: 'rgba(0,0,0,.72)', border: `3px solid ${OURO}`, borderRadius: 12, padding: '4px 10px', fontSize: 22, letterSpacing: 2, pointerEvents: 'none', boxShadow: `0 0 14px ${OURO}66` }}>
+          {Array.from({ length: VICE_BUSTED_EM }, (_, i) => i < minhas
+            ? <b key={i} className={i === minhas - 1 && sirene ? 'vice-estrela-nova' : undefined} style={{ color: OURO, textShadow: `0 0 10px ${OURO}` }}>★</b>
+            : <span key={i} style={{ color: 'rgba(255,255,255,.25)' }}>★</span>)}
+        </div>
+      )}
+      {sirene > 0 && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 59, pointerEvents: 'none' }}>
+          <div className="vice-sirene" style={{ position: 'absolute', inset: 0, border: '10px solid #ff2b2b' }} />
+          <div style={{ position: 'absolute', left: 12, right: 12, top: 118, maxWidth: 460, margin: '0 auto', background: INK, border: `4px solid ${OURO}`, borderRadius: 16, padding: '10px 12px', textAlign: 'center' }}>
+            <p style={{ ...OSW, margin: 0, fontSize: 22, color: OURO }}>{t('🚨 Você está sendo procurado', '🚨 You are wanted')}</p>
+            <p style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 700, color: '#fff' }}>{minhas >= VICE_BUSTED_EM ? t('5 estrelas: BUSTED!', '5 stars: BUSTED!') : t(`Levou o ${minhas}º golpe. Com ${VICE_BUSTED_EM} ⭐ vem o BUSTED.`, `Hit #${minhas}. At ${VICE_BUSTED_EM} ⭐ you get BUSTED.`)}</p>
+          </div>
+        </div>
+      )}
+      {faixa && (
+        <div key={faixa.id} className="vice-faixa-golpe" style={{ position: 'fixed', left: 0, right: 0, top: '38%', zIndex: 61, pointerEvents: 'none', background: faixa.busted ? 'linear-gradient(90deg,#7a0d0d,#C2452F)' : `linear-gradient(90deg,#C2452F,${NEON})`, borderTop: `4px solid ${INK}`, borderBottom: `4px solid ${INK}`, padding: '14px 16px', textAlign: 'center', boxShadow: `0 0 30px ${NEON}` }}>
+          <p style={{ ...OSW, margin: '0 auto', maxWidth: 640, fontSize: 21, lineHeight: 1.25, color: '#fff', textShadow: `2px 2px 0 ${INK}` }}>{t(faixa.pt, faixa.en)}</p>
+        </div>
+      )}
+      {sorteio && (
+        <div onClick={() => setFechouSorteio(true)} style={{ position: 'fixed', inset: 0, zIndex: 62, background: 'rgba(10,3,24,.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+          <div style={{ width: '100%', maxWidth: 440, background: 'rgba(20,6,40,.97)', border: `4px solid ${NEON}`, borderRadius: 22, boxShadow: `0 0 30px ${NEON}`, padding: '18px 14px', textAlign: 'center', color: '#fff' }}>
+            <p style={{ ...OSW, margin: 0, fontSize: 25, color: OURO, textShadow: `0 0 10px ${NEON}` }}>{t('🎰 Suas cartas de golpe', '🎰 Your heist cards')}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, color: '#ffe1f6' }}>{t('sorteadas agora · só você vê', 'drawn now · only you see them')}</p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 14, perspective: 600 }}>
+              {mao.map((g, i) => { const G = GOLPES[g]; if (!G) return null; return (
+                <div key={i} className="vice-sorteio-c" style={{ animationDelay: `${0.4 + i * 1.1}s`, width: 108, minHeight: 150, background: '#fff', color: INK, border: `4px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, padding: '8px 6px' }}>
+                  <div style={{ fontSize: 34, lineHeight: 1 }}>{G.emoji}</div>
+                  <b style={{ ...OSW, display: 'block', fontSize: 14, marginTop: 4 }}>{t(G.nome[0], G.nome[1])}</b>
+                  <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#444', marginTop: 3, lineHeight: 1.2 }}>{t(G.faz[0], G.faz[1])}</span>
+                </div>) })}
+            </div>
+            <p style={{ margin: '12px 0 0', fontSize: 12.5, fontWeight: 800, color: '#fff' }}>{t(`🔨 o pregão começa em ${Math.max(0, Math.ceil(((v.sorteioAte ?? 0) - agora) / 1000))}s · toque pra fechar`, `🔨 the auction starts in ${Math.max(0, Math.ceil(((v.sorteioAte ?? 0) - agora) / 1000))}s · tap to close`)}</p>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
