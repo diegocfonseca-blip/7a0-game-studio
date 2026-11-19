@@ -7001,7 +7001,8 @@ function viceBusted(state: EscState, alvo: number) {
     trocas.push(c.name)
   }
   ;(v.mao[alvo] = v.mao[alvo] ?? []).push('roubo')
-  viceFeed(state, [`🚨 BUSTED! ${m.teamName} levou ${VICE_BUSTED_EM} golpes e perdeu ${trocas.join(', ') || 'nada'} — ganhou um 🚗 Roubo de carro de vingança`, `🚨 BUSTED! ${m.teamName} took ${VICE_BUSTED_EM} hits and lost ${trocas.join(', ') || 'nothing'} — got a revenge 🚗 Car theft`], true)
+  const perdeu = trocas.length ? [`perdeu ${trocas.join(', ')}`, `lost ${trocas.join(', ')}`] : ['ainda não tinha jogador pra perder', 'had no players to lose yet']
+  viceFeed(state, [`🚨 BUSTED! ${m.teamName} levou ${VICE_BUSTED_EM} golpes e ${perdeu[0]} — ganhou um 🚗 Roubo de carro de vingança`, `🚨 BUSTED! ${m.teamName} took ${VICE_BUSTED_EM} hits and ${perdeu[1]} — got a revenge 🚗 Car theft`], true)
   ;(state.marketLog = state.marketLog ?? []).push(`🚨 BUSTED: ${m.teamName} foi o mais caçado da sala Vice City.`)
 }
 /** o golpe pega: aplica o efeito com `vit` levando e `ben` ganhando. Devolve o texto extra do anúncio (ou null = não deu) */

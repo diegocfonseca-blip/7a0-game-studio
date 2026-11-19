@@ -13,7 +13,7 @@ import { openSlots } from './store'
 import { agoraSala } from './relogio'
 import { getSport } from './sport'
 import { POS_LABELS } from './sportcfg'
-import { ViceCityFaixa, ViceCityMao } from './vice-city-ui'
+import { ViceCityFaixa, ViceCityMao, ViceDecor, VICE_TEMA_CSS } from './vice-city-ui'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
@@ -64,11 +64,13 @@ export function PregaoAberto() {
     <Shell bar={<AuctionBar vagas={posVagas > 0 ? posVagas : undefined} />}>
       <style>{CSS_VIRA}</style>
       <AuctionSlot name="summary" desktopOnly><p style={{fontSize:12}}>{t('Os controles de lance estão na carta da vez.','Bid controls are on the current card.')}</p></AuctionSlot>
-      <div className="space-y-3">
+      {pa.vice && <style>{VICE_TEMA_CSS}</style>}
+      <div className={pa.vice ? 'space-y-3 vice-tema' : 'space-y-3'}>
+        {pa.vice && <ViceDecor />}
         {/* 🏷️ o nome do modo em cima: quem entrou na sala descobre AQUI em que pregão está */}
         <AuctionSlot name="intro">
-        <div style={{ background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 13, padding: '8px 11px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: `4px 4px 0 0 ${INK}` }}>
-          <span style={{ fontSize: 24 }}>🔨</span>
+        <div style={{ background: pa.vice ? 'linear-gradient(90deg,#2a0b4d,#5b1a6e)' : INK, color: '#fff', border: `3px solid ${pa.vice ? '#ff4fd8' : INK}`, borderRadius: 13, padding: '8px 11px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: pa.vice ? '0 0 16px rgba(255,79,216,.7), 4px 4px 0 0 #0C0C0C' : `4px 4px 0 0 ${INK}` }}>
+          <span style={{ fontSize: 24 }}>{pa.vice ? '🌴' : '🔨'}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{pa.vice ? t('🌴 Vice City · Pregão aberto', '🌴 Vice City · Open outcry') : t('Pregão aberto', 'Open outcry')}</p>
             {/* ⏳ FALTAM N CARTAS (17/10, Diego: "uma alertazinha… pra pessoa entender que tá acabando"): nas últimas 11 da fila */}
