@@ -240,12 +240,12 @@
 - ✅ Mockup da tela "Escolha sua franquia" APROVADO (19/11, *"Sim"*): `eua-oficial-tela.tsx` + `scripts/mockups/basquete-eua-oficial-franquia-*.png` (ainda não ligada).
 - ✅ (2) G League fica DE FORA na 1ª fase (19/11, Diego: *"Sim"*); pode entrar depois se ele pedir.
 - ✅ Elencos reais 2026-27 pesquisados e conferidos no Basketball-Reference: `docs/eua-oficial/elencos-2026-27.json` (530 jogadores, 9 a conferir).
-- ✅ 19/11 (Diego: *"começa pelo nosso padrão pelas cartas que já tinham do auge… e você só acrescenta as novas"*): cada franquia = as cartas
-  ANTIGAS dela (o auge, ex. Celtics 27) + as NOVAS de 2026-27. **437 cartas novas** em `data-basquete-eua.ts` (GERADO por
-  `npx tsx scripts/gera-cartas-eua.mts`), SÓ carreira. 84 jogadores que já tinham carta (LeBron, Curry, Giannis, Jokić…) ficam só com a
-  antiga (mesma pessoa só em baralho diferente). Nível: prêmio recente (All-Star 2026/All-NBA 2025-26) ou 21+ pts → Craque (10);
-  calouro/2º ano top-10 do draft → Promessa (12); titular → Bom; rotação → Bom; resto → Profissional. Bio só com fato (números do
-  Basketball-Reference). Trava: `npm run eua-so-carreira`.
+- ✅ 19/11 (Diego: *"começa pelo nosso padrão pelas cartas que já tinham do auge… e você só acrescenta as novas"* → corrigido:
+  *"só atual quando faltam cartas pro time"*). A franquia joga com as cartas ANTIGAS (o auge); jogador de hoje só entra onde FALTA:
+  toda franquia chega a **15 cartas** e a pelo menos 1 por posição, com os MELHORES do elenco real 2026-27. **65 cartas novas** em
+  16 franquias (Pelicans +12, Nets +8, Mavericks +8, Hornets +5…) — `data-basquete-eua.ts`, GERADO por
+  `npx tsx scripts/gera-cartas-eua.mts`, SÓ carreira. Quem já tem carta no baralho NBA não ganha outra. ⚠️ Errei antes: tinha posto
+  437 (o elenco atual inteiro) e ele não pediu isso. Trava: `npm run eua-so-carreira`.
 - ⏳ Próximo: ligar o modo (escolher franquia → elenco inicial sorteado da franquia, resto pro leilão → liga 82 jogos + Play-In +
   Playoffs), na conta do Diego primeiro. Os 9 `conferir` ficam de fora até checar.
 

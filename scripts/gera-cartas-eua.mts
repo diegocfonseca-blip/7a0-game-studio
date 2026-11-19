@@ -1,7 +1,9 @@
 // 🏀🇺🇸 Gera as cartas NOVAS da carreira EUA Oficial (só carreira — nunca salas online nem Partida Rápida).
 // Entrada: docs/eua-oficial/elencos-2026-27.json (elencos reais 2026-27, conferidos no Basketball-Reference em 19/11/2026).
 // Saída:   src/escalacao/data-basquete-eua.ts (GERADO — não editar na mão; mexer aqui e rodar de novo).
-// Regras (Diego, 19/11): a franquia começa pelas cartas que JÁ existiam (o auge) e aqui só ACRESCENTA as novas.
+// Regras (Diego, 19/11): a franquia joga com as cartas que JÁ existiam (o auge). Jogador de HOJE só entra quando FALTA carta:
+// *"só atual quando faltam cartas pro time"*. Régua: toda franquia chega a 15 cartas (elenco da NBA) e a pelo menos 1 por
+// posição (fecha o quinteto). Pra completar, entra primeiro a posição vazia e depois os MELHORES do elenco de hoje.
 // · Quem já tem carta no baralho NBA não ganha outra (mesma pessoa só em baralho diferente — regra de 26/09 / 16/11).
 // · Jogador marcado `conferir` (saiu/entrou nos últimos dias, a pesquisa e o Basketball-Reference discordam) fica de fora.
 // · Nível pela régua de 02/11 (Craque 80–89 · Promessa 70–85 · Bom 68–79 · Profissional 55–66), medido pelo que ele faz
@@ -10,6 +12,10 @@
 // Uso: npx tsx scripts/gera-cartas-eua.mts
 import fs from 'node:fs'
 import { CATALOG_NBA } from '../src/escalacao/data-basquete.ts'
+
+const MINIMO = 15 // cartas por franquia (o elenco da NBA)
+// nomes antigos contam pra franquia de hoje (a linhagem oficial da NBA)
+const LINHAGEM: Record<string, string> = { Sonics: 'Thunder', SuperSonics: 'Thunder', Bullets: 'Wizards', Royals: 'Kings', Bobcats: 'Hornets', Braves: 'Clippers', Nationals: 'Sixers', Blazers: 'Trail Blazers' }
 
 const ANO = 2026 // a temporada 2026-27 (começou em 20/10/2026)
 const CLUBE: Record<string, string> = { 'Trail Blazers': 'Blazers' } // mesma chave das cartas antigas
@@ -26,8 +32,11 @@ const fx = (n: number) => n.toFixed(1).replace('.', ',')
 const r = JSON.parse(fs.readFileSync('docs/eua-oficial/elencos-2026-27.json', 'utf8'))
 const out: Record<P, string[]> = { PG: [], SG: [], SF: [], PF: [], C: [] }
 const relatorio: string[] = []
+const antigas: Record<string, Record<string, number>> = {}
+for (const [pp, l] of Object.entries(CATALOG_NBA)) for (const c of l) { const tt = LINHAGEM[c.club] ?? c.club; (antigas[tt] ??= { PG: 0, SG: 0, SF: 0, PF: 0, C: 0 })[pp]++ }
 let n = 0, pulados = 0, conferir = 0
 for (const t of r.teams) {
+  const cand: { pos: P; q: number; linha: string; nome: string }[] = []
   for (const p of t.players) {
     if (p.conferir) { conferir++; continue }
     if (noBaralho.has(semAcento(p.name))) { pulados++; continue }
@@ -67,14 +76,22 @@ for (const t of r.teams) {
     if (p.contract === 'two-way') { fatosPt.push('Contrato two-way (divide o ano com a G League).'); fatosEn.push('Two-way contract (splits the year with the G League).') }
     const bioPt = `${POS_PT[pos]} do ${fr} em 2026-27. ${fatosPt.join(' ')}`
     const bioEn = `${POS_EN[pos]} for the ${fr} in 2026-27. ${fatosEn.join(' ')}`
-    out[pos].push(`  { name: ${JSON.stringify(p.name)}, club: ${JSON.stringify(CLUBE[t.team] ?? t.team)}, year: ${ANO}, fame: ${fame}, lo: ${lo}, hi: ${hi}${promessa ? ', promessa: true' : ''}, bioPt: ${JSON.stringify(bioPt)}, bioEn: ${JSON.stringify(bioEn)} },`)
-    n++
+    cand.push({ pos, nome: p.name, q: fame * 100 + lo + hi, linha: `  { name: ${JSON.stringify(p.name)}, club: ${JSON.stringify(CLUBE[t.team] ?? t.team)}, year: ${ANO}, fame: ${fame}, lo: ${lo}, hi: ${hi}${promessa ? ', promessa: true' : ''}, bioPt: ${JSON.stringify(bioPt)}, bioEn: ${JSON.stringify(bioEn)} },` })
   }
+  // completa até o mínimo: primeiro a posição que não tem ninguém, depois os melhores de hoje
+  const tem = { ...(antigas[t.team] ?? { PG: 0, SG: 0, SF: 0, PF: 0, C: 0 }) } as Record<P, number>
+  let total = Object.values(tem).reduce((a, b) => a + b, 0)
+  cand.sort((a, b) => b.q - a.q)
+  const escolhidos: typeof cand = []
+  for (const ps of POS) if (tem[ps] === 0) { const c = cand.find(x => x.pos === ps && !escolhidos.includes(x)); if (c) { escolhidos.push(c); tem[ps]++; total++ } else relatorio.push(`SEM ${ps} no elenco de hoje: ${t.team}`) }
+  for (const c of cand) { if (total >= MINIMO) break; if (!escolhidos.includes(c)) { escolhidos.push(c); tem[c.pos]++; total++ } }
+  for (const c of escolhidos) { out[c.pos].push(c.linha); n++ }
+  if (escolhidos.length) relatorio.push(`${t.team}: +${escolhidos.length} (${escolhidos.map(c => c.nome).join(', ')})`)
 }
 const src = `// ⚠️ ARQUIVO GERADO por \`npx tsx scripts/gera-cartas-eua.mts\` — não editar na mão.
 // 🏀🇺🇸 Cartas NOVAS da carreira EUA Oficial (elencos reais 2026-27). SÓ CARREIRA: nunca salas online nem Partida Rápida
-// (decisão do Diego, 19/11). Quem já tinha carta no baralho NBA continua só com a carta antiga (o auge).
-// ${n} cartas · ${pulados} jogadores já tinham carta · ${conferir} ficaram de fora até conferir.
+// (decisão do Diego, 19/11). Só entra jogador de hoje onde a franquia tinha MENOS de ${MINIMO} cartas (ou posição vazia).
+// ${n} cartas novas.
 import type { BC, BPos } from './data-basquete'
 
 export const CATALOG_NBA_EUA: Record<BPos, BC[]> = {
@@ -82,5 +99,5 @@ ${POS.map(p => `  ${p}: [\n${out[p].join('\n')}\n  ],`).join('\n')}
 }
 `
 fs.writeFileSync('src/escalacao/data-basquete-eua.ts', src)
-console.log(`${n} cartas novas · ${pulados} já tinham carta · ${conferir} a conferir`)
+console.log(`${n} cartas novas`)
 for (const l of relatorio) console.log(l)
