@@ -1,4 +1,4 @@
-// ─── 🏀🇺🇸 EUA OFICIAL: tela "Escolha sua franquia" (MOCKUP, ainda não ligada em lugar nenhum — esperando OK do Diego) ─────────
+// ─── 🏀🇺🇸 EUA OFICIAL: tela "Escolha sua franquia" (APROVADA pelo Diego 19/11, ainda não ligada em lugar nenhum) ─────────
 // Mesmo quadro do Brasil Oficial (`CareerSetupFrame` + `.cse-*`), marca BidLegends. Leste/Oeste → 3 divisões de 5 franquias,
 // escudo oficial (`ESCUDOS_NBA`, fora do bundle). Sem sobe e desce (decisão 19/11). Todo texto PT + EN.
 import { useState } from 'react'

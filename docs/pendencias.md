@@ -237,7 +237,7 @@
 - Feito: selo EM BREVE no cartão "Modo Carreira" da home do basquete pra quem não é tester (`BASQUETE_CARREIRA_GERAL = false`,
   `carreiraBasqueteLiberada()` em sport.ts). Hoje o basquete só aparece pro Diego, então nada muda na tela de ninguém.
 - ✅ (1) Diego: *"Pode"* — escolhe uma das 30 franquias, **sem sobe e desce**.
-- ⏳ Mockup da tela "Escolha sua franquia" (mesmo quadro do Brasil Oficial, Leste/Oeste + 6 divisões, escudos oficiais) — esperando OK.
+- ✅ Mockup da tela "Escolha sua franquia" APROVADO (19/11, *"Sim"*): `eua-oficial-tela.tsx` + `scripts/mockups/basquete-eua-oficial-franquia-*.png` (ainda não ligada).
 - ⏳ Ainda em aberto: (2) G League entra?
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
