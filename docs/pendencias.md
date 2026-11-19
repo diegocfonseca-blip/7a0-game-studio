@@ -14088,3 +14088,6 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   · Conserto junto: o REGULAMENTO da Eurocopa mostrava o código cru na tela (`euro ? tr(...)`).
   · ⚠️ Falta: na LISTA de salas, sala de Copa América aparece como "liga+euro" (a coluna `ls_copa2` do banco diz 'euro' pras duas) — dentro da sala está certo.
   · ⚠️ Bolívia tem 1 goleiro só (os conhecidos já têm carta no baralho Mundo do Brasil Oficial). Achado lateral: Juan Carlos Arce tem 2 cartas MUNDO em `data-oficial.ts` (linhas ~3626 e ~3762).
+
+## 🇪🇺 19/11 — Brasil Oficial: o campeão da Europa no Mundial é sorteado todo ano (pedido do Diego)
+- *"sorteia sempre os melhores times do mundo, sempre podendo até repetir todo ano… começando pelo PSG que foi o último"*: 1ª temporada = PSG (o real); da 2ª em diante, sorteio preso na semente entre 12 gigantes (`CAMPEOES_EUROPA`, `europaDaTemporada` em `intercontinental-oficial.ts`), repetição permitida. Save antigo só sorteia a partir da próxima temporada (mesma marca `oficial.giro` do sorteio de elencos). Os outros convidados (Toluca, Sundowns, Al-Ahli, Auckland) seguem os de 2026. Trava em `npm run brasil-oficial`.

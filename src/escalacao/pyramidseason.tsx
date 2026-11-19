@@ -96,7 +96,7 @@ const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c
 import { turnoUnico, turnoEReturno, type Joga, type Penaltis } from './campeonato-oficial'
 import { simulaEstadual, NOME_ESTADUAL, ESTADUAIS, type ResultadoEstadual } from './estaduais'
 import { ESTRANGEIROS_SULA_2026, vagasSula, simulaSulAmericana, NOME_SULA, DATAS_SULA, type VagasSula, type ResultadoSula } from './sul-americana-oficial'
-import { simulaIntercontinental, CLUBES_INTERCONTINENTAL, NOME_INTERCONTINENTAL, type ResultadoIntercontinental } from './intercontinental-oficial'
+import { simulaIntercontinental, europaDaTemporada, INTERCONTINENTAL_2026, CLUBES_INTERCONTINENTAL, NOME_INTERCONTINENTAL, type ResultadoIntercontinental } from './intercontinental-oficial'
 import { simulaLibertadores, vagasLiberta, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
@@ -2113,9 +2113,10 @@ export const ehPaginaConmebol = (nome?: string) => ehPaginaLiberta(nome) || ehPa
 export function computeIntercontinentalCarreira(libertadores: string, world: Record<Div, SimTeam[]>, seed: number, seasonNo: number, capElite = 1.2, realGoals = false, m2On = false, versao?: VersaoM2, giro?: number): { resultado: ResultadoIntercontinental; rounds: CopaRound[] } | null {
   const fab = fabricaTimesOficiais(world, seed, giro)
   if (!fab) return null
-  for (const n of [libertadores, ...CLUBES_INTERCONTINENTAL]) if (!fab(n)) return null
+  const europa = europaDaTemporada(seed, seasonNo, giro) // 🇪🇺 19/11: o campeão da Europa do ano (sorteado; 1ª temporada = PSG)
+  for (const n of [libertadores, ...Object.values(INTERCONTINENTAL_2026).filter(c => c !== INTERCONTINENTAL_2026.uefa), europa]) if (!fab(n)) return null
   let res: ResultadoIntercontinental | null = null
-  const out = computeCompeticaoOficial({ nome: NOME_INTERCONTINENTAL, prefixo: INTER_PREFIXO, tag: 'ICF', sal: 0x1C0F2, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaIntercontinental(libertadores, joga, pen)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao, giro)
+  const out = computeCompeticaoOficial({ nome: NOME_INTERCONTINENTAL, prefixo: INTER_PREFIXO, tag: 'ICF', sal: 0x1C0F2, slot: LIBERTA_SLOT, sim: (joga, pen) => (res = simulaIntercontinental(libertadores, joga, pen, europa)) }, world, seed, seasonNo, capElite, realGoals, {}, m2On, versao, giro)
   return out && res ? { resultado: res, rounds: out.rounds } : null
 }
 /** 💰 prêmio da Intercontinental: a régua do Mundial da carreira internacional (vice +10 · campeão +25) */

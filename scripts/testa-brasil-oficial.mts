@@ -268,6 +268,15 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
       const br = [...v.grupos, ...v.fase2].filter(n => !fora.includes(n))
       if (br.some(n => assin(fab2, n) !== assin(fab3, n))) falha('giro: clube BRASILEIRO mudou de elenco (não pode: ele tem elenco próprio)')
       console.log(`   🎲 giro: ${mudou} de ${fora.length} clubes de fora mudaram de elenco da T2 pra T3 (os outros têm só o elenco que cabe)`)
+      // 🇪🇺 19/11: o campeão da Europa do Mundial é sorteado entre os gigantes (1ª temporada = PSG) — todo candidato fecha time
+      const { CAMPEOES_EUROPA, europaDaTemporada } = await vite.ssrLoadModule('/src/escalacao/intercontinental-oficial.ts')
+      const semTime = (CAMPEOES_EUROPA as string[]).filter(n => !fab2(n))
+      if (semTime.length) falha(`Mundial: gigante da Europa sem time no baralho: ${semTime.join(', ')}`)
+      if (europaDaTemporada(s.seed, 1, 1) !== 'PSG') falha('Mundial: a 1ª temporada tem que ser o PSG')
+      if (europaDaTemporada(s.seed, 5) !== 'PSG') falha('Mundial: save sem giro tem que seguir com o PSG')
+      const sorteados = new Set(Array.from({ length: 30 }, (_, t) => europaDaTemporada(s.seed, t + 2, 1)))
+      if (sorteados.size < 4) falha('Mundial: o sorteio da Europa quase não varia')
+      console.log(`   🇪🇺 Europa no Mundial (T2..T31): ${[...sorteados].join(', ')}`)
     }
     if (sem.length) falha(`Libertadores: ${sem.length} clube(s) sem time no baralho do modo: ${sem.join(', ')}`)
     else {
