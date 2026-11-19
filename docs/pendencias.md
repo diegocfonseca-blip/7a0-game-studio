@@ -231,6 +231,16 @@
   que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
   regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
 
+### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
+- Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
+  carreira online do basquete segue EM BREVE (`BASQUETE_CARREIRA_ONLINE = false`).
+- As duas são a SALA NBA: franquias reais, 🏀 Times na liga 30 · 20 · 10 (Leste/Oeste) e Formato 🎟️ Liga + Play-In + Playoffs (melhor de 7)
+  ou 📊 Só a liga — e o formato fica temporada após temporada (Liga da Turma: "Nova temporada" refaz a tabela; Liga Draft: liga → draft → T2).
+  No basquete somem o "sem bots" e o tamanho 10/20 do futebol (a tabela é das franquias) e a "Copa dos 8" do draft. Baralho Mundo segue só no rápido.
+- Trava nova `npm run ligas-nba` (Turma de 20 com 2 temporadas de Play-In/Playoffs; Draft de 10 com liga → draft → T2). Também passam
+  `sala-nba`, `sala-nba-online`, `minha-liga-draft`, `liga-volta` e `testa-liga-draft-nba`.
+- Prints `basquete-liga-turma-criar.png`, `basquete-liga-draft-criar.png`. Falta: o teste com 2 aparelhos numa liga de verdade.
+
 ### 🏀 18/11 (14) — "Faça todos" (Diego): link do jornal, escudos NBA, Loja, teste de 2 aparelhos
 - ✅ **Link do jornal do basquete** (no branch): o jornal da sala/partida rápida do basquete (`ed.bb`) agora leva "bidlegendsarena.com" no rodapé
   (tela e imagem) e o texto de compartilhar diz "BidLegends… https://bidlegendsarena.com". Futebol igual.

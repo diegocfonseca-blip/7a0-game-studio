@@ -10192,7 +10192,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       {
         const t0 = action.nbaTam
         const nGente = action.playerNames.length
-        const tam: 30 | 20 | 10 | null = onlineNba && !nbaCareerRoom && !action.liga && !action.ligaDraft && t0
+        // 🏀 19/11: Liga da Turma e Liga Draft do basquete também são a sala NBA (antes era só o rápido)
+        const tam: 30 | 20 | 10 | null = onlineNba && !nbaCareerRoom && t0
           ? (nGente <= t0 ? t0 : nGente <= 20 ? 20 : 30) : null
         s.nbaSala = tam ? { tam, formato: action.nbaFormato === 'liga' ? 'liga' : 'playoffs' } : undefined
         s.nbaConf = undefined

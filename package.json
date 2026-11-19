@@ -160,7 +160,8 @@
     "campeonato-oficial": "npx tsx scripts/testa-campeonato-oficial.mts",
     "estaduais": "npx tsx scripts/testa-estaduais.mts",
     "libertadores": "npx tsx scripts/testa-libertadores.mts",
-    "baralho-oficial": "npx tsx scripts/confere-baralho-oficial.mts"
+    "baralho-oficial": "npx tsx scripts/confere-baralho-oficial.mts",
+    "ligas-nba": "npx tsx scripts/testa-ligas-nba.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
