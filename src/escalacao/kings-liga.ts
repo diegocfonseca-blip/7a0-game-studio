@@ -109,8 +109,9 @@ export function simulaGolsKings(o: {
   const highlights: MatchHighlight[] = []
   const tmpS: ScorerRow[] = [], tmpA: AssistRow[] = []
   // "dia" de cada jogador (o craque pode apagar, o perna-de-pau pode brilhar), igual à partida de sempre
+  // 🪪 19/11: a chave tem o LADO — xarás em times opostos (Neymar BR × Neymar EU) tinham o mesmo "dia". O dado anda igual (mesma ordem).
   const dia = new Map<string, number>()
-  for (const c of [...o.elencos.h, ...o.elencos.a]) dia.set(c.name, 0.4 + rng() * 2.2)
+  for (const [lado, c] of [...o.elencos.h.map(c => ['h', c] as const), ...o.elencos.a.map(c => ['a', c] as const)]) dia.set(`${lado}|${c.name}`, 0.4 + rng() * 2.2)
   const nivel = (c: CartaGol) => 0.12 + Math.pow(Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42), 2) * 1.8
   const sorteia = <T,>(itens: T[], peso: (x: T) => number): T | null => {
     const tot = itens.reduce((a, x) => a + peso(x), 0)
@@ -148,7 +149,7 @@ export function simulaGolsKings(o: {
       const elenco = o.elencos[lado]
       const min = Math.max(1, Math.min(93, kParaPlacar(k) + Math.floor(quando * kParaPlacar(1))))
       // ⚽ quem fez: no 1×1/2×2 o goleiro joga junto e marca de vez em quando; depois é coisa de atacante
-      const autor = sorteia(elenco, c => (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.8 : (n <= 2 ? 2.5 : 0.04)) * nivel(c) * (dia.get(c.name) ?? 1))
+      const autor = sorteia(elenco, c => (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.8 : (n <= 2 ? 2.5 : 0.04)) * nivel(c) * (dia.get(`${lado}|${c.name}`) ?? 1))
       if (!autor) { highlights.push({ min, text: `⚽ Gol de ${time}.`, teamId: id, kind: 'gol' }); continue }
       highlights.push({ min, text: `⚽ ${autor.name} marca para ${time}!`, teamId: id, kind: 'gol' })
       if (!o.ehFake(autor)) credita(tmpS, autor.name, id, time, 'goals')
@@ -251,7 +252,10 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
     const goleiro = rival(batedor)
     const dec = base.decisoes[key]
     const chute = dec != null && ctx.humanos.includes(batedor) ? dec : d.chute
-    const pulo = dec != null && ctx.humanos.includes(goleiro) && !ctx.humanos.includes(batedor) ? dec : d.pulo
+    // 🧤 19/11: o goleiro manda a escolha dele numa chave PRÓPRIA (`key:pulo`) — antes os dois lados usavam a mesma chave e,
+    // em gente × gente, o toque do goleiro (se chegasse primeiro) virava o canto do CHUTE. A chave velha só vale p/ save antigo.
+    const decPulo = base.decisoes[`${key}:pulo`]
+    const pulo = decPulo != null && ctx.humanos.includes(goleiro) ? decPulo : dec != null && ctx.humanos.includes(goleiro) && !ctx.humanos.includes(batedor) ? dec : d.pulo
     let gol = dueloKings(chute as Canto, pulo as Canto, d.sorte)
     if (tipo === 'shootout') gol = gol && d.sorte2 < 0.72 // sai do meio, 5 s: entra menos que pênalti
     const golPara = tipo === 'penalti_inverso' ? (gol ? null : goleiro) : (gol ? batedor : null)

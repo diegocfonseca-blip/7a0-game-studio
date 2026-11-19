@@ -57,5 +57,12 @@ for (const [uids, ent] of [[['uA', 'uB'], {}], [['uA', 'uB', 'uC', 'uD', 'uX', '
   const r = montaCarry(prev, [...uids], ent as Record<string, { bot?: number; uid?: string }>)!
   ok(uids.length + r.bots.length === 10 && Object.keys(r.squads).length === uids.length, `${uids.length} pessoas + ${r.bots.length} bots = 10, todo mundo com time`)
 }
+// 9) 🪑 19/11: o C CAIU (a máquina tocou o time dele, isHuman=false) mas o crachá ficou — voltou outro dia: leva o PRÓPRIO time
+const caiu = { ...prev, managers: prev.managers.map(m => (m.id === 2 ? { ...m, isHuman: false } : m)) }
+c = montaCarry(caiu, ['uA', 'uB', 'uC', 'uD'])!
+ok(nomesDe(c.squads[2]) === 'C' && c.bots.length === 6 && !c.bots.some(b => nomesDe(b.squad) === 'C'), 'C caiu e voltou outro dia: leva o time dele, não vira bot de ninguém')
+// 10) o C caiu e NÃO voltou hoje: novato sem escolha pega o pior bot, nunca o time do C (crachá ainda é dele)
+c = montaCarry(caiu, ['uA', 'uB', 'uD', 'uY'])!
+ok(nomesDe(c.squads[3]) === 'Bot9' && c.bots.some(b => nomesDe(b.squad) === 'C'), 'C fora hoje: o time dele fica com a máquina, novato pega o Bot9')
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ liga já começada: tudo certo')
 process.exit(falhas ? 1 : 0)

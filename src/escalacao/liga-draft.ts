@@ -364,8 +364,10 @@ export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]
   const novatos: number[] = []
   uidsNovos.forEach((uid, i) => {
     const k = seat.indexOf(uid)
-    const m = k >= 0 ? mgrs.find(x => x.id === k && x.isHuman) : undefined
-    if (m) { squads[i] = m.squad; novoDoVelho[m.id] = i; caixa[i] = m.money; humanosUsados.add(m.id) }
+    // 🪑 10/11 (regra do Diego): o time é de quem tem o CRACHÁ, mesmo que a máquina esteja tocando (saiu/caiu → isHuman=false).
+    // Só o dono apaga o crachá (KICK_PLAYER peloDono → ''). Antes exigia isHuman e quem voltava no outro dia perdia o time.
+    const m = k >= 0 ? mgrs.find(x => x.id === k) : undefined
+    if (m) { squads[i] = m.squad; novoDoVelho[m.id] = i; caixa[i] = m.money ?? 0; if (m.isHuman) humanosUsados.add(m.id); else botsTomados.add(m.id) }
     else novatos.push(i)
   })
   // ➕ quem chegou: 1º os que o dono mandou pro lugar de alguém, depois os do bot escolhido, por fim o pior bot que sobrou
@@ -386,7 +388,9 @@ export function montaCarry(prev: PartidaGravada | undefined, uidsNovos: string[]
     pendentes.push(i)
   }
   for (const i of pendentes) {
-    const livres = mgrs.filter(x => !x.isHuman && !botsTomados.has(x.id)).sort((a, b) => posDe(b.id) - posDe(a.id) || b.id - a.id)
+    // o time de quem só saiu (crachá ainda no assento) continua dele — novato nunca pega esse
+    const temCracha = (id: number) => id < seat.length && !!seat[id]
+    const livres = mgrs.filter(x => !x.isHuman && !botsTomados.has(x.id) && !temCracha(x.id)).sort((a, b) => posDe(b.id) - posDe(a.id) || b.id - a.id)
     if (livres[0]) assume(i, livres[0], true)
   }
   // 🤖 quem saiu (ou foi removido) e ninguém assumiu: o time vira BOT com o mesmo elenco — a liga NÃO recomeça do zero

@@ -7425,7 +7425,7 @@ function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe, presidente
   }
   const d = jogo?.kings?.duelos?.find(x => x.key === cena.key)
   if (!d) return null
-  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} presidente={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.name : null} presClub={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.club : null} />
+  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.batedor === youId ? d.key : `${d.key}:pulo`, c)} presidente={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.name : null} presClub={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.club : null} />
 }
 /** 👑 a caixa de regras da Kings — aparece antes da 1ª rodada, no lugar do "aguardando o pontapé" */
 function RegrasKingsBox() {

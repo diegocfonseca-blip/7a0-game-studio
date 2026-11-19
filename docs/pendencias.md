@@ -14135,6 +14135,10 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - 🌎 Copa América (16): botão do sorteio dizia "Jogar as oitavas" (agora "as quartas"); barra de etapas mostrava OITAVAS (some na de 16);
   texto dos grupos dizia "+ os 4 melhores 3ºs" também na de 16 e na de 32 (agora só na de 24); sorteio dizia "Dezesseis seleções" (agora "Oito");
   campeão na sala dizia "CAMPEÃO DO MUNDO" na Euro/América (agora o nome certo); tempo de pênalti das quartas da de 16 ia errado pro relógio do banco.
+✅ 19/11 (Diego: "Sim"): os 5 consertos abaixo FEITOS no branch (1, 2-goleiro, 3, 4, 5, 6) — falta só o "toque atrasado" da Kings (2b).
+   1 → `montaCarry` casa pelo crachá (isHuman não importa) e novato nunca pega time com crachá · 2 → goleiro manda `key:pulo`
+   · 3 → vez de ausente já corre o relógio (45 s) e a fila/prêmios do draft incluem quem tem crachá · 4 → `chaveOitavasChampions`
+   · 5 → faixa de campeão com tr() · 6 → "dia" da Kings com o lado na chave. Travas: testa-liga-vaga (casos 9 e 10).
 🟡 Achados que encostam em coisa AO VIVO — propostos ao Diego, esperando OK:
 1. Liga Draft: quem caiu e o dono reabre a sala no outro dia pode perder o time (`montaCarry` em liga-draft.ts exige isHuman; devia casar pelo crachá).
 2. Kings: jogo gente × gente, o toque do goleiro vira o chute do batedor (mesma chave em KINGS_DECIDIR); e toque atrasado pode refazer jogo já mostrado.

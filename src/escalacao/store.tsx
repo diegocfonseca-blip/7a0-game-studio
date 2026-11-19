@@ -5126,10 +5126,10 @@ function playChampionsRepescao(s: EscState) {
   // melhor tem o confronto mais fácil) e é o prêmio de ter terminado na frente.
   const subiram = ch.repescao.map(t => t.winner!).filter(id => id != null)
   const topo = tabela.slice(0, CHAMPIONS_DIRETO)
-  const ties: QuickCopaTie[] = topo.map((t, i) => {
+  const ties: QuickCopaTie[] = chaveOitavasChampions(topo.map((t, i) => {
     const adv = subiram[subiram.length - 1 - i]
     return { aId: t.id, bId: adv, aName: t.name, bName: nomeDe(adv), legs: [], winner: null }
-  })
+  }))
   s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: ch.scorers ?? [], assists: ch.assists ?? [] }
   s.news = [tr('⭐ Repescão fechado — chegaram as OITAVAS da Champions!', '⭐ Playoff done — the Champions ROUND OF 16 is here!')]
   // ▶️ daqui pra frente é o MESMO motor da Copa dos 8, que vive na tela da temporada.
@@ -5348,11 +5348,18 @@ function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => numb
   return r
 }
 /** 👑 refaz um jogo da Kings com a escolha de canto da pessoa; devolve o jogo novo (ou null se não deu) */
+/** ⭐ 19/11: a ORDEM das oitavas da Champions na chave (os vencedores se juntam de 2 em 2). Antes ia 1º, 2º, 3º… e o 1º e o 2º
+ *  da tabela podiam se cruzar já nas QUARTAS. Agora é a chave de cabeça de chave (igual à Copa dos 8): 1-8 · 4-5 · 2-7 · 3-6 —
+ *  o 1º e o 2º só se encontram na final. Recebe os 8 confrontos na ordem da tabela (o 1º colocado no índice 0). */
+export function chaveOitavasChampions<T>(porColocacao: T[]): T[] {
+  if (porColocacao.length !== 8) return porColocacao
+  return [0, 7, 3, 4, 1, 6, 2, 5].map(i => porColocacao[i])
+}
 function refazJogoKings(s: EscState, r: MatchResult, key: string, canto: number, scorers: ScorerRow[], assists: AssistRow[]): MatchResult | null {
   const b = r.kingsBase
   // 🃏 10/11: além do canto da cobrança, as ESCOLHAS de carta (coringa: no que vira · suspensão: quem do rival sai)
   const escolhaCarta = /^(coringa|susp):[ha]$/.test(key) && (r.kings?.cartas ?? []).some(c => (c.teamId === r.homeId ? 'h' : 'a') === key.slice(-1) && (key.startsWith('coringa') ? c.sorteada === 'coringa' : c.vale === 'suspensao'))
-  if (!b || b.decisoes[key] != null || (!escolhaCarta && !(r.kings?.duelos ?? []).some(d => d.key === key))) return null
+  if (!b || b.decisoes[key] != null || (!escolhaCarta && !(r.kings?.duelos ?? []).some(d => d.key === key || `${d.key}:pulo` === key))) return null
   tiraListas(scorers, b.art, assists)
   const novo: MatchResult = { ...r, highlights: [] }
   const base: KingsBase = { ...b, decisoes: { ...b.decisoes, [key]: canto } }
@@ -8170,7 +8177,14 @@ function proximoDoDraft(s: EscState): void {
   if (!d) return
   d.idx++
   // 📋🏆 Minha Liga Draft: a vez do próximo começa PARADA, esperando o ✋ pronto dele (o relógio de 45 s só corre depois)
-  if (d.idx < d.ordem.length) { d.inicioRevela = undefined; if (s.minhaLigaDraft) { d.fase = 'aguarda'; d.prazo = 0 } else { d.fase = 'escolha'; d.prazo = Date.now() + DRAFT_ESCOLHA_MS } return }
+  if (d.idx < d.ordem.length) {
+    d.inicioRevela = undefined
+    // 🪑 19/11: se quem está na vez saiu/caiu (a máquina toca o time), a vez NÃO fica parada esperando o ✋ dele: o relógio já
+    // corre (45 s). Se ele voltar a tempo (RETOMA_TIME), escolhe; senão perde a vez, igual a quem deixa o tempo passar.
+    const presente = !!s.managers.find(m => m.id === d.ordem[d.idx] && m.isHuman)
+    if (s.minhaLigaDraft && presente) { d.fase = 'aguarda'; d.prazo = 0 } else { d.fase = 'escolha'; d.prazo = Date.now() + (s.minhaLigaDraft ? DRAFT_ESCOLHA_MINHA_MS : DRAFT_ESCOLHA_MS) }
+    return
+  }
   if (s.minhaLigaDraft) { mldDepoisDaFila(s); return }
   s.draftFeito = d.temporada
   const soma = d.somaTemporada !== false
@@ -12168,7 +12182,9 @@ function reducerBase(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'DA CHAMPIONS' : s.copaMode === 'relampago' ? 'DO MATA-MATA RELÂMPAGO ⚡' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
+          // 🌐 19/11: a faixa do campeão nasce em PT e EN (era só PT)
+          const taca = s.copaMode === 'liga_liberta' ? ['DA LIBERTADORES', 'THE LIBERTADORES'] : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? ['DA CHAMPIONS', 'THE CHAMPIONS LEAGUE'] : s.copaMode === 'relampago' ? ['DO MATA-MATA RELÂMPAGO ⚡', 'THE LIGHTNING KNOCKOUT ⚡'] : ['DA COPA DOS 8', 'THE CUP OF 8']
+          s.news = [s.sport === 'basquete' ? tr(`👑 ${champName} É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!`, `👑 ${champName} WINS THE FINALS — RING SECURED 💍!`) : tr(`👑 ${champName} É CAMPEÃO ${taca[0]}!`, `👑 ${champName} WINS ${taca[1]}!`), ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -12191,10 +12207,10 @@ function reducerBase(state: EscState, action: Action): EscState {
           const topo = championsTabela(ch).slice(0, CHAMPIONS_DIRETO)
           const subiram = qc.ties.map(tt => tt.winner!).filter(id => id != null)
           const nomeDe = (id: number) => ch.times.find(x => x.id === id)?.name ?? '?'
-          qc.ties = topo.map((tt, i) => {
+          qc.ties = chaveOitavasChampions(topo.map((tt, i) => {
             const adv = subiram[subiram.length - 1 - i]
             return { aId: tt.id, bId: adv, aName: tt.name, bName: nomeDe(adv), legs: [], winner: null }
-          })
+          }))
           ch.fase = 'mata'
           if (ch.repescao) for (const r of ch.repescao) r.winner = subiram.find(id => id === r.aId || id === r.bId) ?? null
           qc.phase = 'oitavas'
@@ -13736,21 +13752,23 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'DRAFT_ABRIR': {
       if (!s.ligaDraft || s.draft || s.screen !== 'end' || s.draftFeito === s.seasonNo) return state
-      const humanos = s.managers.filter(m => m.isHuman).map(m => m.id)
+      // 🪑 19/11: entra na fila (e nos prêmios) quem tem o CRACHÁ do time, mesmo que tenha caído bem nessa hora — o time é dele até o dono remover
+      const donoDoTime = (m: Manager) => m.isHuman || (Array.isArray(s.seatUids) && !!s.seatUids[m.id])
+      const humanos = s.managers.filter(donoDoTime).map(m => m.id)
       const ordem = ordemDoDraft(sortedTable(s.league), humanos, !!s.draftRegras?.piorPrimeiro) // 🔁 09/11: o dono escolhe melhor→pior ou pior→melhor
       if (!ordem.length) return state
       if (s.minhaLigaDraft) {
         // 💰 moedas pela colocação (só gente) + ✋ prontos antes do draft (o dono decide quando começa)
         const premios: Record<number, number> = {}
         sortedTable(s.league).forEach((t, pos) => {
-          const m = s.managers.find(x => x.id === t.id && x.isHuman)
+          const m = s.managers.find(x => x.id === t.id && donoDoTime(x))
           if (m) { const pr = premioDaLiga(pos, s.league.length, s.draftPremios); premios[m.id] = s.sport === 'basquete' && !s.draftPremios ? Math.ceil(pr / 2) : pr; m.money += premios[m.id] } // 🏀 basquete: orçamento é 50 (não 100), então o prêmio padrão é a metade // 💰 05/11: tabela de 10 ou 20 (ou a do criador)
         })
         // 🏆 14/11: Copa dos 8 da temporada (se a sala tem) — campeão/vice com as moedas da liga, semi 12, quartas 6; só gente
         const premiosCopa: Record<number, number> = {}
         if (s.copaMode === 'liga_copa') {
           const pc = premiosCopaDraft(s.quickCopa, s.league.length, s.draftPremios, s.sport === 'basquete' && !s.draftPremios)
-          for (const [id, v] of Object.entries(pc)) { const m = s.managers.find(x => x.id === +id && x.isHuman); if (m && v > 0) { premiosCopa[m.id] = v; m.money += v } }
+          for (const [id, v] of Object.entries(pc)) { const m = s.managers.find(x => x.id === +id && donoDoTime(x)); if (m && v > 0) { premiosCopa[m.id] = v; m.money += v } }
         }
         const jaProntos = Object.keys(s.seasonVotes ?? {}).map(Number).filter(id => humanos.includes(id)) // ✋ quem já disse pronto no banner do fim
         s.draft = { temporada: s.seasonNo, ordem, idx: 0, fase: 'prontos', proxima: 'draft', prontos: jaProntos, premios, ...(Object.keys(premiosCopa).length ? { premiosCopa } : {}), sondagens: [], aVenda: {}, prazo: 0, picks: [], somaTemporada: true }
@@ -13792,7 +13810,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ▶ só o DONO: segue pra próxima etapa quando ele quiser (pode seguir com gente faltando)
       const d = s.draft
       if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || !soDono(s, action.by)) return state
-      if (d.fase === 'prontos' && d.proxima === 'draft') { d.fase = 'aguarda'; d.idx = 0; d.prazo = 0; d.prontos = []; return s }
+      if (d.fase === 'prontos' && d.proxima === 'draft') { d.prontos = []; d.idx = -1; proximoDoDraft(s); return s } // 🪑 1º da fila ausente já começa com o relógio correndo
       if (d.fase === 'prontos' && d.proxima === 'leilao') { d.fase = 'leilao'; d.lances = {}; d.lacrou = []; d.prazo = Date.now() + MLD_LEILAO_MS; d.prontos = []; return s }
       if (d.fase === 'escala') { mldComecaTemporada(s); return s }
       return state
