@@ -7,6 +7,7 @@ import { playSirene, playEstrela, playBusted, playGolpe } from './sound'
 import { useEsc, viceAlvoServe, viceTravaLance } from './store'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
+import { playSirene } from './sound'
 import { GOLPES, VICE_BUSTED_EM, type GolpeId } from './vice-city'
 
 const INK = '#0C0C0C', NEON = '#ff4fd8', CIANO = '#4ff3ff', OURO = '#ffd24d'
@@ -218,6 +219,10 @@ const VICE_V2_CSS = `
 .vice-sirene{animation:viceSirene .35s linear 8}
 @keyframes viceEstrela{0%{transform:scale(2.2);opacity:0}100%{transform:none;opacity:1}}
 .vice-estrela-nova{display:inline-block;animation:viceEstrela .6s cubic-bezier(.2,1.4,.4,1)}
+@keyframes viceGiroflex{0%,49%{background:rgba(220,20,20,.88)}50%,100%{background:rgba(25,70,230,.88)}}
+.vice-busted-tela{animation:viceGiroflex .45s steps(1) infinite}
+@keyframes vicePisca{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.vice-busted-pisca{animation:vicePisca .45s ease-in-out infinite}
 `
 export function ViceOverlays() {
   const { state } = useEsc()
@@ -242,7 +247,8 @@ export function ViceOverlays() {
     if (ult.pt.startsWith('🌴')) return
     if (ult.busted) playBusted() // 🚔 19/11: BUSTED toca pra sala toda (é o momento do pregão)
     setFaixa(ult)
-    const tm = setTimeout(() => setFaixa(f => (f && f.id === ult.id ? null : f)), 3200)
+    if (ult.busted) { try { playSirene() } catch { /* som nunca quebra o jogo */ } }
+    const tm = setTimeout(() => setFaixa(f => (f && f.id === ult.id ? null : f)), ult.busted ? 6500 : 3200)
     return () => clearTimeout(tm)
   }, [ult?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   // ③ estrelas: as minhas, e a sirene quando sobe
@@ -261,7 +267,11 @@ export function ViceOverlays() {
   return (
     <>
       <style>{VICE_V2_CSS}</style>
-      {minhas > 0 && (
+      {v.busted !== undefined && (() => { const pego = state.managers.find(m => m.id === v.busted); return pego ? (
+        <div style={{ position: 'fixed', left: 12, top: 74, zIndex: 60, maxWidth: 230, background: 'rgba(0,0,0,.78)', border: '3px solid #ff3b3b', borderRadius: 12, padding: '4px 9px', fontSize: 11.5, fontWeight: 800, color: '#fff', pointerEvents: 'none', lineHeight: 1.25 }}>
+          {t(`🚔 Polícia pegou ${pego.teamName}. Ninguém mais leva estrela.`, `🚔 Police caught ${pego.teamName}. No more stars for anyone.`)}
+        </div>) : null })()}
+      {minhas > 0 && v.busted === undefined && (
         <div aria-label={t('suas estrelas de procurado', 'your wanted stars')} style={{ position: 'fixed', right: 12, top: 74, zIndex: 60, background: 'rgba(0,0,0,.72)', border: `3px solid ${OURO}`, borderRadius: 12, padding: '4px 10px', fontSize: 22, letterSpacing: 2, pointerEvents: 'none', boxShadow: `0 0 14px ${OURO}66` }}>
           {Array.from({ length: VICE_BUSTED_EM }, (_, i) => i < minhas
             ? <b key={i} className={i === minhas - 1 && sirene ? 'vice-estrela-nova' : undefined} style={{ color: OURO, textShadow: `0 0 10px ${OURO}` }}>★</b>
@@ -273,11 +283,20 @@ export function ViceOverlays() {
           <div className="vice-sirene" style={{ position: 'absolute', inset: 0, border: '10px solid #ff2b2b' }} />
           <div style={{ position: 'absolute', left: 12, right: 12, top: 118, maxWidth: 460, margin: '0 auto', background: INK, border: `4px solid ${OURO}`, borderRadius: 16, padding: '10px 12px', textAlign: 'center' }}>
             <p style={{ ...OSW, margin: 0, fontSize: 22, color: OURO }}>{t('🚨 Você está sendo procurado', '🚨 You are wanted')}</p>
-            <p style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 700, color: '#fff' }}>{minhas >= VICE_BUSTED_EM ? t('5 estrelas: BUSTED!', '5 stars: BUSTED!') : t(`Levou o ${minhas}º golpe. Com ${VICE_BUSTED_EM} ⭐ vem o BUSTED.`, `Hit #${minhas}. At ${VICE_BUSTED_EM} ⭐ you get BUSTED.`)}</p>
+            <p style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 700, color: '#fff' }}>{minhas >= VICE_BUSTED_EM ? t('5 estrelas: a polícia te pegou! No fim do pregão seus 5 melhores viram Profissionais.', '5 stars: the police got you! When the auction ends your 5 best become Pros.') : t(`Levou o ${minhas}º golpe. Com ${VICE_BUSTED_EM} ⭐ vem o BUSTED.`, `Hit #${minhas}. At ${VICE_BUSTED_EM} ⭐ you get BUSTED.`)}</p>
           </div>
         </div>
       )}
-      {faixa && (
+      {/* 🚨 19/11 (Diego: "banner piscando com sirene da polícia… dizendo quem foi o primeiro que recebeu 5 estrelas"): a tela toda vira giroflex */}
+      {faixa?.busted && (
+        <div key={`b${faixa.id}`} className="vice-busted-tela" style={{ position: 'fixed', inset: 0, zIndex: 63, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+          <div style={{ width: '100%', maxWidth: 520, background: INK, border: `5px solid ${OURO}`, borderRadius: 20, boxShadow: `6px 6px 0 #000`, padding: '16px 14px', textAlign: 'center' }}>
+            <p className="vice-busted-pisca" style={{ ...OSW, margin: 0, fontSize: 46, lineHeight: 1, color: '#ff3b3b', textShadow: '0 0 14px #ff3b3b' }}>🚨 BUSTED! 🚔</p>
+            <p style={{ ...OSW, margin: '10px 0 0', fontSize: 19, lineHeight: 1.25, color: '#fff' }}>{t(faixa.pt, faixa.en).replace(/^🚨 BUSTED! /, '')}</p>
+          </div>
+        </div>
+      )}
+      {faixa && !faixa.busted && (
         <div key={faixa.id} className="vice-faixa-golpe" style={{ position: 'fixed', left: 0, right: 0, top: '38%', zIndex: 61, pointerEvents: 'none', background: faixa.busted ? 'linear-gradient(90deg,#7a0d0d,#C2452F)' : `linear-gradient(90deg,#C2452F,${NEON})`, borderTop: `4px solid ${INK}`, borderBottom: `4px solid ${INK}`, padding: '14px 16px', textAlign: 'center', boxShadow: `0 0 30px ${NEON}` }}>
           <p style={{ ...OSW, margin: '0 auto', maxWidth: 640, fontSize: 21, lineHeight: 1.25, color: '#fff', textShadow: `2px 2px 0 ${INK}` }}>{t(faixa.pt, faixa.en)}</p>
         </div>

@@ -445,6 +445,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **Sempre quer saber se dá pra reverter** ("qualquer bug eu posso voltar
   atrás né?") — responder isso proativamente a cada entrega.
 - Sons: martelo só pra QUEM ganha (ou vende) — nada de som genérico pra todos.
+- **🔊 O JOGO COMEÇA COM SOM (19/11, regra dele).** *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*. Só fica mudo quem
+  apertou 🔇 (escolha lembrada no aparelho, `esc-sound-muted = '1'`). Não voltar o padrão pro mudo. (O navegador ainda só toca depois do 1º toque.)
 - **O desenho do estádio (StadiumSvg) é sagrado**: tem que ser a PRIMEIRA coisa
   visível ao abrir a área do clube ("via o estádio de cara, eu achava bonito").
   Qualquer coisa nova naquela área entra ABAIXO dele, nunca antes.
@@ -1186,6 +1188,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (vai pro estádio do mapa, com "← Voltar pra Central" em cima). A aba Jogos não mostra jogo parado ("o jogo começa pela Central").
   🔁 Mesmo dia (*"faça tb"*): a ESTREIA da temporada também pergunta — no lugar do "Começar a temporada" vêm "📺 Começar no Campo 2D"
   e "🏟️ Começar no Campo 3D" (Central e aba Jogos, `comecaEstreia`).
+  🔁 **E É DO JOGO INTEIRO, NÃO DE UMA COMPETIÇÃO** (19/11, *"isso não é independente de competições… é modo do jogo… tem que ser desde o
+  início"*): Estadual, copas de fim de temporada, Supercopa — toda fase em que o SEU time joga espera a escolha na Central (`copaSegura`).
+  E no 🏟️ 3D o jogo só começa no "▶ Começar o jogo" em cima do mapa (`pend3d`), igual o 2D espera o botão na aba Jogos.
 - **📅 CALENDÁRIO: O DIA DE JOGO NUNCA PULA SOZINHO (26/10, regra dele).** *"Não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"*. A semana passa na Central e PARA no dia do jogo; o cartão da semana mostra "⚽ Ir pro jogo". **Nada de janela por cima da tela** (*"esse modal que eu disse que não quero"*) e nada de relógio que leva pra aba Jogos. E também **nenhum jogo começa sozinho** (nem na aba Jogos: botão "▶ Começar o jogo") e **ninguém é levado de volta pra Central** depois do apito — *"o usuário tem que tá livre pra dar uma volta nas abas"*.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO

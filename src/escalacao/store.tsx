@@ -6049,7 +6049,7 @@ type Action =
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -6959,19 +6959,22 @@ function viceDistribui(state: EscState, ate: number) {
     ;(v.mao[m.id] = v.mao[m.id] ?? []).push(sorteiaGolpe(viceRng(state)))
   }
 }
+/** 🃏 19/11: quantas cartas de golpe por técnico (escolha da sala: 3 padrão · 4 · 5) */
+function viceNCartas(state: EscState): number { const n = state.viceCartas ?? VICE_CARTAS_POR_TECNICO; return n >= 3 && n <= 5 ? Math.round(n) : VICE_CARTAS_POR_TECNICO }
 function viceAbre(state: EscState) {
   if (!state.viceCity || !state.pa || state.leilaoClubes) return
   state.pa.vice = viceNovo()
-  for (let i = 1; i <= VICE_CARTAS_POR_TECNICO; i++) viceDistribui(state, i) // 🎰 19/11 v2: as 3 de uma vez, no sorteio
+  const nCartas = viceNCartas(state)
+  for (let i = 1; i <= nCartas; i++) viceDistribui(state, i) // 🎰 19/11 v2: todas de uma vez, no sorteio (3 padrão · 4 · 5)
   state.pa.vice.sorteioAte = Date.now() + VICE_SORTEIO_MS
-  viceFeed(state, [`🌴 Bem-vindo a Vice City: cada técnico recebeu ${VICE_CARTAS_POR_TECNICO} cartas de golpe.`, `🌴 Welcome to Vice City: every manager got ${VICE_CARTAS_POR_TECNICO} heist cards.`])
+  viceFeed(state, [`🌴 Bem-vindo a Vice City: cada técnico recebeu ${nCartas} cartas de golpe.`, `🌴 Welcome to Vice City: every manager got ${nCartas} heist cards.`])
 }
 /** chamado a cada carta nova na mesa: na metade da fila chega a 2ª carta de golpe */
 function viceNaCarta(state: EscState) {
   const pa = state.pa, v = pa?.vice
   if (!pa || !v) return
-  if (pa.idx >= Math.floor(pa.fila.length / 2) && state.managers.some(m => m.isHuman && (v.recebidas[m.id] ?? 0) < VICE_CARTAS_POR_TECNICO)) {
-    viceDistribui(state, VICE_CARTAS_POR_TECNICO)
+  if (pa.idx >= Math.floor(pa.fila.length / 2) && state.managers.some(m => m.isHuman && (v.recebidas[m.id] ?? 0) < viceNCartas(state))) {
+    viceDistribui(state, viceNCartas(state))
     viceFeed(state, ['🃏 Metade do pregão: chegou a 2ª carta de golpe pra todo mundo!', '🃏 Halfway there: everyone got their 2nd heist card!'])
   }
 }
@@ -6987,16 +6990,30 @@ export function viceTravaLance(state: EscState, mgrId: number, valor?: number): 
   return null
 }
 const viceForca = (c: WonCard | Card) => (c.hi ?? 0) + (c.lo ?? 0) + (c.fame ?? 0) * 10
-/** 🚨 BUSTED: os 3 melhores viram cartas reais de categoria Profissional da MESMA posição (sem voltar pra mesa) */
+/** 🚨 BUSTED (19/11 v3, Diego: *"só para o primeiro que tomou 5 estrelas… no final, quando ele montar tudo, vai ser trocado por 5
+ *  jogadores profissionais… os melhores"*): o 1º a chegar em 5 estrelas é PEGO na hora (a sala inteira vê, com sirene) e daí em diante
+ *  ninguém mais leva estrela nem BUSTED. A pena cai no FIM do pregão (`viceBustedPena`, chamado em `paFecha`): os 5 melhores dele viram
+ *  5 cartas reais de categoria Profissional da MESMA posição. */
 function viceBusted(state: EscState, alvo: number) {
   const v = state.pa?.vice
   const m = state.managers.find(x => x.id === alvo)
   if (!v || !m || v.busted !== undefined) return
   v.busted = alvo
+  ;(v.mao[alvo] = v.mao[alvo] ?? []).push('roubo')
+  viceFeed(state, [`🚨 BUSTED! A polícia pegou ${m.teamName}: foi o 1º a levar ${VICE_BUSTED_EM} estrelas. No fim do pregão os 5 melhores dele viram 5 Profissionais. Agora ninguém mais leva estrela.`, `🚨 BUSTED! The police caught ${m.teamName}: first to take ${VICE_BUSTED_EM} stars. When the auction ends, their 5 best become 5 Pros. Nobody else gets stars now.`], true)
+  ;(state.marketLog = state.marketLog ?? []).push(`🚨 BUSTED: ${m.teamName} foi o 1º a levar 5 estrelas na sala Vice City.`)
+}
+function viceBustedPena(state: EscState) {
+  const v = state.pa?.vice
+  if (!v || v.busted === undefined || v.bustedFeito) return
+  v.bustedFeito = true
+  const alvo = v.busted
+  const m = state.managers.find(x => x.id === alvo)
+  if (!m) return
   const rng = viceRng(state)
   const nomes = new Set<string>(state.managers.flatMap(x => x.squad.map(c => c.name)))
   if (state.pa) for (const c of state.pa.fila) nomes.add(c.name)
-  const melhores = m.squad.filter(c => !c.fake).sort((a, b) => viceForca(b) - viceForca(a)).slice(0, 3)
+  const melhores = m.squad.filter(c => !c.fake && (c.fame ?? 1) > 1).sort((a, b) => viceForca(b) - viceForca(a)).slice(0, 5)
   const trocas: string[] = []
   for (const c of melhores) {
     const cands = ((ACTIVE_CATALOG[c.pos] ?? []) as Card[]).filter(x => (x.fame ?? 1) === 1 && !x.fake && !x.promessa && !nomes.has(x.name))
@@ -7008,10 +7025,7 @@ function viceBusted(state: EscState, alvo: number) {
     m.squad[i] = { ...novo, pos: c.pos, id: `vice-busted-${alvo}-${i}-${v.n}`, paid: 0, buyPrice: 0, via: 'monte' } as WonCard
     trocas.push(c.name)
   }
-  ;(v.mao[alvo] = v.mao[alvo] ?? []).push('roubo')
-  const perdeu = trocas.length ? [`perdeu ${trocas.join(', ')}`, `lost ${trocas.join(', ')}`] : ['ainda não tinha jogador pra perder', 'had no players to lose yet']
-  viceFeed(state, [`🚨 BUSTED! ${m.teamName} levou ${VICE_BUSTED_EM} golpes e ${perdeu[0]} — ganhou um 🚗 Roubo de carro de vingança`, `🚨 BUSTED! ${m.teamName} took ${VICE_BUSTED_EM} hits and ${perdeu[1]} — got a revenge 🚗 Car theft`], true)
-  ;(state.marketLog = state.marketLog ?? []).push(`🚨 BUSTED: ${m.teamName} foi o mais caçado da sala Vice City.`)
+  if (trocas.length) (state.marketLog = state.marketLog ?? []).push(`🚨 Pena do BUSTED: ${m.teamName} perdeu ${trocas.join(', ')} — no lugar, ${trocas.length} Profissional(is).`)
 }
 /** o golpe pega: aplica o efeito com `vit` levando e `ben` ganhando. Devolve o texto extra do anúncio (ou null = não deu) */
 function viceAplica(state: EscState, id: GolpeId, ben: Manager, vit: Manager): string | null | undefined {
@@ -7132,6 +7146,7 @@ function viceUsa(state: EscState, mgrId: number, id: GolpeId, alvoId?: number): 
     return true
   }
   viceFeed(state, anuncioGolpe(id, ben.teamName, vit.teamName, extra))
+  if (v.busted !== undefined) return true // 🚨 19/11: a polícia já pegou o 1º — ninguém mais leva estrela
   v.estrelas[vit.id] = (v.estrelas[vit.id] ?? 0) + 1
   if (v.busted === undefined && (v.estrelas[vit.id] ?? 0) >= VICE_BUSTED_EM) viceBusted(state, vit.id)
   return true
@@ -7203,7 +7218,8 @@ function abrePregaoAberto(state: EscState) {
   for (const pos of SECTORS) state.stock[pos] = 0
   state.sectorCursor = 0; state.sectorUnsoldAccum = []
   // conta só quem DISPUTA o pregão (gente + robôs rivais) — a liga também lista clubes que não dão lance
-  const duplo = state.managers.filter(m => m.isHuman && !m.dormindo).length + paRobosQueDisputam(state).length >= PA_DUPLO_A_PARTIR
+  // 🌴 19/11: no Vice City a mesa é SEMPRE uma carta só, mesmo com 20 times (o golpe mira a carta da mesa — duas mesas embolariam)
+  const duplo = !state.viceCity && state.managers.filter(m => m.isHuman && !m.dormindo).length + paRobosQueDisputam(state).length >= PA_DUPLO_A_PARTIR
   state.pa = { fila, idx: -1, preco: 0, lider: null, lances: [], deadline: null, tetos: {}, tiques: 0, vendidos: [], sobras: [],
     ...(duplo ? { duplo: true, m2: { card: null, preco: 0, lider: null, lances: [], deadline: null, tetos: {} } } : {}) }
   state.phase = 'pregao'
@@ -7430,6 +7446,7 @@ function paFecha(state: EscState) {
   const pa = state.pa
   if (!pa) return
   const dados = paCompletaElencos(state, pa.sobras)
+  viceBustedPena(state) // 🚨 19/11: a pena do BUSTED cai com o elenco montado (5 melhores → 5 Profissionais)
   if (dados > 0) (state.marketLog = state.marketLog ?? []).push(state.leilaoClubes
     ? `🎁 Sem Monte no pregão aberto: ${dados} setor(es) vazio(s) ganharam um pacote que sobrou, de graça.`
     : `🎁 Sem Monte no pregão aberto: ${dados} vaga(s) vazia(s) ganharam jogador profissional ou bom, de graça.`)
@@ -8379,7 +8396,7 @@ export function viraCampo2D(s: EscState): void {
  *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
-export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
+export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'viceCartas', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm'] as const satisfies readonly (keyof EscState)[]
@@ -10072,6 +10089,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.pregaoAberto = !action.career && !!action.pregaoAberto
       if (s.pregaoAberto) s.holandes = false
       s.viceCity = s.pregaoAberto && !action.duplasMode && !!action.vice // 🌴 19/11: Vice City = pregão aberto com cartas de golpe (sem duplas)
+      s.viceCartas = s.viceCity && action.viceCartas ? action.viceCartas : undefined // 🃏 19/11: 3 (padrão) · 4 · 5
       // ⚡ ENVELOPE ÚNICO (28/10): escolha do dono, fora da carreira e das duplas; desliga os outros jeitos de lance
       s.envUnico = !action.career && !action.duplasMode && !!action.envUnico; // 👑 11/11: na Kings também (Diego: *"cadê o envelope único?"*) s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }

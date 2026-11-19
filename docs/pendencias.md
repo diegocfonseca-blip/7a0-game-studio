@@ -1487,6 +1487,13 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
+## 🕵️ VIGIA DE CONTA DUPLA — 19/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **Éden FC** (isaacvpn2023) × **Fluminense** (caiom3244, criada ONTEM 18/11) — 5 temporadas só os dois, 5 ligas × 0, logins com
+  3 min de diferença, a conta de apoio nunca jogou sala cheia.
+- Médios (só anotado): davi20062010 × lukinharegis222 (ambas 31/10, 6 temp., 5×0, logins 31 min, perdedor 2 salas cheias) · gabrielcostadelima ×
+  danielleitecastro1 (5 temp., 4×0, perdedor nunca em sala cheia, mas logins distantes e contas de set/out) · valmirdecarvalho3 × ph.vasques
+  (perdedor 14 salas cheias — parece amigo) · matheus03janeiro × igorpdemoura11 (ambas 11/11, 0×3, perdedor 1 sala cheia).
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 09/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **wislleyrc12 × wislley427** — mesmo nome "wislley" nos dois e-mails, as duas criadas 31/08, logins com 13 min, 9 temporadas
   só os dois, 0 × 4 ligas. ⚠️ A perdedora (wislleyrc12) jogou 33 salas cheias — é conta ATIVA dele, não conta morta de apoio.
@@ -14246,3 +14253,29 @@ Diego: *"isso aqui já pode"*. Desligar = voltar a `false` no sport.ts.
 O modo nasce com o elenco real (22), mas a troca seguia a regra da carreira de sempre ("T1 joga com os 11", `canSub = seasonNo >= 2`
 na tela e `seasonNo < 2` no SET_LINEUP/SALVA_ESCALACAO/APLICA_ESCALACAO). Agora o Brasil Oficial troca desde a T1, nos dois lados.
 Testado: Athletico-PR, Fabiano (reserva) entrou no lugar do Renan Lodi.
+
+## 🧭 19/11 — Fluxo da Central em TODA competição (pedido do Diego) — PUBLICADO
+Estadual (Brasil Oficial), copas que rodam como fase (copa de fim de temporada, Supercopa) agora esperam a escolha 📺 2D / 🏟️ 3D na Central;
+2D = aba Jogos com "▶ Começar o jogo"; 3D = mapa com "▶ Começar o jogo" em cima (vale também pra liga e estreia). Testado: Paysandu, Parazão
+rodada 1 no 3D (Re-Pa no Mangueirão) e rodada 2 no 2D. Copa da quarta (Copa do Brasil/Liberta/Sula do calendário) já passava pela Central.
+FALTA conferir/levar: a 🌎 campanha internacional (Liberta/Champions de convite, tela própria) e a 🌍 Copa do Mundo do roteiro (tela própria).
+
+## 🌴 19/11 — Vice City: 10 ou 20 times, 19 ou 38 rodadas, 3/4/5 cartas de golpe — PUBLICADO
+Diego: *"inclua a opção de 20 times… 10 como padrão… 19 rodadas ou 38… deixando claro que demora mais… 3 cartas de golpe ou 4 ou 5"*.
+Criar sala Vice City nasce em 10 times (18 rodadas); 20 times = 19 rodadas (padrão) ou 38, com texto "demora mais". Cartas de golpe
+3 (padrão) · 4 · 5 (`viceCartas` na sala → `state.viceCartas`). Gente continua até 10 (bots completam); a mesa do pregão no Vice City é SEMPRE
+uma carta (o duplo de 11+ clubes não liga, senão o golpe embolaria). Competições: todas menos Champions e Relâmpago (já era assim no código;
+o Diego disse que só via a Copa dos 8 — não reproduzi sem login; conferir com ele num print se continuar).
+⚠️ `npm run carreira-limpa` já reprovava ANTES desta mudança por `kingsBaralho` (outra sessão) — falta pôr em MARCAS_DE_MODO ou NEUTROS.
+
+## 🚨 19/11 — Vice City: BUSTED só pro 1º com 5 estrelas, pena no fim do pregão, giroflex + sirene — ✅ APROVADO E PUBLICADO
+Diego: *"trocar por 5 jogadores profissionais… no final, quando ele montar tudo… só para o primeiro que tomou 5 estrelas… banner piscando com
+sirene da polícia… dizendo quem foi… ninguém mais toma 5 estrelas"*. Motor: `viceBusted` só marca + anuncia; `viceBustedPena` (em `paFecha`) troca os 5
+melhores (acima de Profissional) por 5 Profissionais reais da mesma posição; depois do 1º, ninguém mais leva estrela. Tela: tela toda piscando
+vermelho/azul por 6,5 s + `playSirene()` (sintetizada, 0 KB) + chip "🚔 Polícia pegou X". Prints: `scripts/mockups/vice-busted-sirene-*.png`.
+Trava `npm run vice-city` atualizada e passando.
+
+## 🌴 19/11 — Vice City com 20 times aceita até 20 pessoas (bots completam) — PUBLICADO
+Diego: *"posso marcar 20, mas ter 15 usuários… completados com 5 bots… igual é sempre"*. Sala de 10 times = até 10 pessoas; de 20 = até 20.
+A mesa do Vice City segue com UMA carta por vez (o golpe mira a carta da mesa). Com muita gente o pregão fica mais longo — se ele quiser as duas
+mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 e testar antes.

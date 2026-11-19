@@ -10,7 +10,8 @@ import { modoEspectador } from './espectador'
 // 🔓 JÁ LIBERADO PRA TODO MUNDO (`setSoundAllowed(true)` no `index.tsx`). Este
 //    comentário dizia "só pro login do Diego" e estava velho — corrigido em 18/09,
 //    quando ele perguntou *"e aí, cadê?"* e eu vim conferir de verdade.
-// 🔇 MUTE: começa MUDO; a pessoa liga no botão. Escolha lembrada no aparelho.
+// 🔊 19/11 (Diego: *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*): o som começa LIGADO; só fica mudo
+//    quem apertou 🔇 antes (a escolha fica lembrada no aparelho). Antes começava mudo pra todo mundo.
 // 🌐 AUTOPLAY: o navegador só deixa tocar DEPOIS do 1º toque — então nada
 //    surpreende quem só abriu o jogo. O AudioContext acorda no 1º gesto.
 //
@@ -18,8 +19,8 @@ import { modoEspectador } from './espectador'
 // pode quebrar o jogo.
 
 let allowed = false
-let muted = true
-try { muted = localStorage.getItem('esc-sound-muted') !== '0' } catch { /* padrão: mudo */ }
+let muted = false
+try { muted = localStorage.getItem('esc-sound-muted') === '1' } catch { /* padrão: com som */ }
 
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
@@ -212,6 +213,10 @@ export function playCaiu() { [392, 311, 262].forEach((f, i) => tone(f, 0.3, 'tri
 export function playCaixa() { for (let i = 0; i < 6; i++) { tone(1180 + i * 60, 0.09, 'triangle', 0.32, i * 0.07); tone(1560 + i * 60, 0.1, 'triangle', 0.24, i * 0.07 + 0.04) } }
 
 // 📣 apito do juiz: tom agudo com trinado + sopro
+/** 🚨 19/11 (Diego: "banner piscando com sirene da polícia"): sirene de viatura sintetizada, sobe e desce 4 vezes (~3 s, 0 KB) */
+export function playSirene() {
+  for (let i = 0; i < 4; i++) { tone(620, 0.38, 'sawtooth', 0.16, i * 0.76, 1180); tone(1180, 0.38, 'sawtooth', 0.16, i * 0.76 + 0.38, 620) }
+}
 export function playWhistle() {
   const c = ac(); if (!c || !master) return
   try {
