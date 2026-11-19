@@ -13926,3 +13926,6 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
 - ⭐ Quem LEVA golpe ganha 1 estrela (toda carta dá 1). O 1º a chegar em 5 = BUSTED (só 1 vez por sala): perde os 3 MELHORES, que viram
   cartas reais de categoria Profissional da mesma posição e NÃO voltam pra mesa; ganha 1 Roubo de carro de vingança.
 - SEM toque de recolher. SEM Monte (igual Pregão aberto): vaga vazia no fim = jogador sorteado das sobras, de graça.
+- 🔁 19/11 (mais tarde): virou MODO PRÓPRIO "🌴 Vice City" na fileira de cima (selo NOVO), por dentro sala rápida. Jeito do lance: Pregão
+  aberto (até 10, padrão) ou Tocaia (até 20). Sem Champions. Estrelas ESCONDIDAS; carta nova 🎯 Sniper mostra o ranking só pra quem usou.
+  Mockup: `scripts/mockups/vice-city-pregao.png`. Esperando OK pra construir.
