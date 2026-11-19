@@ -4065,7 +4065,7 @@ export function EscLobby() {
           // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
           // pra todos mas não libere… meta de 2k seguidores"*). A antiga (1ª temporada fraca, 60 s) não se cria mais — salas antigas seguem.
           // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
-          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, ...(minhaOn ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : { meta: 2 }) }, // 🟢 05/11: liberada pra todos (MINHA_LIGA_DRAFT_GERAL) — a faixa da meta some e entra o selo NOVO
+          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, ...(minhaOn ? {} : { meta: 2 }) } /* 🏷️ 19/11: sem o NOVO (Diego) */, // 🟢 05/11: liberada pra todos (MINHA_LIGA_DRAFT_GERAL) — a faixa da meta some e entra o selo NOVO
           // 👑 11/11 (Diego: *"Kings League tem que estar em cima, junto com Liga Draft e outros"*): um MODO da sala, só pras contas da Kings
           ...(kingsVe && !nbaSala ? [{ v: 'rapido' as const, kings: true, ic: '👑', nome: 'Kings League', frase: tr('7 contra 7, 10 times e as regras da Kings League Brasil.', '7 v 7, 10 teams and the Kings League Brasil rules.'), on: true, selo: tr('NOVO', 'NEW'), seloVerde: true }] : []),
           // 🌴 19/11 (Diego: *"pode fazer adorei"*): Vice City, o pregão aberto com cartas de golpe — só pra quem `useViceCity` libera
@@ -4457,7 +4457,7 @@ export function EscLobby() {
                 <SegField label={tr('Jeito do lance', 'How you bid')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
                     ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
-                        selos={{ pregao: tr('novo', 'new'), unico: tr('novo', 'new') }} selosBrilho={['pregao', 'unico']}
+                        /* 🏷️ 19/11: sai o NOVO do Pregão aberto e do Envelope único (Diego) */
                         value={rapidoEnvUnico && envUnicoOk && !roomDuplas ? 'unico' : rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia'); setRapidoEnvUnico(v === 'unico') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
@@ -4810,7 +4810,7 @@ export function EscLobby() {
                         <Seg options={lista}
                           value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
                           travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas, ...(americaOn ? [] : ['liga_america' as const]), ...(libSalaOn ? [] : ['liga_libsala' as const])]}
-                          selosBrilho={['relampago']} selos={{ liga_mundo: seloNovo(), liga_euro: tr('novo', 'new'), liga_america: americaOn ? tr('novo', 'new') : tr('em breve', 'soon'), liga_libsala: libSalaOn ? tr('novo', 'new') : tr('em breve', 'soon'), relampago: tr('novo', 'new'), /* 🏷️ 28/10: saiu de 'em testes' (Diego) */ ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
+                          selos={{ liga_mundo: seloNovo(), liga_euro: tr('novo', 'new'), liga_america: americaOn ? tr('novo', 'new') : tr('em breve', 'soon'), liga_libsala: libSalaOn ? tr('novo', 'new') : tr('em breve', 'soon'), /* 🏷️ 28/10: saiu de 'em testes' (Diego) */ ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
                       </>
                     )
                     return <>
