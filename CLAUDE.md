@@ -1137,7 +1137,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   TAMBÉM no do mapa na mesma entrega (e vice-versa), sem ele pedir de novo.
   🏟️ **19/11: O CAMPO DO MAPA VOLTA PRO 3D, A ABA JOGOS FICA NO 2D** (*"gostaria de ver novamente em 3D com jogadores com base no último
   boneco… e não mais aquele jogo de botão… só no campo do mapa. Na aba de jogos mantém igual"*). Abertura girando o estádio antes do jogo
-  e câmera de TV que acompanha a jogada (`'tv'`, padrão do 3D). Gate `MAPA_3D_GERAL` (sport.ts), só na conta dele até o OK. Com isso a
+  e câmera de TV que acompanha a jogada (`'tv'`, padrão do 3D). Gate `MAPA_3D_GERAL` (sport.ts), só na conta dele até o OK.
+  🟢 **19/11: LIBERADO PRA TODOS** (*"pode fazer tudo p todos"*, `MAPA_3D_GERAL = true`), junto com a faixa do NOME DO ESTÁDIO embaixo
+  do placar do mapa (roxa e "🚌 fora de casa, na casa do X" quando o seu clube visita). Com isso a
   regra (21) passa a valer só pro mapa no 2D.
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·

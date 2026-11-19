@@ -14193,7 +14193,7 @@ Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superad
   4. A aba Jogos + Tabela NÃO mostra jogo/placar enquanto não tem jogo rolando.
 - Dúvida levada: quem não tem o 3D (hoje todo mundo menos ele) vê só o botão 2D?
 
-## 🏟️ 19/11 — Nome do estádio no placar do mapa (fora de casa claro) — ESPERANDO OK
+## 🏟️ 19/11 — Nome do estádio no placar do mapa (fora de casa claro) — ✅ PUBLICADO PRA TODOS junto com o 3D do mapa (`MAPA_3D_GERAL = true`). Fluxo da Central: ainda testando antes de `FLUXO_CENTRAL_GERAL = true`
 Pedido do Diego: *"não ficou claro o campo da casa do adversário… deve aparecer mais claro o nome de cada estádio"*. Embaixo do placar
 do mapa (2D e 3D) entra uma faixa: `🏟️ <estádio do mandante> · casa do <mandante>`; quando o seu clube joga FORA ela fica roxa e diz
 "🚌 fora de casa, na casa do X". Prints: `scripts/mockups/estadio-nome-fora.png` / `estadio-nome-casa.png`. No branch, não publicado.

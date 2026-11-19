@@ -378,7 +378,7 @@ export function useFluxoCentral(): boolean {
 // botão… só no campo do mapa. Na aba de jogos mantém igual"*): o estádio do MAPA volta a mostrar a partida em 3D (boneco novo), com a
 // abertura girando o estádio e a câmera de TV. A aba Jogos segue no 2D. Nasce só na conta do Diego; `MAPA_3D_GERAL = true` libera.
 const MAPA_3D_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-export const MAPA_3D_GERAL = false
+export const MAPA_3D_GERAL = true
 let mapa3dOk = MAPA_3D_GERAL
 let mapa3dQA = false
 /** 🧪 só a bancada (`scripts/mapa3d/bancada.html`) chama: liga o 3D do mapa sem login */
