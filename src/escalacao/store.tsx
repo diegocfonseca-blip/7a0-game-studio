@@ -65,6 +65,7 @@ import { souBarao } from './manto'
 import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala, marcaSalaDosMimos } from './mimos'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { GRUPOS_2026, sorteiaGrupos, parCup, gruposCompletos, classificadosCup } from './eua-cup' // 🏀🏆 NBA Cup real do EUA Oficial
+import { sorteiaLoteria, entraNoDraft, escolhaDoBot, forcaDraft } from './eua-draft' // 🏀🎓 Draft do EUA Oficial
 import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { CATALOG_NBA_MUNDO } from './data-basquete-mundo' // 🌍 18/11: ficha das cartas do baralho Mundo
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -6112,6 +6113,7 @@ type Action =
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; /** 🏀 18/11: a mesma sala NBA no rápido offline (tamanho + formato) */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'EUA_DRAFT_ABRIR' } | { type: 'EUA_DRAFT_COMECAR' } | { type: 'EUA_DRAFT_ESCOLHER'; chave: string } | { type: 'EUA_DRAFT_AUTO' } // 🏀🎓 Draft do EUA Oficial
   | { type: 'START_EUA_CAREER'; franquia: string; extras: Card[] } // 🏀🇺🇸 carreira EUA Oficial (19/11): franquia real na NBA, sem sobe e desce. `extras` = as cartas novas só da carreira (data-basquete-eua, baixadas pela tela)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'CLOSE_NBA_BOOKS' } // 🏀💰 17/11: fecha o caixa da temporada no passo 💰 do roteiro (uma vez só, booksSeason)
@@ -8469,7 +8471,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'oficialAbertura', 'deOlho'] as const satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'oficialAbertura', 'deOlho'] as const satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8542,6 +8544,40 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
  *  NBA de verdade — as 30 franquias, cada uma com as cartas DELA (as antigas do auge + as novas só da carreira, `extras`), nas
  *  conferências reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA). Sem sobe e desce (decisão do Diego). Cada
  *  franquia começa com o quinteto SORTEADO entre as cartas dela. Devolve false se a franquia não existir (e não mexe em nada). */
+/** 🏀🎓 Draft do EUA Oficial: as cartas que podem ser escolhidas AGORA — sem time (nem a mesma pessoa em outro time), promessa ou bom */
+export function poolDraftEua(s: EscState): Card[] {
+  const cat = buildNbaCatalog(false)
+  const nomes = new Set(s.managers.flatMap(m => m.squad.map(c => c.name.toLowerCase())))
+  const out: Card[] = []
+  const vistos = new Set<string>()
+  const add = (pos: Sector, c: Card) => { const k = `${c.name}|${c.club}|${c.year}`; if (vistos.has(k) || nomes.has(c.name.toLowerCase())) return; vistos.add(k); if (entraNoDraft({ ...c, pos })) out.push({ ...c, pos, id: `edr-${out.length}` } as Card) }
+  for (const pos of SECTORS) for (const c of cat[pos]) add(pos, c as unknown as Card)
+  for (const c of s.euaOficial?.extras ?? []) if (SECTORS.includes(c.pos as Sector)) add(c.pos as Sector, c)
+  return out.sort((a, b) => forcaDraft(b) - forcaDraft(a))
+}
+function pickDraftEua(s: EscState, m: Manager, c: Card, auto: boolean): void {
+  const d = s.euaDraft
+  if (!d) return
+  const preco = justoDaCarta(s, c)
+  m.squad = [...m.squad, { ...c, id: `edr${d.temporada}-${m.id}`, paid: preco, buyPrice: preco, via: 'leilao' } as WonCard]
+  d.picks.push({ mgrId: m.id, name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, ...(auto ? { auto: true } : {}) })
+  ;(s.marketLog = s.marketLog ?? []).push(`🎓 ${m.teamName} escolheu ${c.name} no Draft (${d.idx + 1}ª escolha)`)
+  d.idx++
+}
+/** os bots escolhem na vez deles até chegar a vez de gente (ou acabar o Draft) */
+function rodaBotsDraftEua(s: EscState): void {
+  const d = s.euaDraft
+  if (!d || d.fase !== 'escolha') return
+  while (d.idx < d.ordem.length) {
+    const m = s.managers.find(x => x.id === d.ordem[d.idx])
+    if (!m) { d.idx++; continue }
+    if (m.isHuman) { d.prazo = Date.now() + 60_000; return }
+    const c = escolhaDoBot(poolDraftEua(s), m.squad.map(x => x.pos), SECTORS)
+    if (!c) { d.idx++; continue }
+    pickDraftEua(s, m, c, true)
+  }
+  d.fase = 'feito'; d.prazo = undefined
+}
 /** 🏀🏆 NBA Cup real (EUA Oficial): anota os jogos de GRUPO desta rodada (o 1º encontro de cada dupla do grupo no calendário — são
  *  jogos da temporada, já contaram na tabela) e, quando os 6 grupos fecham, monta o mata-mata de 8 no motor da Cup de sempre. */
 function registraCupEua(s: EscState, results: { homeId: number; awayId: number; hg: number; ag: number }[]): void {
@@ -8602,7 +8638,7 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   } as Manager))
   s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
   s.careerRivalCount = ordem.length - 1; s.careerRivals = []
-  s.euaOficial = { franquia }
+  s.euaOficial = { franquia, extras: (extras ?? []).map(c => ({ ...c })) } // as cartas novas ficam no save: o Draft das próximas temporadas precisa delas
   s.euaCup = { temporada: s.seasonNo ?? 1, grupos: GRUPOS_2026.map(g => ({ ...g, times: [...g.times] })), jogos: {} } // 🏆 os grupos REAIS de 2026
   s.nbaTier = 'nba'
   s.nbaSala = { tam: 30, formato: 'playoffs' }; s.copaMode = 'liga_copa'
@@ -9527,6 +9563,39 @@ function reducerBase(state: EscState, action: Action): EscState {
     // cheia de 20 times, pontos corridos. O leilão de reservas (crescer pra
     // rotação 10 → elenco 15), os desbloqueios por temporada e salvar/continuar
     // são o próximo passo. O futebol não passa por aqui.
+    case 'EUA_DRAFT_ABRIR': {
+      // 🏀🎓 a loteria: os 14 fora dos playoffs (do pior pro melhor) sorteiam as 4 primeiras; depois os 16 dos playoffs, pior → melhor
+      if (!s.euaOficial || s.screen !== 'end' || s.euaDraft?.temporada === s.seasonNo) return state
+      const tab = sortedTable(s.league)
+      const noPO = new Set<number>()
+      for (const b of s.quickCopa?.bracket ?? []) if (b.phase !== 'playin') for (const t of b.ties) { noPO.add(t.aId); noPO.add(t.bId) }
+      for (const t of (s.quickCopa?.phase !== 'playin' ? s.quickCopa?.ties : []) ?? []) { noPO.add(t.aId); noPO.add(t.bId) }
+      const piorPrimeiro = [...tab].reverse().map(t => t.id)
+      const fora = noPO.size >= 16 ? piorPrimeiro.filter(id => !noPO.has(id)) : piorPrimeiro.slice(0, 14)
+      const dentro = piorPrimeiro.filter(id => !fora.includes(id))
+      const loteria = sorteiaLoteria(fora, mulberry((s.seed ^ 0x0D7AF7 ^ (s.seasonNo * 7919)) >>> 0))
+      s.euaDraft = { temporada: s.seasonNo, fora, sorteio: loteria.slice(0, 4), ordem: [...loteria, ...dentro], idx: 0, fase: 'loteria', picks: [] }
+      return s
+    }
+    case 'EUA_DRAFT_COMECAR': {
+      if (!s.euaDraft || s.euaDraft.fase !== 'loteria') return state
+      s.euaDraft.fase = 'escolha'
+      rodaBotsDraftEua(s)
+      return s
+    }
+    case 'EUA_DRAFT_ESCOLHER':
+    case 'EUA_DRAFT_AUTO': {
+      const d = s.euaDraft
+      if (!d || d.fase !== 'escolha') return state
+      const m = s.managers.find(x => x.id === d.ordem[d.idx])
+      if (!m || !m.isHuman) return state
+      const pool = poolDraftEua(s)
+      const c = action.type === 'EUA_DRAFT_ESCOLHER' ? pool.find(x => `${x.name}|${x.club}|${x.year}` === action.chave) : escolhaDoBot(pool, m.squad.map(x => x.pos), SECTORS)
+      if (action.type === 'EUA_DRAFT_AUTO' && Date.now() < (d.prazo ?? 0)) return state // ⏱️ só quando o relógio acabou de verdade
+      if (!c) { if (action.type === 'EUA_DRAFT_ESCOLHER') return state; d.idx++ } else pickDraftEua(s, m, c, action.type === 'EUA_DRAFT_AUTO')
+      rodaBotsDraftEua(s)
+      return s
+    }
     case 'START_EUA_CAREER': {
       // 🏀🇺🇸 a carreira de sempre do basquete (economia, save, identidade) e, por cima, a NBA de verdade
       if (!EUA_FRANQUIAS.includes(action.franquia)) return state

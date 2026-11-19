@@ -1374,7 +1374,10 @@ export interface EscState {
   oficialAbertura?: boolean
   /** 🏀🇺🇸 EUA OFICIAL (19/11): carreira do basquete com UMA das 30 franquias reais, na NBA, sem sobe e desce. `franquia` = a chave
    *  da franquia (a mesma das cartas e do ESCUDOS_NBA). Só existe nessa carreira. */
-  euaOficial?: { franquia: string }
+  euaOficial?: { franquia: string; extras?: Card[] }
+  /** 🏀🎓 o Draft do EUA Oficial desta virada (eua-draft.ts): a loteria, a ordem das 30 escolhas (ids) e quem escolheu quem */
+  euaDraft?: { temporada: number; fora: number[]; sorteio: number[]; ordem: number[]; idx: number; fase: 'loteria' | 'escolha' | 'feito'; prazo?: number
+    picks: { mgrId: number; name: string; club: string; year: number; pos: Sector; auto?: boolean }[] }
   /** 🏀🏆 a NBA Cup REAL do EUA Oficial: os 6 grupos de 5 e os jogos de grupo desta temporada (eua-cup.ts). O mata-mata é o `nbaCup`. */
   euaCup?: import('./eua-cup').EuaCupEstado
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }

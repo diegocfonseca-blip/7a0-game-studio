@@ -42,7 +42,7 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
-import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado } from './store' // 🗑️ 18/11
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
@@ -13138,10 +13138,12 @@ function BafoCascata() {
 
 // 🏀🎬 a barra dos 3 passos do fim de temporada do basquete (mesmo desenho da `RoteiroFim` do futebol, sem o 🌍 Mundo)
 const PASSOS_BB = [{ ic: '📰', pt: 'Jornal', en: 'Paper' }, { ic: '💰', pt: 'Caixa', en: 'Money' }, { ic: '🔨', pt: 'Próxima', en: 'Next' }] as const
-function RoteiroBB({ passo, onIr }: { passo: number; onIr: (n: number) => void }) {
+// 🏀🎓 EUA Oficial: o Draft entra entre o caixa e a decisão (mockup aprovado 19/11)
+const PASSOS_BB_EUA = [PASSOS_BB[0], PASSOS_BB[1], { ic: '🎓', pt: 'Draft', en: 'Draft' }, PASSOS_BB[2]] as const
+function RoteiroBB({ passo, onIr, eua }: { passo: number; onIr: (n: number) => void; eua?: boolean }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-      {PASSOS_BB.map((p, i) => {
+      {(eua ? PASSOS_BB_EUA : PASSOS_BB).map((p, i) => {
         const n = i + 1, feito = n < passo, ativo = n === passo
         return (
           <Fragment key={p.pt}>
@@ -13167,6 +13169,80 @@ function BotaoPassoBB({ texto, sub, onClick }: { texto: string; sub?: string; on
   )
 }
 /** 💰 o passo do CAIXA: o que entrou e saiu nesta temporada (as linhas do extrato), com o saldo de agora */
+// 🏀🎓 DRAFT do EUA Oficial (mockup `scripts/mockups/basquete-eua-draft.png`): a loteria e a noite do Draft, passo 3 do roteiro.
+function EuaDraftPasso({ onContinue }: { onContinue: () => void }) {
+  const { state, dispatch } = useEsc()
+  const d = state.euaDraft
+  const [agora, setAgora] = useState(Date.now())
+  useEffect(() => { if (!d || d.temporada !== state.seasonNo) dispatch({ type: 'EUA_DRAFT_ABRIR' }) }, [d?.temporada, state.seasonNo, dispatch])
+  const minhaVez = !!d && d.fase === 'escolha' && !!state.managers.find(m => m.id === d.ordem[d.idx])?.isHuman
+  // ⏱️ os 60 s contam de quando a SUA vez aparece NESTA tela (quem saiu e voltou depois não perde a escolha na hora)
+  const [fimVez, setFimVez] = useState(0)
+  useEffect(() => { setFimVez(minhaVez ? Date.now() + 60_000 : 0) }, [minhaVez, d?.idx])
+  useEffect(() => { if (!minhaVez) return; const iv = setInterval(() => setAgora(Date.now()), 500); return () => clearInterval(iv) }, [minhaVez])
+  const resta = minhaVez && fimVez ? Math.max(0, Math.ceil((fimVez - agora) / 1000)) : 0
+  useEffect(() => { if (minhaVez && fimVez && agora >= fimVez) dispatch({ type: 'EUA_DRAFT_AUTO' }) }, [minhaVez, agora, fimVez, dispatch])
+  const pool = useMemo(() => (minhaVez ? poolDraftEua(state).slice(0, 15) : []), [minhaVez, state])
+  if (!d || d.temporada !== state.seasonNo) return null
+  const time = (id: number) => state.managers.find(m => m.id === id)
+  const lt = (id: number) => state.league.find(t => t.id === id)
+  const eu = (id: number) => !!time(id)?.isHuman
+  const nome = (id: number) => <span className="flex items-center gap-1.5 min-w-0"><Escudo nome={time(id)?.teamName ?? ''} size={20} /><span className="truncate">{time(id)?.teamName}{eu(id) ? tr(' (você)', ' (you)') : ''}</span></span>
+  const cab = (t: string) => <p style={{ background: INK, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 12, letterSpacing: '.06em', padding: '7px 12px', margin: 0 }}>{t}</p>
+  const topo = (t: string, sub: string) => <div style={{ background: INK, color: '#fff', borderRadius: 16, padding: '12px 14px', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}><b style={{ ...OSWALD, fontWeight: 900, fontSize: 19, display: 'block', textTransform: 'uppercase' }}>{t}</b><small style={{ color: '#bbb', fontSize: 12 }}>{sub}</small></div>
+  const pct = (i: number) => `${(([140, 140, 140, 125, 105, 90, 75, 60, 45, 30, 20, 15, 10, 5][i] ?? 0) / 10).toLocaleString(getLang() === 'en' ? 'en' : 'pt-BR')}%`
+  if (d.fase === 'loteria') return (
+    <div className="space-y-4">
+      {topo(tr(`🎱 Loteria do Draft · temporada ${d.temporada}`, `🎱 Draft lottery · season ${d.temporada}`), tr('Os 14 que ficaram fora dos playoffs. Quanto pior a campanha, mais chance da 1ª escolha.', 'The 14 teams that missed the playoffs. The worse the record, the better the odds for the 1st pick.'))}
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr('🎱 SORTEIO DAS 4 PRIMEIRAS ESCOLHAS', '🎱 DRAW FOR THE TOP 4 PICKS'))}
+        <div className="grid grid-cols-4 gap-2 p-3">{d.sorteio.map((id, i) => (
+          <div key={id} className="text-center" style={{ border: `3px solid ${INK}`, borderRadius: 14, background: eu(id) ? '#FFF0B8' : GOLD, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 2px', ...OSWALD, fontWeight: 900, fontSize: 11 }}>
+            {i + 1}ª<div className="flex justify-center my-1"><Escudo nome={time(id)?.teamName ?? ''} size={26} /></div><span className="block truncate px-1">{time(id)?.teamName}</span></div>))}</div>
+      </Box>
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr('CHANCE DA 1ª ESCOLHA · CAMPANHA', '1ST PICK ODDS · RECORD'))}
+        {d.fora.map((id, i) => (
+          <div key={id} className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-bold" style={{ borderTop: '1px solid rgba(0,0,0,.08)', background: eu(id) ? '#FFF0B8' : undefined }}>
+            <span style={{ width: 22, ...OSWALD, fontWeight: 900 }}>{i + 1}</span>{nome(id)}<small className="text-black/45 shrink-0">{lt(id)?.w}-{lt(id)?.l}</small><span className="ml-auto" style={{ ...OSWALD, fontWeight: 900 }}>{pct(i)}</span></div>))}
+      </Box>
+      <p className="text-[11px] font-bold text-black/50 text-center">{tr('Regra da NBA: só as 4 primeiras saem no sorteio. Da 5ª em diante é do pior pro melhor.', 'NBA rule: only the top 4 picks are drawn. From the 5th on it goes worst to best.')}</p>
+      <BotaoPassoBB texto={tr('🎓 COMEÇAR O DRAFT ›', '🎓 START THE DRAFT ›')} sub={tr('cada franquia escolhe 1 jogador sem time', 'each franchise picks 1 free agent')} onClick={() => dispatch({ type: 'EUA_DRAFT_COMECAR' })} />
+    </div>
+  )
+  const feitos = new Map(d.picks.map((p, i) => [d.ordem[i], p]))
+  const janela = d.fase === 'feito' ? d.ordem : d.ordem.slice(Math.max(0, d.idx - 3), d.idx + 2)
+  return (
+    <div className="space-y-4">
+      {topo(tr(`🎓 Noite do Draft · temporada ${d.temporada}`, `🎓 Draft night · season ${d.temporada}`), tr('Cada franquia escolhe 1 jogador sem time. 60 s por escolha.', 'Each franchise picks 1 free agent. 60 s per pick.'))}
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr('ORDEM DO DRAFT · A LOTERIA MANDA', 'DRAFT ORDER · THE LOTTERY DECIDES'))}
+        {janela.map(id => { const i = d.ordem.indexOf(id), pk = feitos.get(id), vez = d.fase === 'escolha' && i === d.idx
+          return (<div key={id} className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-bold" style={{ borderTop: '1px solid rgba(0,0,0,.08)', background: eu(id) ? '#FFF0B8' : undefined }}>
+            <span style={{ width: 26, ...OSWALD, fontWeight: 900 }}>{i + 1}º</span>{nome(id)}
+            <span className="ml-auto shrink-0 text-right" style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, color: pk ? GREEN : vez ? '#C2452F' : 'rgba(0,0,0,.4)' }}>{pk ? `✓ ${pk.name}` : vez ? tr('✋ NA VEZ', '✋ ON THE CLOCK') : '…'}</span></div>) })}
+      </Box>
+      {minhaVez && <>
+        <div className="text-center" style={{ background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 10 }}>
+          <small style={{ ...OSWALD, fontWeight: 700, fontSize: 12, letterSpacing: '.06em', opacity: .85 }}>{tr(`${d.idx + 1}ª ESCOLHA DO DRAFT · ⏱ ${resta} s`, `PICK ${d.idx + 1} · ⏱ ${resta} s`)}</small>
+          <b className="block" style={{ ...OSWALD, fontWeight: 900, fontSize: 26 }}>{tr('É A SUA VEZ!', "YOU'RE ON THE CLOCK!")}</b></div>
+        <Box className="overflow-hidden" style={{ padding: 0 }}>
+          {cab(tr('JOGADORES SEM TIME · SÓ PROMESSA E BOM', 'FREE AGENTS · PROSPECTS AND GOOD PLAYERS ONLY'))}
+          {pool.map(c => (
+            <div key={`${c.name}|${c.club}|${c.year}`} className="flex items-center gap-2 px-3 py-2" style={{ borderTop: '1px solid rgba(0,0,0,.08)' }}>
+              <span style={{ background: INK, color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 11, borderRadius: 6, padding: '2px 6px' }}>{posTag(c.pos)}</span>
+              <div className="min-w-0"><span className="block truncate" style={{ ...OSWALD, fontWeight: 900, fontSize: 15 }}>{c.name}</span>
+                <small className="block text-[11px] font-bold" style={{ color: '#6a6250' }}>{c.club} · {c.year} · {c.promessa ? tr('💎 Promessa', '💎 Prospect') : c.fame >= 2 ? tr('🎯 Bom', '🎯 Good') : tr('🪵 Profissional', '🪵 Pro')}</small></div>
+              <button onClick={() => dispatch({ type: 'EUA_DRAFT_ESCOLHER', chave: `${c.name}|${c.club}|${c.year}` })} className="ml-auto shrink-0"
+                style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, ...OSWALD, fontWeight: 900, fontSize: 12, padding: '6px 10px', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>{tr('ESCOLHER', 'PICK')}</button>
+            </div>))}
+        </Box>
+        <p className="text-[11px] font-bold text-black/50 text-center">{tr('Lenda e craque não entram no Draft: na NBA o Draft é de jovem e aposta. Acabou o tempo, o jogo escolhe por você.', 'Legends and stars are not in the Draft: in the NBA the Draft is for youngsters and gambles. If time runs out, the game picks for you.')}</p>
+      </>}
+      {d.fase === 'feito' && <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('a decisão da próxima temporada vem agora', 'next season’s decision comes next')} onClick={onContinue} />}
+    </div>
+  )
+}
 function CaixaBB({ onContinue }: { onContinue: () => void }) {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
@@ -13699,7 +13775,7 @@ export function EscEnd() {
       {ownerVisual&&bbAnel&&<OwnerChampionBanner title={LE(`${ligaNomeEnd} · CAMPEÃO DOS PLAYOFFS`, `${ligaNomeEnd} · PLAYOFF CHAMPION`)} name={bbAnel.name} crest={<Escudo nome={bbAnel.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={bbAnel.id === you.id} mascot={MASCOTES[mascoteKeyDoTime(bbAnel.name)??'']} legends={(state.managers.find(m=>m.id===bbAnel.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={bbAnelFinal ?? undefined}/>}
       {ownerVisual&&!semTituloLiga&&!bbAnel&&<OwnerChampionBanner title={bbTemporadaRegular ? LE(`${ligaNomeEnd} · TEMPORADA REGULAR`, `${ligaNomeEnd} · REGULAR SEASON`) : ligaNomeEnd} head={bbTemporadaRegular ? LE('MELHOR CAMPANHA!', 'BEST RECORD!') : undefined} faixa={bbTemporadaRegular ? (youWon ? LE('A MELHOR CAMPANHA É SUA · O ANEL É NOS PLAYOFFS', 'BEST RECORD IS YOURS · THE RING IS WON IN THE PLAYOFFS') : LE('O ANEL É DECIDIDO NOS PLAYOFFS', 'THE RING IS WON IN THE PLAYOFFS')) : undefined} name={champ.name} crest={<Escudo nome={champ.name} size={52}/>} trophy={<Trofeu comp="liga" size={210}/>} own={youWon} mascot={MASCOTES[mascoteKeyDoTime(champ.name)??'']} legends={(state.managers.find(m=>m.id===champ.id)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} line={bbEnd ? `${champ.w}-${champ.l}` /* 🏀 17/11: campanha V-D, nunca "228 pontos" */ : `${champ.pts} ${LE('pontos','points')}`}/>}
       <RankResultWriter />
-      {roteiroBB && <RoteiroBB passo={passoBB} onIr={n => { setPassoBB(n); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
+      {roteiroBB && <RoteiroBB eua={!!state.euaOficial} passo={passoBB} onIr={n => { setPassoBB(n); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       <div hidden={roteiroBB && passoBB !== 1} className="space-y-5">
       {/* FIM COM COPA JÁ JOGADA: placar Liga+Copa no topo, e ordem
           Liga → artilheiro da Liga → Copa → artilheiro da Copa. */}
@@ -14051,6 +14127,7 @@ export function EscEnd() {
       </div>
       {roteiroBB && passoBB === 1 && <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s money comes next')} onClick={() => { dispatch({ type: 'CLOSE_NBA_BOOKS' }); setPassoBB(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       {roteiroBB && passoBB === 2 && <CaixaBB onContinue={() => { setPassoBB(3); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
+      {roteiroBB && state.euaOficial && passoBB === 3 && <EuaDraftPasso onContinue={() => { setPassoBB(4); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       {(!roteiroBB || passoBB === 1) && <ShareResultPanel opts={shareOpts} />}
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
@@ -14058,7 +14135,7 @@ export function EscEnd() {
           fechada no START_ONLINE — este `!online` é a segunda trava. */}
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending || (roteiroBB && passoBB !== 3) ? null : <NbaCareerEndPanel />) : (online || copaPending || libPending) ? null : (<>
+      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending || (roteiroBB && passoBB !== (state.euaOficial ? 4 : 3)) ? null : <NbaCareerEndPanel />) : (online || copaPending || libPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2 ov3-surface" style={{ background: '#FEF3C7' }}>

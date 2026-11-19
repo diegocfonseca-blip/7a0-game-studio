@@ -52,6 +52,23 @@ for (let i = 0; i < 600 && s.quickCopa && s.quickCopa.phase !== 'done'; i++) { i
 ok(fases[0] === 'playin' && s.quickCopa?.phase === 'done' && !!s.quickCopa.champion, `Play-In → Playoffs → campeão (${fases.join(' → ')})`)
 s.screen = 'end'
 s = reducer(s, { type: 'CLOSE_NBA_BOOKS' } as any)
+// 🎓 DRAFT: loteria dos 14 de fora, 1 escolha por time, só promessa/bom sem time
+s = reducer(s, { type: 'EUA_DRAFT_ABRIR' } as any)
+ok(s.euaDraft?.fase === 'loteria' && s.euaDraft.fora.length === 14 && s.euaDraft.ordem.length === 30 && new Set(s.euaDraft.ordem).size === 30, `Draft: loteria com os 14 de fora e 30 escolhas (${s.euaDraft?.fora.length})`)
+ok(s.euaDraft.sorteio.every((id: number) => s.euaDraft.fora.includes(id)) && s.euaDraft.ordem.slice(4, 14).every((id: number, i: number, arr: number[]) => i === 0 || s.euaDraft.fora.indexOf(arr[i - 1]) < s.euaDraft.fora.indexOf(id)), 'Draft: só os de fora no sorteio; da 5ª em diante do pior pro melhor')
+const antesNomes = new Set(s.managers.flatMap((m: any) => m.squad.map((c: any) => c.name)))
+s = reducer(s, { type: 'EUA_DRAFT_COMECAR' } as any)
+ok(s.euaDraft.fase === 'escolha' && s.managers.find((m: any) => m.id === s.euaDraft.ordem[s.euaDraft.idx])?.isHuman, `Draft: os bots escolhem sozinhos até a SUA vez (${s.euaDraft.idx + 1}ª)`)
+const { poolDraftEua } = await import('../src/escalacao/store.tsx') as any
+const minha = poolDraftEua(s)[0]
+s = reducer(s, { type: 'EUA_DRAFT_ESCOLHER', chave: `${minha.name}|${minha.club}|${minha.year}` } as any)
+ok(s.euaDraft.fase === 'feito' && s.euaDraft.picks.length === 30, `Draft: 30 escolhas, 1 por time (${s.euaDraft.picks.length})`)
+ok(s.managers[0].squad.some((c: any) => c.name === minha.name), `Draft: você levou ${minha.name}`)
+const pk = s.euaDraft.picks
+ok(new Set(pk.map((p: any) => p.name)).size === 30 && pk.every((p: any) => !antesNomes.has(p.name)), 'Draft: ninguém escolheu jogador que já tinha time, nem o mesmo duas vezes')
+const cat = [...poolDraftEua({ ...s, managers: [] })]
+ok(pk.every((p: any) => { const c = cat.find((x: any) => x.name === p.name && x.club === p.club); return !!c && (c.promessa || c.fame <= 3) }), 'Draft: só promessa e jogador bom')
+ok(reducer(s, { type: 'EUA_DRAFT_ABRIR' } as any) === s, 'Draft: só uma vez por temporada')
 s = reducer(s, { type: 'NEXT_NBA_SEASON' } as any)
 ok(s.seasonNo === 2 && s.nbaTier === 'nba' && s.euaOficial?.franquia === 'Pelicans', 'T2: continua na NBA, com os Pelicans (sem sobe e desce)')
 ok(s.euaCup?.temporada === 2 && Object.keys(s.euaCup.jogos).length === 0 && !s.nbaCup && s.euaCup.grupos.every((g: any) => g.times.length === 5) && new Set(s.euaCup.grupos.flatMap((g: any) => g.times)).size === 30, 'T2: grupos novos da NBA Cup, sorteados')

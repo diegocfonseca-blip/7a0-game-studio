@@ -273,7 +273,13 @@
 - ⏳ Draft (decisão 19/11): regra da NBA (loteria dos 14 fora dos playoffs, 4 primeiras sorteadas, 14% pros 3 piores; o resto do pior pro
   melhor), mas **1 escolha por time** (*"faz só uma escolha por time"*), só com cartas SEM time na carreira (ninguém pega de outro time).
   Aproveitar da Liga Draft o suspense do anúncio e o relógio.
-- ⏳ EUA Oficial, a fazer: Draft com loteria, os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
+- ✅ 19/11 (Diego: *"Siga"* depois do mockup): **DRAFT** feito, passo 3 do roteiro do fim de temporada no EUA Oficial (📰 → 💰 → 🎓 →
+  🔨). Loteria real (`eua-draft.ts`: 14 de fora, chances 14·14·14·12,5…0,5%, 4 primeiras sorteadas, resto pior→melhor, depois os 16 dos
+  playoffs). **1 escolha por time**, só carta SEM time (nem a mesma pessoa em outro time) e **só promessa/bom** (lenda e craque fora).
+  Bots escolhem sozinhos (o melhor na posição onde têm menos gente); na sua vez, 60 s contados na tela (acabou, o jogo escolhe o melhor
+  por você). As cartas novas do modo ficam no save (`euaOficial.extras`) pro Draft das próximas temporadas. Trava: `npm run eua-oficial`.
+  Prints: `scripts/mockups/basquete-eua-draft-{loteria,vez}-{celular,pc}.png`.
+- ⏳ EUA Oficial, a fazer: os 9 `conferir`; equilíbrio (franquia com lenda × fraca); liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
