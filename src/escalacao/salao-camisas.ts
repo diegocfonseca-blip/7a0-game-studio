@@ -88,6 +88,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Leões da Tuf EC": "leoestuf-camisa-v1.webp", // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16, 14/11)
   "Reffatti FC": "reffatti-camisa-v1.webp", // 🎮👑 Reffatti FC (leoreffattig, 15/11)
   "História dos Gigantes": "hgigantes-camisa-v1.webp", // 🧔⚽ História dos Gigantes (will.a.n, 16/11)
+  "Ceará SP Club": "cearasp-camisa-v1.webp", // 👑⚫ Ceará SP Club (lucasnicodemosqq, 19/11)
   "Lavras FC": "lavras-camisa-v1.webp", // 🐆👑 Lavras FC (hugopereirabrito, 16/11)
   "Obelisko FC": "obelisko-camisa-v1.webp", // 👁️👑 Obelisko FC (felipefazzio, 18/11)
   "Duarte FC": "duarte-camisa-v1.webp", // 🧤👑 Duarte FC (luizfelipeduarte212, 18/11)

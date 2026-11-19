@@ -14047,3 +14047,11 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - ✅ O ELENCO dos clubes de FORA é sorteado de novo a cada temporada entre as cartas do clube (quem tem só 22 ou menos fica sempre igual). `oficial.giro` no save: carreira nova = desde a T1; save antigo = a partir da próxima temporada (gravado no fim da temporada, `OFICIAL_CAMPEOES`). Clube brasileiro não muda (tem elenco próprio). Trava em `npm run brasil-oficial`.
 - ℹ️ Champions/Mundial: o representante da Europa é o PSG (o real de 2026) todo ano — o modo não joga a Champions.
 
+
+## 👑⚫ 19/11 — Batismo Ceará SP Club (lucasnicodemosqq) — NO BRANCH, esperando OK pra publicar
+- Pix de batismo (79,90) pago em 18/11 às 21:23 (`esc_mp_pedidos`), plano 🖋 Batismo: tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº96.
+- Várzea, no lugar do bot Barcelona da Vila (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 312×360 30 KB · mascote "O Rei" (nome dado por mim, confirmar; o briefing pedia pantera, mas a arte que veio é o jogador) 219×440 31 KB · manto `#060606`/`#F3F4F4` medidos na camisa + azul `#0863E9` (MANTO_TRI) · camisa na Loja (`cearasp-camisa-v1.webp`).
+- Banco FEITO: `esc_socios` (96, `escudo_time` = Ceará SP Club, coração Flamengo) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
+- Post: `scripts/posts/batismo-ceara-sp-club.png` (dono "Lucas" tirado do e-mail — confirmar).
+- FALTA: deploy na main (só com o OK do Diego).

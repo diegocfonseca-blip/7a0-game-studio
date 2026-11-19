@@ -86,6 +86,7 @@ import dsouzaMascoteImg from './img/dsouza-mascote.webp' // 🐶 dSouza FC (alex
 import leoestufMascoteImg from './img/leoestuf-mascote.webp' // 🦁 Leões da Tuf EC (sergioricardocf16): arte própria do dono, 14/11
 import reffattiMascoteImg from './img/reffatti-mascote.webp' // 🎮 Reffatti FC (leoreffattig): arte própria do dono, 15/11
 import hgigantesMascoteImg from './img/hgigantes-mascote.webp' // 🧔 História dos Gigantes (will.a.n): arte própria do dono, 16/11
+import cearaspMascoteImg from './img/cearasp-mascote.webp' // 👑 Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
 import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteMascoteImg from './img/duarte-mascote.webp' // 🧤 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
@@ -478,6 +479,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // de capotão. Arte do próprio dono. 📏 440×432, 41 KB — altura 176 (sombra do chão tirada). mascote_key = "hgigantes_vovo".
   hgigantes_vovo: (
     <img src={hgigantesMascoteImg} height={176} width={Math.round(176 * 440 / 432)} alt="O Vovô Gigante — História dos Gigantes" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 👑⚫ O REI (mascote do Ceará SP Club — lucasnicodemosqq, 19/11): o jogador de camisa listrada preta e branca, camisa 9, mostrando
+  // os bíceps. Arte do próprio dono. 📏 219×440, 31 KB — altura 176. mascote_key = "cearasp_rei".
+  cearasp_rei: (
+    <img src={cearaspMascoteImg} height={176} width={Math.round(176 * 219 / 440)} alt="O Rei — Ceará SP Club" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐆👑 A PANTERA (mascote do Lavras FC — hugopereirabrito, 16/11): pantera negra de braços cruzados, uniforme preto e dourado
   // com coroa. Arte do próprio dono. 📏 219×440, 27 KB — altura 176 (sombra do chão tirada). mascote_key = "lavras_pantera".
@@ -1426,6 +1432,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'História dos Gigantes FC': 'hgigantes_vovo',
   'História dos Gigantes EC': 'hgigantes_vovo',
   'História dos Gigantes SC': 'hgigantes_vovo',
+  // 👑 o Rei carimba o gol do Ceará SP Club (lucasnicodemosqq, 19/11).
+  'Ceará SP Club': 'cearasp_rei',
+  'Ceara SP Club': 'cearasp_rei',
+  'Ceará SP Club FC': 'cearasp_rei',
+  'Ceará SP Club EC': 'cearasp_rei',
+  'Ceará SP Club SC': 'cearasp_rei',
   // 🐆 a Pantera carimba o gol do Lavras FC (hugopereirabrito, 16/11).
   'Lavras FC': 'lavras_pantera',
   'Lavras': 'lavras_pantera',
@@ -1616,6 +1628,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   dsouza_pitbull: 'O Pitbull', // 🐶 dSouza FC (alexandre12cdm, 28/10)
   reffatti_gamer: 'O Reffatti', // 🎮 Reffatti FC (leoreffattig, 15/11)
   hgigantes_vovo: 'O Vovô Gigante', // 🧔 História dos Gigantes (will.a.n, 16/11)
+  cearasp_rei: 'O Rei', // 👑 Ceará SP Club (lucasnicodemosqq, 19/11)
   lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)
   leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
   obelisko_atormentador: 'O Atormentador', // 👁️ Obelisko FC (felipefazzio, 18/11)
