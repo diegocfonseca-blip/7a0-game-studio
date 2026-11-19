@@ -14055,3 +14055,8 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Banco FEITO: `esc_socios` (96, `escudo_time` = Ceará SP Club, coração Flamengo) · `esc_nomes_batismo` (com e sem acento; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
 - Post: `scripts/posts/batismo-ceara-sp-club.png` (dono "Lucas" tirado do e-mail — confirmar).
 - ✅ Publicado na main em 19/11 (só o batismo; o sorteio dos elencos de fora segue no branch).
+
+## 🌎🏆 19/11 — Copa América + Libertadores com clubes reais nas salas (pedido do Diego) — EM DESENHO
+- Decisões dele: escolha pela ORDEM DA TABELA da liga · o time do leilão SOME (igual Copa do Mundo) · clubes OFICIAIS com escudo oficial (os 36 sul-americanos com 11+ cartas) · Copa América com regra real (16 seleções, 4 grupos, quartas em jogo único).
+- Cartas novas pras 6 seleções que faltam (Bolívia, Venezuela, Canadá, Jamaica, Panamá, Costa Rica): proposta em `docs/copa-america-cartas-propostas.md` (64 cartas). **Elas NÃO entram nos baralhos das salas online** (ordem dele) — só servem pra convocação das seleções.
+- Mockup da escolha do clube: `scripts/mockups/liberta-clubes-390.png` / `-1280.png` (esperando OK).
