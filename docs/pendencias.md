@@ -1,3 +1,10 @@
+## 🏟️ 20/11 — CLUBE NO BRASIL OFICIAL: proposta de organização (mockup `scripts/mockups/clube-oficial-organizado.png`, esperando OK)
+Levantamento: a gestão está espalhada (mapa + lista lateral + painéis + Central; finanças em 4 lugares) e o Oficial ainda mostra
+"SAF e 2º clube"/"segundo clube" (`clube-organizacao.tsx:11`, `clube-mapa-painel.tsx:10/43`), o seletor da SAF diz "Série D atual"
+(PS:13129) e o escritório antigo fala "2.000" (PS:2940). Proposta: aba Clube = estádio/mapa em cima (abre o bairro) + caixa + 6 cartões
+(Dinheiro · Contratos · Estádio e obras · Loja · Agência · SAF com cadeado e o porquê). Mapa vira passeio/jogo 3D; prédios do mapa são
+atalhos pros mesmos cartões. Nada de 2º clube no Oficial.
+
 ## 🧭 20/11 — FLUXO DA CENTRAL: 3 consertos (prints do Diego, carreira Brasiliense) — no branch, esperando "pode publicar"
 - Escolha 2D/3D aparecia no SÁBADO (último dia vazio): no fluxo a semana anda +1 passo (`calFim`) até o domingo do jogo e só aí pergunta.
 - 3D: o "▶ Começar o jogo" ficava ESCONDIDO em cima (a tela rola até o "Voltar pra Central") → agora vem logo embaixo do Voltar; o giro do
