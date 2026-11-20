@@ -14308,3 +14308,13 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Banco: `ls_pregao = 'vice'` quando `game_state.vice` (sala de espera) ou `game_state.viceCity` (partida rolando) — `docs/sql/ls-pregao-vice.sql`, aplicado; salas abertas acertadas na hora.
 - Tela (`lobby.tsx`): `'vice'` vira o selo neon 🌴 VICE CITY e some o selo de lance.
 - Reverter: tirar a 1ª linha do `case` do `ls_pregao` no gatilho `game_rooms_colunas_magras`.
+
+## 20/11 — 3 erros do Futpoint
+- 🛡️ **San Lorenzo cortado**: o SVG do JoseArroyave vem sem viewBox (igual ao São Bernardo) e o lote de 16/11 sobrescreveu o webp bom.
+  Refeito do PNG do FCLOGO (141×160). Os outros 29 escudos do lote conferidos numa folha: todos inteiros.
+- 📜 **Liga Draft, lista de favoritos "travava"**: parava nos 60 primeiros nomes (letra C) sem aviso. Agora puxa de 60 em 60 ao
+  rolar + botão "mostrar mais (N restantes)" (`draft-favoritos.tsx`).
+- 🌎 **Polônia na Copa América** (sala Pós live): a leitura da marca `euroNaLiga` no aparelho de quem escolhe falhou calada e a
+  grade abriu com as seleções da Copa do Mundo. O dono trocou a Polônia pela pior livre (Bolívia) — a Copa jogada estava certa.
+  Agora o portão relê a cada 3s até o banco responder e a grade só abre depois de saber qual copa é (`euroPronto`).
+- ⚠️ `npm run copamundo` tem 2 falhas que já existiam antes (ficha soma a Copa / spoiler) — não mexi.
