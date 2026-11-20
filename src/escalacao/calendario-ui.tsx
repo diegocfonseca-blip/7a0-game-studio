@@ -135,7 +135,7 @@ interface PropsProx {
   /** 26/10: chegou o dia do jogo — o cartão mostra "⚽ Ir pro jogo" (o jogo só começa no toque) */
   irJogo?: () => void
   /** 🧭 19/11 (fluxo novo): no dia do jogo, a Central pergunta COMO ver — 📺 Campo 2D (aba Jogos) ou 🏟️ Campo 3D (estádio do mapa) */
-  escolha?: { d2: () => void; d3: () => void } | null
+  escolha?: { d2: () => void; d3: () => void; rapido?: () => void } | null
   onProximo?: () => void
 }
 const CSS_PROX = `
@@ -182,7 +182,9 @@ export function CalendarioProximo(p: PropsProx) {
           <button className="go" onClick={p.escolha.d2} style={{ flex: 1, background: '#1B7A3D', color: '#fff' }}>{tr('📺 Campo 2D', '📺 2D pitch')}</button>
           <button className="go" onClick={p.escolha.d3} style={{ flex: 1, background: '#7C3AED', color: '#fff' }}>{tr('🏟️ Campo 3D', '🏟️ 3D pitch')}</button>
         </div>
-        <small style={{ display: 'block', textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: '#b9ad8e', marginTop: 6 }}>{tr('2D abre na aba Jogos + Tabela, pronto pro seu OK · 3D abre no estádio do mapa', '2D opens in Matches + Table, ready for your OK · 3D opens in the map stadium')}</small>
+        {/* ⚡ 20/11 (Diego: "deve aparecer também o botão de placar rápido… o placar cinema"): a 3ª forma, também na aba Jogos */}
+        {p.escolha.rapido && <button className="go" onClick={p.escolha.rapido} style={{ width: '100%', marginTop: 8, background: '#FFC400', color: '#0C0C0C' }}>{tr('⚡ Placar rápido', '⚡ Quick scoreboard')}</button>}
+        <small style={{ display: 'block', textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: '#b9ad8e', marginTop: 6 }}>{tr(p.escolha.rapido ? '2D e placar rápido abrem na aba Jogos + Tabela, pronto pro seu OK · 3D abre no estádio do mapa' : '2D abre na aba Jogos + Tabela, pronto pro seu OK · 3D abre no estádio do mapa', p.escolha.rapido ? '2D and quick scoreboard open in Matches + Table, ready for your OK · 3D opens in the map stadium' : '2D opens in Matches + Table, ready for your OK · 3D opens in the map stadium')}</small>
       </div>
         : p.irJogo ? <button className="go" onClick={p.irJogo} style={{ background: '#1B7A3D', color: '#fff' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
         : p.auto ? (!p.semPular && <button className="go" onClick={p.onPular}>{tr('⏩ Pular pro jogo', '⏩ Skip to the match')}</button>)
