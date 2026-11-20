@@ -12,6 +12,13 @@ import { registraMeuBatismo } from './mimos'
 import { getLang } from './lang' // 🌐 NOME_MSG sai no idioma do botão BR/EN
 import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
+// 🛡️ ESCUDO AVULSO PAGO (19/11) — conta → chave em LOGOS_PRONTAS (escudos.tsx). Quem comprou só o escudo
+// (sem batismo/sócio) vê ele no PRÓPRIO clube, pelo e-mail, igual ao escudo de batismo. Os outros jogadores
+// continuam vendo o automático (nome igual a outra conta não pode herdar o escudo de quem pagou).
+export const ESCUDO_AVULSO_CONTAS: Record<string, string> = {
+  'isaaxx2026@gmail.com': 'zz avulso deportivo la puneta', // Deportivo La Puñeta
+}
+
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🦁 Leão da Estradinha (jorgericardo777) — vermelho e branco MEDIDOS na camisa da arte nova (13/10)
@@ -254,7 +261,10 @@ async function fetchMeuSocio() {
   } catch { /* sem rede — fica na reserva do código */ }
   // 🎁 08/09: escudo e mascote do dono passam a seguir o E-MAIL (ver mimos.ts).
   // Só sócio ATIVO leva; deslogou/venceu → limpa, e o clube volta ao automático.
-  registraMeuBatismo(meu?.ativo ? meu.escudoTime : null, meu?.ativo ? meu.mascoteKey : null)
+  let em: string | null = null
+  try { em = (await supabase.auth.getSession()).data.session?.user?.email?.toLowerCase() ?? null } catch { /* sem sessão */ }
+  const avulso = em ? (ESCUDO_AVULSO_CONTAS[em] ?? null) : null
+  registraMeuBatismo(meu?.ativo && meu.escudoTime ? meu.escudoTime : avulso, meu?.ativo ? meu.mascoteKey : null)
   await fetchMeusKits()
   listeners.forEach(fn => fn())
 }
