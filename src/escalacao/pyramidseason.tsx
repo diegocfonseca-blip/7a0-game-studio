@@ -76,6 +76,7 @@ import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './onl
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
+import { classificacaoGruposAoVivo } from './classificacao-grupos'
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00 (mesma conta em toda tela)
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa, clubCanon } from './data'
@@ -8399,17 +8400,7 @@ function ConmebolEspectador({ nome, pages, grupos, prefixo, verdes, rodapeGrupos
   </>
 }
 function TabelaEstadualAoVivo({ pages, ate, nome, grupos, verdes = 2, rodapeGrupos }: { pages: CopaRound[]; ate: number; nome: string; grupos?: { nome: string; times: string[] }[]; /** quantos do grupo pintam de verde (Sula: só o 1º vai direto às oitavas) */ verdes?: number; rodapeGrupos?: string }) {
-  const L = new Map<string, { time: string; you: boolean; j: number; v: number; e: number; d: number; gp: number; gc: number; pts: number }>()
-  const linha = (t: SimTeam) => L.get(t.name) ?? L.set(t.name, { time: t.name, you: t.you, j: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0, pts: 0 }).get(t.name)!
-  for (const p of pages) for (const t of p.ties) { linha(t.a); linha(t.b) }
-  pages.slice(0, ate).filter(p => / · rodada \d+\/\d+$/.test(p.name)).forEach(p => {
-    for (const t of p.ties) {
-      const a = linha(t.a), b = linha(t.b)
-      a.j++; b.j++; a.gp += t.aggA; a.gc += t.aggB; b.gp += t.aggB; b.gc += t.aggA
-      if (t.aggA > t.aggB) { a.v++; a.pts += 3; b.d++ } else if (t.aggA < t.aggB) { b.v++; b.pts += 3; a.d++ } else { a.e++; b.e++; a.pts++; b.pts++ }
-    }
-  })
-  const rows = [...L.values()].sort((x, y) => y.pts - x.pts || y.v - x.v || (y.gp - y.gc) - (x.gp - x.gc) || y.gp - x.gp || x.time.localeCompare(y.time))
+  const { linhas: L, rows } = classificacaoGruposAoVivo(pages, ate)
   const caixa = (titulo: string, lista: typeof rows, rodape?: string) => (
       <div key={titulo} style={{ background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 14px', marginTop: 10 }}>
         <p style={{ ...OSWALD, fontWeight: 800, fontSize: 16, margin: '0 0 6px', textTransform: 'uppercase' }}>{titulo}</p>
