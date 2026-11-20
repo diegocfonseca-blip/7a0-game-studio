@@ -380,7 +380,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared,onWhistle}={
    // idle and turn the body while the ball and match were paused.
    if(lastTime!==null&&Math.abs(lastTime-frame.time)<1e-7&&!frame.official?.finished){
     inspection={full:0,intermediate:0,far:0,hidden:0,tiros:inspection.tiros}
-    for(const a of atores){const p=frame.players.find(p=>p.key===a.key);a.detail=!p||p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++;a.holder.visible=!!p&&p.visible!==false}
+    for(const a of atores){const p=frame.players.find(p=>p.key===a.key);a.detail=!p||p.visible===false?'hidden':camera?playerDetail(camera,{x:p.mx,y:0,z:p.mz},viewportHeight,a.detail):'full';inspection[a.detail]++;a.holder.visible=!!p&&p.visible!==false;if(a.detail!=='hidden'){a.updateFrustumBounds?.();a.lastBoundsAt=frame.time}}
     soleShadows.update(shadowActors);return
    }
    if(lastTime!==null&&frame.time>lastTime&&atores.some(a=>a.rootBreaks.some(c=>c.after>lastTime&&c.after<=frame.time)))frame={...frame,placementReset:true};
@@ -593,7 +593,13 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared,onWhistle}={
    const rollingPoint={...(visualBall??frame.ball.presentation??frame.ball),curl:frame.ball.curl,held:!!held};
    if(!spin||reset||frame.placementReset){spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,rollingPoint);if(frame.ball.rotation)spin.quaternion.fromArray(frame.ball.rotation)}
    visualRotation=spin.step(rollingPoint,dt).toArray();
-   verifyClearanceWarnings(atores,navInfo?.diagnostics);separateContactBodies(atores,navInfo?.diagnostics,{time:frame.time});observeContacts(frame,dt,reset);for(const a of atores)a.updateFrustumBounds?.()
+   verifyClearanceWarnings(atores,navInfo?.diagnostics);separateContactBodies(atores,navInfo?.diagnostics,{time:frame.time});observeContacts(frame,dt,reset);for(const a of atores){
+    // Bones/contact poses still follow EVERY shared football frame. Only the
+    // invisible actor's culling envelope is sampled less often. Refresh before
+    // it re-enters the view, near the ball, and on pause/replay/seek resets.
+    const ball=frame.ball.presentation??frame.ball,nearBall=Math.hypot(a.holder.position.x-ball.x,a.holder.position.z-ball.z)<20;
+    if(firstFrame||reset||frame.placementReset||a.detail!=='hidden'||nearBall||a.keeper||a.tiro||a.reaction||!Number.isFinite(a.lastBoundsAt)||frame.time-a.lastBoundsAt>=.15||frame.time<a.lastBoundsAt){a.updateFrustumBounds?.();a.lastBoundsAt=frame.time;a.lastBoundsRadius=a.mesh?.boundingSphere?.radius}else if(a.mesh?.boundingSphere&&Number.isFinite(a.lastBoundsRadius)){a.mesh.boundingSphere.radius=a.lastBoundsRadius+1}
+   }
   };
  return{
   update(frame,camera,viewportHeight=720){

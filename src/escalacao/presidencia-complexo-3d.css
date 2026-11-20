@@ -145,3 +145,12 @@
 /* Controles só entram quando o primeiro quadro está pronto. O erro conserva os atalhos de saída. */
 .pc3-review[data-map-ready=false]:not(.pc3-expanded) .pc3-topbar,.pc3-review[data-map-ready=false] .pc3-primary,.pc3-review[data-map-ready=false] .pc3-navigation,.pc3-review[data-map-ready=false] .pc3-help{display:none}
 .pc3-review[data-map-ready=false].pc3-expanded .pc3-topbar{justify-content:flex-end}
+
+/* Zoom remains available inside the pitch; city/rotation actions are omitted. */
+.pc3-review[data-field-only=true] .pc3-navigation{display:flex}
+
+.pc3-seat-status{position:absolute;left:12px;right:12px;bottom:12px;z-index:10;margin:0;padding:8px 10px;background:#F4ECD6;color:#0C0C0C;border:2px solid #0C0C0C;border-radius:9px;font-size:13px}
+
+/* A apresentação termina antes de liberar os controles e o apito. */
+.pc3-review[data-match-intro=true] :is(.pc3-primary,.pc3-navigation,.pc3-help,.pc3-settings){visibility:hidden;pointer-events:none}
+.pc3-intro-status{position:absolute;bottom:12px;left:12px;z-index:10;margin:0;padding:7px 11px;border:2px solid #0C0C0C;border-radius:9px;background:#F4ECD6;color:#0C0C0C;font-family:Oswald,"Arial Narrow",sans-serif;font-weight:700;font-size:13px}

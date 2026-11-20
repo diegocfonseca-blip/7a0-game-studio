@@ -89,7 +89,7 @@ export function cadeirasDaCasa(seats: readonly AssentoComplexo[], ocupadas: Read
   return casa.sort((a, b) => Math.abs(a.row - (topo - 1)) - Math.abs(b.row - (topo - 1)) || Math.abs(a.position.x) - Math.abs(b.position.x)).slice(0, n)
 }
 
-export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly AssentoComplexo[]; ocupadas: () => ReadonlySet<string>; cor?: () => string | undefined; obstaculos?: () => readonly ObstaculoFanZone[]; limites?: LimitesFanZone;piso?:(x:number,z:number,previous:number)=>number|null;destinos?:()=>readonly DestinoPasseio[];onInteragir?:(id:string)=>void; onFase: (f: FaseFanZone, extra?: { cadeiras?: CadeiraFanZone[]; escolhida?: string }) => void }) {
+export function criarFanZone(scene: THREE.Scene, opts: { somenteEstadio?:()=>boolean; seats: () => readonly AssentoComplexo[]; ocupadas: () => ReadonlySet<string>; cor?: () => string | undefined; obstaculos?: () => readonly ObstaculoFanZone[]; limites?: LimitesFanZone;piso?:(x:number,z:number,previous:number)=>number|null;destinos?:()=>readonly DestinoPasseio[];onInteragir?:(id:string)=>void; onFase: (f: FaseFanZone, extra?: { cadeiras?: CadeiraFanZone[]; escolhida?: string }) => void }) {
   let fase: FaseFanZone = 'fora'
   const pos = new THREE.Vector3(INICIO.x, CHAO, INICIO.z)
   let nObst = 0, comemoraIni = -1, corAtual = '', bate: (x: number, z: number,feet?:number) => boolean = () => false,obstaculos:readonly ObstaculoFanZone[]=[],destino='portao'
@@ -128,6 +128,7 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     window.addEventListener('keydown', down); window.addEventListener('keyup', up)
     window.addEventListener('blur', parar); document.addEventListener('visibilitychange', visibilidade)
     muda('andando')
+    if(opts.somenteEstadio?.()&&!entrar())desligar()
   }
   function desligar() {
     if (fase === 'fora') return
@@ -168,6 +169,7 @@ export function criarFanZone(scene: THREE.Scene, opts: { seats: () => readonly A
     return true
   }
   function levantar() {
+    if(opts.somenteEstadio?.()){if(!entrar())desligar();return}
     seatedAlvo = 0; seated = 0; comemoraIni = -1
     const g = STADIUM_HOME_GATE
     pos.set(g.approach.x, CHAO, g.approach.z - 2); heading = Math.PI; camYaw = Math.PI
