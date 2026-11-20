@@ -14319,7 +14319,6 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Escudo 244×360 28 KB · mascote "O Texugo Rei" (Diego aprovou) 236×440 39 KB · manto `#F8F3F0`/`#0A0703` medidos na camisa + dourado `#F1AD10` (MANTO_TRI) · camisa na Loja (`imperio-camisa-v1.webp`).
 - Banco FEITO: `esc_socios` (97, `escudo_time` = Império FC, coração Atlético-MG) · `esc_nomes_batismo` (Império/Imperio/Imperiofc; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
 - Post: `scripts/posts/batismo-imperio-fc.png` (dono "Leo", Diego aprovou).
-=======
 ## 20/11 — 3 erros do Futpoint
 - 🛡️ **San Lorenzo cortado**: o SVG do JoseArroyave vem sem viewBox (igual ao São Bernardo) e o lote de 16/11 sobrescreveu o webp bom.
   Refeito do PNG do FCLOGO (141×160). Os outros 29 escudos do lote conferidos numa folha: todos inteiros.
