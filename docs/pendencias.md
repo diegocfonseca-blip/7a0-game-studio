@@ -1,3 +1,7 @@
+## 🏆 20/11 — Queda na carreira: inscrições continentais e tabela (correção local, não publicada)
+
+Causa reproduzida: campeão estrangeiro deixava 46 inscritos na Libertadores; completar com eliminado retirava um transferido da Sul-Americana, gerando grupos incompletos e uma final sem adversário. Diego rejeitou reintegrar eliminado e aprovou ajustar inscrições com clubes/elencos reais. Implementação, compatibilidade e fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Temporadas antigas completas conservam seus confrontos; inscrições já incompletas são reparadas. Não houve acesso a saves privados nem publicação.
+
 ## 🌴 20/11 — "amigo não viu as cartas de golpe" (sala R3K6EY): o banco tinha 5 cartas pra cada um dos 4; a tela do amigo era a do pregão
 comum = celular com a versão velha aberta (o deploy não recarrega ninguém). Propus aviso de "jogo desatualizado" na sala de espera;
 Diego: *"N precisa"*. Não repropor; o caminho é o próprio jogador recarregar a página.

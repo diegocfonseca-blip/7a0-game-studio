@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
 import {calcularQualidadeComplexo, aplicarQualidadeTexturasComplexo} from '../src/escalacao/presidencia-complexo-qualidade.ts'
+import {ajustesNivelMapa} from '../src/escalacao/presidencia-mapa-qualidade.ts'
 
 const cases = [
   {name:'mobile-retina',width:390,height:844,devicePixelRatio:3,coarsePointer:true,maxTextureSize:4096,maxAnisotropy:16},
@@ -24,7 +25,12 @@ for(let i=0;i<cases.length;i++){
   if(input.maxAnisotropy>0)assert(output.anisotropy<=input.maxAnisotropy)
 }
 assert.equal(results[0].pixelRatio,1.5,'mobile starts within an interactive GPU budget')
-assert.equal(results[0].maxFPS,30);assert.equal(results[3].maxFPS,60)
+assert.equal(results[0].maxFPS,60);assert.equal(results[3].maxFPS,60)
+const capablePhone=calcularQualidadeComplexo({width:412,height:915,devicePixelRatio:2.625,coarsePointer:true,deviceMemory:8})
+for(const [level,expected] of [['leve',30],['padrao',45],['alta',60]]){
+  assert.equal(Math.min(capablePhone.maxFPS,ajustesNivelMapa(level).maxFPS),expected,`capable touch device honors ${level}`)
+  assert.equal(Math.min(results[2].maxFPS,ajustesNivelMapa(level).maxFPS),30,'low-memory safety cap remains in every level')
+}
 assert.equal(results[1].pixelRatio,results[0].pixelRatio,'rotation preserves density for equal area')
 assert.equal(results[2].pixelRatio,1.25);assert.equal(results[2].anisotropy,2)
 assert(results[3].pixelRatio>1,'full HD must not be downsampled below CSS resolution')

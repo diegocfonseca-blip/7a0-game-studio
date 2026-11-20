@@ -1,33 +1,12 @@
 // 🌎 SUL-AMERICANA DO BRASIL OFICIAL — os clubes de fora da Sul-Americana 2026 (pesquisa: docs/brasil-oficial/competicoes-reais.md,
 // fonte https://pt.wikipedia.org/wiki/Copa_Sul-Americana_de_2026). O nome é o do baralho (chave das cartas e do escudo); onde o nome
 // do clube bate com outro já existente, leva o país junto (Racing-URU, Nacional-PAR, Libertad-EQU).
-// O torneio em si (motor e telas) ainda vai entrar; por enquanto a lista serve pra cartas e escudos.
-import type { EntradaConmebol } from './libertadores-oficial'
-
-export type EntradaSula = Omit<EntradaConmebol, 'fase'> & { fase: 'grupos' | 'fase1' }
-export const ESTRANGEIROS_SULA_2026: readonly EntradaSula[] = [
-  // Argentina (direto nos grupos)
-  { nome: 'River Plate', pais: 'ARG', fase: 'grupos' }, { nome: 'Racing', pais: 'ARG', fase: 'grupos' },
-  { nome: 'Deportivo Riestra', pais: 'ARG', fase: 'grupos' }, { nome: 'San Lorenzo', pais: 'ARG', fase: 'grupos' },
-  { nome: 'Tigre', pais: 'ARG', fase: 'grupos' }, { nome: 'Barracas Central', pais: 'ARG', fase: 'grupos' },
-  // 1ª fase (jogo único entre clubes do mesmo país)
-  { nome: 'San Antonio Bulo Bulo', pais: 'BOL', fase: 'fase1' }, { nome: 'Blooming', pais: 'BOL', fase: 'fase1' },
-  { nome: 'Independiente Petrolero', pais: 'BOL', fase: 'fase1' }, { nome: 'Guabirá', pais: 'BOL', fase: 'fase1' },
-  { nome: 'U. de Chile', pais: 'CHI', fase: 'fase1' }, { nome: 'Audax Italiano', pais: 'CHI', fase: 'fase1' },
-  { nome: 'Palestino', pais: 'CHI', fase: 'fase1' }, { nome: 'Cobresal', pais: 'CHI', fase: 'fase1' },
-  { nome: 'Atlético Nacional', pais: 'COL', fase: 'fase1' }, { nome: 'América de Cali', pais: 'COL', fase: 'fase1' },
-  { nome: 'Atlético Bucaramanga', pais: 'COL', fase: 'fase1' }, { nome: 'Millonarios', pais: 'COL', fase: 'fase1' },
-  { nome: 'Orense', pais: 'EQU', fase: 'fase1' }, { nome: 'Libertad-EQU', pais: 'EQU', fase: 'fase1' },
-  { nome: 'Macará', pais: 'EQU', fase: 'fase1' }, { nome: 'Deportivo Cuenca', pais: 'EQU', fase: 'fase1' },
-  { nome: 'Sportivo Trinidense', pais: 'PAR', fase: 'fase1' }, { nome: 'Nacional-PAR', pais: 'PAR', fase: 'fase1' },
-  { nome: 'Recoleta', pais: 'PAR', fase: 'fase1' }, { nome: 'Olimpia', pais: 'PAR', fase: 'fase1' },
-  { nome: 'Alianza Atlético', pais: 'PER', fase: 'fase1' }, { nome: 'Melgar', pais: 'PER', fase: 'fase1' },
-  { nome: 'Deportivo Garcilaso', pais: 'PER', fase: 'fase1' }, { nome: 'Cienciano', pais: 'PER', fase: 'fase1' },
-  { nome: 'Defensor Sporting', pais: 'URU', fase: 'fase1' }, { nome: 'Boston River', pais: 'URU', fase: 'fase1' },
-  { nome: 'Racing-URU', pais: 'URU', fase: 'fase1' }, { nome: 'Montevideo City Torque', pais: 'URU', fase: 'fase1' },
-  { nome: 'Academia Puerto Cabello', pais: 'VEN', fase: 'fase1' }, { nome: 'Monagas', pais: 'VEN', fase: 'fase1' },
-  { nome: 'Caracas', pais: 'VEN', fase: 'fase1' }, { nome: 'Metropolitanos', pais: 'VEN', fase: 'fase1' },
-]
+// Motor, telas e inscrições partem dessa referência; cotas das edições seguintes em conmebol-inscricoes.ts.
+export { ESTRANGEIROS_SULA_2026 } from './conmebol-clubes'
+export type { EntradaSula } from './conmebol-clubes'
+import { ESTRANGEIROS_SULA_2026 } from './conmebol-clubes'
+import { estrangeirosSulAmericana } from './conmebol-inscricoes'
+import { RESERVAS_CONMEBOL } from './conmebol-reservas'
 
 // ── o torneio (formato real de 2026) ────────────────────────────────────────────────────────────────────────────────────
 import { type Joga, type Penaltis, type Linha, type Jogo, type Confronto, type CtxJogo, ordena, embaralha, rngDe, turnoEReturno, idaEVolta } from './campeonato-oficial'
@@ -45,11 +24,13 @@ export type VagasSula = { grupos: string[]; fase1: string[]; pais: Record<string
  * do ano (um estrangeiro que está nas duas listas fica só na Libertadores e a Sul-Americana usa os outros).
  */
 export function vagasSula(serieA: string[] | null, naLiberta: readonly string[]): VagasSula {
-  const pais: Record<string, string> = {}
-  for (const e of ESTRANGEIROS_SULA_2026) pais[e.nome] = e.pais
-  const br = serieA ? serieA.filter(n => !naLiberta.includes(n)).slice(0, 6) : BRASILEIROS_SULA_2026
+  // Conserva os mesmos metadados do sorteio das edições que já eram válidas;
+  // esta correção trata das inscrições, sem refazer suas regras de sorteio.
+  const pais: Record<string, string> = Object.fromEntries([...ESTRANGEIROS_SULA_2026, ...(serieA ? RESERVAS_CONMEBOL : [])].map(c => [c.nome, c.pais]))
+  const br = serieA ? [...new Set(serieA)].filter(n => !naLiberta.includes(n)).slice(0, 6) : BRASILEIROS_SULA_2026
   for (const n of br) pais[n] = 'BRA'
-  const est = ESTRANGEIROS_SULA_2026.filter(e => !naLiberta.includes(e.nome))
+  const est = serieA ? estrangeirosSulAmericana(naLiberta) : ESTRANGEIROS_SULA_2026
+  for (const c of est) pais[c.nome] = c.pais
   return { grupos: [...br, ...est.filter(e => e.fase === 'grupos').map(e => e.nome)], fase1: est.filter(e => e.fase === 'fase1').map(e => e.nome), pais }
 }
 
@@ -74,6 +55,12 @@ function unico(casa: string, fora: string, joga: Joga, pen: Penaltis, ctx: CtxJo
  *    campanha); final em JOGO ÚNICO. Empate no agregado = pênaltis.
  */
 export function simulaSulAmericana(v: VagasSula, daLiberta: { grupos: string[]; playoff: string[] }, seed: number, joga: Joga, pen: Penaltis, forca: (t: string) => number): ResultadoSula {
+  const inscritos = [...v.grupos, ...v.fase1, ...daLiberta.grupos, ...daLiberta.playoff]
+  if (v.grupos.length !== 12 || v.fase1.length !== 32 || daLiberta.grupos.length !== 4 || daLiberta.playoff.length !== 8 ||
+      inscritos.some(n => typeof n !== 'string' || !n.trim()) || new Set(inscritos).size !== 56 ||
+      ['BOL', 'CHI', 'COL', 'EQU', 'PAR', 'PER', 'URU', 'VEN'].some(p => v.fase1.filter(n => v.pais[n] === p).length !== 4)) {
+    throw new Error('Inscrição incompleta da Sul-Americana: confira as vagas nacionais e os classificados da Libertadores antes do sorteio.')
+  }
   const r = rngDe(seed)
   const fases: FaseEstadual[] = [], jogos: Jogo[] = []
   const pais: Record<string, string> = { ...v.pais }
