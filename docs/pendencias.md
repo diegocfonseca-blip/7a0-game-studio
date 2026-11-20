@@ -236,7 +236,7 @@
 - Proposta minha (sem resposta ainda): um endereço por jogo, mesma conta nos dois, planos futebol/basquete/combo.
 - Diego gostou do seletor ⚽ FUTEBOL / 🏀 BASQUETE da home e quer ele nas SALAS ABERTAS. Mockup:
   `scripts/mockups/salas-abertas-seletor.png` (seletor logo abaixo do topo, com o nº de salas abertas de cada jogo; tocar troca o jogo e a
-  marca do topo). Esperando OK.
+  marca do topo). Diego (20/11): *"gostei, mas não faça ainda"* — APROVADO o visual, NÃO construir até ele mandar.
 - ⏸️ Publicação do branch (EUA Oficial etc.) ainda NÃO feita: perguntei se pode ir junto das 2 mudanças do futebol (Partida Rápida nova,
   caixa em etiqueta no Clube) e ele mudou de assunto.
 
