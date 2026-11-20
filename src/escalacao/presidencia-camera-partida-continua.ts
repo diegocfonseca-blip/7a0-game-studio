@@ -9,7 +9,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  let lens:number|undefined,lensMode:CameraPartidaContinua|undefined,lensCloseSince:number|undefined
  let saved:{position:Vector3;target:Vector3;fov:number}|undefined,framing:{x:number;y:number;visible:boolean}|undefined
  let forcado:CameraPartidaContinua|undefined,distGuardada:number|undefined,corte=false
- let fixedZoom=1,controlsBeforeFixed:boolean|undefined
+ let fixedZoom=1,controlsBeforeFixed:boolean|undefined,pitchOnly=false
  // 🏟️ 19/11 (Diego: *"uma visualização de giro no estádio até chegar o momento de enquadrar o campo"*): ABERTURA de transmissão.
  // A câmera nasce alta, longe, girando em volta do estádio, e desce em espiral até a câmera de TV. Só mexe na câmera (nunca no jogo).
  let abertura:{ini:number;dur:number}|undefined
@@ -18,7 +18,8 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  const enterFree=(restore=true)=>{restoreControls();mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
  return {
   setMode(next:CameraPartidaContinua){if(next===mode)return;restoreControls();if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;if((next==='fixed'||next==='field2d')){controlsBeforeFixed=controls.enabled??true;controls.enabled=false}returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
-  zoomFixed(factor:number){if(mode!=='fixed'&&mode!=='field2d'||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,mode==='field2d'?.48:.7,1.6);moving=true;return true},
+  setPitchOnly(value:boolean){if(value&&!pitchOnly){corte=true;abertura=undefined;moving=true}pitchOnly=value;if(value)fixedZoom=Math.min(1,fixedZoom)},
+  zoomFixed(factor:number){if((mode!=='fixed'&&mode!=='field2d'&&(!pitchOnly||mode==='free'))||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,mode==='field2d'?.48:.7,pitchOnly?1:1.6);moving=true;return true},
   explore(){abertura=undefined;enterFree(false)},
   abrir(now:number,dur=ABERTURA_MS){abertura={ini:now,dur};moving=true},
   get abrindo(){return !!abertura},
@@ -47,7 +48,7 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
     else if(fit.distance<distance*.86){zoomInSince??=now;if(now-zoomInSince>550)distance=MathUtils.lerp(distance,fit.distance,1-Math.exp(-dt/1.1));zoomPending=fit.distance<distance*.86}
     else zoomInSince=undefined
    }
-   let fov=fit?.fov??saved!.fov
+   let fov=(fit?.fov??saved!.fov)*(pitchOnly&&mode!=='fixed'&&mode!=='field2d'?fixedZoom:1)
    if(fit&&(modo==='broadcast'||modo==='tele'||modo==='tv')){
     if(lens===undefined||lensMode!==modo||corte){lens=fov;lensCloseSince=undefined}
     else if(fov>lens+.01){lens=fov;lensCloseSince=undefined}

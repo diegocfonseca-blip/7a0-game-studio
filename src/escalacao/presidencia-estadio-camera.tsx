@@ -1,3 +1,4 @@
+import {mesmaSessaoDeMapa} from './presidencia-partida-foco'
 import {MapaPreparando} from './presidencia-mapa-preparando'
 import {etapasMuseu} from './museu-clube'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
@@ -33,9 +34,13 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  const [walkingKey,setWalkingKey]=useState<string|null>(null),walking=walkingKey===viewKey
  const handleWalk=useCallback((active:boolean)=>setWalkingKey(active?viewKey:null),[viewKey])
  const match=usePartidaNoMapa(matchId,homeClubId,!!career),t=useT()
+ const focusSession=useRef<{key:string;day?:number}|null>(null)
+ const focusKey=career?.key??'',focusDay=career?.cidade?.dia??career?.state.round
  const account=mapaEstadioDisponivel(usePresidentPreview()),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
  const replay=useReplay3D(career?.replayMatch,account)
  const replayFrame=replay.frame
+ if(match||replayFrame)focusSession.current={key:focusKey,day:focusDay}
+ else if(!mesmaSessaoDeMapa(focusSession.current,focusKey,focusDay))focusSession.current=null
  const watching=useVistaCampo<HTMLElement>(account)
  const accountPresident=usePresidenteConta()
  const mapa3d=useMapa3D() // 🏟️ 19/11: o estádio do mapa mostra o jogo em 3D (só conta do Diego por enquanto); a aba Jogos segue no 2D
@@ -64,7 +69,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
   {replayFrame&&career?.replayMatch&&<FonteReplayCampo2D frame={replayFrame} source={career.replayMatch}/>}
   {/* 📺 25/10: o ritmo e o placar moram DENTRO do mapa (MapaHud); os créditos foram pro pé */}
   <Suspense fallback={<MapaPreparando moldura/>}>
-   <Complexo museumStage={career?etapasMuseu(career.state.careerMuseums?.[career.mgrId]):undefined} key={mapa3d?'m3d':'m2d'} matchPresentation={mapa3d?'3d':'2d'} {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={handleReady} onWalkChange={handleWalk} hud={<MapaHud match={replayFrame??(retained&&{...retained,viewerClubId:career!.mgrId})} torcedores={replayFrame?0:torcedores} replay={!!replayFrame}/>}/>
+   <Complexo focusSession={!!focusSession.current} museumStage={career?etapasMuseu(career.state.careerMuseums?.[career.mgrId]):undefined} key={mapa3d?'m3d':'m2d'} matchPresentation={mapa3d?'3d':'2d'} {...adapted.complexo} onOpenClub={onOpenClub} match={displayMatch?{...displayMatch,viewerClubId:career!.mgrId}:undefined} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={handleReady} onWalkChange={handleWalk} hud={<MapaHud match={replayFrame??(retained&&{...retained,viewerClubId:career!.mgrId})} torcedores={replayFrame?0:torcedores} replay={!!replayFrame}/>}/>
   </Suspense>
   {career?.replayMatch&&(mapReady||replay.active)&&<div data-private-match-review style={{margin:'10px 0'}}>
    {mapReady&&<button type="button" onClick={replay.start}>{t('REVER JOGO SALVO NO MAPA','REPLAY SAVED MATCH ON MAP')}</button>}
