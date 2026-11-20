@@ -160,7 +160,7 @@ export type CentralProps = {
   /** 📅 25/10 (Diego: *"a Central é a casa"*): com o calendário, nos dias vazios a semana + o próximo jogo ficam NO LUGAR do camarote */
   semana?: React.ReactNode
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
-  botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void; alt?: { label: string; onClick: () => void } }
+  botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void; alt?: { label: string; onClick: () => void }; alt2?: { label: string; onClick: () => void } }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
   /** 🛒 18/11: com a aba Mercado (Brasil Oficial) o cartão 💸 leva pra ela em vez do extrato */
   onMercado?: () => void
@@ -355,6 +355,8 @@ export function CentralCarreira(p: CentralProps) {
                 style={{ ...OSW, width: '100%', background: p.botao.disabled ? '#5a5a5a' : G_OURO, color: p.botao.disabled ? '#ddd' : INK, border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 19, letterSpacing: '.04em', cursor: p.botao.disabled ? 'default' : 'pointer', marginTop: frase ? 0 : 10 }}>{p.botao.label}</button>
               {p.botao.alt && <button type="button" onClick={p.botao.alt.onClick}
                 style={{ ...OSW, width: '100%', marginTop: 8, background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 16, fontWeight: 900, cursor: 'pointer' }}>{p.botao.alt.label}</button>}
+              {p.botao.alt2 && <button type="button" onClick={p.botao.alt2.onClick}
+                style={{ ...OSW, width: '100%', marginTop: 8, background: '#FFC400', color: INK, border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 16, fontWeight: 900, cursor: 'pointer' }}>{p.botao.alt2.label}</button>}
               {p.botao.sub && <small style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 800, opacity: .6, marginTop: 6 }}>{p.botao.sub}</small>}
             </div>
           </div>}

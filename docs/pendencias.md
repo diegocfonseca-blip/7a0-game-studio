@@ -1,3 +1,10 @@
+## 🧭 20/11 — FLUXO DA CENTRAL: 3 consertos (prints do Diego, carreira Brasiliense) — no branch, esperando "pode publicar"
+- Escolha 2D/3D aparecia no SÁBADO (último dia vazio): no fluxo a semana anda +1 passo (`calFim`) até o domingo do jogo e só aí pergunta.
+- 3D: o "▶ Começar o jogo" ficava ESCONDIDO em cima (a tela rola até o "Voltar pra Central") → agora vem logo embaixo do Voltar; o giro do
+  estádio (`abertura`) roda na CHEGADA (liga, estreia, copa) e o ▶ só pede a câmera de TV.
+- 2D: "Começar o jogo" mudo — o automático exigia `roundReady` da rodada anterior, que podia não estar marcado depois da Central; agora a
+  rodada já apitada pelo calendário (`calApitado`) também vale. ⚠️ Não reproduzi no navegador: conferir com o Diego.
+
 ## 🔊✅ 19/11 — SONS NOVOS FEITOS (Diego: *"pode fazer tudo"*) — no branch, esperando ordem de publicar
 Todos sintetizados (0 KB) em `sound.ts`, no mesmo mudo. Onde cada um toca:
 - 🔨 pregão aberto/Vice: martelo SÓ pra quem arrematou (era pra sala toda) · 😱 `playCoberto` pra quem perdeu a liderança · 🔔 `playDouLhe` nos 3 últimos s (só com lance na mesa).
