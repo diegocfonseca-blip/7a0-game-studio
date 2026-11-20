@@ -7,7 +7,7 @@ ARQS = ['docs/brasil-oficial/cartas-serie-a.md', 'docs/brasil-oficial/cartas-ser
 # lotes da Série D / estaduais / Copa: o cabeçalho da seção É o nome do clube na lista mestra (brasil-oficial-clubes.ts)
 # 🏆 clubes estrangeiros da Libertadores: o cabeçalho É o nome (o mesmo de ESTRANGEIROS_LIBERTA_2026)
 CONMEBOL = set()
-for _f in ('src/escalacao/libertadores-oficial.ts', 'src/escalacao/sul-americana-oficial.ts'):
+for _f in ('src/escalacao/conmebol-clubes.ts',):
   _t = open(_f, encoding='utf-8').read(); CONMEBOL |= set(re.findall(r"nome: '([^']+)', pais:", _t)) | set(re.findall(r'nome: "([^"]+)", pais:', _t))
 # 🌐 os de fora da Intercontinental 2026 (o PSG já tem cartas de sobra em data.ts)
 INTER = {'Toluca', 'Mamelodi Sundowns', 'Al-Ahli', 'Auckland FC'}

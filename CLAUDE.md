@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## 🏆 Inscrições continentais da carreira (20/11/2026)
+
+Diego aprovou corrigir vagas ANTES das copas e usar clubes/elencos reais. **Não reintegrar eliminado à mesma Libertadores para fechar grupos.** A regra antiga de 46 clubes + melhor eliminado foi retirada. Inscrições: 47 na Libertadores; 44 próprios na Sul-Americana + transferências regulamentares. Preservar edição antiga completa com `oficial.vagasDesde`; reparar apenas a inscrição já incompleta e aplicar a nova distribuição na próxima temporada válida. Ligas estrangeiras continuam com referência documentada, não simuladas. Detalhes/fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Elencos de cobertura não entram no baralho comprável/online. Esta correção ainda precisa de ordem explícita para publicar.
+
 ## ⚠️ Regras de trabalho (o Diego exige isso)
 1. **Nunca quebrar o futebol.** Ele está AO VIVO. Mudança arriscada = commit
    isolado e revertível. Na dúvida, perguntar antes.

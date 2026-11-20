@@ -8419,7 +8419,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
 function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const meu = clubeOficial(nome)
   if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C' && meu.div !== 'D')) return false // só-estadual não dá pra escolher (regra do Diego, 15/11)
-  s.oficial = { clube: meu.nome, desde: 1, giro: 1 } // 🎲 19/11: carreira nova já nasce com o elenco dos clubes de fora sorteado todo ano
+  s.oficial = { clube: meu.nome, desde: 1, giro: 1, vagasDesde: 1 } // carreira nova já usa inscrições continentais completas
   s.oficialEstaduais = undefined // 🏟️ estaduais são desta carreira
   s.oficialCampeoes = undefined
   s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
@@ -12833,6 +12833,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes do seasonNo++/placements
       s.seasonNo++
+      if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
       iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // campanha da temporada encerrada; o histórico permanece
       s.careerPlacements = action.placements
@@ -12934,6 +12935,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) voltaCriaSeSobrou(s, m, pos)
       }
       s.seasonNo++
+      if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
       iniciarCriteriosDaTemporada(s)
       s.careerInternational = null // libera o save da campanha encerrada; preserva careerInternationalHistory
       s.round = 0; s.champion = null
@@ -13568,6 +13570,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
         s.fixtures = calendarioDaLiga(s)
         s.seasonNo++
+        if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
         iniciarCriteriosDaTemporada(s)
         s.screen = 'season'
         return s
@@ -13583,6 +13586,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.submitted = []; s.pendingEnvelopes = {}
       s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
       s.seasonNo++
+      if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
       iniciarCriteriosDaTemporada(s)
       s.screen = 'auction'
       startAuctionPhase(s, false)

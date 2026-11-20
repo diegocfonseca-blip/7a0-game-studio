@@ -77,6 +77,8 @@ import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLe
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
 import { classificacaoGruposAoVivo } from './classificacao-grupos'
+import { RESERVAS_CONMEBOL } from './conmebol-reservas'
+import { inscricoesConmebolDaTemporada } from './conmebol-temporada'
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00 (mesma conta em toda tela)
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa, clubCanon } from './data'
@@ -90,15 +92,15 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, precoPrep, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
-import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
+import { baralhoOficial, semBaseEscondida, elencoReservaOficial } from './baralho-oficial-carga' // 🇧🇷 Brasil Oficial (15/11): cartas só deste modo (pedaço separado)
 import { clubeOficial, cartasDoClube, sorteiaElenco, CLUBES_BR_OUTROS, CLUBES_BR_TODOS, MINIMO_TIME, type ClubeOficial } from './brasil-oficial'
 import { CLUBES_MESTRA } from './brasil-oficial-clubes'
 const clubesSemDivisao = () => CLUBES_BR_OUTROS.filter(c => c.div === 'E').map(c => c.nome)
 import { turnoUnico, turnoEReturno, type Joga, type Penaltis } from './campeonato-oficial'
 import { simulaEstadual, NOME_ESTADUAL, ESTADUAIS, type ResultadoEstadual } from './estaduais'
-import { ESTRANGEIROS_SULA_2026, vagasSula, simulaSulAmericana, NOME_SULA, DATAS_SULA, type VagasSula, type ResultadoSula } from './sul-americana-oficial'
+import { ESTRANGEIROS_SULA_2026, simulaSulAmericana, NOME_SULA, DATAS_SULA, type VagasSula, type ResultadoSula } from './sul-americana-oficial'
 import { simulaIntercontinental, europaDaTemporada, INTERCONTINENTAL_2026, CLUBES_INTERCONTINENTAL, NOME_INTERCONTINENTAL, type ResultadoIntercontinental } from './intercontinental-oficial'
-import { simulaLibertadores, vagasLiberta, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
+import { simulaLibertadores, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
 import { useEsc, divOficialDe, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
@@ -1949,9 +1951,13 @@ export function fabricaTimesOficiais(world: Record<Div, SimTeam[]>, seed: number
     const t = todos.get(nome)
     if (t) return t
     // 🌎 clube estrangeiro (Libertadores): o elenco sai das cartas com o nome dele no baralho, igual ao clube brasileiro
-    const br = clubeOficial(nome), cl = br ?? (([...ESTRANGEIROS_LIBERTA_2026, ...ESTRANGEIROS_SULA_2026].some(e => e.nome === nome) || CLUBES_INTERCONTINENTAL.includes(nome)) ? { nome } as ClubeOficial : null)
+    const br = clubeOficial(nome), cl = br ?? (([...ESTRANGEIROS_LIBERTA_2026, ...ESTRANGEIROS_SULA_2026, ...RESERVAS_CONMEBOL].some(e => e.nome === nome) || CLUBES_INTERCONTINENTAL.includes(nome)) ? { nome } as ClubeOficial : null)
     if (!cl) return null
-    const cartas = cartasDoClube(cl, cat)
+    // O cadastro de cobertura fica só neste elenco: não injeta novas versões
+    // compráveis de atletas no baralho, pregão, mercado ou salas online.
+    const existentes = cartasDoClube(cl, cat)
+    const vistas = new Set(existentes.map(x => `${x.carta.name}|${x.carta.club}|${x.carta.year}`))
+    const cartas = [...existentes, ...elencoReservaOficial(nome).filter(c => !vistas.has(`${c.name}|${c.club}|${c.year}`)).map(carta => ({ pos: carta.pos, carta: { ...carta, id: '' } }))]
     if (!br && (Object.keys(MINIMO_TIME) as Sector[]).some(p => cartas.filter(x => x.pos === p).length < MINIMO_TIME[p])) return null
     const squad = sorteiaElenco(cartas, semente(!br && giro ? `${cl.nome}|T${giro}` : cl.nome)).elenco.map((x, i) => ({ ...x.carta, pos: x.pos, id: `of-${x.pos}-${i}-${semente(nome) % 100000}` })) as unknown as PoolCard[]
     const novo = { t: { name: nome, you: false, human: false, rival: false, dorm: false, backstop: false, teamId: -1, squad, xi: bestXI(squad), pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 } as SimTeam, div: 'V' as Div }
@@ -8399,7 +8405,7 @@ function ConmebolEspectador({ nome, pages, grupos, prefixo, verdes, rodapeGrupos
     {[...pages].reverse().filter(r => !r.ties[0]?.liga).map((r, i) => <details className="ll29-history" key={r.name} open={i === 0}><summary>{r.name.slice(prefixo.length).toUpperCase()} · {tr('RESULTADOS', 'RESULTS')}</summary><CopaMatchList ties={r.ties} pos={9999} colors={colors} safName={safName} title={r.name.slice(prefixo.length)}/></details>)}
   </>
 }
-function TabelaEstadualAoVivo({ pages, ate, nome, grupos, verdes = 2, rodapeGrupos }: { pages: CopaRound[]; ate: number; nome: string; grupos?: { nome: string; times: string[] }[]; /** quantos do grupo pintam de verde (Sula: só o 1º vai direto às oitavas) */ verdes?: number; rodapeGrupos?: string }) {
+export function TabelaEstadualAoVivo({ pages, ate, nome, grupos, verdes = 2, rodapeGrupos }: { pages: CopaRound[]; ate: number; nome: string; grupos?: { nome: string; times: string[] }[]; /** quantos do grupo pintam de verde (Sula: só o 1º vai direto às oitavas) */ verdes?: number; rodapeGrupos?: string }) {
   const { linhas: L, rows } = classificacaoGruposAoVivo(pages, ate)
   const caixa = (titulo: string, lista: typeof rows, rodape?: string) => (
       <div key={titulo} style={{ background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 14px', marginTop: 10 }}>
@@ -10293,13 +10299,14 @@ export function PyramidSeasonScreen() {
   // do modo) e o torneio inteiro no formato real. Ela roda no fim da temporada, depois da Série e do playoff da B, como mais
   // páginas da esteira das copas — só se o SEU clube está nela (a de quem não está corre por baixo, pra dar o campeão).
   // Save antigo sem as posições da Série A guardadas (`serieATop`) fica sem Libertadores naquela temporada.
-  const vagasLib = useMemo(() => {
+  const inscricoesConmebol = useMemo(() => {
     if (!state.oficial) return null
     const n = state.seasonNo ?? 1
-    if (n === 1) return vagasLiberta(null)
+    if (n === 1) return inscricoesConmebolDaTemporada(null, n, state.oficial.vagasDesde)
     const prev = state.oficialCampeoes?.find(e => e.temporada === n - 1)
-    return prev?.serieATop ? vagasLiberta({ serieA: prev.serieATop, copa: prev.copa, copaVice: prev.copaVice, liberta: prev.liberta, sula: prev.sula }, Object.fromEntries(ESTRANGEIROS_SULA_2026.map(e => [e.nome, e.pais]))) : null
+    return prev?.serieATop ? inscricoesConmebolDaTemporada({ serieA: prev.serieATop, copa: prev.copa, copaVice: prev.copaVice, liberta: prev.liberta, sula: prev.sula }, n, state.oficial.vagasDesde) : null
   }, [state.oficial, state.seasonNo, state.oficialCampeoes])
+  const vagasLib = inscricoesConmebol?.liberta ?? null
   // 📅 16/11 (Diego: *"calendário real"*): ela nasce calculada na rodada 0 (como a Copa do Brasil com calendário) e cada página
   // cai na semana do dia REAL dela (`DATAS_LIBERTA`) — da 1ª fase em fevereiro aos grupos em abril/maio e o mata-mata de agosto
   // a outubro; a final (28/nov) passa da 38ª e fica pro fim da temporada. O elenco é o do mundo congelado da temporada.
@@ -10317,9 +10324,10 @@ export function PyramidSeasonScreen() {
     const n = state.seasonNo ?? 1
     const prev = n > 1 ? state.oficialCampeoes?.find(e => e.temporada === n - 1) : null
     if (n > 1 && !prev?.serieATop) return null
-    const v = vagasSula(prev?.serieATop ?? null, [...vagasLib.grupos, ...vagasLib.fase2, ...vagasLib.fase1])
+    const v = inscricoesConmebol?.sula
+    if (!v) return null
     return computeSulaCarreira(v, { grupos: libertaCalc.resultado.sulaGrupos, playoff: libertaCalc.resultado.sulaPlayoff }, world, state.seed, n, capElite, realGoals, m2Desde != null && m2Desde <= 1, recepcaoCopa, giroFora)
-  }, [state.oficial, libertaCalc, vagasLib, state.seasonNo, state.oficialCampeoes, world, state.seed, capElite, realGoals, m2Desde, recepcaoCopa, giroFora]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.oficial, libertaCalc, vagasLib, inscricoesConmebol, state.seasonNo, state.oficialCampeoes, world, state.seed, capElite, realGoals, m2Desde, recepcaoCopa, giroFora]) // eslint-disable-line react-hooks/exhaustive-deps
   const sulaMinha = !!sulaCalc && sulaCalc.resultado.classificacao.includes(meuNomeLib)
   // 🌐 INTERCONTINENTAL (17/11): o campeão da Libertadores do ano vai ao Dérbi das Américas (Toluca) → Challenger → final (PSG).
   // Calculada sempre (o campeão vai pro histórico); só entra na tela quando o campeão da Liberta é o SEU clube.

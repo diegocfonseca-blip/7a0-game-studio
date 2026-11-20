@@ -6,6 +6,7 @@ import type { Sector } from './types'
 import { CATALOG_OFICIAL, type CartaOficial } from './data-oficial'
 import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { CLUBES_BR_TODOS } from './brasil-oficial'
+export { elencoReservaConmebol } from './elencos-conmebol-reservas'
 
 // 🃏 MESMA PESSOA em duas cartas (conferido no Transfermarkt em 15/11): no modo fica só a carta mais importante; a outra some
 // SÓ daqui (o baralho regional continua igual nas copas regionais). Regra do Diego: a mesma pessoa uma vez no baralho Brasil.

@@ -1279,7 +1279,7 @@ export interface EscState {
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
   /** 🇧🇷 BRASIL OFICIAL (15/11): carreira com clube REAL. Só existe nessa carreira; liga as cartas de `data-oficial.ts`. */
   /** `giro` (19/11): a partir de qual temporada os clubes de FORA (Liberta/Sula/Mundial) sorteiam o elenco de novo todo ano */
-  oficial?: { clube: string; desde: number; giro?: number }
+  oficial?: { clube: string; desde: number; giro?: number; /** novas inscrições continentais a partir desta temporada */ vagasDesde?: number }
   /** 🏟️ Brasil Oficial: o ESTADUAL de cada temporada, guardado quando termina (campeão, rebaixados e a classificação final —
    *  é dela que saem as vagas da Copa do Brasil do ano seguinte). Gravado no fim (`ESTADUAL_FEITO`): o resultado mostrado nunca
    *  muda depois, mesmo que a escalação mude. */
