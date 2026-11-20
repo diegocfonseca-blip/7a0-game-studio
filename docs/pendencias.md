@@ -290,7 +290,9 @@
   Prints: `scripts/mockups/basquete-eua-draft-{loteria,vez}-{celular,pc}.png`.
 - ⏸️ Equilíbrio entre franquias (quinteto sorteado: Pelicans 6-76 no teste × franquias cheias de lenda): Diego (20/11) *"Não ainda não"* —
   NÃO mexer por enquanto; só voltar ao assunto se ele pedir.
-- ⏳ EUA Oficial, a fazer: os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
+- ✅ 20/11: os 9 `conferir` resolvidos no Basketball-Reference: ficam Riley Minix (CLE), Jahmir Young (MIA), Jonas Aidoo (UTA), Nicolas
+  Batum (LAC), Killian Hayes (SAC) e Nick Smith Jr. (LAL); saíram Zack Austin, Keshon Gilbert e Dylan Cardwell. Nenhuma carta mudou (times já com 15+).
+- ⏳ EUA Oficial, a fazer: liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐

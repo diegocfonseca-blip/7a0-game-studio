@@ -2889,15 +2889,6 @@
      }
     },
     {
-     "name": "Zack Austin",
-     "pos": "PF",
-     "contract": "two-way",
-     "note": "signed to a two-way 2026-11-18 (Riley Minix waived)",
-     "country": "USA",
-     "incerto": "position guessed (forward)",
-     "conferir": "não está na página do Basketball-Reference (19/11) — contratado nos últimos dias ou dispensado"
-    },
-    {
      "name": "Riley Minix",
      "pos": "SF",
      "contract": "two-way",
@@ -2913,15 +2904,16 @@
       "mp": "13.8",
       "pts": "3.0"
      },
-     "conferir": "está no Basketball-Reference mas não na pesquisa de notícias — pode ter saído do time",
      "bref2526": {
       "g": "9",
       "mp": "6.4",
       "pts": "3.9",
       "team": "2TM"
-     }
+     },
+     "confirmado": "Basketball-Reference 2027, 20/11/2026"
     }
-   ]
+   ],
+   "saidas": []
   },
   {
    "team": "Pistons",
@@ -4546,21 +4538,6 @@
      }
     },
     {
-     "name": "Keshon Gilbert",
-     "pos": "SG",
-     "contract": "two-way",
-     "note": "two-way",
-     "country": "USA",
-     "incerto": null,
-     "conferir": "não está na página do Basketball-Reference (19/11) — contratado nos últimos dias ou dispensado",
-     "bref2526": {
-      "g": "4",
-      "mp": "18.5",
-      "pts": "4.3",
-      "team": "2TM"
-     }
-    },
-    {
      "name": "RayJ Dennis",
      "pos": "PG",
      "contract": "two-way",
@@ -4606,7 +4583,8 @@
       "team": "BRK"
      }
     }
-   ]
+   ],
+   "saidas": []
   },
   {
    "team": "Hornets",
@@ -5425,7 +5403,7 @@
     },
     {
      "name": "Jahmir Young",
-     "pos": "G",
+     "pos": "PG",
      "contract": "std",
      "note": "",
      "country": "US",
@@ -5439,13 +5417,13 @@
       "mp": null,
       "pts": null
      },
-     "conferir": "está no Basketball-Reference mas não na pesquisa de notícias — pode ter saído do time",
      "bref2526": {
       "g": "14",
       "mp": "4.1",
       "pts": "1.8",
       "team": "MIA"
-     }
+     },
+     "confirmado": "Basketball-Reference 2027, 20/11/2026"
     }
    ]
   },
@@ -8352,7 +8330,7 @@
      "note": "Two-way C, signed Nov 17 2026",
      "country": "USA",
      "incerto": null,
-     "conferir": "não está na página do Basketball-Reference (19/11) — contratado nos últimos dias ou dispensado"
+     "confirmado": "Basketball-Reference 2027, 20/11/2026"
     }
    ]
   },
@@ -9212,7 +9190,7 @@
     },
     {
      "name": "Nicolas Batum",
-     "pos": "F",
+     "pos": "PF",
      "contract": "std",
      "note": "",
      "country": "FR",
@@ -9226,13 +9204,13 @@
       "mp": null,
       "pts": null
      },
-     "conferir": "está no Basketball-Reference mas não na pesquisa de notícias — pode ter saído do time",
      "bref2526": {
       "g": "74",
       "mp": "17.5",
       "pts": "4.0",
       "team": "LAC"
-     }
+     },
+     "confirmado": "Basketball-Reference 2027, 20/11/2026"
     }
    ]
   },
@@ -9664,7 +9642,7 @@
     },
     {
      "name": "Nick Smith Jr.",
-     "pos": "G",
+     "pos": "SG",
      "contract": "std",
      "note": "",
      "country": "US",
@@ -9678,13 +9656,13 @@
       "mp": null,
       "pts": null
      },
-     "conferir": "está no Basketball-Reference mas não na pesquisa de notícias — pode ter saído do time",
      "bref2526": {
       "g": "30",
       "mp": "12.5",
       "pts": "6.2",
       "team": "LAL"
-     }
+     },
+     "confirmado": "Basketball-Reference 2027, 20/11/2026"
     }
    ]
   },
@@ -10380,21 +10358,6 @@
      }
     },
     {
-     "name": "Dylan Cardwell",
-     "pos": "C",
-     "contract": "std",
-     "note": "backup C behind Sabonis",
-     "country": "USA",
-     "incerto": null,
-     "conferir": "não está na página do Basketball-Reference (19/11) — contratado nos últimos dias ou dispensado",
-     "bref2526": {
-      "g": "44",
-      "mp": "20.6",
-      "pts": "5.4",
-      "team": "SAC"
-     }
-    },
-    {
      "name": "Mason Plumlee",
      "pos": "C",
      "contract": "std",
@@ -10488,7 +10451,7 @@
     },
     {
      "name": "Killian Hayes",
-     "pos": "G",
+     "pos": "PG",
      "contract": "std",
      "note": "",
      "country": "US",
@@ -10502,15 +10465,16 @@
       "mp": null,
       "pts": null
      },
-     "conferir": "está no Basketball-Reference mas não na pesquisa de notícias — pode ter saído do time",
      "bref2526": {
       "g": "23",
       "mp": "17.7",
       "pts": "5.5",
       "team": "SAC"
-     }
+     },
+     "confirmado": "Basketball-Reference 2027, 20/11/2026"
     }
-   ]
+   ],
+   "saidas": []
   },
   {
    "team": "Mavericks",
@@ -12603,5 +12567,11 @@
    ]
   }
  ],
- "conferido": "Basketball-Reference 2027 (roster + per game), lido em 2026-11-19 + temporada passada (NBA_2026_per_game) pra quem jogou pouco agora"
+ "conferido": "Basketball-Reference 2027 (roster + per game), lido em 2026-11-19 + temporada passada (NBA_2026_per_game) pra quem jogou pouco agora",
+ "saiu_do_time_20_11": [
+  "Dylan Cardwell",
+  "Keshon Gilbert",
+  "Nick Smith",
+  "Zack Austin"
+ ]
 }

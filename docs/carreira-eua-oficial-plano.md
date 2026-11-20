@@ -51,7 +51,7 @@ O que JÁ existe no jogo e serve direto: as conferências reais, os 82 jogos, o 
 - Arquivo: `docs/eua-oficial/elencos-2026-27.json` — 30 franquias, 530 jogadores (contrato normal + two-way), cada um com posição,
   país, nota factual e a fonte. Pesquisa em notícias (Hoops Rumors, SI, CBS, Spotrac…) e **conferida no Basketball-Reference
   2027** (posição, país, jogos/minutos/pontos desta temporada), lido em 19/11/2026.
-- Bateu quase tudo: só **9 jogadores** marcados `conferir` (assinaram nos últimos dias ou podem ter saído: Zack Austin/Riley Minix
+- ✅ 20/11: os 9 abaixo foram resolvidos (6 ficam, 3 saíram — ver pendências). Antes: só **9 jogadores** marcados `conferir` (assinaram nos últimos dias ou podem ter saído: Zack Austin/Riley Minix
   CLE, Keshon Gilbert ATL, Jahmir Young MIA, Jonas Aidoo UTA, Nicolas Batum LAC, Nick Smith LAL, Dylan Cardwell/Killian Hayes SAC).
 - Grandes mudanças da off-season 2026 (confirmadas): Knicks campeões 2026 (Brunson MVP das Finais) · Jaylen Brown ⇄ Paul George ·
   LeBron nos 76ers · Kawhi de volta a Toronto · Giannis no Heat · Trae Young e Anthony Davis nos Wizards · Morant nos Blazers ·
