@@ -21,7 +21,7 @@ import { createPortal } from 'react-dom'
 import { tr, getLang, useT } from './lang'
 import { LojaLayout, LojaIcone, categoriaDaAncora, type LojaCategoria } from './loja-layout'
 import { JanelaConta } from './conta'
-import { SupportMoney, SupportStory } from './support-plans'
+import { SupportMoney } from './support-plans'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
 import { temCantoProprio } from './sound'
 import { precoTxt, planoAtual, planoFixo, PRECOS_UNICO, PRECOS_DUPLO, MENSAIS, type PlanoUnico } from './planos-regras'
@@ -121,7 +121,6 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
   const t = useT()
   const [categoria, setCategoria] = useState<LojaCategoria>(() => categoriaDaAncora(ancora))
   const [contaAberta, setContaAberta] = useState(false)
-  const [historiaAberta, setHistoriaAberta] = useState(false)
   useEffect(() => {
     if (!ancora) return
     setCategoria(categoriaDaAncora(ancora))
@@ -173,6 +172,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
   }
   const secoes = {
     planos: <>
+      <div className="ls1-support-intro"><SupportMoney metaAposHistoria /></div>
       <div className="ls1-section-heading" id="loja-planos"><h2>{t('MAIS JEITO DE JOGAR.', 'MORE WAYS TO PLAY.')}</h2><p>{t('Mensalidade ou pagamento único. Você escolhe.', 'Monthly plan or one-off purchase. You choose.')}</p></div>
       {!(fixo && fixo !== 'craque') && <><div className="ls1-monthly">{(['craque_salas', 'craque_completo'] as const).map(m => <article key={m} className={`ls1-plan ${m === 'craque_completo' ? 'ls1-green' : 'ls1-silver'}`}>
         <div className="ls1-plan-top"><span className="ls1-tag">{t('ASSINATURA MENSAL', 'MONTHLY PLAN')}</span>{m === 'craque_completo' && <span className="ls1-tag ls1-tag-green">{t('COM MANUAL', 'WITH MANUAL')}</span>}</div>
@@ -196,7 +196,6 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
       </> : <div className="ls1-owned-note">{t('Seu plano já está no topo desta vitrine. Você pode conferir os benefícios e explorar os itens nas outras categorias.', 'Your plan is already at the top of this range. Review your benefits and explore the other categories.')}</div>}
       <ApoieButton startScreen="choice" trigger={open => <button type="button" className="ls1-full-benefits" onClick={() => { logApoio('🛒 loja → ver todos os planos'); open() }}>{t('Comparar todos os benefícios e conferir meu plano →', 'Compare all benefits and review my plan →')}</button>} />
       <div className="ls1-bottom-links"><button type="button" className="ls1-shortcut" onClick={() => ir('carreira', 'loja-moedas')}><LojaIcone tipo="carreira" /><span><strong>{t('MOEDAS E FICHAS DE CARREIRA', 'CAREER COINS AND SLOTS')}</strong><small>{t('Pacotes de moedas e mais espaços para salvar.', 'Coin packs and more save slots.')}</small></span>→</button><button type="button" className="ls1-shortcut" onClick={() => ir('salas', 'loja-presentes')}><LojaIcone tipo="gift" /><span><strong>{t('PRESENTEIE UM AMIGO', 'GIVE A FRIEND A GIFT')}</strong><small>{t('Planos de presente e combos para dois.', 'Plan gifts and bundles for two.')}</small></span>→</button></div>
-      <details className="ls1-story" onToggle={e => setHistoriaAberta(e.currentTarget.open)}><summary>{t('O jogo, a história do Luca e para onde vai o apoio →', 'The game, Luca’s story and where support goes →')}</summary>{historiaAberta && <><SupportStory /><SupportMoney /></>}</details>
     </>,
     clube: <><div className="ls1-section-heading"><h2>{t('SEU CLUBE COM A SUA CARA.', 'YOUR CLUB, YOUR STYLE.')}</h2><p>{t('Personalização e identidade, num lugar só.', 'Customization and identity, in one place.')}</p></div><div className="ls1-products-grid ls1-legacy"><div className="ls1-item ls1-wide" id="loja-presidente"><MeuPresidenteLoja /></div>{pixMp && email && <div className="ls1-item ls1-wide">{/* 🎽🐾🛡️🎬 09/11: mantos (1ª/2ª camisa), mascote, escudo e gala */}<MantosNaLoja h2={h2} sub={sub} card={card} preco={preco} reais={reais} /></div>}<div className="ls1-item">        {/* 🎤 DO CLUBE BATIZADO — 14/10 (Diego): a gala avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo).
             Fica só o 📣 canto avulso, o pedacinho barato; a gala única vem no 🖋 Fundador. */}
