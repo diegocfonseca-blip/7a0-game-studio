@@ -14288,3 +14288,9 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Vale só na tela do próprio dono (igual escudo de batismo); os outros veem o automático. Pros outros verem = Etapa 3 dos mimos (pendente).
 - Ainda em produção: escudos avulsos de vieiracaio688 (10/11) e lucassaboia14 (11/11).
 - Reverter: tirar a linha do `ESCUDO_AVULSO_CONTAS` (ou `git revert` do commit).
+
+## 19/11 — 🌴 Selo VICE CITY na lista de salas (bug que o Diego pegou na sala "Pós live")
+- A lista lê só o resumo da sala (`ls_*`), que não tinha Vice City → aparecia 🔨 PREGÃO ABERTO.
+- Banco: `ls_pregao = 'vice'` quando `game_state.vice` (sala de espera) ou `game_state.viceCity` (partida rolando) — `docs/sql/ls-pregao-vice.sql`, aplicado; salas abertas acertadas na hora.
+- Tela (`lobby.tsx`): `'vice'` vira o selo neon 🌴 VICE CITY e some o selo de lance.
+- Reverter: tirar a 1ª linha do `case` do `ls_pregao` no gatilho `game_rooms_colunas_magras`.
