@@ -231,6 +231,15 @@
   que valeu com rastro azul, goleiro rosa pula pro lado dele; gol = rede balança; defesa = bola bate no goleiro e espirra. Só desenho:
   regra, resultado e os 5 s da cobrança iguais. Bancada: scripts/teste-presidentes/duelo.html (#gol, #defesa, #rival).
 
+### 🌐 20/11 — LOGÍSTICA DOS DOIS JOGOS (domínios, marca, planos, salas) — EM CONVERSA
+- Diego: leilaolegends.com = sempre Leilão Legends; no basquete tudo BidLegends. Vai ter plano só futebol, só basquete e dos dois.
+- Proposta minha (sem resposta ainda): um endereço por jogo, mesma conta nos dois, planos futebol/basquete/combo.
+- Diego gostou do seletor ⚽ FUTEBOL / 🏀 BASQUETE da home e quer ele nas SALAS ABERTAS. Mockup:
+  `scripts/mockups/salas-abertas-seletor.png` (seletor logo abaixo do topo, com o nº de salas abertas de cada jogo; tocar troca o jogo e a
+  marca do topo). Esperando OK.
+- ⏸️ Publicação do branch (EUA Oficial etc.) ainda NÃO feita: perguntei se pode ir junto das 2 mudanças do futebol (Partida Rápida nova,
+  caixa em etiqueta no Clube) e ele mudou de assunto.
+
 ### 🏀🇺🇸 19/11 — CARREIRA DO BASQUETE = EUA OFICIAL (só planejamento)
 - Diego: a carreira do basquete fica EM BREVE e vai ser refeita **com base no Brasil Oficial, mas igual aos EUA** (tudo real), com
   cartas novas SÓ da carreira (fora das salas online e da Partida Rápida). Plano: `docs/carreira-eua-oficial-plano.md`.
