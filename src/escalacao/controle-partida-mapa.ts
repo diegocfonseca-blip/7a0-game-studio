@@ -47,6 +47,12 @@ let cameraPedida: string | null = null
 const ouvintesCamera = new Set<() => void>()
 export function pedeCameraDoMapa(c: string) { cameraPedida = c; ouvintesCamera.forEach(f => f()) }
 export function tiraCameraPedida(): string | null { const c = cameraPedida; cameraPedida = null; return c }
+/** 🏟️ 20/11: o mapa só usa o pedido quando JÁ tem jogo montado no estádio (sem jogo, o giro era jogado fora) */
+export function temCameraPedida(): boolean { return cameraPedida != null }
+// 🏟️ 20/11 (Diego: "só depois de parar aparecer o botão de começar o jogo"): o mapa avisa quando o giro de abertura terminou
+const ouvintesGiro = new Set<() => void>()
+export function avisaGiroFeito() { ouvintesGiro.forEach(f => { try { f() } catch { /* segue */ } }) }
+export function assinaGiroFeito(f: () => void) { ouvintesGiro.add(f); return () => { ouvintesGiro.delete(f) } }
 export function assinaCameraPedida(f: () => void) { ouvintesCamera.add(f); return () => { ouvintesCamera.delete(f) } }
 
 // 📍 18/11 (Diego: *"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*): o "Ver no mapa" da cena do bairro

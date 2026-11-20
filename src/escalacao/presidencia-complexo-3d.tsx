@@ -81,7 +81,7 @@ import {INFO_PATROCINADORES,ehPatrocinadorCidade} from './presidencia-patrocinad
 import {criarColecaoSala} from './presidencia-sala-colecao-3d'
 import type {TrofeuPresidencia} from './presidencia-trofeus'
 import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
-import {tiraCameraPedida,assinaCameraPedida,tiraVistaPedida,assinaVistaPedida} from './controle-partida-mapa'
+import {tiraCameraPedida,assinaCameraPedida,tiraVistaPedida,assinaVistaPedida,temCameraPedida,avisaGiroFeito} from './controle-partida-mapa'
 import './presidencia-complexo-3d.css'
 import {criarCasaLuca} from './presidencia-casa-luca-3d'
 import {AREAS_CASA_LUCA,LIMITES_COMPLEXO_CASA_LUCA} from './presidencia-casa-luca-planta'
@@ -146,7 +146,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
  const [stadiumSound,setStadiumSound]=useState(false),stadiumSoundRef=useRef(false);stadiumSoundRef.current=stadiumSound
  const [matchCamera,setMatchCamera]=useState<CameraPartidaContinua>('free')
  const [replayOn,setReplayOn]=useState(false),replayRef=useRef(false)
- useEffect(()=>{if(!loaded)return;const atende=()=>{if(!api.current)return;const c=tiraCameraPedida();if(c)api.current.setMatchCamera(c as CameraPartidaContinua)};atende();return assinaCameraPedida(atende)},[loaded]) // 🏟️ a câmera que a carreira pediu (botão 🏟️ Campo 3D)
+ useEffect(()=>{if(!loaded)return;const atende=()=>{if(!api.current||!temCameraPedida()||!matchRef.current)return;const c=tiraCameraPedida();if(c)api.current.setMatchCamera(c as CameraPartidaContinua)};atende();return assinaCameraPedida(atende)},[loaded,!!match]) // 🏟️ 20/11: só com o jogo montado no estádio (senão o giro se perdia) // 🏟️ a câmera que a carreira pediu (botão 🏟️ Campo 3D)
  const [lucaEmBreve,setLucaEmBreve]=useState(false) // 💙 aviso "em breve" do botão AJUDAR O LUCA
  const [shoppingOpen,setShoppingOpen]=useState(false)
  type WalkView={position:number[];target:number[];fov:number;mode:VistaComplexo;navigation:ModoNavegacaoComplexo}
@@ -932,7 +932,7 @@ export default function PresidenciaComplexo3D({museumStage,cidadeViva,stadium,ci
     if(matchCameraController.inspect().mode==='free')savedMapView=mode
     mode='field';setSelectedView('field')
    }else{mode=savedMapView;setSelectedView(savedMapView)}
-   matchCameraController.setMode(value as CameraPartidaContinua);if(abrir&&matchPresentation==='3d')matchCameraController.abrir(performance.now());resume()
+   matchCameraController.setMode(value as CameraPartidaContinua);if(abrir&&matchPresentation==='3d'){matchCameraController.abrir(performance.now());setTimeout(()=>avisaGiroFeito(),7100)}else if(abrir)avisaGiroFeito();resume()
   }
   refreshPopulation.current=()=>{if(disposed)return;crowd.update(populationRef.current.crowdPopulation);if(rebuildPopulation())resume();else render()}
   refreshFurniture.current=()=>{if(disposed)return;const deliveryChanged=deliveries.sync(walletRef.current,duplaDaGaragem(walletRef.current?.owned??[],garageRef.current)),changed=!semSala&&furniture.update(walletRef.current),bodyChanged=!semSala&&(!managementEnabled||isOffice||['room','office','president','shelf'].includes(mode))&&presidentBody.update(presidentRef.current,walletRef.current),collectionChanged=!semSala&&collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage);if(changed||bodyChanged||collectionChanged||deliveryChanged){roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});sharpenTextures();render();resume()}}

@@ -68,7 +68,7 @@ import {PresidenciaClube} from './presidencia-clube'
 import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
 import {MapaGuardado,VagaDoMapa} from './mapa-guardado'
 import { ChegadaGrande } from './chegada-grande' // 🚌🎉 chegada do ônibus em jogo grande (17/11)
-import { publicaControleMapa, pedeCameraDoMapa, pedeVistaDoMapa, type ControleMapa } from './controle-partida-mapa'
+import { publicaControleMapa, pedeCameraDoMapa, pedeVistaDoMapa, assinaGiroFeito, type ControleMapa } from './controle-partida-mapa'
 import {mapaEstadioDisponivel,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
@@ -11025,6 +11025,16 @@ export function PyramidSeasonScreen() {
   const [copaOk, setCopaOk] = useState('')
   // 🏟️ 3D escolhido na Central: o jogo só começa no "▶ Começar o jogo" em cima do mapa
   const [pend3d, setPend3d] = useState<{ tipo: 'liga' | 'copa' | 'estreia'; chave: string } | null>(null)
+  // 🏟️ 20/11 (Diego: "só depois de parar aparecer o botão de começar o jogo"): o ▶ do 3D espera o giro do estádio acabar.
+  // Se o giro não rodar (mapa leve, sem jogo montado), o botão aparece sozinho em 15 s — nunca fica sem botão.
+  const [giroOk, setGiroOk] = useState('')
+  useEffect(() => {
+    if (!pend3d) return
+    const k = pend3d.chave
+    const sai = assinaGiroFeito(() => setGiroOk(k))
+    const t = setTimeout(() => setGiroOk(k), 15000)
+    return () => { sai(); clearTimeout(t) }
+  }, [pend3d?.chave]) // eslint-disable-line react-hooks/exhaustive-deps
   const chaveCopa = `${state.seasonNo ?? 1}:copa:${copaRound}:${estadualOn ? 'e' : 'c'}`
   const copaSegura = fluxoCentral && copaPlaying && !!myCopaTie && !state.co2 && state.onlineMode !== 'online' && copaOk !== chaveCopa && copaPos === 0
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
@@ -13410,7 +13420,7 @@ export function PyramidSeasonScreen() {
         {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
         {fluxoCentral && daCentral && tab === 'estadio' && <button data-voltar-central onClick={() => { setDaCentral(false); escolheAba('central') }}
           style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
-        {fluxoCentral && tab === 'estadio' && pend3d && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
+        {fluxoCentral && tab === 'estadio' && pend3d && giroOk === pend3d.chave && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
           const p3 = pend3d; setPend3d(null)
           if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else setJogoOk(p3.chave)
           setTimeout(() => pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d'), 500) // 🏟️ o giro já rodou na chegada (20/11); aqui só a câmera do jogo
