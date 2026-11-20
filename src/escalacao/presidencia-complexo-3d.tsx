@@ -593,7 +593,8 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
     // dividida e bola batendo-voltando não fazem a câmera 'Acompanhar o lance' virar de lado à toa
     {const own=insp.owner?subj.find(q=>q.key===insp.owner):undefined,gk=own?subj.find(q=>q.side===own.side&&q.keeper):undefined,want:1|-1|undefined=gk?(gk.mx<0?1:-1):undefined,agora=performance.now()
      if(want!==undefined&&want!==ataque){ataqueDesde??=agora;if(agora-ataqueDesde>900){ataque=want;ataqueDesde=null}}else ataqueDesde=null}
-    matchCameraController.update(openingPending||!matchRef.current?{x:0,y:.11,z:0}:insp.ball,performance.now(),openingPending?[]:subj,openingPending?undefined:foco,openingPending?undefined:insp.replay?'goal':undefined,ataque)}
+    const preparando=!!openingPending||!!matchRef.current?.preMatch
+    matchCameraController.update(preparando||!matchRef.current?{x:0,y:.11,z:0}:insp.ball,performance.now(),preparando?[]:subj,preparando?undefined:foco,preparando?undefined:insp.replay?'goal':undefined,ataque)}
    // 📱 19/11 (Diego: *"não tá dando pra ver o jogo de tão lento"*): no CELULAR, com a câmera de jogo (fora o giro de abertura), a vista
    // termina a ~200 m (com névoa suave antes, pra não aparecer o corte) — a cidade lá longe (~130 mil triângulos) sai do desenho; estádio, campo e arredores ficam. Mapa livre volta ao normal.
    {const fc=matchCameraController.inspect().mode,jogo3d=mobileGraphics&&matchPresentation==='3d'&&fc!=='free',abr=jogo3d&&matchCameraController.abrindo,far=abr?520:jogo3d?200:4000;if(camera.far!==far){camera.far=far;camera.updateProjectionMatrix()}if(jogo3d&&scene.fog instanceof THREE.Fog){scene.fog.near=abr?330:120;scene.fog.far=abr?510:195}} // 🎬 no giro de abertura do celular a vista vai até ~500 m (o estádio inteiro, sem a cidade lá do fundo)

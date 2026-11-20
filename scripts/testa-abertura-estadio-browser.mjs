@@ -4,16 +4,19 @@ import {mkdirSync,writeFileSync} from 'node:fs'
 const output=process.env.ABERTURA_OUTPUT??'/workspace/shared/abertura-estadio-20261120'
 mkdirSync(output,{recursive:true})
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']})
+const origin=process.env.ABERTURA_ORIGIN??'http://127.0.0.1:4235'
 const reports=[]
 try{
  for(const width of (process.env.ABERTURA_WIDTHS??'390,1280').split(',').map(Number)){
   const context=await browser.newContext({viewport:{width,height:820},locale:'pt-BR',isMobile:width===390,hasTouch:width===390})
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message))
   await page.addInitScript(()=>{localStorage.setItem('bl_lang','pt');localStorage.setItem('pc3-qualidade-v1','leve')})
-  await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4235/')||r.request().url().startsWith('data:')?r.continue():r.abort())
-  await page.goto('http://127.0.0.1:4235/7a0-game-studio/scripts/teste-inicio-carreira/?stage=central',{waitUntil:'domcontentloaded',timeout:90000})
+  await page.route('**/*',r=>r.request().url().startsWith(origin+'/')||r.request().url().startsWith('data:')?r.continue():r.abort())
+  await page.goto(origin+'/7a0-game-studio/scripts/teste-inicio-carreira/?stage=central',{waitUntil:'domcontentloaded',timeout:90000})
   await page.waitForFunction(()=>window.qaState?.screen==='season',null,{timeout:90000})
+  await page.waitForTimeout(800) // Aguarda a montagem e as migrações locais do save antes da escolha.
   await page.evaluate(()=>window.qaDispatch({type:'SET_MASTER',brandId:'dsouza'}))
+  await page.waitForFunction(()=>!!window.qaState.careerMaster?.[window.qaState.managers[window.qaState.youIdx].id],null,{timeout:30000})
   const three=page.getByRole('button',{name:/Campo 3D/})
   await three.waitFor({state:'visible',timeout:30000})
   await page.screenshot({path:`${output}/central-${width}.png`})
@@ -26,8 +29,9 @@ try{
    await page.locator('canvas').evaluate(el=>el.focus());await page.keyboard.press('ArrowRight')
    assert(await page.evaluate(()=>window.__mapaApi.inspect().intro.running))
    assert.equal(await page.evaluate(()=>window.qaState.round),0,'Escolher 3D não inicia a rodada')
+   await page.waitForFunction(()=>window.__mapaApi.inspect().match.players===22,null,{timeout:90000})
    const first=await page.evaluate(()=>{const a=window.__mapaApi;return{intro:a.inspect().intro,camera:a.qaCena().camera.position.toArray(),players:a.inspect().match.players}})
-   assert.equal(first.players,0,'A apresentação funciona sem a partida montada')
+   assert.equal(first.players,22,'Os XI reais aguardam o apito sem iniciar a rodada')
    // Uma conclusão de outra apresentação nunca deve liberar o botão atual.
    await page.evaluate(async()=>{const m=await import('/7a0-game-studio/src/escalacao/controle-partida-mapa.ts');m.avisaGiroFeito('antiga')})
    assert.equal(await start.count(),0)
@@ -61,6 +65,6 @@ try{
  writeFileSync(`${output}/browser-report.json`,JSON.stringify({success:true,reports},null,2))
 }catch(error){
  const page=browser.contexts().at(-1)?.pages().at(-1)
- if(page){await page.screenshot({path:`${output}/falha.png`});console.log(JSON.stringify(await page.evaluate(()=>({round:window.qaState?.round,map:window.__mapaApi?.inspect(),body:document.body.innerText.slice(0,1800)}))))}
+ if(page){await page.screenshot({path:`${output}/falha.png`});console.log(JSON.stringify(await page.evaluate(()=>({round:window.qaState?.round,map:window.__mapaApi?{intro:window.__mapaApi.inspect().intro,camera:window.__mapaApi.inspect().matchCamera,players:window.__mapaApi.inspect().match.players}:null,body:document.body.innerText.slice(0,1800)}))))}
  throw error
 }finally{await browser.close()}

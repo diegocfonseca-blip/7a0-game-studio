@@ -1,3 +1,4 @@
+import {assinaturaSimulacaoM2,type EntradaM2} from './motor2/carreira'
 import type {ImpactoRede3D} from './presidencia-gol-apresentacao'
 import {RelogioCampo3D} from './presidencia-futebol-relogio'
 import {atletasEmCampo,tempoVisualPartida,type EstadoPartidaEstadio} from './presidencia-partida-model.ts'
@@ -475,7 +476,7 @@ export function aguardandoReinicioFutebol(id:string){return official?.id===id?fa
 // da escalação é feito uma vez por objeto, e o 2º pedido no mesmo instante devolve o MESMO quadro (isso também conserta a
 // volta pro meio-campo depois do apito, que andava 2× mais rápido porque a contagem "por quadro" subia uma vez por pedido)
 const assinaturas=new WeakMap<object,string>()
-const assinatura=(input:object)=>{let s=assinaturas.get(input);if(s===undefined){s=JSON.stringify(input);assinaturas.set(input,s)}return s}
+const assinatura=(input:EntradaM2)=>{let s=assinaturas.get(input);if(s===undefined){s=assinaturaSimulacaoM2(input);assinaturas.set(input,s)}return s}
 let ultimo:{state:EstadoPartidaEstadio;now:number;quadro:QuadroFutebol}|undefined
 export function quadroFutebol3D(state:EstadoPartidaEstadio,now:number){
  if(state.officialInput){

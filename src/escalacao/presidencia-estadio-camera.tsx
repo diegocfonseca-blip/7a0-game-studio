@@ -39,14 +39,14 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  const account=mapaEstadioDisponivel(usePresidentPreview()),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
  const replay=useReplay3D(career?.replayMatch,account)
  const replayFrame=replay.frame
- if(match||replayFrame)focusSession.current={key:focusKey,day:focusDay}
+ if((match&&!match.preMatch)||replayFrame)focusSession.current={key:focusKey,day:focusDay}
  else if(!mesmaSessaoDeMapa(focusSession.current,focusKey,focusDay))focusSession.current=null
  const watching=useVistaCampo<HTMLElement>(account)
  const accountPresident=usePresidenteConta()
  const mapa3d=useMapa3D() // 🏟️ 19/11: o estádio do mapa mostra o jogo em 3D (só conta do Diego por enquanto); a aba Jogos segue no 2D
  const identityArt=useMemo(()=>artesIdentidadeSala(career?.identity),[career?.identity])
  if(last.current?.key!==career?.key)last.current=null
- if(career&&account&&match)last.current={key:career.key,match}
+ if(career&&account&&match&&!match.preMatch)last.current={key:career.key,match}
  if(!account)last.current=null
  // Preserve people finishing their route after the score presentation unmounts.
  // The retained snapshot is local presentation only; it never writes a result.
