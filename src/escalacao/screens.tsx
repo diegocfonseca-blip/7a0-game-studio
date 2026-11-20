@@ -78,6 +78,7 @@ import {identidadeDaConta} from './presidencia-identidade-conta'
 import { NbaCriarCarreira } from './nba-criar-carreira' // 🏀 nova carreira do basquete no passo a passo (10/11)
 import { EscolhaCarreiraBB, EscolhaFranquiaEUA } from './eua-oficial-tela' // 🏀🇺🇸 EUA Oficial (19/11, só na conta do Diego)
 import { parCup, tabelaGrupo } from './eua-cup' // 🏀🏆 NBA Cup real (EUA Oficial)
+import { carregaRankingEua, enviaRankingEua, PTS_NBA, type LinhaRankNba } from './eua-ranking' // 🏀🌍 ranking do basquete
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
@@ -8378,6 +8379,7 @@ export function EscSeason() {
       <TabsCentralBB aba={abaBB} onAba={setAbaBB} travada={false} />
       {abaBB === 'central' && <CentralBB onJogos={() => setAbaBB('jogos')} onClube={() => setAbaBB('clube')} />}
       {abaBB === 'elenco' && <ElencoBB />}
+      {abaBB === 'rank' && state.euaOficial && <RankingEuaBox />}
       {abaBB === 'rank' && (temBbStats(state.scorers) ? <BbStatsBox highlight={you.id} /> : <>
         <TopScorersBox highlight={you.id} title={LS('🏀 CESTINHA DA LIGA', '🏀 SCORING LEADERS')} />
         <TopAssistsBox highlight={you.id} competition="liga" showEmpty />
@@ -9518,6 +9520,48 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
 
 // 🏀🏆 NBA CUP REAL (EUA Oficial): os 6 grupos de 5, no MESMO visual da tabela Leste/Oeste (Box, etiqueta dourada, linha da conferência).
 // Verde = líder do grupo (vai às quartas) · amarelo = o melhor 2º da conferência agora (wild card). Anti-spoiler: enquanto o jogo da
+// 🏀🌍 RANKING GLOBAL DO BASQUETE (EUA Oficial, mockup `scripts/mockups/basquete-ranking-global.png`, pontos aprovados 20/11)
+function RankingEuaBox() {
+  const { state } = useEsc()
+  const [linhas, setLinhas] = useState<LinhaRankNba[] | null>(null)
+  const [erro, setErro] = useState(false)
+  const [uid, setUid] = useState('')
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data?.user?.id ?? ''), () => {}) }, [])
+  useEffect(() => { carregaRankingEua().then(setLinhas, () => setErro(true)) }, [state.euaTitulos?.ultima])
+  const t = state.euaTitulos
+  const item = (ic: string, pt: string, en: string, v: number) => <div className="flex items-center justify-between text-[12.5px] font-bold py-0.5"><span>{ic} {tr(pt, en)}</span><span style={{ ...OSWALD, fontWeight: 900, color: GREEN }}>+{v}</span></div>
+  return (
+    <>
+      <Box className="p-3">
+        <p className="font-black text-sm mb-1" style={OSWALD}>{tr('🌍 RANKING GLOBAL DO BASQUETE', '🌍 BASKETBALL GLOBAL RANKING')}</p>
+        <p className="text-[10.5px] font-bold text-black/50 mb-2">{tr('Todo título da carreira EUA Oficial vale pontos e o ranking soma. Empate: desempata pelo caixa.', 'Every Official USA career title is worth points and the ranking adds up. Ties are broken by club money.')}</p>
+        {item('💍', 'Anel da NBA (campeão das Finals)', 'NBA ring (Finals champion)', PTS_NBA.anel)}
+        {item('🏆', 'Campeão do Leste ou do Oeste', 'East or West champion', PTS_NBA.conferencia)}
+        {item('🏆', 'NBA Cup', 'NBA Cup', PTS_NBA.copa)}
+        {item('🏀', 'Melhor campanha da temporada regular', 'Best regular-season record', PTS_NBA.campanha)}
+        {t && <p className="text-[11px] font-black mt-2" style={{ color: GREEN }}>{tr(`Você: 💍${t.aneis} · 🏆 conf. ${t.conferencias} · 🏆 Cup ${t.copas} · 🏀${t.campanhas} em ${t.temporadas} temporada(s)`, `You: 💍${t.aneis} · 🏆 conf. ${t.conferencias} · 🏆 Cup ${t.copas} · 🏀${t.campanhas} in ${t.temporadas} season(s)`)}</p>}
+      </Box>
+      <Box className="p-3">
+        <p className="font-black text-sm mb-1" style={OSWALD}>{tr('CLASSIFICAÇÃO GERAL', 'OVERALL STANDINGS')}</p>
+        {erro ? <p className="text-[12px] font-bold text-black/55">{tr('Não deu pra carregar o ranking agora. Confira a internet e abra a aba de novo.', "Couldn't load the ranking right now. Check your connection and reopen the tab.")}</p>
+          : !linhas ? <p className="text-[12px] font-bold text-black/55">{tr('Carregando…', 'Loading…')}</p>
+          : !linhas.length ? <p className="text-[12px] font-bold text-black/55">{tr('Ninguém pontuou ainda. O ranking começa quando a 1ª temporada de alguém fecha.', 'Nobody has scored yet. The ranking starts when someone finishes a season.')}</p>
+          : linhas.map((l, i) => {
+            const eu = !!uid && l.user_id === uid
+            return (
+              <div key={`${l.user_id}-${l.career_id}`} className="flex items-center gap-2 px-1 py-1.5 text-[13px] font-bold" style={{ borderTop: '1px solid rgba(0,0,0,.08)', background: eu ? (myApoioPerk()?.grad ?? APOIO_PERKS.bege.light) : undefined, borderRadius: eu ? 8 : 0 }}>
+                <span style={{ width: 26, ...OSWALD, fontWeight: 900 }}>{i + 1}º</span>
+                <Escudo nome={l.team_name} size={20} />
+                <div className="min-w-0"><span className="block truncate">{l.display_name || l.team_name}</span>
+                  <small className="block text-[10.5px] text-black/55 truncate">{l.team_name} · 💍{l.aneis} · 🏆{l.conferencias} · 🏆Cup {l.copas} · 🏀{l.campanhas}</small></div>
+                <span className="ml-auto" style={{ ...OSWALD, fontWeight: 900, fontSize: 15 }}>{l.pontos}</span>
+              </div>)
+          })}
+      </Box>
+    </>
+  )
+}
+
 // rodada anima, os jogos de grupo DESTA rodada ainda não entram (igual à tabela da liga).
 function EuaCupGruposBox({ highlight, holdResults }: { highlight: number; holdResults?: boolean }) {
   const { state } = useEsc()
@@ -13175,6 +13219,8 @@ function EuaDraftPasso({ onContinue }: { onContinue: () => void }) {
   const d = state.euaDraft
   const [agora, setAgora] = useState(Date.now())
   useEffect(() => { if (!d || d.temporada !== state.seasonNo) dispatch({ type: 'EUA_DRAFT_ABRIR' }) }, [d?.temporada, state.seasonNo, dispatch])
+  // 🏀🌍 a temporada fechou no 💰 Caixa (títulos contados): manda a linha do ranking global do basquete — uma vez por temporada
+  useEffect(() => { if (state.euaTitulos?.ultima === state.seasonNo) void enviaRankingEua(state) }, [state.euaTitulos?.ultima]) // eslint-disable-line react-hooks/exhaustive-deps
   const minhaVez = !!d && d.fase === 'escolha' && !!state.managers.find(m => m.id === d.ordem[d.idx])?.isHuman
   // ⏱️ os 60 s contam de quando a SUA vez aparece NESTA tela (quem saiu e voltou depois não perde a escolha na hora)
   const [fimVez, setFimVez] = useState(0)

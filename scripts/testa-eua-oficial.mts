@@ -52,6 +52,10 @@ for (let i = 0; i < 600 && s.quickCopa && s.quickCopa.phase !== 'done'; i++) { i
 ok(fases[0] === 'playin' && s.quickCopa?.phase === 'done' && !!s.quickCopa.champion, `Play-In → Playoffs → campeão (${fases.join(' → ')})`)
 s.screen = 'end'
 s = reducer(s, { type: 'CLOSE_NBA_BOOKS' } as any)
+// 🌍 ranking do basquete: os títulos da temporada contados UMA vez
+{ const eu = s.managers[0].id, fin = s.quickCopa.bracket.find((b: any) => b.phase === 'final').ties[0]
+  const esp = { aneis: s.quickCopa.champion.id === eu ? 1 : 0, conferencias: fin.aId === eu || fin.bId === eu ? 1 : 0, copas: s.nbaCup?.champion?.id === eu ? 1 : 0 }
+  ok(s.euaTitulos?.temporadas === 1 && s.euaTitulos.aneis === esp.aneis && s.euaTitulos.conferencias === esp.conferencias && s.euaTitulos.copas === esp.copas, `Ranking: títulos da T1 contados (${JSON.stringify(s.euaTitulos)})`) }
 // 🎓 DRAFT: loteria dos 14 de fora, 1 escolha por time, só promessa/bom sem time
 s = reducer(s, { type: 'EUA_DRAFT_ABRIR' } as any)
 ok(s.euaDraft?.fase === 'loteria' && s.euaDraft.fora.length === 14 && s.euaDraft.ordem.length === 30 && new Set(s.euaDraft.ordem).size === 30, `Draft: loteria com os 14 de fora e 30 escolhas (${s.euaDraft?.fora.length})`)
@@ -70,6 +74,7 @@ const cat = [...poolDraftEua({ ...s, managers: [] })]
 ok(pk.every((p: any) => { const c = cat.find((x: any) => x.name === p.name && x.club === p.club); return !!c && (c.promessa || c.fame <= 3) }), 'Draft: só promessa e jogador bom')
 ok(reducer(s, { type: 'EUA_DRAFT_ABRIR' } as any) === s, 'Draft: só uma vez por temporada')
 s = reducer(s, { type: 'NEXT_NBA_SEASON' } as any)
+ok(s.euaTitulos?.temporadas === 1, 'Ranking: a virada não conta a temporada 2 vezes')
 ok(s.seasonNo === 2 && s.nbaTier === 'nba' && s.euaOficial?.franquia === 'Pelicans', 'T2: continua na NBA, com os Pelicans (sem sobe e desce)')
 ok(s.euaCup?.temporada === 2 && Object.keys(s.euaCup.jogos).length === 0 && !s.nbaCup && s.euaCup.grupos.every((g: any) => g.times.length === 5) && new Set(s.euaCup.grupos.flatMap((g: any) => g.times)).size === 30, 'T2: grupos novos da NBA Cup, sorteados')
 ok(s.managers.length === 30 && s.managers[0].nbaSlots === 2, 'T2: as mesmas 30, e a sua rotação cresce pra 10 (igual à carreira de sempre)')

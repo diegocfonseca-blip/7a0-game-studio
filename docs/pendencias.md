@@ -292,6 +292,11 @@
   NÃO mexer por enquanto; só voltar ao assunto se ele pedir.
 - ✅ 20/11: os 9 `conferir` resolvidos no Basketball-Reference: ficam Riley Minix (CLE), Jahmir Young (MIA), Jonas Aidoo (UTA), Nicolas
   Batum (LAC), Killian Hayes (SAC) e Nick Smith Jr. (LAL); saíram Zack Austin, Keshon Gilbert e Dylan Cardwell. Nenhuma carta mudou (times já com 15+).
+- ✅ 20/11 RANKING GLOBAL DO BASQUETE (só EUA Oficial; pontos do Diego, *"Ok"*): 💍 Anel 50 · 🏆 Campeão do Leste/Oeste 30 · 🏆 NBA Cup 25 ·
+  🏀 Melhor campanha da temporada regular 20 · empate pelo caixa. Títulos contados 1× por temporada (`anotaTitulosEua`, no 💰 Caixa ou na
+  virada), enviados no passo do Draft (`enviaRankingEua`) pra tabela PRÓPRIA `esc_nba_rank_snap` (criada no banco em 20/11,
+  `docs/sql/basquete-ranking-eua.sql`; pontos = coluna gerada — mudou a régua, muda `PTS_NBA` E a coluna). Aba Rank: caixa da régua +
+  classificação geral (top 50). Prints `scripts/mockups/basquete-ranking-{celular,pc}.png`. A tabela do futebol não mudou.
 - ⏳ EUA Oficial, a fazer: liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)

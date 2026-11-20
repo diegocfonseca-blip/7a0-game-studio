@@ -8471,7 +8471,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'oficialAbertura', 'deOlho'] as const satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'oficialAbertura', 'deOlho'] as const satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8544,6 +8544,24 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
  *  NBA de verdade — as 30 franquias, cada uma com as cartas DELA (as antigas do auge + as novas só da carreira, `extras`), nas
  *  conferências reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA). Sem sobe e desce (decisão do Diego). Cada
  *  franquia começa com o quinteto SORTEADO entre as cartas dela. Devolve false se a franquia não existir (e não mexe em nada). */
+/** 🏀🌍 conta os títulos da temporada que acabou pro ranking do basquete (EUA Oficial), UMA vez por temporada */
+export function anotaTitulosEua(s: EscState): void {
+  if (!s.euaOficial || s.screen !== 'end') return
+  const t = s.euaTitulos ?? { aneis: 0, conferencias: 0, copas: 0, campanhas: 0, temporadas: 0 }
+  if (t.ultima === s.seasonNo) return
+  const eu = s.managers.find(m => m.isHuman)?.id
+  if (eu == null) return
+  const qc = s.quickCopa
+  const fin = (qc?.bracket ?? []).find(b => b.phase === 'final')?.ties ?? (qc?.phase === 'final' ? qc.ties : [])
+  const novo = {
+    aneis: t.aneis + (qc?.champion?.id === eu ? 1 : 0),
+    conferencias: t.conferencias + (fin.some(x => x.aId === eu || x.bId === eu) ? 1 : 0),
+    copas: t.copas + (s.nbaCup?.champion?.id === eu ? 1 : 0),
+    campanhas: t.campanhas + (sortedTable(s.league)[0]?.id === eu ? 1 : 0),
+    temporadas: t.temporadas + 1, ultima: s.seasonNo,
+  }
+  s.euaTitulos = novo
+}
 /** 🏀🎓 Draft do EUA Oficial: as cartas que podem ser escolhidas AGORA — sem time (nem a mesma pessoa em outro time), promessa ou bom */
 export function poolDraftEua(s: EscState): Card[] {
   const cat = buildNbaCatalog(false)
@@ -9689,11 +9707,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       // `applySeasonMoney` só roda UMA vez por temporada (booksSeason), então apertar Próxima depois não paga de novo.
       if (s.sport !== 'basquete' || !s.nbaCareer || s.onlineMode === 'online' || s.screen !== 'end') return state
       if (s.booksSeason === (s.seasonNo ?? 1)) return state
+      anotaTitulosEua(s) // 🏀🌍 ranking do basquete (EUA Oficial)
       applySeasonMoney(s, nbaSeasonRewards(sortedTable(s.league), s.nbaTier ?? 'street'))
       return s
     }
     case 'NEXT_NBA_SEASON': {
       if (s.sport !== 'basquete' || !s.nbaCareer) return s
+      anotaTitulosEua(s) // 🏀🌍 ranking do basquete (se o caixa não foi fechado antes, conta aqui; nunca 2×)
       // 💰 ECONOMIA (Camada 1 do futebol): fecha o caixa da temporada que ACABOU —
       // prêmios por colocação + bilheteria/estádio + patrocínio (por andar) − folha
       // salarial — e registra no extrato, ANTES de avançar. Mesma mecânica do futebol.

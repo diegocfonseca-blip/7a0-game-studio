@@ -1375,6 +1375,9 @@ export interface EscState {
   /** 🏀🇺🇸 EUA OFICIAL (19/11): carreira do basquete com UMA das 30 franquias reais, na NBA, sem sobe e desce. `franquia` = a chave
    *  da franquia (a mesma das cartas e do ESCUDOS_NBA). Só existe nessa carreira. */
   euaOficial?: { franquia: string; extras?: Card[] }
+  /** 🏀🌍 títulos do EUA Oficial pro ranking global do basquete (20/11): anel 50 · conferência 30 · NBA Cup 25 · melhor campanha 20.
+   *  `ultima` = a última temporada já contada (não conta 2×). */
+  euaTitulos?: { aneis: number; conferencias: number; copas: number; campanhas: number; temporadas: number; ultima?: number }
   /** 🏀🎓 o Draft do EUA Oficial desta virada (eua-draft.ts): a loteria, a ordem das 30 escolhas (ids) e quem escolheu quem */
   euaDraft?: { temporada: number; fora: number[]; sorteio: number[]; ordem: number[]; idx: number; fase: 'loteria' | 'escolha' | 'feito'; prazo?: number
     picks: { mgrId: number; name: string; club: string; year: number; pos: Sector; auto?: boolean }[] }
