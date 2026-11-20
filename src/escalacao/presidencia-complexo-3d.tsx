@@ -459,7 +459,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
     }
    })
    const reservedTransport=new Set(transportActors?.reservedSeatIds()??[])
-   const drainingVisits=visits.filter(visit=>retiringVisits.has(visit)&&!visit.inspect().journey.completed)
+   const drainingVisits=visits.filter(visit=>retiringVisits.has(visit)&&!visit.journeyState().completed)
    const accesses=[...candidates.filter(access=>flow!.visits[access.side]>0&&!reservedTransport.has(access.seatId)),
     ...drainingVisits.flatMap(visit=>{const access=architecture.seatAccess.find(access=>access.id===visitorKeys.get(visit));return access?[access]:[]})]
     .filter((access,index,list)=>list.findIndex(other=>other.id===access.id)===index)
@@ -468,7 +468,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
     flow.visits[side]=count;flow.used[side]+=extra;flow.draining[side]=Math.max(flow.draining[side],flow.used[side]-flow.budget[side])
    }
    const refreshSeats=()=>{
-    const reserved=[...visits.map(visit=>visit.inspect().seatId),...reservedTransport]
+    const reserved=[...visits.map(visit=>visit.seatId),...reservedTransport]
     const reservationCount=(side:'home'|'away')=>new Set(reserved.filter(id=>architecture.seatAccess.some(access=>access.seatId===id&&access.side===side))).size
     const cohortBudget={home:Math.max(0,Math.round(publico.quota.home*publico.occupancy.home)-reservationCount('home')),away:Math.max(0,Math.round(publico.quota.away*publico.occupancy.away)-reservationCount('away'))}
     if(!population.enabled){crowdDeparture?.dispose();crowdDeparture=undefined}
@@ -562,7 +562,11 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
    const focused=focoPartida(),updateCity=!focused||performance.now()-lastCityVisualAt>=500
    if(updateCity)lastCityVisualAt=performance.now()
    matchCameraController.setPitchOnly(focused)
-   if(focused!==sceneFocus){sceneFocus=focused;surround.root.visible=!focused;matchBackdrop.visible=focused;setFieldOnly(focused);setPlacesOpen(false);setSeatUnavailable(false);if(!focused&&!fan.ativo()){controls.enabled=true;if(!focusSessionRef.current)view('original',false)}}
+   if(focused!==sceneFocus){sceneFocus=focused;surround.root.visible=!focused;
+    // Invisível ainda atualiza milhares de matrizes no Three.js. Fora da árvore
+    // de desenho, o entorno mantém suas referências/rotas e volta inteiro ao mapa.
+    if(focused)surround.root.removeFromParent();else if(surround.root.parent!==scene)scene.add(surround.root);
+    matchBackdrop.visible=focused;setFieldOnly(focused);setPlacesOpen(false);setSeatUnavailable(false);if(!focused&&!fan.ativo()){controls.enabled=true;if(!focusSessionRef.current)view('original',false)}}
    if(openingPending)controls.enabled=false
    if(focused){controls.enabled=false;if(!fan.ativo()&&matchCameraController.inspect().mode==='free')setFootballCamera('tv');if(fan.ativo()&&['andando','portao'].includes(fan.fase())){if(!fan.entrar())fan.desligar()}}
    mapFlight.update(performance.now())
@@ -651,18 +655,18 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
    stadiumListener.update((stadiumSoundRef.current||fan.ativo())&&!isMuted()&&visible&&!document.hidden&&!isOffice&&!!matchday.day()?.active,soundLevel)
    circulationActors?.update(seconds)
    const departure=crowdDeparture?.inspect()
-   const drainingSide=(side:'home'|'away')=>visits.some(visit=>visitorSides.get(visit)===side&&retiringVisits.has(visit)&&!visit.inspect().journey.completed)
+   const drainingSide=(side:'home'|'away')=>visits.some(visit=>visitorSides.get(visit)===side&&retiringVisits.has(visit)&&!visit.journeyState().completed)
    const blockNew={home:!!(departure?.busySides.home||departure?.returnPendingSides.home||drainingSide('home')),away:!!(departure?.busySides.away||departure?.returnPendingSides.away||drainingSide('away'))}
    transportActors?.setAccessBlocked(blockNew)
    const occupiedCorridor=()=>{
     const outside=transportActors?.inspect().passengers.filter(p=>p.phase!=='riding')??[]
-    const walkers=visits.map(visit=>visit.inspect()).filter(visit=>!visit.journey.completed&&visit.journey.localSeconds>1e-7)
+    const walkers=visits.map(visit=>({side:visit.side,journey:visit.journeyState()})).filter(visit=>!visit.journey.completed&&visit.journey.localSeconds>1e-7)
     return{home:outside.some(p=>p.side==='home')||walkers.some(p=>p.side==='home'),away:outside.some(p=>p.side==='away')||walkers.some(p=>p.side==='away')}
    }
    const before=occupiedCorridor()
    if(transportActors?.update(seconds))rebuildPopulation()
    visits.forEach(visit=>{visit.setAccessBlocked(!retiringVisits.has(visit)&&blockNew[visitorSides.get(visit)!]);visit.update(seconds)})
-   if(visits.some(visit=>retiringVisits.has(visit)&&visit.inspect().journey.completed))rebuildPopulation()
+   if(visits.some(visit=>retiringVisits.has(visit)&&visit.journeyState().completed))rebuildPopulation()
    const after=occupiedCorridor()
    crowdDeparture?.update(seconds,{blockedSides:{home:before.home||after.home,away:before.away||after.away}})
    if(followSide){

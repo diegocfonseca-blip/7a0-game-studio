@@ -261,6 +261,16 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
   let hasFrame = false
   let last = { seconds: 0, pedestrian: undefined as Pose | undefined, pedestrians: [] as PedestrianFrame[], cars: [] as (Pose | undefined)[], fans: [] as { id: string; side: 'home' | 'away'; source: string; pose: Pose | undefined; period: number; route: readonly PontoComplexo[] }[] }
   const empty = { x: 0, y: 0, z: 0, heading: 0, distance: 0, speed: 0, phase: 'waiting' as const, visible: false }
+  // Grupos permanecem os mesmos durante a vida desta cena. Não varrer os
+  // ossos de todos os personagens para encontrá-los em cada quadro.
+  const sceneGroups = new Map<string, THREE.Object3D>()
+  const groupInScene = (name: string) => {
+    const cached = sceneGroups.get(name)
+    if (cached?.parent) return cached
+    const found = scene.getObjectByName(name)
+    if (found) sceneGroups.set(name, found)
+    return found
+  }
   function update(seconds: number) {
     if (disposed) return
     const time = safeSeconds(seconds)
@@ -268,8 +278,8 @@ export function criarCirculacaoComplexo(scene: THREE.Scene, state: EstadoComplex
     const pedestrianFrames = pedestrians.map(entry => ({ id: entry.id, destination: entry.destination, source: attendance ? 'career' as const : 'qa-sample' as const,
       pose: entry.timeline.at(time), period: entry.timeline.period, route: entry.route, stages: entry.timeline.stages }))
     const pedestrian = pedestrianFrames[shopIndex]?.pose,delta=time-last.seconds
-    const walkers=[...(scene.getObjectByName('city-residents')?.children??[]),...(scene.getObjectByName('city-dealership-customers')?.children.filter(n=>n.name.startsWith('civilian-'))??[])].map(n=>n.position)
-    const otherVehicles=scene.getObjectByName('veiculos-do-usuario')?.children.filter(n=>n.visible)??[]
+    const walkers=[...(groupInScene('city-residents')?.children??[]),...(groupInScene('city-dealership-customers')?.children.filter(n=>n.name.startsWith('civilian-'))??[])].map(n=>n.position)
+    const otherVehicles=groupInScene('veiculos-do-usuario')?.children.filter(n=>n.visible)??[]
     const cars=carLegs.map((entry,i)=>{const clock=trafficClocks[i];
       if(!hasFrame||delta<0||delta>.5){clock.time=time;clock.rate=1}
       else{const p=carAt(entry.legs,clock.time,i);let wanted=1;
