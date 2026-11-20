@@ -14312,3 +14312,10 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Banco: `ls_pregao = 'vice'` quando `game_state.vice` (sala de espera) ou `game_state.viceCity` (partida rolando) — `docs/sql/ls-pregao-vice.sql`, aplicado; salas abertas acertadas na hora.
 - Tela (`lobby.tsx`): `'vice'` vira o selo neon 🌴 VICE CITY e some o selo de lance.
 - Reverter: tirar a 1ª linha do `case` do `ls_pregao` no gatilho `game_rooms_colunas_magras`.
+
+## 👑🦡 20/11 — Batismo Império FC (leodicasttro) — NO BRANCH, esperando "pode publicar"
+- Pix de batismo (79,90) pago em 19/11 às 14:50 (`esc_mp_pedidos`), plano 🖋 Batismo: tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº97.
+- Várzea, no lugar do bot Juventude do Churrasco (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 244×360 28 KB · mascote "O Texugo Rei" (nome dado por mim, confirmar) 236×440 39 KB · manto `#F8F3F0`/`#0A0703` medidos na camisa + dourado `#F1AD10` (MANTO_TRI) · camisa na Loja (`imperio-camisa-v1.webp`).
+- Banco FEITO: `esc_socios` (97, `escudo_time` = Império FC, coração Atlético-MG) · `esc_nomes_batismo` (Império/Imperio/Imperiofc; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
+- Post: `scripts/posts/batismo-imperio-fc.png` (dono "Leo" tirado do e-mail — confirmar).

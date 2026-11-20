@@ -85,6 +85,7 @@ import leoestufEscudoImg from './img/leoestuf-escudo.webp' // 🦁🇧🇷 Leõe
 import reffattiEscudoImg from './img/reffatti-escudo.webp' // 🎮👑 Reffatti FC (leoreffattig): arte própria do dono, 15/11
 import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import cearaspEscudoImg from './img/cearasp-escudo.webp' // 👑⚫ Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
+import imperioEscudoImg from './img/imperio-escudo.webp' // 👑🦡 Império FC (leodicasttro): arte própria do dono, 20/11
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
@@ -1003,6 +1004,11 @@ const hgigantesEscudoRender = (size: number) => (
 const cearaspEscudoRender = (size: number) => (
   <img src={cearaspEscudoImg} height={size} width={Math.round(size * 312 / 360)} alt="Ceará SP Club" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 👑🦡 IMPÉRIO FC (leodicasttro, batismo de 20/11) — Várzea, no assento do bot Juventude do Churrasco. 📏 244×360, 28 KB.
+// Escudo preto e dourado com coroa, o texugo do mel de manto real e o castelo. Fundo verde chroma tirado; conferido sobre vermelho.
+const imperioEscudoRender = (size: number) => (
+  <img src={imperioEscudoImg} height={size} width={Math.round(size * 244 / 360)} alt="Império FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
 // Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
 const lavrasEscudoRender = (size: number) => (
@@ -1777,6 +1783,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Ceará SP Club FC': cearaspEscudoRender,
   'Ceará SP Club EC': cearaspEscudoRender,
   'Ceará SP Club SC': cearaspEscudoRender,
+  // 👑🦡 Império FC (leodicasttro) — BATISMO. As formas do nome (regra 20/08), com e sem acento. O Juventude do Churrasco continua no jogo rápido.
+  'Império FC': imperioEscudoRender,
+  'Imperio FC': imperioEscudoRender,
+  'Império F.C': imperioEscudoRender,
+  'Império F.C.': imperioEscudoRender,
+  'Império EC': imperioEscudoRender,
+  'Império SC': imperioEscudoRender,
   // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
   // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'Lavras FC': lavrasEscudoRender,

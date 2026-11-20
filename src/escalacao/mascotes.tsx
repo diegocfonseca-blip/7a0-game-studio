@@ -87,6 +87,7 @@ import leoestufMascoteImg from './img/leoestuf-mascote.webp' // 🦁 Leões da T
 import reffattiMascoteImg from './img/reffatti-mascote.webp' // 🎮 Reffatti FC (leoreffattig): arte própria do dono, 15/11
 import hgigantesMascoteImg from './img/hgigantes-mascote.webp' // 🧔 História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import cearaspMascoteImg from './img/cearasp-mascote.webp' // 👑 Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
+import imperioMascoteImg from './img/imperio-mascote.webp' // 👑🦡 Império FC (leodicasttro): arte própria do dono, 20/11
 import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteMascoteImg from './img/duarte-mascote.webp' // 🧤 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
@@ -482,6 +483,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
   // 👑⚫ O REI (mascote do Ceará SP Club — lucasnicodemosqq, 19/11): o jogador de camisa listrada preta e branca, camisa 9, mostrando
   // os bíceps. Arte do próprio dono. 📏 219×440, 31 KB — altura 176. mascote_key = "cearasp_rei".
+  // 👑🦡 O TEXUGO REI (mascote do Império FC — leodicasttro, 20/11): o texugo do mel de coroa e manto de arminho, braços cruzados,
+  // com o uniforme branco, preto e dourado. Arte do próprio dono. 📏 236×440, 39 KB — altura 176. mascote_key = "imperio_texugo".
+  imperio_texugo: (
+    <img src={imperioMascoteImg} height={176} width={Math.round(176 * 236 / 440)} alt="O Texugo Rei — Império FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   cearasp_rei: (
     <img src={cearaspMascoteImg} height={176} width={Math.round(176 * 219 / 440)} alt="O Rei — Ceará SP Club" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1438,6 +1444,13 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Ceará SP Club FC': 'cearasp_rei',
   'Ceará SP Club EC': 'cearasp_rei',
   'Ceará SP Club SC': 'cearasp_rei',
+  // 👑🦡 o Texugo Rei carimba o gol do Império FC (leodicasttro, 20/11).
+  'Império FC': 'imperio_texugo',
+  'Imperio FC': 'imperio_texugo',
+  'Império F.C': 'imperio_texugo',
+  'Império F.C.': 'imperio_texugo',
+  'Império EC': 'imperio_texugo',
+  'Império SC': 'imperio_texugo',
   // 🐆 a Pantera carimba o gol do Lavras FC (hugopereirabrito, 16/11).
   'Lavras FC': 'lavras_pantera',
   'Lavras': 'lavras_pantera',
@@ -1629,6 +1642,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   reffatti_gamer: 'O Reffatti', // 🎮 Reffatti FC (leoreffattig, 15/11)
   hgigantes_vovo: 'O Vovô Gigante', // 🧔 História dos Gigantes (will.a.n, 16/11)
   cearasp_rei: 'O Rei', // 👑 Ceará SP Club (lucasnicodemosqq, 19/11)
+  imperio_texugo: 'O Texugo Rei', // 👑🦡 Império FC (leodicasttro, 20/11)
   lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)
   leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
   obelisko_atormentador: 'O Atormentador', // 👁️ Obelisko FC (felipefazzio, 18/11)
