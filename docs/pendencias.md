@@ -279,7 +279,9 @@
   Bots escolhem sozinhos (o melhor na posição onde têm menos gente); na sua vez, 60 s contados na tela (acabou, o jogo escolhe o melhor
   por você). As cartas novas do modo ficam no save (`euaOficial.extras`) pro Draft das próximas temporadas. Trava: `npm run eua-oficial`.
   Prints: `scripts/mockups/basquete-eua-draft-{loteria,vez}-{celular,pc}.png`.
-- ⏳ EUA Oficial, a fazer: os 9 `conferir`; equilíbrio (franquia com lenda × fraca); liberar pra todos = `EUA_OFICIAL_GERAL = true`.
+- ⏸️ Equilíbrio entre franquias (quinteto sorteado: Pelicans 6-76 no teste × franquias cheias de lenda): Diego (20/11) *"Não ainda não"* —
+  NÃO mexer por enquanto; só voltar ao assunto se ele pedir.
+- ⏳ EUA Oficial, a fazer: os 9 `conferir`; liberar pra todos = `EUA_OFICIAL_GERAL = true`.
 
 ### 🏀🏆📋 19/11 — LIGA DA TURMA e LIGA DRAFT no basquete, no formato NBA (no branch)
 - Diego: *"siga o liga da turma e liga draft contando que é basquete"*. As duas saíram do EM BREVE (`BASQUETE_LIGAS_ONLINE = true`); a 🌐
