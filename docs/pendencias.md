@@ -14328,3 +14328,8 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
   grade abriu com as seleções da Copa do Mundo. O dono trocou a Polônia pela pior livre (Bolívia) — a Copa jogada estava certa.
   Agora o portão relê a cada 3s até o banco responder e a grade só abre depois de saber qual copa é (`euroPronto`).
 - ⚠️ `npm run copamundo` tem 2 falhas que já existiam antes (ficha soma a Copa / spoiler) — não mexi.
+
+## 🌴 20/11 — Vice City: 8 cartas de golpe novas (MOCKUP, esperando OK do Diego)
+- Mockup: `scripts/mockups/vice-golpes-novos.png` (gerador `scripts/mockup-vice-golpes-novos.mjs`).
+- Escolhidas por ele: 🛞 Pneu furado (30 s, só +1) · 🐊 Jacaré (tocaia no rival: a próxima LENDA que cair no time dele vai pro seu, de graça; ele recebe o dinheiro de volta) · 🤖 NPC (carta Profissional aleatória ocupa uma vaga do rival) · 🎮 Código de trapaça (+50 moedas, "TRAPACEIRO!" pra sala e +1 ⭐) · 💼 Missão cumprida (ganhou a próxima carta = +10) · 🪂 Paraquedas (lenda aleatória cai no seu time; posição com vaga, time cheio = no lugar do pior) · 🔫 Loja de armas (paga 10, ganha 1 golpe) · ✈️ Contrabando (avião cruza a tela de todos, caixote cai pra 1 pessoa sorteada, que ganha 1 golpe).
+- Recusadas por serem parecidas com as que já existem: WASTED/Trote (=Blitz), Invasão (=Assalto), Guincho/Bomba-relógio (=Cadeia), Advogado (=Funilaria).
