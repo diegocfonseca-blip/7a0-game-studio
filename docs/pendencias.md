@@ -1,3 +1,7 @@
+## 🌴 20/11 — "amigo não viu as cartas de golpe" (sala R3K6EY): o banco tinha 5 cartas pra cada um dos 4; a tela do amigo era a do pregão
+comum = celular com a versão velha aberta (o deploy não recarrega ninguém). Propus aviso de "jogo desatualizado" na sala de espera;
+Diego: *"N precisa"*. Não repropor; o caminho é o próprio jogador recarregar a página.
+
 ## 🏟️ 20/11 — CLUBE NO BRASIL OFICIAL: proposta de organização (mockup `scripts/mockups/clube-oficial-organizado.png`, esperando OK)
 Levantamento: a gestão está espalhada (mapa + lista lateral + painéis + Central; finanças em 4 lugares) e o Oficial ainda mostra
 "SAF e 2º clube"/"segundo clube" (`clube-organizacao.tsx:11`, `clube-mapa-painel.tsx:10/43`), o seletor da SAF diz "Série D atual"
