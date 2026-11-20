@@ -11024,17 +11024,20 @@ export function PyramidSeasonScreen() {
   // fase em que VOCÊ joga. Fase já andando (copaPos > 0) nunca é congelada; eliminado assiste como sempre.
   const [copaOk, setCopaOk] = useState('')
   // 🏟️ 3D escolhido na Central: o jogo só começa no "▶ Começar o jogo" em cima do mapa
-  const [pend3d, setPend3d] = useState<{ tipo: 'liga' | 'copa' | 'estreia'; chave: string } | null>(null)
-  // 🏟️ 20/11 (Diego: "só depois de parar aparecer o botão de começar o jogo"): o ▶ do 3D espera o giro do estádio acabar.
-  // Se o giro não rodar (mapa leve, sem jogo montado), o botão aparece sozinho em 15 s — nunca fica sem botão.
+  const [pend3d, setPend3d] = useState<{ tipo: 'liga' | 'copa' | 'estreia'; chave: string; giro: string } | null>(null)
+  const giroSeq = useRef(0)
+  // O botão só é liberado pelo quadro final do giro que pertence a esta escolha.
   const [giroOk, setGiroOk] = useState('')
   useEffect(() => {
     if (!pend3d) return
-    const k = pend3d.chave
-    const sai = assinaGiroFeito(() => setGiroOk(k))
-    const t = setTimeout(() => setGiroOk(k), 15000)
-    return () => { sai(); clearTimeout(t) }
-  }, [pend3d?.chave]) // eslint-disable-line react-hooks/exhaustive-deps
+    const giro = pend3d.giro
+    return assinaGiroFeito(feito => { if (feito === giro) setGiroOk(giro) })
+  }, [pend3d?.giro]) // eslint-disable-line react-hooks/exhaustive-deps
+  const preparaCampo3D = (tipo: 'liga' | 'copa' | 'estreia', chave: string) => {
+    const giro = `${state.seed}:${chave}:${++giroSeq.current}`
+    setGiroOk(''); setPend3d({ tipo, chave, giro })
+    pedeCameraDoMapa(mapa3dLiberado() ? 'abertura' : 'field2d', giro)
+  }
   const chaveCopa = `${state.seasonNo ?? 1}:copa:${copaRound}:${estadualOn ? 'e' : 'c'}`
   const copaSegura = fluxoCentral && copaPlaying && !!myCopaTie && !state.co2 && state.onlineMode !== 'online' && copaOk !== chaveCopa && copaPos === 0
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
@@ -12619,8 +12622,8 @@ export function PyramidSeasonScreen() {
       escolha={fluxoCentral && diaDoJogoNaCentral ? {
         d2: () => { ligaCampo2D(true); setEscolha2d(chaveCentral); escolheAba('jogos') },
         rapido: () => { ligaCampo2D(false); setEscolha2d(chaveCentral); escolheAba('jogos') }, // ⚡ 20/11: placar rápido (o placar cinema), na aba Jogos
-        // 🏟️ 3D: o jogo começa e o mapa abre no estádio com o giro de abertura (o mapa só gira com a partida já montada)
-        d3: () => { ligaCampo2D(false); setDaCentral(true); setPend3d({ tipo: 'liga', chave: chaveCentral }); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => pedeCameraDoMapa(mapa3dLiberado() ? 'abertura' : 'field2d'), 900) /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
+        // 🏟️ 3D: apresenta o estádio antes do apito, sem depender da montagem da partida.
+        d3: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('liga', chaveCentral); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) },
       } : null} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
@@ -12650,7 +12653,7 @@ export function PyramidSeasonScreen() {
   const comecaEstreia = (d3: boolean, rapido = false) => {
     ligaCampo2D(!d3 && !rapido) // ⚡ 20/11: placar rápido = sem 2D, na aba Jogos
     if (!d3) { if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } return }
-    setDaCentral(true); setPend3d({ tipo: 'estreia', chave: `${state.seasonNo ?? 1}:estreia` }); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => pedeCameraDoMapa(mapa3dLiberado() ? 'abertura' : 'field2d'), 900) /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
+    setDaCentral(true); preparaCampo3D('estreia', `${state.seasonNo ?? 1}:estreia`); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
     setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
   }
   // 🛑 26/10 (3º print: *"continua aparecendo esse modal que eu disse que não quero"*): NADA de janela por cima. Chegou o dia, a
@@ -13006,7 +13009,7 @@ export function PyramidSeasonScreen() {
     const botao = (() => {
       if (copaSegura) return { label: tr('📺 Jogar no Campo 2D', '📺 Play on the 2D pitch'), sub: tr(`${copaFaseName} · 2D e placar rápido abrem na aba Jogos · 3D abre no estádio do mapa`, `${copaFaseName} · 2D and quick scoreboard open in Matches · 3D opens in the map stadium`), onClick: () => { ligaCampo2D(true); setEscolha2d(chaveCopa); escolheAba('jogos') },
         alt2: { label: tr('⚡ Jogar no placar rápido', '⚡ Play on the quick scoreboard'), onClick: () => { ligaCampo2D(false); setEscolha2d(chaveCopa); escolheAba('jogos') } },
-        alt: { label: tr('🏟️ Jogar no Campo 3D', '🏟️ Play on the 3D pitch'), onClick: () => { ligaCampo2D(false); setDaCentral(true); setPend3d({ tipo: 'copa', chave: chaveCopa }); setClubeSub('estadio'); escolheAba('estadio'); setTimeout(() => pedeCameraDoMapa(mapa3dLiberado() ? 'abertura' : 'field2d'), 900) /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
+        alt: { label: tr('🏟️ Jogar no Campo 3D', '🏟️ Play on the 3D pitch'), onClick: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('copa', chaveCopa); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) } } }
       if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr(`🏆 Jogo da ${compNomeAgora[0]} rolando — assistir`, `🏆 ${compNomeAgora[1]} match live — watch`)) : tr(`🏆 Assistir a ${compNomeAgora[0]}`, `🏆 Watch the ${compNomeAgora[1]}`), sub: tr('o controle do jogo está em Jogos', 'the match controls are in Matches'), onClick: vai('jogos') }
       if (intlNoAr) return { label: compProximo ? tr('🌎 Jogar a noite internacional', '🌎 Play the international night') : tr('🌎 Abrir o futebol internacional', '🌎 Open international football'), sub: tr('em Jogos, no passo da competição', 'in Matches, at the competition step'), onClick: vai('jogos') }
@@ -13418,12 +13421,12 @@ export function PyramidSeasonScreen() {
         {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
         {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
-        {fluxoCentral && daCentral && tab === 'estadio' && <button data-voltar-central onClick={() => { setDaCentral(false); escolheAba('central') }}
+        {fluxoCentral && daCentral && tab === 'estadio' && <button data-voltar-central onClick={() => { if(pend3d){setPend3d(null);pedeCameraDoMapa('free')} setDaCentral(false); escolheAba('central') }}
           style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
-        {fluxoCentral && tab === 'estadio' && pend3d && giroOk === pend3d.chave && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
+        {fluxoCentral && tab === 'estadio' && pend3d && giroOk === pend3d.giro && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
           const p3 = pend3d; setPend3d(null)
           if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else setJogoOk(p3.chave)
-          setTimeout(() => pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d'), 500) // 🏟️ o giro já rodou na chegada (20/11); aqui só a câmera do jogo
+          pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d') // A câmera já está pronta; este toque é o único que libera a partida.
         }} style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('▶ Começar o jogo', '▶ Start the match')}</button>}
         <div className="ll-cx-lado">
         {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado

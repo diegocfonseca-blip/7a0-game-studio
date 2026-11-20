@@ -12,16 +12,16 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
  let fixedZoom=1,controlsBeforeFixed:boolean|undefined,pitchOnly=false
  // 🏟️ 19/11 (Diego: *"uma visualização de giro no estádio até chegar o momento de enquadrar o campo"*): ABERTURA de transmissão.
  // A câmera nasce alta, longe, girando em volta do estádio, e desce em espiral até a câmera de TV. Só mexe na câmera (nunca no jogo).
- let abertura:{ini:number;dur:number}|undefined
+ let abertura:{elapsed:number;last?:number;dur:number}|undefined
  const ABERTURA_MS=7000
  const restoreControls=()=>{if(controlsBeforeFixed!==undefined){controls.enabled=controlsBeforeFixed;controlsBeforeFixed=undefined}}
- const enterFree=(restore=true)=>{restoreControls();mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
+ const enterFree=(restore=true)=>{abertura=undefined;restoreControls();mode='free';returning=restore&&!!saved;moving=returning;last=undefined;distance=undefined;zoomInSince=undefined;zoomPending=false;onMode(mode)}
  return {
   setMode(next:CameraPartidaContinua){if(next===mode)return;restoreControls();if(next!=='free'){if(mode==='free'&&!returning)saved={position:camera.position.clone(),target:controls.target.clone(),fov:camera.fov};mode=next;if((next==='fixed'||next==='field2d')){controlsBeforeFixed=controls.enabled??true;controls.enabled=false}returning=false;moving=true;last=undefined;distance=undefined;zoomInSince=undefined;onMode(mode)}else enterFree()},
   setPitchOnly(value:boolean){if(value&&!pitchOnly){corte=true;abertura=undefined;moving=true}pitchOnly=value;if(value)fixedZoom=Math.min(1,fixedZoom)},
   zoomFixed(factor:number){if((mode!=='fixed'&&mode!=='field2d'&&(!pitchOnly||mode==='free'))||!Number.isFinite(factor)||factor<=0)return false;fixedZoom=MathUtils.clamp(fixedZoom*factor,mode==='field2d'?.48:.7,pitchOnly?1:1.6);moving=true;return true},
   explore(){abertura=undefined;enterFree(false)},
-  abrir(now:number,dur=ABERTURA_MS){abertura={ini:now,dur};moving=true},
+  abrir(_now:number,dur=ABERTURA_MS){abertura={elapsed:0,dur};moving=true},
   get abrindo(){return !!abertura},
   update(ball:{x:number;y:number;z:number;presentation?:{x:number;y:number;z:number}},now:number,subjects:readonly AlvoCameraFutebol[]=[],foco?:{x:number;y:number;z:number},forcar?:CameraPartidaContinua,ataque:1|-1=1){
    ball=foco??ball.presentation??ball // (🤝 `foco`: depois do apito a TV segue os jogadores indo pro meio, não a bola parada)
@@ -81,7 +81,8 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    if(corte&&fit){camera.position.copy(position);controls.target.copy(target);camera.fov=fov;camera.updateProjectionMatrix();corte=false}
    if(abertura&&fit&&mode!=='free'){
     // espiral: começa a 210 m do centro, 95 m de altura, do lado oposto à TV, e gira ~200° até cair na posição da câmera de TV
-    const k=MathUtils.clamp((now-abertura.ini)/abertura.dur,0,1),e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2
+    abertura.elapsed+=abertura.last===undefined?0:MathUtils.clamp(now-abertura.last,0,100);abertura.last=now
+    const k=MathUtils.clamp(abertura.elapsed/abertura.dur,0,1),e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2
     const fim=Math.atan2(position.z,position.x),raioFim=Math.hypot(position.x,position.z),ang=fim+(1-e)*Math.PI*1.12
     const raio=MathUtils.lerp(210,raioFim,e),alt=MathUtils.lerp(95,position.y,e)
     camera.position.set(Math.cos(ang)*raio,alt,Math.sin(ang)*raio);controls.target.lerpVectors(new Vector3(0,4,0),target,e)
@@ -102,6 +103,6 @@ export function criarCameraPartidaContinua(camera:PerspectiveCamera,controls:Orb
    const point=new Vector3(ball.x,ball.y,ball.z).project(camera);framing={x:point.x,y:point.y,visible:point.z>-1&&point.z<1&&Math.abs(point.x)<.96&&Math.abs(point.y)<.94}
   },
   get transitioning(){return returning||moving},
-  inspect:()=>({mode,returning,moving,zoomPending,framing,distance,fixedZoom,fov:camera.fov,savedFreePosition:saved?.position.toArray(),savedFreeFov:saved?.fov,sameCamera:true,worldScaleUnchanged:true}),
+  inspect:()=>({opening:abertura?{elapsed:abertura.elapsed,duration:abertura.dur}:null,mode,returning,moving,zoomPending,framing,distance,fixedZoom,fov:camera.fov,savedFreePosition:saved?.position.toArray(),savedFreeFov:saved?.fov,sameCamera:true,worldScaleUnchanged:true}),
  }
 }

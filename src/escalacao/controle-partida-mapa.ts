@@ -43,16 +43,17 @@ export function useControleMapa(): ControleMapa | null {
 
 // 🏟️ 25/10 (Diego: *"quando clicar em campo 3D redireciona já pra dentro da aba de clubes, dentro do mapa, e já na melhor
 // câmera do estádio"*): a carreira PEDE a câmera e o mapa atende assim que estiver pronto (se já estiver, atende na hora)
-let cameraPedida: string | null = null
+type PedidoCameraMapa = { camera: string; giro?: string }
+let cameraPedida: PedidoCameraMapa | null = null
 const ouvintesCamera = new Set<() => void>()
-export function pedeCameraDoMapa(c: string) { cameraPedida = c; ouvintesCamera.forEach(f => f()) }
-export function tiraCameraPedida(): string | null { const c = cameraPedida; cameraPedida = null; return c }
-/** 🏟️ 20/11: o mapa só usa o pedido quando JÁ tem jogo montado no estádio (sem jogo, o giro era jogado fora) */
+export function pedeCameraDoMapa(c: string, giro?: string) { cameraPedida = { camera: c, giro }; ouvintesCamera.forEach(f => f()) }
+export function tiraCameraPedida(): PedidoCameraMapa | null { const c = cameraPedida; cameraPedida = null; return c }
+/** O pedido espera o mapa carregar; a apresentação não depende do apito inicial. */
 export function temCameraPedida(): boolean { return cameraPedida != null }
 // 🏟️ 20/11 (Diego: "só depois de parar aparecer o botão de começar o jogo"): o mapa avisa quando o giro de abertura terminou
-const ouvintesGiro = new Set<() => void>()
-export function avisaGiroFeito() { ouvintesGiro.forEach(f => { try { f() } catch { /* segue */ } }) }
-export function assinaGiroFeito(f: () => void) { ouvintesGiro.add(f); return () => { ouvintesGiro.delete(f) } }
+const ouvintesGiro = new Set<(giro?: string) => void>()
+export function avisaGiroFeito(giro?: string) { ouvintesGiro.forEach(f => { try { f(giro) } catch { /* segue */ } }) }
+export function assinaGiroFeito(f: (giro?: string) => void) { ouvintesGiro.add(f); return () => { ouvintesGiro.delete(f) } }
 export function assinaCameraPedida(f: () => void) { ouvintesCamera.add(f); return () => { ouvintesCamera.delete(f) } }
 
 // 📍 18/11 (Diego: *"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*): o "Ver no mapa" da cena do bairro
