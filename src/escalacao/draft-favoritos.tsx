@@ -93,8 +93,12 @@ export function BuscaFavoritos({ deck, regras, donoDe, favs }: { deck?: BaralhoD
   const lista = useMemo(() => {
     if (!q && !pos) return []
     return baralho.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)) && cartaPermitidaDraft(c, regras))
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }) || a.year - b.year).slice(0, 60)
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }) || a.year - b.year)
   }, [baralho, pos, q, regras])
+  // 📜 20/11 (relato no Futpoint: "vai arrastando… em algum momento trava"): a lista parava nos 60 primeiros (letra C) sem avisar.
+  // Agora desenha de 60 em 60 e puxa mais sozinha quando o dedo chega perto do fim da caixa.
+  const [mostra, setMostra] = useState(60)
+  useEffect(() => { setMostra(60) }, [pos, q])
   return (
     <div className="space-y-2">
       <input value={busca} onChange={e => setBusca(e.target.value)} placeholder={t('🔎 buscar jogador ou clube…', '🔎 search player or club…')}
@@ -105,8 +109,9 @@ export function BuscaFavoritos({ deck, regras, donoDe, favs }: { deck?: BaralhoD
         ))}
       </div>
       {lista.length > 0 && (
-        <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white max-h-[320px] overflow-y-auto" style={{ color: INK }}>
-          {lista.map(c => {
+        <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white max-h-[320px] overflow-y-auto" style={{ color: INK }}
+          onScroll={e => { const el = e.currentTarget; if (mostra < lista.length && el.scrollTop + el.clientHeight > el.scrollHeight - 240) setMostra(m => m + 60) }}>
+          {lista.slice(0, mostra).map(c => {
             const dono = donoDe.get(chaveNome(c.name))
             return (
               <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10" style={{ opacity: dono ? .55 : 1 }}>
@@ -116,6 +121,11 @@ export function BuscaFavoritos({ deck, regras, donoDe, favs }: { deck?: BaralhoD
               </div>
             )
           })}
+          {mostra < lista.length && (
+            <button type="button" onClick={() => setMostra(m => m + 60)} className="w-full py-2 text-[12px] font-black text-black/60" style={OSW}>
+              {t(`⬇ mostrar mais (${lista.length - mostra} restantes)`, `⬇ show more (${lista.length - mostra} left)`)}
+            </button>
+          )}
         </div>
       )}
       {(q || pos) && lista.length === 0 && <p className="text-[12px] font-bold text-black/50">{t('Ninguém com esse nome.', 'Nobody with that name.')}</p>}

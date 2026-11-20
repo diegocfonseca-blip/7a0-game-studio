@@ -14313,9 +14313,19 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Tela (`lobby.tsx`): `'vice'` vira o selo neon 🌴 VICE CITY e some o selo de lance.
 - Reverter: tirar a 1ª linha do `case` do `ls_pregao` no gatilho `game_rooms_colunas_magras`.
 
-## 👑🦡 20/11 — Batismo Império FC (leodicasttro) — NO BRANCH, esperando "pode publicar"
+## 👑🦡 20/11 — Batismo Império FC (leodicasttro) — PUBLICADO (Diego: "pode publicar", nome da mascote e do dono aprovados)
 - Pix de batismo (79,90) pago em 19/11 às 14:50 (`esc_mp_pedidos`), plano 🖋 Batismo: tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº97.
 - Várzea, no lugar do bot Juventude do Churrasco (`OLD_NAME` + `VARZEA_TEAMS`).
-- Escudo 244×360 28 KB · mascote "O Texugo Rei" (nome dado por mim, confirmar) 236×440 39 KB · manto `#F8F3F0`/`#0A0703` medidos na camisa + dourado `#F1AD10` (MANTO_TRI) · camisa na Loja (`imperio-camisa-v1.webp`).
+- Escudo 244×360 28 KB · mascote "O Texugo Rei" (Diego aprovou) 236×440 39 KB · manto `#F8F3F0`/`#0A0703` medidos na camisa + dourado `#F1AD10` (MANTO_TRI) · camisa na Loja (`imperio-camisa-v1.webp`).
 - Banco FEITO: `esc_socios` (97, `escudo_time` = Império FC, coração Atlético-MG) · `esc_nomes_batismo` (Império/Imperio/Imperiofc; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
-- Post: `scripts/posts/batismo-imperio-fc.png` (dono "Leo" tirado do e-mail — confirmar).
+- Post: `scripts/posts/batismo-imperio-fc.png` (dono "Leo", Diego aprovou).
+=======
+## 20/11 — 3 erros do Futpoint
+- 🛡️ **San Lorenzo cortado**: o SVG do JoseArroyave vem sem viewBox (igual ao São Bernardo) e o lote de 16/11 sobrescreveu o webp bom.
+  Refeito do PNG do FCLOGO (141×160). Os outros 29 escudos do lote conferidos numa folha: todos inteiros.
+- 📜 **Liga Draft, lista de favoritos "travava"**: parava nos 60 primeiros nomes (letra C) sem aviso. Agora puxa de 60 em 60 ao
+  rolar + botão "mostrar mais (N restantes)" (`draft-favoritos.tsx`).
+- 🌎 **Polônia na Copa América** (sala Pós live): a leitura da marca `euroNaLiga` no aparelho de quem escolhe falhou calada e a
+  grade abriu com as seleções da Copa do Mundo. O dono trocou a Polônia pela pior livre (Bolívia) — a Copa jogada estava certa.
+  Agora o portão relê a cada 3s até o banco responder e a grade só abre depois de saber qual copa é (`euroPronto`).
+- ⚠️ `npm run copamundo` tem 2 falhas que já existiam antes (ficha soma a Copa / spoiler) — não mexi.

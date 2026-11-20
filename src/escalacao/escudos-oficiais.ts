@@ -466,7 +466,7 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   },
   "San Lorenzo": {
     "src": "escudos-clubes/san-lorenzo.webp",
-    "w": 160,
+    "w": 141,
     "h": 160
   },
   "Tigre": {

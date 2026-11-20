@@ -132,7 +132,7 @@ const MAPA = {
   'Deportivo Táchira': S('south-america/ve-venezuela/deportivotachira.png'),
   // 🏆 Brasil Oficial: os estrangeiros da Sul-Americana 2026 (16/11) — JoseArroyave. Sem escudo em acervo nenhum: Guabirá, Libertad-EQU,
   // Macará, Alianza Atlético (e o América de Cali, que já estava na lista de espera)
-  'Racing': JP('argentina', 'Racing_Club'), 'Deportivo Riestra': JP('argentina', 'Deportivo_Riestra'), 'San Lorenzo': JP('argentina', 'San_Lorenzo_de_Almagro'),
+  'Racing': JP('argentina', 'Racing_Club'), 'Deportivo Riestra': JP('argentina', 'Deportivo_Riestra'), 'San Lorenzo': JP('argentina', 'San_Lorenzo_de_Almagro'), // ⚠️ 20/11: o SVG vem sem viewBox e sai CORTADO — o .webp do repo foi refeito do PNG do FCLOGO (Club-Atletico-San-Lorenzo-v2015.png): depois de rodar, `git checkout public/escudos-clubes/san-lorenzo.webp` e w 141 / h 160 no índice
   'Tigre': JP('argentina', 'Tigre'), 'Barracas Central': JP('argentina', 'Barracas_Central'), 'San Antonio Bulo Bulo': JP('bolivia', 'CD_San_Antonio_Bulo_Bulo'),
   'Blooming': JP('bolivia', 'Blooming'), 'Independiente Petrolero': JP('bolivia', 'Independiente_Petrolero'), 'Audax Italiano': JP('chile', 'Audax_Italiano'),
   'Palestino': JP('chile', 'Palestino'), 'Cobresal': JP('chile', 'Cobresal'), 'Atlético Bucaramanga': JP('colombia', 'Bucaramanga'), 'Millonarios': JP('colombia', 'Millonarios'),
