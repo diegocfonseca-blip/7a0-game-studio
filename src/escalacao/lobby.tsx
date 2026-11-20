@@ -2541,7 +2541,9 @@ export function EscLobby() {
     if (ids.length) {
       try {
         const { data: vc } = await supabase.from('game_rooms').select('id').in('id', ids).eq('game_state->>vice', 'true')
-        const vices = new Set((vc ?? []).map(x => (x as { id: string }).id))
+        // 🌴 20/11: sala que já começou antes do conserto perdeu a marca no 1º save — o pregão em andamento ainda tem o `pa.vice`
+        const { data: vc2 } = await supabase.from('game_rooms').select('id').in('id', ids).not('game_state->pa->vice', 'is', null)
+        const vices = new Set([...(vc ?? []), ...(vc2 ?? [])].map(x => (x as { id: string }).id))
         if (vices.size) for (let i = 0; i < list.length; i++) if (vices.has(list[i].id))
           list[i] = { ...list[i], game_state: { ...(list[i].game_state as GS), vice: true } as GS }
       } catch { /* a lista segue */ }

@@ -17377,7 +17377,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // abria a COPA DO MUNDO no fim da liga (o `mundoNaLiga` ficava, o `euroNaLiga` sumia) — bug do 1º dia da Euro.
         // 🔴 `liveUrl` entra na lista (05/10): o link da live do dono, que a LISTA de salas mostra em
         // destaque. Nasce na criação e o jogo nunca toca — sem a guarda, o 1º save apagaria.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'tamanhoLiga', 'mundoNaLiga', 'euroNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'pacSelecao', 'pacDecada', 'liveUrl', 'tema']) { // 🎨 'tema' (18/10): o tema do clube da sala de espera sobrevive à partida
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'tamanhoLiga', 'mundoNaLiga', 'euroNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'pacSelecao', 'pacDecada', 'liveUrl', 'tema', 'vice']) { // 🌴 'vice' (20/11): a marca da sala Vice City sobrevive ao 1º save (o selo da lista sumia). 🎨 'tema' (18/10): o tema do clube da sala de espera sobrevive à partida
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda
