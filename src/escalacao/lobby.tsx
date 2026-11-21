@@ -5026,7 +5026,10 @@ export function EscLobby() {
                   <p className="ll-hub-room-name font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
                     <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
-                    {(r.game_state as { formation?: string } | undefined)?.formation === 'kings'
+                    {/* 🃏 21/11 (Diego: *"tem que ter o selinho de bafo… uma cor meio verde, musgo, com marrom"*): sala do Bafo ganha o selo dela no lugar do baralho (o baralho é o de cada um) */}
+                    {r.game_state?.mode === 'elenco'
+                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#5E6B2B,#5A3E22)', color: '#F4ECD6', boxShadow: '2px 2px 0 #000', ...OSWALD }} title={tr('Bafo: cada um joga com as cartas que ganhou sendo campeão, e o campeão toma 1 de alguém', 'Bafo: everyone plays with the cards they won as champion, and the champion takes 1 from someone')}>🃏 BAFO</span>
+                      : (r.game_state as { formation?: string } | undefined)?.formation === 'kings'
                       ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
                       : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
                     {((r.game_state as { vice?: boolean; viceCity?: boolean } | undefined)?.vice || (r.game_state as { viceCity?: boolean } | undefined)?.viceCity) && (

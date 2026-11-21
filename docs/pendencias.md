@@ -1,3 +1,6 @@
+## 🃏 21/11 — SELO DO BAFO NAS SALAS ABERTAS (publicado, *"já pode ativar"*)
+- Sala do Bafo ganha o selo `🃏 BAFO` (verde musgo → marrom, letra creme) no lugar do selo do baralho, na lista de salas abertas (`lobby.tsx`). Print: `scripts/mockups/bafo-selo.png`.
+
 ## 🎬 BAFO — ARTES DE LANÇAMENTO (21/11, pedido do Diego)
 - Stories: `node scripts/stories-bafo.mjs` → `scripts/posts/stories-bafo.png` (1080×1920).
 - Reels padrão: `node scripts/video-bafo-reels.mjs` → `scripts/posts/bafo-reels.mp4` (1080×1920, ~37 s, sem som; o mp4 não entra no repo, é só rodar).
