@@ -14356,4 +14356,8 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Banco FEITO: `esc_socios` (98, `escudo_time` = Cabuloso JP, coração Cruzeiro) · `esc_fundadores` (104) · `esc_nomes_batismo`
   (Cabuloso JP / Cabulosojp; o gatilho fez FC/EC) · `user_colors` ouro manual já estava (Pix).
 - Post: `scripts/posts/batismo-cabuloso-jp.png` (dono "Rafael" tirado do e-mail — confirmar).
-- ⏳ FALTA do Fundador: **📣 canto** (nenhum clube tem canto do Cruzeiro — precisa do áudio) e **gala única** (mockup antes).
+- 🦊 **Gala única "A Raposa Coroada"** FEITA (`gala-cabuloso.tsx`, registrada em `entrada-gala.tsx`, 9 s): as 5 estrelas do Cruzeiro do Sul
+  acendem com "plim", a cruz se forma, a sombra da raposa na lua (AUUUU!), a coroa cai e encaixa, "É CABULOSO!", o escudo e a faixa.
+  Vídeo: `scripts/posts/gala-cabuloso.webm` (`node scripts/video-gala-cabuloso.mjs`). Mockup aprovado em `scripts/mockups/gala-cabuloso.png`.
+- ⏳ FALTA do Fundador: **📣 canto** (nenhum clube tem canto do Cruzeiro — precisa do áudio do Diego; quando chegar, ligar em
+  `AMBIENTE_CARREIRA_POR_EMAIL` e tocar na gala com `playMp3Gala`).
