@@ -13,6 +13,19 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - ⚠️ FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
 - Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
+## 🧭 21/11 — Central: 4 ajustes pedidos pelo Diego (no branch, esperando ele mandar publicar)
+
+- **3D repetindo sem perguntar**: era a mata-mata de IDA E VOLTA (estadual, Copa do Brasil, Liberta) — a volta começava sozinha no apito da ida.
+  Agora a volta tem chave própria (`:v`) e a fase PARA em 90 até a nova escolha na Central (`copaVolta`). Reproduzido e conferido na bancada.
+- Escolha vale pra UM jogo: chave exata em `aguardaCentral`/"▶ Começar o jogo" (a da Copa da quarta liberava a Liga do domingo); `avancarRodada`
+  sem escolha leva pra Central; Copa da quarta não pergunta duas vezes (`setCopaOk`).
+- ⚠️ **PULAR do Manual saiu na liga dentro do fluxo da Central** (começava o jogo seguinte direto). Avisado ao Diego; voltar = 1 linha (`onSkip`).
+- **⏩ Pular pro jogo**: em semana de Copa que o usuário NÃO joga parava na quarta sem jogo; e na C/D real a semana sem jogo recomeçava na segunda
+  (ref `pulando` atravessa). Conferido na bancada só o caso da Série D; o da quarta foi por leitura.
+- **Coletiva**: respondeu, fecha (sem a 2ª tela); efeito vai pro cartão 🎙️ Imprensa da Central (só na sessão, não vai pro save). Apresentação de lendas mantém a capa.
+- **Jornal da Central**: capa do meio da temporada = estádio (`estadioArt`); a taça fica pro jornal do campeão.
+- Não testado em celular de verdade; pênaltis depois da volta segurada e conta sem mapa: só por leitura.
+
 ## 🏆 20/11 — Queda na carreira: inscrições continentais e tabela (correção local, não publicada)
 
 Causa reproduzida: campeão estrangeiro deixava 46 inscritos na Libertadores; completar com eliminado retirava um transferido da Sul-Americana, gerando grupos incompletos e uma final sem adversário. Diego rejeitou reintegrar eliminado e aprovou ajustar inscrições com clubes/elencos reais. Implementação, compatibilidade e fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Temporadas antigas completas conservam seus confrontos; inscrições já incompletas são reparadas. Não houve acesso a saves privados nem publicação.
