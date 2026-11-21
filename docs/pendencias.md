@@ -15,6 +15,22 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   - EM MOCKUP (esperando OK): pacote verde abrindo no começo da convocação · suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
   - PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
   - Rivalidade: a prateleira de rivalidades não é desligada no Bafo (`retroOn`); conferir com ele onde ele esperava ver.
+- FEITO (21/11): criar sala do Bafo não pergunta mais o baralho (aviso fixo "as suas cartas de campeão", de qualquer baralho; repetida fica na coleção e no time entra uma só de cada).
+- CONFERIDO NO BANCO: Bafo nº 5 (Futpoint × Neymarzetti) — a carta está com o campeão e saiu do perdedor (80 → 79).
+- ⚠️ FURO A FECHAR (proposto, esperando OK): quando a carta é tomada, a chave do título original (`season_key`) fica LIVRE no perdedor. Se ele reabrir a
+  tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
+  proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
+
+## 🃏 21/11 — AUDITORIA: todo campeão ganha a cartinha? (pedido do Diego; nada foi mudado ainda)
+- SALAS ONLINE (medido no banco, `game_champions` × `user_cards`): ~99% dos campeões têm carta na hora do título. Em 2 dias (~480 campeões) achei 3 sem
+  carta nenhuma perto do título (salas `7bbb9382…` T2 e `e8502303…` T1, as duas liga+copa, campeão que NÃO era o dono; e 1 de sala já apagada) e mais ~3 duvidosos.
+  ⚠️ Não cruzar pela chave exata em sala antiga: `game_champions.room_id` vira NULL quando a sala é apagada (dá "100% sem carta", falso).
+- CAUSA PROVÁVEL: quem grava a carta é o APARELHO do campeão (`garanteCartaDoTitulo` / `CardCollectPrompt`). Aparelho fechado/sem rede na hora = não grava e ninguém refaz.
+- FURO 2: `useTitulosNaHora` só roda quando existe campeão de LIGA (`ligaCamp == null → return`) e exclui `copaMode === 'champions'` → ⚡ Relâmpago e ⭐ Só Champions
+  só dão a carta na TELA FINAL (se a sala parar antes, perde).
+- CARREIRA (pelo código): divisão, Copa Legends/do Brasil, Supercopa, Libertadores/Champions/Mundial (internacional), Copa do Mundo e clube que dorme têm cartinha.
+  **Brasil Oficial: NÃO achei cartinha pra Estadual, Libertadores, Sul-Americana e Intercontinental** (contam pro ranking via `estOf/libOf/sulaOf/interOf`, mas não há `CardCollectPrompt`). Conferir e ligar.
+- PROPOSTA (uma só): rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
 - (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
 - Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
