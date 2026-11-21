@@ -3,7 +3,12 @@
 - Carreira: linha em `AMBIENTE_CARREIRA_POR_EMAIL` (só ele ouve, em todo jogo — a regra de hoje).
 - Sala de espera: ele tem a gala PADRÃO (não é Fundador), que era muda. Agora a gala padrão toca o canto de quem tem (`cantoDaGalaPadrao`, sound.ts →
   `SomDaGalaPadrao`, entrada-gala.tsx); a sala inteira ouve. ⚠️ A gala padrão dura 5,6 s, então tocam ~5 s do canto (os 14 s inteiros só na carreira).
-- ❓ ESPERANDO O DIEGO: ele perguntou se o canto nos JOGOS deve ser "todo mundo ouve" ou "só ele", e "só em casa". Recomendei: canto só nos jogos EM CASA,
+- ✅ DECIDIDO E FEITO (21/11, *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*) — vale pra TODOS os cantos:
+  o canto é o da CASA do jogo que está na tela (`setJogoDaTela`, chamado pelo `LiveScoreCard`). Dono em casa = toca (carreira e salas); visitante daquele
+  jogo numa sala ouve também (pela mascote do batismo que o servidor dá ao assento, `CANTO_POR_MASCOTE`); fora de casa/sem canto = torcida padrão.
+  Mudou pra quem já tinha: antes ouvia em TODO jogo da carreira. Texto da Loja atualizado. ⚠️ Canto novo = linha no e-mail E na mascote (sound.ts).
+  Não testado com som num aparelho de verdade (só build).
+- (histórico) ele perguntou se o canto nos JOGOS deve ser "todo mundo ouve" ou "só ele", e "só em casa". Recomendei: canto só nos jogos EM CASA,
   e na sala online o visitante que joga na casa dele ouve também. Isso muda quem já tem canto (hoje ouvem em todo jogo da carreira) → não mexi sem o OK.
 - 🧪 `npm run gala` já reprovava antes desta entrega (`window.__set is not a function`, no cenário do navegador). Rever a trava.
 

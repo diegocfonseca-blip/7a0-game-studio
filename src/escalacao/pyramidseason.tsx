@@ -179,6 +179,8 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
+import { setJogoDaTela } from './sound'
+import { mascoteDaSala, estouEmSala } from './mimos'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA, playChute, playDefesa, playQuase, playSubiu, playCaiu, playCaixa } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
 import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
@@ -4220,6 +4222,13 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   /** 📢 frases próprias do apito final (vitória · derrota · empate), pra jogo que NÃO é de liga —
    *  na final de copa não se fala em "três pontos" (Diego 02/10). Sem isto, valem as da liga. */
   apitoFrases?: { win: string[]; lose: string[]; draw: string[] }; stadiumMatch?:ContextoPartidaEstadio }) {
+  // 📣🏠 21/11 (Diego: "só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"): o canto de torcida é o da
+  // CASA deste jogo. Eu em casa = o meu canto; eu visitante numa sala = o do dono da casa (pela mascote que o servidor deu ao assento).
+  // Jogo neutro/de terceiros e basquete = torcida padrão. Ao sair da tela, volta pro padrão.
+  useEffect(() => {
+    setJogoDaTela(neutro || basket ? null : { souCasa: !!youIsHome, mascoteCasa: !youIsHome && estouEmSala() ? mascoteDaSala(homeName) : null })
+    return () => setJogoDaTela(null)
+  }, [homeName, youIsHome, neutro, !!basket]) // eslint-disable-line react-hooks/exhaustive-deps
   // O chaveamento simula fases futuras. Só a partida apresentada passa a
   // oficializar sua fotografia; mudar o XI antes da próxima fase continua válido.
   const entradaDaTela=elencos?.m2
