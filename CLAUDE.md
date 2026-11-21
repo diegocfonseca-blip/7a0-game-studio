@@ -1248,6 +1248,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Quem aperta Pronto antes: o jogo completa com as PIORES (ele confirmou).
   🔒 Mesmo dia (noite): **sem cartas que fechem um time não entra nem cria sala de Bafo** (*"eles nem poderiam ter entrado, já que não estavam aptos"*);
   abre o banner `FaltamCartasBafo` explicando o que é carta de campeão e como ganhar. Não existe mais "só assiste" pra quem chega.
+  🗳️ **Fim do Bafo = o padrão dos outros modos, adaptado** (*"normalmente tem lá no final aquela votação… ou sair da sala"*): cada um
+  escolhe Jogar de novo ou Sair da sala; só o dono leva a sala de volta pra espera (`BafoFimVoto`). Nunca voltar pra espera sem a pessoa escolher.
 
 - **🎁 GANHOU, APARECE O PACOTE PRA ABRIR (21/11, regra permanente).** Palavras dele: *"o principal é quando acaba uma competição e você ganha, deve
   aparecer a carta pra você, o pacote pra abrir"*. Vale pra TODA competição de TODO modo (menos o Bafo, que não dá carta nova). Competição nova = já nasce

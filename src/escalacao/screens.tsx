@@ -12172,6 +12172,82 @@ function CareerEndPanel() {
 // próximo jogo, não de ler oferta; e quem NÃO tem com quem jogar está justamente
 // na lista de salas abertas, procurando. Agora ele mora em `lobby.tsx`, embaixo do
 // 🔄 Atualizar lista, e bem mais discreto.
+// 🗳️🃏 FIM DO BAFO (21/11, Diego: *"normalmente tem lá no final aquela votação, se você quer continuar ou não, ou sair da sala, que é
+// o padrão de todos os outros… não entendi por que acabou e voltou pra sala de espera já"*). No Bafo não existe "mesmo time" nem
+// "novo leilão" (as cartas mudam de dono e a convocação é nova), então a votação padrão vira: 🃏 Jogar de novo · 🚪 Sair da sala.
+// O dono vê quem respondeu e SÓ ELE leva a sala de volta pra espera — ninguém é carregado sem saber. Usa o voto de sempre
+// (`CAST_SEASON_VOTE`, que o novo jogo zera) e o sair de sempre; sair no fim não pune ninguém (a punição do dono é só com a liga rolando).
+function BafoFimVoto() {
+  const { state, dispatch, leaveRoom } = useEsc()
+  const V = useT()
+  const youId = state.managers[state.youIdx]?.id ?? state.youIdx
+  const isHost = !!state.isHost
+  const votes = state.seasonVotes ?? {}
+  const quero = !!votes[youId]
+  const humans = state.managers.filter(m => m.isHuman)
+  const [memberIds, setMemberIds] = useState<number[]>(() => humans.map(m => m.id))
+  useEffect(() => {
+    if (!state.roomId) return
+    let vivo = true
+    const le = async () => {
+      try {
+        const { data } = await supabase.from('room_players').select('player_index').eq('room_id', state.roomId)
+        if (vivo && data) setMemberIds([...new Set((data as { player_index: number }[]).map(p => p.player_index))])
+      } catch { /* fica com a última lista */ }
+    }
+    void le()
+    const t = window.setInterval(() => { if (!salaDormindo()) void le() }, 4000)
+    return () => { vivo = false; window.clearInterval(t) }
+  }, [state.roomId])
+  const dentro = new Set(memberIds)
+  const ficaram = humans.filter(m => dentro.has(m.id))
+  const sair = () => {
+    const msg = isHost
+      ? V('Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.', 'Leave the room? Command (host) passes to someone else. If you are alone, the room is deleted.')
+      : V('Sair da sala? Você será removido desta sala.', 'Leave the room? You will be removed from this room.')
+    if (window.confirm(msg)) leaveRoom()
+  }
+  const [indo, setIndo] = useState(false)
+  const novoBafo = async () => { if (indo) return; setIndo(true); await voltaEsperaNoBanco(state.roomId); dispatch({ type: 'REMATCH' }) }
+  const btn = (bg: string, fg: string): React.CSSProperties => ({ flex: 1, background: bg, color: fg, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 6px', fontWeight: 900, fontSize: 15, ...OSWALD })
+  return (
+    <div data-bafo-fim-voto style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, color: INK, textAlign: 'left' }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textAlign: 'center' }}>{V('🃏 E AGORA? MAIS UM BAFO?', '🃏 WHAT NOW? ANOTHER BAFO?')}</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, margin: '8px 0 0', justifyContent: 'center' }}>
+        {humans.map(m => {
+          const saiu = !dentro.has(m.id)
+          const sim = !saiu && (!!votes[m.id] || (isHost && m.id === youId))
+          return <span key={m.id} style={{ fontSize: 11.5, fontWeight: 800, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 7px', background: saiu ? '#E4DFD0' : sim ? '#CDEBD5' : '#FFF6D6', color: saiu ? 'rgba(0,0,0,.5)' : INK }}>
+            {saiu ? '🚪' : sim ? '✅' : '⏳'} {m.teamName}{m.id === youId ? V(' (você)', ' (you)') : ''}
+          </span>
+        })}
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', textAlign: 'center' }}>{V('✅ quer jogar de novo · ⏳ ainda não respondeu · 🚪 saiu', '✅ wants to play again · ⏳ no answer yet · 🚪 left')}</p>
+      {isHost ? (
+        <>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button onClick={() => void novoBafo()} disabled={indo} style={btn(GOLD, '#000')}>{ficaram.length < 2 ? V('📣 Voltar pra sala de espera', '📣 Back to the waiting room') : V('📣 Novo Bafo com quem ficou', '📣 New Bafo with who stayed')}</button>
+          </div>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '7px 0 0', textAlign: 'center' }}>{ficaram.length < 2
+            ? V('Você ficou sozinho: na sala de espera dá pra chamar mais gente.', 'You are alone: in the waiting room you can call more people.')
+            : V('Você é o dono: quando apertar, quem não saiu volta junto pra sala de espera e todo mundo convoca de novo.', 'You are the owner: when you tap, everyone who did not leave goes back to the waiting room and calls up again.')}</p>
+          <button onClick={sair} style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 800, fontSize: 12.5, color: 'rgba(0,0,0,.6)' }}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
+        </>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button onClick={() => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: 'mesmo' })} style={btn(quero ? GREEN : '#fff', quero ? '#fff' : '#000')}>{quero ? V('✅ Vou jogar de novo', '✅ I\'m in again') : V('🃏 Jogar de novo', '🃏 Play again')}</button>
+            <button onClick={sair} style={btn('#FFD9CE', '#8E2A1B')}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
+          </div>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '7px 0 0', textAlign: 'center' }}>{quero
+            ? V('Fechado! Quando o dono da sala começar o novo Bafo, você volta pra sala de espera e convoca de novo.', 'Done! When the room owner starts the new Bafo, you go back to the waiting room and call up again.')
+            : V('Quem não sair volta junto pra sala de espera quando o dono começar o novo Bafo.', 'Whoever does not leave goes back to the waiting room when the owner starts the new Bafo.')}</p>
+        </>
+      )}
+    </div>
+  )
+}
+
 export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   const V = useT() // 🌐 BR/EN
@@ -13347,7 +13423,7 @@ export function EscEnd() {
       {state.bafo2 && state.roomId ? (
         <Bafo2Fim roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid} managers={state.managers} assentos={state.seatUids ?? []}
           campeaoUid={state.champion != null ? (state.seatUids?.[state.champion] ?? null) : null}
-          aoVoltar={state.isHost ? async () => { await voltaEsperaNoBanco(state.roomId); dispatch({ type: 'REMATCH' }) } : undefined} />
+          rodape={<BafoFimVoto />} />
       ) : state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
         <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
           <p className="font-black text-base" style={OSWALD}>{LE('🤝 BAFO AMISTOSO', '🤝 FRIENDLY BAFO')}</p>

@@ -2,7 +2,7 @@
 - *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*. `enterRoom` (sala esperando) e criar sala: sem cartas que
   fechem um time abre o modal com o `FaltamCartasBafo` e não entra/cria. Leitura das cartas falhou = deixa passar. Sala já começada segue como era.
 - Revê o "pode ficar assistindo" de antes: a pessoa não entra mais pra assistir.
-- ⏳ PENDENTE (perguntado ao Diego): o FIM do Bafo. Hoje não tem a votação padrão (`OnlineEndVote` é escondida no Bafo, porque "mesmo time / novo leilão"
+- ✅ FEITO e publicado (Diego: *"Sim, não precisa mockup"*): `BafoFimVoto` (screens.tsx) no lugar do botão único — cada um escolhe 🃏 Jogar de novo ou 🚪 Sair da sala, o dono vê ✅/⏳/🚪 de cada um e só ele leva a sala pra espera ("Novo Bafo com quem ficou"). Usa `CAST_SEASON_VOTE` e o sair de sempre. NÃO testado em sala real. Histórico da pergunta: Hoje não tem a votação padrão (`OnlineEndVote` é escondida no Bafo, porque "mesmo time / novo leilão"
   não existem no modo); o dono tem um botão só, "Voltar pra sala de espera · novo Bafo", e quando aperta leva todo mundo. Na sala do Futpoint pareceu
   automático pros outros. Proposta enviada: tela de fim com "Jogar de novo" / "Sair da sala" pra cada um e o dono só volta depois. Esperando resposta.
 

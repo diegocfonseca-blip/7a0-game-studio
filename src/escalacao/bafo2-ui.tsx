@@ -415,12 +415,14 @@ async function leBafo(roomId: string): Promise<Bafo2Linha | null> {
 function useAgora(ms = 1000): number { const [t, setT] = useState(Date.now()); useEffect(() => { const i = window.setInterval(() => setT(Date.now()), ms); return () => window.clearInterval(i) }, [ms]); return t }
 
 // ─── 4) 🏆 O FIM: só o campeão escolhe (60 s) ────────────────────────────────────────────────────────────────────────
-export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assentos, aoVoltar }: {
+export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assentos, aoVoltar, rodape }: {
   roomId: string; souDono: boolean; meuUid: string | undefined; campeaoUid: string | null; managers: Manager[]
   /** 🪑 quem senta em cada time (índice = id do time humano) — a mesma lista da sala */
   assentos: string[]
   /** 📣 (só o dono) Bafo fechado → leva a sala de volta pra espera pra um novo Bafo */
   aoVoltar?: () => void
+  /** 🗳️ 21/11 (noite): o fim padrão do Bafo (Jogar de novo / Sair da sala) — quando vem, toma o lugar do botão de voltar */
+  rodape?: React.ReactNode
 }) {
   const [b, setB] = useState<Bafo2Linha | null>(null)
   const [erro, setErro] = useState('')
@@ -485,7 +487,7 @@ export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assent
   const souCampeao = !!meuUid && b.campeao === meuUid
   const nomeCampeao = managers.find(x => x.isHuman && assentos[x.id] === b.campeao)?.teamName ?? ((b.campeao && b.nomes[b.campeao]) || '—')
 
-  const voltar = aoVoltar ? <button onClick={aoVoltar} style={{ display: 'block', width: '100%', marginTop: 10, background: OURO, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, ...OSW, fontWeight: 900, fontSize: 16 }}>📣 {tr('Voltar pra sala de espera · novo Bafo', 'Back to the waiting room · new Bafo')}</button>
+  const voltar = rodape ? <div style={{ marginTop: 10 }}>{rodape}</div> : aoVoltar ? <button onClick={aoVoltar} style={{ display: 'block', width: '100%', marginTop: 10, background: OURO, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, ...OSW, fontWeight: 900, fontSize: 16 }}>📣 {tr('Voltar pra sala de espera · novo Bafo', 'Back to the waiting room · new Bafo')}</button>
     : <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 0 0', textAlign: 'center' }}>{tr('O dono da sala leva todo mundo de volta pra espera pra um novo Bafo.', 'The room owner takes everyone back to the waiting room for a new Bafo.')}</p>
   if (b.fase === 'encerrada') return <div><PunicaoBafo b={b} />{voltar}</div>
   if (b.fase === 'jogando') return (
