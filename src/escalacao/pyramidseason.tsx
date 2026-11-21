@@ -5514,7 +5514,7 @@ type EstatUI = {
 }
 type CareerSquadTarget = 'overview' | 'formation' | 'reserves' | 'staff'
 type CareerSquadRequest = { target: CareerSquadTarget; revision: number }
-function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, estat, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; estat?: EstatUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean; navigationRequest?: CareerSquadRequest }) {
+function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, overTodos, condicao, estat, antesFolha, dicaTrocaNoTopo }: { /** 📋 Liga Draft: o overall de todo jogador do elenco aparece sempre */ overTodos?: boolean; mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; estat?: EstatUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean; navigationRequest?: CareerSquadRequest }) {
   const visualV2 = useCareerVisualV2()
   // 🧹 ENXUGADA (Diego 14/09: *"tá com muita informação desnecessária"*): o texto
   // longo do preparador só abre no "?" — quem já sabe a regra nunca mais lê.
@@ -5613,7 +5613,9 @@ function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, s
   // 9 colunas). Com a trava fechada ele fica do tamanho de sempre — a tela antiga
   // não muda um pixel.
   const chipMenor = elencoNovo && !larga
-  const olheiroTier = olheiros ? myApoioPerk()?.tier : undefined
+  // 📋 21/11 (Diego: "lá no Liga Draft, sempre quando tá no teu elenco, deve aparecer sempre o overall do jogador contratado"):
+  // `overTodos` mostra a faixa de TODO jogador do elenco, com ou sem plano (o jogador já é seu; não é olheiro de leilão)
+  const olheiroTier = overTodos ? 'ouro' : olheiros ? myApoioPerk()?.tier : undefined
   const overallChip = (c: WonCard) => {
     if (!c.lo || !c.hi || c.fake) return null
     if (olheiroTier !== 'ouro' && !(olheiroTier === 'prata' && c.fame < 5)) return null
@@ -7291,7 +7293,7 @@ export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaN
   )
 }
 
-export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase, ab }: { /** ⚔️ 25/10: a tática do próximo jogo, logo abaixo da formação (conta do Diego) */ tatica?: ReactNode; /** 💾 Time A/B (23/10): a 3ª pílula ao lado de Formação/Trocas + o painel/aviso que ela abre */ ab?: { rotulo: string; render: (aberto: boolean, fechar: () => void) => ReactNode }; mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
+export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, overTodos, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase, ab }: { overTodos?: boolean; /** ⚔️ 25/10: a tática do próximo jogo, logo abaixo da formação (conta do Diego) */ tatica?: ReactNode; /** 💾 Time A/B (23/10): a 3ª pílula ao lado de Formação/Trocas + o painel/aviso que ela abre */ ab?: { rotulo: string; render: (aberto: boolean, fechar: () => void) => ReactNode }; mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
   const visualV2 = useCareerVisualV2()
   const [navigationRequest,setNavigationRequest]=useState<CareerSquadRequest>({target:'overview',revision:0})
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
@@ -7534,14 +7536,15 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
         }
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
         // 📋 Liga Draft (04/11): as 7 formações do jogo, acesas pelo que o elenco tem; o resto segue com as 5 de sempre
-        const listaForm: readonly FormationKey[] = escSt.minhaLigaDraft ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2']
+        const elenco22 = !!escSt.minhaLigaDraft || !!escSt.bafo2 // 📋🃏 modos de elenco de 22: as 7 formações do jogo (+ o 3-5-2)
+        const listaForm: readonly FormationKey[] = elenco22 ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2']
         const blocked = listaForm.filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {/* 🪽 07/11: na Liga Draft entra o 3-5-2 logo depois do 5-3-2 — mesmos jogadores, os laterais sobem como alas */}
-              {listaForm.flatMap((f): [FormationKey, string | undefined][] => escSt.minhaLigaDraft && f === '5-3-2' ? [[f, undefined], [f, '3-5-2']] : [[f, undefined]]).map(([f, vista]) => {
+              {listaForm.flatMap((f): [FormationKey, string | undefined][] => elenco22 && f === '5-3-2' ? [[f, undefined], [f, '3-5-2']] : [[f, undefined]]).map(([f, vista]) => {
                 const alasAgora = mgr.formation === '5-3-2' && mgr.formationView === '3-5-2'
                 const cur = mgr.formation === f && (vista === '3-5-2' ? alasAgora : !(f === '5-3-2' && alasAgora))
                 const can = cur || missFor(f).length === 0
@@ -7554,7 +7557,15 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
                 )
               })}
             </div>
-            {blocked.length
+            {/* 📋 21/11 (reclamação na Liga Draft: "às vezes não tá aparecendo formação"): TODAS aparecem; a apagada é a que o elenco
+                ainda não fecha — e aqui diz o que falta em CADA uma (antes só dizia da primeira e mandava "contratar no leilão ou SAF") */}
+            {elenco22 && blocked.length > 0
+              ? <div style={{ margin: '6px 0 0' }}>
+                  <p style={{ fontSize: 10.5, fontWeight: 800, color: '#b23b2e', margin: 0, lineHeight: 1.35 }}>{tr('⚠️ As apagadas são as que o seu elenco ainda não fecha:', '⚠️ The greyed-out ones are those your squad cannot fill yet:')}</p>
+                  {blocked.map(f => <p key={f} style={{ fontSize: 10.5, fontWeight: 700, color: '#5a2a22', margin: '1px 0 0', lineHeight: 1.3 }}>• <b>{rotuloFormacao(f)}</b>: {tr('falta', 'missing')} {missFor(f).join(', ')}</p>)}
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '3px 0 0' }}>{escSt.bafo2 ? tr('No Bafo o elenco é o que você convocou.', 'In Bafo the squad is the one you called up.') : tr('Pegue jogador dessa posição no draft ou no leilão da virada e a formação acende.', 'Get a player for that position in the draft or the season-turn auction and the formation lights up.')}</p>
+                </div>
+              : blocked.length
               ? <p style={{ fontSize: 9.5, fontWeight: 700, color: '#b23b2e', margin: '6px 0 0', lineHeight: 1.35 }}>{getLang() === 'en' ? <>⚠️ To play <b>{rotuloFormacao(blocked[0])}</b> you\'re missing <b>{missFor(blocked[0]).join(', ')}</b>. Sign at the auction or bring from the SAF.</> : <>⚠️ Pra jogar <b>{rotuloFormacao(blocked[0])}</b> faltam <b>{missFor(blocked[0]).join(', ')}</b>. Contrate no leilão ou traga da SAF.</>}</p>
               : <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2E7D46', margin: '6px 0 0', lineHeight: 1.35 }}>{tr('✅ Você pode trocar de formação quando quiser — vale do próximo jogo.', '✅ You can change formation whenever you like — applies from the next match.')}</p>}
           </div>
@@ -7621,7 +7632,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
                 : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (5% por jogo; 10% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
             </UnlockBanner>
           )}
-          <ElencoField navigationRequest={visualV2 ? navigationRequest : undefined} mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} estat={estat}
+          <ElencoField navigationRequest={visualV2 ? navigationRequest : undefined} mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} overTodos={overTodos} condicao={condicao} estat={estat}
             dicaTrocaNoTopo={!!(elenco && onSetSubMode)}
             antesFolha={criaBase ? <BaseBox mgr={mgr} criaNames={escSt.criaNames ?? []} seed={escSt.seed ?? 1} onSubir={criaBase.onSubir} /> : undefined} />
         </>

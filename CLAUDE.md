@@ -1256,6 +1256,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   campeão"* — 3 baralhos + regionais + Brasil Oficial (`baralho-inteiro.ts`). Carta/baralho novo no jogo = entra lá também. As do Oficial seguem FORA do
   leilão das salas/partida rápida; como prêmio de álbum e no Bafo, valem. A carreira usa o MESMO sorteio (*"mesmo cálculo"*).
 
+- **📋 LIGA DRAFT: O OVERALL DO SEU ELENCO APARECE SEMPRE (21/11).** *"sempre quando tá no teu elenco, deve aparecer também sempre o overall do jogador
+  contratado"* — com ou sem plano (`overTodos`). E *"tem que ter todas as formações"*: as 7 + 3-5-2 ficam sempre à vista; a apagada diz o que falta.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
