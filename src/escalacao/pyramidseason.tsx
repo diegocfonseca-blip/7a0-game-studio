@@ -14251,7 +14251,7 @@ export function PyramidSeasonScreen() {
           const humans = state.managers.filter(m => m.isHuman && !m.dormindo)
           const votes = state.seasonVotes ?? {}
           const myVote = votes[youId]
-          const leilaoLabel = state.seasonNo === 1 ? tr('Leilão de reservas', 'Reserves auction') : tr('Leilão de transferências', 'Transfer auction')
+          const leilaoLabel = tr('Leilão', 'Auction') // 🔨 21/11 (Diego: *"aparece leilão de reservas… era pra ser só leilão"*)
           const enFim = getLang() === 'en'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
@@ -14475,10 +14475,10 @@ export function PyramidSeasonScreen() {
                 </div>
               )}
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>{enFim ? <>Promotions and relegations already apply. {state.seasonNo === 1
-                ? <>Open the <b>reserves auction</b> (everyone with their own budget, buying to fill the bench up to 22), or carry on with the same squad.</>
-                : <>Open the <b>transfer auction</b> (1 new card per position + the players each manager lists), or carry on with the same squad.</>}</> : <>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
-                ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
-                : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</>}</p>
+                ? <>Open the <b>auction</b> (everyone with their own budget, buying to fill the bench up to 22), or carry on with the same squad.</>
+                : <>Open the <b>auction</b> (1 new card per position + the players each manager lists), or carry on with the same squad.</>}</> : <>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
+                ? <>Abra o <b>leilão</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
+                : <>Abra o <b>leilão</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</>}</p>
               {/* 🏛️ MULTICLUBES: deixa claro que o leilão é SÓ do clube ativo; o outro
                   segue mesmo time (sem leilão). Pra leiloar o outro, troca no seletor antes. */}
               {state.multiClube && (() => {
@@ -15302,7 +15302,7 @@ export function ReserveListScreen() {
     <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: 40 }}>📋</p>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{tr('Preparando o leilão de reservas…', 'Preparing the reserves auction…')}</p>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{tr('Preparando o leilão…', 'Preparing the auction…')}</p>
         <p style={{ fontWeight: 700, fontSize: 13, color: '#5a5647', marginTop: 4 }}>{tr('Só um instante.', 'Just a moment.')}</p>
       </div>
     </div>

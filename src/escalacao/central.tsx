@@ -362,7 +362,8 @@ export function CentralCarreira(p: CentralProps) {
 
           {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
-          <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
+          {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
+          <>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
