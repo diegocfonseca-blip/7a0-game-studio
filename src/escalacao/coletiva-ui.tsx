@@ -120,7 +120,7 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
   /** a manchete e o efeito da resposta (a MESMA conta que o jogo faz ao guardar) */
   resolve: (estilo: Estilo) => { manchete: Par | null; efeito: Efeito | null }
   /** fecha: estilo escolhido (null = pulou) e se conta (pular no botão conta; fechar sozinho no automático, não) */
-  onFim: (estilo: Estilo | null, registra: boolean) => void
+  onFim: (estilo: Estilo | null, registra: boolean, resultado?: { efeito: string | null; tom: 'bom' | 'ruim' | null }) => void
 }) {
   const [escolha, setEscolha] = useState<{ estilo: Estilo; manchete: Par | null; efeito: Efeito | null; frase: Par } | null>(null)
   const [resta, setResta] = useState(autoSeg)
@@ -210,7 +210,11 @@ export function ColetivaPasso({ pronta, clube, placar, rodadaTxt, autoSeg, segui
               </div>
               <div style={{ margin: pc ? '20px 0 0' : '10px 12px 0', display: 'flex', flexDirection: 'column', gap: pc ? 14 : 8 }}>
                 {pronta.opcoes.map(o => (
-                  <button key={o.estilo} onClick={() => { const r = resolve(o.estilo); setEscolha({ estilo: o.estilo, manchete: r.manchete, efeito: r.efeito ?? o.efeito, frase: o.frase }) }}
+                  <button key={o.estilo} onClick={() => { const r = resolve(o.estilo), ef = r.efeito ?? o.efeito
+                    // 🎙️ 21/11 (Diego: *"logo depois aparece outra tela sozinha com um texto desnecessário… deixando lento… deveria aparecer na Central"*):
+                    // respondeu, a sala FECHA; a manchete e o efeito vão pro cartão da Imprensa na Central. Só a apresentação das lendas mantém a capa.
+                    if (!temLendas) { onFim(o.estilo, true, { efeito: ef ? par(ef.txt) : null, tom: ef ? (efeitoBom(ef) ? 'bom' : efeitoRuim(ef) ? 'ruim' : null) : null }); return }
+                    setEscolha({ estilo: o.estilo, manchete: r.manchete, efeito: ef, frase: o.frase }) }}
                     style={{ textAlign: 'left', background: ESTILO_IC[o.estilo].card, border: `3px solid ${INK}`, borderRadius: pc ? 16 : 14, padding: pc ? '14px 16px' : '8px 10px', boxShadow: pc ? '4px 4px 0 #000' : '3px 3px 0 #000', display: 'grid', gridTemplateColumns: pc ? '52px 1fr' : '34px 1fr', gap: pc ? 14 : 8, alignItems: 'center', cursor: 'pointer', color: INK }}>
                     <span style={{ width: pc ? 52 : 34, height: pc ? 52 : 34, borderRadius: pc ? 12 : 10, border: `2.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: pc ? 26 : 18, background: ESTILO_IC[o.estilo].bg }}>{ESTILO_IC[o.estilo].ic}</span>
                     <span>
@@ -353,7 +357,7 @@ export function SalaImprensa({ save, clube, onClose, rivais, podeTrocar, onTroca
 }
 
 // ── o quadro da Central ────────────────────────────────────────────────────────────────────────────────────────
-export type CardColetivaProps = { fama: FamaId; ultima: string | null; arquirrival: string | null; retro: string | null; onAbrir: () => void }
+export type CardColetivaProps = { /** 🎙️ 21/11: o que a última resposta rendeu (só nesta sessão; não vai pro save) */ efeito?: { txt: string; tom: 'bom' | 'ruim' | null } | null; fama: FamaId; ultima: string | null; arquirrival: string | null; retro: string | null; onAbrir: () => void }
 export function CardColetiva(p: CardColetivaProps) {
   const f = FAMAS[p.fama]
   return (
@@ -371,6 +375,7 @@ export function CardColetiva(p: CardColetivaProps) {
           </div>
         </div>
         {p.ultima && <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 700, lineHeight: 1.35, borderLeft: `3px solid ${ROXO}`, paddingLeft: 8 }}>{p.ultima}</p>}
+        {p.efeito && <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 700, lineHeight: 1.35, background: p.efeito.tom === 'bom' ? '#E9F7EE' : p.efeito.tom === 'ruim' ? '#FFE3D6' : '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 8px' }}>{p.efeito.txt}</p>}
         {p.arquirrival && <p style={{ margin: '8px 0 0', fontSize: 11.5, fontWeight: 800 }}>🔥 {tr('Arquirrival', 'Arch-rival')}: {p.arquirrival}{p.retro ? <span style={{ color: '#666', fontWeight: 700 }}> · {p.retro}</span> : null}</p>}
       </div>
     </div>

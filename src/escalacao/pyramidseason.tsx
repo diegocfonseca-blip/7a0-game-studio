@@ -12237,8 +12237,10 @@ export function PyramidSeasonScreen() {
     const pronta = montaColetiva(ctx, coletivaSave, state.seed ?? 1)
     if (pronta) setColetivaPronta({ pronta, ctx, alvo: { proximo: 0, classico: null }, chave })
   }, [lendasDoLeilao, coletivaPronta, myDiv, sn]) // eslint-disable-line react-hooks/exhaustive-deps
-  const responderColetiva = (estilo: ColetivaEstilo | null, registra = true) => {
+  const [coletivaEfeito, setColetivaEfeito] = useState<{ txt: string; tom: 'bom' | 'ruim' | null } | null>(null) // 🎙️ 21/11: o resultado da última resposta aparece no cartão da Imprensa (Central)
+  const responderColetiva = (estilo: ColetivaEstilo | null, registra = true, resultado?: { efeito: string | null; tom: 'bom' | 'ruim' | null }) => {
     if (!coletivaPronta) return
+    setColetivaEfeito(resultado?.efeito ? { txt: resultado.efeito, tom: resultado.tom } : null)
     if (registra) dispatch({ type: 'COLETIVA_RESPONDE', mgrId: youId, pronta: coletivaPronta.pronta, estilo, ctx: coletivaPronta.ctx, alvo: coletivaPronta.alvo })
     setColetivaPronta(null); setColetivaSala(false); coletivaSegura.current = false
     // o que estava esperando a coletiva sai agora: o toque de avançar (manual) ou a fase da Copa (automático)
@@ -12281,6 +12283,7 @@ export function PyramidSeasonScreen() {
   const coletivaUltima = coletivaSave.feitas.length ? coletivaSave.feitas[coletivaSave.feitas.length - 1] : null
   const coletivaCentral = coletivaOn && myDiv ? {
     fama: famaDoPresidente(coletivaSave),
+    efeito: coletivaEfeito,
     ultima: coletivaUltima?.manchete ? (getLang() === 'en' ? coletivaUltima.manchete[1] : coletivaUltima.manchete[0]) : null,
     arquirrival: coletivaSave.arquirrival,
     retro: coletivaSave.arquirrival && coletivaSave.h2hPor[coletivaSave.arquirrival] ? retrospectoTexto(coletivaSave.h2hPor[coletivaSave.arquirrival], coletivaSave.arquirrival) : null,
@@ -13931,7 +13934,7 @@ export function PyramidSeasonScreen() {
             lendas={coletivaPronta.ctx.apresentacao?.length ? lendasDoLeilao : undefined}
             seguirTxt={coletivaPronta.ctx.apresentacao?.length ? tr('Fechar a apresentação', 'Close the unveiling') : copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('Ver o campeão', 'See the champion') : tr('Próxima fase', 'Next round')) : tr(`Ir pra rodada ${round + 1}`, `Go to round ${round + 1}`)}
             resolve={estilo => { const r = respondeColetiva(coletivaSave, coletivaPronta.pronta, estilo, coletivaPronta.ctx, state.seed ?? 1, coletivaPronta.alvo); return { manchete: r.manchete, efeito: r.efeito } }}
-            onFim={(estilo, registra) => responderColetiva(estilo, registra)} />
+            onFim={(estilo, registra, resultado) => responderColetiva(estilo, registra, resultado)} />
         )}
         {/* 🔁 BANNER DO INTERVALO (carreira offline, toggle "só no intervalo"): pausa
             aos 45' e deixa mexer no 2º tempo. Enquanto aberto, a rodada não anda. */}
