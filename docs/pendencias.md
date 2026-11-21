@@ -1,3 +1,8 @@
+## 🃏 21/11 — BAFO: banner "faltam cartas" (NO BRANCH, esperando o OK do Diego no print)
+- `FaltamCartasBafo` (bafo2-ui.tsx): quem não fecha um time vê quantas cartas tem, por posição, o que é a carta de campeão e como ganhar. Some pra quem já pode jogar.
+- Aparece na tela de criar sala (com o Bafo escolhido) e na sala de espera (no lugar da caixa vermelha). Não bloqueia criar a sala.
+- Print: `scripts/mockups/bafo-faltam-{cel,pc}.png` (`node scripts/mockup-bafo-faltam.mjs`). Falta publicar na main.
+
 ## 🏷️ 21/11 — CRIAR SALA: cartões (publicado, pedido do Diego com print)
 - 🌐 Carreira some da lista de modos no futebol (*"oculte esse carreira daí"*); no basquete fica.
 - 🃏 Bafo: sai a faixa roxa "LANÇA COM 3K" e entra o selo verde NOVO. 🌴 Vice City: "EM TESTES" vira NOVO.

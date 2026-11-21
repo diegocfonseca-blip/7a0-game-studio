@@ -14,7 +14,7 @@ import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import type { FormationKey } from './types'
 import { fechaConvocacao, BAFO2_CONVOCA_SEG, BAFO2_ELENCO, BAFO2_MIN, type CartaBafo } from './bafo2'
-import { RegrasBafo, ConvocacaoBafo, AberturaBafo, ExemploBafo, BAFO2_ABRE_PACOTE_MS, useColecaoBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
+import { FaltamCartasBafo, RegrasBafo, ConvocacaoBafo, AberturaBafo, ExemploBafo, BAFO2_ABRE_PACOTE_MS, useColecaoBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
 
 export interface BafoLinha { v: 2; n: number; ok: boolean; marks?: string[]; pronto?: boolean; conv?: { t0: number } | null }
 export interface BafoJogador { user_id: string; manager_name: string; bafo?: BafoLinha | null }
@@ -137,7 +137,7 @@ export function BafoSala({ roomId, meuUid, donoUid, players, valendo, onLargar }
       {erro ? caixaAviso('#FFE3DC', tr('Não deu pra ler as suas cartas agora. Saia e entre na sala de novo.', 'Could not read your cards now. Leave and rejoin the room.'))
         : !cartas ? caixaAviso('#FFF6D6', tr('🃏 Conferindo as suas cartas…', '🃏 Checking your cards…'))
         : pode ? caixaAviso('#EAF4EC', en ? <>✅ You have <b>{cartas.length} cards</b> and they make a team: you're in. When the owner starts, you get {BAFO2_CONVOCA_SEG}s to pick your {BAFO2_ELENCO}.</> : <>✅ Você tem <b>{cartas.length} cartas</b> e elas fecham um time: está apto. Quando o dono começar, você tem {BAFO2_CONVOCA_SEG} s pra escolher os seus {BAFO2_ELENCO}.</>)
-        : caixaAviso('#FFE3DC', en ? <>⚠️ You have <b>{cartas.length} cards</b>, but they don't make a team yet (it takes at least {BAFO2_MIN}: 1 keeper, full-backs, centre-backs, midfielders and strikers). Win titles — in the career or in the rooms — to earn more. <b>You can stay and watch.</b></> : <>⚠️ Você tem <b>{cartas.length} cartas</b>, mas elas ainda não fecham um time (precisa de pelo menos {BAFO2_MIN}: 1 goleiro, laterais, zagueiros, meias e atacantes). Ganhe títulos — na carreira ou nas salas — pra ganhar mais. <b>Pode ficar assistindo.</b></>)}
+        : <FaltamCartasBafo uid={meuUid} />}
     </div>
   )
 }
