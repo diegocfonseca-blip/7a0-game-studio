@@ -1,3 +1,17 @@
+## 🃏 21/11 — BAFO NOVO (publicado SÓ pra conta do Diego e do Futpoint FC — `SALA_ELENCO_TESTERS`, `SALA_ELENCO_GERAL = false`)
+Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`RegrasBafo`):
+- Joga-se com as cartas que a CONTA já ganhou sendo campeã (`user_cards`, carreira ou sala). Não é da carreira. Precisa de 11+ que fechem um time.
+- Sala de espera = a normal de sempre, só com a caixa de regras em cima. **Nunca mostrar quantas cartas cada um tem** (só ✅ apto / 🔒 só assiste).
+- Dono aperta começar → CONVOCAÇÃO de 120 s na tela de todos (filtros por posição, sem over); o que faltar o jogo completa com as PIORES cartas. 22 no elenco.
+- Só gente (sem bots), mínimo 2. Só liga: 2 = 5 jogos · 3–4 = todos contra todos 4× · 5–20 = ida e volta. Troca/formação igual à Liga Draft.
+- Fim: SÓ o campeão toma 1 carta, em 60 s, com os 22 de cada um abertos por posição + busca. Campeão sumiu/não escolheu = o jogo sorteia.
+- Não conta pro ranking, não dá cartinha nova, sem revanche. **Dono não expulsa ninguém** (sem botão).
+- Dono que sai no meio perde 2 cartas aleatórias dos 22: uma pro 1º e outra pro 2º. Antes de começar a liga (na convocação) perde pro sistema e ninguém ganha.
+- Banco: `docs/sql/bafo2.sql` (APLICADO): `esc_bafo2` + RPCs `bafo2_fecha/bate/abre_escolha/tomar/sorteia/encerra/sumiu`; o banco confere a posse de cada carta.
+- Código: `bafo2.ts` (regras puras) · `bafo2-ui.tsx` · `bafo2-sala.tsx` · `bafo2-sair.ts`. Trava: `npm run bafo`. Prints das telas reais: `scripts/mockups/bafo2-real-*.png`.
+- ⚠️ FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
+- Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
+
 ## 🏆 20/11 — Queda na carreira: inscrições continentais e tabela (correção local, não publicada)
 
 Causa reproduzida: campeão estrangeiro deixava 46 inscritos na Libertadores; completar com eliminado retirava um transferido da Sul-Americana, gerando grupos incompletos e uma final sem adversário. Diego rejeitou reintegrar eliminado e aprovou ajustar inscrições com clubes/elencos reais. Implementação, compatibilidade e fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Temporadas antigas completas conservam seus confrontos; inscrições já incompletas são reparadas. Não houve acesso a saves privados nem publicação.

@@ -3953,7 +3953,7 @@ export function EscLobby() {
           // EM BREVE) mas não aperta; só quem `useViceCity` libera joga.
           ...(!nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: viceVe, ...(viceVe ? { selo: tr('EM TESTES', 'IN TESTING'), seloVerde: true } : {}) /* 🏷️ 19/11: selo EM TESTES (Diego) */ }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
-          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Suas cartas de campeão em jogo: o campeão toma 1 de alguém.', 'Your champion cards at stake: the champion takes 1 from someone.'), on: salaElenco, emTeste: true, meta: 3 },
         ]
         // 🏀 no BidLegends existem Rápido, Minhas ligas e a 🌐 Carreira (online do basquete).
         // O Bafo é do futebol — some da lista aqui pra não mostrar cartão que não abre.
@@ -4221,7 +4221,7 @@ export function EscLobby() {
                     </p>
                   ) : (
                     <p className="text-[12px] font-bold leading-snug mt-1.5">
-                      {roomMode === 'elenco' ? tr('Cada um traz o time da própria carreira e a partida vale carta de verdade.', 'Everyone brings their own career team and the match puts real cards at stake.') : tr('Todo mundo começa fraco e, a cada temporada, cada técnico pega 1 jogador no draft.', 'Everyone starts weak and, every season, each manager picks 1 player in the draft.')}
+                      {roomMode === 'elenco' ? tr('Cada um joga com 22 cartas que já ganhou sendo campeão, e o campeão toma uma carta de alguém da sala.', 'Everyone plays with 22 cards they already won as champion, and the champion takes a card from someone in the room.') : tr('Todo mundo começa fraco e, a cada temporada, cada técnico pega 1 jogador no draft.', 'Everyone starts weak and, every season, each manager picks 1 player in the draft.')}
                     </p>
                   )}
                   <p className="text-[12px] font-bold leading-snug mt-2" style={{ color: '#5B21B6' }}>
@@ -4404,7 +4404,7 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.', '🃏 NO AUCTION — everyone brings the team from their OWN career: the current squad or 22 from the career\'s card album. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a career card to the one above.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer && nbaSala ? tr('🏀 Carreira do basquete: a turma começa na Street League e SOBE junta até a NBA. Economia igual à do futebol.', '🏀 Basketball career: the crew starts in the Street League and CLIMBS together up to the NBA. Economy just like football.') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
+                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO e SEM BOTS — cada um convoca 22 cartas que já ganhou sendo campeão (na carreira ou nas salas). Só liga. No fim, o campeão toma 1 carta das 22 de alguém. Não conta pro ranking.', '🃏 NO AUCTION and NO BOTS — everyone calls up 22 cards they already won as champion (career or rooms). League only. At the end, the champion takes 1 card from someone\'s 22. Doesn\'t count for the ranking.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer && nbaSala ? tr('🏀 Carreira do basquete: a turma começa na Street League e SOBE junta até a NBA. Economia igual à do futebol.', '🏀 Basketball career: the crew starts in the Street League and CLIMBS together up to the NBA. Economy just like football.') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
               </p>
               </>)}
               {!criar2 && quadroLiga}
@@ -4569,8 +4569,8 @@ export function EscLobby() {
                 <>
                 <SegField label={tr('Depois da liga', 'After the league')}>
                   <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 Só a liga · 38 rodadas', '📊 League only · 38 rounds')}</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{getLang() === 'en' ? <>In Bafo <b>there is no Cup</b> — it's the table from start to finish, and the final standings decide who hands a card to whom.</> : <>No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</>}</p>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 Só a liga, só gente', '📊 League only, people only')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('2 pessoas = 5 jogos entre os dois · 3 ou 4 = todos contra todos 4 vezes · 5 a 20 = ida e volta. O 1º da tabela é o campeão.', '2 people = 5 games between the two · 3 or 4 = everyone plays everyone 4 times · 5 to 20 = home and away. Top of the table is the champion.')}</p>
                   </div>
                 </SegField>
                 {/* 🃏 O host decide se a partida vale carta de verdade. Amistoso
@@ -4580,7 +4580,7 @@ export function EscLobby() {
                   <Seg options={[[true, tr('🃏 Valendo carta', '🃏 Cards at stake')], [false, tr('🤝 Amistoso', '🤝 Friendly')]] as [boolean, string][]} value={bafoValendo} onSet={v => setBafoValendo(v)} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {bafoValendo
-                      ? (getLang() === 'en' ? <>Whoever finished behind hands <b>a randomly drawn card</b> from the career they brought to the team right above — and the card <b>really changes owner</b>. Whoever has only one card doesn't hand it over: the house covers.</> : <>Quem ficou atrás entrega <b>uma carta sorteada</b> da carreira que trouxe pro time logo acima — e a carta <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>)
+                      ? tr('O campeão escolhe 1 carta das 22 convocadas de quem ele quiser — e ela muda de dono de verdade. Dono que encerra antes do fim perde 2 cartas.', 'The champion picks 1 card from anyone\'s 22 — and it really changes owner. An owner who ends it early loses 2 cards.')
                       : tr('Ninguém perde nem ganha carta. Só a tabela, pra brincar sem risco.', 'Nobody loses or wins cards. Just the table, to play with no risk.')}
                   </p>
                 </SegField>
@@ -5847,7 +5847,8 @@ export function EscLobby() {
                 {room.game_state?.mode === 'elenco' && (
                   <span className="text-[9.5px] font-black uppercase border-2 border-black rounded-full px-2 py-0.5 whitespace-nowrap"
                     style={bafoApto(p) ? { background: GREEN, color: '#fff' } : { background: '#FFD9CE', color: '#8E2A1B' }}>
-                    {p.bafo ? `${bafoApto(p) ? '✅' : '🔒'} ${p.bafo.n ?? 0} ${tr('cartas', 'cards')}${p.bafo.pronto && bafoConvocando ? ' · ' + tr('pronto', 'ready') : ''}` : tr('⏳ conferindo', '⏳ checking')}
+                    {/* 🙈 21/11 (Diego): NUNCA o número de cartas de cada um — quem vê que o outro tem muita (ou pouca) sai da sala */}
+                    {p.bafo ? (bafoApto(p) ? (p.bafo.pronto && bafoConvocando ? tr('✅ pronto', '✅ ready') : tr('✅ apto', '✅ eligible')) : tr('🔒 só assiste', '🔒 watching')) : tr('⏳ conferindo', '⏳ checking')}
                   </span>
                 )}
                 {ligaViceOn && room.game_state?.mode === 'liga' && room.liga_dono ? (<>

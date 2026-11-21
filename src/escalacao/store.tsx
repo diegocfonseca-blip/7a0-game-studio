@@ -1188,6 +1188,7 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
+import { donoSaiDoBafo } from './bafo2-sair'
 import { calendarioBafo } from './bafo2'
 import { premioDaLiga, premiosCopaDraft, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
@@ -15964,6 +15965,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const kickPlayer = useCallback((mgrId: number) => {
     const meId = stateRef.current.managers[stateRef.current.youIdx]?.id
     if (!isHostRef.current || mgrId === meId) return
+    if (stateRef.current.bafo2) return // 🃏 21/11 (Diego: "ele não pode expulsar ninguém"): no Bafo o dono não tira ninguém — senão tirava quem está ganhando
     channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex: mgrId } })
     rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId, peloDono: true })
     const rid = stateRef.current.roomId
@@ -16055,6 +16057,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
     saidaVoluntariaRef.current = Date.now() // 🧾 15/11: a saída daqui pra frente foi pelo botão SAIR (ver o vigia da coroa)
     // 👁️ FANTASMA SAINDO: não tem vaga, time nem coroa — só fecha a tela e volta pro menu (nada vai pra sala)
     if (st.espectador) { try { channelRef.current?.unsubscribe() } catch { /* ignora */ } channelRef.current = null; rawDispatch({ type: 'GO_LOBBY' }); return }
+    // 🃏 BAFO NOVO (21/11): o DONO sair no meio da liga ENCERRA o Bafo e custa 2 cartas (regra dele). A tela avisa o preço e
+    // pede confirmação; desistiu, não sai. Depois do fim da liga (tela final) sair é livre.
+    if (st.bafo2 && onlineRef.current === 'online' && isHostRef.current && rid && st.screen === 'season' && st.round < (st.fixtures.length || 1)) {
+      if (!(await donoSaiDoBafo(rid, st.bafoValendo !== false))) { saidaVoluntariaRef.current = 0; return }
+    }
     // 🏆 MINHAS LIGAS (13/09): o DONO sair NÃO passa a coroa nem apaga a liga — a liga é
     // dele do começo ao fim (regra 21/08, sem admin) e é feita pra ficar de pé. Ele só
     // libera a própria cadeira e vai pro menu; a liga segue em "🏆 Minhas ligas" e ele

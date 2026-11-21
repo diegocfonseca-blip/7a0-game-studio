@@ -1238,6 +1238,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Chave nova `'3-4-3z'` (na tela "3-4-3"); a `'3-4-3'` antiga (2 LAT + 1 ZAG) só vale pra quem já estava nela. Trava `npm run 343`.
 - **🏷️ A CATEGORIA SE CHAMA "PROFISSIONAL" (13/11).** *"a categoria foi profissional agora será profissional, o nome apenas"*. Só o nome na tela (PT "Profissional", EN "Pro"); a categoria (fame 1) não mudou. Texto novo já nasce com "Profissional".
 
+- **🃏 BAFO NOVO (21/11, só na conta dele e do Futpoint FC até ele mandar).** Cartas que a CONTA ganhou sendo campeã (não é da carreira); convocação
+  de 120 s (o jogo completa com as piores); só gente, só liga; **só o campeão toma 1 carta, em 60 s**, com os 22 de cada um abertos. Sala de espera = a
+  normal, com as regras em cima (*"a sala de espera era só a sala normal… porém teriam regras ali do modo"*). **Nunca mostrar quantas cartas cada um tem**
+  (*"N deve aparecer o número q cada um tem"*). **Dono não expulsa ninguém**; dono que sai no meio perde 2 cartas (1º e 2º levam; antes da liga, vão pro
+  sistema). Não conta pro ranking nem dá cartinha. Detalhe em `docs/pendencias.md` (21/11). Trava `npm run bafo`.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

@@ -228,10 +228,12 @@ async function leBafo(roomId: string): Promise<Bafo2Linha | null> {
 function useAgora(ms = 1000): number { const [t, setT] = useState(Date.now()); useEffect(() => { const i = window.setInterval(() => setT(Date.now()), ms); return () => window.clearInterval(i) }, [ms]); return t }
 
 // ─── 4) 🏆 O FIM: só o campeão escolhe (60 s) ────────────────────────────────────────────────────────────────────────
-export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assentos }: {
+export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assentos, aoVoltar }: {
   roomId: string; souDono: boolean; meuUid: string | undefined; campeaoUid: string | null; managers: Manager[]
   /** 🪑 quem senta em cada time (índice = id do time humano) — a mesma lista da sala */
   assentos: string[]
+  /** 📣 (só o dono) Bafo fechado → leva a sala de volta pra espera pra um novo Bafo */
+  aoVoltar?: () => void
 }) {
   const [b, setB] = useState<Bafo2Linha | null>(null)
   const [erro, setErro] = useState('')
@@ -295,7 +297,9 @@ export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assent
   const souCampeao = !!meuUid && b.campeao === meuUid
   const nomeCampeao = managers.find(x => x.isHuman && assentos[x.id] === b.campeao)?.teamName ?? ((b.campeao && b.nomes[b.campeao]) || '—')
 
-  if (b.fase === 'encerrada') return <PunicaoBafo b={b} />
+  const voltar = aoVoltar ? <button onClick={aoVoltar} style={{ display: 'block', width: '100%', marginTop: 10, background: OURO, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, ...OSW, fontWeight: 900, fontSize: 16 }}>📣 {tr('Voltar pra sala de espera · novo Bafo', 'Back to the waiting room · new Bafo')}</button>
+    : <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 0 0', textAlign: 'center' }}>{tr('O dono da sala leva todo mundo de volta pra espera pra um novo Bafo.', 'The room owner takes everyone back to the waiting room for a new Bafo.')}</p>
+  if (b.fase === 'encerrada') return <div><PunicaoBafo b={b} />{voltar}</div>
   if (b.fase === 'jogando') return (
     <div style={{ ...caixa('#FFF6D6'), padding: 12, color: INK }}>
       <p style={{ ...OSW, fontWeight: 900, fontSize: 16, margin: 0 }}>🃏 {tr('Bafo · a hora da verdade', 'Bafo · the moment of truth')}</p>
@@ -319,6 +323,7 @@ export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assent
             {meuUid && r.de === meuUid && <p style={{ fontSize: 12.5, fontWeight: 800, color: '#8E2A1B', margin: '4px 0 0' }}>{tr('💔 Essa era sua. Saiu da sua coleção — ganha o próximo Bafo e toma de volta.', '💔 That one was yours. It left your collection — win the next Bafo and take it back.')}</p>}
             {meuUid && r.para === meuUid && <p style={{ fontSize: 12.5, fontWeight: 800, color: VERDE, margin: '4px 0 0' }}>{tr('🎉 Agora é sua: já está na sua coleção.', '🎉 It\'s yours now: already in your collection.')}</p>}
           </>}
+        {voltar}
       </div>
     )
   }
@@ -419,11 +424,4 @@ export function BafoVigia({ roomId, souDono, meuUid, ligaRolando }: { roomId: st
   }, [roomId, souDono, meuUid, ligaRolando])
   if (!b || b.fase !== 'encerrada') return null
   return <PunicaoBafo b={b} />
-}
-
-/** 🚪 o DONO vai sair no meio da liga: confirma (com o preço escrito) e aplica a punição. Devolve false se ele desistiu. */
-export async function donoSaiDoBafo(roomId: string, valendo: boolean): Promise<boolean> {
-  if (valendo && !window.confirm(tr('🃏 Sair agora ENCERRA o Bafo antes do fim.\n\nVocê perde 2 cartas sorteadas das suas 22: uma pro 1º e outra pro 2º colocado (se nenhum jogo foi jogado, as 2 somem e ninguém ganha).\n\nSair mesmo assim?', '🃏 Leaving now ENDS the Bafo early.\n\nYou lose 2 random cards from your 22: one to 1st place and one to 2nd (if no game was played, both are simply lost).\n\nLeave anyway?'))) return false
-  try { await supabase.rpc('bafo2_encerra', { p_room: roomId }) } catch { /* sem rede: o vigia dos outros cobra pelos 10 min */ }
-  return true
 }
