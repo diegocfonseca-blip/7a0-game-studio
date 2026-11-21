@@ -20,7 +20,7 @@ _bancadaApoio('auditoria-local@example.invalid','ouro');_forcaBrasilOficialParaT
 await carregaBaralhoOficial()
 let seed=reducer(structuredClone(INITIAL),{type:'START_CAREER_SOLO',teamName:mode==='d'?'Brasiliense':'Flamengo',formation:'4-3-3',rivals:3,oficial:{clube:mode==='d'?'Brasiliense':'Flamengo'}})
 if(!seed.oficial)throw new Error('Fixture oficial não foi criada')
-seed={...seed,screen:'season',oficialAbertura:undefined,seed:20261120,simSpeed:4,careerSubMode:'dinamico'}
+seed={...seed,screen:'season',oficialAbertura:undefined,seed:20261120,simSpeed:Number(new URLSearchParams(location.search).get('speed')??4),careerSubMode:'dinamico'}
 seed=reducer(seed,{type:'SET_MASTER',brandId:'dsouza'})
 seed=reducer(seed,{type:'SIM_MANY',count:Number(new URLSearchParams(location.search).get('round')??9)})
 const id=seed.managers[seed.youIdx].id

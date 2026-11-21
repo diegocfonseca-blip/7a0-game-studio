@@ -22,6 +22,18 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 
 Causa reproduzida: campeão estrangeiro deixava 46 inscritos na Libertadores; completar com eliminado retirava um transferido da Sul-Americana, gerando grupos incompletos e uma final sem adversário. Diego rejeitou reintegrar eliminado e aprovou ajustar inscrições com clubes/elencos reais. Implementação, compatibilidade e fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Temporadas antigas completas conservam seus confrontos; inscrições já incompletas são reparadas. Não houve acesso a saves privados nem publicação.
 
+## 🧊 21/11 (madrugada) — Jogo 3D "travado" mesmo a 59 quadros/s: era o RELÓGIO, não a placa
+
+- Medidor (`?diag=1`, fica lembrado; `?diag=0` desliga) mostrou no S25 do Diego: Adreno 830, nível leve, **59 quadros/s**. Não era desenho.
+- Filmagem quadro a quadro com relógio falso (`scripts/mapa3d/filma-quadro-a-quadro.mjs`, 600 quadros a 1/60 s): o minuto do campo
+  avançava 1 minuto em ~8 quadros e ficava PARADO ~70 quadros (531 de 599 quadros congelados).
+- Causa: vendo o jogo no estádio o relógio de cima anda no tempo do campo (120 s), mas o campinho-fonte escondido (`Campo2D mapOnly`,
+  que dita o tempo do 3D via `publicarTempoCampo2D`) recebia o `roundMs` da rodada. Diferença > 3× → `ancorarMinutoCampo` nunca se ajusta.
+- Conserto (pyramidseason.tsx): `roundMs={officialFieldWatching?fieldDuration/.82:roundMs}`. Depois: 0 de 599 quadros parados.
+- **Status: no branch, esperando o Diego mandar publicar.** Falta ele confirmar no S25. Se ainda achar a imagem "quadriculada", o próximo
+  passo é subir a nitidez do nível leve em aparelho forte (mostrar antes).
+- `npm run vel-2d` já falhava antes desta mudança (ERR_UNKNOWN_FILE_EXTENSION no carregador) — não é desta entrega.
+
 ## 🌴 20/11 — "amigo não viu as cartas de golpe" (sala R3K6EY): o banco tinha 5 cartas pra cada um dos 4; a tela do amigo era a do pregão
 comum = celular com a versão velha aberta (o deploy não recarrega ninguém). Propus aviso de "jogo desatualizado" na sala de espera;
 Diego: *"N precisa"*. Não repropor; o caminho é o próprio jogador recarregar a página.
