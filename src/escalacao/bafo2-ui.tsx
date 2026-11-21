@@ -193,8 +193,10 @@ export function ExemploBafo() {
   return (
     <div style={{ border: `3px solid ${INK}`, borderRadius: 16, background: 'radial-gradient(circle at 18% 40%,#17402a,#0c0c0c 78%)', boxShadow: `3px 3px 0 ${INK}`, padding: largo ? '14px 18px' : '10px 12px', display: 'flex', alignItems: 'center', gap: largo ? 18 : 12, marginBottom: 10, overflow: 'hidden' }}>
       <style>{'@keyframes bf-sai{0%{transform:translateY(30px) scale(.6) rotate(-8deg);opacity:0}100%{transform:translateY(0) scale(1) rotate(-3deg);opacity:1}}'}</style>
-      <div style={{ flex: 'none', width: largo ? 150 : 112, animation: 'bf-sai .5s ease-out both', filter: `drop-shadow(0 0 16px ${OURO})` }}>
-        <CollectibleCard name="Ronaldo Fenômeno" nomeNaCarta="Ronaldo" club="Inter" year={1998} pos="ATA" fame={5} big={largo} />
+      {/* ⚠️ o encaixe é o MESMO da revelação do leilão (`ll-lote1-reveal-card`, carta pequena): numa caixa qualquer a carta espreme
+          o boneco e sobra só a cabeça (o Diego pegou no 1º print: "não tá aparecendo o corpo dele padrão") */}
+      <div className="ll-lote1-reveal-card" style={{ flex: 'none', width: largo ? 150 : 124, margin: 0, animation: 'bf-sai .5s ease-out both', filter: `drop-shadow(0 0 16px ${OURO})` }}>
+        <CollectibleCard name="Ronaldo Fenômeno" nomeNaCarta="Ronaldo" club="Inter" year={1998} pos="ATA" fame={5} />
       </div>
       <div style={{ color: CREME, minWidth: 0 }}>
         <p style={{ ...OSW, fontWeight: 900, fontSize: largo ? 21 : 16, color: '#fff', margin: 0, lineHeight: 1.1 }}>{tr('Estas são as suas cartinhas de campeão', 'These are your champion cards')}</p>
