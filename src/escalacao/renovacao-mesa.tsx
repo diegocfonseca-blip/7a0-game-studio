@@ -46,7 +46,7 @@ export function contratosNaMesa(state: EscState, tecnicoOn: boolean): { decidir:
   const mgr = state.managers[state.youIdx] as Manager | undefined
   if (!mgr) return { decidir: 0, soltos: 0 }
   const dormM = state.multiClube ? state.managers.find(mm => mm.id === state.multiClube!.id) : undefined
-  const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo) : []
+  const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo && !(state.reserveListed?.[mm.id] ?? []).includes(c.id) /* 📝 21/11: quem já está À VENDA não é contrato pra decidir */) : []
   const todos = [...expOf(mgr), ...expOf(dormM)], soltos = new Set(state.contratoRelease ?? [])
   const nomeTec = tecnicoOn ? state.careerTecnicos?.[mgr.teamName] : undefined, fimTec = state.careerTecnicoContrato?.[mgr.teamName]
   const tecVencido = !!nomeTec && fimTec != null && fimTec < state.seasonNo
@@ -54,7 +54,7 @@ export function contratosNaMesa(state: EscState, tecnicoOn: boolean): { decidir:
   const prepVencido = !!prep && fimPrep != null && fimPrep < state.seasonNo
   return { decidir: todos.filter(c => !soltos.has(c.id)).length + (tecVencido ? 1 : 0) + (prepVencido ? 1 : 0), soltos: todos.filter(c => soltos.has(c.id)).length }
 }
-export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
+export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolean; /** 🧹 21/11 (Diego, na tela nova de Contratos: *"tá muita informação na tela inteira"*): só o essencial — nome, valor, prazo, Renovar e Deixar ir. Sem estatística, sem a caixa de desembolso, sem o placar e os textos (a tela já tem o título dela). */ enxuta?: boolean }) {
   const visualV2=useCareerVisualV2()
   const { state, dispatch } = useEsc()
   const [feitos, setFeitos] = useState<Feito[]>([])
@@ -67,7 +67,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
 
   // 🏛️ multiclube: o clube DORMINDO decide junto, na caixa DELE (regra de 04/08, igual antes)
   const dormM = state.multiClube ? state.managers.find(mm => mm.id === state.multiClube!.id) : undefined
-  const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo) : []
+  const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo && !(state.reserveListed?.[mm.id] ?? []).includes(c.id) /* 📝 21/11: quem já está À VENDA não é contrato pra decidir */) : []
   const expirados = expOf(mgr)
   const expDorm = expOf(dormM)
   const soltos = new Set(state.contratoRelease ?? [])
@@ -133,7 +133,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
             <span style={{ display: 'inline-block', ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.04em', border: `2px solid ${INK}`, borderRadius: 6, padding: '0 6px', marginTop: 4, background: '#fff' }}>{en ? (TIER_EN[t.label] ?? t.label) : t.label}</span>
           </div>
         </div>
-        {k && (
+        {k && !enxuta && (
           <div style={{ display: 'flex', gap: 4, padding: '0 10px 8px' }}>
             {stat(k.j, tr('jogos no clube', 'games at club'))}
             {stat(k.gl ?? 0, tr('gols', 'goals'))}
@@ -155,7 +155,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
                 )
               })}
             </div>
-            <div style={{padding:'0 10px'}}><CompromissoCarreira custo={custo} manager={dono} /></div>
+            {!enxuta && <div style={{padding:'0 10px'}}><CompromissoCarreira custo={custo} manager={dono} /></div>}
             <div style={{ display: 'flex', gap: 6, padding: '0 10px 10px' }}>
               <button onClick={() => { if (anos) renovar(c, dono, anos) }} style={btnGrande(GREEN, '#fff')}>✍️ {tr('Renovar', 'Renew')} {anos} {en ? (anos > 1 ? 'yrs' : 'yr') : `ano${anos > 1 ? 's' : ''}`}<small style={{ display: 'block', fontFamily: 'system-ui', fontSize: 9.5, fontWeight: 700, textTransform: 'none', opacity: .9 }}>{custo} 🪙{saldo < custo ? tr(' · cheque especial', ' · overdraft') : ''}</small></button>
               <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ ...btnGrande('#fff', RED), flex: .75 }}>👋 {tr('Deixar ir', 'Let go')}</button>
@@ -208,7 +208,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
   return (
     <div className={visualV2 ? 'cv2-renewals' : undefined} style={{ marginBottom: 12, color: INK }}>
       {/* placar de cima */}
-      <div style={{ background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `3px solid ${GOLD}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, padding: '10px 12px', color: '#fff', marginBottom: 10 }}>
+      {enxuta ? <p style={{ fontSize: 12, fontWeight: 800, margin: '0 2px 10px' }}>{nDecidir} {tr('pra decidir', 'to decide')} · {coins} 🪙 {tr('no caixa', 'in the till')}</p> : <div style={{ background: 'linear-gradient(150deg,#262626,#0c0c0c)', border: `3px solid ${GOLD}`, borderRadius: 16, boxShadow: `4px 4px 0 0 ${INK}`, padding: '10px 12px', color: '#fff', marginBottom: 10 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', margin: 0, color: GOLD }}>{nDecidir > 0 ? tr('📝 Contratos encerrados', '📝 Contracts ended') : tr('📝 Contratos decididos ✓', '📝 Contracts decided ✓')}</p>
         <p style={{ margin: '3px 0 0', fontSize: 11, fontWeight: 700, color: '#ddd', lineHeight: 1.4 }}>
           {primeira && <>{tr('Todo jogador tem contrato. Quando acaba, você decide: renovar ou deixar ir. ', 'Every player has a contract. When it ends, you decide: renew or let go. ')}</>}
@@ -219,7 +219,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
           {num(`${coins} 🪙`, tr('no caixa', 'in the till'))}
           {custoTodos5 > 0 && num(`${custoTodos5} 🪙`, tr('renovar todos (5a)', 'renew all (5y)'))}
         </div>
-      </div>
+      </div>}
 
       {/* decididos viram faixa */}
       {feitos.map(f => (
@@ -255,7 +255,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
         <button onClick={bulkDeixarIr} style={{ ...btnGrande(RED, '#fff'), width: '100%', fontSize: 12, marginBottom: 8 }}>😢 {tr('Deixar TODOS ir · vão pro leilão', 'Let EVERYONE go · off to the auction')}</button>
       </>}
 
-      {(expirados.length + expDorm.length) > 0 && (
+      {(expirados.length + expDorm.length) > 0 && !enxuta && (
         <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 9px', fontSize: 10.5, fontWeight: 700, color: '#3a3a3a', lineHeight: 1.45 }}>
           {en ? <>
             👋 <b>Let go</b>: {state.reserveListMesmo ? <>since you kept the <b>same team</b>, he leaves <b>with no sale</b></> : <>he goes to the auction and you receive the sale <b>up to his value</b> (anything above goes to the <b>greedy family</b> 😏)</>}. If the XI is short, a free <b>🌱 Academy Kid</b> fills in. 💳 No cash? You can still renew — it goes on <b>overdraft</b> (transfer ban until you're out of the red).{dormM ? <> 😤 A player you release gets <b>hurt</b> — won't play for ANY of your clubs until another club signs him.</> : null}

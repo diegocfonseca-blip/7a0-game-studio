@@ -50,6 +50,7 @@ console.log('1) a regra única de quem pode ir à venda')
   ok(motivoNaoListar(true, venc, 'a3', [], 5) === 'vencido', 'contrato já vencido na janela → só sai pelo "Deixar ir" (listar ≠ deixar vencer)')
   ok(motivoNaoListar(false, venc, 'a3', [], 5) === null, 'carreira sem contratos: a trava de contrato não existe')
   ok(motivoNaoListar(true, venc, 'a3', [], 4) === null, 'e na temporada em que o contrato ainda vale, pode')
+  ok(motivoNaoListar(true, venc, 'a3', [], 5, 4) === null, 'no Mercado, contrato ACABANDO (ainda vale nesta temporada) pode ser posto à venda')
 }
 
 console.log('2) o TOGGLE_RESERVE_LIST de sempre continua igual')
@@ -92,7 +93,9 @@ console.log('3) marcar no Mercado: só com a chave, só carreira solo, nunca mex
   ok((t2.aVendaMercado ?? []).join() === 'a3', 'na 2ª já marca (a próxima janela é a 3ª, quando a venda libera)')
   const fim = tecnico({ squad: elenco().map(c => c.id === 'a3' ? { ...c, contratoAte: 4 } as WonCard : c) })
   const v = reducer(estado(fim, { seasonNo: 4 } as Partial<EscState>), { type: 'A_VENDA_MERCADO', cardId: 'a3' })
-  ok(v.aVendaMercado === undefined, 'contrato que acaba nesta temporada não é marcado (é assunto da tela de Contratos)')
+  ok((v.aVendaMercado ?? []).join() === 'a3', 'contrato ACABANDO (ainda vale nesta temporada) pode ser posto à venda — regra do Diego 21/11')
+  const jaFoi = reducer(estado(fim, { seasonNo: 5 } as Partial<EscState>), { type: 'A_VENDA_MERCADO', cardId: 'a3' })
+  ok(jaFoi.aVendaMercado === undefined, 'contrato que JÁ acabou não é marcado (é assunto da tela de Contratos)')
   const online = reducer(estado(tecnico(), { onlineMode: 'online' } as Partial<EscState>), { type: 'A_VENDA_MERCADO', cardId: 'a3' })
   ok(online.aVendaMercado === undefined, 'sala online: a ação não faz nada')
 }
@@ -110,7 +113,7 @@ console.log('4) a virada: marca → lista do leilão, pela mesma regra, e o camp
   const sq = elenco().filter(c => c.id !== 'm5').map(c => c.id === 'a3' ? { ...c, contratoAte: 4 } as WonCard : c)
   const s = estado(tecnico({ squad: sq }), { seasonNo: 5, aVendaMercado: ['m5', 'a3', 'm4', 'g1'] } as Partial<EscState>)
   aplicaAVendaMercado(s)
-  ok((s.reserveListed?.[7] ?? []).length === 0, 'quem não pode mais (saiu · contrato venceu · posição curta) é pulado calado')
+  ok((s.reserveListed?.[7] ?? []).join() === 'a3', 'quem saiu ou deixaria a posição curta é pulado calado; o marcado com contrato que acabou de vencer VAI à venda: ' + (s.reserveListed?.[7] ?? []).join())
   ok(s.aVendaMercado === undefined, 'e o campo some do mesmo jeito')
 }
 {

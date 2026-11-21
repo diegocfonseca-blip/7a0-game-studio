@@ -6730,7 +6730,7 @@ const motivoNaoListarTxt = (m: MotivoNaoListar): string => ({
   sumiu: tr('não está mais no elenco', 'no longer in the squad'),
   cria: tr('cria da base não se vende', 'academy kids can’t be sold'),
   emprestado: tr('emprestado — traga de volta antes', 'on loan — bring him back first'),
-  vencido: tr('contrato acabando — decide na tela de Contratos', 'contract ending — decided on the Contracts screen'),
+  vencido: tr('contrato já acabou — decide na tela de Contratos', 'contract already over — decided on the Contracts screen'),
   posicao: tr('faltaria gente na posição — traga um substituto ou troque a formação', 'position would be short — bring a replacement or change formation'),
 } as Record<MotivoNaoListar, string>)[m]
 /** 📋 as marcas "pôr à venda" na ordem em que a virada vai aplicá-las: quem vai mesmo e quem fica (com o porquê) */
@@ -6739,7 +6739,7 @@ function vendaDoMercado(state: EscState, mgr: Manager, snJanela: number): { vao:
   for (const id of state.aVendaMercado ?? []) {
     const card = (mgr.squad as WonCard[]).find(c => c.id === id)
     if (!card) continue
-    const motivo = motivoNaoListar(state.contratosOn, mgr, id, ids, snJanela)
+    const motivo = motivoNaoListar(state.contratosOn, mgr, id, ids, snJanela, snJanela - 1)
     if (motivo) ficam.push({ card, motivo }); else { ids.push(id); vao.push(card) }
   }
   return { vao, ficam }
@@ -6928,7 +6928,7 @@ export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
                 {!lista.length && <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6553', margin: '0 0 8px' }}>{tr('Ninguém à venda por enquanto.', 'Nobody for sale for now.')}</p>}
                 {lista.map(c => {
                   const on = marcas.includes(c.id)
-                  const mot = on ? null : motivoNaoListar(state.contratosOn, mgr, c.id, marcas, sn + 1)
+                  const mot = on ? null : motivoNaoListar(state.contratosOn, mgr, c.id, marcas, sn + 1, sn)
                   return linha(`v:${c.id}`, posBox(c.pos), c.name,
                     <span style={{ color: on ? GREEN : '#6b6553' }}>{on ? tr(`✔ vai a leilão no fim da T${sn}`, `✔ goes to auction at the end of S${sn}`) : mot ? `🔒 ${motivoNaoListarTxt(mot)}` : <><b style={{ color: INK }}>over {c.lo}–{c.hi}</b> · {c.club}</>}</span>, !mot, on,
                     mot ? null : <button type="button" onClick={() => dispatch({ type: 'A_VENDA_MERCADO', cardId: c.id })} style={{ flex: 'none', ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', border: `2.5px solid ${on ? GREEN : INK}`, background: on ? GREEN : GOLD, color: on ? '#fff' : INK, borderRadius: 10, padding: '5px 8px', boxShadow: '2px 2px 0 #000', cursor: 'pointer', whiteSpace: 'nowrap' }}>{on ? tr('✔ À venda', '✔ For sale') : tr('📋 Vender', '📋 Sell')}</button>)
@@ -15487,11 +15487,10 @@ export function ReserveListScreen() {
           <div style={{ ...box(INK), padding: '14px 14px 12px', color: '#fff', marginBottom: 12 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 27, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>📝 {tr('Contratos', 'Contracts')}</p>
             <p style={{ ...OSWALD, fontWeight: 800, fontSize: 12.5, letterSpacing: '.05em', textTransform: 'uppercase', color: GOLD, margin: '4px 0 0' }}>{tr('TEMP.', 'SEASON')} {state.seasonNo} · {mesmo ? tr('mesmo time, sem leilão', 'same team, no auction') : tr('antes do leilão', 'before the auction')}</p>
-            <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.88)', margin: '6px 0 0', lineHeight: 1.45 }}>{mesa.decidir > 0 ? tr('Esses contratos acabaram. Escolha os anos e renove, ou deixe ir — cada um na sua carta.', 'These contracts have ended. Pick the years and renew, or let go — each on his own card.') : tr('Nenhum contrato esperando decisão.', 'No contract waiting for a decision.')}</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.88)', margin: '6px 0 0', lineHeight: 1.45 }}>{mesa.decidir > 0 ? tr('Renove ou deixe ir.', 'Renew or let go.') : tr('Nenhum contrato esperando decisão.', 'No contract waiting for a decision.')}</p>
           </div>
           {avisoBan}
-          <RegrasDaTemporada />
-          <MesaRenovacao tecnicoOn={quinzeRL} />
+          <MesaRenovacao tecnicoOn={quinzeRL} enxuta />
           {mesa.decidir === 0 && <div style={{ ...box('#E6F3EA'), padding: '10px 12px', marginBottom: 12 }}><p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: GREEN, margin: 0 }}>{tr('✅ Tudo decidido', '✅ All decided')}</p></div>}
           {!mesmo && (sondados.length > 0 || nListed > 0) && (
             <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.45, overflow: 'hidden', textOverflow: 'ellipsis' }}>{sondados.length > 0 && <>🕵️ {tr('Sondado', 'Scouted')}: <b style={{ color: INK }}>{sondados.join(' · ')}</b>{nListed > 0 ? ' · ' : ''}</>}{nListed > 0 && <>📋 <b style={{ color: INK }}>{nListed}</b> {tr('à venda', 'for sale')}</>}</p>
@@ -15500,7 +15499,7 @@ export function ReserveListScreen() {
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 14, fontWeight: 900, fontSize: 15.5, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {mesmo ? tr('▶️ Continuar (mesmo time)', '▶️ Continue (same team)') : tr('✅ Contratos resolvidos — ir pro leilão', '✅ Contracts sorted — go to the auction')}
           </button>
-          {mesa.decidir > 0 && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '7px 2px 0', lineHeight: 1.4, textAlign: 'center' }}>{tr('Jogador que ficar sem decisão renova automático (5 anos, pela metade do valor).', 'A player left undecided renews automatically (5 years, at half his value).')}</p>}
+          {mesa.decidir > 0 && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '7px 2px 0', lineHeight: 1.4, textAlign: 'center' }}>{tr('Quem ficar sem decisão renova sozinho por 5 anos. Quem você deixar ir vai pro leilão.', 'Anyone left undecided renews by himself for 5 years. Anyone you let go heads to the auction.')}</p>}
           {!mesmo && <button data-abre-classico onClick={() => setClassico(true)} style={{ display: 'block', margin: '14px auto 0', background: 'none', border: 'none', ...OSWALD, fontWeight: 800, fontSize: 12, textTransform: 'uppercase', textDecoration: 'underline', cursor: 'pointer', color: INK }}>{tr('🛒 abrir Sondar e Vender', '🛒 open Scout and Sell')}</button>}
         </div>
       </div></CareerVisualProvider>

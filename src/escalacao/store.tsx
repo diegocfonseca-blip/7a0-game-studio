@@ -321,13 +321,13 @@ export function contratoCpuFalta(cardId: string, seed: number, seasonNo: number)
 // virada que transforma as marcas em lista — tela e reducer leem a MESMA função (regra de ouro contra botão mudo).
 // `snJanela` = a temporada da JANELA em que a venda acontece: na janela é o `seasonNo`; durante a temporada é `seasonNo + 1`.
 export type MotivoNaoListar = 'cedo' | 'sumiu' | 'cria' | 'emprestado' | 'vencido' | 'posicao'
-export function motivoNaoListar(contratosOn: boolean | undefined, mgr: Pick<Manager, 'squad' | 'formation'>, cardId: string, jaListados: string[], snJanela: number): MotivoNaoListar | null {
+export function motivoNaoListar(contratosOn: boolean | undefined, mgr: Pick<Manager, 'squad' | 'formation'>, cardId: string, jaListados: string[], snJanela: number, /** 📝 21/11 (Diego: *"o contrato tá acabando, não acabou — então dá pra vender"*): a temporada contra a qual o contrato conta como JÁ vencido. No Mercado (durante a temporada) é a de AGORA; na janela, a da janela. */ snContrato: number = snJanela): MotivoNaoListar | null {
   if (snJanela < 3) return 'cedo' // a VENDA só libera na 3ª temporada (na 2ª só dá pra comprar)
   const card = (mgr.squad as WonCard[]).find(c => c.id === cardId)
   if (!card) return 'sumiu'
   if (card.cria) return 'cria' // 🌱 cria é invendável — ninguém paga nada por ele
   if (card.emprestado) return 'emprestado' // 🏢 ou é da SAF (não é seu), ou é seu que está lá: traga de volta primeiro
-  if (contratosOn && card.contratoAte != null && card.contratoAte < snJanela) return 'vencido' // 🔒 contrato vencido só sai pelo "Deixar ir"
+  if (contratosOn && card.contratoAte != null && card.contratoAte < snContrato) return 'vencido' // 🔒 contrato vencido só sai pelo "Deixar ir"
   const pos = card.pos
   const listedInPos = jaListados.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
   const filledPos = mgr.squad.filter(c => c.pos === pos && !c.emprestado).length // 🏢 conta SÓ os SEUS (emprestado volta na virada)
@@ -346,7 +346,7 @@ export function aplicaAVendaMercado(s: EscState): void {
   const you = s.managers[s.youIdx]
   if (!marcas.length || !you?.isHuman) return
   const arr = [...(s.reserveListed?.[you.id] ?? [])]
-  for (const id of marcas) if (!arr.includes(id) && motivoNaoListar(s.contratosOn, you, id, arr, s.seasonNo) === null) arr.push(id)
+  for (const id of marcas) if (!arr.includes(id) && motivoNaoListar(s.contratosOn, you, id, arr, s.seasonNo, s.seasonNo - 1) === null) arr.push(id) // (quem foi marcado com o contrato ainda valendo vai à venda; o leilão põe só o teto do valor — `tetoOficial`)
   if (arr.length) s.reserveListed = { ...(s.reserveListed ?? {}), [you.id]: arr }
 }
 
@@ -12587,7 +12587,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const cur = (s.aVendaMercado ?? []).filter(id => you.squad.some(c => c.id === id)) // quem já saiu do elenco some da lista
       const i = cur.indexOf(action.cardId)
       if (i >= 0) cur.splice(i, 1)
-      else { if (motivoNaoListar(s.contratosOn, you, action.cardId, cur, (s.seasonNo ?? 1) + 1) !== null) return s; cur.push(action.cardId) }
+      else { if (motivoNaoListar(s.contratosOn, you, action.cardId, cur, (s.seasonNo ?? 1) + 1, s.seasonNo ?? 1) !== null) return s; cur.push(action.cardId) }
       s.aVendaMercado = cur.length ? cur : undefined
       return s
     }
