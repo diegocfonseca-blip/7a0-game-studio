@@ -12,6 +12,9 @@ import { tr, getLang } from './lang'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { FORMATIONS, SECTORS, type Sector, type Manager } from './types'
 import { cartasExtras, carregaCartasExtras } from './baralho-inteiro'
+import { categoriaDa, decadaDe } from './liga-draft'
+import { seloDoClube } from './selo-clube'
+import { playTick } from './sound'
 import { CollectibleCard } from './screens'
 import pacoteCampeaoArt from './img/online-pacote-v20.webp'
 import { resolveColecao, podeJogarBafo, formatoBafo, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
@@ -266,6 +269,95 @@ export function ElencosBafo({ managers, youId }: { managers: Manager[]; youId: n
   )
 }
 
+// ─── 3a) 📏 A FAIXA em cima do campo: a regra de ganhar e quem está na frente ────────────────────────────────────────
+// Diego (21/11, 1º teste): *"tem que ter claro em cima do campo qual a regra de ganhar: tipo 1x1 é melhor de 5… e mostrar quem
+// tá ganhando… quando tiver 2 uma coisa, 3 outra, e até 20"*. Uma faixa só, texto pelo tamanho da sala (`formatoBafo`).
+// 🚫 spoiler: quem chama manda a tabela de ANTES do apito enquanto o jogo da tela ainda rola.
+export function FaixaBafo({ liga, youId, rodada, total }: { liga: { id: number; name: string; pts: number }[]; youId: number; rodada: number; total: number }) {
+  const en = getLang() === 'en'
+  const n = liga.length
+  if (n < 2) return null
+  const f = formatoBafo(n)
+  const lider = liga[0], eu = liga.findIndex(t => t.id === youId)
+  const verde = { color: '#7CFFA5' } as const
+  const linha2 = n === 2
+    ? (liga[0].pts === liga[1].pts
+      ? <>{en ? `Game ${rodada} of ${total}` : `Jogo ${rodada} de ${total}`} · <b style={verde}>{en ? 'all square' : 'tudo igual'}</b>: {liga[0].name} {liga[0].pts} × {liga[1].pts} {liga[1].name}</>
+      : <>{en ? `Game ${rodada} of ${total}` : `Jogo ${rodada} de ${total}`} · <b style={verde}>{liga[0].name} {liga[0].pts} {liga[0].pts === 1 ? 'pt' : 'pts'}</b> × {liga[1].pts} {liga[1].pts === 1 ? 'pt' : 'pts'} {liga[1].name}</>)
+    : <>{en ? `Round ${rodada} of ${total}` : `Rodada ${rodada} de ${total}`} · {eu === 0
+      ? <b style={verde}>{en ? `you lead with ${lider.pts} pts` : `você lidera com ${lider.pts} pts`}{liga[1] ? (en ? ` (${lider.pts - liga[1].pts} clear)` : ` (${lider.pts - liga[1].pts} de folga)`) : ''}</b>
+      : <>{en ? 'leader' : 'líder'} <b style={verde}>{lider.name} {lider.pts} pts</b>{eu > 0 ? (en ? ` · you are ${eu + 1}${eu === 1 ? 'nd' : eu === 2 ? 'rd' : 'th'}, ${lider.pts - liga[eu].pts} behind` : ` · você é o ${eu + 1}º, a ${lider.pts - liga[eu].pts} ${lider.pts - liga[eu].pts === 1 ? 'pt' : 'pts'}`) : ''}</>}</>
+  return (
+    <div style={{ background: INK, border: `3px solid ${OURO}`, borderRadius: 14, padding: '7px 12px', boxShadow: '3px 3px 0 #000', marginBottom: 8 }}>
+      <p style={{ ...OSW, fontWeight: 800, fontSize: 14, color: OURO, margin: 0, lineHeight: 1.15 }}>🃏 {en ? f.en : f.pt}{n > 2 ? (en ? ' · champion takes 1 card' : ' · o campeão toma 1 carta') : ''}</p>
+      <p style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', margin: '3px 0 0', lineHeight: 1.25 }}>{rodada > 0 ? linha2 : tr('Ainda não rolou nenhum jogo.', 'No game played yet.')}</p>
+    </div>
+  )
+}
+
+// ─── 3b) 🥁 O SUSPENSE da carta tomada ───────────────────────────────────────────────────────────────────────────────
+// Diego (21/11): *"no fim poderia aparecer um suspense de qual carta foi escolhida pelo campeão, igual o suspense que já funciona
+// do Liga Draft, porém iniciando com o pacote verde fechado… e a carta em tamanho real… e mais alguma zoação do campeão pro
+// usuário que perdeu"*. Mesmas pistas do draft (posição → categoria → clube/década), de 2 em 2 s; depois a carta vira.
+const REV_PACOTE_MS = 2000, REV_PISTA_MS = 2000, REV_VIRA_MS = REV_PACOTE_MS + 3 * REV_PISTA_MS
+/** 😈 a zoeira do campeão (PT e EN na MESMA posição). {c} = campeão · {p} = quem perdeu · {j} = o jogador */
+const ZOEIRA_BAFO: [string, string][] = [
+  ['Obrigado pelo presente, {p}. Vou cuidar bem do {j}… no banco.', 'Thanks for the gift, {p}. I will take good care of {j}… on the bench.'],
+  ['{p}, o {j} mandou um abraço. Disse que aqui tem título.', '{p}, {j} sends his regards. Says there are trophies over here.'],
+  ['Era o seu xodó, né, {p}? Agora é o meu.', 'He was your favourite, right, {p}? He is mine now.'],
+  ['{p}, pode chorar. O {j} já até trocou de armário.', '{p}, go ahead and cry. {j} already has a new locker.'],
+  ['Bafo bem batido. O {j} virou de lado e caiu no meu monte.', 'Clean slap. {j} flipped and landed on my pile.'],
+  ['{p}, devolvo o {j} quando você ganhar de mim. Ou seja: nunca.', '{p}, you get {j} back when you beat me. So: never.'],
+  ['Quem mandou convocar o {j}, {p}? Agora ele joga pro {c}.', 'Who told you to call up {j}, {p}? Now he plays for {c}.'],
+  ['{p}, relaxa: no álbum do {c} ele vai ficar mais bonito.', "{p}, relax: he will look better in {c}'s album."],
+  ['Escolhi com carinho, {p}. Era a que mais ia doer.', 'I picked with love, {p}. The one that would hurt the most.'],
+  ['{p}, sua coleção ficou mais leve. De nada.', '{p}, your collection just got lighter. You are welcome.'],
+  ['O {j} nem olhou pra trás, {p}. Frio.', '{j} did not even look back, {p}. Cold.'],
+  ['Campeão escolhe, perdedor entrega. Passa o {j} pra cá, {p}.', 'Champion picks, loser hands over. Pass {j} here, {p}.'],
+]
+function RevelaBafo({ b, decorrido }: { b: Bafo2Linha; decorrido: number }) {
+  const r = b.resultado!, c = r.carta!
+  const en = getLang() === 'en'
+  const carta = { name: c.name, club: c.club, year: c.year, fame: c.fame ?? 1 }
+  const cat = categoriaDa(carta), dec = decadaDe(c.year), selo = seloDoClube(c.club)
+  const noPacote = decorrido < REV_PACOTE_MS
+  const etapa = noPacote ? 0 : Math.min(3, 1 + Math.floor((decorrido - REV_PACOTE_MS) / REV_PISTA_MS))
+  const virou = decorrido >= REV_VIRA_MS
+  const ult = useRef(-1)
+  useEffect(() => { const m = virou ? 9 : etapa; if (m !== ult.current) { ult.current = m; try { playTick() } catch { /* sem som */ } } }, [etapa, virou])
+  const z = ZOEIRA_BAFO[b.id % ZOEIRA_BAFO.length][en ? 1 : 0].replace(/\{c\}/g, (r.paraNome ?? '').trim()).replace(/\{p\}/g, (r.deNome ?? '').trim()).replace(/\{j\}/g, c.name)
+  const titulo = virou ? `${c.name.toUpperCase()}!`
+    : noPacote ? tr('🥁 Carta tomada!', '🥁 Card taken!')
+    : etapa === 1 ? `${tr('É um…', "It's a…")} ${c.pos}`
+    : etapa === 2 ? `…${tr('e é', "and it's")} ${cat.emoji} ${en ? cat.en : cat.pt}!`
+    : en ? `It was ${(r.deNome ?? '').trim()}'s… ${c.club}, ${dec.en}` : `Era do ${(r.deNome ?? '').trim()}… ${c.club}, ${dec.pt}`
+  const pistas = [c.pos, `${cat.emoji} ${en ? cat.en : cat.pt}`, en ? dec.en : dec.pt]
+  const listra = etapa >= 3 && selo ? `repeating-linear-gradient(135deg,${selo.c1} 0 18px,${selo.c2} 18px 26px,${selo.c1} 26px 44px)` : 'repeating-linear-gradient(45deg,#1a1a1a 0 12px,#242424 12px 24px)'
+  const brilho = etapa >= 2 ? cat.brilho : null
+  return (
+    <div style={{ border: `4px solid ${INK}`, borderRadius: 22, background: 'radial-gradient(circle at 50% 40%,#2a2140,#0c0c0c 70%)', boxShadow: `4px 4px 0 ${INK}`, padding: 12, textAlign: 'center' }}>
+      <style>{'@keyframes bf-treme{0%,100%{transform:rotate(-3deg)}25%{transform:rotate(4deg) scale(1.03)}50%{transform:rotate(-5deg) scale(1.06)}75%{transform:rotate(5deg) scale(1.09)}}@keyframes bf-vira{0%{transform:rotateY(90deg) scale(.9);opacity:.3}100%{transform:rotateY(0) scale(1);opacity:1}}'}</style>
+      <p style={{ ...OSW, fontWeight: 700, fontSize: 11, letterSpacing: '.14em', color: OURO, margin: 0 }}>🏆 {(r.paraNome ?? '').trim()} {virou ? (r.sorteio ? tr('levou no sorteio do', 'got it in the draw from') : tr('tomou do', 'took it from')) + ' ' + (r.deNome ?? '').trim() : r.sorteio ? tr('· o jogo sorteou', '· the game drew') : tr('escolheu', 'has chosen')}</p>
+      <div style={{ minHeight: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 6 }}>
+        {virou ? (
+          <div style={{ position: 'relative', animation: 'bf-vira .6s ease-out', filter: `drop-shadow(0 0 26px ${cat.brilho})` }}>
+            <div className="ll-lote1-reveal-card" style={{ width: 200, margin: 0 }}><CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame ?? 1} /></div>
+            <span style={{ ...OSW, position: 'absolute', right: -14, top: 86, transform: 'rotate(-10deg)', fontSize: 18, fontWeight: 900, color: '#fff', background: VERM, border: `3px solid ${INK}`, borderRadius: 10, padding: '1px 10px' }}>{tr('Tomada!', 'Taken!')}</span>
+          </div>
+        ) : noPacote ? <img src={pacoteCampeaoArt} alt="" width={150} height={225} style={{ animation: 'bf-treme .5s ease-in-out infinite', filter: 'drop-shadow(0 0 18px rgba(60,220,120,.55))' }} />
+          : (
+            <div style={{ width: 170, height: 228, borderRadius: 16, display: 'grid', placeItems: 'center', background: listra, border: `4px solid ${brilho ?? '#555'}`, boxShadow: brilho ? `0 0 34px ${brilho}, 0 0 80px ${brilho}66` : 'none', transition: 'all .5s' }}>
+              <div style={{ width: 104, height: 140, borderRadius: 12, background: INK, border: `3px solid ${OURO}`, color: OURO, ...OSW, fontWeight: 900, fontSize: 46, display: 'grid', placeItems: 'center' }}>{c.pos}</div>
+            </div>
+          )}
+        {!virou && <div>{pistas.map((p, i) => <span key={i} style={{ display: 'inline-block', ...OSW, fontWeight: 700, fontSize: 13, border: `2px solid ${i < etapa ? INK : '#555'}`, borderRadius: 8, padding: '1px 8px', margin: 2, background: i < etapa ? OURO : '#151515', color: i < etapa ? INK : '#777' }}>{i < etapa ? p : '?'}</span>)}</div>}
+      </div>
+      <p style={{ ...OSW, fontWeight: 900, fontSize: 21, color: '#fff', margin: '8px 0 0', lineHeight: 1.15 }}>{titulo}</p>
+      {virou && !r.sorteio && <div style={{ marginTop: 10, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: '3px 3px 0 #000', padding: '7px 10px', fontSize: 13, fontWeight: 700, textAlign: 'left' }}>😈 <b>{(r.paraNome ?? '').trim()}:</b> "{z}"</div>}
+    </div>
+  )
+}
+
 // ─── o estado do Bafo no banco ──
 export interface Bafo2Linha {
   id: number; dono: string; valendo: boolean; fase: 'jogando' | 'escolha' | 'fim' | 'encerrada'
@@ -297,6 +389,7 @@ export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assent
   const [indo, setIndo] = useState(false)
   const abriu = useRef(false)
   const vistoEm = useRef<number | null>(null) // quando ESTE aparelho viu a escolha aberta (o relógio local conta daqui)
+  const revEm = useRef<number | null>(null) // 🥁 quando ESTE aparelho começou a ver o suspense da carta tomada
   const agora = useAgora(500)
   const en = getLang() === 'en'
 
@@ -363,6 +456,17 @@ export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assent
   )
   if (b.fase === 'fim') {
     const r = b.resultado
+    // 🥁 o suspense da carta tomada: uma vez por aparelho e por Bafo (recarregou a página depois = já vê o resultado direto)
+    if (r?.carta && !r.amistoso && !r.semCarta) {
+      if (revEm.current == null) {
+        const k = `bafo2-rev-${b.id}`
+        let em = Date.now()
+        try { const g = Number(sessionStorage.getItem(k)); if (g > 0) em = g; else sessionStorage.setItem(k, String(em)) } catch { /* sem armazenamento: conta daqui */ }
+        revEm.current = em
+      }
+      const dec = agora - revEm.current
+      if (dec < REV_VIRA_MS + 7000) return <RevelaBafo b={b} decorrido={dec} />
+    }
     return (
       <div style={{ ...caixa('linear-gradient(135deg,#FFC400,#ffe27a)'), padding: 12, color: INK, textAlign: 'center' }}>
         <p style={{ ...OSW, fontWeight: 900, fontSize: 18, margin: 0 }}>🃏 {tr('Bafo fechado', 'Bafo settled')}</p>

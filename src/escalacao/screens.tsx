@@ -107,7 +107,7 @@ import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './
 import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
 import { CaminhoDraft } from './draft-favoritos'
 import { cartasExtras, carregaCartasExtras, type CartaExtra } from './baralho-inteiro' // 🃏 21/11: o pacote do campeão sorteia do baralho INTEIRO
-import { Bafo2Fim, ElencosBafo, BafoVigia } from './bafo2-ui' // 🃏 21/11: Bafo novo
+import { Bafo2Fim, ElencosBafo, BafoVigia, FaixaBafo } from './bafo2-ui' // 🃏 21/11: Bafo novo
 import { chaveNome as chaveNomeDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
@@ -8552,7 +8552,9 @@ export function EscSeason() {
         // ter uma barrinha mostrando os gols que arrasta junto em cima da tela, igual
         // fizemos no modo carreira"*. É a MESMA tira da carreira (`FaixaPlacarMini`),
         // não uma cópia — só o placar de baixo é que é outro componente aqui.
-        return <><PlacarOnlineQueEncolhe key={state.round}
+        return <>{state.bafo2 && <FaixaBafo youId={you.id} rodada={state.round} total={totalRounds}
+          liga={sortedTable(!resultRevealed && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league).map(t => ({ id: t.id, name: t.name, pts: t.pts }))} />}
+          <PlacarOnlineQueEncolhe key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
