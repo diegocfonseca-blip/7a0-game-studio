@@ -43,7 +43,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import type { ViceState } from './types'
-import { GOLPES, sorteiaGolpe, anuncioGolpe, VICE_BUSTED_EM, VICE_CARTAS_POR_TECNICO, VICE_SORTEIO_MS, VICE_BLITZ_MS, VICE_TIROTEIO_MS, VICE_TANQUE_MS, VICE_TANQUE_TETO, VICE_ASSALTO, VICE_MULTA, type GolpeId } from './vice-city'
+import { GOLPES, sorteiaGolpe, anuncioGolpe, VICE_BUSTED_EM, VICE_CARTAS_POR_TECNICO, VICE_SORTEIO_MS, VICE_BLITZ_MS, VICE_TIROTEIO_MS, VICE_TANQUE_MS, VICE_TANQUE_TETO, VICE_ASSALTO, VICE_MULTA, VICE_PNEU_MS, VICE_TRAPACA, VICE_MISSAO, VICE_LOJA, type GolpeId } from './vice-city'
 import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
 import { condicaoAtiva, divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
@@ -6942,10 +6942,10 @@ function viceRng(state: EscState): () => number {
 function viceNovo(): ViceState {
   return { mao: {}, recebidas: {}, estrelas: {}, ultimo: {}, blitzAte: {}, tiroteioAte: {}, tanqueAte: {}, barreiraIdx: {}, cadeia: {}, multa: {}, lavagem: {}, propina: {}, colete: {}, fuga: {}, segredo: {}, feed: [], n: 0 }
 }
-function viceFeed(state: EscState, txt: [string, string], busted = false) {
+function viceFeed(state: EscState, txt: [string, string], busted = false, cena?: 'aviao' | 'paraquedas' | 'jacare') {
   const v = state.pa?.vice
   if (!v) return
-  v.feed.unshift({ id: ++v.n, pt: txt[0], en: txt[1], t: Date.now(), ...(busted ? { busted: true } : {}) })
+  v.feed.unshift({ id: ++v.n, pt: txt[0], en: txt[1], t: Date.now(), ...(busted ? { busted: true } : {}), ...(cena ? { cena } : {}) })
   if (v.feed.length > 12) v.feed.length = 12
 }
 /** 🃏 dá 1 carta pra cada técnico de GENTE que ainda não recebeu `ate` cartas (1 no começo, 2 na metade) */
@@ -6987,6 +6987,8 @@ export function viceTravaLance(state: EscState, mgrId: number, valor?: number): 
   if ((v.tiroteioAte[mgrId] ?? 0) > agora) return ['🔫 Tiroteio: seu caixa está congelado', '🔫 Shootout: your cash is frozen']
   if (state.pa && v.barreiraIdx[mgrId] === state.pa.idx) return ['🚧 Barreira: esta carta você não disputa', '🚧 Barrier: you sit this card out']
   if ((v.tanqueAte[mgrId] ?? 0) > agora && valor !== undefined && valor > VICE_TANQUE_TETO) return [`⛽ Tanque vazio: lance até ${VICE_TANQUE_TETO}`, `⛽ Empty tank: bids up to ${VICE_TANQUE_TETO}`]
+  // 🛞 21/11: pneu furado = só o lance mínimo (+1 em cima do atual) — os botões +2/+5/+10 apagam
+  if ((v.pneuAte?.[mgrId] ?? 0) > agora && valor !== undefined && state.pa && valor > paMinimo(state, 0)) return ['🛞 Pneu furado: só lance de +1', '🛞 Flat tire: +1 bids only']
   return null
 }
 const viceForca = (c: WonCard | Card) => (c.hi ?? 0) + (c.lo ?? 0) + (c.fame ?? 0) * 10
@@ -7026,6 +7028,59 @@ function viceBustedPena(state: EscState) {
     trocas.push(c.name)
   }
   if (trocas.length) (state.marketLog = state.marketLog ?? []).push(`🚨 Pena do BUSTED: ${m.teamName} perdeu ${trocas.join(', ')} — no lugar, ${trocas.length} Profissional(is).`)
+}
+/** 🃏 21/11: põe uma carta REAL no time (Paraquedas, Jacaré, NPC). Tem vaga na posição: entra. Não tem: entra no lugar do PIOR
+ *  daquela posição, e o pior volta pra mesa (nunca some carta, nunca entra jogador de mentira). Devolve false se nem assim deu. */
+function viceColocaNoTime(state: EscState, m: Manager, c: WonCard): boolean {
+  if (openSlots(m, c.pos) > 0) { m.squad.push(c); return true }
+  const da = m.squad.filter(x => x.pos === c.pos)
+  if (!da.length) return false
+  const pior = da.reduce((x, y) => viceForca(y) < viceForca(x) ? y : x)
+  const i = m.squad.findIndex(x => x.id === pior.id)
+  if (i < 0) return false
+  m.squad[i] = c
+  const { paid: _p, buyPrice: _b, via: _v, ...volta } = pior as WonCard & { buyPrice?: number; via?: string }
+  void _p; void _b; void _v
+  if (!pior.fake && state.pa) state.pa.fila.push({ ...volta } as Card)
+  if (state.pa?.vice && state.pa.vice.ultimo[m.id] === pior.id) delete state.pa.vice.ultimo[m.id]
+  return true
+}
+/** 🃏 21/11: uma carta real da categoria pedida, que ninguém tem e que não está na mesa (lenda = fame 5 · Profissional = fame 1) */
+function viceCartaLivre(state: EscState, fame: number, posicoes: Sector[], rng: () => number): Card | undefined {
+  const nomes = new Set<string>(state.managers.flatMap(x => x.squad.map(c => c.name)))
+  if (state.pa) for (const c of state.pa.fila) nomes.add(c.name)
+  const cands: Card[] = []
+  for (const pos of posicoes) for (const x of ((ACTIVE_CATALOG[pos] ?? []) as Card[])) if ((x.fame ?? 1) === fame && !x.fake && !x.promessa && !nomes.has(x.name)) cands.push({ ...x, pos })
+  return cands.length ? cands[Math.floor(rng() * cands.length)] : undefined
+}
+/** 🐊 21/11: caiu uma LENDA no time de quem tem jacaré de tocaia? O jacaré abocanha: a lenda vai de graça pro dono do jacaré e
+ *  a vítima recebe de volta o que pagou (Diego: *"entrou o jacaré pega q tava de Tocaia"*). Vale uma vez por jacaré. */
+function viceJacareConfere(state: EscState, vitId: number, cardId: string, pago: number) {
+  const v = state.pa?.vice
+  const dono = v?.jacare?.[vitId]
+  if (!v || dono === undefined) return
+  const vit = state.managers.find(m => m.id === vitId), ben = state.managers.find(m => m.id === dono)
+  const i = vit ? vit.squad.findIndex(c => c.id === cardId) : -1
+  if (!vit || !ben || i < 0) return
+  const c = vit.squad[i]
+  if ((c.fame ?? 1) !== 5 || c.fake) return
+  vit.squad.splice(i, 1)
+  if (pago > 0) vit.money += pago
+  if (v.ultimo[vit.id] === c.id) delete v.ultimo[vit.id]
+  delete v.jacare![vitId]
+  const pega: WonCard = { ...c, id: `vice-jacare-${ben.id}-${v.n}`, paid: 0, buyPrice: 0, via: 'monte' } as WonCard
+  if (!viceColocaNoTime(state, ben, pega)) { vit.squad.splice(i, 0, c); if (pago > 0) vit.money -= pago; return }
+  viceFeed(state, [`🐊 O JACARÉ PEGOU! ${c.name} saiu do ${vit.teamName} e foi pro ${ben.teamName}${pago > 0 ? ` (o ${vit.teamName} recebeu ${pago} de volta)` : ''}`, `🐊 THE GATOR STRUCK! ${c.name} left ${vit.teamName} for ${ben.teamName}${pago > 0 ? ` (${vit.teamName} got ${pago} back)` : ''}`], false, 'jacare')
+}
+/** dá pra usar esta carta EM SI MESMO agora? (a tela apaga o botão com a MESMA conta do motor) */
+export function vicePodeUsar(state: EscState, id: GolpeId, mgrId: number): boolean {
+  const v = state.pa?.vice
+  const eu = state.managers.find(m => m.id === mgrId)
+  if (!v || !eu) return false
+  if (id === 'loja') return Math.floor(eu.money) >= VICE_LOJA
+  if (id === 'missao') return !!paMesa(state, 0)?.card
+  if (id === 'paraquedas') return !!viceCartaLivre(state, 5, SECTORS.filter(p => eu.squad.some(c => c.pos === p) || openSlots(eu, p) > 0), () => 0)
+  return true
 }
 /** o golpe pega: aplica o efeito com `vit` levando e `ben` ganhando. Devolve o texto extra do anúncio (ou null = não deu) */
 function viceAplica(state: EscState, id: GolpeId, ben: Manager, vit: Manager): string | null | undefined {
@@ -7074,6 +7129,15 @@ function viceAplica(state: EscState, id: GolpeId, ben: Manager, vit: Manager): s
       return c.name
     }
     case 'multa': v.multa[vit.id] = true; return undefined
+    case 'pneu': (v.pneuAte = v.pneuAte ?? {})[vit.id] = agora + VICE_PNEU_MS; return undefined
+    case 'jacare': (v.jacare = v.jacare ?? {})[vit.id] = ben.id; return undefined
+    case 'npc': {
+      const livres = SECTORS.filter(p => openSlots(vit, p) > 0)
+      const c = viceCartaLivre(state, 1, livres, viceRng(state))
+      if (!c) return null
+      vit.squad.push({ ...c, id: `vice-npc-${vit.id}-${v.n}`, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
+      return c.name
+    }
     case 'lavagem': v.lavagem[vit.id] = ben.id; return undefined
     case 'delacao': return String(Math.floor(vit.money))
     case 'sequestro': {
@@ -7105,6 +7169,7 @@ function viceUsa(state: EscState, mgrId: number, id: GolpeId, alvoId?: number): 
   if (k < 0 || !GOLPES[id]) return false
   const g = GOLPES[id]
   if (!g.alvo) {
+    if (!vicePodeUsar(state, id, mgrId)) return false // 🆕 21/11: Loja sem 10 moedas, Missão sem carta na mesa, Paraquedas sem lenda livre
     mao.splice(k, 1)
     if (id === 'colete') v.colete[mgrId] = true
     else if (id === 'fuga') v.fuga[mgrId] = true
@@ -7115,6 +7180,29 @@ function viceUsa(state: EscState, mgrId: number, id: GolpeId, alvoId?: number): 
       const linhas = state.managers.filter(m => m.isHuman || (v.estrelas[m.id] ?? 0) > 0).map(m => ({ t: m.teamName, e: v.estrelas[m.id] ?? 0 }))
         .sort((a, b) => b.e - a.e).map(x => `${'★'.repeat(x.e)}${'☆'.repeat(Math.max(0, VICE_BUSTED_EM - x.e))} ${x.t}`)
       v.segredo[mgrId] = { tipo: 'sniper', linhas, ate: Date.now() + 15_000 }
+    } else if (id === 'trapaca') {
+      eu.money += VICE_TRAPACA
+      viceFeed(state, anuncioGolpe('trapaca', eu.teamName))
+      if (v.busted === undefined) { v.estrelas[mgrId] = (v.estrelas[mgrId] ?? 0) + 1; if ((v.estrelas[mgrId] ?? 0) >= VICE_BUSTED_EM) viceBusted(state, mgrId) }
+      return true
+    } else if (id === 'missao') {
+      (v.missao = v.missao ?? {})[mgrId] = pa.idx
+    } else if (id === 'loja') {
+      eu.money -= VICE_LOJA
+      mao.push(sorteiaGolpe(viceRng(state), ['loja']))
+    } else if (id === 'paraquedas') {
+      const c = viceCartaLivre(state, 5, SECTORS.filter(p => eu.squad.some(x => x.pos === p) || openSlots(eu, p) > 0), viceRng(state))!
+      const nova = { ...c, id: `vice-paraquedas-${mgrId}-${v.n}`, paid: 0, buyPrice: 0, via: 'monte' } as WonCard
+      if (!viceColocaNoTime(state, eu, nova)) { mao.push(id); return false }
+      viceFeed(state, anuncioGolpe('paraquedas', eu.teamName, undefined, c.name), false, 'paraquedas')
+      viceJacareConfere(state, mgrId, nova.id, 0)
+      return true
+    } else if (id === 'contrabando') {
+      const gente = state.managers.filter(m => m.isHuman)
+      const sorte = gente[Math.floor(viceRng(state)() * gente.length)] ?? eu
+      ;(v.mao[sorte.id] = v.mao[sorte.id] ?? []).push(sorteiaGolpe(viceRng(state), ['contrabando']))
+      viceFeed(state, anuncioGolpe('contrabando', eu.teamName, undefined, sorte.teamName), false, 'aviao')
+      return true
     } else if (id === 'bolsa') {
       const novo = sorteiaGolpe(viceRng(state), ['bolsa'])
       mao.push(novo)
@@ -7167,6 +7255,8 @@ export function viceAlvoServe(state: EscState, id: GolpeId, mgrId: number, alvoI
   }
   if (id === 'assalto') return Math.floor(alvo.money) > 0
   if (id === 'cadeia') return !!viceMaisCaro(alvo)
+  if (id === 'npc') return SECTORS.some(p => openSlots(alvo, p) > 0)
+  if (id === 'jacare') return v.jacare?.[alvo.id] === undefined // um jacaré por vez em cada rival
   if (id === 'sequestro') return SECTORS.some(pos => alvo.squad.some(c => c.pos === pos && !c.fake) && eu.squad.some(c => c.pos === pos))
   return true
 }
@@ -7185,6 +7275,13 @@ function viceDepoisDoMartelo(state: EscState, winner: number, card: Card, pago: 
     return
   }
   if (i >= 0) v.ultimo[winner] = card.id
+  // 💼 21/11: missão cumprida — levou a carta que estava na mesa quando usou
+  if (v.missao && v.missao[winner] === state.pa!.idx) {
+    delete v.missao[winner]
+    w.money += VICE_MISSAO
+    viceFeed(state, [`💼 MISSÃO CUMPRIDA! ${w.teamName} levou ${card.name}: +${VICE_MISSAO} moedas`, `💼 MISSION PASSED! ${w.teamName} won ${card.name}: +${VICE_MISSAO} coins`])
+  }
+  if (v.missao) for (const k of Object.keys(v.missao)) if (v.missao[+k] <= state.pa!.idx) delete v.missao[+k] // carta passou: a missão acabou
   if (v.multa[winner]) {
     delete v.multa[winner]
     const x = Math.min(Math.max(0, Math.floor(w.money)), Math.ceil(pago * VICE_MULTA))
@@ -7204,6 +7301,7 @@ function viceDepoisDoMartelo(state: EscState, winner: number, card: Card, pago: 
     const x = Math.min(Math.max(0, Math.floor(w.money)), Math.floor(pago / 2))
     if (b && x > 0) { w.money -= x; b.money += x; viceFeed(state, [`💸 Lavagem: ${x} moedas do ${w.teamName} foram pro ${b.teamName}`, `💸 Laundering: ${x} coins from ${w.teamName} went to ${b.teamName}`]) }
   }
+  if (i >= 0) viceJacareConfere(state, winner, card.id, pago) // 🐊 21/11: a lenda que ele acabou de levar — o jacaré de tocaia pega
 }
 
 // ➕ SOBRA = A DO ENVELOPE/TOCAIA (17/10, Diego: *"no padrão da regra do Tocaia e do Envelope… oferta e demanda"*): o baralho

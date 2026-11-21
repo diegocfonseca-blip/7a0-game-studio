@@ -4,7 +4,7 @@
 // motor (`viceAlvoServe`, `viceTravaLance`) — nada de regra própria na tela (regra de ouro contra botão mudo).
 import { useEffect, useRef, useState } from 'react'
 import { playSireneCurta, playEstrela, playGolpe } from './sound'
-import { useEsc, viceAlvoServe, viceTravaLance } from './store'
+import { useEsc, viceAlvoServe, viceTravaLance, vicePodeUsar } from './store'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
 import { playSirene } from './sound'
@@ -62,11 +62,16 @@ export function ViceCityMao() {
   if (state.pa && v.barreiraIdx[you.id] === state.pa.idx) efeitos.push(t('🚧 Barreira nesta carta', '🚧 Barrier on this card'))
   if (v.cadeia[you.id]) efeitos.push(t('🔒 Cadeia: a próxima carta que você levar volta pra mesa', '🔒 Jail: the next card you win goes back'))
   if (v.multa[you.id]) efeitos.push(t('🧾 Multa: próxima carta +30%', '🧾 Fine: next card +30%'))
+  if ((v.pneuAte?.[you.id] ?? 0) > agora) efeitos.push(t(`🛞 Pneu furado: só +1 por ${Math.ceil((v.pneuAte![you.id] - agora) / 1000)} s`, `🛞 Flat tire: +1 only for ${Math.ceil((v.pneuAte![you.id] - agora) / 1000)} s`))
+  if (v.jacare?.[you.id] !== undefined) efeitos.push(t('🐊 Tem um jacaré de tocaia em você: a próxima lenda que cair no seu time vai embora', '🐊 A gator is lying in wait: the next legend that lands on your team gets taken'))
   if (v.lavagem[you.id] !== undefined) efeitos.push(t('💸 Lavagem: metade da próxima compra vai pra outro', '💸 Laundering: half of your next buy goes to someone else'))
   const meus: string[] = []
   if (v.colete[you.id]) meus.push(t('🛡️ Colete', '🛡️ Vest'))
   if (v.fuga[you.id]) meus.push(t('🚁 Fuga pronta', '🚁 Escape ready'))
   if (v.propina[you.id]) meus.push(t('💵 Propina: próxima carta pela metade', '💵 Bribe: next card half price'))
+  if (state.pa && v.missao?.[you.id] === state.pa.idx) meus.push(t(`💼 Missão: leve esta carta e ganhe +10`, `💼 Mission: win this card for +10`))
+  const meusJacares = Object.entries(v.jacare ?? {}).filter(([, dono]) => dono === you.id).map(([vit]) => state.managers.find(m => m.id === +vit)?.teamName).filter(Boolean)
+  if (meusJacares.length) meus.push(t(`🐊 Jacaré de tocaia no ${meusJacares.join(', ')}`, `🐊 Gator waiting on ${meusJacares.join(', ')}`))
   return (
     <div style={{ background: fundo, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, padding: 10, color: '#fff', display: 'flex', flexDirection: 'column', gap: 8 }}>
       {(trava || efeitos.length > 0) && (
@@ -91,13 +96,14 @@ export function ViceCityMao() {
           {mao.map((g, i) => {
             const G = GOLPES[g]
             if (!G) return null
+            const podeSo = G.alvo || vicePodeUsar(state, g, you.id) // 🆕 21/11: Loja sem 10 moedas, Missão sem carta, Paraquedas sem lenda livre
             return (
-              <button key={`${g}-${i}`} onClick={() => G.alvo ? setEscolhendo(escolhendo === g ? null : g) : usar(g)}
-                style={{ background: '#fff', color: INK, border: `3px solid ${G.alvo ? '#C2452F' : '#1B7A3D'}`, borderRadius: 12, boxShadow: `3px 3px 0 ${G.alvo ? '#C2452F' : '#1B7A3D'}`, padding: '8px 6px', textAlign: 'center', cursor: 'pointer', outline: escolhendo === g ? `3px solid ${NEON}` : 'none' }}>
+              <button key={`${g}-${i}`} disabled={!podeSo} onClick={() => G.alvo ? setEscolhendo(escolhendo === g ? null : g) : usar(g)}
+                style={{ opacity: podeSo ? 1 : .55, background: '#fff', color: INK, border: `3px solid ${G.alvo ? '#C2452F' : '#1B7A3D'}`, borderRadius: 12, boxShadow: `3px 3px 0 ${G.alvo ? '#C2452F' : '#1B7A3D'}`, padding: '8px 6px', textAlign: 'center', cursor: 'pointer', outline: escolhendo === g ? `3px solid ${NEON}` : 'none' }}>
                 <span style={{ fontSize: 26, display: 'block', lineHeight: 1 }}>{G.emoji}</span>
                 <b style={{ ...OSW, display: 'block', fontSize: 13, marginTop: 3 }}>{t(G.nome[0], G.nome[1])}</b>
                 <span style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#444', marginTop: 2, lineHeight: 1.25 }}>{t(G.faz[0], G.faz[1])}</span>
-                <span style={{ ...OSW, display: 'inline-block', marginTop: 5, fontSize: 11, background: G.alvo ? '#C2452F' : '#1B7A3D', color: '#fff', borderRadius: 7, padding: '2px 8px' }}>{G.alvo ? t('Escolher rival', 'Pick a rival') : t('Usar', 'Use')}</span>
+                <span style={{ ...OSW, display: 'inline-block', marginTop: 5, fontSize: 11, background: G.alvo ? '#C2452F' : '#1B7A3D', color: '#fff', borderRadius: 7, padding: '2px 8px' }}>{G.alvo ? t('Escolher rival', 'Pick a rival') : podeSo ? t('Usar', 'Use') : g === 'loja' ? t('Faltam moedas', 'Not enough coins') : t('Não dá agora', 'Not now')}</span>
               </button>
             )
           })}
@@ -223,6 +229,16 @@ const VICE_V2_CSS = `
 .vice-busted-tela{animation:viceGiroflex .45s steps(1) infinite}
 @keyframes vicePisca{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .vice-busted-pisca{animation:vicePisca .45s ease-in-out infinite}
+/* 🆕 21/11: as cenas das cartas novas — CSS e emoji, 0 KB de arte */
+.vice-cena-aviao{position:absolute;top:16%;left:0;display:flex;align-items:center;white-space:nowrap;animation:viceAviao 4.2s linear forwards}
+@keyframes viceAviao{0%{transform:translateX(-110%)}100%{transform:translateX(110vw)}}
+.vice-cena-caixote{position:absolute;left:50%;top:22%;font-size:48px;margin-left:-24px;opacity:0;animation:viceCaixote 4.2s ease-in forwards}
+@keyframes viceCaixote{0%,40%{opacity:0;transform:translateY(0)}45%{opacity:1}85%{transform:translateY(32vh)}100%{opacity:1;transform:translateY(32vh) scale(1.1)}}
+.vice-cena-para{position:absolute;left:50%;top:-30%;margin-left:-60px;width:120px;text-align:center;animation:vicePara 4s cubic-bezier(.3,.6,.4,1) forwards}
+@keyframes vicePara{0%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(48vh) rotate(6deg)}100%{transform:translateY(52vh) rotate(0)}}
+.vice-cena-jacare{position:absolute;left:50%;top:28%;margin-left:-70px;font-size:140px;line-height:1;animation:viceJacareBote 1.1s ease-in-out 3}
+@keyframes viceJacareBote{0%,100%{transform:scale(1) rotate(0)}40%{transform:scale(1.25) rotate(-12deg)}60%{transform:scale(.95) rotate(8deg)}}
+@media (prefers-reduced-motion:reduce){.vice-cena-aviao,.vice-cena-caixote,.vice-cena-para,.vice-cena-jacare{animation:none}}
 `
 export function ViceOverlays() {
   const { state } = useEsc()
@@ -237,7 +253,7 @@ export function ViceOverlays() {
   const sorteio = !!v && !!you && !fechouSorteio && (v.sorteioAte ?? 0) > agora && mao.length > 0
   // ② a faixa do golpe: só o que acontece DEPOIS que a tela abriu (quem entra no meio não recebe a reprise)
   const visto = useRef<number | null>(null)
-  const [faixa, setFaixa] = useState<{ id: number; pt: string; en: string; busted?: boolean } | null>(null)
+  const [faixa, setFaixa] = useState<{ id: number; pt: string; en: string; busted?: boolean; cena?: 'aviao' | 'paraquedas' | 'jacare' } | null>(null)
   const ult = v?.feed[0]
   useEffect(() => {
     if (!ult) return
@@ -247,7 +263,7 @@ export function ViceOverlays() {
     if (ult.pt.startsWith('🌴')) return
     setFaixa(ult)
     if (ult.busted) { try { playSirene() } catch { /* som nunca quebra o jogo */ } }
-    const tm = setTimeout(() => setFaixa(f => (f && f.id === ult.id ? null : f)), ult.busted ? 6500 : 3200)
+    const tm = setTimeout(() => setFaixa(f => (f && f.id === ult.id ? null : f)), ult.busted ? 6500 : ult.cena ? 4400 : 3200)
     return () => clearTimeout(tm)
   }, [ult?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   // ③ estrelas: as minhas, e a sirene quando sobe
@@ -293,6 +309,17 @@ export function ViceOverlays() {
             <p className="vice-busted-pisca" style={{ ...OSW, margin: 0, fontSize: 46, lineHeight: 1, color: '#ff3b3b', textShadow: '0 0 14px #ff3b3b' }}>🚨 BUSTED! 🚔</p>
             <p style={{ ...OSW, margin: '10px 0 0', fontSize: 19, lineHeight: 1.25, color: '#fff' }}>{t(faixa.pt, faixa.en).replace(/^🚨 BUSTED! /, '')}</p>
           </div>
+        </div>
+      )}
+      {/* 🆕 21/11: as cenas das cartas novas, na tela de TODO mundo (o anúncio é o mesmo feed de sempre) */}
+      {faixa?.cena && (
+        <div key={`c${faixa.id}`} style={{ position: 'fixed', inset: 0, zIndex: 60, pointerEvents: 'none', overflow: 'hidden' }}>
+          {faixa.cena === 'aviao' && <>
+            <div className="vice-cena-aviao"><span style={{ fontSize: 64, display: 'inline-block', transform: 'scaleX(-1)' }}>✈️</span><span style={{ width: 30, height: 2, background: INK, display: 'inline-block' }} /><span style={{ ...OSW, background: '#FFC400', color: INK, border: `3px solid ${INK}`, borderRadius: 6, boxShadow: `3px 3px 0 ${INK}`, padding: '5px 12px', fontSize: 18 }}>{t('📦 CONTRABANDO!', '📦 SMUGGLING!')}</span></div>
+            <div className="vice-cena-caixote">📦</div>
+          </>}
+          {faixa.cena === 'paraquedas' && <div className="vice-cena-para"><div style={{ fontSize: 56, lineHeight: 1 }}>🪂</div><div style={{ ...OSW, marginTop: 4, height: 120, border: `4px solid ${INK}`, borderRadius: 12, background: 'linear-gradient(160deg,#FFE07a,#FFC400 50%,#d99a00)', boxShadow: '0 0 30px #FFC400', color: INK, fontSize: 18, paddingTop: 34 }}>{t('👑 LENDA', '👑 LEGEND')}</div></div>}
+          {faixa.cena === 'jacare' && <div className="vice-cena-jacare">🐊</div>}
         </div>
       )}
       {faixa && !faixa.busted && (

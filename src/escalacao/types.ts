@@ -421,10 +421,15 @@ export type ViceState = {
   propina: Record<number, boolean>
   colete: Record<number, boolean>
   fuga: Record<number, boolean>
+  /** 🆕 21/11 (opcionais: sala que já estava jogando não tem) — 🛞 pneu furado até quando · 🐊 jacaré: vítima → quem armou ·
+   *  💼 missão: técnico → índice da carta da mesa que vale o bônus */
+  pneuAte?: Record<number, number>
+  jacare?: Record<number, number>
+  missao?: Record<number, number>
   /** 📡🎯 o segredo que só quem usou vê: X9 (nomes das próximas cartas) e Sniper (o ranking naquele momento) */
   segredo: Record<number, { tipo: 'x9' | 'sniper'; linhas: string[]; ate: number }>
   /** 📣 o que aconteceu, pra sala inteira (mais novo em cima) */
-  feed: { id: number; pt: string; en: string; t: number; busted?: boolean }[]
+  feed: { id: number; pt: string; en: string; t: number; busted?: boolean; /** 🆕 21/11: a cena especial na tela de todos */ cena?: 'aviao' | 'paraquedas' | 'jacare' }[]
   /** contador pra id do feed e pro dado andar */
   n: number
 }

@@ -175,4 +175,67 @@ while (r.phase === 'pregao' && r.pa && g3++ < 20000) {
     }
   }
 }
+// 🆕 21/11: as 8 cartas novas (Pneu furado, Jacaré, NPC, Código de trapaça, Missão cumprida, Paraquedas, Loja de armas, Contrabando)
+{
+  let n = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  n = reducer(n, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 9, career: false, league: 'both', copaMode: 'liga', intro: true, pregaoAberto: true, vice: true } as never)
+  n = reducer(n, { type: 'START_STREAM_AUCTION' } as never)
+  avanca(8000); n = reducer(n, { type: 'PREGAO_ABERTO_TICK' } as never)
+  const eu2 = () => n.managers[n.youIdx]
+  const rb = n.managers.find(m => !m.isHuman)!.id
+  const rob = () => n.managers.find(m => m.id === rb)!
+  // 🛞 pneu: só o mínimo por 30 s
+  n = structuredClone(n); da(n, eu2().id, ['pneu']); n = usa(n, 'pneu', rb)
+  const min = paMinimo(n, 0)
+  assert.ok(viceTravaLance(n, rb, min + 3), 'pneu: barra lance acima do mínimo')
+  assert.equal(viceTravaLance(n, rb, min), null, 'pneu: o mínimo (+1) passa')
+  avanca(31_000); n = reducer(n, { type: 'PREGAO_ABERTO_TICK' } as never)
+  assert.equal(viceTravaLance(n, rb, paMinimo(n, 0) + 3), null, 'pneu acaba em 30 s')
+  // 🤖 NPC: um Profissional real entra no time do rival
+  const sq0 = rob().squad.length
+  n = structuredClone(n); da(n, eu2().id, ['npc']); n = usa(n, 'npc', rb)
+  assert.equal(rob().squad.length, sq0 + 1, 'NPC: entrou 1 no time dele')
+  const npc = rob().squad.find(c => c.id.startsWith('vice-npc-'))!
+  assert.ok(npc && (npc.fame ?? 1) === 1 && !npc.fake, 'NPC: carta real de Profissional')
+  // 🎮 trapaça: +50 e +1 ⭐ pra quem usou
+  const din = eu2().money, est = n.pa!.vice!.estrelas[eu2().id] ?? 0
+  n = structuredClone(n); da(n, eu2().id, ['trapaca']); n = usa(n, 'trapaca')
+  assert.equal(eu2().money, din + 50, 'trapaça: +50')
+  assert.equal(n.pa!.vice!.estrelas[eu2().id] ?? 0, est + 1, 'trapaça: +1 estrela pra quem usou')
+  // 🔫 loja: −10 e uma carta nova na mão
+  const din2 = eu2().money
+  n = structuredClone(n); da(n, eu2().id, ['loja']); const mao0 = n.pa!.vice!.mao[eu2().id].length; n = usa(n, 'loja')
+  assert.equal(eu2().money, din2 - 10, 'loja: −10')
+  assert.equal(n.pa!.vice!.mao[eu2().id].length, mao0, 'loja: gastou 1, ganhou 1')
+  // ✈️ contrabando: o caixote cai pra alguém de gente e a cena do avião vai pra sala
+  n = structuredClone(n); da(n, eu2().id, ['contrabando']); const mao1 = n.pa!.vice!.mao[eu2().id].length; n = usa(n, 'contrabando')
+  assert.equal(n.pa!.vice!.mao[eu2().id].length, mao1, 'contrabando: (só eu de gente) gastei 1 e o caixote caiu pra mim')
+  assert.equal(n.pa!.vice!.feed[0].cena, 'aviao', 'contrabando: cena do avião')
+  // 💼 missão: marca a carta da mesa
+  n = structuredClone(n); da(n, eu2().id, ['missao']); n = usa(n, 'missao')
+  assert.equal(n.pa!.vice!.missao?.[eu2().id], n.pa!.idx, 'missão: vale a carta da mesa')
+  // 🪂 paraquedas + 🐊 jacaré: o robô armou um jacaré em mim; a lenda que cai de paraquedas vai pra ele
+  n = structuredClone(n)
+  n.pa!.vice!.jacare = { [eu2().id]: rb }
+  const robSq = rob().squad.length
+  da(n, eu2().id, ['paraquedas']); n = usa(n, 'paraquedas')
+  assert.ok(n.pa!.vice!.feed.some(f => f.cena === 'paraquedas'), 'paraquedas: cena')
+  assert.ok(n.pa!.vice!.feed[0].cena === 'jacare', 'jacaré: abocanhou a lenda do paraquedas')
+  assert.ok(rob().squad.some(c => c.id.startsWith('vice-jacare-') && c.fame === 5), 'jacaré: a lenda foi pro dono do jacaré')
+  assert.ok(rob().squad.length >= robSq, 'jacaré: ninguém some do elenco do dono')
+  assert.ok(!eu2().squad.some(c => c.id.startsWith('vice-paraquedas-')), 'jacaré: saiu do meu time')
+  assert.equal(n.pa!.vice!.jacare?.[eu2().id], undefined, 'jacaré vale uma vez')
+  // 🪂 paraquedas sem jacaré: a lenda fica comigo
+  n = structuredClone(n); da(n, eu2().id, ['paraquedas']); n = usa(n, 'paraquedas')
+  assert.ok(eu2().squad.some(c => c.id.startsWith('vice-paraquedas-') && c.fame === 5), 'paraquedas: lenda real no meu time')
+  // e o resto do pregão fecha redondo
+  let g4 = 0
+  while (n.phase === 'pregao' && n.pa && g4++ < 40000) { avanca(PA_TICK_MS); n = reducer(n, { type: 'PREGAO_ABERTO_TICK' } as never); for (const m of n.managers) assert.ok(m.money >= 0, 'caixa nunca negativo') }
+  assert.ok(!n.pa, 'pregão com as cartas novas fechou')
+  const ids2 = n.managers.flatMap(m => m.squad.map(c => c.id))
+  assert.equal(new Set(ids2).size, ids2.length, 'cartas novas: nenhuma carta em dois elencos')
+  const nomes2 = n.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => c.name))
+  assert.equal(new Set(nomes2).size, nomes2.length, 'cartas novas: nenhum jogador repetido entre times')
+  console.log('✅ cartas novas: pneu, NPC, trapaça, loja, contrabando, missão, paraquedas e jacaré')
+}
 console.log('✅ trava do Vice City passou')

@@ -15,6 +15,8 @@
 export type GolpeId =
   | 'roubo' | 'assalto' | 'blitz' | 'barreira' | 'cadeia' | 'multa' | 'tanque' | 'tiroteio' | 'delacao' | 'sequestro' | 'lavagem'
   | 'colete' | 'fuga' | 'propina' | 'x9' | 'funilaria' | 'bolsa' | 'sniper'
+  // 🆕 21/11 (Diego escolheu no mockup `scripts/mockups/vice-golpes-novos.png`: *"Ok publique todos eles"*)
+  | 'pneu' | 'jacare' | 'npc' | 'trapaca' | 'missao' | 'paraquedas' | 'loja' | 'contrabando'
 
 export type Golpe = {
   id: GolpeId
@@ -46,6 +48,15 @@ export const GOLPES: Record<GolpeId, Golpe> = {
   x9: { id: 'x9', emoji: '📡', nome: ['X9', 'Informant'], faz: ['Mostra só pra você as 3 próximas cartas da mesa', 'Shows only you the next 3 cards'], alvo: false, peso: 3 },
   funilaria: { id: 'funilaria', emoji: '🎨', nome: ['Funilaria', 'Respray'], faz: ['Zera as suas estrelas', 'Clears your stars'], alvo: false, peso: 3 },
   bolsa: { id: 'bolsa', emoji: '🎲', nome: ['Bolsa misteriosa', 'Mystery bag'], faz: ['Vira outra carta de golpe, sorteada', 'Turns into another random card'], alvo: false, peso: 2 },
+  // 🆕 21/11 — as 8 que o Diego escolheu (só o que NÃO tinha parecido: WASTED/Trote = Blitz, Guincho = Cadeia… ficaram de fora)
+  pneu: { id: 'pneu', emoji: '🛞', nome: ['Pneu furado', 'Flat tire'], faz: ['Por 30 s o rival só dá lance de +1', 'For 30 s they can only bid +1'], alvo: true, peso: 4 },
+  jacare: { id: 'jacare', emoji: '🐊', nome: ['Jacaré', 'Gator'], faz: ['Fica de tocaia no rival: a próxima LENDA que cair no time dele vai pro seu, de graça', 'Lies in wait: the next LEGEND that lands on their team goes to yours, free'], alvo: true, peso: 2 },
+  npc: { id: 'npc', emoji: '🤖', nome: ['NPC', 'NPC'], faz: ['Manda uma carta Profissional aleatória pro time do rival, ocupando uma vaga dele', 'Sends a random Pro card to their team, taking one of their slots'], alvo: true, peso: 3 },
+  trapaca: { id: 'trapaca', emoji: '🎮', nome: ['Código de trapaça', 'Cheat code'], faz: ['+50 moedas — mas a sala vê "TRAPACEIRO!" e você ganha +1 ⭐', '+50 coins — but the room sees "CHEATER!" and you get +1 ⭐'], alvo: false, peso: 2 },
+  missao: { id: 'missao', emoji: '💼', nome: ['Missão cumprida', 'Mission passed'], faz: ['Ganhou a carta da mesa? +10 moedas de bônus', 'Win the card on the table? +10 bonus coins'], alvo: false, peso: 4 },
+  paraquedas: { id: 'paraquedas', emoji: '🪂', nome: ['Paraquedas', 'Parachute'], faz: ['Uma LENDA aleatória cai do céu no seu time, de graça', 'A random LEGEND drops into your team, free'], alvo: false, peso: 1 },
+  loja: { id: 'loja', emoji: '🔫', nome: ['Loja de armas', 'Gun shop'], faz: ['Paga 10 moedas e ganha mais 1 carta de golpe aleatória', 'Pay 10 coins and get 1 more random heist card'], alvo: false, peso: 3 },
+  contrabando: { id: 'contrabando', emoji: '✈️', nome: ['Contrabando', 'Smuggling'], faz: ['O avião passa pra sala toda e o caixote cai pra 1 pessoa sorteada: ela ganha 1 carta de golpe', 'The plane flies over everyone and drops a crate on 1 random player: they get 1 heist card'], alvo: false, peso: 3 },
   sniper: { id: 'sniper', emoji: '🎯', nome: ['Sniper', 'Sniper'], faz: ['Mostra só pra você o ranking de estrelas', 'Shows only you the star ranking'], alvo: false, peso: 3 },
 }
 export const GOLPE_IDS = Object.keys(GOLPES) as GolpeId[]
@@ -64,6 +75,10 @@ export const VICE_TANQUE_MS = 15_000
 export const VICE_TANQUE_TETO = 10
 export const VICE_ASSALTO = 10
 export const VICE_MULTA = 0.3
+export const VICE_PNEU_MS = 30_000
+export const VICE_TRAPACA = 50
+export const VICE_MISSAO = 10
+export const VICE_LOJA = 10
 
 /** 🎲 sorteia uma carta pelo peso (as fortes saem menos). `sem` = ids que não podem sair (a Bolsa não vira Bolsa). */
 export function sorteiaGolpe(rng: () => number, sem: GolpeId[] = []): GolpeId {
@@ -96,6 +111,14 @@ export function anuncioGolpe(id: GolpeId, quem: string, alvo?: string, extra?: s
     case 'x9': return [`📡 ${quem} ligou pro X9 e viu as próximas cartas`, `📡 ${quem} called the informant and saw the next cards`]
     case 'funilaria': return [`🎨 ${quem} passou na funilaria e zerou as estrelas`, `🎨 ${quem} got a respray and cleared their stars`]
     case 'bolsa': return [`🎲 ${quem} abriu a bolsa misteriosa: ${extra ?? '?'}`, `🎲 ${quem} opened the mystery bag: ${extra ?? '?'}`]
+    case 'pneu': return [`🛞 ${quem} furou o pneu do ${a}: 30 s só com lance de +1`, `🛞 ${quem} gave ${a} a flat tire: 30 s, +1 bids only`]
+    case 'jacare': return [`🐊 ${quem} soltou um jacaré de tocaia no ${a}… a próxima LENDA dele corre perigo`, `🐊 ${quem} set a gator on ${a}… their next LEGEND is in danger`]
+    case 'npc': return [`🤖 ${quem} mandou um NPC pro ${a}: ${extra ?? 'um Profissional'} entrou no time dele`, `🤖 ${quem} sent an NPC to ${a}: ${extra ?? 'a Pro'} joined their team`]
+    case 'trapaca': return [`🎮 TRAPACEIRO! ${quem} digitou o código: +${VICE_TRAPACA} moedas (e +1 ⭐)`, `🎮 CHEATER! ${quem} typed the code: +${VICE_TRAPACA} coins (and +1 ⭐)`]
+    case 'missao': return [`💼 ${quem} pegou uma missão: se levar a carta da mesa, +${VICE_MISSAO} moedas`, `💼 ${quem} took a mission: win the card on the table for +${VICE_MISSAO} coins`]
+    case 'paraquedas': return [`🪂 CAIU DO CÉU! ${extra ?? 'Uma lenda'} pousou de paraquedas no ${quem}`, `🪂 FROM THE SKY! ${extra ?? 'A legend'} parachuted into ${quem}`]
+    case 'loja': return [`🔫 ${quem} passou na loja de armas (−${VICE_LOJA}) e levou mais uma carta de golpe`, `🔫 ${quem} hit the gun shop (−${VICE_LOJA}) and got one more heist card`]
+    case 'contrabando': return [`📦 CONTRABANDO! O avião do ${quem} soltou o caixote pro ${extra ?? '?'}: +1 carta de golpe`, `📦 SMUGGLING! ${quem}’s plane dropped the crate on ${extra ?? '?'}: +1 heist card`]
     case 'sniper': return [`🎯 ${quem} usou o Sniper e viu quem está mais caçado`, `🎯 ${quem} used the Sniper and saw who is most wanted`]
     default: return [`${g.emoji} ${quem} usou ${g.nome[0]}`, `${g.emoji} ${quem} used ${g.nome[1]}`]
   }
