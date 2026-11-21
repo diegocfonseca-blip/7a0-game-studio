@@ -10590,7 +10590,8 @@ const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`,
 // 🃏 21/11 (Diego: "a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for campeão"): o pacote
 // do ÁLBUM soma as cartas regionais e as do Brasil Oficial (estaduais, Séries A–D, Libertadores, Sul-Americana) aos 3 baralhos.
 // A raridade não muda: `sorteiaCarta` escolhe a CATEGORIA primeiro (lenda 4%…) e só depois a carta dentro dela.
-// A carreira (Agência) segue com o baralho dela — carta do Oficial não joga na carreira de sempre e ficaria morta na Agência.
+// 🔁 mesmo dia: a CARREIRA também ("mesmo cálculo"). Carta do Oficial que cair numa carreira de sempre entra no álbum e na Agência,
+// mas não rende lá (aquele jogador não joga naquela carreira).
 function poolInteiro(extras: CartaExtra[]): WonCard[] {
   if (!extras.length) return POOL_COLECOES
   const tem = new Set(POOL_COLECOES.map(c => `${c.name}|${c.club}|${c.year}`))
@@ -10666,7 +10667,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
   const colecoesOn = useColecoesLiberadas()
   // 🃏 21/11: baralho INTEIRO no pacote do álbum — espera (no máx. 6 s) o pedaço do Brasil Oficial descer antes de sortear
-  const querExtras = colecoesOn && !nba && !saveCards
+  const querExtras = colecoesOn && !nba // (a carreira também: Diego, 21/11 — "é aleatório também quando é campeão na carreira, mesmo cálculo")
   const [extras, setExtras] = useState<CartaExtra[] | null>(() => (querExtras ? null : []))
   useEffect(() => {
     if (!querExtras) return
@@ -10686,13 +10687,13 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     // outros 22 clubes nunca fechavam) e PODE REPETIR fora da carreira: a repetida é o que deixa
     // fechar o mesmo clube de novo e é a moeda das trocas. Na carreira segue a regra da Agência.
     if (colecoesOn) {
-      const pool = POOL_COLECOES
+      const pool = poolInteiro(extras ?? [])
       if (saveCards) {
         const saveSet = new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`))
         const un = pool.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
         return un.length ? un : pool
       }
-      return poolInteiro(extras ?? [])
+      return pool
     }
     // MODO CARREIRA: a unicidade do pacote é do SAVE (agência), não do álbum geral.
     // Assim uma carta que você já tem no álbum de rua mas ainda NÃO neste save

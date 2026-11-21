@@ -1251,7 +1251,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 
 - **🃏 O PACOTE DO CAMPEÃO SAI DO BARALHO INTEIRO (21/11).** *"a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for
   campeão"* — 3 baralhos + regionais + Brasil Oficial (`baralho-inteiro.ts`). Carta/baralho novo no jogo = entra lá também. As do Oficial seguem FORA do
-  leilão das salas/partida rápida; como prêmio de álbum e no Bafo, valem. A carreira (Agência) ainda sorteia do baralho dela (pendente da resposta dele).
+  leilão das salas/partida rápida; como prêmio de álbum e no Bafo, valem. A carreira usa o MESMO sorteio (*"mesmo cálculo"*).
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

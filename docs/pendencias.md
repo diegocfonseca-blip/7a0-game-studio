@@ -29,7 +29,7 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - `baralho-inteiro.ts`: soma as cartas REGIONAIS (445) e as do BRASIL OFICIAL (2 mil+, pedaço separado que desce na hora) aos 3 baralhos.
 - Vale no pacote do ÁLBUM: salas online, partida rápida e a carta "na hora" (`garanteCartaDoTitulo`, que agora também usa `sorteiaCarta`). Raridade igual (categoria primeiro: lenda 4%).
 - O Bafo lê a força dessas cartas (`achaNoBaralho` + download do Oficial só se a coleção tiver carta que os 3 baralhos não conhecem).
-- ⚠️ NÃO MUDOU (perguntado ao Diego): o pacote DENTRO da carreira (que vai pra Agência) segue com o baralho dele — carta do Oficial não joga na carreira de sempre e ficaria parada na Agência.
+- 🔁 A CARREIRA TAMBÉM (Diego, mesmo dia: *"é aleatório também quando é campeão na carreira, mesmo cálculo"*): o pacote da carreira sorteia do baralho inteiro. Carta do Oficial numa carreira de sempre vai pro álbum e pra Agência, mas não rende lá (o jogador não joga naquela carreira).
 - Efeito colateral avisado: com mais cartas "bom/profissional" no sorteio, fechar COLEÇÃO de clube fica mais demorado (as do Oficial/regionais não pertencem a coleção nenhuma).
 - Revê, só pro ÁLBUM/Bafo, o "as cartas do modo nunca vão pra Partida Rápida nem pro online" (15/11): continuam fora do LEILÃO, mas agora podem ser prêmio e jogar o Bafo.
 
