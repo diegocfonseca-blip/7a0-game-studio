@@ -10399,7 +10399,7 @@ function fallbackBio(fame: number, pos: string): string {
     default: return `Profissional ${where} — do nosso futebol raiz.`
   }
 }
-export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
+export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false, nomeNaCarta }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean; /** 🃏 21/11: só o TEXTO do nome (carta de exemplo do Bafo: "Ronaldo" na carta do Ronaldo Fenômeno). A carta continua sendo a de `name`. */ nomeNaCarta?: string }) {
   // 🎩 KINGS (12/11, Diego: *"a carta dos presidentes, ao invés de cor dourada de lenda ou cor tier… terão visual do time na carta
   // toda, sem boneco ou avatar"*): a carta é a de sempre, só a cor da categoria vira a cor do time e sai o retrato
   const pres = ehCartaPresidente(name, club, year)
@@ -10441,7 +10441,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           : initial}
       </div>}
       <div className="relative">
-        <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{name}</p>
+        <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{nomeNaCarta ?? name}</p>
         <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
         {!pres && <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{isProm ? '💎💎💎' : '⭐'.repeat(fame)}</p>}
         {(big || showBio) && text && (
