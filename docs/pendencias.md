@@ -25,6 +25,14 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
   proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
 
+## 🃏 21/11 — O PACOTE DO CAMPEÃO SORTEIA DO BARALHO INTEIRO (Diego: "a carta que tenha no jogo serve… estaduais, A B C D, Sul-Americana, Libertadores")
+- `baralho-inteiro.ts`: soma as cartas REGIONAIS (445) e as do BRASIL OFICIAL (2 mil+, pedaço separado que desce na hora) aos 3 baralhos.
+- Vale no pacote do ÁLBUM: salas online, partida rápida e a carta "na hora" (`garanteCartaDoTitulo`, que agora também usa `sorteiaCarta`). Raridade igual (categoria primeiro: lenda 4%).
+- O Bafo lê a força dessas cartas (`achaNoBaralho` + download do Oficial só se a coleção tiver carta que os 3 baralhos não conhecem).
+- ⚠️ NÃO MUDOU (perguntado ao Diego): o pacote DENTRO da carreira (que vai pra Agência) segue com o baralho dele — carta do Oficial não joga na carreira de sempre e ficaria parada na Agência.
+- Efeito colateral avisado: com mais cartas "bom/profissional" no sorteio, fechar COLEÇÃO de clube fica mais demorado (as do Oficial/regionais não pertencem a coleção nenhuma).
+- Revê, só pro ÁLBUM/Bafo, o "as cartas do modo nunca vão pra Partida Rápida nem pro online" (15/11): continuam fora do LEILÃO, mas agora podem ser prêmio e jogar o Bafo.
+
 ## 🃏 21/11 — AUDITORIA: todo campeão ganha a cartinha? (pedido do Diego; nada foi mudado ainda)
 - SALAS ONLINE (medido no banco, `game_champions` × `user_cards`): ~99% dos campeões têm carta na hora do título. Em 2 dias (~480 campeões) achei 3 sem
   carta nenhuma perto do título (salas `7bbb9382…` T2 e `e8502303…` T1, as duas liga+copa, campeão que NÃO era o dono; e 1 de sala já apagada) e mais ~3 duvidosos.

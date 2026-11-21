@@ -1249,6 +1249,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   com o `CardCollectPrompt` e chave própria. Rede de segurança: `PacotesDevidos` na tela inicial + `esc_titulos_sem_carta`. Carta que saiu da conta (Bafo)
   nunca é paga de novo pelo mesmo título (`esc_titulo_pago`). Detalhe e o que ficou de fora: `docs/pendencias.md` (21/11, auditoria).
 
+- **🃏 O PACOTE DO CAMPEÃO SAI DO BARALHO INTEIRO (21/11).** *"a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for
+  campeão"* — 3 baralhos + regionais + Brasil Oficial (`baralho-inteiro.ts`). Carta/baralho novo no jogo = entra lá também. As do Oficial seguem FORA do
+  leilão das salas/partida rápida; como prêmio de álbum e no Bafo, valem. A carreira (Agência) ainda sorteia do baralho dela (pendente da resposta dele).
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

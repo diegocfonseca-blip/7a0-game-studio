@@ -106,6 +106,7 @@ import { publicOnlineVisual } from './online-release'
 import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto'
 import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
 import { CaminhoDraft } from './draft-favoritos'
+import { cartasExtras, carregaCartasExtras, type CartaExtra } from './baralho-inteiro' // 🃏 21/11: o pacote do campeão sorteia do baralho INTEIRO
 import { Bafo2Fim, ElencosBafo, BafoVigia } from './bafo2-ui' // 🃏 21/11: Bafo novo
 import { chaveNome as chaveNomeDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
@@ -7479,8 +7480,8 @@ async function garanteCartaDoTitulo(seasonKey: string) {
   if (!uid) return
   const { data } = await supabase.from('user_cards').select('season_key').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
   if (data) return
-  const pool = colecoesLiberadas() ? POOL_COLECOES : ALL_POOL
-  const c = pool[Math.floor(Math.random() * pool.length)]
+  const pool = colecoesLiberadas() ? poolInteiro(await carregaCartasExtras()) : ALL_POOL
+  const c = colecoesLiberadas() ? sorteiaCarta(pool) : pool[Math.floor(Math.random() * pool.length)] // 🎲 mesma raridade do pacote aberto na tela final
   if (!c) return
   await resilientWrite({ table: 'user_cards', row: { user_id: uid, season_key: seasonKey, origin: 'online', card_name: c.name, card_club: c.club, card_year: c.year, card_pos: c.pos, card_fame: c.fame } })
 }
@@ -10586,6 +10587,16 @@ function nbaMeta(name: string, club: string, year: number): { bio?: string; folk
 // 📚 o pacote das COLEÇÕES: os três baralhos, uma entrada por carta (nome+clube+ano)
 const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' }))
 
+// 🃏 21/11 (Diego: "a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for campeão"): o pacote
+// do ÁLBUM soma as cartas regionais e as do Brasil Oficial (estaduais, Séries A–D, Libertadores, Sul-Americana) aos 3 baralhos.
+// A raridade não muda: `sorteiaCarta` escolhe a CATEGORIA primeiro (lenda 4%…) e só depois a carta dentro dela.
+// A carreira (Agência) segue com o baralho dela — carta do Oficial não joga na carreira de sempre e ficaria morta na Agência.
+function poolInteiro(extras: CartaExtra[]): WonCard[] {
+  if (!extras.length) return POOL_COLECOES
+  const tem = new Set(POOL_COLECOES.map(c => `${c.name}|${c.club}|${c.year}`))
+  return [...POOL_COLECOES, ...extras.filter(c => !tem.has(`${c.name}|${c.club}|${c.year}`)).map((c, i) => ({ id: `wildx-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, bio: c.bio, lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard))]
+}
+
 // 🏆 `motivo` = DE QUAL TÍTULO veio esta carta ("Campeão da Série C", "Campeão da
 // Copa Legends"…). Existe por causa do relato do Futpoint FC (15/09), trazido pelo
 // Diego: *"ele não foi campeão nem da Liga nem da Supercopa, porém ganhou duas
@@ -10654,6 +10665,15 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // (baralho BR + Europa), sempre uma que o campeão ainda NÃO tem (só repetiria
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
   const colecoesOn = useColecoesLiberadas()
+  // 🃏 21/11: baralho INTEIRO no pacote do álbum — espera (no máx. 6 s) o pedaço do Brasil Oficial descer antes de sortear
+  const querExtras = colecoesOn && !nba && !saveCards
+  const [extras, setExtras] = useState<CartaExtra[] | null>(() => (querExtras ? null : []))
+  useEffect(() => {
+    if (!querExtras) return
+    let vivo = true
+    void carregaCartasExtras().then(l => { if (vivo) setExtras(l) }, () => { if (vivo) setExtras(cartasExtras()) })
+    return () => { vivo = false }
+  }, [querExtras])
   const packPool = useMemo(() => {
     // 🏀 basquete: só o baralho da NBA, sem repetir o que já está no álbum da NBA (ou no save da carreira)
     if (nba) {
@@ -10672,7 +10692,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
         const un = pool.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
         return un.length ? un : pool
       }
-      return pool
+      return poolInteiro(extras ?? [])
     }
     // MODO CARREIRA: a unicidade do pacote é do SAVE (agência), não do álbum geral.
     // Assim uma carta que você já tem no álbum de rua mas ainda NÃO neste save
@@ -10686,7 +10706,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     }
     const un = ALL_POOL.filter(c => !owned.has(c.name))
     return un.length ? un : ALL_POOL
-  }, [owned, saveCards, colecoesOn, nba])
+  }, [owned, saveCards, colecoesOn, nba, extras])
   const [opening, setOpening] = useState(false)
   // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
   // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
@@ -10715,7 +10735,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // pra ninguém (é só o PRÓPRIO campeão vendo o próprio prêmio), então não
   // precisa esperar a cerimônia como o onClaimed espera pros outros da sala.
   useEffect(() => {
-    if (status !== 'picking' || savedRef.current || !packPool.length) return
+    if (status !== 'picking' || savedRef.current || !packPool.length || extras === null) return // (extras === null: o baralho inteiro ainda está descendo)
     const pick = colecoesOn && !nba ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
     if (!pick) return
     savedRef.current = true

@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { FORMATIONS, SECTORS, type Sector, type Manager } from './types'
+import { cartasExtras, carregaCartasExtras } from './baralho-inteiro'
 import { CollectibleCard } from './screens'
 import pacoteCampeaoArt from './img/online-pacote-v20.webp'
 import { resolveColecao, podeJogarBafo, formatoBafo, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
@@ -30,6 +31,9 @@ function montaIndice() {
     if (!exato.has(k)) exato.set(k, v)
     if (!nome.has(c.name)) nome.set(c.name, v)
   }
+  // 🃏 21/11: o pacote do campeão passou a dar carta do baralho INTEIRO (regionais + Brasil Oficial) — aqui elas ganham força.
+  // Só pela carta EXATA (nome+clube+ano): pelo nome sozinho, um xará do Oficial pegaria a força da carta famosa.
+  for (const c of cartasExtras()) { const k = `${c.name}|${c.club}|${c.year}`; if (!exato.has(k)) exato.set(k, { pos: c.pos, fame: c.fame, lo: c.lo, hi: c.hi, club: c.club, year: c.year }) }
   return { exato, nome }
 }
 export const achaNoBaralho: AchaNoBaralho = (n, c, a) => { indice ??= montaIndice(); return indice.exato.get(`${n}|${c}|${a}`) ?? indice.nome.get(n) ?? null }
@@ -43,6 +47,9 @@ export async function carregaColecao(uid: string): Promise<CartaBafo[]> {
     linhas.push(...((data ?? []) as LinhaColecao[]))
     if ((data ?? []).length < 1000) break
   }
+  // carta que os 3 baralhos não conhecem pelo nome+clube+ano → pode ser do Brasil Oficial: baixa o baralho dele (uma vez) e refaz o índice
+  indice ??= montaIndice()
+  if (linhas.some(l => !indice!.exato.has(`${l.card_name}|${l.card_club}|${l.card_year}`))) { await carregaCartasExtras(8000); indice = montaIndice() }
   return resolveColecao(linhas, achaNoBaralho)
 }
 export function useColecaoBafo(uid: string | null | undefined): { cartas: CartaBafo[] | null; erro: boolean; pode: boolean } {
