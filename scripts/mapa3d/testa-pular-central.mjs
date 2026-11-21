@@ -17,6 +17,7 @@ await p.waitForFunction(() => window.qaState, null, { timeout: 180000 })
 const central = () => p.getByRole('button', { name: 'Central', exact: true }).last().click()
 const skipPress = async () => { const x = p.getByRole('button', { name: /Pular a coletiva/i }); if (await x.count()) await x.first().click().catch(() => {}) }
 const rapido = p.getByRole('button', { name: /placar rápido/i }), pular = p.getByRole('button', { name: /Pular pro jogo/i })
+await p.getByRole('button', { name: 'Jogos + Tabela', exact: true }).last().click(); await p.waitForTimeout(34000) // (a carreira de teste abre com um jogo rolando)
 const res = []
 for (let k = 0; k < +(process.env.N || 6); k++) {
   await central(); await p.waitForTimeout(1500); await skipPress()

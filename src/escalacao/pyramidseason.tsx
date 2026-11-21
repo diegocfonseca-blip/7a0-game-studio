@@ -14113,7 +14113,7 @@ export function PyramidSeasonScreen() {
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
               onNext={avancarRodada}
-              onSkip={fluxoCentral && calOn ? undefined : avancarRodada /* 🧭 21/11: o PULAR do Manual começava o jogo SEGUINTE direto, sem a Central perguntar — no fluxo da Central ele sai */}
+              onSkip={() => avancarRodada(true) /* 🧭 21/11 (Diego: "não tirou o botão pular do manual né"): o PULAR do Manual fica como sempre foi */}
               nextLabel={criseTrava ? tr('🚪 Decida quem fica no lugar dele', '🚪 Decide who replaces him') : halfMode && !halftimeDone ? tr('⏸️ Resolva o intervalo primeiro', '⏸️ Sort out half-time first') : penMode && !penaltyDone ? tr('⚽ Bata o pênalti primeiro', '⚽ Take the penalty first') : !roundReady ? tr('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : tr('▶️ Próxima rodada', '▶️ Next round')} />
           </div>
           ) : <>{!fluxoCentral && <Botao2D soComDireito /> /* 🧭 20/11: no fluxo da Central a forma de ver (2D · 3D · placar rápido) já foi escolhida lá */}<ManualLockButton /></>
