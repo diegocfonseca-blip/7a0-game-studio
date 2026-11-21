@@ -83,7 +83,7 @@ import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:0
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa, clubCanon } from './data'
 import { SELOS } from './selos-clubes'
-import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
+import type { EscState, Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, rotuloFormacao } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
@@ -168,7 +168,7 @@ import { resilientWrite } from './pending'
 import { loggedEmail, useDireitos, meusDireitos, logApoio, comCorDoNome } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, useTem2D, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
-import { MesaRenovacao } from './renovacao-mesa' // 📝 renovação em cartas (22/10)
+import { MesaRenovacao, contratosNaMesa } from './renovacao-mesa' // 📝 renovação em cartas (22/10)
 import { tr, ordinal, getLang } from './lang'
 import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10) // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
@@ -187,7 +187,8 @@ import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
-import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego, usePreviaCentral, mapa3dLiberado, useFluxoCentral } from './sport'
+import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego, usePreviaCentral, mapa3dLiberado, useFluxoCentral, useJanelaNova } from './sport'
+import { motivoNaoListar, janelaNovaVale, type MotivoNaoListar } from './store' // 🔨 janela nova (21/11)
 import { CAL_MS_POR_DIA, horaDaRodada, defineSemanasDeCopa, fmtDia, anoDaTemporada, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
@@ -6666,6 +6667,146 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   )
 }
 
+// 🔨 JANELA NOVA (21/11, desenho aprovado pelo Diego): sondar e pôr à venda moram no 🛒 Mercado (a temporada toda); apertar 🔨 Leilão
+// pede uma CONFIRMAÇÃO e vai direto pro pregão; contrato vencendo ganha uma tela grande só dele. Vale só onde o Mercado e o Sondar
+// existem (carreira solo de aparelho) e com a chave ligada (`JANELA_NOVA_GERAL`, sport.ts) — fora disso, tudo como sempre foi.
+function useJanelaNovaOn(): boolean {
+  const { state } = useEsc()
+  const jn = useJanelaNova(), pc = usePreviaCentral(), f15 = useFormacoes15()
+  return jn && f15 && (pc || !!state.oficial) && janelaNovaVale(state)
+}
+// 🕵️ os clubes da SUA série — a conta ÚNICA do Sondar e do Mercado (bots da sua divisão + rivais escolhidos + times de fundo, que
+// vêm da receita da pirâmide). Era copiada nas duas telas; a confirmação do leilão e a virada da janela nova leem a mesma.
+type ClubeSerie = { teamName: string; squad: WonCard[]; fundo?: boolean }
+function clubesDaSerie(state: EscState, mundo: ReturnType<typeof buildPyramid>, divAtual: DivTec): ClubeSerie[] {
+  const pl = state.careerPlacements ?? {}
+  const fundoSquad = new Map((mundo[divAtual as Div] ?? []).filter(t => t.teamId < 0).map(t => [t.name, t.squad as unknown as WonCard[]]))
+  const rivaisTime = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
+  const out: ClubeSerie[] = []
+  const vistos = new Set<string>()
+  for (const m of state.managers) {
+    if (m.isHuman) continue
+    const dm = pl[`m${m.id}`]
+    if (dm !== divAtual && !m.auctionOnly && !rivaisTime.has(newestTeamName(m.teamName))) continue
+    vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[] })
+  }
+  for (const [k, v] of Object.entries(pl)) {
+    if (v !== divAtual || /^m\d+$/.test(k)) continue
+    const nome = newestTeamName(k)
+    if (vistos.has(nome)) continue
+    vistos.add(nome); out.push({ teamName: nome, squad: fundoSquad.get(nome) ?? [], fundo: true })
+  }
+  return out
+}
+function useClubesDaSerie(mgr: Manager | undefined, on = true): { divAtual: DivTec; clubes: ClubeSerie[] } {
+  const { state } = useEsc()
+  const divAtual = ((mgr ? state.careerPlacements?.[`m${mgr.id}`] : undefined) ?? state.careerDivision ?? 'D') as DivTec
+  const mundo = useMemo(
+    () => on ? buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial) : null,
+    [on, state.managers, state.youIdx, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, state.oficial],
+  )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const clubes = useMemo(() => mundo ? clubesDaSerie(state, mundo, divAtual) : [], [state.managers, state.careerPlacements, state.careerRivals, divAtual, mundo])
+  return { divAtual, clubes }
+}
+// 👀 quem do "de olho" VIRA sondado na janela da temporada `sn` — a régua única (Sondar, confirmação do leilão e janela nova): só
+// 🆓 sem contrato, jogador só até onde o olheiro alcança. A trava de verdade continua no reducer (`ALICIAR_MARCAR`).
+function alvosDeOlho(state: EscState, clubes: ClubeSerie[], divAtual: DivTec, olheiroTier: string | undefined, jogadorOn: boolean, sn: number): { tec?: string; jog?: { card: WonCard; clube: ClubeSerie } } {
+  const d = state.deOlho, out: { tec?: string; jog?: { card: WonCard; clube: ClubeSerie } } = {}
+  if (!d) return out
+  if (d.tec) {
+    const map = state.careerTecnicos ?? {}
+    const noClube = clubes.some(c => map[c.teamName] === d.tec && faltaContrato(state.careerTecnicoContrato?.[c.teamName], sn) <= 0)
+    const semClube = !Object.values(map).includes(d.tec) && poolDaDiv(divAtual).some(tt => tt.nome === d.tec)
+    if (noClube || semClube) out.tec = d.tec
+  }
+  if (d.jog && jogadorOn) for (const c of clubes) {
+    const x = c.squad.find(k => !ehFake(k) && !k.cria && !k.emprestado && `${k.name}|${k.club}|${k.year}` === d.jog!.chave && contratoCpuFalta(k.id, state.seed, sn) <= 0 && sondarLiberado(k, olheiroTier))
+    if (x) { out.jog = { card: x, clube: c }; break }
+  }
+  return out
+}
+// 📋 por que a carta não pode ir à venda — o texto de cada trava de `motivoNaoListar` (store.tsx)
+const motivoNaoListarTxt = (m: MotivoNaoListar): string => ({
+  cedo: tr('a venda libera na 3ª temporada', 'selling unlocks in season 3'),
+  sumiu: tr('não está mais no elenco', 'no longer in the squad'),
+  cria: tr('cria da base não se vende', 'academy kids can’t be sold'),
+  emprestado: tr('emprestado — traga de volta antes', 'on loan — bring him back first'),
+  vencido: tr('contrato já acabou — decide na tela de Contratos', 'contract already over — decided on the Contracts screen'),
+  posicao: tr('faltaria gente na posição — traga um substituto ou troque a formação', 'position would be short — bring a replacement or change formation'),
+} as Record<MotivoNaoListar, string>)[m]
+/** 📋 as marcas "pôr à venda" na ordem em que a virada vai aplicá-las: quem vai mesmo e quem fica (com o porquê) */
+function vendaDoMercado(state: EscState, mgr: Manager, snJanela: number): { vao: WonCard[]; ficam: { card: WonCard; motivo: MotivoNaoListar }[] } {
+  const vao: WonCard[] = [], ficam: { card: WonCard; motivo: MotivoNaoListar }[] = [], ids: string[] = []
+  for (const id of state.aVendaMercado ?? []) {
+    const card = (mgr.squad as WonCard[]).find(c => c.id === id)
+    if (!card) continue
+    const motivo = motivoNaoListar(state.contratosOn, mgr, id, ids, snJanela, snJanela - 1)
+    if (motivo) ficam.push({ card, motivo }); else { ids.push(id); vao.push(card) }
+  }
+  return { vao, ficam }
+}
+// 🔨 CONFIRMAÇÃO DO LEILÃO (21/11, janela nova): no lugar de cair no Sondar/"Contratos e vendas", o botão 🔨 Leilão mostra AQUI
+// MESMO (na caixa da decisão, sem janela por cima) quem ele sondou e quem pôs à venda — e segue direto pro pregão.
+// 🔬 exportado só pra bancada de conferência (`scripts/teste-janela-nova/`)
+export function ConfirmaLeilao({ mgr, onIr, onMercado }: { mgr: Manager; onIr: () => void; onMercado?: () => void }) {
+  const { state } = useEsc()
+  const sn = state.seasonNo ?? 1
+  const jogadorOn = useAliciarJogador()
+  const { divAtual, clubes } = useClubesDaSerie(mgr)
+  const d = state.deOlho
+  const alvos = alvosDeOlho(state, clubes, divAtual, myApoioPerk()?.tier, jogadorOn, sn + 1)
+  const { vao, ficam } = vendaDoMercado(state, mgr, sn + 1)
+  const rot = (x: string) => <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, letterSpacing: '.06em', textTransform: 'uppercase', color: '#5a5647', margin: '10px 0 4px' }}>{x}</p>
+  const item = (key: string, ic: string, nome: string, info: string, ok: boolean) => (
+    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, background: ok ? '#fff' : '#efe9d8', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '5px 9px', marginBottom: 5, opacity: ok ? 1 : .75 }}>
+      <span style={{ flex: 'none', ...OSWALD, fontWeight: 900, fontSize: 12, minWidth: 30, textAlign: 'center' }}>{ic}</span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <b style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
+        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: ok ? '#1B7A3D' : '#6b6553', lineHeight: 1.3 }}>{info}</span>
+      </span>
+    </div>
+  )
+  const vazio = (x: string) => <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 4px', lineHeight: 1.4 }}>{x}</p>
+  const vem = tr('✔ vai pro pregão, se seguir livre na janela', '✔ goes to the auction if still free in the window'), naoVem = tr('não fica livre nesta janela — não vem', 'not free in this window — won’t come')
+  return (
+    <div data-confirma-leilao style={{ ...box('#FFF6D6'), padding: 12, marginBottom: 9, color: INK }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, textTransform: 'uppercase', margin: 0, lineHeight: 1.1 }}>{tr('🔨 Vai pro leilão agora?', '🔨 Go to the auction now?')}</p>
+      {rot(tr('🕵️ Você sondou', '🕵️ You scouted'))}
+      {d?.tec && item('t', '🧢', d.tec, alvos.tec ? vem : naoVem, !!alvos.tec)}
+      {d?.jog && item('j', d.jog.pos, d.jog.nome, alvos.jog ? vem : naoVem, !!alvos.jog)}
+      {!d?.tec && !d?.jog && vazio(tr('Ninguém. Dá pra ficar de olho em 1 técnico e 1 jogador no 🛒 Mercado.', 'Nobody. You can watch 1 coach and 1 player in the 🛒 Market.'))}
+      {rot(tr('📋 Você pôs à venda', '📋 You put up for sale'))}
+      {vao.map(c => item(`v:${c.id}`, c.pos, c.name, tr('✔ vai a leilão — você pode recomprar', '✔ goes to auction — you can buy back'), true))}
+      {ficam.map(f => item(`f:${f.card.id}`, f.card.pos, f.card.name, `🔒 ${tr('não vai', 'stays')}: ${motivoNaoListarTxt(f.motivo)}`, false))}
+      {!vao.length && !ficam.length && vazio(sn + 1 < 3 ? tr('Ninguém — a venda libera na 3ª temporada.', 'Nobody — selling unlocks in season 3.') : tr('Ninguém. Seu elenco segue inteiro.', 'Nobody. Your squad stays whole.'))}
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '8px 0 10px', lineHeight: 1.4 }}>{tr('As cartas novas do leilão vêm como sempre. Se tiver contrato vencendo, a tela de 📝 Contratos abre antes do pregão.', 'The new auction cards come as always. If a contract is ending, the 📝 Contracts screen opens before the auction.')}</p>
+      <button onClick={onIr} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: onMercado ? 9 : 0 }}>{tr('🔨 Ir pro leilão agora', '🔨 Go to the auction now')}</button>
+      {onMercado && <button onClick={onMercado} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>{tr('🛒 Voltar pro Mercado e mexer', '🛒 Back to the Market to change')}</button>}
+    </div>
+  )
+}
+// 👀➡️🕵️ janela nova (21/11): sem a tela do Sondar no caminho, o "de olho" vira o sondado AQUI — pelo MESMO `ALICIAR_MARCAR` (contrato,
+// olheiro e teto de 1+1 valem lá) e com a mesma régua (`alvosDeOlho`). Semeia os técnicos antes; roda uma vez e apaga a marca.
+// Devolve true quando não há mais nada pendente (o leilão só começa depois disso).
+function useAplicaDeOlho(mgr: Manager | undefined, on: boolean): boolean {
+  const { state, dispatch } = useEsc()
+  const jogadorOn = useAliciarJogador()
+  const precisa = on && !!mgr && !!state.deOlho
+  const { divAtual, clubes } = useClubesDaSerie(mgr, precisa)
+  const [semeado, setSemeado] = useState(false)
+  useEffect(() => { if (!precisa) return; dispatch({ type: 'ALICIAR_SEED' }); setSemeado(true) }, [precisa, dispatch])
+  useEffect(() => {
+    if (!precisa || !semeado) return
+    const a = alvosDeOlho(state, clubes, divAtual, myApoioPerk()?.tier, jogadorOn, state.seasonNo)
+    if (a.tec && !(state.aliciarTecnicos ?? []).length) dispatch({ type: 'ALICIAR_MARCAR', tec: a.tec })
+    if (a.jog && !(state.aliciarJogadores ?? []).length) dispatch({ type: 'ALICIAR_MARCAR', cardId: a.jog.card.id, ...(a.jog.clube.fundo ? { card: a.jog.card, clube: a.jog.clube.teamName, squad: a.jog.clube.squad } : {}) })
+    dispatch({ type: 'DE_OLHO', tec: null, jog: null })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [precisa, semeado])
+  return !on || !state.deOlho
+}
+
 // 🛒 ABA MERCADO (Brasil Oficial, 18/11 — mockup `scripts/mockups/mercado-oficial.png`, *"ok pode fazer assim"*). Pedido: *"uma aba
 // sobre mercado ou transferências… mantendo nosso padrão de sondar jogadores e técnicos"*. AS REGRAS DO SONDAR NÃO MUDAM (1 técnico +
 // 1 jogador por janela, só quem fica sem contrato, olheiro pela categoria, carta virada). O que a aba acrescenta: ficar DE OLHO
@@ -6681,32 +6822,14 @@ export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
   const sn = state.seasonNo ?? 1
   const olheiroTier = myApoioPerk()?.tier
   const divAtual = (state.careerPlacements?.[`m${mgr.id}`] ?? state.careerDivision ?? 'D') as DivTec
-  const mundo = useMemo(
-    () => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial),
-    [state.managers, state.youIdx, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, state.oficial],
-  )
-  // os clubes da série — a MESMA conta do Sondar (bots da sua divisão + rivais escolhidos + times de fundo)
+  // os clubes da série — a MESMA conta do Sondar (`clubesDaSerie`), aqui na ordem da tabela
+  const { clubes: clubesCrus } = useClubesDaSerie(mgr)
   const clubes = useMemo(() => {
-    const pl = state.careerPlacements ?? {}
-    const fundoSquad = new Map((mundo[divAtual as Div] ?? []).filter(t => t.teamId < 0).map(t => [t.name, t.squad as unknown as WonCard[]]))
-    const rivaisTime = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
-    const out: { teamName: string; squad: WonCard[]; fundo?: boolean }[] = []
-    const vistos = new Set<string>()
-    for (const m of state.managers) {
-      if (m.isHuman) continue
-      const dm = pl[`m${m.id}`]
-      if (dm !== divAtual && !m.auctionOnly && !rivaisTime.has(newestTeamName(m.teamName))) continue
-      vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[] })
-    }
-    for (const [k, v] of Object.entries(pl)) {
-      if (v !== divAtual || /^m\d+$/.test(k)) continue
-      const nome = newestTeamName(k)
-      if (vistos.has(nome)) continue
-      vistos.add(nome); out.push({ teamName: nome, squad: fundoSquad.get(nome) ?? [], fundo: true })
-    }
     const lugar = new Map(ordem.map((n, i) => [n, i]))
-    return out.sort((x, y) => (lugar.get(x.teamName) ?? 99) - (lugar.get(y.teamName) ?? 99) || x.teamName.localeCompare(y.teamName))
-  }, [state.managers, state.careerPlacements, state.careerRivals, divAtual, mundo, ordem])
+    return [...clubesCrus].sort((x, y) => (lugar.get(x.teamName) ?? 99) - (lugar.get(y.teamName) ?? 99) || x.teamName.localeCompare(y.teamName))
+  }, [clubesCrus, ordem])
+  const jnOn = useJanelaNovaOn() // 🔨 janela nova (21/11): o Mercado ganha o "📋 Pôr à venda"
+  const [verVenda, setVerVenda] = useState(false)
   useEffect(() => { dispatch({ type: 'ALICIAR_SEED' }) }, [dispatch, divAtual]) // 🧢 sorteia os técnicos da série (o mesmo do Sondar; idempotente, vai pro save)
   const [verTecs, setVerTecs] = useState(false)
   if (state.onlineMode === 'online') return null
@@ -6791,6 +6914,32 @@ export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
       <p style={{ fontSize: 12.5, fontWeight: 600, margin: '0 0 12px', lineHeight: 1.5, color: '#d9d0b8' }}>
         {tr('A janela abre depois da última rodada', 'The window opens after the last round')} · <span style={{ ...OSWALD, fontWeight: 800, fontSize: 11, border: '2px solid #d9d0b8', borderRadius: 999, padding: '1px 8px', whiteSpace: 'nowrap' }}>{olheiroNome}</span>
       </p>
+        {/* 📋 PÔR À VENDA (21/11, janela nova): marca durante a temporada quem vai a leilão na próxima janela — a MESMA regra do
+            listar (`motivoNaoListar`), e quem está travado diz o porquê. Só guarda a marca: o jogador segue jogando até a virada.
+            Fica EM CIMA da grade: no celular a lista do Sondar é comprida (a série inteira) e a venda sumiria lá embaixo. */}
+        {jnOn && (() => {
+          const marcas = (state.aVendaMercado ?? []).filter(id => mgr.squad.some(c => c.id === id))
+          const meus = (mgr.squad as WonCard[]).filter(c => !ehFake(c)).sort((x, y) => SECTORS.indexOf(x.pos) - SECTORS.indexOf(y.pos))
+          const lista = verVenda ? meus : meus.filter(c => marcas.includes(c.id))
+          const posBox = (pos: string) => <span style={{ flex: 'none', width: 34, height: 46, border: `2.5px solid ${INK}`, borderRadius: 7, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: 11 }}>{pos}</span>
+          return (
+            <div style={caixa} data-mercado-venda>
+              {titulo(tr('📋 Pôr à venda', '📋 Put up for sale'))}
+              {sub(<>{tr('Marque quem você topa vender. Ele joga a temporada normal e ', 'Mark who you’re willing to sell. He plays the season as usual and ')}<b>{tr('vai a leilão na próxima janela', 'goes to auction in the next window')}</b>{tr(' — você pode recomprar; se outro levar, ele sai e você fica com as moedas. Dá pra mudar até lá.', ' — you can buy him back; if someone else takes him, he leaves and you keep the coins. You can change until then.')}</>)}
+              {sn + 1 < 3 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6553', margin: '0 0 8px' }}>🔒 {tr('A venda libera na 3ª temporada — na próxima janela você só compra reservas.', 'Selling unlocks in season 3 — in the next window you only buy reserves.')}</p> : <>
+                {!lista.length && <p style={{ fontSize: 12, fontWeight: 700, color: '#6b6553', margin: '0 0 8px' }}>{tr('Ninguém à venda por enquanto.', 'Nobody for sale for now.')}</p>}
+                {lista.map(c => {
+                  const on = marcas.includes(c.id)
+                  const mot = on ? null : motivoNaoListar(state.contratosOn, mgr, c.id, marcas, sn + 1, sn)
+                  return linha(`v:${c.id}`, posBox(c.pos), c.name,
+                    <span style={{ color: on ? GREEN : '#6b6553' }}>{on ? tr(`✔ vai a leilão no fim da T${sn}`, `✔ goes to auction at the end of S${sn}`) : mot ? `🔒 ${motivoNaoListarTxt(mot)}` : <><b style={{ color: INK }}>over {c.lo}–{c.hi}</b> · {c.club}</>}</span>, !mot, on,
+                    mot ? null : <button type="button" onClick={() => dispatch({ type: 'A_VENDA_MERCADO', cardId: c.id })} style={{ flex: 'none', ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', border: `2.5px solid ${on ? GREEN : INK}`, background: on ? GREEN : GOLD, color: on ? '#fff' : INK, borderRadius: 10, padding: '5px 8px', boxShadow: '2px 2px 0 #000', cursor: 'pointer', whiteSpace: 'nowrap' }}>{on ? tr('✔ À venda', '✔ For sale') : tr('📋 Vender', '📋 Sell')}</button>)
+                })}
+                <button type="button" onClick={() => setVerVenda(v => !v)} style={{ width: '100%', ...OSWALD, fontWeight: 800, fontSize: 12, textTransform: 'uppercase', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', margin: '0 0 6px' }}>{verVenda ? tr('ver só quem está à venda', 'show only who is for sale') : tr(`escolher no elenco (${meus.length})`, `pick from the squad (${meus.length})`)}</button>
+              </>}
+            </div>
+          )
+        })()}
       <div className="ll-mercado-grade">
       <div style={caixa}>
         {titulo(tr('🕵️ Sondar · 1 técnico + 1 jogador', '🕵️ Scout · 1 coach + 1 player'))}
@@ -6949,30 +7098,8 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   // diz isso com todas as letras, em vez de mostrar uma lista vazia sem explicação.
   // 🏟️ o elenco dos TIMES DE FUNDO vem da mesma conta que monta a pirâmide na tela
   // da temporada — é receita determinística, então dá o mesmo time sempre.
-  const mundoSondar = useMemo(
-    () => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads, !!state.oficial),
-    [state.managers, state.youIdx, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads],
-  )
-  const clubes = useMemo(() => {
-    const pl = state.careerPlacements ?? {}
-    const fundoSquad = new Map((mundoSondar[divAtual as Div] ?? []).filter(t => t.teamId < 0).map(t => [t.name, t.squad as unknown as WonCard[]]))
-    const rivaisTime = new Set((state.careerRivals ?? []).map(r => newestTeamName(r.team)))
-    const out: { teamName: string; squad: WonCard[]; fundo?: boolean }[] = []
-    const vistos = new Set<string>()
-    for (const m of state.managers) {
-      if (m.isHuman) continue
-      const dm = pl[`m${m.id}`]
-      if (dm !== divAtual && !m.auctionOnly && !rivaisTime.has(newestTeamName(m.teamName))) continue
-      vistos.add(m.teamName); out.push({ teamName: m.teamName, squad: m.squad as WonCard[] })
-    }
-    for (const [k, v] of Object.entries(pl)) {
-      if (v !== divAtual || /^m\d+$/.test(k)) continue
-      const nome = newestTeamName(k)
-      if (vistos.has(nome)) continue
-      vistos.add(nome); out.push({ teamName: nome, squad: fundoSquad.get(nome) ?? [], fundo: true })
-    }
-    return out.sort((x, y) => x.teamName.localeCompare(y.teamName))
-  }, [state.managers, state.careerPlacements, state.careerRivals, divAtual, mundoSondar])
+  const { clubes: clubesCrus } = useClubesDaSerie(mgr) // 21/11: a conta virou `clubesDaSerie` (a mesma do Mercado e da janela nova)
+  const clubes = useMemo(() => [...clubesCrus].sort((x, y) => x.teamName.localeCompare(y.teamName)), [clubesCrus])
   const divRot = divAtual === 'V' ? 'Várzea' : `Série ${divAtual}`
   const totalMarcado = marcadosT.length + marcadosJ.length
   // 📰 depois de marcar, a HISTORINHA de bastidor conta por que o sondado vai
@@ -7010,14 +7137,9 @@ export function AliciarSection({ mgr, onPular }: { mgr: Manager; onPular?: () =>
   const deOlho = state.deOlho
   useEffect(() => {
     if (!deOlho) return
-    if (deOlho.tec && !marcadosT.length) {
-      const t = tecs.find(x => x.nome === deOlho.tec && x.falta <= 0)
-      if (t) dispatch({ type: 'ALICIAR_MARCAR', tec: t.nome })
-    }
-    if (deOlho.jog && !marcadosJ.length) {
-      const j = jogs.find(x => `${x.card.name}|${x.card.club}|${x.card.year}` === deOlho.jog!.chave && x.falta <= 0 && sondarLiberado(x.card, olheiroTier))
-      if (j) dispatch({ type: 'ALICIAR_MARCAR', cardId: j.card.id, ...(j.clube.fundo ? { card: j.card, clube: j.clube.teamName, squad: j.clube.squad } : {}) })
-    }
+    const a = alvosDeOlho(state, clubes, divAtual, olheiroTier, jogadorOn, state.seasonNo) // 21/11: a régua única (a janela nova e a confirmação do leilão leem a mesma)
+    if (a.tec && !marcadosT.length) dispatch({ type: 'ALICIAR_MARCAR', tec: a.tec })
+    if (a.jog && !marcadosJ.length) dispatch({ type: 'ALICIAR_MARCAR', cardId: a.jog.card.id, ...(a.jog.clube.fundo ? { card: a.jog.card, clube: a.jog.clube.teamName, squad: a.jog.clube.squad } : {}) })
     dispatch({ type: 'DE_OLHO', tec: null, jog: null })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deOlho])
@@ -10251,6 +10373,8 @@ export function PyramidSeasonScreen() {
   // 🛒 aba Mercado (18/11): nasceu no Brasil Oficial e foi levada pra carreira de sempre (*"pode fazer tudo daí"*) — por enquanto só na
   // conta do Diego (`usePreviaCentral`); carreira em sala online fica fora (o Sondar também é só offline)
   const mercadoOn = (usePreviaCentral() || !!state.oficial) && !!state.careerOnline && state.onlineMode !== 'online' && !state.roomId
+  const jnOn = useJanelaNovaOn() && mercadoOn // 🔨 janela nova (21/11): Leilão pede confirmação e vai direto pro pregão (sondar/vender moram no Mercado)
+  const [confLeilao, setConfLeilao] = useState(false)
   const novaCentral = usePreviaCentral() || !!state.oficial // 📺 18/11: a Central nova (Próximos jogos, Antes da estreia, TV depois do 1º jogo…) só na conta do Diego
   const previa = usePreviaDiego() // 👀 18/11: novidades de 17/11 só na conta do Diego (ônibus em jogo grande, cena do bairro, linha a mais dos dias)
   // 🇧🇷 17/11: de 2027 em diante a Copa do Brasil do modo sai das vagas de 2026 (cota por estado + campeões da C/D do ano anterior).
@@ -13166,7 +13290,7 @@ export function PyramidSeasonScreen() {
       setClubeSub('estadio'); escolheAba('estadio')
       setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
-    return <CentralCarreira sede={sede} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    return <CentralCarreira sede={sede} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} janelaNova={jnOn} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       preTemporada={novaCentral && round === 0 && !seasonOver && !copaPlaying ? {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
@@ -14262,7 +14386,7 @@ export function PyramidSeasonScreen() {
           const humans = state.managers.filter(m => m.isHuman && !m.dormindo)
           const votes = state.seasonVotes ?? {}
           const myVote = votes[youId]
-          const leilaoLabel = state.seasonNo === 1 ? tr('Leilão de reservas', 'Reserves auction') : tr('Leilão de transferências', 'Transfer auction')
+          const leilaoLabel = tr('Leilão', 'Auction') // 🔨 21/11 (Diego: *"aparece leilão de reservas… era pra ser só leilão"*)
           const enFim = getLang() === 'en'
           // prêmio do artilheiro de cada divisão: soma no caixa do time + sobe o piso
           const sb = scorerRewards(divTop)
@@ -14287,7 +14411,7 @@ export function PyramidSeasonScreen() {
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
           const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(state.oficial && oficialEfetivo ? clubRewardsOficial(tables, oficialEfetivo, newPlacements as Record<string, string>) : clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos, artilheiros: artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, enFim), conquistas: conquistasDaTemporada(copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null) })
-          const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
+          const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args(), ...(jnOn ? { janelaNova: true } : {}) }) // 📋 21/11: na janela nova, as marcas "pôr à venda" do Mercado viram a lista do leilão (no reducer)
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
           // não é mais automático (antes pulava a janela inteira — vira CONFIRM_MESMO_TIME).
@@ -14486,10 +14610,10 @@ export function PyramidSeasonScreen() {
                 </div>
               )}
               <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', marginBottom: 10 }}>{enFim ? <>Promotions and relegations already apply. {state.seasonNo === 1
-                ? <>Open the <b>reserves auction</b> (everyone with their own budget, buying to fill the bench up to 22), or carry on with the same squad.</>
-                : <>Open the <b>transfer auction</b> (1 new card per position + the players each manager lists), or carry on with the same squad.</>}</> : <>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
-                ? <>Abra o <b>leilão de reservas</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
-                : <>Abra o <b>leilão de transferências</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</>}</p>
+                ? <>Open the <b>auction</b> (everyone with their own budget, buying to fill the bench up to 22), or carry on with the same squad.</>
+                : <>Open the <b>auction</b> (1 new card per position + the players each manager lists), or carry on with the same squad.</>}</> : <>Acessos e quedas (por nome exato) já entram. {state.seasonNo === 1
+                ? <>Abra o <b>leilão</b> (todos com a sua caixa, compram pra encher o banco até 22), ou siga com o mesmo elenco.</>
+                : <>Abra o <b>leilão</b> (1 carta nova por posição + os jogadores que cada técnico listar), ou siga com o mesmo elenco.</>}</>}</p>
               {/* 🏛️ MULTICLUBES: deixa claro que o leilão é SÓ do clube ativo; o outro
                   segue mesmo time (sem leilão). Pra leiloar o outro, troca no seletor antes. */}
               {state.multiClube && (() => {
@@ -14502,7 +14626,10 @@ export function PyramidSeasonScreen() {
                   </div>
                 )
               })()}
-              <button onClick={openLeilao} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>🔨 {leilaoLabel}</button>
+              {/* 🔨 21/11 (janela nova): o Leilão pede a CONFIRMAÇÃO aqui mesmo, na caixa — quem sondou, quem pôs à venda — e vai direto pro pregão */}
+              {jnOn && confLeilao && state.managers[state.youIdx]
+                ? <ConfirmaLeilao mgr={state.managers[state.youIdx]} onIr={openLeilao} onMercado={mercadoOn ? () => { setConfLeilao(false); escolheAba('mercado') } : undefined} />
+                : <button data-leilao-fim onClick={jnOn ? () => setConfLeilao(true) : openLeilao} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>🔨 {leilaoLabel}</button>}
               <button onClick={openMesmo} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>{tr('▶️ Mesmo time (sem leilão)', '▶️ Same team (no auction)')}</button>
               </>)}
             </div>
@@ -15305,6 +15432,28 @@ export function ReserveListScreen() {
   useEffect(() => {
     if (state.onlineMode === 'online' && state.isHost && !state.reserveListMesmo && remaining <= 0) dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
   }, [remaining, state.onlineMode, state.isHost, state.reserveListMesmo, dispatch])
+  // 🔨 JANELA NOVA (21/11, desenho aprovado pelo Diego: *apertou Leilão, não cai de novo no Sondar/"Contratos e vendas"*). Com a chave
+  // ligada (só carreira solo), esta tela vira uma de duas coisas, decididas UMA vez ao chegar:
+  //  · 'contratos' → tem contrato pra decidir (o que a Mesa mostraria) ou é "mesmo time": tela grande SÓ de 📝 Contratos;
+  //  · 'direto'    → nada pra decidir: o leilão começa sozinho (o MESMO `RESERVE_AUCTION_ONLINE` do botão), uma vez só.
+  // O "de olho" do Mercado vira o sondado antes (`useAplicaDeOlho`); o "pôr à venda" já chegou listado pelo reducer. Se o leilão
+  // não abrir, ou se a chave só ligar depois da chegada (login atrasado no recarregar), cai na janela de sempre — nunca em branco.
+  const jnAgora = useJanelaNovaOn() && quinzeRL
+  const jnChegada = useRef<boolean | null>(null)
+  if (mgr && jnChegada.current === null) jnChegada.current = jnAgora
+  const jn = jnAgora && jnChegada.current === true
+  const mesa = contratosNaMesa(state, quinzeRL)
+  const [classico, setClassico] = useState(false) // a janela de sempre (Sondar · Vender), aberta pelo link ou como rede de segurança
+  const modoJN = useRef<'contratos' | 'direto' | null>(null)
+  if (jn && modoJN.current === null) modoJN.current = state.reserveListMesmo || mesa.decidir + mesa.soltos > 0 ? 'contratos' : 'direto'
+  const deOlhoPronto = useAplicaDeOlho(mgr, jn && !state.reserveListMesmo)
+  const disparou = useRef(false)
+  useEffect(() => {
+    if (!jn || classico || modoJN.current !== 'direto' || !deOlhoPronto || disparou.current) return
+    disparou.current = true
+    dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
+    setClassico(true) // se o leilão abriu, esta tela já saiu; se não abriu, mostra a janela de sempre em vez de ficar esperando
+  }, [jn, classico, deOlhoPronto, dispatch])
   // 🛟 estado incompleto (sem "meu time" por um instante — troca de fase / sync):
   // mostra uma tela de espera em vez de renderizar EM BRANCO (mesma proteção do
   // leilão). O host já avança sozinho pro leilão quando o tempo zera (efeito
@@ -15313,7 +15462,7 @@ export function ReserveListScreen() {
     <div className="palco tela-cheia" style={{ background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: 40 }}>📋</p>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{tr('Preparando o leilão de reservas…', 'Preparing the reserves auction…')}</p>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{tr('Preparando o leilão…', 'Preparing the auction…')}</p>
         <p style={{ fontWeight: 700, fontSize: 13, color: '#5a5647', marginTop: 4 }}>{tr('Só um instante.', 'Just a moment.')}</p>
       </div>
     </div>
@@ -15321,6 +15470,52 @@ export function ReserveListScreen() {
   const nListed = state.reserveListed?.[youId]?.length ?? 0
   const mostraPills = quinzeRL && state.onlineMode !== 'online' && !state.reserveListMesmo
   const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
+  const avisoBan = !state.reserveListMesmo && (state.careerCoins?.[youId] ?? 0) < 0 && (
+          <div style={{ ...box('#C2452F'), padding: 11, marginBottom: 10, color: '#fff' }}>
+            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🚫 Transfer ban — caixa no vermelho', '🚫 Transfer ban — till in the red')} ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
+            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>{getLang() === 'en' ? <>You can\'t <b>buy with money</b> in this window — but you can <b>sell to raise cash</b> and, in the <b>pile</b> (the auction leftovers), <b>try your luck grabbing a free player</b>. Prizes and gate money pull you out of the red.</> : <>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</>}</p>
+          </div>
+  )
+  // 🔨 janela nova · 'direto': o leilão está abrindo sozinho — um instante de espera, nunca tela em branco
+  if (jn && !classico && modoJN.current === 'direto') return (
+    <div className="palco tela-cheia" data-janela-direto style={{ background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: 40 }}>🔨</p>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{tr('Abrindo o leilão…', 'Opening the auction…')}</p>
+        <p style={{ fontWeight: 700, fontSize: 13, color: '#5a5647', marginTop: 4 }}>{tr('Só um instante.', 'Just a moment.')}</p>
+      </div>
+    </div>
+  )
+  // 🔨 janela nova · 'contratos': a tela GRANDE só de contratos — a Mesa de Renovação de sempre (mesmas ações e preços), sem Sondar,
+  // sem Vender e sem os passos do mercado. Um botão principal, o MESMO de sempre (`RESERVE_AUCTION_ONLINE` / `CONFIRM_MESMO_TIME`).
+  if (jn && !classico && modoJN.current === 'contratos') {
+    const mesmo = !!state.reserveListMesmo
+    const sondados = [...(state.aliciarTecnicos ?? []), ...(state.aliciarJogadores ?? []).map(id => state.managers.flatMap(m => m.squad).find(c => c.id === id)?.name ?? (state.aliciarFundo?.cardId === id ? state.aliciarFundo.card.name : ''))].filter(Boolean)
+    return (
+      <CareerVisualProvider enabled={visualV2}><div className={`palco tela-cheia${visualV2 ? ' cv2-root cv2-market' : ''}`} data-janela-contratos style={{ background: '#F4ECD6', color: INK }}>
+        <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
+          {visualV2 && <><CareerBrand club={mgr.teamName} /><CareerHeading title={tr('Contratos', 'Contracts')} club={mgr.teamName} season={state.seasonNo} balance={state.careerCoins?.[youId] ?? 0} /></>}
+          <div style={{ ...box(INK), padding: '9px 12px 8px', color: '#fff', marginBottom: 12 }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>📝 {tr('Contratos', 'Contracts')}</p>
+            <p style={{ ...OSWALD, fontWeight: 800, fontSize: 12.5, letterSpacing: '.05em', textTransform: 'uppercase', color: GOLD, margin: '4px 0 0' }}>{tr('TEMP.', 'SEASON')} {state.seasonNo} · {mesmo ? tr('mesmo time, sem leilão', 'same team, no auction') : tr('antes do leilão', 'before the auction')}</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.88)', margin: '6px 0 0', lineHeight: 1.45 }}>{mesa.decidir > 0 ? tr('Renove ou deixe ir.', 'Renew or let go.') : tr('Nenhum contrato esperando decisão.', 'No contract waiting for a decision.')}</p>
+          </div>
+          {avisoBan}
+          <MesaRenovacao tecnicoOn={quinzeRL} enxuta />
+          {mesa.decidir === 0 && <div style={{ ...box('#E6F3EA'), padding: '10px 12px', marginBottom: 12 }}><p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: GREEN, margin: 0 }}>{tr('✅ Tudo decidido', '✅ All decided')}</p></div>}
+          {!mesmo && (sondados.length > 0 || nListed > 0) && (
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.45, overflow: 'hidden', textOverflow: 'ellipsis' }}>{sondados.length > 0 && <>🕵️ {tr('Sondado', 'Scouted')}: <b style={{ color: INK }}>{sondados.join(' · ')}</b>{nListed > 0 ? ' · ' : ''}</>}{nListed > 0 && <>📋 <b style={{ color: INK }}>{nListed}</b> {tr('à venda', 'for sale')}</>}</p>
+          )}
+          <button data-contratos-ok disabled={!deOlhoPronto} onClick={() => dispatch({ type: mesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}
+            style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 14, fontWeight: 900, fontSize: 15.5, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
+            {mesmo ? tr('▶️ Continuar (mesmo time)', '▶️ Continue (same team)') : tr('✅ Contratos resolvidos — ir pro leilão', '✅ Contracts sorted — go to the auction')}
+          </button>
+          {mesa.decidir > 0 && <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '7px 2px 0', lineHeight: 1.4, textAlign: 'center' }}>{tr('Quem ficar sem decisão renova sozinho por 5 anos. Quem você deixar ir vai pro leilão.', 'Anyone left undecided renews by himself for 5 years. Anyone you let go heads to the auction.')}</p>}
+          {!mesmo && <button data-abre-classico onClick={() => setClassico(true)} style={{ display: 'block', margin: '14px auto 0', background: 'none', border: 'none', ...OSWALD, fontWeight: 800, fontSize: 12, textTransform: 'uppercase', textDecoration: 'underline', cursor: 'pointer', color: INK }}>{tr('🛒 abrir Sondar e Vender', '🛒 open Scout and Sell')}</button>}
+        </div>
+      </div></CareerVisualProvider>
+    )
+  }
   return (
     <CareerVisualProvider enabled={visualV2}><div className={`palco tela-cheia${visualV2 ? ' cv2-root cv2-market' : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       {/* 📏 o vão de baixo acompanha a altura da barra: com a faixa de estreia ela
@@ -15339,12 +15534,7 @@ export function ReserveListScreen() {
         {(!mostraPills || abaLeilao === 'vender') && (<div className={visualV2 ? 'cv2-transfer-grid' : undefined}><div className="cv2-transfer-context">
         {/* 🚫 TRANSFER BAN: no vermelho, não dá pra comprar — só vender e pegar de graça.
             Não faz sentido em "mesmo time" (não tem leilão pra comprar/vender aqui). */}
-        {!state.reserveListMesmo && (state.careerCoins?.[youId] ?? 0) < 0 && (
-          <div style={{ ...box('#C2452F'), padding: 11, marginBottom: 10, color: '#fff' }}>
-            <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 2px' }}>{tr('🚫 Transfer ban — caixa no vermelho', '🚫 Transfer ban — till in the red')} ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
-            <p style={{ fontSize: 10.5, fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'rgba(255,255,255,.92)' }}>{getLang() === 'en' ? <>You can\'t <b>buy with money</b> in this window — but you can <b>sell to raise cash</b> and, in the <b>pile</b> (the auction leftovers), <b>try your luck grabbing a free player</b>. Prizes and gate money pull you out of the red.</> : <>Você não pode <b>comprar pagando</b> nesta janela — mas pode <b>vender pra fazer caixa</b> e, no <b>monte</b> (as sobras do leilão), <b>tentar a sorte pegando jogador de graça</b>. Prêmios e bilheteria vão te tirando do vermelho.</>}</p>
-          </div>
-        )}
+        {avisoBan}
         {/* 📝 MESA DE RENOVAÇÃO (22/10): técnico, preparador e jogadores com contrato encerrado, em cartas
             — mesmas ações e preços de antes, só a tela mudou (renovacao-mesa.tsx) */}
         <RegrasDaTemporada />

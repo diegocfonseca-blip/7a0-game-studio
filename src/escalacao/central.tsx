@@ -173,6 +173,8 @@ export type CentralProps = {
   coletiva?: CardColetivaProps
   /** 🕵️ JANELA CHEGANDO (22/10, mockup do Sondar aprovado): nas últimas rodadas avisa que a janela vai abrir no Sondar */
   janela?: boolean
+  /** 🔨 21/11 (janela nova): sondar e vender moram no Mercado e os contratos têm tela própria — o aviso diz isso */
+  janelaNova?: boolean
 }
 export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
@@ -362,7 +364,8 @@ export function CentralCarreira(p: CentralProps) {
 
           {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
-          <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
+          {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
+          <>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
@@ -382,7 +385,7 @@ export function CentralCarreira(p: CentralProps) {
           {p.janela && (
             <div className="ll-central-card" style={{ background: '#fff', color: INK, padding: '11px 13px' }}>
               <p style={{ ...OSW, fontSize: 16, margin: 0 }}>{t('🕵️ A janela vai abrir', '🕵️ The window is coming')}</p>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.45 }}>{t('No fim da temporada a janela abre direto no 🕵️ Sondar: dá pra trazer 1 técnico e 1 jogador 🆓 sem contrato de outro clube pro leilão.', 'At the end of the season the window opens straight on 🕵️ Scout: you can bring 1 coach and 1 player 🆓 out of contract from another club to the auction.')}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.45 }}>{p.janelaNova ? t('Sondar (1 técnico + 1 jogador 🆓 sem contrato) e pôr jogador à venda é no 🛒 Mercado, até a última rodada. No fim da temporada, quem tem contrato vencendo ganha a tela de 📝 Contratos — e o leilão vem direto.', 'Scouting (1 coach + 1 player 🆓 out of contract) and putting players up for sale happen in the 🛒 Market, until the last round. At the end of the season, expiring contracts get their own 📝 Contracts screen — then straight to the auction.') : t('No fim da temporada a janela abre direto no 🕵️ Sondar: dá pra trazer 1 técnico e 1 jogador 🆓 sem contrato de outro clube pro leilão.', 'At the end of the season the window opens straight on 🕵️ Scout: you can bring 1 coach and 1 player 🆓 out of contract from another club to the auction.')}</p>
             </div>
           )}
           {p.giro && p.giro.jogos.length > 0 && (

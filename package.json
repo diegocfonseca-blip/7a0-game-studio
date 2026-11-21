@@ -52,6 +52,7 @@
     "gols": "node scripts/testa-gols-jogador.mjs",
     "copamundo": "node scripts/testa-copa-mundo-stats.mjs",
     "monte": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-monte.mts",
+    "janela-nova": "npx tsx scripts/testa-janela-nova.mts",
     "storage": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-storage.mts",
     "champions": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-champions.mts",
     "forca-bots": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-forca-bots.mts",

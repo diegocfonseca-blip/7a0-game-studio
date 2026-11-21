@@ -1368,6 +1368,8 @@ export interface EscState {
   /** 🔨 Brasil Oficial: o leilão em andamento é o de ABERTURA (5 vagas, 1 por posição, pra todos) */
   oficialAbertura?: boolean
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }
+  /** 📋 Mercado (21/11, janela nova): ids das SUAS cartas marcadas "pôr à venda" durante a temporada — na virada viram `reserveListed` (pela MESMA regra do listar) e o campo some */
+  aVendaMercado?: string[]
   // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é idêntico ao
   // leilão normal, só vem antes do goleiro; é como uma posição nova apenas"):
   // quando você alicia um técnico, ele vira este lote e o pregão REAL abre com

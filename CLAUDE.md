@@ -1259,6 +1259,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **📋 LIGA DRAFT: O OVERALL DO SEU ELENCO APARECE SEMPRE (21/11).** *"sempre quando tá no teu elenco, deve aparecer também sempre o overall do jogador
   contratado"* — com ou sem plano (`overTodos`). E *"tem que ter todas as formações"*: as 7 + 3-5-2 ficam sempre à vista; a apagada diz o que falta.
 
+- **🔨 FIM DE TEMPORADA DIRETO (21/11, 🟢 liberado pra todos: *"publica tudo já, pra todo mundo"*, `JANELA_NOVA_GERAL = true`).** O botão se chama só
+  **"Leilão"**. **Sondar e pôr à venda moram na aba MERCADO** (*"a aba de mercado serve pra sondar ou tentar vender"*); apertar Leilão mostra a
+  confirmação com quem ele sondou e listou e vai DIRETO pro pregão — nunca reabrir "Contratos e vendas" ali. **Contratos vencendo = tela GRANDE própria,
+  em outro momento** (nada de banner pequeno), em lista de UMA linha: posição na cor da carta · nome · **clube · ano · over conforme o plano** (nunca a
+  palavra da categoria). **Contrato ACABANDO pode ser vendido; só o que JÁ acabou não.** A Central não tem atalho de Finanças/Agência. O **PULAR do
+  Manual fica** (o conserto era o "Pular pro jogo" da Central). O **3D anda na velocidade do Campo 2D**, com Manual/velocidade dentro do quadro do jogo
+  (cadeado pra quem não tem plano) e sem texto de diagnóstico na tela. Desligar a janela nova = `JANELA_NOVA_GERAL = false`. Trava `npm run janela-nova`.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

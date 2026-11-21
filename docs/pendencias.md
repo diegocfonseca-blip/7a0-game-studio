@@ -54,6 +54,22 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
   proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
 
+## 🪟 21/11 — JANELA NOVA (fim de temporada, carreira solo) — 🟢 LIBERADA PRA TODOS em 21/11 (`JANELA_NOVA_GERAL = true`)
+
+Pedido dele (prints do Oficial): *"a aba de mercado serve pra sondar ou tentar vender… por que apertaria leilão e entraria novamente em contratos e
+venda?… deveria aparecer um banner de confirmação… contrato vencendo tem que ser outra tela… tela grande com anos, renovar, deixar ir"*.
+- 🛒 Mercado ganhou **📋 Pôr à venda** (`aVendaMercado`, ação `A_VENDA_MERCADO`; mesma regra da janela: `motivoNaoListar`, que o `TOGGLE_RESERVE_LIST` também lê).
+- Apertou **Leilão** → confirmação no próprio quadro (`ConfirmaLeilao`: sondados do "de olho" + à venda) → "Ir pro leilão agora" / "Voltar pro Mercado e mexer".
+- Depois do fecho (dinheiro já entrou): **📝 Contratos** em tela cheia (a `MesaRenovacao` de sempre) só se tiver contrato pra decidir; senão o leilão abre sozinho.
+  Link pequeno "abrir Sondar e Vender" mostra a janela de sempre (nada ficou inalcançável).
+- Botão virou só "Leilão"; atalhos Finanças/Agência saíram da Central.
+- Travas: `npm run janela-nova` (46 conferências) e `node scripts/teste-janela-nova/roda.mjs` (18, na tela).
+- ⚠️ Só por leitura (não rodado): a confirmação dentro do fim de temporada de verdade, aviso de transfer ban, "mesmo time", jogador sondado (só técnico foi exercitado), 2 clubes.
+- ⚠️ No caminho direto (sem contrato pra decidir) os avisos "🔓 Desbloqueado" das temporadas 2/3, a régua da escada e "Virou profissional" não aparecem — decidir com o Diego onde vão.
+- ✅ 21/11: ele mandou *"publica tudo já, pra todo mundo"* → chave ligada + linha em `novidades.ts`. Reverter = `JANELA_NOVA_GERAL = false`.
+- ❓ Sem resposta ainda: onde mostrar os avisos "🔓 Desbloqueado"/escada/"Virou profissional" com o leilão abrindo direto, e se tira o cartão "Sua resposta mexeu com o elenco".
+- 🔬 Não conferido em aparelho de verdade: confirmação no fim de temporada real, "mesmo time", multiClube, cadeado do 3D em conta sem plano.
+
 ## 🚀 21/11 (tarde) — PUBLICADO pra todos por ordem do Diego ("publique tudo isso que falamos hoje… e a melhoria de nitidez")
 
 - Central: escolha 2D/3D vale pra 1 jogo (volta da mata-mata pergunta de novo), ⏩ Pular chega no dia do jogo (testado 12 rodadas, 1 toque, 0 erro),
