@@ -1233,7 +1233,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
     <button type="button" onClick={()=>go('original')}>{t('Explorar mapa','Explore map')}</button>
     {driveError&&<p role="status">{driveError}</p>}
    </div>}
-   {diag&&verDiag&&<span style={{position:'absolute',right:8,bottom:8,zIndex:9,pointerEvents:'none',background:'rgba(12,12,12,.82)',color:'#fff',borderRadius:7,padding:'3px 7px',fontSize:10.5,fontWeight:700,maxWidth:230,lineHeight:1.25}}>🖥️ {diag.gpu}{diag.soft?' · SEM PLACA':''} · {nivel}{diag.fps!=null?<> · <b style={{color:diag.fps<15?'#E8503A':diag.fps<25?'#FFC400':'#7CE08E'}}>{diag.fps} {t('quadros/s','fps')}</b></>:null}</span>}
+   {diag&&verDiag&&<span style={{position:'absolute',left:8,bottom:1,zIndex:9,pointerEvents:'none',background:'rgba(12,12,12,.82)',color:'#fff',borderRadius:5,padding:'1px 5px',fontSize:8.5,fontWeight:700,maxWidth:'calc(100% - 16px)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',lineHeight:1.2}}>🖥️ {diag.gpu}{diag.soft?' · SEM PLACA':''} · {nivel}{diag.fps!=null?<> · <b style={{color:diag.fps<15?'#E8503A':diag.fps<25?'#FFC400':'#7CE08E'}}>{diag.fps} {t('quadros/s','fps')}</b></>:null}</span>}
    <div className="pc3-hud pc3-navigation" aria-label={t('Controles do mapa','Map controls')} style={passeando?{display:"none"}:undefined}>
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label={t('Aproximar','Zoom in')} title={t('Aproximar','Zoom in')} onClick={()=>api.current?.zoom(1)}>+</button>
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label={t('Afastar','Zoom out')} title={t('Afastar','Zoom out')} onClick={()=>api.current?.zoom(-1)}>−</button>
