@@ -2,7 +2,7 @@
 - Stories: `node scripts/stories-bafo.mjs` → `scripts/posts/stories-bafo.png` (1080×1920).
 - Reels padrão: `node scripts/video-bafo-reels.mjs` → `scripts/posts/bafo-reels.mp4` (1080×1920, ~37 s, sem som; o mp4 não entra no repo, é só rodar).
 - As cartas e o pacote são os de verdade do jogo: `node scripts/foto-bafo-cartas.mjs` → `scripts/posts/img/bafo-*.png`.
-- ⛔ O Bafo segue só na conta do Diego e do Futpoint (`SALA_ELENCO_GERAL = false`): postar junto com a liberação. Esperando o OK dele nas artes.
+- 🟢 **21/11: BAFO LIBERADO PRA TODOS** (Diego: *"já pode valer para todo mundo agora o jogo"*): `SALA_ELENCO_GERAL = true` + novidade na home (PT/EN). Desligar = voltar pra `false`. As telas novas (convocação, 60 s de preparo, faixa, suspense) só foram testadas por build e print, não em sala real depois do 1º teste.
 
 ## 📣 21/11 — CANTO DO CHELSÃO DA MASSA FC (Batismo, conta ccaonta) — publicado
 - `public/sfx/torcida-chelsao-v1.mp3`: os 14 primeiros segundos do vídeo que o Diego mandou, no padrão dos outros (mono 32 kHz 56 kbps, −20,6 dB, 98 KB).
