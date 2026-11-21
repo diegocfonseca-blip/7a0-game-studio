@@ -1,7 +1,7 @@
 // 📅 CALENDÁRIO DA CARREIRA (24/10, ideia do Diego: *"ter jogo toda quarta e domingo… quarta 21h e domingo 16h… e com isso
 // teria o tempo passando"*). Regras PURAS — nenhuma tela, nenhum estado, nenhum dado da partida:
 //   · a temporada N acontece no ano 2025 + N, de fevereiro a dezembro (janeiro é a virada);
-//   · rodada r da Liga = o r-ésimo DOMINGO a partir do 1º domingo de fevereiro, 16h;
+//   · rodada r da Liga = DOMINGO 16h a partir do 1º domingo de fevereiro (21/11: 8 das 38 rodadas são na QUARTA, 20h);
 //   · fase da Copa = QUARTA, 21h (etapa 1: nas quartas depois da última rodada, que é quando a Copa roda hoje);
 //   · entre um jogo e outro, cada dia vazio tem um RECADO (segunda O MARTELO · terça boletim · quinta rivais · sexta véspera ·
 //     sábado concentração) montado só com o que a tela já sabe — nunca com resultado que ainda não apareceu.
@@ -20,9 +20,28 @@ function primeiroDomingoDeFevereiro(ano: number): number {
   const dow = new Date(t).getUTCDay() // 0 = domingo
   return t + ((7 - dow) % 7) * DIA_MS
 }
-/** dia (em ms UTC) da rodada `r` (1..38) da Liga — sempre domingo */
+// 🗓️ 21/11 (Diego: *"tenho visto sempre domingo… pode ter também liga ou copa [na quarta], quero algo mais real"*): como no Brasileirão,
+// algumas rodadas da Liga são no MEIO DE SEMANA (quarta, 20h). São 8 das 38, fixas — a temporada fica 8 semanas mais curta.
+// Uma rodada só vai pra quarta se a semana dela NÃO tem Copa (a Copa é dona da quarta): `defineSemanasDeCopa` recebe as rodadas
+// depois das quais há fase de Copa, e a rodada dessas semanas (a de antes e a de depois) fica no domingo. Só a DATA muda.
+const RODADAS_DE_QUARTA = [6, 11, 16, 21, 26, 30, 34, 37]
+export const HORA_LIGA_QUARTA = 20
+let semanasDeCopa: ReadonlySet<number> = new Set()
+let chaveCopa = ''
+/** a carreira aberta avisa em quais semanas (rodada r → a quarta depois dela) a Copa joga; chamada a cada desenho, barata */
+export function defineSemanasDeCopa(semanas: readonly number[]): void {
+  const k = semanas.join(',')
+  if (k !== chaveCopa) { chaveCopa = k; semanasDeCopa = new Set(semanas) }
+}
+/** a rodada `r` da Liga é no meio de semana? */
+export const rodadaNaQuarta = (r: number): boolean => RODADAS_DE_QUARTA.includes(r) && !semanasDeCopa.has(r - 1) && !semanasDeCopa.has(r)
+export const horaDaRodada = (r: number): number => (rodadaNaQuarta(r) ? HORA_LIGA_QUARTA : HORA_LIGA)
+/** dia (em ms UTC) da rodada `r` (1..38) da Liga — domingo, ou a quarta seguinte ao domingo anterior nas rodadas de meio de semana */
 export function diaDaRodada(temporada: number, r: number): number {
-  return primeiroDomingoDeFevereiro(anoDaTemporada(temporada)) + (Math.max(1, r) - 1) * 7 * DIA_MS
+  const rr = Math.max(1, r)
+  let k = 0
+  for (const q of RODADAS_DE_QUARTA) if (q <= rr && rodadaNaQuarta(q)) k++
+  return primeiroDomingoDeFevereiro(anoDaTemporada(temporada)) + (rr - 1 - k) * 7 * DIA_MS + (rodadaNaQuarta(rr) ? 3 * DIA_MS : 0)
 }
 /** dia (em ms UTC) da fase `f` (0 = 1ª) da Copa — sempre quarta, depois da última rodada da Liga */
 export function diaDaFaseCopa(temporada: number, f: number): number {

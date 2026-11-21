@@ -188,7 +188,7 @@ import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols
 import { coletivaSana, modsDaColetiva, montaColetiva, respondeColetiva, escolheArquirrival, famaDoPresidente, fechaPromessas, melhoresFrases, retrospectoTexto, type ColetivaPronta, type Ctx as ColetivaCtx, type Estilo as ColetivaEstilo } from './coletiva' // 🎙️ coletiva de imprensa (19/10)
 import { ColetivaAviso, ColetivaPasso, SalaImprensa } from './coletiva-ui'
 import { useColetiva, useCalendarioCarreira, useRaioX, usePreviaDiego, usePreviaCentral, mapa3dLiberado, useFluxoCentral } from './sport'
-import { CAL_MS_POR_DIA, HORA_LIGA, fmtDia, anoDaTemporada, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
+import { CAL_MS_POR_DIA, horaDaRodada, defineSemanasDeCopa, fmtDia, anoDaTemporada, diaDaRodada, diaDaFaseCopa, diaPreTemporada, diasEntre, recadoDoDia, type CtxRecado } from './calendario'
 import { CalendarioBarra, CalendarioProximo, type FaseCal, type JogoCal } from './calendario-ui'
 import { usePresidenteConta } from './presidente-conta' // 🧑‍💼 presidente na beira do campo 2D (21/10)
 import { useImagemBusto } from './presidente-avatar'
@@ -10551,6 +10551,7 @@ export function PyramidSeasonScreen() {
   // (abrir a carreira de novo não repete Copa velha).
   // (as semanas vêm da `esteira`: Copa do Brasil espalhada como sempre + Libertadores no dia real; durante o estadual não há meio)
   const copaSemanas = useMemo(() => estadualOn ? [] : esteira.semanas, [estadualOn, esteira])
+  defineSemanasDeCopa(copaSemanas) // 🗓️ 21/11: a Copa é dona da quarta — a Liga só vai pro meio de semana onde não tem Copa
   useEffect(() => { if (estadualOn && copaRound > 0 && copaRound < preRounds.length && !copaOnline) guardaEstadualPag(state.seed, state.seasonNo ?? 1, copaRound) }, [estadualOn, copaRound]) // eslint-disable-line react-hooks/exhaustive-deps
   const estadualRetoma = estadualPendente && !copaOnline ? Math.min(estadualPagSalva(state.seed, state.seasonNo ?? 1), Math.max(0, preRounds.length - 1)) : 0
   const nCopaBase = copaSemanas.length
@@ -12607,7 +12608,7 @@ export function PyramidSeasonScreen() {
     const advCopa = (k: number) => { const t = copa?.rounds[k]?.ties.find(x => x.a?.teamId === youId || x.b?.teamId === youId); return t ? (t.a?.teamId === youId ? t.b.name : t.a.name) : null }
     const copaNaSemana = copaPendente && calFase === 'dias' && calI < CAL_QUARTA
     const prox = copaNaSemana && meNaFaseCopa ? { dia: diaDaRodada(calSn, round) + CAL_QUARTA * DIA_MS, hora: 21, comp: `${tr('Copa', 'Cup')} · ${copaNome(copaRound)}`, adv: advCopa(copaRound) ?? '?', casa: true }
-      : pp && rProx <= 38 ? { dia: diaDaRodada(calSn, rProx), hora: HORA_LIGA, comp: tr('Liga', 'League'), adv: pp.adv, casa: pp.casa } : null
+      : pp && rProx <= 38 ? { dia: diaDaRodada(calSn, rProx), hora: horaDaRodada(rProx), comp: tr('Liga', 'League'), adv: pp.adv, casa: pp.casa } : null
     const vazios = calFase === 'dias' ? diasEntre(diaDaRodada(calSn, round), diaDaRodada(calSn, round + 1)) : []
     const hoje = calFase === 'pre' ? diaPreTemporada(calSn) : calFase === 'copa' ? (copaMid && !done ? diaDaRodada(calSn, round) + CAL_QUARTA * DIA_MS : diaDaFaseCopa(calSn, copaMid ? Math.max(0, copaRound - nCopaBase) : copaRound)) : calFase === 'fim' ? diaDaRodada(calSn, 38) : calFase === 'jogo' ? diaDaRodada(calSn, round) : calI > vazios.length && vazios.length > 0 ? diaDaRodada(calSn, round + 1) : calI > 0 ? vazios[Math.min(calI, vazios.length) - 1] : diaDaRodada(calSn, round)
     const naCentral = tab === 'central'
@@ -12701,7 +12702,7 @@ export function PyramidSeasonScreen() {
     const fh = fmtDia(hoje)
     const selo = `${calFase === 'copa' ? '🌙' : calFase === 'jogo' ? '☀️' : '📅'} ${fh.curto} ${fh.dia} ${fh.mes.slice(0, 3)}${calFase === 'jogo' ? ' · 16h' : calFase === 'copa' ? ' · 21h' : ''}`
     // 🇧🇷 04/11: o dia (e a hora do jogo, quando é dia de jogo) vai pro mapa — feira de sábado/domingo de manhã, pelada de tarde
-    return { barra: mapaNoClube ? null : barra, proxCard, selo, hoje, hora: calFase === 'jogo' ? HORA_LIGA : calFase === 'copa' ? 21 : undefined }
+    return { barra: mapaNoClube ? null : barra, proxCard, selo, hoje, hora: calFase === 'jogo' ? horaDaRodada(round) : calFase === 'copa' ? 21 : undefined }
   })()
   useEffect(() => { publicaControleMapa(controleMapa && { ...controleMapa, dia: calOn ? calBarra?.selo : undefined, chegando }) })
   useEffect(() => () => publicaControleMapa(null), [])
