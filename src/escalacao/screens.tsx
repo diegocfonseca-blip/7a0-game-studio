@@ -489,6 +489,25 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
     setCupomBusy(false)
   }
   const precoBatismo = cupom ? Math.round(precoCheioBatismo * (100 - cupom.desconto_pct)) / 100 : precoCheioBatismo
+  // 🎟️ cupom de influenciador (Diego 08/09: sutil, "tem cupom?" embaixo do Pix). 21/11: vale também no Pix NOVO (Batismo e Fundador).
+  const cupomUi = (cupom ? (
+    <p className="text-[10px] font-bold text-center mt-1.5" style={{ color: GREEN }}>
+      {tr('🎟️ cupom', '🎟️ coupon')} <b>{cupom.codigo}</b> {tr('aplicado', 'applied')} · {cupom.desconto_pct}% off · <s className="text-black/40">R$ {precoCheioBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</s> <b>R$ {precoBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</b>
+      {' '}<button onClick={() => { setCupom(null); setCupomTxt(''); setCupomMsg(null); setCupomAberto(false) }} className="underline text-black/40 font-bold">{tr('tirar', 'remove')}</button>
+    </p>
+  ) : !cupomAberto ? (
+    <p className="text-center mt-1.5"><button onClick={() => setCupomAberto(true)} className="text-[10px] font-bold underline text-black/40">{tr('tem cupom?', 'got a coupon?')}</button></p>
+  ) : (
+    <div className="mt-1.5">
+      <div className="flex gap-1.5 items-center justify-center">
+        <input value={cupomTxt} onChange={e => { setCupomTxt(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setCupomMsg(null) }} onKeyDown={e => e.key === 'Enter' && aplicarCupom()} maxLength={16} placeholder={tr('código', 'code')} autoCapitalize="characters" autoFocus
+          className="w-36 border-2 border-black/30 rounded-lg px-2 py-1 font-black text-[12px] bg-white tracking-wider text-center" style={OSWALD} />
+        <button onClick={aplicarCupom} disabled={cupomBusy || !cupomTxt.trim()} className="text-[10px] font-black underline" style={{ color: cupomTxt.trim() ? INK : 'rgba(0,0,0,.3)' }}>{cupomBusy ? '…' : tr('aplicar', 'apply')}</button>
+        <button onClick={() => { setCupomAberto(false); setCupomTxt(''); setCupomMsg(null) }} className="text-[10px] font-bold underline text-black/35">{tr('fechar', 'close')}</button>
+      </div>
+      {cupomMsg && <p className="text-[10px] font-bold mt-1 text-center" style={{ color: '#C2452F' }}>{cupomMsg}</p>}
+    </div>
+  ))
   // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
   // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
   const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo' | 'plus'>(null)
@@ -695,31 +714,10 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
                                                                                     <><b>Série A</b> costs more because it is the elite: those are the clubs that show up in <b>quick play</b> and the rivals everybody faces. Tap one of the two to choose.</>)}</p>
           {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só no Fundador: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + o canto do seu time de coração (na Carreira e no online, junto com a gala) + o seu número de Fundador + o seu clube aparecendo nas salas online dos outros, em rodízio, mesmo quando você não está jogando.', '👑 Founder only: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your favourite team’s chant (in Career and online, with the entrance) + your Founder number + your club showing up in other people’s online rooms, rotating, even when you are not playing.')}</p>}
-          {pixMp ? <div className="mt-2"><PixMP key={serieBatismo} produto={serieBatismo === 'd' ? 'fundador' : 'batismo'} valor={precoCheioBatismo} />
+          {pixMp ? <div className="mt-2"><PixMP key={`${serieBatismo}-${cupom?.codigo ?? ''}`} produto={serieBatismo === 'd' ? 'fundador' : 'batismo'} valor={precoBatismo} refId={cupom ? `cupom-${cupom.codigo}` : ''} />{cupomUi}
             <p className="text-[10.5px] font-bold text-black/50 mt-1.5 text-center">{tr('Depois do Pix, você conta por escrito o nome do clube e como imagina o escudo e a mascote.', 'After the Pix, you describe in writing the club name and how you picture the crest and mascot.')}</p></div> : <>
           <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '🖋️ Fundador · Série A' : '🖋️ Batismo · Série B/C/D ou Várzea'}${planoJa ? ` · subida de ${planoJa}` : ''}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
-          {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
-              (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
-              óbvio"*): é uma linha cinza embaixo do Pix, "tem cupom?", que só vira
-              campo quando a pessoa toca. Quem não tem cupom nem repara. */}
-          {cupom ? (
-            <p className="text-[10px] font-bold text-center mt-1.5" style={{ color: GREEN }}>
-              {tr('🎟️ cupom', '🎟️ coupon')} <b>{cupom.codigo}</b> {tr('aplicado', 'applied')} · {cupom.desconto_pct}% off · <s className="text-black/40">R$ {precoCheioBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</s> <b>R$ {precoBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</b>
-              {' '}<button onClick={() => { setCupom(null); setCupomTxt(''); setCupomMsg(null); setCupomAberto(false) }} className="underline text-black/40 font-bold">{tr('tirar', 'remove')}</button>
-            </p>
-          ) : !cupomAberto ? (
-            <p className="text-center mt-1.5"><button onClick={() => setCupomAberto(true)} className="text-[10px] font-bold underline text-black/40">{tr('tem cupom?', 'got a coupon?')}</button></p>
-          ) : (
-            <div className="mt-1.5">
-              <div className="flex gap-1.5 items-center justify-center">
-                <input value={cupomTxt} onChange={e => { setCupomTxt(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setCupomMsg(null) }} onKeyDown={e => e.key === 'Enter' && aplicarCupom()} maxLength={16} placeholder={tr('código', 'code')} autoCapitalize="characters" autoFocus
-                  className="w-36 border-2 border-black/30 rounded-lg px-2 py-1 font-black text-[12px] bg-white tracking-wider text-center" style={OSWALD} />
-                <button onClick={aplicarCupom} disabled={cupomBusy || !cupomTxt.trim()} className="text-[10px] font-black underline" style={{ color: cupomTxt.trim() ? INK : 'rgba(0,0,0,.3)' }}>{cupomBusy ? '…' : tr('aplicar', 'apply')}</button>
-                <button onClick={() => { setCupomAberto(false); setCupomTxt(''); setCupomMsg(null) }} className="text-[10px] font-bold underline text-black/35">{tr('fechar', 'close')}</button>
-              </div>
-              {cupomMsg && <p className="text-[10px] font-bold mt-1 text-center" style={{ color: '#C2452F' }}>{cupomMsg}</p>}
-            </div>
-          )}
+          {cupomUi}
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>{tr('Manda comprovante + nome', 'Send the receipt + the name')}</p>
           <button onClick={() => {
             logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"${cupom ? ` · cupom ${cupom.codigo}` : ''}`)
