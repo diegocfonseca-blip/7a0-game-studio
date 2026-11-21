@@ -485,7 +485,8 @@ export function quadroFutebol3D(state:EstadoPartidaEstadio,now:number){
   if((state.visualClock?.sampledAt??Infinity)>=(official.state.visualClock?.sampledAt??-Infinity))official.state=state
   const current=official.state
   if(ultimo&&ultimo.state===current&&Math.abs(ultimo.now-now)<1)return ultimo.quadro
-  const quadro=official.motor.sample(current,official.clock.sample(current,now))
+  const minutoVisual=official.clock.sample(current,now),quadro=official.motor.sample(current,minutoVisual)
+  {const q=(globalThis as {__qaSim?:number[][]}).__qaSim;if(q)q.push([now,current.minute,minutoVisual,quadro.ball.x,quadro.ball.z])} // (🔬 só a bancada de filmagem liga essa lista)
   ultimo={state:current,now,quadro}
   return quadro
  }
