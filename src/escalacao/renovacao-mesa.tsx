@@ -1,3 +1,4 @@
+import { myApoioPerk } from './apoio'
 import {useCareerVisualV2} from './career-visual-v2'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 // 📝 MESA DE RENOVAÇÃO (22/10, mockup scripts/mockups/carreira-renovacao-nova.png — Diego: *"perfeito pode
@@ -112,14 +113,17 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
     )
     // 📋 21/11 (Diego: *"ainda tá muito exagerado… poderia ficar menor os nomes e do lado as coisas em lista"*): na tela nova de
     // Contratos cada jogador é UMA LINHA — posição, nome e valor à esquerda; à direita um botão por prazo (toque = renova) e o 👋.
+    // 🃏 21/11 (Diego: *"não é pra aparecer 'bom jogador'… é o clube, o ano, padrão — e o over com base no plano"*): a carta como no Elenco —
+    // clube e ano; o over só pra quem o plano mostra (👑 tudo · ⭐ até craque); a categoria é a COR do selo, nunca a palavra.
+    const meuTier = myApoioPerk()?.tier, veOver = (x: WonCard) => !!x.lo && !!x.hi && !x.fake && (meuTier === 'ouro' || (meuTier === 'prata' && x.fame < 5))
     if (enxuta) {
       const bt = { border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 6px', ...OSWALD, fontWeight: 900, fontSize: 11.5, lineHeight: 1.1, cursor: 'pointer', color: INK, flex: 'none', textAlign: 'center' as const, minWidth: 46 }
       return (
         <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FCFBF4', border: `2px solid ${INK}`, borderRadius: 11, padding: '6px 7px', marginBottom: 6 }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', borderRadius: 6, padding: '2px 5px', flex: 'none' }}>{c.pos}</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: t.grad, color: t.ink, border: `2px solid ${INK}`, borderRadius: 6, padding: '2px 5px', flex: 'none' }}>{c.pos}</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <b style={{ ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', display: 'block', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
-            <small style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5240' }}>{en ? (TIER_EN[t.label] ?? t.label) : t.label} · {tr('valor', 'value')} {oficial}</small>
+            <small style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5240', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.club} · {c.year}{veOver(c) ? <> · <b style={{ color: INK }}>{c.lo}–{c.hi}</b></> : null}</small>
           </span>
           {ops.length > 0 ? ops.map(a => { const cst = renewCost(oficial, a as RenewAnos); return (
             <button key={a} onClick={() => renovar(c, dono, a as RenewAnos)} style={{ ...bt, background: a === 10 ? GOLD : '#EAF6EE' }}>{a} {en ? 'y' : a > 1 ? 'anos' : 'ano'}<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{cst} 🪙{saldo < cst ? ' 💳' : ''}</small></button>) })
