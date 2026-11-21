@@ -14390,3 +14390,6 @@ Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 2
 - 🃏 Bafo novo (21/11): dono que encerra — **1 carta aleatória pro 1º colocado e 1 pro 2º** (da tabela naquele momento, fora ele).
   Se encerrar **antes de começar os jogos** (sem tabela), as 2 cartas vão **pro sistema e ninguém ganha**.
   Ainda sem resposta: dono que SOME sem apertar nada (proposta: 10 min sem voltar = abandono).
+- 🃏 Bafo novo (21/11): dono que SOME 10 min sem voltar = abandono (perde as 2 cartas) — *"sim pode ser"*. Tempo do campeão escolher
+  virou **60 s** (não 90), com **os 22 de cada time já ABERTOS e organizados por posição** (sem filtro/busca). Mockup:
+  `scripts/mockups/bafo-campeao-escolhe.png` (PC = times lado a lado · celular = um time por aba). Esperando OK.
