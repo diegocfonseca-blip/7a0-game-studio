@@ -1,7 +1,7 @@
 // ─── 🃏 BAFO NOVO · a SALA DE ESPERA e a CONVOCAÇÃO ─────────────────────────────────────────────────────────────────
 //
 // Tudo que acontece ANTES da liga (Diego, 21/11): as regras em cima, quem está apto, e — quando o dono aperta começar — a
-// convocação de 120 s na tela de TODO MUNDO ao mesmo tempo.
+// convocação de 160 s na tela de TODO MUNDO ao mesmo tempo.
 //
 // Como viaja sem canal novo: cada um grava a própria linha em `room_players.bafo` (a sala de espera já escuta essa tabela):
 //   { v: 2, n: quantas cartas, ok: fecha um time?, marks: ids marcados, pronto, conv: { t0 } (só na linha do DONO) }
@@ -9,6 +9,7 @@
 // Quem fecha é o DONO: ele relê a sala, monta os 22 de cada um pela MESMA conta (`fechaConvocacao`) e larga a liga. O banco
 // confere a posse de cada carta antes de aceitar (`bafo2_fecha`).
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import type { FormationKey } from './types'
@@ -108,14 +109,18 @@ export function BafoSala({ roomId, meuUid, donoUid, players, valendo, onLargar }
   if (convAtiva && conv) {
     if (!cartas) return caixaAviso('#FFF6D6', tr('🃏 Carregando as suas cartas…', '🃏 Loading your cards…'))
     if (!pode) return caixaAviso('#FFE3DC', tr(`🃏 A convocação está rolando (${Math.max(0, seg)}s). Você ainda não tem ${BAFO2_MIN} cartas que fechem um time — fica assistindo desta vez.`, `🃏 The call-up is on (${Math.max(0, seg)}s). You don't have ${BAFO2_MIN} cards that make a team yet — you watch this one.`))
-    return (
-      <div>
-        <ConvocacaoBafo colecao={cartas} marcadas={marks} seg={Math.max(0, seg)} pronto={pronto}
+    // 📄 21/11 (Diego, 1º teste: "deveria abrir uma nova tela… uma página nova"): a convocação é uma PÁGINA própria, por cima da
+    // sala de espera — sai sozinha quando a liga larga (ou a convocação é cancelada).
+    return createPortal(
+      <div style={{ position: 'fixed', inset: 0, zIndex: 4000, background: '#0d1410', overflowY: 'auto', padding: '10px 10px 24px' }}>
+       <div style={{ maxWidth: 720, margin: '0 auto' }}>
+        <p style={{ fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', fontWeight: 900, fontSize: 19, color: '#FFC400', margin: '2px 2px 8px' }}>🃏 {tr('Bafo · convocação', 'Bafo · call-up')}</p>
+        <ConvocacaoBafo telaCheia colecao={cartas} marcadas={marks} seg={Math.max(0, seg)} pronto={pronto}
           onMarcar={ids => { sujo.current = true; setMarks(ids) }}
           onPronto={() => { setPronto(true); estado.current = { marks, pronto: true }; sujo.current = false; void grava({ pronto: true }) }} />
         {caixaAviso('#fff', <>{aptos.filter(p => (p.bafo as BafoLinha).pronto).length}/{aptos.length} {tr('prontos', 'ready')} · {seg <= 0 ? tr('fechando a convocação…', 'closing the call-up…') : tr('quando todo mundo ficar pronto, começa na hora', 'when everyone is ready it starts right away')}</>)}
-      </div>
-    )
+       </div>
+      </div>, document.body)
   }
   return (
     <div>

@@ -95,6 +95,7 @@ export function RegrasBafo({ valendo, nPessoas }: { valendo: boolean; nPessoas: 
     <div style={{ background: INK, color: CREME, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${OURO}`, padding: '10px 12px' }}>
       <h3 style={{ ...OSW, margin: '0 0 6px', fontWeight: 900, fontSize: 17, color: OURO }}>🃏 {tr('Regras do Bafo', 'Bafo rules')}</h3>
       <p style={p}>• {en ? <>Everyone plays with <b style={{ color: '#fff' }}>{BAFO2_ELENCO} cards they already won</b> as champion (career or rooms).</> : <>Cada um joga com <b style={{ color: '#fff' }}>{BAFO2_ELENCO} cartas que já ganhou</b> sendo campeão (na carreira ou nas salas).</>}</p>
+      <p style={p}>• {en ? <>It's {BAFO2_ELENCO} because <b style={{ color: '#fff' }}>you can substitute during the league</b>: 11 start, 11 on the bench (Squad tab).</> : <>São {BAFO2_ELENCO} porque <b style={{ color: '#fff' }}>dá pra substituir durante a liga</b>: 11 titulares e 11 no banco (aba Elenco).</>}</p>
       <p style={p}>• {en ? <>People only, no bots. League only. <b style={{ color: '#fff' }}>Doesn't count for the ranking.</b></> : <>Só gente, sem bots. Só liga. <b style={{ color: '#fff' }}>Não conta pro ranking.</b></>}</p>
       <p style={p}>• {en ? <>Once it starts: <b style={{ color: '#fff' }}>{BAFO2_CONVOCA_SEG}s</b> to call up your {BAFO2_ELENCO}. Didn't mark them all? The game fills in with your worst cards.</> : <>Começou: <b style={{ color: '#fff' }}>{BAFO2_CONVOCA_SEG} s</b> pra convocar os {BAFO2_ELENCO}. Não marcou todos? O jogo completa com as suas piores cartas.</>}</p>
       {valendo ? <>
@@ -108,8 +109,10 @@ export function RegrasBafo({ valendo, nPessoas }: { valendo: boolean; nPessoas: 
 }
 
 // ─── 2) ✋ A CONVOCAÇÃO (120 s, sem over) ────────────────────────────────────────────────────────────────────────────
-export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPronto }: {
+export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPronto, telaCheia }: {
   colecao: CartaBafo[]; marcadas: string[]; onMarcar: (ids: string[]) => void; seg: number; pronto: boolean; onPronto: () => void
+  /** 📄 21/11: a convocação é uma PÁGINA própria (a lista ocupa a altura da tela) */
+  telaCheia?: boolean
 }) {
   const [busca, setBusca] = useState('')
   const [pos, setPos] = useState<Sector | null>(null)
@@ -128,7 +131,8 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
   const porPos = SECTORS.map(p => `${p} ${colecao.filter(c => c.pos === p && sel.has(c.id)).length}`).join(' · ')
   return (
     <div style={{ ...caixa(CREME), padding: 14, color: INK }}>
-      <Relogio seg={seg} total={BAFO2_CONVOCA_SEG} rotulo={tr(`Convoque seus ${BAFO2_ELENCO}`, `Call up your ${BAFO2_ELENCO}`)} />
+      <Relogio seg={seg} total={BAFO2_CONVOCA_SEG} rotulo={tr(`Convoque até ${BAFO2_ELENCO} jogadores`, `Call up to ${BAFO2_ELENCO} players`)} />
+      <p style={{ margin: '-4px 0 8px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{getLang() === 'en' ? <>You take <b>{BAFO2_ELENCO}</b>: <b>11 starters + 11 on the bench</b> (you can substitute during the league). The first you mark in each position starts.</> : <>Você leva <b>{BAFO2_ELENCO}</b>: <b>11 titulares + 11 reservas</b> (dá pra substituir durante a liga). O 1º que você marcar em cada posição começa de titular.</>}</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', ...OSW, fontWeight: 800, fontSize: 14, marginBottom: 2 }}>
         <span style={{ color: VERDE }}>✔ {marcadas.length} {tr('de', 'of')} {BAFO2_ELENCO} {tr('marcadas', 'marked')}</span>
         <span>{colecao.length} {tr('cartas suas', 'cards of yours')}</span>
@@ -142,7 +146,7 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
         ))}
         <button onClick={() => setSoMarcadas(v => !v)} title={tr('Só as marcadas', 'Marked only')} style={{ flex: 'none', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 8px', ...OSW, fontWeight: 700, fontSize: 13, background: soMarcadas ? VERDE : '#fff', color: soMarcadas ? '#fff' : INK }}>✔</button>
       </div>
-      <div style={{ ...caixa(), overflow: 'hidden', maxHeight: 420, overflowY: 'auto' }}>
+      <div style={{ ...caixa(), overflow: 'hidden', maxHeight: telaCheia ? 'max(240px, calc(100dvh - 430px))' : 420, overflowY: 'auto' }}>
         {lista.map(c => {
           const on = sel.has(c.id)
           return <LinhaCarta key={c.id} c={c} fundo={on ? '#e7f6ec' : undefined} onClick={() => toca(c.id)}
@@ -152,10 +156,10 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
       </div>
       <button onClick={onPronto} disabled={pronto}
         style={{ display: 'block', width: '100%', marginTop: 10, background: pronto ? '#9bb5a3' : VERDE, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, ...OSW, fontWeight: 900, fontSize: 17 }}>
-        {pronto ? tr('✔ Pronto — esperando os outros', '✔ Ready — waiting for the others') : tr('✔ Pronto', '✔ Ready')}
+        {pronto ? tr('✔ Pronto — esperando os outros', '✔ Ready — waiting for the others') : marcadas.length >= BAFO2_ELENCO ? tr('✔ Pronto', '✔ Ready') : tr(`✔ Pronto com ${marcadas.length} (o jogo completa os ${BAFO2_ELENCO})`, `✔ Ready with ${marcadas.length} (the game fills up to ${BAFO2_ELENCO})`)}
       </button>
       <p style={{ fontSize: 11.5, color: 'rgba(0,0,0,.6)', margin: '8px 2px 0', fontWeight: 600 }}>
-        {tr('Acabou o tempo: as marcadas entram e o jogo completa o que faltar com as suas piores cartas. A 1ª de cada posição que você marcar começa de titular (dá pra trocar depois, na aba Elenco).', 'When time is up: the marked ones go in and the game fills the rest with your worst cards. The first you mark in each position starts (you can swap later, in the Squad tab).')}
+        {tr(`Apertou Pronto (ou o tempo acabou) sem marcar os ${BAFO2_ELENCO}? As marcadas entram e o jogo completa os reservas que faltam com as suas piores cartas. Dá pra trocar titular e reserva depois, na aba Elenco.`, `Pressed Ready (or time ran out) without marking all ${BAFO2_ELENCO}? The marked ones go in and the game fills the missing bench spots with your worst cards. You can swap starters and bench later, in the Squad tab.`)}
       </p>
     </div>
   )

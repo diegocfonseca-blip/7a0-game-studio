@@ -10,7 +10,12 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - Banco: `docs/sql/bafo2.sql` (APLICADO): `esc_bafo2` + RPCs `bafo2_fecha/bate/abre_escolha/tomar/sorteia/encerra/sumiu`; o banco confere a posse de cada carta.
 - Código: `bafo2.ts` (regras puras) · `bafo2-ui.tsx` · `bafo2-sala.tsx` · `bafo2-sair.ts`. Trava: `npm run bafo`. Prints das telas reais: `scripts/mockups/bafo2-real-*.png`.
 - Criar sala: a caixa de explicação do Bafo mostra o PACOTINHO do campeão (`online-pacote-v20.webp`) + 3 selos: 1ª sala do dia grátis · entrar é livre · precisa de 11+ cartinhas (mockup `scripts/mockups/bafo-criar-*.png`, *"Pode"*). Criar segue o padrão das salas rápidas (gatilho `esc_sala_por_dia` vale pra todo modo; nada mudou no banco).
-- ⚠️ FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
+- ✅ 1º TESTE DE VERDADE (21/11, Diego × Futpoint, 2 pessoas): rodou até o fim e a carta trocou de dono. Pedidos dele depois do teste:
+  - FEITO: convocação em PÁGINA própria (por cima da sala de espera) · **160 s** (+40) · "Convoque até 22: 11 titulares + 11 reservas" · regras dizem que dá pra substituir · **Bafo só no Campo 2D** (sem placar rápido/cinema, sem botão de troca).
+  - EM MOCKUP (esperando OK): pacote verde abrindo no começo da convocação · suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
+  - PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
+  - Rivalidade: a prateleira de rivalidades não é desligada no Bafo (`retroOn`); conferir com ele onde ele esperava ver.
+- (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
 - Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
 ## 🏆 20/11 — Queda na carreira: inscrições continentais e tabela (correção local, não publicada)

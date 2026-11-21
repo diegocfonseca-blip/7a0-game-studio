@@ -10326,7 +10326,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.streamMode = !!action.stream
       s.manualRoom = !!action.manual // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       s.campo2dProximo = undefined // (a troca marcada já veio dentro do `campo2d` da largada)
-      s.campo2d = !!action.campo2d // 📺 sala 2D: todo jogo no campinho, 1:30 cada (vale pra todos, o tempo da sala muda junto) — carreira em sala também (20/10)
+      s.campo2d = !!action.campo2d || !!action.bafo2 // 🃏 21/11 (Diego): o Bafo é SÓ no Campo 2D (mais devagar, nada de placar rápido) · 📺 sala 2D: todo jogo no campinho, 1:30 cada (vale pra todos, o tempo da sala muda junto) — carreira em sala também (20/10)
       s.auctionSecs = action.auctionSecs // ⏱️ tempo do leilão: undefined=45s · N=N segundos · 0=host avança no botão
       s.chatOff = !!action.chatOff // 💬 chat da sala ligado/desligado (escolha do host na criação)
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
@@ -10745,7 +10745,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'SET_CAMPO2D': {
       // 📺⚡ só o DONO, só na sala online, nunca no basquete nem na Kings (relógio próprio). O convidado não roda este reducer,
       // mas o recado dele chega no do dono — por isso o crachá (`by`) TEM que ser o do dono. Só MARCA: quem troca é `viraCampo2D`.
-      if (s.onlineMode !== 'online' || !s.isHost || action.by !== s.youUid || s.sport === 'basquete' || ehKings(s)) return s
+      if (s.onlineMode !== 'online' || !s.isHost || action.by !== s.youUid || s.sport === 'basquete' || ehKings(s) || s.bafo2) return s // 🃏 Bafo: sempre 2D
       if (!troca2DSalaLiberada()) return s // 🔒 por enquanto só a conta do Diego (a conta do DONO: é no aparelho dele que isto roda)
       const alvo = !!action.on
       s.campo2dProximo = alvo === !!s.campo2d ? undefined : alvo // apertou de novo = desmarca (fica como está)
