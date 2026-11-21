@@ -10,7 +10,47 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - Banco: `docs/sql/bafo2.sql` (APLICADO): `esc_bafo2` + RPCs `bafo2_fecha/bate/abre_escolha/tomar/sorteia/encerra/sumiu`; o banco confere a posse de cada carta.
 - Código: `bafo2.ts` (regras puras) · `bafo2-ui.tsx` · `bafo2-sala.tsx` · `bafo2-sair.ts`. Trava: `npm run bafo`. Prints das telas reais: `scripts/mockups/bafo2-real-*.png`.
 - Criar sala: a caixa de explicação do Bafo mostra o PACOTINHO do campeão (`online-pacote-v20.webp`) + 3 selos: 1ª sala do dia grátis · entrar é livre · precisa de 11+ cartinhas (mockup `scripts/mockups/bafo-criar-*.png`, *"Pode"*). Criar segue o padrão das salas rápidas (gatilho `esc_sala_por_dia` vale pra todo modo; nada mudou no banco).
-- ⚠️ FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
+- ✅ 1º TESTE DE VERDADE (21/11, Diego × Futpoint, 2 pessoas): rodou até o fim e a carta trocou de dono. Pedidos dele depois do teste:
+  - FEITO: convocação em PÁGINA própria (por cima da sala de espera) · **160 s** (+40) · "Convoque até 22: 11 titulares + 11 reservas" · regras dizem que dá pra substituir · **Bafo só no Campo 2D** (sem placar rápido/cinema, sem botão de troca).
+  - FEITO (21/11, *"bota só Ronaldo… quero brilhando igual ao normal"*): ABERTURA da convocação — pacote verde treme e rasga (2,5 s) → carta de EXEMPLO
+    (a `CollectibleCard` do Ronaldo Fenômeno, lenda dourada, escrito só "Ronaldo" via `nomeNaCarta`) + explicação de onde vêm as cartas (5,5 s, toque pula). 🔁 CORRIGIDO no mesmo dia (*"o exemplo do Ronaldo é em cima de onde convoca… antes só o pacotinho"*): a abertura é SÓ o pacote (2,5 s) e o
+    exemplo virou faixa FIXA em cima da lista (`ExemploBafo`), na mesma tela da convocação.
+    O relógio de 160 s só conta depois (`ABERTURA_MS` em bafo2-sala.tsx). Prints reais: `scripts/mockups/bafo-abertura-*.png`.
+  - EM MOCKUP (esperando OK): suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
+  - PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
+  - Rivalidade: a prateleira de rivalidades não é desligada no Bafo (`retroOn`); conferir com ele onde ele esperava ver.
+- FEITO (21/11): criar sala do Bafo não pergunta mais o baralho (aviso fixo "as suas cartas de campeão", de qualquer baralho; repetida fica na coleção e no time entra uma só de cada).
+- CONFERIDO NO BANCO: Bafo nº 5 (Futpoint × Neymarzetti) — a carta está com o campeão e saiu do perdedor (80 → 79).
+- ⚠️ FURO A FECHAR (proposto, esperando OK): quando a carta é tomada, a chave do título original (`season_key`) fica LIVRE no perdedor. Se ele reabrir a
+  tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
+  proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
+
+## 🃏 21/11 — O PACOTE DO CAMPEÃO SORTEIA DO BARALHO INTEIRO (Diego: "a carta que tenha no jogo serve… estaduais, A B C D, Sul-Americana, Libertadores")
+- `baralho-inteiro.ts`: soma as cartas REGIONAIS (445) e as do BRASIL OFICIAL (2 mil+, pedaço separado que desce na hora) aos 3 baralhos.
+- Vale no pacote do ÁLBUM: salas online, partida rápida e a carta "na hora" (`garanteCartaDoTitulo`, que agora também usa `sorteiaCarta`). Raridade igual (categoria primeiro: lenda 4%).
+- O Bafo lê a força dessas cartas (`achaNoBaralho` + download do Oficial só se a coleção tiver carta que os 3 baralhos não conhecem).
+- ⚠️ NÃO MUDOU (perguntado ao Diego): o pacote DENTRO da carreira (que vai pra Agência) segue com o baralho dele — carta do Oficial não joga na carreira de sempre e ficaria parada na Agência.
+- Efeito colateral avisado: com mais cartas "bom/profissional" no sorteio, fechar COLEÇÃO de clube fica mais demorado (as do Oficial/regionais não pertencem a coleção nenhuma).
+- Revê, só pro ÁLBUM/Bafo, o "as cartas do modo nunca vão pra Partida Rápida nem pro online" (15/11): continuam fora do LEILÃO, mas agora podem ser prêmio e jogar o Bafo.
+
+## 🃏 21/11 — AUDITORIA: todo campeão ganha a cartinha? (pedido do Diego; nada foi mudado ainda)
+- SALAS ONLINE (medido no banco, `game_champions` × `user_cards`): ~99% dos campeões têm carta na hora do título. Em 2 dias (~480 campeões) achei 3 sem
+  carta nenhuma perto do título (salas `7bbb9382…` T2 e `e8502303…` T1, as duas liga+copa, campeão que NÃO era o dono; e 1 de sala já apagada) e mais ~3 duvidosos.
+  ⚠️ Não cruzar pela chave exata em sala antiga: `game_champions.room_id` vira NULL quando a sala é apagada (dá "100% sem carta", falso).
+- CAUSA PROVÁVEL: quem grava a carta é o APARELHO do campeão (`garanteCartaDoTitulo` / `CardCollectPrompt`). Aparelho fechado/sem rede na hora = não grava e ninguém refaz.
+- FURO 2: `useTitulosNaHora` só roda quando existe campeão de LIGA (`ligaCamp == null → return`) e exclui `copaMode === 'champions'` → ⚡ Relâmpago e ⭐ Só Champions
+  só dão a carta na TELA FINAL (se a sala parar antes, perde).
+- CARREIRA (pelo código): divisão, Copa Legends/do Brasil, Supercopa, Libertadores/Champions/Mundial (internacional), Copa do Mundo e clube que dorme têm cartinha.
+  **Brasil Oficial: NÃO achei cartinha pra Estadual, Libertadores, Sul-Americana e Intercontinental** (contam pro ranking via `estOf/libOf/sulaOf/interOf`, mas não há `CardCollectPrompt`). Conferir e ligar.
+- ✅ FEITO E PUBLICADO (21/11, Diego: "Sim… o principal é: acabou a competição e você ganhou, aparece o pacote pra abrir"):
+  1. carta tomada no Bafo não é paga de novo (`esc_titulo_pago` + gatilho no insert de `user_cards`; testado em transação desfeita);
+  2. Brasil Oficial: Estadual, Libertadores, Sul-Americana e Intercontinental ganharam pacote no fim da temporada (chaves `:estadual`/`:libOf`/`:sulaOf`/`:interOf`);
+  3. ⚡ Relâmpago e ⭐ Só Champions: a carta sai na hora em que o campeão aparece (mesma chave `:copa` da tela final);
+  4. 🛟 `PacotesDevidos` na tela inicial do futebol: título de sala dos últimos 3 dias sem carta → o pacote aparece pra abrir (RPC `esc_titulos_sem_carta`, 1 pergunta por aparelho a cada 6 h).
+  SQL: `docs/sql/titulo-pago-e-pacote-devido.sql`. NÃO testado logado na tela (só build + banco). O estadual só mostra o pacote no FIM da temporada (não na hora em que o estadual acaba).
+  FORA da rede de segurança (não dá pra montar a chave): Liga da Turma/Liga Draft (sem `match_seed`), salas já apagadas, Copa do Mundo/regionais de sala, carreira online, basquete.
+- (proposta original) rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
+- (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
 - Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
 ## 🧭 21/11 — Central: 4 ajustes pedidos pelo Diego (no branch, esperando ele mandar publicar)

@@ -4485,6 +4485,12 @@ export function EscLobby() {
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho: Todos (BR+EU+Mundo)', '🌎 Deck: All (BR+EU+World)')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('No leilão de clubes precisa dos 3 baralhos: é o que dá clube suficiente pra cada setor ter pacotes diferentes.', 'The club auction needs all 3 decks: that is what gives each sector enough different clubs.')}</p>
               </div>
+            ) : isElenco ? (
+              // 🃏 21/11 (Diego: "exclua essa informação, sempre vai ser todos… é o baralho do jogador"): no Bafo não se escolhe baralho
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🃏 Baralho: as suas cartas de campeão', '🃏 Deck: your champion cards')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('Cada um joga com as cartas que já ganhou, de qualquer baralho (Brasil, Europa e Mundo). Carta repetida fica na coleção, mas no time entra uma só de cada.', 'Everyone plays with the cards they already won, from any deck (Brazil, Europe and World). A repeated card stays in your collection, but only one of each goes in the team.')}</p>
+              </div>
             ) : nbaSala ? (
               // 🏀 basquete: o baralho é SEMPRE a NBA (franquias reais) — nada de escolher BR/Europa/Várzea.
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>

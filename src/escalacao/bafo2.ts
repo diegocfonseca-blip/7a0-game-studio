@@ -10,7 +10,7 @@ import type { FormationKey, Sector } from './types'
 
 export const BAFO2_ELENCO = 22
 export const BAFO2_MIN = 11
-export const BAFO2_CONVOCA_SEG = 120
+export const BAFO2_CONVOCA_SEG = 160 // 21/11 (Diego, depois do 1º teste: "ter mais 40s pra convocar")
 export const BAFO2_ESCOLHA_SEG = 60
 const POS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 

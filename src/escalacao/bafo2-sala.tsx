@@ -1,7 +1,7 @@
 // ─── 🃏 BAFO NOVO · a SALA DE ESPERA e a CONVOCAÇÃO ─────────────────────────────────────────────────────────────────
 //
 // Tudo que acontece ANTES da liga (Diego, 21/11): as regras em cima, quem está apto, e — quando o dono aperta começar — a
-// convocação de 120 s na tela de TODO MUNDO ao mesmo tempo.
+// convocação de 160 s na tela de TODO MUNDO ao mesmo tempo.
 //
 // Como viaja sem canal novo: cada um grava a própria linha em `room_players.bafo` (a sala de espera já escuta essa tabela):
 //   { v: 2, n: quantas cartas, ok: fecha um time?, marks: ids marcados, pronto, conv: { t0 } (só na linha do DONO) }
@@ -9,11 +9,12 @@
 // Quem fecha é o DONO: ele relê a sala, monta os 22 de cada um pela MESMA conta (`fechaConvocacao`) e larga a liga. O banco
 // confere a posse de cada carta antes de aceitar (`bafo2_fecha`).
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import type { FormationKey } from './types'
 import { fechaConvocacao, BAFO2_CONVOCA_SEG, BAFO2_ELENCO, BAFO2_MIN, type CartaBafo } from './bafo2'
-import { RegrasBafo, ConvocacaoBafo, useColecaoBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
+import { RegrasBafo, ConvocacaoBafo, AberturaBafo, ExemploBafo, BAFO2_ABRE_PACOTE_MS, useColecaoBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
 
 export interface BafoLinha { v: 2; n: number; ok: boolean; marks?: string[]; pronto?: boolean; conv?: { t0: number } | null }
 export interface BafoJogador { user_id: string; manager_name: string; bafo?: BafoLinha | null }
@@ -21,6 +22,7 @@ export interface BafoJogador { user_id: string; manager_name: string; bafo?: Baf
 export type BafoSquads = Record<string, { f: FormationKey; cartas: CartaBafo[] }>
 export const ehBafoLinha = (b: unknown): b is BafoLinha => !!b && typeof b === 'object' && (b as { v?: number }).v === 2
 export const bafoApto = (p: { bafo?: unknown }): boolean => ehBafoLinha(p.bafo) && p.bafo.ok
+const ABERTURA_MS = BAFO2_ABRE_PACOTE_MS // 🎁 o pacote abrindo: o relógio da convocação só conta DEPOIS (igual em todo aparelho)
 const GRACA = 4 // segundos depois do zero antes de o dono fechar (dá tempo de a última gravação de cada um chegar)
 
 export function BafoSala({ roomId, meuUid, donoUid, players, valendo, onLargar }: {
@@ -42,11 +44,15 @@ export function BafoSala({ roomId, meuUid, donoUid, players, valendo, onLargar }
   const visto = useRef<{ t0: number; em: number } | null>(null)
   if (conv && visto.current?.t0 !== conv.t0) {
     const k = `bafo2-conv-${roomId}-${conv.t0}`
-    let em = Date.now()
+    let em = Date.now() + ABERTURA_MS // 🎁 a abertura vem antes: os 160 s começam quando a lista aparece
     try { const g = Number(sessionStorage.getItem(k)); if (g > 0) em = g; else sessionStorage.setItem(k, String(em)) } catch { /* sem armazenamento: conta daqui */ }
     visto.current = { t0: conv.t0, em }
   }
-  const seg = conv && visto.current ? BAFO2_CONVOCA_SEG - Math.floor((agora - visto.current.em) / 1000) : 0
+  const seg = conv && visto.current ? Math.min(BAFO2_CONVOCA_SEG, BAFO2_CONVOCA_SEG - Math.floor((agora - visto.current.em) / 1000)) : 0
+  // 🎁 quanto da abertura já passou neste aparelho (negativo = ainda nela). Toque pula só a CENA; o relógio não anda mais cedo pra ninguém.
+  const [pulou, setPulou] = useState(0)
+  const naAbertura = !!conv && !!visto.current && pulou !== conv.t0 && agora < visto.current.em
+  const decorridoAbertura = visto.current ? ABERTURA_MS - (visto.current.em - agora) : 0
   const convAtiva = !!conv && seg > -25
 
   // ── a MINHA linha na sala (sempre a foto inteira; a `conv` do dono nunca se perde numa regravação) ──
@@ -108,14 +114,21 @@ export function BafoSala({ roomId, meuUid, donoUid, players, valendo, onLargar }
   if (convAtiva && conv) {
     if (!cartas) return caixaAviso('#FFF6D6', tr('🃏 Carregando as suas cartas…', '🃏 Loading your cards…'))
     if (!pode) return caixaAviso('#FFE3DC', tr(`🃏 A convocação está rolando (${Math.max(0, seg)}s). Você ainda não tem ${BAFO2_MIN} cartas que fechem um time — fica assistindo desta vez.`, `🃏 The call-up is on (${Math.max(0, seg)}s). You don't have ${BAFO2_MIN} cards that make a team yet — you watch this one.`))
-    return (
-      <div>
-        <ConvocacaoBafo colecao={cartas} marcadas={marks} seg={Math.max(0, seg)} pronto={pronto}
+    // 📄 21/11 (Diego, 1º teste: "deveria abrir uma nova tela… uma página nova"): a convocação é uma PÁGINA própria, por cima da
+    // sala de espera — sai sozinha quando a liga larga (ou a convocação é cancelada).
+    return createPortal(
+      <div style={{ position: 'fixed', inset: 0, zIndex: 4000, background: '#0d1410', overflowY: 'auto', padding: '10px 10px 24px' }}>
+       <div style={{ maxWidth: 720, margin: '0 auto' }}>
+        <p style={{ fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', fontWeight: 900, fontSize: 19, color: '#FFC400', margin: '2px 2px 8px' }}>🃏 {tr('Bafo · convocação', 'Bafo · call-up')}</p>
+        {naAbertura ? <AberturaBafo decorrido={decorridoAbertura} onPular={() => setPulou(conv.t0)} /> : <>
+        <ExemploBafo />
+        <ConvocacaoBafo telaCheia colecao={cartas} marcadas={marks} seg={Math.max(0, seg)} pronto={pronto}
           onMarcar={ids => { sujo.current = true; setMarks(ids) }}
           onPronto={() => { setPronto(true); estado.current = { marks, pronto: true }; sujo.current = false; void grava({ pronto: true }) }} />
         {caixaAviso('#fff', <>{aptos.filter(p => (p.bafo as BafoLinha).pronto).length}/{aptos.length} {tr('prontos', 'ready')} · {seg <= 0 ? tr('fechando a convocação…', 'closing the call-up…') : tr('quando todo mundo ficar pronto, começa na hora', 'when everyone is ready it starts right away')}</>)}
-      </div>
-    )
+        </>}
+       </div>
+      </div>, document.body)
   }
   return (
     <div>

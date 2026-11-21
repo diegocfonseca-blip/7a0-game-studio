@@ -1244,6 +1244,15 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (*"N deve aparecer o número q cada um tem"*). **Dono não expulsa ninguém**; dono que sai no meio perde 2 cartas (1º e 2º levam; antes da liga, vão pro
   sistema). Não conta pro ranking nem dá cartinha. Detalhe em `docs/pendencias.md` (21/11). Trava `npm run bafo`.
 
+- **🎁 GANHOU, APARECE O PACOTE PRA ABRIR (21/11, regra permanente).** Palavras dele: *"o principal é quando acaba uma competição e você ganha, deve
+  aparecer a carta pra você, o pacote pra abrir"*. Vale pra TODA competição de TODO modo (menos o Bafo, que não dá carta nova). Competição nova = já nasce
+  com o `CardCollectPrompt` e chave própria. Rede de segurança: `PacotesDevidos` na tela inicial + `esc_titulos_sem_carta`. Carta que saiu da conta (Bafo)
+  nunca é paga de novo pelo mesmo título (`esc_titulo_pago`). Detalhe e o que ficou de fora: `docs/pendencias.md` (21/11, auditoria).
+
+- **🃏 O PACOTE DO CAMPEÃO SAI DO BARALHO INTEIRO (21/11).** *"a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for
+  campeão"* — 3 baralhos + regionais + Brasil Oficial (`baralho-inteiro.ts`). Carta/baralho novo no jogo = entra lá também. As do Oficial seguem FORA do
+  leilão das salas/partida rápida; como prêmio de álbum e no Bafo, valem. A carreira (Agência) ainda sorteia do baralho dela (pendente da resposta dele).
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

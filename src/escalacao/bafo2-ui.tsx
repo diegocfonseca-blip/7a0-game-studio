@@ -11,6 +11,9 @@ import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { FORMATIONS, SECTORS, type Sector, type Manager } from './types'
+import { cartasExtras, carregaCartasExtras } from './baralho-inteiro'
+import { CollectibleCard } from './screens'
+import pacoteCampeaoArt from './img/online-pacote-v20.webp'
 import { resolveColecao, podeJogarBafo, formatoBafo, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', OURO = '#FFC400', VERDE = '#1B7A3D', VERM = '#E8503A'
@@ -28,6 +31,9 @@ function montaIndice() {
     if (!exato.has(k)) exato.set(k, v)
     if (!nome.has(c.name)) nome.set(c.name, v)
   }
+  // 🃏 21/11: o pacote do campeão passou a dar carta do baralho INTEIRO (regionais + Brasil Oficial) — aqui elas ganham força.
+  // Só pela carta EXATA (nome+clube+ano): pelo nome sozinho, um xará do Oficial pegaria a força da carta famosa.
+  for (const c of cartasExtras()) { const k = `${c.name}|${c.club}|${c.year}`; if (!exato.has(k)) exato.set(k, { pos: c.pos, fame: c.fame, lo: c.lo, hi: c.hi, club: c.club, year: c.year }) }
   return { exato, nome }
 }
 export const achaNoBaralho: AchaNoBaralho = (n, c, a) => { indice ??= montaIndice(); return indice.exato.get(`${n}|${c}|${a}`) ?? indice.nome.get(n) ?? null }
@@ -41,6 +47,9 @@ export async function carregaColecao(uid: string): Promise<CartaBafo[]> {
     linhas.push(...((data ?? []) as LinhaColecao[]))
     if ((data ?? []).length < 1000) break
   }
+  // carta que os 3 baralhos não conhecem pelo nome+clube+ano → pode ser do Brasil Oficial: baixa o baralho dele (uma vez) e refaz o índice
+  indice ??= montaIndice()
+  if (linhas.some(l => !indice!.exato.has(`${l.card_name}|${l.card_club}|${l.card_year}`))) { await carregaCartasExtras(8000); indice = montaIndice() }
   return resolveColecao(linhas, achaNoBaralho)
 }
 export function useColecaoBafo(uid: string | null | undefined): { cartas: CartaBafo[] | null; erro: boolean; pode: boolean } {
@@ -95,6 +104,7 @@ export function RegrasBafo({ valendo, nPessoas }: { valendo: boolean; nPessoas: 
     <div style={{ background: INK, color: CREME, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${OURO}`, padding: '10px 12px' }}>
       <h3 style={{ ...OSW, margin: '0 0 6px', fontWeight: 900, fontSize: 17, color: OURO }}>🃏 {tr('Regras do Bafo', 'Bafo rules')}</h3>
       <p style={p}>• {en ? <>Everyone plays with <b style={{ color: '#fff' }}>{BAFO2_ELENCO} cards they already won</b> as champion (career or rooms).</> : <>Cada um joga com <b style={{ color: '#fff' }}>{BAFO2_ELENCO} cartas que já ganhou</b> sendo campeão (na carreira ou nas salas).</>}</p>
+      <p style={p}>• {en ? <>It's {BAFO2_ELENCO} because <b style={{ color: '#fff' }}>you can substitute during the league</b>: 11 start, 11 on the bench (Squad tab).</> : <>São {BAFO2_ELENCO} porque <b style={{ color: '#fff' }}>dá pra substituir durante a liga</b>: 11 titulares e 11 no banco (aba Elenco).</>}</p>
       <p style={p}>• {en ? <>People only, no bots. League only. <b style={{ color: '#fff' }}>Doesn't count for the ranking.</b></> : <>Só gente, sem bots. Só liga. <b style={{ color: '#fff' }}>Não conta pro ranking.</b></>}</p>
       <p style={p}>• {en ? <>Once it starts: <b style={{ color: '#fff' }}>{BAFO2_CONVOCA_SEG}s</b> to call up your {BAFO2_ELENCO}. Didn't mark them all? The game fills in with your worst cards.</> : <>Começou: <b style={{ color: '#fff' }}>{BAFO2_CONVOCA_SEG} s</b> pra convocar os {BAFO2_ELENCO}. Não marcou todos? O jogo completa com as suas piores cartas.</>}</p>
       {valendo ? <>
@@ -108,8 +118,10 @@ export function RegrasBafo({ valendo, nPessoas }: { valendo: boolean; nPessoas: 
 }
 
 // ─── 2) ✋ A CONVOCAÇÃO (120 s, sem over) ────────────────────────────────────────────────────────────────────────────
-export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPronto }: {
+export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPronto, telaCheia }: {
   colecao: CartaBafo[]; marcadas: string[]; onMarcar: (ids: string[]) => void; seg: number; pronto: boolean; onPronto: () => void
+  /** 📄 21/11: a convocação é uma PÁGINA própria (a lista ocupa a altura da tela) */
+  telaCheia?: boolean
 }) {
   const [busca, setBusca] = useState('')
   const [pos, setPos] = useState<Sector | null>(null)
@@ -128,7 +140,8 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
   const porPos = SECTORS.map(p => `${p} ${colecao.filter(c => c.pos === p && sel.has(c.id)).length}`).join(' · ')
   return (
     <div style={{ ...caixa(CREME), padding: 14, color: INK }}>
-      <Relogio seg={seg} total={BAFO2_CONVOCA_SEG} rotulo={tr(`Convoque seus ${BAFO2_ELENCO}`, `Call up your ${BAFO2_ELENCO}`)} />
+      <Relogio seg={seg} total={BAFO2_CONVOCA_SEG} rotulo={tr(`Convoque até ${BAFO2_ELENCO} jogadores`, `Call up to ${BAFO2_ELENCO} players`)} />
+      <p style={{ margin: '-4px 0 8px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{getLang() === 'en' ? <>You take <b>{BAFO2_ELENCO}</b>: <b>11 starters + 11 on the bench</b> (you can substitute during the league). The first you mark in each position starts.</> : <>Você leva <b>{BAFO2_ELENCO}</b>: <b>11 titulares + 11 reservas</b> (dá pra substituir durante a liga). O 1º que você marcar em cada posição começa de titular.</>}</p>
       <div style={{ display: 'flex', justifyContent: 'space-between', ...OSW, fontWeight: 800, fontSize: 14, marginBottom: 2 }}>
         <span style={{ color: VERDE }}>✔ {marcadas.length} {tr('de', 'of')} {BAFO2_ELENCO} {tr('marcadas', 'marked')}</span>
         <span>{colecao.length} {tr('cartas suas', 'cards of yours')}</span>
@@ -142,7 +155,7 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
         ))}
         <button onClick={() => setSoMarcadas(v => !v)} title={tr('Só as marcadas', 'Marked only')} style={{ flex: 'none', border: `2px solid ${INK}`, borderRadius: 8, padding: '5px 8px', ...OSW, fontWeight: 700, fontSize: 13, background: soMarcadas ? VERDE : '#fff', color: soMarcadas ? '#fff' : INK }}>✔</button>
       </div>
-      <div style={{ ...caixa(), overflow: 'hidden', maxHeight: 420, overflowY: 'auto' }}>
+      <div style={{ ...caixa(), overflow: 'hidden', maxHeight: telaCheia ? 'max(240px, calc(100dvh - 430px))' : 420, overflowY: 'auto' }}>
         {lista.map(c => {
           const on = sel.has(c.id)
           return <LinhaCarta key={c.id} c={c} fundo={on ? '#e7f6ec' : undefined} onClick={() => toca(c.id)}
@@ -152,11 +165,52 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
       </div>
       <button onClick={onPronto} disabled={pronto}
         style={{ display: 'block', width: '100%', marginTop: 10, background: pronto ? '#9bb5a3' : VERDE, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, ...OSW, fontWeight: 900, fontSize: 17 }}>
-        {pronto ? tr('✔ Pronto — esperando os outros', '✔ Ready — waiting for the others') : tr('✔ Pronto', '✔ Ready')}
+        {pronto ? tr('✔ Pronto — esperando os outros', '✔ Ready — waiting for the others') : marcadas.length >= BAFO2_ELENCO ? tr('✔ Pronto', '✔ Ready') : tr(`✔ Pronto com ${marcadas.length} (o jogo completa os ${BAFO2_ELENCO})`, `✔ Ready with ${marcadas.length} (the game fills up to ${BAFO2_ELENCO})`)}
       </button>
       <p style={{ fontSize: 11.5, color: 'rgba(0,0,0,.6)', margin: '8px 2px 0', fontWeight: 600 }}>
-        {tr('Acabou o tempo: as marcadas entram e o jogo completa o que faltar com as suas piores cartas. A 1ª de cada posição que você marcar começa de titular (dá pra trocar depois, na aba Elenco).', 'When time is up: the marked ones go in and the game fills the rest with your worst cards. The first you mark in each position starts (you can swap later, in the Squad tab).')}
+        {tr(`Apertou Pronto (ou o tempo acabou) sem marcar os ${BAFO2_ELENCO}? As marcadas entram e o jogo completa os reservas que faltam com as suas piores cartas. Dá pra trocar titular e reserva depois, na aba Elenco.`, `Pressed Ready (or time ran out) without marking all ${BAFO2_ELENCO}? The marked ones go in and the game fills the missing bench spots with your worst cards. You can swap starters and bench later, in the Squad tab.`)}
       </p>
+    </div>
+  )
+}
+
+// ─── 2a) 🎁 A ABERTURA da convocação (21/11, pedidos do Diego depois do 1º teste) ────────────────────────────────────
+// *"essa tela nova deveria começar com o envelope fechado verde sendo aberto"* e *"uma foto de exemplo da cartinha, sei lá,
+// do Ronaldo Fenômeno dourada real brilhando, explicando que são cartas que ele ganha quando é campeão de qualquer campeonato
+// do modo carreira ou das salas online"* → *"bota só Ronaldo então, já que é exemplo. Mas quero brilhando igual ao normal"*.
+// A carta é a `CollectibleCard` de sempre (o brilho de lenda é o dela). Dois tempos: o pacote treme e rasga, sai a carta de
+// exemplo com a explicação. Toque pula. O relógio da convocação só conta depois (quem cuida disso é a sala).
+// 🔁 Mesmo dia, depois de ver: *"o exemplo do Ronaldo é já na área da convocação, em cima de onde convoca. Antes aparece só o
+// pacotinho verde que vai se abrir, e aí entra essa tela já com o exemplo e a convocação na mesma tela"*.
+// Então: `AberturaBafo` = SÓ o pacote (2,5 s, toque pula) · `ExemploBafo` = a faixa fixa em cima da lista.
+export const BAFO2_ABRE_PACOTE_MS = 2500
+export function AberturaBafo({ decorrido, onPular }: { decorrido: number; onPular: () => void }) {
+  return (
+    <div onClick={onPular} role="button" style={{ border: `4px solid ${INK}`, borderRadius: 22, background: 'radial-gradient(circle at 50% 35%,#12301f,#0c0c0c 75%)', boxShadow: '4px 4px 0 #000', padding: '16px 14px', minHeight: 440, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, cursor: 'pointer', overflow: 'hidden' }}>
+      <style>{'@keyframes bf-treme{0%,100%{transform:rotate(-3deg)}25%{transform:rotate(4deg) scale(1.03)}50%{transform:rotate(-5deg) scale(1.06)}75%{transform:rotate(5deg) scale(1.09)}}@keyframes bf-rasga{0%{transform:scale(1.1);opacity:1;filter:brightness(1.4)}100%{transform:scale(1.9);opacity:0;filter:brightness(3)}}'}</style>
+      <img src={pacoteCampeaoArt} alt="" width={170} height={255} style={{ animation: decorrido >= BAFO2_ABRE_PACOTE_MS - 600 ? 'bf-rasga .6s ease-in forwards' : 'bf-treme .5s ease-in-out infinite', filter: 'drop-shadow(0 0 22px rgba(80,230,130,.6))' }} />
+      <p style={{ ...OSW, fontWeight: 900, fontSize: 22, color: '#fff', margin: '6px 0 0', textAlign: 'center' }}>{tr('Abrindo as suas cartas de campeão…', 'Opening your champion cards…')}</p>
+    </div>
+  )
+}
+/** 🃏 a carta de EXEMPLO + de onde vêm as cartas — fica em cima da lista da convocação (a `CollectibleCard` de sempre, com o brilho de lenda) */
+export function ExemploBafo() {
+  const en = getLang() === 'en'
+  const largo = typeof window !== 'undefined' && window.innerWidth >= 760
+  return (
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 16, background: 'radial-gradient(circle at 18% 40%,#17402a,#0c0c0c 78%)', boxShadow: `3px 3px 0 ${INK}`, padding: largo ? '14px 18px' : '10px 12px', display: 'flex', alignItems: 'center', gap: largo ? 18 : 12, marginBottom: 10, overflow: 'hidden' }}>
+      <style>{'@keyframes bf-sai{0%{transform:translateY(30px) scale(.6) rotate(-8deg);opacity:0}100%{transform:translateY(0) scale(1) rotate(-3deg);opacity:1}}'}</style>
+      {/* ⚠️ o encaixe é o MESMO da revelação do leilão (`ll-lote1-reveal-card`, carta pequena): numa caixa qualquer a carta espreme
+          o boneco e sobra só a cabeça (o Diego pegou no 1º print: "não tá aparecendo o corpo dele padrão") */}
+      <div className="ll-lote1-reveal-card" style={{ flex: 'none', width: largo ? 150 : 124, margin: 0, animation: 'bf-sai .5s ease-out both', filter: `drop-shadow(0 0 16px ${OURO})` }}>
+        <CollectibleCard name="Ronaldo Fenômeno" nomeNaCarta="Ronaldo" club="Inter" year={1998} pos="ATA" fame={5} />
+      </div>
+      <div style={{ color: CREME, minWidth: 0 }}>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: largo ? 21 : 16, color: '#fff', margin: 0, lineHeight: 1.1 }}>{tr('Estas são as suas cartinhas de campeão', 'These are your champion cards')}</p>
+        <p style={{ fontSize: largo ? 13.5 : 12, fontWeight: 600, lineHeight: 1.35, margin: '5px 0 0' }}>{en ? <>Every time you are <b style={{ color: OURO }}>champion</b> of any competition, in <b style={{ color: '#fff' }}>Career</b> or in the <b style={{ color: '#fff' }}>online rooms</b>, you open a pack and win one.</> : <>Toda vez que você é <b style={{ color: OURO }}>campeão</b> de qualquer campeonato, na <b style={{ color: '#fff' }}>Carreira</b> ou nas <b style={{ color: '#fff' }}>salas online</b>, você abre um pacote e ganha uma.</>}</p>
+        <p style={{ fontSize: largo ? 13.5 : 12, fontWeight: 600, lineHeight: 1.35, margin: '4px 0 0' }}>{en ? <>Here you put <b style={{ color: '#fff' }}>22 of them at stake</b>. The champion takes 1 from someone.</> : <>Aqui você põe <b style={{ color: '#fff' }}>22 delas em jogo</b>. O campeão toma 1 de alguém.</>}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#9fb5a6', margin: '5px 0 0' }}>{tr('(o Ronaldo é só um exemplo · as suas estão na lista abaixo)', '(Ronaldo is just an example · yours are in the list below)')}</p>
+      </div>
     </div>
   )
 }

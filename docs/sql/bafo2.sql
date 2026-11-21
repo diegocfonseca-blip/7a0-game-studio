@@ -36,6 +36,7 @@ create or replace function bafo_int.passa(p_card uuid, p_de uuid, p_para uuid, p
  returns jsonb language plpgsql security definer set search_path to 'public' as $$
 declare c public.user_cards%rowtype;
 begin
+  perform bafo_int.anota_pago(p_card, p_de); -- 21/11: o título original fica marcado como já pago (ver titulo-pago-e-pacote-devido.sql)
   update public.user_cards set user_id = p_para, season_key = p_chave, taken_from = p_de, taken_from_name = p_de_nome, taken_at = now()
     where id = p_card and user_id = p_de returning * into c;
   if c.id is null then return null; end if;
@@ -172,6 +173,7 @@ begin
       v_out := v_out || jsonb_build_object('para', v_para, 'paraNome', b.nomes ->> v_para::text, 'carta', v_carta);
     else
       -- antes de qualquer jogo: a carta vai pro SISTEMA (ninguém ganha). Fica guardada aqui na punição.
+      perform bafo_int.anota_pago(v_cards[i], b.dono);
       for r in delete from public.user_cards where id = v_cards[i] and user_id = b.dono returning * loop
         v_out := v_out || jsonb_build_object('para', null, 'carta', jsonb_build_object('id', r.id, 'name', r.card_name, 'club', r.card_club, 'year', r.card_year, 'pos', r.card_pos, 'fame', r.card_fame, 'season_key', r.season_key, 'origin', r.origin, 'obtained_at', r.obtained_at));
       end loop;
