@@ -91,6 +91,7 @@ import imperioMascoteImg from './img/imperio-mascote.webp' // 👑🦡 Império 
 import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteMascoteImg from './img/duarte-mascote.webp' // 🧤 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
+import cabulosoMascoteImg from './img/cabuloso-mascote.webp' // 🦊 Cabuloso JP (rafaelazevedo455): arte própria do dono, 21/11
 import obeliskoMascoteImg from './img/obelisko-mascote.webp' // 👁️ Obelisko FC (felipefazzio): arte própria do dono, 18/11
 import vilaMascoteImg from './img/vila-mascote.webp' // 🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcMascoteImg from './img/neymarfc-mascote.webp' // 🐐 Neymar FC (sheeryarie772): arte própria do dono, 21/10
@@ -506,6 +507,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   // fica em 176. mascote_key = "duarte_paredao".
   // 👁️👑 O ATORMENTADOR (mascote do Obelisko FC — felipefazzio, 18/11): o colosso de armadura azul, garra estendida pra frente.
   // Arte do próprio dono. 📏 374×440, 43 KB — altura 176. mascote_key = "obelisko_atormentador".
+  // 🦊👑 A RAPOSA CABULOSA (mascote do Cabuloso JP — rafaelazevedo455, 21/11): a raposa de braços cruzados, pé em cima da bola,
+  // com o uniforme azul das estrelas. Arte do próprio dono. 📏 172×440, 32 KB — altura 176. mascote_key = "cabuloso_raposa".
+  cabuloso_raposa: (
+    <img src={cabulosoMascoteImg} height={176} width={Math.round(176 * 172 / 440)} alt="A Raposa Cabulosa — Cabuloso JP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   obelisko_atormentador: (
     <img src={obeliskoMascoteImg} height={176} width={Math.round(176 * 374 / 440)} alt="O Atormentador — Obelisko FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1464,6 +1470,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Leões da Tuf SC': 'leoestuf_leao',
   // 🧤 o Paredão carimba o gol do Duarte FC (luizfelipeduarte212, 18/11).
   // 👁️ o Atormentador carimba o gol do Obelisko FC (felipefazzio, 18/11).
+  // 🦊 a Raposa Cabulosa carimba o gol do Cabuloso JP (rafaelazevedo455, 21/11).
+  'Cabuloso JP': 'cabuloso_raposa',
+  'Cabulosojp': 'cabuloso_raposa',
+  'Cabuloso JP FC': 'cabuloso_raposa',
+  'Cabuloso JP EC': 'cabuloso_raposa',
+  'Cabuloso JP SC': 'cabuloso_raposa',
   'Obelisko FC': 'obelisko_atormentador',
   'Obelisko': 'obelisko_atormentador',
   'Obelisko EC': 'obelisko_atormentador',
@@ -1645,6 +1657,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   imperio_texugo: 'O Texugo Rei', // 👑🦡 Império FC (leodicasttro, 20/11)
   lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)
   leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
+  cabuloso_raposa: 'A Raposa Cabulosa', // 🦊 Cabuloso JP (rafaelazevedo455, 21/11)
   obelisko_atormentador: 'O Atormentador', // 👁️ Obelisko FC (felipefazzio, 18/11)
   duarte_paredao: 'O Paredão', // 🧤 Duarte FC (luizfelipeduarte212, 18/11)
   cabritiiin_bode: 'O Cabritiiin', // 🐐 Cabritiiin F.C (lucassaboia14, 13/11)

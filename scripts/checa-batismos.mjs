@@ -92,6 +92,7 @@ const BATISMOS = [
   ['lucasnicodemosqq@gmail.com', 'Ceará SP Club'], // 👑⚫ Várzea (19/11, batismo) — no assento do bot Barcelona da Vila
   ['leodicasttro@hotmail.com', 'Império FC'], // 👑🦡 Várzea (20/11, batismo) — no assento do bot Juventude do Churrasco
   ['hugopereirabrito@gmail.com', 'Lavras FC'], // 🐆👑 Várzea (16/11, batismo) — no assento do bot Galáticos do Bairro
+  ['rafaelazevedo455@gmail.com', 'Cabuloso JP'], // 🦊👑 Várzea (21/11, Fundador) — no assento do bot Descampado EC
   ['felipefazzio@gmail.com', 'Obelisko FC'], // 👁️👑 Várzea (18/11, Fundador) — no assento do bot Trave Torta EC
   ['luizfelipeduarte212@gmail.com', 'Duarte FC'], // 🧤👑 Várzea (18/11, Fundador) — no assento do bot Ressaca United
   ['lucassaboia14@gmail.com', 'Cabritiiin F.C'], // 🐐👑 Várzea (13/11, Fundador) — no assento do bot Unidos da Resenha

@@ -170,6 +170,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👁️👑 Obelisko FC — PRETO e ROXO, MEDIDOS na camisa que o dono mandou (18/11): preto 61% do manto (#0F0E18) e o roxo das
   // faixas (#862EE0). O AZUL do monstro no peito (#4853AB) é a 3ª cor (MANTO_TRI).
   'felipefazzio@gmail.com': ['#0F0E18', '#862EE0'],
+  // 🦊👑 Cabuloso JP — AZUL e BRANCO, MEDIDOS na camisa que o dono mandou (21/11): azul do corpo (#00208C, mediana dos azuis) e o
+  // branco/prata das faixas e da gola (#EFEEF0).
+  'rafaelazevedo455@gmail.com': ['#00208C', '#EFEEF0'],
   // 🧔⚽ História dos Gigantes — CREME e MARROM, MEDIDOS na camisa que o dono mandou (16/11): creme do corpo (#FEE9BD) e o marrom
   // da faixa/gola (#7A2B06).
   'will.a.n@hotmail.com': ['#FEE9BD', '#7A2B06'],

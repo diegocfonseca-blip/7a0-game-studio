@@ -89,6 +89,7 @@ import imperioEscudoImg from './img/imperio-escudo.webp' // 👑🦡 Império FC
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
+import cabulosoEscudoImg from './img/cabuloso-escudo.webp' // 🦊👑 Cabuloso JP (rafaelazevedo455): arte própria do dono, 21/11
 import obeliskoEscudoImg from './img/obelisko-escudo.webp' // 👁️👑 Obelisko FC (felipefazzio): arte própria do dono, 18/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
@@ -1024,6 +1025,11 @@ const leoestufEscudoRender = (size: number) => (
 // 👁️👑 OBELISKO FC (felipefazzio, batismo FUNDADOR de 18/11) — Várzea, no assento do bot Trave Torta EC. 📏 284×320, 30 KB
 // (320 de altura porque o escudo é muito detalhado e a 360 passava do teto). O colosso azul de braços abertos, moldura dourada com
 // o Olho de Hórus e a faixa "ATORMENTADOR" — o 2º escudo que o dono mandou, o escolhido pelo Diego. Conferido sobre creme.
+// 🦊👑 CABULOSO JP (rafaelazevedo455, batismo FUNDADOR de 21/11) — Várzea, no assento do bot Descampado EC. 📏 243×360, 28 KB.
+// Escudo azul com coroa, a raposa de manto azul e as estrelas do Cruzeiro do Sul. Fundo verde chroma tirado; conferido sobre vermelho.
+const cabulosoEscudoRender = (size: number) => (
+  <img src={cabulosoEscudoImg} height={size} width={Math.round(size * 243 / 360)} alt="Cabuloso JP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const obeliskoEscudoRender = (size: number) => (
   <img src={obeliskoEscudoImg} height={size} width={Math.round(size * 284 / 320)} alt="Obelisko FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1806,6 +1812,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   // 👁️👑 Obelisko FC (felipefazzio) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Trave Torta EC (bot que cedeu o
   // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  // 🦊👑 Cabuloso JP (rafaelazevedo455) — BATISMO FUNDADOR. As formas do nome (regra 20/08). O Descampado EC continua no jogo rápido.
+  'Cabuloso JP': cabulosoEscudoRender,
+  'Cabulosojp': cabulosoEscudoRender,
+  'Cabuloso JP FC': cabulosoEscudoRender,
+  'Cabuloso JP EC': cabulosoEscudoRender,
+  'Cabuloso JP SC': cabulosoEscudoRender,
   'Obelisko FC': obeliskoEscudoRender,
   'Obelisko': obeliskoEscudoRender,
   'Obelisko EC': obeliskoEscudoRender,

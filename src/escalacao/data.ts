@@ -4260,6 +4260,7 @@ export const OLD_NAME: Record<string, string> = {
   'Ceará SP Club': 'Barcelona da Vila', // 👑⚫ batismo do lucasnicodemosqq (19/11): assumiu o assento da Várzea que era do bot Barcelona da Vila — save antigo com Barcelona da Vila vira Ceará SP Club ao abrir.
   'Império FC': 'Juventude do Churrasco', // 👑🦡 batismo do leodicasttro (20/11): assumiu o assento da Várzea que era do bot Juventude do Churrasco — save antigo com Juventude do Churrasco vira Império FC ao abrir.
   'Lavras FC': 'Galáticos do Bairro', // 🐆👑 batismo do hugopereirabrito (16/11): assumiu o assento da Várzea que era do bot Galáticos do Bairro — save antigo com Galáticos do Bairro vira Lavras FC ao abrir.
+  'Cabuloso JP': 'Descampado EC', // 🦊👑 batismo FUNDADOR do rafaelazevedo455 (21/11): assumiu o assento da Várzea que era do bot Descampado EC — save antigo com Descampado EC vira Cabuloso JP ao abrir.
   'Obelisko FC': 'Trave Torta EC', // 👁️👑 batismo FUNDADOR do felipefazzio (18/11): assumiu o assento da Várzea que era do bot Trave Torta EC — save antigo com Trave Torta EC vira Obelisko FC ao abrir.
   'Duarte FC': 'Ressaca United', // 🧤👑 batismo FUNDADOR do luizfelipeduarte212 (18/11): assumiu o assento da Várzea que era do bot Ressaca United — save antigo com Ressaca United vira Duarte FC ao abrir.
   'Cabritiiin F.C': 'Unidos da Resenha', // 🐐👑 batismo FUNDADOR do lucassaboia14 (13/11): assumiu o assento da Várzea que era do bot Unidos da Resenha — save antigo com Unidos da Resenha vira Cabritiiin F.C ao abrir.
@@ -4358,7 +4359,7 @@ export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Kelvin', team: 'K9 FC' }, // 👑🧊 clube BATIZADO por apoiador (kelvinoliveiraandradeenunes — K9 FC, ex-Meia-Boca FC, Várzea; escudo com coroa e gelo, mascote O Rei K9; branco #E5E8F3 + azul #0723B4 MEDIDOS na camisa do dono; Lenda + fundador nº85, 06/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Chinesinho', team: 'Le Prince FC' }, // 🐓👑 clube BATIZADO por apoiador (henriquejunger07 — Le Prince FC, ex-Perna de Pau City, Várzea; escudo listrado com o galo de coroa, mascote O Galo Rei surfando no lobo; preto #0F0E0D + branco #E6E2DD MEDIDOS na camisa do dono; Lenda + fundador nº87 + sócio nº68, 08/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Russo', team: 'Várzea Legends' },
-  { name: 'Formiga', team: 'Descampado EC' },
+  { name: 'Rafael', team: 'Cabuloso JP' }, // 🦊👑 clube BATIZADO por apoiador (rafaelazevedo455 — Cabuloso JP, ex-Descampado EC, Várzea; plano FUNDADOR nº104 + sócio nº98; coração CRUZEIRO; escudo azul com coroa, a raposa e as estrelas do Cruzeiro do Sul; mascote A Raposa Cabulosa; azul #00208C + branco #EFEEF0 MEDIDOS na camisa, 21/11). ⚠️ No POST não se diz de quem era o assento (regra 05/09).
   { name: 'Gordo', team: 'Espeto Corrido FC' },
   { name: 'Mudinho', team: 'Society do Zé' },
   { name: 'Alemão', team: 'Campo de Terra SC' },

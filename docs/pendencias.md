@@ -14346,3 +14346,14 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
   com "⏳ Deixa o jogo acabar…" (nunca libera: o relógio espera a escolha) e o PULAR, que passava o jogo sem mostrar nada.
 - Conserto: `copaEsperaEscolha` — aviso com "📺 Ir pra Central" também no visual novo e SEM os controles da copa enquanto não escolhe.
 - Não reproduzido com o save dele (a carreira Criciúma está só no aparelho, na nuvem só tem a do Fabulous EC).
+
+## 🦊👑 21/11 — Batismo FUNDADOR Cabuloso JP (rafaelazevedo455) — NO BRANCH, esperando "pode publicar"
+- Pix de Fundador (99,90) pago em 21/11 00:00 (`esc_mp_pedidos`). Conta existe (criada 16/11). Fundador nº104 · sócio nº98.
+- Várzea, no lugar do bot Descampado EC (`OLD_NAME` + `VARZEA_TEAMS`).
+- Arte do dono (fundo verde chroma tirado; escudo e mascote se encostavam pelo rabo — separados à mão): escudo 243×360 28 KB ·
+  mascote "A Raposa Cabulosa" (nome dado por mim, CONFIRMAR) 172×440 32 KB · camisa na Loja (`cabuloso-camisa-v1.webp`).
+  Manto `#00208C`/`#EFEEF0` medidos na camisa. Coração CRUZEIRO (deduzido da arte + pergunta do Diego — CONFIRMAR).
+- Banco FEITO: `esc_socios` (98, `escudo_time` = Cabuloso JP, coração Cruzeiro) · `esc_fundadores` (104) · `esc_nomes_batismo`
+  (Cabuloso JP / Cabulosojp; o gatilho fez FC/EC) · `user_colors` ouro manual já estava (Pix).
+- Post: `scripts/posts/batismo-cabuloso-jp.png` (dono "Rafael" tirado do e-mail — confirmar).
+- ⏳ FALTA do Fundador: **📣 canto** (nenhum clube tem canto do Cruzeiro — precisa do áudio) e **gala única** (mockup antes).

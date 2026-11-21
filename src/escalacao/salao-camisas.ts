@@ -91,6 +91,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Ceará SP Club": "cearasp-camisa-v1.webp", // 👑⚫ Ceará SP Club (lucasnicodemosqq, 19/11)
   "Império FC": "imperio-camisa-v1.webp", // 👑🦡 Império FC (leodicasttro, 20/11)
   "Lavras FC": "lavras-camisa-v1.webp", // 🐆👑 Lavras FC (hugopereirabrito, 16/11)
+  "Cabuloso JP": "cabuloso-camisa-v1.webp", // 🦊👑 Cabuloso JP (rafaelazevedo455, 21/11)
   "Obelisko FC": "obelisko-camisa-v1.webp", // 👁️👑 Obelisko FC (felipefazzio, 18/11)
   "Duarte FC": "duarte-camisa-v1.webp", // 🧤👑 Duarte FC (luizfelipeduarte212, 18/11)
   "Cabritiiin F.C": "cabritiiin-camisa-v1.webp", // 🐐👑 Cabritiiin F.C (lucassaboia14, 13/11)
