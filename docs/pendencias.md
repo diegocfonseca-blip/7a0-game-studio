@@ -25,6 +25,17 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
   proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
 
+## 🚀 21/11 (tarde) — PUBLICADO pra todos por ordem do Diego ("publique tudo isso que falamos hoje… e a melhoria de nitidez")
+
+- Central: escolha 2D/3D vale pra 1 jogo (volta da mata-mata pergunta de novo), ⏩ Pular chega no dia do jogo (testado 12 rodadas, 1 toque, 0 erro),
+  coletiva fecha ao responder (efeito no cartão 🎙️ Imprensa), capa do jornal = estádio. PULAR do Manual continua como sempre (ele pediu).
+- Calendário: 8 das 38 rodadas da liga na quarta 20h (`RODADAS_DE_QUARTA`, nunca na quarta da Copa — `defineSemanasDeCopa`). Só data.
+- Jogo 3D: nitidez até 2× + cor (`nitidezJogo`, só segurando 60 quadros), velocidade = marcha do 2D (90 s ÷ marcha), Controles/Substituir embaixo,
+  cadeado sem plano (`ctl.cadeado` → `ManualLockButton` em cima do mapa), placar/estádio/botões menores só vendo o jogo.
+- Medidor `?diag=1` não fica mais lembrado no aparelho (ele reclamou que aparecia).
+- ⚠️ Falta o Diego confirmar no S25: nitidez segurando 60, cadeado com conta sem plano (não testado com conta real), rodada de quarta na tela.
+- Reverter: cada item é um commit separado de 21/11 no branch `claude/denis-save-file-x1osct`.
+
 ## 🃏 21/11 — O PACOTE DO CAMPEÃO SORTEIA DO BARALHO INTEIRO (Diego: "a carta que tenha no jogo serve… estaduais, A B C D, Sul-Americana, Libertadores")
 - `baralho-inteiro.ts`: soma as cartas REGIONAIS (445) e as do BRASIL OFICIAL (2 mil+, pedaço separado que desce na hora) aos 3 baralhos.
 - Vale no pacote do ÁLBUM: salas online, partida rápida e a carta "na hora" (`garanteCartaDoTitulo`, que agora também usa `sorteiaCarta`). Raridade igual (categoria primeiro: lenda 4%).

@@ -165,6 +165,6 @@
 .pc3-review[data-watching-match=true] .pc3-navigation .pc3-zoom{font-size:19px}
 .pc3-review[data-watching-match=true] .pc3-match-controls-toggle{min-height:30px!important;padding:4px 8px!important;font-size:11px!important;gap:6px;box-shadow:2px 2px 0 #0c0c0c}
 .pc3-review[data-watching-match=true] .pc3-match-controls-toggle span{padding:2px 5px;font-size:10.5px}
-.pc3-review[data-watching-match=true] .pc3-match-score{top:max(58px,calc(env(safe-area-inset-top) + 52px));gap:3px}
+.pc3-review[data-watching-match=true] .pc3-match-score{top:max(66px,calc(env(safe-area-inset-top) + 60px));gap:3px}
 .pc3-review[data-watching-match=true] .pc3-match-narration{font-size:10px;padding:3px 6px}
 .pc3-review[data-watching-match=true] .pc3-match-controls-panel{bottom:42px}
