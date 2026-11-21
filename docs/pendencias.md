@@ -14383,3 +14383,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Plano proposto: (1) MODO PARTIDA — no jogo, congelar/esconder tudo fora do estádio e atualizar só jogadores/bola/torcida; (2) quadros 30 ou 60, nunca 45, e 60 no
   celular que aguenta; (3) desenho mais barato durante o jogo (sem MSAA no celular, reflexo só onde aparece, profundidade simples com vista curta, cadeiras/torcida leves);
   (4) medidor na tela e teste no celular do Diego, antes × depois.
+
+- ✅ 21/11 (Diego: *"Pode sim e faça p todos já tb"*): ⚠️ a etapa (1) MODO PARTIDA já tinha sido feita e publicada por OUTRA sessão no mesmo dia
+  (`7aa22fc0`, `presidencia-partida-cena.ts`: cidade fora da árvore de desenho, profundidade normal, sem MSAA no Leve, material difuso leve).
+  Remedido com `perfil-carreira.mjs` depois dela: laço por quadro 11,3 → 6,7 ms · triângulos 256 mil → 165 mil · o dobro de quadros na placa simulada.
+  Desta sessão entrou só o que faltava, a etapa (2): `presidencia-partida-quadros.ts` — no jogo 3D em foco o teto deixa de ser o do nível
+  (Leve 30 / Padrão 45): tenta 60 e, se a média passa de ~21 ms por quadro depois de 120 quadros, trava em 30 até o fim da partida (não fica
+  trocando). Pouca memória (≤2 GB) segue em 30; placa simulada e mapa livre não mudaram. Trava: `npx tsx scripts/testa-partida-quadros.mts`.
+  Medidor na tela: abrir o jogo com `?diag=1` no endereço (mostra a placa e os quadros/s em Configurações do mapa).
+  FALTA: teste no S25 do Diego; etapa (3) (reflexo só onde aparece, cadeiras/torcida mais leves) só se ainda precisar depois do teste.
