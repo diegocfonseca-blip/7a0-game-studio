@@ -14368,3 +14368,18 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
   confere com `esc_cupom_validar` e cobra com desconto (testado com rollback: Fundador 99,90 → 89,91 · Batismo 79,90 → 71,91). O uso
   vai pra `esc_cupom_usos` quando o Pix CAI (gatilho `esc_mp_cupom_anota`, série 'FUN'/'BAT'). Cupom inválido = pedido recusado.
 - Tela (`screens.tsx`): o mesmo "tem cupom?" sutil, agora também embaixo do Gerar meu Pix; o Pix sai no valor com desconto.
+
+## 🔬 21/11 — Jogo 3D do mapa travando: ANÁLISE (Diego: *"analise a fundo todo o mapa… no fim o jogo tem que rolar liso"*) — plano enviado, esperando OK
+Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (carreira DE VERDADE: Central → 🏟️ 3D → ▶) e `ab-desenho.mjs`.
+⚠️ Placa de vídeo aqui é simulada: os números de PROCESSADOR valem; os de placa são só proporção. Falta medir no celular dele.
+- Quadro do jogo na carreira (celular, Leve): 66 desenhos · ~250 mil triângulos · 16 jogadores no detalhe + 6 fora da tela. Geometria é LEVE — não é o gargalo.
+- Processador: o laço por quadro custa ~11–13 ms de mediana e 45–52 ms nos picos NO SERVIDOR (celular médio = 3–4× isso). Do JS, o three.js sozinho ≈ 10 ms por
+  quadro: `updateMatrixWorld` na cena INTEIRA (3.851 objetos, 761 malhas — a cidade toda, mesmo com a câmera no campo), `projectObject`, animação/esqueleto dos 22,
+  e até `getObjectByProperty` (busca por nome a cada quadro). React da página (pyramidseason) ≈ 5% da linha principal em dev (menos em produção). Motor do jogo ≈ 0,5%.
+- Teto de quadros: Leve = 30 (todo celular), Padrão = 45 (PC) — 45 numa tela de 60 Hz dá passo irregular (16/33 ms) = tremida constante.
+- Desenho (A/B, proporção): sem serrilhado suave (MSAA) +51% de quadros · sem cadeiras/torcida +58% · sem reflexo de ambiente (740 materiais PBR) +20% ·
+  Lambert/sem névoa ≈ 0 · profundidade logarítmica: sem diferença na placa simulada (em placa de celular costuma desligar o descarte antecipado — medir no aparelho).
+- Quando engasga, `graphicsBudget` baixa a nitidez (borra) e o `caiPraLeve` troca o nível; o relógio do jogo é de parede com passo máximo de 250 ms (abaixo de 4 qps vira câmera lenta).
+- Plano proposto: (1) MODO PARTIDA — no jogo, congelar/esconder tudo fora do estádio e atualizar só jogadores/bola/torcida; (2) quadros 30 ou 60, nunca 45, e 60 no
+  celular que aguenta; (3) desenho mais barato durante o jogo (sem MSAA no celular, reflexo só onde aparece, profundidade simples com vista curta, cadeiras/torcida leves);
+  (4) medidor na tela e teste no celular do Diego, antes × depois.
