@@ -14393,3 +14393,26 @@ Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 2
 - 🃏 Bafo novo (21/11): dono que SOME 10 min sem voltar = abandono (perde as 2 cartas) — *"sim pode ser"*. Tempo do campeão escolher
   virou **60 s** (não 90), com **os 22 de cada time já ABERTOS e organizados por posição** (sem filtro/busca). Mockup:
   `scripts/mockups/bafo-campeao-escolhe.png` (PC = times lado a lado · celular = um time por aba). Esperando OK.
+## 🔬 21/11 — Jogo 3D do mapa travando: ANÁLISE (Diego: *"analise a fundo todo o mapa… no fim o jogo tem que rolar liso"*) — plano enviado, esperando OK
+Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (carreira DE VERDADE: Central → 🏟️ 3D → ▶) e `ab-desenho.mjs`.
+⚠️ Placa de vídeo aqui é simulada: os números de PROCESSADOR valem; os de placa são só proporção. Falta medir no celular dele.
+- Quadro do jogo na carreira (celular, Leve): 66 desenhos · ~250 mil triângulos · 16 jogadores no detalhe + 6 fora da tela. Geometria é LEVE — não é o gargalo.
+- Processador: o laço por quadro custa ~11–13 ms de mediana e 45–52 ms nos picos NO SERVIDOR (celular médio = 3–4× isso). Do JS, o three.js sozinho ≈ 10 ms por
+  quadro: `updateMatrixWorld` na cena INTEIRA (3.851 objetos, 761 malhas — a cidade toda, mesmo com a câmera no campo), `projectObject`, animação/esqueleto dos 22,
+  e até `getObjectByProperty` (busca por nome a cada quadro). React da página (pyramidseason) ≈ 5% da linha principal em dev (menos em produção). Motor do jogo ≈ 0,5%.
+- Teto de quadros: Leve = 30 (todo celular), Padrão = 45 (PC) — 45 numa tela de 60 Hz dá passo irregular (16/33 ms) = tremida constante.
+- Desenho (A/B, proporção): sem serrilhado suave (MSAA) +51% de quadros · sem cadeiras/torcida +58% · sem reflexo de ambiente (740 materiais PBR) +20% ·
+  Lambert/sem névoa ≈ 0 · profundidade logarítmica: sem diferença na placa simulada (em placa de celular costuma desligar o descarte antecipado — medir no aparelho).
+- Quando engasga, `graphicsBudget` baixa a nitidez (borra) e o `caiPraLeve` troca o nível; o relógio do jogo é de parede com passo máximo de 250 ms (abaixo de 4 qps vira câmera lenta).
+- Plano proposto: (1) MODO PARTIDA — no jogo, congelar/esconder tudo fora do estádio e atualizar só jogadores/bola/torcida; (2) quadros 30 ou 60, nunca 45, e 60 no
+  celular que aguenta; (3) desenho mais barato durante o jogo (sem MSAA no celular, reflexo só onde aparece, profundidade simples com vista curta, cadeiras/torcida leves);
+  (4) medidor na tela e teste no celular do Diego, antes × depois.
+
+- ✅ 21/11 (Diego: *"Pode sim e faça p todos já tb"*): ⚠️ a etapa (1) MODO PARTIDA já tinha sido feita e publicada por OUTRA sessão no mesmo dia
+  (`7aa22fc0`, `presidencia-partida-cena.ts`: cidade fora da árvore de desenho, profundidade normal, sem MSAA no Leve, material difuso leve).
+  Remedido com `perfil-carreira.mjs` depois dela: laço por quadro 11,3 → 6,7 ms · triângulos 256 mil → 165 mil · o dobro de quadros na placa simulada.
+  Desta sessão entrou só o que faltava, a etapa (2): `presidencia-partida-quadros.ts` — no jogo 3D em foco o teto deixa de ser o do nível
+  (Leve 30 / Padrão 45): tenta 60 e, se a média passa de ~21 ms por quadro depois de 120 quadros, trava em 30 até o fim da partida (não fica
+  trocando). Pouca memória (≤2 GB) segue em 30; placa simulada e mapa livre não mudaram. Trava: `npx tsx scripts/testa-partida-quadros.mts`.
+  Medidor na tela: abrir o jogo com `?diag=1` no endereço (mostra a placa e os quadros/s em Configurações do mapa).
+  FALTA: teste no S25 do Diego; etapa (3) (reflexo só onde aparece, cadeiras/torcida mais leves) só se ainda precisar depois do teste.
