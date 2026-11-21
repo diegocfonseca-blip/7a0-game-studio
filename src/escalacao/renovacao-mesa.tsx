@@ -9,7 +9,7 @@ import { CompromissoCarreira } from './compromissos-carreira-ui'
 // (renewOptions/renewCost). Só a tela mudou — a regra de ouro contra botão mudo: a tela lê as mesmas
 // funções do motor e só mostra botão que o reducer aceita.
 import { useState } from 'react'
-import type { Manager, WonCard } from './types'
+import type { EscState, Manager, WonCard } from './types'
 import { useEsc, valorOficial, renewOptions, renewCost, divOficialDe, type RenewAnos } from './store'
 import { preparadorDe, precoRenovacaoPreparador } from './preparadores'
 import { previaCentral } from './sport'
@@ -39,6 +39,21 @@ const tag = (txt: string) => (
   <span style={{ display: 'inline-block', background: INK, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', borderRadius: 6, padding: '2px 8px', margin: '2px 0 7px' }}>{txt}</span>
 )
 
+// 📝 21/11 (janela nova): QUANTO a Mesa tem pra mostrar — a MESMA conta que ela usa pra decidir se desenha. A tela de Contratos
+// lê isto pra saber se abre (tem o que decidir) ou se o leilão começa direto. `decidir` = pendentes (jogadores dos 2 clubes +
+// técnico + preparador) · `soltos` = quem já levou "deixar ir" (ainda dá pra desfazer).
+export function contratosNaMesa(state: EscState, tecnicoOn: boolean): { decidir: number; soltos: number } {
+  const mgr = state.managers[state.youIdx] as Manager | undefined
+  if (!mgr) return { decidir: 0, soltos: 0 }
+  const dormM = state.multiClube ? state.managers.find(mm => mm.id === state.multiClube!.id) : undefined
+  const expOf = (mm?: Manager) => mm ? (mm.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < state.seasonNo) : []
+  const todos = [...expOf(mgr), ...expOf(dormM)], soltos = new Set(state.contratoRelease ?? [])
+  const nomeTec = tecnicoOn ? state.careerTecnicos?.[mgr.teamName] : undefined, fimTec = state.careerTecnicoContrato?.[mgr.teamName]
+  const tecVencido = !!nomeTec && fimTec != null && fimTec < state.seasonNo
+  const prep = state.careerOnline && state.onlineMode !== 'online' ? preparadorDe(state.careerPreparador?.[mgr.teamName]) : undefined, fimPrep = state.careerPreparadorContrato?.[mgr.teamName]
+  const prepVencido = !!prep && fimPrep != null && fimPrep < state.seasonNo
+  return { decidir: todos.filter(c => !soltos.has(c.id)).length + (tecVencido ? 1 : 0) + (prepVencido ? 1 : 0), soltos: todos.filter(c => soltos.has(c.id)).length }
+}
 export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
   const visualV2=useCareerVisualV2()
   const { state, dispatch } = useEsc()
@@ -69,9 +84,7 @@ export function MesaRenovacao({ tecnicoOn }: { tecnicoOn: boolean }) {
   const prepVencido = !!prep && fimPrep != null && fimPrep < state.seasonNo
   const custoPrep = prep ? precoRenovacaoPreparador(prep, divOficialDe(state)) : 0
 
-  const pendentes = [...expirados, ...expDorm].filter(c => !soltos.has(c.id))
-  const nDecidir = pendentes.length + (tecVencido ? 1 : 0) + (prepVencido ? 1 : 0)
-  const nSoltos = [...expirados, ...expDorm].filter(c => soltos.has(c.id)).length
+  const { decidir: nDecidir, soltos: nSoltos } = contratosNaMesa(state, tecnicoOn) // 📝 21/11: a conta única (a tela de Contratos lê a mesma)
   if (nDecidir === 0 && nSoltos === 0 && feitos.length === 0) return null
 
   const anota = (f: Feito) => setFeitos(l => [...l.filter(x => x.id !== f.id), f])

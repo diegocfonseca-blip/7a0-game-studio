@@ -316,6 +316,40 @@ export function contratoCpuFalta(cardId: string, seed: number, seasonNo: number)
   return (h + 5 - (seasonNo % 5)) % 5
 }
 
+// 📋 LISTAR PRA LEILÃO — A REGRA ÚNICA (21/11, janela nova). Por que a carta NÃO pode ser posta à venda (null = pode). É a conta que
+// morava dentro do `TOGGLE_RESERVE_LIST` (mesma ordem, mesmas travas), agora lida também pelo 🛒 Mercado ("📋 Pôr à venda") e pela
+// virada que transforma as marcas em lista — tela e reducer leem a MESMA função (regra de ouro contra botão mudo).
+// `snJanela` = a temporada da JANELA em que a venda acontece: na janela é o `seasonNo`; durante a temporada é `seasonNo + 1`.
+export type MotivoNaoListar = 'cedo' | 'sumiu' | 'cria' | 'emprestado' | 'vencido' | 'posicao'
+export function motivoNaoListar(contratosOn: boolean | undefined, mgr: Pick<Manager, 'squad' | 'formation'>, cardId: string, jaListados: string[], snJanela: number): MotivoNaoListar | null {
+  if (snJanela < 3) return 'cedo' // a VENDA só libera na 3ª temporada (na 2ª só dá pra comprar)
+  const card = (mgr.squad as WonCard[]).find(c => c.id === cardId)
+  if (!card) return 'sumiu'
+  if (card.cria) return 'cria' // 🌱 cria é invendável — ninguém paga nada por ele
+  if (card.emprestado) return 'emprestado' // 🏢 ou é da SAF (não é seu), ou é seu que está lá: traga de volta primeiro
+  if (contratosOn && card.contratoAte != null && card.contratoAte < snJanela) return 'vencido' // 🔒 contrato vencido só sai pelo "Deixar ir"
+  const pos = card.pos
+  const listedInPos = jaListados.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
+  const filledPos = mgr.squad.filter(c => c.pos === pos && !c.emprestado).length // 🏢 conta SÓ os SEUS (emprestado volta na virada)
+  if (filledPos - listedInPos - 1 < FORMATIONS[mgr.formation][pos]) return 'posicao' // deixaria a posição abaixo da formação
+  return null
+}
+/** 📋 a janela nova vale AQUI? Só carreira solo de aparelho (nunca sala, nunca carreira online v2) e só com a chave ligada. */
+export function janelaNovaVale(s: Pick<EscState, 'careerOnline' | 'onlineMode' | 'co2' | 'roomId'>): boolean {
+  return janelaNovaLiberada() && !!s.careerOnline && s.onlineMode !== 'online' && !s.co2 && !s.roomId
+}
+/** 📋 virada (21/11): as marcas "pôr à venda" do Mercado viram `reserveListed` pela MESMA regra do listar — quem deixou de poder
+ *  (contrato venceu, posição ficaria curta, saiu do elenco) é pulado calado. Consome o campo. Não mexe em dinheiro nem em elenco. */
+export function aplicaAVendaMercado(s: EscState): void {
+  const marcas = s.aVendaMercado ?? []
+  s.aVendaMercado = undefined
+  const you = s.managers[s.youIdx]
+  if (!marcas.length || !you?.isHuman) return
+  const arr = [...(s.reserveListed?.[you.id] ?? [])]
+  for (const id of marcas) if (!arr.includes(id) && motivoNaoListar(s.contratosOn, you, id, arr, s.seasonNo) === null) arr.push(id)
+  if (arr.length) s.reserveListed = { ...(s.reserveListed ?? {}), [you.id]: arr }
+}
+
 // 🕵️ OLHEIRO — quem pode SONDAR quem (Diego 07/09). A régua vai pela CATEGORIA
 // da carta, e é a mesma do overall do elenco:
 //   · foi profissional (fame 1), bom jogador (fame 2/3) e PROMESSA (o selo, em
@@ -1144,7 +1178,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { ligaEscudosOficiais } from './escudos'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
-import { brasilOficialLiberado, previaCentral } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
+import { brasilOficialLiberado, previaCentral, janelaNovaLiberada } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, CLUBES_BR_TODOS, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
 import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
 import { CARTAS_REGIONAIS } from './cartas-regionais'
@@ -6023,6 +6057,7 @@ type Action =
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
   | { type: 'ALICIAR_SEED' } // 🧢 semeia os técnicos dos clubes da SUA divisão (1ª visita à área de aliciar; idempotente)
   | { type: 'DE_OLHO'; tec?: string | null; jog?: { chave: string; nome: string; clube: string; pos: string } | null } // 👀 Mercado (Brasil Oficial): marca/desmarca de olho (1 técnico + 1 jogador; trocar substitui)
+  | { type: 'A_VENDA_MERCADO'; cardId: string } // 📋 Mercado (21/11, janela nova): marca/desmarca uma carta SUA pra ir a leilão na próxima janela (mesma regra do TOGGLE_RESERVE_LIST)
   | { type: 'ALICIAR_MARCAR'; tec?: string; cardId?: string; card?: WonCard; clube?: string; squad?: WonCard[] } // 🎯 marca/desmarca um alvo (técnico por nome, jogador por cardId) — ele FICA no clube; vira LOTE no próximo leilão. `card`+`clube` só pra TIME DE FUNDO (13/09): esses não têm manager nem elenco no save, então a tela manda a carta junto
   | { type: 'RENOVAR_TECNICO' } // 📝 contrato do técnico venceu (5 anos): +5 temporadas pagando o valor dele
   | { type: 'DISPENSAR_TECNICO' } // 📝 contrato venceu: deixa ir sem multa
@@ -6054,7 +6089,7 @@ type Action =
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
   | { type: 'START_ONLINE'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean; /** 🃏 21/11: Bafo novo (coleção da conta, só gente) */ bafo2?: boolean; bafoFormacoes?: Record<number, FormationKey> }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
+  | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; /** 📋 21/11: janela nova — as marcas "pôr à venda" do Mercado viram a lista do leilão (só a tela da carreira solo manda) */ janelaNova?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
@@ -8632,6 +8667,7 @@ function zeraCarreiraAnterior(s: EscState): void {
 function limpaMarcasDeModo(s: EscState): void {
   for (const k of MARCAS_DE_MODO) (s as unknown as Record<string, unknown>)[k] = (INITIAL as unknown as Record<string, unknown>)[k]
   s.deOlho = undefined // 👀 Mercado (18/11): o "de olho" é da carreira — nunca passa pra uma carreira nova
+  s.aVendaMercado = undefined // 📋 Mercado (21/11): o "pôr à venda" também é da carreira
 }
 /** 🎽 a formação está no cardápio do técnico deste clube agora? A MESMA conta pra tela do A/B e pro reducer (23/10). */
 export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'careerFormacaoExtra' | 'onlineMode'>, m: Manager, f: FormationKey, v?: string): boolean {
@@ -12542,6 +12578,19 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.deOlho = cur.tec || cur.jog ? cur : undefined
       return s
     }
+    case 'A_VENDA_MERCADO': {
+      // 📋 MERCADO · PÔR À VENDA (21/11, janela nova): só GUARDA a marca — o jogador segue no elenco e joga a temporada toda. Na
+      // virada (`OPEN_RESERVE_LIST` com `janelaNova`) ela vira a lista do leilão. Trava = a MESMA do listar (`motivoNaoListar`).
+      if (!janelaNovaVale(s)) return s
+      const you = s.managers[s.youIdx]
+      if (!you?.isHuman) return s
+      const cur = (s.aVendaMercado ?? []).filter(id => you.squad.some(c => c.id === id)) // quem já saiu do elenco some da lista
+      const i = cur.indexOf(action.cardId)
+      if (i >= 0) cur.splice(i, 1)
+      else { if (motivoNaoListar(s.contratosOn, you, action.cardId, cur, (s.seasonNo ?? 1) + 1) !== null) return s; cur.push(action.cardId) }
+      s.aVendaMercado = cur.length ? cur : undefined
+      return s
+    }
     case 'ALICIAR_MARCAR': {
       // 🎯 v2 do aliciar (27/08, bronca do Diego: "aliciar não quer dizer que o
       // técnico vai sair do time!"): marcar/desmarcar um ALVO. Nada muda agora —
@@ -13066,6 +13115,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // a janela de venda/contratos espera o botão do jogador (bug 08/08: o prazo
       // invisível engolia a lista de renovação no meio da decisão).
       s.phaseDeadline = (action.mesmo || s.onlineMode !== 'online') ? null : Date.now() + RESERVE_LIST_MS
+      if (s.aVendaMercado) { if (action.janelaNova && !action.mesmo && janelaNovaVale(s)) aplicaAVendaMercado(s); else s.aVendaMercado = undefined } // 📋 21/11 (janela nova): o "pôr à venda" do Mercado vira a lista do leilão — a marca vale pra ESTA janela e some ("mesmo time" não tem leilão)
       return s
     }
     case 'CONFIRM_MESMO_TIME': {
@@ -13138,23 +13188,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       const i = arr.indexOf(action.cardId)
       if (i >= 0) arr.splice(i, 1)
       else {
-        const card = mgr.squad.find(c => c.id === action.cardId)
-        if (!card) return s
-        if ((card as WonCard).cria) return s // 🌱 cria é invendável — ninguém paga nada por ele
-        // 🏢 emprestado NÃO pode ir pra lista/venda: ou é um jogador da SAF (não é seu
-        // pra vender), ou é seu que está na SAF. Traga de volta primeiro (botão na SAF).
-        if (card.emprestado) return s
-        // 🔒 contrato JÁ vencido: só sai pela janela de "Deixar ir" (RELEASE_CONTRACT),
-        // nunca pelo mercado comum — trava do lado autoritativo (espelha canList na tela),
-        // senão dava pra vender e "fugir" da decisão de contrato como reserva qualquer.
-        if (s.contratosOn && card.contratoAte != null && card.contratoAte < s.seasonNo) return s
-        const pos = card.pos
-        const listedInPos = arr.filter(id => mgr.squad.find(c => c.id === id)?.pos === pos).length
-        // 🏢 conta SÓ os jogadores SEUS (não emprestados): o emprestado volta na virada,
-        // então não pode servir de "muleta" pra você vender abaixo do que a formação
-        // precisa — senão, quando ele volta, você ficaria sem montar a formação.
-        const filledPos = mgr.squad.filter(c => c.pos === pos && !c.emprestado).length
-        if (filledPos - listedInPos - 1 < FORMATIONS[mgr.formation][pos]) return s // deixaria a posição incompleta
+        // 🌱 cria invendável · 🏢 emprestado não é pra vender · 🔒 contrato JÁ vencido só sai pelo "Deixar ir" (RELEASE_CONTRACT) ·
+        // nunca deixa a posição abaixo da formação (contando só os SEUS). 21/11: a conta virou `motivoNaoListar`, a MESMA que o
+        // 🛒 Mercado lê pra marcar "pôr à venda" — as travas e a ordem delas não mudaram.
+        if (motivoNaoListar(s.contratosOn, mgr, action.cardId, arr, s.seasonNo) !== null) return s
         arr.push(action.cardId)
       }
       listed[action.mgrId] = arr
