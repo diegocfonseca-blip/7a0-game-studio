@@ -394,7 +394,7 @@ export function mapa3dLiberado(): boolean { return mapa3dOk }
 // sondar e pôr à venda moram no 🛒 Mercado (a temporada toda), o Leilão pede uma CONFIRMAÇÃO e os contratos vencendo ganham uma
 // tela grande só deles. Nasce só na conta do Diego; `JANELA_NOVA_GERAL = true` libera. 🧪 no `vite` de bancada, `?janela=1` liga.
 const JANELA_NOVA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-export const JANELA_NOVA_GERAL = false
+export const JANELA_NOVA_GERAL = true // 🟢 21/11: liberada pra todos ("publica tudo já, pra todo mundo")
 let janelaNovaQA = false
 try { janelaNovaQA = import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).get('janela') === '1' } catch { /* fora do navegador (travas em node): fica desligado */ }
 let janelaNovaOk = JANELA_NOVA_GERAL || janelaNovaQA

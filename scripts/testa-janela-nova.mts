@@ -28,10 +28,10 @@ const elenco = (): WonCard[] => [
 const tecnico = (over: Partial<Manager> = {}): Manager => ({ id: 7, name: 'Você', teamName: 'Clube Teste', isHuman: true, money: 100, squad: elenco(), formation: '4-4-2', ...over } as Manager)
 const estado = (m: Manager, over: Partial<EscState> = {}): EscState => ({ careerOnline: true, onlineMode: 'cpu', roomId: '', managers: [m], youIdx: 0, seasonNo: 5, contratosOn: true, screen: 'season', reserveListed: {}, ...over } as unknown as EscState)
 
-console.log('0) a chave nasce DESLIGADA pra todo mundo')
-ok(JANELA_NOVA_GERAL === false, 'JANELA_NOVA_GERAL = false (só a conta do Diego até ele mandar liberar)')
-ok(janelaNovaLiberada() === false, 'sem login e sem forçar: desligada')
-ok(janelaNovaVale(estado(tecnico())) === false, 'com a chave desligada a janela nova não vale em carreira nenhuma')
+console.log('0) a chave está LIGADA pra todo mundo (liberada em 21/11)')
+ok(JANELA_NOVA_GERAL === true, 'JANELA_NOVA_GERAL = true (liberada pra todos em 21/11)')
+ok(janelaNovaLiberada() === true, 'sem login e sem forçar: ligada')
+ok(janelaNovaVale(estado(tecnico())) === true, 'carreira solo: a janela nova vale')
 
 console.log('1) a regra única de quem pode ir à venda')
 {
@@ -68,8 +68,6 @@ console.log('2) o TOGGLE_RESERVE_LIST de sempre continua igual')
 
 console.log('3) marcar no Mercado: só com a chave, só carreira solo, nunca mexe no elenco')
 {
-  const desligada = reducer(estado(tecnico()), { type: 'A_VENDA_MERCADO', cardId: 'a3' })
-  ok(desligada.aVendaMercado === undefined, 'chave desligada → a ação não faz nada (conta comum: zero mudança)')
   _forcaJanelaNovaParaTeste(true)
   ok(janelaNovaVale(estado(tecnico())) === true, 'chave ligada + carreira solo → vale')
   ok(janelaNovaVale(estado(tecnico(), { onlineMode: 'online' } as Partial<EscState>)) === false, 'sala online → não vale')

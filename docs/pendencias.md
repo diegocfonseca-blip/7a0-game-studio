@@ -1,3 +1,14 @@
+## 📋 21/11 — LIGA DRAFT: overall sempre no elenco + formações mais claras (pedido do Diego, publicado pra todos)
+- **Overall no elenco**: na Liga Draft a faixa (ex. 71–80) de TODO jogador do seu elenco aparece sempre, com ou sem plano (`overTodos` em `SquadTab`/`ElencoField`,
+  ligado em `minha-escalacao.tsx`). Antes seguia a regra do olheiro da carreira (só ouro/prata viam) e na sala nem isso. No Bafo NÃO liguei (ele pediu o Bafo sem over).
+- **Formações**: o código já listava as 7 do jogo + 3-5-2 na Liga Draft; a que "não aparece" é a APAGADA (o elenco não fecha). Agora embaixo vem o que falta em
+  CADA apagada ("4-2-4: falta 1 ATA") e o caminho (draft/leilão da virada) — antes só falava da primeira e mandava "contratar no leilão ou trazer da SAF".
+  O Bafo ganhou as mesmas 7 + 3-5-2 (estava com 5).
+- ❓ Se a reclamação da turma for de formação que some MESMO com elenco pra ela, pedir print (não reproduzi).
+- 🧪 TRAVAS: todas as `npx tsx scripts/…` do package.json agora rodam com `--import ./scripts/node-stub-reg.mjs` (68 delas morriam lendo `.webp`).
+  `liga-draft` (a Liga Draft ANTIGA) passa do cenário (fixture corrigida pra fame ≤ 3) mas reprova em "gente nova → leilão fraco de novo" (`'draft' !== 'auction'`):
+  a trava ficou velha frente à regra de 06/11 (gente nova entra na virada, a liga não recomeça). Rever a trava, não o jogo.
+
 ## 🃏 21/11 — BAFO NOVO (publicado SÓ pra conta do Diego e do Futpoint FC — `SALA_ELENCO_TESTERS`, `SALA_ELENCO_GERAL = false`)
 Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`RegrasBafo`):
 - Joga-se com as cartas que a CONTA já ganhou sendo campeã (`user_cards`, carreira ou sala). Não é da carreira. Precisa de 11+ que fechem um time.
@@ -34,7 +45,7 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
   proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
 
-## 🪟 21/11 — JANELA NOVA (fim de temporada, carreira solo) — SÓ NA CONTA DO DIEGO (`JANELA_NOVA_GERAL = false`)
+## 🪟 21/11 — JANELA NOVA (fim de temporada, carreira solo) — 🟢 LIBERADA PRA TODOS em 21/11 (`JANELA_NOVA_GERAL = true`)
 
 Pedido dele (prints do Oficial): *"a aba de mercado serve pra sondar ou tentar vender… por que apertaria leilão e entraria novamente em contratos e
 venda?… deveria aparecer um banner de confirmação… contrato vencendo tem que ser outra tela… tela grande com anos, renovar, deixar ir"*.
@@ -46,7 +57,9 @@ venda?… deveria aparecer um banner de confirmação… contrato vencendo tem q
 - Travas: `npm run janela-nova` (46 conferências) e `node scripts/teste-janela-nova/roda.mjs` (18, na tela).
 - ⚠️ Só por leitura (não rodado): a confirmação dentro do fim de temporada de verdade, aviso de transfer ban, "mesmo time", jogador sondado (só técnico foi exercitado), 2 clubes.
 - ⚠️ No caminho direto (sem contrato pra decidir) os avisos "🔓 Desbloqueado" das temporadas 2/3, a régua da escada e "Virou profissional" não aparecem — decidir com o Diego onde vão.
-- Falta: OK visual dele → liberar geral (`JANELA_NOVA_GERAL = true`) + linha em `novidades.ts`.
+- ✅ 21/11: ele mandou *"publica tudo já, pra todo mundo"* → chave ligada + linha em `novidades.ts`. Reverter = `JANELA_NOVA_GERAL = false`.
+- ❓ Sem resposta ainda: onde mostrar os avisos "🔓 Desbloqueado"/escada/"Virou profissional" com o leilão abrindo direto, e se tira o cartão "Sua resposta mexeu com o elenco".
+- 🔬 Não conferido em aparelho de verdade: confirmação no fim de temporada real, "mesmo time", multiClube, cadeado do 3D em conta sem plano.
 
 ## 🚀 21/11 (tarde) — PUBLICADO pra todos por ordem do Diego ("publique tudo isso que falamos hoje… e a melhoria de nitidez")
 
