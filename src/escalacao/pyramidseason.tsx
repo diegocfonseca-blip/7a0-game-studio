@@ -13360,6 +13360,10 @@ export function PyramidSeasonScreen() {
 
   // 🧭 19/11 (Diego: "não deveria ter essa aba de partida… agora aí fica só a classificação e outros jogos"): no fluxo da Central, sem
   // jogo escolhido no 📺 2D, a aba Jogos é SÓ a tabela — sem a aba Partida, sem o aviso e sem os botões de jogo (o jogo começa pela Central).
+  // 🐛 21/11 (Criciúma do Fabulous no Catarinense): o jogo do Estadual/copa esperando a escolha 2D/3D na Central. No visual novo a aba
+  // Jogos não mostrava o aviso — sobrava só o "Deixa o jogo acabar…" (que nunca libera, o relógio espera a escolha) e o PULAR, que
+  // passava o jogo dele sem mostrar. Agora: aviso com o botão pra Central e sem os controles enquanto não escolhe.
+  const copaEsperaEscolha = tab === 'jogos' && copaSegura && escolha2d !== chaveCopa
   const aguardaCentral = tab === 'jogos' && fluxoCentral && ((calOn && calFase === 'dias' && !escolha2d.startsWith(`${calSn}:${round}:`)) || (copaSegura && escolha2d !== chaveCopa))
   const areaVista = aguardaCentral ? 'tabela' : visualArea
   return (
@@ -13747,7 +13751,7 @@ export function PyramidSeasonScreen() {
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
         {tab === 'jogos' && !fluxoCentral && chegadaGrande && <ChegadaGrande titulo={chegadaGrande.titulo} confronto={chegadaGrande.confronto} clube={chegadaGrande.clube} onPular={() => setChegadaPulada(chegadaGrandeKey)}><VagaDoMapa /></ChegadaGrande>}
-        {tab === 'jogos' && (!fluxoCentral ? calBarra?.proxCard : aguardaCentral && !visualV2 ? (
+        {tab === 'jogos' && (!fluxoCentral ? calBarra?.proxCard : aguardaCentral && (!visualV2 || copaEsperaEscolha) ? (
           // 🧭 19/11 (fluxo novo): fora do jogo a aba Jogos não mostra placar nem os dias passando — o jogo começa pela Central
           <div style={{ border: `2.5px dashed ${GOLD}`, borderRadius: 14, padding: '14px 12px', margin: '0 0 10px', textAlign: 'center', background: '#14110C', color: '#f4ecd6' }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase' }}>{tr('⏳ Nenhum jogo rolando agora', '⏳ No match on right now')}</p>
@@ -14101,7 +14105,7 @@ export function PyramidSeasonScreen() {
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
             sozinha (só aparece o botão de ativar o manual). */}
-        {copaPlaying && state.isHost && (state.onlineMode !== 'online' || hasManual) && (
+        {copaPlaying && state.isHost && !copaEsperaEscolha && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
           <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>

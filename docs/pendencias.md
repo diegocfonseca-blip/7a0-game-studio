@@ -14339,3 +14339,10 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Recusadas por serem parecidas com as que já existem: WASTED/Trote (=Blitz), Invasão (=Assalto), Guincho/Bomba-relógio (=Cadeia), Advogado (=Funilaria).
 - ✅ 21/11: as 8 cartas FEITAS e publicadas (Diego: *"Ok publique todos eles"*). Motor em `store.tsx` (`viceAplica`/`viceUsa`/`viceJacareConfere`/`viceColocaNoTime`/`vicePodeUsar`), catálogo em `vice-city.ts`, cenas (avião, paraquedas, jacaré) em `vice-city-ui.tsx` (CSS/emoji, 0 KB). Trava `npm run vice-city` cobre as 8. Fotos de tela: `GOLPE=<id> SAIDA=<pasta> node scripts/teste-vice-city-tela.mjs`.
   · Decisões minhas no caminho (confirmar com o Diego se reclamar): Jacaré = 1 por rival de cada vez, a vítima recebe o que pagou de volta; Paraquedas/Jacaré com time cheio = a lenda entra no lugar do PIOR da posição e ele volta pra mesa; Trapaça dá +1 ⭐ pra quem usou; Missão vale só a carta que estava na mesa na hora; NPC só com vaga aberta no rival.
+
+## 🐛 21/11 — Estadual/copa travado no fluxo da Central (Criciúma do Fabulous, Catarinense) — NO BRANCH, esperando "pode publicar"
+- Causa (minha, do fluxo da Central de 19–20/11): jogo do SEU time no Estadual/copa espera a escolha 2D/3D na Central (`copaSegura`).
+  No visual novo (`visualV2`) a aba Jogos NÃO mostrava o aviso "o jogo começa pela Central" (estava `!visualV2`) — sobrava o controle
+  com "⏳ Deixa o jogo acabar…" (nunca libera: o relógio espera a escolha) e o PULAR, que passava o jogo sem mostrar nada.
+- Conserto: `copaEsperaEscolha` — aviso com "📺 Ir pra Central" também no visual novo e SEM os controles da copa enquanto não escolhe.
+- Não reproduzido com o save dele (a carreira Criciúma está só no aparelho, na nuvem só tem a do Fabulous EC).
