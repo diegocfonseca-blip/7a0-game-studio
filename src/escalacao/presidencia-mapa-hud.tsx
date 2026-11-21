@@ -82,7 +82,7 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
    {(ctl||ritmo)&&!replay&&<div className="pc3-match-controls">
     {aoVivo && !penaltis && ctl?.tatica && <button type="button" className="pc3-match-controls-toggle" data-substituir-mapa onClick={ctl.tatica} style={{ order: 2 }}>🔁 {t('Substituir', 'Subs')}</button>}
     {oficial&&ctl?.cadeado&&!ctl.manualOk
-     ? <button type="button" className="pc3-match-controls-toggle" onClick={()=>ctl.cadeado?.()}>🎮 {t('Manual e velocidade','Manual and speed')}<span>🔒</span></button>
+     ? <button type="button" className="pc3-match-controls-toggle" data-cadeado onClick={()=>ctl.cadeado?.()}>🎮 {t('Manual e velocidade','Manual and speed')}<span>🔒 {t('Liberar','Unlock')}</span></button>
      : <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{controlsOpen?t('Fechar controles','Close controls'):t('Controles','Controls')}{oficial&&ctl?.marcha?<span>{rotuloVelocidadeCampo(ctl.marcha)}</span>:ritmo&&vivo&&<span>{rotuloVelocidadeCampo(ritmo.speed)}</span>}</button>}
     {controlsOpen&&!(oficial&&ctl?.cadeado&&!ctl.manualOk)&&<div className="pc3-match-controls-panel" role="group" aria-label={t('Controles da partida','Match controls')}>
     {(ctl?.manualOk || (ritmo && vivo)) && <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

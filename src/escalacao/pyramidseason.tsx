@@ -248,9 +248,9 @@ function ManualLockButton() {
   const btn = { width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 13, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', ...OSWALD } as const
   return (
     <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
-      <button onClick={() => { if (!aberto) logApoio('👀 abriu: modo manual (trava)'); setAberto(a => !a) }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }}>
-        <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('Acelerar e pular', 'Speed up and skip')}</span>
-        <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{aberto ? tr('fechar ▴', 'close ▴') : tr('🔒 Desbloquear', '🔒 Unlock')}</span>
+      <button onClick={() => { if (!aberto) logApoio('👀 abriu: modo manual (trava)'); setAberto(a => !a) }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 14, background: aberto ? '#fff' : 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: INK, boxShadow: `3px 3px 0 ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', textTransform: 'uppercase', ...OSWALD }}>
+        <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('🎮 Manual e velocidade', '🎮 Manual and speed')}</span>
+        <span style={{ fontSize: 12, fontWeight: 900, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '4px 11px', whiteSpace: 'nowrap' }}>{aberto ? tr('fechar ▴', 'close ▴') : tr('🔒 Desbloquear', '🔒 Unlock')}</span>
       </button>
       {aberto && (
         <div style={{ marginTop: 8, background: '#FFF7DB', border: `2.5px solid ${INK}`, borderRadius: 12, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, color: INK }}>
@@ -12734,7 +12734,7 @@ export function PyramidSeasonScreen() {
     alternaManual: toggleManualCareer, mudaVelocidade: v => { if (campo2d) { if (r2dCarr.teste) setVel2D(v) } else dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
     marcha: vel2dCarr, mudaMarcha: v => { if (hasManual) setVel2D(v) }, cadeado: hasManual ? undefined : () => setCadeadoMapa(v => !v), // ⏩ 21/11: no 3D a marcha é a do campinho 2D; sem plano, cadeado
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
-    tatica: () => escolheAba('jogos'),
+    tatica: () => escolheAba('elenco'), // 🔁 21/11 (Diego: "apertei Substituir no mapa e não aparece nada de substituição, ainda joga pra aba de jogos"): troca de jogador mora na aba Elenco
   } : null
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
   const calBarra = (() => {

@@ -168,3 +168,7 @@
 .pc3-review[data-watching-match=true] .pc3-match-score{top:max(66px,calc(env(safe-area-inset-top) + 60px));gap:3px}
 .pc3-review[data-watching-match=true] .pc3-match-narration{font-size:10px;padding:3px 6px}
 .pc3-review[data-watching-match=true] .pc3-match-controls-panel{bottom:42px}
+
+/* 🔒 21/11 (Diego: "o botão de manual/velocidade pra quem não tem precisa ser mais visível"): o cadeado do mapa em dourado, com o selo verde */
+.pc3-review .pc3-match-controls-toggle[data-cadeado]{background:linear-gradient(160deg,#ffe79a,#ffc400 40%,#e8a200 70%,#ffdd70)!important;color:#0c0c0c!important}
+.pc3-review .pc3-match-controls-toggle[data-cadeado] span{background:#1b7a3d!important;color:#fff!important;border:1.5px solid #0c0c0c;border-radius:999px}

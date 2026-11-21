@@ -1,3 +1,12 @@
+## 🔒 21/11 (noite) — Cadeado do Manual mais visível + Substituir do mapa (NO BRANCH, esperando OK visual do Diego)
+- **Substituir no mapa 3D** abria a aba Jogos, onde não há troca nenhuma → agora abre a aba **Elenco** (`controleMapa.tatica`). Conferido na bancada.
+- **Cadeado do Manual**: aba Jogos = faixa dourada "🎮 MANUAL E VELOCIDADE" + selo verde "🔒 DESBLOQUEAR" (antes: branca, "Acelerar e pular");
+  mapa 3D = botão dourado + selo "🔒 Liberar". Prints: `scripts/mockups/cadeado-jogos.png` e `cadeado-mapa.png`. Bancada: `scripts/mapa3d/print-cadeado.mjs`.
+- **"Apareceu criar conta e Manual trancado jogando logado"** (print 18:52): no servidor a conta dele está certa (Fundador, Manual ligado), não houve
+  logout, e entre 18:52 e 19:10 não chegou NENHUM pedido com a conta dele — aquela tela estava sem login. O texto de diagnóstico (quadros/s) só aparece
+  pelo endereço especial `?diag=1`, então o mais provável é o jogo aberto por um link num navegador/janela onde ele não está logado. NÃO comprovado.
+  ❓ Se repetir no navegador de sempre, pedir print da home (pra ver se mostra o nome da conta) antes de mexer em qualquer coisa de login.
+
 ## 📋 21/11 — LIGA DRAFT: overall sempre no elenco + formações mais claras (pedido do Diego, publicado pra todos)
 - **Overall no elenco**: na Liga Draft a faixa (ex. 71–80) de TODO jogador do seu elenco aparece sempre, com ou sem plano (`overTodos` em `SquadTab`/`ElencoField`,
   ligado em `minha-escalacao.tsx`). Antes seguia a regra do olheiro da carreira (só ouro/prata viam) e na sala nem isso. No Bafo NÃO liguei (ele pediu o Bafo sem over).
