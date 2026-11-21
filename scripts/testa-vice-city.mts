@@ -234,7 +234,8 @@ while (r.phase === 'pregao' && r.pa && g3++ < 20000) {
   assert.ok(!n.pa, 'pregão com as cartas novas fechou')
   const ids2 = n.managers.flatMap(m => m.squad.map(c => c.id))
   assert.equal(new Set(ids2).size, ids2.length, 'cartas novas: nenhuma carta em dois elencos')
-  const nomes2 = n.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => c.name))
+  // 21/11: pela CARTA (nome|clube|ano), não pelo nome — a mesma pessoa em baralhos diferentes é permitida (De Paul Atlético × De Paul Inter Miami)
+  const nomes2 = n.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => `${c.name}|${c.club}|${c.year}`))
   assert.equal(new Set(nomes2).size, nomes2.length, 'cartas novas: nenhum jogador repetido entre times')
   console.log('✅ cartas novas: pneu, NPC, trapaça, loja, contrabando, missão, paraquedas e jacaré')
 }

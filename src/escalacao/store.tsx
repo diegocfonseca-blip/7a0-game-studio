@@ -8497,7 +8497,7 @@ export function viraCampo2D(s: EscState): void {
  *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
-export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'viceCartas', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
+export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'viceCartas', 'kingsBaralho', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos', 'bafoOn', 'bafo2',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm'] as const satisfies readonly (keyof EscState)[]
@@ -8511,7 +8511,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes'] as const satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'oficialAbertura', 'deOlho'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a

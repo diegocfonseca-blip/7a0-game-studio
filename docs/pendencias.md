@@ -62,7 +62,10 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   FORA da rede de segurança (não dá pra montar a chave): Liga da Turma/Liga Draft (sem `match_seed`), salas já apagadas, Copa do Mundo/regionais de sala, carreira online, basquete.
 - (proposta original) rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
 - (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
-- Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
+- ✅ 21/11 (Diego: "ok arrume e siga"): as 5 travas voltaram a passar — `agencia`/`espectador`/`liga-volta` agora rodam com `--import ./scripts/node-stub-reg.mjs`
+  (liam `.webp` e morriam); `vice-city` compara por CARTA (nome|clube|ano), não por nome (De Paul Atlético × Inter Miami é permitido); `carreira-limpa`:
+  `kingsBaralho` entrou em `MARCAS_DE_MODO` (escolha de sala que podia vazar pra carreira) e `oficialAbertura`/`deOlho` em `ZERA_NA_CARREIRA_NOVA`.
+- (histórico) Travas que JÁ falhavam antes desta entrega: `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
 ## 🧭 21/11 — Central: 4 ajustes pedidos pelo Diego (no branch, esperando ele mandar publicar)
 
