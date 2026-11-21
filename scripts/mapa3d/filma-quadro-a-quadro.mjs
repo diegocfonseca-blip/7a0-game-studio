@@ -15,7 +15,7 @@ p.on('pageerror', e => console.log('PAGEERR', e.message.slice(0, 200)))
 await p.route('**/*', r => r.request().url().startsWith('http://localhost:5314/') || r.request().url().startsWith('data:') || r.request().url().startsWith('blob:') ? r.continue() : r.abort())
 await p.clock.install()
 await p.addInitScript(() => { localStorage.setItem('bl_lang', 'pt'); localStorage.setItem('esc-sim-manual', '1'); localStorage.setItem('esc-diag', '1'); window.__qaSim = [] })
-await p.goto('http://localhost:5314/scripts/teste-partida-oficial-3d/?round=9&speed='+(process.env.SPEED||1), { waitUntil: 'domcontentloaded', timeout: 120000 })
+await p.goto('http://localhost:5314/scripts/teste-partida-oficial-3d/?round=9&speed='+(process.env.SPEED||1)+(process.env.NITIDEZ?'&nitidez=1':''), { waitUntil: 'domcontentloaded', timeout: 120000 })
 await p.waitForFunction(() => window.qaState, null, { timeout: 180000 }); console.log('carreira carregada')
 const skipPress = async () => { const x = p.getByRole('button', { name: /Pular a coletiva/i }); if (await x.count()) await x.click() }
 await p.getByRole('button', { name: 'Jogos + Tabela', exact: true }).last().click()

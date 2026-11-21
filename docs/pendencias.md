@@ -25,6 +25,17 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
   proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
 
+## 🚀 21/11 (tarde) — PUBLICADO pra todos por ordem do Diego ("publique tudo isso que falamos hoje… e a melhoria de nitidez")
+
+- Central: escolha 2D/3D vale pra 1 jogo (volta da mata-mata pergunta de novo), ⏩ Pular chega no dia do jogo (testado 12 rodadas, 1 toque, 0 erro),
+  coletiva fecha ao responder (efeito no cartão 🎙️ Imprensa), capa do jornal = estádio. PULAR do Manual continua como sempre (ele pediu).
+- Calendário: 8 das 38 rodadas da liga na quarta 20h (`RODADAS_DE_QUARTA`, nunca na quarta da Copa — `defineSemanasDeCopa`). Só data.
+- Jogo 3D: nitidez até 2× + cor (`nitidezJogo`, só segurando 60 quadros), velocidade = marcha do 2D (90 s ÷ marcha), Controles/Substituir embaixo,
+  cadeado sem plano (`ctl.cadeado` → `ManualLockButton` em cima do mapa), placar/estádio/botões menores só vendo o jogo.
+- Medidor `?diag=1` não fica mais lembrado no aparelho (ele reclamou que aparecia).
+- ⚠️ Falta o Diego confirmar no S25: nitidez segurando 60, cadeado com conta sem plano (não testado com conta real), rodada de quarta na tela.
+- Reverter: cada item é um commit separado de 21/11 no branch `claude/denis-save-file-x1osct`.
+
 ## 🃏 21/11 — O PACOTE DO CAMPEÃO SORTEIA DO BARALHO INTEIRO (Diego: "a carta que tenha no jogo serve… estaduais, A B C D, Sul-Americana, Libertadores")
 - `baralho-inteiro.ts`: soma as cartas REGIONAIS (445) e as do BRASIL OFICIAL (2 mil+, pedaço separado que desce na hora) aos 3 baralhos.
 - Vale no pacote do ÁLBUM: salas online, partida rápida e a carta "na hora" (`garanteCartaDoTitulo`, que agora também usa `sorteiaCarta`). Raridade igual (categoria primeiro: lenda 4%).
@@ -52,6 +63,19 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - (proposta original) rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
 - (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
 - Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
+
+## 🧭 21/11 — Central: 4 ajustes pedidos pelo Diego (no branch, esperando ele mandar publicar)
+
+- **3D repetindo sem perguntar**: era a mata-mata de IDA E VOLTA (estadual, Copa do Brasil, Liberta) — a volta começava sozinha no apito da ida.
+  Agora a volta tem chave própria (`:v`) e a fase PARA em 90 até a nova escolha na Central (`copaVolta`). Reproduzido e conferido na bancada.
+- Escolha vale pra UM jogo: chave exata em `aguardaCentral`/"▶ Começar o jogo" (a da Copa da quarta liberava a Liga do domingo); `avancarRodada`
+  sem escolha leva pra Central; Copa da quarta não pergunta duas vezes (`setCopaOk`).
+- ⚠️ **PULAR do Manual saiu na liga dentro do fluxo da Central** (começava o jogo seguinte direto). Avisado ao Diego; voltar = 1 linha (`onSkip`).
+- **⏩ Pular pro jogo**: em semana de Copa que o usuário NÃO joga parava na quarta sem jogo; e na C/D real a semana sem jogo recomeçava na segunda
+  (ref `pulando` atravessa). Conferido na bancada só o caso da Série D; o da quarta foi por leitura.
+- **Coletiva**: respondeu, fecha (sem a 2ª tela); efeito vai pro cartão 🎙️ Imprensa da Central (só na sessão, não vai pro save). Apresentação de lendas mantém a capa.
+- **Jornal da Central**: capa do meio da temporada = estádio (`estadioArt`); a taça fica pro jornal do campeão.
+- Não testado em celular de verdade; pênaltis depois da volta segurada e conta sem mapa: só por leitura.
 
 ## 🏆 20/11 — Queda na carreira: inscrições continentais e tabela (correção local, não publicada)
 

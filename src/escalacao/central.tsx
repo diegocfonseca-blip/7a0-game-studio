@@ -25,7 +25,6 @@ import { getLang, useT } from './lang'
 import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10)
 import type { Jornal, Contratacao } from './central-noticias'
 import estadioArt from './img/online-estadio-v25.webp'
-import tacaArt from './img/jornal-liga-v22.webp'
 import leilaoArt from './img/career-auction-room-private.webp'
 import copaBrArt from './img/carreira-copa-brasil-v25.webp'
 import copaLegArt from './img/online-copa8-v25.webp'
@@ -481,7 +480,7 @@ export function CentralCarreira(p: CentralProps) {
               <b style={{ ...OSW, fontSize: 26, letterSpacing: 2 }}>O Martelo</b>
               <small style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, color: '#6c604a', textTransform: 'uppercase' }}>{p.round > 0 ? t(`Edição da rodada ${p.round}`, `Round ${p.round} edition`) : t('Edição de pré-temporada', 'Pre-season edition')} · {t('Temporada', 'Season')} {p.seasonNo} · {p.divName}</small>
             </div>
-            <div style={{ height: p.fotoLendas?.length ? 190 : 150, background: `url(${tacaArt}) center 30% / cover`, position: 'relative', borderBottom: `3px solid ${INK}` }}>
+            <div style={{ height: p.fotoLendas?.length ? 190 : 150, background: `url(${estadioArt}) center 40% / cover`/* 📰 21/11 (Diego: "sempre aparece a foto do cara levantando troféu… não tem sentido"): no meio da temporada a capa é o estádio; a taça fica pro jornal do campeão */, position: 'relative', borderBottom: `3px solid ${INK}` }}>
               {p.fotoLendas?.length ? <div style={{ position: 'absolute', inset: 0 }}><FotoLendas lendas={p.fotoLendas} altura={190} /></div> : null}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0000 40%,#000c)' }} />
               <div style={{ position: 'absolute', left: 12, right: 12, bottom: 10, color: '#fff' }}>
