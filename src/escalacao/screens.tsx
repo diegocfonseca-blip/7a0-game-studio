@@ -2466,7 +2466,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
       {resumable && <><button type="button" onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button type="button" onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
       {solo && <><button type="button" onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button type="button" onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
     </> : undefined}
-    notices={<><BannerIndicacao />{amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}</>}
+    notices={<><PacotesDevidos /><BannerIndicacao />{amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}</>}
     shop={<LojaButton className="hv3-extra hv3-shop"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></svg><span className="hv3-text"><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Planos, identidade do clube, moedas e muito mais.', 'Plans, club identity, coins and more.')}</small></span><span aria-hidden="true">→</span></LojaButton>}
     overlays={<>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
@@ -7491,6 +7491,19 @@ function useTitulosNaHora() {
   const ligaCamp = online ? state.champion : null
   const qc = state.quickCopa
   const copaCamp = online && qc?.phase === 'done' && qc.champion ? qc.champion.id : null
+  // ⚡⭐ 21/11 (auditoria da cartinha): Relâmpago e Só Champions não têm campeão de LIGA, então o efeito de baixo nunca rodava e a
+  // carta só saía na tela final (sala parou antes = campeão sem carta). Aqui só a CARTA, com a MESMA chave da tela final (":copa").
+  const soCopa = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && !state.bafo2 && !state.espectador
+  const copaCampSolta = soCopa && qc?.phase === 'done' && qc.champion ? qc.champion.id : null // (com liga, o efeito de baixo usa a MESMA marca em `feitos`: não dobra)
+  useEffect(() => {
+    if (copaCampSolta == null) return
+    const eu = state.managers[state.youIdx]
+    if (!eu?.isHuman || eu.id !== copaCampSolta) return
+    const chave = `carta:${state.roomId}:${state.seed}:${state.seasonNo}:copa`
+    if (feitos.current.has(chave)) return
+    feitos.current.add(chave)
+    void garanteCartaDoTitulo(`${state.roomId}:${state.seed}:${state.seasonNo}:copa`).catch(() => feitos.current.delete(chave))
+  }, [copaCampSolta, state.roomId, state.seed, state.seasonNo]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!online || ligaCamp == null) return
     const roomId = state.roomId!
@@ -10831,6 +10844,42 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
 // estado, sincronizada pra todos). Qualquer um pode tocar pra abrir, mas é só
 // pra ver: não grava nada no álbum. Se a carta ainda não chegou (campeão não
 // abriu), o lacre fica "esperando" e revela sozinho quando ela cair no estado.
+// 🃏🛟 PACOTE QUE FICOU PRA TRÁS (21/11, auditoria pedida pelo Diego: "quando acaba uma competição e você ganha, deve aparecer o
+// pacote pra abrir"). ~2% dos campeões de sala ficavam sem carta: quem grava é o aparelho do campeão, e se ele fecha ou perde a
+// rede na hora, ninguém refazia. O banco (`esc_titulos_sem_carta`) devolve os títulos dos últimos 3 dias em que a conta foi campeã
+// e a carta não existe; aqui, na tela inicial, o pacote aparece pra abrir com a MESMA chave do título (nunca dobra).
+// Tráfego: 1 pergunta pequena por aparelho a cada 6 h (se não achou nada); achou, pergunta de novo na próxima abertura.
+const PACOTES_DEVIDOS_K = 'esc-pacotes-devidos-em'
+export function PacotesDevidos() {
+  const [lista, setLista] = useState<{ season_key: string; tipo: string; sala: string | null }[]>([])
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      try {
+        const ult = Number(localStorage.getItem(PACOTES_DEVIDOS_K) || 0)
+        if (Date.now() - ult < 6 * 3600_000) return
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user) return
+        const { data, error } = await supabase.rpc('esc_titulos_sem_carta')
+        if (error || !vivo) return
+        const l = (data ?? []) as { season_key: string; tipo: string; sala: string | null }[]
+        if (l.length === 0) localStorage.setItem(PACOTES_DEVIDOS_K, String(Date.now()))
+        setLista(l)
+      } catch { /* sem rede / sem armazenamento: tenta na próxima abertura */ }
+    })()
+    return () => { vivo = false }
+  }, [])
+  if (lista.length === 0) return null
+  return (
+    <div className="space-y-2">
+      {lista.map(t => (
+        <CardCollectPrompt key={t.season_key} seasonKey={t.season_key} origin="online"
+          motivo={t.tipo === 'copa' ? tr(`🏆 Você foi campeão da copa${t.sala ? ` na sala ${t.sala}` : ''} e o pacote ficou pra trás`, `🏆 You won the cup${t.sala ? ` in room ${t.sala}` : ''} and the pack was left behind`) : tr(`🏆 Você foi campeão${t.sala ? ` na sala ${t.sala}` : ''} e o pacote ficou pra trás`, `🏆 You won the title${t.sala ? ` in room ${t.sala}` : ''} and the pack was left behind`)} />
+      ))}
+    </div>
+  )
+}
+
 function StreamSpectatorCard({ champName, card }: { champName: string; card?: WonCard | null }) {
   const [opened, setOpened] = useState(false)
   const [opening, setOpening] = useState(false)

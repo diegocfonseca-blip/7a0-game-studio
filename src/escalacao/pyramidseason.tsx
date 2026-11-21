@@ -14172,6 +14172,25 @@ export function PyramidSeasonScreen() {
             </div>
           ))
         })()}
+        {/* 🇧🇷🃏 21/11 (auditoria pedida pelo Diego: "quando acaba uma competição e você ganha, deve aparecer o pacote pra abrir"):
+            no BRASIL OFICIAL o Estadual, a Libertadores, a Sul-Americana e a Intercontinental contavam pro ranking mas não davam
+            cartinha. Uma carta por título, chave própria (":estadual", ":libOf", ":sulaOf", ":interOf") pra não colidir com as outras. */}
+        {copaFinished && state.careerOnline && state.oficial && (() => {
+          const meuNome = state.managers[state.youIdx]?.teamName
+          if (!meuNome) return null
+          const oc = (state.oficialCampeoes ?? []).find(e => e.temporada === (state.seasonNo ?? 1))
+          const est = (state.oficialEstaduais ?? []).find(e => e.temporada === (state.seasonNo ?? 1))
+          const titulos: [string, string][] = []
+          if (est && est.campeao === meuNome) titulos.push(['estadual', tr(`🏟️ Campeão do ${est.nome || 'Estadual'}`, `🏟️ ${est.nome || 'State league'} champion`)])
+          if (oc?.liberta === meuNome) titulos.push(['libOf', tr('🌎 Campeão da Libertadores', '🌎 Libertadores champion')])
+          if (oc?.sula === meuNome) titulos.push(['sulaOf', tr('🌎 Campeão da Sul-Americana', '🌎 Sudamericana champion')])
+          if (oc?.intercontinental === meuNome) titulos.push(['interOf', tr('🌐 Campeão da Copa Intercontinental', '🌐 Intercontinental Cup champion')])
+          return titulos.map(([suf, motivo]) => (
+            <div key={suf} style={{ marginBottom: 12 }}>
+              <CardCollectPrompt motivo={motivo} you={state.managers[state.youIdx]} seasonKey={`${meuBilhete}:${suf}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `${meuBilhete}:${suf}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            </div>
+          ))
+        })()}
         {/* 🏛️🃏 o clube que DORME também ganha a cartinha, na hora (Diego 11/10). A carta entra no mesmo cofre
             do clube no comando — a Agência é uma só pros dois (decisão dele, 11/10) e a coleção conta a conta inteira. */}
         {copaFinished && state.careerOnline && dormeId != null && dormeTitulos.map(t => {

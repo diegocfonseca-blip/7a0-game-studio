@@ -30,7 +30,14 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   só dão a carta na TELA FINAL (se a sala parar antes, perde).
 - CARREIRA (pelo código): divisão, Copa Legends/do Brasil, Supercopa, Libertadores/Champions/Mundial (internacional), Copa do Mundo e clube que dorme têm cartinha.
   **Brasil Oficial: NÃO achei cartinha pra Estadual, Libertadores, Sul-Americana e Intercontinental** (contam pro ranking via `estOf/libOf/sulaOf/interOf`, mas não há `CardCollectPrompt`). Conferir e ligar.
-- PROPOSTA (uma só): rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
+- ✅ FEITO E PUBLICADO (21/11, Diego: "Sim… o principal é: acabou a competição e você ganhou, aparece o pacote pra abrir"):
+  1. carta tomada no Bafo não é paga de novo (`esc_titulo_pago` + gatilho no insert de `user_cards`; testado em transação desfeita);
+  2. Brasil Oficial: Estadual, Libertadores, Sul-Americana e Intercontinental ganharam pacote no fim da temporada (chaves `:estadual`/`:libOf`/`:sulaOf`/`:interOf`);
+  3. ⚡ Relâmpago e ⭐ Só Champions: a carta sai na hora em que o campeão aparece (mesma chave `:copa` da tela final);
+  4. 🛟 `PacotesDevidos` na tela inicial do futebol: título de sala dos últimos 3 dias sem carta → o pacote aparece pra abrir (RPC `esc_titulos_sem_carta`, 1 pergunta por aparelho a cada 6 h).
+  SQL: `docs/sql/titulo-pago-e-pacote-devido.sql`. NÃO testado logado na tela (só build + banco). O estadual só mostra o pacote no FIM da temporada (não na hora em que o estadual acaba).
+  FORA da rede de segurança (não dá pra montar a chave): Liga da Turma/Liga Draft (sem `match_seed`), salas já apagadas, Copa do Mundo/regionais de sala, carreira online, basquete.
+- (proposta original) rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
 - (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
 - Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
