@@ -1,3 +1,7 @@
+## 🏷️ 21/11 — CRIAR SALA: cartões (publicado, pedido do Diego com print)
+- 🌐 Carreira some da lista de modos no futebol (*"oculte esse carreira daí"*); no basquete fica.
+- 🃏 Bafo: sai a faixa roxa "LANÇA COM 3K" e entra o selo verde NOVO. 🌴 Vice City: "EM TESTES" vira NOVO.
+
 ## 🃏 21/11 — SELO DO BAFO NAS SALAS ABERTAS (publicado, *"já pode ativar"*)
 - Sala do Bafo ganha o selo `🃏 BAFO` (verde musgo → marrom, letra creme) no lugar do selo do baralho, na lista de salas abertas (`lobby.tsx`). Print: `scripts/mockups/bafo-selo.png`.
 
