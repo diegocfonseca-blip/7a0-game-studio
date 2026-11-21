@@ -1,3 +1,18 @@
+## 🃏 21/11 — BAFO NOVO (publicado SÓ pra conta do Diego e do Futpoint FC — `SALA_ELENCO_TESTERS`, `SALA_ELENCO_GERAL = false`)
+Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`RegrasBafo`):
+- Joga-se com as cartas que a CONTA já ganhou sendo campeã (`user_cards`, carreira ou sala). Não é da carreira. Precisa de 11+ que fechem um time.
+- Sala de espera = a normal de sempre, só com a caixa de regras em cima. **Nunca mostrar quantas cartas cada um tem** (só ✅ apto / 🔒 só assiste).
+- Dono aperta começar → CONVOCAÇÃO de 120 s na tela de todos (filtros por posição, sem over); o que faltar o jogo completa com as PIORES cartas. 22 no elenco.
+- Só gente (sem bots), mínimo 2. Só liga: 2 = 5 jogos · 3–4 = todos contra todos 4× · 5–20 = ida e volta. Troca/formação igual à Liga Draft.
+- Fim: SÓ o campeão toma 1 carta, em 60 s, com os 22 de cada um abertos por posição + busca. Campeão sumiu/não escolheu = o jogo sorteia.
+- Não conta pro ranking, não dá cartinha nova, sem revanche. **Dono não expulsa ninguém** (sem botão).
+- Dono que sai no meio perde 2 cartas aleatórias dos 22: uma pro 1º e outra pro 2º. Antes de começar a liga (na convocação) perde pro sistema e ninguém ganha.
+- Banco: `docs/sql/bafo2.sql` (APLICADO): `esc_bafo2` + RPCs `bafo2_fecha/bate/abre_escolha/tomar/sorteia/encerra/sumiu`; o banco confere a posse de cada carta.
+- Código: `bafo2.ts` (regras puras) · `bafo2-ui.tsx` · `bafo2-sala.tsx` · `bafo2-sair.ts`. Trava: `npm run bafo`. Prints das telas reais: `scripts/mockups/bafo2-real-*.png`.
+- Criar sala: a caixa de explicação do Bafo mostra o PACOTINHO do campeão (`online-pacote-v20.webp`) + 3 selos: 1ª sala do dia grátis · entrar é livre · precisa de 11+ cartinhas (mockup `scripts/mockups/bafo-criar-*.png`, *"Pode"*). Criar segue o padrão das salas rápidas (gatilho `esc_sala_por_dia` vale pra todo modo; nada mudou no banco).
+- ⚠️ FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
+- Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
+
 ## 🏆 20/11 — Queda na carreira: inscrições continentais e tabela (correção local, não publicada)
 
 Causa reproduzida: campeão estrangeiro deixava 46 inscritos na Libertadores; completar com eliminado retirava um transferido da Sul-Americana, gerando grupos incompletos e uma final sem adversário. Diego rejeitou reintegrar eliminado e aprovou ajustar inscrições com clubes/elencos reais. Implementação, compatibilidade e fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Temporadas antigas completas conservam seus confrontos; inscrições já incompletas são reparadas. Não houve acesso a saves privados nem publicação.
@@ -14381,6 +14396,30 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
   vai pra `esc_cupom_usos` quando o Pix CAI (gatilho `esc_mp_cupom_anota`, série 'FUN'/'BAT'). Cupom inválido = pedido recusado.
 - Tela (`screens.tsx`): o mesmo "tem cupom?" sutil, agora também embaixo do Gerar meu Pix; o Pix sai no valor com desconto.
 
+## 🃏 21/11 — BAFO NOVO (conversa com o Diego; NADA construído ainda — falta mockup + OK)
+Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 21/11:
+- **Cartas**: TODAS as que a conta já ganhou por título (carreira OU salas, `user_cards`), não as de uma carreira.
+- **Criar sala**: escolhe o modo Bafo e depois as opções de sempre. **Só LIGA** (sem copas). Sem leilão (jeito do lance não se aplica).
+- **Só gente, SEM bots**, mínimo 2, até 20. **Não conta pro ranking.**
+- **Formato**: 2 = melhor de 5 · 3–4 = todos contra todos 4× · **5 a 20 = ida e volta padrão**. Campeão = 1º da tabela (sem final).
+- **Sala de espera normal + as REGRAS num banner EM CIMA.**
+- **1ª tela ao iniciar = CONVOCAÇÃO**: 120 s, escolhe 22 das cartas dele, filtro de time/posição, SEM over (igual Liga Draft).
+  Tempo acabou: as marcadas entram e o sistema completa com as PIORES cartas dele. Mínimo 11 pra entrar.
+- **Elenco de 22 com troca titular↔reserva entre os jogos**, padrão da Liga Draft.
+- **Prêmio**: SÓ o campeão — escolhe 1 carta entre as 22 convocadas de QUALQUER pessoa da sala (quem saiu antes também vale).
+  Não ganha carta nova do baralho. Sem carta protegida. Quem tem 11 pode ser escolhido (fica sem jogar até ganhar outra).
+  Sugestões minhas ainda SEM resposta: 60 s pra escolher (senão sorteia) · campeão ausente = sorteio.
+- Amistoso (sem valer carta) segue existindo.
+- 🃏 Bafo novo, complemento 21/11: campeão tem **90 s** pra escolher (senão sorteia) · campeão ausente = o jogo sorteia 1 carta de alguém
+  que jogava com ele · **DONO QUE ENCERRA A PARTIDA ANTES DO FIM DA LIGA perde 2 cartas aleatórias das 22 dele** (vai nas regras do banner).
+  EM ABERTO: pra quem vão as 2 cartas e o que conta como "encerrar" (botão × sumir/queda — proposta: sumiu 10 min = abandono).
+- 🃏 Bafo novo (21/11): **o dono NÃO pode expulsar ninguém — o botão de remover não existe no modo** (senão ele tirava quem está ganhando).
+- 🃏 Bafo novo (21/11): dono que encerra — **1 carta aleatória pro 1º colocado e 1 pro 2º** (da tabela naquele momento, fora ele).
+  Se encerrar **antes de começar os jogos** (sem tabela), as 2 cartas vão **pro sistema e ninguém ganha**.
+  Ainda sem resposta: dono que SOME sem apertar nada (proposta: 10 min sem voltar = abandono).
+- 🃏 Bafo novo (21/11): dono que SOME 10 min sem voltar = abandono (perde as 2 cartas) — *"sim pode ser"*. Tempo do campeão escolher
+  virou **60 s** (não 90), com **os 22 de cada time já ABERTOS e organizados por posição** (sem filtro/busca). Mockup:
+  `scripts/mockups/bafo-campeao-escolhe.png` (PC = times lado a lado · celular = um time por aba). Esperando OK.
 ## 🔬 21/11 — Jogo 3D do mapa travando: ANÁLISE (Diego: *"analise a fundo todo o mapa… no fim o jogo tem que rolar liso"*) — plano enviado, esperando OK
 Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (carreira DE VERDADE: Central → 🏟️ 3D → ▶) e `ab-desenho.mjs`.
 ⚠️ Placa de vídeo aqui é simulada: os números de PROCESSADOR valem; os de placa são só proporção. Falta medir no celular dele.

@@ -1188,6 +1188,8 @@ import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAs
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
+import { donoSaiDoBafo } from './bafo2-sair'
+import { calendarioBafo } from './bafo2'
 import { premioDaLiga, premiosCopaDraft, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
@@ -3140,6 +3142,7 @@ export function ligaJogoNeutro(s: Pick<EscState, 'turnoUnico' | 'onlineMode' | '
  *  só o 1º turno (19 rodadas, cada par se enfrenta 1 vez). */
 function calendarioDaLiga(s: EscState): [number, number][][] {
   if (ehKings(s)) return calendarioKings(s.league.map(t => t.id))
+  if (s.bafo2) return calendarioBafo(shuffle(s.league.map(t => t.id), mulberry((s.seed ^ 0xBAF02) >>> 0))) // 🃏 21/11: 2 = 5 jogos · 3–4 = 4 turnos · 5+ = ida e volta
   const f = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
   return turnoUnicoVale(s) ? f.slice(0, f.length / 2) : f
 }
@@ -4477,7 +4480,7 @@ export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scor
 function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[], lancesSempre = false): MatchResult {
   // 📋🏆 MINHA LIGA DRAFT: elenco de até 22 — quem joga é o XI (os primeiros de cada posição, o mesmo que o campinho mostra).
   // O banco não entra na força nem faz gol. Fora deste modo nada muda (o elenco É o time de 11).
-  if (state.minhaLigaDraft) state = { ...state, managers: state.managers.map(m => m.squad.length > titularesDraft() ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) /* 🏀 basquete: quinteto · 🤖 05/11: bot com banco também (o dele já vem do melhor pro pior) */ }
+  if (state.minhaLigaDraft || state.bafo2) state = { ...state, managers: state.managers.map(m => m.squad.length > titularesDraft() ? { ...m, squad: xiPorOrdem(m.squad, m.formation) } : m) /* 🏀 basquete: quinteto · 🤖 05/11: bot com banco também (o dele já vem do melhor pro pior) */ }
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
   const comLances = involveHuman || lancesSempre
@@ -6049,7 +6052,7 @@ type Action =
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean; /** 🃏 21/11: Bafo novo (coleção da conta, só gente) */ bafo2?: boolean; bafoFormacoes?: Record<number, FormationKey> }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -8496,7 +8499,7 @@ export function viraCampo2D(s: EscState): void {
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
 export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'viceCartas', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
-  'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos',
+  'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos', 'bafoOn', 'bafo2',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
  *  do estado que sobrou da anterior; estes campos são da CARREIRA e não eram zerados em lugar nenhum — dívida/crise, torcida,
@@ -10227,7 +10230,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.contratosOn = !!action.career // 📝 contratos: SÓ carreira NOVA nasce com eles (save antigo segue sem)
       // 🚫🤖 19/10 (Diego: *"a opção de Sem bots no Minhas Ligas só abre se tiver no mínimo 4 pessoas… o jogo já sabe que se tiver
       // menos de 4 vai com bots mesmo"*): a escolha fica guardada (`ligaFechadaEscolha`) e só VALE com 4+ times de gente.
-      const fechada = !!action.ligaFechada && action.playerNames.length >= LIGA_FECHADA_MIN
+      const fechada = (!!action.ligaFechada && action.playerNames.length >= LIGA_FECHADA_MIN) || (!!action.bafo2 && !!action.bafo) // 🃏 21/11: o Bafo novo é SÓ gente, com 2 ou mais
       s.ligaFechadaEscolha = !!action.ligaFechada
       s.ligaFechada = fechada // 🏆 liga só com humanos (sem bots na tabela)
       s.ligaMode = !!action.liga // 🏆 é uma liga do "Minhas Ligas" (13/09): dono nunca passa a coroa; "📣 Chamar mais gente" só aqui
@@ -10516,10 +10519,25 @@ function reducerBase(state: EscState, action: Action): EscState {
           // id novo por carta: os ids vêm de OUTRO save e não podem colidir com os
           // do adversário (dois "c3" no mesmo jogo = escalação trocando de dono, a
           // família de bug mais cara desta casa).
-          m.squad = trazido.slice(0, 22).map((c, i) => ({ ...c, id: `bafo${m.id}-${i}` }))
+          m.squad = trazido.slice(0, 22).map((c, i) => ({ ...c, id: `bafo${m.id}-${i}`, ...(action.bafo2 ? { bafoId: c.id } : {}) })) // 🃏 21/11: `bafoId` = a carta no banco (é por ele que o campeão toma)
         }
         s.copaMode = 'liga' // 🃏 no Bafo é só a liga, do começo ao fim
         s.bafoOn = true
+        if (action.bafo2) {
+          // 🃏 BAFO NOVO (21/11): só gente na tabela, a formação que o elenco de cada um fecha, e a liga já nasce pronta
+          // (aqui não tem cerimônia de leilão pra montar a tabela depois). Quem chegou sem 11 nem entra — cinto de segurança:
+          // o lobby e o banco já barram antes.
+          s.bafo2 = true
+          s.managers = s.managers.filter(m => m.isHuman && (action.bafo?.[m.id]?.length ?? 0) >= 11)
+          for (const m of s.managers) { const f = action.bafoFormacoes?.[m.id]; if (f && FORMATIONS[f]) m.formation = f }
+          s.quickCopa = undefined
+          { const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def }
+          s.league = buildLeague(s.managers, false)
+          s.fixtures = calendarioDaLiga(s)
+          s.round = 0
+          s.scorers = []; s.assists = []
+          s.lastResults = []
+        }
         // 🃏 quem é o dono de cada time (conta + carreira). Sem isto a cascata do
         // fim não teria como saber de QUEM sai a carta nem pra QUAL carreira ela
         // vai — e carta trocando de dono errado é o pior bug possível aqui.
@@ -14020,7 +14038,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'MLD_FORMACAO': {
       // 👕 qualquer formação que o elenco consiga PREENCHER com jogador de verdade (mesma régua da carreira); o XI se refaz sozinho
-      if (!s.minhaLigaDraft) return state
+      if (!s.minhaLigaDraft && !s.bafo2) return state // 🃏 21/11: o Bafo novo usa o mesmo elenco de 22
       const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
       const need = FORMATIONS[action.formation]
       // 🪽 07/11: o 3-5-2 é só um DESENHO do 5-3-2 (os laterais sobem como alas) — única vista aceita aqui
@@ -14038,7 +14056,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'MLD_TROCA': {
       // 👕 titular ↔ reserva da MESMA posição: só troca a ordem do elenco (os primeiros de cada posição são os titulares)
-      if (!s.minhaLigaDraft) return state
+      if (!s.minhaLigaDraft && !s.bafo2) return state
       const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
       if (!m || action.a === action.b) return state
       const i = m.squad.findIndex(c => c.id === action.a), j = m.squad.findIndex(c => c.id === action.b)
@@ -15947,6 +15965,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const kickPlayer = useCallback((mgrId: number) => {
     const meId = stateRef.current.managers[stateRef.current.youIdx]?.id
     if (!isHostRef.current || mgrId === meId) return
+    if (stateRef.current.bafo2) return // 🃏 21/11 (Diego: "ele não pode expulsar ninguém"): no Bafo o dono não tira ninguém — senão tirava quem está ganhando
     channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex: mgrId } })
     rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId, peloDono: true })
     const rid = stateRef.current.roomId
@@ -16038,6 +16057,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
     saidaVoluntariaRef.current = Date.now() // 🧾 15/11: a saída daqui pra frente foi pelo botão SAIR (ver o vigia da coroa)
     // 👁️ FANTASMA SAINDO: não tem vaga, time nem coroa — só fecha a tela e volta pro menu (nada vai pra sala)
     if (st.espectador) { try { channelRef.current?.unsubscribe() } catch { /* ignora */ } channelRef.current = null; rawDispatch({ type: 'GO_LOBBY' }); return }
+    // 🃏 BAFO NOVO (21/11): o DONO sair no meio da liga ENCERRA o Bafo e custa 2 cartas (regra dele). A tela avisa o preço e
+    // pede confirmação; desistiu, não sai. Depois do fim da liga (tela final) sair é livre.
+    if (st.bafo2 && onlineRef.current === 'online' && isHostRef.current && rid && st.screen === 'season' && st.round < (st.fixtures.length || 1)) {
+      if (!(await donoSaiDoBafo(rid, st.bafoValendo !== false))) { saidaVoluntariaRef.current = 0; return }
+    }
     // 🏆 MINHAS LIGAS (13/09): o DONO sair NÃO passa a coroa nem apaga a liga — a liga é
     // dele do começo ao fim (regra 21/08, sem admin) e é feita pra ficar de pé. Ele só
     // libera a própria cadeira e vai pro menu; a liga segue em "🏆 Minhas ligas" e ele

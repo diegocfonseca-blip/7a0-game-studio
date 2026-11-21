@@ -106,6 +106,7 @@ import { publicOnlineVisual } from './online-release'
 import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto'
 import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
 import { CaminhoDraft } from './draft-favoritos'
+import { Bafo2Fim, ElencosBafo, BafoVigia } from './bafo2-ui' // 🃏 21/11: Bafo novo
 import { chaveNome as chaveNomeDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
@@ -1070,7 +1071,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   }
   // só o host, numa partida online, gerencia os técnicos. Lista os HUMANOS (menos
   // ele) e também os RIVAIS CPU (ex-amigos que saíram — auctionRival sem ser humano).
-  const canManage = inGame && state.onlineMode === 'online' && state.isHost
+  const canManage = inGame && state.onlineMode === 'online' && state.isHost && !state.bafo2 // 🃏 21/11: no Bafo ninguém é expulso depois que começa
   const others = state.managers.filter(m => m.id !== state.youIdx && (m.isHuman || m.auctionRival))
   const kick = (m: Manager) => {
     const msg = m.isHuman
@@ -1460,7 +1461,7 @@ function YourPitchBody({ small = false }: { small?: boolean }) {
   const mantoAng = meuMantoAngle()
   const mantoC3 = meuMantoC3() // 🟢 3ª cor (só do próprio dono, ex.: Desportivo Montreal)
   const mantoC3Buf = meuMantoC3Buffer() // 🚫🔴⚫ amortecedor: pro Arruda, vermelho não pode encostar em preto
-  if (state.reserveAuction || (state.minhaLigaDraft && shown.squad.length > titularesDraft())) { // 🏀 basquete: quinteto · 📋🏆 Minha Liga Draft: até 22 = titulares + banco
+  if (state.reserveAuction || ((state.minhaLigaDraft || state.bafo2) && shown.squad.length > titularesDraft())) { // 🏀 basquete: quinteto · 📋🏆 Minha Liga Draft: até 22 = titulares + banco
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
     // o mercado, então o campinho de baixo é só o "Banco".
     const benchTitle = state.seasonNo === 2 ? '🔁 Reservas (banco)' : '🔁 Banco'
@@ -7486,7 +7487,7 @@ async function garanteCartaDoTitulo(seasonKey: string) {
 function useTitulosNaHora() {
   const { state, sendChat } = useEsc()
   const feitos = useRef(new Set<string>())
-  const online = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && state.copaMode !== 'champions'
+  const online = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && state.copaMode !== 'champions' && !state.bafo2 // 🃏 21/11: o Bafo não dá carta nova nem conta pro ranking
   const ligaCamp = online ? state.champion : null
   const qc = state.quickCopa
   const copaCamp = online && qc?.phase === 'done' && qc.champion ? qc.champion.id : null
@@ -8793,12 +8794,14 @@ export function EscSeason() {
       <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
       {/* 📋🏆 Minha Liga Draft: elenco de até 22 → a aba Elenco é a MESMA da carreira (trocar titular e formação) */}
-      {state.minhaLigaDraft ? <EscalacaoMinha /> : <YourPitch small />}
+      {state.minhaLigaDraft || state.bafo2 ? <EscalacaoMinha /> : <YourPitch small />}
+      {/* 🃏 21/11: no Bafo, os 22 de cada rival abertos por posição (o campeão já vai escolhendo a carta que vai tomar) */}
+      {state.bafo2 && <ElencosBafo managers={state.managers} youId={you.id} />}
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
           times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
           já acabou, os elencos são públicos (tabela/artilharia já mostram tudo).
           Offline/carreira: nada muda. */}
-      {online && !state.careerOnline && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
+      {online && !state.careerOnline && !state.bafo2 && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
         <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} manto={mm.isHuman ? mantosSala[mm.id] ?? null : null} />
       ))}
       </div>
@@ -8820,6 +8823,7 @@ export function EscSeason() {
           giro da rodada — senão, com a tabela subindo, os créditos apareceriam no
           meio da tela. No desktop continua atravessando as duas colunas, igual. */}
       <div className="ll-rabicho">
+      {state.bafo2 && online && state.roomId && <BafoVigia roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid} ligaRolando={state.round < totalRounds} />}
       {online && state.roomId && !state.careerOnline && (
         <LigaHub roomId={state.roomId} souDono={state.isHost} cinema={cinemaPreview}
           humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
@@ -13117,7 +13121,7 @@ export function EscEnd() {
     <>
       {/* 🏀 no basquete o pacote sai do baralho da NBA e vai pro ÁLBUM DA NBA (`nba`); na carreira a
           carta também entra na 💼 Agência (`agenciaNba`), igual ao futebol */}
-      {online && youWon && state.roomId && (
+      {online && youWon && state.roomId && !state.bafo2 && (
         <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}`)} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
@@ -13237,7 +13241,11 @@ export function EscEnd() {
       {!copaPending && !libPending && !mundoEsperando && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader())}
       {/* 🃏 BAFO: a cascata é O prêmio deste modo — vem logo depois da colocação,
           antes da tabela, porque é a primeira coisa que a galera quer ver. */}
-      {state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
+      {state.bafo2 && state.roomId ? (
+        <Bafo2Fim roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid} managers={state.managers} assentos={state.seatUids ?? []}
+          campeaoUid={state.champion != null ? (state.seatUids?.[state.champion] ?? null) : null}
+          aoVoltar={state.isHost ? async () => { await voltaEsperaNoBanco(state.roomId); dispatch({ type: 'REMATCH' }) } : undefined} />
+      ) : state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
         <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
           <p className="font-black text-base" style={OSWALD}>{LE('🤝 BAFO AMISTOSO', '🤝 FRIENDLY BAFO')}</p>
           <p className="text-[11.5px] font-bold text-black/60 leading-snug mt-0.5">{endLang === 'en' ? <>This room was created <b>with no cards at stake</b> — nobody lost or won anything from the album. Just the table.</> : <>Esta sala foi criada <b>sem valer carta</b> — ninguém perdeu nem ganhou nada do álbum. Foi só a tabela.</>}</p>
@@ -13501,7 +13509,7 @@ export function EscEnd() {
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
         <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && libertaNaLiga ? { ...campeaoDoMundo, copa: 'Libertadores' } : campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
       )}
-      {online && state.roomId && !state.careerOnline && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
+      {online && state.roomId && !state.careerOnline && !state.bafo2 && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
         // ⭐ SÓ CHAMPIONS (25/09): não houve liga — a tabela que vale é a de 36 e o título da
         // temporada é o da Champions. Sem isto a sala gravava um "campeão da liga" de mentira
@@ -13552,7 +13560,7 @@ export function EscEnd() {
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
-      {online && !state.nbaCareer && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
+      {online && !state.nbaCareer && !state.bafo2 && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
       <ShareResultPanel opts={shareOpts} />
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira

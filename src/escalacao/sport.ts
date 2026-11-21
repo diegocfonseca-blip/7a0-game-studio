@@ -839,7 +839,7 @@ export function useInternacionalCarreiraAuthResolvida(): boolean {
 // 🔒 EM CONSTRUÇÃO: só a conta do Diego enxerga. Pra abrir pra todo mundo depois,
 // é o mesmo caminho da Copa do Brasil — vira SALA_ELENCO_GERAL = true.
 const SALA_ELENCO_GERAL = false
-const SALA_ELENCO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+const SALA_ELENCO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com']) // + Futpoint FC (21/11, Bafo novo: "só pra minha conta e Futpoint FC")
 let salaElencoOk = SALA_ELENCO_GERAL
 function applySalaElencoUnlock(email?: string | null): void {
   const u = SALA_ELENCO_GERAL || (!!email && SALA_ELENCO_TESTERS.has(email.toLowerCase()))
