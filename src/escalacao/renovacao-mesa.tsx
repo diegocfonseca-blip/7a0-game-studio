@@ -110,6 +110,24 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
         <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ background: 'none', border: 'none', ...OSWALD, fontWeight: 900, fontSize: 11.5, textDecoration: 'underline', cursor: 'pointer', color: INK, padding: 0 }}>{tr('desfazer', 'undo')}</button>
       </div>
     )
+    // 📋 21/11 (Diego: *"ainda tá muito exagerado… poderia ficar menor os nomes e do lado as coisas em lista"*): na tela nova de
+    // Contratos cada jogador é UMA LINHA — posição, nome e valor à esquerda; à direita um botão por prazo (toque = renova) e o 👋.
+    if (enxuta) {
+      const bt = { border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 6px', ...OSWALD, fontWeight: 900, fontSize: 11.5, lineHeight: 1.1, cursor: 'pointer', color: INK, flex: 'none', textAlign: 'center' as const, minWidth: 46 }
+      return (
+        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FCFBF4', border: `2px solid ${INK}`, borderRadius: 11, padding: '6px 7px', marginBottom: 6 }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: INK, color: '#fff', borderRadius: 6, padding: '2px 5px', flex: 'none' }}>{c.pos}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <b style={{ ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', display: 'block', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
+            <small style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5240' }}>{en ? (TIER_EN[t.label] ?? t.label) : t.label} · {tr('valor', 'value')} {oficial}</small>
+          </span>
+          {ops.length > 0 ? ops.map(a => { const cst = renewCost(oficial, a as RenewAnos); return (
+            <button key={a} onClick={() => renovar(c, dono, a as RenewAnos)} style={{ ...bt, background: a === 10 ? GOLD : '#EAF6EE' }}>{a} {en ? 'y' : a > 1 ? 'anos' : 'ano'}<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{cst} 🪙{saldo < cst ? ' 💳' : ''}</small></button>) })
+            : <small style={{ fontSize: 9.5, fontWeight: 700, color: '#1B5E32', flex: 'none', maxWidth: 110, lineHeight: 1.2 }}>{tr('🌱 Várzea: vai pro leilão', '🌱 Várzea: off to auction')}</small>}
+          {ops.length > 0 && <button aria-label={tr('Deixar ir', 'Let go')} onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ ...bt, minWidth: 34, background: '#fff', color: RED }}>👋<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{tr('sair', 'go')}</small></button>}
+        </div>
+      )
+    }
     const k = state.condicaoCarry?.[chaveCarry(c)]
     const gasOn = condicaoAtiva(state)
     const anos: RenewAnos | 0 = prazo[c.id] ?? (ops.length ? prazoPerto(ops, 5) : 0)
@@ -169,7 +187,14 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
   }
 
   // ── carta da comissão (técnico / preparador): prazo é sorteado, preço fixo ─────────────
-  const cartaComissao = (id: string, ic: string, nome: string, linha: string, custo: number, onRenovar: () => void, onSair: () => void) => (
+  const cartaComissao = (id: string, ic: string, nome: string, linha: string, custo: number, onRenovar: () => void, onSair: () => void) => enxuta ? (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FCFBF4', border: `2px solid ${INK}`, borderRadius: 11, padding: '6px 7px', marginBottom: 6 }}>
+      <span style={{ fontSize: 15, flex: 'none' }}>{ic}</span>
+      <b style={{ ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
+      <button disabled={coins < custo} onClick={() => { onRenovar(); anota({ id, nome, txt: tr(`renovou · ${custo} 🪙 · prazo sorteado`, `renewed · ${custo} 🪙 · length drawn`), sai: false }) }} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 7px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: coins < custo ? '#ddd' : '#EAF6EE', color: INK, cursor: coins < custo ? 'not-allowed' : 'pointer', flex: 'none' }}>{tr('Renovar', 'Renew')}<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{custo} 🪙{coins < custo ? tr(' · sem caixa', ' · no cash') : ''}</small></button>
+      <button aria-label={tr('Deixar ir', 'Let go')} onClick={() => { onSair(); anota({ id, nome, txt: tr('foi embora · sem multa', 'left · no fee'), sai: true }) }} style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 6px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: '#fff', color: RED, cursor: 'pointer', flex: 'none', minWidth: 34 }}>👋<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{tr('sair', 'go')}</small></button>
+    </div>
+  ) : (
     <div style={{ background: '#FCFBF4', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
       <div style={{ display: 'flex', gap: 10, padding: '10px 10px 8px', alignItems: 'center' }}>
         <div style={{ width: 52, height: 64, border: `3px solid ${INK}`, borderRadius: 10, background: 'linear-gradient(160deg,#e9e3d0,#bdb39a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flex: 'none' }}>{ic}</div>
@@ -246,7 +271,14 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
         {expDorm.map(c => cartaJogador(c, dormM, saldoDorm))}
       </>}
 
-      {renovaveis.length > 1 && <>
+      {renovaveis.length > 1 && enxuta && (
+        <div style={{ display: 'flex', gap: 5, margin: '2px 0 8px' }}>
+          <button onClick={() => bulkRenovar(5)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 11, background: '#EAF6EE', color: INK, cursor: 'pointer' }}>{tr('Todos · 5 anos', 'All · 5 years')}</button>
+          <button onClick={() => bulkRenovar(10)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 11, background: GOLD, color: INK, cursor: 'pointer' }}>{tr('Todos · 10 anos', 'All · 10 years')}</button>
+          <button onClick={bulkDeixarIr} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 11, background: '#fff', color: RED, cursor: 'pointer' }}>{tr('Todos saem', 'All go')}</button>
+        </div>
+      )}
+      {renovaveis.length > 1 && !enxuta && <>
         {tag(tr('⚡ TODOS DE UMA VEZ', '⚡ ALL AT ONCE'))}
         <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
           <button onClick={() => bulkRenovar(5)} style={{ ...btnGrande('#EAF6EE', INK), fontSize: 12 }}>5️⃣ {tr(`Renovar os ${renovaveis.length} · 5 anos`, `Renew all ${renovaveis.length} · 5 years`)}</button>

@@ -15484,8 +15484,8 @@ export function ReserveListScreen() {
       <CareerVisualProvider enabled={visualV2}><div className={`palco tela-cheia${visualV2 ? ' cv2-root cv2-market' : ''}`} data-janela-contratos style={{ background: '#F4ECD6', color: INK }}>
         <div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
           {visualV2 && <><CareerBrand club={mgr.teamName} /><CareerHeading title={tr('Contratos', 'Contracts')} club={mgr.teamName} season={state.seasonNo} balance={state.careerCoins?.[youId] ?? 0} /></>}
-          <div style={{ ...box(INK), padding: '14px 14px 12px', color: '#fff', marginBottom: 12 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 27, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>📝 {tr('Contratos', 'Contracts')}</p>
+          <div style={{ ...box(INK), padding: '9px 12px 8px', color: '#fff', marginBottom: 12 }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>📝 {tr('Contratos', 'Contracts')}</p>
             <p style={{ ...OSWALD, fontWeight: 800, fontSize: 12.5, letterSpacing: '.05em', textTransform: 'uppercase', color: GOLD, margin: '4px 0 0' }}>{tr('TEMP.', 'SEASON')} {state.seasonNo} · {mesmo ? tr('mesmo time, sem leilão', 'same team, no auction') : tr('antes do leilão', 'before the auction')}</p>
             <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.88)', margin: '6px 0 0', lineHeight: 1.45 }}>{mesa.decidir > 0 ? tr('Renove ou deixe ir.', 'Renew or let go.') : tr('Nenhum contrato esperando decisão.', 'No contract waiting for a decision.')}</p>
           </div>
