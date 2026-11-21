@@ -4255,7 +4255,10 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   if(watchedField.current.id!==stadiumMatch?.id)watchedField.current={id:stadiumMatch?.id,watched:false}
   if((privateField||officialField)&&watchingField)watchedField.current.watched=true
   const officialFieldWatching=officialField&&watchedField.current.watched
-  const fieldDuration=duracaoPartidaCampo(roundMs,fieldSpeed,(privateField||officialField)&&watchedField.current.watched)
+  // ⏩ 21/11 (Diego: *"a velocidade deve ser padrão a que tem no campo 2D"*): vendo o jogo OFICIAL no estádio 3D, o tempo é o do
+  // campinho — 90 s ÷ a marcha guardada (carreira: 1,5× = 1 min; sem o Manual fica cravado nisso). Antes eram 2 min fixos.
+  const marchaCampo=useVel2DAqui()
+  const fieldDuration=officialFieldWatching?Math.max(400,roundMs*.82,90_000/marchaCampo):duracaoPartidaCampo(roundMs,fieldSpeed,(privateField||officialField)&&watchedField.current.watched)
   const officialMinuteMs=(officialFieldWatching?fieldDuration:Math.max(400,roundMs*.82))/93
   // Speed controls playback, never which chances exist. Freeze the base
   // duration per fixture; rounding roundMs at another speed must not reseed it.
@@ -11024,6 +11027,7 @@ export function PyramidSeasonScreen() {
   // fase em que VOCÊ joga. Fase já andando (copaPos > 0) nunca é congelada; eliminado assiste como sempre.
   const [copaOk, setCopaOk] = useState('')
   // 🏟️ 3D escolhido na Central: o jogo só começa no "▶ Começar o jogo" em cima do mapa
+  const [cadeadoMapa, setCadeadoMapa] = useState(false) // 🔒 21/11: o cadeado do Manual tocado dentro do jogo 3D abre as ofertas em cima do mapa
   const [pend3d, setPend3d] = useState<{ tipo: 'liga' | 'copa' | 'estreia'; chave: string; giro: string } | null>(null)
   const giroSeq = useRef(0)
   // O botão só é liberado pelo quadro final do giro que pertence a esta escolha.
@@ -12593,6 +12597,7 @@ export function PyramidSeasonScreen() {
     podeAvancar: copaPlaying ? copaPronta : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
     alternaManual: toggleManualCareer, mudaVelocidade: v => { if (campo2d) { if (r2dCarr.teste) setVel2D(v) } else dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
+    marcha: vel2dCarr, mudaMarcha: v => { if (hasManual) setVel2D(v) }, cadeado: hasManual ? undefined : () => setCadeadoMapa(v => !v), // ⏩ 21/11: no 3D a marcha é a do campinho 2D; sem plano, cadeado
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
     tatica: () => escolheAba('jogos'),
   } : null
@@ -13491,6 +13496,7 @@ export function PyramidSeasonScreen() {
         {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
         {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
+        {tab === 'estadio' && cadeadoMapa && !hasManual && <div data-cadeado-mapa><ManualLockButton /></div>}
         {fluxoCentral && daCentral && tab === 'estadio' && <button data-voltar-central onClick={() => { if(pend3d){setPend3d(null);pedeCameraDoMapa('free')} setDaCentral(false); escolheAba('central') }}
           style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
         {tab === 'estadio' && previa3d && <PublicarPartidaEstadio state={previa3d}/> }

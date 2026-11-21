@@ -6,6 +6,7 @@ import {useState,useSyncExternalStore,type CSSProperties} from 'react'
 import type { EstadoPartidaEstadio } from './presidencia-partida-model'
 import { useControleMapa } from './controle-partida-mapa'
 import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './presidencia-velocidade'
+import { VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { useT } from './lang'
 import { FestaGolCampo2D, useFestaCampo2D, TelaoGolMapa, useTelaoCampo2D } from './campo2d-festa'
 import { estiloPisca, gritoGol } from './radio-pisca'
@@ -37,6 +38,7 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
   }, () => '')
   const penaltis = resumoPenaltis ? JSON.parse(resumoPenaltis) as {score:[number,number];finished:boolean;narration:string} : undefined
   const vivo = !!match && (!match.finished || !!penaltis && !penaltis.finished)
+  const oficial = !!match?.officialInput && vivo // ⏩ jogo do motor novo rolando: a marcha é a do campinho 2D
   const aoVivo = vivo && !replay // replay rola o relógio, mas o jogo já acabou: nada de bolinha vermelha nem de mexer no time
   if (!match && !ctl) return null
   const [nh, na] = match?.officialTeams ?? [t('Casa', 'Home'), t('Fora', 'Away')]
@@ -74,13 +76,20 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
       {apito.resumo && !apito.replay?.na && <ResumoApitoCampo2D resumo={apito.resumo} casa={apito.casa} fora={apito.fora} compacto />}
     </div>}
    </div>
+   {/* ⏩🔒 21/11 (Diego: *"a velocidade deve ser padrão a que tem no campo 2D… botão manual dentro do quadro do jogo embaixo… só quem
+       tem plano, quem não tem fica com cadeado"*): no jogo OFICIAL a marcha é a do campinho (1× … 4×) e mora aqui embaixo, junto do
+       AUTO/MANUAL; sem plano o mesmo lugar mostra o cadeado, que abre as ofertas de sempre. */}
    {(ctl||ritmo)&&!replay&&<div className="pc3-match-controls">
-    <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{controlsOpen?t('Fechar controles','Close controls'):t('Controles','Controls')}{ritmo&&vivo&&<span>{rotuloVelocidadeCampo(ritmo.speed)}</span>}</button>
-    {controlsOpen&&<div className="pc3-match-controls-panel" role="group" aria-label={t('Controles da partida','Match controls')}>
+    {oficial&&ctl?.cadeado&&!ctl.manualOk
+     ? <button type="button" className="pc3-match-controls-toggle" onClick={()=>ctl.cadeado?.()}>🎮 {t('Manual e velocidade','Manual and speed')}<span>🔒</span></button>
+     : <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{controlsOpen?t('Fechar controles','Close controls'):t('Controles','Controls')}{oficial&&ctl?.marcha?<span>{rotuloVelocidadeCampo(ctl.marcha)}</span>:ritmo&&vivo&&<span>{rotuloVelocidadeCampo(ritmo.speed)}</span>}</button>}
+    {controlsOpen&&!(oficial&&ctl?.cadeado&&!ctl.manualOk)&&<div className="pc3-match-controls-panel" role="group" aria-label={t('Controles da partida','Match controls')}>
     {(ctl?.manualOk || (ritmo && vivo)) && <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
       {ctl && ctl.manualOk && <span style={grupo}><button type="button" style={chip(!ctl.manual)} onClick={() => { if (ctl.manual) ctl.alternaManual() }}>🔁 {t('AUTO', 'AUTO')}</button><button type="button" style={chip(ctl.manual)} onClick={() => { if (!ctl.manual) ctl.alternaManual() }}>🎮 MANUAL</button></span>}
-      {ritmo && vivo && <span style={{...grupo,flexWrap:'wrap',maxWidth:'100%'}}>{VELOCIDADES_ESTADIO.map(v => <button key={v} type="button" aria-pressed={ritmo.speed===v} aria-label={t('Velocidade da partida','Match speed')+' '+rotuloVelocidadeCampo(v)} style={{...chip(ritmo.speed === v),minHeight:44,minWidth:44,fontSize:13}} onClick={() => ritmo.onSet(v)}>{rotuloVelocidadeCampo(v)}</button>)}</span>}
-      {ctl && ctl.manual && !(ritmo && vivo) && <span style={grupo}>{[1, 2, 3, 4].map(v => <button key={v} type="button" style={chip(ctl.velocidade === v)} onClick={() => ctl.mudaVelocidade(v)}>{v}×</button>)}</span>}
+      {oficial && ctl?.cadeado ? <button type="button" style={{...chip(false),border:'2px solid #fff',borderRadius:9,minHeight:44,fontSize:12}} onClick={()=>ctl.cadeado!()}>⏩ {t('Velocidade','Speed')} 🔒</button>
+       : oficial && ctl?.mudaMarcha ? <span style={{...grupo,flexWrap:'wrap',maxWidth:'100%'}}>{VEL2D_SOLO_VALORES.map(v => <button key={v} type="button" aria-pressed={ctl.marcha===v} aria-label={t('Velocidade da partida','Match speed')+' '+rotuloVelocidadeCampo(v)} style={{...chip(ctl.marcha === v),minHeight:44,minWidth:40,fontSize:13}} onClick={() => ctl.mudaMarcha!(v)}>{rotuloVelocidadeCampo(v)}</button>)}</span>
+       : <>{ritmo && vivo && <span style={{...grupo,flexWrap:'wrap',maxWidth:'100%'}}>{VELOCIDADES_ESTADIO.map(v => <button key={v} type="button" aria-pressed={ritmo.speed===v} aria-label={t('Velocidade da partida','Match speed')+' '+rotuloVelocidadeCampo(v)} style={{...chip(ritmo.speed === v),minHeight:44,minWidth:44,fontSize:13}} onClick={() => ritmo.onSet(v)}>{rotuloVelocidadeCampo(v)}</button>)}</span>}
+      {ctl && ctl.manual && !(ritmo && vivo) && <span style={grupo}>{[1, 2, 3, 4].map(v => <button key={v} type="button" style={chip(ctl.velocidade === v)} onClick={() => ctl.mudaVelocidade(v)}>{v}×</button>)}</span>}</>}
     </div>}
     </div>}
    </div>}

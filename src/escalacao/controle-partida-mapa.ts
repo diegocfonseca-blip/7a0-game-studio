@@ -14,6 +14,11 @@ export interface ControleMapa {
   alternaManual: () => void
   mudaVelocidade: (v: number) => void
   avanca: () => void
+  /** ⏩ 21/11: a marcha do jogo no estádio 3D = a do campinho 2D (1× · 1,5× · … · 4×) */
+  marcha?: number
+  mudaMarcha?: (v: number) => void
+  /** 🔒 sem o Modo Manual: o toque no cadeado abre as ofertas (em cima do mapa) */
+  cadeado?: () => void
   /** 🔁 substituição e tática: abre a aba Jogos (onde moram) */
   tatica?: () => void
   /** 📅 o dia do calendário da carreira ("📅 Qua 23 abr") */
@@ -28,7 +33,7 @@ let chave = ''
 const ouvintes = new Set<() => void>()
 /** a carreira chama a cada render; só avisa o mapa quando muda o que aparece (as funções são sempre as mais novas) */
 export function publicaControleMapa(c: ControleMapa | null) {
-  const k = c ? `${c.manualOk}|${c.manual}|${c.velocidade}|${c.podeAvancar}|${c.rotuloAvancar}|${c.dia}|${!!c.irProJogo}|${!!c.chegando}` : ''
+  const k = c ? `${c.manualOk}|${c.manual}|${c.velocidade}|${c.marcha}|${!!c.cadeado}|${c.podeAvancar}|${c.rotuloAvancar}|${c.dia}|${!!c.irProJogo}|${!!c.chegando}` : ''
   atual = c
   if (k === chave) return
   chave = k
