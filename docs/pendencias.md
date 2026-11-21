@@ -14383,3 +14383,6 @@ Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 2
   Não ganha carta nova do baralho. Sem carta protegida. Quem tem 11 pode ser escolhido (fica sem jogar até ganhar outra).
   Sugestões minhas ainda SEM resposta: 60 s pra escolher (senão sorteia) · campeão ausente = sorteio.
 - Amistoso (sem valer carta) segue existindo.
+- 🃏 Bafo novo, complemento 21/11: campeão tem **90 s** pra escolher (senão sorteia) · campeão ausente = o jogo sorteia 1 carta de alguém
+  que jogava com ele · **DONO QUE ENCERRA A PARTIDA ANTES DO FIM DA LIGA perde 2 cartas aleatórias das 22 dele** (vai nas regras do banner).
+  EM ABERTO: pra quem vão as 2 cartas e o que conta como "encerrar" (botão × sumir/queda — proposta: sumiu 10 min = abandono).
