@@ -14361,3 +14361,10 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
   Vídeo: `scripts/posts/gala-cabuloso.webm` (`node scripts/video-gala-cabuloso.mjs`). Mockup aprovado em `scripts/mockups/gala-cabuloso.png`.
 - ⏳ FALTA do Fundador: **📣 canto** (nenhum clube tem canto do Cruzeiro — precisa do áudio do Diego; quando chegar, ligar em
   `AMBIENTE_CARREIRA_POR_EMAIL` e tocar na gala com `playMp3Gala`).
+## 🎟️ 21/11 — Cupom de influenciador no Pix NOVO (Batismo e Fundador) — banco FEITO, tela no branch esperando "pode publicar"
+- Diego: o usuário não achava o cupom. O "tem cupom?" só existia na tela ANTIGA (chave Pix); o Pix novo (Mercado Pago, 16/10) nunca teve.
+  Diego: *"Sim.. Mas n faça nd p usuário"* — vale no Batismo E no Fundador; nada manual pro usuário que reclamou.
+- Banco (APLICADO, `docs/sql/mp-cupom-batismo-fundador.sql`): o cupom viaja na ref do pedido (`cupom-<CODIGO>`), `esc_mp_criar_pedido`
+  confere com `esc_cupom_validar` e cobra com desconto (testado com rollback: Fundador 99,90 → 89,91 · Batismo 79,90 → 71,91). O uso
+  vai pra `esc_cupom_usos` quando o Pix CAI (gatilho `esc_mp_cupom_anota`, série 'FUN'/'BAT'). Cupom inválido = pedido recusado.
+- Tela (`screens.tsx`): o mesmo "tem cupom?" sutil, agora também embaixo do Gerar meu Pix; o Pix sai no valor com desconto.
