@@ -173,29 +173,35 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
 // do modo carreira ou das salas online"* → *"bota só Ronaldo então, já que é exemplo. Mas quero brilhando igual ao normal"*.
 // A carta é a `CollectibleCard` de sempre (o brilho de lenda é o dela). Dois tempos: o pacote treme e rasga, sai a carta de
 // exemplo com a explicação. Toque pula. O relógio da convocação só conta depois (quem cuida disso é a sala).
+// 🔁 Mesmo dia, depois de ver: *"o exemplo do Ronaldo é já na área da convocação, em cima de onde convoca. Antes aparece só o
+// pacotinho verde que vai se abrir, e aí entra essa tela já com o exemplo e a convocação na mesma tela"*.
+// Então: `AberturaBafo` = SÓ o pacote (2,5 s, toque pula) · `ExemploBafo` = a faixa fixa em cima da lista.
 export const BAFO2_ABRE_PACOTE_MS = 2500
-export const BAFO2_ABRE_CARTA_MS = 5500
 export function AberturaBafo({ decorrido, onPular }: { decorrido: number; onPular: () => void }) {
-  const carta = decorrido >= BAFO2_ABRE_PACOTE_MS
+  return (
+    <div onClick={onPular} role="button" style={{ border: `4px solid ${INK}`, borderRadius: 22, background: 'radial-gradient(circle at 50% 35%,#12301f,#0c0c0c 75%)', boxShadow: '4px 4px 0 #000', padding: '16px 14px', minHeight: 440, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, cursor: 'pointer', overflow: 'hidden' }}>
+      <style>{'@keyframes bf-treme{0%,100%{transform:rotate(-3deg)}25%{transform:rotate(4deg) scale(1.03)}50%{transform:rotate(-5deg) scale(1.06)}75%{transform:rotate(5deg) scale(1.09)}}@keyframes bf-rasga{0%{transform:scale(1.1);opacity:1;filter:brightness(1.4)}100%{transform:scale(1.9);opacity:0;filter:brightness(3)}}'}</style>
+      <img src={pacoteCampeaoArt} alt="" width={170} height={255} style={{ animation: decorrido >= BAFO2_ABRE_PACOTE_MS - 600 ? 'bf-rasga .6s ease-in forwards' : 'bf-treme .5s ease-in-out infinite', filter: 'drop-shadow(0 0 22px rgba(80,230,130,.6))' }} />
+      <p style={{ ...OSW, fontWeight: 900, fontSize: 22, color: '#fff', margin: '6px 0 0', textAlign: 'center' }}>{tr('Abrindo as suas cartas de campeão…', 'Opening your champion cards…')}</p>
+    </div>
+  )
+}
+/** 🃏 a carta de EXEMPLO + de onde vêm as cartas — fica em cima da lista da convocação (a `CollectibleCard` de sempre, com o brilho de lenda) */
+export function ExemploBafo() {
   const en = getLang() === 'en'
   const largo = typeof window !== 'undefined' && window.innerWidth >= 760
   return (
-    <div onClick={onPular} role="button" style={{ border: `4px solid ${INK}`, borderRadius: 22, background: 'radial-gradient(circle at 50% 35%,#12301f,#0c0c0c 75%)', boxShadow: '4px 4px 0 #000', padding: largo ? '22px 26px' : '16px 14px', minHeight: 440, display: 'flex', flexDirection: largo && carta ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', gap: largo ? 26 : 12, cursor: 'pointer', overflow: 'hidden' }}>
-      <style>{'@keyframes bf-treme{0%,100%{transform:rotate(-3deg)}25%{transform:rotate(4deg) scale(1.03)}50%{transform:rotate(-5deg) scale(1.06)}75%{transform:rotate(5deg) scale(1.09)}}@keyframes bf-rasga{0%{transform:scale(1.1);opacity:1;filter:brightness(1.4)}100%{transform:scale(1.9);opacity:0;filter:brightness(3)}}@keyframes bf-sai{0%{transform:translateY(40px) scale(.6) rotate(-8deg);opacity:0}100%{transform:translateY(0) scale(1) rotate(3deg);opacity:1}}'}</style>
-      {!carta ? <>
-        <img src={pacoteCampeaoArt} alt="" width={170} height={255} style={{ animation: decorrido >= BAFO2_ABRE_PACOTE_MS - 600 ? 'bf-rasga .6s ease-in forwards' : 'bf-treme .5s ease-in-out infinite', filter: 'drop-shadow(0 0 22px rgba(80,230,130,.6))' }} />
-        <p style={{ ...OSW, fontWeight: 900, fontSize: 22, color: '#fff', margin: '6px 0 0', textAlign: 'center' }}>{tr('Abrindo as suas cartas de campeão…', 'Opening your champion cards…')}</p>
-      </> : <>
-        <div style={{ flex: 'none', width: 190, animation: 'bf-sai .5s ease-out both', filter: `drop-shadow(0 0 26px ${OURO})` }}>
-          <CollectibleCard name="Ronaldo Fenômeno" nomeNaCarta="Ronaldo" club="Inter" year={1998} pos="ATA" fame={5} big />
-        </div>
-        <div style={{ color: CREME, textAlign: largo ? 'left' : 'center' }}>
-          <p style={{ ...OSW, fontWeight: 900, fontSize: largo ? 26 : 22, color: '#fff', margin: 0, lineHeight: 1.1 }}>{tr('Estas são as suas cartinhas de campeão', 'These are your champion cards')}</p>
-          <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.4, margin: '8px 0 0' }}>{en ? <>Every time you are <b style={{ color: OURO }}>champion</b> of any competition, in <b style={{ color: '#fff' }}>Career</b> or in the <b style={{ color: '#fff' }}>online rooms</b>, you open a pack and win a card.</> : <>Toda vez que você é <b style={{ color: OURO }}>campeão</b> de qualquer campeonato, na <b style={{ color: '#fff' }}>Carreira</b> ou nas <b style={{ color: '#fff' }}>salas online</b>, você abre um pacote e ganha uma carta.</>}</p>
-          <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.4, margin: '6px 0 0' }}>{en ? <>In Bafo you put <b style={{ color: '#fff' }}>22 of them at stake</b>. The champion takes 1 from someone.</> : <>No Bafo você põe <b style={{ color: '#fff' }}>22 delas em jogo</b>. O campeão toma 1 de alguém.</>}</p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#9fb5a6', margin: '10px 0 0' }}>{tr('(carta de exemplo · as suas aparecem em seguida · toque pra pular)', '(example card · yours come next · tap to skip)')}</p>
-        </div>
-      </>}
+    <div style={{ border: `3px solid ${INK}`, borderRadius: 16, background: 'radial-gradient(circle at 18% 40%,#17402a,#0c0c0c 78%)', boxShadow: `3px 3px 0 ${INK}`, padding: largo ? '14px 18px' : '10px 12px', display: 'flex', alignItems: 'center', gap: largo ? 18 : 12, marginBottom: 10, overflow: 'hidden' }}>
+      <style>{'@keyframes bf-sai{0%{transform:translateY(30px) scale(.6) rotate(-8deg);opacity:0}100%{transform:translateY(0) scale(1) rotate(-3deg);opacity:1}}'}</style>
+      <div style={{ flex: 'none', width: largo ? 150 : 112, animation: 'bf-sai .5s ease-out both', filter: `drop-shadow(0 0 16px ${OURO})` }}>
+        <CollectibleCard name="Ronaldo Fenômeno" nomeNaCarta="Ronaldo" club="Inter" year={1998} pos="ATA" fame={5} big={largo} />
+      </div>
+      <div style={{ color: CREME, minWidth: 0 }}>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: largo ? 21 : 16, color: '#fff', margin: 0, lineHeight: 1.1 }}>{tr('Estas são as suas cartinhas de campeão', 'These are your champion cards')}</p>
+        <p style={{ fontSize: largo ? 13.5 : 12, fontWeight: 600, lineHeight: 1.35, margin: '5px 0 0' }}>{en ? <>Every time you are <b style={{ color: OURO }}>champion</b> of any competition, in <b style={{ color: '#fff' }}>Career</b> or in the <b style={{ color: '#fff' }}>online rooms</b>, you open a pack and win one.</> : <>Toda vez que você é <b style={{ color: OURO }}>campeão</b> de qualquer campeonato, na <b style={{ color: '#fff' }}>Carreira</b> ou nas <b style={{ color: '#fff' }}>salas online</b>, você abre um pacote e ganha uma.</>}</p>
+        <p style={{ fontSize: largo ? 13.5 : 12, fontWeight: 600, lineHeight: 1.35, margin: '4px 0 0' }}>{en ? <>Here you put <b style={{ color: '#fff' }}>22 of them at stake</b>. The champion takes 1 from someone.</> : <>Aqui você põe <b style={{ color: '#fff' }}>22 delas em jogo</b>. O campeão toma 1 de alguém.</>}</p>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#9fb5a6', margin: '5px 0 0' }}>{tr('(o Ronaldo é só um exemplo · as suas estão na lista abaixo)', '(Ronaldo is just an example · yours are in the list below)')}</p>
+      </div>
     </div>
   )
 }

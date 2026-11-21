@@ -20,7 +20,8 @@ for (const [nome, w] of [['cel', 390], ['pc', 900]]) {
     const U = await import('/src/escalacao/bafo2-ui.tsx')
     document.getElementById('root')?.remove(); document.querySelectorAll('.bf-raiz').forEach(e=>e.remove()); document.body.style.background='#0d1410'
     const root=document.createElement('div'); root.className='bf-raiz'; root.style.cssText='padding:12px;max-width:${nome === 'pc' ? 720 : 390}px;margin:0 auto'; document.body.appendChild(root)
-    createRoot(root).render(h(U.AberturaBafo,{decorrido:${dec},onPular(){}}))
+    const col=['GOL','LAT','ZAG','MEI','ATA'].flatMap((p,i)=>['Taffarel','Cafu','Aldair','Zico','Romário','Marcos','Maicon','Lúcio','Kaká','Bebeto'].filter((_,k)=>k%5===i).map((n,k)=>({id:p+k,name:n,club:'Flamengo',year:1990+k,pos:p,fame:3,lo:70,hi:80})))
+    createRoot(root).render('${fase}'==='pacote' ? h(U.AberturaBafo,{decorrido:${dec},onPular(){}}) : h('div',null,h(U.ExemploBafo),h(U.ConvocacaoBafo,{telaCheia:true,colecao:col,marcadas:[col[0].id,col[2].id],onMarcar(){},seg:160,pronto:false,onPronto(){}})))
   })()`)
   await p.waitForTimeout(2500)
   await p.screenshot({ path: `scripts/mockups/bafo-abertura-${fase}-${nome}.png`, fullPage: true })

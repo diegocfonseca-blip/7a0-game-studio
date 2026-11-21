@@ -14,7 +14,7 @@ import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import type { FormationKey } from './types'
 import { fechaConvocacao, BAFO2_CONVOCA_SEG, BAFO2_ELENCO, BAFO2_MIN, type CartaBafo } from './bafo2'
-import { RegrasBafo, ConvocacaoBafo, AberturaBafo, BAFO2_ABRE_PACOTE_MS, BAFO2_ABRE_CARTA_MS, useColecaoBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
+import { RegrasBafo, ConvocacaoBafo, AberturaBafo, ExemploBafo, BAFO2_ABRE_PACOTE_MS, useColecaoBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
 
 export interface BafoLinha { v: 2; n: number; ok: boolean; marks?: string[]; pronto?: boolean; conv?: { t0: number } | null }
 export interface BafoJogador { user_id: string; manager_name: string; bafo?: BafoLinha | null }
@@ -22,7 +22,7 @@ export interface BafoJogador { user_id: string; manager_name: string; bafo?: Baf
 export type BafoSquads = Record<string, { f: FormationKey; cartas: CartaBafo[] }>
 export const ehBafoLinha = (b: unknown): b is BafoLinha => !!b && typeof b === 'object' && (b as { v?: number }).v === 2
 export const bafoApto = (p: { bafo?: unknown }): boolean => ehBafoLinha(p.bafo) && p.bafo.ok
-const ABERTURA_MS = BAFO2_ABRE_PACOTE_MS + BAFO2_ABRE_CARTA_MS // 🎁 o pacote abrindo + a carta de exemplo: o relógio da convocação só conta DEPOIS (igual em todo aparelho)
+const ABERTURA_MS = BAFO2_ABRE_PACOTE_MS // 🎁 o pacote abrindo: o relógio da convocação só conta DEPOIS (igual em todo aparelho)
 const GRACA = 4 // segundos depois do zero antes de o dono fechar (dá tempo de a última gravação de cada um chegar)
 
 export function BafoSala({ roomId, meuUid, donoUid, players, valendo, onLargar }: {
@@ -121,6 +121,7 @@ export function BafoSala({ roomId, meuUid, donoUid, players, valendo, onLargar }
        <div style={{ maxWidth: 720, margin: '0 auto' }}>
         <p style={{ fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', fontWeight: 900, fontSize: 19, color: '#FFC400', margin: '2px 2px 8px' }}>🃏 {tr('Bafo · convocação', 'Bafo · call-up')}</p>
         {naAbertura ? <AberturaBafo decorrido={decorridoAbertura} onPular={() => setPulou(conv.t0)} /> : <>
+        <ExemploBafo />
         <ConvocacaoBafo telaCheia colecao={cartas} marcadas={marks} seg={Math.max(0, seg)} pronto={pronto}
           onMarcar={ids => { sujo.current = true; setMarks(ids) }}
           onPronto={() => { setPronto(true); estado.current = { marks, pronto: true }; sujo.current = false; void grava({ pronto: true }) }} />

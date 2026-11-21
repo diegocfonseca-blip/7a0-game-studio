@@ -13,7 +13,8 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - ✅ 1º TESTE DE VERDADE (21/11, Diego × Futpoint, 2 pessoas): rodou até o fim e a carta trocou de dono. Pedidos dele depois do teste:
   - FEITO: convocação em PÁGINA própria (por cima da sala de espera) · **160 s** (+40) · "Convoque até 22: 11 titulares + 11 reservas" · regras dizem que dá pra substituir · **Bafo só no Campo 2D** (sem placar rápido/cinema, sem botão de troca).
   - FEITO (21/11, *"bota só Ronaldo… quero brilhando igual ao normal"*): ABERTURA da convocação — pacote verde treme e rasga (2,5 s) → carta de EXEMPLO
-    (a `CollectibleCard` do Ronaldo Fenômeno, lenda dourada, escrito só "Ronaldo" via `nomeNaCarta`) + explicação de onde vêm as cartas (5,5 s, toque pula).
+    (a `CollectibleCard` do Ronaldo Fenômeno, lenda dourada, escrito só "Ronaldo" via `nomeNaCarta`) + explicação de onde vêm as cartas (5,5 s, toque pula). 🔁 CORRIGIDO no mesmo dia (*"o exemplo do Ronaldo é em cima de onde convoca… antes só o pacotinho"*): a abertura é SÓ o pacote (2,5 s) e o
+    exemplo virou faixa FIXA em cima da lista (`ExemploBafo`), na mesma tela da convocação.
     O relógio de 160 s só conta depois (`ABERTURA_MS` em bafo2-sala.tsx). Prints reais: `scripts/mockups/bafo-abertura-*.png`.
   - EM MOCKUP (esperando OK): suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
   - PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
