@@ -14386,3 +14386,4 @@ Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 2
 - 🃏 Bafo novo, complemento 21/11: campeão tem **90 s** pra escolher (senão sorteia) · campeão ausente = o jogo sorteia 1 carta de alguém
   que jogava com ele · **DONO QUE ENCERRA A PARTIDA ANTES DO FIM DA LIGA perde 2 cartas aleatórias das 22 dele** (vai nas regras do banner).
   EM ABERTO: pra quem vão as 2 cartas e o que conta como "encerrar" (botão × sumir/queda — proposta: sumiu 10 min = abandono).
+- 🃏 Bafo novo (21/11): **o dono NÃO pode expulsar ninguém — o botão de remover não existe no modo** (senão ele tirava quem está ganhando).
