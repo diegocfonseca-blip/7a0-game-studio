@@ -14347,7 +14347,7 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - Conserto: `copaEsperaEscolha` — aviso com "📺 Ir pra Central" também no visual novo e SEM os controles da copa enquanto não escolhe.
 - Não reproduzido com o save dele (a carreira Criciúma está só no aparelho, na nuvem só tem a do Fabulous EC).
 
-## 🦊👑 21/11 — Batismo FUNDADOR Cabuloso JP (rafaelazevedo455) — NO BRANCH, esperando "pode publicar"
+## 🦊👑 21/11 — Batismo FUNDADOR Cabuloso JP (rafaelazevedo455) — PUBLICADO (OK do Diego, "pode publique")
 - Pix de Fundador (99,90) pago em 21/11 00:00 (`esc_mp_pedidos`). Conta existe (criada 16/11). Fundador nº104 · sócio nº98.
 - Várzea, no lugar do bot Descampado EC (`OLD_NAME` + `VARZEA_TEAMS`).
 - Arte do dono (fundo verde chroma tirado; escudo e mascote se encostavam pelo rabo — separados à mão): escudo 243×360 28 KB ·
