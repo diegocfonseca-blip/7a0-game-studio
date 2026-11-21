@@ -14387,3 +14387,6 @@ Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 2
   que jogava com ele · **DONO QUE ENCERRA A PARTIDA ANTES DO FIM DA LIGA perde 2 cartas aleatórias das 22 dele** (vai nas regras do banner).
   EM ABERTO: pra quem vão as 2 cartas e o que conta como "encerrar" (botão × sumir/queda — proposta: sumiu 10 min = abandono).
 - 🃏 Bafo novo (21/11): **o dono NÃO pode expulsar ninguém — o botão de remover não existe no modo** (senão ele tirava quem está ganhando).
+- 🃏 Bafo novo (21/11): dono que encerra — **1 carta aleatória pro 1º colocado e 1 pro 2º** (da tabela naquele momento, fora ele).
+  Se encerrar **antes de começar os jogos** (sem tabela), as 2 cartas vão **pro sistema e ninguém ganha**.
+  Ainda sem resposta: dono que SOME sem apertar nada (proposta: 10 min sem voltar = abandono).
