@@ -9,6 +9,7 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - Dono que sai no meio perde 2 cartas aleatórias dos 22: uma pro 1º e outra pro 2º. Antes de começar a liga (na convocação) perde pro sistema e ninguém ganha.
 - Banco: `docs/sql/bafo2.sql` (APLICADO): `esc_bafo2` + RPCs `bafo2_fecha/bate/abre_escolha/tomar/sorteia/encerra/sumiu`; o banco confere a posse de cada carta.
 - Código: `bafo2.ts` (regras puras) · `bafo2-ui.tsx` · `bafo2-sala.tsx` · `bafo2-sair.ts`. Trava: `npm run bafo`. Prints das telas reais: `scripts/mockups/bafo2-real-*.png`.
+- Criar sala: a caixa de explicação do Bafo mostra o PACOTINHO do campeão (`online-pacote-v20.webp`) + 3 selos: 1ª sala do dia grátis · entrar é livre · precisa de 11+ cartinhas (mockup `scripts/mockups/bafo-criar-*.png`, *"Pode"*). Criar segue o padrão das salas rápidas (gatilho `esc_sala_por_dia` vale pra todo modo; nada mudou no banco).
 - ⚠️ FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
 - Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
