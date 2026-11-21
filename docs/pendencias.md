@@ -1653,6 +1653,12 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
+## 🕵️ VIGIA DE CONTA DUPLA — 21/11 (nada forte novo; só anotado)
+- Éden FC × Fluminense (avisado em 19/11): igual, nenhuma das duas contas entrou de novo desde 18/11. Segue esperando o OK do Diego.
+- Médio (só anotado): joaovictor261197 × viniwiny17 — as duas criadas em 21/11 com 16 s de diferença, 5 temp. só os dois, 3×0, nenhuma em sala
+  cheia. Nomes de e-mail diferentes e criação simultânea parecem dois amigos lado a lado. Só volta se os títulos crescerem.
+- bernardomatanaalves × mixoliveiraribeiro2005 (5×0, logins a 10 dias de distância, perdedor 2 salas cheias): parece amigo.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 19/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **Éden FC** (isaacvpn2023) × **Fluminense** (caiom3244, criada ONTEM 18/11) — 5 temporadas só os dois, 5 ligas × 0, logins com
   3 min de diferença, a conta de apoio nunca jogou sala cheia.
