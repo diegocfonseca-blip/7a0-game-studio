@@ -1,8 +1,12 @@
 import * as THREE from 'three'
 
+export const CLARO_GRAMADO=1.5
 /** Native image supplies grass detail without a custom normal shader. */
 export function materialGramado3D(color:string,map:THREE.Texture,desgaste?:THREE.Texture){
  const material=new THREE.MeshStandardMaterial({color,map,roughness:1})
+ // ☀️ 21/11 (Diego: "a grama não tá muito escura?"): a foto da grama é escura e a tinta já era quase branca — então a tinta passa de 1
+ // (CLARO_GRAMADO) pra clarear o verde sem trocar a textura nem a luz do estádio. Vale pros dois tons da listra.
+ material.color.multiplyScalar(CLARO_GRAMADO)
  material.name='gramado-textura-padrao'
  if(desgaste){
   // 🌱 19/11 (Diego: *"tudo que é muito liso fica fake… parecer mais gramado"*): no 3D do mapa o gramado ganha (1) manchas grandes
