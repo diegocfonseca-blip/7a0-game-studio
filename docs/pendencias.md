@@ -14368,3 +14368,18 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
   confere com `esc_cupom_validar` e cobra com desconto (testado com rollback: Fundador 99,90 → 89,91 · Batismo 79,90 → 71,91). O uso
   vai pra `esc_cupom_usos` quando o Pix CAI (gatilho `esc_mp_cupom_anota`, série 'FUN'/'BAT'). Cupom inválido = pedido recusado.
 - Tela (`screens.tsx`): o mesmo "tem cupom?" sutil, agora também embaixo do Gerar meu Pix; o Pix sai no valor com desconto.
+
+## 🃏 21/11 — BAFO NOVO (conversa com o Diego; NADA construído ainda — falta mockup + OK)
+Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 21/11:
+- **Cartas**: TODAS as que a conta já ganhou por título (carreira OU salas, `user_cards`), não as de uma carreira.
+- **Criar sala**: escolhe o modo Bafo e depois as opções de sempre. **Só LIGA** (sem copas). Sem leilão (jeito do lance não se aplica).
+- **Só gente, SEM bots**, mínimo 2, até 20. **Não conta pro ranking.**
+- **Formato**: 2 = melhor de 5 · 3–4 = todos contra todos 4× · **5 a 20 = ida e volta padrão**. Campeão = 1º da tabela (sem final).
+- **Sala de espera normal + as REGRAS num banner EM CIMA.**
+- **1ª tela ao iniciar = CONVOCAÇÃO**: 120 s, escolhe 22 das cartas dele, filtro de time/posição, SEM over (igual Liga Draft).
+  Tempo acabou: as marcadas entram e o sistema completa com as PIORES cartas dele. Mínimo 11 pra entrar.
+- **Elenco de 22 com troca titular↔reserva entre os jogos**, padrão da Liga Draft.
+- **Prêmio**: SÓ o campeão — escolhe 1 carta entre as 22 convocadas de QUALQUER pessoa da sala (quem saiu antes também vale).
+  Não ganha carta nova do baralho. Sem carta protegida. Quem tem 11 pode ser escolhido (fica sem jogar até ganhar outra).
+  Sugestões minhas ainda SEM resposta: 60 s pra escolher (senão sorteia) · campeão ausente = sorteio.
+- Amistoso (sem valer carta) segue existindo.
