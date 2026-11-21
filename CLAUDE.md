@@ -5,6 +5,21 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## ⚡ Partida 3D — revisão profunda de 21/11/2026 (publicação autorizada)
+
+Diego relata lag no Samsung S25 e autorizou remover/refazer trabalho desnecessário.
+Após revisar os resultados, pediu: “Publique p eu tentar vê r”. Publicação autorizada
+em 21/11; conferir o término do deploy. Teste físico no S25 ainda pendente.
+Branch `fix/fluidez-3d-profunda-20261121`: cidade retida fora da árvore de desenho
+na partida, rotinas visuais suspensas, atualização noturna sem percorrer o bairro,
+solo pré-calculado do shader aprovado, LOD de torcida na transmissão e retirada
+apenas de vértices sem referência do GLB leve. Não alterar motor/placar/saves/online.
+**Não apresentar ganho medido com WebGL desligado como fluidez da imagem.** Bancada
+usa SwiftShader, não hardware S25. Medir renderização real e revisar screenshots.
+Textura provisória 1×1 exige realocar GPU ao chegar imagem maior: só `needsUpdate`
+não redimensiona o armazenamento imutável WebGL2. A regra vale também ao gramado.
+Detalhes, riscos e evidências: `docs/auditorias/fluidez-3d-profunda-20261121.md`.
+
 ## 🏆 Inscrições continentais da carreira (20/11/2026)
 
 Diego aprovou corrigir vagas ANTES das copas e usar clubes/elencos reais. **Não reintegrar eliminado à mesma Libertadores para fechar grupos.** A regra antiga de 46 clubes + melhor eliminado foi retirada. Inscrições: 47 na Libertadores; 44 próprios na Sul-Americana + transferências regulamentares. Preservar edição antiga completa com `oficial.vagasDesde`; reparar apenas a inscrição já incompleta e aplicar a nova distribuição na próxima temporada válida. Ligas estrangeiras continuam com referência documentada, não simuladas. Detalhes/fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Elencos de cobertura não entram no baralho comprável/online. Esta correção ainda precisa de ordem explícita para publicar.

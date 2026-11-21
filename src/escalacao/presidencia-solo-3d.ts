@@ -11,7 +11,7 @@ import * as THREE from 'three'
  *  · pedrinhas claras e escuras e marca de chuteira, que só aparecem de perto (de longe somem em vez de virar chuvisco);
  *  · tufos de grama teimosa nas beiradas e nos cantos, longe de onde a bola passa.
  * `antigo = true` devolve o solo de antes. */
-export function materialSolo3D(antigo = false){
+export function materialSoloOriginal3D(antigo = false){
  const mat=new THREE.MeshStandardMaterial({color:'#99774f',roughness:1})
  mat.customProgramCacheKey=()=> antigo?'presidencia-soil-v1':'presidencia-soil-v2'
  mat.onBeforeCompile=shader=>{
@@ -66,6 +66,44 @@ float soilFbm(vec2 p){float v=0.0,a=0.5;for(int k=0;k<4;k++){v+=a*soilNoise(p);p
   diffuseColor.rgb=cor;
  }
 `)
+ }
+ return mat
+}
+
+
+/** A mesma aparência foi pré-calculada pelo shader original. Na partida são
+ * três leituras de textura, sem dezenas de ruídos/senos por pixel e quadro.
+ * Os níveis conservam o desaparecimento do grão quando a câmera se afasta. */
+export function materialSolo3D(antigo = false,onReady?:()=>void){
+ if(antigo)return materialSoloOriginal3D(true)
+ const loader=new THREE.TextureLoader()
+ const read=(url:string)=>{
+  const texture=loader.load(url,()=>{if(!texture.userData.disposed){
+   // WebGL2 aloca textura imutável no primeiro desenho. O pixel provisório
+   // tem outro tamanho: liberar a alocação obriga Three a reservar a imagem real.
+   texture.dispose();texture.needsUpdate=true;onReady?.()
+  }},undefined,()=>{if(!texture.userData.disposed){texture.userData.loadFailed=true;onReady?.()}})
+  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4
+  // Imagem válida durante a carga e em conexões que falharem; nunca chão preto.
+  if(!texture.image){texture.image=new ImageData(new Uint8ClampedArray([153,119,79,255]),1,1);texture.needsUpdate=true}
+  return texture
+ }
+ const perto=read(new URL('./img/solo-campo-perto-v1.webp',import.meta.url).href)
+ const medio=read(new URL('./img/solo-campo-medio-v1.webp',import.meta.url).href)
+ const longe=read(new URL('./img/solo-campo-longe-v1.webp',import.meta.url).href)
+ const mat=new THREE.MeshStandardMaterial({map:perto,roughness:1})
+ mat.name='solo-textura-precalculada';mat.userData.extraTextures=[medio,longe]
+ mat.customProgramCacheKey=()=>'presidencia-soil-baked-v1'
+ mat.onBeforeCompile=shader=>{
+  shader.uniforms.soloMedio={value:medio};shader.uniforms.soloLonge={value:longe}
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D soloMedio;uniform sampler2D soloLonge;')
+   .replace('#include <map_fragment>',`{
+    vec2 uvSolo=(vMapUv*vec2(105.,68.)+vec2(10.))/vec2(125.,88.);
+    float px=length(fwidth(vMapUv*vec2(105.,68.)));
+    float perto=1.-smoothstep(.035,.14,px),medio=1.-smoothstep(.12,.45,px);
+    vec3 a=texture2D(soloLonge,uvSolo).rgb,b=texture2D(soloMedio,uvSolo).rgb,c=texture2D(map,uvSolo).rgb;
+    diffuseColor.rgb*=mix(mix(a,b,medio),c,perto);
+   }`)
  }
  return mat
 }

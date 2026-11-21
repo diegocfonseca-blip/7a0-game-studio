@@ -1,3 +1,5 @@
+import {compactIndexedGeometry} from './compact-geometry.mjs';
+import {materialDifusoLeve} from '../../presidencia-material-difuso-leve.ts';
 import {usarBonecoLeve} from './qualidade-jogador.mjs';
 // Local imported-character integration. Original topology, weights and bind pose
 // stay intact; only bone labels, captured clips and a separate kit mask adapt.
@@ -7,7 +9,7 @@ import {clone} from 'three/addons/utils/SkeletonUtils.js';
 import {carregaJogadorNovo as loadFootballSource,criarJogadorNovo as createOriginalActor} from '../jogador-novo.mjs';
 import {prepareSkinBounds} from './skinned-frustum-bounds.mjs';
 import {capturedArmLayer} from './captured-arm-layer.mjs';
-export function criarJogadorNovo(...args){const actor=createOriginalActor(...args);actor.holder.updateMatrixWorld(true);actor.updateFrustumBounds=prepareSkinBounds(actor.mesh);actor.updateFrustumBounds();actor.visibleFacing=bone=>{const b=actor.root.getObjectByName(bone),axis=args[0].forwardAxes?.get(bone);return b&&axis?axis.clone().applyQuaternion(b.getWorldQuaternion(Q())):null};return actor}
+export function criarJogadorNovo(...args){const actor=createOriginalActor(...args);if(bonecoLeve()){const original=actor.mesh.material,next=materialDifusoLeve(original);if(next!==original){actor.mesh.material=next;original.dispose()}}actor.holder.updateMatrixWorld(true);actor.updateFrustumBounds=prepareSkinBounds(actor.mesh);actor.updateFrustumBounds();actor.visibleFacing=bone=>{const b=actor.root.getObjectByName(bone),axis=args[0].forwardAxes?.get(bone);return b&&axis?axis.clone().applyQuaternion(b.getWorldQuaternion(Q())):null};return actor}
 const Q=()=>new T.Quaternion(),V=()=>new T.Vector3();
 const major={Hip:'Hips',Waist:'Spine',Spine01:'Spine1',Spine02:'Spine2',NeckTwist01:'Neck',NeckTwist02:'NeckHelper',Head:'Head',FacialBone:'HeadFace',L_Eye:'HeadEyeLeft',R_Eye:'HeadEyeRight'};
 const limb={Clavicle:'Shoulder',Upperarm:'Arm',Forearm:'ForeArm',Hand:'Hand',Thigh:'UpLeg',Calf:'Leg',Foot:'Foot',ToeBase:'ToeBase',Pinky:'HandPinky',Ring:'HandRing',Mid:'HandMiddle',Index:'HandIndex',Thumb:'HandThumb'};
@@ -77,7 +79,7 @@ export function bonecoLeve(){
 }
 const promises=new Map();
 export function carregaJogadorNovo(){const leve=bonecoLeve();if(promises.has(leve))return promises.get(leve);const pending=(async()=>{
- const [source,gltf]=await Promise.all([loadFootballSource(),new GLTFLoader().loadAsync(leve?new URL('../assets/jogador-estilizado-leve.glb',import.meta.url).href:new URL('../assets/jogador-estilizado-v1.glb',import.meta.url).href)]);const nativeNames=new Map();for(const b of bones(gltf.scene)){nativeNames.set(b.name,alias(b.name));b.name=alias(b.name)}
+ const [source,gltf]=await Promise.all([loadFootballSource(),new GLTFLoader().loadAsync(leve?new URL('../assets/jogador-estilizado-leve.glb',import.meta.url).href:new URL('../assets/jogador-estilizado-v1.glb',import.meta.url).href)]);if(leve){gltf.scene.updateMatrixWorld(true);gltf.scene.traverse(node=>{if(!node.isSkinnedMesh)return;node.computeBoundingBox();node.computeBoundingSphere();const previous=node.geometry;node.geometry=compactIndexedGeometry(previous);if(node.geometry!==previous)previous.dispose()})}const nativeNames=new Map();for(const b of bones(gltf.scene)){nativeNames.set(b.name,alias(b.name));b.name=alias(b.name)}
  for(const c of gltf.animations)for(const t of c.tracks)for(const[old,next]of nativeNames)if(t.name.startsWith(old+'.')){t.name=next+t.name.slice(old.length);break}
  const box=new T.Box3().setFromObject(gltf.scene),scale=1.78/(box.max.y-box.min.y),src=clone(source.gltf.scene),dst=clone(gltf.scene);src.scale.multiplyScalar(source.escala);dst.scale.multiplyScalar(scale);const sr=snapshot(src),tr=snapshot(dst),clips=new Map();let processed=0;
  for(const[name,clip]of source.clips){clips.set(name,retargetClip(clip,src,dst,sr,tr));if(++processed%5===0)await new Promise(r=>setTimeout(r,0))}

@@ -28,6 +28,8 @@ for(const sample of cases){
  const target=new THREE.Vector3(),cameraBefore=camera.position.toArray(),rootChildren=scene.children.length
  lighting.setPeriod('night');lighting.update(camera,target)
  const night=lighting.inspect();assert.equal(night.activeStadium.length,sample.floodlights,sample.name)
+ let wholeSceneUpdates=0;const updateScene=scene.updateMatrixWorld;scene.updateMatrixWorld=function(...args){wholeSceneUpdates++;return updateScene.apply(this,args)}
+ lighting.update(camera,target,true);assert.equal(wholeSceneUpdates,0,'luz não recalcula os esqueletos da cena inteira');assert.equal(lighting.inspect().activeLocal.length,0,'partida não processa luzes locais do bairro');assert.equal(lighting.inspect().activeStadium.length,sample.floodlights,'refletores do estádio continuam ativos');scene.updateMatrixWorld=updateScene;lighting.update(camera,target)
  assert(night.activeLocal.length<=4);assert.equal(sun.shadow.bias,-.00012,'solar acne correction is preserved')
  assert.equal(night.activeStadium.every(id=>id.startsWith(state.roofBuilt?'cobertura':'torre')),true)
  assert.deepEqual(camera.position.toArray(),cameraBefore);assert.deepEqual(sample.save,copy,'lighting cannot grant a purchase')
