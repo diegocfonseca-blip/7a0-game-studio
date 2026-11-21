@@ -16,8 +16,17 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
     (a `CollectibleCard` do Ronaldo Fenômeno, lenda dourada, escrito só "Ronaldo" via `nomeNaCarta`) + explicação de onde vêm as cartas (5,5 s, toque pula). 🔁 CORRIGIDO no mesmo dia (*"o exemplo do Ronaldo é em cima de onde convoca… antes só o pacotinho"*): a abertura é SÓ o pacote (2,5 s) e o
     exemplo virou faixa FIXA em cima da lista (`ExemploBafo`), na mesma tela da convocação.
     O relógio de 160 s só conta depois (`ABERTURA_MS` em bafo2-sala.tsx). Prints reais: `scripts/mockups/bafo-abertura-*.png`.
-  - EM MOCKUP (esperando OK): suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
-  - PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
+  - FEITO (21/11, depois do "ok arrume e siga"): 📏 `FaixaBafo` em cima do placar/campo da liga (regra pelo tamanho da sala + quem está na frente; usa a tabela
+    de ANTES do apito enquanto o jogo rola, sem spoiler) e 🥁 `RevelaBafo` (pacote 2 s → posição → categoria → "era do fulano, clube, década" → carta
+    da revelação do jogo + carimbo TOMADA! + zoeira do campeão, 12 frases PT/EN em `ZOEIRA_BAFO`; uma vez por aparelho e por Bafo; no sorteio não tem zoeira).
+    Prints reais: `scripts/mockups/bafo-faixa.png` e `bafo-suspense-*.png`. Não testado em sala de verdade.
+  - (mockup original) suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
+  - RESPONDIDO (21/11): quem aperta Pronto antes → o jogo completa com as PIORES (fica como está). Pedidos junto, FEITOS:
+    placar grande "10/22" + pílulas por posição na convocação; aviso do que FALTA pra fechar um time (`faltaPraFechar`, a mesma conta do `fechaConvocacao`:
+    22 meias não fecham → o jogo põe as piores das posições que faltam); e **60 s de PREPARO depois da convocação** (`BAFO2_PREP_SEG`): a escalação
+    (`EscalacaoMinha`, formação + titulares/reservas) fica em cima com banner e relógio, e a liga só larga depois (o dono segura +3 s; cada aparelho conta
+    de quando chegou na tela, lembrado em `sessionStorage`). Não testado em sala de verdade.
+  - (histórico) PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
   - Rivalidade: a prateleira de rivalidades não é desligada no Bafo (`retroOn`); conferir com ele onde ele esperava ver.
 - FEITO (21/11): criar sala do Bafo não pergunta mais o baralho (aviso fixo "as suas cartas de campeão", de qualquer baralho; repetida fica na coleção e no time entra uma só de cada).
 - CONFERIDO NO BANCO: Bafo nº 5 (Futpoint × Neymarzetti) — a carta está com o campeão e saiu do perdedor (80 → 79).
@@ -40,7 +49,7 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
 - `baralho-inteiro.ts`: soma as cartas REGIONAIS (445) e as do BRASIL OFICIAL (2 mil+, pedaço separado que desce na hora) aos 3 baralhos.
 - Vale no pacote do ÁLBUM: salas online, partida rápida e a carta "na hora" (`garanteCartaDoTitulo`, que agora também usa `sorteiaCarta`). Raridade igual (categoria primeiro: lenda 4%).
 - O Bafo lê a força dessas cartas (`achaNoBaralho` + download do Oficial só se a coleção tiver carta que os 3 baralhos não conhecem).
-- ⚠️ NÃO MUDOU (perguntado ao Diego): o pacote DENTRO da carreira (que vai pra Agência) segue com o baralho dele — carta do Oficial não joga na carreira de sempre e ficaria parada na Agência.
+- 🔁 A CARREIRA TAMBÉM (Diego, mesmo dia: *"é aleatório também quando é campeão na carreira, mesmo cálculo"*): o pacote da carreira sorteia do baralho inteiro. Carta do Oficial numa carreira de sempre vai pro álbum e pra Agência, mas não rende lá (o jogador não joga naquela carreira).
 - Efeito colateral avisado: com mais cartas "bom/profissional" no sorteio, fechar COLEÇÃO de clube fica mais demorado (as do Oficial/regionais não pertencem a coleção nenhuma).
 - Revê, só pro ÁLBUM/Bafo, o "as cartas do modo nunca vão pra Partida Rápida nem pro online" (15/11): continuam fora do LEILÃO, mas agora podem ser prêmio e jogar o Bafo.
 
@@ -62,7 +71,10 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
   FORA da rede de segurança (não dá pra montar a chave): Liga da Turma/Liga Draft (sem `match_seed`), salas já apagadas, Copa do Mundo/regionais de sala, carreira online, basquete.
 - (proposta original) rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
 - (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
-- Travas que JÁ falhavam antes desta entrega (não são do Bafo; olhar depois): `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
+- ✅ 21/11 (Diego: "ok arrume e siga"): as 5 travas voltaram a passar — `agencia`/`espectador`/`liga-volta` agora rodam com `--import ./scripts/node-stub-reg.mjs`
+  (liam `.webp` e morriam); `vice-city` compara por CARTA (nome|clube|ano), não por nome (De Paul Atlético × Inter Miami é permitido); `carreira-limpa`:
+  `kingsBaralho` entrou em `MARCAS_DE_MODO` (escolha de sala que podia vazar pra carreira) e `oficialAbertura`/`deOlho` em `ZERA_NA_CARREIRA_NOVA`.
+- (histórico) Travas que JÁ falhavam antes desta entrega: `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
 
 ## 🧭 21/11 — Central: 4 ajustes pedidos pelo Diego (no branch, esperando ele mandar publicar)
 
