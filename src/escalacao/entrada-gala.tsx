@@ -27,6 +27,7 @@
 //     página está aberta (regra do armazenamento cheio, 21/09).
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import type React from 'react'
+import { playMp3Gala, cantoDaGalaPadrao } from './sound' // 📣 21/11: canto na gala padrão
 import { createPortal } from 'react-dom'
 import { batismoDe, BATISMOS } from './batismos'
 import { mascoteInteiraDoTime, CARIMBO_GOL } from './mascotes'
@@ -203,6 +204,11 @@ const CSS = `
 `
 export function GalaEstilo() { return <style>{CSS}</style> }
 
+/** 📣 21/11: a gala PADRÃO toca o canto do clube que tem um (`cantoDaGalaPadrao`), abaixando no fim — a sala inteira ouve */
+function SomDaGalaPadrao({ clube, chave }: { clube: string; chave: string }) {
+  useEffect(() => { const c = cantoDaGalaPadrao(clube); return c ? playMp3Gala(`${import.meta.env.BASE_URL}${c}`, GALA_MS) : undefined }, [clube, chave])
+  return null
+}
 export function EntradaGalaShow({ clube, chave, nome }: { clube: string; chave: string; /** o nome com que o dono está jogando (pode ser o nome novo do clube) */ nome?: string }) {
   const mostra = nome || clube
   const art = mascoteInteiraDoTime(clube)
@@ -211,6 +217,7 @@ export function EntradaGalaShow({ clube, chave, nome }: { clube: string; chave: 
   return createPortal(
     <div key={chave} className="gala-show" aria-hidden>
       <GalaEstilo />
+      <SomDaGalaPadrao clube={clube} chave={chave} />
       <div className="gala-escuro" /><div className="gala-feixe" />
       <div className="gala-telao">
         <span className="esc"><Escudo nome={clube} size={170} /></span>

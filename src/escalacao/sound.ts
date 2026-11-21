@@ -264,6 +264,7 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 // O arquivo vai pro mesmo padrão do original (mono 32 kHz 56 kbps, mesmo volume médio −20,6 dB).
 // Nova conta = uma linha aqui + o arquivo em `public/sfx/`.
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
+  'ccaonta@gmail.com': 'sfx/torcida-chelsao-v1.mp3', // 🦁🔵 Chelsão da Massa FC (21/11, Batismo): os 14 primeiros segundos do canto do Chelsea que o Diego mandou (carreira + gala padrão)
   'felipefazzio@gmail.com': 'sfx/torcida-obelisko-v1.mp3', // 👁️👑 Obelisko FC (18/11, Fundador): os 14 primeiros segundos da abertura instrumental que o Diego mandou (carreira + gala)
   'danieltorresreus@gmail.com': 'sfx/torcida-spfc-wen-v1.mp3', // 👑⚪🔴⚫ Monarca Tricolor (05/11, Fundador): o MESMO canto do São Paulo do Wen Milan B (pedido do Diego)
   'sheeryarie772@gmail.com': 'sfx/torcida-spfc-wen-v1.mp3', // 🐐👑 Neymar_FC (29/10, virou Fundador): o MESMO canto do São Paulo do Wen Milan B (pedido do Diego)
@@ -285,6 +286,13 @@ export function playCampeao(souCampeao: boolean, ms: number): () => void {
   const canto = souCampeao && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined
   return playMp3Gala(`${import.meta.env.BASE_URL}${canto ?? SFX_GOL}`, ms)
 }
+// 📣 CANTO NA GALA PADRÃO, POR CLUBE (21/11, Chelsão da Massa): a gala ÚNICA de cada Fundador toca o canto dentro do show dela
+// (gala-*.tsx). Quem tem só a gala PADRÃO (Batismo) e tem canto entra aqui — chave = o clube de `BATISMOS` (que segue o E-MAIL
+// do dono, via `clubeDaConta`). A sala inteira ouve, igual às galas únicas. Novo caso = uma linha.
+const CANTO_DA_GALA_PADRAO: Record<string, string> = {
+  'Chelsão da Massa FC': 'sfx/torcida-chelsao-v1.mp3',
+}
+export function cantoDaGalaPadrao(clube: string): string | undefined { return CANTO_DA_GALA_PADRAO[clube] }
 /** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
 export function temCantoProprio(email: string | null | undefined): boolean { return !!email && email.toLowerCase() in AMBIENTE_CARREIRA_POR_EMAIL }
 let emailDoSom: string | null = null

@@ -1,3 +1,12 @@
+## 📣 21/11 — CANTO DO CHELSÃO DA MASSA FC (Batismo, conta ccaonta) — publicado
+- `public/sfx/torcida-chelsao-v1.mp3`: os 14 primeiros segundos do vídeo que o Diego mandou, no padrão dos outros (mono 32 kHz 56 kbps, −20,6 dB, 98 KB).
+- Carreira: linha em `AMBIENTE_CARREIRA_POR_EMAIL` (só ele ouve, em todo jogo — a regra de hoje).
+- Sala de espera: ele tem a gala PADRÃO (não é Fundador), que era muda. Agora a gala padrão toca o canto de quem tem (`cantoDaGalaPadrao`, sound.ts →
+  `SomDaGalaPadrao`, entrada-gala.tsx); a sala inteira ouve. ⚠️ A gala padrão dura 5,6 s, então tocam ~5 s do canto (os 14 s inteiros só na carreira).
+- ❓ ESPERANDO O DIEGO: ele perguntou se o canto nos JOGOS deve ser "todo mundo ouve" ou "só ele", e "só em casa". Recomendei: canto só nos jogos EM CASA,
+  e na sala online o visitante que joga na casa dele ouve também. Isso muda quem já tem canto (hoje ouvem em todo jogo da carreira) → não mexi sem o OK.
+- 🧪 `npm run gala` já reprovava antes desta entrega (`window.__set is not a function`, no cenário do navegador). Rever a trava.
+
 ## 📋 21/11 — LIGA DRAFT: overall sempre no elenco + formações mais claras (pedido do Diego, publicado pra todos)
 - **Overall no elenco**: na Liga Draft a faixa (ex. 71–80) de TODO jogador do seu elenco aparece sempre, com ou sem plano (`overTodos` em `SquadTab`/`ElencoField`,
   ligado em `minha-escalacao.tsx`). Antes seguia a regra do olheiro da carreira (só ouro/prata viam) e na sala nem isso. No Bafo NÃO liguei (ele pediu o Bafo sem over).
