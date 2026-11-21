@@ -232,7 +232,7 @@ export function FaltamCartasBafo({ uid, semPacote }: { uid: string | null | unde
         <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35, margin: '7px 0 0' }}>{en
           ? <>🏆 <b style={{ color: '#fff' }}>How to earn them:</b> every time you are champion of any competition, in the online rooms or in Career, you open the champion pack and win 1 card.</>
           : <>🏆 <b style={{ color: '#fff' }}>Como ganhar:</b> toda vez que você é campeão de qualquer campeonato, nas salas online ou na Carreira, você abre o pacote do campeão e ganha 1 carta.</>}</p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3, margin: '5px 0 0', color: '#9fb5a6' }}>{tr('👀 Enquanto isso, dá pra entrar numa sala de Bafo e assistir.', '👀 Meanwhile, you can join a Bafo room and watch.')}</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3, margin: '5px 0 0', color: '#9fb5a6' }}>{tr('🔒 Até lá, não dá pra criar nem entrar em sala de Bafo.', '🔒 Until then, you can\'t create or join a Bafo room.')}</p>
       </div>
     </div>
   )

@@ -1246,6 +1246,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🔁 Mesmo dia, depois do 1º teste: convocação de **160 s** em página própria (pacote abrindo antes, Ronaldo de exemplo em cima, placar "10/22" e aviso do
   que falta pra fechar um time) · **60 s de preparo** na escalação antes do 1º jogo · só Campo 2D · faixa da regra em cima do campo · suspense da carta tomada.
   Quem aperta Pronto antes: o jogo completa com as PIORES (ele confirmou).
+  🔒 Mesmo dia (noite): **sem cartas que fechem um time não entra nem cria sala de Bafo** (*"eles nem poderiam ter entrado, já que não estavam aptos"*);
+  abre o banner `FaltamCartasBafo` explicando o que é carta de campeão e como ganhar. Não existe mais "só assiste" pra quem chega.
 
 - **🎁 GANHOU, APARECE O PACOTE PRA ABRIR (21/11, regra permanente).** Palavras dele: *"o principal é quando acaba uma competição e você ganha, deve
   aparecer a carta pra você, o pacote pra abrir"*. Vale pra TODA competição de TODO modo (menos o Bafo, que não dá carta nova). Competição nova = já nasce

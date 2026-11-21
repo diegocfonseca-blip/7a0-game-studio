@@ -1,3 +1,11 @@
+## 🃏 21/11 (noite) — BAFO: SEM CARTAS NÃO ENTRA NEM CRIA (publicado, pedido do Diego depois da sala do Futpoint)
+- *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*. `enterRoom` (sala esperando) e criar sala: sem cartas que
+  fechem um time abre o modal com o `FaltamCartasBafo` e não entra/cria. Leitura das cartas falhou = deixa passar. Sala já começada segue como era.
+- Revê o "pode ficar assistindo" de antes: a pessoa não entra mais pra assistir.
+- ⏳ PENDENTE (perguntado ao Diego): o FIM do Bafo. Hoje não tem a votação padrão (`OnlineEndVote` é escondida no Bafo, porque "mesmo time / novo leilão"
+  não existem no modo); o dono tem um botão só, "Voltar pra sala de espera · novo Bafo", e quando aperta leva todo mundo. Na sala do Futpoint pareceu
+  automático pros outros. Proposta enviada: tela de fim com "Jogar de novo" / "Sair da sala" pra cada um e o dono só volta depois. Esperando resposta.
+
 ## 🃏 21/11 — BAFO: banner "faltam cartas" (publicado, Diego: "Sim")
 - `FaltamCartasBafo` (bafo2-ui.tsx): quem não fecha um time vê quantas cartas tem, por posição, o que é a carta de campeão e como ganhar. Some pra quem já pode jogar.
 - Aparece na tela de criar sala (com o Bafo escolhido) e na sala de espera (no lugar da caixa vermelha). Não bloqueia criar a sala.

@@ -24,7 +24,8 @@ import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMasco
 import { useEsc, MODO_NOME, MODO_EMOJI, type EmoteEvent, EMOTE_ESPERA_MS, assentoDoCracha } from './store'
 import type { WonCard } from './types'
 import { BafoSala, bafoApto, type BafoLinha, type BafoSquads } from './bafo2-sala'
-import { FaltamCartasBafo } from './bafo2-ui'
+import { FaltamCartasBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
+import { podeJogarBafo } from './bafo2'
 import pacoteCampeaoArt from './img/online-pacote-v20.webp' // 🃏 o pacotinho do campeão, na explicação do Bafo
 import { AdminButton, useCanCareerOnline, useIsAdmin } from './admin'
 import { JanelaConta } from './conta'
@@ -940,6 +941,7 @@ export function EscLobby() {
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  const [bafoBarrado, setBafoBarrado] = useState<'entrar' | 'criar' | null>(null) // 🃏 21/11: sem cartas que fechem um time = não entra nem cria sala de Bafo (abre o banner explicando)
   const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
   // 🕐 03/11: conta nova REPETIDA no mesmo aparelho espera 24 h pra criar sala (o banco decide: `esc_conta_nova_espera`).
   // contaNovaFim = quando libera (ms); null = sem espera. A 1ª conta do aparelho nunca vê isso.
@@ -2064,6 +2066,12 @@ export function EscLobby() {
       setRoomError(tr('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.', 'That mode is still under construction — it opens to everyone soon! For now you can play ⚡ Quick.'))
       setLoading(false); return
     }
+    // 🃏 21/11 (Diego: *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*): o dono também
+    // joga, então sem cartas que fechem um time a sala nunca começaria. Na dúvida (não deu pra ler as cartas) deixa passar.
+    if (roomMode === 'elenco' && user?.id) {
+      const apto = await carregaColecao(user.id).then(c => podeJogarBafo(c, NEED_BAFO), () => true)
+      if (!apto) { setBafoBarrado('criar'); setLoading(false); return }
+    }
     const liga = ligaOn && roomMode === 'liga'
     // 👑 CRIAR LIGA É SÓ DO LENDA — e até 22/08 isso NÃO estava travado de verdade:
     // o código só olhava `ligaOn` (quem enxerga o modo), nunca o tier. Como enxergar
@@ -2948,6 +2956,12 @@ export function EscLobby() {
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError(tr('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.', 'That is a 🃏 Bafo room, a new mode still under construction — it opens to everyone soon.')); setLoading(false); return
+    }
+    // 🃏 21/11: sem cartas que fechem um time não ENTRA em sala de Bafo esperando (antes entrava e ficava "só assiste").
+    // Sala já começada segue o caminho de sempre (quem é da sala volta). Na dúvida (leitura falhou) deixa passar.
+    if (rd.game_state?.mode === 'elenco' && rd.status !== 'started' && user?.id) {
+      const apto = await carregaColecao(user.id).then(c => podeJogarBafo(c, NEED_BAFO), () => true)
+      if (!apto) { setBafoBarrado('entrar'); setPwModal(null); setLoading(false); return }
     }
     // 🌍 mesma trava do Bafo pra Copa do Mundo online: esconder da lista não
     // basta, porque o código e o link do zap entram por aqui do mesmo jeito.
@@ -5259,6 +5273,16 @@ export function EscLobby() {
               <button onClick={() => { setRoomStream(true); setStreamModal(false) }}
                 className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: '#111', color: '#fff', ...OSWALD }}>{tr('Ligar mesmo assim', 'Turn on anyway')}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {bafoBarrado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.72)' }} onClick={() => setBafoBarrado(null)}>
+          <div className="w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <p className="text-center font-black uppercase" style={{ ...OSWALD, color: '#fff', fontSize: 17 }}>{bafoBarrado === 'criar' ? tr('🔒 Ainda não dá pra criar sala de Bafo', '🔒 You can\'t create a Bafo room yet') : tr('🔒 Ainda não dá pra entrar nessa sala de Bafo', '🔒 You can\'t join this Bafo room yet')}</p>
+            <FaltamCartasBafo uid={user?.id} />
+            <button onClick={() => setBafoBarrado(null)} className="w-full mt-3 border-[3px] border-black rounded-xl py-2.5 font-black uppercase" style={{ ...OSWALD, background: GOLD, color: '#000', boxShadow: `3px 3px 0 ${INK}` }}>{tr('Entendi', 'Got it')}</button>
           </div>
         </div>
       )}
