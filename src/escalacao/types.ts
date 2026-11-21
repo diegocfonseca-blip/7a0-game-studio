@@ -139,6 +139,8 @@ export interface AgEvento { emoji: string; texto: string; coins: number; nome?: 
 export interface WonCard extends Card {
   paid: number
   via: Acquisition
+  /** 🃏 Bafo novo (21/11): o id desta carta na coleção da conta (`user_cards`) — é ele que troca de dono no fim */
+  bafoId?: string
   // 📝❄️ EMPRÉSTIMO CONGELA O CONTRATO (Diego 13/09: *"quando o jogador é emprestado não
   // quero que conte o empréstimo — congela o tempo. Ele volta com o mesmo número que
   // tava quando emprestou"*). Gravado na ida pra SAF: quantas temporadas faltavam ALÉM
@@ -1010,6 +1012,8 @@ export interface EscState {
   // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim
   // quem ficou atrás entrega UMA carta daquela carreira pro de cima (cascata).
   bafoOn?: boolean
+  /** 🃏 BAFO NOVO (21/11): 22 cartas da coleção da conta, só gente, só liga, o campeão toma 1 carta (bafo2.ts) */
+  bafo2?: boolean
   bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }> // mgrId → dono do time (conta + carreira que ele trouxe). É por aqui que a cascata sabe de QUEM sai a carta e pra QUAL carreira ela vai.
   bafoValendo?: boolean // 🃏 a partida vale carta de verdade (padrão) ou é amistoso — escolha do host na criação da sala
   colecoesRecebidas?: string[] // 📚 idempotência das COLEÇÕES recebidas nesta carreira (04/10): a mesma recebida não paga duas vezes
