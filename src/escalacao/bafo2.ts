@@ -12,6 +12,7 @@ export const BAFO2_ELENCO = 22
 export const BAFO2_MIN = 11
 export const BAFO2_CONVOCA_SEG = 160 // 21/11 (Diego, depois do 1º teste: "ter mais 40s pra convocar")
 export const BAFO2_ESCOLHA_SEG = 60
+export const BAFO2_PREP_SEG = 60 // ⏱️ 21/11: depois da convocação, 60 s na área do elenco pra montar o time antes do 1º jogo
 const POS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 
 /** a linha da coleção como vem do banco */
@@ -56,6 +57,21 @@ export function formacaoQueFecha(cs: CartaBafo[], need: Necessidades): Formation
   const n = conta(cs)
   for (const f of FORMACOES_BAFO) { const q = need[f]; if (q && POS.every(p => n[p] >= q[p])) return f }
   return null
+}
+/** 🧮 o que FALTA pras marcadas fecharem um time (a formação que pede menos carta de fora, entre as que a coleção fecha).
+ *  `falta` vazio = já fecha. É a MESMA escolha de formação do `fechaConvocacao` — a tela mostra o que o jogo vai fazer. */
+export function faltaPraFechar(marcadas: CartaBafo[], colecao: CartaBafo[], need: Necessidades): { formacao: FormationKey; falta: Partial<Record<Sector, number>>; total: number } | null {
+  const ja = formacaoQueFecha(marcadas, need)
+  if (ja) return { formacao: ja, falta: {}, total: 0 }
+  const nd = conta(marcadas), nc = conta(colecao)
+  let melhor: { formacao: FormationKey; falta: Partial<Record<Sector, number>>; total: number } | null = null
+  for (const f of FORMACOES_BAFO) {
+    const q = need[f]; if (!q || !POS.every(p => nc[p] >= q[p])) continue
+    const falta: Partial<Record<Sector, number>> = {}; let total = 0
+    for (const p of POS) { const n = Math.max(0, q[p] - nd[p]); if (n) { falta[p] = n; total += n } }
+    if (!melhor || total < melhor.total) melhor = { formacao: f, falta, total }
+  }
+  return melhor
 }
 /** dá pra jogar o Bafo com esta coleção? */
 export const podeJogarBafo = (colecao: CartaBafo[], need: Necessidades): boolean => formacaoQueFecha(colecao, need) !== null

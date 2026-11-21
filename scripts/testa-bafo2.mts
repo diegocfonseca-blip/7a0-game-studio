@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict'
 import { reducer } from '../src/escalacao/store'
 import { FORMATIONS, type EscState, type Sector } from '../src/escalacao/types'
-import { resolveColecao, fechaConvocacao, formatoBafo, calendarioBafo, podeJogarBafo, piorPrimeiro, type CartaBafo, type Necessidades } from '../src/escalacao/bafo2'
+import { resolveColecao, fechaConvocacao, faltaPraFechar, formatoBafo, calendarioBafo, podeJogarBafo, piorPrimeiro, type CartaBafo, type Necessidades } from '../src/escalacao/bafo2'
 
 const NEED = FORMATIONS as unknown as Necessidades
 let seq = 0
@@ -43,6 +43,16 @@ assert.equal(fechaConvocacao([], elenco(0, 4, 4, 6, 8), NEED), null, 'coleção 
   assert.ok(podeJogarBafo(r.cartas, NEED), 'time fecha mesmo com 22 atacantes marcados')
   assert.ok(atas.filter(c => c.fame === 5).every(c => r.ids.includes(c.id)), 'as melhores marcadas ficam; saem as piores que sobravam')
   assert.ok(resto.filter(c => c.pos === 'GOL').every(c => r.ids.includes(c.id)), 'o goleiro que faltava entrou')
+}
+// ── 21/11: o aviso da tela ("falta 1 GOL · 2 LAT…") bate com o que o jogo faz ao fechar ──
+{
+  const atas = Array.from({ length: 22 }, (_, i) => carta('ATA', i < 5 ? 5 : 2)), resto = elenco(1, 2, 2, 3, 0, 1)
+  const f = faltaPraFechar(atas, [...atas, ...resto], NEED)!
+  assert.ok(f.total > 0 && f.falta.GOL === 1, '22 atacantes: a tela avisa que falta goleiro (e o resto)')
+  const r = fechaConvocacao(atas.map(c => c.id), [...atas, ...resto], NEED)!
+  assert.equal(r.formacao, f.formacao, 'a formação do aviso é a que o jogo fecha')
+  assert.equal(faltaPraFechar(elenco(1, 2, 2, 3, 3), [...atas, ...resto, ...elenco(1, 2, 2, 3, 3)], NEED)!.total, 0, '11 certinhos: nada falta')
+  assert.equal(faltaPraFechar([], elenco(0, 4, 4, 6, 8), NEED), null, 'coleção que não fecha nada: sem aviso (a pessoa nem convoca)')
 }
 // ── marcou 11 certinhos: entram os 11 + as 11 piores do resto, e os marcados são os primeiros (titulares) ──
 {

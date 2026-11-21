@@ -21,7 +21,12 @@ Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`
     da revelação do jogo + carimbo TOMADA! + zoeira do campeão, 12 frases PT/EN em `ZOEIRA_BAFO`; uma vez por aparelho e por Bafo; no sorteio não tem zoeira).
     Prints reais: `scripts/mockups/bafo-faixa.png` e `bafo-suspense-*.png`. Não testado em sala de verdade.
   - (mockup original) suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
-  - PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
+  - RESPONDIDO (21/11): quem aperta Pronto antes → o jogo completa com as PIORES (fica como está). Pedidos junto, FEITOS:
+    placar grande "10/22" + pílulas por posição na convocação; aviso do que FALTA pra fechar um time (`faltaPraFechar`, a mesma conta do `fechaConvocacao`:
+    22 meias não fecham → o jogo põe as piores das posições que faltam); e **60 s de PREPARO depois da convocação** (`BAFO2_PREP_SEG`): a escalação
+    (`EscalacaoMinha`, formação + titulares/reservas) fica em cima com banner e relógio, e a liga só larga depois (o dono segura +3 s; cada aparelho conta
+    de quando chegou na tela, lembrado em `sessionStorage`). Não testado em sala de verdade.
+  - (histórico) PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
   - Rivalidade: a prateleira de rivalidades não é desligada no Bafo (`retroOn`); conferir com ele onde ele esperava ver.
 - FEITO (21/11): criar sala do Bafo não pergunta mais o baralho (aviso fixo "as suas cartas de campeão", de qualquer baralho; repetida fica na coleção e no time entra uma só de cada).
 - CONFERIDO NO BANCO: Bafo nº 5 (Futpoint × Neymarzetti) — a carta está com o campeão e saiu do perdedor (80 → 79).

@@ -107,7 +107,8 @@ import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './
 import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
 import { CaminhoDraft } from './draft-favoritos'
 import { cartasExtras, carregaCartasExtras, type CartaExtra } from './baralho-inteiro' // 🃏 21/11: o pacote do campeão sorteia do baralho INTEIRO
-import { Bafo2Fim, ElencosBafo, BafoVigia, FaixaBafo } from './bafo2-ui' // 🃏 21/11: Bafo novo
+import { Bafo2Fim, ElencosBafo, BafoVigia, FaixaBafo } from './bafo2-ui'
+import { BAFO2_PREP_SEG } from './bafo2' // 🃏 21/11: Bafo novo
 import { chaveNome as chaveNomeDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
@@ -7821,8 +7822,27 @@ export function EscSeason() {
   // "flag de pausa" à parte: a própria existência da chave já diz que é a vez dela.
   const cup = state.nbaCup
   const cupLive = state.sport === 'basquete' && !!cup && cup.phase !== 'done'
+  // 🃏⏱️ BAFO (21/11, Diego: "após a convocação, dê 60 s mostrando a área de elenco pros usuários montarem suas equipes… antes de
+  // iniciar o jogo… e um banner avisando do tempo"): a liga só larga depois de 60 s com a escalação aberta em cima. Cada aparelho
+  // conta a partir de quando ELE chegou nesta tela (lembrado na aba, pra um F5 não ganhar tempo); quem larga é o dono (+3 s de folga).
+  const prepIni = useMemo(() => {
+    if (!state.bafo2 || state.round !== 0 || state.onlineMode !== 'online') return 0
+    const k = `bafo2-prep-${state.roomId}-${state.seed}`
+    let em = Date.now()
+    try { const g = Number(sessionStorage.getItem(k)); if (g > 0) em = g; else sessionStorage.setItem(k, String(em)) } catch { /* sem armazenamento: conta daqui */ }
+    return em
+  }, [state.bafo2, state.round === 0, state.onlineMode, state.roomId, state.seed]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [prepAgora, setPrepAgora] = useState(() => Date.now())
+  const prepPassou = prepIni ? Math.floor((prepAgora - prepIni) / 1000) : 999
+  const prepResta = prepIni ? Math.max(0, BAFO2_PREP_SEG - prepPassou) : 0 // o que a tela mostra
+  const prepSegura = !!prepIni && prepPassou < BAFO2_PREP_SEG + (state.isHost ? 3 : 0) // o que segura a largada
   useEffect(() => {
-    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive) return
+    if (!prepIni || !prepSegura) return
+    const i = setInterval(() => setPrepAgora(Date.now()), 1000)
+    return () => clearInterval(i)
+  }, [prepIni, prepSegura])
+  useEffect(() => {
+    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive || prepSegura) return
     if (kPenSegura && resultRevealed) return // 👑🥅 o shootout da Kings ainda rola no campinho: espera ele acabar // Dinastia: para na janela do meio; Cup: a liga espera; manual: avança no botão
     // 📺⏱️ 05/11 (Diego: *"está demorando pra aparecer o campinho 2D nas salas online"*): na LARGADA (rodada 0) ainda não
     // tem jogo nenhum na tela — a espera é só a tela "Aguardando o pontapé inicial". Ela usava o `roundMs` da rodada, que
@@ -7836,7 +7856,7 @@ export function EscSeason() {
     }
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, prepSegura])
   // toca a Cup fase a fase, no mesmo ritmo do mata-mata do fim de temporada.
   const cupKey = cup ? `${cup.phase}:${cup.ties.map(t => t.legs.length).join(',')}` : ''
   const cupJustAdvanced = cupLive && !!cup && cup.ties.every(t => t.legs.length === 0)
@@ -8566,7 +8586,18 @@ export function EscSeason() {
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)
             : LS(`🟥 VERMELHO pra ${c.nome}, do ${t}! São 5 minutos fora: o ${t} se vira com um a menos até o ${c.ate}'.`, `🟥 RED for ${c.nome} of ${t}! 5 minutes off: ${t} hold on a man down until ${c.ate}'.`) } }) : undefined} />{kingsInfo}</>
-      })() : kingsS ? <RegrasKingsBox /> : (
+      })() : kingsS ? <RegrasKingsBox /> : prepSegura && state.bafo2 ? (
+        <div>
+          <div style={{ background: INK, border: `3px solid ${GOLD}`, borderRadius: 14, boxShadow: '3px 3px 0 #000', padding: '9px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 'none', minWidth: 62, textAlign: 'center', color: prepResta <= 10 ? '#E8503A' : GOLD, ...OSWALD, fontWeight: 900, fontSize: 34, lineHeight: 1 }}>{prepResta}<span style={{ fontSize: 14, color: '#fff' }}>s</span></div>
+            <div style={{ color: '#fff', minWidth: 0 }}>
+              <p className="uppercase" style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, color: GOLD, lineHeight: 1.1 }}>{LS('🃏 Monte o seu time', '🃏 Set up your team')}</p>
+              <p style={{ fontSize: 12.5, fontWeight: 700, margin: '3px 0 0', lineHeight: 1.3 }}>{LS('Escolha a formação e troque titulares e reservas aqui embaixo. Quando o tempo acabar, a liga começa sozinha (e dá pra mexer de novo entre os jogos).', 'Pick your formation and swap starters and bench below. When time is up the league starts by itself (you can change it again between games).')}</p>
+            </div>
+          </div>
+          <EscalacaoMinha />
+        </div>
+      ) : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : LS('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')}</p>
         </Box>
@@ -8810,7 +8841,7 @@ export function EscSeason() {
       <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
       {/* 📋🏆 Minha Liga Draft: elenco de até 22 → a aba Elenco é a MESMA da carreira (trocar titular e formação) */}
-      {state.minhaLigaDraft || state.bafo2 ? <EscalacaoMinha /> : <YourPitch small />}
+      {state.bafo2 && prepSegura ? null /* 🃏 nos 60 s de preparo a escalação está lá em cima */ : state.minhaLigaDraft || state.bafo2 ? <EscalacaoMinha /> : <YourPitch small />}
       {/* 🃏 21/11: no Bafo, os 22 de cada rival abertos por posição (o campeão já vai escolhendo a carta que vai tomar) */}
       {state.bafo2 && <ElencosBafo managers={state.managers} youId={you.id} />}
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os

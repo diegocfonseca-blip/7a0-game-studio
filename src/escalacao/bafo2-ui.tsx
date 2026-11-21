@@ -17,7 +17,7 @@ import { seloDoClube } from './selo-clube'
 import { playTick } from './sound'
 import { CollectibleCard } from './screens'
 import pacoteCampeaoArt from './img/online-pacote-v20.webp'
-import { resolveColecao, podeJogarBafo, formatoBafo, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
+import { resolveColecao, podeJogarBafo, formatoBafo, faltaPraFechar, BAFO2_PREP_SEG, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', OURO = '#FFC400', VERDE = '#1B7A3D', VERM = '#E8503A'
 const OSW = { fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' as const }
@@ -110,6 +110,8 @@ export function RegrasBafo({ valendo, nPessoas }: { valendo: boolean; nPessoas: 
       <p style={p}>• {en ? <>It's {BAFO2_ELENCO} because <b style={{ color: '#fff' }}>you can substitute during the league</b>: 11 start, 11 on the bench (Squad tab).</> : <>São {BAFO2_ELENCO} porque <b style={{ color: '#fff' }}>dá pra substituir durante a liga</b>: 11 titulares e 11 no banco (aba Elenco).</>}</p>
       <p style={p}>• {en ? <>People only, no bots. League only. <b style={{ color: '#fff' }}>Doesn't count for the ranking.</b></> : <>Só gente, sem bots. Só liga. <b style={{ color: '#fff' }}>Não conta pro ranking.</b></>}</p>
       <p style={p}>• {en ? <>Once it starts: <b style={{ color: '#fff' }}>{BAFO2_CONVOCA_SEG}s</b> to call up your {BAFO2_ELENCO}. Didn't mark them all? The game fills in with your worst cards.</> : <>Começou: <b style={{ color: '#fff' }}>{BAFO2_CONVOCA_SEG} s</b> pra convocar os {BAFO2_ELENCO}. Não marcou todos? O jogo completa com as suas piores cartas.</>}</p>
+      <p style={p}>• {en ? <>Your {BAFO2_ELENCO} must <b style={{ color: '#fff' }}>make a team</b> (keeper, full-backs, centre-backs, midfielders, strikers). Whatever is missing, the game fills with your worst cards.</> : <>Os seus {BAFO2_ELENCO} têm que <b style={{ color: '#fff' }}>fechar um time</b> (goleiro, laterais, zagueiros, meias e atacantes). O que faltar, o jogo completa com as suas piores cartas.</>}</p>
+      <p style={p}>• {en ? <>After the call-up: <b style={{ color: '#fff' }}>{BAFO2_PREP_SEG}s to set up your team</b> (formation, starters and bench) before the first game.</> : <>Depois da convocação: <b style={{ color: '#fff' }}>{BAFO2_PREP_SEG} s pra montar o time</b> (formação, titulares e reservas) antes do 1º jogo.</>}</p>
       {valendo ? <>
         <p style={p}>• {en ? <><b style={{ color: '#fff' }}>The champion takes 1 card</b> from anyone's {BAFO2_ELENCO} ({BAFO2_ESCOLHA_SEG}s to choose; otherwise the game draws one). Left early? Your {BAFO2_ELENCO} are still at stake.</> : <><b style={{ color: '#fff' }}>O campeão toma 1 carta</b> das {BAFO2_ELENCO} de quem ele quiser ({BAFO2_ESCOLHA_SEG} s pra escolher; senão o jogo sorteia). Saiu antes? As suas {BAFO2_ELENCO} continuam valendo.</>}</p>
         <p style={{ ...p, color: '#ff9c8a' }}>• {en ? <>Room owner who ends it before the league is over (or vanishes for 10 min) <b style={{ color: '#fff' }}>loses 2 cards</b>: one to 1st place and one to 2nd. Before any game is played, the 2 cards are simply lost.</> : <>Dono que encerra antes do fim da liga (ou some por 10 min) <b style={{ color: '#fff' }}>perde 2 cartas</b>: uma pro 1º e outra pro 2º. Antes de qualquer jogo, as 2 somem e ninguém ganha.</>}</p>
@@ -140,16 +142,27 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
     if (sel.has(id)) onMarcar(marcadas.filter(x => x !== id))
     else if (!cheio) onMarcar([...marcadas, id])
   }
-  const porPos = SECTORS.map(p => `${p} ${colecao.filter(c => c.pos === p && sel.has(c.id)).length}`).join(' · ')
+  // 🧮 21/11 (Diego: "deixe visível 10/22… mostrando as posições… ele tem que ter pelo menos 11 que encaixe numa formação; não
+  // pode escolher 22 meias, senão o sistema escolhe os piores"): o placar das marcadas e o que falta pra FECHAR um time
+  const marcadasCartas = useMemo(() => colecao.filter(c => sel.has(c.id)), [colecao, sel])
+  const fecha = useMemo(() => faltaPraFechar(marcadasCartas, colecao, NEED_BAFO), [marcadasCartas, colecao])
+  const faltaTxt = fecha ? SECTORS.filter(p => fecha.falta[p]).map(p => `${fecha.falta[p]} ${p}`).join(' · ') : ''
   return (
     <div style={{ ...caixa(CREME), padding: 14, color: INK }}>
       <Relogio seg={seg} total={BAFO2_CONVOCA_SEG} rotulo={tr(`Convoque até ${BAFO2_ELENCO} jogadores`, `Call up to ${BAFO2_ELENCO} players`)} />
       <p style={{ margin: '-4px 0 8px', fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{getLang() === 'en' ? <>You take <b>{BAFO2_ELENCO}</b>: <b>11 starters + 11 on the bench</b> (you can substitute during the league). The first you mark in each position starts.</> : <>Você leva <b>{BAFO2_ELENCO}</b>: <b>11 titulares + 11 reservas</b> (dá pra substituir durante a liga). O 1º que você marcar em cada posição começa de titular.</>}</p>
-      <div style={{ display: 'flex', justifyContent: 'space-between', ...OSW, fontWeight: 800, fontSize: 14, marginBottom: 2 }}>
-        <span style={{ color: VERDE }}>✔ {marcadas.length} {tr('de', 'of')} {BAFO2_ELENCO} {tr('marcadas', 'marked')}</span>
-        <span>{colecao.length} {tr('cartas suas', 'cards of yours')}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+        <div style={{ flex: 'none', background: INK, color: marcadas.length >= BAFO2_ELENCO ? '#7CFFA5' : OURO, borderRadius: 12, padding: '4px 12px', ...OSW, fontWeight: 900, fontSize: 30, lineHeight: 1 }}>{marcadas.length}<span style={{ fontSize: 17, color: '#fff' }}>/{BAFO2_ELENCO}</span></div>
+        <div style={{ flex: 1, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {SECTORS.map(p => { const n = marcadasCartas.filter(c => c.pos === p).length; const f = fecha?.falta[p] ?? 0
+            return <span key={p} style={{ ...OSW, fontWeight: 800, fontSize: 12.5, border: `2px solid ${INK}`, borderRadius: 8, padding: '1px 6px', background: f ? '#FFE3DC' : n ? '#e7f6ec' : '#fff' }}>{p} {n}</span> })}
+        </div>
       </div>
-      <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{porPos}</p>
+      <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, lineHeight: 1.3, color: fecha && fecha.total > 0 ? '#8E2A1B' : '#14532d' }}>
+        {!fecha ? '' : fecha.total === 0
+          ? tr(`✅ As marcadas já fecham um time (${fecha.formacao === '3-4-3z' ? '3-4-3' : fecha.formacao}). As posições que você levar são as formações que vai poder usar depois — não fica preso, dá pra mudar na aba Elenco.`, `✅ Your marked cards already make a team (${fecha.formacao === '3-4-3z' ? '3-4-3' : fecha.formacao}). The positions you take are the formations you can use later — you can change it in the Squad tab.`)
+          : tr(`⚠️ Ainda não fecha um time: falta ${faltaTxt}. Se você não marcar, o jogo põe as suas PIORES cartas dessas posições${marcadas.length >= BAFO2_ELENCO ? ' e tira marcadas que estão sobrando' : ''}.`, `⚠️ Not a full team yet: missing ${faltaTxt}. If you don't mark them, the game puts in your WORST cards for those positions${marcadas.length >= BAFO2_ELENCO ? ' and drops marked ones you have too many of' : ''}.`)}
+      </p>
       <input value={busca} onChange={e => setBusca(e.target.value)} placeholder={tr('🔎 buscar jogador ou clube…', '🔎 search player or club…')}
         style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 10, padding: '7px 10px', background: '#fff', fontWeight: 700, fontSize: 14, color: INK, marginBottom: 8 }} />
       <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>
