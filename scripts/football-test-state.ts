@@ -18,5 +18,6 @@ export function footballTestState(competition='league',field=false){
   s=reducer(s,{type:'START_COPA'})
   return reducer(s,{type:'PLAY_COPA_LEG'})
  }
+ if(competition==='waiting')return s
  return reducer(s,{type:'PLAY_ROUND'})
 }

@@ -1,7 +1,7 @@
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
-import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget} from './owner-online-visual'
+import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget,FootballMatchPlaceholder} from './owner-online-visual'
 import {useFootballMatchPilotAccess} from './football-match-pilot'
 import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders} from './football-match-panels'
 import {useFootballChatDock} from './football-match-navigation'
@@ -8778,9 +8778,9 @@ export function EscSeason() {
                   </>
                 )
               })() : aberturaOn ? null : ( // 🎬 com a abertura no palco, o "aguardando o pontapé" seria o mesmo recado duas vezes
-                <Box bg="#fff" className="p-6" shadow={6}>
+                <FootballMatchPlaceholder><Box bg="#fff" className="p-6" shadow={6}>
                   <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the playoff jump ball…' : '🏀 Aguardando a bola ao alto dos Playoffs…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
-                </Box>
+                </Box></FootballMatchPlaceholder>
               )
             ) : finalAlheiaQ && finalAlheiaQ.legs.length > 0 ? (() => {
               // 🏆 a FINAL de quem não está nela: o mesmo placar grande/2D, sem lado "você" (neutro). Dono humano = nome e cor do tier
@@ -8878,8 +8878,8 @@ export function EscSeason() {
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)
             : LS(`🟥 VERMELHO pra ${c.nome}, do ${t}! São 5 minutos fora: o ${t} se vira com um a menos até o ${c.ate}'.`, `🟥 RED for ${c.nome} of ${t}! 5 minutes off: ${t} hold on a man down until ${c.ate}'.`) } }) : undefined} />{kingsInfo}</>
-      })() : kingsS ? <RegrasKingsBox /> : prepSegura && state.bafo2 ? (
-        <div>
+      })() : kingsS ? <FootballMatchPlaceholder><RegrasKingsBox /></FootballMatchPlaceholder> : prepSegura && state.bafo2 ? (
+        <FootballMatchPlaceholder><div>
           <div style={{ background: INK, border: `3px solid ${GOLD}`, borderRadius: 14, boxShadow: '3px 3px 0 #000', padding: '9px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 'none', minWidth: 62, textAlign: 'center', color: prepResta <= 10 ? '#E8503A' : GOLD, ...OSWALD, fontWeight: 900, fontSize: 34, lineHeight: 1 }}>{prepResta}<span style={{ fontSize: 14, color: '#fff' }}>s</span></div>
             <div style={{ color: '#fff', minWidth: 0 }}>
@@ -8887,12 +8887,12 @@ export function EscSeason() {
               <p style={{ fontSize: 12.5, fontWeight: 700, margin: '3px 0 0', lineHeight: 1.3 }}>{LS('Escolha a formação e troque titulares e reservas aqui embaixo. Quando o tempo acabar, a liga começa sozinha (e dá pra mexer de novo entre os jogos).', 'Pick your formation and swap starters and bench below. When time is up the league starts by itself (you can change it again between games).')}</p>
             </div>
           </div>
-          <EscalacaoMinha />
-        </div>
+          {!footballPilot&&<EscalacaoMinha />}
+        </div></FootballMatchPlaceholder>
       ) : (
-        <Box bg="#fff" className="p-6" shadow={6}>
+        <FootballMatchPlaceholder><Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : LS('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')}</p>
-        </Box>
+        </Box></FootballMatchPlaceholder>
       )}
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
@@ -10352,11 +10352,11 @@ export function EscLiberta() {
           youIsHome={homeIsYou} goals={goals} roundKey={lb.rodada} roundMs={roundMs} classico={oppIsHuman}
           footTint={{ bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === meuJogo.homeId)?.squad, fora: state.managers.find(m => m.id === meuJogo.awayId)?.squad, fCasa: state.managers.find(m => m.id === meuJogo.homeId)?.formation, fFora: state.managers.find(m => m.id === meuJogo.awayId)?.formation }} />
       })() : (
-        <Box bg="#fff" className="p-6" shadow={6}>
+        <FootballMatchPlaceholder><Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>
             {acabou ? LB('🏁 Fim da fase de grupos!', '🏁 Group stage over!') : meuTime ? LB('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LB('📺 Você não se classificou — acompanhe a Libertadores por aqui.', '📺 You did not qualify — follow the Libertadores here.')}
           </p>
-        </Box>
+        </Box></FootballMatchPlaceholder>
       )}
 
       {/* 🎮 O ritmo da fase fica junto do placar, antes de giro e tabelas. */}
@@ -10750,14 +10750,14 @@ export function EscChampions() {
           youIsHome={homeIsYou} goals={goals} roundKey={passo} roundMs={roundMs} classico={oppIsHuman}
           enhancedOnline={privateVisual} elencos={{ casa: state.managers.find(m => m.id === meuJogo.homeId)?.squad, fora: state.managers.find(m => m.id === meuJogo.awayId)?.squad, fCasa: state.managers.find(m => m.id === meuJogo.homeId)?.formation, fFora: state.managers.find(m => m.id === meuJogo.awayId)?.formation }} />
       })() : (portaoRepescao && revealed) || portaoOitavas ? null : (
-        <Box bg="#fff" className="p-6" shadow={6}>
+        <FootballMatchPlaceholder><Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>
             {ch.rodada === 0 && ch.fase === 'tabela' ? T('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')
               : portaoRepescao ? T('🏁 Aguardando o pontapé inicial do repescão…', '🏁 Waiting for the playoff kick-off…')
               : ch.fase !== 'tabela' ? T('📺 Você não joga o repescão — acompanhe os confrontos.', '📺 You do not play the playoff — follow the ties.')
               : T('📺 Você não jogou nesta rodada.', '📺 You did not play this round.')}
           </p>
-        </Box>
+        </Box></FootballMatchPlaceholder>
       )}
 
       {/* 🎮 O RITMO — os MESMOS botões da liga, no mesmo lugar (logo abaixo do placar) */}

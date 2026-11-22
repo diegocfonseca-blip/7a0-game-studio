@@ -97,6 +97,12 @@ try{
   check(`${competition}: sem transbordamento`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
   await context.close()
  }
+ const waiting=await open(390,'?competition=waiting')
+ check('antes do pontapé: abas já no topo',await waiting.page.getByRole('button',{name:'Partida',exact:true}).first().isVisible())
+ await waiting.page.getByRole('button',{name:/Começar a temporada/}).click()
+ await waiting.page.waitForFunction(()=>window.qaFull.state.round===1)
+ check('antes do pontapé: controle original inicia jogo',await waiting.page.locator('.fp-match-primary').isVisible())
+ await waiting.context.close()
  const field=await open(1440,'?field=1')
  check('2D: campo real montado',await field.page.locator('.ov3-native canvas').count()>0)
  await field.page.screenshot({path:`${out}/desktop-campo-2d.png`,fullPage:true});await field.context.close()

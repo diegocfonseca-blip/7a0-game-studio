@@ -12,7 +12,7 @@ Pedido: “faz aí só pra minha conta tudo”. Complemento: no desktop, rivalid
 
 ## Organização final
 
-- Abas superiores: Partida / Tabela e jogos / Estatísticas / Elenco / Rivalidades. Ativa roxa com texto claro e traço de destaque, demais verde com contorno visível e texto creme (ajuste posterior do Diego para reservar o amarelo às ações do jogo). Fontes, tamanhos dos botões e modais não mudam neste ajuste. Continuam no topo ao consultar os conteúdos.
+- Abas superiores: Partida / Tabela e jogos / Estatísticas / Elenco / Rivalidades. Ativa roxa com texto claro e traço de destaque, demais verde com contorno visível e texto creme (ajuste posterior do Diego para reservar o amarelo às ações do jogo). Fontes, tamanhos dos botões e modais não mudam neste ajuste. Continuam no topo ao consultar os conteúdos, inclusive antes do pontapé inicial.
 - Partida: placar cinema ou Campo2D real, controles e velocidade originais, posição e pontos, amostra de até dois outros jogos, **Todos os jogos**, plano e os onze próprios.
 - Tabela e jogos: classificação inteira e rodada completa, com as travas anteriores contra spoiler. Nas copas, jogos da competição e histórico da chave.
 - Elenco: o mesmo time próprio é movido por portal; sem duplicar o editor. Edição continua restrita aos modos que já permitem (Minha Liga Draft e Bafo).
@@ -40,6 +40,7 @@ Há implementação real, com escopo de experimento distinto do visual:
 - `scripts/testa-football-match-pilot.mjs`: conta principal exata, secundária/Futpoint fora, logout, erro, mudança de conta e resposta Auth atrasada.
 - `scripts/testa-football-live-tactics.mts`: reducer real com elencos reais; 40 continuações, 80 simulações pareadas, plano neutro idêntico ao legado, prefixo imutável, tabela, gols + assistências, outros jogos, relógio, duplicação, limite, identidade, payload remoto e minuto vencido.
 - `scripts/teste-football-full/verifica.mjs`: EscSeason/EscLiberta/EscChampions/ChatWidget reais num provider isolado; interface em 390 e 1440 px, copas, Campo2D, ordens pelo botão, chat pelo compositor existente, navegação sem remontar o placar, reversão e exclusão de Futpoint.
+- A rodada inicial sem resultado também foi testada: abas visíveis e botão original iniciando o jogo. A revisão final passou em 70 verificações de interface, sem erros JavaScript.
 - Bancada bloqueia acessos externos; não entra em salas reais nem envia mensagens a pessoas. Evidências locais em `/workspace/shared/diego-futebol-completo-20261122/`.
 - Regressões: `npm run sala-troca-2d`, `npm run vel-2d`, `npm run recarga`, `git diff --check`, compilação completa `npm run build`.
 - **Não houve teste ao vivo com duas sessões autenticadas nem medição em Samsung S25 físico.** Diego precisa validar o teste privado no jogo real antes de qualquer expansão de público/competições das ordens ao vivo.

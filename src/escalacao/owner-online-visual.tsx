@@ -52,6 +52,11 @@ export function FootballSidebarTarget({name}:{name:'leaders'|'rival-preview'}){
  const ref=useCallback((node:HTMLDivElement|null)=>ctx.target(name,node),[ctx.target,name])
  return ctx.pilot?<div className="fp-sidebar-extra-target" ref={ref}/>:null
 }
+/** Keep the navigation targets available before kickoff as well. */
+export function FootballMatchPlaceholder({children}:{children:ReactNode}){
+ const pilot=useOwnerFootballPilot()
+ return pilot?<OwnerPrimary label={tr('SEU JOGO','YOUR MATCH')}>{children}</OwnerPrimary>:<>{children}</>
+}
 export function OwnerSlot({name,children}:{name:Slot;children:ReactNode}){
  const ctx=useContext(Context),target=ctx.targets[name]
  const content=ctx.pilot&&name==='view'?<FootballMatchPilotView>{children}</FootballMatchPilotView>:children
