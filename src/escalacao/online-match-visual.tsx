@@ -5,6 +5,7 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr, getLang } from './lang' // 🌐 BR/EN
+import { playChute, playDefesa, crowdRoar } from './sound' // ⚽ 19/11: som da disputa de pênaltis
 import { estiloPisca, PISCA_GOL_MS, gritoGol } from './radio-pisca' // 📻 a faixa pisca no gol (26/10)
 import { usePatrocinio, type Competicao } from './patrocinio' // 💼 'apresentada por' (16/10)
 import { LedEstadio } from './patrocinio-visual' // 🏟️ LED do estádio (16/10)
@@ -279,6 +280,13 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  useEffect(()=>{if(campo)return;const start=Date.now();setElapsed(0);const id=setInterval(()=>{const t=(Date.now()-start)/1000;setElapsed(t);if(t>=totalDelay)clearInterval(id)},80);return()=>clearInterval(id)},[signature,aName,bName,totalDelay,!!campo])
  const done=campo?.encerrado ?? elapsed>=totalDelay
  const mostrado=(at:number)=>campo?at<campo.reveladas:elapsed>=.7+at*passo
+ // ⚽ 19/11 (sons): cada cobrança que SAI na tela toca o chute e, logo depois, o gol (grito da torcida) ou a defesa.
+ // Só no instante em que a bolinha aparece — nada antes (anti-spoiler). Disputa já pronta não toca nada.
+ const batidasN=rows.flat().filter(k=>mostrado(k.at)).length
+ const ultBatida=rows.flat().filter(k=>mostrado(k.at)).sort((a,b)=>b.at-a.at)[0]
+ const batidasRef=useRef<number|null>(null)
+ useEffect(()=>{const antes=batidasRef.current;batidasRef.current=batidasN;if(antes===null||batidasN<=antes||!ultBatida)return
+  playChute();const ok=ultBatida.ok;const tm=setTimeout(()=>{ok?crowdRoar(0.6,1800):playDefesa()},Math.min(600,passo*400));return()=>clearTimeout(tm)},[batidasN]) // eslint-disable-line react-hooks/exhaustive-deps
  const valid=rows.every((r,i)=>r.filter(k=>k.ok).length===official[i])
  if(!valid)return <section className="ll28-pens" aria-label="Resultado dos pênaltis"><header><b>{shootout?'SHOOTOUT':tr('PÊNALTIS', 'PENALTIES')}</b><strong>{done?`${official[0]} × ${official[1]}`:'– × –'}</strong></header><p>{aName} × {bName}</p><p className="ll28-pen-winner">{done?`${official[0]>official[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Decisão em andamento…', 'Shoot-out in progress…')}</p></section>
  const visible=rows.map(r=>r.filter(k=>mostrado(k.at)))

@@ -36,7 +36,7 @@ assert.ok(bots.every(b => b.squad.every(c => c.fake || (c.fame <= 3 && !c.promes
 console.log('✅ largada fraca:', noBaralho.length, 'cartas no pregão ·', bots.length, 'bots fracos')
 
 // ② simula a temporada inteira: elencos prontos (11 por humano) e tabela terminada
-const fracas = todasAsCartas().filter(c => c.fame <= 2 && !c.promessa)
+const fracas = todasAsCartas().filter(c => c.fame <= 3 && !c.promessa) // 21/11: profissional E bom (a régua do leilão do modo); só com fame ≤ 2 já não havia meia livre pra 3 humanos
 const usados = new Set(s.managers.flatMap(m => m.squad.map(c => chaveNome(c.name))))
 let k = 0
 for (const m of s.managers.filter(m => m.isHuman)) {

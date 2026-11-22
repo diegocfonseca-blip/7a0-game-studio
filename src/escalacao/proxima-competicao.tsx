@@ -10,7 +10,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
-import { playWhistle } from './sound'
+import { playSuaVez } from './sound'
 import { COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional'
 
 const INK = '#0C0C0C'
@@ -105,7 +105,7 @@ export function useChamaNaVez(chave: string | null) {
     ultima.current = chave
     setAberto(chave)
     try { navigator.vibrate?.([220, 120, 220, 120, 320]) } catch { /* ignora */ }
-    try { playWhistle() } catch { /* ignora */ }
+    try { playSuaVez() } catch { /* ignora */ } // 👆 19/11: o "dim-dom" da sua vez (era o apito, que é o som do JOGO)
     const titulo = document.title
     document.title = tr('⚠️ SUA VEZ! · Leilão Legends', '⚠️ YOUR TURN! · Leilão Legends')
     return () => { document.title = titulo }

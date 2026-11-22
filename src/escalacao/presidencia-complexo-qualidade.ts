@@ -33,7 +33,9 @@ export function calcularQualidadeComplexo(input: CapacidadeVisualComplexo) {
   const anisotropy = Math.min(constrained ? 2 : 8, Math.max(1, Math.floor(positive(input.maxAnisotropy, 1))))
   return {
     pixelRatio, pixelBudget, maxPixelRatio, anisotropy, constrained,
-    maxFPS: input.coarsePointer || constrained ? 30 : 60,
+    // Touch is not a performance limit: the chosen Leve/Padrão/Alta level
+    // still caps presentation at 30/45/60. Keep the low-memory safety cap.
+    maxFPS: constrained ? 30 : 60,
     drawingWidth: Math.max(1, Math.floor(width * pixelRatio)),
     drawingHeight: Math.max(1, Math.floor(height * pixelRatio)),
   }

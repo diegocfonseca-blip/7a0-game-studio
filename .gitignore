@@ -73,3 +73,5 @@ bench-sim.html
 # páginas/dados temporários de QA das sessões (ficam só no aparelho)
 qa-tmp-*.html
 public/qa-tmp-*.json
+scripts/posts/video-vice/frames/
+scripts/posts/video-gta-gratis/frames/

@@ -22,9 +22,12 @@ import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
 import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
 import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMascoteMini, clubeDaConta } from './entrada-gala' // 👑 entrada de gala do batismo (28/09)
-import { useEsc, listAllCareers, MODO_NOME, MODO_EMOJI, type EmoteEvent, EMOTE_ESPERA_MS, assentoDoCracha } from './store'
-import type { PoolCard } from './pyramidseason'
+import { useEsc, MODO_NOME, MODO_EMOJI, type EmoteEvent, EMOTE_ESPERA_MS, assentoDoCracha } from './store'
 import type { WonCard } from './types'
+import { BafoSala, bafoApto, type BafoLinha, type BafoSquads } from './bafo2-sala'
+import { FaltamCartasBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
+import { podeJogarBafo } from './bafo2'
+import pacoteCampeaoArt from './img/online-pacote-v20.webp' // 🃏 o pacotinho do campeão, na explicação do Bafo
 import { AdminButton, useCanCareerOnline, useIsAdmin } from './admin'
 import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
@@ -41,7 +44,7 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice as DeckCarreira } from './careeronline'
 // 🌎 26/10: a sala ganha o baralho MUNDO sozinho ('world'); a carreira online continua com os dela
 type DeckChoice = DeckCarreira | 'world'
-import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
+import { TIMES_ELITE } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
 import { useKingsLiberada, useViceCity, BASQUETE_LIGAS_ONLINE, BASQUETE_CARREIRA_ONLINE } from './sport'
@@ -115,7 +118,7 @@ const MAX_PLAYERS_CHAMPIONS = 36
 type Phase = 'auth' | 'menu' | 'waiting'
 type AuthTab = 'login' | 'register'
 
-interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; copa?: CopaPick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
+interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoLinha | null; copa?: CopaPick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
 interface LobbyMsg { id: string; uid: string; name: string; text: string; re?: ChatRe } // re = ↩ resposta (13/10)
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
@@ -512,153 +515,8 @@ function Section({ num, title, icon, children, resumo, abertaInicio, sub }: { nu
   )
 }
 // rótulo + controle (mesmo estilo do Field)
-// ─── 🃏 BAFO · PASSO 1 DO JOGADOR: qual carreira eu trago ───────────────────
-// Regra do Diego (17/08): "só permitirá jogar quem tem save com pelo menos 11
-// jogadores; se escolher agenciados, com pelo menos 11 também". E o jeito de
-// travar é o dele: **não bloqueia a entrada na sala** — a pessoa entra, VÊ o
-// porquê e o caminho pra destravar, e simplesmente não fica apta. Levar porta na
-// cara no link do amigo é o pior jeito.
-// Lê os saves com `listAllCareers()`, o MESMO leitor da tela "Minhas Carreiras" —
-// nada de inventar um segundo jeito de achar carreira.
-// 🃏 BAFO — o time que o técnico traz da carreira dele, do jeito que viaja pro
-// host (coluna `bafo` em room_players; NULL em todos os outros modos).
-export interface BafoTime { seed: number; via: 'elenco' | 'convocados'; squad: PoolCard[]; cartas: number; time: string }
-
-// 🃏 carta do COFRE não guarda força (EmpCard só tem nome/clube/ano) — quem tem
-// lo/hi é o baralho. Resolve pelo nome, varrendo os três catálogos, que é a
-// MESMA fonte que a Copa do Mundo usa pra montar seleção. Carta que não bate em
-// nenhum baralho (nome antigo, carta removida) simplesmente não entra: melhor
-// faltar jogador e a trava dos 11 avisar do que inventar força e o time jogar
-// com um fantasma.
-function cartaDoBaralho(nome: string): PoolCard | null {
-  for (const cat of [CATALOG, CATALOG_EU, CATALOG_WORLD] as Record<string, { name: string; club: string; year: number; fame: number; lo: number; hi: number }[]>[]) {
-    for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
-      const c = (cat[pos] ?? []).find(x => x.name === nome)
-      if (c) return { id: `bafo-${pos}-${nome}`, name: c.name, club: c.club, year: c.year, pos: pos as PoolCard['pos'], fame: c.fame, lo: c.lo, hi: c.hi, paid: 0 } as PoolCard
-    }
-  }
-  return null
-}
-
-// monta o time que vai pro host, a partir da carreira escolhida
-function montarBafo(seed: number, via: 'elenco' | 'convocados'): BafoTime | null {
-  const slot = listAllCareers().find(c => Number(c.slot.save.seed ?? 0) === seed)
-  if (!slot) return null
-  const sv = slot.slot.save
-  const eu = sv.managers?.[sv.youIdx ?? 0]
-  const time = eu?.teamName || eu?.name || tr('Meu time', 'My team')
-  // 🚫 perna-de-pau (fake) NUNCA entra — nem pelo elenco, nem pelo álbum da carreira.
-  const squad: PoolCard[] = via === 'elenco'
-    ? ((eu?.squad ?? []) as PoolCard[]).filter(c => !(c as { fake?: boolean }).fake)
-    : (sv.empresarioCards ?? []).map(c => cartaDoBaralho(c.name)).filter((c): c is PoolCard => !!c)
-  return { seed, via, squad: squad.slice(0, 22), cartas: (sv.empresarioCards ?? []).length, time }
-}
-
-const BAFO_MIN = 11
-function BafoEscolha({ escolha, onEscolha }: {
-  escolha: { seed: number; via: 'elenco' | 'convocados' } | null
-  onEscolha: (e: { seed: number; via: 'elenco' | 'convocados' } | null) => void
-}) {
-  const lista = listAllCareers()
-  const dados = lista.map(({ slot, active }) => {
-    const eu = slot.save.managers?.[slot.save.youIdx ?? 0]
-    // 🚫 jogador FAKE (perna-de-pau) não conta pra fechar os 11 — regra da casa.
-    const elenco = (eu?.squad ?? []).filter(c => !(c as { fake?: boolean }).fake).length
-    const cofre = (slot.save.empresarioCards ?? []).length
-    return {
-      seed: Number(slot.save.seed ?? 0), at: slot.at, active,
-      time: eu?.teamName || eu?.name || tr('Meu time', 'My team'),
-      temporada: slot.save.seasonNo ?? 1,
-      div: (slot.save.careerPlacements?.['m' + (eu?.id ?? 0)] as string) ?? slot.save.careerDivision ?? 'D',
-      elenco, cofre,
-    }
-  }).sort((a, b) => b.at - a.at)
-  const sel = dados.find(d => d.seed === escolha?.seed) ?? null
-
-  return (
-    <div className="border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
-      <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-1">{tr('🃏 Bafo · seu time', '🃏 Bafo · your team')}</p>
-      <p className="text-black/55 text-[11px] font-bold leading-snug mb-3">
-        {getLang() === 'en' ? <>No auction here: you bring the team from one of your careers. <b>The career that enters is the one that plays and the one that pays</b> — if Bafo happens, the drawn card comes from <b>that career's card album</b> (not your whole album).</> : <>Aqui não tem leilão: você traz o time de uma carreira sua. <b>A carreira que entra é a que joga e é a que paga</b> — se rolar Bafo, a carta sorteada sai do <b>álbum de cartas dessa carreira</b> (não do seu álbum todo).</>}
-      </p>
-
-      {/* 🚪 QUEM NÃO PODE JOGAR SÓ VÊ O CONVITE (decisão do Diego, 17/08): nada de
-          elenco emprestado nem de time sorteado. São dois casos, e cada um tem o
-          SEU caminho escrito — nunca uma porta fechada sem saída:
-          1) nunca começou carreira    → convite pra começar;
-          2) começou, mas nenhuma tem 11 no elenco NEM 11 no cofre → convite pra
-             completar o time (e o que falta em cada uma aparece na lista abaixo). */}
-      {dados.length === 0 ? (
-        <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
-          <p className="font-black text-[13px] text-black" style={OSWALD}>{tr('🪜 Comece uma carreira pra jogar o Bafo', '🪜 Start a career to play Bafo')}</p>
-          <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">
-            {getLang() === 'en' ? <>No auction here: the team that enters is the one <b>you built in your career</b>. Tap <b>Career</b> in the menu and play a season — then just come back to the room with the same code. <b>You can stay and watch</b> this match.</> : <>Aqui não tem leilão: o time que entra é o que <b>você montou na sua carreira</b>. Toque em <b>Carreira</b> no menu e jogue uma temporada — depois é só voltar pra sala com o mesmo código. <b>Você pode ficar assistindo</b> esta partida.</>}
-          </p>
-        </div>
-      ) : dados.every(d => d.elenco < BAFO_MIN && d.cofre < BAFO_MIN) && (
-        <div className="border-[2.5px] border-dashed border-black rounded-xl p-3" style={{ background: '#FFF1E8' }}>
-          <p className="font-black text-[13px] text-black" style={OSWALD}>{tr('🧩 Falta completar o time', '🧩 Team not complete yet')}</p>
-          <p className="text-black/60 text-[11px] font-bold leading-snug mt-1">
-            {getLang() === 'en' ? <>None of your careers has reached <b>{BAFO_MIN} players</b> yet — neither in the squad nor in the career's card album. Play one more season (the squad grows) or win more cards in that career. <b>You stay in the room watching</b>, and next time you're in.</> : <>Nenhuma carreira sua chegou nos <b>{BAFO_MIN} jogadores</b> ainda — nem no elenco, nem no álbum de cartas da carreira. Jogue mais uma temporada (o elenco cresce) ou ganhe mais cartas nessa carreira. <b>Você fica na sala assistindo</b>, e na próxima já entra.</>}
-          </p>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        {dados.map(d => {
-          const podeElenco = d.elenco >= BAFO_MIN
-          const podeCofre = d.cofre >= BAFO_MIN
-          const travado = !podeElenco && !podeCofre
-          const escolhida = escolha?.seed === d.seed
-          return (
-            <div key={d.seed}
-              className="rounded-xl p-3"
-              style={{ border: `${escolhida ? 3 : 2.5}px ${travado ? 'dashed' : 'solid'} ${escolhida ? GREEN : INK}`,
-                background: travado ? '#FFF1E8' : escolhida ? '#EFF9F2' : '#fff',
-                boxShadow: `2.5px 2.5px 0 0 ${escolhida ? GREEN : INK}` }}>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-[14.5px] text-black flex-1 truncate" style={OSWALD}>{d.time}</span>
-                {d.active && <span className="text-[9px] font-black uppercase border-2 border-black rounded-md px-1.5" style={{ background: GOLD, color: INK, ...OSWALD }}>{tr('última', 'latest')}</span>}
-                <span className="text-[15px]">{travado ? '🔒' : escolhida ? '✅' : '○'}</span>
-              </div>
-              <p className="text-black/55 text-[10.5px] font-bold mt-1">
-                Série {d.div} · {tr('Temporada', 'Season')} {d.temporada} · <b className="text-black">{d.elenco} {tr('jogadores', 'players')}</b> {tr('no elenco', 'in the squad')} · <b className="text-black">{d.cofre} {tr('cartas', 'cards')}</b> {tr('no álbum', 'in the album')}
-              </p>
-              {travado ? (
-                <p className="text-[10.5px] font-bold leading-snug mt-2" style={{ color: '#8E2A1B' }}>
-                  {getLang() === 'en' ? <>⚠️ You need {BAFO_MIN} to enter — you have {d.elenco} in the squad and {d.cofre} in this career's album. Play one more season or win more cards in this career.</> : <>⚠️ Precisa de {BAFO_MIN} pra entrar — você tem {d.elenco} no elenco e {d.cofre} no álbum desta carreira. Jogue mais uma temporada ou ganhe mais cartas nesta carreira.</>}
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <button onClick={() => onEscolha(escolhida && escolha?.via === 'elenco' ? null : { seed: d.seed, via: 'elenco' })}
-                    disabled={!podeElenco}
-                    className="border-[2.5px] border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
-                    style={{ background: escolhida && escolha?.via === 'elenco' ? GREEN : '#fff', color: escolhida && escolha?.via === 'elenco' ? '#fff' : '#000', opacity: podeElenco ? 1 : 0.4, ...OSWALD }}>
-                    {tr('👔 Elenco', '👔 Squad')}{!podeElenco && <span className="block text-[8.5px]">{tr('só', 'only')} {d.elenco}</span>}
-                  </button>
-                  <button onClick={() => onEscolha(escolhida && escolha?.via === 'convocados' ? null : { seed: d.seed, via: 'convocados' })}
-                    disabled={!podeCofre}
-                    className="border-[2.5px] border-black rounded-xl py-2 font-black text-[11.5px] active:translate-y-0.5"
-                    style={{ background: escolhida && escolha?.via === 'convocados' ? GREEN : '#fff', color: escolhida && escolha?.via === 'convocados' ? '#fff' : '#000', opacity: podeCofre ? 1 : 0.4, ...OSWALD }}>
-                    {tr('🧢 Convocar 22', '🧢 Call up 22')}{!podeCofre && <span className="block text-[8.5px]">{tr('só', 'only')} {d.cofre}</span>}
-                  </button>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="mt-3 border-[2.5px] border-black rounded-xl px-3 py-2 text-center"
-        style={{ background: sel ? GREEN : '#fff' }}>
-        <p className="font-black text-[12.5px]" style={{ color: sel ? '#fff' : 'rgba(0,0,0,.5)', ...OSWALD }}>
-          {sel ? `✅ ${tr('Apto', 'Ready')} — ${sel.time} ${escolha?.via === 'elenco' ? tr('(elenco)', '(squad)') : tr('(convocados)', '(call-ups)')}` : tr('⏳ Montando — escolha a carreira e como entra', '⏳ Building — pick the career and how you enter')}
-        </p>
-      </div>
-    </div>
-  )
-}
-
+// 🃏 BAFO NOVO (21/11): a sala de espera e a convocação moram em `bafo2-sala.tsx` (o Bafo antigo, que trazia o time de uma
+// carreira, saiu — nunca chegou a ser liberado).
 function SegField({ label, children }: { label: string; children: React.ReactNode }) {
   const claro = useContext(ClaroCtx)
   return (
@@ -909,7 +767,8 @@ export function EscLobby() {
   const [ligaPw, setLigaPw] = useState('') // 🔒 senha OBRIGATÓRIA da liga (Diego 29/08)
   // 🃏 BAFO: qual carreira eu trago e como entro. Fica no aparelho por enquanto —
   // mandar os 22 pro host é o passo seguinte.
-  const [bafoEscolha, setBafoEscolha] = useState<{ seed: number; via: 'elenco' | 'convocados' } | null>(null)
+  const bafoLargouRef = useRef(false) // 🃏 a última largada do Bafo passou pelo banco?
+  const bafoSquadsRef = useRef<BafoSquads | null>(null) // 🃏 21/11: os 22 de cada um, fechados pelo dono no fim da convocação
   // 🤝 DUPLAS (beta): 2 pessoas dividindo o comando de UM time. Escolha da SALA,
   // na criação — sala Solo é a de sempre e não muda em nada. Por enquanto só no
   // Rápido: a Carreira online tem caixa/temporada por técnico e merece um passo
@@ -956,7 +815,6 @@ export function EscLobby() {
   const [copaAberta, setCopaAberta] = useState(false) // 🌍 o torneio está na tela
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
-  const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
   const [draftCopa, setDraftCopa] = useState<'liga' | 'liga_copa'>('liga') // 📋🏆 14/11 (Diego): Liga Draft pode ter a Copa dos 8 depois da liga — SÓ a Copa dos 8
   const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago' | 'liga_mundo' | 'liga_euro' | 'liga_america' | 'liga_libsala' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   const [relampagoChave, setRelampagoChave] = useState<16 | 32>(16) // ⚡ Relâmpago (28/10): chave de 16 ou 32, o dono escolhe
@@ -1001,6 +859,10 @@ export function EscLobby() {
   // seletor dela, que usa o MESMO `ligaTamanho`). Relâmpago e Só Champions mostram o 10 travado (não têm liga).
   const tam10Mostra = !nbaSala && (roomMode === 'rapido' || (roomMode === 'liga' && !ehDraft && ligaComBots))
   const tam10Travado = rapidoCopaMode === 'relampago' || rapidoCopaMode === 'champions'
+  // 🌴 19/11 (Diego: *"n era 10 pregão e 20 Tocaia?"*): Vice City é Pregão aberto = liga de 10 times, sempre (20 fica travado)
+  // 🌴 19/11 (Diego: "inclua a opção de 20 times… mantendo o 10 como padrão já escolhido"): o Vice City não força mais 10 — só nasce em 10
+  const viceAqui = roomMode === 'rapido' && viceSala && viceVe && !nbaSala
+  const [viceCartasSel, setViceCartasSel] = useState<3 | 4 | 5>(3)
   const tam10Vale = ligaTamanho === 10 && ((tam10Mostra && !tam10Travado) || (roomMode === 'liga' && ehMinha && ligaComBots))
   const chaveSel = roomMode === 'rapido' && viceSala && viceVe ? 'vice' : roomMode === 'rapido' && kingsSala && kingsVe ? 'kings' : roomMode === 'liga' ? (minhaSel ? 'liga-minha' : ligaDraftSel ? 'liga-draft' : 'liga') : roomMode
   const chaveModo = (m: { v: string; draft?: boolean; minha?: boolean; kings?: boolean; vice?: boolean }) => m.vice ? 'vice' : m.kings ? 'kings' : m.v === 'liga' ? (m.minha ? 'liga-minha' : m.draft ? 'liga-draft' : 'liga') : m.v
@@ -1084,6 +946,7 @@ export function EscLobby() {
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  const [bafoBarrado, setBafoBarrado] = useState<'entrar' | 'criar' | null>(null) // 🃏 21/11: sem cartas que fechem um time = não entra nem cria sala de Bafo (abre o banner explicando)
   const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
   // 🕐 03/11: conta nova REPETIDA no mesmo aparelho espera 24 h pra criar sala (o banco decide: `esc_conta_nova_espera`).
   // contaNovaFim = quando libera (ms); null = sem espera. A 1ª conta do aparelho nunca vê isso.
@@ -1897,6 +1760,7 @@ export function EscLobby() {
       holandes: !!gs?.holandes,
       pregaoAberto: !!gs?.pregaoAberto, // 🔨 pregão aberto (17/10): escolha do dono gravada na sala
       vice: !!gs?.pregaoAberto && !!(gs as GS & { vice?: boolean })?.vice, // 🌴 Vice City (19/11): pregão aberto com cartas de golpe
+      viceCartas: (gs as GS & { viceCartas?: number })?.viceCartas, // 🃏 19/11: 3 · 4 · 5 cartas de golpe
       envUnico: !!(gs as GS & { envUnico?: boolean })?.envUnico, // ⚡ envelope único (28/10)
       clubes: !!gs?.clubes, // 🧱 leilão de clubes: escolha do host, gravada na sala
       selecao: !!gs?.clubes && !!(gs as GS & { pacSelecao?: boolean })?.pacSelecao, // 🏳️ 31/10
@@ -1912,22 +1776,17 @@ export function EscLobby() {
       // casa ("virei bot", "dei lance por outro"), então vai pelo índice da MESMA
       // lista que monta os playerNames, nunca por player_index do banco.
       bafo: gs?.mode === 'elenco' ? (() => {
+        // 🃏 21/11: os 22 que o DONO fechou na convocação (gravados na sala, `bafo2Squads`), pelo dono de cada assento
+        const sq = (gs as GS & { bafo2Squads?: BafoSquads })?.bafo2Squads ?? {}
         const out: Record<number, WonCard[]> = {}
-        uniq.forEach((p, i) => {
-          const sq = (p as RoomPlayer & { bafo?: BafoTime | null }).bafo?.squad
-          if (sq && sq.length >= 11) out[i] = sq as unknown as WonCard[]
-        })
+        uniq.forEach((p, i) => { const t = sq[p.user_id]; if (t && t.cartas.length >= 11) out[i] = t.cartas.map(c => ({ ...c, paid: 0, via: 'leilao' })) as unknown as WonCard[] })
         return out
       })() : undefined,
-      // 🃏 e QUEM é o dono de cada time: a conta e a carreira que ele trouxe. É
-      // o que a cascata do fim usa pra tirar a carta da carreira CERTA e pôr na
-      // carreira CERTA — pela MESMA posição na lista (uniq), nunca por outra.
-      bafoDonos: gs?.mode === 'elenco' ? (() => {
-        const out: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }> = {}
-        uniq.forEach((p, i) => {
-          const b = (p as RoomPlayer & { bafo?: BafoTime | null }).bafo
-          if (b && (b.squad?.length ?? 0) >= 11) out[i] = { uid: p.user_id, seed: b.seed, via: b.via }
-        })
+      bafo2: gs?.mode === 'elenco',
+      bafoFormacoes: gs?.mode === 'elenco' ? (() => {
+        const sq = (gs as GS & { bafo2Squads?: BafoSquads })?.bafo2Squads ?? {}
+        const out: Record<number, FormationKey> = {}
+        uniq.forEach((p, i) => { const t = sq[p.user_id]; if (t) out[i] = t.f })
         return out
       })() : undefined,
       // 🃏 valendo carta? Só o "não" viaja gravado — sala antiga/sem o campo é
@@ -2213,6 +2072,12 @@ export function EscLobby() {
       setRoomError(tr('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.', 'That mode is still under construction — it opens to everyone soon! For now you can play ⚡ Quick.'))
       setLoading(false); return
     }
+    // 🃏 21/11 (Diego: *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*): o dono também
+    // joga, então sem cartas que fechem um time a sala nunca começaria. Na dúvida (não deu pra ler as cartas) deixa passar.
+    if (roomMode === 'elenco' && user?.id) {
+      const apto = await carregaColecao(user.id).then(c => podeJogarBafo(c, NEED_BAFO), () => true)
+      if (!apto) { setBafoBarrado('criar'); setLoading(false); return }
+    }
     const liga = ligaOn && roomMode === 'liga'
     // 👑 CRIAR LIGA É SÓ DO LENDA — e até 22/08 isso NÃO estava travado de verdade:
     // o código só olhava `ligaOn` (quem enxerga o modo), nunca o tier. Como enxergar
@@ -2275,7 +2140,7 @@ export function EscLobby() {
     // 👑 11/11: sala da Kings — formação 'kings', a competição dela e o baralho escolhido; o que não vale na Kings sai do pacote
     if (kingsVe && kingsSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { formation: 'kings', copaMode: 'liga', kingsBaralho: kingsBarSala || undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, tamanhoLiga: undefined, turnoUnico: undefined, duplasMode: undefined, varzea: undefined, mundoNaLiga: undefined, euroNaLiga: undefined, regionalNaLiga: undefined, relampagoChave: undefined, ...(kingsBarSala ? {} : { deck: rapidoDeck, deckSala: rapidoDeck }) })
     // 🌴 19/11: sala Vice City — sempre Pregão aberto, sem duplas/clubes/Champions (o golpe acontece com uma carta por vez na mesa)
-    if (viceVe && viceSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { vice: true, pregaoAberto: true, holandes: undefined, envUnico: undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, duplasMode: undefined, ...(rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago' ? { copaMode: 'liga', relampagoChave: undefined } : {}) })
+    if (viceVe && viceSala && roomMode === 'rapido' && getSport() !== 'basquete') Object.assign(gs as Record<string, unknown>, { vice: true, viceCartas: viceCartasSel, pregaoAberto: true, holandes: undefined, envUnico: undefined, clubes: undefined, pacSelecao: undefined, pacDecada: undefined, duplasMode: undefined, ...(rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago' ? { copaMode: 'liga', relampagoChave: undefined } : {}) })
     // 🏀 19/10: sala de basquete não leva marca de competição de FUTEBOL. Os seletores ficam escondidos no basquete,
     // mas o valor deles fica guardado se a pessoa mexeu numa sala de futebol antes, sem sair da tela.
     // (🧱 Clubes vale no basquete desde 19/10 — o deck 'todos' que ele grava é ignorado: o basquete usa sempre a NBA.)
@@ -2312,7 +2177,7 @@ export function EscLobby() {
     const tentativa={v:1 as const,id:pendente?.id??novoIdCriacao(),code,at:pendente?.at??Date.now()}
     if(!gravaCriacaoPendente(user.id,game,tentativa))throw new Error('CRIACAO_SEM_ARMAZENAMENTO')
     const { data: rd, error: re } = await operacao.passo('criar-sala-e-dono',signal=>supabase.rpc('esc_criar_sala_segura',{
-      p_id:tentativa.id,p_code:code,p_max_players:(viceVe && viceSala && roomMode === 'rapido' && getSport() !== 'basquete') ? 10 /* 🌴 Vice City: pregão aberto de UMA mesa */ : (kingsVe && kingsSala && kingsBarSala && roomMode === 'rapido' && getSport() !== 'basquete') ? KINGS_SALA_MAX /* 👑 13/11: baralho da Kings = 10 pessoas (o baralho fecha até 11 sem jogador de mentira) */ : tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS,
+      p_id:tentativa.id,p_code:code,p_max_players:(viceVe && viceSala && roomMode === 'rapido' && getSport() !== 'basquete') ? (ligaTamanho === 20 ? 20 : 10) /* 🌴 Vice City: pregão aberto de UMA mesa */ : (kingsVe && kingsSala && kingsBarSala && roomMode === 'rapido' && getSport() !== 'basquete') ? KINGS_SALA_MAX /* 👑 13/11: baralho da Kings = 10 pessoas (o baralho fecha até 11 sem jogador de mentira) */ : tam10Sala ? (roomDuplas ? 20 : 10) : roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : relampagoSala ? relampagoChave : MAX_PLAYERS,
       p_game_state:gs,p_nome:nameOf()
     }).abortSignal(signal))
     if (re || !rd) {
@@ -2452,7 +2317,7 @@ export function EscLobby() {
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
       game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos', 'world'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: ['true', 'selecao', 'decada', 'selecao_decada'].includes(r.gclubes ?? '') || undefined, pacSelecao: (r.gclubes ?? '').startsWith('selecao') || undefined, pacDecada: (r.gclubes ?? '').endsWith('decada') || undefined, // 🏳️🕰️ 01/11: o ls_clubes diz o tipo do pacote
-       ligaDraft: r.gdraft === 'true' || undefined, pregaoAberto: r.gpregao === 'true' || undefined, envUnico: r.gpregao === 'unico' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'euro' ? { mundoNaLiga: true, euroNaLiga: 24 } : r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as unknown as GS,
+       ligaDraft: r.gdraft === 'true' || undefined, pregaoAberto: r.gpregao === 'true' || r.gpregao === 'vice' || undefined, vice: r.gpregao === 'vice' || undefined /* 🌴 19/11 selo Vice City */, envUnico: r.gpregao === 'unico' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'america' ? { mundoNaLiga: true, euroNaLiga: 16 } /* 🌎 19/11 */ : r.gcopa2 === 'euro' ? { mundoNaLiga: true, euroNaLiga: 24 } : r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as unknown as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -2539,6 +2404,18 @@ export function EscLobby() {
           if (!kingsVe) list.splice(i, 1)
           else list[i] = { ...list[i], game_state: { ...(list[i].game_state as GS), formation: 'kings' } as GS }
         }
+      } catch { /* a lista segue */ }
+    }
+    // 🌴 19/11 (Diego: *"as salas abertas que tiver jogando tem que ter um selo de Vice City da cor temática"*): a mesma pergunta
+    // minúscula (só os ids) marca a sala Vice City pro selo neon na lista.
+    if (ids.length) {
+      try {
+        const { data: vc } = await supabase.from('game_rooms').select('id').in('id', ids).eq('game_state->>vice', 'true')
+        // 🌴 20/11: sala que já começou antes do conserto perdeu a marca no 1º save — o pregão em andamento ainda tem o `pa.vice`
+        const { data: vc2 } = await supabase.from('game_rooms').select('id').in('id', ids).not('game_state->pa->vice', 'is', null)
+        const vices = new Set([...(vc ?? []), ...(vc2 ?? [])].map(x => (x as { id: string }).id))
+        if (vices.size) for (let i = 0; i < list.length; i++) if (vices.has(list[i].id))
+          list[i] = { ...list[i], game_state: { ...(list[i].game_state as GS), vice: true } as GS }
       } catch { /* a lista segue */ }
     }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
@@ -3090,6 +2967,12 @@ export function EscLobby() {
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError(tr('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.', 'That is a 🃏 Bafo room, a new mode still under construction — it opens to everyone soon.')); setLoading(false); return
     }
+    // 🃏 21/11: sem cartas que fechem um time não ENTRA em sala de Bafo esperando (antes entrava e ficava "só assiste").
+    // Sala já começada segue o caminho de sempre (quem é da sala volta). Na dúvida (leitura falhou) deixa passar.
+    if (rd.game_state?.mode === 'elenco' && rd.status !== 'started' && user?.id) {
+      const apto = await carregaColecao(user.id).then(c => podeJogarBafo(c, NEED_BAFO), () => true)
+      if (!apto) { setBafoBarrado('entrar'); setPwModal(null); setLoading(false); return }
+    }
     // 🌍 mesma trava do Bafo pra Copa do Mundo online: esconder da lista não
     // basta, porque o código e o link do zap entram por aqui do mesmo jeito.
     if (rd.game_state?.mode === 'mundo' && !mundoOn) {
@@ -3289,11 +3172,13 @@ export function EscLobby() {
     // nunca vira "time fantasma" nem entra com elenco sorteado (a regra da casa:
     // nada de perna-de-pau entrando em campo por regra nova). O host já foi
     // avisado no banner de quem ia ficar de fora antes de chegar aqui.
+    const bafoSq = room.game_state?.mode === 'elenco' ? bafoSquadsRef.current : null
     if (room.game_state?.mode === 'elenco') {
-      const aptos = players.filter(p => ((p.bafo?.squad?.length ?? 0) >= BAFO_MIN))
-      if (aptos.length < 2) return
+      // 🃏 21/11: só larga com os elencos que o dono fechou na convocação. Quem não tem time fechado sai da sala ANTES da
+      // renumeração (não vira time fantasma) — o banner de regras já avisou que ele só assistia.
+      if (!bafoSq || Object.keys(bafoSq).length < 2) return
       for (const p of players) {
-        if (aptos.some(a => a.user_id === p.user_id)) continue
+        if (bafoSq[p.user_id]) continue
         await supabase.from('room_players').delete().eq('room_id', room.id).eq('user_id', p.user_id).then(() => {}, () => {})
       }
     }
@@ -3326,6 +3211,17 @@ export function EscLobby() {
         // podem compartilhar o mesmo player_index e o update pegaria o errado.
         await supabase.from('room_players').update({ player_index: i }).eq('room_id', room.id).eq('user_id', keep[i].user_id).then(() => {}, () => {})
       }
+    }
+    if (bafoSq) {
+      // 🃏 21/11: ANTES de a sala virar "começou", o banco confere que cada carta é de quem diz ser e guarda as 22 de cada um
+      // (é dessa foto que o campeão toma a carta no fim). Recusou → nada começa e nenhuma carta foi mexida.
+      const assentos: Record<string, string> = {}; const ids: Record<string, string[]> = {}; const nomes: Record<string, string> = {}
+      keep.forEach((k, i) => { const t = bafoSq[k.user_id]; if (t) { assentos[String(i)] = k.user_id; ids[k.user_id] = t.cartas.map(c => c.id); nomes[k.user_id] = stripEmoji(players.find(p => p.user_id === k.user_id)?.manager_name ?? '') } })
+      const { error: eBafo } = await supabase.rpc('bafo2_fecha', { p_room: room.id, p_squads: ids, p_assentos: assentos, p_nomes: nomes, p_valendo: !(room.game_state as GS)?.bafoSemCarta })
+      if (eBafo) { console.warn('[bafo2_fecha]', eBafo.message); bafoLargouRef.current = false; return }
+      const { data: gsAgora } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+      await supabase.from('game_rooms').update({ game_state: { ...((gsAgora?.game_state ?? room.game_state) as object), bafo2Squads: bafoSq } }).eq('id', room.id)
+      bafoLargouRef.current = true
     }
     await supabase.from('game_rooms').update({ status: 'started' }).eq('id', room.id)
     // 🐛 O HOST NÃO ESPERA MAIS O ECO DO BANCO (Diego 22/08, na liga dele: *"o
@@ -4075,17 +3971,19 @@ export function EscLobby() {
           // 📋 LIGA DRAFT (02/11, Diego: *"não quero mais aquela liga draft… agora o minhas ligas draft vai ser o liga draft… coloque ele lá
           // pra todos mas não libere… meta de 2k seguidores"*). A antiga (1ª temporada fraca, 60 s) não se cria mais — salas antigas seguem.
           // Aparece pra todos com a faixa da meta; só quem está em MINHA_LIGA_DRAFT_TESTERS (sport.ts) cria.
-          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, ...(minhaOn ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : { meta: 2 }) }, // 🟢 05/11: liberada pra todos (MINHA_LIGA_DRAFT_GERAL) — a faixa da meta some e entra o selo NOVO
+          { v: 'liga' as const, draft: true, minha: true, ic: '📋', nome: 'Liga Draft', frase: tr('1ª temporada no leilão. Depois, draft a cada temporada.', 'Season 1 at auction. Then a draft every season.'), on: ligaOn && minhaOn, emTeste: !minhaOn, estrela: true, ...(minhaOn ? {} : { meta: 2 }) } /* 🏷️ 19/11: sem o NOVO (Diego) */, // 🟢 05/11: liberada pra todos (MINHA_LIGA_DRAFT_GERAL) — a faixa da meta some e entra o selo NOVO
           // 👑 11/11 (Diego: *"Kings League tem que estar em cima, junto com Liga Draft e outros"*): um MODO da sala, só pras contas da Kings
           ...(kingsVe && !nbaSala ? [{ v: 'rapido' as const, kings: true, ic: '👑', nome: 'Kings League', frase: tr('7 contra 7, 10 times e as regras da Kings League Brasil.', '7 v 7, 10 teams and the Kings League Brasil rules.'), on: true, selo: tr('NOVO', 'NEW'), seloVerde: true }] : []),
           // 🌴 19/11 (Diego: *"pode fazer adorei"*): Vice City, o pregão aberto com cartas de golpe — só pra quem `useViceCity` libera
-          ...(viceVe && !nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: true, selo: tr('NOVO', 'NEW'), seloVerde: true }] : []),
+          // 🔜 19/11 (Diego: *"coloque p todos só q rosa o fundo e em breve. N deixe apertarem"*): todo mundo VÊ o cartão (fundo rosa,
+          // EM BREVE) mas não aperta; só quem `useViceCity` libera joga.
+          ...(!nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: viceVe, ...(viceVe ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : {}) /* 🏷️ 21/11 (Diego: "vice City deixe como novo tb") */ }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
-          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Só com o seu time da carreira, valendo carta.', 'Only with your career team, cards at stake.'), on: salaElenco, emTeste: true, meta: 3 },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Suas cartas de campeão em jogo: o campeão toma 1 de alguém.', 'Your champion cards at stake: the champion takes 1 from someone.'), on: salaElenco, selo: tr('NOVO', 'NEW'), seloVerde: true }, // 🏷️ 21/11 (Diego: "o bafo remova o selo roxo e coloque novo")
         ]
         // 🏀 no BidLegends existem Rápido, Minhas ligas e a 🌐 Carreira (online do basquete).
         // O Bafo é do futebol — some da lista aqui pra não mostrar cartão que não abre.
-        const MODOS = (TODOS_MODOS.filter(m => (m.v !== 'elenco' || salaElenco) && (!nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !(m.draft && !m.minha)))))
+        const MODOS = TODOS_MODOS.filter(m => (m.v !== 'elenco' || salaElenco) && (m.v !== 'carreira' || nbaSala) /* 🙈 21/11 (Diego: "oculte esse carreira daí, não precisa deixar aparecendo"): só no futebol */ && (!nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !(m.draft && !m.minha))))
           // 🏀 18/11 (Diego: *"qd eu liberar p rapaziada vai ser rotineiro só p modo rápido.. liga da turma e liga draft ficará com selo em
           // breve, carreira online também"*): no basquete só o ⚡ Rápido cria sala; os outros aparecem com EM BREVE (sem configurar, sem criar).
           .map(m => nbaSala && ((m.v === 'liga' && !BASQUETE_LIGAS_ONLINE) || (m.v === 'carreira' && !BASQUETE_CARREIRA_ONLINE)) ? { ...m, on: false, emTeste: true, selo: undefined } : m) // 🃏 26/10 (Diego: "o bafo deixa oculto, pra não confundir"): o Bafo só aparece pra conta que já pode criar // 📋🏀 10/11: a Liga Draft de hoje (minha) também no basquete, com o baralho da NBA; a antiga continua só no futebol
@@ -4303,14 +4201,16 @@ export function EscLobby() {
                 // (*"deixa eu ver também como uma pessoa que não pode jogar"*).
                 const emBreve = !m.on || (previewComum && m.emTeste)
                 const meta = !nbaSala ? m.meta : undefined // 📸 a meta é do Instagram do futebol
+                const viceCard = !!(m as { vice?: boolean }).vice
+                const viceTravado = viceCard && !viceVe // 🌴 EM BREVE pra todos: aparece, mas não aperta
                 return (
                   // 👆 dá pra tocar mesmo no que ainda não abriu — é assim que a
                   // pessoa LÊ o que o modo é e fica sabendo que vem por aí. O que
                   // não aparece é a configuração (abaixo), porque configurar algo
                   // que não dá pra criar seria promessa falsa.
-                  <button aria-pressed={sel} key={chaveModo(m)} onClick={() => {  setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
+                  <button aria-pressed={sel} key={chaveModo(m)} disabled={viceTravado} onClick={() => { if (viceTravado) return; setRoomMode(m.v); setLigaDraftSel(!!m.draft); setMinhaSel(!!m.minha); setKingsSala(!!m.kings); setViceSala(!!(m as { vice?: boolean }).vice); if ((m as { vice?: boolean }).vice && !viceSala) { setLigaTamanho(10); setTurnoUnicoSel(true); setViceCartasSel(3) } if (m.kings) { setRapidoClubes(false); setPacSelecao(false); setRoomDuplas(false) } if ((m as { vice?: boolean }).vice) { setRapidoClubes(false); setPacSelecao(false); setPacDecada(false); setRoomDuplas(false); setRapidoPregao(true); setRapidoHolandes(false); setRapidoEnvUnico(false); if (rapidoCopaMode === 'champions' || rapidoCopaMode === 'relampago') setRapidoCopaMode('liga') } }}
                     data-mode={m.v} data-draft={!!m.draft} className="ll-mode-card relative w-full flex flex-col items-center justify-center text-center rounded-xl px-2 py-2 active:translate-y-0.5 overflow-hidden"
-                    style={{ background: sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta ? 1 : 0.55, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
+                    style={{ background: viceCard ? (sel ? 'linear-gradient(135deg,#FF2E93,#FFC400)' : 'linear-gradient(135deg,#FF2E93,#FF7CC8)') : sel ? GOLD : CREAM, border: `2.5px solid ${INK}`, boxShadow: sel ? `2px 2px 0 ${INK}` : 'none', opacity: m.on || meta || viceCard ? 1 : 0.55, cursor: viceTravado ? 'not-allowed' : undefined, paddingTop: meta || m.topo ? 26 : undefined, minHeight: 64 }}>
                     {m.topo && !meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1" style={{ background: INK, color: GOLD, borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', ...OSWALD }}>{m.topo}</span>}
                     {meta && <span className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1 text-white" style={{ background: '#7C3AED', borderBottom: `2.5px solid ${INK}`, height: 19, fontSize: 10.5, letterSpacing: '.06em', ...OSWALD }}>{tr(`LANÇA COM ${meta}K`, `LAUNCHES AT ${meta}K`)}<span style={{ fontSize: 11, lineHeight: 1 }}>👤</span>{tr('NO INSTA', 'ON INSTA')}</span>}
                     <span className="min-w-0">
@@ -4319,7 +4219,7 @@ export function EscLobby() {
                         {m.selo && <span className={`text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5${m.seloVerde ? ' seg-selo-brilho' : ''}`} style={{ ...(m.seloVerde ? { background: GREEN, color: '#fff' } : { background: sel ? '#fff' : GOLD, color: '#000' }), ...OSWALD }}>{m.selo}</span>}
                         {emBreve && !meta && <span className="text-[8.5px] font-black border-2 border-black rounded px-1.5 leading-none py-0.5" style={{ background: '#7C3AED', color: '#fff', ...OSWALD }}>{tr('EM BREVE', 'COMING SOON')}</span>}
                       </span>
-                      <span className="block text-[10.5px] font-semibold leading-tight mt-0.5" style={{ color: sel ? '#3b3000' : '#6b6250' }}>{m.frase}</span>
+                      <span className="block text-[10.5px] font-semibold leading-tight mt-0.5" style={{ color: viceCard ? '#2a0016' : sel ? '#3b3000' : '#6b6250' }}>{m.frase}</span>
                     </span>
                   </button>
                 )
@@ -4327,7 +4227,23 @@ export function EscLobby() {
               </div>
               {/* 💬 a explicação do modo ESCOLHIDO, colada nele. Antes só a liga tinha. */}
               <div className="rounded-xl border-2 border-black px-3 py-2.5 mt-2.5" style={{ background: CREAM }}>
-                <p className="text-white/65 text-[11px] font-bold leading-snug">{viceVe && viceSala && roomMode === 'rapido' && !nbaSala ? tr('🌴 O Pregão aberto de sempre (até 10 técnicos), com CARTAS DE GOLPE: cada um recebe 2, sorteadas, pra roubar, travar e ferrar os rivais. Todo golpe aparece pra sala. Quem leva golpe ganha ⭐ escondida; o 1º a chegar em 5 leva BUSTED e perde os 3 melhores.', '🌴 The usual open auction (up to 10 managers), with HEIST CARDS: everyone gets 2, at random, to steal, block and wreck their rivals. Every hit is shown to the room. Whoever is hit gets a hidden ⭐; the first to reach 5 is BUSTED and loses their 3 best players.') : minhaSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre (todas as categorias). Depois de cada temporada vem o DRAFT: na ordem da tabela (o campeão primeiro), cada técnico aperta ✋ PRONTO e tem 45 s pra pegar 1 jogador livre de todo o jogo. Quem não der pronto ou deixar o tempo acabar PERDE A VEZ. Cada jogador é único na liga.', '📋 Season 1 is the usual auction (every category). After each season comes the DRAFT: in table order (champion first), each manager taps ✋ READY and has 45 s to take 1 free player from the whole game. Whoever is not ready or runs out of time LOSES THE TURN. Each player is unique in the league.') : ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala ? tr('👑 A Kings League: o leilão de sempre com 7 por time (goleiro + 6), 10 times, e depois as regras da Kings — 1×1 até 7×7, dado, cartas, pênalti do presidente, match ball e shootout. 9 rodadas e o mata-mata.', '👑 The Kings League: the usual auction with 7 per team (keeper + 6), 10 teams, then the Kings rules — 1v1 up to 7v7, dice, cards, president penalty, match ball and shootout. 9 rounds and the knockouts.') : EXPLICA[roomMode]}</p>
+                {roomMode === 'elenco' && modoLiberado && !nbaSala ? (
+                  // 🃏 21/11 (mockup aprovado: "Pode"): o Bafo explicado com o pacotinho do campeão + a regra de criar/entrar
+                  <div className="flex items-center gap-3" style={{ color: INK }}>
+                    <img src={pacoteCampeaoArt} alt="" width={desk ? 104 : 78} height={desk ? 156 : 117} style={{ flexShrink: 0, transform: 'rotate(-5deg)', filter: 'drop-shadow(3px 3px 0 rgba(0,0,0,.35))' }} />
+                    <div className="min-w-0">
+                      <p className="uppercase leading-tight" style={{ ...OSWALD, fontSize: 16, margin: '0 0 4px' }}>{tr('🃏 Bafo: suas cartinhas de campeão em jogo', '🃏 Bafo: your champion cards at stake')}</p>
+                      <p className="text-[12px] font-semibold leading-snug">{getLang() === 'en' ? <>You know the pack you open when you win a title? In Bafo you play with <b>those cards</b>.</> : <>Sabe o pacotinho que você abre quando é campeão? No Bafo você joga com <b>essas cartas</b>.</>}</p>
+                      <p className="text-[12px] font-semibold leading-snug mt-1">{getLang() === 'en' ? <>Everyone calls up 22. No auction, no bots, league only. <b>The champion takes 1 card from someone.</b></> : <>Cada um convoca 22. Sem leilão, sem bots, só liga. <b>O campeão toma 1 carta de alguém.</b></>}</p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        <span className="text-[10.5px] font-extrabold border-2 border-black rounded-lg px-1.5 py-0.5" style={{ background: GREEN, color: '#fff' }}>{tr('🆓 1ª sala do dia é grátis', '🆓 1st room of the day is free')}</span>
+                        <span className="text-[10.5px] font-extrabold border-2 border-black rounded-lg px-1.5 py-0.5" style={{ background: '#fff' }}>{tr('🚪 Entrar é livre, quantas quiser', '🚪 Joining is free, as many as you like')}</span>
+                        <span className="text-[10.5px] font-extrabold border-2 border-black rounded-lg px-1.5 py-0.5" style={{ background: '#FFE3DC' }}>{tr('🃏 Precisa de 11+ cartinhas de campeão', '🃏 Needs 11+ champion cards')}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : <p className="text-white/65 text-[11px] font-bold leading-snug">{viceVe && viceSala && roomMode === 'rapido' && !nbaSala ? tr('🌴 O Pregão aberto de sempre, com CARTAS DE GOLPE: cada um recebe as dele no sorteio, pra roubar, travar e ferrar os rivais. Todo golpe aparece pra sala. Quem leva golpe ganha ⭐ escondida; o 1º a chegar em 5 é pego pela polícia e no fim do pregão os 5 melhores dele viram Profissionais.', '🌴 The usual open auction, with HEIST CARDS: everyone gets theirs in the draw, to steal, block and wreck their rivals. Every hit is shown to the room. Whoever is hit gets a hidden ⭐; the first to reach 5 is caught by the police and, when the auction ends, their 5 best become Pros.') : minhaSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre (todas as categorias). Depois de cada temporada vem o DRAFT: na ordem da tabela (o campeão primeiro), cada técnico aperta ✋ PRONTO e tem 45 s pra pegar 1 jogador livre de todo o jogo. Quem não der pronto ou deixar o tempo acabar PERDE A VEZ. Cada jogador é único na liga.', '📋 Season 1 is the usual auction (every category). After each season comes the DRAFT: in table order (champion first), each manager taps ✋ READY and has 45 s to take 1 free player from the whole game. Whoever is not ready or runs out of time LOSES THE TURN. Each player is unique in the league.') : ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala ? tr('👑 A Kings League: o leilão de sempre com 7 por time (goleiro + 6), 10 times, e depois as regras da Kings — 1×1 até 7×7, dado, cartas, pênalti do presidente, match ball e shootout. 9 rodadas e o mata-mata.', '👑 The Kings League: the usual auction with 7 per team (keeper + 6), 10 teams, then the Kings rules — 1v1 up to 7v7, dice, cards, president penalty, match ball and shootout. 9 rounds and the knockouts.') : EXPLICA[roomMode]}</p>}
+                {roomMode === 'elenco' && modoLiberado && !nbaSala && <FaltamCartasBafo uid={user?.id} semPacote />}
                 {modoEscolhido?.emTeste && !(modoEscolhido.meta && !nbaSala && !modoLiberado) && (
                   <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
                     {getLang() === 'en' ? <>🔜 Still under construction — <b>creating</b> this mode unlocks soon. Keep an eye on the news!</> : <>🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!</>}
@@ -4351,7 +4267,7 @@ export function EscLobby() {
                     </p>
                   ) : (
                     <p className="text-[12px] font-bold leading-snug mt-1.5">
-                      {roomMode === 'elenco' ? tr('Cada um traz o time da própria carreira e a partida vale carta de verdade.', 'Everyone brings their own career team and the match puts real cards at stake.') : tr('Todo mundo começa fraco e, a cada temporada, cada técnico pega 1 jogador no draft.', 'Everyone starts weak and, every season, each manager picks 1 player in the draft.')}
+                      {roomMode === 'elenco' ? tr('Cada um joga com 22 cartas que já ganhou sendo campeão, e o campeão toma uma carta de alguém da sala.', 'Everyone plays with 22 cards they already won as champion, and the champion takes a card from someone in the room.') : tr('Todo mundo começa fraco e, a cada temporada, cada técnico pega 1 jogador no draft.', 'Everyone starts weak and, every season, each manager picks 1 player in the draft.')}
                     </p>
                   )}
                   <p className="text-[12px] font-bold leading-snug mt-2" style={{ color: '#5B21B6' }}>
@@ -4410,7 +4326,7 @@ export function EscLobby() {
                   </p>
                 </SegField>
               )}
-              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga' && !ehMinha) && !(kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala) && ( /* 🧱 06/11: a Liga Draft também escolhe */
+              {(roomMode === 'rapido' || roomMode === 'liga') && !(ehDraft && roomMode === 'liga' && !ehMinha) && !(kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala) && !(viceVe && viceSala && roomMode === 'rapido' && !nbaSala) /* 🌴 Vice City: só jogador */ && ( /* 🧱 06/11: a Liga Draft também escolhe */
                 <SegField label={tr('O que vai a leilão', 'What goes to auction')}>
                   {/* 🏳️ 31/10: o 3º tipo, Seleções, é o MESMO motor do Clubes (pacote = setor de uma seleção). No basquete não existe. */}
                   <Seg options={(nbaSala
@@ -4461,13 +4377,13 @@ export function EscLobby() {
                   Carreira online fica no pregão de sempre por decisão. */}
               {viceVe && viceSala && roomMode === 'rapido' && !nbaSala ? (
                 <SegField label={tr('Jeito do lance', 'How you bid')}>
-                  <p className="text-white/70 text-[11.5px] font-bold leading-snug">{tr('🔨 Pregão aberto, até 10 técnicos: uma carta por vez, lance à vista e martelo em 5 s. No Vice City o lance é sempre assim.', '🔨 Open auction, up to 10 managers: one card at a time, open bids and the hammer in 5 s. In Vice City it is always like this.')}</p>
+                  <p className="text-white/70 text-[11.5px] font-bold leading-snug">{tr('🔨 Pregão aberto: uma carta por vez, lance à vista e martelo em 5 s. No Vice City o lance é sempre assim.', '🔨 Open auction: one card at a time, open bids and the hammer in 5 s. In Vice City it is always like this.')}</p>
                 </SegField>
               ) : (roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Jeito do lance', 'How you bid')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
                     ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')], ...(envUnicoOk && !roomDuplas ? [['unico', tr('⚡ Envelope único', '⚡ Single envelope')]] : [])] as ['envelope' | 'tocaia' | 'pregao' | 'unico', string][]}
-                        selos={{ pregao: tr('novo', 'new'), unico: tr('novo', 'new') }} selosBrilho={['pregao', 'unico']}
+                        /* 🏷️ 19/11: sai o NOVO do Pregão aberto e do Envelope único (Diego) */
                         value={rapidoEnvUnico && envUnicoOk && !roomDuplas ? 'unico' : rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia'); setRapidoEnvUnico(v === 'unico') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
@@ -4534,14 +4450,14 @@ export function EscLobby() {
                 })()}
               </SegField>
               <p className="text-white/40 text-[10px] font-bold mt-1 leading-snug">
-                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO — cada um traz o time da PRÓPRIA carreira: o elenco de agora ou 22 do álbum de cartas da carreira. Liga de 38 rodadas, sem Copa. E vale carta: no fim, quem ficou atrás entrega uma carta da carreira pro de cima.', '🃏 NO AUCTION — everyone brings the team from their OWN career: the current squad or 22 from the career\'s card album. A 38-round league, no Cup. And cards are at stake: at the end, whoever finished behind hands a career card to the one above.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer && nbaSala ? tr('🏀 Carreira do basquete: a turma começa na Street League e SOBE junta até a NBA. Economia igual à do futebol.', '🏀 Basketball career: the crew starts in the Street League and CLIMBS together up to the NBA. Economy just like football.') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
+                {roomMode === 'liga' ? EXPLICA.liga : isElenco ? tr('🃏 SEM LEILÃO e SEM BOTS — cada um convoca 22 cartas que já ganhou sendo campeão (na carreira ou nas salas). Só liga. No fim, o campeão toma 1 carta das 22 de alguém. Não conta pro ranking.', '🃏 NO AUCTION and NO BOTS — everyone calls up 22 cards they already won as champion (career or rooms). League only. At the end, the champion takes 1 card from someone\'s 22. Doesn\'t count for the ranking.') : !canCareer && !salaElenco ? tr('🌐 Carreira (4 divisões) e 🃏 Bafo (traga o time da sua carreira, valendo carta) estão chegando — em breve no online!', '🌐 Career (4 divisions) and 🃏 Bafo (bring your career team, cards at stake) are coming — soon online!') : !canCareer ? tr('🌐 Carreira (pirâmide de 4 divisões) tá chegando — em breve no online!', '🌐 Career (4-division pyramid) is coming — soon online!') : isCareer && nbaSala ? tr('🏀 Carreira do basquete: a turma começa na Street League e SOBE junta até a NBA. Economia igual à do futebol.', '🏀 Basketball career: the crew starts in the Street League and CLIMBS together up to the NBA. Economy just like football.') : isCareer ? tr('🏆 4 divisões — cada técnico sobe/cai por conta própria. Mesmo mundo pra todos.', '🏆 4 divisions — each manager goes up/down on their own. Same world for everyone.') : tr('🔨 O leilão de sempre — uma temporada avulsa.', '🔨 The usual auction — a one-off season.')}
               </p>
               </>)}
               {!criar2 && quadroLiga}
             </div>
             {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto. 🚫 Nem na sala "🌐 Copa do Mundo" direta (Diego 15/10):
                 lá não tem leilão, e a escolha de seleção não sabe de dupla (cada um escolheria a sua). */}
-            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && !(kingsVe && kingsSala && roomMode === 'rapido') && (
+            {!isCareer && roomMode !== 'mundo' && !(ehDraft && roomMode === 'liga') && !(kingsVe && kingsSala && roomMode === 'rapido') && !(viceVe && viceSala && roomMode === 'rapido' && !nbaSala) /* 🌴 Vice City: sem duplas */ && (
               <div>
                 <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
                   <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
@@ -4608,7 +4524,14 @@ export function EscLobby() {
                     ? tr(`As cartas da NBA + ${NBA_MUNDO_TOTAL} de fora dela: Europa, Brasil, Argentina, China… (Oscar, Galis, Sabonis no Real Madrid).`, `The NBA cards + ${NBA_MUNDO_TOTAL} from outside it: Europe, Brazil, Argentina, China… (Oscar, Galis, Sabonis at Real Madrid).`)
                     : tr('Só jogador com carta da NBA — do craque ao mico de draft.', 'Only players with NBA cards — from superstars to draft busts.')}</p>
                 </SegField>
-            </>) : nbaSala ? (
+            </>
+            ) : isElenco ? (
+              // 🃏 21/11 (Diego: "exclua essa informação, sempre vai ser todos… é o baralho do jogador"): no Bafo não se escolhe baralho
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🃏 Baralho: as suas cartas de campeão', '🃏 Deck: your champion cards')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('Cada um joga com as cartas que já ganhou, de qualquer baralho (Brasil, Europa e Mundo). Carta repetida fica na coleção, mas no time entra uma só de cada.', 'Everyone plays with the cards they already won, from any deck (Brazil, Europe and World). A repeated card stays in your collection, but only one of each goes in the team.')}</p>
+              </div>
+            ) : nbaSala ? (
               // 🏀 basquete: o baralho é SEMPRE a NBA (franquias reais) — nada de escolher BR/Europa/Várzea.
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🏀 Baralho da NBA', '🏀 NBA deck')}</p>
@@ -4708,8 +4631,8 @@ export function EscLobby() {
                 <>
                 <SegField label={tr('Depois da liga', 'After the league')}>
                   <div className="border-[2.5px] border-black rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.06)' }}>
-                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 Só a liga · 38 rodadas', '📊 League only · 38 rounds')}</p>
-                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{getLang() === 'en' ? <>In Bafo <b>there is no Cup</b> — it's the table from start to finish, and the final standings decide who hands a card to whom.</> : <>No Bafo <b>não tem Copa</b> — é a tabela do começo ao fim, e a classificação final é o que decide quem entrega carta pra quem.</>}</p>
+                    <p className="font-black" style={{ fontSize: 12, color: GOLD, ...OSWALD }}>{tr('📊 Só a liga, só gente', '📊 League only, people only')}</p>
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1 leading-snug">{tr('2 pessoas = 5 jogos entre os dois · 3 ou 4 = todos contra todos 4 vezes · 5 a 20 = ida e volta. O 1º da tabela é o campeão.', '2 people = 5 games between the two · 3 or 4 = everyone plays everyone 4 times · 5 to 20 = home and away. Top of the table is the champion.')}</p>
                   </div>
                 </SegField>
                 {/* 🃏 O host decide se a partida vale carta de verdade. Amistoso
@@ -4719,7 +4642,7 @@ export function EscLobby() {
                   <Seg options={[[true, tr('🃏 Valendo carta', '🃏 Cards at stake')], [false, tr('🤝 Amistoso', '🤝 Friendly')]] as [boolean, string][]} value={bafoValendo} onSet={v => setBafoValendo(v)} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {bafoValendo
-                      ? (getLang() === 'en' ? <>Whoever finished behind hands <b>a randomly drawn card</b> from the career they brought to the team right above — and the card <b>really changes owner</b>. Whoever has only one card doesn't hand it over: the house covers.</> : <>Quem ficou atrás entrega <b>uma carta sorteada</b> da carreira que trouxe pro time logo acima — e a carta <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>)
+                      ? tr('O campeão escolhe 1 carta das 22 convocadas de quem ele quiser — e ela muda de dono de verdade. Dono que encerra antes do fim perde 2 cartas.', 'The champion picks 1 card from anyone\'s 22 — and it really changes owner. An owner who ends it early loses 2 cards.')
                       : tr('Ninguém perde nem ganha carta. Só a tabela, pra brincar sem risco.', 'Nobody loses or wins cards. Just the table, to play with no risk.')}
                   </p>
                 </SegField>
@@ -4772,10 +4695,12 @@ export function EscLobby() {
                     regionais = a máquina completa as vagas). Relâmpago e Só Champions NÃO têm liga: o 10 fica travado. */}
                 {tam10Mostra && (
                   <SegField label={tr('🏟️ Times na liga', '🏟️ Teams in the league')}>
-                    <Seg options={[[20, tr('20 times (padrão)', '20 teams (default)')], [10, tr('10 times', '10 teams')]] as [20 | 10, string][]}
+                    <Seg options={(viceAqui ? [[10, tr('⚡ 10 times (padrão, mais curto)', '⚡ 10 teams (default, shorter)')], [20, tr('🐢 20 times (demora mais)', '🐢 20 teams (takes longer)')]] : [[20, tr('20 times (padrão)', '20 teams (default)')], [10, tr('10 times', '10 teams')]]) as [20 | 10, string][]}
                       value={tam10Travado ? 20 : ligaTamanho} onSet={v => setLigaTamanho(v)} travados={tam10Travado ? ['10'] : []} />
                     <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                      {tam10Travado
+                      {viceAqui && !tam10Travado ? (ligaTamanho === 10
+                        ? tr('🌴 10 times = o Vice City mais curto: pregão menor e liga de 18 rodadas. Quer partida rápida? Fica no 10.', '🌴 10 teams = the shortest Vice City: smaller auction and an 18-round league. Want a quick game? Stay on 10.')
+                        : tr('🐢 20 times DEMORA MAIS: o pregão tem o dobro de cartas (sempre uma por vez na mesa) e a liga é maior. Cabem até 20 técnicos de gente; os bots completam o que faltar.', '🐢 20 teams TAKES LONGER: the auction has twice the cards (still one at a time on the table) and the league is bigger. Up to 20 human managers; bots fill the rest.')) : tam10Travado
                         ? (rapidoCopaMode === 'relampago'
                           ? tr('🔒 10 times não vale aqui: o ⚡ Relâmpago não tem liga — o tamanho é o da chave (16 ou 32).', '🔒 10 teams doesn\'t apply here: ⚡ Lightning has no league — the size is the draw (16 or 32).')
                           : tr('🔒 10 times não vale aqui: a ⭐ Só Champions não tem liga — é a tabela de 36.', '🔒 10 teams doesn\'t apply here: ⭐ Champions only has no league — it is the table of 36.'))
@@ -4788,7 +4713,7 @@ export function EscLobby() {
                 {/* ⚡ TURNO ÚNICO (06/11): logo abaixo dos times na liga — só com 20 (a de 10 já tem as 18 dela) */}
                 {turnoMostra && !(ehDraft && roomMode === 'liga') && (
                   <SegField label={tr('📅 Rodadas da liga', '📅 League rounds')}>
-                    <Seg options={[[false, tr('🏟️ 38 rodadas · ida e volta (padrão)', '🏟️ 38 rounds · home and away (default)')], [true, tr('⚡ 19 rodadas · só ida', '⚡ 19 rounds · one leg')]] as [boolean, string][]}
+                    <Seg options={(viceAqui ? [[true, tr('⚡ 19 rodadas · só ida (padrão, mais curto)', '⚡ 19 rounds · one leg (default, shorter)')], [false, tr('🐢 38 rodadas · ida e volta (demora mais)', '🐢 38 rounds · home and away (takes longer)')]] : [[false, tr('🏟️ 38 rodadas · ida e volta (padrão)', '🏟️ 38 rounds · home and away (default)')], [true, tr('⚡ 19 rodadas · só ida', '⚡ 19 rounds · one leg')]]) as [boolean, string][]}
                       value={turnoUnicoSel} onSet={v => setTurnoUnicoSel(v)} />
                     <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                       {turnoUnicoSel
@@ -4796,6 +4721,13 @@ export function EscLobby() {
                         : tr('🏟️ Ida e volta: 38 jogos, metade em casa e metade fora (o de sempre).', '🏟️ Home and away: 38 games, half at home and half away (the usual).')}
                       {roomMode === 'liga' && !ligaComBots ? tr(' Sem bots, só vale se a tabela fechar 20 times.', ' With no bots, it only applies if the table reaches 20 teams.') : ''}
                     </p>
+                  </SegField>
+                )}
+                {/* 🃏 19/11 (Diego: "deixar padrão 3 cartas de golpe, ou você ter 4 ou 5… para decidir") */}
+                {viceAqui && (
+                  <SegField label={tr('🃏 Cartas de golpe por técnico', '🃏 Heist cards per manager')}>
+                    <Seg options={[[3, tr('3 (padrão)', '3 (default)')], [4, '4'], [5, '5']] as [3 | 4 | 5, string][]} value={viceCartasSel} onSet={v => setViceCartasSel(v)} />
+                    <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">{tr('Todo mundo recebe as cartas no sorteio do começo. Mais cartas = mais golpe, mais confusão.', 'Everyone gets their cards in the opening draw. More cards = more heists, more chaos.')}</p>
                   </SegField>
                 )}
                 <SegField label={tr('Depois da liga', 'After the league')}>
@@ -4830,7 +4762,8 @@ export function EscLobby() {
                   {(() => {
                     type ModoCopa = 'liga_copa' | 'liga_liberta' | 'champions' | 'relampago' | 'liga_mundo' | 'liga_euro' | 'liga_america' | 'liga_libsala' | 'liga' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
                     // 🏆 19/11 (Diego: "não tem mais a libertadores na parte de cima… agora será só essa de convocar"): a Liberta antiga (time do leilão) saiu da prateleira
-                    const todas: [ModoCopa, string][] = [...(([['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
+                    // 🔁 19/11, mais tarde (Diego: "volte a libertadores q tinha antes Tb sem convocar pra ter os dois"): voltou, na prateleira do SEU TIME
+                    const todas: [ModoCopa, string][] = [...(([['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
                       // 🏟️ as copas regionais (liberadas pra todos em 11/10)
                       // ⚡ Relâmpago (28/10): só sala rápida, sem duplas, e por enquanto só a conta do Diego cria
                       // 🇪🇺 Liga + Eurocopa (31/10): na prateleira de CONVOCAR, selo NOVO
@@ -4843,6 +4776,7 @@ export function EscLobby() {
                       ...(getSport() !== 'basquete' ? [['liga_libsala', tr('🏆 Liga + Libertadores', '🏆 League + Libertadores')] as ['liga_libsala', string]] : []),
                       ...(relampagoOn && roomMode === 'rapido' && !roomDuplas ? [['relampago', tr('⚡ Mata-mata Relâmpago', '⚡ Lightning Knockout')] as ['relampago', string]] : []),
                       ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
+                    if ((viceVe && viceSala && roomMode === 'rapido' && !nbaSala)) { for (let i = todas.length - 1; i >= 0; i--) if (todas[i][0] === 'champions' || todas[i][0] === 'relampago') todas.splice(i, 1) } // 🌴 Vice City: sem Champions e sem Relâmpago
                     const convoca = (v: ModoCopa) => v === 'liga_mundo' || v === 'liga_euro' || v === 'liga_america' || v === 'liga_libsala' || regionalId(v) !== null
                     const prateleira = (titulo: string, lista: [ModoCopa, string][]) => lista.length === 0 ? null : (
                       <>
@@ -4850,7 +4784,7 @@ export function EscLobby() {
                         <Seg options={lista}
                           value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
                           travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas, ...(americaOn ? [] : ['liga_america' as const]), ...(libSalaOn ? [] : ['liga_libsala' as const])]}
-                          selosBrilho={['relampago']} selos={{ liga_mundo: seloNovo(), liga_euro: tr('novo', 'new'), liga_america: americaOn ? tr('novo', 'new') : tr('em breve', 'soon'), liga_libsala: libSalaOn ? tr('novo', 'new') : tr('em breve', 'soon'), relampago: tr('novo', 'new'), /* 🏷️ 28/10: saiu de 'em testes' (Diego) */ ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
+                          selos={{ liga_mundo: seloNovo(), liga_euro: tr('novo', 'new'), liga_america: americaOn ? tr('novo', 'new') : tr('em breve', 'soon'), liga_libsala: libSalaOn ? tr('novo', 'new') : tr('em breve', 'soon'), /* 🏷️ 28/10: saiu de 'em testes' (Diego) */ ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : undefined])) : {}) }} /> {/* 🏷️ 18/10: sai o selo TESTE dos estaduais (ordem do Diego); "em breve" fica onde ainda não tem clube */}
                       </>
                     )
                     return <>
@@ -5154,9 +5088,15 @@ export function EscLobby() {
                   <p className="ll-hub-room-name font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
                     <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
-                    {(r.game_state as { formation?: string } | undefined)?.formation === 'kings'
+                    {/* 🃏 21/11 (Diego: *"tem que ter o selinho de bafo… uma cor meio verde, musgo, com marrom"*): sala do Bafo ganha o selo dela no lugar do baralho (o baralho é o de cada um) */}
+                    {r.game_state?.mode === 'elenco'
+                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#5E6B2B,#5A3E22)', color: '#F4ECD6', boxShadow: '2px 2px 0 #000', ...OSWALD }} title={tr('Bafo: cada um joga com as cartas que ganhou sendo campeão, e o campeão toma 1 de alguém', 'Bafo: everyone plays with the cards they won as champion, and the champion takes 1 from someone')}>🃏 BAFO</span>
+                      : (r.game_state as { formation?: string } | undefined)?.formation === 'kings'
                       ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
                       : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
+                    {((r.game_state as { vice?: boolean; viceCity?: boolean } | undefined)?.vice || (r.game_state as { viceCity?: boolean } | undefined)?.viceCity) && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#ff4fd8,#7a1d7e)', color: '#fff', boxShadow: '0 0 6px #ff4fd8, 2px 2px 0 #000', textShadow: '0 0 4px #4ff3ff', ...OSWALD }} title="Vice City">🌴 VICE CITY</span>
+                    )}
                     {duplasRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: PURPLE, color: '#fff', ...OSWALD }} title={tr('Sala de duplas: cada time é comandado por 2 pessoas', 'Duos room: each team is run by 2 people')}>{tr('🤝 DUPLAS', '🤝 DUOS')}</span>
                     )}
@@ -5177,7 +5117,7 @@ export function EscLobby() {
                     )}
                     {temPregao && (r.game_state as GS & { envUnico?: boolean })?.envUnico ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Envelope único: as 5 posições num envelope só; o que sobra volta numa 2ª lista antes do Monte.', 'Single envelope: all 5 positions in one envelope; leftovers come back in a 2nd list before the Pile.')}>{tr('⚡ ENVELOPE ÚNICO', '⚡ SINGLE ENVELOPE')}</span>
-                    ) : temPregao && (r.game_state as GS)?.pregaoAberto ? (
+                    ) : ((r.game_state as { vice?: boolean } | undefined)?.vice || (r.game_state as { viceCity?: boolean } | undefined)?.viceCity) ? null /* 🌴 Vice City já tem o selo neon, sem selo de lance */ : temPregao && (r.game_state as GS)?.pregaoAberto ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Pregão aberto: uma carta por vez, lance à vista de todos, martelo em 5s sem lance novo.', 'Open auction: one card at a time, bids in front of everyone, hammer after 5s without a new bid.')}>{tr('🔨 PREGÃO ABERTO', '🔨 OPEN AUCTION')}</span>
                     ) : temPregao && pregaoLido && (holandesRoom ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Tocaia: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Ambush: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
@@ -5383,6 +5323,16 @@ export function EscLobby() {
         </div>
       )}
 
+      {bafoBarrado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.72)' }} onClick={() => setBafoBarrado(null)}>
+          <div className="w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <p className="text-center font-black uppercase" style={{ ...OSWALD, color: '#fff', fontSize: 17 }}>{bafoBarrado === 'criar' ? tr('🔒 Ainda não dá pra criar sala de Bafo', '🔒 You can\'t create a Bafo room yet') : tr('🔒 Ainda não dá pra entrar nessa sala de Bafo', '🔒 You can\'t join this Bafo room yet')}</p>
+            <FaltamCartasBafo uid={user?.id} />
+            <button onClick={() => setBafoBarrado(null)} className="w-full mt-3 border-[3px] border-black rounded-xl py-2.5 font-black uppercase" style={{ ...OSWALD, background: GOLD, color: '#000', boxShadow: `3px 3px 0 ${INK}` }}>{tr('Entendi', 'Got it')}</button>
+          </div>
+        </div>
+      )}
+
       {pwModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,.65)' }}>
           <div className="w-full max-w-xs border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
@@ -5449,9 +5399,10 @@ export function EscLobby() {
     const duplasCompletas = duplasOn ? donos.filter(d => !!parceiroDe(d.user_id)).length : 0
     // 🃏 BAFO: a sala anda com 2 times MONTADOS (11+). Quem não montou não conta.
     const elencoOn = room.game_state?.mode === 'elenco'
-    const bafoAptos = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) >= BAFO_MIN) : []
-    const bafoFaltam = elencoOn ? players.filter(p => (p.bafo?.squad?.length ?? 0) < BAFO_MIN) : []
-    const ready = elencoOn ? bafoAptos.length >= 2 : duplasOn ? duplasCompletas >= 2 : players.length >= 2
+    const bafoAptos = elencoOn ? players.filter(bafoApto) : []
+    const bafoFaltam = elencoOn ? players.filter(p => !bafoApto(p)) : []
+    const bafoConvocando = elencoOn && !!players.find(p => p.user_id === room.host_id)?.bafo?.conv
+    const ready = elencoOn ? bafoAptos.length >= 2 && bafoApto(players.find(p => p.user_id === room.host_id) ?? {}) && !bafoConvocando : duplasOn ? duplasCompletas >= 2 : players.length >= 2
     // 🏆 A ESPERA DA LIGA PRECISA FALAR (Diego 29/08: *"ele marcou hoje pra amanhã…
     // e quando chegar no horário, se ninguém entrar?"*). Até agora o dono sozinho
     // via só um botão cinza "Aguardando… (1/2 mín)" e nada mais — nenhuma pista do
@@ -5463,7 +5414,8 @@ export function EscLobby() {
       ? (getLang() === 'en' ? `🔒 Your league is up waiting for the crew. Only those with code ${room.code} + the password get in — send it to your people (you need 2 to start). If it doesn't happen today, just 'Save and leave': nothing is lost and you can reschedule.` : `🔒 Sua liga está de pé esperando a turma. Só entra quem tem o código ${room.code} + a senha — manda pros seus no zap (precisa de 2 pra começar). Se hoje não rolar, é só 'Guardar e sair': nada se perde e dá pra remarcar.`)
       : ''
     const travaMsg = elencoOn
-      ? (ready ? '' : getLang() === 'en' ? `🃏 Bafo starts with 2 teams built. ${bafoAptos.length === 0 ? 'Nobody has built one yet' : 'Only 1 built so far'} — everyone picks the career they bring up there.` : `🃏 O Bafo começa com 2 times montados. ${bafoAptos.length === 0 ? 'Ninguém montou ainda' : 'Só 1 montou até agora'} — cada um escolhe a carreira que traz aí em cima.`)
+      ? (bafoConvocando ? '' : !ready ? tr(`🃏 O Bafo começa com 2 pessoas aptas (11+ cartas que fechem um time). ${bafoAptos.length === 0 ? 'Ninguém apto ainda' : 'Só 1 apto até agora'}.`, `🃏 Bafo starts with 2 eligible people (11+ cards that make a team). ${bafoAptos.length === 0 ? 'Nobody eligible yet' : 'Only 1 eligible so far'}.`)
+        : !bafoApto(players.find(p => p.user_id === room.host_id) ?? {}) ? tr('🃏 O dono da sala também joga: ele precisa de 11+ cartas que fechem um time pra começar.', '🃏 The room owner plays too: they need 11+ cards that make a team to start.') : '')
       : ligaEspera ? ligaEspera
       : !duplasOn || ready ? '' :
       getLang() === 'en' ? `🤝 The auction opens with 2 complete duos (two teams with 2 people each). ${duplasCompletas === 0 ? 'None yet' : '1 so far'} — just have everyone join each other's teams.` : `🤝 O pregão abre com 2 duplas fechadas (dois times com 2 pessoas cada). ${duplasCompletas === 0 ? 'Ainda não tem nenhuma' : 'Tem 1 até agora'} — é só a galera ir entrando nos times uns dos outros.`
@@ -5861,7 +5813,7 @@ export function EscLobby() {
                 {/* 🏆 DEPOIS DA LIGA (23/10): as mesmas opções do criar sala, nas mesmas duas prateleiras. */}
                 {!nbaSala && !(gs as GS & { ligaDraft?: boolean })?.ligaDraft && (() => {
                   const duplas = !!(gs as GS & { duplasMode?: boolean })?.duplasMode
-                  const valores: CopaLiga[] = ['liga_copa', ...(copaDaLiga(gs) === 'liga_liberta' ? ['liga_liberta' as const] : []), 'champions', 'liga_mundo', ...(euroOn || copaDaLiga(gs) === 'liga_euro' ? ['liga_euro' as const] : []), ...(americaOn || copaDaLiga(gs) === 'liga_america' ? ['liga_america' as const] : []), ...(libSalaOn || copaDaLiga(gs) === 'liga_libsala' ? ['liga_libsala' as const] : []), 'liga', ...(regionalOn ? ['liga_riosp' as const, 'liga_sulminas' as const, 'liga_nordeste' as const] : [])]
+                  const valores: CopaLiga[] = ['liga_copa', 'liga_liberta', 'champions', 'liga_mundo', ...(euroOn || copaDaLiga(gs) === 'liga_euro' ? ['liga_euro' as const] : []), ...(americaOn || copaDaLiga(gs) === 'liga_america' ? ['liga_america' as const] : []), ...(libSalaOn || copaDaLiga(gs) === 'liga_libsala' ? ['liga_libsala' as const] : []), 'liga', ...(regionalOn ? ['liga_riosp' as const, 'liga_sulminas' as const, 'liga_nordeste' as const] : [])]
                   const todas = valores.map(v => [v, nomeCopaLiga(v)] as [CopaLiga, string])
                   const convoca = (v: CopaLiga) => v === 'liga_mundo' || v === 'liga_euro' || v === 'liga_america' || v === 'liga_libsala' || regionalId(v) !== null
                   const travadas: CopaLiga[] = [...(championsOn && modoEdit.lance !== 'pregao' && !duplas ? [] : ['champions' as const]), ...regionalTravadas]
@@ -5932,35 +5884,12 @@ export function EscLobby() {
           aoFechar={() => setCopaAberta(false)} />
       )}
 
-      {/* 🃏 BAFO: antes de tudo, o técnico escolhe qual carreira traz. Enquanto não
-          escolher, ele fica "montando" — e o host vê isso na lista.
-          A escolha vai pro banco na hora (coluna `bafo` do room_players): é assim
-          que o time viaja pro host e que todo mundo vê quem já está apto. */}
-      {/* 🃏 e ANTES de escolher, o aviso do que está em jogo nesta sala. Ninguém
-          pode descobrir só no fim que a carta ia mudar de dono de verdade. */}
-      {room.game_state?.mode === 'elenco' && (
-        <div className="border-[3px] border-black rounded-2xl px-3 py-2.5 mb-3"
-          style={{ background: room.game_state?.bafoSemCarta ? '#EAF4EC' : '#FFF6D6', boxShadow: `3px 3px 0 ${INK}` }}>
-          <p className="font-black text-[13px]" style={OSWALD}>
-            {room.game_state?.bafoSemCarta ? tr('🤝 Sala AMISTOSA', '🤝 FRIENDLY room') : tr('🃏 Sala VALENDO CARTA', '🃏 CARDS AT STAKE room')}
-          </p>
-          <p className="text-black/60 text-[10.5px] font-bold leading-snug mt-0.5">
-            {room.game_state?.bafoSemCarta
-              ? tr('Ninguém perde nem ganha carta aqui. É só a tabela.', 'Nobody loses or wins cards here. Just the table.')
-              : getLang() === 'en' ? <>At the end of the league, whoever finishes behind <b>hands a randomly drawn card</b> from the career they brought to the team right above — and it <b>really changes owner</b>. Whoever has only one card doesn't hand it over: the house covers.</> : <>No fim da liga, quem ficar atrás <b>entrega uma carta sorteada</b> da carreira que trouxe pro time logo acima — e ela <b>muda de dono de verdade</b>. Quem só tem uma carta não entrega: a casa cobre.</>}
-          </p>
+      {/* 🃏 BAFO NOVO (21/11): as REGRAS em cima; quando o dono começa, vira a convocação de 120 s na tela de todo mundo */}
+      {room.game_state?.mode === 'elenco' && user && (
+        <div className="mb-3">
+          <BafoSala roomId={room.id} meuUid={user.id} donoUid={room.host_id} players={players} valendo={!room.game_state?.bafoSemCarta}
+            onLargar={async sq => { bafoSquadsRef.current = sq; bafoLargouRef.current = false; await startOnline(); return bafoLargouRef.current }} />
         </div>
-      )}
-      {room.game_state?.mode === 'elenco' && (
-        <BafoEscolha escolha={bafoEscolha} onEscolha={async (e) => {
-          setBafoEscolha(e)
-          if (!user) return
-          const time = e ? montarBafo(e.seed, e.via) : null
-          // 🛡️ trava de verdade (a tela é só a cara dela): time com menos de 11
-          // NÃO grava — ninguém fica apto com elenco furado, nem por caminho torto.
-          const ok = time && time.squad.length >= BAFO_MIN ? time : null
-          await supabase.from('room_players').update({ bafo: ok }).eq('room_id', room.id).eq('user_id', user.id).then(() => {}, () => {})
-        }} />
       )}
 
       <OwnerSlot name="wait-people"><div className="online-attendance border-[3px] border-black rounded-2xl p-4 bg-[#F4ECD6]" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
@@ -6014,8 +5943,9 @@ export function EscLobby() {
                     quem é demora e quem é problema. Três estados só, sem meio-termo. */}
                 {room.game_state?.mode === 'elenco' && (
                   <span className="text-[9.5px] font-black uppercase border-2 border-black rounded-full px-2 py-0.5 whitespace-nowrap"
-                    style={p.bafo ? { background: GREEN, color: '#fff' } : { background: '#FFD9CE', color: '#8E2A1B' }}>
-                    {p.bafo ? `✅ ${p.bafo.squad?.length ?? 0} ${tr('jog.', 'pl.')}` : tr('⏳ montando', '⏳ building')}
+                    style={bafoApto(p) ? { background: GREEN, color: '#fff' } : { background: '#FFD9CE', color: '#8E2A1B' }}>
+                    {/* 🙈 21/11 (Diego): NUNCA o número de cartas de cada um — quem vê que o outro tem muita (ou pouca) sai da sala */}
+                    {p.bafo ? (bafoApto(p) ? (p.bafo.pronto && bafoConvocando ? tr('✅ pronto', '✅ ready') : tr('✅ apto', '✅ eligible')) : tr('🔒 só assiste', '🔒 watching')) : tr('⏳ conferindo', '⏳ checking')}
                   </span>
                 )}
                 {ligaViceOn && room.game_state?.mode === 'liga' && room.liga_dono ? (<>
@@ -6281,27 +6211,6 @@ export function EscLobby() {
       {room && <MascoteAtravessa />}
       <GalaEstilo />
       {galaAgora && <EntradaGalaShow key={galaAgora.uid} chave={galaAgora.uid} clube={galaAgora.clube} nome={galaAgora.nome} />}
-      {bafoAviso && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 400, width: '100%', padding: 20 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, color: INK, textAlign: 'center' }}>{tr('⏳ Ainda tem gente montando', '⏳ Some people are still building')}</p>
-            <p style={{ fontWeight: 700, fontSize: 12.5, color: 'rgba(0,0,0,.68)', marginTop: 8, lineHeight: 1.45 }}>
-              {tr('Não escolheram a carreira ainda:', 'Haven\'t picked a career yet:')} <b>{bafoFaltam.map(p => stripEmoji(p.manager_name)).join(', ')}</b>.
-            </p>
-            <p style={{ fontWeight: 700, fontSize: 11.5, color: 'rgba(0,0,0,.5)', marginTop: 6, lineHeight: 1.45 }}>
-              {getLang() === 'en' ? <>If you go on now, <b>they sit out this match</b> (nobody takes the pitch with a random team). You can call them again later.</> : <>Se seguir agora, <b>eles ficam de fora desta partida</b> (ninguém entra em campo com time sorteado). Dá pra chamar de novo depois.</>}
-            </p>
-            <button onClick={() => { setBafoAviso(false); void startOnline() }}
-              style={{ ...OSWALD, fontWeight: 900, fontSize: 14.5, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 14, cursor: 'pointer' }}>
-              {tr('▶️ Seguir sem eles', '▶️ Go on without them')}
-            </button>
-            <button onClick={() => setBafoAviso(false)}
-              style={{ ...OSWALD, fontWeight: 900, fontSize: 14.5, background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}`, padding: '11px 0', width: '100%', marginTop: 8, cursor: 'pointer' }}>
-              {tr('⏳ Aguardar mais um pouco', '⏳ Wait a bit longer')}
-            </button>
-          </div>
-        </div>
-      )}
       {/* 🏆 O PAREDÃO DE TROFÉUS SAIU DAQUI (Diego 23/08). Palavras dele: *"talvez
           então n tenha nada na sala de espera... tb é uma ideia p n confundir"*.
           A mesma informação aparecia em dois lugares com dois nomes e duas caras
@@ -6315,7 +6224,7 @@ export function EscLobby() {
       {mascKey&&<button type="button" className="ll-mascot-start" onClick={sendMasc} disabled={mascCoolLeft>0}><MascoteMini art={MASCOTES[mascKey]} alt={38}/>{mascCoolLeft>0?`🐾 ${mascCoolLeft}s…`:tr('Soltar o mascote','Release mascot')}</button>}
       {(() => {
         const carreira = room.game_state?.mode === 'carreira'
-        const startLabel = carreira ? tr('🌐 Começar Carreira!', '🌐 Start Career!') : elencoOn ? tr('🃏 Começar o Bafo!', '🃏 Start Bafo!') : tr('🔨 Abrir o Pregão!', '🔨 Open the Auction!')
+        const startLabel = carreira ? tr('🌐 Começar Carreira!', '🌐 Start Career!') : elencoOn ? tr('🃏 Começar a convocação!', '🃏 Start the call-up!') : tr('🔨 Abrir o Pregão!', '🔨 Open the Auction!')
         // 🏆 LIGA — decisão do Diego (20/08, opção A): *só o DONO abre o pregão*,
         // igual às salas de hoje. Simples, sem passar coroa pra ninguém. Pra isso
         // não virar novela quando ele atrasa, a tela DIZ o que está acontecendo:
@@ -6326,9 +6235,15 @@ export function EscLobby() {
         const waitMsg = carreira ? tr('Aguardando o host começar a carreira…', 'Waiting for the host to start the career…') : elencoOn ? tr('Aguardando o host começar o Bafo…', 'Waiting for the host to start Bafo…')
           : ligaOnSala ? (donoNaSala ? tr('👑 O dono da liga já está aqui — ele abre o pregão quando quiser.', '👑 The league owner is here — they open the auction whenever they want.') : tr('👑 O dono da liga ainda não chegou. Só ele abre o pregão — chame no zap!', '👑 The league owner hasn\'t arrived yet. Only they open the auction — give them a call!'))
           : tr('Aguardando o host abrir o pregão…', 'Waiting for the host to open the auction…')
-        const esperaLabel = elencoOn ? `${tr('Aguardando…', 'Waiting…')} (${bafoAptos.length}/2 ${tr('montados', 'built')})` : duplasOn ? tr('Aguardando…', 'Waiting…') : `${tr('Aguardando…', 'Waiting…')} (${players.length}/2 ${tr('mín', 'min')})`
-        // 🃏 se falta alguém montar, o toque abre o banner em vez de começar
-        const onStart = () => { if (elencoOn && bafoFaltam.length > 0) setBafoAviso(true); else void startOnline() }
+        const esperaLabel = elencoOn ? (bafoConvocando ? tr('🃏 Convocação rolando…', '🃏 Call-up in progress…') : `${tr('Aguardando…', 'Waiting…')} (${bafoAptos.length}/2 ${tr('aptos', 'eligible')})`) : duplasOn ? tr('Aguardando…', 'Waiting…') : `${tr('Aguardando…', 'Waiting…')} (${players.length}/2 ${tr('mín', 'min')})`
+        // 🃏 21/11: no Bafo o botão abre a CONVOCAÇÃO (120 s na tela de todo mundo); quem larga a liga é o fim dela
+        const onStart = () => {
+          if (!elencoOn) { void startOnline(); return }
+          if (!user || bafoConvocando) return
+          if (bafoFaltam.length > 0 && !window.confirm(tr(`${bafoFaltam.map(p => stripEmoji(p.manager_name)).join(', ')} ainda não tem cartas pra fechar um time e fica de fora desta partida. Começar assim mesmo?`, `${bafoFaltam.map(p => stripEmoji(p.manager_name)).join(', ')} can't field a team yet and sits this one out. Start anyway?`))) return
+          const eu = players.find(p => p.user_id === user.id)?.bafo ?? { v: 2 as const, n: 0, ok: false }
+          void supabase.from('room_players').update({ bafo: { ...eu, pronto: false, conv: { t0: Date.now() } } }).eq('room_id', room.id).eq('user_id', user.id).then(() => {}, () => {})
+        }
         if (ehMundoSala) return null // 🌍 a Copa tem o botão dela no painel de cima
         // ⭐ VICE DA LIGA (19/10): mockup `scripts/mockups/liga-vice.png`
         if (ligaViceOn && ligaOnSala && room.liga_vice && user) {

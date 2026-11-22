@@ -1,3 +1,4 @@
+import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
@@ -46,7 +47,7 @@ import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDra
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
-import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -112,6 +113,9 @@ import { publicOnlineVisual } from './online-release'
 import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto'
 import { PrateleiraRivalidades, type AmigoRival, type ProximoEncontro } from './rivalidades-sala'
 import { CaminhoDraft } from './draft-favoritos'
+import { cartasExtras, carregaCartasExtras, type CartaExtra } from './baralho-inteiro' // 🃏 21/11: o pacote do campeão sorteia do baralho INTEIRO
+import { Bafo2Fim, ElencosBafo, BafoVigia, FaixaBafo } from './bafo2-ui'
+import { BAFO2_PREP_SEG } from './bafo2' // 🃏 21/11: Bafo novo
 import { chaveNome as chaveNomeDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
@@ -495,6 +499,25 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
     setCupomBusy(false)
   }
   const precoBatismo = cupom ? Math.round(precoCheioBatismo * (100 - cupom.desconto_pct)) / 100 : precoCheioBatismo
+  // 🎟️ cupom de influenciador (Diego 08/09: sutil, "tem cupom?" embaixo do Pix). 21/11: vale também no Pix NOVO (Batismo e Fundador).
+  const cupomUi = (cupom ? (
+    <p className="text-[10px] font-bold text-center mt-1.5" style={{ color: GREEN }}>
+      {tr('🎟️ cupom', '🎟️ coupon')} <b>{cupom.codigo}</b> {tr('aplicado', 'applied')} · {cupom.desconto_pct}% off · <s className="text-black/40">R$ {precoCheioBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</s> <b>R$ {precoBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</b>
+      {' '}<button onClick={() => { setCupom(null); setCupomTxt(''); setCupomMsg(null); setCupomAberto(false) }} className="underline text-black/40 font-bold">{tr('tirar', 'remove')}</button>
+    </p>
+  ) : !cupomAberto ? (
+    <p className="text-center mt-1.5"><button onClick={() => setCupomAberto(true)} className="text-[10px] font-bold underline text-black/40">{tr('tem cupom?', 'got a coupon?')}</button></p>
+  ) : (
+    <div className="mt-1.5">
+      <div className="flex gap-1.5 items-center justify-center">
+        <input value={cupomTxt} onChange={e => { setCupomTxt(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setCupomMsg(null) }} onKeyDown={e => e.key === 'Enter' && aplicarCupom()} maxLength={16} placeholder={tr('código', 'code')} autoCapitalize="characters" autoFocus
+          className="w-36 border-2 border-black/30 rounded-lg px-2 py-1 font-black text-[12px] bg-white tracking-wider text-center" style={OSWALD} />
+        <button onClick={aplicarCupom} disabled={cupomBusy || !cupomTxt.trim()} className="text-[10px] font-black underline" style={{ color: cupomTxt.trim() ? INK : 'rgba(0,0,0,.3)' }}>{cupomBusy ? '…' : tr('aplicar', 'apply')}</button>
+        <button onClick={() => { setCupomAberto(false); setCupomTxt(''); setCupomMsg(null) }} className="text-[10px] font-bold underline text-black/35">{tr('fechar', 'close')}</button>
+      </div>
+      {cupomMsg && <p className="text-[10px] font-bold mt-1 text-center" style={{ color: '#C2452F' }}>{cupomMsg}</p>}
+    </div>
+  ))
   // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
   // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
   const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo' | 'plus'>(null)
@@ -701,31 +724,10 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
                                                                                     <><b>Série A</b> costs more because it is the elite: those are the clubs that show up in <b>quick play</b> and the rivals everybody faces. Tap one of the two to choose.</>)}</p>
           {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só no Fundador: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + o canto do seu time de coração (na Carreira e no online, junto com a gala) + o seu número de Fundador + o seu clube aparecendo nas salas online dos outros, em rodízio, mesmo quando você não está jogando.', '👑 Founder only: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your favourite team’s chant (in Career and online, with the entrance) + your Founder number + your club showing up in other people’s online rooms, rotating, even when you are not playing.')}</p>}
-          {pixMp ? <div className="mt-2"><PixMP key={serieBatismo} produto={serieBatismo === 'd' ? 'fundador' : 'batismo'} valor={precoCheioBatismo} />
+          {pixMp ? <div className="mt-2"><PixMP key={`${serieBatismo}-${cupom?.codigo ?? ''}`} produto={serieBatismo === 'd' ? 'fundador' : 'batismo'} valor={precoBatismo} refId={cupom ? `cupom-${cupom.codigo}` : ''} />{cupomUi}
             <p className="text-[10.5px] font-bold text-black/50 mt-1.5 text-center">{tr('Depois do Pix, você conta por escrito o nome do clube e como imagina o escudo e a mascote.', 'After the Pix, you describe in writing the club name and how you picture the crest and mascot.')}</p></div> : <>
           <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '🖋️ Fundador · Série A' : '🖋️ Batismo · Série B/C/D ou Várzea'}${planoJa ? ` · subida de ${planoJa}` : ''}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
-          {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
-              (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
-              óbvio"*): é uma linha cinza embaixo do Pix, "tem cupom?", que só vira
-              campo quando a pessoa toca. Quem não tem cupom nem repara. */}
-          {cupom ? (
-            <p className="text-[10px] font-bold text-center mt-1.5" style={{ color: GREEN }}>
-              {tr('🎟️ cupom', '🎟️ coupon')} <b>{cupom.codigo}</b> {tr('aplicado', 'applied')} · {cupom.desconto_pct}% off · <s className="text-black/40">R$ {precoCheioBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</s> <b>R$ {precoBatismo.toFixed(2).replace('.', getLang() === 'en' ? '.' : ',')}</b>
-              {' '}<button onClick={() => { setCupom(null); setCupomTxt(''); setCupomMsg(null); setCupomAberto(false) }} className="underline text-black/40 font-bold">{tr('tirar', 'remove')}</button>
-            </p>
-          ) : !cupomAberto ? (
-            <p className="text-center mt-1.5"><button onClick={() => setCupomAberto(true)} className="text-[10px] font-bold underline text-black/40">{tr('tem cupom?', 'got a coupon?')}</button></p>
-          ) : (
-            <div className="mt-1.5">
-              <div className="flex gap-1.5 items-center justify-center">
-                <input value={cupomTxt} onChange={e => { setCupomTxt(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')); setCupomMsg(null) }} onKeyDown={e => e.key === 'Enter' && aplicarCupom()} maxLength={16} placeholder={tr('código', 'code')} autoCapitalize="characters" autoFocus
-                  className="w-36 border-2 border-black/30 rounded-lg px-2 py-1 font-black text-[12px] bg-white tracking-wider text-center" style={OSWALD} />
-                <button onClick={aplicarCupom} disabled={cupomBusy || !cupomTxt.trim()} className="text-[10px] font-black underline" style={{ color: cupomTxt.trim() ? INK : 'rgba(0,0,0,.3)' }}>{cupomBusy ? '…' : tr('aplicar', 'apply')}</button>
-                <button onClick={() => { setCupomAberto(false); setCupomTxt(''); setCupomMsg(null) }} className="text-[10px] font-bold underline text-black/35">{tr('fechar', 'close')}</button>
-              </div>
-              {cupomMsg && <p className="text-[10px] font-bold mt-1 text-center" style={{ color: '#C2452F' }}>{cupomMsg}</p>}
-            </div>
-          )}
+          {cupomUi}
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>{tr('Manda comprovante + nome', 'Send the receipt + the name')}</p>
           <button onClick={() => {
             logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"${cupom ? ` · cupom ${cupom.codigo}` : ''}`)
@@ -1055,6 +1057,8 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   // branco (botões/fundos escuros) já define a cor explicitamente.
   const { state, dispatch, kickPlayer, leaveRoom: leaveRoomHard } = useEsc()
   const ownerVisual = useOwnerOnlineVisual(state)
+  // 🌴 19/11: a sala do Vice City leva o pôr do sol neon do pregão pra revelação, temporada, copas e fim (só o fundo)
+  const viceSala = !!state.viceCity && (VICE_TELAS as readonly string[]).includes(state.screen)
   const visualV2 = careerVisualV2(state)
   const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
@@ -1076,7 +1080,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   }
   // só o host, numa partida online, gerencia os técnicos. Lista os HUMANOS (menos
   // ele) e também os RIVAIS CPU (ex-amigos que saíram — auctionRival sem ser humano).
-  const canManage = inGame && state.onlineMode === 'online' && state.isHost
+  const canManage = inGame && state.onlineMode === 'online' && state.isHost && !state.bafo2 // 🃏 21/11: no Bafo ninguém é expulso depois que começa
   const others = state.managers.filter(m => m.id !== state.youIdx && (m.isHuman || m.auctionRival))
   const kick = (m: Manager) => {
     const msg = m.isHuman
@@ -1122,7 +1126,8 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   }, [desktopWidth, state.screen])
   return (
     <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
-    <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+    <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}${viceSala ? ' vice-sala' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
+      {viceSala && <><style>{VICE_TEMA_CSS + VICE_SALA_CSS}</style><ViceSalaDecor /></>}
       {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
         <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
@@ -1465,7 +1470,7 @@ function YourPitchBody({ small = false }: { small?: boolean }) {
   const mantoAng = meuMantoAngle()
   const mantoC3 = meuMantoC3() // 🟢 3ª cor (só do próprio dono, ex.: Desportivo Montreal)
   const mantoC3Buf = meuMantoC3Buffer() // 🚫🔴⚫ amortecedor: pro Arruda, vermelho não pode encostar em preto
-  if (state.reserveAuction || (state.minhaLigaDraft && shown.squad.length > titularesDraft())) { // 🏀 basquete: quinteto · 📋🏆 Minha Liga Draft: até 22 = titulares + banco
+  if (state.reserveAuction || ((state.minhaLigaDraft || state.bafo2) && shown.squad.length > titularesDraft())) { // 🏀 basquete: quinteto · 📋🏆 Minha Liga Draft: até 22 = titulares + banco
     // "Reservas" só na 2ª temporada (quando se monta o banco); da 3ª em diante é
     // o mercado, então o campinho de baixo é só o "Banco".
     const benchTitle = state.seasonNo === 2 ? '🔁 Reservas (banco)' : '🔁 Banco'
@@ -2494,7 +2499,7 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
       {resumable && <><button type="button" onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button type="button" onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
       {solo && <><button type="button" onClick={solo.resume}>{t('CONTINUAR', 'CONTINUE')} · {solo.teamName} · T{solo.seasonNo}</button><button type="button" onClick={onCareers}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
     </> : undefined}
-    notices={<><BannerIndicacao />{amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}</>}
+    notices={<><PacotesDevidos /><BannerIndicacao />{amigosOn && <PedidosNaHome onAbrirAmigos={() => setVerAmigos(true)} />}</>}
     shop={<LojaButton className="hv3-extra hv3-shop"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></svg><span className="hv3-text"><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Planos, identidade do clube, moedas e muito mais.', 'Plans, club identity, coins and more.')}</small></span><span aria-hidden="true">→</span></LojaButton>}
     overlays={<>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
@@ -5040,6 +5045,8 @@ function EnvelopeUnico() {
   }
   useEffect(() => { if (iSubmitted) setPending(false) }, [iSubmitted])
   useEffect(() => { if (remaining >= 1 && remaining <= 5 && !iSubmitted && precisaLacrar) playTick() }, [remaining]) // eslint-disable-line react-hooks/exhaustive-deps
+  // ⏰ 19/11: o tempo zerou sem você lacrar → buzina (o jogo lacra sozinho)
+  useEffect(() => { if (remaining === 0 && state.phaseDeadline && !iSubmitted && precisaLacrar) playTempoEsgotado() }, [remaining]) // eslint-disable-line react-hooks/exhaustive-deps
   // online: reenvia enquanto o dono não confirmou (mesma rede do envelope de sempre)
   useEffect(() => {
     if (!online || !pending || iSubmitted || !you) return
@@ -5254,6 +5261,8 @@ function Envelope() {
   }, [iSubmitted])
   // ⏱️ tique-taque nos últimos 5s (só enquanto ainda não lacrou)
   useEffect(() => { if (remaining >= 1 && remaining <= 5 && !iSubmitted) playTick() }, [remaining, iSubmitted])
+  // ⏰ 19/11: o tempo zerou sem você lacrar → buzina (o jogo lacra sozinho)
+  useEffect(() => { if (remaining === 0 && state.phaseDeadline && !iSubmitted) playTempoEsgotado() }, [remaining]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // enquanto não confirma, reenvia de tempos em tempos — cobre o host que
   // ficou um instante sem conexão (app em segundo plano etc.) e reconecta
@@ -6243,6 +6252,14 @@ function Reveal() {
     const iSold = sold && meId != null && sellerId != null && sellerId === meId && it.winner !== meId
     const timers: ReturnType<typeof setTimeout>[] = []
     if (iWon || iSold) timers.push(setTimeout(() => playHammer(), delayMs))
+    // 😅 19/11: QUASE! — você perdeu por 1 ou 2 moedas (a mesma conta da faixa "QUASE!" da tela), só pra você
+    if (sold && meId != null && !iWon) {
+      const win = it.bids.find(b => b.mgr === it.winner)
+      const losers = it.bids.filter(b => b.mgr !== it.winner && !it.voided.includes(b.mgr))
+      const best = losers.length ? Math.max(...losers.map(b => b.amount)) : -1
+      const meu = losers.find(b => b.mgr === meId)
+      if (win && meu && meu.amount === best && win.amount - best >= 1 && win.amount - best <= 2) timers.push(setTimeout(() => playQuase(), delayMs + 200))
+    }
     // 🎙️ ÁUDIO DA LENDA (meme "faah"): só pra QUEM pega a lenda no martelo — ou pra
     // quem VENDE uma lenda listada (a venda dele fechando). Vale em todos os modos
     // que usam o reveal; respeita o mudo (playMp3). Substitui o antigo chime.
@@ -6622,6 +6639,12 @@ export function EscMonte() {
   const valid = comMotivo.filter(x => x.bloq !== 'vaga' && x.bloq !== 'reservado')
   const online = state.onlineMode === 'online'
   const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
+  // 🃏 19/11: alguém pegou carta do Monte (a pilha encolheu) → virada de carta; 👆 chegou a SUA vez → "dim-dom"
+  const nMonte = state.monte.length
+  const monteAntes = useRef(nMonte)
+  useEffect(() => { if (nMonte < monteAntes.current) playMonte(); monteAntes.current = nMonte }, [nMonte])
+  const minhaVezMonte = isYourTurn && monteMinhaVez
+  useEffect(() => { if (minhaVezMonte) playSuaVez() }, [minhaVezMonte])
 
   // contagem regressiva (só online, quando há prazo)
   const [now, setNow] = useState(() => agoraSala())
@@ -7142,7 +7165,7 @@ export function TrocaCampo2DSala() {
   const temDireito = useTem2D() // 05/11: Craque Salas também liga (mesma régua de criar a sala com 2D)
   const contaOk = useTroca2DSala() // 🟢 05/11: liberado pra todo dono de sala
   const kingsVe = useKingsLiberada() // 👑📺 11/11 (Diego: *"serve pra qualquer modo e sala… deve aparecer pra poder trocar"*): na sala da Kings também
-  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || (state.sport === 'basquete' && state.careerOnline) || (ehKings(state) && !kingsVe)) return null
+  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || (state.sport === 'basquete' && state.careerOnline) || (ehKings(state) && !kingsVe) || state.bafo2) return null // 🃏 Bafo: só Campo 2D, sem troca
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
   const salaRapida = !state.ligaMode && !state.careerOnline // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
@@ -7574,7 +7597,7 @@ function CenaKingsTela({ cena, jogo, youId, nome, onEscolha, linhaDe, presidente
   }
   const d = jogo?.kings?.duelos?.find(x => x.key === cena.key)
   if (!d) return null
-  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} presidente={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.name : null} presClub={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.club : null} />
+  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.batedor === youId ? d.key : `${d.key}:pulo`, c)} presidente={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.name : null} presClub={d.tipo === 'presidente' ? presidenteDe?.(d.batedor)?.club : null} />
 }
 /** 👑 a caixa de regras da Kings — aparece antes da 1ª rodada, no lugar do "aguardando o pontapé" */
 function RegrasKingsBox() {
@@ -7607,18 +7630,31 @@ async function garanteCartaDoTitulo(seasonKey: string) {
   if (!uid) return
   const { data } = await supabase.from('user_cards').select('season_key').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
   if (data) return
-  const pool = colecoesLiberadas() ? POOL_COLECOES : ALL_POOL
-  const c = pool[Math.floor(Math.random() * pool.length)]
+  const pool = colecoesLiberadas() ? poolInteiro(await carregaCartasExtras()) : ALL_POOL
+  const c = colecoesLiberadas() ? sorteiaCarta(pool) : pool[Math.floor(Math.random() * pool.length)] // 🎲 mesma raridade do pacote aberto na tela final
   if (!c) return
   await resilientWrite({ table: 'user_cards', row: { user_id: uid, season_key: seasonKey, origin: 'online', card_name: c.name, card_club: c.club, card_year: c.year, card_pos: c.pos, card_fame: c.fame } })
 }
 function useTitulosNaHora() {
   const { state, sendChat } = useEsc()
   const feitos = useRef(new Set<string>())
-  const online = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && state.copaMode !== 'champions'
+  const online = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && state.copaMode !== 'champions' && !state.bafo2 // 🃏 21/11: o Bafo não dá carta nova nem conta pro ranking
   const ligaCamp = online ? state.champion : null
   const qc = state.quickCopa
   const copaCamp = online && qc?.phase === 'done' && qc.champion ? qc.champion.id : null
+  // ⚡⭐ 21/11 (auditoria da cartinha): Relâmpago e Só Champions não têm campeão de LIGA, então o efeito de baixo nunca rodava e a
+  // carta só saía na tela final (sala parou antes = campeão sem carta). Aqui só a CARTA, com a MESMA chave da tela final (":copa").
+  const soCopa = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && !state.bafo2 && !state.espectador
+  const copaCampSolta = soCopa && qc?.phase === 'done' && qc.champion ? qc.champion.id : null // (com liga, o efeito de baixo usa a MESMA marca em `feitos`: não dobra)
+  useEffect(() => {
+    if (copaCampSolta == null) return
+    const eu = state.managers[state.youIdx]
+    if (!eu?.isHuman || eu.id !== copaCampSolta) return
+    const chave = `carta:${state.roomId}:${state.seed}:${state.seasonNo}:copa`
+    if (feitos.current.has(chave)) return
+    feitos.current.add(chave)
+    void garanteCartaDoTitulo(`${state.roomId}:${state.seed}:${state.seasonNo}:copa`).catch(() => feitos.current.delete(chave))
+  }, [copaCampSolta, state.roomId, state.seed, state.seasonNo]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!online || ligaCamp == null) return
     const roomId = state.roomId!
@@ -8040,8 +8076,27 @@ export function EscSeason() {
   const trocaAbaBB = (a: AbaBB) => { setClubeDoJogo(a === 'clube' && centralTravada); setAbaBB(a) }
   const cup = state.nbaCup
   const cupLive = state.sport === 'basquete' && !!cup && cup.phase !== 'done'
+  // 🃏⏱️ BAFO (21/11, Diego: "após a convocação, dê 60 s mostrando a área de elenco pros usuários montarem suas equipes… antes de
+  // iniciar o jogo… e um banner avisando do tempo"): a liga só larga depois de 60 s com a escalação aberta em cima. Cada aparelho
+  // conta a partir de quando ELE chegou nesta tela (lembrado na aba, pra um F5 não ganhar tempo); quem larga é o dono (+3 s de folga).
+  const prepIni = useMemo(() => {
+    if (!state.bafo2 || state.round !== 0 || state.onlineMode !== 'online') return 0
+    const k = `bafo2-prep-${state.roomId}-${state.seed}`
+    let em = Date.now()
+    try { const g = Number(sessionStorage.getItem(k)); if (g > 0) em = g; else sessionStorage.setItem(k, String(em)) } catch { /* sem armazenamento: conta daqui */ }
+    return em
+  }, [state.bafo2, state.round === 0, state.onlineMode, state.roomId, state.seed]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [prepAgora, setPrepAgora] = useState(() => Date.now())
+  const prepPassou = prepIni ? Math.floor((prepAgora - prepIni) / 1000) : 999
+  const prepResta = prepIni ? Math.max(0, BAFO2_PREP_SEG - prepPassou) : 0 // o que a tela mostra
+  const prepSegura = !!prepIni && prepPassou < BAFO2_PREP_SEG + (state.isHost ? 3 : 0) // o que segura a largada
   useEffect(() => {
-    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive || naCentralBB || clubeNoJogo) return // 🏀🗺️ no Clube: termina o jogo da arena e para
+    if (!prepIni || !prepSegura) return
+    const i = setInterval(() => setPrepAgora(Date.now()), 1000)
+    return () => clearInterval(i)
+  }, [prepIni, prepSegura])
+  useEffect(() => {
+    if (!canAdvance || state.round >= totalRounds || state.dinastiaPaused || manual || cupLive || prepSegura || naCentralBB || clubeNoJogo) return // 🏀🗺️ no Clube: termina o jogo da arena e para
     if (kPenSegura && resultRevealed) return // 👑🥅 o shootout da Kings ainda rola no campinho: espera ele acabar // Dinastia: para na janela do meio; Cup: a liga espera; manual: avança no botão
     // 📺⏱️ 05/11 (Diego: *"está demorando pra aparecer o campinho 2D nas salas online"*): na LARGADA (rodada 0) ainda não
     // tem jogo nenhum na tela — a espera é só a tela "Aguardando o pontapé inicial". Ela usava o `roundMs` da rodada, que
@@ -8055,7 +8110,7 @@ export function EscSeason() {
     }
     const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, naCentralBB, clubeNoJogo])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, prepSegura, naCentralBB, clubeNoJogo])
   // toca a Cup fase a fase, no mesmo ritmo do mata-mata do fim de temporada.
   const cupKey = cup ? `${cup.phase}:${cup.ties.map(t => t.legs.length).join(',')}` : ''
   const cupJustAdvanced = cupLive && !!cup && cup.ties.every(t => t.legs.length === 0)
@@ -8792,7 +8847,9 @@ export function EscSeason() {
         // ter uma barrinha mostrando os gols que arrasta junto em cima da tela, igual
         // fizemos no modo carreira"*. É a MESMA tira da carreira (`FaixaPlacarMini`),
         // não uma cópia — só o placar de baixo é que é outro componente aqui.
-        return <><PlacarOnlineQueEncolhe key={state.round}
+        return <>{state.bafo2 && <FaixaBafo youId={you.id} rodada={state.round} total={totalRounds}
+          liga={sortedTable(!resultRevealed && state.lastResults.length > 0 ? leagueBeforeResults(state.league, state.lastResults) : state.league).map(t => ({ id: t.id, name: t.name, pts: t.pts }))} />}
+          <PlacarOnlineQueEncolhe key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
@@ -8805,7 +8862,18 @@ export function EscSeason() {
           radioExtra={kingsS ? (myLast.kings?.cartoes ?? []).map(c => { const t = nameOf(c.teamId); return { min: c.min, txt: c.cor === 'amarelo'
             ? LS(`🟨 Amarelo pra ${c.nome}, do ${t}! Na Kings é 2 minutos fora: o ${t} joga com um a menos até o ${c.ate}'.`, `🟨 Yellow for ${c.nome} of ${t}! In the Kings that's 2 minutes off: ${t} play a man down until ${c.ate}'.`)
             : LS(`🟥 VERMELHO pra ${c.nome}, do ${t}! São 5 minutos fora: o ${t} se vira com um a menos até o ${c.ate}'.`, `🟥 RED for ${c.nome} of ${t}! 5 minutes off: ${t} hold on a man down until ${c.ate}'.`) } }) : undefined} />{kingsInfo}</>
-      })() : kingsS ? <RegrasKingsBox /> : (
+      })() : kingsS ? <RegrasKingsBox /> : prepSegura && state.bafo2 ? (
+        <div>
+          <div style={{ background: INK, border: `3px solid ${GOLD}`, borderRadius: 14, boxShadow: '3px 3px 0 #000', padding: '9px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 'none', minWidth: 62, textAlign: 'center', color: prepResta <= 10 ? '#E8503A' : GOLD, ...OSWALD, fontWeight: 900, fontSize: 34, lineHeight: 1 }}>{prepResta}<span style={{ fontSize: 14, color: '#fff' }}>s</span></div>
+            <div style={{ color: '#fff', minWidth: 0 }}>
+              <p className="uppercase" style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, color: GOLD, lineHeight: 1.1 }}>{LS('🃏 Monte o seu time', '🃏 Set up your team')}</p>
+              <p style={{ fontSize: 12.5, fontWeight: 700, margin: '3px 0 0', lineHeight: 1.3 }}>{LS('Escolha a formação e troque titulares e reservas aqui embaixo. Quando o tempo acabar, a liga começa sozinha (e dá pra mexer de novo entre os jogos).', 'Pick your formation and swap starters and bench below. When time is up the league starts by itself (you can change it again between games).')}</p>
+            </div>
+          </div>
+          <EscalacaoMinha />
+        </div>
+      ) : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : LS('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')}</p>
         </Box>
@@ -9051,13 +9119,15 @@ export function EscSeason() {
       <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
       <div hidden={(privateVisual && visualTab !== 'elenco') || centralBB} className="space-y-5">
       {/* 📋🏆 Minha Liga Draft: elenco de até 22 → a aba Elenco é a MESMA da carreira (trocar titular e formação) */}
-      {state.minhaLigaDraft ? <EscalacaoMinha /> : <YourPitch small />}
+      {state.bafo2 && prepSegura ? null /* 🃏 nos 60 s de preparo a escalação está lá em cima */ : state.minhaLigaDraft || state.bafo2 ? <EscalacaoMinha /> : <YourPitch small />}
+      {/* 🃏 21/11: no Bafo, os 22 de cada rival abertos por posição (o campeão já vai escolhendo a carta que vai tomar) */}
+      {state.bafo2 && <ElencosBafo managers={state.managers} youId={you.id} />}
       {bbS && <ElencoStatsBB teamId={you.id} hold={!resultRevealed} />}
       {/* 🌐 SÓ NO RÁPIDO ONLINE (pedido do Diego 09/08): os campinhos de TODOS os
           times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
           já acabou, os elencos são públicos (tabela/artilharia já mostram tudo).
           Offline/carreira: nada muda. */}
-      {online && !state.careerOnline && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
+      {online && !state.careerOnline && !state.bafo2 && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
         <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} manto={mm.isHuman ? mantosSala[mm.id] ?? null : null} />
       ))}
       </div>
@@ -9079,6 +9149,7 @@ export function EscSeason() {
           giro da rodada — senão, com a tabela subindo, os créditos apareceriam no
           meio da tela. No desktop continua atravessando as duas colunas, igual. */}
       <div className="ll-rabicho">
+      {state.bafo2 && online && state.roomId && <BafoVigia roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid} ligaRolando={state.round < totalRounds} />}
       {online && state.roomId && !state.careerOnline && (
         <LigaHub roomId={state.roomId} souDono={state.isHost} cinema={cinemaPreview}
           humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
@@ -10833,7 +10904,7 @@ function fallbackBio(fame: number, pos: string): string {
     default: return `Profissional ${where} — do nosso futebol raiz.`
   }
 }
-export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean }) {
+export function CollectibleCard({ name, club, year, pos, fame, big = false, bio, folk = false, promessa, showBio = false, nomeNaCarta }: { name: string; club: string; year: number; pos: string; fame: number; big?: boolean; bio?: string; folk?: boolean; promessa?: boolean; showBio?: boolean; /** 🃏 21/11: só o TEXTO do nome (carta de exemplo do Bafo: "Ronaldo" na carta do Ronaldo Fenômeno). A carta continua sendo a de `name`. */ nomeNaCarta?: string }) {
   // 🎩 KINGS (12/11, Diego: *"a carta dos presidentes, ao invés de cor dourada de lenda ou cor tier… terão visual do time na carta
   // toda, sem boneco ou avatar"*): a carta é a de sempre, só a cor da categoria vira a cor do time e sai o retrato
   const pres = ehCartaPresidente(name, club, year)
@@ -10875,7 +10946,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
           : initial}
       </div>}
       <div className="relative">
-        <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{name}</p>
+        <p className="font-black truncate" style={{ ...OSWALD, color: t.ink, fontSize: big ? 26 : 17, lineHeight: 1.2, paddingBottom: 2 }}>{nomeNaCarta ?? name}</p>
         <p className="font-extrabold" style={{ color: t.ink, opacity: .62, fontSize: big ? 12 : 10 }}>{club} · {year}</p>
         {!pres && <p style={{ fontSize: big ? 13 : 11, letterSpacing: 1, marginTop: 3 }}>{isProm ? '💎💎💎' : '⭐'.repeat(fame)}</p>}
         {(big || showBio) && text && (
@@ -11020,6 +11091,17 @@ function nbaMeta(name: string, club: string, year: number): { bio?: string; folk
 // 📚 o pacote das COLEÇÕES: os três baralhos, uma entrada por carta (nome+clube+ano)
 const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' }))
 
+// 🃏 21/11 (Diego: "a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for campeão"): o pacote
+// do ÁLBUM soma as cartas regionais e as do Brasil Oficial (estaduais, Séries A–D, Libertadores, Sul-Americana) aos 3 baralhos.
+// A raridade não muda: `sorteiaCarta` escolhe a CATEGORIA primeiro (lenda 4%…) e só depois a carta dentro dela.
+// 🔁 mesmo dia: a CARREIRA também ("mesmo cálculo"). Carta do Oficial que cair numa carreira de sempre entra no álbum e na Agência,
+// mas não rende lá (aquele jogador não joga naquela carreira).
+function poolInteiro(extras: CartaExtra[]): WonCard[] {
+  if (!extras.length) return POOL_COLECOES
+  const tem = new Set(POOL_COLECOES.map(c => `${c.name}|${c.club}|${c.year}`))
+  return [...POOL_COLECOES, ...extras.filter(c => !tem.has(`${c.name}|${c.club}|${c.year}`)).map((c, i) => ({ id: `wildx-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, bio: c.bio, lo: 0, hi: 0, paid: 0, via: 'leilao' } as WonCard))]
+}
+
 // 🏆 `motivo` = DE QUAL TÍTULO veio esta carta ("Campeão da Série C", "Campeão da
 // Copa Legends"…). Existe por causa do relato do Futpoint FC (15/09), trazido pelo
 // Diego: *"ele não foi campeão nem da Liga nem da Supercopa, porém ganhou duas
@@ -11088,6 +11170,15 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // (baralho BR + Europa), sempre uma que o campeão ainda NÃO tem (só repetiria
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
   const colecoesOn = useColecoesLiberadas()
+  // 🃏 21/11: baralho INTEIRO no pacote do álbum — espera (no máx. 6 s) o pedaço do Brasil Oficial descer antes de sortear
+  const querExtras = colecoesOn && !nba // (a carreira também: Diego, 21/11 — "é aleatório também quando é campeão na carreira, mesmo cálculo")
+  const [extras, setExtras] = useState<CartaExtra[] | null>(() => (querExtras ? null : []))
+  useEffect(() => {
+    if (!querExtras) return
+    let vivo = true
+    void carregaCartasExtras().then(l => { if (vivo) setExtras(l) }, () => { if (vivo) setExtras(cartasExtras()) })
+    return () => { vivo = false }
+  }, [querExtras])
   const packPool = useMemo(() => {
     // 🏀 basquete: só o baralho da NBA, sem repetir o que já está no álbum da NBA (ou no save da carreira)
     if (nba) {
@@ -11100,7 +11191,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     // outros 22 clubes nunca fechavam) e PODE REPETIR fora da carreira: a repetida é o que deixa
     // fechar o mesmo clube de novo e é a moeda das trocas. Na carreira segue a regra da Agência.
     if (colecoesOn) {
-      const pool = POOL_COLECOES
+      const pool = poolInteiro(extras ?? [])
       if (saveCards) {
         const saveSet = new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`))
         const un = pool.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
@@ -11120,7 +11211,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     }
     const un = ALL_POOL.filter(c => !owned.has(c.name))
     return un.length ? un : ALL_POOL
-  }, [owned, saveCards, colecoesOn, nba])
+  }, [owned, saveCards, colecoesOn, nba, extras])
   const [opening, setOpening] = useState(false)
   // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
   // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
@@ -11149,7 +11240,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // pra ninguém (é só o PRÓPRIO campeão vendo o próprio prêmio), então não
   // precisa esperar a cerimônia como o onClaimed espera pros outros da sala.
   useEffect(() => {
-    if (status !== 'picking' || savedRef.current || !packPool.length) return
+    if (status !== 'picking' || savedRef.current || !packPool.length || extras === null) return // (extras === null: o baralho inteiro ainda está descendo)
     const pick = colecoesOn && !nba ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
     if (!pick) return
     savedRef.current = true
@@ -11278,6 +11369,42 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
 // estado, sincronizada pra todos). Qualquer um pode tocar pra abrir, mas é só
 // pra ver: não grava nada no álbum. Se a carta ainda não chegou (campeão não
 // abriu), o lacre fica "esperando" e revela sozinho quando ela cair no estado.
+// 🃏🛟 PACOTE QUE FICOU PRA TRÁS (21/11, auditoria pedida pelo Diego: "quando acaba uma competição e você ganha, deve aparecer o
+// pacote pra abrir"). ~2% dos campeões de sala ficavam sem carta: quem grava é o aparelho do campeão, e se ele fecha ou perde a
+// rede na hora, ninguém refazia. O banco (`esc_titulos_sem_carta`) devolve os títulos dos últimos 3 dias em que a conta foi campeã
+// e a carta não existe; aqui, na tela inicial, o pacote aparece pra abrir com a MESMA chave do título (nunca dobra).
+// Tráfego: 1 pergunta pequena por aparelho a cada 6 h (se não achou nada); achou, pergunta de novo na próxima abertura.
+const PACOTES_DEVIDOS_K = 'esc-pacotes-devidos-em'
+export function PacotesDevidos() {
+  const [lista, setLista] = useState<{ season_key: string; tipo: string; sala: string | null }[]>([])
+  useEffect(() => {
+    let vivo = true
+    ;(async () => {
+      try {
+        const ult = Number(localStorage.getItem(PACOTES_DEVIDOS_K) || 0)
+        if (Date.now() - ult < 6 * 3600_000) return
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user) return
+        const { data, error } = await supabase.rpc('esc_titulos_sem_carta')
+        if (error || !vivo) return
+        const l = (data ?? []) as { season_key: string; tipo: string; sala: string | null }[]
+        if (l.length === 0) localStorage.setItem(PACOTES_DEVIDOS_K, String(Date.now()))
+        setLista(l)
+      } catch { /* sem rede / sem armazenamento: tenta na próxima abertura */ }
+    })()
+    return () => { vivo = false }
+  }, [])
+  if (lista.length === 0) return null
+  return (
+    <div className="space-y-2">
+      {lista.map(t => (
+        <CardCollectPrompt key={t.season_key} seasonKey={t.season_key} origin="online"
+          motivo={t.tipo === 'copa' ? tr(`🏆 Você foi campeão da copa${t.sala ? ` na sala ${t.sala}` : ''} e o pacote ficou pra trás`, `🏆 You won the cup${t.sala ? ` in room ${t.sala}` : ''} and the pack was left behind`) : tr(`🏆 Você foi campeão${t.sala ? ` na sala ${t.sala}` : ''} e o pacote ficou pra trás`, `🏆 You won the title${t.sala ? ` in room ${t.sala}` : ''} and the pack was left behind`)} />
+      ))}
+    </div>
+  )
+}
+
 function StreamSpectatorCard({ champName, card }: { champName: string; card?: WonCard | null }) {
   const [opened, setOpened] = useState(false)
   const [opening, setOpening] = useState(false)
@@ -12516,6 +12643,82 @@ function CareerEndPanel() {
 // próximo jogo, não de ler oferta; e quem NÃO tem com quem jogar está justamente
 // na lista de salas abertas, procurando. Agora ele mora em `lobby.tsx`, embaixo do
 // 🔄 Atualizar lista, e bem mais discreto.
+// 🗳️🃏 FIM DO BAFO (21/11, Diego: *"normalmente tem lá no final aquela votação, se você quer continuar ou não, ou sair da sala, que é
+// o padrão de todos os outros… não entendi por que acabou e voltou pra sala de espera já"*). No Bafo não existe "mesmo time" nem
+// "novo leilão" (as cartas mudam de dono e a convocação é nova), então a votação padrão vira: 🃏 Jogar de novo · 🚪 Sair da sala.
+// O dono vê quem respondeu e SÓ ELE leva a sala de volta pra espera — ninguém é carregado sem saber. Usa o voto de sempre
+// (`CAST_SEASON_VOTE`, que o novo jogo zera) e o sair de sempre; sair no fim não pune ninguém (a punição do dono é só com a liga rolando).
+function BafoFimVoto() {
+  const { state, dispatch, leaveRoom } = useEsc()
+  const V = useT()
+  const youId = state.managers[state.youIdx]?.id ?? state.youIdx
+  const isHost = !!state.isHost
+  const votes = state.seasonVotes ?? {}
+  const quero = !!votes[youId]
+  const humans = state.managers.filter(m => m.isHuman)
+  const [memberIds, setMemberIds] = useState<number[]>(() => humans.map(m => m.id))
+  useEffect(() => {
+    if (!state.roomId) return
+    let vivo = true
+    const le = async () => {
+      try {
+        const { data } = await supabase.from('room_players').select('player_index').eq('room_id', state.roomId)
+        if (vivo && data) setMemberIds([...new Set((data as { player_index: number }[]).map(p => p.player_index))])
+      } catch { /* fica com a última lista */ }
+    }
+    void le()
+    const t = window.setInterval(() => { if (!salaDormindo()) void le() }, 4000)
+    return () => { vivo = false; window.clearInterval(t) }
+  }, [state.roomId])
+  const dentro = new Set(memberIds)
+  const ficaram = humans.filter(m => dentro.has(m.id))
+  const sair = () => {
+    const msg = isHost
+      ? V('Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.', 'Leave the room? Command (host) passes to someone else. If you are alone, the room is deleted.')
+      : V('Sair da sala? Você será removido desta sala.', 'Leave the room? You will be removed from this room.')
+    if (window.confirm(msg)) leaveRoom()
+  }
+  const [indo, setIndo] = useState(false)
+  const novoBafo = async () => { if (indo) return; setIndo(true); await voltaEsperaNoBanco(state.roomId); dispatch({ type: 'REMATCH' }) }
+  const btn = (bg: string, fg: string): React.CSSProperties => ({ flex: 1, background: bg, color: fg, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 6px', fontWeight: 900, fontSize: 15, ...OSWALD })
+  return (
+    <div data-bafo-fim-voto style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 11, color: INK, textAlign: 'left' }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textAlign: 'center' }}>{V('🃏 E AGORA? MAIS UM BAFO?', '🃏 WHAT NOW? ANOTHER BAFO?')}</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, margin: '8px 0 0', justifyContent: 'center' }}>
+        {humans.map(m => {
+          const saiu = !dentro.has(m.id)
+          const sim = !saiu && (!!votes[m.id] || (isHost && m.id === youId))
+          return <span key={m.id} style={{ fontSize: 11.5, fontWeight: 800, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 7px', background: saiu ? '#E4DFD0' : sim ? '#CDEBD5' : '#FFF6D6', color: saiu ? 'rgba(0,0,0,.5)' : INK }}>
+            {saiu ? '🚪' : sim ? '✅' : '⏳'} {m.teamName}{m.id === youId ? V(' (você)', ' (you)') : ''}
+          </span>
+        })}
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', textAlign: 'center' }}>{V('✅ quer jogar de novo · ⏳ ainda não respondeu · 🚪 saiu', '✅ wants to play again · ⏳ no answer yet · 🚪 left')}</p>
+      {isHost ? (
+        <>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button onClick={() => void novoBafo()} disabled={indo} style={btn(GOLD, '#000')}>{ficaram.length < 2 ? V('📣 Voltar pra sala de espera', '📣 Back to the waiting room') : V('📣 Novo Bafo com quem ficou', '📣 New Bafo with who stayed')}</button>
+          </div>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '7px 0 0', textAlign: 'center' }}>{ficaram.length < 2
+            ? V('Você ficou sozinho: na sala de espera dá pra chamar mais gente.', 'You are alone: in the waiting room you can call more people.')
+            : V('Você é o dono: quando apertar, quem não saiu volta junto pra sala de espera e todo mundo convoca de novo.', 'You are the owner: when you tap, everyone who did not leave goes back to the waiting room and calls up again.')}</p>
+          <button onClick={sair} style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 800, fontSize: 12.5, color: 'rgba(0,0,0,.6)' }}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
+        </>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button onClick={() => dispatch({ type: 'CAST_SEASON_VOTE', mgrId: youId, vote: 'mesmo' })} style={btn(quero ? GREEN : '#fff', quero ? '#fff' : '#000')}>{quero ? V('✅ Vou jogar de novo', '✅ I\'m in again') : V('🃏 Jogar de novo', '🃏 Play again')}</button>
+            <button onClick={sair} style={btn('#FFD9CE', '#8E2A1B')}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
+          </div>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '7px 0 0', textAlign: 'center' }}>{quero
+            ? V('Fechado! Quando o dono da sala começar o novo Bafo, você volta pra sala de espera e convoca de novo.', 'Done! When the room owner starts the new Bafo, you go back to the waiting room and call up again.')
+            : V('Quem não sair volta junto pra sala de espera quando o dono começar o novo Bafo.', 'Whoever does not leave goes back to the waiting room when the owner starts the new Bafo.')}</p>
+        </>
+      )}
+    </div>
+  )
+}
+
 export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const { state, dispatch, kickPlayer, leaveRoom } = useEsc()
   const V = useT() // 🌐 BR/EN
@@ -13377,16 +13580,16 @@ export function EscEnd() {
   // mascote saiu daqui (o mesmo teatro não aparece duas vezes). 1x por temporada (sessionStorage), toque pula.
   const minhaMasc = meuSoc?.ativo && meuSoc.mascoteKey && MASCOTES[meuSoc.mascoteKey] ? meuSoc.mascoteKey : null
   const festaBase = `esc-festa2-${state.roomId ?? 'cpu'}-${state.seed}-${state.seasonNo}`
-  const festas: { key: string; comp: CompId; id: number; nome: string; linha: string }[] = (() => {
+  const festas: { key: string; comp: CompId; id: number; nome: string; linha: string; vice?: number }[] = (() => {
     if (state.sport === 'basquete' || kEnd) return []
-    const out: { key: string; comp: CompId; id: number; nome: string; linha: string }[] = []
+    const out: { key: string; comp: CompId; id: number; nome: string; linha: string; vice?: number }[] = []
     const tab = sortedTable(state.league)
-    if (!semTituloLiga && tab[0]) out.push({ key: 'liga', comp: 'liga', id: tab[0].id, nome: tab[0].name, linha: `${tab[0].pts} pts${tab[1] ? ` · ${LE('vice', 'runner-up')}: ${tab[1].name}` : ''}` })
+    if (!semTituloLiga && tab[0]) out.push({ key: 'liga', comp: 'liga', id: tab[0].id, nome: tab[0].name, linha: `${tab[0].pts} pts${tab[1] ? ` · ${LE('vice', 'runner-up')}: ${tab[1].name}` : ''}`, vice: tab[1]?.id })
     const qc = state.quickCopa
     if (qc?.champion && qc.phase === 'done') {
       const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
       const linha = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : ''
-      out.push({ key: 'copa', comp: state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha })
+      out.push({ key: 'copa', comp: state.copaMode === 'relampago' ? 'relampago' : state.copaMode === 'liga_champions' || state.copaMode === 'champions' ? 'champions' : state.copaMode === 'liga_liberta' ? 'liberta' : 'copa8', id: qc.champion.id, nome: qc.champion.name, linha, vice: fin ? (fin.aId === qc.champion.id ? fin.bId : fin.aId) : undefined })
     }
     return out
   })()
@@ -13421,7 +13624,7 @@ export function EscEnd() {
     const g1 = [...gols].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
     const a1 = [...pas].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name))[0]
     return <FestaCampeao key={festaAgora.key} comp={festaAgora.comp} nome={festaAgora.nome} crest={<Escudo nome={festaAgora.nome} size={160} />}
-      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} onDone={fecharFesta} tema={temaFesta}
+      mascote={mk && MASCOTES[mk] ? MASCOTES[mk] : undefined} lendas={lendas} linha={festaAgora.linha} souCampeao={souEu} souVice={festaAgora.vice === you.id} onDone={fecharFesta} tema={temaFesta}
       artilheiro={g1 && g1.goals > 0 ? { nome: g1.name, time: g1.teamName, n: g1.goals } : null}
       garcom={a1 && a1.assists > 0 ? { nome: a1.name, time: a1.teamName, n: a1.assists } : null} />
   })() : null
@@ -13723,7 +13926,7 @@ export function EscEnd() {
     <>
       {/* 🏀 no basquete o pacote sai do baralho da NBA e vai pro ÁLBUM DA NBA (`nba`); na carreira a
           carta também entra na 💼 Agência (`agenciaNba`), igual ao futebol */}
-      {online && youWon && !semCartaLigaBB && state.roomId && (
+      {online && youWon && !semCartaLigaBB && state.roomId && !state.bafo2 && (
         <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}`} origin="online" onClaimed={bcastCard('liga')} onStatus={setLigaCardStatus} nba={bbEnd} {...agenciaNba(`${state.roomId}:${state.seed}:${state.seasonNo}`)} />
       )}
       {/* 🎥 STREAM: a sala (quem NÃO é campeão) assiste o pacote do campeão da liga */}
@@ -13854,7 +14057,11 @@ export function EscEnd() {
       {!copaPending && !libPending && !mundoEsperando && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader())}
       {/* 🃏 BAFO: a cascata é O prêmio deste modo — vem logo depois da colocação,
           antes da tabela, porque é a primeira coisa que a galera quer ver. */}
-      {state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
+      {state.bafo2 && state.roomId ? (
+        <Bafo2Fim roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid} managers={state.managers} assentos={state.seatUids ?? []}
+          campeaoUid={state.champion != null ? (state.seatUids?.[state.champion] ?? null) : null}
+          rodape={<BafoFimVoto />} />
+      ) : state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
         <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
           <p className="font-black text-base" style={OSWALD}>{LE('🤝 BAFO AMISTOSO', '🤝 FRIENDLY BAFO')}</p>
           <p className="text-[11.5px] font-bold text-black/60 leading-snug mt-0.5">{endLang === 'en' ? <>This room was created <b>with no cards at stake</b> — nobody lost or won anything from the album. Just the table.</> : <>Esta sala foi criada <b>sem valer carta</b> — ninguém perdeu nem ganhou nada do álbum. Foi só a tabela.</>}</p>
@@ -14118,7 +14325,7 @@ export function EscEnd() {
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
         <JornalDaSalaBloco state={state} vagasCopa={bbEnd ? 0 : copaN(table.length)} zonaDebaixo={bbEnd ? table.length + 1 : zoneBot(table.length)} mundo={campeaoDoMundo && libertaNaLiga ? { ...campeaoDoMundo, copa: 'Libertadores' } : campeaoDoMundo && regionalNaLiga ? { ...campeaoDoMundo, copa: getLang() === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome } : campeaoDoMundo} />
       )}
-      {online && state.roomId && !state.careerOnline && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
+      {online && state.roomId && !state.careerOnline && !state.bafo2 && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
         // ⭐ SÓ CHAMPIONS (25/09): não houve liga — a tabela que vale é a de 36 e o título da
         // temporada é o da Champions. Sem isto a sala gravava um "campeão da liga" de mentira
@@ -14169,7 +14376,7 @@ export function EscEnd() {
       {/* No online, a votação "E agora?" vem ANTES do compartilhar (é a ação principal).
           Durante a ESPERA da Copa (copaPending) ela some — senão daria pra começar a
           próxima temporada e PULAR a Copa. Volta quando a Copa acaba. */}
-      {online && !state.nbaCareer && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
+      {online && !state.nbaCareer && !state.bafo2 && !copaPending && !libPending && !mundoPendente && <OnlineEndVote awaitingCard={awaitingCard} />}
       </div>
       {roteiroBB && passoBB === 1 && <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s money comes next')} onClick={() => { dispatch({ type: 'CLOSE_NBA_BOOKS' }); setPassoBB(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       {roteiroBB && passoBB === 2 && <CaixaBB onContinue={() => { setPassoBB(3); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}

@@ -12,6 +12,13 @@ import { registraMeuBatismo } from './mimos'
 import { getLang } from './lang' // 🌐 NOME_MSG sai no idioma do botão BR/EN
 import { releConta } from './conta-vez' // 📉 30/10: só relê quando a conta muda (ou foi pagar)
 
+// 🛡️ ESCUDO AVULSO PAGO (19/11) — conta → chave em LOGOS_PRONTAS (escudos.tsx). Quem comprou só o escudo
+// (sem batismo/sócio) vê ele no PRÓPRIO clube, pelo e-mail, igual ao escudo de batismo. Os outros jogadores
+// continuam vendo o automático (nome igual a outra conta não pode herdar o escudo de quem pagou).
+export const ESCUDO_AVULSO_CONTAS: Record<string, string> = {
+  'isaaxx2026@gmail.com': 'zz avulso deportivo la puneta', // Deportivo La Puñeta
+}
+
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🦁 Leão da Estradinha (jorgericardo777) — vermelho e branco MEDIDOS na camisa da arte nova (13/10)
@@ -163,12 +170,18 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👁️👑 Obelisko FC — PRETO e ROXO, MEDIDOS na camisa que o dono mandou (18/11): preto 61% do manto (#0F0E18) e o roxo das
   // faixas (#862EE0). O AZUL do monstro no peito (#4853AB) é a 3ª cor (MANTO_TRI).
   'felipefazzio@gmail.com': ['#0F0E18', '#862EE0'],
+  // 🦊👑 Cabuloso JP — AZUL e BRANCO, MEDIDOS na camisa que o dono mandou (21/11): azul do corpo (#00208C, mediana dos azuis) e o
+  // branco/prata das faixas e da gola (#EFEEF0).
+  'rafaelazevedo455@gmail.com': ['#00208C', '#EFEEF0'],
   // 🧔⚽ História dos Gigantes — CREME e MARROM, MEDIDOS na camisa que o dono mandou (16/11): creme do corpo (#FEE9BD) e o marrom
   // da faixa/gola (#7A2B06).
   'will.a.n@hotmail.com': ['#FEE9BD', '#7A2B06'],
   // 👑⚫ Ceará SP Club — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (19/11): preto das listras (#060606) e o branco (#F3F4F4).
   // O AZUL dos frisos (#0863E9) é a 3ª cor (MANTO_TRI).
   'lucasnicodemosqq@gmail.com': ['#060606', '#F3F4F4'],
+  // 👑🦡 Império FC — BRANCO e PRETO, MEDIDOS na camisa que o dono mandou (20/11): branco do corpo (#F8F3F0) e o preto da faixa
+  // diagonal (#0A0703). O DOURADO dos frisos (#F1AD10) é a 3ª cor (MANTO_TRI).
+  'leodicasttro@hotmail.com': ['#F8F3F0', '#0A0703'],
   // 🐆👑 Lavras FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (16/11): preto do corpo (#0A0806) e o dourado das
   // faixas/gola (#F3AD03).
   'hugopereirabrito@gmail.com': ['#0A0806', '#F3AD03'],
@@ -254,7 +267,10 @@ async function fetchMeuSocio() {
   } catch { /* sem rede — fica na reserva do código */ }
   // 🎁 08/09: escudo e mascote do dono passam a seguir o E-MAIL (ver mimos.ts).
   // Só sócio ATIVO leva; deslogou/venceu → limpa, e o clube volta ao automático.
-  registraMeuBatismo(meu?.ativo ? meu.escudoTime : null, meu?.ativo ? meu.mascoteKey : null)
+  let em: string | null = null
+  try { em = (await supabase.auth.getSession()).data.session?.user?.email?.toLowerCase() ?? null } catch { /* sem sessão */ }
+  const avulso = em ? (ESCUDO_AVULSO_CONTAS[em] ?? null) : null
+  registraMeuBatismo(meu?.ativo && meu.escudoTime ? meu.escudoTime : avulso, meu?.ativo ? meu.mascoteKey : null)
   await fetchMeusKits()
   listeners.forEach(fn => fn())
 }
@@ -385,6 +401,7 @@ const MANTO_TRI: Record<string, string> = {
   duarte_paredao: '#F7D50A', // 🧤👑 Duarte FC (luizfelipeduarte212) — 3ª cor DOURADA: gola e punhos da camisa (18/11)
   obelisko_atormentador: '#4853AB', // 👁️👑 Obelisko FC (felipefazzio) — 3ª cor AZUL: o monstro estampado no peito da camisa (18/11)
   cearasp_rei: '#0863E9', // 👑⚫ Ceará SP Club (lucasnicodemosqq) — 3ª cor AZUL: os frisos da camisa (19/11)
+  imperio_texugo: '#F1AD10', // 👑🦡 Império FC (leodicasttro) — 3ª cor DOURADA: frisos, gola e punhos da camisa (20/11)
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   reidabola_leao: '#ECE1D9', // 👑🦁 Rei da Bola FC (caiobegnamii) — 3ª cor BRANCO-CREME: a base da camisa, medida na arte dele (16/09)
   toka: '#013088', // 🧢 Tôka10 — 3ª cor AZUL: a touca (que é o escudo) e o calção, medidos na arte dele (16/09)

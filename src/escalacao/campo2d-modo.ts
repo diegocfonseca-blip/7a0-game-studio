@@ -13,6 +13,13 @@ import { estadioNoCampinho } from './estadiodata' // 🌱🏟️ o estádio do m
 export const CAMPO2D_CHAVE = 'esc-campo2d'
 let pref = (() => { try { return localStorage.getItem(CAMPO2D_CHAVE) === '1' } catch { return false } })()
 const ouvintes = new Set<() => void>()
+/** 🧭 19/11: a escolha "📺 Campo 2D" da Central liga o 2D (e "🏟️ Campo 3D" desliga) sem depender do estado anterior */
+export function ligaCampo2D(v: boolean) {
+  if (pref === v) return
+  pref = v
+  try { localStorage.setItem(CAMPO2D_CHAVE, pref ? '1' : '0') } catch { /* sem armazenamento: vale só nesta aba */ }
+  ouvintes.forEach(f => f())
+}
 export function trocaCampo2D() {
   pref = !pref
   try { localStorage.setItem(CAMPO2D_CHAVE, pref ? '1' : '0') } catch { /* sem armazenamento: vale só nesta aba */ }

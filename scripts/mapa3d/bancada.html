@@ -1,0 +1,25 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mapa 3D — bancada</title><style>body{margin:0;background:#111;font:16px Arial}#root{height:100vh}#root>section{height:100%}</style><div id="root"></div><script type="module">
+// 🏟️ bancada do 3D do mapa (19/11): partida de verdade (motor novo) com cartas do baralho BR, sem login. Usada pra filmar a abertura e a câmera.
+import React from 'react';import {createRoot} from 'react-dom/client';import {flushSync} from 'react-dom';
+import Complexo from '../../src/escalacao/presidencia-complexo-3d.tsx';
+import {MapaHud} from '../../src/escalacao/presidencia-mapa-hud.tsx';
+import {CATALOG} from '../../src/escalacao/data.ts';
+import {entradaM2} from '../../src/escalacao/motor2/carreira.ts';
+import * as THREE from 'three';
+const _r=THREE.WebGLRenderer.prototype.render;THREE.WebGLRenderer.prototype.render=function(sc,cam){_r.call(this,sc,cam);window.__info={calls:this.info.render.calls,tris:this.info.render.triangles,geo:this.info.memory.geometries,tex:this.info.memory.textures,pr:this.getPixelRatio(),w:this.domElement.width,h:this.domElement.height};window.__scene=sc;window.__cam=cam};
+import {qaLigaMapa3D} from '../../src/escalacao/sport.ts';qaLigaMapa3D();
+try{
+const pega=(s,n,off)=>CATALOG[s].slice(off,off+n).map(c=>({name:c.name,pos:s,club:c.club,year:c.year,fame:c.fame,lo:c.lo,hi:c.hi}))
+const time=off=>[...pega('GOL',1,off),...pega('LAT',2,off*2),...pega('ZAG',2,off*2),...pega('MEI',3,off*3),...pega('ATA',3,off*3)]
+const casa=time(0),fora=time(5),input=entradaM2({seed:4242,casa,fora,fCasa:'4-3-3',fFora:'4-3-3',tatica:[0,0],bots:[false,true]})
+const roster=cs=>cs.map((p,i)=>({id:p.name+i,name:p.name,pos:p.pos}))
+const stadium=new URLSearchParams(location.search).has('varzea')?{inv:{},ext:[]}:{inv:{grama:100,geral:100,cadeiras:100,visitante:100},ext:[]}
+const qs=new URLSearchParams(location.search),vfora=qs.has('fora')
+const base={viewerClubId:vfora?1:0,officialInput:input,officialTeams:[qs.get('casa')||'Flamingo',qs.get('visit')||'Tricolor'],context:{id:'bancada-mapa3d',homeClubId:0,awayClubId:1,home:roster(casa),away:roster(fora),stadium},minute:0,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#c2452f',awayColor:'#1b7a3d'}
+const root=createRoot(document.getElementById('root'));let api,minute=0,paused=true
+const pres=new URLSearchParams(location.search).get('p')||'3d'
+const render=()=>flushSync(()=>root.render(React.createElement(Complexo,{stadium,matchPresentation:pres,match:{...base,minute,paused},onReady:x=>{api=x;window.__api=x},circulation:false,hud:React.createElement(MapaHud,{match:{...base,minute,paused}})})))
+let relogio;window.bancada={abertura:()=>api?.setMatchCamera('abertura'),jogar:(seg0=0)=>{clearInterval(relogio);const t0=performance.now();paused=false;relogio=setInterval(()=>{minute=(seg0+(performance.now()-t0)/1000)*93/90;render()},100)},seek:t=>{minute=t*93/90;paused=false;render()},pausa:()=>{paused=true;render()},draw:()=>api?.seekCirculation?.(0),ready:()=>!!api?.inspect()?.match,inspect:()=>api?.inspect(),camera:m=>api?.setMatchCamera(m),view:v=>api?.view(v),api:()=>api}
+render()
+}catch(e){window.bancadaErro=e.stack;console.error(e)}
+</script></html>

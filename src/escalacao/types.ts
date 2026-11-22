@@ -139,6 +139,8 @@ export interface AgEvento { emoji: string; texto: string; coins: number; nome?: 
 export interface WonCard extends Card {
   paid: number
   via: Acquisition
+  /** 🃏 Bafo novo (21/11): o id desta carta na coleção da conta (`user_cards`) — é ele que troca de dono no fim */
+  bafoId?: string
   // 📝❄️ EMPRÉSTIMO CONGELA O CONTRATO (Diego 13/09: *"quando o jogador é emprestado não
   // quero que conte o empréstimo — congela o tempo. Ele volta com o mesmo número que
   // tava quando emprestou"*). Gravado na ida pra SAF: quantas temporadas faltavam ALÉM
@@ -396,12 +398,16 @@ export type PregaoAbertoState = {
 export type ViceState = {
   /** as cartas na mão de cada técnico de gente (ids de `GOLPES`, vice-city.ts) */
   mao: Record<number, string[]>
-  /** quantas cartas cada um já recebeu (máx. 2: uma no começo, outra na metade) */
+  /** quantas cartas cada um já recebeu (3, todas no sorteio do começo; salas antigas: 2) */
   recebidas: Record<number, number>
+  /** 🎰 até quando a janela do sorteio das cartas fica na tela (hora do dono) */
+  sorteioAte?: number
   /** ⭐ estrelas escondidas: quem LEVA golpe ganha 1 */
   estrelas: Record<number, number>
   /** 🚨 quem já tomou BUSTED (só 1 por sala) */
   busted?: number
+  /** 🚨 19/11: a pena (5 melhores → 5 Profissionais) já caiu no fim do pregão */
+  bustedFeito?: boolean
   /** o último jogador que cada um levou no martelo (alvo do 🚗 Roubo de carro) */
   ultimo: Record<number, string>
   /** efeitos correndo: até quando (ms, hora do dono) ou "vale na próxima carta" (true) */
@@ -417,10 +423,15 @@ export type ViceState = {
   propina: Record<number, boolean>
   colete: Record<number, boolean>
   fuga: Record<number, boolean>
+  /** 🆕 21/11 (opcionais: sala que já estava jogando não tem) — 🛞 pneu furado até quando · 🐊 jacaré: vítima → quem armou ·
+   *  💼 missão: técnico → índice da carta da mesa que vale o bônus */
+  pneuAte?: Record<number, number>
+  jacare?: Record<number, number>
+  missao?: Record<number, number>
   /** 📡🎯 o segredo que só quem usou vê: X9 (nomes das próximas cartas) e Sniper (o ranking naquele momento) */
   segredo: Record<number, { tipo: 'x9' | 'sniper'; linhas: string[]; ate: number }>
   /** 📣 o que aconteceu, pra sala inteira (mais novo em cima) */
-  feed: { id: number; pt: string; en: string; t: number; busted?: boolean }[]
+  feed: { id: number; pt: string; en: string; t: number; busted?: boolean; /** 🆕 21/11: a cena especial na tela de todos */ cena?: 'aviao' | 'paraquedas' | 'jacare' }[]
   /** contador pra id do feed e pro dado andar */
   n: number
 }
@@ -844,6 +855,8 @@ export interface EscState {
   pregaoAberto?: boolean
   /** 🌴 sala Vice City (19/11): pregão aberto com cartas de golpe */
   viceCity?: boolean
+  /** 🃏 19/11: quantas cartas de golpe cada técnico recebe (3 padrão · 4 · 5), escolha de quem cria */
+  viceCartas?: number
   /** ⚡ ENVELOPE ÚNICO (28/10, mockup scripts/mockups/envelope-unico.png): as 5 posições num envelope só, 180s, uma revelação */
   envUnico?: boolean
   /** ⚡ o envelope único está aberto (a fila tem as cartas das 5 posições) / a revelação única está rolando */
@@ -1020,6 +1033,8 @@ export interface EscState {
   // 🃏 BAFO: sala sem leilão, cada um traz o time da própria carreira e no fim
   // quem ficou atrás entrega UMA carta daquela carreira pro de cima (cascata).
   bafoOn?: boolean
+  /** 🃏 BAFO NOVO (21/11): 22 cartas da coleção da conta, só gente, só liga, o campeão toma 1 carta (bafo2.ts) */
+  bafo2?: boolean
   bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }> // mgrId → dono do time (conta + carreira que ele trouxe). É por aqui que a cascata sabe de QUEM sai a carta e pra QUAL carreira ela vai.
   bafoValendo?: boolean // 🃏 a partida vale carta de verdade (padrão) ou é amistoso — escolha do host na criação da sala
   colecoesRecebidas?: string[] // 📚 idempotência das COLEÇÕES recebidas nesta carreira (04/10): a mesma recebida não paga duas vezes
@@ -1293,7 +1308,8 @@ export interface EscState {
   dinastiaMidUsed?: boolean // Dinastia: já abriu a janela do meio nesta temporada (não reabre)
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
   /** 🇧🇷 BRASIL OFICIAL (15/11): carreira com clube REAL. Só existe nessa carreira; liga as cartas de `data-oficial.ts`. */
-  oficial?: { clube: string; desde: number }
+  /** `giro` (19/11): a partir de qual temporada os clubes de FORA (Liberta/Sula/Mundial) sorteiam o elenco de novo todo ano */
+  oficial?: { clube: string; desde: number; giro?: number; /** novas inscrições continentais a partir desta temporada */ vagasDesde?: number }
   /** 🏟️ Brasil Oficial: o ESTADUAL de cada temporada, guardado quando termina (campeão, rebaixados e a classificação final —
    *  é dela que saem as vagas da Copa do Brasil do ano seguinte). Gravado no fim (`ESTADUAL_FEITO`): o resultado mostrado nunca
    *  muda depois, mesmo que a escalação mude. */
@@ -1384,6 +1400,8 @@ export interface EscState {
   /** 🏀🏆 a NBA Cup REAL do EUA Oficial: os 6 grupos de 5 e os jogos de grupo desta temporada (eua-cup.ts). O mata-mata é o `nbaCup`. */
   euaCup?: import('./eua-cup').EuaCupEstado
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }
+  /** 📋 Mercado (21/11, janela nova): ids das SUAS cartas marcadas "pôr à venda" durante a temporada — na virada viram `reserveListed` (pela MESMA regra do listar) e o campo some */
+  aVendaMercado?: string[]
   // 🧢 SETOR TÉCNICO (27/08, a forma FINAL — palavras do Diego: "é idêntico ao
   // leilão normal, só vem antes do goleiro; é como uma posição nova apenas"):
   // quando você alicia um técnico, ele vira este lote e o pregão REAL abre com

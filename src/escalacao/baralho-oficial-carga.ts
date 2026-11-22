@@ -7,15 +7,18 @@
 // (`sincronizaNiveis`) não toca num save oficial — senão ela "corrigia" carta do modo pro xará do baralho de sempre.
 import type { Sector } from './types'
 import type { CartaOficial } from './data-oficial'
+import type { CartaReservaConmebol } from './elencos-conmebol-reservas'
 
 export type BaralhoOficial = Record<Sector, (CartaOficial & { folk?: boolean })[]>
 let BARALHO: BaralhoOficial | null = null
 let PROMESSA: Promise<BaralhoOficial> | null = null
+let RESERVAS: ((nome: string) => readonly CartaReservaConmebol[]) | null = null
 
 export const baralhoOficial = (): BaralhoOficial | null => BARALHO
+export const elencoReservaOficial = (nome: string): readonly CartaReservaConmebol[] => RESERVAS?.(nome) ?? []
 export function carregaBaralhoOficial(): Promise<BaralhoOficial> {
   if (BARALHO) return Promise.resolve(BARALHO)
-  if (!PROMESSA) PROMESSA = import('./baralho-oficial').then(m => (BARALHO = m.CATALOG_OFICIAL_MODO)).catch(e => { PROMESSA = null; throw e })
+  if (!PROMESSA) PROMESSA = import('./baralho-oficial').then(m => { RESERVAS = m.elencoReservaConmebol; return (BARALHO = m.CATALOG_OFICIAL_MODO) }).catch(e => { PROMESSA = null; throw e })
   return PROMESSA
 }
 

@@ -6,7 +6,7 @@ import { useEsc } from './store'
 import { Shell, CollectibleCard, Box, Btn, CardFace, HoldButton } from './screens'
 import { useT } from './lang'
 import { agoraSala } from './relogio'
-import { playTick, playHammer } from './sound'
+import { playTick, playHammer, playSuaVez } from './sound'
 import { motion } from 'framer-motion'
 import { flagOf } from './copa-mundo'
 import { seloDoClube } from './selo-clube'
@@ -42,6 +42,9 @@ export function EscLigaDraft() {
   }, [!!d, euTico]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const you = state.managers[state.youIdx]
+  // 👆 19/11: chegou a SUA vez no draft → "dim-dom" (uma vez por vez)
+  const vezMinhaChave = d && you && d.ordem[d.idx] === you.id && (d.fase === 'escolha' || d.fase === 'aguarda') ? `${d.idx}` : ''
+  useEffect(() => { if (vezMinhaChave) playSuaVez() }, [vezMinhaChave])
   if (!d || !you) return <Shell><div className="pt-10 text-center text-5xl">📋</div></Shell>
   const vezId = d.ordem[d.idx]
   const daVez = state.managers.find(m => m.id === vezId)

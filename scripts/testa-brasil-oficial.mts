@@ -257,6 +257,27 @@ console.log(`✅ brasil-oficial: 60 clubes com escudo, ${CLUBES_BR_OUTROS.length
     const v = vagasLiberta(null)
     const fab = fabricaTimesOficiais(mundo, s.seed)
     const sem = [...v.grupos, ...v.fase2, ...v.fase1].filter((n: string) => !fab(n))
+    // 🎲 19/11: clube de FORA sorteia o elenco de novo a cada temporada (com `giro`); sem `giro` o elenco é o de sempre; brasileiro nunca muda
+    {
+      const assin = (f: (n: string) => { t: { squad: { name: string }[] } } | null, n: string) => (f(n)?.t.squad ?? []).map(c => c.name).sort().join('|')
+      const fab2 = fabricaTimesOficiais(mundo, s.seed, 2), fab3 = fabricaTimesOficiais(mundo, s.seed, 3), fab0 = fabricaTimesOficiais(mundo, s.seed)
+      const fora = ESTRANGEIROS_LIBERTA_2026.map(e => e.nome)
+      const mudou = fora.filter(n => assin(fab2, n) !== assin(fab3, n)).length
+      if (!mudou) falha('giro: nenhum clube de fora mudou de elenco entre a T2 e a T3')
+      if (fora.some(n => assin(fab0, n) !== assin(fabricaTimesOficiais(mundo, s.seed), n))) falha('giro: sem giro o elenco de fora não é sempre o mesmo')
+      const br = [...v.grupos, ...v.fase2].filter(n => !fora.includes(n))
+      if (br.some(n => assin(fab2, n) !== assin(fab3, n))) falha('giro: clube BRASILEIRO mudou de elenco (não pode: ele tem elenco próprio)')
+      console.log(`   🎲 giro: ${mudou} de ${fora.length} clubes de fora mudaram de elenco da T2 pra T3 (os outros têm só o elenco que cabe)`)
+      // 🇪🇺 19/11: o campeão da Europa do Mundial é sorteado entre os gigantes (1ª temporada = PSG) — todo candidato fecha time
+      const { CAMPEOES_EUROPA, europaDaTemporada } = await vite.ssrLoadModule('/src/escalacao/intercontinental-oficial.ts')
+      const semTime = (CAMPEOES_EUROPA as string[]).filter(n => !fab2(n))
+      if (semTime.length) falha(`Mundial: gigante da Europa sem time no baralho: ${semTime.join(', ')}`)
+      if (europaDaTemporada(s.seed, 1, 1) !== 'PSG') falha('Mundial: a 1ª temporada tem que ser o PSG')
+      if (europaDaTemporada(s.seed, 5) !== 'PSG') falha('Mundial: save sem giro tem que seguir com o PSG')
+      const sorteados = new Set(Array.from({ length: 30 }, (_, t) => europaDaTemporada(s.seed, t + 2, 1)))
+      if (sorteados.size < 4) falha('Mundial: o sorteio da Europa quase não varia')
+      console.log(`   🇪🇺 Europa no Mundial (T2..T31): ${[...sorteados].join(', ')}`)
+    }
     if (sem.length) falha(`Libertadores: ${sem.length} clube(s) sem time no baralho do modo: ${sem.join(', ')}`)
     else {
       const lib = computeLibertadoresCarreira(v, mundo, s.seed, 1)

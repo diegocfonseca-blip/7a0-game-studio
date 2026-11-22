@@ -1,3 +1,225 @@
+## 🃏 21/11 (noite) — BAFO: SEM CARTAS NÃO ENTRA NEM CRIA (publicado, pedido do Diego depois da sala do Futpoint)
+- *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*. `enterRoom` (sala esperando) e criar sala: sem cartas que
+  fechem um time abre o modal com o `FaltamCartasBafo` e não entra/cria. Leitura das cartas falhou = deixa passar. Sala já começada segue como era.
+- Revê o "pode ficar assistindo" de antes: a pessoa não entra mais pra assistir.
+- ✅ FEITO e publicado (Diego: *"Sim, não precisa mockup"*): `BafoFimVoto` (screens.tsx) no lugar do botão único — cada um escolhe 🃏 Jogar de novo ou 🚪 Sair da sala, o dono vê ✅/⏳/🚪 de cada um e só ele leva a sala pra espera ("Novo Bafo com quem ficou"). Usa `CAST_SEASON_VOTE` e o sair de sempre. NÃO testado em sala real. Histórico da pergunta: Hoje não tem a votação padrão (`OnlineEndVote` é escondida no Bafo, porque "mesmo time / novo leilão"
+  não existem no modo); o dono tem um botão só, "Voltar pra sala de espera · novo Bafo", e quando aperta leva todo mundo. Na sala do Futpoint pareceu
+  automático pros outros. Proposta enviada: tela de fim com "Jogar de novo" / "Sair da sala" pra cada um e o dono só volta depois. Esperando resposta.
+
+## 🃏 21/11 — BAFO: banner "faltam cartas" (publicado, Diego: "Sim")
+- `FaltamCartasBafo` (bafo2-ui.tsx): quem não fecha um time vê quantas cartas tem, por posição, o que é a carta de campeão e como ganhar. Some pra quem já pode jogar.
+- Aparece na tela de criar sala (com o Bafo escolhido) e na sala de espera (no lugar da caixa vermelha). Não bloqueia criar a sala.
+- Print: `scripts/mockups/bafo-faltam-{cel,pc}.png` (`node scripts/mockup-bafo-faltam.mjs`). Travar o botão de criar pra quem não tem cartas: perguntado, sem resposta ainda (NÃO feito).
+
+## 🏷️ 21/11 — CRIAR SALA: cartões (publicado, pedido do Diego com print)
+- 🌐 Carreira some da lista de modos no futebol (*"oculte esse carreira daí"*); no basquete fica.
+- 🃏 Bafo: sai a faixa roxa "LANÇA COM 3K" e entra o selo verde NOVO. 🌴 Vice City: "EM TESTES" vira NOVO.
+
+## 🃏 21/11 — SELO DO BAFO NAS SALAS ABERTAS (publicado, *"já pode ativar"*)
+- Sala do Bafo ganha o selo `🃏 BAFO` (verde musgo → marrom, letra creme) no lugar do selo do baralho, na lista de salas abertas (`lobby.tsx`). Print: `scripts/mockups/bafo-selo.png`.
+
+## 🎬 BAFO — ARTES DE LANÇAMENTO (21/11, pedido do Diego)
+- Stories: `node scripts/stories-bafo.mjs` → `scripts/posts/stories-bafo.png` (1080×1920).
+- Reels padrão: `node scripts/video-bafo-reels.mjs` → `scripts/posts/bafo-reels.mp4` (1080×1920, ~37 s, sem som; o mp4 não entra no repo, é só rodar).
+- As cartas e o pacote são os de verdade do jogo: `node scripts/foto-bafo-cartas.mjs` → `scripts/posts/img/bafo-*.png`.
+- 🟢 **21/11: BAFO LIBERADO PRA TODOS** (Diego: *"já pode valer para todo mundo agora o jogo"*): `SALA_ELENCO_GERAL = true` + novidade na home (PT/EN). Desligar = voltar pra `false`. As telas novas (convocação, 60 s de preparo, faixa, suspense) só foram testadas por build e print, não em sala real depois do 1º teste.
+
+## 📣 21/11 — CANTO DO CHELSÃO DA MASSA FC (Batismo, conta ccaonta) — publicado
+- `public/sfx/torcida-chelsao-v1.mp3`: os 14 primeiros segundos do vídeo que o Diego mandou, no padrão dos outros (mono 32 kHz 56 kbps, −20,6 dB, 98 KB).
+- Carreira: linha em `AMBIENTE_CARREIRA_POR_EMAIL` (só ele ouve, em todo jogo — a regra de hoje).
+- Sala de espera: ele tem a gala PADRÃO (não é Fundador), que era muda. Agora a gala padrão toca o canto de quem tem (`cantoDaGalaPadrao`, sound.ts →
+  `SomDaGalaPadrao`, entrada-gala.tsx); a sala inteira ouve. ⚠️ A gala padrão dura 5,6 s, então tocam ~5 s do canto (os 14 s inteiros só na carreira).
+- ✅ DECIDIDO E FEITO (21/11, *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*) — vale pra TODOS os cantos:
+  o canto é o da CASA do jogo que está na tela (`setJogoDaTela`, chamado pelo `LiveScoreCard`). Dono em casa = toca (carreira e salas); visitante daquele
+  jogo numa sala ouve também (pela mascote do batismo que o servidor dá ao assento, `CANTO_POR_MASCOTE`); fora de casa/sem canto = torcida padrão.
+  Mudou pra quem já tinha: antes ouvia em TODO jogo da carreira. Texto da Loja atualizado. ⚠️ Canto novo = linha no e-mail E na mascote (sound.ts).
+  Não testado com som num aparelho de verdade (só build).
+- (histórico) ele perguntou se o canto nos JOGOS deve ser "todo mundo ouve" ou "só ele", e "só em casa". Recomendei: canto só nos jogos EM CASA,
+  e na sala online o visitante que joga na casa dele ouve também. Isso muda quem já tem canto (hoje ouvem em todo jogo da carreira) → não mexi sem o OK.
+- 🧪 `npm run gala` já reprovava antes desta entrega (`window.__set is not a function`, no cenário do navegador). Rever a trava.
+
+## 📋 21/11 — LIGA DRAFT: overall sempre no elenco + formações mais claras (pedido do Diego, publicado pra todos)
+- **Overall no elenco**: na Liga Draft a faixa (ex. 71–80) de TODO jogador do seu elenco aparece sempre, com ou sem plano (`overTodos` em `SquadTab`/`ElencoField`,
+  ligado em `minha-escalacao.tsx`). Antes seguia a regra do olheiro da carreira (só ouro/prata viam) e na sala nem isso. No Bafo NÃO liguei (ele pediu o Bafo sem over).
+- **Formações**: o código já listava as 7 do jogo + 3-5-2 na Liga Draft; a que "não aparece" é a APAGADA (o elenco não fecha). Agora embaixo vem o que falta em
+  CADA apagada ("4-2-4: falta 1 ATA") e o caminho (draft/leilão da virada) — antes só falava da primeira e mandava "contratar no leilão ou trazer da SAF".
+  O Bafo ganhou as mesmas 7 + 3-5-2 (estava com 5).
+- ❓ Se a reclamação da turma for de formação que some MESMO com elenco pra ela, pedir print (não reproduzi).
+- 🧪 TRAVAS: todas as `npx tsx scripts/…` do package.json agora rodam com `--import ./scripts/node-stub-reg.mjs` (68 delas morriam lendo `.webp`).
+  `liga-draft` (a Liga Draft ANTIGA) passa do cenário (fixture corrigida pra fame ≤ 3) mas reprova em "gente nova → leilão fraco de novo" (`'draft' !== 'auction'`):
+  a trava ficou velha frente à regra de 06/11 (gente nova entra na virada, a liga não recomeça). Rever a trava, não o jogo.
+
+## 🃏 21/11 — BAFO NOVO (publicado SÓ pra conta do Diego e do Futpoint FC — `SALA_ELENCO_TESTERS`, `SALA_ELENCO_GERAL = false`)
+Regras fechadas com o Diego (21/11), todas escritas também na sala de espera (`RegrasBafo`):
+- Joga-se com as cartas que a CONTA já ganhou sendo campeã (`user_cards`, carreira ou sala). Não é da carreira. Precisa de 11+ que fechem um time.
+- Sala de espera = a normal de sempre, só com a caixa de regras em cima. **Nunca mostrar quantas cartas cada um tem** (só ✅ apto / 🔒 só assiste).
+- Dono aperta começar → CONVOCAÇÃO de 120 s na tela de todos (filtros por posição, sem over); o que faltar o jogo completa com as PIORES cartas. 22 no elenco.
+- Só gente (sem bots), mínimo 2. Só liga: 2 = 5 jogos · 3–4 = todos contra todos 4× · 5–20 = ida e volta. Troca/formação igual à Liga Draft.
+- Fim: SÓ o campeão toma 1 carta, em 60 s, com os 22 de cada um abertos por posição + busca. Campeão sumiu/não escolheu = o jogo sorteia.
+- Não conta pro ranking, não dá cartinha nova, sem revanche. **Dono não expulsa ninguém** (sem botão).
+- Dono que sai no meio perde 2 cartas aleatórias dos 22: uma pro 1º e outra pro 2º. Antes de começar a liga (na convocação) perde pro sistema e ninguém ganha.
+- Banco: `docs/sql/bafo2.sql` (APLICADO): `esc_bafo2` + RPCs `bafo2_fecha/bate/abre_escolha/tomar/sorteia/encerra/sumiu`; o banco confere a posse de cada carta.
+- Código: `bafo2.ts` (regras puras) · `bafo2-ui.tsx` · `bafo2-sala.tsx` · `bafo2-sair.ts`. Trava: `npm run bafo`. Prints das telas reais: `scripts/mockups/bafo2-real-*.png`.
+- Criar sala: a caixa de explicação do Bafo mostra o PACOTINHO do campeão (`online-pacote-v20.webp`) + 3 selos: 1ª sala do dia grátis · entrar é livre · precisa de 11+ cartinhas (mockup `scripts/mockups/bafo-criar-*.png`, *"Pode"*). Criar segue o padrão das salas rápidas (gatilho `esc_sala_por_dia` vale pra todo modo; nada mudou no banco).
+- ✅ 1º TESTE DE VERDADE (21/11, Diego × Futpoint, 2 pessoas): rodou até o fim e a carta trocou de dono. Pedidos dele depois do teste:
+  - FEITO: convocação em PÁGINA própria (por cima da sala de espera) · **160 s** (+40) · "Convoque até 22: 11 titulares + 11 reservas" · regras dizem que dá pra substituir · **Bafo só no Campo 2D** (sem placar rápido/cinema, sem botão de troca).
+  - FEITO (21/11, *"bota só Ronaldo… quero brilhando igual ao normal"*): ABERTURA da convocação — pacote verde treme e rasga (2,5 s) → carta de EXEMPLO
+    (a `CollectibleCard` do Ronaldo Fenômeno, lenda dourada, escrito só "Ronaldo" via `nomeNaCarta`) + explicação de onde vêm as cartas (5,5 s, toque pula). 🔁 CORRIGIDO no mesmo dia (*"o exemplo do Ronaldo é em cima de onde convoca… antes só o pacotinho"*): a abertura é SÓ o pacote (2,5 s) e o
+    exemplo virou faixa FIXA em cima da lista (`ExemploBafo`), na mesma tela da convocação.
+    O relógio de 160 s só conta depois (`ABERTURA_MS` em bafo2-sala.tsx). Prints reais: `scripts/mockups/bafo-abertura-*.png`.
+  - FEITO (21/11, depois do "ok arrume e siga"): 📏 `FaixaBafo` em cima do placar/campo da liga (regra pelo tamanho da sala + quem está na frente; usa a tabela
+    de ANTES do apito enquanto o jogo rola, sem spoiler) e 🥁 `RevelaBafo` (pacote 2 s → posição → categoria → "era do fulano, clube, década" → carta
+    da revelação do jogo + carimbo TOMADA! + zoeira do campeão, 12 frases PT/EN em `ZOEIRA_BAFO`; uma vez por aparelho e por Bafo; no sorteio não tem zoeira).
+    Prints reais: `scripts/mockups/bafo-faixa.png` e `bafo-suspense-*.png`. Não testado em sala de verdade.
+  - (mockup original) suspense da carta tomada (pacote fechado → pistas → carta em tamanho real + zoeira do campeão) · faixa em cima do campo com a regra de ganhar e quem está na frente (muda com 2, 3–4 e 5–20 pessoas).
+  - RESPONDIDO (21/11): quem aperta Pronto antes → o jogo completa com as PIORES (fica como está). Pedidos junto, FEITOS:
+    placar grande "10/22" + pílulas por posição na convocação; aviso do que FALTA pra fechar um time (`faltaPraFechar`, a mesma conta do `fechaConvocacao`:
+    22 meias não fecham → o jogo põe as piores das posições que faltam); e **60 s de PREPARO depois da convocação** (`BAFO2_PREP_SEG`): a escalação
+    (`EscalacaoMinha`, formação + titulares/reservas) fica em cima com banner e relógio, e a liga só larga depois (o dono segura +3 s; cada aparelho conta
+    de quando chegou na tela, lembrado em `sessionStorage`). Não testado em sala de verdade.
+  - (histórico) PERGUNTADO: ele disse "os reservas serão aleatórios" pra quem aperta Pronto antes; hoje completa com as PIORES (regra dele de antes). Fica nas piores até ele responder.
+  - Rivalidade: a prateleira de rivalidades não é desligada no Bafo (`retroOn`); conferir com ele onde ele esperava ver.
+- FEITO (21/11): criar sala do Bafo não pergunta mais o baralho (aviso fixo "as suas cartas de campeão", de qualquer baralho; repetida fica na coleção e no time entra uma só de cada).
+- CONFERIDO NO BANCO: Bafo nº 5 (Futpoint × Neymarzetti) — a carta está com o campeão e saiu do perdedor (80 → 79).
+- ⚠️ FURO A FECHAR (proposto, esperando OK): quando a carta é tomada, a chave do título original (`season_key`) fica LIVRE no perdedor. Se ele reabrir a
+  tela final daquele título (liga que fica parada no fim, carreira na tela de fim de temporada), o jogo não acha a carta e dá OUTRA aleatória. Conserto
+  proposto: o banco lembra "esta chave já foi paga" (tabela pequena + gatilho no insert de `user_cards`).
+
+## 🪟 21/11 — JANELA NOVA (fim de temporada, carreira solo) — 🟢 LIBERADA PRA TODOS em 21/11 (`JANELA_NOVA_GERAL = true`)
+
+Pedido dele (prints do Oficial): *"a aba de mercado serve pra sondar ou tentar vender… por que apertaria leilão e entraria novamente em contratos e
+venda?… deveria aparecer um banner de confirmação… contrato vencendo tem que ser outra tela… tela grande com anos, renovar, deixar ir"*.
+- 🛒 Mercado ganhou **📋 Pôr à venda** (`aVendaMercado`, ação `A_VENDA_MERCADO`; mesma regra da janela: `motivoNaoListar`, que o `TOGGLE_RESERVE_LIST` também lê).
+- Apertou **Leilão** → confirmação no próprio quadro (`ConfirmaLeilao`: sondados do "de olho" + à venda) → "Ir pro leilão agora" / "Voltar pro Mercado e mexer".
+- Depois do fecho (dinheiro já entrou): **📝 Contratos** em tela cheia (a `MesaRenovacao` de sempre) só se tiver contrato pra decidir; senão o leilão abre sozinho.
+  Link pequeno "abrir Sondar e Vender" mostra a janela de sempre (nada ficou inalcançável).
+- Botão virou só "Leilão"; atalhos Finanças/Agência saíram da Central.
+- Travas: `npm run janela-nova` (46 conferências) e `node scripts/teste-janela-nova/roda.mjs` (18, na tela).
+- ⚠️ Só por leitura (não rodado): a confirmação dentro do fim de temporada de verdade, aviso de transfer ban, "mesmo time", jogador sondado (só técnico foi exercitado), 2 clubes.
+- ⚠️ No caminho direto (sem contrato pra decidir) os avisos "🔓 Desbloqueado" das temporadas 2/3, a régua da escada e "Virou profissional" não aparecem — decidir com o Diego onde vão.
+- ✅ 21/11: ele mandou *"publica tudo já, pra todo mundo"* → chave ligada + linha em `novidades.ts`. Reverter = `JANELA_NOVA_GERAL = false`.
+- ❓ Sem resposta ainda: onde mostrar os avisos "🔓 Desbloqueado"/escada/"Virou profissional" com o leilão abrindo direto, e se tira o cartão "Sua resposta mexeu com o elenco".
+- 🔬 Não conferido em aparelho de verdade: confirmação no fim de temporada real, "mesmo time", multiClube, cadeado do 3D em conta sem plano.
+
+## 🚀 21/11 (tarde) — PUBLICADO pra todos por ordem do Diego ("publique tudo isso que falamos hoje… e a melhoria de nitidez")
+
+- Central: escolha 2D/3D vale pra 1 jogo (volta da mata-mata pergunta de novo), ⏩ Pular chega no dia do jogo (testado 12 rodadas, 1 toque, 0 erro),
+  coletiva fecha ao responder (efeito no cartão 🎙️ Imprensa), capa do jornal = estádio. PULAR do Manual continua como sempre (ele pediu).
+- Calendário: 8 das 38 rodadas da liga na quarta 20h (`RODADAS_DE_QUARTA`, nunca na quarta da Copa — `defineSemanasDeCopa`). Só data.
+- Jogo 3D: nitidez até 2× + cor (`nitidezJogo`, só segurando 60 quadros), velocidade = marcha do 2D (90 s ÷ marcha), Controles/Substituir embaixo,
+  cadeado sem plano (`ctl.cadeado` → `ManualLockButton` em cima do mapa), placar/estádio/botões menores só vendo o jogo.
+- Medidor `?diag=1` não fica mais lembrado no aparelho (ele reclamou que aparecia).
+- ⚠️ Falta o Diego confirmar no S25: nitidez segurando 60, cadeado com conta sem plano (não testado com conta real), rodada de quarta na tela.
+- Reverter: cada item é um commit separado de 21/11 no branch `claude/denis-save-file-x1osct`.
+
+## 🃏 21/11 — O PACOTE DO CAMPEÃO SORTEIA DO BARALHO INTEIRO (Diego: "a carta que tenha no jogo serve… estaduais, A B C D, Sul-Americana, Libertadores")
+- `baralho-inteiro.ts`: soma as cartas REGIONAIS (445) e as do BRASIL OFICIAL (2 mil+, pedaço separado que desce na hora) aos 3 baralhos.
+- Vale no pacote do ÁLBUM: salas online, partida rápida e a carta "na hora" (`garanteCartaDoTitulo`, que agora também usa `sorteiaCarta`). Raridade igual (categoria primeiro: lenda 4%).
+- O Bafo lê a força dessas cartas (`achaNoBaralho` + download do Oficial só se a coleção tiver carta que os 3 baralhos não conhecem).
+- 🔁 A CARREIRA TAMBÉM (Diego, mesmo dia: *"é aleatório também quando é campeão na carreira, mesmo cálculo"*): o pacote da carreira sorteia do baralho inteiro. Carta do Oficial numa carreira de sempre vai pro álbum e pra Agência, mas não rende lá (o jogador não joga naquela carreira).
+- Efeito colateral avisado: com mais cartas "bom/profissional" no sorteio, fechar COLEÇÃO de clube fica mais demorado (as do Oficial/regionais não pertencem a coleção nenhuma).
+- Revê, só pro ÁLBUM/Bafo, o "as cartas do modo nunca vão pra Partida Rápida nem pro online" (15/11): continuam fora do LEILÃO, mas agora podem ser prêmio e jogar o Bafo.
+
+## 🃏 21/11 — AUDITORIA: todo campeão ganha a cartinha? (pedido do Diego; nada foi mudado ainda)
+- SALAS ONLINE (medido no banco, `game_champions` × `user_cards`): ~99% dos campeões têm carta na hora do título. Em 2 dias (~480 campeões) achei 3 sem
+  carta nenhuma perto do título (salas `7bbb9382…` T2 e `e8502303…` T1, as duas liga+copa, campeão que NÃO era o dono; e 1 de sala já apagada) e mais ~3 duvidosos.
+  ⚠️ Não cruzar pela chave exata em sala antiga: `game_champions.room_id` vira NULL quando a sala é apagada (dá "100% sem carta", falso).
+- CAUSA PROVÁVEL: quem grava a carta é o APARELHO do campeão (`garanteCartaDoTitulo` / `CardCollectPrompt`). Aparelho fechado/sem rede na hora = não grava e ninguém refaz.
+- FURO 2: `useTitulosNaHora` só roda quando existe campeão de LIGA (`ligaCamp == null → return`) e exclui `copaMode === 'champions'` → ⚡ Relâmpago e ⭐ Só Champions
+  só dão a carta na TELA FINAL (se a sala parar antes, perde).
+- CARREIRA (pelo código): divisão, Copa Legends/do Brasil, Supercopa, Libertadores/Champions/Mundial (internacional), Copa do Mundo e clube que dorme têm cartinha.
+  **Brasil Oficial: NÃO achei cartinha pra Estadual, Libertadores, Sul-Americana e Intercontinental** (contam pro ranking via `estOf/libOf/sulaOf/interOf`, mas não há `CardCollectPrompt`). Conferir e ligar.
+- ✅ FEITO E PUBLICADO (21/11, Diego: "Sim… o principal é: acabou a competição e você ganhou, aparece o pacote pra abrir"):
+  1. carta tomada no Bafo não é paga de novo (`esc_titulo_pago` + gatilho no insert de `user_cards`; testado em transação desfeita);
+  2. Brasil Oficial: Estadual, Libertadores, Sul-Americana e Intercontinental ganharam pacote no fim da temporada (chaves `:estadual`/`:libOf`/`:sulaOf`/`:interOf`);
+  3. ⚡ Relâmpago e ⭐ Só Champions: a carta sai na hora em que o campeão aparece (mesma chave `:copa` da tela final);
+  4. 🛟 `PacotesDevidos` na tela inicial do futebol: título de sala dos últimos 3 dias sem carta → o pacote aparece pra abrir (RPC `esc_titulos_sem_carta`, 1 pergunta por aparelho a cada 6 h).
+  SQL: `docs/sql/titulo-pago-e-pacote-devido.sql`. NÃO testado logado na tela (só build + banco). O estadual só mostra o pacote no FIM da temporada (não na hora em que o estadual acaba).
+  FORA da rede de segurança (não dá pra montar a chave): Liga da Turma/Liga Draft (sem `match_seed`), salas já apagadas, Copa do Mundo/regionais de sala, carreira online, basquete.
+- (proposta original) rede de segurança — ao abrir o jogo, o aparelho confere os títulos recentes da conta sem carta e entrega; + ligar os 4 títulos do Oficial; + na hora pra Relâmpago/Champions.
+- (antigo) FALTA: teste em sala de verdade com 2 contas (Diego + Futpoint). Só depois disso pensar em liberar geral.
+- ✅ 21/11 (Diego: "ok arrume e siga"): as 5 travas voltaram a passar — `agencia`/`espectador`/`liga-volta` agora rodam com `--import ./scripts/node-stub-reg.mjs`
+  (liam `.webp` e morriam); `vice-city` compara por CARTA (nome|clube|ano), não por nome (De Paul Atlético × Inter Miami é permitido); `carreira-limpa`:
+  `kingsBaralho` entrou em `MARCAS_DE_MODO` (escolha de sala que podia vazar pra carreira) e `oficialAbertura`/`deOlho` em `ZERA_NA_CARREIRA_NOVA`.
+- (histórico) Travas que JÁ falhavam antes desta entrega: `liga-volta` e `espectador` (import de `.webp` no tsx), `carreira-limpa` (kingsBaralho), `vice-city` (219 ≠ 220).
+
+## 🧭 21/11 — Central: 4 ajustes pedidos pelo Diego (no branch, esperando ele mandar publicar)
+
+- **3D repetindo sem perguntar**: era a mata-mata de IDA E VOLTA (estadual, Copa do Brasil, Liberta) — a volta começava sozinha no apito da ida.
+  Agora a volta tem chave própria (`:v`) e a fase PARA em 90 até a nova escolha na Central (`copaVolta`). Reproduzido e conferido na bancada.
+- Escolha vale pra UM jogo: chave exata em `aguardaCentral`/"▶ Começar o jogo" (a da Copa da quarta liberava a Liga do domingo); `avancarRodada`
+  sem escolha leva pra Central; Copa da quarta não pergunta duas vezes (`setCopaOk`).
+- ⚠️ **PULAR do Manual saiu na liga dentro do fluxo da Central** (começava o jogo seguinte direto). Avisado ao Diego; voltar = 1 linha (`onSkip`).
+- **⏩ Pular pro jogo**: em semana de Copa que o usuário NÃO joga parava na quarta sem jogo; e na C/D real a semana sem jogo recomeçava na segunda
+  (ref `pulando` atravessa). Conferido na bancada só o caso da Série D; o da quarta foi por leitura.
+- **Coletiva**: respondeu, fecha (sem a 2ª tela); efeito vai pro cartão 🎙️ Imprensa da Central (só na sessão, não vai pro save). Apresentação de lendas mantém a capa.
+- **Jornal da Central**: capa do meio da temporada = estádio (`estadioArt`); a taça fica pro jornal do campeão.
+- Não testado em celular de verdade; pênaltis depois da volta segurada e conta sem mapa: só por leitura.
+
+## 🏆 20/11 — Queda na carreira: inscrições continentais e tabela (correção local, não publicada)
+
+Causa reproduzida: campeão estrangeiro deixava 46 inscritos na Libertadores; completar com eliminado retirava um transferido da Sul-Americana, gerando grupos incompletos e uma final sem adversário. Diego rejeitou reintegrar eliminado e aprovou ajustar inscrições com clubes/elencos reais. Implementação, compatibilidade e fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Temporadas antigas completas conservam seus confrontos; inscrições já incompletas são reparadas. Não houve acesso a saves privados nem publicação.
+
+## 🧊 21/11 (madrugada) — Jogo 3D "travado" mesmo a 59 quadros/s: era o RELÓGIO, não a placa
+
+- Medidor (`?diag=1`, fica lembrado; `?diag=0` desliga) mostrou no S25 do Diego: Adreno 830, nível leve, **59 quadros/s**. Não era desenho.
+- Filmagem quadro a quadro com relógio falso (`scripts/mapa3d/filma-quadro-a-quadro.mjs`, 600 quadros a 1/60 s): o minuto do campo
+  avançava 1 minuto em ~8 quadros e ficava PARADO ~70 quadros (531 de 599 quadros congelados).
+- Causa: vendo o jogo no estádio o relógio de cima anda no tempo do campo (120 s), mas o campinho-fonte escondido (`Campo2D mapOnly`,
+  que dita o tempo do 3D via `publicarTempoCampo2D`) recebia o `roundMs` da rodada. Diferença > 3× → `ancorarMinutoCampo` nunca se ajusta.
+- Conserto (pyramidseason.tsx): `roundMs={officialFieldWatching?fieldDuration/.82:roundMs}`. Depois: 0 de 599 quadros parados.
+- **Status: no branch, esperando o Diego mandar publicar.** Falta ele confirmar no S25. Se ainda achar a imagem "quadriculada", o próximo
+  passo é subir a nitidez do nível leve em aparelho forte (mostrar antes).
+- `npm run vel-2d` já falhava antes desta mudança (ERR_UNKNOWN_FILE_EXTENSION no carregador) — não é desta entrega.
+
+## 🌴 20/11 — "amigo não viu as cartas de golpe" (sala R3K6EY): o banco tinha 5 cartas pra cada um dos 4; a tela do amigo era a do pregão
+comum = celular com a versão velha aberta (o deploy não recarrega ninguém). Propus aviso de "jogo desatualizado" na sala de espera;
+Diego: *"N precisa"*. Não repropor; o caminho é o próprio jogador recarregar a página.
+
+## 🏟️ 20/11 — CLUBE NO BRASIL OFICIAL: proposta de organização (mockup `scripts/mockups/clube-oficial-organizado.png`, esperando OK)
+Levantamento: a gestão está espalhada (mapa + lista lateral + painéis + Central; finanças em 4 lugares) e o Oficial ainda mostra
+"SAF e 2º clube"/"segundo clube" (`clube-organizacao.tsx:11`, `clube-mapa-painel.tsx:10/43`), o seletor da SAF diz "Série D atual"
+(PS:13129) e o escritório antigo fala "2.000" (PS:2940). Proposta: aba Clube = estádio/mapa em cima (abre o bairro) + caixa + 6 cartões
+(Dinheiro · Contratos · Estádio e obras · Loja · Agência · SAF com cadeado e o porquê). Mapa vira passeio/jogo 3D; prédios do mapa são
+atalhos pros mesmos cartões. Nada de 2º clube no Oficial.
+
+## 🧭 20/11 — FLUXO DA CENTRAL: 3 consertos (prints do Diego, carreira Brasiliense) — no branch, esperando "pode publicar"
+- Escolha 2D/3D aparecia no SÁBADO (último dia vazio): no fluxo a semana anda +1 passo (`calFim`) até o domingo do jogo e só aí pergunta.
+- 3D: o "▶ Começar o jogo" ficava ESCONDIDO em cima (a tela rola até o "Voltar pra Central") → agora vem logo embaixo do Voltar; o giro do
+  estádio (`abertura`) roda na CHEGADA (liga, estreia, copa) e o ▶ só pede a câmera de TV.
+- 2D: "Começar o jogo" mudo — o automático exigia `roundReady` da rodada anterior, que podia não estar marcado depois da Central; agora a
+  rodada já apitada pelo calendário (`calApitado`) também vale. ⚠️ Não reproduzi no navegador: conferir com o Diego.
+
+## 🔊✅ 19/11 — SONS NOVOS FEITOS (Diego: *"pode fazer tudo"*) — no branch, esperando ordem de publicar
+Todos sintetizados (0 KB) em `sound.ts`, no mesmo mudo. Onde cada um toca:
+- 🔨 pregão aberto/Vice: martelo SÓ pra quem arrematou (era pra sala toda) · 😱 `playCoberto` pra quem perdeu a liderança · 🔔 `playDouLhe` nos 3 últimos s (só com lance na mesa).
+- 🌴 Vice: 🚨 `playSirene`+⭐ `playEstrela` pra quem ganhou estrela · 🚔 `playBusted` pra sala toda · 💥 `playGolpe` pra quem usou carta (mão encolheu).
+- ✉️ envelope e envelope único: ⏰ `playTempoEsgotado` quando zera sem lacrar · 😅 `playQuase` na revelação pra quem perdeu por 1–2 moedas.
+- 🃏 Monte: `playMonte` quando a pilha encolhe · 👆 `playSuaVez` na sua vez do Monte, do draft e da escolha de seleção/clube (Copa, Copa América, Liberta — trocou o apito de `useChamaNaVez`).
+- ⚽ pênaltis: `playChute` + gol (grito) ou 🧤 `playDefesa` em cada cobrança da disputa (`CompactPenalties`: salas, carreira, shootout) e no pênalti que você bate (fora = `playQuase`).
+- 😢 `playEliminado` no lugar do grito na festa do campeão pra quem perdeu a FINAL (salas: copa da sala, Copa do Mundo/América, Liberta; liga = o 2º colocado).
+- 🏁 carreira: `TelaDesfecho` toca ⬆️ `playSubiu` (acesso/campeão) ou ⬇️ `playCaiu`, e 💰 `playCaixa` se entrou dinheiro.
+
+## 🔊 19/11 — AUDITORIA DOS SONS (pedido do Diego: "analise tudo… o que precisa ser feito"), SÓ LEVANTAMENTO, nada mexido
+Sons que existem (`sound.ts`): 🪙 moeda (subir lance no envelope/env. único, pegar na Tocaia) · 🔒 carimbo (lacrar envelope) · ⏱️ tique
+(últimos 5 s do envelope/env. único, cada degrau da Tocaia, cada lance do pregão aberto, troca de etapa do draft) · 🔨 martelo (revelação
+e Tocaia só pra quem ganha/vende; draft) · 👑 `lenda.mp3` (arrematou lenda na revelação) · 🏟️ torcida ambiente + 🥅 gol (todo placar
+`LiveScoreCard`, salas e carreira, 2D incluso) · 📣 apito (início de competição/jogo de copa) · 🥅 trave (só Campo 2D) · 🏆 festa do campeão
+(canto do clube ou grito de gol) · zoeiras do lobby (ditador, bom dia…) · galas.
+❌ Furo: o 🔨 do PREGÃO ABERTO (e Vice City) toca pra TODO MUNDO em toda venda (`pregao-aberto.tsx:52`) — fura a regra "martelo só pra quem ganha".
+Sem som hoje (proposta, esperando o Diego escolher): pregão aberto/Vice "dou-lhe uma, duas" nos últimos 3 s · alguém cobriu seu lance ·
+Monte (pegar carta) · golpes do Vice City (sirene/estrela/BUSTED) · sua vez de escolher (draft, convocação Copa/Liberta) · fim do tempo
+do envelope (lacrou sozinho) · revelação "QUASE!" · pênalti (batida, defesa, gol) e shootout da Kings · subiu/caiu e título na virada da
+carreira · vice/eliminação.
+
+## 🪑 16/11 — Sala GGWNX6 (Lavras FC, liga + Copa do Mundo): dono perdeu a coroa no fim da liga e voltou na CADEIRA do 1º colocado
+- 02:55:13 UTC a Copa do Mundo da sala abriu; 02:55:22 último save do dono; 02:55:30 `perdeu_coroa` do Lavras (tela end, sem apertar
+  SAIR, sem "rebaixou"); em seguida ~10 convidados recarregaram. Ele voltou e, segundo o Diego, caiu no lugar do Mano 3 Meses (1º da
+  tabela, primeira escolha) e escolheu o Brasil por ele. No banco: room_players e seatUids certos (Lavras 0, Mano 8), copa do Mano =
+  Brasil, Copa parada em `bandeira` na vez do Mano. Sala abandonada (Diego: "já desistiram").
+- Causa AINDA ABERTA. No branch (falta publicar): o vigia grava QUAL ação tirou a coroa (`acao` no `perdeu_coroa`) e um registro
+  novo `trocou_cadeira` (meu técnico mudou dentro da mesma sala, com a ação, de e para). Próxima vez: ler esc_travas da sala.
+- No branch também (falta OK pra publicar): convocação das salas 100 s + relógio grande nas Copas (mockups/relogio-convocacao.png).
 ## 🏆 19/11 — LIGA + LIBERTADORES NAS SALAS, COM CLUBES REAIS (no branch, só na conta do Diego)
 - Pedido do Diego (mockup aprovado `scripts/mockups/liberta-clubes-390.png`/`-1280.png`): acabou a liga da sala, TODO time escolhe um
   clube sul-americano DE VERDADE na ordem da tabela (gente escolhe em 40s; bot leva o melhor que sobrou; quem dormiu leva o pior) e
@@ -1606,6 +1828,19 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - 🔁 Mesmo dia, Diego: *"N falei q sozinho N pode… Só falei q N deixe do Oliveira C a Prime"*. Os 11 antigos VOLTARAM (`desde` = 09/11 03:00 UTC,
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 21/11 (nada forte novo; só anotado)
+- Éden FC × Fluminense (avisado em 19/11): igual, nenhuma das duas contas entrou de novo desde 18/11. Segue esperando o OK do Diego.
+- Médio (só anotado): joaovictor261197 × viniwiny17 — as duas criadas em 21/11 com 16 s de diferença, 5 temp. só os dois, 3×0, nenhuma em sala
+  cheia. Nomes de e-mail diferentes e criação simultânea parecem dois amigos lado a lado. Só volta se os títulos crescerem.
+- bernardomatanaalves × mixoliveiraribeiro2005 (5×0, logins a 10 dias de distância, perdedor 2 salas cheias): parece amigo.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 19/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **Éden FC** (isaacvpn2023) × **Fluminense** (caiom3244, criada ONTEM 18/11) — 5 temporadas só os dois, 5 ligas × 0, logins com
+  3 min de diferença, a conta de apoio nunca jogou sala cheia.
+- Médios (só anotado): davi20062010 × lukinharegis222 (ambas 31/10, 6 temp., 5×0, logins 31 min, perdedor 2 salas cheias) · gabrielcostadelima ×
+  danielleitecastro1 (5 temp., 4×0, perdedor nunca em sala cheia, mas logins distantes e contas de set/out) · valmirdecarvalho3 × ph.vasques
+  (perdedor 14 salas cheias — parece amigo) · matheus03janeiro × igorpdemoura11 (ambas 11/11, 0×3, perdedor 1 sala cheia).
 
 ## 🕵️ VIGIA DE CONTA DUPLA — 09/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **wislleyrc12 × wislley427** — mesmo nome "wislley" nos dois e-mails, as duas criadas 31/08, logins com 13 min, 9 temporadas
@@ -14159,6 +14394,25 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Gala única "A Invocação" (`gala-obelisko.tsx`, vídeo `scripts/posts/gala-obelisko.webm`, toca o canto): 3 cartas viram tributo, obelisco racha, O Atormentador se ergue, ficha nível 10 · DIVINO · ATK/DEF 4000, soco trinca a tela, escudo. Só fatos da carta (3 tributos, 4000/4000, Divino, nível 10). Post: `scripts/posts/batismo-obelisko.png`.
 - Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
 
+## 🌴🐊 19/11 — TOCAIA VICE (ideia pra pegar o hype do GTA 6) — só MOCKUP, nada de código
+Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superado). Regras que o Diego fechou:
+- Na hora de criar sala: Tocaia padrão OU Tocaia Vice. Nada com nome/logo/personagem do GTA (paródia só de clima).
+- Cada usuário recebe ATÉ 2 cartas de golpe sorteadas (pode repetir; funciona com 36 na Champions).
+- Ataque: Roubo de carro (rouba o último fisgado, SEM pagar) · Assalto ao banco (10 moedas) · Blitz (10 s sem fisgar) · Barreira (1 rodada
+  sem dar lance — o nome "Preso" virou Barreira) · Cadeia (perde a próxima fisgada, volta pra mesa) · Multa (+30%) · Tanque vazio (15 s só
+  carta < 10) · Tiroteio (caixa congela 10 s) · Delação (mostra o caixa pra sala) · Sequestro (troca um jogador seu pelo dele) · Lavagem
+  (metade do que ele pagar vai pra você). Defesa/própria: Colete · Fuga de helicóptero · Propina (½ preço) · X9 (3 próximas) · Funilaria
+  (zera estrelas) · Bolsa misteriosa. FORA: Carro-bomba, Pneu furado, Barreira-antiga (20 s numa posição). "Procurado" sugeri tirar (sem resposta).
+- ⭐ Quem LEVA golpe ganha 1 estrela (toda carta dá 1). O 1º a chegar em 5 = BUSTED (só 1 vez por sala): perde os 3 MELHORES, que viram
+  cartas reais de categoria Profissional da mesma posição e NÃO voltam pra mesa; ganha 1 Roubo de carro de vingança.
+- SEM toque de recolher. SEM Monte (igual Pregão aberto): vaga vazia no fim = jogador sorteado das sobras, de graça.
+- 🌴 **19/11: Vice City aparece pra TODOS na criação de sala** (fundo rosa + EM BREVE, não dá pra apertar; *"coloque p todos só q rosa o fundo e em breve. N deixe apertarem"*). Só a conta do Diego joga. Liberar de verdade = `VICE_CITY_GERAL = true` + linha em novidades.ts + reels.
+
+- 🟢 **19/11 (noite): LIBERADO PRA TODOS** (*"Pode publicar p todos já"*, depois da legenda do Reels pro Instagram): `VICE_CITY_GERAL = true`
+  + linha em novidades.ts. Reverter = voltar a chave pra `false` (volta a ficar EM BREVE pra todos e só Diego/Futpoint jogam).
+- 🔁 19/11 (mais tarde): virou MODO PRÓPRIO "🌴 Vice City" na fileira de cima (selo NOVO), por dentro sala rápida. Jeito do lance: Pregão
+  aberto (até 10, padrão) ou Tocaia (até 20). Sem Champions. Estrelas ESCONDIDAS; carta nova 🎯 Sniper mostra o ranking só pra quem usou.
+  Mockup: `scripts/mockups/vice-city-pregao.png`. Esperando OK pra construir.
 ### 🌿 18/11 — Mapa: grama com textura (APROVADA e PUBLICADA pra todos em 18/11 — ele respondeu *"Sim"* pra publicar)
 - Pedido: *"o verde não tem textura… fica muito liso e feio"* (comparou com o Brasileirinho). Feito em `presidencia-grama-viva.ts`
   (shader na grama do `presidencia-complexo-entorno.ts`): manchas grandes, touceiras, florzinhas só de perto. Mapa NÃO diminuiu.
@@ -14231,6 +14485,12 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - ✅ SAF = 1.500 🪙 (Diego mudou de 2.000 no mesmo dia), Série A + estádio completo + plano. Venda no máx 2.000 (lucro máx 500). Antes: só com o time na Série A e só com plano (`BUY_FILIAL` com `pagante`; tela mostra 🔒 com o porquê + "Ver os planos").
 - Estádio 100% completo: Diego confirmou que fica.
 
+## 19/11 — 🎲 Brasil Oficial: clubes de fora sorteiam o elenco todo ano (pedido do Diego)
+- ✅ Libertadores/Sul-Americana/Intercontinental: os clubes participantes continuam os REAIS de 2026 (decisão dele: *"deixe como foi os times q jogaram 2026"*).
+- ✅ O ELENCO dos clubes de FORA é sorteado de novo a cada temporada entre as cartas do clube (quem tem só 22 ou menos fica sempre igual). `oficial.giro` no save: carreira nova = desde a T1; save antigo = a partir da próxima temporada (gravado no fim da temporada, `OFICIAL_CAMPEOES`). Clube brasileiro não muda (tem elenco próprio). Trava em `npm run brasil-oficial`.
+- ℹ️ Champions/Mundial: o representante da Europa é o PSG (o real de 2026) todo ano — o modo não joga a Champions.
+
+
 ## 👑⚫ 19/11 — Batismo Ceará SP Club (lucasnicodemosqq) — PUBLICADO (Diego: "sim publica")
 - Pix de batismo (79,90) pago em 18/11 às 21:23 (`esc_mp_pedidos`), plano 🖋 Batismo: tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº96.
 - Várzea, no lugar do bot Barcelona da Vila (`OLD_NAME` + `VARZEA_TEAMS`).
@@ -14251,6 +14511,9 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   · Conserto junto: o REGULAMENTO da Eurocopa mostrava o código cru na tela (`euro ? tr(...)`).
   · ⚠️ Falta: na LISTA de salas, sala de Copa América aparece como "liga+euro" (a coluna `ls_copa2` do banco diz 'euro' pras duas) — dentro da sala está certo.
   · ⚠️ Bolívia tem 1 goleiro só (os conhecidos já têm carta no baralho Mundo do Brasil Oficial). Achado lateral: Juan Carlos Arce tem 2 cartas MUNDO em `data-oficial.ts` (linhas ~3626 e ~3762).
+
+## 🇪🇺 19/11 — Brasil Oficial: o campeão da Europa no Mundial é sorteado todo ano (pedido do Diego)
+- *"sorteia sempre os melhores times do mundo, sempre podendo até repetir todo ano… começando pelo PSG que foi o último"*: 1ª temporada = PSG (o real); da 2ª em diante, sorteio preso na semente entre 12 gigantes (`CAMPEOES_EUROPA`, `europaDaTemporada` em `intercontinental-oficial.ts`), repetição permitida. Save antigo só sorteia a partir da próxima temporada (mesma marca `oficial.giro` do sorteio de elencos). Os outros convidados (Toluca, Sundowns, Al-Ahli, Auckland) seguem os de 2026. Trava em `npm run brasil-oficial`.
 - ✅ 19/11 CONSTRUÍDO (no branch, SÓ NA CONTA DO DIEGO — `VICE_CITY_GERAL = false`, sport.ts):
   · motor em `store.tsx` (`viceAbre/viceUsa/viceAplica/viceBusted/viceDepoisDoMartelo/viceTravaLance`), catálogo em `vice-city.ts`,
     tela em `vice-city-ui.tsx` (faixa do último golpe em cima da mesa + mão de cartas + o que vale contra você + segredo do X9/Sniper).
@@ -14260,3 +14523,241 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
   · Trava `npm run vice-city`. As travas npx tsx que carregam o store estavam quebradas pra todo mundo (imagem .webp e
     `import.meta.env`): `scripts/node-stub-reg.mjs` conserta (`npm run pregao-aberto` já usa).
   · Falta: testar numa sala de verdade com 2+ contas antes de liberar; O MARTELO edição Vice e a carta 🚨 Procurado (sugeri tirar).
+
+## 🧹 19/11 — Painel do Criador dava "statement timeout" (Diego: "antigamente eu via quem tava online") — CONSERTADO
+- `live_beats` (o "tô aqui" de cada aparelho) só era limpa quando o #admin abria; juntou 1,1 mi de linhas desde 08/11 e a limpeza dentro do painel estourava os 8 s.
+- Liguei no banco o job `limpa-live-beats` (a cada 5 min, até 100 mil linhas com > 10 min). SQL em `docs/sql/limpa-live-beats-cron.sql`. Não depende mais de abrir o painel.
+## 🏟️ 19/11 — Mapa volta pro 3D (boneco novo), só na conta do Diego — NO BRANCH, esperando OK
+- Pedido: *"melhorar muito o momento que clica em ver jogo em 3D… giro no estádio até enquadrar o campo e iniciar o apito… a câmera que acompanha a jogada nesse zoom… em 3D com o último boneco… só no campo do mapa. Na aba de jogos mantém igual"*.
+- Feito: `MAPA_3D_GERAL`/`useMapa3D` (sport.ts) → `presidencia-estadio-camera.tsx` passa `matchPresentation='3d'`; câmera nova `'tv'` (enquadramento: mais aberta e mais baixa que a Transmissão, segue a bola pela lateral) é a padrão do 3D; `abrir()` no controle de câmera = espiral de 7 s do alto até a câmera de TV; o "Ver o jogo no estádio do mapa" da aba Jogos pede `'abertura'`.
+- Bancada: `scripts/mapa3d/bancada.html` (partida com cartas do baralho BR, sem login). Vídeo `scripts/mockups/mapa3d-abertura.mp4`, celular `scripts/mockups/mapa3d-celular.png`.
+- 19/11 (2ª leva, *"melhoradas nas placas… texturas dos gramados… tudo que é muito liso fica fake"*): no 3D as placas viram painel de LED em pé (faixa contínua, grade de pontinhos, brilho, moldura, pezinhos; mesmas marcas e rodízio) e o gramado ganha manchas de tom, desgaste na boca do gol/pequena área/pênalti/meio/corredor do bandeirinha e quebra da repetição da textura (`presidencia-gramado-material-3d.ts`). Print `scripts/mockups/mapa3d-placas-gramado.png`.
+- Falta: OK do Diego; medir no celular de verdade (o 3D pesa mais que o 2D); o apito continua sendo no "Começar o jogo" (nenhum jogo começa sozinho — regra de 26/10).
+
+## 🏀 19/11 — Reels de lançamento do BidLegends (PT + EN)
+- `scripts/posts/video-bidlegends/` (LEIAME). Entregues ao Diego os dois mp4. Sem logo da NBA/franquia.
+- ⚠️ Achados no caminho (não consertados ainda): (1) a arte da home do BidLegends (`home-bidlegends-v01.webp`) tem o LOGO DA NBA nos
+  banners — risco de marca registrada quando abrir pro público; (2) na tela de DESEMPATE do basquete em inglês aparece texto em PT
+  ("DESEMPATE", "SEU RE-LANCE", "MANTER", "Mínimo", "Você", "TEMPO"); (3) na Partida Rápida o Pregão aberto e o Envelope único ainda
+  têm o selo NEW/NOVO (só tiramos das salas em 19/11).
+## 19/11 — Revisão das competições das salas online (pedido do Diego: "analise todas competições")
+✅ Feito (no branch, ainda não publicado):
+- 🏆 Libertadores das salas ganhou o cartão de ⚔️ TÁTICA (retranca/equilíbrio/ataque), igual às regionais e à Copa do Mundo. Usa o
+  mesmo banco das regionais (tipo 'regional', esc_regional_clock) — sem mudar servidor. Dado da tática é próprio: os outros jogos não mudam.
+- 🌎 Copa América (16): botão do sorteio dizia "Jogar as oitavas" (agora "as quartas"); barra de etapas mostrava OITAVAS (some na de 16);
+  texto dos grupos dizia "+ os 4 melhores 3ºs" também na de 16 e na de 32 (agora só na de 24); sorteio dizia "Dezesseis seleções" (agora "Oito");
+  campeão na sala dizia "CAMPEÃO DO MUNDO" na Euro/América (agora o nome certo); tempo de pênalti das quartas da de 16 ia errado pro relógio do banco.
+✅ 19/11 (Diego: "Sim"): os 5 consertos abaixo FEITOS no branch (1, 2-goleiro, 3, 4, 5, 6) — falta só o "toque atrasado" da Kings (2b).
+   1 → `montaCarry` casa pelo crachá (isHuman não importa) e novato nunca pega time com crachá · 2 → goleiro manda `key:pulo`
+   · 3 → vez de ausente já corre o relógio (45 s) e a fila/prêmios do draft incluem quem tem crachá · 4 → `chaveOitavasChampions`
+   · 5 → faixa de campeão com tr() · 6 → "dia" da Kings com o lado na chave. Travas: testa-liga-vaga (casos 9 e 10).
+🟡 Achados que encostam em coisa AO VIVO — propostos ao Diego, esperando OK:
+1. Liga Draft: quem caiu e o dono reabre a sala no outro dia pode perder o time (`montaCarry` em liga-draft.ts exige isHuman; devia casar pelo crachá).
+2. Kings: jogo gente × gente, o toque do goleiro vira o chute do batedor (mesma chave em KINGS_DECIDIR); e toque atrasado pode refazer jogo já mostrado.
+3. Liga Draft: vez de quem saiu fica parada até o dono apertar "Pular"; quem caiu na hora de abrir o draft fica fora da fila.
+4. Champions: oitavas montadas na ordem 1º×…, o 1º e o 2º podem se cruzar nas quartas (devia ser chave 1-8, 4-5, 2-7, 3-6 como a Copa dos 8).
+5. Faixa "É CAMPEÃO DA …" do quickCopa (store.tsx ~12176) só em PT.
+6. Kings: "dia" do jogador é por nome — xarás em times opostos ficam com o mesmo dia.
+- Conferir: título da Euro/Copa América vai pro esc_results com season_key ':copamundo' — ver se o Rank conta como Copa do Mundo.
+- ✅ 19/11 (Diego: "publica… p todos já"): `AMERICA_GERAL = true` e `LIBERTA_SALA_GERAL = true` + linha nas novidades. Falta: na LISTA de salas
+  a Copa América aparece como "Liga + Eurocopa" (o gatilho `game_rooms_colunas_magras` grava ls_copa2='euro' pra qualquer euroNaLiga) —
+  ✅ FEITO 19/11: gatilho grava ls_copa2='america' e o lobby lê (docs/sql/lista-salas-copa-america.sql).
+- ✅ 19/11 (Diego: "volte a libertadores q tinha antes Tb sem convocar pra ter os dois"): a 🌎 Liga + Liberta (time do leilão) voltou na prateleira do SEU TIME, ao lado da 🏆 Liga + Libertadores (convocando).
+  conserto = 1 linha no gatilho ('america' quando euroNaLiga=16) + lobby ler 'america'; mexe no banco, esperando OK.
+
+## 🇧🇷 19/11 — Simulação do Brasil Oficial começando na Série D (`scripts/simula-brasil-oficial.mts`)
+- Força do 11 titular (nível médio) dos bots: D mediana 58 · C 62,5 · B 68,6 · A 78,7 (A vai até 84–86).
+- Clube da D no começo, sem reforço: mediana 59,5; sobe em ~6–8% das temporadas (a D real sobe 6 de 96).
+- Chance de subir pela força: D precisa de ~66–70 pra ter ~40% · C de ~66–70 pra 40% e 70+ pra 63%+ · B de 70–74 pra 41% e 74+ pra ~80%.
+- ⚠️ Fora da curva: na D, **America-RJ 77 e Portuguesa 76,6** (mais fortes que quase toda a Série B) e, na C, **Guarani 77** —
+  são cartas de época/lenda desses clubes. Proposta levada ao Diego (limitar as cartas acima da categoria no elenco dos bots da D/C) → **resposta: NÃO** (19/11). Fica como está; não repropor.
+- Painel: a carreira do Oficial agora vai marcada (`career_modo` em `live_beats`) — "🇧🇷 Brasil Oficial · Série X".
+
+## 📱 19/11 — 3D do mapa leve no celular (Diego: *"não tá dando pra ver o jogo de tão lento… também quero no celular"*)
+- Medido na bancada (`scripts/mapa3d/bancada.html`): o gargalo era a placa de vídeo, não o processador. Cada jogador (boneco estilizado) tinha
+  39.863 triângulos → 22 em campo ≈ 880 mil por quadro.
+- Feito: no celular (`pointer: coarse`) carrega `jogador-estilizado-leve.glb` (7.971 triângulos, mesmos ossos/UV/movimentos —
+  `scripts/futebol3d/gera-jogador-leve.mjs`); `localStorage['esc3d-boneco-leve']` '1'/'0' força. E com a câmera de jogo no celular a vista
+  termina a 200 m com névoa (a cidade lá longe sai do desenho); mapa livre e o giro de abertura seguem normais.
+- Não feito: esconder a cidade inteira durante o jogo (na Várzea, sem arquibancada, ela aparece atrás do campo). Falta o teste no celular dele.
+
+## 🧭 19/11 — Fluxo novo Central → jogo (pedido do Diego, MOCKUP enviado, esperando OK) — `scripts/mockups/fluxo-central-jogo.png`
+- *"tá muito misturado a tabela de jogo com o mapa, com a aba de central"*. Regras dele:
+  1. Os dias passam SÓ na Central, com a notícia de cada dia na faixa de datas.
+  2. Acontecimento (ônibus chegando, feira, boate, clássico, festa da torcida, loja…) aparece SÓ na Central, com o videozinho;
+     botões: "📍 Ver no mapa ao vivo" (a câmera voa pro lugar) e "⏭ Pular" (pro dia do jogo). No mapa, só "← Voltar pra Central".
+  3. O jogo só começa pela Central, no dia do jogo: botões "📺 Campo 2D" (leva pra aba Jogos + Tabela com o campinho pronto pro OK)
+     e "🏟️ Campo 3D" (leva pro estádio do mapa). Sem acontecimento, a Central cai direto nessa escolha.
+  4. A aba Jogos + Tabela NÃO mostra jogo/placar enquanto não tem jogo rolando.
+- Dúvida levada: quem não tem o 3D (hoje todo mundo menos ele) vê só o botão 2D?
+
+## 🏟️ 19/11 — Nome do estádio no placar do mapa (fora de casa claro) — ✅ PUBLICADO PRA TODOS junto com o 3D do mapa (`MAPA_3D_GERAL = true`). Fluxo da Central: ainda testando antes de `FLUXO_CENTRAL_GERAL = true`
+Pedido do Diego: *"não ficou claro o campo da casa do adversário… deve aparecer mais claro o nome de cada estádio"*. Embaixo do placar
+do mapa (2D e 3D) entra uma faixa: `🏟️ <estádio do mandante> · casa do <mandante>`; quando o seu clube joga FORA ela fica roxa e diz
+"🚌 fora de casa, na casa do X". Prints: `scripts/mockups/estadio-nome-fora.png` / `estadio-nome-casa.png`. No branch, não publicado.
+
+## 🧭 19/11 — Fluxo da Central LIBERADO PRA TODOS
+Testado numa carreira nova de ponta a ponta (leilão → Master → rodada 1 → Central → pular → escolha → 2D na aba Jogos com "Começar o jogo"
+→ rodada 3 em 3D no mapa → "Voltar pra Central"). Consertado no teste: o "← Voltar pra Central" ficava escondido (estava dentro da coluna que
+some na aba do mapa) e cobria os botões da câmera; agora fica em cima do mapa, sem grudar. A faixa do estádio ficou curta ("🚌 você joga fora").
+✅ A estreia da temporada também pergunta 2D/3D (feito no mesmo dia).
+🐛 19/11 (Duarte FC, print "undefined is not an object (evaluating 'e.b.teamId')"): a tela da carreira procurava o time do usuário nos
+confrontos da copa e quebrava num confronto sem o 2º time. Blindado com `?.` em todas as buscas `t.b.teamId === youId` do pyramidseason.
+Ainda a ver: QUAL copa gerou o confronto sem time (não tenho o save dele).
+Desligar = `FLUXO_CENTRAL_GERAL = false` (sport.ts).
+- ✅ 19/11: Vice City liberado também pro Futpoint FC (VICE_CITY_TESTERS), pra testarem juntos.
+- ✅ 19/11: tema Vice City (pôr do sol neon) no fundo da sala inteira — revelação, monte, temporada, copas, fim (aprovado; desktop corrigido: nada de position nos filhos do Shell).
+- ✅ 19/11 Vice City v2 (mockup `scripts/mockups/vice-city-v2.png`, Diego: "Perfeito"): ① 3 cartas de golpe sorteadas TODAS no começo, com a
+  janela "🎰 Suas cartas de golpe" (7 s, só o dono vê; a 1ª carta da mesa e os robôs esperam) — acabou a carta do meio do pregão · ② todo golpe vira
+  FAIXA GRANDE no meio da tela de todos por 3 s, com quem usou e em quem (relógio não para) · ③ ESTRELAS DE PROCURADO: quem leva golpe vê as
+  próprias ★ no canto e a tela pisca a sirene ("🚨 Você está sendo procurado") · 🔒 Cadeia vale NA HORA: o jogador mais caro que o alvo já levou
+  volta pra mesa e ele recebe o dinheiro (antes avisava e dava pra fugir pegando carta ruim). Trava `npm run vice-city`.
+
+## 🟢 19/11 — Estatísticas no placar normal (STATS_PLACAR_GERAL) e Raio-X do adversário na Central (RAIOX_GERAL) LIBERADOS PRA TODOS
+Diego: *"isso aqui já pode"*. Desligar = voltar a `false` no sport.ts.
+
+## 🐛 19/11 — Brasil Oficial: não dava pra trocar reserva ↔ titular na Temporada 1
+O modo nasce com o elenco real (22), mas a troca seguia a regra da carreira de sempre ("T1 joga com os 11", `canSub = seasonNo >= 2`
+na tela e `seasonNo < 2` no SET_LINEUP/SALVA_ESCALACAO/APLICA_ESCALACAO). Agora o Brasil Oficial troca desde a T1, nos dois lados.
+Testado: Athletico-PR, Fabiano (reserva) entrou no lugar do Renan Lodi.
+
+## 🧭 19/11 — Fluxo da Central em TODA competição (pedido do Diego) — PUBLICADO
+Estadual (Brasil Oficial), copas que rodam como fase (copa de fim de temporada, Supercopa) agora esperam a escolha 📺 2D / 🏟️ 3D na Central;
+2D = aba Jogos com "▶ Começar o jogo"; 3D = mapa com "▶ Começar o jogo" em cima (vale também pra liga e estreia). Testado: Paysandu, Parazão
+rodada 1 no 3D (Re-Pa no Mangueirão) e rodada 2 no 2D. Copa da quarta (Copa do Brasil/Liberta/Sula do calendário) já passava pela Central.
+FALTA conferir/levar: a 🌎 campanha internacional (Liberta/Champions de convite, tela própria) e a 🌍 Copa do Mundo do roteiro (tela própria).
+
+## 🌴 19/11 — Vice City: 10 ou 20 times, 19 ou 38 rodadas, 3/4/5 cartas de golpe — PUBLICADO
+Diego: *"inclua a opção de 20 times… 10 como padrão… 19 rodadas ou 38… deixando claro que demora mais… 3 cartas de golpe ou 4 ou 5"*.
+Criar sala Vice City nasce em 10 times (18 rodadas); 20 times = 19 rodadas (padrão) ou 38, com texto "demora mais". Cartas de golpe
+3 (padrão) · 4 · 5 (`viceCartas` na sala → `state.viceCartas`). Gente continua até 10 (bots completam); a mesa do pregão no Vice City é SEMPRE
+uma carta (o duplo de 11+ clubes não liga, senão o golpe embolaria). Competições: todas menos Champions e Relâmpago (já era assim no código;
+o Diego disse que só via a Copa dos 8 — não reproduzi sem login; conferir com ele num print se continuar).
+⚠️ `npm run carreira-limpa` já reprovava ANTES desta mudança por `kingsBaralho` (outra sessão) — falta pôr em MARCAS_DE_MODO ou NEUTROS.
+
+## 🚨 19/11 — Vice City: BUSTED só pro 1º com 5 estrelas, pena no fim do pregão, giroflex + sirene — ✅ APROVADO E PUBLICADO
+Diego: *"trocar por 5 jogadores profissionais… no final, quando ele montar tudo… só para o primeiro que tomou 5 estrelas… banner piscando com
+sirene da polícia… dizendo quem foi… ninguém mais toma 5 estrelas"*. Motor: `viceBusted` só marca + anuncia; `viceBustedPena` (em `paFecha`) troca os 5
+melhores (acima de Profissional) por 5 Profissionais reais da mesma posição; depois do 1º, ninguém mais leva estrela. Tela: tela toda piscando
+vermelho/azul por 6,5 s + `playSirene()` (sintetizada, 0 KB) + chip "🚔 Polícia pegou X". Prints: `scripts/mockups/vice-busted-sirene-*.png`.
+Trava `npm run vice-city` atualizada e passando.
+
+## 🌴 19/11 — Vice City com 20 times aceita até 20 pessoas (bots completam) — PUBLICADO
+Diego: *"posso marcar 20, mas ter 15 usuários… completados com 5 bots… igual é sempre"*. Sala de 10 times = até 10 pessoas; de 20 = até 20.
+A mesa do Vice City segue com UMA carta por vez (o golpe mira a carta da mesa). Com muita gente o pregão fica mais longo — se ele quiser as duas
+mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 e testar antes.
+
+## 19/11 — 🛡️ Escudo avulso entregue: Deportivo La Puñeta
+- Arte do dono recortada em círculo (fundo preto virou transparente), `src/escalacao/img/puneta-escudo.webp` (360px, 29 KB).
+- Segue o E-MAIL de quem pagou (`ESCUDO_AVULSO_CONTAS` em `manto.ts` → chave `'zz avulso deportivo la puneta'` em `LOGOS_PRONTAS`).
+  Motivo: existem DUAS contas com o clube "Deportivo La Puñeta" e só uma pagou — por nome a outra herdaria.
+- Banco: `esc_artes_conta` (escudo) dessa conta passou de `producao` → `pronto`.
+- Vale só na tela do próprio dono (igual escudo de batismo); os outros veem o automático. Pros outros verem = Etapa 3 dos mimos (pendente).
+- Ainda em produção: escudos avulsos de vieiracaio688 (10/11) e lucassaboia14 (11/11).
+- Reverter: tirar a linha do `ESCUDO_AVULSO_CONTAS` (ou `git revert` do commit).
+
+## 19/11 — 🌴 Selo VICE CITY na lista de salas (bug que o Diego pegou na sala "Pós live")
+- A lista lê só o resumo da sala (`ls_*`), que não tinha Vice City → aparecia 🔨 PREGÃO ABERTO.
+- Banco: `ls_pregao = 'vice'` quando `game_state.vice` (sala de espera) ou `game_state.viceCity` (partida rolando) — `docs/sql/ls-pregao-vice.sql`, aplicado; salas abertas acertadas na hora.
+- Tela (`lobby.tsx`): `'vice'` vira o selo neon 🌴 VICE CITY e some o selo de lance.
+- Reverter: tirar a 1ª linha do `case` do `ls_pregao` no gatilho `game_rooms_colunas_magras`.
+
+## 👑🦡 20/11 — Batismo Império FC (leodicasttro) — PUBLICADO (Diego: "pode publicar", nome da mascote e do dono aprovados)
+- Pix de batismo (79,90) pago em 19/11 às 14:50 (`esc_mp_pedidos`), plano 🖋 Batismo: tier ouro, **sem número de fundador** (`SEM_FUNDADOR`). Sócio nº97.
+- Várzea, no lugar do bot Juventude do Churrasco (`OLD_NAME` + `VARZEA_TEAMS`).
+- Escudo 244×360 28 KB · mascote "O Texugo Rei" (Diego aprovou) 236×440 39 KB · manto `#F8F3F0`/`#0A0703` medidos na camisa + dourado `#F1AD10` (MANTO_TRI) · camisa na Loja (`imperio-camisa-v1.webp`).
+- Banco FEITO: `esc_socios` (97, `escudo_time` = Império FC, coração Atlético-MG) · `esc_nomes_batismo` (Império/Imperio/Imperiofc; o gatilho fez FC/EC) · `user_colors` já estava ouro manual (Pix). A conta existe.
+- Post: `scripts/posts/batismo-imperio-fc.png` (dono "Leo", Diego aprovou).
+## 20/11 — 3 erros do Futpoint
+- 🛡️ **San Lorenzo cortado**: o SVG do JoseArroyave vem sem viewBox (igual ao São Bernardo) e o lote de 16/11 sobrescreveu o webp bom.
+  Refeito do PNG do FCLOGO (141×160). Os outros 29 escudos do lote conferidos numa folha: todos inteiros.
+- 📜 **Liga Draft, lista de favoritos "travava"**: parava nos 60 primeiros nomes (letra C) sem aviso. Agora puxa de 60 em 60 ao
+  rolar + botão "mostrar mais (N restantes)" (`draft-favoritos.tsx`).
+- 🌎 **Polônia na Copa América** (sala Pós live): a leitura da marca `euroNaLiga` no aparelho de quem escolhe falhou calada e a
+  grade abriu com as seleções da Copa do Mundo. O dono trocou a Polônia pela pior livre (Bolívia) — a Copa jogada estava certa.
+  Agora o portão relê a cada 3s até o banco responder e a grade só abre depois de saber qual copa é (`euroPronto`).
+- ⚠️ `npm run copamundo` tem 2 falhas que já existiam antes (ficha soma a Copa / spoiler) — não mexi.
+
+## 🌴 20/11 — Vice City: 8 cartas de golpe novas (MOCKUP, esperando OK do Diego)
+- Mockup: `scripts/mockups/vice-golpes-novos.png` (gerador `scripts/mockup-vice-golpes-novos.mjs`).
+- Escolhidas por ele: 🛞 Pneu furado (30 s, só +1) · 🐊 Jacaré (tocaia no rival: a próxima LENDA que cair no time dele vai pro seu, de graça; ele recebe o dinheiro de volta) · 🤖 NPC (carta Profissional aleatória ocupa uma vaga do rival) · 🎮 Código de trapaça (+50 moedas, "TRAPACEIRO!" pra sala e +1 ⭐) · 💼 Missão cumprida (ganhou a próxima carta = +10) · 🪂 Paraquedas (lenda aleatória cai no seu time; posição com vaga, time cheio = no lugar do pior) · 🔫 Loja de armas (paga 10, ganha 1 golpe) · ✈️ Contrabando (avião cruza a tela de todos, caixote cai pra 1 pessoa sorteada, que ganha 1 golpe).
+- Recusadas por serem parecidas com as que já existem: WASTED/Trote (=Blitz), Invasão (=Assalto), Guincho/Bomba-relógio (=Cadeia), Advogado (=Funilaria).
+- ✅ 21/11: as 8 cartas FEITAS e publicadas (Diego: *"Ok publique todos eles"*). Motor em `store.tsx` (`viceAplica`/`viceUsa`/`viceJacareConfere`/`viceColocaNoTime`/`vicePodeUsar`), catálogo em `vice-city.ts`, cenas (avião, paraquedas, jacaré) em `vice-city-ui.tsx` (CSS/emoji, 0 KB). Trava `npm run vice-city` cobre as 8. Fotos de tela: `GOLPE=<id> SAIDA=<pasta> node scripts/teste-vice-city-tela.mjs`.
+  · Decisões minhas no caminho (confirmar com o Diego se reclamar): Jacaré = 1 por rival de cada vez, a vítima recebe o que pagou de volta; Paraquedas/Jacaré com time cheio = a lenda entra no lugar do PIOR da posição e ele volta pra mesa; Trapaça dá +1 ⭐ pra quem usou; Missão vale só a carta que estava na mesa na hora; NPC só com vaga aberta no rival.
+
+## 🐛 21/11 — Estadual/copa travado no fluxo da Central (Criciúma do Fabulous, Catarinense) — NO BRANCH, esperando "pode publicar"
+- Causa (minha, do fluxo da Central de 19–20/11): jogo do SEU time no Estadual/copa espera a escolha 2D/3D na Central (`copaSegura`).
+  No visual novo (`visualV2`) a aba Jogos NÃO mostrava o aviso "o jogo começa pela Central" (estava `!visualV2`) — sobrava o controle
+  com "⏳ Deixa o jogo acabar…" (nunca libera: o relógio espera a escolha) e o PULAR, que passava o jogo sem mostrar nada.
+- Conserto: `copaEsperaEscolha` — aviso com "📺 Ir pra Central" também no visual novo e SEM os controles da copa enquanto não escolhe.
+- Não reproduzido com o save dele (a carreira Criciúma está só no aparelho, na nuvem só tem a do Fabulous EC).
+
+## 🦊👑 21/11 — Batismo FUNDADOR Cabuloso JP (rafaelazevedo455) — PUBLICADO (OK do Diego, "pode publique")
+- Pix de Fundador (99,90) pago em 21/11 00:00 (`esc_mp_pedidos`). Conta existe (criada 16/11). Fundador nº104 · sócio nº98.
+- Várzea, no lugar do bot Descampado EC (`OLD_NAME` + `VARZEA_TEAMS`).
+- Arte do dono (fundo verde chroma tirado; escudo e mascote se encostavam pelo rabo — separados à mão): escudo 243×360 28 KB ·
+  mascote "A Raposa Cabulosa" (nome dado por mim, CONFIRMAR) 172×440 32 KB · camisa na Loja (`cabuloso-camisa-v1.webp`).
+  Manto `#00208C`/`#EFEEF0` medidos na camisa. Coração CRUZEIRO (deduzido da arte + pergunta do Diego — CONFIRMAR).
+- Banco FEITO: `esc_socios` (98, `escudo_time` = Cabuloso JP, coração Cruzeiro) · `esc_fundadores` (104) · `esc_nomes_batismo`
+  (Cabuloso JP / Cabulosojp; o gatilho fez FC/EC) · `user_colors` ouro manual já estava (Pix).
+- Post: `scripts/posts/batismo-cabuloso-jp.png` (dono "Rafael" tirado do e-mail — confirmar).
+- 🦊 **Gala única "A Raposa Coroada"** FEITA (`gala-cabuloso.tsx`, registrada em `entrada-gala.tsx`, 9 s): as 5 estrelas do Cruzeiro do Sul
+  acendem com "plim", a cruz se forma, a sombra da raposa na lua (AUUUU!), a coroa cai e encaixa, "É CABULOSO!", o escudo e a faixa.
+  Vídeo: `scripts/posts/gala-cabuloso.webm` (`node scripts/video-gala-cabuloso.mjs`). Mockup aprovado em `scripts/mockups/gala-cabuloso.png`.
+- ⏳ FALTA do Fundador: **📣 canto** (nenhum clube tem canto do Cruzeiro — precisa do áudio do Diego; quando chegar, ligar em
+  `AMBIENTE_CARREIRA_POR_EMAIL` e tocar na gala com `playMp3Gala`).
+## 🎟️ 21/11 — Cupom de influenciador no Pix NOVO (Batismo e Fundador) — banco FEITO, tela no branch esperando "pode publicar"
+- Diego: o usuário não achava o cupom. O "tem cupom?" só existia na tela ANTIGA (chave Pix); o Pix novo (Mercado Pago, 16/10) nunca teve.
+  Diego: *"Sim.. Mas n faça nd p usuário"* — vale no Batismo E no Fundador; nada manual pro usuário que reclamou.
+- Banco (APLICADO, `docs/sql/mp-cupom-batismo-fundador.sql`): o cupom viaja na ref do pedido (`cupom-<CODIGO>`), `esc_mp_criar_pedido`
+  confere com `esc_cupom_validar` e cobra com desconto (testado com rollback: Fundador 99,90 → 89,91 · Batismo 79,90 → 71,91). O uso
+  vai pra `esc_cupom_usos` quando o Pix CAI (gatilho `esc_mp_cupom_anota`, série 'FUN'/'BAT'). Cupom inválido = pedido recusado.
+- Tela (`screens.tsx`): o mesmo "tem cupom?" sutil, agora também embaixo do Gerar meu Pix; o Pix sai no valor com desconto.
+
+## 🃏 21/11 — BAFO NOVO (conversa com o Diego; NADA construído ainda — falta mockup + OK)
+Revê o Bafo de 17/08 (time da carreira + cascata sorteada). Decisões dele em 21/11:
+- **Cartas**: TODAS as que a conta já ganhou por título (carreira OU salas, `user_cards`), não as de uma carreira.
+- **Criar sala**: escolhe o modo Bafo e depois as opções de sempre. **Só LIGA** (sem copas). Sem leilão (jeito do lance não se aplica).
+- **Só gente, SEM bots**, mínimo 2, até 20. **Não conta pro ranking.**
+- **Formato**: 2 = melhor de 5 · 3–4 = todos contra todos 4× · **5 a 20 = ida e volta padrão**. Campeão = 1º da tabela (sem final).
+- **Sala de espera normal + as REGRAS num banner EM CIMA.**
+- **1ª tela ao iniciar = CONVOCAÇÃO**: 120 s, escolhe 22 das cartas dele, filtro de time/posição, SEM over (igual Liga Draft).
+  Tempo acabou: as marcadas entram e o sistema completa com as PIORES cartas dele. Mínimo 11 pra entrar.
+- **Elenco de 22 com troca titular↔reserva entre os jogos**, padrão da Liga Draft.
+- **Prêmio**: SÓ o campeão — escolhe 1 carta entre as 22 convocadas de QUALQUER pessoa da sala (quem saiu antes também vale).
+  Não ganha carta nova do baralho. Sem carta protegida. Quem tem 11 pode ser escolhido (fica sem jogar até ganhar outra).
+  Sugestões minhas ainda SEM resposta: 60 s pra escolher (senão sorteia) · campeão ausente = sorteio.
+- Amistoso (sem valer carta) segue existindo.
+- 🃏 Bafo novo, complemento 21/11: campeão tem **90 s** pra escolher (senão sorteia) · campeão ausente = o jogo sorteia 1 carta de alguém
+  que jogava com ele · **DONO QUE ENCERRA A PARTIDA ANTES DO FIM DA LIGA perde 2 cartas aleatórias das 22 dele** (vai nas regras do banner).
+  EM ABERTO: pra quem vão as 2 cartas e o que conta como "encerrar" (botão × sumir/queda — proposta: sumiu 10 min = abandono).
+- 🃏 Bafo novo (21/11): **o dono NÃO pode expulsar ninguém — o botão de remover não existe no modo** (senão ele tirava quem está ganhando).
+- 🃏 Bafo novo (21/11): dono que encerra — **1 carta aleatória pro 1º colocado e 1 pro 2º** (da tabela naquele momento, fora ele).
+  Se encerrar **antes de começar os jogos** (sem tabela), as 2 cartas vão **pro sistema e ninguém ganha**.
+  Ainda sem resposta: dono que SOME sem apertar nada (proposta: 10 min sem voltar = abandono).
+- 🃏 Bafo novo (21/11): dono que SOME 10 min sem voltar = abandono (perde as 2 cartas) — *"sim pode ser"*. Tempo do campeão escolher
+  virou **60 s** (não 90), com **os 22 de cada time já ABERTOS e organizados por posição** (sem filtro/busca). Mockup:
+  `scripts/mockups/bafo-campeao-escolhe.png` (PC = times lado a lado · celular = um time por aba). Esperando OK.
+## 🔬 21/11 — Jogo 3D do mapa travando: ANÁLISE (Diego: *"analise a fundo todo o mapa… no fim o jogo tem que rolar liso"*) — plano enviado, esperando OK
+Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (carreira DE VERDADE: Central → 🏟️ 3D → ▶) e `ab-desenho.mjs`.
+⚠️ Placa de vídeo aqui é simulada: os números de PROCESSADOR valem; os de placa são só proporção. Falta medir no celular dele.
+- Quadro do jogo na carreira (celular, Leve): 66 desenhos · ~250 mil triângulos · 16 jogadores no detalhe + 6 fora da tela. Geometria é LEVE — não é o gargalo.
+- Processador: o laço por quadro custa ~11–13 ms de mediana e 45–52 ms nos picos NO SERVIDOR (celular médio = 3–4× isso). Do JS, o three.js sozinho ≈ 10 ms por
+  quadro: `updateMatrixWorld` na cena INTEIRA (3.851 objetos, 761 malhas — a cidade toda, mesmo com a câmera no campo), `projectObject`, animação/esqueleto dos 22,
+  e até `getObjectByProperty` (busca por nome a cada quadro). React da página (pyramidseason) ≈ 5% da linha principal em dev (menos em produção). Motor do jogo ≈ 0,5%.
+- Teto de quadros: Leve = 30 (todo celular), Padrão = 45 (PC) — 45 numa tela de 60 Hz dá passo irregular (16/33 ms) = tremida constante.
+- Desenho (A/B, proporção): sem serrilhado suave (MSAA) +51% de quadros · sem cadeiras/torcida +58% · sem reflexo de ambiente (740 materiais PBR) +20% ·
+  Lambert/sem névoa ≈ 0 · profundidade logarítmica: sem diferença na placa simulada (em placa de celular costuma desligar o descarte antecipado — medir no aparelho).
+- Quando engasga, `graphicsBudget` baixa a nitidez (borra) e o `caiPraLeve` troca o nível; o relógio do jogo é de parede com passo máximo de 250 ms (abaixo de 4 qps vira câmera lenta).
+- Plano proposto: (1) MODO PARTIDA — no jogo, congelar/esconder tudo fora do estádio e atualizar só jogadores/bola/torcida; (2) quadros 30 ou 60, nunca 45, e 60 no
+  celular que aguenta; (3) desenho mais barato durante o jogo (sem MSAA no celular, reflexo só onde aparece, profundidade simples com vista curta, cadeiras/torcida leves);
+  (4) medidor na tela e teste no celular do Diego, antes × depois.
+
+- ✅ 21/11 (Diego: *"Pode sim e faça p todos já tb"*): ⚠️ a etapa (1) MODO PARTIDA já tinha sido feita e publicada por OUTRA sessão no mesmo dia
+  (`7aa22fc0`, `presidencia-partida-cena.ts`: cidade fora da árvore de desenho, profundidade normal, sem MSAA no Leve, material difuso leve).
+  Remedido com `perfil-carreira.mjs` depois dela: laço por quadro 11,3 → 6,7 ms · triângulos 256 mil → 165 mil · o dobro de quadros na placa simulada.
+  Desta sessão entrou só o que faltava, a etapa (2): `presidencia-partida-quadros.ts` — no jogo 3D em foco o teto deixa de ser o do nível
+  (Leve 30 / Padrão 45): tenta 60 e, se a média passa de ~21 ms por quadro depois de 120 quadros, trava em 30 até o fim da partida (não fica
+  trocando). Pouca memória (≤2 GB) segue em 30; placa simulada e mapa livre não mudaram. Trava: `npx tsx scripts/testa-partida-quadros.mts`.
+  Medidor na tela: abrir o jogo com `?diag=1` no endereço (mostra a placa e os quadros/s em Configurações do mapa).
+  FALTA: teste no S25 do Diego; etapa (3) (reflexo só onde aparece, cadeiras/torcida mais leves) só se ainda precisar depois do teste.

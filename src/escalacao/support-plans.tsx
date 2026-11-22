@@ -119,39 +119,41 @@ function useMetaDoMes(): { mes: number; pct: number } | null {
   return meta
 }
 const DinheiroItem = ({ ic, t, d }: { ic: string; t: string; d: string }) => <div className="ll-money-it"><span>{ic}</span><div><b>{t}</b><p>{d}</p></div></div>
-export function SupportMoney() {
+export function SupportMoney({ metaAposHistoria = false }: { metaAposHistoria?: boolean } = {}) {
   const meta = useMetaDoMes()
   const pct = meta?.pct ?? 0
   const pos = (v: number) => `${Math.min(100, (v / SUSTENTAVEL) * 100)}%`
-  return <>
-    <section className="ll-money">
-      <h3>{tr('💸 PRA ONDE VAI O DINHEIRO', '💸 WHERE THE MONEY GOES')}</h3>
-      <p className="ll-money-sub">{tr('Sem mistério: cada real vira jogo.', 'No mystery: every real becomes game.')}</p>
-      <div className="ll-money-it ll-money-luca"><span>💛</span><div>
-        <b>{tr('UMA VIDA MELHOR PRO LUCA', 'A BETTER LIFE FOR LUCA')}</b>
-        <p>{tr('Sou o Diego. De madrugada, faço esse jogo sozinho.', 'I’m Diego. Late at night, I build this game on my own.')}</p>
-        <p>{tr('E faço por um motivo com nome: o Luca, meu filho. Ele tem uma condição rara — são 120 casos no mundo — e ele é o menino mais forte do mundo. Ele é a minha ', 'And I do it for a reason with a name: Luca, my son. He has a rare condition — there are 120 cases worldwide — and he is the strongest boy in the world. He is my ')}<strong className="ll-support-luca-legend">{tr('lenda', 'legend')}</strong>{tr('. Cada apoio vira uma vida melhor pro Luca e este jogo vivo, crescendo toda semana.', '. Every bit of support helps give Luca a better life and keeps this game alive, growing every week.')}</p>
-        <p>{tr('E essa história, que é minha e do Luca, passa a ter um pedaço de você dentro dela.', 'And that story, mine and Luca’s, gets to carry a piece of you inside it.')}</p>
-        <p className="ll-money-ass">{tr('✍ Diego · fundador nº 1', '✍ Diego · founder no. 1')}</p>
-        <p>{tr('Pelo Luca: obrigado por estar aqui 💛', 'For Luca: thank you for being here 💛')}</p>
-      </div></div>
-      <DinheiroItem ic="🗄️" t={tr('O COFRE DA CARREIRA', 'THE CAREER VAULT')} d={tr('Cada carreira é um mundo inteiro guardado no servidor: elencos, contratos, tabelas, 190 temporadas de história. Tem gente com save de quase 1 MB. Alguém paga esse armário.', 'Every career is a whole world stored on the server: squads, contracts, tables, 190 seasons of history. Some saves are almost 1 MB. Someone pays for that cupboard.')} />
-      <DinheiroItem ic="📡" t={tr('A SALA AO VIVO', 'THE LIVE ROOM')} d={tr('Cada lance, cada envelope, cada zoeira do chat viaja na hora pra todo mundo da sala. São milhões de mensagens por mês passando pelo servidor.', 'Every bid, every envelope, every bit of chat banter travels instantly to everyone in the room. Millions of messages a month go through the server.')} />
-      <DinheiroItem ic="🧠" t={tr('QUEM FAZ O JOGO', 'WHO MAKES THE GAME')} d={tr('Novidade toda semana, conserto no mesmo dia, carta nova, batismo novo. Isso tem ferramenta e tem hora de trabalho.', 'News every week, same-day fixes, new cards, new namings. That takes tools and hours of work.')} />
-      <DinheiroItem ic="🌙" t={tr('HORÁRIO DE PICO', 'PEAK HOURS')} d={tr('À noite, com as salas lotadas, o servidor trabalha dobrado. É aí que ele mais custa.', 'At night, with rooms packed, the server works double. That is when it costs the most.')} />
-      <p className="ll-money-selo">{tr('Apoiar não deixa seu time mais forte. Não muda placar, leilão, dinheiro do clube nem ranking. Aqui ninguém compra título. 🏆', 'Supporting does not make your team stronger. It does not change scores, auctions, club money or rankings. Nobody buys a title here. 🏆')}</p>
-    </section>
-    {meta && <section className="ll-money ll-money-meta">
+  const metaDoMes = meta && <section className="ll-money ll-money-meta">
       <h3><span>{tr(`📊 META DE ${MESES[meta.mes][0].toUpperCase()}`, `📊 ${MESES[meta.mes][1].toUpperCase()} GOAL`)}</span><em>{pct}%</em></h3>
       <p className="ll-money-sub">{tr('Quanto do custo deste mês o apoio da galera já pagou.', 'How much of this month’s cost the community has already covered.')}</p>
-      <div className="ll-money-bar"><i style={{ width: pos(pct) }} />
+      <div className="ll-money-bar" role="progressbar" aria-label={tr("Meta de apoio do mês", "Monthly support goal")} aria-valuemin={0} aria-valuemax={SUSTENTAVEL} aria-valuenow={Math.max(0, Math.min(SUSTENTAVEL, pct))} aria-valuetext={`${pct}%`}><i style={{ width: pos(pct) }} />
         <span className={`ll-money-mk${pct >= 100 ? ' ok' : ''}`} style={{ left: pos(100) }}><b>🧾 100%</b></span>
         <span className={`ll-money-mk fim${pct >= SUSTENTAVEL ? ' ok' : ''}`} style={{ left: '100%' }}><b>🚀 {SUSTENTAVEL}%</b></span>
       </div>
       <p className="ll-money-lin">{pct >= 100 ? '✅' : '⏳'} <b>{tr('O JOGO SE PAGA', 'THE GAME PAYS FOR ITSELF')}</b> {tr('— aos 100%: servidor e ferramentas pagos.', '— at 100%: server and tools paid.')}</p>
       <p className="ll-money-lin">{pct >= SUSTENTAVEL ? '✅' : '⏳'} <b>{tr('SUSTENTÁVEL', 'SUSTAINABLE')}</b> {tr(`— aos ${SUSTENTAVEL}%: sobra pra crescer (mais servidor, mais novidade).`, `— at ${SUSTENTAVEL}%: room to grow (more server, more news).`)}</p>
       <p className="ll-money-pq">{tr('A barra mostra só a porcentagem. O Diego atualiza ao longo do mês.', 'The bar only shows the percentage. Diego updates it during the month.')}</p>
-    </section>}
+    </section>
+  return <>
+    <section className="ll-money">
+      <h3>{tr('💸 PRA ONDE VAI O DINHEIRO', '💸 WHERE THE MONEY GOES')}</h3>
+      <p className="ll-money-sub">{tr('Sem mistério: cada real vira jogo.', 'No mystery: every real becomes game.')}</p>
+      <div className="ll-money-it ll-money-luca"><span>💛</span><div>
+        <b>{tr('UMA VIDA MELHOR PRO LUCA', 'A BETTER LIFE FOR LUCA')}</b>
+        <p>{metaAposHistoria ? tr('Sou o Diego. De dia vendo carro com meu pai. De madrugada, quando a casa dorme, faço este jogo — sozinho, na unha.', 'I’m Diego. By day I sell cars with my dad. Late at night, when the house is asleep, I build this game — on my own, by hand.') : tr('Sou o Diego. De madrugada, faço esse jogo sozinho.', 'I’m Diego. Late at night, I build this game on my own.')}</p>
+        <p>{tr('E faço por um motivo com nome: o Luca, meu filho. Ele tem uma condição rara — são 120 casos no mundo — e ele é o menino mais forte do mundo. Ele é a minha ', 'And I do it for a reason with a name: Luca, my son. He has a rare condition — there are 120 cases worldwide — and he is the strongest boy in the world. He is my ')}<strong className="ll-support-luca-legend">{tr('lenda', 'legend')}</strong>{tr('. Cada apoio vira uma vida melhor pro Luca e este jogo vivo, crescendo toda semana.', '. Every bit of support helps give Luca a better life and keeps this game alive, growing every week.')}</p>
+        <p>{tr('E essa história, que é minha e do Luca, passa a ter um pedaço de você dentro dela.', 'And that story, mine and Luca’s, gets to carry a piece of you inside it.')}</p>
+        <p className="ll-money-ass">{tr('✍ Diego · fundador nº 1', '✍ Diego · founder no. 1')}</p>
+        <p>{tr('Pelo Luca: obrigado por estar aqui 💛', 'For Luca: thank you for being here 💛')}</p>
+      </div></div>
+      {metaAposHistoria && metaDoMes}
+      <DinheiroItem ic="🗄️" t={tr('O COFRE DA CARREIRA', 'THE CAREER VAULT')} d={tr('Cada carreira é um mundo inteiro guardado no servidor: elencos, contratos, tabelas, 190 temporadas de história. Tem gente com save de quase 1 MB. Alguém paga esse armário.', 'Every career is a whole world stored on the server: squads, contracts, tables, 190 seasons of history. Some saves are almost 1 MB. Someone pays for that cupboard.')} />
+      <DinheiroItem ic="📡" t={tr('A SALA AO VIVO', 'THE LIVE ROOM')} d={tr('Cada lance, cada envelope, cada zoeira do chat viaja na hora pra todo mundo da sala. São milhões de mensagens por mês passando pelo servidor.', 'Every bid, every envelope, every bit of chat banter travels instantly to everyone in the room. Millions of messages a month go through the server.')} />
+      <DinheiroItem ic="🧠" t={tr('QUEM FAZ O JOGO', 'WHO MAKES THE GAME')} d={tr('Novidade toda semana, conserto no mesmo dia, carta nova, batismo novo. Isso tem ferramenta e tem hora de trabalho.', 'News every week, same-day fixes, new cards, new namings. That takes tools and hours of work.')} />
+      <DinheiroItem ic="🌙" t={tr('HORÁRIO DE PICO', 'PEAK HOURS')} d={tr('À noite, com as salas lotadas, o servidor trabalha dobrado. É aí que ele mais custa.', 'At night, with rooms packed, the server works double. That is when it costs the most.')} />
+      <p className="ll-money-selo">{tr('Apoiar não deixa seu time mais forte. Não muda placar, leilão, dinheiro do clube nem ranking. Aqui ninguém compra título. 🏆', 'Supporting does not make your team stronger. It does not change scores, auctions, club money or rankings. Nobody buys a title here. 🏆')}</p>
+    </section>
+    {!metaAposHistoria && metaDoMes}
   </>
 }
 

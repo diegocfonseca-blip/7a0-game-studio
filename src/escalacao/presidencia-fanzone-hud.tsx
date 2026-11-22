@@ -15,7 +15,7 @@ const verde: CSSProperties = { ...btn, background: GREEN, color: '#fff', width: 
 
 type Controle = ReturnType<typeof criarFanZone>
 
-export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZone; cadeiras: CadeiraFanZone[]; escolhida: string; fan: Controle | null }) {
+export function FanZoneHud({ fase, cadeiras, escolhida, fan,somenteEstadio=false }: { fase: FaseFanZone; cadeiras: CadeiraFanZone[]; escolhida: string; fan: Controle | null;somenteEstadio?:boolean }) {
   const t = useT()
   const [correr, setCorrer] = useState(false)
   const [semCadeira, setSemCadeira] = useState(false)
@@ -52,9 +52,9 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZo
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
           {cadeiras.map(c => <button key={c.id} type="button" onClick={() => fan.escolher(c.id)} style={{ ...btn, fontSize: 11.5, padding: '6px 6px', background: c.id === escolhida ? GOLD : '#fff', boxShadow: c.id === escolhida ? `2px 2px 0 ${INK}` : 'none' }}>{c.id === escolhida ? '✔ ' : ''}{c.rotulo}</button>)}
         </div>
-        {semCadeira && <p role="status" style={{ fontSize: 12, color: INK }}>{t('Essa cadeira deixou de estar disponível. Escolha outra ou volte à rua.', 'That seat is no longer available. Pick another or return to the street.')}</p>}
+        {semCadeira && <p role="status" style={{ fontSize: 12, color: INK }}>{t('Essa cadeira deixou de estar disponível. Escolha outra.', 'That seat is no longer available. Pick another.')}</p>}
         <button type="button" style={verde} disabled={!escolhida} onClick={() => setSemCadeira(!fan.sentar())}>{t('Sentar e assistir', 'Sit and watch')}</button>
-        <button type="button" onClick={() => fan.levantar()} style={{ ...btn, width: '100%', marginTop: 6, boxShadow: 'none' }}>{t('↩ Voltar pra rua', '↩ Back to the street')}</button>
+        <button type="button" onClick={() => somenteEstadio?fan.desligar():fan.levantar()} style={{ ...btn, width: '100%', marginTop: 6, boxShadow: 'none' }}>{somenteEstadio?t('Voltar à transmissão','Back to broadcast'):t('↩ Voltar pra rua', '↩ Back to the street')}</button>
       </div>
     </div>
   )
@@ -63,7 +63,7 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan }: { fase: FaseFanZo
       {arrasta(null)}
       {chip(t('📺 Na arquibancada', '📺 In the stands'))}
       <div style={{ position: 'absolute', left: 10, right: 10, bottom: 14, display: 'flex', gap: 6, justifyContent: 'center', zIndex: 2 }}>
-        <button type="button" style={btn} onClick={() => fan.levantar()}>{t('🚶 Levantar', '🚶 Stand up')}</button>
+        <button type="button" style={btn} onClick={() => fan.levantar()}>{somenteEstadio?t('Trocar de assento','Change seat'):t('🚶 Levantar', '🚶 Stand up')}</button>
       </div>
       <p style={{ position: 'absolute', left: 0, right: 0, bottom: 62, margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px #000' }}>{t('arraste a tela pra olhar em volta', 'drag the screen to look around')}</p>
     </div>

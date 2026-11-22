@@ -1,0 +1,11 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}#root>section{height:100vh}</style><div id="root"></div><script type="module">
+import React,{useState} from 'react';import{createRoot}from'react-dom/client';
+import Complexo from './src/escalacao/presidencia-complexo-3d.tsx';
+const positions=['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'];
+const cards=prefix=>positions.map((pos,i)=>({name:prefix+i,pos,club:prefix,year:2026,lo:70,hi:80,fame:1}));
+const casa=cards('Local'),fora=cards('Visitante'),roster=a=>a.map((p,i)=>({...p,id:String(i)}));
+const stadium={inv:{grama:100,geral:100,cadeiras:100},ext:[]};
+const state={officialInput:{seed:123,casa,fora,fCasa:'4-3-3',fFora:'4-3-3',tatica:[0,0],bots:[false,false],clima:'sol'},officialTeams:['Flamengo','Bahia'],viewerClubId:0,context:{id:'foco-local',homeClubId:0,awayClubId:1,home:roster(casa),away:roster(fora),stadium},minute:5,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#c2452f',awayColor:'#fafafa'};
+function App(){const[match,M]=useState(undefined),[focus,F]=useState(false),[grounds,G]=useState(stadium);window.focoSeats=on=>G(on?stadium:{inv:{},ext:[]});window.focoCase=kind=>{if(kind==='week'){F(false);return}F(true);const now=performance.now();M({...state,finished:kind==='finished',paused:kind!=='playing',minute:kind==='finished'?93:5,visualClock:{seconds:5,sampledAt:now,running:kind==='playing',rate:1}})};return React.createElement(Complexo,{stadium:grounds,match,focusSession:focus,matchPresentation:'3d',onOpenClub:()=>{},clubName:'Clube local',onReady:api=>{window.focoApi=api}})}
+createRoot(document.getElementById('root')).render(React.createElement(App));
+</script></html>

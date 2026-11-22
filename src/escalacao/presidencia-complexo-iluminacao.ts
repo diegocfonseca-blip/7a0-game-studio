@@ -114,14 +114,15 @@ export function criarIluminacaoComplexo({ scene, state, sun, hemisphere, solids 
     light.shadow.camera.far = source.spec.distance
     light.updateMatrixWorld(); light.target.updateMatrixWorld()
   }
-  function update(camera: THREE.PerspectiveCamera, target: THREE.Vector3) {
+  function update(camera: THREE.PerspectiveCamera, target: THREE.Vector3, pitchOnly = false) {
     // Closing an owned roof also removes daylight from the pitch. Only the
     // purchased stadium lamps come on; the city remains in its daytime state.
     if (disposed || (period !== 'night' && !(state.roofClosed&&state.floodlit))) return
-    applyEmission()
-    scene.updateMatrixWorld(true)
+    // Só as âncoras das luzes precisam de matrizes atuais. Atualizar a cena
+    // inteira aqui repetia os esqueletos de todos os NPCs e atletas à noite.
     const visible = sources.filter(source => {
       if (source.spec.enabled === false || !isVisible(source.owner)) return false
+      source.owner.updateWorldMatrix(true, false)
       source.position.fromArray(source.spec.position).applyMatrix4(source.owner.matrixWorld)
       source.target.fromArray(source.spec.target).applyMatrix4(source.owner.matrixWorld)
       return true
@@ -129,7 +130,7 @@ export function criarIluminacaoComplexo({ scene, state, sun, hemisphere, solids 
     const stadium = state.floodlit ? visible.filter(source => source.spec.kind === (state.roofBuilt ? 'roof' : 'tower')).slice(0, 4) : []
     activeStadium = stadium.map(source => source.spec.id)
     stadiumLights.forEach((light, i) => place(light, stadium[i]))
-    if(period!=='night'){
+    if(period!=='night'||pitchOnly){
       activeLocal=[];localLights.forEach(light=>place(light));return
     }
     const direction = new THREE.Vector3(), focus = new THREE.Vector3()

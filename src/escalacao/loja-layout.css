@@ -1087,3 +1087,11 @@ body:has(.ll-shop-dialog) #root>button[aria-label="Ligar som"],body:has(.ll-shop
   color: inherit;
   font: inherit;
 }
+
+/* História e transparência já abertas, antes dos planos. */
+.ls1-support-intro{margin-bottom:28px}
+.ls1-support-intro>.ll-money{margin-top:0}
+.ls1-support-intro .ll-money h3,.ls1-support-intro .ll-money-it b{color:#0c0c0c}
+.ls1-support-intro .ll-money-meta{background:#f4ecd6;margin:18px 0;padding:14px;border-width:2px;box-shadow:none}
+.ls1-support-intro .ll-money-luca p{line-height:1.65}
+.ls1-support-intro .ll-money-luca .ll-support-luca-legend{color:#805900}

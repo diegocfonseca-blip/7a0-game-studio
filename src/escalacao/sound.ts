@@ -10,7 +10,8 @@ import { modoEspectador } from './espectador'
 // 🔓 JÁ LIBERADO PRA TODO MUNDO (`setSoundAllowed(true)` no `index.tsx`). Este
 //    comentário dizia "só pro login do Diego" e estava velho — corrigido em 18/09,
 //    quando ele perguntou *"e aí, cadê?"* e eu vim conferir de verdade.
-// 🔇 MUTE: começa MUDO; a pessoa liga no botão. Escolha lembrada no aparelho.
+// 🔊 19/11 (Diego: *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*): o som começa LIGADO; só fica mudo
+//    quem apertou 🔇 antes (a escolha fica lembrada no aparelho). Antes começava mudo pra todo mundo.
 // 🌐 AUTOPLAY: o navegador só deixa tocar DEPOIS do 1º toque — então nada
 //    surpreende quem só abriu o jogo. O AudioContext acorda no 1º gesto.
 //
@@ -18,8 +19,8 @@ import { modoEspectador } from './espectador'
 // pode quebrar o jogo.
 
 let allowed = false
-let muted = true
-try { muted = localStorage.getItem('esc-sound-muted') !== '0' } catch { /* padrão: mudo */ }
+let muted = false
+try { muted = localStorage.getItem('esc-sound-muted') === '1' } catch { /* padrão: com som */ }
 
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
@@ -163,7 +164,59 @@ export function playMp3Gala(url: string, ms: number): () => void {
   } catch { /* ignora */ }
   return () => { ts.forEach(clearTimeout); try { a?.pause() } catch { /* ignora */ } a = null }
 }
+// ─── 🔊 SONS NOVOS (19/11, Diego: *"analise tudo… pode fazer tudo"*) ───────────────────────────────────
+// Todos sintetizados (0 KB), no MESMO mudo/volume dos outros. Quem chama decide PRA QUEM toca (regra: martelo só pra
+// quem ganha; sirene só pra quem levou o golpe…). Lista e onde cada um toca: docs/pendencias.md (19/11, sons).
+/** 🔔 "dou-lhe uma… duas…": batida de madeira mais forte nos últimos segundos antes do martelo (n = 3, 2, 1) */
+export function playDouLhe(n: number) { const f = n <= 1 ? 1320 : n === 2 ? 1100 : 920; noise(0.05, 0.45, 1900, 4); tone(f, 0.16, 'triangle', 0.42); tone(f / 2, 0.12, 'sine', 0.3, 0.01) }
+/** 😱 cobriram o seu lance: dois tons caindo ("uh-oh") */
+export function playCoberto() { tone(620, 0.14, 'square', 0.16); tone(440, 0.26, 'square', 0.16, 0.13, 400) }
+/** ⏰ o tempo acabou: buzina curta grave */
+export function playTempoEsgotado() { tone(180, 0.45, 'sawtooth', 0.22); tone(186, 0.45, 'sawtooth', 0.16, 0.005) }
+/** 😅 QUASE! perdeu por pouco: deslizada triste */
+export function playQuase() { tone(523, 0.22, 'triangle', 0.3, 0, 494); tone(440, 0.5, 'triangle', 0.3, 0.2, 330) }
+/** 🃏 pegou carta do Monte: virada de carta */
+export function playMonte() { noise(0.07, 0.45, 2600, 1.2); tone(760, 0.08, 'triangle', 0.22, 0.04); tone(1140, 0.1, 'triangle', 0.2, 0.09) }
+/** 🚨 sirene CURTA de polícia (golpe que você levou — ganhou estrela). A sirene longa do BUSTED é a `playSirene` lá embaixo. */
+export function playSireneCurta(seg = 1.4) {
+  const c = ac(); if (!c || !master) return
+  try {
+    const t = c.currentTime, o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain()
+    o.type = 'sawtooth'; o.frequency.value = 850; lfo.type = 'triangle'; lfo.frequency.value = 2.2; lg.gain.value = 260
+    lfo.connect(lg); lg.connect(o.frequency)
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1000; bp.Q.value = 0.8
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.05)
+    g.gain.setValueAtTime(0.16, t + seg - 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + seg)
+    o.connect(bp); bp.connect(g); g.connect(master)
+    o.start(t); lfo.start(t); o.stop(t + seg + 0.02); lfo.stop(t + seg + 0.02)
+  } catch { /* ignora */ }
+}
+/** ⭐ ganhou uma estrela de procurado: "plim" */
+export function playEstrela() { tone(1568, 0.25, 'sine', 0.3); tone(2093, 0.35, 'sine', 0.22, 0.07) }
+/** 🚔 BUSTED: pancada grave + sirene longa */
+export function playBusted() { tone(70, 0.5, 'sine', 0.6, 0, 40); noise(0.25, 0.5, 260, 0.6); playSireneCurta(2.6) }
+/** 💥 você usou uma carta de golpe: "fuuush" + pancada */
+export function playGolpe() { noise(0.28, 0.35, 900, 0.5); tone(300, 0.25, 'sawtooth', 0.16, 0, 90); tone(95, 0.22, 'sine', 0.45, 0.2, 55) }
+/** 👆 é a sua vez de escolher: "dim-dom" */
+export function playSuaVez() { tone(988, 0.3, 'sine', 0.34); tone(740, 0.45, 'sine', 0.34, 0.2) }
+/** ⚽ pênalti: o chute (pancada seca na bola) */
+export function playChute() { noise(0.06, 0.6, 520, 0.9); tone(150, 0.1, 'sine', 0.5, 0, 70) }
+/** 🧤 pênalti: o goleiro defendeu (tapa na bola + "ôôô" curto) */
+export function playDefesa() { noise(0.08, 0.5, 1500, 1); tone(330, 0.5, 'sawtooth', 0.04, 0.12, 250); noise(0.6, 0.1, 500, 0.7, 0.12) }
+/** 😢 eliminado / vice: o "uóóó" do trombone triste */
+export function playEliminado() { [392, 370, 349].forEach((f, i) => tone(f, 0.32, 'sawtooth', 0.12, i * 0.3)); tone(330, 0.9, 'sawtooth', 0.12, 0.9, 300) }
+/** ⬆️ subiu de divisão: fanfarra curta subindo */
+export function playSubiu() { [523, 659, 784].forEach((f, i) => tone(f, 0.18, 'square', 0.14, i * 0.13)); tone(1047, 0.6, 'square', 0.16, 0.39); playChime() }
+/** ⬇️ caiu de divisão: descida grave */
+export function playCaiu() { [392, 311, 262].forEach((f, i) => tone(f, 0.3, 'triangle', 0.3, i * 0.24)); tone(196, 0.8, 'triangle', 0.3, 0.72, 150) }
+/** 💰 dinheiro entrando no caixa: cascata de moedas */
+export function playCaixa() { for (let i = 0; i < 6; i++) { tone(1180 + i * 60, 0.09, 'triangle', 0.32, i * 0.07); tone(1560 + i * 60, 0.1, 'triangle', 0.24, i * 0.07 + 0.04) } }
+
 // 📣 apito do juiz: tom agudo com trinado + sopro
+/** 🚨 19/11 (Diego: "banner piscando com sirene da polícia"): sirene de viatura sintetizada, sobe e desce 4 vezes (~3 s, 0 KB) */
+export function playSirene() {
+  for (let i = 0; i < 4; i++) { tone(620, 0.38, 'sawtooth', 0.16, i * 0.76, 1180); tone(1180, 0.38, 'sawtooth', 0.16, i * 0.76 + 0.38, 620) }
+}
 export function playWhistle() {
   const c = ac(); if (!c || !master) return
   try {
@@ -208,9 +261,11 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 // 🎶 CANTO DA TORCIDA PERSONALIZADO, POR CONTA (05/10, Diego: *"troque o áudio do canto da torcida
 // durante os jogos simulados da carreira do Geovany… mas mantenha o áudio do gol"*). Só troca o
 // AMBIENTE, só na CARREIRA e só na tela de quem é dono do e-mail. O gol continua o de todo mundo.
+// 🔁 21/11: a regra de ONDE toca mudou — só nos jogos EM CASA do dono, na carreira e nas salas (ver `jogoDaTela`, mais abaixo).
 // O arquivo vai pro mesmo padrão do original (mono 32 kHz 56 kbps, mesmo volume médio −20,6 dB).
 // Nova conta = uma linha aqui + o arquivo em `public/sfx/`.
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
+  'ccaonta@gmail.com': 'sfx/torcida-chelsao-v1.mp3', // 🦁🔵 Chelsão da Massa FC (21/11, Batismo): os 14 primeiros segundos do canto do Chelsea que o Diego mandou (carreira + gala padrão)
   'felipefazzio@gmail.com': 'sfx/torcida-obelisko-v1.mp3', // 👁️👑 Obelisko FC (18/11, Fundador): os 14 primeiros segundos da abertura instrumental que o Diego mandou (carreira + gala)
   'danieltorresreus@gmail.com': 'sfx/torcida-spfc-wen-v1.mp3', // 👑⚪🔴⚫ Monarca Tricolor (05/11, Fundador): o MESMO canto do São Paulo do Wen Milan B (pedido do Diego)
   'sheeryarie772@gmail.com': 'sfx/torcida-spfc-wen-v1.mp3', // 🐐👑 Neymar_FC (29/10, virou Fundador): o MESMO canto do São Paulo do Wen Milan B (pedido do Diego)
@@ -226,17 +281,50 @@ const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'kelvinoliveiraandradeenunes@gmail.com': 'sfx/torcida-k9-v1.mp3', // 🧊👑 K9 FC (23/10): 12 s do vídeo que o Diego mandou, mesmo padrão do Fabulous (toca na carreira e na gala)
   'kauealves584@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🦅⚫⚪ Gaviões SCCP (16/10, Fundador): 12 s de "Todo Poderoso Timão" que o Diego mandou, mesmo volume (−20,6 dB) do Fabulous
 }
+// 🏠 o MESMO canto, pela mascote do batismo (é o que o servidor devolve de cada assento da sala, `esc_mimos_sala`) — pro VISITANTE
+// ouvir o canto do dono da casa. ⚠️ Canto novo = uma linha em cima (e-mail) E uma aqui (mascote), com o MESMO arquivo.
+const CANTO_POR_MASCOTE: Record<string, string> = {
+  chelsao_leao: 'sfx/torcida-chelsao-v1.mp3', obelisko_atormentador: 'sfx/torcida-obelisko-v1.mp3',
+  monarca_rei: 'sfx/torcida-spfc-wen-v1.mp3', neymarfc_bode: 'sfx/torcida-spfc-wen-v1.mp3', intervale_lutador: 'sfx/torcida-spfc-wen-v1.mp3', wenmilan_diaba: 'sfx/torcida-spfc-wen-v1.mp3',
+  piranhao_presidente: 'sfx/torcida-lulubaba-v1.mp3', lulubaba_goleiro: 'sfx/torcida-lulubaba-v1.mp3',
+  guimaraes_saci: 'sfx/torcida-guimaraes-v1.mp3', cobra_arruda: 'sfx/torcida-geovany-v1.mp3', fabulous_aguia: 'sfx/torcida-fabulous-v1.mp3',
+  trevo_seven: 'sfx/torcida-gavioes-v1.mp3', cuiudos: 'sfx/torcida-gavioes-v1.mp3', gavioes_gaviao: 'sfx/torcida-gavioes-v1.mp3', k9_rei: 'sfx/torcida-k9-v1.mp3',
+}
 /** 🏆 FESTA DO CAMPEÃO das salas (23/10): toca o CANTO do clube pra quem é o campeão e tem canto próprio; pros outros
  *  (e pra quem não tem canto), o grito de gol da torcida. Respeita o mudo (playMp3). */
 export function playCampeao(souCampeao: boolean, ms: number): () => void {
   const canto = souCampeao && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined
   return playMp3Gala(`${import.meta.env.BASE_URL}${canto ?? SFX_GOL}`, ms)
 }
+// 📣 CANTO NA GALA PADRÃO, POR CLUBE (21/11, Chelsão da Massa): a gala ÚNICA de cada Fundador toca o canto dentro do show dela
+// (gala-*.tsx). Quem tem só a gala PADRÃO (Batismo) e tem canto entra aqui — chave = o clube de `BATISMOS` (que segue o E-MAIL
+// do dono, via `clubeDaConta`). A sala inteira ouve, igual às galas únicas. Novo caso = uma linha.
+const CANTO_DA_GALA_PADRAO: Record<string, string> = {
+  'Chelsão da Massa FC': 'sfx/torcida-chelsao-v1.mp3',
+}
+export function cantoDaGalaPadrao(clube: string): string | undefined { return CANTO_DA_GALA_PADRAO[clube] }
 /** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
 export function temCantoProprio(email: string | null | undefined): boolean { return !!email && email.toLowerCase() in AMBIENTE_CARREIRA_POR_EMAIL }
 let emailDoSom: string | null = null
 let crowdArquivo: string | null = null // qual arquivo a torcida que está tocando usa
-const arquivoAmbiente = () => (crowdCarreira && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined) ?? SFX_AMBIENTE
+// 🏠 21/11 (Diego: "isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"): o canto deixou de
+// tocar em TODO jogo da carreira. Agora ele é o canto DA CASA do jogo que está na tela: toca quando o dono joga em casa — na
+// carreira (só ele vê o jogo) e nas salas (ele e o visitante daquele confronto). Fora de casa, ou em jogo de quem não tem
+// canto, é a torcida padrão. Quem diz qual é o jogo da tela é o placar ao vivo (`setCantoDoJogo`, chamado pelo `LiveScoreCard`).
+let jogoDaTela: { souCasa: boolean; mascoteCasa: string | null } | null = null
+/** o canto da CASA daquele jogo, pra quem está vendo: `souCasa` = o meu canto (pela MINHA conta); visitante numa sala = o canto
+ *  do dono da casa, achado pela mascote que o SERVIDOR disse ser daquele assento (nunca pelo nome digitado). */
+function cantoDaCasa(souCasa: boolean, mascoteCasa: string | null): string | null {
+  if (souCasa) return (emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined) ?? null
+  return (mascoteCasa ? CANTO_POR_MASCOTE[mascoteCasa] : undefined) ?? null
+}
+// (função, não valor guardado: se a conta só é lida DEPOIS de o jogo abrir, `conferePraConta` refaz a pergunta e o canto entra)
+const arquivoAmbiente = () => (jogoDaTela ? cantoDaCasa(jogoDaTela.souCasa, jogoDaTela.mascoteCasa) : null) ?? SFX_AMBIENTE
+/** o placar ao vivo avisa qual é o jogo da tela (`null` = nenhum/neutro → torcida padrão); a torcida acesa troca na hora */
+export function setJogoDaTela(j: { souCasa: boolean; mascoteCasa: string | null } | null): void {
+  jogoDaTela = j
+  if (crowd && crowdArquivo && crowdArquivo !== arquivoAmbiente()) { apagaCrowd(); acendeCrowd() }
+}
 // 🐛 05/10 (Geovany: "não tá no meu jogo"): quem abre o jogo direto na carreira com o 🔊 ligado
 // fazia a torcida acender ANTES de o login ser lido — entrava o canto padrão e ficava. Agora, quando
 // a conta chega, se a torcida acesa é a errada, ela troca na hora.

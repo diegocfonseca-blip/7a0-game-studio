@@ -5,6 +5,25 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## ⚡ Partida 3D — revisão profunda de 21/11/2026 (publicação autorizada)
+
+Diego relata lag no Samsung S25 e autorizou remover/refazer trabalho desnecessário.
+Após revisar os resultados, pediu: “Publique p eu tentar vê r”. Publicação autorizada
+em 21/11; conferir o término do deploy. Teste físico no S25 ainda pendente.
+Branch `fix/fluidez-3d-profunda-20261121`: cidade retida fora da árvore de desenho
+na partida, rotinas visuais suspensas, atualização noturna sem percorrer o bairro,
+solo pré-calculado do shader aprovado, LOD de torcida na transmissão e retirada
+apenas de vértices sem referência do GLB leve. Não alterar motor/placar/saves/online.
+**Não apresentar ganho medido com WebGL desligado como fluidez da imagem.** Bancada
+usa SwiftShader, não hardware S25. Medir renderização real e revisar screenshots.
+Textura provisória 1×1 exige realocar GPU ao chegar imagem maior: só `needsUpdate`
+não redimensiona o armazenamento imutável WebGL2. A regra vale também ao gramado.
+Detalhes, riscos e evidências: `docs/auditorias/fluidez-3d-profunda-20261121.md`.
+
+## 🏆 Inscrições continentais da carreira (20/11/2026)
+
+Diego aprovou corrigir vagas ANTES das copas e usar clubes/elencos reais. **Não reintegrar eliminado à mesma Libertadores para fechar grupos.** A regra antiga de 46 clubes + melhor eliminado foi retirada. Inscrições: 47 na Libertadores; 44 próprios na Sul-Americana + transferências regulamentares. Preservar edição antiga completa com `oficial.vagasDesde`; reparar apenas a inscrição já incompleta e aplicar a nova distribuição na próxima temporada válida. Ligas estrangeiras continuam com referência documentada, não simuladas. Detalhes/fontes: `docs/brasil-oficial/inscricoes-conmebol.md`. Elencos de cobertura não entram no baralho comprável/online. Esta correção ainda precisa de ordem explícita para publicar.
+
 ## ⚠️ Regras de trabalho (o Diego exige isso)
 1. **Nunca quebrar o futebol.** Ele está AO VIVO. Mudança arriscada = commit
    isolado e revertível. Na dúvida, perguntar antes.
@@ -457,6 +476,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **Sempre quer saber se dá pra reverter** ("qualquer bug eu posso voltar
   atrás né?") — responder isso proativamente a cada entrega.
 - Sons: martelo só pra QUEM ganha (ou vende) — nada de som genérico pra todos.
+- **🔊 O JOGO COMEÇA COM SOM (19/11, regra dele).** *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*. Só fica mudo quem
+  apertou 🔇 (escolha lembrada no aparelho, `esc-sound-muted = '1'`). Não voltar o padrão pro mudo. (O navegador ainda só toca depois do 1º toque.)
 - **O desenho do estádio (StadiumSvg) é sagrado**: tem que ser a PRIMEIRA coisa
   visível ao abrir a área do clube ("via o estádio de cara, eu achava bonito").
   Qualquer coisa nova naquela área entra ABAIXO dele, nunca antes.
@@ -1147,6 +1168,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (21) **O CAMPO 2D DO MAPA (aba Clube, só carreira) SEGUE SEMPRE O DA ABA JOGOS (07/11, regra permanente).** *"deve ser sempre
   baseado no que tem no campo 2D da aba de jogos… não preciso repetir isso sempre"*. Toda novidade do campinho da aba Jogos entra
   TAMBÉM no do mapa na mesma entrega (e vice-versa), sem ele pedir de novo.
+  🏟️ **19/11: O CAMPO DO MAPA VOLTA PRO 3D, A ABA JOGOS FICA NO 2D** (*"gostaria de ver novamente em 3D com jogadores com base no último
+  boneco… e não mais aquele jogo de botão… só no campo do mapa. Na aba de jogos mantém igual"*). Abertura girando o estádio antes do jogo
+  e câmera de TV que acompanha a jogada (`'tv'`, padrão do 3D). Gate `MAPA_3D_GERAL` (sport.ts), só na conta dele até o OK.
+  🟢 **19/11: LIBERADO PRA TODOS** (*"pode fazer tudo p todos"*, `MAPA_3D_GERAL = true`), junto com a faixa do NOME DO ESTÁDIO embaixo
+  do placar do mapa (roxa e "🚌 fora de casa, na casa do X" quando o seu clube visita). Com isso a
+  regra (21) passa a valer só pro mapa no 2D.
   (14) **CLIMA NO CAMPINHO** (20/10): *"chuva, sol, sombras também tem que ter — às vezes sim, às vezes não; chuva é mais raro"*.
   `campo2d-clima.ts`, preso na semente do jogo (sala inteira vê igual): ☀️ sol com a sombra da arquibancada · ☁️ nublado chapado ·
   🌧️ chuva rara (12%). No motor v2 a chuva pesa de leve (bola corre, domínio erra, goleiro dá mais rebote); no v1 é só visual.
@@ -1187,6 +1214,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (20) **O DIA DO JOGADOR PESA, PROS 22 (21/10, *"sim, também quero, mas vale pra qualquer jogador dos dois lados"*):** o nível do
   dia é sorteado na faixa INTEIRA lo–hi (dia ruim e ápice tão comuns quanto o meio) e a FORMA do dia vale ±8% no que ele rende
   (técnica; no goleiro, reflexo). Medido com os mesmos 2 times: time no dia ruim ganha 23% · normal 37% · dia bom 56%.
+- **🧭 FLUXO DA CENTRAL (19/11, *"pode fazer tudo p todos"*, `FLUXO_CENTRAL_GERAL = true`).** Os dias e os acontecimentos (ônibus,
+  feira, festa…) passam SÓ na Central; no dia do jogo a Central pergunta **📺 Campo 2D** (vai pra aba Jogos, pronto pro OK) ou **🏟️ Campo 3D**
+  (vai pro estádio do mapa, com "← Voltar pra Central" em cima). A aba Jogos não mostra jogo parado ("o jogo começa pela Central").
+  🔁 Mesmo dia (*"faça tb"*): a ESTREIA da temporada também pergunta — no lugar do "Começar a temporada" vêm "📺 Começar no Campo 2D"
+  e "🏟️ Começar no Campo 3D" (Central e aba Jogos, `comecaEstreia`).
+  🔁 **E É DO JOGO INTEIRO, NÃO DE UMA COMPETIÇÃO** (19/11, *"isso não é independente de competições… é modo do jogo… tem que ser desde o
+  início"*): Estadual, copas de fim de temporada, Supercopa — toda fase em que o SEU time joga espera a escolha na Central (`copaSegura`).
+  E no 🏟️ 3D o jogo só começa no "▶ Começar o jogo" em cima do mapa (`pend3d`), igual o 2D espera o botão na aba Jogos.
 - **📅 CALENDÁRIO: O DIA DE JOGO NUNCA PULA SOZINHO (26/10, regra dele).** *"Não quero que pule de maneira automática… chegou o dia do jogo, para e o usuário decide se vai"*. A semana passa na Central e PARA no dia do jogo; o cartão da semana mostra "⚽ Ir pro jogo". **Nada de janela por cima da tela** (*"esse modal que eu disse que não quero"*) e nada de relógio que leva pra aba Jogos. E também **nenhum jogo começa sozinho** (nem na aba Jogos: botão "▶ Começar o jogo") e **ninguém é levado de volta pra Central** depois do apito — *"o usuário tem que tá livre pra dar uma volta nas abas"*.
 - **🎤 COLETIVA = PASSO DEPOIS DO JOGO (20/10, FEITA — `ColetivaPasso` em `coletiva-ui.tsx`).** *"não tá tendo sentido entrevista embaixo do jogo… tem
   que ser passo a passo: após o jogo, quando ele avançar ou pular, aparecer, mas sem mostrar o próximo jogo… e melhorar MUITO
@@ -1214,6 +1249,43 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **🛡️ 3-4-3 = 3 ZAGUEIROS, 4 MEIAS, 3 ATACANTES, SEM LATERAL (13/11, opção 1 dele).** *"a formação 343 não deveria ter lateral"*.
   Chave nova `'3-4-3z'` (na tela "3-4-3"); a `'3-4-3'` antiga (2 LAT + 1 ZAG) só vale pra quem já estava nela. Trava `npm run 343`.
 - **🏷️ A CATEGORIA SE CHAMA "PROFISSIONAL" (13/11).** *"a categoria foi profissional agora será profissional, o nome apenas"*. Só o nome na tela (PT "Profissional", EN "Pro"); a categoria (fame 1) não mudou. Texto novo já nasce com "Profissional".
+
+- **🃏 BAFO NOVO (21/11; 🟢 LIBERADO PRA TODOS no mesmo dia: *"já pode valer para todo mundo agora"*, `SALA_ELENCO_GERAL = true`).** Cartas que a CONTA ganhou sendo campeã (não é da carreira); convocação
+  de 120 s (o jogo completa com as piores); só gente, só liga; **só o campeão toma 1 carta, em 60 s**, com os 22 de cada um abertos. Sala de espera = a
+  normal, com as regras em cima (*"a sala de espera era só a sala normal… porém teriam regras ali do modo"*). **Nunca mostrar quantas cartas cada um tem**
+  (*"N deve aparecer o número q cada um tem"*). **Dono não expulsa ninguém**; dono que sai no meio perde 2 cartas (1º e 2º levam; antes da liga, vão pro
+  sistema). Não conta pro ranking nem dá cartinha. Detalhe em `docs/pendencias.md` (21/11). Trava `npm run bafo`.
+  🔁 Mesmo dia, depois do 1º teste: convocação de **160 s** em página própria (pacote abrindo antes, Ronaldo de exemplo em cima, placar "10/22" e aviso do
+  que falta pra fechar um time) · **60 s de preparo** na escalação antes do 1º jogo · só Campo 2D · faixa da regra em cima do campo · suspense da carta tomada.
+  Quem aperta Pronto antes: o jogo completa com as PIORES (ele confirmou).
+  🔒 Mesmo dia (noite): **sem cartas que fechem um time não entra nem cria sala de Bafo** (*"eles nem poderiam ter entrado, já que não estavam aptos"*);
+  abre o banner `FaltamCartasBafo` explicando o que é carta de campeão e como ganhar. Não existe mais "só assiste" pra quem chega.
+  🗳️ **Fim do Bafo = o padrão dos outros modos, adaptado** (*"normalmente tem lá no final aquela votação… ou sair da sala"*): cada um
+  escolhe Jogar de novo ou Sair da sala; só o dono leva a sala de volta pra espera (`BafoFimVoto`). Nunca voltar pra espera sem a pessoa escolher.
+
+- **🎁 GANHOU, APARECE O PACOTE PRA ABRIR (21/11, regra permanente).** Palavras dele: *"o principal é quando acaba uma competição e você ganha, deve
+  aparecer a carta pra você, o pacote pra abrir"*. Vale pra TODA competição de TODO modo (menos o Bafo, que não dá carta nova). Competição nova = já nasce
+  com o `CardCollectPrompt` e chave própria. Rede de segurança: `PacotesDevidos` na tela inicial + `esc_titulos_sem_carta`. Carta que saiu da conta (Bafo)
+  nunca é paga de novo pelo mesmo título (`esc_titulo_pago`). Detalhe e o que ficou de fora: `docs/pendencias.md` (21/11, auditoria).
+
+- **🃏 O PACOTE DO CAMPEÃO SAI DO BARALHO INTEIRO (21/11).** *"a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for
+  campeão"* — 3 baralhos + regionais + Brasil Oficial (`baralho-inteiro.ts`). Carta/baralho novo no jogo = entra lá também. As do Oficial seguem FORA do
+  leilão das salas/partida rápida; como prêmio de álbum e no Bafo, valem. A carreira usa o MESMO sorteio (*"mesmo cálculo"*).
+
+- **📋 LIGA DRAFT: O OVERALL DO SEU ELENCO APARECE SEMPRE (21/11).** *"sempre quando tá no teu elenco, deve aparecer também sempre o overall do jogador
+  contratado"* — com ou sem plano (`overTodos`). E *"tem que ter todas as formações"*: as 7 + 3-5-2 ficam sempre à vista; a apagada diz o que falta.
+
+- **🔨 FIM DE TEMPORADA DIRETO (21/11, 🟢 liberado pra todos: *"publica tudo já, pra todo mundo"*, `JANELA_NOVA_GERAL = true`).** O botão se chama só
+  **"Leilão"**. **Sondar e pôr à venda moram na aba MERCADO** (*"a aba de mercado serve pra sondar ou tentar vender"*); apertar Leilão mostra a
+  confirmação com quem ele sondou e listou e vai DIRETO pro pregão — nunca reabrir "Contratos e vendas" ali. **Contratos vencendo = tela GRANDE própria,
+  em outro momento** (nada de banner pequeno), em lista de UMA linha: posição na cor da carta · nome · **clube · ano · over conforme o plano** (nunca a
+  palavra da categoria). **Contrato ACABANDO pode ser vendido; só o que JÁ acabou não.** A Central não tem atalho de Finanças/Agência. O **PULAR do
+  Manual fica** (o conserto era o "Pular pro jogo" da Central). O **3D anda na velocidade do Campo 2D**, com Manual/velocidade dentro do quadro do jogo
+  (cadeado pra quem não tem plano) e sem texto de diagnóstico na tela. Desligar a janela nova = `JANELA_NOVA_GERAL = false`. Trava `npm run janela-nova`.
+
+- **📣🏠 CANTO DE TORCIDA SÓ EM CASA (21/11, regra permanente).** *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*.
+  O canto personalizado toca nos jogos EM CASA do dono — na carreira e nas salas online, onde o visitante daquele jogo ouve também. Fora de casa = torcida
+  padrão (ou o canto do dono da casa). Na sala de espera, a entrada de gala (única ou padrão) toca o canto pra sala inteira. Mora em `sound.ts` (`jogoDaTela`).
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

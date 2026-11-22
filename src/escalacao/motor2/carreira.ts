@@ -90,6 +90,10 @@ const chave = (e: EntradaM2) => 'm2-cartas-2:' + JSON.stringify([
     c.fame ?? null, c.lo ?? null, c.hi ?? null, !!c.fake, c.gasMod ?? 0,
   ])),
 ])
+/** Identidade do futebol simulado; ignora biografia, preço e flags de persistência.
+ * O mapa reutiliza os mesmos atletas ao passar da prévia para o apito. */
+export const assinaturaSimulacaoM2 = chave
+
 const CACHE = new Map<string, { resultado: ResultadoM2; entrada?: EntradaM2 }>()
 const MAX = 600
 

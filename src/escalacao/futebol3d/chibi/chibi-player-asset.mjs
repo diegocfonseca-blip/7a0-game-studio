@@ -1,3 +1,6 @@
+import {compactIndexedGeometry} from './compact-geometry.mjs';
+import {materialDifusoLeve} from '../../presidencia-material-difuso-leve.ts';
+import {usarBonecoLeve} from './qualidade-jogador.mjs';
 // Local imported-character integration. Original topology, weights and bind pose
 // stay intact; only bone labels, captured clips and a separate kit mask adapt.
 import * as T from 'three';
@@ -6,7 +9,7 @@ import {clone} from 'three/addons/utils/SkeletonUtils.js';
 import {carregaJogadorNovo as loadFootballSource,criarJogadorNovo as createOriginalActor} from '../jogador-novo.mjs';
 import {prepareSkinBounds} from './skinned-frustum-bounds.mjs';
 import {capturedArmLayer} from './captured-arm-layer.mjs';
-export function criarJogadorNovo(...args){const actor=createOriginalActor(...args);actor.holder.updateMatrixWorld(true);actor.updateFrustumBounds=prepareSkinBounds(actor.mesh);actor.updateFrustumBounds();actor.visibleFacing=bone=>{const b=actor.root.getObjectByName(bone),axis=args[0].forwardAxes?.get(bone);return b&&axis?axis.clone().applyQuaternion(b.getWorldQuaternion(Q())):null};return actor}
+export function criarJogadorNovo(...args){const actor=createOriginalActor(...args);if(bonecoLeve()){const original=actor.mesh.material,next=materialDifusoLeve(original);if(next!==original){actor.mesh.material=next;original.dispose()}}actor.holder.updateMatrixWorld(true);actor.updateFrustumBounds=prepareSkinBounds(actor.mesh);actor.updateFrustumBounds();actor.visibleFacing=bone=>{const b=actor.root.getObjectByName(bone),axis=args[0].forwardAxes?.get(bone);return b&&axis?axis.clone().applyQuaternion(b.getWorldQuaternion(Q())):null};return actor}
 const Q=()=>new T.Quaternion(),V=()=>new T.Vector3();
 const major={Hip:'Hips',Waist:'Spine',Spine01:'Spine1',Spine02:'Spine2',NeckTwist01:'Neck',NeckTwist02:'NeckHelper',Head:'Head',FacialBone:'HeadFace',L_Eye:'HeadEyeLeft',R_Eye:'HeadEyeRight'};
 const limb={Clavicle:'Shoulder',Upperarm:'Arm',Forearm:'ForeArm',Hand:'Hand',Thigh:'UpLeg',Calf:'Leg',Foot:'Foot',ToeBase:'ToeBase',Pinky:'HandPinky',Ring:'HandRing',Mid:'HandMiddle',Index:'HandIndex',Thumb:'HandThumb'};
@@ -66,9 +69,17 @@ function kitMask(root){
  for(let pass=0;pass<3;pass++){const old=output.slice();for(let y=1;y<size-1;y++)for(let x=1;x<size-1;x++){const at=(y*size+x)*4;if(old[at+3])continue;for(const q of[at-4,at+4,at-size*4,at+size*4])if(old[q+3]){output.set(old.subarray(q,q+4),at);break}}}
  const texture=new T.DataTexture(output,size,size,T.RGBAFormat);texture.flipY=false;texture.colorSpace=T.NoColorSpace;texture.minFilter=texture.magFilter=T.NearestFilter;texture.generateMipmaps=false;texture.needsUpdate=true;return texture;
 }
-let promise;
-export function carregaJogadorNovo(){return promise??=(async()=>{
- const [source,gltf]=await Promise.all([loadFootballSource(),new GLTFLoader().loadAsync(new URL('../assets/jogador-estilizado-v1.glb',import.meta.url).href)]);const nativeNames=new Map();for(const b of bones(gltf.scene)){nativeNames.set(b.name,alias(b.name));b.name=alias(b.name)}
+// 📱 19/11 (Diego: *"não tá dando pra ver o jogo de tão lento… também quero no celular"*): no celular vai o boneco LEVE — o mesmo
+// boneco (ossos, UV, movimentos), com 20% dos triângulos (`scripts/futebol3d/gera-jogador-leve.mjs`). 22 bonecos de ~40 mil triângulos
+// eram ~880 mil por quadro só de jogador. `localStorage['esc3d-boneco-leve']` = '1' força o leve, '0' força o cheio.
+export function bonecoLeve(){
+ let forced,mapLevel;try{forced=localStorage.getItem('esc3d-boneco-leve');mapLevel=localStorage.getItem('pc3-qualidade-v1')}catch{}
+ let coarse=false;try{coarse=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches}catch{}
+ return usarBonecoLeve({forced,mapLevel,coarse})
+}
+const promises=new Map();
+export function carregaJogadorNovo(){const leve=bonecoLeve();if(promises.has(leve))return promises.get(leve);const pending=(async()=>{
+ const [source,gltf]=await Promise.all([loadFootballSource(),new GLTFLoader().loadAsync(leve?new URL('../assets/jogador-estilizado-leve.glb',import.meta.url).href:new URL('../assets/jogador-estilizado-v1.glb',import.meta.url).href)]);if(leve){gltf.scene.updateMatrixWorld(true);gltf.scene.traverse(node=>{if(!node.isSkinnedMesh)return;node.computeBoundingBox();node.computeBoundingSphere();const previous=node.geometry;node.geometry=compactIndexedGeometry(previous);if(node.geometry!==previous)previous.dispose()})}const nativeNames=new Map();for(const b of bones(gltf.scene)){nativeNames.set(b.name,alias(b.name));b.name=alias(b.name)}
  for(const c of gltf.animations)for(const t of c.tracks)for(const[old,next]of nativeNames)if(t.name.startsWith(old+'.')){t.name=next+t.name.slice(old.length);break}
  const box=new T.Box3().setFromObject(gltf.scene),scale=1.78/(box.max.y-box.min.y),src=clone(source.gltf.scene),dst=clone(gltf.scene);src.scale.multiplyScalar(source.escala);dst.scale.multiplyScalar(scale);const sr=snapshot(src),tr=snapshot(dst),clips=new Map();let processed=0;
  for(const[name,clip]of source.clips){clips.set(name,retargetClip(clip,src,dst,sr,tr));if(++processed%5===0)await new Promise(r=>setTimeout(r,0))}
@@ -82,4 +93,4 @@ export function carregaJogadorNovo(){return promise??=(async()=>{
  const meta={...source.meta,uniforme:{...source.meta.uniforme,cintura:.445,gola:.64},clips:{...source.meta.clips,trote:{...source.meta.clips.trote,duracao:clips.get('trote').duration},caminhada:{duracao:clips.get('caminhada').duration,deslocamento:0}}};
  for(const [name,layer]of Object.entries(armLayers))meta.clips[name]={...meta.clips[name],capturedArms:{...layer,arquivo:source.meta.clips[layer.donor].arquivo}};
  const asset={gltf,forwardAxes,regioes:kitMask(gltf.scene),meta,clips,escala:scale,design:'chibi-upload-78',sourceClips:source.clips.size};if(import.meta.env.DEV)globalThis.qaChibiAsset=asset;return asset;
- })()}
+ })();promises.set(leve,pending);pending.catch(()=>{if(promises.get(leve)===pending)promises.delete(leve)});return pending}

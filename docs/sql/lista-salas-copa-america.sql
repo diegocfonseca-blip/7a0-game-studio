@@ -1,0 +1,11 @@
+-- 🌎 19/11 (Diego: "na listagem de salas abertas já deve aparecer libertadores na liberta e copa América na copa América").
+-- O gatilho das colunas magras gravava ls_copa2='euro' pra QUALQUER euroNaLiga — a Copa América (euroNaLiga=16) aparecia como
+-- "Liga + Eurocopa" na lista. Agora grava 'america' quando é 16. A Libertadores já ia certa (regionalNaLiga='liberta').
+-- Ordem: o aparelho (lobby.tsx) já lê 'america' ANTES deste SQL — publicado primeiro.
+-- Aplicado trocando SÓ a linha do ls_copa2 dentro de public.game_rooms_colunas_magras (o resto da função igual ao que estava no banco).
+--   new.ls_copa2 := coalesce(new.game_state->>'regionalNaLiga', case
+--     when new.game_state->>'mundoNaLiga' = 'true' and new.game_state->>'euroNaLiga' = '16' then 'america'
+--     when new.game_state->>'mundoNaLiga' = 'true' and coalesce(new.game_state->>'euroNaLiga', '') not in ('', 'null') then 'euro'
+--     when new.game_state->>'mundoNaLiga' = 'true' then 'mundo' end);
+-- ↩️ Desfazer: tirar a linha do 'america' (volta a gravar 'euro').
+-- ✅ APLICADO em 19/11 depois do deploy do aparelho (migration lista_salas_copa_america).

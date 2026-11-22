@@ -371,6 +371,8 @@ export function criarVisitaComplexo(scene: THREE.Scene, options: OpcoesVisitaCom
   }
   update(startedAt)
   return { root: body.root, feet: body.feet, period: timeline.period, at: timeline.at, update, configureColor,
+    // Fluxo de pessoas lê só o relógio; medir malha/ossos fica no diagnóstico explícito.
+    side: options.side, seatId: options.seat.id, journeyState: () => journeyClock.inspect(),
     setAccessBlocked(value:boolean){accessBlocked=value},
     finishAtOrigin(){retiring=true;const current=journeyClock.inspect();journeyClock.configure({key:current.key??'retiring-'+options.id,variantSeed:0,phase:'departure'})},
     configureJourney(journey: JornadaMovimentoComplexo | undefined) { if (disposed) return; journeyClock.configure(journey); update(seconds) },

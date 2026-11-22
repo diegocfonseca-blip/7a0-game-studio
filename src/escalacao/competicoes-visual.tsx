@@ -9,7 +9,7 @@ import {useOwnerLayout,OwnerChampionBanner} from './owner-online-visual'
 import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { tr } from './lang'
-import { playCampeao } from './sound'
+import { playCampeao, playEliminado } from './sound'
 import { legendAvatar } from './legend-avatars'
 import estadioArt from './img/online-estadio-v25.webp'
 import { useTelaPC } from './sport'
@@ -175,7 +175,7 @@ export function TunelFinal({ comp, casa, fora, seg, total, espera, nomeComp, onF
 /** 🏆 A FESTA DO CAMPEÃO: por cima da tela de fim, ~5,5 s, toque pula. */
 /** ⚽🅰️ quem fez mais gols / deu mais passes na competição (pra festa) */
 export type DestaqueFesta = { nome: string; time: string; n: number }
-export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, onDone, artilheiro, garcom, nomeComp, penaltis = false, tema }: {
+export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, souCampeao = false, souVice = false, onDone, artilheiro, garcom, nomeComp, penaltis = false, tema }: {
   /** 🎨 10/11: o campeão é o dono da sala e a sala tem tema → o fundo da festa vira o tema, com o selo dele (todo mundo vê) */
   tema?: { fundo: string; selo: string; escudo: string } | null
   comp: CompId; nome: string; crest: ReactNode; mascote?: ReactNode
@@ -185,6 +185,8 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   lendas?: { nome: string; club: string; year: number }[]; linha?: string
   /** quem está vendo É o campeão? (aí toca o canto do clube dele, se tiver; senão o grito de gol) */
   souCampeao?: boolean; onDone: () => void
+  /** 😢 19/11: quem está vendo perdeu a FINAL → no lugar do grito da torcida, o "uóóó" do vice (só pra ele) */
+  souVice?: boolean
   /** 🥅 04/11 (por enquanto só a conta do Diego, igual ao mapa 3D): título decidido nos pênaltis → selo "NOS PÊNALTIS!" na faixa.
    * A festa já só abre depois da disputa aparecer; aqui é só o selo, nunca a cobrança. */
   penaltis?: boolean
@@ -194,7 +196,7 @@ export function FestaCampeao({ comp, nome, crest, mascote, lendas = [], linha, s
   const DUR = 5600
   const [saindo, setSaindo] = useState(false)
   useEffect(() => {
-    const para = playCampeao(souCampeao, DUR)
+    const para = souVice && !souCampeao ? (playEliminado(), () => {}) : playCampeao(souCampeao, DUR)
     const t1 = setTimeout(() => setSaindo(true), DUR - 450)
     const t2 = setTimeout(onDone, DUR)
     return () => { para(); clearTimeout(t1); clearTimeout(t2) }

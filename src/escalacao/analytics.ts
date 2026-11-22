@@ -70,7 +70,7 @@ export async function logPlay(mode: 'cpu' | 'online', displayName?: string) {
 // pulso "estou no site agora" — a cada ~30s, em qualquer tela. É um insert puro
 // (heartbeat append-only), então funciona pro jogador anônimo. As linhas velhas
 // são podadas no servidor; o "ao vivo" olha só os últimos 90s.
-export async function heartbeat(mode: 'cpu' | 'online' | 'career', displayName: string | undefined, screen: string, career?: { season: number; division: string; coins?: number; titles?: number }, deckLeague?: 'br' | 'eu' | 'both' | 'todos') {
+export async function heartbeat(mode: 'cpu' | 'online' | 'career', displayName: string | undefined, screen: string, career?: { season: number; division: string; coins?: number; titles?: number; modo?: string }, deckLeague?: 'br' | 'eu' | 'both' | 'todos') {
   try {
     const user = await authUser()
     await supabase.from('live_beats').insert({
@@ -84,6 +84,7 @@ export async function heartbeat(mode: 'cpu' | 'online' | 'career', displayName: 
       career_coins: career?.coins ?? null,   // 💰 caixa atual na carreira (painel ao vivo)
       career_titles: career?.titles ?? null, // 🏆 títulos de QUALQUER série nessa carreira
       deck_league: deckLeague ?? null,
+      career_modo: career?.modo ?? null, // 🇧🇷 19/11: 'oficial' = Brasil Oficial (o painel separa da carreira de sempre)
     })
   } catch { /* silencioso */ }
 }

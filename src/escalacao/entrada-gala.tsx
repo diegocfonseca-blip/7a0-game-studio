@@ -27,6 +27,7 @@
 //     página está aberta (regra do armazenamento cheio, 21/09).
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import type React from 'react'
+import { playMp3Gala, cantoDaGalaPadrao } from './sound' // 📣 21/11: canto na gala padrão
 import { createPortal } from 'react-dom'
 import { batismoDe, BATISMOS } from './batismos'
 import { mascoteInteiraDoTime, CARIMBO_GOL } from './mascotes'
@@ -56,6 +57,7 @@ import { GalaPaizao, PAIZAO_MS } from './gala-paizao'
 import { GalaCabritiiin, CABRITIIIN_MS } from './gala-cabritiiin'
 import { GalaDuarte, DUARTE_MS } from './gala-duarte'
 import { GalaObelisko, OBELISKO_MS } from './gala-obelisko'
+import { GalaCabuloso, CABULOSO_MS } from './gala-cabuloso'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -84,6 +86,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Piranhão FC': { ms: PIRANHAO_MS, Show: GalaPiranhao }, // 🐟🏛️ A Posse: Palácio, tapete vermelho, salva de 21 tiros, faixa presidencial e as piranhas (29/10, Fundador)
   'Lulubaba FC': { ms: LULUBABA_MS, Show: GalaLulubaba }, // 🧤🖤 O Paredão Alvinegro: estrela solitária, 3 chutes, o Goleiro pega no ângulo (29/10, virou Fundador)
   'Double Duo FC': { ms: DOUBLEDUO_MS, Show: GalaDoubleDuo }, // 👑💜 O Save: o jogo de manager abre, a escalação se desenha, os dois D viram o escudo e o Streamer sobe (09/11, Fundador nº100)
+  'Cabuloso JP': { ms: CABULOSO_MS, Show: GalaCabuloso }, // 🦊👑 A Raposa Coroada: as 5 estrelas do Cruzeiro do Sul acendem, a sombra na lua, a coroa cai, pé na bola, o escudo (21/11, Fundador nº104)
   'Obelisko FC': { ms: OBELISKO_MS, Show: GalaObelisko }, // 👁️⚡ A Invocação: 3 cartas viram tributo, o obelisco racha, O Atormentador se ergue, ATK/DEF 4000, o soco trinca a tela (18/11, Fundador nº103)
   'Duarte FC': { ms: DUARTE_MS, Show: GalaDuarte }, // 🧤🐓 São Victor: noite de estádio, pênalti contra, O Paredão defende com o pé, listras preto e branco, escudo com estrela dourada (18/11, Fundador nº102)
   'Cabritiiin F.C': { ms: CABRITIIIN_MS, Show: GalaCabritiiin }, // 🐐☀️ Direto da Terra do Sol: o sol nasce no mar, jangada, listras azul e branca, o Cabritiiin desliza, brilho nos óculos, casco racha o chão (13/11, Fundador nº101)
@@ -201,6 +204,11 @@ const CSS = `
 `
 export function GalaEstilo() { return <style>{CSS}</style> }
 
+/** 📣 21/11: a gala PADRÃO toca o canto do clube que tem um (`cantoDaGalaPadrao`), abaixando no fim — a sala inteira ouve */
+function SomDaGalaPadrao({ clube, chave }: { clube: string; chave: string }) {
+  useEffect(() => { const c = cantoDaGalaPadrao(clube); return c ? playMp3Gala(`${import.meta.env.BASE_URL}${c}`, GALA_MS) : undefined }, [clube, chave])
+  return null
+}
 export function EntradaGalaShow({ clube, chave, nome }: { clube: string; chave: string; /** o nome com que o dono está jogando (pode ser o nome novo do clube) */ nome?: string }) {
   const mostra = nome || clube
   const art = mascoteInteiraDoTime(clube)
@@ -209,6 +217,7 @@ export function EntradaGalaShow({ clube, chave, nome }: { clube: string; chave: 
   return createPortal(
     <div key={chave} className="gala-show" aria-hidden>
       <GalaEstilo />
+      <SomDaGalaPadrao clube={clube} chave={chave} />
       <div className="gala-escuro" /><div className="gala-feixe" />
       <div className="gala-telao">
         <span className="esc"><Escudo nome={clube} size={170} /></span>

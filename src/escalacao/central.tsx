@@ -25,7 +25,6 @@ import { getLang, useT } from './lang'
 import { avisoFechado, fechaAviso } from './avisos-fechados' // ✕ fechou = não volta (29/10)
 import type { Jornal, Contratacao } from './central-noticias'
 import estadioArt from './img/online-estadio-v25.webp'
-import tacaArt from './img/jornal-liga-v22.webp'
 import leilaoArt from './img/career-auction-room-private.webp'
 import copaBrArt from './img/carreira-copa-brasil-v25.webp'
 import copaLegArt from './img/online-copa8-v25.webp'
@@ -161,7 +160,7 @@ export type CentralProps = {
   /** 📅 25/10 (Diego: *"a Central é a casa"*): com o calendário, nos dias vazios a semana + o próximo jogo ficam NO LUGAR do camarote */
   semana?: React.ReactNode
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
-  botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
+  botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void; alt?: { label: string; onClick: () => void }; alt2?: { label: string; onClick: () => void } }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
   /** 🛒 18/11: com a aba Mercado (Brasil Oficial) o cartão 💸 leva pra ela em vez do extrato */
   onMercado?: () => void
@@ -178,6 +177,8 @@ export type CentralProps = {
   /** 🏀 15/11: Central da carreira do BASQUETE — mesma tela, troca o que é de futebol: quantos jogos tem a temporada,
    *  a campanha em vitórias-derrotas (sem empate) no lugar dos pontos, e a arte da quadra. Sem `bb`, é o futebol de sempre. */
   bb?: { total: number; vd: Record<string, { w: number; l: number }> }
+  /** 🔨 21/11 (janela nova): sondar e vender moram no Mercado e os contratos têm tela própria — o aviso diz isso */
+  janelaNova?: boolean
 }
 export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
@@ -361,13 +362,18 @@ export function CentralCarreira(p: CentralProps) {
               })()}
               <button type="button" onClick={p.botao.onClick} disabled={p.botao.disabled}
                 style={{ ...OSW, width: '100%', background: p.botao.disabled ? '#5a5a5a' : G_OURO, color: p.botao.disabled ? '#ddd' : INK, border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 19, letterSpacing: '.04em', cursor: p.botao.disabled ? 'default' : 'pointer', marginTop: frase ? 0 : 10 }}>{p.botao.label}</button>
+              {p.botao.alt && <button type="button" onClick={p.botao.alt.onClick}
+                style={{ ...OSW, width: '100%', marginTop: 8, background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 16, fontWeight: 900, cursor: 'pointer' }}>{p.botao.alt.label}</button>}
+              {p.botao.alt2 && <button type="button" onClick={p.botao.alt2.onClick}
+                style={{ ...OSW, width: '100%', marginTop: 8, background: '#FFC400', color: INK, border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 16, fontWeight: 900, cursor: 'pointer' }}>{p.botao.alt2.label}</button>}
               {p.botao.sub && <small style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 800, opacity: .6, marginTop: 6 }}>{p.botao.sub}</small>}
             </div>
           </div>}
 
           {p.sede && <CartaoSede s={p.sede} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
-          <><nav className="cv2-quick-links" aria-label={t('Atalhos da carreira','Career shortcuts')}>{([['financas',t('Finanças','Finances'),t('Caixa e compromissos','Balance and commitments')],['agencia',t('Agência','Agency'),t('Clientes e contratos','Clients and contracts')]] as const).map(([tab,title,sub])=><button key={tab} type="button" onClick={()=>p.onClubDestination ? p.onClubDestination(tab) : p.onTab('estadio')}>{title}<small>{sub}</small></button>)}</nav>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
+          {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
+          <>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
@@ -387,7 +393,7 @@ export function CentralCarreira(p: CentralProps) {
           {p.janela && (
             <div className="ll-central-card" style={{ background: '#fff', color: INK, padding: '11px 13px' }}>
               <p style={{ ...OSW, fontSize: 16, margin: 0 }}>{t('🕵️ A janela vai abrir', '🕵️ The window is coming')}</p>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.45 }}>{t('No fim da temporada a janela abre direto no 🕵️ Sondar: dá pra trazer 1 técnico e 1 jogador 🆓 sem contrato de outro clube pro leilão.', 'At the end of the season the window opens straight on 🕵️ Scout: you can bring 1 coach and 1 player 🆓 out of contract from another club to the auction.')}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#5a5647', margin: '3px 0 0', lineHeight: 1.45 }}>{p.janelaNova ? t('Sondar (1 técnico + 1 jogador 🆓 sem contrato) e pôr jogador à venda é no 🛒 Mercado, até a última rodada. No fim da temporada, quem tem contrato vencendo ganha a tela de 📝 Contratos — e o leilão vem direto.', 'Scouting (1 coach + 1 player 🆓 out of contract) and putting players up for sale happen in the 🛒 Market, until the last round. At the end of the season, expiring contracts get their own 📝 Contracts screen — then straight to the auction.') : t('No fim da temporada a janela abre direto no 🕵️ Sondar: dá pra trazer 1 técnico e 1 jogador 🆓 sem contrato de outro clube pro leilão.', 'At the end of the season the window opens straight on 🕵️ Scout: you can bring 1 coach and 1 player 🆓 out of contract from another club to the auction.')}</p>
             </div>
           )}
           {p.giro && p.giro.jogos.length > 0 && (
@@ -485,7 +491,7 @@ export function CentralCarreira(p: CentralProps) {
               <b style={{ ...OSW, fontSize: 26, letterSpacing: 2 }}>O Martelo</b>
               <small style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, color: '#6c604a', textTransform: 'uppercase' }}>{p.round > 0 ? (p.bb ? t(`Edição do jogo ${p.round}`, `Game ${p.round} edition`) : t(`Edição da rodada ${p.round}`, `Round ${p.round} edition`)) : t('Edição de pré-temporada', 'Pre-season edition')} · {t('Temporada', 'Season')} {p.seasonNo} · {p.divName}</small>
             </div>
-            <div style={{ height: p.fotoLendas?.length ? 190 : 150, background: `url(${p.bb ? quadraArt : tacaArt}) center 30% / cover`, position: 'relative', borderBottom: `3px solid ${INK}` }}>
+            <div style={{ height: p.fotoLendas?.length ? 190 : 150, background: `url(${p.bb ? quadraArt : estadioArt}) center 40% / cover`/* 📰 21/11 (Diego: "sempre aparece a foto do cara levantando troféu… não tem sentido"): no meio da temporada a capa é o estádio; a taça fica pro jornal do campeão */, position: 'relative', borderBottom: `3px solid ${INK}` }}>
               {p.fotoLendas?.length ? <div style={{ position: 'absolute', inset: 0 }}><FotoLendas lendas={p.fotoLendas} altura={190} /></div> : null}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0000 40%,#000c)' }} />
               <div style={{ position: 'absolute', left: 12, right: 12, bottom: 10, color: '#fff' }}>

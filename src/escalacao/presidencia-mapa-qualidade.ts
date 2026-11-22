@@ -29,5 +29,5 @@ export function ajustesNivelMapa(n: NivelMapa) {
 /** Abriu devagar demais? (o mundo + a placa de vídeo levaram mais que isso até o 1º desenho) */
 export const ABRIR_LENTO_MS = 8000
 /** Engasgando: média do intervalo entre quadros (com o mapa andando) acima disso, por pelo menos N quadros. */
-export const ENGASGO_MS = 120, ENGASGO_QUADROS = 40
+export const ENGASGO_MS = 50, ENGASGO_QUADROS = 45
 export function proximoEngasgo(media: number, intervalo: number) { return media <= 0 ? intervalo : media * 0.9 + intervalo * 0.1 }

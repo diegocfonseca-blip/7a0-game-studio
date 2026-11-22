@@ -24,6 +24,7 @@ import tokaEscudoImg from './img/toka10-escudo.webp'
 import erosEscudoImg from './img/eros-escudo.webp'
 import sapekEscudoImg from './img/sapek-escudo.webp'
 import arrudaEscudoImg from './img/arruda-escudo.webp'
+import punetaEscudoImg from './img/puneta-escudo.webp' // 🛡️ escudo AVULSO pago (19/11) — só a conta que pagou vê, via ESCUDO_AVULSO_CONTAS (manto.ts)
 import coringasEscudoImg from './img/coringas-escudo.webp'
 import nataEscudoImg from './img/nata-escudo.webp'
 import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (matheusfilipealves): arte própria do dono
@@ -87,9 +88,11 @@ import leoestufEscudoImg from './img/leoestuf-escudo.webp' // 🦁🇧🇷 Leõe
 import reffattiEscudoImg from './img/reffatti-escudo.webp' // 🎮👑 Reffatti FC (leoreffattig): arte própria do dono, 15/11
 import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import cearaspEscudoImg from './img/cearasp-escudo.webp' // 👑⚫ Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
+import imperioEscudoImg from './img/imperio-escudo.webp' // 👑🦡 Império FC (leodicasttro): arte própria do dono, 20/11
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
+import cabulosoEscudoImg from './img/cabuloso-escudo.webp' // 🦊👑 Cabuloso JP (rafaelazevedo455): arte própria do dono, 21/11
 import obeliskoEscudoImg from './img/obelisko-escudo.webp' // 👁️👑 Obelisko FC (felipefazzio): arte própria do dono, 18/11
 import vilaEscudoImg from './img/vila-escudo.webp' // ⭐🦁 Vila Esporte Clube (oluisantonio.contato): arte própria do dono, 27/10
 import neymarfcEscudoImg from './img/neymarfc-escudo.webp' // 🐐👑 Neymar FC (sheeryarie772): arte própria do dono, 21/10
@@ -564,6 +567,9 @@ const sapekEscudoRender = (size: number) => (
 // chave apertada medida na imagem (fundo g-max(r,b) >= 128, gramado <= 129 —
 // rampa 132→148) e o escudo separado por COMPONENTE, porque a cauda da cobra
 // invade a faixa de colunas dele sem encostar. Conferido sobre creme: gramado inteiro.
+const punetaEscudoRender = (size: number) => (
+  <img src={punetaEscudoImg} height={size} width={size} alt="Deportivo La Puñeta" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const arrudaEscudoRender = (size: number) => (
   <img src={arrudaEscudoImg} height={size} width={Math.round(size * 360 / 260)} alt="Tricolor do Arruda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1002,6 +1008,11 @@ const hgigantesEscudoRender = (size: number) => (
 const cearaspEscudoRender = (size: number) => (
   <img src={cearaspEscudoImg} height={size} width={Math.round(size * 312 / 360)} alt="Ceará SP Club" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 👑🦡 IMPÉRIO FC (leodicasttro, batismo de 20/11) — Várzea, no assento do bot Juventude do Churrasco. 📏 244×360, 28 KB.
+// Escudo preto e dourado com coroa, o texugo do mel de manto real e o castelo. Fundo verde chroma tirado; conferido sobre vermelho.
+const imperioEscudoRender = (size: number) => (
+  <img src={imperioEscudoImg} height={size} width={Math.round(size * 244 / 360)} alt="Império FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
 // Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
 const lavrasEscudoRender = (size: number) => (
@@ -1017,6 +1028,11 @@ const leoestufEscudoRender = (size: number) => (
 // 👁️👑 OBELISKO FC (felipefazzio, batismo FUNDADOR de 18/11) — Várzea, no assento do bot Trave Torta EC. 📏 284×320, 30 KB
 // (320 de altura porque o escudo é muito detalhado e a 360 passava do teto). O colosso azul de braços abertos, moldura dourada com
 // o Olho de Hórus e a faixa "ATORMENTADOR" — o 2º escudo que o dono mandou, o escolhido pelo Diego. Conferido sobre creme.
+// 🦊👑 CABULOSO JP (rafaelazevedo455, batismo FUNDADOR de 21/11) — Várzea, no assento do bot Descampado EC. 📏 243×360, 28 KB.
+// Escudo azul com coroa, a raposa de manto azul e as estrelas do Cruzeiro do Sul. Fundo verde chroma tirado; conferido sobre vermelho.
+const cabulosoEscudoRender = (size: number) => (
+  <img src={cabulosoEscudoImg} height={size} width={Math.round(size * 243 / 360)} alt="Cabuloso JP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const obeliskoEscudoRender = (size: number) => (
   <img src={obeliskoEscudoImg} height={size} width={Math.round(size * 284 / 320)} alt="Obelisko FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1264,6 +1280,9 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Sapekeiros': sapekEscudoRender,
   // 🏟️🇧🇷 Tricolor do Arruda FC (souzact12) — ex-Legado EC, Série A. Os nomes
   // sem "FC" continuam registrados: quem pegou o save da 1ª hora não fica sem escudo.
+  // 🛡️ ESCUDO AVULSO (pago no Pix, 19/11): chave que ninguém digita — o nome de verdade ('Deportivo La Puñeta')
+  // tem dois donos no jogo, então o escudo segue o E-MAIL de quem pagou (ESCUDO_AVULSO_CONTAS em manto.ts).
+  'zz avulso deportivo la puneta': punetaEscudoRender,
   'Tricolor do Arruda FC': arrudaEscudoRender,
   'Tricolor do Arruda': arrudaEscudoRender,
   // 🃏⚫⚪ Coringas do Diniz (lucas_calefi) — ex-Vanguarda Nacional, Série A. O nome
@@ -1773,6 +1792,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Ceará SP Club FC': cearaspEscudoRender,
   'Ceará SP Club EC': cearaspEscudoRender,
   'Ceará SP Club SC': cearaspEscudoRender,
+  // 👑🦡 Império FC (leodicasttro) — BATISMO. As formas do nome (regra 20/08), com e sem acento. O Juventude do Churrasco continua no jogo rápido.
+  'Império FC': imperioEscudoRender,
+  'Imperio FC': imperioEscudoRender,
+  'Império F.C': imperioEscudoRender,
+  'Império F.C.': imperioEscudoRender,
+  'Império EC': imperioEscudoRender,
+  'Império SC': imperioEscudoRender,
   // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
   // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'Lavras FC': lavrasEscudoRender,
@@ -1789,6 +1815,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   // 👁️👑 Obelisko FC (felipefazzio) — BATISMO FUNDADOR. As 4 formas do nome (regra 20/08). O Trave Torta EC (bot que cedeu o
   // assento) continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
+  // 🦊👑 Cabuloso JP (rafaelazevedo455) — BATISMO FUNDADOR. As formas do nome (regra 20/08). O Descampado EC continua no jogo rápido.
+  'Cabuloso JP': cabulosoEscudoRender,
+  'Cabulosojp': cabulosoEscudoRender,
+  'Cabuloso JP FC': cabulosoEscudoRender,
+  'Cabuloso JP EC': cabulosoEscudoRender,
+  'Cabuloso JP SC': cabulosoEscudoRender,
   'Obelisko FC': obeliskoEscudoRender,
   'Obelisko': obeliskoEscudoRender,
   'Obelisko EC': obeliskoEscudoRender,

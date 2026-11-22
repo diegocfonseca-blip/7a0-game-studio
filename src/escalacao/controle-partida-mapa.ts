@@ -14,6 +14,11 @@ export interface ControleMapa {
   alternaManual: () => void
   mudaVelocidade: (v: number) => void
   avanca: () => void
+  /** ⏩ 21/11: a marcha do jogo no estádio 3D = a do campinho 2D (1× · 1,5× · … · 4×) */
+  marcha?: number
+  mudaMarcha?: (v: number) => void
+  /** 🔒 sem o Modo Manual: o toque no cadeado abre as ofertas (em cima do mapa) */
+  cadeado?: () => void
   /** 🔁 substituição e tática: abre a aba Jogos (onde moram) */
   tatica?: () => void
   /** 📅 o dia do calendário da carreira ("📅 Qua 23 abr") */
@@ -28,7 +33,7 @@ let chave = ''
 const ouvintes = new Set<() => void>()
 /** a carreira chama a cada render; só avisa o mapa quando muda o que aparece (as funções são sempre as mais novas) */
 export function publicaControleMapa(c: ControleMapa | null) {
-  const k = c ? `${c.manualOk}|${c.manual}|${c.velocidade}|${c.podeAvancar}|${c.rotuloAvancar}|${c.dia}|${!!c.irProJogo}|${!!c.chegando}` : ''
+  const k = c ? `${c.manualOk}|${c.manual}|${c.velocidade}|${c.marcha}|${!!c.cadeado}|${c.podeAvancar}|${c.rotuloAvancar}|${c.dia}|${!!c.irProJogo}|${!!c.chegando}` : ''
   atual = c
   if (k === chave) return
   chave = k
@@ -43,10 +48,17 @@ export function useControleMapa(): ControleMapa | null {
 
 // 🏟️ 25/10 (Diego: *"quando clicar em campo 3D redireciona já pra dentro da aba de clubes, dentro do mapa, e já na melhor
 // câmera do estádio"*): a carreira PEDE a câmera e o mapa atende assim que estiver pronto (se já estiver, atende na hora)
-let cameraPedida: string | null = null
+type PedidoCameraMapa = { camera: string; giro?: string }
+let cameraPedida: PedidoCameraMapa | null = null
 const ouvintesCamera = new Set<() => void>()
-export function pedeCameraDoMapa(c: string) { cameraPedida = c; ouvintesCamera.forEach(f => f()) }
-export function tiraCameraPedida(): string | null { const c = cameraPedida; cameraPedida = null; return c }
+export function pedeCameraDoMapa(c: string, giro?: string) { cameraPedida = { camera: c, giro }; ouvintesCamera.forEach(f => f()) }
+export function tiraCameraPedida(): PedidoCameraMapa | null { const c = cameraPedida; cameraPedida = null; return c }
+/** O pedido espera o mapa carregar; a apresentação não depende do apito inicial. */
+export function temCameraPedida(): boolean { return cameraPedida != null }
+// 🏟️ 20/11 (Diego: "só depois de parar aparecer o botão de começar o jogo"): o mapa avisa quando o giro de abertura terminou
+const ouvintesGiro = new Set<(giro?: string) => void>()
+export function avisaGiroFeito(giro?: string) { ouvintesGiro.forEach(f => { try { f(giro) } catch { /* segue */ } }) }
+export function assinaGiroFeito(f: (giro?: string) => void) { ouvintesGiro.add(f); return () => { ouvintesGiro.delete(f) } }
 export function assinaCameraPedida(f: () => void) { ouvintesCamera.add(f); return () => { ouvintesCamera.delete(f) } }
 
 // 📍 18/11 (Diego: *"quando apertar qualquer coisa deve mostrar na hora no mapa o ocorrido"*): o "Ver no mapa" da cena do bairro

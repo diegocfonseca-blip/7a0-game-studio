@@ -1,3 +1,5 @@
+import {simplificarMateriaisCampo} from './presidencia-material-difuso-leve'
+import {assinaturaSimulacaoM2} from './motor2/carreira'
 import {criarCampo2DNoMapa} from './presidencia-campo2d-no-mapa'
 import {playWhistle} from './sound'
 import {criarRedeGol3D,atualizarRedesGol3D} from './presidencia-rede-gol-3d'
@@ -9,7 +11,8 @@ import type {StadiumSave} from './estadiodata'
 import type {PresidenteBaseSave} from './presidencia-carreira'
 import {progressoVisualSetor} from './presidencia-estadio-camadas'
 import {materialSolo3D} from './presidencia-solo-3d'
-import {materialGramado3D} from './presidencia-gramado-material-3d'
+import {materialGramado3D,desgasteGramadoCompartilhado} from './presidencia-gramado-material-3d'
+import {mapa3dLiberado} from './sport'
 import {faixasGramado3D} from './presidencia-gramado-3d'
 import {BANCO_Z,TECNICO_Z,FUNDO_AREA_TECNICA_Z} from './presidencia-area-tecnica'
 import {entradaOficialCompleta,atletasEmCampo,type AtletaEstadio,type EstadoPartidaEstadio} from './presidencia-partida-model'
@@ -39,7 +42,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
    apron.rotation.x=-Math.PI/2;apron.position.set(x,-.02,z);apron.receiveShadow=true;scene.add(apron)
   }
  }else{const contact=new THREE.Mesh(new THREE.PlaneGeometry(120,84),new THREE.ShadowMaterial({opacity:.22}));contact.rotation.x=-Math.PI/2;contact.position.y=-.01;contact.receiveShadow=true;scene.add(contact)}
- const grass=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'estadio-partida/grass-base.webp',texture=>{if(!texture.userData.disposed)onTextureReady?.()},undefined,()=>{
+ const grass=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'estadio-partida/grass-base.webp',texture=>{if(!texture.userData.disposed){texture.dispose();texture.needsUpdate=true;onTextureReady?.()}},undefined,()=>{
   if(grass.userData.disposed)return
   // Keep the valid green placeholder if this download fails.
   grass.userData.loadFailed=true
@@ -49,17 +52,19 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  // TextureLoader replaces this valid pixel with the real image on success.
  if(!grass.image){grass.image=new ImageData(new Uint8ClampedArray([85,120,42,255]),1,1);grass.needsUpdate=true}
  const progress=stadium?progressoVisualSetor(stadium,'grama'):0
- const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass)),dirt=materialSolo3D()
+ const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass,!readable2D&&!registered&&mapa3dLiberado()?desgasteGramadoCompartilhado():undefined))
+ let dirt:THREE.MeshStandardMaterial|undefined
+ const soil=()=>dirt??=materialSolo3D(!mapa3dLiberado(),onTextureReady) /* 🟫 19/11: a terra nova (manchas, desgaste, pedrinhas, tufos) vai junto com o 3D do mapa — só na conta do Diego até ele soltar */
  for(const band of faixasGramado3D(progress)){
   const geometry=new THREE.PlaneGeometry(band.width,68),uv=geometry.getAttribute('uv')
   // One continuous grass texture across the 105 m field, including partial strips.
   for(let j=0;j<uv.count;j++)uv.setX(j,(band.left+52.5+uv.getX(j)*band.width)/105)
-  const strip=new THREE.Mesh(geometry,band.grass?greens[band.stripe]:dirt)
+  const strip=new THREE.Mesh(geometry,band.grass?greens[band.stripe]:soil())
   strip.rotation.x=-Math.PI/2;strip.position.set(band.left+band.width/2,.002,0);strip.receiveShadow=true;scene.add(strip)
   // Native-resolution ground under boots/benches, within the registered apron.
   const apronDepth=-34-FUNDO_AREA_TECNICA_Z,apronGeometry=new THREE.PlaneGeometry(band.width,apronDepth),apronUv=apronGeometry.getAttribute('uv')
   for(let j=0;j<apronUv.count;j++){apronUv.setX(j,(band.left+52.5+apronUv.getX(j)*band.width)/105);apronUv.setY(j,1+apronUv.getY(j)*apronDepth/68)}
-  const apron=new THREE.Mesh(apronGeometry,band.grass?greens[band.stripe]:dirt)
+  const apron=new THREE.Mesh(apronGeometry,band.grass?greens[band.stripe]:soil())
   apron.rotation.x=-Math.PI/2;apron.position.set(band.left+band.width/2,.002,(-34+FUNDO_AREA_TECNICA_Z)/2);apron.receiveShadow=true;scene.add(apron)
  }
  // A completed grass pitch also covers the goal recess/run-off. Keep the
@@ -101,7 +106,7 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  for(const node of scene.children){if(node instanceof THREE.Mesh&&!Array.isArray(node.material)){const group=groups.get(node.material)??[];group.push(node);groups.set(node.material,group)}}
  for(const [mat,nodes] of groups){if(nodes.length<2)continue;const pieces=nodes.map(node=>node.geometry.clone().applyMatrix4(node.matrixWorld)),merged=mergeGeometries(pieces);pieces.forEach(g=>g.dispose());if(!merged)continue;for(const node of nodes){scene.remove(node);node.geometry.dispose()}const mesh=new THREE.Mesh(merged,mat);mesh.castShadow=nodes.some(n=>n.castShadow);mesh.receiveShadow=true;scene.add(mesh)}
  // Dispose unused materials, which otherwise are not visited with the scene.
- for(const mat of [...greens,dirt])if(!groups.has(mat))mat.dispose()
+ for(const mat of [...greens,...(dirt?[dirt]:[])])if(!groups.has(mat))mat.dispose()
  return grass
 }
 
@@ -117,7 +122,7 @@ function descartarObjetos(root:THREE.Object3D,extraTextures:readonly THREE.Textu
   geometries.add(node.geometry)
   for(const mat of Array.isArray(node.material)?node.material:[node.material]){
    materials.add(mat)
-   for(const value of Object.values(mat))if(value instanceof THREE.Texture)textures.add(value)
+   for(const value of [...Object.values(mat),...(mat.userData.extraTextures??[])])if(value instanceof THREE.Texture)textures.add(value)
   }
  })
  for(const texture of textures){texture.userData.disposed=true;texture.dispose()}
@@ -140,11 +145,12 @@ function reservasReais(bench:readonly AtletaEstadio[]|undefined,activeIds:Set<st
 // 🧍 27/10: boneco novo dos 22 (Tripo + movimentos Mixamo + uniformes por região — APROVADO pelo Diego). O 3D inteiro já é só
 // da conta dele. `localStorage['esc3d-boneco']='antigo'` volta pro boneco de antes; se o novo falhar, volta sozinho
 function bonecoNovo(){try{return localStorage.getItem('esc3d-boneco')!=='antigo'}catch{return true}}
-export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined,presentation:'3d'|'2d'='3d'):PartidaComplexo{
+export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,state?:EstadoPartidaEstadio,onReady?:()=>void,getPresident?:()=>PresidenteBaseSave|undefined,presentation:'3d'|'2d'='3d',leve=false):PartidaComplexo{
  const field=new THREE.Scene();field.name='complexo-campo'
  let disposed=false
  // Build before attaching: the original static batching only sees this field.
  const grass=criarCampo3D(field,stadium??state?.context.stadium,false,()=>{if(!disposed)onReady?.()},presentation==='2d')
+ const releaseFieldMaterials=leve&&presentation==='3d'?simplificarMateriaisCampo(field):()=>{}
  scene.add(field)
  if(presentation==='2d'){const flat=criarCampo2DNoMapa(scene,()=>{if(!disposed)onReady?.()},field);return{...flat,dispose(){if(disposed)return;disposed=true;flat.dispose();descartarObjetos(field,[grass])}}}
  type Body=ReturnType<typeof person>
@@ -168,7 +174,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(lineup.filter(p=>p.side===side).map(p=>p.id))))
   // A dismissal hides/releases the existing slot; it must neither erase the
   // pitch nor rebuild every avatar while their replacement models load.
-  const signature=JSON.stringify([current.context.id,current.viewerClubId,current.officialInput??snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
+  const signature=JSON.stringify([current.context.id,current.viewerClubId,current.officialInput?assinaturaSimulacaoM2(current.officialInput):snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
   if(match?.signature!==signature){
    clearMatch()
    const root=new THREE.Scene();root.name='complexo-partida'
@@ -227,6 +233,6 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   subjects:()=>cameraSubjects,
   frame:()=>inspection,
   inspect:()=>({...inspection,ball:{...inspection.ball},detail:match?.humanoids?.inspect()}),
-  dispose:()=>{if(disposed)return;disposed=true;clearMatch();descartarObjetos(field,[grass])},
+  dispose:()=>{if(disposed)return;disposed=true;clearMatch();releaseFieldMaterials('originais');descartarObjetos(field,[grass])},
  }
 }

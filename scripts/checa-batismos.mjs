@@ -90,7 +90,9 @@ const BATISMOS = [
   ['leoreffattig@gmail.com', 'Reffatti FC'], // 🎮👑 Várzea (15/11, batismo) — no assento do bot Atlético Pelada
   ['will.a.n@hotmail.com', 'História dos Gigantes'], // 🧔⚽ Várzea (16/11, batismo) — no assento do bot Real Domingueira
   ['lucasnicodemosqq@gmail.com', 'Ceará SP Club'], // 👑⚫ Várzea (19/11, batismo) — no assento do bot Barcelona da Vila
+  ['leodicasttro@hotmail.com', 'Império FC'], // 👑🦡 Várzea (20/11, batismo) — no assento do bot Juventude do Churrasco
   ['hugopereirabrito@gmail.com', 'Lavras FC'], // 🐆👑 Várzea (16/11, batismo) — no assento do bot Galáticos do Bairro
+  ['rafaelazevedo455@gmail.com', 'Cabuloso JP'], // 🦊👑 Várzea (21/11, Fundador) — no assento do bot Descampado EC
   ['felipefazzio@gmail.com', 'Obelisko FC'], // 👁️👑 Várzea (18/11, Fundador) — no assento do bot Trave Torta EC
   ['luizfelipeduarte212@gmail.com', 'Duarte FC'], // 🧤👑 Várzea (18/11, Fundador) — no assento do bot Ressaca United
   ['lucassaboia14@gmail.com', 'Cabritiiin F.C'], // 🐐👑 Várzea (13/11, Fundador) — no assento do bot Unidos da Resenha
@@ -154,7 +156,7 @@ const SOCIOS = [
 
 // 🖋 REGRA NOVA (14/10, Diego): *"melhor deixar fundador só qm faz o fundador… mas qm já tem número de fundador deixe como
 // está"*. Batismo de 79,90 feito daqui pra frente NÃO ganha número — entra aqui. (Quem compra o plano Fundador ganha.)
-const SEM_FUNDADOR = new Set(['klebim877@gmail.com', 'silviovicente87@gmail.com', 'danicorreafilho@gmail.com', 'pedroglima50@gmail.com', 'ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com', 'sergioricardocf16@gmail.com', 'leoreffattig@gmail.com', 'hugopereirabrito@gmail.com', 'will.a.n@hotmail.com', 'lucasnicodemosqq@gmail.com'])
+const SEM_FUNDADOR = new Set(['klebim877@gmail.com', 'silviovicente87@gmail.com', 'danicorreafilho@gmail.com', 'pedroglima50@gmail.com', 'ccaonta@gmail.com', 'caelborba@gmail.com', 'oluisantonio.contato@gmail.com', 'sergioricardocf16@gmail.com', 'leoreffattig@gmail.com', 'hugopereirabrito@gmail.com', 'will.a.n@hotmail.com', 'lucasnicodemosqq@gmail.com', 'leodicasttro@hotmail.com'])
 const olha = ([email, clube], ehSocio) => {
   const k = chave(clube); const falta = []
   if (!LOGOS.has(k)) falta.push('escudo próprio')

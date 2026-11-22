@@ -277,6 +277,8 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   const extraForStep=(step:number)=>{
     const clockWorld=worldRef.current
     if(!clockWorld)return 0
+    // 🌎 Copa de 16 (sem oitavas): o banco pula do sorteio direto pras quartas, então o 'next' do sorteio leva o tempo das quartas
+    if(step===PASSO_COPA.OITAVAS&&!clockWorld.r16.length)step=PASSO_COPA.QUARTAS
     const ties=step===PASSO_COPA.OITAVAS?clockWorld.r16:step===PASSO_COPA.QUARTAS?clockWorld.qf:step===PASSO_COPA.SEMI?clockWorld.sf:[]
     if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen,koTemGente(entrants,clockWorld.final))*1000)
     return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen,koTemGente(entrants,t))*1000:0)))
@@ -668,7 +670,7 @@ function BannerDaCopa({ seg }: { seg: number }) {
 // fila e botão do dono → grade das seleções → banner → convocação → torneio.
 // Só desenho: quem manda na fase, no relógio e no banco continua sendo o
 // `CopaDaLigaGate` (e só o dono escreve).
-export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa, aoRemover, dupla = null, duplaDe }: {
+export function PortaoDaCopa({ euro, euroPronto = true, nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa, aoRemover, dupla = null, duplaDe }: {
   /** 🤝 eu sou de dupla: quem convoca por ela e se eu só assisto (15/10) */
   dupla?: { soAssisto: boolean; nomeAge: string } | null
   euro?: CopaVar
@@ -676,6 +678,8 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
   nLiga: number
   fase: FaseCopa | null
   lido: boolean
+  /** 🌎 20/11: já sabemos QUAL copa é (Mundo/Euro/América)? Sem isso a grade de seleções não abre */
+  euroPronto?: boolean
   souDono: boolean
   comecando: boolean
   erro: string
@@ -752,7 +756,8 @@ export function PortaoDaCopa({ euro, nLiga, fase, lido, souDono, comecando, erro
         <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>{euro === 16 ? tr('16 seleções (as 10 da América do Sul + 6 convidadas da Concacaf, como na Copa América de 2024) em 4 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 8. Quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11.', '16 national teams (the 10 from South America + 6 CONCACAF guests, as in the 2024 Copa América) in 4 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 8. Quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever does not call up gets the worst 11.') : euro ? tr('24 seleções da Europa em 6 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo + os 4 melhores terceiros = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11.', '24 European nations in 6 groups of 4, single round-robin (3 rounds); the top 2 of each group plus the 4 best third-placed teams go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever does not call up gets the worst 11.') : tr(`${COPA_TEAMS} seleções em 8 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 8 groups of 4, single round-robin (3 rounds); the top 2 of each group go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
 
         {/* fase 1 — a bandeira: quem é a vez escolhe AQUI; os outros veem a grade travada */}
-        {fase === 'bandeira' && (souAVez
+        {fase === 'bandeira' && !euroPronto && <p className="ll27-portao-aviso">{tr('⏳ Carregando as seleções…', '⏳ Loading the national teams…')}</p>}
+        {fase === 'bandeira' && euroPronto && (souAVez
           ? <EscolheBandeira pegas={pegas} seg={seg} aoConfirmar={aoConfirmarPais} euro={euro} />
           : <>
               <p className="ll27-portao-aviso">
@@ -855,13 +860,27 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   // de seleções (que vai pelo NOME, e o dono troca nome fora da lista pela pior que sobrou) nunca sai da Copa do Mundo
   // numa sala de Eurocopa.
   const [euroSala, setEuroSala] = useState<CopaVar | undefined>(undefined)
+  // 🌎 20/11 (sala "Pós live" do Futpoint: o Abobados escolheu a POLÔNIA na Copa América): a leitura da marca podia falhar
+  // calada e a grade abria com as seleções da COPA DO MUNDO. Agora ela tenta de novo a cada 3s até o banco responder, e a
+  // grade de seleções só aparece depois de saber QUAL copa é (`euroPronto`).
+  const [euroLido, setEuroLido] = useState(false)
   useEffect(() => {
-    let vivo = true
-    void supabase.from('game_rooms').select('euro:game_state->>euroNaLiga').eq('id', roomId).maybeSingle()
-      .then(({ data }) => { const e = (data as { euro?: string } | null)?.euro; if (vivo && (e === '24' || e === 'true')) setEuroSala(24); else if (vivo && e === '16') setEuroSala(16) /* 🌎 19/11: 16 = Copa América */ }, () => {})
-    return () => { vivo = false }
+    let vivo = true, t: ReturnType<typeof setTimeout> | undefined
+    const le = () => {
+      void supabase.from('game_rooms').select('euro:game_state->>euroNaLiga').eq('id', roomId).maybeSingle()
+        .then(({ data, error }) => {
+          if (!vivo) return
+          if (error || !data) { t = setTimeout(le, 3000); return }
+          const e = (data as { euro?: string } | null)?.euro
+          if (e === '24' || e === 'true') setEuroSala(24); else if (e === '16') setEuroSala(16) /* 🌎 19/11: 16 = Copa América */
+          setEuroLido(true)
+        }, () => { if (vivo) t = setTimeout(le, 3000) })
+    }
+    le()
+    return () => { vivo = false; if (t) clearTimeout(t) }
   }, [roomId])
   const euro: CopaVar | undefined = euroProp ?? euroSala
+  const euroPronto = euroProp !== undefined || euroLido
   // 🇪🇺 Euro: só os 24 primeiros da tabela entram na fila (sala de até 20 = todo mundo joga)
   const classificacao = useMemo(() => euro ? classificacaoToda.slice(0, euro) : classificacaoToda, [classificacaoToda, euro])
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
@@ -1094,7 +1113,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
           por cima de tudo (Diego 01/09) e o resto era uma caixinha depois da tabela;
           ele pediu de volta o formato das outras copas, com a tabela indo pra baixo.
           A tela rola sozinha até a grade quando vira a sua vez. */}
-      <PortaoDaCopa euro={euro} nLiga={classificacao.length} fase={fase?.fase ?? null} lido={lido} souDono={souDono} comecando={comecando} erro={erro}
+      <PortaoDaCopa euro={euro} euroPronto={euroPronto} nLiga={classificacao.length} fase={fase?.fase ?? null} lido={lido} souDono={souDono} comecando={comecando} erro={erro}
         fila={fila} picks={picks} pegas={pegas} seg={seg} meuUid={euUid} minha={minha} souAVez={souAVez} daVezNome={daVezNome}
         dupla={dupla ? { soAssisto, nomeAge: dupla.nomeAge } : null} duplaDe={id => (porEstado ? duplaDoAssentoPeloEstado(assentos, duplas, id) : duplaDoAssento(linhas, id))}
         temFicha={!!ficha} aberta={aberta}
