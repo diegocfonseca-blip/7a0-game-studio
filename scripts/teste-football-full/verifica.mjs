@@ -159,11 +159,50 @@ try{
   await page.getByRole('button',{name:'Ativar novo visual',exact:true}).click()
   await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
   await page.evaluate(()=>window.qaAccount('gfpicolo13@gmail.com'))
+  await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
+  check(`${width}: Futpoint recebe a interface atualizada`,await page.locator('.fp-advanced-tactics').isVisible())
+  check(`${width}: troca para Futpoint conserva a partida`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+  await page.getByRole('button',{name:'Voltar ao visual anterior',exact:true}).click()
   await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
-  check(`${width}: Futpoint fora da nova interface`,await page.locator('.fp-advanced-tactics').count()===0)
+  await page.evaluate(()=>window.qaAccount('diego.c.fonseca@gmail.com'))
+  await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
+  check(`${width}: preferência visual de Futpoint não desliga a de Diego`,true)
+  await page.evaluate(()=>window.qaAccount('gfpicolo13@gmail.com'))
+  await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
+  await page.getByRole('button',{name:'Ativar novo visual',exact:true}).click()
+  await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
+  await page.evaluate(()=>window.qaAccount('outro@example.com'))
+  await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
+  check(`${width}: outras contas fora da nova interface`,await page.locator('.fp-advanced-tactics').count()===0)
   check(`${width}: conta pública não recebe o novo destino de rivalidades`,await page.locator('.ov3-rivals-slot').count()===0)
   check(`${width}: conta pública não recebe o cartão novo de próximo jogo`,await page.locator('.ov3-next-rival-slot').count()===0)
   await context.close()
+ }
+ for(const width of [390,1440]){
+  for(const field of [false,true]){
+   const {page,context}=await open(width,`?account=gfpicolo13%40gmail.com&guest=futpoint&competition=next-rival&retro=fregues${field?'&field=1':''}`)
+   const label=`${width}: Futpoint ${field?'2D':'cinema'}`,native=await page.locator('.ov3-native').first().elementHandle()
+   check(`${label}: mesmo painel de tática sem marcação individual`,await page.locator('.fp-advanced-tactics').isVisible()&&await page.locator('.fp-advanced-tactics select').count()===0)
+   check(`${label}: time e identidade locais preservados`,await page.evaluate(()=>window.qaFull.state.youIdx===1&&window.qaFull.state.youUid==='eb02f1d6-de80-4304-ab49-512342f3c7b7'&&window.qaFull.state.managers[window.qaFull.state.youIdx].teamName==='Futpoint FC'&&!window.qaFull.state.isHost))
+   if(field)check(`${label}: canvas verdadeiro disponível`,await page.locator('.ov3-native canvas').count()>0)
+   for(const [name,key] of [['Tabela e jogos','table'],['Estatísticas','stats'],['Elenco','squad'],['Rivalidades','rivals'],['Partida','match']]){
+    await page.getByRole('button',{name,exact:true}).first().evaluate(button=>button.click())
+    await page.waitForFunction(key=>document.body.dataset.fpPage===key,key)
+    check(`${label}: ${name} conserva o mesmo jogo visível`,await page.locator('.ov3-native').first().isVisible()&&await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+    if(key==='squad'&&width>=1100)check(`${label}: consulta dos adversários no desktop`,await page.getByLabel('Escolha o clube',{exact:true}).isVisible())
+   }
+   await page.locator('.ov3-next-rival-slot .fp-next-own-record').waitFor()
+   check(`${label}: retrospecto visto pelo lado do Futpoint`,await page.locator('.ov3-next-rival-slot .fp-next-own-record').innerText()==='1 vitória · 5 derrotas')
+   check(`${label}: cartão único de próximo jogo`,await page.locator('.ov3-next-rival-slot .fp-next-opponent > header').count()===0&&await page.locator('.ov3-next-rival-slot .fp-next-rivalry-card').isVisible())
+   if(width>=1100)check(`${label}: chat real preservado na lateral`,await page.locator('.fp-chat-docked').isVisible())
+   check(`${label}: sem transbordamento`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
+   await page.evaluate(()=>window.scrollTo(0,0))
+   await page.screenshot({path:`${out}/${width}-futpoint-${field?'2d':'cinema'}.png`,fullPage:true})
+   await page.evaluate(()=>window.qaAccount('diego.c.fonseca2@gmail.com'))
+   await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
+   check(`${label}: conta secundária permanece fora`,await page.locator('.fp-advanced-tactics').count()===0)
+   await context.close()
+  }
  }
  for(const width of [390,1440]){
   for(const competition of ['next-rival','next-bot']){

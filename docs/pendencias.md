@@ -1,3 +1,11 @@
+## 🔒 22/11 — VISUAL ATUALIZADO LIBERADO TAMBÉM AO FUTPOINT
+- Autorização nova do Diego: “Atualiza agora o que fez pra mim pro Futpoint também”. A allowlist do piloto passa a Diego principal e `gfpicolo13@gmail.com`, usando a identidade já verificada. Substitui a restrição anterior apenas da interface; demais contas, inclusive a secundária do Diego, ficam fora.
+- Futpoint recebe os mesmos componentes atuais: abas roxas no topo, partida permanente, tática sem marcação individual, consulta dos adversários no desktop, chat/tabela lateral e cartão único do retrospecto. Preferência de voltar ao visual anterior é individual por conta.
+- Sem ampliar outras prévias, regras das ordens ao vivo ou permissões do dono da sala; sem alterar motor, identidade/assentos, sincronização ou banco. Nenhuma consulta nova.
+- Bancada exercita Futpoint como participante real da fixture, com `youIdx/youUid` próprios e sem host, em 390/1440 px, cinema e canvas 2D, com retrospecto invertido corretamente. Rede externa bloqueada; não substitui duas sessões autenticadas ou teste físico no S25.
+- 405 verificações de interface passaram, sem erros JavaScript; teste de identidade verificada/allowlist, `npm run build` e `git diff --check` passaram. Inclui preferências independentes entre as contas, secundária/público fora e ausência de acesso às demais prévias.
+- Capturas e relatório: `/workspace/shared/futpoint-visual-atualizado-20261122/`.
+
 ## 🔒 22/11 — RETROSPECTO DO PRÓXIMO JOGO EM CARTÃO ÚNICO
 - Diego pediu retirar a repetição do próximo jogo. Contra outro usuário, o piloto agora mostra um único cartão marrom: “Retrospecto do próximo jogo”, rodada/mando e clubes identificados, sem o cabeçalho creme duplicado. Mesmo cartão em Partida e Rivalidades, celular e desktop.
 - Vitórias e derrotas em texto pequeno sob cada clube, invertidas corretamente no lado adversário; empates compartilhados no centro. Rótulo discreto: “Equilibrado”, “Rival freguês” ou “Rival leva vantagem”, seguindo a diferença de duas vitórias já usada nas rivalidades. Zero explícito mostra “Primeiro duelo”; histórico indisponível não inventa números ou freguesia.
