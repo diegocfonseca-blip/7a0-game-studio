@@ -5,7 +5,7 @@
 - Conserto: `limpaCofreDoDono` (storage-guard.ts, roda no boot antes do login) apaga só o cofre da conta DONA do aparelho e só se tudo que ele guarda está
   vivo no lugar de sempre; `ensureCareerOwner` passa a apagar o cofre depois de restaurar. Cofre de OUTRA conta nunca é tocado. Trava: `npm run storage` (caso 4).
 - ❓ Ainda sobram no aparelho dele 3,6 MB de cofres de outras duas contas (Xurupitas FC: tem save na nuvem de 20/10 · felipo: SEM nuvem, último login 13/09).
-  Não apagar sem ele mandar. 💡 Estrutural (não feito): saves de carreira no localStorage batem no teto de ~10 MB — comprimir os cofres ou levar save pra IndexedDB.
+  Ele mandou DEIXAR AS DUAS QUIETAS (22/11). 💡 Estrutural (não feito): saves de carreira no localStorage batem no teto de ~10 MB — comprimir os cofres ou levar save pra IndexedDB.
 
 ## 🔐 21/11 (noite) — Conta do Diego caindo ao sair/voltar pro site (EM ABERTO, esperando a medição do aparelho)
 - Servidor: NENHUM logout, erro ou revogação da conta dele. Até 22:06 a sessão antiga (05/11) renovava normal; depois ele digitou a senha 3 vezes
@@ -22,6 +22,51 @@
 - Recusadas (lista 2): pênalti batido na sala · torcida no dedo · bagre da rodada (voto) · bolão com a sobra do leilão · coletiva da zoeira · troca de jogador entre técnicos.
 - Próximo passo: NÃO mandar 3ª lista. Perguntar o que ELE imagina (um exemplo de outro jogo, ou o momento exato em que sente falta de algo) e partir daí.
 
+
+## 🔬 22/11 — CAMPO 3D: bola parada e goleiro filmados de perto (nada mudou no código)
+- Filmado com `RECORTE=300`: lateral + falta (semente 99, 8 s), chute de fora que sai pela linha de fundo + tiro de meta (99, 37 s),
+  chute de fora com o goleiro segurando e repondo (7, 60 s), falta com jogador caindo e cobrança (2025, 21 s), e os dois suspeitos da
+  semente 99 (giro de 82° aos 28,8 s e domínio a 2,1 m aos 57 s). Nenhum defeito confirmado em filme; nada foi alterado.
+- Ainda NÃO olhado: pênalti (não saiu em 4 partidas), jogo à noite, aparelho de verdade (S25).
+
+## 🔬 22/11 — CAMPO 3D: mais 3 partidas inteiras medidas (sementes 7, 99 e 2025) depois dos consertos
+- `node scripts/mapa3d/analisa-numeros.mjs <pasta>…` (lê o `dados.json` do `NUMEROS=1 … filma-bancada.mjs`; `Q="seed=N"` troca a partida).
+- 0 erro de página nas 3. O conserto da "reta que mentia" pegou mais dois casos: **17,4 m** (semente 7, 12,9–16,9 s) e 3,1 m (2025).
+- Em jogo corrido, bola desenhada × oficial ficou em no máximo ~2 m (domínio); 0 bola pulando de lugar, 0 bola parada com o jogo rolando,
+  0 boneco pulando; 1 giro brusco de corpo (82° num passo, semente 99 aos 28,8 s) em 3 partidas.
+- Total medido hoje: 4 partidas, 3 lances com a bola desenhada a 7,5–17,4 m da oficial antes do conserto (quase 1 por partida).
+- Não medido por esse analisador: pé encostando na bola, gesto do goleiro, cabeceio. Isso só olhando filmagem.
+
+## 🧤 22/11 — CAMPO 3D: chute a gol e goleiro olhados de perto — NENHUM defeito confirmado, nada mudado
+- Filmado quadro a quadro (30/s, recorte na bola) na bancada: chute de fora aos 9 s (goleiro espalma pra escanteio) e cabeceio de gol aos 16 s.
+- No cabeceio o goleiro começa o mergulho (`gk_voo_e`, 23 quadros nos números) quando a bola já está chegando e o replay corta 0,2 s depois, então
+  ele PARECE em pé. Mas a cabeçada sai a ~5 m e chega em ~0,4 s: reagir tarde aí é o esperado. Eu cheguei a dizer ao Diego que era defeito e
+  corrigi. Não mexi no tempo do mergulho (`presidencia-futebol-oficial.ts`, 0,42 s antes de a bola cruzar).
+- A bola reposta no escanteio já aparece crescendo (conserto de hoje) nessa filmagem.
+- Ainda NÃO olhado: chute de longe com goleiro voando e pegando, falta, pênalti, lateral, jogo à noite, aparelho de verdade. Só 1 partida (semente
+  4242 da bancada) foi analisada; outra semente pode mostrar outros lances.
+
+## ⚽🔎 22/11 — CAMPO 3D: bola MENOR que a 1ª tentativa (publicado; Diego: *"a bola, você aumentou demais"*)
+- De 1,5× de perto / teto 3,2× / mínimo ~10 px na tela pra **1,2× / 2,2× / ~6,5 px** (`presidencia-bola-3d.ts`). Ainda é maior que os 3 px
+  de antes na Câmera de TV. Comparação (maior · menor na TV · menor na Lateral próxima): `scripts/mockups/bola-3d-menor.jpg`.
+- Se ele ainda achar grande/pequena: mexer só nesses três números.
+
+## ⚽ 22/11 — CAMPO 3D: lances analisados quadro a quadro; 2 defeitos de bola consertados (publicado)
+- Diego: *"tô pedindo pra você olhar domínio, passe, chute, jogadas… se tá feio, se não parece futebol de verdade, você melhora"*.
+- Como foi olhado: `scripts/mapa3d/filma-bancada.mjs` ganhou `RECORTE=<px>` (recorta em volta da bola), `NUMEROS=1` (bola, fase, dono e o
+  movimento de cada boneco por quadro, sem foto) e passou a usar o relógio do jogo de verdade (`bancada.jogarReal`: minuto inteiro + relógio
+  visual). ⚠️ O `jogar` antigo da bancada anda em degraus de 0,1 s e o medidor de velocidade infla ×1,4 quando a bancada pula quadro: NÃO
+  são defeitos do jogo (eu quase tomei os dois por defeito).
+- DEFEITO 1 (consertado, `futebol3d/chibi/players.mjs`): a "entrega pelo chão" liga dois toques por uma RETA. Quando a bola oficial não anda
+  pela reta (bate num marcador e volta), a bola DESENHADA ficava rolando devagar sozinha, até 8,7 m longe da bola do jogo, e o jogador corria
+  pra longe dela. Medido numa partida: 47 entregas com desvio ≤ 1,7 m e 2 com 7,5 m e 8,7 m. Agora, desvio > 3 m (`DESVIO_ENTREGA_MAX`) =
+  aquele trecho mostra a bola oficial. Depois: maior distância em passe caiu de 8,63 m pra 1,17 m. Antes/depois:
+  `scripts/mockups/tabelinha-3d-antes-depois.jpg`. Diagnóstico novo no `inspect()`: `groundDeliveryDivergence`.
+- DEFEITO 2 (consertado, `presidencia-bola-3d.ts`): no escanteio/tiro de meta/saída a bola pulava 25 m de um quadro pro outro. O motor
+  continua recolocando na hora; o desenho agora faz a bola crescer do zero em 0,22 s no ponto novo (pulo > 3 m a mais de 60 m/s).
+- Conferido: partida inteira (91 s) na bancada sem erro de página, 0 pulo de boneco em jogo, trava `test-ball-touch-presentation` e build.
+- Olhado e SEM defeito encontrado: velocidade dos bonecos em jogo corrido (p99 8,7 m/s, teto do motor 9,4), domínio e passe simples nas
+  filmagens de perto. NÃO olhado: chute a gol e defesa do goleiro de perto, cabeceio, falta, jogo à noite, aparelho de verdade.
 ## 🔊 21/11 (noite) — MAIS SONS (Diego escolheu 5 de 6; a troca de posição no leilão ele NÃO quis) — 🟢 publicado em 21/11 à noite
 - Sons novos em `sound.ts` (sintetizados, 0 KB, respeitam o mudo): `playPacote` · `playEntrou` · `playLargada` · `playRufar` · `playDia` · `playApitoCurto` · `playFlash`.
 - Onde tocam: 🎁 pacote do campeão (rasga + sininho; também no cartão de quem assiste) · 🃏 Bafo (tambor + rasgo na abertura; tambor no suspense da carta
@@ -536,12 +581,26 @@ carreira · vice/eliminação.
 
 ### 🌐 20/11 — LOGÍSTICA DOS DOIS JOGOS (domínios, marca, planos, salas) — EM CONVERSA
 - Diego: leilaolegends.com = sempre Leilão Legends; no basquete tudo BidLegends. Vai ter plano só futebol, só basquete e dos dois.
-- Proposta minha (sem resposta ainda): um endereço por jogo, mesma conta nos dois, planos futebol/basquete/combo.
+- ✅ 22/11 Diego: *"um endereço para cada jogo, a mesma conta nos dois"* (ele mesmo cuida dos domínios). Planos futebol/basquete/combo:
+  *"não precisa agora"*. Equilibrar franquias do EUA Oficial: NÃO.
 - Diego gostou do seletor ⚽ FUTEBOL / 🏀 BASQUETE da home e quer ele nas SALAS ABERTAS. Mockup:
   `scripts/mockups/salas-abertas-seletor.png` (seletor logo abaixo do topo, com o nº de salas abertas de cada jogo; tocar troca o jogo e a
   marca do topo). Diego (20/11): *"gostei, mas não faça ainda"* — APROVADO o visual, NÃO construir até ele mandar.
-- ⏸️ Publicação do branch (EUA Oficial etc.) ainda NÃO feita: perguntei se pode ir junto das 2 mudanças do futebol (Partida Rápida nova,
-  caixa em etiqueta no Clube) e ele mudou de assunto.
+  ✅ 22/11 FEITO (Diego: *"o seletor nas salas abertas, pode fazer"*): pílula ⚽/🏀 acima das abas em `lobby.tsx` (`ll-hub-esporte`), com o nº
+  de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
+  basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
+  ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
+  no leilão 1–4 a partir da temporada seguinte, Draft = 4 (novato). Roteiro do fim vira 📰 → 💰 → 🎓 Draft → ✍️ Agência → 🔨 Próxima. Seu contrato
+  acabou: RENOVAR (luva = 1 salário = valor ÷ 10, +3 temporadas) ou DEIXAR IR. Franquia da máquina renova 55% (sorteio preso na semente) ou solta.
+  🛡️ O único da posição nunca sai (o seu explica o porquê; o da máquina renova). Não passa de temporada com contrato sem decisão (tela e
+  `NEXT_NBA_SEASON` leem `agenciaPendenteEua`). Quem fica livre entra NA FRENTE do seu leilão de reservas; quem ninguém leva segue livre (pode
+  sair no Draft). Regras em `eua-agencia.ts`; trava `npm run eua-oficial`. Prints `scripts/mockups/basquete-eua-agencia-{celular,pc}.png`. No branch.
+  Fica pra depois, se o Diego quiser: os bots contratarem os livres (hoje só você leva, no seu leilão) e teto salarial.
+- ✅ 22/11 compartilhar no basquete leva o endereço do basquete (`siteDoJogo()` em sport.ts): jornal do fim de temporada, convite pro
+  jogo, pacote do campeão e cartão de campeão = bidlegendsarena.com / "BidLegends". Futebol continua leilaolegends.com, igualzinho. No branch.
+- ✅ 22/11 PUBLICADO na main (Diego: "Sim e siga"): EUA Oficial (NBA Cup, Draft, ranking), quadra 2D, ligas NBA, escudos — tudo do basquete
+  segue só na conta do Diego (testers). Foram pra TODOS no futebol: Partida Rápida na moldura nova e o caixa em etiqueta no Clube.
 
 ### 🏀🇺🇸 19/11 — CARREIRA DO BASQUETE = EUA OFICIAL (só planejamento)
 - Diego: a carreira do basquete fica EM BREVE e vai ser refeita **com base no Brasil Oficial, mas igual aos EUA** (tudo real), com

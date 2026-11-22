@@ -43,7 +43,8 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
-import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
+import { luvaRenovacaoEua, EUA_RENOVA_ANOS } from './eua-agencia' // 🏀✍️ agência livre do EUA Oficial
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
@@ -122,7 +123,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useViceCity, type Sport } from './sport'
+import { siteDoJogo, useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useViceCity, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { BannerIndicacao } from './banner-indicacao'
@@ -180,7 +181,7 @@ const CATALOG_TOTAL = new Set([...Object.values(CATALOG).flat(), ...Object.value
 // 🔗 O ENDEREÇO QUE VAI NO COMPARTILHAR. Era o link cru do GitHub, de antes do
 // domínio existir — e ele saía no texto E IMPRESSO DENTRO DA IMAGEM. O Diego pegou
 // (04/09): *"veio c esse link horrível sendo q já temos nosso domínio"*.
-const GAME_URL = 'https://leilaolegends.com'
+const gameUrl = () => siteDoJogo().url // 🌐 22/11: basquete compartilha bidlegendsarena.com
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -2537,10 +2538,13 @@ export function EscIntro() {
   // já conquistou. Enquanto isso, um aviso fixo diz que está só neste aparelho.
   const startCareer = (fn: () => void) => { fn() }
   const shareGame = async () => {
-    const data = { title: 'Leilão Legends', text: t('Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', 'Come play Leilão Legends! A blind auction of Brazilian football legends 🔨⚽'), url: 'https://leilaolegends.com' }
+    const bbJogo = getSport() === 'basquete' // 🌐 22/11: no basquete convida pro BidLegends, no endereço dele
+    const data = bbJogo
+      ? { title: 'BidLegends', text: t('Bora jogar BidLegends! Leilão às cegas de lendas da NBA 🔨🏀', 'Come play BidLegends! A blind auction of NBA legends 🔨🏀'), url: siteDoJogo().url }
+      : { title: 'Leilão Legends', text: t('Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', 'Come play Leilão Legends! A blind auction of Brazilian football legends 🔨⚽'), url: 'https://leilaolegends.com' }
     try {
       if (navigator.share) { await navigator.share(data); return }
-      await navigator.clipboard.writeText('https://leilaolegends.com')
+      await navigator.clipboard.writeText(data.url)
       setShared(true); setTimeout(() => setShared(false), 2500)
     } catch { /* usuário cancelou */ }
   }
@@ -10099,7 +10103,7 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
   ctx.font = '700 30px Oswald, sans-serif'
   ctx.fillText(opts.bb ? 'BIDLEGENDS' : 'LEILÃO LEGENDS', 450, 1125)
   ctx.font = '400 22px Inter, sans-serif'
-  ctx.fillText(GAME_URL.replace('https://', ''), 450, 1156)
+  ctx.fillText(siteDoJogo().dominio, 450, 1156)
 
   return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png'))
 }
@@ -10111,7 +10115,7 @@ async function shareImagemNativa(opts: ShareOpts, texto: string): Promise<boolea
   const blob = await buildShareCardBlob(opts)
   if (!blob) return false
   const file = new File([blob], 'leilao-legends.png', { type: 'image/png' })
-  const shareData = { files: [file], title: 'Leilão Legends', text: `${texto} ${GAME_URL}` }
+  const shareData = { files: [file], title: siteDoJogo().nome, text: `${texto} ${gameUrl()}` }
   if (!navigator.canShare?.(shareData)) return false
   try { await navigator.share(shareData); return true } catch { return false /* cancelou ou falhou */ }
 }
@@ -10155,9 +10159,9 @@ function ShareResultPanel({ opts }: { opts: ShareOpts }) {
   // (desktop), aí sim cai no link — mas agora no domínio certo.
   const wa = async () => {
     if (await shareImagemNativa(opts, text)) return
-    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + GAME_URL)}`, '_blank', 'noopener')
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + gameUrl())}`, '_blank', 'noopener')
   }
-  const tw = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(GAME_URL)}`, '_blank', 'noopener')
+  const tw = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(gameUrl())}`, '_blank', 'noopener')
   const ig = async () => { await downloadShareImage(opts); setSavedIG(true) }
   return (
     <Box bg="#fff" className="p-3 space-y-2">
@@ -11039,9 +11043,9 @@ async function shareCardImage(c: { name: string; club: string; year: number; pos
   // rodapé da marca
   x.fillStyle = '#0C0C0C'; x.fillRect(0, CH, W, FOOT)
   x.fillStyle = '#F5B301'; x.font = `900 30px ${OSW}`
-  x.fillText('🎁 tirei no Pacote do Campeão · leilaolegends.com 🔨', W / 2, CH + 60)
+  x.fillText(`🎁 tirei no Pacote do Campeão · ${siteDoJogo().dominio} 🔨`, W / 2, CH + 60)
   const blob: Blob | null = await new Promise(res => cv.toBlob(b => res(b), 'image/png'))
-  const txt = `Tirei ${c.name} (${c.club} · ${c.year}) no pacote do campeão do Leilão Legends! 🎁 Joga tu também: https://leilaolegends.com`
+  const txt = `Tirei ${c.name} (${c.club} · ${c.year}) no pacote do campeão do ${siteDoJogo().nome}! 🎁 Joga tu também: ${siteDoJogo().url}`
   if (blob) {
     const file = new File([blob], 'minha-carta.png', { type: 'image/png' })
     const sd = { files: [file], title: 'Minha carta — Leilão Legends', text: txt }
@@ -13393,7 +13397,7 @@ function BafoCascata() {
 // 🏀🎬 a barra dos 3 passos do fim de temporada do basquete (mesmo desenho da `RoteiroFim` do futebol, sem o 🌍 Mundo)
 const PASSOS_BB = [{ ic: '📰', pt: 'Jornal', en: 'Paper' }, { ic: '💰', pt: 'Caixa', en: 'Money' }, { ic: '🔨', pt: 'Próxima', en: 'Next' }] as const
 // 🏀🎓 EUA Oficial: o Draft entra entre o caixa e a decisão (mockup aprovado 19/11)
-const PASSOS_BB_EUA = [PASSOS_BB[0], PASSOS_BB[1], { ic: '🎓', pt: 'Draft', en: 'Draft' }, PASSOS_BB[2]] as const
+const PASSOS_BB_EUA = [PASSOS_BB[0], PASSOS_BB[1], { ic: '🎓', pt: 'Draft', en: 'Draft' }, { ic: '✍️', pt: 'Agência', en: 'Free agency' }, PASSOS_BB[2]] as const // ✍️ 22/11 agência livre
 function RoteiroBB({ passo, onIr, eua }: { passo: number; onIr: (n: number) => void; eua?: boolean }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -13496,6 +13500,72 @@ function EuaDraftPasso({ onContinue }: { onContinue: () => void }) {
         <p className="text-[11px] font-bold text-black/50 text-center">{tr('Lenda e craque não entram no Draft: na NBA o Draft é de jovem e aposta. Acabou o tempo, o jogo escolhe por você.', 'Legends and stars are not in the Draft: in the NBA the Draft is for youngsters and gambles. If time runs out, the game picks for you.')}</p>
       </>}
       {d.fase === 'feito' && <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('a decisão da próxima temporada vem agora', 'next season’s decision comes next')} onClick={onContinue} />}
+    </div>
+  )
+}
+// 🏀✍️ AGÊNCIA LIVRE do EUA Oficial (22/11, Diego: "pode fazendo"): os SEUS contratos que acabaram (renovar com luva ou deixar ir) e
+// quem as franquias da máquina soltaram — essa turma entra no seu leilão de reservas. Regras em eua-agencia.ts; a tela e o reducer leem as mesmas.
+function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
+  const { state, dispatch } = useEsc()
+  const a = state.euaAgencia
+  useEffect(() => { if (!a || a.temporada !== state.seasonNo) dispatch({ type: 'EUA_AGENCIA_ABRIR' }) }, [a?.temporada, state.seasonNo, dispatch])
+  if (!a || a.temporada !== state.seasonNo) return null
+  const you = state.managers[state.youIdx]
+  const caixa = Math.round(state.careerCoins?.[you?.id ?? 0] ?? 0)
+  const chave = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+  const pendentes = agenciaPendenteEua(state)
+  const cab = (t: string) => <p style={{ background: INK, color: GOLD, ...OSWALD, fontWeight: 900, fontSize: 12, letterSpacing: '.06em', padding: '7px 12px', margin: 0 }}>{t}</p>
+  const linha = (c: { name: string; club: string; year: number; pos: string; fame: number; promessa?: boolean }, direita: ReactNode, key: string) => (
+    <div key={key} className="flex items-center gap-2 px-3 py-2" style={{ borderTop: '1px solid rgba(0,0,0,.08)' }}>
+      <span style={{ background: INK, color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 11, borderRadius: 6, padding: '2px 6px' }}>{posTag(c.pos)}</span>
+      <div className="min-w-0"><span className="block truncate" style={{ ...OSWALD, fontWeight: 900, fontSize: 15 }}>{c.name}</span>
+        <small className="block text-[11px] font-bold" style={{ color: '#6a6250' }}>{c.club} · {c.year}</small></div>
+      <div className="ml-auto shrink-0 flex items-center gap-1.5">{direita}</div>
+    </div>)
+  const botao = (txt: string, bg: string, onClick: () => void, off?: boolean) => (
+    <button onClick={onClick} disabled={off} style={{ background: off ? '#d9d2bf' : bg, color: off ? 'rgba(0,0,0,.45)' : '#fff', border: `2px solid ${INK}`, borderRadius: 9, ...OSWALD, fontWeight: 900, fontSize: 12, padding: '6px 9px', boxShadow: off ? 'none' : `2px 2px 0 ${INK}`, cursor: off ? 'not-allowed' : 'pointer' }}>{txt}</button>)
+  const meus = a.meus.map(k => ({ k, c: you?.squad.find(x => chave(x) === k), d: a.decididos[k] }))
+  const livresDeFora = a.livres.filter(c => !a.meus.includes(chave(c)))
+  return (
+    <div className="space-y-4">
+      <div style={{ background: INK, color: '#fff', borderRadius: 16, padding: '12px 14px', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+        <b style={{ ...OSWALD, fontWeight: 900, fontSize: 19, display: 'block', textTransform: 'uppercase' }}>{tr(`✍️ Agência livre · temporada ${a.temporada}`, `✍️ Free agency · season ${a.temporada}`)}</b>
+        <small style={{ color: '#bbb', fontSize: 12 }}>{tr('Os contratos que acabaram. Quem ficar livre entra no seu leilão de reservas.', 'Contracts that ran out. Whoever becomes free goes into your reserve auction.')}</small>
+      </div>
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr(`SEUS CONTRATOS QUE ACABARAM · caixa ${caixa} 🪙`, `YOUR EXPIRED CONTRACTS · balance ${caixa} 🪙`))}
+        {meus.length === 0 && <p className="px-3 py-3 text-[12.5px] font-bold text-black/55">{tr('Nenhum contrato seu acabou nesta temporada. Todo mundo fica.', 'None of your contracts ran out this season. Everyone stays.')}</p>}
+        {meus.map(({ k, c, d }) => {
+          if (d === 'sai' || !c) return linha(a.livres.find(x => chave(x) === k) ?? { name: k.split('|')[0], club: k.split('|')[1] ?? '', year: Number(k.split('|')[2]), pos: '', fame: 0 }, <b style={{ ...OSWALD, color: '#C2452F', fontSize: 12.5 }}>{tr('👋 FOI EMBORA', '👋 LEFT')}</b>, k)
+          if (d === 'renova') return linha(c, <b style={{ ...OSWALD, color: GREEN, fontSize: 12.5 }}>{tr(`✓ FICA +${EUA_RENOVA_ANOS} TEMP.`, `✓ STAYS +${EUA_RENOVA_ANOS} SEASONS`)}</b>, k)
+          const luva = luvaRenovacaoEua(c.paid)
+          const semCaixa = caixa < luva
+          const unico = (you?.squad ?? []).filter(x => x.pos === c.pos && !x.fake).length <= 1
+          return (
+            <div key={k}>
+              {linha(c, <>
+                {botao(tr(`RENOVAR · ${luva} 🪙`, `RE-SIGN · ${luva} 🪙`), GREEN, () => dispatch({ type: 'EUA_AGENCIA_DECIDIR', chave: k, renova: true }), semCaixa)}
+                {botao(tr('DEIXAR IR', 'LET GO'), '#C2452F', () => dispatch({ type: 'EUA_AGENCIA_DECIDIR', chave: k, renova: false }), unico)}
+              </>, k + '-l')}
+              {(semCaixa || unico) && <p className="px-3 pb-2 -mt-1 text-[10.5px] font-bold" style={{ color: '#C2452F' }}>
+                {semCaixa ? tr(`🔒 Sem caixa pra luva (${luva} 🪙). Deixe ir ou junte dinheiro.`, `🔒 Not enough money for the signing bonus (${luva} 🪙). Let him go or save up.`) : ''}
+                {semCaixa && unico ? ' ' : ''}
+                {unico ? tr('🔒 É o único da posição: não pode sair, senão o quinteto fica com buraco.', '🔒 He is the only one at his position: he can’t leave or your five would have a hole.') : ''}
+              </p>}
+            </div>)
+        })}
+      </Box>
+      <p className="text-[11px] font-bold text-black/50 text-center">{tr(`Renovar = paga 1 temporada do salário dele de luva e ele fica mais ${EUA_RENOVA_ANOS} temporadas. Deixar ir = a vaga abre e ele vai pro mercado.`, `Re-sign = pay one season of his salary as a bonus and he stays ${EUA_RENOVA_ANOS} more seasons. Let go = the spot opens and he hits the market.`)}</p>
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr(`LIVRES NO MERCADO · ${livresDeFora.length}`, `ON THE MARKET · ${livresDeFora.length}`))}
+        {livresDeFora.length === 0
+          ? <p className="px-3 py-3 text-[12.5px] font-bold text-black/55">{tr('As franquias renovaram com todo mundo desta vez.', 'The franchises re-signed everyone this time.')}</p>
+          : livresDeFora.slice(0, 30).map((c, i) => linha(c, <small className="text-[10.5px] font-bold text-black/45">{tr('saiu de', 'left')} {a.de?.[chave(c)] ?? c.club}</small>, `${chave(c)}-${i}`))}
+      </Box>
+      <p className="text-[11px] font-bold text-black/50 text-center">{tr('Quem está livre entra no seu leilão de reservas da próxima temporada (se você tiver vaga). Quem ninguém levar segue livre — pode até sair no Draft.', 'Free agents go into your reserve auction next season (if you have open spots). Anyone nobody signs stays free — they may even show up in the Draft.')}</p>
+      {pendentes > 0
+        ? <p className="text-center text-[12px] font-black" style={{ ...OSWALD, color: '#C2452F' }}>{tr(`Falta decidir ${pendentes} contrato${pendentes > 1 ? 's' : ''} pra seguir.`, `${pendentes} contract${pendentes > 1 ? 's' : ''} left to decide before moving on.`)}</p>
+        : <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('a decisão da próxima temporada vem agora', 'next season’s decision comes next')} onClick={onContinue} />}
     </div>
   )
 }
@@ -14388,6 +14458,7 @@ export function EscEnd() {
       {roteiroBB && passoBB === 1 && <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s money comes next')} onClick={() => { dispatch({ type: 'CLOSE_NBA_BOOKS' }); setPassoBB(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       {roteiroBB && passoBB === 2 && <CaixaBB onContinue={() => { setPassoBB(3); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       {roteiroBB && state.euaOficial && passoBB === 3 && <EuaDraftPasso onContinue={() => { setPassoBB(4); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
+      {roteiroBB && state.euaOficial && passoBB === 4 && <EuaAgenciaPasso onContinue={() => { setPassoBB(5); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} />}
       {(!roteiroBB || passoBB === 1) && <ShareResultPanel opts={shareOpts} />}
       {/* 🔒 CINTO (19/08): o painel de fim de CARREIRA nunca aparece numa sala ONLINE.
           Ele auto-salva um save de carreira; numa sala online isso gravava uma carreira
@@ -14395,7 +14466,7 @@ export function EscEnd() {
           fechada no START_ONLINE — este `!online` é a segunda trava. */}
       {state.dinastia ? (
         <Btn onClick={() => { window.location.hash = 'dinastia' }} bg={GREEN} className="w-full text-lg"><span className="text-white">🏰 Ir pra janela de transferências →</span></Btn>
-      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending || (roteiroBB && passoBB !== (state.euaOficial ? 4 : 3)) ? null : <NbaCareerEndPanel />) : (online || copaPending || libPending) ? null : (<>
+      ) : (state.careerDivision && !online) ? <CareerEndPanel /> :state.nbaCareer ? (copaPending || (roteiroBB && passoBB !== (state.euaOficial ? 5 : 3)) ? null : <NbaCareerEndPanel />) : (online || copaPending || libPending) ? null : (<>
       {restartPending
         ? (
           <div className="rounded-2xl border-4 border-black p-3 space-y-2 ov3-surface" style={{ background: '#FEF3C7' }}>

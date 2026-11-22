@@ -47,7 +47,7 @@ type DeckChoice = DeckCarreira | 'world'
 import { TIMES_ELITE } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
 import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
-import { useKingsLiberada, useViceCity, BASQUETE_LIGAS_ONLINE, BASQUETE_CARREIRA_ONLINE } from './sport'
+import { useKingsLiberada, useViceCity, BASQUETE_LIGAS_ONLINE, BASQUETE_CARREIRA_ONLINE, useSportUnlocked } from './sport'
 // 👑 13/11 (Diego: *"limite a 10… se por da Kings deixe com 10 times apenas… jogadores padrão aí tudo bem"*): a sala com o BARALHO da
 // Kings tem no máximo 10 pessoas — com mais, faltava zagueiro de verdade e o jogo completava com jogador de mentira (sala FDBQPN, 16 pessoas).
 // Mais nomes da Kings no baralho = sobe este número (pra 20 faltam ~53: +4 GOL, +18 ZAG, +16 MEI, +15 ATA).
@@ -718,8 +718,13 @@ export function EscLobby() {
   // 🏀 estou no BidLegends? O lobby é o MESMO do futebol (mesmas telas e botões,
   // regra do Diego); no basquete só some o que ainda não existe lá (carreira online
   // de 4 divisões, Bafo, Copa do Mundo) e o texto fala de quinteto em vez de XI.
-  const [esporteSala] = useSport()
+  const [esporteSala, trocaEsporteSala] = useSport()
   const nbaSala = esporteSala === 'basquete'
+  // 🏀⚽ 22/11 SELETOR NAS SALAS ABERTAS (mockup `scripts/mockups/salas-abertas-seletor.png`, Diego: *"pode fazer"*): quem joga os
+  // dois troca de jogo ali mesmo, com quantas salas estão abertas em cada um. Só aparece pra conta liberada no basquete
+  // (`useSportUnlocked`) — pra todo o resto a lista é a de sempre, sem consulta a mais.
+  const bbSeletor = useSportUnlocked()
+  const [salasOutroJogo, setSalasOutroJogo] = useState<number | null>(null)
   // 🌐🏀 carreira online agora existe no basquete também (tester). `nbaSala` é sempre
   // false no futebol, então tirar o `&& !nbaSala` NÃO muda nada pro futebol; só libera
   // a aba 🌐 Carreira na sala de basquete. O conteúdo football-only da config (escolher
@@ -1270,7 +1275,7 @@ export function EscLobby() {
     document.addEventListener('visibilitychange', volta)
     return () => { clearInterval(iv); document.removeEventListener('visibilitychange', volta) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, tab])
+  }, [phase, tab, esporteSala])
 
   useEffect(() => {
     if (!room) return
@@ -2229,6 +2234,13 @@ export function EscLobby() {
   // "Carregando…" pra não piscar a cada 5s).
   async function fetchOpenRooms(silent = false) {
     if (!silent) setListLoading(true)
+    const tagDaBusca = tagAtual() // 🏀⚽ trocou de jogo no meio da busca = resposta velha, descarta
+    if (bbSeletor) {
+      const outra = tagDaBusca === GAME_TAG_NBA ? GAME_TAG : GAME_TAG_NBA
+      void supabase.from('game_rooms').select('id', { count: 'exact', head: true }).in('status', ['waiting', 'started']).eq('ls_tag', outra)
+        .gte('updated_at', new Date(Date.now() - 180_000).toISOString())
+        .then(({ count, error }) => { if (!error && tagAtual() === tagDaBusca) setSalasOutroJogo(count ?? 0) }, () => { /* sem número */ })
+    }
     // só salas recentes: uma sala de horas atrás é sala abandonada
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
     // 🪶 LISTA MAGRA (03/08): NÃO baixa o game_state inteiro (podia ser MBs por
@@ -2422,6 +2434,7 @@ export function EscLobby() {
           list[i] = { ...list[i], game_state: { ...(list[i].game_state as GS), vice: true } as GS }
       } catch { /* a lista segue */ }
     }
+    if (tagAtual() !== tagDaBusca) return
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
       // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
       // Ele derrubou duas ideias minhas, e nas duas estava certo:
@@ -3939,6 +3952,19 @@ export function EscLobby() {
       {/* 🗂️ visual novo: carreiras descem pro pé da página, pra as salas aparecerem primeiro */}
       {!salasNovo && blocoCarreiras}
       {/* Navegação visual: usa os destinos e a trava de visitantes existentes. */}
+      {bbSeletor && phase === 'menu' && (
+        <div className="ll-hub-esporte"><div className="ll-hub-esporte-pill" role="group" aria-label={tr('Qual jogo', 'Which game')}>
+          {(['futebol', 'basquete'] as const).map(e => {
+            const ativo = esporteSala === e
+            const n = ativo ? openRooms.length : salasOutroJogo
+            return <button key={e} type="button" data-livre="1" aria-pressed={ativo} className={ativo ? (e === 'futebol' ? 'on-fut' : 'on-bb') : undefined}
+              onClick={() => { if (ativo) return; setOpenRooms([]); setSalasOutroJogo(openRooms.length); setTab('open'); setShowLeagues(false); setRoomError(''); trocaEsporteSala(e) }}>
+              {e === 'futebol' ? tr('⚽ Futebol', '⚽ Football') : tr('🏀 Basquete', '🏀 Basketball')}{n != null && <i>{n}</i>}
+            </button>
+          })}</div>
+          <p>{tr('O número é quantas salas estão abertas agora em cada jogo. Tocou, troca na hora.', 'The number is how many rooms are open right now in each game. Tap to switch.')}</p>
+        </div>
+      )}
       <nav className="online-tabs flex border-[3px] border-black rounded-xl overflow-hidden" aria-label={tr('Navegação do Online', 'Online navigation')}>
         {(onlineHub ? [{id:'open' as const,label:tr('Salas abertas','Open rooms')}, {id:'create' as const,label:tr('Criar sala','Create room')}, {id:'join' as const,label:tr('Entrar por código','Join by code')}] : TABS).map(t => (
           <button key={t.id} data-livre={t.id !== 'create' ? '1' : undefined} aria-current={tab === t.id && !showLeagues ? 'page' : undefined} onClick={() => { setTab(t.id); setShowLeagues(false); setRoomError('') }}

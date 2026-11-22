@@ -66,6 +66,7 @@ import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala, marcaSalaDosM
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { GRUPOS_2026, sorteiaGrupos, parCup, gruposCompletos, classificadosCup } from './eua-cup' // 🏀🏆 NBA Cup real do EUA Oficial
 import { sorteiaLoteria, entraNoDraft, escolhaDoBot, forcaDraft } from './eua-draft' // 🏀🎓 Draft do EUA Oficial
+import { anosContratoEua, luvaRenovacaoEua, contratoAcabou, EUA_RENOVA_ANOS, EUA_NOVATO_ANOS, EUA_BOT_RENOVA } from './eua-agencia' // 🏀✍️ agência livre
 import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { CATALOG_NBA_MUNDO } from './data-basquete-mundo' // 🌍 18/11: ficha das cartas do baralho Mundo
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -6157,7 +6158,8 @@ type Action =
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; /** 🏀 18/11: a mesma sala NBA no rápido offline (tamanho + formato) */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
-  | { type: 'EUA_DRAFT_ABRIR' } | { type: 'EUA_DRAFT_COMECAR' } | { type: 'EUA_DRAFT_ESCOLHER'; chave: string } | { type: 'EUA_DRAFT_AUTO' } // 🏀🎓 Draft do EUA Oficial
+  | { type: 'EUA_DRAFT_ABRIR' } | { type: 'EUA_DRAFT_COMECAR' } | { type: 'EUA_DRAFT_ESCOLHER'; chave: string } | { type: 'EUA_DRAFT_AUTO' } 
+  | { type: 'EUA_AGENCIA_ABRIR' } | { type: 'EUA_AGENCIA_DECIDIR'; chave: string; renova: boolean } // 🏀✍️ agência livre do EUA Oficial // 🏀🎓 Draft do EUA Oficial
   | { type: 'START_EUA_CAREER'; franquia: string; extras: Card[] } // 🏀🇺🇸 carreira EUA Oficial (19/11): franquia real na NBA, sem sobe e desce. `extras` = as cartas novas só da carreira (data-basquete-eua, baixadas pela tela)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'CLOSE_NBA_BOOKS' } // 🏀💰 17/11: fecha o caixa da temporada no passo 💰 do roteiro (uma vez só, booksSeason)
@@ -8660,7 +8662,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'oficialAbertura', 'deOlho', 'aVendaMercado'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'euaContratos', 'euaAgencia', 'oficialAbertura', 'deOlho', 'aVendaMercado'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8767,10 +8769,30 @@ function pickDraftEua(s: EscState, m: Manager, c: Card, auto: boolean): void {
   if (!d) return
   const preco = justoDaCarta(s, c)
   m.squad = [...m.squad, { ...c, id: `edr${d.temporada}-${m.id}`, paid: preco, buyPrice: preco, via: 'leilao' } as WonCard]
+  ;(s.euaContratos = s.euaContratos ?? {})[chaveEua(c)] = d.temporada + EUA_NOVATO_ANOS // ✍️ contrato de novato
   d.picks.push({ mgrId: m.id, name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, ...(auto ? { auto: true } : {}) })
   ;(s.marketLog = s.marketLog ?? []).push(`🎓 ${m.teamName} escolheu ${c.name} no Draft (${d.idx + 1}ª escolha)`)
   d.idx++
 }
+/** 🏀✍️ chave do contrato (a mesma identidade da carta: nome|clube|ano) */
+const chaveEua = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+/** 🏀✍️ dá contrato a quem ainda não tem (quem chegou no leilão): 1–4 temporadas a partir da PRÓXIMA (nunca acaba na 1ª agência dele) */
+function garanteContratosEua(s: EscState, desde: number): void {
+  const ct = (s.euaContratos = s.euaContratos ?? {})
+  for (const m of s.managers) for (const c of m.squad) {
+    if (c.fake || c.cria) continue
+    const k = chaveEua(c)
+    if (ct[k] == null) ct[k] = desde + anosContratoEua(k, desde, s.seed) - 1
+  }
+}
+/** 🏀✍️ quantos contratos SEUS ainda esperam decisão na agência livre desta virada (a tela e o NEXT_NBA_SEASON leem a mesma conta) */
+export function agenciaPendenteEua(s: EscState): number {
+  const a = s.euaAgencia
+  if (!s.euaOficial || !a || a.temporada !== s.seasonNo) return 0
+  return a.meus.filter(k => !a.decididos[k]).length
+}
+/** 🛡️ é o único da posição no elenco? (não pode sair — o quinteto não pode ficar com buraco) */
+function unicoDaPosicao(m: Manager, c: Card): boolean { return m.squad.filter(x => x.pos === c.pos && !x.fake).length <= 1 }
 /** os bots escolhem na vez deles até chegar a vez de gente (ou acabar o Draft) */
 function rodaBotsDraftEua(s: EscState): void {
   const d = s.euaDraft
@@ -8845,6 +8867,8 @@ function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolea
   } as Manager))
   s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
   s.careerRivalCount = ordem.length - 1; s.careerRivals = []
+  s.euaContratos = {}; s.euaAgencia = undefined
+  garanteContratosEua(s, s.seasonNo ?? 1) // ✍️ o quinteto de cada franquia começa com 1–4 temporadas de contrato
   s.euaOficial = { franquia, extras: (extras ?? []).map(c => ({ ...c })) } // as cartas novas ficam no save: o Draft das próximas temporadas precisa delas
   s.euaCup = { temporada: s.seasonNo ?? 1, grupos: GRUPOS_2026.map(g => ({ ...g, times: [...g.times] })), jogos: {} } // 🏆 os grupos REAIS de 2026
   s.nbaTier = 'nba'
@@ -9805,6 +9829,58 @@ function reducerBase(state: EscState, action: Action): EscState {
       rodaBotsDraftEua(s)
       return s
     }
+    case 'EUA_AGENCIA_ABRIR': {
+      // 🏀✍️ abre a agência livre da virada: contratos que acabaram. A máquina renova ou solta; os seus esperam a sua decisão.
+      const S = s.seasonNo ?? 1
+      if (!s.euaOficial || s.screen !== 'end' || s.euaAgencia?.temporada === S) return state
+      garanteContratosEua(s, S + 1)
+      const ct = s.euaContratos!
+      const rng = mulberry((s.seed ^ 0x0A6E7C1A ^ (S * 40503)) >>> 0)
+      const livres: Card[] = []
+      const de: Record<string, string> = {}
+      let botsRenovaram = 0
+      for (const m of s.managers) {
+        if (m.isHuman) continue
+        for (const c of [...m.squad]) {
+          const k = chaveEua(c)
+          if (c.fake || !contratoAcabou(ct[k], S)) continue
+          if (unicoDaPosicao(m, c) || rng() < EUA_BOT_RENOVA) { ct[k] = S + anosContratoEua(k, S + 1, s.seed); botsRenovaram++; continue }
+          m.squad = m.squad.filter(x => x !== c)
+          delete ct[k]
+          livres.push({ ...c, id: `fa${S}-${livres.length}` } as Card); de[k] = m.teamName
+          ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${m.teamName} e está livre na agência`)
+        }
+      }
+      const eu = s.managers[s.youIdx]
+      const meus = (eu?.squad ?? []).filter(c => !c.fake && contratoAcabou(ct[chaveEua(c)], S)).map(c => chaveEua(c))
+      s.euaAgencia = { temporada: S, meus, decididos: {}, livres, botsRenovaram, de }
+      return s
+    }
+    case 'EUA_AGENCIA_DECIDIR': {
+      const S = s.seasonNo ?? 1
+      const a = s.euaAgencia, eu = s.managers[s.youIdx]
+      if (!s.euaOficial || !a || a.temporada !== S || !eu || a.decididos[action.chave] || !a.meus.includes(action.chave)) return state
+      const c = eu.squad.find(x => chaveEua(x) === action.chave)
+      if (!c) return state
+      const ct = (s.euaContratos = s.euaContratos ?? {})
+      if (action.renova) {
+        const luva = luvaRenovacaoEua(c.paid)
+        const caixa = s.careerCoins?.[eu.id] ?? 0
+        if (caixa < luva) return state // a tela já mostra o porquê (sem caixa pra luva)
+        s.careerCoins = { ...(s.careerCoins ?? {}), [eu.id]: caixa - luva }
+        logFin(s, 'buy', `✍️ Renovação de ${c.name} (luva)`, -luva, { player: c.name })
+        ct[action.chave] = S + EUA_RENOVA_ANOS
+        a.decididos[action.chave] = 'renova'
+      } else {
+        if (unicoDaPosicao(eu, c)) return state // 🛡️ a tela explica: é o único da posição
+        eu.squad = eu.squad.filter(x => x !== c)
+        delete ct[action.chave]
+        a.livres = [...a.livres, { ...c, id: `fa${S}-${a.livres.length}` } as Card]
+        a.decididos[action.chave] = 'sai'
+        ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${eu.teamName} e está livre na agência`)
+      }
+      return s
+    }
     case 'START_EUA_CAREER': {
       // 🏀🇺🇸 a carreira de sempre do basquete (economia, save, identidade) e, por cima, a NBA de verdade
       if (!EUA_FRANQUIAS.includes(action.franquia)) return state
@@ -9904,6 +9980,8 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'NEXT_NBA_SEASON': {
       if (s.sport !== 'basquete' || !s.nbaCareer) return s
+      if (agenciaPendenteEua(s) > 0) return state // ✍️ ainda tem contrato seu esperando decisão na agência livre (a tela mostra)
+      const livresAgencia = s.euaOficial && s.euaAgencia?.temporada === s.seasonNo ? s.euaAgencia.livres : []
       anotaTitulosEua(s) // 🏀🌍 ranking do basquete (se o caixa não foi fechado antes, conta aqui; nunca 2×)
       // 💰 ECONOMIA (Camada 1 do futebol): fecha o caixa da temporada que ACABOU —
       // prêmios por colocação + bilheteria/estádio + patrocínio (por andar) − folha
@@ -10017,6 +10095,12 @@ function reducerBase(state: EscState, action: Action): EscState {
         const used = new Set<string>()
         for (const m of s.managers) for (const c of m.squad) used.add(ident(c))
         s.deck = buildDeck([you], rng, 2.0, used, 1) // baralho só pras suas vagas novas
+        // ✍️ EUA Oficial: quem ficou LIVRE na agência entra no seu leilão (na frente da fila da posição dele)
+        for (const c of livresAgencia) {
+          const pos = c.pos as Sector
+          if (!SECTORS.includes(pos) || used.has(ident(c)) || s.deck[pos].some(x => ident(x) === ident(c))) continue
+          s.deck[pos] = [{ ...c, id: `${c.id}-l` } as Card, ...s.deck[pos]]
+        }
         sorteiaEspeciais(s, rng)
         for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
         s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []
