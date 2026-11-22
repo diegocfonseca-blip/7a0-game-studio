@@ -1,3 +1,12 @@
+## 🗄️ 21/11 (noite) — Aparelho CHEIO: cofre duplicado da própria conta (CONSERTO NO BRANCH, esperando "pode publicar")
+- Medição do celular do Diego (#admin): escrita **cheio**, 10.239 KB. Maiores: `esc-career-archive` 2,5 MB · cofre Xurupitas FC 2,4 MB · **cofre da PRÓPRIA
+  conta 1,9 MB** · cofre "felipo" 1,2 MB · `esc-solo-career` 1 MB. Mesma causa do "não consegui criar carreira de basquete" (o jogo avisou "aparelho sem espaço").
+- Defeito: quando a conta volta pro aparelho, `ensureCareerOwner` copiava o cofre dela de volta e NUNCA apagava o cofre → cópia morta pra sempre.
+- Conserto: `limpaCofreDoDono` (storage-guard.ts, roda no boot antes do login) apaga só o cofre da conta DONA do aparelho e só se tudo que ele guarda está
+  vivo no lugar de sempre; `ensureCareerOwner` passa a apagar o cofre depois de restaurar. Cofre de OUTRA conta nunca é tocado. Trava: `npm run storage` (caso 4).
+- ❓ Ainda sobram no aparelho dele 3,6 MB de cofres de outras duas contas (Xurupitas FC: tem save na nuvem de 20/10 · felipo: SEM nuvem, último login 13/09).
+  Não apagar sem ele mandar. 💡 Estrutural (não feito): saves de carreira no localStorage batem no teto de ~10 MB — comprimir os cofres ou levar save pra IndexedDB.
+
 ## 🔐 21/11 (noite) — Conta do Diego caindo ao sair/voltar pro site (EM ABERTO, esperando a medição do aparelho)
 - Servidor: NENHUM logout, erro ou revogação da conta dele. Até 22:06 a sessão antiga (05/11) renovava normal; depois ele digitou a senha 3 vezes
   (21:51, 23:45, 23:46) e essas sessões novas NUNCA renovaram — ou seja, o login ficou só na memória da página e morreu ao recarregar.
