@@ -1,3 +1,8 @@
+## 🧭 22/11 — Depois da coletiva, quem viu o jogo no 3D voltava pro mapa (CONSERTO NO BRANCH, esperando "pode publicar")
+- Diego: *"acabou o jogo no mapa 3D, foi pra entrevista coletiva e depois de dar a coletiva voltou pro mapa 3D do jogo, erradamente"*.
+- `responderColetiva` (pyramidseason.tsx): no fluxo da Central, se a aba é o mapa (`estadio`), ao fechar a coletiva vai pra **Central** (onde aparece o
+  resultado da entrevista e os dias seguem). Quem viu no 2D (aba Jogos) não muda. 🔬 Só buildado; NÃO reproduzi na bancada (coletiva depende da rodada).
+
 ## 🗄️ 21/11 (noite) — Aparelho CHEIO: cofre duplicado da própria conta (CONSERTO NO BRANCH, esperando "pode publicar")
 - Medição do celular do Diego (#admin): escrita **cheio**, 10.239 KB. Maiores: `esc-career-archive` 2,5 MB · cofre Xurupitas FC 2,4 MB · **cofre da PRÓPRIA
   conta 1,9 MB** · cofre "felipo" 1,2 MB · `esc-solo-career` 1 MB. Mesma causa do "não consegui criar carreira de basquete" (o jogo avisou "aparelho sem espaço").
