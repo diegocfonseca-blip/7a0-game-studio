@@ -1291,6 +1291,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 
 - **🏟️⏩ JOGO NO CAMPO 3D DA CARREIRA = 2× POR PADRÃO, COM OU SEM PLANO (22/11).** *"a velocidade deve tá em padrão 2x pra quem tem plano ou não… pra mudar só com botão manual pago"*. Mora em `VEL3D_CARREIRA_PADRAO`/`useVel3DAqui`; o 2D da aba Jogos segue 1,5×. Trava `npm run vel-2d`.
 
+- **🧭 CENTRAL DIRETA (22/11, 🟢 liberada pra todos no mesmo dia, `CENTRAL_DIRETA_GERAL`).** Sem dias pra passar: acabou o jogo, a Central mostra a cena da semana (com Seguir) e depois o próximo jogo com 2D · 3D · Placar PEQUENOS numa fileira; a agenda é a "Próximos jogos" de sempre. Aviso de uma vez só (contrato de TV, recibos) mora no TOPO da Central, nunca na aba Jogos.
+
 - **📣🏠 CANTO DE TORCIDA SÓ EM CASA (21/11, regra permanente).** *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*.
   O canto personalizado toca nos jogos EM CASA do dono — na carreira e nas salas online, onde o visitante daquele jogo ouve também. Fora de casa = torcida
   padrão (ou o canto do dono da casa). Na sala de espera, a entrada de gala (única ou padrão) toca o canto pra sala inteira. Mora em `sound.ts` (`jogoDaTela`).

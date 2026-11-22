@@ -1,3 +1,9 @@
+## 🛟 22/11 — "OPS, ALGO DEU ERRADO" NA CENTRAL (React #185) + CENTRAL DIRETA PRA TODOS
+- Print de um jogador (eenzozzy, iPhone) às 13h01 na versão no ar (`index-C_1QLLZd.js`): o erro estourou no cartão da CENA DO BAIRRO (`CartaoSede`,
+  central.tsx), que media a tela A CADA desenho (`useLayoutEffect` sem lista) e com o mapa ao vivo no quadro entrou numa corrente de atualizações sem fim.
+  Conserto: mede só ao montar e quando a tela muda de tamanho; e o mapa do quadro ficou dentro de um `SemQuebrar` — se ele cair, fica a foto, a Central não cai.
+  ⚠️ Não reproduzi o erro na bancada (só no aparelho dele); se voltar a aparecer, olhar o `VagaDoMapa`/`MapaGuardado` dentro do quadro.
+- 🟢 Central direta liberada pra todos no mesmo dia (`CENTRAL_DIRETA_GERAL = true`) + linha nas novidades.
 ## 🔒 22/11 — PILOTO DO VISUAL DAS PARTIDAS: DIEGO + FUTPOINT, SÓ FUTEBOL ONLINE
 - Pedido autorizado: “Faça na minha conta […] pro Futpoint apenas p eu testar c ele […] podemos tirar”. Implementados placar cinema, abas, controle de velocidade à vista e cartão das três táticas atuais, reaproveitando os componentes/handlers reais.
 - Contas exatas: Diego principal e gfpicolo13@gmail.com (Futpoint). Identidade verificada; sem liberar para outras pessoas, carreira, basquete ou pregão. Futpoint não herda outras prévias privadas.
