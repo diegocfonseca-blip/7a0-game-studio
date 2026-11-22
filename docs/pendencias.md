@@ -493,10 +493,15 @@ carreira · vice/eliminação.
 
 ### 🌐 20/11 — LOGÍSTICA DOS DOIS JOGOS (domínios, marca, planos, salas) — EM CONVERSA
 - Diego: leilaolegends.com = sempre Leilão Legends; no basquete tudo BidLegends. Vai ter plano só futebol, só basquete e dos dois.
-- Proposta minha (sem resposta ainda): um endereço por jogo, mesma conta nos dois, planos futebol/basquete/combo.
+- ✅ 22/11 Diego: *"um endereço para cada jogo, a mesma conta nos dois"* (ele mesmo cuida dos domínios). Planos futebol/basquete/combo:
+  *"não precisa agora"*. Equilibrar franquias do EUA Oficial: NÃO.
 - Diego gostou do seletor ⚽ FUTEBOL / 🏀 BASQUETE da home e quer ele nas SALAS ABERTAS. Mockup:
   `scripts/mockups/salas-abertas-seletor.png` (seletor logo abaixo do topo, com o nº de salas abertas de cada jogo; tocar troca o jogo e a
   marca do topo). Diego (20/11): *"gostei, mas não faça ainda"* — APROVADO o visual, NÃO construir até ele mandar.
+  ✅ 22/11 FEITO (Diego: *"o seletor nas salas abertas, pode fazer"*): pílula ⚽/🏀 acima das abas em `lobby.tsx` (`ll-hub-esporte`), com o nº
+  de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
+  basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
+  No branch, ainda NÃO publicado.
 - ✅ 22/11 PUBLICADO na main (Diego: "Sim e siga"): EUA Oficial (NBA Cup, Draft, ranking), quadra 2D, ligas NBA, escudos — tudo do basquete
   segue só na conta do Diego (testers). Foram pra TODOS no futebol: Partida Rápida na moldura nova e o caixa em etiqueta no Clube.
 
