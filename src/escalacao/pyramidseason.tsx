@@ -11421,7 +11421,7 @@ export function PyramidSeasonScreen() {
   },[copaPlaying,copaCampo,pensNoCampo,copaCampoEncerrado,copaRound,manual,!!myCopaTie?.pens,pensCampoFinalizado,chavePensCampo])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
-  useEffect(() => { if (copaPlaying && !copaSegura) setTab('jogos') }, [copaPlaying]) // 🧭 19/11: no fluxo novo a copa começa pela Central (escolha 2D/3D)
+  useEffect(() => { if (copaPlaying && !copaSegura && !viu3d.current) setTab('jogos') }, [copaPlaying]) // (22/11: quem liberou a copa pelo ▶ do 3D fica no mapa) // 🧭 19/11: no fluxo novo a copa começa pela Central (escolha 2D/3D)
   // escalação (XI) do SEU time pro próximo jogo — pra aba Elenco (substituição)
   const mgrMe = state.managers[state.youIdx]
   // 🏋️ O PREPARADOR FÍSICO DO CLUBE (15/09). É ele quem libera o 🔁 RODIZIAR; o 👑
@@ -11976,6 +11976,7 @@ export function PyramidSeasonScreen() {
   const [halftimeOpen, setHalftimeOpen] = useState(false)
   const halftimeDone = !!state.careerHalftime?.[youId]?.[curMatchIdx]
   const halfMode = soloCareer && !state.co2 && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
+    && !(state.careerSubModeDesde && state.careerSubModeDesde.s === (state.seasonNo ?? 1) && round <= state.careerSubModeDesde.r) // 🧯 22/11: ligou o modo entre dois jogos → vale do PRÓXIMO (o jogo já apitado travava a semana)
   // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
   useEffect(() => { setHalftimeOpen(false) }, [round])
 
@@ -12549,7 +12550,8 @@ export function PyramidSeasonScreen() {
     depois?.()
     // 🧭 22/11 (Diego: "acabou o jogo no mapa 3D, dei a coletiva e voltou pro mapa do jogo, erradamente"): quem viu o jogo no 3D sai da
     // coletiva na CENTRAL — é lá que aparece o resultado da entrevista e que os dias seguem. O jogo já acabou; o mapa não tem mais o que mostrar.
-    if (fluxoCentral && tab === 'estadio') escolheAba('central')
+    // (só quem ASSISTIU no 3D: quem está na aba Clube cuidando de estádio/patrocínio não é tirado de lá por uma coletiva que fechou)
+    if (fluxoCentral && tab === 'estadio' && viu3d.current) escolheAba('central')
   }
   // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
   // 📅 26/10: com o calendário, no MANUAL também (senão a coletiva esperando o toque segurava a semana parada no domingo)
@@ -12596,7 +12598,7 @@ export function PyramidSeasonScreen() {
   // a rodada é decisiva pra pênalti, volta pra aba Jogos NA HORA (igual a Copa faz).
   // Sem isto o técnico podia estar em Tabelas/Elenco/Rank enquanto o placar corria —
   // aí só via o pênalti já "pronto", sem ter visto o jogo andar em tempo real.
-  useEffect(() => { if (penMode && !penaltyDone) setTab('jogos') }, [penMode, penaltyDone])
+  useEffect(() => { if (penMode && !penaltyDone && !(tab === 'estadio' && viu3d.current)) setTab('jogos') }, [penMode, penaltyDone]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 🎪 TORCIDÔMETRO AO VIVO (Diego 12/08): o número exibido reage à posição
   // ATUAL na tabela enquanto a rodada corre — não fica travado esperando o
@@ -12679,7 +12681,10 @@ export function PyramidSeasonScreen() {
   const tabTocada = useRef(false) // a pessoa já escolheu uma aba nesta visita?
   // a carreira ABRE na Central (é a home). Só na chegada: depois, quem manda é o toque.
   useEffect(() => { if (centralOn && !tabTocada.current) setTab('central') }, [centralOn])
-  const escolheAba = (t: AbaCarr) => { tabTocada.current = true; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
+  // 🏟️ 22/11: o jogo DESTA vez foi liberado pelo ▶ do mapa 3D e a pessoa não saiu de lá? (sair pra outra aba apaga a marca)
+  const viu3d = useRef(false)
+  const voltaPro3d = useRef(false) // 🏟️ o intervalo tirou a pessoa do 3D: ao confirmar, volta pro mapa pra ver o 2º tempo onde escolheu
+  const escolheAba = (t: AbaCarr) => { tabTocada.current = true; if (t !== 'estadio') viu3d.current = false; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
   // 🗺️ 03/11 (Diego): saiu da aba Clube com um lugar do mapa aberto → o painel fecha (antes reabria sozinho ao voltar)
   useEffect(() => { if (tab !== 'estadio' && mapaComoClube) setClubeSub('estadio') }, [tab, mapaComoClube])
   // 📊 com Jogos + Tabela juntos, qualquer caminho antigo que abria "Tabelas" (link, aba lembrada) cai na aba Jogos
@@ -12711,7 +12716,7 @@ export function PyramidSeasonScreen() {
   const sagrado = (halftimeOpen && halfMode) || (penaltyOpen && penMode) || festaOnC
   // 🛑 03/11 (Diego: *"o jogo trava no mapa no intervalo e no pênalti"*): as janelas do intervalo e do pênalti moram na aba Jogos.
   // Chegou a hora delas com a pessoa no mapa → a aba Jogos aparece (com a janela já aberta), senão o jogo ficava parado sem botão.
-  useEffect(() => { if (tab === 'estadio' && mapaNoClube && ((halftimeOpen && halfMode && !halftimeDone) || (penaltyOpen && penMode && !penaltyDone))) escolheAba('jogos') }, [tab, mapaNoClube, halftimeOpen, halfMode, halftimeDone, penaltyOpen, penMode, penaltyDone]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (tab === 'estadio' && mapaNoClube && ((halftimeOpen && halfMode && !halftimeDone) || (penaltyOpen && penMode && !penaltyDone))) { const era3d = viu3d.current; escolheAba('jogos'); voltaPro3d.current = era3d && halftimeOpen && halfMode && !halftimeDone } }, [tab, mapaNoClube, halftimeOpen, halfMode, halftimeDone, penaltyOpen, penMode, penaltyDone]) // eslint-disable-line react-hooks/exhaustive-deps
   const barraOn = barraCarr && !sagrado
   const cabRef = useRef<HTMLDivElement | null>(null)
   const [cabFora, setCabFora] = useState(false)
@@ -13777,7 +13782,12 @@ export function PyramidSeasonScreen() {
           style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
         {tab === 'estadio' && previa3d && <PublicarPartidaEstadio state={previa3d}/> }
         {fluxoCentral && tab === 'estadio' && pend3d && giroOk === pend3d.giro && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
-          const p3 = pend3d; setPend3d(null); setJogo3d(true)
+          const p3 = pend3d
+          // 🧯 22/11: causo, lesão ou crise seguram a rodada? o toque NÃO gasta a escolha do 3D (antes o ▶ sumia e o jogo não começava):
+          // leva pra aba Jogos, onde o aviso aparece pra resolver; depois é só escolher o 3D de novo na Central.
+          if (p3.tipo !== 'copa' && !p3.chave?.endsWith(':c') && (criseTrava || eventoPendente || maybeEvento())) { escolheAba('jogos'); return }
+          setPend3d(null); setJogo3d(true)
+          viu3d.current = true
           if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else { setJogoOk(p3.chave); if (!p3.chave.endsWith(':c')) avancarRodada(true) /* 🧭 21/11: a escolha do 3D vale pra ESTE jogo */ }
           pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d') // A câmera já está pronta; este toque é o único que libera a partida.
         }} style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('▶ Começar o jogo', '▶ Start the match')}</button>}
@@ -14263,7 +14273,7 @@ export function PyramidSeasonScreen() {
           return <HalftimeBanner mgr={mgrMe} baseXIids={myXI.map(c => c.id)} baseTactic={myTactic}
             homeName={myMatch.h} awayName={myMatch.a} homeG={homeG} awayG={awayG} youIsHome={iAmHome}
             suspensoId={suspenso?.cardId}
-            onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round: curMatchIdx, xi2: ids, formation, tactic }); setHalftimeOpen(false) }} />
+            onConfirm={(ids, formation, tactic) => { dispatch({ type: 'SET_HALFTIME', mgrId: youId, round: curMatchIdx, xi2: ids, formation, tactic }); setHalftimeOpen(false); if (voltaPro3d.current) { voltaPro3d.current = false; escolheAba('estadio'); viu3d.current = true } }} />
         })()}
         {/* ⚽ BANNER DO PÊNALTI (carreira offline): jogo decisivo de última hora, um gol
             empata ou vira. Enquanto aberto, a rodada não anda. Depois de BATER, não volta. */}
@@ -14772,6 +14782,7 @@ export function PyramidSeasonScreen() {
                 ? <ConfirmaLeilao mgr={state.managers[state.youIdx]} onIr={openLeilao} onMercado={mercadoOn ? () => { setConfLeilao(false); escolheAba('mercado') } : undefined} />
                 : <button data-leilao-fim onClick={jnOn ? () => setConfLeilao(true) : openLeilao} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>🔨 {leilaoLabel}</button>}
               <button onClick={openMesmo} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>{tr('▶️ Mesmo time (sem leilão)', '▶️ Same team (no auction)')}</button>
+              {(state.aVendaMercado ?? []).length > 0 && <p style={{ fontSize: 11, fontWeight: 700, color: '#7a4a00', margin: '6px 2px 0', lineHeight: 1.35, textAlign: 'center' }}>{tr(`⚠️ Você marcou ${(state.aVendaMercado ?? []).length} jogador(es) pra vender no Mercado. Sem leilão eles NÃO são vendidos nesta virada — pra vender, abra o Leilão.`, `⚠️ You marked ${(state.aVendaMercado ?? []).length} player(s) for sale in the Market. Without an auction they are NOT sold this turn — open the Auction to sell.`)}</p>}
               </>)}
             </div>
           )

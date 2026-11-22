@@ -4,6 +4,34 @@
   automático (`graphicsBudget`) continua ligado e baixa se o aparelho apertar. Aparelho fraco (≤ 2 GB) e sem placa de vídeo ficam como antes.
 - Os endereços `?nitidez=2/3` continuam existindo pra teste. ⚠️ Só o S25 dele foi testado; se alguém reclamar de travada no 3D, este é o 1º suspeito
   (reverter = tirar o `!quality.constrained&&!softwareGPU` da linha do `nitidezJogo`).
+## 🧯 22/11 — Consertos da varredura da carreira (🟢 publicado em 22/11) — Diego: *"conserte todos"*
+- ✅ 1 ▶ do 3D não gasta mais a escolha quando causo/lesão/crise segura a rodada: leva pra aba Jogos (onde o aviso aparece).
+- ✅ 2 "Só no intervalo" vale do PRÓXIMO jogo (`careerSubModeDesde` no save; SET_SUBMODE carimba temporada+rodada; `halfMode` ignora o jogo já apitado).
+- ✅ 3 Copa de quarta liberada pelo ▶ do 3D fica no mapa · ✅ 4 pênalti decisivo só tira do 3D quando a janela abre · ✅ 5 confirmou o intervalo vindo do 3D → volta pro mapa.
+- ✅ 7 "Mesmo time" avisa que os marcados pra vender no Mercado não são vendidos sem leilão.
+- ⛔ 6 (rodada 38 sem intervalo) **NÃO mexido de propósito**: tirar a trava pode prender o fim de temporada de quem está no modo intervalo (o jogo já acabado
+  passaria a esperar um intervalo). Só com decisão dele e teste de virada de temporada.
+- 🧪 Rodado: build · bancada 3D (▶ começa o jogo, Substituir abre Elenco, 0 erro de página) · pular da Central 3/3 · `npm run janela-nova`.
+  🔬 NÃO reproduzidos na bancada (dependem de causo/pênalti/copa/intervalo): os cenários 1–5 em si — conferir jogando.
+
+## 🔎 22/11 — Varredura do dia de jogo da carreira (achados lidos no código; NADA rodado). Só o item 0 foi mexido (no branch)
+0. ✅ (publicado em 22/11) **Minha regressão de 22/11**: a ida pra Central depois da coletiva pegava QUALQUER um que estivesse na aba Clube
+   (ex.: cuidando do estádio depois de um jogo visto no 2D, ou na apresentação das lendas da rodada 0). Agora só quem liberou o jogo pelo ▶ do 3D e
+   não saiu do mapa (`viu3d`, pyramidseason.tsx).
+1. 🔴 **▶ do 3D "some" quando um causo/lesão/crise segura a rodada**: o toque gasta a escolha (`setJogoOk` + `setPend3d(null)`) antes de saber se o jogo
+   começou; o causo aparece num painel escondido no mapa; voltar e escolher 3D de novo não mostra mais o ▶. Saída hoje: escolher 2D.
+2. 🔴 **Trocar pra "só no intervalo" ENTRE dois jogos trava a semana**: `halfMode` passa a valer pro jogo já apitado → dias param na Central, a rodada some
+   da tabela de novo e, sem Manual, o "▶ Começar o jogo" não responde. Saída hoje: voltar pra "dinâmico" (nada avisa).
+3. 🟠 **Copa de quarta escolhida no 3D abre na aba Jogos** (efeito antigo `if (copaPlaying && !copaSegura) setTab('jogos')`).
+4. 🟠 **Jogo com pênalti decisivo tira do 3D já no apito inicial** (efeito antigo `if (penMode && !penaltyDone) setTab('jogos')`; o novo já leva na hora certa).
+5. 🟡 Depois do intervalo (modo "só no intervalo") ninguém volta pro mapa: o 2º tempo passa na aba Jogos.
+6. 🟡 A rodada 38 nunca tem intervalo no modo "só no intervalo" (`!seasonOver` em `halfMode`) — pode ser decisão antiga; perguntar.
+7. 🟡 "Mesmo time" na virada apaga as marcas de "pôr à venda" do Mercado sem avisar.
+- Conferido e sem erro: escolha de um jogo vazando pro seguinte (chaves por temporada:rodada e liga×copa), rodada 37→38, quarta de liga × semana de copa,
+  jogador listado/sondado perdido ou duplicado na janela nova, temporadas 1–2.
+- Melhorias sugeridas: Central avisar "resolva X primeiro" quando há causo/crise; botões "Resolva o intervalo"/"Bata o pênalti" da Central levarem pra aba
+  Jogos; aviso no mapa do próximo passo depois de uma fase de copa no 3D; "voltar pro estádio" depois do intervalo.
+
 
 ## 🔬 22/11 — CAMPO 3D: TESTE DE NITIDEZ PELO ENDEREÇO (pra o Diego ver no S25; nada muda pra quem não usa)
 - Diego: *"o que deixa feio é a nitidez da tela… precisamos mexer nisso p ver"*. Hoje no celular a imagem do jogo é desenhada em 1×–1,5× (até 2×

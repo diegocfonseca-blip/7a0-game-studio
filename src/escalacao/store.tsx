@@ -12209,6 +12209,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🔁 liga/desliga "troca só no intervalo" — SÓ carreira offline (no online o
       // host conduz, não há pausa individual). É preferência do técnico.
       if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (action.mode === 'intervalo' && s.careerSubMode !== 'intervalo') s.careerSubModeDesde = { s: s.seasonNo ?? 1, r: s.round ?? 0 } // 🧯 22/11: vale do PRÓXIMO jogo
       s.careerSubMode = action.mode
       return s
     }
