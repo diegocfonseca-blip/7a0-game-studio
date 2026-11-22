@@ -37,6 +37,22 @@ export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,cl
 }
 
 /** Concluídas ficam disponíveis para consulta; compras usam os callbacks existentes. */
+/** 🧭 22/11 (Diego: *"N está claro q o usuário tem q fazer melhorias no estádio… os itens N sei se estão escondidos"*): atalhos logo embaixo
+ *  do mapa, com bolinha vermelha onde tem coisa pra fazer, e a faixa das obras enquanto o estádio não fica pronto. Abrem os MESMOS painéis do prédio. */
+export function AtalhosDoClube({onSelect,obra,pronto,contratos,bb=false}:{onSelect:(id:DestinoClubeMapa)=>void;/** dá pra pagar alguma obra agora */obra:boolean;pronto:number;/** falta fechar o Patrocinador Master */contratos?:boolean;bb?:boolean}){
+ const t=useT()
+ const itens:[DestinoClubeMapa,string,string,boolean][]=[
+  ['estrutura','🏗️',t('Obras','Works'),obra&&pronto<100],
+  ['financas','💰',t('Dinheiro','Money'),false],
+  ['patrocinio','🤝',t('Contratos','Contracts'),!!contratos],
+  ['loja','🛍️',t('Loja','Store'),false],
+  ['agencia','🕴️',t('Agência','Agency'),false],
+ ]
+ return <><nav className="clube-atalhos" aria-label={t('Atalhos do clube','Club shortcuts')}>{itens.map(([id,ic,label,ponto])=><button type="button" key={id} onClick={()=>onSelect(id)} aria-label={ponto?`${label} · ${t('tem coisa pra fazer','something to do')}`:label}>
+  <i aria-hidden="true">{ic}</i><span>{label}</span>{ponto&&<em aria-hidden="true"/>}</button>)}</nav>
+  {pronto<100&&<button type="button" className="clube-atalhos-obra" onClick={()=>onSelect('estrutura')}>🏗️ {bb?t(`Sua arena está ${pronto}% pronta · toque em OBRAS pra melhorar ›`,`Your arena is ${pronto}% done · tap WORKS to upgrade ›`):t(`Seu estádio está ${pronto}% pronto · toque em OBRAS pra melhorar ›`,`Your stadium is ${pronto}% done · tap WORKS to upgrade ›`)}</button>}</>
+}
+
 export function ObrasDoClube({enabled,children}:{enabled:boolean;children:ReactNode}){
  const t=useT();if(!enabled)return <>{children}</>
  const all=Children.toArray(children),done=all.filter(c=>isValidElement<Record<string,unknown>>(c)&&c.props['data-work-done']),pending=all.filter(c=>!done.includes(c))

@@ -172,3 +172,9 @@
 /* 🔒 21/11 (Diego: "o botão de manual/velocidade pra quem não tem precisa ser mais visível"): o cadeado do mapa em dourado, com o selo verde */
 .pc3-review .pc3-match-controls-toggle[data-cadeado]{background:linear-gradient(160deg,#ffe79a,#ffc400 40%,#e8a200 70%,#ffdd70)!important;color:#0c0c0c!important}
 .pc3-review .pc3-match-controls-toggle[data-cadeado] span{background:#1b7a3d!important;color:#fff!important;border:1.5px solid #0c0c0c;border-radius:999px}
+
+/* 📱 22/11 (Diego: "no celular o mapa tá mt vertical qd começa o jogo"; mockup clube-jogo-celular-antes-depois.png aprovado):
+   assistindo o jogo no 3D, o quadro fica mais baixo no celular em pé. Tela cheia (pc3-expanded) não muda. */
+@media(max-width:600px) and (orientation:portrait){
+ .pc3-review[data-watching-match=true]:not(.pc3-expanded) .pc3-stage{height:min(62svh,125vw);min-height:320px}
+}

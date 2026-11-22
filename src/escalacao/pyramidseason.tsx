@@ -16,7 +16,7 @@ import {ResidenciaClube} from './residencia-clube'
 import {GaragemCarreira} from './garagem-carreira'
 import {carteiraDaCarreira,organizarMoveisNaCasa} from './presidencia-carreira'
 import {ClubeMapaPainel} from './clube-mapa-painel'
-import {ClubeOrganizacao,PendenciaDaTemporada} from './clube-organizacao'
+import {ClubeOrganizacao,PendenciaDaTemporada,AtalhosDoClube} from './clube-organizacao'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import { podeAtivarRecepcaoM2, recepcaoM2Desde, versaoRecepcaoNaRodada, versaoRecepcaoNaCopa } from './motor2-recepcao-conta'
 import {publicarTempoCampo2D} from './campo2d-relogio'
@@ -13507,7 +13507,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab clubPage={mapaComoClube?(business?'business':insidePanel?'works':'map'):undefined} initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab clubPage={mapaComoClube?(business?'business':insidePanel?'works':'map'):undefined} atalhos={mapaComoClube&&!insidePanel&&!business?(obra,pronto)=><AtalhosDoClube onSelect={abrirDestinoNoMapa} obra={obra} pronto={pronto} contratos={!masterAtivo(state.careerMaster?.[youId], state.seasonNo ?? 1)}/>:undefined} initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={stadiumMapAvailable&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}

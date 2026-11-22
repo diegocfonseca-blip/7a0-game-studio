@@ -3,6 +3,16 @@
   "Começar a Supercopa Rei" só porque ela existia. Agora `rotuloAbre` só fala dela se o SEU time joga (`supercopaMinha`); senão fala do seu estadual
   (ou "a temporada"). A Supercopa sem você já passava direto (`avancaCopaAuto`). Não testado numa carreira do Oficial na bancada.
 
+
+### 🧭 22/11 (noite) — aba Clube: atalhos embaixo do mapa + jogo 3D só com o mapa (APROVADO, no branch, esperando "pode publicar")
+- Mockup `scripts/mockups/clube-jogo-celular-antes-depois.png` → Diego: *"Aprovo, mas qd tá vendo jogo rolando… mostre só o jogo, o mapa com jogo apenas e mais nada"*.
+- Feito: `AtalhosDoClube` (clube-organizacao.tsx) logo embaixo do mapa — 🏗️ Obras · 💰 Dinheiro · 🤝 Contratos · 🛍️ Loja · 🕴️ Agência; bolinha vermelha
+  em Obras (dá pra pagar alguma obra) e em Contratos (sem Patrocinador Master ativo); faixa amarela "Seu estádio está X% pronto · toque em OBRAS" até 100%.
+- Assistindo o jogo no 3D (`data-watching-match=true`): a aba Clube esconde tudo menos o título e o mapa (só CSS, `clube-organizacao.css`).
+- Celular em pé: o quadro do jogo fica `min(62svh,125vw)` (era ~88% da tela) — `presidencia-complexo-3d.css`. Tela cheia não muda.
+- Bancada: `scripts/mapa3d/print-clube-atalhos.mjs` (390 e 1280) · print `scripts/mockups/clube-atalhos-feito-celular.png`.
+- Junto no branch, também esperando publicar: entrar no automático ao escolher 2D/Placar + botão "Seguir pra Central" depois do jogo (cf0b461e).
+
 ## 22/11 (tarde) — Carreira: fluxo depois do jogo e chegada na aba Jogos — NO BRANCH, esperando "pode publicar"
 
 - ✅ **Escolheu 📺 2D ou ⚡ placar na Central → a aba Jogos chega no AUTOMÁTICO** (`chegaNoAuto`: liga, copa e estreia), mesmo com o Manual guardado no aparelho. O Manual segue a um toque no mesmo cartão. Pedido: *"deve já iniciar no automático… e não no visual de manual com pular, próxima rodada"*.
