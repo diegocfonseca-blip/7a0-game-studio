@@ -12546,7 +12546,8 @@ export function PyramidSeasonScreen() {
     depois?.()
     // 🧭 22/11 (Diego: "acabou o jogo no mapa 3D, dei a coletiva e voltou pro mapa do jogo, erradamente"): quem viu o jogo no 3D sai da
     // coletiva na CENTRAL — é lá que aparece o resultado da entrevista e que os dias seguem. O jogo já acabou; o mapa não tem mais o que mostrar.
-    if (fluxoCentral && tab === 'estadio') escolheAba('central')
+    // (só quem ASSISTIU no 3D: quem está na aba Clube cuidando de estádio/patrocínio não é tirado de lá por uma coletiva que fechou)
+    if (fluxoCentral && tab === 'estadio' && viu3d.current) escolheAba('central')
   }
   // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
   // 📅 26/10: com o calendário, no MANUAL também (senão a coletiva esperando o toque segurava a semana parada no domingo)
@@ -12676,7 +12677,9 @@ export function PyramidSeasonScreen() {
   const tabTocada = useRef(false) // a pessoa já escolheu uma aba nesta visita?
   // a carreira ABRE na Central (é a home). Só na chegada: depois, quem manda é o toque.
   useEffect(() => { if (centralOn && !tabTocada.current) setTab('central') }, [centralOn])
-  const escolheAba = (t: AbaCarr) => { tabTocada.current = true; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
+  // 🏟️ 22/11: o jogo DESTA vez foi liberado pelo ▶ do mapa 3D e a pessoa não saiu de lá? (sair pra outra aba apaga a marca)
+  const viu3d = useRef(false)
+  const escolheAba = (t: AbaCarr) => { tabTocada.current = true; if (t !== 'estadio') viu3d.current = false; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
   // 🗺️ 03/11 (Diego): saiu da aba Clube com um lugar do mapa aberto → o painel fecha (antes reabria sozinho ao voltar)
   useEffect(() => { if (tab !== 'estadio' && mapaComoClube) setClubeSub('estadio') }, [tab, mapaComoClube])
   // 📊 com Jogos + Tabela juntos, qualquer caminho antigo que abria "Tabelas" (link, aba lembrada) cai na aba Jogos
@@ -13775,6 +13778,7 @@ export function PyramidSeasonScreen() {
         {tab === 'estadio' && previa3d && <PublicarPartidaEstadio state={previa3d}/> }
         {fluxoCentral && tab === 'estadio' && pend3d && giroOk === pend3d.giro && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
           const p3 = pend3d; setPend3d(null)
+          viu3d.current = true
           if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else { setJogoOk(p3.chave); if (!p3.chave.endsWith(':c')) avancarRodada(true) /* 🧭 21/11: a escolha do 3D vale pra ESTE jogo */ }
           pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d') // A câmera já está pronta; este toque é o único que libera a partida.
         }} style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('▶ Começar o jogo', '▶ Start the match')}</button>}
