@@ -1,3 +1,12 @@
+## 🧤 22/11 — CAMPO 3D: chute a gol e goleiro olhados de perto — NENHUM defeito confirmado, nada mudado
+- Filmado quadro a quadro (30/s, recorte na bola) na bancada: chute de fora aos 9 s (goleiro espalma pra escanteio) e cabeceio de gol aos 16 s.
+- No cabeceio o goleiro começa o mergulho (`gk_voo_e`, 23 quadros nos números) quando a bola já está chegando e o replay corta 0,2 s depois, então
+  ele PARECE em pé. Mas a cabeçada sai a ~5 m e chega em ~0,4 s: reagir tarde aí é o esperado. Eu cheguei a dizer ao Diego que era defeito e
+  corrigi. Não mexi no tempo do mergulho (`presidencia-futebol-oficial.ts`, 0,42 s antes de a bola cruzar).
+- A bola reposta no escanteio já aparece crescendo (conserto de hoje) nessa filmagem.
+- Ainda NÃO olhado: chute de longe com goleiro voando e pegando, falta, pênalti, lateral, jogo à noite, aparelho de verdade. Só 1 partida (semente
+  4242 da bancada) foi analisada; outra semente pode mostrar outros lances.
+
 ## ⚽🔎 22/11 — CAMPO 3D: bola MENOR que a 1ª tentativa (publicado; Diego: *"a bola, você aumentou demais"*)
 - De 1,5× de perto / teto 3,2× / mínimo ~10 px na tela pra **1,2× / 2,2× / ~6,5 px** (`presidencia-bola-3d.ts`). Ainda é maior que os 3 px
   de antes na Câmera de TV. Comparação (maior · menor na TV · menor na Lateral próxima): `scripts/mockups/bola-3d-menor.jpg`.
