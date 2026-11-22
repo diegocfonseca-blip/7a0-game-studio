@@ -1,3 +1,11 @@
+## 🔬 22/11 — CAMPO 3D: mais 3 partidas inteiras medidas (sementes 7, 99 e 2025) depois dos consertos
+- `node scripts/mapa3d/analisa-numeros.mjs <pasta>…` (lê o `dados.json` do `NUMEROS=1 … filma-bancada.mjs`; `Q="seed=N"` troca a partida).
+- 0 erro de página nas 3. O conserto da "reta que mentia" pegou mais dois casos: **17,4 m** (semente 7, 12,9–16,9 s) e 3,1 m (2025).
+- Em jogo corrido, bola desenhada × oficial ficou em no máximo ~2 m (domínio); 0 bola pulando de lugar, 0 bola parada com o jogo rolando,
+  0 boneco pulando; 1 giro brusco de corpo (82° num passo, semente 99 aos 28,8 s) em 3 partidas.
+- Total medido hoje: 4 partidas, 3 lances com a bola desenhada a 7,5–17,4 m da oficial antes do conserto (quase 1 por partida).
+- Não medido por esse analisador: pé encostando na bola, gesto do goleiro, cabeceio. Isso só olhando filmagem.
+
 ## 🧤 22/11 — CAMPO 3D: chute a gol e goleiro olhados de perto — NENHUM defeito confirmado, nada mudado
 - Filmado quadro a quadro (30/s, recorte na bola) na bancada: chute de fora aos 9 s (goleiro espalma pra escanteio) e cabeceio de gol aos 16 s.
 - No cabeceio o goleiro começa o mergulho (`gk_voo_e`, 23 quadros nos números) quando a bola já está chegando e o replay corta 0,2 s depois, então
