@@ -1,3 +1,8 @@
+## 🃏 21/11 (noite) — BAFO: o dono troca Campo 2D ↔ placar padrão (NO BRANCH, esperando "pode publicar")
+- Pedido do Diego: o Bafo estava travado só no Campo 2D; ele quer poder trocar pro placar padrão. Saiu a trava do Bafo no botão do dono
+  (`TrocaCampo2DSala`, screens.tsx) e no motor (`SET_CAMPO2D`, store.tsx). Continua COMEÇANDO no 2D; a troca vale a partir do próximo jogo, pra sala toda.
+- `npm run bafo` passa. 🔬 NÃO testado numa sala de Bafo de verdade (precisa de 2 contas) — pedir pro Diego conferir com o Futpoint.
+
 ## 🔒 21/11 (noite) — Cadeado do Manual mais visível + Substituir do mapa (🟢 publicado em 21/11 à noite: "pode publicar")
 - **Substituir no mapa 3D** abria a aba Jogos, onde não há troca nenhuma → agora abre a aba **Elenco** (`controleMapa.tatica`). Conferido na bancada.
 - **Cadeado do Manual**: aba Jogos = faixa dourada "🎮 MANUAL E VELOCIDADE" + selo verde "🔒 DESBLOQUEAR" (antes: branca, "Acelerar e pular");

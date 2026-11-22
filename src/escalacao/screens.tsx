@@ -7017,10 +7017,10 @@ export function TrocaCampo2DSala() {
   const temDireito = useTem2D() // 05/11: Craque Salas também liga (mesma régua de criar a sala com 2D)
   const contaOk = useTroca2DSala() // 🟢 05/11: liberado pra todo dono de sala
   const kingsVe = useKingsLiberada() // 👑📺 11/11 (Diego: *"serve pra qualquer modo e sala… deve aparecer pra poder trocar"*): na sala da Kings também
-  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || (ehKings(state) && !kingsVe) || state.bafo2) return null // 🃏 Bafo: só Campo 2D, sem troca
+  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || state.sport === 'basquete' || (ehKings(state) && !kingsVe)) return null // 🃏 Bafo: começa no Campo 2D e o dono troca pro placar se quiser (21/11, noite)
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
-  const salaRapida = !state.ligaMode && !state.careerOnline // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
+  const salaRapida = (!state.ligaMode && !state.careerOnline) || !!state.bafo2 /* 🃏 no Bafo o 2D é o padrão: voltar pra ele é sempre livre */ // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
   return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && (temDireito || salaRapida)}
     onTroca={on => dispatch({ type: 'SET_CAMPO2D', on, by: state.youUid })} />
 }
