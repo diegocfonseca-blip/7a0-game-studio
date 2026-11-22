@@ -500,3 +500,20 @@ try {
   void supabase.auth.getSession().then(({ data }) => conferePraConta(data?.session?.user?.email), () => {})
   supabase.auth.onAuthStateChange((_e, sess) => conferePraConta(sess?.user?.email))
 } catch { /* sem login: fica o canto de sempre */ }
+
+// 🔊 21/11 (noite, Diego: *"várias partes do jogo precisam ter mais sons"* — ele escolheu: pacote do campeão, Bafo, sala de espera,
+// empate no leilão e Central). Tudo sintetizado (0 KB), respeita o mudo e NÃO atrasa nada: é som em cima do que a tela já faz.
+/** 🎁 pacote rasgando (papel) + subida curta */
+export function playPacote() { noise(0.34, 0.5, 2400, 0.6); noise(0.2, 0.4, 5200, 0.8, 0.12); tone(300, 0.5, 'triangle', 0.2, 0.1, 1200) }
+/** 🚪 alguém entrou na sala de espera */
+export function playEntrou() { tone(784, 0.1, 'sine', 0.26); tone(1175, 0.2, 'sine', 0.24, 0.09) }
+/** 🚀 o dono deu a largada */
+export function playLargada() { [523, 659, 784].forEach((f, i) => tone(f, 0.12, 'triangle', 0.26, i * 0.1)); tone(1047, 0.45, 'triangle', 0.3, 0.3) }
+/** 🥁 rufar de tambor (suspense), acelerando — `seg` de duração */
+export function playRufar(seg = 1) { const n = Math.max(6, Math.round(seg * 16)); for (let i = 0; i < n; i++) { const k = i / n; noise(0.05, 0.16 + 0.3 * k, 240, 0.9, seg * (1 - (1 - k) * (1 - k))) } tone(110, 0.3, 'sine', 0.4, seg, 60) }
+/** 📅 um dia passando na Central (bem baixinho) */
+export function playDia() { noise(0.035, 0.12, 3200, 1.4); tone(660, 0.05, 'sine', 0.08, 0.01) }
+/** 📣 chegou o dia do jogo: apito curto */
+export function playApitoCurto() { tone(2350, 0.16, 'square', 0.14); tone(2500, 0.2, 'square', 0.12, 0.05) }
+/** 📸 fim da coletiva: flashes das câmeras */
+export function playFlash() { [0, 0.11, 0.2].forEach(d => noise(0.03, 0.3, 6500, 2, d)) }

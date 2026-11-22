@@ -14,6 +14,24 @@
 - Conferido: partida inteira (91 s) na bancada sem erro de página, 0 pulo de boneco em jogo, trava `test-ball-touch-presentation` e build.
 - Olhado e SEM defeito encontrado: velocidade dos bonecos em jogo corrido (p99 8,7 m/s, teto do motor 9,4), domínio e passe simples nas
   filmagens de perto. NÃO olhado: chute a gol e defesa do goleiro de perto, cabeceio, falta, jogo à noite, aparelho de verdade.
+## 🔊 21/11 (noite) — MAIS SONS (Diego escolheu 5 de 6; a troca de posição no leilão ele NÃO quis) — 🟢 publicado em 21/11 à noite
+- Sons novos em `sound.ts` (sintetizados, 0 KB, respeitam o mudo): `playPacote` · `playEntrou` · `playLargada` · `playRufar` · `playDia` · `playApitoCurto` · `playFlash`.
+- Onde tocam: 🎁 pacote do campeão (rasga + sininho; também no cartão de quem assiste) · 🃏 Bafo (tambor + rasgo na abertura; tambor no suspense da carta
+  tomada e sininho quando vira) · 🚪 sala de espera (plim quando ENTRA alguém; fanfarra na largada) · 🥁 empate no leilão (rufar ao abrir o desempate) ·
+  📺 Central (tique por dia que passa, apito curto no dia do jogo, flashes ao responder a coletiva).
+- 🚫 NÃO fazer: som na troca de posição do leilão (GOL → LAT…) — *"precisa não"*.
+- 🔬 NADA disso foi ouvido em aparelho (a bancada não tem áudio): volume e timbre ficam pro Diego julgar; ajustar em `sound.ts`.
+
+## 🔨🔊 21/11 (noite) — Martelo pra sala toda na revelação (🟢 publicado em 21/11 à noite)
+- Diego numa sala de Clubes: *"tá mudo… tinha que ter um martelinho batendo sempre que alguém ganhasse"*. Não era defeito: o martelo só tocava pra quem
+  levava/vendia (regra antiga dele). Agora bate pra TODOS em todo arremate (`screens.tsx`, efeito da revelação); lenda saindo = sininho pra quem assiste.
+- ❓ Ele quer MAIS sons no jogo. Levar UMA lista curta de onde pôr (não sair pondo). 🔬 Som não testado em aparelho (bancada não tem áudio).
+
+## 🃏 21/11 (noite) — BAFO: o dono troca Campo 2D ↔ placar padrão (🟢 publicado em 21/11 à noite)
+- Pedido do Diego: o Bafo estava travado só no Campo 2D; ele quer poder trocar pro placar padrão. Saiu a trava do Bafo no botão do dono
+  (`TrocaCampo2DSala`, screens.tsx) e no motor (`SET_CAMPO2D`, store.tsx). Continua COMEÇANDO no 2D; a troca vale a partir do próximo jogo, pra sala toda.
+- `npm run bafo` passa. 🔬 NÃO testado numa sala de Bafo de verdade (precisa de 2 contas) — pedir pro Diego conferir com o Futpoint.
+
 
 ## ☀️ 22/11 — CAMPO 3D: gramado mais claro e vivo (publicado, pedido do Diego com print do campo do 2D)
 - *"esse nosso gramado tá muito escuro… o outro tá bem mais vivo"*. Medido na Câmera de TV: média (39, 89, 1) → (81, 140, 42). Antes/depois:
@@ -14740,7 +14758,7 @@ mesas (como nas salas de 11+), falta adaptar Barreira/Blitz/Tiroteio pra mesa 2 
 - ✅ 21/11: as 8 cartas FEITAS e publicadas (Diego: *"Ok publique todos eles"*). Motor em `store.tsx` (`viceAplica`/`viceUsa`/`viceJacareConfere`/`viceColocaNoTime`/`vicePodeUsar`), catálogo em `vice-city.ts`, cenas (avião, paraquedas, jacaré) em `vice-city-ui.tsx` (CSS/emoji, 0 KB). Trava `npm run vice-city` cobre as 8. Fotos de tela: `GOLPE=<id> SAIDA=<pasta> node scripts/teste-vice-city-tela.mjs`.
   · Decisões minhas no caminho (confirmar com o Diego se reclamar): Jacaré = 1 por rival de cada vez, a vítima recebe o que pagou de volta; Paraquedas/Jacaré com time cheio = a lenda entra no lugar do PIOR da posição e ele volta pra mesa; Trapaça dá +1 ⭐ pra quem usou; Missão vale só a carta que estava na mesa na hora; NPC só com vaga aberta no rival.
 
-## 🐛 21/11 — Estadual/copa travado no fluxo da Central (Criciúma do Fabulous, Catarinense) — NO BRANCH, esperando "pode publicar"
+## 🐛 21/11 — Estadual/copa travado no fluxo da Central (Criciúma do Fabulous, Catarinense) — 🟢 publicado em 21/11 à noite
 - Causa (minha, do fluxo da Central de 19–20/11): jogo do SEU time no Estadual/copa espera a escolha 2D/3D na Central (`copaSegura`).
   No visual novo (`visualV2`) a aba Jogos NÃO mostrava o aviso "o jogo começa pela Central" (estava `!visualV2`) — sobrava o controle
   com "⏳ Deixa o jogo acabar…" (nunca libera: o relógio espera a escolha) e o PULAR, que passava o jogo sem mostrar nada.

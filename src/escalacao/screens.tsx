@@ -47,7 +47,7 @@ import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDra
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
-import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playChime, playPacote, playRufar, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -5836,6 +5836,8 @@ function Tiebreak() {
   const online = state.onlineMode === 'online'
 
   const amInIt = !!tb && tb.managers.includes(you.id)
+  // 🥁🔊 21/11: empatou no maior lance → rufar de tambor quando a disputa abre (uma vez por disputa)
+  useEffect(() => { if (tb) playRufar(0.9) }, [state.tiebreakIdx, tb?.card.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const iSubmitted = !!tb && tb.submitted.includes(you.id)
   const [amount, setAmount] = useState(tb?.amount ?? 0)
   const [pending, setPending] = useState(false)
@@ -6251,7 +6253,9 @@ function Reveal() {
     // 🔨 e pro VENDEDOR (carreira): jogador SEU listado arrematado por outro.
     const iSold = sold && meId != null && sellerId != null && sellerId === meId && it.winner !== meId
     const timers: ReturnType<typeof setTimeout>[] = []
-    if (iWon || iSold) timers.push(setTimeout(() => playHammer(), delayMs))
+    // 🔨 21/11 (noite, Diego numa sala de Clubes: *"tá mudo… tinha que ter um martelinho batendo sempre que alguém ganhasse o lance, pra ter
+    // mais animação"*): o martelo agora bate pra SALA TODA em toda carta/pacote arrematado (revê o "martelo só pra quem ganha" antigo).
+    if (sold) timers.push(setTimeout(() => playHammer(), delayMs))
     // 😅 19/11: QUASE! — você perdeu por 1 ou 2 moedas (a mesma conta da faixa "QUASE!" da tela), só pra você
     if (sold && meId != null && !iWon) {
       const win = it.bids.find(b => b.mgr === it.winner)
@@ -6264,6 +6268,8 @@ function Reveal() {
     // quem VENDE uma lenda listada (a venda dele fechando). Vale em todos os modos
     // que usam o reveal; respeita o mudo (playMp3). Substitui o antigo chime.
     if (it.card.fame >= 5 && (iWon || iSold)) timers.push(setTimeout(() => playMp3(`${import.meta.env.BASE_URL}sfx/lenda.mp3`), delayMs + 260))
+    // ✨ e quem só ASSISTE a lenda sair ouve o sininho dourado (o "faah" continua só de quem levou/vendeu)
+    else if (it.card.fame >= 5 && sold) timers.push(setTimeout(() => playChime(), delayMs + 260))
     return () => timers.forEach(clearTimeout)
     // ⚠️ também pela CARTA: leva nova com o mesmo índice (0 → 0) tem que tocar de novo (13/09)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -7165,10 +7171,10 @@ export function TrocaCampo2DSala() {
   const temDireito = useTem2D() // 05/11: Craque Salas também liga (mesma régua de criar a sala com 2D)
   const contaOk = useTroca2DSala() // 🟢 05/11: liberado pra todo dono de sala
   const kingsVe = useKingsLiberada() // 👑📺 11/11 (Diego: *"serve pra qualquer modo e sala… deve aparecer pra poder trocar"*): na sala da Kings também
-  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || (state.sport === 'basquete' && state.careerOnline) || (ehKings(state) && !kingsVe) || state.bafo2) return null // 🃏 Bafo: só Campo 2D, sem troca
+  if (!contaOk || state.onlineMode !== 'online' || !state.isHost || state.espectador || (state.sport === 'basquete' && state.careerOnline) || (ehKings(state) && !kingsVe)) return null // 🃏 Bafo: começa no Campo 2D e o dono troca pro placar se quiser (21/11, noite)
   const agora = !!state.campo2d
   const pendente = state.campo2dProximo !== undefined && state.campo2dProximo !== agora
-  const salaRapida = !state.ligaMode && !state.careerOnline // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
+  const salaRapida = (!state.ligaMode && !state.careerOnline) || !!state.bafo2 /* 🃏 no Bafo o 2D é o padrão: voltar pra ele é sempre livre */ // 🎁 07/11: na sala rápida qualquer dono liga o 2D (até o grátis); liga e carreira seguem do plano
   return <TrocaCampo2DVisual agora={agora} pendente={pendente} podeLigar={liberado && (temDireito || salaRapida)}
     onTroca={on => dispatch({ type: 'SET_CAMPO2D', on, by: state.youUid })} />
 }
@@ -11257,7 +11263,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     if (!savedRef.current) { savedRef.current = true; void persist(card) } // rede de segurança
     setOpening(true)
     // pacote balança/estoura e revela a carta JÁ garantida (não sorteia de novo)
-    setTimeout(() => { setClaimed(card); onClaimed?.(card); setStatus('revealed') }, 950)
+    playPacote() // 🎁🔊 21/11: o pacote rasga e a carta aparece com o sininho
+    setTimeout(() => { playChime(); setClaimed(card); onClaimed?.(card); setStatus('revealed') }, 950)
   }
 
 
@@ -11411,8 +11418,8 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
   const reveal = opened && !!card
   const openPack = () => {
     if (opening || opened) return
-    setOpening(true)
-    setTimeout(() => { setOpening(false); setOpened(true) }, 950)
+    setOpening(true); playPacote()
+    setTimeout(() => { playChime(); setOpening(false); setOpened(true) }, 950)
   }
 
   if (reveal && card) {
