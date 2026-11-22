@@ -1,3 +1,8 @@
+## ⏭️ 22/11 — BOTÃO "COMEÇAR A SUPERCOPA REI" SEM O SEU TIME (Brasil Oficial)
+- Print do Diego (Brasiliense, T2 Série C): *"por que tá aparecendo pra ver supercopa? se meu time não vai jogar"*. O botão da pré-temporada dizia
+  "Começar a Supercopa Rei" só porque ela existia. Agora `rotuloAbre` só fala dela se o SEU time joga (`supercopaMinha`); senão fala do seu estadual
+  (ou "a temporada"). A Supercopa sem você já passava direto (`avancaCopaAuto`). Não testado numa carreira do Oficial na bancada.
+
 ## 🛟 22/11 — "OPS, ALGO DEU ERRADO" NA CENTRAL (React #185) + CENTRAL DIRETA PRA TODOS
 - Print de um jogador (eenzozzy, iPhone) às 13h01 na versão no ar (`index-C_1QLLZd.js`): o erro estourou no cartão da CENA DO BAIRRO (`CartaoSede`,
   central.tsx), que media a tela A CADA desenho (`useLayoutEffect` sem lista) e com o mapa ao vivo no quadro entrou numa corrente de atualizações sem fim.
