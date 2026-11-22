@@ -7,6 +7,14 @@
   pelo endereço especial `?diag=1`, então o mais provável é o jogo aberto por um link num navegador/janela onde ele não está logado. NÃO comprovado.
   ❓ Se repetir no navegador de sempre, pedir print da home (pra ver se mostra o nome da conta) antes de mexer em qualquer coisa de login.
 
+## 🧼🃏 22/11 — SALA NORMAL HERDAVA O BAFO (conserto publicado, Diego: "Sim"; relato do Futpoint)
+- Jogou um Bafo e, na mesma sessão, criou uma sala normal: ela veio com elenco de 22, aba Elencos e "faça suas trocas aqui" do Bafo. A partida em si
+  foi normal (ganharam cartinha), só as telas do Bafo sobraram.
+- Causa: `bafoOn`/`bafo2`/`bafoValendo`/`bafoDonos` só eram zerados no começo de CARREIRA. Agora `START_ONLINE` sem Bafo e o `START` da partida rápida zeram.
+  O convidado recebe o estado inteiro do dono, então consertar o dono basta. Não testado em sala real.
+- ⚠️ À parte: `npm run carreira-limpa` está reprovando por `aVendaMercado` (campo da janela nova do fim de temporada, de outra entrega) sem decisão
+  de zera/fica na carreira nova. Não mexi.
+
 ## 🃏 21/11 (noite) — BAFO: SEM CARTAS NÃO ENTRA NEM CRIA (publicado, pedido do Diego depois da sala do Futpoint)
 - *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*. `enterRoom` (sala esperando) e criar sala: sem cartas que
   fechem um time abre o modal com o `FaltamCartasBafo` e não entra/cria. Leitura das cartas falhou = deixa passar. Sala já começada segue como era.

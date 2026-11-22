@@ -9299,6 +9299,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'START': {
       s.seed = Math.floor(Math.random() * 1e9)
+      s.bafoOn = undefined; s.bafo2 = undefined; s.bafoValendo = undefined; s.bafoDonos = undefined // 🧼🃏 22/11: partida rápida nunca herda a marca do Bafo
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'
       s.isHost = true
@@ -10363,6 +10364,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.manualRoom = !!action.manual // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       s.campo2dProximo = undefined // (a troca marcada já veio dentro do `campo2d` da largada)
       s.campo2d = !!action.campo2d || !!action.bafo2 // 🃏 21/11 (Diego): o Bafo é SÓ no Campo 2D (mais devagar, nada de placar rápido) · 📺 sala 2D: todo jogo no campinho, 1:30 cada (vale pra todos, o tempo da sala muda junto) — carreira em sala também (20/10)
+      // 🧼🃏 22/11 (sala do Futpoint: jogou um Bafo, criou uma sala NORMAL e ela veio com o elenco de 22, a aba Elencos e a faixa do
+      // Bafo): a marca do Bafo só era zerada no começo de CARREIRA. Sala que não é Bafo começa sem ela (a de Bafo liga de novo abaixo).
+      if (!action.bafo) { s.bafoOn = undefined; s.bafo2 = undefined; s.bafoValendo = undefined; s.bafoDonos = undefined }
       s.auctionSecs = action.auctionSecs // ⏱️ tempo do leilão: undefined=45s · N=N segundos · 0=host avança no botão
       s.chatOff = !!action.chatOff // 💬 chat da sala ligado/desligado (escolha do host na criação)
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
