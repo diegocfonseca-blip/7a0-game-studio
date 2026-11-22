@@ -201,3 +201,39 @@ body.fp-match-pilot .fp-advanced-tactics .fp-extra-orders{width:100%;max-width:n
 /* Every page shares the mounted match frame; the selected content follows it. */
 body.fp-match-pilot .fp-match-primary>.ov3-rivals-slot{order:8;min-width:0}
 body.fp-match-pilot:not([data-fp-page=rivals]) .ov3-rivals-slot,body.fp-match-pilot .ov3-rivals-slot:empty{display:none!important}
+
+.fp-opponent-tools{display:none}
+.fp-opponent-slide+.fp-opponent-slide{margin-top:20px}
+body.fp-match-pilot .fp-match-primary>.ov3-next-rival-slot{order:4;min-width:0}
+body.fp-match-pilot:not([data-fp-page=match]) .ov3-next-rival-slot,body.fp-match-pilot .ov3-next-rival-slot:empty{display:none!important}
+.fp-next-opponent>header{background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:3px 3px #000}
+.fp-next-opponent>header small{font:700 10px/1.4 Oswald,sans-serif;color:#625b47;letter-spacing:.5px}
+.fp-next-opponent>header h3{font:700 17px/1.3 Oswald,sans-serif;margin:5px 0 0;overflow-wrap:anywhere}
+.fp-next-opponent>button{min-height:44px;background:none;border:0;color:#f4ecd6;font:700 12px Oswald,sans-serif;cursor:pointer;padding:8px 2px}
+.fp-next-rivalry-card{background:#1a1408;color:#f4ecd6;border:3px solid #0c0c0c;border-radius:16px;box-shadow:4px 4px #000;padding:12px}
+.fp-next-rivalry-card>header h3{font:700 14px/1.35 Oswald,sans-serif;color:#ffc400;margin:0 0 5px}
+.fp-next-rivalry-card>header>small{font:700 10px/1.4 Oswald,sans-serif;color:#c7baa0;letter-spacing:.5px}
+.fp-next-h2h{display:grid;grid-template-columns:minmax(0,1fr) minmax(76px,auto) minmax(0,1fr);align-items:center;gap:8px;background:#2a2010;border:2px solid #0c0c0c;border-radius:12px;padding:12px 8px;margin-top:10px;text-align:center}
+.fp-next-h2h>div{min-width:0}
+.fp-next-h2h strong{display:block;font:700 13px/1.3 Oswald,sans-serif;text-transform:uppercase;overflow-wrap:anywhere}
+.fp-next-h2h small{display:block;font:700 10px/1.4 Oswald,sans-serif;color:#c7baa0;margin-top:3px}
+.fp-next-h2h>div:first-child>small{color:#ffc400}
+.fp-next-h2h :is(.fp-next-own-record,.fp-next-away-record){display:block;font:10px/1.45 Arial,sans-serif;color:#d8ccb5;margin-top:7px}
+.fp-next-history-score b{display:block;font:700 28px/1.15 Oswald,sans-serif;color:#ffc400;white-space:nowrap}
+.fp-next-history-score>span{display:block;font:10px/1.4 Arial,sans-serif;color:#c7baa0;margin-top:3px}
+.fp-next-rivalry-card>footer{text-align:center;margin-top:10px}
+.fp-next-rivalry-tag{display:inline-block;border:1px solid #655538;border-radius:999px;background:#2a2010;color:#d8ccb5;padding:3px 9px;font:700 10px/1.4 Arial,sans-serif}
+@media(min-width:1100px){
+ .fp-opponent-browser{min-width:0}
+ .fp-opponent-tools{display:block;background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:13px;padding:14px;margin-bottom:14px;box-shadow:3px 3px #000}
+ .fp-opponent-tools h3{font:700 21px Oswald,sans-serif;margin:0 0 10px}
+ .fp-opponent-tools>div{display:flex;align-items:end;gap:10px}
+ .fp-opponent-tools label{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px;font:700 11px Oswald,sans-serif}
+ .fp-opponent-tools select{width:100%;min-width:0;min-height:44px;border:2px solid #0c0c0c;border-radius:8px;background:#fffaf0;color:#0c0c0c;padding:7px;font:700 15px Oswald,sans-serif}
+ .fp-opponent-tools button{min-width:48px;min-height:44px;border:2px solid #0c0c0c;border-radius:8px;background:#f4ecd6;color:#0c0c0c;font:700 22px Arial,sans-serif;cursor:pointer}
+ .fp-opponent-tools button:disabled{opacity:.4;cursor:default}
+ .fp-opponent-tools p{font:11px/1.4 Arial,sans-serif;color:#535447;margin:10px 0 0}
+ .fp-opponent-rail{display:flex;width:100%;min-width:0;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:auto;scrollbar-color:#8d80a5 #17251b;padding-bottom:14px}
+ .fp-opponent-slide{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;padding-right:5px;box-sizing:border-box}
+ .fp-opponent-slide+.fp-opponent-slide{margin-top:0}
+}

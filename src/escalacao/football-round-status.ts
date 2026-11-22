@@ -1,5 +1,14 @@
 import type {EscState} from './types'
 
+/** First scheduled game after the loaded round, skipping only the user's byes. */
+export function footballNextFixture(fixtures:[number,number][][],round:number,youId:number){
+ for(let i=round;i<fixtures.length;i++){
+  const game=fixtures[i]?.find(([h,a])=>h===youId||a===youId)
+  if(game)return{round:i+1,opponentId:game[0]===youId?game[1]:game[0],home:game[0]===youId}
+ }
+ return null
+}
+
 /** Presentation only: the running round is round-1; round is the next fixture. */
 export function footballRoundStatus(state:Pick<EscState,'round'|'fixtures'|'lastResults'|'league'>,youId:number){
  const match=state.lastResults.find(r=>r.homeId===youId||r.awayId===youId)

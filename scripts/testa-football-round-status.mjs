@@ -5,6 +5,10 @@ import ts from 'typescript'
 const module={}
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/football-round-status.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:module})
 const status=module.footballRoundStatus
+const next=module.footballNextFixture
+assert.equal(next([[[0,7]],[[0,1]]],0,0).opponentId,7,'próximo jogo não pula bot para procurar rival humano')
+assert.equal(next([[[1,2]],[[4,0]]],0,0).round,2,'só pula rodadas em que o usuário folga')
+assert.equal(next([[[0,7]]],1,0),null,'não inventa jogo após o calendário')
 const league=Array.from({length:5},(_,id)=>({id,name:`Time ${id}`}))
 const fixtures=[[[0,1],[2,3]],[[1,2],[3,4]],[[4,0],[1,3]]]
 const result=(h,a)=>({homeId:h,awayId:a,hg:0,ag:0,highlights:[]})

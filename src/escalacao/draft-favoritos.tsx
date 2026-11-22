@@ -8,7 +8,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useT } from './lang'
 import type { Card, Sector } from './types'
-import { chaveCarta, chaveNome, todasAsCartas, cartaPermitidaDraft, type RegrasDraft, type BaralhoDraft } from './liga-draft'
+import { chaveCarta, chaveJogador, todasAsCartas, cartaPermitidaDraft, type RegrasDraft, type BaralhoDraft } from './liga-draft'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -66,7 +66,7 @@ export function ListaFavoritos({ deck, donoDe, onPegar, favs }: { deck?: Baralho
   return (
     <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white" style={{ color: INK }}>
       {cartas.map((c, i) => {
-        const dono = donoDe.get(chaveNome(c.name))
+        const dono = donoDe.get(chaveJogador(c))
         return (
           <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10" style={{ background: dono ? '#EFEBE0' : '#fff', opacity: dono ? .6 : 1 }}>
             <span className="shrink-0 w-5 h-5 rounded-md border-2 border-black flex items-center justify-center text-[11px]" style={{ ...OSW, background: dono ? '#fff' : GOLD }}>{i + 1}</span>
@@ -112,7 +112,7 @@ export function BuscaFavoritos({ deck, regras, donoDe, favs }: { deck?: BaralhoD
         <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white max-h-[320px] overflow-y-auto" style={{ color: INK }}
           onScroll={e => { const el = e.currentTarget; if (mostra < lista.length && el.scrollTop + el.clientHeight > el.scrollHeight - 240) setMostra(m => m + 60) }}>
           {lista.slice(0, mostra).map(c => {
-            const dono = donoDe.get(chaveNome(c.name))
+            const dono = donoDe.get(chaveJogador(c))
             return (
               <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10" style={{ opacity: dono ? .55 : 1 }}>
                 <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5" style={{ ...OSW, background: '#F4ECD6' }}>{c.pos}</span>

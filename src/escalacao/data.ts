@@ -307,7 +307,7 @@ export const BIOS: Record<string, string> = {
   "Jadson": "O maestro silencioso do Corinthians campeão de 2015. Assistências açucaradas e frieza.",
   "Elias": "Dinâmica pura de área a área. Rompia linhas correndo de trás no Corinthians e na Seleção.",
   "Fernandinho": "Volante completo revelado no Athletico antes de virar peça de Guardiola no Manchester City.",
-  "Andreas Pereira": "Meia de bom passe e chute de fora da área, reforço de peso do Flamengo.",
+  "Andreas Pereira": "Meia de bom passe e chute de fora da área, com bola parada afiada.",
   "Willian Arão": "Volante versátil e regular, chegou a jogar de zagueiro — peça do Flamengo campeão.",
   "Thiago Maia": "Volante de muita pegada e boa saída, campeão pelo Flamengo e pelo Santos.",
   "Zé Rafael": "Volante de origem meia, muita chegada e gols de fora — pilar do Palmeiras.",
@@ -920,7 +920,6 @@ const MEI: C[] = [
   { name: "Jadson", club: "Corinthians", year: 2015, fame: 3, lo: 69, hi: 78 },
   { name: "Elias", club: "Corinthians", year: 2010, fame: 3, lo: 67, hi: 77 },
   { name: "Fernandinho", club: "Atlético-PR", year: 2004, fame: 4, lo: 76, hi: 84 },
-  { name: "Andreas Pereira", club: "Flamengo", year: 2022, fame: 3, lo: 67, hi: 77 },
   { name: "Willian Arão", club: "Flamengo", year: 2019, fame: 3, lo: 65, hi: 77 },
   { name: "D'Alessandro", club: "Internacional", year: 2010, fame: 4, lo: 82, hi: 89 },
   { name: "Tinga", club: "Internacional", year: 2006, fame: 3, lo: 65, hi: 77 },
@@ -1396,9 +1395,8 @@ const L27_BR_ATA: C[] = [
 // jogador LÊ, então aqui só entra o que dá pra sustentar.
 const L27_BR_MEI: C[] = [
   { name: 'Valdo', club: 'Botafogo', year: 1994, fame: 3, lo: 74, hi: 83, bio: 'Meia de passe fino e visão de jogo — anos de Grêmio, ídolo no Benfica e temporadas em Paris antes de fechar a carreira no Rio.' },
-  // 2ª carta do Andreas Pereira (a 1ª é Flamengo 2022) — mesma pessoa em dois
-  // clubes, igual Cafu. Registrado em MESMO_JOGADOR pra o `npm run paises` não
-  // achar que é gente diferente com o mesmo nome.
+  // Andreas Pereira: a carta dele no baralho Brasil é SÓ esta desde 22/11 (a do Flamengo 2022 saiu — o Diego: mesma pessoa
+  // não repete no mesmo baralho, "coloque Palmeiras").
   { name: 'Andreas Pereira', club: 'Palmeiras', year: 2026, fame: 3, lo: 71, hi: 80, bio: 'Meia de chegada e bola parada afiada: voltou ao Brasil pelo Palmeiras depois do Fulham e virou peça central do time.' },
   { name: 'Rodrigo Fabri', club: 'Grêmio', year: 2002, fame: 3, lo: 64, hi: 76, bio: 'Meia de chegada no Grêmio do começo dos anos 2000 — chute de fora da área e faro de área.' },
   { name: 'Rodrigo Mendes', club: 'Grêmio', year: 1999, fame: 3, lo: 63, hi: 75, bio: 'Meia gremista do fim dos anos 90 que depois foi jogar em Portugal.' },
@@ -2301,7 +2299,6 @@ const NOVOS_EU_MEI: C[] = [
   { name: 'Marcos Senna', club: 'Villarreal', year: 2008, fame: 4, lo: 77, hi: 85, bio: 'Brasileiro que virou herói da Espanha: volante do Villarreal, campeão da Eurocopa de 2008 vestindo a Fúria.' },
   { name: 'Federico Valverde', club: 'Real Madrid', year: 2024, fame: 4, lo: 85, hi: 92, bio: 'Motor uruguaio do Real Madrid — corre o jogo inteiro, desarma, chega na área e solta a bomba de fora. Pulmão infinito.' },
   { name: 'Hakan Çalhanoğlu', club: 'Inter', year: 2024, fame: 4, lo: 80, hi: 87, bio: 'O regista turco da Inter — reinventado como camisa 6, dita o ritmo, cobra falta com veneno e não erra pênalti.' },
-  { name: 'Arda Güler', club: 'Real Madrid', year: 2024, fame: 3, lo: 75, hi: 84, promessa: true, bio: 'Joia turca do Real Madrid — canhota refinada, passe e chute de fora da área. A promessa que a Europa toda cobiçava.' },
   { name: 'Brahim Díaz', club: 'Milan', year: 2022, fame: 3, lo: 66, hi: 77, bio: 'Meia-atacante veloz e driblador — foi no Milan que virou titular e brilhou, com arranques e gols, antes de voltar ao Real Madrid.' },
   { name: 'Danny Drinkwater', club: 'Leicester', year: 2016, fame: 3, lo: 64, hi: 76, bio: 'Volante inglês de marcação e passe certo — peça-chave do Leicester campeão inglês de 2016, o maior conto de fadas da Premier League.' },
   { name: 'Jobe Bellingham', club: 'Dortmund', year: 2025, fame: 2, lo: 69, hi: 83, promessa: true, bio: 'Irmão mais novo do Jude — também saiu cedo da Inglaterra, ganhou moral no Sunderland e foi contratado pelo Borussia Dortmund.' },
@@ -3122,7 +3119,6 @@ const L46_EU_MEI: C[] = [
   { name: "Valeri Karpin", club: "Celta", year: 2000, fame: 3, lo: 69, hi: 78 }, // Rússia
   { name: "Leonardo", club: "Milan", year: 1999, fame: 4, lo: 80, hi: 87 }, // Brasil
   { name: "Jordan Henderson", club: "Liverpool", year: 2019, fame: 3, lo: 74, hi: 81 }, // Inglaterra
-  { name: "İlkay Gündoğan", club: "Man City", year: 2018, fame: 4, lo: 80, hi: 87 }, // Alemanha
   { name: "Thiago Motta", club: "PSG", year: 2013, fame: 3, lo: 71, hi: 80 }, // Itália
   { name: "Sandro Tonali", club: "Milan", year: 2022, fame: 3, lo: 71, hi: 80 }, // Itália
   { name: "Thomas Partey", club: "Arsenal", year: 2022, fame: 3, lo: 70, hi: 78 }, // Gana
@@ -3467,7 +3463,6 @@ const NOVOS_WORLD_LAT: C[] = [
   { name: 'Denis Caniza', club: 'Cruz Azul', year: 2005, fame: 3, lo: 64, hi: 76, bio: 'Lateral guerreiro que jogou QUATRO Copas do Mundo pelo Paraguai.' },
 ]
 const NOVOS_WORLD_MEI: C[] = [
-  { name: 'Gilberto Mora', club: 'Tijuana', year: 2024, fame: 3, lo: 74, hi: 84, promessa: true, bio: 'Menino-prodígio mexicano do Tijuana — dos mais novos a se destacar no país, promessa que já joga como gente grande.' },
   { name: 'Cristian Riveros', club: 'Cruz Azul', year: 2009, fame: 3, lo: 66, hi: 77, bio: 'Meia box-to-box do Paraguai nas quartas da Copa de 2010 — chegada e gol.' },
   { name: 'Julio César Romero', club: 'New York Cosmos', year: 1982, fame: 4, lo: 78, hi: 85, bio: "'Romerito' — melhor da América em 1985, craque do Fluminense campeão e do Cosmos de Pelé." },
   { name: 'Nelson Cuevas', club: 'River Plate', year: 2002, fame: 3, lo: 63, hi: 75, bio: 'Meia-atacante driblador do Paraguai, ídolo do River e herói da Copa de 2002.' },

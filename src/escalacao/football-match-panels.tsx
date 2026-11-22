@@ -7,6 +7,66 @@ import {PrateleiraRivalidades,type AmigoRival} from './rivalidades-sala'
 import {useRetrospecto} from './retrospecto'
 import {rivalryOf} from './store'
 import type {Retro} from './retrospecto'
+import {footballNextFixture} from './football-round-status'
+
+export type FootballNextGame={round:number;opponentId:number;opponent:string;home:boolean;friend?:AmigoRival}
+export function FootballNextOpponent({game,mapa,meuTime}:{game:FootballNextGame|null;mapa:Record<string,Retro>;meuTime:string}){
+ const state=useOwnerState(),navigation=useFootballMatchNavigation(state?.roomId??'',true)
+ if(!game)return null
+ const record=game.friend?mapa[game.friend.uid]:undefined
+ const total=record?record.v+record.e+record.d:0
+ const relation=!record?tr('Sem histórico disponível','History unavailable'):!total?tr('Primeiro duelo','First meeting'):record.v>=record.d+2?tr('Rival freguês','You have the upper hand'):record.d>=record.v+2?tr('Rival leva vantagem','Opponent has the edge'):tr('Equilibrado','Evenly matched')
+ const recordText=(wins:number,losses:number)=>tr(`${wins} ${wins===1?'vitória':'vitórias'} · ${losses} ${losses===1?'derrota':'derrotas'}`,`${wins} ${wins===1?'win':'wins'} · ${losses} ${losses===1?'loss':'losses'}`)
+ return <section className="fp-next-opponent" data-opponent-id={game.opponentId} aria-label={tr('Próximo jogo e rivalidade','Next match and rivalry')}>
+  {game.friend?<article className="ll-next-rivalry fp-next-rivalry-card">
+   <header><h3>⚔️ {tr('RETROSPECTO DO PRÓXIMO JOGO','NEXT MATCH HEAD-TO-HEAD')}</h3><small>{tr('RODADA','ROUND')} {game.round} · {game.home?tr('EM CASA','HOME'):tr('FORA','AWAY')}</small></header>
+   <div className="fp-next-h2h"><div><strong>{meuTime}</strong><small>{tr('VOCÊ','YOU')}</small>{record&&<span className="fp-next-own-record">{recordText(record.v,record.d)}</span>}</div>
+    <div className="fp-next-history-score"><b>{record?`${record.v} × ${record.d}`:'—'}</b><small>{tr('vitórias no confronto','head-to-head wins')}</small>{record&&<span>{tr(`${record.e} ${record.e===1?'empate':'empates'}`,`${record.e} ${record.e===1?'draw':'draws'}`)}</span>}</div>
+    <div><strong>{game.opponent}</strong><small>{tr('ADVERSÁRIO','OPPONENT')}</small>{record&&<span className="fp-next-away-record">{recordText(record.d,record.v)}</span>}</div>
+   </div><footer><span className="fp-next-rivalry-tag">{relation}</span></footer>
+  </article>:<header><small>{tr('PRÓXIMO JOGO','NEXT MATCH')} · {tr('RODADA','ROUND')} {game.round} · {game.home?tr('EM CASA','HOME'):tr('FORA','AWAY')}</small><h3>{game.home?`${meuTime} × ${game.opponent}`:`${game.opponent} × ${meuTime}`}</h3></header>}
+  {game.friend&&navigation.page!=='rivals'&&<button type="button" onClick={()=>navigation.choose('rivals')}>{tr('Ver rivalidades em detalhes','View rivalry details')} →</button>}
+ </section>
+}
+
+export function FootballOpponentBrowser({teams}:{teams:{id:number;name:string;pitch:ReactNode}[]}){
+ const rail=useRef<HTMLDivElement>(null),chosen=useRef(teams[0]?.id)
+ const [active,setActive]=useState(teams[0]?.id)
+ const ids=teams.map(team=>team.id).join(',')
+ const index=Math.max(0,teams.findIndex(team=>team.id===active))
+ const desktop=()=>window.matchMedia('(min-width:1100px)').matches
+ const move=(next:number)=>{
+  const team=teams[next],node=rail.current
+  if(!team||!node)return
+  chosen.current=team.id;setActive(team.id)
+  node.scrollTo({left:next*node.clientWidth,behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})
+ }
+ useEffect(()=>{
+  const node=rail.current;if(!node)return
+  const fit=()=>{
+   if(!desktop()||!node.clientWidth)return
+   const next=Math.max(0,teams.findIndex(team=>team.id===chosen.current))
+   chosen.current=teams[next]?.id;setActive(chosen.current)
+   node.scrollTo({left:next*node.clientWidth,behavior:'instant'})
+  }
+  const observer=new ResizeObserver(fit);observer.observe(node)
+  return()=>observer.disconnect()
+ },[ids])
+ if(!teams.length)return null
+ return <section className="fp-opponent-browser" aria-label={tr('Escalações dos adversários','Opponents’ lineups')}>
+  <header className="fp-opponent-tools"><h3>{tr('ESCALAÇÕES DOS ADVERSÁRIOS','OPPONENTS’ LINEUPS')}</h3>
+   <div><button type="button" aria-label={tr('Adversário anterior','Previous opponent')} disabled={index===0} onClick={()=>move(index-1)}>←</button>
+    <label><span>{tr('Escolha o clube','Choose a club')}</span><select aria-label={tr('Escolha o clube','Choose a club')} value={teams[index].id} onChange={event=>move(teams.findIndex(team=>team.id===Number(event.target.value)))}>{teams.map(team=><option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
+    <button type="button" aria-label={tr('Próximo adversário','Next opponent')} disabled={index===teams.length-1} onClick={()=>move(index+1)}>→</button>
+   </div><p>{index+1} / {teams.length} · {tr('Use as setas, escolha um clube ou role para os lados.','Use the arrows, choose a club or scroll sideways.')}</p>
+  </header>
+  <div ref={rail} className="fp-opponent-rail" role="region" aria-label={tr('Campos dos adversários, role para os lados','Opponents’ pitches, scroll sideways')} tabIndex={0}
+   onKeyDown={event=>{if(event.target!==event.currentTarget||!desktop())return;if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();move(index+(event.key==='ArrowRight'?1:-1))}}}
+   onScroll={event=>{const node=event.currentTarget;if(!desktop()||!node.clientWidth)return;const next=teams[Math.round(node.scrollLeft/node.clientWidth)];if(next){chosen.current=next.id;setActive(next.id)}}}>
+   {teams.map(team=><div key={team.id} className="fp-opponent-slide" role="group" aria-label={team.name}>{team.pitch}</div>)}
+  </div>
+ </section>
+}
 
 export function FootballTeamPanel({editable,children}:{editable:boolean;children:ReactNode}){
  return <OwnerSlot name="lineup"><section className="fp-team-panel" aria-label={tr('Sua escalação','Your lineup')}><header><small>{tr('SEU TIME','YOUR TEAM')}</small><h2>{tr('OS SEUS ONZE','YOUR STARTING ELEVEN')}</h2><p>{editable?tr('Troque titulares e formação pelas regras deste modo. Vale para o próximo jogo.','Change starters and formation under this mode’s rules. Applies to the next match.'):tr('Nesta sala os onze são fixos. Consulte os jogadores na aba Elenco.','The starting eleven is fixed in this room. View players in Squad.')}</p></header>{children}</section></OwnerSlot>
@@ -58,13 +118,11 @@ export function FootballCompetitionRivals({state,results,finished,round,fixtures
  const uid=(id:number)=>allowed?state.seatUids?.[id]??'':''
  const amigos=state.managers.filter(m=>m.isHuman&&m.id!==you.id&&uid(m.id)&&uid(m.id)!==uid(you.id)).map(m=>({uid:uid(m.id),nome:m.name,time:m.teamName||m.name,temporada:rivalryOf(state.rivalries,you.id,m.id),id:m.id}))
  const mapa=useRetrospecto(uid(you.id),amigos.map(a=>a.uid),`${state.seed}:${state.screen}:${round}`,state.espectador?state.roomId:null)
- let proximo:import('./rivalidades-sala').ProximoEncontro|null=null
- for(let i=round;i<fixtures.length&&!proximo;i++){
-  const game=fixtures[i]?.find(([h,a])=>h===you.id||a===you.id),friend=game&&amigos.find(a=>a.id===(game[0]===you.id?game[1]:game[0]))
-  if(friend)proximo={amigo:friend,rodada:i+1,daqui:i-round}
- }
+ const scheduled=footballNextFixture(fixtures,round,you.id),nextClub=scheduled?state.managers.find(m=>m.id===scheduled.opponentId):undefined,friend=scheduled?amigos.find(a=>a.id===scheduled.opponentId):undefined
+ const nextGame=scheduled&&nextClub?{...scheduled,opponent:nextClub.teamName||nextClub.name,friend}:null
+ const proximo=scheduled&&friend?{amigo:friend,rodada:scheduled.round,daqui:scheduled.round-round}:null
  const duels=finished?results.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>({key:`${state.roomId}:${state.seed}:${state.screen}:${state.seasonNo}:${round}:${r.homeId}:${r.awayId}`,uid:uid(r.homeId===you.id?r.awayId:r.homeId),name:amigos.find(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))?.time??'',for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round})):[]
- return <OwnerSlot name="rivals"><section className="ov3-rivalries"><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName}/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section></OwnerSlot>
+ return <><OwnerSlot name="next-rival"><FootballNextOpponent game={nextGame} mapa={mapa} meuTime={you.teamName}/></OwnerSlot><OwnerSlot name="rivals"><section className="ov3-rivalries"><FootballNextOpponent game={nextGame} mapa={mapa} meuTime={you.teamName}/><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName} hideNext/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section></OwnerSlot></>
 }
 
 export function FootballDesktopLeaders({state,finished}:{state:import('./types').EscState;finished:boolean}){

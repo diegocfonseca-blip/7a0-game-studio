@@ -1,3 +1,30 @@
+## 🔒 22/11 — VISUAL ATUALIZADO LIBERADO TAMBÉM AO FUTPOINT
+- Autorização nova do Diego: “Atualiza agora o que fez pra mim pro Futpoint também”. A allowlist do piloto passa a Diego principal e `gfpicolo13@gmail.com`, usando a identidade já verificada. Substitui a restrição anterior apenas da interface; demais contas, inclusive a secundária do Diego, ficam fora.
+- Futpoint recebe os mesmos componentes atuais: abas roxas no topo, partida permanente, tática sem marcação individual, consulta dos adversários no desktop, chat/tabela lateral e cartão único do retrospecto. Preferência de voltar ao visual anterior é individual por conta.
+- Sem ampliar outras prévias, regras das ordens ao vivo ou permissões do dono da sala; sem alterar motor, identidade/assentos, sincronização ou banco. Nenhuma consulta nova.
+- Bancada exercita Futpoint como participante real da fixture, com `youIdx/youUid` próprios e sem host, em 390/1440 px, cinema e canvas 2D, com retrospecto invertido corretamente. Rede externa bloqueada; não substitui duas sessões autenticadas ou teste físico no S25.
+- 405 verificações de interface passaram, sem erros JavaScript; teste de identidade verificada/allowlist, `npm run build` e `git diff --check` passaram. Inclui preferências independentes entre as contas, secundária/público fora e ausência de acesso às demais prévias.
+- Capturas e relatório: `/workspace/shared/futpoint-visual-atualizado-20261122/`.
+
+## 🔒 22/11 — RETROSPECTO DO PRÓXIMO JOGO EM CARTÃO ÚNICO
+- Diego pediu retirar a repetição do próximo jogo. Contra outro usuário, o piloto agora mostra um único cartão marrom: “Retrospecto do próximo jogo”, rodada/mando e clubes identificados, sem o cabeçalho creme duplicado. Mesmo cartão em Partida e Rivalidades, celular e desktop.
+- Vitórias e derrotas em texto pequeno sob cada clube, invertidas corretamente no lado adversário; empates compartilhados no centro. Rótulo discreto: “Equilibrado”, “Rival freguês” ou “Rival leva vantagem”, seguindo a diferença de duas vitórias já usada nas rivalidades. Zero explícito mostra “Primeiro duelo”; histórico indisponível não inventa números ou freguesia.
+- Contra bot, preservado o próximo jogo sem inventar retrospecto entre pessoas. Dados existentes reaproveitados, sem novas consultas ou alteração de motor, calendário ou identidade; somente conta principal do Diego. O atalho de detalhes aparece em Partida, sem repeti-lo dentro da própria aba Rivalidades.
+- 349 verificações de interface passaram, sem erros JavaScript; históricos simulados favoráveis, desfavoráveis, equilibrados, zerados e ausentes, em 360/390/1440 px. `npm run build`, acesso privado e `git diff --check` passaram. Bancada isolada, sem alterar salas reais; não substitui teste físico no S25.
+- Capturas do cartão e relatório: `/workspace/shared/retrospecto-unico-20261122/`.
+
+## 🔒 22/11 — MARCAÇÃO INDIVIDUAL RETIRADA DO PAINEL PRIVADO
+- Pedido direto do Diego: tirar a marcação individual de “Mude o plano”. Retirados o seletor de jogador e sua explicação; permanecem postura, caminho do ataque, Normal/Pressão alta e ritmo, no celular e desktop.
+- Novas ordens desse painel enviam `mark:null`, inclusive se o rascunho partiu de um plano antigo com alvo. Sem disparar ordens automaticamente ou alterar resultados já calculados. Mantida a compatibilidade do esquema existente e o acesso exclusivo da conta principal.
+- 315 verificações de interface passaram, sem erros JavaScript; conferidas a ausência do seletor e a ordem real enviada sem alvo. Teste de acesso privado também passou. Bancada local, sem entrar em salas reais; não substitui teste físico no S25.
+- `npm run build` (TypeScript e Vite) e `git diff --check`: passaram.
+- Verificação e capturas locais: `/workspace/shared/sem-marcacao-individual-20261122/`.
+
+## 🔒 22/11 — ADVERSÁRIOS NO DESKTOP + FAIXA MARROM NA PARTIDA
+- Diego pediu facilitar a consulta dos times adversários: no desktop, um campo por vez com setas, seletor de clube, contador e rolagem lateral/teclado. Preserva o escolhido ao voltar à aba.
+- Partida mostra o próximo jogo e, contra outro usuário, a faixa marrom logo abaixo; Rivalidades conserva essa faixa e os detalhes. Celular e desktop, somente conta principal do Diego. O próximo jogo não pula bots para buscar um amigo distante; pula apenas folgas.
+- 315 verificações de interface passaram. Dados/componentes reaproveitados, sem chamadas novas ou mudanças de motor/identidade/salas. [Detalhes e evidências](adversarios-rivalidades-20261122.md).
+
 ## 🔒 22/11 — ABAS COM PLACAR/CAMPO PERMANENTE NO PILOTO PRIVADO
 - Pedido do Diego: manter abas e jogo intactos ao navegar, com o conteúdo escolhido abaixo. Cinema/2D, seletor e controles agora ficam visíveis em todas as abas, sem salto forçado ao início ou remontagem da partida.
 - Rivalidades completas abaixo do jogo também no desktop; tabela lateral e chat permanecem. Exclusivo da conta principal do Diego, sem ampliar público ou regras das ordens.
@@ -2136,6 +2163,13 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - 🔁 Mesmo dia, Diego: *"N falei q sozinho N pode… Só falei q N deixe do Oliveira C a Prime"*. Os 11 antigos VOLTARAM (`desde` = 09/11 03:00 UTC,
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 22/11 (avisado ao Diego, esperando OK pra ligar)
+- NOVO (forte): **Duarte FC** (Fundador nº102) × **Lenda Fc07** (tucad65, conta criada HOJE 22/11) — 6 temporadas só os dois, entre 17:17 e
+  17:22 UTC (5 minutos), 4 ligas × 0; a Lenda Fc07 nunca jogou com mais ninguém. O Duarte é ativo de verdade (219 salas cheias em 30 dias).
+- Médios (só anotado): rafaelmenezesdecastro2014 (Fuxfux22) × eduardogiov (Muralha FC, criada 21/11) — 5 temp., 5×0, Muralha nunca em sala cheia,
+  mas logins a 7 dias · getuliobatista592 × kaioviannavinaa (3×0, logins 1 min, mas o perdedor jogou 2 salas cheias — parece amigo).
+- Os de 21/11 (joaovictor × viniwiny, bernardomatana × mixoliveira) e Éden FC × Fluminense seguem iguais.
 
 ## 🕵️ VIGIA DE CONTA DUPLA — 21/11 (nada forte novo; só anotado)
 - Éden FC × Fluminense (avisado em 19/11): igual, nenhuma das duas contas entrou de novo desde 18/11. Segue esperando o OK do Diego.
@@ -15069,3 +15103,21 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   trocando). Pouca memória (≤2 GB) segue em 30; placa simulada e mapa livre não mudaram. Trava: `npx tsx scripts/testa-partida-quadros.mts`.
   Medidor na tela: abrir o jogo com `?diag=1` no endereço (mostra a placa e os quadros/s em Configurações do mapa).
   FALTA: teste no S25 do Diego; etapa (3) (reflexo só onde aparece, cadeiras/torcida mais leves) só se ainda precisar depois do teste.
+
+## 📋 22/11 — Liga Draft: "um jogador por liga" virou "um por BARALHO" (Diego: "Kaká SP e Kaká Milan são diferentes… baralhos diferentes, então podem")
+- Antes a Liga Draft tirava 232 das 2.636 cartas (toda carta com nome repetido, mesmo em baralho diferente): sumiam Dida/Cafu/Kaká do Milan,
+  Marquinhos do PSG, Ronaldinho do Barça…  1ª tentativa (ficar só com a do auge) foi REPROVADA na hora — não é isso que ele quer.
+- Agora a chave é baralho + nome (`chaveJogador`, liga-draft.ts): leilão da largada, noite do draft, bots e telas usam ela. Ficam de fora só 13
+  (nome repetido DENTRO do mesmo baralho; fica a carta de categoria mais alta). Vale pra liga que começa depois; liga rolando segue igual.
+- 🔁 Mesmo dia, Diego: *"esses 4 nem poderiam existir repetidos… Andreas coloque Palmeiras. K9 deixe as duas… se são mesmo nome não quer dizer
+  que são a mesma pessoa… se forem diferentes não pode excluir"*. Feito: SAÍRAM Andreas Pereira Flamengo 2022, Gündoğan Man City 2018, Arda Güler
+  Real 2024 e Gilberto Mora Tijuana 2024 (data.ts + foto do catálogo; ficam Palmeiras 2026 · City 2023 · Real 2026 · Tijuana 2026; save que
+  já tinha a carta fica com ela). Na Liga Draft xará NUNCA é excluído: a chave é baralho + nome + clube + ano; só junta a mesma pessoa
+  da lista `MESMA_PESSOA_NO_BARALHO` (K9). Com isso a Liga Draft não tira carta nenhuma, só a 2ª do K9 na largada.
+- ❓ Perguntado ao Diego: **Marcelo Lomba** Bahia 2012 × Internacional 2019 (baralho Brasil) é a MESMA pessoa — tirar uma? Os outros xarás do
+  mesmo baralho, que eu identifiquei como pessoas diferentes (esperando ele confirmar): Júlio César (Flamengo 2003 goleiro × Corinthians 2010),
+  Felipe (Corinthians 2009 goleiro × Vasco 2000 meia), Diego (Flamengo 2009 goleiro × Santos 2004 meia), Reinaldo (SP 2020 lateral × Galo 1977
+  centroavante), Danilo (Corinthians 2012 × Botafogo 2026), Paulinho (Corinthians 2012 volante × Galo 2024 centroavante), Jorginho (Leverkusen
+  1990 lateral × Chelsea 2021 volante).
+- ⚠️ `npm run novidades` dá Segmentation fault nesta máquina (vite createServer); a foto foi acertada na mão (só as 4 chaves removidas).
+- ⚠️ `npm run liga-draft` já falhava ANTES ("gente nova → leilão fraco de novo") — conferir à parte.

@@ -13,7 +13,7 @@
 //
 // Aqui só mora a regra pura (sem React, sem estado): quem decide é o reducer do dono (`store.tsx`, DRAFT_*), e a tela lê
 // as MESMAS funções — regra de ouro contra botão mudo.
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, ehPromessa } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_WORLD, CATALOG_BOTH, ehPromessa } from './data'
 import { paisDe, type Baralho } from './paises'
 import type { Card, FormationKey, Manager, Sector, WonCard } from './types'
 import { SECTORS, FORMATIONS } from './types'
@@ -244,9 +244,29 @@ export interface DraftCarry {
   temporada?: number
 }
 
-// ☝️ "um Neymar só": a régua é o NOME da pessoa, sem acento e sem caixa — a carta do Santos e a do Barça são o mesmo cara
+// ☝️ o NOME da pessoa, sem acento e sem caixa. Pra "um jogador só por liga" use `chaveJogador` (baralho + nome, 22/11)
 export const chaveNome = (n: string) => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 export const chaveCarta = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
+// 🃏 22/11 (Diego: *"Kaká SP e Kaká Milan são diferentes… são baralhos diferentes, então podem"*): "um jogador só por liga" vale DENTRO
+// de cada baralho (Brasil · Europa · Mundo), a MESMA regra do jogo todo. A chave é baralho + nome: o Kaká do São Paulo (Brasil) e o do
+// Milan (Europa) convivem na liga; dois Kakás do mesmo baralho, não. Carta fora dos 3 (NBA, regional, Oficial) cai no grupo 'x'.
+let BARALHO_CARTA: Map<string, string> | null = null
+function baralhoDaCartaDraft(c: { name: string; club: string; year: number }): string {
+  if (!BARALHO_CARTA) {
+    BARALHO_CARTA = new Map()
+    const fontes: [string, typeof CATALOG][] = [['br', CATALOG], ['eu', CATALOG_EU], ['mundo', CATALOG_WORLD]]
+    for (const [b, cat] of fontes) for (const pos of SECTORS) for (const x of cat[pos] ?? []) if (!BARALHO_CARTA.has(chaveCarta(x))) BARALHO_CARTA.set(chaveCarta(x), b)
+  }
+  return BARALHO_CARTA.get(chaveCarta(c)) ?? 'x'
+}
+// 👥 22/11 (Diego: *"se são mesmo nome não quer dizer que são a mesma pessoa… se forem diferentes não pode excluir eles"*): nome igual no
+// MESMO baralho é XARÁ (Felipe goleiro × Felipe do Vasco, Reinaldo lateral × Reinaldo do Galo) — cada carta conta sozinha. Só junta quem é
+// a MESMA pessoa com duas cartas no mesmo baralho, e isso só existe por exceção autorizada (lista abaixo).
+const MESMA_PESSOA_NO_BARALHO = new Set(['kelvin oliveira (k9)'])
+export const chaveJogador = (c: { name: string; club: string; year: number }) => {
+  const n = chaveNome(c.name), b = baralhoDaCartaDraft(c)
+  return MESMA_PESSOA_NO_BARALHO.has(n) ? `${b}|${n}` : `${b}|${n}|${c.club}|${c.year}`
+}
 
 /** ordem da noite do draft: humanos na ordem da tabela final (campeão primeiro).
  *  🔁 09/11 (Diego): o dono escolhe — `piorPrimeiro` = do último pro campeão (estilo NBA). Vale na criação e editando a liga. */
@@ -259,7 +279,7 @@ export function ordemDoDraft(tabelaOrdenada: { id: number }[], humanos: number[]
 /** todos os nomes que já têm dono na liga (humanos E bots — o bot também é dono do jogador dele). */
 export function nomesOcupados(managers: { squad: Card[] }[]): Set<string> {
   const s = new Set<string>()
-  for (const m of managers) for (const c of m.squad) if (!c.fake) s.add(chaveNome(c.name))
+  for (const m of managers) for (const c of m.squad) if (!c.fake) s.add(chaveJogador(c))
   return s
 }
 
@@ -294,7 +314,7 @@ export function acharCarta(chave: string, deck?: BaralhoDraft): Card | undefined
   return todasAsCartas(deck).find(c => chaveCarta(c) === chave)
 }
 export function cartasLivres(ocupados: Set<string>, deck?: BaralhoDraft): Card[] {
-  return todasAsCartas(deck).filter(c => !ocupados.has(chaveNome(c.name)))
+  return todasAsCartas(deck).filter(c => !ocupados.has(chaveJogador(c)))
 }
 
 /** quem pode sair pra ele entrar: só alguém da MESMA posição (o time tem vaga fixa). */
