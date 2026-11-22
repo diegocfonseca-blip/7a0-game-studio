@@ -17,8 +17,9 @@
   roubar a carta porque ele criou a sala no modo amistoso"*, *"do nada já jogou pra sala aberta"*, *"aperta 3-5-2 mas tá fazendo 5-3-2"*.
 - Lista de salas: selo `🃏 BAFO VALENDO CARTA` / `🤝 BAFO AMISTOSO` (lobby.tsx; lê `game_state->>bafoSemCarta` só das salas de Bafo, sem mudar o banco).
 - Fim amistoso: texto diz que foi escolha de quem criou a sala (bafo2-ui.tsx).
-- Volta pra espera: o dono apertou "Novo Bafo" e quem não tinha respondido veio junto (é o comportamento desenhado). Agora quem veio sem responder
-  vê `AvisoBafoLevado` (lobby.tsx) com Vou jogar / Sair da sala. Marca por aba (sessionStorage `bafo-fim-<sala>`), some ao fechar.
+- Volta pra espera: o dono apertou "Novo Bafo" e quem não tinha respondido veio junto. Diego: *"se o cara não votou, ele não vai… vai só quem
+  votou"*. Agora quem NÃO apertou Jogar de novo sai sozinho pelo caminho do botão Sair (`BafoFicaForaQuemNaoVotou`, lobby.tsx) e vê na lista o
+  aviso `AvisoBafoFicouFora`. Marca por aba (sessionStorage `bafo-fim-<sala>`). O botão do dono conta só quem votou.
 - 3-5-2: no Bafo o botão gravava o 3-5-2 mas o campinho e a pílula só desenhavam assim na Liga Draft → agora vale pros dois (pyramidseason.tsx).
 - Print: `scripts/mockups/bafo-selo-amistoso.png`.
 

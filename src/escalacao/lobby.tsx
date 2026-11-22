@@ -5223,6 +5223,7 @@ export function EscLobby() {
             )
           })}
         </div>
+        <AvisoBafoFicouFora />
         <div className="ll-hub-legacy-refresh" data-livre="1"><Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big></div>
         {/* 🏆📊🖋️ vitrine: campeões de hoje · ranking da semana · último batismo (13/10, mockup aprovado) */}
         </OnlineRoomMain>
@@ -5925,7 +5926,7 @@ export function EscLobby() {
       )}
 
       {/* 🃏 BAFO NOVO (21/11): as REGRAS em cima; quando o dono começa, vira a convocação de 120 s na tela de todo mundo */}
-      {room.game_state?.mode === 'elenco' && user && room.host_id !== user.id && <AvisoBafoLevado roomId={room.id} onSair={() => { if (window.confirm(tr('Sair da sala? Você será removido desta sala.', 'Leave the room? You will be removed from this room.'))) void leaveRoom() }} />}
+      {room.game_state?.mode === 'elenco' && user && room.host_id !== user.id && <BafoFicaForaQuemNaoVotou roomId={room.id} onSair={() => void leaveRoom()} />}
       {room.game_state?.mode === 'elenco' && user && (
         <div className="mb-3">
           <BafoSala roomId={room.id} meuUid={user.id} donoUid={room.host_id} players={players} valendo={!room.game_state?.bafoSemCarta}
@@ -6473,22 +6474,33 @@ async function copiaTexto(txt: string): Promise<boolean> {
   } catch { return false }
 }
 
-/** 🃏📣 22/11 (Diego: *"teve uma outra vez que do nada já tá jogando pra sala aberta"*): o dono apertou "Novo Bafo" e quem ainda NÃO
- *  tinha respondido na votação do fim veio junto pra sala de espera. Agora ele vê o porquê e o caminho de sair. Fechou = não volta. */
-function AvisoBafoLevado({ roomId, onSair }: { roomId: string; onSair: () => void }) {
-  const chave = `bafo-fim-${roomId}`
-  const [marca, setMarca] = useState<string | null>(() => { try { return sessionStorage.getItem(chave) } catch { return null } })
-  useEffect(() => { if (marca === 'sim') { try { sessionStorage.removeItem(chave) } catch { /* ok */ } } }, [marca, chave])
-  if (marca !== 'nao') return null
-  const fecha = () => { try { sessionStorage.removeItem(chave) } catch { /* ok */ } setMarca(null) }
+/** 🃏🚪 22/11 (Diego: *"se o cara não votou, ele não vai… vai só quem votou"*): o dono apertou "Novo Bafo" e quem NÃO tinha apertado
+ *  "Jogar de novo" na votação do fim não fica na sala nova — sai sozinho pelo MESMO caminho do botão Sair (só apaga a própria linha em
+ *  room_players; nunca mexe em assento de ninguém) e vê, na lista de salas, o aviso do porquê. A marca vem do `BafoFimVoto` (screens.tsx). */
+function BafoFicaForaQuemNaoVotou({ roomId, onSair }: { roomId: string; onSair: () => void }) {
+  useEffect(() => {
+    const chave = `bafo-fim-${roomId}`
+    let marca: string | null = null
+    try { marca = sessionStorage.getItem(chave); sessionStorage.removeItem(chave) } catch { /* sem armazenamento: fica */ }
+    if (marca !== 'nao') return
+    try { sessionStorage.setItem('bafo-ficou-fora', '1') } catch { /* ok */ }
+    onSair()
+  }, [roomId]) // eslint-disable-line react-hooks/exhaustive-deps
+  return null
+}
+
+/** O aviso na lista de salas pra quem ficou de fora do novo Bafo. Fechou = não volta. */
+function AvisoBafoFicouFora() {
+  const [on, setOn] = useState(() => { try { return sessionStorage.getItem('bafo-ficou-fora') === '1' } catch { return false } })
+  if (!on) return null
+  const fecha = () => { try { sessionStorage.removeItem('bafo-ficou-fora') } catch { /* ok */ } setOn(false) }
   return (
-    <div role="status" className="mb-3 border-[3px] border-black rounded-2xl p-3" style={{ background: '#FFF6D6', boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{tr('🃏 O dono começou um novo Bafo', '🃏 The owner started a new Bafo')}</p>
-      <p style={{ fontSize: 12.5, fontWeight: 700, margin: '4px 0 0' }}>{tr('Você não tinha respondido se queria jogar de novo, então voltou junto pra sala de espera. Quer jogar? É só ficar. Não quer? Saia da sala.', 'You had not answered whether you wanted to play again, so you came back to the waiting room with everyone. Want to play? Just stay. Not this time? Leave the room.')}</p>
-      <div style={{ display: 'flex', gap: 8, marginTop: 9 }}>
-        <button type="button" onClick={fecha} style={{ flex: 1, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 ${INK}`, padding: '8px 6px', fontWeight: 900, fontSize: 14, ...OSWALD }}>{tr('🃏 Vou jogar', '🃏 I\'m playing')}</button>
-        <button type="button" onClick={() => { fecha(); onSair() }} style={{ flex: 1, background: '#FFD9CE', color: '#8E2A1B', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 ${INK}`, padding: '8px 6px', fontWeight: 900, fontSize: 14, ...OSWALD }}>{tr('🚪 Sair da sala', '🚪 Leave the room')}</button>
+    <div role="status" className="mb-3 border-[3px] border-black rounded-2xl p-3" style={{ background: '#FFF6D6', boxShadow: `3px 3px 0 ${INK}`, color: INK, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+      <div style={{ flex: 1 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{tr('🃏 O dono começou um novo Bafo', '🃏 The owner started a new Bafo')}</p>
+        <p style={{ fontSize: 12.5, fontWeight: 700, margin: '4px 0 0' }}>{tr('Você não apertou "Jogar de novo", então ficou de fora. Quer jogar? Entre de novo pela lista de salas.', 'You did not tap "Play again", so you were left out. Want to play? Join again from the room list.')}</p>
       </div>
+      <button type="button" aria-label={tr('Fechar', 'Close')} onClick={fecha} style={{ border: `2px solid ${INK}`, borderRadius: 8, background: '#fff', fontWeight: 900, padding: '2px 8px' }}>✕</button>
     </div>
   )
 }

@@ -12699,15 +12699,15 @@ function BafoFimVoto() {
     return () => { vivo = false; window.clearInterval(t) }
   }, [state.roomId])
   const dentro = new Set(memberIds)
-  const ficaram = humans.filter(m => dentro.has(m.id))
+  const ficaram = humans.filter(m => dentro.has(m.id) && (!!votes[m.id] || m.id === youId)) // só quem votou Jogar de novo (+ o dono) vai pro novo Bafo
   const sair = () => {
     const msg = isHost
       ? V('Sair da sala? O comando (host) passa pra outra pessoa. Se estiver sozinho, a sala é apagada.', 'Leave the room? Command (host) passes to someone else. If you are alone, the room is deleted.')
       : V('Sair da sala? Você será removido desta sala.', 'Leave the room? You will be removed from this room.')
-    if (window.confirm(msg)) leaveRoom()
+    if (window.confirm(msg)) { try { sessionStorage.removeItem(`bafo-fim-${state.roomId}`) } catch { /* ok */ } leaveRoom() }
   }
-  // 🃏📣 22/11 (Diego: *"do nada já jogou pra sala aberta"*): quem ainda não respondeu e é levado junto quando o dono começa o
-  // novo Bafo ganha, na sala de espera, o aviso do porquê + o botão de sair (`AvisoBafoLevado` em lobby.tsx). A marca é desta aba só.
+  // 🃏🚪 22/11 (Diego: *"se o cara não votou, ele não vai… vai só quem votou"*): quem NÃO apertou Jogar de novo sai sozinho da sala
+  // quando o dono começa o novo Bafo (`BafoFicaForaQuemNaoVotou` em lobby.tsx). A marca é desta aba só.
   useEffect(() => {
     if (!state.roomId || isHost) return
     try { sessionStorage.setItem(`bafo-fim-${state.roomId}`, quero ? 'sim' : 'nao') } catch { /* sem armazenamento: só não avisa */ }
@@ -12735,7 +12735,7 @@ function BafoFimVoto() {
           </div>
           <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '7px 0 0', textAlign: 'center' }}>{ficaram.length < 2
             ? V('Você ficou sozinho: na sala de espera dá pra chamar mais gente.', 'You are alone: in the waiting room you can call more people.')
-            : V('Você é o dono: quando apertar, quem não saiu volta junto pra sala de espera e todo mundo convoca de novo.', 'You are the owner: when you tap, everyone who did not leave goes back to the waiting room and calls up again.')}</p>
+            : V('Você é o dono: quando apertar, só quem apertou Jogar de novo volta pra sala de espera. Quem não respondeu fica de fora.', 'You are the owner: when you tap, only who tapped Play again goes back to the waiting room. Who did not answer is left out.')}</p>
           <button onClick={sair} style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 800, fontSize: 12.5, color: 'rgba(0,0,0,.6)' }}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
         </>
       ) : (
@@ -12746,7 +12746,7 @@ function BafoFimVoto() {
           </div>
           <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '7px 0 0', textAlign: 'center' }}>{quero
             ? V('Fechado! Quando o dono da sala começar o novo Bafo, você volta pra sala de espera e convoca de novo.', 'Done! When the room owner starts the new Bafo, you go back to the waiting room and call up again.')
-            : V('Quem não sair volta junto pra sala de espera quando o dono começar o novo Bafo.', 'Whoever does not leave goes back to the waiting room when the owner starts the new Bafo.')}</p>
+            : V('Só vai pro novo Bafo quem apertar Jogar de novo. Quem não responder fica de fora quando o dono começar.', 'Only who taps Play again goes to the new Bafo. Who does not answer is left out when the owner starts.')}</p>
         </>
       )}
     </div>
