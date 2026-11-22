@@ -15114,7 +15114,7 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   Real 2024 e Gilberto Mora Tijuana 2024 (data.ts + foto do catálogo; ficam Palmeiras 2026 · City 2023 · Real 2026 · Tijuana 2026; save que
   já tinha a carta fica com ela). Na Liga Draft xará NUNCA é excluído: a chave é baralho + nome + clube + ano; só junta a mesma pessoa
   da lista `MESMA_PESSOA_NO_BARALHO` (K9). Com isso a Liga Draft não tira carta nenhuma, só a 2ª do K9 na largada.
-- ❓ Perguntado ao Diego: **Marcelo Lomba** Bahia 2012 × Internacional 2019 (baralho Brasil) é a MESMA pessoa — tirar uma? Os outros xarás do
+- ✅ Marcelo Lomba: saiu o Bahia 2012, fica o Internacional 2019 (OK do Diego, 22/11). Os outros xarás do
   mesmo baralho, que eu identifiquei como pessoas diferentes (esperando ele confirmar): Júlio César (Flamengo 2003 goleiro × Corinthians 2010),
   Felipe (Corinthians 2009 goleiro × Vasco 2000 meia), Diego (Flamengo 2009 goleiro × Santos 2004 meia), Reinaldo (SP 2020 lateral × Galo 1977
   centroavante), Danilo (Corinthians 2012 × Botafogo 2026), Paulinho (Corinthians 2012 volante × Galo 2024 centroavante), Jorginho (Leverkusen
