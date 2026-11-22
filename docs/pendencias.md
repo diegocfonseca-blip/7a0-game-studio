@@ -1,4 +1,4 @@
-## 🧼🃏 22/11 — SALA NORMAL HERDAVA O BAFO (conserto NO BRANCH, esperando o Diego mandar publicar; relato do Futpoint)
+## 🧼🃏 22/11 — SALA NORMAL HERDAVA O BAFO (conserto publicado, Diego: "Sim"; relato do Futpoint)
 - Jogou um Bafo e, na mesma sessão, criou uma sala normal: ela veio com elenco de 22, aba Elencos e "faça suas trocas aqui" do Bafo. A partida em si
   foi normal (ganharam cartinha), só as telas do Bafo sobraram.
 - Causa: `bafoOn`/`bafo2`/`bafoValendo`/`bafoDonos` só eram zerados no começo de CARREIRA. Agora `START_ONLINE` sem Bafo e o `START` da partida rápida zeram.
