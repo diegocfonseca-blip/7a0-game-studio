@@ -1,3 +1,14 @@
+## 🧭 22/11 — CENTRAL DIRETA (sem dias pra passar) — FEITA, SÓ NA CONTA DO DIEGO (`CENTRAL_DIRETA_GERAL = false`)
+- Mockups aprovados (*"Sim"*): `scripts/mockups/central-nova-cel.png`/`-pc.png`. Ajustes dele no caminho: agenda = a "Próximos jogos" que JÁ existe
+  na Central (escudo, competição, estádio, CASA/FORA) e botões 2D/3D/Placar PEQUENOS numa fileira (*"tá muito exagerado os botões"*).
+- Como ficou: sem relógio de dias (3 s por dia saiu) — a semana pula sozinha pro dia do jogo (o mesmo pulo do "Pular pro jogo", `centralDireta` no
+  efeito do `pulando`); decisão de jogador/crise/coletiva continuam travando antes (`calLivre`). A cena da semana (`sede`: balada/futevôlei, carreata,
+  obra, boteco…) aparece ANTES do jogo com "Seguir ›" + faixa "a seguir" (`CentralCarreira direta`). O cartão do jogo fica `compacto` (sem régua de
+  dias, sem recado, sem "Seus jogos").
+- 📺 Mesma entrega, PRA TODOS (fluxo da Central): o aviso do CONTRATO DE TV (e cota extra, recibos do médico/preparador) saiu da aba Jogos e aparece
+  no TOPO da Central, uma vez só (Diego: *"não tem nada a ver esse contrato de TV aparecendo na aba de jogos… é pra aparecer na central uma vez só"*).
+- Bancada: `localStorage['esc-central-direta-dev'] = '1'` liga sem conta. Liberar geral = `CENTRAL_DIRETA_GERAL = true`.
+
 ## 🧭 22/11 — CENTRAL NOVA "SEM DIAS PRA PASSAR": MOCKUP ENVIADO, ESPERANDO O OK (nada no jogo ainda)
 - Diego: *"sinto que essa central toda não está legal… não tá fluindo… tirando os dias de passar"*. Perguntou o que eu faria do zero.
 - Proposta (mockups `scripts/mockups/central-nova-cel.png` e `-pc.png`, gerador `scripts/mockup-central-nova.mjs`): a Central abre no PRÓXIMO JOGO

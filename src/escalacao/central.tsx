@@ -91,7 +91,7 @@ function CartaoRaioX({ r }: { r: RaioX }) {
  *  acontecimento; fechou, não volta (guarda só a ÚLTIMA chave fechada — uma entrada só no aparelho, nunca cresce). */
 export type CentralSede = { /** 📍 o lugar do mapa onde a cena acontece (o "Ver no mapa" voa pra lá) */ vista?: string; chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
 const SEDE_FECHADA = 'esc-sede-fechada'
-function CartaoSede({ s, onMapa, cls, janela }: { s: CentralSede; onMapa: () => void; cls: string; /** 🎥 22/11: o MAPA ao vivo no lugar da foto parada */ janela?: ReactNode }) {
+function CartaoSede({ s, onMapa, cls, janela, seguir }: { s: CentralSede; onMapa: () => void; cls: string; /** 🎥 22/11: o MAPA ao vivo no lugar da foto parada */ janela?: ReactNode; /** 🧭 22/11 (Central direta): o banner da semana vem ANTES do jogo; "Seguir" fecha e mostra o jogo */ seguir?: () => void }) {
   const t = useT()
   // 🎥 22/11 (Diego: *"só deve aparecer com videozinhos… igual a chegada do ônibus"*): a cena passa AO VIVO no quadro (o mapa de
   // verdade, já apontado pro lugar). O cartão existe duas vezes (celular e computador, o CSS esconde um): o mapa é UM só, então
@@ -106,7 +106,7 @@ function CartaoSede({ s, onMapa, cls, janela }: { s: CentralSede; onMapa: () => 
   const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) === s.chave } catch { return false } })
   useEffect(() => { try { setFechada(localStorage.getItem(SEDE_FECHADA) === s.chave) } catch { setFechada(false) } }, [s.chave])
   if (fechada) return null
-  const fecha = () => { try { localStorage.setItem(SEDE_FECHADA, s.chave) } catch { /* segue só nesta tela */ } setFechada(true) }
+  const fecha = () => { try { localStorage.setItem(SEDE_FECHADA, s.chave) } catch { /* segue só nesta tela */ } setFechada(true); seguir?.() }
   return (
     <div ref={raiz} className={`ll-central-card ll-c-sede ${cls}`} style={{ background: CREME, color: INK, overflow: 'hidden', padding: 0 }}>
       <div style={{ position: 'relative', height: janela ? 260 : 190, background: `#1f1a13 url(${s.img}) center / cover`, overflow: 'hidden' }}>
@@ -124,7 +124,7 @@ function CartaoSede({ s, onMapa, cls, janela }: { s: CentralSede; onMapa: () => 
         <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600, color: '#3a3527' }}>{s.texto}</p>
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={onMapa} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: GOLD, color: INK, cursor: 'pointer' }}>📍 {t('Ver no mapa', 'See on the map')}</button>
-          <button type="button" onClick={fecha} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: '#fff', color: INK, cursor: 'pointer' }}>{janela ? t('⏩ Pular', '⏩ Skip') : t('Fechar', 'Close')}</button>
+          <button type="button" onClick={fecha} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: '#fff', color: INK, cursor: 'pointer' }}>{seguir ? t('Seguir ›', 'Next ›') : janela ? t('⏩ Pular', '⏩ Skip') : t('Fechar', 'Close')}</button>
         </div>
       </div>
     </div>
@@ -133,6 +133,10 @@ function CartaoSede({ s, onMapa, cls, janela }: { s: CentralSede; onMapa: () => 
 export type CentralProps = {
   /** 🎥 22/11: o mapa ao vivo pra pôr dentro do quadro da cena do bairro (sem ele, fica a foto de sempre) */
   sedeJanela?: ReactNode
+  /** 🧭 22/11 (Central direta): a cena da semana vem antes do jogo, num banner com "Seguir" */
+  direta?: boolean
+  /** 🧭 22/11: avisos de uma vez só (contrato de TV, recibos) — aparecem no topo da Central, um de cada vez */
+  avisos?: ReactNode
   /** 🎥 a cena do bairro (só quando o mapa do clube existe nesta carreira e algo está acontecendo nele) */
   sede?: CentralSede | null
   /** 📍 abre o mapa já no lugar da cena */
@@ -274,6 +278,9 @@ function Cabecalho({ titulo, sub, link, onClick }: { titulo: string; sub?: strin
 
 export function CentralCarreira(p: CentralProps) {
   const visualV2=useCareerVisualV2()
+  // 🧭 22/11 (Central direta): a cena da semana ainda não vista toma o lugar do cartão do jogo até a pessoa tocar em "Seguir"
+  const [sedeVista, setSedeVista] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) ?? '' } catch { return '' } })
+  const sedeAntes = !!(p.direta && p.sede && p.semana && sedeVista !== p.sede.chave)
   const t = useT()
   const [mercadoTodo, setMercadoTodo] = useState(false) // 💸 mostra os 5 maiores; o resto abre no toque
   const posDe = (nome: string) => { const i = p.tabela.findIndex(x => x.name === nome); return i >= 0 ? i + 1 : null }
@@ -341,7 +348,15 @@ export function CentralCarreira(p: CentralProps) {
       <div className="ll-central-grid">
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
-          {p.semana ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>{p.semana}</div> : <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${p.bb ? quadraArt : FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
+          {p.avisos && <div style={{ flex: '0 0 100%', minWidth: 0 }}>{p.avisos}</div>}
+          {sedeAntes && p.sede ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>
+            <CartaoSede s={p.sede} janela={p.sedeJanela} cls="" seguir={() => setSedeVista(p.sede!.chave)} onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />
+            {p.proximo && <button type="button" onClick={() => setSedeVista(p.sede!.chave)} style={{ ...OSW, display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 10, background: '#1d1812', color: '#fff', border: `2px solid ${INK}`, borderRadius: 14, padding: '8px 12px', fontSize: 14, cursor: 'pointer' }}>
+              <Escudo nome={p.proximo.casa} size={26} /><span style={{ opacity: .7 }}>×</span><Escudo nome={p.proximo.fora} size={26} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.proximo.casa === p.euNome ? p.proximo.fora : p.proximo.casa}</span>
+              <span style={{ marginLeft: 'auto', color: GOLD, whiteSpace: 'nowrap' }}>{t('a seguir ›', 'up next ›')}</span>
+            </button>}
+          </div> : p.semana ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>{p.semana}</div> : <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${p.bb ? quadraArt : FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0002 0%,#0001 30%,#0C0C0Cc9 66%,#0C0C0Cf5 100%)' }} />
             <div style={{ position: 'relative', padding: '12px 13px 13px', display: 'flex', flexDirection: 'column', minHeight: 372 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -387,7 +402,7 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           </div>}
 
-          {p.sede && <CartaoSede s={p.sede} janela={p.sedeJanela} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
+          {p.sede && !p.direta && <CartaoSede s={p.sede} janela={p.sedeJanela} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
           <>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
@@ -501,7 +516,7 @@ export function CentralCarreira(p: CentralProps) {
         </div>
 
         <div className="ll-central-dir">
-          {p.sede && <CartaoSede s={p.sede} janela={p.sedeJanela} cls="ll-c-sede-pc" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
+          {p.sede && !p.direta && <CartaoSede s={p.sede} janela={p.sedeJanela} cls="ll-c-sede-pc" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {/* 📰 O MARTELO do meio da temporada */}
           <div className="ll-central-card ll-central-martelo ll-c-martelo" style={{ background: '#FBF5E4', borderRadius: 8 }}>
             <div style={{ padding: '10px 13px 6px', textAlign: 'center', borderBottom: `3px double ${INK}` }}>
