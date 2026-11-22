@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { useVerifiedPresentationEmail } from './online-preview'
-import { footballMatchPilotEmail, footballMatchPilotScope, type FootballMatchPilotScope } from './football-match-pilot-policy'
+import { footballMatchPilotEmail, footballMatchPilotScope, footballMatchAdScope, type FootballMatchPilotScope } from './football-match-pilot-policy'
 import { tr } from './lang'
 import './football-match-pilot.css'
 import {useFootballMatchNavigation} from './football-match-navigation'
@@ -14,6 +14,11 @@ function optedOut(email: string) {
   try { return localStorage.getItem(preferenceKey(email)) === '1' } catch { return false }
 }
 let activeScopes = 0
+
+export function useFootballMatchAdAccess(state:FootballMatchPilotScope){
+ const email=useVerifiedPresentationEmail()
+ return footballMatchPilotEmail(email)&&footballMatchAdScope(state)
+}
 
 /** Local presentation: no room writes, messages, round state or permission changes. */
 export function useFootballMatchPilotAccess(state: FootballMatchPilotScope) {
