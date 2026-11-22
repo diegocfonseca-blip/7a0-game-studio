@@ -22,6 +22,15 @@
 - 🧪 Rodado: build · bancada 3D (▶ começa o jogo, Substituir abre Elenco, 0 erro de página) · pular da Central 3/3 · `npm run janela-nova`.
   🔬 NÃO reproduzidos na bancada (dependem de causo/pênalti/copa/intervalo): os cenários 1–5 em si — conferir jogando.
 
+## 22/11 — Carreira: 5 pontos do teste do Diego (prints da manhã) — NO BRANCH, esperando "pode publicar"
+
+- ✅ **Contratos sem nada pra decidir não param mais a tela** ("mesmo time, sem leilão" com a mesa vazia fechava num banner só com "Continuar"). Agora segue direto (`CONFIRM_MESMO_TIME` sozinho); se o motor recusar, em 2,5 s cai na tela de sempre.
+- ✅ **Copa do Mundo só aparece com convite**: o passo 3 do roteiro sai quando não há Copa com o seu clube nem temporada internacional (jornal → caixa → decisão). O portão segue montado escondido (manda o mural pro save). Trava `npm run fim` atualizada.
+- ✅ **Fase de copa sem o seu time passa direto** (Supercopa Rei, pré-temporada, fim de temporada) na carreira solo — não pede mais pra assistir. Sala online não muda.
+- ✅ **Cena do bairro AO VIVO na Central**: o quadro mostra o mapa de verdade já apontado pro lugar (igual à chegada do ônibus), com "Ver no mapa" e "⏩ Pular". Print: `scripts/mockups/sede-ao-vivo.png`; bancada `scripts/mapa3d/print-sede-ao-vivo.mjs`. Falta o OK visual dele. ⚠️ Não medido no S25: o mapa desenhando dentro da Central pode pesar.
+- ✅ **Jogo FORA no 3D: no apito o mapa não troca mais pro seu campo.** Causa: durante o jogo fora o mapa desenha o estádio padrão da divisão (quando o seu ainda não fecha um estádio); no apito a partida saía da conta, o estádio voltava pro seu e o mapa INTEIRO era refeito, com o "FIM" em cima do campo de terra. Agora o estádio do jogo fica enquanto o jogo encerrado está na tela (`presidencia-complexo-carreira.ts`). Não reproduzido jogando. (A trava `testa-presidencia-complexo-carreira.mjs` já falhava antes, na linha 96, por outro motivo: espera 'quarta' e vem 'domingo'.)
+- ⚠️ Nada disso foi reproduzido jogando (só a cena do bairro na bancada) — precisa do teste dele.
+
 ## 🔎 22/11 — Varredura do dia de jogo da carreira (achados lidos no código; NADA rodado). Só o item 0 foi mexido (no branch)
 0. ✅ (publicado em 22/11) **Minha regressão de 22/11**: a ida pra Central depois da coletiva pegava QUALQUER um que estivesse na aba Clube
    (ex.: cuidando do estádio depois de um jogo visto no 2D, ou na apresentação das lendas da rodada 0). Agora só quem liberou o jogo pelo ▶ do 3D e
@@ -652,6 +661,8 @@ carreira · vice/eliminação.
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
   ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- 🔁 22/11 (mesmo dia): o passo se chama **✍️ CONTRATOS** na tela (Diego confundiu "agência livre" com a 🕴️ Agência do jogo, das cartinhas e
+  comissão: *"A agência deveria ser de cartinhas e ganhar dinheiro igual no do futebol"*). No código segue `euaAgencia`/`eua-agencia.ts`.
 - ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
   no leilão 1–4 a partir da temporada seguinte, Draft = 4 (novato). Roteiro do fim vira 📰 → 💰 → 🎓 Draft → ✍️ Agência → 🔨 Próxima. Seu contrato
   acabou: RENOVAR (luva = 1 salário = valor ÷ 10, +3 temporadas) ou DEIXAR IR. Franquia da máquina renova 55% (sorteio preso na semente) ou solta.

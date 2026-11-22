@@ -394,6 +394,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **🏀🃏 19/11: NO EUA OFICIAL A FRANQUIA JOGA COM AS CARTAS QUE JÁ EXISTEM (o auge); JOGADOR DE HOJE SÓ ENTRA ONDE FALTA.** *"só atual quando faltam cartas pro time… pra não repetir o mesmo nome, já que todos são do baralho NBA"*. Mínimo 15 por franquia (e 1 por posição); quem já tem carta não ganha outra. Eu tinha criado o elenco atual inteiro (437) e ele não pediu.
 - **🏀🎲 19/11: NO EUA OFICIAL A FRANQUIA COMEÇA SÓ COM O QUINTETO SORTEADO + DRAFT DE 1 ESCOLHA.** *"na NBA os times começam apenas com titulares… se o Lakers tiver 100 cartas, sorte apenas pros titulares"* e *"faz só uma escolha por time"*. 1 por posição, sorteado entre as cartas da franquia; o resto vai pro leilão/Draft. Draft = regra da NBA (loteria), 1 pick por time, só carta sem time.
 - **🏀🏆 19/11: AS LIGAS DO BASQUETE (Liga da Turma e Liga Draft) SÃO A SALA NBA.** *"siga o liga da turma e liga draft contando que é basquete"*. Franquias reais, 30/20/10 times, Play-In + Playoffs melhor de 7 ou só a liga, e o formato segue nas próximas temporadas. Nada do formato do futebol (sem bots, 10/20, Copa dos 8). Carreira online do basquete segue EM BREVE. Trava `npm run ligas-nba`.
+- **🏷️ 22/11: NOME NOVO NUNCA REPETE O NOME DE COISA QUE JÁ EXISTE NO JOGO.** Chamei o passo de renovar contrato do EUA Oficial de "agência livre"
+  (tradução de *free agency*) e ele achou que eu tinha mexido na 🕴️ Agência (cartinhas e comissão): *"Como assim agência cara"*. Virou **✍️ Contratos**.
+  Antes de batizar tela/passo novo, conferir se a palavra já é de outra parte do jogo.
 - **🪙 18/11: O CAIXA NO CLUBE É ETIQUETA PEQUENA, NUNCA BLOCO GRANDE.** *"essa moeda grandona atrapalha e diminuiu o mapa"*. No Clube da carreira (futebol e basquete) o caixa fica ao lado do título "SEU CLUBE" (`CareerHeading chip`); o mapa manda no espaço.
 - **15/11: MAPA E CAMPO DO ESTÁDIO LIBERADOS PARA TODOS NA CARREIRA COMPATÍVEL.** Supera as restrições anteriores de prévia só para Diego. Reorganização e passeio acompanham a liberação. A identidade da prévia continua privada. Veículos já adquiridos aparecem, mas compra/venda/troca ficam **EM BREVE** até revisar a arte; não retirar bens. Chat por proximidade continua desligado (Diego condicionou a custo adicional zero). Detalhes em `docs/mapa-publico-20261115.md`.
 - **🏀📺 O JOGO É UM SÓ: QUADRA 2D × PLACAR CINEMA SÓ MUDA O TEMPO (18/11, regra permanente).** Palavras dele: *"não importa o tempo e se
@@ -1291,6 +1294,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **📣🏠 CANTO DE TORCIDA SÓ EM CASA (21/11, regra permanente).** *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*.
   O canto personalizado toca nos jogos EM CASA do dono — na carreira e nas salas online, onde o visitante daquele jogo ouve também. Fora de casa = torcida
   padrão (ou o canto do dono da casa). Na sala de espera, a entrada de gala (única ou padrão) toca o canto pra sala inteira. Mora em `sound.ts` (`jogoDaTela`).
+
+- **🧹 22/11: NA CARREIRA SÓ APARECE O QUE É DELE E O QUE TEM O QUE FAZER.** Prints dele: *"não tem sentido eu ver um jogo que não tô"* (fase de
+  copa sem o seu time passa direto) · *"o que não tem contrato pra renovar nem deveria ter aparecido o banner"* · Copa do Mundo *"só vai aparecer
+  algo quando tiver o convite"* (revê o "4 passos sempre" de 19/09: o passo 3 sai quando não há Copa/internacional pra ele). E a cena do bairro
+  na Central é **videozinho ao vivo** (o mapa no quadro, igual à chegada do ônibus), com ver no mapa ou pular — nunca foto parada.
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

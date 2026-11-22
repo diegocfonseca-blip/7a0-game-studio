@@ -32,7 +32,10 @@ ok(/const roteiroOn = copaFinished && state\.onlineMode !== 'online'/.test(py), 
 ok(/const \[fimPasso, setFimPasso\] = useState\(1\)/.test(py), 'começa no passo 1')
 ok(/useEffect\(\(\) => \{ setFimPasso\(fimOrdem\[0\]\) \}, \[state\.seasonNo, mundoAntes(, intlPendente)?\]\)/.test(py), 'temporada nova volta pro 1º passo')
 // 🌍 26/09: ano de Copa do Mundo com você nela, a Copa ABRE o roteiro (antes do jornal)
-ok(/const fimOrdem = (intlPendente \|\| )?mundoAntes \? \[3, 1, 2, 4\] : \[1, 2, 3, 4\]/.test(py), 'ano de Copa: Copa → jornal → caixa → decisão; ano sem Copa: igual sempre')
+// 🔁 22/11 (Diego: *"só vai aparecer algo quando tiver o convite"*): sem Copa com você e sem internacional, o passo 3 SAI do roteiro
+ok(/const fimOrdem = (intlPendente \|\| )?mundoAntes \? \[3, 1, 2, 4\] : passo3Vale \? \[1, 2, 3, 4\] : \[1, 2, 4\]/.test(py), 'ano de Copa: Copa → jornal → caixa → decisão; sem Copa nem internacional: jornal → caixa → decisão')
+ok(/const passo3Vale = !!intlPendente \|\| !!intlRequired \|\| mundoAntes/.test(py), 'o passo 3 só existe com convite da Copa ou temporada internacional')
+ok(/roteiroOn && !passo3Vale && <div hidden>\{copaGate\}<\/div>/.test(py), 'o portão da Copa segue montado (escondido) pra mandar o mural pro save')
 ok(/if \(mundoPendente( \|\| intlPendente)?\) return \/\/ (🌍 ano de Copa do Mundo: grava|grava depois de todas as competições)/.test(py), 'a Bola de Ouro (e o histórico) esperam a Copa do Mundo acabar')
 ok(/travado=\{mundoPendente( \|\| intlPendente)?\}/.test(py) && /jogue a Copa do Mundo pra seguir/.test(py), 'a trava da Copa diz o porquê e o caminho')
 ok(/function RoteiroFim/.test(py) && /FIM_PASSOS/.test(py), 'a barrinha dos 4 passos existe')
