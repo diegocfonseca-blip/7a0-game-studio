@@ -1,3 +1,9 @@
+## 🔬 22/11 — CAMPO 3D: bola parada e goleiro filmados de perto (nada mudou no código)
+- Filmado com `RECORTE=300`: lateral + falta (semente 99, 8 s), chute de fora que sai pela linha de fundo + tiro de meta (99, 37 s),
+  chute de fora com o goleiro segurando e repondo (7, 60 s), falta com jogador caindo e cobrança (2025, 21 s), e os dois suspeitos da
+  semente 99 (giro de 82° aos 28,8 s e domínio a 2,1 m aos 57 s). Nenhum defeito confirmado em filme; nada foi alterado.
+- Ainda NÃO olhado: pênalti (não saiu em 4 partidas), jogo à noite, aparelho de verdade (S25).
+
 ## 🔬 22/11 — CAMPO 3D: mais 3 partidas inteiras medidas (sementes 7, 99 e 2025) depois dos consertos
 - `node scripts/mapa3d/analisa-numeros.mjs <pasta>…` (lê o `dados.json` do `NUMEROS=1 … filma-bancada.mjs`; `Q="seed=N"` troca a partida).
 - 0 erro de página nas 3. O conserto da "reta que mentia" pegou mais dois casos: **17,4 m** (semente 7, 12,9–16,9 s) e 3,1 m (2025).
