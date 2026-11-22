@@ -1,3 +1,10 @@
+## 🏟️ 22/11 — JOGO NO CAMPO 3D DA CARREIRA: 2× POR PADRÃO, COM OU SEM PLANO
+- Diego: *"qd aperta p ver em 3d na carreira a velocidade deve tá em padrão 2x pra quem tem plano ou não. Quem não tem, pra mudar só com botão manual pago desbloqueando"*.
+- `VEL3D_CARREIRA_PADRAO = 2` (vel2d-regra.ts) · `useVel3DAqui` (ritmo2d.ts): sem Manual = 2× cravado; com Manual = a marcha escolhida (ou 2×).
+- `jogo3d` (pyramidseason): liga no "▶ Começar o jogo" do mapa, desliga quando escolhe 2D/placar rápido. Com ele o relógio da rodada inteira
+  anda na marcha do 3D (antes o 3D herdava o 1,5× do campinho 2D). O 2D da aba Jogos NÃO mudou (segue 1,5× padrão).
+- Trava: `npm run vel-2d`. ⚠️ Não testado em aparelho de verdade; conferir a duração (~45 s) num jogo no mapa.
+
 ## 🔬 22/11 — CAMPO 3D: bola parada e goleiro filmados de perto (nada mudou no código)
 - Filmado com `RECORTE=300`: lateral + falta (semente 99, 8 s), chute de fora que sai pela linha de fundo + tiro de meta (99, 37 s),
   chute de fora com o goleiro segurando e repondo (7, 60 s), falta com jogador caindo e cobrança (2025, 21 s), e os dois suspeitos da
