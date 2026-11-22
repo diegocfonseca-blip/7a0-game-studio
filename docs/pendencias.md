@@ -14631,7 +14631,7 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Banco FEITO: esc_socios, esc_fundadores (102), esc_nomes_batismo (Duarte / FC / EC), user_colors ouro.
 - Gala única "São Victor" (`gala-duarte.tsx`, vídeo `scripts/posts/gala-duarte.webm`): o Diego testou uma 2ª versão sem frases (replay de TV) e preferiu a 1ª — voltou a 1ª, com o recorte da bola da arte acertado (sobrava a ponta) e a sombra fora da linha do corte.
   Fato: a defesa do Victor com o pé foi nas QUARTAS da Libertadores 2013 (Tijuana), não na final — a gala não diz "final".
-- ⏳ SEM CANTO: não existe canto do Atlético Mineiro no jogo (nenhum outro usuário tem). Falta o Diego mandar o áudio → `sfx/torcida-galo-v1.mp3` + sound.ts + gala.
+- ✅ 22/11: CANTO DO GALO chegou (vídeo do Diego) → `sfx/torcida-galo-duarte-v1.mp3` (14 s, mono 56k, −20,6 dB), ligado em sound.ts (e-mail + mascote `duarte_paredao`: carreira em casa, visitante na sala, festa de campeão) e na gala única "São Victor".
 - Post: `scripts/posts/batismo-duarte.png` (dono = "Felipe", tirado do e-mail — confirmar com o Diego).
 
 ## 👁️👑 18/11 — Batismo FUNDADOR Obelisko FC (felipefazzio) — PUBLICADO (OK do Diego)
