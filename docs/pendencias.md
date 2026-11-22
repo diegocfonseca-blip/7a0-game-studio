@@ -476,8 +476,8 @@ carreira · vice/eliminação.
 - Diego gostou do seletor ⚽ FUTEBOL / 🏀 BASQUETE da home e quer ele nas SALAS ABERTAS. Mockup:
   `scripts/mockups/salas-abertas-seletor.png` (seletor logo abaixo do topo, com o nº de salas abertas de cada jogo; tocar troca o jogo e a
   marca do topo). Diego (20/11): *"gostei, mas não faça ainda"* — APROVADO o visual, NÃO construir até ele mandar.
-- ⏸️ Publicação do branch (EUA Oficial etc.) ainda NÃO feita: perguntei se pode ir junto das 2 mudanças do futebol (Partida Rápida nova,
-  caixa em etiqueta no Clube) e ele mudou de assunto.
+- ✅ 22/11 PUBLICADO na main (Diego: "Sim e siga"): EUA Oficial (NBA Cup, Draft, ranking), quadra 2D, ligas NBA, escudos — tudo do basquete
+  segue só na conta do Diego (testers). Foram pra TODOS no futebol: Partida Rápida na moldura nova e o caixa em etiqueta no Clube.
 
 ### 🏀🇺🇸 19/11 — CARREIRA DO BASQUETE = EUA OFICIAL (só planejamento)
 - Diego: a carreira do basquete fica EM BREVE e vai ser refeita **com base no Brasil Oficial, mas igual aos EUA** (tudo real), com
