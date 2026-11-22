@@ -259,7 +259,14 @@ function baralhoDaCartaDraft(c: { name: string; club: string; year: number }): s
   }
   return BARALHO_CARTA.get(chaveCarta(c)) ?? 'x'
 }
-export const chaveJogador = (c: { name: string; club: string; year: number }) => `${baralhoDaCartaDraft(c)}|${chaveNome(c.name)}`
+// 👥 22/11 (Diego: *"se são mesmo nome não quer dizer que são a mesma pessoa… se forem diferentes não pode excluir eles"*): nome igual no
+// MESMO baralho é XARÁ (Felipe goleiro × Felipe do Vasco, Reinaldo lateral × Reinaldo do Galo) — cada carta conta sozinha. Só junta quem é
+// a MESMA pessoa com duas cartas no mesmo baralho, e isso só existe por exceção autorizada (lista abaixo).
+const MESMA_PESSOA_NO_BARALHO = new Set(['kelvin oliveira (k9)'])
+export const chaveJogador = (c: { name: string; club: string; year: number }) => {
+  const n = chaveNome(c.name), b = baralhoDaCartaDraft(c)
+  return MESMA_PESSOA_NO_BARALHO.has(n) ? `${b}|${n}` : `${b}|${n}|${c.club}|${c.year}`
+}
 
 /** ordem da noite do draft: humanos na ordem da tabela final (campeão primeiro).
  *  🔁 09/11 (Diego): o dono escolhe — `piorPrimeiro` = do último pro campeão (estilo NBA). Vale na criação e editando a liga. */

@@ -236,7 +236,9 @@ console.log('📋🏆 Minha Liga Draft: tudo certo')
 {
   const kSP = todasAsCartas().find(c => c.name === 'Kaká' && c.club === 'São Paulo')!, kMilan = todasAsCartas().find(c => c.name === 'Kaká' && c.club === 'Milan')!
   assert.ok(kSP && kMilan && chaveJogador(kSP) !== chaveJogador(kMilan), 'Kaká SP (Brasil) e Kaká Milan (Europa) são chaves diferentes')
-  console.log('🃏 um por BARALHO: Kaká SP e Kaká Milan convivem')
+  const f1 = todasAsCartas().find(c => c.name === 'Felipe' && c.club === 'Corinthians')!, f2 = todasAsCartas().find(c => c.name === 'Felipe' && c.club === 'Vasco')!
+  assert.ok(f1 && f2 && chaveJogador(f1) !== chaveJogador(f2), 'xará no mesmo baralho (Felipe goleiro × Felipe do Vasco) NÃO é excluído')
+  console.log('🃏 um por BARALHO: Kaká SP e Kaká Milan convivem; xarás também')
 }
 process.exit(0)
 

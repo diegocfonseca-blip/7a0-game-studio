@@ -1162,7 +1162,7 @@ export const MESMO_JOGADOR = new Set<string>([
   'Juan Román Riquelme', // 🧱 Lote 37: Villarreal 2006 e Boca Juniors 2007 — o mesmo camisa 10
   // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.
   'Roberto Firmino',
-  'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes
+  'Andreas Pereira', // só Palmeiras 2026 desde 22/11 (a do Flamengo 2022 saiu: mesma pessoa no MESMO baralho)
   'Marcelo', // Fluminense 2006 (promessa) e Real Madrid 2017 — o mesmo lateral (a carta do Real era 'Marcelo Vieira' até 26/09)
   // (Em 22/09 o 'Pinga' esteve aqui por algumas horas, quando existiam três cartas
   //  com esse apelido. O Diego mandou deixar SÓ o zagueiro do Internacional de 1984,
