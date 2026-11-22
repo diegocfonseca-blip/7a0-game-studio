@@ -1,3 +1,12 @@
+## 🔐 21/11 (noite) — Conta do Diego caindo ao sair/voltar pro site (EM ABERTO, esperando a medição do aparelho)
+- Servidor: NENHUM logout, erro ou revogação da conta dele. Até 22:06 a sessão antiga (05/11) renovava normal; depois ele digitou a senha 3 vezes
+  (21:51, 23:45, 23:46) e essas sessões novas NUNCA renovaram — ou seja, o login ficou só na memória da página e morreu ao recarregar.
+- É a assinatura do **armazenamento cheio** (regra de 21/09, `storage-guard.ts`): a biblioteca de login não consegue escrever e guarda a sessão só na memória.
+  O print das 18:52 ("crie uma conta" + Manual trancado jogando o Brasiliense) é o MESMO problema — a hipótese de "outro navegador" que dei na hora estava errada.
+- Suspeito (não medido): saves grandes de carreira no aparelho (ele jogou a carreira antiga + uma Brasil Oficial hoje); o guarda só limpa chat de sala.
+- Próximo passo: ele mandar o print da medição do aparelho (#admin) ou da faixa amarela "SEM ESPAÇO" da home; com as 5 maiores chaves decidir o que limpar
+  SEM apagar save (regra: nunca apagar save de ninguém sem ele pedir).
+
 ## 🚫 21/11 (noite) — Ideias pra partida nas SALAS: 2 listas RECUSADAS (*"N gostei de nenhuma"*) — não repropor
 - Pedido: analisar a partida rolando nas salas e deixar mais imersivo / dar o que FAZER enquanto a classificação rola.
 - Recusadas (lista 1): assistir o jogo de um amigo · palpite da rodada · provocar no gol com a mascote · rádio da rodada · mexer no time com o jogo rolando.
