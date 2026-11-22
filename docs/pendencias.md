@@ -1,3 +1,11 @@
+## 🧭 22/11 — CENTRAL NOVA "SEM DIAS PRA PASSAR": MOCKUP ENVIADO, ESPERANDO O OK (nada no jogo ainda)
+- Diego: *"sinto que essa central toda não está legal… não tá fluindo… tirando os dias de passar"*. Perguntou o que eu faria do zero.
+- Proposta (mockups `scripts/mockups/central-nova-cel.png` e `-pc.png`, gerador `scripts/mockup-central-nova.mjs`): a Central abre no PRÓXIMO JOGO
+  com os 3 botões (2D · 3D · placar rápido); a semana vira BANNER com a animação do bairro, um de cada vez (só de assistir ou com decisão);
+  semana sem nada cai direto no jogo; agenda vira lista curta dos próximos jogos. As animações de hoje (ônibus, loja, treino/balada…) FICAM.
+- Os textos/efeitos dos banners do mockup (bilheteria +8%, multar +15) são EXEMPLO de formato; os de verdade são os acontecimentos que já existem.
+- Continua valendo: nenhum jogo começa sozinho e a Central é só Central. Só codar depois do OK dele.
+
 ## 🔬 22/11 — CAMPO 3D: A NITIDEZ DO NÍVEL 1 VIROU PADRÃO DA PARTIDA
 - Diego testou `?nitidez=1/2/3` no S25: *"os 3 me pareceram iguais e bem… talvez o 1 melhor"* → *"quero que coloque um dos 3 pq ficou melhor e não travou"*.
 - Agora, durante a partida no 3D, a imagem vai sempre na nitidez do "jogo liso" (até 2×), sem esperar o jogo provar 60 quadros. O freio
