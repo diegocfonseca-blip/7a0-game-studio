@@ -122,7 +122,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useViceCity, type Sport } from './sport'
+import { siteDoJogo, useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useViceCity, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { BannerIndicacao } from './banner-indicacao'
@@ -180,7 +180,7 @@ const CATALOG_TOTAL = new Set([...Object.values(CATALOG).flat(), ...Object.value
 // 🔗 O ENDEREÇO QUE VAI NO COMPARTILHAR. Era o link cru do GitHub, de antes do
 // domínio existir — e ele saía no texto E IMPRESSO DENTRO DA IMAGEM. O Diego pegou
 // (04/09): *"veio c esse link horrível sendo q já temos nosso domínio"*.
-const GAME_URL = 'https://leilaolegends.com'
+const gameUrl = () => siteDoJogo().url // 🌐 22/11: basquete compartilha bidlegendsarena.com
 
 // ─── estilo base (neubrutalista, igual ao resto do estúdio) ──────────
 const CREAM = '#F4ECD6'
@@ -2537,10 +2537,13 @@ export function EscIntro() {
   // já conquistou. Enquanto isso, um aviso fixo diz que está só neste aparelho.
   const startCareer = (fn: () => void) => { fn() }
   const shareGame = async () => {
-    const data = { title: 'Leilão Legends', text: t('Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', 'Come play Leilão Legends! A blind auction of Brazilian football legends 🔨⚽'), url: 'https://leilaolegends.com' }
+    const bbJogo = getSport() === 'basquete' // 🌐 22/11: no basquete convida pro BidLegends, no endereço dele
+    const data = bbJogo
+      ? { title: 'BidLegends', text: t('Bora jogar BidLegends! Leilão às cegas de lendas da NBA 🔨🏀', 'Come play BidLegends! A blind auction of NBA legends 🔨🏀'), url: siteDoJogo().url }
+      : { title: 'Leilão Legends', text: t('Bora jogar Leilão Legends! Leilão às cegas de lendas do futebol brasileiro 🔨⚽', 'Come play Leilão Legends! A blind auction of Brazilian football legends 🔨⚽'), url: 'https://leilaolegends.com' }
     try {
       if (navigator.share) { await navigator.share(data); return }
-      await navigator.clipboard.writeText('https://leilaolegends.com')
+      await navigator.clipboard.writeText(data.url)
       setShared(true); setTimeout(() => setShared(false), 2500)
     } catch { /* usuário cancelou */ }
   }
@@ -10099,7 +10102,7 @@ async function buildShareCardBlob(opts: ShareBlobOpts): Promise<Blob | null> {
   ctx.font = '700 30px Oswald, sans-serif'
   ctx.fillText(opts.bb ? 'BIDLEGENDS' : 'LEILÃO LEGENDS', 450, 1125)
   ctx.font = '400 22px Inter, sans-serif'
-  ctx.fillText(GAME_URL.replace('https://', ''), 450, 1156)
+  ctx.fillText(siteDoJogo().dominio, 450, 1156)
 
   return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/png'))
 }
@@ -10111,7 +10114,7 @@ async function shareImagemNativa(opts: ShareOpts, texto: string): Promise<boolea
   const blob = await buildShareCardBlob(opts)
   if (!blob) return false
   const file = new File([blob], 'leilao-legends.png', { type: 'image/png' })
-  const shareData = { files: [file], title: 'Leilão Legends', text: `${texto} ${GAME_URL}` }
+  const shareData = { files: [file], title: siteDoJogo().nome, text: `${texto} ${gameUrl()}` }
   if (!navigator.canShare?.(shareData)) return false
   try { await navigator.share(shareData); return true } catch { return false /* cancelou ou falhou */ }
 }
@@ -10155,9 +10158,9 @@ function ShareResultPanel({ opts }: { opts: ShareOpts }) {
   // (desktop), aí sim cai no link — mas agora no domínio certo.
   const wa = async () => {
     if (await shareImagemNativa(opts, text)) return
-    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + GAME_URL)}`, '_blank', 'noopener')
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + gameUrl())}`, '_blank', 'noopener')
   }
-  const tw = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(GAME_URL)}`, '_blank', 'noopener')
+  const tw = () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(gameUrl())}`, '_blank', 'noopener')
   const ig = async () => { await downloadShareImage(opts); setSavedIG(true) }
   return (
     <Box bg="#fff" className="p-3 space-y-2">
@@ -11039,9 +11042,9 @@ async function shareCardImage(c: { name: string; club: string; year: number; pos
   // rodapé da marca
   x.fillStyle = '#0C0C0C'; x.fillRect(0, CH, W, FOOT)
   x.fillStyle = '#F5B301'; x.font = `900 30px ${OSW}`
-  x.fillText('🎁 tirei no Pacote do Campeão · leilaolegends.com 🔨', W / 2, CH + 60)
+  x.fillText(`🎁 tirei no Pacote do Campeão · ${siteDoJogo().dominio} 🔨`, W / 2, CH + 60)
   const blob: Blob | null = await new Promise(res => cv.toBlob(b => res(b), 'image/png'))
-  const txt = `Tirei ${c.name} (${c.club} · ${c.year}) no pacote do campeão do Leilão Legends! 🎁 Joga tu também: https://leilaolegends.com`
+  const txt = `Tirei ${c.name} (${c.club} · ${c.year}) no pacote do campeão do ${siteDoJogo().nome}! 🎁 Joga tu também: ${siteDoJogo().url}`
   if (blob) {
     const file = new File([blob], 'minha-carta.png', { type: 'image/png' })
     const sd = { files: [file], title: 'Minha carta — Leilão Legends', text: txt }

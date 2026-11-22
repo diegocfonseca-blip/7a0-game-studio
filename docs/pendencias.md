@@ -536,7 +536,9 @@ carreira · vice/eliminação.
   ✅ 22/11 FEITO (Diego: *"o seletor nas salas abertas, pode fazer"*): pílula ⚽/🏀 acima das abas em `lobby.tsx` (`ll-hub-esporte`), com o nº
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
-  No branch, ainda NÃO publicado.
+  ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- ✅ 22/11 compartilhar no basquete leva o endereço do basquete (`siteDoJogo()` em sport.ts): jornal do fim de temporada, convite pro
+  jogo, pacote do campeão e cartão de campeão = bidlegendsarena.com / "BidLegends". Futebol continua leilaolegends.com, igualzinho. No branch.
 - ✅ 22/11 PUBLICADO na main (Diego: "Sim e siga"): EUA Oficial (NBA Cup, Draft, ranking), quadra 2D, ligas NBA, escudos — tudo do basquete
   segue só na conta do Diego (testers). Foram pra TODOS no futebol: Partida Rápida na moldura nova e o caixa em etiqueta no Clube.
 

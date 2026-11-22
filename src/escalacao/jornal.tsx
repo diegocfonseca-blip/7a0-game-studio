@@ -3,6 +3,7 @@
 // das 80 posições da pirâmide (Série A a D × 20 colocações), os números do seu
 // time, e "Os Donos da Temporada" (campeão + artilheiro de cada série + Copa).
 // `{t}` nas manchetes é trocado pelo nome do time do jogador.
+import { getSport, siteDoJogo } from './sport' // 🌐 22/11 endereço do jogo no jornal
 import { useState, useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
@@ -819,7 +820,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     x.beginPath(); x.moveTo(L, y + 5); x.lineTo(R, y + 5); x.stroke()
     y += 40
     x.textAlign = 'center'; x.fillStyle = INK; x.font = `700 26px ${OSW}`
-    x.fillText('🔨 leilaolegends.com', W / 2, y)
+    x.fillText(`${getSport() === 'basquete' ? '🏀' : '🔨'} ${siteDoJogo().dominio}`, W / 2, y)
     y += 34
 
     // moldura do papel + corte na altura real
@@ -834,8 +835,8 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
 
   async function share() {
     const txt = getLang() === 'en'
-      ? `📰 "${hl.h}" — ${me.team}, ${ordinal(me.pos)} in ${J_DIV_NAME[me.div]} (S${seasonNo}). Come play too: leilaolegends.com`
-      : `📰 "${hl.h}" — ${me.team}, ${me.pos}º na ${J_DIV_NAME[me.div]} (T${seasonNo}). Joga você também: leilaolegends.com`
+      ? `📰 "${hl.h}" — ${me.team}, ${ordinal(me.pos)} in ${J_DIV_NAME[me.div]} (S${seasonNo}). Come play too: ${siteDoJogo().dominio}`
+      : `📰 "${hl.h}" — ${me.team}, ${me.pos}º na ${J_DIV_NAME[me.div]} (T${seasonNo}). Joga você também: ${siteDoJogo().dominio}`
     try {
       const blob = await buildJornalBlob()
       if (blob) {
