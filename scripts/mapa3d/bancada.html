@@ -11,7 +11,7 @@ import {qaLigaMapa3D} from '../../src/escalacao/sport.ts';qaLigaMapa3D();
 try{
 const pega=(s,n,off)=>CATALOG[s].slice(off,off+n).map(c=>({name:c.name,pos:s,club:c.club,year:c.year,fame:c.fame,lo:c.lo,hi:c.hi}))
 const time=off=>[...pega('GOL',1,off),...pega('LAT',2,off*2),...pega('ZAG',2,off*2),...pega('MEI',3,off*3),...pega('ATA',3,off*3)]
-const casa=time(0),fora=time(5),input=entradaM2({seed:4242,casa,fora,fCasa:'4-3-3',fFora:'4-3-3',tatica:[0,0],bots:[false,true]})
+const casa=time(0),fora=time(5),input=entradaM2({seed:+(new URLSearchParams(location.search).get('seed')||4242),casa,fora,fCasa:'4-3-3',fFora:'4-3-3',tatica:[0,0],bots:[false,true]})
 const roster=cs=>cs.map((p,i)=>({id:p.name+i,name:p.name,pos:p.pos}))
 const stadium=new URLSearchParams(location.search).has('varzea')?{inv:{},ext:[]}:{inv:{grama:100,geral:100,cadeiras:100,visitante:100},ext:[]}
 const qs=new URLSearchParams(location.search),vfora=qs.has('fora')
