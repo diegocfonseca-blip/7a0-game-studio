@@ -658,7 +658,7 @@ const GOL: C[] = [
   { name: "Sérgio Rochet", club: "Internacional", year: 2025, fame: 3, lo: 72, hi: 79 },
   { name: "Doni", club: "Corinthians", year: 2005, fame: 3, lo: 69, hi: 77 },
   { name: "Rafael Cabral", club: "Santos", year: 2011, fame: 3, lo: 66, hi: 74, promessa: true },
-  { name: "Marcelo Lomba", club: "Internacional", year: 2019, fame: 3, lo: 64, hi: 76 },
+  { name: "Marcelo Lomba", club: "Internacional", year: 2019, fame: 3, lo: 64, hi: 76, bio: "Goleiro gaúcho que começou no Bahia e virou ídolo e capitão do Internacional." }, // 22/11: a carta do Bahia 2012 saiu (mesma pessoa no MESMO baralho)
   { name: "Harlei", club: "Goiás", year: 2005, fame: 3, lo: 63, hi: 75 },
   { name: "Magrão", club: "Sport", year: 2008, fame: 3, lo: 63, hi: 75 },
   { name: "Castilho", club: "Fluminense", year: 1960, fame: 5, lo: 91, hi: 96 },
@@ -1290,7 +1290,6 @@ const NOVOS_BR_ZAG: C[] = [
 // 🆕 leva 2 de cartas novas (baralho BR) — pedidas pelo Diego, ago/2026.
 const NOVOS_BR2_GOL: C[] = [
   { name: "Lucas Arcanjo", club: "Vitória", year: 2022, fame: 3, lo: 64, hi: 76, bio: "Goleiro cria da base do Vitória — virou titular a partir de 2021 e é um dos xodós recentes do Barradão." },
-  { name: "Marcelo Lomba", club: "Bahia", year: 2012, fame: 3, lo: 62, hi: 74, bio: "Goleiro gaúcho que começou a carreira no Esquadrão antes de virar ídolo e capitão do Internacional." },
 ]
 const NOVOS_BR2_LAT: C[] = [
   { name: "Cuiabano", club: "Botafogo", year: 2024, fame: 3, lo: 71, hi: 79, bio: "Lateral-esquerdo raçudo do Botafogo campeão brasileiro e da Libertadores em 2024 — força física e chegada ao ataque." },
