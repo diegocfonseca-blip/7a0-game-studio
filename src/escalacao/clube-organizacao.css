@@ -28,3 +28,18 @@
 .clube-oficial-lista .seta{font:800 26px Oswald,sans-serif}
 .clube-oficial-casa{justify-self:start;background:#F4ECD6;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:12px;padding:9px 14px;font:800 14px Oswald,sans-serif;text-transform:uppercase;box-shadow:3px 3px 0 #0C0C0C;cursor:pointer}
 @media(min-width:900px){.clube-oficial-lista nav{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* 🧭 22/11 (mockup clube-jogo-celular-antes-depois.png, Diego: "Aprovo"): atalhos logo embaixo do mapa + faixa das obras */
+.clube-atalhos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:12px 0 4px}
+.clube-atalhos button{position:relative;min-width:0;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#fff;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:12px;box-shadow:3px 3px 0 #0C0C0C;padding:6px 2px;font:800 11.5px/1.1 Oswald,sans-serif;text-transform:uppercase;cursor:pointer}
+.clube-atalhos button i{font-style:normal;font-size:20px;line-height:1}
+.clube-atalhos button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clube-atalhos button em{position:absolute;top:-8px;right:-6px;width:16px;height:16px;border-radius:50%;background:#E8503A;border:2px solid #0C0C0C}
+.clube-atalhos-obra{display:block;width:100%;text-align:left;margin:8px 0 4px;background:#FFC400;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:12px;box-shadow:3px 3px 0 #0C0C0C;padding:9px 12px;font:800 14px/1.3 Oswald,sans-serif;cursor:pointer}
+@media(min-width:900px){.clube-atalhos button{min-height:64px;font-size:13px}}
+/* 📺 assistindo o jogo no 3D: só o mapa com o jogo (Diego: "mostre só o jogo, o mapa com jogo apenas e mais nada") */
+.clube-organizacao:has(.pc3-review[data-watching-match=true]) :is(.clube-organizacao-acessos,.clube-oficial-lista),
+.clube-organizacao:has(.pc3-review[data-watching-match=true]) .clube-organizacao-mapa>:not(:has(.pc3-review)),
+.clube-organizacao:has(.pc3-review[data-watching-match=true]) .ll-est-box>:not(:first-child):not(:has(.pc3-review)),
+.clube-organizacao:has(.pc3-review[data-watching-match=true]) [data-presidencia-complexo-carreira]>:is(p,div:not([data-private-match-review]):not([data-fonte-replay-campo2d])){display:none!important}
+@media(max-width:430px){.clube-atalhos{gap:5px}.clube-atalhos button{font-size:10px;letter-spacing:-.01em;padding:6px 1px}}

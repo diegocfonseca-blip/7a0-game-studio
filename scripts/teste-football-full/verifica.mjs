@@ -2,18 +2,19 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import {createRequire} from 'node:module'
 const {chromium}=createRequire(import.meta.url)('playwright')
-const out='/workspace/shared/diego-futebol-completo-20261122';fs.mkdirSync(out,{recursive:true})
+const out=process.env.QA_OUTPUT||'/workspace/shared/diego-abas-placar-permanente-20261122';fs.mkdirSync(out,{recursive:true})
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']})
 const errors=[],checks=[]
 const identity=`\nstarted=true;enabled=false;verifiedEmail=new URLSearchParams(location.search).get('account')||'diego.c.fonseca@gmail.com';window.qaAccount=value=>{verifiedEmail=value;listeners.forEach(fn=>fn())};`
 async function open(width,query=''){
  const context=await browser.newContext({viewport:{width,height:1000},locale:'pt-BR'}),page=await context.newPage()
+ let closing=false
  page.on('pageerror',e=>errors.push(e.message))
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url())
   if(url.hostname!=='127.0.0.1')return route.fulfill({status:200,contentType:'application/json',body:'[]'})
   if(url.pathname==='/src/escalacao/online-preview.ts'){
-   const response=await route.fetch();return route.fulfill({response,body:(await response.text())+identity})
+   try{const response=await route.fetch({maxRetries:2});return await route.fulfill({response,body:(await response.text())+identity})}catch(error){if(!closing&&!page.isClosed())errors.push(`Falha na identidade da bancada: ${error.message}`);return route.abort().catch(()=>{})}
   }
   return route.continue()
  })
@@ -21,9 +22,32 @@ async function open(width,query=''){
  console.log('OPEN',query,await page.evaluate(()=>({screen:window.qaFull?.state.screen,mode:window.qaFull?.state.copaMode,online:window.qaFull?.state.onlineMode,youUid:window.qaFull?.state.youUid,url:location.href,qa:typeof window.qaAccount})))
  await page.waitForSelector('.fp-match-primary',{timeout:20000}).catch(async e=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:`out/falha.png`.replace('out',out),fullPage:true});throw e})
  await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
- return{context,page}
+ return{context:{close:async()=>{closing=true;await context.close()}},page}
 }
 const check=(name,value)=>{assert(value,name);checks.push(name)}
+async function checkPersistentFrame(page,label,field=false){
+ const native=await page.locator('.ov3-native').first().elementHandle(),tabs=await page.locator('.fp-page-tabs').elementHandle()
+ const canvas=field?await page.locator('.ov3-native canvas').first().elementHandle():null
+ const width=(await page.locator('.ov3-native').first().boundingBox()).width
+ const timing=await page.evaluate(()=>({round:window.qaFull.state.round,at:window.qaFull.state.rodadaEm?.at,speed:window.qaFull.state.simSpeed}))
+ for(const [name,key] of [['Tabela e jogos','table'],['Estatísticas','stats'],['Elenco','squad'],['Rivalidades','rivals'],['Partida','match']]){
+  await page.evaluate(()=>window.scrollTo(0,80))
+  const scroll=await page.evaluate(()=>scrollY),top=(await page.locator('.fp-page-tabs').boundingBox()).y
+  await page.getByRole('button',{name,exact:true}).first().evaluate(button=>button.click())
+  await page.waitForFunction(key=>document.body.dataset.fpPage===key,key)
+  check(`${label}: ${name} conserva placar visível`,await page.locator('.ov3-native').first().isVisible())
+  check(`${label}: ${name} conserva o mesmo placar`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+  check(`${label}: ${name} conserva as mesmas abas`,await tabs.evaluate(node=>node===document.querySelector('.fp-page-tabs')))
+  check(`${label}: ${name} não força salto ao início`,Math.abs(await page.evaluate(()=>scrollY)-scroll)<2)
+  check(`${label}: ${name} mantém a posição das abas`,Math.abs((await page.locator('.fp-page-tabs').boundingBox()).y-top)<2)
+  check(`${label}: ${name} mantém largura do jogo`,Math.abs((await page.locator('.ov3-native').first().boundingBox()).width-width)<2)
+  check(`${label}: ${name} mantém controles`,await page.locator('.fp-match-playback').isVisible())
+  if(canvas)check(`${label}: ${name} conserva o mesmo canvas 2D`,await canvas.evaluate(node=>node===document.querySelector('.ov3-native canvas')))
+  if(key==='rivals')check(`${label}: rivalidades ficam abaixo do placar`,(await page.locator('.ov3-rivalries').boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height)
+  if(key==='table')check(`${label}: jogos ficam abaixo do placar`,(await page.locator('#ll26-round-games').boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height)
+ }
+ check(`${label}: rodada, início e velocidade preservados`,JSON.stringify(timing)===JSON.stringify(await page.evaluate(()=>({round:window.qaFull.state.round,at:window.qaFull.state.rodadaEm?.at,speed:window.qaFull.state.simSpeed}))))
+}
 try{
  for(const width of [390,1440]){
   const {page,context}=await open(width)
@@ -34,17 +58,32 @@ try{
   await page.getByRole('button',{name:'Pressão alta',exact:true}).click()
   await page.getByRole('button',{name:'Enviar ordens',exact:true}).click()
   await page.waitForFunction(()=>window.qaFull.state.lastResults.some(r=>r.footballLive?.revision===1))
-  check(`${width}: ordem aplicada pelo reducer real`,true)
+  check(`${width}: ordem aplicada pelo reducer real sem alvo individual`,await page.evaluate(()=>window.qaFull.state.lastResults.some(r=>r.footballLive?.orders.at(-1)?.plan.mark===null)))
+  await checkPersistentFrame(page,`${width}: cinema`)
   await page.evaluate(()=>window.scrollTo(0,0))
   await page.screenshot({path:`${out}/${width}-partida.png`,fullPage:true})
   console.log('STATE',await page.evaluate(()=>({tabs:[...document.querySelectorAll('.fp-match-primary button')].slice(0,12).map(e=>e.textContent),overflow:document.documentElement.scrollWidth,screen:window.qaFull.state.screen,round:window.qaFull.state.round,errors:document.body.innerText.slice(0,150)})))
   check(`${width}: sem transbordamento`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
   for(const name of ['Partida','Tabela e jogos','Estatísticas','Elenco','Rivalidades'])check(`${width}: aba ${name}`,await page.getByRole('button',{name,exact:true}).first().isVisible())
   check(`${width}: onze próprios na Partida`,await page.getByRole('heading',{name:'OS SEUS ONZE'}).isVisible())
+  check(`${width}: ritmo do ataque visível sem abrir gaveta`,await page.getByRole('group',{name:'RITMO DO ATAQUE',exact:true}).isVisible())
+  check(`${width}: marcação individual retirada do painel`,await page.locator('.fp-advanced-tactics select').count()===0)
+  check(`${width}: nenhuma instrução recolhida`,await page.locator('.fp-advanced-tactics details').count()===0)
+  if(width<1100){
+   check('mobile: tática toda aberta e compacta',(await page.locator('.fp-advanced-tactics').boundingBox()).height<680)
+   check('mobile: sem estatísticas da lateral no corpo',await page.locator('.fp-desktop-extra:visible').count()===0)
+   const carousel=page.locator('.fp-round-carousel')
+   check('mobile: todos os outros jogos na faixa',await carousel.locator(':scope > *').count()===await page.evaluate(()=>window.qaFull.state.lastResults.filter(r=>r.homeId!==window.qaFull.state.managers[window.qaFull.state.youIdx].id&&r.awayId!==window.qaFull.state.managers[window.qaFull.state.youIdx].id).length))
+   check('mobile: faixa permite rolagem lateral',await carousel.evaluate(el=>el.scrollWidth>el.clientWidth))
+   await carousel.evaluate(el=>{el.scrollLeft=el.scrollWidth})
+   await page.waitForTimeout(200)
+   check('mobile: último jogo pode ser alcançado',await carousel.evaluate(el=>el.scrollLeft>0))
+  }
   await page.getByRole('button',{name:'Todos os jogos',exact:false}).first().click()
   check(`${width}: atalho abre jogos completos`,await page.locator('#ll26-round-games').isVisible())
-  check(`${width}: partida fica escondida`,!(await page.locator('.ov3-native').first().isVisible()))
+  check(`${width}: partida continua visível na tabela`,await page.locator('.ov3-native').first().isVisible())
   await page.evaluate(()=>window.scrollTo(0,0))
+  check(`${width}: aba de tabela sem resumo lateral vazando`,await page.locator('.fp-desktop-extra:visible').count()===0)
   await page.screenshot({path:`${out}/${width}-tabela.png`,fullPage:true})
   await page.getByRole('button',{name:'Rivalidades',exact:true}).first().click()
   check(`${width}: rivalidades visíveis`,await page.locator('.ov3-rivalries').isVisible())
@@ -52,6 +91,39 @@ try{
   await page.screenshot({path:`${out}/${width}-rivalidades.png`,fullPage:true})
   await page.getByRole('button',{name:'Elenco',exact:true}).first().click()
   check(`${width}: escalação também no Elenco`,await page.getByRole('heading',{name:'OS SEUS ONZE'}).isVisible())
+  const opponents=page.locator('.fp-opponent-rail'),selector=page.getByLabel('Escolha o clube',{exact:true})
+  if(width>=1100){
+   const ids=await selector.locator('option').evaluateAll(options=>options.map(option=>option.value))
+   check('desktop: todos os adversários podem ser consultados',ids.length===await page.evaluate(()=>{const s=window.qaFull.state;return s.managers.filter(m=>m.id!==s.managers[s.youIdx].id&&!m.auctionOnly&&m.squad.length>0).length}))
+   check('desktop: um campo adversário por vez',Math.abs((await opponents.boundingBox()).width-(await opponents.locator('.fp-opponent-slide').first().boundingBox()).width)<2)
+   check('desktop: anterior indisponível no primeiro clube',await page.getByRole('button',{name:'Adversário anterior',exact:true}).isDisabled())
+   const beforeScroll=await page.evaluate(()=>scrollY)
+   await page.getByRole('button',{name:'Próximo adversário',exact:true}).evaluate(button=>button.click())
+   await page.waitForFunction(()=>{const rail=document.querySelector('.fp-opponent-rail');return Math.abs(rail.scrollLeft-rail.clientWidth)<2})
+   check('desktop: seta avança para o segundo adversário',await selector.inputValue()===ids[1])
+   check('desktop: setas não deslocam a página',Math.abs(await page.evaluate(()=>scrollY)-beforeScroll)<2)
+   await selector.selectOption(ids.at(-1))
+   await page.waitForFunction(()=>{const rail=document.querySelector('.fp-opponent-rail');return Math.abs(rail.scrollLeft-(rail.scrollWidth-rail.clientWidth))<3})
+   check('desktop: seletor alcança o último adversário',await page.getByRole('button',{name:'Próximo adversário',exact:true}).isDisabled())
+   await opponents.focus();await page.keyboard.press('ArrowLeft')
+   await page.waitForFunction(()=>{const rail=document.querySelector('.fp-opponent-rail');return Math.abs(rail.scrollLeft-(rail.children.length-2)*rail.clientWidth)<2})
+   check('desktop: teclado consulta o adversário anterior',await selector.inputValue()===ids.at(-2))
+   await opponents.evaluate(node=>{node.scrollLeft=0})
+   await page.waitForFunction(()=>document.querySelector('.fp-opponent-tools select').selectedIndex===0)
+   check('desktop: rolagem lateral atualiza o clube selecionado',await selector.inputValue()===ids[0])
+   check('desktop: consulta adversários preserva o placar',await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+   await selector.selectOption(ids[1])
+   await page.waitForFunction(()=>{const rail=document.querySelector('.fp-opponent-rail');return Math.abs(rail.scrollLeft-rail.clientWidth)<2})
+   await page.getByRole('button',{name:'Tabela e jogos',exact:true}).first().evaluate(button=>button.click())
+   await page.getByRole('button',{name:'Elenco',exact:true}).first().evaluate(button=>button.click())
+   await page.waitForFunction(()=>{const rail=document.querySelector('.fp-opponent-rail');return Math.abs(rail.scrollLeft-rail.clientWidth)<2})
+   check('desktop: voltar ao Elenco preserva o adversário escolhido',await selector.inputValue()===ids[1])
+   await page.evaluate(()=>window.scrollTo(0,0))
+   await page.screenshot({path:`${out}/${width}-elenco.png`,fullPage:true})
+  }else{
+   check('mobile: consulta original dos adversários preservada',!(await selector.isVisible())&&await opponents.locator('.fp-opponent-slide').count()>1)
+   check('mobile: adversários não criam rolagem horizontal',await opponents.evaluate(node=>node.scrollWidth<=node.clientWidth))
+  }
   await page.getByRole('button',{name:'Estatísticas',exact:true}).first().click()
   await page.evaluate(()=>window.scrollTo(0,0))
   await page.screenshot({path:`${out}/${width}-estatisticas.png`,fullPage:true})
@@ -83,13 +155,39 @@ try{
   await page.evaluate(()=>window.qaAccount('gfpicolo13@gmail.com'))
   await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
   check(`${width}: Futpoint fora da nova interface`,await page.locator('.fp-advanced-tactics').count()===0)
+  check(`${width}: conta pública não recebe o novo destino de rivalidades`,await page.locator('.ov3-rivals-slot').count()===0)
+  check(`${width}: conta pública não recebe o cartão novo de próximo jogo`,await page.locator('.ov3-next-rival-slot').count()===0)
   await context.close()
+ }
+ for(const width of [390,1440]){
+  for(const competition of ['next-rival','next-bot']){
+   const {page,context}=await open(width,`?competition=${competition}`)
+   const native=await page.locator('.ov3-native').first().elementHandle(),card=page.locator('.ov3-next-rival-slot .fp-next-opponent')
+   const expected=await page.evaluate(()=>{const s=window.qaFull.state,you=s.managers[s.youIdx].id;for(let i=s.round;i<s.fixtures.length;i++){const game=s.fixtures[i].find(([h,a])=>h===you||a===you);if(game){const id=game[0]===you?game[1]:game[0];return{id,round:i+1,name:s.managers.find(m=>m.id===id).teamName}}}})
+   check(`${width}: ${competition}: próximo adversário é o real do calendário`,await card.getAttribute('data-opponent-id')===String(expected.id)&&(await card.locator('header').innerText()).includes(expected.name)&&(await card.locator('header').innerText()).includes(String(expected.round)))
+   check(`${width}: ${competition}: próximo jogo fica abaixo do placar e antes das táticas`,(await card.boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height&&(await card.boundingBox()).y<(await page.locator('.ov3-tactic-slot').boundingBox()).y)
+   check(`${width}: ${competition}: marrom só aparece para o usuário adversário`,await card.locator('.ll-next-rivalry').count()===(competition==='next-rival'?1:0))
+   if(competition==='next-rival'){
+    check(`${width}: faixa marrom preserva a arte atual`,await card.locator('.ll-next-rivalry').evaluate(node=>getComputedStyle(node).backgroundColor)==='rgb(26, 20, 8)')
+    await card.getByRole('button',{name:'Ver rivalidades em detalhes',exact:false}).click()
+    check(`${width}: detalhes mantêm próximo jogo e faixa marrom`,await page.locator('.ov3-rivalries .fp-next-opponent .ll-next-rivalry').isVisible())
+    check(`${width}: sem repetir faixa marrom ao trocar aba`,await page.locator('.ll-next-rivalry:visible').count()===1)
+    check(`${width}: trocar para detalhes mantém jogo montado`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+    await page.evaluate(()=>window.scrollTo(0,0))
+    await page.screenshot({path:`${out}/${width}-rivalidade-detalhes.png`,fullPage:true})
+    await page.getByRole('button',{name:'Partida',exact:true}).first().evaluate(button=>button.click())
+    await page.evaluate(()=>window.scrollTo(0,0))
+    await page.screenshot({path:`${out}/${width}-proximo-jogo-rivalidade.png`,fullPage:true})
+   }
+   await context.close()
+  }
  }
  for(const competition of ['liberta','champions','cup']){
   const {page,context}=await open(390,`?competition=${competition}`)
   for(const name of ['Partida','Tabela e jogos','Estatísticas','Elenco','Rivalidades'])check(`${competition}: aba ${name}`,await page.getByRole('button',{name,exact:true}).first().isVisible())
   await page.getByRole('button',{name:'Tabela e jogos',exact:true}).first().click()
   check(`${competition}: lista da competição`,await page.locator('.fp-competition-games').first().isVisible())
+  check(`${competition}: placar continua visível na tabela`,await page.locator('.ov3-native').first().isVisible())
   await page.evaluate(()=>window.scrollTo(0,0))
   await page.screenshot({path:`${out}/${competition}-tabela.png`,fullPage:true})
   await page.getByRole('button',{name:'Rivalidades',exact:true}).first().click()
@@ -97,15 +195,43 @@ try{
   check(`${competition}: sem transbordamento`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
   await context.close()
  }
+ for(const width of [360,390,430]){
+  const {page,context}=await open(width,'?competition=bafo-bye')
+  check(`${width}: Bafo com cinco participantes e dez rodadas`,await page.evaluate(()=>window.qaFull.state.bafo2&&window.qaFull.state.league.length===5&&window.qaFull.state.fixtures.length===10))
+  check(`${width}: folga aparece uma única vez no lugar do placar`,await page.locator('.ov3-native [data-round-state=bye]').count()===1&&await page.getByRole('heading',{name:'VOCÊ FOLGA NESTA RODADA'}).count()===1)
+  check(`${width}: não promete pontapé quando é folga`,!(await page.locator('.ov3-native').innerText()).includes('AGUARDANDO O PONTAPÉ'))
+  check(`${width}: sem estatística do desktop no Bafo`,await page.locator('.fp-desktop-extra').count()===0)
+  check(`${width}: demais jogos continuam na faixa`,await page.locator('.fp-round-carousel > *').count()===2)
+  check(`${width}: folga está acima dos outros jogos`,(await page.locator('[data-round-state=bye]').boundingBox()).y<(await page.locator('.ll27-room-summary').boundingBox()).y)
+  check(`${width}: todas as instruções abertas sem marcação individual`,await page.getByRole('group',{name:'RITMO DO ATAQUE',exact:true}).isVisible()&&await page.locator('.fp-advanced-tactics select').count()===0)
+  check(`${width}: não transborda a página`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
+  await page.screenshot({path:`${out}/bafo-folga-${width}.png`,fullPage:true})
+  await page.getByRole('button',{name:'Tabela e jogos',exact:true}).first().click()
+  check(`${width}: tabela não recebe artilharia sem estilo`,await page.locator('.fp-desktop-extra').count()===0)
+  await context.close()
+ }
+ const three=await open(390,'?competition=bafo-bye-3')
+ check('Bafo com três: a única outra partida também aparece',await three.page.locator('[data-round-state=bye]').isVisible()&&await three.page.locator('.fp-round-carousel > *').count()===1)
+ await three.context.close()
+ const playing=await open(390,'?competition=bafo-playing')
+ check('Bafo: folga da próxima rodada não esconde a partida atual',await playing.page.locator('[data-round-state=bye]').count()===0&&!(await playing.page.locator('.ov3-native').innerText()).includes('AGUARDANDO O PONTAPÉ'))
+ check('Bafo: jogo do usuário montado na rodada com partida',await playing.page.locator('.ov3-native .ll25-duel').isVisible())
+ await playing.page.screenshot({path:`${out}/bafo-jogando-390.png`,fullPage:true});await playing.context.close()
  const waiting=await open(390,'?competition=waiting')
  check('antes do pontapé: abas já no topo',await waiting.page.getByRole('button',{name:'Partida',exact:true}).first().isVisible())
  await waiting.page.getByRole('button',{name:/Começar a temporada/}).click()
  await waiting.page.waitForFunction(()=>window.qaFull.state.round===1)
  check('antes do pontapé: controle original inicia jogo',await waiting.page.locator('.fp-match-primary').isVisible())
  await waiting.context.close()
- const field=await open(1440,'?field=1')
- check('2D: campo real montado',await field.page.locator('.ov3-native canvas').count()>0)
- await field.page.screenshot({path:`${out}/desktop-campo-2d.png`,fullPage:true});await field.context.close()
+ for(const width of [390,1440]){
+  const field=await open(width,'?field=1')
+  check(`${width}: campo 2D real montado`,await field.page.locator('.ov3-native canvas').count()>0)
+  await checkPersistentFrame(field.page,`${width}: 2D`,true)
+  await field.page.getByRole('button',{name:'Rivalidades',exact:true}).first().evaluate(button=>button.click())
+  await field.page.evaluate(()=>window.scrollTo(0,0))
+  await field.page.screenshot({path:`${out}/${width}-2d-rivalidades.png`,fullPage:true})
+  await field.context.close()
+ }
  check('sem erros JavaScript',errors.length===0)
  fs.writeFileSync(`${out}/resultado.json`,JSON.stringify({checks,errors},null,2));console.log(JSON.stringify({checks,errors},null,2))
 }finally{await browser.close()}

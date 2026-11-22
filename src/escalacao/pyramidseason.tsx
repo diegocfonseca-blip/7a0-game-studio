@@ -18,7 +18,7 @@ import {ResidenciaClube} from './residencia-clube'
 import {GaragemCarreira} from './garagem-carreira'
 import {carteiraDaCarreira,organizarMoveisNaCasa} from './presidencia-carreira'
 import {ClubeMapaPainel} from './clube-mapa-painel'
-import {ClubeOrganizacao,PendenciaDaTemporada} from './clube-organizacao'
+import {ClubeOrganizacao,PendenciaDaTemporada,AtalhosDoClube} from './clube-organizacao'
 import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import { podeAtivarRecepcaoM2, recepcaoM2Desde, versaoRecepcaoNaRodada, versaoRecepcaoNaCopa } from './motor2-recepcao-conta'
 import {publicarTempoCampo2D} from './campo2d-relogio'
@@ -5744,8 +5744,8 @@ function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, s
   // Sem a trava, nada disto roda e o campinho fica byte a byte como era.
   const { state: stEl } = useEsc() // só leitura: ficha do técnico + folha com ele
   const quinze = useFormacoes15() && stEl.onlineMode !== 'online' // 🎽 online segue com as 5
-  // 🪽 07/11 (Diego: "coloque 352 na liga draft"): na Liga Draft o 3-5-2 é o 5-3-2 com os laterais subindo como alas — só o desenho
-  const fView = quinze || (stEl.minhaLigaDraft && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr) : null
+  // 🪽 07/11 (Diego: "coloque 352 na liga draft"): na Liga Draft (e no Bafo, 22/11: "aperta 3-5-2 mas tá fazendo 5-3-2") o 3-5-2 é o 5-3-2 com os laterais subindo como alas — só o desenho
+  const fView = quinze || ((stEl.minhaLigaDraft || stEl.bafo2) && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr) : null
   const meis = xiOf('MEI')
   const recuadoIds = new Set<string>() // alas do 3-5-2 / líbero: descem um tiquinho
   let meioRows: WonCard[][] = [meis]
@@ -7646,7 +7646,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
       )}
       {/* 🎽🔁 as pílulas: o que está valendo, em uma linha. Toca e a caixa abre embaixo. */}
       {elencoNovoOk && elenco && (onSetFormation || onSetSubMode || ab) && (() => {
-        const rotuloForm = quinze15 || (escSt.minhaLigaDraft && mgr.formationView === '3-5-2') ? formacaoAtual(mgr).rotulo : mgr.formation
+        const rotuloForm = quinze15 || ((escSt.minhaLigaDraft || escSt.bafo2) && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr).rotulo : mgr.formation
         const modoAgora = (subMode ?? 'dinamico') === 'dinamico' ? tr('🔄 Dinâmico', '🔄 Dynamic') : tr('⏸️ Intervalo', '⏸️ Half-time')
         const pilula = (txt: string, aberta: boolean, onClick: () => void) => (
           <button onClick={onClick} style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 8px', border: `2.5px solid ${INK}`, borderRadius: 9, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -12053,6 +12053,9 @@ export function PyramidSeasonScreen() {
   // dá pra pausar entre rodadas (manual) e o jogo roda +5s mais calmo.
   // (manualPref/manual são declarados lá em cima — a Copa também precisa deles.)
   // ⏩ AUTO é sempre o ritmo padrão: ao voltar pro auto, zera a velocidade (Normal).
+  // 🧭 22/11 (Diego: *"quando aperta em Campo 2D ou placar deve já iniciar no automático… e não no visual de manual com pular,
+  // próxima rodada"*): escolheu 2D/placar na Central, a aba Jogos chega no AUTO (o Manual continua a um toque, no mesmo cartão)
+  const chegaNoAuto = () => { if (state.onlineMode !== 'online' && manualPref) toggleSim() }
   const toggleManualCareer = () => {
     const goingManual = !manual
     // 🎮 ONLINE: quem troca o ritmo é o HOST, e a mudança sincroniza pra todos
@@ -13010,8 +13013,8 @@ export function PyramidSeasonScreen() {
       rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={(naCentral && (!fluxoCentral || centralDireta)) || (copaMinhaNaSemana && calI >= CAL_QUARTA) || (calI >= calFim && !(copaPendente && calI < CAL_QUARTA))}
       irJogo={!fluxoCentral && diaDoJogoNaCentral ? () => { setJogoOk(chaveCentral); escolheAba('jogos') } : undefined}
       escolha={fluxoCentral && diaDoJogoNaCentral ? {
-        d2: () => { ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') },
-        rapido: () => { ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') }, // ⚡ 20/11: placar rápido (o placar cinema), na aba Jogos
+        d2: () => { chegaNoAuto(); ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') },
+        rapido: () => { chegaNoAuto(); ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') }, // ⚡ 20/11: placar rápido (o placar cinema), na aba Jogos
         // 🏟️ 3D: apresenta o estádio antes do apito, sem depender da montagem da partida.
         d3: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('liga', chaveCentral); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) },
@@ -13042,7 +13045,7 @@ export function PyramidSeasonScreen() {
   const estreiaEscolhe = fluxoCentral && round === 0 && decisoesOk && !estadualPendente
   const comecaEstreia = (d3: boolean, rapido = false) => {
     ligaCampo2D(!d3 && !rapido) // ⚡ 20/11: placar rápido = sem 2D, na aba Jogos
-    if (!d3) { if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } return }
+    if (!d3) { chegaNoAuto(); if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } return }
     setDaCentral(true); preparaCampo3D('estreia', `${state.seasonNo ?? 1}:estreia`); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
     setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
   }
@@ -13399,8 +13402,8 @@ export function PyramidSeasonScreen() {
       : proximo
     // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
     const botao = (() => {
-      if (copaSegura) return { label: tr('📺 Jogar no Campo 2D', '📺 Play on the 2D pitch'), sub: tr(`${copaFaseName}${copaVolta ? ' · jogo de volta' : ''} · 2D e placar rápido abrem na aba Jogos · 3D abre no estádio do mapa`, `${copaFaseName}${copaVolta ? ' · second leg' : ''} · 2D and quick scoreboard open in Matches · 3D opens in the map stadium`), onClick: () => { ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') },
-        alt2: { label: tr('⚡ Jogar no placar rápido', '⚡ Play on the quick scoreboard'), onClick: () => { ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') } },
+      if (copaSegura) return { label: tr('📺 Jogar no Campo 2D', '📺 Play on the 2D pitch'), sub: tr(`${copaFaseName}${copaVolta ? ' · jogo de volta' : ''} · 2D e placar rápido abrem na aba Jogos · 3D abre no estádio do mapa`, `${copaFaseName}${copaVolta ? ' · second leg' : ''} · 2D and quick scoreboard open in Matches · 3D opens in the map stadium`), onClick: () => { chegaNoAuto(); ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') },
+        alt2: { label: tr('⚡ Jogar no placar rápido', '⚡ Play on the quick scoreboard'), onClick: () => { chegaNoAuto(); ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') } },
         alt: { label: tr('🏟️ Jogar no Campo 3D', '🏟️ Play on the 3D pitch'), onClick: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('copa', chaveCopa); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) } } }
       if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr(`🏆 Jogo da ${compNomeAgora[0]} rolando — assistir`, `🏆 ${compNomeAgora[1]} match live — watch`)) : tr(`🏆 Assistir a ${compNomeAgora[0]}`, `🏆 Watch the ${compNomeAgora[1]}`), sub: tr('o controle do jogo está em Jogos', 'the match controls are in Matches'), onClick: vai('jogos') }
@@ -13512,7 +13515,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab clubPage={mapaComoClube?(business?'business':insidePanel?'works':'map'):undefined} initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab clubPage={mapaComoClube?(business?'business':insidePanel?'works':'map'):undefined} atalhos={mapaComoClube&&!insidePanel&&!business?(obra,pronto)=><AtalhosDoClube onSelect={abrirDestinoNoMapa} obra={obra} pronto={pronto} contratos={!masterAtivo(state.careerMaster?.[youId], state.seasonNo ?? 1)}/>:undefined} initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={stadiumMapAvailable&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
@@ -14507,6 +14510,15 @@ export function PyramidSeasonScreen() {
         </div>
         </div>
         <div className="ll-cx-aba">
+        {/* 🧭 22/11 (Diego: *"quando acaba o jogo vai pra área da tabela e jogos mas não tem um botão pra seguir ou ir pra Central"*):
+            no visual novo, fora do jogo, a aba Jogos fica só com a tabela (o lado da partida some). Aqui em cima dela entra o caminho —
+            um botão, ninguém é levado sozinho; com coletiva esperando, o toque abre a sala primeiro (igual ao "Próxima rodada"). */}
+        {visualV2 && aguardaCentral && !copaEsperaEscolha && round >= 1 && !seasonOver && !state.co2 && state.onlineMode !== 'online' && (
+          <button data-seguir-central onClick={() => { if (coletivaOpen) { abreColetiva(() => escolheAba('central')); return } escolheAba('central') }}
+            style={{ width: '100%', margin: '0 0 12px', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 17, ...OSWALD, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>
+            {coletivaOpen ? tr('🎤 Seguir · coletiva', '🎤 Continue · press room') : tr('Seguir pra Central ›', 'Continue to the Hub ›')}
+          </button>
+        )}
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
             <CardCollectPrompt motivo={tr(`🏆 Campeão da ${DIV_NAME[me.div]}`, `🏆 ${DIV_NAME[me.div]} champion`)} you={state.managers[state.youIdx]} seasonKey={meuBilhete} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: meuBilhete, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />

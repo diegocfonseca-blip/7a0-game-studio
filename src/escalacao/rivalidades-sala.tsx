@@ -20,16 +20,16 @@ const tagDe = (r: Retro | undefined, t: (pt: string, en: string) => string): { t
   return { txt: t('equilibrado', 'even'), cor: '#7C3AED' }
 }
 
-export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime }: { amigos: AmigoRival[]; mapa: Record<string, Retro>; proximo: ProximoEncontro | null; meuTime: string }) {
+export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime, onlyNext=false, hideNext=false, nextTitle }: { amigos: AmigoRival[]; mapa: Record<string, Retro>; proximo: ProximoEncontro | null; meuTime: string; onlyNext?:boolean; hideNext?:boolean; nextTitle?:string }) {
   const t = useT()
   if (amigos.length === 0) return null
   const rp = proximo ? mapa[proximo.amigo.uid] : undefined
   const seqP = sequenciaAtual(rp)
   return (
     <div className="space-y-3">
-      {proximo && (
-        <div style={{ background: '#1a1408', color: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 12 }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: GOLD, margin: '0 0 8px', textTransform: 'uppercase' }}>⚔️ {t('Próximo encontro', 'Next meeting')}</p>
+      {proximo && !hideNext && (
+        <div className="ll-next-rivalry" style={{ background: '#1a1408', color: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 12 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, color: GOLD, margin: '0 0 8px', textTransform: 'uppercase' }}>⚔️ {nextTitle??t('Próximo encontro', 'Next meeting')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 6, background: '#2a2010', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 8px' }}>
             <div style={{ textAlign: 'center', minWidth: 0 }}>
               <div style={{ ...OSWALD, fontWeight: 800, fontSize: 13, textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meuTime}</div>
@@ -54,7 +54,7 @@ export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime }: { amig
           </p>
         </div>
       )}
-      <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 12, color: INK }}>
+      {!onlyNext&&<div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 12, color: INK }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 8px', textTransform: 'uppercase' }}>🆚 {t('Você contra os amigos', 'You vs your friends')}</p>
         {amigos.map(a => {
           const r = mapa[a.uid], tag = tagDe(r, t), temp = a.temporada
@@ -70,7 +70,7 @@ export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime }: { amig
           )
         })}
         <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '4px 2px 0' }}>{t('V · E · D de todos os jogos entre vocês, em todas as salas (liga e copas).', 'W · D · L of every game between you, in every room (league and cups).')}</p>
-      </div>
+      </div>}
     </div>
   )
 }

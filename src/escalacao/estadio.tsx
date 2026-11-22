@@ -691,8 +691,10 @@ export function StadiumSvg({ st, perkOverride, bb = false }: { st: StadiumSave |
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
 const fmtN = (n: number, l: 'pt' | 'en') => n.toLocaleString(l === 'en' ? 'en-US' : 'pt-BR')
-export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, clubPage, saf2, bb = false }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, museumImprovement, initialSection, clubPage, saf2, bb = false, atalhos }: {
   clubPage?: 'map' | 'works' | 'business'
+  /** 🧭 22/11: atalhos logo embaixo do mapa (só na página do mapa) — recebe se dá pra pagar alguma obra e o % pronto */
+  atalhos?: (obra: boolean, pronto: number) => ReactNode
   initialSection?: 'sectors' | 'extras'
   museumImprovement?: ReactNode
   presidencyView?: ReactNode
@@ -805,6 +807,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medi
           <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>{tr('nível', 'level')} {lvl.n}</span>
         </div>
         {presidencyView ?? (cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} bb={bb} /></CareerStadiumView> : <StadiumSvg st={st} bb={bb} />)}
+        {clubPage==='map'&&atalhos?.(STADIUM_SECTORS.some(s => {
+          if (projectLayout ? setorPagoNoProjeto(st, s.k) : sectorPct(st, s.k) >= 100) return false
+          if (projectLayout && !podeInvestirNoProjeto(st, s.k)) return false
+          return coins >= Math.min(STADIUM_STEP, Math.max(0, s.cost - (st?.inv[s.k] ?? 0)))
+        }), prontoPct)}
         {edEstadio && meuSocio?.ativo && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
             <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{bb ? tr('🎫 Batiza tua arena — mimo de sócio', '🎫 Name your arena — member perk') : tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>

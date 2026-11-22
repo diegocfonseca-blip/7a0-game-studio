@@ -7,6 +7,56 @@ import {PrateleiraRivalidades,type AmigoRival} from './rivalidades-sala'
 import {useRetrospecto} from './retrospecto'
 import {rivalryOf} from './store'
 import type {Retro} from './retrospecto'
+import {footballNextFixture} from './football-round-status'
+
+export type FootballNextGame={round:number;opponentId:number;opponent:string;home:boolean;friend?:AmigoRival}
+export function FootballNextOpponent({game,mapa,meuTime}:{game:FootballNextGame|null;mapa:Record<string,Retro>;meuTime:string}){
+ const state=useOwnerState(),navigation=useFootballMatchNavigation(state?.roomId??'',true)
+ if(!game)return null
+ return <section className="fp-next-opponent" data-opponent-id={game.opponentId} aria-label={tr('Próximo jogo e rivalidade','Next match and rivalry')}>
+  <header><small>{tr('PRÓXIMO JOGO','NEXT MATCH')} · {tr('RODADA','ROUND')} {game.round} · {game.home?tr('EM CASA','HOME'):tr('FORA','AWAY')}</small><h3>{game.home?`${meuTime} × ${game.opponent}`:`${game.opponent} × ${meuTime}`}</h3></header>
+  {game.friend&&<><PrateleiraRivalidades amigos={[game.friend]} mapa={mapa} proximo={{amigo:game.friend,rodada:game.round,daqui:1}} meuTime={meuTime} onlyNext nextTitle={tr('Retrospecto entre vocês','Your head-to-head record')}/><button type="button" onClick={()=>navigation.choose('rivals')}>{tr('Ver rivalidades em detalhes','View rivalry details')} →</button></>}
+ </section>
+}
+
+export function FootballOpponentBrowser({teams}:{teams:{id:number;name:string;pitch:ReactNode}[]}){
+ const rail=useRef<HTMLDivElement>(null),chosen=useRef(teams[0]?.id)
+ const [active,setActive]=useState(teams[0]?.id)
+ const ids=teams.map(team=>team.id).join(',')
+ const index=Math.max(0,teams.findIndex(team=>team.id===active))
+ const desktop=()=>window.matchMedia('(min-width:1100px)').matches
+ const move=(next:number)=>{
+  const team=teams[next],node=rail.current
+  if(!team||!node)return
+  chosen.current=team.id;setActive(team.id)
+  node.scrollTo({left:next*node.clientWidth,behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})
+ }
+ useEffect(()=>{
+  const node=rail.current;if(!node)return
+  const fit=()=>{
+   if(!desktop()||!node.clientWidth)return
+   const next=Math.max(0,teams.findIndex(team=>team.id===chosen.current))
+   chosen.current=teams[next]?.id;setActive(chosen.current)
+   node.scrollTo({left:next*node.clientWidth,behavior:'instant'})
+  }
+  const observer=new ResizeObserver(fit);observer.observe(node)
+  return()=>observer.disconnect()
+ },[ids])
+ if(!teams.length)return null
+ return <section className="fp-opponent-browser" aria-label={tr('Escalações dos adversários','Opponents’ lineups')}>
+  <header className="fp-opponent-tools"><h3>{tr('ESCALAÇÕES DOS ADVERSÁRIOS','OPPONENTS’ LINEUPS')}</h3>
+   <div><button type="button" aria-label={tr('Adversário anterior','Previous opponent')} disabled={index===0} onClick={()=>move(index-1)}>←</button>
+    <label><span>{tr('Escolha o clube','Choose a club')}</span><select aria-label={tr('Escolha o clube','Choose a club')} value={teams[index].id} onChange={event=>move(teams.findIndex(team=>team.id===Number(event.target.value)))}>{teams.map(team=><option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
+    <button type="button" aria-label={tr('Próximo adversário','Next opponent')} disabled={index===teams.length-1} onClick={()=>move(index+1)}>→</button>
+   </div><p>{index+1} / {teams.length} · {tr('Use as setas, escolha um clube ou role para os lados.','Use the arrows, choose a club or scroll sideways.')}</p>
+  </header>
+  <div ref={rail} className="fp-opponent-rail" role="region" aria-label={tr('Campos dos adversários, role para os lados','Opponents’ pitches, scroll sideways')} tabIndex={0}
+   onKeyDown={event=>{if(event.target!==event.currentTarget||!desktop())return;if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();move(index+(event.key==='ArrowRight'?1:-1))}}}
+   onScroll={event=>{const node=event.currentTarget;if(!desktop()||!node.clientWidth)return;const next=teams[Math.round(node.scrollLeft/node.clientWidth)];if(next){chosen.current=next.id;setActive(next.id)}}}>
+   {teams.map(team=><div key={team.id} className="fp-opponent-slide" role="group" aria-label={team.name}>{team.pitch}</div>)}
+  </div>
+ </section>
+}
 
 export function FootballTeamPanel({editable,children}:{editable:boolean;children:ReactNode}){
  return <OwnerSlot name="lineup"><section className="fp-team-panel" aria-label={tr('Sua escalação','Your lineup')}><header><small>{tr('SEU TIME','YOUR TEAM')}</small><h2>{tr('OS SEUS ONZE','YOUR STARTING ELEVEN')}</h2><p>{editable?tr('Troque titulares e formação pelas regras deste modo. Vale para o próximo jogo.','Change starters and formation under this mode’s rules. Applies to the next match.'):tr('Nesta sala os onze são fixos. Consulte os jogadores na aba Elenco.','The starting eleven is fixed in this room. View players in Squad.')}</p></header>{children}</section></OwnerSlot>
@@ -58,13 +108,11 @@ export function FootballCompetitionRivals({state,results,finished,round,fixtures
  const uid=(id:number)=>allowed?state.seatUids?.[id]??'':''
  const amigos=state.managers.filter(m=>m.isHuman&&m.id!==you.id&&uid(m.id)&&uid(m.id)!==uid(you.id)).map(m=>({uid:uid(m.id),nome:m.name,time:m.teamName||m.name,temporada:rivalryOf(state.rivalries,you.id,m.id),id:m.id}))
  const mapa=useRetrospecto(uid(you.id),amigos.map(a=>a.uid),`${state.seed}:${state.screen}:${round}`,state.espectador?state.roomId:null)
- let proximo:import('./rivalidades-sala').ProximoEncontro|null=null
- for(let i=round;i<fixtures.length&&!proximo;i++){
-  const game=fixtures[i]?.find(([h,a])=>h===you.id||a===you.id),friend=game&&amigos.find(a=>a.id===(game[0]===you.id?game[1]:game[0]))
-  if(friend)proximo={amigo:friend,rodada:i+1,daqui:i-round}
- }
+ const scheduled=footballNextFixture(fixtures,round,you.id),nextClub=scheduled?state.managers.find(m=>m.id===scheduled.opponentId):undefined,friend=scheduled?amigos.find(a=>a.id===scheduled.opponentId):undefined
+ const nextGame=scheduled&&nextClub?{...scheduled,opponent:nextClub.teamName||nextClub.name,friend}:null
+ const proximo=scheduled&&friend?{amigo:friend,rodada:scheduled.round,daqui:scheduled.round-round}:null
  const duels=finished?results.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>({key:`${state.roomId}:${state.seed}:${state.screen}:${state.seasonNo}:${round}:${r.homeId}:${r.awayId}`,uid:uid(r.homeId===you.id?r.awayId:r.homeId),name:amigos.find(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))?.time??'',for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round})):[]
- return <section className="ov3-rivalries"><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName}/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section>
+ return <><OwnerSlot name="next-rival"><FootballNextOpponent game={nextGame} mapa={mapa} meuTime={you.teamName}/></OwnerSlot><OwnerSlot name="rivals"><section className="ov3-rivalries"><FootballNextOpponent game={nextGame} mapa={mapa} meuTime={you.teamName}/><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName} hideNext/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section></OwnerSlot></>
 }
 
 export function FootballDesktopLeaders({state,finished}:{state:import('./types').EscState;finished:boolean}){
@@ -76,4 +124,14 @@ export function FootballDesktopLeaders({state,finished}:{state:import('./types')
  if(finished)snapshot.current={key,goals:source?.scorers??[],assists:source?.assists??[]}
  const rows=(kind:'goals'|'assists')=>[...snapshot.current[kind]].sort((a,b)=>Number((b as unknown as Record<string,number>)[kind])-Number((a as unknown as Record<string,number>)[kind])||a.name.localeCompare(b.name)).slice(0,3)
  return <OwnerSlot name="leaders"><section className="fp-desktop-extra"><header><h3>{tr('QUEM DECIDE','THE DECISIVE PLAYERS')}</h3><button type="button" onClick={()=>navigation.choose('stats')}>{tr('Ver estatísticas','View statistics')} →</button></header>{(['goals','assists'] as const).map(kind=><div key={kind}><h4>{kind==='goals'?tr('⚽ Artilharia','⚽ Top scorers'):tr('🅰️ Assistências','🅰️ Assists')}</h4>{rows(kind).length?rows(kind).map((row,i)=><p key={`${row.teamId}:${row.name}`}><span>{i+1}. {row.name}<small>{row.teamName}</small></span><b>{(row as unknown as Record<string,number>)[kind]}</b></p>):<small>{tr('Nenhum registro disponível ainda.','No records available yet.')}</small>}</div>)}<small>{tr('Até a última rodada encerrada.','Through the last completed round.')}</small></section></OwnerSlot>
+}
+
+
+export function FootballRoundNotice({status}:{status:import('./football-round-status').FootballRoundStatus}){
+ return <section className="fp-round-notice" role="status" data-round-state={status.kind}>
+  <h3>{status.kind==='bye'?tr('VOCÊ FOLGA NESTA RODADA','YOU HAVE A BYE THIS ROUND'):status.kind==='unavailable'?tr('SEU JOGO NÃO CARREGOU','YOUR MATCH HAS NOT LOADED'):tr('AGUARDANDO O PONTAPÉ INICIAL','WAITING FOR KICK-OFF')}</h3>
+  {status.kind==='bye'&&<p>{tr(`Com ${status.clubs} clubes, um time descansa por rodada. Os outros jogos seguem normalmente.`,`With ${status.clubs} clubs, one team rests each round. The other matches continue as usual.`)}</p>}
+  {status.kind==='unavailable'&&<p>{tr('Seu time tem jogo no calendário. Confira a rodada em “Tabela e jogos”; esta tela está sem o resultado da sua partida.','Your team has a scheduled match. Check “Table and matches”; this screen is missing your match result.')}</p>}
+  {status.next&&<p className="fp-round-next"><strong>{tr('Próximo jogo','Next match')}:</strong> {status.next.opponent} · {tr('Rodada','Round')} {status.next.round} · {status.next.home?tr('em casa','home'):tr('fora','away')}</p>}
+ </section>
 }

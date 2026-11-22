@@ -1,3 +1,26 @@
+## 🔒 22/11 — MARCAÇÃO INDIVIDUAL RETIRADA DO PAINEL PRIVADO
+- Pedido direto do Diego: tirar a marcação individual de “Mude o plano”. Retirados o seletor de jogador e sua explicação; permanecem postura, caminho do ataque, Normal/Pressão alta e ritmo, no celular e desktop.
+- Novas ordens desse painel enviam `mark:null`, inclusive se o rascunho partiu de um plano antigo com alvo. Sem disparar ordens automaticamente ou alterar resultados já calculados. Mantida a compatibilidade do esquema existente e o acesso exclusivo da conta principal.
+- 315 verificações de interface passaram, sem erros JavaScript; conferidas a ausência do seletor e a ordem real enviada sem alvo. Teste de acesso privado também passou. Bancada local, sem entrar em salas reais; não substitui teste físico no S25.
+- `npm run build` (TypeScript e Vite) e `git diff --check`: passaram.
+- Verificação e capturas locais: `/workspace/shared/sem-marcacao-individual-20261122/`.
+
+## 🔒 22/11 — ADVERSÁRIOS NO DESKTOP + FAIXA MARROM NA PARTIDA
+- Diego pediu facilitar a consulta dos times adversários: no desktop, um campo por vez com setas, seletor de clube, contador e rolagem lateral/teclado. Preserva o escolhido ao voltar à aba.
+- Partida mostra o próximo jogo e, contra outro usuário, a faixa marrom logo abaixo; Rivalidades conserva essa faixa e os detalhes. Celular e desktop, somente conta principal do Diego. O próximo jogo não pula bots para buscar um amigo distante; pula apenas folgas.
+- 315 verificações de interface passaram. Dados/componentes reaproveitados, sem chamadas novas ou mudanças de motor/identidade/salas. [Detalhes e evidências](adversarios-rivalidades-20261122.md).
+
+## 🔒 22/11 — ABAS COM PLACAR/CAMPO PERMANENTE NO PILOTO PRIVADO
+- Pedido do Diego: manter abas e jogo intactos ao navegar, com o conteúdo escolhido abaixo. Cinema/2D, seletor e controles agora ficam visíveis em todas as abas, sem salto forçado ao início ou remontagem da partida.
+- Rivalidades completas abaixo do jogo também no desktop; tabela lateral e chat permanecem. Exclusivo da conta principal do Diego, sem ampliar público ou regras das ordens.
+- 281 verificações de interface e build passaram. Evidências e limites: [abas com partida permanente](abas-placar-permanente-20261122.md).
+
+## 📱 22/11 — PILOTO PRIVADO: TÁTICA COMPACTA, FOLGA NO LUGAR DO JOGO E FAIXA COMPLETA
+- Pedido do Diego com prints do Bafo de cinco pessoas: painel de tática menor no celular, todas as instruções abertas; todos os outros jogos acessíveis pela rolagem lateral, preservando os cartões; aviso de folga no alto, onde estaria o placar.
+- Corrigido o fallback dos slots exclusivos da lateral: artilharia/assistências e prévia de rivalidades não aparecem mais sem estilo no corpo do celular ou na aba Tabela e jogos.
+- Folga passa a conferir a rodada corrente (`round-1`); o cartão antigo consultava a próxima e ficava enterrado. Sem alterar calendário, resultados, assentos ou regras das ordens. Mantido somente na conta principal do Diego.
+- Evidências, testes e limites: [correções móveis do Bafo](ajustes-mobile-bafo-20261122.md).
+
 ## 🔒 22/11 — REVISÃO COMPLETA DO FUTEBOL, AGORA SÓ NA CONTA PRINCIPAL DO DIEGO
 - Autorização nova: “faz aí só pra minha conta tudo”. Substitui a allowlist do piloto anterior: Futpoint e secundária não recebem esta interface.
 - Abas no topo; Partida com controles, plano e XI; Tabela e jogos separados; Rivalidades ampliadas; barra Sala/Troféus/Chat. Desktop com jogo largo, tabela de 420 px, artilharia + assistências, resumo de rivalidades e chat real na lateral.
@@ -10,6 +33,33 @@
   "Começar a Supercopa Rei" só porque ela existia. Agora `rotuloAbre` só fala dela se o SEU time joga (`supercopaMinha`); senão fala do seu estadual
   (ou "a temporada"). A Supercopa sem você já passava direto (`avancaCopaAuto`). Não testado numa carreira do Oficial na bancada.
 
+
+
+### 🃏 22/11 (tarde) — Bafo: selo valendo/amistoso, fim amistoso explicado, aviso de quem foi levado, 3-5-2 (no branch, esperando "pode publicar")
+- Diego (prints da sala FG93HX): *"tem que ter um selinho… bafo valendo cartinha ou bafo amistoso"*, *"tem que dar uma explicação que o campeão não vai
+  roubar a carta porque ele criou a sala no modo amistoso"*, *"do nada já jogou pra sala aberta"*, *"aperta 3-5-2 mas tá fazendo 5-3-2"*.
+- Lista de salas: selo `🃏 BAFO VALENDO CARTA` / `🤝 BAFO AMISTOSO` (lobby.tsx; lê `game_state->>bafoSemCarta` só das salas de Bafo, sem mudar o banco).
+- Fim amistoso: texto diz que foi escolha de quem criou a sala (bafo2-ui.tsx).
+- Volta pra espera: o dono apertou "Novo Bafo" e quem não tinha respondido veio junto. Diego: *"se o cara não votou, ele não vai… vai só quem
+  votou"*. Agora quem NÃO apertou Jogar de novo sai sozinho pelo caminho do botão Sair (`BafoFicaForaQuemNaoVotou`, lobby.tsx) e vê na lista o
+  aviso `AvisoBafoFicouFora`. Marca por aba (sessionStorage `bafo-fim-<sala>`). O botão do dono conta só quem votou.
+- 3-5-2: no Bafo o botão gravava o 3-5-2 mas o campinho e a pílula só desenhavam assim na Liga Draft → agora vale pros dois (pyramidseason.tsx).
+- Print: `scripts/mockups/bafo-selo-amistoso.png`.
+
+### 🧭 22/11 (noite) — aba Clube: atalhos embaixo do mapa + jogo 3D só com o mapa (APROVADO, no branch, esperando "pode publicar")
+- Mockup `scripts/mockups/clube-jogo-celular-antes-depois.png` → Diego: *"Aprovo, mas qd tá vendo jogo rolando… mostre só o jogo, o mapa com jogo apenas e mais nada"*.
+- Feito: `AtalhosDoClube` (clube-organizacao.tsx) logo embaixo do mapa — 🏗️ Obras · 💰 Dinheiro · 🤝 Contratos · 🛍️ Loja · 🕴️ Agência; bolinha vermelha
+  em Obras (dá pra pagar alguma obra) e em Contratos (sem Patrocinador Master ativo); faixa amarela "Seu estádio está X% pronto · toque em OBRAS" até 100%.
+- Assistindo o jogo no 3D (`data-watching-match=true`): a aba Clube esconde tudo menos o título e o mapa (só CSS, `clube-organizacao.css`).
+- Celular em pé: o quadro do jogo fica `min(62svh,125vw)` (era ~88% da tela) — `presidencia-complexo-3d.css`. Tela cheia não muda.
+- Bancada: `scripts/mapa3d/print-clube-atalhos.mjs` (390 e 1280) · print `scripts/mockups/clube-atalhos-feito-celular.png`.
+- Junto no branch, também esperando publicar: entrar no automático ao escolher 2D/Placar + botão "Seguir pra Central" depois do jogo (cf0b461e).
+
+## 22/11 (tarde) — Carreira: fluxo depois do jogo e chegada na aba Jogos — NO BRANCH, esperando "pode publicar"
+
+- ✅ **Escolheu 📺 2D ou ⚡ placar na Central → a aba Jogos chega no AUTOMÁTICO** (`chegaNoAuto`: liga, copa e estreia), mesmo com o Manual guardado no aparelho. O Manual segue a um toque no mesmo cartão. Pedido: *"deve já iniciar no automático… e não no visual de manual com pular, próxima rodada"*.
+- ✅ **Depois do apito, em cima da tabela: botão "Seguir pra Central ›"** (visual novo; antes a aba ficava só com a tabela, sem caminho). É botão, ninguém é levado sozinho; com coletiva esperando, o toque abre a sala primeiro. Print: `scripts/mockups/jogos-seguir-central.png`; bancada `scripts/mapa3d/print-seguir-central.mjs` (passou: chega no auto, botão visível, leva pra Central).
+- ❓ **Aba Clube: o que tem embaixo do mapa (Dinheiro, Contratos, Estádio e obras, Loja, Agência, SAF) ninguém acha.** Proposta levada ao Diego (fileira de atalhos logo abaixo do mapa + bolinha no que tem coisa pra fazer); só com mockup e OK dele.
 
 ## 🛟 22/11 — "OPS, ALGO DEU ERRADO" NA CENTRAL (React #185) + CENTRAL DIRETA PRA TODOS
 - Print de um jogador (eenzozzy, iPhone) às 13h01 na versão no ar (`index-C_1QLLZd.js`): o erro estourou no cartão da CENA DO BAIRRO (`CartaoSede`,

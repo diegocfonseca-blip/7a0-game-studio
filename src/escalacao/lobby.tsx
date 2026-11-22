@@ -2341,6 +2341,16 @@ export function EscLobby() {
       const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', ids)
       for (const p of (pls ?? []) as { room_id: string }[]) counts[p.room_id] = (counts[p.room_id] ?? 0) + 1
     }
+    // 🃏🤝 22/11 (Diego: *"como é que o cara vai saber se está valendo carta ou não"*): o selo do Bafo diz VALENDO CARTA ou AMISTOSO.
+    // A lista lê só colunas magras; o "amistoso" mora no game_state, então só as salas de Bafo (poucas) leem esse campo, sem mudar o banco.
+    const bafoIds = list.filter(r => r.game_state?.mode === 'elenco').map(r => r.id)
+    if (bafoIds.length) {
+      try {
+        const { data: bf } = await supabase.from('game_rooms').select('id, sem:game_state->>bafoSemCarta').in('id', bafoIds)
+        const sem = new Set(((bf ?? []) as unknown as { id: string; sem: string | null }[]).filter(x => x.sem === 'true').map(x => x.id))
+        for (const r of list) if (sem.has(r.id) && r.game_state) (r.game_state as GS).bafoSemCarta = true
+      } catch { /* sem resposta: o selo fica como VALENDO, que é o padrão do modo */ }
+    }
     // "jogo rolando" só conta se alguém salvou recentemente: o host grava um
     // heartbeat a cada 3s enquanto a partida tá aberta numa aba de verdade.
     // Sem isso, uma sala cujo host sumiu (fechou a aba, caiu) ficava marcada
@@ -5120,7 +5130,7 @@ export function EscLobby() {
                     <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
                     {/* 🃏 21/11 (Diego: *"tem que ter o selinho de bafo… uma cor meio verde, musgo, com marrom"*): sala do Bafo ganha o selo dela no lugar do baralho (o baralho é o de cada um) */}
                     {r.game_state?.mode === 'elenco'
-                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#5E6B2B,#5A3E22)', color: '#F4ECD6', boxShadow: '2px 2px 0 #000', ...OSWALD }} title={tr('Bafo: cada um joga com as cartas que ganhou sendo campeão, e o campeão toma 1 de alguém', 'Bafo: everyone plays with the cards they won as champion, and the champion takes 1 from someone')}>🃏 BAFO</span>
+                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#5E6B2B,#5A3E22)', color: '#F4ECD6', boxShadow: '2px 2px 0 #000', ...OSWALD }} title={(r.game_state as GS)?.bafoSemCarta ? tr('Bafo amistoso: ninguém ganha nem perde carta', 'Friendly Bafo: nobody wins or loses a card') : tr('Bafo valendo carta: o campeão toma 1 carta de alguém da sala', 'Bafo for real: the champion takes 1 card from someone in the room')}>{(r.game_state as GS)?.bafoSemCarta ? tr('🤝 BAFO AMISTOSO', '🤝 FRIENDLY BAFO') : tr('🃏 BAFO VALENDO CARTA', '🃏 BAFO · CARDS AT STAKE')}</span>
                       : (r.game_state as { formation?: string } | undefined)?.formation === 'kings'
                       ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
                       : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
@@ -5213,6 +5223,7 @@ export function EscLobby() {
             )
           })}
         </div>
+        <AvisoBafoFicouFora />
         <div className="ll-hub-legacy-refresh" data-livre="1"><Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big></div>
         {/* 🏆📊🖋️ vitrine: campeões de hoje · ranking da semana · último batismo (13/10, mockup aprovado) */}
         </OnlineRoomMain>
@@ -5915,6 +5926,7 @@ export function EscLobby() {
       )}
 
       {/* 🃏 BAFO NOVO (21/11): as REGRAS em cima; quando o dono começa, vira a convocação de 120 s na tela de todo mundo */}
+      {room.game_state?.mode === 'elenco' && user && room.host_id !== user.id && <BafoFicaForaQuemNaoVotou roomId={room.id} onSair={() => void leaveRoom()} />}
       {room.game_state?.mode === 'elenco' && user && (
         <div className="mb-3">
           <BafoSala roomId={room.id} meuUid={user.id} donoUid={room.host_id} players={players} valendo={!room.game_state?.bafoSemCarta}
@@ -6460,4 +6472,35 @@ async function copiaTexto(txt: string): Promise<boolean> {
     const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'
     document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok
   } catch { return false }
+}
+
+/** 🃏🚪 22/11 (Diego: *"se o cara não votou, ele não vai… vai só quem votou"*): o dono apertou "Novo Bafo" e quem NÃO tinha apertado
+ *  "Jogar de novo" na votação do fim não fica na sala nova — sai sozinho pelo MESMO caminho do botão Sair (só apaga a própria linha em
+ *  room_players; nunca mexe em assento de ninguém) e vê, na lista de salas, o aviso do porquê. A marca vem do `BafoFimVoto` (screens.tsx). */
+function BafoFicaForaQuemNaoVotou({ roomId, onSair }: { roomId: string; onSair: () => void }) {
+  useEffect(() => {
+    const chave = `bafo-fim-${roomId}`
+    let marca: string | null = null
+    try { marca = sessionStorage.getItem(chave); sessionStorage.removeItem(chave) } catch { /* sem armazenamento: fica */ }
+    if (marca !== 'nao') return
+    try { sessionStorage.setItem('bafo-ficou-fora', '1') } catch { /* ok */ }
+    onSair()
+  }, [roomId]) // eslint-disable-line react-hooks/exhaustive-deps
+  return null
+}
+
+/** O aviso na lista de salas pra quem ficou de fora do novo Bafo. Fechou = não volta. */
+function AvisoBafoFicouFora() {
+  const [on, setOn] = useState(() => { try { return sessionStorage.getItem('bafo-ficou-fora') === '1' } catch { return false } })
+  if (!on) return null
+  const fecha = () => { try { sessionStorage.removeItem('bafo-ficou-fora') } catch { /* ok */ } setOn(false) }
+  return (
+    <div role="status" className="mb-3 border-[3px] border-black rounded-2xl p-3" style={{ background: '#FFF6D6', boxShadow: `3px 3px 0 ${INK}`, color: INK, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+      <div style={{ flex: 1 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{tr('🃏 O dono começou um novo Bafo', '🃏 The owner started a new Bafo')}</p>
+        <p style={{ fontSize: 12.5, fontWeight: 700, margin: '4px 0 0' }}>{tr('Você não apertou "Jogar de novo", então ficou de fora. Quer jogar? Entre de novo pela lista de salas.', 'You did not tap "Play again", so you were left out. Want to play? Join again from the room list.')}</p>
+      </div>
+      <button type="button" aria-label={tr('Fechar', 'Close')} onClick={fecha} style={{ border: `2px solid ${INK}`, borderRadius: 8, background: '#fff', fontWeight: 900, padding: '2px 8px' }}>✕</button>
+    </div>
+  )
 }
