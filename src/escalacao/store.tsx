@@ -10691,9 +10691,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
       // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
       if (s.ligaDraft) { // 🏀 vale pro baralho da NBA também (um LeBron só por liga)
-        const vistos = new Set<string>()
+        // 🏆 22/11 (Diego: "não tem Dida pra escolher no Milan… não apareceu Cafu"): fica a carta do AUGE (categoria mais alta, depois
+        // a faixa lo+hi), nunca a primeira da lista — antes sobrava o Dida do Corinthians 2000 e sumia o do Milan 2007 (92 casos).
+        const melhor = new Map<string, (typeof CATALOG)[Sector][number]>()
+        for (const pos of SECTORS) for (const c of ACTIVE_CATALOG[pos] ?? []) {
+          const k = chaveNome(c.name), m = melhor.get(k)
+          if (!m || c.fame > m.fame || (c.fame === m.fame && c.lo + c.hi > m.lo + m.hi)) melhor.set(k, c)
+        }
         const out = {} as typeof CATALOG
-        for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => { const k = chaveNome(c.name); if (vistos.has(k)) return false; vistos.add(k); return true })
+        for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => melhor.get(chaveNome(c.name)) === c)
         ACTIVE_CATALOG = out
       }
       s.vel2d = undefined // ⏩📺 06/11: e o 2D começa na marcha padrão (sala 3× · carreira online 2×)
