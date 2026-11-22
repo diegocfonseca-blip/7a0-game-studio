@@ -1,3 +1,16 @@
+## ⚽🔎 22/11 — CAMPO 3D: bola maior no desenho + mancha no chão na bola alta (publicado, pedido do Diego)
+- Pedido: *"analise o campinho 3D, a jogabilidade, domínio, passe, chute… tamanho da bola… já melhore e publique… continuar liso e fluido"*.
+- Bancada nova: `S=<pasta> [T0] [N] [HZ] [PASSO] [CAM=tv|tele…] node scripts/mapa3d/filma-bancada.mjs` filma a partida da `scripts/mapa3d/bancada.html`
+  com relógio falso (sem passar pela carreira). Antes/depois: `scripts/mockups/bola-3d-antes-depois.jpg`.
+- Achado principal: a bola de 22 cm tinha ~3 px na Câmera de TV do celular e ficava miúda do lado do boneco cabeçudo.
+- FEITO (`presidencia-bola-3d.ts`): só o DESENHO cresce — 1,5× de perto e o que precisar pra ter tamanho mínimo na tela de longe (teto 3,2×,
+  `ESCALA_BOLA_PERTO`/`ESCALA_BOLA_MAXIMA`), suavizado; o centro sobe pra bola ficar apoiada na grama. Posição oficial, raio físico (0,11) e motor
+  intactos; teste sem desenho fica em 1×. A mancha no chão não some mais a 30 cm: acompanha a bola alta, mais fraca.
+- Custo: uma conta por quadro, sem objeto novo nem textura. Não medi FPS em aparelho (a bancada é GPU por software).
+- NÃO mexi: movimentos (domínio/passe/chute — sistema `chibi-career-fundamentals-27`, de outra sessão, cheio de travas próprias), câmera de TV
+  (zoom aprovado pelo Diego em 19/11) e motor. Em fotos a 10 quadros/s não deu pra julgar o toque na bola; se ele apontar um lance ruim, filmar com
+  a bancada no minuto do lance.
+
 ## 🧼🃏 22/11 — SALA NORMAL HERDAVA O BAFO (conserto publicado, Diego: "Sim"; relato do Futpoint)
 - Jogou um Bafo e, na mesma sessão, criou uma sala normal: ela veio com elenco de 22, aba Elencos e "faça suas trocas aqui" do Bafo. A partida em si
   foi normal (ganharam cartinha), só as telas do Bafo sobraram.
