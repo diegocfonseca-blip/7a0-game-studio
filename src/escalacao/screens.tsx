@@ -1,10 +1,10 @@
-import {footballRoundStatus} from './football-round-status'
+import {footballRoundStatus,footballNextFixture} from './football-round-status'
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget,FootballMatchPlaceholder} from './owner-online-visual'
 import {useFootballMatchPilotAccess} from './football-match-pilot'
-import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders,FootballRoundNotice} from './football-match-panels'
+import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders,FootballRoundNotice,FootballOpponentBrowser,FootballNextOpponent} from './football-match-panels'
 import {useFootballChatDock} from './football-match-navigation'
 import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
 import { OnlineCreateLayout, OnlineCreateSection } from './online-create-layout' // 🧩 18/11: a Partida Rápida na moldura da criação de sala
@@ -9010,16 +9010,21 @@ export function EscSeason() {
       {retroOn && (!copaLive||ownerVisual) && (() => {
         const amigos: AmigoRival[] = state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => ({ m, uid: uidDo(m.id) })).filter((x): x is { m: typeof x.m; uid: string } => !!x.uid && x.uid !== meuUidRetro)
           .map(({ m, uid }) => ({ uid, nome: m.name, time: m.teamName || m.name, temporada: (() => { const r = rivalryOf(state.rivalries, you.id, m.id); return { w: r.w, d: r.d, l: r.l } })(), id: m.id }))
-        if (amigos.length === 0) return null
+        if (amigos.length === 0&&!footballPilot) return null
+        const scheduled=footballPilot&&!copaLive?footballNextFixture(state.fixtures,state.round,you.id):null
+        const nextClub=scheduled?state.managers.find(m=>m.id===scheduled.opponentId):undefined
+        const nextFriend=scheduled?amigos.find(a=>(a as AmigoRival&{id:number}).id===scheduled.opponentId):undefined
+        const nextGame=scheduled&&nextClub?{...scheduled,opponent:nextClub.teamName||nextClub.name,friend:nextFriend}:null
         let proximo: ProximoEncontro | null = null
-        for (let r = state.round; r < totalRounds && !proximo; r++) {
+        for (let r = state.round; !footballPilot&&r < totalRounds && !proximo; r++) {
           const f = state.fixtures[r]?.find(([h, a]) => h === you.id || a === you.id)
           if (!f) continue
           const oppId = f[0] === you.id ? f[1] : f[0]
           const amigo = amigos.find(a => (a as AmigoRival & { id: number }).id === oppId)
           if (amigo) proximo = { amigo, rodada: r + 1, daqui: r - state.round }
         }
-        return rivalidadesNoConteudo(<section className={ownerVisual?'ov3-rivalries':undefined}><PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />{footballPilot&&<FootballRivalHistory youUid={meuUidRetro??''} amigos={amigos} mapa={retroMapa} proximo={proximo} duels={resultRevealed&&!copaLive?state.lastResults.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>(a as AmigoRival&{id:number}).id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>{const opponent=r.homeId===you.id?r.awayId:r.homeId;return{key:`${state.roomId}:${state.seed}:${state.seasonNo}:${state.round}:${r.homeId}:${r.awayId}`,uid:uidDo(opponent)??'',name:nomeLiga(opponent),for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round:state.round}}):[]}/>}</section>)
+        if(footballPilot&&scheduled&&nextFriend)proximo={amigo:nextFriend,rodada:scheduled.round,daqui:scheduled.round-state.round}
+        return <>{footballPilot&&<OwnerSlot name="next-rival"><FootballNextOpponent game={nextGame} mapa={retroMapa} meuTime={you.teamName}/></OwnerSlot>}{rivalidadesNoConteudo(<section className={ownerVisual?'ov3-rivalries':undefined}>{footballPilot&&<FootballNextOpponent game={nextGame} mapa={retroMapa} meuTime={you.teamName}/>}<PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} hideNext={footballPilot}/>{footballPilot&&<FootballRivalHistory youUid={meuUidRetro??''} amigos={amigos} mapa={retroMapa} proximo={proximo} duels={resultRevealed&&!copaLive?state.lastResults.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>(a as AmigoRival&{id:number}).id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>{const opponent=r.homeId===you.id?r.awayId:r.homeId;return{key:`${state.roomId}:${state.seed}:${state.seasonNo}:${state.round}:${r.homeId}:${r.awayId}`,uid:uidDo(opponent)??'',name:nomeLiga(opponent),for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round:state.round}}):[]}/>}</section>)}</>
       })()}
 
       {/* 📋 08/11: LIGA DRAFT — o caminho até a próxima temporada + ⭐ favoritos (mockup aprovado). Só mostra; a ordem é a da tabela (campeão primeiro). */}
@@ -9150,9 +9155,11 @@ export function EscSeason() {
           times da sala, um embaixo do outro — não só o seu. Sem spoiler: o leilão
           já acabou, os elencos são públicos (tabela/artilharia já mostram tudo).
           Offline/carreira: nada muda. */}
-      {online && !state.careerOnline && !state.bafo2 && state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0).map(mm => (
-        <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`} manto={mm.isHuman ? mantosSala[mm.id] ?? null : null} />
-      ))}
+      {online && !state.careerOnline && !state.bafo2 && (()=>{
+        const teams=state.managers.filter(mm=>mm.id!==you.id&&!mm.auctionOnly&&mm.squad.length>0)
+        const pitch=(mm:(typeof teams)[number])=><Campinho key={mm.id} m={mm} small title={`${mm.isHuman?'👤':'🤖'} ${mm.teamName}`} manto={mm.isHuman?mantosSala[mm.id]??null:null}/>
+        return footballPilot?<FootballOpponentBrowser teams={teams.map(mm=>({id:mm.id,name:mm.teamName,pitch:pitch(mm)}))}/>:teams.map(pitch)
+      })()}
       </div>
       </NumerosAntesCtx.Provider>
       {state.careerDivision && <RivalTracker />}

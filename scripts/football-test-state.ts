@@ -9,6 +9,13 @@ export function footballTestState(competition='league',field=false){
  s=reducer(s,{type:'REPLAY_SEASON'})
  s.managers=s.managers.map((m,i)=>({...m,squad:SECTORS.flatMap(pos=>CATALOG[pos].slice(i*5,i*5+FORMATIONS['4-3-3'][pos]).map((c,j)=>({...c,id:`qa-${i}-${pos}-${j}`,pos,paid:5,via:'leilao' as const})))}))
  s.seed=20261122;s.simSpeed=1;s.manualRoom=true
+ if(competition==='next-rival'||competition==='next-bot'){
+  const you=s.managers[s.youIdx].id
+  const at=s.fixtures.findIndex((games,i)=>i>0&&games.some(([h,a])=>(h===you||a===you)&&(competition==='next-rival'?(h===you?a:h)===1:(h===you?a:h)>3)))
+  if(at<0)throw new Error('A bancada precisa de um próximo adversário válido')
+  while(s.round<at)s=reducer(s,{type:'PLAY_ROUND'})
+  return s
+ }
  if(competition==='bafo-bye'||competition==='bafo-playing'||competition==='bafo-bye-3'){
   s.managers=s.managers.slice(0,competition.endsWith('-3')?3:5).map(m=>({...m,isHuman:true}))
   s.bafo2=true;s.ligaFechada=true;s.copaMode='liga'

@@ -1,3 +1,8 @@
+## 🔒 22/11 — ADVERSÁRIOS NO DESKTOP + FAIXA MARROM NA PARTIDA
+- Diego pediu facilitar a consulta dos times adversários: no desktop, um campo por vez com setas, seletor de clube, contador e rolagem lateral/teclado. Preserva o escolhido ao voltar à aba.
+- Partida mostra o próximo jogo e, contra outro usuário, a faixa marrom logo abaixo; Rivalidades conserva essa faixa e os detalhes. Celular e desktop, somente conta principal do Diego. O próximo jogo não pula bots para buscar um amigo distante; pula apenas folgas.
+- 315 verificações de interface passaram. Dados/componentes reaproveitados, sem chamadas novas ou mudanças de motor/identidade/salas. [Detalhes e evidências](adversarios-rivalidades-20261122.md).
+
 ## 🔒 22/11 — ABAS COM PLACAR/CAMPO PERMANENTE NO PILOTO PRIVADO
 - Pedido do Diego: manter abas e jogo intactos ao navegar, com o conteúdo escolhido abaixo. Cinema/2D, seletor e controles agora ficam visíveis em todas as abas, sem salto forçado ao início ou remontagem da partida.
 - Rivalidades completas abaixo do jogo também no desktop; tabela lateral e chat permanecem. Exclusivo da conta principal do Diego, sem ampliar público ou regras das ordens.

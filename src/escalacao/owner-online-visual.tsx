@@ -22,7 +22,7 @@ export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;care
 }
 export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0]){const owner=useOwnerPresentation();return owner&&ownerOnlineScope(state)}
 
-type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'lineup'|'summary'|'rivals'|'leaders'|'rival-preview'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
+type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'lineup'|'summary'|'rivals'|'next-rival'|'leaders'|'rival-preview'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
 type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{roomId?:string;nbaSala?:EscState['nbaSala'];sport?:string;screen?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;pokeLiga?:unknown;isHost?:boolean}
 type Layout={accountName?:string;state?:OwnerState;enabled:boolean;pilot:boolean;pilotAvailable:boolean;togglePilot:()=>void;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
@@ -115,12 +115,13 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
  const lineup=useCallback((n:HTMLDivElement|null)=>ctx.target('lineup',n),[ctx.target])
  const summary=useCallback((n:HTMLDivElement|null)=>ctx.target('summary',n),[ctx.target])
  const rivals=useCallback((n:HTMLDivElement|null)=>ctx.target('rivals',n),[ctx.target])
+ const nextRival=useCallback((n:HTMLDivElement|null)=>ctx.target('next-rival',n),[ctx.target])
  if(!ctx.enabled)return <>{children}</>
  return <section className={`ov3-primary ll31-cinema ${active?'ov3-primary-active':''} ${field?'ov3-primary-field':''} ${ctx.pilot?'fp-match-primary':''}`} data-primary={active||undefined}>
   {active&&<div key="tabs" className="ov3-tabs-slot" ref={tabs}/>}
   {active&&<div key="view" className="ov3-viewline"><span>{label??tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}</span><div ref={view}/></div>}
   <div key="native" className="ov3-native">{children}</div>
-  {active&&<><div className="ov3-kings-slot" ref={kings} style={{display:'flex',flexDirection:'column',gap:10}}/><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-lineup-slot" ref={lineup}/><div className="ov3-summary-slot" ref={summary}/>{ctx.pilot&&<div className="ov3-rivals-slot" ref={rivals}/>}<div className="ov3-controls-slot" ref={controls}/><div className="ov3-ad-slot" ref={ad}/></>}
+  {active&&<><div className="ov3-kings-slot" ref={kings} style={{display:'flex',flexDirection:'column',gap:10}}/><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-lineup-slot" ref={lineup}/>{ctx.pilot&&<div className="ov3-next-rival-slot" ref={nextRival}/>}<div className="ov3-summary-slot" ref={summary}/>{ctx.pilot&&<div className="ov3-rivals-slot" ref={rivals}/>}<div className="ov3-controls-slot" ref={controls}/><div className="ov3-ad-slot" ref={ad}/></>}
  </section>
 }
 
