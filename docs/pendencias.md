@@ -1,3 +1,11 @@
+## 🔬 22/11 — CAMPO 3D: TESTE DE NITIDEZ PELO ENDEREÇO (pra o Diego ver no S25; nada muda pra quem não usa)
+- Diego: *"o que deixa feio é a nitidez da tela… precisamos mexer nisso p ver"*. Hoje no celular a imagem do jogo é desenhada em 1×–1,5× (até 2×
+  quando segura 60 quadros) numa tela de 3×, e o freio automático (`graphicsBudget`) ainda baixa mais.
+- `?nitidez=1` = força a nitidez do "jogo liso" (até 2×, com freio) · `?nitidez=2` = até 2,5× SEM freio · `?nitidez=3` = a tela inteira do aparelho, sem freio.
+  Com o parâmetro, aparece o mostrador pequeno (quadros/s + nitidez real). Sem o parâmetro, tudo igual a antes.
+- Próximo passo: ele joga um jogo no 3D em cada nível e diz qual fica bonito e liso; aí o padrão do celular forte sobe pra esse nível.
+- ⚠️ Não medido em aparelho de verdade: na bancada (sem placa de vídeo) só conferi que não dá erro.
+
 ## 🏟️ 22/11 — JOGO NO CAMPO 3D DA CARREIRA: 2× POR PADRÃO, COM OU SEM PLANO
 - Diego: *"qd aperta p ver em 3d na carreira a velocidade deve tá em padrão 2x pra quem tem plano ou não. Quem não tem, pra mudar só com botão manual pago desbloqueando"*.
 - `VEL3D_CARREIRA_PADRAO = 2` (vel2d-regra.ts) · `useVel3DAqui` (ritmo2d.ts): sem Manual = 2× cravado; com Manual = a marcha escolhida (ou 2×).
