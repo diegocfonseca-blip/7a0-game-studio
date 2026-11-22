@@ -1,3 +1,10 @@
+## 🔒 22/11 — RETROSPECTO DO PRÓXIMO JOGO EM CARTÃO ÚNICO
+- Diego pediu retirar a repetição do próximo jogo. Contra outro usuário, o piloto agora mostra um único cartão marrom: “Retrospecto do próximo jogo”, rodada/mando e clubes identificados, sem o cabeçalho creme duplicado. Mesmo cartão em Partida e Rivalidades, celular e desktop.
+- Vitórias e derrotas em texto pequeno sob cada clube, invertidas corretamente no lado adversário; empates compartilhados no centro. Rótulo discreto: “Equilibrado”, “Rival freguês” ou “Rival leva vantagem”, seguindo a diferença de duas vitórias já usada nas rivalidades. Zero explícito mostra “Primeiro duelo”; histórico indisponível não inventa números ou freguesia.
+- Contra bot, preservado o próximo jogo sem inventar retrospecto entre pessoas. Dados existentes reaproveitados, sem novas consultas ou alteração de motor, calendário ou identidade; somente conta principal do Diego. O atalho de detalhes aparece em Partida, sem repeti-lo dentro da própria aba Rivalidades.
+- 349 verificações de interface passaram, sem erros JavaScript; históricos simulados favoráveis, desfavoráveis, equilibrados, zerados e ausentes, em 360/390/1440 px. `npm run build`, acesso privado e `git diff --check` passaram. Bancada isolada, sem alterar salas reais; não substitui teste físico no S25.
+- Capturas do cartão e relatório: `/workspace/shared/retrospecto-unico-20261122/`.
+
 ## 🔒 22/11 — MARCAÇÃO INDIVIDUAL RETIRADA DO PAINEL PRIVADO
 - Pedido direto do Diego: tirar a marcação individual de “Mude o plano”. Retirados o seletor de jogador e sua explicação; permanecem postura, caminho do ataque, Normal/Pressão alta e ritmo, no celular e desktop.
 - Novas ordens desse painel enviam `mark:null`, inclusive se o rascunho partiu de um plano antigo com alvo. Sem disparar ordens automaticamente ou alterar resultados já calculados. Mantida a compatibilidade do esquema existente e o acesso exclusivo da conta principal.
