@@ -12,7 +12,13 @@ async function open(width,query=''){
  page.on('pageerror',e=>errors.push(e.message))
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url())
-  if(url.hostname!=='127.0.0.1')return route.fulfill({status:200,contentType:'application/json',body:'[]'})
+  if(url.hostname!=='127.0.0.1'){
+   const sample=new URLSearchParams(query.replace(/^\?/,'' )).get('retro')
+   const rows={fregues:[5,2,1],rival:[1,2,5],equilibrado:[3,4,3],zero:[0,0,0]}
+   const values=url.pathname==='/rest/v1/esc_retrospecto'?rows[sample]:null
+   const body=values?JSON.stringify([{a:'6b5cf422-d4ad-4c69-a7e6-da1125c85844',b:'eb02f1d6-de80-4304-ab49-512342f3c7b7',vit_a:values[0],empates:values[1],vit_b:values[2],ultimos:''}]):'[]'
+   return route.fulfill({status:200,contentType:'application/json',body})
+  }
   if(url.pathname==='/src/escalacao/online-preview.ts'){
    try{const response=await route.fetch({maxRetries:2});return await route.fulfill({response,body:(await response.text())+identity})}catch(error){if(!closing&&!page.isClosed())errors.push(`Falha na identidade da bancada: ${error.message}`);return route.abort().catch(()=>{})}
   }
@@ -164,10 +170,12 @@ try{
    const {page,context}=await open(width,`?competition=${competition}`)
    const native=await page.locator('.ov3-native').first().elementHandle(),card=page.locator('.ov3-next-rival-slot .fp-next-opponent')
    const expected=await page.evaluate(()=>{const s=window.qaFull.state,you=s.managers[s.youIdx].id;for(let i=s.round;i<s.fixtures.length;i++){const game=s.fixtures[i].find(([h,a])=>h===you||a===you);if(game){const id=game[0]===you?game[1]:game[0];return{id,round:i+1,name:s.managers.find(m=>m.id===id).teamName}}}})
-   check(`${width}: ${competition}: próximo adversário é o real do calendário`,await card.getAttribute('data-opponent-id')===String(expected.id)&&(await card.locator('header').innerText()).includes(expected.name)&&(await card.locator('header').innerText()).includes(String(expected.round)))
+   check(`${width}: ${competition}: próximo adversário é o real do calendário`,await card.getAttribute('data-opponent-id')===String(expected.id)&&(await card.innerText()).toUpperCase().includes(expected.name.toUpperCase())&&(await card.locator('header').innerText()).includes(String(expected.round)))
    check(`${width}: ${competition}: próximo jogo fica abaixo do placar e antes das táticas`,(await card.boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height&&(await card.boundingBox()).y<(await page.locator('.ov3-tactic-slot').boundingBox()).y)
    check(`${width}: ${competition}: marrom só aparece para o usuário adversário`,await card.locator('.ll-next-rivalry').count()===(competition==='next-rival'?1:0))
    if(competition==='next-rival'){
+    check(`${width}: retrospecto em cartão único sem cabeçalho repetido`,await card.locator(':scope > header').count()===0&&await card.getByRole('heading',{name:'RETROSPECTO DO PRÓXIMO JOGO',exact:false}).count()===1)
+    check(`${width}: histórico ausente não inventa freguesia ou primeiro duelo`,(await card.locator('.fp-next-rivalry-tag').innerText())==='Sem histórico disponível'&&await card.locator('.fp-next-own-record').count()===0)
     check(`${width}: faixa marrom preserva a arte atual`,await card.locator('.ll-next-rivalry').evaluate(node=>getComputedStyle(node).backgroundColor)==='rgb(26, 20, 8)')
     await card.getByRole('button',{name:'Ver rivalidades em detalhes',exact:false}).click()
     check(`${width}: detalhes mantêm próximo jogo e faixa marrom`,await page.locator('.ov3-rivalries .fp-next-opponent .ll-next-rivalry').isVisible())
@@ -181,6 +189,20 @@ try{
    }
    await context.close()
   }
+ }
+ for(const [width,retro,own,away,label,draws] of [[360,'fregues','5 vitórias · 1 derrota','1 vitória · 5 derrotas','Rival freguês','2 empates'],[1440,'fregues','5 vitórias · 1 derrota','1 vitória · 5 derrotas','Rival freguês','2 empates'],[390,'rival','1 vitória · 5 derrotas','5 vitórias · 1 derrota','Rival leva vantagem','2 empates'],[390,'equilibrado','3 vitórias · 3 derrotas','3 vitórias · 3 derrotas','Equilibrado','4 empates'],[390,'zero','0 vitórias · 0 derrotas','0 vitórias · 0 derrotas','Primeiro duelo','0 empates']]){
+  const {page,context}=await open(width,`?competition=next-rival&retro=${retro}`),card=page.locator('.ov3-next-rival-slot .fp-next-opponent')
+  await card.locator('.fp-next-own-record').waitFor()
+  check(`${width}: ${retro}: vitórias e derrotas do usuário corretas`,await card.locator('.fp-next-own-record').innerText()===own)
+  check(`${width}: ${retro}: retrospecto adversário espelhado corretamente`,await card.locator('.fp-next-away-record').innerText()===away)
+  check(`${width}: ${retro}: rótulo discreto baseado no histórico`,await card.locator('.fp-next-rivalry-tag').innerText()===label)
+  check(`${width}: ${retro}: empates compartilhados corretos`,(await card.locator('.fp-next-history-score').innerText()).includes(draws))
+  check(`${width}: ${retro}: cartão não transborda`,await card.evaluate(node=>node.scrollWidth<=node.clientWidth)&&await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
+  await card.evaluate(node=>node.scrollIntoView({block:'center',behavior:'instant'}))
+  await card.screenshot({path:`${out}/${width}-cartao-${retro}.png`})
+  await page.getByRole('button',{name:'Rivalidades',exact:true}).first().evaluate(button=>button.click())
+  check(`${width}: ${retro}: detalhes usam o mesmo retrospecto`,await page.locator('.ov3-rivalries .fp-next-own-record').innerText()===own)
+  await context.close()
  }
  for(const competition of ['liberta','champions','cup']){
   const {page,context}=await open(390,`?competition=${competition}`)

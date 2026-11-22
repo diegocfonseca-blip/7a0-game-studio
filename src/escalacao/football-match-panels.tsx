@@ -13,9 +13,19 @@ export type FootballNextGame={round:number;opponentId:number;opponent:string;hom
 export function FootballNextOpponent({game,mapa,meuTime}:{game:FootballNextGame|null;mapa:Record<string,Retro>;meuTime:string}){
  const state=useOwnerState(),navigation=useFootballMatchNavigation(state?.roomId??'',true)
  if(!game)return null
+ const record=game.friend?mapa[game.friend.uid]:undefined
+ const total=record?record.v+record.e+record.d:0
+ const relation=!record?tr('Sem histórico disponível','History unavailable'):!total?tr('Primeiro duelo','First meeting'):record.v>=record.d+2?tr('Rival freguês','You have the upper hand'):record.d>=record.v+2?tr('Rival leva vantagem','Opponent has the edge'):tr('Equilibrado','Evenly matched')
+ const recordText=(wins:number,losses:number)=>tr(`${wins} ${wins===1?'vitória':'vitórias'} · ${losses} ${losses===1?'derrota':'derrotas'}`,`${wins} ${wins===1?'win':'wins'} · ${losses} ${losses===1?'loss':'losses'}`)
  return <section className="fp-next-opponent" data-opponent-id={game.opponentId} aria-label={tr('Próximo jogo e rivalidade','Next match and rivalry')}>
-  <header><small>{tr('PRÓXIMO JOGO','NEXT MATCH')} · {tr('RODADA','ROUND')} {game.round} · {game.home?tr('EM CASA','HOME'):tr('FORA','AWAY')}</small><h3>{game.home?`${meuTime} × ${game.opponent}`:`${game.opponent} × ${meuTime}`}</h3></header>
-  {game.friend&&<><PrateleiraRivalidades amigos={[game.friend]} mapa={mapa} proximo={{amigo:game.friend,rodada:game.round,daqui:1}} meuTime={meuTime} onlyNext nextTitle={tr('Retrospecto entre vocês','Your head-to-head record')}/><button type="button" onClick={()=>navigation.choose('rivals')}>{tr('Ver rivalidades em detalhes','View rivalry details')} →</button></>}
+  {game.friend?<article className="ll-next-rivalry fp-next-rivalry-card">
+   <header><h3>⚔️ {tr('RETROSPECTO DO PRÓXIMO JOGO','NEXT MATCH HEAD-TO-HEAD')}</h3><small>{tr('RODADA','ROUND')} {game.round} · {game.home?tr('EM CASA','HOME'):tr('FORA','AWAY')}</small></header>
+   <div className="fp-next-h2h"><div><strong>{meuTime}</strong><small>{tr('VOCÊ','YOU')}</small>{record&&<span className="fp-next-own-record">{recordText(record.v,record.d)}</span>}</div>
+    <div className="fp-next-history-score"><b>{record?`${record.v} × ${record.d}`:'—'}</b><small>{tr('vitórias no confronto','head-to-head wins')}</small>{record&&<span>{tr(`${record.e} ${record.e===1?'empate':'empates'}`,`${record.e} ${record.e===1?'draw':'draws'}`)}</span>}</div>
+    <div><strong>{game.opponent}</strong><small>{tr('ADVERSÁRIO','OPPONENT')}</small>{record&&<span className="fp-next-away-record">{recordText(record.d,record.v)}</span>}</div>
+   </div><footer><span className="fp-next-rivalry-tag">{relation}</span></footer>
+  </article>:<header><small>{tr('PRÓXIMO JOGO','NEXT MATCH')} · {tr('RODADA','ROUND')} {game.round} · {game.home?tr('EM CASA','HOME'):tr('FORA','AWAY')}</small><h3>{game.home?`${meuTime} × ${game.opponent}`:`${game.opponent} × ${meuTime}`}</h3></header>}
+  {game.friend&&navigation.page!=='rivals'&&<button type="button" onClick={()=>navigation.choose('rivals')}>{tr('Ver rivalidades em detalhes','View rivalry details')} →</button>}
  </section>
 }
 
