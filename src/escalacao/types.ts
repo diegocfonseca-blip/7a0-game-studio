@@ -586,6 +586,7 @@ export interface KingsBase {
 }
 
 export interface MatchResult {
+  footballLive?:import('./football-live-tactics').FootballLive
   kings?: KingsInfo
   kingsBase?: KingsBase
   presentationGoals?: MatchHighlight[] // prévia: eventos reais, sem alterar highlights públicos
@@ -889,6 +890,7 @@ export interface EscState {
   fixtures: [number, number][][] // 38 rodadas de pares [home, away]
   round: number // 0-based; 38 = fim
   tactics: Record<number, Tactic> // tática por técnico (cada humano define a sua)
+  footballPlans?:Record<number,import('./football-live-tactics').FootballPlan>
   careerTactics?: Record<number, Record<number, Tactic>> // carreira online: tática POR JOGO (mgrId → rodada 0-based → tática); vale daquela rodada em diante até trocar
   careerCoins?: Record<number, number> // carreira online: caixa de moedas por técnico (mgrId → moedas), pra reforços; +100/temporada + bônus de título/acesso, -queda
   clubCash?: Record<string, number> // carreira online: caixa dos OUTROS times (CPUs + reservas de fundo, tudo que não é humano/fiador), por teamKey. Base por divisão + título/acesso/queda. Aparece no ranking pra todo time ter grana real.

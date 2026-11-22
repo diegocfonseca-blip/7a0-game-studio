@@ -6,8 +6,8 @@ import ts from 'typescript'
 const policy={}
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/football-match-pilot-policy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:policy,Set})
 const diego='diego.c.fonseca@gmail.com',futpoint='gfpicolo13@gmail.com'
-for(const email of [diego,futpoint,` ${futpoint.toUpperCase()} `])assert.equal(policy.footballMatchPilotEmail(email),true)
-for(const email of [null,undefined,'','diego.c.fonseca2@gmail.com','outro@example.com',`${diego}.evil`])assert.equal(policy.footballMatchPilotEmail(email),false)
+for(const email of [diego,` ${diego.toUpperCase()} `])assert.equal(policy.footballMatchPilotEmail(email),true)
+for(const email of [futpoint,null,undefined,'','diego.c.fonseca2@gmail.com','outro@example.com',`${diego}.evil`])assert.equal(policy.footballMatchPilotEmail(email),false)
 for(const screen of ['season','liberta','champions'])assert.equal(policy.footballMatchPilotScope({screen,onlineMode:'online'}),true)
 for(const state of [{screen:'season'},{screen:'season',onlineMode:'solo'},...['setup','lobby','auction','convocacao','end'].map(screen=>({screen,onlineMode:'online'})),...['careerOnline','careerIntent','co2','pokeLiga'].map(key=>({screen:'season',onlineMode:'online',[key]:true})),{screen:'season',onlineMode:'online',sport:'basquete'}])assert.equal(policy.footballMatchPilotScope(state),false,JSON.stringify(state))
 
@@ -45,4 +45,4 @@ assert.equal(auth.useVerifiedPresentationEmail(),'')
 authChanged('SIGNED_IN',{user:{id:'error',email:diego}});await tick()
 pending.shift()({data:{user:{email:diego}},error:{message:'invalid'}});await tick()
 assert.equal(auth.useVerifiedPresentationEmail(),'','erro autenticado mantém o piloto fechado')
-console.log('PASS: duas contas exatas; futebol online apenas; logout/erro/troca/resposta atrasada; Futpoint sem acesso às outras prévias.')
+console.log('PASS: somente a conta principal; futebol online apenas; logout/erro/troca/resposta atrasada; Futpoint sem acesso às outras prévias.')

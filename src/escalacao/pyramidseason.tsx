@@ -1,6 +1,8 @@
 import {CareerAuctionHint} from './career-start-guide'
 import {MuseuClube,MuseuMelhoria} from './museu-clube-ui'
 import {OwnerPrimary} from './owner-online-visual'
+import {useFootballMatchPilotAccess} from './football-match-pilot'
+import {publishFootballClock,footballTestRoom} from './football-live-tactics'
 import { careerVisualV2, CareerVisualProvider, CareerBrand, CareerHeading, CareerMarketSteps, CareerSection, CareerSectionLinks, CareerBalance, useCareerVisualV2 } from './career-visual-v2'
 import { climaDoJogo } from './campo2d-clima'
 import { expectativaBotsCarreira } from './calibracao-bots-carreira'
@@ -4206,9 +4208,15 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
 export const AbaixoDosGolsCtx = createContext<ReactNode>(null)
 export function LiveScoreCard(props: Parameters<typeof LiveScoreCardBody>[0]) {
   const {state}=useEsc(),club=state.managers[state.youIdx]?.teamName
+  const pilot=useFootballMatchPilotAccess(state).enabled
+  const clockEnabled=pilot&&footballTestRoom(state)&&!props.neutro&&!state.quickCopa&&state.screen==='season'
+  const minuteChanged=useCallback((minute:number)=>{
+    props.onMinuteChange?.(minute)
+    if(clockEnabled&&state.roomId)publishFootballClock({room:state.roomId,round:state.round,minute,at:Date.now()})
+  },[props.onMinuteChange,clockEnabled,state.roomId,state.round])
   const field=useCampo2DLigado()
   const mine=!!club&&!props.neutro&&[props.homeName,props.awayName,props.homeOwner,props.awayOwner].includes(club)
-  return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props}/></OwnerPrimary>
+  return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props} onMinuteChange={minuteChanged}/></OwnerPrimary>
 }
 function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm, kings2d }:
   { /** 👑📺 10/11: a partida da Kings pro Campo 2D (quem está em campo, cartões, bola do fim) */ kings2d?: Kings2D; /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number; /** 📺🏀 pontos de cada jogador neste jogo (casa/fora) — a Quadra 2D */ ph?: { n: string; p: number; a?: number; r?: number }[]; pa?: { n: string; p: number; a?: number; r?: number }[] }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean

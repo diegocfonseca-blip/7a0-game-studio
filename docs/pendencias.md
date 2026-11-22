@@ -1,7 +1,15 @@
+## 🔒 22/11 — REVISÃO COMPLETA DO FUTEBOL, AGORA SÓ NA CONTA PRINCIPAL DO DIEGO
+- Autorização nova: “faz aí só pra minha conta tudo”. Substitui a allowlist do piloto anterior: Futpoint e secundária não recebem esta interface.
+- Abas no topo; Partida com controles, plano e XI; Tabela e jogos separados; Rivalidades ampliadas; barra Sala/Troféus/Chat. Desktop com jogo largo, tabela de 420 px, artilharia + assistências, resumo de rivalidades e chat real na lateral.
+- Ordens novas têm efeito real no restante da **liga de teste**, criada pelo Diego e só com contas autorizadas/bots; preservam passado e relógio, atualizando resultado/tabela/gols/assistências juntos. Nas copas e salas fora desse grupo mantém a postura original para o próximo jogo, com limite explicado na tela.
+- Reversão no topo; sem novidades públicas nem migração SQL. Detalhes, testes e limites: [auditoria da revisão privada](futebol-privado-diego-completo-20261122.md).
+- Pendente: teste privado do Diego no aparelho e com sessões autenticadas; expansão das ordens ao vivo às copas não está liberada.
+
 ## ⏭️ 22/11 — BOTÃO "COMEÇAR A SUPERCOPA REI" SEM O SEU TIME (Brasil Oficial)
 - Print do Diego (Brasiliense, T2 Série C): *"por que tá aparecendo pra ver supercopa? se meu time não vai jogar"*. O botão da pré-temporada dizia
   "Começar a Supercopa Rei" só porque ela existia. Agora `rotuloAbre` só fala dela se o SEU time joga (`supercopaMinha`); senão fala do seu estadual
   (ou "a temporada"). A Supercopa sem você já passava direto (`avancaCopaAuto`). Não testado numa carreira do Oficial na bancada.
+
 
 ## 🛟 22/11 — "OPS, ALGO DEU ERRADO" NA CENTRAL (React #185) + CENTRAL DIRETA PRA TODOS
 - Print de um jogador (eenzozzy, iPhone) às 13h01 na versão no ar (`index-C_1QLLZd.js`): o erro estourou no cartão da CENA DO BAIRRO (`CartaoSede`,

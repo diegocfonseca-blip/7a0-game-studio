@@ -13,6 +13,8 @@ import './owner-online-visual.css'
 import './owner-waiting.css'
 import './owner-contrast.css'
 import { useFootballMatchPilot, FootballMatchPilotView } from './football-match-pilot'
+import {useFootballMatchNavigation,setFootballChatDock} from './football-match-navigation'
+import {FootballTacticsPanel} from './football-tactics-panel'
 
 /** Local presentation only. Never serialized into EscState or a room payload. */
 export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;screen?:string}){
@@ -20,9 +22,9 @@ export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;care
 }
 export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0]){const owner=useOwnerPresentation();return owner&&ownerOnlineScope(state)}
 
-type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
+type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'lineup'|'summary'|'leaders'|'rival-preview'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
-type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{nbaSala?:EscState['nbaSala'];sport?:string;screen?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;pokeLiga?:unknown;isHost?:boolean}
+type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{roomId?:string;nbaSala?:EscState['nbaSala'];sport?:string;screen?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;pokeLiga?:unknown;isHost?:boolean}
 type Layout={accountName?:string;state?:OwnerState;enabled:boolean;pilot:boolean;pilotAvailable:boolean;togglePilot:()=>void;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
 const noop=()=>{}
 const Context=createContext<Layout>({enabled:false,pilot:false,pilotAvailable:false,togglePilot:noop,primary:null,claim:noop,release:noop,target:noop,targets:{}})
@@ -36,7 +38,25 @@ export function OwnerOnlineProvider({enabled,state,accountName,children}:{enable
  return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useOwnerLayout(){return useContext(Context).enabled}
+export function useOwnerFootballPilot(){return useContext(Context).pilot}
 export function useOwnerState(){return useContext(Context).state}
+export function FootballChatTarget(){
+ const {pilot,state}=useContext(Context),room=state?.roomId??''
+ const {page}=useFootballMatchNavigation(room,pilot)
+ const visible=pilot&&(page==='match'||page==='table')
+ const ref=useCallback((node:HTMLDivElement|null)=>setFootballChatDock(room,visible?node:null),[room,visible])
+ return pilot?<div className="fp-chat-target" ref={ref}/>:null
+}
+export function FootballSidebarTarget({name}:{name:'leaders'|'rival-preview'}){
+ const ctx=useContext(Context)
+ const ref=useCallback((node:HTMLDivElement|null)=>ctx.target(name,node),[ctx.target,name])
+ return ctx.pilot?<div className="fp-sidebar-extra-target" ref={ref}/>:null
+}
+/** Keep the navigation targets available before kickoff as well. */
+export function FootballMatchPlaceholder({children}:{children:ReactNode}){
+ const pilot=useOwnerFootballPilot()
+ return pilot?<OwnerPrimary label={tr('SEU JOGO','YOUR MATCH')}>{children}</OwnerPrimary>:<>{children}</>
+}
 export function OwnerSlot({name,children}:{name:Slot;children:ReactNode}){
  const ctx=useContext(Context),target=ctx.targets[name]
  const content=ctx.pilot&&name==='view'?<FootballMatchPilotView>{children}</FootballMatchPilotView>:children
@@ -91,12 +111,14 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
  const controls=useCallback((n:HTMLDivElement|null)=>ctx.target('controls',n),[ctx.target])
  const ad=useCallback((n:HTMLDivElement|null)=>ctx.target('ad',n),[ctx.target])
  const tabs=useCallback((n:HTMLDivElement|null)=>ctx.target('tabs',n),[ctx.target])
+ const lineup=useCallback((n:HTMLDivElement|null)=>ctx.target('lineup',n),[ctx.target])
+ const summary=useCallback((n:HTMLDivElement|null)=>ctx.target('summary',n),[ctx.target])
  if(!ctx.enabled)return <>{children}</>
  return <section className={`ov3-primary ll31-cinema ${active?'ov3-primary-active':''} ${field?'ov3-primary-field':''} ${ctx.pilot?'fp-match-primary':''}`} data-primary={active||undefined}>
   {active&&<div key="tabs" className="ov3-tabs-slot" ref={tabs}/>}
   {active&&<div key="view" className="ov3-viewline"><span>{label??tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}</span><div ref={view}/></div>}
   <div key="native" className="ov3-native">{children}</div>
-  {active&&<><div className="ov3-kings-slot" ref={kings} style={{display:'flex',flexDirection:'column',gap:10}}/><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-controls-slot" ref={controls}/><div className="ov3-ad-slot" ref={ad}/></>}
+  {active&&<><div className="ov3-kings-slot" ref={kings} style={{display:'flex',flexDirection:'column',gap:10}}/><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-lineup-slot" ref={lineup}/><div className="ov3-summary-slot" ref={summary}/><div className="ov3-controls-slot" ref={controls}/><div className="ov3-ad-slot" ref={ad}/></>}
  </section>
 }
 
@@ -113,6 +135,7 @@ export function OwnerOnlineHeader({name,club,balance,onHome,onRooms,online}:{nam
 
 export function OwnerTactics({value,onChange,disabled=false,note}:{value:Tactic;onChange:(t:Tactic)=>void;disabled?:boolean;note?:string}){
  const {pilot}=useContext(Context)
+ if(pilot)return <OwnerSlot name="tactic"><FootballTacticsPanel value={value} onChange={onChange} disabled={disabled} note={note}/></OwnerSlot>
  return <OwnerSlot name="tactic"><section className={`ov3-tactics ${pilot?'fp-match-tactics':''}`} aria-label={tr('Tática do seu time','Your team tactics')}><span>{tr('TÁTICA DO SEU TIME','YOUR TEAM TACTICS')}</span>{pilot&&<h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>}<div role="group" aria-label={tr('Escolher tática','Choose tactics')}>{(['retranca','equilibrio','ataque'] as const).map(t=><button type="button" key={t} disabled={disabled} aria-pressed={value===t} onClick={()=>onChange(t)}>{t==='retranca'?tr('Retranca','Defensive'):t==='ataque'?tr('Ofensivo','Attacking'):(pilot?tr('Equilíbrio','Balanced'):tr('Equilibrado','Balanced'))}</button>)}</div>{note&&<small>{note}</small>}{pilot&&<p>{tr('Sua escolha vale para o próximo jogo.','Your choice applies to the next match.')}</p>}</section></OwnerSlot>
 }
 
@@ -135,13 +158,18 @@ export function OwnerChampionBanner({title,name,crest,trophy,mascot,legends=[],l
 }
 
 export function OwnerMatchNavigation({value,onChange}:{value:'jogos'|'tabela'|'estatisticas'|'elenco';onChange:(value:'jogos'|'tabela'|'estatisticas'|'elenco')=>void}){
- const {state}=useContext(Context),[bracket,setBracket]=useState(false),close=useRef<HTMLButtonElement>(null),dialog=useRef<HTMLDivElement>(null)
+ const {state,pilot}=useContext(Context),[bracket,setBracket]=useState(false),close=useRef<HTMLButtonElement>(null),dialog=useRef<HTMLDivElement>(null)
+ const navigation=useFootballMatchNavigation(state?.roomId??'',pilot)
  const qc=state?.quickCopa
+ useEffect(()=>{if(pilot)onChange(navigation.page==='stats'?'estatisticas':navigation.page==='squad'?'elenco':'jogos')},[pilot,navigation.page,onChange])
  useEffect(()=>{if(!bracket)return;const before=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;document.body.style.overflow='hidden';close.current?.focus();const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setBracket(false);if(e.key==='Tab'){const buttons=Array.from(dialog.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')??[]),first=buttons[0],last=buttons[buttons.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}};document.addEventListener('keydown',key);return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);before?.focus()}},[bracket])
  const scroll=(selector:string)=>{onChange('jogos');requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelector(selector)?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})))}
  const rounds=qc?[...qc.bracket.filter(r=>r.phase!==qc.phase),{phase:qc.phase,ties:qc.ties}]:[]
  const piN={n:0}
  // 🏀 18/11: no basquete a chave tem os nomes da NBA (Play-In → 1ª rodada → semis/finais de conferência → Finals)
  const roundName=(phase:string)=>ehBasquete()?(phase==='playin'?(piN.n++===0?tr('Play-In · 1ª rodada','Play-In · round 1'):tr('Play-In · a última vaga','Play-In · the last spot')):phase==='oitavas'?tr('1ª rodada','First round'):phase==='quartas'?tr('Semis de conferência','Conference semi-finals'):phase==='semis'?tr('Finais de conferência','Conference finals'):phase==='final'?'Finals':tr('Fase encerrada','Completed stage')):phase==='repescao'?tr('Repescagem','Play-offs'):phase==='r32'?tr('Rodada de 32','Round of 32'):phase==='oitavas'?tr('Oitavas de final','Round of 16'):phase==='quartas'?tr('Quartas de final','Quarter-finals'):phase==='semis'?tr('Semifinais','Semi-finals'):phase==='final'?tr('Final','Final'):tr('Fase encerrada','Completed stage')
+ if(pilot)return <OwnerSlot name="tabs"><nav className="ll25-tabs fp-page-tabs" aria-label={tr('Conteúdo da competição','Competition content')}>{([
+  ['match',tr('Partida','Match')],['table',tr('Tabela e jogos','Table and matches')],['stats',tr('Estatísticas','Statistics')],['squad',tr('Elenco','Squad')],['rivals',tr('Rivalidades','Rivalries')],
+ ] as const).map(([page,label])=><button type="button" className="ll25-button" key={page} aria-pressed={navigation.page===page} onClick={()=>{navigation.choose(page);onChange(page==='stats'?'estatisticas':page==='squad'?'elenco':'jogos')}}>{label}</button>)}</nav></OwnerSlot>
  return <OwnerSlot name="tabs"><nav className="ll25-tabs" aria-label={tr('Conteúdo da competição','Competition content')}><button className="ll25-button" aria-pressed={value==='jogos'} onClick={()=>onChange('jogos')}>{tr('Partida','Match')}</button><button className="ov3-section-shortcut" onClick={()=>qc?setBracket(true):scroll('.ov3 .ll31-table, .ov3 table')}>{qc?tr('Chave','Bracket'):tr('Tabela','Table')}</button><button className="ll25-button" aria-pressed={value==='estatisticas'} onClick={()=>onChange('estatisticas')}>{tr('Estatísticas','Statistics')}</button><button className="ll25-button" aria-pressed={value==='elenco'} onClick={()=>onChange('elenco')}>{tr('Elenco','Squad')}</button>{state?.onlineMode==='online'&&state.managers.filter(m=>m.isHuman).length>1&&<button className="ov3-section-shortcut" onClick={()=>scroll('.ov3-rivalries')}>{tr('Rivalidades','Rivalries')}</button>}</nav>{bracket&&qc&&createPortal(<div className="ov3-bracket-dialog" role="dialog" aria-modal="true" aria-label={tr('Chave completa','Full bracket')}><div ref={dialog} className="ov3-bracket-content"><header><h2>{tr('Chave completa','Full bracket')}</h2><button ref={close} type="button" onClick={()=>setBracket(false)}>{tr('Voltar à partida','Back to the match')}</button></header><div className="ov3-bracket-rounds">{rounds.filter(r=>r.ties.length).map((r,i)=><section key={`${r.phase}-${i}`}><h3>{roundName(r.phase)}</h3>{r.ties.map((tie,j)=><div key={`${tie.aId}-${tie.bId}-${j}`} className="ov3-bracket-pair"><span>{tie.aName}</span><span>{tie.bName}</span></div>)}</section>)}</div><p>{tr('Os próximos confrontos são definidos após a classificação em cada fase.','The next ties are decided after qualification in each stage.')}</p></div></div>,document.body)}</OwnerSlot>
 }

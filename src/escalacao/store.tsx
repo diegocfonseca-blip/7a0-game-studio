@@ -1,4 +1,5 @@
 import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
+import {FOOTBALL_LOCAL_ORDER,footballTestRoom,validFootballPlan,planFor,footballPlanModifiers,mergeFootballFuture,footballContributions,footballClock,type FootballPlan} from './football-live-tactics'
 import {retornoDeSalaLocal,acaoDaSalaLocal,acaoRemotaDaSalaPermitida} from './online-acoes-locais'
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
@@ -4587,6 +4588,13 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     if (!team.isManager) return { atk: team.baseAtk + state.cpuAtkAdj + (rng() * 6 - 3), def: team.baseDef + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }
     const m = state.managers.find(x => x.id === id)!
     const f = rollManagerForm(m, own, opp, rng)
+    if(state.footballPlans&&footballTestRoom(state)){
+      const opponentId=id===homeId?awayId:homeId
+      const opponent=state.managers.find(x=>x.id===opponentId)?.squad??[]
+      const modifiers=footballPlanModifiers(planFor(state,id),m.squad,opponent)
+      const rival=footballPlanModifiers(planFor(state,opponentId),opponent,m.squad)
+      f.atk+=modifiers.attack-(rival.mark?2.3:0);f.def+=modifiers.defence
+    }
     // só os BOTS DE FUNDO (não-rivais) levam o ajuste, pra bater no nível-base da
     // divisão. Os rivais de leilão e os humanos jogam a própria força, sem ajuste.
     if (!m.isHuman && !m.auctionRival) { f.atk += state.cpuAtkAdj; f.def += state.cpuDefAdj }
@@ -4721,7 +4729,8 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           // de várzea brigava na artilharia com o Pelé.
           const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)
           const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-          pool.push({ name: c.name, fake: ehFake(c), w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
+          const marked=state.footballPlans&&footballTestRoom(state)&&planFor(state,id===homeId?awayId:homeId).mark===c.id
+          pool.push({ name: c.name, fake: ehFake(c), w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1)*(marked ? .55 : 1) })
         }
         const total = pool.reduce((s, p) => s + p.w, 0)
         // 🧤 elenco degenerado (só goleiros/zagueiros sem peso = total 0): NÃO credita
@@ -6315,6 +6324,7 @@ type Action =
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
   | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
+  | { type:'FOOTBALL_LIVE_PLAN';mgrId:number;plan:FootballPlan;by:string;requestId:string;round:number;localProof:symbol }
   | { type: 'SALVA_ESCALACAO'; mgrId: number; qual: 'A' | 'B'; ids: string[]; formation: FormationKey; view?: string } // 💾 guarda o time em campo como Time A/B (23/10)
   | { type: 'APLICA_ESCALACAO'; mgrId: number; qual?: 'A' | 'B'; formation: FormationKey; view?: string; ids: string[]; slot?: number } // 💾 entra com o A/B montado pela tela (aplicaEscalacao): formação + 11 juntos, ou nada
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[]; slot?: number } // carreira: define os 11 titulares (escalação), vale do PRÓXIMO jogo. `slot` = rodada-fantasma da Copa (38 = 1ª fase, 39 = a seguinte…) — é assim que a substituição vale da PRÓXIMA FASE da Copa em diante, sem tocar no que já foi jogado.
@@ -8648,7 +8658,7 @@ export function viraCampo2D(s: EscState): void {
  *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
-export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'viceCartas', 'kingsBaralho', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
+export const MARCAS_DE_MODO = ['footballPlans','pregaoAberto', 'viceCity', 'viceCartas', 'kingsBaralho', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos', 'bafoOn', 'bafo2',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm', 'nbaSala', 'nbaConf', 'nbaMundo'] as const satisfies readonly (keyof EscState)[]
@@ -12117,6 +12127,47 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.oficialAbertura = undefined
       }
       s.screen = 'season'
+      return s
+    }
+    case 'FOOTBALL_LIVE_PLAN': {
+      // Local host gesture only. A serialized/network action can never carry this proof.
+      if(action.localProof!==FOOTBALL_LOCAL_ORDER||!footballTestRoom(s)||ehKings(s)||s.screen!=='season'||action.by!==s.youUid||action.round!==s.round||!validFootballPlan(action.plan)||action.requestId.length>100)return s
+      const manager=s.managers[s.youIdx]
+      if(!manager||manager.id!==action.mgrId)return s
+      const rival=s.lastResults.find(r=>r.homeId===manager.id||r.awayId===manager.id)
+      const rivalId=rival?(rival.homeId===manager.id?rival.awayId:rival.homeId):null
+      const opponent=s.managers.find(m=>m.id===rivalId)
+      const opponentXI=opponent?(s.minhaLigaDraft||s.bafo2?xiPorOrdem(opponent.squad,opponent.formation):opponent.squad):[]
+      if(action.plan.mark&&!opponentXI.some(c=>c.id===action.plan.mark&&!ehFake(c)))return s
+      const time=footballClock()
+      if(!rival||!time||time.room!==s.roomId||time.round!==s.round||Date.now()-time.at>7000||time.minute>=88||s.quickCopa||s.champion!=null)return s
+      if(rival.footballLive?.orders.some(o=>o.id===action.requestId)||(rival.footballLive?.orders.length??0)>=16)return s
+      const cutoff=Math.ceil(time.minute)+3
+      const h=s.league.find(t=>t.id===rival.homeId),a=s.league.find(t=>t.id===rival.awayId)
+      if(!h||!a||JSON.stringify(planFor(s,manager.id))===JSON.stringify(action.plan))return s
+      const old=footballContributions(s,rival)
+      const goals=rival.highlights.filter(lanceEhGol)
+      if(goals.length!==rival.hg+rival.ag)return s // legacy incomplete result: no speculative repair
+      const plan={...action.plan}
+      const scratch={...s,tactics:{...s.tactics,[manager.id]:plan.posture},footballPlans:{...s.footballPlans,[manager.id]:plan},news:[],assists:[],scorers:[]}
+      const candidate=simMatch(scratch,rival.homeId,rival.awayId,mulberry(hashDeterminista(`football-order|${s.seed}|${s.seasonNo}|${s.round}|${rival.homeId}|${rival.awayId}|${(rival.footballLive?.revision??0)+1}`)),[],ligaJogoNeutro(s),[],true)
+      const next=mergeFootballFuture(rival,candidate,cutoff)
+      const revised=footballContributions(s,next)
+      if(!s.assists)s.assists=[]
+      tiraListas(s.scorers,old,s.assists);somaListas(s.scorers,revised.s,s.assists,revised.a)
+      // Undo only this match in the table, then apply its new future exactly once.
+      h.gf-=rival.hg;h.ga-=rival.ag;a.gf-=rival.ag;a.ga-=rival.hg
+      if(rival.hg>rival.ag){h.pts-=3;h.w--;a.l--}else if(rival.hg<rival.ag){a.pts-=3;a.w--;h.l--}else{h.pts--;a.pts--;h.d--;a.d--}
+      applyResult(s.league,next)
+      if(s.managers.some(m=>m.isHuman&&m.id===rival.homeId)&&s.managers.some(m=>m.isHuman&&m.id===rival.awayId)){
+        const key=rivKey(rival.homeId,rival.awayId),record=s.rivalries[key]
+        if(record){const index=rival.hg===rival.ag?2:(rival.hg>rival.ag?rival.homeId:rival.awayId)===Math.min(rival.homeId,rival.awayId)?0:1;record[index]=Math.max(0,record[index]-1)}
+        bumpRivalry(s,next.homeId,next.awayId,next.hg,next.ag)
+      }
+      next.footballLive={revision:(rival.footballLive?.revision??0)+1,orders:[...(rival.footballLive?.orders??[]),{id:action.requestId,from:cutoff,plan,by:manager.id}]}
+      s.lastResults=s.lastResults.map(r=>r===rival?next:r)
+      s.footballPlans={...s.footballPlans,[manager.id]:plan};s.tactics[manager.id]=plan.posture
+      s.news=s.news.filter(n=>!n.includes(h.name)&&!n.includes(a.name))
       return s
     }
     case 'SET_TACTIC': {
