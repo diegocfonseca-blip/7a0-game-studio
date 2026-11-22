@@ -59,3 +59,11 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
 export function usePartidaNoMapa(matchId?:string,homeClubId?:number,includeFinished=false){
  return useSyncExternalStore(subscribe,()=>{const s=active?.state;if(!s)return null;return matchId?s.context.id===matchId?s:null:homeClubId!==undefined&&(s.context.homeClubId===homeClubId||s.context.awayClubId===homeClubId)&&(includeFinished||!s.finished)?s:null},()=>null)
 }
+/** 🏀🗺️ 18/11: o jogo de BASQUETE da carreira no mapa (a arena). Publica o placar/minuto pro mapa e o HUD — sem o motor 3D do
+ * futebol (os bonecos do basquete são os marcadores da Quadra 2D, que vêm pela superfície). Sem storage, rede, sorteio ou resultado novo. */
+export function usePublicarPartidaSimples(state:EstadoPartidaEstadio|null){
+ const owner=useRef(Symbol('placar-basquete'))
+ const chave=state?[state.context.id,state.minute,state.homeScore,state.awayScore,state.paused,state.finished,state.homeColor,state.awayColor,state.officialNarration].join('|'):''
+ useEffect(()=>{if(!state)return;active={owner:owner.current,state};notify()},[chave]) // eslint-disable-line react-hooks/exhaustive-deps
+ useEffect(()=>{const token=owner.current;return()=>{if(active?.owner===token){active=null;notify()}}},[])
+}

@@ -157,7 +157,15 @@
     "campeonato-oficial": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-campeonato-oficial.mts",
     "estaduais": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-estaduais.mts",
     "libertadores": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-libertadores.mts",
-    "baralho-oficial": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/confere-baralho-oficial.mts"
+    "baralho-oficial": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/confere-baralho-oficial.mts",
+    "sala-nba": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-sala-nba.mts",
+    "narracao-bb": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-narracao-basquete.mts",
+    "baralho-mundo-nba": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-baralho-mundo-nba.mts",
+    "sala-nba-online": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-sala-nba-online.mts",
+    "quadra2d": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-quadra2d.mts",
+    "ligas-nba": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-ligas-nba.mts",
+    "eua-so-carreira": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-eua-so-carreira.mts",
+    "eua-oficial": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-eua-oficial.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

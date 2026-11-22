@@ -10,6 +10,7 @@ import { estiloPisca, PISCA_GOL_MS, gritoGol } from './radio-pisca' // 📻 a fa
 import { usePatrocinio, type Competicao } from './patrocinio' // 💼 'apresentada por' (16/10)
 import { LedEstadio } from './patrocinio-visual' // 🏟️ LED do estádio (16/10)
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
+import { ehBasquete } from './marca' // 🏀 placar cinema com a quadra no fundo
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
 import {tempoLance,type RelogioLance} from './presidencia-lance-tempo'
@@ -96,6 +97,7 @@ export function OnlineScorePresentation(p: {
     const antes = golsAntes.current
     golsAntes.current = nGols
     if (antes == null || nGols <= antes) { if (nGols < (antes ?? 0)) setPisca(null); return }
+    if (ehBasquete()) return // 🏀 18/11: no basquete cesta sai toda hora — nada de grito de GOOOL piscando; a rádio narra a cesta
     viuCena.current = !!p.goalSide // gol em cima de gol: a cena já está aberta
     setPisca({ k: nGols, lado: p.goals[nGols - 1]?.home ? 'h' : 'a' })
     const t = setTimeout(() => setPisca(null), PISCA_GOL_MS) // reserva: tela sem cena de gol
@@ -109,7 +111,7 @@ export function OnlineScorePresentation(p: {
     if (viuCena.current) { viuCena.current = false; setPisca(null) }
   }, [p.goalSide])
   const piscaGol = pisca ? estiloPisca() : undefined
-  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
+  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''}${p.enhanced && ehBasquete() ? ' ll26-score-bb' : ''} ${p.enhanced && p.goalSide && !ehBasquete() ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
     {!semFaixa && <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
       {p.goalSide ? p.stamp : p.narration}
     </div>}
@@ -131,7 +133,7 @@ export function OnlineScorePresentation(p: {
         {p.palco && <b className={`ll32-veredito ll32-v-${p.palco.fim}`}>{p.palco.veredito}</b>}
       </div>
     )}
-    {p.enhanced && p.goalSide && <div key={p.eventKey} className={`ll26-goal-scene ll26-goal-${p.goalSide}`} aria-hidden="true">
+    {p.enhanced && p.goalSide && !ehBasquete() /* 🏀 cesta sai toda hora: nada de cena de GOOOL cobrindo o placar */ && <div key={p.eventKey} className={`ll26-goal-scene ll26-goal-${p.goalSide}`} aria-hidden="true">
       <div className="ll26-goal-rays" />
       <div className="ll26-goal-mascot">{p.mascot}</div>
       <strong>{tr('GOOOL!', 'GOOOAL!')}</strong>
@@ -196,10 +198,12 @@ export function CompetitionStage({ kind, title, phase, detail, status, children,
   </section>
 }
 
-export function CompetitionMatch({ home, away, homeCrest, awayCrest, homeOwner, awayOwner, homeScore, awayScore, status, detail, mine = false, showOwners=false, goals=[] }: {
+export function CompetitionMatch({ home, away, homeCrest, awayCrest, homeOwner, awayOwner, homeScore, awayScore, status, detail, mine = false, showOwners=false, goals=[], basket=false }: {
   home: string; away: string; homeCrest?: ReactNode; awayCrest?: ReactNode; homeOwner?: string; awayOwner?: string;
   homeScore: number | string; awayScore: number | string; status: string; detail?: ReactNode; mine?: boolean
   showOwners?: boolean; goals?: Goal[]
+  /** 🏀 17/11: no basquete o placar sobe o tempo todo — nada de "⚽ GOL!" piscando nem lista de quem fez cesta */
+  basket?: boolean
 }) {
   const previous = useRef({home,away,homeScore,awayScore})
   const [goalFlash,setGoalFlash] = useState(false)
@@ -207,15 +211,15 @@ export function CompetitionMatch({ home, away, homeCrest, awayCrest, homeOwner, 
     const old=previous.current
     previous.current={home,away,homeScore,awayScore}
     const scored=old.home===home&&old.away===away&&typeof homeScore==='number'&&typeof awayScore==='number'&&typeof old.homeScore==='number'&&typeof old.awayScore==='number'&&(homeScore>old.homeScore||awayScore>old.awayScore)
-    if(!scored){setGoalFlash(false);return}
+    if(!scored||basket){setGoalFlash(false);return}
     setGoalFlash(true)
     const timer=setTimeout(()=>setGoalFlash(false),1000)
     return ()=>clearTimeout(timer)
-  },[home,away,homeScore,awayScore])
+  },[home,away,homeScore,awayScore,basket])
   return <article className={`ll26-fixture ${mine ? 'll26-fixture-mine' : ''} ${goalFlash?'ll27-fixture-goal':''}`}>
     <header><span>{goalFlash?tr('⚽ GOL!', '⚽ GOAL!'):mine ? tr('SEU JOGO', 'YOUR MATCH') : tr('JOGO DA RODADA', 'MATCH OF THE ROUND')}</span><b>{status}</b></header>
     <div className="ll26-fixture-duel"><div>{homeCrest}<span>{home}{showOwners&&homeOwner&&homeOwner!=='BOT'&&<small>{homeOwner}</small>}</span></div><strong>{homeScore}<i>×</i>{awayScore}</strong><div>{awayCrest}<span>{away}{showOwners&&awayOwner&&awayOwner!=='BOT'&&<small>{awayOwner}</small>}</span></div></div>
-    {goals.length>0&&<div className="ll28-scorers">{[true,false].map(side=><div key={String(side)}>{goals.filter(g=>g.home===side).map((g,i)=><p key={i}>{goalPlayer(g.name)} <b>{g.min>90?`90+${g.min-90}`:g.min}′</b></p>)}</div>)}</div>}
+    {!basket&&goals.length>0&&<div className="ll28-scorers">{[true,false].map(side=><div key={String(side)}>{goals.filter(g=>g.home===side).map((g,i)=><p key={i}>{goalPlayer(g.name)} <b>{g.min>90?`90+${g.min-90}`:g.min}′</b></p>)}</div>)}</div>}
     {detail && <footer>{detail}</footer>}
   </article>
 }
@@ -265,7 +269,7 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
   const detail = venceu && kingsPens ? tr(`🥅 ${venceu} venceu no shootout ${Math.max(...kingsPens)}×${Math.min(...kingsPens)}`, `🥅 ${venceu} won the shootout ${Math.max(...kingsPens)}–${Math.min(...kingsPens)}`)
     : naDisputa ? tr('Empatou: a disputa está rolando…', 'Level: the shootout is on…')
     : !finished && !known && !basket ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail
-  return <CompetitionMatch {...resto} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={status} detail={detail} />
+  return <CompetitionMatch {...resto} basket={basket} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={status} detail={detail} />
 }
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}

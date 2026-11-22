@@ -8,6 +8,8 @@ import { useControleMapa } from './controle-partida-mapa'
 import { useRitmoCampo, VELOCIDADES_ESTADIO, rotuloVelocidadeCampo } from './presidencia-velocidade'
 import { VEL2D_SOLO_VALORES } from './vel2d-regra'
 import { useT } from './lang'
+import { getSport } from './sport'
+import { basketClockLabel } from './sportcfg' // 🏀 18/11: no basquete o relógio do mapa é o do quarto (Q2 5:12), igual ao placar
 import { FestaGolCampo2D, useFestaCampo2D, TelaoGolMapa, useTelaoCampo2D } from './campo2d-festa'
 import { estiloPisca, gritoGol } from './radio-pisca'
 import { ResumoApitoCampo2D, BotaoReplayCampo2D, useApitoCampo2D, useQuaseCampo2D, QUASE_CSS, estiloQuase } from './campo2d-resumo-ui'
@@ -51,7 +53,7 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
       <span style={{ background: INK, color: '#fffaf0', padding: '1px 4px', fontSize: 9.5, display: 'flex', alignItems: 'center', gap: 4 }}><i style={{ width: 6, height: 6, borderRadius: '50%', background: match.homeColor, border: '1.5px solid #fffaf0' }} />{sigla(nh)}</span>
       <span style={{ background: INK, color: '#fff', padding: '1px 5px', fontSize: 11.5 }}>{match.homeScore} – {match.awayScore}</span>
       <span style={{ background: INK, color: '#fffaf0', padding: '1px 4px', fontSize: 9.5, display: 'flex', alignItems: 'center', gap: 4 }}>{sigla(na)}<i style={{ width: 6, height: 6, borderRadius: '50%', background: match.awayColor, border: '1.5px solid #fffaf0' }} /></span>
-      <span style={{ background: match.finished ? '#ddd' : replay ? '#E8E0CC' : GOLD, color: INK, padding: '1px 4px', fontSize: 9, display: 'flex', alignItems: 'center' }}>{penaltis ? `${t('PÊN', 'PENS')} ${penaltis.score[0]}–${penaltis.score[1]}` : match.finished ? t('FIM', 'FT') : <>{replay ? <span style={{ marginRight: 4 }} aria-hidden="true">🔁</span> : !match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{Math.min(93, Math.max(0, Math.floor(match.minute)))}'</>}</span>
+      <span style={{ background: match.finished ? '#ddd' : replay ? '#E8E0CC' : GOLD, color: INK, padding: '1px 4px', fontSize: 9, display: 'flex', alignItems: 'center' }}>{penaltis ? `${t('PÊN', 'PENS')} ${penaltis.score[0]}–${penaltis.score[1]}` : match.finished ? (getSport() === 'basquete' ? 'FINAL' : t('FIM', 'FT')) : <>{replay ? <span style={{ marginRight: 4 }} aria-hidden="true">🔁</span> : !match.paused && <i style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8503A', marginRight: 4 }} />}{getSport() === 'basquete' ? basketClockLabel(match.minute) : `${Math.min(93, Math.max(0, Math.floor(match.minute)))}'`}</>}</span>
     </span>
   return <>{festa && <div className="pc3-match-festa" aria-live="polite"><FestaGolCampo2D festa={festa} larg={Math.min(typeof window !== 'undefined' ? window.innerWidth : 390, 520)} /></div>}
    <div className="pc3-match-score">
@@ -82,7 +84,7 @@ export function MapaHud({ match, torcedores = 0, replay = false }: { match: Esta
    {(ctl||ritmo)&&!replay&&<div className="pc3-match-controls">
     {aoVivo && !penaltis && ctl?.tatica && <button type="button" className="pc3-match-controls-toggle" data-substituir-mapa onClick={ctl.tatica} style={{ order: 2 }}>🔁 {t('Substituir', 'Subs')}</button>}
     {oficial&&ctl?.cadeado&&!ctl.manualOk
-     ? <button type="button" className="pc3-match-controls-toggle" onClick={()=>ctl.cadeado?.()}>🎮 {t('Manual e velocidade','Manual and speed')}<span>🔒</span></button>
+     ? <button type="button" className="pc3-match-controls-toggle" data-cadeado onClick={()=>ctl.cadeado?.()}>🎮 {t('Manual e velocidade','Manual and speed')}<span>🔒 {t('Liberar','Unlock')}</span></button>
      : <button type="button" className="pc3-match-controls-toggle" aria-expanded={controlsOpen} onClick={()=>setControlsOpen(v=>!v)}>{controlsOpen?t('Fechar controles','Close controls'):t('Controles','Controls')}{oficial&&ctl?.marcha?<span>{rotuloVelocidadeCampo(ctl.marcha)}</span>:ritmo&&vivo&&<span>{rotuloVelocidadeCampo(ritmo.speed)}</span>}</button>}
     {controlsOpen&&!(oficial&&ctl?.cadeado&&!ctl.manualOk)&&<div className="pc3-match-controls-panel" role="group" aria-label={t('Controles da partida','Match controls')}>
     {(ctl?.manualOk || (ritmo && vivo)) && <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

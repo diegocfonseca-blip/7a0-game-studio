@@ -74,6 +74,20 @@ export function useCampo2DLigado(): boolean {
   return liberado && p && (pg || !!s?.careerOnline)
 }
 
+/** 🏀📺 a carreira do basquete ONLINE ainda não existe (selo EM BREVE) — lá a quadra fica desligada. A carreira OFFLINE tem
+ *  `careerOnline = true` (é a flag da pirâmide): offline × online se decide pelo `onlineMode`/`co2`. */
+export function bbSemQuadra(s: { sport?: string; careerOnline?: boolean; onlineMode?: string; co2?: unknown } | undefined | null): boolean {
+  return !!s && s.sport === 'basquete' && !!s.careerOnline && (s.onlineMode === 'online' || !!s.co2)
+}
+
+/** 🏀📺 18/11: a QUADRA 2D do basquete está ligada aqui? É a mesma chave do 2D (aparelho/sala), só que no basquete. Rápido, salas
+ *  e (18/11, depois do online pronto) a CARREIRA offline — onde o 2D é de graça e o Manual segue do plano, igual ao futebol. */
+export function useQuadra2DLigada(): boolean {
+  const on = useCampo2DLigado()
+  const s = useEscTalvez()?.state
+  return on && s?.sport === 'basquete' && !bbSemQuadra(s)
+}
+
 /** o que a tela do jogo sabe e o campinho usa: nome do técnico (carreira) e a tática de cada clube (🧱 −1 · ⚖️ 0 · 🔥 +1) */
 export function useCampo2DExtras(): { tecnicoDe: (nome: string) => string | null; taticaDe: (nome: string) => number; estadioDe: (nome: string) => { grama: number; lotacao: number } | undefined; meuTime: string | null; offline: boolean } {
   const s = useEscTalvez()?.state

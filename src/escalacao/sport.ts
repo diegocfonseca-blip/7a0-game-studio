@@ -90,8 +90,19 @@ export function useSport(): [Sport, (s: Sport) => void] {
 // vale mesmo no leilaolegends.com quando o Diego entra na conta dele.
 const BASQUETE_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 
+// 🏀🔒 19/11 (Diego: *"modo carreira irá ficar em breve no basquete"*): quando o BidLegends abrir pra todos, a CARREIRA do basquete
+// fica com o selo EM BREVE (vai virar a "EUA Oficial" — plano em docs/carreira-eua-oficial-plano.md). Só as contas testers seguem
+// entrando. Liberar pra todos = `true` aqui. (A régua é a LISTA de testers, não o `unlocked`, que vira geral no lançamento.)
+const BASQUETE_CARREIRA_GERAL = false
+let basqueteTester = false
+export function carreiraBasqueteLiberada(): boolean { return BASQUETE_CARREIRA_GERAL || basqueteTester }
+/** 🏀🇺🇸 19/11: a carreira EUA Oficial (franquia real da NBA, sem sobe e desce) — por enquanto SÓ na conta do Diego (testers).
+ *  Liberar pra todos = `EUA_OFICIAL_GERAL = true`. */
+const EUA_OFICIAL_GERAL = false
+export function euaOficialLiberado(): boolean { return EUA_OFICIAL_GERAL || basqueteTester }
 function applyUnlock(email?: string | null): void {
   const u = !!email && BASQUETE_TESTERS.has(email.toLowerCase())
+  basqueteTester = u
   if (u === unlocked) return
   unlocked = u
   // deslogou / trocou pra conta comum: volta pro futebol NA HORA (nada de
@@ -133,7 +144,7 @@ export function previaCentral(): boolean { return CENTRAL_18_11_GERAL || unlocke
 export function usePreviaCentral(): boolean { const so = useSoDiego(); return CENTRAL_18_11_GERAL || so }
 // 🧪 só no modo de desenvolvimento (o build de produção apaga este bloco): liga o Brasil Oficial no navegador de teste, pra
 // conferir as telas sem a conta do Diego. `window.__brasilOficialDev()` no console.
-if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__brasilOficialDev = () => { oficialTeste = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
+if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as Record<string, unknown>).__brasilOficialDev = () => { oficialTeste = true; listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 // 🌙 TEMA NOTURNO — decisão do Diego (03/08): por enquanto SÓ a conta dele vê o
 // botão e consegue ligar (vai virar REGALIA DE PLANO PAGO depois — aí a trava
 // troca de "lista de e-mails" pra "tier de apoio" num lugar só). Conta sem
@@ -887,7 +898,7 @@ const COLECOES_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let colecoesOk = COLECOES_GERAL
 function applyColecoesUnlock(email?: string | null): void {
   let dev = false
-  try { dev = import.meta.env.DEV && localStorage.getItem('esc-colecoes-dev') === '1' } catch { /* ignora */ }
+  try { dev = import.meta.env?.DEV && localStorage.getItem('esc-colecoes-dev') === '1' } catch { /* ignora */ }
   const u = COLECOES_GERAL || dev || (!!email && COLECOES_TESTERS.has(email.toLowerCase()))
   if (u === colecoesOk) return
   colecoesOk = u
@@ -1327,7 +1338,7 @@ let centralOk = CENTRAL_GERAL
 function applyCentralUnlock(email?: string | null): void {
   // 🧪 só no `vite` de bancada (import.meta.env.DEV some do build): o harness de fotos roda
   // sem login, então liga a Central por uma chave local. Em produção isto não existe.
-  const bancada = import.meta.env.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-central-dev') === '1'
+  const bancada = import.meta.env?.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-central-dev') === '1'
   const u = CENTRAL_GERAL || bancada || (!!email && CENTRAL_TESTERS.has(email.toLowerCase()))
   if (u === centralOk) return
   centralOk = u
@@ -1362,7 +1373,7 @@ const COLETIVA_GERAL = true
 const COLETIVA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let coletivaOk = COLETIVA_GERAL
 function applyColetiva(email?: string | null): void {
-  const bancada = import.meta.env.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-coletiva-dev') === '1'
+  const bancada = import.meta.env?.DEV && typeof localStorage !== 'undefined' && localStorage.getItem('esc-coletiva-dev') === '1'
   const u = COLETIVA_GERAL || bancada || (!!email && COLETIVA_TESTERS.has(email.toLowerCase()))
   if (u === coletivaOk) return
   coletivaOk = u
@@ -1669,3 +1680,10 @@ export const SPORT_BRAND: Record<Sport, { name: string; emoji: string; tab: stri
   futebol: { name: 'Leilão Legends', emoji: '⚽', tab: 'Futebol' },
   basquete: { name: 'BidLegends', emoji: '🏀', tab: 'Basquete' },
 }
+
+/** 🏀 18/11 (Diego): salas de basquete por etapas — por enquanto só o ⚡ Rápido. Liga da Turma, Liga Draft e Carreira online
+ *  aparecem com EM BREVE na criação de sala. `true` = libera os três de novo (como era até 17/11). */
+// 🏀 19/11 (Diego: *"siga o liga da turma e liga draft contando que é basquete"*): as ligas abrem no basquete (no formato da sala NBA);
+// a carreira online do basquete continua EM BREVE.
+export const BASQUETE_LIGAS_ONLINE = true
+export const BASQUETE_CARREIRA_ONLINE = false

@@ -73,6 +73,11 @@ import {mapaEstadioDisponivel,PRESIDENCY_PARKING_STAGES_RELEASED} from './presid
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './online-match-visual'
+import { falaBasquete } from './narracao-basquete' // 🏀🎙️ a rádio do basquete (18/11)
+import { Quadra2D, siglaDe, falaDaJogada, elencoDoJogo } from './quadra2d'
+import { QuadraNoMapa } from './quadra2d-mapa' // 🏀📺 a Quadra 2D (18/11, mockup aprovado)
+import { planoQuadra, placarEm } from './quadra2d-plano'
+import { indiceDaCena } from './quadra2d-cena'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
@@ -133,7 +138,7 @@ import { statsPlacarVisivel } from './stats-placar'
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS } from './campo2d-motor'
 import { useRitmo2D, useVel2DAqui, setVel2D } from './ritmo2d'
-import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D } from './campo2d-modo'
+import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D, useQuadra2DLigada } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
@@ -250,9 +255,9 @@ function ManualLockButton() {
   const btn = { width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 13, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', ...OSWALD } as const
   return (
     <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
-      <button onClick={() => { if (!aberto) logApoio('👀 abriu: modo manual (trava)'); setAberto(a => !a) }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer' }}>
-        <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('Acelerar e pular', 'Speed up and skip')}</span>
-        <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{aberto ? tr('fechar ▴', 'close ▴') : tr('🔒 Desbloquear', '🔒 Unlock')}</span>
+      <button onClick={() => { if (!aberto) logApoio('👀 abriu: modo manual (trava)'); setAberto(a => !a) }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 14, background: aberto ? '#fff' : 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: INK, boxShadow: `3px 3px 0 ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', textTransform: 'uppercase', ...OSWALD }}>
+        <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('🎮 Manual e velocidade', '🎮 Manual and speed')}</span>
+        <span style={{ fontSize: 12, fontWeight: 900, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '4px 11px', whiteSpace: 'nowrap' }}>{aberto ? tr('fechar ▴', 'close ▴') : tr('🔒 Desbloquear', '🔒 Unlock')}</span>
       </button>
       {aberto && (
         <div style={{ marginTop: 8, background: '#FFF7DB', border: `2.5px solid ${INK}`, borderRadius: 12, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, color: INK }}>
@@ -4205,7 +4210,7 @@ export function LiveScoreCard(props: Parameters<typeof LiveScoreCardBody>[0]) {
   return <OwnerPrimary field={field} label={mine?tr('SEU JOGO','YOUR MATCH'):tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}><LiveScoreCardBody {...props}/></OwnerPrimary>
 }
 function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra, semCarimbo, disputaPenaltis, estadoPenaltis, inicioEm, kings2d }:
-  { /** 👑📺 10/11: a partida da Kings pro Campo 2D (quem está em campo, cartões, bola do fim) */ kings2d?: Kings2D; /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+  { /** 👑📺 10/11: a partida da Kings pro Campo 2D (quem está em campo, cartões, bola do fim) */ kings2d?: Kings2D; /** 🏆 08/11: jogo que NÃO é de quem olha (a final de quem já caiu) — nenhum lado é "você", sem som de gol meu e sem apito de vitória/derrota */ neutro?: boolean; disputaPenaltis?: DisputaPenaltisCampo; estadoPenaltis?: EstadoPenaltisCampo; /** ⏸️ 20/10: na Central o relógio PARA no minuto em que está e volta dele */ pausado?: boolean; /** 📺 o Campo 2D já põe o mascote GRANDE no gol: aqui o carimbo some (o mesmo teatro não aparece duas vezes) */ semCarimbo?: boolean; /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number; /** 📺🏀 pontos de cada jogador neste jogo (casa/fora) — a Quadra 2D */ ph?: { n: string; p: number; a?: number; r?: number }[]; pa?: { n: string; p: number; a?: number; r?: number }[] }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -4248,6 +4253,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // decidir: *"coloque o campinho 2D também e depois eu decido se deixo ou tiro"*.)
   const kings2dOk = useKingsLiberada()
   const c2d = useCampo2DLigado() && !basket && (!relogioKings || (kings2dOk && !!kings2d))
+  // 🏀📺 18/11: com o 2D ligado, o basquete ganha a QUADRA 2D (`quadra2d.tsx`) no lugar do placar cinema. O futebol nem passa aqui (`!!basket`).
+  const q2dBB = useQuadra2DLigada() && !!basket
   const statsPlacar = useStatsPlacar() // 📊 07/11: estatísticas no apito do placar cinema (só a conta do Diego até ele aprovar)
   const c2dX = useCampo2DExtras()
   const abaixoDosGols = useContext(AbaixoDosGolsCtx)
@@ -4282,7 +4289,9 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // do Diego (*"pode publicar p todos"*). Uma chave só, `CAREER_VISUAL_RELEASED` — pôr
   // `false` devolve a carreira ao visual antigo inteirinha, sem tocar no online.
   const carreiraPublica = CAREER_VISUAL_RELEASED && !!enhancedCareer
-  const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline) || carreiraPublica) && !basket
+  // 🏀 18/11 (Diego: *"como fica… com jogo rolando o placar cinema"*): o basquete também ganha o placar cinema — com a quadra no fundo
+  // (`ll26-score-bb`) e sem o golzinho de futebol (`palcoOn={!basket}`).
+  const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline) || carreiraPublica)
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
@@ -4453,9 +4462,32 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   }, [proximoGol?.min, proximoGol?.home, voo?.dentro, roundKey,privateField])
   // 🧹 rodada nova ou tela fechada: nenhuma bola fica no ar
   useEffect(() => () => { if (vooTimer.current) { clearTimeout(vooTimer.current); vooTimer.current = null } }, [roundKey])
-  // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total.
-  const hg = basket ? Math.round(basket.h * (done ? 1 : min / 93)) : shown.filter(g => g.home).length
-  const ag = basket ? Math.round(basket.a * (done ? 1 : min / 93)) : shown.filter(g => !g.home).length
+  // 🏀📺 o ROTEIRO da quadra (quem arremessa, de onde, quanto vale) — fecha sempre no placar do jogo; mesma semente em todo aparelho
+  // 🏀 18/11 (Diego: *"não importa o tempo e se tá quadra ou placar cinema… tudo deve bater igual"*): o roteiro vale pros DOIS —
+  // o placar cinema sobe pelas mesmas cestas, com os mesmos donos e a mesma rádio da quadra; só muda o tempo.
+  const planoBB = useMemo(() => {
+    if (!basket) return null
+    const qc = elencoDoJogo(elencos?.casa as never, basket.ph), qf = elencoDoJogo(elencos?.fora as never, basket.pa)
+    // os pontos de cada um (quinteto + banco que jogou) NESTE jogo (os mesmos da estatística) — quem não está no quinteto não entra (o roteiro então sorteia)
+    const pts = (q: { name: string }[], l?: { n: string; p: number }[]) => (l ? q.map(j => l.filter(x => x.n === j.name).reduce((a, x) => a + x.p, 0)) : undefined)
+    const de = (q: { name: string }[], l: { n: string; a?: number; r?: number }[] | undefined, k: 'a' | 'r') => (l ? q.map(j => l.filter(x => x.n === j.name).reduce((s2, x) => s2 + (x[k] ?? 0), 0)) : undefined)
+    const plano = planoQuadra(sementeDasChances(roundKey, homeName, awayName), basket.h, basket.a, qc, qf, pts(qc, basket.ph), pts(qf, basket.pa),
+      { astCasa: de(qc, basket.ph, 'a'), astFora: de(qf, basket.pa, 'a'), rebCasa: de(qc, basket.ph, 'r'), rebFora: de(qf, basket.pa, 'r') })
+    indiceDaCena(plano) // fecha AQUI quais jogadas a quadra consegue encenar — o placar cinema vê exatamente as mesmas
+    return plano
+  },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [basket?.h, basket?.a, basket?.ph, basket?.pa, q2dBB, roundKey, homeName, awayName, elencos?.casa, elencos?.fora])
+  const placarQ = planoBB ? placarEm(planoBB, done ? 93 : min) : null
+  // as cestas em DESTAQUE do roteiro que o relógio já mostrou — a mesma lista no placar cinema e na quadra (nunca antes da hora)
+  const cestasBB = useMemo(() => {
+    if (!planoBB) return null
+    const qc = elencoDoJogo(elencos?.casa as never, basket?.ph), qf = elencoDoJogo(elencos?.fora as never, basket?.pa)
+    return planoBB.lances.filter(l => l.destaque && l.pts > 0).map(l => ({ name: ((l.lado === 'casa' ? qc : qf)[l.quem]?.name ?? (l.lado === 'casa' ? homeName : awayName)), min: Math.max(1, Math.round(l.t1)), home: l.lado === 'casa' }))
+  }, [planoBB, elencos?.casa, elencos?.fora, homeName, awayName, basket?.ph, basket?.pa])
+  // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total (ou o placar da quadra, com o 2D).
+  const hg = basket ? (placarQ ? placarQ.casa : Math.round(basket.h * (done ? 1 : min / 93))) : shown.filter(g => g.home).length
+  const ag = basket ? (placarQ ? placarQ.fora : Math.round(basket.a * (done ? 1 : min / 93))) : shown.filter(g => !g.home).length
   // eventos (lances) mostrados — no futebol batem com os gols; no basquete são os
   // ~6 lances de destaque. O SELO (gol/cesta) dispara por evento, não por ponto.
   const evH = shown.filter(g => g.home).length, evA = shown.filter(g => !g.home).length
@@ -4671,7 +4703,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     }
     golsOuvidosRef.current = n   // rodada nova zera junto (shown volta a 0)
   }, [shown.length, youIsHome, roundMs])
-  const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
+  const listaBB = cestasBB ? cestasBB.filter(g => done || g.min <= min) : null
+  const homeGoals = (listaBB ?? shown).filter(g => g.home), awayGoals = (listaBB ?? shown).filter(g => !g.home)
   // 🎙️ PLACAR GRANDE + LANCE DO GOL (Diego 19/09). Pedido: *"aumentar a área do placar…
   // ampliar as frases… dar mais emoção"*. A emoção é o LANCE (como a bola entrou, banco
   // em `lances.ts`) e o apito final dizendo o resultado. Sem faixa colorida e sem
@@ -4722,23 +4755,64 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   ) : null
   const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa>{campo2dEl}</div>:null
   const campo2dComTelao = c2d&&campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
+  // 🏀🗺️ 18/11: o MESMO jogo vai pra arena do mapa (aba Clube) — placar cinema ou quadra, tanto faz: é o mesmo roteiro
+  const quadraMapa = basket && planoBB && stadiumMatch ? (() => {
+    const fechadoM = !!finished || min >= 93, semM = sementeDasChances(roundKey, homeName, awayName)
+    const ladoM = (nome: string, cor: string, sq: unknown, pts?: { n: string; p: number; a?: number }[]) => ({ nome: nomeLimpo(nome), sigla: siglaDe(nomeLimpo(nome)), cor, jogadores: elencoDoJogo(sq as never, pts) })
+    const cM = ladoM(homeName, homeColor, elencos?.casa, basket.ph), fM = ladoM(awayName, awayColor, elencos?.fora, basket.pa)
+    const refM = fechadoM ? null : [...planoBB.lances].reverse().find(l => l.destaque && l.t1 <= min)
+    return <QuadraNoMapa plano={planoBB} minuto={min} minutoMs={Math.max(400, roundMs * 0.82) / 93} fechado={fechadoM} pausado={!!pausado} casa={cM} fora={fM}
+      contexto={stadiumMatch} fala={refM ? falaDaJogada(refM, cM, fM, semM, emIngles) : ''} />
+  })() : null
+  if (q2dBB && planoBB && basket) {
+    const semente = sementeDasChances(roundKey, homeName, awayName)
+    const elenco = (lst?: { name: string; pos: string; fake?: boolean; club?: string }[]) => (lst ?? []).filter(c => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup').map(c => ({ name: c.name, pos: c.pos }))
+    const baseFala = { seed: semente, casa: nomeLimpo(homeName), fora: nomeLimpo(awayName), cestas: [], elencoCasa: elenco(elencos?.casa as never), elencoFora: elenco(elencos?.fora as never), en: emIngles }
+    return <>
+      <Quadra2D plano={planoBB} minuto={min} minutoMs={Math.max(400, roundMs * 0.82) / 93} fechado={!!finished || min >= 93} pausado={!!pausado} seed={semente}
+        casa={{ nome: nomeLimpo(homeName), sigla: siglaDe(nomeLimpo(homeName)), cor: homeColor, jogadores: elencoDoJogo(elencos?.casa as never, basket.ph) }}
+        fora={{ nome: nomeLimpo(awayName), sigla: siglaDe(nomeLimpo(awayName)), cor: awayColor, jogadores: elencoDoJogo(elencos?.fora as never, basket.pa) }}
+        falaAbertura={falaBasquete({ ...baseFala, min: 0, fechado: false, pc: 0, pf: 0 }).txt}
+        falaFinal={falaBasquete({ ...baseFala, min: 93, fechado: true, pc: basket.h, pf: basket.a }).txt} />
+      {quadraMapa}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} />
+    </>
+  }
   if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}</>
-  if (cinematic) return <>{fonteMapaEscondida}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+  if (cinematic) return <>{fonteMapaEscondida}{quadraMapa}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
-    youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={relogioKings ? shown.map(g => ({ ...g, min: placarParaK(g.min) })) : shown}
+    youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={relogioKings ? shown.map(g => ({ ...g, min: placarParaK(g.min) })) : (listaBB ?? shown)}
     goalSide={golSide} mascot={carimboSlot} eventKey={goalSeed}
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
     narracaoNoRadio
-    radio={relatoOficial ? {min:relatoOficial.narration?String(relatoOficial.narrationMinute):'',txt:relatoOficial.narration} : basket || radioLances.length === 0 ? null : (() => {
+    radio={relatoOficial ? {min:relatoOficial.narration?String(relatoOficial.narrationMinute):'',txt:relatoOficial.narration} : !basket && radioLances.length === 0 ? null : (() => {
       // 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10, opção B do Diego): o rádio leva TUDO, na ordem de prioridade —
       // apito final · gol (selo + autor + lance) · chance do golzinho · apito inicial/intervalo · cartão da Kings ·
       // a frase do rádio · retrospecto. A fala que sai fica apagadinha embaixo da nova.
       const atual: FalaRadio = (() => {
+        // 🏀🎙️ 18/11 (Diego: *"a narração fica na parte de baixo do placar cinema… variedades enormes de narrações com base em basquete"*):
+        // o basquete tem a rádio dele (`narracao-basquete.ts`) — cesta (de 2, de 3, enterrada), toco, roubo, rebote, passe, lance livre,
+        // quartos, intervalo e o placar. Só narra o que JÁ está na tela (as cestas mostradas e o placar parcial).
+        if (basket) {
+          const elenco = (lst?: { name: string; pos: string; fake?: boolean; club?: string }[]) => (lst ?? []).filter(c => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup').map(c => ({ name: c.name, pos: c.pos }))
+          const semente = sementeDasChances(roundKey, homeName, awayName)
+          const baseBB = { seed: semente, casa: nomeLimpo(homeName), fora: nomeLimpo(awayName), elencoCasa: elenco(elencos?.casa as never), elencoFora: elenco(elencos?.fora as never), en: emIngles }
+          // 🏀 18/11: a rádio do placar cinema narra as MESMAS jogadas do roteiro que a quadra 2D encena (o jogo é um só).
+          // Aqui o jogo passa rápido, então cada fala fica ~2,6 s: vale a última jogada em destaque até o começo daquela fala.
+          if (planoBB && !fechado) {
+            const passo = Math.max(3, Math.round(93 * 2600 / Math.max(1500, roundMs)))
+            const m0 = Math.floor(min / passo) * passo
+            const ref = [...planoBB.lances].reverse().find(l => l.destaque && l.t1 <= m0)
+            const qc = elencoDoJogo(elencos?.casa as never, basket.ph), qf = elencoDoJogo(elencos?.fora as never, basket.pa)
+            if (ref) return { min: '', tipo: ref.pts > 0 ? 'gol' as const : 'lance' as const, txt: falaDaJogada(ref, { nome: nomeLimpo(homeName), jogadores: qc }, { nome: nomeLimpo(awayName), jogadores: qf }, semente, emIngles) }
+          }
+          return falaBasquete({ ...baseBB, min: planoBB && !fechado ? 0 : min, fechado, pc: hg, pf: ag, pcFim: basket.h, pfFim: basket.a, minPorFala: 93 * 2600 / Math.max(1500, roundMs),
+            cestas: [] })
+        }
         if (fechado) {
           const c = craqueDoJogo(shown)
           if (c) return { tag: tr('⭐ CRAQUE DO JOGO', '⭐ PLAYER OF THE MATCH'), tom: 'craque' as const, min: '', txt: fraseCraque(c, nomeLimpo(c.home ? homeName : awayName), emIngles) }
@@ -4777,7 +4851,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
     narration={relatoOficial?.narration ?? fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {/* 📊 07/11: o MESMO resumo do apito do 2D, no placar cinema — só depois do FIM (e da última cobrança de pênalti) */}
-    {statsPlacarVisivel({ liberado: statsPlacar, fechado, basket, kings: !!relogioKings, penaltis: estadoPenaltis ?? disputaPenaltis?.estado ?? null }) && (
+    {statsPlacarVisivel({ liberado: statsPlacar, fechado, basket: !!basket, kings: !!relogioKings, penaltis: estadoPenaltis ?? disputaPenaltis?.estado ?? null }) && (
       // (⭐ o rádio já disse quem foi o CRAQUE DO JOGO: o cartão diz o MESMO nome — nunca dois "melhores" diferentes na tela)
       <StatsDoPlacar corCasa={homeColor} corFora={awayColor} craqueRadio={!relatoOficial && radioLances.length > 0 ? craqueDoJogo(shown) : null} entrada={{
         roundKey, roundMs, gols: goals,
@@ -4791,8 +4865,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     {abaixoDosGols}
    </>
   return (<>
-    {fonteMapaEscondida}
-    <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
+    {fonteMapaEscondida}{quadraMapa}
+    <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative', ...(basket ? { color: INK } : null) /* 🏀 17/11: no fundo escuro do visual novo os nomes das cestas herdavam o creme e sumiam */ }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
       {classico && <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 3, background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, ...OSWALD, padding: '2px 7px', borderRadius: 6, letterSpacing: 0.5 }}>{tr('🥊 CLÁSSICO', '🥊 DERBY')}</div>}
       {/* 🎨 topo agora acumula os dois papéis (Diego 15/08): narração (apito
@@ -9710,11 +9784,13 @@ const abreCraqueNuvem = () => { window.location.href = `${window.location.origin
 // componentes do futebol (StadiumTab/FinancasTab/EscritorioTab/MultiClubeBuy) com
 // bb={true} pro visual de quadra e a régua da arena. SÓ aparece na carreira do
 // basquete (EscSeason), nunca no futebol. Patrocínio fica pra uma próxima fatia.
-export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
+export function BbClubeOverlay({ onClose, inline }: { onClose: () => void; /** 🏀 15/11: vira a ABA Clube da carreira do basquete (sem fundo escuro, sem ✕) */ inline?: boolean }) {
   const { state, dispatch } = useEsc()
   const en = getLang() === 'en'
   const L = (pt: string, e: string) => en ? e : pt
   const [sub, setSub] = useState<'estadio' | 'patrocinio' | 'financas' | 'escritorio' | 'multi'>('estadio')
+  const [painelBB, setPainelBB] = useState<DestinoClubeMapa | null>(null) // 🏀🗺️ 18/11: o painel aberto por cima do mapa (Clube novo)
+  const meuSocBB = useMeuSocio() // 🏀🏠 18/11: Casa e garagem (o mesmo painel do futebol)
   const youId = state.managers[state.youIdx]?.id ?? state.youIdx
   const coins = state.careerCoins?.[youId] ?? 0
   const myCards = state.empresarioCards ?? []
@@ -9729,28 +9805,9 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
     .filter(m => !m.isHuman && !m.rival && !m.auctionRival && !m.mine && (state.careerPlacements?.[`m${m.id}`] ?? 'D') === 'D')
     .map(m => m.teamName)
   const isLenda = myApoioPerk()?.tier === 'ouro'
-  const tabs: [typeof sub, string, string][] = [
-    ['estadio', '🏟️', L('Arena', 'Arena')],
-    ['patrocinio', '👕', L('Patrocínio', 'Sponsor')],
-    ['financas', '💰', L('Finanças', 'Finances')],
-    ['escritorio', '💼', L('Agência', 'Agency')],
-    ['multi', '🏛️', L('2º Clube', '2nd Club')],
-  ]
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />
-      <div style={{ position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
-          <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
-        </div>
-        <div style={{ display: 'flex', gap: 6, padding: 10 }}>
-          {tabs.map(([s, ic, label]) => (
-            <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
-          ))}
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
-          {sub === 'escritorio' ? (
+  // 🏀🗺️ 18/11: o conteúdo de cada pedaço do Clube (aba antiga e painéis do Clube novo usam o MESMO)
+  const conteudo = (sub: 'estadio' | 'patrocinio' | 'financas' | 'escritorio' | 'multi', pagina?: 'map' | 'works') => (
+    sub === 'escritorio' ? (
             <EscritorioTab cards={myCards} st={state.stadiums?.[youId]} hasFilial={false} bb />
           ) : sub === 'patrocinio' ? (
             // 👕 Patrocinador Master do basquete: mesmos 4 papéis do futebol, pagando pelo
@@ -9772,10 +9829,73 @@ export function BbClubeOverlay({ onClose }: { onClose: () => void }) {
             <MultiClubeBuy jaTem={state.multiClube?.team} opcoes={multiOpcoes} coins={coins} preco={4000} isLenda={isLenda}
               onBuy={team => dispatch({ type: 'BUY_MULTICLUBE', team })} bb />
           ) : (
-            <StadiumTab st={state.stadiums?.[youId]} coins={coins}
+            <StadiumTab st={state.stadiums?.[youId]} coins={coins} clubPage={pagina}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
-              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb />
-          )}
+              onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })} bb
+              // 🏀🗺️ 16/11 (Diego: *"pq apareceu essa maquete se já tem o mapa p todos… mapa q tem q ser p basquete"*): na ABA Clube
+              // da carreira o MESMO mapa da cidade do futebol, com a arena de basquete no lugar do estádio (quadra + cestas).
+              presidencyView={inline && pagina !== 'works' ? <PresidenciaEstadioCamera homeClubId={youId} stadium={state.stadiums?.[youId]}
+                career={{ key: `${state.seed}:${state.seasonNo ?? 1}:${youId}`, state, mgrId: youId,
+                  cidade: { ultimoJogo: null, cor: myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid, cor2: myApoioPerk()?.light ?? APOIO_PERKS.bege.light },
+                  day: { division: state.nbaTier === 'nba' ? 'A' : state.nbaTier === 'gleague' ? 'B' : 'D', support: state.careerTorcida?.[`m${youId}`] ?? 50 } }} /> : undefined} />
+          )
+  )
+  // 🏀🗺️ 18/11 (Diego aprovou o mockup `basquete-clube-proposta.png`: *"pode fazer"*): a ABA Clube da carreira do basquete no MESMO
+  // formato do Clube do futebol — o mapa com a arena primeiro, o caixa numa etiqueta pequena no título (*"essa moeda grandona
+  // atrapalha"*), e botões grandes que abrem cada assunto num painel por cima do mapa. Regras, preços e obras não mudam.
+  if (inline) {
+    const subDe = (d: DestinoClubeMapa | null): typeof sub | null => d === 'financas' ? 'financas' : d === 'patrocinio' ? 'patrocinio' : d === 'estrutura' ? 'estadio' : d === 'agencia' || d === 'escritorio' ? 'escritorio' : d === 'negocios' ? 'multi' : null
+    const aberto = subDe(painelBB)
+    const clube = state.managers[state.youIdx]?.teamName ?? ''
+    // 🏠 18/11 (Diego: *"sim"*): Casa e garagem no Clube do basquete — o MESMO painel do futebol (casa, garagem, troféus, móveis,
+    // personagem) e a mesma trava (`podeAlterarPresidencia`: só carreira solo). Nada de regra nova: as ações são as do futebol.
+    const casaOk = PRESIDENT_INTEGRATION_RELEASED && podeAlterarPresidencia(state, youId)
+    const corTier = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
+    const casa = painelBB === 'presidencia' && casaOk ? <ResidenciaClube onFurnitureHome={ids => { if (!presidentWritesEnabled(state) || !organizarMoveisNaCasa(state, youId, ids).ok) return false; dispatch({ type: 'PRESIDENCY_FURNITURE_HOME', mgrId: youId, ids }); return true }}
+      onVadico={() => setPainelBB('veiculos')} insideMap onFinances={() => setPainelBB('financas')} key={youId} state={state} mgrId={youId} member={meuSocBB} tierColor={corTier}
+      onBack={() => setPainelBB(null)} onStadium={() => setPainelBB(null)} onRoof={closed => dispatch({ type: 'PRESIDENCY_ROOF', mgrId: youId, closed })}
+      onTrade={quote => { if (!presidentWritesEnabled(state) || !negociarNaCarreira(state, youId, quote, true).ok) return false; dispatch({ type: 'PRESIDENCY_TRADE', mgrId: youId, quote, confirmed: true }); return true }}
+      onDisplay={display => { if (!presidentWritesEnabled(state) || !exibirDuplaNaCarreira(state, youId, display).ok) return false; dispatch({ type: 'PRESIDENCY_DISPLAY', mgrId: youId, display }); return true }}
+      onSave={value => { if (!presidentWritesEnabled(state)) return false; dispatch({ type: 'PRESIDENCY_SAVE_BASE', mgrId: youId, value }); return true }} />
+      : painelBB === 'veiculos' && casaOk ? <GaragemCarreira soLoja wallet={carteiraDaCarreira(state, youId)} display={state.careerPresidency?.[youId]?.display} onBack={() => setPainelBB(null)}
+        onTrade={quote => { if (!presidentWritesEnabled(state) || !negociarNaCarreira(state, youId, quote, true).ok) return false; dispatch({ type: 'PRESIDENCY_TRADE', mgrId: youId, quote, confirmed: true }); return true }}
+        onDisplay={display => { if (!presidentWritesEnabled(state) || !exibirDuplaNaCarreira(state, youId, display).ok) return false; dispatch({ type: 'PRESIDENCY_DISPLAY', mgrId: youId, display }); return true }} />
+      : null
+    return (
+      <div className="bb-clube-novo">
+        <header style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 2px 12px' }}>
+          <h2 style={{ ...OSWALD, fontWeight: 900, fontSize: 26, textTransform: 'uppercase', margin: 0, lineHeight: 1.1 }}>{L('Seu clube', 'Your club')}</h2>
+          <span title={L('Caixa do clube', 'Club balance')} style={{ ...OSWALD, fontWeight: 900, fontSize: 15, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 11px', background: '#fff', boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>{coins.toLocaleString('pt-BR')} 🪙</span>
+        </header>
+        <ClubeOrganizacao bb semCaixa onSelect={d => setPainelBB(d)} store={false} museum={false} home={casaOk} balance={coins} club={clube}>{conteudo('estadio', 'map')}</ClubeOrganizacao>
+        <ClubeMapaPainel enabled active={aberto || casa ? painelBB : null} club={clube} agency onSelect={d => setPainelBB(d)} onClose={() => setPainelBB(null)}>
+          {casa ?? (aberto ? conteudo(aberto, aberto === 'estadio' ? 'works' : undefined) : null)}
+        </ClubeMapaPainel>
+      </div>
+    )
+  }
+  const tabs: [typeof sub, string, string][] = [
+    ['estadio', '🏟️', L('Arena', 'Arena')],
+    ['patrocinio', '👕', L('Patrocínio', 'Sponsor')],
+    ['financas', '💰', L('Finanças', 'Finances')],
+    ['escritorio', '💼', L('Agência', 'Agency')],
+    ['multi', '🏛️', L('2º Clube', '2nd Club')],
+  ]
+  return (
+    <div style={inline ? undefined : { position: 'fixed', inset: 0, zIndex: 99990, background: 'rgba(0,0,0,.4)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      {!inline && <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />}
+      <div style={inline ? { background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden' } : { position: 'relative', background: '#F4ECD6', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>🏢 {L('Clube', 'Club')} · <span style={{ color: GOLD }}>{coins} 🪙</span></span>
+          {!inline && <button onClick={onClose} aria-label={L('Fechar', 'Close')} style={{ width: 26, height: 26, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>}
+        </div>
+        <div style={{ display: 'flex', gap: 6, padding: 10 }}>
+          {tabs.map(([s, ic, label]) => (
+            <button key={s} onClick={() => setSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', background: sub === s ? GREEN : '#fff', color: sub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 13 }}>{ic}</span>{label}</button>
+          ))}
+        </div>
+        <div style={inline ? { padding: '0 12px 20px' } : { flex: 1, overflowY: 'auto', padding: '0 12px 20px' }}>
+          {conteudo(sub)}
         </div>
       </div>
     </div>
@@ -12743,7 +12863,7 @@ export function PyramidSeasonScreen() {
     alternaManual: toggleManualCareer, mudaVelocidade: v => { if (campo2d) { if (r2dCarr.teste) setVel2D(v) } else dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
     marcha: vel2dCarr, mudaMarcha: v => { if (hasManual) setVel2D(v) }, cadeado: hasManual ? undefined : () => setCadeadoMapa(v => !v), // ⏩ 21/11: no 3D a marcha é a do campinho 2D; sem plano, cadeado
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
-    tatica: () => escolheAba('jogos'),
+    tatica: () => escolheAba('elenco'), // 🔁 21/11 (Diego: "apertei Substituir no mapa e não aparece nada de substituição, ainda joga pra aba de jogos"): troca de jogador mora na aba Elenco
   } : null
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
   const calBarra = (() => {
@@ -13637,7 +13757,7 @@ export function PyramidSeasonScreen() {
         {/* 18/11: a dica "Seu primeiro jogo, sem complicação" saiu da Central nova — a lista "Antes da estreia" faz esse papel */}
         {!novaCentral && visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
         {visualV2 && tab === 'jogos' && !done && round > 0 && !aguardaCentral && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
-        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
+        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} chip={mapaComoClube&&tab==='estadio'&&!state.oficial} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
         {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
         {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
         {tab === 'estadio' && cadeadoMapa && !hasManual && <div data-cadeado-mapa><ManualLockButton /></div>}
@@ -14780,7 +14900,7 @@ export function PyramidSeasonScreen() {
               )
             })()}
             {mapaComoClube?<ClubeOrganizacao onSelect={abrirDestinoNoMapa} store={lojaLib&&hasExtra(state.stadiums?.[youId],'loja')} museum={museuDisponivel} home={presidentAvailable} balance={state.careerCoins?.[youId]??0} club={state.managers[state.youIdx]?.teamName??''}
-              oficial={state.oficial ? (myFilial ? { saf: tr(`Sua SAF: ${myFilial.team}`, `Your SAF: ${myFilial.team}`) } : { saf: tr('Comprar parte de outro clube · 1.500 🪙', 'Buy a stake in another club · 1,500 🪙'), safTrava: divOficialDe(state) !== 'A' || !saf2Pagante ? tr('Libera com o seu time na Série A, estádio completo e plano', 'Unlocks with your club in Série A, a complete stadium and a plan') : undefined }) : undefined}>{renderEstruturaDoClube()}</ClubeOrganizacao>:!temPainelClube&&renderEstruturaDoClube()}
+              oficial={state.oficial ? (myFilial ? { saf: tr(`Sua SAF: ${myFilial.team}`, `Your SAF: ${myFilial.team}`) } : { saf: tr('Comprar parte de outro clube · 1.500 🪙', 'Buy a stake in another club · 1,500 🪙'), safTrava: divOficialDe(state) !== 'A' || !saf2Pagante ? tr('Libera com o seu time na Série A, estádio completo e plano', 'Unlocks with your club in Série A, a complete stadium and a plan') : undefined }) : undefined} semCaixa={visualV2&&!state.oficial}>{renderEstruturaDoClube()}</ClubeOrganizacao>:!temPainelClube&&renderEstruturaDoClube()}
             <ClubeMapaPainel oficial={!!state.oficial} enabled={mapaComoClube} active={temPainelClube?clubeSub as DestinoClubeMapa:null} club={state.managers[state.youIdx]?.teamName??'Seu clube'} agency={agenciaOk} onSelect={abrirDestinoNoMapa} onClose={()=>setClubeSub('estadio')}>
             {clubeSub==='negocios'&&mapaComoClube?renderEstruturaDoClube(true,true):clubeSub==='estrutura'&&mapaComoClube?renderEstruturaDoClube(true):clubeSub==='museu'&&museuDisponivel?<MuseuClube state={state} mgrId={youId} member={meuSocFesta} color={myCol.solid} onInvest={expectedStage=>dispatch({type:'MUSEU_INVEST',mgrId:youId,expectedStage})} onStore={()=>setClubeSub('estrutura')}/>:clubeSub==='arena'&&mapaComoClube?<ArenaConsulta/>:clubeSub==='veiculos'&&mapaComoClube?<GaragemCarreira soLoja wallet={carteiraDaCarreira(state,youId)} display={state.careerPresidency?.[youId]?.display} onBack={()=>setClubeSub('estadio')} onTrade={quote=>{if(!presidentWritesEnabled(state)||!negociarNaCarreira(state,youId,quote,true).ok)return false;dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true}} onDisplay={display=>{if(!presidentWritesEnabled(state)||!exibirDuplaNaCarreira(state,youId,display).ok)return false;dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true}}/>:clubeSub === 'presidencia' && presidentAvailable ? (
               <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><PainelResidencia onFurnitureHome={ids=>{if(!presidentWritesEnabled(state)||!organizarMoveisNaCasa(state,youId,ids).ok)return false;dispatch({type:'PRESIDENCY_FURNITURE_HOME',mgrId:youId,ids});return true}} onVadico={()=>{clubeMapaApi.current?.view('vadico');setClubeSub('veiculos')}} insideMap={mapaComoClube} onFinances={()=>setClubeSub('financas')} key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{

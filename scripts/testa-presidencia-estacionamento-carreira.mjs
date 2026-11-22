@@ -96,7 +96,6 @@ const denials = [
  [fixture(), { ...action(0), mgrId: 7.1 }],
  [fixture(), { ...action(0), mgrId: '7' }],
  [{ ...fixture(), onlineMode: 'online' }, action(0)],
- [{ ...fixture(), sport: 'basquete' }, action(0)],
  [{ ...fixture(), careerOnline: false }, action(0)],
  [{ ...fixture(), youIdx: 1 }, action(0)],
  [{ ...fixture(), managers: [{ id: 7, isHuman: false }] }, action(0)],

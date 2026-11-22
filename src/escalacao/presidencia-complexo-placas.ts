@@ -18,6 +18,8 @@ import { sponsorBrandOf } from './estadiodata'
 import { placasDoCampo, tamanhoMarcaNaPlaca, type PlacaCampo } from './patrocinio'
 import type { EstadoComplexo } from './presidencia-complexo-model'
 import { masterDoMapa, observarMasterDoMapa } from './presidencia-complexo-master'
+import { getSport } from './sport'
+import { TELAO_ARENA, QUADRA_MEIA } from './presidencia-arena-basquete-3d'
 import { mapa3dLiberado } from './sport'
 
 const CREME = '#F4ECD6', TINTA = '#0C0C0C', OURO = '#FFC400'
@@ -77,6 +79,11 @@ const LADOS: Lado[] = [
   { x0: 42, z0: -39.6, x1: -42, z1: -39.6, n: 5, nx: 0, nz: 1 },     // norte: atrás dos bancos e dos técnicos
 ]
 const VAO = 6 // metros livres entre uma placa e a outra
+// 🏀 16/11: na ARENA as placas ficam na BEIRA DA QUADRA (4 de cada lado, entre a linha lateral e as cadeiras de quadra)
+const ladosBasquete = (): Lado[] => {
+  const x = QUADRA_MEIA.L - 4, z = QUADRA_MEIA.W + .5
+  return [{ x0: x, z0: z, x1: -x, z1: z, n: 4, nx: 0, nz: -1, virada: true }, { x0: x, z0: -z, x1: -x, z1: -z, n: 4, nx: 0, nz: 1 }]
+}
 // 👀 03/11 (Diego: *"as placas não estão sendo bem visíveis no mapa… no campo 2D da aba Jogos é bem visto"*): a câmera do jogo no
 // mapa olha o campo DE CIMA, e a placa em pé aparecia de lado (fina) ou de costas. Agora ela é maior e DEITADA pra trás (como o
 // "tapete 3D" das transmissões): a frente vira pro céu e pro gramado, e dá pra ler a marca de cima e da arquibancada.
@@ -169,20 +176,22 @@ function criarPlacasDoGramado(root: T.Group, onChange: () => void) {
   desenha()
   const frentes: T.BufferGeometry[] = [], costas: T.BufferGeometry[] = []
   let k = 0
-  for (const lado of LADOS) {
+  const bb = getSport() === 'basquete'
+  for (const lado of bb ? ladosBasquete() : LADOS) {
     const dx = (lado.x1 - lado.x0) / lado.n, dz = (lado.z1 - lado.z0) / lado.n, largura = Math.hypot(dx, dz) - VAO
     // ↩️ o lado sul fica de costas pro gramado e deitado PRO gramado: a câmera do mapa olha do sul, então assim a marca sai em pé
     // (deitada pra trás, ela aparecia de cabeça pra baixo)
     const giro = Math.atan2(lado.nx, lado.nz) + (lado.virada ? Math.PI : 0)
     for (let i = 0; i < lado.n; i++, k++) {
       const cx = lado.x0 + dx * (i + .5), cz = lado.z0 + dz * (i + .5), linha = k % n
-      const frente = new T.PlaneGeometry(largura, ALTURA), uv = frente.getAttribute('uv')
+      const alt = bb ? 1.6 : ALTURA
+      const frente = new T.PlaneGeometry(largura, alt), uv = frente.getAttribute('uv')
       // cada placa lê a sua faixa da textura (com uma folguinha pra a marca do lado não vazar na borda)
       const topo = 1 - linha / n - .06 / n, pe = 1 - (linha + 1) / n + .06 / n
       for (let j = 0; j < uv.count; j++) uv.setY(j, uv.getY(j) > .5 ? topo : pe)
-      frente.translate(0, ALTURA / 2, 0); frente.rotateX(-INCLINA); frente.rotateY(giro); frente.translate(cx, BASE, cz); frentes.push(frente)
-      const caixa = new T.BoxGeometry(largura + .08, ALTURA + .1, .16)
-      caixa.translate(0, ALTURA / 2, -.09); caixa.rotateX(-INCLINA); caixa.rotateY(giro); caixa.translate(cx, BASE, cz); costas.push(caixa.toNonIndexed()); caixa.dispose()
+      frente.translate(0, alt / 2, 0); frente.rotateX(-INCLINA); frente.rotateY(giro); frente.translate(cx, BASE, cz); frentes.push(frente)
+      const caixa = new T.BoxGeometry(largura + .08, alt + .1, .16)
+      caixa.translate(0, alt / 2, -.09); caixa.rotateX(-INCLINA); caixa.rotateY(giro); caixa.translate(cx, BASE, cz); costas.push(caixa.toNonIndexed()); caixa.dispose()
     }
   }
   const geoFrente = mergeGeometries(frentes)!, geoCostas = mergeGeometries(costas)!
@@ -241,9 +250,13 @@ function criarPlacaMaster(root: T.Group, state: EstadoComplexo, brandId: string,
   // 🚫 03/11 (Diego, print da placa em cima da portaria: *"isso aqui pode tirar"*): a placa grande da FACHADA saiu — o Master fica
   // só no telão (e nas placas da beira do gramado).
   // 📺 TELÃO: a marca por cima da tela (só existe telão quando ele foi comprado e as cadeiras estão prontas)
-  if (state.screenVisible) {
+  // 🏀 16/11: na arena o Master vai na face do telão central que olha pra câmera do mapa (a arena sempre tem telão)
+  const bbArena = getSport() === 'basquete'
+  if (state.screenVisible || bbArena) {
     const tela = new T.PlaneGeometry(14.4, 6.8), telao = new T.Mesh(tela, arte(512, 242, 44, 6))
-    telao.name = 'placa-master-telao'; telao.position.set(0, 17.2, -65.49)
+    telao.name = 'placa-master-telao'
+    if (bbArena) telao.position.set(0, TELAO_ARENA.y, TELAO_ARENA.faceZ + .08)
+    else telao.position.set(0, 17.2, -65.49)
     grupo.add(telao); recursos.push(tela)
   }
   onChange()

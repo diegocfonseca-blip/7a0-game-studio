@@ -1,5 +1,6 @@
 import type {MarcadorCampo2D} from './campo2d-marcador'
 import * as T from 'three'
+import {getSport} from './sport'
 import {arteMarcadorMapa,arteNomeMapa,escolherRotulosCampo2D,type RotuloCampo2D} from './presidencia-campo2d-legibilidade'
 import {observarSuperficieCampo2D,pedirSuperficieCampo2D,superficieCampo2D} from './campo2d-superficie'
 import type {PartidaComplexo,InspecaoPartidaComplexo} from './presidencia-complexo-partida'
@@ -48,7 +49,9 @@ export function criarCampo2DNoMapa(scene:T.Scene,onReady:()=>void,nativeField?:T
  // longe virava um ponto branco. Agora é a MESMA bola do campinho da aba Jogos (branca, gomos pretos, contorno), desenhada de frente
  // pra câmera e no mesmo tamanho em relação aos bonecos; os gomos giram conforme ela rola.
  const ballCanvas=document.createElement('canvas');ballCanvas.width=ballCanvas.height=128
- {const g=ballCanvas.getContext('2d')!,c=64,r=56;g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.fillStyle='#ffffff';g.fill();g.save();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.clip();g.fillStyle='#151515'
+ // 🏀 18/11: no basquete a bola do mapa é a LARANJA da Quadra 2D (gomos pretos em cruz) — o futebol segue com a de sempre
+ if(getSport()==='basquete'){const g=ballCanvas.getContext('2d')!,c=64,r=56;g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.fillStyle='#E8742A';g.fill();g.lineWidth=5;g.strokeStyle='#151515';g.beginPath();g.moveTo(c-r,c);g.lineTo(c+r,c);g.moveTo(c,c-r);g.lineTo(c,c+r);g.stroke();g.beginPath();g.arc(c-r*1.05,c,r*.75,-1.1,1.1);g.stroke();g.beginPath();g.arc(c+r*1.05,c,r*.75,Math.PI-1.1,Math.PI+1.1);g.stroke();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.lineWidth=7;g.stroke()}
+ else {const g=ballCanvas.getContext('2d')!,c=64,r=56;g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.fillStyle='#ffffff';g.fill();g.save();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.clip();g.fillStyle='#151515'
   for(let k=0;k<4;k++){const a=k*1.75,rr=k?r*.95:0,gx=c+Math.cos(a)*rr,gy=c+Math.sin(a)*rr,g5=r*(k?.36:.42);g.beginPath();for(let v=0;v<5;v++){const aa=a+v*1.2566;v?g.lineTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5):g.moveTo(gx+Math.cos(aa)*g5,gy+Math.sin(aa)*g5)}g.closePath();g.fill()}
   g.restore();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.lineWidth=7;g.strokeStyle='#111';g.stroke()}
  const ballTexture=texture(ballCanvas),ballGeometry=new T.PlaneGeometry(1,1),ballMaterial=new T.SpriteMaterial({map:ballTexture,toneMapped:false,transparent:true,depthWrite:false,depthTest:false}),ball=new T.Sprite(ballMaterial);ball.renderOrder=30;ball.scale.set(1.45,1.45,1)

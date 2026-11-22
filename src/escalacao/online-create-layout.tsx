@@ -15,10 +15,13 @@ export function OnlineCreateSection({ num, title, icon, sub, children }: { num: 
   </details>
 }
 
-export function OnlineCreateLayout({ enabled, modes, children, rows, summaries, name, button, responsibility, error, errorKey, notice }: {
+export function OnlineCreateLayout({ enabled, modes, children, rows, summaries, name, button, responsibility, error, errorKey, notice, rotulo }: {
   enabled: boolean; modes: ReactNode; children: ReactNode; rows: [string, string][]; summaries: Record<string, string>; name: string
   button: ReactNode; responsibility: ReactNode; error: ReactNode; errorKey: string; notice: string
+  /** 🧩 18/11: o nome do resumo ("SUA SALA" nas salas; a Partida Rápida usa "SUA PARTIDA") */
+  rotulo?: string
 }) {
+  const sua = rotulo ?? tr('SUA SALA', 'YOUR ROOM')
   const [expansion, setExpansion] = useState({ version: 0, open: true }), [allOpen, setAllOpen] = useState(false)
   const dialog = useRef<HTMLDialogElement>(null), restore = useRef<HTMLButtonElement>(null), root = useRef<HTMLDivElement>(null), id = useId()
   const available = Boolean(button)
@@ -48,14 +51,14 @@ export function OnlineCreateLayout({ enabled, modes, children, rows, summaries, 
           <p className="ll-create-config-note">{tr('As opções disponíveis seguem o modo, o baralho e as permissões da conta.', 'Available options follow the mode, deck and account permissions.')}</p>
           {error && <div className="ll-create-inline-error" role="alert">{error}</div>}
         </section>
-        <aside className="ll-create-summary"><small>{tr('CONFIRA SUAS ESCOLHAS', 'REVIEW YOUR CHOICES')}</small><h2>{tr('SUA SALA', 'YOUR ROOM')}</h2><p className="ll-create-summary-name">{name}</p>{summary}<div className="ll-create-responsibility">{responsibility}</div><div className="ll-create-submit">{button || <p>{notice}</p>}</div></aside>
+        <aside className="ll-create-summary"><small>{tr('CONFIRA SUAS ESCOLHAS', 'REVIEW YOUR CHOICES')}</small><h2>{sua}</h2><p className="ll-create-summary-name">{name}</p>{summary}<div className="ll-create-responsibility">{responsibility}</div><div className="ll-create-submit">{button || <p>{notice}</p>}</div></aside>
       </div>
-      {button && <div className="ll-create-mobile-bar"><button type="button" ref={restore} onClick={() => dialog.current?.showModal()} aria-haspopup="dialog"><small>{tr('SUA SALA', 'YOUR ROOM')}</small><b>{rows[0]?.[1]} · {rows.find(([key]) => key === tr('Campeonato', 'Championship'))?.[1] || name}</b><span>{tr('VER RESUMO ⌃', 'VIEW SUMMARY ⌃')}</span></button><div className="ll-create-submit">{button}</div></div>}
+      {button && <div className="ll-create-mobile-bar"><button type="button" ref={restore} onClick={() => dialog.current?.showModal()} aria-haspopup="dialog"><small>{sua}</small><b>{rows[0]?.[1]} · {rows.find(([key]) => key === tr('Campeonato', 'Championship'))?.[1] || name}</b><span>{tr('VER RESUMO ⌃', 'VIEW SUMMARY ⌃')}</span></button><div className="ll-create-submit">{button}</div></div>}
       <dialog ref={dialog} className="ll-create-summary-dialog" aria-labelledby={id} onClose={() => restore.current?.focus()} onClick={e => {
         if (e.target !== e.currentTarget) return
         const bounds = e.currentTarget.getBoundingClientRect()
         if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) closeSummary()
-      }}><header><h2 id={id}>{tr('SUA SALA', 'YOUR ROOM')}</h2><button type="button" aria-label={tr('Fechar resumo', 'Close summary')} onClick={closeSummary}>×</button></header><p className="ll-create-summary-name">{name}</p>{summary}<div className="ll-create-responsibility">{responsibility}</div><div className="ll-create-submit" onClickCapture={e => { if ((e.target as Element).closest('button')) dialog.current?.close() }}>{button}</div></dialog>
+      }}><header><h2 id={id}>{sua}</h2><button type="button" aria-label={tr('Fechar resumo', 'Close summary')} onClick={closeSummary}>×</button></header><p className="ll-create-summary-name">{name}</p>{summary}<div className="ll-create-responsibility">{responsibility}</div><div className="ll-create-submit" onClickCapture={e => { if ((e.target as Element).closest('button')) dialog.current?.close() }}>{button}</div></dialog>
     </div>
   </OnlineCreateContext.Provider>
 }

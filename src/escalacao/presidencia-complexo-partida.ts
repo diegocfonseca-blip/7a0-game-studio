@@ -4,6 +4,8 @@ import {criarCampo2DNoMapa} from './presidencia-campo2d-no-mapa'
 import {playWhistle} from './sound'
 import {criarRedeGol3D,atualizarRedesGol3D} from './presidencia-rede-gol-3d'
 import * as THREE from 'three'
+import {getSport} from './sport'
+import {criarQuadra3D} from './presidencia-quadra-3d'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import type {StadiumSave} from './estadiodata'
 import type {PresidenteBaseSave} from './presidencia-carreira'
@@ -24,6 +26,8 @@ const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
 function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),8),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
 export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void,readable2D=false){
+ // 🏀 16/11: na carreira do basquete o miolo do estádio é a QUADRA da arena (piso de madeira, linhas e cestas) — o futebol segue igual
+ if(getSport()==='basquete'){const t=criarQuadra3D(scene);queueMicrotask(()=>onTextureReady?.());return t}
  if(!registered){
   // (🏟️ 26/10, caldeirão: a arquibancada encostou no campo — o chão que sobra atrás dos gols e das laterais é gramado quando o
   // campo já é de grama; na várzea continua terra)

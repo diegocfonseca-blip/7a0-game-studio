@@ -33,6 +33,7 @@ import mundoArt from './img/online-mundial-v25.webp'
 import championsArt from './img/online-champions-v25.webp'
 import mundialArt from './img/carreira-mundial-clubes-v1.webp'
 import superArt from './img/carreira-supercopa-v25.webp'
+import quadraArt from './img/home-bidlegends-v01.webp' // 🏀 15/11: a Central da carreira do basquete
 import './central.css'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', RED = '#E8503A'
@@ -173,6 +174,9 @@ export type CentralProps = {
   coletiva?: CardColetivaProps
   /** 🕵️ JANELA CHEGANDO (22/10, mockup do Sondar aprovado): nas últimas rodadas avisa que a janela vai abrir no Sondar */
   janela?: boolean
+  /** 🏀 15/11: Central da carreira do BASQUETE — mesma tela, troca o que é de futebol: quantos jogos tem a temporada,
+   *  a campanha em vitórias-derrotas (sem empate) no lugar dos pontos, e a arte da quadra. Sem `bb`, é o futebol de sempre. */
+  bb?: { total: number; vd: Record<string, { w: number; l: number }> }
   /** 🔨 21/11 (janela nova): sondar e vender moram no Mercado e os contratos têm tela própria — o aviso diz isso */
   janelaNova?: boolean
 }
@@ -264,6 +268,7 @@ export function CentralCarreira(p: CentralProps) {
   const minhaPos = posDe(p.euNome)
   // 🔥 a frase do confronto sai só de posição e pontos — nada inventado
   const frase = (() => {
+    if (p.bb) return p.proximo?.frase ?? p.palco?.frase ?? null // 🏀 a frase do basquete vem pronta (vitórias, não pontos)
     if (p.proximo?.frase) return p.proximo.frase
     if (!p.proximo && p.palco?.frase) return p.palco.frase
     if (p.preTemporada) return null // 🏁 antes do 1º jogo ninguém é líder com 0 ponto — a lista "Antes da estreia" fala no lugar
@@ -279,18 +284,21 @@ export function CentralCarreira(p: CentralProps) {
     const meu = j.hId === p.youId || j.aId === p.youId
     if (meu) {
       const meusG = j.hId === p.youId ? j.hg : j.ag, delesG = j.hId === p.youId ? j.ag : j.hg
+      if (p.bb) return meusG > delesG ? <Chip bg="#2FBF5A">{t('você venceu', 'you won')}</Chip> : <Chip bg={RED} cor="#fff">{t('você perdeu', 'you lost')}</Chip>
       return meusG > delesG ? <Chip bg="#2FBF5A">{t('você venceu', 'you won')}</Chip> : meusG === delesG ? <Chip bg="#fff">{t('você empatou', 'you drew')}</Chip> : <Chip bg={RED} cor="#fff">{t('você perdeu', 'you lost')}</Chip>
     }
     if (j.h === lider || j.a === lider) return <Chip>{t('líder', 'leader')}</Chip>
+    if (p.bb) return Math.abs(j.hg - j.ag) <= 3 ? <Chip bg="#fff">{t('no estouro', 'buzzer')}</Chip> : Math.abs(j.hg - j.ag) >= 20 ? <Chip bg="#fff">{t('atropelo', 'blowout')}</Chip> : <span />
     if (j.hg + j.ag >= 5) return <Chip bg="#fff">{t('jogaço', 'thriller')}</Chip>
     return <span />
   }
+  const campanha = (nome: string) => { const r = p.bb?.vd[nome]; return r ? `${r.w}-${r.l}` : `${ptsDe(nome)} pts` } // 🏀 vitórias-derrotas
   const lado = (nome: string) => (
     <div style={{ textAlign: 'center', minWidth: 0 }}>
       <Disco nome={nome} size={78} />
       <b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</b>
-      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{p.preTemporada || (!p.agendaVelha && p.proximo?.arte) ? '\u00a0' : posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${ptsDe(nome)} pts` : '—'}</small>
-      <Forma f={p.formas[nome]} />
+      <small style={{ display: 'block', fontSize: 10, fontWeight: 800, opacity: .85, margin: '2px 0 4px' }}>{p.preTemporada || (!p.bb && !p.agendaVelha && p.proximo?.arte) ? '\u00a0' : posDe(nome) != null ? `${ordinal(posDe(nome)!)} · ${p.bb ? campanha(nome) : `${ptsDe(nome)} pts`}` : '—'}</small>
+      {!p.bb && <Forma f={p.formas[nome]} />}
     </div>
   )
   const en = getLang() === 'en'
@@ -300,13 +308,13 @@ export function CentralCarreira(p: CentralProps) {
   const noCelular = new Set(corta(5).map(x => x.name))
 
   return (
-    <div className="ll-central">
+    <div className={`ll-central${p.bb ? ' ll-central-bb' : ''}`}>
       <div className="ll-central-topo">
         <div style={{ minWidth: 0 }}>
           <p style={{ ...OSW, fontSize: 10, letterSpacing: '.16em', color: GOLD, margin: 0 }}>{t('Temporada', 'Season')} {p.seasonNo} · {p.divName}</p>
           <h2 style={{ ...OSW, fontSize: 29, lineHeight: .95, margin: 0, whiteSpace: 'nowrap', color: '#fff' }}>📺 Central <span style={{ background: G_OURO, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Legends</span></h2>
         </div>
-        <b style={{ ...OSW, fontSize: 20, lineHeight: 1, whiteSpace: 'nowrap', color: '#fff' }}>{t('Rod.', 'Rd.')} {p.round}<span style={{ color: '#888', fontSize: 13 }}> / 38</span></b>
+        <b style={{ ...OSW, fontSize: 20, lineHeight: 1, whiteSpace: 'nowrap', color: '#fff' }}>{p.bb ? t('Jogo', 'Game') : t('Rod.', 'Rd.')} {p.round}<span style={{ color: '#888', fontSize: 13 }}> / {p.bb?.total ?? 38}</span></b>
       </div>
       {!visualV2 && p.salvar && <FaixaSalvar s={p.salvar} />}
 
@@ -316,11 +324,11 @@ export function CentralCarreira(p: CentralProps) {
       <div className="ll-central-grid">
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
-          {p.semana ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>{p.semana}</div> : <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
+          {p.semana ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>{p.semana}</div> : <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${p.bb ? quadraArt : FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0002 0%,#0001 30%,#0C0C0Cc9 66%,#0C0C0Cf5 100%)' }} />
             <div style={{ position: 'relative', padding: '12px 13px 13px', display: 'flex', flexDirection: 'column', minHeight: 372 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                <Chip>{p.proximo ? (p.proximo.rotulo ?? (p.proximo.rolando ? t(`⚽ Rodada ${p.proximo.rodada} rolando`, `⚽ Round ${p.proximo.rodada} live`) : t(`⚽ Próximo jogo · rodada ${p.proximo.rodada}`, `⚽ Next match · round ${p.proximo.rodada}`))) : (p.palco?.rotulo ?? t('🏁 Liga encerrada', '🏁 League over'))}</Chip>
+                <Chip>{p.proximo ? (p.proximo.rotulo ?? (p.bb ? t(`🏀 Próximo jogo · ${p.proximo.rodada} de ${p.bb.total}`, `🏀 Next game · ${p.proximo.rodada} of ${p.bb.total}`) : p.proximo.rolando ? t(`⚽ Rodada ${p.proximo.rodada} rolando`, `⚽ Round ${p.proximo.rodada} live`) : t(`⚽ Próximo jogo · rodada ${p.proximo.rodada}`, `⚽ Next match · round ${p.proximo.rodada}`))) : (p.palco?.rotulo ?? t('🏁 Liga encerrada', '🏁 League over'))}</Chip>
                 {p.proximo && !p.proximo.rotulo && <Chip bg="#fff">{souCasa ? t('🏟️ em casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
               </div>
               {p.proximo ? (
@@ -331,7 +339,7 @@ export function CentralCarreira(p: CentralProps) {
                 </div>
               ) : (
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginTop: 14 }}>
-                  <div><Disco nome={p.euNome} size={78} /><b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000' }}>{p.euNome}</b><small style={{ fontSize: 10, fontWeight: 800, opacity: .85 }}>{minhaPos != null ? `${ordinal(minhaPos)} · ${ptsDe(p.euNome)} pts` : ''}</small></div>
+                  <div><Disco nome={p.euNome} size={78} /><b style={{ ...OSW, display: 'block', fontSize: 17, marginTop: 8, textShadow: '0 2px 4px #000' }}>{p.euNome}</b><small style={{ fontSize: 10, fontWeight: 800, opacity: .85 }}>{minhaPos != null ? `${ordinal(minhaPos)} · ${campanha(p.euNome)}` : ''}</small></div>
                 </div>
               )}
               {frase && <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#FFE79A', margin: '10px 0' }}>{frase}</p>}
@@ -374,7 +382,7 @@ export function CentralCarreira(p: CentralProps) {
             <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
               {tabelaCurta.map(x => { const pos = posDe(x.name) ?? 0; return (
                 <div key={x.name} className={`ll-central-row${noCelular.has(x.name) ? '' : ' ll-central-not-desk'}`} style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
-                  <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{x.pts}</b>
+                  <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{p.bb ? campanha(x.name) : x.pts}</b>
                 </div>
               ) })}
             </button>}
@@ -481,13 +489,13 @@ export function CentralCarreira(p: CentralProps) {
           <div className="ll-central-card ll-central-martelo ll-c-martelo" style={{ background: '#FBF5E4', borderRadius: 8 }}>
             <div style={{ padding: '10px 13px 6px', textAlign: 'center', borderBottom: `3px double ${INK}` }}>
               <b style={{ ...OSW, fontSize: 26, letterSpacing: 2 }}>O Martelo</b>
-              <small style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, color: '#6c604a', textTransform: 'uppercase' }}>{p.round > 0 ? t(`Edição da rodada ${p.round}`, `Round ${p.round} edition`) : t('Edição de pré-temporada', 'Pre-season edition')} · {t('Temporada', 'Season')} {p.seasonNo} · {p.divName}</small>
+              <small style={{ display: 'block', fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, color: '#6c604a', textTransform: 'uppercase' }}>{p.round > 0 ? (p.bb ? t(`Edição do jogo ${p.round}`, `Game ${p.round} edition`) : t(`Edição da rodada ${p.round}`, `Round ${p.round} edition`)) : t('Edição de pré-temporada', 'Pre-season edition')} · {t('Temporada', 'Season')} {p.seasonNo} · {p.divName}</small>
             </div>
-            <div style={{ height: p.fotoLendas?.length ? 190 : 150, background: `url(${estadioArt}) center 40% / cover`/* 📰 21/11 (Diego: "sempre aparece a foto do cara levantando troféu… não tem sentido"): no meio da temporada a capa é o estádio; a taça fica pro jornal do campeão */, position: 'relative', borderBottom: `3px solid ${INK}` }}>
+            <div style={{ height: p.fotoLendas?.length ? 190 : 150, background: `url(${p.bb ? quadraArt : estadioArt}) center 40% / cover`/* 📰 21/11 (Diego: "sempre aparece a foto do cara levantando troféu… não tem sentido"): no meio da temporada a capa é o estádio; a taça fica pro jornal do campeão */, position: 'relative', borderBottom: `3px solid ${INK}` }}>
               {p.fotoLendas?.length ? <div style={{ position: 'absolute', inset: 0 }}><FotoLendas lendas={p.fotoLendas} altura={190} /></div> : null}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0000 40%,#000c)' }} />
               <div style={{ position: 'absolute', left: 12, right: 12, bottom: 10, color: '#fff' }}>
-                <b style={{ ...OSW, fontSize: 22, lineHeight: 1, display: 'block', textShadow: '0 2px 4px #000' }}>{p.jornal.manchete ? (en ? p.jornal.manchete.en : p.jornal.manchete.pt) : t(`A temporada ${p.seasonNo} começa: a bola vai rolar na ${p.divName}`, `Season ${p.seasonNo} kicks off in ${p.divName}`)}</b>
+                <b style={{ ...OSW, fontSize: 22, lineHeight: 1, display: 'block', textShadow: '0 2px 4px #000' }}>{p.jornal.manchete ? (en ? p.jornal.manchete.en : p.jornal.manchete.pt) : (p.bb ? t(`A temporada ${p.seasonNo} começa: a bola vai subir na ${p.divName}`, `Season ${p.seasonNo} tips off in the ${p.divName}`) : t(`A temporada ${p.seasonNo} começa: a bola vai rolar na ${p.divName}`, `Season ${p.seasonNo} kicks off in ${p.divName}`))}</b>
               </div>
             </div>
             {p.jornal.manchete && (p.jornal.manchete.sub[0] || p.jornal.manchete.sub[1]) && <p style={{ padding: '8px 13px 6px', font: 'italic 12px Georgia, serif', color: '#444', borderBottom: '2px solid rgba(0,0,0,.1)', margin: 0 }}>{en ? p.jornal.manchete.sub[1] : p.jornal.manchete.sub[0]} — <i>{t('Redação', 'Newsroom')}</i></p>}
@@ -498,8 +506,8 @@ export function CentralCarreira(p: CentralProps) {
                 <Chip bg="#fff">{en ? n.tag[1] : n.tag[0]}</Chip>
               </div>
             ))}
-            {!p.jornal.noticias.length && <p style={{ padding: '10px 13px', font: 'italic 12px Georgia, serif', color: '#555', margin: 0 }}>{t('As notícias começam a sair depois da 1ª rodada.', 'The news starts after round 1.')}</p>}
-            <button type="button" className="ll-central-link" onClick={() => p.onTab('ranking')} style={{ width: '100%', textAlign: 'center', fontSize: 10, fontWeight: 800, color: '#666', background: '#fff', padding: 7 }}>{t('ver artilharia e rank', 'see top scorers and rank')} ›</button>
+            {!p.jornal.noticias.length && <p style={{ padding: '10px 13px', font: 'italic 12px Georgia, serif', color: '#555', margin: 0 }}>{p.bb ? t('As notícias começam a sair depois do 1º jogo.', 'The news starts after game 1.') : t('As notícias começam a sair depois da 1ª rodada.', 'The news starts after round 1.')}</p>}
+            <button type="button" className="ll-central-link" onClick={() => p.onTab('ranking')} style={{ width: '100%', textAlign: 'center', fontSize: 10, fontWeight: 800, color: '#666', background: '#fff', padding: 7 }}>{p.bb ? t('ver cestinhas e tabela', 'see top scorers and table') : t('ver artilharia e rank', 'see top scorers and rank')} ›</button>
           </div>
           {p.coletiva && <CardColetiva {...p.coletiva} />}
           {/* 💸 MERCADO: a sala de leilão */}

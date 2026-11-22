@@ -3,6 +3,7 @@
 // 🔁 07/11 (1º teste do Diego): o botão de entrar/sair mora na BARRA DE CIMA do mapa (junto de Mapa/Locais — antes ficava em
 // cima de outro botão e o "sair" não pegava); durante o passeio os botões do mapa (+ − Ver tudo Girar, Controles) somem.
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
+import { getSport } from './sport'
 import { useT } from './lang'
 import type { CadeiraFanZone, FaseFanZone,criarFanZone } from './presidencia-fanzone-3d'
 import './presidencia-passeio-hud.css'
@@ -34,7 +35,7 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan,somenteEstadio=false
       {fase === 'portao' && (
         <div className="fz-gate-card" style={{ position: 'absolute', left: 12, right: 12, top: 176, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto', zIndex: 2 }}>
           <small style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 0 8px', fontWeight: 600 }}>{semCadeira ? t('A arquibancada da casa está lotada agora. Tenta de novo daqui a pouco.', 'The home stand is full right now. Try again in a bit.') : t('Entra e escolhe a sua cadeira no setor da casa.', 'Go in and pick your seat in the home stand.')}</small>
-          <button type="button" style={verde} onClick={() => setSemCadeira(!fan.entrar())}>{t('Entrar no estádio', 'Enter the stadium')}</button>
+          <button type="button" style={verde} onClick={() => setSemCadeira(!fan.entrar())}>{(getSport() === 'basquete' ? t('Entrar na arena', 'Enter the arena') : t('Entrar no estádio', 'Enter the stadium'))}</button>
         </div>
       )}
       <Joystick fan={fan} />
@@ -47,7 +48,7 @@ export function FanZoneHud({ fase, cadeiras, escolhida, fan,somenteEstadio=false
     <div style={camada}>
       {chip(t('🏟️ Escolha sua cadeira', '🏟️ Pick your seat'))}
       <div style={{ position: 'absolute', left: 12, right: 12, bottom: 12, background: '#fff', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 12px', pointerEvents: 'auto' }}>
-        <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700 }}>{t('🟢 Setor da casa · lá em cima, no meio-campo', '🟢 Home stand · up top, at midfield')}</p>
+        <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700 }}>{(getSport() === 'basquete' ? t('🟢 Setor da casa · lá em cima, no meio da quadra', '🟢 Home stand · up top, at center court') : t('🟢 Setor da casa · lá em cima, no meio-campo', '🟢 Home stand · up top, at midfield'))}</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
           {cadeiras.map(c => <button key={c.id} type="button" onClick={() => fan.escolher(c.id)} style={{ ...btn, fontSize: 11.5, padding: '6px 6px', background: c.id === escolhida ? GOLD : '#fff', boxShadow: c.id === escolhida ? `2px 2px 0 ${INK}` : 'none' }}>{c.id === escolhida ? '✔ ' : ''}{c.rotulo}</button>)}
         </div>

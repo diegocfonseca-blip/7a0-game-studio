@@ -65,11 +65,13 @@ assert.equal(JSON.stringify(input), before)
 
 for (const denied of [
  { ...input, enabled: false }, { ...input, enabled: undefined }, { ...input, mgrId: awayId },
- { ...input, mgrId: -1 }, { ...input, mgrId: 1.5 }, { ...input, state: { ...originalState, sport: 'basquete' } },
+ { ...input, mgrId: -1 }, { ...input, mgrId: 1.5 },
  { ...input, state: { ...originalState, onlineMode: 'online' } }, { ...input, state: { ...originalState, careerOnline: false } },
  { ...input, state: { ...originalState, youIdx: 0 } }, { ...input, state: { ...originalState, youIdx: 99 } },
  { ...input, state: { ...originalState, managers: [] } }, { ...input, state: undefined }, undefined,
 ]) assert.equal(adaptarCarreiraAoComplexo(denied), null, 'chamador/gestor/modalidade inválidos não exibem prévia')
+// 🏀 16/11 (Diego: o mapa também é do basquete, com a arena no lugar do estádio): a carreira solo do basquete EXIBE o mapa
+assert.notEqual(adaptarCarreiraAoComplexo({ ...input, state: { ...originalState, sport: 'basquete' } }), null, 'carreira solo do basquete também mostra o mapa')
 
 for (const absentDay of [undefined, {}, { division: 'C', support: NaN }, { division: 'C', support: 101 }, { division: 'C', support: -1 }, { division: 'desconhecida', support: 50 }, { division: 'C', support: 50, rain: 'sim' }]) {
  const noDay = adaptarCarreiraAoComplexo({ ...input, day: absentDay })

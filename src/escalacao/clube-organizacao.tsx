@@ -4,10 +4,10 @@ import type {DestinoClubeMapa} from './clube-mapa-destinos'
 import './clube-organizacao.css'
 
 /** Navegação da carreira, publicada para todos em 15/11. Cada atalho abre o mesmo painel usado pelo prédio. */
-export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,club,oficial}:{children:ReactNode;onSelect:(id:DestinoClubeMapa)=>void;store:boolean;museum:boolean;home:boolean;balance:number;club:string;
+export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,club,oficial,semCaixa=false,bb=false}:{children:ReactNode;onSelect:(id:DestinoClubeMapa)=>void;store:boolean;museum:boolean;home:boolean;balance:number;club:string;
  /** 🇧🇷 20/11 (mockup `scripts/mockups/clube-oficial-organizado.png`, Diego: "gostei… aumente um pouco a área do mapa"): no Brasil Oficial a aba
   *  Clube = o mapa grande em cima + o caixa + 6 cartões (sem 2º clube). `saf` = a linha da SAF; `safTrava` = o cadeado com o porquê. */
- oficial?:{saf:string;safTrava?:string}}){
+ oficial?:{saf:string;safTrava?:string};/** 🪙 18/11: o caixa já está na etiqueta do título — sem o bloco grande */semCaixa?:boolean;/** 🏀 18/11: o Clube do basquete (arena, 2º clube sem SAF, fundo creme) */bb?:boolean}){
  const t=useT()
  if(oficial){
   const cards:[DestinoClubeMapa,string,string,string][]=[
@@ -26,12 +26,12 @@ export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,cl
   </aside></div>
  }
  const groups:{name:string;items:[DestinoClubeMapa,string,string][]}[]=[
-  {name:t('Meu clube','My club'),items:[['financas',t('Finanças','Finances'),t('Caixa e extrato do clube','Club balance and statement')],['estrutura',t('Estádio e obras','Stadium and construction'),t('Estrutura e melhorias','Facilities and upgrades')],['patrocinio',t('Patrocínios','Sponsorships'),t('Contratos e metas','Contracts and goals')],['loja',t('Loja da torcida','Supporters’ store'),store?t('Manto e vendas','Kit and sales'):t('Conheça a loja e sua construção','Store and construction')],...(museum?[['museu',t('Museu do clube','Club museum'),t('Troféus e história','Trophies and history')] as [DestinoClubeMapa,string,string]]:[])]},
-  {name:t('Meus negócios','My businesses'),items:[['agencia',t('Minha agência','My agency'),t('Clientes e cartas','Clients and cards')],['negocios',t('SAF e 2º clube','SAF and second club'),t('Participações e comando','Ownership and management')]]},
+  {name:t('Meu clube','My club'),items:[['financas',t('Finanças','Finances'),t('Caixa e extrato do clube','Club balance and statement')],['estrutura',bb?t('Arena e obras','Arena and construction'):t('Estádio e obras','Stadium and construction'),bb?t('Arquibancadas e melhorias','Stands and upgrades'):t('Estrutura e melhorias','Facilities and upgrades')],['patrocinio',t('Patrocínios','Sponsorships'),t('Contratos e metas','Contracts and goals')],...(bb?[]:[['loja',t('Loja da torcida','Supporters’ store'),store?t('Manto e vendas','Kit and sales'):t('Conheça a loja e sua construção','Store and construction')] as [DestinoClubeMapa,string,string]]),...(museum?[['museu',t('Museu do clube','Club museum'),t('Troféus e história','Trophies and history')] as [DestinoClubeMapa,string,string]]:[])]},
+  {name:t('Meus negócios','My businesses'),items:[['agencia',t('Minha agência','My agency'),t('Clientes e cartas','Clients and cards')],['negocios',bb?t('2º clube','Second club'):t('SAF e 2º clube','SAF and second club'),bb?t('Comprar uma crew da Street','Buy a Street crew'):t('Participações e comando','Ownership and management')]]},
   {name:t('Minha vida','My life'),items:home?[['presidencia',t('Casa e garagem','Home and garage'),t('Móveis, veículos e personagem','Furniture, vehicles and character')]]:[]},
  ]
- return <div className="clube-organizacao"><div className="clube-organizacao-mapa">{children}</div><aside className="clube-organizacao-acessos">
-  <div className="clube-caixa-context"><small>{t('Caixa do clube no comando','Managed club balance')}</small><strong>{balance.toLocaleString('pt-BR')} 🪙</strong><span>{club}</span></div>
+ return <div className={`clube-organizacao${bb?' clube-organizacao-claro':''}`}><div className="clube-organizacao-mapa">{children}</div><aside className="clube-organizacao-acessos">
+  {!semCaixa&&<div className="clube-caixa-context"><small>{t('Caixa do clube no comando','Managed club balance')}</small><strong>{balance.toLocaleString('pt-BR')} 🪙</strong><span>{club}</span></div>}
   {groups.filter(g=>g.items.length).map(g=><section key={g.name}><h2>{g.name}</h2><nav aria-label={g.name}>{g.items.map(([id,label,detail])=><button type="button" key={id} onClick={()=>onSelect(id)}><b>{label}</b><span>{detail}</span></button>)}</nav></section>)}
  </aside></div>
 }

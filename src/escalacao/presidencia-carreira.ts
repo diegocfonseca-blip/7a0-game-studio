@@ -21,7 +21,8 @@ export function presidenteBaseValido(v:unknown):v is PresidenteBaseSave{
 }
 export function podeAlterarPresidencia(s:CarreiraPresidencia,mgrId:number){
  const you=s.managers[s.youIdx]
- return !!s.careerOnline&&s.onlineMode==='cpu'&&s.sport!=='basquete'&&!!you?.isHuman&&you.id===mgrId
+ // 🏀 16/11: o basquete também (Diego: "o mapa tem que ser p basquete") — mesma carreira solo, arena no lugar do estádio
+ return !!s.careerOnline&&s.onlineMode==='cpu'&&!!you?.isHuman&&you.id===mgrId
 }
 export function salvarPresidenteNaCarreira<T extends CarreiraPresidencia>(state:T,mgrId:number,value:PresidenteBaseSave,plano:PosseAvulsa|PlanoUnico|null|undefined=null){
  if(!podeAlterarPresidencia(state,mgrId)||!presidenteBaseValido(value)||!value.name.trim()||!podeVestirComPosse(value.outfit,plano))return {ok:false as const,error:'invalid-state' as const}
