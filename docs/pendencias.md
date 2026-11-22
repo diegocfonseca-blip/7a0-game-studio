@@ -1,3 +1,31 @@
+## 🔬 22/11 — CAMPO 3D: bola parada e goleiro filmados de perto (nada mudou no código)
+- Filmado com `RECORTE=300`: lateral + falta (semente 99, 8 s), chute de fora que sai pela linha de fundo + tiro de meta (99, 37 s),
+  chute de fora com o goleiro segurando e repondo (7, 60 s), falta com jogador caindo e cobrança (2025, 21 s), e os dois suspeitos da
+  semente 99 (giro de 82° aos 28,8 s e domínio a 2,1 m aos 57 s). Nenhum defeito confirmado em filme; nada foi alterado.
+- Ainda NÃO olhado: pênalti (não saiu em 4 partidas), jogo à noite, aparelho de verdade (S25).
+
+## 🔬 22/11 — CAMPO 3D: mais 3 partidas inteiras medidas (sementes 7, 99 e 2025) depois dos consertos
+- `node scripts/mapa3d/analisa-numeros.mjs <pasta>…` (lê o `dados.json` do `NUMEROS=1 … filma-bancada.mjs`; `Q="seed=N"` troca a partida).
+- 0 erro de página nas 3. O conserto da "reta que mentia" pegou mais dois casos: **17,4 m** (semente 7, 12,9–16,9 s) e 3,1 m (2025).
+- Em jogo corrido, bola desenhada × oficial ficou em no máximo ~2 m (domínio); 0 bola pulando de lugar, 0 bola parada com o jogo rolando,
+  0 boneco pulando; 1 giro brusco de corpo (82° num passo, semente 99 aos 28,8 s) em 3 partidas.
+- Total medido hoje: 4 partidas, 3 lances com a bola desenhada a 7,5–17,4 m da oficial antes do conserto (quase 1 por partida).
+- Não medido por esse analisador: pé encostando na bola, gesto do goleiro, cabeceio. Isso só olhando filmagem.
+
+## 🧤 22/11 — CAMPO 3D: chute a gol e goleiro olhados de perto — NENHUM defeito confirmado, nada mudado
+- Filmado quadro a quadro (30/s, recorte na bola) na bancada: chute de fora aos 9 s (goleiro espalma pra escanteio) e cabeceio de gol aos 16 s.
+- No cabeceio o goleiro começa o mergulho (`gk_voo_e`, 23 quadros nos números) quando a bola já está chegando e o replay corta 0,2 s depois, então
+  ele PARECE em pé. Mas a cabeçada sai a ~5 m e chega em ~0,4 s: reagir tarde aí é o esperado. Eu cheguei a dizer ao Diego que era defeito e
+  corrigi. Não mexi no tempo do mergulho (`presidencia-futebol-oficial.ts`, 0,42 s antes de a bola cruzar).
+- A bola reposta no escanteio já aparece crescendo (conserto de hoje) nessa filmagem.
+- Ainda NÃO olhado: chute de longe com goleiro voando e pegando, falta, pênalti, lateral, jogo à noite, aparelho de verdade. Só 1 partida (semente
+  4242 da bancada) foi analisada; outra semente pode mostrar outros lances.
+
+## ⚽🔎 22/11 — CAMPO 3D: bola MENOR que a 1ª tentativa (publicado; Diego: *"a bola, você aumentou demais"*)
+- De 1,5× de perto / teto 3,2× / mínimo ~10 px na tela pra **1,2× / 2,2× / ~6,5 px** (`presidencia-bola-3d.ts`). Ainda é maior que os 3 px
+  de antes na Câmera de TV. Comparação (maior · menor na TV · menor na Lateral próxima): `scripts/mockups/bola-3d-menor.jpg`.
+- Se ele ainda achar grande/pequena: mexer só nesses três números.
+
 ## ⚽ 22/11 — CAMPO 3D: lances analisados quadro a quadro; 2 defeitos de bola consertados (publicado)
 - Diego: *"tô pedindo pra você olhar domínio, passe, chute, jogadas… se tá feio, se não parece futebol de verdade, você melhora"*.
 - Como foi olhado: `scripts/mapa3d/filma-bancada.mjs` ganhou `RECORTE=<px>` (recorta em volta da bola), `NUMEROS=1` (bola, fase, dono e o

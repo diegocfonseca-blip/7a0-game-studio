@@ -95,14 +95,15 @@ export function criarBolaFutebol3D(){
   if(!(height>0))return
   const distance=centre.setFromMatrixPosition(ball.matrixWorld).distanceTo(eye.setFromMatrixPosition(cam.matrixWorld))
   const pixelsPerMetre=height*(cam.zoom||1)/(2*Math.max(.5,distance)*Math.tan(THREE.MathUtils.degToRad(cam.fov)/2))
-  const wanted=THREE.MathUtils.clamp(THREE.MathUtils.clamp(height*.017,9,14)/(2*RAIO_BOLA_FUTEBOL_3D*pixelsPerMetre),ESCALA_BOLA_PERTO,ESCALA_BOLA_MAXIMA)
+  const wanted=THREE.MathUtils.clamp(THREE.MathUtils.clamp(height*.011,6,9)/(2*RAIO_BOLA_FUTEBOL_3D*pixelsPerMetre),ESCALA_BOLA_PERTO,ESCALA_BOLA_MAXIMA)
   const current=(ball.userData.visualScale as number|undefined)??1
   ball.userData.visualScale=Math.abs(wanted-current)<.004?wanted:current+(wanted-current)*.2
  }
  return ball
 }
 /** ⚽🔎 quanto o DESENHO da bola cresce: de perto e no máximo (longe). Nunca entra na física. */
-export const ESCALA_BOLA_PERTO=1.5,ESCALA_BOLA_MAXIMA=3.2
+// 🔁 22/11 (Diego, depois de ver no ar: *"a bola, você aumentou demais"*): de 1,5×/3,2× e 10 px mínimos pra 1,2×/2,2× e ~6,5 px.
+export const ESCALA_BOLA_PERTO=1.2,ESCALA_BOLA_MAXIMA=2.2
 
 const fallbackRoll=new WeakMap<THREE.Object3D,{spin:RotacaoBola3D;time:number}>()
 /** All match viewers use the same official position and presentation rotation. */
