@@ -1,3 +1,11 @@
+## 🔒 22/11 — PILOTO DO VISUAL DAS PARTIDAS: DIEGO + FUTPOINT, SÓ FUTEBOL ONLINE
+- Pedido autorizado: “Faça na minha conta […] pro Futpoint apenas p eu testar c ele […] podemos tirar”. Implementados placar cinema, abas, controle de velocidade à vista e cartão das três táticas atuais, reaproveitando os componentes/handlers reais.
+- Contas exatas: Diego principal e gfpicolo13@gmail.com (Futpoint). Identidade verificada; sem liberar para outras pessoas, carreira, basquete ou pregão. Futpoint não herda outras prévias privadas.
+- Reversível no topo: “Voltar ao visual anterior”, sem remontar a partida. Desligamento global: `FOOTBALL_MATCH_PILOT_ENABLED = false`.
+- Mantidos mascote real no gol, Campo2D real, host, velocidade/Auto e troca de visual só no próximo jogo. Sem banco, canal ou mensagens novos.
+- **Pendente fora desta entrega:** pressão alta/caminho do ataque/marcação/ritmo tático do mockup exigem mudança de motor e sincronização; não foram ligados como botões fictícios. Diego foi informado.
+- Testes e limites: [relatório do piloto](futebol-visual-piloto-diego-futpoint-20261122.md). Falta o teste ao vivo de Diego com Futpoint; bancada não substitui duas sessões autenticadas.
+
 ## 🧭 22/11 — CENTRAL DIRETA (sem dias pra passar) — FEITA, SÓ NA CONTA DO DIEGO (`CENTRAL_DIRETA_GERAL = false`)
 - Mockups aprovados (*"Sim"*): `scripts/mockups/central-nova-cel.png`/`-pc.png`. Ajustes dele no caminho: agenda = a "Próximos jogos" que JÁ existe
   na Central (escudo, competição, estádio, CASA/FORA) e botões 2D/3D/Placar PEQUENOS numa fileira (*"tá muito exagerado os botões"*).

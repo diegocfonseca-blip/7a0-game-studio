@@ -20,7 +20,9 @@ let started = false
 let revision = 0
 const listeners = new Set<() => void>()
 function publish(value: boolean, email = '') {
-  const nextEmail = value ? email.trim().toLowerCase() : ''
+  // Keep the verified account separately from each feature's allowlist.
+  // Futpoint's match pilot must not enable Diego's other private previews.
+  const nextEmail = email.trim().toLowerCase()
   if (enabled === value && verifiedEmail === nextEmail) return
   enabled = value
   verifiedEmail = nextEmail
@@ -30,7 +32,7 @@ async function verify() {
   const version = ++revision
   try {
     const { data, error } = await supabase.auth.getUser()
-    if (version === revision) publish(!error && onlinePreviewEmail(data.user?.email), data.user?.email ?? '')
+    if (version === revision) publish(!error && onlinePreviewEmail(data.user?.email), !error ? data.user?.email ?? '' : '')
   } catch { if (version === revision) publish(false) }
 }
 function start() {
@@ -55,4 +57,9 @@ export function useOnlinePreview() {
 }
 export function useOwnerPresentation() {
   return useSyncExternalStore(subscribe, ownerPresentationEnabled, () => false)
+}
+
+/** Verified by the existing getUser request; never grants host/data permissions. */
+export function useVerifiedPresentationEmail() {
+  return useSyncExternalStore(subscribe, () => verifiedEmail, () => '')
 }
