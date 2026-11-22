@@ -1,3 +1,10 @@
+## 🔒 22/11 — MARCAÇÃO INDIVIDUAL RETIRADA DO PAINEL PRIVADO
+- Pedido direto do Diego: tirar a marcação individual de “Mude o plano”. Retirados o seletor de jogador e sua explicação; permanecem postura, caminho do ataque, Normal/Pressão alta e ritmo, no celular e desktop.
+- Novas ordens desse painel enviam `mark:null`, inclusive se o rascunho partiu de um plano antigo com alvo. Sem disparar ordens automaticamente ou alterar resultados já calculados. Mantida a compatibilidade do esquema existente e o acesso exclusivo da conta principal.
+- 315 verificações de interface passaram, sem erros JavaScript; conferidas a ausência do seletor e a ordem real enviada sem alvo. Teste de acesso privado também passou. Bancada local, sem entrar em salas reais; não substitui teste físico no S25.
+- `npm run build` (TypeScript e Vite) e `git diff --check`: passaram.
+- Verificação e capturas locais: `/workspace/shared/sem-marcacao-individual-20261122/`.
+
 ## 🔒 22/11 — ADVERSÁRIOS NO DESKTOP + FAIXA MARROM NA PARTIDA
 - Diego pediu facilitar a consulta dos times adversários: no desktop, um campo por vez com setas, seletor de clube, contador e rolagem lateral/teclado. Preserva o escolhido ao voltar à aba.
 - Partida mostra o próximo jogo e, contra outro usuário, a faixa marrom logo abaixo; Rivalidades conserva essa faixa e os detalhes. Celular e desktop, somente conta principal do Diego. O próximo jogo não pula bots para buscar um amigo distante; pula apenas folgas.

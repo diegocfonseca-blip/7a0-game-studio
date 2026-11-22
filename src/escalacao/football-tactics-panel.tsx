@@ -1,7 +1,6 @@
 import {useEffect,useState} from 'react'
 import {useEscTalvez} from './store'
 import {FOOTBALL_LOCAL_ORDER,DEFAULT_FOOTBALL_PLAN,footballTestRoom,planFor,useFootballClock,type FootballPlan} from './football-live-tactics'
-import {xiPorOrdem} from './liga-draft'
 import {tr} from './lang'
 import type {Tactic} from './types'
 
@@ -12,14 +11,12 @@ export function FootballTacticsPanel({value,onChange,disabled,note}:{value:Tacti
  const actual=state&&manager?planFor(state,manager.id):{...DEFAULT_FOOTBALL_PLAN,posture:value}
  const key=state?`${state.roomId}:${state.seed}:${state.round}`:'fixture'
  const [draftState,setDraft]=useState<{key:string;plan:FootballPlan}|null>(null),[pending,setPending]=useState<string|null>(null),[error,setError]=useState('')
- const draft=draftState?.key===key?draftState.plan:actual
+ const draft={...(draftState?.key===key?draftState.plan:actual),mark:null}
  const match=state&&manager?state.lastResults.find(r=>r.homeId===manager.id||r.awayId===manager.id):undefined
  const order=match?.footballLive?.orders.at(-1)
  const eligible=!!state&&footballTestRoom(state)&&state.screen==='season'&&!state.quickCopa&&!match?.kings&&state.champion==null
  const minute=clock?.room===state?.roomId&&clock?.round===state?.round?clock?.minute:undefined
  const live=eligible&&!!match&&minute!=null&&minute<88&&!!clock&&Date.now()-clock.at<7000
- const opponent=state?.managers.find(m=>m.id===(match?.homeId===manager?.id?match?.awayId:match?.homeId))
- const opponents=opponent?((state?.minhaLigaDraft||state?.bafo2)?xiPorOrdem(opponent.squad,opponent.formation):opponent.squad).filter(c=>!c.fake):[]
  const changed=!same(draft,actual)
  useEffect(()=>{
   if(!pending)return
@@ -38,7 +35,7 @@ export function FootballTacticsPanel({value,onChange,disabled,note}:{value:Tacti
   {group('attack',tr('CAMINHO DO ATAQUE','ATTACKING ROUTE'),[{value:'mixed',label:tr('Variado','Mixed')},{value:'middle',label:tr('Pelo meio','Middle')},{value:'wings',label:tr('Pontas','Wings')}])}
   {group('pressure',tr('MARCAÇÃO','PRESSING'),[{value:'normal',label:tr('Normal','Normal')},{value:'high',label:tr('Pressão alta','High press')}])}
   <p className="fp-plan-tradeoff">{tradeoff}</p>
-  <div className="fp-extra-orders">{group('pace',tr('RITMO DO ATAQUE','ATTACKING TEMPO'),[{value:'slow',label:tr('Cadenciado','Slow')},{value:'normal',label:tr('Normal','Normal')},{value:'fast',label:tr('Rápido','Fast')}])}<small>{tr('Não altera a velocidade da transmissão.','Does not change playback speed.')}</small><label>{tr('ATENÇÃO ESPECIAL NO RIVAL','SPECIAL ATTENTION TO OPPONENT')}<select value={draft.mark??''} disabled={disabled||!!pending} onChange={e=>change('mark',e.target.value||null)}><option value="">{tr('Sem marcação especial','No special marking')}</option>{opponents.map(c=><option key={c.id} value={c.id}>{c.name} · {c.pos}</option>)}</select></label><small>{tr('Focar um rival abre espaço para os outros.','Focusing on one opponent leaves space for others.')}</small></div>
+  <div className="fp-extra-orders">{group('pace',tr('RITMO DO ATAQUE','ATTACKING TEMPO'),[{value:'slow',label:tr('Cadenciado','Slow')},{value:'normal',label:tr('Normal','Normal')},{value:'fast',label:tr('Rápido','Fast')}])}<small>{tr('Não altera a velocidade da transmissão.','Does not change playback speed.')}</small></div>
   {ctx&&<button type="button" className="fp-send-order" disabled={!changed||!live||disabled||!!pending} onClick={()=>{
    if(!state||!manager||!live)return
    const requestId=crypto.randomUUID();setPending(requestId);setError('')
