@@ -1,3 +1,13 @@
+## 🧯 22/11 — Consertos da varredura da carreira (NO BRANCH, esperando "pode publicar") — Diego: *"conserte todos"*
+- ✅ 1 ▶ do 3D não gasta mais a escolha quando causo/lesão/crise segura a rodada: leva pra aba Jogos (onde o aviso aparece).
+- ✅ 2 "Só no intervalo" vale do PRÓXIMO jogo (`careerSubModeDesde` no save; SET_SUBMODE carimba temporada+rodada; `halfMode` ignora o jogo já apitado).
+- ✅ 3 Copa de quarta liberada pelo ▶ do 3D fica no mapa · ✅ 4 pênalti decisivo só tira do 3D quando a janela abre · ✅ 5 confirmou o intervalo vindo do 3D → volta pro mapa.
+- ✅ 7 "Mesmo time" avisa que os marcados pra vender no Mercado não são vendidos sem leilão.
+- ⛔ 6 (rodada 38 sem intervalo) **NÃO mexido de propósito**: tirar a trava pode prender o fim de temporada de quem está no modo intervalo (o jogo já acabado
+  passaria a esperar um intervalo). Só com decisão dele e teste de virada de temporada.
+- 🧪 Rodado: build · bancada 3D (▶ começa o jogo, Substituir abre Elenco, 0 erro de página) · pular da Central 3/3 · `npm run janela-nova`.
+  🔬 NÃO reproduzidos na bancada (dependem de causo/pênalti/copa/intervalo): os cenários 1–5 em si — conferir jogando.
+
 ## 🔎 22/11 — Varredura do dia de jogo da carreira (achados lidos no código; NADA rodado). Só o item 0 foi mexido (no branch)
 0. ✅ (no branch, falta publicar) **Minha regressão de 22/11**: a ida pra Central depois da coletiva pegava QUALQUER um que estivesse na aba Clube
    (ex.: cuidando do estádio depois de um jogo visto no 2D, ou na apresentação das lendas da rodada 0). Agora só quem liberou o jogo pelo ▶ do 3D e
