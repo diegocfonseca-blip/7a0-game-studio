@@ -53,8 +53,9 @@ try {
   let semente = 7; const rng = () => (semente = (semente * 16807) % 2147483647) / 2147483647
   const conta = {}; for (let i = 0; i < 20000; i++) { const k = categoriaDe(sorteiaCarta(BARALHO_TODO, rng)); conta[k] = (conta[k] ?? 0) + 1 }
   const pct = k => 100 * (conta[k] ?? 0) / 20000
-  assert.ok(pct('lenda') > 3 && pct('lenda') < 5, `lenda ~4% (deu ${pct('lenda').toFixed(1)}%)`)
-  assert.ok(pct('bom') > 55 && pct('bom') < 61, `bom jogador ~58% (deu ${pct('bom').toFixed(1)}%)`)
+  assert.ok(pct('lenda') > 4 && pct('lenda') < 6, `lenda ~5% (deu ${pct('lenda').toFixed(1)}%)`)
+  assert.ok(pct('bom') > 45 && pct('bom') < 51, `bom jogador ~48% (deu ${pct('bom').toFixed(1)}%)`)
+  assert.ok(pct('promessa') > 8.5 && pct('promessa') < 11.5, `promessa ~10% (deu ${pct('promessa').toFixed(1)}%)`)
   // 🌎 todo campeão ganha carta: Libertadores, Champions e Mundial da carreira também (04/10)
   const ps = (await import('node:fs')).readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
   for (const suf of ['liberta', 'champions', 'mundial']) assert.ok(ps.includes(`titulos.push(['${suf}'`), `carta do campeão: ${suf}`)

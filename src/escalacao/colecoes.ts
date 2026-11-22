@@ -35,7 +35,9 @@ export const VALOR_CATEGORIA: Record<Categoria, number> = { lenda: 5, craque: 3,
 // um pouco mais"*). Antes cada carta tinha a mesma chance → a lenda saía em ~9% dos títulos (194 de
 // 2.107 cartas). Agora sorteia primeiro a CATEGORIA, com a lenda mais rara, e depois a carta dentro
 // dela. Pode vir repetida. Quem já tem as cartas fica com elas — isto só vale pros pacotes novos.
-export const CHANCE_CATEGORIA: Record<Categoria, number> = { lenda: 4, craque: 16, promessa: 4, bom: 58, prof: 18 }
+// 🔁 22/11 (Diego: *"diminuir um pouco mais a de bom jogador e distribuir melhor pras outras"*): era lenda 4 · craque 16 · promessa 4 · bom 58 · prof 18.
+// A promessa saiu do nível da lenda (vale menos que o craque) e o bom jogador deixou de ser mais da metade dos pacotes.
+export const CHANCE_CATEGORIA: Record<Categoria, number> = { lenda: 5, craque: 22, promessa: 10, bom: 48, prof: 15 }
 export function sorteiaCarta<T extends { fame: number; promessa?: boolean }>(pool: T[], aleatorio: () => number = Math.random): T | undefined {
   if (!pool.length) return undefined
   const porCat = new Map<Categoria, T[]>()

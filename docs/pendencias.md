@@ -34,7 +34,7 @@
 - Vale pros títulos a partir da publicação (os antigos não têm a chave). Fora ainda: Copa do Mundo SOLTA (sala só de Copa, modo 'mundo'), carreira
   online, basquete, sala apagada.
 - Chances do pacote (`CHANCE_CATEGORIA`, colecoes.ts): hoje Lenda 4 · Craque 16 · Promessa 4 · Bom 58 · Profissional 18. Proposta levada ao Diego:
-  Lenda 4 · Craque 18 · Promessa 8 · Bom 55 · Profissional 15 (esperando resposta).
+  Diego pediu menos bom jogador e distribuir melhor → no branch: Lenda 5 · Craque 22 · Promessa 10 · Bom 48 · Profissional 15 (esperando OK).
 
 ### 🃏 22/11 (tarde) — Bafo: selo valendo/amistoso, fim amistoso explicado, aviso de quem foi levado, 3-5-2 (no branch, esperando "pode publicar")
 - Diego (prints da sala FG93HX): *"tem que ter um selinho… bafo valendo cartinha ou bafo amistoso"*, *"tem que dar uma explicação que o campeão não vai
