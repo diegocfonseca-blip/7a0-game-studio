@@ -1,3 +1,8 @@
+## 🔒 22/11 — ABAS COM PLACAR/CAMPO PERMANENTE NO PILOTO PRIVADO
+- Pedido do Diego: manter abas e jogo intactos ao navegar, com o conteúdo escolhido abaixo. Cinema/2D, seletor e controles agora ficam visíveis em todas as abas, sem salto forçado ao início ou remontagem da partida.
+- Rivalidades completas abaixo do jogo também no desktop; tabela lateral e chat permanecem. Exclusivo da conta principal do Diego, sem ampliar público ou regras das ordens.
+- 281 verificações de interface e build passaram. Evidências e limites: [abas com partida permanente](abas-placar-permanente-20261122.md).
+
 ## 📱 22/11 — PILOTO PRIVADO: TÁTICA COMPACTA, FOLGA NO LUGAR DO JOGO E FAIXA COMPLETA
 - Pedido do Diego com prints do Bafo de cinco pessoas: painel de tática menor no celular, todas as instruções abertas; todos os outros jogos acessíveis pela rolagem lateral, preservando os cartões; aviso de folga no alto, onde estaria o placar.
 - Corrigido o fallback dos slots exclusivos da lateral: artilharia/assistências e prévia de rivalidades não aparecem mais sem estilo no corpo do celular ou na aba Tabela e jogos.

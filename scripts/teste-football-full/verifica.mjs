@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import {createRequire} from 'node:module'
 const {chromium}=createRequire(import.meta.url)('playwright')
-const out=process.env.QA_OUTPUT||'/workspace/shared/diego-mobile-bafo-20261122';fs.mkdirSync(out,{recursive:true})
+const out=process.env.QA_OUTPUT||'/workspace/shared/diego-abas-placar-permanente-20261122';fs.mkdirSync(out,{recursive:true})
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']})
 const errors=[],checks=[]
 const identity=`\nstarted=true;enabled=false;verifiedEmail=new URLSearchParams(location.search).get('account')||'diego.c.fonseca@gmail.com';window.qaAccount=value=>{verifiedEmail=value;listeners.forEach(fn=>fn())};`
@@ -25,6 +25,29 @@ async function open(width,query=''){
  return{context:{close:async()=>{closing=true;await context.close()}},page}
 }
 const check=(name,value)=>{assert(value,name);checks.push(name)}
+async function checkPersistentFrame(page,label,field=false){
+ const native=await page.locator('.ov3-native').first().elementHandle(),tabs=await page.locator('.fp-page-tabs').elementHandle()
+ const canvas=field?await page.locator('.ov3-native canvas').first().elementHandle():null
+ const width=(await page.locator('.ov3-native').first().boundingBox()).width
+ const timing=await page.evaluate(()=>({round:window.qaFull.state.round,at:window.qaFull.state.rodadaEm?.at,speed:window.qaFull.state.simSpeed}))
+ for(const [name,key] of [['Tabela e jogos','table'],['Estatísticas','stats'],['Elenco','squad'],['Rivalidades','rivals'],['Partida','match']]){
+  await page.evaluate(()=>window.scrollTo(0,80))
+  const scroll=await page.evaluate(()=>scrollY),top=(await page.locator('.fp-page-tabs').boundingBox()).y
+  await page.getByRole('button',{name,exact:true}).first().evaluate(button=>button.click())
+  await page.waitForFunction(key=>document.body.dataset.fpPage===key,key)
+  check(`${label}: ${name} conserva placar visível`,await page.locator('.ov3-native').first().isVisible())
+  check(`${label}: ${name} conserva o mesmo placar`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+  check(`${label}: ${name} conserva as mesmas abas`,await tabs.evaluate(node=>node===document.querySelector('.fp-page-tabs')))
+  check(`${label}: ${name} não força salto ao início`,Math.abs(await page.evaluate(()=>scrollY)-scroll)<2)
+  check(`${label}: ${name} mantém a posição das abas`,Math.abs((await page.locator('.fp-page-tabs').boundingBox()).y-top)<2)
+  check(`${label}: ${name} mantém largura do jogo`,Math.abs((await page.locator('.ov3-native').first().boundingBox()).width-width)<2)
+  check(`${label}: ${name} mantém controles`,await page.locator('.fp-match-playback').isVisible())
+  if(canvas)check(`${label}: ${name} conserva o mesmo canvas 2D`,await canvas.evaluate(node=>node===document.querySelector('.ov3-native canvas')))
+  if(key==='rivals')check(`${label}: rivalidades ficam abaixo do placar`,(await page.locator('.ov3-rivalries').boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height)
+  if(key==='table')check(`${label}: jogos ficam abaixo do placar`,(await page.locator('#ll26-round-games').boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height)
+ }
+ check(`${label}: rodada, início e velocidade preservados`,JSON.stringify(timing)===JSON.stringify(await page.evaluate(()=>({round:window.qaFull.state.round,at:window.qaFull.state.rodadaEm?.at,speed:window.qaFull.state.simSpeed}))))
+}
 try{
  for(const width of [390,1440]){
   const {page,context}=await open(width)
@@ -36,6 +59,7 @@ try{
   await page.getByRole('button',{name:'Enviar ordens',exact:true}).click()
   await page.waitForFunction(()=>window.qaFull.state.lastResults.some(r=>r.footballLive?.revision===1))
   check(`${width}: ordem aplicada pelo reducer real`,true)
+  await checkPersistentFrame(page,`${width}: cinema`)
   await page.evaluate(()=>window.scrollTo(0,0))
   await page.screenshot({path:`${out}/${width}-partida.png`,fullPage:true})
   console.log('STATE',await page.evaluate(()=>({tabs:[...document.querySelectorAll('.fp-match-primary button')].slice(0,12).map(e=>e.textContent),overflow:document.documentElement.scrollWidth,screen:window.qaFull.state.screen,round:window.qaFull.state.round,errors:document.body.innerText.slice(0,150)})))
@@ -57,7 +81,7 @@ try{
   }
   await page.getByRole('button',{name:'Todos os jogos',exact:false}).first().click()
   check(`${width}: atalho abre jogos completos`,await page.locator('#ll26-round-games').isVisible())
-  check(`${width}: partida fica escondida`,!(await page.locator('.ov3-native').first().isVisible()))
+  check(`${width}: partida continua visível na tabela`,await page.locator('.ov3-native').first().isVisible())
   await page.evaluate(()=>window.scrollTo(0,0))
   check(`${width}: aba de tabela sem resumo lateral vazando`,await page.locator('.fp-desktop-extra:visible').count()===0)
   await page.screenshot({path:`${out}/${width}-tabela.png`,fullPage:true})
@@ -98,6 +122,7 @@ try{
   await page.evaluate(()=>window.qaAccount('gfpicolo13@gmail.com'))
   await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
   check(`${width}: Futpoint fora da nova interface`,await page.locator('.fp-advanced-tactics').count()===0)
+  check(`${width}: conta pública não recebe o novo destino de rivalidades`,await page.locator('.ov3-rivals-slot').count()===0)
   await context.close()
  }
  for(const competition of ['liberta','champions','cup']){
@@ -105,6 +130,7 @@ try{
   for(const name of ['Partida','Tabela e jogos','Estatísticas','Elenco','Rivalidades'])check(`${competition}: aba ${name}`,await page.getByRole('button',{name,exact:true}).first().isVisible())
   await page.getByRole('button',{name:'Tabela e jogos',exact:true}).first().click()
   check(`${competition}: lista da competição`,await page.locator('.fp-competition-games').first().isVisible())
+  check(`${competition}: placar continua visível na tabela`,await page.locator('.ov3-native').first().isVisible())
   await page.evaluate(()=>window.scrollTo(0,0))
   await page.screenshot({path:`${out}/${competition}-tabela.png`,fullPage:true})
   await page.getByRole('button',{name:'Rivalidades',exact:true}).first().click()
@@ -140,9 +166,15 @@ try{
  await waiting.page.waitForFunction(()=>window.qaFull.state.round===1)
  check('antes do pontapé: controle original inicia jogo',await waiting.page.locator('.fp-match-primary').isVisible())
  await waiting.context.close()
- const field=await open(1440,'?field=1')
- check('2D: campo real montado',await field.page.locator('.ov3-native canvas').count()>0)
- await field.page.screenshot({path:`${out}/desktop-campo-2d.png`,fullPage:true});await field.context.close()
+ for(const width of [390,1440]){
+  const field=await open(width,'?field=1')
+  check(`${width}: campo 2D real montado`,await field.page.locator('.ov3-native canvas').count()>0)
+  await checkPersistentFrame(field.page,`${width}: 2D`,true)
+  await field.page.getByRole('button',{name:'Rivalidades',exact:true}).first().evaluate(button=>button.click())
+  await field.page.evaluate(()=>window.scrollTo(0,0))
+  await field.page.screenshot({path:`${out}/${width}-2d-rivalidades.png`,fullPage:true})
+  await field.context.close()
+ }
  check('sem erros JavaScript',errors.length===0)
  fs.writeFileSync(`${out}/resultado.json`,JSON.stringify({checks,errors},null,2));console.log(JSON.stringify({checks,errors},null,2))
 }finally{await browser.close()}

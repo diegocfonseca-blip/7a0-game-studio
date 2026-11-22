@@ -9,7 +9,6 @@ export function useFootballMatchNavigation(room:string,enabled:boolean){
  const choose=useCallback((next:FootballPage)=>{
   if(!enabled)return
   current={room,page:next};listeners.forEach(fn=>fn())
-  if(typeof window!=='undefined')window.scrollTo({top:0,behavior:'auto'})
  },[room,enabled])
  return{page,choose}
 }

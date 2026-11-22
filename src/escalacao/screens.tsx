@@ -8378,6 +8378,7 @@ export function EscSeason() {
   // online… os locais das coisas"*): a Kings entra no MESMO desenho (as cenas dela são por cima da tela inteira, não dependem dele)
   const desk2 = desk2Conta && (!bbS || !state.careerOnline) // 🏀 15/11: na carreira a tabela Leste/Oeste não coube na direita; 17/11: fora da carreira as conferências EMPILHAM na coluna da direita (`.ll-dir .ll-duas-conf`)
   const naDireita = (el: React.ReactNode) => (desk2 && dirCol ? createPortal(el, dirCol) : el)
+  const rivalidadesNoConteudo=(node:ReactNode)=>footballPilot?<OwnerSlot name="rivals">{node}</OwnerSlot>:naDireita(node)
   // 👑📌 11/11 (Diego: *"a info, por exemplo jogador estrela escolhido… está abaixo do telão. Essas infos devem ficar abaixo do placar
   // cinema"*): EM CAMPO, os efeitos valendo e o shootout moram logo embaixo do placar grande (liga e mata-mata), não mais lá no fim.
   // ⏳👑 11/11 (Diego: *"como o outro vai saber que tem jogo rolando e não é bug?"*): na SALA da Kings a rodada só vira quando o jogo
@@ -9018,7 +9019,7 @@ export function EscSeason() {
           const amigo = amigos.find(a => (a as AmigoRival & { id: number }).id === oppId)
           if (amigo) proximo = { amigo, rodada: r + 1, daqui: r - state.round }
         }
-        return naDireita(<section className={ownerVisual?'ov3-rivalries':undefined}><PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />{footballPilot&&<FootballRivalHistory youUid={meuUidRetro??''} amigos={amigos} mapa={retroMapa} proximo={proximo} duels={resultRevealed&&!copaLive?state.lastResults.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>(a as AmigoRival&{id:number}).id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>{const opponent=r.homeId===you.id?r.awayId:r.homeId;return{key:`${state.roomId}:${state.seed}:${state.seasonNo}:${state.round}:${r.homeId}:${r.awayId}`,uid:uidDo(opponent)??'',name:nomeLiga(opponent),for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round:state.round}}):[]}/>}</section>)
+        return rivalidadesNoConteudo(<section className={ownerVisual?'ov3-rivalries':undefined}><PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />{footballPilot&&<FootballRivalHistory youUid={meuUidRetro??''} amigos={amigos} mapa={retroMapa} proximo={proximo} duels={resultRevealed&&!copaLive?state.lastResults.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>(a as AmigoRival&{id:number}).id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>{const opponent=r.homeId===you.id?r.awayId:r.homeId;return{key:`${state.roomId}:${state.seed}:${state.seasonNo}:${state.round}:${r.homeId}:${r.awayId}`,uid:uidDo(opponent)??'',name:nomeLiga(opponent),for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round:state.round}}):[]}/>}</section>)
       })()}
 
       {/* 📋 08/11: LIGA DRAFT — o caminho até a próxima temporada + ⭐ favoritos (mockup aprovado). Só mostra; a ordem é a da tabela (campeão primeiro). */}

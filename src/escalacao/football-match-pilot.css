@@ -100,7 +100,7 @@ body.fp-match-pilot .ov3-lineup-slot:empty,body.fp-match-pilot .ov3-summary-slot
 body.fp-match-pilot .fp-match-primary .ov3-tabs-slot .ll25-tabs{overflow:visible;gap:6px}
 body.fp-match-pilot .fp-match-primary .ov3-tabs-slot .ll25-tabs>button{min-width:0;flex:1;white-space:normal;line-height:1.2!important;background:#14251b!important;color:#f4ecd6!important;border:1px solid #71836b!important;box-shadow:none!important;font-size:13px!important}
 body.fp-match-pilot .fp-match-primary .ov3-tabs-slot .ll25-tabs>button[aria-pressed=true]{background:#ffc400!important;color:#0c0c0c!important;border:2px solid #0c0c0c!important;box-shadow:2px 3px #000!important}
-body.fp-match-pilot:not([data-fp-page=match]) .fp-match-primary :is(.ov3-native,.ov3-viewline,.ov3-controls-slot,.ov3-tactic-slot,.ov3-summary-slot,.ov3-ad-slot,.ov3-kings-slot){display:none!important}
+body.fp-match-pilot:not([data-fp-page=match]) .fp-match-primary :is(.ov3-tactic-slot,.ov3-summary-slot,.ov3-ad-slot){display:none!important}
 body.fp-match-pilot:not([data-fp-page=match]):not([data-fp-page=squad]) .ov3-lineup-slot{display:none!important}
 body.fp-match-pilot:not([data-fp-page=match]) .ll27-room-summary{display:none!important}
 body.fp-match-pilot:not([data-fp-page=table]) #ll26-round-games{display:none!important}
@@ -131,9 +131,6 @@ body.fp-match-pilot .ov3-hub-nav .pc-nav-entry{display:block!important}
  body.fp-match-pilot .fp-match-primary .ll25-numbers strong{font-size:80px}
  body.fp-match-pilot .fp-match-tactics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
  body.fp-match-pilot .fp-match-tactics>span,body.fp-match-pilot .fp-match-tactics>h3,body.fp-match-pilot .fp-match-tactics>div,body.fp-match-pilot .fp-match-tactics>p,body.fp-match-pilot .fp-match-tactics>small{grid-column:1/-1}
- body.fp-match-pilot:not([data-fp-page=match]):not([data-fp-page=table]):not([data-fp-page=rivals]) .ll-dir{display:none!important}
- body.fp-match-pilot[data-fp-page=rivals] .ll-dir{grid-column:1/-1;width:100%}
- body.fp-match-pilot[data-fp-page=rivals] .ll-dir-in{display:block}
  body.fp-match-pilot .ll-dir-in>.ov3-rivalries{order:0}
  body.fp-match-pilot .ll-dir .ll31-table .max-w-\[150px\]{max-width:none!important}
  body.fp-match-pilot .ll-dir .ll31-table td{font-size:12px}
@@ -160,7 +157,6 @@ body.fp-match-pilot:not([data-fp-page=match]) .fp-competition-news{display:none!
  body.fp-match-pilot #root .ll-desk2>*:not(.ll-dir){grid-column:1;min-width:0;margin:0 0 20px!important}
  body.fp-match-pilot #root .ll-desk2>.ll-dir{position:static;inset:auto;grid-column:2;grid-row:1/span 40;width:100%!important;min-width:0;margin:0!important;align-self:start}
  body.fp-match-pilot #root .ll-desk2 .ll-dir-in{position:static;top:auto}
- body.fp-match-pilot[data-fp-page=rivals] #root .ll-desk2>.ll-dir{grid-column:1/-1;grid-row:auto}
 }
 
 body.fp-match-pilot .fp-match-primary .ll25-numbers strong{font-size:64px!important}
@@ -201,3 +197,7 @@ body.fp-match-pilot .fp-advanced-tactics .fp-extra-orders{width:100%;max-width:n
  body.fp-match-pilot .ov3-summary-slot .ll27-ticker.fp-round-carousel>*{flex-basis:calc((100% - 10px)/2)}
  body.fp-match-pilot .ov3-summary-slot .ll27-ticker.fp-round-carousel>:only-child{flex-basis:100%}
 }
+
+/* Every page shares the mounted match frame; the selected content follows it. */
+body.fp-match-pilot .fp-match-primary>.ov3-rivals-slot{order:8;min-width:0}
+body.fp-match-pilot:not([data-fp-page=rivals]) .ov3-rivals-slot,body.fp-match-pilot .ov3-rivals-slot:empty{display:none!important}
