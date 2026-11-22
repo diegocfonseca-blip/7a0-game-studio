@@ -11124,7 +11124,7 @@ const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`,
 
 // 🃏 21/11 (Diego: "a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for campeão"): o pacote
 // do ÁLBUM soma as cartas regionais e as do Brasil Oficial (estaduais, Séries A–D, Libertadores, Sul-Americana) aos 3 baralhos.
-// A raridade não muda: `sorteiaCarta` escolhe a CATEGORIA primeiro (lenda 5%…) e só depois a carta dentro dela.
+// A raridade não muda: `sorteiaCarta` escolhe a CATEGORIA primeiro (lenda 6%…) e só depois a carta dentro dela.
 // 🔁 mesmo dia: a CARREIRA também ("mesmo cálculo"). Carta do Oficial que cair numa carreira de sempre entra no álbum e na Agência,
 // mas não rende lá (aquele jogador não joga naquela carreira).
 function poolInteiro(extras: CartaExtra[]): WonCard[] {
