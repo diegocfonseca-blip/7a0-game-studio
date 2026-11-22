@@ -38,7 +38,7 @@ import { publicCareerVisual } from './career-feature-release'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, AssistRow, TieBreak,
-  QuickCopaState, QuickCopaTie, LibertaState, LibertaTeam, ChampionsState, ChampionsTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
+  QuickCopaState, QuickCopaTie, CopaFase, LibertaState, LibertaTeam, ChampionsState, ChampionsTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame, HolandesState,
 } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
@@ -64,7 +64,10 @@ import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
 import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala, marcaSalaDosMimos } from './mimos'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
+import { GRUPOS_2026, sorteiaGrupos, parCup, gruposCompletos, classificadosCup } from './eua-cup' // 🏀🏆 NBA Cup real do EUA Oficial
+import { sorteiaLoteria, entraNoDraft, escolhaDoBot, forcaDraft } from './eua-draft' // 🏀🎓 Draft do EUA Oficial
 import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
+import { CATALOG_NBA_MUNDO } from './data-basquete-mundo' // 🌍 18/11: ficha das cartas do baralho Mundo
 import { NBA_SLOTS_PER_POS } from './sportcfg'
 
 // baralho ativo da partida atual (só solo troca): 🇧🇷 Brasileirão ou 🌍 Liga
@@ -167,12 +170,12 @@ function comCartasRegionais(base: typeof CATALOG, regional: string): typeof CATA
   return out
 }
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
-function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
+function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick', mundo = false) {
   ACTIVE_SPORT = sport
   ORDEM_ATIVA = SECTORS
   setDraftBasquete(sport === 'basquete') // 📋🏀 Liga Draft: elenco de 15 e quinteto no basquete
   if (sport === 'basquete') {
-    ACTIVE_CATALOG = buildNbaCatalog() as unknown as typeof CATALOG
+    ACTIVE_CATALOG = buildNbaCatalog(mundo && mode === 'quick') as unknown as typeof CATALOG // 🌍 o Mundo é só do rápido/salas
     NBA_BASE_SLOTS = NBA_SLOTS_PER_POS[mode]
   }
 }
@@ -191,8 +194,8 @@ export function vagasBase(formation: FormationKey, pos: Sector): number { return
 // pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
 // o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
 // sempre (byte-idêntico pra quem não é basquete).
-function reancoraEsporte(s: { oficial?: unknown; careerOnline?: boolean; sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
-  if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
+function reancoraEsporte(s: { oficial?: unknown; careerOnline?: boolean; sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; nbaMundo?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
+  if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick', !!s.nbaMundo)
   else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala, !!s.oficial && !!s.careerOnline)
   if (s.kingsBaralho && s.sport !== 'basquete') ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG // 👑 a partida da Kings com o baralho dela
   ancoraPresidentesKings(s.sport !== 'basquete' && !!s.managers?.some(m => m.formation === 'kings')) // 🎩 os presidentes (os dois baralhos)
@@ -239,6 +242,35 @@ const NBA_PRO_TEAMS: { team: string; name: string }[] = [
   'Hornets', 'Hawks', 'Cavaliers', 'Pacers', 'Thunder', 'Trail Blazers', 'Jazz', 'Pelicans', 'Wizards',
   'Rockets', 'Timberwolves',
 ].map(t => ({ team: t, name: t }))
+/** 🏀 18/11 sala NBA: quais franquias viram bots. A galera entra alternando Leste/Oeste (Leste primeiro), e cada lado completa
+ *  com franquias DAQUELA conferência até a metade da liga. Na sala de 10 não tem conferência: sorteia entre as 30. */
+function poolSalaNba(tam: 30 | 20 | 10, nGente: number, rng: () => number): { team: string; name: string }[] {
+  const mk = (t: string) => ({ team: t, name: t })
+  const metade = tam / 2 // 🏀 18/11: a sala de 10 também divide (5 × 5) — Diego: *"eu gosto dividindo também se for 10"*
+  const genteL = Math.ceil(nGente / 2), genteO = nGente - genteL
+  const l = shuffle([...NBA_LESTE], rng), o = shuffle([...NBA_OESTE], rng)
+  const bl = Math.max(0, metade - genteL), bo = Math.max(0, metade - genteO)
+  // o resto vai no fim só como reserva (nome que bate com o de alguém da sala é pulado por `makeManagers`)
+  return [...l.slice(0, bl), ...o.slice(0, bo), ...l.slice(bl), ...o.slice(bo)].map(mk)
+}
+/** 🏀 conferência de cada time: franquia real no lado dela; a galera (e quem não for franquia) completa o lado com menos times. */
+function conferenciasNba(managers: Manager[]): Record<number, 'L' | 'O'> {
+  const conf: Record<number, 'L' | 'O'> = {}
+  let nl = 0, no = 0
+  const resto: Manager[] = []
+  for (const m of managers) {
+    if (!m.isHuman && NBA_LESTE.includes(m.teamName)) { conf[m.id] = 'L'; nl++ }
+    else if (!m.isHuman && NBA_OESTE.includes(m.teamName)) { conf[m.id] = 'O'; no++ }
+    else resto.push(m)
+  }
+  for (const m of resto) { if (nl <= no) { conf[m.id] = 'L'; nl++ } else { conf[m.id] = 'O'; no++ } }
+  return conf
+}
+// 🏀 18/11: as conferências REAIS das 30 franquias (sala NBA de 30/20 times). Leste e Oeste só se cruzam nas Finals.
+export const NBA_LESTE = ['Celtics', 'Knicks', 'Sixers', 'Nets', 'Raptors', 'Bucks', 'Cavaliers', 'Pacers', 'Bulls', 'Pistons', 'Heat', 'Magic', 'Hawks', 'Hornets', 'Wizards']
+export const NBA_OESTE = ['Lakers', 'Warriors', 'Clippers', 'Suns', 'Kings', 'Nuggets', 'Timberwolves', 'Thunder', 'Jazz', 'Trail Blazers', 'Mavericks', 'Rockets', 'Spurs', 'Grizzlies', 'Pelicans']
+/** 🏀 jogos de cada time na sala NBA: 30 = 82 (a NBA de verdade) · 20 = 38 (todos contra todos, ida e volta) · 10 = 36 (4 vezes). */
+export function nbaSalaJogos(tam: 30 | 20 | 10): number { return tam === 30 ? 82 : tam === 20 ? 38 : 36 }
 // 🪜 os 3 andares da pirâmide do basquete: times + rótulo. Subir de andar = novos
 // adversários (crews → afiliados → franquias) e um passo mais perto do anel.
 type NbaTier = 'street' | 'gleague' | 'nba'
@@ -1176,7 +1208,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
-import { ligaEscudosOficiais } from './escudos'
+import { ligaEscudosOficiais } from './escudo-oficial-chave'
 import { baralhoOficial, semBaseEscondida } from './baralho-oficial-carga' // 🇧🇷 cartas do modo: pedaço separado, baixado só por quem entra nele
 import { brasilOficialLiberado, previaCentral, janelaNovaLiberada } from './sport' // 🇧🇷 Brasil Oficial (15/11): por enquanto SÓ a conta do Diego
 import { clubeOficial, CLUBES_BR, CLUBES_BR_TODOS, clubesDaDivisao, cartasDoClube, sorteiaElenco } from './brasil-oficial'
@@ -1439,7 +1471,7 @@ const extraDoDono = (m: Manager): number => (ACTIVE_SPORT === 'basquete' || MODO
 export function slotsOf(m: Manager, pos: Sector): number {
   // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
   // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
-  if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
+  if (ACTIVE_SPORT === 'basquete') return m.aberturaBase ? (m.aberturaBase[pos] ?? 0) + 1 : m.nbaSlots ?? NBA_BASE_SLOTS // 🔨 abertura do EUA Oficial: +1 por posição
   // 🧱 leilão de clubes: no pregão cada técnico leva UM pacote por setor (a convocação vem depois)
   if (m.modoClubes) return 1
   // 🔨 Brasil Oficial (18/11): no leilão de ABERTURA cada clube leva UMA por posição — *"5 pra todos… um pra goleiro, um pra zagueiro,
@@ -3178,6 +3210,7 @@ function calendarioDaLiga(s: EscState): [number, number][][] {
   if (ehKings(s)) return calendarioKings(s.league.map(t => t.id))
   if (s.bafo2) return calendarioBafo(shuffle(s.league.map(t => t.id), mulberry((s.seed ^ 0xBAF02) >>> 0))) // 🃏 21/11: 2 = 5 jogos · 3–4 = 4 turnos · 5+ = ida e volta
   const f = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+  if (s.sport === 'basquete' && s.nbaSala) return f.slice(0, nbaSalaJogos(s.nbaSala.tam)) // 🏀 sala NBA: 82 · 38 · 36 jogos
   return turnoUnicoVale(s) ? f.slice(0, f.length / 2) : f
 }
 
@@ -4582,6 +4615,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     const hNameB = nomeDoTime(homeId)
     const aNameB = nomeDoTime(awayId)
     const POS_W: Record<string, number> = { GOL: 3, LAT: 4, ZAG: 3.5, MEI: 3, ATA: 3 } // PG/SG/SF/PF/C
+    // 📺🏀 18/11: os pontos de CADA jogador neste jogo (os mesmos que vão pra cestinha), pra a Quadra 2D mostrar exatamente quem fez
+    // quanto. Só nos jogos com gente (é o jogo que aparece na tela). Não consome dado nenhum.
+    const bbPts: Record<number, { n: string; p: number; a?: number; r?: number }[]> = {}
     const creditPts = (id: number, pts: number, prefix: string) => {
       const m = state.managers.find(x => x.id === id)
       if (!m || m.squad.length === 0) return
@@ -4589,7 +4625,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       // jogo). O nível manda na média; o dia deixa um coadjuvante brilhar às vezes.
       const pool = m.squad.map(c => {
         const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-        return { name: c.name, fake: ehFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
+        return { name: c.name, pos: c.pos, nivel: n, fake: ehFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
       })
       pool.sort((a, b) => b.w - a.w)
       // 🏀 só a ROTAÇÃO pontua (topo ~9); banco fundo quase não marca, igual à NBA.
@@ -4602,16 +4638,36 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       const shareW = rotation.map((_, i) => Math.pow(DECAY, i))
       const shareTot = shareW.reduce((s, x) => s + x, 0) || 1
       let left = pts
+      // 📊 18/11 (Diego: *"no basquete quero as principais estatísticas"*): rebotes, assistências, roubos e tocos de quem jogou.
+      // Dado PRÓPRIO (`srng`), nunca o do jogo: o placar e tudo que vem depois ficam iguais byte a byte. O total do time no jogo
+      // é sorteado perto da média da NBA e repartido pelos minutos (o posto na rotação) × a posição × um pouco do nível.
+      const srng = mulberry(((state.seed ^ Math.imul(state.round + 1, 0x9E3779B1) ^ Math.imul(id + 7, 40503) ^ Math.imul(pts, 2246822519) ^ (scorersList === state.scorers ? 0 : 0x5EED)) >>> 0))
+      const STAT_W: Record<'reb' | 'ast' | 'rou' | 'toc', Record<string, number>> = {
+        reb: { GOL: 0.5, LAT: 0.6, ZAG: 1.0, MEI: 1.6, ATA: 2.0 },
+        ast: { GOL: 2.6, LAT: 1.2, ZAG: 1.0, MEI: 0.6, ATA: 0.5 },
+        rou: { GOL: 1.4, LAT: 1.3, ZAG: 1.0, MEI: 0.7, ATA: 0.6 },
+        toc: { GOL: 0.15, LAT: 0.3, ZAG: 0.7, MEI: 1.5, ATA: 2.4 },
+      }
+      const totais = { reb: 33 + srng() * 10, ast: 20 + srng() * 10, rou: 5 + srng() * 5, toc: 3 + srng() * 4 }
+      const minutos = rotation.map((_, i) => Math.pow(0.86, i))
+      const statsDo = (k: 'reb' | 'ast' | 'rou' | 'toc') => {
+        const w = rotation.map((p, i) => minutos[i] * (STAT_W[k][p.pos] ?? 1) * (0.7 + p.nivel * 0.6) * (0.55 + srng() * 0.9))
+        const tot = w.reduce((a2, b2) => a2 + b2, 0) || 1
+        return w.map(x => Math.round(totais[k] * x / tot))
+      }
+      const reb = statsDo('reb'), ast = statsDo('ast'), rou = statsDo('rou'), toc = statsDo('toc')
       rotation.forEach((p, i) => {
         const share = i === rotation.length - 1 ? left : Math.max(0, Math.min(left, Math.round(pts * shareW[i] / shareTot)))
         left -= share
-        if (share <= 0) return
+        if (involveHuman) (bbPts[id] ??= []).push({ n: p.name, p: share, a: ast[i], r: reb[i] }) // pontos · assistências · rebotes DESTE jogo
         // 🃏🚫 tapa-buraco PONTUA no jogo (o placar é dele também), mas não entra
-        // na cestinha. Mesma regra do futebol — ordem do Diego, 19/09.
+        // na cestinha nem nas estatísticas. Mesma regra do futebol — ordem do Diego, 19/09.
         if (p.fake) return
-        const row = scorersList.find(s => s.name === p.name && s.teamId === id)
-        if (row) row.goals += share
-        else scorersList.push({ name: p.name, teamId: id, teamName: prefix, goals: share })
+        let row = scorersList.find(s => s.name === p.name && s.teamId === id)
+        if (!row) { row = { name: p.name, teamId: id, teamName: prefix, goals: 0 }; scorersList.push(row) }
+        row.goals += share
+        row.j = (row.j ?? 0) + 1; row.pos = p.pos
+        row.reb = (row.reb ?? 0) + reb[i]; row.ast = (row.ast ?? 0) + ast[i]; row.rou = (row.rou ?? 0) + rou[i]; row.toc = (row.toc ?? 0) + toc[i]
       })
       if (involveHuman) {
         const top = pool.slice(0, 3)
@@ -4636,7 +4692,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         }
       }
     }
-    return { homeId, awayId, hg: hp, ag: ap, highlights }
+    return { homeId, awayId, hg: hp, ag: ap, highlights, ...(involveHuman ? { bbPts } : {}) }
   }
 
   // atribui os gols a um jogador real e credita na artilharia da temporada
@@ -4783,6 +4839,12 @@ export function topScorers(state: EscState, limit = 10): ScorerRow[] {
 function finishSeason(s: EscState) {
   s.champion = sortedTable(s.league)[0].id
   if (ehKings(s)) { if (!s.quickCopa) seedKingsCopa(s) }
+  else if (s.copaMode === 'liga_copa' && !s.quickCopa && s.sport === 'basquete' && s.nbaSala) {
+    s.quickCopa = seedSalaNba(s)
+    s.news = [s.quickCopa.phase === 'playin'
+      ? tr(`🎟️ Fim da temporada regular — chegou o PLAY-IN! ${s.nbaSala.tam === 30 ? '7º ao 10º' : s.nbaSala.tam === 10 ? '2º ao 5º' : '3º ao 6º'} brigam pelas últimas vagas. Depois, PLAYOFFS melhor de 7.`, `🎟️ Regular season over — the PLAY-IN is here! ${s.nbaSala.tam === 30 ? '7th to 10th' : s.nbaSala.tam === 10 ? '2nd to 5th' : '3rd to 6th'} fight for the last spots. Then the best-of-7 PLAYOFFS.`)
+      : tr('🏆 Fim da temporada regular — chegaram os PLAYOFFS! Toda série é melhor de 7.', '🏆 Regular season over — the PLAYOFFS are here! Every series is best of 7.')]
+  }
   else if (s.copaMode === 'liga_copa' && !s.quickCopa) {
     const bbCopa = s.sport === 'basquete'
     s.quickCopa = seedQuickCopa(s.league, bbCopa)
@@ -5176,6 +5238,55 @@ function playChampionsRepescao(s: EscState) {
   // relógio do banner) — o mesmo caminho da Copa dos 8.
 }
 
+/** 🏠 quem joga EM CASA no jogo `legIdx` do mata-mata. ⚽ ida = A, volta = B (final = A, jogo único). 🏀 série melhor de 3: jogos 1 e 3
+ *  com A (melhor campanha). 🏀 melhor de 7 (18/11): o 2-2-1-1-1 da NBA — jogos 1, 2, 5 e 7 na quadra de A. Tela e motor leem daqui. */
+export function copaMandoA(legIdx: number, bb: boolean, bo?: number): boolean {
+  if (!bb) return legIdx === 0
+  if (bo === 7) return legIdx === 0 || legIdx === 1 || legIdx === 4 || legIdx === 6
+  return legIdx % 2 === 0
+}
+/** 🏀 sala NBA: os grupos da classificação (Leste e Oeste pela conferência real; tabela única na sala de 10), cada um na ordem da tabela. */
+function gruposSalaNba(s: EscState): { conf: 'L' | 'O' | 'U'; ids: number[] }[] {
+  const tab = sortedTable(s.league)
+  if (!s.nbaSala || !s.nbaConf) return [{ conf: 'U', ids: tab.map(t => t.id) }]
+  const conf = s.nbaConf
+  return (['L', 'O'] as const).map(c => ({ conf: c, ids: tab.filter(t => (conf[t.id] ?? (t.id % 2 === 0 ? 'L' : 'O')) === c).map(t => t.id) }))
+}
+/** 🏀 monta a 1ª fase dos playoffs da sala NBA a partir dos classificados de cada grupo (na ordem: 1º, 2º…). 8 por lado = chave da NBA
+ *  (1×8 · 4×5 · 3×6 · 2×7); 4 por lado = 1×4 · 2×3. Os vencedores de dois em dois se cruzam — Leste e Oeste só nas Finals. */
+function playoffsSalaNba(s: EscState, grupos: number[][]): Pick<QuickCopaState, 'phase' | 'ties'> {
+  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  const mk = (a: number, b: number): QuickCopaTie => ({ aId: a, bId: b, aName: nome(a), bName: nome(b), legs: [], winner: null })
+  const n = Math.min(...grupos.map(g => g.length))
+  const por = n >= 8 ? 8 : n >= 4 ? 4 : 2
+  const ties: QuickCopaTie[] = []
+  for (const g0 of grupos) {
+    const g = g0.slice(0, por)
+    if (por === 8) ties.push(mk(g[0], g[7]), mk(g[3], g[4]), mk(g[2], g[5]), mk(g[1], g[6]))
+    else if (por === 4) ties.push(mk(g[0], g[3]), mk(g[1], g[2]))
+    else ties.push(mk(g[0], g[1]))
+  }
+  const phase: CopaFase = ties.length >= 8 ? 'oitavas' : ties.length >= 4 ? 'quartas' : ties.length >= 2 ? 'semis' : 'final'
+  return { phase, ties }
+}
+/** 🏀 18/11 SALA NBA: fim da temporada regular. Diretos (30: 1º–6º · 20/10: 1º–2º) e o PLAY-IN dos 4 seguintes (30: 7º–10º · 20/10:
+ *  3º–6º): 7×8 e 9×10 em jogo único; depois o perdedor do 7×8 encara o vencedor do 9×10. Grupo curto demais = sem Play-In (só os
+ *  diretos + os 2 seguintes). Toda série dos playoffs é melhor de 7. */
+function seedSalaNba(s: EscState): QuickCopaState {
+  // 🏀 sala de 10 (5 por conferência): só o 1º vai direto; 2º×3º e 4º×5º, e os vencedores se enfrentam pela 2ª vaga (opção A do Diego)
+  const dir = s.nbaSala?.tam === 30 ? 6 : s.nbaSala?.tam === 10 ? 1 : 2
+  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  const mk = (a: number, b: number): QuickCopaTie => ({ aId: a, bId: b, aName: nome(a), bName: nome(b), legs: [], winner: null })
+  const grupos = gruposSalaNba(s).map(g => g.ids.length >= dir + 4
+    ? { conf: g.conf, direto: g.ids.slice(0, dir), seeds: g.ids.slice(dir, dir + 4) }
+    : { conf: g.conf, direto: g.ids.slice(0, dir + 2), seeds: [] as number[] })
+  const base = { legIdx: 0, bracket: [], scorers: [], bo: 7 as const }
+  if (grupos.every(g => g.seeds.length === 4)) {
+    const ties = grupos.flatMap(g => [mk(g.seeds[0], g.seeds[1]), mk(g.seeds[2], g.seeds[3])])
+    return { ...base, phase: 'playin', ties, playin: { rodada: 1, grupos } }
+  }
+  return { ...base, ...playoffsSalaNba(s, grupos.map(g => g.direto)) }
+}
 function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
   const sorted = sortedTable(league)
   const mk = (a: LeagueTeam, b: LeagueTeam): QuickCopaTie => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null })
@@ -5201,17 +5312,17 @@ function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
     const CONF_GRANDE = 12
     const chave8 = (c: LeagueTeam[]) => [mk(c[0], c[7]), mk(c[3], c[4]), mk(c[2], c[5]), mk(c[1], c[6])]
     if (east.length >= CONF_GRANDE && west.length >= CONF_GRANDE) {
-      return { phase: 'oitavas', ties: [...chave8(east.slice(0, 8)), ...chave8(west.slice(0, 8))], legIdx: 0, bracket: [], scorers: [] }
+      return { phase: 'oitavas', ties: [...chave8(east.slice(0, 8)), ...chave8(west.slice(0, 8))], legIdx: 0, bracket: [], scorers: [], bo: 7 }
     }
     if (east.length >= 4 && west.length >= 4) {
       const e = east.slice(0, 4), w = west.slice(0, 4)
       const ties = [mk(e[0], e[3]), mk(e[1], e[2]), mk(w[0], w[3]), mk(w[1], w[2])]
-      return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [] }
+      return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [], bo: 7 }
     }
   }
   const top8 = sorted.slice(0, 8)
   const ties = [mk(top8[0], top8[7]), mk(top8[3], top8[4]), mk(top8[1], top8[6]), mk(top8[2], top8[5])]
-  return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [] }
+  return { phase: 'quartas', ties, legIdx: 0, bracket: [], scorers: [], ...(nba ? { bo: 7 as const } : {}) } // 🏀 18/11 (Diego): playoffs do basquete são SEMPRE melhor de 7
 }
 // resolve uma tie depois do(s) leg(s) jogado(s): soma o agregado; empate vira
 // pênaltis (mesma fórmula da Copa da carreira — 3 a 5 cobranças, sem empatar 2x).
@@ -5316,7 +5427,7 @@ function playNbaCupRound(s: EscState): void {
     // em Las Vegas) — `neutral` tira a vantagem de casa dos dois lados.
     const r = simMatch(s, tie.aId, tie.bId, rng, cup.scorers, isFinal, cup.assists)
     tie.legs.push([r.hg, r.ag])
-    tie.lastHighlights = r.highlights
+    tie.lastHighlights = r.highlights; tie.lastBbPts = r.bbPts // 📺🏀 a Quadra 2D do jogo da série
     tie.lastPresentationGoals = r.presentationGoals
     // 🛡️ jogo de basquete não empata (a prorrogação já acontece dentro do próprio
     // jogo). Isto aqui é rede de segurança: se um dia vier empate, a PRORROGAÇÃO
@@ -6045,8 +6156,11 @@ type Action =
   | { type: 'KINGS_DECIDIR'; key: string; canto: number; /** 👑 11/11 (sala online): QUAL jogo (casa-fora) — com várias pessoas na sala tem mais de um jogo com gente */ jogo?: string }
   | { type: 'POKE_SET'; liga: import('./pokemon-batalha').PokeLigaEstado } // ⚡ modo Pokémon: a liga de batalhas grava aqui (vai no save)
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
-  | { type: 'START_NBA'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'START_NBA'; /** 🏀 18/11: a mesma sala NBA no rápido offline (tamanho + formato) */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
+  | { type: 'EUA_DRAFT_ABRIR' } | { type: 'EUA_DRAFT_COMECAR' } | { type: 'EUA_DRAFT_ESCOLHER'; chave: string } | { type: 'EUA_DRAFT_AUTO' } // 🏀🎓 Draft do EUA Oficial
+  | { type: 'START_EUA_CAREER'; franquia: string; extras: Card[] } // 🏀🇺🇸 carreira EUA Oficial (19/11): franquia real na NBA, sem sobe e desce. `extras` = as cartas novas só da carreira (data-basquete-eua, baixadas pela tela)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
+  | { type: 'CLOSE_NBA_BOOKS' } // 🏀💰 17/11: fecha o caixa da temporada no passo 💰 do roteiro (uma vez só, booksSeason)
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'NEXT_NBA_SEASON_ONLINE' } // 🌐🏀 carreira ONLINE: host avança a temporada (leilão de reservas multi-humano + sobe de andar)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
@@ -6087,7 +6201,7 @@ type Action =
   | { type: 'MLD_TROCA'; mgrId: number; a: string; b: string; by?: string } // 👕 Minha Liga Draft: troca titular ↔ reserva (mesma posição)
   | { type: 'DRAFT_PULAR'; by?: string } // 📋🏆 Minha Liga Draft: o DONO pula a vez de quem não deu pronto (ele perde a vez)
   | { type: 'DRAFT_TICK' } // 📋 relógio do draft (só o dono tica): tempo esgotado → escolha automática; anúncio acabou → próximo
-  | { type: 'START_ONLINE'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean; /** 🃏 21/11: Bafo novo (coleção da conta, só gente) */ bafo2?: boolean; bafoFormacoes?: Record<number, FormationKey> }
+  | { type: 'START_ONLINE'; /** 🏀 18/11: sala NBA (rápido do basquete) — tamanho e formato */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; /** 🃏 Vice City: cartas de golpe por técnico */ viceCartas?: number; /** 👑 11/11: sala da Kings com os jogadores DA Kings League */ kingsBaralho?: boolean; turnoUnico?: boolean; draftRegras?: RegrasDraft; draftPremios?: number[]; selecao?: boolean; decada?: boolean; envUnico?: boolean; ligaDraft?: boolean; minhaLigaDraft?: boolean; tamanhoLiga?: 10; campo2d?: boolean; draftCarry?: DraftCarry; regional?: string; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; relampagoChave?: 16 | 32; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean; /** 🃏 21/11: Bafo novo (coleção da conta, só gente) */ bafo2?: boolean; bafoFormacoes?: Record<number, FormationKey> }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; /** 📋 21/11: janela nova — as marcas "pôr à venda" do Mercado viram a lista do leilão (só a tela da carreira solo manda) */ janelaNova?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -8314,7 +8428,7 @@ function comecaTemporadaMesmoTime(s: EscState): void {
   // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
   // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
   s.seed = Math.floor(Math.random() * 1e9)
-  s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+  s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
   s.fixtures = calendarioDaLiga(s)
   s.round = 0
   s.scorers = []; s.assists = []
@@ -8535,7 +8649,7 @@ export function viraCampo2D(s: EscState): void {
 export const MARCAS_DE_MODO = ['pregaoAberto', 'viceCity', 'viceCartas', 'kingsBaralho', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos', 'bafoOn', 'bafo2',
-  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm'] as const satisfies readonly (keyof EscState)[]
+  'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm', 'nbaSala', 'nbaConf', 'nbaMundo'] as const satisfies readonly (keyof EscState)[]
 /** 🧹 03/11 (Diego: "veja se tem mais furos em carreira nova", depois do preparador herdado). A carreira nova é montada POR CIMA
  *  do estado que sobrou da anterior; estes campos são da CARREIRA e não eram zerados em lugar nenhum — dívida/crise, torcida,
  *  crônica, motor novo (`motor2Desde` velho travava o botão até a temporada antiga!), resultados do motor (`m2Res`), prêmios já
@@ -8546,7 +8660,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'oficialAbertura', 'deOlho'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'oficialAbertura', 'deOlho', 'aVendaMercado'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8615,6 +8729,149 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   s.screen = 'season'
   return true
 }
+/** 🏀🇺🇸 EUA OFICIAL (19/11, plano em docs/carreira-eua-oficial-plano.md). Monta a carreira por cima do START_NBA_CAREER: a liga é a
+ *  NBA de verdade — as 30 franquias, cada uma com as cartas DELA (as antigas do auge + as novas só da carreira, `extras`), nas
+ *  conferências reais, 82 jogos + Play-In + Playoffs melhor de 7 (o motor da sala NBA). Sem sobe e desce (decisão do Diego). Cada
+ *  franquia começa com o quinteto SORTEADO entre as cartas dela. Devolve false se a franquia não existir (e não mexe em nada). */
+/** 🏀🌍 conta os títulos da temporada que acabou pro ranking do basquete (EUA Oficial), UMA vez por temporada */
+export function anotaTitulosEua(s: EscState): void {
+  if (!s.euaOficial || s.screen !== 'end') return
+  const t = s.euaTitulos ?? { aneis: 0, conferencias: 0, copas: 0, campanhas: 0, temporadas: 0 }
+  if (t.ultima === s.seasonNo) return
+  const eu = s.managers.find(m => m.isHuman)?.id
+  if (eu == null) return
+  const qc = s.quickCopa
+  const fin = (qc?.bracket ?? []).find(b => b.phase === 'final')?.ties ?? (qc?.phase === 'final' ? qc.ties : [])
+  const novo = {
+    aneis: t.aneis + (qc?.champion?.id === eu ? 1 : 0),
+    conferencias: t.conferencias + (fin.some(x => x.aId === eu || x.bId === eu) ? 1 : 0),
+    copas: t.copas + (s.nbaCup?.champion?.id === eu ? 1 : 0),
+    campanhas: t.campanhas + (sortedTable(s.league)[0]?.id === eu ? 1 : 0),
+    temporadas: t.temporadas + 1, ultima: s.seasonNo,
+  }
+  s.euaTitulos = novo
+}
+/** 🏀🎓 Draft do EUA Oficial: as cartas que podem ser escolhidas AGORA — sem time (nem a mesma pessoa em outro time), promessa ou bom */
+export function poolDraftEua(s: EscState): Card[] {
+  const cat = buildNbaCatalog(false)
+  const nomes = new Set(s.managers.flatMap(m => m.squad.map(c => c.name.toLowerCase())))
+  const out: Card[] = []
+  const vistos = new Set<string>()
+  const add = (pos: Sector, c: Card) => { const k = `${c.name}|${c.club}|${c.year}`; if (vistos.has(k) || nomes.has(c.name.toLowerCase())) return; vistos.add(k); if (entraNoDraft({ ...c, pos })) out.push({ ...c, pos, id: `edr-${out.length}` } as Card) }
+  for (const pos of SECTORS) for (const c of cat[pos]) add(pos, c as unknown as Card)
+  for (const c of s.euaOficial?.extras ?? []) if (SECTORS.includes(c.pos as Sector)) add(c.pos as Sector, c)
+  return out.sort((a, b) => forcaDraft(b) - forcaDraft(a))
+}
+function pickDraftEua(s: EscState, m: Manager, c: Card, auto: boolean): void {
+  const d = s.euaDraft
+  if (!d) return
+  const preco = justoDaCarta(s, c)
+  m.squad = [...m.squad, { ...c, id: `edr${d.temporada}-${m.id}`, paid: preco, buyPrice: preco, via: 'leilao' } as WonCard]
+  d.picks.push({ mgrId: m.id, name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, ...(auto ? { auto: true } : {}) })
+  ;(s.marketLog = s.marketLog ?? []).push(`🎓 ${m.teamName} escolheu ${c.name} no Draft (${d.idx + 1}ª escolha)`)
+  d.idx++
+}
+/** os bots escolhem na vez deles até chegar a vez de gente (ou acabar o Draft) */
+function rodaBotsDraftEua(s: EscState): void {
+  const d = s.euaDraft
+  if (!d || d.fase !== 'escolha') return
+  while (d.idx < d.ordem.length) {
+    const m = s.managers.find(x => x.id === d.ordem[d.idx])
+    if (!m) { d.idx++; continue }
+    if (m.isHuman) { d.prazo = Date.now() + 60_000; return }
+    const c = escolhaDoBot(poolDraftEua(s), m.squad.map(x => x.pos), SECTORS)
+    if (!c) { d.idx++; continue }
+    pickDraftEua(s, m, c, true)
+  }
+  d.fase = 'feito'; d.prazo = undefined
+}
+/** 🏀🏆 NBA Cup real (EUA Oficial): anota os jogos de GRUPO desta rodada (o 1º encontro de cada dupla do grupo no calendário — são
+ *  jogos da temporada, já contaram na tabela) e, quando os 6 grupos fecham, monta o mata-mata de 8 no motor da Cup de sempre. */
+function registraCupEua(s: EscState, results: { homeId: number; awayId: number; hg: number; ag: number }[]): void {
+  const cup = s.euaCup
+  if (!s.euaOficial || !cup || cup.fechado) return
+  const nome = (id: number) => s.managers.find(m => m.id === id)?.teamName ?? ''
+  const grupoDe = new Map<string, string>()
+  for (const g of cup.grupos) for (const t of g.times) grupoDe.set(t, g.nome)
+  for (const r of results) {
+    const c = nome(r.homeId), f = nome(r.awayId)
+    if (!c || !f || grupoDe.get(c) !== grupoDe.get(f) || !grupoDe.get(c)) continue
+    const k = parCup(c, f)
+    if (!cup.jogos[k]) cup.jogos[k] = { casa: c, fora: f, pc: r.hg, pf: r.ag }
+  }
+  if (!gruposCompletos(cup)) return
+  cup.fechado = true
+  const cls = classificadosCup(cup)
+  const idDe = (t: string) => s.managers.find(m => m.teamName === t)?.id
+  const mk = (a: string, b: string): QuickCopaTie | null => { const ia = idDe(a), ib = idDe(b); return ia == null || ib == null ? null : { aId: ia, bId: ib, aName: a, bName: b, legs: [], winner: null } }
+  const ties = [mk(cls.L[0], cls.L[3]), mk(cls.L[1], cls.L[2]), mk(cls.O[0], cls.O[3]), mk(cls.O[1], cls.O[2])]
+  s.nbaCupFeita = s.seasonNo
+  if (ties.some(t => !t)) return // 🛡️ sem os 8 a chave não existe — a Cup não trava a temporada
+  s.nbaCup = { phase: 'quartas', ties: ties as QuickCopaTie[], legIdx: 0, bracket: [], scorers: [], assists: [] }
+  s.news = [tr(`🏆 Fim da fase de grupos da NBA CUP! Nas quartas: ${[...cls.L, ...cls.O].join(', ')}. Jogo único — quem perder está fora.`,
+    `🏆 NBA CUP group stage is over! Quarter-finals: ${[...cls.L, ...cls.O].join(', ')}. Single game — lose and you are out.`), ...s.news].slice(0, 12)
+}
+const EUA_LINHAGEM: Record<string, string> = { Sonics: 'Thunder', SuperSonics: 'Thunder', Bullets: 'Wizards', Royals: 'Kings', Bobcats: 'Hornets', Braves: 'Clippers', Nationals: 'Sixers', Blazers: 'Trail Blazers' }
+const EUA_FRANQUIAS = [...NBA_LESTE, ...NBA_OESTE]
+function iniciaEuaOficial(s: EscState, franquia: string, extras: Card[]): boolean {
+  if (!EUA_FRANQUIAS.includes(franquia)) return false
+  const cat = buildNbaCatalog(false)
+  const porFranquia: Record<string, { pos: Sector; c: Card }[]> = {}
+  const add = (pos: Sector, c: Card) => { const f = EUA_LINHAGEM[c.club] ?? c.club; if (EUA_FRANQUIAS.includes(f)) (porFranquia[f] ??= []).push({ pos, c }) }
+  for (const pos of SECTORS) for (const c of cat[pos]) add(pos, c as unknown as Card)
+  for (const c of extras ?? []) if (c && SECTORS.includes(c.pos as Sector)) add(c.pos as Sector, c)
+  // 🔨 o que não coube nos 15 de cada franquia (o Celtics tem 27 cartas) vai pro LEILÃO DE ABERTURA, igual ao Brasil Oficial
+  const sobras: Record<Sector, Card[]> = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+  // 🎲 19/11 (Diego: *"na NBA os times começam apenas com titulares… se o Lakers tiver 100 cartas, sorte apenas pros titulares"*): cada
+  // franquia começa com o QUINTETO — 1 por posição, SORTEADO entre as cartas dela (preso na semente da carreira). O resto fica sem time:
+  // vai pro leilão de abertura e pro Draft. O elenco cresce como na carreira de sempre (T2 rotação de 10, T3+ elenco de 15).
+  const rngQ = mulberry((s.seed ^ 0x0E0A0D5) >>> 0)
+  const elencoDe = (f: string): WonCard[] => {
+    const todas = porFranquia[f] ?? []
+    const pega: typeof todas = []
+    for (const pos of SECTORS) { const daPos = todas.filter(x => x.pos === pos); if (daPos.length) pega.push(daPos[Math.floor(rngQ() * daPos.length)]) }
+    for (const x of todas) if (!pega.includes(x)) sobras[x.pos].push({ ...x.c, pos: x.pos, id: `ab-${x.pos}-${sobras[x.pos].length}` } as Card)
+    return pega.map((x, i) => {
+      const c = { ...x.c, pos: x.pos, id: `eua-${x.pos}-${f.replace(/\s+/g, '')}-${i}` } as Card
+      const preco = justoDaCarta(s, c)
+      return { ...c, paid: preco, buyPrice: preco, via: 'bot' } as WonCard
+    })
+  }
+  const ordem = [franquia, ...EUA_FRANQUIAS.filter(f => f !== franquia)]
+  const eu = s.managers[0]
+  s.managers = ordem.map((f, i) => ({
+    id: i, name: i === 0 ? (eu?.name ?? f) : f, teamName: f, isHuman: i === 0, auctionRival: i === 0, formation: eu?.formation ?? '4-3-3',
+    money: i === 0 ? (eu?.money ?? 0) : 0, squad: elencoDe(f), aggression: 0.5, starHunger: 0.5,
+  } as Manager))
+  s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
+  s.careerRivalCount = ordem.length - 1; s.careerRivals = []
+  s.euaOficial = { franquia, extras: (extras ?? []).map(c => ({ ...c })) } // as cartas novas ficam no save: o Draft das próximas temporadas precisa delas
+  s.euaCup = { temporada: s.seasonNo ?? 1, grupos: GRUPOS_2026.map(g => ({ ...g, times: [...g.times] })), jogos: {} } // 🏆 os grupos REAIS de 2026
+  s.nbaTier = 'nba'
+  s.nbaSala = { tam: 30, formato: 'playoffs' }; s.copaMode = 'liga_copa'
+  s.nbaConf = conferenciasNba(s.managers)
+  const pl: Record<string, string> = {}
+  for (const m of s.managers) pl[`m${m.id}`] = tierDivKey('nba')
+  s.careerPlacements = pl
+  s.clubCash = seedClubCash({}, pl)
+  for (const m of s.managers) if (!m.isHuman) m.money = Math.max(0, Math.round(s.clubCash[`m${m.id}`] ?? 0)) // 🤖 o bot dá lance no leilão de abertura com o caixa dele
+  s.quickCopa = null; s.nbaCup = null; s.nbaCupFeita = null; s.liberta = null; s.champions = null
+  // sem leilão de estreia: cada franquia já entra com o elenco dela (como o Brasil Oficial). O leilão de sempre vem na virada.
+  s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
+  for (const pos of SECTORS) s.stock[pos] = 0
+  s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []
+  s.reserveAuction = false; s.reserveListed = {}
+  s.careerMercado = undefined; s.marketLog = [] // o pregão que a carreira de sempre preparou não aconteceu: o mercado começa vazio
+  const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
+  s.league = buildLeague(s.managers, false)
+  s.fixtures = calendarioDaLiga(s)
+  s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
+  // 🔨 LEILÃO DE ABERTURA: cada franquia (você e os bots) pode levar UMA carta por posição da sobra. Sem sobra, começa direto.
+  for (const pos of SECTORS) sobras[pos] = sobras[pos].filter(c => !c.fake).map(c => ({ ...c, paid: justoDaCarta(s, c) }))
+  if (abreLeilaoAberturaCom(s, sobras, mulberry((s.seed ^ 0x0E0A0B1) >>> 0))) return true
+  s.screen = 'season'
+  return true
+}
 /** 🔨 monta e abre o leilão de abertura do Brasil Oficial. false = não tinha carta (segue pra temporada). */
 function abreLeilaoAberturaOficial(s: EscState, semente: (txt: string) => number, cat: Record<Sector, Card[]>, rngC: () => number): boolean {
   const ident = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
@@ -8636,6 +8893,11 @@ function abreLeilaoAberturaOficial(s: EscState, semente: (txt: string) => number
       porPos[x.pos].push({ ...x.carta, pos: x.pos, id: `ab-${x.pos}-${porPos[x.pos].length}` } as Card)
     }
   }
+  return abreLeilaoAberturaCom(s, porPos, rngC)
+}
+/** 🔨 o pregão de ABERTURA (1 por posição pra cada clube, usuário e bots) com as cartas que sobraram — do Brasil Oficial e do EUA
+ *  Oficial. false = não tinha carta (segue pra temporada). */
+function abreLeilaoAberturaCom(s: EscState, porPos: Record<Sector, Card[]>, rngC: () => number): boolean {
   const demanda = s.managers.length // 1 vaga por clube em cada posição
   const deck = {} as Record<Sector, Card[]>
   for (const pos of SECTORS) {
@@ -9436,6 +9698,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // conteúdo: baralho NBA, franquias como rivais e 1 vaga por posição (=5, o
     // quinteto). O futebol não passa por aqui.
     case 'START_NBA': {
+      s.nbaSala = undefined; s.nbaConf = undefined; s.nbaMundo = undefined // 🏀 18/11: a sala NBA (e o baralho Mundo) é só do rápido — partida/carreira nova não herda
       // 🧱 Clubes no basquete (19/10): o pacote é a POSIÇÃO de uma franquia da NBA. Na tela offline ainda não tem o
       // botão (é da sala online); o campo existe pro motor e pra trava `npm run clubes-nba`.
       s.leilaoClubes = !!action.clubes; s.leilaoSelecao = false; s.leilaoDecada = false; s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
@@ -9450,15 +9713,25 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ⚡ 09/11: envelope único também no rápido do basquete (igual ao futebol); e nunca herda da partida anterior
       s.envUnico = !!action.envUnico; s.euAberto = false; s.euRevelando = false; s.euRodada = undefined; s.euSobras = undefined
       if (s.envUnico) { s.holandes = false; s.pregaoAberto = false }
-      setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição
+      s.nbaMundo = action.nbaMundo ? true : undefined // 🌍 18/11: "NBA + Mundo" (escolha da partida; nunca herda)
+      setActiveSport('basquete', 'quick', !!s.nbaMundo) // baralho NBA (+ Mundo) + 1 vaga por posição
       s.deckLeague = 'br' // não usado no basquete (o baralho é o NBA), mas mantém o campo válido
       s.careerDivision = null; s.careerIntent = false; s.careerTitles = 0; s.careerTitlesA = 0
       s.copaMode = action.rivals >= 7 ? 'liga_copa' : 'liga'
       s.careerRivalCount = action.rivals; s.careerRivals = []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0
       const rivals = Math.max(1, action.rivals)
-      const { managers, botPlans } = makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_TEAMS)
+      // 🏀 18/11 SALA NBA também offline (Diego: *"sim segue"*): a liga tem 30/20/10 franquias nas conferências reais; os `rivals`
+      // continuam sendo só quem disputa o LEILÃO com você — o resto da liga são bots com elenco pronto (igual à sala online).
+      if (action.nbaTam) {
+        s.nbaSala = { tam: action.nbaTam, formato: action.nbaFormato === 'liga' ? 'liga' : 'playoffs' }
+        s.copaMode = s.nbaSala.formato === 'liga' ? 'liga' : 'liga_copa'
+      }
+      const { managers, botPlans } = s.nbaSala
+        ? makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, Math.max(s.nbaSala.tam, rivals + 1), rng, poolSalaNba(s.nbaSala.tam, 1, rng))
+        : makeManagers([action.teamName || 'Meu Time'], '4-3-3', rivals, rivals + 1, rng, NBA_TEAMS)
       s.managers = managers; s.youIdx = 0
+      if (s.nbaSala) s.nbaConf = conferenciasNba(s.managers)
       // 💰 orçamento do rápido do basquete = 50 (não 100). São só 5 jogadores (o
       // quinteto); 50 dá ~10/jogador, o MESMO equilíbrio do futebol (100 pra 11).
       // Com 100 dava 20/jogador e dava pra pagar caro em todo mundo — inflava.
@@ -9499,7 +9772,49 @@ function reducerBase(state: EscState, action: Action): EscState {
     // cheia de 20 times, pontos corridos. O leilão de reservas (crescer pra
     // rotação 10 → elenco 15), os desbloqueios por temporada e salvar/continuar
     // são o próximo passo. O futebol não passa por aqui.
+    case 'EUA_DRAFT_ABRIR': {
+      // 🏀🎓 a loteria: os 14 fora dos playoffs (do pior pro melhor) sorteiam as 4 primeiras; depois os 16 dos playoffs, pior → melhor
+      if (!s.euaOficial || s.screen !== 'end' || s.euaDraft?.temporada === s.seasonNo) return state
+      const tab = sortedTable(s.league)
+      const noPO = new Set<number>()
+      for (const b of s.quickCopa?.bracket ?? []) if (b.phase !== 'playin') for (const t of b.ties) { noPO.add(t.aId); noPO.add(t.bId) }
+      for (const t of (s.quickCopa?.phase !== 'playin' ? s.quickCopa?.ties : []) ?? []) { noPO.add(t.aId); noPO.add(t.bId) }
+      const piorPrimeiro = [...tab].reverse().map(t => t.id)
+      const fora = noPO.size >= 16 ? piorPrimeiro.filter(id => !noPO.has(id)) : piorPrimeiro.slice(0, 14)
+      const dentro = piorPrimeiro.filter(id => !fora.includes(id))
+      const loteria = sorteiaLoteria(fora, mulberry((s.seed ^ 0x0D7AF7 ^ (s.seasonNo * 7919)) >>> 0))
+      s.euaDraft = { temporada: s.seasonNo, fora, sorteio: loteria.slice(0, 4), ordem: [...loteria, ...dentro], idx: 0, fase: 'loteria', picks: [] }
+      return s
+    }
+    case 'EUA_DRAFT_COMECAR': {
+      if (!s.euaDraft || s.euaDraft.fase !== 'loteria') return state
+      s.euaDraft.fase = 'escolha'
+      rodaBotsDraftEua(s)
+      return s
+    }
+    case 'EUA_DRAFT_ESCOLHER':
+    case 'EUA_DRAFT_AUTO': {
+      const d = s.euaDraft
+      if (!d || d.fase !== 'escolha') return state
+      const m = s.managers.find(x => x.id === d.ordem[d.idx])
+      if (!m || !m.isHuman) return state
+      const pool = poolDraftEua(s)
+      const c = action.type === 'EUA_DRAFT_ESCOLHER' ? pool.find(x => `${x.name}|${x.club}|${x.year}` === action.chave) : escolhaDoBot(pool, m.squad.map(x => x.pos), SECTORS)
+      if (action.type === 'EUA_DRAFT_AUTO' && Date.now() < (d.prazo ?? 0)) return state // ⏱️ só quando o relógio acabou de verdade
+      if (!c) { if (action.type === 'EUA_DRAFT_ESCOLHER') return state; d.idx++ } else pickDraftEua(s, m, c, action.type === 'EUA_DRAFT_AUTO')
+      rodaBotsDraftEua(s)
+      return s
+    }
+    case 'START_EUA_CAREER': {
+      // 🏀🇺🇸 a carreira de sempre do basquete (economia, save, identidade) e, por cima, a NBA de verdade
+      if (!EUA_FRANQUIAS.includes(action.franquia)) return state
+      const base = reducerBase(state, { type: 'START_NBA_CAREER', teamName: action.franquia })
+      if (base === state || !iniciaEuaOficial(base, action.franquia, action.extras)) return state
+      return base
+    }
     case 'START_NBA_CAREER': {
+      s.euaOficial = undefined // 🏀🇺🇸 a carreira de sempre (Street League) nunca herda o EUA Oficial
+      s.nbaSala = undefined; s.nbaConf = undefined; s.nbaMundo = undefined // 🏀 18/11: a sala NBA (e o baralho Mundo) é só do rápido — partida/carreira nova não herda
       s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       s.seed = Math.floor(Math.random() * 1e9)
       s.nbaCareerId = `nba-${Date.now().toString(36)}-${s.seed.toString(36)}` // 🏀 identidade fixa da carreira (Minhas Carreiras)
@@ -9577,8 +9892,19 @@ function reducerBase(state: EscState, action: Action): EscState {
     // RESERVAS. Você MANTÉM o quinteto e leiloa só as vagas novas (T2: 5→10). Os
     // outros times ficam no quinteto (5), como a Série D do futebol fica no XI.
     // Autocontido no basquete (guardado por nbaCareer) — o futebol não passa aqui.
+    case 'CLOSE_NBA_BOOKS': {
+      // 🏀💰 17/11 (roteiro do fim de temporada no basquete, igual ao futebol): o passo 💰 CAIXA fecha o caixa da temporada
+      // ANTES da decisão, pra pessoa ver o que entrou e saiu. É o MESMO fechamento que o NEXT_NBA_SEASON fazia — e o
+      // `applySeasonMoney` só roda UMA vez por temporada (booksSeason), então apertar Próxima depois não paga de novo.
+      if (s.sport !== 'basquete' || !s.nbaCareer || s.onlineMode === 'online' || s.screen !== 'end') return state
+      if (s.booksSeason === (s.seasonNo ?? 1)) return state
+      anotaTitulosEua(s) // 🏀🌍 ranking do basquete (EUA Oficial)
+      applySeasonMoney(s, nbaSeasonRewards(sortedTable(s.league), s.nbaTier ?? 'street'))
+      return s
+    }
     case 'NEXT_NBA_SEASON': {
       if (s.sport !== 'basquete' || !s.nbaCareer) return s
+      anotaTitulosEua(s) // 🏀🌍 ranking do basquete (se o caixa não foi fechado antes, conta aqui; nunca 2×)
       // 💰 ECONOMIA (Camada 1 do futebol): fecha o caixa da temporada que ACABOU —
       // prêmios por colocação + bilheteria/estádio + patrocínio (por andar) − folha
       // salarial — e registra no extrato, ANTES de avançar. Mesma mecânica do futebol.
@@ -9598,6 +9924,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       // andar de cima (crews → afiliados → franquias). Ninguém cai (base amadora).
       const lastTable = sortedTable(s.league)
       const youPos = lastTable.findIndex(t => t.id === you.id) + 1
+      // 🏀🏆 EUA Oficial: os grupos da próxima NBA Cup saem do SORTEIO REAL (potes pela campanha que acabou, por conferência)
+      if (s.euaOficial) {
+        const ordem = (c: 'L' | 'O') => lastTable.filter(t => s.nbaConf?.[t.id] === c).map(t => s.managers.find(m => m.id === t.id)?.teamName ?? '').filter(Boolean)
+        s.euaCup = { temporada: s.seasonNo, grupos: sorteiaGrupos(ordem('L'), ordem('O'), rng), jogos: {} }
+      }
       const tier: NbaTier = s.nbaTier ?? 'street'
       const promoted = youPos >= 1 && youPos <= 4 && NBA_TIERS[tier].next != null
       if (promoted) {
@@ -9698,7 +10029,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
         s.fixtures = calendarioDaLiga(s)
         s.tactics = {}
         s.screen = 'season'
@@ -9817,7 +10148,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
         s.fixtures = calendarioDaLiga(s)
         s.tactics = {}
         s.screen = 'season'
@@ -10114,7 +10445,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerLedger = []
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
       s.fixtures = calendarioDaLiga(s)
       s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
       s.screen = 'season'
@@ -10246,8 +10577,19 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = nbaCareerRoom // 🏀 online rápido/liga: não é a carreira salva; carreira online: é
       if (nbaCareerRoom) s.nbaTier = 'street' // começa na base da pirâmide do basquete (Street League)
-      if (onlineNba) setActiveSport('basquete', nbaCareerRoom ? 'career' : 'quick') // carreira = vagas de carreira; rápido = quinteto
+      s.nbaMundo = onlineNba && !nbaCareerRoom && action.nbaMundo ? true : undefined // 🌍 18/11: "NBA + Mundo" só no rápido/salas
+      if (onlineNba) setActiveSport('basquete', nbaCareerRoom ? 'career' : 'quick', !!s.nbaMundo) // carreira = vagas de carreira; rápido = quinteto
       else setActiveCatalog(s.deckLeague, fracoInicial, s.regionalSala)
+      // 🏀 18/11 SALA NBA: só no rápido do basquete (nem carreira, nem liga/draft). Tamanho nunca menor que a galera da sala.
+      {
+        const t0 = action.nbaTam
+        const nGente = action.playerNames.length
+        // 🏀 19/11: Liga da Turma e Liga Draft do basquete também são a sala NBA (antes era só o rápido)
+        const tam: 30 | 20 | 10 | null = onlineNba && !nbaCareerRoom && t0
+          ? (nGente <= t0 ? t0 : nGente <= 20 ? 20 : 30) : null
+        s.nbaSala = tam ? { tam, formato: action.nbaFormato === 'liga' ? 'liga' : 'playoffs' } : undefined
+        s.nbaConf = undefined
+      }
       // 👑 sala da Kings com os jogadores DA Kings (o baralho próprio, que nenhum outro leilão enxerga)
       s.kingsBaralho = kingsSala && !!action.kingsBaralho ? true : undefined
       if (s.kingsBaralho) ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG
@@ -10294,6 +10636,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (onlineNba) s.copaMode = nbaCareerRoom
         ? ((s.nbaTier ?? 'street') === 'street' ? 'liga' : 'liga_copa')
         : ((fechada && action.playerNames.length < 8) ? 'liga' : 'liga_copa')
+      if (s.nbaSala) s.copaMode = s.nbaSala.formato === 'liga' ? 'liga' : 'liga_copa' // 🏀 sala NBA: só a liga ou liga + Play-In + Playoffs
       // 📮 TODA sala usa a caixa de entrada do host (04/10; antes só a Champions, desde 25/09). O
       // recado do convidado vai SÓ pro dono em vez de ser entregue pra sala inteira — numa sala de 5,
       // é 1 entrega em vez de 4 por lance. Mesma estrada da Champions, com os mesmos reservas: se a
@@ -10389,7 +10732,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // bots. Nos outros modos, completa até 20 como sempre.
       // ⚡ Relâmpago: a sala tem EXATAMENTE o tamanho da chave (16 ou 32) — os bots que completam ganham elenco pronto, igual sempre.
       // 📏 Liga de 10 (Minha Liga Draft 01/11; toda sala com liga 04/11): bots completam até 10; com mais de 10 pessoas a liga cresce até caber todo mundo
-      const onlineLeagueSize = kingsSala ? Math.max(10, action.playerNames.length) : s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : s.tamanhoLiga === 10 ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
+      const onlineLeagueSize = s.nbaSala ? Math.max(s.nbaSala.tam, action.playerNames.length) : kingsSala ? Math.max(10, action.playerNames.length) : s.relampagoChave ? s.relampagoChave : s.ligaFechada ? action.playerNames.length : s.tamanhoLiga === 10 ? Math.max(10, action.playerNames.length) : LEAGUE_SIZE
       // 🌐 CARREIRA ONLINE: igual ao offline — os rivais ESCOLHIDOS pelo host entram
       // como CPUs que DÃO LANCE no leilão (auctionRival) e disputam a temporada. A
       // ordem de nomes coloca os escolhidos primeiro (viram os auction-rivals),
@@ -10399,7 +10742,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const namePool = onlineNba
         // 🏀 rápido = FRANQUIAS da NBA; carreira começa na base (crews da Street League, o
         // andar de estreia). Ao subir de andar, NEXT_NBA_SEASON_ONLINE troca pelos times do andar.
-        ? shuffle([...(nbaCareerRoom ? NBA_STREET_TEAMS : NBA_PRO_TEAMS)], rng)
+        ? (s.nbaSala ? poolSalaNba(s.nbaSala.tam, action.playerNames.length, rng) : shuffle([...(nbaCareerRoom ? NBA_STREET_TEAMS : NBA_PRO_TEAMS)], rng))
         : action.career
         ? [...careerChosen, ...careerRest]
         : poolSalaComBatismos(rng)
@@ -10411,6 +10754,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // só ficam marcados os HUMANOS (👤/🔥) e as SAFs (💼). Os rivais CPU brigam no
       // leilão mas aparecem como time comum, sem selo ⚔️.
       s.managers = onlineManagers
+      if (s.nbaSala) s.nbaConf = conferenciasNba(s.managers) // 🏀 Leste/Oeste pelo time REAL; a galera completa o lado que falta
       // 🏀 caixa do basquete: 50 pro quinteto (5) = ~10/jogador, o MESMO equilíbrio
       // do futebol (100 pra 11). Com os 100 do futebol dava pra pagar caro em todos.
       // Só quem DISPUTA o pregão (humanos e rivais de leilão) — os bots de tabela
@@ -11649,7 +11993,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
       s.fixtures = calendarioDaLiga(s)
       s.round = 0
       s.scorers = []; s.assists = []
@@ -12189,6 +12533,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const neutro = !kingsLiga && ligaJogoNeutro(s)
         const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!, false, s.round) : neutro ? simMatch(s, h, a, rng, s.scorers, true) : simMatch(s, h, a, rng))
         results.forEach(r => kingsLiga ? aplicaResultadoKings(s.league, r) : applyResult(s.league, r))
+        registraCupEua(s, results) // 🏀🏆 EUA Oficial: jogos de grupo da NBA Cup (já contaram na tabela)
         // rivalidade: só confrontos entre dois humanos contam
         results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
         // carreira: retrospecto contra seus rivais fixos que estão na sua divisão
@@ -12217,7 +12562,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🛝 `copaMode === 'liga_copa'` = andar que TEM mata-mata (G League, NBA e a
       // sala online). A Street League é a várzea do basquete: pontos corridos e
       // nada mais, então lá não nasce Cup nenhuma — como não nasce playoff.
-      if (s.sport === 'basquete' && s.copaMode === 'liga_copa' && !s.nbaCup && s.nbaCupFeita !== s.seasonNo
+      if (s.sport === 'basquete' && s.copaMode === 'liga_copa' && !s.nbaSala /* 18/11: sala NBA sem Cup por enquanto (Diego) */ && !s.nbaCup && s.nbaCupFeita !== s.seasonNo
         && s.round >= Math.floor(roundsTotal / 2) && s.round < roundsTotal) {
         const cup = seedNbaCup(s.league)
         s.nbaCupFeita = s.seasonNo
@@ -12266,7 +12611,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (!novo) return s
         const emCasaA = novo.homeId === tie.aId
         tie.legs[0] = emCasaA ? [novo.hg, novo.ag] : [novo.ag, novo.hg]
-        tie.lastHighlights = novo.highlights
+        tie.lastHighlights = novo.highlights; tie.lastBbPts = novo.bbPts
         tie.lastKings = novo.kings
         tie.kingsJogo = novo
         if (novo.kings?.pens) {
@@ -12361,8 +12706,14 @@ function reducerBase(state: EscState, action: Action): EscState {
       const kingsCopa = ehKings(s) // 👑 mata-mata da Kings: TUDO jogo único
       // ⚡ Relâmpago: ida e volta como a Copa de sempre, só a final em jogo único (Diego 28/10: *"tem q ter ida e volta, somente final que não"*)
       const relampago = s.copaMode === 'relampago'
-      const legsNeeded = bbSerie ? 3 : (isFinal || kingsCopa ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
-      const legsPlayed = qc.ties[0]?.legs.length ?? 0
+      // 🏀 18/11: série melhor de 7 (`bo`) — sem o campo é a série antiga, melhor de 3. Play-In = jogo único.
+      const playin = bbSerie && qc.phase === 'playin'
+      const boSerie = playin ? 1 : (qc.bo ?? 3)
+      const vitoriasPraPassar = Math.floor(boSerie / 2) + 1
+      const legsNeeded = bbSerie ? boSerie : (isFinal || kingsCopa ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 (ou 7) jogos
+      // 🏀 as séries que seguem vivas estão TODAS no mesmo jogo (cada passo joga 1 jogo de cada uma) — conta por uma delas,
+      // senão a série que fechou cedo travava o número do jogo e o sorteio repetia.
+      const legsPlayed = (bbSerie ? (qc.ties.find(t => t.winner === null) ?? qc.ties[0]) : qc.ties[0])?.legs.length ?? 0
       // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
       // última perna já teve tempo de animar na tela (o dispatch anterior tocou a
       // perna; este só fecha o chaveamento e monta a próxima fase). Sem isso, a
@@ -12372,6 +12723,27 @@ function reducerBase(state: EscState, action: Action): EscState {
       const faseAcabou = bbSerie ? qc.ties.every(t => t.winner !== null) : legsPlayed >= legsNeeded
       if (faseAcabou) {
         qc.bracket = [...qc.bracket, { phase: qc.phase, ties: qc.ties }]
+        if (playin && qc.playin) {
+          // 🎟️ PLAY-IN: rodada 1 (7×8 e 9×10) → rodada 2 (perdedor do 7×8 × vencedor do 9×10) → playoffs melhor de 7
+          const pi = qc.playin
+          const nomeDe = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+          const perde = (t: QuickCopaTie) => (t.winner === t.aId ? t.bId : t.aId)
+          const umaVaga = s.nbaSala?.tam === 10 // 🏀 sala de 10: o Play-In vale UMA vaga (vencedor do 2×3 × vencedor do 4×5)
+          if (pi.rodada === 1) {
+            pi.grupos.forEach((g, i) => { const t78 = qc.ties[i * 2], t910 = qc.ties[i * 2 + 1]; g.vagaA = umaVaga ? undefined : t78.winner!; g.perdA = umaVaga ? t78.winner! : perde(t78); g.vencB = t910.winner! })
+            qc.ties = pi.grupos.map(g => ({ aId: g.perdA!, bId: g.vencB!, aName: nomeDe(g.perdA!), bName: nomeDe(g.vencB!), legs: [], winner: null }))
+            pi.rodada = 2
+            s.news = [tr('🎟️ Play-In: agora vale a ÚLTIMA vaga — quem perder está fora.', '🎟️ Play-In: now it is for the LAST spot — lose and you are out.'), ...s.news].slice(0, 12)
+          } else {
+            const grupos = pi.grupos.map((g, i) => [...g.direto, ...(g.vagaA != null ? [g.vagaA] : []), qc.ties[i].winner!])
+            const po = playoffsSalaNba(s, grupos)
+            qc.phase = po.phase; qc.ties = po.ties
+            qc.playin = undefined
+            s.news = [tr('🏆 Play-In fechado — começam os PLAYOFFS! Toda série é melhor de 7.', '🏆 Play-In done — the PLAYOFFS start! Every series is best of 7.'), ...s.news].slice(0, 12)
+          }
+          qc.legIdx = 0
+          return s
+        }
         if (isFinal) {
           const champ = qc.ties[0]
           const champId = champ.winner!
@@ -12431,7 +12803,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       }
       // ── JOGA a próxima perna. legIdx = a perna que está sendo jogada/MOSTRADA
       // agora (0 = ida, 1 = volta) — o rótulo na tela lê daqui, então fica certo.
-      qc.legIdx = Math.min(legsPlayed, 2) as 0 | 1 | 2
+      qc.legIdx = bbSerie ? legsPlayed : Math.min(legsPlayed, 2)
       const isLastLeg = legsPlayed + 1 >= legsNeeded // volta (fases) ou o jogo único (final)
       const rng = mulberry(s.seed + 90000 + s.seasonNo * 733 + qc.ties.length * 31 + qc.bracket.length * 97 + qc.legIdx * 13)
       for (const tie of qc.ties) {
@@ -12439,7 +12811,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // ida: A em casa; volta: B em casa (mandante troca). Final: jogo único, A em casa.
         // 🏀 série de 3: jogos 1 e 3 na quadra de A (melhor campanha), jogo 2 na de B —
         // o mando alterna igual à NBA, e a vantagem fica com quem fez por merecer.
-        const emCasaA = qc.legIdx % 2 === 0
+        const emCasaA = bbSerie ? copaMandoA(qc.legIdx, true, boSerie) : qc.legIdx % 2 === 0
         const homeId = emCasaA ? tie.aId : tie.bId
         const awayId = emCasaA ? tie.bId : tie.aId
         // 🏆 gols da Copa contam numa artilharia À PARTE (qc.scorers) — não mexe na da liga.
@@ -12450,7 +12822,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const r = kingsCopa ? jogoKings(s, homeId, awayId, rng, qc.scorers, qc.assists, isFinal, 100 + qc.bracket.length) : simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
         const leg: [number, number] = emCasaA ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [pontos/gols de A, de B]
         tie.legs.push(leg)
-        tie.lastHighlights = r.highlights
+        tie.lastHighlights = r.highlights; tie.lastBbPts = r.bbPts // 📺🏀 a Quadra 2D do jogo da série
         tie.lastPresentationGoals = r.presentationGoals
         if (kingsCopa) { tie.lastKings = r.kings; tie.kingsJogo = r.kingsBase ? r : undefined }
         if (bbSerie) {
@@ -12458,8 +12830,8 @@ function reducerBase(state: EscState, action: Action): EscState {
           // jogo alguém já chega a 2 obrigatoriamente — jogo de basquete não empata
           // (a prorrogação acontece dentro do próprio jogo, em `simMatch`).
           const [va, vb] = vitoriasNaSerie(tie)
-          if (va >= 2 || vb >= 2) tie.winner = va > vb ? tie.aId : tie.bId
-          else if (tie.legs.length >= 3) resolveQuickCopaTie(tie, rng, true) // salvaguarda
+          if (va >= vitoriasPraPassar || vb >= vitoriasPraPassar) tie.winner = va > vb ? tie.aId : tie.bId
+          else if (tie.legs.length >= boSerie) resolveQuickCopaTie(tie, rng, true) // salvaguarda
         } else if (kingsCopa && r.kings?.pens) {
           // 👑 empatou: o SHOOTOUT da Kings já foi batido no jogo — vale ele (virado pro lado de A)
           tie.pens = emCasaA ? r.kings.pens : [r.kings.pens[1], r.kings.pens[0]]
@@ -12472,21 +12844,21 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏀 no basquete a chave é a da NBA: 1ª rodada → semis de conf. → finais de conf. → FINALS
       const bbGiro = s.sport === 'basquete'
       const phaseWord = bbGiro
-        ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
+        ? (playin ? 'PLAY-IN' : isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
         : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'r32' ? 'RODADA DE 32' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
       const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : relampago ? 'Relâmpago' : 'Copa'
-      const legWord = bbGiro ? ` · jogo ${qc.legIdx + 1}` : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
+      const legWord = bbGiro ? (playin ? '' : ` · jogo ${qc.legIdx + 1}`) : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
         const leg = tie.legs[tie.legs.length - 1]
         if (!leg) continue
         // na VOLTA o mandante inverte (B joga em casa): mostra o mandante primeiro
         // no placar, pra manchete refletir a troca de lado (ida A×B, volta B×A).
-        const swap = qc.legIdx % 2 === 1 // ⚽ volta · 🏀 jogo 2 (mando alterna)
+        const swap = bbGiro ? !copaMandoA(qc.legIdx, true, boSerie) : qc.legIdx % 2 === 1 // ⚽ volta · 🏀 mando da série
         const mand = swap ? tie.bName : tie.aName, vis = swap ? tie.aName : tie.bName
         const mandG = swap ? leg[1] : leg[0], visG = swap ? leg[0] : leg[1]
         copaHeads.push(`${bbGiro ? '🏀' : '⚽'} ${copaWord} ${phaseWord}${legWord}: ${mand} ${mandG} × ${visG} ${vis}`)
-        if (tie.winner !== null) {
+        if (tie.winner !== null && !playin) { // 🎟️ no Play-In quem perde o 7×8 ainda tem chance: sem "adeus"
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
           copaHeads.push(tie.pens ? (tie.ot ? `🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l}!` : `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!`) : // 🏆 26/09: o giro dizia "avançou na LIBERTADORES" numa sala de CHAMPIONS. O
@@ -13724,7 +14096,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
-        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
         s.fixtures = calendarioDaLiga(s)
         s.seasonNo++
         if (s.oficial && s.oficial.vagasDesde == null) s.oficial = { ...s.oficial, vagasDesde: s.seasonNo }
@@ -13852,7 +14224,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
       s.fixtures = calendarioDaLiga(s)
       s.screen = 'season'
       return s
@@ -13882,7 +14254,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10)
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s) && s.tamanhoLiga !== 10 && !s.nbaSala)
       s.fixtures = calendarioDaLiga(s)
       s.screen = 'season'
       return s
@@ -14709,6 +15081,12 @@ const FICHA_NBA = (() => {
     }
   }
   for (const n of repetidos) porNome.delete(n)
+  // 🌍 18/11: as cartas do baralho Mundo só pela chave EXATA (nome|clube|ano) — o "por nome" segue sendo só da NBA,
+  // senão o Iverson do Beşiktaş tirava o Iverson do Sixers do atalho por nome.
+  for (const lista of Object.values(CATALOG_NBA_MUNDO)) for (const c of lista) {
+    const k = `${c.name}|${clubCanon(c.club)}|${c.year}`
+    if (!exato.has(k)) exato.set(k, { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bioPt: c.bioPt, bioEn: c.bioEn })
+  }
   return { exato, porNome }
 })()
 // 🗜️ PLACAR ACUMULADO DA MÁQUINA NAS COPAS INTERNACIONAIS (03/10, save do marcomak03 que não

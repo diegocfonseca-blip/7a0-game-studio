@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import {getSport} from './sport'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 export type BotecoBairro={id:string;name:string;root:THREE.Group;tables:{x:number;y:number;z:number;heading:number}[];entrance:{x:number;y:number;z:number};setFixture:(text:string)=>void;dispose:()=>void}
 /** Replaces a neighbourhood house on an already registered city block. These
@@ -18,7 +19,7 @@ export function criarBotecoBairro(parent:THREE.Object3D,spec:{id:string;name:str
  const sign=(text:string,w:number,h:number,x:number,y:number,z:number,color:string,bottle=false)=>{if(typeof document==='undefined')return(_value:string)=>{};const canvas=document.createElement('canvas');canvas.width=bottle&&!text?192:1024;canvas.height=192;const ctx=canvas.getContext('2d')!;const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;ts.add(texture);const material=new THREE.MeshStandardMaterial({map:texture,roughness:.9});ms.add(material);const g=new THREE.PlaneGeometry(w,h);gs.add(g);const mesh=new THREE.Mesh(g,material);mesh.position.set(x,y,z);root.add(mesh);const draw=(value:string)=>{ctx.fillStyle=color;ctx.fillRect(0,0,1024,192);ctx.fillStyle='#fff1cd';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 86px Oswald, sans-serif';ctx.fillText(value,bottle?565:512,101,bottle?850:990);if(bottle){ctx.save();if(!value)ctx.translate(16,0);ctx.beginPath();ctx.roundRect(18,17,125,157,45);ctx.fill();ctx.fillStyle='#633218';ctx.fillRect(67,38,27,27);ctx.beginPath();ctx.roundRect(48,60,65,98,10);ctx.fill();ctx.fillStyle='#e7ba4c';ctx.fillRect(50,105,61,28);ctx.restore()}texture.needsUpdate=true};draw(text);return draw}
  sign(spec.name.toUpperCase(),8.9,.60,0,2.91,4.97,spec.color,true)
  sign('',.9,.9,-3.5,1.6,4.97,spec.color,true)
- const board=sign('DIA DE FUTEBOL',2.0,.48,2.8,1.8,4.97,'#294637');let last=''
+ const board=sign(getSport()==='basquete'?'DIA DE BASQUETE':'DIA DE FUTEBOL',2.0,.48,2.8,1.8,4.97,'#294637');let last=''
  const tables:BotecoBairro['tables']=[]
  for(const z of [7.2,9.8,12.4])for(const x of [-2.4,2.4]){
   box(.85,.055,.85,x,.74,z,yellow);for(const dx of [-.33,.33])for(const dz of [-.33,.33])box(.06,.70,.06,x+dx,.35,z+dz,yellow)

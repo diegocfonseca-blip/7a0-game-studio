@@ -69,7 +69,7 @@ export function runsDaCopa(copa: QuickCopaState | null | undefined): Map<number,
 
 // ── a linha de cada técnico ─────────────────────────────────────────────────
 export interface LinhaSala {
-  id: number; time: string; quem: string; pos: number; pts: number
+  id: number; time: string; quem: string; pos: number; pts: number; /** 🏀 campanha V-D no lugar dos pontos */ vd?: string
   humano: boolean; voce: boolean
   nota: string
   destaque?: 'ouro' | 'roxo' | 'vermelho' | 'cinza'
@@ -353,7 +353,9 @@ export interface EdicaoSala {
   campeaoCopa: { nome: string; quem: string } | null
   mesmoDono: boolean
   artilheiro: { nome: string; time: string; gols: number } | null
-  lanterna: { nome: string; quem: string; pts: number } | null
+  lanterna: { nome: string; quem: string; pts: number; vd?: string } | null
+  /** 🏀 nome da liga na faixa do campeão (Street League / G League / NBA) no lugar de "LIGA LEGENDS" */
+  ligaNome?: string
   manchete: string
   linhaFina: string
   copaNome: string
@@ -417,7 +419,7 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
     else if (!humano && pos !== 1 && pos !== n) return
     const { nota, destaque } = notaDe(t, pos, n, runs.get(t.id), vagasCopa, zonaDebaixo, copaNome, seed)
     linhas.push({
-      id: t.id, time: t.name, quem: m?.name ?? '', pos, pts: t.pts,
+      id: t.id, time: t.name, quem: m?.name ?? '', pos, pts: t.pts, ...(bb ? { vd: `${t.w}-${t.l}` } : {}),
       humano, voce: t.id === state.managers[state.youIdx]?.id, nota, destaque,
     })
   })
@@ -436,7 +438,7 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   const mesmoDono = mundo ? !!(t1 && mundo.nome === t1.name) : !!(champCopa && t1 && champCopa.id === t1.id)
   const art = topScorers(state, 1)[0]
   const artilheiro = art ? { nome: art.name, time: art.teamName, gols: art.goals } : null
-  const lanterna = tN && n > 1 ? { nome: tN.name, quem: mgr(tN.id)?.name ?? '', pts: tN.pts } : null
+  const lanterna = tN && n > 1 ? { nome: tN.name, quem: mgr(tN.id)?.name ?? '', pts: tN.pts, ...(bb ? { vd: `${tN.w}-${tN.l}` } : {}) } : null
 
   // manchete: muda quando os dois títulos têm donos diferentes
   // ✏️ 26/09 (Diego: *"texto muito estranho… uma sala inteira sem saber de quem foi a
@@ -467,14 +469,14 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   } else if (campeaoLiga) {
     manchete = en ? `${campeaoLiga.nome.toUpperCase()} IS THE ${offline ? 'TOURNAMENT' : 'ROOM'} CHAMPION!` : `${campeaoLiga.nome.toUpperCase()} É O CAMPEÃO ${offline ? 'DO TORNEIO' : 'DA SALA'}!`
     linhaFina = en
-      ? `${campeaoLiga.pts} points and the trophy. ${offline ? 'The rest of the pack' : 'The rest of the room'} will have to wait for the next auction.`
-      : `${campeaoLiga.pts} pontos e a taça. ${offline ? 'O resto do pelotão' : 'O resto da sala'} vai ter que esperar o próximo pregão.`
+      ? `${bb ? `${campeaoLiga.w}-${campeaoLiga.l}` : `${campeaoLiga.pts} points`} and the trophy. ${offline ? 'The rest of the pack' : 'The rest of the room'} will have to wait for the next auction.`
+      : `${bb ? `${campeaoLiga.w}-${campeaoLiga.l}` : `${campeaoLiga.pts} pontos`} e a taça. ${offline ? 'O resto do pelotão' : 'O resto da sala'} vai ter que esperar o próximo pregão.`
   } else {
     manchete = en ? (offline ? 'FULL TIME' : 'FULL TIME IN THE ROOM') : offline ? 'FIM DE JOGO' : 'FIM DE JOGO NA SALA'
     linhaFina = en ? 'The table is closed.' : 'A tabela fechou.'
   }
 
-  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline, ...(bb ? { bb } : {}), ...(state.minhaLigaDraft ? { draftTemp: state.seasonNo } : {}) }
+  return { linhas, campeaoLiga, campeaoCopa, mesmoDono, artilheiro, lanterna, manchete, linhaFina, copaNome, nTecnicos: linhas.filter(l => l.humano).length, offline, ...(bb ? { bb, ligaNome: !state.nbaCareer ? 'NBA' : state.nbaTier === 'nba' ? 'NBA' : state.nbaTier === 'gleague' ? 'G LEAGUE' : 'STREET LEAGUE', ...(campeaoLiga ? { subCampeao: `${campeaoLiga.w}-${campeaoLiga.l}` } : {}) } : {}), ...(state.minhaLigaDraft ? { draftTemp: state.seasonNo } : {}) }
 }
 
 // ── a capa na tela ──────────────────────────────────────────────────────────
@@ -516,7 +518,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       {/* banner(s) dos campeões */}
       <div className="newspaper-champions" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         {ed.campeaoLiga && (
-          <Banner faixa={ed.soRelampago ? tr('MATA-MATA RELÂMPAGO', 'LIGHTNING KNOCKOUT') : ed.soChampions ? 'CHAMPIONS LEAGUE' : 'LIGA LEGENDS'} tag={tr('CAMPEÃO', 'CHAMPION')} time={ed.campeaoLiga.nome}
+          <Banner faixa={ed.soRelampago ? tr('MATA-MATA RELÂMPAGO', 'LIGHTNING KNOCKOUT') : ed.soChampions ? 'CHAMPIONS LEAGUE' : ed.ligaNome ?? 'LIGA LEGENDS'} tag={tr('CAMPEÃO', 'CHAMPION')} time={ed.campeaoLiga.nome}
             sub={`${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.subCampeao ?? `${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}`}
             c1="#2E9E5B" c2="#14532d" fita="#DFF3E3" />
         )}
@@ -537,7 +539,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
             ed.artilheiro && (ed.bb
               ? ['🏀', ed.offline ? tr('CESTINHA DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('CESTINHA DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('pontos', 'points')}`, GREEN]
               : ['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN]),
-            ed.lanterna && ['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} ${tr('pontos', 'points')}`, '#7A7460'],
+            ed.lanterna && ['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.vd ?? `${ed.lanterna.pts} ${tr('pontos', 'points')}`}`, '#7A7460'],
           ].filter(Boolean) as [string, string, string, string, string][]).map(([ic, rot, nome, sub, cor]) => (
             <div key={rot} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '8px 10px', borderTop: '1.5px solid rgba(0,0,0,.1)', borderLeft: `6px solid ${cor}` }}>
               <span style={{ fontSize: 17, flex: 'none' }}>{ic}</span>
@@ -563,7 +565,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <p style={{ ...SERIF, fontWeight: 700, fontSize: 13, margin: 0, lineHeight: 1.15 }}>{l.time}
                     {l.voce && <span style={{ ...COND, fontSize: 8.5, background: INK, color: GOLD, borderRadius: 4, padding: '1px 5px', marginLeft: 5 }}>{tr('VOCÊ', 'YOU')}</span>}
-                    {l.quem && <span style={{ ...COND, fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.45)', marginLeft: 5 }}>{l.quem}{ed.soRelampago ? '' : ` · ${l.pts} pts`}</span>}</p>
+                    {l.quem && <span style={{ ...COND, fontWeight: 700, fontSize: 9.5, color: 'rgba(0,0,0,.45)', marginLeft: 5 }}>{l.quem}{ed.soRelampago ? '' : ` · ${l.vd ?? `${l.pts} pts`}`}</span>}</p>
                   <p style={{ ...SERIF, fontSize: 11.5, margin: '2px 0 0', lineHeight: 1.35, color: 'rgba(0,0,0,.78)' }}>{l.nota}</p>
                 </div>
               </div>
@@ -576,7 +578,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
       {/* 🥇 rodapé dourado — é ele que vai junto na imagem compartilhada */}
       <div style={{ marginTop: 12, background: `linear-gradient(100deg,#FFD44A,${GOLD} 45%,#E0A800)`, border: `3px solid ${INK}`, borderRadius: 8, padding: '9px 8px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.55) 48%,transparent 63%)' }} />
-        <p style={{ ...COND, fontWeight: 700, fontSize: 16, position: 'relative', letterSpacing: '.03em' }}>🔨 leilaolegends.com</p>
+        <p style={{ ...COND, fontWeight: 700, fontSize: 16, position: 'relative', letterSpacing: '.03em' }}>{ed.bb ? '🏀 bidlegendsarena.com' : '🔨 leilaolegends.com'}</p>
       </div>
 
       <button className="newspaper-share" onClick={onCompartilhar} disabled={compartilhando}
@@ -683,7 +685,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
     x.font = `700 20px ${OSW}`; x.fillStyle = GOLD
     x.fillText(tr('🏆 CAMPEÃO', '🏆 CHAMPION'), bx + bw / 2, y + 180)
   }
-  if (ed.campeaoLiga) desenhaBanner(L, ed.soRelampago ? tr('MATA-MATA RELÂMPAGO', 'LIGHTNING KNOCKOUT') : ed.soChampions ? 'CHAMPIONS LEAGUE' : 'LIGA LEGENDS', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.subCampeao ?? `${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}`, '#2E9E5B', '#14532d')
+  if (ed.campeaoLiga) desenhaBanner(L, ed.soRelampago ? tr('MATA-MATA RELÂMPAGO', 'LIGHTNING KNOCKOUT') : ed.soChampions ? 'CHAMPIONS LEAGUE' : ed.ligaNome ?? 'LIGA LEGENDS', ed.campeaoLiga.nome, `${ed.campeaoLiga.quem ? tr(`o time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `) : ''}${ed.subCampeao ?? `${ed.campeaoLiga.pts} ${tr('pontos', 'points')}`}`, '#2E9E5B', '#14532d')
   if (dois && ed.campeaoCopa) desenhaBanner(L + bw + 16, ed.copaNome.toUpperCase(), ed.campeaoCopa.nome, ed.campeaoCopa.quem ? tr(`o time do ${ed.campeaoCopa.quem}`, `${ed.campeaoCopa.quem}'s team`) : tr('campeão do mata-mata', 'knockout champion'), '#8B5CF6', '#4C1D95')
   y += bh + 30
 
@@ -698,7 +700,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   if (ed.artilheiro) donos.push(ed.bb
     ? ['🏀', ed.offline ? tr('CESTINHA DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('CESTINHA DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('pontos', 'points')}`, GREEN]
     : ['⚽', ed.offline ? tr('ARTILHEIRO DO TORNEIO', 'TOURNAMENT TOP SCORER') : tr('ARTILHEIRO DA SALA', 'ROOM TOP SCORER'), ed.artilheiro.nome, `${ed.artilheiro.time} · ${ed.artilheiro.gols} ${tr('gols', 'goals')}`, GREEN])
-  if (ed.lanterna) donos.push(['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.pts} ${tr('pontos', 'points')}`, '#7A7460'])
+  if (ed.lanterna) donos.push(['🏮', tr('LANTERNA', 'BOTTOM'), ed.lanterna.nome, `${ed.lanterna.quem} · ${ed.lanterna.vd ?? `${ed.lanterna.pts} ${tr('pontos', 'points')}`}`, '#7A7460'])
   for (const [ic, rot, nome, sub, cor] of donos) {
     x.fillStyle = '#fff'; x.fillRect(L, dy, MAXW, 74)
     x.fillStyle = cor; x.fillRect(L, dy, 9, 74)
@@ -731,7 +733,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
     x.font = `700 23px ${SER}`; x.fillStyle = INK
     x.fillText(l.time, L + 74, ny + 30)
     const tw = x.measureText(l.time).width
-    if (l.quem) { x.font = `700 15px ${OSW}`; x.fillStyle = 'rgba(0,0,0,.45)'; x.fillText(ed.soRelampago ? l.quem : `${l.quem} · ${l.pts} pts`, L + 74 + tw + 12, ny + 29) }
+    if (l.quem) { x.font = `700 15px ${OSW}`; x.fillStyle = 'rgba(0,0,0,.45)'; x.fillText(ed.soRelampago ? l.quem : `${l.quem} · ${l.vd ?? `${l.pts} pts`}`, L + 74 + tw + 12, ny + 29) }
     x.font = `22px ${SER}`; x.fillStyle = 'rgba(0,0,0,.78)'
     let ly = ny + 58
     for (const ln of linhasNota) { x.fillText(ln, L + 74, ly); ly += 28 }
@@ -748,7 +750,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
   x.fillStyle = g; x.fillRect(L, y, MAXW, 84)
   x.strokeStyle = INK; x.lineWidth = 5; x.strokeRect(L, y, MAXW, 84)
   x.fillStyle = INK; x.font = `700 36px ${OSW}`; x.textAlign = 'center'
-  x.fillText('🔨 leilaolegends.com', W / 2, y + 54)
+  x.fillText(ed.bb ? '🏀 bidlegendsarena.com' : '🔨 leilaolegends.com', W / 2, y + 54)
 
   return new Promise(res => cv.toBlob(b => res(b), 'image/png'))
 }
@@ -766,7 +768,9 @@ export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { st
     travaRef.current = true; setBusy(true)
     try {
       const blob = await buildSalaBlob(ed)
-      const txt = tr(`📰 "${ed.manchete}" — Leilão Legends. Monta o teu time: https://leilaolegends.com`, `📰 "${ed.manchete}" — Leilão Legends. Build your team: https://leilaolegends.com`)
+      // 🏀 18/11 (Diego: *"faça todos"*): o jornal do basquete leva o link e a marca do BidLegends
+      const txt = ed.bb ? tr(`📰 "${ed.manchete}" — BidLegends. Monta o teu time: https://bidlegendsarena.com`, `📰 "${ed.manchete}" — BidLegends. Build your team: https://bidlegendsarena.com`)
+        : tr(`📰 "${ed.manchete}" — Leilão Legends. Monta o teu time: https://leilaolegends.com`, `📰 "${ed.manchete}" — Leilão Legends. Build your team: https://leilaolegends.com`)
       if (blob) {
         const file = new File([blob], ed.offline ? 'o-martelo-torneio.png' : 'o-martelo-sala.png', { type: 'image/png' })
         const sd = { files: [file], title: 'O MARTELO', text: txt }

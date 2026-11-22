@@ -8,6 +8,7 @@
 // nenhuma luz e nenhuma sombra nova (a brasa e a TV brilham pelo material). Tudo anda no `update` que o mapa já chama no quadro
 // dele — sem toque (VIVO_MS) o mapa para e o bairro para junto. Quem chama embrulha em try/catch (criarTradicoesBairroSeguro).
 import * as THREE from 'three'
+import {getSport} from './sport'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import {createCivilian} from './cidade3d/civilians.mjs'
 import {residentVisibility} from './cidade3d/resident-visibility.mjs'
@@ -55,9 +56,15 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   placa(F.espetinho,'#0C0C0C','#FFC400',en?'SKEWERS ON THE GRILL':'ESPETINHO NA BRASA','#FFC400')
   for(const [faixa,c] of [[F.listraVermelha,'#C2452F'],[F.listraAzul,'#2F6FB5']] as const)for(let i=0;i<16;i++){g.fillStyle=i%2?'#ffffff':c;g.fillRect(i*32,faixa*64,32,64)}
   // 📺 a TV: o verde do gramado com as faixas e as linhas (sem placar, sem nome de ninguém — não dá spoiler)
-  const y=F.tv*64;g.fillStyle='#0c0c0c';g.fillRect(0,y,512,64);for(let i=0;i<6;i++){g.fillStyle=i%2?'#2f9a46':'#3aae52';g.fillRect(i*19.5,y,19.5,64)}
+  const y=F.tv*64;g.fillStyle='#0c0c0c';g.fillRect(0,y,512,64)
+  if(getSport()==='basquete'){ // 🏀 a TV do bar passa BASQUETE: quadra de madeira, garrafões e a bola laranja
+   g.fillStyle='#c98f55';g.fillRect(0,y,117,64);g.fillStyle='#1B7A3D';g.fillRect(6,y+22,18,20);g.fillRect(93,y+22,18,20)
+   g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=2;g.strokeRect(6,y+6,105,52);g.beginPath();g.moveTo(58.5,y+6);g.lineTo(58.5,y+58);g.stroke();g.beginPath();g.arc(58.5,y+32,7,0,Math.PI*2);g.stroke()
+   g.fillStyle='#E07B2E';g.beginPath();g.arc(80,y+36,3,0,Math.PI*2);g.fill()
+  }else{for(let i=0;i<6;i++){g.fillStyle=i%2?'#2f9a46':'#3aae52';g.fillRect(i*19.5,y,19.5,64)}
   g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=2;g.strokeRect(6,y+6,105,52);g.beginPath();g.moveTo(58.5,y+6);g.lineTo(58.5,y+58);g.stroke();g.beginPath();g.arc(58.5,y+32,9,0,Math.PI*2);g.stroke()
-  g.fillStyle='#ffffff';g.beginPath();g.arc(80,y+40,2.5,0,Math.PI*2);g.fill();for(const [x,yy,c] of [[40,26,'#e8503a'],[66,36,'#e8503a'],[88,30,'#ffffff'],[30,40,'#ffffff']] as const){g.fillStyle=c;g.fillRect(x,y+yy,3,5)}
+  g.fillStyle='#ffffff';g.beginPath();g.arc(80,y+40,2.5,0,Math.PI*2);g.fill()}
+  for(const [x,yy,c] of [[40,26,'#e8503a'],[66,36,'#e8503a'],[88,30,'#ffffff'],[30,40,'#ffffff']] as const){g.fillStyle=c;g.fillRect(x,y+yy,3,5)}
   atlas.needsUpdate=true
  }
  desenhaAtlas()
@@ -276,7 +283,7 @@ export function criarDiaDoBairro(root:THREE.Group,input:{lugares:LugaresBairro;b
   // a arara de cano (dois pés, o cano em cima) com 6 camisas penduradas de frente pra quem passa, e a lona no chão com mais
   for(const s of [-1,1])pecas.push(l.peca(s*1.3,0,.9,.05,1.8,.05,'#9aa0a3'),l.peca(s*1.3,0,.02,.06,.04,.6,'#9aa0a3'))
   pecas.push(l.peca(0,0,1.78,2.65,.04,.04,'#9aa0a3'),l.peca(0,1.0,.015,1.8,.02,1.0,'#2F6FB5'))
-  for(let k=0;k<6;k++){const s=-1.05+k*.42,f=.04*(k%2);camisas.push(l.peca(s,f,1.3,.48,.64,.02,'#ffffff',{yaw:(k-2.5)*.04}),l.peca(s,f,1.55,.76,.18,.02,'#ffffff',{yaw:(k-2.5)*.04}))}
+  for(let k=0;k<6;k++){const s=-1.05+k*.42,f=.04*(k%2);camisas.push(l.peca(s,f,1.3,.48,.64,.02,'#ffffff',{yaw:(k-2.5)*.04}),l.peca(s,f,1.55,getSport()==='basquete'?.3:.76,.18,.02,'#ffffff',{yaw:(k-2.5)*.04}))/* 🏀 regata: sem manga */}
   for(let k=0;k<4;k++)camisas.push(l.peca(-.6+k*.4,1.0,.04,.4,.03,.5,'#ffffff',{yaw:.2*k}))
   lote(cenas.jogo,'pirata-pecas',pecas)
   pirataClube=lote(cenas.jogo,'pirata-camisas',camisas)

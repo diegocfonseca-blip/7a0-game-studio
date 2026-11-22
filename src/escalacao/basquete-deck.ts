@@ -9,6 +9,7 @@
 import type { Card, Sector } from './types'
 import { SECTORS } from './types'
 import { CATALOG_NBA, type BPos } from './data-basquete'
+import { CATALOG_NBA_MUNDO } from './data-basquete-mundo'
 import { getLang } from './lang'
 
 // ordem das posições do basquete, casando 1:1 com SECTORS (GOL,LAT,ZAG,MEI,ATA)
@@ -74,12 +75,13 @@ export const NBA_CLUBS: { name: string; atk: number; def: number }[] = [
 ]
 
 export type NbaCatCard = { name: string; club: string; year: number; fame: 1 | 2 | 3 | 4 | 5; lo: number; hi: number; bio?: string; folk?: boolean; promessa?: boolean }
-export function buildNbaCatalog(): Record<Sector, NbaCatCard[]> {
+// 🌍 18/11: `mundo` = baralho "NBA + Mundo" (as cartas de fora da NBA entram JUNTO, nunca sozinhas)
+export function buildNbaCatalog(mundo = false): Record<Sector, NbaCatCard[]> {
   const lang = getLang()
   const out = {} as Record<Sector, NbaCatCard[]>
   SECTORS.forEach((s, i) => {
     const pos = NBA_POS_ORDER[i]
-    out[s] = CATALOG_NBA[pos].map(c => ({
+    out[s] = (mundo ? [...CATALOG_NBA[pos], ...CATALOG_NBA_MUNDO[pos]] : CATALOG_NBA[pos]).map(c => ({
       name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi,
       bio: lang === 'en' ? c.bioEn : c.bioPt, folk: c.folk, promessa: c.promessa,
     }))

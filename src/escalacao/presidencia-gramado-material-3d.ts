@@ -24,11 +24,15 @@ export function materialGramado3D(color:string,map:THREE.Texture,desgaste?:THREE
   vec4 d=texture2D(desgasteMap,campoUv);
   vec3 outra=texture2D(map,vMapUv*.27+vec2(.37,.11)).rgb;
   float l=dot(outra,vec3(.299,.587,.114));
-  diffuseColor.rgb*=mix(.74,1.2,d.r)*(.78+.5*l);
+  diffuseColor.rgb*=mix(.84,1.18,d.r)*(.86+.4*l);
+  // ☀️ 22/11 (Diego, comparando com o campo do 2D: *"esse nosso gramado tá muito escuro… o outro tá bem mais vivo"*): a foto da grama
+  // quase não tem azul (o verde saía fechado, puxando pro oliva) e as manchas escureciam demais. Clareia e puxa um pouco pra um
+  // verde vivo de gramado de TV, mantendo a textura, as listras e o desgaste. Só a cor do chão: nenhuma luz, sombra ou malha nova.
+  diffuseColor.rgb=mix(diffuseColor.rgb*1.28,vec3(.17,.46,.13),.3);
   diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.42,.34,.21)*(.75+.5*l),d.g*.78);
  }`)
   }
-  material.customProgramCacheKey=()=>'gramado-desgaste-v1'
+  material.customProgramCacheKey=()=>'gramado-desgaste-v2'
  }
  return material
 }

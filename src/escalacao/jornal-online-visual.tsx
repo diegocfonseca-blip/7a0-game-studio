@@ -43,7 +43,7 @@ export function JornalOnlineVisual({ ed, onCompartilhar, compartilhando }: { ed:
       </article>)}</div>
     </section>
     <AnuncioMartelo />
-    <footer className="jv-footer">leilaolegends.com</footer>
+    <footer className="jv-footer">{ed.bb ? 'bidlegendsarena.com' : 'leilaolegends.com'}</footer>
     <button className="jv-share" onClick={onCompartilhar} disabled={compartilhando}>{compartilhando ? tr('Montando a imagem…', 'Building the image…') : tr('Compartilhar jornal', 'Share newspaper')}</button>
   </article>
 }
@@ -124,6 +124,6 @@ export async function buildOnlineSalaBlob(ed: EdicaoSala): Promise<Blob | null> 
     }
     y += Math.max(noteHeights[i], noteHeights[i+1] || 0)+24; line(y)
   }
-  x.textAlign='center'; text('leilaolegends.com',W/2,y+44,`700 24px ${osw}`)
+  x.textAlign='center'; text(ed.bb ? 'bidlegendsarena.com' : 'leilaolegends.com',W/2,y+44,`700 24px ${osw}`)
   return new Promise(resolve => cv.toBlob(resolve,'image/png'))
 }

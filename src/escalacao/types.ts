@@ -594,6 +594,8 @@ export interface MatchResult {
   hg: number
   ag: number
   highlights: MatchHighlight[] // só preenchido no jogo do humano
+  /** 📺🏀 basquete: pontos de cada jogador NESTE jogo, por id do time (só jogo com gente) — a Quadra 2D distribui as cestas por eles */
+  bbPts?: Record<number, { n: string; p: number; a?: number; r?: number }[]>
 }
 
 // 🏆 COPA DOS 8 — modo rápido (online e offline). Top-8 da liga, seedado
@@ -609,6 +611,8 @@ export interface QuickCopaTie {
   ot?: boolean             // 🏀 o desempate foi PRORROGAÇÃO (basquete), não pênaltis (14/09)
   winner: number | null    // id de quem passou (null = ainda rolando)
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
+  /** 📺🏀 pontos de cada jogador no ÚLTIMO jogo da série (por id do time) — a Quadra 2D */
+  lastBbPts?: Record<number, { n: string; p: number; a?: number; r?: number }[]>
   /** 👑 Kings: o que a regra da Kings fez no último jogo (banners do relógio) */
   lastKings?: KingsInfo
   /** 👑 Kings: o último jogo inteiro, se tem gente nele (pra refazer quando a pessoa escolhe o canto) */
@@ -619,11 +623,17 @@ export interface QuickCopaTie {
 // ⭐ 'repescao' existe SÓ pra Champions (25/09): o repescão (9º–24º, ida e volta) roda no
 // MESMO motor do mata-mata — relógio, pênaltis e cobrança manual iguais aos da Copa.
 // ⚡ 'r32' existe SÓ pro Mata-mata Relâmpago com chave de 32 (28/10): a "Rodada de 32", antes das oitavas.
-export type CopaFase = 'repescao' | 'r32' | 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
+// 🏀 'playin' existe SÓ na sala NBA do basquete (18/11): o Play-In antes dos playoffs (jogo único, 2 rodadas).
+export type CopaFase = 'playin' | 'repescao' | 'r32' | 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
 export interface QuickCopaState {
   phase: CopaFase
   ties: QuickCopaTie[]  // confrontos da fase ATUAL
-  legIdx: 0 | 1 | 2      // ⚽ perna sendo jogada (final usa só a 0 — jogo único) · 🏀 jogo 1/2/3 da série melhor de 3
+  legIdx: number         // ⚽ perna sendo jogada (0 ida · 1 volta; final usa só a 0) · 🏀 jogo da série (0 = jogo 1)
+  /** 🏀 18/11 (Diego: *"playoffs é sempre melhor de 7"*): quantos jogos a série pode ter. Sem o campo = 3 (série antiga, salva antes). */
+  bo?: 3 | 7
+  /** 🏀 Play-In da sala NBA: cada grupo (conferência, ou 'U' na sala de 10) com os classificados DIRETOS e os 4 do Play-In na ordem
+   *  da tabela. Rodada 1 = 7º×8º e 9º×10º; rodada 2 = perdedor do 7×8 × vencedor do 9×10. */
+  playin?: { rodada: 1 | 2; grupos: { conf: 'L' | 'O' | 'U'; direto: number[]; seeds: number[]; vagaA?: number; perdA?: number; vencB?: number }[] }
   bracket: { phase: Exclude<CopaFase, 'done'>; ties: QuickCopaTie[] }[] // fases já fechadas
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
@@ -688,6 +698,10 @@ export interface ScorerRow {
   teamId: number
   teamName: string
   goals: number
+  /** 🏀 18/11 estatísticas do BASQUETE (no basquete `goals` = pontos): jogos, rebotes, assistências, roubos e tocos. Futebol não usa. */
+  j?: number; reb?: number; ast?: number; rou?: number; toc?: number
+  /** 🏀 posição da carta (GOL..ATA = PG..C), pra tabela do elenco */
+  pos?: string
 }
 // 🅰️ GARÇOM no modo RÁPIDO (24/08) — irmã da ScorerRow, contando passes pro gol.
 export interface AssistRow {
@@ -747,6 +761,13 @@ export interface EscState {
   // 🏀 andar da pirâmide do basquete: 'street' (base) → 'gleague' → 'nba' (topo).
   // Sobe quando você termina no top 4. Muda os adversários (crews→afiliados→franquias).
   nbaTier?: 'street' | 'gleague' | 'nba'
+  /** 🏀 18/11: SALA NBA (rápido online do basquete): tamanho da liga (30 = NBA real, 20, 10) e formato (só a liga ou liga +
+   *  Play-In + Playoffs melhor de 7). Sem o campo = a sala de antes (20 times, Leste/Oeste por id, playoffs top 4 e NBA Cup). */
+  nbaSala?: { tam: 30 | 20 | 10; formato: 'liga' | 'playoffs' }
+  /** 🌍 18/11: baralho "NBA + Mundo" (clubes de fora da NBA, Europa inclusa). Ausente = só NBA. Só no rápido/salas. */
+  nbaMundo?: boolean
+  /** 🏀 conferência de cada time na sala NBA de 30/20 (L = Leste · O = Oeste), pelo time REAL de cada franquia. */
+  nbaConf?: Record<number, 'L' | 'O'>
   seed: number
   // online
   onlineMode: OnlineMode
@@ -1367,6 +1388,17 @@ export interface EscState {
   botComissao?: boolean
   /** 🔨 Brasil Oficial: o leilão em andamento é o de ABERTURA (5 vagas, 1 por posição, pra todos) */
   oficialAbertura?: boolean
+  /** 🏀🇺🇸 EUA OFICIAL (19/11): carreira do basquete com UMA das 30 franquias reais, na NBA, sem sobe e desce. `franquia` = a chave
+   *  da franquia (a mesma das cartas e do ESCUDOS_NBA). Só existe nessa carreira. */
+  euaOficial?: { franquia: string; extras?: Card[] }
+  /** 🏀🌍 títulos do EUA Oficial pro ranking global do basquete (20/11): anel 50 · conferência 30 · NBA Cup 25 · melhor campanha 20.
+   *  `ultima` = a última temporada já contada (não conta 2×). */
+  euaTitulos?: { aneis: number; conferencias: number; copas: number; campanhas: number; temporadas: number; ultima?: number }
+  /** 🏀🎓 o Draft do EUA Oficial desta virada (eua-draft.ts): a loteria, a ordem das 30 escolhas (ids) e quem escolheu quem */
+  euaDraft?: { temporada: number; fora: number[]; sorteio: number[]; ordem: number[]; idx: number; fase: 'loteria' | 'escolha' | 'feito'; prazo?: number
+    picks: { mgrId: number; name: string; club: string; year: number; pos: Sector; auto?: boolean }[] }
+  /** 🏀🏆 a NBA Cup REAL do EUA Oficial: os 6 grupos de 5 e os jogos de grupo desta temporada (eua-cup.ts). O mata-mata é o `nbaCup`. */
+  euaCup?: import('./eua-cup').EuaCupEstado
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }
   /** 📋 Mercado (21/11, janela nova): ids das SUAS cartas marcadas "pôr à venda" durante a temporada — na virada viram `reserveListed` (pela MESMA regra do listar) e o campo some */
   aVendaMercado?: string[]

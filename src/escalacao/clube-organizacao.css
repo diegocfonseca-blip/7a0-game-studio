@@ -8,6 +8,8 @@
 
 .clube-organizacao-mapa>.clube-estadio-detalhes{background:#f4ecd6;border:3px solid #0c0c0c;border-radius:12px;padding:4px 12px;margin:0 0 12px;color:#0c0c0c}
 
+/* 🏀 18/11: o Clube do basquete mora no fundo creme */
+.clube-organizacao-claro .clube-organizacao-acessos,.clube-organizacao-claro .clube-organizacao-acessos h2{color:#0c0c0c}
 /* 🇧🇷 20/11: aba Clube do Brasil Oficial — mapa grande em cima, caixa e 6 cartões embaixo (mockup clube-oficial-organizado.png) */
 .clube-organizacao--oficial{grid-template-columns:minmax(0,1fr)!important}
 .clube-organizacao--oficial .pc3-stage{height:clamp(520px,88svh,1100px)}

@@ -89,7 +89,14 @@ const src = (f: string) => readFileSync(new URL('../src/escalacao/' + f, import.
 const scr = src('screens.tsx'), pyr = src('pyramidseason.tsx'), intl = src('career-international-view.tsx'), copa = src('copa-mundo.tsx'), rit = src('ritmo2d.ts')
 ok(!/fatorRitmo2D|DUR_2D_SALA_MS \/|dur2D\(manual\)/.test(scr), 'screens: sem o divisor velho')
 ok((scr.match(/c2d \? dur2DDaVel\(vel2dAqui\)/g) ?? []).length >= 4, 'screens: liga, copa, Liberta e Champions usam a velocidade absoluta')
-ok(/Math\.round\(baseRoundMs \/ \(c2d \? 1 : speedFactor\)\)/.test(scr) && /const copaSf = c2d \? 1 : speedFactor/.test(scr) && /copaLegMs \/ copaSf/.test(scr), 'screens: no 2D o tempo final NÃO divide pelo simSpeed (liga e copa)')
+ok(/Math\.round\(baseRoundMs \/ \(c2d( \|\| c2dBB)? \? 1 : speedFactor\)\)/.test(scr) && /const copaSf = c2d( \|\| c2dBB)? \? 1 : speedFactor/.test(scr) && /copaLegMs \/ copaSf/.test(scr), 'screens: no 2D o tempo final NÃO divide pelo simSpeed (liga e copa · 🏀 quadra 2D também)')
+// 🏀📺 18/11 (Diego: *"1 minuto poderia ser o padrão da velocidade por jogo no campo 2d"*): a quadra 2D dura 60 s na marcha padrão de cada modo
+{
+  const { dur2DBBDaVel } = await import('../src/escalacao/vel2d-regra.ts')
+  const seg = (v: number, s: object) => Math.round(dur2DBBDaVel(v, s) * 0.82 / 1000)
+  ok(seg(2.5, { onlineMode: 'online' }) === 60 && seg(2, {}) === 60, `quadra 2D: 60 s na marcha padrão (sala ${seg(2.5, { onlineMode: 'online' })} s · rápida ${seg(2, {})} s)`)
+  ok(seg(4, { onlineMode: 'online' }) < 60 && seg(1, { onlineMode: 'online' }) > 60, 'quadra 2D: as outras marchas aceleram e atrasam a partir do 1 min')
+}
 ok(/const speedFactor = campo2d \? vel2dCarr :/.test(pyr) && /const baseRoundMs = campo2d \? DUR_2D_MS :/.test(pyr), 'carreira: 2D = 1:30 ÷ a marcha absoluta (não mais 2× × simSpeed)')
 ok(/const speed = c2d \? vel2dIntl :/.test(intl), 'internacional da carreira: idem')
 ok(/c2d \? dur2DDaVel\(vel2dCopa\)/.test(copa), 'Copa do Mundo sem relógio: idem')
