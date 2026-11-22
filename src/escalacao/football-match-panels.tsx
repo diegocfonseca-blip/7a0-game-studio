@@ -64,7 +64,7 @@ export function FootballCompetitionRivals({state,results,finished,round,fixtures
   if(friend)proximo={amigo:friend,rodada:i+1,daqui:i-round}
  }
  const duels=finished?results.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>({key:`${state.roomId}:${state.seed}:${state.screen}:${state.seasonNo}:${round}:${r.homeId}:${r.awayId}`,uid:uid(r.homeId===you.id?r.awayId:r.homeId),name:amigos.find(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))?.time??'',for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round})):[]
- return <section className="ov3-rivalries"><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName}/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section>
+ return <OwnerSlot name="rivals"><section className="ov3-rivalries"><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName}/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section></OwnerSlot>
 }
 
 export function FootballDesktopLeaders({state,finished}:{state:import('./types').EscState;finished:boolean}){
@@ -76,4 +76,14 @@ export function FootballDesktopLeaders({state,finished}:{state:import('./types')
  if(finished)snapshot.current={key,goals:source?.scorers??[],assists:source?.assists??[]}
  const rows=(kind:'goals'|'assists')=>[...snapshot.current[kind]].sort((a,b)=>Number((b as unknown as Record<string,number>)[kind])-Number((a as unknown as Record<string,number>)[kind])||a.name.localeCompare(b.name)).slice(0,3)
  return <OwnerSlot name="leaders"><section className="fp-desktop-extra"><header><h3>{tr('QUEM DECIDE','THE DECISIVE PLAYERS')}</h3><button type="button" onClick={()=>navigation.choose('stats')}>{tr('Ver estatísticas','View statistics')} →</button></header>{(['goals','assists'] as const).map(kind=><div key={kind}><h4>{kind==='goals'?tr('⚽ Artilharia','⚽ Top scorers'):tr('🅰️ Assistências','🅰️ Assists')}</h4>{rows(kind).length?rows(kind).map((row,i)=><p key={`${row.teamId}:${row.name}`}><span>{i+1}. {row.name}<small>{row.teamName}</small></span><b>{(row as unknown as Record<string,number>)[kind]}</b></p>):<small>{tr('Nenhum registro disponível ainda.','No records available yet.')}</small>}</div>)}<small>{tr('Até a última rodada encerrada.','Through the last completed round.')}</small></section></OwnerSlot>
+}
+
+
+export function FootballRoundNotice({status}:{status:import('./football-round-status').FootballRoundStatus}){
+ return <section className="fp-round-notice" role="status" data-round-state={status.kind}>
+  <h3>{status.kind==='bye'?tr('VOCÊ FOLGA NESTA RODADA','YOU HAVE A BYE THIS ROUND'):status.kind==='unavailable'?tr('SEU JOGO NÃO CARREGOU','YOUR MATCH HAS NOT LOADED'):tr('AGUARDANDO O PONTAPÉ INICIAL','WAITING FOR KICK-OFF')}</h3>
+  {status.kind==='bye'&&<p>{tr(`Com ${status.clubs} clubes, um time descansa por rodada. Os outros jogos seguem normalmente.`,`With ${status.clubs} clubs, one team rests each round. The other matches continue as usual.`)}</p>}
+  {status.kind==='unavailable'&&<p>{tr('Seu time tem jogo no calendário. Confira a rodada em “Tabela e jogos”; esta tela está sem o resultado da sua partida.','Your team has a scheduled match. Check “Table and matches”; this screen is missing your match result.')}</p>}
+  {status.next&&<p className="fp-round-next"><strong>{tr('Próximo jogo','Next match')}:</strong> {status.next.opponent} · {tr('Rodada','Round')} {status.next.round} · {status.next.home?tr('em casa','home'):tr('fora','away')}</p>}
+ </section>
 }
