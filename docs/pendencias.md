@@ -15026,9 +15026,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   Medidor na tela: abrir o jogo com `?diag=1` no endereço (mostra a placa e os quadros/s em Configurações do mapa).
   FALTA: teste no S25 do Diego; etapa (3) (reflexo só onde aparece, cadeiras/torcida mais leves) só se ainda precisar depois do teste.
 
-## 📋 22/11 — Liga Draft: o craque sumia do clube do auge (Dida no Milan, Cafu no Milan)
-- Causa: na largada da Liga Draft fica UMA carta por nome (jogador único na liga), e ficava a PRIMEIRA da lista — 92 jogadores perdiam a
-  carta do auge (Dida Corinthians no lugar do Milan, Cafu São Paulo, Marquinhos Corinthians, Kaká São Paulo, Ronaldinho Atlético-MG…).
-- Conserto (store.tsx, START_ONLINE): fica a carta de categoria mais alta (depois lo+hi). Vale pra liga que COMEÇA depois; liga rolando não muda.
-- Xarás (Pepe Santos × Pepe Real, os "Alex") seguem virando um só, como antes — o Diego não pediu mudar.
-- ⚠️ `npm run liga-draft` já falhava ANTES desta mudança ("gente nova → leilão fraco de novo", 'draft' !== 'auction') — conferir à parte.
+## 📋 22/11 — Liga Draft: "um jogador por liga" virou "um por BARALHO" (Diego: "Kaká SP e Kaká Milan são diferentes… baralhos diferentes, então podem")
+- Antes a Liga Draft tirava 232 das 2.636 cartas (toda carta com nome repetido, mesmo em baralho diferente): sumiam Dida/Cafu/Kaká do Milan,
+  Marquinhos do PSG, Ronaldinho do Barça…  1ª tentativa (ficar só com a do auge) foi REPROVADA na hora — não é isso que ele quer.
+- Agora a chave é baralho + nome (`chaveJogador`, liga-draft.ts): leilão da largada, noite do draft, bots e telas usam ela. Ficam de fora só 13
+  (nome repetido DENTRO do mesmo baralho; fica a carta de categoria mais alta). Vale pra liga que começa depois; liga rolando segue igual.
+- ⚠️ Desses 13, xarás (pessoas diferentes): Júlio César, Marcelo Lomba?, Felipe, Diego, Reinaldo, Danilo, Paulinho, Jorginho. E MESMA pessoa duas
+  vezes no MESMO baralho (fura a regra de 26/09, levado ao Diego): Andreas Pereira (Flamengo 2022 × Palmeiras 2026), Gündogan (Man City 2018 ×
+  2023), Arda Güler (Real 2024 × 2026), Gilberto Mora (Tijuana 2024 × 2026). K9 é a exceção autorizada.
+- ⚠️ `npm run liga-draft` já falhava ANTES ("gente nova → leilão fraco de novo") — conferir à parte.

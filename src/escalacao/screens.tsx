@@ -120,7 +120,7 @@ import { CaminhoDraft } from './draft-favoritos'
 import { cartasExtras, carregaCartasExtras, type CartaExtra } from './baralho-inteiro' // 🃏 21/11: o pacote do campeão sorteia do baralho INTEIRO
 import { Bafo2Fim, ElencosBafo, BafoVigia, FaixaBafo } from './bafo2-ui'
 import { BAFO2_PREP_SEG } from './bafo2' // 🃏 21/11: Bafo novo
-import { chaveNome as chaveNomeDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
+import { chaveJogador as chaveJogadorDraft, baralhoDoDraft, titularesDraft } from './liga-draft' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, SorteioRelampago, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
@@ -9026,7 +9026,7 @@ export function EscSeason() {
         const temCopa = !!state.copaMode && state.copaMode !== 'liga'
         const etapas = [{ id: 'liga', pt: 'Liga', en: 'League' }, ...(temCopa ? [{ id: 'copa', pt: 'Copa', en: 'Cup' }] : []), { id: 'draft', pt: '📋 Draft', en: '📋 Draft' }, { id: 'prox', pt: `Temp. ${(state.seasonNo ?? 1) + 1}`, en: `Season ${(state.seasonNo ?? 1) + 1}` }]
         const donoDe = new Map<string, { time: string; bot: boolean }>()
-        for (const m of state.managers) for (const c of m.squad) if (!c.fake) donoDe.set(chaveNomeDraft(c.name), { time: m.teamName, bot: !m.isHuman })
+        for (const m of state.managers) for (const c of m.squad) if (!c.fake) donoDe.set(chaveJogadorDraft(c), { time: m.teamName, bot: !m.isHuman })
         return naDireita(<CaminhoDraft etapas={etapas} atual="liga" faltam={totalRounds - state.round} minhaVez={idx >= 0 ? idx + 1 : null} total={humanos.length}
           temporadaQueVem={(state.seasonNo ?? 1) + 1} deck={baralhoDoDraft(state)} regras={state.minhaLigaDraft ? state.draftRegras : undefined} donoDe={donoDe} />)
       })()}

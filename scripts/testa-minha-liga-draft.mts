@@ -7,7 +7,7 @@
 //   npx tsx scripts/testa-minha-liga-draft.mts
 import assert from 'node:assert/strict'
 import { reducer } from '../src/escalacao/store'
-import { montaCarry, chaveCarta, chaveNome, todasAsCartas, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS } from '../src/escalacao/liga-draft'
+import { montaCarry, chaveCarta, chaveNome, chaveJogador, todasAsCartas, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS } from '../src/escalacao/liga-draft'
 import type { EscState, Card } from '../src/escalacao/types'
 import { SECTORS, FORMATIONS } from '../src/escalacao/types'
 
@@ -193,7 +193,7 @@ const novos = bots.flatMap(m => m.squad.filter(c => c.id.startsWith('mlb')))
 assert.ok(JSON.stringify(bots.map(m => m.squad.map(c => c.name))) !== botsAntes && novos.length > 0, 'bots ganharam reforço calado')
 assert.ok(novos.every(c => c.fame >= 2 && c.fame <= 4 && !c.promessa), 'reforço de bot nunca é lenda nem promessa')
 assert.ok(bots.every(m => m.squad.length === JSON.parse(botsAntes)[bots.indexOf(m)].length), 'bot troca 1 por 1 (elenco do mesmo tamanho)')
-const todos = s.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => chaveNome(c.name)))
+const todos = s.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => chaveJogador(c)))
 assert.equal(new Set(todos).size, todos.length, 'ninguém repetido na liga depois do reforço')
 console.log('✅ bots: reforço calado em', novos.length, 'times (bom/craque, sem lenda)'); assert.equal(s.draft, null); assert.equal(s.draftFeito, 1)
 console.log('✅ escalação → temporada 2')
@@ -225,11 +225,18 @@ assert.equal(c2.managers[0].squad.length, 22, 'continua com 22')
   assert.equal(c2.managers[0].money, caixaAntesPick, 'o usuário não ganhou moeda')
   assert.equal(comBot[0].squad.find(c => chaveNome(c.name) === saiuNome)!.paid, 0, 'o bot recebeu de graça')
   assert.ok(c2.managers.filter(m => !m.isHuman).every(m => m.squad.length <= 22), 'nenhum bot passa de 22')
-  const tds = c2.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => chaveNome(c.name)))
+  const tds = c2.managers.flatMap(m => m.squad.filter(c => !c.fake).map(c => chaveJogador(c)))
   assert.equal(new Set(tds).size, tds.length, 'ninguém repetido na liga depois da sobra')
   console.log('✅ sobra do draft foi de graça pro bot da vez')
 }
 console.log('✅ elenco cheio: escolhe quem sai, sem furar posição')
 console.log('📋🏆 Minha Liga Draft (fase 2): tudo certo')
 console.log('📋🏆 Minha Liga Draft: tudo certo')
+// 🃏 22/11 (Diego): "um jogador só por liga" é POR BARALHO — o Kaká do São Paulo (Brasil) e o do Milan (Europa) convivem; Dida Milan existe.
+{
+  const kSP = todasAsCartas().find(c => c.name === 'Kaká' && c.club === 'São Paulo')!, kMilan = todasAsCartas().find(c => c.name === 'Kaká' && c.club === 'Milan')!
+  assert.ok(kSP && kMilan && chaveJogador(kSP) !== chaveJogador(kMilan), 'Kaká SP (Brasil) e Kaká Milan (Europa) são chaves diferentes')
+  console.log('🃏 um por BARALHO: Kaká SP e Kaká Milan convivem')
+}
 process.exit(0)
+
