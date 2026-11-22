@@ -1,9 +1,10 @@
+import {footballRoundStatus} from './football-round-status'
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
 import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget,FootballMatchPlaceholder} from './owner-online-visual'
 import {useFootballMatchPilotAccess} from './football-match-pilot'
-import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders} from './football-match-panels'
+import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders,FootballRoundNotice} from './football-match-panels'
 import {useFootballChatDock} from './football-match-navigation'
 import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
 import { OnlineCreateLayout, OnlineCreateSection } from './online-create-layout' // 🧩 18/11: a Partida Rápida na moldura da criação de sala
@@ -7978,6 +7979,7 @@ export function EscSeason() {
   const rivUser = oppEhGente && opp ? rivalryOf(state.rivalries, you.id, opp.id) : null
   const rivChip = rivUser && (rivUser.w + rivUser.l + rivUser.d) > 0 ? rivUser : null
   const myLast = state.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
+  const footballRound=footballRoundStatus(state,you.id)
   // clássico recém-jogado: mostra o resultado com peso de rivalidade
   const lastOppId = myLast ? (myLast.homeId === you.id ? myLast.awayId : myLast.homeId) : undefined
   const lastOppName = lastOppId != null ? state.league.find(t => t.id === lastOppId)?.name : ''
@@ -8889,7 +8891,7 @@ export function EscSeason() {
           </div>
           {!footballPilot&&<EscalacaoMinha />}
         </div></FootballMatchPlaceholder>
-      ) : (
+      ) : footballPilot ? <FootballMatchPlaceholder><FootballRoundNotice status={footballRound}/></FootballMatchPlaceholder> : (
         <FootballMatchPlaceholder><Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : LS('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')}</p>
         </Box></FootballMatchPlaceholder>
@@ -8932,7 +8934,7 @@ export function EscSeason() {
       {footballPilot&&<FootballDesktopLeaders state={state} finished={copaLive?copaMin>=93:resultRevealed}/>}
       {footballPilot&&<FootballTeamPanel editable={!!(state.minhaLigaDraft||state.bafo2)}><NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>{state.minhaLigaDraft||state.bafo2?<EscalacaoMinha/>:<YourPitch small/>}</NumerosAntesCtx.Provider></FootballTeamPanel>}
       {footballPilot&&!copaLive&&<FootballRoundSummary position={sortedTable(!resultRevealed&&state.lastResults.length?leagueBeforeResults(state.league,state.lastResults):state.league).findIndex(t=>t.id===you.id)+1} points={(!resultRevealed&&state.lastResults.length?leagueBeforeResults(state.league,state.lastResults):state.league).find(t=>t.id===you.id)?.pts??0}/>}
-      <FootballSummaryPlacement>{privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).slice(0,footballPilot?2:undefined).map(r=>{
+      <FootballSummaryPlacement>{privateVisual && !copaLive && visualTab==='jogos' && (footballPilot?footballRound.others.length>0:state.lastResults.length>1) && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3>{footballPilot&&footballRound.others.length>2&&<p className="fp-round-carousel-hint">{LS(`Deslize para ver os ${footballRound.others.length} jogos →`,`Swipe to see all ${footballRound.others.length} matches →`)}</p>}<div className={footballPilot?'ll27-ticker fp-round-carousel':'ll27-ticker'} aria-label={footballPilot?LS('Outros jogos da rodada, role para os lados','Other matches in this round, scroll sideways'):undefined} tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
         return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kingsPens={kingsS ? r.kings?.pens : undefined} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}</FootballSummaryPlacement>
@@ -9033,7 +9035,7 @@ export function EscSeason() {
 
       {/* 🛋️ FOLGA: liga com nº ímpar de times — nesta rodada você não tem jogo. Só
           aparece na Liga Fechada ímpar (numa tabela par todo mundo joga toda rodada). */}
-      {!fixture && !copaLive && state.round < totalRounds && state.fixtures.length > 0 && (
+      {!footballPilot && !fixture && !copaLive && state.round < totalRounds && state.fixtures.length > 0 && (
         <Box className="p-4 text-center">
           <p className="font-black text-lg" style={OSWALD}>{LS('🛋️ VOCÊ FOLGA nesta rodada', '🛋️ You have a BYE this round')}</p>
           <p className="text-xs font-bold text-black/60 mt-1 leading-snug">{LS('Liga com número ímpar de times — a cada rodada um time descansa. Você volta a campo na próxima! 💪', 'Odd number of teams — one team rests each round. You are back on the pitch next round! 💪')}</p>

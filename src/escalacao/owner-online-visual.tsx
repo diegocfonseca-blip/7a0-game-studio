@@ -59,6 +59,8 @@ export function FootballMatchPlaceholder({children}:{children:ReactNode}){
 }
 export function OwnerSlot({name,children}:{name:Slot;children:ReactNode}){
  const ctx=useContext(Context),target=ctx.targets[name]
+ // Sidebar-only slots must never fall back into the page flow on phones.
+ if((name==='leaders'||name==='rival-preview')&&(!ctx.pilot||!target))return null
  const content=ctx.pilot&&name==='view'?<FootballMatchPilotView>{children}</FootballMatchPilotView>:children
  return ctx.enabled&&target?createPortal(content,target):<>{content}</>
 }

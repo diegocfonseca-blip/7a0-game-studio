@@ -1,3 +1,9 @@
+## 📱 22/11 — PILOTO PRIVADO: TÁTICA COMPACTA, FOLGA NO LUGAR DO JOGO E FAIXA COMPLETA
+- Pedido do Diego com prints do Bafo de cinco pessoas: painel de tática menor no celular, todas as instruções abertas; todos os outros jogos acessíveis pela rolagem lateral, preservando os cartões; aviso de folga no alto, onde estaria o placar.
+- Corrigido o fallback dos slots exclusivos da lateral: artilharia/assistências e prévia de rivalidades não aparecem mais sem estilo no corpo do celular ou na aba Tabela e jogos.
+- Folga passa a conferir a rodada corrente (`round-1`); o cartão antigo consultava a próxima e ficava enterrado. Sem alterar calendário, resultados, assentos ou regras das ordens. Mantido somente na conta principal do Diego.
+- Evidências, testes e limites: [correções móveis do Bafo](ajustes-mobile-bafo-20261122.md).
+
 ## 🔒 22/11 — REVISÃO COMPLETA DO FUTEBOL, AGORA SÓ NA CONTA PRINCIPAL DO DIEGO
 - Autorização nova: “faz aí só pra minha conta tudo”. Substitui a allowlist do piloto anterior: Futpoint e secundária não recebem esta interface.
 - Abas no topo; Partida com controles, plano e XI; Tabela e jogos separados; Rivalidades ampliadas; barra Sala/Troféus/Chat. Desktop com jogo largo, tabela de 420 px, artilharia + assistências, resumo de rivalidades e chat real na lateral.

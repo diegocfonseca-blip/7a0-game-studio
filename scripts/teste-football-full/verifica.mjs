@@ -2,18 +2,19 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import {createRequire} from 'node:module'
 const {chromium}=createRequire(import.meta.url)('playwright')
-const out='/workspace/shared/diego-futebol-completo-20261122';fs.mkdirSync(out,{recursive:true})
+const out=process.env.QA_OUTPUT||'/workspace/shared/diego-mobile-bafo-20261122';fs.mkdirSync(out,{recursive:true})
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']})
 const errors=[],checks=[]
 const identity=`\nstarted=true;enabled=false;verifiedEmail=new URLSearchParams(location.search).get('account')||'diego.c.fonseca@gmail.com';window.qaAccount=value=>{verifiedEmail=value;listeners.forEach(fn=>fn())};`
 async function open(width,query=''){
  const context=await browser.newContext({viewport:{width,height:1000},locale:'pt-BR'}),page=await context.newPage()
+ let closing=false
  page.on('pageerror',e=>errors.push(e.message))
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url())
   if(url.hostname!=='127.0.0.1')return route.fulfill({status:200,contentType:'application/json',body:'[]'})
   if(url.pathname==='/src/escalacao/online-preview.ts'){
-   const response=await route.fetch();return route.fulfill({response,body:(await response.text())+identity})
+   try{const response=await route.fetch({maxRetries:2});return await route.fulfill({response,body:(await response.text())+identity})}catch(error){if(!closing&&!page.isClosed())errors.push(`Falha na identidade da bancada: ${error.message}`);return route.abort().catch(()=>{})}
   }
   return route.continue()
  })
@@ -21,7 +22,7 @@ async function open(width,query=''){
  console.log('OPEN',query,await page.evaluate(()=>({screen:window.qaFull?.state.screen,mode:window.qaFull?.state.copaMode,online:window.qaFull?.state.onlineMode,youUid:window.qaFull?.state.youUid,url:location.href,qa:typeof window.qaAccount})))
  await page.waitForSelector('.fp-match-primary',{timeout:20000}).catch(async e=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:`out/falha.png`.replace('out',out),fullPage:true});throw e})
  await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
- return{context,page}
+ return{context:{close:async()=>{closing=true;await context.close()}},page}
 }
 const check=(name,value)=>{assert(value,name);checks.push(name)}
 try{
@@ -41,10 +42,24 @@ try{
   check(`${width}: sem transbordamento`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
   for(const name of ['Partida','Tabela e jogos','Estatísticas','Elenco','Rivalidades'])check(`${width}: aba ${name}`,await page.getByRole('button',{name,exact:true}).first().isVisible())
   check(`${width}: onze próprios na Partida`,await page.getByRole('heading',{name:'OS SEUS ONZE'}).isVisible())
+  check(`${width}: ritmo do ataque visível sem abrir gaveta`,await page.getByRole('group',{name:'RITMO DO ATAQUE',exact:true}).isVisible())
+  check(`${width}: marcação especial visível sem abrir gaveta`,await page.getByLabel('ATENÇÃO ESPECIAL NO RIVAL').isVisible())
+  check(`${width}: nenhuma instrução recolhida`,await page.locator('.fp-advanced-tactics details').count()===0)
+  if(width<1100){
+   check('mobile: tática toda aberta e compacta',(await page.locator('.fp-advanced-tactics').boundingBox()).height<680)
+   check('mobile: sem estatísticas da lateral no corpo',await page.locator('.fp-desktop-extra:visible').count()===0)
+   const carousel=page.locator('.fp-round-carousel')
+   check('mobile: todos os outros jogos na faixa',await carousel.locator(':scope > *').count()===await page.evaluate(()=>window.qaFull.state.lastResults.filter(r=>r.homeId!==window.qaFull.state.managers[window.qaFull.state.youIdx].id&&r.awayId!==window.qaFull.state.managers[window.qaFull.state.youIdx].id).length))
+   check('mobile: faixa permite rolagem lateral',await carousel.evaluate(el=>el.scrollWidth>el.clientWidth))
+   await carousel.evaluate(el=>{el.scrollLeft=el.scrollWidth})
+   await page.waitForTimeout(200)
+   check('mobile: último jogo pode ser alcançado',await carousel.evaluate(el=>el.scrollLeft>0))
+  }
   await page.getByRole('button',{name:'Todos os jogos',exact:false}).first().click()
   check(`${width}: atalho abre jogos completos`,await page.locator('#ll26-round-games').isVisible())
   check(`${width}: partida fica escondida`,!(await page.locator('.ov3-native').first().isVisible()))
   await page.evaluate(()=>window.scrollTo(0,0))
+  check(`${width}: aba de tabela sem resumo lateral vazando`,await page.locator('.fp-desktop-extra:visible').count()===0)
   await page.screenshot({path:`${out}/${width}-tabela.png`,fullPage:true})
   await page.getByRole('button',{name:'Rivalidades',exact:true}).first().click()
   check(`${width}: rivalidades visíveis`,await page.locator('.ov3-rivalries').isVisible())
@@ -97,6 +112,28 @@ try{
   check(`${competition}: sem transbordamento`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
   await context.close()
  }
+ for(const width of [360,390,430]){
+  const {page,context}=await open(width,'?competition=bafo-bye')
+  check(`${width}: Bafo com cinco participantes e dez rodadas`,await page.evaluate(()=>window.qaFull.state.bafo2&&window.qaFull.state.league.length===5&&window.qaFull.state.fixtures.length===10))
+  check(`${width}: folga aparece uma única vez no lugar do placar`,await page.locator('.ov3-native [data-round-state=bye]').count()===1&&await page.getByRole('heading',{name:'VOCÊ FOLGA NESTA RODADA'}).count()===1)
+  check(`${width}: não promete pontapé quando é folga`,!(await page.locator('.ov3-native').innerText()).includes('AGUARDANDO O PONTAPÉ'))
+  check(`${width}: sem estatística do desktop no Bafo`,await page.locator('.fp-desktop-extra').count()===0)
+  check(`${width}: demais jogos continuam na faixa`,await page.locator('.fp-round-carousel > *').count()===2)
+  check(`${width}: folga está acima dos outros jogos`,(await page.locator('[data-round-state=bye]').boundingBox()).y<(await page.locator('.ll27-room-summary').boundingBox()).y)
+  check(`${width}: todas as instruções abertas`,await page.getByRole('group',{name:'RITMO DO ATAQUE',exact:true}).isVisible()&&await page.getByLabel('ATENÇÃO ESPECIAL NO RIVAL').isVisible())
+  check(`${width}: não transborda a página`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
+  await page.screenshot({path:`${out}/bafo-folga-${width}.png`,fullPage:true})
+  await page.getByRole('button',{name:'Tabela e jogos',exact:true}).first().click()
+  check(`${width}: tabela não recebe artilharia sem estilo`,await page.locator('.fp-desktop-extra').count()===0)
+  await context.close()
+ }
+ const three=await open(390,'?competition=bafo-bye-3')
+ check('Bafo com três: a única outra partida também aparece',await three.page.locator('[data-round-state=bye]').isVisible()&&await three.page.locator('.fp-round-carousel > *').count()===1)
+ await three.context.close()
+ const playing=await open(390,'?competition=bafo-playing')
+ check('Bafo: folga da próxima rodada não esconde a partida atual',await playing.page.locator('[data-round-state=bye]').count()===0&&!(await playing.page.locator('.ov3-native').innerText()).includes('AGUARDANDO O PONTAPÉ'))
+ check('Bafo: jogo do usuário montado na rodada com partida',await playing.page.locator('.ov3-native .ll25-duel').isVisible())
+ await playing.page.screenshot({path:`${out}/bafo-jogando-390.png`,fullPage:true});await playing.context.close()
  const waiting=await open(390,'?competition=waiting')
  check('antes do pontapé: abas já no topo',await waiting.page.getByRole('button',{name:'Partida',exact:true}).first().isVisible())
  await waiting.page.getByRole('button',{name:/Começar a temporada/}).click()
