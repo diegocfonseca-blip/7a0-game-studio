@@ -97,12 +97,17 @@ ok(/Math\.round\(baseRoundMs \/ \(c2d( \|\| c2dBB)? \? 1 : speedFactor\)\)/.test
   ok(seg(2.5, { onlineMode: 'online' }) === 60 && seg(2, {}) === 60, `quadra 2D: 60 s na marcha padrão (sala ${seg(2.5, { onlineMode: 'online' })} s · rápida ${seg(2, {})} s)`)
   ok(seg(4, { onlineMode: 'online' }) < 60 && seg(1, { onlineMode: 'online' }) > 60, 'quadra 2D: as outras marchas aceleram e atrasam a partir do 1 min')
 }
-ok(/const speedFactor = campo2d \? vel2dCarr :/.test(pyr) && /const baseRoundMs = campo2d \? DUR_2D_MS :/.test(pyr), 'carreira: 2D = 1:30 ÷ a marcha absoluta (não mais 2× × simSpeed)')
+ok(/const speedFactor = jogo3d \? vel3dCarr : campo2d \? vel2dCarr :/.test(pyr) && /const baseRoundMs = \(campo2d \|\| jogo3d\) \? DUR_2D_MS :/.test(pyr), 'carreira: 2D = 1:30 ÷ a marcha absoluta (não mais 2× × simSpeed)')
 ok(/const speed = c2d \? vel2dIntl :/.test(intl), 'internacional da carreira: idem')
 ok(/c2d \? dur2DDaVel\(vel2dCopa\)/.test(copa), 'Copa do Mundo sem relógio: idem')
 ok(/s\.onlineMode !== 'online' && s\.sport !== 'basquete'/.test(rit) && !/!s\.careerOnline && s\.sport/.test(rit), 'a carreira OFFLINE entra no ritmo do aparelho (careerOnline é a flag da pirâmide)')
 
 console.log('\n⏱️ segundos por jogo na tela (placar anima 93\' em roundMs × 0,82):')
+// 🏟️ 22/11 (Diego): jogo aberto no CAMPO 3D da carreira = 2× por padrão, com ou sem plano; só o Manual muda a marcha
+{ const r2 = readFileSync('src/escalacao/ritmo2d.ts', 'utf8'), rg = readFileSync('src/escalacao/vel2d-regra.ts', 'utf8')
+  ok(/export const VEL3D_CARREIRA_PADRAO = 2\b/.test(rg), '3D da carreira: o padrão é 2×')
+  ok(/return temManual \? \(vel2DEscolhida\(\) \?\? VEL3D_CARREIRA_PADRAO\) : VEL3D_CARREIRA_PADRAO/.test(r2), '3D da carreira: sem o Manual fica cravado no 2×; com ele vale a marcha escolhida')
+  ok(/setPend3d\(null\); setJogo3d\(true\)/.test(pyr) && /marcha: vel3dCarr/.test(pyr), '3D da carreira: o ▶ do mapa liga a marcha do 3D e o controle do mapa mostra ela') }
 console.log('   sala online : ' + VEL2D_SALA_VALORES.map(v => `${v}× = ${seg2DDaVel(v)} s`).join(' · '))
 console.log('   carreira/rápida: ' + VEL2D_SOLO_VALORES.map(v => `${v}× = ${seg2DDaVel(v)} s`).join(' · '))
 

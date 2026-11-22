@@ -1286,6 +1286,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Manual fica** (o conserto era o "Pular pro jogo" da Central). O **3D anda na velocidade do Campo 2D**, com Manual/velocidade dentro do quadro do jogo
   (cadeado pra quem não tem plano) e sem texto de diagnóstico na tela. Desligar a janela nova = `JANELA_NOVA_GERAL = false`. Trava `npm run janela-nova`.
 
+- **🏟️⏩ JOGO NO CAMPO 3D DA CARREIRA = 2× POR PADRÃO, COM OU SEM PLANO (22/11).** *"a velocidade deve tá em padrão 2x pra quem tem plano ou não… pra mudar só com botão manual pago"*. Mora em `VEL3D_CARREIRA_PADRAO`/`useVel3DAqui`; o 2D da aba Jogos segue 1,5×. Trava `npm run vel-2d`.
+
 - **📣🏠 CANTO DE TORCIDA SÓ EM CASA (21/11, regra permanente).** *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*.
   O canto personalizado toca nos jogos EM CASA do dono — na carreira e nas salas online, onde o visitante daquele jogo ouve também. Fora de casa = torcida
   padrão (ou o canto do dono da casa). Na sala de espera, a entrada de gala (única ou padrão) toca o canto pra sala inteira. Mora em `sound.ts` (`jogoDaTela`).

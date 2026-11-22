@@ -137,7 +137,7 @@ import { StatsDoPlacar } from './stats-placar-ui' // 📊 07/11: o resumo do api
 import { statsPlacarVisivel } from './stats-placar'
 import { Campo2D } from './campo2d' // 📺 jogo ao vivo no campinho (20/10, só a conta do Diego por enquanto)
 import { DUR_2D_MS } from './campo2d-motor'
-import { useRitmo2D, useVel2DAqui, setVel2D } from './ritmo2d'
+import { useRitmo2D, useVel2DAqui, useVel3DAqui, setVel2D } from './ritmo2d'
 import { useCampo2DLigado, useCampo2DExtras, ligaCampo2D, useQuadra2DLigada } from './campo2d-modo'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
@@ -4275,7 +4275,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const officialFieldWatching=officialField&&watchedField.current.watched
   // ⏩ 21/11 (Diego: *"a velocidade deve ser padrão a que tem no campo 2D"*): vendo o jogo OFICIAL no estádio 3D, o tempo é o do
   // campinho — 90 s ÷ a marcha guardada (carreira: 1,5× = 1 min; sem o Manual fica cravado nisso). Antes eram 2 min fixos.
-  const marchaCampo=useVel2DAqui()
+  const marchaCampo=useVel3DAqui() // 🏟️ 22/11: no 3D o padrão é 2× (com ou sem plano)
   const fieldDuration=officialFieldWatching?Math.max(400,roundMs*.82,90_000/marchaCampo):duracaoPartidaCampo(roundMs,fieldSpeed,(privateField||officialField)&&watchedField.current.watched)
   const officialMinuteMs=(officialFieldWatching?fieldDuration:Math.max(400,roundMs*.82))/93
   // Speed controls playback, never which chances exist. Freeze the base
@@ -9960,9 +9960,12 @@ export function PyramidSeasonScreen() {
   const round = state.round
   // ⏩📺 05/11: com o 2D na carreira OFFLINE a velocidade é a marcha guardada (começa 2×; a do Manual vale no auto também)
   // ⏩📺 06/11: velocidade ABSOLUTA do 2D (`vel2d-regra.ts`): carreira offline = a marcha do aparelho · carreira online = a do dono
-  const r2dCarr = useRitmo2D(), vel2dCarr = useVel2DAqui()
+  const r2dCarr = useRitmo2D(), vel2dCarr = useVel2DAqui(), vel3dCarr = useVel3DAqui()
   const campo2d = useCampo2DLigado() // (na sala online quem manda é a sala — `useCampo2DLigado` já olha isso; todo mundo no mesmo tempo)
-  const speedFactor = campo2d ? vel2dCarr : state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
+  // 🏟️ 22/11 (Diego): o jogo aberto no CAMPO 3D anda em 2× por padrão, com ou sem plano (só o Manual muda). `jogo3d` liga no
+  // "▶ Começar o jogo" do mapa e desliga quando a pessoa escolhe 2D/placar rápido pro jogo seguinte.
+  const [jogo3d, setJogo3d] = useState(false)
+  const speedFactor = jogo3d ? vel3dCarr : campo2d ? vel2dCarr : state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   // ⏸️ passo é seu (SOLO + manual): usado na liga e na Copa. Declarado aqui em cima
   // porque o TEMPO DA PARTIDA (logo abaixo) e o efeito da Copa precisam saber se é manual.
   const [manualPref, toggleSim] = useSimMode()
@@ -9985,7 +9988,7 @@ export function PyramidSeasonScreen() {
   // 📺 CAMPO 2D (20/10): com o campinho ligado, o jogo dura 1:30 no automático (decisão do Diego) — e no Manual o técnico
   // acelera/desacelera pela marcha de sempre. É preferência do aparelho, e só pra quem tem o 2D liberado.
   // 📺 a escolha é do aparelho e vale pra TODO jogo (liga, copas, internacional) — o placar desenha o campinho sozinho
-  const baseRoundMs = campo2d ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
+  const baseRoundMs = (campo2d || jogo3d) ? DUR_2D_MS : manual ? ROUND_MS : ROUND_MS + AUTO_EXTRA_MS
   // 🏁 ÚLTIMA RODADA: `seasonOver` = a 38ª foi jogada; mas o fim (campeão/tabela final)
   // só entra DEPOIS que a partida animou na tela. Sem isto, ao chegar na 38ª o card do
   // jogo sumia na hora e pulava pro resultado — a última rodada não aparecia rolando.
@@ -12875,7 +12878,7 @@ export function PyramidSeasonScreen() {
     podeAvancar: copaPlaying ? copaPronta : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
     alternaManual: toggleManualCareer, mudaVelocidade: v => { if (campo2d) { if (r2dCarr.teste) setVel2D(v) } else dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
-    marcha: vel2dCarr, mudaMarcha: v => { if (hasManual) setVel2D(v) }, cadeado: hasManual ? undefined : () => setCadeadoMapa(v => !v), // ⏩ 21/11: no 3D a marcha é a do campinho 2D; sem plano, cadeado
+    marcha: vel3dCarr, mudaMarcha: v => { if (hasManual) setVel2D(v) }, cadeado: hasManual ? undefined : () => setCadeadoMapa(v => !v), // ⏩ 21/11: no 3D a marcha é a do campinho 2D; sem plano, cadeado
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
     tatica: () => escolheAba('elenco'), // 🔁 21/11 (Diego: "apertei Substituir no mapa e não aparece nada de substituição, ainda joga pra aba de jogos"): troca de jogador mora na aba Elenco
   } : null
@@ -12968,8 +12971,8 @@ export function PyramidSeasonScreen() {
       rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={(naCentral && !fluxoCentral) || (copaMinhaNaSemana && calI >= CAL_QUARTA) || (calI >= calFim && !(copaPendente && calI < CAL_QUARTA))}
       irJogo={!fluxoCentral && diaDoJogoNaCentral ? () => { setJogoOk(chaveCentral); escolheAba('jogos') } : undefined}
       escolha={fluxoCentral && diaDoJogoNaCentral ? {
-        d2: () => { ligaCampo2D(true); setEscolha2d(chaveCentral); escolheAba('jogos') },
-        rapido: () => { ligaCampo2D(false); setEscolha2d(chaveCentral); escolheAba('jogos') }, // ⚡ 20/11: placar rápido (o placar cinema), na aba Jogos
+        d2: () => { ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') },
+        rapido: () => { ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') }, // ⚡ 20/11: placar rápido (o placar cinema), na aba Jogos
         // 🏟️ 3D: apresenta o estádio antes do apito, sem depender da montagem da partida.
         d3: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('liga', chaveCentral); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) },
@@ -13355,8 +13358,8 @@ export function PyramidSeasonScreen() {
       : proximo
     // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
     const botao = (() => {
-      if (copaSegura) return { label: tr('📺 Jogar no Campo 2D', '📺 Play on the 2D pitch'), sub: tr(`${copaFaseName}${copaVolta ? ' · jogo de volta' : ''} · 2D e placar rápido abrem na aba Jogos · 3D abre no estádio do mapa`, `${copaFaseName}${copaVolta ? ' · second leg' : ''} · 2D and quick scoreboard open in Matches · 3D opens in the map stadium`), onClick: () => { ligaCampo2D(true); setEscolha2d(chaveCopa); escolheAba('jogos') },
-        alt2: { label: tr('⚡ Jogar no placar rápido', '⚡ Play on the quick scoreboard'), onClick: () => { ligaCampo2D(false); setEscolha2d(chaveCopa); escolheAba('jogos') } },
+      if (copaSegura) return { label: tr('📺 Jogar no Campo 2D', '📺 Play on the 2D pitch'), sub: tr(`${copaFaseName}${copaVolta ? ' · jogo de volta' : ''} · 2D e placar rápido abrem na aba Jogos · 3D abre no estádio do mapa`, `${copaFaseName}${copaVolta ? ' · second leg' : ''} · 2D and quick scoreboard open in Matches · 3D opens in the map stadium`), onClick: () => { ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') },
+        alt2: { label: tr('⚡ Jogar no placar rápido', '⚡ Play on the quick scoreboard'), onClick: () => { ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') } },
         alt: { label: tr('🏟️ Jogar no Campo 3D', '🏟️ Play on the 3D pitch'), onClick: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('copa', chaveCopa); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) } } }
       if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr(`🏆 Jogo da ${compNomeAgora[0]} rolando — assistir`, `🏆 ${compNomeAgora[1]} match live — watch`)) : tr(`🏆 Assistir a ${compNomeAgora[0]}`, `🏆 Watch the ${compNomeAgora[1]}`), sub: tr('o controle do jogo está em Jogos', 'the match controls are in Matches'), onClick: vai('jogos') }
@@ -13783,7 +13786,7 @@ export function PyramidSeasonScreen() {
           // 🧯 22/11: causo, lesão ou crise seguram a rodada? o toque NÃO gasta a escolha do 3D (antes o ▶ sumia e o jogo não começava):
           // leva pra aba Jogos, onde o aviso aparece pra resolver; depois é só escolher o 3D de novo na Central.
           if (p3.tipo !== 'copa' && !p3.chave?.endsWith(':c') && (criseTrava || eventoPendente || maybeEvento())) { escolheAba('jogos'); return }
-          setPend3d(null)
+          setPend3d(null); setJogo3d(true)
           viu3d.current = true
           if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else { setJogoOk(p3.chave); if (!p3.chave.endsWith(':c')) avancarRodada(true) /* 🧭 21/11: a escolha do 3D vale pra ESTE jogo */ }
           pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d') // A câmera já está pronta; este toque é o único que libera a partida.

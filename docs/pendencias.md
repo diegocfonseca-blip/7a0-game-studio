@@ -1,4 +1,4 @@
-## 🧯 22/11 — Consertos da varredura da carreira (NO BRANCH, esperando "pode publicar") — Diego: *"conserte todos"*
+## 🧯 22/11 — Consertos da varredura da carreira (🟢 publicado em 22/11) — Diego: *"conserte todos"*
 - ✅ 1 ▶ do 3D não gasta mais a escolha quando causo/lesão/crise segura a rodada: leva pra aba Jogos (onde o aviso aparece).
 - ✅ 2 "Só no intervalo" vale do PRÓXIMO jogo (`careerSubModeDesde` no save; SET_SUBMODE carimba temporada+rodada; `halfMode` ignora o jogo já apitado).
 - ✅ 3 Copa de quarta liberada pelo ▶ do 3D fica no mapa · ✅ 4 pênalti decisivo só tira do 3D quando a janela abre · ✅ 5 confirmou o intervalo vindo do 3D → volta pro mapa.
@@ -9,7 +9,7 @@
   🔬 NÃO reproduzidos na bancada (dependem de causo/pênalti/copa/intervalo): os cenários 1–5 em si — conferir jogando.
 
 ## 🔎 22/11 — Varredura do dia de jogo da carreira (achados lidos no código; NADA rodado). Só o item 0 foi mexido (no branch)
-0. ✅ (no branch, falta publicar) **Minha regressão de 22/11**: a ida pra Central depois da coletiva pegava QUALQUER um que estivesse na aba Clube
+0. ✅ (publicado em 22/11) **Minha regressão de 22/11**: a ida pra Central depois da coletiva pegava QUALQUER um que estivesse na aba Clube
    (ex.: cuidando do estádio depois de um jogo visto no 2D, ou na apresentação das lendas da rodada 0). Agora só quem liberou o jogo pelo ▶ do 3D e
    não saiu do mapa (`viu3d`, pyramidseason.tsx).
 1. 🔴 **▶ do 3D "some" quando um causo/lesão/crise segura a rodada**: o toque gasta a escolha (`setJogoOk` + `setPend3d(null)`) antes de saber se o jogo
@@ -26,6 +26,21 @@
 - Melhorias sugeridas: Central avisar "resolva X primeiro" quando há causo/crise; botões "Resolva o intervalo"/"Bata o pênalti" da Central levarem pra aba
   Jogos; aviso no mapa do próximo passo depois de uma fase de copa no 3D; "voltar pro estádio" depois do intervalo.
 
+
+## 🔬 22/11 — CAMPO 3D: TESTE DE NITIDEZ PELO ENDEREÇO (pra o Diego ver no S25; nada muda pra quem não usa)
+- Diego: *"o que deixa feio é a nitidez da tela… precisamos mexer nisso p ver"*. Hoje no celular a imagem do jogo é desenhada em 1×–1,5× (até 2×
+  quando segura 60 quadros) numa tela de 3×, e o freio automático (`graphicsBudget`) ainda baixa mais.
+- `?nitidez=1` = força a nitidez do "jogo liso" (até 2×, com freio) · `?nitidez=2` = até 2,5× SEM freio · `?nitidez=3` = a tela inteira do aparelho, sem freio.
+  Com o parâmetro, aparece o mostrador pequeno (quadros/s + nitidez real). Sem o parâmetro, tudo igual a antes.
+- Próximo passo: ele joga um jogo no 3D em cada nível e diz qual fica bonito e liso; aí o padrão do celular forte sobe pra esse nível.
+- ⚠️ Não medido em aparelho de verdade: na bancada (sem placa de vídeo) só conferi que não dá erro.
+
+## 🏟️ 22/11 — JOGO NO CAMPO 3D DA CARREIRA: 2× POR PADRÃO, COM OU SEM PLANO
+- Diego: *"qd aperta p ver em 3d na carreira a velocidade deve tá em padrão 2x pra quem tem plano ou não. Quem não tem, pra mudar só com botão manual pago desbloqueando"*.
+- `VEL3D_CARREIRA_PADRAO = 2` (vel2d-regra.ts) · `useVel3DAqui` (ritmo2d.ts): sem Manual = 2× cravado; com Manual = a marcha escolhida (ou 2×).
+- `jogo3d` (pyramidseason): liga no "▶ Começar o jogo" do mapa, desliga quando escolhe 2D/placar rápido. Com ele o relógio da rodada inteira
+  anda na marcha do 3D (antes o 3D herdava o 1,5× do campinho 2D). O 2D da aba Jogos NÃO mudou (segue 1,5× padrão).
+- Trava: `npm run vel-2d`. ⚠️ Não testado em aparelho de verdade; conferir a duração (~45 s) num jogo no mapa.
 ## 🧭 22/11 — Depois da coletiva, quem viu o jogo no 3D voltava pro mapa (CONSERTO NO BRANCH, esperando "pode publicar")
 - Diego: *"acabou o jogo no mapa 3D, foi pra entrevista coletiva e depois de dar a coletiva voltou pro mapa 3D do jogo, erradamente"*.
 - `responderColetiva` (pyramidseason.tsx): no fluxo da Central, se a aba é o mapa (`estadio`), ao fechar a coletiva vai pra **Central** (onde aparece o
