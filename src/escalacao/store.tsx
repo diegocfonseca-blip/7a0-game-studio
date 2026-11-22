@@ -1258,7 +1258,7 @@ import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
 import { donoSaiDoBafo } from './bafo2-sair'
 import { calendarioBafo } from './bafo2'
-import { premioDaLiga, premiosCopaDraft, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveNome, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
+import { premioDaLiga, premiosCopaDraft, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveJogador, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
 // 🎮 "geração" da carreira solo: carreiras iniciadas a partir da cobrança do
@@ -10691,9 +10691,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ☝️ Liga Draft: cada jogador é ÚNICO na liga desde o 1º leilão — a mesma pessoa em duas cartas (Lodeiro no
       // Botafogo e no Boca) não pode cair em dois times. Fica só UMA carta por nome no baralho desta largada.
       if (s.ligaDraft) { // 🏀 vale pro baralho da NBA também (um LeBron só por liga)
-        const vistos = new Set<string>()
+        // 🏆 22/11 (Diego: "não tem Dida pra escolher no Milan… não apareceu Cafu"): fica a carta do AUGE (categoria mais alta, depois
+        // a faixa lo+hi), nunca a primeira da lista — antes sobrava o Dida do Corinthians 2000 e sumia o do Milan 2007 (92 casos).
+        const melhor = new Map<string, (typeof CATALOG)[Sector][number]>()
+        for (const pos of SECTORS) for (const c of ACTIVE_CATALOG[pos] ?? []) {
+          const k = chaveJogador(c), m = melhor.get(k)
+          if (!m || c.fame > m.fame || (c.fame === m.fame && c.lo + c.hi > m.lo + m.hi)) melhor.set(k, c)
+        }
         const out = {} as typeof CATALOG
-        for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => { const k = chaveNome(c.name); if (vistos.has(k)) return false; vistos.add(k); return true })
+        for (const pos of SECTORS) out[pos] = (ACTIVE_CATALOG[pos] ?? []).filter(c => melhor.get(chaveJogador(c)) === c)
         ACTIVE_CATALOG = out
       }
       s.vel2d = undefined // ⏩📺 06/11: e o 2D começa na marcha padrão (sala 3× · carreira online 2×)
@@ -10971,9 +10977,9 @@ function reducerBase(state: EscState, action: Action): EscState {
           const novosBots = s.managers.filter(m => !m.isHuman).slice(dc.bots.length)
           if (novosBots.length) {
             // ☝️ cada jogador é único na liga: carta do bot novo que já está noutro time vira um reserva da várzea da mesma posição
-            const ja = new Set([...humanos.flatMap(m => m.squad), ...dc.bots.flatMap(b => b.squad)].map(c => chaveNome(c.name)))
+            const ja = new Set([...humanos.flatMap(m => m.squad), ...dc.bots.flatMap(b => b.squad)].map(c => chaveJogador(c)))
             const rngB = mulberry((s.seed ^ 0xB07A) >>> 0)
-            for (const b of novosBots) b.squad = b.squad.map(c => ja.has(chaveNome(c.name)) ? fillerCard(c.pos as Sector, rngB) : (ja.add(chaveNome(c.name)), c))
+            for (const b of novosBots) b.squad = b.squad.map(c => ja.has(chaveJogador(c)) ? fillerCard(c.pos as Sector, rngB) : (ja.add(chaveJogador(c)), c))
           }
           s.managers = [...humanos, ...dc.bots.map(b => ({ ...b, squad: b.squad.map(c => ({ ...c })) })), ...novosBots]
           s.draftFeito = dc.draftFeito
@@ -14422,8 +14428,8 @@ function reducerBase(state: EscState, action: Action): EscState {
           for (const b of gen.filter(m => !m.isHuman)) { const id = prox++; const pl = botPlans.find(p => p.id === b.id); novos.push({ ...b, id }); if (pl) planos.push({ ...pl, id }) }
           const usadosC = new Set(s.managers.flatMap(m => m.squad.map(c => ident(c))))
           dealBotSquads(novos, planos, rng, usadosC)
-          const ja = new Set(s.managers.flatMap(m => m.squad.map(c => chaveNome(c.name)))) // ☝️ jogador único na liga
-          for (const b of novos) b.squad = b.squad.map(c => ja.has(chaveNome(c.name)) ? fillerCard(c.pos as Sector, rng) : (ja.add(chaveNome(c.name)), c))
+          const ja = new Set(s.managers.flatMap(m => m.squad.map(c => chaveJogador(c)))) // ☝️ jogador único na liga
+          for (const b of novos) b.squad = b.squad.map(c => ja.has(chaveJogador(c)) ? fillerCard(c.pos as Sector, rng) : (ja.add(chaveJogador(c)), c))
           s.managers.push(...novos)
         }
         s.tamanhoLiga = undefined; mudou = true
@@ -14493,7 +14499,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const carta = acharCarta(action.carta, deckDraft(s))
       if (!m || !carta) return state
       // ☝️ único na liga: ninguém (humano ou bot) pode ter alguém com esse nome — e quem sai é da MESMA posição
-      if (nomesOcupados(s.managers).has(chaveNome(carta.name))) return state
+      if (nomesOcupados(s.managers).has(chaveJogador(carta))) return state
       if (s.minhaLigaDraft && !cartaPermitidaDraft(carta, s.draftRegras)) return state // 📜 regra da turma (a tela esconde a mesma carta)
       if (s.minhaLigaDraft) {
         // 📋🏆 com vaga (menos de 22) entra sem ninguém sair; elenco cheio = sai quem ele escolheu, sem furar posição

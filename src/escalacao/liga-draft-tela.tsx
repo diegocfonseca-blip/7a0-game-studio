@@ -15,7 +15,7 @@ import { POS_LABELS } from './sportcfg'
 import { EscalacaoMinha } from './minha-escalacao'
 import { ListaFavoritos, EstrelaFav, useFavoritosDraft } from './draft-favoritos'
 import {
-  podemSair, chaveCarta, chaveNome, categoriaDa, decadaDe, paisDaCarta,
+  podemSair, chaveCarta, chaveJogador, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
   elencoMaxDraft, draftEhBasquete, baralhoDoDraft, podePassarDraft, todasAsCartas, podemSairMinha, podeIrProLeilao, cartaPermitidaDraft, temRegraDraft, type RegrasDraft, podeSondarCarta, sondavelNoDraftDa, temporadasNoTime, MLD_SONDAR_TEMPORADAS,
 } from './liga-draft'
@@ -272,7 +272,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
   // o over só aparecem depois, no elenco de quem pegou). Quem já tem dono aparece marcado com o time (👤 técnico · 🤖 bot) e não dá pra pegar.
   const donoDe = useMemo(() => {
     const mp = new Map<string, { time: string; bot: boolean }>()
-    for (const m of state.managers) for (const c of m.squad) if (!c.fake) mp.set(chaveNome(c.name), { time: m.teamName, bot: !m.isHuman })
+    for (const m of state.managers) for (const c of m.squad) if (!c.fake) mp.set(chaveJogador(c), { time: m.teamName, bot: !m.isHuman })
     return mp
   }, [state.managers])
   const baralho = useMemo(() => todasAsCartas(baralhoDoDraft(state)), [state.minhaLigaDraft, state.deckLeague])
@@ -319,7 +319,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
         </div>
         <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white">
           {lista.map(c => {
-            const dono = donoDe.get(chaveNome(c.name))
+            const dono = donoDe.get(chaveJogador(c))
             if (dono) return (
               <div key={chaveCarta(c)} className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-black/10 ov3-surface" style={{ background: '#EFEBE0', opacity: .62 }}>
                 <span className="shrink-0 text-[11px] border-2 border-black rounded-md px-1.5 ov3-surface" style={{ ...OSW, background: '#fff' }}>{tagP(c.pos)}</span>
