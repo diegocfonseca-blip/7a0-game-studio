@@ -514,7 +514,7 @@ export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assent
     return (
       <div style={{ ...caixa('linear-gradient(135deg,#FFC400,#ffe27a)'), padding: 12, color: INK, textAlign: 'center' }}>
         <p style={{ ...OSW, fontWeight: 900, fontSize: 18, margin: 0 }}>🃏 {tr('Bafo fechado', 'Bafo settled')}</p>
-        {r?.amistoso ? <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0 0' }}>{tr('🤝 Sala amistosa: ninguém ganhou nem perdeu carta.', '🤝 Friendly room: nobody won or lost a card.')}</p>
+        {r?.amistoso ? <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0 0' }}>{tr('🤝 Bafo amistoso: quem criou a sala escolheu não valer carta. Por isso o campeão não toma carta de ninguém e ninguém perde nada.', '🤝 Friendly Bafo: the room creator chose no cards at stake. So the champion takes no card and nobody loses anything.')}</p>
           : r?.semCarta || !r?.carta ? <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0 0' }}>{tr('Não sobrou carta em jogo pra tomar.', 'There was no card left at stake to take.')}</p>
           : <>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 24, margin: '6px 0 0' }}>{r.carta.name}</p>

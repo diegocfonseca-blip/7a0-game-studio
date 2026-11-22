@@ -11,6 +11,17 @@
   (ou "a temporada"). A Supercopa sem você já passava direto (`avancaCopaAuto`). Não testado numa carreira do Oficial na bancada.
 
 
+
+### 🃏 22/11 (tarde) — Bafo: selo valendo/amistoso, fim amistoso explicado, aviso de quem foi levado, 3-5-2 (no branch, esperando "pode publicar")
+- Diego (prints da sala FG93HX): *"tem que ter um selinho… bafo valendo cartinha ou bafo amistoso"*, *"tem que dar uma explicação que o campeão não vai
+  roubar a carta porque ele criou a sala no modo amistoso"*, *"do nada já jogou pra sala aberta"*, *"aperta 3-5-2 mas tá fazendo 5-3-2"*.
+- Lista de salas: selo `🃏 BAFO VALENDO CARTA` / `🤝 BAFO AMISTOSO` (lobby.tsx; lê `game_state->>bafoSemCarta` só das salas de Bafo, sem mudar o banco).
+- Fim amistoso: texto diz que foi escolha de quem criou a sala (bafo2-ui.tsx).
+- Volta pra espera: o dono apertou "Novo Bafo" e quem não tinha respondido veio junto (é o comportamento desenhado). Agora quem veio sem responder
+  vê `AvisoBafoLevado` (lobby.tsx) com Vou jogar / Sair da sala. Marca por aba (sessionStorage `bafo-fim-<sala>`), some ao fechar.
+- 3-5-2: no Bafo o botão gravava o 3-5-2 mas o campinho e a pílula só desenhavam assim na Liga Draft → agora vale pros dois (pyramidseason.tsx).
+- Print: `scripts/mockups/bafo-selo-amistoso.png`.
+
 ### 🧭 22/11 (noite) — aba Clube: atalhos embaixo do mapa + jogo 3D só com o mapa (APROVADO, no branch, esperando "pode publicar")
 - Mockup `scripts/mockups/clube-jogo-celular-antes-depois.png` → Diego: *"Aprovo, mas qd tá vendo jogo rolando… mostre só o jogo, o mapa com jogo apenas e mais nada"*.
 - Feito: `AtalhosDoClube` (clube-organizacao.tsx) logo embaixo do mapa — 🏗️ Obras · 💰 Dinheiro · 🤝 Contratos · 🛍️ Loja · 🕴️ Agência; bolinha vermelha

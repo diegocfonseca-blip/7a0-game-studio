@@ -12706,6 +12706,12 @@ function BafoFimVoto() {
       : V('Sair da sala? Você será removido desta sala.', 'Leave the room? You will be removed from this room.')
     if (window.confirm(msg)) leaveRoom()
   }
+  // 🃏📣 22/11 (Diego: *"do nada já jogou pra sala aberta"*): quem ainda não respondeu e é levado junto quando o dono começa o
+  // novo Bafo ganha, na sala de espera, o aviso do porquê + o botão de sair (`AvisoBafoLevado` em lobby.tsx). A marca é desta aba só.
+  useEffect(() => {
+    if (!state.roomId || isHost) return
+    try { sessionStorage.setItem(`bafo-fim-${state.roomId}`, quero ? 'sim' : 'nao') } catch { /* sem armazenamento: só não avisa */ }
+  }, [state.roomId, isHost, quero])
   const [indo, setIndo] = useState(false)
   const novoBafo = async () => { if (indo) return; setIndo(true); await voltaEsperaNoBanco(state.roomId); dispatch({ type: 'REMATCH' }) }
   const btn = (bg: string, fg: string): React.CSSProperties => ({ flex: 1, background: bg, color: fg, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 6px', fontWeight: 900, fontSize: 15, ...OSWALD })

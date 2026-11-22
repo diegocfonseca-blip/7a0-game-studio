@@ -2341,6 +2341,16 @@ export function EscLobby() {
       const { data: pls } = await supabase.from('room_players').select('room_id').in('room_id', ids)
       for (const p of (pls ?? []) as { room_id: string }[]) counts[p.room_id] = (counts[p.room_id] ?? 0) + 1
     }
+    // 🃏🤝 22/11 (Diego: *"como é que o cara vai saber se está valendo carta ou não"*): o selo do Bafo diz VALENDO CARTA ou AMISTOSO.
+    // A lista lê só colunas magras; o "amistoso" mora no game_state, então só as salas de Bafo (poucas) leem esse campo, sem mudar o banco.
+    const bafoIds = list.filter(r => r.game_state?.mode === 'elenco').map(r => r.id)
+    if (bafoIds.length) {
+      try {
+        const { data: bf } = await supabase.from('game_rooms').select('id, sem:game_state->>bafoSemCarta').in('id', bafoIds)
+        const sem = new Set(((bf ?? []) as unknown as { id: string; sem: string | null }[]).filter(x => x.sem === 'true').map(x => x.id))
+        for (const r of list) if (sem.has(r.id) && r.game_state) (r.game_state as GS).bafoSemCarta = true
+      } catch { /* sem resposta: o selo fica como VALENDO, que é o padrão do modo */ }
+    }
     // "jogo rolando" só conta se alguém salvou recentemente: o host grava um
     // heartbeat a cada 3s enquanto a partida tá aberta numa aba de verdade.
     // Sem isso, uma sala cujo host sumiu (fechou a aba, caiu) ficava marcada
@@ -5120,7 +5130,7 @@ export function EscLobby() {
                     <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
                     {/* 🃏 21/11 (Diego: *"tem que ter o selinho de bafo… uma cor meio verde, musgo, com marrom"*): sala do Bafo ganha o selo dela no lugar do baralho (o baralho é o de cada um) */}
                     {r.game_state?.mode === 'elenco'
-                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#5E6B2B,#5A3E22)', color: '#F4ECD6', boxShadow: '2px 2px 0 #000', ...OSWALD }} title={tr('Bafo: cada um joga com as cartas que ganhou sendo campeão, e o campeão toma 1 de alguém', 'Bafo: everyone plays with the cards they won as champion, and the champion takes 1 from someone')}>🃏 BAFO</span>
+                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#5E6B2B,#5A3E22)', color: '#F4ECD6', boxShadow: '2px 2px 0 #000', ...OSWALD }} title={(r.game_state as GS)?.bafoSemCarta ? tr('Bafo amistoso: ninguém ganha nem perde carta', 'Friendly Bafo: nobody wins or loses a card') : tr('Bafo valendo carta: o campeão toma 1 carta de alguém da sala', 'Bafo for real: the champion takes 1 card from someone in the room')}>{(r.game_state as GS)?.bafoSemCarta ? tr('🤝 BAFO AMISTOSO', '🤝 FRIENDLY BAFO') : tr('🃏 BAFO VALENDO CARTA', '🃏 BAFO · CARDS AT STAKE')}</span>
                       : (r.game_state as { formation?: string } | undefined)?.formation === 'kings'
                       ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
                       : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
@@ -5915,6 +5925,7 @@ export function EscLobby() {
       )}
 
       {/* 🃏 BAFO NOVO (21/11): as REGRAS em cima; quando o dono começa, vira a convocação de 120 s na tela de todo mundo */}
+      {room.game_state?.mode === 'elenco' && user && room.host_id !== user.id && <AvisoBafoLevado roomId={room.id} onSair={() => { if (window.confirm(tr('Sair da sala? Você será removido desta sala.', 'Leave the room? You will be removed from this room.'))) void leaveRoom() }} />}
       {room.game_state?.mode === 'elenco' && user && (
         <div className="mb-3">
           <BafoSala roomId={room.id} meuUid={user.id} donoUid={room.host_id} players={players} valendo={!room.game_state?.bafoSemCarta}
@@ -6460,4 +6471,24 @@ async function copiaTexto(txt: string): Promise<boolean> {
     const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'
     document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok
   } catch { return false }
+}
+
+/** 🃏📣 22/11 (Diego: *"teve uma outra vez que do nada já tá jogando pra sala aberta"*): o dono apertou "Novo Bafo" e quem ainda NÃO
+ *  tinha respondido na votação do fim veio junto pra sala de espera. Agora ele vê o porquê e o caminho de sair. Fechou = não volta. */
+function AvisoBafoLevado({ roomId, onSair }: { roomId: string; onSair: () => void }) {
+  const chave = `bafo-fim-${roomId}`
+  const [marca, setMarca] = useState<string | null>(() => { try { return sessionStorage.getItem(chave) } catch { return null } })
+  useEffect(() => { if (marca === 'sim') { try { sessionStorage.removeItem(chave) } catch { /* ok */ } } }, [marca, chave])
+  if (marca !== 'nao') return null
+  const fecha = () => { try { sessionStorage.removeItem(chave) } catch { /* ok */ } setMarca(null) }
+  return (
+    <div role="status" className="mb-3 border-[3px] border-black rounded-2xl p-3" style={{ background: '#FFF6D6', boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{tr('🃏 O dono começou um novo Bafo', '🃏 The owner started a new Bafo')}</p>
+      <p style={{ fontSize: 12.5, fontWeight: 700, margin: '4px 0 0' }}>{tr('Você não tinha respondido se queria jogar de novo, então voltou junto pra sala de espera. Quer jogar? É só ficar. Não quer? Saia da sala.', 'You had not answered whether you wanted to play again, so you came back to the waiting room with everyone. Want to play? Just stay. Not this time? Leave the room.')}</p>
+      <div style={{ display: 'flex', gap: 8, marginTop: 9 }}>
+        <button type="button" onClick={fecha} style={{ flex: 1, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 ${INK}`, padding: '8px 6px', fontWeight: 900, fontSize: 14, ...OSWALD }}>{tr('🃏 Vou jogar', '🃏 I\'m playing')}</button>
+        <button type="button" onClick={() => { fecha(); onSair() }} style={{ flex: 1, background: '#FFD9CE', color: '#8E2A1B', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `2px 2px 0 ${INK}`, padding: '8px 6px', fontWeight: 900, fontSize: 14, ...OSWALD }}>{tr('🚪 Sair da sala', '🚪 Leave the room')}</button>
+      </div>
+    </div>
+  )
 }

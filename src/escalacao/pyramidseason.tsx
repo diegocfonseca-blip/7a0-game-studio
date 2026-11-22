@@ -5744,8 +5744,8 @@ function ElencoField({ navigationRequest, mgr, col, xiIds, xi, goals, assists, s
   // Sem a trava, nada disto roda e o campinho fica byte a byte como era.
   const { state: stEl } = useEsc() // só leitura: ficha do técnico + folha com ele
   const quinze = useFormacoes15() && stEl.onlineMode !== 'online' // 🎽 online segue com as 5
-  // 🪽 07/11 (Diego: "coloque 352 na liga draft"): na Liga Draft o 3-5-2 é o 5-3-2 com os laterais subindo como alas — só o desenho
-  const fView = quinze || (stEl.minhaLigaDraft && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr) : null
+  // 🪽 07/11 (Diego: "coloque 352 na liga draft"): na Liga Draft (e no Bafo, 22/11: "aperta 3-5-2 mas tá fazendo 5-3-2") o 3-5-2 é o 5-3-2 com os laterais subindo como alas — só o desenho
+  const fView = quinze || ((stEl.minhaLigaDraft || stEl.bafo2) && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr) : null
   const meis = xiOf('MEI')
   const recuadoIds = new Set<string>() // alas do 3-5-2 / líbero: descem um tiquinho
   let meioRows: WonCard[][] = [meis]
@@ -7646,7 +7646,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
       )}
       {/* 🎽🔁 as pílulas: o que está valendo, em uma linha. Toca e a caixa abre embaixo. */}
       {elencoNovoOk && elenco && (onSetFormation || onSetSubMode || ab) && (() => {
-        const rotuloForm = quinze15 || (escSt.minhaLigaDraft && mgr.formationView === '3-5-2') ? formacaoAtual(mgr).rotulo : mgr.formation
+        const rotuloForm = quinze15 || ((escSt.minhaLigaDraft || escSt.bafo2) && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr).rotulo : mgr.formation
         const modoAgora = (subMode ?? 'dinamico') === 'dinamico' ? tr('🔄 Dinâmico', '🔄 Dynamic') : tr('⏸️ Intervalo', '⏸️ Half-time')
         const pilula = (txt: string, aberta: boolean, onClick: () => void) => (
           <button onClick={onClick} style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 8px', border: `2.5px solid ${INK}`, borderRadius: 9, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
