@@ -45,7 +45,7 @@ import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado } from '
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
-import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playChime, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -6103,7 +6103,9 @@ function Reveal() {
     // 🔨 e pro VENDEDOR (carreira): jogador SEU listado arrematado por outro.
     const iSold = sold && meId != null && sellerId != null && sellerId === meId && it.winner !== meId
     const timers: ReturnType<typeof setTimeout>[] = []
-    if (iWon || iSold) timers.push(setTimeout(() => playHammer(), delayMs))
+    // 🔨 21/11 (noite, Diego numa sala de Clubes: *"tá mudo… tinha que ter um martelinho batendo sempre que alguém ganhasse o lance, pra ter
+    // mais animação"*): o martelo agora bate pra SALA TODA em toda carta/pacote arrematado (revê o "martelo só pra quem ganha" antigo).
+    if (sold) timers.push(setTimeout(() => playHammer(), delayMs))
     // 😅 19/11: QUASE! — você perdeu por 1 ou 2 moedas (a mesma conta da faixa "QUASE!" da tela), só pra você
     if (sold && meId != null && !iWon) {
       const win = it.bids.find(b => b.mgr === it.winner)
@@ -6116,6 +6118,8 @@ function Reveal() {
     // quem VENDE uma lenda listada (a venda dele fechando). Vale em todos os modos
     // que usam o reveal; respeita o mudo (playMp3). Substitui o antigo chime.
     if (it.card.fame >= 5 && (iWon || iSold)) timers.push(setTimeout(() => playMp3(`${import.meta.env.BASE_URL}sfx/lenda.mp3`), delayMs + 260))
+    // ✨ e quem só ASSISTE a lenda sair ouve o sininho dourado (o "faah" continua só de quem levou/vendeu)
+    else if (it.card.fame >= 5 && sold) timers.push(setTimeout(() => playChime(), delayMs + 260))
     return () => timers.forEach(clearTimeout)
     // ⚠️ também pela CARTA: leva nova com o mesmo índice (0 → 0) tem que tocar de novo (13/09)
     // eslint-disable-next-line react-hooks/exhaustive-deps

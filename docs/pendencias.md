@@ -1,3 +1,8 @@
+## 🔨🔊 21/11 (noite) — Martelo pra sala toda na revelação (NO BRANCH, esperando "pode publicar")
+- Diego numa sala de Clubes: *"tá mudo… tinha que ter um martelinho batendo sempre que alguém ganhasse"*. Não era defeito: o martelo só tocava pra quem
+  levava/vendia (regra antiga dele). Agora bate pra TODOS em todo arremate (`screens.tsx`, efeito da revelação); lenda saindo = sininho pra quem assiste.
+- ❓ Ele quer MAIS sons no jogo. Levar UMA lista curta de onde pôr (não sair pondo). 🔬 Som não testado em aparelho (bancada não tem áudio).
+
 ## 🃏 21/11 (noite) — BAFO: o dono troca Campo 2D ↔ placar padrão (NO BRANCH, esperando "pode publicar")
 - Pedido do Diego: o Bafo estava travado só no Campo 2D; ele quer poder trocar pro placar padrão. Saiu a trava do Bafo no botão do dono
   (`TrocaCampo2DSala`, screens.tsx) e no motor (`SET_CAMPO2D`, store.tsx). Continua COMEÇANDO no 2D; a troca vale a partir do próximo jogo, pra sala toda.

@@ -463,7 +463,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   antes de codar. Textos de UI: simples, diretos, sem tecniquês.
 - **Sempre quer saber se dá pra reverter** ("qualquer bug eu posso voltar
   atrás né?") — responder isso proativamente a cada entrega.
-- Sons: martelo só pra QUEM ganha (ou vende) — nada de som genérico pra todos.
+- Sons: ~~martelo só pra QUEM ganha (ou vende)~~ 🔁 **21/11 (noite): o MARTELO BATE PRA SALA TODA em toda carta/pacote arrematado** (*"tinha que ter um
+  martelinho batendo sempre que alguém ganhasse o lance, pra ter mais animação"*). Lenda saindo: sininho dourado pra quem assiste; o "faah" segue só de
+  quem levou/vendeu. Ele quer MAIS sons no jogo (*"várias partes precisam ter mais sons"*) — levar a lista pra ele antes de sair pondo.
 - **🔊 O JOGO COMEÇA COM SOM (19/11, regra dele).** *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*. Só fica mudo quem
   apertou 🔇 (escolha lembrada no aparelho, `esc-sound-muted = '1'`). Não voltar o padrão pro mudo. (O navegador ainda só toca depois do 1º toque.)
 - **O desenho do estádio (StadiumSvg) é sagrado**: tem que ser a PRIMEIRA coisa
