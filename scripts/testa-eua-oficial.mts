@@ -73,7 +73,45 @@ ok(new Set(pk.map((p: any) => p.name)).size === 30 && pk.every((p: any) => !ante
 const cat = [...poolDraftEua({ ...s, managers: [] })]
 ok(pk.every((p: any) => { const c = cat.find((x: any) => x.name === p.name && x.club === p.club); return !!c && (c.promessa || c.fame <= 3) }), 'Draft: só promessa e jogador bom')
 ok(reducer(s, { type: 'EUA_DRAFT_ABRIR' } as any) === s, 'Draft: só uma vez por temporada')
+// ✍️ AGÊNCIA LIVRE (22/11)
+{
+  const k = (c: any) => `${c.name}|${c.club}|${c.year}`
+  ok(s.managers.every((m: any) => m.squad.filter((c: any) => /^(eua-|edr)/.test(c.id)).every((c: any) => s.euaContratos?.[k(c)] != null)), 'Agência: quinteto e Draft já têm contrato')
+  const pick = s.managers[0].squad.find((c: any) => c.name === minha.name)
+  ok(s.euaContratos?.[k(pick)] === 1 + 4, `Agência: escolha do Draft = contrato de novato de 4 temporadas (${s.euaContratos?.[k(pick)]})`)
+  // força 2 contratos SEUS a acabarem agora (pra testar as duas decisões)
+  const meus = s.managers[0].squad.filter((c: any) => !c.fake)
+  const porPos = (p: string) => meus.filter((c: any) => c.pos === p).length
+  const doisNaPos = meus.find((c: any) => porPos(c.pos) >= 2) // pode sair
+  const unico = meus.find((c: any) => porPos(c.pos) === 1)   // não pode sair
+  for (const c of [doisNaPos, unico].filter(Boolean)) s.euaContratos[k(c)] = 1
+  s.careerCoins = { ...(s.careerCoins ?? {}), [s.managers[0].id]: 999 }
+  const preso = reducer(s, { type: 'NEXT_NBA_SEASON' } as any)
+  s = reducer(s, { type: 'EUA_AGENCIA_ABRIR' } as any)
+  const a = s.euaAgencia
+  ok(!!a && a.temporada === 1 && a.meus.length >= 2, `Agência: abre com os seus contratos que acabaram (${a?.meus.length})`)
+  ok(s.managers.every((m: any) => ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].every(p => m.squad.some((c: any) => c.pos === p))), 'Agência: nenhuma franquia ficou sem jogador numa posição')
+  ok(a.livres.length + a.botsRenovaram > 0, `Agência: a máquina renovou ${a.botsRenovaram} e soltou ${a.livres.length}`)
+  const nomesTimes = new Set(s.managers.flatMap((m: any) => m.squad.map(k)))
+  ok(a.livres.every((c: any) => !nomesTimes.has(k(c))), 'Agência: quem está livre não está em time nenhum')
+  ok(reducer(s, { type: 'NEXT_NBA_SEASON' } as any) === s, 'Agência: não passa de temporada com contrato seu sem decisão')
+  ok(reducer(s, { type: 'EUA_AGENCIA_DECIDIR', chave: k(unico), renova: false } as any) === s, 'Agência: o único da posição não pode sair')
+  const cx = s.careerCoins[s.managers[0].id]
+  s = reducer(s, { type: 'EUA_AGENCIA_DECIDIR', chave: k(unico), renova: true } as any)
+  ok(s.careerCoins[s.managers[0].id] === cx - Math.max(1, Math.round((unico.paid ?? 0) / 10)) && s.euaContratos[k(unico)] === 1 + 3, 'Agência: renovar paga a luva (1 salário) e dá +3 temporadas')
+  s = reducer(s, { type: 'EUA_AGENCIA_DECIDIR', chave: k(doisNaPos), renova: false } as any)
+  ok(!s.managers[0].squad.some((c: any) => k(c) === k(doisNaPos)) && s.euaAgencia.livres.some((c: any) => k(c) === k(doisNaPos)), 'Agência: deixar ir tira do elenco e põe no mercado')
+  for (const kk of s.euaAgencia.meus) if (!s.euaAgencia.decididos[kk]) s = reducer(s, { type: 'EUA_AGENCIA_DECIDIR', chave: kk, renova: true } as any)
+  ok(reducer(s, { type: 'EUA_AGENCIA_ABRIR' } as any) === s, 'Agência: só uma vez por temporada')
+  void preso
+  var livresT1 = s.euaAgencia.livres.map(k)
+}
 s = reducer(s, { type: 'NEXT_NBA_SEASON' } as any)
+if (s.screen === 'auction') {
+  const k = (c: any) => `${c.name}|${c.club}|${c.year}`
+  const noDeck = new Set(['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].flatMap(p => s.deck[p].map(k)))
+  ok(livresT1.some((x: string) => noDeck.has(x)), 'Agência: quem ficou livre entra no seu leilão de reservas')
+}
 ok(s.euaTitulos?.temporadas === 1, 'Ranking: a virada não conta a temporada 2 vezes')
 ok(s.seasonNo === 2 && s.nbaTier === 'nba' && s.euaOficial?.franquia === 'Pelicans', 'T2: continua na NBA, com os Pelicans (sem sobe e desce)')
 ok(s.euaCup?.temporada === 2 && Object.keys(s.euaCup.jogos).length === 0 && !s.nbaCup && s.euaCup.grupos.every((g: any) => g.times.length === 5) && new Set(s.euaCup.grupos.flatMap((g: any) => g.times)).size === 30, 'T2: grupos novos da NBA Cup, sorteados')

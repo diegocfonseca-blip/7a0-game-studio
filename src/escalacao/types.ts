@@ -1397,6 +1397,10 @@ export interface EscState {
   /** 🏀🎓 o Draft do EUA Oficial desta virada (eua-draft.ts): a loteria, a ordem das 30 escolhas (ids) e quem escolheu quem */
   euaDraft?: { temporada: number; fora: number[]; sorteio: number[]; ordem: number[]; idx: number; fase: 'loteria' | 'escolha' | 'feito'; prazo?: number
     picks: { mgrId: number; name: string; club: string; year: number; pos: Sector; auto?: boolean }[] }
+  /** 🏀✍️ CONTRATOS do EUA Oficial (eua-agencia.ts): `nome|clube|ano` → a temporada em que o contrato ACABA (no fim dela). */
+  euaContratos?: Record<string, number>
+  /** 🏀✍️ a Agência livre desta virada: os SEUS contratos que acabaram (`meus`), o que você decidiu, e quem ficou livre (vai pro seu leilão). */
+  euaAgencia?: { temporada: number; meus: string[]; decididos: Record<string, 'renova' | 'sai'>; livres: Card[]; botsRenovaram: number; /** quem soltou cada livre (chave → franquia) */ de?: Record<string, string> }
   /** 🏀🏆 a NBA Cup REAL do EUA Oficial: os 6 grupos de 5 e os jogos de grupo desta temporada (eua-cup.ts). O mata-mata é o `nbaCup`. */
   euaCup?: import('./eua-cup').EuaCupEstado
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }

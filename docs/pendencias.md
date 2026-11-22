@@ -537,6 +537,13 @@ carreira · vice/eliminação.
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
   ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
+  no leilão 1–4 a partir da temporada seguinte, Draft = 4 (novato). Roteiro do fim vira 📰 → 💰 → 🎓 Draft → ✍️ Agência → 🔨 Próxima. Seu contrato
+  acabou: RENOVAR (luva = 1 salário = valor ÷ 10, +3 temporadas) ou DEIXAR IR. Franquia da máquina renova 55% (sorteio preso na semente) ou solta.
+  🛡️ O único da posição nunca sai (o seu explica o porquê; o da máquina renova). Não passa de temporada com contrato sem decisão (tela e
+  `NEXT_NBA_SEASON` leem `agenciaPendenteEua`). Quem fica livre entra NA FRENTE do seu leilão de reservas; quem ninguém leva segue livre (pode
+  sair no Draft). Regras em `eua-agencia.ts`; trava `npm run eua-oficial`. Prints `scripts/mockups/basquete-eua-agencia-{celular,pc}.png`. No branch.
+  Fica pra depois, se o Diego quiser: os bots contratarem os livres (hoje só você leva, no seu leilão) e teto salarial.
 - ✅ 22/11 compartilhar no basquete leva o endereço do basquete (`siteDoJogo()` em sport.ts): jornal do fim de temporada, convite pro
   jogo, pacote do campeão e cartão de campeão = bidlegendsarena.com / "BidLegends". Futebol continua leilaolegends.com, igualzinho. No branch.
 - ✅ 22/11 PUBLICADO na main (Diego: "Sim e siga"): EUA Oficial (NBA Cup, Draft, ranking), quadra 2D, ligas NBA, escudos — tudo do basquete
