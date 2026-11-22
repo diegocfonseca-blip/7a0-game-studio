@@ -223,7 +223,7 @@ export function AdminButton() {
 // o teste de escrita estoura a cota). Mostra o teste, o total e as maiores chaves,
 // e o botão de limpar chat de sala velha (o único lixo que a gente apaga sozinho).
 function StorageAdmin() {
-  const [p, setP] = useState<(ProbeStorage & { apagadas?: number }) | null>(null)
+  const [p, setP] = useState<(ProbeStorage & { apagadas?: number; cofreKB?: number }) | null>(null)
   const mede = () => { try { setP({ escrita: testaEscrita(), ...medeStorage() }) } catch { setP(null) } }
   useEffect(() => { mede() }, [])
   const limpar = () => { try { setP(guardaStorage()) } catch { /* ignora */ } }
@@ -236,7 +236,7 @@ function StorageAdmin() {
       {p ? (
         <>
           <p style={{ fontSize: 14, marginBottom: 6 }}>
-            teste de escrita: <b style={{ color: p.escrita === 'ok' ? '#7CE38B' : '#FF6B5A' }}>{p.escrita}</b> · <b>{p.usadoKB} KB</b> em <b>{p.chaves}</b> chaves{p.apagadas != null ? ` · apagadas agora: ${p.apagadas}` : ''}
+            teste de escrita: <b style={{ color: p.escrita === 'ok' ? '#7CE38B' : '#FF6B5A' }}>{p.escrita}</b> · <b>{p.usadoKB} KB</b> em <b>{p.chaves}</b> chaves{p.apagadas != null ? ` · apagadas agora: ${p.apagadas}` : ''}{p.cofreKB ? ` · cofre duplicado liberado: ${p.cofreKB} KB` : ''}
           </p>
           <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 10 }}>
             {p.maiores.map(m => <div key={m.chave} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.chave}</span><b>{m.kb} KB</b></div>)}

@@ -1,3 +1,91 @@
+## 🔬 22/11 — CAMPO 3D: A NITIDEZ DO NÍVEL 1 VIROU PADRÃO DA PARTIDA
+- Diego testou `?nitidez=1/2/3` no S25: *"os 3 me pareceram iguais e bem… talvez o 1 melhor"* → *"quero que coloque um dos 3 pq ficou melhor e não travou"*.
+- Agora, durante a partida no 3D, a imagem vai sempre na nitidez do "jogo liso" (até 2×), sem esperar o jogo provar 60 quadros. O freio
+  automático (`graphicsBudget`) continua ligado e baixa se o aparelho apertar. Aparelho fraco (≤ 2 GB) e sem placa de vídeo ficam como antes.
+- Os endereços `?nitidez=2/3` continuam existindo pra teste. ⚠️ Só o S25 dele foi testado; se alguém reclamar de travada no 3D, este é o 1º suspeito
+  (reverter = tirar o `!quality.constrained&&!softwareGPU` da linha do `nitidezJogo`).
+## 🧯 22/11 — Consertos da varredura da carreira (🟢 publicado em 22/11) — Diego: *"conserte todos"*
+- ✅ 1 ▶ do 3D não gasta mais a escolha quando causo/lesão/crise segura a rodada: leva pra aba Jogos (onde o aviso aparece).
+- ✅ 2 "Só no intervalo" vale do PRÓXIMO jogo (`careerSubModeDesde` no save; SET_SUBMODE carimba temporada+rodada; `halfMode` ignora o jogo já apitado).
+- ✅ 3 Copa de quarta liberada pelo ▶ do 3D fica no mapa · ✅ 4 pênalti decisivo só tira do 3D quando a janela abre · ✅ 5 confirmou o intervalo vindo do 3D → volta pro mapa.
+- ✅ 7 "Mesmo time" avisa que os marcados pra vender no Mercado não são vendidos sem leilão.
+- ⛔ 6 (rodada 38 sem intervalo) **NÃO mexido de propósito**: tirar a trava pode prender o fim de temporada de quem está no modo intervalo (o jogo já acabado
+  passaria a esperar um intervalo). Só com decisão dele e teste de virada de temporada.
+- 🧪 Rodado: build · bancada 3D (▶ começa o jogo, Substituir abre Elenco, 0 erro de página) · pular da Central 3/3 · `npm run janela-nova`.
+  🔬 NÃO reproduzidos na bancada (dependem de causo/pênalti/copa/intervalo): os cenários 1–5 em si — conferir jogando.
+
+## 22/11 — Carreira: 5 pontos do teste do Diego (prints da manhã) — NO BRANCH, esperando "pode publicar"
+
+- ✅ **Contratos sem nada pra decidir não param mais a tela** ("mesmo time, sem leilão" com a mesa vazia fechava num banner só com "Continuar"). Agora segue direto (`CONFIRM_MESMO_TIME` sozinho); se o motor recusar, em 2,5 s cai na tela de sempre.
+- ✅ **Copa do Mundo só aparece com convite**: o passo 3 do roteiro sai quando não há Copa com o seu clube nem temporada internacional (jornal → caixa → decisão). O portão segue montado escondido (manda o mural pro save). Trava `npm run fim` atualizada.
+- ✅ **Fase de copa sem o seu time passa direto** (Supercopa Rei, pré-temporada, fim de temporada) na carreira solo — não pede mais pra assistir. Sala online não muda.
+- ✅ **Cena do bairro AO VIVO na Central**: o quadro mostra o mapa de verdade já apontado pro lugar (igual à chegada do ônibus), com "Ver no mapa" e "⏩ Pular". Print: `scripts/mockups/sede-ao-vivo.png`; bancada `scripts/mapa3d/print-sede-ao-vivo.mjs`. Falta o OK visual dele. ⚠️ Não medido no S25: o mapa desenhando dentro da Central pode pesar.
+- ✅ **Jogo FORA no 3D: no apito o mapa não troca mais pro seu campo.** Causa: durante o jogo fora o mapa desenha o estádio padrão da divisão (quando o seu ainda não fecha um estádio); no apito a partida saía da conta, o estádio voltava pro seu e o mapa INTEIRO era refeito, com o "FIM" em cima do campo de terra. Agora o estádio do jogo fica enquanto o jogo encerrado está na tela (`presidencia-complexo-carreira.ts`). Não reproduzido jogando. (A trava `testa-presidencia-complexo-carreira.mjs` já falhava antes, na linha 96, por outro motivo: espera 'quarta' e vem 'domingo'.)
+- ⚠️ Nada disso foi reproduzido jogando (só a cena do bairro na bancada) — precisa do teste dele.
+
+## 🔎 22/11 — Varredura do dia de jogo da carreira (achados lidos no código; NADA rodado). Só o item 0 foi mexido (no branch)
+0. ✅ (publicado em 22/11) **Minha regressão de 22/11**: a ida pra Central depois da coletiva pegava QUALQUER um que estivesse na aba Clube
+   (ex.: cuidando do estádio depois de um jogo visto no 2D, ou na apresentação das lendas da rodada 0). Agora só quem liberou o jogo pelo ▶ do 3D e
+   não saiu do mapa (`viu3d`, pyramidseason.tsx).
+1. 🔴 **▶ do 3D "some" quando um causo/lesão/crise segura a rodada**: o toque gasta a escolha (`setJogoOk` + `setPend3d(null)`) antes de saber se o jogo
+   começou; o causo aparece num painel escondido no mapa; voltar e escolher 3D de novo não mostra mais o ▶. Saída hoje: escolher 2D.
+2. 🔴 **Trocar pra "só no intervalo" ENTRE dois jogos trava a semana**: `halfMode` passa a valer pro jogo já apitado → dias param na Central, a rodada some
+   da tabela de novo e, sem Manual, o "▶ Começar o jogo" não responde. Saída hoje: voltar pra "dinâmico" (nada avisa).
+3. 🟠 **Copa de quarta escolhida no 3D abre na aba Jogos** (efeito antigo `if (copaPlaying && !copaSegura) setTab('jogos')`).
+4. 🟠 **Jogo com pênalti decisivo tira do 3D já no apito inicial** (efeito antigo `if (penMode && !penaltyDone) setTab('jogos')`; o novo já leva na hora certa).
+5. 🟡 Depois do intervalo (modo "só no intervalo") ninguém volta pro mapa: o 2º tempo passa na aba Jogos.
+6. 🟡 A rodada 38 nunca tem intervalo no modo "só no intervalo" (`!seasonOver` em `halfMode`) — pode ser decisão antiga; perguntar.
+7. 🟡 "Mesmo time" na virada apaga as marcas de "pôr à venda" do Mercado sem avisar.
+- Conferido e sem erro: escolha de um jogo vazando pro seguinte (chaves por temporada:rodada e liga×copa), rodada 37→38, quarta de liga × semana de copa,
+  jogador listado/sondado perdido ou duplicado na janela nova, temporadas 1–2.
+- Melhorias sugeridas: Central avisar "resolva X primeiro" quando há causo/crise; botões "Resolva o intervalo"/"Bata o pênalti" da Central levarem pra aba
+  Jogos; aviso no mapa do próximo passo depois de uma fase de copa no 3D; "voltar pro estádio" depois do intervalo.
+
+
+## 🔬 22/11 — CAMPO 3D: TESTE DE NITIDEZ PELO ENDEREÇO (pra o Diego ver no S25; nada muda pra quem não usa)
+- Diego: *"o que deixa feio é a nitidez da tela… precisamos mexer nisso p ver"*. Hoje no celular a imagem do jogo é desenhada em 1×–1,5× (até 2×
+  quando segura 60 quadros) numa tela de 3×, e o freio automático (`graphicsBudget`) ainda baixa mais.
+- `?nitidez=1` = força a nitidez do "jogo liso" (até 2×, com freio) · `?nitidez=2` = até 2,5× SEM freio · `?nitidez=3` = a tela inteira do aparelho, sem freio.
+  Com o parâmetro, aparece o mostrador pequeno (quadros/s + nitidez real). Sem o parâmetro, tudo igual a antes.
+- Próximo passo: ele joga um jogo no 3D em cada nível e diz qual fica bonito e liso; aí o padrão do celular forte sobe pra esse nível.
+- ⚠️ Não medido em aparelho de verdade: na bancada (sem placa de vídeo) só conferi que não dá erro.
+
+## 🏟️ 22/11 — JOGO NO CAMPO 3D DA CARREIRA: 2× POR PADRÃO, COM OU SEM PLANO
+- Diego: *"qd aperta p ver em 3d na carreira a velocidade deve tá em padrão 2x pra quem tem plano ou não. Quem não tem, pra mudar só com botão manual pago desbloqueando"*.
+- `VEL3D_CARREIRA_PADRAO = 2` (vel2d-regra.ts) · `useVel3DAqui` (ritmo2d.ts): sem Manual = 2× cravado; com Manual = a marcha escolhida (ou 2×).
+- `jogo3d` (pyramidseason): liga no "▶ Começar o jogo" do mapa, desliga quando escolhe 2D/placar rápido. Com ele o relógio da rodada inteira
+  anda na marcha do 3D (antes o 3D herdava o 1,5× do campinho 2D). O 2D da aba Jogos NÃO mudou (segue 1,5× padrão).
+- Trava: `npm run vel-2d`. ⚠️ Não testado em aparelho de verdade; conferir a duração (~45 s) num jogo no mapa.
+## 🧭 22/11 — Depois da coletiva, quem viu o jogo no 3D voltava pro mapa (CONSERTO NO BRANCH, esperando "pode publicar")
+- Diego: *"acabou o jogo no mapa 3D, foi pra entrevista coletiva e depois de dar a coletiva voltou pro mapa 3D do jogo, erradamente"*.
+- `responderColetiva` (pyramidseason.tsx): no fluxo da Central, se a aba é o mapa (`estadio`), ao fechar a coletiva vai pra **Central** (onde aparece o
+  resultado da entrevista e os dias seguem). Quem viu no 2D (aba Jogos) não muda. 🔬 Só buildado; NÃO reproduzi na bancada (coletiva depende da rodada).
+
+## 🗄️ 21/11 (noite) — Aparelho CHEIO: cofre duplicado da própria conta (CONSERTO NO BRANCH, esperando "pode publicar")
+- Medição do celular do Diego (#admin): escrita **cheio**, 10.239 KB. Maiores: `esc-career-archive` 2,5 MB · cofre Xurupitas FC 2,4 MB · **cofre da PRÓPRIA
+  conta 1,9 MB** · cofre "felipo" 1,2 MB · `esc-solo-career` 1 MB. Mesma causa do "não consegui criar carreira de basquete" (o jogo avisou "aparelho sem espaço").
+- Defeito: quando a conta volta pro aparelho, `ensureCareerOwner` copiava o cofre dela de volta e NUNCA apagava o cofre → cópia morta pra sempre.
+- Conserto: `limpaCofreDoDono` (storage-guard.ts, roda no boot antes do login) apaga só o cofre da conta DONA do aparelho e só se tudo que ele guarda está
+  vivo no lugar de sempre; `ensureCareerOwner` passa a apagar o cofre depois de restaurar. Cofre de OUTRA conta nunca é tocado. Trava: `npm run storage` (caso 4).
+- ❓ Ainda sobram no aparelho dele 3,6 MB de cofres de outras duas contas (Xurupitas FC: tem save na nuvem de 20/10 · felipo: SEM nuvem, último login 13/09).
+  Ele mandou DEIXAR AS DUAS QUIETAS (22/11). 💡 Estrutural (não feito): saves de carreira no localStorage batem no teto de ~10 MB — comprimir os cofres ou levar save pra IndexedDB.
+
+## 🔐 21/11 (noite) — Conta do Diego caindo ao sair/voltar pro site (EM ABERTO, esperando a medição do aparelho)
+- Servidor: NENHUM logout, erro ou revogação da conta dele. Até 22:06 a sessão antiga (05/11) renovava normal; depois ele digitou a senha 3 vezes
+  (21:51, 23:45, 23:46) e essas sessões novas NUNCA renovaram — ou seja, o login ficou só na memória da página e morreu ao recarregar.
+- É a assinatura do **armazenamento cheio** (regra de 21/09, `storage-guard.ts`): a biblioteca de login não consegue escrever e guarda a sessão só na memória.
+  O print das 18:52 ("crie uma conta" + Manual trancado jogando o Brasiliense) é o MESMO problema — a hipótese de "outro navegador" que dei na hora estava errada.
+- Suspeito (não medido): saves grandes de carreira no aparelho (ele jogou a carreira antiga + uma Brasil Oficial hoje); o guarda só limpa chat de sala.
+- Próximo passo: ele mandar o print da medição do aparelho (#admin) ou da faixa amarela "SEM ESPAÇO" da home; com as 5 maiores chaves decidir o que limpar
+  SEM apagar save (regra: nunca apagar save de ninguém sem ele pedir).
+
+## 🚫 21/11 (noite) — Ideias pra partida nas SALAS: 2 listas RECUSADAS (*"N gostei de nenhuma"*) — não repropor
+- Pedido: analisar a partida rolando nas salas e deixar mais imersivo / dar o que FAZER enquanto a classificação rola.
+- Recusadas (lista 1): assistir o jogo de um amigo · palpite da rodada · provocar no gol com a mascote · rádio da rodada · mexer no time com o jogo rolando.
+- Recusadas (lista 2): pênalti batido na sala · torcida no dedo · bagre da rodada (voto) · bolão com a sobra do leilão · coletiva da zoeira · troca de jogador entre técnicos.
+- Próximo passo: NÃO mandar 3ª lista. Perguntar o que ELE imagina (um exemplo de outro jogo, ou o momento exato em que sente falta de algo) e partir daí.
+
+
 ## 🔬 22/11 — CAMPO 3D: bola parada e goleiro filmados de perto (nada mudou no código)
 - Filmado com `RECORTE=300`: lateral + falta (semente 99, 8 s), chute de fora que sai pela linha de fundo + tiro de meta (99, 37 s),
   chute de fora com o goleiro segurando e repondo (7, 60 s), falta com jogador caindo e cobrança (2025, 21 s), e os dois suspeitos da

@@ -19,6 +19,9 @@ export const VEL2D_SOLO_PADRAO = 2
 /** 🏆 07/11 (Diego: *"como se fosse um padrão do modo carreira ser o modo 1,5x… se ele tiver o botão manual, aí ele consegue aumentar"*):
  *  a CARREIRA (offline e online) anda a 1,5× por padrão; sem o Manual fica cravada nisso. A Partida Rápida offline segue 2×. */
 export const VEL2D_CARREIRA_PADRAO = 1.5
+/** 🏟️ 22/11 (Diego: *"qd aperta p ver em 3d na carreira a velocidade deve tá em padrão 2x pra quem tem plano ou não"*): o jogo no
+ *  CAMPO 3D do mapa anda em 2× por padrão; sem o Manual fica cravado nele, com o Manual vale a marcha escolhida. */
+export const VEL3D_CARREIRA_PADRAO = 2
 export const VEL2D_SOLO_VALORES: readonly number[] = [1, 1.5, 2, 2.5, 3, 3.5, 4]
 /** a chave do aparelho (carreira/Partida Rápida offline) */
 export const VEL2D_CHAVE = 'esc-vel2d'

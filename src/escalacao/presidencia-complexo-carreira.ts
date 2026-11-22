@@ -168,6 +168,15 @@ export function adaptarCarreiraAoComplexo(input: EntradaCarreiraComplexo): { com
     complexo.circulation = true
     complexo.fora = true
   }
+  // 🚌 22/11 (Diego: *"após acabar o jogo voltou pro meu estádio com campo de terra… começou a carregar o mapa"*): jogo FORA já
+  // apitado e ainda na tela — o estádio continua o MESMO do jogo (o padrão da divisão, quando o seu ainda não fecha um estádio).
+  // Sem isto, no apito o estádio trocava, o mapa inteiro era refeito e o placar "FIM" aparecia em cima do seu campo de terra.
+  // Só volta pro seu quando o jogo guardado sai da tela (saiu do mapa / próximo dia de jogo). Jogo em casa não passa aqui.
+  if (!match && incoming?.finished === true && input.day
+    && incoming.context?.awayClubId === mgrId && incoming.context.homeClubId !== mgrId
+    && !estadioVisualValido(stadium)) {
+    complexo.stadium = structuredClone(estadioPadraoDaDivisao(input.day.division))
+  }
   const saved = state.careerPresidentBase
   const president: PresidenteBaseSave | undefined = presidenteCadastrado(saved)
     ? { ...saved, ...(saved.appearance ? { appearance: copiarAparencia(saved.appearance) } : {}) } : undefined

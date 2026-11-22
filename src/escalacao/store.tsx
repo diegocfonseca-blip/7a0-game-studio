@@ -12209,6 +12209,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🔁 liga/desliga "troca só no intervalo" — SÓ carreira offline (no online o
       // host conduz, não há pausa individual). É preferência do técnico.
       if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (action.mode === 'intervalo' && s.careerSubMode !== 'intervalo') s.careerSubModeDesde = { s: s.seasonNo ?? 1, r: s.round ?? 0 } // 🧯 22/11: vale do PRÓXIMO jogo
       s.careerSubMode = action.mode
       return s
     }
@@ -15028,7 +15029,18 @@ function ensureCareerOwner(uid: string) {
   if (owner == null) { try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ } return }
   try { localStorage.setItem(CAREER_VAULT_PREFIX + owner, JSON.stringify(stashLocalCareers())) } catch { /* ignora */ }
   clearLocalCareers()
-  try { const raw = localStorage.getItem(CAREER_VAULT_PREFIX + uid); if (raw) restoreLocalCareers(JSON.parse(raw) as CareerVault) } catch { /* ignora */ }
+  try {
+    const raw = localStorage.getItem(CAREER_VAULT_PREFIX + uid)
+    if (raw) {
+      const cofre = JSON.parse(raw) as CareerVault
+      restoreLocalCareers(cofre)
+      // 🗄️ 21/11: voltou tudo pro lugar? então o cofre virou cópia morta — sai (ficava pra sempre, ~2 MB, e enchia o aparelho).
+      // Se algum pedaço não coube de volta, o cofre FICA: é a única cópia.
+      let voltou = true
+      for (const k of LOCAL_CAREER_KEYS) { try { if (cofre[k] != null && localStorage.getItem(k) == null) voltou = false } catch { voltou = false } }
+      if (voltou) localStorage.removeItem(CAREER_VAULT_PREFIX + uid)
+    }
+  } catch { /* ignora */ }
   try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ }
 }
 // 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").

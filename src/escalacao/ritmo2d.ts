@@ -12,7 +12,7 @@ import { useCampo2DLigado, bbSemQuadra } from './campo2d-modo'
 import { useCampo2DTester } from './sport'
 import { useEscTalvez } from './store'
 import { useHasManual } from './apoio'
-import { VEL2D_CARREIRA_PADRAO, VEL2D_CHAVE, VEL2D_SOLO_OPTS, VEL2D_SOLO_PADRAO, VEL2D_SOLO_VALORES, VEL2D_SALA_OPTS, modoVel2D, vel2dDoContexto, vel2dSala, vel2dCarreiraOnline, vel2dSoloDoGuardado, type OpcaoVel2D } from './vel2d-regra'
+import { VEL3D_CARREIRA_PADRAO, VEL2D_CARREIRA_PADRAO, VEL2D_CHAVE, VEL2D_SOLO_OPTS, VEL2D_SOLO_PADRAO, VEL2D_SOLO_VALORES, VEL2D_SALA_OPTS, modoVel2D, vel2dDoContexto, vel2dSala, vel2dCarreiraOnline, vel2dSoloDoGuardado, type OpcaoVel2D } from './vel2d-regra'
 
 export const RITMO2D_TESTE = true
 // ⏩ 06/11: as marchas viraram ABSOLUTAS (`vel2d-regra.ts`): carreira/Partida Rápida offline 1× · 1,5× · 2× (padrão) · 2,5× · 3× · 3,5× · 4×
@@ -75,6 +75,15 @@ export function useVel2DAqui(): number {
   if (r2d.semManual) return VEL2D_SOLO_PADRAO
   // 🏆 07/11: na carreira, quem nunca escolheu a marcha anda no 1,5× (não no 2× da Partida Rápida); sem o Manual, sempre 1,5×
   return s ? vel2dDoContexto(s, vel2DEscolhida(), temManual) : local
+}
+/** 🏟️ 22/11: a marcha do jogo no CAMPO 3D do mapa (carreira). Padrão 2× pra todo mundo; só o Manual (pago) muda.
+ *  Carreira em sala segue a marcha do dono, como no 2D. */
+export function useVel3DAqui(): number {
+  const s = useEscTalvez()?.state
+  const aqui = useVel2DAqui()
+  const temManual = useHasManual()
+  if (s && modoVel2D(s) !== 'solo') return aqui
+  return temManual ? (vel2DEscolhida() ?? VEL3D_CARREIRA_PADRAO) : VEL3D_CARREIRA_PADRAO
 }
 /** a marcha que a pessoa ESCOLHEU no aparelho (`null` = nunca escolheu → vale o padrão de cada modo) */
 export function vel2DEscolhida(): number | null {
