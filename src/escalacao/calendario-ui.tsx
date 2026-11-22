@@ -137,6 +137,9 @@ interface PropsProx {
   /** 🧭 19/11 (fluxo novo): no dia do jogo, a Central pergunta COMO ver — 📺 Campo 2D (aba Jogos) ou 🏟️ Campo 3D (estádio do mapa) */
   escolha?: { d2: () => void; d3: () => void; rapido?: () => void } | null
   onProximo?: () => void
+  /** 🧭 22/11 (Central direta, mockup aprovado): sem a régua dos dias, sem o recado e sem a lista — só o confronto e a escolha em
+   *  3 botões pequenos numa fileira (Diego: *"tá muito exagerado os botões de decisão"*). A agenda é o "Próximos jogos" da Central. */
+  compacto?: boolean
 }
 const CSS_PROX = `
 .ll-calp{border-radius:16px;border:3px solid #0C0C0C;box-shadow:3px 3px 0 #000;background:linear-gradient(180deg,#1f1a13,#0f0c08);color:#fff;padding:12px;margin:0 0 10px;font-family:Inter,Arial,sans-serif}
@@ -170,13 +173,21 @@ export function CalendarioProximo(p: PropsProx) {
           <div>{p.escudo(p.prox.casa ? p.prox.adv : p.meu)}<div className="nm">{p.prox.casa ? p.prox.adv : p.meu}</div></div>
         </div>
       </>}
-      <div className="ll-cal-sem" style={{ padding: 0, marginTop: 10 }}>{semana.map(d => {
+      {!p.compacto && <div className="ll-cal-sem" style={{ padding: 0, marginTop: 10 }}>{semana.map(d => {
         const x = fmtDia(d), tipo = p.diasDeJogo?.[d]
         return <div key={d} className={`${tipo ?? ''}${d === p.hoje ? ' hoje' : ''}${d < p.hoje ? ' foi' : ''}`}>{x.curto}<b>{x.dia}</b>{tipo && <i>{tipo === 'liga' ? tr('LIGA', 'LEAGUE') : tr('COPA', 'CUP')}</i>}</div>
-      })}</div>
-      {p.auto && <div className="tm"><i style={{ width: `${tempo}%` }} /></div>}
-      {p.recado && <div className="rec"><div className="q"><small>{p.recado.k}</small><b>{p.recado.titulo}</b>{p.recado.texto && <p>{p.recado.texto}</p>}{p.recado.mais && <p className={`mais${p.recado.mais.tom ? ' ' + p.recado.mais.tom : ''}`}><em>{p.recado.mais.e}</em> {p.recado.mais.t}</p>}</div></div>}
-      {p.escolha ? <div style={{ marginTop: 10 }}>
+      })}</div>}
+      {p.auto && !p.compacto && <div className="tm"><i style={{ width: `${tempo}%` }} /></div>}
+      {p.recado && !p.compacto && <div className="rec"><div className="q"><small>{p.recado.k}</small><b>{p.recado.titulo}</b>{p.recado.texto && <p>{p.recado.texto}</p>}{p.recado.mais && <p className={`mais${p.recado.mais.tom ? ' ' + p.recado.mais.tom : ''}`}><em>{p.recado.mais.e}</em> {p.recado.mais.t}</p>}</div></div>}
+      {p.escolha && p.compacto ? <div style={{ marginTop: 10 }}>
+        <b style={{ display: 'block', textAlign: 'center', font: '800 13px Oswald,sans-serif', letterSpacing: '.08em', textTransform: 'uppercase', color: '#FFC400', marginBottom: 6 }}>{tr('Ver o jogo em', 'Watch the match in')}</b>
+        <div style={{ display: 'grid', gridTemplateColumns: p.escolha.rapido ? '1fr 1fr 1fr' : '1fr 1fr', gap: 8 }}>
+          <button className="go" onClick={p.escolha.d2} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#1B7A3D', color: '#fff' }}>{tr('📺 2D', '📺 2D')}</button>
+          <button className="go" onClick={p.escolha.d3} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#7C3AED', color: '#fff' }}>{tr('🏟️ 3D', '🏟️ 3D')}</button>
+          {p.escolha.rapido && <button className="go" onClick={p.escolha.rapido} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#FFC400', color: '#0C0C0C' }}>{tr('⚡ Placar', '⚡ Score')}</button>}
+        </div>
+      </div>
+      : p.escolha ? <div style={{ marginTop: 10 }}>
         <b style={{ display: 'block', textAlign: 'center', font: '800 16px Oswald,sans-serif', textTransform: 'uppercase', color: '#FFC400' }}>{tr('Como você quer ver o jogo?', 'How do you want to watch?')}</b>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="go" onClick={p.escolha.d2} style={{ flex: 1, background: '#1B7A3D', color: '#fff' }}>{tr('📺 Campo 2D', '📺 2D pitch')}</button>
@@ -189,7 +200,7 @@ export function CalendarioProximo(p: PropsProx) {
         : p.irJogo ? <button className="go" onClick={p.irJogo} style={{ background: '#1B7A3D', color: '#fff' }}>{tr('⚽ Ir pro jogo', '⚽ Go to the match')}</button>
         : p.auto ? (!p.semPular && <button className="go" onClick={p.onPular}>{tr('⏩ Pular pro jogo', '⏩ Skip to the match')}</button>)
         : <button className="go" onClick={p.onProximo}>{tr('▶ Próximo adversário', '▶ Next opponent')}</button>}
-      {p.jogos && p.jogos.length > 0 && <div className="ll-cal-jogos" style={{ padding: '12px 0 0' }}><h5>⚽ {tr('Seus jogos', 'Your matches')}</h5><ul style={{ margin: 0, padding: 0 }}>{p.jogos.map((j, i) => {
+      {!p.compacto && p.jogos && p.jogos.length > 0 && <div className="ll-cal-jogos" style={{ padding: '12px 0 0' }}><h5>⚽ {tr('Seus jogos', 'Your matches')}</h5><ul style={{ margin: 0, padding: 0 }}>{p.jogos.map((j, i) => {
         const x = fmtDia(j.dia)
         return <li key={i} className={j.prox ? 'nx' : undefined}><span className={`dd${j.comp === 'copa' ? ' copa' : ''}`}>{x.curto}<b>{x.dia}</b>{x.mesIdx !== hoje.mesIdx && <small style={{ display: 'block', fontSize: 8.5 }}>{x.mes.slice(0, 3)}</small>}</span><span className="q">{j.comp === 'copa' ? tr('Copa', 'Cup') : tr('Liga', 'League')} · {j.casa ? '' : '@ '}{j.adv}</span><span className={`r${j.cls ? ' ' + j.cls : ''}`}>{j.res ?? horaTxt(j.comp === 'copa' ? 21 : 16)}</span></li>
       })}</ul></div>}

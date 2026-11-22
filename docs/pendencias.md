@@ -1,3 +1,30 @@
+## 🔒 22/11 — PILOTO DO VISUAL DAS PARTIDAS: DIEGO + FUTPOINT, SÓ FUTEBOL ONLINE
+- Pedido autorizado: “Faça na minha conta […] pro Futpoint apenas p eu testar c ele […] podemos tirar”. Implementados placar cinema, abas, controle de velocidade à vista e cartão das três táticas atuais, reaproveitando os componentes/handlers reais.
+- Contas exatas: Diego principal e gfpicolo13@gmail.com (Futpoint). Identidade verificada; sem liberar para outras pessoas, carreira, basquete ou pregão. Futpoint não herda outras prévias privadas.
+- Reversível no topo: “Voltar ao visual anterior”, sem remontar a partida. Desligamento global: `FOOTBALL_MATCH_PILOT_ENABLED = false`.
+- Mantidos mascote real no gol, Campo2D real, host, velocidade/Auto e troca de visual só no próximo jogo. Sem banco, canal ou mensagens novos.
+- **Pendente fora desta entrega:** pressão alta/caminho do ataque/marcação/ritmo tático do mockup exigem mudança de motor e sincronização; não foram ligados como botões fictícios. Diego foi informado.
+- Testes e limites: [relatório do piloto](futebol-visual-piloto-diego-futpoint-20261122.md). Falta o teste ao vivo de Diego com Futpoint; bancada não substitui duas sessões autenticadas.
+
+## 🧭 22/11 — CENTRAL DIRETA (sem dias pra passar) — FEITA, SÓ NA CONTA DO DIEGO (`CENTRAL_DIRETA_GERAL = false`)
+- Mockups aprovados (*"Sim"*): `scripts/mockups/central-nova-cel.png`/`-pc.png`. Ajustes dele no caminho: agenda = a "Próximos jogos" que JÁ existe
+  na Central (escudo, competição, estádio, CASA/FORA) e botões 2D/3D/Placar PEQUENOS numa fileira (*"tá muito exagerado os botões"*).
+- Como ficou: sem relógio de dias (3 s por dia saiu) — a semana pula sozinha pro dia do jogo (o mesmo pulo do "Pular pro jogo", `centralDireta` no
+  efeito do `pulando`); decisão de jogador/crise/coletiva continuam travando antes (`calLivre`). A cena da semana (`sede`: balada/futevôlei, carreata,
+  obra, boteco…) aparece ANTES do jogo com "Seguir ›" + faixa "a seguir" (`CentralCarreira direta`). O cartão do jogo fica `compacto` (sem régua de
+  dias, sem recado, sem "Seus jogos").
+- 📺 Mesma entrega, PRA TODOS (fluxo da Central): o aviso do CONTRATO DE TV (e cota extra, recibos do médico/preparador) saiu da aba Jogos e aparece
+  no TOPO da Central, uma vez só (Diego: *"não tem nada a ver esse contrato de TV aparecendo na aba de jogos… é pra aparecer na central uma vez só"*).
+- Bancada: `localStorage['esc-central-direta-dev'] = '1'` liga sem conta. Liberar geral = `CENTRAL_DIRETA_GERAL = true`.
+
+## 🧭 22/11 — CENTRAL NOVA "SEM DIAS PRA PASSAR": MOCKUP ENVIADO, ESPERANDO O OK (nada no jogo ainda)
+- Diego: *"sinto que essa central toda não está legal… não tá fluindo… tirando os dias de passar"*. Perguntou o que eu faria do zero.
+- Proposta (mockups `scripts/mockups/central-nova-cel.png` e `-pc.png`, gerador `scripts/mockup-central-nova.mjs`): a Central abre no PRÓXIMO JOGO
+  com os 3 botões (2D · 3D · placar rápido); a semana vira BANNER com a animação do bairro, um de cada vez (só de assistir ou com decisão);
+  semana sem nada cai direto no jogo; agenda vira lista curta dos próximos jogos. As animações de hoje (ônibus, loja, treino/balada…) FICAM.
+- Os textos/efeitos dos banners do mockup (bilheteria +8%, multar +15) são EXEMPLO de formato; os de verdade são os acontecimentos que já existem.
+- Continua valendo: nenhum jogo começa sozinho e a Central é só Central. Só codar depois do OK dele.
+
 ## 🔬 22/11 — CAMPO 3D: A NITIDEZ DO NÍVEL 1 VIROU PADRÃO DA PARTIDA
 - Diego testou `?nitidez=1/2/3` no S25: *"os 3 me pareceram iguais e bem… talvez o 1 melhor"* → *"quero que coloque um dos 3 pq ficou melhor e não travou"*.
 - Agora, durante a partida no 3D, a imagem vai sempre na nitidez do "jogo liso" (até 2×), sem esperar o jogo provar 60 quadros. O freio
@@ -653,6 +680,8 @@ carreira · vice/eliminação.
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
   ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- 🔁 22/11 (mesmo dia): o passo se chama **✍️ CONTRATOS** na tela (Diego confundiu "agência livre" com a 🕴️ Agência do jogo, das cartinhas e
+  comissão: *"A agência deveria ser de cartinhas e ganhar dinheiro igual no do futebol"*). No código segue `euaAgencia`/`eua-agencia.ts`.
 - ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
   no leilão 1–4 a partir da temporada seguinte, Draft = 4 (novato). Roteiro do fim vira 📰 → 💰 → 🎓 Draft → ✍️ Agência → 🔨 Próxima. Seu contrato
   acabou: RENOVAR (luva = 1 salário = valor ÷ 10, +3 temporadas) ou DEIXAR IR. Franquia da máquina renova 55% (sorteio preso na semente) ou solta.

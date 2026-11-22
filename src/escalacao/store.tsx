@@ -9848,7 +9848,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           m.squad = m.squad.filter(x => x !== c)
           delete ct[k]
           livres.push({ ...c, id: `fa${S}-${livres.length}` } as Card); de[k] = m.teamName
-          ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${m.teamName} e está livre na agência`)
+          ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${m.teamName} e ficou sem contrato (livre)`)
         }
       }
       const eu = s.managers[s.youIdx]
@@ -9877,7 +9877,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         delete ct[action.chave]
         a.livres = [...a.livres, { ...c, id: `fa${S}-${a.livres.length}` } as Card]
         a.decididos[action.chave] = 'sai'
-        ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${eu.teamName} e está livre na agência`)
+        ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${eu.teamName} e ficou sem contrato (livre)`)
       }
       return s
     }
