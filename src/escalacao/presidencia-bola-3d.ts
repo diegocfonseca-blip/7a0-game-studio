@@ -109,7 +109,16 @@ const fallbackRoll=new WeakMap<THREE.Object3D,{spin:RotacaoBola3D;time:number}>(
 export function posicionarBolaFutebol3D(ball:THREE.Object3D,frame:{time:number;ball:{x:number;y:number;z:number;rotation?:[number,number,number,number];presentation?:{x:number;y:number;z:number}}}){
  const p=frame.ball,position=p.presentation??p,visual=(ball.userData.visualScale as number|undefined)??1
  // (o desenho maior sobe o centro pra bola continuar APOIADA na grama, não enterrada)
- ball.scale.setScalar(visual);ball.position.set(position.x,position.y+(visual-1)*RAIO_BOLA_FUTEBOL_3D,position.z)
+ // 🏁 22/11 (filmado: no escanteio, tiro de meta e saída a bola SUMIA de um lugar e aparecia em outro de um quadro pro outro —
+ // 25 m num quadro). O motor recoloca a bola na hora, e isso não muda; o desenho é que agora "põe a bola no lugar": ela cresce do
+ // zero em 0,22 s no ponto novo, como a bola reposta pelo gandula, em vez de piscar de um canto pro outro.
+ const memory=ball.userData as {lastShown?:{x:number;y:number;z:number;t:number};placedAt?:number}
+ const before=memory.lastShown,elapsed=before?frame.time-before.t:0
+ if(before&&elapsed>0&&elapsed<.5){const jump=Math.hypot(position.x-before.x,position.y-before.y,position.z-before.z);if(jump>3&&jump/elapsed>60)memory.placedAt=frame.time}
+ else if(before&&elapsed<0)memory.placedAt=undefined // (voltou no tempo: replay/busca não anima nada)
+ memory.lastShown={x:position.x,y:position.y,z:position.z,t:frame.time}
+ const sincePlaced=memory.placedAt===undefined?1:(frame.time-memory.placedAt)/.22,grow=sincePlaced>=1||sincePlaced<0?1:1-(1-sincePlaced)*(1-sincePlaced)
+ ball.scale.setScalar(visual*Math.max(.02,grow));ball.position.set(position.x,position.y+(visual-1)*RAIO_BOLA_FUTEBOL_3D,position.z)
  if(p.rotation)ball.quaternion.fromArray(p.rotation)
  else{
  let state=fallbackRoll.get(ball)
@@ -119,7 +128,7 @@ export function posicionarBolaFutebol3D(ball:THREE.Object3D,frame:{time:number;b
  const shadow=ball.getObjectByName('ball-ground-contact') as THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>|undefined
  if(shadow){
   const inverse=ball.quaternion.clone().invert()
-  shadow.position.set(0,(.007-ball.position.y)/visual,0).applyQuaternion(inverse)
+  shadow.position.set(0,(.007-ball.position.y)/ball.scale.x,0).applyQuaternion(inverse)
   shadow.quaternion.copy(inverse).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2))
   // 🌑 22/11: a mancha no chão não some mais quando a bola sobe — fica embaixo dela, mais fraca, pra dar pra LER a bola alta
   // (cruzamento, chutão, cabeçada). Antes sumia a 30 cm do chão.

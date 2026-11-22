@@ -19,7 +19,11 @@ const base={viewerClubId:vfora?1:0,officialInput:input,officialTeams:[qs.get('ca
 const root=createRoot(document.getElementById('root'));let api,minute=0,paused=true
 const pres=new URLSearchParams(location.search).get('p')||'3d'
 const render=()=>flushSync(()=>root.render(React.createElement(Complexo,{stadium,matchPresentation:pres,match:{...base,minute,paused},onReady:x=>{api=x;window.__api=x},circulation:false,hud:React.createElement(MapaHud,{match:{...base,minute,paused}})})))
-let relogio;window.bancada={abertura:()=>api?.setMatchCamera('abertura'),jogar:(seg0=0)=>{clearInterval(relogio);const t0=performance.now();paused=false;relogio=setInterval(()=>{minute=(seg0+(performance.now()-t0)/1000)*93/90;render()},100)},seek:t=>{minute=t*93/90;paused=false;render()},pausa:()=>{paused=true;render()},draw:()=>api?.seekCirculation?.(0),ready:()=>!!api?.inspect()?.match,inspect:()=>api?.inspect(),camera:m=>api?.setMatchCamera(m),view:v=>api?.view(v),api:()=>api}
+// ⏱️ 22/11: `jogarReal` alimenta o mapa como o JOGO DE VERDADE faz — minuto INTEIRO a cada ~0,97 s + relógio visual, e o 3D interpola
+// entre eles. O `jogar` de sempre manda o minuto quebrado a cada 100 ms SEM relógio visual: aí o 3D anda em degraus de 0,1 s (só na bancada).
+let real=null
+const renderReal=()=>flushSync(()=>root.render(React.createElement(Complexo,{stadium,matchPresentation:pres,match:{...base,minute,paused,officialMinuteMs:90000/93,visualClock:real},onReady:x=>{api=x;window.__api=x},circulation:false,hud:React.createElement(MapaHud,{match:{...base,minute,paused}})})))
+let relogio;window.bancada={jogarReal:(seg0=0)=>{clearInterval(relogio);const t0=performance.now(),m0=Math.floor(seg0*93/90);paused=false;minute=m0;real={sampledAt:t0,running:true};renderReal();relogio=setInterval(()=>{const m=m0+Math.floor((performance.now()-t0)/(90000/93));if(m!==minute){minute=m;real={sampledAt:performance.now(),running:true};renderReal()}},50)},abertura:()=>api?.setMatchCamera('abertura'),jogar:(seg0=0)=>{clearInterval(relogio);const t0=performance.now();paused=false;relogio=setInterval(()=>{minute=(seg0+(performance.now()-t0)/1000)*93/90;render()},100)},seek:t=>{minute=t*93/90;paused=false;render()},pausa:()=>{paused=true;render()},draw:()=>api?.seekCirculation?.(0),ready:()=>!!api?.inspect()?.match,inspect:()=>api?.inspect(),camera:m=>api?.setMatchCamera(m),view:v=>api?.view(v),api:()=>api}
 render()
 }catch(e){window.bancadaErro=e.stack;console.error(e)}
 </script></html>

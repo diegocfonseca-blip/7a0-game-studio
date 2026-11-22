@@ -1,3 +1,20 @@
+## ⚽ 22/11 — CAMPO 3D: lances analisados quadro a quadro; 2 defeitos de bola consertados (publicado)
+- Diego: *"tô pedindo pra você olhar domínio, passe, chute, jogadas… se tá feio, se não parece futebol de verdade, você melhora"*.
+- Como foi olhado: `scripts/mapa3d/filma-bancada.mjs` ganhou `RECORTE=<px>` (recorta em volta da bola), `NUMEROS=1` (bola, fase, dono e o
+  movimento de cada boneco por quadro, sem foto) e passou a usar o relógio do jogo de verdade (`bancada.jogarReal`: minuto inteiro + relógio
+  visual). ⚠️ O `jogar` antigo da bancada anda em degraus de 0,1 s e o medidor de velocidade infla ×1,4 quando a bancada pula quadro: NÃO
+  são defeitos do jogo (eu quase tomei os dois por defeito).
+- DEFEITO 1 (consertado, `futebol3d/chibi/players.mjs`): a "entrega pelo chão" liga dois toques por uma RETA. Quando a bola oficial não anda
+  pela reta (bate num marcador e volta), a bola DESENHADA ficava rolando devagar sozinha, até 8,7 m longe da bola do jogo, e o jogador corria
+  pra longe dela. Medido numa partida: 47 entregas com desvio ≤ 1,7 m e 2 com 7,5 m e 8,7 m. Agora, desvio > 3 m (`DESVIO_ENTREGA_MAX`) =
+  aquele trecho mostra a bola oficial. Depois: maior distância em passe caiu de 8,63 m pra 1,17 m. Antes/depois:
+  `scripts/mockups/tabelinha-3d-antes-depois.jpg`. Diagnóstico novo no `inspect()`: `groundDeliveryDivergence`.
+- DEFEITO 2 (consertado, `presidencia-bola-3d.ts`): no escanteio/tiro de meta/saída a bola pulava 25 m de um quadro pro outro. O motor
+  continua recolocando na hora; o desenho agora faz a bola crescer do zero em 0,22 s no ponto novo (pulo > 3 m a mais de 60 m/s).
+- Conferido: partida inteira (91 s) na bancada sem erro de página, 0 pulo de boneco em jogo, trava `test-ball-touch-presentation` e build.
+- Olhado e SEM defeito encontrado: velocidade dos bonecos em jogo corrido (p99 8,7 m/s, teto do motor 9,4), domínio e passe simples nas
+  filmagens de perto. NÃO olhado: chute a gol e defesa do goleiro de perto, cabeceio, falta, jogo à noite, aparelho de verdade.
+
 ## ☀️ 22/11 — CAMPO 3D: gramado mais claro e vivo (publicado, pedido do Diego com print do campo do 2D)
 - *"esse nosso gramado tá muito escuro… o outro tá bem mais vivo"*. Medido na Câmera de TV: média (39, 89, 1) → (81, 140, 42). Antes/depois:
   `scripts/mockups/gramado-3d-antes-depois.jpg`.
