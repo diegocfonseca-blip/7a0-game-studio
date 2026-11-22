@@ -7,6 +7,8 @@ import { readFileSync } from 'node:fs'
 const im = (f, t = 'png') => `data:image/${t};base64,${readFileSync(`scripts/mockups/img-central/${f}`).toString('base64')}`
 const b64 = w => readFileSync(`scripts/fonts/oswald-latin-${w}-normal.woff2`).toString('base64')
 const FONTES = [400, 500, 600, 700].map(w => `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(w)}) format('woff2');font-weight:${w};font-display:block}`).join('')
+const esc = f => `data:image/webp;base64,${readFileSync(`public/escudos-clubes/${f}.webp`).toString('base64')}`
+const SAM = esc('sampaio-correa'), BOT = esc('botafogo-sp')
 const BRA = im('brasiliense.png'), ITU = im('ituano.png'), BAIRRO = im('bairro.jpg', 'jpeg')
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', ROXO = '#7C3AED', RED = '#E8503A'
 const CSS = `${FONTES}*{box-sizing:border-box}body{margin:0;background:#0b0a08;font-family:system-ui,sans-serif;color:#F4ECD6}
@@ -24,7 +26,8 @@ const CSS = `${FONTES}*{box-sizing:border-box}body{margin:0;background:#0b0a08;f
 .ag{margin-top:14px}.ag h4{margin:0 0 6px;font:700 12px Oswald;letter-spacing:.14em;color:${GOLD};text-transform:uppercase}
 .ln{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed #3a3226;font:600 14px system-ui}.ln:first-of-type{border-top:0}
 .dia{background:${GREEN};border-radius:8px;padding:3px 8px;font:700 12px Oswald;color:#fff;text-transform:uppercase;min-width:54px;text-align:center}
-.h{margin-left:auto;background:#2a241b;border-radius:7px;padding:2px 7px;font:700 12px Oswald}
+.ln img{width:30px;height:30px;object-fit:contain}.ln b{font:700 15px Oswald;text-transform:uppercase}.onde{margin-left:auto;font:700 11px Oswald;text-transform:uppercase;color:#bdb39a;white-space:nowrap}.onde.casa{color:#7CE08E}
+.h{margin-left:8px;background:#2a241b;border-radius:7px;padding:2px 7px;font:700 12px Oswald}
 .ban{background:#fff;color:${INK};border:3px solid #000;border-radius:18px;box-shadow:4px 4px 0 #000;overflow:hidden}
 .ban .arte{height:170px;background:url(${BAIRRO}) center/cover;position:relative}
 .selo{position:absolute;left:10px;top:10px;background:${INK};color:${GOLD};border-radius:9px;padding:4px 10px;font:700 12px Oswald;letter-spacing:.1em;text-transform:uppercase}
@@ -45,9 +48,9 @@ const confronto = `<div class="rot"><span>⚽ Próximo jogo</span><span>Rodada 1
 const botoes = `<div class="q">Como você quer ver o jogo?</div>
 <div class="duo"><div class="bt" style="background:${GREEN}">📺 Campo 2D</div><div class="bt" style="background:${ROXO}">🏟️ Campo 3D</div></div>
 <div class="bt" style="background:${GOLD};color:${INK}">⚡ Placar rápido</div>`
-const agenda = `<div class="ag"><h4>📅 Depois deste</h4>
-<div class="ln"><span class="dia">Dom 16</span>@ Sampaio Corrêa<span class="h">16h</span></div>
-<div class="ln"><span class="dia">Dom 30</span>Botafogo-SP<span class="h">16h</span></div></div>`
+// 🔁 22/11 (Diego: *"por que nos próximos jogos não aparece bonitinho com escudos… e não com @"*): escudo + nome + "fora/em casa" escrito
+const jogo = (dia, img, nome, casa) => `<div class="ln"><span class="dia">${dia}</span><img src="${img}"><b>${nome}</b><span class="onde ${casa ? 'casa' : ''}">${casa ? '🏠 em casa' : '🚌 fora'}</span><span class="h">16h</span></div>`
+const agenda = `<div class="ag"><h4>📅 Depois deste</h4>${jogo('Dom 16', SAM, 'Sampaio Corrêa', false)}${jogo('Dom 30', BOT, 'Botafogo-SP', true)}</div>`
 const mini = `<div class="mini"><img src="${BRA}">× <img src="${ITU}">Ituano · dom 9<span>a seguir ›</span></div>`
 const banAssistir = `<div class="ban"><div class="arte"><span class="selo">🎥 Na semana · no bairro</span></div><div class="tx">
 <div class="k">🚌 Sexta-feira</div><h3>O ônibus do Ituano chegou</h3><p>A torcida foi receber na porta do estádio. Clima de jogo grande no domingo.</p>
