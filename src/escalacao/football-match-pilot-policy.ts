@@ -1,7 +1,7 @@
-// 22/11: revisão aprovada: agora exclusivamente a conta principal de Diego.
+// 22/11: revisão aprovada para Diego principal e Futpoint, por pedido explícito.
 // Reversão global do experimento: false. Nenhuma permissão de dados depende disto.
 export const FOOTBALL_MATCH_PILOT_ENABLED = true
-const ACCOUNTS = new Set(['diego.c.fonseca@gmail.com'])
+const ACCOUNTS = new Set(['diego.c.fonseca@gmail.com','gfpicolo13@gmail.com'])
 
 export function footballMatchPilotEmail(email?: string | null) {
   return FOOTBALL_MATCH_PILOT_ENABLED && ACCOUNTS.has((email ?? '').trim().toLowerCase())
