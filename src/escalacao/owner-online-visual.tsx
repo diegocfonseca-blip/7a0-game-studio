@@ -12,6 +12,7 @@ import {ehBasquete,marcaNome,marcaFraseLance} from './marca'
 import './owner-online-visual.css'
 import './owner-waiting.css'
 import './owner-contrast.css'
+import { useFootballMatchPilot, FootballMatchPilotView } from './football-match-pilot'
 
 /** Local presentation only. Never serialized into EscState or a room payload. */
 export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;screen?:string}){
@@ -21,23 +22,25 @@ export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0
 
 type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
-type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{nbaSala?:EscState['nbaSala']}
-type Layout={accountName?:string;state?:OwnerState;enabled:boolean;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
+type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{nbaSala?:EscState['nbaSala'];sport?:string;screen?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;pokeLiga?:unknown;isHost?:boolean}
+type Layout={accountName?:string;state?:OwnerState;enabled:boolean;pilot:boolean;pilotAvailable:boolean;togglePilot:()=>void;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
 const noop=()=>{}
-const Context=createContext<Layout>({enabled:false,primary:null,claim:noop,release:noop,target:noop,targets:{}})
+const Context=createContext<Layout>({enabled:false,pilot:false,pilotAvailable:false,togglePilot:noop,primary:null,claim:noop,release:noop,target:noop,targets:{}})
 export function OwnerOnlineProvider({enabled,state,accountName,children}:{enabled:boolean;state:OwnerState;accountName?:string;children:ReactNode}){
+ const pilot=useFootballMatchPilot(enabled?state:{})
  const [primary,setPrimary]=useState<string|null>(null),[targets,setTargets]=useState<Targets>({})
  const claim=useCallback((id:string)=>setPrimary(old=>old??id),[])
  const release=useCallback((id:string)=>setPrimary(old=>old===id?null:old),[])
  const target=useCallback((slot:Slot,node:HTMLDivElement|null)=>setTargets(old=>old[slot]===node?old:{...old,[slot]:node}),[])
- const value=useMemo(()=>({accountName,state,enabled,primary,claim,release,target,targets}),[accountName,state,enabled,primary,claim,release,target,targets])
+ const value=useMemo(()=>({accountName,state,enabled,pilot:pilot.enabled,pilotAvailable:pilot.available,togglePilot:pilot.toggle,primary,claim,release,target,targets}),[accountName,state,enabled,pilot.enabled,pilot.available,pilot.toggle,primary,claim,release,target,targets])
  return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useOwnerLayout(){return useContext(Context).enabled}
 export function useOwnerState(){return useContext(Context).state}
 export function OwnerSlot({name,children}:{name:Slot;children:ReactNode}){
  const ctx=useContext(Context),target=ctx.targets[name]
- return ctx.enabled&&target?createPortal(children,target):<>{children}</>
+ const content=ctx.pilot&&name==='view'?<FootballMatchPilotView>{children}</FootballMatchPilotView>:children
+ return ctx.enabled&&target?createPortal(content,target):<>{content}</>
 }
 
 /** Moves the existing waiting-room controls, retaining their handlers and permissions. */
@@ -89,7 +92,7 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
  const ad=useCallback((n:HTMLDivElement|null)=>ctx.target('ad',n),[ctx.target])
  const tabs=useCallback((n:HTMLDivElement|null)=>ctx.target('tabs',n),[ctx.target])
  if(!ctx.enabled)return <>{children}</>
- return <section className={`ov3-primary ll31-cinema ${active?'ov3-primary-active':''} ${field?'ov3-primary-field':''}`} data-primary={active||undefined}>
+ return <section className={`ov3-primary ll31-cinema ${active?'ov3-primary-active':''} ${field?'ov3-primary-field':''} ${ctx.pilot?'fp-match-primary':''}`} data-primary={active||undefined}>
   {active&&<div key="tabs" className="ov3-tabs-slot" ref={tabs}/>}
   {active&&<div key="view" className="ov3-viewline"><span>{label??tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}</span><div ref={view}/></div>}
   <div key="native" className="ov3-native">{children}</div>
@@ -103,21 +106,26 @@ export function OwnerModalBrand(){
 }
 
 export function OwnerOnlineHeader({name,club,balance,onHome,onRooms,online}:{name:string;club?:string;balance?:ReactNode;onHome:()=>void;onRooms:()=>void;online:boolean}){
+ const pilot=useContext(Context)
  const perk=myApoioPerk()??APOIO_PERKS.bege
- return <><header className="ov3-brand"><button type="button" className="ov3-logo" onClick={onHome}>{ehBasquete()?<span className="ov3-sigla" aria-hidden="true">BL</span>:<img src={logo} alt="" width={34} height={34}/>}<span><b>{marcaNome()}</b><small>{marcaFraseLance()}</small></span></button><nav><button onClick={onHome}>{tr('Menu inicial','Main menu')}</button>{online&&<button onClick={onRooms}>{tr('Salas abertas','Open rooms')}</button>}</nav><span className="ov3-account" style={{background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{name||club||tr('Minha conta','My account')}</span>{balance!=null&&<div className="ov3-coins">{balance}</div>}</header><div className="ov3-roomline"><button onClick={onHome}>‹ {tr('Menu','Menu')}</button><span>{online?tr('Sala online','Online room'):tr('Partida Rápida','Quick Match')}{club?` · ${club}`:''}</span></div></>
+ return <><header className="ov3-brand"><button type="button" className="ov3-logo" onClick={onHome}>{ehBasquete()?<span className="ov3-sigla" aria-hidden="true">BL</span>:<img src={logo} alt="" width={34} height={34}/>}<span><b>{marcaNome()}</b><small>{marcaFraseLance()}</small></span></button><nav><button onClick={onHome}>{tr('Menu inicial','Main menu')}</button>{online&&<button onClick={onRooms}>{tr('Salas abertas','Open rooms')}</button>}</nav><span className="ov3-account" style={{background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{name||club||tr('Minha conta','My account')}</span>{balance!=null&&<div className="ov3-coins">{balance}</div>}</header><div className="ov3-roomline"><button onClick={onHome}>‹ {tr('Menu','Menu')}</button><span>{online?tr('Sala online','Online room'):tr('Partida Rápida','Quick Match')}{club?` · ${club}`:''}</span></div>{pilot.pilotAvailable&&<div className="fp-match-switchback"><span>{pilot.pilot?tr('Visual do jogo em teste','Match presentation trial'):tr('Visual anterior ativado','Previous presentation enabled')}</span><button type="button" onClick={pilot.togglePilot}>{pilot.pilot?tr('Voltar ao visual anterior','Use previous presentation'):tr('Ativar novo visual','Enable new presentation')}</button></div>}</>
 }
 
 export function OwnerTactics({value,onChange,disabled=false,note}:{value:Tactic;onChange:(t:Tactic)=>void;disabled?:boolean;note?:string}){
- return <OwnerSlot name="tactic"><section className="ov3-tactics" aria-label={tr('Tática do seu time','Your team tactics')}><span>{tr('TÁTICA DO SEU TIME','YOUR TEAM TACTICS')}</span><div role="group" aria-label={tr('Escolher tática','Choose tactics')}>{(['retranca','equilibrio','ataque'] as const).map(t=><button type="button" key={t} disabled={disabled} aria-pressed={value===t} onClick={()=>onChange(t)}>{t==='retranca'?tr('Retranca','Defensive'):t==='ataque'?tr('Ofensivo','Attacking'):tr('Equilibrado','Balanced')}</button>)}</div>{note&&<small>{note}</small>}</section></OwnerSlot>
+ const {pilot}=useContext(Context)
+ return <OwnerSlot name="tactic"><section className={`ov3-tactics ${pilot?'fp-match-tactics':''}`} aria-label={tr('Tática do seu time','Your team tactics')}><span>{tr('TÁTICA DO SEU TIME','YOUR TEAM TACTICS')}</span>{pilot&&<h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>}<div role="group" aria-label={tr('Escolher tática','Choose tactics')}>{(['retranca','equilibrio','ataque'] as const).map(t=><button type="button" key={t} disabled={disabled} aria-pressed={value===t} onClick={()=>onChange(t)}>{t==='retranca'?tr('Retranca','Defensive'):t==='ataque'?tr('Ofensivo','Attacking'):(pilot?tr('Equilíbrio','Balanced'):tr('Equilibrado','Balanced'))}</button>)}</div>{note&&<small>{note}</small>}{pilot&&<p>{tr('Sua escolha vale para o próximo jogo.','Your choice applies to the next match.')}</p>}</section></OwnerSlot>
 }
 
 export function OwnerPlayback({manual,onToggle,speed,onSpeed,opts,canNext,onNext,onSkip,nextLabel,busy=false,speedDisabled=false,allowAutoSpeed=false}:{manual:boolean;onToggle:()=>void;speed:number;onSpeed:(v:number)=>void;opts?:{v:number;pt:string;en:string}[];canNext:boolean;onNext:()=>void;onSkip?:()=>void;nextLabel?:string;busy?:boolean;speedDisabled?:boolean;allowAutoSpeed?:boolean}){
+ const {pilot}=useContext(Context)
  const [open,setOpen]=useState(false),trigger=useRef<HTMLButtonElement>(null),sheet=useRef<HTMLDivElement>(null),id=useId()
  const close=useCallback(()=>{setOpen(false);requestAnimationFrame(()=>trigger.current?.focus())},[])
  useEffect(()=>{if(!open)return;const old=document.body.style.overflow;document.body.style.overflow='hidden';const before=document.activeElement as HTMLElement|null;sheet.current?.querySelector<HTMLElement>('button,select')?.focus();const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){e.preventDefault();close()}if(e.key==='Tab'){const els=Array.from(sheet.current?.querySelectorAll<HTMLElement>('button,select')??[]).filter(e=>!e.hasAttribute('disabled'));const first=els[0],last=els[els.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}};document.addEventListener('keydown',key);return()=>{document.body.style.overflow=old;document.removeEventListener('keydown',key);before?.focus()}},[open,close])
  const choices=opts??[{v:.25,pt:'4× mais lento',en:'4× slower'},{v:.5,pt:'2× mais lento',en:'2× slower'},{v:1,pt:'Normal · 1×',en:'Normal · 1×'},{v:2,pt:'2×',en:'2×'},{v:3,pt:'3×',en:'3×'},{v:4,pt:'4×',en:'4×'}]
  const value=speed>0?speed:opts?.[0]?.v??1
  const label=nextLabel&&!/^(⏳|Deixa|Let the)/i.test(nextLabel)?nextLabel.replace(/^[▶️⚽🌎⭐🏆\s]+/u,''):tr('Próxima rodada','Next round')
+ useEffect(()=>{if(pilot)setOpen(false)},[pilot])
+ if(pilot)return <OwnerSlot name="controls"><section className="fp-match-playback" aria-label={tr('Ritmo da sala','Room pace')}><div className="fp-playback-heading"><span>{tr('RITMO DA SALA','ROOM PACE')}</span><b>{tr('CONTROLE DO DONO','HOST CONTROLS')}</b></div><div className="fp-playback-settings"><div role="group" aria-label={tr('Andamento','Progression')}><button type="button" disabled={busy} aria-pressed={!manual} onClick={()=>{if(manual)onToggle()}}>AUTO</button><button type="button" disabled={busy} aria-pressed={manual} onClick={()=>{if(!manual)onToggle()}}>MANUAL</button></div><label>{tr('VELOCIDADE','SPEED')}<select aria-label={tr('Velocidade','Speed')} disabled={busy||speedDisabled||(!manual&&!allowAutoSpeed)} value={value} onChange={e=>onSpeed(Number(e.target.value))}>{choices.map(o=><option key={o.v} value={o.v}>{tr(o.pt,o.en)}</option>)}</select></label></div>{manual&&<div className="fp-playback-advance"><button type="button" className="ov3-next" disabled={!canNext||busy} onClick={onNext}>{label} →</button>{onSkip&&!canNext&&<button type="button" className="ov3-skip" disabled={busy} onClick={onSkip}>{tr('Pular','Skip')}</button>}</div>}<small>{manual&&!canNext?tr('Próxima rodada libera quando a partida terminar.','Next round becomes available when the match finishes.'):tr('O ritmo escolhido vale para toda a sala.','The selected pace applies to the whole room.')}</small></section></OwnerSlot>
  return <OwnerSlot name="controls"><div className="ov3-playback"><div className="ov3-playback-line"><div className="ov3-advance">{manual?<><button type="button" className="ov3-next" disabled={!canNext||busy} onClick={onNext}>{label} →</button>{onSkip&&!canNext&&<button type="button" className="ov3-skip" disabled={busy} onClick={onSkip}>{tr('Pular','Skip')}</button>}</>:<span className="ov3-auto">{tr('Partida seguindo automaticamente','Match advancing automatically')}</span>}</div><div className="ov3-speed-area"><small>{manual?tr('Manual','Manual'):tr('Auto','Auto')} · {value}×</small><button ref={trigger} type="button" className="ov3-speed" aria-expanded={open} aria-controls={id} onClick={()=>setOpen(true)}>⚙ {tr('Velocidade','Speed')}</button></div></div>{manual&&!canNext&&<small className="ov3-wait">{tr('Próxima rodada libera quando a partida terminar.','Next round becomes available when the match finishes.')}</small>}</div>{open&&createPortal(<div className="ov3-dialog-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}><div ref={sheet} id={id} className="ov3-speed-dialog" role="dialog" aria-modal="true" aria-label={tr('Velocidade da partida','Match speed')}><header><div><small>{tr('SEU JEITO DE ACOMPANHAR','YOUR WAY TO WATCH')}</small><h2>{tr('Velocidade da partida','Match speed')}</h2></div><button type="button" aria-label={tr('Fechar','Close')} onClick={close}>×</button></header><label><span>{tr('Andamento','Progression')}<small>{tr('Avance por rodada ou deixe seguir sozinho.','Advance each round or continue automatically.')}</small></span><select aria-label={tr('Andamento','Progression')} disabled={busy} value={manual?'manual':'auto'} onChange={e=>{if((e.target.value==='manual')!==manual)onToggle()}}><option value="manual">{tr('Manual','Manual')}</option><option value="auto">{tr('Auto','Auto')}</option></select></label><label><span>{tr('Velocidade','Speed')}<small>{tr('Ritmo de exibição dos lances.','Playback speed of the action.')}</small></span><select aria-label={tr('Velocidade','Speed')} disabled={busy||speedDisabled||(!manual&&!allowAutoSpeed)} value={value} onChange={e=>onSpeed(Number(e.target.value))}>{choices.map(o=><option key={o.v} value={o.v}>{tr(o.pt,o.en)}</option>)}</select></label><button type="button" className="ov3-dialog-done" onClick={close}>{tr('Concluir','Done')}</button></div></div>,document.body)}</OwnerSlot>
 }
 

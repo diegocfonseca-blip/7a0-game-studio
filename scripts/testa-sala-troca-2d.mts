@@ -183,7 +183,7 @@ console.log('🔘 10) o botão do dono está em toda competição')
   ok(/<TrocaCampo2DSala \/>/.test(src('pyramidseason.tsx')), 'carreira em sala (liga e Copa)')
   ok(/salva2DLiga/.test(src('lobby.tsx')), 'Liga Draft / Liga da Turma: o dono escolhe na sala de espera (vale na próxima largada)')
   ok(/useTroca2DSala\(\)/.test(sc) && /troca2DSalaLiberada\(\)/.test(src('store.tsx')), 'a trava de conta vale na tela E no reducer')
-  ok(/ehKings\(state\)\) return null/.test(sc), 'Kings fica de fora (relógio próprio)')
+  ok(/ehKings\(state\) && !kingsVe/.test(sc), 'Kings segue a liberação própria de conta (prévia aprovada em 11/11)')
 }
 
 if (falhas) { console.log(`\n❌ ${falhas} falha(s)`); process.exit(1) }
