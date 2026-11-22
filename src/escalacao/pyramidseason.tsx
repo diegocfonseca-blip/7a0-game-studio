@@ -186,6 +186,7 @@ import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
 import { setJogoDaTela } from './sound'
 import { mascoteDaSala, estouEmSala } from './mimos'
+import { playDia, playApitoCurto, playFlash } from './sound'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA, playChute, playDefesa, playQuase, playSubiu, playCaiu, playCaixa } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
 import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
@@ -12142,6 +12143,10 @@ export function PyramidSeasonScreen() {
   // nada. Simplesmente acaba o jogo. Ele que vai ter que trocar de aba manualmente e ir pra aba Central ou Jogos"*): no mapa a semana
   // NÃO anda e não tem botão de seguir — os dias só passam na Central e na aba Jogos.
   const calNaTela = tab === 'central' || (tab === 'jogos' && !fluxoCentral)
+  // 📅🔊 21/11 (Diego escolheu som na Central): cada dia que passa faz um tique baixinho; ao chegar no dia do jogo, apito curto.
+  // Só com a Central na tela e só quando o passo ANDA (abrir a carreira ou trocar de rodada não toca).
+  const calSom = useRef({ r: -1, i: 0 })
+  useEffect(() => { const ant = calSom.current; calSom.current = { r: round, i: calI }; if (!calOn || tab !== 'central' || ant.r !== round || calI <= ant.i) return; if (calI >= calFim && calFim > 0) playApitoCurto(); else playDia() }, [calI, round]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🏆 a temporada que começa com o calendário ligado joga a Copa nas quartas (marca uma vez, na rodada 0)
   useEffect(() => { if (calOn && round === 0 && !done && state.calCopaSeason !== calSn) dispatch({ type: 'CAL_COPA_LIGA', season: calSn }) }, [calOn, round, done, state.calCopaSeason, calSn, dispatch])
   // 🏆 a fase da Copa DESTA semana ainda não foi jogada? (a quarta é o 3º dia vazio: seg · ter · QUA)
@@ -12531,6 +12536,7 @@ export function PyramidSeasonScreen() {
   const [coletivaEfeito, setColetivaEfeito] = useState<{ txt: string; tom: 'bom' | 'ruim' | null } | null>(null) // 🎙️ 21/11: o resultado da última resposta aparece no cartão da Imprensa (Central)
   const responderColetiva = (estilo: ColetivaEstilo | null, registra = true, resultado?: { efeito: string | null; tom: 'bom' | 'ruim' | null }) => {
     if (!coletivaPronta) return
+    if (estilo) playFlash() // 📸🔊 21/11: respondeu a coletiva → flashes
     setColetivaEfeito(resultado?.efeito ? { txt: resultado.efeito, tom: resultado.tom } : null)
     if (registra) dispatch({ type: 'COLETIVA_RESPONDE', mgrId: youId, pronta: coletivaPronta.pronta, estilo, ctx: coletivaPronta.ctx, alvo: coletivaPronta.alvo })
     setColetivaPronta(null); setColetivaSala(false); coletivaSegura.current = false

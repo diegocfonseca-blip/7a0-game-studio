@@ -11129,7 +11129,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'SET_CAMPO2D': {
       // 📺⚡ só o DONO, só na sala online, nunca no basquete nem na Kings (relógio próprio). O convidado não roda este reducer,
       // mas o recado dele chega no do dono — por isso o crachá (`by`) TEM que ser o do dono. Só MARCA: quem troca é `viraCampo2D`.
-      if (s.onlineMode !== 'online' || !s.isHost || action.by !== s.youUid || s.sport === 'basquete' || ehKings(s) || s.bafo2) return s // 🃏 Bafo: sempre 2D
+      if (s.onlineMode !== 'online' || !s.isHost || action.by !== s.youUid || s.sport === 'basquete' || ehKings(s)) return s // 🃏 21/11 (noite, Diego: "deve liberar pro placar também, pra ele poder trocar se quiser"): o Bafo COMEÇA no 2D, mas o dono troca
       if (!troca2DSalaLiberada()) return s // 🔒 por enquanto só a conta do Diego (a conta do DONO: é no aparelho dele que isto roda)
       const alvo = !!action.on
       s.campo2dProximo = alvo === !!s.campo2d ? undefined : alvo // apertou de novo = desmarca (fica como está)

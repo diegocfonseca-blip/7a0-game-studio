@@ -475,7 +475,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   antes de codar. Textos de UI: simples, diretos, sem tecniquês.
 - **Sempre quer saber se dá pra reverter** ("qualquer bug eu posso voltar
   atrás né?") — responder isso proativamente a cada entrega.
-- Sons: martelo só pra QUEM ganha (ou vende) — nada de som genérico pra todos.
+- Sons: ~~martelo só pra QUEM ganha (ou vende)~~ 🔁 **21/11 (noite): o MARTELO BATE PRA SALA TODA em toda carta/pacote arrematado** (*"tinha que ter um
+  martelinho batendo sempre que alguém ganhasse o lance, pra ter mais animação"*). Lenda saindo: sininho dourado pra quem assiste; o "faah" segue só de
+  quem levou/vendeu. Sons novos escolhidos por ele: pacote do campeão, Bafo, sala de espera, empate no leilão e Central;
+  **troca de posição no leilão NÃO tem som** (*"precisa não"*). Som novo = levar a lista pra ele antes de sair pondo.
 - **🔊 O JOGO COMEÇA COM SOM (19/11, regra dele).** *"o jogo não pode começar no mudo… só se a pessoa desativou antes"*. Só fica mudo quem
   apertou 🔇 (escolha lembrada no aparelho, `esc-sound-muted = '1'`). Não voltar o padrão pro mudo. (O navegador ainda só toca depois do 1º toque.)
 - **O desenho do estádio (StadiumSvg) é sagrado**: tem que ser a PRIMEIRA coisa
@@ -1256,7 +1259,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (*"N deve aparecer o número q cada um tem"*). **Dono não expulsa ninguém**; dono que sai no meio perde 2 cartas (1º e 2º levam; antes da liga, vão pro
   sistema). Não conta pro ranking nem dá cartinha. Detalhe em `docs/pendencias.md` (21/11). Trava `npm run bafo`.
   🔁 Mesmo dia, depois do 1º teste: convocação de **160 s** em página própria (pacote abrindo antes, Ronaldo de exemplo em cima, placar "10/22" e aviso do
-  que falta pra fechar um time) · **60 s de preparo** na escalação antes do 1º jogo · só Campo 2D · faixa da regra em cima do campo · suspense da carta tomada.
+  que falta pra fechar um time) · **60 s de preparo** na escalação antes do 1º jogo · começa no Campo 2D e o DONO pode trocar pro placar padrão (21/11 à noite: *"deve liberar pro placar também, pra ele poder trocar se quiser"*) · faixa da regra em cima do campo · suspense da carta tomada.
   Quem aperta Pronto antes: o jogo completa com as PIORES (ele confirmou).
   🔒 Mesmo dia (noite): **sem cartas que fechem um time não entra nem cria sala de Bafo** (*"eles nem poderiam ter entrado, já que não estavam aptos"*);
   abre o banner `FaltamCartasBafo` explicando o que é carta de campeão e como ganhar. Não existe mais "só assiste" pra quem chega.
