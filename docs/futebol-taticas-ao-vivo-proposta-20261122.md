@@ -11,9 +11,12 @@ Após o piloto `78fa313a`, Diego esclareceu em 22/11:
 
 Mockup: `scripts/mockups/futebol-plano-escalacao-desktop.html`.
 
-- Desktop largo: partida à esquerda; plano e XI embaixo dele na coluna central; classificação e chat à direita.
-- Desktop compacto/tablet: partida + plano/XI na esquerda, classificação/chat na direita.
-- Celular: Partida, Tabela, Números, Elenco e Chat em abas. Dentro de Partida, plano seguido do XI. Não repetir a tabela inteira abaixo do plano.
+- **Revisão após rejeição do Diego:** o desenho de três colunas apertou o jogo e a tabela. Agora são **duas colunas**, aproveitando até 1680 px: partida ampla à esquerda; classificação com 380–420 px e chat à direita. Plano horizontal abaixo do jogo e XI depois dele. Cinema e Campo2D recebem a largura principal, sem uma coluna estreita para o jogo.
+- **Fotos reais enviadas depois:** Diego gostou das abas **no alto** (Partida, Tabela, Estatísticas, Elenco, Rivalidades), pedindo mais contraste. Mantidas nessa posição, com ativa dourada e inativas em creme sobre verde.
+- Celular: dentro de Partida, plano seguido do XI. Não repetir tabela e retrospectos no fim da página; esses conteúdos vão para as respectivas abas. Manter o mini-placar ao navegar/rolar.
+- O código confirma a duplicação: Números/Elenco da barra inferior em `ligahub.tsx` chamam `abasJogo.escolher`, os mesmos destinos de Estatísticas/Elenco no topo. Proposta: barra inferior resumida a Sala, Troféus e Chat; esses atalhos não duplicam as cinco abas superiores. **Isso ainda é proposta, sem alterar o menu publicado.**
+- Diego reforçou a separação por conteúdo: mexer no XI em Partida; classificação e confrontos em **Tabela e jogos**; retrospectos em Rivalidades. Para não esconder a sala de quem nunca toca nas abas, a proposta mantém na Partida **posição/pontos + resumo dos outros placares**, com atalhos Ver tabela/Ver rodada. O desktop mostra a tabela completa ao lado.
+- Rivalidades é conteúdo valorizado: preservar próximo encontro, retrospecto geral, últimos duelos, maiores goleadas e sequências contra os amigos. O mockup usa números ilustrativos. Na implementação só mostrar métricas calculáveis no histórico existente; sem histórico, indicar ausência, sem inventar resultados.
 - Protótipo tem fluxo local de ordens e edição ilustrativa do XI. Mensagens não saem do navegador e não representam pessoas conectadas.
 
 ## O que existe hoje e a mudança necessária

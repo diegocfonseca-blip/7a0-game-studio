@@ -1,3 +1,9 @@
+## 📱🖥️ 22/11 — REVISÃO DA PROPOSTA: ABAS NO ALTO, SEM APERTAR PARTIDA/TABELA
+- Diego rejeitou três colunas: jogo e tabela apertados, espaço mal aproveitado. Nova proposta: duas colunas largas no desktop, plano horizontal abaixo do jogo, XI depois; classificação/chat à direita.
+- Enviou fotos do jogo e gostou das abas no ALTO. Manter ali; mais contraste (ativa dourada, demais creme). Separar os conteúdos no celular para não repetir tabela/rivalidades abaixo da partida.
+- Barra inferior repete os destinos de Números/Elenco do topo (confirmado em `ligahub.tsx`); proposta resume a Sala/Troféus/Chat. Ainda não foi alterada no jogo. Mockup e análise no documento da proposta.
+- Base privada `78fa313a` foi incluída no deploy `e2b6aa0f`, execução 45047995552 concluída com sucesso em 22/11. Reversão no topo permanece disponível. Esta revisão/táticas ao vivo continua só no branch de proposta.
+
 ## 🧩 22/11 — CONTINUAÇÃO DO PILOTO: NOVAS TÁTICAS, XI, DESKTOP COM TABELA E CHAT
 - Diego viu o piloto e esclareceu: quer as novas táticas do mockup; campo do próprio XI abaixo do plano (só editar onde o modo permite); **tabela junto no DESKTOP**, por causa dos streamers; chat acessível. No celular, tabela/chat ficam nas abas.
 - Mockup atualizado: `scripts/mockups/futebol-plano-escalacao-desktop.html`. É proposta local, não motor ao vivo. Chat continua no jogo; estava ausente da prévia anterior.
