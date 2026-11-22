@@ -1,3 +1,12 @@
+## ☀️ 22/11 — CAMPO 3D: gramado mais claro e vivo (publicado, pedido do Diego com print do campo do 2D)
+- *"esse nosso gramado tá muito escuro… o outro tá bem mais vivo"*. Medido na Câmera de TV: média (39, 89, 1) → (81, 140, 42). Antes/depois:
+  `scripts/mockups/gramado-3d-antes-depois.jpg`.
+- Causa: a foto da grama quase não tem azul e as manchas de tom escureciam até 0,74×. FEITO só no desenho do chão do 3D do mapa
+  (`presidencia-gramado-material-3d.ts`, caminho com desgaste): manchas mais suaves, ×1,28 e 30% de mistura com um verde vivo. Textura, listras e
+  desgaste continuam. Nenhuma luz, sombra, malha ou textura nova (custo igual). A luz do estádio e o filtro de cor do mapa NÃO mudaram.
+- ⚠️ `scripts/testa-presidencia-gramado-material-3d.mjs` já reprovava antes (espera a cor sem o ×1,5 de 21/11); não mexi.
+- Não vi em aparelho de verdade, só na bancada (GPU por software), de dia. À noite com refletor não conferi.
+
 ## ⚽🔎 22/11 — CAMPO 3D: bola maior no desenho + mancha no chão na bola alta (publicado, pedido do Diego)
 - Pedido: *"analise o campinho 3D, a jogabilidade, domínio, passe, chute… tamanho da bola… já melhore e publique… continuar liso e fluido"*.
 - Bancada nova: `S=<pasta> [T0] [N] [HZ] [PASSO] [CAM=tv|tele…] node scripts/mapa3d/filma-bancada.mjs` filma a partida da `scripts/mapa3d/bancada.html`
