@@ -851,7 +851,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   seasonNo?: number
   /** 📰 avisa o fim de temporada se a noite JÁ acabou e quem levou a Copa —
       é o que segura o jornal e a votação até a Copa terminar (Diego 01/09). */
-  aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null }) => void
+  aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null; /** 🃏 22/11: a chave da cartinha do campeão (pro resgate) */ chave?: string }) => void
   /** ⚙️ o dono remove quem está demorando (o id é o do técnico na tabela) */
   aoRemover?: (id: number, nome: string) => void
 }) {
@@ -1099,7 +1099,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
     const [nome, pais] = fase.campeao.split(' | ')
     return nome ? { nome, pais: pais ?? '' } : null
   }, [fase?.campeao])
-  useEffect(() => { aoStatus?.({ pendente: !campeaoDoMundo, campeao: campeaoDoMundo }) }, [campeaoDoMundo]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { aoStatus?.({ pendente: !campeaoDoMundo, campeao: campeaoDoMundo, chave: campeaoDoMundo && fase?.seed != null ? `mundo:${roomId}:${fase.seed}:copamundo` : undefined }) }, [campeaoDoMundo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const daVezNome = fase?.vez_uid ? nomeDe.get(fase.vez_uid) ?? tr('alguém', 'someone') : ''
   return (

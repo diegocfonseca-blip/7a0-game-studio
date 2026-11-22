@@ -7690,7 +7690,8 @@ function useTitulosNaHora() {
       const resultados: ResultadoHumanoEntrada[] = state.managers.map(m => {
         const pos = table.findIndex(t => t.id === m.id)
         return { managerId: m.id, teamName: m.teamName, position: pos >= 0 ? pos + 1 : 0, qualified: pos >= 0 && pos < copaN(table.length), relegated: pos >= 0 && pos + 1 >= zoneBot(table.length),
-          leagueChampion: m.id === ligaCamp, cupTitles: copaCamp != null && m.id === copaCamp ? [copaTit] : [], humano: m.isHuman }
+          leagueChampion: m.id === ligaCamp, cupTitles: copaCamp != null && m.id === copaCamp ? [copaTit] : [], humano: m.isHuman,
+          cartas: [...(m.id === ligaCamp ? [base] : []), ...(copaCamp != null && m.id === copaCamp ? [`${base}:copa`] : [])] } // 🃏 22/11: chaves pro resgate
       })
       const champName = state.managers.find(m => m.id === ligaCamp)?.teamName ?? ''
       vai(`grava:${base}:${copaCamp ?? '-'}`, () => gravaTemporadaSala(roomId, state.managers.filter(m => m.isHuman).map(m => m.teamName), {
@@ -13902,7 +13903,7 @@ export function EscEnd() {
   // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
   // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
   const proxNomeFim = mundoEsperando ? (libertaNaLiga ? 'Libertadores' : regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
-  const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
+  const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string; chave?: string } | null>(null)
   useEffect(() => { if (mundoNaLiga || regionalNaLiga || libertaNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga, libertaNaLiga])
   useEffect(() => {
     if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
@@ -14350,7 +14351,7 @@ export function EscEnd() {
           <CopaDaLigaLazy euro={euroNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
-            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }}
             aoRemover={(id, nome) => {
               if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
             }}
@@ -14367,7 +14368,7 @@ export function EscEnd() {
           <LibertaSalaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
-            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }}
             aoRemover={(id, nome) => {
               if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
             }}
@@ -14382,7 +14383,7 @@ export function EscEnd() {
           <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
-            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }} // 🏟️ o campeão vai pro jornal e pro histórico, igual à Copa do Mundo
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }} // 🏟️ o campeão vai pro jornal e pro histórico, igual à Copa do Mundo
             aoRemover={(id, nome) => {
               if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
             }}
@@ -14455,6 +14456,12 @@ export function EscEnd() {
             cupTitles,
             ...(relPos ? { comp: 'relampago' as const } : chTab ? { comp: 'champions' as const } : {}), // 🏆 taça certa no perfil (28/10)
             humano: m.isHuman,
+            // 🃏 22/11: as chaves das cartinhas que este time ganhou — o resgate da tela inicial (`esc_titulos_sem_carta`) lê daqui
+            cartas: [
+              ...((chTab || relPos ? chCamp?.id === m.id : champ.id === m.id) ? [`${state.roomId}:${state.seed}:${state.seasonNo}${chTab || relPos ? ':copa' : ''}`] : []),
+              ...(!chTab && !relPos && copaDone && state.quickCopa?.champion?.id === m.id ? [`${state.roomId}:${state.seed}:${state.seasonNo}:copa`] : []),
+              ...(campeaoDoMundo?.chave && campeaoDoMundo.nome === m.teamName ? [campeaoDoMundo.chave] : []),
+            ],
           }
         })
         return (

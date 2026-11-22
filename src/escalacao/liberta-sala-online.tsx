@@ -199,7 +199,7 @@ export function LibertaSalaGate({ roomId, souDono, meuUid, classificacao, matchS
   /** a tabela FINAL da liga, do 1º ao último */
   classificacao: LugarLiberta[]
   matchSeed?: number
-  aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null }) => void
+  aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null; /** 🃏 22/11: a chave da cartinha do campeão (pro resgate) */ chave?: string }) => void
   seasonNo?: number
   aoRemover?: (id: number, nome: string) => void
 }) {
@@ -331,7 +331,7 @@ export function LibertaSalaGate({ roomId, souDono, meuUid, classificacao, matchS
   const ficha: FichaLiberta | null = fase?.fase === 'torneio' && Array.isArray(fase.times) && fase.times.length === LIBERTA_VAGAS ? { seed: fase.seed, edicao: fase.edicao, times: fase.times } : null
   useEffect(() => { if (ficha && !fase?.campeao) setAberta(true) }, [ficha?.seed]) // eslint-disable-line react-hooks/exhaustive-deps
   const campeao = useMemo(() => { if (!fase?.campeao) return null; const [nome, pais] = fase.campeao.split(' | '); return nome ? { nome, pais: pais ?? '' } : null }, [fase?.campeao])
-  useEffect(() => { aoStatus?.({ pendente: !campeao, campeao }) }, [campeao]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { aoStatus?.({ pendente: !campeao, campeao, chave: campeao && fase?.seed != null ? `libsala:${roomId}:${fase.seed}:${fase.edicao}` : undefined }) }, [campeao]) // eslint-disable-line react-hooks/exhaustive-deps
   async function gravaCampeao(nome: string, clube: string) {
     if (!souDono || !fase) return
     try {

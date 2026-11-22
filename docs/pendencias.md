@@ -23,6 +23,19 @@
 
 
 
+
+### 🃏 22/11 (noite) — resgate da cartinha pra Liga da Turma, Liga Draft e Copas de dentro da sala (no branch; banco NÃO aplicado)
+- Diego: *"Sim"* (estender o resgate). Causa: liga não grava `match_seed` e a semente da liga muda na revanche (`rematch: Date.now()`),
+  então a chave da carta não dá pra remontar depois; Copa do Mundo/regional/Libertadores da sala têm chave própria (`mundo:`/`regional:`/`libsala:`).
+- Código: cada time de `human_results` agora leva `cartas` = as chaves EXATAS das cartinhas que ganhou (screens.tsx, nos dois lugares que gravam;
+  as Copas mandam a chave pelo `aoStatus`). Quem saiu herda só as que já estavam anotadas (ligahub.tsx).
+- Banco: `supabase/migrations/20261122230000_esc_titulos_sem_carta_v3.sql` — mesma função, lê também `cartas`. **Falta aplicar** (pedir OK; mexer em
+  função pode dar 1–3 min de lentidão na API, fazer em hora calma). Sem o banco, nada muda (o campo novo só fica guardado).
+- Vale pros títulos a partir da publicação (os antigos não têm a chave). Fora ainda: Copa do Mundo SOLTA (sala só de Copa, modo 'mundo'), carreira
+  online, basquete, sala apagada.
+- Chances do pacote (`CHANCE_CATEGORIA`, colecoes.ts): hoje Lenda 4 · Craque 16 · Promessa 4 · Bom 58 · Profissional 18. Proposta levada ao Diego:
+  Lenda 4 · Craque 18 · Promessa 8 · Bom 55 · Profissional 15 (esperando resposta).
+
 ### 🃏 22/11 (tarde) — Bafo: selo valendo/amistoso, fim amistoso explicado, aviso de quem foi levado, 3-5-2 (no branch, esperando "pode publicar")
 - Diego (prints da sala FG93HX): *"tem que ter um selinho… bafo valendo cartinha ou bafo amistoso"*, *"tem que dar uma explicação que o campeão não vai
   roubar a carta porque ele criou a sala no modo amistoso"*, *"do nada já jogou pra sala aberta"*, *"aperta 3-5-2 mas tá fazendo 5-3-2"*.
