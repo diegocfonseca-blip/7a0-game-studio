@@ -565,6 +565,8 @@ carreira · vice/eliminação.
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
   ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- 🔁 22/11 (mesmo dia): o passo se chama **✍️ CONTRATOS** na tela (Diego confundiu "agência livre" com a 🕴️ Agência do jogo, das cartinhas e
+  comissão: *"A agência deveria ser de cartinhas e ganhar dinheiro igual no do futebol"*). No código segue `euaAgencia`/`eua-agencia.ts`.
 - ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
   no leilão 1–4 a partir da temporada seguinte, Draft = 4 (novato). Roteiro do fim vira 📰 → 💰 → 🎓 Draft → ✍️ Agência → 🔨 Próxima. Seu contrato
   acabou: RENOVAR (luva = 1 salário = valor ÷ 10, +3 temporadas) ou DEIXAR IR. Franquia da máquina renova 55% (sorteio preso na semente) ou solta.

@@ -13397,7 +13397,7 @@ function BafoCascata() {
 // 🏀🎬 a barra dos 3 passos do fim de temporada do basquete (mesmo desenho da `RoteiroFim` do futebol, sem o 🌍 Mundo)
 const PASSOS_BB = [{ ic: '📰', pt: 'Jornal', en: 'Paper' }, { ic: '💰', pt: 'Caixa', en: 'Money' }, { ic: '🔨', pt: 'Próxima', en: 'Next' }] as const
 // 🏀🎓 EUA Oficial: o Draft entra entre o caixa e a decisão (mockup aprovado 19/11)
-const PASSOS_BB_EUA = [PASSOS_BB[0], PASSOS_BB[1], { ic: '🎓', pt: 'Draft', en: 'Draft' }, { ic: '✍️', pt: 'Agência', en: 'Free agency' }, PASSOS_BB[2]] as const // ✍️ 22/11 agência livre
+const PASSOS_BB_EUA = [PASSOS_BB[0], PASSOS_BB[1], { ic: '🎓', pt: 'Draft', en: 'Draft' }, { ic: '✍️', pt: 'Contratos', en: 'Contracts' }, PASSOS_BB[2]] as const // ✍️ 22/11 contratos (renovar ou deixar ir) — NÃO é a Agência do jogo (cartinhas/comissão); o nome mudou pra não confundir (Diego 22/11)
 function RoteiroBB({ passo, onIr, eua }: { passo: number; onIr: (n: number) => void; eua?: boolean }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -13529,7 +13529,7 @@ function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="space-y-4">
       <div style={{ background: INK, color: '#fff', borderRadius: 16, padding: '12px 14px', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
-        <b style={{ ...OSWALD, fontWeight: 900, fontSize: 19, display: 'block', textTransform: 'uppercase' }}>{tr(`✍️ Agência livre · temporada ${a.temporada}`, `✍️ Free agency · season ${a.temporada}`)}</b>
+        <b style={{ ...OSWALD, fontWeight: 900, fontSize: 19, display: 'block', textTransform: 'uppercase' }}>{tr(`✍️ Contratos · temporada ${a.temporada}`, `✍️ Contracts · season ${a.temporada}`)}</b>
         <small style={{ color: '#bbb', fontSize: 12 }}>{tr('Os contratos que acabaram. Quem ficar livre entra no seu leilão de reservas.', 'Contracts that ran out. Whoever becomes free goes into your reserve auction.')}</small>
       </div>
       <Box className="overflow-hidden" style={{ padding: 0 }}>
