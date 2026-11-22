@@ -6,6 +6,12 @@
 - **Pendente fora desta entrega:** pressão alta/caminho do ataque/marcação/ritmo tático do mockup exigem mudança de motor e sincronização; não foram ligados como botões fictícios. Diego foi informado.
 - Testes e limites: [relatório do piloto](futebol-visual-piloto-diego-futpoint-20261122.md). Falta o teste ao vivo de Diego com Futpoint; bancada não substitui duas sessões autenticadas.
 
+## 22/11 — 📣 Canto do Cabuloso JP (Fundador) — NO BRANCH, esperando "pode publicar"
+
+- Áudio do vídeo que o Diego mandou: os 14 primeiros segundos, no padrão dos outros (mono 32 kHz 56 kbps, −20,6 dB) → `public/sfx/torcida-cabuloso-v1.mp3` (98 KB).
+- Ligado nos 3 lugares: carreira nos jogos em casa (`AMBIENTE_CARREIRA_POR_EMAIL`), visitante ouvir na sala (`CANTO_POR_MASCOTE`, `cabuloso_raposa`) e a gala única (`gala-cabuloso.tsx`, toca a gala inteira). Festa de campeão das salas pega sozinho.
+- Não ouvi o resultado (bancada sem som): o Diego precisa conferir o trecho e o volume.
+
 ## 🧭 22/11 — CENTRAL DIRETA (sem dias pra passar) — FEITA, SÓ NA CONTA DO DIEGO (`CENTRAL_DIRETA_GERAL = false`)
 - Mockups aprovados (*"Sim"*): `scripts/mockups/central-nova-cel.png`/`-pc.png`. Ajustes dele no caminho: agenda = a "Próximos jogos" que JÁ existe
   na Central (escudo, competição, estádio, CASA/FORA) e botões 2D/3D/Placar PEQUENOS numa fileira (*"tá muito exagerado os botões"*).

@@ -9,13 +9,14 @@
 // 4) a coroa cai do céu girando e encaixa na cabeça; a raposa ganha cor, de braços cruzados
 // 5) pé na bola: ela cresce pra câmera, faíscas azuis saem da bola — "É CABULOSO!"
 // 6) o escudo gira e para no centro com o brilho das estrelas atrás, e a faixa azul e branca "CHEGOU NA SALA"
-// Sem canto próprio por enquanto: não existe canto do Cruzeiro no jogo (o Diego vai mandar o áudio). Até lá só os "plim".
+// Som: o canto do clube (`sfx/torcida-cabuloso-v1.mp3`, os 14 primeiros segundos do vídeo que o Diego mandou em 22/11 — o mesmo da
+// carreira) toca a gala inteira e abaixa no fim, por cima dos "plim" das estrelas.
 // Mesmo esquema das outras galas únicas: palco 420×760 escalado, camada fixa sem clique, fora do reducer, sem localStorage.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Escudo } from './escudos'
 import { tr } from './lang'
-import { playEstrela } from './sound'
+import { playEstrela, playMp3Gala } from './sound'
 import raposaImg from './img/cabuloso-mascote.webp' // 172×440, a raposa de braços cruzados com o pé na bola
 
 export const CABULOSO_MS = 9000
@@ -112,6 +113,7 @@ const FAISCAS = Array.from({ length: 10 }, (_, i) => {
 export function GalaCabuloso({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
   void grito
+  useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-cabuloso-v1.mp3`, T), [chave]) // 📣 o canto do clube (a sala inteira ouve; respeita o mudo)
   // um "plim" em cada estrela que acende (som sintetizado, respeita o mudo)
   useEffect(() => {
     const ids = ESTRELAS.map((_, i) => window.setTimeout(() => playEstrela(), ACENDE(i)))
