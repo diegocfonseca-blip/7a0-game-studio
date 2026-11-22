@@ -1297,6 +1297,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   algo quando tiver o convite"* (revê o "4 passos sempre" de 19/09: o passo 3 sai quando não há Copa/internacional pra ele). E a cena do bairro
   na Central é **videozinho ao vivo** (o mapa no quadro, igual à chegada do ônibus), com ver no mapa ou pular — nunca foto parada.
 
+- **🏷️ 22/11: NOMES DOS JOGOS (conversa longa, ele ainda NÃO bateu o martelo — não mexer em marca/domínio/seletor sem ele mandar).** Pra onde
+  ele caminhou: **Leilão Legends = a casa do Brasil** (e o futebol leva o nome dela) · **Bid Legends = a casa dos EUA** (e o basquete leva o nome
+  dela) · cada esporte novo com nome próprio no seletor das duas casas: 🏈 **Touchdown Legends**, 🏎️ **Pit Legends** (*"Pit Legends é bom"*;
+  **"Grid Legends" NÃO**, já é jogo de corrida da EA). Dois Instagram por idioma (@leilaolegends PT · @bidlegends EN). **O seletor fica**
+  (*"eu quero manter o seletor!!"*). 🚫 Não falar em "estúdio/7A0" como grupo (*"nada a ver… esquece isso"*). Ideia solta: futebol pro gringo
+  aparecer como "Goal Legends" (não respondida). Com ele em dúvida assim: UMA recomendação e não trocar de opção a cada resposta — eu troquei e confundi.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
