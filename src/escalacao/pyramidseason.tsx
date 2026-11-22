@@ -12547,6 +12547,9 @@ export function PyramidSeasonScreen() {
     const depois = coletivaDepois.current; coletivaDepois.current = null
     if (copaEsperaColetiva.current) { copaEsperaColetiva.current = false; setCopaRound(r => r + 1) }
     depois?.()
+    // 🧭 22/11 (Diego: "acabou o jogo no mapa 3D, dei a coletiva e voltou pro mapa do jogo, erradamente"): quem viu o jogo no 3D sai da
+    // coletiva na CENTRAL — é lá que aparece o resultado da entrevista e que os dias seguem. O jogo já acabou; o mapa não tem mais o que mostrar.
+    if (fluxoCentral && tab === 'estadio') escolheAba('central')
   }
   // no AUTOMÁTICO a sala abre sozinha assim que o jogo acaba (e fecha sozinha em 12 s): é o passo antes do próximo jogo
   // 📅 26/10: com o calendário, no MANUAL também (senão a coletiva esperando o toque segurava a semana parada no domingo)

@@ -1676,6 +1676,14 @@ export function useSportUnlocked(): boolean {
 }
 
 // marca visível de cada esporte (o "arena" mora só no endereço do domínio)
+/** 🌐 22/11 (Diego: *"um endereço para cada jogo, a mesma conta nos dois"*): o endereço que vai no compartilhar/rodapé das artes.
+ *  Futebol = leilaolegends.com (igual sempre); basquete = bidlegendsarena.com. Quem não é tester vê sempre o futebol (`getSport`). */
+export function siteDoJogo(): { nome: string; url: string; dominio: string } {
+  return getSport() === 'basquete'
+    ? { nome: 'BidLegends', url: 'https://bidlegendsarena.com', dominio: 'bidlegendsarena.com' }
+    : { nome: 'Leilão Legends', url: 'https://leilaolegends.com', dominio: 'leilaolegends.com' }
+}
+
 export const SPORT_BRAND: Record<Sport, { name: string; emoji: string; tab: string }> = {
   futebol: { name: 'Leilão Legends', emoji: '⚽', tab: 'Futebol' },
   basquete: { name: 'BidLegends', emoji: '🏀', tab: 'Basquete' },

@@ -94,18 +94,45 @@ export function limpaChatsVelhos(): number {
   return n
 }
 
+// 🗄️ 21/11 (noite, celular do Diego CHEIO de novo: 10 MB, login caindo a cada reload e carreira nova sem conseguir gravar).
+// Quando outra conta entra no aparelho, as carreiras da conta anterior vão pro COFRE dela (`esc-career-vault::<conta>`). Quando a
+// conta VOLTA, o cofre é copiado de volta pro lugar de sempre — e ficava lá pra sempre, DUPLICADO (no aparelho dele: 1,9 MB mortos).
+// Aqui a gente apaga só essa cópia morta: o cofre da conta que É a dona atual do aparelho, e só se tudo que ele guarda está vivo
+// no lugar de sempre. Cofre de OUTRA conta nunca é tocado (é a única cópia das carreiras dela neste aparelho).
+const COFRE_PREFIXO = 'esc-career-vault::'
+const DONO_DO_APARELHO = 'esc-career-owner'
+const CHAVES_DE_CARREIRA = ['esc-solo-career', 'esc-solo-career-at', 'esc-career-archive', 'esc-solo-inprogress-v1'] as const
+/** apaga o cofre DUPLICADO da conta dona do aparelho. Devolve quantos KB liberou (0 = nada a fazer / não era seguro). */
+export function limpaCofreDoDono(): number {
+  try {
+    const dono = localStorage.getItem(DONO_DO_APARELHO)
+    if (!dono) return 0
+    const chave = COFRE_PREFIXO + dono
+    const cru = localStorage.getItem(chave)
+    if (!cru) return 0
+    let cofre: Record<string, string | null> | null = null
+    try { cofre = JSON.parse(cru) as Record<string, string | null> } catch { return 0 } // cofre ilegível: não mexe
+    if (!cofre || typeof cofre !== 'object') return 0
+    // 🛡️ só é cópia morta se CADA coisa guardada nele existe viva no aparelho; faltou uma, o cofre pode ser a única cópia → fica
+    for (const k of CHAVES_DE_CARREIRA) { if (cofre[k] != null && localStorage.getItem(k) == null) return 0 }
+    localStorage.removeItem(chave)
+    return Math.round(((chave.length + cru.length) * 2) / 1024)
+  } catch { return 0 }
+}
+
 /** a rodada completa: limpa o lixo e mede. Chamada no boot e pelo botão da faixa. */
-export function guardaStorage(): ProbeStorage & { apagadas: number } {
+export function guardaStorage(): ProbeStorage & { apagadas: number; cofreKB: number } {
   const apagadas = limpaChatsVelhos()
+  const cofreKB = limpaCofreDoDono()
   const escrita = testaEscrita()
-  return { escrita, apagadas, ...medeStorage() }
+  return { escrita, apagadas, cofreKB, ...medeStorage() }
 }
 
 // 🚀 roda no import — antes do cliente do Supabase (ordem dos imports do main.tsx)
 try {
   const r = guardaStorage()
-  if (r.escrita !== 'ok' || r.apagadas > 0) {
+  if (r.escrita !== 'ok' || r.apagadas > 0 || r.cofreKB > 0) {
     // só console: quem joga não precisa ver; quem investiga (DevTools) precisa
-    console.warn(`[storage-guard] escrita=${r.escrita} · ${r.usadoKB} KB em ${r.chaves} chaves · chats de sala apagados: ${r.apagadas}`)
+    console.warn(`[storage-guard] escrita=${r.escrita} · ${r.usadoKB} KB em ${r.chaves} chaves · chats de sala apagados: ${r.apagadas} · cofre duplicado liberado: ${r.cofreKB} KB`)
   }
 } catch { /* nunca derruba o boot */ }

@@ -45,6 +45,7 @@ O que JÁ existe no jogo e serve direto: as conferências reais, os 82 jogos, o 
    roteiro do fim de temporada. Completar as franquias com poucas cartas.
 2. **Fase 2** — NBA Cup real e o Draft com loteria.
 3. **Fase 3** — agência livre / trocas / teto salarial (o que o Diego quiser do sistema real).
+   ✅ 22/11: AGÊNCIA LIVRE feita (contratos, renovar/deixar ir, livres no seu leilão) — ver `docs/pendencias.md` (22/11). Trocas e teto salarial: não feitos.
 4. **Fase 4** — atualização anual (elencos reais de cada temporada).
 
 ## 7. Elencos reais 2026-27 — PESQUISADOS (19/11)

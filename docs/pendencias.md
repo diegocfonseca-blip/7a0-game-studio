@@ -12,6 +12,35 @@
 - `jogo3d` (pyramidseason): liga no "▶ Começar o jogo" do mapa, desliga quando escolhe 2D/placar rápido. Com ele o relógio da rodada inteira
   anda na marcha do 3D (antes o 3D herdava o 1,5× do campinho 2D). O 2D da aba Jogos NÃO mudou (segue 1,5× padrão).
 - Trava: `npm run vel-2d`. ⚠️ Não testado em aparelho de verdade; conferir a duração (~45 s) num jogo no mapa.
+## 🧭 22/11 — Depois da coletiva, quem viu o jogo no 3D voltava pro mapa (CONSERTO NO BRANCH, esperando "pode publicar")
+- Diego: *"acabou o jogo no mapa 3D, foi pra entrevista coletiva e depois de dar a coletiva voltou pro mapa 3D do jogo, erradamente"*.
+- `responderColetiva` (pyramidseason.tsx): no fluxo da Central, se a aba é o mapa (`estadio`), ao fechar a coletiva vai pra **Central** (onde aparece o
+  resultado da entrevista e os dias seguem). Quem viu no 2D (aba Jogos) não muda. 🔬 Só buildado; NÃO reproduzi na bancada (coletiva depende da rodada).
+
+## 🗄️ 21/11 (noite) — Aparelho CHEIO: cofre duplicado da própria conta (CONSERTO NO BRANCH, esperando "pode publicar")
+- Medição do celular do Diego (#admin): escrita **cheio**, 10.239 KB. Maiores: `esc-career-archive` 2,5 MB · cofre Xurupitas FC 2,4 MB · **cofre da PRÓPRIA
+  conta 1,9 MB** · cofre "felipo" 1,2 MB · `esc-solo-career` 1 MB. Mesma causa do "não consegui criar carreira de basquete" (o jogo avisou "aparelho sem espaço").
+- Defeito: quando a conta volta pro aparelho, `ensureCareerOwner` copiava o cofre dela de volta e NUNCA apagava o cofre → cópia morta pra sempre.
+- Conserto: `limpaCofreDoDono` (storage-guard.ts, roda no boot antes do login) apaga só o cofre da conta DONA do aparelho e só se tudo que ele guarda está
+  vivo no lugar de sempre; `ensureCareerOwner` passa a apagar o cofre depois de restaurar. Cofre de OUTRA conta nunca é tocado. Trava: `npm run storage` (caso 4).
+- ❓ Ainda sobram no aparelho dele 3,6 MB de cofres de outras duas contas (Xurupitas FC: tem save na nuvem de 20/10 · felipo: SEM nuvem, último login 13/09).
+  Ele mandou DEIXAR AS DUAS QUIETAS (22/11). 💡 Estrutural (não feito): saves de carreira no localStorage batem no teto de ~10 MB — comprimir os cofres ou levar save pra IndexedDB.
+
+## 🔐 21/11 (noite) — Conta do Diego caindo ao sair/voltar pro site (EM ABERTO, esperando a medição do aparelho)
+- Servidor: NENHUM logout, erro ou revogação da conta dele. Até 22:06 a sessão antiga (05/11) renovava normal; depois ele digitou a senha 3 vezes
+  (21:51, 23:45, 23:46) e essas sessões novas NUNCA renovaram — ou seja, o login ficou só na memória da página e morreu ao recarregar.
+- É a assinatura do **armazenamento cheio** (regra de 21/09, `storage-guard.ts`): a biblioteca de login não consegue escrever e guarda a sessão só na memória.
+  O print das 18:52 ("crie uma conta" + Manual trancado jogando o Brasiliense) é o MESMO problema — a hipótese de "outro navegador" que dei na hora estava errada.
+- Suspeito (não medido): saves grandes de carreira no aparelho (ele jogou a carreira antiga + uma Brasil Oficial hoje); o guarda só limpa chat de sala.
+- Próximo passo: ele mandar o print da medição do aparelho (#admin) ou da faixa amarela "SEM ESPAÇO" da home; com as 5 maiores chaves decidir o que limpar
+  SEM apagar save (regra: nunca apagar save de ninguém sem ele pedir).
+
+## 🚫 21/11 (noite) — Ideias pra partida nas SALAS: 2 listas RECUSADAS (*"N gostei de nenhuma"*) — não repropor
+- Pedido: analisar a partida rolando nas salas e deixar mais imersivo / dar o que FAZER enquanto a classificação rola.
+- Recusadas (lista 1): assistir o jogo de um amigo · palpite da rodada · provocar no gol com a mascote · rádio da rodada · mexer no time com o jogo rolando.
+- Recusadas (lista 2): pênalti batido na sala · torcida no dedo · bagre da rodada (voto) · bolão com a sobra do leilão · coletiva da zoeira · troca de jogador entre técnicos.
+- Próximo passo: NÃO mandar 3ª lista. Perguntar o que ELE imagina (um exemplo de outro jogo, ou o momento exato em que sente falta de algo) e partir daí.
+
 
 ## 🔬 22/11 — CAMPO 3D: bola parada e goleiro filmados de perto (nada mudou no código)
 - Filmado com `RECORTE=300`: lateral + falta (semente 99, 8 s), chute de fora que sai pela linha de fundo + tiro de meta (99, 37 s),
@@ -579,7 +608,16 @@ carreira · vice/eliminação.
   ✅ 22/11 FEITO (Diego: *"o seletor nas salas abertas, pode fazer"*): pílula ⚽/🏀 acima das abas em `lobby.tsx` (`ll-hub-esporte`), com o nº
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
-  No branch, ainda NÃO publicado.
+  ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
+  no leilão 1–4 a partir da temporada seguinte, Draft = 4 (novato). Roteiro do fim vira 📰 → 💰 → 🎓 Draft → ✍️ Agência → 🔨 Próxima. Seu contrato
+  acabou: RENOVAR (luva = 1 salário = valor ÷ 10, +3 temporadas) ou DEIXAR IR. Franquia da máquina renova 55% (sorteio preso na semente) ou solta.
+  🛡️ O único da posição nunca sai (o seu explica o porquê; o da máquina renova). Não passa de temporada com contrato sem decisão (tela e
+  `NEXT_NBA_SEASON` leem `agenciaPendenteEua`). Quem fica livre entra NA FRENTE do seu leilão de reservas; quem ninguém leva segue livre (pode
+  sair no Draft). Regras em `eua-agencia.ts`; trava `npm run eua-oficial`. Prints `scripts/mockups/basquete-eua-agencia-{celular,pc}.png`. No branch.
+  Fica pra depois, se o Diego quiser: os bots contratarem os livres (hoje só você leva, no seu leilão) e teto salarial.
+- ✅ 22/11 compartilhar no basquete leva o endereço do basquete (`siteDoJogo()` em sport.ts): jornal do fim de temporada, convite pro
+  jogo, pacote do campeão e cartão de campeão = bidlegendsarena.com / "BidLegends". Futebol continua leilaolegends.com, igualzinho. No branch.
 - ✅ 22/11 PUBLICADO na main (Diego: "Sim e siga"): EUA Oficial (NBA Cup, Draft, ranking), quadra 2D, ligas NBA, escudos — tudo do basquete
   segue só na conta do Diego (testers). Foram pra TODOS no futebol: Partida Rápida na moldura nova e o caixa em etiqueta no Clube.
 

@@ -93,5 +93,38 @@ console.log('3) armazenamento BLOQUEADO (aba privada etc.) não é confundido co
   ok(limpaChatsVelhos() === 0, 'e a limpeza não explode: devolve 0')
 }
 
+console.log('4) cofre DUPLICADO da conta dona do aparelho (21/11, celular do Diego cheio com 10 MB)')
+{
+  const ls = fakeStorage(40_000)
+  g.localStorage = ls
+  const { limpaCofreDoDono, testaEscrita, guardaStorage } = await import('../src/storage-guard')
+  const cofre = (o: Record<string, string | null>) => JSON.stringify(o)
+  ls.setItem('esc-career-owner', 'EU')
+  ls.setItem('esc-solo-career', 'S'.repeat(6000))
+  ls.setItem('esc-career-archive', 'A'.repeat(6000))
+  ls.setItem('esc-career-vault::EU', cofre({ 'esc-solo-career': 'S'.repeat(6000), 'esc-career-archive': 'A'.repeat(6000), 'esc-solo-career-at': null, 'esc-solo-inprogress-v1': null }))
+  ls.setItem('esc-career-vault::OUTRA', cofre({ 'esc-solo-career': 'O'.repeat(8000) }))
+  let i = 0
+  for (const bloco of [900, 90, 9, 1]) { try { while (true) { ls.setItem(`enche${i++}`, 'x'.repeat(bloco)) } } catch { /* cheio */ } }
+  ok(testaEscrita() === 'cheio', 'aparelho cheio: o login não consegue gravar')
+  const r = guardaStorage()
+  ok(r.cofreKB > 0 && ls.getItem('esc-career-vault::EU') === null, `o cofre duplicado da conta dona sai (${r.cofreKB} KB)`)
+  ok(r.escrita === 'ok', 'e a escrita volta — o login volta a ficar guardado')
+  ok(ls.getItem('esc-solo-career') !== null && ls.getItem('esc-career-archive') !== null, 'as carreiras vivas da conta continuam lá')
+  ok(ls.getItem('esc-career-vault::OUTRA') !== null, 'o cofre de OUTRA conta nunca é tocado')
+  // o cofre é a ÚNICA cópia (a volta não coube): tem de ficar
+  ls.clear()
+  ls.setItem('esc-career-owner', 'EU')
+  ls.setItem('esc-solo-career', 'S'.repeat(100))
+  ls.setItem('esc-career-vault::EU', cofre({ 'esc-solo-career': 'S'.repeat(100), 'esc-career-archive': 'A'.repeat(500) }))
+  ok(limpaCofreDoDono() === 0 && ls.getItem('esc-career-vault::EU') !== null, 'se um pedaço do cofre NÃO está vivo no aparelho, o cofre fica (é a única cópia)')
+  ls.clear()
+  ls.setItem('esc-career-owner', 'EU'); ls.setItem('esc-career-vault::EU', '{quebrado')
+  ok(limpaCofreDoDono() === 0 && ls.getItem('esc-career-vault::EU') !== null, 'cofre ilegível não é apagado')
+  ls.clear()
+  ls.setItem('esc-career-vault::EU', cofre({ 'esc-solo-career': 'S' }))
+  ok(limpaCofreDoDono() === 0, 'sem dono marcado no aparelho, não mexe em cofre nenhum')
+}
+
 console.log(erros ? `\n❌ ${erros} problema(s)` : '\n✅ tudo certo')
 process.exit(erros ? 1 : 0)
