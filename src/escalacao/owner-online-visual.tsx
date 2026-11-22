@@ -12,7 +12,7 @@ import {ehBasquete,marcaNome,marcaFraseLance} from './marca'
 import './owner-online-visual.css'
 import './owner-waiting.css'
 import './owner-contrast.css'
-import { useFootballMatchPilot, FootballMatchPilotView } from './football-match-pilot'
+import { useFootballMatchPilot, useFootballMatchAdAccess, FootballMatchPilotView } from './football-match-pilot'
 import {useFootballMatchNavigation,setFootballChatDock} from './football-match-navigation'
 import {FootballTacticsPanel} from './football-tactics-panel'
 
@@ -25,21 +25,23 @@ export function useOwnerOnlineVisual(state:Parameters<typeof ownerOnlineScope>[0
 type Slot='view'|'kings'|'tactic'|'controls'|'ad'|'tabs'|'lineup'|'summary'|'rivals'|'next-rival'|'leaders'|'rival-preview'|'room'|'wait-heading'|'wait-people'|'wait-invite'|'wait-rules'|'wait-themes'|'wait-banter'|'wait-start'
 type Targets=Partial<Record<Slot,HTMLDivElement|null>>
 type OwnerState=Pick<EscState,'managers'|'youIdx'|'quickCopa'|'onlineMode'>&{roomId?:string;nbaSala?:EscState['nbaSala'];sport?:string;screen?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;pokeLiga?:unknown;isHost?:boolean}
-type Layout={accountName?:string;state?:OwnerState;enabled:boolean;pilot:boolean;pilotAvailable:boolean;togglePilot:()=>void;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
+type Layout={accountName?:string;state?:OwnerState;enabled:boolean;pilot:boolean;pilotAvailable:boolean;matchAd:ReactNode;togglePilot:()=>void;primary:string|null;claim:(id:string)=>void;release:(id:string)=>void;target:(slot:Slot,node:HTMLDivElement|null)=>void;targets:Targets}
 const noop=()=>{}
-const Context=createContext<Layout>({enabled:false,pilot:false,pilotAvailable:false,togglePilot:noop,primary:null,claim:noop,release:noop,target:noop,targets:{}})
-export function OwnerOnlineProvider({enabled,state,accountName,children}:{enabled:boolean;state:OwnerState;accountName?:string;children:ReactNode}){
+const Context=createContext<Layout>({enabled:false,pilot:false,pilotAvailable:false,matchAd:null,togglePilot:noop,primary:null,claim:noop,release:noop,target:noop,targets:{}})
+export function OwnerOnlineProvider({enabled,state,accountName,children,matchAd}:{enabled:boolean;state:OwnerState;accountName?:string;children:ReactNode;matchAd?:ReactNode}){
  const pilot=useFootballMatchPilot(enabled?state:{})
+ const adAccess=useFootballMatchAdAccess(enabled?state:{})
  const [primary,setPrimary]=useState<string|null>(null),[targets,setTargets]=useState<Targets>({})
  const claim=useCallback((id:string)=>setPrimary(old=>old??id),[])
  const release=useCallback((id:string)=>setPrimary(old=>old===id?null:old),[])
  const target=useCallback((slot:Slot,node:HTMLDivElement|null)=>setTargets(old=>old[slot]===node?old:{...old,[slot]:node}),[])
- const value=useMemo(()=>({accountName,state,enabled,pilot:pilot.enabled,pilotAvailable:pilot.available,togglePilot:pilot.toggle,primary,claim,release,target,targets}),[accountName,state,enabled,pilot.enabled,pilot.available,pilot.toggle,primary,claim,release,target,targets])
+ const value=useMemo(()=>({accountName,state,enabled,pilot:pilot.enabled,pilotAvailable:pilot.available,matchAd:adAccess?matchAd:null,togglePilot:pilot.toggle,primary,claim,release,target,targets}),[accountName,state,enabled,pilot.enabled,pilot.available,adAccess,matchAd,pilot.toggle,primary,claim,release,target,targets])
  return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useOwnerLayout(){return useContext(Context).enabled}
 export function useOwnerFootballPilot(){return useContext(Context).pilot}
 export function useOwnerState(){return useContext(Context).state}
+export function useOwnerMatchAd(){return !!useContext(Context).matchAd}
 export function FootballChatTarget(){
  const {pilot,state}=useContext(Context),room=state?.roomId??''
  const visible=pilot
@@ -121,7 +123,8 @@ export function OwnerPrimary({children,label,field=false}:{children:ReactNode;la
   {active&&<div key="tabs" className="ov3-tabs-slot" ref={tabs}/>}
   {active&&<div key="view" className="ov3-viewline"><span>{label??tr('PARTIDA EM DESTAQUE','FEATURED MATCH')}</span><div ref={view}/></div>}
   <div key="native" className="ov3-native">{children}</div>
-  {active&&<><div className="ov3-kings-slot" ref={kings} style={{display:'flex',flexDirection:'column',gap:10}}/><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-lineup-slot" ref={lineup}/>{ctx.pilot&&<div className="ov3-next-rival-slot" ref={nextRival}/>}<div className="ov3-summary-slot" ref={summary}/>{ctx.pilot&&<div className="ov3-rivals-slot" ref={rivals}/>}<div className="ov3-controls-slot" ref={controls}/><div className="ov3-ad-slot" ref={ad}/></>}
+  {active&&ctx.matchAd&&<div key="match-ad" className="ov3-ad-slot" ref={ad}>{ctx.matchAd}</div>}
+  {active&&<><div className="ov3-kings-slot" ref={kings} style={{display:'flex',flexDirection:'column',gap:10}}/><div className="ov3-tactic-slot" ref={tactic}/><div className="ov3-lineup-slot" ref={lineup}/>{ctx.pilot&&<div className="ov3-next-rival-slot" ref={nextRival}/>}<div className="ov3-summary-slot" ref={summary}/>{ctx.pilot&&<div className="ov3-rivals-slot" ref={rivals}/>}<div className="ov3-controls-slot" ref={controls}/>{!ctx.matchAd&&<div className="ov3-ad-slot" ref={ad}/>}</>}
  </section>
 }
 

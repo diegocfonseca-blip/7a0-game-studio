@@ -100,7 +100,7 @@ body.fp-match-pilot .ov3-lineup-slot:empty,body.fp-match-pilot .ov3-summary-slot
 body.fp-match-pilot .fp-match-primary .ov3-tabs-slot .ll25-tabs{overflow:visible;gap:6px}
 body.fp-match-pilot .fp-match-primary .ov3-tabs-slot .ll25-tabs>button{min-width:0;flex:1;white-space:normal;line-height:1.2!important;background:#14251b!important;color:#f4ecd6!important;border:1px solid #71836b!important;box-shadow:none!important;font-size:13px!important}
 body.fp-match-pilot .fp-match-primary .ov3-tabs-slot .ll25-tabs>button[aria-pressed=true]{background:#ffc400!important;color:#0c0c0c!important;border:2px solid #0c0c0c!important;box-shadow:2px 3px #000!important}
-body.fp-match-pilot:not([data-fp-page=match]) .fp-match-primary :is(.ov3-tactic-slot,.ov3-summary-slot,.ov3-ad-slot){display:none!important}
+body.fp-match-pilot:not([data-fp-page=match]) .fp-match-primary :is(.ov3-tactic-slot,.ov3-summary-slot){display:none!important}
 body.fp-match-pilot:not([data-fp-page=match]):not([data-fp-page=squad]) .ov3-lineup-slot{display:none!important}
 body.fp-match-pilot:not([data-fp-page=match]) .ll27-room-summary{display:none!important}
 body.fp-match-pilot:not([data-fp-page=table]) #ll26-round-games{display:none!important}
@@ -223,6 +223,15 @@ body.fp-match-pilot:not([data-fp-page=match]) .ov3-next-rival-slot,body.fp-match
 .fp-next-history-score>span{display:block;font:10px/1.4 Arial,sans-serif;color:#c7baa0;margin-top:3px}
 .fp-next-rivalry-card>footer{text-align:center;margin-top:10px}
 .fp-next-rivalry-tag{display:inline-block;border:1px solid #655538;border-radius:999px;background:#2a2010;color:#d8ccb5;padding:3px 9px;font:700 10px/1.4 Arial,sans-serif}
+/* Advertising belongs to the mounted broadcast, before all secondary content. */
+body.fp-match-pilot .fp-match-primary>.ov3-ad-slot{order:2}
+body.fp-match-pilot .fp-match-primary>.ov3-kings-slot{order:3}
+body.fp-match-pilot .fp-match-primary>.ov3-controls-slot{order:4}
+body.fp-match-pilot .fp-match-primary>.ov3-next-rival-slot{order:5}
+body.fp-match-pilot .fp-match-primary>.ov3-summary-slot{order:6}
+body.fp-match-pilot .fp-match-primary>.ov3-tactic-slot{order:7}
+body.fp-match-pilot .fp-match-primary>.ov3-lineup-slot{order:8}
+body.fp-match-pilot .fp-match-primary>.ov3-rivals-slot{order:9}
 @media(min-width:1100px){
  .fp-opponent-browser{min-width:0}
  .fp-opponent-tools{display:block;background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:13px;padding:14px;margin-bottom:14px;box-shadow:3px 3px #000}

@@ -2,7 +2,7 @@ import {footballRoundStatus,footballNextFixture} from './football-round-status'
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
-import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget,FootballMatchPlaceholder} from './owner-online-visual'
+import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,useOwnerMatchAd,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget,FootballMatchPlaceholder} from './owner-online-visual'
 import {useFootballMatchPilotAccess} from './football-match-pilot'
 import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders,FootballRoundNotice,FootballOpponentBrowser,FootballNextOpponent} from './football-match-panels'
 import {useFootballChatDock} from './football-match-navigation'
@@ -1132,7 +1132,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
     return () => { ro.disconnect(); clearInterval(iv); solta() }
   }, [desktopWidth, state.screen])
   return (
-    <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
+    <OwnerOnlineProvider enabled={ownerVisual} state={state} matchAd={<GiroDaRodada cinema doJogo/>}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}${viceSala ? ' vice-sala' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {viceSala && <><style>{VICE_TEMA_CSS + VICE_SALA_CSS}</style><ViceSalaDecor /></>}
       {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
@@ -9555,11 +9555,18 @@ function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }
   return <>{texto.split(' ').map((w, wi) => <Fragment key={wi}>{wi > 0 && ' '}<span style={{ whiteSpace: 'nowrap' }}>{Array.from(w).map((ch, ci) =>
     <span key={ci} className="placa-l" style={{ animationDelay: `${atraso + (n++) * 14}ms` }}>{ch}</span>)}</span></Fragment>)}</>
 }
-export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean; exemplos?: AnuncioGiro[]; mb?: number; /** o telão que mora EMBAIXO do campinho 2D */ doCampo?: boolean }) {
+type GiroDaRodadaProps={news?:string[];isCopa?:boolean;cinema?:boolean;exemplos?:AnuncioGiro[];mb?:number;doCampo?:boolean;doJogo?:boolean}
+export function GiroDaRodada(props:GiroDaRodadaProps){
+ const matchAd=useOwnerMatchAd()
+ // One feed and timer at the primary match, including post-league broadcasts.
+ if(matchAd&&!props.doJogo&&!props.exemplos)return null
+ return <GiroDaRodadaBody {...props}/>
+}
+function GiroDaRodadaBody({ cinema = false, exemplos, mb = 16, doCampo = false, doJogo=false }:GiroDaRodadaProps) {
   // 📺 com o campinho 2D na tela, o telão é o dele (embaixo do jogo); o da página some — nunca dois
   const ownerVisual=useOwnerLayout()
   const campoNaTela = useCampoNaTela()
-  const escondido = !doCampo && !exemplos && campoNaTela
+  const escondido = !doCampo && !doJogo && !exemplos && campoNaTela
   // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
   const doBanco = useAnunciosGiro()
   // 🛒 18/10 (Diego): a Loja mostra o telão de EXEMPLO rodando (Vadico no da empresa, recados no da galera)
@@ -9577,8 +9584,8 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
   const { marca, oferta } = partesDoAnuncio(ad.texto)
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   if (escondido) return null
-  return (
-    <OwnerSlot name="ad"><div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
+  const board=(
+    <div className={doJogo?'fp-match-ad-board':cinema ? 'll31-news' : undefined} aria-label={doJogo?tr('Telão de propaganda','Advertising board'):undefined} style={{ background: INK, border: doJogo?0:`3px solid ${INK}`, borderRadius: 14, boxShadow: doJogo?'none':`4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: doJogo?0:mb }}>
       <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
 .placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
 .placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}
@@ -9616,8 +9623,9 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
         </>}
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
-    </div></OwnerSlot>
+    </div>
   )
+  return doJogo?board:<OwnerSlot name="ad">{board}</OwnerSlot>
 }
 
 // 🏀🏆 NBA CUP REAL (EUA Oficial): os 6 grupos de 5, no MESMO visual da tabela Leste/Oeste (Box, etiqueta dourada, linha da conferência).

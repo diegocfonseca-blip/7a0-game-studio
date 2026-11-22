@@ -1,3 +1,8 @@
+## 🔒 22/11 — TELÃO LOGO ABAIXO DO JOGO, EM TODAS AS COMPETIÇÕES ONLINE
+- Pedido do Diego: ele e Futpoint, em qualquer liga/copa das salas online, com telão abaixo de cinema/placar rápido ou 2D, sem moldura bege. O anúncio passa a pertencer à transmissão principal e permanece nas trocas de aba.
+- Escopo inclui as transmissões de copas após a liga (`end`), sem ampliar o restante do piloto ou as permissões. Uma única placa, feed/links/rotação existentes; chamadas antigas da página/campo são suprimidas antes de montar seu corpo nessas duas contas. Outras contas, loja, carreira e basquete preservados.
+- Build e 651 verificações de interface passaram. [Implementação, cobertura e limites](telao-online-20261122.md).
+
 ## 🔒 22/11 — VISUAL ATUALIZADO LIBERADO TAMBÉM AO FUTPOINT
 - Autorização nova do Diego: “Atualiza agora o que fez pra mim pro Futpoint também”. A allowlist do piloto passa a Diego principal e `gfpicolo13@gmail.com`, usando a identidade já verificada. Substitui a restrição anterior apenas da interface; demais contas, inclusive a secundária do Diego, ficam fora.
 - Futpoint recebe os mesmos componentes atuais: abas roxas no topo, partida permanente, tática sem marcação individual, consulta dos adversários no desktop, chat/tabela lateral e cartão único do retrospecto. Preferência de voltar ao visual anterior é individual por conta.
