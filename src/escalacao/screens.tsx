@@ -1,7 +1,10 @@
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
-import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget} from './owner-online-visual'
+import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget} from './owner-online-visual'
+import {useFootballMatchPilotAccess} from './football-match-pilot'
+import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders} from './football-match-panels'
+import {useFootballChatDock} from './football-match-navigation'
 import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
 import { OnlineCreateLayout, OnlineCreateSection } from './online-create-layout' // 🧩 18/11: a Partida Rápida na moldura da criação de sala
 import {CareerWelcome,CareerAuctionHint} from './career-start-guide'
@@ -790,6 +793,8 @@ export function ChatWidget() {
   const [figAberta, setFigAberta] = useState(false) // 🐊 bandeja de figurinhas (21/10)
   const figUltima = useRef(0)
   const ownerChat = useOwnerOnlineVisual(state)
+  const football=useFootballMatchPilotAccess(state)
+  const footballDock=useFootballChatDock(state.roomId??'',football.enabled)
   const online = state.onlineMode === 'online'
   const inRoom = online && !!state.roomId && !(ownerChat && state.screen === 'lobby')
   const isHost = !!state.isHost
@@ -807,7 +812,7 @@ export function ChatWidget() {
     figUltima.current = Date.now()
     sendChat(`🐊 ${FIG_LEG[i][0]}`, undefined, i); setFigAberta(false)
   }
-  if (ownerChat) return <PrivateRoomChat key={state.roomId} roomId={state.roomId!} roomName={state.roomName || `${tr('Sala','Room')} ${state.roomCode || ''}`} people={state.managers.filter(m=>m.isHuman).length}
+  if (ownerChat) return <PrivateRoomChat footballDock={footballDock} key={state.roomId} roomId={state.roomId!} roomName={state.roomName || `${tr('Sala','Room')} ${state.roomCode || ''}`} people={state.managers.filter(m=>m.isHuman).length}
     open={chatOpen} setOpen={setChatOpen} unread={chatUnread} messages={chat} game readOnly={!!state.espectador} off={chatOff}
     isMine={m=>m.uid?m.uid===state.youUid:m.from===state.youIdx} onSend={sendChat}
     onToggleChat={isHost?()=>dispatch({type:'SET_CHAT',off:!chatOff}):undefined}
@@ -7794,6 +7799,7 @@ function CentralBB({ onJogos, onClube }: { onJogos: () => void; onClube: () => v
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
+  const footballPilot=useFootballMatchPilotAccess(state).enabled
   // 🖥️ DESKTOP EM 2 COLUNAS (23/10, mockups `desktop-{liga,copa}-{placar,campinho}`, *"aprovado pode fazer"*; só a conta do Diego
   // e só ≥1100px): na esquerda o placar no tamanho de sempre (ou o campinho 2D no lugar dele) + telão + outros jogos; na direita,
   // FIXOS, a tática e a tabela inteira (na Copa: a tática e os jogos da fase). Os blocos são os MESMOS componentes — um portal só
@@ -8477,7 +8483,7 @@ export function EscSeason() {
       </div>
     }>
       {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
-      {desk2 && <div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setDirCol} /></div>}
+      {desk2 && <div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setDirCol} /><FootballSidebarTarget name="leaders"/><FootballSidebarTarget name="rival-preview"/><FootballChatTarget/></div>}
       {centralBB && <TabsCentralBB aba={clubeNoJogo ? 'clube' : 'jogos'} onAba={trocaAbaBB} travada={centralTravada} />}
       {clubeNoJogo && <BbClubeOverlay inline onClose={() => trocaAbaBB('jogos')} />}
       <div style={{ display: clubeNoJogo ? 'none' : 'contents' }}>
@@ -8832,7 +8838,7 @@ export function EscSeason() {
               </Box>)
             )}
             {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && naDireita(
-              <div className={privateVisual ? 'll26-phase-matches' : undefined}>
+              <div className={privateVisual ? 'll26-phase-matches fp-competition-games' : undefined}>
                 <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1">{LS('Todos os jogos da fase', 'All ties of the round')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: desk2 ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>{qc.ties.map(t => tieRow(t))}</div>
               </div>
@@ -8923,10 +8929,13 @@ export function EscSeason() {
           <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />
         </div>
       )}
-      {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
+      {footballPilot&&<FootballDesktopLeaders state={state} finished={copaLive?copaMin>=93:resultRevealed}/>}
+      {footballPilot&&<FootballTeamPanel editable={!!(state.minhaLigaDraft||state.bafo2)}><NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>{state.minhaLigaDraft||state.bafo2?<EscalacaoMinha/>:<YourPitch small/>}</NumerosAntesCtx.Provider></FootballTeamPanel>}
+      {footballPilot&&!copaLive&&<FootballRoundSummary position={sortedTable(!resultRevealed&&state.lastResults.length?leagueBeforeResults(state.league,state.lastResults):state.league).findIndex(t=>t.id===you.id)+1} points={(!resultRevealed&&state.lastResults.length?leagueBeforeResults(state.league,state.lastResults):state.league).find(t=>t.id===you.id)?.pts??0}/>}
+      <FootballSummaryPlacement>{privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).slice(0,footballPilot?2:undefined).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
         return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} minutoFixo={kingsS ? kRel.min : undefined} relogioKings={kingsS} kingsPens={kingsS ? r.kings?.pens : undefined} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
-      })}</div></section>}
+      })}</div></section>}</FootballSummaryPlacement>
       {/* 🗂️ O INVÓLUCRO DA COLUNA DA DIREITA. No DESKTOP ele é UM bloco só na coluna
           2 — por isso a tela larga que o Diego aprovou em 18/09 fica intacta. No
           CELULAR ele se dissolve (`display:contents`) e as duas metades viram irmãs
@@ -8944,6 +8953,7 @@ export function EscSeason() {
         </Box>
       )}
 
+      {footballPilot&&!fixture&&!copaLive&&myLast&&<OwnerTactics value={myTactic} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/>}
       {fixture && opp && naDireita(
         ownerVisual ? <OwnerTactics value={myTactic} onChange={t=>dispatch({type:'SET_TACTIC',mgrId:you.id,tactic:t})}/> : (<Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
           {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
@@ -9006,7 +9016,7 @@ export function EscSeason() {
           const amigo = amigos.find(a => (a as AmigoRival & { id: number }).id === oppId)
           if (amigo) proximo = { amigo, rodada: r + 1, daqui: r - state.round }
         }
-        return naDireita(<section className={ownerVisual?'ov3-rivalries':undefined}><PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} /></section>)
+        return naDireita(<section className={ownerVisual?'ov3-rivalries':undefined}><PrateleiraRivalidades amigos={amigos} mapa={retroMapa} proximo={proximo} meuTime={you.teamName} />{footballPilot&&<FootballRivalHistory youUid={meuUidRetro??''} amigos={amigos} mapa={retroMapa} proximo={proximo} duels={resultRevealed&&!copaLive?state.lastResults.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>(a as AmigoRival&{id:number}).id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>{const opponent=r.homeId===you.id?r.awayId:r.homeId;return{key:`${state.roomId}:${state.seed}:${state.seasonNo}:${state.round}:${r.homeId}:${r.awayId}`,uid:uidDo(opponent)??'',name:nomeLiga(opponent),for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round:state.round}}):[]}/>}</section>)
       })()}
 
       {/* 📋 08/11: LIGA DRAFT — o caminho até a próxima temporada + ⭐ favoritos (mockup aprovado). Só mostra; a ordem é a da tabela (campeão primeiro). */}
@@ -9129,7 +9139,7 @@ export function EscSeason() {
       <NumerosAntesCtx.Provider value={segurarNumeros ? { antes: numerosAntes } : null}>
       <div hidden={(privateVisual && visualTab !== 'elenco') || centralBB} className="space-y-5">
       {/* 📋🏆 Minha Liga Draft: elenco de até 22 → a aba Elenco é a MESMA da carreira (trocar titular e formação) */}
-      {state.bafo2 && prepSegura ? null /* 🃏 nos 60 s de preparo a escalação está lá em cima */ : state.minhaLigaDraft || state.bafo2 ? <EscalacaoMinha /> : <YourPitch small />}
+      {footballPilot?null:state.bafo2 && prepSegura ? null /* 🃏 nos 60 s de preparo a escalação está lá em cima */ : state.minhaLigaDraft || state.bafo2 ? <EscalacaoMinha /> : <YourPitch small />}
       {/* 🃏 21/11: no Bafo, os 22 de cada rival abertos por posição (o campeão já vai escolhendo a carta que vai tomar) */}
       {state.bafo2 && <ElencosBafo managers={state.managers} youId={you.id} />}
       {bbS && <ElencoStatsBB teamId={you.id} hold={!resultRevealed} />}
@@ -10200,6 +10210,8 @@ export function EscLiberta() {
   const LB = useT() // 🌐 BR/EN
   const enL = getLang() === 'en'
   const previewAccount = useOnlinePreview()
+  const footballPilot=useFootballMatchPilotAccess(state).enabled
+  const [visualTab,setVisualTab]=useState<OnlineMatchTab>('jogos')
   const ownerVisual = useOwnerOnlineVisual(state)
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [groupView, setGroupView] = useState<'meu' | 'todos'>(()=>typeof window!=='undefined'&&window.innerWidth>=1100?'meu':'todos')
@@ -10315,7 +10327,7 @@ export function EscLiberta() {
         )}
       </div>
     }>
-      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
+      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/><FootballSidebarTarget name="leaders"/><FootballSidebarTarget name="rival-preview"/><FootballChatTarget/></div>}
 {privateVisual ? <CompetitionStage kind="liberta" title="LIBERTADORES" phase={acabou && revealed ? LB('Grupos encerrados', 'Groups over') : LB(`Fase de grupos · rodada ${Math.max(1, lb.rodada)}/6`, `Group stage · round ${Math.max(1, lb.rodada)}/6`)} detail={LB('32 clubes · 8 grupos · os dois primeiros avançam às oitavas', '32 clubs · 8 groups · the top two reach the round of 16')} status={meuTime ? LB(`Seu clube está no grupo ${GRUPO_LETRA[meuGrupo]}`, `Your club is in group ${GRUPO_LETRA[meuGrupo]}`) : LB('Acompanhe os clubes classificados da sala', 'Follow the room\'s qualified clubs')} /> : <Box bg={NOITE_HOLO} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
         <ApoioSheen holo={1} dur={3.2} />
         <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{LB('🌎 LIBERTADORES · FASE DE GRUPOS', '🌎 LIBERTADORES · GROUP STAGE')}</p>
@@ -10361,6 +10373,7 @@ export function EscLiberta() {
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
 
+      {footballPilot&&<><FootballDesktopLeaders state={state} finished={revealed}/><OnlineMatchTabs value={visualTab} onChange={setVisualTab}/><FootballTeamPanel editable={false}><YourPitch small/></FootballTeamPanel><FootballRoundSummary position={meuGrupo>=0?grupoShown(meuGrupo).findIndex(t=>t.id===you.id)+1:0} points={meuGrupo>=0?grupoShown(meuGrupo).find(t=>t.id===you.id)?.pts??0:0}/><FootballCompetitionRivals state={state} results={lb.lastResults} finished={revealed} round={lb.rodada} fixtures={lb.fixtures}/></>}
       {continentalRight(<>
       {/* ⚔️ 23/10 (Diego: "a tática não está aparecendo em várias coisas"): o MESMO card de próximo jogo + tática da
           liga e da Champions. O motor da fase de grupos (simMatch) já lia `state.tactics` — faltava só o botão. */}
@@ -10395,7 +10408,7 @@ export function EscLiberta() {
 
       {/* 📣 giro da Libertadores (o mesmo lugar de sempre das manchetes) */}
       {state.news.length > 0 && (
-        <Box bg="#fff" className="p-3" shadow={4}>
+        <Box bg="#fff" className={footballPilot?"p-3 fp-competition-news":"p-3"} shadow={4}>
           <p className="font-black text-[11px] uppercase mb-1" style={{ ...OSWALD, color: NOITE }}>{LB('📣 Giro da Libertadores', '📣 Libertadores round-up')}</p>
           {state.news.slice(0, 3).map((n, i) => <p key={i} className="text-[11px] font-semibold text-black/70 leading-snug">{n}</p>)}
         </Box>
@@ -10404,7 +10417,7 @@ export function EscLiberta() {
       {/* 🥅 os OUTROS jogos da rodada — só depois que o seu terminou de animar,
           senão o placar da tela grande é entregue aqui embaixo antes do apito. */}
       {!privateVisual && revealed && lb.lastResults.length > 0 && (
-        <Box bg="#fff" className="p-3" shadow={4}>
+        <Box bg="#fff" className={footballPilot?"p-3 fp-competition-news":"p-3"} shadow={4}>
           <p className="font-black text-[11px] uppercase mb-1.5" style={{ ...OSWALD, color: NOITE }}>{LB('🥅 Os outros jogos da rodada', '🥅 The other matches of the round')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 5 }}>
             {lb.lastResults.filter(r => r.homeId !== you.id && r.awayId !== you.id).map((r, i) => (
@@ -10419,11 +10432,11 @@ export function EscLiberta() {
       )}
 
       {/* 📊 os 8 grupos — o SEU primeiro, pra não ter que caçar na tela */}
-      {privateVisual && <nav className="ll25-rhythm" aria-label="Grupos da Libertadores">
+      {privateVisual && <nav className={`ll25-rhythm${footballPilot?' fp-competition-table':''}`} aria-label="Grupos da Libertadores">
         {meuGrupo >= 0 && <button className="ll25-button" aria-pressed={groupView === 'meu'} onClick={() => setGroupView('meu')}>{LB('MEU GRUPO', 'MY GROUP')}</button>}
         <button className="ll25-button" aria-pressed={groupView === 'todos' || meuGrupo < 0} onClick={() => setGroupView('todos')}>{LB('TODOS OS GRUPOS', 'ALL GROUPS')}</button>
       </nav>}
-      <div style={{ display: 'grid', gridTemplateColumns: privateVisual ? 'repeat(auto-fit, minmax(min(100%, 310px), 1fr))' : 'repeat(auto-fit, minmax(165px, 1fr))', gap: 12 }}>
+      <div className={footballPilot?'fp-competition-table':undefined} style={{ display: 'grid', gridTemplateColumns: privateVisual ? 'repeat(auto-fit, minmax(min(100%, 310px), 1fr))' : 'repeat(auto-fit, minmax(165px, 1fr))', gap: 12 }}>
         {[...Array(8).keys()]
           .filter(g => !privateVisual || groupView === 'todos' || meuGrupo < 0 || g === meuGrupo)
           .sort((a, b) => (a === meuGrupo ? -1 : b === meuGrupo ? 1 : a - b))
@@ -10431,8 +10444,9 @@ export function EscLiberta() {
       </div>
       </>)}
       <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>{enL ? <>🟢 the <b>top 2</b> of each group reach the round of 16 — 16 clubs.</> : <>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</>}</p>
-      {privateVisual && <details className="ll26-bracket-history"><summary>{LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS')}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
+      {privateVisual && <details open={footballPilot||undefined} className={`ll26-bracket-history${footballPilot?' fp-competition-stats':''}`}><summary>{LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS')}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
 
+      {footballPilot&&<section className="ll26-round-list fp-competition-games"><h3>{LB('TODOS OS JOGOS · RODADA','ALL MATCHES · ROUND')} {lb.rodada}</h3><div>{lb.lastResults.map(r=><RoundMatchPresentation key={`${r.homeId}-${r.awayId}`} startedAt={groupStartedAt} roundKey={lb.rodada} roundMs={roundMs} finished={revealed} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={24}/>} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={24}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals??r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>)}</div></section>}
       {!cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
       {!cinemaOnline && (!online || streamHost) && !acabou && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={lb.rodada === 0 || revealed}
@@ -10498,6 +10512,7 @@ export function EscChampions() {
   const { state, dispatch } = useEsc()
   const T = useT()
   const previewAccount = useOnlinePreview()
+  const footballPilot=useFootballMatchPilotAccess(state).enabled
   const ownerVisual = useOwnerOnlineVisual(state)
   // 🎨 "TUDO IGUAL" (Diego 25/09: *"visual segue padrões do q já tem nos modo hj seja
   // placar botões cores tabelas… outros jogos e tudo mais"*). Esta tela é montada com
@@ -10698,7 +10713,7 @@ export function EscChampions() {
         {minhaPos > 0 && <span className="font-black text-sm" style={OSWALD}>{ordinal(minhaPos, getLang() === 'en' ? 'en' : 'pt')} · {tabela[minhaPos - 1]?.pts ?? 0} pts</span>}
       </div>
     }>
-      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/></div>}
+      {continentalDesk&&<div className="ll-dir"><OwnerRoomTarget/><div className="ll-dir-in" ref={setContinentalTarget}/><FootballSidebarTarget name="leaders"/><FootballSidebarTarget name="rival-preview"/><FootballChatTarget/></div>}
       {/* ⭐ o MESMO palco cinematográfico da Copa do Mundo e da Liberta */}
       <CompetitionStage kind="champions" title="CHAMPIONS LEAGUE" phase={ch.rodada === 0 && ch.fase === 'tabela' ? T('A tabela de 36', 'The table of 36') : fase}
         // 🚪 nos PORTÕES o próprio banner é o que separa as fases (um teatro só na tela):
@@ -10761,6 +10776,7 @@ export function EscChampions() {
       {/* 🗂️ as MESMAS abas da liga */}
       {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
 
+      {footballPilot&&<><FootballDesktopLeaders state={state} finished={revealed}/><FootballTeamPanel editable={false}><YourPitch small/></FootballTeamPanel><FootballRoundSummary position={minhaPos} points={tabela.find(t=>t.id===you.id)?.pts??0}/><FootballCompetitionRivals state={state} results={ch.lastResults} finished={revealed} round={ch.rodada} fixtures={ch.fixtures}/></>}
       {/* 🎞️ faixa dos outros jogos (a mesma da liga) */}
       {privateVisual && visualTab === 'jogos' && outros.length > 0 && !(portaoRepescao && revealed) && !portaoOitavas && (
         <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{T('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {ch.rodada}</h3><div className="ll27-ticker" tabIndex={0}>{outros.map(r => {
@@ -10800,7 +10816,7 @@ export function EscChampions() {
 
         {/* 🥊 os 8 confrontos do repescão — no mesmo cartão de confronto da Copa */}
         {!vistaTabela || (portaoRepescao && revealed) ? !!ch.repescao && (
-          <div className={privateVisual ? 'll26-phase-matches' : undefined}>
+          <div className={privateVisual ? 'll26-phase-matches fp-competition-games' : undefined}>
             <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1" style={privateVisual ? { color: CREAM } : undefined}>{T('Todos os jogos do repescão', 'All playoff ties')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
               {ch.repescao.map((tie, i) => {
@@ -10820,7 +10836,7 @@ export function EscChampions() {
 
         {/* 📋 A TABELA INTEIRA — os 36, no desenho da tabela da liga, com as faixas de corte */}
         {(vistaTabela || ch.fase === 'repescao' || portaoOitavas) && (
-          <Box className="p-3 overflow-x-auto">
+          <Box className={`p-3 overflow-x-auto${footballPilot?' ll31-table fp-competition-table':''}`}>
             <p className="font-black text-sm mb-2" style={OSWALD}>⭐ {vistaTabela && !(portaoRepescao && revealed) ? T('TABELA DA CHAMPIONS', 'CHAMPIONS TABLE') : T('TABELA DA CHAMPIONS · FINAL', 'CHAMPIONS TABLE · FINAL')}</p>
             <table className="w-full text-xs">
               <thead>
@@ -10853,7 +10869,7 @@ export function EscChampions() {
 
         {/* 🥅 TODOS OS JOGOS DA RODADA — a MESMA lista da liga (cinema) ou a grade simples */}
         {ch.lastResults.length > 0 && !(portaoRepescao && revealed) && !portaoOitavas && (privateVisual
-          ? <section className="ll26-round-list"><h3>{vistaTabela ? `${T('TODOS OS JOGOS · RODADA', 'ALL MATCHES · ROUND')} ${ch.rodada}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}</h3><p>{revealed ? T('Rodada encerrada. Confira os resultados e a classificação.', 'Round over. Check the results and the standings.') : T('Acompanhe a rodada. A classificação atualiza após o apito.', 'Follow the round. Standings update after the final whistle.')}</p><div>
+          ? <section className={`ll26-round-list${footballPilot?' fp-competition-games':''}`}><h3>{vistaTabela ? `${T('TODOS OS JOGOS · RODADA', 'ALL MATCHES · ROUND')} ${ch.rodada}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}</h3><p>{revealed ? T('Rodada encerrada. Confira os resultados e a classificação.', 'Round over. Check the results and the standings.') : T('Acompanhe a rodada. A classificação atualiza após o apito.', 'Follow the round. Standings update after the final whistle.')}</p><div>
               {ch.lastResults.map(r => <RoundMatchPresentation key={`${r.homeId}-${r.awayId}`} startedAt={startedAt} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={26} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={26} />} homeOwner={donoDe(r.homeId)} awayOwner={donoDe(r.awayId)} mine={r.homeId === you.id || r.awayId === you.id} score={[r.hg, r.ag]} goals={golsDe(r)} finished={revealed} roundKey={passo} roundMs={roundMs} />)}
             </div></section>
           : revealed && outros.length > 0 && (
@@ -10883,7 +10899,7 @@ export function EscChampions() {
       {/* 👕 ELENCO — o mesmo campinho da liga (🙈 30/10: números de antes do jogo até o apito) */}
       <NumerosAntesCtx.Provider value={revealed || ch.rodada === 0 ? null : { antes: numerosAntesCh }}>
       <div hidden={privateVisual && visualTab !== 'elenco'} className="space-y-5">
-        <YourPitch small />
+        {!footballPilot&&<YourPitch small />}
       </div>
       </NumerosAntesCtx.Provider>
       <FraseCopa />

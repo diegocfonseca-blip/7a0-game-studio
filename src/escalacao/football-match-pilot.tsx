@@ -1,37 +1,51 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { useVerifiedPresentationEmail } from './online-preview'
 import { footballMatchPilotEmail, footballMatchPilotScope, type FootballMatchPilotScope } from './football-match-pilot-policy'
 import { tr } from './lang'
 import './football-match-pilot.css'
+import {useFootballMatchNavigation} from './football-match-navigation'
 
-const preferenceKey = (email: string) => `esc-football-match-pilot-off:${email}`
+const preferenceKey = (email: string) => `esc-football-match-pilot-v2-off:${email}`
+const preferenceListeners=new Set<()=>void>()
+const preferenceSubscribe=(fn:()=>void)=>{preferenceListeners.add(fn);return()=>{preferenceListeners.delete(fn)}}
+const memoryPreference=new Map<string,boolean>()
 function optedOut(email: string) {
+  if(memoryPreference.has(email))return memoryPreference.get(email)!
   try { return localStorage.getItem(preferenceKey(email)) === '1' } catch { return false }
 }
 let activeScopes = 0
 
 /** Local presentation: no room writes, messages, round state or permission changes. */
-export function useFootballMatchPilot(state: FootballMatchPilotScope) {
+export function useFootballMatchPilotAccess(state: FootballMatchPilotScope) {
   const email = useVerifiedPresentationEmail()
   const available = footballMatchPilotEmail(email) && footballMatchPilotScope(state)
-  const [preference, setPreference] = useState({ email: '', off: false })
-  const off = preference.email === email ? preference.off : optedOut(email)
+  const off=useSyncExternalStore(preferenceSubscribe,()=>optedOut(email),()=>false)
   const enabled = available && !off
   const toggle = useCallback(() => {
     if (!footballMatchPilotEmail(email)) return
-    setPreference(old => {
-      const next = !(old.email === email ? old.off : optedOut(email))
+      const next = !optedOut(email)
+      memoryPreference.set(email,next)
       try { localStorage.setItem(preferenceKey(email), next ? '1' : '0') } catch { /* Appearance remains reversible in memory. */ }
-      return { email, off: next }
-    })
+      preferenceListeners.forEach(fn=>fn())
   }, [email])
+  return {available,enabled,toggle}
+}
+export function useFootballMatchPilot(state: FootballMatchPilotScope & {roomId?:string}) {
+  const access=useFootballMatchPilotAccess(state)
+  const enabled=access.enabled
+  const {page}=useFootballMatchNavigation(state.roomId??'',enabled)
   useEffect(() => {
     if (!enabled) return
     activeScopes++
     document.body.classList.add('fp-match-pilot')
     return () => { if (--activeScopes === 0) document.body.classList.remove('fp-match-pilot') }
   }, [enabled])
-  return { available, enabled, toggle }
+  useEffect(()=>{
+    if(!enabled)return
+    document.body.dataset.fpPage=page
+    return()=>{delete document.body.dataset.fpPage}
+  },[enabled,page])
+  return access
 }
 
 type ViewOption = { value: string; label: string; disabled: boolean }

@@ -1,5 +1,6 @@
 import {usePrivateChatNavigation} from './private-chat-navigation'
-import {useOwnerLayout,OwnerRoomNavigation} from './owner-online-visual'
+import {useOwnerLayout,useOwnerFootballPilot,OwnerRoomNavigation} from './owner-online-visual'
+import {FootballRoomMenu} from './football-match-panels'
 // ─── 🏆 LIGA HUB — a liga inteira num lugar só, em pílulas ──────────────────
 //
 // Desenho aprovado pelo Diego em 23/08 (`scripts/mockup-liga-pilulas.mjs`).
@@ -432,6 +433,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
   aoExcluir?: () => void            // o que fazer depois de excluir a liga (sair da sala)
 }) {
   const ownerVisual=useOwnerLayout()
+  const footballPilot=useOwnerFootballPilot()
   const roomChat=usePrivateChatNavigation(roomId,ownerVisual)
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
   const [membros, setMembros] = useState<MembroSala[]>([])
@@ -553,7 +555,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
   // aparece no tamanho de tela que é dele (`ll-barra-cel` / `ll-barra-desk`) —
   // largura é o que falta no celular, não no monitor.
   const ehAbaDaPartida = (b: Botao): b is 'jogos' | 'estatisticas' | 'elenco' => b === 'jogos' || b === 'estatisticas' || b === 'elenco'
-  const juntas = !!abasJogo
+  const juntas = !!abasJogo||footballPilot
   // ⚙️ 10/11 (Diego, olhando o rodapé da Liga Draft: *"essa abinha de ajustes… não tem muito sentido aqui na Liga Draft"*): na
   // Liga Draft a aba sai — o dono já tem o ✏️ Painel do dono na partida, e remarcar/bots/excluir seguem na sala de espera.
   const comAjustes = souDono && !draft
@@ -562,13 +564,14 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
       ? ['jogos', 'estatisticas', 'elenco', 'rank', 'estante', 'temporadas', ...(comAjustes ? ['ajustes' as Botao] : [])]
       : ['rank', 'estante', 'temporadas', ...(comAjustes ? ['ajustes' as Botao] : [])])
     : (juntas ? ['jogos', 'estatisticas', 'elenco', 'estante'] : ['estante'])
+  const navigationButtons:Botao[]=footballPilot?['estante']:abas
   // quem só existe no celular (as abas da partida) e quem só existe no desktop
   // (Rank e Temporadas soltos — no celular eles moram dentro do 📚 Estante)
   const faixaDoBotao = (b: Botao) => !juntas ? '' : ehAbaDaPartida(b) ? 'll-barra-cel' : (b === 'rank' || b === 'temporadas') ? 'll-barra-desk' : ''
   // qual painel de história está desenhado: com as três juntas, manda a sub-aba
   const abaConteudo: Aba | null = aba === 'estante' && juntas ? subAba : aba
   const conteudoRapido = !sala.ehLiga && aba === 'estante'
-  const rotulo = (b: Botao) => (!sala.ehLiga && b === 'estante') ? tr('Troféus', 'Trophies') : ROTULO_ABA[b]
+  const rotulo = (b: Botao) => ((!sala.ehLiga||footballPilot) && b === 'estante') ? tr('Troféus', 'Trophies') : ROTULO_ABA[b]
 
   return (
     <>
@@ -604,7 +607,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
                 Rank, a mesma Estante e as mesmas Temporadas, só que atrás de uma
                 porta em vez de três. */}
             {sala.ehLiga && juntas && aba === 'estante' && (
-              <div className="flex gap-1.5 mb-2.5 ll-barra-cel">
+              <div className={`flex gap-1.5 mb-2.5 ${footballPilot?'fp-history-tabs':'ll-barra-cel'}`}>
                 {(['rank', 'estante', 'temporadas'] as Aba[]).map(s => (
                   <button key={s} onClick={() => setSubAba(s)} aria-pressed={subAba === s}
                     className="flex-1 min-w-0 border-2 border-black rounded-lg px-1 py-1.5 font-black text-[11px] truncate active:translate-y-0.5"
@@ -629,7 +632,8 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
           da barra da CARREIRA no celular (`career-abas.css`) — fundo claro com linha preta grossa, aba aberta num
           botão preto com o ícone dourado. Vale com e sem o visual novo (o `ll31-bottom-nav` dourado saiu daqui). */}
       <OwnerRoomNavigation><div data-private-chat-nav={roomChat.available?roomId:undefined} className={(ownerVisual?'ov3-hub-nav':undefined)+" ov3-surface"} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: '#FFFDF6', borderTop: `3px solid ${INK}`, display: 'flex', gap: 3, padding: '8px 6px calc(10px + env(safe-area-inset-bottom))' }}>
-        {abas.map(t => {
+        {footballPilot&&<FootballRoomMenu onAdjust={comAjustes?()=>setAba('ajustes'):undefined}/>}
+        {navigationButtons.map(t => {
           // ⚽📊👥 abas da PARTIDA: elas trocam o conteúdo da PÁGINA (não abrem
           // painel nenhum), então acendem quando são a aba da vez — e tocar numa
           // delas fecha o painel da história, senão ele ficaria tapando o que a
