@@ -40,6 +40,8 @@ html body #root .cv2-career:is(.cv2-view-central,.cv2-view-elenco,.cv2-view-rank
 .cv2-career .ll-central-link{background:#f4ecd6!important;color:#0c0c0c!important;padding:12px 14px!important;min-height:44px}
 .cv2-career .ll-central-link>*{color:inherit!important}
 .cv2-career .ll-c-hero{min-height:300px!important}
+/* 🧭 22/11 Central direta: o cartão do jogo é compacto — sem a altura mínima do camarote (sobrava um buraco embaixo) */
+.cv2-career .ll-c-hero.ll-c-hero-direta{min-height:0!important}
 .cv2-career .ll-central-salvar{background:#171e17!important;border:1px solid #626b50!important;border-radius:9px!important;padding:11px 14px!important;color:#f4ecd6}
 .cv2-quick-links{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}
 .cv2-quick-links button{background:#f4ecd6;color:#0c0c0c;border:3px solid #000;border-radius:10px;padding:14px;text-align:left;font:700 17px Oswald,sans-serif;box-shadow:3px 3px #000}
