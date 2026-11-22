@@ -202,6 +202,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'will.a.n@hotmail.com': 'ouro', // 🧔⚽ batismo História dos Gigantes (Várzea, no assento do bot Real Domingueira) (16/11). Sem nº de fundador (regra 14/10).
   'lucasnicodemosqq@gmail.com': 'ouro', // 👑⚫ batismo Ceará SP Club (Várzea, no assento do bot Barcelona da Vila) (19/11). Sem nº de fundador (regra 14/10).
   'leodicasttro@hotmail.com': 'ouro', // 👑🦡 batismo Império FC (Várzea, no assento do bot Juventude do Churrasco) (20/11). Sem nº de fundador (regra 14/10).
+  'faertes9@gmail.com': 'ouro', // ⚫⚓ batismo Tunaldo FC (Várzea, no assento do bot Espeto Corrido FC) (22/11). Sem nº de fundador (regra 14/10).
   'hugopereirabrito@gmail.com': 'ouro', // 🐆👑 batismo Lavras FC (Várzea, no assento do bot Galáticos do Bairro) (16/11). Sem nº de fundador (regra 14/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
   'sheeryarie772@gmail.com': 'ouro', // 👑 batismo FUNDADOR Neymar FC (Série D, no assento do bot Galáxia EC) + fundador nº97 + sócio nº77 (21/10; subiu de Batismo pra Fundador em 29/10).

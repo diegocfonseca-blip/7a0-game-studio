@@ -51,6 +51,14 @@
 
 
 
+
+### ⚫⚓ 22/11 (noite) — Batismo Tunaldo FC (faertes9) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
+- Plano Batismo (79,90, sem nº de fundador), coração Corinthians, mascote O Craque Tunaldo (`tunaldo_craque`), manto preto #0F0F0F + cinza #706F6F
+  medidos na camisa. Várzea, no assento do bot Espeto Corrido FC (`OLD_NAME`). Conta existe (criada 08/10). Não achei o Pix no sistema (Diego confirmou Batismo).
+- Banco feito em 22/11: `esc_socios` nº 99, `user_colors` ouro + manual, `esc_nomes_batismo` (Tunaldo/Tunaldofc + FC/EC pelo gatilho).
+- Código: escudos, mascotes (+carimbo/nome), manto.ts, batismos.ts, apoio.tsx, salao-camisas + `public/mantos-salao/tunaldo-camisa-v1.webp`, data.ts, checa-batismos.
+- Post: `scripts/posts/batismo-tunaldo-fc.png`.
+
 ### 🃏 22/11 (noite) — resgate da cartinha pra Liga da Turma, Liga Draft e Copas de dentro da sala (no branch; banco NÃO aplicado)
 - Diego: *"Sim"* (estender o resgate). Causa: liga não grava `match_seed` e a semente da liga muda na revanche (`rematch: Date.now()`),
   então a chave da carta não dá pra remontar depois; Copa do Mundo/regional/Libertadores da sala têm chave própria (`mundo:`/`regional:`/`libsala:`).

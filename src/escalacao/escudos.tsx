@@ -89,6 +89,7 @@ import reffattiEscudoImg from './img/reffatti-escudo.webp' // 🎮👑 Reffatti 
 import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import cearaspEscudoImg from './img/cearasp-escudo.webp' // 👑⚫ Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
 import imperioEscudoImg from './img/imperio-escudo.webp' // 👑🦡 Império FC (leodicasttro): arte própria do dono, 20/11
+import tunaldoEscudoImg from './img/tunaldo-escudo.webp' // ⚫⚓ Tunaldo FC (faertes9, batismo de 22/11): arte própria do dono
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
@@ -1013,6 +1014,11 @@ const cearaspEscudoRender = (size: number) => (
 const imperioEscudoRender = (size: number) => (
   <img src={imperioEscudoImg} height={size} width={Math.round(size * 244 / 360)} alt="Império FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// ⚫⚓ TUNALDO FC (faertes9, batismo de 22/11) — Várzea, no assento do bot Espeto Corrido FC. 📏 227×360, 23 KB.
+// Escudo preto e prata com coroa, o Tunaldo de boné dos Gaviões e a âncora. Fundo verde chroma tirado; conferido sobre vermelho.
+const tunaldoEscudoRender = (size: number) => (
+  <img src={tunaldoEscudoImg} height={size} width={Math.round(size * 227 / 360)} alt="Tunaldo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
 // Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
 const lavrasEscudoRender = (size: number) => (
@@ -1799,6 +1805,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Império F.C.': imperioEscudoRender,
   'Império EC': imperioEscudoRender,
   'Império SC': imperioEscudoRender,
+  // ⚫⚓ Tunaldo FC (faertes9) — BATISMO. As formas do nome (regra 20/08). O Espeto Corrido FC continua no jogo rápido.
+  'Tunaldo FC': tunaldoEscudoRender,
+  'Tunaldo': tunaldoEscudoRender,
+  'Tunaldo F.C': tunaldoEscudoRender,
+  'Tunaldo F.C.': tunaldoEscudoRender,
+  'Tunaldo EC': tunaldoEscudoRender,
+  'Tunaldo SC': tunaldoEscudoRender,
   // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
   // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'Lavras FC': lavrasEscudoRender,

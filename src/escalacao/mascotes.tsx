@@ -88,6 +88,7 @@ import reffattiMascoteImg from './img/reffatti-mascote.webp' // 🎮 Reffatti FC
 import hgigantesMascoteImg from './img/hgigantes-mascote.webp' // 🧔 História dos Gigantes (will.a.n): arte própria do dono, 16/11
 import cearaspMascoteImg from './img/cearasp-mascote.webp' // 👑 Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
 import imperioMascoteImg from './img/imperio-mascote.webp' // 👑🦡 Império FC (leodicasttro): arte própria do dono, 20/11
+import tunaldoMascoteImg from './img/tunaldo-mascote.webp' // ⚫⚓ Tunaldo FC (faertes9, batismo de 22/11): arte própria do dono
 import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteMascoteImg from './img/duarte-mascote.webp' // 🧤 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
@@ -488,7 +489,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // com o uniforme branco, preto e dourado. Arte do próprio dono. 📏 236×440, 39 KB — altura 176. mascote_key = "imperio_texugo".
   imperio_texugo: (
     <img src={imperioMascoteImg} height={176} width={Math.round(176 * 236 / 440)} alt="O Texugo Rei — Império FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),  // ⚫⚓ O CRAQUE TUNALDO (mascote do Tunaldo FC — faertes9, 22/11): o próprio Tunaldo de boné dos Gaviões, dedo pro alto,
+  // correndo com o uniforme preto e a camisa 9. Arte do próprio dono. 📏 196×440, 25 KB — altura 176. mascote_key = "tunaldo_craque".
+  tunaldo_craque: (
+    <img src={tunaldoMascoteImg} height={176} width={Math.round(176 * 196 / 440)} alt="O Craque Tunaldo — Tunaldo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+
   cearasp_rei: (
     <img src={cearaspMascoteImg} height={176} width={Math.round(176 * 219 / 440)} alt="O Rei — Ceará SP Club" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1457,6 +1463,13 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Império F.C.': 'imperio_texugo',
   'Império EC': 'imperio_texugo',
   'Império SC': 'imperio_texugo',
+  // ⚫⚓ o Craque Tunaldo carimba o gol do Tunaldo FC (faertes9, 22/11).
+  'Tunaldo FC': 'tunaldo_craque',
+  'Tunaldo': 'tunaldo_craque',
+  'Tunaldo F.C': 'tunaldo_craque',
+  'Tunaldo F.C.': 'tunaldo_craque',
+  'Tunaldo EC': 'tunaldo_craque',
+  'Tunaldo SC': 'tunaldo_craque',
   // 🐆 a Pantera carimba o gol do Lavras FC (hugopereirabrito, 16/11).
   'Lavras FC': 'lavras_pantera',
   'Lavras': 'lavras_pantera',
@@ -1655,6 +1668,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   hgigantes_vovo: 'O Vovô Gigante', // 🧔 História dos Gigantes (will.a.n, 16/11)
   cearasp_rei: 'O Rei', // 👑 Ceará SP Club (lucasnicodemosqq, 19/11)
   imperio_texugo: 'O Texugo Rei', // 👑🦡 Império FC (leodicasttro, 20/11)
+  tunaldo_craque: 'O Craque Tunaldo', // ⚫⚓ Tunaldo FC (faertes9, batismo de 22/11)
   lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)
   leoestuf_leao: 'O Leão da Tuf', // 🦁 Leões da Tuf EC (sergioricardocf16, 14/11)
   cabuloso_raposa: 'A Raposa Cabulosa', // 🦊 Cabuloso JP (rafaelazevedo455, 21/11)
