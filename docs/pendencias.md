@@ -1,3 +1,10 @@
+## 🔬 22/11 — CAMPO 3D: A NITIDEZ DO NÍVEL 1 VIROU PADRÃO DA PARTIDA
+- Diego testou `?nitidez=1/2/3` no S25: *"os 3 me pareceram iguais e bem… talvez o 1 melhor"* → *"quero que coloque um dos 3 pq ficou melhor e não travou"*.
+- Agora, durante a partida no 3D, a imagem vai sempre na nitidez do "jogo liso" (até 2×), sem esperar o jogo provar 60 quadros. O freio
+  automático (`graphicsBudget`) continua ligado e baixa se o aparelho apertar. Aparelho fraco (≤ 2 GB) e sem placa de vídeo ficam como antes.
+- Os endereços `?nitidez=2/3` continuam existindo pra teste. ⚠️ Só o S25 dele foi testado; se alguém reclamar de travada no 3D, este é o 1º suspeito
+  (reverter = tirar o `!quality.constrained&&!softwareGPU` da linha do `nitidezJogo`).
+
 ## 🔬 22/11 — CAMPO 3D: TESTE DE NITIDEZ PELO ENDEREÇO (pra o Diego ver no S25; nada muda pra quem não usa)
 - Diego: *"o que deixa feio é a nitidez da tela… precisamos mexer nisso p ver"*. Hoje no celular a imagem do jogo é desenhada em 1×–1,5× (até 2×
   quando segura 60 quadros) numa tela de 3×, e o freio automático (`graphicsBudget`) ainda baixa mais.
