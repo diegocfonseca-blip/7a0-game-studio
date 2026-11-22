@@ -1292,6 +1292,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   O canto personalizado toca nos jogos EM CASA do dono — na carreira e nas salas online, onde o visitante daquele jogo ouve também. Fora de casa = torcida
   padrão (ou o canto do dono da casa). Na sala de espera, a entrada de gala (única ou padrão) toca o canto pra sala inteira. Mora em `sound.ts` (`jogoDaTela`).
 
+- **🧹 22/11: NA CARREIRA SÓ APARECE O QUE É DELE E O QUE TEM O QUE FAZER.** Prints dele: *"não tem sentido eu ver um jogo que não tô"* (fase de
+  copa sem o seu time passa direto) · *"o que não tem contrato pra renovar nem deveria ter aparecido o banner"* · Copa do Mundo *"só vai aparecer
+  algo quando tiver o convite"* (revê o "4 passos sempre" de 19/09: o passo 3 sai quando não há Copa/internacional pra ele). E a cena do bairro
+  na Central é **videozinho ao vivo** (o mapa no quadro, igual à chegada do ônibus), com ver no mapa ou pular — nunca foto parada.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

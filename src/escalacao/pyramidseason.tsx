@@ -11315,6 +11315,13 @@ export function PyramidSeasonScreen() {
   // sozinha, no 3D de novo. Só no fluxo da Central, offline; nas salas e fora do fluxo a fase segue inteira, como sempre.
   const copaVolta = fluxoCentral && !state.co2 && state.onlineMode !== 'online' && copaNLegs === 2 && copaPos >= 90
   const chaveCopa = `${state.seasonNo ?? 1}:copa:${copaRound}:${estadualOn ? 'e' : 'c'}${copaVolta ? ':v' : ''}`
+  // ⏭️ 22/11 (Diego, print da Supercopa Rei: *"não tem sentido eu ver um jogo que não tô"*): na carreira solo, fase de copa SEM o seu
+  // time não para a tela nem pede pra assistir — passa direto (o resultado fica na chave, no jornal e nas tabelas). A Copa da quarta
+  // já era assim; agora vale pra pré-temporada, fim de temporada e Supercopa. Sala online não muda.
+  useEffect(() => {
+    if (!copaPlaying || !copaFase || myCopaTie || state.co2 || state.onlineMode === 'online' || !state.careerOnline) return
+    avancaCopaAuto()
+  }, [copaPlaying, copaRound, !!copaFase, !!myCopaTie]) // eslint-disable-line react-hooks/exhaustive-deps
   const copaSegura = fluxoCentral && copaPlaying && !!myCopaTie && !state.co2 && state.onlineMode !== 'online' && copaOk !== chaveCopa && (copaPos === 0 || (copaVolta && copaPos === 90))
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
   // Só a conta autorizada e os XI válidos usam o relógio físico. A Copa online
@@ -11678,11 +11685,16 @@ export function PyramidSeasonScreen() {
     // (depois de jogada ela FICA na frente, mesmo se o ranking mexer com o prêmio dela)
     && (cmVaga.top16.some(r => r.you) || state.copaMundoStats?.season === state.seasonNo)
   const mundoPendente = mundoAntes && !cmAgenda.jogada && state.copaMundoStats?.season !== state.seasonNo
-  const fimOrdem = intlPendente || mundoAntes ? [3, 1, 2, 4] : [1, 2, 3, 4]
+  // 🌍 22/11 (Diego, print do "nenhuma seleção te chamou": *"não precisa, só vai aparecer algo quando tiver o convite"*): o passo 3
+  // só entra no roteiro quando há o que fazer nele — Copa do Mundo com o SEU clube convidado, ou a temporada internacional (T40+).
+  // Sem isso o roteiro é jornal → caixa → decisão. (Revê o "4 passos sempre" de 19/09 só neste ponto.)
+  const passo3Vale = !!intlPendente || !!intlRequired || mundoAntes
+  const fimOrdem = intlPendente || mundoAntes ? [3, 1, 2, 4] : passo3Vale ? [1, 2, 3, 4] : [1, 2, 4]
   // 🌎 a campanha internacional está NA TELA agora (passo 3 aberto, ainda sem fechar) — é
   // quando o cabeçalho de cima troca a Série A pela competição e a fase
   const intlNoAr = roteiroOn && fimPasso === 3 && intlRequired && intlPendente && copaFinished && state.copaDoneSeason === state.seasonNo
   const proxPasso = (n: number) => fimOrdem[fimOrdem.indexOf(n) + 1] ?? 4
+  useEffect(() => { if (!fimOrdem.includes(fimPasso)) setFimPasso(fimOrdem[0]) }, [passo3Vale]) // eslint-disable-line react-hooks/exhaustive-deps -- 🛟 o passo 3 saiu da ordem com a tela nele: volta pro começo, nunca tela vazia
   // temporada nova recomeça o roteiro do 1º passo (senão a próxima virada já abria
   // na decisão) — e o 1º passo é a Copa do Mundo quando ela vem antes do jornal
   useEffect(() => { setFimPasso(fimOrdem[0]) }, [state.seasonNo, mundoAntes, intlPendente]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -12343,6 +12355,18 @@ export function PyramidSeasonScreen() {
     // (sem limpar o relógio na saída do efeito: a 2ª passada cai na trava acima e o pulo se perderia; o `pula` se confere sozinho)
     window.setTimeout(pula, 4000)
   }, [chegadaGrandeKey, !!chegadaGrande, mapaProntoN]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🎥 22/11 (Diego: a cena do bairro passa AO VIVO no quadro da Central): com o cartão na tela, a câmera do mapa vai pro lugar da
+  // cena — uma vez por cena e por montagem do mapa (mesma regra da chegada do ônibus). Quem escreve a marca é o `renderCentral`.
+  const sedeVistaRef = useRef(''), sedeVistaFeita = useRef('')
+  useEffect(() => {
+    const marca = sedeVistaRef.current
+    if (!marca || !clubeMapaApi.current) return
+    const feita = `${marca}#${mapaProntoN}`
+    if (sedeVistaFeita.current === feita) return
+    sedeVistaFeita.current = feita
+    const vista = marca.split('|')[1]
+    window.setTimeout(() => { if (sedeVistaRef.current === marca) pedeVistaDoMapa(vista) }, 600) // (sem limpar na saída: o efeito roda a cada desenho e o pedido se confere sozinho)
+  })
   useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
   const calPassados = useMemo(() => {
@@ -12684,6 +12708,7 @@ export function PyramidSeasonScreen() {
   // 🏟️ 22/11: o jogo DESTA vez foi liberado pelo ▶ do mapa 3D e a pessoa não saiu de lá? (sair pra outra aba apaga a marca)
   const viu3d = useRef(false)
   const voltaPro3d = useRef(false) // 🏟️ o intervalo tirou a pessoa do 3D: ao confirmar, volta pro mapa pra ver o 2º tempo onde escolheu
+  useEffect(() => { voltaPro3d.current = false }, [round, state.seasonNo]) // 22/11: a marca vale só pro jogo em que nasceu — rodada nova nunca herda uma volta pro mapa
   const escolheAba = (t: AbaCarr) => { tabTocada.current = true; if (t !== 'estadio') viu3d.current = false; setTab(jogoTabela && t === 'tabelas' ? 'jogos' : t) }
   // 🗺️ 03/11 (Diego): saiu da aba Clube com um lugar do mapa aberto → o painel fecha (antes reabria sozinho ao voltar)
   useEffect(() => { if (tab !== 'estadio' && mapaComoClube) setClubeSub('estadio') }, [tab, mapaComoClube])
@@ -13430,13 +13455,14 @@ export function PyramidSeasonScreen() {
       const OBRA_VISTA: Record<string, string> = { loja: 'loja', estac: 'estacionamento', praca: 'praca', chopp: 'chopp', estacao: 'estacao', hotel: 'hotel', metro: 'metro', onibus: 'onibus', shopping: 'shopping' }
       sede.vista = c.endsWith(':futevolei') ? 'clube-lazer' : c.endsWith(':noitada') ? 'balada' : c.endsWith(':carreata') ? 'city-street' : obraId ? (OBRA_VISTA[obraId] ?? 'region') : c.includes(':boteco:') ? 'boteco-oswaldo' : c.endsWith(':feira') ? 'feira' : undefined
     }
+    sedeVistaRef.current = tab === 'central' && sede?.vista && !chegadaGrande ? `${sede.chave}|${sede.vista}` : ''
     const sedeNoMapa = (vista?: string) => {
       if (vista) pedeVistaDoMapa(vista)
       if (fluxoCentral) setDaCentral(true) // 🧭 no mapa aparece o "← Voltar pra Central"
       setClubeSub('estadio'); escolheAba('estadio')
       setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
-    return <CentralCarreira sede={sede} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} janelaNova={jnOn} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    return <CentralCarreira sede={sede} sedeJanela={sede?.vista && !chegadaGrande ? <VagaDoMapa /> : undefined} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} janelaNova={jnOn} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       preTemporada={novaCentral && round === 0 && !seasonOver && !copaPlaying ? {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
@@ -14600,6 +14626,7 @@ export function PyramidSeasonScreen() {
                   a tela com um cadeado de 74 temporadas à frente, competindo com a
                   decisão. Agora tem a vez dela, e só. */}
               {(!roteiroOn || fimPasso === 3) && !intlPendente && copaGate}
+              {roteiroOn && !passo3Vale && <div hidden>{copaGate}</div>}{/* o passo saiu da tela, mas o portão segue montado: é ele que manda o mural da Copa pro save */}
               {roteiroOn && fimPasso === 3 && (
                 <>
                   <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(12,12,12,.45)', margin: '2px 0 0', lineHeight: 1.4 }}>
@@ -15597,15 +15624,23 @@ export function ReserveListScreen() {
   const mesa = contratosNaMesa(state, quinzeRL)
   const [classico, setClassico] = useState(false) // a janela de sempre (Sondar · Vender), aberta pelo link ou como rede de segurança
   const modoJN = useRef<'contratos' | 'direto' | null>(null)
-  if (jn && modoJN.current === null) modoJN.current = state.reserveListMesmo || mesa.decidir + mesa.soltos > 0 ? 'contratos' : 'direto'
+  if (jn && modoJN.current === null) modoJN.current = mesa.decidir + mesa.soltos > 0 ? 'contratos' : 'direto' // 22/11 (Diego: *"o que não tem contrato pra renovar nem deveria ter aparecido"*): "mesmo time" sem contrato na mesa também segue direto
   const deOlhoPronto = useAplicaDeOlho(mgr, jn && !state.reserveListMesmo)
   const disparou = useRef(false)
   useEffect(() => {
     if (!jn || classico || modoJN.current !== 'direto' || !deOlhoPronto || disparou.current) return
     disparou.current = true
+    if (state.reserveListMesmo) { dispatch({ type: 'CONFIRM_MESMO_TIME' }); return } // sem leilão: fecha a janela e volta pra temporada (se não fechar, a espera abaixo cai na tela de contratos)
     dispatch({ type: 'RESERVE_AUCTION_ONLINE' })
     setClassico(true) // se o leilão abriu, esta tela já saiu; se não abriu, mostra a janela de sempre em vez de ficar esperando
   }, [jn, classico, deOlhoPronto, dispatch])
+  // 🛟 "mesmo time" direto que NÃO fechou em 2,5 s (o motor recusou): mostra a tela de contratos de sempre, com o botão — nunca tela presa
+  const [mesmoTravou, setMesmoTravou] = useState(false)
+  useEffect(() => {
+    if (!jn || modoJN.current !== 'direto' || !state.reserveListMesmo) return
+    const t = setTimeout(() => { modoJN.current = 'contratos'; setMesmoTravou(true) }, 2500)
+    return () => clearTimeout(t)
+  }, [jn, state.reserveListMesmo])
   // 🛟 estado incompleto (sem "meu time" por um instante — troca de fase / sync):
   // mostra uma tela de espera em vez de renderizar EM BRANCO (mesma proteção do
   // leilão). O host já avança sozinho pro leilão quando o tempo zera (efeito
@@ -15629,11 +15664,11 @@ export function ReserveListScreen() {
           </div>
   )
   // 🔨 janela nova · 'direto': o leilão está abrindo sozinho — um instante de espera, nunca tela em branco
-  if (jn && !classico && modoJN.current === 'direto') return (
+  if (jn && !classico && modoJN.current === 'direto' && !mesmoTravou) return (
     <div className="palco tela-cheia" data-janela-direto style={{ background: '#F4ECD6', color: INK, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: 40 }}>🔨</p>
-        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{tr('Abrindo o leilão…', 'Opening the auction…')}</p>
+        <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>{state.reserveListMesmo ? tr('Preparando a temporada…', 'Getting the season ready…') : tr('Abrindo o leilão…', 'Opening the auction…')}</p>
         <p style={{ fontWeight: 700, fontSize: 13, color: '#5a5647', marginTop: 4 }}>{tr('Só um instante.', 'Just a moment.')}</p>
       </div>
     </div>
