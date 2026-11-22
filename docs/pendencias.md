@@ -1,3 +1,9 @@
+## 🧩 22/11 — CONTINUAÇÃO DO PILOTO: NOVAS TÁTICAS, XI, DESKTOP COM TABELA E CHAT
+- Diego viu o piloto e esclareceu: quer as novas táticas do mockup; campo do próprio XI abaixo do plano (só editar onde o modo permite); **tabela junto no DESKTOP**, por causa dos streamers; chat acessível. No celular, tabela/chat ficam nas abas.
+- Mockup atualizado: `scripts/mockups/futebol-plano-escalacao-desktop.html`. É proposta local, não motor ao vivo. Chat continua no jogo; estava ausente da prévia anterior.
+- **Pendente:** implementar as novas ordens na partida atual a partir do próximo lance, preservando o passado e reconciliando classificação/gols/assistências. Hoje o resultado inteiro nasce antes da animação; tática atual só vale no próximo jogo.
+- Análise e requisitos: [plano/escalação/táticas ao vivo](futebol-taticas-ao-vivo-proposta-20261122.md). Esta continuação fica em branch de proposta; não ampliar publicação privada nem anunciar para todos.
+
 ## 🛟 22/11 — "OPS, ALGO DEU ERRADO" NA CENTRAL (React #185) + CENTRAL DIRETA PRA TODOS
 - Print de um jogador (eenzozzy, iPhone) às 13h01 na versão no ar (`index-C_1QLLZd.js`): o erro estourou no cartão da CENA DO BAIRRO (`CartaoSede`,
   central.tsx), que media a tela A CADA desenho (`useLayoutEffect` sem lista) e com o mapa ao vivo no quadro entrou numa corrente de atualizações sem fim.
