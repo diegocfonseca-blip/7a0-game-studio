@@ -17,7 +17,7 @@ import { seloDoClube } from './selo-clube'
 import { playTick } from './sound'
 import { CollectibleCard } from './screens'
 import pacoteCampeaoArt from './img/online-pacote-v20.webp'
-import { resolveColecao, podeJogarBafo, formatoBafo, faltaPraFechar, BAFO2_PREP_SEG, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
+import { resolveColecao, podeJogarBafo, formatoBafo, faltaPraFechar, BAFO2_MIN, BAFO2_PREP_SEG, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', OURO = '#FFC400', VERDE = '#1B7A3D', VERM = '#E8503A'
 const OSW = { fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' as const }
@@ -209,6 +209,34 @@ export function AberturaBafo({ decorrido, onPular }: { decorrido: number; onPula
     </div>
   )
 }
+/** 🃏 21/11 (Diego: *"ele ainda não tem 11 cartas suficientes, vai ter que aparecer algum bannerzinho… explicando que ele precisa ter
+ *  as cartas de campeão"*): quem ainda não fecha um time vê QUANTAS tem, o que é a carta de campeão e como ganhar mais. Some sozinho
+ *  pra quem já pode jogar. Aparece na tela de criar a sala do Bafo e na sala de espera. */
+export function FaltamCartasBafo({ uid, semPacote }: { uid: string | null | undefined; semPacote?: boolean }) {
+  const { cartas, pode } = useColecaoBafo(uid)
+  if (!cartas || pode) return null
+  const en = getLang() === 'en'
+  const n = cartas.length
+  const por = (p: Sector) => cartas.filter(c => c.pos === p).length
+  return (
+    <div data-bafo-faltam style={{ border: `3px solid ${INK}`, borderRadius: 16, background: 'radial-gradient(circle at 16% 40%,#17402a,#0c0c0c 78%)', boxShadow: `3px 3px 0 ${INK}`, padding: '11px 12px', display: 'flex', alignItems: 'center', gap: 12, marginTop: 10, color: CREME, textAlign: 'left' }}>
+      {!semPacote && <img src={pacoteCampeaoArt} alt="" width={66} height={99} style={{ flex: 'none', borderRadius: 8, transform: 'rotate(-5deg)', filter: 'drop-shadow(3px 3px 0 rgba(0,0,0,.5))' }} />}
+      <div style={{ minWidth: 0 }}>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: 16, color: OURO, margin: 0, lineHeight: 1.1 }}>{tr('Faltam cartas pra você jogar o Bafo', 'You need more cards to play Bafo')}</p>
+        <p style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.35, margin: '5px 0 0', color: '#fff' }}>{en
+          ? <>You have <b style={{ color: OURO }}>{n} champion card{n === 1 ? '' : 's'}</b>. It takes at least <b style={{ color: OURO }}>{BAFO2_MIN}</b> that make a team: 1 keeper, full-backs, centre-backs, midfielders and strikers.</>
+          : <>Você tem <b style={{ color: OURO }}>{n} {n === 1 ? 'carta' : 'cartas'} de campeão</b>. Precisa de pelo menos <b style={{ color: OURO }}>{BAFO2_MIN}</b> que fechem um time: 1 goleiro, laterais, zagueiros, meias e atacantes.</>}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, margin: '7px 0 0' }}>
+          {SECTORS.map(p => <span key={p} style={{ ...OSW, fontWeight: 800, fontSize: 11, background: por(p) ? CREME : '#FFE3DC', color: INK, border: `2px solid ${INK}`, borderRadius: 7, padding: '1px 6px' }}>{p} {por(p)}</span>)}
+        </div>
+        <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35, margin: '7px 0 0' }}>{en
+          ? <>🏆 <b style={{ color: '#fff' }}>How to earn them:</b> every time you are champion of any competition, in the online rooms or in Career, you open the champion pack and win 1 card.</>
+          : <>🏆 <b style={{ color: '#fff' }}>Como ganhar:</b> toda vez que você é campeão de qualquer campeonato, nas salas online ou na Carreira, você abre o pacote do campeão e ganha 1 carta.</>}</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3, margin: '5px 0 0', color: '#9fb5a6' }}>{tr('🔒 Até lá, não dá pra criar nem entrar em sala de Bafo.', '🔒 Until then, you can\'t create or join a Bafo room.')}</p>
+      </div>
+    </div>
+  )
+}
 /** 🃏 a carta de EXEMPLO + de onde vêm as cartas — fica em cima da lista da convocação (a `CollectibleCard` de sempre, com o brilho de lenda) */
 export function ExemploBafo() {
   const en = getLang() === 'en'
@@ -387,12 +415,14 @@ async function leBafo(roomId: string): Promise<Bafo2Linha | null> {
 function useAgora(ms = 1000): number { const [t, setT] = useState(Date.now()); useEffect(() => { const i = window.setInterval(() => setT(Date.now()), ms); return () => window.clearInterval(i) }, [ms]); return t }
 
 // ─── 4) 🏆 O FIM: só o campeão escolhe (60 s) ────────────────────────────────────────────────────────────────────────
-export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assentos, aoVoltar }: {
+export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assentos, aoVoltar, rodape }: {
   roomId: string; souDono: boolean; meuUid: string | undefined; campeaoUid: string | null; managers: Manager[]
   /** 🪑 quem senta em cada time (índice = id do time humano) — a mesma lista da sala */
   assentos: string[]
   /** 📣 (só o dono) Bafo fechado → leva a sala de volta pra espera pra um novo Bafo */
   aoVoltar?: () => void
+  /** 🗳️ 21/11 (noite): o fim padrão do Bafo (Jogar de novo / Sair da sala) — quando vem, toma o lugar do botão de voltar */
+  rodape?: React.ReactNode
 }) {
   const [b, setB] = useState<Bafo2Linha | null>(null)
   const [erro, setErro] = useState('')
@@ -457,7 +487,7 @@ export function Bafo2Fim({ roomId, souDono, meuUid, campeaoUid, managers, assent
   const souCampeao = !!meuUid && b.campeao === meuUid
   const nomeCampeao = managers.find(x => x.isHuman && assentos[x.id] === b.campeao)?.teamName ?? ((b.campeao && b.nomes[b.campeao]) || '—')
 
-  const voltar = aoVoltar ? <button onClick={aoVoltar} style={{ display: 'block', width: '100%', marginTop: 10, background: OURO, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, ...OSW, fontWeight: 900, fontSize: 16 }}>📣 {tr('Voltar pra sala de espera · novo Bafo', 'Back to the waiting room · new Bafo')}</button>
+  const voltar = rodape ? <div style={{ marginTop: 10 }}>{rodape}</div> : aoVoltar ? <button onClick={aoVoltar} style={{ display: 'block', width: '100%', marginTop: 10, background: OURO, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, ...OSW, fontWeight: 900, fontSize: 16 }}>📣 {tr('Voltar pra sala de espera · novo Bafo', 'Back to the waiting room · new Bafo')}</button>
     : <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 0 0', textAlign: 'center' }}>{tr('O dono da sala leva todo mundo de volta pra espera pra um novo Bafo.', 'The room owner takes everyone back to the waiting room for a new Bafo.')}</p>
   if (b.fase === 'encerrada') return <div><PunicaoBafo b={b} />{voltar}</div>
   if (b.fase === 'jogando') return (

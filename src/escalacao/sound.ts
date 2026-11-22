@@ -261,9 +261,11 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 // 🎶 CANTO DA TORCIDA PERSONALIZADO, POR CONTA (05/10, Diego: *"troque o áudio do canto da torcida
 // durante os jogos simulados da carreira do Geovany… mas mantenha o áudio do gol"*). Só troca o
 // AMBIENTE, só na CARREIRA e só na tela de quem é dono do e-mail. O gol continua o de todo mundo.
+// 🔁 21/11: a regra de ONDE toca mudou — só nos jogos EM CASA do dono, na carreira e nas salas (ver `jogoDaTela`, mais abaixo).
 // O arquivo vai pro mesmo padrão do original (mono 32 kHz 56 kbps, mesmo volume médio −20,6 dB).
 // Nova conta = uma linha aqui + o arquivo em `public/sfx/`.
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
+  'ccaonta@gmail.com': 'sfx/torcida-chelsao-v1.mp3', // 🦁🔵 Chelsão da Massa FC (21/11, Batismo): os 14 primeiros segundos do canto do Chelsea que o Diego mandou (carreira + gala padrão)
   'felipefazzio@gmail.com': 'sfx/torcida-obelisko-v1.mp3', // 👁️👑 Obelisko FC (18/11, Fundador): os 14 primeiros segundos da abertura instrumental que o Diego mandou (carreira + gala)
   'danieltorresreus@gmail.com': 'sfx/torcida-spfc-wen-v1.mp3', // 👑⚪🔴⚫ Monarca Tricolor (05/11, Fundador): o MESMO canto do São Paulo do Wen Milan B (pedido do Diego)
   'sheeryarie772@gmail.com': 'sfx/torcida-spfc-wen-v1.mp3', // 🐐👑 Neymar_FC (29/10, virou Fundador): o MESMO canto do São Paulo do Wen Milan B (pedido do Diego)
@@ -279,17 +281,50 @@ const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'kelvinoliveiraandradeenunes@gmail.com': 'sfx/torcida-k9-v1.mp3', // 🧊👑 K9 FC (23/10): 12 s do vídeo que o Diego mandou, mesmo padrão do Fabulous (toca na carreira e na gala)
   'kauealves584@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🦅⚫⚪ Gaviões SCCP (16/10, Fundador): 12 s de "Todo Poderoso Timão" que o Diego mandou, mesmo volume (−20,6 dB) do Fabulous
 }
+// 🏠 o MESMO canto, pela mascote do batismo (é o que o servidor devolve de cada assento da sala, `esc_mimos_sala`) — pro VISITANTE
+// ouvir o canto do dono da casa. ⚠️ Canto novo = uma linha em cima (e-mail) E uma aqui (mascote), com o MESMO arquivo.
+const CANTO_POR_MASCOTE: Record<string, string> = {
+  chelsao_leao: 'sfx/torcida-chelsao-v1.mp3', obelisko_atormentador: 'sfx/torcida-obelisko-v1.mp3',
+  monarca_rei: 'sfx/torcida-spfc-wen-v1.mp3', neymarfc_bode: 'sfx/torcida-spfc-wen-v1.mp3', intervale_lutador: 'sfx/torcida-spfc-wen-v1.mp3', wenmilan_diaba: 'sfx/torcida-spfc-wen-v1.mp3',
+  piranhao_presidente: 'sfx/torcida-lulubaba-v1.mp3', lulubaba_goleiro: 'sfx/torcida-lulubaba-v1.mp3',
+  guimaraes_saci: 'sfx/torcida-guimaraes-v1.mp3', cobra_arruda: 'sfx/torcida-geovany-v1.mp3', fabulous_aguia: 'sfx/torcida-fabulous-v1.mp3',
+  trevo_seven: 'sfx/torcida-gavioes-v1.mp3', cuiudos: 'sfx/torcida-gavioes-v1.mp3', gavioes_gaviao: 'sfx/torcida-gavioes-v1.mp3', k9_rei: 'sfx/torcida-k9-v1.mp3',
+}
 /** 🏆 FESTA DO CAMPEÃO das salas (23/10): toca o CANTO do clube pra quem é o campeão e tem canto próprio; pros outros
  *  (e pra quem não tem canto), o grito de gol da torcida. Respeita o mudo (playMp3). */
 export function playCampeao(souCampeao: boolean, ms: number): () => void {
   const canto = souCampeao && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined
   return playMp3Gala(`${import.meta.env.BASE_URL}${canto ?? SFX_GOL}`, ms)
 }
+// 📣 CANTO NA GALA PADRÃO, POR CLUBE (21/11, Chelsão da Massa): a gala ÚNICA de cada Fundador toca o canto dentro do show dela
+// (gala-*.tsx). Quem tem só a gala PADRÃO (Batismo) e tem canto entra aqui — chave = o clube de `BATISMOS` (que segue o E-MAIL
+// do dono, via `clubeDaConta`). A sala inteira ouve, igual às galas únicas. Novo caso = uma linha.
+const CANTO_DA_GALA_PADRAO: Record<string, string> = {
+  'Chelsão da Massa FC': 'sfx/torcida-chelsao-v1.mp3',
+}
+export function cantoDaGalaPadrao(clube: string): string | undefined { return CANTO_DA_GALA_PADRAO[clube] }
 /** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
 export function temCantoProprio(email: string | null | undefined): boolean { return !!email && email.toLowerCase() in AMBIENTE_CARREIRA_POR_EMAIL }
 let emailDoSom: string | null = null
 let crowdArquivo: string | null = null // qual arquivo a torcida que está tocando usa
-const arquivoAmbiente = () => (crowdCarreira && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined) ?? SFX_AMBIENTE
+// 🏠 21/11 (Diego: "isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"): o canto deixou de
+// tocar em TODO jogo da carreira. Agora ele é o canto DA CASA do jogo que está na tela: toca quando o dono joga em casa — na
+// carreira (só ele vê o jogo) e nas salas (ele e o visitante daquele confronto). Fora de casa, ou em jogo de quem não tem
+// canto, é a torcida padrão. Quem diz qual é o jogo da tela é o placar ao vivo (`setCantoDoJogo`, chamado pelo `LiveScoreCard`).
+let jogoDaTela: { souCasa: boolean; mascoteCasa: string | null } | null = null
+/** o canto da CASA daquele jogo, pra quem está vendo: `souCasa` = o meu canto (pela MINHA conta); visitante numa sala = o canto
+ *  do dono da casa, achado pela mascote que o SERVIDOR disse ser daquele assento (nunca pelo nome digitado). */
+function cantoDaCasa(souCasa: boolean, mascoteCasa: string | null): string | null {
+  if (souCasa) return (emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined) ?? null
+  return (mascoteCasa ? CANTO_POR_MASCOTE[mascoteCasa] : undefined) ?? null
+}
+// (função, não valor guardado: se a conta só é lida DEPOIS de o jogo abrir, `conferePraConta` refaz a pergunta e o canto entra)
+const arquivoAmbiente = () => (jogoDaTela ? cantoDaCasa(jogoDaTela.souCasa, jogoDaTela.mascoteCasa) : null) ?? SFX_AMBIENTE
+/** o placar ao vivo avisa qual é o jogo da tela (`null` = nenhum/neutro → torcida padrão); a torcida acesa troca na hora */
+export function setJogoDaTela(j: { souCasa: boolean; mascoteCasa: string | null } | null): void {
+  jogoDaTela = j
+  if (crowd && crowdArquivo && crowdArquivo !== arquivoAmbiente()) { apagaCrowd(); acendeCrowd() }
+}
 // 🐛 05/10 (Geovany: "não tá no meu jogo"): quem abre o jogo direto na carreira com o 🔊 ligado
 // fazia a torcida acender ANTES de o login ser lido — entrava o canto padrão e ficava. Agora, quando
 // a conta chega, se a torcida acesa é a errada, ela troca na hora.

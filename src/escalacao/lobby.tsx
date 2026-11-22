@@ -24,6 +24,8 @@ import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMasco
 import { useEsc, MODO_NOME, MODO_EMOJI, type EmoteEvent, EMOTE_ESPERA_MS, assentoDoCracha } from './store'
 import type { WonCard } from './types'
 import { BafoSala, bafoApto, type BafoLinha, type BafoSquads } from './bafo2-sala'
+import { FaltamCartasBafo, carregaColecao, NEED_BAFO } from './bafo2-ui'
+import { podeJogarBafo } from './bafo2'
 import pacoteCampeaoArt from './img/online-pacote-v20.webp' // 🃏 o pacotinho do campeão, na explicação do Bafo
 import { AdminButton, useCanCareerOnline, useIsAdmin } from './admin'
 import { JanelaConta } from './conta'
@@ -939,6 +941,7 @@ export function EscLobby() {
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  const [bafoBarrado, setBafoBarrado] = useState<'entrar' | 'criar' | null>(null) // 🃏 21/11: sem cartas que fechem um time = não entra nem cria sala de Bafo (abre o banner explicando)
   const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
   // 🕐 03/11: conta nova REPETIDA no mesmo aparelho espera 24 h pra criar sala (o banco decide: `esc_conta_nova_espera`).
   // contaNovaFim = quando libera (ms); null = sem espera. A 1ª conta do aparelho nunca vê isso.
@@ -2063,6 +2066,12 @@ export function EscLobby() {
       setRoomError(tr('Esse modo ainda está em construção — em breve libera pra todo mundo! Por enquanto dá pra jogar no ⚡ Rápido.', 'That mode is still under construction — it opens to everyone soon! For now you can play ⚡ Quick.'))
       setLoading(false); return
     }
+    // 🃏 21/11 (Diego: *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*): o dono também
+    // joga, então sem cartas que fechem um time a sala nunca começaria. Na dúvida (não deu pra ler as cartas) deixa passar.
+    if (roomMode === 'elenco' && user?.id) {
+      const apto = await carregaColecao(user.id).then(c => podeJogarBafo(c, NEED_BAFO), () => true)
+      if (!apto) { setBafoBarrado('criar'); setLoading(false); return }
+    }
     const liga = ligaOn && roomMode === 'liga'
     // 👑 CRIAR LIGA É SÓ DO LENDA — e até 22/08 isso NÃO estava travado de verdade:
     // o código só olhava `ligaOn` (quem enxerga o modo), nunca o tier. Como enxergar
@@ -2947,6 +2956,12 @@ export function EscLobby() {
     }
     if (rd.game_state?.mode === 'elenco' && !salaElenco) {
       setRoomError(tr('Essa sala é do 🃏 Bafo, um modo novo ainda em construção — em breve libera pra todo mundo.', 'That is a 🃏 Bafo room, a new mode still under construction — it opens to everyone soon.')); setLoading(false); return
+    }
+    // 🃏 21/11: sem cartas que fechem um time não ENTRA em sala de Bafo esperando (antes entrava e ficava "só assiste").
+    // Sala já começada segue o caminho de sempre (quem é da sala volta). Na dúvida (leitura falhou) deixa passar.
+    if (rd.game_state?.mode === 'elenco' && rd.status !== 'started' && user?.id) {
+      const apto = await carregaColecao(user.id).then(c => podeJogarBafo(c, NEED_BAFO), () => true)
+      if (!apto) { setBafoBarrado('entrar'); setPwModal(null); setLoading(false); return }
     }
     // 🌍 mesma trava do Bafo pra Copa do Mundo online: esconder da lista não
     // basta, porque o código e o link do zap entram por aqui do mesmo jeito.
@@ -3952,13 +3967,13 @@ export function EscLobby() {
           // 🌴 19/11 (Diego: *"pode fazer adorei"*): Vice City, o pregão aberto com cartas de golpe — só pra quem `useViceCity` libera
           // 🔜 19/11 (Diego: *"coloque p todos só q rosa o fundo e em breve. N deixe apertarem"*): todo mundo VÊ o cartão (fundo rosa,
           // EM BREVE) mas não aperta; só quem `useViceCity` libera joga.
-          ...(!nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: viceVe, ...(viceVe ? { selo: tr('EM TESTES', 'IN TESTING'), seloVerde: true } : {}) /* 🏷️ 19/11: selo EM TESTES (Diego) */ }] : []),
+          ...(!nbaSala ? [{ v: 'rapido' as const, vice: true, ic: '🌴', nome: 'Vice City', frase: tr('Pregão aberto com cartas de golpe: roube, trave e ferre os rivais.', 'Open auction with heist cards: steal, block and wreck your rivals.'), on: viceVe, ...(viceVe ? { selo: tr('NOVO', 'NEW'), seloVerde: true } : {}) /* 🏷️ 21/11 (Diego: "vice City deixe como novo tb") */ }] : []),
           { v: 'carreira', ic: '🌐', nome: tr('Carreira', 'Career'), frase: nbaSala ? tr('Street League → G League → NBA — sobe de andar.', 'Street League → G League → NBA — climb the tiers.') : tr('4 divisões + Várzea — sobe e cai.', '4 divisions + Várzea — up and down.'), on: canCareer, emTeste: true, estrela: true, meta: 7 },
-          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Suas cartas de campeão em jogo: o campeão toma 1 de alguém.', 'Your champion cards at stake: the champion takes 1 from someone.'), on: salaElenco, emTeste: true, meta: 3 },
+          { v: 'elenco', ic: '🃏', nome: 'Bafo', frase: tr('Suas cartas de campeão em jogo: o campeão toma 1 de alguém.', 'Your champion cards at stake: the champion takes 1 from someone.'), on: salaElenco, selo: tr('NOVO', 'NEW'), seloVerde: true }, // 🏷️ 21/11 (Diego: "o bafo remova o selo roxo e coloque novo")
         ]
         // 🏀 no BidLegends existem Rápido, Minhas ligas e a 🌐 Carreira (online do basquete).
         // O Bafo é do futebol — some da lista aqui pra não mostrar cartão que não abre.
-        const MODOS = TODOS_MODOS.filter(m => (m.v !== 'elenco' || salaElenco) && (!nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !(m.draft && !m.minha)))) // 🃏 26/10 (Diego: "o bafo deixa oculto, pra não confundir"): o Bafo só aparece pra conta que já pode criar // 📋🏀 10/11: a Liga Draft de hoje (minha) também no basquete, com o baralho da NBA; a antiga continua só no futebol
+        const MODOS = TODOS_MODOS.filter(m => (m.v !== 'elenco' || salaElenco) && (m.v !== 'carreira' || nbaSala) /* 🙈 21/11 (Diego: "oculte esse carreira daí, não precisa deixar aparecendo"): só no futebol */ && (!nbaSala || ((m.v === 'rapido' || m.v === 'liga' || m.v === 'carreira') && !(m.draft && !m.minha)))) // 🃏 26/10 (Diego: "o bafo deixa oculto, pra não confundir"): o Bafo só aparece pra conta que já pode criar // 📋🏀 10/11: a Liga Draft de hoje (minha) também no basquete, com o baralho da NBA; a antiga continua só no futebol
         // 🏆 O quadro da liga (nome, dia/hora, senha, bots) vira uma peça só, usada
         // em DOIS lugares: na v2 ela sobe pra junto dos cartões — porque é a
         // configuração DAQUELE modo, não "o básico" da sala (bronca do Diego 29/08:
@@ -4214,6 +4229,7 @@ export function EscLobby() {
                     </div>
                   </div>
                 ) : <p className="text-white/65 text-[11px] font-bold leading-snug">{viceVe && viceSala && roomMode === 'rapido' && !nbaSala ? tr('🌴 O Pregão aberto de sempre, com CARTAS DE GOLPE: cada um recebe as dele no sorteio, pra roubar, travar e ferrar os rivais. Todo golpe aparece pra sala. Quem leva golpe ganha ⭐ escondida; o 1º a chegar em 5 é pego pela polícia e no fim do pregão os 5 melhores dele viram Profissionais.', '🌴 The usual open auction, with HEIST CARDS: everyone gets theirs in the draw, to steal, block and wreck their rivals. Every hit is shown to the room. Whoever is hit gets a hidden ⭐; the first to reach 5 is caught by the police and, when the auction ends, their 5 best become Pros.') : minhaSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre (todas as categorias). Depois de cada temporada vem o DRAFT: na ordem da tabela (o campeão primeiro), cada técnico aperta ✋ PRONTO e tem 45 s pra pegar 1 jogador livre de todo o jogo. Quem não der pronto ou deixar o tempo acabar PERDE A VEZ. Cada jogador é único na liga.', '📋 Season 1 is the usual auction (every category). After each season comes the DRAFT: in table order (champion first), each manager taps ✋ READY and has 45 s to take 1 free player from the whole game. Whoever is not ready or runs out of time LOSES THE TURN. Each player is unique in the league.') : ligaDraftSel && roomMode === 'liga' ? tr('📋 A 1ª temporada é o leilão de sempre, só com profissional e bom. Depois de cada temporada vem a NOITE DO DRAFT: cada técnico pega 1 jogador de todos do jogo, o campeão escolhe primeiro e cada escolha é anunciada pra sala inteira. Cada jogador é único na liga.', '📋 Season 1 is the usual auction, only with ex-pros and good players. After every season comes DRAFT NIGHT: each manager picks 1 player from the whole game, the champion picks first and every pick is announced to the whole room. Each player is unique in the league.') : kingsVe && kingsSala && roomMode === 'rapido' && !nbaSala ? tr('👑 A Kings League: o leilão de sempre com 7 por time (goleiro + 6), 10 times, e depois as regras da Kings — 1×1 até 7×7, dado, cartas, pênalti do presidente, match ball e shootout. 9 rodadas e o mata-mata.', '👑 The Kings League: the usual auction with 7 per team (keeper + 6), 10 teams, then the Kings rules — 1v1 up to 7v7, dice, cards, president penalty, match ball and shootout. 9 rounds and the knockouts.') : EXPLICA[roomMode]}</p>}
+                {roomMode === 'elenco' && modoLiberado && !nbaSala && <FaltamCartasBafo uid={user?.id} semPacote />}
                 {modoEscolhido?.emTeste && !(modoEscolhido.meta && !nbaSala && !modoLiberado) && (
                   <p className="text-[10.5px] font-bold leading-snug mt-1.5" style={{ color: '#C9A7FF' }}>
                     {getLang() === 'en' ? <>🔜 Still under construction — <b>creating</b> this mode unlocks soon. Keep an eye on the news!</> : <>🔜 Ainda em construção — <b>criar</b> este modo libera em breve. Fica de olho nas novidades!</>}
@@ -5026,7 +5042,10 @@ export function EscLobby() {
                   <p className="ll-hub-room-name font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
                     <span className="truncate">{!onlineHub && r.game_state?.locked ? '🔒 ' : ''}{r.game_state?.stream ? '🎥 ' : ''}{nm}</span>
-                    {(r.game_state as { formation?: string } | undefined)?.formation === 'kings'
+                    {/* 🃏 21/11 (Diego: *"tem que ter o selinho de bafo… uma cor meio verde, musgo, com marrom"*): sala do Bafo ganha o selo dela no lugar do baralho (o baralho é o de cada um) */}
+                    {r.game_state?.mode === 'elenco'
+                      ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: 'linear-gradient(90deg,#5E6B2B,#5A3E22)', color: '#F4ECD6', boxShadow: '2px 2px 0 #000', ...OSWALD }} title={tr('Bafo: cada um joga com as cartas que ganhou sendo campeão, e o campeão toma 1 de alguém', 'Bafo: everyone plays with the cards they won as champion, and the champion takes 1 from someone')}>🃏 BAFO</span>
+                      : (r.game_state as { formation?: string } | undefined)?.formation === 'kings'
                       ? <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#FF2E93', color: '#fff', boxShadow: '2px 2px 0 #000', ...OSWALD }} title="Kings League">👑 KINGS LEAGUE</span>
                       : <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Baralho da sala', 'Room deck')}>{deckLbl}</span>}
                     {((r.game_state as { vice?: boolean; viceCity?: boolean } | undefined)?.vice || (r.game_state as { viceCity?: boolean } | undefined)?.viceCity) && (
@@ -5254,6 +5273,16 @@ export function EscLobby() {
               <button onClick={() => { setRoomStream(true); setStreamModal(false) }}
                 className="flex-1 border-[3px] border-black rounded-xl py-2 font-black text-sm" style={{ background: '#111', color: '#fff', ...OSWALD }}>{tr('Ligar mesmo assim', 'Turn on anyway')}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {bafoBarrado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.72)' }} onClick={() => setBafoBarrado(null)}>
+          <div className="w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <p className="text-center font-black uppercase" style={{ ...OSWALD, color: '#fff', fontSize: 17 }}>{bafoBarrado === 'criar' ? tr('🔒 Ainda não dá pra criar sala de Bafo', '🔒 You can\'t create a Bafo room yet') : tr('🔒 Ainda não dá pra entrar nessa sala de Bafo', '🔒 You can\'t join this Bafo room yet')}</p>
+            <FaltamCartasBafo uid={user?.id} />
+            <button onClick={() => setBafoBarrado(null)} className="w-full mt-3 border-[3px] border-black rounded-xl py-2.5 font-black uppercase" style={{ ...OSWALD, background: GOLD, color: '#000', boxShadow: `3px 3px 0 ${INK}` }}>{tr('Entendi', 'Got it')}</button>
           </div>
         </div>
       )}

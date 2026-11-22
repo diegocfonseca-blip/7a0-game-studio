@@ -1238,7 +1238,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Chave nova `'3-4-3z'` (na tela "3-4-3"); a `'3-4-3'` antiga (2 LAT + 1 ZAG) só vale pra quem já estava nela. Trava `npm run 343`.
 - **🏷️ A CATEGORIA SE CHAMA "PROFISSIONAL" (13/11).** *"a categoria foi profissional agora será profissional, o nome apenas"*. Só o nome na tela (PT "Profissional", EN "Pro"); a categoria (fame 1) não mudou. Texto novo já nasce com "Profissional".
 
-- **🃏 BAFO NOVO (21/11, só na conta dele e do Futpoint FC até ele mandar).** Cartas que a CONTA ganhou sendo campeã (não é da carreira); convocação
+- **🃏 BAFO NOVO (21/11; 🟢 LIBERADO PRA TODOS no mesmo dia: *"já pode valer para todo mundo agora"*, `SALA_ELENCO_GERAL = true`).** Cartas que a CONTA ganhou sendo campeã (não é da carreira); convocação
   de 120 s (o jogo completa com as piores); só gente, só liga; **só o campeão toma 1 carta, em 60 s**, com os 22 de cada um abertos. Sala de espera = a
   normal, com as regras em cima (*"a sala de espera era só a sala normal… porém teriam regras ali do modo"*). **Nunca mostrar quantas cartas cada um tem**
   (*"N deve aparecer o número q cada um tem"*). **Dono não expulsa ninguém**; dono que sai no meio perde 2 cartas (1º e 2º levam; antes da liga, vão pro
@@ -1246,6 +1246,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🔁 Mesmo dia, depois do 1º teste: convocação de **160 s** em página própria (pacote abrindo antes, Ronaldo de exemplo em cima, placar "10/22" e aviso do
   que falta pra fechar um time) · **60 s de preparo** na escalação antes do 1º jogo · só Campo 2D · faixa da regra em cima do campo · suspense da carta tomada.
   Quem aperta Pronto antes: o jogo completa com as PIORES (ele confirmou).
+  🔒 Mesmo dia (noite): **sem cartas que fechem um time não entra nem cria sala de Bafo** (*"eles nem poderiam ter entrado, já que não estavam aptos"*);
+  abre o banner `FaltamCartasBafo` explicando o que é carta de campeão e como ganhar. Não existe mais "só assiste" pra quem chega.
+  🗳️ **Fim do Bafo = o padrão dos outros modos, adaptado** (*"normalmente tem lá no final aquela votação… ou sair da sala"*): cada um
+  escolhe Jogar de novo ou Sair da sala; só o dono leva a sala de volta pra espera (`BafoFimVoto`). Nunca voltar pra espera sem a pessoa escolher.
 
 - **🎁 GANHOU, APARECE O PACOTE PRA ABRIR (21/11, regra permanente).** Palavras dele: *"o principal é quando acaba uma competição e você ganha, deve
   aparecer a carta pra você, o pacote pra abrir"*. Vale pra TODA competição de TODO modo (menos o Bafo, que não dá carta nova). Competição nova = já nasce
@@ -1266,6 +1270,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   palavra da categoria). **Contrato ACABANDO pode ser vendido; só o que JÁ acabou não.** A Central não tem atalho de Finanças/Agência. O **PULAR do
   Manual fica** (o conserto era o "Pular pro jogo" da Central). O **3D anda na velocidade do Campo 2D**, com Manual/velocidade dentro do quadro do jogo
   (cadeado pra quem não tem plano) e sem texto de diagnóstico na tela. Desligar a janela nova = `JANELA_NOVA_GERAL = false`. Trava `npm run janela-nova`.
+
+- **📣🏠 CANTO DE TORCIDA SÓ EM CASA (21/11, regra permanente).** *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*.
+  O canto personalizado toca nos jogos EM CASA do dono — na carreira e nas salas online, onde o visitante daquele jogo ouve também. Fora de casa = torcida
+  padrão (ou o canto do dono da casa). Na sala de espera, a entrada de gala (única ou padrão) toca o canto pra sala inteira. Mora em `sound.ts` (`jogoDaTela`).
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

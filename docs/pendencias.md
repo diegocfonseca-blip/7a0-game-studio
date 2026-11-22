@@ -1,4 +1,4 @@
-## 🔒 21/11 (noite) — Cadeado do Manual mais visível + Substituir do mapa (NO BRANCH, esperando OK visual do Diego)
+## 🔒 21/11 (noite) — Cadeado do Manual mais visível + Substituir do mapa (🟢 publicado em 21/11 à noite: "pode publicar")
 - **Substituir no mapa 3D** abria a aba Jogos, onde não há troca nenhuma → agora abre a aba **Elenco** (`controleMapa.tatica`). Conferido na bancada.
 - **Cadeado do Manual**: aba Jogos = faixa dourada "🎮 MANUAL E VELOCIDADE" + selo verde "🔒 DESBLOQUEAR" (antes: branca, "Acelerar e pular");
   mapa 3D = botão dourado + selo "🔒 Liberar". Prints: `scripts/mockups/cadeado-jogos.png` e `cadeado-mapa.png`. Bancada: `scripts/mapa3d/print-cadeado.mjs`.
@@ -6,6 +6,46 @@
   logout, e entre 18:52 e 19:10 não chegou NENHUM pedido com a conta dele — aquela tela estava sem login. O texto de diagnóstico (quadros/s) só aparece
   pelo endereço especial `?diag=1`, então o mais provável é o jogo aberto por um link num navegador/janela onde ele não está logado. NÃO comprovado.
   ❓ Se repetir no navegador de sempre, pedir print da home (pra ver se mostra o nome da conta) antes de mexer em qualquer coisa de login.
+
+## 🃏 21/11 (noite) — BAFO: SEM CARTAS NÃO ENTRA NEM CRIA (publicado, pedido do Diego depois da sala do Futpoint)
+- *"eles nem poderiam ter entrado, já que não estavam aptos… aparecer um banner explicando"*. `enterRoom` (sala esperando) e criar sala: sem cartas que
+  fechem um time abre o modal com o `FaltamCartasBafo` e não entra/cria. Leitura das cartas falhou = deixa passar. Sala já começada segue como era.
+- Revê o "pode ficar assistindo" de antes: a pessoa não entra mais pra assistir.
+- ✅ FEITO e publicado (Diego: *"Sim, não precisa mockup"*): `BafoFimVoto` (screens.tsx) no lugar do botão único — cada um escolhe 🃏 Jogar de novo ou 🚪 Sair da sala, o dono vê ✅/⏳/🚪 de cada um e só ele leva a sala pra espera ("Novo Bafo com quem ficou"). Usa `CAST_SEASON_VOTE` e o sair de sempre. NÃO testado em sala real. Histórico da pergunta: Hoje não tem a votação padrão (`OnlineEndVote` é escondida no Bafo, porque "mesmo time / novo leilão"
+  não existem no modo); o dono tem um botão só, "Voltar pra sala de espera · novo Bafo", e quando aperta leva todo mundo. Na sala do Futpoint pareceu
+  automático pros outros. Proposta enviada: tela de fim com "Jogar de novo" / "Sair da sala" pra cada um e o dono só volta depois. Esperando resposta.
+
+## 🃏 21/11 — BAFO: banner "faltam cartas" (publicado, Diego: "Sim")
+- `FaltamCartasBafo` (bafo2-ui.tsx): quem não fecha um time vê quantas cartas tem, por posição, o que é a carta de campeão e como ganhar. Some pra quem já pode jogar.
+- Aparece na tela de criar sala (com o Bafo escolhido) e na sala de espera (no lugar da caixa vermelha). Não bloqueia criar a sala.
+- Print: `scripts/mockups/bafo-faltam-{cel,pc}.png` (`node scripts/mockup-bafo-faltam.mjs`). Travar o botão de criar pra quem não tem cartas: perguntado, sem resposta ainda (NÃO feito).
+
+## 🏷️ 21/11 — CRIAR SALA: cartões (publicado, pedido do Diego com print)
+- 🌐 Carreira some da lista de modos no futebol (*"oculte esse carreira daí"*); no basquete fica.
+- 🃏 Bafo: sai a faixa roxa "LANÇA COM 3K" e entra o selo verde NOVO. 🌴 Vice City: "EM TESTES" vira NOVO.
+
+## 🃏 21/11 — SELO DO BAFO NAS SALAS ABERTAS (publicado, *"já pode ativar"*)
+- Sala do Bafo ganha o selo `🃏 BAFO` (verde musgo → marrom, letra creme) no lugar do selo do baralho, na lista de salas abertas (`lobby.tsx`). Print: `scripts/mockups/bafo-selo.png`.
+
+## 🎬 BAFO — ARTES DE LANÇAMENTO (21/11, pedido do Diego)
+- Stories: `node scripts/stories-bafo.mjs` → `scripts/posts/stories-bafo.png` (1080×1920).
+- Reels padrão: `node scripts/video-bafo-reels.mjs` → `scripts/posts/bafo-reels.mp4` (1080×1920, ~37 s, sem som; o mp4 não entra no repo, é só rodar).
+- As cartas e o pacote são os de verdade do jogo: `node scripts/foto-bafo-cartas.mjs` → `scripts/posts/img/bafo-*.png`.
+- 🟢 **21/11: BAFO LIBERADO PRA TODOS** (Diego: *"já pode valer para todo mundo agora o jogo"*): `SALA_ELENCO_GERAL = true` + novidade na home (PT/EN). Desligar = voltar pra `false`. As telas novas (convocação, 60 s de preparo, faixa, suspense) só foram testadas por build e print, não em sala real depois do 1º teste.
+
+## 📣 21/11 — CANTO DO CHELSÃO DA MASSA FC (Batismo, conta ccaonta) — publicado
+- `public/sfx/torcida-chelsao-v1.mp3`: os 14 primeiros segundos do vídeo que o Diego mandou, no padrão dos outros (mono 32 kHz 56 kbps, −20,6 dB, 98 KB).
+- Carreira: linha em `AMBIENTE_CARREIRA_POR_EMAIL` (só ele ouve, em todo jogo — a regra de hoje).
+- Sala de espera: ele tem a gala PADRÃO (não é Fundador), que era muda. Agora a gala padrão toca o canto de quem tem (`cantoDaGalaPadrao`, sound.ts →
+  `SomDaGalaPadrao`, entrada-gala.tsx); a sala inteira ouve. ⚠️ A gala padrão dura 5,6 s, então tocam ~5 s do canto (os 14 s inteiros só na carreira).
+- ✅ DECIDIDO E FEITO (21/11, *"isso só vale pra quem joga em casa, e ouve quem tiver na partida, no confronto apenas"*) — vale pra TODOS os cantos:
+  o canto é o da CASA do jogo que está na tela (`setJogoDaTela`, chamado pelo `LiveScoreCard`). Dono em casa = toca (carreira e salas); visitante daquele
+  jogo numa sala ouve também (pela mascote do batismo que o servidor dá ao assento, `CANTO_POR_MASCOTE`); fora de casa/sem canto = torcida padrão.
+  Mudou pra quem já tinha: antes ouvia em TODO jogo da carreira. Texto da Loja atualizado. ⚠️ Canto novo = linha no e-mail E na mascote (sound.ts).
+  Não testado com som num aparelho de verdade (só build).
+- (histórico) ele perguntou se o canto nos JOGOS deve ser "todo mundo ouve" ou "só ele", e "só em casa". Recomendei: canto só nos jogos EM CASA,
+  e na sala online o visitante que joga na casa dele ouve também. Isso muda quem já tem canto (hoje ouvem em todo jogo da carreira) → não mexi sem o OK.
+- 🧪 `npm run gala` já reprovava antes desta entrega (`window.__set is not a function`, no cenário do navegador). Rever a trava.
 
 ## 📋 21/11 — LIGA DRAFT: overall sempre no elenco + formações mais claras (pedido do Diego, publicado pra todos)
 - **Overall no elenco**: na Liga Draft a faixa (ex. 71–80) de TODO jogador do seu elenco aparece sempre, com ou sem plano (`overTodos` em `SquadTab`/`ElencoField`,
@@ -1647,6 +1687,12 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
 - 🔁 Mesmo dia, Diego: *"N falei q sozinho N pode… Só falei q N deixe do Oliveira C a Prime"*. Os 11 antigos VOLTARAM (`desde` = 09/11 03:00 UTC,
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
+
+## 🕵️ VIGIA DE CONTA DUPLA — 21/11 (nada forte novo; só anotado)
+- Éden FC × Fluminense (avisado em 19/11): igual, nenhuma das duas contas entrou de novo desde 18/11. Segue esperando o OK do Diego.
+- Médio (só anotado): joaovictor261197 × viniwiny17 — as duas criadas em 21/11 com 16 s de diferença, 5 temp. só os dois, 3×0, nenhuma em sala
+  cheia. Nomes de e-mail diferentes e criação simultânea parecem dois amigos lado a lado. Só volta se os títulos crescerem.
+- bernardomatanaalves × mixoliveiraribeiro2005 (5×0, logins a 10 dias de distância, perdedor 2 salas cheias): parece amigo.
 
 ## 🕵️ VIGIA DE CONTA DUPLA — 19/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **Éden FC** (isaacvpn2023) × **Fluminense** (caiom3244, criada ONTEM 18/11) — 5 temporadas só os dois, 5 ligas × 0, logins com
