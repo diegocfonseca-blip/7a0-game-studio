@@ -3,6 +3,12 @@
   "Começar a Supercopa Rei" só porque ela existia. Agora `rotuloAbre` só fala dela se o SEU time joga (`supercopaMinha`); senão fala do seu estadual
   (ou "a temporada"). A Supercopa sem você já passava direto (`avancaCopaAuto`). Não testado numa carreira do Oficial na bancada.
 
+## 22/11 (tarde) — Carreira: fluxo depois do jogo e chegada na aba Jogos — NO BRANCH, esperando "pode publicar"
+
+- ✅ **Escolheu 📺 2D ou ⚡ placar na Central → a aba Jogos chega no AUTOMÁTICO** (`chegaNoAuto`: liga, copa e estreia), mesmo com o Manual guardado no aparelho. O Manual segue a um toque no mesmo cartão. Pedido: *"deve já iniciar no automático… e não no visual de manual com pular, próxima rodada"*.
+- ✅ **Depois do apito, em cima da tabela: botão "Seguir pra Central ›"** (visual novo; antes a aba ficava só com a tabela, sem caminho). É botão, ninguém é levado sozinho; com coletiva esperando, o toque abre a sala primeiro. Print: `scripts/mockups/jogos-seguir-central.png`; bancada `scripts/mapa3d/print-seguir-central.mjs` (passou: chega no auto, botão visível, leva pra Central).
+- ❓ **Aba Clube: o que tem embaixo do mapa (Dinheiro, Contratos, Estádio e obras, Loja, Agência, SAF) ninguém acha.** Proposta levada ao Diego (fileira de atalhos logo abaixo do mapa + bolinha no que tem coisa pra fazer); só com mockup e OK dele.
+
 ## 🛟 22/11 — "OPS, ALGO DEU ERRADO" NA CENTRAL (React #185) + CENTRAL DIRETA PRA TODOS
 - Print de um jogador (eenzozzy, iPhone) às 13h01 na versão no ar (`index-C_1QLLZd.js`): o erro estourou no cartão da CENA DO BAIRRO (`CartaoSede`,
   central.tsx), que media a tela A CADA desenho (`useLayoutEffect` sem lista) e com o mapa ao vivo no quadro entrou numa corrente de atualizações sem fim.
