@@ -1,3 +1,24 @@
+## ☀️ 22/11 — CAMPO 3D: gramado mais claro e vivo (publicado, pedido do Diego com print do campo do 2D)
+- *"esse nosso gramado tá muito escuro… o outro tá bem mais vivo"*. Medido na Câmera de TV: média (39, 89, 1) → (81, 140, 42). Antes/depois:
+  `scripts/mockups/gramado-3d-antes-depois.jpg`.
+- Causa: a foto da grama quase não tem azul e as manchas de tom escureciam até 0,74×. FEITO só no desenho do chão do 3D do mapa
+  (`presidencia-gramado-material-3d.ts`, caminho com desgaste): manchas mais suaves, ×1,28 e 30% de mistura com um verde vivo. Textura, listras e
+  desgaste continuam. Nenhuma luz, sombra, malha ou textura nova (custo igual). A luz do estádio e o filtro de cor do mapa NÃO mudaram.
+- ⚠️ `scripts/testa-presidencia-gramado-material-3d.mjs` já reprovava antes (espera a cor sem o ×1,5 de 21/11); não mexi.
+- Não vi em aparelho de verdade, só na bancada (GPU por software), de dia. À noite com refletor não conferi.
+
+## ⚽🔎 22/11 — CAMPO 3D: bola maior no desenho + mancha no chão na bola alta (publicado, pedido do Diego)
+- Pedido: *"analise o campinho 3D, a jogabilidade, domínio, passe, chute… tamanho da bola… já melhore e publique… continuar liso e fluido"*.
+- Bancada nova: `S=<pasta> [T0] [N] [HZ] [PASSO] [CAM=tv|tele…] node scripts/mapa3d/filma-bancada.mjs` filma a partida da `scripts/mapa3d/bancada.html`
+  com relógio falso (sem passar pela carreira). Antes/depois: `scripts/mockups/bola-3d-antes-depois.jpg`.
+- Achado principal: a bola de 22 cm tinha ~3 px na Câmera de TV do celular e ficava miúda do lado do boneco cabeçudo.
+- FEITO (`presidencia-bola-3d.ts`): só o DESENHO cresce — 1,5× de perto e o que precisar pra ter tamanho mínimo na tela de longe (teto 3,2×,
+  `ESCALA_BOLA_PERTO`/`ESCALA_BOLA_MAXIMA`), suavizado; o centro sobe pra bola ficar apoiada na grama. Posição oficial, raio físico (0,11) e motor
+  intactos; teste sem desenho fica em 1×. A mancha no chão não some mais a 30 cm: acompanha a bola alta, mais fraca.
+- Custo: uma conta por quadro, sem objeto novo nem textura. Não medi FPS em aparelho (a bancada é GPU por software).
+- NÃO mexi: movimentos (domínio/passe/chute — sistema `chibi-career-fundamentals-27`, de outra sessão, cheio de travas próprias), câmera de TV
+  (zoom aprovado pelo Diego em 19/11) e motor. Em fotos a 10 quadros/s não deu pra julgar o toque na bola; se ele apontar um lance ruim, filmar com
+  a bancada no minuto do lance.
 ## 🔒 21/11 (noite) — Cadeado do Manual mais visível + Substituir do mapa (🟢 publicado em 21/11 à noite: "pode publicar")
 - **Substituir no mapa 3D** abria a aba Jogos, onde não há troca nenhuma → agora abre a aba **Elenco** (`controleMapa.tatica`). Conferido na bancada.
 - **Cadeado do Manual**: aba Jogos = faixa dourada "🎮 MANUAL E VELOCIDADE" + selo verde "🔒 DESBLOQUEAR" (antes: branca, "Acelerar e pular");
