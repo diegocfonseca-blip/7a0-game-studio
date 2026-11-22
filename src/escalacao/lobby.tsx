@@ -37,7 +37,7 @@ import { ehPagante } from './saf2'
 import { LimiteSalaVenda } from './limite-sala-venda'
 import { assinarMensal } from './vendria-checkout'
 import { LojaButton } from './loja-clube'
-import { isMuted } from './sound'
+import { isMuted, playEntrou, playLargada } from './sound'
 import { anotaTrava, anotaQueda } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice as DeckCarreira } from './careeronline'
@@ -939,6 +939,9 @@ export function EscLobby() {
   const [pwEntry, setPwEntry] = useState('')
   const [room, setRoom] = useState<RoomInfo | null>(null)
   const [players, setPlayers] = useState<RoomPlayer[]>([])
+  // 🚪🔊 21/11: plim quando ENTRA alguém na sala de espera (não toca na 1ª leitura nem quando alguém sai)
+  const nGente = useRef(0)
+  useEffect(() => { const n = players.length; if (phase === 'waiting' && nGente.current > 0 && n > nGente.current) playEntrou(); nGente.current = n }, [players.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
   const [bafoBarrado, setBafoBarrado] = useState<'entrar' | 'criar' | null>(null) // 🃏 21/11: sem cartas que fechem um time = não entra nem cria sala de Bafo (abre o banner explicando)
@@ -1712,6 +1715,7 @@ export function EscLobby() {
     }
     jaIniciouRef.current = roomData.id
     if (amHost && ehLigaSala) void supabase.rpc('esc_liga_marca_entrou', { p_room: roomData.id, p_uids: uniq.map(p => p.user_id) }).then(() => {}, () => {}) // ✅ pedido aceito → "entrou"
+    playLargada() // 🚀🔊 21/11: a largada toca pra sala toda (cada aparelho passa por aqui ao começar)
     dispatch({
       type: 'START_ONLINE',
       regional: (gs as { regionalNaLiga?: string } | undefined)?.regionalNaLiga, // 🏟️ copa regional: o leilão ganha as cartas regionais

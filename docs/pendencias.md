@@ -1,3 +1,11 @@
+## 🔊 21/11 (noite) — MAIS SONS (Diego escolheu 5 de 6; a troca de posição no leilão ele NÃO quis) — NO BRANCH, esperando "pode publicar"
+- Sons novos em `sound.ts` (sintetizados, 0 KB, respeitam o mudo): `playPacote` · `playEntrou` · `playLargada` · `playRufar` · `playDia` · `playApitoCurto` · `playFlash`.
+- Onde tocam: 🎁 pacote do campeão (rasga + sininho; também no cartão de quem assiste) · 🃏 Bafo (tambor + rasgo na abertura; tambor no suspense da carta
+  tomada e sininho quando vira) · 🚪 sala de espera (plim quando ENTRA alguém; fanfarra na largada) · 🥁 empate no leilão (rufar ao abrir o desempate) ·
+  📺 Central (tique por dia que passa, apito curto no dia do jogo, flashes ao responder a coletiva).
+- 🚫 NÃO fazer: som na troca de posição do leilão (GOL → LAT…) — *"precisa não"*.
+- 🔬 NADA disso foi ouvido em aparelho (a bancada não tem áudio): volume e timbre ficam pro Diego julgar; ajustar em `sound.ts`.
+
 ## 🔨🔊 21/11 (noite) — Martelo pra sala toda na revelação (NO BRANCH, esperando "pode publicar")
 - Diego numa sala de Clubes: *"tá mudo… tinha que ter um martelinho batendo sempre que alguém ganhasse"*. Não era defeito: o martelo só tocava pra quem
   levava/vendia (regra antiga dele). Agora bate pra TODOS em todo arremate (`screens.tsx`, efeito da revelação); lenda saindo = sininho pra quem assiste.

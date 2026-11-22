@@ -14,7 +14,7 @@ import { FORMATIONS, SECTORS, type Sector, type Manager } from './types'
 import { cartasExtras, carregaCartasExtras } from './baralho-inteiro'
 import { categoriaDa, decadaDe } from './liga-draft'
 import { seloDoClube } from './selo-clube'
-import { playTick } from './sound'
+import { playTick, playPacote, playRufar, playChime } from './sound'
 import { CollectibleCard } from './screens'
 import pacoteCampeaoArt from './img/online-pacote-v20.webp'
 import { resolveColecao, podeJogarBafo, formatoBafo, faltaPraFechar, BAFO2_MIN, BAFO2_PREP_SEG, BAFO2_ELENCO, BAFO2_CONVOCA_SEG, BAFO2_ESCOLHA_SEG, type CartaBafo, type LinhaColecao, type AchaNoBaralho, type Necessidades } from './bafo2'
@@ -201,6 +201,7 @@ export function ConvocacaoBafo({ colecao, marcadas, onMarcar, seg, pronto, onPro
 // Então: `AberturaBafo` = SÓ o pacote (2,5 s, toque pula) · `ExemploBafo` = a faixa fixa em cima da lista.
 export const BAFO2_ABRE_PACOTE_MS = 2500
 export function AberturaBafo({ decorrido, onPular }: { decorrido: number; onPular: () => void }) {
+  useEffect(() => { try { playRufar(1.7); const t = window.setTimeout(playPacote, BAFO2_ABRE_PACOTE_MS - 600); return () => window.clearTimeout(t) } catch { return undefined } }, []) // 🥁🎁🔊 21/11: o pacote treme (tambor) e rasga
   return (
     <div onClick={onPular} role="button" style={{ border: `4px solid ${INK}`, borderRadius: 22, background: 'radial-gradient(circle at 50% 35%,#12301f,#0c0c0c 75%)', boxShadow: '4px 4px 0 #000', padding: '16px 14px', minHeight: 440, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, cursor: 'pointer', overflow: 'hidden' }}>
       <style>{'@keyframes bf-treme{0%,100%{transform:rotate(-3deg)}25%{transform:rotate(4deg) scale(1.03)}50%{transform:rotate(-5deg) scale(1.06)}75%{transform:rotate(5deg) scale(1.09)}}@keyframes bf-rasga{0%{transform:scale(1.1);opacity:1;filter:brightness(1.4)}100%{transform:scale(1.9);opacity:0;filter:brightness(3)}}'}</style>
@@ -365,7 +366,7 @@ function RevelaBafo({ b, decorrido }: { b: Bafo2Linha; decorrido: number }) {
   const etapa = noPacote ? 0 : Math.min(3, 1 + Math.floor((decorrido - REV_PACOTE_MS) / REV_PISTA_MS))
   const virou = decorrido >= REV_VIRA_MS
   const ult = useRef(-1)
-  useEffect(() => { const m = virou ? 9 : etapa; if (m !== ult.current) { ult.current = m; try { playTick() } catch { /* sem som */ } } }, [etapa, virou])
+  useEffect(() => { const m = virou ? 9 : etapa; if (m !== ult.current) { ult.current = m; try { if (m === 0) playRufar(REV_PACOTE_MS / 1000); else if (m === 9) playChime(); else playTick() } catch { /* sem som */ } } }, [etapa, virou])
   const z = ZOEIRA_BAFO[b.id % ZOEIRA_BAFO.length][en ? 1 : 0].replace(/\{c\}/g, (r.paraNome ?? '').trim()).replace(/\{p\}/g, (r.deNome ?? '').trim()).replace(/\{j\}/g, c.name)
   const titulo = virou ? `${c.name.toUpperCase()}!`
     : noPacote ? tr('🥁 Carta tomada!', '🥁 Card taken!')

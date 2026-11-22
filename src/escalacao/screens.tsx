@@ -45,7 +45,7 @@ import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado } from '
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
-import { playCoin, playSeal, playTick, playHammer, playChime, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playChime, playPacote, playRufar, playMp3, startCrowd, stopCrowd, playTempoEsgotado, playQuase, playMonte, playSuaVez } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -5690,6 +5690,8 @@ function Tiebreak() {
   const online = state.onlineMode === 'online'
 
   const amInIt = !!tb && tb.managers.includes(you.id)
+  // 🥁🔊 21/11: empatou no maior lance → rufar de tambor quando a disputa abre (uma vez por disputa)
+  useEffect(() => { if (tb) playRufar(0.9) }, [state.tiebreakIdx, tb?.card.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const iSubmitted = !!tb && tb.submitted.includes(you.id)
   const [amount, setAmount] = useState(tb?.amount ?? 0)
   const [pending, setPending] = useState(false)
@@ -10790,7 +10792,8 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     if (!savedRef.current) { savedRef.current = true; void persist(card) } // rede de segurança
     setOpening(true)
     // pacote balança/estoura e revela a carta JÁ garantida (não sorteia de novo)
-    setTimeout(() => { setClaimed(card); onClaimed?.(card); setStatus('revealed') }, 950)
+    playPacote() // 🎁🔊 21/11: o pacote rasga e a carta aparece com o sininho
+    setTimeout(() => { playChime(); setClaimed(card); onClaimed?.(card); setStatus('revealed') }, 950)
   }
 
 
@@ -10944,8 +10947,8 @@ function StreamSpectatorCard({ champName, card }: { champName: string; card?: Wo
   const reveal = opened && !!card
   const openPack = () => {
     if (opening || opened) return
-    setOpening(true)
-    setTimeout(() => { setOpening(false); setOpened(true) }, 950)
+    setOpening(true); playPacote()
+    setTimeout(() => { playChime(); setOpening(false); setOpened(true) }, 950)
   }
 
   if (reveal && card) {
