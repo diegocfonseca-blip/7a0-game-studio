@@ -1,7 +1,7 @@
-// 22/11: visual aprovado em mockup; somente Diego + Futpoint, futebol nas salas.
+// 22/11: revisão aprovada: agora exclusivamente a conta principal de Diego.
 // Reversão global do experimento: false. Nenhuma permissão de dados depende disto.
 export const FOOTBALL_MATCH_PILOT_ENABLED = true
-const ACCOUNTS = new Set(['diego.c.fonseca@gmail.com', 'gfpicolo13@gmail.com'])
+const ACCOUNTS = new Set(['diego.c.fonseca@gmail.com'])
 
 export function footballMatchPilotEmail(email?: string | null) {
   return FOOTBALL_MATCH_PILOT_ENABLED && ACCOUNTS.has((email ?? '').trim().toLowerCase())

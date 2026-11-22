@@ -12,11 +12,12 @@
 // 5) o escudo acende com a estrela dourada girando atrás; O Paredão vai pro canto
 // 6) a frase bate — PÊNALTI CONTRA? AQUI TEM SÃO VICTOR — e a faixa "CHEGOU NA SALA · O PAREDÃO"
 // Mesmo esquema das outras galas únicas: palco 420×760 escalado, camada fixa sem clique, fora do reducer, sem localStorage.
-// Sem som próprio por enquanto: não existe canto do Atlético no jogo ainda (o Diego vai mandar).
+// Som: o canto do Galo (`sfx/torcida-galo-duarte-v1.mp3`, 14 s do vídeo que o Diego mandou em 22/11 — o mesmo da carreira), abaixando no fim.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Escudo } from './escudos'
 import { tr } from './lang'
+import { playMp3Gala } from './sound'
 import paredaoImg from './img/duarte-mascote.webp' // 440×335, O Paredão defendendo com o pé (a bola fica no canto de cima)
 
 export const DUARTE_MS = 8600
@@ -98,6 +99,7 @@ function useEscala() {
 export function GalaDuarte({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
   void grito
+  useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-galo-duarte-v1.mp3`, T), [chave]) // 📣 o canto do clube (a sala inteira ouve; respeita o mudo)
   const frase = [tr('PÊNALTI CONTRA?', 'PENALTY AGAINST?'), tr('AQUI TEM', 'HERE WE HAVE'), 'SÃO VICTOR 🙏']
   return createPortal(
     <div key={chave} className="gdu" aria-hidden>

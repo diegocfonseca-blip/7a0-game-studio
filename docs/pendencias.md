@@ -1,3 +1,10 @@
+## 🔒 22/11 — REVISÃO COMPLETA DO FUTEBOL, AGORA SÓ NA CONTA PRINCIPAL DO DIEGO
+- Autorização nova: “faz aí só pra minha conta tudo”. Substitui a allowlist do piloto anterior: Futpoint e secundária não recebem esta interface.
+- Abas no topo; Partida com controles, plano e XI; Tabela e jogos separados; Rivalidades ampliadas; barra Sala/Troféus/Chat. Desktop com jogo largo, tabela de 420 px, artilharia + assistências, resumo de rivalidades e chat real na lateral.
+- Ordens novas têm efeito real no restante da **liga de teste**, criada pelo Diego e só com contas autorizadas/bots; preservam passado e relógio, atualizando resultado/tabela/gols/assistências juntos. Nas copas e salas fora desse grupo mantém a postura original para o próximo jogo, com limite explicado na tela.
+- Reversão no topo; sem novidades públicas nem migração SQL. Detalhes, testes e limites: [auditoria da revisão privada](futebol-privado-diego-completo-20261122.md).
+- Pendente: teste privado do Diego no aparelho e com sessões autenticadas; expansão das ordens ao vivo às copas não está liberada.
+
 ## ⏭️ 22/11 — BOTÃO "COMEÇAR A SUPERCOPA REI" SEM O SEU TIME (Brasil Oficial)
 - Print do Diego (Brasiliense, T2 Série C): *"por que tá aparecendo pra ver supercopa? se meu time não vai jogar"*. O botão da pré-temporada dizia
   "Começar a Supercopa Rei" só porque ela existia. Agora `rotuloAbre` só fala dela se o SEU time joga (`supercopaMinha`); senão fala do seu estadual
@@ -14647,7 +14654,7 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Banco FEITO: esc_socios, esc_fundadores (102), esc_nomes_batismo (Duarte / FC / EC), user_colors ouro.
 - Gala única "São Victor" (`gala-duarte.tsx`, vídeo `scripts/posts/gala-duarte.webm`): o Diego testou uma 2ª versão sem frases (replay de TV) e preferiu a 1ª — voltou a 1ª, com o recorte da bola da arte acertado (sobrava a ponta) e a sombra fora da linha do corte.
   Fato: a defesa do Victor com o pé foi nas QUARTAS da Libertadores 2013 (Tijuana), não na final — a gala não diz "final".
-- ⏳ SEM CANTO: não existe canto do Atlético Mineiro no jogo (nenhum outro usuário tem). Falta o Diego mandar o áudio → `sfx/torcida-galo-v1.mp3` + sound.ts + gala.
+- ✅ 22/11: CANTO DO GALO chegou (vídeo do Diego) → `sfx/torcida-galo-duarte-v1.mp3` (14 s, mono 56k, −20,6 dB), ligado em sound.ts (e-mail + mascote `duarte_paredao`: carreira em casa, visitante na sala, festa de campeão) e na gala única "São Victor".
 - Post: `scripts/posts/batismo-duarte.png` (dono = "Felipe", tirado do e-mail — confirmar com o Diego).
 
 ## 👁️👑 18/11 — Batismo FUNDADOR Obelisko FC (felipefazzio) — PUBLICADO (OK do Diego)

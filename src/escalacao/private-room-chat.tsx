@@ -9,6 +9,7 @@ import './private-room-chat.css'
 
 export type PrivateChatMessage={id:string;uid?:string;from?:number;name:string;text:string;ts?:number;re?:ChatRe;fig?:number;esp?:boolean}
 type Props={
+ footballDock?:HTMLElement|null
  roomId:string;roomName:string;people:number;open:boolean;setOpen:(value:boolean)=>void;unread:number
  messages:PrivateChatMessage[];isMine:(message:PrivateChatMessage)=>boolean
  onSend:(text:string,re?:ChatRe)=>void;game?:boolean;readOnly?:boolean;off?:boolean
@@ -23,6 +24,15 @@ function dayKey(m:PrivateChatMessage){return dateOf(m)?.toDateString()??''}
 export function PrivateRoomChat(props:Props){
  const{roomId,roomName,people,open,setOpen,unread,messages,isMine,onSend,game=false,readOnly=false,off=false,onToggleChat,renderAttachment,stickers}=props
  const latest=useRef(props);latest.current=props
+ const [desktop,setDesktop]=useState(()=>typeof window!=='undefined'&&window.innerWidth>=1100)
+ const autoOpened=useRef(false)
+ useEffect(()=>{const media=matchMedia('(min-width:1100px)'),update=()=>setDesktop(media.matches);media.addEventListener('change',update);return()=>media.removeEventListener('change',update)},[])
+ const docked=!!props.footballDock&&desktop
+ const shown=open||docked
+ useEffect(()=>{
+  if(docked&&!latest.current.open){autoOpened.current=true;latest.current.setOpen(true)}
+  else if(!docked&&autoOpened.current){autoOpened.current=false;latest.current.setOpen(false)}
+ },[docked])
  const list=useRef<HTMLDivElement>(null),panel=useRef<HTMLElement>(null),input=useRef<HTMLTextAreaElement>(null),close=useRef<HTMLButtonElement>(null)
  const atEnd=useRef(true),seen=useRef(new Set(messages.map(m=>m.id))),opened=useRef(false)
  const baseline=useRef(0),lastWidth=useRef(0),raf=useRef(0),titleId=useId()
@@ -37,7 +47,7 @@ export function PrivateRoomChat(props:Props){
  },[])
  useEffect(()=>()=>cancelAnimationFrame(raf.current),[])
  useEffect(()=>{if(!game)return;return registerPrivateChat(roomId,()=>latest.current.setOpen(true))},[game,roomId])
- useEffect(()=>{if(game)updatePrivateChat(roomId,open,off?0:Math.min(99,unread+pending))},[game,roomId,open,unread,pending,off])
+ useEffect(()=>{if(game)updatePrivateChat(roomId,shown,off||docked?0:Math.min(99,unread+pending))},[game,roomId,shown,unread,pending,off,docked])
  useEffect(()=>{
   const update=()=>{
    const compact=window.innerWidth<=760;setMobile(compact)
@@ -56,10 +66,10 @@ export function PrivateRoomChat(props:Props){
   return()=>{observer.disconnect();window.removeEventListener('resize',update)}
  },[roomId])
  useLayoutEffect(()=>{
-  if(open&&!off&&!opened.current){seen.current=new Set(messages.map(m=>m.id));scrollLatest();close.current?.focus({preventScroll:true})}
+  if(open&&!off&&!opened.current){seen.current=new Set(messages.map(m=>m.id));scrollLatest();if(!docked)close.current?.focus({preventScroll:true})}
   if(!open){setMenu(false);setTray(false)}
   opened.current=open&&!off
- },[open,off,scrollLatest,messages])
+ },[open,off,scrollLatest,messages,docked])
  useLayoutEffect(()=>{
   const added=messages.filter(m=>!seen.current.has(m.id));seen.current=new Set(messages.map(m=>m.id))
   if(!open||off||!added.length)return
@@ -89,20 +99,20 @@ export function PrivateRoomChat(props:Props){
  },[open,off,scrollLatest])
  useEffect(()=>{
   const profile=()=>setOpen(false)
-  const escape=(e:KeyboardEvent)=>{if(e.key!=='Escape'||e.defaultPrevented||!open||!panel.current?.contains(document.activeElement))return;e.preventDefault();if(menu)setMenu(false);else setOpen(false)}
+  const escape=(e:KeyboardEvent)=>{if(e.key!=='Escape'||e.defaultPrevented||!open||!panel.current?.contains(document.activeElement))return;e.preventDefault();if(menu)setMenu(false);else if(!docked)setOpen(false)}
   window.addEventListener(EVENTO_PERFIL_ABERTO,profile);window.addEventListener('keydown',escape)
   return()=>{window.removeEventListener(EVENTO_PERFIL_ABERTO,profile);window.removeEventListener('keydown',escape)}
- },[setOpen,open,menu])
+ },[setOpen,open,menu,docked])
  const send=()=>{const value=text.trim().slice(0,160);if(!value||readOnly||off)return;onSend(value,reply??undefined);setText('');setReply(null);scrollLatest()}
  const counts=Math.min(99,unread+pending)
  return <>
-  {!open&&!navVisible&&<button type="button" className="pc-launcher" data-mobile={mobile||undefined} aria-label={tr('Abrir chat da sala','Open room chat')} onClick={()=>setOpen(true)}>{off?'🔕':'💬'}{counts>0&&!off&&<span>{counts}</span>}</button>}
-  {open&&createPortal(<div className="pc-layer" style={{'--pc-inset':`${viewport.bottom}px`,'--pc-available':`${viewport.height}px`} as CSSProperties}>
+  {!shown&&!navVisible&&<button type="button" className="pc-launcher" data-mobile={mobile||undefined} aria-label={tr('Abrir chat da sala','Open room chat')} onClick={()=>setOpen(true)}>{off?'🔕':'💬'}{counts>0&&!off&&<span>{counts}</span>}</button>}
+  {shown&&createPortal(<div className={`pc-layer${docked?' fp-chat-docked':''}`} style={{'--pc-inset':`${viewport.bottom}px`,'--pc-available':`${viewport.height}px`} as CSSProperties}>
    <section ref={panel} className="pc-chat" role="region" aria-labelledby={titleId} data-mobile={mobile||undefined} data-keyboard={viewport.keyboard||undefined} data-reply={!!reply||undefined} data-tray={tray||undefined}>
     <div className="pc-grip" aria-hidden="true"/>
     <header className="pc-head"><div className="pc-title"><h2 id={titleId}>{tr('CHAT DA SALA','ROOM CHAT')}</h2><p>{roomName}{people>0?` · ${people} ${tr('técnicos','managers')}`:''}</p></div>
      {onToggleChat&&<button type="button" className="pc-head-button" aria-label={tr('Opções do chat','Chat options')} aria-expanded={menu} onClick={()=>setMenu(v=>!v)}>⋯</button>}
-     <button ref={close} type="button" className="pc-head-button pc-close" aria-label={tr('Fechar chat','Close chat')} onClick={()=>setOpen(false)}>×</button>
+     {!docked&&<button ref={close} type="button" className="pc-head-button pc-close" aria-label={tr('Fechar chat','Close chat')} onClick={()=>setOpen(false)}>×</button>}
     </header>
     {menu&&onToggleChat&&<div className="pc-menu"><button type="button" onClick={()=>{onToggleChat();setMenu(false)}}>{off?tr('🔔 Ligar chat da sala','🔔 Enable room chat'):tr('🔕 Desligar chat da sala','🔕 Disable room chat')}</button></div>}
     {off?<p className="pc-off">{tr('O chat está desligado para esta sala. Use as opções acima para ligar.','Chat is off for this room. Use the options above to enable it.')}</p>:<>
@@ -135,6 +145,6 @@ export function PrivateRoomChat(props:Props){
      </>}
     </>}
    </section>
-  </div>,document.body)}
+  </div>,docked?props.footballDock!:document.body)}
  </>
 }
