@@ -10219,6 +10219,7 @@ export function EscLiberta() {
   const [continentalTarget,setContinentalTarget]=useState<HTMLDivElement|null>(null)
   const continentalRight=(node:ReactNode)=>continentalDesk&&continentalTarget?createPortal(node,continentalTarget):node
   const groupStartedAt = useRoundPresentationStart(state.liberta?.rodada ?? 0)
+  const numerosAntesLb=useNumerosAntes(`${state.seed}|liberta|${state.liberta?.rodada??0}`)
   const you = state.managers[state.youIdx]
   const lb = state.liberta
   const online = state.onlineMode === 'online'
@@ -10373,7 +10374,7 @@ export function EscLiberta() {
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
 
-      {footballPilot&&<><FootballDesktopLeaders state={state} finished={revealed}/><OnlineMatchTabs value={visualTab} onChange={setVisualTab}/><FootballTeamPanel editable={false}><YourPitch small/></FootballTeamPanel><FootballRoundSummary position={meuGrupo>=0?grupoShown(meuGrupo).findIndex(t=>t.id===you.id)+1:0} points={meuGrupo>=0?grupoShown(meuGrupo).find(t=>t.id===you.id)?.pts??0:0}/><FootballCompetitionRivals state={state} results={lb.lastResults} finished={revealed} round={lb.rodada} fixtures={lb.fixtures}/></>}
+      {footballPilot&&<><FootballDesktopLeaders state={state} finished={revealed}/><OnlineMatchTabs value={visualTab} onChange={setVisualTab}/><FootballTeamPanel editable={false}><NumerosAntesCtx.Provider value={revealed?null:{antes:numerosAntesLb}}><YourPitch small/></NumerosAntesCtx.Provider></FootballTeamPanel><FootballRoundSummary position={meuGrupo>=0?grupoShown(meuGrupo).findIndex(t=>t.id===you.id)+1:0} points={meuGrupo>=0?grupoShown(meuGrupo).find(t=>t.id===you.id)?.pts??0:0}/><FootballCompetitionRivals state={state} results={lb.lastResults} finished={revealed} round={lb.rodada} fixtures={lb.fixtures}/></>}
       {continentalRight(<>
       {/* ⚔️ 23/10 (Diego: "a tática não está aparecendo em várias coisas"): o MESMO card de próximo jogo + tática da
           liga e da Champions. O motor da fase de grupos (simMatch) já lia `state.tactics` — faltava só o botão. */}
@@ -10776,7 +10777,7 @@ export function EscChampions() {
       {/* 🗂️ as MESMAS abas da liga */}
       {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
 
-      {footballPilot&&<><FootballDesktopLeaders state={state} finished={revealed}/><FootballTeamPanel editable={false}><YourPitch small/></FootballTeamPanel><FootballRoundSummary position={minhaPos} points={tabela.find(t=>t.id===you.id)?.pts??0}/><FootballCompetitionRivals state={state} results={ch.lastResults} finished={revealed} round={ch.rodada} fixtures={ch.fixtures}/></>}
+      {footballPilot&&<><FootballDesktopLeaders state={state} finished={revealed}/><FootballTeamPanel editable={false}><NumerosAntesCtx.Provider value={revealed||ch.rodada===0?null:{antes:numerosAntesCh}}><YourPitch small/></NumerosAntesCtx.Provider></FootballTeamPanel><FootballRoundSummary position={minhaPos} points={tabela.find(t=>t.id===you.id)?.pts??0}/><FootballCompetitionRivals state={state} results={ch.lastResults} finished={revealed} round={ch.rodada} fixtures={ch.fixtures}/></>}
       {/* 🎞️ faixa dos outros jogos (a mesma da liga) */}
       {privateVisual && visualTab === 'jogos' && outros.length > 0 && !(portaoRepescao && revealed) && !portaoOitavas && (
         <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{T('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {ch.rodada}</h3><div className="ll27-ticker" tabIndex={0}>{outros.map(r => {

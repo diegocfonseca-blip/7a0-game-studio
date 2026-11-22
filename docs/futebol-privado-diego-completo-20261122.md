@@ -15,6 +15,7 @@ Pedido: “faz aí só pra minha conta tudo”. Complemento: no desktop, rivalid
 - Abas superiores: Partida / Tabela e jogos / Estatísticas / Elenco / Rivalidades. Ativa roxa com texto claro e traço de destaque, demais verde com contorno visível e texto creme (ajuste posterior do Diego para reservar o amarelo às ações do jogo). Fontes, tamanhos dos botões e modais não mudam neste ajuste. Continuam no topo ao consultar os conteúdos, inclusive antes do pontapé inicial.
 - Partida: placar cinema ou Campo2D real, controles e velocidade originais, posição e pontos, amostra de até dois outros jogos, **Todos os jogos**, plano e os onze próprios.
 - Tabela e jogos: classificação inteira e rodada completa, com as travas anteriores contra spoiler. Nas copas, jogos da competição e histórico da chave.
+- A escalação nas copas também usa a foto anterior dos gols e assistências até o apito, incluindo quem abre a tela com a partida em andamento.
 - Elenco: o mesmo time próprio é movido por portal; sem duplicar o editor. Edição continua restrita aos modos que já permitem (Minha Liga Draft e Bafo).
 - Rivalidades: próximo encontro e retrospecto real já existente, sequência da conta e últimos placares completos registrados por este aparelho desde o teste; maior vitória entre esses registros. Não inventa placares anteriores. Cache local limitado a 120 duelos, separado por UID.
 - Barra inferior: Sala / Troféus / Chat. Ajustes continuam no menu Sala apenas para o dono quando o modo permite; Rank e Temporadas ficam dentro de Troféus nas ligas persistentes.
