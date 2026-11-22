@@ -1,3 +1,8 @@
+## ⚽🔎 22/11 — CAMPO 3D: bola MENOR que a 1ª tentativa (publicado; Diego: *"a bola, você aumentou demais"*)
+- De 1,5× de perto / teto 3,2× / mínimo ~10 px na tela pra **1,2× / 2,2× / ~6,5 px** (`presidencia-bola-3d.ts`). Ainda é maior que os 3 px
+  de antes na Câmera de TV. Comparação (maior · menor na TV · menor na Lateral próxima): `scripts/mockups/bola-3d-menor.jpg`.
+- Se ele ainda achar grande/pequena: mexer só nesses três números.
+
 ## ⚽ 22/11 — CAMPO 3D: lances analisados quadro a quadro; 2 defeitos de bola consertados (publicado)
 - Diego: *"tô pedindo pra você olhar domínio, passe, chute, jogadas… se tá feio, se não parece futebol de verdade, você melhora"*.
 - Como foi olhado: `scripts/mapa3d/filma-bancada.mjs` ganhou `RECORTE=<px>` (recorta em volta da bola), `NUMEROS=1` (bola, fase, dono e o
