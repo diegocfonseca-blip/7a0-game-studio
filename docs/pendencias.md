@@ -1,3 +1,9 @@
+## 🚫 21/11 (noite) — Ideias pra partida nas SALAS: 2 listas RECUSADAS (*"N gostei de nenhuma"*) — não repropor
+- Pedido: analisar a partida rolando nas salas e deixar mais imersivo / dar o que FAZER enquanto a classificação rola.
+- Recusadas (lista 1): assistir o jogo de um amigo · palpite da rodada · provocar no gol com a mascote · rádio da rodada · mexer no time com o jogo rolando.
+- Recusadas (lista 2): pênalti batido na sala · torcida no dedo · bagre da rodada (voto) · bolão com a sobra do leilão · coletiva da zoeira · troca de jogador entre técnicos.
+- Próximo passo: NÃO mandar 3ª lista. Perguntar o que ELE imagina (um exemplo de outro jogo, ou o momento exato em que sente falta de algo) e partir daí.
+
 ## 🔊 21/11 (noite) — MAIS SONS (Diego escolheu 5 de 6; a troca de posição no leilão ele NÃO quis) — 🟢 publicado em 21/11 à noite
 - Sons novos em `sound.ts` (sintetizados, 0 KB, respeitam o mudo): `playPacote` · `playEntrou` · `playLargada` · `playRufar` · `playDia` · `playApitoCurto` · `playFlash`.
 - Onde tocam: 🎁 pacote do campeão (rasga + sininho; também no cartão de quem assiste) · 🃏 Bafo (tambor + rasgo na abertura; tambor no suspense da carta
