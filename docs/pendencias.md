@@ -1,3 +1,10 @@
+## 🛟 22/11 — "OPS, ALGO DEU ERRADO" NA CENTRAL (React #185) + CENTRAL DIRETA PRA TODOS
+- Print de um jogador (eenzozzy, iPhone) às 13h01 na versão no ar (`index-C_1QLLZd.js`): o erro estourou no cartão da CENA DO BAIRRO (`CartaoSede`,
+  central.tsx), que media a tela A CADA desenho (`useLayoutEffect` sem lista) e com o mapa ao vivo no quadro entrou numa corrente de atualizações sem fim.
+  Conserto: mede só ao montar e quando a tela muda de tamanho; e o mapa do quadro ficou dentro de um `SemQuebrar` — se ele cair, fica a foto, a Central não cai.
+  ⚠️ Não reproduzi o erro na bancada (só no aparelho dele); se voltar a aparecer, olhar o `VagaDoMapa`/`MapaGuardado` dentro do quadro.
+- 🟢 Central direta liberada pra todos no mesmo dia (`CENTRAL_DIRETA_GERAL = true`) + linha nas novidades.
+
 ## 🧭 22/11 — CENTRAL DIRETA (sem dias pra passar) — FEITA, SÓ NA CONTA DO DIEGO (`CENTRAL_DIRETA_GERAL = false`)
 - Mockups aprovados (*"Sim"*): `scripts/mockups/central-nova-cel.png`/`-pc.png`. Ajustes dele no caminho: agenda = a "Próximos jogos" que JÁ existe
   na Central (escudo, competição, estádio, CASA/FORA) e botões 2D/3D/Placar PEQUENOS numa fileira (*"tá muito exagerado os botões"*).

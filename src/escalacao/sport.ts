@@ -389,7 +389,7 @@ export function useFluxoCentral(): boolean {
 // PRÓXIMO JOGO; a cena da semana (ônibus, obra, boteco, balada…) vem antes, num banner com "Seguir"; a escolha 2D/3D/Placar fica numa
 // fileira de botões pequenos. Nasce na conta do Diego; `CENTRAL_DIRETA_GERAL = true` libera pra todos.
 const CENTRAL_DIRETA_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
-export const CENTRAL_DIRETA_GERAL = false
+export const CENTRAL_DIRETA_GERAL = true // 🟢 22/11: liberada pra todos (Diego: *"publique também a central nova já pra todos"*)
 let centralDiretaOk = CENTRAL_DIRETA_GERAL || (() => { try { return localStorage.getItem('esc-central-direta-dev') === '1' } catch { return false } })() // 🧪 bancada: liga sem conta
 function applyCentralDireta(email?: string | null): void {
   let dev = false; try { dev = localStorage.getItem('esc-central-direta-dev') === '1' } catch { /* sem aparelho */ }

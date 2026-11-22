@@ -17,7 +17,7 @@ import {CareerCentralGuide} from './career-start-guide'
 //   📊 a TABELA resumida e a 🗓️ AGENDA das copas. Tocar leva pra aba certa.
 // Tudo que aparece aqui JÁ apareceu em outra aba — a Central não sabe de nada
 // que a tela não saiba. 🔒 Só a conta do Diego vê (`useCentralCarreira`).
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { Component, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { CardColetiva, FotoLendas, type CardColetivaProps } from './coletiva-ui' // 🎙️ coletiva de imprensa (19/10)
 import { Escudo } from './escudos'
@@ -91,6 +91,13 @@ function CartaoRaioX({ r }: { r: RaioX }) {
  *  acontecimento; fechou, não volta (guarda só a ÚLTIMA chave fechada — uma entrada só no aparelho, nunca cresce). */
 export type CentralSede = { /** 📍 o lugar do mapa onde a cena acontece (o "Ver no mapa" voa pra lá) */ vista?: string; chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
 const SEDE_FECHADA = 'esc-sede-fechada'
+/** 🛟 22/11: se o mapa ao vivo do quadro der erro, fica a foto da cena — a Central nunca cai por causa dele */
+class SemQuebrar extends Component<{ children: ReactNode }, { erro: boolean }> {
+  state = { erro: false }
+  static getDerivedStateFromError() { return { erro: true } }
+  componentDidCatch(e: unknown) { try { console.warn('[central] mapa ao vivo da cena caiu; ficou a foto', e) } catch { /* nada */ } }
+  render() { return this.state.erro ? null : this.props.children }
+}
 function CartaoSede({ s, onMapa, cls, janela, seguir }: { s: CentralSede; onMapa: () => void; cls: string; /** 🎥 22/11: o MAPA ao vivo no lugar da foto parada */ janela?: ReactNode; /** 🧭 22/11 (Central direta): o banner da semana vem ANTES do jogo; "Seguir" fecha e mostra o jogo */ seguir?: () => void }) {
   const t = useT()
   // 🎥 22/11 (Diego: *"só deve aparecer com videozinhos… igual a chegada do ônibus"*): a cena passa AO VIVO no quadro (o mapa de
@@ -98,11 +105,13 @@ function CartaoSede({ s, onMapa, cls, janela, seguir }: { s: CentralSede; onMapa
   // só o cartão que está na tela encaixa ele.
   const raiz = useRef<HTMLDivElement>(null)
   const [naTela, setNaTela] = useState(false)
+  // 🛟 22/11 (print de um jogador: "Ops, algo deu errado" · React #185, atualização sem fim): medir A CADA desenho fazia este cartão
+  // entrar na corrente de atualizações do mapa ao vivo e a página caía. Agora mede ao montar e quando a tela muda de tamanho.
   useLayoutEffect(() => {
-    const mede = () => setNaTela(!!raiz.current && getComputedStyle(raiz.current).display !== 'none')
+    const mede = () => { const v = !!raiz.current && getComputedStyle(raiz.current).display !== 'none'; setNaTela(a => (a === v ? a : v)) }
     mede(); window.addEventListener('resize', mede)
     return () => window.removeEventListener('resize', mede)
-  })
+  }, [])
   const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) === s.chave } catch { return false } })
   useEffect(() => { try { setFechada(localStorage.getItem(SEDE_FECHADA) === s.chave) } catch { setFechada(false) } }, [s.chave])
   if (fechada) return null
@@ -113,7 +122,7 @@ function CartaoSede({ s, onMapa, cls, janela, seguir }: { s: CentralSede; onMapa
         {janela && naTela && <>
           {/* só a IMAGEM do mapa entra no quadro (botões e avisos dele somem), na altura do quadro — o mesmo jeito da chegada do ônibus */}
           <style>{'.ll-sede-mapa *{visibility:hidden!important}.ll-sede-mapa canvas{visibility:visible!important}.ll-sede-mapa .pc3-stage{height:260px!important;min-height:0!important;max-height:260px!important}'}</style>
-          <div className="ll-sede-mapa" data-sede-ao-vivo style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>{janela}</div>
+          <div className="ll-sede-mapa" data-sede-ao-vivo style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><SemQuebrar>{janela}</SemQuebrar></div>
         </>}
         <span style={{ ...OSW, position: 'absolute', left: 10, top: 10, background: INK, color: GOLD, fontSize: 11, letterSpacing: '.12em', padding: '4px 8px', borderRadius: 8 }}>🎥 {s.rotulo}</span>
         {s.hora && <span style={{ ...OSW, position: 'absolute', right: 10, top: 10, background: RED, color: '#fff', fontSize: 11, letterSpacing: '.1em', padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}` }}>● {s.hora}</span>}
