@@ -23,6 +23,13 @@ const CSS = `${FONTES}*{box-sizing:border-box}body{margin:0;background:#0b0a08;f
 .q{font:700 15px Oswald;color:${GOLD};text-transform:uppercase;text-align:center;margin:14px 0 8px}
 .bt{border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;padding:13px 8px;font:700 17px Oswald;text-transform:uppercase;text-align:center;color:#fff}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.tri{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.bp{border:2px solid #000;border-radius:10px;box-shadow:2px 2px 0 #000;padding:8px 4px;font:700 13px Oswald;text-transform:uppercase;text-align:center;color:#fff}
+.agc{background:#F4ECD6;color:${INK};border:2px solid #000;border-radius:16px;box-shadow:4px 4px 0 #000;margin-top:12px;overflow:hidden}
+.agt{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:3px solid ${INK};font:700 15px Oswald;letter-spacing:.08em;text-transform:uppercase}.agt a{font:700 12px Oswald;color:#C9A000;text-transform:none;letter-spacing:0}
+.lj{display:flex;align-items:center;gap:9px;padding:8px 10px;border-top:2px solid #ddd3bc}.lj:nth-child(2){border-top:0}
+.dt{width:44px;flex:none;text-align:center;border:2px solid ${INK};border-radius:8px;background:#fff;line-height:1.05;padding:3px 0;font-family:Oswald;text-transform:uppercase}.dt small{display:block;font-size:9px;font-weight:700}.dt b{display:block;font-size:17px}
+.lj img{width:30px;height:30px;object-fit:contain}.tx2{flex:1;min-width:0;line-height:1.2}.tx2 b{display:block;font:700 14px Oswald;text-transform:uppercase}.tx2 small{display:block;font:700 10.5px system-ui;color:#555}.tx2 em{display:block;font:800 10.5px system-ui;font-style:normal;color:#7a5a1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{border:2px solid ${INK};border-radius:99px;background:#fff;padding:3px 9px;font:700 11px Oswald;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .ag{margin-top:14px}.ag h4{margin:0 0 6px;font:700 12px Oswald;letter-spacing:.14em;color:${GOLD};text-transform:uppercase}
 .ln{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px dashed #3a3226;font:600 14px system-ui}.ln:first-of-type{border-top:0}
 .dia{background:${GREEN};border-radius:8px;padding:3px 8px;font:700 12px Oswald;color:#fff;text-transform:uppercase;min-width:54px;text-align:center}
@@ -45,12 +52,11 @@ const topo = `<div class="cab">Brasiliense · Temporada 2 · Série C</div><div 
 const confronto = `<div class="rot"><span>⚽ Próximo jogo</span><span>Rodada 15</span></div>
 <div class="conf"><img src="${BRA}"><div class="mid">Dom 9 · 16h<small>☀️ Liga · em casa</small></div><img src="${ITU}"></div>
 <div class="nomes"><span>Brasiliense</span><span>Ituano</span></div>`
-const botoes = `<div class="q">Como você quer ver o jogo?</div>
-<div class="duo"><div class="bt" style="background:${GREEN}">📺 Campo 2D</div><div class="bt" style="background:${ROXO}">🏟️ Campo 3D</div></div>
-<div class="bt" style="background:${GOLD};color:${INK}">⚡ Placar rápido</div>`
-// 🔁 22/11 (Diego: *"por que nos próximos jogos não aparece bonitinho com escudos… e não com @"*): escudo + nome + "fora/em casa" escrito
-const jogo = (dia, img, nome, casa) => `<div class="ln"><span class="dia">${dia}</span><img src="${img}"><b>${nome}</b><span class="onde ${casa ? 'casa' : ''}">${casa ? '🏠 em casa' : '🚌 fora'}</span><span class="h">16h</span></div>`
-const agenda = `<div class="ag"><h4>📅 Depois deste</h4>${jogo('Dom 16', SAM, 'Sampaio Corrêa', false)}${jogo('Dom 30', BOT, 'Botafogo-SP', true)}</div>`
+// 🔁 22/11 (Diego: *"tá muito exagerado os botões de decisão de placar, campo 2D ou 3D"*): uma fileira de 3 botões pequenos
+const botoes = `<div class="q">Ver o jogo em</div><div class="tri"><div class="bp" style="background:${GREEN}">📺 2D</div><div class="bp" style="background:${ROXO}">🏟️ 3D</div><div class="bp" style="background:${GOLD};color:${INK}">⚡ Placar</div></div>`
+// 🔁 22/11 (Diego: *"a forma como tá essa agenda aqui tá mais bonita"*): é a agenda "Próximos jogos" que JÁ existe na Central (central.tsx, CentralAgenda)
+const jogo = (dow, d, mes, img, nome, onde, casa) => `<div class="lj"><span class="dt"><small>${dow}</small><b>${d}</b><small>${mes}</small></span><img src="${img}"><span class="tx2"><b>${nome}</b><small>Brasileirão Série C</small><em>📍 ${casa ? 'no seu estádio · ' : ''}${onde}</em></span><span class="pill">${casa ? '🏟️ Casa' : '🚌 Fora'}</span></div>`
+const agenda = `<div class="agc"><div class="agt"><span>🗓️ Próximos jogos</span><a>jogos ›</a></div>${jogo('Dom', 16, 'Mai', SAM, 'Sampaio Corrêa', 'Castelão (MA)', false)}${jogo('Dom', 30, 'Mai', BOT, 'Botafogo-SP', 'Boca do Jacaré', true)}</div>`
 const mini = `<div class="mini"><img src="${BRA}">× <img src="${ITU}">Ituano · dom 9<span>a seguir ›</span></div>`
 const banAssistir = `<div class="ban"><div class="arte"><span class="selo">🎥 Na semana · no bairro</span></div><div class="tx">
 <div class="k">🚌 Sexta-feira</div><h3>O ônibus do Ituano chegou</h3><p>A torcida foi receber na porta do estádio. Clima de jogo grande no domingo.</p>
@@ -62,7 +68,7 @@ const banDecisao = `<div class="ban"><div class="arte" style="background-positio
 <div class="pont"><i></i><i class="on"></i></div>
 <div class="duo" style="margin-top:8px;margin-bottom:0"><div class="bt" style="background:${RED}">Multar<br><small style="font:600 11px system-ui;text-transform:none">+15 🪙 · ele joga chateado</small></div>
 <div class="bt" style="background:${GREEN}">Passar pano<br><small style="font:600 11px system-ui;text-transform:none">grupo perde respeito</small></div></div>`
-const telaJogo = `<div class="tela">${topo}<div class="card">${confronto}${botoes}${agenda}</div>${abas}</div>`
+const telaJogo = `<div class="tela">${topo}<div class="card">${confronto}${botoes}</div>${agenda}${abas}</div>`
 const telaBan = b => `<div class="tela">${topo}${b}${mini}${abas}</div>`
 const cel = `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}
 body{width:1290px;padding:26px}.g{display:grid;grid-template-columns:repeat(3,390px);gap:30px;align-items:start}
