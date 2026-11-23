@@ -115,6 +115,19 @@ body.fp-match-pilot .ov3-summary-slot .ll27-room-summary{margin:10px 0 0;padding
 .fp-room-dialog{max-width:440px;width:calc(100% - 28px);border:3px solid #0c0c0c;border-radius:15px;background:#f4ecd6;color:#0c0c0c;padding:20px;box-shadow:5px 5px #000;font-family:Arial,sans-serif}.fp-room-dialog::backdrop{background:#061009c9}.fp-room-dialog header{display:flex;justify-content:space-between;align-items:center}.fp-room-dialog h2{font:700 25px Oswald,sans-serif;margin:0}.fp-room-dialog button{min-height:44px;border:2px solid #0c0c0c;border-radius:8px;background:#ffc400;padding:8px 12px;color:#0c0c0c;font:700 13px Oswald,sans-serif;cursor:pointer}.fp-room-dialog ul{padding-left:20px;line-height:1.8}.ov3-hub-nav>.fp-room-menu{flex:1;min-height:52px;min-width:70px;background:none;border:0;color:#0c0c0c;font:700 14px Oswald,sans-serif;text-transform:uppercase;cursor:pointer}
 body.fp-match-pilot .ov3-hub-nav .pc-nav-entry{display:block!important}
 .fp-chat-target:empty{display:none}
+/* Quatro decisões em duas linhas no desktop; fontes e controles permanecem. */
+@media(min-width:1100px){
+ body.fp-match-pilot .fp-advanced-tactics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+ body.fp-match-pilot .fp-advanced-tactics>header{grid-column:1/-1!important;order:0}
+ body.fp-match-pilot .fp-advanced-tactics>.fp-order-group,
+ body.fp-match-pilot .fp-advanced-tactics>.fp-extra-orders>.fp-order-group{grid-column:auto!important;width:auto!important;max-width:none!important;margin:0!important;order:1}
+ body.fp-match-pilot .fp-advanced-tactics>.fp-extra-orders{display:contents!important}
+ body.fp-match-pilot .fp-advanced-tactics>.fp-plan-tradeoff{grid-column:1/-1!important;order:2}
+ body.fp-match-pilot .fp-advanced-tactics>small,
+ body.fp-match-pilot .fp-advanced-tactics>.fp-extra-orders>small{grid-column:1/-1!important;order:3}
+ body.fp-match-pilot .fp-advanced-tactics>.fp-send-order{grid-column:1/-1!important;order:4}
+ body.fp-match-pilot .fp-advanced-tactics>.fp-plan-status{grid-column:1/-1!important;order:5}
+}
 .fp-chat-docked.pc-layer{position:static;inset:auto;z-index:auto;pointer-events:auto;width:100%}.fp-chat-docked .pc-chat{position:relative;inset:auto;width:100%;height:480px;max-height:none;box-sizing:border-box;margin-top:18px}.fp-chat-docked .pc-layer{inset:auto}
 @media(max-width:1099px){
  body.fp-match-pilot[data-fp-page=match] .ll31-table{display:none!important}

@@ -1,5 +1,9 @@
 # Copas online — piloto privado (23/11)
 
+**Atualização:** a restrição de contas foi superada pela autorização de liberação
+geral em [futebol-online-publico-20261123.md](futebol-online-publico-20261123.md).
+Este documento conserva a evidência e o escopo do piloto anterior.
+
 Diego autorizou o padrão da liga nas competições online para sua conta principal e Futpoint. Confrontos, classificados/eliminados e segundos de leitura continuam usando os componentes e relógios existentes, agora no palco da transmissão em qualquer aba. Pênaltis ficam junto do placar/campo, antes do resumo, telão e controles.
 
 ## Escopo e comportamento

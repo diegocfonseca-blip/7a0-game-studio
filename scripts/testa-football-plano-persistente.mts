@@ -69,6 +69,24 @@ const neutral=reducer(base,{...save,plan:DEFAULT_FOOTBALL_PLAN})
 assert.deepEqual(reducer(neutral,{type:'PLAY_ROUND'}).lastResults,reducer(base,{type:'PLAY_ROUND'}).lastResults,'saving neutral preserves legacy RNG and results')
 const publicHost={...base,youUid:'another-host',seatUids:[...base.seatUids!]};publicHost.seatUids[0]='another-host'
 assert.deepEqual(nextPlanFor(reducer(publicHost,guestSave),guest.id),guestPlan,'a private guest can save through a different updated host')
+const publicUid='00000000-0000-4000-8000-000000000101'
+const publicGuest={...base,seatUids:[...base.seatUids!]};publicGuest.seatUids[1]=publicUid
+const publicSave={...guestSave,by:publicUid}
+let publicSaved=reducer(publicGuest,publicSave)
+assert.deepEqual(nextPlanFor(publicSaved,guest.id),guestPlan,'any authenticated participant can save its own plan')
+for(let n=0;n<3;n++){publicSaved=reducer(publicSaved,{type:'PLAY_ROUND'});assert.deepEqual(planFor(publicSaved,guest.id),guestPlan,'public participant plan remains active in later rounds')}
+assert.equal(publicSaved.youIdx,publicGuest.youIdx,'saving a public plan never changes host local seat')
+assert.deepEqual(reducer(publicGuest,{...publicSave,mgrId:you.id}).footballNextPlans,undefined,'public actor cannot edit another manager')
+assert.deepEqual(reducer({...publicGuest,isHost:false},publicSave).footballNextPlans,undefined,'guest still waits for host confirmation')
+for(const comp of ['liberta','champions','cup']){
+ const cs=footballTestState(comp);cs.seatUids![0]=publicUid;cs.youUid=publicUid
+ const id=cs.managers[0].id,queued=reducer(cs,{type:'FOOTBALL_SAVE_PLAN',mgrId:id,by:publicUid,plan})
+ assert.deepEqual(nextPlanFor(queued,id),plan,`${comp}: public choice is saved`)
+ const action=comp==='liberta'?'PLAY_LIBERTA_RODADA':comp==='champions'?'PLAY_CHAMPIONS_RODADA':'PLAY_COPA_LEG'
+ const played=reducer(queued,{type:action} as never)
+ assert.deepEqual(planFor(played,id),plan,`${comp}: public saved choice is promoted for the following match`)
+ assert.equal(played.youUid,publicUid,`${comp}: public identity remains local`)
+}
 const fresh=reducer(saved,{type:'NEW_GAME'})
 assert.equal(fresh.footballNextPlans,undefined,'new game cannot inherit another room plan')
 console.log('PASS: persistent plans, 5 rounds, actual simulation, save/reconnect, host/guest routing and identity, isolation, legacy selector, live orders and neutral RNG.')

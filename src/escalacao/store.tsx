@@ -12182,7 +12182,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'FOOTBALL_SAVE_PLAN': {
-      // Existing guest -> host route; only the trusted test room can accept a plan.
+      // Existing guest -> host route; a human's saved plan must match its UID/seat.
       // Match manager ID against its UID, never against the host's local youIdx.
       if(!footballPlanHost(s)||!footballPlanActor(action.by)||ehKings(s)||!['season','liberta','champions'].includes(s.screen)||s.screen==='liberta'&&!s.liberta||s.screen==='champions'&&!s.champions||s.quickCopa?.phase==='done'||s.screen==='season'&&!s.quickCopa&&s.champion!=null||!validFootballPlan(action.plan)||action.plan.mark!==null)return s
       const seat=s.managers.findIndex(m=>m.id===action.mgrId&&m.isHuman)

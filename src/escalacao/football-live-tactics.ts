@@ -26,9 +26,9 @@ export function footballTestRoom(s:EscState){
   &&s.managers.some((m,i)=>m.isHuman&&s.seatUids?.[i]===FOOTBALL_OWNER_UID)
   &&s.managers.every((m,i)=>!m.isHuman||TEST_ACCOUNTS.has(s.seatUids?.[i]??''))
 }
-export const footballPlanActor=(uid:string|undefined)=>uid===FOOTBALL_OWNER_UID||uid==='eb02f1d6-de80-4304-ab49-512342f3c7b7'
+export const footballPlanActor=(uid:string|undefined)=>!!uid&&/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(uid)
 export const footballPlanHost=(s:EscState)=>s.isHost&&footballPlanRoom(s)
-/** Host-authoritative competitions can carry a private player's plan in public rooms too. */
+/** A plan belongs to the human UID in this manager's actual seat. */
 export function promoteFootballPlans(s:EscState){
  if(!footballPlanHost(s))return
  for(const [seat,m] of s.managers.entries()){
