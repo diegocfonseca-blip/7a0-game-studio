@@ -36,8 +36,10 @@ const NEED_NBA = Object.fromEntries(SECTORS.map(p => [p, 1])) as Record<Sector, 
 const needDe = (formation: FormationKey): Record<Sector, number> => DRAFT_BB ? NEED_NBA : (FORMATIONS[formation] ?? FORMATIONS['4-3-3'])
 
 export const DRAFT_ESCOLHA_MS = 60_000
-// 📋🏆 MINHA LIGA DRAFT (01/11, Diego): 45 s por vez, e o relógio só corre depois que a pessoa aperta ✋ PRONTO
-export const DRAFT_ESCOLHA_MINHA_MS = 45_000
+// 📋🏆 MINHA LIGA DRAFT — 🔁 23/11 (Diego: *"a tela de escolha passa a ser de 60s a partir do momento que entra essa tela de pegar no draft
+// ou sondar amigo… esses mesmos segundos contarão pras telas seguintes… uma continuação, e não um novo tempo"*): 60 s por vez, correndo
+// DESDE que a vez chega (antes eram 45 s só depois do ✋). Apertar "Pegar do draft"/"Sondar" NÃO reinicia o relógio. Acabou = perde a vez.
+export const DRAFT_ESCOLHA_MINHA_MS = 60_000
 // 🐢 02/11 (Diego: *"tô achando o suspense muito rápido… um pouco mais devagar, com mais suspense"*): 2 s → 3 s por pista
 export const DRAFT_PISTA_MS = 3_000
 // ⏱️ o anúncio: 4 tempos de pista (0 · 3 · 6 · 9 s), a carta vira aos 12 s e fica na tela até os 18 s

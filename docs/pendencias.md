@@ -116,6 +116,14 @@
 - Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
   `liberta-sala` e `regional` passam.
 
+### ⏱️ 23/11 — Minha Liga Draft: 60 s desde a vez, chat e confirmação do pular (no branch, esperando "pode publicar")
+- A vez chega na tela das 2 escolhas (Pegar do draft · Sondar) com **60 s correndo** (`DRAFT_ESCOLHA_MINHA_MS`); apertar uma delas **continua o mesmo relógio**.
+- **O relógio é AVISO**: o fim dos 60 s não tira a vez de ninguém (`DRAFT_TICK` não pula mais); quem pula é o ⏭ do dono. Zerado = "Tempo esgotado · o dono da sala decide".
+- ⏭ Pular a vez: **antes** do tempo acabar abre "Tem certeza que quer pular o X antes de acabar o tempo dele?" Sim/Não; **depois**, pula direto.
+- 💬 Botão "Chat da sala" dentro da tela do draft (abre o chat padrão).
+- Trava `npm run minha-liga-draft` atualizada. ⚠️ `npm run liga-draft` já falhava ANTES ("ninguém repetido na liga", 220) — não é desta mudança, falta investigar.
+- Prints: `scripts/mockups/draft-vez-60s-celular.png` / `-pc.png` (bancada `scripts/teste-draft-vez/`).
+
 ### 🚫 23/11 — Nome com "pedófilo/pedofelo/pedofilia" barrado
 - Conta "Titio Pedofelo" → **Titio P** (pedido do Diego). Outras 6 contas com a palavra ("Pedofilos FC", "Pedofilo22"…) → "Técnico". Feito direto no banco.
 - Trava na tela: `nome-ofensivo.ts` ganhou `pedof[ie]l` (não pega "Torpedo FC" nem "TRIPÉDOFLU FC").
