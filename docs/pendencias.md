@@ -1,7 +1,7 @@
 ## ⚔️ 23/11 — PRÓXIMO CONFRONTO PERMANENTE NAS ABAS DO VISUAL NOVO
 - Pedido direto do Diego: manter o cartão marrom e os números da rivalidade em todas as abas, no celular e no desktop. O destino comum da transmissão permanece visível; a aba Rivalidades conserva os detalhes sem repetir o cartão.
 - Liga, grupos continentais e copas independentes reaproveitam os componentes e históricos existentes; nenhum novo pedido, canal ou alteração de partida. Visual anterior preservado. [Implementação e evidências](rivalidade-todas-abas-20261123.md).
-- 731 verificações das ligas, 38 da copa pública e 271 de regressão das copas passaram, sem exceções JavaScript; build TypeScript/Vite e `git diff --check` também passaram. Acompanhar publicação no GitHub Actions após o envio.
+- 731 verificações das ligas, 38 da copa pública e 271 de regressão das copas passaram, sem exceções JavaScript. Integrada main `f4f2f15e` preservando detalhes extras só em Rivalidades; build e 83 checagens focadas de cinema/2D mais 38 da copa pública passaram novamente após integrar. Acompanhar publicação no GitHub Actions após o envio.
 
 ## 🎨 23/11 — VISUAL ANTERIOR COM PLANOS NOVOS; PROMESSA SÓ NA CONTA PRINCIPAL
 - Pedido aprovado pelo Diego: rodada com placa creme/lilás para todos; abas superiores roxas quando selecionadas também no visual anterior; brilho Promessa só na conta principal verificada, sem estender a Futpoint ou à secundária.

@@ -26,6 +26,11 @@ calendário, resultados, relógio ou identidade. O visual anterior não muda.
 de regressão das copas passaram, sem exceções JavaScript. Build TypeScript/Vite
 e `git diff --check` também passaram.
 
+Integrada a main `f4f2f15e`, preservando os detalhes extras apenas na aba
+Rivalidades e a retirada da faixa do termômetro sob o placar. Após a integração,
+build passou novamente, assim como 83 checagens focadas nas cinco abas em
+cinema/2D, 390/1440 px, conta principal/pública, e 38 da copa pública.
+
 Os testes conferem visibilidade e o mesmo elemento do cartão nas cinco abas,
 ausência de cópia duplicada no conteúdo e transmissão mantida. Liga com próximo
 adversário humano e bot em 390/1440 px; copa pública com rival humano e histórico
