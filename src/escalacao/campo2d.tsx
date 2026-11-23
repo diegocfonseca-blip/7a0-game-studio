@@ -231,6 +231,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   if (tatica) jogo.tatica = tatica
   // ⏱️ o minuto do placar chega inteiro; aqui ele vira contínuo (até o próximo inteiro) pro campinho andar liso
   const msPorMin = Math.max(400, roundMs * 0.82) / 93
+  const ritmoAtual=useRef(msPorMin);ritmoAtual.current=msPorMin
   // 🐌 FIM DA CÂMERA LENTA (Diego 20/10: *"do nada a bola fica em câmera lenta"*): o campinho calculava o ritmo pela duração
   // do jogo, mas o relógio de cima nem sempre anda nesse ritmo (a Copa da carreira conta 90' no tempo de 93', o online chega
   // pela rede aos trancos). Com o relógio um pouco mais lento, o campinho encostava no limite e ia FREANDO até o minuto
@@ -539,7 +540,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
       }
       const agora = performance.now(), dt = Math.min(250, agora - antes); antes = agora
       if(pausado&&!fechado)relogio.current=suspenderRelogioCampo(relogio.current,simMin,agora)
-      else simMin = passoRelogioCampo(simMin,dt,agora,relogio.current,!!fechado,msPorMin)
+      else simMin = passoRelogioCampo(simMin,dt,agora,relogio.current,!!fechado,ritmoAtual.current)
       const fi = fita.current
       if (fi.de !== jogo) { fi.de = jogo; fi.atual = []; fi.gols = []; vendo.current = null }
       const col = coletor.current
@@ -945,7 +946,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     }
     raf = requestAnimationFrame(quadro)
     return () => {cancelAnimationFrame(raf);if(mapMatchId)soltarSuperficieCampo2D(mapMatchId,surfaceOwner)}
-  }, [jogo, larg, deitado, corCasa, corFora, listrasK, msPorMin, noite, gramaPct, lotacao, mapMatchId])
+  }, [jogo, larg, deitado, corCasa, corFora, listrasK, noite, gramaPct, lotacao, mapMatchId])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
   // 📺 07/11: o TELÃO do estádio — quando a festa do gol termina, ele fica ~10 s com o escudo e o nome de quem fez

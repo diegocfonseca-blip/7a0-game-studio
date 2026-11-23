@@ -1,3 +1,9 @@
+## ⏩ 23/11 — CORREÇÃO DA TROCA DE VELOCIDADE ONLINE (AINDA NÃO PUBLICADA)
+- Reproduzidos o reinício desnecessário do canvas 2D a cada troca e o retrocesso dos outros placares ao desacelerar. O desenho agora preserva cenário/loop; principal, outros jogos, revelação e avanço usam o mesmo relógio local por rodada/perna, recalculando o restante.
+- Liga, Libertadores, Champions e copa local. Calendário de chances do cinema estável e folga extra de pênaltis em tempo real. Mantidos controles exclusivos do host, tempos entre fases, resultados, identidade e coroa. Sem novos campos, canais, consultas ou RPCs; carreira, basquete, Kings e relógios explícitos de copas independentes preservados.
+- Passaram 266 verificações do relógio, 62 específicas no navegador e 651 de interface, sem exceções JavaScript; build TypeScript/Vite, pausa/retomada do campo e `git diff --check` também passaram. Bancada com rede simulada; teste físico no S25 e duas sessões reais continuam pendentes.
+- Mudança isolada em `fix/ritmo-online-20261123`, ainda não publicada. [Detalhes, evidências e limites](ritmo-online-20261123.md).
+
 ## 🌐 23/11 — VISUAL DAS LIGAS E COPAS ONLINE LIBERADO PARA TODOS
 - Autorização nova do Diego substitui a lista Diego/Futpoint. Mesmo visual nas competições de futebol online compatíveis; Draft permanece separado, carreira/basquete/co2/pokeLiga fora e Kings conserva posturas nativas. Outras prévias privadas continuam fechadas.
 - Aprovado no mockup: plano em 2×2 no desktop, retrospecto visível em Partida contra outra pessoa, chat no fim da lateral; copas com grupo/chave, retrospecto, artilharia e assistências antes do chat. Faixa dos outros jogos rolável. Sem mudar fontes, tempos entre fases, pênaltis, premiações ou identidade.
