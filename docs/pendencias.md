@@ -116,13 +116,13 @@
 - Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
   `liberta-sala` e `regional` passam.
 
-### 🐸👑 23/11 — Batismo FUNDADOR Pirituba SF (pedrosilveira0810) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
+### 🐸👑 23/11 — Batismo FUNDADOR Pirituba SF (pedrosilveira0810) — PUBLICADO 23/11 (mascote trocado pela pose de sapo)
 - Plano Fundador (99,90) → **fundador nº105** + **sócio nº100**, coração Corinthians, mascote Pererecão (`pirituba_pererecao`), manto azul #0199F6 + rosa #FC22BC (medidos na camisa).
 - Várzea, no assento do bot **Doze Contra Onze** (`OLD_NAME`). Escudo 309×360/29 KB · mascote 256×440/40 KB · camisa na Loja (`public/mantos-salao/pirituba-camisa-v1.webp`).
 - **Canto**: o do Corinthians (`torcida-gavioes-v1.mp3`, o mesmo do Cuiudos/Gaviões) — carreira em casa, sala e gala.
 - **Gala única** `gala-pirituba.tsx` ("o pulo do Pererecão": 3 pulos de vitória-régia, cai na bola, faixas diagonais azul/rosa, escudo, grito da arte do dono). Vídeo: `scripts/posts/gala-pirituba.mp4` (`node scripts/video-gala-pirituba.mjs`).
 - Banco feito em 23/11: `esc_socios` nº100, `esc_fundadores` nº105, `esc_nomes_batismo` (Pirituba / Pirituba SF / Pirituba Sex Football + FC/EC pelo gatilho). `user_colors` já estava ouro + manual.
-- Post: `scripts/posts/batismo-pirituba-sf.png`. Falta: OK do Diego no visual + "pode publicar".
+- Post: `scripts/posts/batismo-pirituba-sf.png`. Publicado na main em 23/11 com ordem do Diego.
 
 ### ⚫⚓ 22/11 (noite) — Batismo Tunaldo FC (faertes9) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
 - Plano Batismo (79,90, sem nº de fundador), coração Corinthians, mascote O Craque Tunaldo (`tunaldo_craque`), manto preto #0F0F0F + cinza #706F6F
