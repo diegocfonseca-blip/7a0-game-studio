@@ -8367,7 +8367,9 @@ export function EscSeason() {
   // ✍️ o DONO da sala grava a rodada quando o resultado JÁ revelou (nunca antes: anti-spoiler); o banco ignora repetição
   useEffect(() => {
     if (!retroOn || !state.isHost || !resultRevealed || copaLive || state.lastResults.length === 0) return
-    const jogos = state.lastResults.map(r => ({ a: uidDo(r.homeId), b: uidDo(r.awayId), ga: r.hg, gb: r.ag })).filter((j): j is JogoRetro => !!j.a && !!j.b && j.a !== j.b)
+    // 📜 23/11: os autores dos gols vão junto (livro do clássico) — o lance "⚽ NOME marca para…" de cada lado; gol contra/sem autor fica de fora
+    const autores = (r: typeof state.lastResults[number], tid: number) => r.highlights.filter(h => h.kind !== 'assist' && h.teamId === tid).map(h => /^⚽ (.+?) marca para /.exec(h.text)?.[1]).filter((n): n is string => !!n && !/\(contra\)/.test(n)).slice(0, 15)
+    const jogos = state.lastResults.map(r => ({ a: uidDo(r.homeId), b: uidDo(r.awayId), ga: r.hg, gb: r.ag, ea: autores(r, r.homeId), eb: autores(r, r.awayId) })).filter(j => !!j.a && !!j.b && j.a !== j.b) as JogoRetro[]
     gravaRetrospecto(state.roomId!, `liga:${state.seed}:${state.seasonNo}:${state.round}`, jogos)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retroOn, state.isHost, resultRevealed, copaLive, state.round, state.seed])

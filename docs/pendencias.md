@@ -15183,3 +15183,11 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   pausa no minuto (24' ficou parado), painel com tática (Ataque marcada), Voltar ao jogo segue e o jogo fecha normal, 0 erros. Troca de
   JOGADOR na tela não testada (time da T1 só tem os 11 — o painel avisa "sem reserva"); coberta pela trava `npm run sub-ao-vivo`.
   3D (janela por cima do mapa) não testado na tela. Ainda no branch, esperando o OK do Diego pra publicar.
+
+## ⚔️ 23/11 — Aba Rivalidade: termômetro, placa de freguês e livro do clássico (mockups `rivalidade-zoeira.png` e `termometro-jogo.png`, aprovados)
+- Freguês = **10 vitórias de vantagem** (Diego corrigiu: primeiro eu tinha posto 5; `FREGUES_VANTAGEM` em retrospecto.ts). Entre 7 e 9:
+  "faltam N pra pendurar a placa" / "cuidado, mais N e você vira freguês". A frase da rádio também passou a usar a régua (2–9 = na frente/atrás).
+- Termômetro = % de vitórias (empate fora) — na aba e numa faixa fininha embaixo do placar/campo, SÓ no jogo contra amigo (`FaixaClassico`).
+- Livro (maior goleada, artilheiro do confronto, último jogo, sequência): banco ganhou `ultimo`/`maior`/`artilheiros` em `esc_retrospecto`
+  e a `esc_retrospecto_soma` aceita `ea`/`eb` (autores) — APLICADO 23/11 (`docs/sql/retrospecto-livro-20261123.sql`). Enche daqui pra frente;
+  copa ainda grava sem autores. Espectador não vê o livro (a função dele não devolve as colunas novas).

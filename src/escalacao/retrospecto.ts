@@ -14,7 +14,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-export type Retro = { v: number; e: number; d: number; /** 🆚 08/11: últimos até 10 jogos, do MEU lado: V/E/D, o mais novo no fim */ seq?: string }
+export type Retro = { v: number; e: number; d: number; /** 🆚 08/11: últimos até 10 jogos, do MEU lado: V/E/D, o mais novo no fim */ seq?: string
+  /** 📜 23/11 livro do clássico (do MEU lado): último jogo, maior goleada e artilheiros (nome → gols) de cada lado */
+  ultimo?: { eu: number; ele: number; em?: string }; maior?: { eu: number; ele: number; em?: string }; artMeus?: Record<string, number>; artDele?: Record<string, number> }
+/** 🐔 23/11 (Diego: *"com dez vitórias de vantagem"*): freguês = 10 vitórias de vantagem ou mais */
+export const FREGUES_VANTAGEM = 10
 /** 🔥 a sequência que está valendo agora (do fim pra trás): `{ tipo: 'V', n: 3 }` = 3 vitórias seguidas. Menos de 2 = nada. */
 export function sequenciaAtual(r: Retro | undefined): { tipo: 'V' | 'E' | 'D'; n: number } | null {
   const s = r?.seq ?? ''
@@ -24,7 +28,7 @@ export function sequenciaAtual(r: Retro | undefined): { tipo: 'V' | 'E' | 'D'; n
   for (let i = s.length - 1; i >= 0 && s[i] === t; i--) n++
   return n >= 2 ? { tipo: t, n } : null
 }
-export type JogoRetro = { a: string; b: string; ga: number; gb: number }
+export type JogoRetro = { a: string; b: string; ga: number; gb: number; /** 📜 quem fez os gols de cada lado (nome da carta) */ ea?: string[]; eb?: string[] }
 
 /** grava os jogos de gente × gente de UMA rodada (só o dono da sala consegue; o banco ignora repetição da mesma chave) */
 export function gravaRetrospecto(roomId: string, chave: string, jogos: JogoRetro[]): void {
@@ -43,16 +47,19 @@ export function useRetrospecto(eu: string | null | undefined, rivais: string[], 
     const ids = lista.split(',')
     const busca = espectadorDaSala
       ? supabase.rpc('esc_retrospecto_espectador', { p_room: espectadorDaSala, p_eu: eu, p_rivais: ids })
-      : supabase.from('esc_retrospecto').select('a,b,vit_a,empates,vit_b,ultimos').or(`and(a.eq.${eu},b.in.(${ids.join(',')})),and(b.eq.${eu},a.in.(${ids.join(',')}))`)
+      : supabase.from('esc_retrospecto').select('a,b,vit_a,empates,vit_b,ultimos,ultimo,maior,artilheiros').or(`and(a.eq.${eu},b.in.(${ids.join(',')})),and(b.eq.${eu},a.in.(${ids.join(',')}))`)
     Promise.resolve(busca)
       .then(({ data }) => {
         if (!vivo || !Array.isArray(data)) return
         const m: Record<string, Retro> = {}
-        for (const r of data as { a: string; b: string; vit_a: number; empates: number; vit_b: number; ultimos?: string }[]) {
+        type Placar = { ga: number; gb: number; em?: string } | null | undefined
+        const vira = (p: Placar, euSouA: boolean) => p && typeof p.ga === 'number' ? { eu: euSouA ? p.ga : p.gb, ele: euSouA ? p.gb : p.ga, em: p.em } : undefined
+        const arts = (o: Record<string, number> | null | undefined, lado: 'a' | 'b') => { const out: Record<string, number> = {}; for (const [k, n] of Object.entries(o ?? {})) if (k.startsWith(lado + '|')) out[k.slice(2)] = n; return out }
+        for (const r of data as { a: string; b: string; vit_a: number; empates: number; vit_b: number; ultimos?: string; ultimo?: Placar; maior?: Placar; artilheiros?: Record<string, number> }[]) {
           // 'A' = a venceu · 'B' = b venceu (gravado do lado de `a`) → vira V/E/D do MEU lado
           const meu = (euSouA: boolean) => (r.ultimos ?? '').split('').map(c => c === 'E' ? 'E' : (c === 'A') === euSouA ? 'V' : 'D').join('')
-          if (r.a === eu) m[r.b] = { v: r.vit_a, e: r.empates, d: r.vit_b, seq: meu(true) }
-          else m[r.a] = { v: r.vit_b, e: r.empates, d: r.vit_a, seq: meu(false) }
+          if (r.a === eu) m[r.b] = { v: r.vit_a, e: r.empates, d: r.vit_b, seq: meu(true), ultimo: vira(r.ultimo, true), maior: vira(r.maior, true), artMeus: arts(r.artilheiros, 'a'), artDele: arts(r.artilheiros, 'b') }
+          else m[r.a] = { v: r.vit_b, e: r.empates, d: r.vit_a, seq: meu(false), ultimo: vira(r.ultimo, false), maior: vira(r.maior, false), artMeus: arts(r.artilheiros, 'b'), artDele: arts(r.artilheiros, 'a') }
         }
         setMapa(m)
       }, () => { /* sem rede: fica o que tinha */ })
@@ -61,7 +68,10 @@ export function useRetrospecto(eu: string | null | undefined, rivais: string[], 
   return mapa
 }
 
-const PROVOCA: Record<'primeiro' | 'freguesia' | 'dono' | 'parelho', [string, string][]> = {
+const PROVOCA: Record<'primeiro' | 'freguesia' | 'dono' | 'parelho' | 'atras' | 'frente', [string, string][]> = {
+  // (23/11: "freguês" só com 10 vitórias de vantagem — até lá é só "na frente"/"atrás")
+  atras: [['Ele leva vantagem. Hoje é dia de diminuir. 😤', 'They have the edge. Time to close the gap. 😤'], ['Tá atrás nesse clássico — revanche? 🔥', 'Behind in this derby — revenge time? 🔥'], ['Hoje dá pra encostar no placar geral. 👀', 'Today you can close in on the head-to-head. 👀']],
+  frente: [['Você leva vantagem nesse clássico. 😏', 'You have the edge in this derby. 😏'], ['Tá na frente — hoje é pra aumentar. 📈', 'You are ahead — time to stretch it. 📈'], ['Mais uma e ele fica mais perto da placa de freguês. 🐔', 'One more and they get closer to the regulars plaque. 🐔']],
   primeiro: [['Primeiro duelo entre vocês. Que comece a história!', 'First ever meeting. Let the story begin!'], ['Nunca se enfrentaram. Hoje nasce uma rivalidade.', 'Never met before. A rivalry is born today.'], ['Estreia do confronto. Quem sai na frente?', 'Debut of the matchup. Who strikes first?']],
   freguesia: [['Freguesia declarada, hein? 😏', 'This is turning into a habit, huh? 😏'], ['Tá devendo essa, viu? 👀', 'You owe this one, you know? 👀'], ['Hoje é dia de quebrar o tabu? 🔨', 'Is today the day the curse breaks? 🔨'], ['O outro lado já tá rindo à toa. 😂', 'The other side is already laughing. 😂']],
   dono: [['Freguês de carteirinha do outro lado. 😎', 'Card-carrying customer on the other side. 😎'], ['Quem manda nesse clássico é você. 👑', 'You run this derby. 👑'], ['Mais uma pro freguês? 🍽️', 'Another one for the regular? 🍽️'], ['O rival entra pra tentar a revanche. 😤', 'The rival comes in looking for revenge. 😤']],
@@ -70,7 +80,7 @@ const PROVOCA: Record<'primeiro' | 'freguesia' | 'dono' | 'parelho', [string, st
 /** a frase do retrospecto antes da bola rolar */
 export function fraseRetro(r: Retro | undefined, en: boolean, semente: number): string {
   const t = r ? r.v + r.e + r.d : 0
-  const tipo = t === 0 ? 'primeiro' : r!.d >= r!.v + 2 ? 'freguesia' : r!.v >= r!.d + 2 ? 'dono' : 'parelho'
+  const tipo = t === 0 ? 'primeiro' : r!.d >= r!.v + FREGUES_VANTAGEM ? 'freguesia' : r!.v >= r!.d + FREGUES_VANTAGEM ? 'dono' : r!.d >= r!.v + 2 ? 'atras' : r!.v >= r!.d + 2 ? 'frente' : 'parelho'
   const lista = PROVOCA[tipo]
   const par = lista[Math.abs(semente) % lista.length]
   const p = en ? par[1] : par[0]
