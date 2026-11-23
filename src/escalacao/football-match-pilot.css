@@ -1,4 +1,4 @@
-/* Piloto privado da conta principal de Diego. Estilos de apresentação. */
+/* Apresentação das salas online. Brilho Promessa exclusivo da conta principal. */
 .fp-match-switchback{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1320px;width:calc(100% - 60px);margin:0 auto 14px;padding:10px 12px;border:1px dashed #8f875a;border-radius:10px;background:#171c13;color:#f4ecd6;font:11px/1.4 Arial,sans-serif}
 .fp-match-switchback button{min-height:44px;padding:8px 12px;background:#f4ecd6;color:#0c0c0c;border:2px solid #0c0c0c;border-radius:8px;font:700 12px Oswald,sans-serif;cursor:pointer}
 .fp-match-switchback button:focus-visible{outline:3px solid #ffc400;outline-offset:3px}

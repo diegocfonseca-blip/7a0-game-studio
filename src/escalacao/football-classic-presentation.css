@@ -1,0 +1,32 @@
+/* Same game/plan controllers in both presentations. No room state or permissions. */
+.fp-match-switchback.fp-match-switchback-modal{width:100%;max-width:none;margin:0 0 14px}
+body:has(.ov3-modal-overlay) #root .fp-match-switchback{display:none}
+.fp-round-badge{display:inline-flex;align-items:center;align-self:center;max-width:100%;padding:3px 9px 3px 12px;margin-block:-3px;border-radius:7px;background:#f4ecd6!important;color:#0c0c0c!important;box-shadow:inset 3px 0 #a77bec;outline:1px solid #a77bec;font-variant-numeric:tabular-nums}
+body.fp-match-available:not(.fp-match-pilot) .ov3 .ll25-tabs button[aria-pressed=true]{background:#6941b5!important;color:#fffaf0!important;border-bottom-color:#c9a9ff!important;border-radius:6px 6px 0 0!important}
+body.fp-match-available .ov3 .ll25-tabs button:focus-visible{outline:2px solid #c9a9ff;outline-offset:2px}
+
+/* Main verified account only. The dimensions and type are inherited unchanged. */
+body.fp-match-holo .ov3 .ov3-tabs-slot .ll25-tabs button[aria-pressed=true],
+body.fp-match-holo .fp-cup-stages button[aria-pressed=true]{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(150deg,#c9a9ff,#8b5cf6 52%,#5b2fb0)!important;color:#fff!important;border-color:#c9a9ff!important;border-bottom-color:#c9a9ff!important;box-shadow:inset 0 -3px #c9a9ff,2px 3px #000!important}
+body.fp-match-holo .ov3 .ov3-tabs-slot .ll25-tabs button[aria-pressed=true]::after,
+body.fp-match-holo .fp-cup-stages button[aria-pressed=true]::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.38) 48%,transparent 62%);transform:translateX(-120%);animation:fp-promessa-tab-sheen 3.6s linear infinite}
+@keyframes fp-promessa-tab-sheen{to{transform:translateX(120%)}}
+@media(prefers-reduced-motion:reduce){body.fp-match-holo .ov3 .ov3-tabs-slot .ll25-tabs button[aria-pressed=true]::after,body.fp-match-holo .fp-cup-stages button[aria-pressed=true]::after{animation:none;transform:translateX(0)}}
+
+/* Classic tactics retain the dark/cream segmented controls, including new options. */
+.ov3 .ov3-tactics.fp-tactics-minimal{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:0 0 13px;margin:0;border:0;border-bottom:1px solid #a8b29b28;border-radius:0;background:transparent;box-shadow:none;color:#f4ecd6}
+.ov3 .fp-tactics-minimal>header{display:flex;align-items:center;gap:8px}
+.ov3 .fp-tactics-minimal>header>small{width:auto;font:700 9px Oswald,sans-serif;letter-spacing:1px;color:#bac4ac}
+.ov3 .fp-tactics-minimal>header>b{font:700 10px Oswald,sans-serif;color:#f4ecd6;background:#101811;border:1px solid #536046;padding:3px 6px;border-radius:5px}
+.ov3 .fp-tactics-minimal .fp-order-group{display:flex;align-items:center;gap:15px;width:100%;max-width:none;padding:0;margin:0;border:0;border-radius:0;background:transparent}
+.ov3 .fp-tactics-minimal .fp-order-group>span{flex:0 0 135px;margin:0;font:700 9px Oswald,sans-serif;letter-spacing:.7px;color:#bac4ac}
+.ov3 .fp-tactics-minimal .fp-order-group>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;width:350px;max-width:100%;padding:3px;background:#101811;border:1px solid #536046;border-radius:9px}
+.ov3 .fp-tactics-minimal .fp-order-group>div:has(>button:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+.ov3 .fp-tactics-minimal .fp-order-group button{min-width:0;min-height:44px;padding:8px 12px;border:0;border-radius:6px;background:transparent;color:#b7c1ac;box-shadow:none;font:700 12px Oswald,sans-serif;cursor:pointer}
+.ov3 .fp-tactics-minimal .fp-order-group button[aria-pressed=true]{background:#f4ecd6;color:#0c0c0c;box-shadow:none}
+.ov3 .fp-tactics-minimal .fp-extra-orders{display:contents;width:auto;max-width:none;margin:0;padding:0;border:0;background:none}
+.ov3 .fp-tactics-minimal .fp-plan-tradeoff,.ov3 .fp-tactics-minimal .fp-plan-status,.ov3 .fp-tactics-minimal>small,.ov3 .fp-tactics-minimal .fp-extra-orders>small{margin:0;padding:0;border:0;background:none;color:#b6c0a8;font:10px/1.45 Arial,sans-serif;max-width:none}
+.ov3 .fp-tactics-minimal .fp-send-order{align-self:flex-start;min-height:44px;padding:8px 12px;border:1px solid #536046;border-radius:8px;background:#101811;color:#f4ecd6;box-shadow:none;font:700 12px Oswald,sans-serif}
+.ov3 .fp-tactics-minimal .fp-send-order:disabled{background:#101811!important;color:#b6c0a8!important;box-shadow:none!important;opacity:.65}
+.ov3 .fp-tactics-minimal button:disabled{cursor:default}
+@media(max-width:760px){.ov3 .fp-tactics-minimal .fp-order-group{flex-direction:column;align-items:stretch;gap:4px}.ov3 .fp-tactics-minimal .fp-order-group>span{flex:auto;font-size:8px}.ov3 .fp-tactics-minimal .fp-order-group>div{width:100%}.ov3 .fp-tactics-minimal .fp-order-group button{padding:8px 5px}.ov3 .fp-tactics-minimal .fp-send-order{align-self:stretch}}

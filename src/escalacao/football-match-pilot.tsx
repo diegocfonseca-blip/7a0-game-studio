@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { useVerifiedPresentationEmail } from './online-preview'
+import { useVerifiedPresentationEmail, ownerPresentationEmail } from './online-preview'
 import { footballMatchPilotEmail, footballMatchPilotScope, footballMatchAdScope, type FootballMatchPilotScope } from './football-match-pilot-policy'
 import { tr } from './lang'
 import './football-match-pilot.css'
+import './football-classic-presentation.css'
 import {useFootballMatchNavigation} from './football-match-navigation'
 
 const preferenceKey = (email: string) => `esc-football-match-pilot-v2-off:${email||'public'}`
@@ -14,6 +15,8 @@ function optedOut(email: string) {
   try { return localStorage.getItem(preferenceKey(email)) === '1' } catch { return false }
 }
 let activeScopes = 0
+let availableScopes = 0
+let holoScopes = 0
 
 export function useFootballMatchAdAccess(state:FootballMatchPilotScope){
  const email=useVerifiedPresentationEmail()
@@ -33,12 +36,22 @@ export function useFootballMatchPilotAccess(state: FootballMatchPilotScope) {
       try { localStorage.setItem(preferenceKey(email), next ? '1' : '0') } catch { /* Appearance remains reversible in memory. */ }
       preferenceListeners.forEach(fn=>fn())
   }, [email])
-  return {available,enabled,toggle}
+  return {available,enabled,toggle,holo:available&&ownerPresentationEmail(email)}
 }
 export function useFootballMatchPilot(state: FootballMatchPilotScope & {roomId?:string}) {
   const access=useFootballMatchPilotAccess(state)
   const enabled=access.enabled
   const {page}=useFootballMatchNavigation(state.roomId??'',enabled)
+  useEffect(()=>{
+    if(!access.available)return
+    availableScopes++;document.body.classList.add('fp-match-available')
+    return()=>{if(--availableScopes===0)document.body.classList.remove('fp-match-available')}
+  },[access.available])
+  useEffect(()=>{
+    if(!access.holo)return
+    holoScopes++;document.body.classList.add('fp-match-holo')
+    return()=>{if(--holoScopes===0)document.body.classList.remove('fp-match-holo')}
+  },[access.holo])
   useEffect(() => {
     if (!enabled) return
     activeScopes++

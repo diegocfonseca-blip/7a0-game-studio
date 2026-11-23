@@ -1,7 +1,7 @@
 import {withCupPlans} from './copa-planos'
 import {FootballLibertaCupView} from './football-cup-liberta'
 import type {CupPenaltyPresentation} from './football-cup-world'
-import { useOwnerLayout,useOwnerFootballPilot, OwnerPlayback, OwnerChampionBanner } from './owner-online-visual'
+import { useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable, OwnerPlayback, OwnerChampionBanner } from './owner-online-visual'
 import { MASCOTES, mascoteKeyDoTime } from './mascotes'
 // ─── 🏆 LIGA + LIBERTADORES NA SALA ONLINE (Diego 19/11) ──────────────────────
 //
@@ -566,6 +566,7 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
 
   const ownerVisual = useOwnerLayout()
   const cupPilot=useOwnerFootballPilot()
+  const cupFeatures=useOwnerFootballAvailable()
   const done = step >= LIB.FIM
   const finalVista = step >= LIB.FINAL && liveDone
   const avisou = useRef(false)
@@ -737,7 +738,7 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
       <CompetitionStage kind="liberta" title={NOME.toUpperCase()} phase={etapa} detail={tr('8 grupos em turno e returno · ida e volta até a semi · final única', '8 groups home and away · two legs until the semis · one-off final')}>{abertura}</CompetitionStage>
       <GiroDaRodada cinema />
       {/* ⚔️ o cartão de tática — só pra quem tem clube nesta copa e enquanto ainda falta jogo (igual às regionais) */}
-      {comTatica && relogio?.row && !!meuUid && ficha.times.some(t => t.uid === meuUid) && relogio.row.step < LIB.FINAL && <CartaoTaticaCopa minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t => void tat.escolher(t)} />}
+      {comTatica && relogio?.row && !!meuUid && ficha.times.some(t => t.uid === meuUid) && (cupFeatures ? relogio.row.step <= LIB.FINAL : relogio.row.step < LIB.FINAL) && <CartaoTaticaCopa plan={cupPlan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t => void tat.escolher(t)} />}
       {/* FASE DE GRUPOS: o meu jogo ao vivo em cima, as 8 tabelas inteiras, os outros jogos da rodada */}
       {step >= 1 && step <= LIB.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]

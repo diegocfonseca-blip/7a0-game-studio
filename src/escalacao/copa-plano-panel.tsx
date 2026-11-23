@@ -6,7 +6,7 @@ import {tr} from './lang'
 
 export type CupPlanController={key:string;uid:string;step:number;minute:number;running:boolean;duration:number;hasMatch:boolean;enabled:boolean;rows:CupPlanRow[];legacy:TaticaCopa;activePosture?:TaticaCopa;send:(plan:FootballPlan,live:boolean,id:string)=>Promise<number>}
 const equal=(a:FootballPlan,b:FootballPlan)=>JSON.stringify(a)===JSON.stringify(b)
-export function CupPlanPanel({control}:{control:CupPlanController}){
+export function CupPlanPanel({control,minimal=false}:{control:CupPlanController;minimal?:boolean}){
  const {uid,step,minute,running,duration,hasMatch,enabled,rows,legacy,send}=control
  const own=rows.filter(r=>r.uid===uid).sort((a,b)=>a.seq-b.seq),last=own.at(-1)
  const preferred=last?.plan??{...DEFAULT_FOOTBALL_PLAN,posture:legacy}
@@ -25,8 +25,8 @@ export function CupPlanPanel({control}:{control:CupPlanController}){
   })
  }
  const group=<K extends 'posture'|'attack'|'pressure'|'pace'>(key:K,label:string,options:[FootballPlan[K],string][])=><div className="fp-order-group"><span>{label}</span><div role="group" aria-label={label}>{options.map(([value,text])=><button key={value} type="button" aria-pressed={selected[key]===value} disabled={!enabled||sending} onClick={()=>change(key,value)}>{text}</button>)}</div></div>
- return <section className="ov3-tactics fp-match-tactics fp-advanced-tactics fp-cup-plan" aria-label={tr('Plano do seu time na Copa','Your Cup game plan')}>
-  <header><small>{tr('SEU TIME NESTA COPA','YOUR TEAM IN THIS CUP')}</small><h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>{sent&&<b>{minute>=sent.from?tr('EM VIGOR','IN EFFECT'):tr(`ENTRA AOS ${sent.from}′`,`FROM ${sent.from}′`)}</b>}</header>
+ return <section className={`ov3-tactics fp-match-tactics fp-advanced-tactics fp-cup-plan${minimal?' fp-tactics-minimal':''}`} aria-label={tr('Plano do seu time na Copa','Your Cup game plan')}>
+  <header><small>{minimal?tr('TÁTICA DO SEU TIME','YOUR TEAM TACTICS'):tr('SEU TIME NESTA COPA','YOUR TEAM IN THIS CUP')}</small>{!minimal&&<h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>}{sent&&<b>{minute>=sent.from?tr('EM VIGOR','IN EFFECT'):tr(`ENTRA AOS ${sent.from}′`,`FROM ${sent.from}′`)}</b>}</header>
   {group('posture',tr('POSTURA','MENTALITY'),[['retranca',tr('Retranca','Defensive')],['equilibrio',tr('Equilíbrio','Balanced')],['ataque',tr('Ofensivo','Attacking')]])}
   {group('attack',tr('CAMINHO DO ATAQUE','ATTACKING ROUTE'),[['mixed',tr('Variado','Mixed')],['middle',tr('Pelo meio','Middle')],['wings',tr('Pontas','Wings')]])}
   {group('pressure',tr('MARCAÇÃO','PRESSING'),[['normal',tr('Normal','Normal')],['high',tr('Pressão alta','High press')]])}
