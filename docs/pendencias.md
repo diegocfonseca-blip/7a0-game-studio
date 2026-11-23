@@ -116,6 +116,11 @@
 - Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
   `liberta-sala` e `regional` passam.
 
+### 🚫 23/11 — Nome com "pedófilo/pedofelo/pedofilia" barrado
+- Conta "Titio Pedofelo" → **Titio P** (pedido do Diego). Outras 6 contas com a palavra ("Pedofilos FC", "Pedofilo22"…) → "Técnico". Feito direto no banco.
+- Trava na tela: `nome-ofensivo.ts` ganhou `pedof[ie]l` (não pega "Torpedo FC" nem "TRIPÉDOFLU FC").
+- ⏳ Trava no BANCO: `supabase/migrations/20261123190000_nome_ofensivo_pedofilo.sql` ainda NÃO aplicada (troca de função = 1–3 min de lentidão); aplicar num horário calmo junto com a `esc_titulos_sem_carta_v3`.
+
 ### 🎸👑 23/11 — Batismo FUNDADOR Sport Clube Betasso (caiomooca2013) — PUBLICADO 23/11
 - Pagou Lenda (10/11, 59,90) → Batismo (18/11, 25) → Fundador (23/11, 29,90). **Fundador nº106 + sócio nº101**, coração Corinthians / Juventus-SP.
 - Mascote "Apenas um Beto" (`betasso_beto`, o próprio Beto com a lata e o violão), manto grená #890329 + branco #F7F4F4 (medidos na camisa). Várzea, no assento do bot **Falta Técnica FC**.
