@@ -122,7 +122,7 @@ export function FootballCompetitionRivals({state,results,finished,round,fixtures
  const nextGame=scheduled&&nextClub?{...scheduled,opponent:nextClub.teamName||nextClub.name,friend}:null
  const proximo=scheduled&&friend?{amigo:friend,rodada:scheduled.round,daqui:scheduled.round-round}:null
  const duels=finished?results.filter(r=>(r.homeId===you.id||r.awayId===you.id)&&amigos.some(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))).map(r=>({key:`${state.roomId}:${state.seed}:${state.screen}:${state.seasonNo}:${round}:${r.homeId}:${r.awayId}`,uid:uid(r.homeId===you.id?r.awayId:r.homeId),name:amigos.find(a=>a.id===(r.homeId===you.id?r.awayId:r.homeId))?.time??'',for:r.homeId===you.id?r.hg:r.ag,against:r.homeId===you.id?r.ag:r.hg,season:state.seasonNo??1,round})):[]
- return <><OwnerSlot name="next-rival"><FootballNextOpponent game={nextGame} mapa={mapa} meuTime={you.teamName}/></OwnerSlot><OwnerSlot name="rivals"><section className="ov3-rivalries"><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName} hideNext/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section></OwnerSlot></>
+ return <><OwnerSlot name="next-rival"><FootballNextOpponent game={nextGame} mapa={mapa} meuTime={you.teamName}/></OwnerSlot><OwnerSlot name="rivals"><section className="ov3-rivalries"><PrateleiraRivalidades amigos={amigos} mapa={mapa} proximo={proximo} meuTime={you.teamName} hideNext classico/><FootballRivalHistory youUid={uid(you.id)} amigos={amigos} mapa={mapa} proximo={proximo} duels={duels}/></section></OwnerSlot></>
 }
 
 export function FootballDesktopLeaders({state,finished}:{state:import('./types').EscState;finished:boolean}){

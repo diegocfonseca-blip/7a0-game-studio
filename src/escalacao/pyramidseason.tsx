@@ -1,5 +1,4 @@
 import {CareerAuctionHint} from './career-start-guide'
-import { FaixaClassico } from './rivalidades-sala' // ⚔️ 23/11: faixa do clássico embaixo do placar/campo
 import { PainelSubstituir, BotaoSubstituir } from './substituir-ao-vivo' // 🔁 23/11: troca com o jogo rolando
 import { instanteDaTroca } from './ao-vivo'
 import {MuseuClube,MuseuMelhoria} from './museu-clube-ui'
@@ -4925,7 +4924,6 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       }} />
     )}
     {avisoReplay}
-    {retro && !basket && <FaixaClassico r={retro.r} outroTime={retro.rival} />/* ⚔️ 23/11: termômetro do clássico, só no jogo contra amigo (quem tem `retro`) */}
     {estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>/* 26/10 (Diego): saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar — o mapa continua recebendo o jogo */}
     {abaixoDosGols}
    </>
