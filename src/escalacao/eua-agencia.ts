@@ -14,6 +14,8 @@
 export const EUA_RENOVA_ANOS = 3
 /** contrato de quem chega pelo Draft (o contrato de novato da NBA) */
 export const EUA_NOVATO_ANOS = 4
+/** chance de a franquia da máquina que perdeu um jogador contratar um livre da MESMA posição na hora */
+export const EUA_BOT_CONTRATA = 0.6
 /** chance de a franquia da máquina renovar um contrato que acabou */
 export const EUA_BOT_RENOVA = 0.55
 

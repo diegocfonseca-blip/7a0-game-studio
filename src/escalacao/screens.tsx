@@ -48,7 +48,7 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
-import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua, trocaEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
 import { luvaRenovacaoEua, EUA_RENOVA_ANOS } from './eua-agencia' // 🏀✍️ agência livre do EUA Oficial
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
@@ -13554,6 +13554,7 @@ function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
   const { state, dispatch } = useEsc()
   const a = state.euaAgencia
   useEffect(() => { if (!a || a.temporada !== state.seasonNo) dispatch({ type: 'EUA_AGENCIA_ABRIR' }) }, [a?.temporada, state.seasonNo, dispatch])
+  const [meuTroca, setMeuTroca] = useState('') // 🔁 o jogador seu que você quer oferecer
   if (!a || a.temporada !== state.seasonNo) return null
   const you = state.managers[state.youIdx]
   const caixa = Math.round(state.careerCoins?.[you?.id ?? 0] ?? 0)
@@ -13607,7 +13608,33 @@ function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
           ? <p className="px-3 py-3 text-[12.5px] font-bold text-black/55">{tr('As franquias renovaram com todo mundo desta vez.', 'The franchises re-signed everyone this time.')}</p>
           : livresDeFora.slice(0, 30).map((c, i) => linha(c, <small className="text-[10.5px] font-bold text-black/45">{tr('saiu de', 'left')} {a.de?.[chave(c)] ?? c.club}</small>, `${chave(c)}-${i}`))}
       </Box>
+      {(a.assinaram?.length ?? 0) > 0 && <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr(`JÁ ASSINARAM COM OUTRA FRANQUIA · ${a.assinaram!.length}`, `ALREADY SIGNED ELSEWHERE · ${a.assinaram!.length}`))}
+        {a.assinaram!.map((c, i) => linha({ ...c, fame: 0 }, <small className="text-[10.5px] font-bold text-right" style={{ color: GREEN }}>{c.de} → {c.para}</small>, `as-${i}`))}
+      </Box>}
       <p className="text-[11px] font-bold text-black/50 text-center">{tr('Quem está livre entra no seu leilão de reservas da próxima temporada (se você tiver vaga). Quem ninguém levar segue livre — pode até sair no Draft.', 'Free agents go into your reserve auction next season (if you have open spots). Anyone nobody signs stays free — they may even show up in the Draft.')}</p>
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr('🔁 TROCA · 1 POR TEMPORADA', '🔁 TRADE · 1 PER SEASON'))}
+        {a.troca
+          ? <p className="px-3 py-3 text-[12.5px] font-bold">{tr(`✓ ${a.troca.deu} foi pro ${a.troca.time} e ${a.troca.recebeu} chegou ao seu time.`, `✓ ${a.troca.deu} went to the ${a.troca.time} and ${a.troca.recebeu} joined your team.`)}</p>
+          : <>
+            <p className="px-3 pt-2.5 text-[11.5px] font-bold text-black/60">{tr('Escolha quem você oferece. Aparecem só os jogadores que a franquia aceitaria trocar: ela quer um jogador que valha pelo menos o mesmo.', 'Pick who you offer. Only players the franchise would accept show up: they want a player worth at least as much.')}</p>
+            <div className="flex flex-wrap gap-1.5 px-3 py-2">{(you?.squad ?? []).filter(c => !c.fake && (!a.meus.includes(chave(c)) || a.decididos[chave(c)] === 'renova')).map(c => (
+              <button key={chave(c)} onClick={() => setMeuTroca(meuTroca === chave(c) ? '' : chave(c))}
+                style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 8px', ...OSWALD, fontWeight: 900, fontSize: 12, background: meuTroca === chave(c) ? '#7C3AED' : '#fff', color: meuTroca === chave(c) ? '#fff' : INK, boxShadow: meuTroca === chave(c) ? `2px 2px 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                {posTag(c.pos)} · {c.name}</button>))}</div>
+            {meuTroca && (() => {
+              const alvos = state.managers.filter(m => !m.isHuman).flatMap(m => m.squad.filter(c => !c.fake).map(c => ({ c, m })))
+                .filter(x => trocaEua(state, meuTroca, chave(x.c)).ok).sort((x, y) => (y.c.lo + y.c.hi) - (x.c.lo + x.c.hi)).slice(0, 10)
+              return alvos.length === 0
+                ? <p className="px-3 pb-3 text-[11.5px] font-bold" style={{ color: '#C2452F' }}>{tr('Nenhuma franquia aceita trocar por esse jogador sem perder valor. Tente oferecer outro.', 'No franchise would trade for this player without losing value. Try offering someone else.')}</p>
+                : alvos.map(({ c, m }) => linha(c, <>
+                  <small className="text-[10.5px] font-bold text-black/45">{m.teamName}</small>
+                  {botao(tr('TROCAR', 'TRADE'), '#7C3AED', () => { dispatch({ type: 'EUA_TROCA', meu: meuTroca, dele: chave(c) }); setMeuTroca('') })}
+                </>, `tr-${chave(c)}`))
+            })()}
+          </>}
+      </Box>
       {pendentes > 0
         ? <p className="text-center text-[12px] font-black" style={{ ...OSWALD, color: '#C2452F' }}>{tr(`Falta decidir ${pendentes} contrato${pendentes > 1 ? 's' : ''} pra seguir.`, `${pendentes} contract${pendentes > 1 ? 's' : ''} left to decide before moving on.`)}</p>
         : <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('a decisão da próxima temporada vem agora', 'next season’s decision comes next')} onClick={onContinue} />}

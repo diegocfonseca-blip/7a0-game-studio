@@ -809,6 +809,11 @@ carreira · vice/eliminação.
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
   ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- ✅ 23/11 (Diego: *"Sim"*) no passo ✍️ Contratos do EUA Oficial: (1) a MÁQUINA CONTRATA livre — franquia que perdeu jogador tem 60% de chance de
+  assinar um livre da MESMA posição (entre os 3 melhores, só dos que outra franquia soltou; os SEUS que saem ficam pro seu leilão); a tela mostra
+  "Já assinaram com outra franquia" (de → para). (2) 🔁 TROCA, 1 por temporada: você escolhe quem oferece e aparecem só os jogadores que a franquia
+  aceitaria (régua `trocaEua`, a mesma na tela e no reducer: o seu tem que valer pelo menos o mesmo; ninguém fica sem a posição; contrato acabado
+  tem que renovar antes). Prints `scripts/mockups/basquete-eua-troca-{celular,pc}.png`. Trava `npm run eua-oficial`. No branch.
 - 🔁 22/11 (mesmo dia): o passo se chama **✍️ CONTRATOS** na tela (Diego confundiu "agência livre" com a 🕴️ Agência do jogo, das cartinhas e
   comissão: *"A agência deveria ser de cartinhas e ganhar dinheiro igual no do futebol"*). No código segue `euaAgencia`/`eua-agencia.ts`.
 - ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
