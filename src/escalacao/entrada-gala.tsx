@@ -35,7 +35,8 @@ import { Escudo, nomeLimpo } from './escudos'
 import { newestTeamName } from './data'
 import { MascoteMini } from './mascote-atravessa'
 import { tr } from './lang'
-import { GalaHelicoptero, HELI_MS } from './gala-helicoptero'
+import { GalaHelicoptero } from './gala-helicoptero' // a 1ª versão fica guardada pra voltar (é só trocar a linha do Neymarzetti abaixo)
+import { GalaNeymarzetti, NEYMARZETTI_MS } from './gala-neymarzetti'
 import { GalaK9, K9_MS } from './gala-k9'
 import { GalaArruda, ARRUDA_MS } from './gala-arruda'
 import { GalaFabulous, FABULOUS_MS } from './gala-fabulous'
@@ -69,7 +70,7 @@ export const GALA_MS = 5600
 // 📣 14/10 (Diego): o CANTO DA TORCIDA vale nos dois lugares — Carreira (jogos) e online (a gala). Quem tem canto
 // (`AMBIENTE_CARREIRA_POR_EMAIL`, sound.ts) e gala única: a gala toca o canto com `playMp3Gala` (ver `gala-arruda.tsx`).
 const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> = {
-  Neymarzetti: { ms: HELI_MS, Show: GalaHelicoptero },
+  Neymarzetti: { ms: NEYMARZETTI_MS, Show: GalaNeymarzetti }, // 🚁🦇 versão 2 (23/11): cidade à noite, desce girando, pousa de joelhos, morcegos e faixa. Voltar = { ms: HELI_MS, Show: GalaHelicoptero }
   'K9 FC': { ms: K9_MS, Show: GalaK9 }, // 🧊👑 O Rei Gelado (09/10)
   'Tricolor do Arruda FC': { ms: ARRUDA_MS, Show: GalaArruda }, // 🐍 a cobra sobe da arquibancada (14/10, Fundador)
   'ComVerissimo FC': { ms: COMVERISSIMO_MS, Show: GalaComverissimo }, // 🎬🧢 no formato dos vídeos dele: parede de camisas, notícia, legenda amarela (15/10, Fundador)
