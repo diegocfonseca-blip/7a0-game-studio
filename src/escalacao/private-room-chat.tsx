@@ -6,6 +6,7 @@ import {PresidenteDaConta} from './presidente-avatar'
 import {getLang,tr} from './lang'
 import {registerPrivateChat,updatePrivateChat} from './private-chat-navigation'
 import './private-room-chat.css'
+import {LinhaComunidadeChat} from './links-comunidade' // 📲🎮 23/11: WhatsApp + Discord também no chat novo da sala (o Diego não via: só os chats antigos tinham)
 
 export type PrivateChatMessage={id:string;uid?:string;from?:number;name:string;text:string;ts?:number;re?:ChatRe;fig?:number;esp?:boolean}
 type Props={
@@ -114,6 +115,7 @@ export function PrivateRoomChat(props:Props){
      {onToggleChat&&<button type="button" className="pc-head-button" aria-label={tr('Opções do chat','Chat options')} aria-expanded={menu} onClick={()=>setMenu(v=>!v)}>⋯</button>}
      {!docked&&<button ref={close} type="button" className="pc-head-button pc-close" aria-label={tr('Fechar chat','Close chat')} onClick={()=>setOpen(false)}>×</button>}
     </header>
+    <LinhaComunidadeChat/>
     {menu&&onToggleChat&&<div className="pc-menu"><button type="button" onClick={()=>{onToggleChat();setMenu(false)}}>{off?tr('🔔 Ligar chat da sala','🔔 Enable room chat'):tr('🔕 Desligar chat da sala','🔕 Disable room chat')}</button></div>}
     {off?<p className="pc-off">{tr('O chat está desligado para esta sala. Use as opções acima para ligar.','Chat is off for this room. Use the options above to enable it.')}</p>:<>
      <section className="pc-conversation"><div ref={list} className="pc-messages" onScroll={()=>{if(list.current){atEnd.current=nearEnd(list.current);if(atEnd.current)setPending(0)}}}>
