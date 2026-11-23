@@ -7,6 +7,7 @@ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless
 const errors=[],checks=[],main='6b5cf422-d4ad-4c69-a7e6-da1125c85844',guest='eb02f1d6-de80-4304-ab49-512342f3c7b7'
 const check=(name,value)=>{assert(value,name);checks.push(name)}
 async function open(width,{kind='world',field=false,guestUser=false,step=1,minute=10,running=true,pen=false,account,duration=16000,leagueCompetition}={}){
+ if(field&&!leagueCompetition)duration=43902
  const context=await browser.newContext({viewport:{width,height:1000},locale:'pt-BR'}),page=await context.newPage(),uid=guestUser?guest:main
  const clock={revision:1,step,running,manual:true,speed:1,started_at:new Date(Date.now()-minute/93*duration*.82).toISOString(),updated_at:new Date().toISOString(),duration_ms:duration,extra_ms:40000,vel2d:1}
  let rows=[],seq=0,closing=false
@@ -85,6 +86,7 @@ try{
  for(const field of [false,true]){
   const t=await open(390,{kind:'euro',step:8,minute:93,pen:true,field}),page=t.page
   await page.waitForSelector('.fp-cup-penalties')
+  if(field)check('final de seleções: canvas 2D verdadeiro',await page.locator('.ov3-native canvas').count()>0)
   check(`${field?'2D':'cinema'}: disputa dentro da transmissão`,await page.locator('.ov3-native .fp-cup-penalties').count()===1)
   const pen=await page.locator('.fp-cup-penalties').boundingBox(),ad=await page.locator('.fp-match-ad-board').boundingBox()
   check(`${field?'2D':'cinema'}: disputa antes de anúncio e controles`,pen.y+pen.height<=ad.y+1)

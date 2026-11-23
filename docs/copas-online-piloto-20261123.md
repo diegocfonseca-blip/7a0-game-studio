@@ -28,6 +28,8 @@ Teste transacional com ROLLBACK passou antes e depois das migrações: suporte d
 - 651 verificações gerais da interface da liga passaram.
 - 250 verificações da interface real das copas em 390/1440 px passaram: cinco competições, cinco abas, cinema/2D, continuidade da transmissão/canvas, telão único, chat, transições em outra aba, ordem confirmada e plano persistindo entre etapas, pênaltis da final de seleções e da Copa dos 8. Sem exceções JavaScript.
 
+Após integrar a main, 91 verificações adicionais das finais/transições passaram, incluindo a duração carimbada real do 2D e a continuidade do canvas nas cinco abas.
+
 Bancadas usam componentes reais com rede simulada, sem escrever em salas reais. SQL usa dados de teste revertidos. Não substitui celular físico, duas sessões autenticadas de produção ou teste de carga. Evidências em `/workspace/shared/copas-piloto-20261123/`; publicação registrada separadamente após CI/deploy.
 
 ## Operação e reversão
