@@ -15184,3 +15184,7 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Técnico: hoje o motor novo só troca time no INTERVALO (`trocaTime` + `casa2`); troca em minuto qualquer = recalcular o jogo do minuto da
   troca em diante (resultado é calculado antes da animação). Ainda não feito.
 - ✅ Feito no mesmo dia: a faixa "☁️ Salvo há… · 💾 Salvar" saiu do topo da Central nova (já tem o Salvar lá embaixo).
+- ✅ 23/11 (madrugada): testado na tela (carreira de teste, celular 430 px, Campo 2D): botão "⏸ 🔁 Substituir · 0/3" embaixo do campinho,
+  pausa no minuto (24' ficou parado), painel com tática (Ataque marcada), Voltar ao jogo segue e o jogo fecha normal, 0 erros. Troca de
+  JOGADOR na tela não testada (time da T1 só tem os 11 — o painel avisa "sem reserva"); coberta pela trava `npm run sub-ao-vivo`.
+  3D (janela por cima do mapa) não testado na tela. Ainda no branch, esperando o OK do Diego pra publicar.

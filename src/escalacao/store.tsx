@@ -6331,7 +6331,8 @@ type Action =
   | { type: 'SET_LINEUP'; mgrId: number; ids: string[]; slot?: number } // carreira: define os 11 titulares (escalação), vale do PRÓXIMO jogo. `slot` = rodada-fantasma da Copa (38 = 1ª fase, 39 = a seguinte…) — é assim que a substituição vale da PRÓXIMA FASE da Copa em diante, sem tocar no que já foi jogado.
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_CONDICAO_AUTO'; on: boolean } // 🔁 carreira solo: liga/desliga o rodízio automático do preparador (preferência do técnico, não zera entre temporadas)
-  | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic } // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
+  | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic }
+  | { type: 'SET_AO_VIVO'; mgrId: number; round: number; aoVivo: { t: number; sai?: string; entra?: string; tactic?: Tactic }[] } // 🔁 23/11: trocas com o jogo rolando (máx 3, só aquele jogo) // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
   // 🎙️ COLETIVA DE IMPRENSA (19/10): a resposta (ou o pulo), o arquirrival, o retrospecto contra rival e a cobrança das promessas
   | { type: 'COLETIVA_RESPONDE'; mgrId: number; pronta: ColetivaPronta; estilo: ColetivaEstilo | null; ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null } }
   | { type: 'COLETIVA_ARQUIRRIVAL'; mgrId: number; team: string; temporada: number }
@@ -12371,8 +12372,35 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) if (cards.filter(c => c.pos === pos).length !== need[pos]) return s // 11 não batem com a formação
       }
       const hh = { ...(s.careerHalftime ?? {}) }
-      hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { xi2: ids, formation: action.formation, tactic: action.tactic, revisao:(hh[action.mgrId]?.[action.round]?.revisao ?? (hh[action.mgrId]?.[action.round] ? 1 : 0))+1 } }
+      hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { aoVivo: hh[action.mgrId]?.[action.round]?.aoVivo, xi2: ids, formation: action.formation, tactic: action.tactic, revisao:(hh[action.mgrId]?.[action.round]?.revisao ?? (hh[action.mgrId]?.[action.round] ? 1 : 0))+1 } }
       s.careerHalftime = hh
+      return s
+    }
+    case 'SET_AO_VIVO': {
+      // 🔁 23/11 (Diego): troca com o jogo PAUSADO, em qualquer minuto — no máximo 3 por jogo, mesma posição, vale SÓ naquele jogo
+      // (depois do apito o time volta como estava; o XI fixo continua o da aba Elenco). Grava na ficha do jogo (a mesma do
+      // intervalo); o motor refaz o jogo com a troca no instante exato. TRAVAS iguais às do intervalo: só carreira offline, carta
+      // do elenco, real (nada de fake), não suspensa/machucada pelo causo, mesma posição. Qualquer coisa errada = descarta tudo.
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
+      if (!m) return s
+      const byId = new Map(m.squad.map(c => [c.id, c]))
+      const lista = (action.aoVivo ?? []).filter(x => Number.isFinite(x.t) && x.t >= 0)
+      const trocas = lista.filter(x => x.sai || x.entra)
+      if (trocas.length > 3) return s
+      const evA = s.eventoTemporada
+      const entraram = new Set<string>()
+      for (const x of trocas) {
+        const sa = x.sai ? byId.get(x.sai) : undefined, en = x.entra ? byId.get(x.entra) : undefined
+        if (!sa || !en || sa.id === en.id || en.fake || sa.pos !== en.pos || entraram.has(en.id)) return s
+        if (evA && evA.season === s.seasonNo && evA.status === 'banco' && (evA.volta ?? 0) > s.round && evA.mgrId === action.mgrId && evA.cardId === en.id) return s
+        entraram.add(en.id)
+      }
+      const ordenada = [...lista].sort((a, b) => a.t - b.t)
+      const hv = { ...(s.careerHalftime ?? {}) }
+      const atual = hv[action.mgrId]?.[action.round]
+      hv[action.mgrId] = { ...(hv[action.mgrId] ?? {}), [action.round]: { ...(atual ?? { xi2: [] }), aoVivo: ordenada, revisao: (atual?.revisao ?? (atual ? 1 : 0)) + 1 } }
+      s.careerHalftime = hv
       return s
     }
     case 'GUARDA_M2': {

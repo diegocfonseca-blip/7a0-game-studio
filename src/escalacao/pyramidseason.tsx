@@ -1,4 +1,6 @@
 import {CareerAuctionHint} from './career-start-guide'
+import { PainelSubstituir, BotaoSubstituir } from './substituir-ao-vivo' // 🔁 23/11: troca com o jogo rolando
+import { instanteDaTroca } from './ao-vivo'
 import {MuseuClube,MuseuMelhoria} from './museu-clube-ui'
 import {OwnerPrimary} from './owner-online-visual'
 import {useFootballMatchPilotAccess} from './football-match-pilot'
@@ -1046,7 +1048,7 @@ function botXI(t: SimTeam, r: number, plans?: BotPlans): PoolCard[] {
 // 🔁 INTERVALO (carreira offline): decisão do 2º tempo por técnico/rodada. O 1º
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
-export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac; revisao?: number }>>
+export type RoundHalftime = Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tac; revisao?: number; aoVivo?: { t: number; sai?: string; entra?: string; tactic?: Tac }[] }>>
 // 🧢 técnicos ATIVOS na simulação (por NOME de time): faixa lo–hi + a partir de
 // qual rodada o efeito vale nesta temporada (0 = desde o começo). Ausente/vazio
 // = simulação byte a byte como sempre foi (ninguém sem técnico muda NADA).
@@ -1065,6 +1067,7 @@ export type RoundPenalty = Record<number, Record<number, { scored: boolean; take
 const SEM_TATICAS: RoundTactics = {}
 const SEM_ESCALACAO: RoundLineups = {}
 const SEM_INTERVALO: RoundHalftime = {}
+const SEM_AO_VIVO: { t: number; sai?: string; entra?: string; tactic?: Tac }[] = []
 const SEM_PENALTI: RoundPenalty = {}
 // ⚽ PLANO DE PÊNALTIS DA TEMPORADA (determinístico, só carreira offline): sorteia
 // QUANTOS pênaltis a temporada reserva (0, 1 ou 2 — nunca mais) e em QUAIS jogos
@@ -1263,17 +1266,31 @@ export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number
     // foi consumido do mesmo jeito → nenhum outro jogo muda); aqui o placar e os autores deste jogo passam a ser os do motor v2,
     // com os MESMOS 11 na MESMA ordem do campinho, a tática, o gás, a formação e a troca do intervalo. Só a partir de `m2Desde`.
     let m2e: EntradaM2 | undefined
+    // 🔁 23/11: trocas com o jogo rolando (só o lado de gente): ids → cartas do elenco, com o gás da rodada
+    const entraramAoVivo: PoolCard[] = []
+    const aoVivoM2 = (() => {
+      if (!hd?.aoVivo?.length || humanTid == null) return undefined
+      const humM = H.human ? H : A, lado = (H.human ? 0 : 1) as 0 | 1
+      const mp = new Map(humM.squad.map(c => [c.id, c]))
+      const out = hd.aoVivo.map(x => {
+        const en = x.entra ? mp.get(x.entra) : undefined
+        const entra = en ? comMods([en], cardMods[humanTid]?.[r])[0] : undefined
+        if (entra) entraramAoVivo.push(entra)
+        return { t: x.t, lado, sai: x.sai ? mp.get(x.sai)?.name : undefined, entra: entra as never, tatica: x.tactic != null ? taticaM2(x.tactic) : undefined }
+      })
+      return out.length ? out : undefined
+    })()
     if (m2Desde != null && r >= m2Desde && (H.human || A.human)) {
       m2e = entradaM2({ versao:versaoComCriterios(versaoRecepcaoNaRodada(r,recepcaoDesde), !!regrasM2?.criterios), preservarGuardado:r < (regrasM2?.disputadas ?? round), partidaId:`liga:${seed}:${div}:${r}:${hi}:${ai}`,
         atualizarIntervalo:!!regrasM2?.intervaloAberto && r === (regrasM2?.disputadas ?? round)-1,
-        intervaloRevisao:hd?.revisao ?? (hd?.xi2?.length ? 1 : 0),
+        intervaloRevisao:hd?.revisao ?? (hd?.xi2?.length || hd?.aoVivo?.length ? 1 : 0), aoVivo: aoVivoM2,
         tatica2:regrasM2?.criterios && hd ? [taticaM2(H.human ? hd.tactic ?? th : th),taticaM2(A.human ? hd.tactic ?? ta : ta)] : undefined, seed: sementeM2(seed, div, r, hi, ai), casa: hxi as never, fora: axi as never, fCasa: H.formation, fFora: A.formation,
         tatica: [taticaM2(th), taticaM2(ta)], bots: [!H.human, !A.human], tecnico: [lvlH, lvlA], evento: [mh, ma],
         casa2: hxi2 as never, fora2: axi2 as never, fCasa2: hxi2 ? hd?.formation ?? H.formation : undefined, fFora2: axi2 ? hd?.formation ?? A.formation : undefined })
       const res = resultadoM2(m2e)
       const tira = (teamName: string, e: { id: string }) => { const k = `${teamName}:${e.id}`; const row = scorers.get(k); if (row) { row.goals--; if (row.goals <= 0) scorers.delete(k) } }
       hFinal.forEach(e => tira(H.name, e)); aFinal.forEach(e => tira(A.name, e))
-      const doLado = (home: boolean) => { const t = home ? H : A; return { t, cartas: [...(home ? hxi : axi), ...((home ? hxi2 : axi2) ?? [])] } }
+      const doLado = (home: boolean) => { const t = home ? H : A; return { t, cartas: [...(home ? hxi : axi), ...((home ? hxi2 : axi2) ?? []), ...((home ? H.human : A.human) ? entraramAoVivo : [])] } }
       const novos: { h: typeof hFinal; a: typeof aFinal } = { h: [], a: [] }
       for (const g of res.gols) {
         const { t, cartas } = doLado(g.home)
@@ -4774,7 +4791,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
   const fonteMapa2D=!!estadoEstadio&&presidentFieldAccount
   const campo2dEl = (c2d||fonteMapa2D) && !replayOficialBloqueado ? (
-    <Campo2D disputaPenaltis={disputaPenaltis} mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={officialFieldWatching?fieldDuration/.82:roundMs/* 🧊 21/11: vendo o jogo no estádio, o relógio de cima anda no tempo do CAMPO (120 s); o campinho-fonte seguia no tempo da rodada, corria 1 minuto num tranco e congelava até o próximo */} gols={goals} fechado={!!finished || min >= 93}
+    <Campo2D aoVivo={elencos?.m2?.aoVivo} disputaPenaltis={disputaPenaltis} mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={officialFieldWatching?fieldDuration/.82:roundMs/* 🧊 21/11: vendo o jogo no estádio, o relógio de cima anda no tempo do CAMPO (120 s); o campinho-fonte seguia no tempo da rodada, corria 1 minuto num tranco e congelava até o próximo */} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -12029,7 +12046,7 @@ export function PyramidSeasonScreen() {
   // errado, sem efeito nenhum no que você assistia (comprovado em teste). Corrigido.
   const curMatchIdx = round - 1
   const [halftimeOpen, setHalftimeOpen] = useState(false)
-  const halftimeDone = !!state.careerHalftime?.[youId]?.[curMatchIdx]
+  const halftimeDone = !!state.careerHalftime?.[youId]?.[curMatchIdx]?.xi2?.length // (🔁 23/11: troca com o jogo rolando grava na mesma ficha sem os 11 do intervalo)
   const halfMode = soloCareer && !state.co2 && (state.careerSubMode ?? 'dinamico') === 'intervalo' && !!myMatch && !done && !seasonOver && !copaPlaying
     && !(state.careerSubModeDesde && state.careerSubModeDesde.s === (state.seasonNo ?? 1) && round <= state.careerSubModeDesde.r) // 🧯 22/11: ligou o modo entre dois jogos → vale do PRÓXIMO (o jogo já apitado travava a semana)
   // fecha o banner ao virar a rodada (jogo novo) — nunca fica aberto de um jogo pro outro
@@ -12053,6 +12070,47 @@ export function PyramidSeasonScreen() {
   const penMode = soloCareer && !state.co2 && !!myMatch && !done && !seasonOver && !copaPlaying && (penPlanned || penTeste) && penDecisive
   const [penaltyOpen, setPenaltyOpen] = useState(false)
   useEffect(() => { setPenaltyOpen(false) }, [round])
+  // 🔁 SUBSTITUIR COM O JOGO ROLANDO (23/11, mockup aprovado: *"pode ser"*). Só no jogo da LIGA decidido pelo motor novo e com o relógio
+  // do estádio (o placar e a tabela seguem o MINUTO do jogo — pausar o jogo pausa tudo, nada vaza antes da hora). Máx 3 trocas, mesma
+  // posição, vale SÓ neste jogo (fica na ficha do jogo; o XI fixo da aba Elenco não muda). Regras de verdade: `SET_AO_VIVO` no store.
+  const [subAberto, setSubAberto] = useState(false)
+  useEffect(() => { setSubAberto(false) }, [round, tab])
+  const aoVivoMeu = state.careerHalftime?.[youId]?.[curMatchIdx]?.aoVivo ?? SEM_AO_VIVO
+  const minutoJogo = scoreClock.round === state.round ? scoreClock.minute : -1
+  const subPossivel = !!myMatch?.m2 && myMatch.you && privateLeagueClock && !!stadiumMatch && !done && !seasonOver && !copaPlaying && !state.co2
+    && minutoJogo > 0 && minutoJogo < 89 && !(halftimeOpen && halfMode) && !(penaltyOpen && penMode)
+  useEffect(() => { if (subAberto && !subPossivel) setSubAberto(false) }, [subAberto, subPossivel])
+  const dadosSub = useMemo(() => {
+    if (!myMatch || !mgrMe) return null
+    const souCasa = myMatch.hId === youId
+    const xi1 = (souCasa ? myMatch.hxi : myMatch.axi) ?? [], xi2 = souCasa ? myMatch.hxi2 : myMatch.axi2
+    const base = (minutoJogo >= 45 && xi2?.length ? xi2 : xi1) as (CartaRadio & { id?: string })[]
+    const byId = new Map(mgrMe.squad.map(c => [c.id, c]))
+    const ids = base.map(c => c.id ?? '').filter(Boolean)
+    const feitas: { sai: WonCard; entra: WonCard }[] = []
+    const saiu = new Set<string>()
+    for (const x of aoVivoMeu) {
+      if (!x.sai || !x.entra) continue
+      const i = ids.indexOf(x.sai), sa = byId.get(x.sai), en = byId.get(x.entra)
+      if (i < 0 || !sa || !en) continue
+      ids[i] = x.entra; saiu.add(x.sai); feitas.push({ sai: sa, entra: en })
+    }
+    const emCampo = ids.map(id => byId.get(id)).filter((c): c is WonCard => !!c)
+    const naQuadra = new Set(ids)
+    const evS = state.eventoTemporada
+    const suspenso = (id: string) => !!evS && evS.season === state.seasonNo && evS.status === 'banco' && (evS.volta ?? 0) > state.round && evS.mgrId === youId && evS.cardId === id
+    const reservas = mgrMe.squad.filter(c => !naQuadra.has(c.id) && !saiu.has(c.id) && !c.fake && !suspenso(c.id))
+    const ultTac = [...aoVivoMeu].reverse().find(x => x.tactic)?.tactic
+    return { emCampo, reservas, feitas, tatica: (ultTac ?? tacAt(careerTactics, youId, curMatchIdx)) as Tac }
+  }, [myMatch, mgrMe, youId, minutoJogo >= 45, aoVivoMeu, state.eventoTemporada, state.seasonNo, state.round, careerTactics, curMatchIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+  const gravaAoVivo = (extra: { sai?: string; entra?: string; tactic?: Tac }) => {
+    const t = instanteDaTroca(round, minutoJogo)
+    dispatch({ type: 'SET_AO_VIVO', mgrId: youId, round: curMatchIdx, aoVivo: [...aoVivoMeu, { t, ...extra }] })
+  }
+  const painelSub = (modo: 'janela' | 'embaixo') => dadosSub && (
+    <PainelSubstituir modo={modo} minuto={minutoJogo} emCampo={dadosSub.emCampo} reservas={dadosSub.reservas} feitas={dadosSub.feitas} tatica={dadosSub.tatica}
+      gas={condGas ? (id => (condGas as Record<string, number>)[id]) : undefined}
+      onTroca={(sai, entra) => gravaAoVivo({ sai, entra })} onTatica={t => { if (t !== dadosSub.tatica) gravaAoVivo({ tactic: t }) }} onVoltar={() => setSubAberto(false)} />)
   // 🙈 ANTI-SPOILER do `revealed` (efeito mora AQUI porque precisa do intervalo/
   // pênalti): segura a rodada atual enquanto a partida anima, acompanhando a
   // VELOCIDADE (🐢/⚡, igual ao card do jogo). 🐞 BUG 14/08 (o "reserva fez gol
@@ -12168,11 +12226,11 @@ export function PyramidSeasonScreen() {
     if (rodouRef.current.round !== round) rodouRef.current = { round, ms: 0 }
     setRoundReady(false)
     if(privateLeagueClock&&stadiumMatch)return
-    if (pausaCentral) return
+    if (pausaCentral || subAberto) return
     const t0 = Date.now()
     const t = setTimeout(() => setRoundReady(true), Math.max(0, roundMs * 0.85 + 250 - rodouRef.current.ms))
     return () => { clearTimeout(t); rodouRef.current.ms += Date.now() - t0 }
-  }, [round, roundMs,privateLeagueClock,stadiumMatch?.id, pausaCentral])
+  }, [round, roundMs,privateLeagueClock,stadiumMatch?.id, pausaCentral, subAberto])
   // ═══ 📅 CALENDÁRIO DA CARREIRA (24/10, só a conta do Diego — `useCalendarioCarreira`) ═══════════════════════════════
   // Liga no domingo 16h, Copa na quarta 21h. Entre um jogo e outro os dias VAZIOS passam: no automático 1 dia por segundo
   // (`CAL_MS_POR_DIA`), só com a Central ou o Jogos na tela — o escritório (Elenco/Tabelas/Rank/Clube) PARA o tempo; no
@@ -12444,11 +12502,11 @@ export function PyramidSeasonScreen() {
     // pênalti com resultado de outro jogo"). Agora só avança depois que `roundReady`
     // confirma que ESTA rodada terminou de animar — os dois passam a usar o MESMO
     // sinal, então não tem mais corrida entre "vira a rodada" e "abre o pênalti".
-    if (state.co2 || pausaCentral || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !(roundReady || (calOn && calApitado.r === round && calApitado.s === calSn)) || coletivaOpen || !calDiasOk || chegando || (calOn && round < 38 && jogoOk !== `${calSn}:${round}:l`)) return
+    if (state.co2 || pausaCentral || subAberto || !state.isHost || seasonOver || manual || eventoPendente || !decisoesOk || round === 0 || (halfMode && !halftimeDone) || (penMode && !penaltyDone) || !(roundReady || (calOn && calApitado.r === round && calApitado.s === calSn)) || coletivaOpen || !calDiasOk || chegando || (calOn && round < 38 && jogoOk !== `${calSn}:${round}:l`)) return
     const t = setTimeout(() => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }, 250)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, calDiasOk, chegando, calOn, jogoOk, calSn])
+  }, [round, state.isHost, seasonOver, dispatch, manual, roundMs, eventoPendente, decisoesOk, halfMode, halftimeDone, penMode, penaltyDone, roundReady, coletivaOpen, pausaCentral, subAberto, calDiasOk, chegando, calOn, jogoOk, calSn])
   // C/D têm semanas sem confronto. Processa a semana vazia, respeitando Copa e decisões,
   // em vez de oferecer um estádio sem partida; funciona também no ritmo manual.
   useEffect(() => {
@@ -12951,7 +13009,7 @@ export function PyramidSeasonScreen() {
     alternaManual: toggleManualCareer, mudaVelocidade: v => { if (campo2d) { if (r2dCarr.teste) setVel2D(v) } else dispatch({ type: 'SET_SIM_SPEED', speed: v }) }, // (igual ao botão da aba Jogos: no 2D a marcha fica guardada)
     marcha: vel3dCarr, mudaMarcha: v => { if (hasManual) setVel2D(v) }, cadeado: hasManual ? undefined : () => setCadeadoMapa(v => !v), // ⏩ 21/11: no 3D a marcha é a do campinho 2D; sem plano, cadeado
     avanca: () => escolheAba('jogos'), // 🛑 03/11: o mapa não tem botão de avançar (o HUD não desenha) — fica só por contrato
-    tatica: () => escolheAba('elenco'), // 🔁 21/11 (Diego: "apertei Substituir no mapa e não aparece nada de substituição, ainda joga pra aba de jogos"): troca de jogador mora na aba Elenco
+    tatica: () => { if (subPossivel) setSubAberto(true); else escolheAba('elenco') }, // 🔁 23/11: com o jogo da liga rolando, pausa e abre o painel por cima do mapa // 🔁 21/11 (Diego: "apertei Substituir no mapa e não aparece nada de substituição, ainda joga pra aba de jogos"): troca de jogador mora na aba Elenco
   } : null
   // 📅 a barra do calendário (a MESMA em toda aba) — ver o bloco "CALENDÁRIO DA CARREIRA" lá em cima
   const calBarra = (() => {
@@ -14174,7 +14232,7 @@ export function PyramidSeasonScreen() {
             <button type="button" aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(pm.chave); setPremiosFechados(v => [...v, pm.chave]) }} style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, fontWeight: 900, padding: '4px 9px', cursor: 'pointer' }}>✕</button>
           </div>
         ))}
-        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div></> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
+        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel && campo2d && <BotaoSubstituir usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />}{taticaBotoes}</div></>) : null}><PlacarQueEncolhe pausado={pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -14346,6 +14404,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* 🔁 BANNER DO INTERVALO (carreira offline, toggle "só no intervalo"): pausa
             aos 45' e deixa mexer no 2º tempo. Enquanto aberto, a rodada não anda. */}
+        {subAberto && subPossivel && tab === 'estadio' && painelSub('janela') /* 🔁 23/11: no 3D o painel é a janela de baixo, por cima do mapa pausado */}
         {halftimeOpen && halfMode && mgrMe && myMatch && me && (() => {
           const iAmHome = myMatch.h === me.team
           const g1 = myMatch.goals.filter(g => g.min <= 45)

@@ -1,5 +1,7 @@
 import type { DisputaPenaltisCampo } from './campo2d-penaltis'
 import {desenharMarcadorCampo2D,desenharNomeCampo2D} from './campo2d-marcador'
+import { registraMotorAoVivo, assinaturaAoVivo } from './ao-vivo'
+import type { AoVivoM2 } from './motor2/motor'
 import {demandaSuperficieCampo2D,publicarSuperficieCampo2D,soltarSuperficieCampo2D,motorCompartilhadoCampo2D} from './campo2d-superficie'
 import {ancorarMinutoCampo,passoRelogioCampo,suspenderRelogioCampo} from './campo2d-relogio'
 // 📺 CAMPO 2D — a tela (20/10). O protótipo que o Diego aprovou (`scripts/prototipo-jogo-ao-vivo/`) virou componente do jogo.
@@ -68,6 +70,8 @@ export interface Campo2DProps {
   onSimulationMinute?: (minute:number|null)=>void
   /** Same canvas on the private map; never starts another simulation. */
   mapMatchId?:string
+  /** 🔁 23/11: trocas com o jogo rolando (carreira, motor novo) — entram na agenda do motor que está na tela */
+  aoVivo?: AoVivoM2[]
   mapOnly?:boolean
   /** 🧪 só a bancada: força o clima (pras fotos) */
   climaForcado?: Clima
@@ -146,7 +150,7 @@ function juntaBonusKings<G extends { min: number; home: boolean; name: string }>
   }
   return out
 }
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis, kings }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis, kings, aoVivo }: Campo2DProps) {
   const replay = replay0 && !kings // 👑 a Kings muda quem está em campo no meio do jogo: a fita (que guarda por posição na lista) não serve
   const t = useT()
   useEffect(() => { if(mapOnly)return;campoNaTela(1); return () => campoNaTela(-1) }, [mapOnly]) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
@@ -193,6 +197,16 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     return mapMatchId?motorCompartilhadoCampo2D(mapMatchId,create):create()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundKey, casa.nome, fora.nome, mapMatchId]) // ⏩ 07/11: SEM o roundMs — trocar a velocidade no meio não recria o jogo (antes voltava do 0')
+  // 🔁 23/11: troca com o jogo rolando — a agenda nova entra no motor que está rodando (no mesmo instante em que o jogo pausou).
+  // O motor novo da carreira já nasce com as trocas antigas (vêm na entrada); aqui só as que chegaram DEPOIS que ele nasceu.
+  const agendadas = useRef<{ jogo: unknown; ks: Set<string> }>({ jogo: null, ks: new Set() })
+  if (agendadas.current.jogo !== jogo) agendadas.current = { jogo, ks: new Set((aoVivo ?? []).map(assinaturaAoVivo)) }
+  useEffect(() => {
+    const ag = (jogo as unknown as { agendaTroca?: (x: AoVivoM2) => void }).agendaTroca
+    if (!ag || !aoVivo?.length) return
+    for (const x of aoVivo) { const k = assinaturaAoVivo(x); if (agendadas.current.ks.has(k)) continue; agendadas.current.ks.add(k); ag.call(jogo, x) }
+  }, [aoVivo, jogo])
+  useEffect(() => { if (!motorExperimental || mapOnly) return; registraMotorAoVivo(roundKey, jogo as unknown as { t: number }); return () => registraMotorAoVivo(roundKey, null) }, [jogo, roundKey, mapOnly]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🔁 INTERVALO (carreira): o técnico mexeu no time → o 2º tempo re-simula. O campinho troca o futuro (gols novos) e, do 45'
   // em diante, joga com os 11 novos na formação nova. Sem mudança, nada acontece (assinatura igual).
   const golsSig = gols.map(g => `${g.min}${g.home ? 'h' : 'a'}${g.name}`).join('|')
