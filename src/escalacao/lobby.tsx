@@ -1,4 +1,5 @@
 import { NBA_MUNDO_TOTAL } from './data-basquete-mundo'
+import { LinhaComunidadeChat } from './links-comunidade' // 📲🎮 23/11: WhatsApp + Discord no chat
 import {CriacaoSala,ErroPrazoCriacao,leCriacaoPendente,gravaCriacaoPendente,limpaCriacaoPendente,novoIdCriacao} from './criacao-sala'
 import {PrivateRoomChat} from './private-room-chat'
 import {useOnlineRoomPresentation as useOwnerPresentation} from './presentation-release'
@@ -196,6 +197,7 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend, pr
               <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{tr('💬 Zoeira da sala', '💬 Room banter')}</span>
               <button onClick={() => setOpen(false)} aria-label={tr('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
             </div>
+            <LinhaComunidadeChat />
             <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: 10, display: 'flex', flexDirection: 'column', gap: 7, minHeight: 90 }}>
               {msgs.length === 0
                 ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>{tr('Manda a primeira zoeira 😎', 'Send the first jab 😎')}</p>
