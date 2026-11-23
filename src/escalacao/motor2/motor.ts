@@ -159,6 +159,8 @@ export interface Parada { tipo: TipoParada; lado: Lado; x: number; y: number; co
 const ESPERA: Record<TipoParada, number> = { saida: 0.9, lateral: 0.6, escanteio: 1.5, tiro_de_meta: 1.0, falta: 1.3, penalti: 1.8 }
 
 const zero2 = (): [number, number] => [0, 0]
+/** 🔁 uma troca/tática com o jogo rolando: `t` = instante do motor (segundos de jogo) */
+export interface AoVivoM2 { t: number; lado: Lado; sai?: string; entra?: CartaCampo; tatica?: number }
 
 export class Motor2 {
   t = 0
@@ -423,11 +425,37 @@ export class Motor2 {
   }
   private expulsos: { lado: Lado; nome: string }[] = []
 
+  // ── 🔁 TROCA COM O JOGO ROLANDO (23/11, Diego: *"o jogo é pausado na hora… podendo alterar apenas três jogadores… mesma coisa
+  // serve pra tática"*). A troca entra numa AGENDA com o instante exato (t do motor): no passo em que o relógio chega nele, quem sai
+  // vira quem entra NO MESMO LUGAR do campo (mesma vaga, mesmo objeto — nada que aponta pra ele fica solto). O campinho ao vivo e a
+  // conta do placar rodam a MESMA agenda: até o instante da troca o jogo é idêntico, dali pra frente é o mesmo jogo com o time novo.
+  // Só troca de mesma posição (a vaga do campinho é lei) e nunca de expulso. Gol/assistência do reserva saem com o nome dele.
+  private agenda: AoVivoM2[] = []
+  agendaTroca(x: AoVivoM2) { this.agenda.push(x); this.agenda.sort((a, b) => a.t - b.t) }
+  private aplicaAgenda() {
+    while (this.agenda.length && this.t >= this.agenda[0].t - 1e-9) {
+      const x = this.agenda.shift()!
+      if (x.tatica != null) this.taticaBase[x.lado] = x.tatica
+      if (!x.sai || !x.entra) continue
+      const a = this.atl.find(p => p.lado === x.lado && p.nome === x.sai && !p.expulso)
+      if (!a || this.atl.some(p => p.lado === x.lado && p.nome === x.entra!.name)) continue
+      const { perfil: pf, forma } = perfilDoDia(x.entra, a.grupo, x.lado, this.ajuste[x.lado])
+      a.nome = x.entra.name; a.carta = x.entra; a.estilo = pf.estilo; a.golpes = pf.golpes; a.pe = pf.pe; a.at = { ...pf.at }; a.base = pf.at; a.forma = forma; a.tend = pf.tend
+      a.amarelos = 0; a.faltas = 0; a.atordoado = 0
+      a.gas = this.ajuste[x.lado]?.condicaoUnica ? 1 : GAS_INICIO[Math.min(3, Math.max(0, -(x.entra.gasMod ?? 0)))]
+      this.rende(a)
+      this.subs.push({ lado: x.lado, sai: x.sai, entra: x.entra.name, t: this.t })
+    }
+  }
+  /** as trocas que já valeram (o placar/súmula usa pra creditar gol de quem entrou) */
+  subs: { lado: Lado; sai: string; entra: string; t: number }[] = []
+
   // ── relógio ──
   avancaAte(minuto: number) {
     const alvo = minuto * SEG_POR_MIN
     let n = 0
     while (this.t + DT <= alvo && n++ < 4000) {
+      if (this.agenda.length) this.aplicaAgenda()
       for (const a of this.atl) { a.ax = a.x; a.ay = a.y }
       this.bolaAnt.x = this.bola.x; this.bolaAnt.y = this.bola.y; this.bolaAnt.h = this.bola.h
       this.passa()

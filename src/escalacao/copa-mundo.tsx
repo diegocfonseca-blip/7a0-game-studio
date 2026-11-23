@@ -1,4 +1,6 @@
-import {useOwnerLayout,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand} from './owner-online-visual'
+import {applyCupPlans,cupPlanModifiers} from './copa-planos'
+import {FootballWorldCupView,type CupPenaltyPresentation} from './football-cup-world'
+import {useOwnerLayout,useOwnerFootballPilot,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand} from './owner-online-visual'
 import { rotuloFormacao } from './types'
 import { ListaRolavel } from './lista-rolavel' // 📜 23/11: barra + dica de rolagem na convocação
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
@@ -39,7 +41,7 @@ import { CARTAS_SELECOES_EXTRA } from './cartas-selecoes-extra'
 // pyramidseason é seguro: são function declarations usadas só no render.
 import { Penaltis2D } from './campo2d-penaltis-react' // 🥅 disputa de pênaltis no campinho 2D (07/11)
 import { disputaRolandoNaTela } from './penaltis-na-tela'
-import type { ConfigPenaltisCampo, DisputaPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
+import type { ConfigPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, AUTO_EXTRA_MS as COPA_AUTO_EXTRA_MS, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill, useApitoDeLargada } from './pyramidseason'
 import { startCrowd, stopCrowd } from './sound' // 🏟️ a Copa do Mundo era MUDA (19/09)
 import { disputaPenaltis } from './penaltis'
@@ -276,7 +278,7 @@ export function copaMundoDaTemporada(seed: number, seasonNo: number, anchor = CO
 export const nextCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo <= s.anchor ? s.anchor : s.anchor + Math.ceil((seasonNo - s.anchor) / (s.ciclo ?? COPA_CICLO)) * (s.ciclo ?? COPA_CICLO)
 
 // ── simulação (seedada; resultados só aparecem quando a rodada é jogada) ──
-export type Entrant = { club: string; you: boolean; pais: string; xi: PoolCard[]; str: number; /** 🎭 seleção com DONO de gente na sala (online) — pênalti mais lento (25/09) */ humano?: boolean; /** 📐 a formação (o motor novo escala por ela) */ form?: string }
+export type Entrant = { uid?:string; club: string; you: boolean; pais: string; xi: PoolCard[]; str: number; /** 🎭 seleção com DONO de gente na sala (online) — pênalti mais lento (25/09) */ humano?: boolean; /** 📐 a formação (o motor novo escala por ela) */ form?: string }
 // 🎭 disputa com GENTE (você, ou outro humano no online) anima mais devagar — ver `pensPasso`
 export const koTemGente = (entrants: Entrant[], t: { h: number; a: number }) => !!(entrants[t.h]?.you || entrants[t.h]?.humano || entrants[t.a]?.you || entrants[t.a]?.humano)
 function poisson(r: () => number, lambda: number) { let k = 0, p = 1; const L = Math.exp(-lambda); do { k++; p *= r() } while (p > L); return Math.min(6, k - 1) }
@@ -393,7 +395,7 @@ function roundRobin(teams: number[]): GMatch[][] {
   return out
 }
 // tabela do grupo: pontos → VITÓRIAS → saldo (regra do Diego)
-function groupTable(g: Group, upTo: number) {
+export function groupTable(g: Group, upTo: number) {
   const st: Record<number, { pts: number; w: number; sg: number; gp: number }> = {}
   for (const t of g.teams) st[t] = { pts: 0, w: 0, sg: 0, gp: 0 }
   for (let r = 0; r < upTo; r++) for (const m of (g.matches[r] ?? [])) {
@@ -1065,15 +1067,19 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     const aBase = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0x5A5511) >>> 0 // 🅰️ dado das assistências (não encosta no rng)
     // ⚔️ jogo com tática de gente (≠ equilíbrio): sorteado de novo com DADO PRÓPRIO, depois do sorteio normal — o `rng` do
     // torneio já andou igual, então nenhum outro jogo muda. Devolve também o dado, pros pênaltis saírem dele.
-    const comTatica = (h: number, a: number, passo: number, chave: string): { g: [number, number]; ev: ScoreGoal[]; r: () => number } | null => {
+    const comTatica = (h: number, a: number, passo: number, chave: string, baseline:{g:[number,number];ev:ScoreGoal[]}): { g: [number, number]; ev: ScoreGoal[]; r: () => number } | null => {
       if (!tat) return null
       const th = tat(h, passo), ta = tat(a, passo)
-      if (!temTatica(th, ta)) return null
       const r = dadoDaTatica((seed ^ Math.imul(seasonNo, 2654435761)) >>> 0, chave, th, ta)
       const adv = entrants[h].str - entrants[a].str
       const [fh, fa] = fatoresTatica(th, ta)
-      const g: [number, number] = [poisson(r, Math.max(0.25, 1.25 + adv * peso) * fh), poisson(r, Math.max(0.25, 1.25 - adv * peso) * fa)]
-      return { g, ev: goalEvents(r, g[0], g[1], entrants[h], entrants[a], aBase, chave), r }
+      const initial=temTatica(th,ta)?(()=>{const g:[number,number]=[poisson(r,Math.max(0.25,1.25+adv*peso)*fh),poisson(r,Math.max(0.25,1.25-adv*peso)*fa)];return{g,ev:goalEvents(r,g[0],g[1],entrants[h],entrants[a],aBase,chave),r}})():{...baseline,r}
+      const planned=applyCupPlans(tat,h,a,passo,(seed^Math.imul(seasonNo,2654435761))>>>0,chave,initial,(home,away,r)=>{
+        const hm=cupPlanModifiers(home,entrants[h]),am=cupPlanModifiers(away,entrants[a]),[hf,af]=fatoresTatica(home.posture,away.posture)
+        const g:[number,number]=[poisson(r,Math.max(.25,1.25+adv*peso+(hm.attack-am.defence)*.055)*hf),poisson(r,Math.max(.25,1.25-adv*peso+(am.attack-hm.defence)*.055)*af)]
+        return{g,ev:goalEvents(r,g[0],g[1],entrants[h],entrants[a],aBase,chave)}
+      })
+      return planned??(temTatica(th,ta)?initial:null)
     }
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
@@ -1087,7 +1093,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
         m.gh = gh; m.ga = ga
         m.ev = goalEvents(rng, gh, ga, entrants[m.h], entrants[m.a], aBase, `gr${m.h}-${m.a}`)
         if (meu(m.h, m.a)) { const n = jogoM2(entrants, seed, seasonNo, `gr${m.h}-${m.a}`, m.h, m.a, versao); m.gh = n.g[0]; m.ga = n.g[1]; m.ev = n.ev; m.m2 = n.e }
-        else { const t = comTatica(m.h, m.a, ri + 1, `gr${m.h}-${m.a}`); if (t) { m.gh = t.g[0]; m.ga = t.g[1]; m.ev = t.ev } } // rodada r = passo r+1
+        else { const t = comTatica(m.h, m.a, ri + 1, `gr${m.h}-${m.a}`,{g:[m.gh,m.ga],ev:m.ev??[]}); if (t) { m.gh = t.g[0]; m.ga = t.g[1]; m.ev = t.ev } } // rodada r = passo r+1
       } })
       return { teams, matches }
     })
@@ -1127,7 +1133,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       if (t.g1[0] > t.g1[1]) t.winner = h; else if (t.g1[1] > t.g1[0]) t.winner = a
       else { t.pen = pens(rng); t.winner = t.pen[0] > t.pen[1] ? h : a }
       // ⚔️ tática: a conta acima já gastou o dado do torneio (pênaltis inclusive); o jogo sai do dado próprio
-      const tt = comTatica(h, a, passo, `ko1-${h}-${a}`)
+      const tt = comTatica(h, a, passo, `ko1-${h}-${a}`,{g:t.g1!,ev:t.ev1!})
       if (tt) {
         t.g1 = tt.g; t.ev1 = tt.ev; delete t.pen
         if (tt.g[0] > tt.g[1]) t.winner = h; else if (tt.g[1] > tt.g[0]) t.winner = a
@@ -1151,7 +1157,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       fg = n.g; fev = n.ev; fm2 = n.e
       fpen = fg[0] === fg[1] ? pens(mulberry(n.e.seed ^ 0x9E37)) : null
     } else {
-      const tt = comTatica(fh, fa, PASSO_COPA.FINAL, `final-${fh}-${fa}`)
+      const tt = comTatica(fh, fa, PASSO_COPA.FINAL, `final-${fh}-${fa}`,{g:fg,ev:fev})
       if (tt) { fg = tt.g; fev = tt.ev; fpen = fg[0] === fg[1] ? pens(tt.r) : null }
     }
     const champion = fg[0] > fg[1] ? fh : fg[1] > fg[0] ? fa : (fpen![0] > fpen![1] ? fh : fa)
@@ -1207,6 +1213,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
   const ownerVisual=useOwnerLayout()
+  const cupPilot=useOwnerFootballPilot()&&!!online
   const [allGroups, setAllGroups] = useState(!!online)
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
@@ -1510,9 +1517,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
     aSquad: entrants[t.h].xi, bSquad: entrants[t.a].xi, orcamento: pensRevealDelay(t.pen, koTemGente(entrants, t)),
   } : undefined
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
-  const live = (h: number, a: number, ev: ScoreGoal[], m2e?: EntradaM2, pen?: { sessao?: DisputaPenaltisCampo; estado?: EstadoPenaltisCampo }) => (
+  const live = (h: number, a: number, ev: ScoreGoal[], m2e?: EntradaM2, pen?: CupPenaltyPresentation) => (
     <div style={{ marginBottom: 8 }}>
-      <LiveScoreCard disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline={privateVisual} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={c2d ? paisColor(entrants[h].pais) : GREEN} awayColor={c2d ? paisColor(entrants[a].pais) : RED} /* 🌍 no 2D cada seleção com a cor dela (Diego 21/10) */
+      <LiveScoreCard broadcastTransition={cupPilot?aberturaMundo:undefined} penaltyPanel={pen?.panel} neutro={!isYou(h)&&!isYou(a)} disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline={privateVisual} displayMinute={synced ? liveMin : undefined} homeName={nm(h)} awayName={nm(a)} homeColor={c2d ? paisColor(entrants[h].pais) : GREEN} awayColor={c2d ? paisColor(entrants[a].pais) : RED} /* 🌍 no 2D cada seleção com a cor dela (Diego 21/10) */
         homeOwner={owner(h)} awayOwner={owner(a)}
         homeEmblem={privateVisual ? <NationalCrest country={entrants[h].pais} size={58} /> : undefined}
         awayEmblem={privateVisual ? <NationalCrest country={entrants[a].pais} size={58} /> : undefined}
@@ -1629,6 +1636,15 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
     if (proxPasso === FINAL) { const f = world.final; return <TunelFinal comp={comp} seg={seg} total={total} espera={espera} casa={{ nome: entrants[f.h].pais, crest: <NationalCrest country={entrants[f.h].pais} size={92} /> }} fora={{ nome: entrants[f.a].pais, crest: <NationalCrest country={entrants[f.a].pais} size={92} /> }} /> }
     return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#2F6FDB" espera={espera} />
   })() : null
+  if(cupPilot)return <TemaCompCtx.Provider value={comp}><FootballWorldCupView world={world} entrants={entrants} euro={euro} step={step} minute={liveMin} finished={liveDone} field={c2d} renderMatch={(g,pc)=>live(g.h,g.a,g.ev,undefined,pc)} transition={aberturaMundo} controls={onlineWorldControls} tactics={online?.taticaSlot} onClose={onClose} tournamentKey={online!.seasonKey} ceremony={<>
+    {finalSeen&&isYou(world.final.champion)&&<CardCollectPrompt motivo={euro===16?'Copa América':euro?'Eurocopa':'Copa do Mundo'} seasonKey={online!.seasonKey} origin="online"/>}
+    {done && (online || isYou(world.final.champion)) && !festaMundoVista && <FestaCampeao comp={comp} nome={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={150} />}
+        mascote={ownerVisual?MASCOTES[mascoteKeyDoTime(entrants[world.final.champion].club)??'']:undefined} lendas={ownerVisual?entrants[world.final.champion].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year})):undefined} souCampeao={isYou(world.final.champion)} souVice={isYou(world.final.h) || isYou(world.final.a)} linha={`${tr('final', 'final')}: ${nm(world.final.h)} ${world.final.g[0]}×${world.final.g[1]} ${nm(world.final.a)}`}
+        artilheiro={(() => { const r = artilhariaDaCopa(world)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
+        garcom={(() => { const r = [...copaStats(world, step, liveDone).assists].sort((x, y) => y.total - x.total || x.name.localeCompare(y.name))[0]; return r && r.total > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.total } : null })()}
+        onDone={() => { setFestaMundoVista(true); try { sessionStorage.setItem(festaMundoKey, '1') } catch { /* segue */ } }} />}
+    {done&&<OwnerChampionBanner title={euro===16?'Copa América':euro?'Eurocopa':'Copa do Mundo'} name={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={52}/>} trophy={<Trofeu comp={comp} size={160}/>} own={isYou(world.final.champion)} legends={entrants[world.final.champion].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[world.final.champion].club)??'']} line={`${nm(world.final.h)} ${world.final.g[0]} × ${world.final.g[1]} ${nm(world.final.a)}`}/>}
+  </>}/></TemaCompCtx.Provider>
   return (
     <TemaCompCtx.Provider value={online ? comp : null}>
       {privateVisual ? <CompetitionStage kind={euro === 16 ? 'america' : euro ? 'euro' : 'world'} title={online ? (euro === 16 ? tr('COPA AMÉRICA LEGENDS', 'LEGENDS COPA AMÉRICA') : euro ? tr('EUROCOPA LEGENDS', 'LEGENDS EURO') : tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP')) : `${tr('COPA DO MUNDO LEGENDS · TEMPORADA', 'LEGENDS WORLD CUP · SEASON')} ${seasonNo}`} phase={done ? tr('Campeão definido', 'Champion decided') : step <= GR ? tr('Fase de grupos', 'Group stage') : step === SORTEIO ? tr('Sorteio do mata-mata', 'Knockout draw') : step === OITAVAS ? tr('Oitavas de final', 'Round of 16') : step === QUARTAS ? tr('Quartas de final', 'Quarter-finals') : step === SEMI ? tr('Semifinais', 'Semi-finals') : tr('A grande final', 'The grand final')} detail={step <= GR ? `${tr('Rodada', 'Round')} ${Math.max(1, gRound)} ${tr('de', 'of')} ${GR} · ${vagasTerceiros(world.groups.length) > 0 ? tr(`passam os 2 primeiros de cada grupo + os ${vagasTerceiros(world.groups.length)} melhores 3ºs`, `top 2 of each group + the ${vagasTerceiros(world.groups.length)} best 3rd-placed go through`) : tr('passam os 2 primeiros de cada grupo', 'top 2 of each group go through')}` : step === SORTEIO ? (semOit ? tr('Oito seleções classificadas · sorteio livre · jogo único', 'Eight teams through · open draw · one-off ties') : tr('Dezesseis seleções classificadas · sorteio livre · jogo único', 'Sixteen teams through · open draw · one-off ties')) : step <= SEMI ? tr('Jogo único · empate leva aos pênaltis', 'Single match · a draw goes to penalties') : tr('Jogo único · o campeão ganha uma carta', 'Single match · the champion wins a card')} status={!liveDone ? tr('Bola rolando · resultados revelados no ritmo da partida', 'Ball rolling · results revealed at match pace') : done ? tr('Competição encerrada', 'Competition over') : tr('Confira os resultados e a próxima fase', 'Check the results and the next stage')}>{aberturaMundo}</CompetitionStage> : <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>

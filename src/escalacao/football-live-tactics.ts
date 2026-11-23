@@ -8,22 +8,35 @@ const TEST_ACCOUNTS=new Set([FOOTBALL_OWNER_UID,'b068eff2-098f-4370-87de-3f90dd7
 export type FootballPlan={posture:Tactic;attack:'mixed'|'middle'|'wings';pressure:'normal'|'high';pace:'normal'|'slow'|'fast';mark:string|null}
 export type FootballLive={revision:number;orders:{id:string;from:number;plan:FootballPlan;by:number}[]}
 export const DEFAULT_FOOTBALL_PLAN:FootballPlan={posture:'equilibrio',attack:'mixed',pressure:'normal',pace:'normal',mark:null}
-export type FootballClock={room:string;round:number;minute:number;at:number}
+export type FootballClock={room:string;round:number;minute:number;at:number;context?:string}
 let clock:FootballClock|null=null
 const clockListeners=new Set<()=>void>()
 export function publishFootballClock(value:FootballClock){
- if(clock?.room===value.room&&clock.round===value.round&&clock.minute===value.minute)return
+ if(clock?.room===value.room&&clock.round===value.round&&clock.minute===value.minute&&clock.context===value.context)return
  clock=value;clockListeners.forEach(fn=>fn())
 }
 export function footballClock(){return clock}
 export function useFootballClock(){return useSyncExternalStore(fn=>{clockListeners.add(fn);return()=>{clockListeners.delete(fn)}},()=>clock,()=>null)}
 export function footballPlanRoom(s:EscState){
  return s.onlineMode==='online'&&s.sport!=='basquete'&&!s.careerOnline&&!s.careerIntent&&!s.co2&&!s.pokeLiga
-  &&!!s.roomId&&s.managers.some((m,i)=>m.isHuman&&s.seatUids?.[i]===FOOTBALL_OWNER_UID)
-  &&s.managers.every((m,i)=>!m.isHuman||TEST_ACCOUNTS.has(s.seatUids?.[i]??''))
+  &&!!s.roomId&&!s.ligaDraft&&!s.minhaLigaDraft
 }
 export function footballTestRoom(s:EscState){
  return s.isHost&&s.youUid===FOOTBALL_OWNER_UID&&footballPlanRoom(s)
+  &&s.managers.some((m,i)=>m.isHuman&&s.seatUids?.[i]===FOOTBALL_OWNER_UID)
+  &&s.managers.every((m,i)=>!m.isHuman||TEST_ACCOUNTS.has(s.seatUids?.[i]??''))
+}
+export const footballPlanActor=(uid:string|undefined)=>!!uid&&/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(uid)
+export const footballPlanHost=(s:EscState)=>s.isHost&&footballPlanRoom(s)
+/** A plan belongs to the human UID in this manager's actual seat. */
+export function promoteFootballPlans(s:EscState){
+ if(!footballPlanHost(s))return
+ for(const [seat,m] of s.managers.entries()){
+  const plan=s.footballNextPlans?.[m.id]
+  if(m.isHuman&&footballPlanActor(s.seatUids?.[seat])&&validFootballPlan(plan)){
+   s.footballPlans={...s.footballPlans,[m.id]:{...plan,mark:null}};s.tactics[m.id]=plan.posture
+  }
+ }
 }
 export function validFootballPlan(value:unknown):value is FootballPlan{
  if(!value||typeof value!=='object')return false
@@ -38,6 +51,16 @@ export function planFor(s:EscState,id:number):FootballPlan{
 export function nextPlanFor(s:EscState,id:number):FootballPlan{
  const saved=s.footballNextPlans?.[id]
  return saved&&validFootballPlan(saved)?{...saved,mark:null}:planFor(s,id)
+}
+export function footballClockContext(s:EscState){
+ const cup=s.quickCopa
+ return cup?`cup:${s.seed}:${s.seasonNo}:${cup.phase}:${(cup.bracket?.length??0)}:${cup.legIdx}:${cup.ties?.[0]?.legs.length??0}`:`league:${s.seed}:${s.seasonNo}:${s.round}`
+}
+export function quickFootballMatch(s:EscState,id:number):MatchResult|null{
+ const cup=s.quickCopa,tie=cup?.ties?.find(t=>t.aId===id||t.bId===id),leg=tie?.legs.at(-1)
+ if(!cup||cup.phase==='done'||!tie||!leg)return null
+ const aHome=cup.legIdx%2===0
+ return{homeId:aHome?tie.aId:tie.bId,awayId:aHome?tie.bId:tie.aId,hg:aHome?leg[0]:leg[1],ag:aHome?leg[1]:leg[0],highlights:tie.lastHighlights??[],presentationGoals:tie.lastPresentationGoals,footballLive:tie.lastFootballLive}
 }
 /** Small symmetric tradeoffs, in the same rating units as rollManagerForm. */
 export function footballPlanModifiers(plan:FootballPlan,cards:WonCard[],opponent:WonCard[]){

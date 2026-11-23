@@ -604,6 +604,7 @@ export interface MatchResult {
 // clássico do chaveamento; final é jogo único. Mesmo motor de partida do
 // campeonato (simMatch), só que fora do calendário de pontos corridos.
 export interface QuickCopaTie {
+  lastFootballLive?:import('./football-live-tactics').FootballLive
   lastPresentationGoals?: MatchHighlight[]
   aId: number; bId: number; aName: string; bName: string
   legs: [number, number][] // placares [gols de A, gols de B] de cada perna já jogada
@@ -922,7 +923,7 @@ export interface EscState {
   careerSubMode?: 'dinamico' | 'intervalo' // 🔁 SÓ CARREIRA OFFLINE (Diego 12/08): como o técnico faz troca. 'dinamico' (padrão) = como sempre foi (troca vale pro PRÓXIMO jogo, sem pausa). 'intervalo' = o jogo PARA aos 45' e abre o banner pra trocar SÓ pro 2º tempo. Preferência do técnico, NÃO zera entre temporadas.
   /** 🧯 22/11: quando o técnico LIGOU o "só no intervalo" (temporada + rodada). O modo vale do jogo SEGUINTE — ligar entre dois jogos fazia o jogo já apitado esperar um intervalo que nunca viria. */
   careerSubModeDesde?: { s: number; r: number }
-  careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic; revisao?: number }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
+  careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic; revisao?: number; /** 🔁 23/11: trocas/tática com o jogo rolando (t = instante do motor, ids das cartas) — só aquele jogo */ aoVivo?: { t: number; sai?: string; entra?: string; tactic?: Tactic }[] }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
   careerColetiva?: Record<number, import('./coletiva').ColetivaSave> // 🎙️ COLETIVA DE IMPRENSA (19/10): por clube (mgrId). Histórico das respostas, promessas, fama, arquirrival e os efeitos pendentes (moral no próximo jogo / clássico). Só carreira solo. Ausente = nunca deu coletiva.
   // 🌐 CARREIRA ONLINE v2 (19/10, só conta do Diego): este aparelho roda a carreira SOLO do próprio clube e os outros clubes de gente chegam pelas gavetas (`carreira-online-v2.ts`). Ausente = carreira solo de sempre (nada muda).
   // `comanda` = este aparelho conduz as fases de TODOS (leilão etc.: o dono, ou o vice no dia dele); `espelho` = este aparelho só ASSISTE o leilão do dono (o que ele aperta vai pro dono).
@@ -1405,7 +1406,7 @@ export interface EscState {
   /** 🏀✍️ CONTRATOS do EUA Oficial (eua-agencia.ts): `nome|clube|ano` → a temporada em que o contrato ACABA (no fim dela). */
   euaContratos?: Record<string, number>
   /** 🏀✍️ a Agência livre desta virada: os SEUS contratos que acabaram (`meus`), o que você decidiu, e quem ficou livre (vai pro seu leilão). */
-  euaAgencia?: { temporada: number; meus: string[]; decididos: Record<string, 'renova' | 'sai'>; livres: Card[]; botsRenovaram: number; /** quem soltou cada livre (chave → franquia) */ de?: Record<string, string> }
+  euaAgencia?: { temporada: number; meus: string[]; decididos: Record<string, 'renova' | 'sai'>; livres: Card[]; botsRenovaram: number; /** quem soltou cada livre (chave → franquia) */ de?: Record<string, string>; /** livres que outra franquia contratou na hora */ assinaram?: { name: string; club: string; year: number; pos: string; de: string; para: string }[]; /** 🔁 a troca desta virada (1 por temporada) */ troca?: { deu: string; recebeu: string; time: string } }
   /** 🏀🏆 a NBA Cup REAL do EUA Oficial: os 6 grupos de 5 e os jogos de grupo desta temporada (eua-cup.ts). O mata-mata é o `nbaCup`. */
   euaCup?: import('./eua-cup').EuaCupEstado
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }

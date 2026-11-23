@@ -6,6 +6,7 @@
 // valeu. Liga a partir de uma rodada (`desde`): rodada já jogada nunca muda de placar.
 import { Motor2 } from './motor'
 import type { CartaCampo, Lado } from './tipos'
+import type { AoVivoM2 } from './motor'
 import type { Clima } from '../campo2d-clima'
 import { climaDoJogo } from '../campo2d-clima'
 import { VERSAO_RECEPCAO_M2, VERSAO_CRITERIOS_M2, VERSAO_CRITERIOS_RECEPCAO_M2, temRecepcaoContextual, temCriteriosCarreira, type VersaoM2 } from './versao'
@@ -32,6 +33,8 @@ export interface EntradaM2 {
   bots: [boolean, boolean]
   /** 🔁 os 11 do 2º tempo (troca no intervalo) */
   casa2?: CartaCampo[]; fora2?: CartaCampo[]; fCasa2?: string; fFora2?: string
+  /** 🔁 23/11: trocas e tática com o jogo rolando (instante exato do motor) — vale só neste jogo */
+  aoVivo?: AoVivoM2[]
   clima: Clima
   /** 🧢 o nível do dia do técnico de cada lado (a 12ª carta) · 🎭 o evento da rodada ("escalar assim mesmo") */
   tecnico?: [number | null, number | null]; evento?: [number, number]
@@ -56,7 +59,7 @@ export function entradaM2(o: Omit<EntradaM2, 'clima'> & { clima?: Clima }): Entr
     // A decisão do técnico altera apenas o segundo tempo. O catálogo atual
     // nunca substitui as cartas que de fato iniciaram este confronto.
     if (e.atualizarIntervalo && rev > anterior) return { ...oficial,
-      casa2:e.casa2, fora2:e.fora2, fCasa2:e.fCasa2, fFora2:e.fFora2,
+      casa2:e.casa2, fora2:e.fora2, fCasa2:e.fCasa2, fFora2:e.fFora2, aoVivo:e.aoVivo,
       tatica2:e.tatica2, intervaloRevisao:rev, preservarGuardado:true, atualizarIntervalo:true }
     return { ...oficial, preservarGuardado: true }
   }
@@ -75,16 +78,18 @@ export function novoMotor2(e: EntradaM2, en = false): Motor2 {
   const m = new Motor2(e.seed, e.casa, e.fora, en, [e.fCasa, e.fFora], e.tatica, e.clima, e.bots, { tecnico: e.tecnico, evento: e.evento, recepcaoContextual:temRecepcaoContextual(e.versao), criteriosCarreira:temCriteriosCarreira(e.versao) })
   if (e.casa2?.length) m.trocaTime(0 as Lado, e.casa2, e.fCasa2 ?? e.fCasa, temCriteriosCarreira(e.versao) ? e.tatica2?.[0] : undefined)
   if (e.fora2?.length) m.trocaTime(1 as Lado, e.fora2, e.fFora2 ?? e.fFora, temCriteriosCarreira(e.versao) ? e.tatica2?.[1] : undefined)
+  for (const x of e.aoVivo ?? []) m.agendaTroca(x)
   return m
 }
 
 const chaveLegada = (e: EntradaM2) => [e.seed, e.clima, String(e.tecnico), String(e.evento), e.tatica.join(','), e.bots.join(','), e.fCasa, e.fFora, e.fCasa2, e.fFora2,
-  ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => `${c.name}:${c.gasMod ?? 0}`).join(';'))].join('|')+(e.versao?'|versao:'+e.versao:'')
+  ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => `${c.name}:${c.gasMod ?? 0}`).join(';'))].join('|')+(e.versao?'|versao:'+e.versao:'')+(e.aoVivo?.length?'|aoVivo:'+JSON.stringify(e.aoVivo.map(x=>[x.t,x.lado,x.sai,x.entra?.name,x.tatica])):'')
 // Não usa id do leilão: a identidade é a carta, na ordem exata das vagas.
 const chave = (e: EntradaM2) => 'm2-cartas-2:' + JSON.stringify([
   e.seed, e.clima, e.tecnico ?? null, e.evento ?? null, e.tatica, e.bots,
   e.fCasa ?? null, e.fFora ?? null, e.fCasa2 ?? null, e.fFora2 ?? null, e.versao ?? null,
   ...(e.tatica2 ? [e.tatica2] : []),
+  ...(e.aoVivo?.length ? [['aoVivo', ...e.aoVivo.map(x => [x.t, x.lado, x.sai ?? null, x.entra ? [x.entra.name, x.entra.club ?? null, x.entra.year ?? null, x.entra.lo ?? null, x.entra.hi ?? null, x.entra.gasMod ?? 0] : null, x.tatica ?? null])]] : []),
   ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => [
     c.name, c.club ?? null, c.year ?? null, c.pos ?? c.sec ?? null,
     c.fame ?? null, c.lo ?? null, c.hi ?? null, !!c.fake, c.gasMod ?? 0,
@@ -196,7 +201,7 @@ function registrarResultado(e: EntradaM2, r: ResultadoM2): void {
   if (snapshot.partidaId) PARTIDAS_SALVAS.set(snapshot.partidaId, snapshot)
 }
 
-const revisaoIntervalo = (e: EntradaM2): number => e.intervaloRevisao ?? (e.casa2?.length || e.fora2?.length ? 1 : 0)
+const revisaoIntervalo = (e: EntradaM2): number => e.intervaloRevisao ?? (e.casa2?.length || e.fora2?.length || e.aoVivo?.length ? 1 : 0)
 
 function compactarEntrada(e: EntradaM2): EntradaM2 {
   const cartas = (cs: CartaCampo[]) => cs.map(c => ({
@@ -204,5 +209,6 @@ function compactarEntrada(e: EntradaM2): EntradaM2 {
     fame:c.fame, lo:c.lo, hi:c.hi, fake:c.fake, gasMod:c.gasMod,
   }))
   return { ...e, atualizarIntervalo:undefined, somenteConsulta:undefined, casa:cartas(e.casa), fora:cartas(e.fora),
-    casa2:e.casa2 ? cartas(e.casa2) : undefined, fora2:e.fora2 ? cartas(e.fora2) : undefined }
+    casa2:e.casa2 ? cartas(e.casa2) : undefined, fora2:e.fora2 ? cartas(e.fora2) : undefined,
+    aoVivo:e.aoVivo?.map(x => ({ ...x, entra:x.entra ? cartas([x.entra])[0] : undefined })) }
 }

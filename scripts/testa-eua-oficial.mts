@@ -91,6 +91,8 @@ ok(reducer(s, { type: 'EUA_DRAFT_ABRIR' } as any) === s, 'Draft: só uma vez por
   const a = s.euaAgencia
   ok(!!a && a.temporada === 1 && a.meus.length >= 2, `Agência: abre com os seus contratos que acabaram (${a?.meus.length})`)
   ok(s.managers.every((m: any) => ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].every(p => m.squad.some((c: any) => c.pos === p))), 'Agência: nenhuma franquia ficou sem jogador numa posição')
+  ok((a.assinaram ?? []).every((x: any) => { const m = s.managers.find((mm: any) => mm.teamName === x.para); return m && !m.isHuman && m.squad.some((c: any) => c.name === x.name) && x.de !== x.para }), `Agência: a máquina contratou ${a.assinaram?.length ?? 0} livres de OUTRA franquia`)
+  ok(new Set(s.managers.flatMap((m: any) => m.squad.map((c: any) => `${c.name}|${c.club}|${c.year}`))).size === s.managers.reduce((n: number, m: any) => n + m.squad.length, 0), 'Agência: ninguém ficou em dois times')
   ok(a.livres.length + a.botsRenovaram > 0, `Agência: a máquina renovou ${a.botsRenovaram} e soltou ${a.livres.length}`)
   const nomesTimes = new Set(s.managers.flatMap((m: any) => m.squad.map(k)))
   ok(a.livres.every((c: any) => !nomesTimes.has(k(c))), 'Agência: quem está livre não está em time nenhum')
@@ -103,6 +105,20 @@ ok(reducer(s, { type: 'EUA_DRAFT_ABRIR' } as any) === s, 'Draft: só uma vez por
   ok(!s.managers[0].squad.some((c: any) => k(c) === k(doisNaPos)) && s.euaAgencia.livres.some((c: any) => k(c) === k(doisNaPos)), 'Agência: deixar ir tira do elenco e põe no mercado')
   for (const kk of s.euaAgencia.meus) if (!s.euaAgencia.decididos[kk]) s = reducer(s, { type: 'EUA_AGENCIA_DECIDIR', chave: kk, renova: true } as any)
   ok(reducer(s, { type: 'EUA_AGENCIA_ABRIR' } as any) === s, 'Agência: só uma vez por temporada')
+  // 🔁 TROCA
+  {
+    const eu = s.managers[0], v = (c: any) => (c.lo + c.hi) / 2
+    const meu = [...eu.squad].sort((x: any, y: any) => v(y) - v(x))[0]
+    const alvos = s.managers.filter((m: any) => !m.isHuman).flatMap((m: any) => m.squad)
+    const melhor = alvos.find((c: any) => v(c) > v(meu) + 1)
+    if (melhor) ok(reducer(s, { type: 'EUA_TROCA', meu: k(meu), dele: k(melhor) } as any) === s, 'Troca: a franquia recusa jogador que vale menos')
+    const bom = alvos.filter((c: any) => v(c) <= v(meu) && c.pos === meu.pos)[0]
+    s = reducer(s, { type: 'EUA_TROCA', meu: k(meu), dele: k(bom) } as any)
+    ok(s.euaAgencia.troca && eu !== undefined && s.managers[0].squad.some((c: any) => k(c) === k(bom)) && !s.managers[0].squad.some((c: any) => k(c) === k(meu)), `Troca: ${meu.name} ⇄ ${bom.name}`)
+    ok(s.managers.some((m: any) => !m.isHuman && m.squad.some((c: any) => k(c) === k(meu))), 'Troca: o seu foi pra franquia')
+    const outro = alvos.find((c: any) => k(c) !== k(bom) && v(c) <= 50)
+    if (outro) ok(reducer(s, { type: 'EUA_TROCA', meu: k(s.managers[0].squad[0]), dele: k(outro) } as any) === s, 'Troca: só 1 por temporada')
+  }
   void preso
   var livresT1 = s.euaAgencia.livres.map(k)
 }

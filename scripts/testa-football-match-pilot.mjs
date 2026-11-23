@@ -6,13 +6,14 @@ import ts from 'typescript'
 const policy={}
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/football-match-pilot-policy.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:policy,Set})
 const diego='diego.c.fonseca@gmail.com',futpoint='gfpicolo13@gmail.com'
-for(const email of [diego,futpoint,` ${diego.toUpperCase()} `,` ${futpoint.toUpperCase()} `])assert.equal(policy.footballMatchPilotEmail(email),true)
-for(const email of [null,undefined,'','diego.c.fonseca2@gmail.com','outro@example.com',`${diego}.evil`,`${futpoint}.evil`])assert.equal(policy.footballMatchPilotEmail(email),false)
-for(const screen of ['season','liberta','champions'])assert.equal(policy.footballMatchPilotScope({screen,onlineMode:'online'}),true)
+for(const email of [diego,futpoint,` ${diego.toUpperCase()} `,null,undefined,'','diego.c.fonseca2@gmail.com','outro@example.com'])assert.equal(policy.footballMatchPilotEmail(email),true,'public presentation does not depend on an account allowlist')
+const rollback={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/escalacao/football-match-pilot-policy.ts','utf8').replace('FOOTBALL_MATCH_PILOT_ENABLED = true','FOOTBALL_MATCH_PILOT_ENABLED = false'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:rollback,Set});assert.equal(rollback.footballMatchPilotEmail('outro@example.com'),false,'global visual rollback stays available')
+for(const screen of ['season','liberta','champions','end'])assert.equal(policy.footballMatchPilotScope({screen,onlineMode:'online'}),true)
+for(const key of ['viceCity','bafo2','bafoOn','ligaMode','pregaoAberto','holandes','leilaoClubes'])for(const screen of ['season','end'])assert.equal(policy.footballMatchPilotScope({screen,onlineMode:'online',[key]:true}),true,`${key}: apresentação disponível nas competições online`)
 for(const screen of ['season','liberta','champions','end'])assert.equal(policy.footballMatchAdScope({screen,onlineMode:'online'}),true)
 for(const state of [{screen:'season'},...['setup','lobby','auction','convocacao'].map(screen=>({screen,onlineMode:'online'})),...['careerOnline','careerIntent','co2','pokeLiga'].map(key=>({screen:'end',onlineMode:'online',[key]:true})),{screen:'end',onlineMode:'online',sport:'basquete'}])assert.equal(policy.footballMatchAdScope(state),false,JSON.stringify(state))
-assert.equal(policy.footballMatchPilotScope({screen:'end',onlineMode:'online'}),false,'as copas após a liga ganham só o telão, sem ampliar o restante do piloto')
-for(const state of [{screen:'season'},{screen:'season',onlineMode:'solo'},...['setup','lobby','auction','convocacao','end'].map(screen=>({screen,onlineMode:'online'})),...['careerOnline','careerIntent','co2','pokeLiga'].map(key=>({screen:'season',onlineMode:'online',[key]:true})),{screen:'season',onlineMode:'online',sport:'basquete'}])assert.equal(policy.footballMatchPilotScope(state),false,JSON.stringify(state))
+for(const key of ['ligaDraft','minhaLigaDraft'])assert.equal(policy.footballMatchPilotScope({screen:'season',onlineMode:'online',[key]:true}),false,'Liga Draft mantém seu fluxo específico')
+for(const state of [{screen:'season'},{screen:'season',onlineMode:'solo'},...['setup','lobby','auction','convocacao'].map(screen=>({screen,onlineMode:'online'})),...['careerOnline','careerIntent','co2','pokeLiga'].map(key=>({screen:'season',onlineMode:'online',[key]:true})),{screen:'season',onlineMode:'online',sport:'basquete'}])assert.equal(policy.footballMatchPilotScope(state),false,JSON.stringify(state))
 
 let authChanged,pending=[]
 const seen=new Map(),auth={}
@@ -48,4 +49,4 @@ assert.equal(auth.useVerifiedPresentationEmail(),'')
 authChanged('SIGNED_IN',{user:{id:'error',email:diego}});await tick()
 pending.shift()({data:{user:{email:diego}},error:{message:'invalid'}});await tick()
 assert.equal(auth.useVerifiedPresentationEmail(),'','erro autenticado mantém o piloto fechado')
-console.log('PASS: Diego principal e Futpoint; futebol online apenas; logout/erro/troca/resposta atrasada; Futpoint sem acesso às outras prévias.')
+console.log('PASS: visual público no futebol online compatível; reversão global; logout/erro/troca/resposta atrasada preservam as demais prévias privadas.')

@@ -48,7 +48,7 @@ assert.deepEqual(reducer(saved,{...guestSave,by:base.youUid!}),saved,'mismatched
 assert.deepEqual(reducer(saved,{...save,mgrId:999}),saved,'unknown manager rejected')
 assert.deepEqual(reducer(saved,{...save,plan:{...plan,mark:'another-player'}}),saved,'removed individual marking cannot be saved')
 assert.deepEqual(reducer(saved,{...save,plan:{...plan,pressure:'invalid'}} as never),saved,'invalid option rejected')
-for(const patch of [{isHost:false},{youUid:'other'},{sport:'basquete'},{careerOnline:true},{onlineMode:undefined},{seatUids:['unapproved']},{quickCopa:{}},{screen:'liberta'},{champion:1}]){
+for(const patch of [{isHost:false},{sport:'basquete'},{careerOnline:true},{onlineMode:undefined},{seatUids:['unapproved']},{quickCopa:{phase:'done'}},{screen:'liberta'},{champion:1}]){
  const s=JSON.parse(JSON.stringify({...base,...patch})) as EscState
  assert.deepEqual(reducer(s,save),s,`save excluded: ${JSON.stringify(patch)}`)
 }
@@ -67,6 +67,26 @@ const replace={...plan,posture:'equilibrio' as const,attack:'mixed' as const,pre
 assert.deepEqual(planFor(reducer(reducer(live,{...save,plan:replace}),{type:'PLAY_ROUND'}),you.id),replace,'a later change replaces the persistent plan')
 const neutral=reducer(base,{...save,plan:DEFAULT_FOOTBALL_PLAN})
 assert.deepEqual(reducer(neutral,{type:'PLAY_ROUND'}).lastResults,reducer(base,{type:'PLAY_ROUND'}).lastResults,'saving neutral preserves legacy RNG and results')
+const publicHost={...base,youUid:'another-host',seatUids:[...base.seatUids!]};publicHost.seatUids[0]='another-host'
+assert.deepEqual(nextPlanFor(reducer(publicHost,guestSave),guest.id),guestPlan,'a private guest can save through a different updated host')
+const publicUid='00000000-0000-4000-8000-000000000101'
+const publicGuest={...base,seatUids:[...base.seatUids!]};publicGuest.seatUids[1]=publicUid
+const publicSave={...guestSave,by:publicUid}
+let publicSaved=reducer(publicGuest,publicSave)
+assert.deepEqual(nextPlanFor(publicSaved,guest.id),guestPlan,'any authenticated participant can save its own plan')
+for(let n=0;n<3;n++){publicSaved=reducer(publicSaved,{type:'PLAY_ROUND'});assert.deepEqual(planFor(publicSaved,guest.id),guestPlan,'public participant plan remains active in later rounds')}
+assert.equal(publicSaved.youIdx,publicGuest.youIdx,'saving a public plan never changes host local seat')
+assert.deepEqual(reducer(publicGuest,{...publicSave,mgrId:you.id}).footballNextPlans,undefined,'public actor cannot edit another manager')
+assert.deepEqual(reducer({...publicGuest,isHost:false},publicSave).footballNextPlans,undefined,'guest still waits for host confirmation')
+for(const comp of ['liberta','champions','cup']){
+ const cs=footballTestState(comp);cs.seatUids![0]=publicUid;cs.youUid=publicUid
+ const id=cs.managers[0].id,queued=reducer(cs,{type:'FOOTBALL_SAVE_PLAN',mgrId:id,by:publicUid,plan})
+ assert.deepEqual(nextPlanFor(queued,id),plan,`${comp}: public choice is saved`)
+ const action=comp==='liberta'?'PLAY_LIBERTA_RODADA':comp==='champions'?'PLAY_CHAMPIONS_RODADA':'PLAY_COPA_LEG'
+ const played=reducer(queued,{type:action} as never)
+ assert.deepEqual(planFor(played,id),plan,`${comp}: public saved choice is promoted for the following match`)
+ assert.equal(played.youUid,publicUid,`${comp}: public identity remains local`)
+}
 const fresh=reducer(saved,{type:'NEW_GAME'})
 assert.equal(fresh.footballNextPlans,undefined,'new game cannot inherit another room plan')
 console.log('PASS: persistent plans, 5 rounds, actual simulation, save/reconnect, host/guest routing and identity, isolation, legacy selector, live orders and neutral RNG.')

@@ -1,3 +1,15 @@
+## 🌐 23/11 — VISUAL DAS LIGAS E COPAS ONLINE LIBERADO PARA TODOS
+- Autorização nova do Diego substitui a lista Diego/Futpoint. Mesmo visual nas competições de futebol online compatíveis; Draft permanece separado, carreira/basquete/co2/pokeLiga fora e Kings conserva posturas nativas. Outras prévias privadas continuam fechadas.
+- Aprovado no mockup: plano em 2×2 no desktop, retrospecto visível em Partida contra outra pessoa, chat no fim da lateral; copas com grupo/chave, retrospecto, artilharia e assistências antes do chat. Faixa dos outros jogos rolável. Sem mudar fontes, tempos entre fases, pênaltis, premiações ou identidade.
+- Plano salvo liberado aos participantes por UID/assento, persistindo nos jogos seguintes. Nas copas independentes, escrita autenticada aberta aos inscritos da edição; o recálculo local experimental das ligas continua com suas restrições anteriores. Nenhum canal novo de Realtime. Opção já selecionada não gera salvamento redundante.
+- Migração `copas_planos_publicos_20261123` aplicada; testes transacionais e chamada authenticated de participante fora da antiga lista passaram, sem novos avisos do advisor. Reversão testada sem apagar histórico ou reiniciar relógios. [Escopo, validação e procedimento de reversão](futebol-online-publico-20261123.md).
+
+## 🔒 23/11 — COPAS ONLINE NO PILOTO DO DIEGO E FUTPOINT
+- Abas separadas e transmissão permanente nas copas de seleções, regionais, Libertadores e mata-matas compatíveis das salas. Confrontos/classificados e o tempo de leitura usam os componentes existentes, no lugar do jogo em qualquer aba. Pênaltis junto do placar/2D, antes do resumo/telão/controles. Cerimônias e identificadores das premiações preservados.
+- Planos persistentes nas fases, com confirmação e corte do servidor para as copas independentes; só liberam novos planos quando todos anunciam versão compatível. Liga/quick cup conservam as restrições anteriores de recálculo ao vivo. Sem canal Realtime novo, sem mudar identidade/host ou reescrever eventos já exibidos.
+- Duas migrações aplicadas: tabelas internas sem acesso direto, RPCs públicas invoker, escrita restrita aos dois UIDs. Testes transacionais revertidos e permissões conferidas; nenhum plano ou sala de teste persistido. 535 checagens dos motores, 360 de mata-matas, 651 da interface da liga e 250 das copas passaram; regressões antigas passaram.
+- Draft separado, Kings conserva posturas nativas, demais contas fora do visual. [Implementação, validações, limites e reversão](copas-online-piloto-20261123.md); [avaliação da Liga Draft](auditoria-liga-draft-20261123.md).
+
 ## 🔒 23/11 — MANTER ABAS; PLANO ESCOLHIDO CONTINUA NAS PRÓXIMAS PARTIDAS
 - Diego rejeitou a proposta de reorganização móvel: conservar abas separadas. O mockup não foi aplicado; layout e CSS preservados.
 - No teste autorizado das táticas, cada escolha passa a ser salva para os próximos jogos, sem voltar ao padrão na mudança de rodada. Enviar ordens continua sendo a aplicação explícita ao jogo em andamento. Confirmação do host, retomada da sala e preferências separadas por técnico; convidados não ganham recálculo ao vivo.
@@ -827,6 +839,11 @@ carreira · vice/eliminação.
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
   ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- ✅ 23/11 (Diego: *"Sim"*) no passo ✍️ Contratos do EUA Oficial: (1) a MÁQUINA CONTRATA livre — franquia que perdeu jogador tem 60% de chance de
+  assinar um livre da MESMA posição (entre os 3 melhores, só dos que outra franquia soltou; os SEUS que saem ficam pro seu leilão); a tela mostra
+  "Já assinaram com outra franquia" (de → para). (2) 🔁 TROCA, 1 por temporada: você escolhe quem oferece e aparecem só os jogadores que a franquia
+  aceitaria (régua `trocaEua`, a mesma na tela e no reducer: o seu tem que valer pelo menos o mesmo; ninguém fica sem a posição; contrato acabado
+  tem que renovar antes). Prints `scripts/mockups/basquete-eua-troca-{celular,pc}.png`. Trava `npm run eua-oficial`. No branch.
 - 🔁 22/11 (mesmo dia): o passo se chama **✍️ CONTRATOS** na tela (Diego confundiu "agência livre" com a 🕴️ Agência do jogo, das cartinhas e
   comissão: *"A agência deveria ser de cartinhas e ganhar dinheiro igual no do futebol"*). No código segue `euaAgencia`/`eua-agencia.ts`.
 - ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega
@@ -15182,3 +15199,7 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Técnico: hoje o motor novo só troca time no INTERVALO (`trocaTime` + `casa2`); troca em minuto qualquer = recalcular o jogo do minuto da
   troca em diante (resultado é calculado antes da animação). Ainda não feito.
 - ✅ Feito no mesmo dia: a faixa "☁️ Salvo há… · 💾 Salvar" saiu do topo da Central nova (já tem o Salvar lá embaixo).
+- ✅ 23/11 (madrugada): testado na tela (carreira de teste, celular 430 px, Campo 2D): botão "⏸ 🔁 Substituir · 0/3" embaixo do campinho,
+  pausa no minuto (24' ficou parado), painel com tática (Ataque marcada), Voltar ao jogo segue e o jogo fecha normal, 0 erros. Troca de
+  JOGADOR na tela não testada (time da T1 só tem os 11 — o painel avisa "sem reserva"); coberta pela trava `npm run sub-ao-vivo`.
+  3D (janela por cima do mapa) não testado na tela. Ainda no branch, esperando o OK do Diego pra publicar.

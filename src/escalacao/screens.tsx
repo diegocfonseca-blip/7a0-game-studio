@@ -48,7 +48,7 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
-import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua, trocaEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
 import { luvaRenovacaoEua, EUA_RENOVA_ANOS } from './eua-agencia' // 🏀✍️ agência livre do EUA Oficial
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
@@ -8661,12 +8661,7 @@ export function EscSeason() {
             )}
           </>
         ) : null
-        return (
-          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : relS ? 'relampago' : 'copa8'}>{/* ⚡ Relâmpago: a taça e as cores dele */}
-            {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
-              {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{relS ? LS('Mata-mata Relâmpago: sem liga, a chave foi sorteada depois do leilão. Ida e volta em todas as fases e a final em jogo único — empate no placar somado vai pros pênaltis.', 'Lightning Knockout: no league, the draw was made after the auction. Two legs in every round and a single-match final — level on aggregate goes to penalties.') : libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : kingsS ? LS('Kings League Brasil: o 1º da liga vai direto pra SEMI. Quartas: 2º × 7º, 3º × 6º e 4º × 5º. Semis: 1º × quem passar do 4º × 5º, e os outros dois. TUDO jogo único, empate = SHOOTOUT.', 'Kings League Brasil: 1st goes straight to the SEMI. Quarters: 2nd × 7th, 3rd × 6th and 4th × 5th. Semis: 1st × the 4th-5th winner, and the other two. ALL single games, level = SHOOTOUT.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
-              {aberturaOn && (() => {
+        const copaTransition=aberturaOn && (() => {
                 // 🎬 o caminho da copa: as fases desta copa, a de agora acesa, as passadas ✔, e o SEU time marcado até onde chegou
                 const ordem: { key: string; label: string }[] = chS
                   ? [{ key: 'tabela', label: LS('TABELA', 'TABLE') }, { key: 'repescao', label: LS('REPESCÃO', 'PLAYOFF') }, { key: 'oitavas', label: LS('OITAVAS', 'R16') }, { key: 'quartas', label: LS('QUARTAS', 'QF') }, { key: 'semis', label: 'SEMI' }, { key: 'final', label: 'FINAL' }]
@@ -8704,7 +8699,14 @@ export function EscSeason() {
                 // ⚡ Relâmpago: a 1ª abertura é o SORTEIO DA CHAVE com suspense (mesmo relógio da abertura de sempre)
                 if (relS && firstLegPending && qc.bracket.length === 0) return <SorteioRelampago fases={fases} confrontos={confrontos} seg={seg} total={total} espera={espera} />
                 return <AberturaCopa fases={fases} confrontos={confrontos} seg={seg} total={total} cor={cor} espera={espera} />
-              })()}
+              })()
+        const pilotPenalty=(tie:QuickCopaTie)=>footballPilot&&copaMin>=93&&tie.pens&&!tie.ot?<section className="fp-cup-penalties" aria-label={LS('Disputa de pênaltis','Penalty shootout')}><p>{LS('DECISÃO NOS PÊNALTIS','PENALTY SHOOTOUT')}</p><PensShootout campo={tie===meuTiePen?penCampo.estado:undefined} shootout={kingsS} compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} seqReal={tie.pensSeq} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m=>m.id===tie.aId)?.squad} bSquad={state.managers.find(m=>m.id===tie.bId)?.squad} lento={copaTemGenteQ(tie)}/></section>:undefined
+        return (
+          <TemaCompCtx.Provider value={temaFora || cupNow ? null : chS ? 'champions' : libS ? 'liberta' : relS ? 'relampago' : 'copa8'}>{/* ⚡ Relâmpago: a taça e as cores dele */}
+            {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
+            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
+              {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{relS ? LS('Mata-mata Relâmpago: sem liga, a chave foi sorteada depois do leilão. Ida e volta em todas as fases e a final em jogo único — empate no placar somado vai pros pênaltis.', 'Lightning Knockout: no league, the draw was made after the auction. Two legs in every round and a single-match final — level on aggregate goes to penalties.') : libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : kingsS ? LS('Kings League Brasil: o 1º da liga vai direto pra SEMI. Quartas: 2º × 7º, 3º × 6º e 4º × 5º. Semis: 1º × quem passar do 4º × 5º, e os outros dois. TUDO jogo único, empate = SHOOTOUT.', 'Kings League Brasil: 1st goes straight to the SEMI. Quarters: 2nd × 7th, 3rd × 6th and 4th × 5th. Semis: 1st × the 4th-5th winner, and the other two. ALL single games, level = SHOOTOUT.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
+              {!footballPilot&&copaTransition}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
               <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{cupNow ? '🏆 NBA CUP' : chS ? '⭐ CHAMPIONS LEAGUE' : libS ? '🌎 LIBERTADORES' : relS ? LS('⚡ MATA-MATA RELÂMPAGO', '⚡ LIGHTNING KNOCKOUT') : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : (kingsS ? LS('MATA-MATA DA KINGS', 'KINGS KNOCKOUT') : LS('COPA DOS 8', 'CUP OF 8'))}`} · {phaseLabel.toUpperCase()}</p>
@@ -8752,6 +8754,7 @@ export function EscSeason() {
                 </div>
               </Box>
             )}
+            {footballPilot&&copaTransition&&<FootballMatchPlaceholder><div className="fp-broadcast-transition" role="region" aria-label={LS('Transição da competição','Competition transition')}>{copaTransition}</div></FootballMatchPlaceholder>}
             {!cinemaPreview && copaRhythmControls}
             {myTie ? (
               myTie.legs.length > 0 ? (() => {
@@ -8771,7 +8774,7 @@ export function EscSeason() {
                 const goals = hl.filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === legHomeId }))
                 return (
                   <>
-                    <LiveScoreCard basket={bbS ? (() => { const lg = myTie.legs[lastLegIdx]; const pc = myTie.lastBbPts?.[casaA ? myTie.aId : myTie.bId], pf = myTie.lastBbPts?.[casaA ? myTie.bId : myTie.aId]; return casaA ? { h: lg[0], a: lg[1], ph: pc, pa: pf } : { h: lg[1], a: lg[0], ph: pc, pa: pf } })() : undefined} /* 🏀 18/11: placar de basquete nos playoffs (sem isto saía "GOOOL") */ enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`} disputaPenaltis={myTie === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={myTie === meuTiePen ? penCampo.estado : undefined}
+                    <LiveScoreCard penaltyPanel={pilotPenalty(myTie)} basket={bbS ? (() => { const lg = myTie.legs[lastLegIdx]; const pc = myTie.lastBbPts?.[casaA ? myTie.aId : myTie.bId], pf = myTie.lastBbPts?.[casaA ? myTie.bId : myTie.aId]; return casaA ? { h: lg[0], a: lg[1], ph: pc, pa: pf } : { h: lg[1], a: lg[0], ph: pc, pa: pf } })() : undefined} /* 🏀 18/11: placar de basquete nos playoffs (sem isto saía "GOOOL") */ enhancedOnline={privateVisual} key={`copa-${qc.phase}-${myTie.legs.length}`} disputaPenaltis={myTie === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={myTie === meuTiePen ? penCampo.estado : undefined}
                       homeName={nameOf(legHomeId)} awayName={nameOf(legAwayId)}
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
@@ -8800,7 +8803,7 @@ export function EscSeason() {
               const hId = casaF ? ft.aId : ft.bId, aId = casaF ? ft.bId : ft.aId
               const goals = (ft.lastHighlights ?? []).filter(lanceEhGol).map(h => ({ name: scorer(h.text), min: h.min, home: h.teamId === hId }))
               return (
-                <LiveScoreCard neutro basket={bbS ? (casaF ? { h: ft.legs[lastIdx][0], a: ft.legs[lastIdx][1], ph: ft.lastBbPts?.[ft.aId], pa: ft.lastBbPts?.[ft.bId] } : { h: ft.legs[lastIdx][1], a: ft.legs[lastIdx][0], ph: ft.lastBbPts?.[ft.bId], pa: ft.lastBbPts?.[ft.aId] }) : undefined} enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
+                <LiveScoreCard penaltyPanel={pilotPenalty(ft)} neutro basket={bbS ? (casaF ? { h: ft.legs[lastIdx][0], a: ft.legs[lastIdx][1], ph: ft.lastBbPts?.[ft.aId], pa: ft.lastBbPts?.[ft.bId] } : { h: ft.legs[lastIdx][1], a: ft.legs[lastIdx][0], ph: ft.lastBbPts?.[ft.bId], pa: ft.lastBbPts?.[ft.aId] }) : undefined} enhancedOnline={privateVisual} key={`copa-final-${ft.aId}-${ft.bId}-${ft.legs.length}`} disputaPenaltis={ft === meuTiePen ? penCampo.sessao : undefined} estadoPenaltis={ft === meuTiePen ? penCampo.estado : undefined}
                   homeName={nameOf(hId)} awayName={nameOf(aId)} homeColor={corDe(hId)} awayColor={corDe(aId)} homeOwner={donoDe(hId)} awayOwner={donoDe(aId)}
                   youIsHome={false} goals={goals} roundKey={ft.legs.length + 20} roundMs={Math.round(copaLegMs / copaSf)} displayMinute={kingsS ? kRel.min : undefined} relogioKings={kingsS}
                   footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === hId)?.squad, fora: state.managers.find(m => m.id === aId)?.squad, fCasa: state.managers.find(m => m.id === hId)?.formation, fFora: state.managers.find(m => m.id === aId)?.formation }} />
@@ -8819,7 +8822,7 @@ export function EscSeason() {
             {/* 🎮 No online, a leitura aprovada é sempre: cartaz → placar →
                 ritmo → conteúdo. Os mesmos comandos continuam conduzindo a sala. */}
             {cinemaPreview && copaRhythmControls}
-            {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+            {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} cup/>}
             {/* 📢 19/10 (Diego: "o telão… deve ser em todas as competições… qualquer tipo de Copa"): na Copa dos 8 / Liberta / Kings
                 ele sobe pra cá, em cima dos jogos, igual à liga (antes ficava lá embaixo, depois do chaveamento) */}
             {(!privateVisual || visualTab === 'jogos') && <GiroDaRodada cinema={cinemaPreview} />}
@@ -13554,6 +13557,7 @@ function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
   const { state, dispatch } = useEsc()
   const a = state.euaAgencia
   useEffect(() => { if (!a || a.temporada !== state.seasonNo) dispatch({ type: 'EUA_AGENCIA_ABRIR' }) }, [a?.temporada, state.seasonNo, dispatch])
+  const [meuTroca, setMeuTroca] = useState('') // 🔁 o jogador seu que você quer oferecer
   if (!a || a.temporada !== state.seasonNo) return null
   const you = state.managers[state.youIdx]
   const caixa = Math.round(state.careerCoins?.[you?.id ?? 0] ?? 0)
@@ -13607,7 +13611,33 @@ function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
           ? <p className="px-3 py-3 text-[12.5px] font-bold text-black/55">{tr('As franquias renovaram com todo mundo desta vez.', 'The franchises re-signed everyone this time.')}</p>
           : livresDeFora.slice(0, 30).map((c, i) => linha(c, <small className="text-[10.5px] font-bold text-black/45">{tr('saiu de', 'left')} {a.de?.[chave(c)] ?? c.club}</small>, `${chave(c)}-${i}`))}
       </Box>
+      {(a.assinaram?.length ?? 0) > 0 && <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr(`JÁ ASSINARAM COM OUTRA FRANQUIA · ${a.assinaram!.length}`, `ALREADY SIGNED ELSEWHERE · ${a.assinaram!.length}`))}
+        {a.assinaram!.map((c, i) => linha({ ...c, fame: 0 }, <small className="text-[10.5px] font-bold text-right" style={{ color: GREEN }}>{c.de} → {c.para}</small>, `as-${i}`))}
+      </Box>}
       <p className="text-[11px] font-bold text-black/50 text-center">{tr('Quem está livre entra no seu leilão de reservas da próxima temporada (se você tiver vaga). Quem ninguém levar segue livre — pode até sair no Draft.', 'Free agents go into your reserve auction next season (if you have open spots). Anyone nobody signs stays free — they may even show up in the Draft.')}</p>
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr('🔁 TROCA · 1 POR TEMPORADA', '🔁 TRADE · 1 PER SEASON'))}
+        {a.troca
+          ? <p className="px-3 py-3 text-[12.5px] font-bold">{tr(`✓ ${a.troca.deu} foi pro ${a.troca.time} e ${a.troca.recebeu} chegou ao seu time.`, `✓ ${a.troca.deu} went to the ${a.troca.time} and ${a.troca.recebeu} joined your team.`)}</p>
+          : <>
+            <p className="px-3 pt-2.5 text-[11.5px] font-bold text-black/60">{tr('Escolha quem você oferece. Aparecem só os jogadores que a franquia aceitaria trocar: ela quer um jogador que valha pelo menos o mesmo.', 'Pick who you offer. Only players the franchise would accept show up: they want a player worth at least as much.')}</p>
+            <div className="flex flex-wrap gap-1.5 px-3 py-2">{(you?.squad ?? []).filter(c => !c.fake && (!a.meus.includes(chave(c)) || a.decididos[chave(c)] === 'renova')).map(c => (
+              <button key={chave(c)} onClick={() => setMeuTroca(meuTroca === chave(c) ? '' : chave(c))}
+                style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 8px', ...OSWALD, fontWeight: 900, fontSize: 12, background: meuTroca === chave(c) ? '#7C3AED' : '#fff', color: meuTroca === chave(c) ? '#fff' : INK, boxShadow: meuTroca === chave(c) ? `2px 2px 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                {posTag(c.pos)} · {c.name}</button>))}</div>
+            {meuTroca && (() => {
+              const alvos = state.managers.filter(m => !m.isHuman).flatMap(m => m.squad.filter(c => !c.fake).map(c => ({ c, m })))
+                .filter(x => trocaEua(state, meuTroca, chave(x.c)).ok).sort((x, y) => (y.c.lo + y.c.hi) - (x.c.lo + x.c.hi)).slice(0, 10)
+              return alvos.length === 0
+                ? <p className="px-3 pb-3 text-[11.5px] font-bold" style={{ color: '#C2452F' }}>{tr('Nenhuma franquia aceita trocar por esse jogador sem perder valor. Tente oferecer outro.', 'No franchise would trade for this player without losing value. Try offering someone else.')}</p>
+                : alvos.map(({ c, m }) => linha(c, <>
+                  <small className="text-[10.5px] font-bold text-black/45">{m.teamName}</small>
+                  {botao(tr('TROCAR', 'TRADE'), '#7C3AED', () => { dispatch({ type: 'EUA_TROCA', meu: meuTroca, dele: chave(c) }); setMeuTroca('') })}
+                </>, `tr-${chave(c)}`))
+            })()}
+          </>}
+      </Box>
       {pendentes > 0
         ? <p className="text-center text-[12px] font-black" style={{ ...OSWALD, color: '#C2452F' }}>{tr(`Falta decidir ${pendentes} contrato${pendentes > 1 ? 's' : ''} pra seguir.`, `${pendentes} contract${pendentes > 1 ? 's' : ''} left to decide before moving on.`)}</p>
         : <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('a decisão da próxima temporada vem agora', 'next season’s decision comes next')} onClick={onContinue} />}

@@ -1,3 +1,4 @@
+import {applyCupPlans,cupPlanModifiers} from './copa-planos'
 import { FORMACOES_JOGO, FORMATIONS } from './types'
 // ─── 🏟️ COPAS REGIONAIS CONVOCADAS (Diego 10/10) — o motor ────────────────────
 //
@@ -241,15 +242,19 @@ export function simulaRegional(entrants: Entrant[], seed: number, tat?: QualTati
   const rng = mulberry((seed ^ 0x2E610A1) >>> 0)
   // ⚔️ tática no online (23/10, `copa-taticas.ts`): jogo com tática de gente sai de um DADO PRÓPRIO, depois do sorteio
   // normal — o dado do torneio anda igual e nenhum outro jogo muda. Sem `tat`, a copa é a de sempre.
-  const comTatica = (h: number, a: number, passo: number, ck: string): { g: [number, number]; ev: GolRegional[]; r: () => number } | null => {
+  const comTatica = (h: number, a: number, passo: number, ck: string, baseline:{g:[number,number];ev:GolRegional[]}): { g: [number, number]; ev: GolRegional[]; r: () => number } | null => {
     if (!tat) return null
     const th = tat(h, passo), ta = tat(a, passo)
-    if (!temTatica(th, ta)) return null
     const r = dadoDaTatica(seed >>> 0, ck, th, ta)
     const adv = entrants[h].str - entrants[a].str
     const [fh, fa] = fatoresTatica(th, ta)
-    const g: [number, number] = [poisson(r, Math.max(0.25, 1.25 + adv * 0.05) * fh), poisson(r, Math.max(0.25, 1.25 - adv * 0.05) * fa)]
-    return { g, ev: gols(r, g[0], g[1], entrants[h], entrants[a], seed, ck), r }
+    const initial=temTatica(th,ta)?(()=>{const g:[number,number]=[poisson(r,Math.max(.25,1.25+adv*.05)*fh),poisson(r,Math.max(.25,1.25-adv*.05)*fa)];return{g,ev:gols(r,g[0],g[1],entrants[h],entrants[a],seed,ck),r}})():{...baseline,r}
+    const planned=applyCupPlans(tat,h,a,passo,seed,ck,initial,(home,away,r)=>{
+      const hm=cupPlanModifiers(home,entrants[h]),am=cupPlanModifiers(away,entrants[a]),[hf,af]=fatoresTatica(home.posture,away.posture)
+      const g:[number,number]=[poisson(r,Math.max(.25,1.25+adv*.05+(hm.attack-am.defence)*.055)*hf),poisson(r,Math.max(.25,1.25-adv*.05+(am.attack-hm.defence)*.055)*af)]
+      return{g,ev:gols(r,g[0],g[1],entrants[h],entrants[a],seed,ck)}
+    })
+    return planned??(temTatica(th,ta)?initial:null)
   }
   const rodadas: JogoRegional[][] = []
   for (let r = 0; r < n; r++) {
@@ -259,7 +264,7 @@ export function simulaRegional(entrants: Entrant[], seed: number, tat?: QualTati
       const [h, aw] = (r + i) % 2 === 0 ? [a, b] : [b, a]
       const [gh, ga] = placar(rng, entrants[h], entrants[aw])
       const jogo: JogoRegional = { h, a: aw, gh, ga, ev: gols(rng, gh, ga, entrants[h], entrants[aw], seed, `r${r}|${h}|${aw}`) }
-      const t = comTatica(h, aw, r + 1, `r${r}|${h}|${aw}`) // rodada r = passo r+1
+      const t = comTatica(h, aw, r + 1, `r${r}|${h}|${aw}`,{g:[jogo.gh,jogo.ga],ev:jogo.ev}) // rodada r = passo r+1
       if (t) { jogo.gh = t.g[0]; jogo.ga = t.g[1]; jogo.ev = t.ev }
       jogos.push(jogo)
     }
@@ -275,7 +280,7 @@ export function simulaRegional(entrants: Entrant[], seed: number, tat?: QualTati
     const [gh, ga] = placar(rng, entrants[h], entrants[a])
     const ev = gols(rng, gh, ga, entrants[h], entrants[a], seed, ck)
     const pen = gh === ga ? disputaPenaltis(rng) : undefined
-    const t = comTatica(h, a, passo, ck) // ⚔️ depois de gastar o dado do torneio (pênaltis inclusive)
+    const t = comTatica(h, a, passo, ck,{g:[gh,ga],ev}) // ⚔️ depois de gastar o dado do torneio (pênaltis inclusive)
     if (t) {
       const p2 = t.g[0] === t.g[1] ? disputaPenaltis(t.r) : undefined
       return { h, a, g: t.g, ev: t.ev, ...(p2 ? { pen: p2 } : {}), winner: t.g[0] > t.g[1] ? h : t.g[1] > t.g[0] ? a : p2![0] > p2![1] ? h : a }
