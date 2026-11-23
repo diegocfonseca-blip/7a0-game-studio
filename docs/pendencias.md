@@ -116,7 +116,7 @@
 - Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
   `liberta-sala` e `regional` passam.
 
-### 🎸👑 23/11 — Batismo FUNDADOR Sport Clube Betasso (caiomooca2013) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
+### 🎸👑 23/11 — Batismo FUNDADOR Sport Clube Betasso (caiomooca2013) — PUBLICADO 23/11
 - Pagou Lenda (10/11, 59,90) → Batismo (18/11, 25) → Fundador (23/11, 29,90). **Fundador nº106 + sócio nº101**, coração Corinthians / Juventus-SP.
 - Mascote "Apenas um Beto" (`betasso_beto`, o próprio Beto com a lata e o violão), manto grená #890329 + branco #F7F4F4 (medidos na camisa). Várzea, no assento do bot **Falta Técnica FC**.
 - Ele pediu o canto "poropopó"; o Diego mandou usar o do Corinthians (`torcida-gavioes-v1.mp3`).
