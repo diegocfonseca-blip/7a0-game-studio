@@ -49,7 +49,7 @@ export function EscLigaDraft() {
   const vezId = d.ordem[d.idx]
   const daVez = state.managers.find(m => m.id === vezId)
   const minhaVez = d.fase === 'escolha' && vezId === you.id
-  const minha = !!state.minhaLigaDraft // 📋🏆 Minha Liga Draft: ✋ pronto, 45 s, perde a vez
+  const minha = !!state.minhaLigaDraft // 📋🏆 Minha Liga Draft: 60 s desde que a vez chega (23/11); o relógio é aviso, quem pula é o dono
   const souDono = !online || state.isHost
   const restante = Math.max(0, Math.ceil((d.prazo - agora) / 1000))
   const ultimo = d.fase === 'revela' ? d.picks[d.picks.length - 1] : undefined
@@ -79,7 +79,7 @@ export function EscLigaDraft() {
         {ultimo ? (
           <AnuncioDraft key={`${ultimo.mgrId}-${d.idx}`} pick={ultimo} n={d.idx + 1} quem={nome(ultimo.mgrId)} decorrido={agora - (d.inicioRevela ?? agora)} />
         ) : d.fase === 'aguarda' ? (
-          <AguardaPronto n={d.idx + 1} quem={daVez?.teamName ?? '?'} minhaVez={vezId === you.id}
+          <AguardaPronto n={d.idx + 1} quem={daVez?.teamName ?? '?'} minhaVez={vezId === you.id} restante={d.prazo > 0 ? restante : null}
             onPronto={(sondar) => { setSondarNaVez(sondar ? d.idx : null); dispatch({ type: 'DRAFT_PRONTO', mgrId: you.id, by: state.youUid }) }}
             duasEscolhas={minha}
             onPassar={minha && vezId === you.id && podePassarDraft(you) ? () => dispatch({ type: 'DRAFT_PASSAR', mgrId: you.id, by: state.youUid }) : undefined}
@@ -93,13 +93,10 @@ export function EscLigaDraft() {
               <p className="text-white uppercase leading-tight" style={{ ...OSW, fontSize: 24 }}>{daVez?.teamName ?? '?'} {t('está escolhendo', 'is picking')}</p>
             </div>
             <Coberta etapa={0} />
-            <p className="ov3-draft-clock text-center font-black text-[13px]" style={{ ...OSW, color: restante <= 10 ? RED : INK }}>⏱ {restante}s</p>
-            {minha && souDono && (
-              <button onClick={() => dispatch({ type: 'DRAFT_PULAR', by: state.youUid })} className="w-full border-[3px] border-black rounded-xl py-2 uppercase"
-                style={{ ...OSW, fontSize: 15, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
-            )}
+            {minha ? <RelogioVez restante={restante} /> : <p className="ov3-draft-clock text-center font-black text-[13px]" style={{ ...OSW, color: restante <= 10 ? RED : INK }}>⏱ {restante}s</p>}
+            {minha && souDono && <BotaoPularVez quem={daVez?.teamName ?? '?'} antesDoTempo={restante > 0} onPular={() => dispatch({ type: 'DRAFT_PULAR', by: state.youUid })} />}
             {minha ? (
-              <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, ele PERDE A VEZ.', 'Nobody sees the pick until the card flips. If time runs out, they LOSE THE TURN.')}</p>
+              <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Quem decide pular a vez é o dono da sala.', 'Nobody sees the pick until the card flips. The room owner decides whether to skip the turn.')}</p>
             ) : <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Ninguém vê a escolha do outro até a carta virar. Se o tempo acabar, o jogo escolhe o melhor jogador livre por ele.', 'Nobody sees the pick until the card flips. If time runs out, the game takes the best free player for them.')}</p>}
           </div>
         )}
@@ -110,8 +107,8 @@ export function EscLigaDraft() {
   )
 }
 
-// ✋ Minha Liga Draft: a vez começa PARADA. Quem está na vez aperta PRONTO (aí correm os 45 s); o dono pode pular quem não deu.
-function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, onPassar, duasEscolhas }: { n: number; quem: string; minhaVez: boolean; onPronto: (sondar: boolean) => void; onPular?: () => void; onPassar?: () => void; duasEscolhas?: boolean }) {
+// ✋ Minha Liga Draft: a vez chega na tela das 2 escolhas e os 60 s JÁ correm (23/11, Diego) — apertar Pegar/Sondar continua o MESMO relógio.
+function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, onPassar, duasEscolhas, restante }: { n: number; quem: string; minhaVez: boolean; onPronto: (sondar: boolean) => void; onPular?: () => void; onPassar?: () => void; duasEscolhas?: boolean; restante: number | null }) {
   const t = useT()
   return (
     <div className="space-y-2.5">
@@ -120,6 +117,7 @@ function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, onPassar, duasEsc
         <p className="text-white uppercase leading-tight" style={{ ...OSW, fontSize: 24 }}>{minhaVez ? t('É a sua vez!', 'It\'s your turn!') : t(`Vez do ${quem}`, `${quem}'s turn`)}</p>
       </div>
       <Coberta etapa={0} />
+      {restante != null && <RelogioVez restante={restante} />}
       {minhaVez && duasEscolhas ? (<>
         {/* 📋🕵️ as DUAS jogadas da vez, lado a lado (Diego 01/11: "não teria que ter o botão junto, draft e sondar do amigo?") */}
         <div className="grid grid-cols-2 gap-2">
@@ -135,20 +133,49 @@ function AguardaPronto({ n, quem, minhaVez, onPronto, onPular, onPassar, duasEsc
             <span className="block text-[10px] font-black mt-1" style={{ color: '#1B7A3D' }}>{t('⚡ empatou? o desempate é seu', '⚡ tied? the tiebreak is yours')}</span>
           </button>
         </div>
-        <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Escolha UMA. Ao apertar, você tem 45 s. Acabou o tempo, perde a vez.', 'Pick ONE. Once you tap, you have 45 s. If time runs out, you lose the turn.')}</p>
+        <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Escolha UMA. Você tem 60 s desde agora, e o tempo continua correndo na próxima tela. Depois disso, o dono da sala pode pular a sua vez.', 'Pick ONE. You have 60 s from now, and the clock keeps running on the next screen. After that, the room owner may skip your turn.')}</p>
       </>) : minhaVez ? (<>
         <button onClick={() => onPronto(false)} className="w-full border-[3px] border-black rounded-xl py-3 uppercase"
           style={{ ...OSW, fontSize: 19, background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('✋ Pronto, quero escolher', '✋ Ready, let me pick')}</button>
-        <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Quando apertar, você tem 45 s pra escolher. Acabou o tempo, perde a vez.', 'Once you tap, you have 45 s to pick. If time runs out, you lose the turn.')}</p>
+        <p className="ov3-page-muted text-center text-[11.5px] font-bold text-black/60">{t('Você tem 60 s desde agora pra escolher, e o tempo continua correndo na próxima tela. Depois disso, o dono da sala pode pular a sua vez.', 'You have 60 s from now to pick, and the clock keeps running on the next screen. After that, the room owner may skip your turn.')}</p>
       </>) : (
-        <p className="ov3-page-muted text-center text-[12.5px] font-bold text-black/65">{t(`⏳ Esperando o ${quem} dizer que está pronto…`, `⏳ Waiting for ${quem} to say they're ready…`)}</p>
+        <p className="ov3-page-muted text-center text-[12.5px] font-bold text-black/65">{t(`⏳ ${quem} está escolhendo…`, `⏳ ${quem} is choosing…`)}</p>
       )}
       {minhaVez && onPassar && <BotaoPassar onPassar={onPassar} />}
       {onPular && (<>
-        <button onClick={onPular} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
-          style={{ ...OSW, fontSize: 16, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
+        <BotaoPularVez quem={quem} antesDoTempo={restante == null || restante > 0} onPular={onPular} />
         <p className="ov3-page-muted text-center text-[11px] font-bold text-black/55">{t('Só você (dono) vê. Quem é pulado fica sem jogador do draft nesta temporada.', 'Only you (owner) see this. Whoever is skipped gets no draft player this season.')}</p>
       </>)}
+    </div>
+  )
+}
+
+// ⏱️ 23/11: o relógio da vez é AVISO (quem manda é o dono). Zerou: mostra que o tempo acabou e que a decisão é do dono.
+function RelogioVez({ restante }: { restante: number }) {
+  const t = useT()
+  return restante > 0
+    ? <p className="ov3-draft-clock text-center font-black text-[13px]" style={{ ...OSW, color: restante <= 10 ? RED : INK }}>⏱ {restante}s</p>
+    : <p className="ov3-draft-clock text-center font-black text-[13px]" style={{ ...OSW, color: RED }}>⏱ {t('Tempo esgotado · o dono da sala decide', 'Time\'s up · the room owner decides')}</p>
+}
+
+// ⏭ 23/11 (Diego: *"esse botão de pular a vez que o host pode… deve aparecer um banner: tem certeza que quer pular o usuário antes de acabar
+// o tempo dele? E aí confirma sim ou não"* + *"quando acabar o tempo e o host pular aí nem aparece o banner"*): ANTES do fim dos 60 s o 1º
+// toque só abre a pergunta e quem pula é o "Sim"; DEPOIS, pula direto. Nada vai pro estado da sala.
+function BotaoPularVez({ quem, onPular, antesDoTempo }: { quem: string; onPular: () => void; antesDoTempo: boolean }) {
+  const t = useT()
+  const [pergunta, setPergunta] = useState(false)
+  if (!pergunta || !antesDoTempo) return (
+    <button onClick={() => antesDoTempo ? setPergunta(true) : onPular()} className="w-full border-[3px] border-black rounded-xl py-2.5 uppercase"
+      style={{ ...OSW, fontSize: 16, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('⏭ Pular a vez dele', '⏭ Skip their turn')}</button>
+  )
+  return (
+    <div role="alertdialog" aria-label={t('Confirmar pular a vez', 'Confirm skipping the turn')} className="rounded-2xl border-[3px] border-black px-3 py-3 text-center" style={{ background: '#FFF3C4', boxShadow: `3px 3px 0 ${INK}` }}>
+      <p className="uppercase leading-tight" style={{ ...OSW, fontSize: 17, color: INK }}>{t(`Tem certeza que quer pular o ${quem} antes de acabar o tempo dele?`, `Are you sure you want to skip ${quem} before their time runs out?`)}</p>
+      <p className="text-[11.5px] font-bold text-black/60 mt-1">{t('Ele perde a vez e fica sem jogador do draft nesta temporada.', 'They lose the turn and get no draft player this season.')}</p>
+      <div className="grid grid-cols-2 gap-2 mt-2.5">
+        <button onClick={() => { setPergunta(false); onPular() }} className="border-[3px] border-black rounded-xl py-2 uppercase" style={{ ...OSW, fontSize: 16, background: RED, color: '#fff', boxShadow: `3px 3px 0 ${INK}` }}>{t('Sim, pular', 'Yes, skip')}</button>
+        <button onClick={() => setPergunta(false)} className="border-[3px] border-black rounded-xl py-2 uppercase" style={{ ...OSW, fontSize: 16, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>{t('Não', 'No')}</button>
+      </div>
     </div>
   )
 }
@@ -299,7 +326,7 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
     <div className="space-y-2.5">
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 ov3-surface" style={{ background: GOLD, boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>{t(`Sua vez · ${n}ª escolha`, `Your turn · pick #${n}`)}</p>
-        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> {minha ? t('pra escolher · acabou o tempo, você perde a vez', 'to pick · if time runs out, you lose the turn') : t('pra escolher · acabou o tempo, o jogo pega o melhor livre pra você', 'to pick · if time runs out, the game takes the best free player for you')}</p>
+        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>{minha && restante <= 0 ? t('⏱ Tempo esgotado · ainda dá pra escolher até o dono da sala pular a sua vez', '⏱ Time\'s up · you can still pick until the room owner skips your turn') : <>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> {minha ? t('pra escolher · depois disso o dono da sala pode pular a sua vez', 'to pick · after that the room owner may skip your turn') : t('pra escolher · acabou o tempo, o jogo pega o melhor livre pra você', 'to pick · if time runs out, the game takes the best free player for you')}</>}</p>
       </div>
       {!carta ? (<>
         {favs.length > 0 && (
@@ -437,7 +464,7 @@ function EtapaMinha({ d, you, souDono, restante, nome }: { d: DraftEstado; you: 
           </Caixa>
         )}
         <Caixa titulo={t('📋 Como é o draft', '📋 How the draft works')}>
-          <p className="px-3 py-2 text-[12px] font-bold text-black/70 leading-snug">{t('Na ordem da tabela (o campeão primeiro), cada um aperta ✋ Pronto e tem 45 s pra pegar 1 jogador livre de todo o jogo — ou 🕵️ sondar o jogador de um amigo (aí perde a vez e o jogador vai pro leilão). Não deu pronto ou o tempo acabou: perde a vez.', 'In table order (champion first), each manager taps ✋ Ready and has 45 s to take 1 free player from the whole game — or 🕵️ scout a friend\'s player (losing the turn; the player goes to auction). Not ready or out of time: lose the turn.')}</p>
+          <p className="px-3 py-2 text-[12px] font-bold text-black/70 leading-snug">{t('Na ordem da tabela (o campeão primeiro), cada um tem 60 s (contando desde que a vez chega) pra pegar 1 jogador livre de todo o jogo — ou 🕵️ sondar o jogador de um amigo (aí perde a vez e o jogador vai pro leilão). Passou dos 60 s, o dono da sala pode pular a vez.', 'In table order (champion first), each manager has 60 s (counting from when the turn arrives) to take 1 free player from the whole game — or 🕵️ scout a friend\'s player (losing the turn; the player goes to auction). After 60 s, the room owner may skip the turn.')}</p>
         </Caixa>
         <VenderMeu d={d} you={you} />
         <ListaProntos d={d} you={you} souDono={souDono} rotulo={t('▶ Começar o draft', '▶ Start the draft')} onSeguir={seguir} />
@@ -514,7 +541,7 @@ function SondarAmigo({ restante, onVoltar }: { restante: number; onVoltar: () =>
     <div className="space-y-2.5">
       <div className="rounded-2xl border-[3px] border-black px-3 py-2.5 ov3-surface" style={{ background: '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
         <p className="uppercase leading-none" style={{ ...OSW, fontSize: 20 }}>🕵️ {t('Sondar um amigo', 'Scout a friend')}</p>
-        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · {t('você perde a vez no draft e o jogador vai pro leilão', 'you lose your draft turn and the player goes to auction')}</p>
+        <p className="text-[12px] font-bold mt-1" style={{ color: restante <= 10 ? RED : INK }}>{restante > 0 ? <>⏱ <b style={{ ...OSW, fontSize: 17 }}>{restante}s</b> · </> : <>⏱ {t('Tempo esgotado (o dono decide)', 'Time\'s up (the owner decides)')} · </>}{t('você perde a vez no draft e o jogador vai pro leilão', 'you lose your draft turn and the player goes to auction')}</p>
       </div>
       <p className="text-[11px] font-bold text-black/60">{t(`🔒 Só dá pra sondar quem já está há ${MLD_SONDAR_TEMPORADAS} temporadas no time do amigo (é o "contrato"). Quem chegou depois aparece com cadeado.`, `🔒 You can only scout players who have been on your friend's team for ${MLD_SONDAR_TEMPORADAS} seasons (the "contract"). Newer arrivals show a padlock.`)}</p>
       <div className="flex gap-1.5 flex-wrap">

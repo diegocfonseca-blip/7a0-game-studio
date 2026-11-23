@@ -8482,13 +8482,13 @@ function proximoDoDraft(s: EscState): void {
   const d = s.draft
   if (!d) return
   d.idx++
-  // 📋🏆 Minha Liga Draft: a vez do próximo começa PARADA, esperando o ✋ pronto dele (o relógio de 45 s só corre depois)
+  // 📋🏆 Minha Liga Draft: a vez do próximo começa na tela das 2 escolhas e o relógio de 60 s JÁ corre (23/11, Diego)
   if (d.idx < d.ordem.length) {
     d.inicioRevela = undefined
     // 🪑 19/11: se quem está na vez saiu/caiu (a máquina toca o time), a vez NÃO fica parada esperando o ✋ dele: o relógio já
-    // corre (45 s). Se ele voltar a tempo (RETOMA_TIME), escolhe; senão perde a vez, igual a quem deixa o tempo passar.
+    // corre. Se ele voltar a tempo (RETOMA_TIME), escolhe; senão perde a vez, igual a quem deixa o tempo passar.
     const presente = !!s.managers.find(m => m.id === d.ordem[d.idx] && m.isHuman)
-    if (s.minhaLigaDraft && presente) { d.fase = 'aguarda'; d.prazo = 0 } else { d.fase = 'escolha'; d.prazo = Date.now() + (s.minhaLigaDraft ? DRAFT_ESCOLHA_MINHA_MS : DRAFT_ESCOLHA_MS) }
+    if (s.minhaLigaDraft && presente) { d.fase = 'aguarda'; d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS } else { d.fase = 'escolha'; d.prazo = Date.now() + (s.minhaLigaDraft ? DRAFT_ESCOLHA_MINHA_MS : DRAFT_ESCOLHA_MS) }
     return
   }
   if (s.minhaLigaDraft) { mldDepoisDaFila(s); return }
@@ -11037,7 +11037,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           const ordem = (dc.ordem ?? []).filter(id => humanos.some(h => h.id === id))
           if (ordem.length && dc.temporada != null && dc.draftFeito !== dc.temporada) {
             s.draft = s.minhaLigaDraft
-              ? { temporada: dc.temporada, ordem, idx: 0, fase: 'aguarda', prazo: 0, picks: [], somaTemporada: false }
+              ? { temporada: dc.temporada, ordem, idx: 0, fase: 'aguarda', prazo: Date.now() + DRAFT_ESCOLHA_MINHA_MS, picks: [], somaTemporada: false } // ⏱️ 23/11: os 60 s já correm
               : { temporada: dc.temporada, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: false }
             s.screen = 'draft'
           }
@@ -14732,11 +14732,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'DRAFT_PRONTO': {
-      // ✋ só quem está NA VEZ, e só enquanto a vez está parada esperando — repetido não reinicia o relógio
+      // ✋ só quem está NA VEZ, e só na tela das 2 escolhas. ⏱️ 23/11: o relógio NÃO reinicia — é o MESMO da vez (continuação, ordem do
+      // Diego). Só a vez que chegou parada (save de antes de 23/11, prazo 0) ganha os 60 s aqui.
       const d = s.draft
       if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || d.fase !== 'aguarda' || d.ordem[d.idx] !== action.mgrId) return state
       d.fase = 'escolha'
-      d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS
+      if (!(d.prazo > 0)) d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS
       return s
     }
     case 'DRAFT_PASSAR': {
@@ -14761,7 +14762,10 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'DRAFT_TICK': {
       const d = s.draft
-      if (!d || s.screen !== 'draft' || d.fase === 'aguarda' || d.fase === 'prontos' || d.fase === 'escala' || Date.now() < d.prazo) return state
+      if (!d || s.screen !== 'draft' || (d.fase === 'aguarda' && !(d.prazo > 0)) || d.fase === 'prontos' || d.fase === 'escala' || Date.now() < d.prazo) return state
+      // ⏱️ 23/11 (Diego: *"o tempo é só pra deixar claro que tem tempo, mas quem manda é o host… ele pode até depois do tempo deixar ainda o
+      // cara escolher"*): na Minha Liga Draft o fim dos 60 s NÃO tira a vez de ninguém — só o ⏭ do dono pula. O relógio é aviso.
+      if ((d.fase === 'aguarda' || d.fase === 'escolha') && s.minhaLigaDraft) return state
       if (d.fase === 'leilao') {
         // 🔨 martelo de todos os lotes de uma vez, na ordem; o caixa de quem ganha um lote já desconta pro próximo
         const caixa: Record<number, number> = {}
@@ -14791,12 +14795,6 @@ function reducerBase(state: EscState, action: Action): EscState {
         const lote = d.lotes?.[d.igualarIdx ?? -1]
         if (lote) lote.igualar = false
         mldProximoIgualar(s)
-        return s
-      }
-      if (d.fase === 'escolha' && s.minhaLigaDraft) {
-        // 📋🏆 Minha Liga Draft: acabou o tempo = PERDE A VEZ (o jogo não escolhe por ninguém — ordem do Diego)
-        d.pulados = [...(d.pulados ?? []), d.ordem[d.idx]]
-        proximoDoDraft(s)
         return s
       }
       if (d.fase === 'escolha') {

@@ -186,7 +186,8 @@ export function EscConvocacaoClubes() {
           <div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px', textTransform: 'uppercase' }}>{t('⚽ Formação', '⚽ Formation')}</p>
             <div className="cv-forms" style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {FORMACOES_JOGO.flatMap((f): [FormationKey, boolean][] => f === '5-3-2' ? [[f, false], [f, true]] : [[f, false]]).map(([f, ala]) => {
+              {/* 🛡️ 23/11: o 3-5-2 agora é o de verdade ('3-5-2z') — sai o botão de alas do 5-3-2 */}
+              {FORMACOES_JOGO.map((f): [FormationKey, boolean] => [f, false]).map(([f, ala]) => {
                 const ok = formacaoCabeNosPacotes((me.squad ?? []) as WonCard[], f)
                 const falta = ok ? null : SECTORS.find(sec => (lotes[sec]?.pacote?.cartas.length ?? 0) < FORMATIONS[f][sec])
                 const on = form === f && alas === ala, nome = ala ? '3-5-2' : rotuloFormacao(f) /* 🛡️ 23/11: '3-4-3z' é a chave, a tela mostra 3-4-3 */

@@ -47,7 +47,7 @@ export const FORMACOES15: Formacao15[] = [
   { rotulo: '4-2-3-1', motor: '4-5-1', estilo: 'posse', meio: [3, 2] },           // 3 meias na frente, 2 volantes atrás
   { rotulo: '4-3-2-1', motor: '4-5-1', estilo: 'posse', meio: [2, 3] },           // árvore de Natal
   { rotulo: '4-4-2 losango', motor: '4-4-2', estilo: 'posse', meio: [1, 2, 1] },
-  { rotulo: '3-5-2', motor: '5-3-2', estilo: 'posse', alas: true },               // os alas são os LATERAIS de verdade
+  { rotulo: '3-5-2', motor: '3-5-2z', estilo: 'posse', padrao: true },            // 🛡️ 23/11: 3 zagueiros, 5 meias, 2 atacantes, sem lateral
   // 🛡️ RETRANCA
   { rotulo: '5-3-2', motor: '5-3-2', estilo: 'retranca', padrao: true },
   { rotulo: '4-4-2', motor: '4-4-2', estilo: 'retranca', padrao: true },          // duas linhas de quatro (o 4-4-2 de sempre)
@@ -58,6 +58,8 @@ export const FORMACOES15: Formacao15[] = [
 
 /** 🗡️ o 3-4-3 ANTIGO (2 laterais + 1 zagueiro, 13/11): só desenha quem já estava nele — nunca aparece pra escolher */
 export const FORMACAO_343_ANTIGO: Formacao15 = { rotulo: '3-4-3', motor: '3-4-3', estilo: 'ofensiva', padrao: true }
+/** 🪽 o 3-5-2 ANTIGO (5-3-2 com os laterais de alas, 23/11): só desenha quem já estava nele — nunca aparece pra escolher */
+export const FORMACAO_352_ALAS: Formacao15 = { rotulo: '3-5-2', motor: '5-3-2', estilo: 'posse', alas: true }
 
 export const ESTILO_ROTULO: Record<EstiloFormacao, string> = {
   ofensiva: '⚽ Ofensivas',
@@ -77,6 +79,7 @@ export function formacaoAtual(m: Pick<Manager, 'formation' | 'formationView'>): 
   // trava de segurança: view guardada tem que bater com a conta do motor (save
   // mexido/antigo com par inconsistente cai na cara padrão, nunca desenha errado)
   if (porView && porView.motor === m.formation) return porView
+  if (m.formation === '5-3-2' && m.formationView === '3-5-2') return FORMACAO_352_ALAS
   if (m.formation === '3-4-3') return FORMACAO_343_ANTIGO
   return FORMACOES15.find(f => f.padrao && f.motor === m.formation) ?? FORMACOES15[0]
 }

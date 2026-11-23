@@ -73,15 +73,18 @@ assert.deepEqual(s.draft!.prontos, [1])
 const vendaTocaia = s.managers[3].squad.find(c => c.pos === 'MEI')!
 s = reducer(s, { type: 'DRAFT_VENDER', mgrId: 3, cardId: vendaTocaia.id } as never)
 s = reducer(s, { type: 'DRAFT_SEGUIR' } as never)
-assert.equal(s.draft!.fase, 'aguarda', 'a vez começa parada, esperando o pronto')
+assert.equal(s.draft!.fase, 'aguarda', 'a vez começa na tela das 2 escolhas')
+assert.equal(s.draft!.prazo, Date.now() + DRAFT_ESCOLHA_MINHA_MS, '⏱️ 23/11: os 60 s já correm desde que a vez chega')
+const prazoVez = s.draft!.prazo
 void caixaAntes
 
-// ③ o relógio não corre sem pronto; só quem está na vez dá pronto
+// ③ 23/11: o relógio é AVISO — passado o tempo ninguém perde a vez sozinho (quem pula é o dono); só quem está na vez dá pronto,
+// e o pronto CONTINUA o mesmo relógio (não reinicia)
 avanca(10 * 60_000)
-assert.equal(reducer(s, { type: 'DRAFT_TICK' } as never), s, 'parado não anda sozinho, nem 10 min depois')
+assert.equal(reducer(s, { type: 'DRAFT_TICK' } as never), s, 'tempo esgotado não tira a vez sozinho, nem 10 min depois')
 assert.equal(reducer(s, { type: 'DRAFT_PRONTO', mgrId: 2 } as never), s, 'fora da vez não dá pronto')
 s = reducer(s, { type: 'DRAFT_PRONTO', mgrId: 0 } as never)
-assert.equal(s.draft!.fase, 'escolha'); assert.equal(s.draft!.prazo, Date.now() + DRAFT_ESCOLHA_MINHA_MS, '45 s')
+assert.equal(s.draft!.fase, 'escolha', 'depois do tempo ainda dá pra escolher'); assert.equal(s.draft!.prazo, prazoVez, 'o pronto continua o MESMO relógio da vez')
 const prazo = s.draft!.prazo
 avanca(5000); s = reducer(s, { type: 'DRAFT_PRONTO', mgrId: 0 } as never)
 assert.equal(s.draft!.prazo, prazo, 'pronto repetido não reinicia o relógio')
@@ -95,7 +98,7 @@ assert.equal(s.managers[0].squad.at(-1)!.paid, 10, 'jogador do draft chega valen
 assert.equal(reducer(s, { type: 'DRAFT_PULAR' } as never), s, 'ninguém pula no meio do anúncio')
 avanca(DRAFT_REVELA_MS); s = reducer(s, { type: 'DRAFT_TICK' } as never)
 assert.equal(s.draft!.idx, 1); assert.equal(s.draft!.fase, 'aguarda', 'próxima vez também começa parada')
-console.log('✅ pronto → 45 s → escolheu', lenda.name)
+console.log('✅ 60 s desde a vez, continua no pronto, escolheu depois do tempo:', lenda.name)
 
 // ⑤ o dono saiu agora (vez do Fabulous, parada): a liga gravada volta e continua do Fabulous
 const gravada = JSON.parse(JSON.stringify({ ...s, screen: 'lobby' }))
@@ -113,10 +116,12 @@ s = reducer(s, { type: 'DRAFT_PULAR' } as never)
 assert.deepEqual(s.draft!.pulados, [1]); assert.equal(s.draft!.idx, 2); assert.equal(s.draft!.fase, 'aguarda')
 assert.equal(s.draft!.picks.length, 1, 'quem foi pulado não ganhou jogador')
 
-// ⑦ K9 dá pronto e deixa o tempo acabar → perde a vez (nada de escolha automática)
+// ⑦ K9 dá pronto e deixa o tempo acabar → continua na vez (o relógio é aviso); o DONO pula → perde a vez (nada de escolha automática)
 const antes = JSON.stringify(s.managers[2].squad)
 s = reducer(s, { type: 'DRAFT_PRONTO', mgrId: 2 } as never)
 avanca(DRAFT_ESCOLHA_MINHA_MS); s = reducer(s, { type: 'DRAFT_TICK' } as never)
+assert.deepEqual(s.draft!.pulados, [1], 'o fim do tempo não tira a vez sozinho'); assert.equal(s.draft!.idx, 2)
+s = reducer(s, { type: 'DRAFT_PULAR' } as never)
 assert.deepEqual(s.draft!.pulados, [1, 2]); assert.equal(s.draft!.picks.length, 1, 'o jogo NÃO escolheu pelo K9')
 assert.equal(JSON.stringify(s.managers[2].squad), antes, 'o elenco do K9 não mudou')
 console.log('✅ pulado pelo dono e tempo esgotado = perdeu a vez, sem jogador')

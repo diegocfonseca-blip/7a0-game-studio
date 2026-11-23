@@ -44,7 +44,7 @@ export function resolveColecao(linhas: LinhaColecao[], acha: AchaNoBaralho): Car
 export const piorPrimeiro = (a: CartaBafo, b: CartaBafo): number => a.fame - b.fame || (a.lo + a.hi) - (b.lo + b.hi) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id)
 
 /** as formações que o Bafo aceita, na ordem em que o jogo tenta (a 1ª que o elenco fechar é a do time) */
-export const FORMACOES_BAFO: FormationKey[] = ['4-3-3', '4-4-2', '4-5-1', '5-3-2', '3-4-3z', '4-2-4', '5-4-1']
+export const FORMACOES_BAFO: FormationKey[] = ['4-3-3', '4-4-2', '4-5-1', '5-3-2', '3-4-3z', '3-5-2z', '4-2-4', '5-4-1']
 export type Necessidades = Record<string, Record<Sector, number>>
 
 const conta = (cs: CartaBafo[]): Record<Sector, number> => {
