@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#F4ECD6;font-family:Arial,sans-serif;color:#0c0c0c;padding:18px}
+h1{font:900 26px Oswald;text-transform:uppercase;margin:0 0 4px}.sub{font-weight:700;font-size:13px;margin:0 0 14px;color:#444}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.f{border:3px solid #000;border-radius:14px;box-shadow:4px 4px 0 #000;overflow:hidden;background:#fff}
+.tela{position:relative;height:420px;overflow:hidden;color:#fff;text-align:center}
+.cap{padding:9px 10px;font:700 12px/1.35 Arial}.cap b{font:900 13px Oswald;text-transform:uppercase;display:block}
+.n{position:absolute;top:8px;left:8px;z-index:9;background:#FFC400;color:#000;border:2px solid #000;border-radius:999px;width:26px;height:26px;display:grid;place-items:center;font:900 14px Oswald}
+/* estádio */
+.est{position:absolute;inset:0;background:linear-gradient(#05070a 0 40%,#0b2a14 40% 100%)}
+.arq{position:absolute;left:0;right:0;top:24%;height:20%;background:repeating-linear-gradient(90deg,#141a22 0 6px,#0b0f14 6px 12px)}
+.gram{position:absolute;left:0;right:0;bottom:0;height:56%;background:repeating-linear-gradient(90deg,#14612e 0 30px,#118034 30px 60px)}
+.dark{position:absolute;inset:0;background:rgba(0,0,0,.82)}
+.spot{position:absolute;top:-10%;width:180px;height:130%;background:linear-gradient(rgba(255,240,180,.55),rgba(255,240,180,0));clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);filter:blur(2px)}
+.big{font:900 64px Oswald;color:#FFC400;text-shadow:4px 4px 0 #000}
+.mid{position:absolute;left:0;right:0}
+.flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,#fff8d0 0%,#FFC400 25%,rgba(255,196,0,0) 60%)}
+.rays{position:absolute;inset:-60%;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,196,0,.22) 0 7deg,transparent 7deg 16deg)}
+.crest{width:110px;height:110px;margin:0 auto;border-radius:50%;background:#1b7a3d;border:5px solid #FFC400;box-shadow:0 0 0 4px #000,0 0 50px #ffc400;display:grid;place-items:center;font:900 52px Oswald;color:#FFC400}
+.titulo{font:900 46px/1 Oswald;color:#FFC400;text-shadow:3px 3px 0 #000;text-transform:uppercase}
+.nome{font:900 26px Oswald;text-transform:uppercase;text-shadow:3px 3px 0 #000}
+.conf{position:absolute;width:7px;height:13px;border-radius:2px}
+.fw{position:absolute;font-size:44px}
+.zoa{display:inline-block;background:#FFC400;color:#000;border:3px solid #000;border-radius:10px;padding:4px 12px;font:900 15px Oswald;text-transform:uppercase;box-shadow:3px 3px 0 #000;transform:rotate(-2deg)}
+.jog{display:flex;justify-content:center;gap:4px;align-items:flex-end}
+.jog div{width:54px;height:78px;border:2px solid #000;border-radius:8px;background:#e9d7a8;display:grid;place-items:end center;font-size:38px}
+.taca{font-size:70px;filter:drop-shadow(0 0 20px #ffc400)}
+.masc{position:absolute;font-size:70px}
+.placar{display:inline-block;background:#fffaf0;color:#000;border:3px solid #000;border-radius:10px;padding:4px 10px;font:900 16px Oswald;box-shadow:3px 3px 0 #000;margin:0 4px}
+.legenda{position:absolute;bottom:10px;left:0;right:0;font:900 12px Oswald;letter-spacing:.08em;text-transform:uppercase;color:#FFE08A}
+</style></head><body>
+<h1>🏆 Campeão novo — roteiro em 4 cenas (≈7 segundos, sem botão no meio)</h1>
+<p class="sub">Tela cheia, igual entrada de gala. Toca pra todo mundo da sala ao mesmo tempo. No fim, cai na tela de sempre (pacote do campeão etc.). Toque na tela = pula.</p>
+<div class="grid">
+ <div class="f"><div class="tela"><span class="n">1</span>
+  <div class="est"></div><div class="arq"></div><div class="gram"></div><div class="dark"></div>
+  <div class="spot" style="left:6%;transform:rotate(14deg)"></div><div class="spot" style="right:6%;transform:rotate(-14deg)"></div>
+  <div class="mid" style="top:36%"><div style="font:900 15px Oswald;letter-spacing:.2em;color:#FFE08A">APAGAM AS LUZES…</div><div class="big">3</div></div>
+  <div class="legenda">🥁 rufar de tambor</div>
+ </div><div class="cap"><b>0–2s · Estádio apaga</b>As luzes do estádio caem, dois holofotes procuram o campeão e a contagem 3·2·1 sobe com tambor.</div></div>
+
+ <div class="f"><div class="tela"><span class="n">2</span>
+  <div class="est"></div><div class="arq"></div><div class="gram"></div><div class="rays"></div><div class="flash"></div>
+  <div class="mid" style="top:22%"><div class="crest">R</div><div style="font-size:44px;margin-top:-6px">🔨</div></div>
+  <div class="legenda">🔨 PÁ! (martelo) + estouro de torcida</div>
+ </div><div class="cap"><b>2–3s · O escudo é martelado</b>Clarão dourado: o escudo do campeão cai do céu e o martelo bate em cima — o som do martelo do leilão.</div></div>
+
+ <div class="f"><div class="tela"><span class="n">3</span>
+  <div class="est"></div><div class="arq" style="background:repeating-linear-gradient(90deg,#1b7a3d 0 6px,#FFC400 6px 12px)"></div><div class="gram"></div><div class="rays"></div>
+  <span class="fw" style="left:8%;top:6%">🎆</span><span class="fw" style="right:6%;top:4%">🎇</span><span class="fw" style="left:40%;top:0">🎆</span>
+  <span class="conf" style="left:12%;top:30%;background:#FFC400;transform:rotate(30deg)"></span><span class="conf" style="left:80%;top:40%;background:#fff;transform:rotate(-30deg)"></span><span class="conf" style="left:60%;top:20%;background:#1B7A3D"></span><span class="conf" style="left:30%;top:50%;background:#E8503A;transform:rotate(60deg)"></span>
+  <div class="mid" style="top:26%"><div class="crest" style="width:76px;height:76px;font-size:36px">R</div><div class="titulo" style="margin-top:10px">É CAMPEÃO!</div><div class="nome">Renoite FC</div><div style="margin-top:8px"><span class="zoa">👑 O rei da sala!</span></div></div>
+  <div class="legenda">📣 canto da torcida do campeão</div>
+ </div><div class="cap"><b>3–5s · A torcida vira do campeão</b>Fogos, papel picado, a arquibancada pinta com as cores do clube e toca o canto dele (se tiver). Frase de zoeira muda a cada título.</div></div>
+
+ <div class="f"><div class="tela"><span class="n">4</span>
+  <div class="est"></div><div class="arq" style="background:repeating-linear-gradient(90deg,#1b7a3d 0 6px,#FFC400 6px 12px)"></div><div class="gram"></div>
+  <span class="conf" style="left:20%;top:12%;background:#FFC400"></span><span class="conf" style="left:70%;top:18%;background:#fff"></span><span class="conf" style="left:48%;top:8%;background:#1B7A3D"></span>
+  <span class="masc" style="left:6%;bottom:22%">🐸</span>
+  <div class="mid" style="top:12%"><div class="taca">🏆</div><div class="jog"><div>🧔</div><div>👨🏾</div><div>👨🏻‍🦲</div></div>
+   <div style="margin-top:12px"><span class="placar">75 PTS</span><span class="placar">24 V</span></div></div>
+  <div class="legenda">🐸 mascote pulando · craques erguem a taça</div>
+ </div><div class="cap"><b>5–7s · Taça levantada</b>Os 3 craques do elenco erguem a taça (os rostos que já aparecem hoje), a mascote do clube pula do lado e entram pontos e vitórias.</div></div>
+</div></body></html>
