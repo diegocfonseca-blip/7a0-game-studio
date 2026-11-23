@@ -33,4 +33,3 @@ begin
  else update public.esc_regional_clock set revision=revision+1 where room_id=p_room and edicao=p_edicao and seed=p_seed;end if;
  return jsonb_build_object('ok',true,'from',cutoff,'state',public.esc_copa_taticas(p_room,p_tipo,p_edicao,p_seed));
 end $$;
-
