@@ -1,4 +1,5 @@
 import {withCupPlans} from './copa-planos'
+import { QuemEJogador } from './quem-e-jogador'
 import {FootballRegionalCupView} from './football-cup-regional'
 import type {CupPenaltyPresentation} from './football-cup-world'
 import {useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable,OwnerPlayback,OwnerChampionBanner} from './owner-online-visual'
@@ -439,6 +440,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={`${nomeCopa(copa)} · ${en ? `you have ${SEG_ESCOLHA}s to pick your club` : `você tem ${SEG_ESCOLHA}s pra pegar o clube`}`} botao={tr('Escolher meu clube', 'Pick my club')} aoFechar={chama.fechar} />}
       <CompetitionStage kind="copa8" patroKind="regional" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={nomeCopa(copa)} detail={detalhe} status={status}>
         <div className="ll26-cup-entry">
+        {fase?.fase === 'convocacao' && temTime(minha) && <QuemEJogador />}{/* 🃏 23/11: joguinho enquanto a turma convoca (some quando a Copa começa) */}
           {soAssisto && dupla && <AvisoDupla quem={dupla.nomeAge} />}
           {mostraNaoSai && <NaoSai minhaVez={minhaFila!.vez} antes={antesDeMim} fase={fase?.fase} seg={seg} segPorVez={SEG_ESCOLHA} />}
           {fiqueiDeFora && <p className="ll27-portao-aviso">{tr(`😬 Você terminou a liga fora dos ${vagas} primeiros — fica de fora desta copa. Dá pra assistir daqui.`, `😬 You finished outside the top ${vagas} — you sit out this cup. You can watch from here.`)}</p>}

@@ -18,6 +18,7 @@ import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { logTravaSalva } from './analytics'
 import { SECTORS, FORMACOES_JOGO, FORMATIONS, duplaPodeAgir, type Card, type FormationKey, type Sector, type WonCard } from './types'
+import { QuemEJogador } from './quem-e-jogador'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { useTelaPC } from './sport'
 import './convocacao-pc.css' // 🖥️ 04/11: no PC, 3 colunas (só desenho)
@@ -132,6 +133,7 @@ export function EscConvocacaoClubes() {
           )}
           {seg !== null && faltamFechar.length > 0 && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 26, margin: 0 }}>⏱️ {seg}s</p>}
         </Box>
+        {faltamFechar.length > 0 && <QuemEJogador />}{/* 🃏 23/11: joguinho enquanto a turma fecha (some sozinho quando a convocação acaba) */}
       </Shell>
     )
   }
