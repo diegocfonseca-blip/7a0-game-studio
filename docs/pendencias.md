@@ -57,6 +57,14 @@
 
 
 
+
+### 🐢 23/11 (madrugada) — Copa da sala pergunta menos ao servidor durante os jogos (no branch, esperando "pode publicar")
+- Vigia: um aparelho numa sala de Copa lia `room_players` + `esc_copa_salas` ~2.100×/h cada (a leitura de 2 s). Diego: *"ok faça"*.
+- Agora, com a Copa ROLANDO (fase 'torneio'), a leitura é a cada 6 s (só descobre o campeão; o jogo anda pelo relógio do banco e a tática tem
+  leitura própria). Escolha de seleção/convocação continuam em 2 s. Vale pra Copa do Mundo/Euro/América, regionais e Libertadores da sala.
+- Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
+  `liberta-sala` e `regional` passam.
+
 ### ⚫⚓ 22/11 (noite) — Batismo Tunaldo FC (faertes9) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
 - Plano Batismo (79,90, sem nº de fundador), coração Corinthians, mascote O Craque Tunaldo (`tunaldo_craque`), manto preto #0F0F0F + cinza #706F6F
   medidos na camisa. Várzea, no assento do bot Espeto Corrido FC (`OLD_NAME`). Conta existe (criada 08/10). Não achei o Pix no sistema (Diego confirmou Batismo).
