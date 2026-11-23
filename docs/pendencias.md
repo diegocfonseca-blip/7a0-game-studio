@@ -1,3 +1,8 @@
+## 🔒 23/11 — MANTER ABAS; PLANO ESCOLHIDO CONTINUA NAS PRÓXIMAS PARTIDAS
+- Diego rejeitou a proposta de reorganização móvel: conservar abas separadas. O mockup não foi aplicado; layout e CSS preservados.
+- No teste autorizado das táticas, cada escolha passa a ser salva para os próximos jogos, sem voltar ao padrão na mudança de rodada. Enviar ordens continua sendo a aplicação explícita ao jogo em andamento. Confirmação do host, retomada da sala e preferências separadas por técnico; convidados não ganham recálculo ao vivo.
+- Build, regressão do motor, acesso privado, 53 verificações específicas e 651 verificações gerais da interface passaram. Auditoria de limpeza da carreira tem falha anterior em `careerSubModeDesde`, reproduzida na base sem a correção; o novo campo está na limpeza. [Causa, escopo e validação](plano-persistente-online-20261123.md).
+
 ## 🔒 22/11 — TELÃO LOGO ABAIXO DO JOGO, EM TODAS AS COMPETIÇÕES ONLINE
 - Pedido do Diego: ele e Futpoint, em qualquer liga/copa das salas online, com telão abaixo de cinema/placar rápido ou 2D, sem moldura bege. O anúncio passa a pertencer à transmissão principal e permanece nas trocas de aba.
 - Escopo inclui as transmissões de copas após a liga (`end`), sem ampliar o restante do piloto ou as permissões. Uma única placa, feed/links/rotação existentes; chamadas antigas da página/campo são suprimidas antes de montar seu corpo nessas duas contas. Outras contas, loja, carreira e basquete preservados.
