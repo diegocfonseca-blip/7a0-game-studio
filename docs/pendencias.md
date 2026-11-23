@@ -15255,3 +15255,9 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 ## 🚁🦇 23/11 — Gala nova do Neymarzetti (vídeo `scripts/mockups/gala-neymarzetti-v2.mp4`, *"pode publicar"*)
 - ✅ `gala-neymarzetti.tsx` no lugar da `gala-helicoptero.tsx` (que fica guardada). Voltar = trocar a linha `Neymarzetti` do `GALA_UNICA` em `entrada-gala.tsx`.
 - ⏳ Som: ainda sem (perguntei hélice ou canto — falta resposta). `npm run gala` já falhava antes desta mudança (`window.__set is not a function`).
+
+## 🚗📱 23/11 — Carro no meio do campo + Próximos jogos no celular (prints do Diego)
+- ✅ Carro com motorista no centro do campo (mapa e jogo 3D): era o carro dos clientes da concessionária VELHA (`city-dealership-customers`),
+  que nasce na origem (= centro do campo) e só anda no `update`; com o bairro compacto o update nunca roda e o grupo nascia visível. Agora nasce
+  escondido (`presidencia-cidade-comercio.ts`). Conferido na bancada `qa-mapa-foco.html`: nada visível no centro, na semana e no jogo.
+- ✅ Central no celular: "🗓️ Próximos jogos" logo embaixo da escolha 2D/3D/Placar, em cima do Raio-X (`agendaCard` + `ll-c-agenda-cel`). Computador sem mudança.

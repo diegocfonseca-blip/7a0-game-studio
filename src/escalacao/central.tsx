@@ -340,6 +340,31 @@ export function CentralCarreira(p: CentralProps) {
   const tabelaCurta = p.tabela // 🖥️ desktop: inteira (Diego 03/10: *"ficaria melhor a tabela completa"*)
   const noCelular = new Set(corta(5).map(x => x.name))
 
+  // 🗓️ AGENDA = os próximos jogos do seu clube (18/11) → abre Jogos. 📱 23/11 (Diego): no CELULAR ela fica logo embaixo da escolha
+  // de como ver o jogo, em cima do Raio-X (`ll-c-agenda-cel`); no computador continua no lugar de sempre (`ll-c-agenda ll-c-agenda-pc`).
+  const agendaCard = (cls: string) => (<>
+          {!p.agendaVelha && p.agenda.length > 0 && <div className={`ll-central-card ${cls}`} style={{ background: CREME }}>
+            <Cabecalho titulo={t('🗓️ Próximos jogos', '🗓️ Upcoming matches')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
+            <div className="ll-central-agenda-lista">
+            {p.agenda.map((a, i) => { const d = new Date(a.dia); const dow = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); const mes = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { month: 'short', timeZone: 'UTC' }).replace('.', ''); return (
+              <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 9, alignItems: 'center' }}>
+                <span style={{ width: 44, flex: 'none', textAlign: 'center', border: `2px solid ${INK}`, borderRadius: 8, background: i === 0 ? GOLD : '#fff', lineHeight: 1.05, padding: '3px 0' }}>
+                  <small style={{ ...OSW, display: 'block', fontSize: 9, letterSpacing: '.06em' }}>{dow}</small>
+                  <b style={{ ...OSW, display: 'block', fontSize: 16 }}>{d.getUTCDate()}</b>
+                  <small style={{ ...OSW, display: 'block', fontSize: 9 }}>{mes}</small>
+                </span>
+                <Escudo nome={a.adv} size={26} />
+                <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0, flex: 1 }}>
+                  <b style={{ ...OSW, fontSize: 13.5, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.adv}</b>
+                  <small style={{ color: '#555', fontWeight: 700, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{en ? a.comp[1] : a.comp[0]}{a.fase ? ` · ${a.fase}` : ''}</small>
+                  {a.onde && <small style={{ color: '#7a5a1e', fontWeight: 800, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {a.casa ? t('no seu estádio', 'at your ground') + ' · ' : ''}{a.onde}</small>}
+                </span>
+                {a.casa != null && <Chip bg="#fff">{a.casa ? t('🏟️ casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
+              </div>
+            ) })}
+            </div>
+          </div>}
+  </>)
   return (
     <div className={`ll-central${p.bb ? ' ll-central-bb' : ''}`}>
       <div className="ll-central-topo">
@@ -415,6 +440,7 @@ export function CentralCarreira(p: CentralProps) {
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
           {/* 💾 23/11 (Diego: "não quero que tenha esse botão de salvar… já que já tem lá embaixo"): a faixa de Salvar saiu do topo da Central nova */}</div>}
+          {agendaCard('ll-c-agenda-cel')}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
@@ -499,28 +525,7 @@ export function CentralCarreira(p: CentralProps) {
             ))}
             </div>
           </div>}
-          {/* 🗓️ AGENDA = os próximos jogos do seu clube (18/11) → abre Jogos */}
-          {!p.agendaVelha && p.agenda.length > 0 && <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
-            <Cabecalho titulo={t('🗓️ Próximos jogos', '🗓️ Upcoming matches')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
-            <div className="ll-central-agenda-lista">
-            {p.agenda.map((a, i) => { const d = new Date(a.dia); const dow = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); const mes = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { month: 'short', timeZone: 'UTC' }).replace('.', ''); return (
-              <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 9, alignItems: 'center' }}>
-                <span style={{ width: 44, flex: 'none', textAlign: 'center', border: `2px solid ${INK}`, borderRadius: 8, background: i === 0 ? GOLD : '#fff', lineHeight: 1.05, padding: '3px 0' }}>
-                  <small style={{ ...OSW, display: 'block', fontSize: 9, letterSpacing: '.06em' }}>{dow}</small>
-                  <b style={{ ...OSW, display: 'block', fontSize: 16 }}>{d.getUTCDate()}</b>
-                  <small style={{ ...OSW, display: 'block', fontSize: 9 }}>{mes}</small>
-                </span>
-                <Escudo nome={a.adv} size={26} />
-                <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0, flex: 1 }}>
-                  <b style={{ ...OSW, fontSize: 13.5, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.adv}</b>
-                  <small style={{ color: '#555', fontWeight: 700, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{en ? a.comp[1] : a.comp[0]}{a.fase ? ` · ${a.fase}` : ''}</small>
-                  {a.onde && <small style={{ color: '#7a5a1e', fontWeight: 800, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {a.casa ? t('no seu estádio', 'at your ground') + ' · ' : ''}{a.onde}</small>}
-                </span>
-                {a.casa != null && <Chip bg="#fff">{a.casa ? t('🏟️ casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
-              </div>
-            ) })}
-            </div>
-          </div>}
+          {agendaCard('ll-c-agenda ll-c-agenda-pc')}
           </div>
         </div>
 
