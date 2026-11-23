@@ -63,6 +63,15 @@
 
 
 
+
+### 🎮🔒 23/11 — botão pequeno "Manual 🔒" logo depois do placar (no branch, esperando "pode publicar")
+- Análise de 7 dias (`apoio_intents`): 170 pessoas abriram a trava do Manual, 1 gerou Pix, 0 pagou; 441 bateram no limite da sala do dia
+  (2.419 vezes), 4 compraram as 3 salas extras. Propus botão embaixo do placar + preços menores; Diego: *"gostei só de pôr um botão pequeno…
+  mas não altere o valor"*. **Preços NÃO mudaram** (Manual 24 h R$ 9,90 · Craque Completo R$ 14,90/mês · 3 salas R$ 4,90 · Craque Salas R$ 9,90/mês).
+- `ManualChipPlacar` (pyramidseason.tsx): pílula "🎮 Manual 🔒" logo depois do quadro do placar (aba Jogos, sem plano); só aparece se a trava
+  `ManualLockButton` está na tela (senão seria botão mudo) e abre ELA (mesmas ofertas), rolando até lá. Log: "🎮 manual: botão embaixo do placar".
+- Print: `scripts/mockups/manual-chip-placar.png` · bancada `scripts/mapa3d/print-chip-manual.mjs`.
+
 ### 🐢 23/11 (madrugada) — Copa da sala pergunta menos ao servidor durante os jogos (no branch, esperando "pode publicar")
 - Vigia: um aparelho numa sala de Copa lia `room_players` + `esc_copa_salas` ~2.100×/h cada (a leitura de 2 s). Diego: *"ok faça"*.
 - Agora, com a Copa ROLANDO (fase 'torneio'), a leitura é a cada 6 s (só descobre o campeão; o jogo anda pelo relógio do banco e a tática tem
