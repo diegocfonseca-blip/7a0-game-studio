@@ -1,4 +1,5 @@
 import {footballRoundStatus,footballNextFixture} from './football-round-status'
+import { LinhaComunidadeChat } from './links-comunidade' // 📲🎮 23/11: WhatsApp + Discord no chat
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
@@ -841,6 +842,7 @@ export function ChatWidget() {
               <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{tr('💬 Zoeira da sala', '💬 Room banter')}</span>
               <button onClick={() => setChatOpen(false)} aria-label={tr('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
             </div>
+            <LinhaComunidadeChat />
             {isHost && (
               <button onClick={() => dispatch({ type: 'SET_CHAT', off: !chatOff })}
                 style={{ ...OSWALD, color: INK, fontWeight: 800, fontSize: 12, padding: '7px 12px', background: chatOff ? '#f0ece0' : '#E7F7EC', borderBottom: '2px solid #000', textAlign: 'left', cursor: 'pointer', width: '100%' }}>

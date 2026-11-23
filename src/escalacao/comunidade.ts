@@ -2,3 +2,5 @@
 // home (`ComunidadeBanner`, index.tsx) e o quadro verde da lista de salas (lobby.tsx) leem daqui.
 // `null` tira os dois.
 export const COMUNIDADE_LINK: string | null = 'https://chat.whatsapp.com/KfSkVvbjjdiHptHfJE5hQN'
+// 🎮 DISCORD da galera (Diego 23/11) — aparece ao lado do WhatsApp na linha fininha do chat das salas. `null` tira.
+export const DISCORD_LINK: string | null = 'https://discord.gg/NMYGZTMFv'
