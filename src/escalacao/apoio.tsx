@@ -203,6 +203,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'lucasnicodemosqq@gmail.com': 'ouro', // 👑⚫ batismo Ceará SP Club (Várzea, no assento do bot Barcelona da Vila) (19/11). Sem nº de fundador (regra 14/10).
   'leodicasttro@hotmail.com': 'ouro', // 👑🦡 batismo Império FC (Várzea, no assento do bot Juventude do Churrasco) (20/11). Sem nº de fundador (regra 14/10).
   'faertes9@gmail.com': 'ouro', // ⚫⚓ batismo Tunaldo FC (Várzea, no assento do bot Espeto Corrido FC) (22/11). Sem nº de fundador (regra 14/10).
+  'caiomooca2013@gmail.com': 'ouro', // 👑 batismo FUNDADOR Sport Clube Betasso (Várzea, no assento do bot Falta Técnica FC) + fundador nº106 + sócio nº101 (23/11). Antes: Lenda (10/11) → Batismo (18/11) → Fundador (23/11).
   'pedrosilveira0810@gmail.com': 'ouro', // 👑 batismo FUNDADOR Pirituba SF (Várzea, no assento do bot Doze Contra Onze) + fundador nº105 + sócio nº100 (23/11).
   'hugopereirabrito@gmail.com': 'ouro', // 🐆👑 batismo Lavras FC (Várzea, no assento do bot Galáticos do Bairro) (16/11). Sem nº de fundador (regra 14/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
@@ -329,6 +330,7 @@ const FUNDADOR_N: Record<string, number> = {
   // ⛔ LIGA QUANDO A CONTA EXISTIR (regra 07/09: mimo por e-mail antes da conta = quem criar primeiro leva):
   // 'doublecontatocomercial@gmail.com': 100, // 👑💜 Double Duo FC (09/11, plano Fundador) — o fundador nº100!
   'danieltorresreus@gmail.com': 99, // 👑⚪🔴⚫ Monarca Tricolor (05/11, plano Fundador)
+  'caiomooca2013@gmail.com': 106, // 🎸👑 Sport Clube Betasso (23/11, plano Fundador)
   'pedrosilveira0810@gmail.com': 105, // 🐸👑 Pirituba SF (23/11, plano Fundador)
   'rafaelazevedo455@gmail.com': 104, // 🦊👑 Cabuloso JP (21/11, plano Fundador)
   'felipefazzio@gmail.com': 103, // 👁️👑 Obelisko FC (18/11, plano Fundador)

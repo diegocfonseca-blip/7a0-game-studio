@@ -186,6 +186,8 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'faertes9@gmail.com': ['#0F0F0F', '#706F6F'],
   // 🐸👑 Pirituba SF — AZUL e ROSA, MEDIDOS na camisa que o dono mandou (23/11): azul do corpo (#0199F6, 45%) e o rosa das faixas (#FC22BC, 23%).
   'pedrosilveira0810@gmail.com': ['#0199F6', '#FC22BC'],
+  // 🎸👑 Sport Clube Betasso — GRENÁ e BRANCO, MEDIDOS na camisa que o dono mandou (23/11): grená do corpo (#890329, 44%) e o branco das listras/gola (#F7F4F4, 12%).
+  'caiomooca2013@gmail.com': ['#890329', '#F7F4F4'],
   // 🐆👑 Lavras FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (16/11): preto do corpo (#0A0806) e o dourado das
   // faixas/gola (#F3AD03).
   'hugopereirabrito@gmail.com': ['#0A0806', '#F3AD03'],

@@ -265,6 +265,7 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 // O arquivo vai pro mesmo padrão do original (mono 32 kHz 56 kbps, mesmo volume médio −20,6 dB).
 // Nova conta = uma linha aqui + o arquivo em `public/sfx/`.
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
+  'caiomooca2013@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🎸👑 Sport Clube Betasso (23/11, Fundador): o MESMO canto do Corinthians do Gaviões SCCP (pedido do Diego)
   'pedrosilveira0810@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🐸👑 Pirituba SF (23/11, Fundador): o MESMO canto do Corinthians do Gaviões SCCP (pedido do Diego — ele é corintiano)
   'luizfelipeduarte212@gmail.com': 'sfx/torcida-galo-duarte-v1.mp3', // 🧤🐓 Duarte FC (22/11, Fundador): os 14 primeiros segundos do canto do Galo que o Diego mandou (carreira em casa + sala + gala única)
   'rafaelazevedo455@gmail.com': 'sfx/torcida-cabuloso-v1.mp3', // 🦊👑 Cabuloso JP (22/11, Fundador): os 14 primeiros segundos do vídeo que o Diego mandou (carreira em casa + gala única)
@@ -287,7 +288,7 @@ const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
 // 🏠 o MESMO canto, pela mascote do batismo (é o que o servidor devolve de cada assento da sala, `esc_mimos_sala`) — pro VISITANTE
 // ouvir o canto do dono da casa. ⚠️ Canto novo = uma linha em cima (e-mail) E uma aqui (mascote), com o MESMO arquivo.
 const CANTO_POR_MASCOTE: Record<string, string> = {
-  pirituba_pererecao: 'sfx/torcida-gavioes-v1.mp3', duarte_paredao: 'sfx/torcida-galo-duarte-v1.mp3', cabuloso_raposa: 'sfx/torcida-cabuloso-v1.mp3', chelsao_leao: 'sfx/torcida-chelsao-v1.mp3', obelisko_atormentador: 'sfx/torcida-obelisko-v1.mp3',
+  betasso_beto: 'sfx/torcida-gavioes-v1.mp3', pirituba_pererecao: 'sfx/torcida-gavioes-v1.mp3', duarte_paredao: 'sfx/torcida-galo-duarte-v1.mp3', cabuloso_raposa: 'sfx/torcida-cabuloso-v1.mp3', chelsao_leao: 'sfx/torcida-chelsao-v1.mp3', obelisko_atormentador: 'sfx/torcida-obelisko-v1.mp3',
   monarca_rei: 'sfx/torcida-spfc-wen-v1.mp3', neymarfc_bode: 'sfx/torcida-spfc-wen-v1.mp3', intervale_lutador: 'sfx/torcida-spfc-wen-v1.mp3', wenmilan_diaba: 'sfx/torcida-spfc-wen-v1.mp3',
   piranhao_presidente: 'sfx/torcida-lulubaba-v1.mp3', lulubaba_goleiro: 'sfx/torcida-lulubaba-v1.mp3',
   guimaraes_saci: 'sfx/torcida-guimaraes-v1.mp3', cobra_arruda: 'sfx/torcida-geovany-v1.mp3', fabulous_aguia: 'sfx/torcida-fabulous-v1.mp3',

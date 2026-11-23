@@ -116,6 +116,14 @@
 - Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
   `liberta-sala` e `regional` passam.
 
+### 🎸👑 23/11 — Batismo FUNDADOR Sport Clube Betasso (caiomooca2013) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
+- Pagou Lenda (10/11, 59,90) → Batismo (18/11, 25) → Fundador (23/11, 29,90). **Fundador nº106 + sócio nº101**, coração Corinthians / Juventus-SP.
+- Mascote "Apenas um Beto" (`betasso_beto`, o próprio Beto com a lata e o violão), manto grená #890329 + branco #F7F4F4 (medidos na camisa). Várzea, no assento do bot **Falta Técnica FC**.
+- Ele pediu o canto "poropopó"; o Diego mandou usar o do Corinthians (`torcida-gavioes-v1.mp3`).
+- Gala única `gala-betasso.tsx` ("o show do Beto": luau, notas do violão, GLUP!, TÁÁÁN!, listras grená/branco, escudo, "APENAS UM BETO"). Vídeo: `node scripts/video-gala-betasso.mjs`.
+- Banco feito em 23/11: `esc_socios` nº101, `esc_fundadores` nº106, `esc_nomes_batismo` (Betasso / Sport Clube Betasso + FC/EC pelo gatilho). `user_colors` já era ouro + manual.
+- Post: `scripts/posts/batismo-sport-clube-betasso.png` (`mockup-batismo.mjs` ganhou `--masculino` pro mascote "Apenas um Beto").
+
 ### 🐸👑 23/11 — Batismo FUNDADOR Pirituba SF (pedrosilveira0810) — PUBLICADO 23/11 (mascote trocado pela pose de sapo)
 - Plano Fundador (99,90) → **fundador nº105** + **sócio nº100**, coração Corinthians, mascote Pererecão (`pirituba_pererecao`), manto azul #0199F6 + rosa #FC22BC (medidos na camisa).
 - Várzea, no assento do bot **Doze Contra Onze** (`OLD_NAME`). Escudo 309×360/29 KB · mascote 256×440/40 KB · camisa na Loja (`public/mantos-salao/pirituba-camisa-v1.webp`).
@@ -14819,7 +14827,7 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Banco FEITO: esc_socios, esc_fundadores (103), esc_nomes_batismo (Obelisko / FC / EC); user_colors ouro já estava (o Pix ligou).
 - Canto: `sfx/torcida-obelisko-v1.mp3` = 14 s da abertura instrumental que o Diego mandou (mono 56k, −20,6 dB), ligado na carreira (sound.ts). ⚠️ Música com dono (avisado ao Diego, 18/11).
 - Gala única "A Invocação" (`gala-obelisko.tsx`, vídeo `scripts/posts/gala-obelisko.webm`, toca o canto): 3 cartas viram tributo, obelisco racha, O Atormentador se ergue, ficha nível 10 · DIVINO · ATK/DEF 4000, soco trinca a tela, escudo. Só fatos da carta (3 tributos, 4000/4000, Divino, nível 10). Post: `scripts/posts/batismo-obelisko.png`.
-- Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
+- ~~Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.~~ Feito em 23/11 (virou Fundador nº106).
 
 ## 🌴🐊 19/11 — TOCAIA VICE (ideia pra pegar o hype do GTA 6) — só MOCKUP, nada de código
 Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superado). Regras que o Diego fechou:

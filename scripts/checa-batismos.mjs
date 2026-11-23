@@ -91,6 +91,7 @@ const BATISMOS = [
   ['will.a.n@hotmail.com', 'História dos Gigantes'], // 🧔⚽ Várzea (16/11, batismo) — no assento do bot Real Domingueira
   ['lucasnicodemosqq@gmail.com', 'Ceará SP Club'], // 👑⚫ Várzea (19/11, batismo) — no assento do bot Barcelona da Vila
   ['leodicasttro@hotmail.com', 'Império FC'], // 👑🦡 Várzea (20/11, batismo) — no assento do bot Juventude do Churrasco
+  ['caiomooca2013@gmail.com', 'Sport Clube Betasso'], // 🎸👑 Várzea (23/11, Fundador) — no assento do bot Falta Técnica FC
   ['pedrosilveira0810@gmail.com', 'Pirituba SF'], // 🐸👑 Várzea (23/11, Fundador) — no assento do bot Doze Contra Onze
   ['faertes9@gmail.com', 'Tunaldo FC'], // ⚫⚓ Várzea (22/11, batismo) — no assento do bot Espeto Corrido FC
   ['hugopereirabrito@gmail.com', 'Lavras FC'], // 🐆👑 Várzea (16/11, batismo) — no assento do bot Galáticos do Bairro
