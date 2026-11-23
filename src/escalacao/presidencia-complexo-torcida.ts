@@ -186,13 +186,15 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   const prototypesLonge = new Map<number, Record<Part, THREE.BufferGeometry>>(),pixels=new Map<number,Record<Part,THREE.BufferGeometry>>();let pixelActive=false
   // (o corpo que só existe pra fazer sombra: não pinta cor nem profundidade na tela — o passe de sombra usa o material de profundidade dele)
   const materialSombra = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }); materialSombra.name = 'torcida-so-sombra'
-  const batches = [...groups.entries()].flatMap(([key, group]) => [true, false].map(detalhe => {
-    let geometry = (detalhe ? prototypes : prototypesLonge).get(group[0].seatHeight)
-    if (!geometry) { geometry = detalhe ? seatedGeometry(group[0].seatHeight) : farGeometry(group[0].seatHeight); (detalhe ? prototypes : prototypesLonge).set(group[0].seatHeight, geometry) }
+  const batches = [...groups.entries()].flatMap(([key, group]) => (['near', 'mid', 'pixel'] as const).map(level => {
+    const detalhe=level==='near',isPixel=level==='pixel';
+    const library=detalhe?prototypes:isPixel?pixels:prototypesLonge
+    let geometry = library.get(group[0].seatHeight)
+    if (!geometry) { geometry = detalhe ? seatedGeometry(group[0].seatHeight) : isPixel?pixelGeometry(group[0].seatHeight):farGeometry(group[0].seatHeight); library.set(group[0].seatHeight, geometry) }
     const capacity = Math.min(detalhe ? budget : budget + budgetLonge, group.length)
     const meshes = (['skin', 'shirt', 'lower'] as const).map((part, index) => {
       const mesh = new THREE.InstancedMesh(geometry![part], materialsPorLado[group[0].side][index], capacity)
-      mesh.name = `torcida-${key}-${detalhe ? 'perto' : 'longe'}-${part}`; mesh.castShadow = detalhe; mesh.receiveShadow = true
+      mesh.name = `torcida-${key}-${level}-${part}`; mesh.castShadow = detalhe; mesh.receiveShadow = true
       mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage)
       mesh.count = 0; mesh.visible = false
       mesh.userData = { part, side: group[0].side, sector: group[0].sector, tier: group[0].tier, seatIds: [] as string[] }
@@ -211,7 +213,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       sombra.instanceMatrix.setUsage(THREE.StaticDrawUsage); sombra.count = 0; sombra.visible = false; sombra.userData = { sombra: true }
       meshes.forEach(mesh => { mesh.castShadow = false }); rootSombra.add(sombra)
     }
-    return { places: group, detalhe, occupied: [] as Place[], meshes, sombra, count: 0, color: '' }
+    return { places: group, detalhe, level, occupied: [] as Place[], meshes, sombra, count: 0, color: '' }
   }))
   const transform = new THREE.Matrix4(), rotation = new THREE.Quaternion(), position = new THREE.Vector3(), unit = new THREE.Vector3(1, 1, 1)
   const skinTones = ['#754b35', '#a56f4c', '#c58d65', '#dda57e'].map(value => new THREE.Color(value))
@@ -222,7 +224,9 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   let attendance: ReturnType<typeof publicoDoEstadio> | undefined, awayAttendance: ReturnType<typeof publicoDoEstadio> | undefined
   let occupancy = { home: 0, away: 0 }
   const counts = { home: 0, away: 0 }, countsLonge = { home: 0, away: 0 }
-  let selectedLonge: Place[] = []
+  let selectedLonge: Place[] = [],selectedPixels:Place[]=[]
+  let projection:{fov:number;height:number}|undefined,projectionKey=''
+  const screenPixels=(p:Place)=>{if(!olho)return Infinity;const distance=Math.hypot(p.position.x-olho.x,p.position.y-olho.y,p.position.z-olho.z);return (projection?projection.height/(2*Math.tan(THREE.MathUtils.degToRad(projection.fov)/2)):600)*1.25/Math.max(1,distance)}
   let reservations = new Set<string>(), selectionKey = '', lastPopulation = population
   // (o ponto da câmera — sem ele, a escolha dos detalhados é a de sempre, pela ordem fixa; com ele, os mais perto)
   let olho: { x: number; y: number; z: number } | null = null, olhoKey = ''
@@ -251,7 +255,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
     // that chair AND its share of the sample, rather than drawing a second body.
     for (const side of ['home', 'away'] as const) { target[side] = Math.max(0, target[side] - reservedCounts[side]); targetLonge[side] = Math.max(target[side], targetLonge[side] - reservedCounts[side]) }
     const colors = { home: color(input?.homeColor, '#1B7A3D'), away: color(input?.awayColor, '#C2452F') }
-    const nextSelection = `${target.home}:${target.away}:${targetLonge.home}:${targetLonge.away}:${[...reservations].sort().join('|')}:${olhoKey}:${watchingField}`
+    const nextSelection = `${target.home}:${target.away}:${targetLonge.home}:${targetLonge.away}:${[...reservations].sort().join('|')}:${olhoKey}:${projectionKey}:${watchingField}`
     const changedSelection = nextSelection !== selectionKey
     if (changedSelection) {
       selectionKey = nextSelection
@@ -265,16 +269,18 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       if (olho) {
         const o = olho, todos = [...selected, ...selectedLonge], d2 = (p: Place) => (p.position.x - o.x) ** 2 + (p.position.y - o.y) ** 2 + (p.position.z - o.z) ** 2
         const limit=watchingField?28:options.detailedDistance??Infinity
-        const perto = new Set(todos.filter(p=>d2(p)<=limit*limit).sort((a, b) => d2(a) - d2(b) || a.rank - b.rank).slice(0, Math.min(selected.length,watchingField?Math.min(8,options.detailLimit??8):options.detailLimit??PERTO_DA_CAMERA)).map(p => p.id))
+        const perto = new Set(todos.filter(p=>d2(p)<=limit*limit&&screenPixels(p)>=32).sort((a, b) => d2(a) - d2(b) || a.rank - b.rank).slice(0, Math.min(selected.length,watchingField?Math.min(8,options.detailLimit??8):options.detailLimit??PERTO_DA_CAMERA)).map(p => p.id))
         selected = todos.filter(p => perto.has(p.id)); selectedLonge = todos.filter(p => !perto.has(p.id))
       }
     }
+    if(changedSelection){const previousPixels=new Set(selectedPixels.map(p=>p.id));selectedPixels=selectedLonge.filter(p=>watchingField||screenPixels(p)<(previousPixels.has(p.id)?24:20));pixelActive=selectedPixels.length>0}
+    const chosenPixels=changedSelection?new Set(selectedPixels.map(p=>p.id)):undefined
     const chosen = changedSelection ? new Set(selected.map(p => p.id)) : undefined
     const chosenLonge = changedSelection ? new Set(selectedLonge.map(p => p.id)) : undefined
     let changed = false
     for (const batch of batches) {
       const side = batch.places[0].side
-      const occupied = chosen ? batch.places.filter(p => (batch.detalhe ? chosen : chosenLonge!).has(p.id)) : batch.occupied
+      const occupied = chosen ? batch.places.filter(p => (batch.detalhe?chosen.has(p.id):batch.level==='pixel'?chosenPixels!.has(p.id):chosenLonge!.has(p.id)&&!chosenPixels!.has(p.id))) : batch.occupied
       const count = occupied.length
       const moved = count !== batch.count || occupied.some((p, i) => p.id !== batch.occupied[i]?.id), recolored = batch.color !== colors[side]
       if (!moved && !recolored) continue
@@ -305,14 +311,15 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
     if (changed) updates++
     applyDayMask()
   }
-  function perto(camera: { x: number; y: number; z: number },force=false) {
-      if (disposed) return false
-      if (!force && olho && (camera.x - olho.x) ** 2 + (camera.y - olho.y) ** 2 + (camera.z - olho.z) ** 2 < 144) return false
-      const d=Math.hypot(camera.x,camera.y,camera.z),threshold=options.pixelDistance??Infinity,next=watchingField||d>(pixelActive?threshold-25:threshold);
-      if(next!==pixelActive){pixelActive=next;for(const batch of batches)if(!batch.detalhe){const h=batch.places[0].seatHeight;if(next&&!pixels.has(h))pixels.set(h,pixelGeometry(h));const g=(next?pixels:prototypesLonge).get(h)!;(['skin','shirt','lower'] as const).forEach((part,i)=>batch.meshes[i].geometry=g[part])}}
-      olho = { x: camera.x, y: camera.y, z: camera.z }; olhoKey = `${Math.round(olho.x)},${Math.round(olho.y)},${Math.round(olho.z)}`
-      update(lastPopulation); return true
-    }
+  function perto(camera: { x: number; y: number; z: number },force=false,screen?:{fov:number;height:number}) {
+      if(disposed)return false
+      if(screen)projection=screen
+      const nextKey=projection?`${Math.round(projection.fov/2)}:${Math.round(projection.height/64)}`:''
+      const moved=!olho||(camera.x-olho.x)**2+(camera.y-olho.y)**2+(camera.z-olho.z)**2>=(watchingField?144:9)
+      if(!force&&!moved&&nextKey===projectionKey)return false
+      projectionKey=nextKey;olho={x:camera.x,y:camera.y,z:camera.z};olhoKey=`${Math.round(camera.x)},${Math.round(camera.y)},${Math.round(camera.z)}`
+      update(lastPopulation);return true
+  }
   update(population)
   return {
     root, update,
@@ -323,10 +330,10 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       for (const s of ['home', 'away'] as const) { const u = festaUniforms[s]; u.uTime.value = t; const alvo = side === s ? 1 : 0; u.uFesta.value += (alvo - u.uFesta.value) * (alvo > u.uFesta.value ? 0.25 : 0.06)
         const a2 = uhh === s && side == null ? 1 : 0; u.uUhh.value += (a2 - u.uUhh.value) * (a2 > u.uUhh.value ? 0.35 : 0.04) }
     },
-    /** ⚡ a câmera andou: os detalhados vão pros mais perto (só refaz quando ela anda 12 m+ — nada por quadro) */
+    /** Reavalia por deslocamento de 3 m no passeio, 12 m na transmissão ou mudança de projeção. */
     perto,
     /** Mesma gente/assentos/cores. Malha detalhada só perto de quem está passeando. */
-    setMatchView(value:boolean){if(watchingField===value)return false;watchingField=value;if(olho)perto(olho,true);else update(lastPopulation);return true},
+    setMatchView(value:boolean){if(watchingField===value)return false;watchingField=value;if(!value)selectedPixels=[];if(olho)perto(olho,true);else update(lastPopulation);return true},
     reserve(ids: readonly string[] = []) {
       if (disposed) return
       reservations = new Set(ids.filter(id => seatById.has(id)))
@@ -335,7 +342,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       update(lastPopulation)
     },
     inspect() {
-      return { mode, pixelActive, watchingField, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO, longe: { home: countsLonge.home, away: countsLonge.away, limit: LIMITE_TORCIDA_LONGE }, festa: { home: festaUniforms.home.uFesta.value, away: festaUniforms.away.uFesta.value, t: festaUniforms.home.uTime.value },
+      return { mode, pixelActive, watchingField,lod:{near:selected.length,mid:selectedLonge.length-selectedPixels.length,pixel:selectedPixels.length}, total: counts.home + counts.away, home: counts.home, away: counts.away, available: { ...available }, sampleLimit: LIMITE_TORCIDA_COMPLEXO, longe: { home: countsLonge.home, away: countsLonge.away, limit: LIMITE_TORCIDA_LONGE }, festa: { home: festaUniforms.home.uFesta.value, away: festaUniforms.away.uFesta.value, t: festaUniforms.home.uTime.value },
         attendance: attendance ? { ...attendance } : undefined, awayAttendance: awayAttendance ? { ...awayAttendance } : undefined,
         occupancy: { ...occupancy }, presentation:{fraction:dayProgress,drawn:batches.reduce((n,b)=>n+b.meshes[0].count,0)},quota: { ...quota }, reservations: [...reservations], reserved: { ...reservedCounts }, invalidSeats, updates, matrixUpdates, instanceRebuilds: 0,
         batches: batches.reduce((total, batch) => total + batch.meshes.length, 0),
@@ -357,7 +364,7 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
         material.dispose()
       })
       maps.forEach(map => map.dispose())
-      selected = []; selectedLonge = []; counts.home = counts.away = 0; countsLonge.home = countsLonge.away = 0
+      selected = []; selectedLonge = []; selectedPixels=[]; counts.home = counts.away = 0; countsLonge.home = countsLonge.away = 0
     },
   }
 }

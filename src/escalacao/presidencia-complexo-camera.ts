@@ -34,12 +34,15 @@ type OpcoesNavegacaoComplexo={
  onChange:()=>void
  onExplore?:()=>void
  bounds?:Readonly<LimitesMapaComplexo>
+ /** Floating districts intentionally show their edge; do not translate a fitted
+  * camera to cover the old, continuous terrain rectangle. */
+ floating?:boolean
 }
 
 /** Owns only camera interaction; no scene, actor, match clock or save changes.
  * beginView is called before applying an explicit preset. resize then refits
  * that preset until the first gesture, and preserves an explored pose. */
-export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bounds=LIMITES_TERRENO_COMPLEXO,solidos}:OpcoesNavegacaoComplexo){
+export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bounds=LIMITES_TERRENO_COMPLEXO,solidos,floating=false}:OpcoesNavegacaoComplexo){
  let mode:ModoNavegacaoComplexo='pan',explored=false,fitOnResize=true,terrainGuard=true,aerialExploration=false,disposed=false
  let lastPosition:Vector3|undefined,lastTarget:Vector3|undefined
  const element=controls.domElement
@@ -124,7 +127,7 @@ export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bound
   const place=(value:number)=>{camera.position.copy(target).addScaledVector(offset,value);camera.lookAt(target);camera.updateMatrixWorld()}
   place(distance)
   if(camera.position.y<MIN_HEIGHT)translate(0,MIN_HEIGHT-camera.position.y,0)
-  if(terrainGuard||aerialExploration){
+  if(!floating&&(terrainGuard||aerialExploration)){
    const availableWidth=bounds.maxX-bounds.minX,availableDepth=bounds.maxZ-bounds.minZ
    let footprint=coberturaTerrenoComplexo(camera)
    const fits=(value:LimitesMapaComplexo|null)=>!!value&&value.maxX-value.minX<=availableWidth&&value.maxZ-value.minZ<=availableDepth
@@ -211,7 +214,7 @@ export function criarNavegacaoComplexo({camera,controls,onChange,onExplore,bound
   translate(direction.x*distance,0,direction.z*distance)
   constrain();updateAndRender()
  }
- const inspect=()=>({mode,explored,fitOnResize,terrainGuard:terrainGuard||aerialExploration,presetTerrainGuard:terrainGuard,aerialExploration,distance:camera.position.distanceTo(controls.target),minDistance:MIN_DISTANCE,maxDistance:MAX_DISTANCE,bounds:{...bounds},coverage:terrainGuard||aerialExploration?coberturaTerrenoComplexo(camera):null})
+ const inspect=()=>({mode,explored,fitOnResize,floating,terrainGuard:!floating&&(terrainGuard||aerialExploration),presetTerrainGuard:terrainGuard,aerialExploration,distance:camera.position.distanceTo(controls.target),minDistance:MIN_DISTANCE,maxDistance:MAX_DISTANCE,bounds:{...bounds},coverage:!floating&&(terrainGuard||aerialExploration)?coberturaTerrenoComplexo(camera):null})
  setMode('pan');updatePolarLimit()
  controls.addEventListener('start',explore);controls.addEventListener('change',change)
  element?.addEventListener('keydown',keydown)

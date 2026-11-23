@@ -48,7 +48,7 @@ const suave=(x:number)=>{x=clamp01(x);return x*x*(3-2*x)}
 const hash=(s:string)=>{let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0}
 const rnd=(seed:number)=>()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);t=t+Math.imul(t^(t>>>7),61|t)^t;return((t^(t>>>14))>>>0)/4294967296}
 
-export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:readonly AssentoComplexo[],onChange:()=>void=()=>{}){
+export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:readonly AssentoComplexo[],onChange:()=>void=()=>{},compact=false){
  const root=new THREE.Group();root.name='complexo-dia-final';root.visible=false;scene.add(root)
  // Tudo que é construído num dia de final mora aqui e some junto (dispose) quando o dia acaba.
  let dia:ReturnType<typeof montarDia>|null=null,diaKey=''
@@ -150,15 +150,15 @@ export function criarDiaDeFinal(scene:THREE.Scene,state:EstadoComplexo,seats:rea
    const pl=new THREE.Mesh(geo(new THREE.PlaneGeometry(2.4,.45)),mat(new THREE.MeshBasicMaterial({map:placa,side:THREE.DoubleSide,fog:true})));pl.position.set(0,3.15,.9);grp.add(pl)
    // (só a da esquerda vem de perua: do lado direito a curva da perua não cabe entre as barracas de sempre — essa é de carrinho)
    let entrega:ReturnType<typeof vendorDelivery>=null
-   if(i===0)try{entrega=vendorDelivery({id:spec.id,kind:spec.kind,x:spec.x,z:spec.z},6,(x,z)=>ground(x,z))}catch{entrega=null}
+   if(i===0&&!compact)try{entrega=vendorDelivery({id:spec.id,kind:spec.kind,x:spec.x,z:spec.z},6,(x,z)=>ground(x,z))}catch{entrega=null}
    const vendedor=createCivilian(g,{id:'final-vendedor-'+i,outfitColor:spec.cor,variant:i?'adult-woman':'adult-man',deferUntilVisible:true});civis.push(vendedor)
    return{grp,entrega,vendedor}
   })
-  const peruas=criarPeruasAmbulantes(g,soFesta?[]:['#e9e1c9']) // (sem barraca não há perua: senão ela fica parada no meio do campo)
+  const peruas=criarPeruasAmbulantes(g,soFesta||compact?[]:['#e9e1c9']) // (sem barraca não há perua: senão ela fica parada no meio do campo)
   const relogioDia=stadiumDayClock()
 
   // 🚶 O DOBRO DE GENTE chegando (no teto de celular/PC da cidade), metade de cada torcida, pelos portões de verdade
-  const extra=soFesta?0:publicoExtraDaFinal({base:residents,mobile})
+  const extra=soFesta||compact?0:publicoExtraDaFinal({base:residents,mobile})
   const rotas=caminhosTorcidaComplexo(state)
   const chegando=Array.from({length:extra},(_,i)=>{
    const lado:LadoFinal=i%2&&state.progress.visitante>0?'away':'home'

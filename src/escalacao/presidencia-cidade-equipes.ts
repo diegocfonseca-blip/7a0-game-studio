@@ -1,3 +1,4 @@
+import {acessoDelegacoesCompacto} from './mapa-compacto/team-access'
 import {createCivilian} from './cidade3d/civilians.mjs'
 import * as THREE from 'three'
 import {STADIUM_SERVICE_GATE} from './cidade3d/stadium-entrances.mjs'
@@ -18,9 +19,9 @@ export type ElencoChegadaCidade={fixtureId:string;teams:(IdentidadeDiaJogo&{play
 /** Separate visual pregame. Uses known fixture rosters, never computes a match.
  * One team at a time uses the dedicated bay next to the stadium wall. Starting an official
  * game immediately hands the field over to its existing 22 actors. */
-export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onReady:()=>void,flatFootball=false){
+export function criarChegadaEquipes(scene:THREE.Scene,state:EstadoComplexo,onReady:()=>void,flatFootball=false,compact=false){
  const root=new THREE.Group();root.name='city-team-arrivals';scene.add(root)
- const access=teamCoachAccess(),bus={...TEAM_COACH,inbound:access.inbound,outbound:access.outbound,passengerRoute:access.passenger}
+ const access=compact?acessoDelegacoesCompacto():teamCoachAccess(),bus={...TEAM_COACH,inbound:access.inbound,outbound:access.outbound,passengerRoute:access.passenger}
  let inbound=activityRoute(bus.inbound,4.2,2),outbound=activityRoute(bus.outbound,4.2,2)
  let unloadAt=inbound.duration+1.4,spacing=1.45,lastExit=unloadAt+10*spacing+4.5,departAt=lastExit+1.4
  let slot=departAt+outbound.duration+6

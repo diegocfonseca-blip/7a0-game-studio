@@ -71,7 +71,7 @@ export function criarBolaFutebol3D(){
  geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3))
  geometry.setIndex(indices);geometry.computeBoundingSphere();geometry.computeBoundingBox()
  geometry.userData={radius:RAIO_BOLA_FUTEBOL_3D,pentagons:12,hexagons:20,triangles:indices.length/3}
- const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.65,metalness:0})
+ const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.78,metalness:0})
  const ball=new THREE.Mesh(geometry,material)
  ball.name='match-ball';ball.castShadow=true;ball.receiveShadow=true;ball.userData.radius=RAIO_BOLA_FUTEBOL_3D
  // A 22 cm ball is smaller than a stadium shadow-map texel on mobile. A
@@ -88,7 +88,7 @@ export function criarBolaFutebol3D(){
  // cabeçudo. Só o DESENHO cresce: 1,5× de perto (proporção do boneco) e o que precisar pra ter um tamanho mínimo na tela de longe
  // (teto 3,2×). A posição oficial, o raio físico e o motor não mudam. A conta roda uma vez por quadro desenhado, sem alocar nada;
  // quem nunca desenha (testes) fica em 1×.
- const centre=new THREE.Vector3(),eye=new THREE.Vector3()
+ const centre=new THREE.Vector3(),eye=new THREE.Vector3();let lastScaleAt:number|undefined
  ball.onBeforeRender=(renderer,_scene,camera)=>{
   const cam=camera as THREE.PerspectiveCamera;if(!cam.isPerspectiveCamera)return
   const height=renderer.domElement.height/Math.max(.5,renderer.getPixelRatio())
@@ -97,7 +97,8 @@ export function criarBolaFutebol3D(){
   const pixelsPerMetre=height*(cam.zoom||1)/(2*Math.max(.5,distance)*Math.tan(THREE.MathUtils.degToRad(cam.fov)/2))
   const wanted=THREE.MathUtils.clamp(THREE.MathUtils.clamp(height*.011,6,9)/(2*RAIO_BOLA_FUTEBOL_3D*pixelsPerMetre),ESCALA_BOLA_PERTO,ESCALA_BOLA_MAXIMA)
   const current=(ball.userData.visualScale as number|undefined)??1
-  ball.userData.visualScale=Math.abs(wanted-current)<.004?wanted:current+(wanted-current)*.2
+  const now=performance.now(),dt=lastScaleAt===undefined?1/60:THREE.MathUtils.clamp((now-lastScaleAt)/1000,0,.25);lastScaleAt=now
+  ball.userData.visualScale=Math.abs(wanted-current)<.004?wanted:current+(wanted-current)*(1-Math.exp(-dt/.075))
  }
  return ball
 }
@@ -134,6 +135,7 @@ export function posicionarBolaFutebol3D(ball:THREE.Object3D,frame:{time:number;b
   // 🌑 22/11: a mancha no chão não some mais quando a bola sobe — fica embaixo dela, mais fraca, pra dar pra LER a bola alta
   // (cruzamento, chutão, cabeçada). Antes sumia a 30 cm do chão.
   shadow.material.opacity=.34*(1-.62*THREE.MathUtils.clamp(Math.max(0,position.y-RAIO_BOLA_FUTEBOL_3D)/6,0,1))
+  const spread=1+Math.min(1.1,Math.max(0,position.y-RAIO_BOLA_FUTEBOL_3D)*.16);shadow.scale.set(spread,spread,1)
   shadow.visible=shadow.material.opacity>.001
  }
 }

@@ -24,10 +24,11 @@ import type {loadPlayers} from './futebol3d/players.mjs'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
-function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),8),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
+function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),12),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
 export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=false,onTextureReady?:()=>void,readable2D=false){
  // 🏀 16/11: na carreira do basquete o miolo do estádio é a QUADRA da arena (piso de madeira, linhas e cestas) — o futebol segue igual
  if(getSport()==='basquete'){const t=criarQuadra3D(scene);queueMicrotask(()=>onTextureReady?.());return t}
+ const apronMeshes:THREE.Mesh[]=[]
  if(!registered){
   // (🏟️ 26/10, caldeirão: a arquibancada encostou no campo — o chão que sobra atrás dos gols e das laterais é gramado quando o
   // campo já é de grama; na várzea continua terra)
@@ -36,10 +37,10 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
   // top face only 22 mm beneath them causes depth artefacts at low camera angles.
   // Keep the earth sides and the exposed apron, without that hidden duplicate.
   const top=base.geometry.groups.find(group=>group.materialIndex===2)!
-  base.geometry.setIndex(Array.from(base.geometry.index!.array).filter((_,i)=>i<top.start||i>=top.start+top.count));base.geometry.clearGroups()
+  base.geometry.setIndex(Array.from(base.geometry.index!.array).filter((_,i)=>i<top.start||i>=top.start+top.count));base.geometry.clearGroups();apronMeshes.push(base)
   for(const [x,z,width,depth] of [[-57.5,0,10,86],[57.5,0,10,86],[0,38.5,105,9],[0,(-43+FUNDO_AREA_TECNICA_Z)/2,105,43+FUNDO_AREA_TECNICA_Z]]){
    const apron=new THREE.Mesh(new THREE.PlaneGeometry(width,depth),ground)
-   apron.rotation.x=-Math.PI/2;apron.position.set(x,-.02,z);apron.receiveShadow=true;scene.add(apron)
+   apron.rotation.x=-Math.PI/2;apron.position.set(x,-.02,z);apron.receiveShadow=true;scene.add(apron);apronMeshes.push(apron)
   }
  }else{const contact=new THREE.Mesh(new THREE.PlaneGeometry(120,84),new THREE.ShadowMaterial({opacity:.22}));contact.rotation.x=-Math.PI/2;contact.position.y=-.01;contact.receiveShadow=true;scene.add(contact)}
  const grass=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'estadio-partida/grass-base.webp',texture=>{if(!texture.userData.disposed){texture.dispose();texture.needsUpdate=true;onTextureReady?.()}},undefined,()=>{
@@ -55,6 +56,10 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
  const greens=(readable2D?['#dcefc8','#e5f2d7']:['#c1d89c','#d5e4b4']).map(color=>materialGramado3D(color,grass,!readable2D&&!registered&&mapa3dLiberado()?desgasteGramadoCompartilhado():undefined))
  let dirt:THREE.MeshStandardMaterial|undefined
  const soil=()=>dirt??=materialSolo3D(!mapa3dLiberado(),onTextureReady) /* 🟫 19/11: a terra nova (manchas, desgaste, pedrinhas, tufos) vai junto com o 3D do mapa — só na conta do Diego até ele soltar */
+ // Field and runoff share metric UVs and the same finish. A bought strip never
+ // paints an unbuilt part of the ground; unfinished surroundings remain soil.
+ for(const mesh of apronMeshes){const old=mesh.material as THREE.Material;mesh.material=progress>=1?greens[0]:soil();mesh.updateMatrix();const p=mesh.geometry.getAttribute('position'),uv=mesh.geometry.getAttribute('uv'),point=new THREE.Vector3();for(let i=0;i<p.count;i++){point.fromBufferAttribute(p,i).applyMatrix4(mesh.matrix);uv.setXY(i,(point.x+52.5)/105,(34-point.z)/68)}if(!apronMeshes.some(o=>o!==mesh&&o.material===old))old.dispose()}
+
  for(const band of faixasGramado3D(progress)){
   const geometry=new THREE.PlaneGeometry(band.width,68),uv=geometry.getAttribute('uv')
   // One continuous grass texture across the 105 m field, including partial strips.
@@ -98,6 +103,8 @@ export function criarCampo3D(scene:THREE.Scene,stadium?:StadiumSave,registered=f
   tube(scene,new THREE.Vector3(x,0,-3.72),new THREE.Vector3(x,2.50,-3.72),.06,white)
   tube(scene,new THREE.Vector3(x,0,3.72),new THREE.Vector3(x,2.50,3.72),.06,white)
   tube(scene,new THREE.Vector3(x,2.50,-3.72),new THREE.Vector3(x,2.50,3.72),.06,white)
+  // Slender rear tension supports stay outside the regulatory opening.
+  for(const side of [-1,1])tube(scene,new THREE.Vector3(sign*54.56,.04,side*3.72),new THREE.Vector3(sign*54.56,2.44,side*3.72),.025,white)
   criarRedeGol3D(scene,sign)
  }
  // Merge static markings/frames and grass strips to reduce mobile draw calls.
