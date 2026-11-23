@@ -15259,3 +15259,7 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - 🚫 23/11: Carrasco, Foto do vexame e Coletiva do clássico (mockup `scripts/mockups/rivalidade-mais3.png`) — Diego: *"não faça esses três"*. Não repropor.
 - ✅ 23/11: Rivalidade (termômetro, placa de freguês 10+, livro, faixa do clássico) publicada (*"publica agora"*).
 - 🔁 23/11 (madrugada, print dele na Liga): *"quero somente na aba de rivalidade"*. Termômetro, placa e livro saíram da aba Partida/Jogos e de salas sem aba Rivalidades (prop `classico` de `PrateleiraRivalidades`, só nas abas Rivalidades do visual novo e da Copa). A faixa fina embaixo do placar/campo SAIU. O resto (próximo encontro, "você contra os amigos") ficou como estava.
+
+## 🚁🦇 23/11 — Gala nova do Neymarzetti (vídeo `scripts/mockups/gala-neymarzetti-v2.mp4`, *"pode publicar"*)
+- ✅ `gala-neymarzetti.tsx` no lugar da `gala-helicoptero.tsx` (que fica guardada). Voltar = trocar a linha `Neymarzetti` do `GALA_UNICA` em `entrada-gala.tsx`.
+- ⏳ Som: ainda sem (perguntei hélice ou canto — falta resposta). `npm run gala` já falhava antes desta mudança (`window.__set is not a function`).
