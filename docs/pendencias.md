@@ -15217,3 +15217,5 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Livro (maior goleada, artilheiro do confronto, último jogo, sequência): banco ganhou `ultimo`/`maior`/`artilheiros` em `esc_retrospecto`
   e a `esc_retrospecto_soma` aceita `ea`/`eb` (autores) — APLICADO 23/11 (`docs/sql/retrospecto-livro-20261123.sql`). Enche daqui pra frente;
   copa ainda grava sem autores. Espectador não vê o livro (a função dele não devolve as colunas novas).
+- 🚫 23/11: Carrasco, Foto do vexame e Coletiva do clássico (mockup `scripts/mockups/rivalidade-mais3.png`) — Diego: *"não faça esses três"*. Não repropor.
+- ✅ 23/11: Rivalidade (termômetro, placa de freguês 10+, livro, faixa do clássico) publicada (*"publica agora"*).
