@@ -5,7 +5,7 @@ body:has(.ov3-modal-overlay) #root .fp-match-switchback{display:none}
 body.fp-match-available:not(.fp-match-pilot) .ov3 .ll25-tabs button[aria-pressed=true]{background:#6941b5!important;color:#fffaf0!important;border-bottom-color:#c9a9ff!important;border-radius:6px 6px 0 0!important}
 body.fp-match-available .ov3 .ll25-tabs button:focus-visible{outline:2px solid #c9a9ff;outline-offset:2px}
 
-/* Main verified account only. The dimensions and type are inherited unchanged. */
+/* 💜 23/11: roxo brilhante das abas pra TODO mundo (antes só a conta do Diego). The dimensions and type are inherited unchanged. */
 body.fp-match-holo .ov3 .ov3-tabs-slot .ll25-tabs button[aria-pressed=true],
 body.fp-match-holo .fp-cup-stages button[aria-pressed=true]{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(150deg,#c9a9ff,#8b5cf6 52%,#5b2fb0)!important;color:#fff!important;border-color:#c9a9ff!important;border-bottom-color:#c9a9ff!important;box-shadow:inset 0 -3px #c9a9ff,2px 3px #000!important}
 body.fp-match-holo .ov3 .ov3-tabs-slot .ll25-tabs button[aria-pressed=true]::after,
