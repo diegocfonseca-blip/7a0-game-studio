@@ -56,6 +56,7 @@ import { GalaMonarca, MONARCA_MS } from './gala-monarca'
 import { GalaPaizao, PAIZAO_MS } from './gala-paizao'
 import { GalaCabritiiin, CABRITIIIN_MS } from './gala-cabritiiin'
 import { GalaDuarte, DUARTE_MS } from './gala-duarte'
+import { GalaPirituba, PIRITUBA_MS } from './gala-pirituba'
 import { GalaObelisko, OBELISKO_MS } from './gala-obelisko'
 import { GalaCabuloso, CABULOSO_MS } from './gala-cabuloso'
 
@@ -88,6 +89,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Double Duo FC': { ms: DOUBLEDUO_MS, Show: GalaDoubleDuo }, // 👑💜 O Save: o jogo de manager abre, a escalação se desenha, os dois D viram o escudo e o Streamer sobe (09/11, Fundador nº100)
   'Cabuloso JP': { ms: CABULOSO_MS, Show: GalaCabuloso }, // 🦊👑 A Raposa Coroada: as 5 estrelas do Cruzeiro do Sul acendem, a sombra na lua, a coroa cai, pé na bola, o escudo (21/11, Fundador nº104)
   'Obelisko FC': { ms: OBELISKO_MS, Show: GalaObelisko }, // 👁️⚡ A Invocação: 3 cartas viram tributo, o obelisco racha, O Atormentador se ergue, ATK/DEF 4000, o soco trinca a tela (18/11, Fundador nº103)
+  'Pirituba SF': { ms: PIRITUBA_MS, Show: GalaPirituba }, // 🐸👑 o pulo do Pererecão: 3 pulos de vitória-régia, cai na bola, faixas diagonais azul e rosa, escudo com coroa (23/11, Fundador nº105)
   'Duarte FC': { ms: DUARTE_MS, Show: GalaDuarte }, // 🧤🐓 São Victor: noite de estádio, pênalti contra, O Paredão defende com o pé, listras preto e branco, escudo com estrela dourada (18/11, Fundador nº102)
   'Cabritiiin F.C': { ms: CABRITIIIN_MS, Show: GalaCabritiiin }, // 🐐☀️ Direto da Terra do Sol: o sol nasce no mar, jangada, listras azul e branca, o Cabritiiin desliza, brilho nos óculos, casco racha o chão (13/11, Fundador nº101)
   'dSouza FC': { ms: DSOUZA_MS, Show: GalaDsouza }, // 🐶💚 A Galeria: quadros de lenda acendem, a caixa dSouza cai, abre e o Pitbull sobe (28/10, Fundador)
