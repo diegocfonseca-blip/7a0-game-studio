@@ -28,12 +28,22 @@ export function footballTestState(competition='league',field=false){
   return s
  }
  if(competition==='champions')return reducer(s,{type:'PLAY_CHAMPIONS_RODADA'})
- if(competition==='liberta'||competition==='cup'){
+ if(competition==='liberta'||competition==='cup'||competition==='cup-opening'||competition==='cup-final-pen'){
   s.league.find(t=>t.id===s.managers[s.youIdx].id)!.pts=1000
   while(s.round<s.fixtures.length)s=reducer(s,{type:'PLAY_ROUND'})
   s=reducer(s,{type:'FINISH_SEASON'})
   if(competition==='liberta'){s=reducer(s,{type:'START_LIBERTA'});return reducer(s,{type:'PLAY_LIBERTA_RODADA'})}
   s=reducer(s,{type:'START_COPA'})
+  if(competition==='cup-opening')return s
+  if(competition==='cup-final-pen'){
+   const tie=s.quickCopa!.ties.find(t=>t.aId===s.managers[s.youIdx].id||t.bId===s.managers[s.youIdx].id)!
+   const finalBase={...s,quickCopa:{...s.quickCopa!,phase:'final' as const,legIdx:0,ties:[{...tie,legs:[],winner:null}],bracket:[]}}
+   for(let offset=0;offset<100;offset++){
+    const candidate=reducer({...finalBase,seed:s.seed+offset},{type:'PLAY_COPA_LEG'})
+    if(candidate.quickCopa!.ties[0].pens)return candidate
+   }
+   throw new Error('A bancada precisa de uma final com pênaltis válida')
+  }
   return reducer(s,{type:'PLAY_COPA_LEG'})
  }
  if(competition==='waiting')return s

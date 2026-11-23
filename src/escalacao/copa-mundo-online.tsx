@@ -1,3 +1,6 @@
+import {withCupPlans} from './copa-planos'
+import {clockMinute} from './copa-clock-preview'
+import {useOwnerFootballPilot} from './owner-online-visual'
 // ─── 🌐 COPA DO MUNDO ONLINE — a Copa da TURMA ───────────────────────────────
 //
 // 🌐 POR QUE ESTE GLOBO E NÃO O 🌍: no seletor "Depois da liga" a Copa do Mundo
@@ -171,7 +174,7 @@ export function entrantesDaFicha(ficha: CopaFicha, meuUid?: string): Entrant[] {
     let xi = t.xiKeys?.length ? xiPorChaves(t.pais, t.xiKeys) : xiDaMaquina(t.pais, !!ficha.maquina2).xi
     // 🤖 seleção da MÁQUINA (ninguém joga com ela) que não é das grandes: 1 nível a menos por carta
     if (fortes && !t.uid && !fortes.has(t.pais)) xi = xi.map(c => ({ ...c, lo: c.lo - MAQUINA_FRACA_MENOS, hi: c.hi - MAQUINA_FRACA_MENOS }))
-    return { club: t.nome, you: !!t.uid && t.uid === meuUid, pais: t.pais, xi, str: xiStrength(xi), humano: !!t.uid }
+    return { uid:t.uid, club: t.nome, you: !!t.uid && t.uid === meuUid, pais: t.pais, xi, str: xiStrength(xi), humano: !!t.uid }
   })
 }
 
@@ -269,6 +272,7 @@ const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: nu
 
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
   const cinematic = ONLINE_VISUAL_RELEASED
+  const cupPilot=useOwnerFootballPilot()
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
   // ⚔️ 23/10: o relógio pede o tempo dos pênaltis ao mundo JÁ com as táticas — por isso lê de uma ref, preenchida logo abaixo
   const worldRef=useRef<ReturnType<typeof simulaCopaMundo>|null>(null)
@@ -288,14 +292,17 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   // ⚔️ TÁTICA (23/10, `copa-taticas.ts`): só as linhas CONGELADAS entram na conta; a tela espera chegar a que decide o jogo da vez
   const tat=useTaticasCopa('mundo',roomId,ficha.edicao,ficha.seed,ficha.tatica?clock?.row:undefined,meuUid)
   const uidsDaFicha=useMemo(()=>ficha.times.map(t=>t.uid),[ficha])
-  const qual=useMemo(()=>ficha.tatica?montaQualTatica(tat.linhas,uidsDaFicha):undefined,[ficha.tatica,tat.linhas,uidsDaFicha])
+  const qual=useMemo(()=>ficha.tatica?withCupPlans(montaQualTatica(tat.linhas,uidsDaFicha),tat.planos,uidsDaFicha):undefined,[ficha.tatica,tat.linhas,tat.planos,uidsDaFicha])
   const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte,false,qual):null,[cinematic,entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte,qual])
   worldRef.current=clockWorld
   const ultimoPronto=useRef<CopaClockRow|null>(null)
   if(tat.pronto&&clock?.row)ultimoPronto.current=clock.row
   const clockMostrado=clock&&!tat.pronto?{...clock,row:ultimoPronto.current}:clock
   const souJogador=!!ficha.tatica&&!!meuUid&&ficha.times.some(t=>t.uid===meuUid)
-  const taticaSlot=souJogador&&clock?.row&&clock.row.step<PASSO_COPA.FINAL?<CartaoTaticaCopa minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null
+  const myTeam=entrants.findIndex(e=>e.you),st=clock?.row?.step??0
+  const myMatches=clockWorld?(st<=3?clockWorld.groups.flatMap(g=>g.matches[st-1]??[]):st===PASSO_COPA.OITAVAS?clockWorld.r16:st===PASSO_COPA.QUARTAS?clockWorld.qf:st===PASSO_COPA.SEMI?clockWorld.sf:st===PASSO_COPA.FINAL?[clockWorld.final]:[]):[]
+  const plan=meuUid&&clock?.row?{key:`${roomId}:${ficha.edicao}:${ficha.seed}:${meuUid}`,uid:meuUid,step:st,minute:clockMinute(clock.row,clock.now),running:clock.row.running,duration:clock.row.duration_ms,hasMatch:myMatches.some(g=>g.h===myTeam||g.a===myTeam),enabled:tat.plansEnabled&&tat.pronto,rows:tat.planos,legacy:tat.minha,activePosture:qual?.(entrants.findIndex(e=>e.you),st)??'equilibrio',send:tat.enviarPlano}:undefined
+  const taticaSlot=souJogador&&clock?.row&&(cupPilot?clock.row.step<=PASSO_COPA.FINAL:clock.row.step<PASSO_COPA.FINAL)?<CartaoTaticaCopa plan={plan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null
   // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
   // Copa nova, então jogar Copa atrás de Copa na mesma sala não faz uma apagar a
   // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).
@@ -929,7 +936,20 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   // 🧯 09/11: a leitura de 2 s seguia pra sempre na tela de fim, mesmo com a Copa já decidida (1,6 milhão de leituras em 10 dias).
   // Com campeão ela PARA; a 1ª leitura de cada edição sempre acontece (é ela que descobre se já tem campeão).
   const acabouRef = useRef(false)
-  useEffect(() => { void ler(); const iv = setInterval(() => { if (!acabouRef.current) void ler() }, 2000); return () => clearInterval(iv) }, [ler])
+  // 🐢 23/11 (Diego: "ok faça"): com a Copa ROLANDO (fase 'torneio') a leitura cai de 2 s pra 6 s — nessa hora ela só serve pra
+  // descobrir o campeão (o jogo anda pelo relógio do banco e a tática tem leitura própria). Escolha de seleção/convocação seguem em 2 s.
+  const torneioRef = useRef(false)
+  useEffect(() => { torneioRef.current = fase?.fase === 'torneio' }, [fase?.fase])
+  useEffect(() => {
+    void ler()
+    let ultima = Date.now()
+    const iv = setInterval(() => {
+      if (acabouRef.current) return
+      if (torneioRef.current && Date.now() - ultima < 6000) return
+      ultima = Date.now(); void ler()
+    }, 2000)
+    return () => clearInterval(iv)
+  }, [ler])
 
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
   // 🪑 20/10: com o estado da partida, o assento sai do `seatUids` (a renumeração do banco já errou em dupla cruzada)

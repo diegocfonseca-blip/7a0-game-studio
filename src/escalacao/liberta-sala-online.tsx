@@ -1,4 +1,7 @@
-import { useOwnerLayout, OwnerPlayback, OwnerChampionBanner } from './owner-online-visual'
+import {withCupPlans} from './copa-planos'
+import {FootballLibertaCupView} from './football-cup-liberta'
+import type {CupPenaltyPresentation} from './football-cup-world'
+import { useOwnerLayout,useOwnerFootballPilot, OwnerPlayback, OwnerChampionBanner } from './owner-online-visual'
 import { MASCOTES, mascoteKeyDoTime } from './mascotes'
 // ─── 🏆 LIGA + LIBERTADORES NA SALA ONLINE (Diego 19/11) ──────────────────────
 //
@@ -36,7 +39,7 @@ import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, Artilheir
 import { RESUMO_MS, respiroAntes } from './copa-passos'
 import './online-match-visual.css'
 import { Penaltis2D } from './campo2d-penaltis-react'
-import type { ConfigPenaltisCampo, DisputaPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
+import type { ConfigPenaltisCampo, EstadoPenaltisCampo } from './campo2d-penaltis'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { ChatWidget, GiroDaRodada, TrocaCampo2DSala, CardCollectPrompt } from './screens'
 import { startCrowd, stopCrowd } from './sound'
@@ -232,7 +235,20 @@ export function LibertaSalaGate({ roomId, souDono, meuUid, classificacao, matchS
       return { linhas: pls as LinhaSala[], fase: f ? { ...f, seed: Number(f.seed) } : undefined }
     } catch { return null }
   }, [roomId, edicao])
-  useEffect(() => { void ler(); const iv = setInterval(() => { if (!acabouRef.current) void ler() }, 2000); return () => clearInterval(iv) }, [ler])
+  // 🐢 23/11 (Diego: "ok faça"): com a Copa ROLANDO (fase 'torneio') a leitura cai de 2 s pra 6 s — nessa hora ela só serve pra
+  // descobrir o campeão (o jogo anda pelo relógio do banco e a tática tem leitura própria). Escolha de seleção/convocação seguem em 2 s.
+  const torneioRef = useRef(false)
+  useEffect(() => { torneioRef.current = fase?.fase === 'torneio' }, [fase?.fase])
+  useEffect(() => {
+    void ler()
+    let ultima = Date.now()
+    const iv = setInterval(() => {
+      if (acabouRef.current) return
+      if (torneioRef.current && Date.now() - ultima < 6000) return
+      ultima = Date.now(); void ler()
+    }, 2000)
+    return () => clearInterval(iv)
+  }, [ler])
 
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca)
   const porEstado = useMemo(() => quemAgePeloEstado(assentos, duplas), [assentos, duplas])
@@ -514,7 +530,7 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
   const comTatica = !semRelogio
   const tat = useTaticasCopa('regional', roomId, ficha.edicao, ficha.seed, comTatica ? relogioBanco?.row : undefined, meuUid)
   const uidsDaFicha = useMemo(() => ficha.times.map(t => t.uid), [ficha])
-  const qual = useMemo(() => (comTatica ? montaQualTatica(tat.linhas, uidsDaFicha) : undefined), [comTatica, tat.linhas, uidsDaFicha])
+  const qual = useMemo(() => (comTatica ? withCupPlans(montaQualTatica(tat.linhas, uidsDaFicha),tat.planos,uidsDaFicha) : undefined), [comTatica, tat.linhas,tat.planos, uidsDaFicha])
   const mundo: MundoLiberta = useMemo(() => simulaLibertaSala(entrants, ficha.seed, qual), [entrants, ficha.seed, qual])
   mundoRef.current = mundo
   const ultimoPronto = useRef<Row | null>(null)
@@ -549,6 +565,7 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
   useApitoDeLargada('libsala', libRodaBola(step) ? step : null, true)
 
   const ownerVisual = useOwnerLayout()
+  const cupPilot=useOwnerFootballPilot()
   const done = step >= LIB.FIM
   const finalVista = step >= LIB.FINAL && liveDone
   const avisou = useRef(false)
@@ -568,9 +585,9 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
   const golsDe = (ev: GolRegional[], casa: boolean) => ev.filter(g => g.home === casa).length
   const sel = (i: number, size = 22) => <SeloClube clube={entrants[i].pais} size={size} />
 
-  const live = (h: number, a: number, ev: GolRegional[], pen?: { sessao?: DisputaPenaltisCampo; estado?: EstadoPenaltisCampo }) => (
+  const live = (h: number, a: number, ev: GolRegional[], pen?: CupPenaltyPresentation) => (
     <PlacarQueGruda min={Math.min(93, liveMin)} fim={liveDone} home={entrants[h].pais} away={entrants[a].pais} goals={golsAte(ev)} youIsHome={isYou(h)}>
-      <LiveScoreCard disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
+      <LiveScoreCard broadcastTransition={cupPilot?abertura:undefined} penaltyPanel={pen?.panel} neutro={!isYou(h)&&!isYou(a)} disputaPenaltis={pen?.sessao} estadoPenaltis={pen?.estado} enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
         homeOwner={dono(h)} awayOwner={dono(a)} homeEmblem={sel(h, 58)} awayEmblem={sel(a, 58)}
         youIsHome={isYou(h)} goals={ev} roundKey={step} roundMs={roundMs} finished={liveDone} footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} elencos={{ casa: entrants[h].xi, fora: entrants[a].xi }} />
     </PlacarQueGruda>
@@ -705,6 +722,15 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
     </div>
   )
 
+  const cupPlan=meuUid&&relogio?.row?{key:`${roomId}:${ficha.edicao}:${ficha.seed}:${meuUid}`,uid:meuUid,step,minute:liveMin,running:relogio.row.running,duration:relogio.row.duration_ms,hasMatch:jogosDoPasso(mundo,step).some(g=>isYou(g.h)||isYou(g.a)),enabled:tat.plansEnabled&&tat.pronto,rows:tat.planos,legacy:tat.minha,activePosture:qual?.(entrants.findIndex(e=>e.you),step)??'equilibrio',send:tat.enviarPlano}:undefined
+  if(cupPilot)return <Campo2DDoPassoCtx.Provider value={doisDDoPasso(relogio?.row)}><TemaCompCtx.Provider value="liberta"><FootballLibertaCupView world={mundo} entrants={entrants} step={step} minute={liveMin} finished={liveDone} field={c2d} renderMatch={(g,pc)=>live(g.h,g.a,g.ev,pc)} transition={abertura} controls={controles} tactics={comTatica&&relogio?.row&&!!meuUid&&ficha.times.some(t=>t.uid===meuUid)&&step<=LIB.FINAL?<CartaoTaticaCopa plan={cupPlan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null} onClose={aoFechar} tournamentKey={`liberta:${roomId}:${ficha.seed}:${ficha.edicao}`} ceremony={<>
+    {finalVista&&isYou(mundo.campeao)&&<CardCollectPrompt motivo="Libertadores" seasonKey={`libsala:${roomId}:${ficha.seed}:${ficha.edicao}`} origin="online"/>}
+    {done && !festaVista && <FestaCampeao comp="liberta" nome={entrants[mundo.campeao].pais} crest={sel(mundo.campeao, 150)}
+        mascote={ownerVisual ? MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club) ?? ''] : undefined} lendas={ownerVisual ? entrants[mundo.campeao].xi.filter(c => c.fame >= 5).map(c => ({ nome: c.name, club: c.club, year: c.year })) : undefined} souCampeao={isYou(mundo.campeao)} souVice={isYou(mundo.final.h) || isYou(mundo.final.a)} onDone={() => { setFestaVista(true); try { sessionStorage.setItem(festaKey, '1') } catch { /* segue */ } }}
+        artilheiro={(() => { const r = artilhariaLiberta(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
+        garcom={(() => { const r = garconsLiberta(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
+    {done&&<OwnerChampionBanner title={NOME} name={entrants[mundo.campeao].pais} crest={sel(mundo.campeao,52)} trophy={<Trofeu comp="liberta" size={160}/>} own={isYou(mundo.campeao)} legends={entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']}/>}
+  </>}/></TemaCompCtx.Provider></Campo2DDoPassoCtx.Provider>
   return (
     <Campo2DDoPassoCtx.Provider value={doisDDoPasso(relogio?.row)}>
     <TemaCompCtx.Provider value="liberta">

@@ -1,4 +1,5 @@
-import {useOwnerLayout,OwnerTactics} from './owner-online-visual'
+import {useOwnerLayout,useOwnerFootballPilot,OwnerSlot,OwnerTactics} from './owner-online-visual'
+import {CupPlanPanel,type CupPlanController} from './copa-plano-panel'
 // ─── ⚔️ A TÁTICA NA SALA: Copa do Mundo e regionais (23/10) ──────────────────
 // O lado do APARELHO da regra de `copa-taticas.ts`:
 //   · lê do banco SÓ as linhas congeladas (`esc_copa_taticas`) a cada virada do relógio da copa;
@@ -10,69 +11,82 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
 import { TATICAS_COPA, type LinhaTatica, type TaticaCopa } from './copa-taticas'
+import type {CupPlanRow} from './copa-planos'
+import type {FootballPlan} from './football-live-tactics'
 
 type RowTat = { revision: number; step: number; running: boolean }
-type Dado = { linhas: LinhaTatica[]; coberto: number }
+type Dado = { key:string;rev:number;linhas: LinhaTatica[]; coberto: number;planos:CupPlanRow[];plansEnabled:boolean }
+type PlanPayload={rev:number;step?:number;running?:boolean;linhas:LinhaTatica[];planos?:CupPlanRow[];planos_ativos?:boolean}
+const tacticData=(d:PlanPayload,key:string):Dado=>({key,rev:d.rev,linhas:Array.isArray(d.linhas)?d.linhas:[],coberto:d.rev<0||d.step==null?-1:d.running?d.step-1:d.step,planos:Array.isArray(d.planos)?d.planos:[],plansEnabled:!!d.planos_ativos})
 /** se o banco não responder, a tela não pode ficar presa pra sempre: depois disto ela segue (só acontece em falha) */
 const ESPERA_MAX_MS = 8000
 
 export function useTaticasCopa(tipo: 'mundo' | 'regional', roomId: string, edicao: number, seed: number, row: RowTat | null | undefined, meuUid?: string) {
-  const [dado, setDado] = useState<Dado | null>(null)
-  const [minha, setMinha] = useState<TaticaCopa | null>(null)
-  const [aviso, setAviso] = useState('')
-  const pedindo = useRef(false)
-  const ativo = !!row
-  const ler = useCallback(async () => {
-    if (pedindo.current) return
-    pedindo.current = true
-    try {
-      const { data, error } = await supabase.rpc('esc_copa_taticas', { p_room: roomId, p_tipo: tipo, p_edicao: edicao, p_seed: seed })
-      if (error || !data) return
-      const d = data as { rev: number; step?: number; running?: boolean; linhas: LinhaTatica[] }
-      const coberto = d.rev < 0 || d.step == null ? -1 : d.running ? d.step - 1 : d.step
-      setDado(v => (v && v.coberto > coberto ? v : { linhas: Array.isArray(d.linhas) ? d.linhas : [], coberto }))
-    } finally { pedindo.current = false }
-  }, [tipo, roomId, edicao, seed])
-  // lê a cada virada do relógio (começo e apito de cada jogo)
-  useEffect(() => { if (ativo) void ler() }, [ativo, row?.revision, ler])
-  const precisa = row ? row.step - 1 : -1
-  const coberto = dado?.coberto ?? -1
-  // 🔁 enquanto falta o pedaço que decide o jogo da vez, tenta de novo a cada 1,5 s
-  useEffect(() => {
-    if (!ativo || coberto >= precisa) return
-    const iv = setInterval(() => { void ler() }, 1500)
-    return () => clearInterval(iv)
-  }, [ativo, coberto, precisa, ler])
-  // ⏳ válvula: banco mudo por 8 s não trava a sala
-  const [venceu, setVenceu] = useState(-1)
-  useEffect(() => {
-    if (!row || coberto >= precisa) return
-    const rev = row.revision
-    const t = setTimeout(() => setVenceu(rev), ESPERA_MAX_MS)
-    return () => clearTimeout(t)
-  }, [row?.revision, coberto, precisa]) // eslint-disable-line react-hooks/exhaustive-deps
-  const pronto = !row || coberto >= precisa || venceu === row.revision
-
-  const escolher = useCallback(async (t: TaticaCopa) => {
-    const antes = minha
-    setMinha(t); setAviso('')
-    const { data, error } = await supabase.rpc('esc_copa_tatica_set', { p_room: roomId, p_tipo: tipo, p_edicao: edicao, p_seed: seed, p_tatica: t })
-    const d = data as { ok?: boolean } | null
-    if (error || !d?.ok) { setMinha(antes); setAviso(tr('O jogo já apitou — escolha durante o próximo jogo.', 'The match is over — pick during the next match.')) }
-  }, [minha, roomId, tipo, edicao, seed])
-
-  // a tática que ESTÁ valendo pra mim daqui pra frente: a que escolhi agora, senão a última congelada
-  const ultima = meuUid ? [...(dado?.linhas ?? [])].filter(l => l.uid === meuUid).sort((a, b) => b.passo - a.passo)[0]?.tatica : undefined
-  return { linhas: dado?.linhas ?? [], pronto, escolher, minha: minha ?? ultima ?? 'equilibrio' as TaticaCopa, podeEscolher: !!row?.running, aviso }
+  const identity=`${roomId}:${tipo}:${edicao}:${seed}:${meuUid??''}`
+  const currentIdentity=useRef(identity);currentIdentity.current=identity
+  const [stored,setDado]=useState<Dado|null>(null)
+  const dado=stored?.key===identity?stored:null
+  const [minha,setMinha]=useState<{key:string;value:TaticaCopa}|null>(null)
+  const [warning,setWarning]=useState<{key:string;text:string}|null>(null)
+  const aviso=warning?.key===identity?warning.text:''
+  const pedindo=useRef(false),ativo=!!row
+  const accept=useCallback((payload:PlanPayload)=>{
+    if(currentIdentity.current!==identity)return
+    const next=tacticData(payload,identity)
+    setDado(previous=>previous?.key===identity&&previous.rev>next.rev?previous:next)
+  },[identity])
+  const ler=useCallback(async()=>{
+    if(pedindo.current)return
+    pedindo.current=true
+    try{
+      const {data,error}=await supabase.rpc('esc_copa_taticas',{p_room:roomId,p_tipo:tipo,p_edicao:edicao,p_seed:seed})
+      if(!error&&data)accept(data as PlanPayload)
+    }finally{pedindo.current=false}
+  },[tipo,roomId,edicao,seed,accept])
+  useEffect(()=>{if(ativo)void ler()},[ativo,row?.revision,ler])
+  useEffect(()=>{
+    if(!ativo||!meuUid)return
+    let alive=true
+    void supabase.rpc('esc_copa_plano_registrar',{p_room:roomId,p_tipo:tipo,p_edicao:edicao,p_seed:seed}).then(({data})=>{if(alive&&(data as {ok?:boolean}|null)?.ok)void ler()})
+    return()=>{alive=false}
+  },[ativo,meuUid,roomId,tipo,edicao,seed,ler])
+  const precisa=row?row.step-1:-1,coberto=dado?.coberto??-1
+  useEffect(()=>{if(!ativo||coberto>=precisa)return;const timer=setInterval(()=>{void ler()},1500);return()=>clearInterval(timer)},[ativo,coberto,precisa,ler])
+  const [venceu,setVenceu]=useState<{key:string;revision:number}|null>(null)
+  useEffect(()=>{
+    if(!row||coberto>=precisa)return
+    const revision=row.revision,timer=setTimeout(()=>{if(currentIdentity.current===identity)setVenceu({key:identity,revision})},ESPERA_MAX_MS)
+    return()=>clearTimeout(timer)
+  },[row?.revision,coberto,precisa,identity])
+  const pronto=!row||coberto>=precisa||venceu?.key===identity&&venceu.revision===row.revision
+  const escolher=useCallback(async(t:TaticaCopa)=>{
+    const before=minha
+    setMinha({key:identity,value:t});setWarning(null)
+    const {data,error}=await supabase.rpc('esc_copa_tatica_set',{p_room:roomId,p_tipo:tipo,p_edicao:edicao,p_seed:seed,p_tatica:t})
+    if(currentIdentity.current!==identity)return
+    const reply=data as {ok?:boolean;motivo?:string}|null
+    if(error||!reply?.ok){setMinha(before);setWarning({key:identity,text:reply?.motivo==='aguardando_versoes'?tr('Aguardando a versão atualizada dos participantes.','Waiting for participants to update their version.'):tr('O jogo já apitou — escolha durante o próximo jogo.','The match is over — pick during the next match.')})}
+  },[minha,identity,roomId,tipo,edicao,seed])
+  const ultima=meuUid?[...(dado?.linhas??[])].filter(l=>l.uid===meuUid).sort((a,b)=>b.passo-a.passo)[0]?.tatica:undefined
+  const enviarPlano=useCallback(async(plan:FootballPlan,live:boolean,id:string)=>{
+    const {data,error}=await supabase.rpc('esc_copa_plano_set',{p_room:roomId,p_tipo:tipo,p_edicao:edicao,p_seed:seed,p_plan:plan,p_id:id,p_live:live})
+    const reply=data as {ok?:boolean;motivo?:string;from?:number;state?:PlanPayload}|null
+    if(error||!reply?.ok)throw new Error(reply?.motivo==='janela_encerrada'?tr('A janela desta partida encerrou. O plano continua salvo para o próximo jogo.','The window for this match has closed. The plan remains saved for the next match.'):reply?.motivo==='aguardando_versoes'?tr('Aguardando os participantes atualizarem a versão da Copa.','Waiting for participants to update their Cup version.'):tr('Não foi possível confirmar o plano. Tente novamente.','The plan could not be confirmed. Try again.'))
+    if(reply.state)accept(reply.state)
+    return reply.from??0
+  },[roomId,tipo,edicao,seed,accept])
+  return{linhas:dado?.linhas??[],pronto,escolher,minha:(minha?.key===identity?minha.value:null)??ultima??'equilibrio' as TaticaCopa,podeEscolher:!!row?.running,aviso,planos:dado?.planos??[],plansEnabled:dado?.plansEnabled??false,enviarPlano}
 }
 
 const ROTULO: Record<TaticaCopa, [string, string]> = { retranca: ['🧱 Retranca', '🧱 Park the bus'], equilibrio: ['⚖️ Equilíbrio', '⚖️ Balanced'], ataque: ['🔥 Ataque', '🔥 Attack'] }
 const INK = '#0C0C0C', GOLD = '#FFC400'
 
 /** o MESMO cartão de tática da liga/Champions, com a regra da copa escrita embaixo */
-export function CartaoTaticaCopa({ minha, podeEscolher, aviso, onEscolher }: { minha: TaticaCopa; podeEscolher: boolean; aviso?: string; onEscolher: (t: TaticaCopa) => void }) {
+export function CartaoTaticaCopa({ minha, podeEscolher, aviso, onEscolher,plan }: { minha: TaticaCopa; podeEscolher: boolean; aviso?: string; onEscolher: (t: TaticaCopa) => void;plan?:CupPlanController }) {
   const owner=useOwnerLayout()
-  if(owner)return <OwnerTactics value={minha} disabled={!podeEscolher} note={aviso} onChange={onEscolher}/>
+  const pilot=useOwnerFootballPilot()
+  if(pilot&&plan)return <OwnerSlot name="tactic"><CupPlanPanel key={plan.key} control={plan}/></OwnerSlot>
+  if(owner&&!pilot)return <OwnerTactics value={minha} disabled={!podeEscolher} note={aviso} onChange={onEscolher}/>
   return <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, padding: 12, margin: '0 0 10px' }}>
     <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>
       ⚔️ {tr('Tática do próximo jogo', 'Tactic for the next match')}
