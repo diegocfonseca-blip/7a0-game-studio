@@ -28,11 +28,12 @@ O carregamento usa um GLB local versionado, agrupado por estabelecimento, com ge
 
 Servidor local: `node scripts/mapa-compacto/serve.mjs` (porta 5184).
 
-- `node scripts/mapa-compacto/check-layout.mjs`: 33 lotes, oito vias conectadas, 13 cruzamentos e 35 percursos; cruzamentos/edificações separados e percursos de transporte sobre ruas ou baias.
+- `node scripts/mapa-compacto/check-layout.mjs`: 33 lotes, oito vias conectadas, 13 cruzamentos e 35 percursos; cruzamentos/edificações separados, percursos de transporte sobre ruas ou baias e os quatro cantos de ônibus e carros livres dos estabelecimentos.
 - `node scripts/mapa-compacto/test-model.mjs`: fases, influência das duas torcidas, visitante desconhecido, chuva/noite, limites de população, portais e portão original das delegações.
 - `node scripts/mapa-compacto/runtime-check.cjs`: carregamento do componente real e quatro fases do dia de jogo.
 - `node scripts/mapa-compacto/runtime-details.cjs`: desktop 1440 e celular 390, ilha centralizada, lazer, shopping, etapas 0/1/2/4, metrô sem compra ausente, carros comprados indo e voltando e desmontagem sem erro.
 - `FOCO_ORIGIN=http://127.0.0.1:5184 FOCO_BASE=/ node scripts/testa-mapa-foco-browser.mjs`: 22 jogadores, cidade e NPCs removidos da árvore durante o jogo, zoom restrito, passeio e assentos, retorno ao mapa durante a semana.
+- `ABERTURA_ORIGIN=http://127.0.0.1:5184 ABERTURA_BASE=/ ABERTURA_WIDTHS=390 node scripts/testa-abertura-estadio-browser.mjs`: Central real, giro, cancelamento/retorno, 22 jogadores antes do início e rodada avançando somente após o botão.
 - `DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npm run build`: TypeScript e build completo do Vite.
 
 Para reconstruir o asset, abrir o servidor local e executar `node scripts/mapa-compacto/export.cjs`, seguido de `node scripts/mapa-compacto/compress.mjs`. Alterações futuras devem receber outro nome versionado. O teste de compressão confere a igualdade de todos os buffers de geometria decodificados. As imagens dos testes são capturas do componente real; Chromium/SwiftShader valida funcionamento e geometria, mas não mede FPS de um Samsung S25.

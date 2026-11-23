@@ -8,3 +8,19 @@ const bad=[];for(const [id,points]of Object.entries(vehiclePaths)){if(id==='park
 assert.equal(bad.length,0,JSON.stringify(bad));
 for(const j of junctions)for(const lot of allLots)assert.equal(!!overlap({minX:j.x-10,maxX:j.x+10,minZ:j.z-10,maxZ:j.z+10},lot),false,'junction/lot '+lot.name);
 console.log(JSON.stringify({...report,junctions:junctions.length,vehiclesOnRoad:true},null,2));
+// Sample all four body corners, not only the centre line: a bus overhang must
+// also clear neighbouring buildings through bends and platform approaches.
+const bodyConflicts=[];
+for(const[id,path]of Object.entries(vehiclePaths)){
+ if(id==='parking')continue;
+ const halfLength=id.startsWith('bus')?5.3:2.2,halfWidth=id.startsWith('bus')?1.25:.925;
+ for(let i=1;i<path.length;i++){
+  const a=path[i-1],b=path[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]),dx=(b[0]-a[0])/length,dz=(b[1]-a[1])/length;
+  for(let distance=0;distance<=length;distance+=.4)for(const fore of [-1,1])for(const side of [-1,1]){
+   const corner=[a[0]+dx*distance+dx*halfLength*fore+dz*halfWidth*side,a[1]+dz*distance+dz*halfLength*fore-dx*halfWidth*side];
+   for(const lot of allLots)if(lot.name!=='Metrô'&&inside(corner,lot))bodyConflicts.push({id,lot:lot.name,corner});
+  }
+ }
+}
+assert.deepEqual(bodyConflicts,[],'Vehicle body overlaps a neighbouring lot');
+console.log('Volumes dos ônibus e carros: quatro cantos livres dos estabelecimentos.');
