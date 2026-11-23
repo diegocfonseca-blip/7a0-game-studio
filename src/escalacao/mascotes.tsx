@@ -495,10 +495,10 @@ export const MASCOTES: Record<string, ReactNode> = {
   tunaldo_craque: (
     <img src={tunaldoMascoteImg} height={176} width={Math.round(176 * 196 / 440)} alt="O Craque Tunaldo — Tunaldo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🐸👑 O PERERECÃO (mascote do Pirituba SF — pedrosilveira0810, Fundador de 23/11): o sapo azul de boné rosa virado, punho pra
-  // frente, pé em cima da bola, com o uniforme azul e rosa. Arte do próprio dono. 📏 256×440, 40 KB — altura 176. mascote_key = "pirituba_pererecao".
+  // 🐸👑 O PERERECÃO (mascote do Pirituba SF — pedrosilveira0810, Fundador de 23/11): o sapo azul de boné rosa virado, agachado na
+  // POSE DE SAPO (pedido do Diego, 23/11), com a camisa e o calção azul e rosa. Arte do próprio dono. 📏 424×440, 44 KB — altura 176. mascote_key = "pirituba_pererecao".
   pirituba_pererecao: (
-    <img src={piritubaMascoteImg} height={176} width={Math.round(176 * 256 / 440)} alt="Pererecão — Pirituba SF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={piritubaMascoteImg} height={176} width={Math.round(176 * 424 / 440)} alt="Pererecão — Pirituba SF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
 
   cearasp_rei: (

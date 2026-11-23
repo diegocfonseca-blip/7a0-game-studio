@@ -1,10 +1,10 @@
 // ─── 🐸👑 ENTRADA ÚNICA DO PIRITUBA SF: "O PULO DO PERERECÃO" ──────────────────────────────────────────────────────
 //
 // Pedido do Diego (23/11, batismo FUNDADOR do pedrosilveira0810): *"faça entrada de gala… e me mande vídeo também do sapo
-// pulando"*. A mascote (arte do dono) é o Pererecão: sapo azul de boné rosa virado, punho pra frente, pé em cima da bola.
+// pulando"*. A mascote (arte do dono) é o Pererecão: sapo azul de boné rosa virado, agachado na pose de sapo (troca de 23/11).
 // 1) noite de Pirituba em neon azul e rosa; legenda "DIRETO DE PIRITUBA"
-// 2) o Pererecão atravessa a tela em 3 PULOS de vitória-régia em vitória-régia (estica no ar, amassa no pouso, 💦 "PLOFT!")
-// 3) o 4º pulo é o grandão: ele cai em cima da bola — estalo 💥, flash, a tela treme
+// 2) o Pererecão (agachado na pose de sapo) atravessa a tela em 3 PULOS de vitória-régia em vitória-régia (estica no ar, amassa no pouso, 💦 "PLOFT!")
+// 3) o 4º pulo é o grandão: ele cai de quatro no meio da tela — estalo 💥, flash, a tela treme
 // 4) as faixas DIAGONAIS azul e rosa da camisa varrem a tela (a camisa do dono é pincelada na diagonal)
 // 5) o escudo (que já tem a coroa) acende com os raios azul e rosa girando atrás; o Pererecão vai pro canto, ainda quicando
 // 6) o grito que está na própria arte do dono — PERERECÃO CHEGOU / PRA GANHAR NA RAÇA — e a faixa "CHEGOU NA SALA · PERERECÃO"
@@ -15,19 +15,19 @@ import { createPortal } from 'react-dom'
 import { Escudo } from './escudos'
 import { tr } from './lang'
 import { playMp3Gala } from './sound'
-import sapoImg from './img/pirituba-mascote.webp' // 256×440, o Pererecão de pé em cima da bola
+import sapoImg from './img/pirituba-mascote.webp' // 424×440, o Pererecão agachado na pose de sapo
 
 export const PIRITUBA_MS = 8800
 const T = PIRITUBA_MS
 const pct = (ms: number) => (ms / T * 100).toFixed(1) + '%'
 const AZUL = '#0199F6', ROSA = '#FC22BC'
-const SW = 150, SH = Math.round(SW * 440 / 256) // o sapo no palco (258 de altura)
+const SW = 200, SH = Math.round(SW * 440 / 424) // o sapo no palco, agachado (≈208 de altura)
 const CHAO = 600 // linha do pouso (pé do sapo)
 // os 3 pulos: [x de saída, x de chegada, início ms] — cada pulo leva PULO ms
 const PULO = 520
-const PULOS: [number, number, number][] = [[-170, 20, 1100], [20, 140, 1700], [140, 260, 2300]]
-const GRANDE = 2950, POUSO = GRANDE + 650 // o 4º pulo, alto, caindo no meio em cima da bola
-const XF = 135 // x final do sapo (centro do palco: 210 - SW/2)
+const PULOS: [number, number, number][] = [[-220, -10, 1100], [-10, 105, 1700], [105, 220, 2300]]
+const GRANDE = 2950, POUSO = GRANDE + 650 // o 4º pulo, alto, caindo de quatro no meio da tela
+const XF = 110 // x final do sapo (centro do palco: 210 - SW/2)
 
 function keyframesSapo(): string {
   const fr: string[] = [`0%{opacity:0;transform:translate(${PULOS[0][0]}px,0) scale(1,1)}`, `${pct(PULOS[0][2] - 1)}{opacity:0;transform:translate(${PULOS[0][0]}px,0)}`]
