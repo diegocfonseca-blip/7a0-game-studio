@@ -7,7 +7,7 @@
 // scripts/checa-paises antes de commitar carta nova).
 // ⚠️ Este arquivo NÃO é importado pelo jogo ainda — zero risco pro que está no ar.
 
-import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_WORLD, BIOS } from './data'
 
 export const PAIS: Record<string, string> = {
   // 📅 Lote 49 (10/11): famosos da Premier no auge
@@ -1272,4 +1272,27 @@ export function rankingSelecoes(): { pais: string; cartas: number }[] {
   // 🚫 '??' (carta EU/MUNDO sem etiqueta de país) NUNCA vira seleção — senão vira um
   // "time" de nacionalidades misturadas no top 16 e empurra as seleções reais pra baixo.
   return Object.entries(cnt).filter(([pais]) => pais !== '??').map(([pais, cartas]) => ({ pais, cartas })).sort((a, b) => b.cartas - a.cartas)
+}
+
+// 📝 23/11 (Diego, print da carta do campeão: "Pepe Santos 1962" com o texto do Pepe do Real — *"é pessoa diferente"*): o texto da carta
+// vem da CARTA (nome + clube + ano). O texto por NOME (`BIOS`) só serve quando aquele nome é UMA pessoa só no jogo: carta única ou
+// a mesma pessoa conferida em `MESMO_JOGADOR`. Xará nunca herda o texto do outro — sem texto, a tela usa o genérico dela.
+let BIO_POR_CARTA: Map<string, string | undefined> | null = null
+let CARTAS_POR_NOME: Map<string, number> | null = null
+export function bioDaCarta(name: string, club: string, year: number): string | undefined {
+  if (!BIO_POR_CARTA || !CARTAS_POR_NOME) {
+    BIO_POR_CARTA = new Map(); CARTAS_POR_NOME = new Map()
+    for (const cat of [CATALOG, CATALOG_EU, CATALOG_WORLD]) for (const lista of Object.values(cat)) for (const c of lista) {
+      const k = `${c.name}|${c.club}|${c.year}`
+      if (BIO_POR_CARTA.has(k)) continue
+      BIO_POR_CARTA.set(k, (c as { bio?: string }).bio)
+      CARTAS_POR_NOME.set(c.name, (CARTAS_POR_NOME.get(c.name) ?? 0) + 1)
+    }
+  }
+  const k = `${name}|${club}|${year}`
+  const propria = BIO_POR_CARTA.get(k)
+  if (propria) return propria
+  // carta fora dos 3 baralhos (Oficial, regional) traz o texto dela; sem ele, nada de pegar o de um xará do baralho (Dida Coritiba ≠ Dida Milan)
+  const umaPessoa = BIO_POR_CARTA.has(k) && (MESMO_JOGADOR.has(name) || (CARTAS_POR_NOME.get(name) ?? 0) <= 1)
+  return umaPessoa ? BIOS[name] : undefined
 }

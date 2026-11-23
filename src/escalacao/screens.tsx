@@ -56,7 +56,8 @@ import { playCoin, playSeal, playTick, playHammer, playChime, playPacote, playRu
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
-import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE, DIVISION_TEAMS } from './data'
+import { CATALOG, CATALOG_EU, ehPromessa, TIMES_ELITE, DIVISION_TEAMS } from './data'
+import { bioDaCarta } from './paises' // 📝 texto da carta pela CARTA (xará não herda o do outro, 23/11)
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, useTem2D, myFundadorN, useDireitos, loggedEmail, comCorDoNome } from './apoio'
 import { ehPagante } from './saf2' // 🔒 27/10: carreira grátis até a 50 — a MESMA régua de "tem plano" do resto do jogo
@@ -10039,7 +10040,7 @@ async function buildChampionShareBlob(opts: ShareBlobOpts): Promise<Blob | null>
   x.fillText(`${c.club} · ${c.year}`, W / 2, OY + M + ch * 0.66 + 48)
   x.font = `700 36px Arial`
   x.fillText(isProm ? '💎💎💎' : '⭐'.repeat(Math.max(1, c.fame)), W / 2, OY + M + ch * 0.66 + 104)
-  const bioText = opts.bb ? c.bio : (c.bio ?? BIOS[c.name]) // 21/10: a da CARTA primeiro (xará de outro jogador não herda o texto) · bio REAL (sem inventar); vazio se não tiver — 🏀 a da carta da NBA
+  const bioText = opts.bb ? c.bio : (c.bio ?? bioDaCarta(c.name, c.club, c.year)) // 21/10: a da CARTA primeiro (xará de outro jogador não herda o texto) · bio REAL (sem inventar); vazio se não tiver — 🏀 a da carta da NBA
   if (bioText) {
     x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
     const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''
@@ -10953,7 +10954,7 @@ export function CollectibleCard({ name, club, year, pos, fame, big = false, bio,
   const initial = name.trim()[0]?.toUpperCase() ?? '?'
   const foto = fotoDoJogador(name)
   const pk = pokeDe(name) // ⚡ modo Pokémon: Lenda = a arte dele (sem rosto); o resto = o desenho do tipo
-  const text = pres ? tr(`Presidente do ${club} na Kings League.`, `${club} president in the Kings League.`) : bio ?? BIOS[name] ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
+  const text = pres ? tr(`Presidente do ${club} na Kings League.`, `${club} president in the Kings League.`) : bio ?? bioDaCarta(name, club, year) ?? (isProm ? `Promessa ${({ GOL: 'do gol', LAT: 'da lateral', ZAG: 'da zaga', MEI: 'do meio-campo', ATA: 'do ataque' } as Record<string, string>)[pos] ?? 'do futebol'} — brilhou aqui jovem e virou estrela.` : fallbackBio(fame, pos))
   return (
     <div className="relative overflow-hidden border-[3px] border-black rounded-2xl flex flex-col justify-between"
       style={{ background: t.grad, aspectRatio: '3 / 4.2', boxShadow: `5px 6px 0 0 ${INK}`, padding: big ? 16 : 11 }}>
@@ -11059,7 +11060,7 @@ async function shareCardImage(c: { name: string; club: string; year: number; pos
   // 📝 BIO: a carta compartilhada leva a bio REAL do jogador (a escrita na carta ou a
   // do catálogo por nome, BIOS[nome]). Se o jogador NÃO tem bio, fica vazio mesmo —
   // nada de texto genérico inventado (pedido do Diego).
-  const bioText = c.bio ?? BIOS[c.name]
+  const bioText = c.bio ?? bioDaCarta(c.name, c.club, c.year)
   if (bioText) {
     x.font = `italic 700 28px Georgia`; x.fillStyle = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.72)'
     const words = ('“' + bioText + '”').split(' '); const lines: string[] = []; let ln = ''
