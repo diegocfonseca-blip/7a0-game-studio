@@ -68,6 +68,23 @@
 
 
 
+
+
+### 🎮🔒 23/11 — botão pequeno "Manual 🔒" logo depois do placar (no branch, esperando "pode publicar")
+- Análise de 7 dias (`apoio_intents`): 170 pessoas abriram a trava do Manual, 1 gerou Pix, 0 pagou; 441 bateram no limite da sala do dia
+  (2.419 vezes), 4 compraram as 3 salas extras. Propus botão embaixo do placar + preços menores; Diego: *"gostei só de pôr um botão pequeno…
+  mas não altere o valor"*. **Preços NÃO mudaram** (Manual 24 h R$ 9,90 · Craque Completo R$ 14,90/mês · 3 salas R$ 4,90 · Craque Salas R$ 9,90/mês).
+- `ManualChipPlacar` (pyramidseason.tsx): pílula "🎮 Manual 🔒" logo depois do quadro do placar (aba Jogos, sem plano); só aparece se a trava
+  `ManualLockButton` está na tela (senão seria botão mudo) e abre ELA (mesmas ofertas), rolando até lá. Log: "🎮 manual: botão embaixo do placar".
+- Print: `scripts/mockups/manual-chip-placar.png` · bancada `scripts/mapa3d/print-chip-manual.mjs`.
+
+### 🐢 23/11 (madrugada) — Copa da sala pergunta menos ao servidor durante os jogos (no branch, esperando "pode publicar")
+- Vigia: um aparelho numa sala de Copa lia `room_players` + `esc_copa_salas` ~2.100×/h cada (a leitura de 2 s). Diego: *"ok faça"*.
+- Agora, com a Copa ROLANDO (fase 'torneio'), a leitura é a cada 6 s (só descobre o campeão; o jogo anda pelo relógio do banco e a tática tem
+  leitura própria). Escolha de seleção/convocação continuam em 2 s. Vale pra Copa do Mundo/Euro/América, regionais e Libertadores da sala.
+- Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
+  `liberta-sala` e `regional` passam.
+
 ### ⚫⚓ 22/11 (noite) — Batismo Tunaldo FC (faertes9) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
 - Plano Batismo (79,90, sem nº de fundador), coração Corinthians, mascote O Craque Tunaldo (`tunaldo_craque`), manto preto #0F0F0F + cinza #706F6F
   medidos na camisa. Várzea, no assento do bot Espeto Corrido FC (`OLD_NAME`). Conta existe (criada 08/10). Não achei o Pix no sistema (Diego confirmou Batismo).
@@ -15154,3 +15171,11 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   Galo 1977, Neto Corinthians 1990, Paulinho Corinthians 2012, Fábio Rochemback Inter 2000, Abedi Pelé Marseille 1993, Pedro Flamengo 2022,
   Lincoln Flamengo 2019, Pepe Real 2012. Marquinhos Corinthians, Militão SP e Abedi Pelé Vasco ficam com o texto genérico (o do BIOS fala do
   PSG/Real/Marseille).
+
+## 🔁 23/11 — Substituir DURANTE o jogo (2D e 3D da carreira) — MOCKUP enviado, esperando OK
+- Pedido: botão Substituir pausa o jogo e abre um ELENCO LIMPO (só quem está em campo + reservas, sem comissão/base): no 3D numa janela de
+  baixo por cima do mapa; no 2D embaixo do campinho. Máx 3 trocas por jogo + tática (Retranca/Equilíbrio/Ataque) com o jogo rolando. Vale SÓ
+  naquele jogo; depois do apito volta como estava (fixo = aba Elenco). Mockup: `scripts/mockups/substituir-ao-vivo.png`.
+- Técnico: hoje o motor novo só troca time no INTERVALO (`trocaTime` + `casa2`); troca em minuto qualquer = recalcular o jogo do minuto da
+  troca em diante (resultado é calculado antes da animação). Ainda não feito.
+- ✅ Feito no mesmo dia: a faixa "☁️ Salvo há… · 💾 Salvar" saiu do topo da Central nova (já tem o Salvar lá embaixo).

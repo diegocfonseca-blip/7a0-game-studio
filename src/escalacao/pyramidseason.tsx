@@ -247,6 +247,27 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 // 🔒 no lugar dos controles de manual, quando a carreira NOVA ainda não tem o
 // Modo Manual: um convite que abre o Apoie direto na explicação do manual. A
 // temporada segue rodando no AUTO normalmente — nada trava o jogo.
+// 🎮🔒 23/11 (Diego: *"pôr um botão pequeno 'Manual 🔒' logo embaixo do placar… mas não altere o valor"*): a trava do Manual mora
+// lá embaixo (depois da tática) e quase ninguém via. O botãozinho embaixo do placar só ABRE essa mesma trava (mesmas ofertas, mesmo
+// preço). Ele só aparece quando a trava está na tela — senão seria botão mudo (regra de 19/09).
+const travaManual = { n: 0, ouvintes: new Set<() => void>() }
+const avisaTrava = () => travaManual.ouvintes.forEach(f => f())
+function useTravaManualNaTela() {
+  const [, set] = useState(0)
+  useEffect(() => { const f = () => set(x => x + 1); travaManual.ouvintes.add(f); return () => { travaManual.ouvintes.delete(f) } }, [])
+  return travaManual.n > 0
+}
+function ManualChipPlacar() {
+  const naTela = useTravaManualNaTela()
+  if (!naTela) return null
+  return <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0 2px' }}>
+    <button type="button" data-manual-chip onClick={() => { logApoio('🎮 manual: botão embaixo do placar'); window.dispatchEvent(new Event('ll-abre-trava-manual')) }}
+      style={{ ...OSWALD, fontWeight: 900, fontSize: 13, letterSpacing: .3, background: '#fff', color: INK, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '5px 14px', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
+      {tr('🎮 Manual 🔒', '🎮 Manual 🔒')}
+    </button>
+  </div>
+}
+
 function ManualLockButton() {
   const tem2d = useTem2D() // 05/11: quem tem o 2D (⭐ Craque Salas) vê o botão do 2D em cima e o cadeado só do Manual
   const com2d = useCampo2DLiberado() && !tem2d && false // 🏆 07/11: na carreira o 2D é de graça — o cadeado é só do Manual
@@ -255,9 +276,15 @@ function ManualLockButton() {
   // ⏱️ 26/10 (Diego: *"9,90 avulso por 24 horas ou 14,90 no Craque Completo… e por último ver todos os planos"*): o avulso é o Pix
   // 'manual_24h' — o banco libera o Manual por 24 h depois do pagamento (`esc_direitos_de`).
   const [aberto, setAberto] = useState(false), [pix24, setPix24] = useState(false)
+  const caixa = useRef<HTMLDivElement>(null)
+  useEffect(() => { travaManual.n++; avisaTrava(); return () => { travaManual.n--; avisaTrava() } }, [])
+  useEffect(() => {
+    const abre = () => { if (!aberto) logApoio('👀 abriu: modo manual (trava)'); setAberto(true); window.setTimeout(() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60) }
+    window.addEventListener('ll-abre-trava-manual', abre); return () => window.removeEventListener('ll-abre-trava-manual', abre)
+  }, [aberto])
   const btn = { width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 13, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer', ...OSWALD } as const
   return (
-    <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
+    <div className="ll-cx-controle" ref={caixa} style={{ marginBottom: 10 }}>
       <button onClick={() => { if (!aberto) logApoio('👀 abriu: modo manual (trava)'); setAberto(a => !a) }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 14, background: aberto ? '#fff' : 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: INK, boxShadow: `3px 3px 0 ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer', textTransform: 'uppercase', ...OSWALD }}>
         <span>{com2d ? tr('🎮 Manual + 📺 Campo 2D', '🎮 Manual + 📺 2D pitch') : tr('🎮 Manual e velocidade', '🎮 Manual and speed')}</span>
         <span style={{ fontSize: 12, fontWeight: 900, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, padding: '4px 11px', whiteSpace: 'nowrap' }}>{aberto ? tr('fechar ▴', 'close ▴') : tr('🔒 Desbloquear', '🔒 Unlock')}</span>
@@ -14147,7 +14174,7 @@ export function PyramidSeasonScreen() {
             <button type="button" aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(pm.chave); setPremiosFechados(v => [...v, pm.chave]) }} style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, fontWeight: 900, padding: '4px 9px', cursor: 'pointer' }}>✕</button>
           </div>
         ))}
-        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
+        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{taticaBotoes}</div></> : null}><PlacarQueEncolhe pausado={pausaCentral} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez

@@ -936,7 +936,20 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao: classif
   // 🧯 09/11: a leitura de 2 s seguia pra sempre na tela de fim, mesmo com a Copa já decidida (1,6 milhão de leituras em 10 dias).
   // Com campeão ela PARA; a 1ª leitura de cada edição sempre acontece (é ela que descobre se já tem campeão).
   const acabouRef = useRef(false)
-  useEffect(() => { void ler(); const iv = setInterval(() => { if (!acabouRef.current) void ler() }, 2000); return () => clearInterval(iv) }, [ler])
+  // 🐢 23/11 (Diego: "ok faça"): com a Copa ROLANDO (fase 'torneio') a leitura cai de 2 s pra 6 s — nessa hora ela só serve pra
+  // descobrir o campeão (o jogo anda pelo relógio do banco e a tática tem leitura própria). Escolha de seleção/convocação seguem em 2 s.
+  const torneioRef = useRef(false)
+  useEffect(() => { torneioRef.current = fase?.fase === 'torneio' }, [fase?.fase])
+  useEffect(() => {
+    void ler()
+    let ultima = Date.now()
+    const iv = setInterval(() => {
+      if (acabouRef.current) return
+      if (torneioRef.current && Date.now() - ultima < 6000) return
+      ultima = Date.now(); void ler()
+    }, 2000)
+    return () => clearInterval(iv)
+  }, [ler])
 
   // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
   // 🪑 20/10: com o estado da partida, o assento sai do `seatUids` (a renumeração do banco já errou em dupla cruzada)
