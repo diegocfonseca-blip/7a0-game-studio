@@ -1,3 +1,8 @@
+## 🔒 22/11 — TELÃO LOGO ABAIXO DO JOGO, EM TODAS AS COMPETIÇÕES ONLINE
+- Pedido do Diego: ele e Futpoint, em qualquer liga/copa das salas online, com telão abaixo de cinema/placar rápido ou 2D, sem moldura bege. O anúncio passa a pertencer à transmissão principal e permanece nas trocas de aba.
+- Escopo inclui as transmissões de copas após a liga (`end`), sem ampliar o restante do piloto ou as permissões. Uma única placa, feed/links/rotação existentes; chamadas antigas da página/campo são suprimidas antes de montar seu corpo nessas duas contas. Outras contas, loja, carreira e basquete preservados.
+- Build e 651 verificações de interface passaram. [Implementação, cobertura e limites](telao-online-20261122.md).
+
 ## 🔒 22/11 — VISUAL ATUALIZADO LIBERADO TAMBÉM AO FUTPOINT
 - Autorização nova do Diego: “Atualiza agora o que fez pra mim pro Futpoint também”. A allowlist do piloto passa a Diego principal e `gfpicolo13@gmail.com`, usando a identidade já verificada. Substitui a restrição anterior apenas da interface; demais contas, inclusive a secundária do Diego, ficam fora.
 - Futpoint recebe os mesmos componentes atuais: abas roxas no topo, partida permanente, tática sem marcação individual, consulta dos adversários no desktop, chat/tabela lateral e cartão único do retrospecto. Preferência de voltar ao visual anterior é individual por conta.
@@ -49,6 +54,27 @@
   (ou "a temporada"). A Supercopa sem você já passava direto (`avancaCopaAuto`). Não testado numa carreira do Oficial na bancada.
 
 
+
+
+
+### ⚫⚓ 22/11 (noite) — Batismo Tunaldo FC (faertes9) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
+- Plano Batismo (79,90, sem nº de fundador), coração Corinthians, mascote O Craque Tunaldo (`tunaldo_craque`), manto preto #0F0F0F + cinza #706F6F
+  medidos na camisa. Várzea, no assento do bot Espeto Corrido FC (`OLD_NAME`). Conta existe (criada 08/10). Não achei o Pix no sistema (Diego confirmou Batismo).
+- Banco feito em 22/11: `esc_socios` nº 99, `user_colors` ouro + manual, `esc_nomes_batismo` (Tunaldo/Tunaldofc + FC/EC pelo gatilho).
+- Código: escudos, mascotes (+carimbo/nome), manto.ts, batismos.ts, apoio.tsx, salao-camisas + `public/mantos-salao/tunaldo-camisa-v1.webp`, data.ts, checa-batismos.
+- Post: `scripts/posts/batismo-tunaldo-fc.png`.
+
+### 🃏 22/11 (noite) — resgate da cartinha pra Liga da Turma, Liga Draft e Copas de dentro da sala (no branch; banco NÃO aplicado)
+- Diego: *"Sim"* (estender o resgate). Causa: liga não grava `match_seed` e a semente da liga muda na revanche (`rematch: Date.now()`),
+  então a chave da carta não dá pra remontar depois; Copa do Mundo/regional/Libertadores da sala têm chave própria (`mundo:`/`regional:`/`libsala:`).
+- Código: cada time de `human_results` agora leva `cartas` = as chaves EXATAS das cartinhas que ganhou (screens.tsx, nos dois lugares que gravam;
+  as Copas mandam a chave pelo `aoStatus`). Quem saiu herda só as que já estavam anotadas (ligahub.tsx).
+- Banco: `supabase/migrations/20261122230000_esc_titulos_sem_carta_v3.sql` — mesma função, lê também `cartas`. **Falta aplicar** (pedir OK; mexer em
+  função pode dar 1–3 min de lentidão na API, fazer em hora calma). Sem o banco, nada muda (o campo novo só fica guardado).
+- Vale pros títulos a partir da publicação (os antigos não têm a chave). Fora ainda: Copa do Mundo SOLTA (sala só de Copa, modo 'mundo'), carreira
+  online, basquete, sala apagada.
+- Chances do pacote (`CHANCE_CATEGORIA`, colecoes.ts): hoje Lenda 4 · Craque 16 · Promessa 4 · Bom 58 · Profissional 18. Proposta levada ao Diego:
+  Diego pediu menos bom jogador e distribuir melhor → no branch: Lenda 5 · Craque 22 · Promessa 10 · Bom 48 · Profissional 15 → 2ª rodada (*"diminuir mais bom jogador"*): **Lenda 6 · Craque 26 · Promessa 13 · Bom 40 · Profissional 15** (esperando OK).
 
 ### 🃏 22/11 (tarde) — Bafo: selo valendo/amistoso, fim amistoso explicado, aviso de quem foi levado, 3-5-2 (no branch, esperando "pode publicar")
 - Diego (prints da sala FG93HX): *"tem que ter um selinho… bafo valendo cartinha ou bafo amistoso"*, *"tem que dar uma explicação que o campeão não vai

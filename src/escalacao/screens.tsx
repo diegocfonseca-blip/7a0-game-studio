@@ -2,7 +2,7 @@ import {footballRoundStatus,footballNextFixture} from './football-round-status'
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
 import { salaDormindo } from './sala-dorme'
 import {PrivateRoomChat} from './private-room-chat'
-import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget,FootballMatchPlaceholder} from './owner-online-visual'
+import {ownerOnlineScope,useOwnerOnlineVisual,useOwnerLayout,useOwnerMatchAd,OwnerOnlineProvider,OwnerOnlineHeader,OwnerSlot,OwnerTactics,OwnerPlayback,OwnerChampionBanner,OwnerRoomTarget,FootballChatTarget,FootballSidebarTarget,FootballMatchPlaceholder} from './owner-online-visual'
 import {useFootballMatchPilotAccess} from './football-match-pilot'
 import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders,FootballRoundNotice,FootballOpponentBrowser,FootballNextOpponent} from './football-match-panels'
 import {useFootballChatDock} from './football-match-navigation'
@@ -1133,7 +1133,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
     return () => { ro.disconnect(); clearInterval(iv); solta() }
   }, [desktopWidth, state.screen])
   return (
-    <OwnerOnlineProvider enabled={ownerVisual} state={state}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
+    <OwnerOnlineProvider enabled={ownerVisual} state={state} matchAd={<GiroDaRodada cinema doJogo/>}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}${viceSala ? ' vice-sala' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {viceSala && <><style>{VICE_TEMA_CSS + VICE_SALA_CSS}</style><ViceSalaDecor /></>}
       {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
@@ -7691,7 +7691,8 @@ function useTitulosNaHora() {
       const resultados: ResultadoHumanoEntrada[] = state.managers.map(m => {
         const pos = table.findIndex(t => t.id === m.id)
         return { managerId: m.id, teamName: m.teamName, position: pos >= 0 ? pos + 1 : 0, qualified: pos >= 0 && pos < copaN(table.length), relegated: pos >= 0 && pos + 1 >= zoneBot(table.length),
-          leagueChampion: m.id === ligaCamp, cupTitles: copaCamp != null && m.id === copaCamp ? [copaTit] : [], humano: m.isHuman }
+          leagueChampion: m.id === ligaCamp, cupTitles: copaCamp != null && m.id === copaCamp ? [copaTit] : [], humano: m.isHuman,
+          cartas: [...(m.id === ligaCamp ? [base] : []), ...(copaCamp != null && m.id === copaCamp ? [`${base}:copa`] : [])] } // 🃏 22/11: chaves pro resgate
       })
       const champName = state.managers.find(m => m.id === ligaCamp)?.teamName ?? ''
       vai(`grava:${base}:${copaCamp ?? '-'}`, () => gravaTemporadaSala(roomId, state.managers.filter(m => m.isHuman).map(m => m.teamName), {
@@ -9555,11 +9556,18 @@ function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }
   return <>{texto.split(' ').map((w, wi) => <Fragment key={wi}>{wi > 0 && ' '}<span style={{ whiteSpace: 'nowrap' }}>{Array.from(w).map((ch, ci) =>
     <span key={ci} className="placa-l" style={{ animationDelay: `${atraso + (n++) * 14}ms` }}>{ch}</span>)}</span></Fragment>)}</>
 }
-export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean; exemplos?: AnuncioGiro[]; mb?: number; /** o telão que mora EMBAIXO do campinho 2D */ doCampo?: boolean }) {
+type GiroDaRodadaProps={news?:string[];isCopa?:boolean;cinema?:boolean;exemplos?:AnuncioGiro[];mb?:number;doCampo?:boolean;doJogo?:boolean}
+export function GiroDaRodada(props:GiroDaRodadaProps){
+ const matchAd=useOwnerMatchAd()
+ // One feed and timer at the primary match, including post-league broadcasts.
+ if(matchAd&&!props.doJogo&&!props.exemplos)return null
+ return <GiroDaRodadaBody {...props}/>
+}
+function GiroDaRodadaBody({ cinema = false, exemplos, mb = 16, doCampo = false, doJogo=false }:GiroDaRodadaProps) {
   // 📺 com o campinho 2D na tela, o telão é o dele (embaixo do jogo); o da página some — nunca dois
   const ownerVisual=useOwnerLayout()
   const campoNaTela = useCampoNaTela()
-  const escondido = !doCampo && !exemplos && campoNaTela
+  const escondido = !doCampo && !doJogo && !exemplos && campoNaTela
   // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
   const doBanco = useAnunciosGiro()
   // 🛒 18/10 (Diego): a Loja mostra o telão de EXEMPLO rodando (Vadico no da empresa, recados no da galera)
@@ -9577,8 +9585,8 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
   const { marca, oferta } = partesDoAnuncio(ad.texto)
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   if (escondido) return null
-  return (
-    <OwnerSlot name="ad"><div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
+  const board=(
+    <div className={doJogo?'fp-match-ad-board':cinema ? 'll31-news' : undefined} aria-label={doJogo?tr('Telão de propaganda','Advertising board'):undefined} style={{ background: INK, border: doJogo?0:`3px solid ${INK}`, borderRadius: 14, boxShadow: doJogo?'none':`4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: doJogo?0:mb }}>
       <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
 .placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
 .placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}
@@ -9616,8 +9624,9 @@ export function GiroDaRodada({ cinema = false, exemplos, mb = 16, doCampo = fals
         </>}
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
-    </div></OwnerSlot>
+    </div>
   )
+  return doJogo?board:<OwnerSlot name="ad">{board}</OwnerSlot>
 }
 
 // 🏀🏆 NBA CUP REAL (EUA Oficial): os 6 grupos de 5, no MESMO visual da tabela Leste/Oeste (Box, etiqueta dourada, linha da conferência).
@@ -11131,7 +11140,7 @@ const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`,
 
 // 🃏 21/11 (Diego: "a carta que tenha no jogo serve pro baralho inteiro entrar aleatoriamente quando alguém for campeão"): o pacote
 // do ÁLBUM soma as cartas regionais e as do Brasil Oficial (estaduais, Séries A–D, Libertadores, Sul-Americana) aos 3 baralhos.
-// A raridade não muda: `sorteiaCarta` escolhe a CATEGORIA primeiro (lenda 4%…) e só depois a carta dentro dela.
+// A raridade não muda: `sorteiaCarta` escolhe a CATEGORIA primeiro (lenda 6%…) e só depois a carta dentro dela.
 // 🔁 mesmo dia: a CARREIRA também ("mesmo cálculo"). Carta do Oficial que cair numa carreira de sempre entra no álbum e na Agência,
 // mas não rende lá (aquele jogador não joga naquela carreira).
 function poolInteiro(extras: CartaExtra[]): WonCard[] {
@@ -13910,7 +13919,7 @@ export function EscEnd() {
   // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
   // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
   const proxNomeFim = mundoEsperando ? (libertaNaLiga ? 'Libertadores' : regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : euroNaLiga === 16 ? LE('Copa América', 'Copa América') : euroNaLiga ? LE('Eurocopa', 'Euro') : LE('Copa do Mundo', 'World Cup')) : null
-  const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
+  const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string; chave?: string } | null>(null)
   useEffect(() => { if (mundoNaLiga || regionalNaLiga || libertaNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga, libertaNaLiga])
   useEffect(() => {
     if (!online || !state.roomId || bbEnd) return // 🏀 basquete nunca abre Copa do Mundo/regional depois da liga
@@ -14358,7 +14367,7 @@ export function EscEnd() {
           <CopaDaLigaLazy euro={euroNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
-            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }}
             aoRemover={(id, nome) => {
               if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
             }}
@@ -14375,7 +14384,7 @@ export function EscEnd() {
           <LibertaSalaLazy roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
-            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }}
             aoRemover={(id, nome) => {
               if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
             }}
@@ -14390,7 +14399,7 @@ export function EscEnd() {
           <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} assentos={state.seatUids} duplas={state.duplas} souDono={!!state.isHost} meuUid={state.youUid}
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
-            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }} // 🏟️ o campeão vai pro jornal e pro histórico, igual à Copa do Mundo
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao ? { ...st.campeao, chave: st.chave } : null) }} // 🏟️ o campeão vai pro jornal e pro histórico, igual à Copa do Mundo
             aoRemover={(id, nome) => {
               if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
             }}
@@ -14463,6 +14472,12 @@ export function EscEnd() {
             cupTitles,
             ...(relPos ? { comp: 'relampago' as const } : chTab ? { comp: 'champions' as const } : {}), // 🏆 taça certa no perfil (28/10)
             humano: m.isHuman,
+            // 🃏 22/11: as chaves das cartinhas que este time ganhou — o resgate da tela inicial (`esc_titulos_sem_carta`) lê daqui
+            cartas: [
+              ...((chTab || relPos ? chCamp?.id === m.id : champ.id === m.id) ? [`${state.roomId}:${state.seed}:${state.seasonNo}${chTab || relPos ? ':copa' : ''}`] : []),
+              ...(!chTab && !relPos && copaDone && state.quickCopa?.champion?.id === m.id ? [`${state.roomId}:${state.seed}:${state.seasonNo}:copa`] : []),
+              ...(campeaoDoMundo?.chave && campeaoDoMundo.nome === m.teamName ? [campeaoDoMundo.chave] : []),
+            ],
           }
         })
         return (

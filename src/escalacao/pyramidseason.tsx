@@ -7646,7 +7646,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
       )}
       {/* 🎽🔁 as pílulas: o que está valendo, em uma linha. Toca e a caixa abre embaixo. */}
       {elencoNovoOk && elenco && (onSetFormation || onSetSubMode || ab) && (() => {
-        const rotuloForm = quinze15 || ((escSt.minhaLigaDraft || escSt.bafo2) && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr).rotulo : mgr.formation
+        const rotuloForm = quinze15 || ((escSt.minhaLigaDraft || escSt.bafo2) && mgr.formation === '5-3-2' && mgr.formationView === '3-5-2') ? formacaoAtual(mgr).rotulo : rotuloFormacao(mgr.formation) // 🛡️ 22/11 (Diego: "pq aparece uma letra z"): o 3-4-3 sem lateral tem a chave '3-4-3z', a tela mostra só 3-4-3
         const modoAgora = (subMode ?? 'dinamico') === 'dinamico' ? tr('🔄 Dinâmico', '🔄 Dynamic') : tr('⏸️ Intervalo', '⏸️ Half-time')
         const pilula = (txt: string, aberta: boolean, onClick: () => void) => (
           <button onClick={onClick} style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 8px', border: `2.5px solid ${INK}`, borderRadius: 9, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

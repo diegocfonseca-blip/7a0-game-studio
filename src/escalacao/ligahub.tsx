@@ -122,6 +122,8 @@ export type ResultadoHumanoEntrada = {
   /** 👥 era gente NESTE momento? `false` = time que virou CPU (a pessoa apertou SAIR). Só entra na gravação
    *  se a MESMA partida já tinha anotado esse time como de alguém (ver `herdaDe` abaixo). Sem o campo = gente. */
   humano?: boolean
+  /** 🃏 22/11: as chaves das cartinhas que este time ganhou nesta partida (o resgate da tela inicial lê daqui) */
+  cartas?: string[]
 }
 type ResultadoHumano = {
   user_id: string | null
@@ -133,6 +135,7 @@ type ResultadoHumano = {
   league_champion: boolean
   cup_titles: TituloSalaRapida[]
   comp?: 'champions' | 'relampago'
+  cartas?: string[]
 }
 type MembroSala = { user_id: string; manager_name: string; player_index: number }
 
@@ -375,6 +378,8 @@ export async function gravaTemporadaSala(roomId: string, humanos: string[], grav
       league_champion: r.humano === false ? !!velho?.league_champion : r.leagueChampion,
       cup_titles: r.humano === false ? (velho?.cup_titles ?? []) : r.cupTitles,
       ...(r.comp ? { comp: r.comp } : {}), // 🏆 só a etiqueta da taça no perfil (28/10) — nada mais lê
+      // 🃏 22/11: cartinha só de quem era GENTE quando ganhou (quem saiu herda só a que já estava anotada)
+      ...((r.humano === false ? velho?.cartas : r.cartas)?.length ? { cartas: r.humano === false ? velho!.cartas : r.cartas } : {}),
     }))
   })
   const payload = {

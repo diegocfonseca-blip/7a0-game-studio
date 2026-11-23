@@ -13,6 +13,7 @@ async function open(width,query=''){
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url())
   if(url.hostname!=='127.0.0.1'){
+   if(url.pathname==='/rest/v1/esc_anuncios_fixos')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{texto:'Marca A · Oferta de teste A',link:'https://example.com/anuncio-a'},{texto:'Marca B · Oferta de teste B',link:'https://example.com/anuncio-b'}])})
    const sample=new URLSearchParams(query.replace(/^\?/,'' )).get('retro')
    const rows={fregues:[5,2,1],rival:[1,2,5],equilibrado:[3,4,3],zero:[0,0,0]}
    const values=url.pathname==='/rest/v1/esc_retrospecto'?rows[sample]:null
@@ -26,13 +27,24 @@ async function open(width,query=''){
  })
  await page.goto('http://127.0.0.1:5178/scripts/teste-football-full/'+query,{waitUntil:'networkidle'})
  console.log('OPEN',query,await page.evaluate(()=>({screen:window.qaFull?.state.screen,mode:window.qaFull?.state.copaMode,online:window.qaFull?.state.onlineMode,youUid:window.qaFull?.state.youUid,url:location.href,qa:typeof window.qaAccount})))
- await page.waitForSelector('.fp-match-primary',{timeout:20000}).catch(async e=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:`out/falha.png`.replace('out',out),fullPage:true});throw e})
- await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
+ const post=new URLSearchParams(query.replace(/^\?/,'' )).get('competition')?.startsWith('post-')
+ await page.waitForSelector(post?'.ov3-primary-active .fp-match-ad-board':'.fp-match-primary',{timeout:20000}).catch(async e=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:`out/falha.png`.replace('out',out),fullPage:true});throw e})
+ if(!post)await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
+ await checkMatchAd(page,`${width}: ${query||'liga'}`)
  return{context:{close:async()=>{closing=true;await context.close()}},page}
 }
 const check=(name,value)=>{assert(value,name);checks.push(name)}
+async function checkMatchAd(page,label){
+ const primary=page.locator('.ov3-primary-active'),native=primary.locator(':scope > .ov3-native'),ad=primary.locator(':scope > .ov3-ad-slot .fp-match-ad-board')
+ await ad.waitFor()
+ check(`${label}: um único telão na transmissão`,await page.locator('.fp-match-ad-board:visible').count()===1&&await primary.locator('.placa-led:visible').count()===1)
+ const field=await native.boundingBox(),board=await ad.boundingBox()
+ check(`${label}: telão imediatamente abaixo do jogo`,board.y>=field.y+field.height-1&&board.y-field.y-field.height<=25)
+ check(`${label}: telão sem moldura bege`,await ad.evaluate(node=>{const style=getComputedStyle(node);return style.backgroundColor==='rgb(12, 12, 12)'&&style.borderTopWidth==='0px'&&style.paddingTop==='0px'&&style.boxShadow==='none'}))
+}
 async function checkPersistentFrame(page,label,field=false){
  const native=await page.locator('.ov3-native').first().elementHandle(),tabs=await page.locator('.fp-page-tabs').elementHandle()
+ const ad=await page.locator('.fp-match-ad-board').elementHandle()
  const canvas=field?await page.locator('.ov3-native canvas').first().elementHandle():null
  const width=(await page.locator('.ov3-native').first().boundingBox()).width
  const timing=await page.evaluate(()=>({round:window.qaFull.state.round,at:window.qaFull.state.rodadaEm?.at,speed:window.qaFull.state.simSpeed}))
@@ -48,6 +60,8 @@ async function checkPersistentFrame(page,label,field=false){
   check(`${label}: ${name} mantém a posição das abas`,Math.abs((await page.locator('.fp-page-tabs').boundingBox()).y-top)<2)
   check(`${label}: ${name} mantém largura do jogo`,Math.abs((await page.locator('.ov3-native').first().boundingBox()).width-width)<2)
   check(`${label}: ${name} mantém controles`,await page.locator('.fp-match-playback').isVisible())
+  check(`${label}: ${name} mantém o mesmo telão visível`,await page.locator('.fp-match-ad-board').isVisible()&&await ad.evaluate(node=>node===document.querySelector('.fp-match-ad-board')))
+  await checkMatchAd(page,`${label}: ${name}`)
   if(canvas)check(`${label}: ${name} conserva o mesmo canvas 2D`,await canvas.evaluate(node=>node===document.querySelector('.ov3-native canvas')))
   if(key==='rivals')check(`${label}: rivalidades ficam abaixo do placar`,(await page.locator('.ov3-rivalries').boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height)
   if(key==='table')check(`${label}: jogos ficam abaixo do placar`,(await page.locator('#ll26-round-games').boundingBox()).y>=(await page.locator('.ov3-native').first().boundingBox()).y+(await page.locator('.ov3-native').first().boundingBox()).height)
@@ -176,6 +190,7 @@ try{
   check(`${width}: outras contas fora da nova interface`,await page.locator('.fp-advanced-tactics').count()===0)
   check(`${width}: conta pública não recebe o novo destino de rivalidades`,await page.locator('.ov3-rivals-slot').count()===0)
   check(`${width}: conta pública não recebe o cartão novo de próximo jogo`,await page.locator('.ov3-next-rival-slot').count()===0)
+  check(`${width}: conta pública não recebe a nova posição privada do telão`,await page.locator('.fp-match-ad-board').count()===0)
   await context.close()
  }
  for(const width of [390,1440]){
@@ -189,6 +204,7 @@ try{
     await page.getByRole('button',{name,exact:true}).first().evaluate(button=>button.click())
     await page.waitForFunction(key=>document.body.dataset.fpPage===key,key)
     check(`${label}: ${name} conserva o mesmo jogo visível`,await page.locator('.ov3-native').first().isVisible()&&await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+    await checkMatchAd(page,`${label}: ${name}`)
     if(key==='squad'&&width>=1100)check(`${label}: consulta dos adversários no desktop`,await page.getByLabel('Escolha o clube',{exact:true}).isVisible())
    }
    await page.locator('.ov3-next-rival-slot .fp-next-own-record').waitFor()
@@ -241,6 +257,23 @@ try{
   await card.screenshot({path:`${out}/${width}-cartao-${retro}.png`})
   await page.getByRole('button',{name:'Rivalidades',exact:true}).first().evaluate(button=>button.click())
   check(`${width}: ${retro}: detalhes usam o mesmo retrospecto`,await page.locator('.ov3-rivalries .fp-next-own-record').innerText()===own)
+  await context.close()
+ }
+ for(const [width,competition,field,account] of [[390,'post-world',false,'diego.c.fonseca@gmail.com'],[1440,'post-world',true,'gfpicolo13@gmail.com'],[390,'post-regional',true,'diego.c.fonseca@gmail.com'],[1440,'post-liberta',false,'gfpicolo13@gmail.com']]){
+  const {page,context}=await open(width,`?competition=${competition}&account=${encodeURIComponent(account)}${field?'&field=1':''}`)
+  check(`${width}: ${competition}: anúncios pós-liga sem ampliar as abas do piloto`,!await page.locator('.fp-page-tabs').count()&&await page.locator('.ov3-primary').count()===2)
+  if(field)check(`${competition}: dois campos não duplicam o telão`,await page.locator('canvas').count()>=2&&await page.locator('.fp-match-ad-board').count()===1)
+  const ad=page.locator('.fp-match-ad-board'),node=await ad.elementHandle()
+  await ad.locator('.placa-tag').filter({hasText:'/2'}).waitFor()
+  const before=await ad.locator('.placa-tag').textContent()
+  await page.clock.install();await page.clock.fastForward(7000)
+  await page.waitForFunction(text=>document.querySelector('.fp-match-ad-board .placa-tag').textContent!==text,before)
+  check(`${competition}: rotação do anúncio preservada`,await node.evaluate(el=>el===document.querySelector('.fp-match-ad-board')))
+  await page.evaluate(()=>{window.qaAdOpened=null;window.open=url=>{window.qaAdOpened=url;return null}})
+  await ad.locator('[role=link]').evaluate(el=>el.click())
+  check(`${competition}: anúncio mantém o link original`,await page.evaluate(()=>/^https:\/\/example.com\/anuncio-[ab]$/.test(window.qaAdOpened)))
+  await ad.evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}))
+  await ad.screenshot({path:`${out}/${width}-${competition}-telao.png`})
   await context.close()
  }
  for(const competition of ['liberta','champions','cup']){

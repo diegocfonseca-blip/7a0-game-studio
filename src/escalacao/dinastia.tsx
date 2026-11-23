@@ -17,6 +17,7 @@ import { nomeOfensivo } from './nome-ofensivo' // 🚫 21/10
 import { nomeDeTime } from './nome-time' // 🔤 21/10
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Card, EscState, FormationKey, Sector, WonCard } from './types'
+import { rotuloFormacao } from './types'
 import { CATALOG, DIVISION_TEAMS, TIMES_ELITE } from './data'
 import { useEsc, sortedTable } from './store'
 import { stripEmoji } from './apoio'
@@ -1034,10 +1035,10 @@ function SquadScreen({ save, onBack }: { save: Save; onBack: () => void }) {
   const byPos = SECTORS.map(p => ({ p, cards: save.squad.filter(c => c.pos === p) }))
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>👥 Elenco · {save.formation} · {save.squad.length} jogadores</p>
+      <p style={{ fontWeight: 900, fontSize: 18, ...OSWALD }}>👥 Elenco · {rotuloFormacao(save.formation)} · {save.squad.length} jogadores</p>
       <MiniPitch squad={save.squad} formation={save.formation} />
       <div style={{ ...box('#EAF3FF'), padding: 9 }}>
-        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A formação <b>{save.formation}</b> foi definida no começo da dinastia e não muda. A <b>tática</b> (defensivo / equilibrado / ofensivo) você escolhe <b>durante a partida</b>, no campinho.</p>
+        <p style={{ fontSize: 12, fontWeight: 700 }}>ℹ️ A formação <b>{rotuloFormacao(save.formation)}</b> foi definida no começo da dinastia e não muda. A <b>tática</b> (defensivo / equilibrado / ofensivo) você escolhe <b>durante a partida</b>, no campinho.</p>
       </div>
       <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, marginTop: 4 }}>Elenco completo</p>
       {byPos.map(({ p, cards }) => cards.length > 0 && (

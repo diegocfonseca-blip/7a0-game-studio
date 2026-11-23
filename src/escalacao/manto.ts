@@ -182,6 +182,8 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👑🦡 Império FC — BRANCO e PRETO, MEDIDOS na camisa que o dono mandou (20/11): branco do corpo (#F8F3F0) e o preto da faixa
   // diagonal (#0A0703). O DOURADO dos frisos (#F1AD10) é a 3ª cor (MANTO_TRI).
   'leodicasttro@hotmail.com': ['#F8F3F0', '#0A0703'],
+  // ⚫⚓ Tunaldo FC — PRETO e CINZA, MEDIDOS na camisa que o dono mandou (22/11): preto do corpo (#0F0F0F) e o cinza do 9/âncora/punhos (#706F6F).
+  'faertes9@gmail.com': ['#0F0F0F', '#706F6F'],
   // 🐆👑 Lavras FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (16/11): preto do corpo (#0A0806) e o dourado das
   // faixas/gola (#F3AD03).
   'hugopereirabrito@gmail.com': ['#0A0806', '#F3AD03'],

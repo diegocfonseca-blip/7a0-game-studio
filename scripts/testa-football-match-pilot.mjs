@@ -9,6 +9,9 @@ const diego='diego.c.fonseca@gmail.com',futpoint='gfpicolo13@gmail.com'
 for(const email of [diego,futpoint,` ${diego.toUpperCase()} `,` ${futpoint.toUpperCase()} `])assert.equal(policy.footballMatchPilotEmail(email),true)
 for(const email of [null,undefined,'','diego.c.fonseca2@gmail.com','outro@example.com',`${diego}.evil`,`${futpoint}.evil`])assert.equal(policy.footballMatchPilotEmail(email),false)
 for(const screen of ['season','liberta','champions'])assert.equal(policy.footballMatchPilotScope({screen,onlineMode:'online'}),true)
+for(const screen of ['season','liberta','champions','end'])assert.equal(policy.footballMatchAdScope({screen,onlineMode:'online'}),true)
+for(const state of [{screen:'season'},...['setup','lobby','auction','convocacao'].map(screen=>({screen,onlineMode:'online'})),...['careerOnline','careerIntent','co2','pokeLiga'].map(key=>({screen:'end',onlineMode:'online',[key]:true})),{screen:'end',onlineMode:'online',sport:'basquete'}])assert.equal(policy.footballMatchAdScope(state),false,JSON.stringify(state))
+assert.equal(policy.footballMatchPilotScope({screen:'end',onlineMode:'online'}),false,'as copas após a liga ganham só o telão, sem ampliar o restante do piloto')
 for(const state of [{screen:'season'},{screen:'season',onlineMode:'solo'},...['setup','lobby','auction','convocacao','end'].map(screen=>({screen,onlineMode:'online'})),...['careerOnline','careerIntent','co2','pokeLiga'].map(key=>({screen:'season',onlineMode:'online',[key]:true})),{screen:'season',onlineMode:'online',sport:'basquete'}])assert.equal(policy.footballMatchPilotScope(state),false,JSON.stringify(state))
 
 let authChanged,pending=[]
