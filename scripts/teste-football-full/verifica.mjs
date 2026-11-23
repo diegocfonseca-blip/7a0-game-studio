@@ -233,7 +233,7 @@ try{
     check(`${width}: histórico ausente não inventa freguesia ou primeiro duelo`,(await card.locator('.fp-next-rivalry-tag').innerText())==='Sem histórico disponível'&&await card.locator('.fp-next-own-record').count()===0)
     check(`${width}: faixa marrom preserva a arte atual`,await card.locator('.ll-next-rivalry').evaluate(node=>getComputedStyle(node).backgroundColor)==='rgb(26, 20, 8)')
     await card.getByRole('button',{name:'Ver rivalidades em detalhes',exact:false}).click()
-    check(`${width}: detalhes mantêm próximo jogo e faixa marrom`,await page.locator('.ov3-rivalries .fp-next-opponent .ll-next-rivalry').isVisible())
+    check(`${width}: detalhes mantêm próximo jogo e faixa marrom comum`,await card.locator('.ll-next-rivalry').isVisible())
     check(`${width}: sem repetir faixa marrom ao trocar aba`,await page.locator('.ll-next-rivalry:visible').count()===1)
     check(`${width}: trocar para detalhes mantém jogo montado`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
     await page.evaluate(()=>window.scrollTo(0,0))
@@ -241,6 +241,14 @@ try{
     await page.getByRole('button',{name:'Partida',exact:true}).first().evaluate(button=>button.click())
     await page.evaluate(()=>window.scrollTo(0,0))
     await page.screenshot({path:`${out}/${width}-proximo-jogo-rivalidade.png`,fullPage:true})
+   }
+   const persistentCard=await card.elementHandle()
+   for(const tab of ['Partida','Tabela e jogos','Estatísticas','Elenco','Rivalidades']){
+    await page.getByRole('button',{name:tab,exact:true}).first().evaluate(button=>button.click())
+    check(`${width}: ${competition}: ${tab} mantém próximo confronto visível`,await card.isVisible())
+    check(`${width}: ${competition}: ${tab} conserva o mesmo cartão`,await persistentCard.evaluate(node=>node===document.querySelector('.ov3-next-rival-slot .fp-next-opponent')))
+    check(`${width}: ${competition}: ${tab} conserva a transmissão`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+    check(`${width}: ${competition}: ${tab} não duplica o próximo confronto`,await page.locator('.fp-next-opponent:visible').count()===1)
    }
    await context.close()
   }
@@ -256,7 +264,7 @@ try{
   await card.evaluate(node=>node.scrollIntoView({block:'center',behavior:'instant'}))
   await card.screenshot({path:`${out}/${width}-cartao-${retro}.png`})
   await page.getByRole('button',{name:'Rivalidades',exact:true}).first().evaluate(button=>button.click())
-  check(`${width}: ${retro}: detalhes usam o mesmo retrospecto`,await page.locator('.ov3-rivalries .fp-next-own-record').innerText()===own)
+  check(`${width}: ${retro}: detalhes usam o mesmo retrospecto permanente`,await card.locator('.fp-next-own-record').innerText()===own)
   await context.close()
  }
  for(const [width,competition,field,account] of [[390,'post-world',false,'diego.c.fonseca@gmail.com'],[1440,'post-world',true,'gfpicolo13@gmail.com'],[390,'post-regional',true,'diego.c.fonseca@gmail.com'],[1440,'post-liberta',false,'gfpicolo13@gmail.com']]){

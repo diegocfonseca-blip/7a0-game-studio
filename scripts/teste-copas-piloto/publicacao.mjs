@@ -45,11 +45,15 @@ const tabs=['Partida','Copa e jogos','Estatísticas','Elenco','Rivalidades']
 async function verifyTabs(page,label,quick=false){
  await page.waitForSelector(quick?'.fp-match-primary':'.fp-cup-layout',{timeout:20000})
  const native=await page.locator('.ov3-native').first().elementHandle(),canvas=await page.locator('.ov3-native canvas').first().elementHandle().catch(()=>null)
+ const rival=page.locator('.ov3-next-rival-slot .ll-next-rivalry'),persistentRival=await rival.elementHandle()
  for(const name of tabs){
   await page.getByRole('button',{name,exact:true}).first().evaluate(b=>b.click())
   check(`${label}: ${name} mantém transmissão`,await native.evaluate(el=>el===document.querySelector('.ov3-native')&&el.getBoundingClientRect().height>50))
   if(canvas)check(`${label}: ${name} mantém canvas`,await canvas.evaluate(el=>el===document.querySelector('.ov3-native canvas')))
   check(`${label}: ${name} mantém telão único`,await page.locator('.fp-match-ad-board:visible').count()===1)
+  check(`${label}: ${name} mantém retrospecto marrom`,await rival.isVisible())
+  check(`${label}: ${name} conserva o cartão`,await persistentRival.evaluate(node=>node===document.querySelector('.ov3-next-rival-slot .ll-next-rivalry')))
+  check(`${label}: ${name} não repete o cartão no corpo da Copa`,await page.locator('.fp-cup-main .ll-next-rivalry:visible').count()===1)
   if(!quick){const labels={'Partida':'Partida da Copa','Copa e jogos':'Copa e jogos','Estatísticas':'Estatísticas da Copa','Elenco':'Elencos da Copa','Rivalidades':'Rivalidades da Copa'};check(`${label}: conteúdo próprio de ${name}`,await page.locator(`.fp-cup-panel[aria-label="${labels[name]}"]`).isVisible())}
  }
  await page.getByRole('button',{name:'Partida',exact:true}).first().evaluate(b=>b.click())
@@ -58,7 +62,7 @@ async function verifyTabs(page,label,quick=false){
 try{
  const t=await open(1440,{kind:'euro',step:2,minute:35,duration:600000,account:'outro@example.com',rival:true}),page=t.page
  await page.waitForSelector('.fp-cup-aside .ll-next-rivalry')
- check('rivalidade pública na Partida',await page.locator('.fp-cup-panel:visible .ll-next-rivalry').isVisible())
+ check('rivalidade pública na área permanente da partida',await page.locator('.ov3-next-rival-slot .ll-next-rivalry').isVisible())
  check('rivalidade pública na lateral',await page.locator('.fp-cup-aside .ll-next-rivalry').isVisible())
  await page.waitForFunction(()=>/4\s*×\s*3/.test(document.querySelector('.fp-cup-aside .ll-next-rivalry').textContent))
  check('histórico da bancada é exibido',true)

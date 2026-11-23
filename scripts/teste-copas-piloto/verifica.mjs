@@ -130,7 +130,7 @@ try{
  check('participante público salva seu próprio plano',publicUser.getRows().at(-1)?.uid==='00000000-0000-4000-8000-000000000101'&&publicUser.getRows().at(-1)?.plan.pressure==='high')
  await publicUser.close()
  const rivalDesktop=await open(1440,{kind:'euro',step:2,minute:35,duration:600000,account:'outro@example.com',rival:true})
- check('desktop público: retrospecto na aba Partida',await rivalDesktop.page.locator('.fp-cup-panel:visible .ll-next-rivalry').isVisible())
+ check('desktop público: retrospecto permanente na transmissão',await rivalDesktop.page.locator('.ov3-next-rival-slot .ll-next-rivalry').isVisible())
  check('desktop público: retrospecto visível na lateral',await rivalDesktop.page.locator('.fp-cup-aside .ll-next-rivalry').isVisible())
  check('desktop público: histórico real fornecido pela bancada',/4\s*×\s*3/.test(await rivalDesktop.page.locator('.fp-cup-aside .ll-next-rivalry').innerText()))
  await rivalDesktop.page.screenshot({path:`${out}/1440-publico-rivalidade.png`,fullPage:true});await rivalDesktop.close()
