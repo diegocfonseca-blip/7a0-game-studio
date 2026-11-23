@@ -15224,3 +15224,4 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   copa ainda grava sem autores. Espectador não vê o livro (a função dele não devolve as colunas novas).
 - 🚫 23/11: Carrasco, Foto do vexame e Coletiva do clássico (mockup `scripts/mockups/rivalidade-mais3.png`) — Diego: *"não faça esses três"*. Não repropor.
 - ✅ 23/11: Rivalidade (termômetro, placa de freguês 10+, livro, faixa do clássico) publicada (*"publica agora"*).
+- 🔁 23/11 (madrugada, print dele na Liga): *"quero somente na aba de rivalidade"*. Termômetro, placa e livro saíram da aba Partida/Jogos e de salas sem aba Rivalidades (prop `classico` de `PrateleiraRivalidades`, só nas abas Rivalidades do visual novo e da Copa). A faixa fina embaixo do placar/campo SAIU. O resto (próximo encontro, "você contra os amigos") ficou como estava.

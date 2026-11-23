@@ -25,7 +25,7 @@ const tagDe = (r: Retro | undefined, t: (pt: string, en: string) => string): { t
   return { txt: t('equilibrado', 'even'), cor: '#7C3AED' }
 }
 
-export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime, onlyNext=false, hideNext=false, nextTitle }: { amigos: AmigoRival[]; mapa: Record<string, Retro>; proximo: ProximoEncontro | null; meuTime: string; onlyNext?:boolean; hideNext?:boolean; nextTitle?:string }) {
+export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime, onlyNext=false, hideNext=false, nextTitle, classico=false }: { amigos: AmigoRival[]; mapa: Record<string, Retro>; proximo: ProximoEncontro | null; meuTime: string; onlyNext?:boolean; hideNext?:boolean; nextTitle?:string; /** ⚔️ 23/11: termômetro + placa + livro SÓ na aba Rivalidades (Diego: "somente na aba de rivalidade") */ classico?:boolean }) {
   const t = useT()
   if (amigos.length === 0) return null
   const rp = proximo ? mapa[proximo.amigo.uid] : undefined
@@ -59,7 +59,7 @@ export function PrateleiraRivalidades({ amigos, mapa, proximo, meuTime, onlyNext
           </p>
         </div>
       )}
-      {!onlyNext && (() => { const foco = proximo?.amigo ?? [...amigos].sort((a, b) => totalDe(mapa[b.uid]) - totalDe(mapa[a.uid]))[0]; return foco && totalDe(mapa[foco.uid]) > 0 ? <ClassicoCompleto r={mapa[foco.uid]} meuTime={meuTime} outroTime={foco.time} /> : null })()}
+      {classico && !onlyNext && (() => { const foco = proximo?.amigo ?? [...amigos].sort((a, b) => totalDe(mapa[b.uid]) - totalDe(mapa[a.uid]))[0]; return foco && totalDe(mapa[foco.uid]) > 0 ? <ClassicoCompleto r={mapa[foco.uid]} meuTime={meuTime} outroTime={foco.time} /> : null })()}
       {!onlyNext&&<div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 12, color: INK }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 8px', textTransform: 'uppercase' }}>🆚 {t('Você contra os amigos', 'You vs your friends')}</p>
         {amigos.map(a => {
