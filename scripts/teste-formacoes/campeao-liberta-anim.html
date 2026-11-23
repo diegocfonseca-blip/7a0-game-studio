@@ -1,0 +1,79 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Oswald,sans-serif}
+#s{position:relative;width:100vw;height:100vh;overflow:hidden;color:#fff;text-align:center}
+.noite{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#1d2f5a 0%,#060a10 62%)}
+.arq{position:absolute;left:0;right:0;top:30%;height:26%;background:repeating-linear-gradient(90deg,#0f1622 0 6px,#0a0f18 6px 12px)}
+.arqc{position:absolute;left:0;right:0;top:30%;height:26%;background:repeating-linear-gradient(90deg,var(--c1) 0 6px,var(--c2) 6px 12px);opacity:0;animation:aparece .5s 3.1s forwards}
+.gram{position:absolute;left:0;right:0;bottom:0;height:44%;background:repeating-linear-gradient(90deg,#0f5427 0 34px,#0e6a2e 34px 68px)}
+.apag{position:absolute;inset:0;background:#000;opacity:.6;animation:acende .4s 2s forwards}
+.fum{position:absolute;bottom:34%;width:46vw;height:46vw;border-radius:50%;filter:blur(30px);opacity:0;animation:fumo 3s .2s forwards}
+.sin{position:absolute;bottom:52%;font-size:26px;animation:pisca .25s infinite alternate}
+.tunel{position:absolute;left:32%;right:32%;bottom:44%;height:16%;background:#000;border:5px solid #333;border-bottom:0;border-radius:90px 90px 0 0;box-shadow:0 0 60px #ffb000 inset;animation:sai .4s 2s forwards}
+.t1{position:absolute;left:0;right:0;top:14%;font-weight:900;font-size:20px;letter-spacing:.25em;color:#FFE08A;text-transform:uppercase;opacity:0;animation:aparece .5s .3s forwards,sai .3s 1.9s forwards}
+.cont{position:absolute;left:0;right:0;top:20%;font-weight:900;font-size:80px;color:#FFC400;text-shadow:5px 5px 0 #000}
+.cont span{position:absolute;left:0;right:0;opacity:0}
+.cont span:nth-child(1){animation:num .6s .5s}.cont span:nth-child(2){animation:num .6s 1.1s}.cont span:nth-child(3){animation:num .6s 1.6s}
+.flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#fff8d0 0%,#FFC400 28%,rgba(255,196,0,0) 65%);opacity:0;animation:flash .7s 2s}
+.band{position:absolute;left:5%;right:5%;top:26%;height:28%;border:4px solid #000;border-radius:8px;display:grid;place-items:center;background:repeating-linear-gradient(90deg,var(--c1) 0 50px,var(--c2) 50px 100px);transform:translateY(120%) scaleY(.2);opacity:0;animation:sobe .6s 2.1s cubic-bezier(.2,1.4,.4,1) forwards,sai .4s 3.2s forwards}
+.band img{width:34vw;max-width:170px;filter:drop-shadow(4px 4px 0 #000);transform:scale(2.2);opacity:0;animation:carimba .35s 2.55s forwards}
+.mart{position:absolute;left:58%;top:34%;font-size:64px;opacity:0;transform-origin:80% 80%;animation:martelo .45s 2.3s}
+.papel{position:absolute;inset:-20% 0 0 0;background-image:radial-gradient(#fff 2px,transparent 2.4px),radial-gradient(#FFC400 1.8px,transparent 2.2px),radial-gradient(#fff 1.6px,transparent 2px);background-size:30px 34px,44px 28px,23px 40px;opacity:0;animation:aparece .3s 3s forwards,chove 4s 3s linear infinite}
+.bloco{position:absolute;left:0;right:0;top:9%;opacity:0;animation:entra .5s 3.2s forwards,sai .4s 5.2s forwards}
+.bloco img{width:26vw;max-width:120px;filter:drop-shadow(3px 3px 0 #000)}
+.ttl{font-weight:900;font-size:46px;line-height:1;color:transparent;background:linear-gradient(100deg,#b8860b 0%,#FFC400 30%,#fff6c2 45%,#FFC400 60%,#b8860b 100%);background-size:250% 100%;-webkit-background-clip:background;-webkit-background-clip:text;filter:drop-shadow(4px 4px 0 #000);text-transform:uppercase;animation:brilho 1.6s 3.4s infinite linear}
+.nome{font-weight:900;font-size:30px;text-transform:uppercase;text-shadow:3px 3px 0 #000;margin-top:4px}
+.zoa{display:inline-block;margin-top:10px;background:#FFC400;color:#000;border:3px solid #000;border-radius:12px;padding:5px 14px;font-weight:900;font-size:19px;text-transform:uppercase;box-shadow:4px 4px 0 #000;transform:rotate(-3deg) scale(0);animation:pop .35s 3.7s forwards}
+.final{position:absolute;left:0;right:0;top:8%;opacity:0;animation:entra .5s 5.4s forwards}
+.taca{position:relative;width:96px;height:150px;margin:0 auto;animation:ergue 1s 5.5s ease-out both}
+.copo{position:absolute;left:10px;right:10px;top:0;height:86px;background:linear-gradient(90deg,#9c9c9c,#fff,#8a8a8a);border-radius:0 0 40px 40px;border:4px solid #000}
+.base{position:absolute;left:18px;right:18px;bottom:0;height:62px;background:linear-gradient(90deg,#8a6a00,#FFC400,#8a6a00);border:4px solid #000;border-radius:5px}
+.brilhoT{position:absolute;inset:-30px;border-radius:50%;background:radial-gradient(#ffe07a88,transparent 70%);animation:pulsa 1s 5.6s infinite alternate}
+.jog{display:flex;justify-content:center;gap:6px;margin-top:10px}.jog div{width:62px;height:86px;border:3px solid #000;border-radius:9px;background:#e9d7a8;display:grid;place-items:end center;font-size:44px}
+.masc{position:absolute;left:-2%;bottom:6%;width:46vw;max-width:220px;filter:drop-shadow(4px 4px 0 #000);opacity:0;animation:entra .4s 5.6s forwards,pula .5s 6s infinite alternate}
+.maos{position:absolute;left:0;right:0;bottom:12%;font-size:46px;opacity:0;animation:entra .4s 5.6s forwards,pula .4s 6s infinite alternate}
+.leg{position:absolute;bottom:10px;left:0;right:0;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#FFE08A;opacity:.9}
+@keyframes aparece{to{opacity:1}}@keyframes sai{to{opacity:0}}@keyframes acende{to{opacity:0}}
+@keyframes fumo{0%{opacity:0;transform:translateY(40px) scale(.6)}60%{opacity:.85}100%{opacity:.55;transform:translateY(-30px) scale(1.2)}}
+@keyframes pisca{to{filter:brightness(1.8) drop-shadow(0 0 10px #ff5a00)}}
+@keyframes num{0%{opacity:0;transform:scale(2)}30%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.8)}}
+@keyframes flash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+@keyframes sobe{to{transform:none;opacity:1}}
+@keyframes carimba{0%{opacity:0;transform:scale(2.2)}80%{opacity:1;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+@keyframes martelo{0%{opacity:1;transform:rotate(-50deg)}60%{opacity:1;transform:rotate(25deg)}100%{opacity:0;transform:rotate(10deg)}}
+@keyframes chove{from{background-position:0 0,0 0,0 0}to{background-position:0 340px,20px 300px,-10px 400px}}
+@keyframes entra{from{opacity:0;transform:translateY(30px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes brilho{from{background-position:120% 0}to{background-position:-120% 0}}
+@keyframes pop{to{transform:rotate(-3deg) scale(1)}}
+@keyframes ergue{from{transform:translateY(70px) scale(.7)}to{transform:none}}
+@keyframes pulsa{to{transform:scale(1.15);opacity:.6}}
+@keyframes pula{to{transform:translateY(-16px)}}
+</style></head><body>
+<div id="s" style="--c1:#0199F6;--c2:#FC22BC">
+ <div class="noite"></div><div class="arq"></div><div class="arqc"></div><div class="gram"></div>
+ <div class="fum" style="left:-14vw;background:#E8503A"></div><div class="fum" style="right:-14vw;background:#2a7de1;animation-delay:.4s"></div>
+ <span class="sin" style="left:8%">🧨</span><span class="sin" style="right:8%">🧨</span><span class="sin" style="left:26%">🔥</span><span class="sin" style="right:26%">🔥</span>
+ <div class="tunel"></div><div class="apag"></div>
+ <div class="t1">A América para…</div>
+ <div class="cont"><span>3</span><span>2</span><span>1</span></div>
+ <div class="flash"></div>
+ <div class="band"><img id="esc1" src="../../src/escalacao/img/pirituba-escudo.webp"></div>
+ <div class="mart">🔨</div>
+ <div class="papel"></div>
+ <div class="bloco"><img id="esc2" src="../../src/escalacao/img/pirituba-escudo.webp"><div class="ttl">Campeão da<br>América!</div><div class="nome" id="nome">Pirituba SF</div><span class="zoa">🌎 Dono do continente!</span></div>
+ <div class="final"><div class="taca"><div class="brilhoT"></div><div class="copo"></div><div class="base"></div></div><div class="jog"><div>🧔</div><div>👨🏾</div><div>👨🏻‍🦲</div></div></div>
+ <img class="masc" id="masc" src="../../src/escalacao/img/pirituba-mascote.webp">
+ <div class="leg">🥁 bumbo · 🔨 martelo · 📣 canto da torcida do clube</div>
+</div>
+<script>
+const q=new URLSearchParams(location.search)
+if(q.get('sem')){const s=document.getElementById('s');s.style.setProperty('--c1','#C2452F');s.style.setProperty('--c2','#ffffff')
+ const gen=t=>'<div style="width:'+t+'px;height:'+(t*1.13)+'px;margin:0 auto;clip-path:polygon(50% 0,100% 14%,100% 60%,50% 100%,0 60%,0 14%);background:#C2452F;display:grid;place-items:center;font:900 '+(t*.45)+'px Oswald;color:#fff;text-shadow:3px 3px 0 #000">AF</div>'
+ document.getElementById('esc1').outerHTML='<div style="animation:carimba .35s 2.55s forwards;opacity:0">'+gen(130)+'</div>'
+ document.getElementById('esc2').outerHTML=gen(90)
+ document.getElementById('nome').textContent='Angel FC'
+ document.querySelector('.zoa').textContent='🔥 Ninguém segurou!'
+ document.getElementById('masc').outerHTML='<div class="maos">🙌🙌🙌</div>'
+ document.querySelector('.leg').textContent='🥁 bumbo · 🔨 martelo · 📣 torcida padrão'}
+</script></body></html>
