@@ -5,7 +5,7 @@ import { tr } from './lang'
 import './football-match-pilot.css'
 import {useFootballMatchNavigation} from './football-match-navigation'
 
-const preferenceKey = (email: string) => `esc-football-match-pilot-v2-off:${email}`
+const preferenceKey = (email: string) => `esc-football-match-pilot-v2-off:${email||'public'}`
 const preferenceListeners=new Set<()=>void>()
 const preferenceSubscribe=(fn:()=>void)=>{preferenceListeners.add(fn);return()=>{preferenceListeners.delete(fn)}}
 const memoryPreference=new Map<string,boolean>()

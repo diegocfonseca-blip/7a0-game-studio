@@ -6,9 +6,9 @@ const out=process.env.QA_OUTPUT||'/workspace/shared/copas-piloto-20261123';fs.mk
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']})
 const errors=[],checks=[],main='6b5cf422-d4ad-4c69-a7e6-da1125c85844',guest='eb02f1d6-de80-4304-ab49-512342f3c7b7'
 const check=(name,value)=>{assert(value,name);checks.push(name)}
-async function open(width,{kind='world',field=false,guestUser=false,step=1,minute=10,running=true,pen=false,account,duration=16000,leagueCompetition}={}){
+async function open(width,{kind='world',field=false,guestUser=false,step=1,minute=10,running=true,pen=false,account,duration=16000,leagueCompetition,rival=false}={}){
  if(field&&!leagueCompetition)duration=43902
- const context=await browser.newContext({viewport:{width,height:1000},locale:'pt-BR'}),page=await context.newPage(),uid=guestUser?guest:main
+ const context=await browser.newContext({viewport:{width,height:1000},locale:'pt-BR'}),page=await context.newPage(),uid=account==='outro@example.com'?'00000000-0000-4000-8000-000000000101':guestUser?guest:main
  const clock={revision:1,step,running,manual:true,speed:1,started_at:new Date(Date.now()-minute/93*duration*.82).toISOString(),updated_at:new Date().toISOString(),duration_ms:duration,extra_ms:40000,vel2d:1}
  let rows=[],seq=0,closing=false
  const payload=()=>({rev:clock.revision,step:clock.step,running:clock.running,linhas:[],planos:rows,planos_ativos:true})
@@ -17,7 +17,7 @@ async function open(width,{kind='world',field=false,guestUser=false,step=1,minut
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url())
   if(url.hostname!=='127.0.0.1'){
-   let response=[]
+   let response=rival&&url.pathname==='/rest/v1/esc_retrospecto'?[{a:uid,b:guest,vit_a:4,empates:2,vit_b:3,ultimos:'BBAEEABAA'}]:[]
    const rpc=url.pathname.split('/rpc/')[1]
    if(rpc==='esc_copa_preview_clock'||rpc==='esc_regional_clock')response={server_ms:Date.now(),clock}
    if(rpc==='esc_copa_taticas')response=payload()
@@ -36,7 +36,7 @@ async function open(width,{kind='world',field=false,guestUser=false,step=1,minut
   }
   return route.continue()
  })
- const query=new URLSearchParams({kind,...(field?{field:'1'}:{}),...(guestUser?{guest:'1'}:{}),...(pen?{pen:'1'}:{})})
+ const query=new URLSearchParams({kind,...(rival?{rival:'1'}:{}),...(account==='outro@example.com'?{public:'1'}:{}),...(field?{field:'1'}:{}),...(guestUser?{guest:'1'}:{}),...(pen?{pen:'1'}:{})})
  const target=leagueCompetition?`http://127.0.0.1:5178/scripts/teste-football-full/?competition=${leagueCompetition}${field?'&field=1':''}${guestUser?'&guest=futpoint':''}`:`http://127.0.0.1:5178/scripts/teste-copas-piloto/?${query}`
  await page.goto(target,{waitUntil:'networkidle'})
  return{page,clock,setClock,getRows:()=>rows,close:async()=>{closing=true;await context.close()}}
@@ -60,7 +60,12 @@ try{
   const test=await open(width,{kind,guestUser:width===1440})
   console.log('OPEN',width,kind)
   await verifyTabs(test.page,`${width}:${kind}`)
-  if(width===1440)check(`${kind}: chat na lateral`,await test.page.locator('.fp-chat-docked').isVisible())
+  if(width===1440){
+   check(`${kind}: chat na lateral`,await test.page.locator('.fp-chat-docked').isVisible())
+   check(`${kind}: chat encerra a lateral`,await test.page.locator('.fp-cup-aside').evaluate(el=>el.lastElementChild.classList.contains('fp-chat-target')))
+   const boxes=await test.page.locator('.fp-cup-plan .fp-order-group').evaluateAll(es=>es.map(e=>({x:e.getBoundingClientRect().x,y:e.getBoundingClientRect().y})))
+   check(`${kind}: plano em duas linhas de duas decisões`,boxes.length===4&&Math.abs(boxes[0].y-boxes[1].y)<2&&Math.abs(boxes[2].y-boxes[3].y)<2&&boxes[2].y>boxes[0].y&&boxes[1].x>boxes[0].x)
+  }
   await test.page.screenshot({path:`${out}/${width}-${kind}.png`,fullPage:true})
   await test.close()
  }
@@ -118,7 +123,17 @@ try{
  check('Copa dos 8: abertura no palco durante outra aba',await introPage.locator('.ov3-native .fp-broadcast-transition').isVisible())
  await intro.close()
  const publicUser=await open(390,{account:'outro@example.com'})
- check('outra conta não recebe o piloto',await publicUser.page.locator('.fp-cup-layout').count()===0);await publicUser.close()
+ check('conta pública recebe as copas atualizadas',await publicUser.page.locator('.fp-cup-layout').count()===1)
+ check('UID público real na bancada',await publicUser.page.evaluate(()=>window.qaCupFixture.entrants.some(e=>e.you&&e.uid==='00000000-0000-4000-8000-000000000101')))
+ await publicUser.page.locator('.fp-cup-plan').getByRole('button',{name:'Pressão alta',exact:true}).click()
+ await publicUser.page.waitForFunction(()=>!document.body.innerText.includes('Salvando plano…'))
+ check('participante público salva seu próprio plano',publicUser.getRows().at(-1)?.uid==='00000000-0000-4000-8000-000000000101'&&publicUser.getRows().at(-1)?.plan.pressure==='high')
+ await publicUser.close()
+ const rivalDesktop=await open(1440,{kind:'euro',step:2,minute:35,duration:600000,account:'outro@example.com',rival:true})
+ check('desktop público: retrospecto na aba Partida',await rivalDesktop.page.locator('.fp-cup-panel:visible .ll-next-rivalry').isVisible())
+ check('desktop público: retrospecto visível na lateral',await rivalDesktop.page.locator('.fp-cup-aside .ll-next-rivalry').isVisible())
+ check('desktop público: histórico real fornecido pela bancada',/4\s*×\s*3/.test(await rivalDesktop.page.locator('.fp-cup-aside .ll-next-rivalry').innerText()))
+ await rivalDesktop.page.screenshot({path:`${out}/1440-publico-rivalidade.png`,fullPage:true});await rivalDesktop.close()
  check('sem exceções JavaScript',errors.length===0)
  fs.writeFileSync(`${out}/resultado.json`,JSON.stringify({checks,errors},null,2));console.log(`PASS: ${checks.length} verificações das copas`)
 }catch(e){console.error(e);fs.writeFileSync(`${out}/falha.json`,JSON.stringify({checks,errors,error:String(e)},null,2));throw e}finally{await browser.close()}

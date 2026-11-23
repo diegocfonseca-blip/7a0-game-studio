@@ -72,6 +72,6 @@ export function FootballCupView({title,phase,detail,entrants,uids,crest,stages,c
    {ceremony}
    <button type="button" className="ll31-back-room" onClick={onClose}>{tr('VOLTAR À SALA','BACK TO THE ROOM')}</button>
   </main>
-  <aside className="fp-cup-aside">{currentStage===stages[0]?.id?<div className="fp-cup-tables">{tableNodes[tables.findIndex(t=>t.rows.some(r=>r.t===my))]??tableNodes[0]}</div>:<section className="fp-cup-card"><h3>{tr('CHAVE DA FASE','CURRENT ROUND')}</h3><div className="fp-cup-aside-round">{current?.known?currentGames.map(game):tr('Confrontos a definir.','Matches to be defined.')}</div></section>}<FootballChatTarget/>{statNodes(3)}{rivalCard}</aside>
+  <aside className="fp-cup-aside">{currentStage===stages[0]?.id?<div className="fp-cup-tables">{tableNodes[tables.findIndex(t=>t.rows.some(r=>r.t===my))]??tableNodes[0]}</div>:<section className="fp-cup-card"><h3>{tr('CHAVE DA FASE','CURRENT ROUND')}</h3><div className="fp-cup-aside-round">{current?.known?currentGames.map(game):tr('Confrontos a definir.','Matches to be defined.')}</div></section>}{rivalCard}{statNodes(3)}<FootballChatTarget/></aside>
  </div>
 }

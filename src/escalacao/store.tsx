@@ -67,7 +67,7 @@ import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala, marcaSalaDosM
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { GRUPOS_2026, sorteiaGrupos, parCup, gruposCompletos, classificadosCup } from './eua-cup' // 🏀🏆 NBA Cup real do EUA Oficial
 import { sorteiaLoteria, entraNoDraft, escolhaDoBot, forcaDraft } from './eua-draft' // 🏀🎓 Draft do EUA Oficial
-import { anosContratoEua, luvaRenovacaoEua, contratoAcabou, EUA_RENOVA_ANOS, EUA_NOVATO_ANOS, EUA_BOT_RENOVA } from './eua-agencia' // 🏀✍️ agência livre
+import { anosContratoEua, luvaRenovacaoEua, contratoAcabou, EUA_RENOVA_ANOS, EUA_NOVATO_ANOS, EUA_BOT_RENOVA, EUA_BOT_CONTRATA } from './eua-agencia' // 🏀✍️ agência livre
 import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { CATALOG_NBA_MUNDO } from './data-basquete-mundo' // 🌍 18/11: ficha das cartas do baralho Mundo
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -6168,7 +6168,7 @@ type Action =
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; pokemon?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'relampago'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean; /** 🌴 19/11 */ vice?: boolean; envUnico?: boolean; /** 🆕 05/11 (Diego: o rápido igual às salas) */ relampagoChave?: 16 | 32; tamanhoLiga?: 10; selecao?: boolean; decada?: boolean; varzea?: boolean; /** 👑 10/11: Kings com os jogadores DA Kings League (`kings-baralho.ts`) */ kingsBaralho?: boolean }
   | { type: 'START_NBA'; /** 🏀 18/11: a mesma sala NBA no rápido offline (tamanho + formato) */ nbaTam?: 30 | 20 | 10; /** 🌍 baralho NBA + Mundo */ nbaMundo?: boolean; nbaFormato?: 'liga' | 'playoffs'; teamName: string; rivals: number; pregaoAberto?: boolean; holandes?: boolean; envUnico?: boolean; clubes?: boolean; intro?: boolean } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'EUA_DRAFT_ABRIR' } | { type: 'EUA_DRAFT_COMECAR' } | { type: 'EUA_DRAFT_ESCOLHER'; chave: string } | { type: 'EUA_DRAFT_AUTO' } 
-  | { type: 'EUA_AGENCIA_ABRIR' } | { type: 'EUA_AGENCIA_DECIDIR'; chave: string; renova: boolean } // 🏀✍️ agência livre do EUA Oficial // 🏀🎓 Draft do EUA Oficial
+  | { type: 'EUA_AGENCIA_ABRIR' } | { type: 'EUA_AGENCIA_DECIDIR'; chave: string; renova: boolean } | { type: 'EUA_TROCA'; meu: string; dele: string } // 🏀✍️ agência livre do EUA Oficial // 🏀🎓 Draft do EUA Oficial
   | { type: 'START_EUA_CAREER'; franquia: string; extras: Card[] } // 🏀🇺🇸 carreira EUA Oficial (19/11): franquia real na NBA, sem sobe e desce. `extras` = as cartas novas só da carreira (data-basquete-eua, baixadas pela tela)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'CLOSE_NBA_BOOKS' } // 🏀💰 17/11: fecha o caixa da temporada no passo 💰 do roteiro (uma vez só, booksSeason)
@@ -7815,6 +7815,9 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // jogador repetido do baralho — fecha o "dois Van der Sar". Roda 1x por leilão
   // (nas levas/próximos setores sectorCursor>0 ou sectorIdx>0, então não repete).
   if (!rescue && state.sectorIdx === 0 && state.sectorCursor === 0) {
+    // 💸 23/11 (Diego, print da sala do K9 FC: *"que erro é esse de 807 moedas?"*): o caderninho da Mão Furada nunca zerava, então o
+    // "+X a mais" somava TODOS os leilões da sala (807), enquanto a frase falava só do pior arremate deste (83). Zera a cada leilão novo.
+    state.resenha = { furada: {} }
     dedupeDeck(state.deck)
     if (state.stock) for (const p of SECTORS) state.stock[p] = state.deck[p].length
   }
@@ -8674,7 +8677,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'euaContratos', 'euaAgencia', 'oficialAbertura', 'deOlho', 'aVendaMercado'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'euaContratos', 'euaAgencia', 'careerSubModeDesde', 'oficialAbertura', 'deOlho', 'aVendaMercado'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8802,6 +8805,22 @@ export function agenciaPendenteEua(s: EscState): number {
   const a = s.euaAgencia
   if (!s.euaOficial || !a || a.temporada !== s.seasonNo) return 0
   return a.meus.filter(k => !a.decididos[k]).length
+}
+/** 🔁 TROCA do EUA Oficial (1 por temporada, no passo ✍️ Contratos): a mesma régua na tela e no reducer. A franquia só aceita se o seu
+ *  jogador valer o mesmo ou mais que o dela (força média da carta) e se nenhum dos dois times ficar sem jogador numa posição. */
+export function trocaEua(s: EscState, meu: string, dele: string): { ok: boolean; motivo: string; time?: Manager } {
+  const a = s.euaAgencia, eu = s.managers[s.youIdx]
+  if (!s.euaOficial || !a || a.temporada !== s.seasonNo || !eu) return { ok: false, motivo: tr('A troca abre no fim da temporada.', 'Trades open at the end of the season.') }
+  if (a.troca) return { ok: false, motivo: tr('Você já fez a troca desta temporada.', 'You already made this season’s trade.') }
+  const cm = eu.squad.find(c => chaveEua(c) === meu)
+  const time = s.managers.find(m => !m.isHuman && m.squad.some(c => chaveEua(c) === dele))
+  const cd = time?.squad.find(c => chaveEua(c) === dele)
+  if (!cm || !cd || !time || cm.fake || cd.fake) return { ok: false, motivo: tr('Jogador não encontrado.', 'Player not found.') }
+  if (a.meus.includes(meu) && a.decididos[meu] !== 'renova') return { ok: false, motivo: tr('O contrato dele acabou: renove antes de trocar.', 'His contract ran out: re-sign him before trading.') }
+  const valor = (c: Card) => (c.lo + c.hi) / 2
+  if (valor(cm) < valor(cd)) return { ok: false, motivo: tr(`O ${time.teamName} recusou: quer um jogador que valha pelo menos o mesmo.`, `The ${time.teamName} said no: they want a player worth at least as much.`), time }
+  if (cm.pos !== cd.pos && (unicoDaPosicao(eu, cm) || unicoDaPosicao(time, cd))) return { ok: false, motivo: tr('Não dá: um dos dois times ficaria sem jogador nessa posição.', 'Not possible: one of the teams would be left without a player at that position.'), time }
+  return { ok: true, motivo: '', time }
 }
 /** 🛡️ é o único da posição no elenco? (não pode sair — o quinteto não pode ficar com buraco) */
 function unicoDaPosicao(m: Manager, c: Card): boolean { return m.squad.filter(x => x.pos === c.pos && !x.fake).length <= 1 }
@@ -9863,9 +9882,26 @@ function reducerBase(state: EscState, action: Action): EscState {
           ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${m.teamName} e ficou sem contrato (livre)`)
         }
       }
+      // 🤖 quem perdeu jogador vai ao mercado: 60% de chance de contratar um livre da MESMA posição (escolhe entre os 3 melhores),
+      // com contrato de 1–4 temporadas a partir da próxima. Só pega de quem a máquina soltou — os SEUS que saírem ficam pro seu leilão.
+      const assinaram: NonNullable<EscState['euaAgencia']>['assinaram'] = []
+      const perdas = s.managers.filter(m => !m.isHuman).flatMap(m => livres.filter(c => de[chaveEua(c)] === m.teamName).map(c => ({ m, pos: c.pos })))
+      for (let i = perdas.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [perdas[i], perdas[j]] = [perdas[j], perdas[i]] }
+      for (const { m, pos } of perdas) {
+        if (rng() >= EUA_BOT_CONTRATA) continue
+        const opcoes = livres.filter(c => c.pos === pos && de[chaveEua(c)] !== m.teamName).sort((x, y) => (y.lo + y.hi) - (x.lo + x.hi)).slice(0, 3)
+        if (!opcoes.length) continue
+        const c = opcoes[Math.floor(rng() * opcoes.length)], k = chaveEua(c)
+        livres.splice(livres.indexOf(c), 1)
+        const preco = justoDaCarta(s, c)
+        m.squad = [...m.squad, { ...c, id: `fs${S}-${m.id}-${assinaram.length}`, paid: preco, buyPrice: preco, via: 'bot' } as WonCard]
+        ct[k] = S + anosContratoEua(k, S + 1, s.seed)
+        assinaram.push({ name: c.name, club: c.club, year: c.year, pos: c.pos, de: de[k] ?? c.club, para: m.teamName })
+        ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} assinou com o ${m.teamName}`)
+      }
       const eu = s.managers[s.youIdx]
       const meus = (eu?.squad ?? []).filter(c => !c.fake && contratoAcabou(ct[chaveEua(c)], S)).map(c => chaveEua(c))
-      s.euaAgencia = { temporada: S, meus, decididos: {}, livres, botsRenovaram, de }
+      s.euaAgencia = { temporada: S, meus, decididos: {}, livres, botsRenovaram, de, assinaram }
       return s
     }
     case 'EUA_AGENCIA_DECIDIR': {
@@ -9891,6 +9927,17 @@ function reducerBase(state: EscState, action: Action): EscState {
         a.decididos[action.chave] = 'sai'
         ;(s.marketLog = s.marketLog ?? []).push(`✍️ ${c.name} saiu do ${eu.teamName} e ficou sem contrato (livre)`)
       }
+      return s
+    }
+    case 'EUA_TROCA': {
+      const r = trocaEua(s, action.meu, action.dele)
+      if (!r.ok || !r.time) return state
+      const eu = s.managers[s.youIdx], time = r.time
+      const cm = eu.squad.find(c => chaveEua(c) === action.meu)!, cd = time.squad.find(c => chaveEua(c) === action.dele)!
+      eu.squad = [...eu.squad.filter(c => c !== cm), { ...cd, id: `tr${s.seasonNo}-eu` } as WonCard]
+      time.squad = [...time.squad.filter(c => c !== cd), { ...cm, id: `tr${s.seasonNo}-${time.id}`, via: 'bot' } as WonCard]
+      s.euaAgencia!.troca = { deu: cm.name, recebeu: cd.name, time: time.teamName }
+      ;(s.marketLog = s.marketLog ?? []).push(`🔁 Troca: ${cm.name} foi pro ${time.teamName} e ${cd.name} chegou ao ${eu.teamName}`)
       return s
     }
     case 'START_EUA_CAREER': {
@@ -12138,7 +12185,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'FOOTBALL_SAVE_PLAN': {
-      // Existing guest -> host route; only the trusted test room can accept a plan.
+      // Existing guest -> host route; a human's saved plan must match its UID/seat.
       // Match manager ID against its UID, never against the host's local youIdx.
       if(!footballPlanHost(s)||!footballPlanActor(action.by)||ehKings(s)||!['season','liberta','champions'].includes(s.screen)||s.screen==='liberta'&&!s.liberta||s.screen==='champions'&&!s.champions||s.quickCopa?.phase==='done'||s.screen==='season'&&!s.quickCopa&&s.champion!=null||!validFootballPlan(action.plan)||action.plan.mark!==null)return s
       const seat=s.managers.findIndex(m=>m.id===action.mgrId&&m.isHuman)

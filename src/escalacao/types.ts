@@ -1406,7 +1406,7 @@ export interface EscState {
   /** 🏀✍️ CONTRATOS do EUA Oficial (eua-agencia.ts): `nome|clube|ano` → a temporada em que o contrato ACABA (no fim dela). */
   euaContratos?: Record<string, number>
   /** 🏀✍️ a Agência livre desta virada: os SEUS contratos que acabaram (`meus`), o que você decidiu, e quem ficou livre (vai pro seu leilão). */
-  euaAgencia?: { temporada: number; meus: string[]; decididos: Record<string, 'renova' | 'sai'>; livres: Card[]; botsRenovaram: number; /** quem soltou cada livre (chave → franquia) */ de?: Record<string, string> }
+  euaAgencia?: { temporada: number; meus: string[]; decididos: Record<string, 'renova' | 'sai'>; livres: Card[]; botsRenovaram: number; /** quem soltou cada livre (chave → franquia) */ de?: Record<string, string>; /** livres que outra franquia contratou na hora */ assinaram?: { name: string; club: string; year: number; pos: string; de: string; para: string }[]; /** 🔁 a troca desta virada (1 por temporada) */ troca?: { deu: string; recebeu: string; time: string } }
   /** 🏀🏆 a NBA Cup REAL do EUA Oficial: os 6 grupos de 5 e os jogos de grupo desta temporada (eua-cup.ts). O mata-mata é o `nbaCup`. */
   euaCup?: import('./eua-cup').EuaCupEstado
   deOlho?: { tec?: string; jog?: { chave: string; nome: string; clube: string; pos: string } }

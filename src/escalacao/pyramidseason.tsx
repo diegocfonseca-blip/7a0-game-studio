@@ -6,6 +6,7 @@ import {MuseuClube,MuseuMelhoria} from './museu-clube-ui'
 import {OwnerPrimary} from './owner-online-visual'
 import {useFootballMatchPilotAccess} from './football-match-pilot'
 import {publishFootballClock,footballClockContext,footballTestRoom} from './football-live-tactics'
+import {MatchPresentationClockContext,matchPresentationMinute} from './match-presentation-clock'
 import { careerVisualV2, CareerVisualProvider, CareerBrand, CareerHeading, CareerMarketSteps, CareerSection, CareerSectionLinks, CareerBalance, useCareerVisualV2 } from './career-visual-v2'
 import { climaDoJogo } from './campo2d-clima'
 import { expectativaBotsCarreira } from './calibracao-bots-carreira'
@@ -4317,6 +4318,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const presConta = usePresidenteConta()
   const presImg = useImagemBusto(c2d ? presConta.value : null)
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
+  const contextClock=useContext(MatchPresentationClockContext)
+  const presentationClock=!basket&&!relogioKings&&!enhancedCareer&&displayMinute==null?contextClock:null
   // 🐌 com o 📺 Campo 2D ligado o lance do ESTÁDIO não aparece — mas o relógio continuava PARANDO a cada chance e a cada gol
   // esperando essa cena invisível, e o campinho ia freando até o relógio voltar: a "câmera lenta do nada" (Diego 20/10). Com
   // o 2D, o relógio é o de todo mundo.
@@ -4337,7 +4340,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const incidentKey=`${privateField}:${stadiumMatch?.id??''}:${roundKey}`
   const incidentCalendar=useRef({key:incidentKey,duration:roundMs*fieldSpeed})
   if(incidentCalendar.current.key!==incidentKey)incidentCalendar.current={key:incidentKey,duration:roundMs*fieldSpeed}
-  const incidentRoundMs=privateField?incidentCalendar.current.duration:roundMs
+  const incidentRoundMs=presentationClock?presentationClock.initialDuration:privateField?incidentCalendar.current.duration:roundMs
   const presentedGoals=useRef<{key:string;assisted:Map<number,boolean>}>({key:incidentKey,assisted:new Map()})
   if(presentedGoals.current.key!==incidentKey)presentedGoals.current={key:incidentKey,assisted:new Map()}
   // 🔓 19/09: a apresentação da CARREIRA saiu da prévia e foi pra todo mundo, por ordem
@@ -4393,6 +4396,11 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     if (controlledMinute) return
     if (finished) { setMin(93); return }
     if (pausado) { retomaRef.current = true; return } // ⏸️ fica no minuto em que estava (fieldMinute guarda)
+    if(presentationClock){
+      const tick=()=>{const minute=matchPresentationMinute(presentationClock);fieldMinute.current={round:roundKey,half:!!resumeHalf,minute};setMin(Math.round(minute))}
+      tick();const timer=setInterval(tick,40)
+      return()=>clearInterval(timer)
+    }
     if(privateField&&stadiumMatch){
       const same=fieldMinute.current.round===roundKey&&fieldMinute.current.half===!!resumeHalf
       fieldMinute.current={round:roundKey,half:!!resumeHalf,minute:same?fieldMinute.current.minute:resumeHalf?45:0}
@@ -4441,7 +4449,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration,officialFieldWatching, pausado])
+  }, [roundKey, finished, roundMs, pauseAtHalf, resumeHalf, controlledMinute,privateField,fieldDuration,officialFieldWatching, pausado,presentationClock])
   const idiomaOficial=getLang()==='en'
   const apresentarMotorOficial=presidentFieldAccount&&!!elencos?.m2
   const provaOficial=useMemo(()=>!basket&&presidentFieldAccount&&elencos?.m2?prepararReplayOficial(elencos.m2,goals,idiomaOficial):null,[basket,presidentFieldAccount,elencos?.m2,goals,idiomaOficial])

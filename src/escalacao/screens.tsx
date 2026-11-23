@@ -1,3 +1,4 @@
+import {MatchPresentationClockContext,useMatchPresentationClock,matchPresentationMinute,matchPresentationRemaining,type MatchPresentationClock} from './match-presentation-clock'
 import {footballRoundStatus,footballNextFixture} from './football-round-status'
 import { LinhaComunidadeChat } from './links-comunidade' // 📲🎮 23/11: WhatsApp + Discord no chat
 import { VICE_TEMA_CSS, VICE_SALA_CSS, VICE_TELAS, ViceSalaDecor } from './vice-city-ui' // 🌴 19/11: o tema da sala Vice City
@@ -48,7 +49,7 @@ import { listaNbaCarreiras, guardaAtivaNba, ativaNbaCarreira, apagaNbaCarreira, 
 import { copaMandoA, ordemSetores, assentoDoCracha, salaryOfCard, ehKings, ligaJogoNeutro, lanceEhGol, championsTabela, posicaoNaChave, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
-import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
+import { useLimpezaCarreirasGratis, diasParaExcluir, useSalvarBloqueado, poolDraftEua, agenciaPendenteEua, trocaEua } from './store' // 🗑️ 18/11 · 🎓 Draft do EUA Oficial
 import { luvaRenovacaoEua, EUA_RENOVA_ANOS } from './eua-agencia' // 🏀✍️ agência livre do EUA Oficial
 import { JanelaNuvemPlanos } from './nuvem-planos'
 import { temaDaFesta } from './temas-sala' // 🎨 10/11: tema da sala no fundo da festa de campeão do dono
@@ -1060,7 +1061,7 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
 
 const MobileAuctionHeaderContext = createContext(false)
 
-export function Shell({ children, bar, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
+export function Shell({ children, bar, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock }: { presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
@@ -1135,7 +1136,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
     return () => { ro.disconnect(); clearInterval(iv); solta() }
   }, [desktopWidth, state.screen])
   return (
-    <OwnerOnlineProvider enabled={ownerVisual} state={state} matchAd={<GiroDaRodada cinema doJogo/>}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
+    <MatchPresentationClockContext.Provider value={presentationClock??null}><OwnerOnlineProvider enabled={ownerVisual} state={state} matchAd={<GiroDaRodada cinema doJogo/>}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}${viceSala ? ' vice-sala' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {viceSala && <><style>{VICE_TEMA_CSS + VICE_SALA_CSS}</style><ViceSalaDecor /></>}
       {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
@@ -1199,7 +1200,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
         </div>
       )}
     </div>
-    </MobileAuctionHeaderContext.Provider></CareerVisualProvider></OwnerOnlineProvider>
+    </MobileAuctionHeaderContext.Provider></CareerVisualProvider></OwnerOnlineProvider></MatchPresentationClockContext.Provider>
   )
 }
 
@@ -7931,6 +7932,7 @@ export function EscSeason() {
   const kingsApitoMs = kingsJogosCedo.length ? Math.max(...kingsJogosCedo.map(j => duracaoKingsRapida(j.r, kingsMarcha, j.eu, online))) + 1500 : 0
   const kingsPensMax = Math.max(kingsPensOutros, ...kingsJogosCedo.map(j => kingsPensMs(j.r)))
   const roundMs = kingsRapida ? (kingsApitoMs ? Math.round(kingsApitoMs + kingsPensMax + 2500) : kingsRapidaRoundMs(undefined, kingsMarcha, you.id)) : Math.round(baseRoundMs / (c2d || c2dBB ? 1 : speedFactor))
+  const leagueClock=useMatchPresentationClock(`league:${state.roomId}:${state.seed}:${state.seasonNo}:${state.round}`,roundMs,leagueStartedAt,online&&!bbS&&!kingsS&&!state.careerOnline&&!state.co2&&!state.pokeLiga&&state.round>0)
   const roundMsRef = useRef(roundMs); roundMsRef.current = roundMs // (o vigia do fim da liga lê o valor de agora)
   // 👑🥅 11/11 (Diego: *"meu primeiro jogo foi pro shootout mas nem vi… não deixou passar"*): a conta do tempo da rodada é uma
   // ESTIMATIVA — se o relógio do jogo andou mais devagar que ela (cenas, escolhas, a tela abrindo atrasada), a rodada virava antes
@@ -8011,10 +8013,12 @@ export function EscSeason() {
   const [rodadaAoAbrir] = useState(state.round) // o jogo que já estava salvo ao abrir já foi visto (não é spoiler)
   useEffect(() => {
     if (seasonSettled) { setResultRevealed(true); return }
+    const remaining=leagueClock?matchPresentationRemaining(leagueClock,.85,250):kingsApitoMs?kingsApitoMs+250:roundMs*.85+250
+    if(remaining<=0){setResultRevealed(true);return}
     setResultRevealed(false)
-    const t = setTimeout(() => setResultRevealed(true), kingsApitoMs ? kingsApitoMs + 250 : roundMs * 0.85 + 250) // 👑 Kings: no apito
+    const t = setTimeout(() => setResultRevealed(true), remaining) // 👑 Kings: no apito
     return () => clearTimeout(t)
-  }, [state.round, seasonSettled])
+  }, [state.round, seasonSettled, leagueClock, leagueClock?roundMs:0])
   // 👑🥅 11/11 (Diego: *"no shootout… faça valer no campo 2D… ele sai lá de trás com a bola do meio-campo e vai levando, tentando
   // driblar o goleiro"*): empatou na liga da Kings com o Campo 2D ligado → o shootout acontece NO CAMPINHO (`campo2d-shootout.ts`),
   // depois do apito. Enquanto ele rola, a rodada não avança sozinha e o quadro das bolinhas acompanha o campinho (sem spoiler).
@@ -8130,9 +8134,9 @@ export function EscSeason() {
       const iv = setInterval(() => { if (kingsViraOk(ini)) { clearInterval(iv); dispatch({ type: 'PLAY_ROUND' }) } }, 500)
       return () => clearInterval(iv)
     }
-    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), espera)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_ROUND' }), leagueClock?matchPresentationRemaining(leagueClock):espera)
     return () => clearTimeout(t)
-  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, prepSegura, naCentralBB, clubeNoJogo])
+  }, [state.round, canAdvance, dispatch, state.dinastiaPaused, manual, roundMs, cupLive, c2d, online, speedFactor, kPenSegura && resultRevealed, !!kLigaPen && resultRevealed, prepSegura, naCentralBB, clubeNoJogo, leagueClock])
   // toca a Cup fase a fase, no mesmo ritmo do mata-mata do fim de temporada.
   const cupKey = cup ? `${cup.phase}:${cup.ties.map(t => t.legs.length).join(',')}` : ''
   const cupJustAdvanced = cupLive && !!cup && cup.ties.every(t => t.legs.length === 0)
@@ -8153,11 +8157,11 @@ export function EscSeason() {
     // setTimeout que recomeçava do zero sempre que o tempo da rodada mudava — e ele nunca disparava. Agora é um vigia: conta a
     // partir do início da rodada (o MESMO relógio da sala) e, passou o tempo, encerra (FINISH_SEASON não faz nada duas vezes).
     // (só na Kings, por enquanto: o futebol de sempre segue com o timer de sempre)
-    if (!kingsS) { const t = setTimeout(() => dispatch({ type: 'FINISH_SEASON' }), roundMs); return () => clearTimeout(t) }
+    if (!kingsS) { const t = setTimeout(() => dispatch({ type: 'FINISH_SEASON' }), leagueClock?matchPresentationRemaining(leagueClock):roundMs); return () => clearTimeout(t) }
     const ini = online && state.rodadaEm?.r === state.round ? state.rodadaEm.at : Date.now()
     const iv = setInterval(() => { if (kingsViraOk(ini)) dispatch({ type: 'FINISH_SEASON' }) }, 1000)
     return () => clearInterval(iv)
-  }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, dispatch, kingsS, kingsS ? 0 : roundMs])
+  }, [canAdvance, state.round, state.screen, state.champion, state.quickCopa, dispatch, kingsS, kingsS ? 0 : roundMs, leagueClock])
 
   // 🏆 Copa dos 8: a liga acabou (round 38) e a sala escolheu Liga + Copa —
   // toca fase a fase (quartas → semis → final), mesmo ritmo/motor da Copa da
@@ -8244,6 +8248,9 @@ export function EscSeason() {
   // recebia `copaLegMs` cru (sem dividir pela marcha) e a fase virava com `copaLegMs / copaSf`: em 2× o placar cinema estava no
   // ~57' quando a Copa pulava pra próxima perna — era o "às vezes corta o jogo" (só fora do 2D e com a marcha acima de 1×).
   const copaAnimMs = Math.round(copaLegMs / copaSf) + (phaseFullyPlayed && anyPens ? copaPensMs : 0)
+  const cupStartedAt=useRoundPresentationStart(copaTieKey)
+  const cupClock=useMatchPresentationClock(`cup:${state.roomId}:${state.seed}:${state.seasonNo}:${copaTieKey}`,Math.round(copaLegMs/copaSf),cupStartedAt,online&&!bbS&&!kingsS&&!state.careerOnline&&!state.co2&&!state.pokeLiga&&copaLive&&!firstLegPending&&!copaJustAdvanced)
+  const cupTailMs=phaseFullyPlayed&&anyPens?copaPensMs:0
   // 👑 relógio da Kings: o SEU jogo da rodada (liga) ou o SEU jogo da fase (mata-mata)
   const kTie = kingsS && copaLive && qc ? qc.ties.find(t => (t.aId === you.id || t.bId === you.id) && t.legs.length > 0) : undefined
   const kJogo: MatchResult | undefined = !kingsS ? undefined : copaLive
@@ -8283,10 +8290,12 @@ export function EscSeason() {
   const [copaAdvTimer, setCopaAdvTimer] = useState(true)
   useEffect(() => {
     if (!copaLive || firstLegPending || copaJustAdvanced) { setCopaAdvTimer(true); return }
+    const remaining=cupClock?matchPresentationRemaining(cupClock,1,cupTailMs):copaAnimMs
+    if(remaining<=0){setCopaAdvTimer(true);return}
     setCopaAdvTimer(false)
-    const t = setTimeout(() => setCopaAdvTimer(true), copaAnimMs)
+    const t = setTimeout(() => setCopaAdvTimer(true), remaining)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, firstLegPending, copaJustAdvanced, copaAnimMs])
+  }, [copaTieKey, copaLive, firstLegPending, copaJustAdvanced, copaAnimMs, cupClock, cupTailMs])
   // ⏱️ quando a perna começou NESTA tela (pra o avanço automático saber quanto ainda falta depois de esperar a disputa)
   const copaLegIni = useRef({ key: copaTieKey, t: Date.now() })
   if (copaLegIni.current.key !== copaTieKey) copaLegIni.current = { key: copaTieKey, t: Date.now() }
@@ -8318,9 +8327,9 @@ export function EscSeason() {
   const copaAdvReady = copaAdvTimer && !penSegura
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending || cupNow || penSegura) return // a Cup tem o motor dela
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round((aberturaOn ? respiroFaseMs : 3200) / speedFactor) : Math.max(400, copaLegIni.current.t + copaAnimMs - Date.now()))
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round((aberturaOn ? respiroFaseMs : 3200) / speedFactor) : Math.max(400, cupClock?matchPresentationRemaining(cupClock,1,cupTailMs):copaLegIni.current.t + copaAnimMs - Date.now()))
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow, aberturaOn, respiroFaseMs, penSegura])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow, aberturaOn, respiroFaseMs, penSegura, cupClock, cupTailMs])
   // 🚫 ANTI-SPOILER DO GIRO: as manchetes descrevem a rodada que AINDA está
   // animando na tela — mostrar na hora entrega zebra/líder/placar antes do apito
   // (a tabela é segurada com holdResults, mas o giro não era). Segura o giro do
@@ -8343,6 +8352,11 @@ export function EscSeason() {
   if (copaKeyRef.current !== copaTieKey) { copaKeyRef.current = copaTieKey; setCopaMin(copaLive && !firstLegPending ? 0 : 93) }
   useEffect(() => {
     if (!copaLive || firstLegPending) { setCopaMin(93); return }
+    if(cupClock){
+      const tick=()=>setCopaMin(Math.round(matchPresentationMinute(cupClock)))
+      tick();const iv=setInterval(tick,40)
+      return()=>clearInterval(iv)
+    }
     setCopaMin(0)
     // relógio por TEMPO (igual ao card grande): cada velocidade é de fato diferente
     // e termina exato no fim do jogo. Piso de 400ms pra nunca ficar instantâneo.
@@ -8354,7 +8368,7 @@ export function EscSeason() {
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [copaTieKey, copaLive, firstLegPending, copaSf, copaLegMs])
+  }, [copaTieKey, copaLive, firstLegPending, copaSf, copaLegMs, cupClock])
 
   // 🆚 RETROSPECTO ENTRE AMIGOS (Diego 13/10) — só sala online de futebol (rápida e Minhas Ligas), nunca carreira,
   // nunca dupla (o "VOCÊ" ficaria ambíguo). Quem é quem: assento → conta pelo `seatUids` (nunca pelo nome).
@@ -8471,7 +8485,7 @@ export function EscSeason() {
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
     <TemaCompCtx.Provider value={temaLiga}>
-    <Shell wide desk2={desk2} className={cinemaPreview ? 'll31-cinema' : ''} bar={
+    <Shell presentationClock={copaLive?cupClock:leagueClock} wide desk2={desk2} className={cinemaPreview ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
@@ -10270,14 +10284,17 @@ export function EscLiberta() {
   const c2d = useCampo2DLigado()
   const vel2dAqui = useVel2DAqui() // ⏩📺 06/11: 2D = velocidade absoluta, sem dividir pelo simSpeed
   const roundMs = c2d ? dur2DDaVel(vel2dAqui) : Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) // 📺 2D = 1:30 · 🌎 grupos da Liberta: o ritmo da liga (9s online · 7s offline)
+  const groupClock=useMatchPresentationClock(`liberta:${state.roomId}:${state.seed}:${state.seasonNo}:${lb?.rodada}`,roundMs,groupStartedAt,online&&state.sport!=='basquete'&&!ehKings(state)&&!state.careerOnline&&!state.co2&&!state.pokeLiga&&(lb?.rodada??0)>0)
   // 🙈 ANTI-SPOILER (regra do Diego): a classificação do grupo só atualiza DEPOIS
   // que o jogo terminou de animar na tela — igual a tabela da liga faz.
   const [revealed, setRevealed] = useState(false)
   useEffect(() => {
+    const remaining=groupClock?matchPresentationRemaining(groupClock,.85,250):roundMs*.85+250
+    if(remaining<=0){setRevealed(true);return}
     setRevealed(false)
-    const t = setTimeout(() => setRevealed(true), roundMs * 0.85 + 250)
+    const t = setTimeout(() => setRevealed(true), remaining)
     return () => clearTimeout(t)
-  }, [lb?.rodada])
+  }, [lb?.rodada, groupClock, groupClock?roundMs:0])
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
   // 📣 LIBERTADORES: é COPA, então apita em TODA partida (Diego 19/09: *"qualquer
   // copa nova ou liga"*) — inclusive nas rodadas de grupo, que já são de torneio.
@@ -10286,9 +10303,9 @@ export function EscLiberta() {
   // resultado já sincronizado e animam localmente).
   useEffect(() => {
     if (!canAdvance || manual || !lb || lb.fase !== 'grupos' || lb.rodada >= LIBERTA_RODADAS) return
-    const t = setTimeout(() => dispatch({ type: 'PLAY_LIBERTA_RODADA' }), lb.rodada === 0 ? Math.round(2200 / speedFactor) : roundMs)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_LIBERTA_RODADA' }), lb.rodada === 0 ? Math.round(2200 / speedFactor) : groupClock?matchPresentationRemaining(groupClock):roundMs)
     return () => clearTimeout(t)
-  }, [lb?.rodada, lb?.fase, canAdvance, manual, roundMs, speedFactor, dispatch])
+  }, [lb?.rodada, lb?.fase, canAdvance, manual, roundMs, speedFactor, dispatch, groupClock])
 
   if (!lb) return null
   const meuTime = lb.times.find(t => t.id === you.id)
@@ -10343,7 +10360,7 @@ export function EscLiberta() {
 
   return (
     <TemaCompCtx.Provider value="liberta">
-    <Shell wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
+    <Shell presentationClock={groupClock} wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between gap-2">
         <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
           🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
@@ -10588,12 +10605,15 @@ export function EscChampions() {
   const [revealed, setRevealed] = useState(false)
   const [revealedAt, setRevealedAt] = useState(0)
   const temJogo = (ch?.lastResults.length ?? 0) > 0
+  const championsClock=useMatchPresentationClock(`champions:${state.roomId}:${state.seed}:${state.seasonNo}:${passo}`,roundMs,startedAt,online&&state.sport!=='basquete'&&!ehKings(state)&&!state.careerOnline&&!state.co2&&!state.pokeLiga&&temJogo)
   useEffect(() => {
+    const remaining=temJogo?(championsClock?matchPresentationRemaining(championsClock,.85,250):roundMs*.85+250):0
+    // Trocar o ritmo depois do apito não reinicia o tempo de leitura do portão.
+    if(remaining<=0){setRevealed(true);setRevealedAt(at=>at||Date.now());return}
     setRevealed(false)
-    // sem jogo na tela (reabriu o save no portão) = já está "revelado"
-    const t = setTimeout(() => { setRevealed(true); setRevealedAt(Date.now()) }, temJogo ? roundMs * 0.85 + 250 : 0)
+    const t = setTimeout(() => { setRevealed(true); setRevealedAt(Date.now()) }, remaining)
     return () => clearTimeout(t)
-  }, [ch?.rodada, ch?.repescaoLeg, ch?.fase, roundMs, temJogo])
+  }, [ch?.rodada, ch?.repescaoLeg, ch?.fase, roundMs, temJogo, championsClock])
   // ⏱️ relógio dos dois PORTÕES (fim da tabela → repescão · fim do repescão → oitavas)
   const [agora, setAgora] = useState(Date.now())
   const noPortao = !!ch && ((ch.fase === 'repescao' && !!ch.repescao?.every(tt => tt.legs.length === 0)) || ch.fase === 'mata')
@@ -10609,7 +10629,7 @@ export function EscChampions() {
   useEffect(() => {
     if (!canAdvance || manual || !ch) return
     if (ch.fase === 'tabela' && ch.rodada < CHAMPIONS_RODADAS) {
-      const t = setTimeout(() => dispatch({ type: 'PLAY_CHAMPIONS_RODADA' }), ch.rodada === 0 ? Math.round(2200 / speedFactor) : roundMs)
+      const t = setTimeout(() => dispatch({ type: 'PLAY_CHAMPIONS_RODADA' }), ch.rodada === 0 ? Math.round(2200 / speedFactor) : championsClock?matchPresentationRemaining(championsClock):roundMs)
       return () => clearTimeout(t)
     }
     // 🚪 nos portões o relógio só começa DEPOIS do apito (revealed) — o banner precisa
@@ -10617,14 +10637,14 @@ export function EscChampions() {
     if (ch.fase === 'repescao') {
       if (noPortao && !revealed) return
       // 🥊 o repescão agora roda no motor da Copa: do portão, vai pra tela da Copa
-      const t = setTimeout(() => dispatch({ type: noPortao ? 'START_COPA' : 'PLAY_CHAMPIONS_REPESCAO' }), noPortao ? PORTAO_REPESCAO_MS : roundMs)
+      const t = setTimeout(() => dispatch({ type: noPortao ? 'START_COPA' : 'PLAY_CHAMPIONS_REPESCAO' }), noPortao ? PORTAO_REPESCAO_MS : championsClock?matchPresentationRemaining(championsClock):roundMs)
       return () => clearTimeout(t)
     }
     if (ch.fase === 'mata' && revealed && state.quickCopa) {
       const t = setTimeout(() => dispatch({ type: 'START_COPA' }), PORTAO_OITAVAS_MS)
       return () => clearTimeout(t)
     }
-  }, [ch?.rodada, ch?.fase, ch?.repescaoLeg, canAdvance, manual, roundMs, speedFactor, dispatch, noPortao, revealed, state.quickCopa])
+  }, [ch?.rodada, ch?.fase, ch?.repescaoLeg, canAdvance, manual, roundMs, speedFactor, dispatch, noPortao, revealed, state.quickCopa, championsClock])
 
   const numerosAntesCh = useNumerosAntes(`${ch?.fase}|${ch?.rodada}|${passo}`) // 🙈 30/10: antes do `return` (regra dos hooks)
   if (!ch) return null
@@ -10725,7 +10745,7 @@ export function EscChampions() {
 
   return (
     <TemaCompCtx.Provider value="champions">
-    <Shell wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
+    <Shell presentationClock={championsClock} wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="flex flex-col leading-tight min-w-0">
           <span className="font-black text-sm" style={OSWALD}>
@@ -13559,6 +13579,7 @@ function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
   const { state, dispatch } = useEsc()
   const a = state.euaAgencia
   useEffect(() => { if (!a || a.temporada !== state.seasonNo) dispatch({ type: 'EUA_AGENCIA_ABRIR' }) }, [a?.temporada, state.seasonNo, dispatch])
+  const [meuTroca, setMeuTroca] = useState('') // 🔁 o jogador seu que você quer oferecer
   if (!a || a.temporada !== state.seasonNo) return null
   const you = state.managers[state.youIdx]
   const caixa = Math.round(state.careerCoins?.[you?.id ?? 0] ?? 0)
@@ -13612,7 +13633,33 @@ function EuaAgenciaPasso({ onContinue }: { onContinue: () => void }) {
           ? <p className="px-3 py-3 text-[12.5px] font-bold text-black/55">{tr('As franquias renovaram com todo mundo desta vez.', 'The franchises re-signed everyone this time.')}</p>
           : livresDeFora.slice(0, 30).map((c, i) => linha(c, <small className="text-[10.5px] font-bold text-black/45">{tr('saiu de', 'left')} {a.de?.[chave(c)] ?? c.club}</small>, `${chave(c)}-${i}`))}
       </Box>
+      {(a.assinaram?.length ?? 0) > 0 && <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr(`JÁ ASSINARAM COM OUTRA FRANQUIA · ${a.assinaram!.length}`, `ALREADY SIGNED ELSEWHERE · ${a.assinaram!.length}`))}
+        {a.assinaram!.map((c, i) => linha({ ...c, fame: 0 }, <small className="text-[10.5px] font-bold text-right" style={{ color: GREEN }}>{c.de} → {c.para}</small>, `as-${i}`))}
+      </Box>}
       <p className="text-[11px] font-bold text-black/50 text-center">{tr('Quem está livre entra no seu leilão de reservas da próxima temporada (se você tiver vaga). Quem ninguém levar segue livre — pode até sair no Draft.', 'Free agents go into your reserve auction next season (if you have open spots). Anyone nobody signs stays free — they may even show up in the Draft.')}</p>
+      <Box className="overflow-hidden" style={{ padding: 0 }}>
+        {cab(tr('🔁 TROCA · 1 POR TEMPORADA', '🔁 TRADE · 1 PER SEASON'))}
+        {a.troca
+          ? <p className="px-3 py-3 text-[12.5px] font-bold">{tr(`✓ ${a.troca.deu} foi pro ${a.troca.time} e ${a.troca.recebeu} chegou ao seu time.`, `✓ ${a.troca.deu} went to the ${a.troca.time} and ${a.troca.recebeu} joined your team.`)}</p>
+          : <>
+            <p className="px-3 pt-2.5 text-[11.5px] font-bold text-black/60">{tr('Escolha quem você oferece. Aparecem só os jogadores que a franquia aceitaria trocar: ela quer um jogador que valha pelo menos o mesmo.', 'Pick who you offer. Only players the franchise would accept show up: they want a player worth at least as much.')}</p>
+            <div className="flex flex-wrap gap-1.5 px-3 py-2">{(you?.squad ?? []).filter(c => !c.fake && (!a.meus.includes(chave(c)) || a.decididos[chave(c)] === 'renova')).map(c => (
+              <button key={chave(c)} onClick={() => setMeuTroca(meuTroca === chave(c) ? '' : chave(c))}
+                style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '4px 8px', ...OSWALD, fontWeight: 900, fontSize: 12, background: meuTroca === chave(c) ? '#7C3AED' : '#fff', color: meuTroca === chave(c) ? '#fff' : INK, boxShadow: meuTroca === chave(c) ? `2px 2px 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                {posTag(c.pos)} · {c.name}</button>))}</div>
+            {meuTroca && (() => {
+              const alvos = state.managers.filter(m => !m.isHuman).flatMap(m => m.squad.filter(c => !c.fake).map(c => ({ c, m })))
+                .filter(x => trocaEua(state, meuTroca, chave(x.c)).ok).sort((x, y) => (y.c.lo + y.c.hi) - (x.c.lo + x.c.hi)).slice(0, 10)
+              return alvos.length === 0
+                ? <p className="px-3 pb-3 text-[11.5px] font-bold" style={{ color: '#C2452F' }}>{tr('Nenhuma franquia aceita trocar por esse jogador sem perder valor. Tente oferecer outro.', 'No franchise would trade for this player without losing value. Try offering someone else.')}</p>
+                : alvos.map(({ c, m }) => linha(c, <>
+                  <small className="text-[10.5px] font-bold text-black/45">{m.teamName}</small>
+                  {botao(tr('TROCAR', 'TRADE'), '#7C3AED', () => { dispatch({ type: 'EUA_TROCA', meu: meuTroca, dele: chave(c) }); setMeuTroca('') })}
+                </>, `tr-${chave(c)}`))
+            })()}
+          </>}
+      </Box>
       {pendentes > 0
         ? <p className="text-center text-[12px] font-black" style={{ ...OSWALD, color: '#C2452F' }}>{tr(`Falta decidir ${pendentes} contrato${pendentes > 1 ? 's' : ''} pra seguir.`, `${pendentes} contract${pendentes > 1 ? 's' : ''} left to decide before moving on.`)}</p>
         : <BotaoPassoBB texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('a decisão da próxima temporada vem agora', 'next season’s decision comes next')} onClick={onContinue} />}

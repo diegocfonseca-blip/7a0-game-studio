@@ -1,3 +1,15 @@
+## ⏩ 23/11 — CORREÇÃO DA TROCA DE VELOCIDADE ONLINE (PUBLICAÇÃO AUTORIZADA)
+- Reproduzidos o reinício desnecessário do canvas 2D a cada troca e o retrocesso dos outros placares ao desacelerar. O desenho agora preserva cenário/loop; principal, outros jogos, revelação e avanço usam o mesmo relógio local por rodada/perna, recalculando o restante.
+- Liga, Libertadores, Champions e copa local. Calendário de chances do cinema estável e folga extra de pênaltis em tempo real. Mantidos controles exclusivos do host, tempos entre fases, resultados, identidade e coroa. Sem novos campos, canais, consultas ou RPCs; carreira, basquete, Kings e relógios explícitos de copas independentes preservados.
+- Passaram 266 verificações do relógio, 62 específicas no navegador e 651 de interface, sem exceções JavaScript; build TypeScript/Vite, pausa/retomada do campo e `git diff --check` também passaram. Bancada com rede simulada; teste físico no S25 e duas sessões reais continuam pendentes.
+- Correção isolada `0b3fc162`, integrada com a main `83a22056` preservando as correções recentes de convocação e chat; build e 62 testes específicos repetidos com sucesso após a integração. Publicação para todos autorizada em 23/11; conferir conclusão no GitHub Actions. [Detalhes, evidências e limites](ritmo-online-20261123.md).
+
+## 🌐 23/11 — VISUAL DAS LIGAS E COPAS ONLINE LIBERADO PARA TODOS
+- Autorização nova do Diego substitui a lista Diego/Futpoint. Mesmo visual nas competições de futebol online compatíveis; Draft permanece separado, carreira/basquete/co2/pokeLiga fora e Kings conserva posturas nativas. Outras prévias privadas continuam fechadas.
+- Aprovado no mockup: plano em 2×2 no desktop, retrospecto visível em Partida contra outra pessoa, chat no fim da lateral; copas com grupo/chave, retrospecto, artilharia e assistências antes do chat. Faixa dos outros jogos rolável. Sem mudar fontes, tempos entre fases, pênaltis, premiações ou identidade.
+- Plano salvo liberado aos participantes por UID/assento, persistindo nos jogos seguintes. Nas copas independentes, escrita autenticada aberta aos inscritos da edição; o recálculo local experimental das ligas continua com suas restrições anteriores. Nenhum canal novo de Realtime. Opção já selecionada não gera salvamento redundante.
+- Migração `copas_planos_publicos_20261123` aplicada; testes transacionais e chamada authenticated de participante fora da antiga lista passaram, sem novos avisos do advisor. Reversão testada sem apagar histórico ou reiniciar relógios. [Escopo, validação e procedimento de reversão](futebol-online-publico-20261123.md).
+
 ## 🔒 23/11 — COPAS ONLINE NO PILOTO DO DIEGO E FUTPOINT
 - Abas separadas e transmissão permanente nas copas de seleções, regionais, Libertadores e mata-matas compatíveis das salas. Confrontos/classificados e o tempo de leitura usam os componentes existentes, no lugar do jogo em qualquer aba. Pênaltis junto do placar/2D, antes do resumo/telão/controles. Cerimônias e identificadores das premiações preservados.
 - Planos persistentes nas fases, com confirmação e corte do servidor para as copas independentes; só liberam novos planos quando todos anunciam versão compatível. Liga/quick cup conservam as restrições anteriores de recálculo ao vivo. Sem canal Realtime novo, sem mudar identidade/host ou reescrever eventos já exibidos.
@@ -69,6 +81,15 @@
 
 
 
+
+
+### 📜💸 23/11 — dica de rolagem na convocação + Mão Furada zerando a cada leilão (no branch, esperando "pode publicar")
+- Convocação (Copa da sala/carreira e convite internacional): `ListaRolavel` (lista-rolavel.tsx/.css) = barra de rolagem preta sempre visível +
+  faixa "▼ role pra ver mais" embaixo enquanto tem jogador escondido (e "▲" em cima). Diego: *"muitos usuários não sabem que dá pra rolar"*.
+  Não visto em sala de verdade ainda.
+- "Mão furada +807" (sala do K9 FC): o caderninho `state.resenha.furada` nunca zerava e somava todos os leilões da sala; a frase falava só do pior
+  arremate (83). Agora zera no arranque de cada leilão (`startAuctionPhase`).
+- Chat novo da sala (`private-room-chat.tsx`) ganhou a linha WhatsApp/Discord que só os chats antigos tinham.
 
 ### 🎮🔒 23/11 — botão pequeno "Manual 🔒" logo depois do placar (no branch, esperando "pode publicar")
 - Análise de 7 dias (`apoio_intents`): 170 pessoas abriram a trava do Manual, 1 gerou Pix, 0 pagou; 441 bateram no limite da sala do dia
@@ -824,6 +845,11 @@ carreira · vice/eliminação.
   de salas de cada jogo (o do outro jogo = contagem leve no banco, salas mexidas nos últimos 3 min). Só aparece pra conta liberada no
   basquete (`useSportUnlocked`); pra todo o resto nada muda e nenhuma consulta a mais. Prints: `scripts/mockups/salas-abertas-seletor-{celular,pc}.png`.
   ✅ PUBLICADO 22/11 (Diego: *"Sim só p mim"*).
+- ✅ 23/11 (Diego: *"Sim"*) no passo ✍️ Contratos do EUA Oficial: (1) a MÁQUINA CONTRATA livre — franquia que perdeu jogador tem 60% de chance de
+  assinar um livre da MESMA posição (entre os 3 melhores, só dos que outra franquia soltou; os SEUS que saem ficam pro seu leilão); a tela mostra
+  "Já assinaram com outra franquia" (de → para). (2) 🔁 TROCA, 1 por temporada: você escolhe quem oferece e aparecem só os jogadores que a franquia
+  aceitaria (régua `trocaEua`, a mesma na tela e no reducer: o seu tem que valer pelo menos o mesmo; ninguém fica sem a posição; contrato acabado
+  tem que renovar antes). Prints `scripts/mockups/basquete-eua-troca-{celular,pc}.png`. Trava `npm run eua-oficial`. No branch.
 - 🔁 22/11 (mesmo dia): o passo se chama **✍️ CONTRATOS** na tela (Diego confundiu "agência livre" com a 🕴️ Agência do jogo, das cartinhas e
   comissão: *"A agência deveria ser de cartinhas e ganhar dinheiro igual no do futebol"*). No código segue `euaAgencia`/`eua-agencia.ts`.
 - ✅ 22/11 ✍️ AGÊNCIA LIVRE do EUA Oficial (Diego: *"pode fazendo"*, sem mockup). Contratos (`euaContratos`): quinteto 1–4 temporadas, quem chega

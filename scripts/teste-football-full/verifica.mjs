@@ -38,8 +38,8 @@ async function checkMatchAd(page,label){
  const primary=page.locator('.ov3-primary-active'),native=primary.locator(':scope > .ov3-native'),ad=primary.locator(':scope > .ov3-ad-slot .fp-match-ad-board')
  await ad.waitFor()
  check(`${label}: um único telão na transmissão`,await page.locator('.fp-match-ad-board:visible').count()===1&&await primary.locator('.placa-led:visible').count()===1)
- const field=await native.boundingBox(),board=await ad.boundingBox()
- check(`${label}: telão imediatamente abaixo do jogo`,board.y>=field.y+field.height-1&&board.y-field.y-field.height<=25)
+ const gap=await primary.evaluate(node=>{const field=node.querySelector(':scope > .ov3-native').getBoundingClientRect(),board=node.querySelector(':scope > .ov3-ad-slot .fp-match-ad-board').getBoundingClientRect();return board.top-field.bottom})
+ check(`${label}: telão imediatamente abaixo do jogo (intervalo ${gap}px)`,gap>=-1&&gap<=25)
  check(`${label}: telão sem moldura bege`,await ad.evaluate(node=>{const style=getComputedStyle(node);return style.backgroundColor==='rgb(12, 12, 12)'&&style.borderTopWidth==='0px'&&style.paddingTop==='0px'&&style.boxShadow==='none'}))
 }
 async function checkPersistentFrame(page,label,field=false){
@@ -186,11 +186,11 @@ try{
   await page.getByRole('button',{name:'Ativar novo visual',exact:true}).click()
   await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
   await page.evaluate(()=>window.qaAccount('outro@example.com'))
-  await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
-  check(`${width}: outras contas fora da nova interface`,await page.locator('.fp-advanced-tactics').count()===0)
-  check(`${width}: conta pública não recebe o novo destino de rivalidades`,await page.locator('.ov3-rivals-slot').count()===0)
-  check(`${width}: conta pública não recebe o cartão novo de próximo jogo`,await page.locator('.ov3-next-rival-slot').count()===0)
-  check(`${width}: conta pública não recebe a nova posição privada do telão`,await page.locator('.fp-match-ad-board').count()===0)
+  await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
+  check(`${width}: conta pública recebe a nova interface`,await page.locator('.fp-advanced-tactics').count()>0)
+  check(`${width}: conta pública recebe destino de rivalidades`,await page.locator('.ov3-rivals-slot').count()>0)
+  check(`${width}: conta pública recebe cartão de próximo jogo`,await page.locator('.ov3-next-rival-slot').count()>0)
+  check(`${width}: conta pública recebe telão único`,await page.locator('.fp-match-ad-board').count()===1)
   await context.close()
  }
  for(const width of [390,1440]){
@@ -215,8 +215,8 @@ try{
    await page.evaluate(()=>window.scrollTo(0,0))
    await page.screenshot({path:`${out}/${width}-futpoint-${field?'2d':'cinema'}.png`,fullPage:true})
    await page.evaluate(()=>window.qaAccount('diego.c.fonseca2@gmail.com'))
-   await page.waitForFunction(()=>!document.body.classList.contains('fp-match-pilot'))
-   check(`${label}: conta secundária permanece fora`,await page.locator('.fp-advanced-tactics').count()===0)
+   await page.waitForFunction(()=>document.body.classList.contains('fp-match-pilot'))
+   check(`${label}: conta secundária também recebe o visual público`,await page.locator('.fp-advanced-tactics').count()>0)
    await context.close()
   }
  }

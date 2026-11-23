@@ -1,10 +1,9 @@
-// 22/11: revisão aprovada para Diego principal e Futpoint, por pedido explícito.
-// Reversão global do experimento: false. Nenhuma permissão de dados depende disto.
+// 23/11: visual aprovado para todos nas competições online compatíveis.
+// Reversão da apresentação: false. Mantém a leitura dos planos já confirmados.
 export const FOOTBALL_MATCH_PILOT_ENABLED = true
-const ACCOUNTS = new Set(['diego.c.fonseca@gmail.com','gfpicolo13@gmail.com'])
 
-export function footballMatchPilotEmail(email?: string | null) {
-  return FOOTBALL_MATCH_PILOT_ENABLED && ACCOUNTS.has((email ?? '').trim().toLowerCase())
+export function footballMatchPilotEmail(_email?: string | null) {
+  return FOOTBALL_MATCH_PILOT_ENABLED
 }
 
 export type FootballMatchPilotScope = {

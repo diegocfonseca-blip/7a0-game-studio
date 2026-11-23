@@ -19,7 +19,7 @@ export function CupPlanPanel({control}:{control:CupPlanController}){
  const selected=draft??preferred
  const canSend=enabled&&running&&hasMatch&&Math.ceil(minute+4500/(duration*.82)*93)<88
  const change=<K extends keyof FootballPlan>(field:K,value:FootballPlan[K])=>{
-  const plan={...selected,[field]:value,mark:null};setDraft(plan);setError('');setSaving(n=>n+1)
+  const plan={...selected,[field]:value,mark:null};if(equal(plan,selected))return;setDraft(plan);setError('');setSaving(n=>n+1)
   queue.current=queue.current.catch(()=>{}).then(async()=>{
    try{await send(plan,false,crypto.randomUUID())}catch(e){if(alive.current){setError((e as Error).message);setDraft(null)}}finally{if(alive.current)setSaving(n=>Math.max(0,n-1))}
   })

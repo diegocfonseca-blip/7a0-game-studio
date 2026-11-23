@@ -2,7 +2,8 @@ import {useOwnerLayout,useOwnerState,OwnerChampionBanner,OwnerMatchNavigation} f
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 import type { EstadoPenaltisCampo } from './campo2d-penaltis'
 import type { ReactNode, CSSProperties } from 'react'
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo, useContext } from 'react'
+import {MatchPresentationClockContext,matchPresentationMinute} from './match-presentation-clock'
 import './online-match-visual.css'
 import { tr, getLang } from './lang' // 🌐 BR/EN
 import { playChute, playDefesa, crowdRoar } from './sound' // ⚽ 19/11: som da disputa de pênaltis
@@ -225,10 +226,10 @@ export function CompetitionMatch({ home, away, homeCrest, awayCrest, homeOwner, 
 }
 
 /** Relógio apenas de apresentação. Não avança a sala nem produz resultados. */
-export function useRoundPresentationStart(key: number, inicioDoDono?: number) {
+export function useRoundPresentationStart(key: number|string, inicioDoDono?: number) {
   // ⏱️ 07/11: tela que ABRIU com a rodada já rolando usa a hora do dono (entre 3 s e 3 min atrás); quem já estava na tela
   // segue o relógio de sempre (troca de rodada com a tela aberta = agora), então um celular com a hora errada não pula nada.
-  const ref = useRef<{key:number;at:number}>(null as never)
+  const ref = useRef<{key:number|string;at:number}>(null as never)
   if(!ref.current){const passou=inicioDoDono==null?0:Date.now()-inicioDoDono;ref.current={key,at:passou>3000&&passou<180000?inicioDoDono!:Date.now()}}
   if(ref.current.key !== key) ref.current = {key,at:Date.now()}
   return ref.current.at
@@ -249,13 +250,15 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
   kingsPens?: [number, number]
 }) {
   const [minuteLocal, setMinute] = useState(0)
+  const contextClock=useContext(MatchPresentationClockContext)
+  const presentationClock=!basket&&!p.relogioKings&&p.minutoFixo==null?contextClock:null
   const minute = p.minutoFixo ?? minuteLocal
   useEffect(() => {
-    const tick = () => setMinute(Math.min(93, Math.round((Date.now() - startedAt) / Math.max(400, roundMs * .82) * 93)))
+    const tick = () => setMinute(presentationClock?Math.round(matchPresentationMinute(presentationClock)):Math.min(93, Math.round((Date.now() - startedAt) / Math.max(400, roundMs * .82) * 93)))
     tick()
     const timer = setInterval(tick, 250)
     return () => clearInterval(timer)
-  }, [roundKey, roundMs, startedAt])
+  }, [roundKey, roundMs, startedAt,presentationClock])
   const known = goals.length > 0 || score.every(n => n === 0)
   const parcial = (final: number) => Math.round(final * Math.min(1, minute / 93))
   const homeScore = finished ? score[0] : basket ? parcial(score[0]) : known ? goals.filter(g => g.home && g.min <= minute).length : '–'
