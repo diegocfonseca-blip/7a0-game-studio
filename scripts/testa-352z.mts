@@ -1,6 +1,6 @@
 // 🛡️ 23/11 — Diego: "poderia ter 451 e tb poderia ter 352 c 5 meias q hj só tem c dois laterais". O 3-5-2 de verdade é a chave
 // '3-5-2z' (3 ZAG · 5 MEI · 2 ATA, sem lateral); o antigo (5-3-2 com os laterais de alas) segue pra quem já está nele.
-// E o 4-5-1 passa a ser escolha de INÍCIO (sala, carreira). Rodar: npm run 352z
+// O início continua só 4-3-3/4-4-2 (Diego 23/11); 4-5-1 e 3-5-2 são de troca. Rodar: npm run 352z
 import assert from 'node:assert/strict'
 import { FORMATIONS, FORMACOES_JOGO, rotuloFormacao } from '../src/escalacao/types'
 import type { EscState, FormationKey } from '../src/escalacao/types'
@@ -52,7 +52,7 @@ function joga(formation: FormationKey) {
   return st
 }
 const st = joga('4-5-1')
-console.log('✅ começar no 4-5-1: leilão fecha 5 meias e 1 atacante, rodada roda')
+console.log('✅ motor de liga com 4-5-1: leilão fecha 5 meias e 1 atacante, rodada roda')
 
 // carreira: troca pro 3-5-2 novo com 3 zagueiros e 5 meias; barra sem
 const c0 = { ...st, careerOnline: true }

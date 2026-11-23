@@ -3244,8 +3244,8 @@ export function EscSetup() {
                 <input value={name} onChange={e => { setName(stripEmoji(e.target.value)); setNameErr('') }} placeholder={tr('Ex.: Lendas FC', 'E.g.: Legends FC')} />
                 {nameErr && <p className="ll-career-error">{nameErr}</p>}
                 <label>{tr('FORMAÇÃO INICIAL', 'STARTING FORMATION')}</label>
-                <div className="ll-career-choice-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                  {(['4-3-3', '4-4-2', '4-5-1'] as FormationKey[]).map(f => (
+                <div className="ll-career-choice-grid">
+                  {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
                     <button key={f} onClick={() => setFormation(f)} className={formation === f ? 'is-selected' : ''}>{f}</button>
                   ))}
                 </div>
@@ -3685,8 +3685,9 @@ export function EscSetup() {
         {!bbSetup && <div>
           <p className="text-xs font-black uppercase mb-1">{t('Formação (travada antes do pregão)', 'Formation (locked before the auction)')}</p>
           <div className="grid grid-cols-4 gap-2">
-            {/* INÍCIO: 4-3-3, 4-4-2 e 4-5-1 (23/11, Diego: "tô sentindo falta da formação 451"). As outras são troca TÁTICA depois. */}
-            {(['4-3-3', '4-4-2', '4-5-1'] as FormationKey[]).map(f => (
+            {/* INÍCIO: só 4-3-3 e 4-4-2 (base do leilão). O 4-5-1 é troca TÁTICA na
+                carreira depois — nunca no começo. */}
+            {(['4-3-3', '4-4-2'] as FormationKey[]).map(f => (
               <button key={f} onClick={() => setFormation(f)}
                 className="border-[3px] border-black rounded-xl py-2 font-black text-sm ov3-surface"
                 style={{ backgroundColor: formation === f ? GOLD : '#fff', boxShadow: formation === f ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
