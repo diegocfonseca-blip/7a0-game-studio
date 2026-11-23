@@ -1,3 +1,9 @@
+## 🔒 23/11 — COPAS ONLINE NO PILOTO DO DIEGO E FUTPOINT
+- Abas separadas e transmissão permanente nas copas de seleções, regionais, Libertadores e mata-matas compatíveis das salas. Confrontos/classificados e o tempo de leitura usam os componentes existentes, no lugar do jogo em qualquer aba. Pênaltis junto do placar/2D, antes do resumo/telão/controles. Cerimônias e identificadores das premiações preservados.
+- Planos persistentes nas fases, com confirmação e corte do servidor para as copas independentes; só liberam novos planos quando todos anunciam versão compatível. Liga/quick cup conservam as restrições anteriores de recálculo ao vivo. Sem canal Realtime novo, sem mudar identidade/host ou reescrever eventos já exibidos.
+- Duas migrações aplicadas: tabelas internas sem acesso direto, RPCs públicas invoker, escrita restrita aos dois UIDs. Testes transacionais revertidos e permissões conferidas; nenhum plano ou sala de teste persistido. 535 checagens dos motores, 360 de mata-matas, 651 da interface da liga e 250 das copas passaram; regressões antigas passaram.
+- Draft separado, Kings conserva posturas nativas, demais contas fora do visual. [Implementação, validações, limites e reversão](copas-online-piloto-20261123.md); [avaliação da Liga Draft](auditoria-liga-draft-20261123.md).
+
 ## 🔒 23/11 — MANTER ABAS; PLANO ESCOLHIDO CONTINUA NAS PRÓXIMAS PARTIDAS
 - Diego rejeitou a proposta de reorganização móvel: conservar abas separadas. O mockup não foi aplicado; layout e CSS preservados.
 - No teste autorizado das táticas, cada escolha passa a ser salva para os próximos jogos, sem voltar ao padrão na mudança de rodada. Enviar ordens continua sendo a aplicação explícita ao jogo em andamento. Confirmação do host, retomada da sala e preferências separadas por técnico; convidados não ganham recálculo ao vivo.
@@ -62,6 +68,15 @@
 
 
 
+
+
+### 🎮🔒 23/11 — botão pequeno "Manual 🔒" logo depois do placar (no branch, esperando "pode publicar")
+- Análise de 7 dias (`apoio_intents`): 170 pessoas abriram a trava do Manual, 1 gerou Pix, 0 pagou; 441 bateram no limite da sala do dia
+  (2.419 vezes), 4 compraram as 3 salas extras. Propus botão embaixo do placar + preços menores; Diego: *"gostei só de pôr um botão pequeno…
+  mas não altere o valor"*. **Preços NÃO mudaram** (Manual 24 h R$ 9,90 · Craque Completo R$ 14,90/mês · 3 salas R$ 4,90 · Craque Salas R$ 9,90/mês).
+- `ManualChipPlacar` (pyramidseason.tsx): pílula "🎮 Manual 🔒" logo depois do quadro do placar (aba Jogos, sem plano); só aparece se a trava
+  `ManualLockButton` está na tela (senão seria botão mudo) e abre ELA (mesmas ofertas), rolando até lá. Log: "🎮 manual: botão embaixo do placar".
+- Print: `scripts/mockups/manual-chip-placar.png` · bancada `scripts/mapa3d/print-chip-manual.mjs`.
 
 ### 🐢 23/11 (madrugada) — Copa da sala pergunta menos ao servidor durante os jogos (no branch, esperando "pode publicar")
 - Vigia: um aparelho numa sala de Copa lia `room_players` + `esc_copa_salas` ~2.100×/h cada (a leitura de 2 s). Diego: *"ok faça"*.

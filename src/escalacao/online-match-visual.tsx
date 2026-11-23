@@ -167,9 +167,9 @@ export function OnlineRhythm(p: { manual: boolean; onToggle: () => void; speed: 
   </div>
 }
 export type OnlineMatchTab = 'jogos' | 'tabela' | 'estatisticas' | 'elenco'
-export function OnlineMatchTabs({ value, onChange }: { value: OnlineMatchTab; onChange: (tab: OnlineMatchTab) => void }) {
+export function OnlineMatchTabs({ value, onChange,cup=false }: { value: OnlineMatchTab; onChange: (tab: OnlineMatchTab) => void;cup?:boolean }) {
   const owner=useOwnerLayout()
-  if(owner)return <OwnerMatchNavigation value={value} onChange={onChange}/>
+  if(owner)return <OwnerMatchNavigation value={value} onChange={onChange} cup={cup}/>
   return <nav className="ll25-tabs" aria-label="Conteúdo da partida">{([['jogos', tr('JOGOS + TABELA', 'MATCHES + TABLE')], ['estatisticas', tr('ESTATÍSTICAS', 'STATS')], ['elenco', tr('ELENCO', 'SQUAD')]] as const).map(([tab, label]) =>
     <button key={tab} className="ll25-button" aria-pressed={value === tab} onClick={() => onChange(tab)}>{label}</button>)}</nav>
 }

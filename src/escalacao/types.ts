@@ -604,6 +604,7 @@ export interface MatchResult {
 // clássico do chaveamento; final é jogo único. Mesmo motor de partida do
 // campeonato (simMatch), só que fora do calendário de pontos corridos.
 export interface QuickCopaTie {
+  lastFootballLive?:import('./football-live-tactics').FootballLive
   lastPresentationGoals?: MatchHighlight[]
   aId: number; bId: number; aName: string; bName: string
   legs: [number, number][] // placares [gols de A, gols de B] de cada perna já jogada

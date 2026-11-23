@@ -10,11 +10,13 @@ export function footballMatchPilotEmail(email?: string | null) {
 export type FootballMatchPilotScope = {
   sport?: string; onlineMode?: string; screen?: string
   careerOnline?: boolean; careerIntent?: boolean; co2?: unknown; pokeLiga?: unknown
+  ligaDraft?:boolean;minhaLigaDraft?:boolean
 }
 export function footballMatchPilotScope(state: FootballMatchPilotScope) {
   return state.sport !== 'basquete' && state.onlineMode === 'online'
     && !state.careerOnline && !state.careerIntent && !state.co2 && !state.pokeLiga
-    && !!state.screen && ['season', 'liberta', 'champions'].includes(state.screen)
+    && !state.ligaDraft&&!state.minhaLigaDraft
+    && !!state.screen && ['season', 'liberta', 'champions','end'].includes(state.screen)
 }
 
 /** Includes the World Cup/regional/Libertadores broadcasts opened after a league. */
