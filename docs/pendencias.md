@@ -1,3 +1,8 @@
+## 🔒 23/11 — MANTER ABAS; PLANO ESCOLHIDO CONTINUA NAS PRÓXIMAS PARTIDAS
+- Diego rejeitou a proposta de reorganização móvel: conservar abas separadas. O mockup não foi aplicado; layout e CSS preservados.
+- No teste autorizado das táticas, cada escolha passa a ser salva para os próximos jogos, sem voltar ao padrão na mudança de rodada. Enviar ordens continua sendo a aplicação explícita ao jogo em andamento. Confirmação do host, retomada da sala e preferências separadas por técnico; convidados não ganham recálculo ao vivo.
+- Build, regressão do motor, acesso privado, 53 verificações específicas e 651 verificações gerais da interface passaram. Auditoria de limpeza da carreira tem falha anterior em `careerSubModeDesde`, reproduzida na base sem a correção; o novo campo está na limpeza. [Causa, escopo e validação](plano-persistente-online-20261123.md).
+
 ## 🔒 22/11 — TELÃO LOGO ABAIXO DO JOGO, EM TODAS AS COMPETIÇÕES ONLINE
 - Pedido do Diego: ele e Futpoint, em qualquer liga/copa das salas online, com telão abaixo de cinema/placar rápido ou 2D, sem moldura bege. O anúncio passa a pertencer à transmissão principal e permanece nas trocas de aba.
 - Escopo inclui as transmissões de copas após a liga (`end`), sem ampliar o restante do piloto ou as permissões. Uma única placa, feed/links/rotação existentes; chamadas antigas da página/campo são suprimidas antes de montar seu corpo nessas duas contas. Outras contas, loja, carreira e basquete preservados.
@@ -15142,3 +15147,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   1990 lateral × Chelsea 2021 volante).
 - ⚠️ `npm run novidades` dá Segmentation fault nesta máquina (vite createServer); a foto foi acertada na mão (só as 4 chaves removidas).
 - ⚠️ `npm run liga-draft` já falhava ANTES ("gente nova → leilão fraco de novo") — conferir à parte.
+
+## 📝 23/11 — Texto da carta errado em xará (Pepe Santos 1962 com o texto do Pepe do Real) — print do Futpoint
+- Causa: as telas de carta (CollectibleCard, carta compartilhada e a do campeão) caíam no texto por NOME (`BIOS`) quando a carta chegava
+  sem o campo `bio` (carta da conta/do pacote). Agora `bioDaCarta(nome, clube, ano)` (paises.ts): texto da PRÓPRIA carta no catálogo; o
+  por nome só quando o nome é uma pessoa só (carta única ou `MESMO_JOGADOR`); carta fora dos 3 baralhos não herda nada.
+- 11 cartas ganharam o texto delas escrito na carta (era o do `BIOS`): Felipe Vasco 2000, Diego Santos 2004, Wesley Flamengo 2023, Reinaldo
+  Galo 1977, Neto Corinthians 1990, Paulinho Corinthians 2012, Fábio Rochemback Inter 2000, Abedi Pelé Marseille 1993, Pedro Flamengo 2022,
+  Lincoln Flamengo 2019, Pepe Real 2012. Marquinhos Corinthians, Militão SP e Abedi Pelé Vasco ficam com o texto genérico (o do BIOS fala do
+  PSG/Real/Marseille).

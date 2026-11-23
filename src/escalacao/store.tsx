@@ -6324,6 +6324,7 @@ type Action =
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
   | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
+  | { type:'FOOTBALL_SAVE_PLAN';mgrId:number;plan:FootballPlan;by:string }
   | { type:'FOOTBALL_LIVE_PLAN';mgrId:number;plan:FootballPlan;by:string;requestId:string;round:number;localProof:symbol }
   | { type: 'SALVA_ESCALACAO'; mgrId: number; qual: 'A' | 'B'; ids: string[]; formation: FormationKey; view?: string } // 💾 guarda o time em campo como Time A/B (23/10)
   | { type: 'APLICA_ESCALACAO'; mgrId: number; qual?: 'A' | 'B'; formation: FormationKey; view?: string; ids: string[]; slot?: number } // 💾 entra com o A/B montado pela tela (aplicaEscalacao): formação + 11 juntos, ou nada
@@ -8658,7 +8659,7 @@ export function viraCampo2D(s: EscState): void {
  *  online… absurdo isso"*). A carreira começa por cima do estado que sobrou do último jogo; tudo que é escolha da PARTIDA RÁPIDA
  *  ou da SALA ONLINE (jeito do lance, tempo do leilão, 2D da sala, Liga Draft, sem bots, duplas, dinastia, copa regional, Bafo…)
  *  volta pro valor de quem abre o jogo do zero. Modo NOVO com marca própria = entra nesta lista (trava: `npm run carreira-limpa`). */
-export const MARCAS_DE_MODO = ['footballPlans','pregaoAberto', 'viceCity', 'viceCartas', 'kingsBaralho', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
+export const MARCAS_DE_MODO = ['footballPlans','footballNextPlans','pregaoAberto', 'viceCity', 'viceCartas', 'kingsBaralho', 'pa', 'paPresentes', 'holandes', 'leilaoClubes', 'leilaoSelecao', 'leilaoDecada', 'leilaoClubesConvocado', 'auctionSecs',
   'campo2d', 'campo2dProximo', 'vel2d', 'chatOff', 'manualRoom', 'streamMode', 'ligaDraft', 'minhaLigaDraft', 'draftRegras', 'draftPremios', 'mldBotVez', 'tamanhoLiga', 'turnoUnico', 'draft', 'draftFeito', 'ligaFechada', 'ligaFechadaEscolha', 'ligaMode',
   'regionalSala', 'dinastia', 'dinastiaBudget', 'duplasMode', 'duplas', 'hostInbox', 'copaMode', 'quickCopa', 'bafoDonos', 'bafoOn', 'bafo2',
   'bafoValendo', 'locked', 'pwHash', 'pokeLiga', 'careerGratisAte', 'relampagoChave', 'envUnico', 'euAberto', 'euRevelando', 'euRodada', 'euSobras', 'convocacaoFormacao', 'varzea', 'rodadaEm', 'nbaSala', 'nbaConf', 'nbaMundo'] as const satisfies readonly (keyof EscState)[]
@@ -12135,6 +12136,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.screen = 'season'
       return s
     }
+    case 'FOOTBALL_SAVE_PLAN': {
+      // Existing guest -> host route; only the trusted test room can accept a plan.
+      // Match manager ID against its UID, never against the host's local youIdx.
+      if(!footballTestRoom(s)||ehKings(s)||s.screen!=='season'||s.quickCopa||s.champion!=null||!validFootballPlan(action.plan)||action.plan.mark!==null)return s
+      const seat=s.managers.findIndex(m=>m.id===action.mgrId&&m.isHuman)
+      if(seat<0||!action.by||s.seatUids?.[seat]!==action.by)return s
+      s.footballNextPlans={...s.footballNextPlans,[action.mgrId]:{...action.plan}}
+      return s
+    }
     case 'FOOTBALL_LIVE_PLAN': {
       // Local host gesture only. A serialized/network action can never carry this proof.
       if(action.localProof!==FOOTBALL_LOCAL_ORDER||!footballTestRoom(s)||ehKings(s)||s.screen!=='season'||action.by!==s.youUid||action.round!==s.round||!validFootballPlan(action.plan)||action.requestId.length>100)return s
@@ -12173,6 +12183,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       next.footballLive={revision:(rival.footballLive?.revision??0)+1,orders:[...(rival.footballLive?.orders??[]),{id:action.requestId,from:cutoff,plan,by:manager.id}]}
       s.lastResults=s.lastResults.map(r=>r===rival?next:r)
       s.footballPlans={...s.footballPlans,[manager.id]:plan};s.tactics[manager.id]=plan.posture
+      s.footballNextPlans={...s.footballNextPlans,[manager.id]:plan}
       s.news=s.news.filter(n=>!n.includes(h.name)&&!n.includes(a.name))
       return s
     }
@@ -12191,6 +12202,9 @@ function reducerBase(state: EscState, action: Action): EscState {
         return s
       }
       s.tactics[action.mgrId] = action.tactic
+      // The old posture selector must also replace a saved preference.
+      const saved=s.footballNextPlans?.[action.mgrId]
+      if(footballTestRoom(s)&&validFootballPlan(saved))s.footballNextPlans={...s.footballNextPlans,[action.mgrId]:{...saved,posture:action.tactic}}
       return s
     }
     case 'SET_LINEUP': {
@@ -12664,6 +12678,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       // te fez gol antes da partida animar. A tabela já segurava; a artilharia não.
       s.scorersPrev = s.scorers.map(sc => ({ ...sc }))
       for (let i = 0; i < times && s.round < roundsTotal; i++) {
+        // Carry the saved choice into every new match. Saving alone never
+        // rewrites the result or clock of the match already on screen.
+        if(footballTestRoom(s)&&!ehKings(s))for(const m of s.managers){
+          const plan=s.footballNextPlans?.[m.id]
+          if(m.isHuman&&validFootballPlan(plan)){
+            s.footballPlans={...s.footballPlans,[m.id]:{...plan,mark:null}}
+            s.tactics[m.id]=plan.posture
+          }
+        }
         const rng = mulberry(s.seed + 5000 + s.round * 37)
         // fotografa posições e gols ANTES pra narrar as viradas
         const prevRank = new Map(sortedTable(s.league).map((t, idx) => [t.id, idx + 1]))

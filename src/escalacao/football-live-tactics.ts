@@ -17,9 +17,13 @@ export function publishFootballClock(value:FootballClock){
 }
 export function footballClock(){return clock}
 export function useFootballClock(){return useSyncExternalStore(fn=>{clockListeners.add(fn);return()=>{clockListeners.delete(fn)}},()=>clock,()=>null)}
+export function footballPlanRoom(s:EscState){
+ return s.onlineMode==='online'&&s.sport!=='basquete'&&!s.careerOnline&&!s.careerIntent&&!s.co2&&!s.pokeLiga
+  &&!!s.roomId&&s.managers.some((m,i)=>m.isHuman&&s.seatUids?.[i]===FOOTBALL_OWNER_UID)
+  &&s.managers.every((m,i)=>!m.isHuman||TEST_ACCOUNTS.has(s.seatUids?.[i]??''))
+}
 export function footballTestRoom(s:EscState){
- return s.onlineMode==='online'&&s.isHost&&s.youUid===FOOTBALL_OWNER_UID&&s.sport!=='basquete'&&!s.careerOnline&&!s.careerIntent&&!s.co2&&!s.pokeLiga
-  &&!!s.roomId&&s.managers.every((m,i)=>!m.isHuman||TEST_ACCOUNTS.has(s.seatUids?.[i]??''))
+ return s.isHost&&s.youUid===FOOTBALL_OWNER_UID&&footballPlanRoom(s)
 }
 export function validFootballPlan(value:unknown):value is FootballPlan{
  if(!value||typeof value!=='object')return false
@@ -29,6 +33,11 @@ export function validFootballPlan(value:unknown):value is FootballPlan{
 export function planFor(s:EscState,id:number):FootballPlan{
  const saved=s.footballPlans?.[id]
  return saved&&validFootballPlan(saved)?{...saved,posture:s.tactics[id]??saved.posture}:{...DEFAULT_FOOTBALL_PLAN,posture:s.tactics[id]??'equilibrio'}
+}
+/** Saved next-match choice is separate from the plan already applied to this match. */
+export function nextPlanFor(s:EscState,id:number):FootballPlan{
+ const saved=s.footballNextPlans?.[id]
+ return saved&&validFootballPlan(saved)?{...saved,mark:null}:planFor(s,id)
 }
 /** Small symmetric tradeoffs, in the same rating units as rollManagerForm. */
 export function footballPlanModifiers(plan:FootballPlan,cards:WonCard[],opponent:WonCard[]){

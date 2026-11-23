@@ -891,6 +891,7 @@ export interface EscState {
   round: number // 0-based; 38 = fim
   tactics: Record<number, Tactic> // tática por técnico (cada humano define a sua)
   footballPlans?:Record<number,import('./football-live-tactics').FootballPlan>
+  footballNextPlans?:Record<number,import('./football-live-tactics').FootballPlan> // escolhas persistentes; entram na próxima rodada ou por ordem ao vivo
   careerTactics?: Record<number, Record<number, Tactic>> // carreira online: tática POR JOGO (mgrId → rodada 0-based → tática); vale daquela rodada em diante até trocar
   careerCoins?: Record<number, number> // carreira online: caixa de moedas por técnico (mgrId → moedas), pra reforços; +100/temporada + bônus de título/acesso, -queda
   clubCash?: Record<string, number> // carreira online: caixa dos OUTROS times (CPUs + reservas de fundo, tudo que não é humano/fiador), por teamKey. Base por divisão + título/acesso/queda. Aparece no ranking pra todo time ter grana real.
