@@ -90,6 +90,8 @@ import hgigantesEscudoImg from './img/hgigantes-escudo.webp' // 🧔⚽ Históri
 import cearaspEscudoImg from './img/cearasp-escudo.webp' // 👑⚫ Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
 import imperioEscudoImg from './img/imperio-escudo.webp' // 👑🦡 Império FC (leodicasttro): arte própria do dono, 20/11
 import tunaldoEscudoImg from './img/tunaldo-escudo.webp' // ⚫⚓ Tunaldo FC (faertes9, batismo de 22/11): arte própria do dono
+import betassoEscudoImg from './img/betasso-escudo.webp' // 🎸👑 Sport Clube Betasso (caiomooca2013, Fundador de 23/11): arte própria do dono
+import piritubaEscudoImg from './img/pirituba-escudo.webp' // 🐸👑 Pirituba SF (pedrosilveira0810, Fundador de 23/11): arte própria do dono
 import lavrasEscudoImg from './img/lavras-escudo.webp' // 🐆👑 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinEscudoImg from './img/cabritiiin-escudo.webp' // 🐐👑 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
 import duarteEscudoImg from './img/duarte-escudo.webp' // 🧤👑 Duarte FC (luizfelipeduarte212): arte própria do dono, 18/11
@@ -1019,6 +1021,16 @@ const imperioEscudoRender = (size: number) => (
 const tunaldoEscudoRender = (size: number) => (
   <img src={tunaldoEscudoImg} height={size} width={Math.round(size * 227 / 360)} alt="Tunaldo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🐸👑 PIRITUBA SF (pedrosilveira0810, batismo FUNDADOR nº105 de 23/11) — Várzea, no assento do bot Doze Contra Onze. 📏 309×360, 29 KB.
+// Escudo redondo azul e rosa com coroa, o Pererecão de boné rosa e "SF · SEX FOOTBALL". Fundo verde chroma tirado; conferido sobre vermelho.
+// 🎸👑 SPORT CLUBE BETASSO (caiomooca2013, batismo FUNDADOR nº106 de 23/11) — Várzea, no assento do bot Falta Técnica FC. 📏 258×360, 28 KB.
+// Escudo grená e branco: o Beto de boné tomando a lata, o violão atrás, "BETASSO · SPORT CLUBE" e a bola. Fundo verde chroma tirado; conferido sobre verde.
+const betassoEscudoRender = (size: number) => (
+  <img src={betassoEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Sport Clube Betasso" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const piritubaEscudoRender = (size: number) => (
+  <img src={piritubaEscudoImg} height={size} width={Math.round(size * 309 / 360)} alt="Pirituba SF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
 // Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
 const lavrasEscudoRender = (size: number) => (
@@ -1812,6 +1824,21 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Tunaldo F.C.': tunaldoEscudoRender,
   'Tunaldo EC': tunaldoEscudoRender,
   'Tunaldo SC': tunaldoEscudoRender,
+  // 🐸👑 Pirituba SF (pedrosilveira0810) — BATISMO FUNDADOR. As formas do nome (regra 20/08). O Doze Contra Onze continua no jogo rápido.
+  'Pirituba SF': piritubaEscudoRender,
+  // 🎸👑 Sport Clube Betasso (caiomooca2013) — BATISMO FUNDADOR. As formas do nome (regra 20/08). O Falta Técnica FC continua no jogo rápido.
+  'Sport Clube Betasso': betassoEscudoRender,
+  'Betasso': betassoEscudoRender,
+  'Betasso FC': betassoEscudoRender,
+  'Betasso EC': betassoEscudoRender,
+  'Betasso SC': betassoEscudoRender,
+  'Betasso Sport Clube': betassoEscudoRender,
+  'SC Betasso': betassoEscudoRender,
+  'Pirituba': piritubaEscudoRender,
+  'Pirituba Sex Football': piritubaEscudoRender,
+  'Pirituba FC': piritubaEscudoRender,
+  'Pirituba EC': piritubaEscudoRender,
+  'Pirituba S.F': piritubaEscudoRender,
   // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
   // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
   'Lavras FC': lavrasEscudoRender,

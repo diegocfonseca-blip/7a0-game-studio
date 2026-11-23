@@ -17,7 +17,8 @@ async function open(width,query=''){
    const sample=new URLSearchParams(query.replace(/^\?/,'' )).get('retro')
    const rows={fregues:[5,2,1],rival:[1,2,5],equilibrado:[3,4,3],zero:[0,0,0]}
    const values=url.pathname==='/rest/v1/esc_retrospecto'?rows[sample]:null
-   const body=values?JSON.stringify([{a:'6b5cf422-d4ad-4c69-a7e6-da1125c85844',b:'eb02f1d6-de80-4304-ab49-512342f3c7b7',vit_a:values[0],empates:values[1],vit_b:values[2],ultimos:''}]):'[]'
+   const own=new URLSearchParams(query.replace(/^\?/,'')).has('public')?'00000000-0000-4000-8000-000000000101':'6b5cf422-d4ad-4c69-a7e6-da1125c85844'
+   const body=values?JSON.stringify([{a:own,b:'eb02f1d6-de80-4304-ab49-512342f3c7b7',vit_a:values[0],empates:values[1],vit_b:values[2],ultimos:''}]):'[]'
    return route.fulfill({status:200,contentType:'application/json',body})
   }
   if(url.pathname==='/src/escalacao/online-preview.ts'){
@@ -69,6 +70,26 @@ async function checkPersistentFrame(page,label,field=false){
  check(`${label}: rodada, início e velocidade preservados`,JSON.stringify(timing)===JSON.stringify(await page.evaluate(()=>({round:window.qaFull.state.round,at:window.qaFull.state.rodadaEm?.at,speed:window.qaFull.state.simSpeed}))))
 }
 try{
+ if(process.env.QA_NEXT_ONLY){
+  for(const width of [390,1440])for(const field of [false,true]){
+   const {page,context}=await open(width,`?competition=next-rival&retro=fregues${field?'&field=1&public=1&account=outro%40example.com':''}`)
+   const card=page.locator('.ov3-next-rival-slot .fp-next-opponent')
+   await card.locator('.fp-next-own-record').waitFor()
+   const node=await card.elementHandle(),native=await page.locator('.ov3-native').first().elementHandle(),numbers=await card.locator('.fp-next-h2h').innerText()
+   const state=await page.evaluate(()=>JSON.stringify(window.qaFull.state))
+   const canvas=field?await page.locator('.ov3-native canvas').first().elementHandle():null
+   for(const [name,key] of [['Partida','match'],['Tabela e jogos','table'],['Estatísticas','stats'],['Elenco','squad'],['Rivalidades','rivals']]){
+    await page.getByRole('button',{name,exact:true}).first().evaluate(b=>b.click())
+    await page.waitForFunction(key=>document.body.dataset.fpPage===key,key)
+    check(`${width} ${field}: ${name} mantém cartão único visível`,await card.isVisible()&&await page.locator('.fp-next-opponent:visible').count()===1)
+    check(`${width} ${field}: ${name} mantém o elemento e os números`,await node.evaluate(n=>n===document.querySelector('.ov3-next-rival-slot .fp-next-opponent'))&&await card.locator('.fp-next-h2h').innerText()===numbers)
+    check(`${width} ${field}: ${name} mantém transmissão e dados`,await native.evaluate(n=>n===document.querySelector('.ov3-native'))&&await page.evaluate(()=>JSON.stringify(window.qaFull.state))===state)
+    if(canvas)check(`${width}: ${name} mantém canvas 2D`,await canvas.evaluate(n=>n===document.querySelector('.ov3-native canvas')))
+   }
+   await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${out}/${width}-${field?'campo':'cinema'}-rivalidades.png`,fullPage:true})
+   await context.close()
+  }
+ }else{
  for(const width of [390,1440]){
   const {page,context}=await open(width)
   const native=await page.locator('.ov3-native').first().elementHandle()
@@ -233,7 +254,7 @@ try{
     check(`${width}: histórico ausente não inventa freguesia ou primeiro duelo`,(await card.locator('.fp-next-rivalry-tag').innerText())==='Sem histórico disponível'&&await card.locator('.fp-next-own-record').count()===0)
     check(`${width}: faixa marrom preserva a arte atual`,await card.locator('.ll-next-rivalry').evaluate(node=>getComputedStyle(node).backgroundColor)==='rgb(26, 20, 8)')
     await card.getByRole('button',{name:'Ver rivalidades em detalhes',exact:false}).click()
-    check(`${width}: detalhes mantêm próximo jogo e faixa marrom`,await page.locator('.ov3-rivalries .fp-next-opponent .ll-next-rivalry').isVisible())
+    check(`${width}: detalhes mantêm próximo jogo e faixa marrom comum`,await card.locator('.ll-next-rivalry').isVisible())
     check(`${width}: sem repetir faixa marrom ao trocar aba`,await page.locator('.ll-next-rivalry:visible').count()===1)
     check(`${width}: trocar para detalhes mantém jogo montado`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
     await page.evaluate(()=>window.scrollTo(0,0))
@@ -241,6 +262,14 @@ try{
     await page.getByRole('button',{name:'Partida',exact:true}).first().evaluate(button=>button.click())
     await page.evaluate(()=>window.scrollTo(0,0))
     await page.screenshot({path:`${out}/${width}-proximo-jogo-rivalidade.png`,fullPage:true})
+   }
+   const persistentCard=await card.elementHandle()
+   for(const tab of ['Partida','Tabela e jogos','Estatísticas','Elenco','Rivalidades']){
+    await page.getByRole('button',{name:tab,exact:true}).first().evaluate(button=>button.click())
+    check(`${width}: ${competition}: ${tab} mantém próximo confronto visível`,await card.isVisible())
+    check(`${width}: ${competition}: ${tab} conserva o mesmo cartão`,await persistentCard.evaluate(node=>node===document.querySelector('.ov3-next-rival-slot .fp-next-opponent')))
+    check(`${width}: ${competition}: ${tab} conserva a transmissão`,await native.evaluate(node=>node===document.querySelector('.ov3-native')))
+    check(`${width}: ${competition}: ${tab} não duplica o próximo confronto`,await page.locator('.fp-next-opponent:visible').count()===1)
    }
    await context.close()
   }
@@ -256,7 +285,7 @@ try{
   await card.evaluate(node=>node.scrollIntoView({block:'center',behavior:'instant'}))
   await card.screenshot({path:`${out}/${width}-cartao-${retro}.png`})
   await page.getByRole('button',{name:'Rivalidades',exact:true}).first().evaluate(button=>button.click())
-  check(`${width}: ${retro}: detalhes usam o mesmo retrospecto`,await page.locator('.ov3-rivalries .fp-next-own-record').innerText()===own)
+  check(`${width}: ${retro}: detalhes usam o mesmo retrospecto permanente`,await card.locator('.fp-next-own-record').innerText()===own)
   await context.close()
  }
  for(const [width,competition,field,account] of [[390,'post-world',false,'diego.c.fonseca@gmail.com'],[1440,'post-world',true,'gfpicolo13@gmail.com'],[390,'post-regional',true,'diego.c.fonseca@gmail.com'],[1440,'post-liberta',false,'gfpicolo13@gmail.com']]){
@@ -326,6 +355,7 @@ try{
   await field.page.evaluate(()=>window.scrollTo(0,0))
   await field.page.screenshot({path:`${out}/${width}-2d-rivalidades.png`,fullPage:true})
   await field.context.close()
+ }
  }
  check('sem erros JavaScript',errors.length===0)
  fs.writeFileSync(`${out}/resultado.json`,JSON.stringify({checks,errors},null,2));console.log(JSON.stringify({checks,errors},null,2))

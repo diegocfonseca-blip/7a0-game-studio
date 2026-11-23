@@ -130,7 +130,9 @@ const jeito = JEITOS[arg('jeito', 'generico')] || JEITOS.generico
 // "O Esquecido" (Esqueceram do Lluch FC, 28/08) virava "a Esquecido" porque
 // começa com E. Agora manda o artigo que o PRÓPRIO nome já traz — "O Papão" é
 // ele, "A Águia" é ela. Sem artigo no nome, aí sim cai no palpite pela letra.
-const art = /^A\s/i.test(o.mascoteNome) ? true
+// --masculino: nome que começa com A mas é ELE ("Apenas um Beto", 23/11) — senão o palpite pela letra vira "a Apenas um Beto".
+const art = process.argv.includes('--masculino') ? false
+  : /^A\s/i.test(o.mascoteNome) ? true
   : /^O\s/i.test(o.mascoteNome) ? false
   : /^[AÁE]/i.test(o.mascoteNome)
 const mascCurto = o.mascoteNome.replace(/^(O|A)\s+/i, '')

@@ -4,22 +4,22 @@ import {mkdirSync,writeFileSync} from 'node:fs'
 const output=process.env.FOCO_OUTPUT??'test-results/mapa-foco'
 mkdirSync(output,{recursive:true})
 const browser=await chromium.launch({executablePath:process.env.PRESIDENCIA_BROWSER_PATH??'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']})
-const reports=[]
+const reports=[],origin=process.env.FOCO_ORIGIN??'http://127.0.0.1:4235',base=process.env.FOCO_BASE??'/7a0-game-studio/'
 try{
  for(const width of (process.env.FOCO_WIDTHS?process.env.FOCO_WIDTHS.split(',').map(Number):[390,1280])){
   const context=await browser.newContext({viewport:{width,height:900},locale:'pt-BR',isMobile:width===390,hasTouch:width===390,deviceScaleFactor:width===390?2:1})
   const page=await context.newPage(),errors=[]
   page.on('pageerror',e=>errors.push(e.message))
   await page.addInitScript(()=>{localStorage.setItem('pc3-qualidade-v1','leve');localStorage.setItem('bl_lang','pt')})
-  await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4235/')||r.request().url().startsWith('data:')?r.continue():r.abort())
-  await page.goto('http://127.0.0.1:4235/7a0-game-studio/qa-mapa-foco.html')
+  await page.route('**/*',r=>r.request().url().startsWith(origin+'/')||r.request().url().startsWith('data:')?r.continue():r.abort())
+  await page.goto(origin+base+'qa-mapa-foco.html')
   await page.waitForFunction(()=>window.focoApi,{timeout:90000})
   assert.equal(await page.evaluate(()=>window.focoApi.inspect().focus.locked),false)
   await page.evaluate(()=>window.focoCase('playing'))
   await page.waitForFunction(()=>window.focoApi?.inspect().focus.locked&&window.focoApi.inspect().match.detail,{timeout:90000})
   await page.waitForTimeout(500)
-  const capture=()=>page.evaluate(()=>{const a=window.focoApi.inspect(),{scene}=window.focoApi.qaCena();return{focus:a.focus,camera:a.matchCamera,view:a.view,triangles:a.triangles,calls:a.drawCalls,players:a.match.players,avatar:a.match.detail?.style,cityVisible:scene.getObjectByName('complexo-entorno').visible,fan:a.fanZone}})
-  const playing=await capture();assert(playing.focus.locked);assert(!playing.cityVisible);assert.equal(playing.players,22)
+  const capture=()=>page.evaluate(()=>{const a=window.focoApi.inspect(),{scene}=window.focoApi.qaCena();return{focus:a.focus,camera:a.matchCamera,view:a.view,triangles:a.triangles,calls:a.drawCalls,players:a.match.players,avatar:a.match.detail?.style,compacto:a.compacto?.version,cityVisible:scene.getObjectByName('complexo-entorno')?.visible??false,fan:a.fanZone}})
+  const playing=await capture();assert(playing.focus.locked);assert(!playing.cityVisible);assert.equal(playing.players,22);if(playing.compacto){assert(playing.focus.scene.parked.includes('complexo-entorno'));assert(playing.focus.scene.parked.includes('compacto-vida'))}
   assert.equal(await page.getByRole('button',{name:/^(Ver cidade|View city)$/}).count(),0)
   assert.equal(await page.locator('select option[value="free"]').count(),0)
   await page.evaluate(()=>{window.focoApi.view('region');window.focoApi.openPlace('shopping');window.focoApi.setMatchCamera('free');for(let i=0;i<30;i++)window.focoApi.zoom(-1)})

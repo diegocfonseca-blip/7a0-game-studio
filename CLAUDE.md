@@ -5,6 +5,14 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## 🏟️ Bairro compacto público — 23/11/2026
+
+Diego autorizou para todos o mapa compacto aprovado e NPCs de moradores/torcida/ambulantes. `MAPA_COMPACTO_GERAL` liga a implantação no futebol; basquete conserva a arena própria. Público visual vem de `publicoDoEstadio`, construções e carros respeitam o save; sem migração/economia paralela. Cidade e NPCs continuam desconectados da cena durante a partida. Reversão pela flag. Fonte de arte, limites e testes: `docs/mapa-compacto-publico-20261123.md`.
+
+## 🏟️ Interior e partida 3D — publicação autorizada em 23/11/2026
+
+Após receber capturas reais e os resultados da revisão, Diego pediu: “Publique então p todos já”. Inclui LOD da torcida por tamanho na tela, acabamento do interior/campo/bola/traves/rede, faixas dos uniformes, margem das câmeras verticais e correção limitada de apoio dos pés. Sem mudança de motor, placar ou saves. Testes completos e limites em `docs/auditorias/interior-estadio-20261123.md`; não afirmar FPS medido no S25. Publicar sem recarregar automaticamente os clientes.
+
 ## ⚡ Partida 3D — revisão profunda de 21/11/2026 (publicação autorizada)
 
 Diego relata lag no Samsung S25 e autorizou remover/refazer trabalho desnecessário.

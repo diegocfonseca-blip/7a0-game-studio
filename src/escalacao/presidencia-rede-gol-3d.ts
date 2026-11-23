@@ -6,7 +6,7 @@ const nets=new WeakMap<T.Object3D,Array<{sign:number;mesh:T.LineSegments;rest:Fl
 export function criarRedeGol3D(parent:T.Object3D,sign:number){
  const positions:number[]=[],normals:number[]=[],weights:number[]=[]
  const face=(origin:T.Vector3,u:T.Vector3,v:T.Vector3,normal:T.Vector3,nu:number,nv:number)=>{
-  const add=(a:number,b:number)=>{const p=origin.clone().addScaledVector(u,a).addScaledVector(v,b);positions.push(p.x,p.y,p.z);normals.push(normal.x,normal.y,normal.z);weights.push(Math.sin(Math.PI*a)*Math.sin(Math.PI*b))}
+  const add=(a:number,b:number)=>{const p=origin.clone().addScaledVector(u,a).addScaledVector(v,b);if(normal.y>.5)p.y-=.055*Math.sin(Math.PI*a)*Math.sin(Math.PI*b);positions.push(p.x,p.y,p.z);normals.push(normal.x,normal.y,normal.z);weights.push(Math.sin(Math.PI*a)*Math.sin(Math.PI*b))}
   for(let i=0;i<=nu;i++)for(let j=0;j<nv;j++){add(i/nu,j/nv);add(i/nu,(j+1)/nv)}
   for(let j=0;j<=nv;j++)for(let i=0;i<nu;i++){add(i/nu,j/nv);add((i+1)/nu,j/nv)}
  }
@@ -14,7 +14,7 @@ export function criarRedeGol3D(parent:T.Object3D,sign:number){
  face(new T.Vector3(sign*52.5,2.44,-3.66),new T.Vector3(sign*2,0,0),new T.Vector3(0,0,7.32),new T.Vector3(0,1,0),16,60)
  for(const side of [-1,1])face(new T.Vector3(sign*52.5,0,side*3.66),new T.Vector3(sign*2,0,0),new T.Vector3(0,2.44,0),new T.Vector3(0,0,side),16,20)
  const rest=new Float32Array(positions),geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(rest.slice(),3).setUsage(T.DynamicDrawUsage));geometry.computeBoundingSphere();geometry.boundingSphere!.radius+=.5
- const mesh=new T.LineSegments(geometry,new T.LineBasicMaterial({color:'#ecefe4',transparent:true,opacity:.72}));mesh.name='goal-net-'+sign;parent.add(mesh)
+ const mesh=new T.LineSegments(geometry,new T.LineBasicMaterial({color:'#ecefe4',transparent:true,opacity:.72}));mesh.name='goal-net-'+sign;const centre=new T.Vector3(sign*54.5,1.2,0);mesh.onBeforeRender=(renderer,_scene,camera)=>{const cam=camera as T.PerspectiveCamera;if(!cam.isPerspectiveCamera)return;const px=renderer.domElement.height/Math.max(.5,renderer.getPixelRatio())/(2*Math.max(1,cam.position.distanceTo(centre))*Math.tan(T.MathUtils.degToRad(cam.fov)/2));(mesh.material as T.LineBasicMaterial).opacity=T.MathUtils.clamp(.2+px*.009,.25,.72)};parent.add(mesh)
  const list=nets.get(parent)??[];list.push({sign,mesh,rest,normals:new Float32Array(normals),weights:new Float32Array(weights)});nets.set(parent,list)
 }
 export function atualizarRedesGol3D(parent:T.Object3D,frame:{time:number;ball:{netImpact?:ImpactoRede3D}}){

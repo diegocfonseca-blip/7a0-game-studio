@@ -80,7 +80,7 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
    const dist0=cam.distanceTo(target)
    // (o pedaço de campo que a TV mostra em volta da bola: ~34 m de largura deitado, ~22 m em pé; a lateral, bem menos)
    let tanH=(tele?(portrait?4.5:9):tvAberta?(portrait?9:19):(portrait?5.5:17))/dist0,tanV=0
-   for(const pt of fitPts){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.82);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/.78)}
+   for(const pt of fitPts){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.82);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/(portrait?.72:.78))}
    return{cam,dist0,need:Math.max(tanV,tanH/aspect)}
   }
   let r=tenta(mode==='tele');if(mode==='tele'&&r.need>maxTan)r=tenta(false)
@@ -95,7 +95,7 @@ export function enquadramentoFutebol(camera:PerspectiveCamera,ball:BolaCameraFut
   const cam=new Vector3(MathUtils.clamp(target.x-dir*(portrait?19:24),-80,80),portrait?13:10,MathUtils.clamp(target.z*.8,-30,30))
   const forward=target.clone().sub(cam).normalize(),right=new Vector3().crossVectors(forward,new Vector3(0,1,0)).normalize(),up=new Vector3().crossVectors(right,forward)
   let tanH=(portrait?7:12)/cam.distanceTo(target),tanV=0
-  for(const pt of [new Vector3(ball.x,ball.y,ball.z),...near.flatMap(p=>[new Vector3(p.mx,0,p.mz),new Vector3(p.mx,1.78,p.mz)])]){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.85);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/.8)}
+  for(const pt of [new Vector3(ball.x,ball.y,ball.z),...near.flatMap(p=>[new Vector3(p.mx,0,p.mz),new Vector3(p.mx,1.78,p.mz)])]){const rel=pt.clone().sub(cam),depth=Math.max(1,rel.dot(forward));tanH=Math.max(tanH,Math.abs(rel.dot(right))/depth/.85);tanV=Math.max(tanV,Math.abs(rel.dot(up))/depth/(portrait?.72:.8))}
   const tv=MathUtils.clamp(Math.max(tanV,tanH/aspect),Math.tan(MathUtils.degToRad(17)),Math.tan(MathUtils.degToRad(36)))
   return{position:cam,target,distance:cam.distanceTo(target),direction:cam.clone().sub(target).normalize(),fov:MathUtils.radToDeg(2*Math.atan(tv)),subjects:near.length,tactical:false,preset:mode}
  }

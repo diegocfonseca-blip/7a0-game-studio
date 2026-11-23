@@ -1,6 +1,6 @@
 import {useState,type ReactNode} from 'react'
 import {useEsc} from './store'
-import {OwnerMatchNavigation,FootballChatTarget,FootballMatchPlaceholder} from './owner-online-visual'
+import {OwnerMatchNavigation,FootballChatTarget,FootballMatchPlaceholder,OwnerSlot} from './owner-online-visual'
 import {useFootballMatchNavigation} from './football-match-navigation'
 import {CompetitionMatch} from './online-match-visual'
 import {useRetrospecto} from './retrospecto'
@@ -56,9 +56,9 @@ export function FootballCupView({title,phase,detail,entrants,uids,crest,stages,c
    <div className="fp-cup-broadcast">{broadcast||<FootballMatchPlaceholder>{transition?<div className="fp-broadcast-transition" role="region" aria-label={tr('Transição da competição','Competition transition')}>{transition}</div>:<section className="fp-cup-card"><h3>{tr('PREPARANDO A PRÓXIMA PARTIDA','PREPARING THE NEXT MATCH')}</h3></section>}</FootballMatchPlaceholder>}</div>
    {controls}
    {tactics}
+   <OwnerSlot name="next-rival">{rivalCard}</OwnerSlot>
    <section className="fp-cup-panel" hidden={navigation.page!=='match'} aria-label={tr('Partida da Copa','Cup match')}>
     {my>=0&&!own&&step>0&&<p className="fp-cup-notice">{hasPlayed&&currentStage!==stages[0]?.id?tr('Você foi eliminado. Pode continuar acompanhando a competição.','You were eliminated. You can keep watching the competition.'):hasPlayed?tr('Seu time não joga nesta etapa. Você está acompanhando a competição.','Your team is not playing in this stage. You are watching the competition.'):tr('Seu time aguarda a próxima partida.','Your team is waiting for the next match.')}</p>}
-    {rivalCard}
     {currentGames.length>1&&<section><h3>{tr('OUTROS JOGOS','OTHER MATCHES')}</h3><div className="fp-round-carousel" tabIndex={0} aria-label={tr('Jogos da Copa, role para os lados','Cup matches, scroll sideways')}>{currentGames.filter(g=>g!==own).map(game)}</div></section>}
    </section>
    <section className="fp-cup-panel" hidden={navigation.page!=='table'} aria-label={tr('Copa e jogos','Cup and matches')}>
@@ -68,7 +68,7 @@ export function FootballCupView({title,phase,detail,entrants,uids,crest,stages,c
    </section>
    <section className="fp-cup-panel" hidden={navigation.page!=='stats'} aria-label={tr('Estatísticas da Copa','Cup stats')}><p>{tr('Somente jogos encerrados desta competição.','Only finished matches from this competition.')}</p>{statNodes()}</section>
    <section className="fp-cup-panel" hidden={navigation.page!=='squad'} aria-label={tr('Elencos da Copa','Cup squads')}><label>{tr('TIME DESTA COMPETIÇÃO','TEAM IN THIS COMPETITION')}<select value={team} onChange={e=>setTeam(Number(e.target.value))}>{entrants.map((t,i)=><option key={i} value={i}>{t.pais} · {t.club}</option>)}</select></label><section className="fp-cup-card"><h3>{crest(team,32)} {entrants[team].pais} · {formation??tr('11 inscritos','Registered XI')}</h3><p>{entrants[team].club}</p><div className="fp-cup-xi">{(['ATA','MEI','LAT','ZAG','GOL'] as const).map(sec=><div key={sec}>{entrants[team].xi.filter(c=>c.sec===sec).map(c=><span key={`${c.name}:${c.club}:${c.year}`}><b>{c.name}</b><small>{sec} · {c.club} {c.year}</small></span>)}</div>)}</div><small>{tr('Escalação inscrita nesta Copa. As regras de convocação permanecem as da competição.','The squad registered for this Cup. The competition’s selection rules still apply.')}</small></section></section>
-   <section className="fp-cup-panel" hidden={navigation.page!=='rivals'} aria-label={tr('Rivalidades da Copa','Cup rivalries')}>{rivalCard}<PrateleiraRivalidades amigos={friends} mapa={records} proximo={null} meuTime={entrants[my]?.pais??''} hideNext classico/></section>
+   <section className="fp-cup-panel" hidden={navigation.page!=='rivals'} aria-label={tr('Rivalidades da Copa','Cup rivalries')}><PrateleiraRivalidades amigos={friends} mapa={records} proximo={null} meuTime={entrants[my]?.pais??''} hideNext classico/></section>
    {ceremony}
    <button type="button" className="ll31-back-room" onClick={onClose}>{tr('VOLTAR À SALA','BACK TO THE ROOM')}</button>
   </main>

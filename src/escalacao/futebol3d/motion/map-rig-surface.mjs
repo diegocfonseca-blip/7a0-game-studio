@@ -59,5 +59,24 @@ export function createMapRigSurface(actor){
   }
   bones.forEach((b,i)=>b.quaternion.copy(bestPose[i]));actor.holder.updateMatrixWorld(true);return{gap:best,correction};
  }
- return{triangles,probe,anchor,clearBall,clearHand,floor,footBounds};
+ // Residual sole clearance uses only the leg chain. In particular, a diving
+ // keeper's calibrated hands, torso, root and the official ball stay untouched.
+ // Near-ball attempts must also retain the measured surface point within 3 mm
+ // and its ball clearance within 2 mm; otherwise the captured pose is restored.
+ function clearFootFloor(side,{maxCorrection=.10,contactBall=null}={}){
+  const prefix='mixamorig'+(side==='left'?'Left':'Right'),names=['UpLeg','Leg','Foot'].map(n=>prefix+n),bones=names.map(n=>actor.bones.get(n));
+  const initial=footBounds()[side].floor;if(initial>=-.003)return{applied:false,floor:initial,correction:0};
+  const contactPoint=contactBall?new T.Vector3(contactBall.x,contactBall.y,contactBall.z):null,contact=contactPoint?probe(contactPoint,side):null;
+  const saved=bones.map(b=>b.quaternion.clone()),start=bones[2].getWorldPosition(new T.Vector3());let best=footBounds(true)[side].floor,bestPose=saved,correction=0;
+  for(let i=0;i<3&&best<.001;i++){
+   const ankle=bones[2].getWorldPosition(new T.Vector3()),target=ankle.clone();target.y+=Math.min(maxCorrection,.003-best);
+   const offset=target.clone().sub(start);if(offset.length()>maxCorrection)target.copy(start).add(offset.setLength(maxCorrection));
+   solveLimbContact(actor,names,target,{maxCorrection,maxAngle:.4});const next=footBounds(true)[side].floor,shift=bones[2].getWorldPosition(new T.Vector3()).distanceTo(start);
+   if(next<=best+1e-6||shift>maxCorrection+.0001)break;
+   if(contact){const after=probe(contactPoint,side);if(Math.abs(after.gap-contact.gap)>.002||after.surface.distanceTo(contact.surface)>.003)break}
+   best=next;bestPose=bones.map(b=>b.quaternion.clone());correction=shift;
+  }
+  bones.forEach((b,i)=>b.quaternion.copy(bestPose[i]));actor.holder.updateMatrixWorld(true);return{applied:correction>0,floor:best,rawFloor:initial,correction};
+ }
+ return{triangles,probe,anchor,clearBall,clearHand,clearFootFloor,floor,footBounds};
 }
