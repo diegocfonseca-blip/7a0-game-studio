@@ -15139,3 +15139,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   1990 lateral × Chelsea 2021 volante).
 - ⚠️ `npm run novidades` dá Segmentation fault nesta máquina (vite createServer); a foto foi acertada na mão (só as 4 chaves removidas).
 - ⚠️ `npm run liga-draft` já falhava ANTES ("gente nova → leilão fraco de novo") — conferir à parte.
+
+## 📝 23/11 — Texto da carta errado em xará (Pepe Santos 1962 com o texto do Pepe do Real) — print do Futpoint
+- Causa: as telas de carta (CollectibleCard, carta compartilhada e a do campeão) caíam no texto por NOME (`BIOS`) quando a carta chegava
+  sem o campo `bio` (carta da conta/do pacote). Agora `bioDaCarta(nome, clube, ano)` (paises.ts): texto da PRÓPRIA carta no catálogo; o
+  por nome só quando o nome é uma pessoa só (carta única ou `MESMO_JOGADOR`); carta fora dos 3 baralhos não herda nada.
+- 11 cartas ganharam o texto delas escrito na carta (era o do `BIOS`): Felipe Vasco 2000, Diego Santos 2004, Wesley Flamengo 2023, Reinaldo
+  Galo 1977, Neto Corinthians 1990, Paulinho Corinthians 2012, Fábio Rochemback Inter 2000, Abedi Pelé Marseille 1993, Pedro Flamengo 2022,
+  Lincoln Flamengo 2019, Pepe Real 2012. Marquinhos Corinthians, Militão SP e Abedi Pelé Vasco ficam com o texto genérico (o do BIOS fala do
+  PSG/Real/Marseille).
