@@ -4,6 +4,7 @@ import '../../src/index.css'
 import { createRoot } from 'react-dom/client'
 import { EscCtxBancada } from '../../src/escalacao/store'
 import { EscLigaDraft } from '../../src/escalacao/liga-draft-tela'
+import { ChatWidget } from '../../src/escalacao/screens'
 const v = new URLSearchParams(location.search).get('v') ?? 'outro'
 let id = 0
 const carta = (name: string, pos: string) => ({ id: `c${id++}`, name, club: 'Flamengo', year: 2019, pos, fame: 3, lo: 74, hi: 82 })
@@ -18,4 +19,5 @@ const st = {
 createRoot(document.getElementById('root')!).render(
   <EscCtxBancada.Provider value={{ state: st, dispatch: () => {}, kickPlayer: () => {}, leaveRoom: () => {}, chat: [], chatUnread: 2, sendChat: () => {}, chatOpen: false, setChatOpen: () => {} } as never}>
     <EscLigaDraft />
+    <ChatWidget />
   </EscCtxBancada.Provider>)

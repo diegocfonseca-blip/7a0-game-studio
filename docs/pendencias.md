@@ -120,7 +120,7 @@
 - A vez chega na tela das 2 escolhas (Pegar do draft · Sondar) com **60 s correndo** (`DRAFT_ESCOLHA_MINHA_MS`); apertar uma delas **continua o mesmo relógio**.
 - **O relógio é AVISO**: o fim dos 60 s não tira a vez de ninguém (`DRAFT_TICK` não pula mais); quem pula é o ⏭ do dono. Zerado = "Tempo esgotado · o dono da sala decide".
 - ⏭ Pular a vez: **antes** do tempo acabar abre "Tem certeza que quer pular o X antes de acabar o tempo dele?" Sim/Não; **depois**, pula direto.
-- 💬 Botão "Chat da sala" dentro da tela do draft (abre o chat padrão).
+- 💬 Chat: fica o PADRÃO, embaixo (botão 💬 no canto). Eu tinha posto um botão amarelo em cima e o Diego mandou tirar: *"o chat da sala deve ficar embaixo mesmo, igual padrão visual que sempre foi"*. Na bancada o 💬 de baixo aparece no draft (celular e PC).
 - Trava `npm run minha-liga-draft` atualizada. ⚠️ `npm run liga-draft` já falhava ANTES ("ninguém repetido na liga", 220) — não é desta mudança, falta investigar.
 - Prints: `scripts/mockups/draft-vez-60s-celular.png` / `-pc.png` (bancada `scripts/teste-draft-vez/`).
 

@@ -71,8 +71,6 @@ export function EscLigaDraft() {
           </div>
         </div>
 
-        <BotaoChatDraft />
-
         {minha && (d.fase === 'prontos' || d.fase === 'leilao' || d.fase === 'igualar' || d.fase === 'escala') ? (
           <EtapaMinha d={d} you={you} souDono={souDono} restante={restante} nome={nome} />
         ) : <>
@@ -179,20 +177,6 @@ function BotaoPularVez({ quem, onPular, antesDoTempo }: { quem: string; onPular:
         <button onClick={() => setPergunta(false)} className="border-[3px] border-black rounded-xl py-2 uppercase" style={{ ...OSW, fontSize: 16, background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>{t('Não', 'No')}</button>
       </div>
     </div>
-  )
-}
-
-// 💬 23/11 (Diego: *"essas telas têm que ter chat também pros usuários, chat padrão… pelo que vi tá sem"*): o chat da sala de sempre,
-// aberto por um botão dentro da própria tela do draft (o botão flutuante some quando a tela tem barra própria). Só online.
-function BotaoChatDraft() {
-  const t = useT()
-  const { state, setChatOpen, chatUnread } = useEsc()
-  if (state.onlineMode !== 'online' || !state.roomId || (state.chatOff && !state.isHost)) return null
-  return (
-    <button onClick={() => setChatOpen(true)} className="w-full border-[3px] border-black rounded-xl py-2 uppercase flex items-center justify-center gap-2"
-      style={{ ...OSW, fontSize: 15, background: '#FFC400', color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
-      💬 {t('Chat da sala', 'Room chat')}{chatUnread > 0 && <span className="rounded-full border-2 border-black px-1.5 text-[11px]" style={{ background: RED, color: '#fff' }}>{chatUnread > 99 ? '99+' : chatUnread}</span>}
-    </button>
   )
 }
 
