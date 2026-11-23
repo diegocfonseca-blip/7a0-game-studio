@@ -3,7 +3,7 @@
 // Pedido do Diego (23/11, batismo FUNDADOR do caiomooca2013): *"faça gala personalizada"*. A mascote (arte do dono) é o próprio
 // Beto: boné preto, tomando a lata, violão nas costas, pé na bola, uniforme grená camisa 10 — e a camisa diz "APENAS UM BETO".
 // 1) palco de luau à noite: holofote abre um cone de luz no tablado; legenda "AO VIVO · DIRETO DA RESENHA"
-// 2) o Beto entra de lado e fica balançando no ritmo; notas 🎵🎶 sobem do violão; "GLUP!" na lata
+// 2) o Beto entra de lado e fica balançando no ritmo; chuva de música 🎵🎶🎼🎤🎸 subindo do violão e da boca dele (o "GLUP!" saiu, 23/11: *"queria emoji de cantos e coisas de violão"*)
 // 3) o acorde final — carimbo "TÁÁÁN! 🎸", flash, a tela treme
 // 4) as listras GRENÁ e BRANCAS do manto varrem a tela
 // 5) o escudo acende com os raios grená girando atrás; o Beto vai pro canto, ainda no balanço
@@ -40,7 +40,7 @@ const CSS = `
   background:linear-gradient(180deg,rgba(255,244,214,.05),rgba(255,244,214,.32));opacity:0;animation:gbeHolo ${T}ms ease forwards}
 @keyframes gbeHolo{0%,${pct(400)}{opacity:0}${pct(900)}{opacity:1}${pct(4300)}{opacity:1}${pct(4700)}{opacity:.4}100%{opacity:.4}}
 .gbe-legenda{position:absolute;left:0;right:0;top:150px;z-index:8;text-align:center;font:700 16px Oswald,sans-serif;letter-spacing:.3em;color:${OURO};text-shadow:2px 2px 0 #000;opacity:0;animation:gbeLeg ${T}ms ease forwards}
-@keyframes gbeLeg{0%,${pct(500)}{opacity:0;transform:translateY(10px)}${pct(1000)}{opacity:1;transform:none}${pct(2900)}{opacity:1}${pct(3200)}{opacity:0}100%{opacity:0}}
+@keyframes gbeLeg{0%,${pct(500)}{opacity:0;transform:translateY(10px)}${pct(1000)}{opacity:1;transform:none}${pct(2000)}{opacity:1}${pct(2300)}{opacity:0}100%{opacity:0}}
 .gbe-legenda b{display:block;font:700 44px/1 Oswald,sans-serif;letter-spacing:.04em;color:#fff;margin-top:6px}
 .gbe-legenda i{display:inline-block;font-style:normal;background:#E8503A;color:#fff;border-radius:6px;padding:1px 8px;margin-right:6px;letter-spacing:.12em;animation:gbePisca 900ms steps(2) infinite}
 @keyframes gbePisca{0%{opacity:1}100%{opacity:.35}}
@@ -51,12 +51,10 @@ const CSS = `
 .gbe-beto img{width:100%;height:100%;display:block;transform-origin:50% 100%;animation:gbeBalanco 620ms ease-in-out infinite alternate}
 @keyframes gbeBalanco{0%{transform:rotate(-2.5deg)}100%{transform:rotate(2.5deg)}}
 /* as notas que sobem do violão */
-.gbe-nota{position:absolute;z-index:11;font-size:30px;line-height:1;opacity:0;animation:gbeNota 1500ms ease-out infinite}
-@keyframes gbeNota{0%{opacity:0;transform:translate(0,0) rotate(0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-170px) rotate(25deg) scale(1.15)}}
+.gbe-nota{position:absolute;z-index:11;line-height:1;opacity:0;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;border:3px solid #0C0C0C;box-shadow:3px 3px 0 #000,0 0 14px rgba(255,196,0,.6);animation:gbeNota 1700ms ease-out infinite}
+@keyframes gbeNota{0%{opacity:0;transform:translate(0,0) rotate(0) scale(.5)}12%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-230px) rotate(var(--rot)) scale(1.2)}}
 .gbe-notas{position:absolute;inset:0;z-index:11;opacity:0;animation:gbeNotas ${T}ms linear forwards}
-@keyframes gbeNotas{0%,${pct(1500)}{opacity:0}${pct(1700)}{opacity:1}${pct(4700)}{opacity:1}${pct(5000)}{opacity:0}100%{opacity:0}}
-.gbe-glup{position:absolute;left:${BX - 72}px;top:${BY + 4}px;z-index:12;font:700 26px Oswald,sans-serif;color:#0C0C0C;background:#fff;border:3px solid #0C0C0C;border-radius:14px;padding:2px 10px;box-shadow:3px 3px 0 #000;opacity:0;animation:gbeGlup ${T}ms cubic-bezier(.2,1.5,.4,1) forwards}
-@keyframes gbeGlup{0%,${pct(2200)}{opacity:0;transform:scale(.3) rotate(-10deg)}${pct(2400)}{opacity:1;transform:scale(1.1) rotate(-6deg)}${pct(2550)}{transform:scale(1) rotate(-6deg)}${pct(3300)}{opacity:1}${pct(3500)}{opacity:0}100%{opacity:0}}
+@keyframes gbeNotas{0%,${pct(2050)}{opacity:0}${pct(2250)}{opacity:1}${pct(4700)}{opacity:1}${pct(5000)}{opacity:0}100%{opacity:0}}
 .gbe-flash{position:absolute;inset:0;z-index:20;background:#fff4e0;opacity:0;animation:gbeFlash ${T}ms linear forwards}
 @keyframes gbeFlash{0%,${pct(ACORDE)}{opacity:0}${pct(ACORDE + 40)}{opacity:.6}${pct(ACORDE + 260)}{opacity:0}100%{opacity:0}}
 .gbe-carimbo{position:absolute;left:50%;top:160px;z-index:15;font:700 62px/1 Oswald,sans-serif;color:#fff;background:${GRENA};border:5px solid #0C0C0C;border-radius:16px;padding:6px 18px;
@@ -82,7 +80,7 @@ const CSS = `
 .gbe-faixa small{display:block;font:700 13px Oswald,sans-serif;letter-spacing:.22em;color:${BRANCO}}
 .gbe-faixa b{display:block;font:700 27px/1.05 Oswald,sans-serif;color:#fff;text-shadow:2px 2px 0 #000;margin-top:2px}
 .gbe-faixa em{display:inline-block;font-style:normal;font:700 13px Oswald,sans-serif;color:${GRENA};background:${BRANCO};border:2px solid #0C0C0C;border-radius:7px;padding:2px 9px;margin-top:5px;letter-spacing:.14em}
-@media (prefers-reduced-motion:reduce){.gbe-lamp,.gbe-legenda,.gbe-notas,.gbe-glup,.gbe-flash,.gbe-carimbo,.gbe-cort,.gbe-raios{display:none}.gbe-treme,.gbe-beto img{animation:none}.gbe-esc,.gbe-beto,.gbe-holo,.gbe-faixa,.gbe-frase span{animation:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.gbe-lamp,.gbe-legenda,.gbe-notas,.gbe-flash,.gbe-carimbo,.gbe-cort,.gbe-raios{display:none}.gbe-treme,.gbe-beto img{animation:none}.gbe-esc,.gbe-beto,.gbe-holo,.gbe-faixa,.gbe-frase span{animation:none;opacity:1}}
 `
 
 function useEscala() {
@@ -92,14 +90,19 @@ function useEscala() {
   return s
 }
 
-const NOTAS: [string, number, number, number][] = [['🎵', 0, 0, 40], ['🎶', 18, -30, -30], ['🎵', 36, 10, 60], ['🎶', 6, -18, -55], ['🎸', 26, -8, 30]] // [nota, atraso×10ms, dx inicial, deriva]
+// [emoji, atraso ms, de onde sai (v = violão · b = boca), dx inicial, deriva, tamanho, giro]
+const NOTAS: [string, number, 'v' | 'b', number, number, number, number][] = [
+  ['🎵', 0, 'v', 0, 50, 40, 25], ['🎶', 280, 'v', -20, -20, 44, -20], ['🎸', 560, 'v', 10, 80, 46, 35], ['🎼', 840, 'v', -10, 30, 38, -15],
+  ['🎵', 1120, 'v', 14, 70, 34, 30], ['🎶', 1400, 'v', -6, -40, 40, -25],
+  ['🎤', 150, 'b', 0, -70, 42, -20], ['🎶', 600, 'b', -10, -110, 36, -30], ['🎵', 1050, 'b', 6, -60, 40, 20], ['🎼', 1500, 'b', -4, -95, 34, -10],
+]
 
 export function GalaBetasso({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
   void grito
   useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-gavioes-v1.mp3`, T), [chave]) // 📣 o canto do Corinthians (a sala inteira ouve; respeita o mudo)
   const frase = [tr('APENAS UM', 'JUST A'), 'BETO 🎸']
-  const violaoX = BX + BW * 0.86, violaoY = BY + BH * 0.18 // a cabeça do violão, de onde as notas saem
+  const de = { v: [BX + BW * 0.84, BY + BH * 0.16], b: [BX + BW * 0.28, BY + BH * 0.1] } as const // a cabeça do violão e a boca (onde ele canta)
   return createPortal(
     <div key={chave} className="gbe" aria-hidden>
       <style>{CSS}</style>
@@ -112,9 +115,8 @@ export function GalaBetasso({ clube, chave, mostra, grito }: { clube: string; ch
         <div className="gbe-legenda"><i>● {tr('AO VIVO', 'LIVE')}</i>{tr('DIRETO DA', 'STRAIGHT FROM THE')}<b>{tr('RESENHA 🎤', 'JAM SESSION 🎤')}</b></div>
         <div className="gbe-beto"><img src={betoImg} alt="" /></div>
         <div className="gbe-notas">
-          {NOTAS.map(([n, d, dx, drift], i) => <span key={i} className="gbe-nota" style={{ left: violaoX + dx, top: violaoY, animationDelay: `${d * 10}ms`, ['--dx' as string]: `${drift}px` }}>{n}</span>)}
+          {NOTAS.map(([n, d, o, dx, drift, tam, rot], i) => <span key={i} className="gbe-nota" style={{ left: de[o][0] + dx - (tam + 16) / 2, top: de[o][1] - (tam + 16) / 2, width: tam + 16, height: tam + 16, fontSize: tam * .78, animationDelay: `${d}ms`, ['--dx' as string]: `${drift}px`, ['--rot' as string]: `${rot}deg` }}>{n}</span>)}
         </div>
-        <div className="gbe-glup">GLUP! 🥤</div>
         <div className="gbe-carimbo">{tr('TÁÁÁN!', 'TADAAA!')} 🎸</div>
         <div className="gbe-raios" />
         <div className="gbe-esc"><Escudo nome={clube} size={280} /></div>

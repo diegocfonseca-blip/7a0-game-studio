@@ -120,7 +120,7 @@
 - Pagou Lenda (10/11, 59,90) → Batismo (18/11, 25) → Fundador (23/11, 29,90). **Fundador nº106 + sócio nº101**, coração Corinthians / Juventus-SP.
 - Mascote "Apenas um Beto" (`betasso_beto`, o próprio Beto com a lata e o violão), manto grená #890329 + branco #F7F4F4 (medidos na camisa). Várzea, no assento do bot **Falta Técnica FC**.
 - Ele pediu o canto "poropopó"; o Diego mandou usar o do Corinthians (`torcida-gavioes-v1.mp3`).
-- Gala única `gala-betasso.tsx` ("o show do Beto": luau, notas do violão, GLUP!, TÁÁÁN!, listras grená/branco, escudo, "APENAS UM BETO"). Vídeo: `node scripts/video-gala-betasso.mjs`.
+- Gala única `gala-betasso.tsx` ("o show do Beto": luau, chuva de 🎵🎶🎼🎤🎸 em bolinhas brancas (o GLUP! saiu a pedido do Diego), TÁÁÁN!, listras grená/branco, escudo, "APENAS UM BETO"). Vídeo: `node scripts/video-gala-betasso.mjs`.
 - Banco feito em 23/11: `esc_socios` nº101, `esc_fundadores` nº106, `esc_nomes_batismo` (Betasso / Sport Clube Betasso + FC/EC pelo gatilho). `user_colors` já era ouro + manual.
 - Post: `scripts/posts/batismo-sport-clube-betasso.png` (`mockup-batismo.mjs` ganhou `--masculino` pro mascote "Apenas um Beto").
 
