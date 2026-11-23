@@ -4255,6 +4255,7 @@ export const OLD_NAME: Record<string, string> = {
   'Império FC': 'Juventude do Churrasco', // 👑🦡 batismo do leodicasttro (20/11): assumiu o assento da Várzea que era do bot Juventude do Churrasco — save antigo com Juventude do Churrasco vira Império FC ao abrir.
   'Lavras FC': 'Galáticos do Bairro', // 🐆👑 batismo do hugopereirabrito (16/11): assumiu o assento da Várzea que era do bot Galáticos do Bairro — save antigo com Galáticos do Bairro vira Lavras FC ao abrir.
   'Cabuloso JP': 'Descampado EC', // 🦊👑 batismo FUNDADOR do rafaelazevedo455 (21/11): assumiu o assento da Várzea que era do bot Descampado EC — save antigo com Descampado EC vira Cabuloso JP ao abrir.
+  'Pirituba SF': 'Doze Contra Onze', // 🐸👑 batismo FUNDADOR do pedrosilveira0810 (23/11): assumiu o assento da Várzea que era do bot Doze Contra Onze — save antigo com Doze Contra Onze vira Pirituba SF ao abrir.
   'Tunaldo FC': 'Espeto Corrido FC', // ⚫⚓ batismo do faertes9 (22/11): assumiu o assento da Várzea que era do bot Espeto Corrido FC — save antigo com Espeto Corrido FC vira Tunaldo FC ao abrir.
   'Obelisko FC': 'Trave Torta EC', // 👁️👑 batismo FUNDADOR do felipefazzio (18/11): assumiu o assento da Várzea que era do bot Trave Torta EC — save antigo com Trave Torta EC vira Obelisko FC ao abrir.
   'Duarte FC': 'Ressaca United', // 🧤👑 batismo FUNDADOR do luizfelipeduarte212 (18/11): assumiu o assento da Várzea que era do bot Ressaca United — save antigo com Ressaca United vira Duarte FC ao abrir.
@@ -4361,7 +4362,7 @@ export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Peixe', team: 'Boleiros da Brisa' },
   { name: 'Torto', team: 'Canelada Real' },
   { name: 'Sombra', team: 'Falta Técnica FC' },
-  { name: 'Girino', team: 'Doze Contra Onze' },
+  { name: 'Pedro', team: 'Pirituba SF' }, // 🐸👑 clube BATIZADO por apoiador (pedrosilveira0810 — Pirituba SF, ex-Doze Contra Onze, Várzea; plano FUNDADOR nº105 + sócio nº100; coração CORINTHIANS; escudo azul e rosa com coroa e o Pererecão de boné; mascote Pererecão; azul #0199F6 + rosa #FC22BC)
 ]
 // times EXTRAS de Série D (só na escada): completam a D quando rivais escolhidos
 // pelo usuário "ocupam" nomes da lista D original (eles começam na Várzea junto).
