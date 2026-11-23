@@ -1,3 +1,9 @@
+## 🔒 23/11 — COPAS ONLINE NO PILOTO DO DIEGO E FUTPOINT
+- Abas separadas e transmissão permanente nas copas de seleções, regionais, Libertadores e mata-matas compatíveis das salas. Confrontos/classificados e o tempo de leitura usam os componentes existentes, no lugar do jogo em qualquer aba. Pênaltis junto do placar/2D, antes do resumo/telão/controles. Cerimônias e identificadores das premiações preservados.
+- Planos persistentes nas fases, com confirmação e corte do servidor para as copas independentes; só liberam novos planos quando todos anunciam versão compatível. Liga/quick cup conservam as restrições anteriores de recálculo ao vivo. Sem canal Realtime novo, sem mudar identidade/host ou reescrever eventos já exibidos.
+- Duas migrações aplicadas: tabelas internas sem acesso direto, RPCs públicas invoker, escrita restrita aos dois UIDs. Testes transacionais revertidos e permissões conferidas; nenhum plano ou sala de teste persistido. 535 checagens dos motores, 360 de mata-matas, 651 da interface da liga e 250 das copas passaram; regressões antigas passaram.
+- Draft separado, Kings conserva posturas nativas, demais contas fora do visual. [Implementação, validações, limites e reversão](copas-online-piloto-20261123.md); [avaliação da Liga Draft](auditoria-liga-draft-20261123.md).
+
 ## 🔒 23/11 — MANTER ABAS; PLANO ESCOLHIDO CONTINUA NAS PRÓXIMAS PARTIDAS
 - Diego rejeitou a proposta de reorganização móvel: conservar abas separadas. O mockup não foi aplicado; layout e CSS preservados.
 - No teste autorizado das táticas, cada escolha passa a ser salva para os próximos jogos, sem voltar ao padrão na mudança de rodada. Enviar ordens continua sendo a aplicação explícita ao jogo em andamento. Confirmação do host, retomada da sala e preferências separadas por técnico; convidados não ganham recálculo ao vivo.

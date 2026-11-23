@@ -1,3 +1,4 @@
+import {applyCupPlans,cupPlanModifiers} from './copa-planos'
 // ─── 🏆 LIGA + LIBERTADORES NAS SALAS (Diego 19/11) — o motor ─────────────────
 //
 // O que ele fechou (mockup `scripts/mockups/liberta-clubes-390.png`):
@@ -143,19 +144,24 @@ export function simulaLibertaSala(entrants: Entrant[], seed: number, tat?: QualT
   const rng = mulberry((seed ^ 0x2E610A1) >>> 0)
   // ⚔️ TÁTICA (mesma régua das regionais, `copa-taticas.ts`): jogo com tática de gente sai de um DADO PRÓPRIO, DEPOIS de o
   // dado do torneio já ter andado igual — nenhum outro jogo muda. Sem `tat`, a copa é exatamente a de sempre.
-  const comTatica = (h: number, a: number, passo: number, ck: string): { j: JogoLib; r: () => number } | null => {
+  const comTatica = (h: number, a: number, passo: number, ck: string,baseline:JogoLib): { j: JogoLib; r: () => number } | null => {
     if (!tat) return null
     const th = tat(h, passo), ta = tat(a, passo)
-    if (!temTatica(th, ta)) return null
     const r = dadoDaTatica(seed >>> 0, ck, th, ta)
     const adv = entrants[h].str - entrants[a].str
     const [fh, fa] = fatoresTatica(th, ta)
-    const gh = poissonLib(r, Math.max(0.25, 1.25 + adv * 0.05) * fh), ga = poissonLib(r, Math.max(0.25, 1.25 - adv * 0.05) * fa)
-    return { j: { h, a, gh, ga, ev: gols(r, gh, ga, entrants[h], entrants[a], seed, ck) }, r }
+    const initial=temTatica(th,ta)?(()=>{const g:[number,number]=[poissonLib(r,Math.max(.25,1.25+adv*.05)*fh),poissonLib(r,Math.max(.25,1.25-adv*.05)*fa)];return{g,ev:gols(r,g[0],g[1],entrants[h],entrants[a],seed,ck),r}})():{g:[baseline.gh,baseline.ga] as [number,number],ev:baseline.ev,r}
+    const planned=applyCupPlans(tat,h,a,passo,seed,ck,initial,(home,away,r)=>{
+      const hm=cupPlanModifiers(home,entrants[h]),am=cupPlanModifiers(away,entrants[a]),[hf,af]=fatoresTatica(home.posture,away.posture)
+      const g:[number,number]=[poissonLib(r,Math.max(.25,1.25+adv*.05+(hm.attack-am.defence)*.055)*hf),poissonLib(r,Math.max(.25,1.25-adv*.05+(am.attack-hm.defence)*.055)*af)]
+      return{g,ev:gols(r,g[0],g[1],entrants[h],entrants[a],seed,ck)}
+    })
+    const result=planned??(temTatica(th,ta)?initial:null)
+    return result?{j:{h,a,gh:result.g[0],ga:result.g[1],ev:result.ev},r:result.r}:null
   }
   const jogoT = (h: number, a: number, passo: number, ck: string): { j: JogoLib; r?: () => number } => {
     const normal = jogo(rng, entrants, h, a, seed, ck)
-    return comTatica(h, a, passo, ck) ?? { j: normal }
+    return comTatica(h, a, passo, ck,normal) ?? { j: normal }
   }
   const grupos = sorteiaGrupos(entrants, sorteio)
   // 6 rodadas: 1–3 turno, 4–6 returno (mando invertido)
@@ -200,7 +206,7 @@ export function simulaLibertaSala(entrants: Entrant[], seed: number, tat?: QualT
     const agg0: [number, number] = [i0.gh + v0.ga, i0.ga + v0.gh]
     const pen0 = agg0[0] === agg0[1] ? disputaPenaltis(rng) : undefined // o dado do torneio anda SEMPRE igual
     // ⚔️ depois de gastar o dado do torneio: a tática (se tiver) troca o placar de cada jogo
-    const ti = comTatica(h, a, passoIda, `${ck}|ida`), tv = comTatica(a, h, passoIda + 1, `${ck}|volta`)
+    const ti = comTatica(h, a, passoIda, `${ck}|ida`,i0), tv = comTatica(a, h, passoIda + 1, `${ck}|volta`,v0)
     const ida = ti?.j ?? i0, volta = tv?.j ?? v0
     const agg: [number, number] = [ida.gh + volta.ga, ida.ga + volta.gh]
     const dadoPen = tv?.r ?? ti?.r
@@ -221,7 +227,7 @@ export function simulaLibertaSala(entrants: Entrant[], seed: number, tat?: QualT
   const fh = melhor(f1, f2), fa = fh === f1 ? f2 : f1
   const f0 = jogo(rng, entrants, fh, fa, seed, 'final')
   const fpen0 = f0.gh === f0.ga ? disputaPenaltis(rng) : undefined
-  const tf = comTatica(fh, fa, LIB.FINAL, 'final')
+  const tf = comTatica(fh, fa, LIB.FINAL, 'final',f0)
   const fj = tf?.j ?? f0
   const fpen = fj.gh !== fj.ga ? undefined : tf ? disputaPenaltis(tf.r) : fpen0
   const final: FinalLib = { h: fh, a: fa, g: [fj.gh, fj.ga], ev: fj.ev, ...(fpen ? { pen: fpen } : {}), winner: fj.gh > fj.ga ? fh : fj.ga > fj.gh ? fa : fpen![0] > fpen![1] ? fh : fa }
@@ -297,6 +303,6 @@ export function montaFichaLiberta(classificacao: LugarLiberta[], uidDe: Map<numb
 export function entrantesLiberta(f: FichaLiberta, meuUid?: string): Entrant[] {
   return f.times.map(t => {
     const xi = t.xiKeys?.length ? xiPorChavesClube(t.pais, t.xiKeys) : xiDaMaquinaClube(t.pais).xi
-    return { club: t.nome, you: !!t.uid && t.uid === meuUid, pais: t.pais, xi, str: forcaDoXI(xi), humano: !!t.uid }
+    return { uid:t.uid, club: t.nome, you: !!t.uid && t.uid === meuUid, pais: t.pais, xi, str: forcaDoXI(xi), humano: !!t.uid }
   })
 }

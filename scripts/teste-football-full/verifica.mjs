@@ -278,8 +278,9 @@ try{
  }
  for(const competition of ['liberta','champions','cup']){
   const {page,context}=await open(390,`?competition=${competition}`)
-  for(const name of ['Partida','Tabela e jogos','Estatísticas','Elenco','Rivalidades'])check(`${competition}: aba ${name}`,await page.getByRole('button',{name,exact:true}).first().isVisible())
-  await page.getByRole('button',{name:'Tabela e jogos',exact:true}).first().click()
+  const tableName=competition==='cup'?'Copa e jogos':'Tabela e jogos'
+  for(const name of ['Partida',competition==='cup'?'Copa e jogos':'Tabela e jogos','Estatísticas','Elenco','Rivalidades'])check(`${competition}: aba ${name}`,await page.getByRole('button',{name,exact:true}).first().isVisible())
+  await page.getByRole('button',{name:tableName,exact:true}).first().click()
   check(`${competition}: lista da competição`,await page.locator('.fp-competition-games').first().isVisible())
   check(`${competition}: placar continua visível na tabela`,await page.locator('.ov3-native').first().isVisible())
   await page.evaluate(()=>window.scrollTo(0,0))
