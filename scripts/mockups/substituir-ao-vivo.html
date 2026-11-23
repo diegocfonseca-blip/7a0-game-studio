@@ -1,0 +1,64 @@
+<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1b1b1b;font-family:Arial,sans-serif;display:flex;gap:28px;padding:24px;justify-content:center}
+.ph{width:390px;height:844px;background:#0C0C0C;border-radius:26px;overflow:hidden;position:relative;border:3px solid #333}
+.os{font-family:Oswald;text-transform:uppercase}
+.tit{color:#FFC400;font:900 13px Oswald;letter-spacing:.08em;padding:10px 14px;text-align:center}
+.field3d{height:330px;background:radial-gradient(ellipse at 50% 60%,#3fa34d,#226b2e);position:relative;filter:brightness(.55)}
+.field3d:after{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:2px solid #ffffff88}
+.p{position:absolute;width:12px;height:18px;border-radius:5px}
+.y{background:#F5C518}.k{background:#222;border:1px solid #F5C518}
+.score{position:absolute;top:10px;left:10px;background:#fff;border:3px solid #000;border-radius:10px;padding:4px 8px;font:900 13px Oswald;filter:none;z-index:3}
+.pause{position:absolute;top:120px;left:0;right:0;text-align:center;color:#fff;font:900 26px Oswald;z-index:3;text-shadow:2px 2px 0 #000}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#F4ECD6;border-top:4px solid #000;border-radius:22px 22px 0 0;padding:12px 12px 14px;box-shadow:0 -6px 0 #000}
+.panel{background:#F4ECD6;border:3px solid #000;border-radius:18px;margin:10px;padding:12px;box-shadow:4px 4px 0 #000}
+.row{display:flex;justify-content:space-between;align-items:center}
+.h{font:900 17px Oswald;text-transform:uppercase}
+.chip{font:900 12px Oswald;background:#FFC400;border:2px solid #000;border-radius:9px;padding:3px 8px;box-shadow:2px 2px 0 #000}
+.tac{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:9px 0}
+.tac div{background:#fff;border:2px solid #000;border-radius:10px;padding:7px 2px;text-align:center;font:800 13px Oswald;box-shadow:2px 2px 0 #000}
+.tac .on{background:#2563EB;color:#fff}
+.lbl{font:900 11px Oswald;letter-spacing:.08em;color:#555;margin:6px 2px 4px}
+.pl{display:flex;align-items:center;gap:7px;background:#fff;border:2px solid #000;border-radius:10px;padding:5px 8px;margin-bottom:4px;font:800 13px Arial}
+.pl .pos{font:900 10px Oswald;color:#fff;border-radius:5px;padding:2px 5px}
+.pl .g{margin-left:auto;width:48px;height:7px;border:1.5px solid #000;border-radius:4px;background:linear-gradient(90deg,#1B7A3D var(--g),#ddd var(--g))}
+.pl.sel{background:#FFE58A;outline:3px solid #E8503A}
+.out{opacity:.45;text-decoration:line-through}
+.btn{background:#FFC400;border:3px solid #000;border-radius:12px;padding:10px;text-align:center;font:900 16px Oswald;box-shadow:3px 3px 0 #000;margin-top:8px}
+.note{font:700 10.5px Arial;color:#444;text-align:center;margin-top:7px}
+.gol{background:#E8A400}.lat{background:#2563EB}.zag{background:#1B7A3D}.mei{background:#7C3AED}.ata{background:#C2452F}
+.field2d{height:250px;margin:10px;border:3px solid #000;border-radius:14px;background:repeating-linear-gradient(90deg,#2f8a3c 0 30px,#2a7d36 30px 60px);position:relative;opacity:.6}
+.cap{color:#fff;font:900 15px Oswald;text-align:center;margin-top:8px}
+</style></head><body>
+<div><div class="cap">🏟️ CAMPO 3D (MAPA)</div><div class="ph">
+ <div class="field3d"><span class="p y" style="left:90px;top:120px"></span><span class="p k" style="left:150px;top:170px"></span><span class="p y" style="left:240px;top:140px"></span><span class="p k" style="left:300px;top:200px"></span></div>
+ <div class="score">FER 1–1 BRA · 63'</div><div class="pause">⏸ JOGO PAUSADO</div>
+ <div class="sheet">
+  <div class="row"><span class="h">🔁 Substituir</span><span class="chip">TROCAS 1/3</span></div>
+  <div class="tac"><div>🧱 Retranca</div><div class="on">⚖️ Equilíbrio</div><div>🔥 Ataque</div></div>
+  <div class="lbl">EM CAMPO AGORA · toque em quem sai</div>
+  <div class="pl sel"><span class="pos mei">MEI</span>Marcelinho<span class="g" style="--g:38%"></span></div>
+  <div class="pl"><span class="pos ata">ATA</span>Edmar<span class="g" style="--g:72%"></span></div>
+  <div class="pl"><span class="pos zag">ZAG</span>Keynan<span class="g" style="--g:81%"></span></div>
+  <div class="lbl">RESERVAS · depois em quem entra</div>
+  <div class="pl"><span class="pos mei">MEI</span>Iranildo<span class="g" style="--g:100%"></span></div>
+  <div class="pl"><span class="pos ata">ATA</span>Lucas Gaúcho<span class="g" style="--g:100%"></span></div>
+  <div class="btn">▶ VOLTAR AO JOGO</div>
+  <div class="note">Vale só neste jogo. Depois do apito o time volta como estava.<br>Pra mudar de vez: aba Elenco.</div>
+ </div></div></div>
+<div><div class="cap">📺 CAMPO 2D (ABA JOGOS)</div><div class="ph">
+ <div class="tit">BRASILIENSE · SÉRIE C</div>
+ <div class="field2d"></div>
+ <div class="pause" style="top:150px">⏸ JOGO PAUSADO · 63'</div>
+ <div class="panel">
+  <div class="row"><span class="h">🔁 Substituir</span><span class="chip">TROCAS 1/3</span></div>
+  <div class="tac"><div>🧱 Retranca</div><div class="on">⚖️ Equilíbrio</div><div>🔥 Ataque</div></div>
+  <div class="lbl">EM CAMPO AGORA</div>
+  <div class="pl"><span class="pos mei out">MEI</span><span class="out">Diego</span>  ➜ <b>Iranildo</b><span class="g" style="--g:100%"></span></div>
+  <div class="pl"><span class="pos ata">ATA</span>Edmar<span class="g" style="--g:72%"></span></div>
+  <div class="lbl">RESERVAS</div>
+  <div class="pl"><span class="pos ata">ATA</span>Lucas Gaúcho<span class="g" style="--g:100%"></span></div>
+  <div class="btn">▶ VOLTAR AO JOGO</div>
+  <div class="note">Vale só neste jogo · no máximo 3 trocas.</div>
+ </div></div></div>
+</body></html>

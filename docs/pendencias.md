@@ -15156,3 +15156,11 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   Galo 1977, Neto Corinthians 1990, Paulinho Corinthians 2012, Fábio Rochemback Inter 2000, Abedi Pelé Marseille 1993, Pedro Flamengo 2022,
   Lincoln Flamengo 2019, Pepe Real 2012. Marquinhos Corinthians, Militão SP e Abedi Pelé Vasco ficam com o texto genérico (o do BIOS fala do
   PSG/Real/Marseille).
+
+## 🔁 23/11 — Substituir DURANTE o jogo (2D e 3D da carreira) — MOCKUP enviado, esperando OK
+- Pedido: botão Substituir pausa o jogo e abre um ELENCO LIMPO (só quem está em campo + reservas, sem comissão/base): no 3D numa janela de
+  baixo por cima do mapa; no 2D embaixo do campinho. Máx 3 trocas por jogo + tática (Retranca/Equilíbrio/Ataque) com o jogo rolando. Vale SÓ
+  naquele jogo; depois do apito volta como estava (fixo = aba Elenco). Mockup: `scripts/mockups/substituir-ao-vivo.png`.
+- Técnico: hoje o motor novo só troca time no INTERVALO (`trocaTime` + `casa2`); troca em minuto qualquer = recalcular o jogo do minuto da
+  troca em diante (resultado é calculado antes da animação). Ainda não feito.
+- ✅ Feito no mesmo dia: a faixa "☁️ Salvo há… · 💾 Salvar" saiu do topo da Central nova (já tem o Salvar lá embaixo).

@@ -414,7 +414,7 @@ export function CentralCarreira(p: CentralProps) {
           {p.sede && !p.direta && <CartaoSede s={p.sede} janela={p.sedeJanela} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
-          <>{p.salvar && <FaixaSalvar s={p.salvar} />}</></div>}
+          {/* 💾 23/11 (Diego: "não quero que tenha esse botão de salvar… já que já tem lá embaixo"): a faixa de Salvar saiu do topo da Central nova */}</div>}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
