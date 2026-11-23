@@ -13,6 +13,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { tr } from './lang'
+import { playHelicoptero } from './sound'
 import escudoImg from './img/neymarzetti-escudo.webp' // 345×360
 import mascoteImg from './img/neymarzetti-mascote.webp' // 346×440, o 10 de joelhos comemorando
 
@@ -159,8 +160,12 @@ function useEscala() {
   return s
 }
 
+// 🚁 o volume da hélice acompanha o helicóptero: chega (0–2 s), fica em cima, vai embora (4,5–5,3 s) e passa de novo puxando a faixa
+const SOM_HELICE: [number, number][] = [[300, 0.12], [2000, 1], [4500, 1], [5300, 0.15], [5600, 0.2], [6900, 0.6], [8400, 0.1]]
+
 export function GalaNeymarzetti({ chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
+  useEffect(() => playHelicoptero(T, SOM_HELICE), [chave])
   return createPortal(
     <div key={chave} className="gnz" aria-hidden>
       <style>{CSS}</style>

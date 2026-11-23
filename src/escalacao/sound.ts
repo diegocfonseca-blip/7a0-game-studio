@@ -164,6 +164,31 @@ export function playMp3Gala(url: string, ms: number): () => void {
   } catch { /* ignora */ }
   return () => { ts.forEach(clearTimeout); try { a?.pause() } catch { /* ignora */ } a = null }
 }
+// 🚁 HÉLICE DO HELICÓPTERO (23/11, Diego: *"deixa barulho de hélice chegando do helicóptero"*) — gala do Neymarzetti.
+// Sintetizado (0 KB): ruído grave batido pelas pás (~13 batidas/s) + um "tum" de rotor. O volume segue a cena: chega de
+// longe (sobe), fica forte parado em cima, se afasta e passa de novo puxando a faixa. `marcas` = [ms, volume 0–1].
+export function playHelicoptero(ms: number, marcas: [number, number][]): () => void {
+  const c = ac(); if (!c || !master) return () => {}
+  const nos: AudioScheduledSourceNode[] = []
+  try {
+    const t = c.currentTime + 0.02, dur = ms / 1000
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate * 2), c.sampleRate), d = buf.getChannelData(0)
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1
+    const ru = c.createBufferSource(); ru.buffer = buf; ru.loop = true
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420; lp.Q.value = 0.7
+    const pa = c.createGain(); pa.gain.value = 0.35 // batida das pás: o LFO soma em cima de 0,35
+    const lfo = c.createOscillator(); lfo.type = 'square'; lfo.frequency.setValueAtTime(11, t); lfo.frequency.linearRampToValueAtTime(14, t + 2)
+    const lg = c.createGain(); lg.gain.value = 0.65; lfo.connect(lg); lg.connect(pa.gain)
+    const tum = c.createOscillator(); tum.type = 'sine'; tum.frequency.value = 58
+    const tg = c.createGain(); tg.gain.value = 0.25; tum.connect(tg); tg.connect(pa)
+    const env = c.createGain(); env.gain.setValueAtTime(0.0001, t)
+    for (const [m, v] of marcas) env.gain.linearRampToValueAtTime(Math.max(0.0001, v * 0.9), t + m / 1000)
+    env.gain.linearRampToValueAtTime(0.0001, t + dur)
+    ru.connect(lp); lp.connect(pa); pa.connect(env); env.connect(master)
+    for (const n of [ru, lfo, tum]) { n.start(t); n.stop(t + dur + 0.05); nos.push(n) }
+  } catch { /* ignora */ }
+  return () => { for (const n of nos) { try { n.stop() } catch { /* já parou */ } } }
+}
 // ─── 🔊 SONS NOVOS (19/11, Diego: *"analise tudo… pode fazer tudo"*) ───────────────────────────────────
 // Todos sintetizados (0 KB), no MESMO mudo/volume dos outros. Quem chama decide PRA QUEM toca (regra: martelo só pra
 // quem ganha; sirene só pra quem levou o golpe…). Lista e onde cada um toca: docs/pendencias.md (19/11, sons).
