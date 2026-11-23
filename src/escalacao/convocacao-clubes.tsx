@@ -6,6 +6,7 @@
 //  · quem não for convocado vai pros bots (o motor faz isso no CONVOCAR_CLUBES).
 // Setor sem pacote (ninguém ganhou nem no monte) o motor completa com sobra DE
 // VERDADE — nunca jogador de mentira.
+import { rotuloFormacao } from './types'
 import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEsc, vagasBase, formacaoCabeNosPacotes } from './store'
@@ -188,7 +189,7 @@ export function EscConvocacaoClubes() {
               {FORMACOES_JOGO.flatMap((f): [FormationKey, boolean][] => f === '5-3-2' ? [[f, false], [f, true]] : [[f, false]]).map(([f, ala]) => {
                 const ok = formacaoCabeNosPacotes((me.squad ?? []) as WonCard[], f)
                 const falta = ok ? null : SECTORS.find(sec => (lotes[sec]?.pacote?.cartas.length ?? 0) < FORMATIONS[f][sec])
-                const on = form === f && alas === ala, nome = ala ? '3-5-2' : f
+                const on = form === f && alas === ala, nome = ala ? '3-5-2' : rotuloFormacao(f) /* 🛡️ 23/11: '3-4-3z' é a chave, a tela mostra 3-4-3 */
                 return (
                   <button className="ov3-surface" key={nome} disabled={!ok} onClick={() => { if (f === form) { setAlas(ala); return } setForm(f); setAlas(ala); setSel({}); setAviso(null) }}
                     title={falta ? t(`Seu pacote de ${nomeSec(falta, 2)} não tem gente pra ${nome}`, `Your ${nomeSec(falta, 2)} pack is too small for ${nome}`) : (ala ? t('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined)}
@@ -275,7 +276,7 @@ export function EscConvocacaoClubes() {
         ) : (
         <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}` }}>
           <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {alas ? '3-5-2' : form}</span>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {alas ? '3-5-2' : rotuloFormacao(form)}</span>
           </div>
           <PlacaGol lado="cima" alt={24} />
           <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>

@@ -1,4 +1,5 @@
 import {useOwnerLayout,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand} from './owner-online-visual'
+import { rotuloFormacao } from './types'
 import { ListaRolavel } from './lista-rolavel' // 📜 23/11: barra + dica de rolagem na convocação
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 // ─── 🌍 COPA DO MUNDO LEGENDS (v1 · carreira SOLO) ───────────────────────────
@@ -869,7 +870,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
         {(FORMACOES_JOGO as Formation[]).flatMap((f): [Formation, boolean][] => f === '5-3-2' ? [[f, false], [f, true]] : [[f, false]]).map(([f, ala]) => {
           const ok = formationFits(pool, f)
           const on = form === f && alas === ala
-          const nome = ala ? '3-5-2' : f
+          const nome = ala ? '3-5-2' : rotuloFormacao(f) /* 🛡️ 23/11: '3-4-3z' é a chave, a tela mostra 3-4-3 */
           return (
             <button className="ov3-surface" key={nome} disabled={!ok} onClick={() => switchForm(f, ala)}
               title={ok ? (ala ? tr('Mesmos jogadores do 5-3-2: os laterais sobem como alas', 'Same players as 5-3-2: the full-backs push up as wing-backs') : undefined) : `${pais} ${tr('não tem elenco pra esse esquema', 'has no squad for this system')}`}
@@ -935,7 +936,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
       {/* campinho compacto: convocados por linha (ATA/MEI/DEF/GOL, padrão do pregão) */}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 10 }}>
         <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{emblema ? '' : `${flagOf(pais)} `}{rotuloTime ?? tr('sua seleção', 'your team')} · {total}/11 · {alas ? '3-5-2' : form}</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{emblema ? '' : `${flagOf(pais)} `}{rotuloTime ?? tr('sua seleção', 'your team')} · {total}/11 · {alas ? '3-5-2' : rotuloFormacao(form)}</span>
         </div>
         <PlacaGol lado="cima" alt={24} />
         <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
