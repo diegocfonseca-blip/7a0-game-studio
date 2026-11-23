@@ -80,11 +80,11 @@ const FRAG=`{
  if(id>2.5&&id<7.5){
   // volume do pano: a luminância da textura original ÷ o branco de referência (a dobra e a sombra continuam; a cor é do time)
   float sh=clamp(dot(diffuseColor.rgb,vec3(.2126,.7152,.0722))/uBranco,.22,1.25);vec3 cor;
-  if(id<3.5){float x=rg.b,y=clamp((rg.g-uY0)/(uY1-uY0),0.,1.);cor=uCorpo;
+  if(id<3.5){float x=uHasRestMapping>.5?vKitRest.x:rg.b,y=clamp(((uHasRestMapping>.5?vKitRest.y:rg.g)-uY0)/(uY1-uY0),0.,1.);cor=uCorpo;
    // (x = posição lateral no corpo: .5 é o meio do peito/das costas; as listras ficam retas na frente e nas costas, como na vida real)
-   if(uTipo==1){float f=(x-.5)*uN*1.9+.5,d=abs(fract(f)-.5),w=fwidth(f)*.75+.01;cor=mix(uCorpo,uDetalhe,smoothstep(uLarg*.5+w,uLarg*.5-w,d));}
-   else if(uTipo==2){float f=y*uN,d=abs(fract(f)-.5),w=fwidth(f)*.75+.01;cor=mix(uCorpo,uDetalhe,smoothstep(uLarg*.5+w,uLarg*.5-w,d));}
-   else if(uTipo==3){float lado=costas>.5?-1.:1.,s=(x-.5)*lado*1.6+(y-.5)*.9,w=fwidth(s)*.75+.004;cor=mix(uCorpo,uDetalhe,smoothstep(uLarg*.5+w,uLarg*.5-w,abs(s)));}
+   if(uTipo==1){float f=(x-.5)*uN*1.9+.5,d=abs(fract(f)-.5),w=fwidth(f)*.75+.01;cor=mix(uCorpo,uDetalhe,(1.-smoothstep(uLarg*.5-w,uLarg*.5+w,d)));}
+   else if(uTipo==2){float f=y*uN,d=abs(fract(f)-.5),w=fwidth(f)*.75+.01;cor=mix(uCorpo,uDetalhe,(1.-smoothstep(uLarg*.5-w,uLarg*.5+w,d)));}
+   else if(uTipo==3){float lado=(uHasRestMapping>.5?step(0.,-vKitRest.z):costas)>.5?-1.:1.,s=(x-.5)*lado*1.6+(y-.5)*.9,w=fwidth(s)*.75+.004;cor=mix(uCorpo,uDetalhe,(1.-smoothstep(uLarg*.5-w,uLarg*.5+w,abs(s))));}
    else if(uTipo==4){float w=fwidth(x)*.75+.003;cor=mix(uCorpo,uDetalhe,smoothstep(.5-w,.5+w,x));}
    else if(uTipo==5&&uUsaPadrao>.5){cor=texture2D(uPadrao,vec2(costas>.5?1.-x*.5:x*.5,y)).rgb;}}
   else if(id<4.5)cor=uMangas;else if(id<5.5)cor=uGola;else if(id<6.5)cor=uCalcao;else cor=uMeiao;
@@ -93,18 +93,20 @@ const FRAG=`{
  else if(id>.5&&id<1.5)diffuseColor.rgb*=uPele;
  if(uDebug>.5){vec3 dc[9];dc[0]=vec3(0.);dc[1]=vec3(.9,.7,.55);dc[2]=vec3(.35,.2,.08);dc[3]=vec3(.85,.1,.1);dc[4]=vec3(.95,.55,0.);dc[5]=vec3(1.,.95,0.);dc[6]=vec3(.1,.35,.85);dc[7]=vec3(.1,.7,.25);dc[8]=vec3(.15);diffuseColor.rgb=dc[int(id)];}
 }`
-const UNIFS='uniform sampler2D uReg;uniform float uBranco;uniform float uY0;uniform float uY1;uniform int uTipo;uniform vec3 uCorpo;uniform vec3 uDetalhe;uniform vec3 uMangas;uniform vec3 uGola;uniform vec3 uCalcao;uniform vec3 uMeiao;uniform vec3 uChuteira;uniform float uUsaChuteira;uniform float uN;uniform float uLarg;uniform sampler2D uPadrao;uniform float uUsaPadrao;uniform vec3 uPele;uniform float uDebug;'
+const UNIFS='varying vec3 vKitRest;uniform float uHasRestMapping;uniform sampler2D uReg;uniform float uBranco;uniform float uY0;uniform float uY1;uniform int uTipo;uniform vec3 uCorpo;uniform vec3 uDetalhe;uniform vec3 uMangas;uniform vec3 uGola;uniform vec3 uCalcao;uniform vec3 uMeiao;uniform vec3 uChuteira;uniform float uUsaChuteira;uniform float uN;uniform float uLarg;uniform sampler2D uPadrao;uniform float uUsaPadrao;uniform vec3 uPele;uniform float uDebug;'
 // tom de pele da arte original (o boneco do Tripo), em linear: a pele de uma lenda vira um FATOR sobre ele (a sombra pintada fica)
 const PELE_BASE=new T.Color('#d9a07a')
 const fatorPele=css=>{if(!css)return new T.Color(1,1,1);const c=new T.Color(css);return new T.Color(Math.min(1.6,c.r/PELE_BASE.r),Math.min(1.6,c.g/PELE_BASE.g),Math.min(1.6,c.b/PELE_BASE.b))}
 /** Material de UM jogador: o programa é o mesmo pra todos (uma compilação só); os valores do uniforme são os do time (divididos),
  *  e só a pele é dele. */
 function materialJogador(base,asset,ficha,pele){
- const m=base.clone(),un=asset.meta.uniforme??{},jog={uReg:{value:asset.regioes},uBranco:{value:un.branco??.6},uY0:{value:un.cintura??.6},uY1:{value:un.gola??.77},uPele:{value:fatorPele(pele)},uDebug:{value:0}}
+ const rest=asset.regioes.userData.kitRestMapping;
+ const m=base.clone(),un=asset.meta.uniforme??{},jog={uHasRestMapping:{value:rest?1:0},uKitFromRest:{value:rest?.matrix??new T.Matrix4()},uKitMinY:{value:rest?.minY??0},uKitHeight:{value:rest?.height??1},uReg:{value:asset.regioes},uBranco:{value:un.branco??.6},uY0:{value:un.cintura??.6},uY1:{value:un.gola??.77},uPele:{value:fatorPele(pele)},uDebug:{value:0}}
  m.userData.u={jog,time:valoresDaFicha(completa(ficha))}
  m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,m.userData.u.jog,m.userData.u.time)
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform mat4 uKitFromRest;uniform float uKitMinY;uniform float uKitHeight;varying vec3 vKitRest;').replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 kitPoint=(uKitFromRest*vec4(position,1.)).xyz;vKitRest=vec3(.5+kitPoint.x/(.64*uKitHeight),(kitPoint.y-uKitMinY)/uKitHeight,kitPoint.z);')
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+UNIFS).replace('#include <map_fragment>','#include <map_fragment>\n'+FRAG)}
- m.customProgramCacheKey=()=>'jogador-uniforme-v2'
+ m.customProgramCacheKey=()=>'jogador-uniforme-v3-rest-coordinates'
  return m
 }
 /** Um jogador (clone do esqueleto, mixer próprio). `ficha`: o uniforme do time (uniformes.mjs) · `pele`: tom da lenda (opcional). */

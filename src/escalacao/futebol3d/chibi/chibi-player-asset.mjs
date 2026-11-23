@@ -46,28 +46,32 @@ function nativeGait(clip,target,rest,name){
 function kitMask(root){
  root.updateMatrixWorld(true);let mesh;root.traverse(o=>{if(o.isSkinnedMesh)mesh=o});const g=mesh.geometry,uv=g.attributes.uv,p=g.attributes.position,si=g.attributes.skinIndex,sw=g.attributes.skinWeight,idx=g.index,bb=new T.Box3().setFromObject(root),height=bb.max.y-bb.min.y;
  const size=1024,canvas=document.createElement('canvas');canvas.width=canvas.height=size;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(mesh.material.map.image,0,0,size,size);const color=ctx.getImageData(0,0,size,size).data,output=new Uint8Array(size*size*4),points=[],zones=[];
- for(let i=0;i<p.count;i++){points.push(V().fromBufferAttribute(p,i).applyMatrix4(mesh.matrixWorld));let best=0,weight=-1;for(let k=0;k<4;k++)if(sw.getComponent(i,k)>weight){weight=sw.getComponent(i,k);best=si.getComponent(i,k)}zones.push(mesh.skeleton.bones[best].name)}
+ const zoneNames=['Spine','Head','ForeArm','Foot','Leg','UpLeg','Arm'];
+ const zoneOf=name=>/Head|Neck/.test(name)?1:/Hand|ForeArm/.test(name)?2:/Foot|Toe/.test(name)?3:/UpLeg/.test(name)?5:/Leg/.test(name)?4:/Arm|Shoulder/.test(name)?6:0;
+ for(let i=0;i<p.count;i++){points.push(V().fromBufferAttribute(p,i).applyMatrix4(mesh.matrixWorld));const weights=new Float32Array(zoneNames.length);for(let k=0;k<4;k++)weights[zoneOf(mesh.skeleton.bones[si.getComponent(i,k)].name)]+=sw.getComponent(i,k);zones.push(weights)}
+
  const region=(name,y,r,g,b)=>{const mx=Math.max(r,g,b),mn=Math.min(r,g,b),white=mx>70&&(mx-mn)/mx<.30,warm=r>g*1.08&&g>b*1.05;
-  if(/Head|Neck/.test(name))return warm?1:white&&y<.67?5:2;
+  if(/Head|Neck/.test(name))return warm?1:white&&y<.635?3:white&&y<.655?5:2;
   if(/Hand|ForeArm/.test(name))return 1;
   if(/Foot|Toe/.test(name))return white&&y>.08?7:8;
   if(/Leg/.test(name)&&!/UpLeg/.test(name))return warm?1:7;
   if(/UpLeg/.test(name))return y>.32&&!warm?6:1;
-  if(warm)return 1;
+  if(warm&&/Arm|Shoulder/.test(name))return 1;
   if(y<.445)return 6;
   if(/Arm|Shoulder/.test(name))return white?4:1;
   return y>.635?5:3;
  };
  for(let j=0;j<idx.count;j+=3){const ids=[idx.getX(j),idx.getX(j+1),idx.getX(j+2)],a=ids.map(i=>[uv.getX(i)*size,uv.getY(i)*size]),[p0,p1,p2]=a,den=(p1[1]-p2[1])*(p0[0]-p2[0])+(p2[0]-p1[0])*(p0[1]-p2[1]);if(Math.abs(den)<1e-9)continue;
   const loX=Math.max(0,Math.floor(Math.min(...a.map(x=>x[0])))),hiX=Math.min(size-1,Math.ceil(Math.max(...a.map(x=>x[0])))),loY=Math.max(0,Math.floor(Math.min(...a.map(x=>x[1])))),hiY=Math.min(size-1,Math.ceil(Math.max(...a.map(x=>x[1]))));
-  const z=zones[ids[0]];
+  const zones0=zones[ids[0]],zones1=zones[ids[1]],zones2=zones[ids[2]];
   for(let y=loY;y<=hiY;y++)for(let x=loX;x<=hiX;x++){const l0=((p1[1]-p2[1])*(x+.5-p2[0])+(p2[0]-p1[0])*(y+.5-p2[1]))/den,l1=((p2[1]-p0[1])*(x+.5-p2[0])+(p0[0]-p2[0])*(y+.5-p2[1]))/den,l2=1-l0-l1;if(Math.min(l0,l1,l2)<-.005)continue;
+   let zone=0,zoneWeight=-1;for(let k=0;k<zoneNames.length;k++){const weight=zones0[k]*l0+zones1[k]*l1+zones2[k]*l2;if(weight>zoneWeight){zoneWeight=weight;zone=k}}const z=zoneNames[zone];
    const world=points[ids[0]].clone().multiplyScalar(l0).addScaledVector(points[ids[1]],l1).addScaledVector(points[ids[2]],l2),at=(y*size+x)*4,yn=(world.y-bb.min.y)/height,id=region(z,yn,color[at],color[at+1],color[at+2]);output[at]=id*20+(world.z<0?10:0);output[at+1]=Math.round(yn*255);output[at+2]=Math.round(T.MathUtils.clamp(.5+world.x/(.64*height),0,1)*255);output[at+3]=255;
   }
  }
  // Fill UV-border texels without changing the original color image.
  for(let pass=0;pass<3;pass++){const old=output.slice();for(let y=1;y<size-1;y++)for(let x=1;x<size-1;x++){const at=(y*size+x)*4;if(old[at+3])continue;for(const q of[at-4,at+4,at-size*4,at+size*4])if(old[q+3]){output.set(old.subarray(q,q+4),at);break}}}
- const texture=new T.DataTexture(output,size,size,T.RGBAFormat);texture.flipY=false;texture.colorSpace=T.NoColorSpace;texture.minFilter=texture.magFilter=T.NearestFilter;texture.generateMipmaps=false;texture.needsUpdate=true;return texture;
+ const texture=new T.DataTexture(output,size,size,T.RGBAFormat);texture.userData.kitRestMapping={matrix:mesh.matrixWorld.clone(),minY:bb.min.y,height};texture.flipY=false;texture.colorSpace=T.NoColorSpace;texture.minFilter=texture.magFilter=T.NearestFilter;texture.generateMipmaps=false;texture.needsUpdate=true;return texture;
 }
 // 📱 19/11 (Diego: *"não tá dando pra ver o jogo de tão lento… também quero no celular"*): no celular vai o boneco LEVE — o mesmo
 // boneco (ossos, UV, movimentos), com 20% dos triângulos (`scripts/futebol3d/gera-jogador-leve.mjs`). 22 bonecos de ~40 mil triângulos
