@@ -4,7 +4,7 @@ import {mkdirSync,writeFileSync} from 'node:fs'
 const output=process.env.ABERTURA_OUTPUT??'/workspace/shared/abertura-estadio-20261120'
 mkdirSync(output,{recursive:true})
 const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader']})
-const origin=process.env.ABERTURA_ORIGIN??'http://127.0.0.1:4235'
+const origin=process.env.ABERTURA_ORIGIN??'http://127.0.0.1:4235',base=process.env.ABERTURA_BASE??'/7a0-game-studio/'
 const reports=[]
 try{
  for(const width of (process.env.ABERTURA_WIDTHS??'390,1280').split(',').map(Number)){
@@ -12,7 +12,7 @@ try{
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message))
   await page.addInitScript(()=>{localStorage.setItem('bl_lang','pt');localStorage.setItem('pc3-qualidade-v1','leve')})
   await page.route('**/*',r=>r.request().url().startsWith(origin+'/')||r.request().url().startsWith('data:')?r.continue():r.abort())
-  await page.goto(origin+'/7a0-game-studio/scripts/teste-inicio-carreira/?stage=central',{waitUntil:'domcontentloaded',timeout:90000})
+  await page.goto(origin+base+'scripts/teste-inicio-carreira/?stage=central',{waitUntil:'domcontentloaded',timeout:90000})
   await page.waitForFunction(()=>window.qaState?.screen==='season',null,{timeout:90000})
   await page.waitForTimeout(800) // Aguarda a montagem e as migrações locais do save antes da escolha.
   await page.evaluate(()=>window.qaDispatch({type:'SET_MASTER',brandId:'dsouza'}))
@@ -33,7 +33,7 @@ try{
    const first=await page.evaluate(()=>{const a=window.__mapaApi;return{intro:a.inspect().intro,camera:a.qaCena().camera.position.toArray(),players:a.inspect().match.players}})
    assert.equal(first.players,22,'Os XI reais aguardam o apito sem iniciar a rodada')
    // Uma conclusão de outra apresentação nunca deve liberar o botão atual.
-   await page.evaluate(async()=>{const m=await import('/7a0-game-studio/src/escalacao/controle-partida-mapa.ts');m.avisaGiroFeito('antiga')})
+   await page.evaluate(async base=>{const m=await import(base+'src/escalacao/controle-partida-mapa.ts');m.avisaGiroFeito('antiga')},base)
    assert.equal(await start.count(),0)
    await page.waitForFunction(()=>window.__mapaApi.inspect().matchCamera.opening?.elapsed>1000,null,{timeout:90000})
    await page.screenshot({path:`${output}/giro-${width}-${attempt}.png`})

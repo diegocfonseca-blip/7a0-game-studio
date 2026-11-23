@@ -1,0 +1,3 @@
+import { teamCoachAccess, roundCoachRoute } from '../cidade3d/coach-access.mjs';
+/** Dedicated service bay stays beside the real stadium gate; only public approach streets move. */
+export function acessoDelegacoesCompacto() { const previous = teamCoachAccess(); return { ...previous, inbound: roundCoachRoute([{ x: -258, z: -121.5 }, { x: -118.5, z: -121.5 }, { x: -118.5, z: 90 }, { x: -94, z: 90 }, { x: -94, z: 26 }, previous.bay], 8), outbound: roundCoachRoute([previous.bay, { x: -94, z: -50 }, { x: -115.25, z: -50 }, { x: -115.25, z: -115 }, { x: -125, z: -126.5 }, { x: -258, z: -126.5 }], 8) }; }
