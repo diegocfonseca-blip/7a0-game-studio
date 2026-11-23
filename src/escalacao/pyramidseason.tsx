@@ -5196,7 +5196,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
                 de sempre (+ a atual, se for conta nova). Aqui é sempre a CONTA do
                 motor (sem maquiagem: intervalo é ajuste rápido). */}
             {((): FormationKey[] => {
-              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2'] as FormationKey[]
+              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '3-5-2z', '5-3-2'] as FormationKey[]
               if (!quinze15) return base
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
@@ -7770,7 +7770,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
               <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}{meuTecT ? tr(' do técnico', ' (coach\'s)') : ''}</p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: daCasa && !doTec.has(daCasa) ? 8 : 0 }}>
                 {cardapio.map(f => {
-                  const cur = atual.rotulo === f.rotulo
+                  const cur = atual.rotulo === f.rotulo && atual.motor === f.motor // 🛡️ 23/11: o 3-5-2 antigo (alas) e o novo têm o mesmo nome
                   const can = cur || missFor(f.motor).length === 0
                   const heranca = !!daCasa && f.rotulo === daCasa && !doTec.has(f.rotulo)
                   return (
@@ -7805,15 +7805,16 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
         // 📋 Liga Draft (04/11): as 7 formações do jogo, acesas pelo que o elenco tem; o resto segue com as 5 de sempre
         const elenco22 = !!escSt.minhaLigaDraft || !!escSt.bafo2 // 📋🃏 modos de elenco de 22: as 7 formações do jogo (+ o 3-5-2)
-        const listaForm: readonly FormationKey[] = elenco22 ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2']
+        const listaForm: readonly FormationKey[] = elenco22 ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '3-5-2z', '5-3-2']
+        const alasAgora = mgr.formation === '5-3-2' && mgr.formationView === '3-5-2'
         const blocked = listaForm.filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {/* 🪽 07/11: na Liga Draft entra o 3-5-2 logo depois do 5-3-2 — mesmos jogadores, os laterais sobem como alas */}
-              {listaForm.flatMap((f): [FormationKey, string | undefined][] => elenco22 && f === '5-3-2' ? [[f, undefined], [f, '3-5-2']] : [[f, undefined]]).map(([f, vista]) => {
-                const alasAgora = mgr.formation === '5-3-2' && mgr.formationView === '3-5-2'
+              {/* 🛡️ 23/11: o 3-5-2 de verdade ('3-5-2z') está na lista; o de alas (5-3-2 + laterais) só aparece pra quem JÁ joga nele */}
+              {listaForm.flatMap((f): [FormationKey, string | undefined][] => elenco22 && f === '5-3-2' && alasAgora ? [[f, undefined], [f, '3-5-2']] : [[f, undefined]]).filter(([f]) => !(alasAgora && f === '3-5-2z')).map(([f, vista]) => {
                 const cur = mgr.formation === f && (vista === '3-5-2' ? alasAgora : !(f === '5-3-2' && alasAgora))
                 const can = cur || missFor(f).length === 0
                 return (

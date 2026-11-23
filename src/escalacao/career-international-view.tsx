@@ -68,6 +68,7 @@ type Props = {
   topoGrande?: boolean
 }
 
+import { rotuloFormacao } from './types'
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREME = '#F4ECD6'
 const OSWALD: CSSProperties = { fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' }
 const frame: CSSProperties = { background: CREME, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 18 }
@@ -78,11 +79,14 @@ const hint: CSSProperties = { fontSize: 10.5, fontWeight: 700, color: '#555', te
 const kicker: CSSProperties = { fontSize: 9.5, fontWeight: 900, letterSpacing: 1.4, color: '#6b6b6b', textTransform: 'uppercase', textAlign: 'center', display: 'block' }
 const sections = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const
 type Section = typeof sections[number]
-type Shape = '4-3-3' | '4-4-2'
+type Shape = '4-3-3' | '4-4-2' | '4-5-1' | '3-5-2z' // ⚽ 23/11 (Diego): 4-5-1 e o 3-5-2 de verdade (3 ZAG · 5 MEI · 2 ATA) também
 const needs: Record<Shape, Record<Section, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
   '4-4-2': { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 },
+  '4-5-1': { GOL: 1, LAT: 2, ZAG: 2, MEI: 5, ATA: 1 },
+  '3-5-2z': { GOL: 1, LAT: 0, ZAG: 3, MEI: 5, ATA: 2 },
 }
+const SHAPES: Shape[] = ['4-3-3', '4-4-2', '4-5-1', '3-5-2z']
 const SEC_LABEL: Record<Section, [string, string]> = { GOL: ['goleiros', 'keepers'], LAT: ['laterais', 'full-backs'], ZAG: ['zagueiros', 'centre-backs'], MEI: ['meias', 'midfielders'], ATA: ['atacantes', 'forwards'] }
 type Comp = InternationalCompetition | 'mundial'
 const nomeComp = (c: Comp) => c === 'libertadores' ? 'Libertadores' : c === 'champions' ? 'Champions League' : tr('Mundial de Clubes', 'Club World Cup')
@@ -414,7 +418,7 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
   const toggle = (c: PoolCard) => {
     if (xi.includes(c.id)) { setXi(ids => ids.filter(id => id !== c.id)); setAviso(null); return }
     if (selected.some(o => internationalCardKey(o) === internationalCardKey(c))) { setAviso(tr(`${c.name} (${c.club} ${c.year}) já está convocado.`, `${c.name} (${c.club} ${c.year}) is already called up.`)); return }
-    if (bySec(c.pos as Section).length >= need[c.pos as Section]) { setAviso(tr(`${c.pos} já está completo no ${shape} — tire um pra convocar ${c.name}.`, `${c.pos} is already full in the ${shape} — remove one to call up ${c.name}.`)); return }
+    if (bySec(c.pos as Section).length >= need[c.pos as Section]) { setAviso(tr(`${c.pos} já está completo no ${rotuloFormacao(shape)} — tire um pra convocar ${c.name}.`, `${c.pos} is already full in the ${rotuloFormacao(shape)} — remove one to call up ${c.name}.`)); return }
     setXi(ids => [...ids, c.id]); setAviso(null)
   }
   const list = real.filter(c => c.pos === tab && c.name.toLowerCase().includes(q.toLowerCase()))
@@ -441,8 +445,8 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
     </div>
     <div className="cv-left">
     <div className="cv-forms" style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-      {(['4-3-3', '4-4-2'] as Shape[]).map(f => { const ok = shapeAvailable(f); return <button key={f} type="button" disabled={!ok} onClick={() => { setShape(f); setXi([]); setAviso(null) }}
-        style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', color: INK, background: !ok ? '#CBBF9E' : shape === f ? GOLD : '#fff', boxShadow: shape === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .7 }}>{ok ? f : `🔒 ${f}`}</button> })}
+      {SHAPES.map(f => { const ok = shapeAvailable(f); return <button key={f} type="button" disabled={!ok} onClick={() => { setShape(f); setXi([]); setAviso(null) }}
+        style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', color: INK, background: !ok ? '#CBBF9E' : shape === f ? GOLD : '#fff', boxShadow: shape === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .7 }}>{ok ? rotuloFormacao(f) : `🔒 ${rotuloFormacao(f)}`}</button> })}
     </div>
     <div className="cv-tabs" style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
       {sections.map(s => { const done = bySec(s).length >= need[s]; return <button key={s} type="button" onClick={() => setTab(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 10.5, ...OSWALD, cursor: 'pointer', background: done ? GREEN : tab === s ? GOLD : '#fff', color: done ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
@@ -473,7 +477,7 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
       </div>
       <PlacaGol lado="cima" alt={24} />
       <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {linha(slotsDe('ATA'))}{linha(slotsDe('MEI'))}{linha([lat[0], ...zag, lat[1]])}{linha(slotsDe('GOL'))}
+        {linha(slotsDe('ATA'))}{linha(slotsDe('MEI'))}{linha([...lat.slice(0, 1), ...zag, ...lat.slice(1)])}{linha(slotsDe('GOL'))}
       </div>
       <PlacaGol lado="baixo" alt={24} />
     </div>

@@ -113,7 +113,7 @@ export type Sec = 'GOL' | 'LAT' | 'ZAG' | 'MEI' | 'ATA'
 const SECS: Sec[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 export type PoolCard = { name: string; club: string; year: number; fame: number; lo: number; hi: number; sec: Sec }
 // ⚽ 04/11 (Diego): na convocação das seleções abrem as 7 formações da carreira — acende só a que o país fecha
-export type Formation = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '3-4-3z' | '5-3-2' | '4-2-4' | '5-4-1'
+export type Formation = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '3-4-3z' | '3-5-2z' | '5-3-2' | '4-2-4' | '5-4-1'
 const NEED = Object.fromEntries(FORMACOES_JOGO.map(f => [f, FORMATIONS[f]])) as Record<Formation, Record<Sec, number>>
 const SEC_LABEL_PT: Record<Sec, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
 const SEC_LABEL_EN: Record<Sec, string> = { GOL: 'Goalkeepers', LAT: 'Full-backs', ZAG: 'Centre-backs', MEI: 'Midfielders', ATA: 'Forwards' }
@@ -869,7 +869,8 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
       <div className="cv-left">
       {/* formação: só esquemas que o país fecha (trava com aviso) */}
       <div className="cv-forms" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-        {(FORMACOES_JOGO as Formation[]).flatMap((f): [Formation, boolean][] => f === '5-3-2' ? [[f, false], [f, true]] : [[f, false]]).map(([f, ala]) => {
+        {/* 🛡️ 23/11: o 3-5-2 agora é o de verdade ('3-5-2z', 3 ZAG · 5 MEI · 2 ATA) — sai o botão de alas do 5-3-2 */}
+        {(FORMACOES_JOGO as Formation[]).map((f): [Formation, boolean] => [f, false]).map(([f, ala]) => {
           const ok = formationFits(pool, f)
           const on = form === f && alas === ala
           const nome = ala ? '3-5-2' : rotuloFormacao(f) /* 🛡️ 23/11: '3-4-3z' é a chave, a tela mostra 3-4-3 */

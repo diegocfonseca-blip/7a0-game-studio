@@ -4595,7 +4595,7 @@ export function EscLobby() {
             {/* 🏀 formação 4-3-3/4-4-2 é do futebol; o basquete é quinteto (5), sem formação. */}
             {!isCareer && !nbaSala && !(kingsVe && kingsSala && roomMode === 'rapido') && (
               <SegField label={tr('Formação (vale pra todos)', 'Formation (for everyone)')}>
-                <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />
+                <Seg options={[['4-3-3', '4-3-3'], ['4-4-2', '4-4-2'], ['4-5-1', '4-5-1']] as [FormationKey, string][]} value={formation} onSet={v => setFormation(v)} />{/* ⚽ 23/11: 4-5-1 também (Diego) */}
               </SegField>
             )}
           </Section>
