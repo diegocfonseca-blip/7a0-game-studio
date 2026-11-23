@@ -1,7 +1,7 @@
 # Troca de velocidade durante o futebol online
 
-Correção local em `fix/ritmo-online-20261123`, sobre `95cdc6b1`.
-Ainda não publicada.
+Correção `0b3fc162`, sobre `95cdc6b1`, integrada com a main `83a22056`.
+Publicação para todos autorizada em 23/11; conclusão acompanhada no GitHub Actions.
 
 ## Falhas reproduzidas
 
@@ -52,6 +52,9 @@ que usa o mesmo componente fora das salas.
   e disputa de pênaltis preservada após troca de velocidade.
 - `npm run build` (TypeScript e Vite), `git diff --check` e teste de
   pausa/retomada precisa do campo passaram.
+- Após integrar a main, compilação e as 62 verificações específicas de navegador
+  passaram novamente. Os arquivos de publicação ficam em
+  `/workspace/shared/ritmo-online-20261123/publicacao/`.
 
 Roteiros: `scripts/testa-match-presentation-clock.mts` (via
 `node scripts/testa-copa-planos.mjs /scripts/testa-match-presentation-clock.mts`),
