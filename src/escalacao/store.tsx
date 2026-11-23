@@ -7814,6 +7814,9 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // jogador repetido do baralho — fecha o "dois Van der Sar". Roda 1x por leilão
   // (nas levas/próximos setores sectorCursor>0 ou sectorIdx>0, então não repete).
   if (!rescue && state.sectorIdx === 0 && state.sectorCursor === 0) {
+    // 💸 23/11 (Diego, print da sala do K9 FC: *"que erro é esse de 807 moedas?"*): o caderninho da Mão Furada nunca zerava, então o
+    // "+X a mais" somava TODOS os leilões da sala (807), enquanto a frase falava só do pior arremate deste (83). Zera a cada leilão novo.
+    state.resenha = { furada: {} }
     dedupeDeck(state.deck)
     if (state.stock) for (const p of SECTORS) state.stock[p] = state.deck[p].length
   }

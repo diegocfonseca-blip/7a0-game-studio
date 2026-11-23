@@ -1,0 +1,12 @@
+.lr-caixa{position:relative}
+.lr-rolagem{scrollbar-width:auto;scrollbar-color:#0C0C0C #E9E1CA}
+.lr-rolagem::-webkit-scrollbar{width:9px;-webkit-appearance:none}
+.lr-rolagem::-webkit-scrollbar-track{background:#E9E1CA;border-radius:9px}
+.lr-rolagem::-webkit-scrollbar-thumb{background:#0C0C0C;border-radius:9px;border:2px solid #E9E1CA}
+.lr-dica{position:absolute;left:0;right:12px;display:flex;justify-content:center;pointer-events:none;z-index:2}
+.lr-dica-baixo{bottom:0;padding:22px 0 5px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.95) 70%)}
+.lr-dica-cima{top:0;padding:3px 0 14px;background:linear-gradient(to top,rgba(255,255,255,0),rgba(255,255,255,.9) 60%)}
+.lr-dica span{font:900 11px/1 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#0C0C0C;border-radius:999px;padding:4px 10px;animation:lr-pula 1.4s ease-in-out infinite}
+.lr-dica-cima span{padding:2px 9px;font-size:9px}
+@keyframes lr-pula{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){.lr-dica span{animation:none}}

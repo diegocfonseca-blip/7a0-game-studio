@@ -1,4 +1,5 @@
 import {useOwnerLayout,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand} from './owner-online-visual'
+import { ListaRolavel } from './lista-rolavel' // 📜 23/11: barra + dica de rolagem na convocação
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 // ─── 🌍 COPA DO MUNDO LEGENDS (v1 · carreira SOLO) ───────────────────────────
 // O endgame dos veteranos: desbloqueia na TEMPORADA 100, rola de 10 em 10.
@@ -904,7 +905,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
         style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
 
       <div style={{ ...box('#fff'), borderRadius: 12, overflow: 'hidden', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
-        <div className="cv-lista" style={{ maxHeight: 250, overflowY: 'auto' }}>
+        <ListaRolavel className="cv-lista" style={{ maxHeight: 250, overflowY: 'auto' }} deps={[tab, q]}>
           {list.map(c => {
             const k = cardKey(c)
             const on = !!sel[k]
@@ -926,7 +927,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
             )
           })}
           {list.length === 0 && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>{tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}</p>}
-        </div>
+        </ListaRolavel>
       </div>
 
       </div>

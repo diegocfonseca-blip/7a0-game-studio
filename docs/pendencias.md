@@ -64,6 +64,15 @@
 
 
 
+
+### 📜💸 23/11 — dica de rolagem na convocação + Mão Furada zerando a cada leilão (no branch, esperando "pode publicar")
+- Convocação (Copa da sala/carreira e convite internacional): `ListaRolavel` (lista-rolavel.tsx/.css) = barra de rolagem preta sempre visível +
+  faixa "▼ role pra ver mais" embaixo enquanto tem jogador escondido (e "▲" em cima). Diego: *"muitos usuários não sabem que dá pra rolar"*.
+  Não visto em sala de verdade ainda.
+- "Mão furada +807" (sala do K9 FC): o caderninho `state.resenha.furada` nunca zerava e somava todos os leilões da sala; a frase falava só do pior
+  arremate (83). Agora zera no arranque de cada leilão (`startAuctionPhase`).
+- Chat novo da sala (`private-room-chat.tsx`) ganhou a linha WhatsApp/Discord que só os chats antigos tinham.
+
 ### 🎮🔒 23/11 — botão pequeno "Manual 🔒" logo depois do placar (no branch, esperando "pode publicar")
 - Análise de 7 dias (`apoio_intents`): 170 pessoas abriram a trava do Manual, 1 gerou Pix, 0 pagou; 441 bateram no limite da sala do dia
   (2.419 vezes), 4 compraram as 3 salas extras. Propus botão embaixo do placar + preços menores; Diego: *"gostei só de pôr um botão pequeno…

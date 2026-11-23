@@ -1,4 +1,5 @@
 import { criteriosDaTemporada, versaoComCriterios } from './criterios-carreira'
+import { ListaRolavel } from './lista-rolavel' // 📜 23/11: barra + dica de rolagem na convocação
 import { usePenaltisCampo } from './campo2d-penaltis-react'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {idPartidaInternacional} from './presidencia-complexo-final-regras'
@@ -453,7 +454,7 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
     <input value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${real.filter(c => c.pos === tab).length} ${tr(...SEC_LABEL[tab])}…`}
       style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      <div className="cv-lista" style={{ maxHeight: 250, overflowY: 'auto' }}>
+      <ListaRolavel className="cv-lista" style={{ maxHeight: 250, overflowY: 'auto' }} deps={[tab, q]}>
         {list.map(c => { const on = xi.includes(c.id); const full = !on && bySec(c.pos as Section).length >= need[c.pos as Section]; return <button key={c.id} type="button" onClick={() => toggle(c)}
           style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : full ? '#EFE7D2' : '#fff', cursor: 'pointer', opacity: full ? .62 : 1, textAlign: 'left' }}>
           <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : full ? '🔒' : ''}</span>
@@ -462,7 +463,7 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
           <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
         </button> })}
         {list.length === 0 && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>{tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}</p>}
-      </div>
+      </ListaRolavel>
     </div>
     </div>
     <div className="cv-right">
