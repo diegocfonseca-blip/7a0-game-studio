@@ -7805,7 +7805,8 @@ function CentralBB({ onJogos, onClube }: { onJogos: () => void; onClube: () => v
 
 export function EscSeason() {
   const { state, dispatch } = useEsc()
-  const footballPilot=useFootballMatchPilotAccess(state).enabled
+  const footballAccess=useFootballMatchPilotAccess(state)
+  const footballPilot=footballAccess.enabled
   // 🖥️ DESKTOP EM 2 COLUNAS (23/10, mockups `desktop-{liga,copa}-{placar,campinho}`, *"aprovado pode fazer"*; só a conta do Diego
   // e só ≥1100px): na esquerda o placar no tamanho de sempre (ou o campinho 2D no lugar dele) + telão + outros jogos; na direita,
   // FIXOS, a tática e a tabela inteira (na Copa: a tática e os jogos da fase). Os blocos são os MESMOS componentes — um portal só
@@ -8487,7 +8488,7 @@ export function EscSeason() {
     <TemaCompCtx.Provider value={temaLiga}>
     <Shell presentationClock={copaLive?cupClock:leagueClock} wide desk2={desk2} className={cinemaPreview ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
-        <span className="font-black text-sm" style={OSWALD}>
+        <span className={`font-black text-sm${footballAccess.available&&!copaLive?' fp-round-badge':''}`} style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
           {state.careerOnline && !state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {LS('CARREIRA', 'CAREER')}{bbS ? (state.nbaTier === 'nba' ? ' · NBA' : state.nbaTier === 'gleague' ? ' · G LEAGUE' : ' · STREET') : escadaLiberada() ? ' · VÁRZEA' : ' · SÉRIE D'}</span>}
           {state.careerTitlesA > 0 && <span className="mr-1.5"><CareerStars n={state.careerTitlesA} size={12} /></span>}
@@ -10251,7 +10252,8 @@ export function EscLiberta() {
   const LB = useT() // 🌐 BR/EN
   const enL = getLang() === 'en'
   const previewAccount = useOnlinePreview()
-  const footballPilot=useFootballMatchPilotAccess(state).enabled
+  const footballAccess=useFootballMatchPilotAccess(state)
+  const footballPilot=footballAccess.enabled
   const [visualTab,setVisualTab]=useState<OnlineMatchTab>('jogos')
   const ownerVisual = useOwnerOnlineVisual(state)
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
@@ -10362,7 +10364,7 @@ export function EscLiberta() {
     <TemaCompCtx.Provider value="liberta">
     <Shell presentationClock={groupClock} wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between gap-2">
-        <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
+        <span className={`font-black text-sm${footballAccess.available?' fp-round-badge':''}`} style={{ ...OSWALD, color: NOITE }}>
           🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
         </span>
         {meuTime && (
@@ -10557,7 +10559,8 @@ export function EscChampions() {
   const { state, dispatch } = useEsc()
   const T = useT()
   const previewAccount = useOnlinePreview()
-  const footballPilot=useFootballMatchPilotAccess(state).enabled
+  const footballAccess=useFootballMatchPilotAccess(state)
+  const footballPilot=footballAccess.enabled
   const ownerVisual = useOwnerOnlineVisual(state)
   // 🎨 "TUDO IGUAL" (Diego 25/09: *"visual segue padrões do q já tem nos modo hj seja
   // placar botões cores tabelas… outros jogos e tudo mais"*). Esta tela é montada com
@@ -10748,7 +10751,7 @@ export function EscChampions() {
     <Shell presentationClock={championsClock} wide desk2={continentalDesk} className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="flex flex-col leading-tight min-w-0">
-          <span className="font-black text-sm" style={OSWALD}>
+          <span className={`font-black text-sm${footballAccess.available?' fp-round-badge':''}`} style={OSWALD}>
             ⭐ CHAMPIONS · {vistaTabela ? `${T('RODADA', 'ROUND')} ${Math.max(1, Math.min(ch.rodada, CHAMPIONS_RODADAS))}/${CHAMPIONS_RODADAS}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}
           </span>
           {/* 📏 Diego 25/09: *"tá claro pras pessoas que serão 8 rodadas apenas? … do lado já

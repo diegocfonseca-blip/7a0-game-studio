@@ -5,7 +5,7 @@ import {tr} from './lang'
 import type {Tactic} from './types'
 
 const same=(a:FootballPlan,b:FootballPlan)=>JSON.stringify(a)===JSON.stringify(b)
-export function FootballTacticsPanel({value,onChange,disabled,note}:{value:Tactic;onChange:(t:Tactic)=>void;disabled:boolean;note?:string}){
+export function FootballTacticsPanel({value,onChange,disabled,note,minimal=false}:{value:Tactic;onChange:(t:Tactic)=>void;disabled:boolean;note?:string;minimal?:boolean}){
  const ctx=useEscTalvez(),clock=useFootballClock()
  const state=ctx?.state,manager=state?.managers[state.youIdx]
  const actual=state&&manager?planFor(state,manager.id):{...DEFAULT_FOOTBALL_PLAN,posture:value}
@@ -43,7 +43,7 @@ export function FootballTacticsPanel({value,onChange,disabled,note}:{value:Tacti
  }
  const group=<K extends 'posture'|'attack'|'pressure'|'pace'>(field:K,label:string,options:{value:FootballPlan[K];label:string}[])=><div className="fp-order-group"><span>{label}</span><div role="group" aria-label={label}>{options.map(option=><button type="button" key={option.value} aria-pressed={draft[field]===option.value} disabled={disabled||!!pending} onClick={()=>change(field,option.value)}>{option.label}</button>)}</div></div>
  const tradeoff=draft.pressure==='high'?tr('Pressão alta: busca recuperar a bola adiantada e deixa mais espaço nas costas.','High press: tries to win the ball higher and leaves more space behind.'):draft.pace==='fast'?tr('Ritmo rápido: mais iniciativa, com mais espaço para o contra-ataque.','Fast tempo: more initiative, with more space for counterattacks.'):draft.pace==='slow'?tr('Cadenciado: menos iniciativa no ataque e mais proteção.','Slow tempo: less attacking initiative and more protection.'):draft.attack==='middle'?tr('Pelo meio: aproveita a qualidade dos seus meias.','Through the middle: uses your midfielders’ quality.'):draft.attack==='wings'?tr('Pelas pontas: aproveita laterais e atacantes, expondo um pouco a defesa.','Down the wings: uses wide players and forwards, leaving the defence more exposed.'):tr('Equilibre as escolhas conforme o time que você montou.','Balance your choices around the team you built.')
- return <section className="ov3-tactics fp-match-tactics fp-advanced-tactics" aria-label={tr('Plano do seu time','Your team plan')}><header><small>{tr('SEU TIME','YOUR TEAM')}</small><h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>{order&&<b>{minute!=null&&minute>=order.from?tr('EM VIGOR','IN EFFECT'):tr(`ENTRA AOS ${order.from}′`,`FROM ${order.from}′`)}</b>}</header>
+ return <section className={`ov3-tactics fp-match-tactics fp-advanced-tactics${minimal?' fp-tactics-minimal':''}`} aria-label={tr('Plano do seu time','Your team plan')}><header><small>{minimal?tr('TÁTICA DO SEU TIME','YOUR TEAM TACTICS'):tr('SEU TIME','YOUR TEAM')}</small>{!minimal&&<h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>}{order&&<b>{minute!=null&&minute>=order.from?tr('EM VIGOR','IN EFFECT'):tr(`ENTRA AOS ${order.from}′`,`FROM ${order.from}′`)}</b>}</header>
   {group('posture',tr('POSTURA','MENTALITY'),[{value:'retranca',label:tr('Retranca','Defensive')},{value:'equilibrio',label:tr('Equilíbrio','Balanced')},{value:'ataque',label:tr('Ofensivo','Attacking')}])}
   {group('attack',tr('CAMINHO DO ATAQUE','ATTACKING ROUTE'),[{value:'mixed',label:tr('Variado','Mixed')},{value:'middle',label:tr('Pelo meio','Middle')},{value:'wings',label:tr('Pontas','Wings')}])}
   {group('pressure',tr('MARCAÇÃO','PRESSING'),[{value:'normal',label:tr('Normal','Normal')},{value:'high',label:tr('Pressão alta','High press')}])}

@@ -1,4 +1,4 @@
-import {useOwnerLayout,useOwnerFootballPilot,OwnerSlot,OwnerTactics} from './owner-online-visual'
+import {useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable,OwnerSlot,OwnerTactics} from './owner-online-visual'
 import {CupPlanPanel,type CupPlanController} from './copa-plano-panel'
 // ─── ⚔️ A TÁTICA NA SALA: Copa do Mundo e regionais (23/10) ──────────────────
 // O lado do APARELHO da regra de `copa-taticas.ts`:
@@ -85,8 +85,9 @@ const INK = '#0C0C0C', GOLD = '#FFC400'
 export function CartaoTaticaCopa({ minha, podeEscolher, aviso, onEscolher,plan }: { minha: TaticaCopa; podeEscolher: boolean; aviso?: string; onEscolher: (t: TaticaCopa) => void;plan?:CupPlanController }) {
   const owner=useOwnerLayout()
   const pilot=useOwnerFootballPilot()
-  if(pilot&&plan)return <OwnerSlot name="tactic"><CupPlanPanel key={plan.key} control={plan}/></OwnerSlot>
-  if(owner&&!pilot)return <OwnerTactics value={minha} disabled={!podeEscolher} note={aviso} onChange={onEscolher}/>
+  const available=useOwnerFootballAvailable()
+  if(available&&plan)return <OwnerSlot name="tactic"><CupPlanPanel key={plan.key} minimal={!pilot} control={plan}/></OwnerSlot>
+  if(owner&&!pilot)return <OwnerTactics postureOnly value={minha} disabled={!podeEscolher} note={aviso} onChange={onEscolher}/>
   return <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 ${INK}`, padding: 12, margin: '0 0 10px' }}>
     <p style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)', margin: '0 0 8px' }}>
       ⚔️ {tr('Tática do próximo jogo', 'Tactic for the next match')}

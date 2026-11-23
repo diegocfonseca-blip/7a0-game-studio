@@ -72,8 +72,8 @@ try{
  for(const width of [390,1440]){
   const {page,context}=await open(width)
   const native=await page.locator('.ov3-native').first().elementHandle()
-  const tabStyle=await page.getByRole('button',{name:'Partida',exact:true}).first().evaluate(el=>({bg:getComputedStyle(el).backgroundColor,font:getComputedStyle(el).fontSize,h:el.getBoundingClientRect().height}))
-  check(`${width}: aba selecionada roxa`,tabStyle.bg==='rgb(105, 65, 181)')
+  const tabStyle=await page.getByRole('button',{name:'Partida',exact:true}).first().evaluate(el=>({bg:getComputedStyle(el).backgroundColor,image:getComputedStyle(el).backgroundImage,font:getComputedStyle(el).fontSize,h:el.getBoundingClientRect().height}))
+  check(`${width}: aba da conta principal com roxo Promessa`,tabStyle.image.includes('linear-gradient')&&await page.locator('body').evaluate(b=>b.classList.contains('fp-match-holo')))
   const start=await page.evaluate(()=>({round:window.qaFull.state.round,at:window.qaFull.state.rodadaEm?.at}))
   await page.getByRole('button',{name:'Pressão alta',exact:true}).click()
   await page.getByRole('button',{name:'Enviar ordens',exact:true}).click()

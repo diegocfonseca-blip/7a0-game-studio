@@ -1,6 +1,6 @@
 import {withCupPlans} from './copa-planos'
 import {clockMinute} from './copa-clock-preview'
-import {useOwnerFootballPilot} from './owner-online-visual'
+import {useOwnerFootballAvailable} from './owner-online-visual'
 // ─── 🌐 COPA DO MUNDO ONLINE — a Copa da TURMA ───────────────────────────────
 //
 // 🌐 POR QUE ESTE GLOBO E NÃO O 🌍: no seletor "Depois da liga" a Copa do Mundo
@@ -272,7 +272,7 @@ const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: nu
 
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
   const cinematic = ONLINE_VISUAL_RELEASED
-  const cupPilot=useOwnerFootballPilot()
+  const cupFeatures=useOwnerFootballAvailable()
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
   // ⚔️ 23/10: o relógio pede o tempo dos pênaltis ao mundo JÁ com as táticas — por isso lê de uma ref, preenchida logo abaixo
   const worldRef=useRef<ReturnType<typeof simulaCopaMundo>|null>(null)
@@ -302,7 +302,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   const myTeam=entrants.findIndex(e=>e.you),st=clock?.row?.step??0
   const myMatches=clockWorld?(st<=3?clockWorld.groups.flatMap(g=>g.matches[st-1]??[]):st===PASSO_COPA.OITAVAS?clockWorld.r16:st===PASSO_COPA.QUARTAS?clockWorld.qf:st===PASSO_COPA.SEMI?clockWorld.sf:st===PASSO_COPA.FINAL?[clockWorld.final]:[]):[]
   const plan=meuUid&&clock?.row?{key:`${roomId}:${ficha.edicao}:${ficha.seed}:${meuUid}`,uid:meuUid,step:st,minute:clockMinute(clock.row,clock.now),running:clock.row.running,duration:clock.row.duration_ms,hasMatch:myMatches.some(g=>g.h===myTeam||g.a===myTeam),enabled:tat.plansEnabled&&tat.pronto,rows:tat.planos,legacy:tat.minha,activePosture:qual?.(entrants.findIndex(e=>e.you),st)??'equilibrio',send:tat.enviarPlano}:undefined
-  const taticaSlot=souJogador&&clock?.row&&(cupPilot?clock.row.step<=PASSO_COPA.FINAL:clock.row.step<PASSO_COPA.FINAL)?<CartaoTaticaCopa plan={plan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null
+  const taticaSlot=souJogador&&clock?.row&&(cupFeatures?clock.row.step<=PASSO_COPA.FINAL:clock.row.step<PASSO_COPA.FINAL)?<CartaoTaticaCopa plan={plan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t=>void tat.escolher(t)}/>:null
   // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
   // Copa nova, então jogar Copa atrás de Copa na mesma sala não faz uma apagar a
   // outra (foi exatamente esse o bug do "novo leilão" no ranking, em agosto).

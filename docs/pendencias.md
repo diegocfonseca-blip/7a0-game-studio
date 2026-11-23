@@ -1,3 +1,8 @@
+## 🎨 23/11 — VISUAL ANTERIOR COM PLANOS NOVOS; PROMESSA SÓ NA CONTA PRINCIPAL
+- Pedido aprovado pelo Diego: rodada com placa creme/lilás para todos; abas superiores roxas quando selecionadas também no visual anterior; brilho Promessa só na conta principal verificada, sem estender a Futpoint ou à secundária.
+- Plano clássico preserva escuro/creme e controles minimalistas, acrescentando as quatro opções já disponíveis no visual novo. Mesmo controlador e escolhas persistentes nos dois; botão individual de alternância também dentro das copas. Sem novas permissões, mensagens, alteração de motor, relógios ou dados da sala.
+- 180 verificações específicas, 139 de liberação pública e 651 de interface passaram, sem exceções JavaScript; build TypeScript/Vite e `git diff --check` também passaram. Aplicação pedida para todos, brilho só na principal; acompanhar publicação no GitHub Actions. Capturas e detalhes: [visuais clássico e Promessa](visuais-classico-promessa-20261123.md).
+
 ## ⏩ 23/11 — CORREÇÃO DA TROCA DE VELOCIDADE ONLINE (PUBLICAÇÃO AUTORIZADA)
 - Reproduzidos o reinício desnecessário do canvas 2D a cada troca e o retrocesso dos outros placares ao desacelerar. O desenho agora preserva cenário/loop; principal, outros jogos, revelação e avanço usam o mesmo relógio local por rodada/perna, recalculando o restante.
 - Liga, Libertadores, Champions e copa local. Calendário de chances do cinema estável e folga extra de pênaltis em tempo real. Mantidos controles exclusivos do host, tempos entre fases, resultados, identidade e coroa. Sem novos campos, canais, consultas ou RPCs; carreira, basquete, Kings e relógios explícitos de copas independentes preservados.

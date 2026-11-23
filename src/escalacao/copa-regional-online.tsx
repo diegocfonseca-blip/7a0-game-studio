@@ -1,7 +1,7 @@
 import {withCupPlans} from './copa-planos'
 import {FootballRegionalCupView} from './football-cup-regional'
 import type {CupPenaltyPresentation} from './football-cup-world'
-import {useOwnerLayout,useOwnerFootballPilot,OwnerPlayback,OwnerChampionBanner} from './owner-online-visual'
+import {useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable,OwnerPlayback,OwnerChampionBanner} from './owner-online-visual'
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 // ─── 🏟️ COPA REGIONAL NA SALA ONLINE (Diego 10/10) ───────────────────────────
 //
@@ -628,6 +628,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
 
   const ownerVisual=useOwnerLayout()
   const cupPilot=useOwnerFootballPilot()
+  const cupFeatures=useOwnerFootballAvailable()
   const done = step >= P.FIM
   const finalVista = step >= P.FINAL && liveDone
   const avisou = useRef(false)
@@ -776,7 +777,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       {/* 📢 19/10 (Diego: "deve ser em todas as competições… regional"): o MESMO telão da liga */}
       <GiroDaRodada cinema />
       {/* ⚔️ 23/10: o cartão de tática — só pra quem tem clube nesta copa e enquanto ainda falta jogo */}
-      {comTatica && relogio?.row && !!meuUid && ficha.times.some(t => t.uid === meuUid) && relogio.row.step < P.FINAL && <CartaoTaticaCopa minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t => void tat.escolher(t)} />}
+      {comTatica && relogio?.row && !!meuUid && ficha.times.some(t => t.uid === meuUid) && (cupFeatures ? relogio.row.step <= P.FINAL : relogio.row.step < P.FINAL) && <CartaoTaticaCopa plan={cupPlan} minha={tat.minha} podeEscolher={tat.podeEscolher} aviso={tat.aviso} onEscolher={t => void tat.escolher(t)} />}
       {/* RODADAS: o meu jogo ao vivo em cima; os clássicos da rodada; as duas tabelas (só o que já apitou) */}
       {step >= 1 && step <= P.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]
