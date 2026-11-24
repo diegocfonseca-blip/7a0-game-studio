@@ -1,11 +1,19 @@
 import {useEffect,useRef,useSyncExternalStore} from 'react'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
+import {assinaturaSimulacaoM2,type EntradaM2} from './motor2/carreira'
 
 type Publicacao={owner:symbol;state:EstadoPartidaEstadio}
 let active:Publicacao|null=null
 const listeners=new Set<()=>void>()
 const notify=()=>listeners.forEach(fn=>fn())
 const subscribe=(fn:()=>void)=>{listeners.add(fn);return()=>{listeners.delete(fn)}}
+const entradasAssinadas=new WeakMap<EntradaM2,string>()
+const assinaturaEntrada=(input:EntradaM2|undefined)=>{
+ if(!input)return undefined
+ let key=entradasAssinadas.get(input)
+ if(key===undefined){key=assinaturaSimulacaoM2(input);entradasAssinadas.set(input,key)}
+ return key
+}
 let engine:typeof import('./presidencia-futebol-motor')|undefined
 /** A restart is physical play too; the match clock waits while the ball is
  * retrieved and the teams take their legal positions. */
@@ -14,7 +22,7 @@ export function reinicioPartidaPendente(id:string){return engine?.aguardandoRein
  * O id impede reaproveitar posições de outra partida. */
 export function partidaPublicada(id:string){return active?.state.context.id===id?active.state:null}
 /** Só a apresentação privada do placar publica. Sem storage, rede, RNG ou gols novos. */
-export function usePublicarPartida(state:EstadoPartidaEstadio){
+export function usePublicarPartida(state:EstadoPartidaEstadio,simularCampo=true){
  const owner=useRef(Symbol('placar')),clock=useRef({id:state.context.id,seconds:0,sampledAt:performance.now(),running:false,rate:1})
  const rate=Number.isFinite(state.context.speed)?Math.max(.25,Math.min(8,state.context.speed!)):1
  const running=!state.paused&&!state.finished&&(!!state.officialInput||state.minute>0)
@@ -23,21 +31,28 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
  // pausa, lance, gol, escalação, narração); entre um e outro o relógio continua contando sozinho a partir do mesmo instante
  // (tempoVisualPartida soma o tempo corrido), então o minuto mostrado é o mesmo de antes.
  const chave=[state.preMatch,state.context.id,state.minute,state.period,state.homeScore,state.awayScore,state.paused,state.finished,running,rate,state.chance?.id,state.goal?.id,state.goal?.phase,state.homeColor,state.awayColor,state.officialMinuteMs,state.context.penaltis?.vencedor??'',state.context.tituloDivisao??''].join('|')
- const memo=useRef<{chave:string;input:unknown;narr:unknown;frame:EstadoPartidaEstadio}|null>(null)
+ // Projeções da mesma partida podem reconstruir a entrada (especialmente
+ // ao fechar a liga). Uma cópia equivalente não é outro quadro: notificá-la
+ // novamente alimentava renderizações sem fim nos assinantes do mapa.
+ const inputKey=assinaturaEntrada(state.officialInput)
+ const memo=useRef<{chave:string;input:string|undefined;narr:unknown;frame:EstadoPartidaEstadio}|null>(null)
  let frame:EstadoPartidaEstadio
- if(memo.current&&memo.current.chave===chave&&memo.current.input===state.officialInput&&memo.current.narr===state.officialNarration)frame=memo.current.frame
+ if(memo.current&&memo.current.chave===chave&&memo.current.input===inputKey&&memo.current.narr===state.officialNarration)frame=memo.current.frame
  else{
   const now=performance.now(),old=clock.current
   const seconds=old.id!==state.context.id?0:old.seconds+(old.running?Math.max(0,now-old.sampledAt)/1000*old.rate:0)
   clock.current={id:state.context.id,seconds,sampledAt:now,running,rate}
   frame={...state,visualClock:{seconds,sampledAt:now,running,rate}}
-  memo.current={chave,input:state.officialInput,narr:state.officialNarration,frame}}
+  memo.current={chave,input:inputKey,narr:state.officialNarration,frame}}
  // Apenas mudanças do placar/modelo notificam assinantes; câmera/zoom não cria outro motor.
  // (com o relógio rodando, o laço abaixo já pede o quadro a cada quadro de tela: aqui só publica)
- useEffect(()=>{active={owner:owner.current,state:frame};if(!frame.visualClock?.running)engine?.quadroFutebol3D(frame,performance.now());notify()},[frame])
+ useEffect(()=>{active={owner:owner.current,state:frame};if(simularCampo&&!frame.visualClock?.running)engine?.quadroFutebol3D(frame,performance.now());notify()},[frame,simularCampo])
  // One CPU simulation belongs to the scoreboard, not to a visible camera.
  // It must cross half-time and process incidents even with the details closed.
  useEffect(()=>{
+  // O placar rápido oficial lê a súmula já conferida. Publicar seu estado
+  // para o mapa não exige animar 22 corpos invisíveis a cada quadro.
+  if(!simularCampo)return
   let cancelled=false,raf=0
   import('./presidencia-futebol-motor').then(module=>{
    if(cancelled)return
@@ -52,7 +67,7 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
    draw(performance.now())
   })
   return()=>{cancelled=true;cancelAnimationFrame(raf)}
- },[state.context.id,running,state.finished])
+ },[state.context.id,running,state.finished,simularCampo])
  useEffect(()=>{const token=owner.current;return()=>{if(active?.owner===token){active=null;notify()}}},[])
  return frame
 }

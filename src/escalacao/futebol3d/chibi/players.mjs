@@ -118,6 +118,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared,onWhistle}={
   const c1=cfg?.colors?.primary??manto[0]??(side==='home'?state.homeColor:state.awayColor),c2=cfg?.colors?.secondary??manto[1]
   return uniformeDoTime(teams[i],c1,c2,p.generated?p.color:null)}
  const fichas={home:fichaDe('home'),away:fichaDe('away')}
+ let disposed=false // callbacks de aparência podem terminar durante a preparação assíncrona
  const atores=[]
  for(const p of frame.players){
   const ap=aparenciaDe(p.key,p.name),ficha=p.keeper?GOLEIRO:fichas[p.side]
@@ -339,7 +340,7 @@ export async function loadPlayersNovo(scene,state,frame,{onPrepared,onWhistle}={
  const recoveryRadius=(a,time)=>Math.max(.30,
   ...defense.planned.filter(e=>e.key===a?.key||e.victimKey===a?.key).map(e=>.30+.16*T.MathUtils.smoothstep(time,e.t-.30,e.t-.05)*(1-T.MathUtils.smoothstep(time,e.t+.16,e.t+.45))),
   ...(a?.controls??[]).filter(s=>s.loose).map(s=>.30+.36*T.MathUtils.smoothstep(time,s.end-.3,s.end)*(1-T.MathUtils.smoothstep(time,s.end+.5,s.end+(s.recovery??1)))));
- let disposed=false,lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0},navInfo=null
+ let lastTime=null,inspection={full:0,intermediate:0,far:0,hidden:0,tiros:0},navInfo=null
  const bola={modo:'livre',dono:null,toques:0},medidas=[];let visualBall=null,visualRotation=null,spin=null,handState=null,handFlight=null
  onPrepared?.()
  // um movimento de lance por cima da corrida: entra em 0,12 s, sai nos últimos 0,25 s
