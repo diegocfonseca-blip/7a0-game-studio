@@ -1,0 +1,152 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Osw;src:url(oswald-latin-700-normal.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#07110b}
+body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
+#ceu{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 18%,#1d3b28 0%,#0b1a10 45%,#050b07 100%)}
+.refletor{position:absolute;top:-40px;width:150px;height:60px;border-radius:14px;background:#fff;box-shadow:0 0 60px 20px #fff8d6}
+.feixe{position:absolute;top:0;width:520px;height:1500px;background:linear-gradient(180deg,rgba(255,248,214,.35),rgba(255,248,214,0) 80%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);transform-origin:50% 0}
+#gramado{position:absolute;left:-300px;right:-300px;bottom:0;height:560px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;background:repeating-linear-gradient(0deg,#1B7A3D 0 90px,#16692f 90px 180px)}
+#linhas{position:absolute;left:-300px;right:-300px;bottom:0;height:560px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;background:linear-gradient(90deg,transparent calc(50% - 4px),rgba(255,255,255,.7) calc(50% - 4px) calc(50% + 4px),transparent calc(50% + 4px))}
+.moeda{position:absolute;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8,#FFC400 50%,#a87d00);border:4px solid #3a2a00}
+.cena{position:absolute;inset:0;opacity:0}
+.big{position:absolute;left:50px;right:50px;text-align:center;text-transform:uppercase;text-shadow:6px 6px 0 #000}
+.ouro{color:#FFC400;text-shadow:0 0 24px rgba(255,196,0,.55),6px 6px 0 #000}
+.creme{color:#F4ECD6}
+.tag{display:inline-block;background:#FFC400;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:22px;box-shadow:8px 8px 0 #0C0C0C;padding:12px 34px;font-size:56px;text-shadow:none}
+.tag.verde{background:#1B7A3D;color:#fff;text-shadow:3px 3px 0 #000}
+.tag.verm{background:#E8503A;color:#fff;text-shadow:3px 3px 0 #000}
+.fone{position:absolute;border:14px solid #0C0C0C;border-radius:64px;overflow:hidden;box-shadow:0 0 60px rgba(255,196,0,.35),18px 18px 0 #0C0C0C;background:#0C0C0C}
+.fone img{width:100%;display:block}
+.carta{position:absolute;width:250px;filter:drop-shadow(0 0 24px rgba(255,196,0,.5))}
+.chip{display:inline-block;margin:0 8px;background:#fff;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:999px;box-shadow:6px 6px 0 #0C0C0C;padding:8px 30px;font-size:64px;text-shadow:none}
+.chip.on{background:#FFC400}
+.selo{position:absolute;left:50%;width:300px;height:300px;margin-left:-150px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8,#FFC400 45%,#b98a00);border:10px solid #0C0C0C;box-shadow:0 0 60px rgba(255,196,0,.7),12px 12px 0 #0C0C0C;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0C0C0C;text-shadow:none}
+.selo b{font-size:150px;line-height:.9}
+.selo span{font-size:40px;letter-spacing:4px}
+.balao{position:absolute;background:#FFC400;color:#0C0C0C;border:7px solid #0C0C0C;border-radius:26px;box-shadow:10px 10px 0 #0C0C0C;padding:14px 30px;font-size:62px;text-shadow:none;text-transform:uppercase;text-align:center}
+.balao.verm{background:#E8503A;color:#fff;text-shadow:3px 3px 0 #000}
+.escada{position:absolute;left:60px;right:60px;display:flex;justify-content:center;gap:18px;align-items:flex-end}
+.degrau{width:150px;background:#F4ECD6;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:20px;box-shadow:6px 6px 0 #0C0C0C;text-align:center;font-size:84px;text-shadow:none}
+.degrau.a{background:#FFC400}
+.btn{position:absolute;left:110px;right:110px;background:#FFC400;color:#0C0C0C;border:9px solid #0C0C0C;border-radius:34px;box-shadow:14px 14px 0 #0C0C0C;text-align:center;font-size:80px;padding:26px 0;text-transform:uppercase}
+.logo{position:absolute;left:50%;width:230px;height:230px;margin-left:-115px;border-radius:46px;border:8px solid #0C0C0C;box-shadow:0 0 50px rgba(255,196,0,.6),10px 10px 0 #0C0C0C}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.cadeado{position:absolute;font-size:230px;left:50%;margin-left:-115px;filter:drop-shadow(0 0 30px rgba(255,196,0,.6))}
+</style></head><body>
+<div id="mundo"><div id="ceu"></div>
+<div class="feixe" id="f1" style="left:-120px"></div><div class="feixe" id="f2" style="right:-120px"></div>
+<div class="refletor" style="left:60px"></div><div class="refletor" style="right:60px"></div>
+<div id="gramado"></div><div id="linhas"></div>
+<div id="moedas"></div>
+</div>
+
+<!-- 0 gancho -->
+<div class="cena" data-s="0">
+ <div class="big" style="top:200px"><span class="tag">⚽ JÁ IMAGINOU?</span></div>
+ <div class="big" style="top:400px;font-size:116px;line-height:1">MONTAR O SEU TIME<br><span class="ouro">DANDO LANCE</span><br>EM LENDAS?</div>
+ <img class="carta" src="bafo-romario.png" style="left:40px;top:1020px">
+ <img class="carta" src="bafo-zico.png" style="left:290px;top:1080px">
+ <img class="carta" src="bafo-pele.png" style="left:540px;top:1080px">
+ <img class="carta" src="bafo-ronaldo.png" style="left:790px;top:1020px">
+</div>
+<!-- 1 o primeiro -->
+<div class="cena" data-s="1">
+ <div class="big" style="top:170px;font-size:80px">ESSE É O</div>
+ <img class="logo" src="logo-ll.webp" style="top:310px">
+ <div class="big ouro" style="top:590px;font-size:170px;line-height:.92">LEILÃO<br>LEGENDS</div>
+ <div class="selo" id="selo" style="top:1000px"><b>1º</b><span>JOGO</span></div>
+ <div class="big" style="top:1360px;font-size:84px;line-height:1.05">O PRIMEIRO JOGO<br><span class="ouro">DE LEILÃO DO FUTEBOL</span></div>
+</div>
+<!-- 2 começa com 100 -->
+<div class="cena" data-s="2">
+ <div class="big" style="top:150px;font-size:70px">FUNCIONA ASSIM 👇</div>
+ <div class="big ouro" style="top:260px;font-size:150px">💰 <span id="cont">100</span></div>
+ <div class="big" style="top:440px;font-size:70px">MOEDAS E UM <span class="ouro">TIME VAZIO</span></div>
+ <div class="fone" id="fVazio" style="left:270px;width:540px;height:1150px;top:600px"><img src="vazio.png"></div>
+</div>
+<!-- 3 posições -->
+<div class="cena" data-s="3">
+ <div class="big" style="top:150px;font-size:92px">CADA POSIÇÃO,<br><span class="ouro">UM PREGÃO 🔨</span></div>
+ <div class="big" id="chips" style="top:420px"><span class="chip on">GOL</span><span class="chip">LAT</span><span class="chip">ZAG</span><span class="chip">MEI</span><span class="chip">ATA</span></div>
+ <div class="fone" id="fPos" style="left:270px;width:540px;height:1170px;top:600px"><img src="lance.png"></div>
+</div>
+<!-- 4 lance cego -->
+<div class="cena" data-s="4">
+ <div class="big" style="top:140px;font-size:120px">LANCE <span class="ouro">ÀS CEGAS</span></div>
+ <div class="cadeado" id="cad" style="top:300px">🔒</div>
+ <div class="big" style="top:560px;font-size:68px;line-height:1.1">NINGUÉM VÊ<br>O LANCE DE NINGUÉM</div>
+ <div class="fone" id="fLance" style="left:170px;width:740px;height:820px;top:780px"><img src="lance.png" style="width:150%;margin-left:-6%;margin-top:-95%"></div>
+ <div class="balao" id="b21" style="left:300px;top:1650px">MEU LANCE: 21 🪙</div>
+</div>
+<!-- 5 revelação -->
+<div class="cena" data-s="5">
+ <div class="big" style="top:120px;font-size:110px">A <span class="ouro">REVELAÇÃO</span> 🔨</div>
+ <div class="fone" id="fLenda" style="left:40px;width:500px;height:1082px;top:330px"><img src="lenda.png"></div>
+ <div class="fone" id="fVoce" style="left:550px;width:490px;height:1060px;top:430px"><img src="voce.png"></div>
+ <div class="balao" id="bLeva" style="left:80px;top:1480px">QUEM DÁ MAIS, LEVA!</div>
+ <div class="balao verm" id="bEscapa" style="left:110px;top:1640px">ÀS VEZES ESCAPA POR 1 MOEDA! 😱</div>
+</div>
+<!-- 6 a bola rola -->
+<div class="cena" data-s="6">
+ <div class="big" style="top:120px;font-size:110px">E A <span class="ouro">BOLA ROLA</span> ⚽</div>
+ <div class="fone" id="f2d" style="left:40px;width:560px;height:760px;top:340px;border-radius:44px"><img src="campo2d.png"></div>
+ <div class="fone" id="f3d" style="left:600px;width:440px;height:820px;top:420px;border-radius:44px"><img src="jogo3d.jpg"></div>
+ <div class="big" style="top:1150px"><span class="tag verde">📺 CAMPO 2D</span>&nbsp;&nbsp;<span class="tag">🏟️ ESTÁDIO 3D</span></div>
+ <div class="big" style="top:1330px;font-size:66px;line-height:1.15">LIGA · COPAS · <span class="ouro">LIBERTADORES</span><br>E ATÉ <span class="ouro">COPA DO MUNDO</span> 🏆</div>
+</div>
+<!-- 7 amigos e carreira -->
+<div class="cena" data-s="7">
+ <div class="big" style="top:110px;font-size:84px">👥 SALAS ONLINE<br><span class="ouro">COM OS AMIGOS</span></div>
+ <div class="fone" id="fCar" style="left:300px;width:480px;height:1040px;top:370px"><img src="carreira.png"></div>
+ <div class="big" style="top:1440px;font-size:56px">OU NA CARREIRA: DA <span class="ouro">VÁRZEA</span> À <span class="ouro">SÉRIE A</span></div>
+ <div class="escada" id="escada" style="top:1540px"><div class="degrau" style="height:110px">V</div><div class="degrau" style="height:150px">D</div><div class="degrau" style="height:190px">C</div><div class="degrau" style="height:230px">B</div><div class="degrau a" style="height:270px">A</div></div>
+</div>
+<!-- 8 final -->
+<div class="cena" data-s="8">
+ <img class="logo" src="logo-ll.webp" style="top:170px">
+ <div class="big ouro" style="top:450px;font-size:150px;line-height:.92">LEILÃO<br>LEGENDS</div>
+ <div class="big" style="top:760px;font-size:50px">O PRIMEIRO JOGO DE LEILÃO DO FUTEBOL</div>
+ <div class="big" style="top:880px"><span class="tag verde">✅ GRÁTIS</span>&nbsp;&nbsp;<span class="tag">📱 NO CELULAR</span></div>
+ <div class="btn" style="top:1090px">🔨 DÁ SEU LANCE</div>
+ <div class="big" style="top:1350px;font-size:70px;letter-spacing:3px">leilaolegends.com</div>
+ <div class="big ouro" style="top:1460px;font-size:50px">@leilaolegendscom</div>
+</div>
+<div class="flash" id="flash"></div>
+<script>
+const DUR=window.DUR_NARRA||[4.2,4.3,4.2,5.0,5.5,6.0,7.5,6.0,6.0] // 🎙️ estimado; trocar pelas pausas da narração do Diego
+const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
+window.TOTAL=acc
+const cl=x=>Math.min(1,Math.max(0,x))
+const back=x=>{x=cl(x);const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}
+const mo=document.getElementById('moedas');for(let i=0;i<14;i++){const s=document.createElement('i');s.className='moeda';s.style.left=(i*71%100)+'%';s.dataset.v=40+(i*37%60);s.dataset.o=i*137%1900;mo.appendChild(s)}
+const cenas=[...document.querySelectorAll('.cena')]
+const sobe=(el,a,atraso,gira)=>{const k=back((a-atraso)/0.6);el.style.transform=`translateY(${(1-k)*1100}px) rotate(${(1-k)*gira+gira*0.25}deg)`}
+window.render=t=>{
+  document.getElementById('gramado').style.backgroundPosition=`0 ${(t*120)%180}px`
+  document.getElementById('f1').style.transform=`rotate(${-18+Math.sin(t*0.9)*8}deg)`
+  document.getElementById('f2').style.transform=`rotate(${18+Math.sin(t*0.9+2)*8}deg)`
+  document.querySelectorAll('.moeda').forEach(m=>{const y=(+m.dataset.o+t*m.dataset.v)%2000-100;m.style.top=y+'px';m.style.transform=`rotate(${t*90+ +m.dataset.o}deg)`;m.style.opacity=.35})
+  let flash=0
+  cenas.forEach((el,i)=>{
+    const a=t-ST[i],d=DUR[i]
+    const vis=a>=0&&a<d+0.2
+    el.style.opacity=vis?Math.min(cl(a/0.2),i===cenas.length-1?1:cl((d+0.2-a)/0.2)):0
+    if(!vis)return
+    el.querySelectorAll('.big').forEach((b,j)=>{const g=j*0.22;const k=back((a-0.05-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
+    el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-2+Math.sin(a*6)*1.5}deg)`})
+    if(i===0){el.querySelectorAll('.carta').forEach((c,j)=>{const k=back((a-1.2-j*0.22)/0.5);c.style.transform=`perspective(900px) rotateY(${(1-k)*90}deg) rotate(${(j-1.5)*6}deg) translateY(${Math.sin(a*3+j)*10}px) scale(${Math.max(0,k)})`})}
+    if(i===1){const s=document.getElementById('selo');const k=back((a-1.6)/0.4);s.style.transform=`scale(${a<1.6?0:2.4-1.4*k}) rotate(${-8+Math.sin(a*4)*3}deg)`;s.style.opacity=a<1.6?0:1;if(a>1.6&&a<1.75)flash=.55
+      el.querySelectorAll('.logo').forEach(l=>{const k=back((a-0.3)/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`})}
+    if(i===2){sobe(document.getElementById('fVazio'),a,0.9,-5);document.getElementById('fVazio').querySelector('img').style.transform=`translateY(${-Math.min(1,cl((a-1.8)/1.6))*380}px)`;document.getElementById('cont').textContent=a<0.4?0:Math.min(100,Math.round(cl((a-0.4)/0.8)*100))}
+    if(i===3){sobe(document.getElementById('fPos'),a,0.5,4);const n=Math.min(4,Math.floor(Math.max(0,a-1.4)/0.55));document.querySelectorAll('#chips .chip').forEach((c,j)=>{c.className='chip'+(j===n?' on':'');c.style.transform=j===n?'scale(1.15) translateY(-8px)':'scale(1)'})}
+    if(i===4){const c=document.getElementById('cad');const k=back((a-0.5)/0.4);c.style.transform=`scale(${Math.max(0,k)}) rotate(${Math.sin(a*10)*(a<1.3?8:2)}deg)`;sobe(document.getElementById('fLance'),a,1.2,0);const b=document.getElementById('b21');const kb=back((a-2.6)/0.35);b.style.transform=`scale(${Math.max(0,kb)}) rotate(-4deg)`;if(a>2.6&&a<2.72)flash=.35}
+    if(i===5){sobe(document.getElementById('fLenda'),a,0.4,-5);sobe(document.getElementById('fVoce'),a,0.8,5);const k1=back((a-2.2)/0.35),k2=back((a-3.8)/0.35);document.getElementById('bLeva').style.transform=`scale(${Math.max(0,k1)}) rotate(-3deg)`;const e=document.getElementById('bEscapa');e.style.transform=`scale(${Math.max(0,k2)}) rotate(3deg)`;e.style.marginLeft=(a>3.8&&a<4.4)?`${Math.sin(a*80)*12}px`:'0';if(a>2.2&&a<2.32)flash=.45;if(a>3.8&&a<3.92)flash=.45}
+    if(i===6){sobe(document.getElementById('f2d'),a,0.5,-4);sobe(document.getElementById('f3d'),a,0.9,4);document.getElementById('f2d').querySelector('img').style.transform=`translateY(${-Math.max(0,a-1.5)*25}px)`;document.getElementById('f3d').querySelector('img').style.transform=`scale(${1+Math.max(0,a-1.5)*0.03})`}
+    if(i===7){sobe(document.getElementById('fCar'),a,0.4,-3);document.querySelectorAll('#escada .degrau').forEach((dg,j)=>{const k=back((a-2.6-j*0.3)/0.35);dg.style.transform=`scaleY(${Math.max(0,k)})`;dg.style.transformOrigin='50% 100%'})}
+    if(i===8){el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`});el.querySelectorAll('.btn').forEach(b=>{const k=back((a-1.6)/0.45);b.style.transform=`scale(${Math.max(0,k)*(1+0.03*Math.sin(a*7))})`})}
+  })
+  document.getElementById('flash').style.opacity=flash
+}
+window.render(0)
+</script></body></html>
