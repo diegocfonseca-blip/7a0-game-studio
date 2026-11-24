@@ -1,0 +1,163 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Osw;src:url(oswald-latin-700-normal.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#07110b}
+body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
+#ceu{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 18%,#1d3b28 0%,#0b1a10 45%,#050b07 100%)}
+.refletor{position:absolute;top:-40px;width:150px;height:60px;border-radius:14px;background:#fff;box-shadow:0 0 60px 20px #fff8d6}
+.feixe{position:absolute;top:0;width:520px;height:1500px;background:linear-gradient(180deg,rgba(255,248,214,.35),rgba(255,248,214,0) 80%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);transform-origin:50% 0}
+#gramado{position:absolute;left:-300px;right:-300px;bottom:0;height:560px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;background:repeating-linear-gradient(0deg,#1B7A3D 0 90px,#16692f 90px 180px)}
+#linhas{position:absolute;left:-300px;right:-300px;bottom:0;height:560px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;background:linear-gradient(90deg,transparent calc(50% - 4px),rgba(255,255,255,.7) calc(50% - 4px) calc(50% + 4px),transparent calc(50% + 4px))}
+.moeda{position:absolute;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8,#FFC400 50%,#a87d00);border:4px solid #3a2a00}
+.cena{position:absolute;inset:0;opacity:0}
+.big{position:absolute;left:50px;right:50px;text-align:center;text-transform:uppercase;text-shadow:6px 6px 0 #000}
+.ouro{color:#FFC400;text-shadow:0 0 24px rgba(255,196,0,.55),6px 6px 0 #000}
+.creme{color:#F4ECD6}
+.tag{display:inline-block;background:#FFC400;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:22px;box-shadow:8px 8px 0 #0C0C0C;padding:12px 34px;font-size:56px;text-shadow:none}
+.tag.verde{background:#1B7A3D;color:#fff;text-shadow:3px 3px 0 #000}
+.tag.verm{background:#E8503A;color:#fff;text-shadow:3px 3px 0 #000}
+.fone{position:absolute;border:14px solid #0C0C0C;border-radius:64px;overflow:hidden;box-shadow:0 0 60px rgba(255,196,0,.35),18px 18px 0 #0C0C0C;background:#0C0C0C}
+.fone img{width:100%;display:block}
+.carta{position:absolute;width:250px;filter:drop-shadow(0 0 24px rgba(255,196,0,.5))}
+.chip{display:inline-block;margin:0 8px;background:#fff;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:999px;box-shadow:6px 6px 0 #0C0C0C;padding:8px 30px;font-size:64px;text-shadow:none}
+.chip.on{background:#FFC400}
+.selo{position:absolute;left:50%;width:300px;height:300px;margin-left:-150px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8,#FFC400 45%,#b98a00);border:10px solid #0C0C0C;box-shadow:0 0 60px rgba(255,196,0,.7),12px 12px 0 #0C0C0C;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0C0C0C;text-shadow:none}
+.selo b{font-size:150px;line-height:.9}
+.selo span{font-size:40px;letter-spacing:4px}
+.balao{position:absolute;background:#FFC400;color:#0C0C0C;border:7px solid #0C0C0C;border-radius:26px;box-shadow:10px 10px 0 #0C0C0C;padding:14px 30px;font-size:62px;text-shadow:none;text-transform:uppercase;text-align:center}
+.balao.verm{background:#E8503A;color:#fff;text-shadow:3px 3px 0 #000}
+.escada{position:absolute;left:60px;right:60px;display:flex;justify-content:center;gap:18px;align-items:flex-end}
+.degrau{width:150px;background:#F4ECD6;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:20px;box-shadow:6px 6px 0 #0C0C0C;text-align:center;font-size:84px;text-shadow:none}
+.degrau.a{background:#FFC400}
+.btn{position:absolute;left:110px;right:110px;background:#FFC400;color:#0C0C0C;border:9px solid #0C0C0C;border-radius:34px;box-shadow:14px 14px 0 #0C0C0C;text-align:center;font-size:80px;padding:26px 0;text-transform:uppercase}
+.logo{position:absolute;left:50%;width:230px;height:230px;margin-left:-115px;border-radius:46px;border:8px solid #0C0C0C;box-shadow:0 0 50px rgba(255,196,0,.6),10px 10px 0 #0C0C0C}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.cadeado{position:absolute;font-size:230px;left:50%;margin-left:-115px;filter:drop-shadow(0 0 30px rgba(255,196,0,.6))}
+</style>
+<style>
+.cartaG{position:absolute;width:420px;filter:drop-shadow(0 0 40px rgba(255,196,0,.6))}
+.modo{position:absolute;left:90px;right:90px;height:150px;background:#F4ECD6;color:#0C0C0C;border:7px solid #0C0C0C;border-radius:30px;box-shadow:10px 10px 0 #0C0C0C;display:flex;align-items:center;gap:26px;padding:0 34px;text-shadow:none;text-transform:uppercase}
+.modo i{font-style:normal;font-size:84px}.modo b{font-size:70px}
+.modo.top{background:#FFC400;box-shadow:0 0 50px rgba(255,196,0,.8),12px 12px 0 #0C0C0C}
+.modo small{margin-left:auto;font-size:30px;background:#E8503A;color:#fff;border:4px solid #0C0C0C;border-radius:14px;padding:4px 14px}
+.martelo{position:absolute;font-size:260px;left:700px;top:600px;filter:drop-shadow(0 0 30px rgba(255,196,0,.6));transform-origin:80% 80%}
+.conta{position:absolute;left:30px;right:30px;white-space:nowrap;text-align:center;font-size:118px;text-transform:uppercase;color:#FFC400;text-shadow:0 0 30px rgba(255,196,0,.6),8px 8px 0 #000}
+.galeria{position:absolute;width:330px}
+</style></head><body>
+<div id="mundo"><div id="ceu"></div>
+<div class="feixe" id="f1" style="left:-120px"></div><div class="feixe" id="f2" style="right:-120px"></div>
+<div class="refletor" style="left:60px"></div><div class="refletor" style="right:60px"></div>
+<div id="gramado"></div><div id="linhas"></div><div id="moedas"></div>
+</div>
+
+<!-- 0 gancho -->
+<div class="cena" data-s="0">
+ <div class="big" style="top:170px"><span class="tag">🔨 QUANTO VOCÊ PAGARIA?</span></div>
+ <img class="cartaG" id="cNey" src="c-neymar.png" style="left:70px;top:420px">
+ <img class="cartaG" id="cRon" src="c-ronaldo.png" style="left:590px;top:520px">
+ <div class="big" style="top:1260px;font-size:92px;line-height:1.05">NEYMAR <span class="ouro">2011</span><br>RONALDO <span class="ouro">FENÔMENO</span></div>
+</div>
+<!-- 1 primeiro jogo -->
+<div class="cena" data-s="1">
+ <img class="logo" src="logo-ll.webp" style="top:200px">
+ <div class="big ouro" style="top:480px;font-size:150px;line-height:.92">LEILÃO<br>LEGENDS</div>
+ <div class="big" style="top:800px;font-size:58px">O PRIMEIRO JOGO DE LEILÃO DO FUTEBOL</div>
+ <div class="big" style="top:1080px;font-size:96px;line-height:1.05">NÃO TEM<br><span class="ouro">UM JEITO SÓ</span><br>DE DAR LANCE</div>
+</div>
+<!-- 2 modos -->
+<div class="cena" data-s="2">
+ <div class="big" style="top:140px;font-size:100px">ESCOLHA O <span class="ouro">LEILÃO</span></div>
+ <div class="modo" style="top:330px"><i>✉️</i><b>Envelope cego</b></div>
+ <div class="modo" style="top:520px"><i>🐊</i><b>Tocaia</b></div>
+ <div class="modo" style="top:710px"><i>⚡</i><b>Envelope único</b></div>
+ <div class="modo" style="top:900px"><i>🧱</i><b>Leilão de clubes</b></div>
+ <div class="modo top" id="mPregao" style="top:1140px;height:190px"><i>🔨</i><b style="font-size:78px;white-space:nowrap">Pregão aberto</b></div>
+ <div class="balao verm" id="bQuente" style="left:560px;top:1370px">🔥 O MAIS QUENTE</div>
+</div>
+<!-- 3 lance aberto -->
+<div class="cena" data-s="3">
+ <div class="big" style="top:120px;font-size:96px;line-height:1.05">UMA CARTA POR VEZ<br><span class="ouro" style="font-size:62px">LANCE ABERTO PRA TODO MUNDO</span></div>
+ <div class="fone" id="fA" style="left:270px;width:540px;height:1170px;top:470px"><img id="iA1" src="pa04.png"><img id="iA2" src="pa08.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iA3" src="pa16.png" style="position:absolute;left:0;top:0;opacity:0"></div>
+ <div class="balao" id="bA" style="left:60px;top:1700px">QUEM DÁ MAIS? 🔥</div>
+</div>
+<!-- 4 carta coberta -->
+<div class="cena" data-s="4">
+ <div class="big" style="top:130px;font-size:110px">A CARTA VEM<br><span class="ouro">COBERTA</span> ❓</div>
+ <div class="fone" id="fB" style="left:170px;width:740px;height:900px;top:470px"><img src="pa12.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
+ <div class="big" style="top:1450px;font-size:74px;line-height:1.1">CRAQUE OU<br><span class="ouro">PERNA DE PAU?</span></div>
+</div>
+<!-- 5 martelo -->
+<div class="cena" data-s="5">
+ <div class="big" style="top:130px;font-size:72px">CADA LANCE <span class="ouro">ZERA O RELÓGIO</span></div>
+ <div class="fone" id="fC" style="left:60px;width:600px;height:1300px;top:330px"><img id="iC1" src="pa17.png"><img id="iC2" src="pa18.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iC3" src="pa19.png" style="position:absolute;left:0;top:0;opacity:0"></div>
+ <div class="martelo" id="mart">🔨</div>
+ <div class="conta" id="conta" style="top:1660px"></div>
+</div>
+<!-- 6 vira lenda -->
+<div class="cena" data-s="6">
+ <div class="big" style="top:130px;font-size:120px">E A CARTA <span class="ouro">VIRA…</span></div>
+ <div class="fone" id="fD" style="left:170px;width:740px;height:900px;top:420px"><img src="pa21.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
+ <div class="big ouro" id="eraLenda" style="top:1400px;font-size:170px">👑 LENDA!</div>
+</div>
+<!-- 7 galeria -->
+<div class="cena" data-s="7">
+ <div class="big" style="top:110px;font-size:84px">TODAS AS <span class="ouro">LENDAS</span><br>NO MESMO PREGÃO</div>
+ <img class="galeria" src="c-neymar.png" style="left:40px;top:400px">
+ <img class="galeria" src="c-ronaldo.png" style="left:375px;top:400px">
+ <img class="galeria" src="c-messi.png" style="left:710px;top:400px">
+ <img class="galeria" src="c-ronaldinho.png" style="left:40px;top:880px">
+ <img class="galeria" src="c-maradona.png" style="left:375px;top:880px">
+ <img class="galeria" src="c-cr7.png" style="left:710px;top:880px">
+ <img class="galeria" src="c-zidane.png" style="left:40px;top:1360px">
+ <img class="galeria" src="c-kaka.png" style="left:375px;top:1360px">
+ <div class="balao" id="bMais" style="left:720px;top:1520px">E MUITO<br>MAIS!</div>
+</div>
+<!-- 8 final -->
+<div class="cena" data-s="8">
+ <img class="logo" src="logo-ll.webp" style="top:170px">
+ <div class="big ouro" style="top:450px;font-size:150px;line-height:.92">LEILÃO<br>LEGENDS</div>
+ <div class="big" style="top:760px;font-size:50px">O PRIMEIRO JOGO DE LEILÃO DO FUTEBOL</div>
+ <div class="big" style="top:880px"><span class="tag verde">✅ GRÁTIS</span>&nbsp;&nbsp;<span class="tag">📱 NO CELULAR</span></div>
+ <div class="btn" style="top:1090px">🔨 BORA PRO PREGÃO</div>
+ <div class="big" style="top:1350px;font-size:70px;letter-spacing:3px">leilaolegends.com</div>
+ <div class="big ouro" style="top:1460px;font-size:50px">@leilaolegendscom</div>
+</div>
+<div class="flash" id="flash"></div>
+<script>
+const DUR=window.DUR_NARRA||[5.0,5.5,7.0,5.0,4.8,6.5,3.8,6.5,6.0] // 🎙️ estimado; trocar pelas pausas da narração do Diego
+const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
+window.TOTAL=acc
+const cl=x=>Math.min(1,Math.max(0,x))
+const back=x=>{x=cl(x);const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}
+const mo=document.getElementById('moedas');for(let i=0;i<14;i++){const s=document.createElement('i');s.className='moeda';s.style.left=(i*71%100)+'%';s.dataset.v=40+(i*37%60);s.dataset.o=i*137%1900;mo.appendChild(s)}
+const cenas=[...document.querySelectorAll('.cena')]
+const sobe=(el,a,atraso,gira)=>{const k=back((a-atraso)/0.6);el.style.transform=`translateY(${(1-k)*1100}px) rotate(${(1-k)*gira+gira*0.25}deg)`}
+const pop=(el,a,at,rot=0)=>{const k=back((a-at)/0.35);el.style.transform=`scale(${Math.max(0,k)}) rotate(${rot}deg)`}
+const troca=(ids,a,ts)=>ids.forEach((id,j)=>{const on=j===0?1:cl((a-ts[j-1])/0.12);document.getElementById(id).style.opacity=on})
+window.render=t=>{
+  document.getElementById('gramado').style.backgroundPosition=`0 ${(t*120)%180}px`
+  document.getElementById('f1').style.transform=`rotate(${-18+Math.sin(t*0.9)*8}deg)`
+  document.getElementById('f2').style.transform=`rotate(${18+Math.sin(t*0.9+2)*8}deg)`
+  document.querySelectorAll('.moeda').forEach(m=>{const y=(+m.dataset.o+t*m.dataset.v)%2000-100;m.style.top=y+'px';m.style.opacity=.35})
+  let flash=0
+  cenas.forEach((el,i)=>{
+    const a=t-ST[i],d=DUR[i]
+    const vis=a>=0&&a<d+0.2
+    el.style.opacity=vis?Math.min(cl(a/0.2),i===cenas.length-1?1:cl((d+0.2-a)/0.2)):0
+    if(!vis)return
+    el.querySelectorAll('.big').forEach((b,j)=>{if(b.id==='eraLenda')return;const g=j*0.22;const k=back((a-0.05-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
+    el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-2+Math.sin(a*6)*1.5}deg)`})
+    if(i===0){[['cNey',0.5,-7],['cRon',1.6,7]].forEach(([id,at,r])=>{const c=document.getElementById(id);const k=back((a-at)/0.55);c.style.transform=`perspective(900px) rotateY(${(1-k)*100}deg) rotate(${r}deg) translateY(${Math.sin(a*2.5+at)*14}px) scale(${Math.max(0,k)})`;if(a>at+0.3&&a<at+0.42)flash=.45})}
+    if(i===1){el.querySelectorAll('.logo').forEach(l=>{const k=back((a-0.2)/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`})}
+    if(i===2){el.querySelectorAll('.modo').forEach((m,j)=>{const at=j<4?0.7+j*0.55:4.0;const k=back((a-at)/0.4);m.style.transform=`translateX(${(1-k)*(j%2?1:-1)*1100}px) rotate(${j===4?-2+Math.sin(a*6):0}deg) scale(${j===4&&a>at?1+0.03*Math.sin(a*8):1})`;if(j===4&&a>at&&a<at+0.12)flash=.5});pop(document.getElementById('bQuente'),a,4.5,4)}
+    if(i===3){sobe(document.getElementById('fA'),a,0.4,-3);troca(['iA1','iA2','iA3'],a,[2.0,3.3]);pop(document.getElementById('bA'),a,1.4,-3)}
+    if(i===4){sobe(document.getElementById('fB'),a,0.5,3)}
+    if(i===5){sobe(document.getElementById('fC'),a,0.3,-3);troca(['iC1','iC2','iC3'],a,[2.3,3.6]);const c=document.getElementById('conta');const txt=a<1.0?'':a<2.3?'DOU-LHE UMA…':a<3.6?'DOU-LHE DUAS…':'VENDIDO!';c.textContent=txt;c.style.transform=`scale(${1+0.15*Math.max(0,1-((a-(a<2.3?1.0:a<3.6?2.3:3.6))/0.3))})`;const m=document.getElementById('mart');const bat=[1.0,2.3,3.6].some(x=>a>x&&a<x+0.18);m.style.transform=`rotate(${bat?35:-20}deg)`;if(a>3.6&&a<3.75)flash=.6}
+    if(i===6){sobe(document.getElementById('fD'),a,0.0,0);const e=document.getElementById('eraLenda');const k=back((a-1.0)/0.35);e.style.transform=`scale(${a<1?0:2.2-1.2*k}) rotate(-4deg)`;e.style.opacity=a<1?0:1;if(a>1.0&&a<1.15)flash=.7}
+    if(i===7){el.querySelectorAll('.galeria').forEach((g,j)=>{const k=back((a-0.6-j*0.25)/0.4);g.style.transform=`perspective(900px) rotateY(${(1-k)*90}deg) scale(${Math.max(0,k)}) rotate(${(j%3-1)*3}deg)`});pop(document.getElementById('bMais'),a,3.0,6)}
+    if(i===8){el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`});el.querySelectorAll('.btn').forEach(b=>{const k=back((a-1.6)/0.45);b.style.transform=`scale(${Math.max(0,k)*(1+0.03*Math.sin(a*7))})`})}
+  })
+  document.getElementById('flash').style.opacity=flash
+}
+window.render(0)
+</script></body></html>
