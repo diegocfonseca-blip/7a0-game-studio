@@ -184,9 +184,10 @@ export function CalendarioProximo(p: PropsProx) {
       {p.escolha && p.compacto ? <div style={{ marginTop: 10 }}>
         <b style={{ display: 'block', textAlign: 'center', font: '800 13px Oswald,sans-serif', letterSpacing: '.08em', textTransform: 'uppercase', color: '#FFC400', marginBottom: 6 }}>{tr('Ver o jogo em', 'Watch the match in')}</b>
         <div style={{ display: 'grid', gridTemplateColumns: p.escolha.rapido ? '1fr 1fr 1fr' : '1fr 1fr', gap: 8 }}>
-          <button className="go" onClick={p.escolha.d2} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#1B7A3D', color: '#fff' }}>{tr('📺 2D', '📺 2D')}</button>
-          <button className="go" onClick={p.escolha.d3} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#7C3AED', color: '#fff' }}>{tr('🏟️ 3D', '🏟️ 3D')}</button>
+          {/* 24/11 (Diego: "coloque só placar na frente… placar, campo 2D e campo 3D") */}
           {p.escolha.rapido && <button className="go" onClick={p.escolha.rapido} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#FFC400', color: '#0C0C0C' }}>{tr('⚡ Placar', '⚡ Score')}</button>}
+          <button className="go" onClick={p.escolha.d2} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#1B7A3D', color: '#fff' }}>{tr('📺 Campo 2D', '📺 2D pitch')}</button>
+          <button className="go" onClick={p.escolha.d3} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#7C3AED', color: '#fff' }}>{tr('🏟️ Campo 3D', '🏟️ 3D pitch')}</button>
         </div>
       </div>
       : p.escolha ? <div style={{ marginTop: 10 }}>
