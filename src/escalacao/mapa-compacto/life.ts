@@ -14,6 +14,8 @@ type Input = PopulationInput & {
     homeColor?: string;
     awayColor?: string;
     period?: string;
+    humor?: 'festa'|'triste'|'normal';
+    carreata?:boolean;
 };
 /** Existing club attendance drives bounded visual cohorts; nothing here writes career/online state. */
 export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady: () => void) {
@@ -22,6 +24,8 @@ export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady
     scene.add(root);
     const floor = criarPisoPasseio(scene), ground = (x: number, z: number, y = .19) => floor(x, z, y) ?? y;
     const queue = criarFigurantes(root, 160, 'compacto-torcida-portoes'), club = criarFigurantes(root, 14, 'compacto-clube-lazer');
+    const pub=criarFigurantes(root,10,'compacto-boteco-vivo'),nightclub=criarFigurantes(root,5,'compacto-balada-viva');
+    let parade:ReturnType<typeof criarVeiculoTransporte>|undefined,paradeFans:ReturnType<typeof criarFigurantes>|undefined;
     const flagGeometry = new T.PlaneGeometry(.6, .38), poleGeometry = new T.BoxGeometry(.025, 1.1, .025), flagMaterial = new T.MeshLambertMaterial({ color: '#ffffff', side: T.DoubleSide }), poleMaterial = new T.MeshLambertMaterial({ color: '#746849' }), flags = new T.InstancedMesh(flagGeometry, flagMaterial, 32), poles = new T.InstancedMesh(poleGeometry, poleMaterial, 32), dummy = new T.Object3D(), flagColor = new T.Color();
     flags.count = poles.count = 0;
     flags.frustumCulled = poles.frustumCulled = false;
@@ -37,7 +41,7 @@ export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady
     const cars = Array.from({ length: 4 }, (_, i) => criarVeiculoTransporte(root, spec('compacto-carro-' + i, 'car', 4.4, 1.85, .34), ['#b7b4a3', '#9b5140', '#526c5c', '#d8cda7'][i]));
     let input: Input = { enabled: false, mobile: true }, plan = populationPlan(input), key = '', phase = 'idle', phaseAt = 0, last = 0, elapsed = 0, dirty = true, seconds = 0, disposed = false;
     const rnd = (i: number, k: number) => { let h = Math.imul((i + 1) * 2654435761 ^ k * 40503, 2246822519); h ^= h >>> 13; return (h >>> 0) / 4294967296; };
-    function configure(next: Input) { const nextKey = JSON.stringify([next.journey?.key, next.journey?.phase, next.enabled, next.home?.supporters, next.home?.attendance, next.home?.capacity, next.away?.supporters, next.mobile, next.awayMatch, next.homeColor, next.awayColor, next.period, next.rain, next.feira, next.pelada]); input = next; if (key === nextKey)
+    function configure(next: Input) { const nextKey = JSON.stringify([next.journey?.key, next.journey?.phase, next.enabled, next.home?.supporters, next.home?.attendance, next.home?.capacity, next.away?.supporters, next.mobile, next.awayMatch, next.homeColor, next.awayColor, next.period, next.rain, next.feira, next.pelada,next.humor,next.carreata]); input = next; if (key === nextKey)
         return; key = nextKey; const nextPlan = populationPlan(next); if (phase !== nextPlan.phase) {
         phase = nextPlan.phase;
         phaseAt = elapsed;
@@ -99,6 +103,11 @@ export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady
         if (input.period === 'night')
             for (let i = 0; i < 3; i++)
                 list.push({ x: -180 + i * 1.2, y: ground(-180 + i * 1.2, 196), z: 196, camisa: '#62517d' });
+        pub.set(Array.from({length:input.humor==='festa'?8:input.humor==='triste'?4:3},(_,i)=>({x:-144+(i%4-1.5)*1.45,y:ground(-144,202),z:202+Math.floor(i/4)*1.8,heading:i%2?1.1:-1.1,camisa:input.homeColor??'#1b7a3d'})));
+        nightclub.set(input.period==='night'?Array.from({length:5},(_,i)=>({x:-181+i*1.2,y:ground(-181,202),z:202+i%2,camisa:['#62517d','#c38b78','#ddd5b7'][i%3]})):[]);
+        if(input.carreata&&!parade){parade=criarVeiculoTransporte(root,spec('compacto-carreata','bus',10,2.5,.32),input.homeColor??'#1b7a3d');paradeFans=criarFigurantes(parade.root,7,'compacto-carreata-torcida');paradeFans.set(Array.from({length:7},(_,i)=>({x:i%2?.5:-.5,y:2.95,z:-3.5+i*1.1,camisa:input.homeColor??'#1b7a3d'})));}
+        if(parade&&!input.carreata){paradeFans?.dispose();parade.dispose();parade=undefined;paradeFans=undefined;}
+        parade?.setColor(input.homeColor??'#1b7a3d');
         queue.set(list);
         dirty = false;
     }
@@ -122,7 +131,8 @@ export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady
         elapsed += dt;
         if (dirty || phase === 'departure')
             fillQueue();
-        queue.tempo(elapsed);
+        queue.tempo(elapsed);pub.tempo(elapsed*(input.humor==='festa'?1.8:.5));nightclub.tempo(elapsed);
+        if(parade){vehicle(parade,planta.vehiclePaths.bus,650+elapsed*3);paradeFans?.tempo(elapsed*2);}
         rigs.forEach((r, i) => {
             if (!r.fan && plan.active && phase !== 'departure' && i < plan.walkers && (r.side !== 'away' || plan.awayFans > 0)) {
                 r.fan = true;
@@ -169,7 +179,7 @@ export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady
             vehicle(train, [[-288, 5.52, -113], [-24, 5.52, -113], [288, 5.52, -113]], hold(264, 5.8, 18, 28), t >= 18 && t <= 28 ? 1 : 0);
         cars.forEach((c, i) => { vehicle(c, planta.vehiclePaths[i % 2 ? 'south' : 'north'], elapsed * (7 + i * .3) + i * 98); c.root.visible &&= i < plan.cars; });
     }
-    return { root, configure, update, vehicles: () => [bus, bus2, ...cars, ...(train ? [train] : [])].filter(b => b.root.visible).map(b => ({ x: b.root.position.x, z: b.root.position.z })), active: () => input.enabled, actor: (side: 'home' | 'away') => { const r = rigs.find(r => r.side === side && r.active); if (!r)
-            return; r.body.root.userData.side = side; return { root: r.body.root }; }, inspect: () => ({ plan, phaseElapsed: elapsed - phaseAt, queue: queue.inspect(), walkers: rigs.filter(r => r.visible).map(r => ({ id: r.body.inspect().id, side: r.side, role: r.fan ? 'fan' : 'resident', fixture: r.fixture, returning: r.returning, distance: r.distance, position: r.body.root.position.toArray(), source: r.body.inspect() })), vendors: groups.filter(g => g.visible && props.root.visible).map(g => g.name), transport: { buses: [bus.root.position.toArray(), bus2.root.position.toArray()], train: train?.root.position.toArray(), time: seconds }, writes: 0 }), dispose() { if (disposed)
-            return; disposed = true; rigs.forEach(r => r.body.dispose()); queue.dispose(); club.dispose(); flags.removeFromParent(); poles.removeFromParent(); flagGeometry.dispose(); poleGeometry.dispose(); flagMaterial.dispose(); poleMaterial.dispose(); props.dispose(); bus.dispose(); bus2.dispose(); train?.dispose(); cars.forEach(c => c.dispose()); root.removeFromParent(); } };
+    return { root, configure, update, parade:()=>parade?.root.visible?parade.root.position:undefined, vehicles: () => [bus, bus2, ...cars, ...(train ? [train] : [])].filter(b => b.root.visible).map(b => ({ x: b.root.position.x, z: b.root.position.z })), active: () => input.enabled, actor: (side: 'home' | 'away') => { const r = rigs.find(r => r.side === side && r.active); if (!r)
+            return; r.body.root.userData.side = side; return { root: r.body.root }; }, inspect: () => ({ pub:pub.inspect(),nightclub:nightclub.inspect(),parade:!!parade,plan, phaseElapsed: elapsed - phaseAt, queue: queue.inspect(), walkers: rigs.filter(r => r.visible).map(r => ({ id: r.body.inspect().id, side: r.side, role: r.fan ? 'fan' : 'resident', fixture: r.fixture, returning: r.returning, distance: r.distance, position: r.body.root.position.toArray(), source: r.body.inspect() })), vendors: groups.filter(g => g.visible && props.root.visible).map(g => g.name), transport: { buses: [bus.root.position.toArray(), bus2.root.position.toArray()], train: train?.root.position.toArray(), time: seconds }, writes: 0 }), dispose() { if (disposed)
+            return; disposed = true; rigs.forEach(r => r.body.dispose()); queue.dispose(); club.dispose();pub.dispose();nightclub.dispose();paradeFans?.dispose();parade?.dispose(); flags.removeFromParent(); poles.removeFromParent(); flagGeometry.dispose(); poleGeometry.dispose(); flagMaterial.dispose(); poleMaterial.dispose(); props.dispose(); bus.dispose(); bus2.dispose(); train?.dispose(); cars.forEach(c => c.dispose()); root.removeFromParent(); } };
 }

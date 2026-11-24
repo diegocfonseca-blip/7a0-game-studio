@@ -47,3 +47,4 @@
      não é desenhado nela — o botão de jogar mora no camarote */
   .ll29-career.ll25-tab-central > .max-w-xl.mx-auto.ll-cx { display: block; max-width: 1320px !important; }
 }
+.ll-sede-fila{display:flex;justify-content:space-between;gap:8px;align-items:center;font:700 10px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;color:#5b614f}.ll-sede-fila button{border:0;background:transparent;color:#314d35;text-decoration:underline;cursor:pointer;font:inherit;padding:3px}

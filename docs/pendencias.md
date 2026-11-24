@@ -1,3 +1,10 @@
+## 24/11 — MERCADO E CENAS DA CENTRAL: VISUAL APROVADO, PUBLICAÇÃO AUTORIZADA
+
+- Diego aprovou as capturas reais em celular/desktop e pediu “Publique então”. Mercado separado em Sondar / Vender / Contratos / Negócios; oito clubes por página, escudos existentes, resumo de jogadores com restrição e motivos ao abrir. Preservadas as ações e as regras de sondagem/venda/contratos.
+- Central com planos próximos da ação no mapa real; balada legível à noite, grupos pequenos de figurantes existentes no boteco/balada e carreata confirmada. Títulos/acessos têm prioridade, resultados revelados variam a resenha e há Próximo momento / Pular momentos. Um canvas, Ver no mapa preserva a cena; redimensionamento e qualidade não devolvem a câmera distante. Explorar manualmente libera o acompanhamento.
+- Sem mudança de overalls, economia, resultados, calendário, host ou saves. Testes de UI390/1440, cenas WebGL reais, fatos/prioridades, janela/venda/XI e catálogo original passaram; build completo conferido antes do commit. Publicar sem forçar recarga dos jogadores e acompanhar conclusão do deploy.
+- [Escopo, testes e reversão](mercado-cenas-central-20261124.md). Reversível por commit, sem migração; teste físico no S25 não foi realizado.
+
 ## 24/11 — DECISÃO FINAL: CARREIRA HISTÓRICA COM NOTAS ORIGINAIS
 
 - Diego decidiu manter as melhorias aprovadas do planejamento e o futebol histórico como está. **Descartados** o rebaixamento das notas de largada, o ajuste oculto removido na transferência e a proposta de limitação coletiva por estrutura. Não implementar nenhuma dessas alternativas por inferência.
