@@ -1,5 +1,12 @@
 ## ⚔️ 23/11 — PRÓXIMO CONFRONTO PERMANENTE NAS ABAS DO VISUAL NOVO
 
+## 🏆 24/11 — Campeão "cinema" (cada competição com a sua cena) — feito, esperando "pode publicar"
+- `src/escalacao/campeao-cinema.tsx` + `.css`: tela cheia ~9,6 s (toque/Pular), escudo martelado (`playHammer`), papel picado em canvas nas cores do clube (`mantoDoClube` do batismo; senão a cor da competição), lendas do elenco (`legendAvatar`) e mascote; sem nenhum dos dois = "É CAMPEÃO!" balançando. Fila: liga e copa na mesma tela tocam uma depois da outra. Zero servidor.
+- Ligado em: `OwnerChampionBanner` (conta do Diego) e `CampeaoCinemaDe` nas telas de todo mundo (CampeaoCopaCard, fim de liga em `EscEnd`, Copa do Mundo/Euro/América, Liberta da sala, copas regionais). Basquete fica de fora.
+- ⏳ **Artes próprias faltando**: Euro, Copa América, regionais, Relâmpago e Kings usam arte do jogo com filtro + efeito (fumaça/raio/neon). Artes novas já geradas no Canva do Diego (Euro, Copa América, Estadual, Relâmpago) — falta baixar (download bloqueado nesta sessão) e gerar a do Kings (créditos do Canva acabaram). Trocar em `TEMAS` quando chegarem (arquivo `img/campeao-<comp>-v1.webp`, ~30 KB).
+- ⏳ **Carreira ainda não tem** (as telas de título da carreira são outras).
+- Bancada: `scripts/teste-formacoes/cinema.html?tema=…&sem=1`.
+
 ## 🃏 23/11 — "Quem é esse jogador?" na tela de espera (no branch, esperando "pode publicar")
 - Joguinho na espera da convocação (Leilão de Clubes, Copa do Mundo/Euro/América, copas regionais): carta tampada de Lenda/Craque/Promessa, pistas (posição, clube·ano, país), 3 nomes, 🔥 sequência. Não vale moeda, não grava nada, some quando a espera acaba. Código: `src/escalacao/quem-e-jogador.tsx`. Mockups/prints: `scripts/mockups/espera-quem-e-a-lenda-*.png`, `quem-e-jogador-print-*.png`.
 - Pendente: mockup do CAMPEÃO NOVO (`scripts/mockups/campeao-novo-*.png`) esperando OK; chat do leilão ficou como era (Diego: "deixe o chat do jeito que tava").

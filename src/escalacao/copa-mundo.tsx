@@ -1,6 +1,6 @@
 import {applyCupPlans,cupPlanModifiers} from './copa-planos'
 import {FootballWorldCupView,type CupPenaltyPresentation} from './football-cup-world'
-import {useOwnerLayout,useOwnerFootballPilot,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand} from './owner-online-visual'
+import {useOwnerLayout,useOwnerFootballPilot,OwnerPlayback,OwnerChampionBanner,OwnerModalBrand,CampeaoCinemaDe} from './owner-online-visual'
 import { rotuloFormacao } from './types'
 import { ListaRolavel } from './lista-rolavel' // 📜 23/11: barra + dica de rolagem na convocação
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
@@ -1800,6 +1800,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, passoInicial, potes,
         garcom={(() => { const r = [...copaStats(world, step, liveDone).assists].sort((x, y) => y.total - x.total || x.name.localeCompare(y.name))[0]; return r && r.total > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.total } : null })()}
         onDone={() => { setFestaMundoVista(true); try { sessionStorage.setItem(festaMundoKey, '1') } catch { /* segue */ } }} />}
       {/* CERIMÔNIA */}
+      {done && <CampeaoCinemaDe title={comp==='america'?'Copa América':comp==='euro'?'Eurocopa':'Copa do Mundo'} name={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={52}/>}/>}
       {done && (
         ownerVisual ? <OwnerChampionBanner title={comp==='america'?tr('Copa América','Copa América'):comp==='euro'?tr('Eurocopa','Euro'):tr('Copa do Mundo','World Cup')} name={nm(world.final.champion)} crest={<NationalCrest country={entrants[world.final.champion].pais} size={52}/>} trophy={<Trofeu comp={comp} size={210}/>} own={isYou(world.final.champion)} legends={entrants[world.final.champion].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[world.final.champion].club)??'']} line={`${tr('Final','Final')}: ${nm(world.final.h)} ${world.final.g[0]} × ${world.final.g[1]} ${nm(world.final.a)}`}/> : (
         <div style={{ ...box(isYou(world.final.champion) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), padding: 14, marginBottom: 10, borderRadius: 14, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
