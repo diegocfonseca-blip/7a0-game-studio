@@ -2385,6 +2385,8 @@ Pedido aprovado: *"coisas bem tradicionais do Brasil, espalhadas pelo mapa, muda
 ## 🛡️📧 Escudo de batismo só pelo e-mail (02/11) — ✅ PUBLICADO
 - Diego: *"não deveria seguir pelo nome… somente pelo e-mail da conta do usuário"* (caso Mengão Malvadao do João Victor aparecendo com o escudo do batismo do Átila na lista do clã). Banco: `esc_nomes_sem_escudo()` lista os nomes EXATOS (minúsculo, com acento) de contas que usam nome de batismo sem ser donas (pelo e-mail em `esc_nomes_batismo`), tirando o nome exato que o próprio dono usa. Aparelho: `mimos.ts` (`nomeSemEscudo`) + `escudos.tsx` (`logoPronta` não dá a arte fixa pra esses nomes; nome de ASSENTO dos bots segue com escudo). Carrega no início (`main.tsx`) e no lobby. Limite: cópia letra por letra igual ao nome do dono continua indistinguível pelo nome (no jogo ela já sai com "🎭FAKE" grudado, que também tira o escudo). Etapa 3 completa (escudo por conta em todo lugar) continua pendente.
 
+## ⭐ 24/11 — Craque Salas por 30 DIAS, dado pelo Diego (conta criada em 05/11)
+- Linha em `esc_assinatura_mensal` (craque_salas, até 23/12/2026 — 30 dias, ordem dele; sem `vendria_sub`). `esc_direitos_de`: pago, prata, salas_pagas (sem Manual).
 ## ⭐ 09/11 — ibemanu5@gmail.com: Craque Salas por 12 meses, dado pelo Diego
 - Linha em `esc_assinatura_mensal` (craque_salas, até 09/11/2027, sem `vendria_sub`). Conta de 02/11 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — é do Craque Completo).
 ## ⭐ 02/11 — brunomontoya011@gmail.com: Craque Salas por 12 meses, dado pelo Diego
@@ -15280,3 +15282,19 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   que nasce na origem (= centro do campo) e só anda no `update`; com o bairro compacto o update nunca roda e o grupo nascia visível. Agora nasce
   escondido (`presidencia-cidade-comercio.ts`). Conferido na bancada `qa-mapa-foco.html`: nada visível no centro, na semana e no jogo.
 - ✅ Central no celular: "🗓️ Próximos jogos" logo embaixo da escolha 2D/3D/Placar, em cima do Raio-X (`agendaCard` + `ll-c-agenda-cel`). Computador sem mudança.
+
+## 💾 24/11 — Salvar carreira grande no celular (caso do Milan de Recife FC, T121 perdida) — PUBLICADO (*"pode e publique"*)
+- Prova nos registros: 2 carreiras = 7 MB (não cabia no aparelho, só na memória) · "Sair e salvar" baixava o save inteiro pra juntar,
+  sem esperar já abria a home (que baixava os mesmos 7 MB) · 6 s depois a página reiniciou (visita nova às 23:14:46) e o envio morreu.
+- ✅ `esc_salva_carreira_slot` (docs/sql/salva-carreira-slot-20261124.sql, APLICADA): o aparelho manda só a carreira jogada e o servidor
+  encaixa por seed, nunca voltando no tempo. Usada por `savePyramidCloud(..., soAtiva=true)` (botões Salvar e Sair e salvar); troca de
+  carreira/arquivo seguem o caminho antigo (junta tudo). 3 tentativas; erro de envio agora é conferido ('falhou').
+- ✅ "Sair e salvar" ESPERA ("⏳ Salvando… não feche o jogo"); falhou = fica na carreira com aviso e "🔁 Tentar salvar de novo". Faixa da Central ganhou o estado 'falhou'.
+- ✅ Home com aparelho cheio não baixa mais o save inteiro a cada poucos segundos (`juntadoNaMemoria`).
+- ⏳ Ainda pesado: o save de carreira longa tem 3–4 MB. Enxugar o save (histórico antigo) é trabalho futuro.
+
+## 👤 24/11 — Sem conta, NENHUMA carreira salva (Diego aprovou a recomendação) — PUBLICADO ("Sim")
+- `salvarBloqueado(oficial)`: o Brasil Oficial sem conta também deixa de salvar (antes salvava no aparelho). Carreira normal sem conta já não salvava.
+- Quem já tinha save sem conta: continua abrindo; na próxima vez que for salvar, o 🔒 Salvar abre a conta grátis ALI MESMO (`JanelaConta`,
+  sem sair da carreira) com "Crie sua conta grátis pra salvar sua carreira". Criou a conta → o botão vira o Salvar normal.
+- Faixa da Central (visual antigo) ganhou o estado 'sem_conta'. A bancada local não simula "sem conta" (fica como "ainda não sabe"), então não deu print.
