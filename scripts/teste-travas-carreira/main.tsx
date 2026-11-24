@@ -7,6 +7,7 @@ import {_bancadaApoio} from '../../src/escalacao/apoio'
 import {_forcaBrasilOficialParaTeste} from '../../src/escalacao/sport'
 import {carregaBaralhoOficial} from '../../src/escalacao/baralho-oficial-carga'
 import {ligaCampo2D,marcaPago2D} from '../../src/escalacao/campo2d-modo'
+import {usePartidaNoMapa} from '../../src/escalacao/presidencia-partida-sincronia'
 import {registrarVistaCampo,removerVistaCampo} from '../../src/escalacao/presidencia-campo-observacao'
 import '../../src/index.css'
 const W=window as any
@@ -31,10 +32,13 @@ if(!new URLSearchParams(location.search).has('legado'))seed={...seed,motor2Desde
 seed=reducer(seed,{type:'SIM_MANY',count:Number(new URLSearchParams(location.search).get('round')??10)})
 const id=seed.managers[seed.youIdx].id
 seed={...seed,careerCoins:{...seed.careerCoins,[id]:384},careerTorcida:{...seed.careerTorcida,m0:41},careerSeen:{...seed.careerSeen,'guia-primeiro-jogo':true}}
+if(new URLSearchParams(location.search).has('retomar')){const saved=sessionStorage.getItem('qa-ciclo-carreira');if(!saved)throw new Error('Estado de teste ausente');seed=reducer(structuredClone(INITIAL),{type:'RESUME_CAREER_SOLO',saved:JSON.parse(saved)})}
+// A observação do placar fica num filho: notificações de quadro não recriam o contexto da carreira.
+function CapturaPartida({id}:{id:number}){W.qaMatch=usePartidaNoMapa(undefined,id,true);return null}
 function App(){
- const [state,dispatch]=useReducer(reducer,seed);W.qaState=state;W.qaDispatch=dispatch
+ const [state,dispatch]=useReducer((s,a)=>{W.qaActions??=[];W.qaActions.push(a.type);if(W.qaActions.length>100)W.qaActions.shift();return reducer(s,a)},seed);W.qaState=state;W.qaDispatch=dispatch
  const noop=()=>{},ctx:any={state,dispatch,emotes:[],emote:noop,addEmote:noop,chat:[],chatUnread:0,sendChat:noop,chatOpen:false,setChatOpen:noop,hostStale:false,kickPlayer:noop,leaveRoom:noop}
- return <EscCtxBancada.Provider value={ctx}><PyramidSeasonScreen/></EscCtxBancada.Provider>
+ return <EscCtxBancada.Provider value={ctx}><CapturaPartida id={state.managers[state.youIdx].id}/><PyramidSeasonScreen/></EscCtxBancada.Provider>
 }
 const host=document.getElementById('root') as HTMLElement&{qaRoot?:ReturnType<typeof createRoot>}
 const root=host.qaRoot??=createRoot(host);root.render(<App/>);

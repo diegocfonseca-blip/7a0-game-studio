@@ -36,9 +36,9 @@ A condição `subPossivel && campo2d` escondia o botão no placar rápido mesmo 
 - Regressão do motor:12 jogos, passado intacto e resultado da troca agendada igual ao motor refeito;266 verificações de relógio passaram.
 - TypeScript e compilação de produção completa da raiz (`DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npm run build`) passaram.
 
-## Prévia visual, separada das correções
+## Visual mobile aprovado
 
-CSS somente em `/workspace/shared/travas-carreira-20261124/compacto-preview.css`. Não é importado pelo produto nem commitado: o `CLAUDE.md` exige mostrar captura e esperar aprovação antes de commitar um novo visual.
+Após receber a captura, Diego autorizou aplicar e publicar, condicionado a conferir substituições, pausa, início, retomada e fim. CSS aplicado em `src/escalacao/career-visual-v2.css`; a prévia original permanece em `/workspace/shared/travas-carreira-20261124/compacto-preview.css`.
 
 Proposta para até600px: marca em faixa menor, resumo da competição compacto, escudos56px e menos espaço vazio quando ainda não houve gols. Placar continua central e o botão Substituir fica acessível mais cedo. Mantém patrocínio, rodada/divisão, torcida/posição/saldo. Desktop não recebe essas regras.
 
@@ -58,4 +58,19 @@ Bancadas em5340/5341/5342, Chromium/Playwright, rede externa e WebSockets bloque
 
 `substituicoes.json`, `verificacao.json`, `perfil-legado.json`, `perfil-legado-corrigido.json` e arquivos`.cpuprofile` registram os resultados. A primeira rodada de medição foi feita antes da mudança e não deve ser sobrescrita com uma versão corrigida se usada como comparação.
 
-**Estado:** correções funcionais implementadas/testadas, sem publicação. Novo visual somente em prévia; nenhuma migração, conta/save real ou serviço foi alterado. O caso exato ainda depende da identificação da conta. Retorno funcional pelo commit isolado, sem migração.
+## Verificação para publicação autorizada
+
+O ensaio ampliado usa até três trocas, tenta a quarta tanto no painel quanto no reducer, confere onze em campo e posição, seleção/desmarcação sem trocar, duplo clique, tática após esgotar trocas e retomada de um estado de teste salvo. Nenhuma conta de produção foi usada.
+
+Também encontrou e corrigiu problemas adicionais:
+
+- Rodada38: `seasonOver` indicava fim da liga enquanto a última partida ainda animava e escondia controles/trocas antes do apito. A elegibilidade passa a considerar o fim efetivo da apresentação (`done`).
+- Quadros equivalentes: reconstruir `EntradaM2` sem mudar seu conteúdo gerava notificações repetidas aos assinantes do mapa, chegando a exceder a profundidade de atualizações React. A comparação agora usa a assinatura canônica já usada pelo motor, incluindo táticas e trocas, com WeakMap por entrada. Não muda resultados ou sorteio.
+- Vagas da Copa do Brasil: a classificação estadual de referência (usada quando não há classificação real salva) era recalculada com o desgaste das copas atuais. Na bancada da rodada38 isso alternava `OFICIAL_COPA_FISICA`/`GUARDA_M2` e já somava6090 registros físicos enquanto a interface tentava responder. A referência agora usa `worldBase`, sem planos físicos da temporada em andamento; o estadual realmente salvo do usuário continua tendo prioridade. O mesmo ensaio passou pelas três trocas aos primeiros minutos e terminou sem essa sequência repetida. Não se aplicou limpeza a saves reais.
+- Painel3D: estava sob o ancestral de Jogos oculto na aba Clube. Passou para a área comum, mostrando o mesmo painel sobre o mapa. O teste WebGL também encontrou callback de aparência lendo `disposed` antes da inicialização durante a preparação assíncrona dos jogadores; a flag agora nasce antes dos callbacks. A trilha3D inclui as identidades dos reservas e do segundo tempo; a cena renova os atores quando a escalação efetiva muda. Antes havia acesso a atleta inexistente depois da troca.
+
+Bancada: `scripts/teste-travas-carreira/ciclo-publicacao.mjs`, com cenários filtráveis por `QA_CASE` e porta por `QA_PORT`. O cenário3D usa WebGL/SwiftShader e22 jogadores reais da cena; testa execução e interação, não FPS de aparelho. Evidências novas em `/workspace/shared/travas-carreira-publicacao-20261124/`.
+
+Validação ampliada: cenários placar/mobile (com estado salvo e retomado),2D/mobile, rodada38/desktop e3D/WebGL chegaram ao apito, com três trocas, quarta rejeitada e nenhuma exceção de página. A regressão da trilha física conferiu1075 quadros e253 posses contra o motor oficial, com as três identidades de reservas e todos os lances com participante definido. Os12 jogos de troca e266 verificações do relógio passaram novamente. TypeScript e compilação final da raiz passaram após as últimas correções. A versão compilada abriu em390/1440 sem exceções.
+
+**Estado:** publicação autorizada; compilação concluída, aguardando envio e confirmação do GitHub Pages. Nenhuma migração, conta/save real ou serviço foi alterado. O caso exato ainda depende da identificação da conta. Retorno por commits isolados, sem migração.

@@ -13,7 +13,7 @@ const fim = (m: ReturnType<typeof novoMotor2>) => { for (let k = 1; k <= 120 && 
 const foto = (m: ReturnType<typeof novoMotor2>) => JSON.stringify([m.placar, m.atl.map(a => [a.nome, a.x.toFixed(4), a.y.toFixed(4)]), m.bola.x.toFixed(4)])
 let n = 0, mudou = 0
 for (let j = 0; j < 12; j++) {
-  const casa = time(j), fora = time(j + 20), reservaMei = pick('MEI', 1, 60 + j)[0], reservaAta = pick('ATA', 1, 60 + j)[0]
+  const casa = time(j), fora = time(j + 20), reservaMei = pick('MEI', 1, 60 + j)[0], reservaAta = pick('ATA', 1, 60 + j)[0], reservaGol=pick('GOL',1,60+j)[0]
   const base = { seed: 1000 + j * 7919, casa, fora, fCasa: '4-3-3', fFora: '4-3-3', tatica: [0, 0] as [number, number], bots: [false, true] as [boolean, boolean] }
   const minuto = 20 + (j * 6) % 60
   const ref = novoMotor2(entradaM2(base)); ref.avancaAte(minuto)
@@ -22,12 +22,13 @@ for (let j = 0; j < 12; j++) {
   const trocas = [
     { t: live.t, lado: 0 as const, sai: casa[5].name, entra: reservaMei, tatica: j % 3 - 1 },
     { t: live.t, lado: 0 as const, sai: casa[8].name, entra: reservaAta },
+    { t: live.t, lado: 0 as const, sai: casa[0].name, entra: reservaGol },
   ]
   trocas.forEach(x => live.agendaTroca(x))
   fim(live)
   const rep = novoMotor2(entradaM2({ ...base, aoVivo: trocas })); fim(rep)
   assert.equal(foto(live), foto(rep), 'ao vivo = refeito do zero (o placar que vale)')
-  assert.deepEqual(rep.subs.map(s => s.entra), [reservaMei.name, reservaAta.name], 'as duas trocas valeram')
+  assert.deepEqual(rep.subs.map(s => s.entra), [reservaMei.name, reservaAta.name, reservaGol.name], 'as três trocas valeram')
   if (!rep.atl.some(a => a.lado === 0 && a.expulso)) {
     assert.ok(rep.atl.some(a => a.nome === reservaMei.name) && !rep.atl.some(a => a.nome === casa[5].name), 'quem entrou está em campo e quem saiu não')
   }

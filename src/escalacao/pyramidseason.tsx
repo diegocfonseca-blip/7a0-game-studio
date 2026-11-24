@@ -10751,10 +10751,12 @@ export function PyramidSeasonScreen() {
     const cache = new Map<string, string[] | null>()
     return { seasonNo: n, prev, classificacao: (est: string) => {
       if (meu && meu.nome && (meu.nome === est || NOME_ESTADUAL[est] === meu.nome) && meu.classificacao.length) return meu.classificacao
-      if (!cache.has(est)) { let c: string[] | null = null; try { c = computeEstadualCarreira(est, world, state.seed, n, capElite, realGoals)?.resultado.classificacao ?? null } catch { c = null } cache.set(est, c) }
+      // Classificação de referência não recebe o desgaste das copas atuais.
+      // Reaplicar esse desgaste à seleção das vagas trocava inscritos e criava um ciclo de gravações.
+      if (!cache.has(est)) { let c: string[] | null = null; try { c = computeEstadualCarreira(est, worldBase, state.seed, n, capElite, realGoals)?.resultado.classificacao ?? null } catch { c = null } cache.set(est, c) }
       return cache.get(est) ?? null
     } }
-  }, [state.oficial, state.seasonNo, state.oficialCampeoes, state.oficialEstaduais, world, state.seed, capElite, realGoals])
+  }, [state.oficial, state.seasonNo, state.oficialCampeoes, state.oficialEstaduais, worldBase, state.seed, capElite, realGoals])
   // 🇧🇷 no Brasil Oficial a Copa do Brasil é a REAL (126 clubes, 9 fases — `entradasCopaBrasilOficial`), sem esperar desbloqueio
   const copaBR = useMemo(() => {
     if (!(done || copaMid)) return null
@@ -12268,7 +12270,7 @@ export function PyramidSeasonScreen() {
   useEffect(() => { setSubAberto(false) }, [round, tab])
   const aoVivoMeu = state.careerHalftime?.[youId]?.[curMatchIdx]?.aoVivo ?? SEM_AO_VIVO
   const minutoJogo = scoreClock.round === state.round ? scoreClock.minute : -1
-  const subPossivel = !!myMatch?.m2 && myMatch.you && privateLeagueClock && !!stadiumMatch && !done && !seasonOver && !copaPlaying && !state.co2
+  const subPossivel = !!myMatch?.m2 && myMatch.you && privateLeagueClock && !!stadiumMatch && !done && !copaPlaying && !state.co2
     && minutoJogo > 0 && minutoJogo < 89 && !(halftimeOpen && halfMode) && !(penaltyOpen && penMode)
   useEffect(() => { if (subAberto && !subPossivel) setSubAberto(false) }, [subAberto, subPossivel])
   const dadosSub = useMemo(() => {
@@ -13197,7 +13199,7 @@ export function PyramidSeasonScreen() {
   // 📺 25/10 (Diego: *"botão manual, placar e etc. deveria ser lá dentro do mapa"*): o mapa 3D (conta de prévia) desenha o MESMO
   // "🎮 Controle da partida" por cima do 3D — aqui a carreira só publica o que esse controle já mostra e as MESMAS funções
   const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
-  const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!seasonOver || copaPlaying) ? {
+  const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!done || copaPlaying) ? {
     manualOk: manualAllowed, manual, velocidade: campo2d ? vel2dCarr : state.simSpeed ?? 1, // 📺 06/11: com o 2D a marcha é a do campinho (a mesma da aba Jogos)
     podeAvancar: copaPlaying ? copaPronta : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
@@ -14564,7 +14566,6 @@ export function PyramidSeasonScreen() {
         )}
         {/* 🔁 BANNER DO INTERVALO (carreira offline, toggle "só no intervalo"): pausa
             aos 45' e deixa mexer no 2º tempo. Enquanto aberto, a rodada não anda. */}
-        {subAberto && subPossivel && tab === 'estadio' && painelSub('janela') /* 🔁 23/11: no 3D o painel é a janela de baixo, por cima do mapa pausado */}
         {halftimeOpen && halfMode && mgrMe && myMatch && me && (() => {
           const iAmHome = myMatch.h === me.team
           const g1 = myMatch.goals.filter(g => g.min <= 45)
@@ -15708,6 +15709,8 @@ export function PyramidSeasonScreen() {
 
         {/* 💾 27/10 (Diego: *"pra salvar sua carreira crie uma conta, coloque na parte de baixo"*): o aviso saiu do topo e mora
             no FIM da página, junto do "Sair e salvar carreira" (no PC a grade põe ele na última linha, de ponta a ponta). */}
+        {/* O painel 3D fica fora do conteúdo oculto de Jogos; abrir deve mostrar as trocas sobre o mapa. */}
+        {subAberto && subPossivel && tab === 'estadio' && painelSub('janela')}
         <AvisoContaCarreira />
         {state.onlineMode === 'online' ? (
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>

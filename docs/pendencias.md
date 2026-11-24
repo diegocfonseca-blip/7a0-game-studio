@@ -1,3 +1,10 @@
+## 24/11 — PUBLICAÇÃO DA CARREIRA AUTORIZADA APÓS REGRESSÃO
+
+- Diego aprovou a prévia mobile e autorizou publicar após conferir início, pausa, retomada, substituições e fim. Máximo de três trocas, quarta bloqueada no painel/reducer, táticas sem consumir troca e estado salvo preservado.
+- Além do placar esperando um lance invisível, corrigidos controles da última rodada, quadro equivalente gerando notificações repetidas, painel3D escondido, preparação assíncrona da aparência e identidades de reservas na trilha3D. Corrigido ciclo de registros causado por recalcular vagas com desgaste atual; nenhuma limpeza de save real.
+- Placar/2D em390, última rodada em1440 e3D com WebGL chegaram ao apito sem exceções.1075 quadros/253 posses da trilha conferidos,12 jogos e266 verificações de relógio passaram. Compilação final e abertura compilada em390/1440 passaram; publicação aguardando envio/confirmação do GitHub Pages.
+- [Evidências, escopo, limites e retorno](auditorias/carreira-travas-mobile-20261124.md).
+
 ## 24/11 — PLACAR RÁPIDO DESTRAVADO E SUBSTITUIÇÕES RESTAURADAS
 
 - Diego esclareceu que o relato era Brasil Oficial/placar rápido, com paradas de mais de1min. Reproduzida uma causa no caminho legado: minuto1 aguardando lance/reinício do estádio invisível, com `pausado=false`. O placar só espera o movimento físico quando há vista do estádio ativa; no mesmo ensaio de17s passou de1′ para40′ e chegou ao apito na regressão. Conta do relato ainda desconhecida, portanto não se afirmou diagnóstico do save específico.
