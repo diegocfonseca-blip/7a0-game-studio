@@ -16020,8 +16020,11 @@ try {
 } catch { /* sem cliente (bancada): segue salvando */ }
 /** 🇧🇷 `oficial` (18/11, Diego: *"pode salvar sim… sem plano salva apenas no celular, não salva na nuvem"*): no Brasil Oficial o
  *  APARELHO salva sempre — sem o teste de 5 dias. A nuvem fica só pra quem tem plano (`savePyramidCloud`). */
+/** 👤 24/11 (Diego): sem conta, NENHUMA carreira salva — nem a de sempre, nem o Brasil Oficial. O jogo pede a conta grátis
+ *  (que abre ali mesmo, sem sair da carreira). `true` só quando o login diz, sem dúvida, que não tem ninguém. */
+export function salvarSemConta(): boolean { return authUidSalvar === null }
 export function salvarBloqueado(oficial = false): boolean {
-  if (oficial) return false
+  if (oficial) return authUidSalvar === null // 👤 24/11: o Oficial sem plano salva no aparelho — mas só COM conta
   if (SALVAR_TESTE_5D && !SALVAR_SO_COM_PLANO) {
     if (pagoPeloCodigo()) return false
     if (authUidSalvar === null) return true // sem conta não tem teste (precisa de conta pra contar os 5 dias)

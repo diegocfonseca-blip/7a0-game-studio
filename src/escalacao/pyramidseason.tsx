@@ -113,7 +113,7 @@ import { simulaIntercontinental, europaDaTemporada, INTERCONTINENTAL_2026, CLUBE
 import { simulaLibertadores, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
-import { useEsc, divOficialDe, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -9830,6 +9830,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     setTimeout(() => setFase('quieto'), avisa7 ? 6000 : 2400)
   }, [])
   if (!ativo) return undefined
+  if (bloqueado && salvarSemConta()) return { estado: 'sem_conta', onClick } // 👤 24/11: sem conta não salva — o botão abre a conta grátis
   if (bloqueado) return { estado: 'bloqueado', onClick } // 🔒 04/11: sem plano não salva — o botão vira cadeado e abre os planos
   if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined, diasTeste: diasTesteSalvar() }
   if (logado === false && !logadoDev) return { estado: 'deslogado', onClick }
@@ -9985,6 +9986,8 @@ export function PyramidSeasonScreen() {
   const [planosSair, setPlanosSair] = useState(false) // ☁️ 19/10: sem plano, "Sair e salvar" mostra os planos
   const salvarTravado = useSalvarBloqueado(!!state.oficial) // 🔒 04/11: sem plano a carreira não salva
   const [planosSalvar, setPlanosSalvar] = useState(false)
+  const semConta = salvarTravado && salvarSemConta() // 👤 24/11: sem conta o cadeado abre a conta grátis, não os planos
+  const [contaSalvar, setContaSalvar] = useState(false)
   // 🚪 15/11: "Só sair" pergunta antes e, confirmado, volta a carreira pro último salvamento (`voltaProUltimoSalvo`)
   const [sairSem, setSairSem] = useState<null | 'pergunta' | 'voltando' | 'sem_salvo' | 'sem_rede'>(null)
   // 💾 24/11 (caso do Milan, temporada 121 perdida): o "Sair e salvar" ESPERA a nuvem confirmar e só então sai.
@@ -15578,15 +15581,17 @@ export function PyramidSeasonScreen() {
         ) : (
           salvarTravado ? (<>
           {/* 🔒 04/11 (Diego): sem plano a carreira não salva — o botão de salvar vem com cadeado e abre os planos; sair não guarda nada */}
-          <button onClick={() => setPlanosSalvar(true)} className="ll-cx-sair"
+          <button onClick={() => semConta ? setContaSalvar(true) : setPlanosSalvar(true)} className="ll-cx-sair"
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🔒 Salvar carreira', '🔒 Save career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#3a3626', marginTop: 2 }}>{tr('Salvar é dos planos (a partir do Craque Salas). Assine e não perca nada.', 'Saving comes with the plans (from Craque Salas up). Subscribe and lose nothing.')}</span>
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#3a3626', marginTop: 2 }}>{semConta
+              ? tr('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')
+              : tr('Salvar é dos planos (a partir do Craque Salas). Assine e não perca nada.', 'Saving comes with the plans (from Craque Salas up). Subscribe and lose nothing.')}</span>
           </button>
           <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="ll-cx-sair"
             style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '9px 13px', fontWeight: 900, fontSize: 13, background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🚪 Sair da carreira', '🚪 Exit career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Sem plano, o que você jogou não fica salvo.', 'Without a plan, what you played is not saved.')}</span>
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{semConta ? tr('Sem conta, o que você jogou não fica salvo.', 'Without an account, what you played is not saved.') : tr('Sem plano, o que você jogou não fica salvo.', 'Without a plan, what you played is not saved.')}</span>
           </button>
           </>) : (
           <>
@@ -15613,6 +15618,7 @@ export function PyramidSeasonScreen() {
         {/* ☁️ 19/10: sem plano, o "Sair e salvar" mostra os planos antes de sair (fechar a janela = sai pro menu, como sempre) */}
         {planosSair && <JanelaNuvemPlanos onClose={() => { setPlanosSair(false); dispatch({ type: 'GO_LOBBY' }) }} />}
         {planosSalvar && <JanelaNuvemPlanos travado onClose={() => setPlanosSalvar(false)} />}
+        {contaSalvar && <JanelaConta titulo={tr('💾 Salvar sua carreira', '💾 Save your career')} contexto={tr('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')} comecarEmCriar onPronto={() => setContaSalvar(false)} onFechar={() => setContaSalvar(false)} />}
         {sairSem && (() => {
           const ult = ultimaSubidaNuvem(state.seed)
           const btn = (bg: string, cor: string, fs: number) => ({ width: '100%', marginTop: 12, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: fs, background: bg, color: cor, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD } as const)

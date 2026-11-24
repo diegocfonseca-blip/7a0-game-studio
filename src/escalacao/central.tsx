@@ -1,4 +1,5 @@
 import {useCareerVisualV2} from './career-visual-v2'
+import { JanelaConta } from './conta'
 import {CareerCentralGuide} from './career-start-guide'
 // ─── 📺 CENTRAL LEGENDS — a home do modo carreira (03/10) ────────────────────
 //
@@ -210,7 +211,7 @@ export type CentralProps = {
   /** 🔨 21/11 (janela nova): sondar e vender moram no Mercado e os contratos têm tela própria — o aviso diz isso */
   janelaNova?: boolean
 }
-export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d' | 'falhou'; ha?: number; rodadas?: number; onClick: () => void
+export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d' | 'falhou' | 'sem_conta'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
   onCraque?: () => void }
 
@@ -231,6 +232,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
       case 'salvo_7d': { const d = s.diasTeste ?? null; return [d != null ? t(`✅ Salvo · 🎁 teste grátis: falta${d === 1 ? '' : 'm'} ${d} dia${d === 1 ? '' : 's'}`, `✅ Saved · 🎁 free trial: ${d} day${d === 1 ? '' : 's'} left`) : t('✅ Salvo', '✅ Saved'), VERDE] }
       case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
+      case 'sem_conta': return [t('🔒 Crie sua conta grátis pra salvar sua carreira', '🔒 Create your free account to save your career'), '#FFB020']
       case 'falhou': return [t('⚠️ Não conseguimos salvar agora · nada foi perdido · toque pra tentar de novo', '⚠️ Could not save right now · nothing was lost · tap to try again'), AMBAR]
       case 'so_aparelho': return [t('📱 Esta carreira salva só neste aparelho · ☁️ a nuvem é do ⭐ Craque', '📱 This career saves only on this device · ☁️ the cloud is for ⭐ Star'), AMBAR]
       case 'salvo_aparelho': return [t('✅ Salvo no aparelho · pra guardar na nuvem e jogar em outro celular: ⭐ Craque', '✅ Saved on this device · to keep it in the cloud and play on another phone: ⭐ Star'), VERDE]
@@ -244,24 +246,26 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   // ☁️ 19/10 (Diego): conta sem plano apertou Salvar → abre os planos (a faixinha que sumia em 2 s parecia bug)
   const [planos, setPlanos] = useState(false)
   const [aviso7, setAviso7] = useState(false)
+  const [conta, setConta] = useState(false) // 👤 24/11: sem conta, Salvar abre a conta grátis ali mesmo
   // ✕ 29/10 (Diego: "fechou, não volta"): a janela que abre SOZINHA depois do salvamento aparece uma vez por aviso; o botão Salvar
   // de quem não tem plano continua abrindo (aí foi a pessoa que pediu)
   useEffect(() => {
     if (s.estado === 'salvo_aparelho' && !avisoFechado('nuvem-aparelho')) { fechaAviso('nuvem-aparelho'); setPlanos(true) }
     if (s.estado === 'salvo_7d' && !avisoFechado('teste-5d')) { fechaAviso('teste-5d'); setAviso7(true); setPlanos(true) }
   }, [s.estado])
-  const salvar = () => { if (s.estado === 'bloqueado') { setPlanos(true); return } const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
+  const salvar = () => { if (s.estado === 'sem_conta') { setConta(true); return } if (s.estado === 'bloqueado') { setPlanos(true); return } const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
   return (<>
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
       <span style={{ ...OSW, fontSize: 11, letterSpacing: '.05em', color: cor, lineHeight: 1.25, minWidth: 0 }}>{texto}</span>
       <span style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
       {s.onCraque && <button onClick={s.onCraque} style={{ ...OSW, fontSize: 11, letterSpacing: '.04em', color: '#fff', background: '#7C3AED', border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 9px', boxShadow: '2px 2px 0 #000', cursor: 'pointer' }}>{t('⭐ Craque', '⭐ Star')}</button>}
       <button onClick={salvar} disabled={ocupado} style={{ ...OSW, flex: '0 0 auto', fontSize: 12, letterSpacing: '.04em', color: '#0C0C0C', background: ocupado ? '#9A9A9A' : G_OURO, border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 12px', boxShadow: '2px 2px 0 #000', cursor: ocupado ? 'default' : 'pointer' }}>
-        {s.estado === 'bloqueado' ? t('🔒 Salvar', '🔒 Save') : t('💾 Salvar', '💾 Save')}
+        {s.estado === 'bloqueado' || s.estado === 'sem_conta' ? t('🔒 Salvar', '🔒 Save') : t('💾 Salvar', '💾 Save')}
       </button>
       </span>
     </div>
     {planos && <JanelaNuvemPlanos travado={s.estado === 'bloqueado'} aviso7={aviso7} onClose={() => { setPlanos(false); setAviso7(false) }} />}
+    {conta && <JanelaConta titulo={t('💾 Salvar sua carreira', '💾 Save your career')} contexto={t('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')} comecarEmCriar onPronto={() => setConta(false)} onFechar={() => setConta(false)} />}
   </>)
 }
 
