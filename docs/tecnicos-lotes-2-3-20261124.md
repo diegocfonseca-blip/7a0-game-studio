@@ -146,4 +146,11 @@ Não se acrescentaram jogadores, cartas de salas online, imagens, RPCs ou consul
 
 A pesquisa enfrentou falhas409 no conector; consultas sequenciais voltaram a funcionar. O acesso HTTP direto do ambiente continua restrito a pacotes/repositórios, sem alteração dessa política. Não se inventaram URLs de fonte para preencher falhas. Lint permanece indisponível pela ausência da configuração ESLint do repositório.
 
-Publicação autorizada por Diego em24/11: “Ok, pode publicar então, que precisa ser publicado”. Preparação na branch `feat/tecnicos-vinculos-20261124`; base remota conferida, aguardando verificação da raiz e confirmação do GitHub Pages. [Primeiro lote e regras de distribuição/retorno](tecnicos-brasil-20261124.md). Para reverter após saves usarem os nomes, conservar fichas dos contratados e desligar só a distribuição nova.
+Publicação autorizada por Diego em24/11: “Ok, pode publicar então, que precisa ser publicado”. Produto publicado no commit `1c34e9776a04d95125aca70e8c60d3a03347dbd9`; [GitHub Pages concluído com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45487765725). Base remota `a41bdb29` conferida antes do avanço, sem conflito. [Primeiro lote e regras de distribuição/retorno](tecnicos-brasil-20261124.md). Para reverter após saves usarem os nomes, conservar fichas dos contratados e desligar só a distribuição nova.
+
+
+## Confirmação em produção
+
+A execução do GitHub Pages terminou com `success`, para o commit de produto acima. Todas as compilações e a publicação finalizaram; a rotina de conservação registrou1005 arquivos antigos na raiz (398,7MB) e1004 no endereço compatível (398,1MB). Esses números descrevem a conservação do site, não uso do Supabase.
+
+Entrada compilada da raiz conferida em Chromium local em390×844 e1440×1000: HTTP200, conteúdo renderizado e nenhuma exceção. Capturas em `/workspace/shared/salvamento-seguro-20261124/publicacao-tecnicos225-celular.png` e `publicacao-tecnicos225-desktop.png`. O domínio público está fora da política de rede deste ambiente; não se afirmou navegação ao vivo ou teste na conta de uma pessoa. Confirmação de ativação pelo provedor GitHub Pages. Nenhuma recarga automática, conta ou save de produção alterado. Documentação posterior usa `[skip ci]` e não muda o produto publicado.

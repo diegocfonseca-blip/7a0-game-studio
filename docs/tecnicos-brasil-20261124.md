@@ -90,6 +90,6 @@ As referências alternativas e suas fontes estão junto de cada treinador em `sr
 
 ## Publicação e reversão
 
-Implementação isolada na branch `feat/tecnicos-vinculos-20261124`, ainda sem publicação. Nenhum save real, conta ou banco de produção foi modificado. Git pull do início não conseguiu acessar a rede do ambiente; base local observada `a41bdb29`. Reconciliar com main antes de publicar.
+Implementação na branch `feat/tecnicos-vinculos-20261124`, publicada junto dos lotes2/3 no commit `1c34e9776a04d95125aca70e8c60d3a03347dbd9`. Nenhum save real, conta ou banco de produção foi modificado. Git pull do início não conseguiu acessar a rede do ambiente; base local observada `a41bdb29`. Base remota conferida antes da publicação; GitHub Pages confirmou sucesso.
 
 Reverter o commit retira a ampliação e a preferência de distribuição. Depois de saves usarem técnicos novos, não remover seus nomes do catálogo: conservar registros para leitura dos saves e desligar apenas a distribuição nova. Reverter somente o catálogo pode deixar treinadores contratados sem ficha.

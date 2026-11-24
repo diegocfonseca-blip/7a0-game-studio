@@ -1,3 +1,9 @@
+## 24/11 — TÉCNICOS E FORMAÇÕES PUBLICADOS PARA TODOS
+
+- Publicação autorizada por Diego e concluída no commit de produto `1c34e9776a04d95125aca70e8c60d3a03347dbd9`. [GitHub Pages: compilação e publicação concluídas com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45487765725). Catálogo225,120 técnicos acrescentados nos três lotes e repertórios2/3/4/5/6 por categoria; fichas/contratos existentes preservados.
+- Versão compilada da raiz abriu em390/1440, HTTP200 e nenhuma exceção de página. Catálogo, oito largadas, mercado tradicional,3-5-2 e compilação completa passaram. Nenhuma conta ou save real foi modificado e não houve migração.
+- Rotina do deploy preservou1005 arquivos antigos da raiz e1004 do link compatível; sem recarga automática. O domínio público continua bloqueado na rede do ambiente, portanto não se declarou teste ao vivo em conta real. Pesquisa de vínculos de todos os clubes ainda está aberta. [Fichas, fontes e limites](tecnicos-lotes-2-3-20261124.md).
+
 ## 24/11 — PUBLICAÇÃO DOS TÉCNICOS AUTORIZADA
 
 - Diego autorizou publicar os três lotes e o aumento de formações:225 técnicos, categorias/repertórios prontos,2/3/4/5/6 opções e formação da casa, com fichas/contratos antigos preservados. Inclui o ajuste de herança da formação também para CPUs na largada do Brasil Oficial.
