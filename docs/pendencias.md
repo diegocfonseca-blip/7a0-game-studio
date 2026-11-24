@@ -1,3 +1,9 @@
+## 24/11 — CORREÇÃO URGENTE: CENTRAL SEM BOTÕES APÓS A PARTIDA
+
+- Diego relatou que um usuário do Grêmio joga e, ao voltar à Central, não encontra Placar / Campo2D / Campo3D. Reproduzido na T2/R4: Copa do Brasil e preliminar continental na mesma semana, ambas sem o clube; a fila processava a primeira e parava na segunda porque o efeito não observava `copaRound`.
+- Corrigida a dependência do efeito. Processa as páginas sem participação e continua parando quando há jogo do usuário. Não alterou arte, regras, planos, saves, motor, resultados ou início manual. Testes390/1440, conta gratuita/paga, volta à Central, ações Placar/2D e fase própria de copa passaram; build completo passou.
+- Conta informada existe, sem save na nuvem disponível para ler; não se inferiu perda local nem se alterou a conta. [Causa, reprodução, limites e reversão](central-botoes-20261124.md). Correção isolada de travamento público; publicar sem forçar recarga. A auditoria dos saves continua separada, sem implementação/publicação nesta entrega.
+
 ## 24/11 — MERCADO E CENAS DA CENTRAL: VISUAL APROVADO, PUBLICAÇÃO AUTORIZADA
 
 - Diego aprovou as capturas reais em celular/desktop e pediu “Publique então”. Mercado separado em Sondar / Vender / Contratos / Negócios; oito clubes por página, escudos existentes, resumo de jogadores com restrição e motivos ao abrir. Preservadas as ações e as regras de sondagem/venda/contratos.

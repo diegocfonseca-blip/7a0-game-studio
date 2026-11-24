@@ -12481,7 +12481,9 @@ export function PyramidSeasonScreen() {
     if (state.copaXiSeason !== calSn && mgrMe) dispatch({ type: 'FREEZE_COPA_XI', season: calSn, xi: { [youId]: myXI.map(c => c.id) } }) // 🔒 a Copa não muda mais depois da 1ª fase
     if (fluxoCentral) setCopaOk(chaveCopa) // 🧭 21/11: a forma de ver a Copa da quarta JÁ foi escolhida na Central — sem isto a fase travava e a Central perguntava de novo
     setCopaMidOn(true)
-  }, [copaPendente, copaMidOn, calFase, calI, meNaFaseCopa, state.copaXiSeason, calSn, jogoOk]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Duas competições podem ter fases na mesma semana. Ao passar uma fase sem o
+  // usuário, as flags acima continuam iguais; a página precisa acordar a fila.
+  }, [copaPendente, copaRound, copaMidOn, calFase, calI, meNaFaseCopa, state.copaXiSeason, calSn, jogoOk]) // eslint-disable-line react-hooks/exhaustive-deps
   // o automático só joga a próxima rodada quando a semana acabou (ou quando a pessoa apertou ⏩ Pular) e a Copa da quarta já foi
   const calDiasOk = !calOn || round === 0 || round >= 38 || (calI >= calTotal && !copaPendente && !copaMidOn)
   // 🏟️ 25/10 (Diego: "chega o dia do jogo e os locais do mapa ficam mais cheios… o estádio também"): no mapa 3D (conta de prévia),
