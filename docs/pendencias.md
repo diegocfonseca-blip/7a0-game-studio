@@ -15438,3 +15438,10 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   Agora `chancesDoRelato` (chances.ts) tira do relato oficial as defesas (encaixa/rebote) e a trave, e o gol do relato solta a bola pra rede
   (`golPalco`). Conferido na bancada: defendeu e gol animando.
 - Capa da Central (calendario-ui `.ll-calp .vs`): escudos centralizados em cima do nome nas duas pontas (prints 390 e 1280 em scripts/mockups/central-capa-*.png).
+
+## 24/11 — ⚔️ Táticas novas na Liga Draft (no branch, ESPERANDO OK do Diego)
+- Pedido dele: *"essas táticas agora também tivessem disponíveis lá no modo draft… na área do elenco, onde faz a substituição… poderia também ter a parte das táticas"*.
+- Feito: a Liga Draft (`minhaLigaDraft`) entrou em `footballPlanRoom` (postura · caminho do ataque · marcação/pressão alta · ritmo, salvo pelo dono, vale do próximo jogo). A ordem AO VIVO (teste) continua fora (`footballTestRoom`).
+- Onde aparece: tela do jogo (o mesmo painel escuro das salas, via `OwnerTactics`) e aba Elenco, embaixo da formação (`TaticasLigaDraft` em `minha-escalacao.tsx`). Sem o visual escuro, vira caixa creme.
+- Prints: `scripts/mockups/taticas-liga-draft-*.png` · bancada `node scripts/teste-taticas-draft/print.mjs`.
+- Ao publicar: linha em `novidades.ts` (PT+EN). Reverter = voltar a linha de `footballPlanRoom` (o plano salvo some sozinho; jogo já jogado não muda).

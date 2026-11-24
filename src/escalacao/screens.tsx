@@ -112,6 +112,8 @@ import { LigaHub, gravaTemporadaSala, type ResultadoHumanoEntrada, type TituloSa
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { EscalacaoMinha } from './minha-escalacao' // 📋🏆 Minha Liga Draft (01/11)
+import { TaticasLigaDraft } from './taticas-liga-draft' // ⚔️ 24/11
+import { footballPlanRoom } from './football-live-tactics'
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { useOnlineRoomPresentation as useOwnerPresentation } from './presentation-release'
@@ -9031,7 +9033,7 @@ export function EscSeason() {
               </span>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          {state.minhaLigaDraft && footballPlanRoom(state) ? <TaticasLigaDraft value={myTactic} onChange={t => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })} /> /* ⚔️ 24/11: Liga Draft com as táticas novas */ : <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
                 className={(`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaPreview ? ' ll31-tactic' : ''}`)+" ov3-surface"}
@@ -9040,7 +9042,7 @@ export function EscSeason() {
                 {cinemaPreview && <small>{t === 'retranca' ? LS('Defesa + · Ataque −', 'Defence + · Attack −') : t === 'ataque' ? LS('Ataque + · Defesa −', 'Attack + · Defence −') : LS('Sem alteração', 'No change')}</small>}
               </button>
             ))}
-          </div>
+          </div>}
           {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
               progresso + o textão "temporada rolando sozinha" (decorativo, a
               Copa nunca teve isso e ficava mais poluído aqui). */}
