@@ -194,7 +194,7 @@ import { mascoteDaSala, estouEmSala } from './mimos'
 import { playDia, playApitoCurto, playFlash } from './sound'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA, playChute, playDefesa, playQuase, playSubiu, playCaiu, playCaixa } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
-import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { chancesDoJogo, chancesDoRelato, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
 import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
@@ -4454,6 +4454,18 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const provaOficial=useMemo(()=>!basket&&presidentFieldAccount&&elencos?.m2?prepararReplayOficial(elencos.m2,goals,idiomaOficial):null,[basket,presidentFieldAccount,elencos?.m2,goals,idiomaOficial])
   const relatoOficial=useRelatoPartidaOficial(provaOficial?.valid?provaOficial.relato:null,{id:stadiumMatch?.id??`${roundKey}:${homeName}:${awayName}`,minute:min,minuteMs:officialMinuteMs,paused:atHalf||!!pausado,finished:!!finished||min>=93})
   const done = min >= 93
+  // ⚽🥅 24/11: no motor novo o gol entra no placar pelo relato — e agora a bolinha do golzinho também voa pra rede junto
+  const [golPalco, setGolPalco] = useState<{ side: 'h' | 'a'; key: number } | null>(null)
+  const golsRelato = relatoOficial?.goalCount ?? 0
+  const golsRelatoAntes = useRef(golsRelato)
+  useEffect(() => {
+    const antes = golsRelatoAntes.current; golsRelatoAntes.current = golsRelato
+    if (!relatoOficial || !provaOficial || golsRelato <= antes) return
+    const g = provaOficial.relato.goals[golsRelato - 1]; if (!g) return
+    setGolPalco({ side: g.home ? 'h' : 'a', key: 7000 + golsRelato })
+    const t = setTimeout(() => setGolPalco(null), CHANCE_MS / fieldSpeed)
+    return () => clearTimeout(t)
+  }, [golsRelato]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
   // resultado exibido divergia da pontuação: vitória virava empate etc.).
@@ -4647,7 +4659,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // decide quantas cabem é o `roundMs` (11 s no online = 1 por lado; carreira, mais).
   // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
-  const chances = useMemo(() => (basket || !cinematic || apresentarMotorOficial) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, apresentarMotorOficial, roundKey, homeName, awayName, goals, incidentRoundMs])
+  // ⚽ 24/11: no motor novo a bola chuta com os lances DO JOGO (defesas e trave do relato oficial) — antes ficava parada no meio
+  const chances = useMemo(() => (basket || !cinematic) ? [] : apresentarMotorOficial ? (provaOficial?.valid ? chancesDoRelato(provaOficial.relato.events) : []) : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, apresentarMotorOficial, provaOficial, roundKey, homeName, awayName, goals, incidentRoundMs])
   // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
   // ⚽ 26/10: com a escalação na mão a rádio narra os toques na bola, com o nome de quem encosta nela
   const radioComNomes = !!(elencos?.casa?.length && elencos?.fora?.length)
@@ -4907,6 +4920,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
     //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
     palco={voo ? { side: voo.side, speed:voo.speed, clock:voo.clock, impactMs:voo.plan?.durationMs, shotStartMs:voo.plan?.sequence?.shotStartMs, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }
+      : golPalco ? { side: golPalco.side, speed: fieldSpeed, fim: 'gol', key: golPalco.key, veredito: vereditoDaChance('gol', emIngles) }
       : lance ? { side: lance.side, speed:lance.speed, clock:lance.clock, impactMs:lance.plan?.durationMs, shotStartMs:lance.plan?.sequence?.shotStartMs, fim: lance.fim, key: lance.key, veredito: lance.plan?.finishing?.surface==='travessao'?tr('NO TRAVESSÃO!','OFF THE CROSSBAR!'):vereditoDaChance(lance.fim, emIngles) } : null}
     stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo

@@ -146,6 +146,8 @@ const CSS_PROX = `
 .ll-calp .k{display:flex;justify-content:space-between;gap:8px;font:800 11px Oswald,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FFC400}
 .ll-calp .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin:10px 0 4px;text-align:center}
 .ll-calp .vs b{font:800 17px/1.05 Oswald,sans-serif;color:#FFC400;text-transform:uppercase}
+.ll-calp .vs>div{display:flex;flex-direction:column;align-items:center;min-width:0} /* 24/11 (print do Diego): escudo centralizado em cima do nome, nas duas pontas */
+.ll-calp .vs>div>.nm{max-width:100%;overflow-wrap:anywhere}
 .ll-calp .nm{font:800 14px/1.1 Oswald,sans-serif;text-transform:uppercase;margin-top:6px}
 .ll-calp .nm small{display:block;font:700 10px Inter,Arial,sans-serif;text-transform:none;color:#b9ad8e;margin-top:2px}
 .ll-calp .tm{height:5px;background:#3a3122;border-radius:5px;margin-top:8px;overflow:hidden}.ll-calp .tm i{display:block;height:100%;background:#FFC400;transition:width 2.8s linear}

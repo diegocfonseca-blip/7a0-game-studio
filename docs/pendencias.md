@@ -15291,3 +15291,9 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Quem já tinha save sem conta: continua abrindo; na próxima vez que for salvar, o 🔒 Salvar abre a conta grátis ALI MESMO (`JanelaConta`,
   sem sair da carreira) com "Crie sua conta grátis pra salvar sua carreira". Criou a conta → o botão vira o Salvar normal.
 - Faixa da Central (visual antigo) ganhou o estado 'sem_conta'. A bancada local não simula "sem conta" (fica como "ainda não sabe"), então não deu print.
+
+## ⚽ 24/11 — Placar rápido da carreira: bolinha parada + capa da Central desalinhada (prints do Diego) — no BRANCH, esperando "publica"
+- Causa da bola parada: com o motor novo (`apresentarMotorOficial`) as chances sorteadas e o voo do gol saíam de cena e nada entrava no lugar.
+  Agora `chancesDoRelato` (chances.ts) tira do relato oficial as defesas (encaixa/rebote) e a trave, e o gol do relato solta a bola pra rede
+  (`golPalco`). Conferido na bancada: defendeu e gol animando.
+- Capa da Central (calendario-ui `.ll-calp .vs`): escudos centralizados em cima do nome nas duas pontas (prints 390 e 1280 em scripts/mockups/central-capa-*.png).
