@@ -1,5 +1,6 @@
 /* 🏆 Campeão "cinema" (24/11) — ver campeao-cinema.tsx */
-.cc-cinema{position:fixed;inset:0;z-index:99995;overflow:hidden;background:#000;color:#fff;text-align:center;font-family:Oswald,sans-serif;cursor:pointer}
+/* z-index 100090: acima da festa do campeão (.ov3-celebration 100040), da carta do campeão (100030) e das janelas da sala (até 100070) — com 99995 ela tocava ESCONDIDA atrás delas (print do Diego, 24/11) */
+.cc-cinema{position:fixed;inset:0;z-index:100090;overflow:hidden;background:#000;color:#fff;text-align:center;font-family:Oswald,sans-serif;cursor:pointer}
 .cc-bg{position:absolute;inset:0;background-size:cover;background-position:72% 50%;background-repeat:no-repeat;transform-origin:72% 45%;animation:cc-cam 9.6s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes cc-cam{0%{transform:scale(1.05);filter:var(--cc-filtro) brightness(.35)}25%{transform:scale(1.3);filter:var(--cc-filtro) brightness(.55)}32%{filter:var(--cc-filtro) brightness(1.6)}40%{transform:scale(1.6);filter:var(--cc-filtro) brightness(1)}100%{transform:scale(1.72);filter:var(--cc-filtro) brightness(.8)}}
 .cc-veu{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0) 35%,rgba(0,0,0,0) 60%,rgba(0,0,0,.75))}
