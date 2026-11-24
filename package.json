@@ -94,6 +94,7 @@
     "bafo": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-bafo2.mts",
     "save-velho": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-save-velho.mts",
     "343": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-343.mts",
+    "352z": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-352z.mts",
     "lotacao": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-lotacao-jogo.mts",
     "envelope-unico": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-envelope-unico.mts",
     "congela": "node scripts/testa-congela.mjs",

@@ -35,7 +35,8 @@ import { Escudo, nomeLimpo } from './escudos'
 import { newestTeamName } from './data'
 import { MascoteMini } from './mascote-atravessa'
 import { tr } from './lang'
-import { GalaHelicoptero, HELI_MS } from './gala-helicoptero'
+import { GalaHelicoptero } from './gala-helicoptero' // a 1ª versão fica guardada pra voltar (é só trocar a linha do Neymarzetti abaixo)
+import { GalaNeymarzetti, NEYMARZETTI_MS } from './gala-neymarzetti'
 import { GalaK9, K9_MS } from './gala-k9'
 import { GalaArruda, ARRUDA_MS } from './gala-arruda'
 import { GalaFabulous, FABULOUS_MS } from './gala-fabulous'
@@ -57,6 +58,7 @@ import { GalaPaizao, PAIZAO_MS } from './gala-paizao'
 import { GalaCabritiiin, CABRITIIIN_MS } from './gala-cabritiiin'
 import { GalaDuarte, DUARTE_MS } from './gala-duarte'
 import { GalaPirituba, PIRITUBA_MS } from './gala-pirituba'
+import { GalaBetasso, BETASSO_MS } from './gala-betasso'
 import { GalaObelisko, OBELISKO_MS } from './gala-obelisko'
 import { GalaCabuloso, CABULOSO_MS } from './gala-cabuloso'
 
@@ -70,7 +72,7 @@ export const GALA_MS = 5600
 // 📣 14/10 (Diego): o CANTO DA TORCIDA vale nos dois lugares — Carreira (jogos) e online (a gala). Quem tem canto
 // (`AMBIENTE_CARREIRA_POR_EMAIL`, sound.ts) e gala única: a gala toca o canto com `playMp3Gala` (ver `gala-arruda.tsx`).
 const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> = {
-  Neymarzetti: { ms: HELI_MS, Show: GalaHelicoptero },
+  Neymarzetti: { ms: NEYMARZETTI_MS, Show: GalaNeymarzetti }, // 🚁🦇 versão 2 (23/11): cidade à noite, desce girando, pousa de joelhos, morcegos e faixa. Voltar = { ms: HELI_MS, Show: GalaHelicoptero }
   'K9 FC': { ms: K9_MS, Show: GalaK9 }, // 🧊👑 O Rei Gelado (09/10)
   'Tricolor do Arruda FC': { ms: ARRUDA_MS, Show: GalaArruda }, // 🐍 a cobra sobe da arquibancada (14/10, Fundador)
   'ComVerissimo FC': { ms: COMVERISSIMO_MS, Show: GalaComverissimo }, // 🎬🧢 no formato dos vídeos dele: parede de camisas, notícia, legenda amarela (15/10, Fundador)
@@ -89,6 +91,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'Double Duo FC': { ms: DOUBLEDUO_MS, Show: GalaDoubleDuo }, // 👑💜 O Save: o jogo de manager abre, a escalação se desenha, os dois D viram o escudo e o Streamer sobe (09/11, Fundador nº100)
   'Cabuloso JP': { ms: CABULOSO_MS, Show: GalaCabuloso }, // 🦊👑 A Raposa Coroada: as 5 estrelas do Cruzeiro do Sul acendem, a sombra na lua, a coroa cai, pé na bola, o escudo (21/11, Fundador nº104)
   'Obelisko FC': { ms: OBELISKO_MS, Show: GalaObelisko }, // 👁️⚡ A Invocação: 3 cartas viram tributo, o obelisco racha, O Atormentador se ergue, ATK/DEF 4000, o soco trinca a tela (18/11, Fundador nº103)
+  'Sport Clube Betasso': { ms: BETASSO_MS, Show: GalaBetasso }, // 🎸👑 o show do Beto: palco de luau, violão tocando, gole na lata, chute, listras grená e branco, escudo (23/11, Fundador nº106)
   'Pirituba SF': { ms: PIRITUBA_MS, Show: GalaPirituba }, // 🐸👑 o pulo do Pererecão: 3 pulos de vitória-régia, cai na bola, faixas diagonais azul e rosa, escudo com coroa (23/11, Fundador nº105)
   'Duarte FC': { ms: DUARTE_MS, Show: GalaDuarte }, // 🧤🐓 São Victor: noite de estádio, pênalti contra, O Paredão defende com o pé, listras preto e branco, escudo com estrela dourada (18/11, Fundador nº102)
   'Cabritiiin F.C': { ms: CABRITIIIN_MS, Show: GalaCabritiiin }, // 🐐☀️ Direto da Terra do Sol: o sol nasce no mar, jangada, listras azul e branca, o Cabritiiin desliza, brilho nos óculos, casco racha o chão (13/11, Fundador nº101)

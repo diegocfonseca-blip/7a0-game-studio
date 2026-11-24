@@ -8,6 +8,10 @@ import {criarAtoresBairro} from './presidencia-bairro-atores-3d'
 /** Customers are decorative city residents, not seats/fans, purchases or income. */
 export function criarComercioCidade(scene:THREE.Scene){
  const root=new THREE.Group();root.name='city-dealership-customers';scene.add(root)
+ // 🚗 23/11 (print do Diego: carro com motorista no MEIO DO CAMPO, no mapa e no jogo 3D): o carro dos clientes nasce na origem (0,0) =
+ // centro do campo e só anda no `update`. Com o bairro compacto o update nunca roda, e o grupo nascia VISÍVEL antes do `configure`.
+ // Agora nasce escondido: só aparece quando alguém liga (`configure({enabled:true})`).
+ root.visible=false
  const floor=PLANTA_VADICO.floor,point=(x:number,z:number):CityPoint=>pontoVadico({x,z,y:floor})
  // The centre aisle between the real stock cars leads through the actual open
  // door. Separate inbound/outbound lanes fit inside its 3.2 m clear width.

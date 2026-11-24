@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { useVerifiedPresentationEmail, ownerPresentationEmail } from './online-preview'
+import { useVerifiedPresentationEmail } from './online-preview'
 import { footballMatchPilotEmail, footballMatchPilotScope, footballMatchAdScope, type FootballMatchPilotScope } from './football-match-pilot-policy'
 import { tr } from './lang'
 import './football-match-pilot.css'
@@ -36,7 +36,7 @@ export function useFootballMatchPilotAccess(state: FootballMatchPilotScope) {
       try { localStorage.setItem(preferenceKey(email), next ? '1' : '0') } catch { /* Appearance remains reversible in memory. */ }
       preferenceListeners.forEach(fn=>fn())
   }, [email])
-  return {available,enabled,toggle,holo:available&&ownerPresentationEmail(email)}
+  return {available,enabled,toggle,holo:available} // 💜 23/11 (Diego): o roxo brilhante das abas vale pra todo mundo, não só na conta dele
 }
 export function useFootballMatchPilot(state: FootballMatchPilotScope & {roomId?:string}) {
   const access=useFootballMatchPilotAccess(state)

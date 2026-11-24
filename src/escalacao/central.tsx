@@ -1,4 +1,5 @@
 import {useCareerVisualV2} from './career-visual-v2'
+import { JanelaConta } from './conta'
 import {CareerCentralGuide} from './career-start-guide'
 // ─── 📺 CENTRAL LEGENDS — a home do modo carreira (03/10) ────────────────────
 //
@@ -210,7 +211,7 @@ export type CentralProps = {
   /** 🔨 21/11 (janela nova): sondar e vender moram no Mercado e os contratos têm tela própria — o aviso diz isso */
   janelaNova?: boolean
 }
-export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d'; ha?: number; rodadas?: number; onClick: () => void
+export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d' | 'falhou' | 'sem_conta'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
   onCraque?: () => void }
 
@@ -231,6 +232,8 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
       case 'salvo_7d': { const d = s.diasTeste ?? null; return [d != null ? t(`✅ Salvo · 🎁 teste grátis: falta${d === 1 ? '' : 'm'} ${d} dia${d === 1 ? '' : 's'}`, `✅ Saved · 🎁 free trial: ${d} day${d === 1 ? '' : 's'} left`) : t('✅ Salvo', '✅ Saved'), VERDE] }
       case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
+      case 'sem_conta': return [t('🔒 Crie sua conta grátis pra salvar sua carreira', '🔒 Create your free account to save your career'), '#FFB020']
+      case 'falhou': return [t('⚠️ Não conseguimos salvar agora · nada foi perdido · toque pra tentar de novo', '⚠️ Could not save right now · nothing was lost · tap to try again'), AMBAR]
       case 'so_aparelho': return [t('📱 Esta carreira salva só neste aparelho · ☁️ a nuvem é do ⭐ Craque', '📱 This career saves only on this device · ☁️ the cloud is for ⭐ Star'), AMBAR]
       case 'salvo_aparelho': return [t('✅ Salvo no aparelho · pra guardar na nuvem e jogar em outro celular: ⭐ Craque', '✅ Saved on this device · to keep it in the cloud and play on another phone: ⭐ Star'), VERDE]
       case 'deslogado': return [t('📱 Só no aparelho · entre na conta pra guardar na nuvem', '📱 Device only · sign in to keep it in the cloud'), CINZA]
@@ -243,24 +246,26 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   // ☁️ 19/10 (Diego): conta sem plano apertou Salvar → abre os planos (a faixinha que sumia em 2 s parecia bug)
   const [planos, setPlanos] = useState(false)
   const [aviso7, setAviso7] = useState(false)
+  const [conta, setConta] = useState(false) // 👤 24/11: sem conta, Salvar abre a conta grátis ali mesmo
   // ✕ 29/10 (Diego: "fechou, não volta"): a janela que abre SOZINHA depois do salvamento aparece uma vez por aviso; o botão Salvar
   // de quem não tem plano continua abrindo (aí foi a pessoa que pediu)
   useEffect(() => {
     if (s.estado === 'salvo_aparelho' && !avisoFechado('nuvem-aparelho')) { fechaAviso('nuvem-aparelho'); setPlanos(true) }
     if (s.estado === 'salvo_7d' && !avisoFechado('teste-5d')) { fechaAviso('teste-5d'); setAviso7(true); setPlanos(true) }
   }, [s.estado])
-  const salvar = () => { if (s.estado === 'bloqueado') { setPlanos(true); return } const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
+  const salvar = () => { if (s.estado === 'sem_conta') { setConta(true); return } if (s.estado === 'bloqueado') { setPlanos(true); return } const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
   return (<>
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
       <span style={{ ...OSW, fontSize: 11, letterSpacing: '.05em', color: cor, lineHeight: 1.25, minWidth: 0 }}>{texto}</span>
       <span style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
       {s.onCraque && <button onClick={s.onCraque} style={{ ...OSW, fontSize: 11, letterSpacing: '.04em', color: '#fff', background: '#7C3AED', border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 9px', boxShadow: '2px 2px 0 #000', cursor: 'pointer' }}>{t('⭐ Craque', '⭐ Star')}</button>}
       <button onClick={salvar} disabled={ocupado} style={{ ...OSW, flex: '0 0 auto', fontSize: 12, letterSpacing: '.04em', color: '#0C0C0C', background: ocupado ? '#9A9A9A' : G_OURO, border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 12px', boxShadow: '2px 2px 0 #000', cursor: ocupado ? 'default' : 'pointer' }}>
-        {s.estado === 'bloqueado' ? t('🔒 Salvar', '🔒 Save') : t('💾 Salvar', '💾 Save')}
+        {s.estado === 'bloqueado' || s.estado === 'sem_conta' ? t('🔒 Salvar', '🔒 Save') : t('💾 Salvar', '💾 Save')}
       </button>
       </span>
     </div>
     {planos && <JanelaNuvemPlanos travado={s.estado === 'bloqueado'} aviso7={aviso7} onClose={() => { setPlanos(false); setAviso7(false) }} />}
+    {conta && <JanelaConta titulo={t('💾 Salvar sua carreira', '💾 Save your career')} contexto={t('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')} comecarEmCriar onPronto={() => setConta(false)} onFechar={() => setConta(false)} />}
   </>)
 }
 
@@ -340,6 +345,31 @@ export function CentralCarreira(p: CentralProps) {
   const tabelaCurta = p.tabela // 🖥️ desktop: inteira (Diego 03/10: *"ficaria melhor a tabela completa"*)
   const noCelular = new Set(corta(5).map(x => x.name))
 
+  // 🗓️ AGENDA = os próximos jogos do seu clube (18/11) → abre Jogos. 📱 23/11 (Diego): no CELULAR ela fica logo embaixo da escolha
+  // de como ver o jogo, em cima do Raio-X (`ll-c-agenda-cel`); no computador continua no lugar de sempre (`ll-c-agenda ll-c-agenda-pc`).
+  const agendaCard = (cls: string) => (<>
+          {!p.agendaVelha && p.agenda.length > 0 && <div className={`ll-central-card ${cls}`} style={{ background: CREME }}>
+            <Cabecalho titulo={t('🗓️ Próximos jogos', '🗓️ Upcoming matches')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
+            <div className="ll-central-agenda-lista">
+            {p.agenda.map((a, i) => { const d = new Date(a.dia); const dow = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); const mes = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { month: 'short', timeZone: 'UTC' }).replace('.', ''); return (
+              <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 9, alignItems: 'center' }}>
+                <span style={{ width: 44, flex: 'none', textAlign: 'center', border: `2px solid ${INK}`, borderRadius: 8, background: i === 0 ? GOLD : '#fff', lineHeight: 1.05, padding: '3px 0' }}>
+                  <small style={{ ...OSW, display: 'block', fontSize: 9, letterSpacing: '.06em' }}>{dow}</small>
+                  <b style={{ ...OSW, display: 'block', fontSize: 16 }}>{d.getUTCDate()}</b>
+                  <small style={{ ...OSW, display: 'block', fontSize: 9 }}>{mes}</small>
+                </span>
+                <Escudo nome={a.adv} size={26} />
+                <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0, flex: 1 }}>
+                  <b style={{ ...OSW, fontSize: 13.5, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.adv}</b>
+                  <small style={{ color: '#555', fontWeight: 700, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{en ? a.comp[1] : a.comp[0]}{a.fase ? ` · ${a.fase}` : ''}</small>
+                  {a.onde && <small style={{ color: '#7a5a1e', fontWeight: 800, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {a.casa ? t('no seu estádio', 'at your ground') + ' · ' : ''}{a.onde}</small>}
+                </span>
+                {a.casa != null && <Chip bg="#fff">{a.casa ? t('🏟️ casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
+              </div>
+            ) })}
+            </div>
+          </div>}
+  </>)
   return (
     <div className={`ll-central${p.bb ? ' ll-central-bb' : ''}`}>
       <div className="ll-central-topo">
@@ -415,6 +445,7 @@ export function CentralCarreira(p: CentralProps) {
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
           {/* 💾 23/11 (Diego: "não quero que tenha esse botão de salvar… já que já tem lá embaixo"): a faixa de Salvar saiu do topo da Central nova */}</div>}
+          {agendaCard('ll-c-agenda-cel')}
           {p.raioX && <CartaoRaioX r={p.raioX} />}
           {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
           <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
@@ -499,28 +530,7 @@ export function CentralCarreira(p: CentralProps) {
             ))}
             </div>
           </div>}
-          {/* 🗓️ AGENDA = os próximos jogos do seu clube (18/11) → abre Jogos */}
-          {!p.agendaVelha && p.agenda.length > 0 && <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
-            <Cabecalho titulo={t('🗓️ Próximos jogos', '🗓️ Upcoming matches')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
-            <div className="ll-central-agenda-lista">
-            {p.agenda.map((a, i) => { const d = new Date(a.dia); const dow = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); const mes = d.toLocaleDateString(en ? 'en-GB' : 'pt-BR', { month: 'short', timeZone: 'UTC' }).replace('.', ''); return (
-              <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 9, alignItems: 'center' }}>
-                <span style={{ width: 44, flex: 'none', textAlign: 'center', border: `2px solid ${INK}`, borderRadius: 8, background: i === 0 ? GOLD : '#fff', lineHeight: 1.05, padding: '3px 0' }}>
-                  <small style={{ ...OSW, display: 'block', fontSize: 9, letterSpacing: '.06em' }}>{dow}</small>
-                  <b style={{ ...OSW, display: 'block', fontSize: 16 }}>{d.getUTCDate()}</b>
-                  <small style={{ ...OSW, display: 'block', fontSize: 9 }}>{mes}</small>
-                </span>
-                <Escudo nome={a.adv} size={26} />
-                <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0, flex: 1 }}>
-                  <b style={{ ...OSW, fontSize: 13.5, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.adv}</b>
-                  <small style={{ color: '#555', fontWeight: 700, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{en ? a.comp[1] : a.comp[0]}{a.fase ? ` · ${a.fase}` : ''}</small>
-                  {a.onde && <small style={{ color: '#7a5a1e', fontWeight: 800, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📍 {a.casa ? t('no seu estádio', 'at your ground') + ' · ' : ''}{a.onde}</small>}
-                </span>
-                {a.casa != null && <Chip bg="#fff">{a.casa ? t('🏟️ casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
-              </div>
-            ) })}
-            </div>
-          </div>}
+          {agendaCard('ll-c-agenda ll-c-agenda-pc')}
           </div>
         </div>
 

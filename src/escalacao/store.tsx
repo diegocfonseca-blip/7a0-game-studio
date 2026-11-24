@@ -8625,13 +8625,13 @@ function proximoDoDraft(s: EscState): void {
   const d = s.draft
   if (!d) return
   d.idx++
-  // 📋🏆 Minha Liga Draft: a vez do próximo começa PARADA, esperando o ✋ pronto dele (o relógio de 45 s só corre depois)
+  // 📋🏆 Minha Liga Draft: a vez do próximo começa na tela das 2 escolhas e o relógio de 60 s JÁ corre (23/11, Diego)
   if (d.idx < d.ordem.length) {
     d.inicioRevela = undefined
     // 🪑 19/11: se quem está na vez saiu/caiu (a máquina toca o time), a vez NÃO fica parada esperando o ✋ dele: o relógio já
-    // corre (45 s). Se ele voltar a tempo (RETOMA_TIME), escolhe; senão perde a vez, igual a quem deixa o tempo passar.
+    // corre. Se ele voltar a tempo (RETOMA_TIME), escolhe; senão perde a vez, igual a quem deixa o tempo passar.
     const presente = !!s.managers.find(m => m.id === d.ordem[d.idx] && m.isHuman)
-    if (s.minhaLigaDraft && presente) { d.fase = 'aguarda'; d.prazo = 0 } else { d.fase = 'escolha'; d.prazo = Date.now() + (s.minhaLigaDraft ? DRAFT_ESCOLHA_MINHA_MS : DRAFT_ESCOLHA_MS) }
+    if (s.minhaLigaDraft && presente) { d.fase = 'aguarda'; d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS } else { d.fase = 'escolha'; d.prazo = Date.now() + (s.minhaLigaDraft ? DRAFT_ESCOLHA_MINHA_MS : DRAFT_ESCOLHA_MS) }
     return
   }
   if (s.minhaLigaDraft) { mldDepoisDaFila(s); return }
@@ -11186,7 +11186,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           const ordem = (dc.ordem ?? []).filter(id => humanos.some(h => h.id === id))
           if (ordem.length && dc.temporada != null && dc.draftFeito !== dc.temporada) {
             s.draft = s.minhaLigaDraft
-              ? { temporada: dc.temporada, ordem, idx: 0, fase: 'aguarda', prazo: 0, picks: [], somaTemporada: false }
+              ? { temporada: dc.temporada, ordem, idx: 0, fase: 'aguarda', prazo: Date.now() + DRAFT_ESCOLHA_MINHA_MS, picks: [], somaTemporada: false } // ⏱️ 23/11: os 60 s já correm
               : { temporada: dc.temporada, ordem, idx: 0, fase: 'escolha', prazo: Date.now() + DRAFT_ESCOLHA_MS, picks: [], somaTemporada: false }
             s.screen = 'draft'
           }
@@ -14913,11 +14913,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'DRAFT_PRONTO': {
-      // ✋ só quem está NA VEZ, e só enquanto a vez está parada esperando — repetido não reinicia o relógio
+      // ✋ só quem está NA VEZ, e só na tela das 2 escolhas. ⏱️ 23/11: o relógio NÃO reinicia — é o MESMO da vez (continuação, ordem do
+      // Diego). Só a vez que chegou parada (save de antes de 23/11, prazo 0) ganha os 60 s aqui.
       const d = s.draft
       if (!d || !s.minhaLigaDraft || s.screen !== 'draft' || d.fase !== 'aguarda' || d.ordem[d.idx] !== action.mgrId) return state
       d.fase = 'escolha'
-      d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS
+      if (!(d.prazo > 0)) d.prazo = Date.now() + DRAFT_ESCOLHA_MINHA_MS
       return s
     }
     case 'DRAFT_PASSAR': {
@@ -14942,7 +14943,10 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'DRAFT_TICK': {
       const d = s.draft
-      if (!d || s.screen !== 'draft' || d.fase === 'aguarda' || d.fase === 'prontos' || d.fase === 'escala' || Date.now() < d.prazo) return state
+      if (!d || s.screen !== 'draft' || (d.fase === 'aguarda' && !(d.prazo > 0)) || d.fase === 'prontos' || d.fase === 'escala' || Date.now() < d.prazo) return state
+      // ⏱️ 23/11 (Diego: *"o tempo é só pra deixar claro que tem tempo, mas quem manda é o host… ele pode até depois do tempo deixar ainda o
+      // cara escolher"*): na Minha Liga Draft o fim dos 60 s NÃO tira a vez de ninguém — só o ⏭ do dono pula. O relógio é aviso.
+      if ((d.fase === 'aguarda' || d.fase === 'escolha') && s.minhaLigaDraft) return state
       if (d.fase === 'leilao') {
         // 🔨 martelo de todos os lotes de uma vez, na ordem; o caixa de quem ganha um lote já desconta pro próximo
         const caixa: Record<number, number> = {}
@@ -14972,12 +14976,6 @@ function reducerBase(state: EscState, action: Action): EscState {
         const lote = d.lotes?.[d.igualarIdx ?? -1]
         if (lote) lote.igualar = false
         mldProximoIgualar(s)
-        return s
-      }
-      if (d.fase === 'escolha' && s.minhaLigaDraft) {
-        // 📋🏆 Minha Liga Draft: acabou o tempo = PERDE A VEZ (o jogo não escolhe por ninguém — ordem do Diego)
-        d.pulados = [...(d.pulados ?? []), d.ordem[d.idx]]
-        proximoDoDraft(s)
         return s
       }
       if (d.fase === 'escolha') {
@@ -16214,8 +16212,11 @@ try {
 } catch { /* sem cliente (bancada): segue salvando */ }
 /** 🇧🇷 `oficial` (18/11, Diego: *"pode salvar sim… sem plano salva apenas no celular, não salva na nuvem"*): no Brasil Oficial o
  *  APARELHO salva sempre — sem o teste de 5 dias. A nuvem fica só pra quem tem plano (`savePyramidCloud`). */
+/** 👤 24/11 (Diego): sem conta, NENHUMA carreira salva — nem a de sempre, nem o Brasil Oficial. O jogo pede a conta grátis
+ *  (que abre ali mesmo, sem sair da carreira). `true` só quando o login diz, sem dúvida, que não tem ninguém. */
+export function salvarSemConta(): boolean { return authUidSalvar === null }
 export function salvarBloqueado(oficial = false): boolean {
-  if (oficial) return false
+  if (oficial) return authUidSalvar === null // 👤 24/11: o Oficial sem plano salva no aparelho — mas só COM conta
   if (SALVAR_TESTE_5D && !SALVAR_SO_COM_PLANO) {
     if (pagoPeloCodigo()) return false
     if (authUidSalvar === null) return true // sem conta não tem teste (precisa de conta pra contar os 5 dias)
@@ -16323,7 +16324,21 @@ export function useNuvemSoAparelho(seed: number | undefined): boolean | null {
   return !nuvemAceita(regraCache.r, seed)
 }
 /** devolve 'nuvem' (subiu), 'aparelho' (conta grátis + carreira nova: fica só no aparelho) ou undefined */
-export async function savePyramidCloud(state: EscState, force = false): Promise<'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | undefined> {
+// 💾 24/11 (caso do Milan de Recife FC, temporada 121 perdida): pra salvar UMA carreira o aparelho baixava o save
+// INTEIRO da conta (7 MB com 2 carreiras grandes), juntava e reenviava tudo — no celular isso, somado à home baixando o
+// mesmo pacote, estourou a memória, a página reiniciou e o envio morreu calado. Com `soAtiva` (os botões Salvar e
+// Sair e salvar) só a carreira jogada sobe e o servidor encaixa ela no lugar (`esc_salva_carreira_slot`, mesma regra de
+// nunca voltar no tempo). Falhou de verdade (rede/servidor, depois de 3 tentativas) = 'falhou': quem chamou NÃO sai.
+export type ResultadoSalvar = 'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | 'falhou' | undefined
+async function comTentativas<T>(f: () => PromiseLike<{ data: T; error: unknown }>, vezes = 3): Promise<{ data: T | null; error: unknown }> {
+  let ultimo: unknown = null
+  for (let i = 0; i < vezes; i++) {
+    try { const r = await f(); if (!r.error) return { data: r.data, error: null }; ultimo = r.error } catch (e) { ultimo = e }
+    if (i < vezes - 1) await new Promise(ok => setTimeout(ok, 1500 * (i + 1)))
+  }
+  return { data: null, error: ultimo ?? 'falhou' }
+}
+export async function savePyramidCloud(state: EscState, force = false, soAtiva = false): Promise<ResultadoSalvar> {
   try {
     if (!force) return
     const { data } = await supabase.auth.getUser()
@@ -16348,14 +16363,34 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     // o aparelho já tem tudo o que está na nuvem? (mesmo carimbo, ou nuvem vazia)
     let localCobreNuvem = true
     if (isCareerSave(state)) {
-      const carimbo = await carimboDaNuvem(uid)
-      if (carimbo === undefined) return // sem resposta da nuvem: não arrisca sobrescrever; o local guarda
+      let carimbo = await carimboDaNuvem(uid)
+      if (carimbo === undefined && soAtiva) { await new Promise(ok => setTimeout(ok, 1500)); carimbo = await carimboDaNuvem(uid) }
+      if (carimbo === undefined) return soAtiva ? 'falhou' : undefined // sem resposta da nuvem: não arrisca sobrescrever; o local guarda
       // 🔒 carimba a ativa com o lacre antes de subir (as do arquivo já vêm carimbadas).
       const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
       let daNuvem: CareerSlot[] = []
       // 🛡️ 06/10: o aparelho perdeu alguma carreira que a nuvem tem? então junta também
-      const temLocal = new Set(mergeCareers([active], readCareerArchive()).map(c => (c.save as EscState).seed))
+      const arquivo = readCareerArchive()
+      const temLocal = new Set(mergeCareers([active], arquivo).map(c => (c.save as EscState).seed))
       const faltaNoAparelho = seedsDaNuvem(uid).some(sd => !temLocal.has(sd))
+      // 💾 24/11: SÓ A CARREIRA JOGADA — quando a nuvem já existe e o arquivo do aparelho não tem carreira que ela não conheça
+      const naNuvem = new Set(seedsDaNuvem(uid))
+      const arquivoSoNuvem = arquivo.every(c => naNuvem.has((c.save as EscState).seed))
+      if (soAtiva && carimbo && arquivoSoNuvem) {
+        const r = await comTentativas(() => supabase.rpc('esc_salva_carreira_slot', { p_seed: state.seed, p_slot: active }))
+        if (r.error) return 'falhou'
+        if (r.data) {
+          naNuvem.add(state.seed)
+          try { localStorage.setItem(NUVEM_SEEDS_KEY + uid, JSON.stringify([...naNuvem])) } catch { /* ignora */ }
+          const aparelhoEmDia = (() => { try { const l = localStorage.getItem('esc-solo-career'); const ls = l ? JSON.parse(l) as EscState : null; return !!ls && ls.seed === state.seed && (ls.seasonNo ?? 0) >= (state.seasonNo ?? 0) } catch { return false } })()
+          // o aparelho já tinha tudo o que a nuvem tinha (mesmo carimbo) → o carimbo novo também é dele
+          if (carimbo === cloudAtConhecido(uid) && !faltaNoAparelho && aparelhoEmDia) marcaCloudAt(uid, r.data as string)
+          if (!aparelhoEmDia) carreiraEmMemoria = { ...state }
+          anotaSubidaNuvem(state)
+          return nuvemSemPlano(regra) ? 'nuvem7' : 'nuvem'
+        }
+        // linha no formato antigo: segue o caminho de sempre (junta e reenvia)
+      }
       if (carimbo && (carimbo !== cloudAtConhecido(uid) || faltaNoAparelho)) {
         // outro aparelho salvou depois: lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada)
         localCobreNuvem = false
@@ -16368,7 +16403,8 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
       anotaSeedsDaNuvem(uid, (payload as { careers: CareerSlot[] }).careers)
     }
     const nowIso = new Date().toISOString()
-    const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
+    const { data: up, error: erroUp } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
+    if (erroUp) return soAtiva ? 'falhou' : undefined // 💾 24/11: antes o erro era ignorado e a tela dizia "salvo"
     // só marca o carimbo novo quando o LOCAL já tinha tudo: se a gente juntou carreira de outro
     // aparelho aqui, o local ainda não tem — o carimbo fica velho e a próxima ida à home baixa e junta.
     // 📱 e só se a cópia do APARELHO estiver em dia com o que subiu: aparelho cheio (cópia velha) não marca,
@@ -16379,7 +16415,7 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
     if (isCareerSave(state)) anotaSubidaNuvem(state)
     return isCareerSave(state) && nuvemSemPlano(regra) ? 'nuvem7' : 'nuvem'
-  } catch { /* best effort — o local sempre garante */ }
+  } catch { if (soAtiva) return 'falhou' /* best effort — o local sempre garante */ }
 }
 // 🚪 SAIR SEM SALVAR (15/11, Diego: *"normalmente jogos de salvar não parece com a B?"* → *"pode fazer e publique"*).
 // Igual videogame: saiu sem salvar, a carreira VOLTA pro último ponto em que ele apertou Salvar (é o que está na nuvem).
@@ -16453,6 +16489,9 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // 💸 pergunta só o carimbo: nuvem igual à que este aparelho já juntou = nada a baixar
     const carimbo = await carimboDaNuvem(uid)
     if (!carimbo) return false // sem save na nuvem (ou sem resposta): fica o do aparelho
+    // 📱 24/11: aparelho CHEIO — o que desceu da nuvem já está na MEMÓRIA desta aba (carreirasEmMemoria). Antes o
+    // carimbo nunca era marcado e a home baixava o save inteiro (7 MB no caso do Milan) a cada poucos segundos.
+    if (carimbo === juntadoNaMemoria && carreirasEmMemoria.length) return false
     if (localCareers.length && carimbo === cloudAtConhecido(uid) && !(await nuvemNaFrente(localCareers))) return false
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
@@ -16473,6 +16512,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
+    juntadoNaMemoria = gravou ? null : cloud.iso
     anotaSeedsDaNuvem(uid, cloud.careers)
     return true
   } catch { return false }
@@ -16492,6 +16532,8 @@ async function nuvemNaFrente(locais: CareerSlot[]): Promise<boolean> {
 }
 // a carreira mais nova que NÃO coube no aparelho (só nesta aba)
 let carreiraEmMemoria: EscState | null = null
+// 📱 24/11: o carimbo da nuvem que já foi juntado na MEMÓRIA desta aba (aparelho cheio): não baixa de novo
+let juntadoNaMemoria: string | null = null
 // 📱☁️ 10/11: todas as carreiras da nuvem que o aparelho cheio não conseguiu guardar (a lista de carreiras mostra elas)
 let carreirasEmMemoria: CareerSlot[] = []
 /** só pras travas (`npm run troca`): simula o que a junção com a nuvem deixa na memória quando o aparelho está cheio */
@@ -16844,7 +16886,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
     channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex: mgrId } })
     rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId, peloDono: true })
     const rid = stateRef.current.roomId
-    if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', mgrId).then(() => {}) }
+    if (!rid) return
+    const apaga = () => { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', mgrId).then(() => {}) }
+    // 🚫 24/11 (Diego: "o host removeu do Liga Draft e o removido voltou"): na liga o banco ANOTA a remoção antes de apagar a
+    // vaga — senão, na janela até o save do dono chegar (≤ 3 s), a trava de entrada ainda via o crachá e deixava voltar.
+    // Removido só volta com pedido NOVO aceito pelo dono (`esc_liga_removidos`, docs/sql/liga-removidos-20261124.sql).
+    if (stateRef.current.ligaMode) {
+      const uid = stateRef.current.seatUids?.[mgrId] || null
+      supabase.rpc('esc_liga_remove', { p_room: rid, p_uid: uid, p_index: mgrId }).then(apaga, apaga)
+    } else apaga()
   }, [])
 
   // 🪑 10/11 (Diego: *"se o usuário voltar, ele volta pro mesmo local onde o host tá comandando a sala"*): voltei pra liga e

@@ -1,7 +1,8 @@
 import {withCupPlans} from './copa-planos'
+import { QuemEJogador } from './quem-e-jogador'
 import {FootballRegionalCupView} from './football-cup-regional'
 import type {CupPenaltyPresentation} from './football-cup-world'
-import {useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable,OwnerPlayback,OwnerChampionBanner} from './owner-online-visual'
+import {useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable,OwnerPlayback,OwnerChampionBanner,CampeaoCinemaDe} from './owner-online-visual'
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 // ─── 🏟️ COPA REGIONAL NA SALA ONLINE (Diego 10/10) ───────────────────────────
 //
@@ -439,6 +440,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={`${nomeCopa(copa)} · ${en ? `you have ${SEG_ESCOLHA}s to pick your club` : `você tem ${SEG_ESCOLHA}s pra pegar o clube`}`} botao={tr('Escolher meu clube', 'Pick my club')} aoFechar={chama.fechar} />}
       <CompetitionStage kind="copa8" patroKind="regional" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={nomeCopa(copa)} detail={detalhe} status={status}>
         <div className="ll26-cup-entry">
+        {fase?.fase === 'convocacao' && temTime(minha) && <QuemEJogador />}{/* 🃏 23/11: joguinho enquanto a turma convoca (some quando a Copa começa) */}
           {soAssisto && dupla && <AvisoDupla quem={dupla.nomeAge} />}
           {mostraNaoSai && <NaoSai minhaVez={minhaFila!.vez} antes={antesDeMim} fase={fase?.fase} seg={seg} segPorVez={SEG_ESCOLHA} />}
           {fiqueiDeFora && <p className="ll27-portao-aviso">{tr(`😬 Você terminou a liga fora dos ${vagas} primeiros — fica de fora desta copa. Dá pra assistir daqui.`, `😬 You finished outside the top ${vagas} — you sit out this cup. You can watch from here.`)}</p>}
@@ -768,7 +770,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         mascote={ownerVisual?MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']:undefined} lendas={ownerVisual?entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year})):undefined} souCampeao={isYou(mundo.campeao)} souVice={(() => { const f = mundo.ko[mundo.ko.length - 1]?.ties[0]; return !!f && (isYou(f.h) || isYou(f.a)) })()} onDone={() => { setFestaRegVista(true); try { sessionStorage.setItem(festaRegKey, '1') } catch { /* segue */ } }}
         artilheiro={(() => { const r = artilhariaRegional(mundo)[0]; return r && r.goals > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.goals } : null })()}
         garcom={(() => { const r = garconsRegional(mundo)[0]; return r && r.assists > 0 ? { nome: r.name, time: entrants[r.team].pais, n: r.assists } : null })()} />}
-    {done&&<OwnerChampionBanner title={nomeCopa(copa)} name={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={52}/>} trophy={<Trofeu comp={copa} size={160}/>} own={isYou(mundo.campeao)} legends={entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']}/>}
+    {done&&<OwnerChampionBanner tema="regional" title={nomeCopa(copa)} name={entrants[mundo.campeao].pais} crest={<SeloClube clube={entrants[mundo.campeao].pais} size={52}/>} trophy={<Trofeu comp={copa} size={160}/>} own={isYou(mundo.campeao)} legends={entrants[mundo.campeao].xi.filter(c=>c.fame>=5).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[mundo.campeao].club)??'']}/>}
   </>}/></TemaCompCtx.Provider></Campo2DDoPassoCtx.Provider>
   return (
     <Campo2DDoPassoCtx.Provider value={doisDDoPasso(relogio?.row)}>{/* 📺⚡ todo placar desta copa desenha o 2D do PASSO (todo aparelho igual) */}
@@ -848,7 +850,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         const c = mundo.campeao, fin = mundo.ko[mundo.ko.length - 1].ties[0]
         const art = artilhariaRegional(mundo).slice(0, 5)
         return <>
-          {ownerVisual ? <OwnerChampionBanner title={nomeCopa(copa)} name={entrants[c].pais} crest={<SeloClube clube={entrants[c].pais} size={52}/>} trophy={<Trofeu comp={copa} size={210}/>} own={isYou(c)} legends={entrants[c].xi.filter(x=>x.fame>=5).map(x=>({nome:x.name,club:x.club,year:x.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club)??'']} line={`${tr('Final','Final')}: ${entrants[fin.h].pais} ${fin.g[0]} × ${fin.g[1]} ${entrants[fin.a].pais}`}/> : (
+          <CampeaoCinemaDe tema="regional" title={nomeCopa(copa)} name={entrants[c].pais} crest={<SeloClube clube={entrants[c].pais} size={52}/>} legends={entrants[c].xi.filter(x=>x.fame>=5).map(x=>({nome:x.name,club:x.club,year:x.year}))}/>
+          {ownerVisual ? <OwnerChampionBanner tema="regional" title={nomeCopa(copa)} name={entrants[c].pais} crest={<SeloClube clube={entrants[c].pais} size={52}/>} trophy={<Trofeu comp={copa} size={210}/>} own={isYou(c)} legends={entrants[c].xi.filter(x=>x.fame>=5).map(x=>({nome:x.name,club:x.club,year:x.year}))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club)??'']} line={`${tr('Final','Final')}: ${entrants[fin.h].pais} ${fin.g[0]} × ${fin.g[1]} ${entrants[fin.a].pais}`}/> : (
           <div style={{ ...box(isYou(c) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), color: INK, padding: 14, marginBottom: 10, textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10 }}><SeloClube clube={entrants[c].pais} size={70} /><Trofeu comp={copa} size={64} /></div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '6px 0 0', textTransform: 'uppercase' }}>{entrants[c].pais} {tr('CAMPEÃO!', 'CHAMPION!')}</p>

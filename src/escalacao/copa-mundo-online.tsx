@@ -1,4 +1,5 @@
 import {withCupPlans} from './copa-planos'
+import { QuemEJogador } from './quem-e-jogador'
 import {clockMinute} from './copa-clock-preview'
 import {useOwnerFootballAvailable} from './owner-online-visual'
 // ─── 🌐 COPA DO MUNDO ONLINE — a Copa da TURMA ───────────────────────────────
@@ -722,6 +723,7 @@ export function PortaoDaCopa({ euro, euroPronto = true, nLiga, fase, lido, souDo
   return (
     <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={euro === 16 ? tr('Copa América · 16 seleções', 'Copa América · 16 nations') : euro ? tr('Eurocopa · 24 seleções', 'Euro · 24 nations') : tr('Copa do Mundo', 'World Cup')} detail={detail} status={status}>
       <div className="ll26-cup-entry">
+        {fase === 'convocacao' && temTime(minha) && <QuemEJogador />}{/* 🃏 23/11: joguinho enquanto a turma convoca (some quando a Copa começa) */}
         {dupla?.soAssisto && <AvisoDupla quem={dupla.nomeAge} />}
         {/* 🔜 NÃO SAI (Diego 13/10): quem está na fila e ainda não escolheu vê que ainda joga */}
         {(() => {

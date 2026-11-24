@@ -1,7 +1,7 @@
 import {withCupPlans} from './copa-planos'
 import {FootballLibertaCupView} from './football-cup-liberta'
 import type {CupPenaltyPresentation} from './football-cup-world'
-import { useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable, OwnerPlayback, OwnerChampionBanner } from './owner-online-visual'
+import { useOwnerLayout,useOwnerFootballPilot,useOwnerFootballAvailable, OwnerPlayback, OwnerChampionBanner, CampeaoCinemaDe } from './owner-online-visual'
 import { MASCOTES, mascoteKeyDoTime } from './mascotes'
 // ─── 🏆 LIGA + LIBERTADORES NA SALA ONLINE (Diego 19/11) ──────────────────────
 //
@@ -822,6 +822,7 @@ export function LibertaSalaTorneio({ ficha, roomId, meuUid, souDono, aoCampeao, 
         const art = artilhariaLiberta(mundo).slice(0, 3)
         const linhaFinal = `${entrants[fin.h].pais} ${fin.g[0]}×${fin.g[1]} ${entrants[fin.a].pais}${fin.pen ? ` (${tr('pên.', 'pens')} ${fin.pen[0]}×${fin.pen[1]})` : ''}`
         return <>
+          <CampeaoCinemaDe title={NOME} name={entrants[c].pais} crest={sel(c, 52)} legends={entrants[c].xi.filter(x => x.fame >= 5).map(x => ({ nome: x.name, club: x.club, year: x.year }))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club) ?? '']}/>
           {ownerVisual ? <OwnerChampionBanner title={NOME} name={entrants[c].pais} crest={sel(c, 52)} trophy={<Trofeu comp="liberta" size={210} />} own={isYou(c)} legends={entrants[c].xi.filter(x => x.fame >= 5).map(x => ({ nome: x.name, club: x.club, year: x.year }))} mascot={MASCOTES[mascoteKeyDoTime(entrants[c].club) ?? '']} line={`${tr('Final', 'Final')}: ${linhaFinal}`} /> : (
           <div style={{ ...box(isYou(c) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), color: INK, padding: 14, marginBottom: 10, textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 10 }}>{sel(c, 70)}<Trofeu comp="liberta" size={64} /></div>

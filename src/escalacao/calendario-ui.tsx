@@ -146,6 +146,8 @@ const CSS_PROX = `
 .ll-calp .k{display:flex;justify-content:space-between;gap:8px;font:800 11px Oswald,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#FFC400}
 .ll-calp .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin:10px 0 4px;text-align:center}
 .ll-calp .vs b{font:800 17px/1.05 Oswald,sans-serif;color:#FFC400;text-transform:uppercase}
+.ll-calp .vs>div{display:flex;flex-direction:column;align-items:center;min-width:0} /* 24/11 (print do Diego): escudo centralizado em cima do nome, nas duas pontas */
+.ll-calp .vs>div>.nm{max-width:100%;overflow-wrap:anywhere}
 .ll-calp .nm{font:800 14px/1.1 Oswald,sans-serif;text-transform:uppercase;margin-top:6px}
 .ll-calp .nm small{display:block;font:700 10px Inter,Arial,sans-serif;text-transform:none;color:#b9ad8e;margin-top:2px}
 .ll-calp .tm{height:5px;background:#3a3122;border-radius:5px;margin-top:8px;overflow:hidden}.ll-calp .tm i{display:block;height:100%;background:#FFC400;transition:width 2.8s linear}
@@ -182,9 +184,10 @@ export function CalendarioProximo(p: PropsProx) {
       {p.escolha && p.compacto ? <div style={{ marginTop: 10 }}>
         <b style={{ display: 'block', textAlign: 'center', font: '800 13px Oswald,sans-serif', letterSpacing: '.08em', textTransform: 'uppercase', color: '#FFC400', marginBottom: 6 }}>{tr('Ver o jogo em', 'Watch the match in')}</b>
         <div style={{ display: 'grid', gridTemplateColumns: p.escolha.rapido ? '1fr 1fr 1fr' : '1fr 1fr', gap: 8 }}>
-          <button className="go" onClick={p.escolha.d2} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#1B7A3D', color: '#fff' }}>{tr('📺 2D', '📺 2D')}</button>
-          <button className="go" onClick={p.escolha.d3} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#7C3AED', color: '#fff' }}>{tr('🏟️ 3D', '🏟️ 3D')}</button>
+          {/* 24/11 (Diego: "coloque só placar na frente… placar, campo 2D e campo 3D") */}
           {p.escolha.rapido && <button className="go" onClick={p.escolha.rapido} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#FFC400', color: '#0C0C0C' }}>{tr('⚡ Placar', '⚡ Score')}</button>}
+          <button className="go" onClick={p.escolha.d2} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#1B7A3D', color: '#fff' }}>{tr('📺 Campo 2D', '📺 2D pitch')}</button>
+          <button className="go" onClick={p.escolha.d3} style={{ margin: 0, fontSize: 14, padding: '7px 4px', borderWidth: 2, boxShadow: '2px 2px 0 #000', background: '#7C3AED', color: '#fff' }}>{tr('🏟️ Campo 3D', '🏟️ 3D pitch')}</button>
         </div>
       </div>
       : p.escolha ? <div style={{ marginTop: 10 }}>

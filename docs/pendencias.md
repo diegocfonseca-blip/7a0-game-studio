@@ -71,6 +71,23 @@
 - Duas trajetórias de 15 temporadas, 30 checkpoints e nenhum XI incompleto nos técnicos; regressões nativas de catálogo/estaduais/Master/economia/copas passaram. Ainda há pendências da revisão ampla: dez estaduais, minutos físicos e mais amostras. Não anunciar conclusão total ou publicação. [Escopo, validação e pendências](auditorias/carreira-revisao-20261123.md).
 
 ## ⚔️ 23/11 — PRÓXIMO CONFRONTO PERMANENTE NAS ABAS DO VISUAL NOVO
+
+
+- 🚫 **24/11 — LIGA: REMOVIDO PELO DONO VOLTAVA.** A remoção não ficava anotada; na janela até o save do dono (≤ 3 s) a trava de entrada
+  ainda via o crachá e deixava voltar. Agora o banco guarda `esc_liga_removidos` (APLICADO, `docs/sql/liga-removidos-20261124.sql`): o
+  `kickPlayer` na liga chama `esc_liga_remove` antes de apagar a vaga; o gatilho barra com `LIGA_REMOVIDO` e o lobby mostra o aviso.
+  Volta só com pedido NOVO aceito pelo dono. Reverter: tirar o bloco `LIGA_REMOVIDO` da função `esc_liga_comecada_so_plano`.
+
+## 🏆 24/11 — Campeão "cinema" (cada competição com a sua cena) — feito, esperando "pode publicar"
+- `src/escalacao/campeao-cinema.tsx` + `.css`: tela cheia ~9,6 s (toque/Pular), escudo martelado (`playHammer`), papel picado em canvas nas cores do clube (`mantoDoClube` do batismo; senão a cor da competição), lendas do elenco (`legendAvatar`) e mascote; sem nenhum dos dois = "É CAMPEÃO!" balançando. Fila: liga e copa na mesma tela tocam uma depois da outra. Zero servidor.
+- Ligado em: `OwnerChampionBanner` (conta do Diego) e `CampeaoCinemaDe` nas telas de todo mundo (CampeaoCopaCard, fim de liga em `EscEnd`, Copa do Mundo/Euro/América, Liberta da sala, copas regionais). Basquete fica de fora.
+- ⏳ **Artes próprias faltando**: Euro, Copa América, regionais, Relâmpago e Kings usam arte do jogo com filtro + efeito (fumaça/raio/neon). Artes novas já geradas no Canva do Diego (Euro, Copa América, Estadual, Relâmpago) — falta baixar (download bloqueado nesta sessão) e gerar a do Kings (créditos do Canva acabaram). Trocar em `TEMAS` quando chegarem (arquivo `img/campeao-<comp>-v1.webp`, ~30 KB).
+- ⏳ **Carreira ainda não tem** (as telas de título da carreira são outras).
+- Bancada: `scripts/teste-formacoes/cinema.html?tema=…&sem=1`.
+
+## 🃏 23/11 — "Quem é esse jogador?" na tela de espera (no branch, esperando "pode publicar")
+- Joguinho na espera da convocação (Leilão de Clubes, Copa do Mundo/Euro/América, copas regionais): carta tampada de Lenda/Craque/Promessa, pistas (posição, clube·ano, país), 3 nomes, 🔥 sequência. Não vale moeda, não grava nada, some quando a espera acaba. Código: `src/escalacao/quem-e-jogador.tsx`. Mockups/prints: `scripts/mockups/espera-quem-e-a-lenda-*.png`, `quem-e-jogador-print-*.png`.
+- Pendente: mockup do CAMPEÃO NOVO (`scripts/mockups/campeao-novo-*.png`) esperando OK; chat do leilão ficou como era (Diego: "deixe o chat do jeito que tava").
 - Pedido direto do Diego: manter o cartão marrom e os números da rivalidade em todas as abas, no celular e no desktop. O destino comum da transmissão permanece visível; a aba Rivalidades conserva os detalhes sem repetir o cartão.
 - Liga, grupos continentais e copas independentes reaproveitam os componentes e históricos existentes; nenhum novo pedido, canal ou alteração de partida. Visual anterior preservado. [Implementação e evidências](rivalidade-todas-abas-20261123.md).
 - 731 verificações das ligas, 38 da copa pública e 271 de regressão das copas passaram, sem exceções JavaScript. Integrada main `f4f2f15e` preservando detalhes extras só em Rivalidades; build e 83 checagens focadas de cinema/2D mais 38 da copa pública passaram novamente após integrar. Acompanhar publicação no GitHub Actions após o envio.
@@ -188,13 +205,34 @@
 - Travas `copa`, `copa-congelada`, `copa-maquina`, `copa-tatica`, `copamundo` e `libertadores` JÁ falhavam antes (erro ao carregar no node); `canal`,
   `liberta-sala` e `regional` passam.
 
-### 🐸👑 23/11 — Batismo FUNDADOR Pirituba SF (pedrosilveira0810) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
+### ⏱️ 23/11 — Minha Liga Draft: 60 s desde a vez, chat e confirmação do pular (no branch, esperando "pode publicar")
+- A vez chega na tela das 2 escolhas (Pegar do draft · Sondar) com **60 s correndo** (`DRAFT_ESCOLHA_MINHA_MS`); apertar uma delas **continua o mesmo relógio**.
+- **O relógio é AVISO**: o fim dos 60 s não tira a vez de ninguém (`DRAFT_TICK` não pula mais); quem pula é o ⏭ do dono. Zerado = "Tempo esgotado · o dono da sala decide".
+- ⏭ Pular a vez: **antes** do tempo acabar abre "Tem certeza que quer pular o X antes de acabar o tempo dele?" Sim/Não; **depois**, pula direto.
+- 💬 Chat: fica o PADRÃO, embaixo (botão 💬 no canto). Eu tinha posto um botão amarelo em cima e o Diego mandou tirar: *"o chat da sala deve ficar embaixo mesmo, igual padrão visual que sempre foi"*. Na bancada o 💬 de baixo aparece no draft (celular e PC).
+- Trava `npm run minha-liga-draft` atualizada. ⚠️ `npm run liga-draft` já falhava ANTES ("ninguém repetido na liga", 220) — não é desta mudança, falta investigar.
+- Prints: `scripts/mockups/draft-vez-60s-celular.png` / `-pc.png` (bancada `scripts/teste-draft-vez/`).
+
+### 🚫 23/11 — Nome com "pedófilo/pedofelo/pedofilia" barrado
+- Conta "Titio Pedofelo" → **Titio P** (pedido do Diego). Outras 6 contas com a palavra ("Pedofilos FC", "Pedofilo22"…) → "Técnico". Feito direto no banco.
+- Trava na tela: `nome-ofensivo.ts` ganhou `pedof[ie]l` (não pega "Torpedo FC" nem "TRIPÉDOFLU FC").
+- ⏳ Trava no BANCO: `supabase/migrations/20261123190000_nome_ofensivo_pedofilo.sql` ainda NÃO aplicada (troca de função = 1–3 min de lentidão); aplicar num horário calmo junto com a `esc_titulos_sem_carta_v3`.
+
+### 🎸👑 23/11 — Batismo FUNDADOR Sport Clube Betasso (caiomooca2013) — PUBLICADO 23/11
+- Pagou Lenda (10/11, 59,90) → Batismo (18/11, 25) → Fundador (23/11, 29,90). **Fundador nº106 + sócio nº101**, coração Corinthians / Juventus-SP.
+- Mascote "Apenas um Beto" (`betasso_beto`, o próprio Beto com a lata e o violão), manto grená #890329 + branco #F7F4F4 (medidos na camisa). Várzea, no assento do bot **Falta Técnica FC**.
+- Ele pediu o canto "poropopó"; o Diego mandou usar o do Corinthians (`torcida-gavioes-v1.mp3`).
+- Gala única `gala-betasso.tsx` ("o show do Beto": luau, chuva de 🎵🎶🎼🎤🎸 em bolinhas brancas (o GLUP! saiu a pedido do Diego), TÁÁÁN!, listras grená/branco, escudo, "APENAS UM BETO"). Vídeo: `node scripts/video-gala-betasso.mjs`.
+- Banco feito em 23/11: `esc_socios` nº101, `esc_fundadores` nº106, `esc_nomes_batismo` (Betasso / Sport Clube Betasso + FC/EC pelo gatilho). `user_colors` já era ouro + manual.
+- Post: `scripts/posts/batismo-sport-clube-betasso.png` (`mockup-batismo.mjs` ganhou `--masculino` pro mascote "Apenas um Beto").
+
+### 🐸👑 23/11 — Batismo FUNDADOR Pirituba SF (pedrosilveira0810) — PUBLICADO 23/11 (mascote trocado pela pose de sapo)
 - Plano Fundador (99,90) → **fundador nº105** + **sócio nº100**, coração Corinthians, mascote Pererecão (`pirituba_pererecao`), manto azul #0199F6 + rosa #FC22BC (medidos na camisa).
 - Várzea, no assento do bot **Doze Contra Onze** (`OLD_NAME`). Escudo 309×360/29 KB · mascote 256×440/40 KB · camisa na Loja (`public/mantos-salao/pirituba-camisa-v1.webp`).
 - **Canto**: o do Corinthians (`torcida-gavioes-v1.mp3`, o mesmo do Cuiudos/Gaviões) — carreira em casa, sala e gala.
 - **Gala única** `gala-pirituba.tsx` ("o pulo do Pererecão": 3 pulos de vitória-régia, cai na bola, faixas diagonais azul/rosa, escudo, grito da arte do dono). Vídeo: `scripts/posts/gala-pirituba.mp4` (`node scripts/video-gala-pirituba.mjs`).
 - Banco feito em 23/11: `esc_socios` nº100, `esc_fundadores` nº105, `esc_nomes_batismo` (Pirituba / Pirituba SF / Pirituba Sex Football + FC/EC pelo gatilho). `user_colors` já estava ouro + manual.
-- Post: `scripts/posts/batismo-pirituba-sf.png`. Falta: OK do Diego no visual + "pode publicar".
+- Post: `scripts/posts/batismo-pirituba-sf.png`. Publicado na main em 23/11 com ordem do Diego.
 
 ### ⚫⚓ 22/11 (noite) — Batismo Tunaldo FC (faertes9) — código no branch, BANCO JÁ FEITO, esperando "pode publicar"
 - Plano Batismo (79,90, sem nº de fundador), coração Corinthians, mascote O Craque Tunaldo (`tunaldo_craque`), manto preto #0F0F0F + cinza #706F6F
@@ -2425,6 +2463,8 @@ Pedido aprovado: *"coisas bem tradicionais do Brasil, espalhadas pelo mapa, muda
 ## 🛡️📧 Escudo de batismo só pelo e-mail (02/11) — ✅ PUBLICADO
 - Diego: *"não deveria seguir pelo nome… somente pelo e-mail da conta do usuário"* (caso Mengão Malvadao do João Victor aparecendo com o escudo do batismo do Átila na lista do clã). Banco: `esc_nomes_sem_escudo()` lista os nomes EXATOS (minúsculo, com acento) de contas que usam nome de batismo sem ser donas (pelo e-mail em `esc_nomes_batismo`), tirando o nome exato que o próprio dono usa. Aparelho: `mimos.ts` (`nomeSemEscudo`) + `escudos.tsx` (`logoPronta` não dá a arte fixa pra esses nomes; nome de ASSENTO dos bots segue com escudo). Carrega no início (`main.tsx`) e no lobby. Limite: cópia letra por letra igual ao nome do dono continua indistinguível pelo nome (no jogo ela já sai com "🎭FAKE" grudado, que também tira o escudo). Etapa 3 completa (escudo por conta em todo lugar) continua pendente.
 
+## ⭐ 24/11 — Craque Salas por 30 DIAS, dado pelo Diego (conta criada em 05/11)
+- Linha em `esc_assinatura_mensal` (craque_salas, até 23/12/2026 — 30 dias, ordem dele; sem `vendria_sub`). `esc_direitos_de`: pago, prata, salas_pagas (sem Manual).
 ## ⭐ 09/11 — ibemanu5@gmail.com: Craque Salas por 12 meses, dado pelo Diego
 - Linha em `esc_assinatura_mensal` (craque_salas, até 09/11/2027, sem `vendria_sub`). Conta de 02/11 conferida. `esc_direitos_de`: pago, prata, salas_pagas (sem Manual — é do Craque Completo).
 ## ⭐ 02/11 — brunomontoya011@gmail.com: Craque Salas por 12 meses, dado pelo Diego
@@ -14891,7 +14931,7 @@ só em jogo MUITO importante. Ele disse ter mandado 3 artes de referência (prin
 - Banco FEITO: esc_socios, esc_fundadores (103), esc_nomes_batismo (Obelisko / FC / EC); user_colors ouro já estava (o Pix ligou).
 - Canto: `sfx/torcida-obelisko-v1.mp3` = 14 s da abertura instrumental que o Diego mandou (mono 56k, −20,6 dB), ligado na carreira (sound.ts). ⚠️ Música com dono (avisado ao Diego, 18/11).
 - Gala única "A Invocação" (`gala-obelisko.tsx`, vídeo `scripts/posts/gala-obelisko.webm`, toca o canto): 3 cartas viram tributo, obelisco racha, O Atormentador se ergue, ficha nível 10 · DIVINO · ATK/DEF 4000, soco trinca a tela, escudo. Só fatos da carta (3 tributos, 4000/4000, Divino, nível 10). Post: `scripts/posts/batismo-obelisko.png`.
-- Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.
+- ~~Também pago em 18/11: caiomooca2013 (Sport Clube Betasso) subiu pra Batismo (R$ 25) — falta a arte dele.~~ Feito em 23/11 (virou Fundador nº106).
 
 ## 🌴🐊 19/11 — TOCAIA VICE (ideia pra pegar o hype do GTA 6) — só MOCKUP, nada de código
 Mockup: `scripts/mockups/tocaia-vice.png` (o 1º, `semana-neon.png`, foi superado). Regras que o Diego fechou:
@@ -15310,3 +15350,35 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - 🚫 23/11: Carrasco, Foto do vexame e Coletiva do clássico (mockup `scripts/mockups/rivalidade-mais3.png`) — Diego: *"não faça esses três"*. Não repropor.
 - ✅ 23/11: Rivalidade (termômetro, placa de freguês 10+, livro, faixa do clássico) publicada (*"publica agora"*).
 - 🔁 23/11 (madrugada, print dele na Liga): *"quero somente na aba de rivalidade"*. Termômetro, placa e livro saíram da aba Partida/Jogos e de salas sem aba Rivalidades (prop `classico` de `PrateleiraRivalidades`, só nas abas Rivalidades do visual novo e da Copa). A faixa fina embaixo do placar/campo SAIU. O resto (próximo encontro, "você contra os amigos") ficou como estava.
+
+## 🚁🦇 23/11 — Gala nova do Neymarzetti (vídeo `scripts/mockups/gala-neymarzetti-v2.mp4`, *"pode publicar"*)
+- ✅ `gala-neymarzetti.tsx` no lugar da `gala-helicoptero.tsx` (que fica guardada). Voltar = trocar a linha `Neymarzetti` do `GALA_UNICA` em `entrada-gala.tsx`.
+- ⏳ Som: ainda sem (perguntei hélice ou canto — falta resposta). `npm run gala` já falhava antes desta mudança (`window.__set is not a function`).
+
+## 🚗📱 23/11 — Carro no meio do campo + Próximos jogos no celular (prints do Diego)
+- ✅ Carro com motorista no centro do campo (mapa e jogo 3D): era o carro dos clientes da concessionária VELHA (`city-dealership-customers`),
+  que nasce na origem (= centro do campo) e só anda no `update`; com o bairro compacto o update nunca roda e o grupo nascia visível. Agora nasce
+  escondido (`presidencia-cidade-comercio.ts`). Conferido na bancada `qa-mapa-foco.html`: nada visível no centro, na semana e no jogo.
+- ✅ Central no celular: "🗓️ Próximos jogos" logo embaixo da escolha 2D/3D/Placar, em cima do Raio-X (`agendaCard` + `ll-c-agenda-cel`). Computador sem mudança.
+
+## 💾 24/11 — Salvar carreira grande no celular (caso do Milan de Recife FC, T121 perdida) — PUBLICADO (*"pode e publique"*)
+- Prova nos registros: 2 carreiras = 7 MB (não cabia no aparelho, só na memória) · "Sair e salvar" baixava o save inteiro pra juntar,
+  sem esperar já abria a home (que baixava os mesmos 7 MB) · 6 s depois a página reiniciou (visita nova às 23:14:46) e o envio morreu.
+- ✅ `esc_salva_carreira_slot` (docs/sql/salva-carreira-slot-20261124.sql, APLICADA): o aparelho manda só a carreira jogada e o servidor
+  encaixa por seed, nunca voltando no tempo. Usada por `savePyramidCloud(..., soAtiva=true)` (botões Salvar e Sair e salvar); troca de
+  carreira/arquivo seguem o caminho antigo (junta tudo). 3 tentativas; erro de envio agora é conferido ('falhou').
+- ✅ "Sair e salvar" ESPERA ("⏳ Salvando… não feche o jogo"); falhou = fica na carreira com aviso e "🔁 Tentar salvar de novo". Faixa da Central ganhou o estado 'falhou'.
+- ✅ Home com aparelho cheio não baixa mais o save inteiro a cada poucos segundos (`juntadoNaMemoria`).
+- ⏳ Ainda pesado: o save de carreira longa tem 3–4 MB. Enxugar o save (histórico antigo) é trabalho futuro.
+
+## 👤 24/11 — Sem conta, NENHUMA carreira salva (Diego aprovou a recomendação) — PUBLICADO ("Sim")
+- `salvarBloqueado(oficial)`: o Brasil Oficial sem conta também deixa de salvar (antes salvava no aparelho). Carreira normal sem conta já não salvava.
+- Quem já tinha save sem conta: continua abrindo; na próxima vez que for salvar, o 🔒 Salvar abre a conta grátis ALI MESMO (`JanelaConta`,
+  sem sair da carreira) com "Crie sua conta grátis pra salvar sua carreira". Criou a conta → o botão vira o Salvar normal.
+- Faixa da Central (visual antigo) ganhou o estado 'sem_conta'. A bancada local não simula "sem conta" (fica como "ainda não sabe"), então não deu print.
+
+## ⚽ 24/11 — Placar rápido da carreira: bolinha parada + capa da Central desalinhada (prints do Diego) — PUBLICADO (botões na ordem Placar · Campo 2D · Campo 3D, pedido dele)
+- Causa da bola parada: com o motor novo (`apresentarMotorOficial`) as chances sorteadas e o voo do gol saíam de cena e nada entrava no lugar.
+  Agora `chancesDoRelato` (chances.ts) tira do relato oficial as defesas (encaixa/rebote) e a trave, e o gol do relato solta a bola pra rede
+  (`golPalco`). Conferido na bancada: defendeu e gol animando.
+- Capa da Central (calendario-ui `.ll-calp .vs`): escudos centralizados em cima do nome nas duas pontas (prints 390 e 1280 em scripts/mockups/central-capa-*.png).

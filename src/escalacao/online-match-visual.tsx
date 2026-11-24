@@ -1,4 +1,4 @@
-import {useOwnerLayout,useOwnerState,OwnerChampionBanner,OwnerMatchNavigation} from './owner-online-visual'
+import {useOwnerLayout,useOwnerState,OwnerChampionBanner,OwnerMatchNavigation,CampeaoCinemaDe} from './owner-online-visual'
 import {MASCOTES,mascoteKeyDoTime} from './mascotes'
 import type { EstadoPenaltisCampo } from './campo2d-penaltis'
 import type { ReactNode, CSSProperties } from 'react'
@@ -534,13 +534,13 @@ export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu, trofeu }
   const owner=useOwnerLayout(),state=useOwnerState()
   const team=state?.managers.find(m=>m.teamName===nome||m.name===nome)
   if(owner&&trofeu)return <OwnerChampionBanner title={titulo} name={nome} crest={crest} trophy={trofeu} own={meu} legends={(team?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))} mascot={MASCOTES[mascoteKeyDoTime(nome)??'']} line={final??sub} extra={final&&sub?<span>{sub}</span>:undefined}/>
-  return <div className={`ll41-campeao${meu ? ' meu' : ''}`}>
+  return <><CampeaoCinemaDe title={titulo} name={nome} crest={crest} mascot={MASCOTES[mascoteKeyDoTime(nome)??'']} legends={(state?.managers.find(m=>m.teamName===nome||m.name===nome)?.squad??[]).filter(c=>!c.fake&&c.fame>=5&&!c.promessa).map(c=>({nome:c.name,club:c.club,year:c.year}))}/><div className={`ll41-campeao${meu ? ' meu' : ''}`}>
     <small>🏆 {titulo}</small>
     <div className="ll41-campeao-escudo">{crest}{trofeu && <span className="ll41-campeao-trofeu">{trofeu}</span>}</div>
     <h3>{nome}</h3>
     {sub && <p>{sub}</p>}
     {final && <p className="ll41-campeao-final">{final}</p>}
-  </div>
+  </div></>
 }
 export type ArtilheiroLinha = { nome: string; clube: string; carta?: string; gols: number; crest?: ReactNode; meu?: boolean }
 export function ArtilheiroCopaCard({ titulo, linhas, rotulo }: { titulo: string; linhas: ArtilheiroLinha[]; rotulo?: [string, string] }) {

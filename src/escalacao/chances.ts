@@ -194,3 +194,21 @@ export function vereditoDaChance(fim: FimDaChance | 'gol', en: boolean): string 
 
 /** tamanho de cada banco (pra trava): os dois idiomas têm que ter o mesmo número */
 export const ACERVO_CHANCES = Object.fromEntries(FINS.map(f => [f, BANCO[f].length])) as Record<FimDaChance, number>
+
+// ⚽ 24/11 (Diego: *"as bolinhas não estão chutando"* no placar rápido da carreira). Com o MOTOR NOVO a carreira narra o jogo
+// de verdade (`relatoOficial`) e as chances sorteadas saíam de cena — a bola do golzinho ficava parada no meio o jogo inteiro.
+// Agora a bola chuta com os lances DO PRÓPRIO JOGO: goleiro encaixou/deu rebote = defendeu, bola na trave = trave.
+// `lado` do motor: 0 = casa. No encaixe/rebote o `lado` é de quem DEFENDEU (o chute foi do outro); na trave, de quem atacou.
+// Espaçadas (≥ 2') pra caber na tela, que nem as sorteadas.
+export function chancesDoRelato(eventos: readonly { tipo: string; lado: number; t: number }[]): Chance[] {
+  const out: Chance[] = []
+  for (const e of eventos) {
+    const fim: FimDaChance | null = e.tipo === 'trave' ? 'trave' : e.tipo === 'encaixa' || e.tipo === 'rebote' ? 'defendeu' : null
+    if (!fim) continue
+    const min = Math.min(93, Math.floor(e.t / (90 / 93)) + 1)
+    if (out.length && min - out[out.length - 1].min < 2) continue
+    const atacouCasa = fim === 'trave' ? e.lado === 0 : e.lado !== 0
+    out.push({ min, home: atacouCasa, fim })
+  }
+  return out
+}

@@ -115,7 +115,7 @@ import { simulaIntercontinental, europaDaTemporada, INTERCONTINENTAL_2026, CLUBE
 import { simulaLibertadores, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
-import { useEsc, divOficialDe, savePyramidCloud, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -196,7 +196,7 @@ import { mascoteDaSala, estouEmSala } from './mimos'
 import { playDia, playApitoCurto, playFlash } from './sound'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA, playChute, playDefesa, playQuase, playSubiu, playCaiu, playCaixa } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
-import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { chancesDoJogo, chancesDoRelato, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
 import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
@@ -4546,6 +4546,18 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const provaOficial=useMemo(()=>!basket&&presidentFieldAccount&&elencos?.m2?prepararReplayOficial(elencos.m2,goals,idiomaOficial):null,[basket,presidentFieldAccount,elencos?.m2,goals,idiomaOficial])
   const relatoOficial=useRelatoPartidaOficial(provaOficial?.valid?provaOficial.relato:null,{id:stadiumMatch?.id??`${roundKey}:${homeName}:${awayName}`,minute:min,minuteMs:officialMinuteMs,paused:atHalf||!!pausado,finished:!!finished||min>=93})
   const done = min >= 93
+  // ⚽🥅 24/11: no motor novo o gol entra no placar pelo relato — e agora a bolinha do golzinho também voa pra rede junto
+  const [golPalco, setGolPalco] = useState<{ side: 'h' | 'a'; key: number } | null>(null)
+  const golsRelato = relatoOficial?.goalCount ?? 0
+  const golsRelatoAntes = useRef(golsRelato)
+  useEffect(() => {
+    const antes = golsRelatoAntes.current; golsRelatoAntes.current = golsRelato
+    if (!relatoOficial || !provaOficial || golsRelato <= antes) return
+    const g = provaOficial.relato.goals[golsRelato - 1]; if (!g) return
+    setGolPalco({ side: g.home ? 'h' : 'a', key: 7000 + golsRelato })
+    const t = setTimeout(() => setGolPalco(null), CHANCE_MS / fieldSpeed)
+    return () => clearTimeout(t)
+  }, [golsRelato]) // eslint-disable-line react-hooks/exhaustive-deps
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
   // resultado exibido divergia da pontuação: vitória virava empate etc.).
@@ -4739,7 +4751,8 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   // decide quantas cabem é o `roundMs` (11 s no online = 1 por lado; carreira, mais).
   // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
-  const chances = useMemo(() => (basket || !cinematic || apresentarMotorOficial) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, apresentarMotorOficial, roundKey, homeName, awayName, goals, incidentRoundMs])
+  // ⚽ 24/11: no motor novo a bola chuta com os lances DO JOGO (defesas e trave do relato oficial) — antes ficava parada no meio
+  const chances = useMemo(() => (basket || !cinematic) ? [] : apresentarMotorOficial ? (provaOficial?.valid ? chancesDoRelato(provaOficial.relato.events) : []) : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, apresentarMotorOficial, provaOficial, roundKey, homeName, awayName, goals, incidentRoundMs])
   // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
   // ⚽ 26/10: com a escalação na mão a rádio narra os toques na bola, com o nome de quem encosta nela
   const radioComNomes = !!(elencos?.casa?.length && elencos?.fora?.length)
@@ -4999,6 +5012,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
     // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
     //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
     palco={voo ? { side: voo.side, speed:voo.speed, clock:voo.clock, impactMs:voo.plan?.durationMs, shotStartMs:voo.plan?.sequence?.shotStartMs, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }
+      : golPalco ? { side: golPalco.side, speed: fieldSpeed, fim: 'gol', key: golPalco.key, veredito: vereditoDaChance('gol', emIngles) }
       : lance ? { side: lance.side, speed:lance.speed, clock:lance.clock, impactMs:lance.plan?.durationMs, shotStartMs:lance.plan?.sequence?.shotStartMs, fim: lance.fim, key: lance.key, veredito: lance.plan?.finishing?.surface==='travessao'?tr('NO TRAVESSÃO!','OFF THE CROSSBAR!'):vereditoDaChance(lance.fim, emIngles) } : null}
     stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
@@ -5288,7 +5302,7 @@ function HalftimeBanner({ mgr, baseXIids, baseTactic, homeName, awayName, homeG,
                 de sempre (+ a atual, se for conta nova). Aqui é sempre a CONTA do
                 motor (sem maquiagem: intervalo é ajuste rápido). */}
             {((): FormationKey[] => {
-              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2'] as FormationKey[]
+              const base = ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '3-5-2z', '5-3-2'] as FormationKey[]
               if (!quinze15) return base
               const nomeT = escStH.careerTecnicos?.[mgr.teamName]
               const tt = nomeT ? tecnicoPorNome(nomeT) : undefined
@@ -7865,7 +7879,7 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
               <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}{meuTecT ? tr(' do técnico', ' (coach\'s)') : ''}</p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: daCasa && !doTec.has(daCasa) ? 8 : 0 }}>
                 {cardapio.map(f => {
-                  const cur = atual.rotulo === f.rotulo
+                  const cur = atual.rotulo === f.rotulo && atual.motor === f.motor // 🛡️ 23/11: o 3-5-2 antigo (alas) e o novo têm o mesmo nome
                   const can = cur || missFor(f.motor).length === 0
                   const heranca = !!daCasa && f.rotulo === daCasa && !doTec.has(f.rotulo)
                   return (
@@ -7900,15 +7914,16 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
         // dica: as formações pra onde AINDA falta gente (pra ele saber o que buscar)
         // 📋 Liga Draft (04/11): as 7 formações do jogo, acesas pelo que o elenco tem; o resto segue com as 5 de sempre
         const elenco22 = !!escSt.minhaLigaDraft || !!escSt.bafo2 // 📋🃏 modos de elenco de 22: as 7 formações do jogo (+ o 3-5-2)
-        const listaForm: readonly FormationKey[] = elenco22 ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '5-3-2']
+        const listaForm: readonly FormationKey[] = elenco22 ? FORMACOES_JOGO : ['4-3-3', '4-4-2', '4-5-1', '3-4-3z', '3-5-2z', '5-3-2']
+        const alasAgora = mgr.formation === '5-3-2' && mgr.formationView === '3-5-2'
         const blocked = listaForm.filter(f => f !== mgr.formation && missFor(f).length > 0)
         return (
           <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '7px 9px', marginBottom: 10 }}>
             <p style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, margin: '0 0 6px', color: INK }}>{tr('🎽 Formação', '🎽 Formation')}</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {/* 🪽 07/11: na Liga Draft entra o 3-5-2 logo depois do 5-3-2 — mesmos jogadores, os laterais sobem como alas */}
-              {listaForm.flatMap((f): [FormationKey, string | undefined][] => elenco22 && f === '5-3-2' ? [[f, undefined], [f, '3-5-2']] : [[f, undefined]]).map(([f, vista]) => {
-                const alasAgora = mgr.formation === '5-3-2' && mgr.formationView === '3-5-2'
+              {/* 🛡️ 23/11: o 3-5-2 de verdade ('3-5-2z') está na lista; o de alas (5-3-2 + laterais) só aparece pra quem JÁ joga nele */}
+              {listaForm.flatMap((f): [FormationKey, string | undefined][] => elenco22 && f === '5-3-2' && alasAgora ? [[f, undefined], [f, '3-5-2']] : [[f, undefined]]).filter(([f]) => !(alasAgora && f === '3-5-2z')).map(([f, vista]) => {
                 const cur = mgr.formation === f && (vista === '3-5-2' ? alasAgora : !(f === '5-3-2' && alasAgora))
                 const can = cur || missFor(f).length === 0
                 return (
@@ -9897,7 +9912,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const { state } = useEsc()
   const stRef = useRef(state); stRef.current = state
   const [logado, setLogado] = useState<boolean | null>(null)
-  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d'>('quieto')
+  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d' | 'falhou'>('quieto')
   const soAparelho = useNuvemSoAparelho(state.seed) // ☁️⭐ conta grátis + carreira nova (07/10)
   const bloqueado = useSalvarBloqueado(!!state.oficial) // 🔒 04/11: sem plano, carreira não salva
   const [, setTick] = useState(0)
@@ -9915,8 +9930,10 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     if (salvarBloqueado(!!state.oficial)) return // 🔒 04/11: sem plano o botão só abre os planos (a faixa cuida disso)
     try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     setFase('salvando')
-    let res: 'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | undefined
-    try { res = await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
+    let res: Awaited<ReturnType<typeof savePyramidCloud>> = undefined
+    try { res = await savePyramidCloud(st, true, true) } catch { res = 'falhou' }
+    // 💾 24/11: falhou de verdade (3 tentativas) — nada de "salvo": a faixa avisa e o toque tenta de novo
+    if (res === 'falhou') { setFase('falhou'); setTimeout(() => setFase('quieto'), 6000); return }
     const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
     // ☁️ 26/10: conta sem plano, 1º salvamento na nuvem → avisa do prazo de 7 dias (uma vez por aparelho)
     const avisa7 = res === 'nuvem7' && (() => { try { if (localStorage.getItem('esc-teste5d-visto')) return false; localStorage.setItem('esc-teste5d-visto', '1'); return true } catch { return false } })()
@@ -9924,6 +9941,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     setTimeout(() => setFase('quieto'), avisa7 ? 6000 : 2400)
   }, [])
   if (!ativo) return undefined
+  if (bloqueado && salvarSemConta()) return { estado: 'sem_conta', onClick } // 👤 24/11: sem conta não salva — o botão abre a conta grátis
   if (bloqueado) return { estado: 'bloqueado', onClick } // 🔒 04/11: sem plano não salva — o botão vira cadeado e abre os planos
   if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined, diasTeste: diasTesteSalvar() }
   if (logado === false && !logadoDev) return { estado: 'deslogado', onClick }
@@ -10079,9 +10097,24 @@ export function PyramidSeasonScreen() {
   const [planosSair, setPlanosSair] = useState(false) // ☁️ 19/10: sem plano, "Sair e salvar" mostra os planos
   const salvarTravado = useSalvarBloqueado(!!state.oficial) // 🔒 04/11: sem plano a carreira não salva
   const [planosSalvar, setPlanosSalvar] = useState(false)
+  const semConta = salvarTravado && salvarSemConta() // 👤 24/11: sem conta o cadeado abre a conta grátis, não os planos
+  const [contaSalvar, setContaSalvar] = useState(false)
   // 🚪 15/11: "Só sair" pergunta antes e, confirmado, volta a carreira pro último salvamento (`voltaProUltimoSalvo`)
   const [sairSem, setSairSem] = useState<null | 'pergunta' | 'voltando' | 'sem_salvo' | 'sem_rede'>(null)
-  const sairESalvar = () => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' }) }
+  // 💾 24/11 (caso do Milan, temporada 121 perdida): o "Sair e salvar" ESPERA a nuvem confirmar e só então sai.
+  // Antes ele disparava o envio e já ia pra home (que baixava o save inteiro junto) — no celular a página reiniciou
+  // e o envio morreu calado. Falhou (3 tentativas) = fica na carreira, com o aviso embaixo do botão.
+  const [sairSalvando, setSairSalvando] = useState<null | 'salvando' | 'falhou'>(null)
+  const sairESalvar = async () => {
+    if (sairSalvando === 'salvando') return
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — a nuvem é que guarda */ }
+    setSairSalvando('salvando')
+    let r: Awaited<ReturnType<typeof savePyramidCloud>> = undefined
+    try { r = await savePyramidCloud(state, true, true) } catch { r = 'falhou' }
+    if (r === 'falhou') { setSairSalvando('falhou'); return }
+    setSairSalvando(null)
+    if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' })
+  }
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentPending = usePresidentPreviewPending() && !mapaEstadioDisponivel(false) && mapaEstadioDisponivel(true) // espera só na conta candidata à prévia
@@ -15689,24 +15722,29 @@ export function PyramidSeasonScreen() {
         ) : (
           salvarTravado ? (<>
           {/* 🔒 04/11 (Diego): sem plano a carreira não salva — o botão de salvar vem com cadeado e abre os planos; sair não guarda nada */}
-          <button onClick={() => setPlanosSalvar(true)} className="ll-cx-sair"
+          <button onClick={() => semConta ? setContaSalvar(true) : setPlanosSalvar(true)} className="ll-cx-sair"
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🔒 Salvar carreira', '🔒 Save career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#3a3626', marginTop: 2 }}>{tr('Salvar é dos planos (a partir do Craque Salas). Assine e não perca nada.', 'Saving comes with the plans (from Craque Salas up). Subscribe and lose nothing.')}</span>
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#3a3626', marginTop: 2 }}>{semConta
+              ? tr('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')
+              : tr('Salvar é dos planos (a partir do Craque Salas). Assine e não perca nada.', 'Saving comes with the plans (from Craque Salas up). Subscribe and lose nothing.')}</span>
           </button>
           <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="ll-cx-sair"
             style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '9px 13px', fontWeight: 900, fontSize: 13, background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🚪 Sair da carreira', '🚪 Exit career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Sem plano, o que você jogou não fica salvo.', 'Without a plan, what you played is not saved.')}</span>
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{semConta ? tr('Sem conta, o que você jogou não fica salvo.', 'Without an account, what you played is not saved.') : tr('Sem plano, o que você jogou não fica salvo.', 'Without a plan, what you played is not saved.')}</span>
           </button>
           </>) : (
           <>
           <button
             onClick={sairESalvar}
+            disabled={sairSalvando === 'salvando'}
             className="ll-cx-sair"
-            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-            {tr('💾 Sair e salvar carreira', '💾 Exit and save career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{soAparelhoPe
+            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: sairSalvando === 'salvando' ? 'wait' : 'pointer', opacity: sairSalvando === 'salvando' ? .75 : 1, ...OSWALD }}>
+            {sairSalvando === 'salvando' ? tr('⏳ Salvando na nuvem… não feche o jogo', '⏳ Saving to the cloud… do not close the game') : sairSalvando === 'falhou' ? tr('🔁 Tentar salvar de novo', '🔁 Try saving again') : tr('💾 Sair e salvar carreira', '💾 Exit and save career')}
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: sairSalvando === 'falhou' ? '#B23B2E' : '#5a5647', marginTop: 2 }}>{sairSalvando === 'falhou'
+              ? tr('⚠️ Não conseguimos salvar agora. Você continua aqui e nada foi perdido. Toque pra tentar de novo.', '⚠️ We could not save right now. You are still here and nothing was lost. Tap to try again.')
+              : soAparelhoPe
               ? tr('☁️ Salvar na nuvem é dos planos (⭐ Craque ou 👑 Lenda).', '☁️ Saving to the cloud comes with the plans (⭐ Star or 👑 Legend).')
               : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
@@ -15721,6 +15759,7 @@ export function PyramidSeasonScreen() {
         {/* ☁️ 19/10: sem plano, o "Sair e salvar" mostra os planos antes de sair (fechar a janela = sai pro menu, como sempre) */}
         {planosSair && <JanelaNuvemPlanos onClose={() => { setPlanosSair(false); dispatch({ type: 'GO_LOBBY' }) }} />}
         {planosSalvar && <JanelaNuvemPlanos travado onClose={() => setPlanosSalvar(false)} />}
+        {contaSalvar && <JanelaConta titulo={tr('💾 Salvar sua carreira', '💾 Save your career')} contexto={tr('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')} comecarEmCriar onPronto={() => setContaSalvar(false)} onFechar={() => setContaSalvar(false)} />}
         {sairSem && (() => {
           const ult = ultimaSubidaNuvem(state.seed)
           const btn = (bg: string, cor: string, fs: number) => ({ width: '100%', marginTop: 12, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: fs, background: bg, color: cor, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD } as const)

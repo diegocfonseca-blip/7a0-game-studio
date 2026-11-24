@@ -18,6 +18,7 @@ import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { logTravaSalva } from './analytics'
 import { SECTORS, FORMACOES_JOGO, FORMATIONS, duplaPodeAgir, type Card, type FormationKey, type Sector, type WonCard } from './types'
+import { QuemEJogador } from './quem-e-jogador'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 import { useTelaPC } from './sport'
 import './convocacao-pc.css' // 🖥️ 04/11: no PC, 3 colunas (só desenho)
@@ -132,6 +133,7 @@ export function EscConvocacaoClubes() {
           )}
           {seg !== null && faltamFechar.length > 0 && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 26, margin: 0 }}>⏱️ {seg}s</p>}
         </Box>
+        {faltamFechar.length > 0 && <QuemEJogador />}{/* 🃏 23/11: joguinho enquanto a turma fecha (some sozinho quando a convocação acaba) */}
       </Shell>
     )
   }
@@ -186,7 +188,8 @@ export function EscConvocacaoClubes() {
           <div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px', textTransform: 'uppercase' }}>{t('⚽ Formação', '⚽ Formation')}</p>
             <div className="cv-forms" style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-              {FORMACOES_JOGO.flatMap((f): [FormationKey, boolean][] => f === '5-3-2' ? [[f, false], [f, true]] : [[f, false]]).map(([f, ala]) => {
+              {/* 🛡️ 23/11: o 3-5-2 agora é o de verdade ('3-5-2z') — sai o botão de alas do 5-3-2 */}
+              {FORMACOES_JOGO.map((f): [FormationKey, boolean] => [f, false]).map(([f, ala]) => {
                 const ok = formacaoCabeNosPacotes((me.squad ?? []) as WonCard[], f)
                 const falta = ok ? null : SECTORS.find(sec => (lotes[sec]?.pacote?.cartas.length ?? 0) < FORMATIONS[f][sec])
                 const on = form === f && alas === ala, nome = ala ? '3-5-2' : rotuloFormacao(f) /* 🛡️ 23/11: '3-4-3z' é a chave, a tela mostra 3-4-3 */

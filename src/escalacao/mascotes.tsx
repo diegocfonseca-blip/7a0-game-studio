@@ -89,6 +89,7 @@ import hgigantesMascoteImg from './img/hgigantes-mascote.webp' // 🧔 História
 import cearaspMascoteImg from './img/cearasp-mascote.webp' // 👑 Ceará SP Club (lucasnicodemosqq): arte própria do dono, 19/11
 import imperioMascoteImg from './img/imperio-mascote.webp' // 👑🦡 Império FC (leodicasttro): arte própria do dono, 20/11
 import tunaldoMascoteImg from './img/tunaldo-mascote.webp' // ⚫⚓ Tunaldo FC (faertes9, batismo de 22/11): arte própria do dono
+import betassoMascoteImg from './img/betasso-mascote.webp' // 🎸👑 Sport Clube Betasso (caiomooca2013, Fundador de 23/11): arte própria do dono
 import piritubaMascoteImg from './img/pirituba-mascote.webp' // 🐸👑 Pirituba SF (pedrosilveira0810, Fundador de 23/11): arte própria do dono
 import lavrasMascoteImg from './img/lavras-mascote.webp' // 🐆 Lavras FC (hugopereirabrito): arte própria do dono, 16/11
 import cabritiiinMascoteImg from './img/cabritiiin-mascote.webp' // 🐐 Cabritiiin F.C (lucassaboia14): arte própria do dono, 13/11
@@ -497,6 +498,11 @@ export const MASCOTES: Record<string, ReactNode> = {
   ),
   // 🐸👑 O PERERECÃO (mascote do Pirituba SF — pedrosilveira0810, Fundador de 23/11): o sapo azul de boné rosa virado, agachado na
   // POSE DE SAPO (pedido do Diego, 23/11), com a camisa e o calção azul e rosa. Arte do próprio dono. 📏 424×440, 44 KB — altura 176. mascote_key = "pirituba_pererecao".
+  // 🎸👑 APENAS UM BETO (mascote do Sport Clube Betasso — caiomooca2013, Fundador de 23/11): o próprio Beto de boné preto, tomando a
+  // lata, violão nas costas, pé em cima da bola, com o uniforme grená camisa 10. Arte do próprio dono. 📏 220×440, 36 KB — altura 176. mascote_key = "betasso_beto".
+  betasso_beto: (
+    <img src={betassoMascoteImg} height={176} width={Math.round(176 * 220 / 440)} alt="Apenas um Beto — Sport Clube Betasso" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   pirituba_pererecao: (
     <img src={piritubaMascoteImg} height={176} width={Math.round(176 * 424 / 440)} alt="Pererecão — Pirituba SF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1478,6 +1484,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Tunaldo SC': 'tunaldo_craque',
   // 🐸👑 o Pererecão carimba o gol do Pirituba SF (pedrosilveira0810, 23/11).
   'Pirituba SF': 'pirituba_pererecao',
+  // 🎸👑 o Beto carimba o gol do Sport Clube Betasso (caiomooca2013, 23/11).
+  'Sport Clube Betasso': 'betasso_beto',
+  'Betasso': 'betasso_beto',
+  'Betasso FC': 'betasso_beto',
+  'Betasso EC': 'betasso_beto',
+  'Betasso SC': 'betasso_beto',
+  'Betasso Sport Clube': 'betasso_beto',
+  'SC Betasso': 'betasso_beto',
   'Pirituba': 'pirituba_pererecao',
   'Pirituba Sex Football': 'pirituba_pererecao',
   'Pirituba FC': 'pirituba_pererecao',
@@ -1681,6 +1695,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   hgigantes_vovo: 'O Vovô Gigante', // 🧔 História dos Gigantes (will.a.n, 16/11)
   cearasp_rei: 'O Rei', // 👑 Ceará SP Club (lucasnicodemosqq, 19/11)
   imperio_texugo: 'O Texugo Rei', // 👑🦡 Império FC (leodicasttro, 20/11)
+  betasso_beto: 'Apenas um Beto', // 🎸👑 Sport Clube Betasso (caiomooca2013, Fundador de 23/11)
   pirituba_pererecao: 'Pererecão', // 🐸👑 Pirituba SF (pedrosilveira0810, Fundador de 23/11)
   tunaldo_craque: 'O Craque Tunaldo', // ⚫⚓ Tunaldo FC (faertes9, batismo de 22/11)
   lavras_pantera: 'A Pantera', // 🐆 Lavras FC (hugopereirabrito, 16/11)

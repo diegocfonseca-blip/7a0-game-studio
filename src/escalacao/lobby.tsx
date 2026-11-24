@@ -3120,6 +3120,10 @@ export function EscLobby() {
       setRoomError(tr(`🔒 Sem plano, dá pra estar em 1 ${tipo} por vez — você já está na "${lim[2].trim()}". Saia dela (botão Sair da sala, dentro da liga) ou tenha qualquer plano ⭐ pra jogar em quantas quiser.`, `🔒 Without a plan you can be in 1 ${tipo} at a time — you are already in "${lim[2].trim()}". Leave it (Leave room, inside the league) or go ⭐ Craque to play in as many as you want.`))
       setLoading(false); return
     }
+    if (!insOk && /LIGA_REMOVIDO/.test(lastErr)) { // 🚫 24/11: o dono removeu esta pessoa da liga — só volta com pedido novo aceito por ele
+      setRoomError(tr('🚫 Você foi removido desta liga pelo dono. Pra voltar, só se ele aceitar um pedido novo seu.', '🚫 You were removed from this league by the owner. You can only return if they accept a new request from you.'))
+      setLoading(false); return
+    }
     if (!insOk && /LIGA_SO_PLANO/.test(lastErr)) { // 🔒 06/11: o banco barrou — liga que já jogou só recebe gente nova com plano
       setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.'))
       setLoading(false); return
