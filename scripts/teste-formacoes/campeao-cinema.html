@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Oswald,sans-serif}
+#s{position:relative;width:100vw;height:100vh;overflow:hidden;color:#fff;text-align:center}
+.bg{position:absolute;inset:0;background:url(../../src/escalacao/img/online-liberta-v25.webp) 80% 50%/cover no-repeat;transform-origin:80% 45%;animation:cam 9s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes cam{0%{transform:scale(1.05);filter:brightness(.35)}25%{transform:scale(1.35);filter:brightness(.55)}32%{filter:brightness(1.6)}40%{transform:scale(1.9);filter:brightness(1)}100%{transform:scale(2.05);filter:brightness(.8)}}
+.veu{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0) 35%,rgba(0,0,0,0) 60%,rgba(0,0,0,.75))}
+.t1{position:absolute;left:0;right:0;top:16%;font-weight:700;font-size:15px;letter-spacing:.32em;color:#e9d7a8;text-transform:uppercase;opacity:0;animation:fade 1s .3s forwards,out .4s 2.4s forwards}
+.t1 b{display:block;font-size:30px;letter-spacing:.08em;color:#fff;margin-top:6px}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;animation:fl .6s 2.75s}
+@keyframes fl{0%{opacity:0}15%{opacity:.95}100%{opacity:0}}
+.lado{position:absolute;top:0;bottom:0;width:38%;opacity:0;animation:fade .6s 2.9s forwards,pulsa 1.2s 3.5s infinite alternate}
+.lado.e{left:0;background:radial-gradient(ellipse at 0% 85%,var(--c1) 0%,transparent 65%)}
+.lado.d{right:0;background:radial-gradient(ellipse at 100% 85%,var(--c2) 0%,transparent 65%)}
+@keyframes pulsa{to{opacity:.55}}
+.esc{position:absolute;left:50%;top:16%;width:42vw;max-width:200px;transform:translate(-50%,0) scale(3);opacity:0;filter:drop-shadow(0 0 30px #ffc400aa) drop-shadow(4px 4px 0 #000);animation:bate .45s 3s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes bate{to{opacity:1;transform:translate(-50%,0) scale(1)}}
+.onda{position:absolute;left:50%;top:28%;width:30px;height:30px;border:6px solid #FFC400;border-radius:50%;transform:translate(-50%,-50%);opacity:0;animation:onda .9s 3.35s ease-out}
+@keyframes onda{0%{opacity:1;width:30px;height:30px}100%{opacity:0;width:620px;height:620px}}
+.txt{position:absolute;left:0;right:0;top:47%;opacity:0;animation:sobe .6s 3.5s forwards}
+.kick{font-weight:700;font-size:13px;letter-spacing:.3em;color:#FFE08A;text-transform:uppercase}
+.ttl{font-weight:900;font-size:50px;line-height:.95;text-transform:uppercase;color:transparent;background:linear-gradient(100deg,#9a7000 0%,#FFC400 30%,#fff6c2 45%,#FFC400 60%,#9a7000 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(3px 3px 0 #000);animation:brilho 1.8s 3.8s infinite linear}
+@keyframes brilho{from{background-position:120% 0}to{background-position:-120% 0}}
+.nome{font-weight:900;font-size:28px;text-transform:uppercase;text-shadow:0 3px 10px #000;margin-top:6px;letter-spacing:.03em}
+.fita{display:inline-block;margin-top:10px;height:10px;width:62%;border-radius:4px;background:repeating-linear-gradient(90deg,var(--c1) 0 22px,var(--c2) 22px 44px);box-shadow:0 2px 0 #000}
+.lendas{position:absolute;left:0;right:0;bottom:0;height:27%;display:flex;justify-content:center;align-items:flex-end;gap:0}
+.lendas img{height:100%;max-width:40%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 -4px 14px #000);opacity:0}
+.lendas img:nth-child(1){animation:daE .6s 5.4s ease-out forwards}
+.lendas img:nth-child(2){height:112%;animation:daB .6s 5.2s ease-out forwards;z-index:2}
+.lendas img:nth-child(3){animation:daD .6s 5.6s ease-out forwards}
+@keyframes daE{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:none}}
+@keyframes daD{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+@keyframes daB{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:none}}
+.masc{position:absolute;right:-3%;bottom:2%;width:40vw;max-width:190px;filter:drop-shadow(0 4px 10px #000);opacity:0;animation:daD .5s 6s forwards,pula .45s 6.5s infinite alternate ease-in-out}
+@keyframes pula{to{translate:0 -14px}}
+.canto{position:absolute;left:0;right:0;bottom:3%;font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase;color:#fff;text-shadow:0 2px 8px #000;opacity:0;animation:fade .5s 5.4s forwards}
+.canto span{display:inline-block;animation:balanca .5s 5.6s infinite alternate}
+@keyframes balanca{from{transform:rotate(-3deg)}to{transform:rotate(3deg) scale(1.06)}}
+canvas{position:absolute;inset:0;pointer-events:none}
+@keyframes fade{to{opacity:1}}@keyframes out{to{opacity:0}}
+@keyframes sobe{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+</style></head><body>
+<div id="s" style="--c1:#0199F6;--c2:#FC22BC">
+ <div class="bg"></div><div class="veu"></div>
+ <div class="lado e"></div><div class="lado d"></div>
+ <div class="t1">A taça espera o seu dono…<b>Libertadores Legends</b></div>
+ <div class="flash"></div>
+ <div class="onda"></div>
+ <img class="esc" id="esc" src="../../src/escalacao/img/pirituba-escudo.webp">
+ <div class="txt"><div class="kick">🌎 Glória continental</div><div class="ttl">Campeão<br>da América</div><div class="nome" id="nome">Pirituba SF</div><div class="fita"></div></div>
+ <div class="lendas" id="lendas"><img src="../../public/avatars/lendas-v1/kaka-milan-2007.webp"><img src="../../public/avatars/lendas-v1/zico-flamengo-1981.webp"><img src="../../public/avatars/lendas-v1/romario-vasco-2000.webp"></div>
+ <img class="masc" id="masc" src="../../src/escalacao/img/pirituba-mascote.webp">
+ <canvas id="c"></canvas>
+</div>
+<script>
+const q=new URLSearchParams(location.search)
+if(q.get('sem')){const s=document.getElementById('s');s.style.setProperty('--c1','#C2452F');s.style.setProperty('--c2','#ffffff')
+ document.getElementById('esc').outerHTML='<div class="esc" style="width:150px;height:170px;clip-path:polygon(50% 0,100% 14%,100% 60%,50% 100%,0 60%,0 14%);background:linear-gradient(90deg,#C2452F 0 50%,#a8321f 50%);display:grid;place-items:center;font:900 64px Oswald;color:#fff;text-shadow:3px 3px 0 #000;filter:none">AF</div>'
+ document.getElementById('nome').textContent='Angel FC'
+ document.getElementById('lendas').remove();document.getElementById('masc').remove()
+ document.getElementById('s').insertAdjacentHTML('beforeend','<div class="canto"><span>📣 É CAMPEÃO! É CAMPEÃO! 🔥</span></div>')}
+// papel picado de verdade (canvas)
+const cv=document.getElementById('c'),x=cv.getContext('2d');let W,H;const rs=()=>{W=cv.width=innerWidth*2;H=cv.height=innerHeight*2};rs()
+const cores=[getComputedStyle(document.getElementById('s')).getPropertyValue('--c1'),getComputedStyle(document.getElementById('s')).getPropertyValue('--c2'),'#FFC400','#ffffff']
+const P=[];const t0=performance.now()
+function solta(n){for(let i=0;i<n;i++)P.push({x:Math.random()*W,y:-20-Math.random()*H*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,r:Math.random()*6.28,vr:(Math.random()-.5)*.3,w:10+Math.random()*12,h:6+Math.random()*8,c:cores[i%cores.length]})}
+let soltou=false
+function loop(t){const dt=(t-t0)/1000;if(dt>3.1&&!soltou){soltou=true;solta(260);setTimeout(()=>solta(160),1400);setTimeout(()=>solta(160),3000)}
+ x.clearRect(0,0,W,H);for(const p of P){p.x+=p.vx+Math.sin((t/400)+p.r)*1.2;p.y+=p.vy;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.w/2,-p.h/2*Math.abs(Math.cos(p.r*2)),p.w,p.h*Math.abs(Math.cos(p.r*2))+1);x.restore()}
+ requestAnimationFrame(loop)}
+requestAnimationFrame(loop)
+</script></body></html>
