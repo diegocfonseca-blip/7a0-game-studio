@@ -6,7 +6,7 @@ for (const [nome, qs] of [['com', ''], ['sem', '?sem=1']]) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 760 }, recordVideo: { dir: out, size: { width: 390, height: 760 } } })
   const p = await ctx.newPage()
   await p.goto('file:///home/user/7a0-game-studio/scripts/teste-formacoes/campeao-liberta-anim.html' + qs)
-  await p.waitForTimeout(8200)
+  await p.waitForTimeout(9200)
   const v = p.video(); await ctx.close()
   fs.renameSync(await v.path(), `${out}/${nome}.webm`)
 }
