@@ -5,15 +5,17 @@
  * Fontes e limites completos: docs/tecnicos-brasil-20261124.md.
  */
 import type { DivTecnico, Tecnico, VinculoTecnico } from './tecnicos'
+import { repertorioInicialTecnico } from './tecnicos-repertorios'
+import { TECNICOS_BRASIL_LOTE_2, TECNICOS_BRASIL_LOTE_3 } from './tecnicos-brasil-lotes'
 
 const LISTA_2025 = 'https://www.cnnbrasil.com.br/esportes/brasileirao/serie-d-do-brasileirao-ja-tem-todos-os-64-tecnicos-definidos-veja-lista/'
 const vinculo = (clube: string, referencia: string, fonte: string, tipo: VinculoTecnico['tipo'] = 'historico'): VinculoTecnico => ({ clube, referencia, fonte, tipo })
 const novo = (nome: string, div: DivTecnico, vinculos: VinculoTecnico[], nomeCompleto?: string): Tecnico => ({
-  nome, pais: '🇧🇷', div, estilo: 'equilibrado', chute: true, vinculos, ...(nomeCompleto ? { nomeCompleto } : {}),
+  nome, pais: '🇧🇷', div, estilo: 'equilibrado', chute: true, formacoes: repertorioInicialTecnico(div), vinculos, ...(nomeCompleto ? { nomeCompleto } : {}),
 })
 const passagem2025 = (clube: string) => vinculo(clube, 'Comando anunciado para a temporada de 2025; não é confirmação de cargo atual.', LISTA_2025, 'passagem')
 
-export const NOVOS_TECNICOS_BRASIL: Tecnico[] = [
+export const TECNICOS_BRASIL_LOTE_1: Tecnico[] = [
   novo('Lula', 'A', [vinculo('Santos', 'Comandante da geração bicampeã da Libertadores e do Mundial nos anos 1960.', 'https://www.santosfc.com.br/vamos-falar-de-hegemonia/')], 'Luís Alonso Pérez'),
   novo('Oswaldo Brandão', 'A', [vinculo('Palmeiras', 'Treinador histórico da Academia e recordista de partidas pelo clube.', 'https://www.palmeiras.com.br/tecnicos-historia/')]),
   novo('Rubens Minelli', 'A', [vinculo('Internacional', 'Campeão brasileiro em 1975 e 1976.', 'https://www.saopaulofc.net/nota-de-pesar-rubens-minelli/'), vinculo('São Paulo', 'Campeão brasileiro em 1977.', 'https://www.saopaulofc.net/enciclopedia-tecnicos-titulos/')]),
@@ -55,6 +57,8 @@ export const NOVOS_TECNICOS_BRASIL: Tecnico[] = [
   novo('Betinho', 'D', [vinculo('Lagarto', 'Vice-campeão estadual em 2021 e retorno anunciado em 2025.', 'https://ge.globo.com/se/futebol/times/lagarto/noticia/2025/02/04/lagarto-anuncia-betinho-como-novo-treinador-da-equipe.ghtml')], 'Gilberto Carlos do Nascimento'),
   novo('Álvaro Miguéis', 'V', [vinculo('Independência', 'Campeão acreano em 2025.', 'https://ge.globo.com/google/amp/ac/futebol/campeonato-acreano/noticia/2025/04/01/alvaro-migueis-se-torna-tecnico-mais-vezes-campeao-acreano-na-era-profissional.ghtml')]),
 ]
+
+export const NOVOS_TECNICOS_BRASIL: Tecnico[] = [...TECNICOS_BRASIL_LOTE_1, ...TECNICOS_BRASIL_LOTE_2, ...TECNICOS_BRASIL_LOTE_3]
 
 /** Nomes já existentes conservam categoria, faixa e identidade no save. */
 export const VINCULOS_TECNICOS_BRASIL: Record<string, VinculoTecnico[]> = {

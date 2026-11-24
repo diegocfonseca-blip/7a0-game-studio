@@ -1,5 +1,7 @@
 # Técnicos de carreira — ampliação de 24/11/2026
 
+**Continuação:** os lotes2/3 acrescentaram mais80 nomes, totalizando225. Todos os120 novos já têm repertório explícito. Este documento registra o primeiro lote. [Estado atual, novas fichas e fontes](tecnicos-lotes-2-3-20261124.md).
+
 Diego autorizou: ampliar o repertório em uma formação por categoria; começar a acrescentar treinadores reais; pesquisar vínculos com os clubes; usar o atual quando não houver referência histórica adequada; não repetir pessoas. Reaproveitar o funcionamento da carreira tradicional e preservar notas dos jogadores e dos técnicos existentes.
 
 ## Entrega deste lote

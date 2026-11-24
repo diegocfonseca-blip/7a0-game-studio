@@ -1,3 +1,9 @@
+## 24/11 — TÉCNICOS: LOTES2/3 E FICHAS COMPLETAS NA LARGADA
+
+- Diego mandou seguir os lotes e reforçou categoria e formações prontas para cada técnico. Mais80 pessoas reais em dois lotes de40; catálogo225, sem duplicação. Todos os120 acrescentados têm repertório explícito, na mesma régua2/3/4/5/6; oito treinadores ganharam esquemas específicos documentados em fontes.
+- Fichas dos145 anteriores preservadas por comparação integral. Fontes para101clubes do modo; isso ainda não conclui todos os clubes. Categorias novas são curadoria do jogo, passagens não significam emprego atual.
+- Controle de largada encontrou um bot com esquema fora do repertório; a formação da casa agora é guardada também para CPUs, sem mudar oXI inicial ou resultados passados. Oito largadas, regressões de mercado/3-5-2 e compilação completa TypeScript/Vite passaram. Sem publicação e sem conta/save/banco reais alterados. [Lista, esquemas e fontes](tecnicos-lotes-2-3-20261124.md).
+
 ## 24/11 — TÉCNICOS: +1 FORMAÇÃO E PRIMEIRO LOTE COM VÍNCULOS REAIS
 
 - Diego autorizou aumentar para 2/3/4/5/6 formações por categoria e começar a pesquisar/acrescentar técnicos reais, associados aos clubes e sem repetir pessoas. Incluídos 40 nomes: catálogo agora com 145; notas e categorias dos 105 anteriores preservadas. Vínculos têm fonte e distinguem histórico, passagem e atual; estilo não comprovado fica neutro.

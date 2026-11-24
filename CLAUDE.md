@@ -7,7 +7,7 @@ responde melhor a explicações simples, sem jargão).
 
 ## 🧢 Técnicos de carreira — decisão de 24/11/2026
 
-Diego autorizou ampliar o catálogo de treinadores reais, pesquisar vínculo histórico com o clube (usar atual se não houver referência adequada), sem duplicar pessoas, e aumentar uma formação por categoria: profissional2, bom3, promessa4, craque5, lenda6. Preservar notas, categorias existentes e influência atual no motor. Primeiro lote com40 nomes e fontes; técnico de save existente não é substituído pelo vínculo histórico. Categoria é da pessoa, não muda pelo acesso/queda do clube no Brasil Oficial. A tradicional conserva o fluxo próprio de distribuição. Estado, limites e publicação em `docs/tecnicos-brasil-20261124.md`.
+Diego autorizou ampliar o catálogo de treinadores reais, pesquisar vínculo histórico com o clube (usar atual se não houver referência adequada), sem duplicar pessoas, e aumentar uma formação por categoria: profissional2, bom3, promessa4, craque5, lenda6. Preservar notas, categorias existentes e influência atual no motor. Três lotes com120 nomes e fontes (225 no catálogo); todos os novos já têm repertório de jogo explícito. Não atribuir esquema real sem fonte: distinguir subconjunto documentado das opções complementares do jogo. Técnico de save existente não é substituído pelo vínculo histórico. Categoria é da pessoa, não muda pelo acesso/queda do clube no Brasil Oficial. A tradicional conserva o fluxo próprio de distribuição. Estado, fichas, fontes e publicação em `docs/tecnicos-lotes-2-3-20261124.md`.
 
 ## 💾 Salvamento unificado das carreiras — decisão de 24/11/2026
 

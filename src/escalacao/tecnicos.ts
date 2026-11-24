@@ -1,4 +1,4 @@
-// ─── 🧢 TÉCNICOS — 105 originais + 40 pesquisados (Diego, 24/11) ────────────
+// ─── 🧢 TÉCNICOS — 105 originais + 120 pesquisados (Diego, 24/11) ────────────
 //
 // Fontes: docs/tecnicos-100.md e docs/tecnicos-brasil-20261124.md.
 // div é a categoria da pessoa; não muda quando seu clube sobe ou cai.
@@ -17,6 +17,7 @@
 import { COLUNA_ESTILO, ORDEM_EQUILIBRADO, FORMACOES15 } from './formacoes'
 import type { EstiloFormacao } from './formacoes'
 import { NOVOS_TECNICOS_BRASIL, VINCULOS_TECNICOS_BRASIL } from './tecnicos-brasil'
+import { ESQUEMAS_POR_CATEGORIA } from './tecnicos-repertorios'
 
 export type DivTecnico = 'A' | 'B' | 'C' | 'D' | 'V'
 export type EstiloTecnico = EstiloFormacao | 'equilibrado' // retranca · posse · ofensiva · equilibrado
@@ -33,6 +34,11 @@ export interface Tecnico {
   hi?: number
   /** Identidade civil quando o nome de futebol pode causar confusão. */
   nomeCompleto?: string
+  /** Repertório de jogo explícito dos lotes novos; sempre limitado pela categoria. */
+  formacoes?: readonly string[]
+  /** Subconjunto comprovado em fontes; o restante é repertório de jogo. */
+  formacoesDocumentadas?: readonly string[]
+  fontesFormacoes?: readonly string[]
   /** Vínculos pesquisados; não significam emprego atual no mundo real. */
   vinculos?: VinculoTecnico[]
 }
@@ -45,7 +51,7 @@ export interface VinculoTecnico {
 }
 
 // 24/11, Diego: +1 por categoria, conservando o repertório já liberado.
-export const ESQUEMAS_POR_DIV: Record<DivTecnico, number> = { A: 6, B: 5, C: 4, D: 3, V: 2 }
+export const ESQUEMAS_POR_DIV = ESQUEMAS_POR_CATEGORIA
 
 export const DIV_TECNICO_ROTULO: Record<DivTecnico, string> = {
   A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea',
@@ -109,10 +115,11 @@ export function fichaDoTecnico(t: Tecnico): { fame: number; promessa: boolean; l
 // nossas 15), não uma coluna genérica do estilo — o 4-3-3 do Guardiola e o
 // 4-3-3 de um retranqueiro são a mesma carta de formação, o que muda é quem usa.
 // O estilo continua na carta como o "tempero" (e é o fallback de quem ficou sem
-// repertório mapeado). A categoria segue cortando a QUANTIDADE (A5…V1).
-export function formacoesDoTecnico(t: Pick<Tecnico, 'nome' | 'div' | 'estilo'>): string[] {
+// repertório mapeado). A categoria corta a QUANTIDADE (A6…V2). Nos lotes novos,
+// o cadastro já traz o repertório de jogo explícito.
+export function formacoesDoTecnico(t: Pick<Tecnico, 'nome' | 'div' | 'estilo' | 'formacoes'>): string[] {
   const n = ESQUEMAS_POR_DIV[t.div]
-  const proprio = REPERTORIO[t.nome]
+  const proprio = t.formacoes ?? REPERTORIO[t.nome]
   if (proprio?.length) {
     const out = proprio.filter(r => FORMACOES15.some(f => f.rotulo === r)).slice(0, n)
     // repertório curto pro tamanho da categoria: completa com o básico neutro

@@ -2341,9 +2341,11 @@ function semeiaTecnicos(s: EscState, largadaOficial = false): void {
       // renovação, sem cobrar uma contratação que o usuário não fez.
       const tt = tecnicoPorNome(n)
       s.careerTecnicoPago = { ...(s.careerTecnicoPago ?? {}), [n]: pisoTecnico(tt?.div ?? div, true) }
-      const humano = s.managers.find(m => m.isHuman && m.teamName === c)
-      if (humano && tt && !fichaDoTecnico(tt).formacoes.includes(formacaoAtual(humano).rotulo)) {
-        s.careerFormacaoExtra = { ...(s.careerFormacaoExtra ?? {}), [c]: formacaoAtual(humano).rotulo }
+      // A formação da casa é do clube, inclusive CPU: mantém o XI inicial
+      // válido quando o treinador herdado não domina o esquema que já usavam.
+      const gestor = s.managers.find(m => m.teamName === c)
+      if (gestor && tt && !fichaDoTecnico(tt).formacoes.includes(formacaoAtual(gestor).rotulo)) {
+        s.careerFormacaoExtra = { ...(s.careerFormacaoExtra ?? {}), [c]: formacaoAtual(gestor).rotulo }
       }
     }
   }

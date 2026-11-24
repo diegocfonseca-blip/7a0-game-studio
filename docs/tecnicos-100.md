@@ -1,6 +1,6 @@
 # 🧢 OS TÉCNICOS — arquivo histórico dos 105 nomes originais
 
-**Atualização autorizada em 24/11/2026:** Diego mandou ampliar o catálogo, pesquisar vínculos reais sem duplicar pessoas e aumentar em uma formação cada categoria. O catálogo passa a 145 nomes, com repertórios de 2/3/4/5/6. As notas e categorias dos 105 originais continuam iguais. A regra de lista fechada abaixo é histórica e foi superada por este pedido. [Lote novo, fontes e validação](tecnicos-brasil-20261124.md).
+**Atualização autorizada em 24/11/2026:** Diego mandou ampliar o catálogo, pesquisar vínculos reais sem duplicar pessoas e aumentar em uma formação cada categoria. O primeiro lote levou o catálogo a145; os lotes2/3 seguintes chegaram a225, com repertórios de2/3/4/5/6. As notas e categorias dos 105 originais continuam iguais. A regra de lista fechada abaixo é histórica e foi superada por este pedido. [Lote novo, fontes e validação](tecnicos-brasil-20261124.md).
 ⚠️ 26/08 (2ª rodada): o Diego RELAXOU a regra dos 20 por divisão — palavras
 dele: *"não importa se tem mais ou menos numa divisão"*. Entraram Scaloni e
 Bielsa(⬆️ da C) na B (22) e Pochettino, Gasperini, Amorim e De Zerbi na C (23).
