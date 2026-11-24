@@ -77,26 +77,26 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
 <!-- 3 lance aberto -->
 <div class="cena" data-s="3">
  <div class="big" style="top:120px;font-size:96px;line-height:1.05">UMA CARTA POR VEZ<br><span class="ouro" style="font-size:62px">LANCE ABERTO PRA TODO MUNDO</span></div>
- <div class="fone" id="fA" style="left:270px;width:540px;height:1170px;top:470px"><img id="iA1" src="pa04.png"><img id="iA2" src="pa08.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iA3" src="pa16.png" style="position:absolute;left:0;top:0;opacity:0"></div>
+ <div class="fone" id="fA" style="left:270px;width:540px;height:1170px;top:470px"><img id="iA1" src="z-pa04.png"><img id="iA2" src="z-pa08.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iA3" src="z-pa16.png" style="position:absolute;left:0;top:0;opacity:0"></div>
  <div class="balao" id="bA" style="left:60px;top:1700px">QUEM DÁ MAIS? 🔥</div>
 </div>
 <!-- 4 carta coberta -->
 <div class="cena" data-s="4">
  <div class="big" style="top:130px;font-size:110px">A CARTA VEM<br><span class="ouro">COBERTA</span> ❓</div>
- <div class="fone" id="fB" style="left:170px;width:740px;height:900px;top:470px"><img src="pa12.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
+ <div class="fone" id="fB" style="left:170px;width:740px;height:900px;top:470px"><img src="z-pa12.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
  <div class="big" style="top:1450px;font-size:74px;line-height:1.1">CRAQUE OU<br><span class="ouro">PERNA DE PAU?</span></div>
 </div>
 <!-- 5 martelo -->
 <div class="cena" data-s="5">
  <div class="big" style="top:130px;font-size:72px">CADA LANCE <span class="ouro">ZERA O RELÓGIO</span></div>
- <div class="fone" id="fC" style="left:60px;width:600px;height:1300px;top:330px"><img id="iC1" src="pa17.png"><img id="iC2" src="pa18.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iC3" src="pa19.png" style="position:absolute;left:0;top:0;opacity:0"></div>
+ <div class="fone" id="fC" style="left:60px;width:600px;height:1300px;top:330px"><img id="iC1" src="z-pa17.png"><img id="iC2" src="z-pa18.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iC3" src="z-pa19.png" style="position:absolute;left:0;top:0;opacity:0"></div>
  <div class="martelo" id="mart">🔨</div>
  <div class="conta" id="conta" style="top:1660px"></div>
 </div>
 <!-- 6 vira lenda -->
 <div class="cena" data-s="6">
  <div class="big" style="top:130px;font-size:120px">E A CARTA <span class="ouro">VIRA…</span></div>
- <div class="fone" id="fD" style="left:170px;width:740px;height:900px;top:420px"><img src="pa21.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
+ <div class="fone" id="fD" style="left:170px;width:740px;height:900px;top:420px"><img src="z-pa21.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
  <div class="big ouro" id="eraLenda" style="top:1400px;font-size:170px">👑 LENDA!</div>
 </div>
 <!-- 7 galeria -->
@@ -112,8 +112,16 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
  <img class="galeria" src="c-kaka.png" style="left:375px;top:1360px">
  <div class="balao" id="bMais" style="left:720px;top:1520px">E MUITO<br>MAIS!</div>
 </div>
-<!-- 8 final -->
+<!-- 8 amigos e carreira -->
 <div class="cena" data-s="8">
+ <div class="big" style="top:130px;font-size:96px;line-height:1.02">ATÉ <span class="ouro">36 AMIGOS</span><br>NA MESMA SALA</div>
+ <div id="grade36" style="position:absolute;left:120px;width:840px;top:400px;display:grid;grid-template-columns:repeat(9,1fr);gap:14px"></div>
+ <div class="big" style="top:1010px;font-size:70px">OU NA <span class="ouro">CARREIRA</span> 🏆</div>
+ <div class="big" style="top:1110px;font-size:58px">DA VÁRZEA ATÉ A SÉRIE A</div>
+ <div class="escada" id="escada" style="top:1500px"><div class="degrau" style="height:110px">V</div><div class="degrau" style="height:150px">D</div><div class="degrau" style="height:190px">C</div><div class="degrau" style="height:230px">B</div><div class="degrau a" style="height:270px">A</div></div>
+</div>
+<!-- 9 final -->
+<div class="cena" data-s="9">
  <img class="logo" src="logo-ll.webp" style="top:170px">
  <div class="big ouro" style="top:450px;font-size:150px;line-height:.92">LEILÃO<br>LEGENDS</div>
  <div class="big" style="top:760px;font-size:50px">O PRIMEIRO JOGO DE LEILÃO DO FUTEBOL</div>
@@ -124,12 +132,13 @@ body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
 </div>
 <div class="flash" id="flash"></div>
 <script>
-const DUR=window.DUR_NARRA||[5.0,5.5,7.0,5.0,4.8,6.5,3.8,6.5,6.0] // 🎙️ estimado; trocar pelas pausas da narração do Diego
+const DUR=window.DUR_NARRA||[5.0,5.5,7.0,5.0,3.3,4.6,3.6,6.0,7.0,6.0] // 🎙️ estimado; trocar pelas pausas da narração do Diego
 const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
 window.TOTAL=acc
 const cl=x=>Math.min(1,Math.max(0,x))
 const back=x=>{x=cl(x);const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}
 const mo=document.getElementById('moedas');for(let i=0;i<14;i++){const s=document.createElement('i');s.className='moeda';s.style.left=(i*71%100)+'%';s.dataset.v=40+(i*37%60);s.dataset.o=i*137%1900;mo.appendChild(s)}
+const g36=document.getElementById('grade36');const cores=['#FFC400','#1B7A3D','#E8503A','#7C3AED','#F4ECD6','#2f7de1'];const rostos=['😎','🤠','🧔','👨‍🦱','👩','🧑‍🦰','👴','🧑','😁'];for(let j=0;j<36;j++){const d=document.createElement('i');d.style.cssText=`font-style:normal;display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:50%;background:${cores[j%6]};border:5px solid #0C0C0C;box-shadow:4px 4px 0 #0C0C0C;font-size:44px`;d.textContent=rostos[j%9];g36.appendChild(d)}
 const cenas=[...document.querySelectorAll('.cena')]
 const sobe=(el,a,atraso,gira)=>{const k=back((a-atraso)/0.6);el.style.transform=`translateY(${(1-k)*1100}px) rotate(${(1-k)*gira+gira*0.25}deg)`}
 const pop=(el,a,at,rot=0)=>{const k=back((a-at)/0.35);el.style.transform=`scale(${Math.max(0,k)}) rotate(${rot}deg)`}
@@ -145,17 +154,18 @@ window.render=t=>{
     const vis=a>=0&&a<d+0.2
     el.style.opacity=vis?Math.min(cl(a/0.2),i===cenas.length-1?1:cl((d+0.2-a)/0.2)):0
     if(!vis)return
-    el.querySelectorAll('.big').forEach((b,j)=>{if(b.id==='eraLenda')return;const g=j*0.22;const k=back((a-0.05-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
+    el.querySelectorAll('.big').forEach((b,j)=>{if(b.id==='eraLenda')return;const g=i===8?[0.05,3.0,3.3][j]:j*0.22;const k=back((a-0.05-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
     el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-2+Math.sin(a*6)*1.5}deg)`})
     if(i===0){[['cNey',0.5,-7],['cRon',1.6,7]].forEach(([id,at,r])=>{const c=document.getElementById(id);const k=back((a-at)/0.55);c.style.transform=`perspective(900px) rotateY(${(1-k)*100}deg) rotate(${r}deg) translateY(${Math.sin(a*2.5+at)*14}px) scale(${Math.max(0,k)})`;if(a>at+0.3&&a<at+0.42)flash=.45})}
     if(i===1){el.querySelectorAll('.logo').forEach(l=>{const k=back((a-0.2)/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`})}
     if(i===2){el.querySelectorAll('.modo').forEach((m,j)=>{const at=j<4?0.7+j*0.55:4.0;const k=back((a-at)/0.4);m.style.transform=`translateX(${(1-k)*(j%2?1:-1)*1100}px) rotate(${j===4?-2+Math.sin(a*6):0}deg) scale(${j===4&&a>at?1+0.03*Math.sin(a*8):1})`;if(j===4&&a>at&&a<at+0.12)flash=.5});pop(document.getElementById('bQuente'),a,4.5,4)}
     if(i===3){sobe(document.getElementById('fA'),a,0.4,-3);troca(['iA1','iA2','iA3'],a,[2.0,3.3]);pop(document.getElementById('bA'),a,1.4,-3)}
     if(i===4){sobe(document.getElementById('fB'),a,0.5,3)}
-    if(i===5){sobe(document.getElementById('fC'),a,0.3,-3);troca(['iC1','iC2','iC3'],a,[2.3,3.6]);const c=document.getElementById('conta');const txt=a<1.0?'':a<2.3?'DOU-LHE UMA…':a<3.6?'DOU-LHE DUAS…':'VENDIDO!';c.textContent=txt;c.style.transform=`scale(${1+0.15*Math.max(0,1-((a-(a<2.3?1.0:a<3.6?2.3:3.6))/0.3))})`;const m=document.getElementById('mart');const bat=[1.0,2.3,3.6].some(x=>a>x&&a<x+0.18);m.style.transform=`rotate(${bat?35:-20}deg)`;if(a>3.6&&a<3.75)flash=.6}
-    if(i===6){sobe(document.getElementById('fD'),a,0.0,0);const e=document.getElementById('eraLenda');const k=back((a-1.0)/0.35);e.style.transform=`scale(${a<1?0:2.2-1.2*k}) rotate(-4deg)`;e.style.opacity=a<1?0:1;if(a>1.0&&a<1.15)flash=.7}
+    if(i===5){sobe(document.getElementById('fC'),a,0.0,-3);troca(['iC1','iC2','iC3'],a,[1.7,2.8]);const c=document.getElementById('conta');const txt=a<0.6?'':a<1.7?'DOU-LHE UMA…':a<2.8?'DOU-LHE DUAS…':'VENDIDO!';c.textContent=txt;c.style.transform=`scale(${1+0.15*Math.max(0,1-((a-(a<1.7?0.6:a<2.8?1.7:2.8))/0.3))})`;const m=document.getElementById('mart');const bat=[0.6,1.7,2.8].some(x=>a>x&&a<x+0.18);m.style.transform=`rotate(${bat?35:-20}deg)`;if(a>2.8&&a<2.95)flash=.6}
+    if(i===6){sobe(document.getElementById('fD'),a,0.0,0);const e=document.getElementById('eraLenda');const k=back((a-0.7)/0.35);e.style.transform=`scale(${a<0.7?0:2.2-1.2*k}) rotate(-4deg)`;e.style.opacity=a<0.7?0:1;if(a>0.7&&a<0.85)flash=.7}
     if(i===7){el.querySelectorAll('.galeria').forEach((g,j)=>{const k=back((a-0.6-j*0.25)/0.4);g.style.transform=`perspective(900px) rotateY(${(1-k)*90}deg) scale(${Math.max(0,k)}) rotate(${(j%3-1)*3}deg)`});pop(document.getElementById('bMais'),a,3.0,6)}
-    if(i===8){el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`});el.querySelectorAll('.btn').forEach(b=>{const k=back((a-1.6)/0.45);b.style.transform=`scale(${Math.max(0,k)*(1+0.03*Math.sin(a*7))})`})}
+    if(i===8){document.querySelectorAll('#grade36 i').forEach((g,j)=>{const k=back((a-0.5-j*0.04)/0.3);g.style.transform=`scale(${Math.max(0,k)})`});document.querySelectorAll('#escada .degrau').forEach((dg,j)=>{const k=back((a-3.6-j*0.3)/0.35);dg.style.transform=`scaleY(${Math.max(0,k)})`;dg.style.transformOrigin='50% 100%'})}
+    if(i===9){el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`});el.querySelectorAll('.btn').forEach(b=>{const k=back((a-1.6)/0.45);b.style.transform=`scale(${Math.max(0,k)*(1+0.03*Math.sin(a*7))})`})}
   })
   document.getElementById('flash').style.opacity=flash
 }
