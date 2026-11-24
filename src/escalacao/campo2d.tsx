@@ -73,6 +73,8 @@ export interface Campo2DProps {
   /** 🔁 23/11: trocas com o jogo rolando (carreira, motor novo) — entram na agenda do motor que está na tela */
   aoVivo?: AoVivoM2[]
   mapOnly?:boolean
+  /** Suspende a fonte oculta quando só o placar oficial está sendo visto. Mantém motor/agenda para retomar sem perder trocas. */
+  simular?:boolean
   /** 🧪 só a bancada: força o clima (pras fotos) */
   climaForcado?: Clima
   /** 🧪 só a bancada: força o jogo de noite (pras fotos) */
@@ -150,7 +152,7 @@ function juntaBonusKings<G extends { min: number; home: boolean; name: string }>
   }
   return out
 }
-export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, disputaPenaltis, kings, aoVivo }: Campo2DProps) {
+export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, pausado, tatica, semNarra, motorExperimental, climaForcado, noiteForcada, estadio, replay: replay0, onSimulationMinute, mapMatchId, mapOnly, simular=true, disputaPenaltis, kings, aoVivo }: Campo2DProps) {
   const replay = replay0 && !kings // 👑 a Kings muda quem está em campo no meio do jogo: a fita (que guarda por posição na lista) não serve
   const t = useT()
   useEffect(() => { if(mapOnly)return;campoNaTela(1); return () => campoNaTela(-1) }, [mapOnly]) // 📢 o telão da página se esconde: o deste campinho fica embaixo dele
@@ -277,6 +279,9 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
   }, [])
 
   useEffect(() => {
+    // A súmula oficial já conduz o placar. Sem campo visível, nenhuma
+    // animação/simulação paralela precisa competir com o celular.
+    if(mapOnly&&!simular){vivo.current.onSimulationMinute?.(null);return}
     let raf = 0,lastMapPaint=-Infinity
     const surfaceOwner={}
     const c = cv.current; if (!c) return
@@ -946,7 +951,7 @@ export function Campo2D({ roundKey, casa, fora, gols, roundMs, minuto, fechado, 
     }
     raf = requestAnimationFrame(quadro)
     return () => {cancelAnimationFrame(raf);if(mapMatchId)soltarSuperficieCampo2D(mapMatchId,surfaceOwner)}
-  }, [jogo, larg, deitado, corCasa, corFora, listrasK, noite, gramaPct, lotacao, mapMatchId])
+  }, [jogo, larg, deitado, corCasa, corFora, listrasK, noite, gramaPct, lotacao, mapMatchId, mapOnly, simular])
 
   const time = festa ? (festa.lado === 0 ? casa : fora) : null
   // 📺 07/11: o TELÃO do estádio — quando a festa do gol termina, ele fica ~10 s com o escudo e o nome de quem fez

@@ -1,3 +1,10 @@
+## 24/11 — PLACAR RÁPIDO DESTRAVADO E SUBSTITUIÇÕES RESTAURADAS
+
+- Diego esclareceu que o relato era Brasil Oficial/placar rápido, com paradas de mais de1min. Reproduzida uma causa no caminho legado: minuto1 aguardando lance/reinício do estádio invisível, com `pausado=false`. O placar só espera o movimento físico quando há vista do estádio ativa; no mesmo ensaio de17s passou de1′ para40′ e chegou ao apito na regressão. Conta do relato ainda desconhecida, portanto não se afirmou diagnóstico do save específico.
+- Suspensas animações2D/3D escondidas no placar, preservando publicação do estado, motor/agenda e retomada do campo. Restaurado botão Substituir no placar rápido com o painel existente de elenco/táticas; regras de elegibilidade e partidas antigas preservadas.
+- UI390/1440, troca/tática/retomada,2D→placar→2D com troca aplicada, reativação da fonte pelo observador3D, legado até apito,12 jogos e266 verificações de relógio, TypeScript/build completo passaram. Sem mudança em conta/save/banco, sem publicação. Cabeçalho/escudos compactos ficam apenas na prévia visual para revisão do dono.
+- [Causas, evidências, limites e retorno](auditorias/carreira-travas-mobile-20261124.md).
+
 ## 24/11 — RELATO DE TRAVA NA CARREIRA E PRÉVIA COMPACTA MOBILE
 
 - Diego enviou foto do Flamengo/T6/SérieB/R10 e pediu investigar travas e avaliar cabeçalhos/escudos grandes. Conta do relato ainda não informada. **A trava específica ainda não foi reproduzida e não está declarada corrigida.**

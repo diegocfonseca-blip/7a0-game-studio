@@ -4415,10 +4415,11 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const presentationClock=!basket&&!relogioKings&&!enhancedCareer&&displayMinute==null?contextClock:null
   // 🐌 com o 📺 Campo 2D ligado o lance do ESTÁDIO não aparece — mas o relógio continuava PARANDO a cada chance e a cada gol
   // esperando essa cena invisível, e o campinho ia freando até o relógio voltar: a "câmera lenta do nada" (Diego 20/10). Com
-  // o 2D, o relógio é o de todo mundo.
-  const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d&&!elencos?.m2
-  const officialField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!!elencos?.m2&&!basket
+  // o 2D, o relógio é o de todo mundo. No placar rápido também: somente
+  // quem está vendo o estádio precisa aguardar os movimentos físicos.
   const watchingField=useAssistindoCampo()
+  const privateField=watchingField&&!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d&&!elencos?.m2
+  const officialField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!!elencos?.m2&&!basket
   const watchedField=useRef({id:stadiumMatch?.id,watched:false})
   if(watchedField.current.id!==stadiumMatch?.id)watchedField.current={id:stadiumMatch?.id,watched:false}
   if((privateField||officialField)&&watchingField)watchedField.current.watched=true
@@ -4904,9 +4905,13 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const avisoReplay=replayOficialBloqueado?<p role="status">{emIngles?'The saved result was preserved. This older match has no compatible field replay yet.':'O resultado salvo foi preservado. Este jogo antigo ainda não tem reprodução de campo compatível.'}</p>:null
   const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:estadoPenaltis?tr(estadoPenaltis.mensagem,estadoPenaltis.mensagemEn):relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado&&(!estadoPenaltis||estadoPenaltis.encerrado),chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
+  // O placar usa os eventos oficiais e não espera um movimento invisível.
+  // A fonte mantém o motor/agenda montados para alternar a vista sem perder
+  // trocas, mas só simula/desenha enquanto alguém acompanha o campo.
+  const simularCampoNoFundo=watchingField
   const fonteMapa2D=!!estadoEstadio&&presidentFieldAccount
   const campo2dEl = (c2d||fonteMapa2D) && !replayOficialBloqueado ? (
-    <Campo2D aoVivo={elencos?.m2?.aoVivo} disputaPenaltis={disputaPenaltis} mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={officialFieldWatching?fieldDuration/.82:roundMs/* 🧊 21/11: vendo o jogo no estádio, o relógio de cima anda no tempo do CAMPO (120 s); o campinho-fonte seguia no tempo da rodada, corria 1 minuto num tranco e congelava até o próximo */} gols={goals} fechado={!!finished || min >= 93}
+    <Campo2D simular={c2d||simularCampoNoFundo} aoVivo={elencos?.m2?.aoVivo} disputaPenaltis={disputaPenaltis} mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={officialFieldWatching?fieldDuration/.82:roundMs/* 🧊 21/11: vendo o jogo no estádio, o relógio de cima anda no tempo do CAMPO (120 s); o campinho-fonte seguia no tempo da rodada, corria 1 minuto num tranco e congelava até o próximo */} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -4922,7 +4927,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       </div>)}
     </div>
   ) : null
-  const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa>{campo2dEl}</div>:null
+  const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa data-simulacao-suspensa={!simularCampoNoFundo}>{campo2dEl}</div>:null
   const campo2dComTelao = c2d&&campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
   // 🏀🗺️ 18/11: o MESMO jogo vai pra arena do mapa (aba Clube) — placar cinema ou quadra, tanto faz: é o mesmo roteiro
   const quadraMapa = basket && planoBB && stadiumMatch ? (() => {
@@ -4946,7 +4951,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       {quadraMapa}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} />
     </>
   }
-  if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}{penaltyPanel}</>
+  if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio} simularCampo={simularCampoNoFundo}/>} {campo2dComTelao}{penaltyPanel}</>
   if (cinematic) return <>{fonteMapaEscondida}{quadraMapa}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
@@ -5032,7 +5037,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       }} />
     )}
     {avisoReplay}
-    {estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>/* 26/10 (Diego): saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar — o mapa continua recebendo o jogo */}
+    {estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio} simularCampo={simularCampoNoFundo}/>/* 26/10 (Diego): saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar — o mapa continua recebendo o jogo */}
     {abaixoDosGols}
    </>
   return (<>
@@ -14387,7 +14392,7 @@ export function PyramidSeasonScreen() {
             <button type="button" aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(pm.chave); setPremiosFechados(v => [...v, pm.chave]) }} style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, fontWeight: 900, padding: '4px 9px', cursor: 'pointer' }}>✕</button>
           </div>
         ))}
-        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel && campo2d && <BotaoSubstituir usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />}{taticaBotoes}</div></>) : null}><PlacarQueEncolhe pausado={pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
+        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel && <BotaoSubstituir usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />}{taticaBotoes}</div></>) : null}><PlacarQueEncolhe pausado={pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez

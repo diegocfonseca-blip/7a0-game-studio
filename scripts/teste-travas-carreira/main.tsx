@@ -6,9 +6,16 @@ import {PyramidSeasonScreen} from '../../src/escalacao/pyramidseason'
 import {_bancadaApoio} from '../../src/escalacao/apoio'
 import {_forcaBrasilOficialParaTeste} from '../../src/escalacao/sport'
 import {carregaBaralhoOficial} from '../../src/escalacao/baralho-oficial-carga'
+import {ligaCampo2D,marcaPago2D} from '../../src/escalacao/campo2d-modo'
+import {registrarVistaCampo,removerVistaCampo} from '../../src/escalacao/presidencia-campo-observacao'
 import '../../src/index.css'
 const W=window as any
 _bancadaApoio('auditoria-local@example.invalid',new URLSearchParams(location.search).has('gratis')?null:'ouro');_forcaBrasilOficialParaTeste(true)
+const modo2d=new URLSearchParams(location.search).get('mode')==='2d'
+marcaPago2D(modo2d);ligaCampo2D(modo2d)
+W.qaModo2D=(on:boolean)=>ligaCampo2D(on)
+const vistaTeste={}
+W.qaVista3D=(on:boolean)=>on?registrarVistaCampo(vistaTeste):removerVistaCampo(vistaTeste)
 await carregaBaralhoOficial()
 const aleatorioOriginal=Math.random
 Math.random=()=>0.20261124

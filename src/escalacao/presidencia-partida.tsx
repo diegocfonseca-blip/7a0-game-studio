@@ -18,7 +18,7 @@ import {RitmoCampo} from './presidencia-velocidade'
 import {alturaMaximaCampoPartida,cameraInternaDaPartida,dimensoesCameraPartida,enquadrarCampoPartida} from './presidencia-partida-camera'
 const Futebol3D=lazy(()=>import('./presidencia-futebol-3d'))
 const base=import.meta.env.BASE_URL
-export function PublicarPartidaEstadio({state}:{state:EstadoPartidaEstadio}){usePublicarPartida(state);return null}
+export function PublicarPartidaEstadio({state,simularCampo=true}:{state:EstadoPartidaEstadio;simularCampo?:boolean}){usePublicarPartida(state,simularCampo);return null}
 export function PresidenciaPartida({state}:{state:EstadoPartidaEstadio}){
  const t=useT(),[open,setOpen]=useState(false),frame=usePublicarPartida(state),[three,setThree]=useState(true)
  const watching=useVistaCampo<HTMLDetailsElement>(open)

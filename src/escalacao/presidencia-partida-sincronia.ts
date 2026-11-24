@@ -14,7 +14,7 @@ export function reinicioPartidaPendente(id:string){return engine?.aguardandoRein
  * O id impede reaproveitar posições de outra partida. */
 export function partidaPublicada(id:string){return active?.state.context.id===id?active.state:null}
 /** Só a apresentação privada do placar publica. Sem storage, rede, RNG ou gols novos. */
-export function usePublicarPartida(state:EstadoPartidaEstadio){
+export function usePublicarPartida(state:EstadoPartidaEstadio,simularCampo=true){
  const owner=useRef(Symbol('placar')),clock=useRef({id:state.context.id,seconds:0,sampledAt:performance.now(),running:false,rate:1})
  const rate=Number.isFinite(state.context.speed)?Math.max(.25,Math.min(8,state.context.speed!)):1
  const running=!state.paused&&!state.finished&&(!!state.officialInput||state.minute>0)
@@ -34,10 +34,13 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
   memo.current={chave,input:state.officialInput,narr:state.officialNarration,frame}}
  // Apenas mudanças do placar/modelo notificam assinantes; câmera/zoom não cria outro motor.
  // (com o relógio rodando, o laço abaixo já pede o quadro a cada quadro de tela: aqui só publica)
- useEffect(()=>{active={owner:owner.current,state:frame};if(!frame.visualClock?.running)engine?.quadroFutebol3D(frame,performance.now());notify()},[frame])
+ useEffect(()=>{active={owner:owner.current,state:frame};if(simularCampo&&!frame.visualClock?.running)engine?.quadroFutebol3D(frame,performance.now());notify()},[frame,simularCampo])
  // One CPU simulation belongs to the scoreboard, not to a visible camera.
  // It must cross half-time and process incidents even with the details closed.
  useEffect(()=>{
+  // O placar rápido oficial lê a súmula já conferida. Publicar seu estado
+  // para o mapa não exige animar 22 corpos invisíveis a cada quadro.
+  if(!simularCampo)return
   let cancelled=false,raf=0
   import('./presidencia-futebol-motor').then(module=>{
    if(cancelled)return
@@ -52,7 +55,7 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
    draw(performance.now())
   })
   return()=>{cancelled=true;cancelAnimationFrame(raf)}
- },[state.context.id,running,state.finished])
+ },[state.context.id,running,state.finished,simularCampo])
  useEffect(()=>{const token=owner.current;return()=>{if(active?.owner===token){active=null;notify()}}},[])
  return frame
 }
