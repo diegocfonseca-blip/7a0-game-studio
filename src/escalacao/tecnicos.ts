@@ -1,8 +1,8 @@
-// ─── 🧢 OS 100 TÉCNICOS — dados (lista FECHADA pelo Diego, 26/08) ────────────
+// ─── 🧢 TÉCNICOS — 105 originais + 40 pesquisados (Diego, 24/11) ────────────
 //
-// Fonte: docs/tecnicos-100.md. 20 por divisão; a categoria segue a divisão de
-// ORIGEM (onde o técnico começa). Esquemas liberados por categoria:
-// A 5 · B 4 · C 3 · D 2 · Várzea 1.
+// Fontes: docs/tecnicos-100.md e docs/tecnicos-brasil-20261124.md.
+// div é a categoria da pessoa; não muda quando seu clube sobe ou cai.
+// Esquemas por categoria (24/11): A 6 · B 5 · C 4 · D 3 · Várzea 2.
 //
 // 🎽 REGRA DO ESTILO (Diego 26/08): as formações que o técnico domina saem do
 // ESTILO DA VIDA REAL dele — a categoria corta a QUANTIDADE, o estilo define
@@ -16,6 +16,7 @@
 // A revisão completa está em docs/tecnicos-100.md.
 import { COLUNA_ESTILO, ORDEM_EQUILIBRADO, FORMACOES15 } from './formacoes'
 import type { EstiloFormacao } from './formacoes'
+import { NOVOS_TECNICOS_BRASIL, VINCULOS_TECNICOS_BRASIL } from './tecnicos-brasil'
 
 export type DivTecnico = 'A' | 'B' | 'C' | 'D' | 'V'
 export type EstiloTecnico = EstiloFormacao | 'equilibrado' // retranca · posse · ofensiva · equilibrado
@@ -30,9 +31,21 @@ export interface Tecnico {
   // sem eles, vale a faixa da categoria (FAIXA_POR_DIV).
   lo?: number
   hi?: number
+  /** Identidade civil quando o nome de futebol pode causar confusão. */
+  nomeCompleto?: string
+  /** Vínculos pesquisados; não significam emprego atual no mundo real. */
+  vinculos?: VinculoTecnico[]
 }
 
-export const ESQUEMAS_POR_DIV: Record<DivTecnico, number> = { A: 5, B: 4, C: 3, D: 2, V: 1 }
+export interface VinculoTecnico {
+  clube: string
+  tipo: 'historico' | 'passagem' | 'atual'
+  referencia: string
+  fonte: string
+}
+
+// 24/11, Diego: +1 por categoria, conservando o repertório já liberado.
+export const ESQUEMAS_POR_DIV: Record<DivTecnico, number> = { A: 6, B: 5, C: 4, D: 3, V: 2 }
 
 export const DIV_TECNICO_ROTULO: Record<DivTecnico, string> = {
   A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea',
@@ -110,11 +123,11 @@ export function formacoesDoTecnico(t: Pick<Tecnico, 'nome' | 'div' | 'estilo'>):
     return out
   }
   const ordem = t.estilo === 'equilibrado' ? ORDEM_EQUILIBRADO : COLUNA_ESTILO[t.estilo]
-  return ordem.slice(0, n)
+  return [...new Set([...ordem, ...ORDEM_EQUILIBRADO, ...FORMACOES15.map(f => f.rotulo)])].slice(0, n)
 }
 
 export const TECNICOS: Tecnico[] = [
-  // 🅰️ SÉRIE A — LENDAS (5 esquemas)
+  // 🅰️ LENDA (6 esquemas)
   { nome: 'Alex Ferguson', pais: '🇬🇧', div: 'A', estilo: 'ofensiva' },
   { nome: 'Pep Guardiola', pais: '🇪🇸', div: 'A', estilo: 'posse' },
   { nome: 'Carlo Ancelotti', pais: '🇮🇹', div: 'A', estilo: 'equilibrado' },
@@ -141,7 +154,7 @@ export const TECNICOS: Tecnico[] = [
   // sido relaxado por ele em 26/08.
   { nome: 'Luiz Felipe Scolari', pais: '🇧🇷', div: 'A', estilo: 'equilibrado', chute: true }, // penta 2002 + Libertadores/Mundial: subiu da B
   { nome: 'Mario Zagallo', pais: '🇧🇷', div: 'A', estilo: 'equilibrado', chute: true }, // 4 Copas (58/62 jogador · 70 técnico · 94 coordenador): subiu da B
-  // 🅱️ SÉRIE B — GIGANTES (4 esquemas)
+  // 🅱️ CRAQUE (5 esquemas)
   { nome: 'Marcelo Gallardo', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' },
   { nome: 'Marcelo Bielsa', pais: '🇦🇷', div: 'B', estilo: 'ofensiva' }, // subiu da C (26/08, OK do Diego): o "mestre" do Pep e do Sampaoli
   { nome: 'Lionel Scaloni', pais: '🇦🇷', div: 'B', estilo: 'equilibrado' }, // entrou 26/08: campeão do mundo 2022 + 2 Copa América — prateleira Deschamps/Parreira
@@ -162,7 +175,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Luis Aragonés', pais: '🇪🇸', div: 'B', estilo: 'posse' },
   { nome: 'Hansi Flick', pais: '🇩🇪', div: 'B', estilo: 'ofensiva' }, // entrou no lugar do Eriksson (26/08): sêxtuplo do Bayern 2020, pressão alta
   { nome: 'Carlos Bianchi', pais: '🇦🇷', div: 'B', estilo: 'retranca' }, // subiu da C (26/08, ordem do Diego: "suba Bianchi pra B")
-  // 🅲 SÉRIE C — GRANDES / CAMPEÕES / ASCENSÃO (3 esquemas)
+  // 🅲 PROMESSA (4 esquemas)
   { nome: 'Hernán Crespo', pais: '🇦🇷', div: 'C', estilo: 'ofensiva', chute: true },
   { nome: 'Mauricio Pochettino', pais: '🇦🇷', div: 'C', estilo: 'ofensiva' }, // entrou 26/08: pressão alta, final de Champions com o Spurs
   { nome: 'Gian Piero Gasperini', pais: '🇮🇹', div: 'C', estilo: 'ofensiva' }, // entrou 26/08: Europa League 2024, a revolução da Atalanta
@@ -186,7 +199,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Mikel Arteta', pais: '🇪🇸', div: 'C', estilo: 'posse' },
   { nome: 'Xabi Alonso', pais: '🇪🇸', div: 'C', estilo: 'posse' },
   { nome: 'Rogério Ceni', pais: '🇧🇷', div: 'C', estilo: 'ofensiva', chute: true },
-  // 🅳 SÉRIE D — FAMOSOS / EX-CRAQUES / FLOPS (2 esquemas)
+  // 🅳 BOM JOGADOR (3 esquemas)
   { nome: 'Ronald Koeman', pais: '🇳🇱', div: 'D', estilo: 'equilibrado', chute: true },
   { nome: 'Gennaro Gattuso', pais: '🇮🇹', div: 'D', estilo: 'retranca', chute: true },
   { nome: 'Andrea Pirlo', pais: '🇮🇹', div: 'D', estilo: 'posse', chute: true },
@@ -207,7 +220,7 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Erik ten Hag', pais: '🇳🇱', div: 'D', estilo: 'posse' },
   { nome: 'André Villas-Boas', pais: '🇵🇹', div: 'D', estilo: 'ofensiva' },
   { nome: 'Filippo Inzaghi', pais: '🇮🇹', div: 'D', estilo: 'equilibrado', chute: true },
-  // 🟤 VÁRZEA — OS PERSONAGENS (1 esquema)
+  // 🟤 PROFISSIONAL (2 esquemas)
   { nome: 'Lisca Doido', pais: '🇧🇷', div: 'V', estilo: 'ofensiva', chute: true },
   { nome: 'Joel Santana', pais: '🇧🇷', div: 'V', estilo: 'retranca', chute: true },
   { nome: 'Waldemar Lemos', pais: '🇧🇷', div: 'V', estilo: 'equilibrado', chute: true },
@@ -228,7 +241,34 @@ export const TECNICOS: Tecnico[] = [
   { nome: 'Romário', pais: '🇧🇷', div: 'V', estilo: 'ofensiva', chute: true },
   { nome: 'Vágner Mancini', pais: '🇧🇷', div: 'V', estilo: 'equilibrado', chute: true },
   { nome: 'René Simões', pais: '🇧🇷', div: 'V', estilo: 'equilibrado', chute: true },
+  ...NOVOS_TECNICOS_BRASIL,
 ]
+
+for (const t of TECNICOS) t.vinculos ??= VINCULOS_TECNICOS_BRASIL[t.nome]
+
+/** Chave de pessoa: acento/caixa não criam outro treinador. */
+export const chavePessoaTecnico = (nome: string): string => nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
+const chaveClubeTecnico = (nome: string): string => nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
+
+/** Reservar os vínculos ANTES do sorteio impede que um clube sem vínculo leve
+ * o único nome pesquisado de outro. Ocupados nunca são substituídos. */
+export function distribuiVinculosTecnicos(clubes: string[], ocupados: Iterable<string>): Record<string, string> {
+  const usados = new Set([...ocupados].map(chavePessoaTecnico))
+  const resultado: Record<string, string> = {}
+  const candidatos = clubes.map(clube => ({ clube, opcoes: TECNICOS.flatMap(t => {
+    const vinculo = t.vinculos?.find(v => chaveClubeTecnico(v.clube) === chaveClubeTecnico(clube))
+    return vinculo && !usados.has(chavePessoaTecnico(t.nome)) ? [{ t, prioridade: vinculo.tipo === 'historico' ? 0 : vinculo.tipo === 'atual' ? 1 : 2 }] : []
+  }).sort((a, b) => a.prioridade - b.prioridade || TECNICOS.indexOf(a.t) - TECNICOS.indexOf(b.t)) }))
+  // Primeiro os clubes com menos alternativas, para não desperdiçar cobertura.
+  candidatos.sort((a, b) => (a.opcoes[0]?.prioridade ?? 3) - (b.opcoes[0]?.prioridade ?? 3) || a.opcoes.length - b.opcoes.length || a.clube.localeCompare(b.clube))
+  for (const { clube, opcoes } of candidatos) {
+    const escolha = opcoes.find(({ t }) => !usados.has(chavePessoaTecnico(t.nome)))
+    if (!escolha) continue
+    resultado[clube] = escolha.t.nome
+    usados.add(chavePessoaTecnico(escolha.t.nome))
+  }
+  return resultado
+}
 
 // ─── 🎽 REPERTÓRIO REAL de cada técnico, mapeado nas NOSSAS 15 ───────────────
 // Fonte: pesquisa do Diego (26/08). Formações da vida real que não existem no

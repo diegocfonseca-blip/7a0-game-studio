@@ -6764,7 +6764,7 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
           <span key={f} style={{ ...OSWALD, fontWeight: 800, fontSize: 9.5, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 7px', background: 'rgba(255,255,255,.85)', color: INK }}>{f}</span>
         ))}
       </div>
-      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{catTecRotulo(t.div)} = {ficha.formacoes.length} {getLang() === 'en' ? (ficha.formacoes.length > 1 ? 'systems' : 'system') : `esquema${ficha.formacoes.length > 1 ? 's' : ''}`} — {tr('as formações que ele usa de verdade.', 'the formations he really uses.')}</p>
+      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{catTecRotulo(t.div)} = {ficha.formacoes.length} {getLang() === 'en' ? (ficha.formacoes.length > 1 ? 'systems' : 'system') : `esquema${ficha.formacoes.length > 1 ? 's' : ''}`} — {tr('repertório disponível no jogo.', 'available systems in the game.')}</p>
     </div>
   )
 }

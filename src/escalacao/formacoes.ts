@@ -85,7 +85,7 @@ export function formacaoAtual(m: Pick<Manager, 'formation' | 'formationView'>): 
 }
 
 // ── pros TÉCNICOS: coluna de cada estilo, na ordem em que a categoria libera ──
-// (categoria corta a quantidade: A 5 · B 4 · C 3 · D 2 · Várzea 1; a ordem de
+// (categoria corta a quantidade: A 6 · B 5 · C 4 · D 3 · Várzea 2; a ordem de
 // entrada é esta, da formação mais característica do estilo pra menos)
 export const COLUNA_ESTILO: Record<EstiloFormacao, string[]> = {
   ofensiva: ['4-3-3', '3-4-3', '4-2-4', '4-3-1-2', '3-4-3 losango'],

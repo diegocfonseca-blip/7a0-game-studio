@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## 🧢 Técnicos de carreira — decisão de 24/11/2026
+
+Diego autorizou ampliar o catálogo de treinadores reais, pesquisar vínculo histórico com o clube (usar atual se não houver referência adequada), sem duplicar pessoas, e aumentar uma formação por categoria: profissional2, bom3, promessa4, craque5, lenda6. Preservar notas, categorias existentes e influência atual no motor. Primeiro lote com40 nomes e fontes; técnico de save existente não é substituído pelo vínculo histórico. Categoria é da pessoa, não muda pelo acesso/queda do clube no Brasil Oficial. A tradicional conserva o fluxo próprio de distribuição. Estado, limites e publicação em `docs/tecnicos-brasil-20261124.md`.
+
 ## 💾 Salvamento unificado das carreiras — decisão de 24/11/2026
 
 Diego determinou: “Tudo do Brasil Oficial deve ser igual pro carreira tradicional também”, referindo-se às regras de **salvamento**. Sem conta pede cadastro; conta grátis salva no aparelho sem teste de prazo; plano elegível salva também na nuvem. A regra antiga de teste de cinco dias na tradicional foi revogada. Cinco dias **sem jogar** continuam sendo inatividade, com a mesma regra nos dois modos e carência inicial no novo fluxo para não excluir saves antigos de surpresa. Não apagar fichas excedentes por inferência e não aplicar isso às regras esportivas dos modos. Detalhes e estado da publicação em `docs/salvamento-seguro-20261124.md`.

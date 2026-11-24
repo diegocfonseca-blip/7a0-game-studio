@@ -61,7 +61,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSI
 import { stripEmoji, myApoioPerk, loggedEmail } from './apoio'
 import { marcoNovaRecepcaoM2 } from './motor2-recepcao-conta'
 import { fichasDoPlano } from './planos-regras'
-import { tecnicoPorNome, poolDaDiv, pisoTecnico, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
+import { tecnicoPorNome, poolDaDiv, pisoTecnico, fichaDoTecnico, tetoTecnico, precoTecnicoSano, distribuiVinculosTecnicos } from './tecnicos'
 import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHANCE, loucuraFator, perfilPagaAcima, type PerfilBot } from './perfis-bot'
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -2251,7 +2251,7 @@ function botPaga(s: EscState, m: Manager, valor: number): boolean {
 }
 /** 🧢 semeia/atualiza o mercado de técnicos da SUA série (era o corpo do ALICIAR_SEED). Desde 18/11 o Brasil Oficial chama isto
  *  sozinho na virada (item (d)): o mercado de técnicos anda mesmo que ninguém abra o Sondar. */
-function semeiaTecnicos(s: EscState): void {
+function semeiaTecnicos(s: EscState, largadaOficial = false): void {
   // dá um técnico a cada clube CPU da sua divisão que ainda não tem, tirando
   // do pool da divisão (tecnicos.ts) embaralhado pela semente da carreira.
   // Idempotente: clube já semeado (mesmo com null de "ficou sem") não muda.
@@ -2277,7 +2277,9 @@ function semeiaTecnicos(s: EscState): void {
     const n = map[nomeClube]
     if (!n) continue
     const tt = tecnicoPorNome(n)
-    if (tt && tt.div !== div) { delete map[nomeClube]; curou = true }
+    // Brasil Oficial: categoria é da pessoa, não da divisão real do clube.
+    // Um acesso/queda não desfaz contrato nem troca técnico já contratado.
+    if (!s.oficial && tt && tt.div !== div) { delete map[nomeClube]; curou = true }
   }
   // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
   // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
@@ -2292,7 +2294,7 @@ function semeiaTecnicos(s: EscState): void {
   for (const [k, v] of Object.entries(s.careerPlacements ?? {})) if (v === div && !/^m\d+$/.test(k)) naMinhaDiv.add(newestTeamName(k))
   const rivaisTime = new Set((s.careerRivals ?? []).map(r => newestTeamName(r.team)))
   for (const m of s.managers) {
-    if (m.isHuman) continue
+    if (m.isHuman) { if (largadaOficial && s.oficial) naMinhaDiv.add(m.teamName); continue }
     const dm = s.careerPlacements?.[`m${m.id}`]
     if (dm === div || m.auctionOnly || rivaisTime.has(newestTeamName(m.teamName))) naMinhaDiv.add(m.teamName)
   }
@@ -2311,7 +2313,7 @@ function semeiaTecnicos(s: EscState): void {
   const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.teamName))
   let soltou = false
   for (const nomeClube of Object.keys(map)) {
-    if (gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
+    if (s.oficial || gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
     delete map[nomeClube]; delete desde[nomeClube]; delete ctAll[nomeClube]; soltou = true
   }
   const usados = new Set(Object.values(map).filter((x): x is string => !!x))
@@ -2319,14 +2321,31 @@ function semeiaTecnicos(s: EscState): void {
   const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
   for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
   const clubes = [...naMinhaDiv].sort()
+  // Só preenche vagas: saves existentes não recebem substituição de treinador.
+  // Reserva todo vínculo antes do sorteio, mantendo uma pessoa por carreira.
+  const vinculados = s.oficial && s.sport !== 'basquete'
+    ? distribuiVinculosTecnicos(clubes.filter(c => !map[c]), Object.values(map).filter((n): n is string => !!n))
+    : {}
+  const reservados = new Set(Object.values(vinculados))
+  for (let i = livres.length - 1; i >= 0; i--) if (reservados.has(livres[i])) livres.splice(i, 1)
   let mudou = soltou
   // clube sem técnico (chave nova OU `null` de quando o mercado estava vazio) pega um
   // livre, se houver; se não houver ninguém livre, fica `null` como antes
   for (const c of clubes) {
     if (map[c]) continue
-    const n = livres.shift() ?? null
+    const n = vinculados[c] ?? livres.shift() ?? null
     if (!n && c in map) continue
     map[c] = n; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true
+    if (largadaOficial && s.oficial && n) {
+      // Comissão herdada com o clube: valor de referência para salário e
+      // renovação, sem cobrar uma contratação que o usuário não fez.
+      const tt = tecnicoPorNome(n)
+      s.careerTecnicoPago = { ...(s.careerTecnicoPago ?? {}), [n]: pisoTecnico(tt?.div ?? div, true) }
+      const humano = s.managers.find(m => m.isHuman && m.teamName === c)
+      if (humano && tt && !fichaDoTecnico(tt).formacoes.includes(formacaoAtual(humano).rotulo)) {
+        s.careerFormacaoExtra = { ...(s.careerFormacaoExtra ?? {}), [c]: formacaoAtual(humano).rotulo }
+      }
+    }
   }
   if (curou) {
     // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
@@ -2342,7 +2361,7 @@ function semeiaTecnicos(s: EscState): void {
     if (!n || ctAll[c] != null) continue
     let h = 0
     for (const ch of n + c) h = (h * 31 + ch.charCodeAt(0)) | 0
-    ctAll[c] = s.seasonNo + ((h >>> 0) % 5) - 1 // -1..+3: alguns já vencidos, resto escalonado
+    ctAll[c] = largadaOficial && gente.has(c) ? s.seasonNo + 4 : s.seasonNo + ((h >>> 0) % 5) - 1 // -1..+3: alguns já vencidos, resto escalonado
     mudou = true
   }
   s.careerTecnicoContrato = ctAll
@@ -10649,7 +10668,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // no setup; isto é só a página nova ao avançar).
       s.co2 = action.co2 ? { sala: action.co2.sala, assento: s.youIdx, gavetas: [], comanda: true } : undefined
       // 🇧🇷 BRASIL OFICIAL (15/11): tudo acima (faxina, caixa, livro, presidente) vale igual; daqui o clube real assume.
-      if (action.oficial && !action.co2 && brasilOficialLiberado() && iniciaBrasilOficial(s, action.oficial.clube)) return s
+      if (action.oficial && !action.co2 && brasilOficialLiberado() && iniciaBrasilOficial(s, action.oficial.clube)) {
+        semeiaTecnicos(s, true)
+        return s
+      }
       if (action.intro) { s.screen = 'streamIntro'; return s }
       s.screen = 'auction'
       startAuctionPhase(s, false)

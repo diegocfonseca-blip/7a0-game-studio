@@ -1,3 +1,9 @@
+## 24/11 — TÉCNICOS: +1 FORMAÇÃO E PRIMEIRO LOTE COM VÍNCULOS REAIS
+
+- Diego autorizou aumentar para 2/3/4/5/6 formações por categoria e começar a pesquisar/acrescentar técnicos reais, associados aos clubes e sem repetir pessoas. Incluídos 40 nomes: catálogo agora com 145; notas e categorias dos 105 anteriores preservadas. Vínculos têm fonte e distinguem histórico, passagem e atual; estilo não comprovado fica neutro.
+- Brasil Oficial novo recebe comissão inicial com prioridade aos vínculos reais, inclusive o clube humano; contrato e valor de referência, sem cobrar contratação automática. Saves existentes não perdem seus técnicos. Acesso/queda no Oficial não demite nem duplica treinador; tradicional conserva a reciclagem por categoria.
+- Testes do lote, mercado tradicional, 3-5-2 e compilação completa TypeScript/Vite passaram. Sem publicação, sem conta/save/banco reais alterados. Primeiro lote: pesquisa de todos os clubes ainda não concluída. [Fontes, categorias, limites e retorno](tecnicos-brasil-20261124.md).
+
 ## 24/11 — SALVAMENTO SEGURO PUBLICADO PARA TODOS
 
 - Publicação autorizada por Diego e concluída no GitHub Pages: commit de produto `cb81895716f78ddde72d205635de04e32d7d98b6`, [execução concluída com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45460317049). Migração do banco aplicada às18:23 UTC, privilégios/RLS, RPC sem conta e carência conferidos. Não há recarga automática; arquivos antigos preservados.
