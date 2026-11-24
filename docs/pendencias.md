@@ -15459,7 +15459,7 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   (`golPalco`). Conferido na bancada: defendeu e gol animando.
 - Capa da Central (calendario-ui `.ll-calp .vs`): escudos centralizados em cima do nome nas duas pontas (prints 390 e 1280 em scripts/mockups/central-capa-*.png).
 
-## 24/11 — ⚔️ Táticas novas na Liga Draft (no branch, ESPERANDO OK do Diego)
+## 24/11 — ⚔️ Táticas novas na Liga Draft (✅ aprovado e publicado em 24/11: *"Sim"*)
 - Pedido dele: *"essas táticas agora também tivessem disponíveis lá no modo draft… na área do elenco, onde faz a substituição… poderia também ter a parte das táticas"*.
 - Feito: a Liga Draft (`minhaLigaDraft`) entrou em `footballPlanRoom` (postura · caminho do ataque · marcação/pressão alta · ritmo, salvo pelo dono, vale do próximo jogo). A ordem AO VIVO (teste) continua fora (`footballTestRoom`).
 - Onde aparece: tela do jogo (o mesmo painel escuro das salas, via `OwnerTactics`) e aba Elenco, embaixo da formação (`TaticasLigaDraft` em `minha-escalacao.tsx`). Sem o visual escuro, vira caixa creme.
