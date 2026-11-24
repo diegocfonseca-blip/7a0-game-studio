@@ -1,3 +1,5 @@
+import * as careerSaves from './salvamento/service'
+import { SaveHistory } from './salvamento/dialogs'
 import {MatchPresentationClockContext,useMatchPresentationClock,matchPresentationMinute,matchPresentationRemaining,type MatchPresentationClock} from './match-presentation-clock'
 import {footballRoundStatus,footballNextFixture} from './football-round-status'
 import { LinhaComunidadeChat } from './links-comunidade' // 📲🎮 23/11: WhatsApp + Discord no chat
@@ -1735,7 +1737,8 @@ function useResumableSolo() {
     setSaved(readLocal()) // pinta rápido com o que já está no aparelho
     // 🪜 logado: une TODAS as carreiras da nuvem com as do aparelho (cada save, o
     // seu; segue a conta em qualquer aparelho) e relê a ativa mais nova.
-    const pull = async () => { const ok = await syncCareersWithCloud(); if (alive && ok) setSaved(readLocal()) }
+    const off = careerSaves.subscribe(() => { if (alive) setSaved(readLocal()) })
+    const pull = async () => { await syncCareersWithCloud(); if (alive) setSaved(readLocal()) }
     pull()
     // aba parada há tempão? ao voltar o foco pra ela, puxa a conta de novo — assim
     // uma aba aberta há um mês pega a versão mais nova (fecha o furo da aba velha).
@@ -1743,7 +1746,7 @@ function useResumableSolo() {
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onFocus)
     if (typeof window !== 'undefined') window.addEventListener('focus', onFocus)
     return () => {
-      alive = false
+      alive = false; off()
       if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onFocus)
       if (typeof window !== 'undefined') window.removeEventListener('focus', onFocus)
     }
@@ -1755,11 +1758,10 @@ function useResumableSolo() {
     teamName: you?.teamName ?? 'Meu time',
     // ao CONTINUAR, puxa a conta primeiro e abre a versão MAIS NOVA daquele save —
     // nunca a cópia velha de uma aba parada.
-    resume: async () => { await syncCareersWithCloud(); if (colecoesLiberadas()) await aplicaSaidasDeTroca(saved.seed); dispatch({ type: 'RESUME_CAREER_SOLO', saved: readLocal() ?? saved }) }, // 🤝 carta de carreira trocada sai da Agência antes de abrir
+    resume: async () => { const st = await activateCareerSlot(saved.seed); if (!st) return; if (colecoesLiberadas()) await aplicaSaidasDeTroca(saved.seed); const updated=await activateCareerSlot(saved.seed); if(updated) dispatch({ type: 'RESUME_CAREER_SOLO', saved: updated }) }, // 🤝 carta de carreira trocada sai da Agência antes de abrir
     // descartar tira SÓ este save (não mexe nas outras carreiras da conta).
     discard: () => {
       const seed = saved.seed
-      try { localStorage.removeItem('esc-solo-career'); localStorage.removeItem('esc-solo-career-at') } catch { /* ignora */ }
       if (typeof seed === 'number') removeCareerFromCloud(seed); else deletePyramidCloud()
       setSaved(null)
     },
@@ -1877,7 +1879,7 @@ function NbaMinhasCarreiras({ onClose, comecaNova }: { onClose: () => void; come
           {!nomeando && <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {lim}</span>}
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
-        {aviso && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
+        {aviso && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Não foi possível confirmar a ação. Confira a conexão e o espaço do aparelho e tente novamente.', '⚠️ Could not confirm the action. Check your connection and device storage, then try again.')}</p>}
         {nomeando ? (<>
           <p style={{ fontSize: 12.5, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '0 2px 8px', lineHeight: 1.4 }}>{t('Como vai se chamar o seu time? Ele começa na 🛝 Street League e sobe até a 💍 NBA.', 'What will your team be called? It starts in the 🛝 Street League and climbs to the 💍 NBA.')}</p>
           <input value={nome} onChange={e => { setNome(stripEmoji(e.target.value)); setNomeErr('') }} maxLength={24} autoFocus placeholder={t('Ex.: Garrafão do Zé', 'e.g. Downtown Bricklayers')}
@@ -1953,9 +1955,11 @@ function AvisoCarreiraGratis({ escuro = false }: { escuro?: boolean }) {
 function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
   const { dispatch } = useEsc()
   const [list, setList] = useState<{ slot: CareerSlot; active: boolean }[]>(() => listAllCareers())
+  const [loadingSaves,setLoadingSaves]=useState(true)
+  const [cloudUnavailable,setCloudUnavailable]=useState(false)
   // ☁️ 03/11: abriu a lista → confere a nuvem (só o carimbo, uns bytes) e redesenha se outro aparelho salvou depois.
   // Antes a lista era só a foto do aparelho na hora: quem abria logo depois de atualizar via a carreira velha.
-  useEffect(() => { let vivo = true; syncCareersWithCloud().then(ok => { if (vivo && ok) setList(listAllCareers()) }, () => {}); return () => { vivo = false } }, [])
+  useEffect(() => { let vivo = true; const off=careerSaves.subscribe(()=>{if(vivo)setList(listAllCareers())}); syncCareersWithCloud().then(ok => { if (vivo) { setList(listAllCareers());setLoadingSaves(false);setCloudUnavailable(!ok&&!!careerSaves.account()) } }, () => { if(vivo){setLoadingSaves(false);setCloudUnavailable(true)} }); return () => { vivo = false; off() } }, [])
   // 💾 17/10: a ficha extra comprada na Loja vem do banco; quando chega, a tela redesenha com o limite novo
   const [, setExtras] = useState(0)
   useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])
@@ -1964,13 +1968,22 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   const [confirmKey, setConfirmKey] = useState<string | null>(null)
   // 🛡️ 06/10: se a troca não der pra fazer sem perder nada (aparelho sem espaço), NÃO troca e avisa
   const [avisoTroca, setAvisoTroca] = useState(false)
-  const open = (slot: CareerSlot, active: boolean) => {
-    const save = active ? slot.save : activateCareerSlot(slot.save.seed)
+  const [historySeed, setHistorySeed] = useState<number | null>(null)
+  const [busy, setBusy] = useState(false)
+  const open = async (slot: CareerSlot, _active: boolean) => {
+    if (busy) return
+    setBusy(true)
+    const save = await activateCareerSlot(slot.save.seed).catch(() => null)
+    setBusy(false)
     if (!save) { setAvisoTroca(true); setList(listAllCareers()); return }
     dispatch({ type: 'RESUME_CAREER_SOLO', saved: save })
   }
-  const del = (slot: CareerSlot) => {
-    deleteCareerSlot(slot.save.seed); setConfirmKey(null); setList(listAllCareers())
+  const del = async (slot: CareerSlot) => {
+    if (busy) return
+    setBusy(true)
+    const ok = await deleteCareerSlot(slot.save.seed).catch(() => false)
+    setBusy(false); if (!ok) setAvisoTroca(true)
+    setConfirmKey(null); setList(listAllCareers())
   }
   const t = useT() // 🌐 BR/EN
   return (
@@ -1981,9 +1994,12 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        {historySeed !== null && <SaveHistory seed={historySeed} onClose={() => setHistorySeed(null)} onRestored={() => { setHistorySeed(null); setList(listAllCareers()) }} />}
         <AvisoCarreiraGratis />
-        {avisoTroca && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
-        {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
+        {avisoTroca && <p className="ov3-surface" role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Não foi possível confirmar a ação. Confira a conexão e o espaço do aparelho e tente novamente.', '⚠️ Could not confirm the action. Check your connection and device storage, then try again.')}</p>}
+        {loadingSaves && <p role="status" className="text-sm text-center py-3">{t('Conferindo suas carreiras…','Checking your careers…')}</p>}
+        {cloudUnavailable && <p role="alert" className="text-sm py-3">{t('Não foi possível conferir a nuvem agora. Isto não significa que seus saves foram apagados. Confira a conexão e abra esta lista novamente.','Could not check the cloud right now. This does not mean your saves were deleted. Check your connection and reopen this list.')}</p>}
+        {list.length === 0 && !loadingSaves && !cloudUnavailable && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
         {list.map(({ slot, active }, i) => {
           const you = slot.save.managers?.[slot.save.youIdx ?? 0]
           const div = (slot.save.careerPlacements?.['m' + (you?.id ?? 0)] as string) ?? slot.save.careerDivision ?? 'D'
@@ -2001,8 +2017,9 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
                 <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#8B8168', marginTop: 3 }}>💰 {t('caixa', 'till')} {caixa} · {t('jogou', 'played')} {agoLabel(slot.at)}</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
-                <button onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('▶️ Continuar', '▶️ Continue')}</button>
-                <button onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
+                <button disabled={busy} onClick={() => open(slot, active)} style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 11px', fontWeight: 900, fontSize: 12.5, ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('▶️ Continuar', '▶️ Continue')}</button>
+                <button onClick={() => setHistorySeed(slot.save.seed)} className="text-[11px] underline">{t('Histórico', 'History')}</button>
+                <button disabled={busy} onClick={() => setConfirmKey(String(slot.save.seed ?? i))} aria-label={t('Apagar', 'Delete')} style={{ background: 'transparent', border: 'none', fontSize: 14, cursor: 'pointer', opacity: 0.7 }}>🗑️</button>
               </div>
             </div>
           )
@@ -3178,7 +3195,7 @@ export function EscSetup() {
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
       // começar a nova. A nova vira a ativa; a antiga fica em "Minhas Carreiras".
       // 🛡️ 06/10: a atual não coube no arquivo? então não começa a nova (senão a atual sumia)
-      if (!stashActiveBeforeNew()) {
+      if (!await stashActiveBeforeNew()) {
         setNameErr(tr('Seu aparelho está sem espaço pra guardar a carreira atual. Nada foi apagado. Apague uma carreira que não usa mais em "Minhas carreiras" e tente de novo.', 'Your device has no room to keep your current career. Nothing was deleted. Delete a career you no longer use in "My careers" and try again.'))
         return
       }
@@ -13397,10 +13414,10 @@ function BafoCascata() {
     const minha = state.bafoDonos?.[state.managers[state.youIdx]?.id ?? -1]
     if (!eu || !minha) return
     aplicado.current = true
-    for (const t of trocas) {
-      if (t.de === eu && !t.casa) patchCareerCofre(minha.seed, t.key, t.carta, null)
-      if (t.para === eu) patchCareerCofre(minha.seed, t.key, null, { ...t.carta, pos: t.carta.pos as Sector })
-    }
+    void (async()=>{ for (const t of trocas) {
+      if (t.de === eu && !t.casa) await patchCareerCofre(minha.seed, t.key, t.carta, null)
+      if (t.para === eu) await patchCareerCofre(minha.seed, t.key, null, { ...t.carta, pos: t.carta.pos as Sector })
+    } })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trocas])
 

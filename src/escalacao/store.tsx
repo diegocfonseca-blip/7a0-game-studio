@@ -1,3 +1,5 @@
+import * as careerSave from './salvamento/service'
+import { SaveDialogs } from './salvamento/dialogs'
 import {eventosFisicos} from './carreira-fisica'
 import { referenciaAtleta, salarioReferencia, faixaCampanha } from './carreira-economia'
 import { mercadoAnualOficial, MERCADO_BOTS_OFICIAL_GLOBAL, TRANSFERENCIAS_OFICIAIS, reservaNegociavel, type ClubeMercado } from './mercado-bots-oficial'
@@ -24,7 +26,7 @@ import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED,PRESIDENCY_PARKING_
 import {getPosseConta} from './presidente-conta'
 import {podeVestirComPosse} from './presidente-avulsas'
 import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-model'
-import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,podeAlterarPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
+import {salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,podeAlterarPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
 import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto} from './presidencia-estadio-projeto'
 import {investirEstacionamento,type EtapaEstacionamento} from './presidencia-estacionamento'
 import {marcaObraNaRodada} from './presidencia-cidade-viva' // 🏗️ carimbo da rodada da obra (só desenho do mapa)
@@ -38,7 +40,6 @@ import { disputaPenaltisComSequencia } from './penaltis'
 import { anotaTrava, anotaQueda } from './caixa-preta'
 import { agoraSala, ajustaRelogioSala, souODono } from './relogio' // ⏱️ um relógio só pra sala (o do dono) — ver relogio.ts
 import { publicOnlineVisual } from './online-release'
-import { publicCareerVisual } from './career-feature-release'
 import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, AssistRow, TieBreak,
@@ -15247,7 +15248,7 @@ function loadSoloInProgress(): EscState | null {
     const s = JSON.parse(raw) as EscState
     if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen, s) && Array.isArray(s.managers) && s.managers.length > 0) {
       // 📱 11/11: carreira — se a cópia da carreira no aparelho está MAIS adiantada que esta, esta é velha: não abre (vai pra home)
-      if (s.careerOnline && carreiraLocalNaFrente(s)) { localStorage.removeItem(SOLO_RESUME_KEY); return null }
+      if (s.careerOnline && s.sport !== 'basquete') return null
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
       // 🏀 15/11: partida/carreira de BASQUETE que volta depois de recarregar a página: reancora o esporte (baralho da NBA + vagas do
       // quinteto). Sem isso o motor voltava no futebol — vagas 1·2·2·3·3 e Monte com carta de futebol. O futebol não passa aqui.
@@ -15271,7 +15272,6 @@ function loadSoloInProgress(): EscState | null {
 // hot path não muda, quem está jogando não corre risco nenhum. Cada carreira é
 // única pela `seed`. Limite de slots pra não encher o armazenamento.
 export type CareerSlot = { save: EscState; at: number }
-const CAREER_ARCHIVE_KEY = 'esc-career-archive'
 export const MAX_CAREER_SLOTS = 8 // teto de GUARDA do arquivo (nunca corta nada)
 // 🎟️ FICHAS DE CARREIRA por tier. 🔁 05/10 (Diego): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 ·
 // 🖋️ Batismo 4 (antes, desde 09/08: 2 · 4 · 6 · 8). *"não mexa nesses usuários que já fizeram
@@ -15312,27 +15312,7 @@ export async function carregaFichasExtras(): Promise<number> {
 export function fichasExtrasCompraveis(): number {
   return Math.max(0, MAX_CAREER_SLOTS - fichasDoPlano(myApoioPerk()?.tier, souBarao()) - fichasExtras())
 }
-const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0
-export function readCareerArchive(): CareerSlot[] {
-  try { const r = localStorage.getItem(CAREER_ARCHIVE_KEY); if (r) { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.filter((x: CareerSlot) => isCareerSave(x?.save)).map((x: CareerSlot) => ({ ...x, save: sincronizaNiveis(x.save) })) } } catch { /* ignora */ }
-  return []
-}
-// devolve se GRAVOU. 🐛 06/10 (La Bestia do Elton, temporada 378): antes o erro de espaço cheio
-// era engolido calado, a troca de carreira seguia em frente e a carreira que não coube SUMIA.
-// Agora quem chama decide: troca/arquivo que não gravou NÃO segue.
-function writeCareerArchive(slots: CareerSlot[]): boolean {
-  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))); return true } catch { return false }
-}
-// 🔐 DONO do armazenamento LOCAL de carreiras. Na NUVEM cada carreira já é por
-// CONTA (user_id). Mas os saves LOCAIS do aparelho (esc-solo-career + arquivo)
-// eram COMPARTILHADOS — se outra conta logava no MESMO celular, as carreiras se
-// misturavam (a conta A subia pra nuvem da conta B). Agora o aparelho pertence a
-// UMA conta por vez: ao TROCAR de conta, guardo as carreiras da conta anterior num
-// COFRE local (não perde NADA) e começo limpo pra conta que entrou (que puxa os
-// saves DELA da nuvem). Quando a conta volta, restauro o cofre dela. O que manda é
-// o LOGIN, nunca o aparelho.
-const CAREER_OWNER_KEY = 'esc-career-owner'
-const CAREER_VAULT_PREFIX = 'esc-career-vault::'
+export function readCareerArchive(): CareerSlot[] { return careerSave.summaries().filter(x => !x.active).map(x => x.slot) }
 // 🌐 carreira online v2: UMA chave só (a sala aberta por último), sobrescrita — não acumula por sala no aparelho
 export const CO2_LOCAL_KEY = 'esc-co2-atual'
 // as ações que um convidado pode mandar pro leilão de quem comanda (o resto do jogo do dono ninguém de fora mexe)
@@ -15353,42 +15333,6 @@ export function co2LeLocal(sala: string): EscState | null {
     const o = JSON.parse(r) as { sala?: string; z?: string }
     return o.sala === sala && o.z ? unpack<EscState>(o.z) : null
   } catch { return null }
-}
-const LOCAL_CAREER_KEYS = ['esc-solo-career', 'esc-solo-career-at', CAREER_ARCHIVE_KEY, SOLO_RESUME_KEY]
-type CareerVault = Record<string, string | null>
-function stashLocalCareers(): CareerVault {
-  const v: CareerVault = {}
-  for (const k of LOCAL_CAREER_KEYS) { try { v[k] = localStorage.getItem(k) } catch { v[k] = null } }
-  return v
-}
-function clearLocalCareers() { for (const k of LOCAL_CAREER_KEYS) { try { localStorage.removeItem(k) } catch { /* ignora */ } } }
-function restoreLocalCareers(v: CareerVault) {
-  for (const k of LOCAL_CAREER_KEYS) { try { const val = v[k]; if (val == null) localStorage.removeItem(k); else localStorage.setItem(k, val) } catch { /* ignora */ } }
-}
-// carimba o aparelho com a conta atual. Mesma conta = no-op (caminho quente, roda
-// a cada autosave). 1ª vez (saves antigos, sem dono) = a conta atual assume o que
-// já está no aparelho (não mexe em quem já jogava). Conta DIFERENTE = guarda a
-// anterior no cofre, limpa o compartilhado e restaura o cofre da conta que entrou.
-function ensureCareerOwner(uid: string) {
-  let owner: string | null = null
-  try { owner = localStorage.getItem(CAREER_OWNER_KEY) } catch { /* ignora */ }
-  if (owner === uid) return
-  if (owner == null) { try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ } return }
-  try { localStorage.setItem(CAREER_VAULT_PREFIX + owner, JSON.stringify(stashLocalCareers())) } catch { /* ignora */ }
-  clearLocalCareers()
-  try {
-    const raw = localStorage.getItem(CAREER_VAULT_PREFIX + uid)
-    if (raw) {
-      const cofre = JSON.parse(raw) as CareerVault
-      restoreLocalCareers(cofre)
-      // 🗄️ 21/11: voltou tudo pro lugar? então o cofre virou cópia morta — sai (ficava pra sempre, ~2 MB, e enchia o aparelho).
-      // Se algum pedaço não coube de volta, o cofre FICA: é a única cópia.
-      let voltou = true
-      for (const k of LOCAL_CAREER_KEYS) { try { if (cofre[k] != null && localStorage.getItem(k) == null) voltou = false } catch { voltou = false } }
-      if (voltou) localStorage.removeItem(CAREER_VAULT_PREFIX + uid)
-    }
-  } catch { /* ignora */ }
-  try { localStorage.setItem(CAREER_OWNER_KEY, uid) } catch { /* ignora */ }
 }
 // 🧹 FAXINA DA CAIXA ao abrir uma carreira (Diego 20/08, caso do "−9999").
 // Ela só mata o que NÃO É NÚMERO: texto, NaN, infinito. Nada mais.
@@ -15828,175 +15772,15 @@ export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __
 // pra uma tabela de diagnóstico.
 // ⚠️ Isto NÃO acusa ninguém e NÃO muda nada no jogo — é termômetro, não trava.
 // Quando a causa aparecer, some daqui.
-const CAIXA_ESTRANHA = 9000 // acima disso em módulo já é fora da curva (a maior legítima medida é 999.999, mas quase todo mundo vive abaixo de 10 mil)
-function reportaCaixaEstranha(save: EscState, de: 'load') {
-  try {
-    const youId = save.managers?.[save.youIdx]?.id ?? 0
-    const caixa = Number(save.careerCoins?.[youId] ?? 0)
-    if (!Number.isFinite(caixa) || Math.abs(caixa) < CAIXA_ESTRANHA) return
-    void supabase.auth.getUser().then(({ data }) => {
-      if (!data?.user) return
-      supabase.from('esc_caixa_estranha').upsert({
-        user_id: data.user.id,
-        seed: save.seed ?? 0,
-        caixa,
-        temporada: save.seasonNo ?? null,
-        divisao: save.careerDivision ?? null,
-        de_onde: de,
-        lacre_ok: !saveMexido(save),
-        ultima_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,seed,de_onde' }).then(() => {}, () => {})
-    }, () => {})
-  } catch { /* silencioso — diagnóstico nunca atrapalha o jogo */ }
+export function readActiveCareer(): CareerSlot | null { return careerSave.activeSummary() }
+export function listAllCareers(): { slot: CareerSlot; active: boolean }[] { return careerSave.summaries() }
+export async function stashActiveBeforeNew(): Promise<boolean> { return careerSave.beforeNew() }
+export async function activateCareerSlot(seed: number): Promise<EscState | null> {
+  const st = await careerSave.prepare(seed)
+  if (!st) return null
+  const next = saveAtualizado(st); careerSave.bindNext(st, next); return next
 }
-export function readActiveCareer(): CareerSlot | null {
-  try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); reportaCaixaEstranha(save, 'load'); return { save: saveAtualizado(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
-  return null
-}
-// guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa. Devolve se gravou
-// (sem carreira ativa = nada a guardar = true).
-function archiveActiveCareer(): boolean {
-  const act = readActiveCareer(); if (!act) return true
-  const rest = readCareerArchive().filter(s => s.save.seed !== act.save.seed)
-  if (writeCareerArchive([{ save: act.save, at: act.at }, ...rest])) return true
-  // 🐛 10/11 (Diego, carreira T47 + "sem espaço" com 2 de 4 fichas): gravar a cópia no arquivo ANTES de tirar a original deixava a
-  // MESMA carreira duas vezes no aparelho por um instante — carreira grande estoura a cota. Mesma receita da troca (06/10): tira a
-  // original da vaga, grava o arquivo e, se ainda assim não couber, devolve a original exatamente como estava. Nada se perde.
-  let cru: string | null = null
-  try { cru = localStorage.getItem('esc-solo-career') } catch { return false }
-  if (cru == null) return false
-  try { localStorage.removeItem('esc-solo-career') } catch { return false }
-  if (writeCareerArchive([{ save: act.save, at: act.at }, ...rest])) return true
-  try { localStorage.setItem('esc-solo-career', cru) } catch { /* acabou de sair daqui: o mesmo tamanho cabe de volta */ }
-  return false
-}
-// TODAS as carreiras pra listar (ativa primeiro, depois o arquivo), por recência.
-export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
-  let act = readActiveCareer()
-  // 📱☁️ 03/11 (Diego, PC mostrando a Série V na T8 com a nuvem na T10): aparelho CHEIO não grava a carreira que desceu
-  // da nuvem — ela fica na MEMÓRIA (`carreiraEmMemoria`). A lista e o "Continuar" têm que mostrar/abrir ESSA, nunca a
-  // cópia velha do aparelho (antes só o botão da home olhava a memória).
-  const mem = carreiraEmMemoria
-  if (mem && isCareerSave(mem) && (!act || (act.save.seed === mem.seed && (mem.seasonNo ?? 0) >= (act.save.seasonNo ?? 0)))) act = { save: mem, at: Date.now() }
-  const arch = readCareerArchive().filter(s => !act || s.save.seed !== act.save.seed)
-  const out: { slot: CareerSlot; active: boolean }[] = []
-  if (act) out.push({ slot: act, active: true })
-  for (const s of arch) out.push({ slot: s, active: false })
-  // 📱☁️ 10/11 (Lucas Barreto 30: carreira T113 "sumiu" do celular E do PC): com o aparelho CHEIO, as carreiras que desceram da
-  // nuvem e não couberam ficam só na memória — e a lista só olhava o aparelho. Se a carreira grande era OUTRA (não a que estava no
-  // aparelho), ela ficava invisível, mesmo inteira na nuvem. Agora toda carreira da nuvem aparece; abrir uma que não coube joga da
-  // memória (`activateCareerSlot`) e o "Sair e salvar" segue juntando com a nuvem, como sempre.
-  for (const m of carreirasEmMemoria) {
-    if (!isCareerSave(m?.save)) continue
-    const i = out.findIndex(o => o.slot.save.seed === m.save.seed)
-    if (i >= 0) { if (careerProgress(m) > careerProgress(out[i].slot)) out[i] = { slot: m, active: out[i].active }; continue }
-    out.push({ slot: m, active: false })
-  }
-  return out.sort((a, b) => b.slot.at - a.slot.at)
-}
-// vai começar uma carreira NOVA: arquiva a atual (não perde) antes do START zerar.
-//
-// 🐛 CONSERTO 19/08 (caso do Paduz: *"como q ele cria carreira e já tava C time…
-// já C Suárez"*). Ele confirmou o caminho: **acabou de jogar a carreira antiga e
-// foi direto criar a nova, na mesma conta**. O furo estava aqui:
-//
-// arquivar NÃO limpava o ponteiro da carreira ATIVA (`esc-solo-career`). Então,
-// logo depois do START criar a carreira nova, a antiga continuava lá como
-// "ativa". E o `syncCareersWithCloud` — que roda ao abrir a home E toda vez que
-// a aba volta pro foco — reescreve esse ponteiro com a carreira de `at` mais
-// recente, que é justamente a que a pessoa ACABOU de jogar. Resultado: a
-// carreira nova era atropelada pela velha, com elenco e tudo.
-//
-// Agora, ao arquivar pra começar outra, o ponteiro é ZERADO. A carreira antiga
-// não some — ela está no arquivo ("Minhas carreiras") e na nuvem; o que some é
-// só o "esta é a que você está jogando", que passa a ser a nova assim que o
-// primeiro autosave dela roda.
-export function stashActiveBeforeNew(): boolean {
-  // 🛡️ 06/10: se a atual NÃO coube no arquivo, ela NÃO sai da vaga de "jogando" — senão sumia.
-  if (!archiveActiveCareer()) return false
-  try {
-    localStorage.removeItem('esc-solo-career')
-    localStorage.removeItem('esc-solo-career-at')
-  } catch { /* aparelho sem storage: o autosave da carreira nova assume em seguida */ }
-  return true
-}
-// troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save, ou null
-// se não deu pra trocar SEM PERDER NADA (aí nada muda e a tela avisa).
-// 🐛 06/10 (La Bestia do Elton): a troca antiga guardava a atual no arquivo SEM tirar a escolhida
-// de lá — por um instante as duas existiam em dobro no aparelho. Com carreiras gigantes não
-// cabia, o erro era engolido, a atual não entrava no arquivo e a vaga de "jogando" era
-// sobrescrita pela escolhida: a atual sumia, e a nuvem subia sem ela.
-// Agora é uma TROCA DE LUGAR (Diego: *"ele deveria poder trocar pela carreira que ele quiser"*):
-//   1. arquivo novo = (arquivo − escolhida) + atual → mesmo tamanho de antes, sem dobra;
-//   2. só depois a escolhida vira a "jogando". Se o passo 1 falhar, nada mudou; se o 2 falhar,
-//      desfaz o 1. Em nenhum caminho uma carreira fica sem lugar.
-export function activateCareerSlot(seed: number): EscState | null {
-  const act = readActiveCareer()
-  const slots = readCareerArchive()
-  const idx = slots.findIndex(s => s.save.seed === seed)
-  if (idx < 0) {
-    // 📱☁️ 10/11: a escolhida não está no aparelho — só na memória (desceu da nuvem e não coube). Tenta pôr no aparelho no lugar
-    // da atual (que vai pro arquivo); se não couber, devolve o aparelho EXATAMENTE como estava e joga a escolhida da memória.
-    const mem = carreirasEmMemoria.find(s => s.save.seed === seed)
-    if (!mem || !isCareerSave(mem.save)) return null
-    const arquivoNovo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...slots.filter(s => s.save.seed !== act.save.seed)] : slots
-    let coube = false
-    try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ }
-    if (writeCareerArchive(arquivoNovo)) {
-      try { localStorage.setItem('esc-solo-career', JSON.stringify(mem.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())); coube = true } catch { /* não coube */ }
-    }
-    if (!coube) {
-      writeCareerArchive(slots)
-      try { if (act) { localStorage.setItem('esc-solo-career', JSON.stringify(act.save)); localStorage.setItem('esc-solo-career-at', String(act.at)) } } catch { /* ignora */ }
-    }
-    carreiraEmMemoria = coube ? null : mem.save
-    return mem.save
-  }
-  const chosen = slots[idx]
-  const semEscolhida = slots.filter((_, i) => i !== idx)
-  const novoArquivo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...semEscolhida.filter(s => s.save.seed !== act.save.seed)] : semEscolhida
-  try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ } // abre espaço: a atual vai no arquivo novo
-  if (!writeCareerArchive(novoArquivo)) {
-    // não coube: devolve tudo como estava (a atual volta pra vaga dela)
-    try { if (act) localStorage.setItem('esc-solo-career', JSON.stringify(act.save)) } catch { /* a atual ainda está no arquivo antigo, que não mudou */ }
-    return null
-  }
-  try {
-    localStorage.setItem('esc-solo-career', JSON.stringify(chosen.save)); localStorage.setItem('esc-solo-career-at', String(Date.now()))
-  } catch {
-    // a escolhida não coube na vaga: volta o arquivo antigo e a atual pro lugar dela
-    writeCareerArchive(slots)
-    try { if (act) { localStorage.setItem('esc-solo-career', JSON.stringify(act.save)); localStorage.setItem('esc-solo-career-at', String(act.at)) } } catch { /* ignora */ }
-    return null
-  }
-  savePyramidCloud(chosen.save, true) // a nuvem segue a ativa (e junta tudo: ver `savePyramidCloud`)
-  return chosen.save
-}
-// apaga uma carreira (do arquivo OU a ativa). Não mexe nas outras. Se apagar a
-// ATIVA, promove a mais recente do arquivo pra ativa (pra o "Continuar" não sumir
-// da home enquanto ainda houver carreiras).
-export function deleteCareerSlot(seed: number) {
-  // 🗑️ 18/11 (Diego: "aperto pra excluir e não exclui… tenho sempre que atualizar a página"): a carreira que desceu da NUVEM
-  // fica também na MEMÓRIA (`carreirasEmMemoria`/`carreiraEmMemoria`, aparelho cheio) e a lista lê de lá — apagar só do
-  // aparelho fazia ela voltar na hora. Agora sai da memória também.
-  carreirasEmMemoria = carreirasEmMemoria.filter(c => (c.save as EscState).seed !== seed)
-  if (carreiraEmMemoria?.seed === seed) carreiraEmMemoria = null
-  const act = readActiveCareer()
-  if (act && act.save.seed === seed) {
-    const arch = readCareerArchive()
-    if (arch.length) {
-      const next = [...arch].sort((a, b) => b.at - a.at)[0]
-      writeCareerArchive(arch.filter(s => s.save.seed !== next.save.seed))
-      try { localStorage.setItem('esc-solo-career', JSON.stringify(next.save)); localStorage.setItem('esc-solo-career-at', String(next.at)) } catch { /* ignora */ }
-    } else {
-      try { localStorage.removeItem('esc-solo-career'); localStorage.removeItem('esc-solo-career-at') } catch { /* ignora */ }
-    }
-    removeCareerFromCloud(seed) // tira SÓ essa carreira da nuvem, com precisão
-    return
-  }
-  writeCareerArchive(readCareerArchive().filter(s => s.save.seed !== seed))
-  removeCareerFromCloud(seed) // tira SÓ essa carreira da nuvem, com precisão
-}
+export async function deleteCareerSlot(seed: number): Promise<boolean> { return careerSave.remove(seed) }
 
 // ─── 🃏 BAFO · a carta muda de dono TAMBÉM no cofre da carreira ──────────────
 // No servidor a carta já trocou de dono (RPC bafo_cascata: muda o user_id da
@@ -16009,7 +15793,7 @@ export function deleteCareerSlot(seed: number) {
 // aplicar de novo não repete a carta nem apaga outra.
 // 🔒 Não mexe no lacre: o carimbo é feito de moedas/títulos/divisão/temporada —
 // o cofre não entra nele, então o save não passa a ser acusado de "mexido".
-export function patchCareerCofre(seed: number, marca: string, tira: { name: string; club: string; year: number } | null, poe: EmpCard | null): boolean {
+export async function patchCareerCofre(seed: number, marca: string, tira: { name: string; club: string; year: number } | null, poe: EmpCard | null): Promise<boolean> {
   const aplica = (save: EscState): EscState | null => {
     if ((save.bafoTrocasFeitas ?? []).includes(marca)) return null // já aplicada
     const cofre = [...(save.empresarioCards ?? [])]
@@ -16020,25 +15804,14 @@ export function patchCareerCofre(seed: number, marca: string, tira: { name: stri
     if (poe) cofre.push({ ...poe, season: save.seasonNo ?? 1 })
     return { ...save, empresarioCards: cofre, bafoTrocasFeitas: [...(save.bafoTrocasFeitas ?? []), marca] }
   }
-  const act = readActiveCareer()
-  if (act && act.save.seed === seed) {
-    const novo = aplica(act.save)
-    if (!novo) return false
-    try { localStorage.setItem('esc-solo-career', JSON.stringify(novo)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota — o servidor já tem a verdade */ }
-    void savePyramidCloud(novo, true)
-    return true
-  }
-  const arch = readCareerArchive()
-  const idx = arch.findIndex(s => s.save.seed === seed)
-  if (idx < 0) return false
-  const novo = aplica(arch[idx].save)
+  const st = await careerSave.prepare(seed)
+  if (!st) return false
+  const novo = aplica(st)
   if (!novo) return false
-  const lista = [...arch]
-  // `at` novo de propósito: é assim que a junção nuvem↔aparelho sabe que ESTA
-  // versão da carreira é a mais nova (a temporada não mudou, só o cofre).
-  lista[idx] = { save: novo, at: Date.now() }
-  writeCareerArchive(lista)
-  void savePyramidCloud(act?.save ?? novo, true) // sobe o conjunto (o arquivo já vai junto lá dentro)
+  careerSave.bindNext(st, novo)
+  careerSave.schedule(novo)
+  await careerSave.flush(seed)
+  await savePyramidCloud(novo, true)
   return true
 }
 
@@ -16049,188 +15822,47 @@ export async function aplicaSaidasDeTroca(seed: number | undefined): Promise<voi
   try {
     const { data } = await supabase.from('esc_cartas_saidas').select('troca_id, card_name, card_club, card_year').like('season_key_antiga', `co:solo${seed}:%`)
     for (const r of (data ?? []) as { troca_id: number; card_name: string; card_club: string; card_year: number }[]) {
-      patchCareerCofre(seed, `troca:${r.troca_id}:${r.card_name}|${r.card_club}|${r.card_year}`, { name: r.card_name, club: r.card_club, year: r.card_year }, null)
+      await patchCareerCofre(seed, `troca:${r.troca_id}:${r.card_name}|${r.card_club}|${r.card_year}`, { name: r.card_name, club: r.card_club, year: r.card_year }, null)
     }
   } catch { /* sem rede: tenta de novo na próxima vez que abrir */ }
 }
 
-// além do save local (esc-solo-career), quem está logado espelha o save inteiro
-// na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
-// ── junção segura de carreiras (nunca perde nem volta no tempo) ──────────────
-// extrai as carreiras de um valor cru da nuvem (formato novo multi OU o antigo,
-// que era um EscState cru = carreira única).
-function careersFromCloudRaw(raw: unknown, fallbackAt: number): CareerSlot[] {
-  if (!raw || typeof raw !== 'object') return []
-  const multi = raw as { __multi?: number; careers?: CareerSlot[] }
-  if (multi.__multi && Array.isArray(multi.careers)) return multi.careers.filter(c => isCareerSave(c?.save)).map(c => ({ ...c, save: sincronizaNiveis(c.save) }))
-  if (isCareerSave(raw)) return [{ save: sincronizaNiveis(raw as EscState), at: fallbackAt }]
-  return []
-}
-// quão avançada está a carreira (nº de temporadas). Progresso SÓ anda pra frente
-// — não dá pra "desjogar" — então a de temporada MAIOR é a de verdade mais nova.
-function careerProgress(s: CareerSlot): number { return (s?.save as EscState)?.seasonNo ?? 0 }
-// junta várias listas de carreiras por seed, mantendo pra cada uma a MAIS
-// AVANÇADA (temporada maior; empate = a jogada por último). Nunca joga fora uma
-// carreira nem troca por uma mais atrasada. É o coração da blindagem do save.
-function mergeCareers(...lists: CareerSlot[][]): CareerSlot[] {
-  const bySeed = new Map<number, CareerSlot>()
-  for (const list of lists) for (const s of list) {
-    if (!isCareerSave(s?.save)) continue
-    const seed = (s.save as EscState).seed
-    const cur = bySeed.get(seed)
-    const better = !cur || careerProgress(s) > careerProgress(cur)
-      || (careerProgress(s) === careerProgress(cur) && (s.at ?? 0) >= (cur.at ?? 0))
-    if (better) bySeed.set(seed, s)
-  }
-  return [...bySeed.values()].sort((a, b) => (b.at ?? 0) - (a.at ?? 0)).slice(0, MAX_CAREER_SLOTS)
-}
-
-// grava na nuvem TODAS as carreiras da conta, JUNTANDO com o que já está lá —
-// nunca sobrescreve o cheio com o vazio, nunca volta no tempo. Assim, mesmo que
-// o aparelho tenha limpado os dados, o backup da nuvem fica intacto. Formato:
-// { __multi:1, careers:[{save,at}, ...] }. Rows antigas (EscState cru) são lidas
-// como carreira única (compatível).
-// 💸 CARIMBO DA NUVEM (04/10, conta do Supabase do Diego: ~590 GB de tráfego no mês, quase tudo
-// daqui). Cada save de carreira pesa ~1 MB, e o jogo BAIXAVA o save inteiro a cada minuto de jogo
-// (pra juntar antes de subir) e a cada vez que a home voltava pro foco (pra juntar e subir de novo).
-// Agora o aparelho guarda o `updated_at` da nuvem que ele JÁ juntou no local. Antes de baixar,
-// pergunta só o carimbo (uns bytes): se for o mesmo, a nuvem não tem nada que o aparelho não tenha,
-// e o save inteiro nem desce. Só baixa quando OUTRO aparelho salvou depois.
-const CLOUD_AT_KEY = 'esc-cloud-at:'
-// 🛡️ 06/10: QUAIS carreiras (seeds) a nuvem tem, pelo que este aparelho sabe. Se o aparelho
-// perder uma (espaço cheio, navegador limpo), a próxima subida percebe que está faltando e JUNTA
-// com a nuvem antes de gravar — a nuvem nunca mais apaga carreira sozinha. Só o 🗑️ tira (e
-// atualiza esta lista em `removeCareerFromCloud`).
-const NUVEM_SEEDS_KEY = 'esc-nuvem-seeds:'
-function seedsDaNuvem(uid: string): number[] {
-  try { const r = localStorage.getItem(NUVEM_SEEDS_KEY + uid); const a = r ? JSON.parse(r) : []; return Array.isArray(a) ? a.filter(x => typeof x === 'number') : [] } catch { return [] }
-}
-function anotaSeedsDaNuvem(uid: string, careers: CareerSlot[] | null) {
-  try {
-    if (!careers || !careers.length) localStorage.removeItem(NUVEM_SEEDS_KEY + uid)
-    else localStorage.setItem(NUVEM_SEEDS_KEY + uid, JSON.stringify(careers.map(c => (c.save as EscState).seed)))
-  } catch { /* ignora */ }
-}
-function cloudAtConhecido(uid: string): string | null { try { return localStorage.getItem(CLOUD_AT_KEY + uid) } catch { return null } }
-function marcaCloudAt(uid: string, iso: string | null | undefined) {
-  try { if (iso) localStorage.setItem(CLOUD_AT_KEY + uid, iso); else localStorage.removeItem(CLOUD_AT_KEY + uid) } catch { /* ignora */ }
-}
-/** o carimbo da linha na nuvem: string = tem save · null = não tem linha · undefined = a leitura falhou */
-async function carimboDaNuvem(uid: string): Promise<string | null | undefined> {
-  const { data, error } = await supabase.from('esc_pyramid_saves').select('updated_at').eq('user_id', uid).maybeSingle()
-  if (error) return undefined
-  return (data?.updated_at as string | undefined) ?? null
-}
-// ✋ REGRA DO DIEGO (04/10): *"o save do usuário na carreira só deve salvar após ele apertar em
-// salvar"*. A NUVEM só recebe a carreira em ação explícita (`force`): o botão "Sair e salvar
-// carreira", trocar de carreira, a troca do Bafo. O autosave do jogo grava SÓ no aparelho (é
-// instantâneo e continua igual) — antes ele também subia pra nuvem a cada minuto.
-// ☁️⭐ NUVEM SÓ PRO CRAQUE nas carreiras NOVAS (07/10). Palavras do Diego: *"Nuvem só pra quem paga. O grátis
-// e quem joga sem conta continuam salvando no aparelho… Quem já tem save na nuvem continua igual. Ninguém perde
-// nada"*. Medido no dia: as contas grátis eram 92% do espaço de saves. A régua mora no banco
-// (`esc_nuvem_regra`, docs/sql/nuvem-so-craque.sql): diz se a conta PAGA e quais carreiras dela JÁ estão na
-// nuvem. Conta grátis só sobe essas; carreira nova fica no aparelho. Sem resposta do banco = sobe como sempre
-// (nunca tira a nuvem de quem paga por erro de rede). Trava: `npm run nuvem-craque`.
+// Protocolo v2: revisões no servidor; sem junção de blobs por relógio do aparelho.
 export type NuvemRegra = { pago: boolean; seeds: number[] }
 let regraCache: { uid: string; r: NuvemRegra } | null = null
 const regraOuvintes = new Set<() => void>()
 export async function nuvemRegra(uid: string, fresca = false): Promise<NuvemRegra | null> {
   if (!fresca && regraCache?.uid === uid) return regraCache.r
-  try {
-    const { data, error } = await supabase.rpc('esc_nuvem_regra')
-    if (error || !data || typeof data !== 'object') return null
-    const d = data as { pago?: boolean; seeds?: unknown[] }
-    const r: NuvemRegra = { pago: !!d.pago, seeds: (d.seeds ?? []).map(Number).filter(Number.isFinite) }
-    regraCache = { uid, r }
-    if (SALVAR_TESTE_5D && !r.pago) await leTesteSalvar(uid)
-    regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
-    return r
-  } catch { return null }
+  if (authUidSalvar !== uid) return null
+  await careerSave.changeAccount(uid)
+  if (!await careerSave.sync(fresca) || careerSave.account() !== uid) return null
+  const rights = careerSave.cloudRights()
+  if (!rights) return null
+  const r: NuvemRegra = { pago: rights.paid, seeds: careerSave.summaries().map(x => x.slot.save.seed) }
+  regraCache = { uid, r }
+  regraOuvintes.forEach(f => { try { f() } catch { /* aviso */ } })
+  return r
 }
 /** pagante pelo código também vale (lista de reserva do apoio.tsx / batismo do manto.ts) */
 const pagoPeloCodigo = () => souBarao() || myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
-// 🔒 04/11 (Diego: *"a partir de agora quem não tem plano não pode salvar de jeito nenhum"* · *"nada, nem no celular… só lá onde
-// seria sair e salvar vai ter um botão de salvar com cadeado… aparece os planos… deve poder salvar desde o primeiro plano, que é o
-// Craque Salas, até todos"* · *"eles podem salvar até onde tá agora, mas depois só com botão de salvar com cadeado"*).
-// Régua = a MESMA da nuvem (`esc_nuvem_regra.pago` = esc_direitos_de, Craque Salas em dia pra cima) + os pagantes pelo código.
-// Sem conta = sem plano = não salva. Ainda não sabe (login/banco carregando ou falhou) = SALVA (nunca tira de quem paga por erro).
-// O que já estava salvo continua lá e abre; só o progresso novo não é gravado. Pra voltar à regra antiga: `false`.
-// 🔁 07/11 (Diego): REVOGADO — *"acho que a gente tem que liberar novamente salvar"*. O grátis voltou a salvar (aparelho e nuvem), com o
-// aviso no 1º salvamento e o prazo de 1 DIA sem salvar na nuvem (`esc_nuvem_gratis_limpa`). Uma carreira só (`careerSlotLimit`).
+// 24/11: Diego unificou a carreira tradicional com Brasil Oficial.
+// Conta grátis salva no aparelho sem teste de prazo; nuvem exige plano. Cadastro obrigatório.
 export const SALVAR_SO_COM_PLANO = false
-// 🎁 08/11 (Diego): *"🎁 Seus primeiros 5 dias salvando a carreira são grátis! … Depois do teste, você pode continuar jogando
-// gratuitamente. Para salvar novos avanços, é necessário um plano"* + *"comece de agora a contar pra quem não tem plano e aperta salvar"*.
-// Os 5 dias começam no 1º toque em SALVAR de quem não tem plano (banco: `esc_salvar_teste`, `esc_salvar_teste_inicia`, por CONTA —
-// celular e PC contam junto). Acabou o teste: a carreira continua abrindo do jeito que foi salva (nada é apagado — o "apaga em 1 dia"
-// saiu junto), o jogo segue de graça, só o progresso NOVO não grava (aparelho e nuvem), igual à régua de 04/11. Desligar = `false`.
-export const SALVAR_TESTE_5D = true
-export const TESTE_SALVAR_DIAS = 5
-let testeCache: { uid: string; ate: number | null } | null = null
-async function leTesteSalvar(uid: string): Promise<void> {
-  try {
-    const { data, error } = await supabase.from('esc_salvar_teste').select('inicio').eq('uid', uid).maybeSingle()
-    if (error) return
-    const i = data?.inicio ? Date.parse(data.inicio as string) : NaN
-    testeCache = { uid, ate: Number.isFinite(i) ? i + TESTE_SALVAR_DIAS * 86_400_000 : null }
-  } catch { /* sem rede: segue sem saber (não bloqueia) */ }
-}
-/** 🎁 começa (ou lê) o teste de 5 dias da conta — só no toque em Salvar de quem não tem plano. Devolve o fim do teste (ms) */
-async function iniciaTesteSalvar(uid: string): Promise<number | null> {
-  try {
-    const { data, error } = await supabase.rpc('esc_salvar_teste_inicia')
-    if (error || !data) return testeCache?.uid === uid ? testeCache.ate : null
-    const ate = Date.parse(data as string)
-    if (!Number.isFinite(ate)) return null
-    testeCache = { uid, ate }
-    regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
-    return ate
-  } catch { return null }
-}
-/** 🎁 08/11 (Diego: *"faça tudo"*): a carreira gravando no APARELHO também começa os 5 dias — senão quem nunca aperta Salvar
- *  guardaria o jogo sem prazo. Só conta logada, sem plano, que ainda não começou; uma vez por visita. */
-let testeAparelhoPedido = false
-export function comecaTesteNoAparelho(): void {
-  if (!SALVAR_TESTE_5D || testeAparelhoPedido || !authUidSalvar || pagoPeloCodigo()) return
-  if (regraCache?.uid !== authUidSalvar || regraCache.r.pago) return
-  if (testeCache?.uid === authUidSalvar && testeCache.ate != null) return
-  testeAparelhoPedido = true
-  void iniciaTesteSalvar(authUidSalvar)
-}
-/** 🎁 dias que faltam no teste (null = sem teste correndo: tem plano, ainda não apertou Salvar, ou não sabe) */
-export function diasTesteSalvar(): number | null {
-  if (!SALVAR_TESTE_5D || pagoPeloCodigo() || !authUidSalvar || testeCache?.uid !== authUidSalvar || testeCache.ate == null) return null
-  if (regraCache?.uid === authUidSalvar && regraCache.r.pago) return null
-  return Math.max(0, Math.ceil((testeCache.ate - Date.now()) / 86_400_000))
-}
+export const SALVAR_TESTE_5D = false
 let authUidSalvar: string | null | undefined = undefined
 try {
   supabase.auth.onAuthStateChange((_e, sessao) => {
-    authUidSalvar = sessao?.user?.id ?? null
-    if (authUidSalvar) void nuvemRegra(authUidSalvar)
+    const next = sessao?.user?.id ?? null
+    if (next !== authUidSalvar) { regraCache = null; carreiraEmMemoria = null }
+    authUidSalvar = next
+    void careerSave.changeAccount(next)
+    if (next) setTimeout(() => { if (authUidSalvar === next) void nuvemRegra(next) }, 0)
     regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
   })
 } catch { /* sem cliente (bancada): segue salvando */ }
-/** 🇧🇷 `oficial` (18/11, Diego: *"pode salvar sim… sem plano salva apenas no celular, não salva na nuvem"*): no Brasil Oficial o
- *  APARELHO salva sempre — sem o teste de 5 dias. A nuvem fica só pra quem tem plano (`savePyramidCloud`). */
-/** 👤 24/11 (Diego): sem conta, NENHUMA carreira salva — nem a de sempre, nem o Brasil Oficial. O jogo pede a conta grátis
- *  (que abre ali mesmo, sem sair da carreira). `true` só quando o login diz, sem dúvida, que não tem ninguém. */
+/** Mesma regra nos dois modos: sem conta não salva; com conta, pode salvar no aparelho. */
 export function salvarSemConta(): boolean { return authUidSalvar === null }
-export function salvarBloqueado(oficial = false): boolean {
-  if (oficial) return authUidSalvar === null // 👤 24/11: o Oficial sem plano salva no aparelho — mas só COM conta
-  if (SALVAR_TESTE_5D && !SALVAR_SO_COM_PLANO) {
-    if (pagoPeloCodigo()) return false
-    if (authUidSalvar === null) return true // sem conta não tem teste (precisa de conta pra contar os 5 dias)
-    if (!authUidSalvar) return false // ainda não sabe
-    if (regraCache?.uid === authUidSalvar && regraCache.r.pago) return false
-    if (testeCache?.uid === authUidSalvar && testeCache.ate != null && Date.now() > testeCache.ate) return true
-    return false // teste correndo, ou ainda não apertou Salvar (o 1º toque começa a contar)
-  }
-  if (!SALVAR_SO_COM_PLANO) return false
-  if (pagoPeloCodigo()) return false
-  if (authUidSalvar === null) return true // sem conta
-  if (authUidSalvar && regraCache?.uid === authUidSalvar) return !regraCache.r.pago
-  return false // ainda não sabe: não arrisca tirar o save de quem paga
-}
+export function salvarBloqueado(_oficial = false): boolean { return authUidSalvar === null }
 export function useSalvarBloqueado(oficial = false): boolean {
   const [, setT] = useState(0)
   useEffect(() => { const f = () => setT(x => x + 1); regraOuvintes.add(f); return () => { regraOuvintes.delete(f) } }, [])
@@ -16263,32 +15895,24 @@ export function semPlanoConhecido(): boolean {
 export const vagasGratis = () => Math.min(1 + fichasExtras(), MAX_CAREER_SLOTS)
 /** dias que faltam pra carreira ser excluída (null = não se aplica: tem plano ou não sabe) */
 export function diasParaExcluir(slot: CareerSlot): number | null {
-  if ((!LIMPA_CARREIRA_GRATIS && !(slot.save as EscState).oficial) || !semPlanoConhecido()) return null // 🇧🇷 Oficial: vale desde 18/11
-  return Math.max(0, Math.ceil((ultimaVezJogada(slot) + DIAS_CARREIRA_GRATIS * 86_400_000 - Date.now()) / 86_400_000))
+  if (!semPlanoConhecido()) return null
+  const deadline = careerSave.inactivityDeadline(ultimaVezJogada(slot))
+  return deadline == null ? null : Math.max(0, Math.ceil((deadline-Date.now())/86_400_000))
 }
 /** apaga as carreiras de quem não tem plano que passaram de 5 dias paradas e as que sobram além das vagas. Devolve os nomes apagados. */
-export function limpaCarreirasGratis(): string[] {
+export async function limpaCarreirasGratis(): Promise<string[]> {
+  const owner = careerSave.account()
   if (!semPlanoConhecido()) return []
-  // 🇧🇷 18/11 (Diego): no Brasil Oficial, SEM PLANO, carreira parada 5 dias é excluída (com o aviso de dias que já existe). As outras
-  // carreiras seguem a regra geral, que continua desligada (`LIMPA_CARREIRA_GRATIS`).
-  if (!LIMPA_CARREIRA_GRATIS) {
-    const limiteO = DIAS_CARREIRA_GRATIS * 86_400_000, agoraO = Date.now(), fora: string[] = []
-    for (const { slot } of listAllCareers()) {
-      if (!(slot.save as EscState).oficial || agoraO - ultimaVezJogada(slot) <= limiteO) continue
-      const you = slot.save.managers?.[slot.save.youIdx ?? 0]
-      deleteCareerSlot(slot.save.seed)
-      fora.push(you?.teamName ?? you?.name ?? '')
-    }
-    return fora
+  const apagadas: string[] = []
+  for (const {slot} of listAllCareers()) {
+    const deadline=careerSave.inactivityDeadline(ultimaVezJogada(slot))
+    if(deadline==null || Date.now()<=deadline) continue
+    if(careerSave.account()!==owner) break
+    const you=slot.save.managers?.[slot.save.youIdx??0]
+    // Confere o plano atual antes de uma exclusão automática; não remove os saves de pagantes.
+    if(!await careerSave.remove(slot.save.seed,true)) continue
+    apagadas.push(you?.teamName??you?.name??'')
   }
-  const lista = listAllCareers().map(x => x.slot).sort((a, b) => ultimaVezJogada(b) - ultimaVezJogada(a))
-  const limite = DIAS_CARREIRA_GRATIS * 86_400_000, agora = Date.now(), vagas = vagasGratis(), apagadas: string[] = []
-  lista.forEach((slot, i) => {
-    if (i < vagas && agora - ultimaVezJogada(slot) <= limite) return
-    const you = slot.save.managers?.[slot.save.youIdx ?? 0]
-    deleteCareerSlot(slot.save.seed)
-    apagadas.push(you?.teamName ?? you?.name ?? '')
-  })
   return apagadas
 }
 /** roda a limpeza assim que o plano da conta fica conhecido (e a cada mudança de login/plano). Devolve o que foi apagado nesta visita. */
@@ -16296,288 +15920,60 @@ export function useLimpezaCarreirasGratis(): string[] {
   const [apagadas, setApagadas] = useState<string[]>([])
   useEffect(() => {
     // a ficha extra comprada vem do banco: só limpa depois de conferir o saldo (senão apagaria a carreira de uma vaga paga)
-    let vivo = true, fichasOk = false
-    const roda = () => { if (!vivo || !fichasOk) return; const a = limpaCarreirasGratis(); if (a.length) setApagadas(x => [...x, ...a]) }
+    let vivo = true, fichasOk = false, running = false
+    const roda = async () => { if (!vivo || !fichasOk || running) return; running=true; try { const a = await limpaCarreirasGratis(); if (vivo && a.length) setApagadas(x => [...x, ...a]) } finally { running=false } }
     carregaFichasExtras().then(() => { fichasOk = true; roda() }, () => {})
     regraOuvintes.add(roda); return () => { vivo = false; regraOuvintes.delete(roda) }
   }, [])
   return apagadas
 }
-/** a carreira pode ir pra nuvem? (a MESMA regra serve a tela e o salvar — nada de botão mudo)
- *  ☁️ 26/10 (Diego): a conta GRÁTIS também salva na nuvem — mas, sem plano, 7 dias sem apertar Salvar e a carreira sai da
- *  nuvem (o banco faz isso: `esc_nuvem_gratis_limpa`, todo dia; a do aparelho fica). Por isso agora toda carreira é aceita. */
-export function nuvemAceita(_r: NuvemRegra | null, _seed: number | undefined): boolean { return true }
-/** conta logada SEM plano (a do prazo de 7 dias) */
+/** A nuvem requer plano em ambas as carreiras. Resposta desconhecida não autoriza envio. */
+export function nuvemAceita(r: NuvemRegra | null, _seed: number | undefined): boolean { return !!r?.pago }
 export function nuvemSemPlano(r: NuvemRegra | null): boolean { return !!r && !r.pago && !pagoPeloCodigo() }
 /** 📱 pra tela: esta carreira salva SÓ no aparelho? (null = ainda não sabe / deslogado) */
-export function useNuvemSoAparelho(seed: number | undefined): boolean | null {
-  const [, setT] = useState(0)
-  const [uid, setUid] = useState<string | null>(null)
-  useEffect(() => {
-    let vivo = true
-    const f = () => { if (vivo) setT(x => x + 1) }
-    regraOuvintes.add(f)
-    supabase.auth.getUser().then(r => { const id = r.data?.user?.id ?? null; if (!vivo) return; setUid(id); if (id) void nuvemRegra(id) }, () => {})
-    return () => { vivo = false; regraOuvintes.delete(f) }
-  }, [])
-  if (!uid || regraCache?.uid !== uid) return null
-  return !nuvemAceita(regraCache.r, seed)
+export function useNuvemSoAparelho(_seed: number): boolean | null {
+  const [, set] = useState(0)
+  useEffect(() => careerSave.subscribe(() => set(x => x + 1)), [])
+  const r = careerSave.cloudRights()
+  return r ? !r.paid : null
 }
-/** devolve 'nuvem' (subiu), 'aparelho' (conta grátis + carreira nova: fica só no aparelho) ou undefined */
-// 💾 24/11 (caso do Milan de Recife FC, temporada 121 perdida): pra salvar UMA carreira o aparelho baixava o save
-// INTEIRO da conta (7 MB com 2 carreiras grandes), juntava e reenviava tudo — no celular isso, somado à home baixando o
-// mesmo pacote, estourou a memória, a página reiniciou e o envio morreu calado. Com `soAtiva` (os botões Salvar e
-// Sair e salvar) só a carreira jogada sobe e o servidor encaixa ela no lugar (`esc_salva_carreira_slot`, mesma regra de
-// nunca voltar no tempo). Falhou de verdade (rede/servidor, depois de 3 tentativas) = 'falhou': quem chamou NÃO sai.
-export type ResultadoSalvar = 'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | 'falhou' | undefined
-async function comTentativas<T>(f: () => PromiseLike<{ data: T; error: unknown }>, vezes = 3): Promise<{ data: T | null; error: unknown }> {
-  let ultimo: unknown = null
-  for (let i = 0; i < vezes; i++) {
-    try { const r = await f(); if (!r.error) return { data: r.data, error: null }; ultimo = r.error } catch (e) { ultimo = e }
-    if (i < vezes - 1) await new Promise(ok => setTimeout(ok, 1500 * (i + 1)))
-  }
-  return { data: null, error: ultimo ?? 'falhou' }
+export type ResultadoSalvar = careerSave.SaveResult
+export async function savePyramidCloud(state: EscState, force = false, _soAtiva = false): Promise<ResultadoSalvar> {
+  if (!force) return 'bloqueado'
+  if (salvarBloqueado(!!state.oficial)) return salvarSemConta() ? 'sem_conta' : 'bloqueado'
+  try { const st = { ...state, _ll: lacreDe(state) } as EscState; careerSave.bindNext(state, st); return await careerSave.save(st) } catch { return 'falhou' }
 }
-export async function savePyramidCloud(state: EscState, force = false, soAtiva = false): Promise<ResultadoSalvar> {
-  try {
-    if (!force) return
-    const { data } = await supabase.auth.getUser()
-    if (!data?.user) return
-    const uid = data.user.id
-    if (isCareerSave(state)) {
-      const rg = await nuvemRegra(uid, true)
-      // 🎁 08/11: conta sem plano — o 1º toque em Salvar começa os 5 dias; passou, não grava mais
-      // 🇧🇷 18/11: Brasil Oficial sem plano = SÓ no aparelho (nada de teste de 5 dias nem nuvem)
-      if (state.oficial) { if (!(rg?.pago || pagoPeloCodigo())) return 'aparelho' }
-      else {
-      if (SALVAR_TESTE_5D && rg && !rg.pago && !pagoPeloCodigo()) { const ate = await iniciaTesteSalvar(uid); if (ate != null && Date.now() > ate) return 'bloqueado' }
-      if (salvarBloqueado()) return 'bloqueado'
-      }
-    } // 🔒 04/11: sem plano não salva
-    ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
-    // ☁️⭐ conta grátis: só as carreiras que JÁ estavam na nuvem continuam subindo (ver `nuvemRegra`)
-    const regra = isCareerSave(state) ? await nuvemRegra(uid, true) : null
-    if (isCareerSave(state) && !nuvemAceita(regra, state.seed)) return 'aparelho'
-    const liberada = (c: CareerSlot) => nuvemAceita(regra, (c.save as EscState).seed)
-    let payload: unknown = state
-    // o aparelho já tem tudo o que está na nuvem? (mesmo carimbo, ou nuvem vazia)
-    let localCobreNuvem = true
-    if (isCareerSave(state)) {
-      let carimbo = await carimboDaNuvem(uid)
-      if (carimbo === undefined && soAtiva) { await new Promise(ok => setTimeout(ok, 1500)); carimbo = await carimboDaNuvem(uid) }
-      if (carimbo === undefined) return soAtiva ? 'falhou' : undefined // sem resposta da nuvem: não arrisca sobrescrever; o local guarda
-      // 🔒 carimba a ativa com o lacre antes de subir (as do arquivo já vêm carimbadas).
-      const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
-      let daNuvem: CareerSlot[] = []
-      // 🛡️ 06/10: o aparelho perdeu alguma carreira que a nuvem tem? então junta também
-      const arquivo = readCareerArchive()
-      const temLocal = new Set(mergeCareers([active], arquivo).map(c => (c.save as EscState).seed))
-      const faltaNoAparelho = seedsDaNuvem(uid).some(sd => !temLocal.has(sd))
-      // 💾 24/11: SÓ A CARREIRA JOGADA — quando a nuvem já existe e o arquivo do aparelho não tem carreira que ela não conheça
-      const naNuvem = new Set(seedsDaNuvem(uid))
-      const arquivoSoNuvem = arquivo.every(c => naNuvem.has((c.save as EscState).seed))
-      if (soAtiva && carimbo && arquivoSoNuvem) {
-        const r = await comTentativas(() => supabase.rpc('esc_salva_carreira_slot', { p_seed: state.seed, p_slot: active }))
-        if (r.error) return 'falhou'
-        if (r.data) {
-          naNuvem.add(state.seed)
-          try { localStorage.setItem(NUVEM_SEEDS_KEY + uid, JSON.stringify([...naNuvem])) } catch { /* ignora */ }
-          const aparelhoEmDia = (() => { try { const l = localStorage.getItem('esc-solo-career'); const ls = l ? JSON.parse(l) as EscState : null; return !!ls && ls.seed === state.seed && (ls.seasonNo ?? 0) >= (state.seasonNo ?? 0) } catch { return false } })()
-          // o aparelho já tinha tudo o que a nuvem tinha (mesmo carimbo) → o carimbo novo também é dele
-          if (carimbo === cloudAtConhecido(uid) && !faltaNoAparelho && aparelhoEmDia) marcaCloudAt(uid, r.data as string)
-          if (!aparelhoEmDia) carreiraEmMemoria = { ...state }
-          anotaSubidaNuvem(state)
-          return nuvemSemPlano(regra) ? 'nuvem7' : 'nuvem'
-        }
-        // linha no formato antigo: segue o caminho de sempre (junta e reenvia)
-      }
-      if (carimbo && (carimbo !== cloudAtConhecido(uid) || faltaNoAparelho)) {
-        // outro aparelho salvou depois: lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada)
-        localCobreNuvem = false
-        const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
-        if (error) return
-        const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
-        daNuvem = careersFromCloudRaw(cur?.save, cloudAt)
-      }
-      payload = { __multi: 1, careers: mergeCareers([active], daNuvem, readCareerArchive()).filter(liberada) }
-      anotaSeedsDaNuvem(uid, (payload as { careers: CareerSlot[] }).careers)
-    }
-    const nowIso = new Date().toISOString()
-    const { data: up, error: erroUp } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
-    if (erroUp) return soAtiva ? 'falhou' : undefined // 💾 24/11: antes o erro era ignorado e a tela dizia "salvo"
-    // só marca o carimbo novo quando o LOCAL já tinha tudo: se a gente juntou carreira de outro
-    // aparelho aqui, o local ainda não tem — o carimbo fica velho e a próxima ida à home baixa e junta.
-    // 📱 e só se a cópia do APARELHO estiver em dia com o que subiu: aparelho cheio (cópia velha) não marca,
-    //    e a próxima ida à home baixa a da nuvem (13/10, caso do Pé de Breque)
-    const aparelhoEmDia = (() => { if (!isCareerSave(state)) return true; try { const r = localStorage.getItem('esc-solo-career'); const l = r ? JSON.parse(r) as EscState : null; return !!l && l.seed === state.seed && (l.seasonNo ?? 0) >= (state.seasonNo ?? 0) } catch { return false } })()
-    if (localCobreNuvem && aparelhoEmDia) marcaCloudAt(uid, up?.updated_at as string | undefined)
-    if (isCareerSave(state) && !aparelhoEmDia) carreiraEmMemoria = { ...state }
-    // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
-    if (isCareerSave(state)) anotaSubidaNuvem(state)
-    return isCareerSave(state) && nuvemSemPlano(regra) ? 'nuvem7' : 'nuvem'
-  } catch { if (soAtiva) return 'falhou' /* best effort — o local sempre garante */ }
-}
-// 🚪 SAIR SEM SALVAR (15/11, Diego: *"normalmente jogos de salvar não parece com a B?"* → *"pode fazer e publique"*).
-// Igual videogame: saiu sem salvar, a carreira VOLTA pro último ponto em que ele apertou Salvar (é o que está na nuvem).
-// Só mexe NESTA carreira (seed) e só no aparelho; a nuvem e as outras carreiras ficam como estão. Fechar o jogo sem
-// apertar nada continua guardando de onde parou (bateria, travada) — só o toque confirmado volta.
-// 'sem_salvo' = essa carreira nunca foi salva (não tem pra onde voltar: nada é apagado) · 'sem_rede' = não deu pra ler.
-export async function voltaProUltimoSalvo(seed: number): Promise<'voltou' | 'sem_salvo' | 'sem_rede'> {
-  try {
-    const { data } = await supabase.auth.getUser()
-    if (!data?.user) return 'sem_salvo'
-    const { data: row, error } = await supabase.from('esc_pyramid_saves').select('save').eq('user_id', data.user.id).maybeSingle()
-    if (error) return 'sem_rede'
-    const raw = row?.save as { __multi?: number; careers?: CareerSlot[] } | undefined
-    const lista: CareerSlot[] = raw && raw.__multi && Array.isArray(raw.careers) ? raw.careers : raw && isCareerSave(raw) ? [{ save: raw as unknown as EscState, at: Date.now() }] : []
-    const salvo = lista.find(c => isCareerSave(c?.save) && (c.save as EscState).seed === seed)
-    if (!salvo) return 'sem_salvo'
-    carreirasEmMemoria = carreirasEmMemoria.filter(c => (c.save as EscState).seed !== seed)
-    if (carreiraEmMemoria?.seed === seed) carreiraEmMemoria = null
-    try { localStorage.removeItem(SOLO_RESUME_KEY) } catch { /* ignora */ }
-    let gravou = false
-    try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ }
-    try { localStorage.setItem('esc-solo-career', JSON.stringify(salvo.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())); gravou = true } catch { /* aparelho cheio */ }
-    if (!gravou) carreiraEmMemoria = salvo.save as EscState // o "Continuar" desta visita abre a salva
-    return 'voltou'
-  } catch { return 'sem_rede' }
-}
-// 💾 última subida da carreira pra nuvem, por carreira (seed): quando foi e em que rodada/temporada.
-// É só memória pra tela ("salvo há 12 min · você jogou 3 rodadas desde então"); não decide nada.
+export const voltaProUltimoSalvo = careerSave.rollback
 export type SubidaNuvem = { at: number; seasonNo: number; round: number }
-const NUVEM_SUBIU_KEY = 'esc-nuvem-subiu:'
-function anotaSubidaNuvem(state: EscState) {
-  try { localStorage.setItem(NUVEM_SUBIU_KEY + state.seed, JSON.stringify({ at: Date.now(), seasonNo: state.seasonNo ?? 1, round: state.round ?? 0 } satisfies SubidaNuvem)) } catch { /* ignora */ }
-}
+export const carreiraTemAlteracoes = careerSave.isDirty
 export function ultimaSubidaNuvem(seed: number | undefined): SubidaNuvem | null {
-  if (seed == null) return null
-  try { const r = localStorage.getItem(NUVEM_SUBIU_KEY + seed); return r ? JSON.parse(r) as SubidaNuvem : null } catch { return null }
+  const uid = careerSave.account()
+  if (seed == null || !uid) return null
+  const receipt = careerSave.cloudReceipt(seed)
+  if (receipt) return { at: Date.parse(receipt.savedAt), seasonNo: receipt.seasonNo, round: receipt.round }
+  try { const r = localStorage.getItem(`esc-nuvem-subiu:${uid}:${seed}`); return r ? JSON.parse(r) as SubidaNuvem : null } catch { return null }
 }
-type CloudCareers = { save: EscState; at: number; careers: CareerSlot[]; iso: string | null }
-export async function loadPyramidCloud(): Promise<CloudCareers | null> {
-  try {
-    const { data } = await supabase.auth.getUser()
-    if (!data?.user) return null
-    const { data: row } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
-    const raw = row?.save as unknown
-    const at0 = row?.updated_at ? new Date(row.updated_at as string).getTime() : Date.now()
-    if (!raw || typeof raw !== 'object') return null
-    // formato NOVO (várias carreiras)
-    const multi = raw as { __multi?: number; careers?: CareerSlot[] }
-    if (multi.__multi && Array.isArray(multi.careers)) {
-      const careers = multi.careers.filter(c => isCareerSave(c?.save))
-      if (!careers.length) return null
-      const active = [...careers].sort((a, b) => b.at - a.at)[0]
-      if (saveMexido(active.save)) marcaMexido(active.save) // 🔒 confere o lacre da nuvem também
-      return { save: active.save, at: active.at, careers, iso: (row?.updated_at as string | undefined) ?? null }
-    }
-    // formato ANTIGO (EscState cru) — carreira única
-    if (isCareerSave(raw)) return { save: raw as EscState, at: at0, careers: [{ save: raw as EscState, at: at0 }], iso: (row?.updated_at as string | undefined) ?? null }
-  } catch { /* ignora */ }
-  return null
-}
-// une nuvem ↔ local por seed, mantendo pra cada uma a MAIS AVANÇADA (temporada
-// maior; nunca volta no tempo, nunca perde nenhuma) e reescreve os dois lados com
-// o conjunto unido. A ativa passa a ser a mais recente. Roda na HOME (nunca no jogo).
 export async function syncCareersWithCloud(): Promise<boolean> {
-  try {
-    const { data: u } = await supabase.auth.getUser()
-    if (!u?.user) return false
-    const uid = u.user.id
-    ensureCareerOwner(uid) // 🔐 rebaseia o aparelho pra ESTA conta ANTES de juntar local↔nuvem
-    const localCareers = listAllCareers().map(({ slot }) => slot)
-    // 💸 pergunta só o carimbo: nuvem igual à que este aparelho já juntou = nada a baixar
-    const carimbo = await carimboDaNuvem(uid)
-    if (!carimbo) return false // sem save na nuvem (ou sem resposta): fica o do aparelho
-    // 📱 24/11: aparelho CHEIO — o que desceu da nuvem já está na MEMÓRIA desta aba (carreirasEmMemoria). Antes o
-    // carimbo nunca era marcado e a home baixava o save inteiro (7 MB no caso do Milan) a cada poucos segundos.
-    if (carimbo === juntadoNaMemoria && carreirasEmMemoria.length) return false
-    if (localCareers.length && carimbo === cloudAtConhecido(uid) && !(await nuvemNaFrente(localCareers))) return false
-    const cloud = await loadPyramidCloud()
-    if (!cloud) return false
-    const all = mergeCareers(localCareers, cloud.careers)
-    if (!all.length) return false
-    const [active, ...rest] = all
-    let gravou = false
-    try {
-      localStorage.setItem('esc-solo-career', JSON.stringify(active.save))
-      localStorage.setItem('esc-solo-career-at', String(active.at ?? Date.now()))
-      localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(rest.slice(0, MAX_CAREER_SLOTS)))
-      gravou = true
-    } catch { /* cota cheia: não marca o carimbo, e a próxima vez tenta juntar de novo */ }
-    // 📱 aparelho CHEIO (13/10, caso do Pé de Breque: "volto e estou na 189 de novo"): a versão certa fica
-    // na MEMÓRIA e é ela que o "Continuar" abre — nunca a cópia velha que sobrou no aparelho.
-    carreiraEmMemoria = gravou ? null : active.save // (o aviso de aparelho cheio só sai DENTRO da carreira, pelo autosave)
-    carreirasEmMemoria = gravou ? [] : all // 📱☁️ 10/11: TODAS as que desceram (a lista mostra as que não couberam)
-    // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
-    // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
-    if (gravou) marcaCloudAt(uid, cloud.iso)
-    juntadoNaMemoria = gravou ? null : cloud.iso
-    anotaSeedsDaNuvem(uid, cloud.careers)
-    return true
-  } catch { return false }
+  // getSession não vira falha de rede em logout. A identidade vem do login local,
+  // e o servidor valida o token nas RPCs.
+  const { data } = await supabase.auth.getSession()
+  const uid = data.session?.user.id ?? null
+  if (uid !== authUidSalvar) return false
+  await careerSave.changeAccount(uid)
+  return uid ? careerSave.sync() : false
 }
-// 📱☁️ A CARREIRA SEGUE A CONTA, EM QUALQUER APARELHO (13/10). Diego: *"ele tem que usar o save onde ele
-// quiser, seja PC, Chrome, celular"*. O furo: o carimbo diz "este aparelho já juntou a nuvem" — mas se o
-// aparelho estava CHEIO, a cópia dele não foi gravada e ficou VELHA (temporada 189 com a nuvem na 193).
-// Agora, mesmo com o carimbo igual, o jogo pergunta à nuvem SÓ o resumo (seed + temporada de cada carreira,
-// uns bytes — `esc_pyramid_progresso`) e, se ela estiver na frente de qualquer carreira do aparelho, baixa e junta.
-async function nuvemNaFrente(locais: CareerSlot[]): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.rpc('esc_pyramid_progresso')
-    if (error || !Array.isArray(data)) return false
-    const local = new Map(locais.map(c => [(c.save as EscState).seed, (c.save as EscState).seasonNo ?? 0]))
-    return (data as { seed?: number; temp?: number }[]).some(r => r.seed != null && (local.get(r.seed) ?? -1) < (r.temp ?? 0))
-  } catch { return false }
-}
-// a carreira mais nova que NÃO coube no aparelho (só nesta aba)
 let carreiraEmMemoria: EscState | null = null
-// 📱 24/11: o carimbo da nuvem que já foi juntado na MEMÓRIA desta aba (aparelho cheio): não baixa de novo
-let juntadoNaMemoria: string | null = null
-// 📱☁️ 10/11: todas as carreiras da nuvem que o aparelho cheio não conseguiu guardar (a lista de carreiras mostra elas)
-let carreirasEmMemoria: CareerSlot[] = []
-/** só pras travas (`npm run troca`): simula o que a junção com a nuvem deixa na memória quando o aparelho está cheio */
-export function _carreirasEmMemoriaParaTeste(list: CareerSlot[], ativa: EscState | null) { carreirasEmMemoria = list; carreiraEmMemoria = ativa }
-/** a carreira ativa pra abrir: a do aparelho, ou a da memória se ela estiver MAIS adiantada (aparelho cheio) */
-export function carreiraAtivaPraAbrir(): EscState | null {
-  let local: EscState | null = null
-  try { const r = localStorage.getItem('esc-solo-career'); local = r ? JSON.parse(r) as EscState : null } catch { local = null }
-  const mem = carreiraEmMemoria
-  if (mem && (!local || local.seed !== mem.seed || (mem.seasonNo ?? 0) >= (local.seasonNo ?? 0))) return mem
-  return local
-}
-// 📱 AVISO DE APARELHO CHEIO: o salvamento automático no aparelho falhou. A carreira continua na nuvem até o
-// último "Sair e salvar"; o aviso só pede pra salvar antes de fechar. Some sozinho quando o aparelho volta a gravar.
+export function carreiraAtivaPraAbrir(): EscState | null { return careerSave.activeSummary()?.save ?? carreiraEmMemoria ?? null }
 let semEspaco = false
 const semEspacoOuvintes = new Set<() => void>()
-export function avisaSemEspaco(v: boolean) { if (semEspaco === v) return; semEspaco = v; semEspacoOuvintes.forEach(f => { try { f() } catch { /* ignora */ } }) }
+export function avisaSemEspaco(v: boolean) { if (semEspaco === v) return; semEspaco = v; semEspacoOuvintes.forEach(f => f()) }
 export function useSemEspaco(): boolean {
   const [, set] = useState(0)
-  useEffect(() => { const f = () => set(x => x + 1); semEspacoOuvintes.add(f); return () => { semEspacoOuvintes.delete(f) } }, [])
-  return semEspaco
+  useEffect(() => { const f = () => set(x => x + 1); semEspacoOuvintes.add(f); const off = careerSave.subscribe(f); return () => { semEspacoOuvintes.delete(f); off() } }, [])
+  return semEspaco || careerSave.localFailure() === 'storage'
 }
-export async function deletePyramidCloud() {
-  try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id) } catch { /* ignora */ }
-}
-// remove UMA carreira da nuvem pelo seed (apagar carreira). Não depende de
-// espelhar o local — tira só ela, mantendo as outras. Se ficar vazio, apaga a linha.
-export async function removeCareerFromCloud(seed: number) {
-  try {
-    const { data } = await supabase.auth.getUser()
-    if (!data?.user) return
-    const uid = data.user.id
-    const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
-    if (error || !cur) return // nada na nuvem (ou sem resposta): não há o que tirar
-    // o local já tinha tudo da nuvem antes de apagar? então continua tendo depois (apagou dos dois)
-    const localCobria = (cur.updated_at as string | undefined) === cloudAtConhecido(uid)
-    const cloudAt = cur.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
-    const kept = careersFromCloudRaw(cur.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
-    if (!kept.length) { await supabase.from('esc_pyramid_saves').delete().eq('user_id', uid); marcaCloudAt(uid, null); anotaSeedsDaNuvem(uid, null); return }
-    anotaSeedsDaNuvem(uid, kept)
-    const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() }).select('updated_at').maybeSingle()
-    if (localCobria) marcaCloudAt(uid, up?.updated_at as string | undefined)
-  } catch { /* ignora */ }
-}
+export async function deletePyramidCloud() { const st = careerSave.activeSummary(); if (st) await careerSave.remove(st.save.seed) }
+export const removeCareerFromCloud = careerSave.remove
 
 // ⏰ VIGIA DE PRAZO QUE NÃO DORME (28/08 — o "do nada trava" do rápido online).
 //
@@ -16646,6 +16042,7 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
 export const vigiaReducer: { coroa: string | null; cadeira: { acao: string; de: number | null; para: number | null } | null } = { coroa: null, cadeira: null }
 function reducerComVigia(s: EscState, a: Action): EscState {
   const r = reducer(s, a)
+  careerSave.bindNext(s, r)
   try {
     if (r !== s && s.onlineMode === 'online' && s.roomId && r.roomId === s.roomId) {
       if (s.isHost && !r.isHost) vigiaReducer.coroa = a.type
@@ -16664,8 +16061,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
     try {
       // 🌐 carreira online v2 NUNCA vira "partida solo em andamento" (senão abriria como solo, sem os amigos)
       if (state.co2) { if (!state.co2.espelho && state.screen !== 'intro' && state.screen !== 'lobby') co2GuardaLocal(state) }
-      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) { if (!(state.careerOnline && salvarBloqueado(!!state.oficial))) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
-      else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
+      else if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state) && (!state.careerOnline || state.sport === 'basquete')) { localStorage.setItem(SOLO_RESUME_KEY, comLacre(state)) } // 🔒 04/11: carreira sem plano não grava
+      else if (state.screen === 'intro') {
+        const r = localStorage.getItem(SOLO_RESUME_KEY)
+        const previous = r ? JSON.parse(r) as EscState : null
+        if (!previous?.careerOnline || previous.sport === 'basquete') localStorage.removeItem(SOLO_RESUME_KEY)
+      }
     } catch {
       // 📱 11/11 (Lucas Barreto 30: *"jogo até a 114, salvo, e quando entro volta pro 113"*): aparelho CHEIO. A gravação falhava
       // calada e a cópia VELHA ficava aqui — e é esta chave que o jogo abre direto ao ligar, antes de olhar a nuvem. Cópia que não
@@ -17746,28 +17147,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.youIdx])
 
-  // AUTOSAVE da carreira OFFLINE (solo): sem sala, o jogo inteiro vai pro
-  // localStorage a cada transição importante — dá pra fechar e voltar depois.
-  const soloSigRef = useRef('')
+  // Recuperação automática local, comprimida fora da renderização. Nuvem só no toque explícito.
   useEffect(() => {
-    // 🏀 o basquete tem careerOnline=true agora (usa a economia do futebol), mas o
-    // SAVE dele é isolado em `bl-nba-career` (efeito abaixo). Aqui é só o FUTEBOL —
-    // senão a carreira do basquete vazaria pro `esc-solo-career`/nuvem como pirâmide.
-    if (state.onlineMode === 'online' || !state.careerOnline || state.sport === 'basquete') return
-    if (state.co2) return // 🌐 carreira online v2 tem save PRÓPRIO (nunca escreve por cima da carreira solo do aparelho)
-    // não salva quando está numa tela LATERAL (álbum/ranking): senão o
-    // "Continuar carreira" restaurava no álbum em vez do jogo.
-    if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '') + `|museu:${JSON.stringify(state.careerMuseums??null)}`
-    const presidencySig = sig + assinaturaPresidencia(state)
-    if (presidencySig === soloSigRef.current) return
-    soloSigRef.current = presidencySig
-    // 📱 cota cheia: antes era ignorado calado (e o jogo abria a cópia velha depois). Agora avisa (13/10).
-    // 🔒 04/11: sem plano a carreira não grava no aparelho — fica só na memória desta aba (o "Continuar" da mesma visita funciona)
-    if (salvarBloqueado(!!state.oficial)) { carreiraEmMemoria = { ...state }; return }
-    if (!state.oficial) comecaTesteNoAparelho() // (o Brasil Oficial não tem teste de 5 dias: salva sempre no aparelho) // 🎁 08/11: o 1º salvamento automático também começa os 5 dias (fecha a brecha de nunca apertar Salvar)
-    try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())); avisaSemEspaco(false) } catch { avisaSemEspaco(true) }
-    // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
+    if (state.onlineMode === 'online' || !state.careerOnline || state.sport === 'basquete' || state.co2) return
+    if (['intro', 'lobby', 'setup', 'album', 'ranking'].includes(state.screen)) return
+    if (!careerSave.account() || !careerSave.stateBound(state)) return
+    if (salvarBloqueado(!!state.oficial)) { carreiraEmMemoria = state; careerSave.rememberSession(state); return }
+    const recoverable = { ...state, _ll: lacreDe(state) } as EscState
+    careerSave.bindNext(state, recoverable)
+    careerSave.schedule(recoverable)
   }, [state])
 
   // 🏀 autosave da CARREIRA do basquete — ISOLADO do futebol (chave própria
@@ -18523,6 +17911,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ state, dispatch, emote, addEmote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
+      <SaveDialogs />
       {/* 👁️ FANTASMA (28/10, mockup scripts/mockups/espectador.png): faixa fina embaixo, entre o chat e o som — sempre lembrando
           que ele só assiste, por quais olhos, e com o SAIR à mão. */}
       {state.espectador && state.onlineMode === 'online' && (

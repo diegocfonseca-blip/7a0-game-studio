@@ -215,7 +215,7 @@ export type CentralProps = {
   /** 🔨 21/11 (janela nova): sondar e vender moram no Mercado e os contratos têm tela própria — o aviso diz isso */
   janelaNova?: boolean
 }
-export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d' | 'falhou' | 'sem_conta'; ha?: number; rodadas?: number; onClick: () => void
+export type FaixaSalvarProps = { estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'falhou' | 'falhou_local' | 'conflito' | 'alterado' | 'sem_conta'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
   onCraque?: () => void }
 
@@ -231,16 +231,18 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   const AMBAR = '#FFB020', VERDE = '#4ADE80', CINZA = '#9A9A9A'
   const [texto, cor] = ((): [string, string] => {
     switch (s.estado) {
-      case 'bloqueado': return [t('🔒 Seu teste de 5 dias acabou · pra salvar novos avanços, escolha um plano', '🔒 Your 5-day trial is over · to save new progress, pick a plan'), '#FFB020']
-      case 'salvando': return [t('⏳ Salvando na nuvem…', '⏳ Saving to the cloud…'), '#fff']
+      case 'bloqueado': return [t('🔒 Confira o acesso ou o limite de fichas para salvar', '🔒 Check access or available save slots to save'), '#FFB020']
+      case 'salvando': return [t('⏳ Salvando…', '⏳ Saving…'), '#fff']
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
-      case 'salvo_7d': { const d = s.diasTeste ?? null; return [d != null ? t(`✅ Salvo · 🎁 teste grátis: falta${d === 1 ? '' : 'm'} ${d} dia${d === 1 ? '' : 's'}`, `✅ Saved · 🎁 free trial: ${d} day${d === 1 ? '' : 's'} left`) : t('✅ Salvo', '✅ Saved'), VERDE] }
       case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
       case 'sem_conta': return [t('🔒 Crie sua conta grátis pra salvar sua carreira', '🔒 Create your free account to save your career'), '#FFB020']
-      case 'falhou': return [t('⚠️ Não conseguimos salvar agora · nada foi perdido · toque pra tentar de novo', '⚠️ Could not save right now · nothing was lost · tap to try again'), AMBAR]
+      case 'alterado': return [t('☁️ Há mudanças neste aparelho ainda não enviadas à nuvem', '☁️ Changes on this device have not been sent to the cloud'), AMBAR]
+      case 'falhou_local': return [t('⚠️ Não foi possível gravar no aparelho · não feche o jogo; confira o espaço disponível', '⚠️ Could not write to this device · keep the game open and check available storage'), AMBAR]
+      case 'conflito': return [t('Há outro avanço desta carreira · confira sua escolha e salve novamente', 'Another version exists · check your choice and save again'), AMBAR]
+      case 'falhou': return [t('⚠️ Sem confirmação da nuvem · mantenha o jogo aberto e tente novamente', '⚠️ No cloud confirmation · keep the game open and try again'), AMBAR]
       case 'so_aparelho': return [t('📱 Esta carreira salva só neste aparelho · ☁️ a nuvem é do ⭐ Craque', '📱 This career saves only on this device · ☁️ the cloud is for ⭐ Star'), AMBAR]
       case 'salvo_aparelho': return [t('✅ Salvo no aparelho · pra guardar na nuvem e jogar em outro celular: ⭐ Craque', '✅ Saved on this device · to keep it in the cloud and play on another phone: ⭐ Star'), VERDE]
-      case 'deslogado': return [t('📱 Só no aparelho · entre na conta pra guardar na nuvem', '📱 Device only · sign in to keep it in the cloud'), CINZA]
+      case 'deslogado': return [t('🔒 Entre ou crie uma conta para salvar', '🔒 Sign in or create an account to save'), CINZA]
       case 'nunca': return [t('☁️ Esta carreira ainda não foi salva na nuvem', '☁️ This career was never saved to the cloud'), AMBAR]
       case 'atrasado': return [s.rodadas ? t(`☁️ Salvo ${ha(s.ha)} · ${s.rodadas} rodada${s.rodadas === 1 ? '' : 's'} desde então`, `☁️ Saved ${ha(s.ha)} · ${s.rodadas} round${s.rodadas === 1 ? '' : 's'} since`) : t(`☁️ Salvo ${ha(s.ha)} · temporada nova desde então`, `☁️ Saved ${ha(s.ha)} · new season since`), AMBAR]
       default: return [t(`☁️ Salvo na nuvem ${ha(s.ha)} · tudo em dia`, `☁️ Saved to the cloud ${ha(s.ha)} · up to date`), VERDE]
@@ -249,15 +251,13 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   const ocupado = s.estado === 'salvando'
   // ☁️ 19/10 (Diego): conta sem plano apertou Salvar → abre os planos (a faixinha que sumia em 2 s parecia bug)
   const [planos, setPlanos] = useState(false)
-  const [aviso7, setAviso7] = useState(false)
   const [conta, setConta] = useState(false) // 👤 24/11: sem conta, Salvar abre a conta grátis ali mesmo
   // ✕ 29/10 (Diego: "fechou, não volta"): a janela que abre SOZINHA depois do salvamento aparece uma vez por aviso; o botão Salvar
   // de quem não tem plano continua abrindo (aí foi a pessoa que pediu)
   useEffect(() => {
     if (s.estado === 'salvo_aparelho' && !avisoFechado('nuvem-aparelho')) { fechaAviso('nuvem-aparelho'); setPlanos(true) }
-    if (s.estado === 'salvo_7d' && !avisoFechado('teste-5d')) { fechaAviso('teste-5d'); setAviso7(true); setPlanos(true) }
   }, [s.estado])
-  const salvar = () => { if (s.estado === 'sem_conta') { setConta(true); return } if (s.estado === 'bloqueado') { setPlanos(true); return } const semPlano = s.estado === 'so_aparelho'; s.onClick(); if (semPlano) setPlanos(true) }
+  const salvar = () => { if (s.estado === 'sem_conta') { setConta(true); return } if (s.estado === 'bloqueado') { setPlanos(true); return } s.onClick() }
   return (<>
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
       <span style={{ ...OSW, fontSize: 11, letterSpacing: '.05em', color: cor, lineHeight: 1.25, minWidth: 0 }}>{texto}</span>
@@ -268,7 +268,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
       </button>
       </span>
     </div>
-    {planos && <JanelaNuvemPlanos travado={s.estado === 'bloqueado'} aviso7={aviso7} onClose={() => { setPlanos(false); setAviso7(false) }} />}
+    {planos && <JanelaNuvemPlanos travado={s.estado === 'bloqueado'} onClose={() => { setPlanos(false) }} />}
     {conta && <JanelaConta titulo={t('💾 Salvar sua carreira', '💾 Save your career')} contexto={t('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')} comecarEmCriar onPronto={() => setConta(false)} onFechar={() => setConta(false)} />}
   </>)
 }

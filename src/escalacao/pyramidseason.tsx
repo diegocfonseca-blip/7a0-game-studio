@@ -117,7 +117,7 @@ import { simulaIntercontinental, europaDaTemporada, INTERCONTINENTAL_2026, CLUBE
 import { simulaLibertadores, ESTRANGEIROS_LIBERTA_2026, DATAS_LIBERTA, NOME_LIBERTADORES, type VagasLiberta, type ResultadoLiberta } from './libertadores-oficial'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { marcaCarreiraJogada } from './store' // 🗑️ 18/11
-import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, diasTesteSalvar, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, divOficialDe, savePyramidCloud, salvarSemConta, voltaProUltimoSalvo, ultimaSubidaNuvem, carreiraTemAlteracoes, useNuvemSoAparelho, salvarBloqueado, useSalvarBloqueado, salaryOfCard, squadPayroll, contratoAtletaFalta, clubesNacionaisDoMercado, reservaTransferivelOficial, podeRetirarOficial, contratacaoOficialPermitida, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, CLA_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -9933,45 +9933,43 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const { state } = useEsc()
   const stRef = useRef(state); stRef.current = state
   const [logado, setLogado] = useState<boolean | null>(null)
-  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d' | 'falhou'>('quieto')
+  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'falhou' | 'falhou_local' | 'conflito'>('quieto')
   const soAparelho = useNuvemSoAparelho(state.seed) // ☁️⭐ conta grátis + carreira nova (07/10)
   const bloqueado = useSalvarBloqueado(!!state.oficial) // 🔒 04/11: sem plano, carreira não salva
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!ativo) return
     let vivo = true
-    supabase.auth.getUser().then(r => { if (vivo) setLogado(!!r.data?.user) }, () => { if (vivo) setLogado(false) })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event,session) => { if (vivo) setLogado(!!session?.user) })
     const iv = setInterval(() => setTick(x => x + 1), 30_000) // o "há N min" anda sozinho
-    return () => { vivo = false; clearInterval(iv) }
+    return () => { vivo = false; subscription.unsubscribe(); clearInterval(iv) }
   }, [ativo])
   // 🧪 bancada do vite (sem Supabase): finge logado pra fotografar a faixa; a chave some do build
   const logadoDev = import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-central-dev-logado') === '1' } catch { return false } })()
   const onClick = useCallback(async () => {
     const st = stRef.current
-    if (salvarBloqueado(!!state.oficial)) return // 🔒 04/11: sem plano o botão só abre os planos (a faixa cuida disso)
-    try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
+    if (salvarBloqueado(!!st.oficial)) return // 🔒 04/11: sem plano o botão só abre os planos (a faixa cuida disso)
     setFase('salvando')
-    let res: Awaited<ReturnType<typeof savePyramidCloud>> = undefined
+    let res: Awaited<ReturnType<typeof savePyramidCloud>> = 'falhou'
     try { res = await savePyramidCloud(st, true, true) } catch { res = 'falhou' }
     // 💾 24/11: falhou de verdade (3 tentativas) — nada de "salvo": a faixa avisa e o toque tenta de novo
-    if (res === 'falhou') { setFase('falhou'); setTimeout(() => setFase('quieto'), 6000); return }
-    const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
-    // ☁️ 26/10: conta sem plano, 1º salvamento na nuvem → avisa do prazo de 7 dias (uma vez por aparelho)
-    const avisa7 = res === 'nuvem7' && (() => { try { if (localStorage.getItem('esc-teste5d-visto')) return false; localStorage.setItem('esc-teste5d-visto', '1'); return true } catch { return false } })()
-    setFase(res === 'aparelho' ? 'salvo_aparelho' : avisa7 ? 'salvo_7d' : subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
-    setTimeout(() => setFase('quieto'), avisa7 ? 6000 : 2400)
+    if (res !== 'nuvem' && res !== 'aparelho') { setFase(res === 'falhou_local' || res === 'conflito' ? res : 'falhou'); setTimeout(() => setFase('quieto'), 6000); return }
+    const subiu = res === 'nuvem'
+    setFase(res === 'aparelho' ? 'salvo_aparelho' : subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
+    setTimeout(() => setFase('quieto'), 2400)
   }, [])
   if (!ativo) return undefined
   if (bloqueado && salvarSemConta()) return { estado: 'sem_conta', onClick } // 👤 24/11: sem conta não salva — o botão abre a conta grátis
   if (bloqueado) return { estado: 'bloqueado', onClick } // 🔒 04/11: sem plano não salva — o botão vira cadeado e abre os planos
-  if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined, diasTeste: diasTesteSalvar() }
-  if (logado === false && !logadoDev) return { estado: 'deslogado', onClick }
+  if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined }
+  if (logado === false && !logadoDev) return { estado: 'sem_conta', onClick }
   if (soAparelho) return { estado: 'so_aparelho', onClick, onCraque: abreCraqueNuvem }
   const sub = ultimaSubidaNuvem(state.seed)
   if (!sub) return { estado: 'nunca', onClick }
   const ha = Math.floor((Date.now() - sub.at) / 60_000)
   const mesmaTemporada = (state.seasonNo ?? 1) === sub.seasonNo
   const atrasado = !mesmaTemporada || (state.round ?? 0) > sub.round
+  if (!atrasado && carreiraTemAlteracoes(state.seed)) return { estado: 'alterado', onClick }
   return atrasado ? { estado: 'atrasado', ha, rodadas: mesmaTemporada ? (state.round ?? 0) - sub.round : undefined, onClick } : { estado: 'em_dia', ha, onClick }
 }
 
@@ -10125,14 +10123,13 @@ export function PyramidSeasonScreen() {
   // 💾 24/11 (caso do Milan, temporada 121 perdida): o "Sair e salvar" ESPERA a nuvem confirmar e só então sai.
   // Antes ele disparava o envio e já ia pra home (que baixava o save inteiro junto) — no celular a página reiniciou
   // e o envio morreu calado. Falhou (3 tentativas) = fica na carreira, com o aviso embaixo do botão.
-  const [sairSalvando, setSairSalvando] = useState<null | 'salvando' | 'falhou'>(null)
+  const [sairSalvando, setSairSalvando] = useState<null | 'salvando' | 'falhou' | 'falhou_local' | 'conflito'>(null)
   const sairESalvar = async () => {
     if (sairSalvando === 'salvando') return
-    try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — a nuvem é que guarda */ }
     setSairSalvando('salvando')
-    let r: Awaited<ReturnType<typeof savePyramidCloud>> = undefined
+    let r: Awaited<ReturnType<typeof savePyramidCloud>> = 'falhou'
     try { r = await savePyramidCloud(state, true, true) } catch { r = 'falhou' }
-    if (r === 'falhou') { setSairSalvando('falhou'); return }
+    if (r !== 'nuvem' && r !== 'aparelho') { setSairSalvando(r === 'falhou_local' || r === 'conflito' ? r : 'falhou'); return }
     setSairSalvando(null)
     if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' })
   }
@@ -15717,7 +15714,7 @@ export function PyramidSeasonScreen() {
             {tr('🔒 Salvar carreira', '🔒 Save career')}
             <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#3a3626', marginTop: 2 }}>{semConta
               ? tr('Crie sua conta grátis pra salvar sua carreira.', 'Create your free account to save your career.')
-              : tr('Salvar é dos planos (a partir do Craque Salas). Assine e não perca nada.', 'Saving comes with the plans (from Craque Salas up). Subscribe and lose nothing.')}</span>
+              : tr('Com conta grátis, salve neste aparelho. Com plano, salve também na nuvem.', 'With a free account, save on this device. A plan also enables cloud saving.')}</span>
           </button>
           <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="ll-cx-sair"
             style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '9px 13px', fontWeight: 900, fontSize: 13, background: '#fff', color: INK, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
@@ -15731,11 +15728,13 @@ export function PyramidSeasonScreen() {
             disabled={sairSalvando === 'salvando'}
             className="ll-cx-sair"
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: sairSalvando === 'salvando' ? 'wait' : 'pointer', opacity: sairSalvando === 'salvando' ? .75 : 1, ...OSWALD }}>
-            {sairSalvando === 'salvando' ? tr('⏳ Salvando na nuvem… não feche o jogo', '⏳ Saving to the cloud… do not close the game') : sairSalvando === 'falhou' ? tr('🔁 Tentar salvar de novo', '🔁 Try saving again') : tr('💾 Sair e salvar carreira', '💾 Exit and save career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: sairSalvando === 'falhou' ? '#B23B2E' : '#5a5647', marginTop: 2 }}>{sairSalvando === 'falhou'
-              ? tr('⚠️ Não conseguimos salvar agora. Você continua aqui e nada foi perdido. Toque pra tentar de novo.', '⚠️ We could not save right now. You are still here and nothing was lost. Tap to try again.')
+            {sairSalvando === 'salvando' ? tr('⏳ Salvando… não feche o jogo', '⏳ Saving… do not close the game') : sairSalvando ? tr('🔁 Tentar salvar de novo', '🔁 Try saving again') : tr('💾 Sair e salvar carreira', '💾 Exit and save career')}
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: sairSalvando && sairSalvando !== 'salvando' ? '#B23B2E' : '#5a5647', marginTop: 2 }}>{sairSalvando === 'conflito' ? tr('Há outro avanço desta carreira. Confira sua escolha e toque em Salvar novamente.', 'Another version of this career exists. Check your choice and tap Save again.')
+              : sairSalvando === 'falhou_local' ? tr('Não foi possível gravar no aparelho. Não feche o jogo; libere espaço e tente novamente.', 'Could not write to this device. Keep the game open; free up storage and try again.')
+              : sairSalvando === 'falhou'
+              ? tr('Não houve confirmação da nuvem. Você continua aqui; mantenha o jogo aberto e tente novamente.', 'No cloud confirmation was received. You are still here; keep the game open and try again.')
               : soAparelhoPe
-              ? tr('☁️ Salvar na nuvem é dos planos (⭐ Craque ou 👑 Lenda).', '☁️ Saving to the cloud comes with the plans (⭐ Star or 👑 Legend).')
+              ? tr('Salva neste aparelho. Com plano, salva também na nuvem.', 'Saved on this device. A plan also enables cloud saving.')
               : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
           <button onClick={() => setSairSem('pergunta')} className="ll-cx-sair"

@@ -104,7 +104,7 @@
     "planos": "node scripts/testa-planos.mjs",
     "presidente": "node scripts/testa-presidente.mjs",
     "cartinha": "node scripts/testa-cartinha-multiclube.mjs",
-    "troca": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-troca-carreira.mts",
+    "troca": "node scripts/teste-salvamento/rodar.mjs",
     "canal": "node scripts/testa-canal.mjs",
     "estante": "node scripts/testa-estante.mjs",
     "colecoes": "node scripts/testa-colecoes.mjs",

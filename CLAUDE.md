@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## 💾 Salvamento unificado das carreiras — decisão de 24/11/2026
+
+Diego determinou: “Tudo do Brasil Oficial deve ser igual pro carreira tradicional também”, referindo-se às regras de **salvamento**. Sem conta pede cadastro; conta grátis salva no aparelho sem teste de prazo; plano elegível salva também na nuvem. A regra antiga de teste de cinco dias na tradicional foi revogada. Cinco dias **sem jogar** continuam sendo inatividade, com a mesma regra nos dois modos e carência inicial no novo fluxo para não excluir saves antigos de surpresa. Não apagar fichas excedentes por inferência e não aplicar isso às regras esportivas dos modos. Detalhes e estado da publicação em `docs/salvamento-seguro-20261124.md`.
+
 ## 🏟️ Bairro compacto público — 23/11/2026
 
 Diego autorizou para todos o mapa compacto aprovado e NPCs de moradores/torcida/ambulantes. `MAPA_COMPACTO_GERAL` liga a implantação no futebol; basquete conserva a arena própria. Público visual vem de `publicoDoEstadio`, construções e carros respeitam o save; sem migração/economia paralela. Cidade e NPCs continuam desconectados da cena durante a partida. Reversão pela flag. Fonte de arte, limites e testes: `docs/mapa-compacto-publico-20261123.md`.

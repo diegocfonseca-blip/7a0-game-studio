@@ -1,3 +1,16 @@
+## 24/11 — REGRAS DE SALVAMENTO UNIFICADAS NOS DOIS MODOS DE CARREIRA
+
+- Diego corrigiu o planejamento: “Tudo do Brasil Oficial deve ser igual pro carreira tradicional também”, no contexto de salvamento. Ambos exigem conta; grátis salva no aparelho sem teste de cinco dias, plano salva também na nuvem. Teste antigo vencido não bloqueia salvamento local. Sem mudança de regras esportivas, jogadores ou economia.
+- Igualadas a inatividade de cinco dias e os avisos, com carência na primeira abertura do novo fluxo para não excluir saves antigos de surpresa. Exclusão automática confere o plano novamente; pagantes protegidos também no servidor.
+- Retirado o teste de salvamento do fluxo atual e corrigidos textos PT/EN. Upload grátis também é recusado no caminho legado do banco. Migração v2 segue preparada, ainda não aplicada em produção; Diego autorizou a publicação completa: “Pode publicar então já”. Banco e deploy em andamento.
+
+## 24/11 — SALVAMENTO DA CARREIRA: FLUXO V2 TESTADO, PUBLICAÇÃO AUTORIZADA
+
+- Diego autorizou o planejamento e reforçou cadastro obrigatório para salvar. Regras de salvamento unificadas com Brasil Oficial por ordem posterior; sem mudança de preço, jogadores ou economia.
+- Implementados revisão/UID/pedido idempotente no servidor, manifesto por metadados, IndexedDB comprimido em Worker, recuperação automática separada do save manual, conflitos entre aparelhos/abas e histórico. Migração v2 validada em PostgreSQL isolado; 49 verificações no navegador e build completo passaram. Não aplicada ainda no projeto real.
+- **Já aplicado no banco:** bloqueio da chamada pública à limpeza obsoleta de um dia; privilégios conferidos, nenhum save apagado ou modificado. Avisos reais aprovados e publicação coordenada de banco/cliente autorizada por Diego.
+- [Regras, arquitetura, testes, limitações e procedimento de retorno](salvamento-seguro-20261124.md). Código na branch `feat/salvamento-seguro-20261124`; não fazer retorno apenas do cliente após migrar contas.
+
 ## 24/11 — CORREÇÃO URGENTE: CENTRAL SEM BOTÕES APÓS A PARTIDA
 
 - Diego relatou que um usuário do Grêmio joga e, ao voltar à Central, não encontra Placar / Campo2D / Campo3D. Reproduzido na T2/R4: Copa do Brasil e preliminar continental na mesma semana, ambas sem o clube; a fila processava a primeira e parava na segunda porque o efeito não observava `copaRound`.
