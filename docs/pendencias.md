@@ -1,3 +1,9 @@
+## 24/11 — PUBLICAÇÃO DOS TÉCNICOS AUTORIZADA
+
+- Diego autorizou publicar os três lotes e o aumento de formações:225 técnicos, categorias/repertórios prontos,2/3/4/5/6 opções e formação da casa, com fichas/contratos antigos preservados. Inclui o ajuste de herança da formação também para CPUs na largada do Brasil Oficial.
+- Base remota conferida em `a41bdb29`, sem alterações concorrentes. Testes de catálogo, oito largadas, mercado tradicional,3-5-2 e compilação completa passaram. Conferir também a entrada compilada da raiz antes de enviar à main e aguardar sucesso do GitHub Pages.
+- Sem migração, alteração de contas ou saves reais; publicação mantém os arquivos das versões anteriores e não força recarga. Pesquisa dos vínculos de todos os clubes ainda não foi concluída. [Escopo e fontes](tecnicos-lotes-2-3-20261124.md).
+
 ## 24/11 — TÉCNICOS: LOTES2/3 E FICHAS COMPLETAS NA LARGADA
 
 - Diego mandou seguir os lotes e reforçou categoria e formações prontas para cada técnico. Mais80 pessoas reais em dois lotes de40; catálogo225, sem duplicação. Todos os120 acrescentados têm repertório explícito, na mesma régua2/3/4/5/6; oito treinadores ganharam esquemas específicos documentados em fontes.

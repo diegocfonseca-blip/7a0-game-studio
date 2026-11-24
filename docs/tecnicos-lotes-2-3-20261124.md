@@ -146,4 +146,4 @@ Não se acrescentaram jogadores, cartas de salas online, imagens, RPCs ou consul
 
 A pesquisa enfrentou falhas409 no conector; consultas sequenciais voltaram a funcionar. O acesso HTTP direto do ambiente continua restrito a pacotes/repositórios, sem alteração dessa política. Não se inventaram URLs de fonte para preencher falhas. Lint permanece indisponível pela ausência da configuração ESLint do repositório.
 
-Implementação local, **sem publicação**, na branch `feat/tecnicos-vinculos-20261124`. [Primeiro lote e regras de distribuição/retorno](tecnicos-brasil-20261124.md). Para reverter após saves usarem os nomes, conservar fichas dos contratados e desligar só a distribuição nova.
+Publicação autorizada por Diego em24/11: “Ok, pode publicar então, que precisa ser publicado”. Preparação na branch `feat/tecnicos-vinculos-20261124`; base remota conferida, aguardando verificação da raiz e confirmação do GitHub Pages. [Primeiro lote e regras de distribuição/retorno](tecnicos-brasil-20261124.md). Para reverter após saves usarem os nomes, conservar fichas dos contratados e desligar só a distribuição nova.
