@@ -1,5 +1,11 @@
 ## ⚔️ 23/11 — PRÓXIMO CONFRONTO PERMANENTE NAS ABAS DO VISUAL NOVO
 
+
+- 🚫 **24/11 — LIGA: REMOVIDO PELO DONO VOLTAVA.** A remoção não ficava anotada; na janela até o save do dono (≤ 3 s) a trava de entrada
+  ainda via o crachá e deixava voltar. Agora o banco guarda `esc_liga_removidos` (APLICADO, `docs/sql/liga-removidos-20261124.sql`): o
+  `kickPlayer` na liga chama `esc_liga_remove` antes de apagar a vaga; o gatilho barra com `LIGA_REMOVIDO` e o lobby mostra o aviso.
+  Volta só com pedido NOVO aceito pelo dono. Reverter: tirar o bloco `LIGA_REMOVIDO` da função `esc_liga_comecada_so_plano`.
+
 ## 🏆 24/11 — Campeão "cinema" (cada competição com a sua cena) — feito, esperando "pode publicar"
 - `src/escalacao/campeao-cinema.tsx` + `.css`: tela cheia ~9,6 s (toque/Pular), escudo martelado (`playHammer`), papel picado em canvas nas cores do clube (`mantoDoClube` do batismo; senão a cor da competição), lendas do elenco (`legendAvatar`) e mascote; sem nenhum dos dois = "É CAMPEÃO!" balançando. Fila: liga e copa na mesma tela tocam uma depois da outra. Zero servidor.
 - Ligado em: `OwnerChampionBanner` (conta do Diego) e `CampeaoCinemaDe` nas telas de todo mundo (CampeaoCopaCard, fim de liga em `EscEnd`, Copa do Mundo/Euro/América, Liberta da sala, copas regionais). Basquete fica de fora.

@@ -16694,7 +16694,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
     channelRef.current?.send({ type: 'broadcast', event: 'kick', payload: { playerIndex: mgrId } })
     rawDispatch({ type: 'KICK_PLAYER', playerIndex: mgrId, peloDono: true })
     const rid = stateRef.current.roomId
-    if (rid) { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', mgrId).then(() => {}) }
+    if (!rid) return
+    const apaga = () => { supabase.from('room_players').delete().eq('room_id', rid).eq('player_index', mgrId).then(() => {}) }
+    // 🚫 24/11 (Diego: "o host removeu do Liga Draft e o removido voltou"): na liga o banco ANOTA a remoção antes de apagar a
+    // vaga — senão, na janela até o save do dono chegar (≤ 3 s), a trava de entrada ainda via o crachá e deixava voltar.
+    // Removido só volta com pedido NOVO aceito pelo dono (`esc_liga_removidos`, docs/sql/liga-removidos-20261124.sql).
+    if (stateRef.current.ligaMode) {
+      const uid = stateRef.current.seatUids?.[mgrId] || null
+      supabase.rpc('esc_liga_remove', { p_room: rid, p_uid: uid, p_index: mgrId }).then(apaga, apaga)
+    } else apaga()
   }, [])
 
   // 🪑 10/11 (Diego: *"se o usuário voltar, ele volta pro mesmo local onde o host tá comandando a sala"*): voltei pra liga e
