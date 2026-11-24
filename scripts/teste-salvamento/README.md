@@ -23,3 +23,5 @@ node scripts/teste-salvamento/verifica.mjs
 Evidências locais em `/workspace/shared/salvamento-seguro-20261124`. Incluem capturas em 390 e 1440 pixels. Não são medição de FPS ou de desempenho físico do S25.
 
 A imagem de PostgreSQL não contém pg_cron. O corpo da conservação é testado diretamente, incluindo a semana de carência, os vencimentos e a preservação do save ativo. O agendamento só é instalado se a extensão já existir no projeto.
+
+A conferência da entrada compilada usa a ordem real de importação da aplicação. Ela é necessária além da bancada de componentes: detectou ciclo entre store e os avisos, ausente na ordem da bancada. Depois de compilar a raiz e servi-la localmente, execute `LL_SAVE_BASE=http://127.0.0.1:5198 node scripts/teste-salvamento/publicacao.mjs`. Todos os envios de API e WebSockets ficam bloqueados.

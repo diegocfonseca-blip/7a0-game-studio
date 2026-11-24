@@ -1,5 +1,4 @@
 import * as careerSave from './salvamento/service'
-import { SaveDialogs } from './salvamento/dialogs'
 import {eventosFisicos} from './carreira-fisica'
 import { referenciaAtleta, salarioReferencia, faixaCampanha } from './carreira-economia'
 import { mercadoAnualOficial, MERCADO_BOTS_OFICIAL_GLOBAL, TRANSFERENCIAS_OFICIAIS, reservaNegociavel, type ClubeMercado } from './mercado-bots-oficial'
@@ -17911,7 +17910,6 @@ export function EscProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ state, dispatch, emote, addEmote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
-      <SaveDialogs />
       {/* 👁️ FANTASMA (28/10, mockup scripts/mockups/espectador.png): faixa fina embaixo, entre o chat e o som — sempre lembrando
           que ele só assiste, por quais olhos, e com o SAIR à mão. */}
       {state.espectador && state.onlineMode === 'online' && (

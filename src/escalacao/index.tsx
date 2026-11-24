@@ -12,6 +12,7 @@ import { LojaButton } from './loja-clube' // 🔥 30/10: "Ver planos" do recado 
 import { COMUNIDADE_LINK } from './comunidade'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
+import { SaveDialogs } from './salvamento/dialogs'
 import { EscLobby } from './lobby'
 import { EspectadorEspera } from './espectador-ui'
 import { EscConvocacaoClubes } from './convocacao-clubes' // 🧱 leilão de clubes (em teste)
@@ -564,6 +565,7 @@ export default function EscalacaoGame() {
       <TelaSenhaNova />
       <NotaDeRecarga />
       <EscProvider>
+        <SaveDialogs />
         <SportTitle />
         <MaintenanceBanner />
         <SessionExpiredBanner />
