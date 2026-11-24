@@ -15271,3 +15271,13 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   que nasce na origem (= centro do campo) e só anda no `update`; com o bairro compacto o update nunca roda e o grupo nascia visível. Agora nasce
   escondido (`presidencia-cidade-comercio.ts`). Conferido na bancada `qa-mapa-foco.html`: nada visível no centro, na semana e no jogo.
 - ✅ Central no celular: "🗓️ Próximos jogos" logo embaixo da escolha 2D/3D/Placar, em cima do Raio-X (`agendaCard` + `ll-c-agenda-cel`). Computador sem mudança.
+
+## 💾 24/11 — Salvar carreira grande no celular (caso do Milan de Recife FC, T121 perdida) — PUBLICADO (*"pode e publique"*)
+- Prova nos registros: 2 carreiras = 7 MB (não cabia no aparelho, só na memória) · "Sair e salvar" baixava o save inteiro pra juntar,
+  sem esperar já abria a home (que baixava os mesmos 7 MB) · 6 s depois a página reiniciou (visita nova às 23:14:46) e o envio morreu.
+- ✅ `esc_salva_carreira_slot` (docs/sql/salva-carreira-slot-20261124.sql, APLICADA): o aparelho manda só a carreira jogada e o servidor
+  encaixa por seed, nunca voltando no tempo. Usada por `savePyramidCloud(..., soAtiva=true)` (botões Salvar e Sair e salvar); troca de
+  carreira/arquivo seguem o caminho antigo (junta tudo). 3 tentativas; erro de envio agora é conferido ('falhou').
+- ✅ "Sair e salvar" ESPERA ("⏳ Salvando… não feche o jogo"); falhou = fica na carreira com aviso e "🔁 Tentar salvar de novo". Faixa da Central ganhou o estado 'falhou'.
+- ✅ Home com aparelho cheio não baixa mais o save inteiro a cada poucos segundos (`juntadoNaMemoria`).
+- ⏳ Ainda pesado: o save de carreira longa tem 3–4 MB. Enxugar o save (histórico antigo) é trabalho futuro.

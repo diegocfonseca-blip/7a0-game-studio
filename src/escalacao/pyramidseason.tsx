@@ -9801,7 +9801,7 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const { state } = useEsc()
   const stRef = useRef(state); stRef.current = state
   const [logado, setLogado] = useState<boolean | null>(null)
-  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d'>('quieto')
+  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho' | 'salvo_7d' | 'falhou'>('quieto')
   const soAparelho = useNuvemSoAparelho(state.seed) // ☁️⭐ conta grátis + carreira nova (07/10)
   const bloqueado = useSalvarBloqueado(!!state.oficial) // 🔒 04/11: sem plano, carreira não salva
   const [, setTick] = useState(0)
@@ -9819,8 +9819,10 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     if (salvarBloqueado(!!state.oficial)) return // 🔒 04/11: sem plano o botão só abre os planos (a faixa cuida disso)
     try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     setFase('salvando')
-    let res: 'nuvem' | 'nuvem7' | 'aparelho' | 'bloqueado' | undefined
-    try { res = await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
+    let res: Awaited<ReturnType<typeof savePyramidCloud>> = undefined
+    try { res = await savePyramidCloud(st, true, true) } catch { res = 'falhou' }
+    // 💾 24/11: falhou de verdade (3 tentativas) — nada de "salvo": a faixa avisa e o toque tenta de novo
+    if (res === 'falhou') { setFase('falhou'); setTimeout(() => setFase('quieto'), 6000); return }
     const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
     // ☁️ 26/10: conta sem plano, 1º salvamento na nuvem → avisa do prazo de 7 dias (uma vez por aparelho)
     const avisa7 = res === 'nuvem7' && (() => { try { if (localStorage.getItem('esc-teste5d-visto')) return false; localStorage.setItem('esc-teste5d-visto', '1'); return true } catch { return false } })()
@@ -9985,7 +9987,20 @@ export function PyramidSeasonScreen() {
   const [planosSalvar, setPlanosSalvar] = useState(false)
   // 🚪 15/11: "Só sair" pergunta antes e, confirmado, volta a carreira pro último salvamento (`voltaProUltimoSalvo`)
   const [sairSem, setSairSem] = useState<null | 'pergunta' | 'voltando' | 'sem_salvo' | 'sem_rede'>(null)
-  const sairESalvar = () => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' }) }
+  // 💾 24/11 (caso do Milan, temporada 121 perdida): o "Sair e salvar" ESPERA a nuvem confirmar e só então sai.
+  // Antes ele disparava o envio e já ia pra home (que baixava o save inteiro junto) — no celular a página reiniciou
+  // e o envio morreu calado. Falhou (3 tentativas) = fica na carreira, com o aviso embaixo do botão.
+  const [sairSalvando, setSairSalvando] = useState<null | 'salvando' | 'falhou'>(null)
+  const sairESalvar = async () => {
+    if (sairSalvando === 'salvando') return
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — a nuvem é que guarda */ }
+    setSairSalvando('salvando')
+    let r: Awaited<ReturnType<typeof savePyramidCloud>> = undefined
+    try { r = await savePyramidCloud(state, true, true) } catch { r = 'falhou' }
+    if (r === 'falhou') { setSairSalvando('falhou'); return }
+    setSairSalvando(null)
+    if (soAparelhoPe) setPlanosSair(true); else dispatch({ type: 'GO_LOBBY' })
+  }
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentPending = usePresidentPreviewPending() && !mapaEstadioDisponivel(false) && mapaEstadioDisponivel(true) // espera só na conta candidata à prévia
@@ -15577,10 +15592,13 @@ export function PyramidSeasonScreen() {
           <>
           <button
             onClick={sairESalvar}
+            disabled={sairSalvando === 'salvando'}
             className="ll-cx-sair"
-            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
-            {tr('💾 Sair e salvar carreira', '💾 Exit and save career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{soAparelhoPe
+            style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: sairSalvando === 'salvando' ? 'wait' : 'pointer', opacity: sairSalvando === 'salvando' ? .75 : 1, ...OSWALD }}>
+            {sairSalvando === 'salvando' ? tr('⏳ Salvando na nuvem… não feche o jogo', '⏳ Saving to the cloud… do not close the game') : sairSalvando === 'falhou' ? tr('🔁 Tentar salvar de novo', '🔁 Try saving again') : tr('💾 Sair e salvar carreira', '💾 Exit and save career')}
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: sairSalvando === 'falhou' ? '#B23B2E' : '#5a5647', marginTop: 2 }}>{sairSalvando === 'falhou'
+              ? tr('⚠️ Não conseguimos salvar agora. Você continua aqui e nada foi perdido. Toque pra tentar de novo.', '⚠️ We could not save right now. You are still here and nothing was lost. Tap to try again.')
+              : soAparelhoPe
               ? tr('☁️ Salvar na nuvem é dos planos (⭐ Craque ou 👑 Lenda).', '☁️ Saving to the cloud comes with the plans (⭐ Star or 👑 Legend).')
               : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>

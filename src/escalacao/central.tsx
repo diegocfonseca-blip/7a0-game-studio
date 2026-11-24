@@ -210,7 +210,7 @@ export type CentralProps = {
   /** 🔨 21/11 (janela nova): sondar e vender moram no Mercado e os contratos têm tela própria — o aviso diz isso */
   janelaNova?: boolean
 }
-export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d'; ha?: number; rodadas?: number; onClick: () => void
+export type FaixaSalvarProps = { /** 🎁 08/11: dias que faltam no teste grátis de salvar */ diasTeste?: number | null; estado: 'bloqueado' | 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho' | 'salvo_7d' | 'falhou'; ha?: number; rodadas?: number; onClick: () => void
   /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
   onCraque?: () => void }
 
@@ -231,6 +231,7 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
       case 'salvo_7d': { const d = s.diasTeste ?? null; return [d != null ? t(`✅ Salvo · 🎁 teste grátis: falta${d === 1 ? '' : 'm'} ${d} dia${d === 1 ? '' : 's'}`, `✅ Saved · 🎁 free trial: ${d} day${d === 1 ? '' : 's'} left`) : t('✅ Salvo', '✅ Saved'), VERDE] }
       case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
+      case 'falhou': return [t('⚠️ Não conseguimos salvar agora · nada foi perdido · toque pra tentar de novo', '⚠️ Could not save right now · nothing was lost · tap to try again'), AMBAR]
       case 'so_aparelho': return [t('📱 Esta carreira salva só neste aparelho · ☁️ a nuvem é do ⭐ Craque', '📱 This career saves only on this device · ☁️ the cloud is for ⭐ Star'), AMBAR]
       case 'salvo_aparelho': return [t('✅ Salvo no aparelho · pra guardar na nuvem e jogar em outro celular: ⭐ Craque', '✅ Saved on this device · to keep it in the cloud and play on another phone: ⭐ Star'), VERDE]
       case 'deslogado': return [t('📱 Só no aparelho · entre na conta pra guardar na nuvem', '📱 Device only · sign in to keep it in the cloud'), CINZA]
