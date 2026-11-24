@@ -15286,7 +15286,7 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - ✅ Home com aparelho cheio não baixa mais o save inteiro a cada poucos segundos (`juntadoNaMemoria`).
 - ⏳ Ainda pesado: o save de carreira longa tem 3–4 MB. Enxugar o save (histórico antigo) é trabalho futuro.
 
-## 👤 24/11 — Sem conta, NENHUMA carreira salva (Diego aprovou a recomendação) — no BRANCH, esperando "publica"
+## 👤 24/11 — Sem conta, NENHUMA carreira salva (Diego aprovou a recomendação) — PUBLICADO ("Sim")
 - `salvarBloqueado(oficial)`: o Brasil Oficial sem conta também deixa de salvar (antes salvava no aparelho). Carreira normal sem conta já não salvava.
 - Quem já tinha save sem conta: continua abrindo; na próxima vez que for salvar, o 🔒 Salvar abre a conta grátis ALI MESMO (`JanelaConta`,
   sem sair da carreira) com "Crie sua conta grátis pra salvar sua carreira". Criou a conta → o botão vira o Salvar normal.
