@@ -1,8 +1,14 @@
+## 24/11 — SALVAMENTO SEGURO PUBLICADO PARA TODOS
+
+- Publicação autorizada por Diego e concluída no GitHub Pages: commit de produto `cb81895716f78ddde72d205635de04e32d7d98b6`, [execução concluída com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45460317049). Migração do banco aplicada às18:23 UTC, privilégios/RLS, RPC sem conta e carência conferidos. Não há recarga automática; arquivos antigos preservados.
+- 49 verificações do salvamento e build completo passaram. A checagem da entrada compilada encontrou uma dependência circular; corrigida antes da publicação final. A execução intermediária foi cancelada durante a geração. Abertura da versão corrigida conferida em390/1440, sem exceções.
+- Acesso direto ao domínio e à API via rede do ambiente foi bloqueado pelo proxy; não se declarou teste ao vivo nem acesso à conta real. Confirmação de publicação via GitHub Pages, banco via conector e execução do cliente compilado localmente. [Detalhes](salvamento-seguro-20261124.md).
+
 ## 24/11 — REGRAS DE SALVAMENTO UNIFICADAS NOS DOIS MODOS DE CARREIRA
 
 - Diego corrigiu o planejamento: “Tudo do Brasil Oficial deve ser igual pro carreira tradicional também”, no contexto de salvamento. Ambos exigem conta; grátis salva no aparelho sem teste de cinco dias, plano salva também na nuvem. Teste antigo vencido não bloqueia salvamento local. Sem mudança de regras esportivas, jogadores ou economia.
 - Igualadas a inatividade de cinco dias e os avisos, com carência na primeira abertura do novo fluxo para não excluir saves antigos de surpresa. Exclusão automática confere o plano novamente; pagantes protegidos também no servidor.
-- Retirado o teste de salvamento do fluxo atual e corrigidos textos PT/EN. Upload grátis também é recusado no caminho legado do banco. Migração v2 aplicada e conferida em produção; Diego autorizou a publicação completa: “Pode publicar então já”. Banco aplicado; deploy do cliente em andamento.
+- Retirado o teste de salvamento do fluxo atual e corrigidos textos PT/EN. Upload grátis também é recusado no caminho legado do banco. Migração v2 aplicada e conferida em produção; Diego autorizou a publicação completa: “Pode publicar então já”. Banco e cliente publicados; confirmação na entrada acima.
 
 ## 24/11 — SALVAMENTO DA CARREIRA: FLUXO V2 TESTADO, PUBLICAÇÃO AUTORIZADA
 

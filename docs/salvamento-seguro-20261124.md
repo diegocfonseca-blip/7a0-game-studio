@@ -56,3 +56,9 @@ A conservação v2, quando implantada, começa após sete dias. Só elimina lixe
 Publicação autorizada por Diego em 24/11. Aplicar a migração v2, verificar privilégios/RLS/RPCs e agendamento sem migrar conta real só para testar; publicar o cliente e acompanhar o deploy. Nenhuma recarga automática. Manter os bundles anteriores conforme a rotina do site.
 
 Não fazer `git revert` isolado após contas começarem a migrar: antes de voltar ao cliente antigo, exportar os saves canônicos atuais por conta para o formato legado e validar as seeds/revisões sob lock; só então liberar a escrita antiga. O formato antigo preservado é uma base de transição, não deve substituir avanços v2 posteriores. Enquanto isso, os guards falham com aviso e preservam os dados. A volta exige procedimento do banco, não apenas trocar o visual.
+
+## Confirmação da entrega
+
+Produto publicado no commit `cb81895716f78ddde72d205635de04e32d7d98b6`. [GitHub Pages: build e deploy concluídos com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45460317049). A execução intermediária `45459337794` foi cancelada durante o build; a execução final contém a correção da dependência circular. 49 verificações e o build completo passaram após a correção. Documentação posterior não altera o produto publicado.
+
+A abertura do cliente compilado foi conferida em390/1440. O proxy do ambiente bloqueou acesso direto ao domínio público e à API Supabase; o conector de busca também não abriu o domínio. Portanto não se afirmou teste ao vivo em conta real. Banco/RPC/privilégios foram verificados pelo conector Supabase; cache de esquema da API recebeu `reload schema`. Não houve manipulação de saves de usuários para teste.
