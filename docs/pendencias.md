@@ -1,4 +1,8 @@
 ## ⚔️ 23/11 — PRÓXIMO CONFRONTO PERMANENTE NAS ABAS DO VISUAL NOVO
+
+## 🃏 23/11 — "Quem é esse jogador?" na tela de espera (no branch, esperando "pode publicar")
+- Joguinho na espera da convocação (Leilão de Clubes, Copa do Mundo/Euro/América, copas regionais): carta tampada de Lenda/Craque/Promessa, pistas (posição, clube·ano, país), 3 nomes, 🔥 sequência. Não vale moeda, não grava nada, some quando a espera acaba. Código: `src/escalacao/quem-e-jogador.tsx`. Mockups/prints: `scripts/mockups/espera-quem-e-a-lenda-*.png`, `quem-e-jogador-print-*.png`.
+- Pendente: mockup do CAMPEÃO NOVO (`scripts/mockups/campeao-novo-*.png`) esperando OK; chat do leilão ficou como era (Diego: "deixe o chat do jeito que tava").
 - Pedido direto do Diego: manter o cartão marrom e os números da rivalidade em todas as abas, no celular e no desktop. O destino comum da transmissão permanece visível; a aba Rivalidades conserva os detalhes sem repetir o cartão.
 - Liga, grupos continentais e copas independentes reaproveitam os componentes e históricos existentes; nenhum novo pedido, canal ou alteração de partida. Visual anterior preservado. [Implementação e evidências](rivalidade-todas-abas-20261123.md).
 - 731 verificações das ligas, 38 da copa pública e 271 de regressão das copas passaram, sem exceções JavaScript. Integrada main `f4f2f15e` preservando detalhes extras só em Rivalidades; build e 83 checagens focadas de cinema/2D mais 38 da copa pública passaram novamente após integrar. Acompanhar publicação no GitHub Actions após o envio.
