@@ -1,3 +1,75 @@
+## 24/11 — DECISÃO FINAL: CARREIRA HISTÓRICA COM NOTAS ORIGINAIS
+
+- Diego decidiu manter as melhorias aprovadas do planejamento e o futebol histórico como está. **Descartados** o rebaixamento das notas de largada, o ajuste oculto removido na transferência e a proposta de limitação coletiva por estrutura. Não implementar nenhuma dessas alternativas por inferência.
+- Retiradas todas as integrações desses experimentos da criação, catálogo, mercado, motores físico/estatístico e copas. Julinho continua81–92, desde o início, para usuário e bots. Sem regra de anos mínimos para promoção ou garantia de título.
+- Permanecem economia/contratos/salários desdeT4, proteção de XI e posições, categorias por divisão, transferências pagas, mercado nacional/olheiro, finanças dos bots e escalações/condição física consistentes nas copas. Não alterou a qualificação incompletaD/estaduais nem acrescentou jogadores ou os levou às salas online.
+- Pesquisa de hierarquia externa permanece como levantamento arquivado, sem impor força ao futebol histórico. Reavaliar quando Diego criar a modalidade com jogadores atuais. Bancadas locais v1/v2 são limpas ao recarregar; saves públicos nunca receberam esses campos.
+- Publicação autorizada em24/11 por Diego: “Publique então tudo já”. Integrar com a main atual e acompanhar o deploy; manter todos os overalls originais, sem ajuste oculto. [Escopo final, validações e limites](auditorias/carreira-historica-mantida-20261124.md). As entradas seguintes são histórico de propostas superadas quando conflitarem com esta decisão.
+
+## 24/11 — HIERARQUIA REAL DEFINE A LARGADA DA CARREIRA
+
+- Esclarecimento de Diego e autorização “Ok siga então”: a hierarquia esportiva brasileira deve vir ANTES das cartas, sem retirar os históricos. Implementada lista única dos228clubes, baseada na divisão, RNC2026, campanhas2025A/B e estrutura documentada, sem ler overalls. Lista do jogo, não cópia da ordem oficial doRNC; lacunas de dados explícitas.
+- Novas carreiras recebem calibração única das notas efetivas e sobras do mercado. Flamengo1/alvo84,5; Palmeiras2/84,2; Portuguesa64/58,4; Gama133/55,5. Julinho fica, com faixa de carreira62,8–73,8 e original81–92 registrada. Promoção/F5/temporada/transferência não recalibram a carta. Coleção, catálogo canônico, salas online e saves antigos preservados.
+- Preço/salário/renovação seguem força efetiva com pequeno prêmio de raridade; salários continuam desdeT4. Sondagem humana das novas carreiras vê o mesmo universo nacional dos bots. Copa do Brasil não duplica diferença por divisão na nova coorte. Não mudou qualificaçãoD/estaduais, categorias ou motor para fabricar prazos de subida.
+- Testes de228clubes, transferências/71jogos doPaulista, mercado em quatro mundos, economia, central/elenco e abertura390/1440 passaram; build e whitespace conferidos. Simulações revelaram erro do próprio gestor de rodízio, corrigido antes da evidência final; não afirmar balanceamento encerrado nem confundir maior demora com justiça.
+- [Implementação, fontes, resultados, limites e reversão](auditorias/hierarquia-inicial-carreira-20261124.md). CSV completo em `/workspace/shared/hierarquia-inicial-20261124/hierarquia-inicial.csv`. **Implementação local, sem commit ou publicação.** A entrada anterior descreve o estágio anterior, superado quanto à hierarquia e às notas iniciais.
+
+## IMPLEMENTAÇÃO ANTERIOR — TRANSFERÊNCIAS, BANCO NAS COPAS E RANKING POR ELENCO
+
+- Diego disse “Ok corrija então”. Implementadas transferências pagas de reservas entre bots nacionais, com proteção de XI/cobertura, orçamento e um negócio entre clubes por comprador/janela. Mesma disponibilidade na sondagem humana, mantendo olheiro/categoria/limite; alvo marcado protegido. Sem venda automática humana, novo jogador ou alteração de notas.
+- Copas: rodízio existente para bots, desgaste no caminho estatístico, recuperação do banco na mesma régua humana, registro de XI/gás anterior e reabertura estável.71jogos do Paulista reabertos com mesmo resultado completo. Contexto físico acompanha rodada/temporada na interface.
+- Novo pedido esclarecido: **um ranking único do primeiro ao último clube, misturando A/B/C/D**, como as moedas. Função de ranking por elenco e diagnóstico com228clubes (inclui72sem série) prontos; inicial desta semente Flamengo1/Palmeiras2, Portuguesa17. Isso é diagnóstico da força atual, não curadoria de uma hierarquia real independente do sorteio, ainda não imposta. Não chamar caixa de força nem aplicar bônus pela posição do ranking.
+- Seis trajetórias/59temporadas: estreiaA com transferências T9/T11/T9; controle sem elas T8/T12/T4, todas caíram na primeira A. Não chamar balanceamento encerrado nem usar isso como mínimo obrigatório de temporadas. A vantagem histórica inicial persiste e está explícita no ranking.
+- Testes de transferências, mercado em quatro mundos, revisão econômica, força/copas e navegador390/1440 passaram; build/whitespace conferidos. [Implementação, evidências, limites e reversão](auditorias/carreira-transferencias-ranking-20261124.md). Sem publicação nesta etapa.
+
+## COMPARAÇÃO COM CARREIRA ANTIGA E ALTERNATIVAS — SEM PUBLICAÇÃO
+
+- Diego pediu recomendação própria e comparação com a carreira dos clubes de batismo. O antigo distribui jogadores por faixas de força; o oficial usa acervos históricos dos clubes, com desigualdade inicial relevante. Aproveitar o princípio de adversários progressivamente fortes, sem copiar bônus ocultos nem retirar Julinho.
+- Correção de método: as simulações anteriores avaliavam ofertas com notas/categorias ainda ocultas no pregão. Não descrevê-las como gestão comum. Novo ator de informação pública deu estreiaA T8/T7/T9 nas três sementes, todas com queda na primeira A; ainda é uma política automatizada, não previsão de usuário.
+- Testadas separadamente: categorias como teto inclusivo aceleraram para T4/T6/T5; alinhamento estatístico de notas v2 deu T6/T5/sem acesso até T12. Não aprovar nenhuma como solução automática. A v1 de notas foi invalidada por dividir indevidamente as duas faixas internas de Bom jogador.
+- Nove trajetórias novas completas, 70 temporadas e 11372 XIs anuais completos; teste de observação passou. Produto inalterado nesta comparação, salários continuam desdeT4, classificação/inscrição daD permanece como Diego pediu. Recomendação: curadoria comum de notas/composição dos adversários, mercado efetivo entre clubes e validação de profundidade/calendário, sem mínimo de temporadas.
+- [Recomendação, alternativas, resultados e limites](auditorias/carreira-alternativas-classica-20261124.md). Balanceamento não encerrado e nenhuma publicação autorizada por esta análise.
+
+## DIREÇÃO MAIS RECENTE DO DIEGO — FOCO NO BALANCEAMENTO
+
+- Diego pediu deixar a parte incompleta de classificação/inscrições como está. Não implementar agora a revisão de qualificação da Série D/estaduais como resposta à facilidade de subir.
+- Ele continua esperando uma recomendação concreta sobre a dificuldade da carreira com gestão normal (compras e vendas). Não encerrar o assunto dizendo que5–6temporadas é possível na vida real ou repetindo o controle sem compras. A escala relativa de força e a pouca necessidade de reconstruir o XI são o foco; mudanças de mercado já feitas não resolvem isso sozinhas.
+
+## 🔎 REABERTA — DIFICULDADE DE CONSTRUIR ELENCO E SUBIR
+
+- Diego rejeitou tratar a subida da Portuguesa em5–6temporadas como satisfatória. Esclareceu: foco é humano comum comprando/vendendo; controle sem compras é auxiliar. Não voltar a responder apenas com número de temporadas ou dizer que o balanceamento foi aprovado.
+- Revisão dos três testes COM gestão:10dos11titulares do XI-base de estreiaA eram iniciais, força inicial76,64 e força na temporada de estreia75,77–77,05. Havia caixa215/338/444antes daA. O mercado mudou, mas a exigência de reconstrução permaneceu pequena.
+- Na largada, a Portuguesa supera18–19dos20XIs daB e5–6daA; não é somente Julinho. Não adulterar históricos ou inventar bônus por divisão para atrasar o acesso. Rever força/composição de todos os elencos e possibilidades reais de evolução, com a mesma régua.
+- Pendência concreta de regulamento: `promocoesOficial` mantém automaticamente os não promovidos daD e completa vagas por sorteio. CBF2026garante os32que chegam à3ªfase, com outras rotas pelos critérios de inscrição. Necessário concluir estaduais/qualificação; não expulsar automaticamente os outros64sem avaliar vaga por outra rota. Isso sozinho não resolve todas as trajetórias daPortuguesa.
+- Sem novo balanceamento/nota/inscrição aplicado ou publicado nesta revisão. Gestão universal anterior preservada, mas insuficiente para concluir a dificuldade. [Diagnóstico atualizado, fontes e critérios](auditorias/carreira-reconstrucao-dificuldade-20261124.md).
+
+## ⚖️ 23/11 — GESTÃO UNIVERSAL DOS BOTS IMPLEMENTADA E TESTADA LOCALMENTE
+
+- Diego aprovou aplicar os ajustes para qualquer clube, com progressão por elenco/orçamento, preservando históricos. `mercado-bots-oficial.ts` atendeA/B/C/D na janela anual, prioriza ganho noXI antes do banco, paga contratações e reserva folha/comissão/renovação. Categorias pela divisão do comprador, sem cópia/jogador fake, caixa extra, overalls por acesso ou regra contra Portuguesa/Gama.
+- `oficialMercadoBotsSeason` evita repetir gastos; humano/dormentes preservados, salas online/basquete/genérica fora. Reversão pela flag `MERCADO_BOTS_OFICIAL_GLOBAL`, prospectiva: não desfaz transferências já feitas. Nenhuma nota/cartinha/catalogação alterada para aumentar dificuldade.
+- Validação:15carreiras/163temporadas;26.552XIs conferidos sem incompletos. Gama sem compras:0/3estreiasA até fimT12; com gestão:0/3 e melhor divisãoD/B/C. Portuguesa T6/T5/T5estreandoA; ABC0/3atéT12, todos chegaramB. ControleGama com rotina anterior também0/3A; não inventar que havia título fácil comprovado. Qualidade pesa em80partidas físicas controladas; acesso não dá força nem vaga continental automática.
+- Testes de mercado, regressão da revisão, TypeScript/Vite e diff passaram. Nenhuma publicação autorizada/feita para esta revisão. [Implementação, controles e limites](auditorias/carreira-gestao-universal-20261123.md). A revisão ampla anterior ainda tem pendências; não declarar todo o balanceamento ou todos os estaduais concluídos.
+
+## 🔎 23/11 — ACESSO DA PORTUGUESA: FOCO NA SÉRIE B
+
+- Aprofundamento solicitado por Diego: dez trajetórias/70temporadas reproduzidas exatamente,23temporadas naB antes do primeiro acesso. Quatro subiram na primeira tentativa daB; seis precisaram de2–4temporadas. Em8/10estreias a Portuguesa já tinha um dos dois melhoresXIs daquelaB; todas entre os cinco melhores. Sete playoffs disputados antes daA, só um acesso por essa via. Não foi encontrado acesso indevido nesses casos.
+- Controles em380jogos das estreiasB:629pontos físicos contra628,27esperados pela projeção leve. Nenhum modificador de condição humano nessas entradas; não afirmar que apenas adicionar desgaste resolve. Preservar limites da bancada anual.
+- Experiência local de mercado/banco em todas as divisões, sem alterar produto, foi inconclusiva como solução: estreiasA T4→T4,T4→T7,T7→T4. A rotina atual de banco é limitada à divisão humana; outras movimentações de mercado existem. Melhoria compara com pior reserva, não só necessidade doXI. Não confundir esses limites com uma correção já comprovada.
+- Históricos/overalls/sorteio/carênciaT4 preservados; sem conta real, nuvem ou publicação. [Diagnóstico, dados e recomendações](auditorias/carreira-foco-serie-b-20261123.md). Ajustes de balanceamento ainda não aplicados; pacote técnico anterior continua separado.
+
+## ⚖️ 23/11 — REPETIÇÃO D→A CONCLUÍDA; HISTÓRICOS PRESERVADOS
+
+- Diego confirmou que o pacote técnico anterior segue aprovado. Rejeitou bloquear Julinho/históricos na largada para liberar depois. A proposta extra de salário desdeT1 não foi aceita: manter T4. Não reabrir essas decisões ou retirar históricos.
+- Nova repetição local:30carreiras/296temporadas, com gestão automática de compras, vendas, banco, comissão e renovação. Portuguesa2/10estreando naA já naT4 e10/10com acesso até fimT12; ABC2/10 e Brasiliense2/10com acesso na janela, nenhum com três acessos seguidos. Cinco Portuguesas e os quatro comparadores que subiram caíram na estreia.
+- Julinho presente nas10Portuguesas; sourcehash uniforme, nenhumXI incompleto nos técnicos acompanhados, nenhuma cobrança salarial duplicada. Sem alterar produto/contas/nuvem ou publicar nesta repetição. Limites da bancada anual, dados e trajetórias: [relatório de repetição](auditorias/carreira-repeticao-20261123.md).
+- Não confundir os14/20acessos àC do diagnóstico anterior com trajetórias completas àA. Não declarar equilíbrio aprovado; a diferença entre clubes e a adaptação àA continuam em avaliação. Pacote técnico anterior segue separado dessas hipóteses de balanceamento.
+
+## 🇧🇷 23/11 — REVISÃO DA CARREIRA OFICIAL EM VALIDAÇÃO LOCAL
+
+- Diego confirmou: acrescentar atleta real somente se faltar alguém para fechar XI por posição; uma pessoa por região; novos nomes só carreira/cartinhas de campeão, fora das salas. Única inclusão até aqui: Marcos Felipe (Bahia 2023), pois faltava goleiro. Todos os clubes brasileiros cadastrados fecham XI no teste de catálogo.
+- Referência econômica e contratos para iniciais/recebidos, proteção das saídas, donos materializados, limites por divisão, calendário real de descanso, dívidas/renovações de bots, táticas em copas M2 e leitura de campanha real implementados localmente. Retomada da janela não pode esconder vencidos ou renovar grátis.
+- Duas trajetórias de 15 temporadas, 30 checkpoints e nenhum XI incompleto nos técnicos; regressões nativas de catálogo/estaduais/Master/economia/copas passaram. Ainda há pendências da revisão ampla: dez estaduais, minutos físicos e mais amostras. Não anunciar conclusão total ou publicação. [Escopo, validação e pendências](auditorias/carreira-revisao-20261123.md).
+
 ## ⚔️ 23/11 — PRÓXIMO CONFRONTO PERMANENTE NAS ABAS DO VISUAL NOVO
 - Pedido direto do Diego: manter o cartão marrom e os números da rivalidade em todas as abas, no celular e no desktop. O destino comum da transmissão permanece visível; a aba Rivalidades conserva os detalhes sem repetir o cartão.
 - Liga, grupos continentais e copas independentes reaproveitam os componentes e históricos existentes; nenhum novo pedido, canal ou alteração de partida. Visual anterior preservado. [Implementação e evidências](rivalidade-todas-abas-20261123.md).

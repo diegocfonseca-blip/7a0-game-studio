@@ -1,0 +1,2454 @@
+{
+  "referencia": "início da temporada2026",
+  "fontes": {
+    "rnc": "https://stcbfsiteprdimgbrs.blob.core.windows.net/img-site/cdn/RNC_Ranking_Nacional_dos_Clubes_2026_27e24418e7.pdf",
+    "serieA": "https://www.cbf.com.br/futebol-brasileiro/tabelas/campeonato-brasileiro/serie-a/2025",
+    "serieB": "https://www.cbf.com.br/futebol-brasileiro/tabelas/campeonato-brasileiro/serie-b/2025"
+  },
+  "clubes": [
+    {
+      "clube": "Athletico-PR",
+      "uf": "PR",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 8,
+        "pontos": 12656,
+        "variacao": -2
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 2,
+        "pontos": 65,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Atlético-MG",
+      "uf": "MG",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 4,
+        "pontos": 13696,
+        "variacao": 1
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 11,
+        "pontos": 48,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Bahia",
+      "uf": "BA",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 9,
+        "pontos": 12632,
+        "variacao": 2
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 7,
+        "pontos": 60,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Botafogo",
+      "uf": "RJ",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 7,
+        "pontos": 12834,
+        "variacao": 1
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 6,
+        "pontos": 63,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Bragantino",
+      "uf": "SP",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 15,
+        "pontos": 9802,
+        "variacao": -1
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 10,
+        "pontos": 48,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Chapecoense",
+      "uf": "SC",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 33,
+        "pontos": 4277,
+        "variacao": -3
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 3,
+        "pontos": 62,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Corinthians",
+      "uf": "SP",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 2,
+        "pontos": 14930,
+        "variacao": 2
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 13,
+        "pontos": 47,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Coritiba",
+      "uf": "PR",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 24,
+        "pontos": 6381,
+        "variacao": 0
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 1,
+        "pontos": 68,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Cruzeiro",
+      "uf": "MG",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 11,
+        "pontos": 11010,
+        "variacao": 8
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 3,
+        "pontos": 70,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Flamengo",
+      "uf": "RJ",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 1,
+        "pontos": 16314,
+        "variacao": 0
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 1,
+        "pontos": 79,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Fluminense",
+      "uf": "RJ",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 6,
+        "pontos": 13006,
+        "variacao": 1
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 5,
+        "pontos": 64,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Grêmio",
+      "uf": "RS",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 12,
+        "pontos": 10636,
+        "variacao": -2
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 9,
+        "pontos": 49,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Internacional",
+      "uf": "RS",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 14,
+        "pontos": 10014,
+        "variacao": -2
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 16,
+        "pontos": 44,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Mirassol",
+      "uf": "SP",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 28,
+        "pontos": 5537,
+        "variacao": 9
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 4,
+        "pontos": 67,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Palmeiras",
+      "uf": "SP",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 3,
+        "pontos": 13860,
+        "variacao": 0
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 2,
+        "pontos": 76,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Remo",
+      "uf": "PA",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 37,
+        "pontos": 3764,
+        "variacao": 7
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 4,
+        "pontos": 62,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Santos",
+      "uf": "SP",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 16,
+        "pontos": 8852,
+        "variacao": 0
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 12,
+        "pontos": 47,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "São Paulo",
+      "uf": "SP",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 5,
+        "pontos": 13556,
+        "variacao": -3
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 8,
+        "pontos": 51,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Vasco",
+      "uf": "RJ",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 10,
+        "pontos": 11330,
+        "variacao": 5
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 14,
+        "pontos": 45,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Vitória",
+      "uf": "BA",
+      "divisao": "A",
+      "rnc": {
+        "posicao": 20,
+        "pontos": 7205,
+        "variacao": 3
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 15,
+        "pontos": 45,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "América-MG",
+      "uf": "MG",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 19,
+        "pontos": 7429,
+        "variacao": -6
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 14,
+        "pontos": 46,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Athletic",
+      "uf": "MG",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 51,
+        "pontos": 2570,
+        "variacao": 15
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 15,
+        "pontos": 44,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Atlético-GO",
+      "uf": "GO",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 18,
+        "pontos": 7476,
+        "variacao": -1
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 11,
+        "pontos": 52,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Avaí",
+      "uf": "SC",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 31,
+        "pontos": 4491,
+        "variacao": -3
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 9,
+        "pontos": 56,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Botafogo-SP",
+      "uf": "SP",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 34,
+        "pontos": 4036,
+        "variacao": -2
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 16,
+        "pontos": 42,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Ceará",
+      "uf": "CE",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 21,
+        "pontos": 7122,
+        "variacao": 1
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 17,
+        "pontos": 43,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "CRB",
+      "uf": "AL",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 26,
+        "pontos": 6150,
+        "variacao": 1
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 8,
+        "pontos": 56,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Criciúma",
+      "uf": "SC",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 27,
+        "pontos": 6090,
+        "variacao": -1
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 5,
+        "pontos": 61,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Cuiabá",
+      "uf": "MT",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 22,
+        "pontos": 6746,
+        "variacao": -2
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 10,
+        "pontos": 54,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Fortaleza",
+      "uf": "CE",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 13,
+        "pontos": 10382,
+        "variacao": -4
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 18,
+        "pontos": 43,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Goiás",
+      "uf": "GO",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 23,
+        "pontos": 6463,
+        "variacao": -2
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 6,
+        "pontos": 61,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Juventude",
+      "uf": "RS",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 17,
+        "pontos": 8426,
+        "variacao": 1
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 19,
+        "pontos": 35,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Londrina",
+      "uf": "PR",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 48,
+        "pontos": 2865,
+        "variacao": -3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Náutico",
+      "uf": "PE",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 44,
+        "pontos": 3200,
+        "variacao": 2
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Novorizontino",
+      "uf": "SP",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 32,
+        "pontos": 4436,
+        "variacao": 7
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 7,
+        "pontos": 60,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Operário-PR",
+      "uf": "PR",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 30,
+        "pontos": 4525,
+        "variacao": 1
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 12,
+        "pontos": 48,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Ponte Preta",
+      "uf": "SP",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 38,
+        "pontos": 3743,
+        "variacao": -5
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "São Bernardo",
+      "uf": "SP",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 57,
+        "pontos": 2061,
+        "variacao": 3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Sport",
+      "uf": "PE",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 25,
+        "pontos": 6340,
+        "variacao": 0
+      },
+      "campanha2025": {
+        "serie": "A",
+        "posicao": 20,
+        "pontos": 17,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Vila Nova",
+      "uf": "GO",
+      "divisao": "B",
+      "rnc": {
+        "posicao": 29,
+        "pontos": 4750,
+        "variacao": 0
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 13,
+        "pontos": 47,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Amazonas",
+      "uf": "AM",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 40,
+        "pontos": 3403,
+        "variacao": 9
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 18,
+        "pontos": 36,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Anápolis",
+      "uf": "GO",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 69,
+        "pontos": 1404,
+        "variacao": 12
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Barra",
+      "uf": "SC",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 99,
+        "pontos": 704,
+        "variacao": 54
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Botafogo-PB",
+      "uf": "PB",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 52,
+        "pontos": 2529,
+        "variacao": 1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Brusque",
+      "uf": "SC",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 36,
+        "pontos": 3807,
+        "variacao": -1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Caxias",
+      "uf": "RS",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 58,
+        "pontos": 2051,
+        "variacao": 6
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Confiança",
+      "uf": "SE",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 53,
+        "pontos": 2363,
+        "variacao": -3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Ferroviária",
+      "uf": "SP",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 54,
+        "pontos": 2201,
+        "variacao": 11
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 17,
+        "pontos": 40,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Figueirense",
+      "uf": "SC",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 59,
+        "pontos": 1983,
+        "variacao": -7
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Floresta",
+      "uf": "CE",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 61,
+        "pontos": 1838,
+        "variacao": 0
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Guarani",
+      "uf": "SP",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 45,
+        "pontos": 3186,
+        "variacao": -7
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Inter de Limeira",
+      "uf": "SP",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 79,
+        "pontos": 1070,
+        "variacao": 17
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Itabaiana",
+      "uf": "SE",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 84,
+        "pontos": 1011,
+        "variacao": 23
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Ituano",
+      "uf": "SP",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 41,
+        "pontos": 3380,
+        "variacao": -7
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Maranhão",
+      "uf": "MA",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 85,
+        "pontos": 1001,
+        "variacao": 18
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Maringá",
+      "uf": "PR",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 56,
+        "pontos": 2086,
+        "variacao": 17
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Paysandu",
+      "uf": "PA",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 35,
+        "pontos": 4030,
+        "variacao": 6
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 20,
+        "pontos": 28,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Santa Cruz",
+      "uf": "PE",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 86,
+        "pontos": 979,
+        "variacao": -6
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Volta Redonda",
+      "uf": "RJ",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 43,
+        "pontos": 3210,
+        "variacao": 4
+      },
+      "campanha2025": {
+        "serie": "B",
+        "posicao": 19,
+        "pontos": 36,
+        "jogos": 38
+      }
+    },
+    {
+      "clube": "Ypiranga",
+      "uf": "RS",
+      "divisao": "C",
+      "rnc": {
+        "posicao": 50,
+        "pontos": 2686,
+        "variacao": -2
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Galvez",
+      "uf": "AC",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 217,
+        "pontos": 76,
+        "variacao": -47
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Humaitá",
+      "uf": "AC",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 80,
+        "pontos": 1064,
+        "variacao": 9
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Independência",
+      "uf": "AC",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 132,
+        "pontos": 380,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Vasco-AC",
+      "uf": "AC",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "ASA",
+      "uf": "AL",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 74,
+        "pontos": 1239,
+        "variacao": 5
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Coruripe",
+      "uf": "AL",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Cruzeiro-AL",
+      "uf": "AL",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 189,
+        "pontos": 153,
+        "variacao": -6
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "CSA",
+      "uf": "AL",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 39,
+        "pontos": 3736,
+        "variacao": 3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "CSE",
+      "uf": "AL",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 128,
+        "pontos": 431,
+        "variacao": 4
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Murici",
+      "uf": "AL",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 158,
+        "pontos": 276,
+        "variacao": -25
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Penedense",
+      "uf": "AL",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 161,
+        "pontos": 255,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Itacoatiara",
+      "uf": "AM",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Manauara",
+      "uf": "AM",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 103,
+        "pontos": 665,
+        "variacao": 26
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Manaus",
+      "uf": "AM",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 64,
+        "pontos": 1697,
+        "variacao": -8
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Nacional-AM",
+      "uf": "AM",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 185,
+        "pontos": 195,
+        "variacao": -33
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Parintins",
+      "uf": "AM",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Princesa do Solimões",
+      "uf": "AM",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 125,
+        "pontos": 448,
+        "variacao": -14
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "São Raimundo-AM",
+      "uf": "AM",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 194,
+        "pontos": 152,
+        "variacao": -24
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Independente-AP",
+      "uf": "AP",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 209,
+        "pontos": 100,
+        "variacao": -1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Oratório",
+      "uf": "AP",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 198,
+        "pontos": 125,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Trem",
+      "uf": "AP",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 80,
+        "pontos": 1064,
+        "variacao": 9
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Atlético-BA",
+      "uf": "BA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 123,
+        "pontos": 456,
+        "variacao": -26
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Bahia de Feira",
+      "uf": "BA",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 118,
+        "pontos": 501,
+        "variacao": -25
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Barcelona de Ilhéus",
+      "uf": "BA",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 132,
+        "pontos": 380,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Galícia",
+      "uf": "BA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Jacuipense",
+      "uf": "BA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 94,
+        "pontos": 756,
+        "variacao": -19
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Jequié",
+      "uf": "BA",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 132,
+        "pontos": 380,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Juazeirense",
+      "uf": "BA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 83,
+        "pontos": 1016,
+        "variacao": -9
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Porto-BA",
+      "uf": "BA",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Atlético-CE",
+      "uf": "CE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 101,
+        "pontos": 679,
+        "variacao": -16
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Ferroviário-CE",
+      "uf": "CE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 60,
+        "pontos": 1916,
+        "variacao": -9
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Horizonte",
+      "uf": "CE",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 161,
+        "pontos": 255,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Iguatu",
+      "uf": "CE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 91,
+        "pontos": 926,
+        "variacao": 1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Maracanã-CE",
+      "uf": "CE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 89,
+        "pontos": 959,
+        "variacao": 64
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Maranguape",
+      "uf": "CE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Quixadá",
+      "uf": "CE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Tirol",
+      "uf": "CE",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Brasiliense",
+      "uf": "DF",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 73,
+        "pontos": 1242,
+        "variacao": -15
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Capital",
+      "uf": "DF",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 95,
+        "pontos": 755,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Ceilândia",
+      "uf": "DF",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 77,
+        "pontos": 1131,
+        "variacao": 17
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Gama",
+      "uf": "DF",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 217,
+        "pontos": 76,
+        "variacao": -39
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Desportiva Ferroviária",
+      "uf": "ES",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Porto Vitória",
+      "uf": "ES",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 161,
+        "pontos": 255,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Real Noroeste",
+      "uf": "ES",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 96,
+        "pontos": 754,
+        "variacao": -18
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Rio Branco-ES",
+      "uf": "ES",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 112,
+        "pontos": 536,
+        "variacao": 74
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Vitória-ES",
+      "uf": "ES",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 173,
+        "pontos": 228,
+        "variacao": -37
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "ABECAT",
+      "uf": "GO",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Anapolina",
+      "uf": "GO",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Aparecidense",
+      "uf": "GO",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 55,
+        "pontos": 2091,
+        "variacao": 4
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Centro Oeste",
+      "uf": "GO",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "CRAC",
+      "uf": "GO",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 138,
+        "pontos": 361,
+        "variacao": -15
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Goiatuba",
+      "uf": "GO",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 146,
+        "pontos": 330,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Inhumas",
+      "uf": "GO",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Jataiense",
+      "uf": "GO",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "IAPE",
+      "uf": "MA",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Imperatriz",
+      "uf": "MA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 144,
+        "pontos": 346,
+        "variacao": 33
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "ITZ",
+      "uf": "MA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Luminense",
+      "uf": "MA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Moto Club",
+      "uf": "MA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 106,
+        "pontos": 615,
+        "variacao": -20
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Sampaio Corrêa",
+      "uf": "MA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 47,
+        "pontos": 2908,
+        "variacao": -11
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Tuntum",
+      "uf": "MA",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 188,
+        "pontos": 175,
+        "variacao": -23
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Betim",
+      "uf": "MG",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Democrata-GV",
+      "uf": "MG",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 170,
+        "pontos": 234,
+        "variacao": -27
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Itabirito",
+      "uf": "MG",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 161,
+        "pontos": 255,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "North",
+      "uf": "MG",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Pouso Alegre",
+      "uf": "MG",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 76,
+        "pontos": 1168,
+        "variacao": 1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Tombense",
+      "uf": "MG",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 42,
+        "pontos": 3240,
+        "variacao": -2
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Uberlândia",
+      "uf": "MG",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 143,
+        "pontos": 347,
+        "variacao": 45
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "URT",
+      "uf": "MG",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 194,
+        "pontos": 152,
+        "variacao": -24
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "FC Pantanal",
+      "uf": "MS",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Ivinhema",
+      "uf": "MS",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Operário-MS",
+      "uf": "MS",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 93,
+        "pontos": 783,
+        "variacao": 21
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Chapada",
+      "uf": "MT",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Luverdense",
+      "uf": "MT",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 151,
+        "pontos": 315,
+        "variacao": 61
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Mixto",
+      "uf": "MT",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 119,
+        "pontos": 494,
+        "variacao": 34
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Nova Mutum",
+      "uf": "MT",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 172,
+        "pontos": 229,
+        "variacao": -33
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Operário VG",
+      "uf": "MT",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 102,
+        "pontos": 667,
+        "variacao": 3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Primavera-MT",
+      "uf": "MT",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Sinop",
+      "uf": "MT",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "União Rondonópolis",
+      "uf": "MT",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 92,
+        "pontos": 793,
+        "variacao": -10
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Várzea Grande",
+      "uf": "MT",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Amazônia",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Bragantino-PA",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Cametá",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 178,
+        "pontos": 204,
+        "variacao": -25
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Capitão Poço",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Castanhal",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 170,
+        "pontos": 234,
+        "variacao": -35
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Santa Rosa",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "São Francisco-PA",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "São Raimundo-PA",
+      "uf": "PA",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Tuna Luso",
+      "uf": "PA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 87,
+        "pontos": 978,
+        "variacao": 19
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Águia de Marabá",
+      "uf": "PA",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 67,
+        "pontos": 1437,
+        "variacao": 3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Atlético de Cajazeiras",
+      "uf": "PB",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Campinense",
+      "uf": "PB",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 109,
+        "pontos": 599,
+        "variacao": -25
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Confiança-PB",
+      "uf": "PB",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Esporte de Patos",
+      "uf": "PB",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Nacional de Patos",
+      "uf": "PB",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 186,
+        "pontos": 180,
+        "variacao": -20
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Pombal",
+      "uf": "PB",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Serra Branca",
+      "uf": "PB",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Sousa",
+      "uf": "PB",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 70,
+        "pontos": 1394,
+        "variacao": -1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Treze",
+      "uf": "PB",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 100,
+        "pontos": 703,
+        "variacao": -1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Central",
+      "uf": "PE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 141,
+        "pontos": 351,
+        "variacao": 54
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Decisão",
+      "uf": "PE",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Jaguar",
+      "uf": "PE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Maguary",
+      "uf": "PE",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Retrô",
+      "uf": "PE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 49,
+        "pontos": 2707,
+        "variacao": 14
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Vitória das Tabocas",
+      "uf": "PE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Altos",
+      "uf": "PI",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 65,
+        "pontos": 1575,
+        "variacao": -3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Fluminense-PI",
+      "uf": "PI",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 97,
+        "pontos": 734,
+        "variacao": -14
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Parnahyba",
+      "uf": "PI",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 107,
+        "pontos": 608,
+        "variacao": 37
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Piauí",
+      "uf": "PI",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Andraus",
+      "uf": "PR",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Azuriz",
+      "uf": "PR",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 111,
+        "pontos": 559,
+        "variacao": 15
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Cascavel",
+      "uf": "PR",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 72,
+        "pontos": 1271,
+        "variacao": 4
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Cianorte",
+      "uf": "PR",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 90,
+        "pontos": 940,
+        "variacao": 1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Foz do Iguaçu",
+      "uf": "PR",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Galo Maringá",
+      "uf": "PR",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "São Joseense",
+      "uf": "PR",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 189,
+        "pontos": 153,
+        "variacao": -6
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "America-RJ",
+      "uf": "RJ",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Bangu",
+      "uf": "RJ",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 228,
+        "pontos": 51,
+        "variacao": -37
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Boavista-RJ",
+      "uf": "RJ",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 113,
+        "pontos": 531,
+        "variacao": 29
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Madureira",
+      "uf": "RJ",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 217,
+        "pontos": 76,
+        "variacao": -15
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Maricá",
+      "uf": "RJ",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 153,
+        "pontos": 305,
+        "variacao": 62
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Nova Iguaçu",
+      "uf": "RJ",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 66,
+        "pontos": 1566,
+        "variacao": 1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Portuguesa-RJ",
+      "uf": "RJ",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 78,
+        "pontos": 1101,
+        "variacao": -10
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Sampaio Corrêa-RJ",
+      "uf": "RJ",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "ABC",
+      "uf": "RN",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 46,
+        "pontos": 3008,
+        "variacao": -3
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "América-RN",
+      "uf": "RN",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 62,
+        "pontos": 1818,
+        "variacao": -7
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Laguna",
+      "uf": "RN",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Guaporé",
+      "uf": "RO",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Ji-Paraná",
+      "uf": "RO",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 209,
+        "pontos": 100,
+        "variacao": -19
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Porto Velho",
+      "uf": "RO",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 75,
+        "pontos": 1185,
+        "variacao": 12
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Baré",
+      "uf": "RR",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "GAS",
+      "uf": "RR",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 113,
+        "pontos": 531,
+        "variacao": 63
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Monte Roraima",
+      "uf": "RR",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "São Raimundo-RR",
+      "uf": "RR",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 88,
+        "pontos": 965,
+        "variacao": -16
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Avenida",
+      "uf": "RS",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 178,
+        "pontos": 204,
+        "variacao": -25
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Brasil de Pelotas",
+      "uf": "RS",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 68,
+        "pontos": 1434,
+        "variacao": -14
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Guarany de Bagé",
+      "uf": "RS",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 116,
+        "pontos": 505,
+        "variacao": null
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Inter-SM",
+      "uf": "RS",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Monsoon",
+      "uf": "RS",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Novo Hamburgo",
+      "uf": "RS",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 139,
+        "pontos": 357,
+        "variacao": -18
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "São José-RS",
+      "uf": "RS",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 63,
+        "pontos": 1741,
+        "variacao": -6
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "São Luiz-RS",
+      "uf": "RS",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 98,
+        "pontos": 707,
+        "variacao": 4
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Blumenau",
+      "uf": "SC",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Camboriú",
+      "uf": "SC",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 148,
+        "pontos": 324,
+        "variacao": -18
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Carlos Renaux",
+      "uf": "SC",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Concórdia",
+      "uf": "SC",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 108,
+        "pontos": 607,
+        "variacao": 17
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Joinville",
+      "uf": "SC",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 136,
+        "pontos": 370,
+        "variacao": 15
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Marcílio Dias",
+      "uf": "SC",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 105,
+        "pontos": 658,
+        "variacao": -1
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Santa Catarina",
+      "uf": "SC",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "América-SE",
+      "uf": "SE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Atlético Gloriense",
+      "uf": "SE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Desportiva Aracaju",
+      "uf": "SE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Dorense",
+      "uf": "SE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Falcon",
+      "uf": "SE",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 173,
+        "pontos": 228,
+        "variacao": -29
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Guarany-SE",
+      "uf": "SE",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Lagarto",
+      "uf": "SE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 127,
+        "pontos": 435,
+        "variacao": 23
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Sergipe",
+      "uf": "SE",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 82,
+        "pontos": 1045,
+        "variacao": 6
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Capivariano",
+      "uf": "SP",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Noroeste",
+      "uf": "SP",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Portuguesa",
+      "uf": "SP",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 121,
+        "pontos": 461,
+        "variacao": 92
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Primavera-SP",
+      "uf": "SP",
+      "divisao": "E",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Velo Clube",
+      "uf": "SP",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "XV de Piracicaba",
+      "uf": "SP",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 189,
+        "pontos": 153,
+        "variacao": -21
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Água Santa",
+      "uf": "SP",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 104,
+        "pontos": 659,
+        "variacao": 12
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Araguaína",
+      "uf": "TO",
+      "divisao": "D",
+      "rnc": null,
+      "campanha2025": null
+    },
+    {
+      "clube": "Capital-TO",
+      "uf": "TO",
+      "divisao": "E",
+      "rnc": {
+        "posicao": 130,
+        "pontos": 404,
+        "variacao": -14
+      },
+      "campanha2025": null
+    },
+    {
+      "clube": "Tocantinópolis",
+      "uf": "TO",
+      "divisao": "D",
+      "rnc": {
+        "posicao": 71,
+        "pontos": 1297,
+        "variacao": 0
+      },
+      "campanha2025": null
+    }
+  ]
+}

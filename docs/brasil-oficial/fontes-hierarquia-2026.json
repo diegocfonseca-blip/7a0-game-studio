@@ -1,0 +1,1935 @@
+{
+  "fontes": {
+    "rnc": "CBF, RNC2026, revisão23/12/2025",
+    "campanhas": "CBF, classificações finais A/B2025"
+  },
+  "rnc": [
+    {
+      "nome": "Santos",
+      "uf": "SP",
+      "posicao": 16,
+      "pontos": 8852,
+      "variacao": 0
+    },
+    {
+      "nome": "Floresta",
+      "uf": "CE",
+      "posicao": 61,
+      "pontos": 1838,
+      "variacao": 0
+    },
+    {
+      "nome": "Juventude",
+      "uf": "RS",
+      "posicao": 17,
+      "pontos": 8426,
+      "variacao": 1
+    },
+    {
+      "nome": "América",
+      "uf": "RN",
+      "posicao": 62,
+      "pontos": 1818,
+      "variacao": -7
+    },
+    {
+      "nome": "Atlético",
+      "uf": "GO",
+      "posicao": 18,
+      "pontos": 7476,
+      "variacao": -1
+    },
+    {
+      "nome": "São José",
+      "uf": "RS",
+      "posicao": 63,
+      "pontos": 1741,
+      "variacao": -6
+    },
+    {
+      "nome": "América",
+      "uf": "MG",
+      "posicao": 19,
+      "pontos": 7429,
+      "variacao": -6
+    },
+    {
+      "nome": "Manaus",
+      "uf": "AM",
+      "posicao": 64,
+      "pontos": 1697,
+      "variacao": -8
+    },
+    {
+      "nome": "Vitória",
+      "uf": "BA",
+      "posicao": 20,
+      "pontos": 7205,
+      "variacao": 3
+    },
+    {
+      "nome": "Altos",
+      "uf": "PI",
+      "posicao": 65,
+      "pontos": 1575,
+      "variacao": -3
+    },
+    {
+      "nome": "Ceará",
+      "uf": "CE",
+      "posicao": 21,
+      "pontos": 7122,
+      "variacao": 1
+    },
+    {
+      "nome": "Nova Iguaçu",
+      "uf": "RJ",
+      "posicao": 66,
+      "pontos": 1566,
+      "variacao": 1
+    },
+    {
+      "nome": "Sport",
+      "uf": "PE",
+      "posicao": 25,
+      "pontos": 6340,
+      "variacao": 0
+    },
+    {
+      "nome": "Sousa",
+      "uf": "PB",
+      "posicao": 70,
+      "pontos": 1394,
+      "variacao": -1
+    },
+    {
+      "nome": "CRB",
+      "uf": "AL",
+      "posicao": 26,
+      "pontos": 6150,
+      "variacao": 1
+    },
+    {
+      "nome": "Tocantinópolis",
+      "uf": "TO",
+      "posicao": 71,
+      "pontos": 1297,
+      "variacao": 0
+    },
+    {
+      "nome": "Criciúma",
+      "uf": "SC",
+      "posicao": 27,
+      "pontos": 6090,
+      "variacao": -1
+    },
+    {
+      "nome": "FC Cascavel",
+      "uf": "PR",
+      "posicao": 72,
+      "pontos": 1271,
+      "variacao": 4
+    },
+    {
+      "nome": "Mirassol",
+      "uf": "SP",
+      "posicao": 28,
+      "pontos": 5537,
+      "variacao": 9
+    },
+    {
+      "nome": "Brasiliense",
+      "uf": "DF",
+      "posicao": 73,
+      "pontos": 1242,
+      "variacao": -15
+    },
+    {
+      "nome": "Vila Nova",
+      "uf": "GO",
+      "posicao": 29,
+      "pontos": 4750,
+      "variacao": 0
+    },
+    {
+      "nome": "ASA",
+      "uf": "AL",
+      "posicao": 74,
+      "pontos": 1239,
+      "variacao": 5
+    },
+    {
+      "nome": "Operário",
+      "uf": "PR",
+      "posicao": 30,
+      "pontos": 4525,
+      "variacao": 1
+    },
+    {
+      "nome": "Porto Velho",
+      "uf": "RO",
+      "posicao": 75,
+      "pontos": 1185,
+      "variacao": 12
+    },
+    {
+      "nome": "Avaí",
+      "uf": "SC",
+      "posicao": 31,
+      "pontos": 4491,
+      "variacao": -3
+    },
+    {
+      "nome": "Pouso Alegre",
+      "uf": "MG",
+      "posicao": 76,
+      "pontos": 1168,
+      "variacao": 1
+    },
+    {
+      "nome": "Novorizontino",
+      "uf": "SP",
+      "posicao": 32,
+      "pontos": 4436,
+      "variacao": 7
+    },
+    {
+      "nome": "Ceilândia",
+      "uf": "DF",
+      "posicao": 77,
+      "pontos": 1131,
+      "variacao": 17
+    },
+    {
+      "nome": "Chapecoense",
+      "uf": "SC",
+      "posicao": 33,
+      "pontos": 4277,
+      "variacao": -3
+    },
+    {
+      "nome": "Portuguesa",
+      "uf": "RJ",
+      "posicao": 78,
+      "pontos": 1101,
+      "variacao": -10
+    },
+    {
+      "nome": "Botafogo",
+      "uf": "SP",
+      "posicao": 34,
+      "pontos": 4036,
+      "variacao": -2
+    },
+    {
+      "nome": "Inter de Limeira",
+      "uf": "SP",
+      "posicao": 79,
+      "pontos": 1070,
+      "variacao": 17
+    },
+    {
+      "nome": "Paysandu",
+      "uf": "PA",
+      "posicao": 35,
+      "pontos": 4030,
+      "variacao": 6
+    },
+    {
+      "nome": "Humaitá",
+      "uf": "AC",
+      "posicao": 80,
+      "pontos": 1064,
+      "variacao": 9
+    },
+    {
+      "nome": "Brusque",
+      "uf": "SC",
+      "posicao": 36,
+      "pontos": 3807,
+      "variacao": -1
+    },
+    {
+      "nome": "Trem",
+      "uf": "AP",
+      "posicao": 80,
+      "pontos": 1064,
+      "variacao": 9
+    },
+    {
+      "nome": "Remo",
+      "uf": "PA",
+      "posicao": 37,
+      "pontos": 3764,
+      "variacao": 7
+    },
+    {
+      "nome": "Sergipe",
+      "uf": "SE",
+      "posicao": 82,
+      "pontos": 1045,
+      "variacao": 6
+    },
+    {
+      "nome": "Ponte Preta",
+      "uf": "SP",
+      "posicao": 38,
+      "pontos": 3743,
+      "variacao": -5
+    },
+    {
+      "nome": "Juazeirense",
+      "uf": "BA",
+      "posicao": 83,
+      "pontos": 1016,
+      "variacao": -9
+    },
+    {
+      "nome": "CSA",
+      "uf": "AL",
+      "posicao": 39,
+      "pontos": 3736,
+      "variacao": 3
+    },
+    {
+      "nome": "Itabaiana",
+      "uf": "SE",
+      "posicao": 84,
+      "pontos": 1011,
+      "variacao": 23
+    },
+    {
+      "nome": "Amazonas",
+      "uf": "AM",
+      "posicao": 40,
+      "pontos": 3403,
+      "variacao": 9
+    },
+    {
+      "nome": "Maranhão",
+      "uf": "MA",
+      "posicao": 85,
+      "pontos": 1001,
+      "variacao": 18
+    },
+    {
+      "nome": "Ituano",
+      "uf": "SP",
+      "posicao": 41,
+      "pontos": 3380,
+      "variacao": -7
+    },
+    {
+      "nome": "Santa Cruz",
+      "uf": "PE",
+      "posicao": 86,
+      "pontos": 979,
+      "variacao": -6
+    },
+    {
+      "nome": "Tombense",
+      "uf": "MG",
+      "posicao": 42,
+      "pontos": 3240,
+      "variacao": -2
+    },
+    {
+      "nome": "Tuna Luso",
+      "uf": "PA",
+      "posicao": 87,
+      "pontos": 978,
+      "variacao": 19
+    },
+    {
+      "nome": "Volta Redonda",
+      "uf": "RJ",
+      "posicao": 43,
+      "pontos": 3210,
+      "variacao": 4
+    },
+    {
+      "nome": "São Raimundo",
+      "uf": "RR",
+      "posicao": 88,
+      "pontos": 965,
+      "variacao": -16
+    },
+    {
+      "nome": "Náutico",
+      "uf": "PE",
+      "posicao": 44,
+      "pontos": 3200,
+      "variacao": 2
+    },
+    {
+      "nome": "Maracanã",
+      "uf": "CE",
+      "posicao": 89,
+      "pontos": 959,
+      "variacao": 64
+    },
+    {
+      "nome": "Guarani",
+      "uf": "SP",
+      "posicao": 45,
+      "pontos": 3186,
+      "variacao": -7
+    },
+    {
+      "nome": "Cianorte",
+      "uf": "PR",
+      "posicao": 90,
+      "pontos": 940,
+      "variacao": 1
+    },
+    {
+      "nome": "Iguatu",
+      "uf": "CE",
+      "posicao": 91,
+      "pontos": 926,
+      "variacao": 1
+    },
+    {
+      "nome": "Joinville",
+      "uf": "SC",
+      "posicao": 136,
+      "pontos": 370,
+      "variacao": 15
+    },
+    {
+      "nome": "União",
+      "uf": "MT",
+      "posicao": 92,
+      "pontos": 793,
+      "variacao": -10
+    },
+    {
+      "nome": "Potiguar",
+      "uf": "RN",
+      "posicao": 137,
+      "pontos": 366,
+      "variacao": -22
+    },
+    {
+      "nome": "Operário",
+      "uf": "MS",
+      "posicao": 93,
+      "pontos": 783,
+      "variacao": 21
+    },
+    {
+      "nome": "CRAC",
+      "uf": "GO",
+      "posicao": 138,
+      "pontos": 361,
+      "variacao": -15
+    },
+    {
+      "nome": "Jacuipense",
+      "uf": "BA",
+      "posicao": 94,
+      "pontos": 756,
+      "variacao": -19
+    },
+    {
+      "nome": "Novo Hamburgo",
+      "uf": "RS",
+      "posicao": 139,
+      "pontos": 357,
+      "variacao": -18
+    },
+    {
+      "nome": "Capital",
+      "uf": "DF",
+      "posicao": 95,
+      "pontos": 755,
+      "variacao": null
+    },
+    {
+      "nome": "Globo",
+      "uf": "RN",
+      "posicao": 140,
+      "pontos": 355,
+      "variacao": -28
+    },
+    {
+      "nome": "Real Noroeste",
+      "uf": "ES",
+      "posicao": 96,
+      "pontos": 754,
+      "variacao": -18
+    },
+    {
+      "nome": "Central",
+      "uf": "PE",
+      "posicao": 141,
+      "pontos": 351,
+      "variacao": 54
+    },
+    {
+      "nome": "Fluminense",
+      "uf": "PI",
+      "posicao": 97,
+      "pontos": 734,
+      "variacao": -14
+    },
+    {
+      "nome": "Olaria",
+      "uf": "RJ",
+      "posicao": 142,
+      "pontos": 350,
+      "variacao": 66
+    },
+    {
+      "nome": "São Luiz",
+      "uf": "RS",
+      "posicao": 98,
+      "pontos": 707,
+      "variacao": 4
+    },
+    {
+      "nome": "Uberlândia",
+      "uf": "MG",
+      "posicao": 143,
+      "pontos": 347,
+      "variacao": 45
+    },
+    {
+      "nome": "Barra",
+      "uf": "SC",
+      "posicao": 99,
+      "pontos": 704,
+      "variacao": 54
+    },
+    {
+      "nome": "Imperatriz",
+      "uf": "MA",
+      "posicao": 144,
+      "pontos": 346,
+      "variacao": 33
+    },
+    {
+      "nome": "Treze",
+      "uf": "PB",
+      "posicao": 100,
+      "pontos": 703,
+      "variacao": -1
+    },
+    {
+      "nome": "Goianésia",
+      "uf": "GO",
+      "posicao": 145,
+      "pontos": 331,
+      "variacao": 37
+    },
+    {
+      "nome": "Atlético",
+      "uf": "CE",
+      "posicao": 101,
+      "pontos": 679,
+      "variacao": -16
+    },
+    {
+      "nome": "Goiatuba",
+      "uf": "GO",
+      "posicao": 146,
+      "pontos": 330,
+      "variacao": null
+    },
+    {
+      "nome": "Operário",
+      "uf": "MT",
+      "posicao": 102,
+      "pontos": 667,
+      "variacao": 3
+    },
+    {
+      "nome": "Rio Branco VN",
+      "uf": "ES",
+      "posicao": 147,
+      "pontos": 326,
+      "variacao": 55
+    },
+    {
+      "nome": "Manauara",
+      "uf": "AM",
+      "posicao": 103,
+      "pontos": 665,
+      "variacao": 26
+    },
+    {
+      "nome": "Camboriú",
+      "uf": "SC",
+      "posicao": 148,
+      "pontos": 324,
+      "variacao": -18
+    },
+    {
+      "nome": "Água Santa",
+      "uf": "SP",
+      "posicao": 104,
+      "pontos": 659,
+      "variacao": 12
+    },
+    {
+      "nome": "Nova Venécia",
+      "uf": "ES",
+      "posicao": 149,
+      "pontos": 320,
+      "variacao": -21
+    },
+    {
+      "nome": "Marcílio Dias",
+      "uf": "SC",
+      "posicao": 105,
+      "pontos": 658,
+      "variacao": -1
+    },
+    {
+      "nome": "Itabuna",
+      "uf": "BA",
+      "posicao": 150,
+      "pontos": 316,
+      "variacao": -16
+    },
+    {
+      "nome": "Moto Club",
+      "uf": "MA",
+      "posicao": 106,
+      "pontos": 615,
+      "variacao": -20
+    },
+    {
+      "nome": "Luverdense",
+      "uf": "MT",
+      "posicao": 151,
+      "pontos": 315,
+      "variacao": 61
+    },
+    {
+      "nome": "Parnahyba",
+      "uf": "PI",
+      "posicao": 107,
+      "pontos": 608,
+      "variacao": 37
+    },
+    {
+      "nome": "Aimoré",
+      "uf": "RS",
+      "posicao": 152,
+      "pontos": 314,
+      "variacao": -30
+    },
+    {
+      "nome": "Concórdia",
+      "uf": "SC",
+      "posicao": 108,
+      "pontos": 607,
+      "variacao": 17
+    },
+    {
+      "nome": "Maricá",
+      "uf": "RJ",
+      "posicao": 153,
+      "pontos": 305,
+      "variacao": 62
+    },
+    {
+      "nome": "Campinense",
+      "uf": "PB",
+      "posicao": 109,
+      "pontos": 599,
+      "variacao": -25
+    },
+    {
+      "nome": "Paraná",
+      "uf": "PR",
+      "posicao": 153,
+      "pontos": 305,
+      "variacao": -58
+    },
+    {
+      "nome": "Santa Cruz",
+      "uf": "RN",
+      "posicao": 110,
+      "pontos": 584,
+      "variacao": 43
+    },
+    {
+      "nome": "Audax Rio",
+      "uf": "RJ",
+      "posicao": 155,
+      "pontos": 304,
+      "variacao": -19
+    },
+    {
+      "nome": "Azuriz",
+      "uf": "PR",
+      "posicao": 111,
+      "pontos": 559,
+      "variacao": 15
+    },
+    {
+      "nome": "River",
+      "uf": "PI",
+      "posicao": 155,
+      "pontos": 304,
+      "variacao": -31
+    },
+    {
+      "nome": "Rio Branco",
+      "uf": "ES",
+      "posicao": 112,
+      "pontos": 536,
+      "variacao": 74
+    },
+    {
+      "nome": "Caucaia",
+      "uf": "CE",
+      "posicao": 157,
+      "pontos": 279,
+      "variacao": -26
+    },
+    {
+      "nome": "Boavista",
+      "uf": "RJ",
+      "posicao": 113,
+      "pontos": 531,
+      "variacao": 29
+    },
+    {
+      "nome": "Murici",
+      "uf": "AL",
+      "posicao": 158,
+      "pontos": 276,
+      "variacao": -25
+    },
+    {
+      "nome": "GAS",
+      "uf": "RR",
+      "posicao": 113,
+      "pontos": 531,
+      "variacao": 63
+    },
+    {
+      "nome": "Quatro de Julho",
+      "uf": "PI",
+      "posicao": 159,
+      "pontos": 264,
+      "variacao": -39
+    },
+    {
+      "nome": "Santo André",
+      "uf": "SP",
+      "posicao": 115,
+      "pontos": 510,
+      "variacao": -17
+    },
+    {
+      "nome": "Oeste",
+      "uf": "SP",
+      "posicao": 160,
+      "pontos": 260,
+      "variacao": -59
+    },
+    {
+      "nome": "Guarany de Bagé",
+      "uf": "RS",
+      "posicao": 116,
+      "pontos": 505,
+      "variacao": null
+    },
+    {
+      "nome": "Monte Azul",
+      "uf": "SP",
+      "posicao": 161,
+      "pontos": 255,
+      "variacao": null
+    },
+    {
+      "nome": "União",
+      "uf": "TO",
+      "posicao": 116,
+      "pontos": 505,
+      "variacao": null
+    },
+    {
+      "nome": "Itabirito",
+      "uf": "MG",
+      "posicao": 161,
+      "pontos": 255,
+      "variacao": null
+    },
+    {
+      "nome": "Bahia de Feira",
+      "uf": "BA",
+      "posicao": 118,
+      "pontos": 501,
+      "variacao": -25
+    },
+    {
+      "nome": "Horizonte",
+      "uf": "CE",
+      "posicao": 161,
+      "pontos": 255,
+      "variacao": null
+    },
+    {
+      "nome": "Mixto",
+      "uf": "MT",
+      "posicao": 119,
+      "pontos": 494,
+      "variacao": 34
+    },
+    {
+      "nome": "Pacajus",
+      "uf": "CE",
+      "posicao": 161,
+      "pontos": 255,
+      "variacao": -21
+    },
+    {
+      "nome": "Rio Branco",
+      "uf": "AC",
+      "posicao": 120,
+      "pontos": 482,
+      "variacao": -20
+    },
+    {
+      "nome": "Goiânia",
+      "uf": "GO",
+      "posicao": 161,
+      "pontos": 255,
+      "variacao": 62
+    },
+    {
+      "nome": "Portuguesa",
+      "uf": "SP",
+      "posicao": 121,
+      "pontos": 461,
+      "variacao": 92
+    },
+    {
+      "nome": "Penedense",
+      "uf": "AL",
+      "posicao": 161,
+      "pontos": 255,
+      "variacao": null
+    },
+    {
+      "nome": "Iporá",
+      "uf": "GO",
+      "posicao": 122,
+      "pontos": 459,
+      "variacao": -14
+    },
+    {
+      "nome": "Porto Vitória",
+      "uf": "ES",
+      "posicao": 161,
+      "pontos": 255,
+      "variacao": null
+    },
+    {
+      "nome": "Atlético",
+      "uf": "BA",
+      "posicao": 123,
+      "pontos": 456,
+      "variacao": -26
+    },
+    {
+      "nome": "Caldense",
+      "uf": "MG",
+      "posicao": 168,
+      "pontos": 253,
+      "variacao": -42
+    },
+    {
+      "nome": "Costa Rica",
+      "uf": "MS",
+      "posicao": 123,
+      "pontos": 456,
+      "variacao": -14
+    },
+    {
+      "nome": "Real Ariquemes",
+      "uf": "RO",
+      "posicao": 169,
+      "pontos": 238,
+      "variacao": -28
+    },
+    {
+      "nome": "Princesa do Solimões",
+      "uf": "AM",
+      "posicao": 125,
+      "pontos": 448,
+      "variacao": -14
+    },
+    {
+      "nome": "Democrata GV",
+      "uf": "MG",
+      "posicao": 170,
+      "pontos": 234,
+      "variacao": -27
+    },
+    {
+      "nome": "Patrocinense",
+      "uf": "MG",
+      "posicao": 126,
+      "pontos": 438,
+      "variacao": -16
+    },
+    {
+      "nome": "Castanhal",
+      "uf": "PA",
+      "posicao": 170,
+      "pontos": 234,
+      "variacao": -35
+    },
+    {
+      "nome": "Lagarto",
+      "uf": "SE",
+      "posicao": 127,
+      "pontos": 435,
+      "variacao": 23
+    },
+    {
+      "nome": "Nova Mutum",
+      "uf": "MT",
+      "posicao": 172,
+      "pontos": 229,
+      "variacao": -33
+    },
+    {
+      "nome": "CSE",
+      "uf": "AL",
+      "posicao": 128,
+      "pontos": 431,
+      "variacao": 4
+    },
+    {
+      "nome": "Resende",
+      "uf": "RJ",
+      "posicao": 173,
+      "pontos": 228,
+      "variacao": -29
+    },
+    {
+      "nome": "Real Brasília",
+      "uf": "DF",
+      "posicao": 129,
+      "pontos": 429,
+      "variacao": -16
+    },
+    {
+      "nome": "Cordino",
+      "uf": "MA",
+      "posicao": 173,
+      "pontos": 228,
+      "variacao": -29
+    },
+    {
+      "nome": "Petrolina",
+      "uf": "PE",
+      "posicao": 130,
+      "pontos": 404,
+      "variacao": -14
+    },
+    {
+      "nome": "Falcon",
+      "uf": "SE",
+      "posicao": 173,
+      "pontos": 228,
+      "variacao": -29
+    },
+    {
+      "nome": "Capital",
+      "uf": "TO",
+      "posicao": 130,
+      "pontos": 404,
+      "variacao": -14
+    },
+    {
+      "nome": "Vitória",
+      "uf": "ES",
+      "posicao": 173,
+      "pontos": 228,
+      "variacao": -37
+    },
+    {
+      "nome": "Barcelona",
+      "uf": "BA",
+      "posicao": 132,
+      "pontos": 380,
+      "variacao": null
+    },
+    {
+      "nome": "São Francisco",
+      "uf": "AC",
+      "posicao": 173,
+      "pontos": 228,
+      "variacao": -29
+    },
+    {
+      "nome": "Jequié",
+      "uf": "BA",
+      "posicao": 132,
+      "pontos": 380,
+      "variacao": null
+    },
+    {
+      "nome": "São José",
+      "uf": "SP",
+      "posicao": 178,
+      "pontos": 204,
+      "variacao": -25
+    },
+    {
+      "nome": "Independência",
+      "uf": "AC",
+      "posicao": 132,
+      "pontos": 380,
+      "variacao": null
+    },
+    {
+      "nome": "Democrata SL",
+      "uf": "MG",
+      "posicao": 178,
+      "pontos": 204,
+      "variacao": -25
+    },
+    {
+      "nome": "Hercílio Luz",
+      "uf": "SC",
+      "posicao": 135,
+      "pontos": 372,
+      "variacao": -16
+    },
+    {
+      "nome": "ipatinga",
+      "uf": "MG",
+      "posicao": 178,
+      "pontos": 204,
+      "variacao": -25
+    },
+    {
+      "nome": "Avenida",
+      "uf": "RS",
+      "posicao": 178,
+      "pontos": 204,
+      "variacao": -25
+    },
+    {
+      "nome": "Paragominas",
+      "uf": "PA",
+      "posicao": 226,
+      "pontos": 63,
+      "variacao": -19
+    },
+    {
+      "nome": "Cametá",
+      "uf": "PA",
+      "posicao": 178,
+      "pontos": 204,
+      "variacao": -25
+    },
+    {
+      "nome": "Picos",
+      "uf": "PI",
+      "posicao": 227,
+      "pontos": 60,
+      "variacao": -16
+    },
+    {
+      "nome": "Serra",
+      "uf": "ES",
+      "posicao": 178,
+      "pontos": 204,
+      "variacao": -25
+    },
+    {
+      "nome": "São Bento",
+      "uf": "SP",
+      "posicao": 228,
+      "pontos": 51,
+      "variacao": -47
+    },
+    {
+      "nome": "Villa Nova",
+      "uf": "MG",
+      "posicao": 184,
+      "pontos": 200,
+      "variacao": -35
+    },
+    {
+      "nome": "Bangu",
+      "uf": "RJ",
+      "posicao": 228,
+      "pontos": 51,
+      "variacao": -37
+    },
+    {
+      "nome": "Nacional",
+      "uf": "AM",
+      "posicao": 185,
+      "pontos": 195,
+      "variacao": -33
+    },
+    {
+      "nome": "Boa Esporte",
+      "uf": "MG",
+      "posicao": 228,
+      "pontos": 51,
+      "variacao": -61
+    },
+    {
+      "nome": "Nacional",
+      "uf": "PB",
+      "posicao": 186,
+      "pontos": 180,
+      "variacao": -20
+    },
+    {
+      "nome": "Rio Branco",
+      "uf": "PR",
+      "posicao": 228,
+      "pontos": 51,
+      "variacao": -15
+    },
+    {
+      "nome": "Juventude",
+      "uf": "MA",
+      "posicao": 187,
+      "pontos": 178,
+      "variacao": -49
+    },
+    {
+      "nome": "Fast Clube",
+      "uf": "AM",
+      "posicao": 228,
+      "pontos": 51,
+      "variacao": -40
+    },
+    {
+      "nome": "Tuntum",
+      "uf": "MA",
+      "posicao": 188,
+      "pontos": 175,
+      "variacao": -23
+    },
+    {
+      "nome": "Santa Cruz",
+      "uf": "RS",
+      "posicao": 233,
+      "pontos": 25,
+      "variacao": 2
+    },
+    {
+      "nome": "XV de Piracicaba",
+      "uf": "SP",
+      "posicao": 189,
+      "pontos": 153,
+      "variacao": -21
+    },
+    {
+      "nome": "Aquidauanense",
+      "uf": "MS",
+      "posicao": 234,
+      "pontos": 10,
+      "variacao": 2
+    },
+    {
+      "nome": "Sãojoseense",
+      "uf": "PR",
+      "posicao": 189,
+      "pontos": 153,
+      "variacao": -6
+    },
+    {
+      "nome": "Santana",
+      "uf": "AP",
+      "posicao": 234,
+      "pontos": 10,
+      "variacao": 3
+    },
+    {
+      "nome": "Juventus",
+      "uf": "SC",
+      "posicao": 189,
+      "pontos": 153,
+      "variacao": -36
+    },
+    {
+      "nome": "Cruzeiro",
+      "uf": "AL",
+      "posicao": 189,
+      "pontos": 153,
+      "variacao": -6
+    },
+    {
+      "nome": "Interporto",
+      "uf": "TO",
+      "posicao": 189,
+      "pontos": 153,
+      "variacao": -6
+    },
+    {
+      "nome": "URT",
+      "uf": "MG",
+      "posicao": 194,
+      "pontos": 152,
+      "variacao": -24
+    },
+    {
+      "nome": "Icasa",
+      "uf": "CE",
+      "posicao": 194,
+      "pontos": 152,
+      "variacao": -24
+    },
+    {
+      "nome": "Grêmio Anápolis",
+      "uf": "GO",
+      "posicao": 194,
+      "pontos": 152,
+      "variacao": -24
+    },
+    {
+      "nome": "São Raimundo",
+      "uf": "AM",
+      "posicao": 194,
+      "pontos": 152,
+      "variacao": -24
+    },
+    {
+      "nome": "Votuporanguense",
+      "uf": "SP",
+      "posicao": 198,
+      "pontos": 125,
+      "variacao": null
+    },
+    {
+      "nome": "Barcelona",
+      "uf": "RO",
+      "posicao": 198,
+      "pontos": 125,
+      "variacao": null
+    },
+    {
+      "nome": "Dourados",
+      "uf": "MS",
+      "posicao": 198,
+      "pontos": 125,
+      "variacao": null
+    },
+    {
+      "nome": "Oratório",
+      "uf": "AP",
+      "posicao": 198,
+      "pontos": 125,
+      "variacao": null
+    },
+    {
+      "nome": "Pérolas Negras",
+      "uf": "RJ",
+      "posicao": 202,
+      "pontos": 102,
+      "variacao": -7
+    },
+    {
+      "nome": "Crato",
+      "uf": "CE",
+      "posicao": 202,
+      "pontos": 102,
+      "variacao": -7
+    },
+    {
+      "nome": "Próspera",
+      "uf": "SC",
+      "posicao": 202,
+      "pontos": 102,
+      "variacao": -7
+    },
+    {
+      "nome": "Afogados",
+      "uf": "PE",
+      "posicao": 202,
+      "pontos": 102,
+      "variacao": -38
+    },
+    {
+      "nome": "Ação",
+      "uf": "MT",
+      "posicao": 202,
+      "pontos": 102,
+      "variacao": -7
+    },
+    {
+      "nome": "São Paulo Crystal",
+      "uf": "PB",
+      "posicao": 202,
+      "pontos": 102,
+      "variacao": -7
+    },
+    {
+      "nome": "Náutico",
+      "uf": "RR",
+      "posicao": 202,
+      "pontos": 102,
+      "variacao": -7
+    },
+    {
+      "nome": "Portuguesa Santista",
+      "uf": "SP",
+      "posicao": 209,
+      "pontos": 100,
+      "variacao": -1
+    },
+    {
+      "nome": "Marília",
+      "uf": "SP",
+      "posicao": 209,
+      "pontos": 100,
+      "variacao": -4
+    },
+    {
+      "nome": "Glória",
+      "uf": "RS",
+      "posicao": 209,
+      "pontos": 100,
+      "variacao": -4
+    },
+    {
+      "nome": "Ji-Paraná",
+      "uf": "RO",
+      "posicao": 209,
+      "pontos": 100,
+      "variacao": -19
+    },
+    {
+      "nome": "Independente",
+      "uf": "AP",
+      "posicao": 209,
+      "pontos": 100,
+      "variacao": -1
+    },
+    {
+      "nome": "Guarany de Sobral",
+      "uf": "CE",
+      "posicao": 214,
+      "pontos": 89,
+      "variacao": -46
+    },
+    {
+      "nome": "Esportivo",
+      "uf": "RS",
+      "posicao": 215,
+      "pontos": 83,
+      "variacao": -23
+    },
+    {
+      "nome": "Penarol",
+      "uf": "AM",
+      "posicao": 216,
+      "pontos": 77,
+      "variacao": -22
+    },
+    {
+      "nome": "Madureira",
+      "uf": "RJ",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -15
+    },
+    {
+      "nome": "Jaraguá",
+      "uf": "GO",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -15
+    },
+    {
+      "nome": "Gama",
+      "uf": "DF",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -39
+    },
+    {
+      "nome": "Palmas",
+      "uf": "TO",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -38
+    },
+    {
+      "nome": "Atlético",
+      "uf": "AC",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -38
+    },
+    {
+      "nome": "Galvez",
+      "uf": "AC",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -47
+    },
+    {
+      "nome": "Águia Negra",
+      "uf": "MS",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -47
+    },
+    {
+      "nome": "Ypiranga",
+      "uf": "AP",
+      "posicao": 217,
+      "pontos": 76,
+      "variacao": -24
+    },
+    {
+      "nome": "Salgueiro",
+      "uf": "PE",
+      "posicao": 225,
+      "pontos": 75,
+      "variacao": -38
+    },
+    {
+      "nome": "Flamengo",
+      "uf": "RJ",
+      "posicao": 1,
+      "pontos": 16314,
+      "variacao": 0
+    },
+    {
+      "nome": "ABC",
+      "uf": "RN",
+      "posicao": 46,
+      "pontos": 3008,
+      "variacao": -3
+    },
+    {
+      "nome": "Corinthians",
+      "uf": "SP",
+      "posicao": 2,
+      "pontos": 14930,
+      "variacao": 2
+    },
+    {
+      "nome": "Sampaio Corrêa",
+      "uf": "MA",
+      "posicao": 47,
+      "pontos": 2908,
+      "variacao": -11
+    },
+    {
+      "nome": "Palmeiras",
+      "uf": "SP",
+      "posicao": 3,
+      "pontos": 13860,
+      "variacao": 0
+    },
+    {
+      "nome": "Londrina",
+      "uf": "PR",
+      "posicao": 48,
+      "pontos": 2865,
+      "variacao": -3
+    },
+    {
+      "nome": "Atlético",
+      "uf": "MG",
+      "posicao": 4,
+      "pontos": 13696,
+      "variacao": 1
+    },
+    {
+      "nome": "Retrô",
+      "uf": "PE",
+      "posicao": 49,
+      "pontos": 2707,
+      "variacao": 14
+    },
+    {
+      "nome": "São Paulo",
+      "uf": "SP",
+      "posicao": 5,
+      "pontos": 13556,
+      "variacao": -3
+    },
+    {
+      "nome": "Ypiranga",
+      "uf": "RS",
+      "posicao": 50,
+      "pontos": 2686,
+      "variacao": -2
+    },
+    {
+      "nome": "Fluminense",
+      "uf": "RJ",
+      "posicao": 6,
+      "pontos": 13006,
+      "variacao": 1
+    },
+    {
+      "nome": "Athletic",
+      "uf": "MG",
+      "posicao": 51,
+      "pontos": 2570,
+      "variacao": 15
+    },
+    {
+      "nome": "Botafogo",
+      "uf": "RJ",
+      "posicao": 7,
+      "pontos": 12834,
+      "variacao": 1
+    },
+    {
+      "nome": "Botafogo",
+      "uf": "PB",
+      "posicao": 52,
+      "pontos": 2529,
+      "variacao": 1
+    },
+    {
+      "nome": "Athletico",
+      "uf": "PR",
+      "posicao": 8,
+      "pontos": 12656,
+      "variacao": -2
+    },
+    {
+      "nome": "Confiança",
+      "uf": "SE",
+      "posicao": 53,
+      "pontos": 2363,
+      "variacao": -3
+    },
+    {
+      "nome": "Bahia",
+      "uf": "BA",
+      "posicao": 9,
+      "pontos": 12632,
+      "variacao": 2
+    },
+    {
+      "nome": "Ferroviária",
+      "uf": "SP",
+      "posicao": 54,
+      "pontos": 2201,
+      "variacao": 11
+    },
+    {
+      "nome": "Vasco da Gama",
+      "uf": "RJ",
+      "posicao": 10,
+      "pontos": 11330,
+      "variacao": 5
+    },
+    {
+      "nome": "Aparecidense",
+      "uf": "GO",
+      "posicao": 55,
+      "pontos": 2091,
+      "variacao": 4
+    },
+    {
+      "nome": "Cruzeiro",
+      "uf": "MG",
+      "posicao": 11,
+      "pontos": 11010,
+      "variacao": 8
+    },
+    {
+      "nome": "Maringá",
+      "uf": "PR",
+      "posicao": 56,
+      "pontos": 2086,
+      "variacao": 17
+    },
+    {
+      "nome": "Grêmio",
+      "uf": "RS",
+      "posicao": 12,
+      "pontos": 10636,
+      "variacao": -2
+    },
+    {
+      "nome": "São Bernardo FC",
+      "uf": "SP",
+      "posicao": 57,
+      "pontos": 2061,
+      "variacao": 3
+    },
+    {
+      "nome": "Fortaleza",
+      "uf": "CE",
+      "posicao": 13,
+      "pontos": 10382,
+      "variacao": -4
+    },
+    {
+      "nome": "Caxias",
+      "uf": "RS",
+      "posicao": 58,
+      "pontos": 2051,
+      "variacao": 6
+    },
+    {
+      "nome": "Internacional",
+      "uf": "RS",
+      "posicao": 14,
+      "pontos": 10014,
+      "variacao": -2
+    },
+    {
+      "nome": "Figueirense",
+      "uf": "SC",
+      "posicao": 59,
+      "pontos": 1983,
+      "variacao": -7
+    },
+    {
+      "nome": "Red Bull Bragantino",
+      "uf": "SP",
+      "posicao": 15,
+      "pontos": 9802,
+      "variacao": -1
+    },
+    {
+      "nome": "Ferroviário",
+      "uf": "CE",
+      "posicao": 60,
+      "pontos": 1916,
+      "variacao": -9
+    },
+    {
+      "nome": "Cuiabá",
+      "uf": "MT",
+      "posicao": 22,
+      "pontos": 6746,
+      "variacao": -2
+    },
+    {
+      "nome": "Águia de Marabá",
+      "uf": "PA",
+      "posicao": 67,
+      "pontos": 1437,
+      "variacao": 3
+    },
+    {
+      "nome": "Goiás",
+      "uf": "GO",
+      "posicao": 23,
+      "pontos": 6463,
+      "variacao": -2
+    },
+    {
+      "nome": "Brasil",
+      "uf": "RS",
+      "posicao": 68,
+      "pontos": 1434,
+      "variacao": -14
+    },
+    {
+      "nome": "Coritiba",
+      "uf": "PR",
+      "posicao": 24,
+      "pontos": 6381,
+      "variacao": 0
+    },
+    {
+      "nome": "Anápolis",
+      "uf": "GO",
+      "posicao": 69,
+      "pontos": 1404,
+      "variacao": 12
+    }
+  ],
+  "campanhas": [
+    {
+      "serie": "A",
+      "posicao": 1,
+      "nome": "Flamengo",
+      "pontos": 79,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 2,
+      "nome": "Palmeiras",
+      "pontos": 76,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 3,
+      "nome": "Cruzeiro Saf",
+      "pontos": 70,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 4,
+      "nome": "Mirassol",
+      "pontos": 67,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 5,
+      "nome": "Fluminense",
+      "pontos": 64,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 6,
+      "nome": "Botafogo",
+      "pontos": 63,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 7,
+      "nome": "Bahia",
+      "pontos": 60,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 8,
+      "nome": "São Paulo",
+      "pontos": 51,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 9,
+      "nome": "Grêmio",
+      "pontos": 49,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 10,
+      "nome": "Red Bull Bragantino",
+      "pontos": 48,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 11,
+      "nome": "Atlético Mineiro Saf",
+      "pontos": 48,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 12,
+      "nome": "Santos Fc",
+      "pontos": 47,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 13,
+      "nome": "Corinthians",
+      "pontos": 47,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 14,
+      "nome": "Vasco da Gama Saf",
+      "pontos": 45,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 15,
+      "nome": "Vitória",
+      "pontos": 45,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 16,
+      "nome": "Internacional",
+      "pontos": 44,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 17,
+      "nome": "Ceará",
+      "pontos": 43,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 18,
+      "nome": "Fortaleza Ec Saf",
+      "pontos": 43,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 19,
+      "nome": "Juventude",
+      "pontos": 35,
+      "jogos": 38
+    },
+    {
+      "serie": "A",
+      "posicao": 20,
+      "nome": "Sport Recife",
+      "pontos": 17,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 1,
+      "nome": "Coritiba S.a.f.",
+      "pontos": 68,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 2,
+      "nome": "Athletico Paranaense",
+      "pontos": 65,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 3,
+      "nome": "Chapecoense",
+      "pontos": 62,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 4,
+      "nome": "Remo",
+      "pontos": 62,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 5,
+      "nome": "Criciúma",
+      "pontos": 61,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 6,
+      "nome": "Goiás",
+      "pontos": 61,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 7,
+      "nome": "Gremio Novorizontino - Saf",
+      "pontos": 60,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 8,
+      "nome": "Crb",
+      "pontos": 56,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 9,
+      "nome": "Avaí",
+      "pontos": 56,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 10,
+      "nome": "Cuiabá Saf",
+      "pontos": 54,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 11,
+      "nome": "Atlético Goianiense Saf",
+      "pontos": 52,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 12,
+      "nome": "Operário",
+      "pontos": 48,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 13,
+      "nome": "Vila Nova",
+      "pontos": 47,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 14,
+      "nome": "America Saf",
+      "pontos": 46,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 15,
+      "nome": "Athletic Saf",
+      "pontos": 44,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 16,
+      "nome": "Botafogo",
+      "pontos": 42,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 17,
+      "nome": "Ferroviária",
+      "pontos": 40,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 18,
+      "nome": "Amazonas Saf",
+      "pontos": 36,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 19,
+      "nome": "Volta Redonda",
+      "pontos": 36,
+      "jogos": 38
+    },
+    {
+      "serie": "B",
+      "posicao": 20,
+      "nome": "Paysandu",
+      "pontos": 28,
+      "jogos": 38
+    }
+  ]
+}

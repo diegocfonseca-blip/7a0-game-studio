@@ -11,7 +11,7 @@ import { CompromissoCarreira } from './compromissos-carreira-ui'
 // funções do motor e só mostra botão que o reducer aceita.
 import { useState } from 'react'
 import type { EscState, Manager, WonCard } from './types'
-import { useEsc, valorOficial, renewOptions, renewCost, divOficialDe, type RenewAnos } from './store'
+import { useEsc, podeLiberarContratoOficial, valorOficial, renewOptions, renewCost, divOficialDe, type RenewAnos } from './store'
 import { preparadorDe, precoRenovacaoPreparador } from './preparadores'
 import { previaCentral } from './sport'
 import { chaveCarry, condicaoAtiva } from './condicao'
@@ -101,6 +101,8 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
 
   // ── carta de UM jogador ─────────────────────────────────────────────────
   const cartaJogador = (c: WonCard, dono: Manager, saldo: number) => {
+    const podeSoltar = podeLiberarContratoOficial(state, dono, c.id)
+    const avisoMinimo = tr('Contrate uma reposição ou renove: este atleta é necessário para completar a posição.', 'Sign a replacement or renew: this player is needed to fill the position.')
     const oficial = valorOficial(state, c)
     const ops = divDe(dono) === 'V' ? [] : renewOptions(oficial)
     const t = tierDe(c)
@@ -124,11 +126,12 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
           <span style={{ flex: 1, minWidth: 0 }}>
             <b style={{ ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', display: 'block', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</b>
             <small style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5240', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.club} · {c.year}{veOver(c) ? <> · <b style={{ color: INK }}>{c.lo}–{c.hi}</b></> : null}</small>
+            {!podeSoltar && <small style={{fontSize:9.5,color:RED,display:'block',lineHeight:1.25}}>{tr('Necessário na posição: renove ou contrate reposição.', 'Needed in this position: renew or sign a replacement.')}</small>}
           </span>
           {ops.length > 0 ? ops.map(a => { const cst = renewCost(oficial, a as RenewAnos); return (
             <button key={a} onClick={() => renovar(c, dono, a as RenewAnos)} style={{ ...bt, background: a === 10 ? GOLD : '#EAF6EE' }}>{a} {en ? 'y' : a > 1 ? 'anos' : 'ano'}<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{cst} 🪙{saldo < cst ? ' 💳' : ''}</small></button>) })
             : <small style={{ fontSize: 9.5, fontWeight: 700, color: '#1B5E32', flex: 'none', maxWidth: 110, lineHeight: 1.2 }}>{tr('🌱 Várzea: vai pro leilão', '🌱 Várzea: off to auction')}</small>}
-          {ops.length > 0 && <button aria-label={tr('Deixar ir', 'Let go')} onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ ...bt, minWidth: 34, background: '#fff', color: RED }}>👋<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{tr('sair', 'go')}</small></button>}
+          {ops.length > 0 && <button aria-label={podeSoltar ? tr('Deixar ir', 'Let go') : avisoMinimo} title={!podeSoltar ? avisoMinimo : undefined} disabled={!podeSoltar} onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ ...bt, minWidth: 34, background: '#fff', color: RED }}>👋<small style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 800, fontSize: 9 }}>{tr('sair', 'go')}</small></button>}
         </div>
       )
     }
@@ -180,8 +183,9 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
             {!enxuta && <div style={{padding:'0 10px'}}><CompromissoCarreira custo={custo} manager={dono} /></div>}
             <div style={{ display: 'flex', gap: 6, padding: '0 10px 10px' }}>
               <button onClick={() => { if (anos) renovar(c, dono, anos) }} style={btnGrande(GREEN, '#fff')}>✍️ {tr('Renovar', 'Renew')} {anos} {en ? (anos > 1 ? 'yrs' : 'yr') : `ano${anos > 1 ? 's' : ''}`}<small style={{ display: 'block', fontFamily: 'system-ui', fontSize: 9.5, fontWeight: 700, textTransform: 'none', opacity: .9 }}>{custo} 🪙{saldo < custo ? tr(' · cheque especial', ' · overdraft') : ''}</small></button>
-              <button onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ ...btnGrande('#fff', RED), flex: .75 }}>👋 {tr('Deixar ir', 'Let go')}</button>
+              <button disabled={!podeSoltar} title={!podeSoltar ? avisoMinimo : undefined} onClick={() => dispatch({ type: 'RELEASE_CONTRACT', mgrId: dono.id, cardId: c.id })} style={{ ...btnGrande('#fff', RED), flex: .75 }}>👋 {tr('Deixar ir', 'Let go')}</button>
             </div>
+            {!podeSoltar && <p style={{fontSize:11,padding:'0 10px 10px',margin:0}}>{avisoMinimo}</p>}
           </>
         ) : (
           <p style={{ fontSize: 10.5, fontWeight: 700, color: '#1B5E32', margin: 0, padding: '0 10px 10px', lineHeight: 1.4 }}>{tr('🌱 Na Várzea não tem renovação — ele vai pro leilão e o clube embolsa a venda.', '🌱 No renewals in Várzea — he goes to the auction and the club pockets the sale.')}</p>
@@ -218,6 +222,7 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
   // ⚡ todos de uma vez (mesma lógica de antes: cada um pelo prazo que existe mais perto)
   const alvos: { c: WonCard; dono: Manager }[] = [...expirados.map(c => ({ c, dono: mgr })), ...(dormM ? expDorm.map(c => ({ c, dono: dormM })) : [])]
   const renovaveis = alvos.filter(({ c, dono }) => divDe(dono) !== 'V' && !soltos.has(c.id))
+  const podeLiberarAlgum = alvos.some(({c,dono})=>!soltos.has(c.id)&&podeLiberarContratoOficial(state,dono,c.id))
   const bulkRenovar = (alvo: 10 | 5) => {
     for (const { c, dono } of renovaveis) {
       const ops = renewOptions(valorOficial(state, c))
@@ -279,7 +284,7 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
         <div style={{ display: 'flex', gap: 5, margin: '2px 0 8px' }}>
           <button onClick={() => bulkRenovar(5)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 11, background: '#EAF6EE', color: INK, cursor: 'pointer' }}>{tr('Todos · 5 anos', 'All · 5 years')}</button>
           <button onClick={() => bulkRenovar(10)} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 11, background: GOLD, color: INK, cursor: 'pointer' }}>{tr('Todos · 10 anos', 'All · 10 years')}</button>
-          <button onClick={bulkDeixarIr} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 11, background: '#fff', color: RED, cursor: 'pointer' }}>{tr('Todos saem', 'All go')}</button>
+          <button disabled={!podeLiberarAlgum} onClick={bulkDeixarIr} style={{ flex: 1, border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 4px', ...OSWALD, fontWeight: 900, fontSize: 11, background: '#fff', color: RED, cursor: podeLiberarAlgum ? 'pointer' : 'not-allowed' }}>{state.oficial ? tr('Liberar excedentes', 'Release surplus') : tr('Todos saem', 'All go')}</button>
         </div>
       )}
       {renovaveis.length > 1 && !enxuta && <>
@@ -288,15 +293,15 @@ export function MesaRenovacao({ tecnicoOn, enxuta = false }: { tecnicoOn: boolea
           <button onClick={() => bulkRenovar(5)} style={{ ...btnGrande('#EAF6EE', INK), fontSize: 12 }}>5️⃣ {tr(`Renovar os ${renovaveis.length} · 5 anos`, `Renew all ${renovaveis.length} · 5 years`)}</button>
           <button onClick={() => bulkRenovar(10)} style={{ ...btnGrande(GOLD, INK), fontSize: 12 }}>🔟 {tr(`Renovar os ${renovaveis.length} · 10 anos`, `Renew all ${renovaveis.length} · 10 years`)}</button>
         </div>
-        <button onClick={bulkDeixarIr} style={{ ...btnGrande(RED, '#fff'), width: '100%', fontSize: 12, marginBottom: 8 }}>😢 {tr('Deixar TODOS ir · vão pro leilão', 'Let EVERYONE go · off to the auction')}</button>
+        <button disabled={!podeLiberarAlgum} onClick={bulkDeixarIr} style={{ ...btnGrande(RED, '#fff', !podeLiberarAlgum), width: '100%', fontSize: 12, marginBottom: 8 }}>😢 {state.oficial ? tr('Liberar excedentes · preserva os 11', 'Release surplus · keeps the XI') : tr('Deixar TODOS ir · vão pro leilão', 'Let EVERYONE go · off to the auction')}</button>
       </>}
 
       {(expirados.length + expDorm.length) > 0 && !enxuta && (
         <div style={{ background: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 9px', fontSize: 10.5, fontWeight: 700, color: '#3a3a3a', lineHeight: 1.45 }}>
           {en ? <>
-            👋 <b>Let go</b>: {state.reserveListMesmo ? <>since you kept the <b>same team</b>, he leaves <b>with no sale</b></> : <>he goes to the auction and you receive the sale <b>up to his value</b> (anything above goes to the <b>greedy family</b> 😏)</>}. If the XI is short, a free <b>🌱 Academy Kid</b> fills in. 💳 No cash? You can still renew — it goes on <b>overdraft</b> (transfer ban until you're out of the red).{dormM ? <> 😤 A player you release gets <b>hurt</b> — won't play for ANY of your clubs until another club signs him.</> : null}
+            👋 <b>Let go</b>: {state.reserveListMesmo ? <>since you kept the <b>same team</b>, he leaves <b>with no sale</b></> : <>he goes to the auction and you receive the sale <b>up to his value</b> (anything above goes to the <b>greedy family</b> 😏)</>}. {state.oficial ? <>A player needed to fill his position can only leave after a replacement arrives.</> : <>If the XI is short, a free <b>🌱 Academy Kid</b> fills in.</>} 💳 No cash? You can still renew — it goes on <b>overdraft</b> (transfer ban until you're out of the red).{dormM ? <> 😤 A player you release gets <b>hurt</b> — won't play for ANY of your clubs until another club signs him.</> : null}
           </> : <>
-            👋 <b>Deixar ir</b>: {state.reserveListMesmo ? <>como você ficou no <b>mesmo time</b>, ele sai <b>sem venda</b></> : <>ele vai pro leilão e você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> 😏)</>}. Se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça. 💳 Sem caixa dá pra renovar mesmo assim — entra no <b>cheque especial</b> (transfer ban até sair do vermelho).{dormM ? <> 😤 Jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
+            👋 <b>Deixar ir</b>: {state.reserveListMesmo ? <>como você ficou no <b>mesmo time</b>, ele sai <b>sem venda</b></> : <>ele vai pro leilão e você recebe a venda <b>até o valor dele</b> (o que passar fica com a <b>família gananciosa</b> 😏)</>}. {state.oficial ? <>Quem é necessário para completar a posição só sai depois de chegar uma reposição.</> : <>Se faltar gente pro XI, um <b>🌱 Cria da Base</b> assume de graça.</>} 💳 Sem caixa dá pra renovar mesmo assim — entra no <b>cheque especial</b> (transfer ban até sair do vermelho).{dormM ? <> 😤 Jogador que você soltar fica <b>magoado</b> — não joga por NENHUM clube seu até outro clube contratá-lo.</> : null}
           </>}
         </div>
       )}

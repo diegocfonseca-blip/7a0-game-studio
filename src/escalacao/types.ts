@@ -89,6 +89,10 @@ export function duplaPodeAgir(
 export type Fame = 1 | 2 | 3 | 4 | 5
 
 export interface Card {
+  /** @deprecated Só leitura para limpar bancadas locais rejeitadas; nunca criado no jogo. */
+  calibracaoCarreira?: import('./hierarquia-inicial-carreira').MarcaCalibracao
+  /** Brasil Oficial: base contratual do atleta; taxa paga/buyPrice continua separada. */
+  valorBaseCarreira?: number
   id: string
   name: string
   club: string
@@ -1315,7 +1319,10 @@ export interface EscState {
   careerIntent: boolean // ao ir pro setup, sinaliza que é carreira (não partida rápida)
   /** 🇧🇷 BRASIL OFICIAL (15/11): carreira com clube REAL. Só existe nessa carreira; liga as cartas de `data-oficial.ts`. */
   /** `giro` (19/11): a partir de qual temporada os clubes de FORA (Liberta/Sula/Mundial) sorteiam o elenco de novo todo ano */
-  oficial?: { clube: string; desde: number; giro?: number; /** novas inscrições continentais a partir desta temporada */ vagasDesde?: number }
+  /** Mercado de bots já realizado nesta temporada; não repete gasto ao retomar janela. */
+  oficialMercadoBotsSeason?: number
+  oficialFisica?: { season: number; cal: Record<number, number[]>; clubes?: Record<string, number[]>; copas?: Record<string, import('./carreira-fisica').JogoFisicoOficial> }
+  oficial?: { clube: string; desde: number; giro?: number; /** @deprecated Removido ao ler uma antiga bancada local; não afeta partidas. */ forcaInicial?: import('./hierarquia-inicial-carreira').CalibracaoInicial; /** novas inscrições continentais a partir desta temporada */ vagasDesde?: number; /** revisão econômica prospectiva, sem cobrança retroativa */ economiaDesde?: number }
   /** 🏟️ Brasil Oficial: o ESTADUAL de cada temporada, guardado quando termina (campeão, rebaixados e a classificação final —
    *  é dela que saem as vagas da Copa do Brasil do ano seguinte). Gravado no fim (`ESTADUAL_FEITO`): o resultado mostrado nunca
    *  muda depois, mesmo que a escalação mude. */

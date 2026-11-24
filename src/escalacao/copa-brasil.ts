@@ -1,3 +1,5 @@
+import type {JogoFisicoOficial} from './carreira-fisica'
+import {CDB_OFICIAL, cdbOficialPorFim} from './economia-oficial'
 // ─── 🏆🇧🇷 COPA DO BRASIL LEGENDS — motor do chaveamento (v2, 16/08) ──────
 // Especificação FECHADA com o Diego em docs/conceito-copa-brasil.md, seção
 // "1-NOVA" (a v1, com fase de grupos, foi DESCARTADA depois de muita
@@ -30,7 +32,7 @@
 //   Final (2→1, jogo único, travada)
 
 import type { Div, SimTeam, Goal, SeasonScorer, SeasonAssist, RoundLineups, PoolCard, Tac, CopaResult, CopaRound, GolCopaM2 } from './pyramidseason'
-import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid, pickAssist, jogoCopaM2, pensCopaM2, golCopaSemCarta } from './pyramidseason'
+import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid, pickAssist, taticaOficialCopa, fisicaDaCopa, rollFormCopa, jogoCopaM2, pensCopaM2, golCopaSemCarta } from './pyramidseason'
 import type { EntradaM2 } from './motor2/carreira'
 import type { VersaoM2 } from './motor2/versao'
 
@@ -44,7 +46,7 @@ export interface CBTie {
   win: 'a' | 'b'
   goals: Goal[]; legs: [number, number][]; legGoals: Goal[][]
   /** ⚽🧠 jogo (ida/volta) decidido pelo motor novo: o campinho monta o MESMO motor com isto */
-  legM2?: (EntradaM2 | undefined)[]
+  legFisicaIds?: string[]; legFisicaInicio?: (JogoFisicoOficial["inicio"] | undefined)[]; legFisicaClubes?: (JogoFisicoOficial["clubes"] | undefined)[]; legM2?: (EntradaM2 | undefined)[]
   // 🏆🔵 SÓ A SUPERCOPA PREENCHE: os artilheiros daquele jogo único, já com a
   // identidade da carta. Ela é calculada FORA da Copa do Brasil (`computeSupercopa`)
   // e entra na chave só como uma fase a mais — então os gols dela não estavam em
@@ -188,9 +190,13 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
   }
   // um jogo (mesma física da Copa Legends): tática aleatória, forma por
   // elenco + prestígio de divisão + sorte, gol por Poisson.
-  const leg = (H: Entrant, Aw: Entrant, homeAdv: boolean) => {
-    const th = TACS[Math.floor(rng() * 3)] as Tac, ta = TACS[Math.floor(rng() * 3)] as Tac
-    const fh = rollForm(H.t.xi, th, ta, rng), fa = rollForm(Aw.t.xi, ta, th, rng)
+  let slot = 38
+  const fisica = fisicaDaCopa()
+  const leg = (h: Entrant, aw: Entrant, homeAdv: boolean) => {
+    const fisicaId = `copa:${seed}:${seasonNo}:B:${legSeq+1}:${h.t.name}:${aw.t.name}`
+    const H = {...h,t:fisica.prepara(h.t,fisicaId)}, Aw={...aw,t:fisica.prepara(aw.t,fisicaId)}
+    const th = taticaOficialCopa(H.t, slot, TACS[Math.floor(rng() * 3)] as Tac), ta = taticaOficialCopa(Aw.t, slot, TACS[Math.floor(rng() * 3)] as Tac)
+    const fh = rollFormCopa(H.t, th, ta, rng), fa = rollFormCopa(Aw.t, ta, th, rng)
     const bh = CB_DIV_STRENGTH[H.div], ba = CB_DIV_STRENGTH[Aw.div]
     fh.atk += bh; fh.def += bh; fa.atk += ba; fa.def += ba
     const lkH = 0.85 + rng() * 0.30, lkA = 0.85 + rng() * 0.30
@@ -202,12 +208,13 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     const hg = poisson(lh, rng), ag = poisson(la, rng)
     const hEvs = credit(H, H.t.xi, hg), aEvs = credit(Aw, Aw.t.xi, ag)
     const jogo = ++legSeq
+    fisica.jogou(fisicaId,H.t,Aw.t)
     const velho = { hg, ag, hEvs: marcaPasses(H, H.t.xi, hEvs, jogo), aEvs: marcaPasses(Aw, Aw.t.xi, aEvs, jogo) }
-    if (!m2On || !(H.t.human || Aw.t.human)) return { ...velho, hg0: hg, ag0: ag, m2: undefined as EntradaM2 | undefined }
+    if (!m2On || !(H.t.human || Aw.t.human)) return { ...velho, hg0: hg, ag0: ag, m2: undefined as EntradaM2 | undefined, fisicaId, inicio:fisica.inicio(fisicaId), clubes:fisica.clubes(fisicaId) }
     // ⚽🧠 jogo de gente: o motor novo decide (a conta acima só serviu pra gastar o dado igual)
     desfazCopa(H, velho.hEvs); desfazCopa(Aw, velho.aEvs)
     const n = jogoCopaM2(seed, seasonNo, 'B', jogo, H.t, Aw.t, th, ta, versao)
-    return { hg: n.hg, ag: n.ag, hEvs: creditaCopa(H, n.h), aEvs: creditaCopa(Aw, n.a), hg0: hg, ag0: ag, m2: n.e }
+    return { hg: n.hg, ag: n.ag, hEvs: creditaCopa(H, n.h), aEvs: creditaCopa(Aw, n.a), hg0: hg, ag0: ag, m2: n.e, fisicaId, inicio:fisica.inicio(fisicaId), clubes:fisica.clubes(fisicaId) }
   }
   const pensDecide = (): [number, number] => {
     let x = 2 + Math.floor(rng() * 4), y = 2 + Math.floor(rng() * 4)
@@ -230,7 +237,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     const pens = decidePens(r.hg0 === r.ag0, r.hg === r.ag, !!r.m2)
     if (pens) win = pens[0] > pens[1] ? 'a' : 'b'
     else win = r.hg > r.ag ? 'a' : 'b'
-    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA: r.hg, aggB: r.ag, pens, win, goals, legs: [[r.hg, r.ag]], legGoals: [goals], legM2: r.m2 ? [r.m2] : undefined }
+    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA: r.hg, aggB: r.ag, pens, win, goals, legs: [[r.hg, r.ag]], legGoals: [goals], legFisicaIds:[r.fisicaId], legFisicaInicio:[r.inicio], legFisicaClubes:[r.clubes], legM2: r.m2 ? [r.m2] : undefined }
   }
   // ida e volta (Oitavas, Quartas, Semifinal): placar agregado, pênaltis
   // se empatar no total.
@@ -249,7 +256,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     const pens = decidePens(l1.hg0 + l2.ag0 === l1.ag0 + l2.hg0, aggA === aggB, mexeu)
     if (pens) win = pens[0] > pens[1] ? 'a' : 'b'
     else win = aggA > aggB ? 'a' : 'b'
-    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals, legM2: mexeu ? [l1.m2, l2.m2] : undefined }
+    return { a: a.t, b: b.t, aDiv: a.div, bDiv: b.div, aggA, aggB, pens, win, goals, legs, legGoals, legFisicaIds:[l1.fisicaId,l2.fisicaId], legFisicaInicio:[l1.inicio,l2.inicio], legFisicaClubes:[l1.clubes,l2.clubes], legM2: mexeu ? [l1.m2, l2.m2] : undefined }
   }
 
   // ── 🇧🇷 BRASIL OFICIAL · COPA DO BRASIL REAL (competicoes-reais.md, Copa do Brasil 2026): 126 clubes. 1ª fase com 28 (passam 14),
@@ -262,6 +269,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     let cur: Entrant[] = []
     const fases: CBRound[] = []
     for (let f = 0; f < NOMES.length; f++) {
+      slot = 38 + f + 1
       cur = [...cur, ...(oficial[f] ?? []).map(e => ({ t: withXI(e.t), div: e.div }))]
       if (cur.length < 2) break
       cur = cur.map(e => e.t.human ? { ...e, t: { ...e.t, xi: lineupAt(lineups, e.t.teamId, 38 + f + 1, e.t.squad, e.t.formation) } } : e)
@@ -301,6 +309,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
 
   const rounds: CBRound[] = []
   for (let ri = 0; ri < ROUND_NAMES.length && cur.length > 1; ri++) {
+    slot = 38 + ri + 1
     const name = ROUND_NAMES[ri]
     // sorteio livre até a Rodada de 32; da Oitavas em diante a ORDEM de
     // `cur` já É o chaveamento travado (vencedor do jogo A encara
@@ -356,7 +365,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
 export const CB_PAY = { peneira: 2, r64: 4, r32: 5, oitavas: 6, quartas: 10, semi: 16, vice: 25, camp: 50 }
 export const CB_SCORER_BONUS = 10 // caixa do time pelo artilheiro da Copa do Brasil
 
-export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
+export function copaBrasilRewards(r: CopaBrasilResult, oficial = false): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
   const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}
   const championKey = r.champion ? teamKey(r.champion) : null
   const paga = (tm: SimTeam, val: number) => {
@@ -366,16 +375,16 @@ export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number
   }
   // fundo: até onde cada time chegou (0=caiu na peneira, 1=rodada de 64,
   // 2=rodada de 32, 3=oitavas, 4=quartas, 5=semi, 6=final/vice)
-  const fundo: Record<string, { tm: SimTeam; depth: number }> = {}
-  const put = (tm: SimTeam, depth: number) => { const k = teamKey(tm); if (!fundo[k] || depth > fundo[k].depth) fundo[k] = { tm, depth } }
-  if (r.round64) for (const t of r.round64.ties) { put(t.a, 0); put(t.b, 0) }
+  const fundo: Record<string, { tm: SimTeam; depth: number; fim: number }> = {}
+  const put = (tm: SimTeam, depth: number, fim: number) => { const k = teamKey(tm); if (!fundo[k] || fim < fundo[k].fim) fundo[k] = { tm, depth, fim } }
+  if (r.round64) for (const t of r.round64.ties) { put(t.a, 0, r.rounds.length); put(t.b, 0, r.rounds.length) }
   // a chave real do Brasil Oficial tem mais fases (8 depois da 1ª): conta do FIM, nos mesmos degraus de pagamento de sempre
   const sobra = Math.max(0, r.rounds.length - 6)
-  r.rounds.forEach((rd, ri) => { for (const t of rd.ties) { put(t.a, Math.max(0, ri + 1 - sobra)); put(t.b, Math.max(0, ri + 1 - sobra)) } })
+  r.rounds.forEach((rd, ri) => { for (const t of rd.ties) { put(t.a, Math.max(0, ri + 1 - sobra), r.rounds.length - 1 - ri); put(t.b, Math.max(0, ri + 1 - sobra), r.rounds.length - 1 - ri) } })
   const payByDepth = [CB_PAY.peneira, CB_PAY.r64, CB_PAY.r32, CB_PAY.oitavas, CB_PAY.quartas, CB_PAY.semi, CB_PAY.vice]
   for (const k in fundo) {
-    const { tm, depth } = fundo[k]
-    const pay = (championKey && k === championKey) ? CB_PAY.camp : (payByDepth[depth] ?? CB_PAY.peneira)
+    const { tm, depth, fim } = fundo[k]
+    const pay = oficial ? (championKey && k === championKey ? CDB_OFICIAL.campeao : cdbOficialPorFim(fim)) : ((championKey && k === championKey) ? CB_PAY.camp : (payByDepth[depth] ?? CB_PAY.peneira))
     paga(tm, pay)
   }
   if (r.topScorer) {
@@ -545,8 +554,8 @@ export function copaBrasilAsCopaResult(r: CopaBrasilResult, supercopa?: CBTie | 
 // 🚫 Sem piso desde 22/09 (ordem do Diego: artilheiro e Bola de Ouro não sobem
 // mais o valor do jogador) — o artilheiro da Copa do Brasil continua rendendo
 // DINHEIRO ao clube, em `copaBrasilRewards`.
-export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult, supercopa?: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
-  const base = copaBrasilRewards(r)
+export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult, supercopa?: CBTie | null, oficial = false): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
+  const base = copaBrasilRewards(r, oficial)
   if (!supercopa) return base
   const sc = supercopaRewards(supercopa)
   const mrgN = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }

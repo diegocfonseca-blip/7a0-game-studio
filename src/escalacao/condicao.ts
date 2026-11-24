@@ -225,30 +225,32 @@ export function condicaoAtiva(s: { careerOnline?: boolean; onlineMode?: string; 
 // `inicio` (o condicaoCarry) congela o que veio das temporadas anteriores. Ou seja:
 // contratou no meio do ano, o elenco sente já nesta temporada; o passado guardado
 // não muda. Nenhum placar antigo se mexe (o gás nunca entra no resultado já jogado).
-export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, inicio?: Record<string, number>, banco = GAS_BANCO): Record<string, number> {
+export function gasDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, inicio?: Record<string, number>, banco = GAS_BANCO, rodadasComJogo?: ReadonlySet<number>, copas: readonly {r:number;ids:string[]}[] = []): Record<string, number> {
   const gas: Record<string, number> = {}
   for (const c of squad) gas[c.id] = Math.max(0, Math.min(100, inicio?.[c.id] ?? 100))
-  if (!byRound) return gas
+  const jogaCopa = (r: number) => { for (const jogo of copas.filter(j => j.r === r)) { const xi = new Set(jogo.ids); for (const c of squad) gas[c.id] = Math.round((xi.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + banco)) * 10) / 10 } }
   for (let r = desdeR; r < round; r++) {
-    const ids = byRound[r]
-    if (!ids) continue
-    const xi = new Set(ids)
+    jogaCopa(r)
+    const ids = byRound?.[r]
+    if (!ids && !rodadasComJogo) continue
+    const xi = new Set(rodadasComJogo && !rodadasComJogo.has(r) ? [] : ids)
     // ⚠️ arredonda a 1 casa A CADA passo: o desconto é 1,4 e sem isto a soma de
     // ~70 jogos acumula lixo de float (93.99999999999994) — a escada tem que cair
     // exatamente no 55º/60º/65º jogo.
     for (const c of squad) gas[c.id] = Math.round((xi.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + banco)) * 10) / 10
   }
+  jogaCopa(round)
   return gas
 }
 
 // quantos jogos cada carta fez na temporada (o "🏃 9 jogos" da aba Elenco)
 // `jaJogou` = jogos que a carta já tinha SOMADO em temporadas anteriores (o "🏃 N
 // jogos" passou a contar a carreira inteira, junto com o gás que atravessa a virada).
-export function jogosDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, jaJogou?: Record<string, number>): Record<string, number> {
+export function jogosDoElenco(byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[], desdeR = 0, jaJogou?: Record<string, number>, rodadasComJogo?: ReadonlySet<number>): Record<string, number> {
   const n: Record<string, number> = {}
   for (const c of squad) n[c.id] = Math.max(0, jaJogou?.[c.id] ?? 0)
   if (!byRound) return n
-  for (let r = desdeR; r < round; r++) for (const id of byRound[r] ?? []) if (id in n) n[id]++
+  for (let r = desdeR; r < round; r++) for (const id of (!rodadasComJogo || rodadasComJogo.has(r) ? byRound[r] : []) ?? []) if (id in n) n[id]++
   return n
 }
 
@@ -293,11 +295,11 @@ export function modsDoElenco(
   byRound: Record<number, string[]> | undefined, round: number, squad: { id: string }[],
   xiAt: (r: number) => string[],
   ev: { tipo: string; season: number; status: string; volta?: number; cardId: string } | null | undefined, seasonNo: number,
-  desdeR = 0, inicio?: Record<string, number>, banco = GAS_BANCO,
+  desdeR = 0, inicio?: Record<string, number>, banco = GAS_BANCO, rodadasComJogo?: ReadonlySet<number>, copas: readonly {r:number;ids:string[]}[] = [],
 ): CardModsPorRodada {
   const out: CardModsPorRodada = {}
   for (let r = desdeR; r <= round; r++) {
-    const gas = gasDoElenco(byRound, r, squad, desdeR, inicio, banco)
+    const gas = gasDoElenco(byRound, r, squad, desdeR, inicio, banco, rodadasComJogo, copas)
     const m: Record<string, number> = {}
     for (const id of xiAt(r)) {
       const v = modGas(gas[id] ?? 100) + modVolta(ev, seasonNo, r, id)

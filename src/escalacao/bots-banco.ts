@@ -58,6 +58,8 @@ export function planoCansacoBot(args: {
   seed: number; seasonNo: number; nome: string; rodadas: number
   /** 🏋️ Brasil Oficial (18/11): quanto o banco devolve por rodada — o do preparador do bot. Sem = GAS_BANCO de sempre. */
   banco?: number
+  copas?: readonly {r:number;ids:string[]}[]
+  rodadasComJogo?: ReadonlySet<number>
 }): PlanoBot {
   const { squad, need, inicio, seed, seasonNo, nome, rodadas } = args
   const bancoBot = args.banco ?? GAS_BANCO
@@ -71,7 +73,14 @@ export function planoCansacoBot(args: {
   const volta: Record<string, number> = {}   // id → rodada da volta (pra −2/−1)
   const byId = new Map(squad.map(c => [c.id, c]))
   const h = hashNome(nome)
+  const jogaCopa = (r:number) => {for(const j of args.copas??[])if(j.r===r)for(const c of squad)gas[c.id]=Math.round((j.ids.includes(c.id)?Math.max(0,gas[c.id]-GAS_JOGO):Math.min(100,gas[c.id]+bancoBot))*10)/10}
   for (let r = 0; r < rodadas; r++) {
+    jogaCopa(r)
+    if (args.rodadasComJogo && !args.rodadasComJogo.has(r)) {
+      xi.push([])
+      for (const c of squad) gas[c.id] = Math.round(Math.min(100, gas[c.id] + bancoBot) * 10) / 10
+      continue
+    }
     const fora = new Set(Object.keys(foraAte).filter(id => foraAte[id] > r))
     let ids = melhorXI(squad, need, fora) // sem reserva pro lesionado, ele joga (como 🚑, abaixo)
     const rot = sugerirRodizio(ids, squad.filter(c => !c.fake), gas, fora)
@@ -103,6 +112,7 @@ export function planoCansacoBot(args: {
     const emCampo = new Set(ids)
     for (const c of squad) gas[c.id] = Math.round((emCampo.has(c.id) ? Math.max(0, gas[c.id] - GAS_JOGO) : Math.min(100, gas[c.id] + bancoBot)) * 10) / 10
   }
+  jogaCopa(rodadas)
   return { xi, mods, gasFim: gas, lesoes, poupados }
 }
 

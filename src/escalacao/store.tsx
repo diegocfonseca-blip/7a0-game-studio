@@ -1,3 +1,6 @@
+import {eventosFisicos} from './carreira-fisica'
+import { referenciaAtleta, salarioReferencia, faixaCampanha } from './carreira-economia'
+import { mercadoAnualOficial, MERCADO_BOTS_OFICIAL_GLOBAL, TRANSFERENCIAS_OFICIAIS, reservaNegociavel, type ClubeMercado } from './mercado-bots-oficial'
 import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
 import {FOOTBALL_LOCAL_ORDER,footballClockContext,quickFootballMatch,footballTestRoom,footballPlanHost,footballPlanActor,promoteFootballPlans,validFootballPlan,planFor,footballPlanModifiers,mergeFootballFuture,footballContributions,footballClock,type FootballPlan} from './football-live-tactics'
 import {retornoDeSalaLocal,acaoDaSalaLocal,acaoRemotaDaSalaPermitida} from './online-acoes-locais'
@@ -196,7 +199,7 @@ export function vagasBase(formation: FormationKey, pos: Sector): number { return
 // pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
 // o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
 // sempre (byte-idêntico pra quem não é basquete).
-function reancoraEsporte(s: { oficial?: unknown; careerOnline?: boolean; sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; nbaMundo?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
+function reancoraEsporte(s: { oficial?: EscState['oficial']; careerOnline?: boolean; sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; nbaMundo?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string; kingsBaralho?: boolean; managers?: { formation?: FormationKey }[] }): void {
   if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick', !!s.nbaMundo)
   else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala, !!s.oficial && !!s.careerOnline)
   if (s.kingsBaralho && s.sport !== 'basquete') ACTIVE_CATALOG = BARALHO_KINGS as unknown as typeof CATALOG // 👑 a partida da Kings com o baralho dela
@@ -327,7 +330,7 @@ export function salaryOfCard(c: WonCard): number {
   // emprestado não é seu, e o que você emprestou já saiu do seu elenco. Incógnita
   // (fake/Várzea) também não tem salário.
   if (c.fake || isFillerClub(c.club) || c.emprestado) return 0
-  return Math.round((c.paid ?? 0) / 10)
+  return c.valorBaseCarreira != null ? salarioReferencia(c.valorBaseCarreira) : Math.round((c.paid ?? 0) / 10)
 }
 export function squadPayroll(squad: WonCard[]): number {
   let f = 0; for (const c of squad) f += salaryOfCard(c); return f
@@ -442,7 +445,9 @@ function pagaExDono(s: EscState, nomeTec: string, preco: number, contratanteTeam
 /** Folha conhecida do clube, sem empréstimos compartilhados da SAF. Mesma base da cobrança. */
 export function folhaBaseDoClube(s: EscState, m: Manager): number {
   const tecnico=s.careerTecnicos?.[m.teamName]
-  return squadPayroll(m.squad as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]), divOficialDe(s))
+  const legado = !!s.oficial && s.oficial.economiaDesde != null && s.seasonNo < s.oficial.economiaDesde
+  const elenco = legado ? m.squad.map(c => ({ ...c, valorBaseCarreira: undefined })) : m.squad
+  return squadPayroll(elenco as WonCard[])+(tecnico?Math.round((s.careerTecnicoPago?.[tecnico]??0)/10):0)+salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]), s.oficial ? (s.careerPlacements?.[`m${m.id}`] ?? divOficialDe(s)) : null)
 }
 
 function chargeSalaries(s: EscState) {
@@ -689,7 +694,7 @@ function applyMasterIncome(s: EscState) {
 // contrato, (2) marca `foiBem` (meta batida ou top 4) — é isso que faz a marca LIGAR pra renovar quando o contrato acabar —
 // e (3) quem CAIU com contrato ainda correndo pode ser largado: 1 em 2, a marca paga UMA temporada de multa e o contrato
 // termina aqui (na virada o clube volta pro mercado). Roda dentro do applySeasonMoney, que já trava por temporada.
-function applyMasterHistoria(s: EscState, finalPos?: Record<number, number>, artilheiros?: ArtilheiroPremio[], conquistas?: Record<number, string[]>) {
+function applyMasterHistoria(s: EscState, finalPos?: Record<number, number>, artilheiros?: ArtilheiroPremio[], conquistas?: Record<number, string[]>, placements?: Record<string, string>) {
   if (!finalPos) return
   const season = s.seasonNo ?? 1
   for (const id of idsQueRecebem(s)) {
@@ -698,14 +703,17 @@ function applyMasterHistoria(s: EscState, finalPos?: Record<number, number>, art
     if (!masterAtivo(c, season) || !pos) continue
     const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string // a divisão JOGADA (placements ainda não viraram)
     const novo = { ...c }
+    const total = Object.values(s.careerPlacements ?? {}).filter(d => d === div).length
+    const proxima = placements?.[`m${id}`] ?? div
+    const faixaReal = s.oficial ? faixaCampanha(pos, total, div, proxima) : undefined
     const marca = sponsorBrandOf(c.brandId)?.name ?? c.brandId
-    if (c.meta && c.bonus && masterMetaBatidaFecho(c.meta, { pos, div, artLiga: !!artilheiros?.some(a => a.mgr === id && a.liga), tags: conquistas?.[id] ?? [] })) {
+    if (c.meta && c.bonus && masterMetaBatidaFecho(c.meta, { pos, div, artLiga: !!artilheiros?.some(a => a.mgr === id && a.liga), tags: conquistas?.[id] ?? [], ...(s.oficial ? {subiu:proxima !== div && ['V','D','C','B','A'].indexOf(proxima) > ['V','D','C','B','A'].indexOf(div),caiu:faixaReal === 'caiu',total} : {}) })) {
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + c.bonus }
       logFin(s, 'sponsor', `🎯 ${tr('Meta batida', 'Goal reached')} · ${marca}: ${tr(MASTER_METAS[c.meta].pt, MASTER_METAS[c.meta].en)}`, c.bonus, undefined, id, true)
       novo.foiBem = true
     }
-    if (pos <= 4) novo.foiBem = true
-    if (masterCaiu(pos, div) && season < c.desde + c.anos - 1 && masterRescinde(s.seed ?? 0, season, id, c.brandId)) {
+    if (pos <= 4 || faixaReal === 'acesso') novo.foiBem = true
+    if ((s.oficial ? faixaCampanha(pos, Object.values(s.careerPlacements ?? {}).filter(d => d === div).length, div, placements?.[`m${id}`] ?? div) === 'caiu' : masterCaiu(pos, div)) && season < c.desde + c.anos - 1 && masterRescinde(s.seed ?? 0, season, id, c.brandId)) {
       const multa = masterValor(c)
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + multa }
       logFin(s, 'sponsor', `💔 ${tr('Multa de rescisão', 'Termination fee')} · ${marca}`, multa, undefined, id, true)
@@ -761,7 +769,7 @@ function aplicaContratosFixos(s: EscState) {
 // como o ano terminou (o 👟 fornecedor, que é contrato fixo, saiu daqui pra
 // `applyFornIncome` e paga no começo). E guarda o BALANÇO, que é o que a tela mostra na
 // abertura da temporada nova (ordem do Diego: o resultado das vendas só aparece lá).
-function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
+function applyLojaIncome(s: EscState, finalPos?: Record<number, number>, placements?: Record<string, string>) {
   if (!s.careerLoja) return
   const season = s.seasonNo ?? 1
   for (const id of idsQueRecebem(s)) {
@@ -776,7 +784,8 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
     //    (TORCIDA_PISO_DIV, em loja.ts). Um clube da Série A tem mais torcedor que
     //    um da Várzea, então vende mais camisa — antes as duas vendiam igual.
     const divDaLoja = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-    const r = calculaVendas({ st, pos, preco, div: divDaLoja, fornLoja: fornAtivo(fc, season) ? fornBonusLoja(fc) : 0 })
+    const faixaOficial = s.oficial ? faixaCampanha(pos, Object.values(s.careerPlacements ?? {}).filter(d => d === divDaLoja).length, divDaLoja, placements?.[`m${id}`] ?? divDaLoja) : undefined
+    const r = calculaVendas({ st, pos, preco, div: divDaLoja, faixa: faixaOficial, fornLoja: fornAtivo(fc, season) ? fornBonusLoja(fc) : 0 })
     if (r.moedas > 0) {
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + r.moedas }
       logFin(s, 'reward', `🛍️ Loja · ${r.camisas.toLocaleString('pt-BR')} camisas`, r.moedas, undefined, id, true)
@@ -835,6 +844,9 @@ function descongelaContrato<T extends { contratoAte?: number; contratoRestante?:
 }
 function curaContratosVencidos(s: EscState): void {
   if (!s.careerOnline || !s.contratosOn) return
+  // Na janela do Oficial o vencimento é uma decisão pendente, não erro de empréstimo.
+  // Reabrir o save não pode dar uma temporada grátis e pular a renovação.
+  if (s.oficial && s.screen === 'reserveList') return
   const sn = s.seasonNo ?? 1
   for (const m of s.managers) {
     if (!m.isHuman) continue
@@ -894,7 +906,7 @@ function rngPrazoComissao(s: EscState, tipo: 'tecnico' | 'preparador'): () => nu
  *  não tem ganho de dinheiro com artilheiro, porque não aparece em lugar nenhum… dá impressão de não ter"*). O valor já vem DENTRO de
  *  `rewards`; aqui ele só é separado da linha "Prêmios da temporada" pra aparecer com nome, gols e competição. */
 export type ArtilheiroPremio = { mgr: number; txt: string; coins: number; liga?: boolean } // liga = artilheiro da DIVISÃO (a meta ⚽ do Master lê isto)
-function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>, finalPos?: Record<number, number>, artilheiros?: ArtilheiroPremio[], conquistas?: Record<number, string[]>) {
+function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>, finalPos?: Record<number, number>, artilheiros?: ArtilheiroPremio[], conquistas?: Record<number, string[]>, placements?: Record<string, string>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
   // refazer o leilão) NÃO repete nada — o caixa nunca é creditado duas vezes.
@@ -906,8 +918,8 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   // não teve esse momento. Aqui eles pagam o que ficou pra trás — e a marca
   // `pagoAdiantado` garante que quem já recebeu no início não receba de novo.
   aplicaContratosFixos(s)
-  applyMasterHistoria(s, finalPos, artilheiros, conquistas) // 🎯 bônus da meta · 💔 rescisão de quem caiu (17/10)
-  applyLojaIncome(s, finalPos) // 🛍️ venda de camisas (aposta: só aqui dá pra saber a colocação)
+  applyMasterHistoria(s, finalPos, artilheiros, conquistas, placements) // 🎯 bônus da meta · 💔 rescisão de quem caiu (17/10)
+  applyLojaIncome(s, finalPos, placements) // 🛍️ venda de camisas (aposta: só aqui dá pra saber a colocação)
   const online = s.onlineMode === 'online'
   const humans = s.managers.filter(m => m.isHuman)
   // snapshot da caixa de cada humano — pra registrar o extrato pela VARIAÇÃO REAL
@@ -1049,9 +1061,9 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, rows[i][0] !== 'sponsor' && rows[i][0] !== 'empresario')
 }
 // caixa dos OUTROS times (por teamKey string), nunca negativo — soma título/acesso, tira queda
-function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>): Record<string, number> {
+function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Record<string, number>, preservarDivida = false): Record<string, number> {
   const out = { ...(cash ?? {}) }
-  for (const k in (rewards ?? {})) out[k] = Math.max(0, (out[k] ?? 0) + (rewards as Record<string, number>)[k])
+  for (const k in (rewards ?? {})) { const saldo = (out[k] ?? 0) + (rewards as Record<string, number>)[k]; out[k] = preservarDivida ? saldo : Math.max(0, saldo) }
   return out
 }
 // ─── 💰 ECONOMIA DOS BOTS NA CARREIRA (13/10) ────────────────────────────────
@@ -1075,19 +1087,19 @@ export function folhaDoBot(squad: readonly Card[] | undefined): number {
     if ((c as { fake?: boolean }).fake || isFillerClub(c.club)) continue
     // emprestado não entra: quem paga o salário dele é a regra do empréstimo (metade pra cada lado, saf2)
     if ((c as { emprestado?: unknown }).emprestado) continue
-    f += Math.round(Math.max((c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c)) / 10)
+    f += c.valorBaseCarreira != null ? salarioReferencia(c.valorBaseCarreira) : Math.round(Math.max((c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c)) / 10)
   }
   return f
 }
 /** o balanço de UM clube bot numa virada (puro — a trava `npm run econ-bots` testa isto) */
 // 🤝 `patrocinio` (13/10, rival com banco): a 3ª receita do bot — `PATROCINIO_BOT` (bots-banco.ts). 0 = como era.
-export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0, tvOficialBot?: number, tetoOficial?: number): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
+export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0, tvOficialBot?: number, tetoOficial?: number, dividaReal = false): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
   const tv = tvOficialBot ?? TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6 // 🇧🇷 Oficial: TV pela régua do modo (série + porte)
   const saldo = tv + bilheteria + patrocinio - folha
-  let novo = Math.max(0, caixa + saldo)
+  let novo = dividaReal ? caixa + saldo : Math.max(0, caixa + saldo)
   const teto = Math.max(BOT_CAIXA_TETO[div] ?? 150, tetoOficial ?? 0)
   // passou do teto? o excedente vira obra. Quem JÁ estava acima (save antigo) não perde nada.
-  if (saldo > 0 && novo > teto) novo = Math.max(caixa, teto)
+  if (!dividaReal && saldo > 0 && novo > teto) novo = Math.max(caixa, teto)
   return { tv, bilheteria, folha, saldo, caixa: Math.round(novo), ...(patrocinio ? { patrocinio } : {}) }
 }
 /** aplica a economia em todo clube bot da pirâmide, pela divisão da temporada QUE ACABOU */
@@ -1107,8 +1119,8 @@ function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> 
     const nomeK = k.startsWith('m') && /^m\d+$/.test(k) ? (s.managers.find(m => `m${m.id}` === k)?.teamName ?? k) : k
     const tecK = s.oficial || s.botComissao ? s.careerTecnicos?.[nomeK] : null
     const comissao = s.oficial || s.botComissao ? (tecK ? Math.round((s.careerTecnicoPago?.[tecK] ?? 0) / 10) : 0) + salarioPreparador(preparadorDe(s.careerPreparador?.[nomeK]), s.oficial ? div : null) : 0
-    const b = balancoBot(div, folhaDoBot(squad) + comissao, cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0,
-      s.oficial ? tvOficial(div, nomeK) : undefined, s.oficial ? caixaInicialOficial(nomeK, div) * 2 : undefined)
+    const b = balancoBot(div, ((s.oficial && s.seasonNo >= (s.oficial.economiaDesde ?? Infinity) && s.seasonNo < 4) ? 0 : folhaDoBot(s.oficial && s.seasonNo < (s.oficial.economiaDesde ?? 0) ? squad?.map(c => ({ ...c, valorBaseCarreira: undefined })) : squad) + comissao), cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0,
+      s.oficial ? tvOficial(div, nomeK) : undefined, s.oficial ? caixaInicialOficial(nomeK, div) * 2 : undefined, !!s.oficial && s.seasonNo >= (s.oficial.economiaDesde ?? Infinity))
     cash[k] = b.caixa
     rel[k] = b
   }
@@ -1454,6 +1466,74 @@ function healCpuSquads(s: EscState) {
   if (changed) s.cpuSquads = out
 }
 
+/** Mínimo posicional antes de listar, sondar ou retirar um atleta de qualquer clube. */
+export function podeRetirarOficial(s: EscState, squad: readonly Card[], pos: Sector, formation: FormationKey = '4-3-3'): boolean {
+  return !s.oficial || squad.filter(c => c.pos === pos && !ehFake(c) && !(c as WonCard).emprestado).length > FORMATIONS[formation][pos]
+}
+export function podeLiberarContratoOficial(s: EscState, m: Manager, cardId: string): boolean {
+  if (!s.oficial) return true
+  const c = m.squad.find(c => c.id === cardId); if (!c) return false
+  const fora = new Set([...(s.contratoRelease ?? []), ...(s.reserveListed?.[m.id] ?? [])]); fora.delete(cardId)
+  return podeRetirarOficial(s, m.squad.filter(c => !fora.has(c.id)), c.pos, m.formation)
+}
+/** O Oficial usa o contrato guardado, não o ciclo fictício dos modos antigos. */
+export function contratoAtletaFalta(s: EscState, c: Card): number {
+  const fim=(c as WonCard).contratoAte
+  return s.oficial && fim != null ? Math.max(0,fim-s.seasonNo+1) : contratoCpuFalta(c.id,s.seed,s.seasonNo)
+}
+/** Disponibilidade do vendedor, comum à sondagem humana e ao mercado dos bots. */
+export function reservaTransferivelOficial(s: EscState, squad: readonly Card[], c: Card, formation: FormationKey = '4-3-3'): boolean {
+  return !!(TRANSFERENCIAS_OFICIAIS && s.oficial && s.sport !== 'basquete' && s.onlineMode !== 'online' && s.seasonNo >= (s.oficial.economiaDesde ?? Infinity)
+    && reservaNegociavel(squad,c,FORMATIONS[formation],ident))
+}
+/** Mesmo universo nacional negociável para o humano e a gestão automática. */
+export function clubesNacionaisDoMercado(s:EscState){
+  const nomes=new Set(s.managers.map(m=>m.teamName))
+  return [...s.managers.filter(m=>!m.isHuman&&['A','B','C','D'].includes(s.careerPlacements?.[m.marketTeam??'m'+m.id]??'')).map(m=>({teamName:m.teamName,squad:m.squad,formation:m.formation,fundo:false})),
+    ...Object.entries(s.cpuSquads??{}).filter(([nome])=>!nomes.has(nome)&&['A','B','C','D'].includes(s.careerPlacements?.[nome]??'')).map(([nome,squad])=>({teamName:nome,squad:squad as WonCard[],formation:'4-3-3' as FormationKey,fundo:true}))]
+}
+/** Clubes nacionais de fundo renovam seus atletas e debitam o custo real. */
+function renovaFundoOficial(s: EscState): void {
+  if(!s.oficial || !s.contratosOn || s.seasonNo < (s.oficial.economiaDesde ?? Infinity))return
+  const cash={...s.clubCash}
+  for(const [nome,sq] of Object.entries(s.cpuSquads??{})) {
+    if(!s.careerPlacements?.[nome] || s.managers.some(m=>m.teamName===nome))continue
+    let custoTotal=0
+    for(const c of sq as WonCard[])if(!ehFake(c)&&!c.cria&&!c.emprestado&&c.contratoAte!=null&&c.contratoAte<s.seasonNo) {
+      custoTotal+=Math.max(1,Math.ceil(valorOficial(s,c)/2));c.contratoAte=s.seasonNo+4
+    }
+    if(custoTotal){cash[nome]=(cash[nome]??0)-custoTotal;(s.marketLog??=[]).push(`📝 ${nome}: renovação dos contratos vencidos por ${custoTotal} moedas, debitadas do caixa do clube.`)}
+  }
+  s.clubCash=cash
+}
+/** Cura de abertura/legado, nunca busca atleta de outro dono nem cria incógnitos. */
+export function reparaMinimoOficial(s: EscState): void {
+  if (!s.oficial || s.onlineMode === 'online') return
+  setActiveCatalog(s.deckLeague,false,s.regionalSala,true)
+  const usados = ownedRealIdents(s)
+  // Um lote em negociação também não está livre.
+  for (const p of SECTORS) for (const c of s.deck?.[p] ?? []) usados.add(ident(c))
+  const completa = (sq: Card[], div: string, nome: string, form: FormationKey): Card[] => {
+    const out = [...sq]
+    for (const pos of SECTORS) {
+      let faltam = FORMATIONS[form][pos] - out.filter(c => c.pos === pos && !ehFake(c)).length
+      const candidatos = ACTIVE_CATALOG[pos].filter(c => !usados.has(ident(c as Card)) && cartaDeClubeBrasileiro(c) && categoriaOficialOk(div, c))
+        .sort((a, b) => referenciaAtleta(a) - referenciaAtleta(b) || (a.lo + a.hi) - (b.lo + b.hi) || ident(a as Card).localeCompare(ident(b as Card)))
+      for (const c of candidatos) {
+        if (faltam <= 0) break
+        if (usados.has(ident(c as Card))) continue
+        usados.add(ident(c as Card)); faltam--
+        const valor = referenciaAtleta(c)
+        out.push({ ...c, pos, id: `reparo-${nome}-${s.seasonNo}-${pos}-${out.length}`, paid: valor, buyPrice: 0, valorBaseCarreira: valor, via: 'bot', contratoAte: (s.seasonNo ?? 1) + 4 } as WonCard)
+        ;(s.marketLog ??= []).push(`${nome}: ${c.name} integra o elenco mínimo; referência ${valor} moedas, salário ${salarioReferencia(valor)} por temporada.`)
+      }
+    }
+    return out
+  }
+  for (const m of s.managers) if (!m.isHuman && !m.marketCpu) m.squad = completa(m.squad, s.careerPlacements?.[`m${m.id}`] ?? 'D', m.teamName, m.formation) as WonCard[]
+  if (s.cpuSquads) for (const name of Object.keys(s.cpuSquads)) s.cpuSquads[name] = completa(s.cpuSquads[name], s.careerPlacements?.[name] ?? 'D', name, '4-3-3')
+}
+
 // ─── helpers de elenco ───────────────────────────────────────────────
 // 🎽 +1 POR POSIÇÃO PRO SEU ELENCO (Diego 16/09): *"antes eram 11 reservas, agora
 // são 16 reservas, mais um por posição — um goleiro, um zagueiro, um lateral, um
@@ -1647,8 +1727,8 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
     // +4 de sempre). É o mesmo número que a tela usa — os dois têm que casar, senão
     // o gás guardado na virada não bateria com a barrinha que o técnico viu.
     const bancoPrep = preparadorDe(s.careerPreparador?.[m.teamName])?.banco
-    const gas = gasDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioG, bancoPrep)
-    const jogos = jogosDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioJ)
+    const gas = gasDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioG, bancoPrep, s.oficialFisica?.season === s.seasonNo ? new Set(s.oficialFisica.cal[m.id] ?? []) : undefined, eventosFisicos(s, m.teamName, squad))
+    const jogos = jogosDoElenco(byRound, TOTAL_ROUNDS, squad, desdeR, inicioJ, s.oficialFisica?.season === s.seasonNo ? new Set(s.oficialFisica.cal[m.id] ?? []) : undefined)
     // ⚠️ só quem ESTÁ no elenco entra no novo mapa: assim ele não cresce pra sempre
     // com quem foi vendido. Se a pessoa voltar um dia, volta inteira — e tudo bem.
     // ⚽🅰️ gol e assistência não são derivados como o gás: o pregão refaz a conta
@@ -1696,6 +1776,9 @@ export function marcaAVender(s: EscState) {
 
 export function completaBancoDosBots(s: EscState) {
   if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
+  if(MERCADO_BOTS_OFICIAL_GLOBAL&&s.oficial&&s.sport!=='basquete'&&s.seasonNo>=(s.oficial.economiaDesde??Infinity)){
+    return mercadoMundialDosBotsOficiais(s)
+  }
   const minhaDiv = divisaoDaCarreira(s)
   const escDv: EscadaDiv | null = (!s.escadaOn || s.escadaLivre) ? null : ((['A', 'B', 'C', 'D', 'V'] as string[]).includes(minhaDiv) ? minhaDiv as EscadaDiv : 'V')
   const idB = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
@@ -1715,12 +1798,13 @@ export function completaBancoDosBots(s: EscState) {
   const nivelB = (c: { lo: number; hi: number }) => c.lo + c.hi
   const PARTE: Record<PerfilBot, number> = { gastador: 0.6, paoduro: 0.25, obcecado: 0.4, imprevisivel: 0.45, equilibrado: 0.35 }
   const precoDe = (c: Card, pos: Sector) => Math.max(s.marketValues?.[ident(c)] ?? 0, justoDaCarta(s, { ...c, pos } as Card))
-  const livresDe = (pos: Sector): Card[] => ACTIVE_CATALOG[pos].filter(c => !usados.has(idB(c)) && (!escDv || escadaAllows(escDv, c))).map(c => ({ ...c, pos }) as Card)
+  const livresDe = (pos: Sector, div: string): Card[] => ACTIVE_CATALOG[pos].filter(c => !usados.has(idB(c)) && (!escDv || escadaAllows(escDv, c)) && (!s.oficial || (cartaDeClubeBrasileiro(c) && categoriaOficialOk(div, c)))).map(c => ({ ...c, pos }) as Card)
   const enche = (squad: WonCard[], need: Record<Sector, number>, chaveCaixa: string, tag: string, contrato: boolean, nomeClube: string): WonCard[] => {
     let out = [...squad]
     let caixa = cash[chaveCaixa] ?? DIV_BASE_CASH[minhaDiv] ?? 100
     const perfil = perfilDoClube(nomeClube, s.seed ?? 0)
     const obsessao = perfil === 'obcecado' ? setorDaObsessao(nomeClube, s.seasonNo ?? 1) : undefined
+    if (s.oficial && caixa <= 0) return out
     let verba = Math.round(caixa * PARTE[perfil])
     const novo = (c: Card, pos: Sector, preco: number): WonCard => ({ ...c, pos, id: `banco-${tag}-${pos}-${Math.floor(rngB() * 1e9)}`, paid: preco, via: 'monte', ...(contrato && s.contratosOn ? { contratoAte: (s.seasonNo ?? 1) + 4 } : {}) } as WonCard)
     // 1) o banco: vagas que faltam, a posição da obsessão primeiro
@@ -1733,7 +1817,7 @@ export function completaBancoDosBots(s: EscState) {
     vagas.forEach((pos, idx) => {
       const resto = vagas.length - idx
       const teto = Math.min(caixa, Math.round((verba / resto) * (pos === obsessao ? 2 : perfil === 'gastador' ? 1.5 : 1.2)))
-      const cands = livresDe(pos).map(c => ({ c, preco: precoDe(c, pos) })).filter(x => x.preco <= teto)
+      const cands = livresDe(pos, s.careerPlacements?.[chaveCaixa] ?? minhaDiv).map(c => ({ c, preco: precoDe(c, pos) })).filter(x => x.preco <= teto)
       if (!cands.length) return // caro demais pra verba: não pega, guarda o dinheiro
       cands.sort((a, b) => (nivelB(b.c) - nivelB(a.c)) || (a.preco - b.preco))
       const top = cands.slice(0, perfil === 'imprevisivel' ? 4 : 1)
@@ -1750,7 +1834,7 @@ export function completaBancoDosBots(s: EscState) {
         const meus = out.filter(c => c.pos === pos && !c.fake && !c.emprestado && !c.cria)
         if (!meus.length) continue
         const pior = [...meus].sort((a, b) => nivelB(a) - nivelB(b))[0]
-        for (const c of livresDe(pos)) {
+        for (const c of livresDe(pos, s.careerPlacements?.[chaveCaixa] ?? minhaDiv)) {
           const ganho = nivelB(c) - nivelB(pior)
           if (ganho < 6) continue // melhora pequena não compensa a troca
           const preco = precoDe(c, pos)
@@ -1765,7 +1849,7 @@ export function completaBancoDosBots(s: EscState) {
       out = out.filter(c => c.id !== melhor!.sai.id)
       out.push(novo(melhor.c, melhor.pos, melhor.preco))
     }
-    cash[chaveCaixa] = Math.max(0, Math.round(caixa))
+    cash[chaveCaixa] = s.oficial ? Math.round(caixa) : Math.max(0, Math.round(caixa))
     return out
   }
   for (const m of s.managers) {
@@ -1781,6 +1865,38 @@ export function completaBancoDosBots(s: EscState) {
     s.cpuSquads = sq
   }
   s.clubCash = cash
+}
+/** Uma janela anual para todos os clubes nacionais, inclusive fora da divisão do humano. */
+function mercadoMundialDosBotsOficiais(s: EscState){
+  if(s.oficialMercadoBotsSeason===s.seasonNo)return
+  setActiveCatalog(s.deckLeague,false,s.regionalSala,true)
+  const clubes:ClubeMercado<WonCard>[]=[],ocupados=new Set<string>()
+  for(const m of s.managers)for(const c of m.squad)if(!c.fake)ocupados.add(ident(c))
+  for(const sq of Object.values(s.cpuSquads??{}))for(const c of sq)if(!c.fake)ocupados.add(ident(c))
+  const add=(chave:string,nome:string,squad:WonCard[],need:Record<Sector,number>)=>{
+    const div=s.careerPlacements?.[chave]
+    if(!div||!['A','B','C','D'].includes(div))return
+    const salario=s.seasonNo>=4?squad.reduce((n,c)=>n+salaryOfCard(c),0):0
+    const tecnico=s.careerTecnicos?.[nome],comissao=s.seasonNo>=4?(Math.round((s.careerTecnicoPago?.[tecnico??'']??0)/10)+salarioPreparador(preparadorDe(s.careerPreparador?.[nome]),div)):0
+    const renovar=s.contratosOn?squad.filter(c=>!c.fake&&!c.cria&&c.contratoAte!=null&&c.contratoAte<=s.seasonNo).reduce((n,c)=>n+Math.max(1,Math.ceil(valorOficial(s,c)/2)),0):0
+    clubes.push({chave,nome,squad,need,div,caixa:s.clubCash?.[chave]??caixaInicialOficial(nome,div),compromissos:salario+comissao+renovar,perfil:perfilDoClube(nome,s.seed)})
+  }
+  for(const m of s.managers)if(!m.isHuman&&!m.dormindo&&!m.marketCpu&&!m.auctionOnly)add('m'+m.id,m.teamName,m.squad,FORMATIONS[m.formation])
+  const nomes=new Set(s.managers.map(m=>m.teamName))
+  for(const [nome,sq] of Object.entries(s.cpuSquads??{}))if(!nomes.has(nome))add(nome,nome,sq as WonCard[],{GOL:1,LAT:2,ZAG:2,MEI:3,ATA:3})
+  const resultado=mercadoAnualOficial({clubes,catalogo:SECTORS.flatMap(pos=>ACTIVE_CATALOG[pos].map(c=>({...c,pos}) as WonCard)),ocupados,seed:s.seed,season:s.seasonNo,identidade:ident,
+    transferencias:TRANSFERENCIAS_OFICIAIS,protegidos:new Set(s.managers.flatMap(m=>m.squad.filter(c=>(s.aliciarJogadores??[]).includes(c.id)).map(ident)).concat(s.aliciarFundo?[ident(s.aliciarFundo.card)]:[])),
+    elegivel:(div,c)=>cartaDeClubeBrasileiro(c)&&categoriaOficialOk(div,c),preco:c=>Math.max(s.marketValues?.[ident(c)]??0,justoDaCarta(s,c)),salario:c=>s.seasonNo>=4?salarioReferencia(referenciaAtleta(c)):0,
+    contratar:(c,clube,preco,n)=>({...c,id:`bo-mercado-${s.seasonNo}-${clube.chave}-${n}`,valorBaseCarreira:referenciaAtleta(c),paid:preco,buyPrice:preco,via:'monte' as const,...(s.contratosOn?{contratoAte:s.seasonNo+4}:{})})})
+  const cash={...s.clubCash},sq={...s.cpuSquads}
+  for(const clube of resultado.clubes){
+    cash[clube.chave]=clube.caixa
+    const m=s.managers.find(m=>'m'+m.id===clube.chave)
+    if(m){m.squad=clube.squad;m.money=clube.caixa}else sq[clube.nome]=clube.squad
+  }
+  s.clubCash=cash;s.cpuSquads=sq;s.oficialMercadoBotsSeason=s.seasonNo
+  for(const mov of resultado.movimentos)if(mov.vendedor)(s.marketLog??=[]).push(`🤝 ${mov.clube} contratou ${mov.entra.split('|')[0]} do ${mov.vendedor} por ${mov.preco} 🪙`)
+  return resultado
 }
 function pinHumanLineups(s: EscState) {
   if (!s.careerOnline) return
@@ -1956,7 +2072,7 @@ export function valorOficial(state: EscState, c: Card): number {
   // pagaram por ele e a tabela da categoria — que é o que manda na renovação, no
   // teto de venda, na SAF e na ficha. (O campo `careerBolaOuroPiso` continua nos
   // saves antigos como resíduo: ninguém escreve e ninguém lê mais.)
-  return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
+  return state.oficial ? (c.valorBaseCarreira ?? referenciaAtleta(c)) : Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
 }
 /** 🥇 o prêmio da Bola de Ouro, num lugar só (mexeu aqui, mudou no jogo e nos textos) */
 export const BOLA_OURO_MOEDAS = 20
@@ -2955,6 +3071,30 @@ export function travaPisoDoBot(state: EscState, w: Manager | undefined, card: Ca
 
 type BidMap = Map<string, Bid[]>
 
+/** A regra é por clube comprador, inclusive nas revendas. Reaver o próprio listado preserva a posse. */
+export function contratacaoOficialPermitida(s: EscState, m: Manager, c: Card): boolean {
+  if (!s.oficial || s.onlineMode === 'online' || c.seller === m.id) return true
+  const div = s.careerPlacements?.[m.marketTeam ?? `m${m.id}`] ?? divOficialDe(s) ?? 'D'
+  return cartaDeClubeBrasileiro(c) && categoriaOficialOk(div, c)
+}
+/** Prospective, idempotente. Nunca altera resultados, preço pago ou contratos já registrados. */
+export function garanteEconomiaOficial(s: EscState): void {
+  if (!s.oficial || s.onlineMode === 'online') return
+  s.oficial.economiaDesde ??= (s.seasonNo ?? 1) + (s.round > 0 || s.oficialEstaduais?.some(e => e.temporada === s.seasonNo) ? 1 : 0)
+  const ajusta = (c: Card): Card => {
+    if (ehFake(c) || (c as WonCard).cria) return c
+    if (c.valorBaseCarreira == null) c.valorBaseCarreira = referenciaAtleta(c)
+    const won = c as WonCard
+    if (s.contratosOn && won.contratoAte == null && !won.emprestado) {
+      let h = s.seed >>> 0; for (const ch of ident(c)) h = Math.imul(h ^ ch.charCodeAt(0), 31) >>> 0
+      won.contratoAte = Math.max(s.seasonNo ?? 1, s.oficial!.economiaDesde ?? 1) + 4 + h % 5
+    }
+    return c
+  }
+  for (const m of s.managers) m.squad = m.squad.map(c => ajusta(c) as WonCard)
+  if (s.cpuSquads) for (const name of Object.keys(s.cpuSquads)) s.cpuSquads[name] = s.cpuSquads[name].map(ajusta)
+}
+
 function pushBid(map: BidMap, cardId: string, bid: Bid) {
   const list = map.get(cardId) ?? []
   list.push(bid)
@@ -2978,7 +3118,7 @@ export function mesmoDono(state: EscState, buyerId: number, sellerId: number | u
 // Empate no MAIOR lance elegível (≥2 técnicos) não decide na hora: a carta
 // entra na fila de desempate (ties) com vencedor pendente — quem resolve é o
 // re-lance cego (ver resolveOneTiebreak). Sem empate, decide aqui mesmo.
-function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', reforco = false, sameOwner: (buyerId: number, sellerId: number) => boolean = (b, sl) => b === sl): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
+function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', reforco = false, sameOwner: (buyerId: number, sellerId: number) => boolean = (b, sl) => b === sl, eligible: (m: Manager, c: Card) => boolean = () => true): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
   const byPot = [...cards].sort((a, b) => {
     const pa = (bidMap.get(a.id) ?? []).reduce((s, x) => s + x.amount, 0)
     const pb = (bidMap.get(b.id) ?? []).reduce((s, x) => s + x.amount, 0)
@@ -3009,7 +3149,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
       const m = managers.find(x => x.id === sorted[i].mgr)!
       // 🔁 lance de reforço de bot (elenco cheio) vale sem vaga aberta — o pior da posição vai a leilão depois (`marcaAVender`)
       const temVaga = openSlots(m, card.pos) > 0 || (!!sorted[i].reforco && !m.isHuman)
-      if (!temVaga || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
+      if (!eligible(m, card) || !temVaga || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
       break
     }
     if (i >= sorted.length) { // ninguém elegível
@@ -3022,7 +3162,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const tiedTop: number[] = []
     for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
       const m = managers.find(x => x.id === sorted[j].mgr)!
-      if ((openSlots(m, card.pos) > 0 || (!!sorted[j].reforco && !m.isHuman)) && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
+      if (eligible(m, card) && (openSlots(m, card.pos) > 0 || (!!sorted[j].reforco && !m.isHuman)) && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
     }
     if (tiedTop.length >= 2) {
       // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
@@ -5834,8 +5974,9 @@ export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
 // verde, aceso, que não fazia nada — o pior tipo de trava, porque não explica nada.
 // Agora existe UM lugar só que decide, e ele devolve o PORQUÊ; a tela mostra o motivo
 // e o caminho, que é a regra da casa pra toda trava.
-export type MonteBloqueio = null | 'vaga' | 'reservado' | 'semcontrato' | 'caixa'
+export type MonteBloqueio = null | 'vaga' | 'reservado' | 'semcontrato' | 'caixa' | 'categoria'
 export function monteBloqueio(state: EscState, m: Manager, c: Card): MonteBloqueio {
+  if (!contratacaoOficialPermitida(state, m, c)) return 'categoria'
   const open = state.careerOnline ? careerOpenSlots(m, c.pos) : openSlots(m, c.pos)
   if (open <= 0) return 'vaga'                       // some da lista (não é novidade nenhuma)
   if (monteLocked(state, m, c)) return 'reservado'   // some: é a preferência do dono
@@ -6230,6 +6371,8 @@ type Action =
   | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'AGENCIA_COMISSAO_MUNDO'; nome: string; gols: number; season: number } // 🕴️🌍 artilheiro da COPA DO MUNDO: ela rola DEPOIS do caixa fechar, então a comissão é paga na hora (idempotente por nome+temporada)
+  | { type: 'OFICIAL_COPA_FISICA'; season: number; jogos: import('./carreira-fisica').JogoFisicoOficial[] }
+  | { type: 'OFICIAL_CALENDARIO_FISICO'; season: number; cal: Record<number, number[]>; clubes?: Record<string, number[]> }
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; youUid?: string }
@@ -6245,7 +6388,7 @@ type Action =
   | { type: 'CAL_COPA_LIGA'; season: number } // 📅 a Copa desta temporada vai pras quartas, no meio da Liga (só nasce no começo da temporada)
   | { type: 'FREEZE_COPA_XI'; season: number; xi: Record<number, string[]> } // 🔒 congela a escalação que gerou a Copa daquela temporada — a Copa não muda mais depois de sorteada
   | { type: 'SET_COPA_ROUND'; round: number }
-  | { type: 'CLOSE_SEASON_BOOKS'; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
+  | { type: 'CLOSE_SEASON_BOOKS'; placements?: Record<string, string>; artilheiros?: ArtilheiroPremio[]; conquistas?: Record<number, string[]>; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_VEL_2D'; vel: number } // ⏩📺 06/11: marcha ABSOLUTA do 2D escolhida pelo dono (sala/carreira online)
@@ -8063,7 +8206,7 @@ function leilaoResolveLeva(state: EscState, rescue: boolean): { queue: ResolvedC
       }
     }
   }
-  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction, (b, sl) => mesmoDono(state, b, sl))
+  const { queue, unsold, ties } = resolve(state.currentCards, bidMap, state.managers, rescue ? 'repescagem' : 'leilao', !!state.reserveAuction, (b, sl) => mesmoDono(state, b, sl), (m, c) => contratacaoOficialPermitida(state, m, c))
   // 🏆😂 PREMIAÇÃO DA RESENHA (Diego 25/08) — o caderninho do vexame.
   // O `revealQueue` é POR SETOR e é zerado no setor seguinte, então o 2º lance
   // de cada carta se perde. Aqui a gente anota o que interessa enquanto ele
@@ -8677,7 +8820,7 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
-  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'euaContratos', 'euaAgencia', 'careerSubModeDesde', 'oficialAbertura', 'deOlho', 'aVendaMercado'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
+  'tecnicosVidaSeason', 'aliciarLog', 'aliciarTecnicos', 'aliciarJogadores', 'tecLote', 'scorersPrev', 'oficial', 'oficialFisica', 'oficialEstaduais', 'oficialCampeoes', 'euaOficial', 'euaCup', 'euaDraft', 'euaTitulos', 'euaContratos', 'euaAgencia', 'careerSubModeDesde', 'oficialAbertura', 'deOlho', 'aVendaMercado'] as const // 21/11: os dois já eram zerados/ligados à mão (pregão de abertura do Oficial · "de olho" do Mercado); entram aqui pra trava enxergar satisfies readonly (keyof EscState)[]
 // 🇧🇷 BRASIL OFICIAL (15/11, plano em docs/carreira-oficial-plano.md): a carreira nasce com o CLUBE REAL escolhido, na divisão
 // real dele, contra os outros clubes reais daquela divisão. Sem leilão de estreia: cada clube tem o PRÓPRIO elenco sorteado entre
 // as cartas dele (22, ou todas se tiver menos) — *"o restante que não entrou fica de sobra pros leilões de sempre"*. A semente é a
@@ -8686,18 +8829,19 @@ export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerT
 function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const meu = clubeOficial(nome)
   if (!meu || (meu.div !== 'A' && meu.div !== 'B' && meu.div !== 'C' && meu.div !== 'D')) return false // só-estadual não dá pra escolher (regra do Diego, 15/11)
-  s.oficial = { clube: meu.nome, desde: 1, giro: 1, vagasDesde: 1 } // carreira nova já usa inscrições continentais completas
+  s.oficial = { clube: meu.nome, desde: 1, giro: 1, vagasDesde: 1, economiaDesde: 1 } // carreira nova já usa inscrições continentais completas
+  s.oficialMercadoBotsSeason = undefined
   s.oficialEstaduais = undefined // 🏟️ estaduais são desta carreira
   s.oficialCampeoes = undefined
   s.escadaOn = undefined; s.escadaLivre = undefined; s.escadaTempA = 0; s.escadaSubiu = undefined
   s.deckLeague = 'todos'; setActiveCatalog('todos', false, undefined, true)
-  const cat = ACTIVE_CATALOG
+  let cat = ACTIVE_CATALOG
   const semente = (txt: string) => { let h = s.seed >>> 0; for (let i = 0; i < txt.length; i++) h = Math.imul(h ^ txt.charCodeAt(i), 0x01000193) >>> 0; return h }
   const rngC = mulberry((s.seed ^ 0x0F1C1A1) >>> 0)
   const paraWon = (clube: string, x: { pos: Sector; carta: Card }, i: number): WonCard => {
     const c = { ...x.carta, pos: x.pos, id: `of-${x.pos}-${chaveClube(clube)}-${i}` } as Card
     const preco = justoDaCarta(s, c)
-    return { ...c, paid: preco, buyPrice: preco, via: 'bot', ...(s.contratosOn ? { contratoAte: 1 + contratoDur(5, rngC) - 1 } : {}) } as WonCard
+    return { ...c, valorBaseCarreira: referenciaAtleta(c), paid: preco, buyPrice: 0, via: 'bot', ...(s.contratosOn ? { contratoAte: 1 + contratoDur(5, rngC) - 1 } : {}) } as WonCard
   }
   const elencoDe = (clube: typeof meu) => sorteiaElenco(cartasDoClube(clube, cat as unknown as Record<Sector, Card[]>), semente(clube.nome)).elenco.map((x, i) => paraWon(clube.nome, x, i))
   const formacao = s.managers[0]?.formation ?? '4-3-3'
@@ -8710,10 +8854,10 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   const forms: FormationKey[] = ['4-3-3', '4-4-2']
   const elencos = ordem.map(c => elencoDe(c))
   // o rival só joga 4-4-2 se o elenco tiver 4 meias (clube com 11 cartas, tipo o Mirassol, entraria com 10) — senão 4-3-3
-  const formacaoQueCabe = (f: FormationKey, sq: WonCard[]): FormationKey => f === '4-4-2' && sq.filter(x => x.pos === 'MEI').length < 4 ? '4-3-3' : f
+  const formacaoQueCabe = (f: FormationKey, sq: WonCard[]): FormationKey => SECTORS.every(p => sq.filter(x => x.pos === p && !x.fake).length >= FORMATIONS[f][p]) ? f : '4-3-3'
   s.managers = ordem.map((c, i) => ({
     id: i, name: i === 0 ? (s.managers[0]?.name ?? c.nome) : c.nome, teamName: c.nome, isHuman: i === 0, auctionRival: i === 0,
-    formation: i === 0 ? formacao : formacaoQueCabe(forms[Math.floor(rngC() * forms.length)], elencos[i]), money: i === 0 ? 100 : 0, squad: elencos[i],
+    formation: i === 0 ? formacaoQueCabe(formacao, elencos[i]) : formacaoQueCabe(forms[Math.floor(rngC() * forms.length)], elencos[i]), money: i === 0 ? 100 : 0, squad: elencos[i],
     aggression: 0.5, starHunger: 0.5,
   } as Manager))
   s.youIdx = 0; s.humanCount = 1; s.agenciaClubeId = 0
@@ -8725,13 +8869,17 @@ function iniciaBrasilOficial(s: EscState, nome: string): boolean {
   s.careerPlacements = pl
   s.careerDivision = meu.div
   s.clubCash = seedClubCash({}, pl)
-  s.cpuSquads = undefined // os clubes das outras divisões ganham o elenco no SEED_CPU_SQUADS (com o sorteio deles, ver pyramidseason)
+  s.cpuSquads = {}
+  // Materializa os donos ANTES de qualquer compra automática: banco não pode roubar atleta de um clube ainda invisível.
+  for (const clube of CLUBES_BR_TODOS) if (!ordem.some(c => c.nome === clube.nome)) s.cpuSquads[clube.nome] = elencoDe(clube)
+  healCpuSquads(s)
+  reparaMinimoOficial(s)
   // 💰 caixa inicial pela RECEITA REAL do clube (18/11) — o seu e o de cada bot da série
   const caixa0 = caixaInicialOficial(meu.nome, meu.div)
   s.careerCoins = { 0: caixa0 }
   s.careerLedger = []
   logFin(s, 'opening', '🏁 Saldo inicial', caixa0)
-  s.managers.forEach((m, i) => { m.money = i === 0 ? caixa0 : caixaInicialOficial(m.teamName, meu.div) })
+  s.managers.forEach((m, i) => { m.money = i === 0 ? caixa0 : caixaInicialOficial(m.teamName, meu.div); s.clubCash![`m${m.id}`] = m.money })
   s.league = buildLeague(s.managers, false)
   s.fixtures = calendarioDaLiga(s)
   // 😓 18/11 (Diego: *"condição física já pode começar desde o início"*): no Brasil Oficial o gás vale desde a 1ª rodada, em qualquer
@@ -9000,6 +9148,7 @@ export function formacaoLiberadaNoEstado(s: Pick<EscState, 'careerTecnicos' | 'c
 }
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
+  if (s !== state && s.oficial && ['START_CAREER_SOLO', 'RESUME_CAREER_SOLO', 'RESTORE_CAREER', 'LOAD_STATE', 'FINISH_CEREMONY', 'SEED_CPU_SQUADS', 'MONTE_PICK', 'ADVANCE_REVEAL', 'CONFIRM_MESMO_TIME', 'RESERVE_AUCTION_ONLINE'].includes(action.type)) garanteEconomiaOficial(s)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
   if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
   if (s !== state && s.copaMode === 'relampago') abreRelampagoSePrecisa(s)
@@ -9301,7 +9450,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // (applySeasonMoney trava por temporada): abrir o leilão depois não repete.
     case 'CLOSE_SEASON_BOOKS': {
       if (!s.careerOnline) return s
-      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos, action.artilheiros, action.conquistas)
+      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos, action.artilheiros, action.conquistas, action.placements)
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       return s
     }
@@ -12012,7 +12161,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // respeitando a régua da divisão DELE (escada). Com o real dentro, o
       // incógnito mais fraco da posição sai. Roda ANTES do sorteio de contratos,
       // então carta nova de rival já nasce com contrato normal.
-      if (s.careerOnline && s.onlineMode !== 'online') {
+      if (s.careerOnline && s.onlineMode !== 'online' && !s.oficial) {
         const idR = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
         const usados = new Set<string>()
         for (const m of s.managers) for (const c of m.squad) if (!c.fake) usados.add(idR(c))
@@ -12078,7 +12227,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // conserto vira PERMANENTE no save: toda ficha de fundo que não fecha os 11
       // ganha jogador do catálogo livre (bom jogador pra baixo, o mais fraco) e, só
       // se não houver ninguém, um incógnito. Ficha completa não é tocada.
-      if (s.careerOnline && s.onlineMode !== 'online' && s.cpuSquads) {
+      if (s.careerOnline && s.onlineMode !== 'online' && s.cpuSquads && !s.oficial) {
         const NEED_F: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
         const idF = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
         const usadosF = new Set<string>()
@@ -12129,8 +12278,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         // 🎯 a fila de sobras REAIS vem primeiro que o perna-de-pau (ver `fillToEleven`)
         const sobras = sobrasReais(s)
         for (const m of s.managers) if (m.marketCpu && m.marketTeam) {
-          sq[m.marketTeam] = fillToEleven(m.squad, m.formation, frng, sobras)
-          cash[m.marketTeam] = Math.max(0, Math.round(m.money))
+          sq[m.marketTeam] = s.oficial ? [...m.squad] : fillToEleven(m.squad, m.formation, frng, sobras)
+          cash[m.marketTeam] = s.oficial ? Math.round(m.money) : Math.max(0, Math.round(m.money))
         }
         s.cpuSquads = sq
         s.clubCash = cash
@@ -12139,6 +12288,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // leilão — saem antes da temporada (voltam a ser time de fundo na simulação).
       s.managers = s.managers.filter(m => !m.auctionOnly && !m.marketCpu)
       marcaAVender(s) // 🔁 (14/10) quem perdeu a vaga pra um reforço do bot vai a leilão no próximo leilão
+      reparaMinimoOficial(s)
       completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
@@ -12163,7 +12313,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // real de mercado — não só prêmios. Vale pros que participaram do leilão
         // (rivais escolhidos + bots sorteados), que tiveram money vindo do clubCash.
         const cash = { ...(s.clubCash ?? {}) }
-        for (const m of s.managers) if (!m.isHuman && !m.marketCpu && (m.rival || m.backstop || m.deepSquad)) cash['m' + m.id] = Math.max(0, Math.round(m.money)) // 🔁 + bot que montou banco no leilão (13/10)
+        for (const m of s.managers) if (!m.isHuman && !m.marketCpu && (m.rival || m.backstop || m.deepSquad)) cash['m' + m.id] = s.oficial ? Math.round(m.money) : Math.max(0, Math.round(m.money)) // 🔁 + bot que montou banco no leilão (13/10)
         s.clubCash = cash
       }
       if (s.reserveAuction) {
@@ -12177,7 +12327,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.oficialAbertura) {
         // 🔨 fim do leilão de abertura do Brasil Oficial: o troco dos bots vira o caixa deles e a regra de "1 por posição" sai
         const cash = { ...(s.clubCash ?? {}) }
-        for (const m of s.managers) { if (!m.isHuman) { cash['m' + m.id] = Math.max(0, Math.round(m.money)); m.backstop = false }; m.aberturaBase = undefined }
+        for (const m of s.managers) { if (!m.isHuman) { cash['m' + m.id] = s.oficial ? Math.round(m.money) : Math.max(0, Math.round(m.money)); m.backstop = false }; m.aberturaBase = undefined }
         s.clubCash = cash
         s.oficialAbertura = undefined
       }
@@ -13242,7 +13392,6 @@ function reducerBase(state: EscState, action: Action): EscState {
         const cur = s.aliciarJogadores ?? []
         if (cur.includes(action.cardId)) { s.aliciarJogadores = cur.filter(n => n !== action.cardId); return s }
         if (cur.length >= 1) return s
-        if (contratoCpuFalta(action.cardId, s.seed, s.seasonNo) > 0) return s // sob contrato: não alicia
         // 🕵️ OLHEIRO (Diego 07/09): a régua de quem sonda quem mora em
         // `sondarLiberado` (profissional/bom/promessa = todos · craque = ⭐/👑 ·
         // lenda = 👑). A tela já tranca a linha; isto aqui é a trava de verdade
@@ -13252,12 +13401,19 @@ function reducerBase(state: EscState, action: Action): EscState {
         // Então a tela manda a CARTA junto, e ela é guardada aqui pra virar lote no
         // leilão. Duplicata não acontece: assim que a carta passa a ser de alguém, a
         // receita de fundo para de oferecê-la (ela casa por nome|clube|ano).
-        const alvo = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === action.cardId))?.squad.find(c => c.id === action.cardId)
-          ?? (action.clube && action.card && action.card.id === action.cardId ? action.card : null)
-        if (!alvo || ehFake(alvo) || alvo.cria || alvo.emprestado) return s
+        const dono = s.managers.find(m => !m.isHuman && (!action.clube || m.teamName===action.clube) && m.squad.some(c => c.id === action.cardId))
+        const elencoDono = dono?.squad ?? (s.oficial ? s.cpuSquads?.[action.clube??''] : action.squad) ?? []
+        const alvo = dono?.squad.find(c => c.id === action.cardId)
+          ?? (s.oficial ? elencoDono.find(c=>c.id===action.cardId) : action.clube && action.card && action.card.id === action.cardId ? action.card : null)
+        if (!alvo || ehFake(alvo) || alvo.cria || (alvo as WonCard).emprestado) return s
+        if (contratoAtletaFalta(s,alvo)>0&&!reservaTransferivelOficial(s,elencoDono,alvo,dono?.formation))return s
+        const comprador = s.managers[s.youIdx]
+        if (s.oficial && (!contratacaoOficialPermitida(s, comprador, alvo) || !podeRetirarOficial(s, dono?.squad ?? s.cpuSquads?.[action.clube??''] ?? action.squad ?? [], alvo.pos, dono?.formation))) {
+          s.news = ['Sondagem indisponível: categoria fora da sua divisão ou clube sem reserva para repor a posição.', ...(s.news ?? [])].slice(0, 20); return s
+        }
         if (!sondarLiberado(alvo, myApoioPerk()?.tier)) return s
         s.aliciarJogadores = [action.cardId]
-        s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: action.card, squad: action.squad ?? [] } : undefined
+        s.aliciarFundo = action.clube && action.card ? { cardId: action.cardId, clube: action.clube, card: alvo as WonCard, squad: [...elencoDono] as WonCard[] } : undefined
       }
       return s
     }
@@ -13590,13 +13746,28 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.agenciaEventos = { season: action.season, rows: [...prev, ...action.rows], eventosDone: true }
       return s
     }
+    case 'OFICIAL_COPA_FISICA': {
+      if (!s.oficial || s.onlineMode === 'online' || action.season !== s.seasonNo) return state
+      const anterior = s.oficialFisica?.season === action.season ? s.oficialFisica : {season:action.season,cal:{}}
+      const copas = {...anterior.copas}
+      let mudou = false
+      for (const j of action.jogos) if (j.id && !copas[j.id] && Number.isInteger(j.r) && j.r >= 0 && j.r <= 38) { copas[j.id] = j; mudou = true }
+      if (!mudou) return state
+      s.oficialFisica = {...anterior,copas}; return s
+    }
+    case 'OFICIAL_CALENDARIO_FISICO': {
+      if (!s.oficial || s.onlineMode === 'online' || action.season !== s.seasonNo) return state
+      s.oficialFisica = { ...(s.oficialFisica?.season === action.season ? s.oficialFisica : {}), season: action.season, cal: action.cal, clubes: action.clubes }; return s
+    }
     case 'SEED_CPU_SQUADS': {
       // materializa a ficha dos times de fundo (1x). Idempotente: se já existe,
       // não sobrescreve (o mercado já pode ter mexido).
       // 🏀 basquete não tem os times de fundo da pirâmide do futebol. Trava defensiva.
       if (!s.careerOnline || s.cpuSquads || s.sport === 'basquete') return s
       s.cpuSquads = action.squads
-      healCpuSquads(s) // 🔒 a ficha veio pré-calculada pelo cliente — se ela pegou o elenco de
+      healCpuSquads(s)
+      reparaMinimoOficial(s) // só reais livres, com referência econômica
+      // 🔒 a ficha veio pré-calculada pelo cliente — se ela pegou o elenco de
       // alguém desatualizado (arremate ainda não aplicado), tira o jogador que já tem dono
       return s
     }
@@ -13615,9 +13786,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague, false, s.regionalSala, !!s.oficial) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
-      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos, action.artilheiros, action.conquistas) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
+      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos, action.artilheiros, action.conquistas, action.placements) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
-      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards, !!s.oficial) // caixa dos outros times (base + premios)
       aplicaEconomiaBots(s, s.careerPlacements ?? action.placements) // 💰 bot ganha TV + bilheteria e paga salário (13/10 · só conta do Diego por enquanto)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s, (s.seasonNo ?? 1) + 1) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada · ❄️ contrato volta contado a partir da temporada NOVA
@@ -13666,9 +13837,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada: anota como cada um terminou — e ⚽🅰️ soma gols/assistências da temporada
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
-      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos, action.artilheiros, action.conquistas) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
+      applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos, action.artilheiros, action.conquistas, action.placements) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
-      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards, !!s.oficial) // caixa dos outros times (base + premios)
       aplicaEconomiaBots(s, s.careerPlacements ?? action.placements) // 💰 bot ganha TV + bilheteria e paga salário (13/10 · só conta do Diego por enquanto)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes de trocar placements
@@ -13766,7 +13937,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.cria && c.contratoAte != null && c.contratoAte < s.seasonNo)
           const removidosPorPos: Record<string, number> = {}
           for (const c of expirados) {
-            const querSoltar = released.has(c.id) && !c.emprestado
+            const querSoltar = released.has(c.id) && !c.emprestado && podeRetirarOficial(s, m.squad, c.pos, m.formation)
             if (querSoltar) {
               const need = FORMATIONS[m.formation][c.pos]
               const filledPos = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake).length
@@ -13788,15 +13959,16 @@ function reducerBase(state: EscState, action: Action): EscState {
         // rivais (CPU): sem leilão pra repor, então sempre renovam (paga do clubCash do time)
         const cashR = { ...(s.clubCash ?? {}) }
         for (const m of s.managers) {
-          if (m.isHuman || !m.rival) continue
+          if (m.isHuman || (!s.oficial && !m.rival)) continue
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
           for (const c of expirados) {
             const custo = Math.max(1, Math.ceil(valorOficial(s, c) / 2))
-            cashR['m' + m.id] = Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
+            cashR['m' + m.id] = s.oficial ? (cashR['m' + m.id] ?? 0) - custo : Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
             ;(c as WonCard).contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
           }
         }
         s.clubCash = cashR
+        renovaFundoOficial(s)
       }
       s.reserveListMesmo = undefined
       s.reserveListed = {}
@@ -13842,6 +14014,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!card || card.fake || card.emprestado || card.cria) return s
       if (card.contratoAte == null || card.contratoAte >= s.seasonNo) return s // só contrato JÁ vencido
       const cur = s.contratoRelease ?? []
+      if (!cur.includes(card.id) && !podeLiberarContratoOficial(s, mgr, card.id)) { s.news = ['Esse jogador é necessário para completar o time. Contrate uma reposição ou renove o contrato.', ...(s.news ?? [])].slice(0,20); return s }
       s.contratoRelease = cur.includes(action.cardId) ? cur.filter(id => id !== action.cardId) : [...cur, action.cardId]
       return s
     }
@@ -13936,7 +14109,10 @@ function reducerBase(state: EscState, action: Action): EscState {
         const ids = new Set(listedMap[m.id] ?? [])
         if (ids.size === 0) continue
         const keep: WonCard[] = [], out: WonCard[] = []
-        for (const c of m.squad) (ids.has(c.id) ? out : keep).push(c)
+        for (const c of m.squad) {
+          if (ids.has(c.id) && (!s.oficial || podeRetirarOficial(s, m.squad.filter(x => !out.some(y => y.id === x.id)), c.pos, m.formation))) out.push(c)
+          else keep.push(c)
+        }
         m.squad = keep
         // 📝 LISTAR NÃO É ABANDONAR (conserto de 19/09 — Garrincha do Rei da Bola FC e
         // Maradona do Raiva Cajuri FC). Palavras do Diego: *"ele está listando o jogador,
@@ -13969,9 +14145,10 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const cid of s.aliciarJogadores ?? []) {
           const dono = s.managers.find(m => !m.isHuman && m.squad.some(c => c.id === cid))
           const card = dono?.squad.find(c => c.id === cid)
-          if (dono && card && !card.fake && !card.emprestado) {
+          if (dono && card && !card.fake && !card.emprestado && podeRetirarOficial(s, dono.squad, card.pos, dono.formation) && (!s.oficial || contratoAtletaFalta(s,card)<=0 || reservaTransferivelOficial(s,dono.squad,card,dono.formation))) {
+            const transferencia=s.oficial&&contratoAtletaFalta(s,card)>0
             dono.squad = dono.squad.filter(c => c.id !== cid)
-            listedCards.push({ ...card, seller: dono.id, semContrato: true }) // aliciado = está sem contrato (regra do teto)
+            listedCards.push({ ...card, seller: dono.id, semContrato: transferencia?undefined:true, ...(transferencia?{paid:Math.max(s.marketValues?.[ident(card)]??0,justoDaCarta(s,card))}:{}) })
             marketSellers[card.pos].push(dono.id) // o dono pode brigar de volta no setor
             continue
           }
@@ -13980,7 +14157,9 @@ function reducerBase(state: EscState, action: Action): EscState {
           // (`MEI-42`) tem a mesma forma do id do baralho e poderia bater com outro
           // lote. A identidade (nome|clube|ano) é a mesma, que é o que importa.
           const f = s.aliciarFundo
-          if (f && f.cardId === cid && !f.card.fake) {
+          const elencoFundo=f?(s.cpuSquads?.[f.clube]??(s.oficial?[]:f.squad)):[]
+          const alvoFundo=f?elencoFundo.find(c=>c.id===cid):undefined
+          if (f && f.cardId === cid && alvoFundo && !alvoFundo.fake && podeRetirarOficial(s, elencoFundo, alvoFundo.pos) && (!s.oficial || contratoAtletaFalta(s,alvoFundo)<=0 || reservaTransferivelOficial(s,elencoFundo,alvoFundo))) {
             // 🐛 15/10 (Fabulous EC, "comprei o Pelé e apareceram 5 Garrinchas"): o id de fundo
             // se REPETE entre clubes diferentes (`ATA-25` do clube X e do clube Y), então dois
             // sondados de temporadas diferentes nasciam com o MESMO `sond-ATA-25` — e a tela, que
@@ -13991,7 +14170,8 @@ function reducerBase(state: EscState, action: Action): EscState {
             for (const c of listedCards) usados.add(String(c.id))
             let novoId = `sond-${s.seasonNo}-${cid}`
             for (let n = 2; usados.has(novoId); n++) novoId = `sond-${s.seasonNo}-${cid}~${n}`
-            listedCards.push({ ...f.card, id: novoId, semContrato: true })
+            const transferencia=s.oficial&&contratoAtletaFalta(s,alvoFundo)>0
+            listedCards.push({ ...alvoFundo, id: novoId, semContrato: transferencia?undefined:true,...(transferencia?{paid:Math.max(s.marketValues?.[ident(alvoFundo)]??0,justoDaCarta(s,alvoFundo))}:{}) })
             // 🎯 O CLUBE SONDADO ENTRA NO LEILÃO INTEIRO (Diego 13/09): *"esse time
             // sondado tem direito a participar da leva inteira do leilão também, seja
             // técnico a atacante, na rodada que o jogador dele for pro leilão"*.
@@ -14011,7 +14191,7 @@ function reducerBase(state: EscState, action: Action): EscState {
                 id: -2000 - s.managers.length, name: f.clube, teamName: f.clube, isHuman: false,
                 auctionRival: false, marketCpu: true, marketTeam: f.clube, deepSquad: true, formation: '4-3-3',
                 money: s.clubCash?.[f.clube] ?? DIV_BASE_CASH[divF] ?? 100,
-                squad: f.squad.filter(c => c.id !== cid).map(c => ({ ...c, paid: c.paid ?? 0, via: c.via ?? 'bot' })) as WonCard[],
+                squad: elencoFundo.filter(c => c.id !== cid).map(c => ({ ...c, paid: (c as WonCard).paid ?? 0, via: (c as WonCard).via ?? 'bot' })) as WonCard[],
                 aggression: 0.25 + rngF() * 0.6, starHunger: rngF(),
               }]
             }
@@ -14047,7 +14227,7 @@ function reducerBase(state: EscState, action: Action): EscState {
             // 🌱 o técnico ESCOLHEU deixar ir (botão na janela): sai mesmo quebrando
             // o XI — um Cria da Base assume a vaga (de graça, sem contrato). Só o
             // emprestado na SAF não tem como soltar (a carta nem está aqui).
-            const querSoltar = released.has(c.id) && !c.emprestado
+            const querSoltar = released.has(c.id) && !c.emprestado && podeRetirarOficial(s, m.squad, c.pos, m.formation)
             if (querSoltar) {
               const need = FORMATIONS[m.formation][c.pos]
               const filledPos = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake).length
@@ -14073,7 +14253,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         const cashR = { ...(s.clubCash ?? {}) }
         const soltos: WonCard[] = []
         for (const m of s.managers) {
-          if (m.isHuman || !m.rival) continue
+          if (m.isHuman || (!s.oficial && !m.rival)) continue
           const expirados = (m.squad as WonCard[]).filter(c => !c.fake && !c.emprestado && c.contratoAte != null && c.contratoAte < s.seasonNo)
           for (const c of expirados) {
             const oficial = valorOficial(s, c)
@@ -14083,7 +14263,7 @@ function reducerBase(state: EscState, action: Action): EscState {
             const filledPos = m.squad.filter(x => x.pos === c.pos && !x.fake).length
             const podeSoltar = filledPos - 1 >= need
             if (!podeSoltar || (ctrRng() < quer && (cashR['m' + m.id] ?? 0) >= custo)) {
-              cashR['m' + m.id] = Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
+              cashR['m' + m.id] = s.oficial ? (cashR['m' + m.id] ?? 0) - custo : Math.max(0, (cashR['m' + m.id] ?? 0) - custo)
               ;(c as WonCard).contratoAte = s.seasonNo + contratoDur(5, ctrRng) - 1
             } else {
               m.squad = m.squad.filter(x => x.id !== c.id)
@@ -14092,6 +14272,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           }
         }
         s.clubCash = cashR
+        renovaFundoOficial(s)
         for (const pos of SECTORS) {
           const best = soltos.filter(c => c.pos === pos).sort((a, b) => valorOficial(s, b) - valorOficial(s, a))[0]
           if (best) {
@@ -14155,13 +14336,13 @@ function reducerBase(state: EscState, action: Action): EscState {
         // 🪜 escada: o "famoso" que o mercado lista respeita a régua da SUA divisão
         // (na D lista bom jogador, não craque). Fora da escada segue fame ≥ 4.
         const escM = escadaDivOf(s)
-        const famosoOk = (c: Card) => escM ? escadaAllows(escM, c) && (c.fame ?? 1) >= 2 : c.fame >= 4
+        const famosoOk = (c: Card) => s.oficial ? categoriaOficialOk(divOficialDe(s) ?? 'D', c) && cartaDeClubeBrasileiro(c) : escM ? escadaAllows(escM, c) && (c.fame ?? 1) >= 2 : c.fame >= 4
         for (const pos of SECTORS) {
           // junta TODOS os famosos da posição (bots da liga + 60 de fundo) e pega UM ao acaso
           const cands: { card: Card; ownerBot?: Manager; ownerName?: string }[] = []
-          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && famosoOk(c)) cands.push({ card: c, ownerBot: bot })
+          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && famosoOk(c) && podeRetirarOficial(s, bot.squad, pos, bot.formation)) cands.push({ card: c, ownerBot: bot })
           // 🏢 jogador de EMPRÉSTIMO na SAF nunca entra no sorteio — não é dela, é do dono
-          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && famosoOk(c) && !(c as WonCard).emprestado) cands.push({ card: c, ownerName: name })
+          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && famosoOk(c) && !(c as WonCard).emprestado && podeRetirarOficial(s, cpuSq[name], pos)) cands.push({ card: c, ownerName: name })
           if (cands.length) {
             const pick = cands[Math.floor(rng() * cands.length)]
             const owner = pick.ownerBot ?? materialize(pick.ownerName!)
@@ -15541,6 +15722,13 @@ function sincronizaNiveis(save: EscState): EscState {
           }
         }
         if (f) {
+          // Experimentos locais rejeitados por Diego: restaura a ficha e remove a marca.
+          const marca=o.calibracaoCarreira as import('./forca-largada').MarcaCalibracao|undefined
+          if(marca){
+            if(marca.versao===1){o.lo=marca.loCatalogo;o.hi=marca.hiCatalogo}
+            delete o.calibracaoCarreira
+            o.valorBaseCarreira=referenciaAtleta({lo:f.lo,hi:f.hi,fame:f.fame,promessa:f.promessa});mexeu++
+          }
           const dif = o.fame !== f.fame || o.lo !== f.lo || o.hi !== f.hi
             || !!o.folk !== !!f.folk || !!o.promessa !== !!f.promessa || (f.bio != null && o.bio !== f.bio)
           if (dif) {
@@ -15562,6 +15750,9 @@ function sincronizaNiveis(save: EscState): EscState {
     }
   }
   try { anda(save, 0) } catch { /* save torto: melhor não sincronizar do que quebrar o load */ }
+  if(save.oficial?.forcaInicial){
+    save.oficial={...save.oficial};delete save.oficial.forcaInicial;mexeu++
+  }
   // 💰 o livro de preços segue a carta que mudou de clube (fica o MAIOR, mesma
   // regra da junção de chaves do `migrateTeamNames`)
   if (mudouDeClube.length && save.marketValues) {
@@ -15620,12 +15811,13 @@ function saveAtualizado(save: EscState): EscState {
   const s = sincronizaNiveis(faxinaCaixa(save))
   try {
     const antes = { d: s.condicaoDesde, r: s.condicaoDesdeR }
-    const copia: EscState = { ...s, managers: s.managers?.map(m => ({ ...m })) ?? s.managers }
+    const copia: EscState = { ...s, ...(s.oficial ? {oficial:{...s.oficial}, cpuSquads:s.cpuSquads ? Object.fromEntries(Object.entries(s.cpuSquads).map(([name,cs]) => [name, cs.map(c => ({...c}))])) : undefined} : {}), managers: s.managers?.map(m => ({ ...m, ...(s.oficial ? {squad:m.squad.map(c=>({...c}))} : {}) })) ?? s.managers }
     ligaCondicaoSeCabe(copia)
     curaContratosVencidos(copia)
+    garanteEconomiaOficial(copia)
     const mexeuGas = copia.condicaoDesde !== antes.d || copia.condicaoDesdeR !== antes.r
     const mexeuCtr = copia.managers?.some((m, i) => m.squad !== s.managers[i]?.squad)
-    return mexeuGas || mexeuCtr ? copia : s
+    return copia.oficial || mexeuGas || mexeuCtr ? copia : s
   } catch { return s }
 }
 export { ligaCondicaoSeCabe as __ligaCondicaoSeCabe, curaContratosVencidos as __curaContratosVencidos, descongelaContrato as __descongelaContrato, resolveQuickCopaTie as __resolveQuickCopaTie, seedQuickCopa as __seedQuickCopa, seedNbaCup as __seedNbaCup, sincronizaNiveis as __sincronizaNiveis } // 🔬 só pra teste

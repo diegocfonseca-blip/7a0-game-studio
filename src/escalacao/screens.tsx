@@ -6656,7 +6656,7 @@ export function EscMonte() {
   // reducer usa, e ele diz o motivo. Some da lista o que não é novidade (sem vaga ·
   // reservado pro dono); o resto aparece com o botão explicando por que não dá.
   const comMotivo = state.monte.map(c => ({ c, bloq: monteBloqueio(state, you, c) }))
-  const valid = comMotivo.filter(x => x.bloq !== 'vaga' && x.bloq !== 'reservado')
+  const valid = comMotivo.filter(x => x.bloq !== 'vaga' && x.bloq !== 'reservado' && x.bloq !== 'categoria')
   const online = state.onlineMode === 'online'
   const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
   // 🃏 19/11: alguém pegou carta do Monte (a pilha encolheu) → virada de carta; 👆 chegou a SUA vez → "dim-dom"

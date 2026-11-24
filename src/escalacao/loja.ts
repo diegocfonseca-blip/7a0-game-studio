@@ -267,14 +267,14 @@ export interface VendaResultado {
 }
 /** a conta da temporada inteira. `pos` = colocação FINAL. */
 export function calculaVendas(opts: {
-  st: StadiumSave | undefined; pos: number; preco: PrecoLoja; fornLoja?: number
+  st: StadiumSave | undefined; pos: number; preco: PrecoLoja; fornLoja?: number; faixa?: FaixaLoja
   /** 🧍 divisão do clube — manda no PISO da torcida (ver TORCIDA_PISO_DIV). Sem ela,
    *  cai no piso da Várzea, que é o comportamento de antes de 16/09. */
   div?: string
 }): VendaResultado {
   const { st, pos, preco } = opts
   const torcida = torcidaDoEstadio(st, opts.div)
-  const faixa = faixaDaPos(pos)
+  const faixa = opts.faixa ?? faixaDaPos(pos)
   const bObras = bonusObras(st)
   const bForn = opts.fornLoja ?? 0
   const p = PRECOS[preco]

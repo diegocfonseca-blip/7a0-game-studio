@@ -15,6 +15,7 @@ Xará permitido: Tinga do Fortaleza (Guilherme de Jesus da Silva) não é o Ting
 ## Bahia
 | nome | pos | ano | fame | lo | hi | bio PT | bio EN | conferido em |
 |---|---|---|---|---|---|---|---|---|
+| Marcos Felipe | GOL | 2023 | 3 | 68 | 79 | Goleiro titular do Bahia em 2023, após chegar do Fluminense em 2023. | Bahia’s starting goalkeeper in 2023, after arriving from Fluminense in 2023. | https://www.esporteclubebahia.com.br/comunicado-15/ · https://ge.globo.com/ba/futebol/times/bahia/noticia/2023/08/30/bahia-anuncia-compra-de-marcos-felipe-com-vinculo-ate-o-fim-de-2027.ghtml · inclusão de 23/11/2026: faltava GOL no XI; nome ausente no catálogo Brasil/regionais/oficial; categoria/over são curadoria comparativa do jogo, não nota oficial. |
 | João Marcelo | ZAG | 1988 | 3 | 67 | 77 | Zagueiro titular nas duas finais contra o Inter e um dos destaques do Bahia campeão brasileiro de 1988. | Starting centre-back in both finals against Inter and one of the standouts of Bahia's 1988 Brazilian title. | https://pt.wikipedia.org/wiki/Campeonato_Brasileiro_de_Futebol_de_1988 (escalações das finais: "Ronaldo; Tarantini, João Marcelo, Claudir e Edinho…") |
 | Kanu | ZAG | 2025 | 3 | 66 | 76 | Chegou emprestado pelo Botafogo em 2023, ficou de vez e virou o camisa 4 da zaga tricolor. | Arrived on loan from Botafogo in 2023, stayed for good and became the number 4 at the heart of Bahia's defence. | https://pt.wikipedia.org/wiki/Kanu · https://www.transfermarkt.com.br/bahia/kader/verein/10010/saison_id/2024 |
 

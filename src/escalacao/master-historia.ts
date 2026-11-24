@@ -34,7 +34,7 @@ export const MASTER_METAS: Record<MasterMetaId, { emoji: string; pt: string; en:
   art_intl: { emoji: '⚽', pt: 'Ter o artilheiro da Liberta, Champions ou Mundial', en: 'Have the top scorer of the Libertadores, Champions or Club World Cup', mult: 2, quando: 'intl' },
 }
 /** o que aconteceu na temporada, pra conferir as metas do fecho. `tags` vem da tela (copas), o resto do motor. */
-export interface MasterFecho { pos: number; div: string; artLiga: boolean; tags: string[] }
+export interface MasterFecho { pos: number; div: string; artLiga: boolean; tags: string[]; subiu?: boolean; caiu?: boolean; total?: number }
 /** a renovação paga 25% acima da régua da divisão de hoje */
 export const RENOVA_MULT = 1.25
 
@@ -82,10 +82,10 @@ export function masterMetaBatidaFecho(meta: MasterMetaId, f: MasterFecho): boole
   const t = new Set(f.tags)
   switch (meta) {
     case 'campeao': return f.pos === 1
-    case 'acesso': return f.div !== 'A' && f.pos <= 4
+    case 'acesso': return f.subiu ?? (f.div !== 'A' && f.pos <= 4)
     case 'g4': return f.pos <= 4
-    case 'metade': return f.pos <= 10
-    case 'nao_cair': return f.pos <= 16
+    case 'metade': return f.pos <= Math.ceil((f.total ?? 20) / 2)
+    case 'nao_cair': return f.caiu != null ? !f.caiu : f.pos <= 16
     case 'artilheiro': return f.artLiga
     case 'copa_campeao': return t.has('copa_campeao')
     case 'copa_final': return t.has('copa_campeao') || t.has('copa_final')
