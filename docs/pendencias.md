@@ -1,3 +1,10 @@
+## 24/11 — CARREIRA: CORREÇÕES E VISUAL COMPACTO PUBLICADOS
+
+- Publicação autorizada e concluída para todos: produto `7a5896f6a568d2dadd1764eb857122bc97b20014`, [GitHub Pages com compilação e publicação bem-sucedidas](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45504366435), confirmado às23:01 UTC. Cabeçalho/escudos compactos no celular, botão/trocas no placar e2D, painel3D visível e controles até o apito da última rodada.
+- Corrigidos o relógio esperando o campo invisível, quadros equivalentes causando atualização repetida, ciclo das vagas/cansaço e erros de aparência/identidade dos reservas3D. Três trocas, quarta bloqueada, seleção/cancelamento, tática, pausa/retomada, estado salvo, início e apito conferidos. Reservas verificados nos22 atores reais do3D após retomar cada troca.
+- UI390/1440,12 jogos,266 verificações de relógio,1075 quadros/253 posses da trilha, TypeScript/build e entrada compilada passaram. Preservados1006/1005 arquivos antigos; sem recarga automática. Nenhuma conta/save real ou banco alterado. Conta do relato ainda desconhecida; não se afirmou diagnóstico específico daquele save.
+- [Causas, evidências, escopo e retorno](auditorias/carreira-travas-mobile-20261124.md).
+
 ## 24/11 — PUBLICAÇÃO DA CARREIRA AUTORIZADA APÓS REGRESSÃO
 
 - Diego aprovou a prévia mobile e autorizou publicar após conferir início, pausa, retomada, substituições e fim. Máximo de três trocas, quarta bloqueada no painel/reducer, táticas sem consumir troca e estado salvo preservado.
