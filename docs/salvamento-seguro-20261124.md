@@ -27,7 +27,7 @@ Os nomes, divisão, caixa e temporada usados na lista são resumos. Eles **nunca
 
 ## Nuvem
 
-Migração `20261124170847_salvamento_seguro_v2.sql`, preparada e validada em PostgreSQL 17 isolado, ainda não aplicada no projeto real. Schema privado com tabelas protegidas por RLS e sem acesso bruto de anon/authenticated. RPCs públicos mínimos usam invoker; núcleo privado valida `auth.uid()`, direitos e revisão sob lock. O guard da tabela legada também recusa upload de conta grátis por versões antigas do cliente. As contas são importadas sob demanda, mantendo a linha legada durante a transição. Seeds barradas administrativamente continuam barradas.
+Migração `20261124182353_salvamento_seguro_v2.sql`, validada em PostgreSQL 17 isolado e aplicada no projeto real em 24/11 às 18:23 UTC. Privilégios, RLS e rejeição sem conta conferidos; nenhuma conta real foi migrada apenas para teste. Schema privado com tabelas protegidas por RLS e sem acesso bruto de anon/authenticated. RPCs públicos mínimos usam invoker; núcleo privado valida `auth.uid()`, direitos e revisão sob lock. O guard da tabela legada também recusa upload de conta grátis por versões antigas do cliente. As contas são importadas sob demanda, mantendo a linha legada durante a transição. Seeds barradas administrativamente continuam barradas.
 
 O manifesto lê `details` pequenos, calculados na gravação, sem descompactar o payload gigante para extrair os mesmos campos em cada abertura da home. Só a carreira escolhida é lida/enviada. Não há autosave de carreira para a nuvem. Upload é JSON da carreira selecionada; **a compressão em Worker é do armazenamento local, não um endpoint gzip de upload**. Não foram projetados ganhos de fatura sem medição de uso.
 
@@ -37,7 +37,7 @@ Exclusão usa revisão e tombstone. Apagar a linha antiga ou abrir uma aba velha
 
 ## Conservação e segurança em produção
 
-**Aplicado e conferido:** migração `protege_limpeza_obsoleta_saves` revogou EXECUTE de PUBLIC/anon/authenticated na rotina antiga `esc_nuvem_gratis_limpa()`, cujo prazo de um dia havia sido revogado em 08/11. A rotina não foi executada e nenhum save foi alterado. `has_function_privilege` retornou false para os dois papéis. Advisors de segurança consultados; há achados preexistentes no projeto, não introduzidos por essa revogação.
+**Aplicado e conferido:** migração `protege_limpeza_obsoleta_saves` revogou EXECUTE de PUBLIC/anon/authenticated na rotina antiga `esc_nuvem_gratis_limpa()`, cujo prazo de um dia havia sido revogado em 08/11. A rotina não foi executada e nenhum save foi alterado. `has_function_privilege` retornou false para os dois papéis. Advisors consultados após a implantação. O schema privado registra INFO de RLS sem políticas de acesso direto, intencional: clientes não têm grants nas tabelas e usam apenas RPCs com dono validado. [Referência do advisor](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy). Há também achados preexistentes do projeto.
 
 A conservação v2, quando implantada, começa após sete dias. Só elimina lixeira que já ultrapassou seu prazo antigo por mais sete dias (100 registros por execução). Payloads de carreiras explicitamente excluídas permanecem 30 dias, depois o marcador fica. Linhas legadas de contas migradas só saem após 30 dias, se todas as seeds estiverem representadas no v2 e a linha não tiver recebido correção administrativa posterior. Contas não migradas e carreiras ativas não são apagadas. Cron é privado, sem EXECUTE para clientes.
 
