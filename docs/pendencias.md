@@ -1,3 +1,9 @@
+## 24/11 — RELATO DE TRAVA NA CARREIRA E PRÉVIA COMPACTA MOBILE
+
+- Diego enviou foto do Flamengo/T6/SérieB/R10 e pediu investigar travas e avaliar cabeçalhos/escudos grandes. Conta do relato ainda não informada. **A trava específica ainda não foi reproduzida e não está declarada corrigida.**
+- Bancada real verificou relógio, pausa/retomada na Central, velocidade, apito e escolhas para o próximo confronto em390/1440. Início da rodada seguinte também passou após confirmar a substituição por lesão pela tela. Proposta CSS apenas local libera cerca de110px no celular, conservando informações e sem alterar desktop. Sem mudança no aplicativo, save, banco ou publicação; visual aguarda revisão do dono.
+- [Evidências, reprodução e limites](auditorias/carreira-travas-mobile-20261124.md).
+
 ## 24/11 — TÉCNICOS E FORMAÇÕES PUBLICADOS PARA TODOS
 
 - Publicação autorizada por Diego e concluída no commit de produto `1c34e9776a04d95125aca70e8c60d3a03347dbd9`. [GitHub Pages: compilação e publicação concluídas com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45487765725). Catálogo225,120 técnicos acrescentados nos três lotes e repertórios2/3/4/5/6 por categoria; fichas/contratos existentes preservados.
