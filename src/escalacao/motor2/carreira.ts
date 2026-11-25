@@ -83,13 +83,13 @@ export function novoMotor2(e: EntradaM2, en = false): Motor2 {
 }
 
 const chaveLegada = (e: EntradaM2) => [e.seed, e.clima, String(e.tecnico), String(e.evento), e.tatica.join(','), e.bots.join(','), e.fCasa, e.fFora, e.fCasa2, e.fFora2,
-  ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => `${c.name}:${c.gasMod ?? 0}`).join(';'))].join('|')+(e.versao?'|versao:'+e.versao:'')+(e.aoVivo?.length?'|aoVivo:'+JSON.stringify(e.aoVivo.map(x=>[x.t,x.lado,x.sai,x.entra?.name,x.tatica])):'')
+  ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => `${c.name}:${c.gasMod ?? 0}`).join(';'))].join('|')+(e.versao?'|versao:'+e.versao:'')+(e.aoVivo?.length?'|aoVivo:'+JSON.stringify(e.aoVivo.map(x=>[x.t,x.lado,x.sai,x.entra?.name,x.tatica,...(x.formacao?[x.formacao]:[])])):'')
 // Não usa id do leilão: a identidade é a carta, na ordem exata das vagas.
 const chave = (e: EntradaM2) => 'm2-cartas-2:' + JSON.stringify([
   e.seed, e.clima, e.tecnico ?? null, e.evento ?? null, e.tatica, e.bots,
   e.fCasa ?? null, e.fFora ?? null, e.fCasa2 ?? null, e.fFora2 ?? null, e.versao ?? null,
   ...(e.tatica2 ? [e.tatica2] : []),
-  ...(e.aoVivo?.length ? [['aoVivo', ...e.aoVivo.map(x => [x.t, x.lado, x.sai ?? null, x.entra ? [x.entra.name, x.entra.club ?? null, x.entra.year ?? null, x.entra.lo ?? null, x.entra.hi ?? null, x.entra.gasMod ?? 0] : null, x.tatica ?? null])]] : []),
+  ...(e.aoVivo?.length ? [['aoVivo', ...e.aoVivo.map(x => [x.t, x.lado, x.sai ?? null, x.entra ? [x.entra.name, x.entra.club ?? null, x.entra.year ?? null, x.entra.lo ?? null, x.entra.hi ?? null, x.entra.gasMod ?? 0] : null, x.tatica ?? null,...(x.formacao?[x.formacao]:[])])]] : []),
   ...[e.casa, e.fora, e.casa2 ?? [], e.fora2 ?? []].map(cs => cs.map(c => [
     c.name, c.club ?? null, c.year ?? null, c.pos ?? c.sec ?? null,
     c.fame ?? null, c.lo ?? null, c.hi ?? null, !!c.fake, c.gasMod ?? 0,
@@ -203,7 +203,7 @@ function registrarResultado(e: EntradaM2, r: ResultadoM2): void {
 
 const revisaoIntervalo = (e: EntradaM2): number => e.intervaloRevisao ?? (e.casa2?.length || e.fora2?.length || e.aoVivo?.length ? 1 : 0)
 
-function compactarEntrada(e: EntradaM2): EntradaM2 {
+export function compactarEntrada(e: EntradaM2): EntradaM2 {
   const cartas = (cs: CartaCampo[]) => cs.map(c => ({
     name:c.name, pos:c.pos ?? c.sec, club:c.club, year:c.year,
     fame:c.fame, lo:c.lo, hi:c.hi, fake:c.fake, gasMod:c.gasMod,

@@ -53,6 +53,7 @@ export type RaioX = {
   estilo: string
   top: { nome: string; club: string; year: number; fame: number }[]
   forma?: string
+  historicoIndisponivel?:boolean
   cansaco?: { cansados: number; lesionados: number; poupados: number } | null
 }
 const CATEG = (f: number, en: boolean) => f >= 5 ? (en ? '👑 Legend' : '👑 Lenda') : f === 4 ? (en ? '⭐ Star' : '⭐ Craque') : f >= 2 ? (en ? '🎯 Good' : '🎯 Bom') : (en ? '🪵 Pro' : '🪵 Profissional')
@@ -70,7 +71,7 @@ function CartaoRaioX({ r }: { r: RaioX }) {
     <div className="ll-central-card ll-c-raiox" style={{ background: CREME, color: INK }}>
       <Cabecalho titulo={t('🔎 Raio-X do adversário', '🔎 Opponent scouting')} sub={r.nome} />
       {lin(t('Formação', 'Formation'), <>{r.formacao} <span style={{ color: '#6a6250', fontWeight: 700 }}>· {r.estilo}</span></>)}
-      {lin(t('Últimos 5', 'Last 5'), r.forma ? <Forma f={r.forma} /> : <span style={{ color: '#888' }}>{t('ainda não jogou', 'no games yet')}</span>)}
+      {lin(t('Últimos 5', 'Last 5'), r.forma ? <Forma f={r.forma} /> : <span style={{ color: '#888' }}>{r.historicoIndisponivel?t('não disponível nesta competição','unavailable for this competition'):t('ainda não jogou', 'no games yet')}</span>)}
       {c && lin(t('Cansaço', 'Fitness'), c.cansados + c.lesionados + c.poupados === 0
         ? <span style={{ color: '#1B7A3D' }}>{t('💪 time inteiro', '💪 fully fit')}</span>
         : <>{[c.cansados ? t(`😓 ${c.cansados} titular${c.cansados > 1 ? 'es' : ''} cansado${c.cansados > 1 ? 's' : ''}`, `😓 ${c.cansados} tired starter${c.cansados > 1 ? 's' : ''}`) : '', c.lesionados ? t(`🚑 ${c.lesionados} lesionado${c.lesionados > 1 ? 's' : ''}`, `🚑 ${c.lesionados} injured`) : '', c.poupados ? t(`🔁 vai poupar ${c.poupados}`, `🔁 resting ${c.poupados}`) : ''].filter(Boolean).join(' · ')}</>)}
@@ -145,11 +146,13 @@ export type CentralProps = {
   /** 🎥 22/11: o mapa ao vivo pra pôr dentro do quadro da cena do bairro (sem ele, fica a foto de sempre) */
   sedeJanela?: ReactNode
   /** 🧭 22/11 (Central direta): a cena da semana vem antes do jogo, num banner com "Seguir" */
+  pendingDecision?:boolean
   direta?: boolean
   /** 🧭 22/11: avisos de uma vez só (contrato de TV, recibos) — aparecem no topo da Central, um de cada vez */
   avisos?: ReactNode
   /** 🎥 a cena do bairro (só quando o mapa do clube existe nesta carreira e algo está acontecendo nele) */
   sedeQuantidade?:number
+  onSedeRever?:()=>void
   onSedeSeguir?:()=>void
   onSedePularTodos?:()=>void
   sede?: CentralSede | null
@@ -178,6 +181,7 @@ export type CentralProps = {
   giro: { rodada: number; jogos: CentralJogo[]; total: number; titulo?: string } | null
   /** a tabela da sua divisão (nome · pontos · você), já ordenada */
   tabela: { name: string; pts: number; you: boolean }[]
+  onDeal?:(name:string)=>void
   jornal: Jornal
   /** 💸 todos os negócios do pregão desta temporada (de todo clube), do maior pro menor */
   mercado: { negocios: { name: string; pos: string; paid: number; team: string; you: boolean }[]; maisCaro: Contratacao | null }
@@ -298,7 +302,7 @@ export function CentralCarreira(p: CentralProps) {
   const visualV2=useCareerVisualV2()
   // 🧭 22/11 (Central direta): a cena da semana ainda não vista toma o lugar do cartão do jogo até a pessoa tocar em "Seguir"
   const [sedeVista, setSedeVista] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) ?? '' } catch { return '' } })
-  const sedeAntes = !!(p.direta && p.sede && p.semana && sedeVista !== p.sede.chave)
+  const sedeAntes = !!(!p.pendingDecision && p.direta && p.sede && p.semana && sedeVista !== p.sede.chave)
   const t = useT()
   const [mercadoTodo, setMercadoTodo] = useState(false) // 💸 mostra os 5 maiores; o resto abre no toque
   const posDe = (nome: string) => { const i = p.tabela.findIndex(x => x.name === nome); return i >= 0 ? i + 1 : null }
@@ -384,6 +388,7 @@ export function CentralCarreira(p: CentralProps) {
         <b style={{ ...OSW, fontSize: 20, lineHeight: 1, whiteSpace: 'nowrap', color: '#fff' }}>{p.bb ? t('Jogo', 'Game') : t('Rod.', 'Rd.')} {p.round}<span style={{ color: '#888', fontSize: 13 }}> / {p.bb?.total ?? 38}</span></b>
       </div>
       {!visualV2 && p.salvar && <FaixaSalvar s={p.salvar} />}
+      {p.pendingDecision&&<aside style={{background:'#F4ECD6',color:INK,border:`3px solid ${INK}`,borderRadius:14,padding:12,marginBottom:12}} data-career-next-step><b style={OSW}>{t('PRÓXIMO PASSO','NEXT STEP')}</b><p style={{margin:'6px 0',fontSize:13}}>{p.botao.sub}</p><button type="button" onClick={p.botao.onClick} style={{...OSW,background:GOLD,color:INK,border:`2px solid ${INK}`,borderRadius:9,padding:10,width:'100%'}}>{p.botao.label}</button></aside>}
 
       {/* 📱 celular: camarote → giro → Martelo → mercado → tabela+agenda (ordem por CSS `order`).
           🖥️ desktop (03/10, 4º ajuste dele): esquerda camarote → [tabela inteira | giro inteiro + agenda];
@@ -441,10 +446,11 @@ export function CentralCarreira(p: CentralProps) {
                 style={{ ...OSW, width: '100%', marginTop: 8, background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 16, fontWeight: 900, cursor: 'pointer' }}>{p.botao.alt.label}</button>}
               {p.botao.alt2 && <button type="button" onClick={p.botao.alt2.onClick}
                 style={{ ...OSW, width: '100%', marginTop: 8, background: '#FFC400', color: INK, border: `3px solid ${INK}`, borderRadius: 14, padding: 12, textAlign: 'center', boxShadow: '4px 4px 0 #000', fontSize: 16, fontWeight: 900, cursor: 'pointer' }}>{p.botao.alt2.label}</button>}
-              {p.botao.sub && <small style={{ textAlign: 'center', fontSize: 9.5, fontWeight: 800, opacity: .6, marginTop: 6 }}>{p.botao.sub}</small>}
+              {p.botao.sub && <small style={{ textAlign: 'center', fontSize: 12, lineHeight:1.4,fontWeight: 700, opacity: .9, marginTop: 8 }}>{p.botao.sub}</small>}
             </div>
           </div>}
 
+          {p.onSedeRever&&<button type="button" className="ll-central-link" onClick={p.onSedeRever}>{t('↻ Rever momentos desta semana','↻ Revisit this week’s moments')}</button>}
           {p.sede && !p.direta && <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
@@ -557,7 +563,7 @@ export function CentralCarreira(p: CentralProps) {
             {p.jornal.noticias.map((n, i) => (
               <div key={i} className={`ll-central-row${i >= 5 ? ' ll-central-not-desk' : ''}`}>
                 <span style={{ fontSize: 16 }}>{n.emoji}</span>
-                <span style={{ flex: 1, lineHeight: 1.3 }}>{en ? n.en : n.pt}</span>
+                <span style={{ flex: 1, lineHeight: 1.3 }}>{en ? n.en : n.pt}{n.deal&&p.onDeal&&<button type="button" className="ll-central-link" onClick={()=>p.onDeal?.(n.deal!.name)} style={{display:'block',marginTop:6}}>{t('Ver negociação →','View deal →')}</button>}</span>
                 <Chip bg="#fff">{en ? n.tag[1] : n.tag[0]}</Chip>
               </div>
             ))}

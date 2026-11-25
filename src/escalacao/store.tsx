@@ -1,3 +1,6 @@
+import {rememberGame,type MemoryGame} from './career-memory'
+import {liveInitialIds,liveFormations,validateLivePlan,type CareerLiveDecision} from './career-live-plan'
+import {compactarEntrada,type EntradaM2} from './motor2/carreira'
 import {resolveLots,fitEnvelope,rebidWinner,openMinimum,registerOpenBid,dutchStepMs,dutchLadder,OPEN_HAMMER_MS,OPEN_TICK_MS,OPEN_REVEAL_MS,DUTCH_HIGH_MS,DUTCH_MIDDLE_MS,DUTCH_LOW_MS,DUTCH_LAST_MS} from './auction-core'
 import * as careerSave from './salvamento/service'
 import {eventosFisicos} from './carreira-fisica'
@@ -486,12 +489,14 @@ export const CLA_SEMANA_MOEDAS: Record<1 | 2 | 3, number> = { 1: 30, 2: 20, 3: 1
 // qualquer clube — o Diego quer ver *"todos os jogadores que foram comprados no leilão, não
 // só os meus"*. Só carreira SOLO, só carta de verdade, só a temporada atual (virou o ano,
 // a lista nasce de novo). Nunca mexe em dinheiro nem elenco: é memória de exibição.
-function anotaMercado(s: EscState, m: { id: number; teamName: string }, card: { name: string; pos: string; fake?: boolean }, paid: number, via: 'leilao' | 'monte' | 'desempate') {
+function anotaMercado(s: EscState, m: { id: number; teamName: string }, card: { name: string; pos: string; fake?: boolean; seller?:number;club?:string;year?:number }, paid: number, via: 'leilao' | 'monte' | 'desempate') {
   if (!s.careerOnline || s.onlineMode === 'online' || card.fake || !(paid > 0)) return
   const season = s.seasonNo ?? 1
   const cur = s.careerMercado && s.careerMercado.season === season ? s.careerMercado : { season, lotes: [] }
   cur.lotes = [...cur.lotes, { name: card.name, pos: card.pos, team: m.teamName, teamId: m.id, paid, via }].slice(-80)
   s.careerMercado = cur
+  const from=card.seller!=null?s.managers.find(x=>x.id===card.seller)?.teamName:undefined
+  if(s.sport!=='basquete')s.careerTransferHistory=[...(s.careerTransferHistory??[]),{name:card.name,pos:card.pos,team:m.teamName,teamId:m.id,paid,via,season,round:s.round??0,club:card.club,year:card.year,...(from?{from}:{})}].slice(-500)
 }
 function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>, mgrId?: number, force?: boolean) {
   // por padrão não registra linha de valor 0 (evita lixo no extrato de venda/monte
@@ -6496,7 +6501,11 @@ type Action =
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_CONDICAO_AUTO'; on: boolean } // 🔁 carreira solo: liga/desliga o rodízio automático do preparador (preferência do técnico, não zera entre temporadas)
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic }
-  | { type: 'SET_AO_VIVO'; mgrId: number; round: number; aoVivo: { t: number; sai?: string; entra?: string; tactic?: Tactic }[] } // 🔁 23/11: trocas com o jogo rolando (máx 3, só aquele jogo) // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
+  | { type: 'SET_AO_VIVO'; mgrId: number; round: number; initial?:EntradaM2; aoVivo:CareerLiveDecision[] }
+  | {type:'RECORD_CAREER_GAME';mgrId:number;game:MemoryGame}
+  | {type:'REGISTER_CUP_LIVE';mgrId:number;initial:EntradaM2}
+  | {type:'SET_CUP_LIVE';mgrId:number;partidaId:string;aoVivo:CareerLiveDecision[]}
+  | {type:'FINISH_CUP_LIVE';partidaId:string} // 🔁 23/11: trocas com o jogo rolando (máx 3, só aquele jogo) // 🔁 carreira offline: grava o time do 2º tempo (só aquela rodada)
   // 🎙️ COLETIVA DE IMPRENSA (19/10): a resposta (ou o pulo), o arquirrival, o retrospecto contra rival e a cobrança das promessas
   | { type: 'COLETIVA_RESPONDE'; mgrId: number; pronta: ColetivaPronta; estilo: ColetivaEstilo | null; ctx: ColetivaCtx; alvo: { proximo: number | null; classico: number | null } }
   | { type: 'COLETIVA_ARQUIRRIVAL'; mgrId: number; team: string; temporada: number }
@@ -8800,7 +8809,7 @@ export const MARCAS_DE_MODO = ['footballPlans','footballNextPlans','pregaoAberto
  *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
-export const ZERA_NA_CARREIRA_NOVA = ['careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+export const ZERA_NA_CARREIRA_NOVA = ['careerTransferHistory','careerMemory','careerCupLive','careerCupActive','careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
@@ -9318,6 +9327,15 @@ function reducerBase(state: EscState, action: Action): EscState {
     const mesmasCadeiras = state.presence.length === action.indices.length && state.presence.every((idx, i) => idx === action.indices[i])
     const mesmosCrachas = uids === state.presenceUids || (uids !== undefined && state.presenceUids !== undefined && uids.length === state.presenceUids.length && uids.every((uid, i) => uid === state.presenceUids![i]))
     if (mesmasCadeiras && mesmosCrachas) return state
+  }
+  // Recording a revealed match must not clone the whole career or invalidate simulation inputs.
+  if(action.type==='RECORD_CAREER_GAME'){
+      if(!state.careerOnline||state.onlineMode==='online'||state.co2||state.sport==='basquete'||action.game.season!==state.seasonNo)return state
+      const m=state.managers.find(x=>x.id===action.mgrId&&x.isHuman)
+      if(!m||action.game.players.some(p=>!m.squad.some(c=>c.id===p.id&&!c.fake)))return state
+      const game={...action.game,players:action.game.players.map(p=>({...p,id:ident(m.squad.find(c=>c.id===p.id)!)}))}
+      const before=state.careerMemory?.[m.id],after=rememberGame(before,game)
+      return after&&after!==before?{...state,careerMemory:{...state.careerMemory,[m.id]:after}}:state
   }
   const s: EscState = JSON.parse(JSON.stringify(state))
   switch (action.type) {
@@ -12512,9 +12530,46 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (!need) return s
         for (const pos of SECTORS) if (cards.filter(c => c.pos === pos).length !== need[pos]) return s // 11 não batem com a formação
       }
+      const current=s.careerHalftime?.[m.id]?.[action.round]
+      const prefix='liga:'
+      const snapshot=Object.values(s.m2Res??{}).filter(v=>v[3]===s.seasonNo).map(v=>v[5]).filter((v):v is EntradaM2=>!!v&&!!v.partidaId?.startsWith(prefix)&&v.partidaId.split(':')[3]===String(action.round)).sort((a,b)=>(b.intervaloRevisao??0)-(a.intervaloRevisao??0)).find(v=>liveInitialIds(v,m).ids.every(id=>!!id))
+      const base=snapshot?liveInitialIds(snapshot,m):{ids:frozenXIids(s.careerLineup?.[m.id]??{},action.round,m.squad,m.formation),formation:m.formation}
+      if(!validateLivePlan({squad:m.squad,initial:base.ids,formation:base.formation,commands:current?.aoVivo??[],halftime:{t:45*(90/93),ids,formation:action.formation??base.formation},throughTime:45*(90/93),allowed:liveFormations(s,m,m.formation,formacoes15On()).map(f=>f.motor)}))return s
       const hh = { ...(s.careerHalftime ?? {}) }
       hh[action.mgrId] = { ...(hh[action.mgrId] ?? {}), [action.round]: { aoVivo: hh[action.mgrId]?.[action.round]?.aoVivo, xi2: ids, formation: action.formation, tactic: action.tactic, revisao:(hh[action.mgrId]?.[action.round]?.revisao ?? (hh[action.mgrId]?.[action.round] ? 1 : 0))+1 } }
       s.careerHalftime = hh
+      return s
+    }
+    case 'REGISTER_CUP_LIVE': {
+      if(!s.careerOnline||s.onlineMode==='online'||s.co2||s.sport==='basquete')return s
+      const id=action.initial.partidaId,m=s.managers.find(x=>x.id===action.mgrId&&x.isHuman),sn=s.seasonNo??1
+      if(!m||!id?.startsWith(`copa:${s.seed}:${sn}:`)||s.booksSeason===sn)return s
+      const existing=s.careerCupLive?.[id]
+      if(existing)return s
+      const initial=compactarEntrada(action.initial),base=liveInitialIds(initial,m)
+      if(!validateLivePlan({squad:m.squad,initial:base.ids,formation:base.formation,commands:[],allowed:liveFormations(s,m,m.formation,formacoes15On()).map(f=>f.motor)}))return s
+      s.careerCupLive={...Object.fromEntries(Object.entries(s.careerCupLive??{}).filter(([,r])=>r.season>=sn-1)),[id]:{season:sn,managerId:m.id,initial,commands:[],revision:0}}
+      if(s.careerCupActive&&s.careerCupActive!==id&&s.careerCupLive[s.careerCupActive])s.careerCupLive[s.careerCupActive]={...s.careerCupLive[s.careerCupActive],finished:true}
+      s.careerCupActive=id
+      return s
+    }
+    case 'SET_CUP_LIVE': {
+      if(!s.careerOnline||s.onlineMode==='online'||s.co2||s.sport==='basquete')return s
+      const record=s.careerCupLive?.[action.partidaId],m=s.managers.find(x=>x.id===action.mgrId&&x.isHuman)
+      if(!record||!m||record.finished||record.managerId!==m.id||record.season!==s.seasonNo||s.careerCupActive!==action.partidaId)return s
+      const base=liveInitialIds(record.initial,m),ev=s.eventoTemporada
+      const blocked=new Set(ev?.status==='banco'&&ev.season===s.seasonNo&&(ev.volta??0)>s.round&&ev.mgrId===m.id?[ev.cardId]:[])
+      const checked=validateLivePlan({squad:m.squad,initial:base.ids,formation:base.formation,commands:action.aoVivo,existing:record.commands,allowed:liveFormations(s,m,m.formation,formacoes15On()).map(f=>f.motor),blocked})
+      if(!checked||action.aoVivo.length===record.commands.length)return state
+      s.careerCupLive={...s.careerCupLive,[action.partidaId]:{...record,commands:action.aoVivo.map(x=>({...x})),revision:record.revision+1}}
+      return s
+    }
+    case 'FINISH_CUP_LIVE': {
+      if(!s.careerOnline||s.onlineMode==='online'||s.co2)return s
+      const r=s.careerCupLive?.[action.partidaId]
+      if(!r||r.finished)return s
+      s.careerCupLive={...s.careerCupLive,[action.partidaId]:{...r,finished:true}}
+      if(s.careerCupActive===action.partidaId)s.careerCupActive=undefined
       return s
     }
     case 'SET_AO_VIVO': {
@@ -12525,6 +12580,18 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!s.careerOnline || s.onlineMode === 'online') return s
       const m = s.managers.find(x => x.id === action.mgrId && x.isHuman)
       if (!m) return s
+      if(action.initial){
+        if(action.round!==s.round-1||s.booksSeason===s.seasonNo||!/^liga:\d+:[ABCDV]:\d+:\d+:\d+$/.test(action.initial.partidaId??'')||Number(action.initial.partidaId?.split(':')[3])!==action.round)return s
+        const saved=Object.values(s.m2Res??{}).map(v=>v[5]).filter((v):v is EntradaM2=>!!v&&v.partidaId===action.initial!.partidaId).sort((a,b)=>(b.intervaloRevisao??0)-(a.intervaloRevisao??0))[0]??action.initial
+        const base=liveInitialIds(saved,m),existing=s.careerHalftime?.[m.id]?.[action.round]?.aoVivo??[],ev=s.eventoTemporada
+        const blocked=new Set(ev?.status==='banco'&&ev.season===s.seasonNo&&(ev.volta??0)>s.round&&ev.mgrId===m.id?[ev.cardId]:[])
+        const checked=validateLivePlan({squad:m.squad,initial:base.ids,formation:base.formation,halftime:base.halftime,commands:action.aoVivo,existing,allowed:liveFormations(s,m,m.formation,formacoes15On()).map(f=>f.motor),blocked})
+        if(!checked||action.aoVivo.length===existing.length)return state
+        const atual=s.careerHalftime?.[m.id]?.[action.round]
+        s.careerHalftime={...s.careerHalftime,[m.id]:{...s.careerHalftime?.[m.id],[action.round]:{...(atual??{xi2:[]}),aoVivo:action.aoVivo.map(x=>({...x})),revisao:(atual?.revisao??0)+1}}}
+        return s
+      }
+      if(action.aoVivo.some(x=>x.formation))return s
       const byId = new Map(m.squad.map(c => [c.id, c]))
       const lista = (action.aoVivo ?? []).filter(x => Number.isFinite(x.t) && x.t >= 0)
       const trocas = lista.filter(x => x.sai || x.entra)

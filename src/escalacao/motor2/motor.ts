@@ -160,7 +160,7 @@ const ESPERA: Record<TipoParada, number> = { saida: 0.9, lateral: 0.6, escanteio
 
 const zero2 = (): [number, number] => [0, 0]
 /** 🔁 uma troca/tática com o jogo rolando: `t` = instante do motor (segundos de jogo) */
-export interface AoVivoM2 { t: number; lado: Lado; sai?: string; entra?: CartaCampo; tatica?: number }
+export interface AoVivoM2 { t: number; lado: Lado; sai?: string; entra?: CartaCampo; tatica?: number; formacao?:string }
 
 export class Motor2 {
   t = 0
@@ -436,16 +436,31 @@ export class Motor2 {
     while (this.agenda.length && this.t >= this.agenda[0].t - 1e-9) {
       const x = this.agenda.shift()!
       if (x.tatica != null) this.taticaBase[x.lado] = x.tatica
-      if (!x.sai || !x.entra) continue
+      if (!x.sai || !x.entra) { if(x.formacao)this.reorganiza(x.lado);continue }
       const a = this.atl.find(p => p.lado === x.lado && p.nome === x.sai && !p.expulso)
       if (!a || this.atl.some(p => p.lado === x.lado && p.nome === x.entra!.name)) continue
-      const { perfil: pf, forma } = perfilDoDia(x.entra, a.grupo, x.lado, this.ajuste[x.lado])
+      const { perfil: pf, forma } = perfilDoDia(x.entra, x.formacao?grupoDe(x.entra.pos):a.grupo, x.lado, this.ajuste[x.lado])
       a.nome = x.entra.name; a.carta = x.entra; a.estilo = pf.estilo; a.golpes = pf.golpes; a.pe = pf.pe; a.at = { ...pf.at }; a.base = pf.at; a.forma = forma; a.tend = pf.tend
       a.amarelos = 0; a.faltas = 0; a.atordoado = 0
       a.gas = this.ajuste[x.lado]?.condicaoUnica ? 1 : GAS_INICIO[Math.min(3, Math.max(0, -(x.entra.gasMod ?? 0)))]
       this.rende(a)
       this.subs.push({ lado: x.lado, sai: x.sai, entra: x.entra.name, t: this.t })
+      if(x.formacao)this.reorganiza(x.lado)
     }
+  }
+  /** Ajusta as âncoras sem recriar atletas, mover a bola ou reiniciar o relógio. */
+  private reorganiza(lado:Lado) {
+    const ativos=this.atl.filter(a=>a.lado===lado&&!a.expulso)
+    const por=(pos:string)=>ativos.filter(a=>(a.carta?.pos??a.carta?.sec)===pos)
+    const linha=(as:Atleta[],g:(i:number,n:number)=>Grupo,dep:number)=>as.forEach((a,i)=>{
+      const n=as.length,grupo=g(i,n),centro=n>1?Math.abs(i-(n-1)/2)/((n-1)/2):0
+      a.grupo=grupo;a.bx=n===1?34:n===2&&grupo==='ATA'?(i===0?22:46):9+50*i/(n-1)
+      a.dep=grupo==='MEI'?.45+centro*.3:grupo==='ATA'?dep-(1-centro)*.04:dep
+    })
+    const lats=por('LAT'),zags=por('ZAG'),defesa=lats.length>=2?[lats[0],...zags,...lats.slice(1)]:[...lats,...zags]
+    linha(por('GOL'),()=> 'GOL',0)
+    linha(defesa,(i,n)=>(lats.length>=2&&(i===0||i===n-1))||(lats.length===1&&i===0)?'LAT':'DEF',0)
+    linha(por('MEI'),()=> 'MEI',.52);linha(por('ATA'),()=> 'ATA',1)
   }
   /** as trocas que já valeram (o placar/súmula usa pra creditar gol de quem entrou) */
   subs: { lado: Lado; sai: string; entra: string; t: number }[] = []

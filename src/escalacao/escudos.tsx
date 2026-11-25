@@ -1034,7 +1034,7 @@ const piritubaEscudoRender = (size: number) => (
 // 🐆👑 LAVRAS FC (hugopereirabrito, batismo de 16/11) — Várzea, no assento do bot Galáticos do Bairro. 📏 258×360, 24 KB.
 // Escudo preto e dourado com a pantera e "LAVRAS FC E-SPORTS". Fundo verde chroma tirado (o desenho não tem verde); conferido sobre creme.
 const lavrasEscudoRender = (size: number) => (
-  <img src={lavrasEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Lavras FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={lavrasEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Eight8 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🦁🇧🇷 LEÕES DA TUF EC (sergioricardocf16, batismo de 14/11, dado pelo Diego) — Várzea, no assento do bot Chuteira Rachada FC.
 // 📏 278×360, 29 KB. O leão de boné e moletom fazendo o L, branco/vermelho/azul. Fundo verde chroma tirado; conferido sobre vermelho.
@@ -1839,13 +1839,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Pirituba FC': piritubaEscudoRender,
   'Pirituba EC': piritubaEscudoRender,
   'Pirituba S.F': piritubaEscudoRender,
-  // 🐆👑 Lavras FC (hugopereirabrito) — BATISMO. As 4 formas do nome (regra 20/08). O Galáticos do Bairro (bot que cedeu o assento)
-  // continua no jogo rápido, por isso o nome velho NÃO desenha o escudo novo.
-  'Lavras FC': lavrasEscudoRender,
-  'Lavras': lavrasEscudoRender,
-  'Lavrasfc': lavrasEscudoRender,
-  'Lavras EC': lavrasEscudoRender,
-  'Lavras SC': lavrasEscudoRender,
+  // 🐆👑 Eight8 FC (hugopereirabrito, ex-Lavras FC) — BATISMO. As 4 formas do nome (regra 20/08). (25/11: renomeado de Lavras FC → Eight8 FC a pedido do Diego; o nome Lavras FC ficou LIVRE pra qualquer um).
+  // O nome velho NÃO desenha mais o escudo: quem criar um "Lavras FC" agora é outra pessoa. O Galáticos do Bairro também não.
+  'Eight8 FC': lavrasEscudoRender,
+  'Eight8': lavrasEscudoRender,
+  'Eight8 EC': lavrasEscudoRender,
+  'Eight8 SC': lavrasEscudoRender,
   // 🦁🇧🇷 Leões da Tuf EC (sergioricardocf16) — BATISMO. As 4 formas do nome (regra 20/08).
   'Leões da Tuf EC': leoestufEscudoRender,
   'Leões da Tuf': leoestufEscudoRender,

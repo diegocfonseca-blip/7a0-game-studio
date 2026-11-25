@@ -933,7 +933,10 @@ export interface EscState {
   careerSubMode?: 'dinamico' | 'intervalo' // 🔁 SÓ CARREIRA OFFLINE (Diego 12/08): como o técnico faz troca. 'dinamico' (padrão) = como sempre foi (troca vale pro PRÓXIMO jogo, sem pausa). 'intervalo' = o jogo PARA aos 45' e abre o banner pra trocar SÓ pro 2º tempo. Preferência do técnico, NÃO zera entre temporadas.
   /** 🧯 22/11: quando o técnico LIGOU o "só no intervalo" (temporada + rodada). O modo vale do jogo SEGUINTE — ligar entre dois jogos fazia o jogo já apitado esperar um intervalo que nunca viria. */
   careerSubModeDesde?: { s: number; r: number }
-  careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic; revisao?: number; /** 🔁 23/11: trocas/tática com o jogo rolando (t = instante do motor, ids das cartas) — só aquele jogo */ aoVivo?: { t: number; sai?: string; entra?: string; tactic?: Tactic }[] }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
+  careerMemory?:Record<number,import('./career-memory').ClubMemory>
+  careerCupLive?: Record<string,import('./career-live-plan').CareerCupLive>
+  careerCupActive?: string
+  careerHalftime?: Record<number, Record<number, { xi2: string[]; formation?: FormationKey; tactic?: Tactic; revisao?: number; /** 🔁 23/11: trocas/tática com o jogo rolando (t = instante do motor, ids das cartas) — só aquele jogo */ aoVivo?: { t: number; sai?: string; entra?: string; tactic?: Tactic; formation?:FormationKey }[] }>> // 🔁 decisão de intervalo POR RODADA (mgrId → rodada 0-based → time do 2º tempo). xi2 = os 11 ids que entram no 2º tempo (no máx. 3 diferentes do 1º tempo, mesma posição/formação — validado no reducer). Só vale pro 2º tempo daquele jogo; NÃO muda o time do próximo (isso é no careerLineup). Zera entre temporadas. Motor re-simula o 2º tempo com sub-rng ISOLADO (não cascateia em outros jogos).
   careerColetiva?: Record<number, import('./coletiva').ColetivaSave> // 🎙️ COLETIVA DE IMPRENSA (19/10): por clube (mgrId). Histórico das respostas, promessas, fama, arquirrival e os efeitos pendentes (moral no próximo jogo / clássico). Só carreira solo. Ausente = nunca deu coletiva.
   // 🌐 CARREIRA ONLINE v2 (19/10, só conta do Diego): este aparelho roda a carreira SOLO do próprio clube e os outros clubes de gente chegam pelas gavetas (`carreira-online-v2.ts`). Ausente = carreira solo de sempre (nada muda).
   // `comanda` = este aparelho conduz as fases de TODOS (leilão etc.: o dono, ou o vice no dia dele); `espelho` = este aparelho só ASSISTE o leilão do dono (o que ele aperta vai pro dono).
@@ -958,6 +961,7 @@ export interface EscState {
   tvExtraVisto?: boolean // 📺 aviso ÚNICO da cota extra de TV (vídeo nas redes, Diego 23/08) já mostrado — aparece 1x na virada de temporada, pra conta antiga ou nova, e nunca mais.
   /** 💸 MERCADO DA TEMPORADA (03/10, pra Central): TODO negócio do pregão desta temporada — de todo clube,
    *  humano ou bot. Só a temporada atual (a virada começa lista nova), no máximo 80 lotes, só exibição. */
+  careerTransferHistory?:import('./career-transfer-history').CareerDeal[]
   careerMercado?: { season: number; lotes: { name: string; pos: string; team: string; teamId: number; paid: number; via: 'leilao' | 'monte' | 'desempate' }[] }
   careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   careerLedgers?: Record<number, LedgerEntry[]> // 🧾 carreira ONLINE: livro-caixa por técnico (mgrId → extrato). Offline usa careerLedger (single).

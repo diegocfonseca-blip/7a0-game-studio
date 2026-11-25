@@ -1,3 +1,11 @@
+## 25/11 — Evolução da carreira: publicação autorizada
+
+- Pedido: todos os itens da proposta **menos 4 e 8**. Guia, próximo passo, previsão de gastos, controles das copas M2, formação ao vivo, repertório do técnico, origem das transferências, memória do clube e cenas reais da cidade.
+- Preservados OVR, categorias, economia, modo histórico e salas online. Sem recomendações de contratação nem resumo analítico automático após jogo.
+- Testes de 3 substituições/intervalo/replay/placar/2D/3D, telas em 390/1440 px e 25 temporadas com retomada. Save de teste final: 1,38 MB bruto; memória adicional limitada e testada em 1.800 jogos.
+- Relatório e limites: [carreira-evolucao-20261125.md](auditorias/carreira-evolucao-20261125.md). Capturas reais em `/workspace/shared/carreira-evolucao-20261125/`.
+- Diego autorizou a publicação após receber as telas reais: “Publique então”. Entrega via `main` e workflow de GitHub Pages, preservando a opção de reversão por commit.
+
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS: FEITO, só pra Diego + Futpoint (`CONQUISTAS_GERAL = false` em sport.ts)
 - 4ª variante do Leilão de Clubes (Partida Rápida + salas Rápido/Liga da Turma, envelope · Tocaia · pregão aberto). Motor e
   temas em `conquistas.ts`; trava `npm run conquistas` (tamanho, pessoa nunca repete, mesma semente = mesmos pacotes, 2–20 pessoas).
@@ -15563,3 +15571,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Prints: `scripts/mockups/quiz-recorde*.png` · bancada `node scripts/teste-formacoes/print-quiz-recorde.mjs <pasta>`.
 - 🃏 25/11 (✅ publicado, "Pode"): ao responder, a carta aparece com a CARA DE CARTA do jogo (`CollectibleCard big`, a da revelação
   do leilão), girando, embaixo das opções. Diego: *"a carta quero c cara de carta igual as do jogo qd é revelado"*. Print `scripts/mockups/quiz-carta-revelada.png`.
+
+## 25/11 — 🔁 Batismo renomeado: Lavras FC → Eight8 FC (hugopereirabrito) — feito e publicado
+- Pedido do Diego: *"troque o nome do time dele por Eight8 FC e libere esse nome Lavras FC pra ser criado por qualquer outra pessoa"*.
+- Banco: `auth.users` display_name = Eight8 FC · `esc_socios.escudo_time` = Eight8 FC · `esc_nomes_batismo`: entrou Eight8 (+FC/EC pelo
+  gatilho) e SAÍRAM as 6 formas de Lavras/Lavrasfc. Conferido: `esc_nome_livre('Lavras FC')` = livre; `Eight8 FC` = reservado (batismo).
+- Código: escudo/mascote (`LOGOS_PRONTAS`/`CARIMBO_GOL`) agora nas formas do Eight8; as do Lavras SAÍRAM (quem criar Lavras FC não herda a arte).
+  Pirâmide: assento da Várzea vira Eight8 FC; `OLD_NAME` 'Eight8 FC' ← 'Galáticos do Bairro' (Lavras FC NÃO entra na corrente de propósito).
+  Saves que já tinham o bot "Lavras FC" seguem com esse nome velho na tabela (só cosmético).
+- ⏳ PENDENTE: a arte do escudo ainda tem escrito "LAVRAS FC E-SPORTS" — pedir arte nova ao dono se ele quiser.
