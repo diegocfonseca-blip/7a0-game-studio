@@ -1,9 +1,10 @@
+import {FORMATIONS,SECTORS,type FormationKey,type Sector} from './types'
 // 🔁 SUBSTITUIR COM O JOGO ROLANDO (23/11, mockup `scripts/mockups/substituir-ao-vivo.png`, Diego: *"pode ser"*).
 // O jogo PAUSA e abre um elenco LIMPO: só quem está em campo agora e os reservas (nada de comissão/base). Toca em quem sai,
 // depois em quem entra (mesma posição — a vaga do campinho é lei). No máximo 3 trocas por jogo; a tática também muda aqui.
 // Vale SÓ neste jogo: depois do apito o time volta como estava (o fixo continua na aba Elenco).
 // No 3D é uma janela por baixo, em cima do mapa pausado; no 2D fica embaixo do campinho.
-import { useState } from 'react'
+import { useEffect,useState } from 'react'
 import { tr } from './lang'
 import { MAX_TROCAS_AO_VIVO } from './ao-vivo'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
@@ -14,8 +15,12 @@ const INK = '#0C0C0C'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
 const COR_POS: Record<string, string> = { GOL: '#E8A400', LAT: '#2563EB', ZAG: '#1B7A3D', MEI: '#7C3AED', ATA: '#C2452F' }
 
-export function PainelSubstituir({ modo, minuto, emCampo, reservas, feitas, tatica, gas, onTroca, onTatica, onVoltar, compact=false }: {
+export function PainelSubstituir({ modo, minuto, emCampo, reservas, feitas, tatica, gas, onTroca, onTatica, onVoltar, compact=false,formation,formations,onFormation,onPlan }: {
   compact?: boolean
+  formation?:FormationKey
+  formations?:{motor:FormationKey;label:string;available:boolean}[]
+  onFormation?:(formation:FormationKey)=>void
+  onPlan?:(changes:{sai:string;entra:string}[],formation:FormationKey)=>void
   modo: 'janela' | 'embaixo'
   minuto: number
   emCampo: CartaSub[]
@@ -25,14 +30,23 @@ export function PainelSubstituir({ modo, minuto, emCampo, reservas, feitas, tati
   tatica: Tac
   /** gás 0–100 de cada carta (sem a régua do gás ligada: nada) */
   gas?: (id: string) => number | undefined
-  onTroca: (saiId: string, entraId: string) => void
+  onTroca: (saiId: string, entraId: string,formation?:FormationKey) => void
   onTatica: (t: Tac) => void
   onVoltar: () => void
 }) {
   const [sel, setSel] = useState<string | null>(null)
+  const [draft,setDraft]=useState<FormationKey|undefined>(formation),[pending,setPending]=useState<{sai:string;entra:string}[]>([])
+  useEffect(()=>{setDraft(formation);setPending([]);setSel(null)},[formation,emCampo.map(c=>c.id).join('|')])
+  const cardsById=new Map([...emCampo,...reservas].map(c=>[c.id,c]))
+  const draftIds=emCampo.map(c=>pending.find(x=>x.sai===c.id)?.entra??c.id)
+  const draftCards=draftIds.map(id=>cardsById.get(id)!).filter(Boolean)
+  const remainingBench=reservas.filter(c=>!draftIds.includes(c.id))
+  const needs=draft?SECTORS.flatMap(p=>{const missing=FORMATIONS[draft][p]-draftCards.filter(c=>c.pos===p).length;return missing>0?[`${missing} ${p}`]:[]}):[]
+  const planReady=!!draft&&draftCards.length===11&&new Set(draftIds).size===11&&needs.length===0&&SECTORS.every(p=>draftCards.filter(c=>c.pos===p).length===FORMATIONS[draft][p])
+  const changing=!!formation&&!!draft&&draft!==formation
   const usadas = feitas.length
   const acabou = usadas >= MAX_TROCAS_AO_VIVO
-  const saiu = emCampo.find(c => c.id === sel)
+  const saiu = draftCards.find(c => c.id === sel)
   const entrouIds = new Set(feitas.map(f => f.entra.id))
   const linha = (c: CartaSub, extra: { on?: boolean; apagado?: boolean; onClick?: () => void; antes?: string }) => {
     const g = gas?.(c.id)
@@ -61,29 +75,32 @@ export function PainelSubstituir({ modo, minuto, emCampo, reservas, feitas, tati
             style={{ ...OSW, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 0', fontWeight: 900, fontSize: 12, background: tatica === t ? '#2F6BAE' : '#fff', color: tatica === t ? '#fff' : INK, boxShadow: '2px 2px 0 #000', cursor: 'pointer' }}>{label}</button>
         ))}
       </div>
+      {formation&&formations&&<section className="cv2-live-formation"><label style={{fontSize:12,fontWeight:800}}>{tr('Formação nesta partida','Formation in this match')}<select aria-label={tr('Formação nesta partida','Formation in this match')} value={draft} onChange={e=>{setDraft(e.target.value as FormationKey);setPending([]);setSel(null)}} style={{display:'block',width:'100%',minHeight:44,border:'2px solid #0C0C0C',borderRadius:9,background:'#fff',color:INK,padding:8,margin:'5px 0'}}>{formations.map(f=><option key={f.motor} value={f.motor} disabled={!f.available}>{f.label}{!f.available?tr(' · faltam jogadores',' · missing players'):''}</option>)}</select></label>{changing&&<p style={{fontSize:12,color:'#514B3B'}}>{tr('Ajuste os jogadores e confirme o novo esquema. O jogo continua pausado.','Adjust your players and confirm the new formation. The match stays paused.')}{needs.length>0&&<> {tr('Falta: ','Missing: ')}{needs.join(' · ')}</>}</p>}</section>}
       <div className={compact ? 'cv2-sub-columns' : undefined}>
       <section className={compact ? 'cv2-sub-column' : undefined} aria-label={tr('Em campo agora','On the pitch now')}>
       <p style={{ ...OSW, fontWeight: 900, fontSize: 11, letterSpacing: '.08em', color: '#555', margin: '6px 2px 4px', textTransform: 'uppercase' }}>
         {tr('Em campo agora', 'On the pitch now')}{!acabou && !sel ? tr(' · toque em quem sai', ' · tap who comes off') : ''}
       </p>
-      {emCampo.map(c => {
+      {draftCards.map(c => {
         const f = feitas.find(x => x.entra.id === c.id)
-        return linha(c, { on: sel === c.id, antes: f?.sai.name, onClick: acabou ? undefined : () => setSel(sel === c.id ? null : c.id) })
+        return linha(c, { on: sel === c.id, antes: f?.sai.name, onClick: acabou || pending.some(x=>x.entra===c.id) ? undefined : () => setSel(sel === c.id ? null : c.id) })
       })}
       </section>
       <section className={compact ? 'cv2-sub-column cv2-sub-bench' : undefined} aria-label={tr('Reservas','Bench')}>
       <p style={{ ...OSW, fontWeight: 900, fontSize: 11, letterSpacing: '.08em', color: '#555', margin: '8px 2px 4px', textTransform: 'uppercase' }}>
         {tr('Reservas', 'Bench')}{saiu ? tr(` · quem entra no lugar de ${saiu.name} (${saiu.pos})`, ` · who replaces ${saiu.name} (${saiu.pos})`) : ''}
       </p>
-      {reservas.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '0 2px 6px' }}>{tr('Sem reserva disponível — contrate no leilão pra ter banco.', 'No one on the bench — sign players at the auction to have subs.')}</p>}
-      {reservas.map(c => {
-        const pode = !!saiu && c.pos === saiu.pos && !acabou && !entrouIds.has(c.id)
-        return linha(c, { apagado: !!saiu && !pode, onClick: pode ? () => { onTroca(saiu!.id, c.id); setSel(null) } : undefined })
+      {remainingBench.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '0 2px 6px' }}>{tr('Sem reserva disponível — contrate no leilão pra ter banco.', 'No one on the bench — sign players at the auction to have subs.')}</p>}
+      {remainingBench.map(c => {
+        const target=draft?FORMATIONS[draft][c.pos as Sector]??0:0
+        const pode = !!saiu && (changing?(draftCards.filter(x=>x.pos===c.pos).length<target):c.pos===saiu.pos) && usadas+pending.length<MAX_TROCAS_AO_VIVO && !entrouIds.has(c.id)
+        return linha(c, { apagado: !!saiu && !pode, onClick: pode ? () => { changing?setPending(p=>[...p,{sai:saiu!.id,entra:c.id}]):onTroca(saiu!.id,c.id);setSel(null) } : undefined })
       })}
       </section>
       </div>
-      {saiu && !reservas.some(c => c.pos === saiu.pos) && <p style={{ fontSize: 12, fontWeight: 700, color: '#C2452F', margin: '0 2px 6px' }}>{tr(`Sem reserva de ${saiu.pos} no banco — a troca é sempre na mesma posição.`, `No ${saiu.pos} on the bench — subs are always like for like.`)}</p>}
-      <button type="button" className={compact ? 'cv2-sub-return' : undefined} onClick={onVoltar}
+      {!changing&&saiu && !reservas.some(c => c.pos === saiu.pos) && <p style={{ fontSize: 12, fontWeight: 700, color: '#C2452F', margin: '0 2px 6px' }}>{tr(`Sem reserva de ${saiu.pos} no banco — a troca é sempre na mesma posição.`, `No ${saiu.pos} on the bench — subs are always like for like.`)}</p>}
+      {changing&&<div style={{display:'flex',gap:8,marginTop:10}}><button type="button" disabled={!planReady||usadas+pending.length>3} onClick={()=>{if(draft){if(pending.length)onPlan?.(pending,draft);else onFormation?.(draft)}}} style={{...OSW,flex:1,border:'3px solid #0C0C0C',borderRadius:10,padding:10,background:planReady?'#1B7A3D':'#ddd',color:planReady?'#fff':'#555',fontWeight:800}}>{tr('Confirmar esquema e trocas','Confirm formation and subs')} ({usadas+pending.length}/3)</button><button type="button" onClick={()=>{setDraft(formation);setPending([]);setSel(null)}} style={{...OSW,border:'2px solid #0C0C0C',borderRadius:10,padding:8,background:'#fff'}}>{tr('Cancelar','Cancel')}</button></div>}
+      <button type="button" className={compact ? 'cv2-sub-return' : undefined} onClick={()=>{setDraft(formation);setPending([]);onVoltar()}}
         style={{ ...OSW, width: '100%', marginTop: 6, background: '#FFC400', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 10, fontWeight: 900, fontSize: 16, boxShadow: '3px 3px 0 #000', cursor: 'pointer', textTransform: 'uppercase' }}>▶ {tr('Voltar ao jogo', 'Back to the match')}</button>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: '#555', textAlign: 'center', margin: '7px 0 0' }}>
         {tr(`Vale só neste jogo · no máximo ${MAX_TROCAS_AO_VIVO} trocas. Depois do apito o time volta como estava — pra mudar de vez, aba Elenco.`, `This match only · up to ${MAX_TROCAS_AO_VIVO} subs. After the whistle the team goes back to normal — to change it for good, use the Squad tab.`)}

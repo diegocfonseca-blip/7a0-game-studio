@@ -1,3 +1,11 @@
+## 25/11 — Evolução da carreira: publicação autorizada
+
+- Pedido: todos os itens da proposta **menos 4 e 8**. Guia, próximo passo, previsão de gastos, controles das copas M2, formação ao vivo, repertório do técnico, origem das transferências, memória do clube e cenas reais da cidade.
+- Preservados OVR, categorias, economia, modo histórico e salas online. Sem recomendações de contratação nem resumo analítico automático após jogo.
+- Testes de 3 substituições/intervalo/replay/placar/2D/3D, telas em 390/1440 px e 25 temporadas com retomada. Save de teste final: 1,38 MB bruto; memória adicional limitada e testada em 1.800 jogos.
+- Relatório e limites: [carreira-evolucao-20261125.md](auditorias/carreira-evolucao-20261125.md). Capturas reais em `/workspace/shared/carreira-evolucao-20261125/`.
+- Diego autorizou a publicação após receber as telas reais: “Publique então”. Entrega via `main` e workflow de GitHub Pages, preservando a opção de reversão por commit.
+
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS: FEITO, só pra Diego + Futpoint (`CONQUISTAS_GERAL = false` em sport.ts)
 - 4ª variante do Leilão de Clubes (Partida Rápida + salas Rápido/Liga da Turma, envelope · Tocaia · pregão aberto). Motor e
   temas em `conquistas.ts`; trava `npm run conquistas` (tamanho, pessoa nunca repete, mesma semente = mesmos pacotes, 2–20 pessoas).

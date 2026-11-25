@@ -1,3 +1,4 @@
+import {dealDescription,type CareerDeal} from './career-transfer-history'
 // ─── 📰 O MARTELO DA CENTRAL — as notícias do meio da temporada (03/10) ──────
 //
 // A Central Legends (a "home" do modo carreira) tem um jornal que sai TODA rodada,
@@ -20,7 +21,7 @@ export type TimeLinha = { name: string; pts: number; w: number; d: number; l: nu
 export type Formas = Record<string, string>
 export type Artilheiro = { name: string; teamName: string; goals: number; you: boolean }
 export type Garcom = { name: string; teamName: string; assists: number; you: boolean }
-export type Contratacao = { name: string; teamName: string; paid: number; you: boolean }
+export type Contratacao = { name: string; teamName: string; paid: number; you: boolean;deal?:CareerDeal;club?:string;year?:number }
 export type EntradaJornal = {
   round: number
   divName: string
@@ -53,7 +54,7 @@ export type EntradaJornal = {
   /** 🏆 copas chegando: faltam N rodadas · é na próxima temporada · é nesta temporada */
   copaChegando?: { nome: [string, string]; rodadasFaltam?: number; proximaTemporada?: boolean; esteAno?: boolean }[]
 }
-export type Noticia = { emoji: string; pt: string; en: string; tag: [string, string] }
+export type Noticia = { emoji: string; pt: string; en: string; tag: [string, string];deal?:CareerDeal }
 export type Jornal = { manchete: { pt: string; en: string; sub: [string, string] } | null; noticias: Noticia[] }
 
 const ord = (n: number) => `${n}º`
@@ -74,7 +75,10 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
   // (título/Z4, lesão, cria, copa chegando) vem antes do noticiário geral — senão a lesão
   // do seu titular ficava de fora e sobrava "Série B: fulano lidera".
   const fila: { pri: number; n: Noticia }[] = []
-  const noticias = { push: (n: Noticia, pri = 5) => { fila.push({ pri, n }) } }
+  const noticias = { push: (n: Noticia, pri = 5) => {
+    const deal=['💰','💸'].includes(n.emoji)?[e.maiorLance,e.maisCaro].find(m=>m?.deal&&n.pt.includes(m.name))?.deal:undefined
+    fila.push({pri,n:deal?{...n,pt:`${n.pt} ${dealDescription(deal)}`,en:`${n.en} ${dealDescription(deal,true)}`,deal}:n})
+  } }
   const t = e.tabela
   // 18/11: tabela toda zerada = nenhum jogo revelado ainda (rodada ao vivo, ou o seu time folgou) — nada de "briga no topo com 0 pontos"
   if (!t.length || e.round < 1 || t.every(x => x.pts === 0)) return { manchete: null, noticias: [] }
