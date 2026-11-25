@@ -115,7 +115,7 @@ import { EscalacaoMinha } from './minha-escalacao' // 📋🏆 Minha Liga Draft 
 import { TaticasLigaDraft } from './taticas-liga-draft' // ⚔️ 24/11
 import { footballPlanRoom } from './football-live-tactics'
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
-import { useOnlinePreview } from './online-preview'
+import { useOnlinePreview,useOwnerPresentation as usePrivateOwnerPresentation } from './online-preview'
 import { useOnlineRoomPresentation as useOwnerPresentation } from './presentation-release'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
@@ -134,6 +134,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
+import {Formula1Tab,useFormula1Selected} from './formula1-entry'
 import { siteDoJogo, useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useViceCity, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
@@ -931,6 +932,7 @@ export function ChatWidget() {
 }
 
 export function GameFooter() {
+  const formula1=useFormula1Selected(),formula1Owner=usePrivateOwnerPresentation()
   const { state, dispatch } = useEsc()
   const privatePreview = useOnlinePreview()
   const ownerAccount = useOwnerPresentation()
@@ -947,6 +949,7 @@ export function GameFooter() {
   }
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
+  if(formula1&&formula1Owner&&state.screen==='intro')return null
   if (privatePreview && state.careerIntent && state.screen === 'setup' && state.sport === 'basquete') return null
   if (careerVisualV2(state) || (state.screen === 'setup' && state.careerIntent && state.sport !== 'basquete')) return <footer className="csg-footer"><div className="csg-footer-inner"><div><strong>{state.sport === 'basquete' ? 'BIDLEGENDS' : 'LEILÃO LEGENDS'}</strong><p>{tr('Seu clube. Sua história. Uma temporada de cada vez.','Your club. Your story. One season at a time.')}</p></div><nav aria-label={tr('Links do rodapé','Footer links')}>{state.sport !== 'basquete' && <LojaButton naCarreira={state.screen!=='setup'}>{tr('Loja do clube','Club shop')} →</LojaButton>}<button type="button" onClick={goHome}>{tr('Menu inicial','Main menu')}</button><a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer">Instagram</a><a href="mailto:contato@leilaolegends.com">{tr('Contato','Contact')}</a></nav></div></footer>
   // The private lobby supplies its own shop card. Keep contact here, outside
@@ -2074,6 +2077,7 @@ function SportTabs() {
     <div className="flex gap-2 pt-3">
       {tab('futebol', '⚽', t('Futebol', 'Soccer'), GREEN)}
       {tab('basquete', '🏀', t('Basquete', 'Basketball'), '#C2452F')}
+      <Formula1Tab/>
     </div>
   )
 }
@@ -2120,7 +2124,7 @@ function SeletorEsporte() {
   const seg = (s: Sport, rotulo: string, cor: string) => (
     <button aria-pressed={sport === s} onClick={() => setSportSel(s)} style={sport === s ? { background: cor, color: '#fff' } : undefined}>{rotulo}</button>
   )
-  return <div className="ll-seletor-esporte" role="group" aria-label={t('Escolher o jogo', 'Choose the game')}>{seg('futebol', t('⚽ FUTEBOL', '⚽ SOCCER'), GREEN)}{seg('basquete', t('🏀 BASQUETE', '🏀 BASKETBALL'), '#C2452F')}</div>
+  return <div className="ll-seletor-esporte" role="group" aria-label={t('Escolher o jogo', 'Choose the game')}>{seg('futebol', t('⚽ FUTEBOL', '⚽ SOCCER'), GREEN)}{seg('basquete', t('🏀 BASQUETE', '🏀 BASKETBALL'), '#C2452F')}<Formula1Tab/></div>
 }
 
 function BidLegendsHome() {

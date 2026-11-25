@@ -15477,3 +15477,9 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Diego aprovou as oito telas e publicação geral, pedindo mapa maior e retirada de “Patrocinadores” sobreposto.
 - Implementação, regras preservadas, testes e reversão: [visual-carreira-publico-20261125.md](visual-carreira-publico-20261125.md).
 - Publicado para todos: `266fa995`, GitHub Pages [45522737957](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45522737957), build e deploy concluídos com sucesso.
+
+## 25/11 — Fórmula 1: Partida Rápida somente para Diego
+- Pedido: implementar a referência anterior, dois pilotos e um carro histórico por escuderia; três compras, pneus, ritmo, boxes e corrida 2D.
+- Decisão, fontes, isolamento e testes: [formula1-rapida-privada-20261125.md](formula1-rapida-privada-20261125.md).
+- Acesso privado pela identidade principal verificada; não liberar para Futpoint, secundária ou público.
+- Publicação: aguardando conclusão das verificações e deploy privado.
