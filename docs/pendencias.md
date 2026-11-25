@@ -15478,7 +15478,7 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Implementação, regras preservadas, testes e reversão: [visual-carreira-publico-20261125.md](visual-carreira-publico-20261125.md).
 - Publicado para todos: `266fa995`, GitHub Pages [45522737957](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45522737957), build e deploy concluídos com sucesso.
 
-## 25/11 — 📜 Liga Draft: a lista de escolha parava nos 250 (no branch, esperando OK)
+## 25/11 — 📜 Liga Draft: a lista de escolha parava nos 250 (✅ publicado em 25/11, "Pode")
 - Reclamação do Anesp (via Diego): *"chega uma hora que não desce mais"* + Diego: *"falta uma barrinha pra deixar claro que dá pra descer"*.
 - Causa: `LIMITE_LISTA = 250` em `liga-draft-tela.tsx` (2.631 jogadores no baralho; o resto só pela busca).
 - Feito: a lista vem de 250 em 250 sozinha conforme rola (IntersectionObserver + botão "⬇ Ver mais"), dentro de uma caixa com barra
