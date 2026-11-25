@@ -2514,6 +2514,10 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
+## 🕵️ VIGIA DE CONTA DUPLA — 25/11 (nada novo; não avisado)
+- Só as 4 já conhecidas, sem piorar: Duarte FC × Lenda Fc07 (6 temp., 4×0) · Fuxfux22 × Muralha FC (5×0) · Éden FC × Fluminense (5×0) ·
+  bernardomatana × mixoliveira (5×0, perdedor 2 salas cheias). As fortes seguem esperando o OK do Diego pra ligar.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 22/11 (avisado ao Diego, esperando OK pra ligar)
 - NOVO (forte): **Duarte FC** (Fundador nº102) × **Lenda Fc07** (tucad65, conta criada HOJE 22/11) — 6 temporadas só os dois, entre 17:17 e
   17:22 UTC (5 minutos), 4 ligas × 0; a Lenda Fc07 nunca jogou com mais ninguém. O Duarte é ativo de verdade (219 salas cheias em 30 dias).
