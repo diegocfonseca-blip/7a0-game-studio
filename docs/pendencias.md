@@ -6,6 +6,14 @@
 - Relatório e limites: [carreira-evolucao-20261125.md](auditorias/carreira-evolucao-20261125.md). Capturas reais em `/workspace/shared/carreira-evolucao-20261125/`.
 - Diego autorizou a publicação após receber as telas reais: “Publique então”. Entrega via `main` e workflow de GitHub Pages, preservando a opção de reversão por commit.
 
+
+## 25/11 — Partida Rápida: táticas novas + botão de avançar maior (NO BRANCH, esperando OK do Diego)
+- Pedido: *"começar a temporada tá mt pouco visível… serve p qlqr local"* e *"na partida rápida não tá mostrando as táticas novas (pressão alta…)"*.
+- Botão "Começar a temporada / Próxima rodada" (`.ov3-next`, owner-online-visual.css): maior, borda 3px, sombra dura, ocupa a linha. Vale em toda tela com esse controle.
+- Partida Rápida OFFLINE ganhou o plano novo (postura · caminho do ataque · marcação · ritmo): `footballPlanQuick` em football-live-tactics.ts; nunca carreira. Ordem AO VIVO continua só online (teste).
+- Prints: `scripts/mockups/rapida-taticas-botao-{1280,390}.png`; bancada `scripts/teste-taticas-rapida/`.
+- Reverter: `git revert` do commit.
+
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS: FEITO, só pra Diego + Futpoint (`CONQUISTAS_GERAL = false` em sport.ts)
 - 4ª variante do Leilão de Clubes (Partida Rápida + salas Rápido/Liga da Turma, envelope · Tocaia · pregão aberto). Motor e
   temas em `conquistas.ts`; trava `npm run conquistas` (tamanho, pessoa nunca repete, mesma semente = mesmos pacotes, 2–20 pessoas).

@@ -20,9 +20,14 @@ export function useFootballClock(){return useSyncExternalStore(fn=>{clockListene
 export function footballPlanRoom(s:EscState){
  return s.onlineMode==='online'&&s.sport!=='basquete'&&!s.careerOnline&&!s.careerIntent&&!s.co2&&!s.pokeLiga
   &&!!s.roomId&&(!s.ligaDraft||!!s.minhaLigaDraft) // ⚔️ 24/11: a Liga Draft (minhaLigaDraft) ganhou as táticas novas, a pedido do Diego
+  ||footballPlanQuick(s)
+}
+/** ⚔️ 25/11: Partida Rápida OFFLINE também tem o plano novo (postura · ataque · pressão alta · ritmo). Nunca carreira. */
+export function footballPlanQuick(s:EscState){
+ return s.onlineMode!=='online'&&s.sport!=='basquete'&&!s.careerOnline&&!s.careerIntent&&!s.co2&&!s.pokeLiga&&!s.roomId
 }
 export function footballTestRoom(s:EscState){
- return s.isHost&&s.youUid===FOOTBALL_OWNER_UID&&footballPlanRoom(s)&&!s.minhaLigaDraft // ordem ao vivo (teste) continua fora da Liga Draft
+ return s.isHost&&s.onlineMode==='online'&&s.youUid===FOOTBALL_OWNER_UID&&footballPlanRoom(s)&&!s.minhaLigaDraft // ordem ao vivo (teste) continua fora da Liga Draft
   &&s.managers.some((m,i)=>m.isHuman&&s.seatUids?.[i]===FOOTBALL_OWNER_UID)
   &&s.managers.every((m,i)=>!m.isHuman||TEST_ACCOUNTS.has(s.seatUids?.[i]??''))
 }
@@ -33,7 +38,7 @@ export function promoteFootballPlans(s:EscState){
  if(!footballPlanHost(s))return
  for(const [seat,m] of s.managers.entries()){
   const plan=s.footballNextPlans?.[m.id]
-  if(m.isHuman&&footballPlanActor(s.seatUids?.[seat])&&validFootballPlan(plan)){
+  if(m.isHuman&&(footballPlanActor(s.seatUids?.[seat])||footballPlanQuick(s)&&seat===s.youIdx)&&validFootballPlan(plan)){
    s.footballPlans={...s.footballPlans,[m.id]:{...plan,mark:null}};s.tactics[m.id]=plan.posture
   }
  }

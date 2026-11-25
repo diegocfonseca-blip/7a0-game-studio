@@ -33,3 +33,10 @@
 @media(max-width:760px){.ov3-speed-area{gap:8px}}
 @media(max-width:370px){.ov3-advance{gap:5px}.ov3-advance button{padding-inline:7px;font-size:11px}.ov3-speed-area{gap:5px}.ov3-speed{padding-inline:7px;font-size:10px}}
 .ov3-sigla{display:grid;place-items:center;width:34px;height:34px;border:2px solid #ffc400;border-radius:7px;color:#ffc400;font:700 17px Oswald,sans-serif;letter-spacing:-1px}
+/* 🟡 25/11 (Diego: "começar a temporada tá mt pouco visível ali no canto"): o botão de avançar (Começar a temporada · Próxima rodada)
+   é a ação principal da tela — maior, com borda e sombra dura do jogo, ocupando o espaço livre da linha. Vale pra toda tela com esse controle. */
+.ov3-playback-line .ov3-advance{flex:1 1 auto}
+.ov3-advance .ov3-next{flex:1 1 auto;max-width:440px;min-height:54px;border:3px solid #0c0c0c!important;border-radius:12px;box-shadow:4px 4px 0 #000;font:800 16px Oswald,sans-serif;letter-spacing:.4px;text-transform:uppercase;padding:12px 22px}
+.ov3-advance .ov3-next:not(:disabled):hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #000}
+.ov3-advance .ov3-next:not(:disabled):active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000}
+@media(max-width:760px){.ov3-advance .ov3-next{font-size:14px;min-height:52px;padding:11px 12px;white-space:normal}}

@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react'
 import {ehKings,useEscTalvez} from './store'
-import {FOOTBALL_LOCAL_ORDER,DEFAULT_FOOTBALL_PLAN,footballPlanRoom,footballPlanActor,footballTestRoom,planFor,nextPlanFor,quickFootballMatch,footballClockContext,useFootballClock,type FootballPlan} from './football-live-tactics'
+import {FOOTBALL_LOCAL_ORDER,DEFAULT_FOOTBALL_PLAN,footballPlanRoom,footballPlanQuick,footballPlanActor,footballTestRoom,planFor,nextPlanFor,quickFootballMatch,footballClockContext,useFootballClock,type FootballPlan} from './football-live-tactics'
 import {tr} from './lang'
 import type {Tactic} from './types'
 
@@ -9,7 +9,7 @@ export function FootballTacticsPanel({value,onChange,disabled,note,minimal=false
  const ctx=useEscTalvez(),clock=useFootballClock()
  const state=ctx?.state,manager=state?.managers[state.youIdx]
  const actual=state&&manager?planFor(state,manager.id):{...DEFAULT_FOOTBALL_PLAN,posture:value}
- const canSave=!!state&&!!manager&&footballPlanRoom(state)&&footballPlanActor(state.youUid)&&['season','liberta','champions'].includes(state.screen)&&!ehKings(state)&&!!(state.quickCopa||state.screen!=='season'||state.champion==null)&&!state.espectador
+ const canSave=!!state&&!!manager&&footballPlanRoom(state)&&(footballPlanActor(state.youUid)||footballPlanQuick(state))&&['season','liberta','champions'].includes(state.screen)&&!ehKings(state)&&!!(state.quickCopa||state.screen!=='season'||state.champion==null)&&!state.espectador
  const preferred=state&&manager?nextPlanFor(state,manager.id):actual
  const key=state?`${state.roomId}:${state.seed}:${state.youUid}:${manager?.id}:${canSave?'saved':state.round}`:'fixture'
  const [draftState,setDraft]=useState<{key:string;plan:FootballPlan}|null>(null),[pending,setPending]=useState<string|null>(null),[error,setError]=useState('')
@@ -38,7 +38,7 @@ export function FootballTacticsPanel({value,onChange,disabled,note,minimal=false
  },[pending,order?.id])
  const change=<K extends keyof FootballPlan>(field:K,next:FootballPlan[K])=>{
   const plan={...draft,[field]:next};if(same(plan,draft))return;setDraft({key,plan});setError('')
-  if(canSave&&state&&manager)ctx?.dispatch({type:'FOOTBALL_SAVE_PLAN',mgrId:manager.id,by:state.youUid!,plan})
+  if(canSave&&state&&manager)ctx?.dispatch({type:'FOOTBALL_SAVE_PLAN',mgrId:manager.id,by:state.youUid??'',plan})
   else if(field==='posture'&&!eligible)onChange(next as Tactic)
  }
  const group=<K extends 'posture'|'attack'|'pressure'|'pace'>(field:K,label:string,options:{value:FootballPlan[K];label:string}[])=><div className="fp-order-group"><span>{label}</span><div role="group" aria-label={label}>{options.map(option=><button type="button" key={option.value} aria-pressed={draft[field]===option.value} disabled={disabled||!!pending} onClick={()=>change(field,option.value)}>{option.label}</button>)}</div></div>

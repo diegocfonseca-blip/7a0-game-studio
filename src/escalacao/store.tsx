@@ -7,7 +7,7 @@ import {eventosFisicos} from './carreira-fisica'
 import { referenciaAtleta, salarioReferencia, faixaCampanha } from './carreira-economia'
 import { mercadoAnualOficial, MERCADO_BOTS_OFICIAL_GLOBAL, TRANSFERENCIAS_OFICIAIS, reservaNegociavel, type ClubeMercado } from './mercado-bots-oficial'
 import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
-import {FOOTBALL_LOCAL_ORDER,footballClockContext,quickFootballMatch,footballTestRoom,footballPlanHost,footballPlanActor,promoteFootballPlans,validFootballPlan,planFor,footballPlanModifiers,mergeFootballFuture,footballContributions,footballClock,type FootballPlan} from './football-live-tactics'
+import {FOOTBALL_LOCAL_ORDER,footballClockContext,quickFootballMatch,footballTestRoom,footballPlanHost,footballPlanActor,promoteFootballPlans,validFootballPlan,footballPlanQuick,planFor,footballPlanModifiers,mergeFootballFuture,footballContributions,footballClock,type FootballPlan} from './football-live-tactics'
 import {retornoDeSalaLocal,acaoDaSalaLocal,acaoRemotaDaSalaPermitida} from './online-acoes-locais'
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
@@ -12343,9 +12343,10 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'FOOTBALL_SAVE_PLAN': {
       // Existing guest -> host route; a human's saved plan must match its UID/seat.
       // Match manager ID against its UID, never against the host's local youIdx.
-      if(!footballPlanHost(s)||!footballPlanActor(action.by)||ehKings(s)||!['season','liberta','champions'].includes(s.screen)||s.screen==='liberta'&&!s.liberta||s.screen==='champions'&&!s.champions||s.quickCopa?.phase==='done'||s.screen==='season'&&!s.quickCopa&&s.champion!=null||!validFootballPlan(action.plan)||action.plan.mark!==null)return s
+      const planoLocal=footballPlanQuick(s)&&s.managers[s.youIdx]?.id===action.mgrId // ⚔️ 25/11: Partida Rápida offline (só o próprio aparelho)
+      if(!footballPlanHost(s)||!planoLocal&&!footballPlanActor(action.by)||ehKings(s)||!['season','liberta','champions'].includes(s.screen)||s.screen==='liberta'&&!s.liberta||s.screen==='champions'&&!s.champions||s.quickCopa?.phase==='done'||s.screen==='season'&&!s.quickCopa&&s.champion!=null||!validFootballPlan(action.plan)||action.plan.mark!==null)return s
       const seat=s.managers.findIndex(m=>m.id===action.mgrId&&m.isHuman)
-      if(seat<0||!action.by||s.seatUids?.[seat]!==action.by)return s
+      if(seat<0||!planoLocal&&(!action.by||s.seatUids?.[seat]!==action.by))return s
       s.footballNextPlans={...s.footballNextPlans,[action.mgrId]:{...action.plan}}
       return s
     }
