@@ -58,9 +58,9 @@ export function pintorChegada(canvas:HTMLCanvasElement,images:{background:HTMLIm
       const light=ctx.createLinearGradient(0,0,0,720);light.addColorStop(0,'#fff1bd22');light.addColorStop(.8,'#07160b00');light.addColorStop(1,'#07160b88');ctx.fillStyle=light;ctx.fillRect(0,0,1280,720);
       const breathing=Math.sin(t/560)*1.4;
       if(romario)asset('shirt',520,866+breathing,710,1,Math.sin(t/1400)*.0025);
-      else if(portrait){const h=360,w=h*portrait.naturalWidth/portrait.naturalHeight;ctx.drawImage(portrait,520-w/2,190+breathing,w,h)}
+      else if(portrait){const h=480,w=h*portrait.naturalWidth/portrait.naturalHeight;ctx.drawImage(portrait,520-w/2,650-h+breathing,w,h)}
       else neutralShirt();
-      ctx.drawImage(president,792,126+breathing*.45,365,577);
+      ctx.drawImage(president,0,0,president.naturalWidth,president.naturalHeight*.6,670,116+breathing*.45,600,600*president.naturalHeight*.6/president.naturalWidth);
       ctx.fillStyle='#17211e';ctx.fillRect(0,648,1280,72);ctx.fillStyle='#d6ae46';ctx.fillRect(0,648,1280,4);
       ([[279,'#ffc400'],[740,'#c2452f'],[1122,'#1b7a3d']] as const).forEach(([x,color])=>{ctx.strokeStyle='#242424';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,667);ctx.lineTo(x+12,591);ctx.stroke();ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x+13,582,19,13,-.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#0c0c0c';ctx.lineWidth=3;ctx.stroke()});
       flashes(t,[[75,510],[1205,480],[190,570]]);

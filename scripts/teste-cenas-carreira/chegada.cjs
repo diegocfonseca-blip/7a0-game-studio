@@ -59,7 +59,7 @@ const out='/workspace/shared/central-chegada-integrada-20261125',base=process.en
     return r.continue();
    });
    try{
-    await page.goto(base+'?round=10&speed=.25&gratis=1&chegada=barcelona',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.qaState,null,{timeout:120000});
+    await page.goto(base+`?round=10&speed=.25&gratis=1&chegada=${mode==='visual'?'zico':'barcelona'}`,{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.qaState,null,{timeout:120000});
     await page.getByRole('button',{name:'Central',exact:true}).click();
     const card=page.locator('.ll-c-sede:visible').first();
     if(mode==='reduced'){
@@ -73,9 +73,9 @@ const out='/workspace/shared/central-chegada-integrada-20261125',base=process.en
      await card.getByRole('button',{name:/Reproduzir/}).click();
     }
     await page.waitForFunction(()=>document.querySelector('[data-neighborhood-preview]')?.dataset.phase==='playing');
-    if(mode==='portrait'){
+    if(mode==='portrait'||mode==='visual'){
      await page.waitForFunction(()=>document.querySelector('[data-neighborhood-preview]')?.dataset.phase==='ended',null,{timeout:25000});
-     await card.screenshot({path:out+'/sem-avatar-mobile.png'});
+     await card.screenshot({path:out+(mode==='visual'?'/enquadramento-mobile.png':'/sem-avatar-mobile.png')});
     }
     await card.getByRole('button',{name:/Pular ›|Seguir ›/}).click();
     assert.equal(await page.locator('[data-central-signing-canvas]').count(),0);assert.equal(await page.locator('.pc3-stage canvas').count(),0);assert.deepEqual(errors,[]);

@@ -26,4 +26,6 @@ Basquete, F1, salas online e carreira compartilhada não recebem esta ativação
 - Movimento reduzido, falha de imagem com retry, erro de desenho com saída segura e retrato ausente passaram. Capturas são da integração React real, não da página estática do mockup.
 - `npm run recarga`: passou; nenhuma atualização automática de quem está jogando.
 
-Build completo e estado de publicação são registrados em `/workspace/shared/central-chegada-integrada-20261125/`. Capturas e relatórios ficam no mesmo diretório. Não há alegação de FPS medido em aparelho físico. Reversão pelo commit isolado desta etapa.
+Na revisão visual final, o retrato genérico foi ancorado à mesa, com enquadramento da diretoria pela cintura, para evitar um busto flutuando acima da bancada. A captura adicional `enquadramento-mobile.png` confirma o ajuste com o avatar de Zico.
+
+Build completo e estado de publicação são registrados em `/workspace/shared/central-chegada-integrada-20261125/`. Capturas e relatórios ficam no mesmo diretório. Não há alegação de FPS medido em aparelho físico. Reversão pelos commits desta etapa.
