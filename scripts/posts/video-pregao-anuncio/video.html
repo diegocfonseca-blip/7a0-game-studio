@@ -1,0 +1,188 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Osw;src:url(oswald-latin-700-normal.woff2)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#07110b}
+body{font-family:Osw,'Noto Color Emoji',sans-serif;color:#fff;position:relative}
+#ceu{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 18%,#1d3b28 0%,#0b1a10 45%,#050b07 100%)}
+.refletor{position:absolute;top:-40px;width:150px;height:60px;border-radius:14px;background:#fff;box-shadow:0 0 60px 20px #fff8d6}
+.feixe{position:absolute;top:0;width:520px;height:1500px;background:linear-gradient(180deg,rgba(255,248,214,.35),rgba(255,248,214,0) 80%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);transform-origin:50% 0}
+#gramado{position:absolute;left:-300px;right:-300px;bottom:0;height:560px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;background:repeating-linear-gradient(0deg,#1B7A3D 0 90px,#16692f 90px 180px)}
+#linhas{position:absolute;left:-300px;right:-300px;bottom:0;height:560px;transform:perspective(700px) rotateX(58deg);transform-origin:50% 100%;background:linear-gradient(90deg,transparent calc(50% - 4px),rgba(255,255,255,.7) calc(50% - 4px) calc(50% + 4px),transparent calc(50% + 4px))}
+.moeda{position:absolute;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8,#FFC400 50%,#a87d00);border:4px solid #3a2a00}
+.cena{position:absolute;inset:0;opacity:0}
+.big{position:absolute;left:50px;right:50px;text-align:center;text-transform:uppercase;text-shadow:6px 6px 0 #000}
+.ouro{color:#FFC400;text-shadow:0 0 24px rgba(255,196,0,.55),6px 6px 0 #000}
+.creme{color:#F4ECD6}
+.tag{display:inline-block;background:#FFC400;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:22px;box-shadow:8px 8px 0 #0C0C0C;padding:12px 34px;font-size:56px;text-shadow:none}
+.tag.verde{background:#1B7A3D;color:#fff;text-shadow:3px 3px 0 #000}
+.tag.verm{background:#E8503A;color:#fff;text-shadow:3px 3px 0 #000}
+.fone{position:absolute;border:14px solid #0C0C0C;border-radius:64px;overflow:hidden;box-shadow:0 0 60px rgba(255,196,0,.35),18px 18px 0 #0C0C0C;background:#0C0C0C}
+.fone img{width:100%;display:block}
+.carta{position:absolute;width:250px;filter:drop-shadow(0 0 24px rgba(255,196,0,.5))}
+.chip{display:inline-block;margin:0 8px;background:#fff;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:999px;box-shadow:6px 6px 0 #0C0C0C;padding:8px 30px;font-size:64px;text-shadow:none}
+.chip.on{background:#FFC400}
+.selo{position:absolute;left:50%;width:300px;height:300px;margin-left:-150px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8,#FFC400 45%,#b98a00);border:10px solid #0C0C0C;box-shadow:0 0 60px rgba(255,196,0,.7),12px 12px 0 #0C0C0C;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0C0C0C;text-shadow:none}
+.selo b{font-size:150px;line-height:.9}
+.selo span{font-size:40px;letter-spacing:4px}
+.balao{position:absolute;background:#FFC400;color:#0C0C0C;border:7px solid #0C0C0C;border-radius:26px;box-shadow:10px 10px 0 #0C0C0C;padding:14px 30px;font-size:62px;text-shadow:none;text-transform:uppercase;text-align:center}
+.balao.verm{background:#E8503A;color:#fff;text-shadow:3px 3px 0 #000}
+.escada{position:absolute;left:60px;right:60px;display:flex;justify-content:center;gap:18px;align-items:flex-end}
+.degrau{width:150px;background:#F4ECD6;color:#0C0C0C;border:6px solid #0C0C0C;border-radius:20px;box-shadow:6px 6px 0 #0C0C0C;text-align:center;font-size:84px;text-shadow:none}
+.degrau.a{background:#FFC400}
+.btn{position:absolute;left:110px;right:110px;background:#FFC400;color:#0C0C0C;border:9px solid #0C0C0C;border-radius:34px;box-shadow:14px 14px 0 #0C0C0C;text-align:center;font-size:80px;padding:26px 0;text-transform:uppercase}
+.logo{position:absolute;left:50%;width:230px;height:230px;margin-left:-115px;border-radius:46px;border:8px solid #0C0C0C;box-shadow:0 0 50px rgba(255,196,0,.6),10px 10px 0 #0C0C0C}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.cadeado{position:absolute;font-size:230px;left:50%;margin-left:-115px;filter:drop-shadow(0 0 30px rgba(255,196,0,.6))}
+</style>
+<style>
+.cartaG{position:absolute;width:420px;filter:drop-shadow(0 0 40px rgba(255,196,0,.6))}
+.modo{position:absolute;left:90px;right:90px;height:150px;background:#F4ECD6;color:#0C0C0C;border:7px solid #0C0C0C;border-radius:30px;box-shadow:10px 10px 0 #0C0C0C;display:flex;align-items:center;gap:26px;padding:0 34px;text-shadow:none;text-transform:uppercase}
+.modo i{font-style:normal;font-size:84px}.modo b{font-size:70px}
+.modo.top{background:#FFC400;box-shadow:0 0 50px rgba(255,196,0,.8),12px 12px 0 #0C0C0C}
+.modo small{margin-left:auto;font-size:30px;background:#E8503A;color:#fff;border:4px solid #0C0C0C;border-radius:14px;padding:4px 14px}
+.martelo{position:absolute;font-size:260px;left:700px;top:600px;filter:drop-shadow(0 0 30px rgba(255,196,0,.6));transform-origin:80% 80%}
+.conta{position:absolute;left:30px;right:30px;white-space:nowrap;text-align:center;font-size:118px;text-transform:uppercase;color:#FFC400;text-shadow:0 0 30px rgba(255,196,0,.6),8px 8px 0 #000}
+.galeria{position:absolute}
+.mc{position:absolute;width:420px;aspect-ratio:3/4.2;border:7px solid #0C0C0C;border-radius:34px;overflow:hidden;box-shadow:0 0 40px rgba(255,196,0,.55),10px 12px 0 #0C0C0C;color:#0C0C0C;text-shadow:none;font-family:Osw}
+.mc.s{width:300px;border-width:6px;border-radius:26px}
+.mc.lenda{background:linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)}
+.mc.craque{background:linear-gradient(150deg,#F4F7FB,#CBD4DE 45%,#9BA7B5 78%,#EAEFF4)}
+.mc.prom{background:linear-gradient(150deg,#C9A9FF,#8B5CF6 52%,#5B2FB0);color:#fff}
+.mc.bom{background:linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45);color:#fff}
+.mc.pro{background:linear-gradient(150deg,#DBD1B5,#CBBF9E 60%,#B2A583)}
+.mc .p{position:absolute;left:7%;top:5%;background:#0C0C0C;color:#fff;border-radius:12px;padding:2px 14px;font-size:1.0em}
+.mc .k{position:absolute;right:7%;top:6%;font-size:.8em}
+.mc .r{position:absolute;left:50%;top:17%;width:52%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:rgba(255,255,255,.4);border:5px dashed rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:3.4em}
+.mc .n{position:absolute;left:8%;right:8%;top:66%;font-size:1.5em;letter-spacing:6px}
+.mc .b{position:absolute;left:8%;top:79%;width:55%;height:5%;border-radius:8px;background:rgba(0,0,0,.28);filter:blur(4px)}
+.mc .e{position:absolute;left:8%;top:87%;font-size:.8em}
+
+</style></head><body>
+<div id="mundo"><div id="ceu"></div>
+<div class="feixe" id="f1" style="left:-120px"></div><div class="feixe" id="f2" style="right:-120px"></div>
+<div class="refletor" style="left:60px"></div><div class="refletor" style="right:60px"></div>
+<div id="gramado"></div><div id="linhas"></div><div id="moedas"></div>
+</div>
+
+<!-- 0 gancho -->
+<div class="cena" data-s="0">
+ <div class="big" style="top:170px"><span class="tag">🔨 QUAL LENDA VOCÊ QUER?</span></div>
+ <div class="mc lenda" id=cNey style="left:70px;top:420px;font-size:44px"><span class="p">ATA</span><span class="k">👑 LENDA</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐⭐⭐</span></div>
+ <div class="mc lenda" id=cRon style="left:590px;top:520px;font-size:44px"><span class="p">MEI</span><span class="k">👑 LENDA</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐⭐⭐</span></div>
+ <div class="big" style="top:1260px;font-size:92px;line-height:1.05">LENDAS DO FUTEBOL<br><span class="ouro">NO SEU TIME</span></div>
+</div>
+<!-- 1 primeiro jogo -->
+<div class="cena" data-s="1">
+ <img class="logo" src="logo-ll.webp" style="top:200px">
+ <div class="big ouro" style="top:480px;font-size:150px;line-height:.92">LEILÃO<br>LEGENDS</div>
+ <div class="big" style="top:800px;font-size:58px">O PRIMEIRO JOGO DE LEILÃO DO FUTEBOL</div>
+ <div class="big" style="top:1080px;font-size:96px;line-height:1.05">NÃO TEM<br><span class="ouro">UM JEITO SÓ</span><br>DE DAR LANCE</div>
+</div>
+<!-- 2 modos -->
+<div class="cena" data-s="2">
+ <div class="big" style="top:140px;font-size:100px">ESCOLHA O <span class="ouro">LEILÃO</span></div>
+ <div class="modo" style="top:330px"><i>✉️</i><b>Envelope cego</b></div>
+ <div class="modo" style="top:520px"><i>🐊</i><b>Tocaia</b></div>
+ <div class="modo" style="top:710px"><i>⚡</i><b>Envelope único</b></div>
+ <div class="modo" style="top:900px"><i>🧱</i><b>Leilão de clubes</b></div>
+ <div class="modo top" id="mPregao" style="top:1140px;height:190px"><i>🔨</i><b style="font-size:78px;white-space:nowrap">Pregão aberto</b></div>
+ <div class="balao verm" id="bQuente" style="left:560px;top:1370px">🔥 O MAIS QUENTE</div>
+</div>
+<!-- 3 lance aberto -->
+<div class="cena" data-s="3">
+ <div class="big" style="top:120px;font-size:96px;line-height:1.05">UMA CARTA POR VEZ<br><span class="ouro" style="font-size:62px">LANCE ABERTO PRA TODO MUNDO</span></div>
+ <div class="fone" id="fA" style="left:270px;width:540px;height:1170px;top:470px"><img id="iA1" src="a-pa04.png"><img id="iA2" src="a-pa08.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iA3" src="a-pa16.png" style="position:absolute;left:0;top:0;opacity:0"></div>
+ <div class="balao" id="bA" style="left:60px;top:1700px">QUEM DÁ MAIS? 🔥</div>
+</div>
+<!-- 4 carta coberta -->
+<div class="cena" data-s="4">
+ <div class="big" style="top:130px;font-size:110px">A CARTA VEM<br><span class="ouro">COBERTA</span> ❓</div>
+ <div class="fone" id="fB" style="left:170px;width:740px;height:900px;top:470px"><img src="a-pa12.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
+ <div class="big" style="top:1450px;font-size:74px;line-height:1.1">CRAQUE OU<br><span class="ouro">PERNA DE PAU?</span></div>
+</div>
+<!-- 5 martelo -->
+<div class="cena" data-s="5">
+ <div class="big" style="top:130px;font-size:72px">CADA LANCE <span class="ouro">ZERA O RELÓGIO</span></div>
+ <div class="fone" id="fC" style="left:60px;width:600px;height:1300px;top:330px"><img id="iC1" src="a-pa17.png"><img id="iC2" src="a-pa18.png" style="position:absolute;left:0;top:0;opacity:0"><img id="iC3" src="a-pa19.png" style="position:absolute;left:0;top:0;opacity:0"></div>
+ <div class="martelo" id="mart">🔨</div>
+ <div class="conta" id="conta" style="top:1660px"></div>
+</div>
+<!-- 6 vira lenda -->
+<div class="cena" data-s="6">
+ <div class="big" style="top:130px;font-size:120px">E A CARTA <span class="ouro">VIRA…</span></div>
+ <div class="fone" id="fD" style="left:170px;width:740px;height:900px;top:420px"><img src="a-pa21.png" style="width:150%;margin-left:-25%;margin-top:-100%"></div>
+ <div class="big ouro" id="eraLenda" style="top:1400px;font-size:170px">👑 LENDA!</div>
+</div>
+<!-- 7 galeria -->
+<div class="cena" data-s="7">
+ <div class="big" style="top:110px;font-size:84px">LENDA, CRAQUE, <span class="ouro">PROMESSA</span><br>E MUITA RESENHA</div>
+ <div class="mc s lenda galeria" style="left:40px;top:400px;font-size:30px"><span class="p">ATA</span><span class="k">👑 LENDA</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐⭐⭐</span></div>
+ <div class="mc s craque galeria" style="left:375px;top:400px;font-size:30px"><span class="p">MEI</span><span class="k">⭐ CRAQUE</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐⭐</span></div>
+ <div class="mc s prom galeria" style="left:710px;top:400px;font-size:30px"><span class="p">LAT</span><span class="k">💎 PROMESSA</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐</span></div>
+ <div class="mc s bom galeria" style="left:40px;top:880px;font-size:30px"><span class="p">ZAG</span><span class="k">🎯 BOM</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐</span></div>
+ <div class="mc s pro galeria" style="left:375px;top:880px;font-size:30px"><span class="p">GOL</span><span class="k">🪵 PROFISSIONAL</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐</span></div>
+ <div class="mc s lenda galeria" style="left:710px;top:880px;font-size:30px"><span class="p">MEI</span><span class="k">👑 LENDA</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐⭐⭐</span></div>
+ <div class="mc s craque galeria" style="left:40px;top:1360px;font-size:30px"><span class="p">ATA</span><span class="k">⭐ CRAQUE</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐⭐⭐</span></div>
+ <div class="mc s pro galeria" style="left:375px;top:1360px;font-size:30px"><span class="p">ZAG</span><span class="k">🪵 PROFISSIONAL</span><span class="r">?</span><span class="n">? ? ? ?</span><span class="b"></span><span class="e">⭐⭐</span></div>
+ <div class="balao" id="bMais" style="left:720px;top:1520px">QUEM<br>LEVA? 🔥</div>
+</div>
+<!-- 8 amigos e carreira -->
+<div class="cena" data-s="8">
+ <div class="big" style="top:130px;font-size:96px;line-height:1.02">ATÉ <span class="ouro">36 AMIGOS</span><br>NA MESMA SALA</div>
+ <div id="grade36" style="position:absolute;left:120px;width:840px;top:400px;display:grid;grid-template-columns:repeat(9,1fr);gap:14px"></div>
+ <div class="big" style="top:1010px;font-size:70px">OU NA <span class="ouro">CARREIRA</span> 🏆</div>
+ <div class="big" style="top:1110px;font-size:58px">DA VÁRZEA ATÉ A SÉRIE A</div>
+ <div class="escada" id="escada" style="top:1500px"><div class="degrau" style="height:110px">V</div><div class="degrau" style="height:150px">D</div><div class="degrau" style="height:190px">C</div><div class="degrau" style="height:230px">B</div><div class="degrau a" style="height:270px">A</div></div>
+</div>
+<!-- 9 final -->
+<div class="cena" data-s="9">
+ <img class="logo" src="logo-ll.webp" style="top:170px">
+ <div class="big ouro" style="top:450px;font-size:150px;line-height:.92">LEILÃO<br>LEGENDS</div>
+ <div class="big" style="top:760px;font-size:50px">O PRIMEIRO JOGO DE LEILÃO DO FUTEBOL</div>
+ <div class="big" style="top:880px"><span class="tag verde">✅ GRÁTIS</span>&nbsp;&nbsp;<span class="tag">📱 NO CELULAR</span></div>
+ <div class="btn" style="top:1090px">🔨 BORA PRO PREGÃO</div>
+ <div class="big" style="top:1350px;font-size:70px;letter-spacing:3px">leilaolegends.com</div>
+ <div class="big ouro" style="top:1460px;font-size:50px">@leilaolegendscom</div>
+ <div class="big" style="top:1560px;font-size:40px;color:#F4ECD6">🪙 MOEDAS SÓ DO JOGO · SEM APOSTA</div>
+</div>
+<div class="flash" id="flash"></div>
+<script>
+const DUR=window.DUR_NARRA||[4.6,5.3,7.6,4.4,3.3,4.15,2.4,4.6,5.6,8.0] // ⏱ estimado; quando a narração nova chegar, cortar nas pausas
+const ST=[];let acc=0;for(const d of DUR){ST.push(acc);acc+=d}
+window.TOTAL=acc
+const cl=x=>Math.min(1,Math.max(0,x))
+const back=x=>{x=cl(x);const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}
+const mo=document.getElementById('moedas');for(let i=0;i<14;i++){const s=document.createElement('i');s.className='moeda';s.style.left=(i*71%100)+'%';s.dataset.v=40+(i*37%60);s.dataset.o=i*137%1900;mo.appendChild(s)}
+const g36=document.getElementById('grade36');const cores=['#FFC400','#1B7A3D','#E8503A','#7C3AED','#F4ECD6','#2f7de1'];const rostos=['😎','🤠','🧔','👨‍🦱','👩','🧑‍🦰','👴','🧑','😁'];for(let j=0;j<36;j++){const d=document.createElement('i');d.style.cssText=`font-style:normal;display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:50%;background:${cores[j%6]};border:5px solid #0C0C0C;box-shadow:4px 4px 0 #0C0C0C;font-size:44px`;d.textContent=rostos[j%9];g36.appendChild(d)}
+const cenas=[...document.querySelectorAll('.cena')]
+const sobe=(el,a,atraso,gira)=>{const k=back((a-atraso)/0.6);el.style.transform=`translateY(${(1-k)*1100}px) rotate(${(1-k)*gira+gira*0.25}deg)`}
+const pop=(el,a,at,rot=0)=>{const k=back((a-at)/0.35);el.style.transform=`scale(${Math.max(0,k)}) rotate(${rot}deg)`}
+const troca=(ids,a,ts)=>ids.forEach((id,j)=>{const on=j===0?1:cl((a-ts[j-1])/0.12);document.getElementById(id).style.opacity=on})
+window.render=t=>{
+  document.getElementById('gramado').style.backgroundPosition=`0 ${(t*120)%180}px`
+  document.getElementById('f1').style.transform=`rotate(${-18+Math.sin(t*0.9)*8}deg)`
+  document.getElementById('f2').style.transform=`rotate(${18+Math.sin(t*0.9+2)*8}deg)`
+  document.querySelectorAll('.moeda').forEach(m=>{const y=(+m.dataset.o+t*m.dataset.v)%2000-100;m.style.top=y+'px';m.style.opacity=.35})
+  let flash=0
+  cenas.forEach((el,i)=>{
+    const a=t-ST[i],d=DUR[i]
+    const vis=a>=0&&a<d+0.2
+    el.style.opacity=vis?Math.min(cl(a/0.2),i===cenas.length-1?1:cl((d+0.2-a)/0.2)):0
+    if(!vis)return
+    el.querySelectorAll('.big').forEach((b,j)=>{if(b.id==='eraLenda')return;const g=i===8?[0.05,2.7,3.0][j]:j*0.22;const k=back((a-0.05-g)/0.45);b.style.transform=`translateY(${(1-k)*80}px) scale(${0.85+0.15*k})`;b.style.opacity=cl((a-0.05-g)/0.2)})
+    el.querySelectorAll('.tag').forEach(b=>{b.style.transform=`rotate(${-2+Math.sin(a*6)*1.5}deg)`})
+    if(i===0){[['cNey',0.3,-7],['cRon',2.2,7]].forEach(([id,at,r])=>{const c=document.getElementById(id);const k=back((a-at)/0.55);c.style.transform=`perspective(900px) rotateY(${(1-k)*100}deg) rotate(${r}deg) translateY(${Math.sin(a*2.5+at)*14}px) scale(${Math.max(0,k)})`;if(a>at+0.3&&a<at+0.42)flash=.45})}
+    if(i===1){el.querySelectorAll('.logo').forEach(l=>{const k=back((a-0.2)/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`})}
+    if(i===2){el.querySelectorAll('.modo').forEach((m,j)=>{const at=j<4?0.4+j*1.0:5.9;const k=back((a-at)/0.4);m.style.transform=`translateX(${(1-k)*(j%2?1:-1)*1100}px) rotate(${j===4?-2+Math.sin(a*6):0}deg) scale(${j===4&&a>at?1+0.03*Math.sin(a*8):1})`;if(j===4&&a>at&&a<at+0.12)flash=.5});pop(document.getElementById('bQuente'),a,6.3,4)}
+    if(i===3){sobe(document.getElementById('fA'),a,0.4,-3);troca(['iA1','iA2','iA3'],a,[2.0,3.3]);pop(document.getElementById('bA'),a,1.4,-3)}
+    if(i===4){sobe(document.getElementById('fB'),a,0.5,3)}
+    if(i===5){sobe(document.getElementById('fC'),a,0.0,-3);troca(['iC1','iC2','iC3'],a,[2.4,3.5]);const c=document.getElementById('conta');const txt=a<1.4?'':a<2.4?'DOU-LHE UMA…':a<3.5?'DOU-LHE DUAS…':'VENDIDO!';c.textContent=txt;c.style.transform=`scale(${1+0.15*Math.max(0,1-((a-(a<2.4?1.4:a<3.5?2.4:3.5))/0.3))})`;const m=document.getElementById('mart');const bat=[1.4,2.4,3.5].some(x=>a>x&&a<x+0.18);m.style.transform=`rotate(${bat?35:-20}deg)`;if(a>3.5&&a<3.65)flash=.6}
+    if(i===6){sobe(document.getElementById('fD'),a,0.0,0);const e=document.getElementById('eraLenda');const k=back((a-1.4)/0.3);e.style.transform=`scale(${a<1.4?0:2.2-1.2*k}) rotate(-4deg)`;e.style.opacity=a<1.4?0:1;if(a>1.4&&a<1.55)flash=.7}
+    if(i===7){el.querySelectorAll('.galeria').forEach((g,j)=>{const k=back((a-0.6-j*0.25)/0.4);g.style.transform=`perspective(900px) rotateY(${(1-k)*90}deg) scale(${Math.max(0,k)}) rotate(${(j%3-1)*3}deg)`});pop(document.getElementById('bMais'),a,3.0,6)}
+    if(i===8){document.querySelectorAll('#grade36 i').forEach((g,j)=>{const k=back((a-0.5-j*0.04)/0.3);g.style.transform=`scale(${Math.max(0,k)})`});document.querySelectorAll('#escada .degrau').forEach((dg,j)=>{const k=back((a-3.2-j*0.25)/0.35);dg.style.transform=`scaleY(${Math.max(0,k)})`;dg.style.transformOrigin='50% 100%'})}
+    if(i===9){el.querySelectorAll('.logo').forEach(l=>{const k=back(a/0.5);l.style.transform=`scale(${k}) rotate(${(1-k)*-20}deg)`});el.querySelectorAll('.btn').forEach(b=>{const k=back((a-1.6)/0.45);b.style.transform=`scale(${Math.max(0,k)*(1+0.03*Math.sin(a*7))})`})}
+  })
+  document.getElementById('flash').style.opacity=flash
+}
+window.render(0)
+</script></body></html>
