@@ -125,7 +125,7 @@ export interface Card {
   paidAntes?: number
   /** 🧱 LEILÃO DE CLUBES: esta "carta" é um PACOTE — o setor de um clube (todos os
    *  goleiros do Palmeiras…). Quem ganha convoca os que vão jogar depois do pregão. */
-  pacote?: { clube: string; cartas: Card[]; /** 🏳️ pacote de seleção (31/10) */ selecao?: boolean; /** 📅 década do pacote, ex. 1990 (31/10) */ decada?: number }
+  pacote?: { clube: string; cartas: Card[]; /** 🏳️ pacote de seleção (31/10) */ selecao?: boolean; /** 📅 década do pacote, ex. 1990 (31/10) */ decada?: number; /** 🏅 tema do Leilão de Conquistas (25/11) */ conquista?: string }
   /** 🎩 KINGS (12/11): esta carta é um PRESIDENTE (mora na vaga 'LAT' da Kings, que não tem lateral). Não entra em campo;
    *  bate o pênalti do presidente. A carta leva as cores do time no lugar da cor da categoria (`kings-presidentes.ts`). */
   presidente?: boolean
@@ -849,6 +849,8 @@ export interface EscState {
   leilaoSelecao?: boolean
   /** 📅 31/10 (em teste): com leilaoClubes, o pacote é de clube/seleção NUMA DÉCADA ("Meio do Milan · anos 90") */
   leilaoDecada?: boolean
+  /** 🏅 25/11: Leilão de Conquistas (pacote = tema de conquista) */
+  leilaoConquistas?: boolean
   /** 🧱 a convocação já foi feita nesta partida (o pacote já virou cartas) */
   leilaoClubesConvocado?: boolean
   /** 🧱 relógio da convocação (80s, igual à Copa) — ms */

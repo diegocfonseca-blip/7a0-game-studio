@@ -31,6 +31,7 @@ import { OPCOES_CORINGA, PLACAR_BOLA, PLACAR_DADO, PLACAR_DADO_FIM, PLACAR_DOBRO
 import { PixMP } from './pix-mp'
 import { CenaPontape, textoEntra, FaixaAvisoKings, CenaDado, CenaCarta, CenaDuelo, CenaEscolhaKings, cartaRotulo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
 import type { MatchResult, CartaKingsInfo, ScorerRow } from './types'
+import { temaConquista } from './conquistas' // 🏅 Leilão de Conquistas (25/11)
 import { SeloPacote } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09) · 🏳️ selo do pacote (31/10)
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -136,7 +137,7 @@ import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da g
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
 import {Formula1Tab,useFormula1Selected,closeFormula1} from './formula1-entry'
-import { siteDoJogo, useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useViceCity, type Sport } from './sport'
+import { siteDoJogo, useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useConquistasLiberado, useAmigos, useViceCity, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { BannerIndicacao } from './banner-indicacao'
@@ -1555,6 +1556,9 @@ export function nomePacote(c: Card): string {
     return getLang() === 'en' ? `🏀 ${clube} ${pl.en}` : `🏀 ${pl.pt} dos ${clube}`
   }
   const t = SETOR_PACOTE[c.pos]
+  // 🏅 25/11: pacote de CONQUISTA — "🥇 Bola de Ouro · Meio" (o tema nunca diz se vem lenda ou bagre)
+  const tema = temaConquista(c.pacote?.conquista)
+  if (tema) return `${tema.emoji} ${getLang() === 'en' ? tema.en : tema.pt} · ${getLang() === 'en' ? t.en.replace(/ of$/, '') : t.pt}`
   const art = c.pacote?.selecao ? artigoPais(clube) : 'do'
   const dec = c.pacote?.decada ? ` · ${decadaTxt(c.pacote.decada)}` : ''
   return `${t.ic} ${getLang() === 'en' ? t.en : `${t.pt} ${art}`} ${clube}${dec}`
@@ -3069,6 +3073,8 @@ export function EscSetup() {
   const [tamLiga, setTamLiga] = useState<20 | 10>(20)
   const [pacSel, setPacSel] = useState(false) // 🏳️ pacote de Seleções
   const [pacDec, setPacDec] = useState(false) // 🕰️ pacote por década
+  const [pacConq, setPacConq] = useState(false) // 🏅 25/11: Leilão de Conquistas (só Diego + Futpoint)
+  const conqOn = useConquistasLiberado()
   const c2dLigadoSetup = useCampo2DLigado()
   const c2dSetup = useCampo2DTester() && RITMO2D_TESTE // ⏩📺 05/11: teste do ritmo do 2D (só aparece com o 2D ligado — conta do Diego)
   const semManual2d = useRitmo2dSemManual()
@@ -3205,7 +3211,7 @@ export function EscSetup() {
     else if (bbSetup) dispatch({ type: 'START_NBA', nbaTam: nbaTamQ, nbaFormato: nbaFormQ, nbaMundo: nbaMundoQ, teamName: clean || t('Meu Time', 'My Team'), rivals, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, envUnico: envUnicoOk && envUnico, clubes: clubesOn && clubes, intro: true })
     else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado || pokeLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado || pokeLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb && !envUnico, pregaoAberto: pregaoAbertoOk && pregaoAb && !envUnico, vice: (viceVe && vice && pregaoAbertoOk && pregaoAb && !envUnico) || undefined, envUnico: envUnicoOk && envUnico && !career && !pokeLigado, clubes: clubesOn && clubes && !pokeLigado && !kingsLigado, kings: kingsLigado || undefined, kingsBaralho: kingsLigado && kingsBar || undefined, pokemon: pokeLigado || undefined, intro: true,
       relampagoChave: copaMode === 'relampago' ? relChave : undefined, tamanhoLiga: tamLiga === 10 && copaMode !== 'relampago' && copaMode !== 'champions' ? 10 : undefined,
-      selecao: clubesOn && clubes && pacSel && !kingsLigado || undefined, decada: clubesOn && clubes && pacDec && !kingsLigado || undefined, varzea: league === 'br' && !(clubesOn && clubes) && !kingsLigado && varzeaR || undefined })
+      selecao: clubesOn && clubes && pacSel && !pacConq && !kingsLigado || undefined, decada: clubesOn && clubes && pacDec && !pacConq && !kingsLigado || undefined, conquistas: conqOn && clubesOn && clubes && pacConq && !kingsLigado && !bbSetup || undefined, varzea: league === 'br' && !(clubesOn && clubes) && !kingsLigado && varzeaR || undefined })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -3366,15 +3372,15 @@ export function EscSetup() {
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Tipo de leilão', 'Auction type')}</p>
             {/* 👑 10/11 (Diego): o 4º tipo, KINGS LEAGUE — só pras contas que veem a Kings (`useKingsLiberada`). Com 4 opções vira grade 2×2. */}
-            <div className={`grid ${bbSetup || (kingsOn && !bbSetup) ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
+            <div className={`grid ${bbSetup || (kingsOn && !bbSetup) || (conqOn && !bbSetup) ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
               {/* 🏳️ 05/11: o 3º tipo, Seleções (o MESMO motor do Clubes, pacote = setor de uma seleção) — igual na sala; no basquete não existe */}
-              {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')], ...(bbSetup ? [] : [['sel', t('🏳️ Seleções', '🏳️ Nations')]]), ...(kingsOn && !bbSetup ? [['kings', '👑 Kings League']] : [])] as [boolean | 'sel' | 'kings', string][]).map(([m, label]) => {
-                const on = m === 'kings' ? kingsLigado : kingsLigado ? false : m === 'sel' ? clubes && pacSel : m === true ? clubes && !pacSel : !clubes
+              {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')], ...(bbSetup ? [] : [['sel', t('🏳️ Seleções', '🏳️ Nations')]]), ...(kingsOn && !bbSetup ? [['kings', '👑 Kings League']] : []), ...(conqOn && !bbSetup ? [['conq', t('🏅 Conquistas', '🏅 Achievements')]] : [])] as [boolean | 'sel' | 'kings' | 'conq', string][]).map(([m, label]) => {
+                const on = m === 'kings' ? kingsLigado : kingsLigado ? false : m === 'conq' ? clubes && pacConq : m === 'sel' ? clubes && pacSel && !pacConq : m === true ? clubes && !pacSel && !pacConq : !clubes
                 return (
-                <button key={String(m)} onClick={() => { if (m === 'kings') { setKings(true); setPoke(false); setClubes(false); setPacSel(false); return } setKings(false); setClubes(m !== false); setPacSel(m === 'sel') }}
+                <button key={String(m)} onClick={() => { if (m === 'kings') { setKings(true); setPoke(false); setClubes(false); setPacSel(false); setPacConq(false); return } setKings(false); setClubes(m !== false); setPacSel(m === 'sel'); setPacConq(m === 'conq') }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm ov3-surface"
                   style={{ backgroundColor: on ? GOLD : '#fff', boxShadow: on ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
-                  {m === 'kings' && (
+                  {(m === 'kings' || m === 'conq') && (
                     <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35, letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999, border: `1.5px solid ${INK}`, background: INK, color: GOLD }}>
                       {t('✨ NOVO', '✨ NEW')}
                     </span>
@@ -3401,7 +3407,7 @@ export function EscSetup() {
               </div>
             )}
             {/* 🕰️ 05/11: ÉPOCA — todas as épocas misturadas ou o pacote preso numa década (igual na sala) */}
-            {clubes && !kingsLigado && !bbSetup && (
+            {clubes && !kingsLigado && !bbSetup && !pacConq && (
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {([[false, t('🌍 Todas as épocas', '🌍 All eras')], [true, t('🕰️ Por década', '🕰️ By decade')]] as [boolean, string][]).map(([m, label]) => (
                   <button key={String(m)} onClick={() => setPacDec(m)} className="border-[3px] border-black rounded-xl py-2 font-black text-[13px] ov3-surface"
@@ -3414,6 +3420,8 @@ export function EscSetup() {
                 ? (kingsBar
                   ? t('👑 O leilão de sempre (envelope, Tocaia, pregão…) só com os jogadores da Kings League Brasil. 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois do leilão, as regras da Kings.', '👑 The usual auction (sealed bid, Ambush, open…) with Kings League Brasil players only. 7 slots per team (keeper + 6), 10 teams and 100 coins. After the auction, the Kings rules.')
                   : t('👑 O leilão de sempre com os jogadores de sempre (o baralho que você escolher embaixo). 7 vagas por time (goleiro + 6), 10 times e 100 moedas. Depois do leilão, as regras da Kings.', '👑 The usual auction with the usual players (the deck you pick below). 7 slots per team (keeper + 6), 10 teams and 100 coins. After the auction, the Kings rules.'))
+                : clubes && pacConq && !bbSetup
+                ? t('🏅 Cada lote é um pacote de CONQUISTA (ex.: Bola de Ouro, Campeão da Libertadores, Foi pra Arábia). Você só vê o tema e quantos vêm dentro — se é lenda ou bagre, só no martelo. No fim, CONVOCA quem joga pela sua formação. Quem sobrar vai pros bots.', '🏅 Each lot is an ACHIEVEMENT pack (e.g. Ballon d\'Or, Libertadores winner, Went to Saudi Arabia). You only see the theme and how many are inside — legend or flop, only at the hammer. At the end, CALL UP who plays for your formation. The rest goes to the bots.')
                 : clubes && pacSel && !bbSetup
                 ? t('🏳️ Cada lote é um SETOR de uma seleção (ex.: Meio da Argentina). Você leva o pacote inteiro e, no fim, CONVOCA quem joga. Quem sobrar vai pros bots.', '🏳️ Each lot is a SECTOR of a national team (e.g. Argentina Midfield). You take the whole pack and, at the end, CALL UP who plays. The rest goes to the bots.')
                 : clubes && bbSetup
@@ -3726,7 +3734,7 @@ export function EscSetup() {
   </>)
   if (!career) {
     const jeito = envUnicoOk && envUnico ? t('⚡ Envelope único', '⚡ Single envelope') : pregaoAbertoOk && pregaoAb ? t('🔨 Pregão aberto', '🔨 Open bidding') : holandes ? t('🐊 Tocaia', '🐊 Ambush') : t('✉️ Envelope cego', '✉️ Sealed bid')
-    const tipoTxt = kingsLigado ? '👑 Kings League' : pokeLigado ? '⚡ Pokémon' : clubesOn && clubes ? (pacSel ? t('🏳️ Seleções', '🏳️ Nations') : t('🧱 Clubes', '🧱 Clubs')) : t('🃏 Jogador', '🃏 Player')
+    const tipoTxt = kingsLigado ? '👑 Kings League' : pokeLigado ? '⚡ Pokémon' : clubesOn && clubes ? (pacConq && conqOn ? t('🏅 Conquistas', '🏅 Achievements') : pacSel ? t('🏳️ Seleções', '🏳️ Nations') : t('🧱 Clubes', '🧱 Clubs')) : t('🃏 Jogador', '🃏 Player')
     const COPA_TXT: Record<string, [string, string]> = { liga: ['📊 Só a liga', '📊 League only'], liga_copa: ['🏆 Liga + Copa dos 8', '🏆 League + Cup of 8'], liga_liberta: ['🌎 Liga + Libertadores', '🌎 League + Libertadores'], liga_champions: ['⭐ Liga + Champions', '⭐ League + Champions'], champions: ['⭐ Só Champions', '⭐ Champions only'], relampago: ['⚡ Relâmpago', '⚡ Lightning'] }
     const campTxt = bbSetup ? `${nbaTamQ} ${t('times', 'teams')} · ${nbaFormQ === 'liga' ? t('só a liga', 'league only') : 'Play-In + Playoffs'}` : kingsLigado ? t('Kings League · 10 times', 'Kings League · 10 teams') : pokeLigado ? t('Liga de batalhas', 'Battle league') : t(...(COPA_TXT[copaMode] ?? [copaMode, copaMode]))
     const timeTxt = `${name.trim() || t('seu time', 'your team')} · ${bbSetup ? (nbaMundoQ ? t('NBA + Mundo', 'NBA + World') : t('baralho NBA', 'NBA deck')) : formation} · ${rivals} ${t('rivais', 'rivals')}`
@@ -6374,6 +6382,14 @@ function Reveal() {
             ? <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
             : <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} mudo={ehEnigma && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />)}
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
+          {/* 🏅 25/11 (Diego: *"pode aparecer p todos igual tem no envelope de jogador… eu gosto pq já mostra quais jogadores"*): no
+              Leilão de Conquistas o pacote ABRE no martelo, pra sala toda — são só 3 a 5 cartas. Sem lance = vai pro Monte fechado. */}
+          {item.card.pacote?.conquista && hammered && sold && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+              className={`grid ${(item.card.pacote.cartas.length ?? 0) > 4 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 mt-3 mx-auto`} style={{ maxWidth: (item.card.pacote.cartas.length ?? 0) > 4 ? 340 : 280 }}>
+              {item.card.pacote.cartas.map(pc => <CollectibleCard key={pc.id} {...pc} />)}
+            </motion.div>
+          )}
           {/* (carimbo grande "VENDIDO!" removido — vazava da carta e repetia o texto
               "🔨 VENDIDO pro X por Y!" que já existe embaixo. O festão da Lenda fica.) */}
           {mesaOn ? (
@@ -6404,9 +6420,9 @@ function Reveal() {
                       {escondido
                         ? <p className="font-black" style={{ ...OSWALD, fontSize: 17, lineHeight: 1.05, marginTop: 4, color: ehEnigma ? INK : PURPLE }}>
                             {ehEnigma ? ENIGMA_EMOJI : '🎁'} <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ?</span></p>
-                        : <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 15, lineHeight: 1.05, marginTop: 4 }}>{item.card.name}</p>}
+                        : <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 15, lineHeight: 1.05, marginTop: 4 }}>{item.card.pacote?.conquista ? nomePacote(item.card) : item.card.name}</p>}
                       {/* 🕵️ no Enigma o clube e o ano NÃO entram no HTML até o martelo — é o que ele esconde a mais que o surpresa */}
-                      <p className="font-bold" style={{ fontSize: 9, marginTop: 3, color: 'rgba(0,0,0,.55)' }}>{ehEnigma && !(hammered && sold) ? dicaDoEnigma(item.card, getLang() === 'en') : `${item.card.club} · ${item.card.year}`}</p>
+                      <p className="font-bold" style={{ fontSize: 9, marginTop: 3, color: 'rgba(0,0,0,.55)' }}>{ehEnigma && !(hammered && sold) ? dicaDoEnigma(item.card, getLang() === 'en') : item.card.pacote?.conquista ? `🔒 ${item.card.pacote.cartas.length} ${tr('jogadores', 'players')}` : `${item.card.club} · ${item.card.year}`}</p>
                     </div>
                   </div>
                 )
@@ -13030,7 +13046,7 @@ export function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".
         clubes: state.leilaoClubes,
-        selecao: state.leilaoSelecao, decada: state.leilaoDecada, // 🏳️📅 Seleções / Por década continuam no novo leilão (31/10)
+        selecao: state.leilaoSelecao, decada: state.leilaoDecada, conquistas: state.leilaoConquistas, // 🏳️📅 Seleções / Por década continuam no novo leilão (31/10)
         // 🏀 E O ESPORTE TAMBÉM. Ninguém tinha reclamado porque o basquete só
         // abre pra conta dele — mas o buraco era o mesmo e pior: uma sala de
         // BidLegends virava futebol no "novo leilão".

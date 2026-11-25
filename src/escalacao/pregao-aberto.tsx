@@ -223,7 +223,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
                   (no celular a metade da tela já é menor que isso, então lá nada muda) */}
               <div style={{ width: compacto ? 'min(100%, 230px)' : 210 }}>
                 {card.pacote
-                  ? <PacoteMesa c={virada?.pacote ? virada : card} compacto={compacto} />
+                  ? <PacoteMesa c={virada?.pacote ? virada : card} compacto={compacto} aberto={!!virada?.pacote?.conquista} />
                   : virada
                   ? <div key={virada.id} className="pa-vira"><CollectibleCard name={virada.name} club={virada.club} year={virada.year} pos={virada.pos} fame={virada.fame} folk={!!virada.folk} promessa={virada.promessa} /></div>
                   : <CartaCoberta name={card.name} club={card.club} year={card.year} pos={card.pos} />}
@@ -313,7 +313,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
 // precisar se transformar em carta dourada… já que clubes não têm Lenda, Craque etc."). Nada fica coberto e nada vira: o
 // lote já é o que é — escudo, "Goleiros do Palmeiras" e QUANTOS jogadores vêm. Os NOMES continuam escondidos até a
 // convocação (regra dele de 27/09: "apenas quantidade que o time tem").
-export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolean }) {
+export function PacoteMesa({ c, compacto = false, aberto = false }: { c: Card; compacto?: boolean; /** 🏅 25/11: pacote de conquista arrematado — as cartas aparecem pra todos */ aberto?: boolean }) {
   const t = useT()
   const n = c.pacote?.cartas.length ?? 0
   return (
@@ -324,7 +324,9 @@ export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolea
           (2 linhas) empurrava o lance atual dele pra baixo do "Meio do Newcastle" (1 linha) e as duas mesas desalinhavam */}
       <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1.05, textTransform: 'uppercase', ...(compacto ? { minHeight: '2.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' } : { display: 'block' }) }}>{nomePacote(c)}</b>
       <span className="ov3-surface" style={{ display: 'inline-block', marginTop: 6, background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: compacto ? 12 : 15 }}>👥 {n} {n === 1 ? t('jogador', 'player') : t('jogadores', 'players')}</span>
-      {!compacto && <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem são, você vê na convocação.', 'You see who they are at the call-up.')}</p>}
+      {aberto && c.pacote
+        ? <div style={{ display: 'grid', gridTemplateColumns: `repeat(${c.pacote.cartas.length > 4 ? 3 : 2}, minmax(0, 1fr))`, gap: 6, marginTop: 8 }}>{c.pacote.cartas.map(pc => <CollectibleCard key={pc.id} {...pc} />)}</div>
+        : !compacto && <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{c.pacote?.conquista ? t('Lenda ou bagre? Só no martelo.', 'Legend or flop? Only at the hammer.') : t('Quem são, você vê na convocação.', 'You see who they are at the call-up.')}</p>}
     </div>
   )
 }

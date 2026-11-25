@@ -1,4 +1,16 @@
-## 25/11 — 🏅 LEILÃO DE CONQUISTAS (ideia em mockup, NADA programado ainda)
+## 25/11 — 🏅 LEILÃO DE CONQUISTAS: FEITO, só pra Diego + Futpoint (`CONQUISTAS_GERAL = false` em sport.ts)
+- 4ª variante do Leilão de Clubes (Partida Rápida + salas Rápido/Liga da Turma, envelope · Tocaia · pregão aberto). Motor e
+  temas em `conquistas.ts`; trava `npm run conquistas` (tamanho, pessoa nunca repete, mesma semente = mesmos pacotes, 2–20 pessoas).
+- 13 temas, todos com fato: Bola de Ouro e Campeão do Mundo (listas por pessoa/país) · Champions e Libertadores (clube CAMPEÃO no
+  ano da carta) · Brasileiro na Europa · Gringo no Brasil · Revelado que estourou (`promessa`) · Voltou da Europa · Ásia · Kings
+  League · Folclóricos (`folk`) · Arábia · EUA. "Voltou acima do peso" e outros subjetivos ficaram FORA (sem fonte, gente real).
+- 👑 Exceção pedida pelo Diego (25/11): as cartas da KINGS podem cair no tema "Jogou na Kings League" (a regra de 10/11 era "só
+  no leilão da Kings"). Sorteadas como as outras — não é sempre o Kelvin.
+- No martelo o pacote ABRE pra sala toda (envelope e pregão aberto); sem lance vai pro Monte fechado. Prints da bancada:
+  `scripts/mockups/conquistas-bancada-pregao.png` · `conquistas-bancada-martelo.png`.
+- Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; mais temas com fonte (rebaixado, Copa América…).
+
+## 25/11 — 🏅 LEILÃO DE CONQUISTAS (decisões do mockup)
 - Novo TIPO de leilão ao lado de 🃏 Jogador e 🧱 Clubes (combina com Envelope/Tocaia/Pregão aberto). Mockups:
   `scripts/mockups/leilao-conquistas.png` (v1) e `leilao-conquistas-v2.png` (v2, o que vale).
 - Decidido com o Diego (25/11):

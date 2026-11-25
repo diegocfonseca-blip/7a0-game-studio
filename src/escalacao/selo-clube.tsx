@@ -1,3 +1,4 @@
+import { temaConquista } from './conquistas' // 🏅 25/11
 // 🧱 O SELO DO CLUBE no Leilão de Clubes (estilo B escolhido pelo Diego, 28/09):
 // círculo nas cores do clube, o NOME VERDADEIRO escrito em volta, o bicho/símbolo
 // da torcida no meio e o ano de fundação embaixo. Desenhado aqui em SVG a partir da
@@ -73,8 +74,13 @@ export function SeloClube({ clube, size = 40 }: { clube: string; size?: number }
 }
 
 /** 🧱🏳️ o selo do PACOTE: escudo do clube (de sempre) ou, no leilão de Seleções (31/10), o escudo da seleção. */
-export function SeloPacote({ c, size = 40 }: { c: { club: string; pacote?: { clube: string; selecao?: boolean } }; size?: number }) {
+export function SeloPacote({ c, size = 40 }: { c: { club: string; pacote?: { clube: string; selecao?: boolean; conquista?: string } }; size?: number }) {
   const nome = c.pacote?.clube ?? c.club
+  // 🏅 25/11: pacote de conquista = o emoji do tema num selo neutro (sem cor de categoria: é surpresa)
+  const tema = temaConquista(c.pacote?.conquista)
+  if (tema) return (
+    <span style={{ width: size, height: size, display: 'grid', placeItems: 'center', border: '3px solid #0C0C0C', borderRadius: Math.round(size * .26), background: '#F4ECD6', fontSize: Math.round(size * .55), lineHeight: 1, boxShadow: '2px 2px 0 #0C0C0C' }}>{tema.emoji}</span>
+  )
   if (c.pacote?.selecao) return temEscudoNacional(nome) ? <NationalCrest country={nome} size={size} /> : <Escudo nome={nome} size={size} />
   return <SeloClube clube={nome} size={size} />
 }

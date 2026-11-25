@@ -167,7 +167,8 @@
     "ligas-nba": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-ligas-nba.mts",
     "eua-so-carreira": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-eua-so-carreira.mts",
     "eua-oficial": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-eua-oficial.mts",
-    "sub-ao-vivo": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-sub-ao-vivo.mts"
+    "sub-ao-vivo": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-sub-ao-vivo.mts",
+    "conquistas": "npx tsx --import ./scripts/node-stub-reg.mjs scripts/testa-conquistas.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
