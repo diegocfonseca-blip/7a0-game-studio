@@ -46,6 +46,6 @@ As notas são do jogo. Os exemplos históricos foram conferidos nas referências
 - `scripts/teste-formula1/browser.mjs`: 320/390/1440, leilão real até equipe completa, pausa, troca de pneus, cancelamento de pit, retorno, chuva e corrida completa no celular, troca de conta bloqueada. Sem vazamento horizontal nem erros JavaScript.
 - `scripts/teste-formula1/gate-root.mjs`: passou na entrada pelo aplicativo principal, alternância Futebol/Basquete/F1, visitante e segunda conta bloqueados sem baixar a corrida, e retirada da tela no logout.
 - Capturas reais e relatórios em `/workspace/shared/formula1-privada-20261125/`.
-- Build de produção e smoke test compilado 390/1440: passaram, sem erros TypeScript/JavaScript. Regressão da carreira de futebol passou com pausa, três substituições, bloqueio da quarta, retomada e apito final. Registrar commit e conclusão do deploy privado antes de comunicar disponibilidade.
+- Build de produção e smoke test compilado 390/1440: passaram, sem erros TypeScript/JavaScript. Regressão da carreira de futebol passou com pausa, três substituições, bloqueio da quarta, retomada e apito final. Fonte `6edf7ecdac41eaf2e89a819ef8d5c60705881b61`; [GitHub Pages 45531787439](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45531787439), build e deploy concluídos com sucesso em 25/11/2026. Acesso permanece somente pela conta principal.
 
 Reversão: reverter o commit desta entrega. Não exige migração, remoção de dados ou conversão de saves.
