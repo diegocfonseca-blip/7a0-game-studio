@@ -1,0 +1,9 @@
+/* 📜 25/11: a lista de jogadores do draft rola dentro da caixa, com barra de rolagem SEMPRE à vista (pedido do Diego:
+   "falta uma barrinha pra deixar claro que dá pra descer") e uma sombra embaixo dizendo que tem mais. */
+.ld-lista-draft{max-height:min(62vh,640px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:auto;scrollbar-color:#FFC400 #EFEBE0;
+  background:linear-gradient(#fff 30%,rgba(255,255,255,0)) top,linear-gradient(rgba(255,255,255,0),#fff 70%) bottom,
+    radial-gradient(farthest-side at 50% 0,rgba(0,0,0,.22),rgba(0,0,0,0)) top,radial-gradient(farthest-side at 50% 100%,rgba(0,0,0,.22),rgba(0,0,0,0)) bottom;
+  background-color:#fff;background-repeat:no-repeat;background-size:100% 30px,100% 30px,100% 12px,100% 12px;background-attachment:local,local,scroll,scroll}
+.ld-lista-draft::-webkit-scrollbar{width:10px}
+.ld-lista-draft::-webkit-scrollbar-track{background:#EFEBE0;border-left:2px solid #0C0C0C}
+.ld-lista-draft::-webkit-scrollbar-thumb{background:#FFC400;border:2px solid #0C0C0C;border-radius:6px}

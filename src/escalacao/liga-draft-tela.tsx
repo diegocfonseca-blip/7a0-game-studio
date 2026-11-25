@@ -14,6 +14,7 @@ import type { Card, Sector, Manager } from './types'
 import { POS_LABELS } from './sportcfg'
 import { EscalacaoMinha } from './minha-escalacao'
 import { ListaFavoritos, EstrelaFav, useFavoritosDraft } from './draft-favoritos'
+import './liga-draft-lista.css'
 import {
   podemSair, chaveCarta, chaveJogador, categoriaDa, decadaDe, paisDaCarta,
   DRAFT_PISTA_MS, DRAFT_VIRA_MS, type DraftPick, type DraftEstado,
@@ -309,8 +310,21 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
     const l = baralho.filter(c => (!pos || c.pos === pos) && (!q || norm(c.name).includes(q) || norm(c.club).includes(q)) && (!state.minhaLigaDraft || cartaPermitidaDraft(c, state.draftRegras)))
     return [...l].sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity: 'base' }) || a.year - b.year)
   }, [baralho, pos, q, state.minhaLigaDraft, state.draftRegras])
-  const LIMITE_LISTA = 250
-  const lista = filtradas.slice(0, LIMITE_LISTA)
+  // 📜 25/11 (Anesp na Liga Draft: "chega uma hora que não desce mais"): a lista parava nos 250 primeiros. Agora vem de 250 em 250
+  // sozinha conforme a pessoa rola (a caixa tem barra de rolagem à vista e o aviso "role pra ver mais"); busca/posição voltam pro começo.
+  const PASSO_LISTA = 250
+  const [mostra, setMostra] = useState(PASSO_LISTA)
+  useEffect(() => { setMostra(PASSO_LISTA); caixaLista.current?.scrollTo({ top: 0 }) }, [pos, q])
+  const caixaLista = useRef<HTMLDivElement>(null), fimLista = useRef<HTMLDivElement>(null)
+  const temMais = filtradas.length > mostra
+  useEffect(() => {
+    const raiz = caixaLista.current, alvo = fimLista.current
+    if (!raiz || !alvo || !temMais || typeof IntersectionObserver === 'undefined') return
+    const ob = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) setMostra(m => m + PASSO_LISTA) }, { root: raiz, rootMargin: '400px' })
+    ob.observe(alvo)
+    return () => ob.disconnect()
+  }, [temMais, mostra])
+  const lista = filtradas.slice(0, mostra)
   const [sondando, setSondando] = useState(!!comecaSondando)
   const favs = useFavoritosDraft() // ⭐ 08/11: os favoritos marcados na temporada aparecem em cima (só conveniência do aparelho)
   if (!you) return null
@@ -344,7 +358,11 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
               style={{ ...OSW, background: pos === p ? GOLD : '#fff' }}>{p ? tagP(p) : t('Todos', 'All')}</button>
           ))}
         </div>
-        <div className="rounded-2xl border-[3px] border-black overflow-hidden bg-white">
+        <p className="flex items-center justify-between text-[11.5px] font-black px-1" style={OSW}>
+          <span>📜 {t(`${filtradas.length.toLocaleString('pt-BR')} jogadores na lista`, `${filtradas.length.toLocaleString('en-US')} players in the list`)}</span>
+          <span style={{ opacity: .7 }}>{t('role a lista ⬇', 'scroll the list ⬇')}</span>
+        </p>
+        <div ref={caixaLista} className="ld-lista-draft rounded-2xl border-[3px] border-black bg-white">
           {lista.map(c => {
             const dono = donoDe.get(chaveJogador(c))
             if (dono) return (
@@ -363,7 +381,11 @@ function EscolhaDraft({ restante, n, minha, comecaSondando }: { restante: number
               </button>
             )
           })}
-          {filtradas.length > LIMITE_LISTA && <p className="px-3 py-2 text-[11px] font-bold text-black/50">{t(`Mostrando ${LIMITE_LISTA} de ${filtradas.length}. Use a busca ou a posição pra achar o resto.`, `Showing ${LIMITE_LISTA} of ${filtradas.length}. Use search or position to find the rest.`)}</p>}
+          {temMais && <div ref={fimLista} className="px-3 py-2 text-center">
+            <button type="button" onClick={() => setMostra(m => m + PASSO_LISTA)} className="border-2 border-black rounded-lg px-3 py-1.5 text-[12px] ov3-surface" style={{ ...OSW, background: '#F4ECD6' }}>
+              {t(`⬇ Ver mais jogadores (${lista.length} de ${filtradas.length})`, `⬇ More players (${lista.length} of ${filtradas.length})`)}
+            </button>
+          </div>}
           {lista.length === 0 && <p className="px-3 py-3 text-[12px] font-bold text-black/50">{t('Ninguém livre com esse nome.', 'Nobody free with that name.')}</p>}
         </div>
         {minha && podePassarDraft(you) && <BotaoPassar onPassar={() => dispatch({ type: 'DRAFT_PASSAR', mgrId: you.id, by: state.youUid })} />}
