@@ -120,6 +120,49 @@ const CHAMPIONS: Record<number, string> = {
   2013: 'Bayern', 2014: 'Real Madrid', 2015: 'Barcelona', 2016: 'Real Madrid', 2017: 'Real Madrid', 2018: 'Real Madrid',
   2019: 'Liverpool', 2020: 'Bayern', 2021: 'Chelsea', 2022: 'Real Madrid', 2023: 'Man City', 2024: 'Real Madrid', 2025: 'PSG',
 }
+// 🇧🇷 Campeão Brasileiro (CBF, Série A desde 1971; 1987 = Sport, o reconhecido pela CBF). Clube campeão NO ANO DA CARTA.
+const BRASILEIRAO: Record<number, string> = {
+  1971: 'Atlético-MG', 1972: 'Palmeiras', 1973: 'Palmeiras', 1974: 'Vasco', 1975: 'Internacional', 1976: 'Internacional', 1977: 'São Paulo',
+  1978: 'Guarani', 1979: 'Internacional', 1980: 'Flamengo', 1981: 'Grêmio', 1982: 'Flamengo', 1983: 'Flamengo', 1984: 'Fluminense',
+  1985: 'Coritiba', 1986: 'São Paulo', 1987: 'Sport', 1988: 'Bahia', 1989: 'Vasco', 1990: 'Corinthians', 1991: 'São Paulo', 1992: 'Flamengo',
+  1993: 'Palmeiras', 1994: 'Palmeiras', 1995: 'Botafogo', 1996: 'Grêmio', 1997: 'Vasco', 1998: 'Corinthians', 1999: 'Corinthians',
+  2000: 'Vasco', 2001: 'Athletico-PR', 2002: 'Santos', 2003: 'Cruzeiro', 2004: 'Santos', 2005: 'Corinthians', 2006: 'São Paulo',
+  2007: 'São Paulo', 2008: 'São Paulo', 2009: 'Flamengo', 2010: 'Fluminense', 2011: 'Corinthians', 2012: 'Fluminense', 2013: 'Cruzeiro',
+  2014: 'Cruzeiro', 2015: 'Corinthians', 2016: 'Palmeiras', 2017: 'Corinthians', 2018: 'Palmeiras', 2019: 'Flamengo', 2020: 'Flamengo',
+  2021: 'Atlético-MG', 2022: 'Palmeiras', 2023: 'Palmeiras', 2024: 'Botafogo', 2025: 'Flamengo',
+}
+/** pessoa de lista por país; `clubes` restringe quando o nome tem xará no mesmo país (o Paulinho do Corinthians não é o da Olimpíada) */
+type Pessoa = string | { n: string; clubes: string[] }
+// 🏅 Ouro olímpico (elencos campeões, pt.wikipedia): Brasil 2016 e 2020 · Argentina 2004 e 2008 · Nigéria 1996 · Camarões 2000
+const OURO_OLIMPICO: Record<string, Pessoa[]> = {
+  Brasil: ['Neymar', 'Gabriel Jesus', 'Gabigol', 'Marquinhos', 'Renato Augusto', 'Luan', 'Weverton', 'Rodrigo Caio', 'Douglas Santos', 'Zeca',
+    'Thiago Maia', 'Felipe Anderson', 'Rafinha Alcântara', // 2016
+    'Dani Alves', 'Richarlison', 'Matheus Cunha', 'Antony', 'Bruno Guimarães', 'Douglas Luiz', 'Claudinho', { n: 'Paulinho', clubes: ['Atlético-MG'] },
+    'Malcom', 'Diego Carlos', 'Nino', 'Guilherme Arana', 'Reinier'], // 2020
+  Argentina: ['Tevez', 'Mascherano', 'Javier Mascherano', 'Gabriel Heinze', 'Roberto Ayala', "D'Alessandro", 'Kily González', 'Lucho González', 'Fabricio Coloccini', // 2004
+    'Lionel Messi', 'Juan Román Riquelme', 'Sergio Agüero', 'Ángel Di María', 'Ezequiel Lavezzi', 'Fernando Gago', 'Pablo Zabaleta', 'Ezequiel Garay',
+    'Sergio Romero', 'Ever Banega', 'Éver Banega'], // 2008
+  Nigéria: ['Nwankwo Kanu', 'Jay-Jay Okocha', 'Taribo West'],
+  Camarões: ["Samuel Eto'o", 'Patrick Mboma', 'Lauren', 'Geremi'],
+}
+// 👟 Artilheiro de Copa do Mundo (o maior goleador de cada Copa, empates juntos — FIFA)
+const ARTILHEIRO_COPA: Record<string, Pessoa[]> = {
+  Brasil: ['Leônidas da Silva', 'Ademir de Menezes', 'Garrincha', 'Vavá', 'Ronaldo', 'Ronaldo Fenômeno'],
+  Hungria: ['Sándor Kocsis'], França: ['Just Fontaine', 'Kylian Mbappé'], Portugal: ['Eusébio'], Alemanha: ['Gerd Müller', 'Miroslav Klose', 'Thomas Müller'],
+  Polônia: ['Grzegorz Lato'], Argentina: ['Mario Kempes'], Itália: ['Paolo Rossi', 'Totò Schillaci'], Inglaterra: ['Gary Lineker', 'Harry Kane'],
+  Bulgária: ['Hristo Stoichkov'], Rússia: ['Oleg Salenko'], Croácia: ['Davor Šuker'], Holanda: ['Wesley Sneijder'], Uruguai: ['Diego Forlán'],
+  Espanha: ['David Villa'], Colômbia: ['James Rodríguez'],
+}
+// 👨‍👦 parentes de craque: o próprio nome da carta já diz ("irmão do Kaká", "filho do Bebeto") + filhos famosos de lenda
+const PARENTES = new Set(['Enzo Zidane', 'Luca Zidane', 'Jordi Cruyff', 'Khéphren Thuram', 'Marcus Thuram', 'Timothy Weah'])
+const PARENTE_NO_NOME = /\((irmão|irmã|filho|filha|primo|prima|pai|tio|sobrinho|neto) d[oa] / // minúsculo de propósito: "Euller (Filho do Vento)" é apelido, não parente
+// 🏴 o país da LIGA do clube da carta (Inglaterra = futebol inglês; o País de Gales do Swansea joga lá)
+const LIGA_INGLESA = new Set(['Liverpool', 'Man United', 'Manchester United', 'Arsenal', 'Chelsea', 'Man City', 'Tottenham', 'Newcastle', 'Everton', 'Aston Villa', 'West Ham', 'Leicester', 'Leicester City', 'Wolves', 'Nottingham Forest', 'Fulham', 'Leeds', 'Leeds United', 'Blackburn', 'Southampton', 'Crystal Palace', 'Brighton', 'Sunderland', 'Middlesbrough', 'Brentford', 'Swansea', 'Derby County', 'Bournemouth', 'Birmingham', 'Wigan', 'Watford', 'Sheffield Wednesday', 'Portsmouth', 'Burnley', 'Bolton'])
+const LIGA_ESPANHOLA = new Set(['Real Madrid', 'Barcelona', 'Atlético de Madrid', 'Sevilla', 'Valencia', 'Villarreal', 'Real Betis', 'Deportivo La Coruña', 'Real Sociedad', 'Athletic Bilbao', 'Espanyol', 'Celta', 'Celta de Vigo', 'Mallorca', 'Granada', 'Girona', 'Logroñés'])
+const LIGA_ITALIANA = new Set(['Milan', 'Inter', 'Juventus', 'Roma', 'Napoli', 'Lazio', 'Fiorentina', 'Parma', 'Atalanta', 'Udinese', 'Torino', 'Sampdoria', 'Verona', 'Palermo', 'Padova', 'Perugia', 'Genoa', 'Como', 'Chievo', 'Cagliari', 'Bologna'])
+const LIGA_ALEMA = new Set(['Bayern', 'Dortmund', 'Leverkusen', 'Bayer Leverkusen', 'Schalke', 'RB Leipzig', 'Werder Bremen', 'Wolfsburg', 'Stuttgart', 'Mönchengladbach', 'Borussia Mönchengladbach', 'Köln', 'Colônia', 'Kaiserslautern', 'Hamburg', 'Freiburg', 'Eintracht Frankfurt', 'Hertha Berlin', 'Hannover', 'Augsburg', 'Rot-Weiss Essen'])
+const AFRICA = new Set(['Senegal', 'Camarões', 'Costa do Marfim', 'Gana', 'Marrocos', 'Argélia', 'Nigéria', 'Egito', 'Mali', 'África do Sul', 'Congo', 'RD Congo', 'Angola', 'Zimbábue', 'Togo', 'Libéria', 'Guiné', 'Gabão', 'Cabo Verde', 'Tunísia'])
+
 // o mesmo clube com outro nome no baralho
 const CLUBE_ALIAS: Record<string, string> = { 'Manchester United': 'Man United', 'Leicester City': 'Leicester', 'Bayer Leverkusen': 'Leverkusen', 'Celta de Vigo': 'Celta', 'Atlético-PR': 'Athletico-PR', 'Colônia': 'Köln', 'Borussia Mönchengladbach': 'Mönchengladbach', 'Dínamo Kyiv': 'Dynamo Kyiv', 'Leeds United': 'Leeds', 'RC Lens': 'Lens' }
 const clube = (c: string) => CLUBE_ALIAS[c] ?? c
@@ -132,10 +175,27 @@ const ASIA = new Set(['Kashima Antlers', 'Vissel Kobe', 'Guangzhou', 'Pohang Ste
 export const TEMAS_CONQUISTA: TemaConquista[] = [
   { id: 'bola-ouro', emoji: '🥇', pt: 'Bola de Ouro', en: "Ballon d'Or", grupo: 'lenda' },
   { id: 'copa-mundo', emoji: '🏆', pt: 'Campeão do Mundo', en: 'World Cup winner', grupo: 'lenda' },
+  { id: 'artilheiro-copa', emoji: '👟', pt: 'Artilheiro de Copa do Mundo', en: 'World Cup top scorer', grupo: 'lenda' },
+  { id: 'brasileirao', emoji: '🇧🇷', pt: 'Campeão Brasileiro', en: 'Brazilian champion', grupo: 'mista' },
+  { id: 'inglaterra', emoji: '🏴', pt: 'Jogou na Inglaterra', en: 'Played in England', grupo: 'mista' },
+  { id: 'espanha', emoji: '🇪🇸', pt: 'Jogou na Espanha', en: 'Played in Spain', grupo: 'mista' },
+  { id: 'italia', emoji: '🇮🇹', pt: 'Jogou na Itália', en: 'Played in Italy', grupo: 'mista' },
+  { id: 'alemanha', emoji: '🇩🇪', pt: 'Jogou na Alemanha', en: 'Played in Germany', grupo: 'mista' },
+  { id: 'hermanos', emoji: '🇦🇷', pt: 'Hermanos', en: 'Argentines', grupo: 'mista' },
+  { id: 'garra-uruguaia', emoji: '🇺🇾', pt: 'Garra uruguaia', en: 'Uruguayan grit', grupo: 'mista' },
+  { id: 'portugueses', emoji: '🇵🇹', pt: 'Portugueses', en: 'Portuguese', grupo: 'mista' },
+  { id: 'africanos', emoji: '🌍', pt: 'Africanos', en: 'Africans', grupo: 'mista' },
+  { id: 'anos-70', emoji: '📻', pt: 'Anos 70', en: 'The 70s', grupo: 'mista' },
+  { id: 'anos-80', emoji: '📼', pt: 'Anos 80', en: 'The 80s', grupo: 'mista' },
+  { id: 'anos-90', emoji: '💿', pt: 'Anos 90', en: 'The 90s', grupo: 'mista' },
+  { id: 'anos-2000', emoji: '📱', pt: 'Anos 2000', en: 'The 2000s', grupo: 'mista' },
+  { id: 'ouro-olimpico', emoji: '🏅', pt: 'Ouro olímpico', en: 'Olympic gold', grupo: 'meio' },
+  { id: 'rodou', emoji: '🧳', pt: 'Rodou o mundo', en: 'Journeyman', grupo: 'meio' },
+  { id: 'parentes', emoji: '👨‍👦', pt: 'Parente do craque', en: "Star's relative", grupo: 'comica' },
   { id: 'champions', emoji: '⭐', pt: 'Campeão da Champions', en: 'Champions League winner', grupo: 'mista' },
   { id: 'libertadores', emoji: '🌎', pt: 'Campeão da Libertadores', en: 'Libertadores winner', grupo: 'mista' },
   { id: 'brasileiro-europa', emoji: '✈️', pt: 'Brasileiro na Europa', en: 'Brazilian in Europe', grupo: 'mista' },
-  { id: 'gringo-brasil', emoji: '🌍', pt: 'Gringo no Brasil', en: 'Foreigner in Brazil', grupo: 'mista' },
+  { id: 'gringo-brasil', emoji: '🧉', pt: 'Gringo no Brasil', en: 'Foreigner in Brazil', grupo: 'mista' },
   { id: 'revelados', emoji: '💎', pt: 'Revelado que estourou', en: 'Breakout talent', grupo: 'meio' },
   { id: 'voltou', emoji: '🔙', pt: 'Voltou da Europa', en: 'Back from Europe', grupo: 'meio' },
   { id: 'asia', emoji: '🌏', pt: 'Foi jogar na Ásia', en: 'Went to Asia', grupo: 'meio' },
@@ -158,7 +218,7 @@ function todas(): Item[] {
 }
 /** pessoa por trás da carta: o mesmo nome só junta cartas quando o jogo JÁ conferiu que é a mesma pessoa (MESMO_JOGADOR) */
 const PESSOA_ALIAS = new Map<string, string>()
-for (const grupo of [...BOLA_DE_OURO, ...Object.values(CAMPEOES_DO_MUNDO).flat()]) for (const n of grupo) PESSOA_ALIAS.set(n, grupo[0])
+for (const grupo of [...BOLA_DE_OURO, ...Object.values(CAMPEOES_DO_MUNDO).flat(), ['Mascherano', 'Javier Mascherano'], ['Ever Banega', 'Éver Banega']]) for (const n of grupo) PESSOA_ALIAS.set(n, grupo[0])
 export const pessoaDe = (it: { carta: CartaTema; pais: string }) => {
   const n = PESSOA_ALIAS.get(it.carta.name) ?? it.carta.name
   return MESMO_JOGADOR.has(n) || PESSOA_ALIAS.has(it.carta.name) ? `${n}|${it.pais}` : `${it.carta.name}|${it.carta.club}|${it.carta.year}`
@@ -168,9 +228,27 @@ const nomesBola = new Set(BOLA_DE_OURO.flat())
 const nomesCopa = new Map<string, Set<string>>(Object.entries(CAMPEOES_DO_MUNDO).map(([p, l]) => [p, new Set(l.flat())]))
 /** cartas de um MESMO_JOGADOR que existem no baralho BR e no EU — a carta BR depois da europeia = voltou */
 function voltouDaEuropa(it: Item): boolean {
-  if (it.baralho !== 'BR' || it.pais !== 'Brasil' || !MESMO_JOGADOR.has(it.carta.name)) return false
+  if (it.baralho !== 'BR' || it.pais !== 'Brasil' || !MESMO_JOGADOR.has(it.carta.name) || PESSOA_DUVIDOSA.has(it.carta.name)) return false
   return todas().some(o => o.baralho === 'EU' && o.carta.name === it.carta.name && o.pais === it.pais && o.carta.year < it.carta.year)
 }
+
+const naLista = (l: Record<string, Pessoa[]>, it: Item) => (l[it.pais] ?? []).some(p => typeof p === 'string' ? p === it.carta.name : p.n === it.carta.name && p.clubes.includes(it.carta.club))
+/** clubes (de MESMO_JOGADOR) de cada pessoa — pra "rodou" (só junta cartas que o jogo já conferiu serem a mesma pessoa) */
+let CLUBES_DA_PESSOA: Map<string, Set<string>> | null = null
+function clubesDaPessoa(it: Item): Set<string> {
+  if (!CLUBES_DA_PESSOA) {
+    CLUBES_DA_PESSOA = new Map()
+    for (const o of todas()) if (o.baralho !== 'K' && MESMO_JOGADOR.has(o.carta.name)) {
+      const k = `${o.carta.name}|${o.pais}`
+      ;(CLUBES_DA_PESSOA.get(k) ?? CLUBES_DA_PESSOA.set(k, new Set()).get(k)!).add(clube(o.carta.club))
+    }
+  }
+  return CLUBES_DA_PESSOA.get(`${it.carta.name}|${it.pais}`) ?? new Set()
+}
+// ⚠️ nomes que o jogo junta como "mesma pessoa" mas são gente diferente (Danilo do Corinthians ≠ do Botafogo ≠ da Juventus;
+// Júlio César do Corinthians ≠ o da Inter): ficam FORA de "rodou" e "voltou", que dependem de juntar as cartas da pessoa
+const PESSOA_DUVIDOSA = new Set(['Danilo', 'Júlio César'])
+const decada = (y: number, d: number) => y >= d && y < d + 10
 
 function noTema(id: string, it: Item): boolean {
   const c = it.carta
@@ -188,6 +266,23 @@ function noTema(id: string, it: Item): boolean {
     case 'folcloricos': return !!c.folk
     case 'arabia': return ARABIA.has(c.club)
     case 'eua': return EUA.has(c.club)
+    case 'artilheiro-copa': return naLista(ARTILHEIRO_COPA, it)
+    case 'ouro-olimpico': return naLista(OURO_OLIMPICO, it)
+    case 'brasileirao': return clube(BRASILEIRAO[c.year] ?? '') === clube(c.club)
+    case 'rodou': return !PESSOA_DUVIDOSA.has(c.name) && clubesDaPessoa(it).size >= 3
+    case 'parentes': return PARENTES.has(c.name) || PARENTE_NO_NOME.test(c.name)
+    case 'inglaterra': return LIGA_INGLESA.has(c.club)
+    case 'espanha': return LIGA_ESPANHOLA.has(c.club)
+    case 'italia': return LIGA_ITALIANA.has(c.club)
+    case 'alemanha': return LIGA_ALEMA.has(c.club)
+    case 'hermanos': return it.pais === 'Argentina'
+    case 'garra-uruguaia': return it.pais === 'Uruguai'
+    case 'portugueses': return it.pais === 'Portugal'
+    case 'africanos': return AFRICA.has(it.pais)
+    case 'anos-70': return decada(c.year, 1970)
+    case 'anos-80': return decada(c.year, 1980)
+    case 'anos-90': return decada(c.year, 1990)
+    case 'anos-2000': return decada(c.year, 2000)
     default: return false
   }
 }

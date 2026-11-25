@@ -8,7 +8,13 @@
   no leilão da Kings"). Sorteadas como as outras — não é sempre o Kelvin.
 - No martelo o pacote ABRE pra sala toda (envelope e pregão aberto); sem lance vai pro Monte fechado. Prints da bancada:
   `scripts/mockups/conquistas-bancada-pregao.png` · `conquistas-bancada-martelo.png`.
-- Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; mais temas com fonte (rebaixado, Copa América…).
+- 25/11 (2ª leva, Diego: "Sim"): +18 temas → 31 no total. Do baralho: Parente do craque · Rodou o mundo · Hermanos · Garra uruguaia ·
+  Portugueses · Africanos · Jogou na Inglaterra/Espanha/Itália/Alemanha · Anos 70/80/90/2000. Com lista: Campeão Brasileiro (CBF,
+  1971+, clube+ano) · Ouro olímpico (BRA 2016/2020, ARG 2004/2008, NGA 1996, CMR 2000) · Artilheiro de Copa do Mundo (FIFA).
+  FORA, e por quê: **Xarás** (o jogo não sabe provar que dois "Danilo" são pessoas diferentes) e **Jogou nos dois rivais** (entre as
+  pessoas conferidas em `MESMO_JOGADOR` ninguém tem carta nos dois lados de um clássico). ⚠️ `MESMO_JOGADOR` junta gente diferente
+  em "Danilo" e "Júlio César" — fora de Rodou/Voltou (`PESSOA_DUVIDOSA`); vale corrigir a lista no `paises.ts` um dia.
+- Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; Copa América e Rebaixado (pesquisar a lista oficial).
 
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS (decisões do mockup)
 - Novo TIPO de leilão ao lado de 🃏 Jogador e 🧱 Clubes (combina com Envelope/Tocaia/Pregão aberto). Mockups:
