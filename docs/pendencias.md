@@ -15544,3 +15544,10 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Decisão, fontes, isolamento e testes: [formula1-rapida-privada-20261125.md](formula1-rapida-privada-20261125.md).
 - Acesso privado pela identidade principal verificada; não liberar para Futpoint, secundária ou público.
 - Publicado somente para a conta principal: `6edf7ecd`, [GitHub Pages 45531787439](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45531787439), build e deploy com sucesso.
+
+## 25/11 — 🃏 Quiz "Quem é esse jogador?": sequência guardada + 🏆 recorde (✅ publicado 25/11, "Pode")
+- Diego: *"se errar volta p estaca zero… mostra o recorde pessoal"* e *"N deveria zerar… se fez 5 pts, outro dia que voltar continua com os 5"*.
+- Feito em `quem-e-jogador.tsx`: a sequência fica guardada no aparelho (`esc-quiz-seguidos`) e só zera ao ERRAR; o 🏆 recorde
+  (`esc-quiz-recorde`) é a maior sequência; ao bater aparece "🎉 NOVO RECORDE!". 2 chaves fixas (não é por sala, não precisa limpeza).
+- Ranking de todo mundo ficou de fora (custaria servidor) — só se ele pedir.
+- Prints: `scripts/mockups/quiz-recorde*.png` · bancada `node scripts/teste-formacoes/print-quiz-recorde.mjs <pasta>`.
