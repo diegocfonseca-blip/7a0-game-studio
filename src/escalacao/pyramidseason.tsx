@@ -9,6 +9,7 @@ import {formacoes15On} from './sport'
 import {CareerBudgetPlanner,CareerCoachFit} from './career-planning-ui'
 import {cupMatchMinute,cupLiveEntry,liveFormations,liveInitialIds,validateLivePlan,type CareerLiveDecision} from './career-live-plan'
 import {cenasDoBairro,lerCenasLidas,guardarCenasLidas} from './cenas-bairro-central'
+import {repetirCenaCentral} from './cena-central-playback'
 import './mercado-carreira.css'
 import {eventosFisicos, type JogoFisicoOficial} from './carreira-fisica'
 import {posicaoComparavel} from './carreira-economia'
@@ -12757,7 +12758,7 @@ export function PyramidSeasonScreen() {
   const [cenasLidas,setCenasLidas]=useState<string[]>(lerCenasLidas)
   const [reverCena,setReverCena]=useState(false)
   const cenaAtivaRef=useRef(''),cenaAtivaScopeRef=useRef('')
-  useEffect(()=>{if(tab!=='central'){if(cenaAtivaRef.current&&tab!=='estadio')pedeVistaDoMapa('original');cenaAtivaRef.current='';setReverCena(false)}},[tab])
+  useEffect(()=>{if(tab!=='central'){if(cenaAtivaRef.current&&sedeVistaRef.current&&tab!=='estadio')pedeVistaDoMapa('original');cenaAtivaRef.current='';setReverCena(false)}},[tab])
   const sedeVistaRef = useRef(''), sedeVistaFeita = useRef('')
   useEffect(() => {
     const marca = sedeVistaRef.current
@@ -13825,8 +13826,11 @@ export function PyramidSeasonScreen() {
     const evSede=evAtual&&evAtual.season===sn&&evAtual.mgrId===youId&&evAtual.tipo==='noitada'&&(evAtual.status==='banco'?(evAtual.volta??0)>round:evAtual.status==='campo'&&evAtual.round===round)?evAtual:null
     const ultimoSede=roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg,rival:(state.careerRivals??[]).some(r=>newestTeamName(r.team)===newestTeamName(myMatch.hId===youId?myMatch.a:myMatch.h))}:null
     const festaSede=carreataAtiva(state,youId)
-    const todasCenasSede=previa&&stadiumMapAvailable&&!chegadaGrande&&(!novaCentral||round>0||festaSede)?cenasDoBairro({
-      viagem:copaPlaying&&myCopaTie&&copaFase&&/final/i.test(copaFase.name)?{id:`${sn}:${copaRound}:${cupLiveKey}`,adversario:myCopaTie.a.teamId===youId?myCopaTie.b.name:myCopaTie.a.name,fase:copaFase.name}:undefined,fatos:mgrMe?fatosDoBairro(state,mgrMe,roundReady&&!!myMatch):[],chave:`${state.seed}:${sn}:${round}`,carreiraKey:`${state.seed}:${youId}`,tituloId:(()=>{const t=round===0?sn-1:sn,cr=state.careerCronica?.[`m${youId}`]?.find(x=>x.t===t),intl=(state.careerInternationalHistory??[]).filter(x=>x.season===t&&(x.userClubId===youId||x.userClubId===undefined&&x.userTeam===euNome));return `${t}:${cr?.campeao??0}:${cr?.copa??0}:${cr?.sup??0}:${intl.map(x=>`${x.libertadores}-${x.champions}-${x.mundial}`).join('-')}`})(),temporada:sn,rodada:round,clube:euNome,t:tr,
+    const fatosSede=mgrMe?fatosDoBairro(state,mgrMe,roundReady&&!!myMatch):[]
+    const chegadaIlustrada=state.sport!=='basquete'&&state.onlineMode!=='online'&&!state.co2
+    const todasCenasSede=previa&&!chegadaGrande&&(!novaCentral||round>0||festaSede||chegadaIlustrada&&fatosSede.some(f=>f.acao==='contratacao'))?cenasDoBairro({
+      chegadaIlustrada,mapaDisponivel:stadiumMapAvailable,
+      viagem:copaPlaying&&myCopaTie&&copaFase&&/final/i.test(copaFase.name)?{id:`${sn}:${copaRound}:${cupLiveKey}`,adversario:myCopaTie.a.teamId===youId?myCopaTie.b.name:myCopaTie.a.name,fase:copaFase.name}:undefined,fatos:fatosSede,chave:`${state.seed}:${sn}:${round}`,carreiraKey:`${state.seed}:${youId}`,tituloId:(()=>{const t=round===0?sn-1:sn,cr=state.careerCronica?.[`m${youId}`]?.find(x=>x.t===t),intl=(state.careerInternationalHistory??[]).filter(x=>x.season===t&&(x.userClubId===youId||x.userClubId===undefined&&x.userTeam===euNome));return `${t}:${cr?.campeao??0}:${cr?.copa??0}:${cr?.sup??0}:${intl.map(x=>`${x.libertadores}-${x.champions}-${x.mundial}`).join('-')}`})(),temporada:sn,rodada:round,clube:euNome,t:tr,
       imagens:{estadio:estadioNoite,clube:sedeClube,noite:sedeNoite,carreata:sedeCarreata,obra:sedeObra,festa:sedeBotecoFesta,triste:sedeBotecoTriste,feira:sedeFeira},
       estreia:novaCentral&&estreiaCasa&&chegando?{estadio:estadioDoClube(euNome).nome,adversario:estreiaCasa.adv}:undefined,
       carreata:festaSede,evento:evSede?{...evSede,club:mgrMe?.squad.find(c=>c.id===evSede.cardId)?.club,year:mgrMe?.squad.find(c=>c.id===evSede.cardId)?.year,origemRodada:evSede.round}:null,obras:obrasEmCanteiro(state.stadiums?.[youId],sn,round),ultimo:ultimoSede,
@@ -13845,9 +13849,9 @@ export function PyramidSeasonScreen() {
       registrarCena();cenaAtivaRef.current=''
       if(sede)setCenasLidas(prev=>guardarCenasLidas([...prev,sede.chave]))
       setReverCena(false)
-      if(!noMapa)pedeVistaDoMapa('original')
+      if(!noMapa&&!sede?.apresentacaoCentral)pedeVistaDoMapa('original')
     }
-    sedeVistaRef.current = tab === 'central' && sede?.vista && !chegadaGrande ? `${sede.chave}|${pedidoCena(sede.vista,sede.chave,sede.acao,reverCena,false,sede.ator)}` : ''
+    sedeVistaRef.current = tab === 'central' && sede?.vista && !sede.apresentacaoCentral && !chegadaGrande ? `${sede.chave}|${pedidoCena(sede.vista,sede.chave,sede.acao,reverCena,false,sede.ator)}` : ''
     const sedeNoMapa = (vista?: string) => {
       if (vista&&sede){lerCena(false,true);pedeVistaDoMapa(pedidoCena(vista,sede.chave,sede.acao,false,false,sede.ator))}
       if (fluxoCentral) setDaCentral(true) // 🧭 no mapa aparece o "← Voltar pra Central"
@@ -13856,9 +13860,9 @@ export function PyramidSeasonScreen() {
     }
     return <CentralCarreira pendingDecision={!!eventoPendente||criseTrava||(halfMode&&!halftimeDone&&(halftimeOpen||roundReady))||(penMode&&!penaltyDone&&(penaltyOpen||roundReady))||(round===0&&!decisoesOk&&!copaPlaying)} onSedeRever={todasCenasSede.some(c=>cenasLidas.includes(c.chave)||diario?.seen.some(v=>v.id===c.chave))?()=>{
       try{localStorage.removeItem('esc-sede-fechada')}catch{}
-      pedeVistaDoMapa('original');prepararRepeticaoCena(todasCenasSede[0].chave);setReverCena(true)
+      if(todasCenasSede[0].apresentacaoCentral)repetirCenaCentral(todasCenasSede[0].chave);else{pedeVistaDoMapa('original');prepararRepeticaoCena(todasCenasSede[0].chave)}setReverCena(true)
       requestAnimationFrame(()=>requestAnimationFrame(()=>{const el=Array.from(document.querySelectorAll('[data-neighborhood-preview]')).find(el=>el.getClientRects().length>0);el?.closest('.ll-c-sede')?.scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}))
-    }:undefined} sedeReverAtivo={reverCena} direta={centralDireta} avisos={avisosCentral.length ? avisosCentral[0] : undefined} sede={sede} sedeQuantidade={cenasSede.length} onSedeAssistiu={registrarCena} onSedeSeguir={()=>lerCena()} onSedePularTodos={()=>lerCena(true)} sedeJanela={sede?.vista && !chegadaGrande ? <VagaDoMapa /> : undefined} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} janelaNova={jnOn} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    }:undefined} sedeReverAtivo={reverCena} direta={centralDireta} avisos={avisosCentral.length ? avisosCentral[0] : undefined} sede={sede} sedeQuantidade={cenasSede.length} onSedeAssistiu={registrarCena} onSedeSeguir={()=>lerCena()} onSedePularTodos={()=>lerCena(true)} sedeJanela={sede?.vista && !sede.apresentacaoCentral && !chegadaGrande ? <VagaDoMapa /> : undefined} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} janelaNova={jnOn} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       preTemporada={novaCentral && round === 0 && !seasonOver && !copaPlaying ? {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,

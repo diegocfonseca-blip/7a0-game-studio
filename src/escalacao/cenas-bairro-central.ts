@@ -7,7 +7,7 @@ export function lerCenasLidas():string[]{try{const v=JSON.parse(localStorage.get
 export function guardarCenasLidas(chaves:string[]){const v=[...new Set(chaves)].slice(-80);try{localStorage.setItem(CENAS_LIDAS,JSON.stringify(v))}catch{/* navegação funciona sem armazenamento */}return v}
 /** Só usa fatos já revelados; não roda partidas nem grava acontecimentos no save. */
 export function cenasDoBairro(d:{
- viagem?:{id:string;adversario:string;fase:string};fatos?:FatoBairro[];chave:string;carreiraKey?:string;diario?:DiarioBairro;tituloId?:string;temporada:number;rodada:number;clube:string;t:(pt:string,en:string)=>string;
+ chegadaIlustrada?:boolean;mapaDisponivel?:boolean;viagem?:{id:string;adversario:string;fase:string};fatos?:FatoBairro[];chave:string;carreiraKey?:string;diario?:DiarioBairro;tituloId?:string;temporada:number;rodada:number;clube:string;t:(pt:string,en:string)=>string;
  imagens:Record<'estadio'|'clube'|'noite'|'carreata'|'obra'|'festa'|'triste'|'feira',string>;
  estreia?:{estadio:string;adversario:string};carreata?:boolean;
  evento?:{origemRodada?:number;nome:string;club?:string;year?:number;cardId?:string;variante?:string;status:string;subNome?:string}|null;
@@ -18,7 +18,7 @@ export function cenasDoBairro(d:{
 }):Cena[]{
  const out:Cena[]=[],t=d.t,base={rotulo:t('Enquanto isso no bairro','Meanwhile in the neighbourhood')}
  const prefix=d.carreiraKey??d.chave.split(':').slice(0,-1).join(':'),group=`${prefix}:jogo:${d.temporada}:${d.rodada}`
- const add=(prioridade:number,id:string,scene:Omit<CentralSede,'chave'|'rotulo'>)=>out.push({...base,...scene,chave:`${prefix}:${id}`,prioridade,grupo:scene.grupo??group,acao:scene.acao??'torcida'})
+ const add=(prioridade:number,id:string,scene:Omit<CentralSede,'chave'|'rotulo'>)=>out.push({...base,...scene,...(d.chegadaIlustrada&&scene.acao==='contratacao'?{apresentacaoCentral:true}:{}),chave:`${prefix}:${id}`,prioridade,grupo:scene.grupo??group,acao:scene.acao??'torcida'})
  if(d.carreata&&d.tituloId)add(100,`titulo:${d.tituloId}`,{acao:'titulo',grupo:`${prefix}:titulo:${d.tituloId}`,vista:'city-street',img:d.imagens.carreata,tom:'bom',chapeu:t('🏆 O bairro é campeão','🏆 A winning neighbourhood'),titulo:t('A taça saiu para as ruas','The trophy takes to the streets'),texto:t('O título já está confirmado. Acompanhe a carreata do clube no mapa.','The title is confirmed. Follow the club parade on the map.')})
  if(!d.carreata&&d.desfecho&&['acesso','queda'].includes(d.desfecho.tipo)){
   const sobe=d.desfecho.tipo==='acesso'
@@ -39,5 +39,5 @@ export function cenasDoBairro(d:{
   add(65,`classico:${d.temporada}:${d.rodada}`,{acao:'classico',vista:'boteco-oswaldo',img:d.imagens.festa,tom:'bom',chapeu:t('⚔️ Depois do clássico','⚔️ After the derby'),titulo:t('O clássico é nosso','The derby is ours'),texto:t(`A vitória por ${u.gf} a ${u.ga} no rival virou comemoração no bairro.`,`The ${u.gf}-${u.ga} win over your rival sparked a neighbourhood celebration.`)})
  }
  const sorted=out.sort((a,b)=>b.prioridade-a.prioridade)
- return sorted.filter(c=>cenaPodeAparecer(c,d.diario,d.temporada,d.rodada)).slice(0,1)
+ return sorted.filter(c=>(d.mapaDisponivel!==false||c.apresentacaoCentral)&&cenaPodeAparecer(c,d.diario,d.temporada,d.rodada)).slice(0,1)
 }

@@ -10,8 +10,8 @@ export function fatosDoBairro(s:EscState,m:Manager,revealedGame=false):FatoBairr
   if(retorno||recuperando)out.push({id:`medico:${season}:${ev.round}:${ev.cardId}:${retorno?'retorno':'recuperacao'}`,acao:retorno?'retorno':'recuperacao',vista:'campinho',prioridade:retorno?81:76,ator:actor(ev.cardId),chapeu:retorno?['⚽ De volta aos treinos','⚽ Back in training']:['🩹 Recuperação','🩹 Recovery'],titulo:retorno?[`${ev.nome} voltou a ficar disponível`,`${ev.nome} is available again`]:[`${ev.nome} cuida da recuperação`,`${ev.nome} works on recovery`],texto:retorno?['O retorno é gradual. Confira a condição antes de escalar.','The return is gradual. Check his condition before picking the lineup.']:['Ele continua fora pelo prazo informado no Elenco. A cena não reduz o tempo de recuperação.','He remains unavailable for the period shown in Squad. This scene does not shorten recovery.']})
  }
  for(const d of [...(s.careerTransferHistory??[])].reverse()){
-  if(d.season!==season||d.round!==round||d.team!==m.teamName||d.paid<25)continue
-  const c=m.squad.find(c=>c.name===d.name&&c.club===d.club&&c.year===d.year);if(!c)continue
+  if(d.season!==season||d.round!==round||d.team!==m.teamName||d.from===m.teamName)continue
+  const c=m.squad.find(c=>c.name===d.name&&c.club===d.club&&c.year===d.year);if(!c||c.fake||c.cria||d.paid<25&&(c.fame??0)<4)continue
   out.push({id:`chegada:${season}:${round}:${d.name}:${d.club}:${d.year}`,acao:'contratacao',vista:'entrance',prioridade:79,ator:actor(c.id),chapeu:['📸 Reforço apresentado','📸 New signing presented'],titulo:[`${d.name} veste a camisa`,`${d.name} wears the shirt`],texto:[`Contratação registrada: ${d.paid} moedas${d.from?`, vindo de ${d.from}`:''}.`,`Recorded signing: ${d.paid} coins${d.from?`, from ${d.from}`:''}.`]});break
  }
  const coach=s.careerTecnicos?.[m.teamName],since=s.careerTecnicosDesde?.[m.teamName]
