@@ -227,3 +227,34 @@ html body #root .cv2-root.cv2-career .ll-cx.ll-cx-fim>:is(.ll-cx-lado,.ll-cx-aba
 
 /* 🪙 18/11: caixa do clube como etiqueta ao lado do título (no lugar do bloco grande) */
 .cv2-heading-chip{display:inline-flex;align-items:center;vertical-align:middle;margin-left:10px;padding:2px 11px;border:2.5px solid #0c0c0c;border-radius:999px;background:#f4ecd6;color:#0c0c0c;font:900 15px/1.3 Oswald,sans-serif;box-shadow:2px 2px 0 #000;white-space:nowrap}
+
+/* Carreira no celular: prévia aprovada por Diego em24/11/2026, com publicação condicionada à validação. */
+@media(max-width:600px){
+ .cv2-career.ll29-career .ll29-stage .ll26-competition{min-height:0;border-radius:14px;margin-bottom:10px}
+ .cv2-career.ll29-career .ll29-stage .ll26-competition-copy{padding:12px!important;max-width:100%}
+ .cv2-career.ll29-career .ll29-stage .ll26-competition-copy>small{font-size:10px;letter-spacing:.06em;line-height:1.5;display:block}
+ .cv2-career.ll29-career .ll29-stage .ll26-competition-copy h2{font-size:23px!important;line-height:1.2;margin:5px 0}
+ .cv2-career.ll29-career .ll29-stage .ll26-competition-copy>div{font-size:9px!important;margin-top:5px!important}
+ .cv2-career.ll29-career .ll29-stage .ll26-competition-copy>div>span{font-size:11px!important}
+ .cv2-career.ll29-career .ll29-stage .ll26-competition-status{padding:7px 12px;font-size:11px}
+ .cv2-career.ll29-career .ll29-summary{padding:8px 10px;font-size:10px;gap:6px;flex-wrap:wrap}
+ .cv2-career.ll29-career .ll29-summary>span:first-child{flex:1 1 40%}
+ .cv2-career.ll29-career .ll29-summary progress{width:42px;max-width:12vw;height:6px}
+ .cv2-career.ll29-career .ll29-summary small{font-size:9px}
+ .cv2-career.ll29-career .ll25-score .ll25-duel{padding:12px 10px 10px;grid-template-columns:minmax(0,1fr) 100px minmax(0,1fr);gap:8px}
+ .cv2-career.ll29-career .ll25-score .ll25-crest-slot{height:60px;margin-bottom:5px}
+ .cv2-career.ll29-career .ll25-score .ll25-crest-slot :is(img,svg){height:56px!important;max-width:100%}
+ .cv2-career.ll29-career .ll25-score .ll25-team strong{font-size:16px;min-height:19px;line-height:1.2}
+ .cv2-career.ll29-career .ll25-score .ll25-team small{font-size:10px}
+ .cv2-career.ll29-career .ll25-score .ll25-numbers{padding:7px 2px}
+ .cv2-career.ll29-career .ll25-score .ll25-numbers strong{font-size:42px}
+ .cv2-career.ll29-career .ll32-palco{height:34px}
+}
+/* Cabeçalho da marca mais baixo somente na tela de partida do celular. */
+@media(max-width:600px){
+ .cv2-career.cv2-view-jogos .cv2-mobile-brand{min-height:50px;padding:8px 16px}
+ .cv2-career.cv2-view-jogos .cv2-mobile-brand small{display:none}
+ .cv2-career.cv2-view-jogos .cv2-mobile-brand img{width:24px;height:24px}
+ .cv2-career.cv2-view-jogos .cv2-mobile-brand strong{font-size:16px}
+ .cv2-career.cv2-view-jogos .ll25-scorers:not(:has(p)){min-height:0;padding-top:5px;padding-bottom:5px}
+}

@@ -19,10 +19,10 @@ export function footballClock(){return clock}
 export function useFootballClock(){return useSyncExternalStore(fn=>{clockListeners.add(fn);return()=>{clockListeners.delete(fn)}},()=>clock,()=>null)}
 export function footballPlanRoom(s:EscState){
  return s.onlineMode==='online'&&s.sport!=='basquete'&&!s.careerOnline&&!s.careerIntent&&!s.co2&&!s.pokeLiga
-  &&!!s.roomId&&!s.ligaDraft&&!s.minhaLigaDraft
+  &&!!s.roomId&&(!s.ligaDraft||!!s.minhaLigaDraft) // ⚔️ 24/11: a Liga Draft (minhaLigaDraft) ganhou as táticas novas, a pedido do Diego
 }
 export function footballTestRoom(s:EscState){
- return s.isHost&&s.youUid===FOOTBALL_OWNER_UID&&footballPlanRoom(s)
+ return s.isHost&&s.youUid===FOOTBALL_OWNER_UID&&footballPlanRoom(s)&&!s.minhaLigaDraft // ordem ao vivo (teste) continua fora da Liga Draft
   &&s.managers.some((m,i)=>m.isHuman&&s.seatUids?.[i]===FOOTBALL_OWNER_UID)
   &&s.managers.every((m,i)=>!m.isHuman||TEST_ACCOUNTS.has(s.seatUids?.[i]??''))
 }

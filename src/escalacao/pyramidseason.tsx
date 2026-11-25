@@ -3,7 +3,7 @@ import './mercado-carreira.css'
 import {eventosFisicos, type JogoFisicoOficial} from './carreira-fisica'
 import {posicaoComparavel} from './carreira-economia'
 import {CareerAuctionHint} from './career-start-guide'
-import { PainelSubstituir, BotaoSubstituir } from './substituir-ao-vivo' // 🔁 23/11: troca com o jogo rolando
+import { PainelSubstituir, BotaoSubstituir, PlacarSubstituicoes } from './substituir-ao-vivo' // 🔁 23/11: troca com o jogo rolando
 import { instanteDaTroca } from './ao-vivo'
 import {MuseuClube,MuseuMelhoria} from './museu-clube-ui'
 import {OwnerPrimary} from './owner-online-visual'
@@ -4069,14 +4069,14 @@ function GarconsBox({ assists, colors, title, sub, foot, safTeam, safCol }: { as
 // Artilharia da TEMPORADA separada por SÉRIE (A › B › C › D), top 5 de cada —
 // em vez de uma lista única misturando todas as divisões. Deixa claro quem é o
 // goleador de cada série (é ele que vira artilheiro/piso da divisão).
-function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam, safCol }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
+function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam, safCol, divisions=DIVS }: { scorers: SeasonScorer[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol; divisions?: readonly Div[] }) {
   const cols = colors ?? {}
   const total = scorers.length
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
       {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
-      {total === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Sem gols ainda. Bola rolando…', 'No goals yet. Ball rolling…')}</p> : DIVS.map(d => {
+      {total === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Sem gols ainda. Bola rolando…', 'No goals yet. Ball rolling…')}</p> : divisions.map(d => {
         const top = scorers.filter(s => s.div === d).slice(0, 5) // já vêm ordenados por gols
         return (
           <div key={d} style={{ marginBottom: 10 }}>
@@ -4111,13 +4111,13 @@ function ArtilhariaByDiv({ scorers, colors, title, sub, foot, safTeam, safCol }:
 
 // 🅰️ OS GARÇONS DA TEMPORADA (24/08) — irmã gêmea da ArtilhariaByDiv, só que
 // contando quem DEU o passe. Mesmo visual, mesma leitura, top 5 por série.
-export function GarconsByDiv({ assists, colors, title, sub, foot, safTeam, safCol }: { assists: SeasonAssist[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
+export function GarconsByDiv({ assists, colors, title, sub, foot, safTeam, safCol, divisions=DIVS }: { assists: SeasonAssist[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol; divisions?: readonly Div[] }) {
   const cols = colors ?? {}
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
       {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
-      {assists.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Nenhum passe pro gol ainda. Bola rolando…', 'No assists yet. Ball rolling…')}</p> : DIVS.map(d => {
+      {assists.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Nenhum passe pro gol ainda. Bola rolando…', 'No assists yet. Ball rolling…')}</p> : divisions.map(d => {
         const top = assists.filter(a => a.div === d).slice(0, 5)
         return (
           <div key={d} style={{ marginBottom: 10 }}>
@@ -4415,10 +4415,11 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const presentationClock=!basket&&!relogioKings&&!enhancedCareer&&displayMinute==null?contextClock:null
   // 🐌 com o 📺 Campo 2D ligado o lance do ESTÁDIO não aparece — mas o relógio continuava PARANDO a cada chance e a cada gol
   // esperando essa cena invisível, e o campinho ia freando até o relógio voltar: a "câmera lenta do nada" (Diego 20/10). Com
-  // o 2D, o relógio é o de todo mundo.
-  const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d&&!elencos?.m2
-  const officialField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!!elencos?.m2&&!basket
+  // o 2D, o relógio é o de todo mundo. No placar rápido também: somente
+  // quem está vendo o estádio precisa aguardar os movimentos físicos.
   const watchingField=useAssistindoCampo()
+  const privateField=watchingField&&!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket&&!c2d&&!elencos?.m2
+  const officialField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!!elencos?.m2&&!basket
   const watchedField=useRef({id:stadiumMatch?.id,watched:false})
   if(watchedField.current.id!==stadiumMatch?.id)watchedField.current={id:stadiumMatch?.id,watched:false}
   if((privateField||officialField)&&watchingField)watchedField.current.watched=true
@@ -4904,9 +4905,13 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
   const avisoReplay=replayOficialBloqueado?<p role="status">{emIngles?'The saved result was preserved. This older match has no compatible field replay yet.':'O resultado salvo foi preservado. Este jogo antigo ainda não tem reprodução de campo compatível.'}</p>:null
   const estadoEstadio:EstadoPartidaEstadio|null=!replayOficialBloqueado&&stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket?{officialNarration:estadoPenaltis?tr(estadoPenaltis.mensagem,estadoPenaltis.mensagemEn):relatoOficial?.narration,officialTeams:[homeName,awayName],officialInput:elencos?.m2,officialMinuteMs,context:stadiumMatch,minute:elencos?.m2?min:minAvisado,period:min>45||resumeHalf?2:1,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:atHalf||!!pausado,finished:fechado&&(!estadoPenaltis||estadoPenaltis.encerrado),chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}:null
   const reportarTempo2D=useCallback((minute:number|null)=>{if(stadiumMatch?.id)publicarTempoCampo2D(stadiumMatch.id,minute)},[stadiumMatch?.id])
+  // O placar usa os eventos oficiais e não espera um movimento invisível.
+  // A fonte mantém o motor/agenda montados para alternar a vista sem perder
+  // trocas, mas só simula/desenha enquanto alguém acompanha o campo.
+  const simularCampoNoFundo=watchingField
   const fonteMapa2D=!!estadoEstadio&&presidentFieldAccount
   const campo2dEl = (c2d||fonteMapa2D) && !replayOficialBloqueado ? (
-    <Campo2D aoVivo={elencos?.m2?.aoVivo} disputaPenaltis={disputaPenaltis} mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={officialFieldWatching?fieldDuration/.82:roundMs/* 🧊 21/11: vendo o jogo no estádio, o relógio de cima anda no tempo do CAMPO (120 s); o campinho-fonte seguia no tempo da rodada, corria 1 minuto num tranco e congelava até o próximo */} gols={goals} fechado={!!finished || min >= 93}
+    <Campo2D simular={c2d||simularCampoNoFundo} aoVivo={elencos?.m2?.aoVivo} disputaPenaltis={disputaPenaltis} mapOnly={!c2d} mapMatchId={fonteMapa2D?stadiumMatch?.id:undefined} pausado={presidentFieldAccount&&(atHalf||!!pausado)} onSimulationMinute={elencos?.m2&&estadoEstadio?reportarTempo2D:undefined} roundKey={roundKey} minuto={min} roundMs={officialFieldWatching?fieldDuration/.82:roundMs/* 🧊 21/11: vendo o jogo no estádio, o relógio de cima anda no tempo do CAMPO (120 s); o campinho-fonte seguia no tempo da rodada, corria 1 minuto num tranco e congelava até o próximo */} gols={goals} fechado={!!finished || min >= 93}
       casa={lado2d(homeName, homeColor, mascotHome, elencos?.casa, homeEmblem, (min >= 45 && elencos?.fCasa2) || elencos?.fCasa, elencos?.casa2)} fora={lado2d(awayName, awayColor, mascotAway, elencos?.fora, awayEmblem, (min >= 45 && elencos?.fFora2) || elencos?.fFora, elencos?.fora2)}
       tatica={elencos?.m2 ? undefined : [c2dX.taticaDe(homeName), c2dX.taticaDe(awayName)]}
       motorExperimental={elencos?.m2 ? (() => novoMotor2(elencos.m2!, emIngles)) as never : undefined} climaForcado={elencos?.m2?.clima}
@@ -4922,7 +4927,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       </div>)}
     </div>
   ) : null
-  const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa>{campo2dEl}</div>:null
+  const fonteMapaEscondida=!c2d&&campo2dEl?<div hidden aria-hidden="true" data-fonte-campo2d-mapa data-simulacao-suspensa={!simularCampoNoFundo}>{campo2dEl}</div>:null
   const campo2dComTelao = c2d&&campo2dEl ? <>{campo2dEl}{golsDo2D}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} /></> : null
   // 🏀🗺️ 18/11: o MESMO jogo vai pra arena do mapa (aba Clube) — placar cinema ou quadra, tanto faz: é o mesmo roteiro
   const quadraMapa = basket && planoBB && stadiumMatch ? (() => {
@@ -4946,7 +4951,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       {quadraMapa}{abaixoDosGols}<GiroDaRodada doCampo cinema={cinematic} />
     </>
   }
-  if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>} {campo2dComTelao}{penaltyPanel}</>
+  if (campo2dComTelao) return <>{avisoReplay}{estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio} simularCampo={simularCampoNoFundo}/>} {campo2dComTelao}{penaltyPanel}</>
   if (cinematic) return <>{fonteMapaEscondida}{quadraMapa}<OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
@@ -5032,7 +5037,7 @@ function LiveScoreCardBody({ neutro, pausado, homeName, awayName, homeColor, awa
       }} />
     )}
     {avisoReplay}
-    {estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio}/>/* 26/10 (Diego): saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar — o mapa continua recebendo o jogo */}
+    {estadoEstadio&&<PublicarPartidaEstadio state={estadoEstadio} simularCampo={simularCampoNoFundo}/>/* 26/10 (Diego): saiu o "⚽ ACOMPANHAR NO ESTÁDIO" de baixo do placar — o mapa continua recebendo o jogo */}
     {abaixoDosGols}
    </>
   return (<>
@@ -6764,7 +6769,7 @@ function CartaTecnico({ nome, mostraFaixa, misterio }: { nome: string; mostraFai
           <span key={f} style={{ ...OSWALD, fontWeight: 800, fontSize: 9.5, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 7px', background: 'rgba(255,255,255,.85)', color: INK }}>{f}</span>
         ))}
       </div>
-      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{catTecRotulo(t.div)} = {ficha.formacoes.length} {getLang() === 'en' ? (ficha.formacoes.length > 1 ? 'systems' : 'system') : `esquema${ficha.formacoes.length > 1 ? 's' : ''}`} — {tr('as formações que ele usa de verdade.', 'the formations he really uses.')}</p>
+      <p style={{ fontSize: 9, fontWeight: 700, opacity: .75, margin: '5px 0 0', lineHeight: 1.35 }}>{catTecRotulo(t.div)} = {ficha.formacoes.length} {getLang() === 'en' ? (ficha.formacoes.length > 1 ? 'systems' : 'system') : `esquema${ficha.formacoes.length > 1 ? 's' : ''}`} — {tr('repertório disponível no jogo.', 'available systems in the game.')}</p>
     </div>
   )
 }
@@ -7069,6 +7074,7 @@ function useAplicaDeOlho(mgr: Manager | undefined, on: boolean): boolean {
 // A lista é a da SUA série de agora (subiu/caiu, muda junto), clube por clube na ordem da tabela, com busca e filtros.
 export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
   const { state, dispatch } = useEsc()
+  const visualV2=useCareerVisualV2()
   const [painel,setPainel]=useState<'sondar'|'vender'|'contratos'|'negocios'>('sondar')
   const [verProtegidos,setVerProtegidos]=useState(false)
   const [soSerie,setSoSerie]=useState(true)
@@ -7175,7 +7181,7 @@ export function MercadoAba({ mgr, ordem }: { mgr: Manager; ordem: string[] }) {
     <div className="ll-mercado" style={{ paddingBottom: 8 }}>
       <header className="ll-mk-hero">
         <Escudo nome={mgr.teamName} size={48} />
-        <div><small>{tr('DIRETORIA DE FUTEBOL','FOOTBALL DEPARTMENT')}</small><h3>{tr('Central de transferências','Transfer centre')}</h3><p>{tr('Planeje a próxima janela. A compra é decidida no pregão.','Plan the next window. Signings are decided at auction.')}</p></div>
+        <div><small>{tr('DIRETORIA DE FUTEBOL','FOOTBALL DEPARTMENT')}</small><h3>{visualV2?tr('Planeje a próxima janela','Plan the next window'):tr('Central de transferências','Transfer centre')}</h3><p>{visualV2?tr('A compra é decidida no pregão.','Signings are decided at auction.'):tr('Planeje a próxima janela. A compra é decidida no pregão.','Plan the next window. Signings are decided at auction.')}</p></div>
         <span className="ll-mk-wallet">{state.careerCoins?.[mgr.id]??mgr.money} 🪙<small>{tr('CAIXA DO CLUBE','CLUB FUNDS')}</small></span>
       </header>
       <div className="ll-mk-status"><span>● {tr('Janela após a última rodada','Window after the last round')}</span><b>{olheiroNome}</b></div>
@@ -10224,6 +10230,7 @@ export function PyramidSeasonScreen() {
   // quem manda no tempo é o dono da sala, então lá não pausa.
   const pausaCentral = tab === 'central' && !state.co2
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
+  const [rankScope,setRankScope]=useState<'mine'|'all'>('mine')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena' | 'museu' | 'estrutura' | 'negocios'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const clubeMapaApi=useRef<ControleComplexo|null>(null)
   const [mapaProntoN,setMapaProntoN]=useState(0)
@@ -10746,10 +10753,12 @@ export function PyramidSeasonScreen() {
     const cache = new Map<string, string[] | null>()
     return { seasonNo: n, prev, classificacao: (est: string) => {
       if (meu && meu.nome && (meu.nome === est || NOME_ESTADUAL[est] === meu.nome) && meu.classificacao.length) return meu.classificacao
-      if (!cache.has(est)) { let c: string[] | null = null; try { c = computeEstadualCarreira(est, world, state.seed, n, capElite, realGoals)?.resultado.classificacao ?? null } catch { c = null } cache.set(est, c) }
+      // Classificação de referência não recebe o desgaste das copas atuais.
+      // Reaplicar esse desgaste à seleção das vagas trocava inscritos e criava um ciclo de gravações.
+      if (!cache.has(est)) { let c: string[] | null = null; try { c = computeEstadualCarreira(est, worldBase, state.seed, n, capElite, realGoals)?.resultado.classificacao ?? null } catch { c = null } cache.set(est, c) }
       return cache.get(est) ?? null
     } }
-  }, [state.oficial, state.seasonNo, state.oficialCampeoes, state.oficialEstaduais, world, state.seed, capElite, realGoals])
+  }, [state.oficial, state.seasonNo, state.oficialCampeoes, state.oficialEstaduais, worldBase, state.seed, capElite, realGoals])
   // 🇧🇷 no Brasil Oficial a Copa do Brasil é a REAL (126 clubes, 9 fases — `entradasCopaBrasilOficial`), sem esperar desbloqueio
   const copaBR = useMemo(() => {
     if (!(done || copaMid)) return null
@@ -12263,7 +12272,7 @@ export function PyramidSeasonScreen() {
   useEffect(() => { setSubAberto(false) }, [round, tab])
   const aoVivoMeu = state.careerHalftime?.[youId]?.[curMatchIdx]?.aoVivo ?? SEM_AO_VIVO
   const minutoJogo = scoreClock.round === state.round ? scoreClock.minute : -1
-  const subPossivel = !!myMatch?.m2 && myMatch.you && privateLeagueClock && !!stadiumMatch && !done && !seasonOver && !copaPlaying && !state.co2
+  const subPossivel = !!myMatch?.m2 && myMatch.you && privateLeagueClock && !!stadiumMatch && !done && !copaPlaying && !state.co2
     && minutoJogo > 0 && minutoJogo < 89 && !(halftimeOpen && halfMode) && !(penaltyOpen && penMode)
   useEffect(() => { if (subAberto && !subPossivel) setSubAberto(false) }, [subAberto, subPossivel])
   const dadosSub = useMemo(() => {
@@ -12294,9 +12303,9 @@ export function PyramidSeasonScreen() {
     dispatch({ type: 'SET_AO_VIVO', mgrId: youId, round: curMatchIdx, aoVivo: [...aoVivoMeu, { t, ...extra }] })
   }
   const painelSub = (modo: 'janela' | 'embaixo') => dadosSub && (
-    <PainelSubstituir modo={modo} minuto={minutoJogo} emCampo={dadosSub.emCampo} reservas={dadosSub.reservas} feitas={dadosSub.feitas} tatica={dadosSub.tatica}
+    <>{visualV2&&modo==='embaixo'&&stadiumMatch&&myMatch&&<PlacarSubstituicoes matchId={stadiumMatch.id} home={myMatch.h} away={myMatch.a} minute={minutoJogo}/>}<PainelSubstituir compact={visualV2} modo={modo} minuto={minutoJogo} emCampo={dadosSub.emCampo} reservas={dadosSub.reservas} feitas={dadosSub.feitas} tatica={dadosSub.tatica}
       gas={condGas ? (id => (condGas as Record<string, number>)[id]) : undefined}
-      onTroca={(sai, entra) => gravaAoVivo({ sai, entra })} onTatica={t => { if (t !== dadosSub.tatica) gravaAoVivo({ tactic: t }) }} onVoltar={() => setSubAberto(false)} />)
+      onTroca={(sai, entra) => gravaAoVivo({ sai, entra })} onTatica={t => { if (t !== dadosSub.tatica) gravaAoVivo({ tactic: t }) }} onVoltar={() => setSubAberto(false)} /></>)
   // 🙈 ANTI-SPOILER do `revealed` (efeito mora AQUI porque precisa do intervalo/
   // pênalti): segura a rodada atual enquanto a partida anima, acompanhando a
   // VELOCIDADE (🐢/⚡, igual ao card do jogo). 🐞 BUG 14/08 (o "reserva fez gol
@@ -13059,12 +13068,12 @@ export function PyramidSeasonScreen() {
   // coisas dizendo o mesmo, uma em cima da outra. (Mesma régua da `barra` do calendário, mais abaixo.)
   // 🔁 26/10, 2º print (Central/Elenco/Rank): *"esse selinho também remova lá de cima do header dessas abas"* — fora da aba Jogos ele SAI sempre
   const faixaCalAqui = jogoTabela ? tab !== 'jogos' : calOn && tab !== 'jogos' && tab !== 'central'
-  const topoMini = (barraOn && cabFora && !faixaCalAqui) ? FAIXA_H : 0
+  const topoMini = (!visualV2 && barraOn && cabFora && !faixaCalAqui) ? FAIXA_H : 0
   // A fileira gruda logo abaixo da faixa fina. De propósito ela para 6px ACIMA
   // do fim da faixa: assim o padding de cima do wrapper fica ESCONDIDO atrás da
   // faixa (que é opaca e vem por cima) e não sobra nenhuma fresta pro conteúdo
   // aparecer entre as duas. As pílulas continuam inteiras.
-  const topoSub = ((barraOn && cabFora) ? FAIXA_H - 6 : 0) + (miniPlacarOn ? MINI_PLACAR_H : 0)
+  const topoSub = ((!visualV2 && barraOn && cabFora) ? FAIXA_H - 6 : 0) + (miniPlacarOn ? MINI_PLACAR_H : 0)
   // 🐛 CONSERTO (21/08, vídeo de usuário): a fileira de pílulas aparecia BOIANDO
   // por cima da tela do intervalo. O banner do intervalo (e o do pênalti, e a
   // festa de campeão) é desenhado ANTES do bloco das abas, então ele fica na
@@ -13192,7 +13201,7 @@ export function PyramidSeasonScreen() {
   // 📺 25/10 (Diego: *"botão manual, placar e etc. deveria ser lá dentro do mapa"*): o mapa 3D (conta de prévia) desenha o MESMO
   // "🎮 Controle da partida" por cima do 3D — aqui a carreira só publica o que esse controle já mostra e as MESMAS funções
   const ligaPodeAvancar = roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)
-  const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!seasonOver || copaPlaying) ? {
+  const controleMapa: ControleMapa | null = presidentAvailable && !state.co2 && state.isHost && state.onlineMode !== 'online' && round > 0 && (!done || copaPlaying) ? {
     manualOk: manualAllowed, manual, velocidade: campo2d ? vel2dCarr : state.simSpeed ?? 1, // 📺 06/11: com o 2D a marcha é a do campinho (a mesma da aba Jogos)
     podeAvancar: copaPlaying ? copaPronta : ligaPodeAvancar,
     rotuloAvancar: copaPlaying ? (copaRound + 1 >= nCopaRounds ? tr('🏆 Ver o campeão', '🏆 See the champion') : tr('▶️ Próxima fase', '▶️ Next round')) : tr('▶️ Próxima rodada', '▶️ Next round'),
@@ -13757,7 +13766,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab clubPage={mapaComoClube?(business?'business':insidePanel?'works':'map'):undefined} atalhos={mapaComoClube&&!insidePanel&&!business?(obra,pronto)=><AtalhosDoClube onSelect={abrirDestinoNoMapa} obra={obra} pronto={pronto} contratos={!masterAtivo(state.careerMaster?.[youId], state.seasonNo ?? 1)}/>:undefined} initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab clubPage={mapaComoClube?(business?'business':insidePanel?'works':'map'):undefined} atalhos={mapaComoClube&&!insidePanel&&!business?(obra,pronto)=><AtalhosDoClube compact={visualV2} museum={museuDisponivel} onSelect={abrirDestinoNoMapa} obra={obra} pronto={pronto} contratos={!masterAtivo(state.careerMaster?.[youId], state.seasonNo ?? 1)}/>:undefined} initialSection={insidePanel?'extras':undefined} museumImprovement={museuDisponivel?<MuseuMelhoria state={state} mgrId={youId} onOpen={()=>setClubeSub('museu')}/>:undefined} presidencyView={insidePanel?undefined:presidentPending?<EstadioCarregando/>:stadiumMapAvailable?<VagaDoMapa/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={stadiumMapAvailable&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
@@ -13976,121 +13985,7 @@ export function PyramidSeasonScreen() {
   const copaEsperaEscolha = tab === 'jogos' && copaSegura && escolha2d !== chaveCopa
   // 🧭 21/11: a escolha vale pra UM jogo — a chave é exata (antes a escolha da Copa da quarta liberava também a Liga do domingo)
   const aguardaCentral = tab === 'jogos' && fluxoCentral && ((calOn && calFase === 'dias' && escolha2d !== `${calSn}:${round}:${copaPendente ? 'c' : 'l'}`) || (copaSegura && escolha2d !== chaveCopa))
-  const areaVista = aguardaCentral ? 'tabela' : visualArea
-  return (
-    <CareerVisualProvider enabled={visualV2}>
-    <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
-    <MapaGuardado mapa={mapaDoClube}>
-    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}${visualV2 ? ` cv2-root cv2-career cv2-view-${tab}${areaVista === 'tabela' ? ' cv2-focus-table' : ''}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
-      {visualV2 && <CareerBrand club={state.managers[state.youIdx]?.teamName ?? ''} />}
-      <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
-      <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
-      {barraOn && cabFora && !faixaCalAqui && (
-        <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
-          coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
-          texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
-      )}
-      {barraOn && <BarraCarreira clube={privateCareer && me ? { nome: state.managers[state.youIdx]?.teamName ?? me.team, sub: [`T${state.seasonNo ?? 1}`, DIV_NAME[me.div], !done && round > 0 ? `${me.pos}º ${tr('lugar', 'place')}` : '', done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`].filter(Boolean).join(' · ') } : undefined} tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} mercado={mercadoOn} contagem={contagemAbas} combined={jogoTabela} aoVivo={jogoTabela && (calFase === 'jogo' || calFase === 'copa') && !done && !copaSegura} />}
-      {desfechoOn && desfecho && (
-        <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
-          temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
-          onFechar={fecharDesfecho} />
-      )}
-      {/* 💸 MODAL DE VENDER O 2º CLUBE — mora aqui na RAIZ da tela, não dentro de
-          uma aba. Ele nasceu dentro da aba Clube junto com o botão; quando o botão
-          passou a existir também na virada da temporada (15/09), o modal teria
-          ficado pra trás e o clique não abriria nada. Overlay fixo não tem por que
-          morar dentro de uma aba. */}
-      {/* 📣 SAF NOVA (13/10): "O jogo mudou" abre sozinho na virada pra quem tem SAF e 2º clube separados.
-          Dá pra deixar pra depois: a mesma caixa fica na aba Clube › Estrutura. */}
-      {saf2Migrar && saf2Jan && !saf2MigrarDepois && state.careerFilial && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
-          <div style={{ maxWidth: 380, width: '100%', maxHeight: '100%', overflowY: 'auto' }}>
-            <Saf2Migracao saf={{ nome: state.careerFilial.team, div: saf2DivDaSaf(state) }}
-              clube={{ nome: segundoClube(state)?.teamName ?? '—', div: (state.careerPlacements?.[`m${segundoClube(state)?.id}`] ?? 'D') as string }}
-              janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} onDepois={() => setSaf2MigrarDepois(true)} />
-          </div>
-        </div>
-      )}
-      {venderAsk && state.multiClube && (() => {
-        const vendido = state.multiClube.team
-        return (
-          <div onClick={() => setVenderAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 348, width: '100%', padding: 16 }}>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0, textAlign: 'center' }}>{tr(`💸 Vender o ${vendido}?`, `💸 Sell ${vendido}?`)}</p>
-              <div style={{ background: '#FFF4E2', border: '2.5px solid #B8722A', borderRadius: 12, padding: 10, margin: '10px 0 0' }}>
-                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3A2C18', margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>🍖 The squad and the board already threw the <b>farewell barbecue</b> — celebrating that you are leaving. And they went <b>all out</b>: they left <b>1.000 🪙</b> on your tab.</> : <>🍖 O elenco e a diretoria já fizeram o <b>churrasco de despedida</b> — comemorando a sua saída. E foi <b>tudo de luxo</b>: deixaram <b>1.000 🪙</b> na sua conta.</>}</p>
-                <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 12, color: '#6B4A22', margin: '7px 0 0', lineHeight: 1.45 }}>{tr('“Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”', '“Prime cuts, shrimp and an open bar. There was a banner, a speech, a photo on the pitch. They just didn\'t invite you.”')}</p>
-              </div>
-              <div style={{ background: '#EAFAEF', border: '2.5px solid #1B7A3D', borderRadius: 11, padding: '8px 10px', margin: '9px 0 0' }}>
-                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 700, color: '#1c3d28', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>✅ You paid 4.000 and get <b>3.000 🪙</b> back.</> : <>✅ Você pagou 4.000 e recebe <b>3.000 🪙</b> de volta.</>}</p>
-              </div>
-              <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '9px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>🤖 <b>{vendido}</b> stays in the game, in its division, run by the computer — keeping its stadium, titles and till. Loans sort themselves out: whoever it lent goes back to it, and whoever your main club lent comes home.</> : <>🤖 O <b>{vendido}</b> continua no jogo, na divisão dele, comandado pela máquina — e fica com o estádio, os títulos e o caixa dele. Os empréstimos se acertam sozinhos: quem ele emprestou volta pra ele, e quem era do seu clube principal volta pra casa.</>}</p>
-              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                <button onClick={() => setVenderAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
-                <button onClick={() => { setVenderAsk(false); dispatch({ type: 'SELL_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('💸 Vender', '💸 Sell')}</button>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
-      {/* 🖥️ `ll-cx` = gancho do DESKTOP da carreira (01/10, `career-desktop.css`): no monitor a
-          coluna vira duas (placar/controles à esquerda, aba à direita). Abaixo de 1100px a
-          classe não tem regra nenhuma — o celular fica byte a byte o que era. */}
-      {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
-          (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
-          grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
-      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${jogoTabela && !(clubeAssistir && calFase === 'jogo') ? ' ll-cx-clube-limpo' : ''}${jogoTabela && (tab === 'elenco' || tab === 'ranking') ? ' ll-cx-sem-jogo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
-        {tunelOn && myCopaTie && copaFase && <div style={{ display: 'none' }}><TunelFinal comp={copaFase.name === 'Supercopa' ? 'supercopa' : 'copabr'}
-          nomeComp={copaFase.name === 'Supercopa' ? undefined : copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']}
-          seg={tunelSeg} total={4} onFechar={fechaTunel}
-          casa={{ nome: myCopaTie.a.name, crest: <Escudo nome={myCopaTie.a.name} size={92} /> }} fora={{ nome: myCopaTie.b.name, crest: <Escudo nome={myCopaTie.b.name} size={92} /> }} /></div>}
-        {festaAgoraC && (() => {
-          const nomeT = state.managers[state.youIdx]?.teamName ?? tr('Seu time', 'Your team')
-          return <FestaCampeao key={festaAgoraC.key} comp={festaAgoraC.comp} nomeComp={festaAgoraC.nomeComp} nome={nomeT} crest={<Escudo nome={nomeT} size={160} />}
-            mascote={mascKeyFesta ? MASCOTES[mascKeyFesta] : undefined} linha={festaAgoraC.linha} souCampeao onDone={fecharFestaC}
-            artilheiro={festaAgoraC.artilheiro} garcom={festaAgoraC.garcom} penaltis={presidentAvailable && !!festaAgoraC.pens} />
-        })()}
-        {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
-          onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
-        <SocioBaraoBanner />
-        {calBarra?.barra}
-        {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
-            divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
-            o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
-        {/* 18/11: a dica "Seu primeiro jogo, sem complicação" saiu da Central nova — a lista "Antes da estreia" faz esse papel */}
-        {!novaCentral && visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
-        {visualV2 && tab === 'jogos' && !done && round > 0 && !aguardaCentral && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
-        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} chip={mapaComoClube&&tab==='estadio'&&!state.oficial} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
-        {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
-        {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
-        {tab === 'estadio' && cadeadoMapa && !hasManual && <div data-cadeado-mapa><ManualLockButton /></div>}
-        {fluxoCentral && daCentral && tab === 'estadio' && <button data-voltar-central onClick={() => { if(pend3d){setPend3d(null);pedeCameraDoMapa('free')} setDaCentral(false); escolheAba('central') }}
-          style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
-        {tab === 'estadio' && previa3d && <PublicarPartidaEstadio state={previa3d}/> }
-        {fluxoCentral && tab === 'estadio' && pend3d && giroOk === pend3d.giro && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
-          const p3 = pend3d
-          // 🧯 22/11: causo, lesão ou crise seguram a rodada? o toque NÃO gasta a escolha do 3D (antes o ▶ sumia e o jogo não começava):
-          // leva pra aba Jogos, onde o aviso aparece pra resolver; depois é só escolher o 3D de novo na Central.
-          if (p3.tipo !== 'copa' && !p3.chave?.endsWith(':c') && (criseTrava || eventoPendente || maybeEvento())) { escolheAba('jogos'); return }
-          setPend3d(null); setJogo3d(true)
-          viu3d.current = true
-          if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else { setJogoOk(p3.chave); if (!p3.chave.endsWith(':c')) avancarRodada(true) /* 🧭 21/11: a escolha do 3D vale pra ESTE jogo */ }
-          pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d') // A câmera já está pronta; este toque é o único que libera a partida.
-        }} style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('▶ Começar o jogo', '▶ Start the match')}</button>}
-        <div className="ll-cx-lado">
-        {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
-            (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
-            recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
-        <div style={tab === 'central' || tab === 'mercado' || (tab === 'estadio' && presidentAvailable) ? { display: 'none' } : undefined}>
-        {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
-            do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
-            saber qual é qual só de olhar), verde escuro na Copa Legends (quem
-            ainda não é tester). Esse cabeçalho fica FIXO em cima de toda aba —
-            é o único lugar sempre visível, então é aqui que precisa ficar claro
-            em qual fase/competição a pessoa está (Diego 16/08: "não sabe aonde
-            que ela entrou"). */}
-        {(() => {
+  const cabecalhoCompeticao = () => {
           const supercopaFase = copaFase?.name === 'Supercopa'
           const playoffFase = copaFase?.name === PLAYOFF_B || ehPaginaEstadual(copaFase?.name) // 🇧🇷 playoff da B e 🏟️ estadual usam a esteira das copas, mas têm a cara da liga
           const estadualFase = ehPaginaEstadual(copaFase?.name)
@@ -14105,11 +14000,11 @@ export function PyramidSeasonScreen() {
           // ao da Copa do Brasil quando ela está rolando.
           if (privateCareer && intlNoAr && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) {
             const t = topoInternacional(intlCampaign, state.seasonNo)
-            return <CareerCompetitionStage kind={t.kind} title={t.titulo} phase={t.fase} detail={t.detalhe} status={t.status}>
+            return <CareerCompetitionStage compact={visualV2} kind={t.kind} title={t.titulo} phase={t.fase} detail={t.detalhe} status={t.status}>
               <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>motivoTorcida(h.motivo)).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
             </CareerCompetitionStage>
           }
-          if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage
+          if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage compact={visualV2}
             varzea={me?.div === 'V'}
             kind={interFase ? 'mundial' : libFase ? 'liberta' : !copaPlaying || playoffFase ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
             title={`${calBarra?.selo && tab === 'jogos' ? `${calBarra.selo.toUpperCase()} · ` : ''}${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : state.oficial ? 'BRASILEIRÃO' : 'LIGA LEGENDS'}`}
@@ -14178,7 +14073,123 @@ export function PyramidSeasonScreen() {
           {!done && <div style={{ position: 'absolute', left: 0, bottom: 0, height: 6, width: '100%', background: '#2b2721' }}><div style={{ height: '100%', minWidth: 3, width: `${Math.min(100, Math.round(round / 38 * 100))}%`, background: `linear-gradient(90deg, ${GOLD}, #ffde5c)` }} /></div>}
         </div>
           )
+  }
+  const areaVista = aguardaCentral ? 'tabela' : visualArea
+  return (
+    <CareerVisualProvider enabled={visualV2}>
+    <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
+    <MapaGuardado mapa={mapaDoClube}>
+    <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}${visualV2 ? ` cv2-root cv2-career cv2-view-${tab}${areaVista === 'tabela' ? ' cv2-focus-table' : ''}${subAberto&&subPossivel&&tab==='jogos'?' cv2-substitution-open':''}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+      {visualV2 && <CareerBrand club={state.managers[state.youIdx]?.teamName ?? ''} />}
+      <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
+      <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
+      {!visualV2 && barraOn && cabFora && !faixaCalAqui && (
+        <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
+          coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
+          texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
+      )}
+      {barraOn && <BarraCarreira clube={privateCareer && me ? { nome: state.managers[state.youIdx]?.teamName ?? me.team, sub: [`T${state.seasonNo ?? 1}`, DIV_NAME[me.div], !done && round > 0 ? `${me.pos}º ${tr('lugar', 'place')}` : '', done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`].filter(Boolean).join(' · ') } : undefined} tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} mercado={mercadoOn} contagem={contagemAbas} combined={jogoTabela} aoVivo={jogoTabela && (calFase === 'jogo' || calFase === 'copa') && !done && !copaSegura} />}
+      {desfechoOn && desfecho && (
+        <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
+          temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
+          onFechar={fecharDesfecho} />
+      )}
+      {/* 💸 MODAL DE VENDER O 2º CLUBE — mora aqui na RAIZ da tela, não dentro de
+          uma aba. Ele nasceu dentro da aba Clube junto com o botão; quando o botão
+          passou a existir também na virada da temporada (15/09), o modal teria
+          ficado pra trás e o clique não abriria nada. Overlay fixo não tem por que
+          morar dentro de uma aba. */}
+      {/* 📣 SAF NOVA (13/10): "O jogo mudou" abre sozinho na virada pra quem tem SAF e 2º clube separados.
+          Dá pra deixar pra depois: a mesma caixa fica na aba Clube › Estrutura. */}
+      {saf2Migrar && saf2Jan && !saf2MigrarDepois && state.careerFilial && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
+          <div style={{ maxWidth: 380, width: '100%', maxHeight: '100%', overflowY: 'auto' }}>
+            <Saf2Migracao saf={{ nome: state.careerFilial.team, div: saf2DivDaSaf(state) }}
+              clube={{ nome: segundoClube(state)?.teamName ?? '—', div: (state.careerPlacements?.[`m${segundoClube(state)?.id}`] ?? 'D') as string }}
+              janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} onDepois={() => setSaf2MigrarDepois(true)} />
+          </div>
+        </div>
+      )}
+      {venderAsk && state.multiClube && (() => {
+        const vendido = state.multiClube.team
+        return (
+          <div onClick={() => setVenderAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 348, width: '100%', padding: 16 }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0, textAlign: 'center' }}>{tr(`💸 Vender o ${vendido}?`, `💸 Sell ${vendido}?`)}</p>
+              <div style={{ background: '#FFF4E2', border: '2.5px solid #B8722A', borderRadius: 12, padding: 10, margin: '10px 0 0' }}>
+                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3A2C18', margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>🍖 The squad and the board already threw the <b>farewell barbecue</b> — celebrating that you are leaving. And they went <b>all out</b>: they left <b>1.000 🪙</b> on your tab.</> : <>🍖 O elenco e a diretoria já fizeram o <b>churrasco de despedida</b> — comemorando a sua saída. E foi <b>tudo de luxo</b>: deixaram <b>1.000 🪙</b> na sua conta.</>}</p>
+                <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 12, color: '#6B4A22', margin: '7px 0 0', lineHeight: 1.45 }}>{tr('“Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”', '“Prime cuts, shrimp and an open bar. There was a banner, a speech, a photo on the pitch. They just didn\'t invite you.”')}</p>
+              </div>
+              <div style={{ background: '#EAFAEF', border: '2.5px solid #1B7A3D', borderRadius: 11, padding: '8px 10px', margin: '9px 0 0' }}>
+                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 700, color: '#1c3d28', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>✅ You paid 4.000 and get <b>3.000 🪙</b> back.</> : <>✅ Você pagou 4.000 e recebe <b>3.000 🪙</b> de volta.</>}</p>
+              </div>
+              <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '9px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>🤖 <b>{vendido}</b> stays in the game, in its division, run by the computer — keeping its stadium, titles and till. Loans sort themselves out: whoever it lent goes back to it, and whoever your main club lent comes home.</> : <>🤖 O <b>{vendido}</b> continua no jogo, na divisão dele, comandado pela máquina — e fica com o estádio, os títulos e o caixa dele. Os empréstimos se acertam sozinhos: quem ele emprestou volta pra ele, e quem era do seu clube principal volta pra casa.</>}</p>
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                <button onClick={() => setVenderAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
+                <button onClick={() => { setVenderAsk(false); dispatch({ type: 'SELL_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('💸 Vender', '💸 Sell')}</button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+      {/* 🖥️ `ll-cx` = gancho do DESKTOP da carreira (01/10, `career-desktop.css`): no monitor a
+          coluna vira duas (placar/controles à esquerda, aba à direita). Abaixo de 1100px a
+          classe não tem regra nenhuma — o celular fica byte a byte o que era. */}
+      {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
+          (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
+          grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
+      <div className={`max-w-xl mx-auto ll-cx ll-cx-t-${tab}${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}${campo2d && !done ? ' ll-cx-2d' : ''}${jogoTabela && !(clubeAssistir && calFase === 'jogo') ? ' ll-cx-clube-limpo' : ''}${jogoTabela && (tab === 'elenco' || tab === 'ranking') ? ' ll-cx-sem-jogo' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+        {tunelOn && myCopaTie && copaFase && <div style={{ display: 'none' }}><TunelFinal comp={copaFase.name === 'Supercopa' ? 'supercopa' : 'copabr'}
+          nomeComp={copaFase.name === 'Supercopa' ? undefined : copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']}
+          seg={tunelSeg} total={4} onFechar={fechaTunel}
+          casa={{ nome: myCopaTie.a.name, crest: <Escudo nome={myCopaTie.a.name} size={92} /> }} fora={{ nome: myCopaTie.b.name, crest: <Escudo nome={myCopaTie.b.name} size={92} /> }} /></div>}
+        {festaAgoraC && (() => {
+          const nomeT = state.managers[state.youIdx]?.teamName ?? tr('Seu time', 'Your team')
+          return <FestaCampeao key={festaAgoraC.key} comp={festaAgoraC.comp} nomeComp={festaAgoraC.nomeComp} nome={nomeT} crest={<Escudo nome={nomeT} size={160} />}
+            mascote={mascKeyFesta ? MASCOTES[mascKeyFesta] : undefined} linha={festaAgoraC.linha} souCampeao onDone={fecharFestaC}
+            artilheiro={festaAgoraC.artilheiro} garcom={festaAgoraC.garcom} penaltis={presidentAvailable && !!festaAgoraC.pens} />
         })()}
+        {salaImprensaOpen && me && <SalaImprensa save={coletivaSave} clube={me.team} onClose={() => setSalaImprensaOpen(false)} rivais={rivaisDaCarreira} podeTrocar={round === 0}
+          onTrocar={team => dispatch({ type: 'COLETIVA_ARQUIRRIVAL', mgrId: youId, team, temporada: sn })} />}
+        <SocioBaraoBanner />
+        {visualV2 && tab !== 'jogos' && <CareerHeading hideBalance={mapaComoClube&&tab==='estadio'} chip={mapaComoClube&&tab==='estadio'&&!state.oficial} club={state.managers[state.youIdx]?.teamName ?? ''} season={state.seasonNo ?? 1} division={me ? DIV_NAME[me.div] : ''} balance={state.careerCoins?.[youId] ?? 0} title={tab === 'central' ? tr('Central da carreira', 'Career hub') : tab === 'mercado' ? tr('🛒 Mercado', '🛒 Market') : tab === 'elenco' ? tr('Elenco e escalação', 'Squad and lineup') : tab === 'ranking' ? tr('Rankings da carreira', 'Career rankings') : mapaComoClube?tr('Seu clube','Your club'):tr('Mapa do clube', 'Club map')} />}
+        {calBarra?.barra}
+        {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
+            divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
+            o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
+        {/* 18/11: a dica "Seu primeiro jogo, sem complicação" saiu da Central nova — a lista "Antes da estreia" faz esse papel */}
+        {!novaCentral && visualV2 && tab==='jogos' && !done && round<=1 && <CareerAuctionHint stage="partida"/>}
+        {visualV2 && tab === 'jogos' && !done && round > 0 && !aguardaCentral && <nav className="cv2-match-tabs" aria-label={tr('Acompanhar a competição','Follow the competition')}><button type="button" aria-pressed={visualArea==='partida'} onClick={()=>setVisualArea('partida')}>{tr('Partida','Match')}</button><button type="button" aria-pressed={visualArea==='tabela'} onClick={()=>setVisualArea('tabela')}>{tr('Classificação e outros jogos','Standings and other matches')}</button></nav>}
+        {visualV2&&tab==='jogos'&&areaVista==='tabela'&&<div className="cv2-table-stage">{cabecalhoCompeticao()}</div>}
+        {mapaComoClube&&tab!=='jogos'&&done&&<PendenciaDaTemporada checking={!intlAuthReady&&!!intlPendente} international={!!intlPendente} world={!!mundoPendente} onGames={()=>escolheAba('jogos')}/>}
+        {/* 🧭 19/11: quem veio da Central pro mapa (acontecimento ou jogo em 3D) volta com UM toque */}
+        {tab === 'estadio' && cadeadoMapa && !hasManual && <div data-cadeado-mapa><ManualLockButton /></div>}
+        {fluxoCentral && daCentral && tab === 'estadio' && <button data-voltar-central onClick={() => { if(pend3d){setPend3d(null);pedeCameraDoMapa('free')} setDaCentral(false); escolheAba('central') }}
+          style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '10px', ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('← Voltar pra Central', '← Back to the Hub')}</button>}
+        {tab === 'estadio' && previa3d && <PublicarPartidaEstadio state={previa3d}/> }
+        {fluxoCentral && tab === 'estadio' && pend3d && giroOk === pend3d.giro && (pend3d.tipo === 'estreia' ? round === 0 : pend3d.tipo === 'copa' ? copaSegura && pend3d.chave === chaveCopa : pend3d.chave === `${calSn}:${round}:${copaPendente ? 'c' : 'l'}` && jogoOk !== pend3d.chave) && <button onClick={() => {
+          const p3 = pend3d
+          // 🧯 22/11: causo, lesão ou crise seguram a rodada? o toque NÃO gasta a escolha do 3D (antes o ▶ sumia e o jogo não começava):
+          // leva pra aba Jogos, onde o aviso aparece pra resolver; depois é só escolher o 3D de novo na Central.
+          if (p3.tipo !== 'copa' && !p3.chave?.endsWith(':c') && (criseTrava || eventoPendente || maybeEvento())) { escolheAba('jogos'); return }
+          setPend3d(null); setJogo3d(true)
+          viu3d.current = true
+          if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else { setJogoOk(p3.chave); if (!p3.chave.endsWith(':c')) avancarRodada(true) /* 🧭 21/11: a escolha do 3D vale pra ESTE jogo */ }
+          pedeCameraDoMapa(mapa3dLiberado() ? 'tv' : 'field2d') // A câmera já está pronta; este toque é o único que libera a partida.
+        }} style={{ width: '100%', margin: '0 0 10px', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', ...OSWALD, fontWeight: 900, fontSize: 17, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>{tr('▶ Começar o jogo', '▶ Start the match')}</button>}
+        <div className="ll-cx-lado">
+        {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
+            (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
+            recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
+        <div style={tab === 'central' || tab === 'mercado' || (tab === 'estadio' && presidentAvailable) ? { display: 'none' } : undefined}>
+        {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
+            do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
+            saber qual é qual só de olhar), verde escuro na Copa Legends (quem
+            ainda não é tester). Esse cabeçalho fica FIXO em cima de toda aba —
+            é o único lugar sempre visível, então é aqui que precisa ficar claro
+            em qual fase/competição a pessoa está (Diego 16/08: "não sabe aonde
+            que ela entrou"). */}
+        {(!visualV2||areaVista!=='tabela')&&cabecalhoCompeticao()}
         {/* 🪜 sentinela invisível: quando ela sai da tela (a pessoa rolou pra baixo
             do cabeçalho preto), a faixa fina gruda no topo. Custa 1px. */}
         {barraOn && <div ref={cabRef} style={{ height: 1, marginTop: -1 }} aria-hidden />}
@@ -14387,7 +14398,7 @@ export function PyramidSeasonScreen() {
             <button type="button" aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(pm.chave); setPremiosFechados(v => [...v, pm.chave]) }} style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, fontWeight: 900, padding: '4px 9px', cursor: 'pointer' }}>✕</button>
           </div>
         ))}
-        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel && campo2d && <BotaoSubstituir usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />}{taticaBotoes}</div></>) : null}><PlacarQueEncolhe pausado={pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
+        {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel ? <div className={visualV2?'cv2-match-actions':undefined}><BotaoSubstituir usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />{visualV2&&<button type="button" onClick={()=>setSubAberto(true)}>⚔️ {tr('Táticas','Tactics')}</button>}{!visualV2&&taticaBotoes}</div> : taticaBotoes}</div></>) : null}><PlacarQueEncolhe pausado={pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -14559,7 +14570,6 @@ export function PyramidSeasonScreen() {
         )}
         {/* 🔁 BANNER DO INTERVALO (carreira offline, toggle "só no intervalo"): pausa
             aos 45' e deixa mexer no 2º tempo. Enquanto aberto, a rodada não anda. */}
-        {subAberto && subPossivel && tab === 'estadio' && painelSub('janela') /* 🔁 23/11: no 3D o painel é a janela de baixo, por cima do mapa pausado */}
         {halftimeOpen && halfMode && mgrMe && myMatch && me && (() => {
           const iAmHome = myMatch.h === me.team
           const g1 = myMatch.goals.filter(g => g.min <= 45)
@@ -15429,7 +15439,7 @@ export function PyramidSeasonScreen() {
             {(() => {
               const jog = rankSub === 'arti' || rankSub === 'garcons' || rankSub === 'ouro'
               const grupo = (k: string, ic: string, label: string, sub: string, on: boolean, ir: () => void) => (
-                <button key={k} onClick={ir} style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', background: on ? GOLD : '#fff', color: INK, boxShadow: on ? `3px 3px 0 0 ${INK}` : `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'center', ...OSWALD }}>
+                <button className={visualV2?'cv2-rank-tab':undefined} aria-pressed={on} key={k} onClick={ir} style={{ flex: 1, minWidth: 0, border: `3px solid ${INK}`, borderRadius: 13, padding: '7px 4px 6px', background: on ? GOLD : '#fff', color: INK, boxShadow: on ? `3px 3px 0 0 ${INK}` : `2px 2px 0 0 ${INK}`, cursor: 'pointer', textAlign: 'center', ...OSWALD }}>
                   <span style={{ display: 'block', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', lineHeight: 1.1 }}>{ic} {label}</span>
                   <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, color: on ? '#5a4300' : '#7a7462', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
                 </button>
@@ -15444,13 +15454,14 @@ export function PyramidSeasonScreen() {
                   {jog && (
                     <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
                       {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['ouro', '🥇', tr('Bola de Ouro', 'Golden Ball')]] as [typeof rankSub, string, string][]).map(([s2, ic, label]) => (
-                        <button key={s2} onClick={() => setRankSub(s2)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: rankSub === s2 ? myCol.solid : '#fff', color: rankSub === s2 ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
+                        <button className={visualV2?'cv2-rank-tab':undefined} aria-pressed={rankSub===s2} key={s2} onClick={() => setRankSub(s2)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: rankSub === s2 ? myCol.solid : '#fff', color: rankSub === s2 ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
                       ))}
                     </div>
                   )}
                 </div>
               )
             })()}
+            {visualV2&&!(privateCareer&&done&&copa)&&(rankSub==='arti'||rankSub==='garcons')&&<nav className="cv2-rank-scope" aria-label={tr('Séries do ranking','Ranking divisions')}><button type="button" aria-pressed={rankScope==='mine'} onClick={()=>setRankScope('mine')}>{tr('Sua série','Your division')}</button><button type="button" aria-pressed={rankScope==='all'} onClick={()=>setRankScope('all')}>{state.oficial?tr('Brasil todo','All Brazil'):tr('Todas as séries','All divisions')}</button></nav>}
             <div className="ll-rank-layout cv2-rank-layout"><div className="ll-rank-results">
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} intlHistory={intlEnabled ? intlHistory : []} oficialCampeoes={state.oficial ? state.oficialCampeoes : undefined} oficialEstaduais={state.oficial ? state.oficialEstaduais : undefined} />
@@ -15458,7 +15469,7 @@ export function PyramidSeasonScreen() {
               <>
               {/* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O
                  meião que ganha o campeonato sem fazer gol agora aparece. */}
-              <GarconsByDiv assists={privateCareer && done && copa ? copaAssistsShown : assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
+              <GarconsByDiv divisions={visualV2&&!(privateCareer&&done&&copa)&&rankScope==='mine'&&myDiv?[myDiv]:undefined} assists={privateCareer && done && copa ? copaAssistsShown : assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
                 title={privateCareer && done && copa ? tr('🅰️ GARÇONS · COPA', '🅰️ ASSISTS · CUP') : tr('🅰️ GARÇONS · TEMPORADA', '🅰️ ASSISTS · SEASON')} sub={privateCareer && done && copa ? tr('Assistências das fases já encerradas da Copa.', 'Assists from the Cup rounds already played.') : tr('Assistências da temporada atual — top 5 de cada série.', 'Assists this season — top 5 of each division.')}
                 foot={tr('Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote.', 'About 3 in 4 goals come from a pass; the rest are solo plays, penalties or rebounds.')} />
                 {/* 🅰️ O GARÇOM DE TODOS OS TEMPOS MORA AQUI, e não na aba de gols.
@@ -15481,7 +15492,7 @@ export function PyramidSeasonScreen() {
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copaScorersShown.length > 0
                   ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16}.`)} />
-                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
+                  : <ArtilhariaByDiv divisions={visualV2&&rankScope==='mine'&&myDiv?[myDiv]:undefined} scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={visualV2&&rankScope==='mine'?tr('Gols da temporada atual — top 5 da sua série.','Goals this season — top 5 in your division.'):tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
                 {conmebolScorers.liberta.length > 0 && <ArtilhariaBox semDiv scorers={conmebolScorers.liberta} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · LIBERTADORES`} sub={tr('Gols da Libertadores até o último jogo apitado — top 20.', 'Libertadores goals up to the last match played — top 20.')} />}
                 {conmebolScorers.sula.length > 0 && <ArtilhariaBox semDiv scorers={conmebolScorers.sula} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🌎 ARTILHARIA', '🌎 TOP SCORERS')} · ${tr('SUL-AMERICANA', 'SUDAMERICANA')}`} sub={tr('Gols da Sul-Americana até o último jogo apitado — top 20.', 'Sudamericana goals up to the last match played — top 20.')} />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols de liga e de copa somados de todas as temporadas — top 20. Cada CARTA conta a sua (o clube vai embaixo do nome).', 'League and cup goals added up across every season — top 20. Each CARD keeps its own tally (the club shows under the name).')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
@@ -15703,6 +15714,8 @@ export function PyramidSeasonScreen() {
 
         {/* 💾 27/10 (Diego: *"pra salvar sua carreira crie uma conta, coloque na parte de baixo"*): o aviso saiu do topo e mora
             no FIM da página, junto do "Sair e salvar carreira" (no PC a grade põe ele na última linha, de ponta a ponta). */}
+        {/* O painel 3D fica fora do conteúdo oculto de Jogos; abrir deve mostrar as trocas sobre o mapa. */}
+        {subAberto && subPossivel && tab === 'estadio' && painelSub('janela')}
         <AvisoContaCarreira />
         {state.onlineMode === 'online' ? (
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>

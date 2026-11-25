@@ -5,6 +5,14 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## 🏁 Fórmula 1 — prévia privada de 25/11/2026
+
+Diego autorizou implementar a referência de Interlagos já apresentada, apenas Partida Rápida e apenas na conta principal. Correção explícita de 25/11: deve usar a MESMA home, seletor, cabeçalho, menu rápido, componentes e núcleo de leilão do futebol/basquete; a mini-home separada foi rejeitada. `HomeV03`, `QuickMatchLayout`, `AuctionIdentity`, `AuctionPositions`, `Shell`, `OwnerOnlineHeader` e `auction-core.ts` são compartilhados; regras específicas da pista ficam no adaptador de F1. Quatro formatos de pregão, categorias/notas escondidas até a compra, re-lance antes da roleta no envelope por etapa. `formula1-entry.tsx`/`formula1/` usam `useOwnerPresentation` verificada; não herdar acesso de Futpoint, segunda conta, sala ou tier. Três compras (dois pilotos e um modelo/ano de carro, duas unidades), 100 moedas iguais, estratégias individuais e corrida 2D. Não estender `Sport`/`EscState`, baralhos de futebol/basquete, coleção, saves ou economia. Não publicar anúncio geral de modo privado. Regras, fontes, testes e estado da publicação: `docs/formula1-rapida-privada-20261125.md`.
+
+## 🧢 Técnicos de carreira — decisão de 24/11/2026
+
+Diego autorizou ampliar o catálogo de treinadores reais, pesquisar vínculo histórico com o clube (usar atual se não houver referência adequada), sem duplicar pessoas, e aumentar uma formação por categoria: profissional2, bom3, promessa4, craque5, lenda6. Preservar notas, categorias existentes e influência atual no motor. Três lotes com120 nomes e fontes (225 no catálogo); todos os novos já têm repertório de jogo explícito. Não atribuir esquema real sem fonte: distinguir subconjunto documentado das opções complementares do jogo. Técnico de save existente não é substituído pelo vínculo histórico. Categoria é da pessoa, não muda pelo acesso/queda do clube no Brasil Oficial. A tradicional conserva o fluxo próprio de distribuição. Estado, fichas, fontes e publicação em `docs/tecnicos-lotes-2-3-20261124.md`.
+
 ## 💾 Salvamento unificado das carreiras — decisão de 24/11/2026
 
 Diego determinou: “Tudo do Brasil Oficial deve ser igual pro carreira tradicional também”, referindo-se às regras de **salvamento**. Sem conta pede cadastro; conta grátis salva no aparelho sem teste de prazo; plano elegível salva também na nuvem. A regra antiga de teste de cinco dias na tradicional foi revogada. Cinco dias **sem jogar** continuam sendo inatividade, com a mesma regra nos dois modos e carência inicial no novo fluxo para não excluir saves antigos de surpresa. Não apagar fichas excedentes por inferência e não aplicar isso às regras esportivas dos modos. Detalhes e estado da publicação em `docs/salvamento-seguro-20261124.md`.

@@ -1,0 +1,66 @@
+// Snapshot do motor publicado em 8ef74189. Só regressão; não é importado pelo jogo.
+function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', reforco = false, sameOwner: (buyerId: number, sellerId: number) => boolean = (b, sl) => b === sl, eligible: (m: Manager, c: Card) => boolean = () => true): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
+  const byPot = [...cards].sort((a, b) => {
+    const pa = (bidMap.get(a.id) ?? []).reduce((s, x) => s + x.amount, 0)
+    const pb = (bidMap.get(b.id) ?? []).reduce((s, x) => s + x.amount, 0)
+    return pa - pb
+  })
+  const queue: ResolvedCard[] = []
+  const unsold: Card[] = []
+  const ties: TieBreak[] = []
+  for (const card of byPot) {
+    // PISO: jogador listado no mercado (carreira online) vale no mínimo o que foi
+    // pago por ele (card.paid). Carta nova do baralho não tem piso (paid = 0).
+    const floor = (card as { paid?: number }).paid ?? 0
+    const sorted = (bidMap.get(card.id) ?? []).slice().sort((a, b) => b.amount - a.amount)
+    if (sorted.length === 0) {
+      unsold.push(card)
+      queue.push({ card, bids: [], winner: null, paid: 0, voided: [] })
+      continue
+    }
+    // pula do topo pra baixo os inelegíveis (setor cheio / sem dinheiro / abaixo
+    // do piso / ex-dono de contrato vencido): anulados
+    // 📝 ANTI-MALANDRAGEM (Diego 03/08): quem DEIXOU O CONTRATO VENCER não pode
+    // recomprar o próprio jogador neste leilão (senão "renovava" barato pelo
+    // pregão). Só volta a poder se OUTRO clube levar e ele reaparecer um dia.
+    const exDono = (card as { semContrato?: boolean }).semContrato ? (card as { seller?: number }).seller : undefined
+    const voided: number[] = []
+    let i = 0
+    for (; i < sorted.length; i++) {
+      const m = managers.find(x => x.id === sorted[i].mgr)!
+      // 🔁 lance de reforço de bot (elenco cheio) vale sem vaga aberta — o pior da posição vai a leilão depois (`marcaAVender`)
+      const temVaga = openSlots(m, card.pos) > 0 || (!!sorted[i].reforco && !m.isHuman)
+      if (!eligible(m, card) || !temVaga || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
+      break
+    }
+    if (i >= sorted.length) { // ninguém elegível
+      unsold.push(card)
+      queue.push({ card, bids: sorted, winner: null, paid: 0, voided })
+      continue
+    }
+    const top = sorted[i].amount
+    // entre os elegíveis, quem também está no valor do topo?
+    const tiedTop: number[] = []
+    for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
+      const m = managers.find(x => x.id === sorted[j].mgr)!
+      if (eligible(m, card) && (openSlots(m, card.pos) > 0 || (!!sorted[j].reforco && !m.isHuman)) && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
+    }
+    if (tiedTop.length >= 2) {
+      // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
+      ties.push({ cardId: card.id, card, amount: top, managers: tiedTop, submitted: [], winner: null, paid: 0, viaRoulette: false, via })
+      queue.push({ card, bids: sorted, winner: null, paid: 0, voided })
+      continue
+    }
+    // vencedor único: fecha na hora
+    const wid = tiedTop[0]
+    const m = managers.find(x => x.id === wid)!
+    // 🛟 piso: comprar no leilão NUNCA deixa a caixa negativa. O envelope já foi
+    // conferido antes, então isto é a segunda rede — se um dia entrar um caminho
+    // novo de lance, ele não consegue mais criar dívida do nada.
+    m.money = Math.max(0, m.money - top)
+    // 📝 clube novo = contrato novo: limpa selo/prazo — a próxima cerimônia sorteia 5-10
+    m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
+    queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
+  }
+  return { queue, unsold, ties }
+}

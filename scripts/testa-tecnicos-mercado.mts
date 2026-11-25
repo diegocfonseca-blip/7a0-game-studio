@@ -23,16 +23,16 @@ const bot = (id: number, nome: string): any => ({ id, name: nome, teamName: nome
 const managers: any[] = [{ id: 1, name: 'Eu', teamName: 'Meu Clube', isHuman: true, formation: '4-3-3', money: 0, squad: [] }]
 const placements: Record<string, string> = { m1: 'A' }
 for (let i = 2; i <= 10; i++) { managers.push(bot(i, `Bot A ${i}`)); placements[`m${i}`] = 'A' }
-for (let i = 11; i <= 30; i++) { managers.push(bot(i, `Bot Baixo ${i}`)); placements[`m${i}`] = i % 3 === 0 ? 'C' : i % 3 === 1 ? 'D' : 'V' }
+for (let i = 11; i <= poolA.length + 8; i++) { managers.push(bot(i, `Bot Baixo ${i}`)); placements[`m${i}`] = i % 3 === 0 ? 'C' : i % 3 === 1 ? 'D' : 'V' }
 for (let i = 1; i <= 10; i++) placements[`Fundo A ${i}`] = 'A'
 const rivals = [{ team: 'Bot A 2' }, { team: 'Bot Baixo 12' }]
 const tecnicos: Record<string, string | null> = { 'Meu Clube': poolA[0] }
 let k = 1
-for (let i = 11; i <= 30; i++) tecnicos[`Bot Baixo ${i}`] = poolA[k++] // 20 presos lá embaixo
+for (let i = 11; i <= poolA.length + 8; i++) tecnicos[`Bot Baixo ${i}`] = poolA[k++]
 tecnicos['Clube Que Sumiu'] = poolA[k++] // 22º: clube que nem existe mais
 for (let i = 2; i <= 10; i++) tecnicos[`Bot A ${i}`] = null // os da A: todos `null`
 for (let i = 1; i <= 10; i++) tecnicos[`Fundo A ${i}`] = null
-ok(k === 22 && poolA.length === 22, `foto montada: os ${poolA.length} técnicos da A estão fora da A (${k} presos)`)
+ok(k === poolA.length, `foto montada: os ${poolA.length} técnicos da A estão fora da A (${k} presos)`)
 
 const st0: any = { careerOnline: true, managers, youIdx: 0, seed: 777, seasonNo: 387, round: 1, careerPlacements: placements, careerRivals: rivals, careerTecnicos: tecnicos, careerTecnicosDesde: {}, careerTecnicoContrato: {} }
 const st1 = S.reducer(st0, { type: 'ALICIAR_SEED' })
@@ -62,12 +62,14 @@ console.log('5) mercado vazio de verdade continua null (sem inventar técnico)')
 {
   const tudoUsado: Record<string, string | null> = {}
   for (let i = 2; i <= 10; i++) tudoUsado[`Bot A ${i}`] = poolA[i - 1] // 1..9
-  for (let i = 1; i <= 11; i++) tudoUsado[`Fundo A ${i}`] = poolA[9 + i] // 10..20
-  tudoUsado['Meu Clube'] = poolA[0]; tudoUsado['Bot Baixo 12'] = poolA[21] // = 22 usados
-  placements['Fundo A 11'] = 'A'; placements['Fundo A 12'] = 'A' // chegou mais um e não sobrou ninguém
+  const nFundo = poolA.length - 11
+  for (let i = 1; i <= nFundo; i++) { tudoUsado[`Fundo A ${i}`] = poolA[9 + i]; placements[`Fundo A ${i}`] = 'A' }
+  tudoUsado['Meu Clube'] = poolA[0]; tudoUsado['Bot Baixo 12'] = poolA.at(-1)!
+  const novo = `Fundo A ${nFundo + 1}`
+  placements[novo] = 'A' // chegou mais um e não sobrou ninguém
   const st = S.reducer({ ...st0, careerTecnicos: tudoUsado }, { type: 'ALICIAR_SEED' })
-  ok(st.careerTecnicos['Fundo A 12'] === null, 'clube novo fica null quando não há ninguém livre')
-  ok(st.careerTecnicos['Fundo A 11'] === poolA[20], 'e quem já tinha técnico continua com ele')
+  ok(st.careerTecnicos[novo] === null, 'clube novo fica null quando não há ninguém livre')
+  ok(st.careerTecnicos[`Fundo A ${nFundo}`] === poolA.at(-2), 'e quem já tinha técnico continua com ele')
 }
 
 console.log(erros ? `\n❌ ${erros} falha(s)` : '\n✅ tudo certo — técnico que sai da divisão volta pro mercado')

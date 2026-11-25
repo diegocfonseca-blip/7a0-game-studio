@@ -21,6 +21,57 @@
   `baralho-oficial` verdes. ⚠️ Lição: carta que SAI do baralho tem que conferir se o clube continua fechando 11 nas copas
   (`clubeFechaTime`). Reverter = apagar a linha em `cartas-regionais.ts`.
 
+## 24/11 — CARREIRA: CORREÇÕES E VISUAL COMPACTO PUBLICADOS
+
+- Publicação autorizada e concluída para todos: produto `7a5896f6a568d2dadd1764eb857122bc97b20014`, [GitHub Pages com compilação e publicação bem-sucedidas](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45504366435), confirmado às23:01 UTC. Cabeçalho/escudos compactos no celular, botão/trocas no placar e2D, painel3D visível e controles até o apito da última rodada.
+- Corrigidos o relógio esperando o campo invisível, quadros equivalentes causando atualização repetida, ciclo das vagas/cansaço e erros de aparência/identidade dos reservas3D. Três trocas, quarta bloqueada, seleção/cancelamento, tática, pausa/retomada, estado salvo, início e apito conferidos. Reservas verificados nos22 atores reais do3D após retomar cada troca.
+- UI390/1440,12 jogos,266 verificações de relógio,1075 quadros/253 posses da trilha, TypeScript/build e entrada compilada passaram. Preservados1006/1005 arquivos antigos; sem recarga automática. Nenhuma conta/save real ou banco alterado. Conta do relato ainda desconhecida; não se afirmou diagnóstico específico daquele save.
+- [Causas, evidências, escopo e retorno](auditorias/carreira-travas-mobile-20261124.md).
+
+## 24/11 — PUBLICAÇÃO DA CARREIRA AUTORIZADA APÓS REGRESSÃO
+
+- Diego aprovou a prévia mobile e autorizou publicar após conferir início, pausa, retomada, substituições e fim. Máximo de três trocas, quarta bloqueada no painel/reducer, táticas sem consumir troca e estado salvo preservado.
+- Além do placar esperando um lance invisível, corrigidos controles da última rodada, quadro equivalente gerando notificações repetidas, painel3D escondido, preparação assíncrona da aparência e identidades de reservas na trilha3D. Corrigido ciclo de registros causado por recalcular vagas com desgaste atual; nenhuma limpeza de save real.
+- Placar/2D em390, última rodada em1440 e3D com WebGL chegaram ao apito sem exceções.1075 quadros/253 posses da trilha conferidos,12 jogos e266 verificações de relógio passaram. Compilação final e abertura compilada em390/1440 passaram; publicação aguardando envio/confirmação do GitHub Pages.
+- [Evidências, escopo, limites e retorno](auditorias/carreira-travas-mobile-20261124.md).
+
+## 24/11 — PLACAR RÁPIDO DESTRAVADO E SUBSTITUIÇÕES RESTAURADAS
+
+- Diego esclareceu que o relato era Brasil Oficial/placar rápido, com paradas de mais de1min. Reproduzida uma causa no caminho legado: minuto1 aguardando lance/reinício do estádio invisível, com `pausado=false`. O placar só espera o movimento físico quando há vista do estádio ativa; no mesmo ensaio de17s passou de1′ para40′ e chegou ao apito na regressão. Conta do relato ainda desconhecida, portanto não se afirmou diagnóstico do save específico.
+- Suspensas animações2D/3D escondidas no placar, preservando publicação do estado, motor/agenda e retomada do campo. Restaurado botão Substituir no placar rápido com o painel existente de elenco/táticas; regras de elegibilidade e partidas antigas preservadas.
+- UI390/1440, troca/tática/retomada,2D→placar→2D com troca aplicada, reativação da fonte pelo observador3D, legado até apito,12 jogos e266 verificações de relógio, TypeScript/build completo passaram. Sem mudança em conta/save/banco, sem publicação. Cabeçalho/escudos compactos ficam apenas na prévia visual para revisão do dono.
+- [Causas, evidências, limites e retorno](auditorias/carreira-travas-mobile-20261124.md).
+
+## 24/11 — RELATO DE TRAVA NA CARREIRA E PRÉVIA COMPACTA MOBILE
+
+- Diego enviou foto do Flamengo/T6/SérieB/R10 e pediu investigar travas e avaliar cabeçalhos/escudos grandes. Conta do relato ainda não informada. **A trava específica ainda não foi reproduzida e não está declarada corrigida.**
+- Bancada real verificou relógio, pausa/retomada na Central, velocidade, apito e escolhas para o próximo confronto em390/1440. Início da rodada seguinte também passou após confirmar a substituição por lesão pela tela. Proposta CSS apenas local libera cerca de110px no celular, conservando informações e sem alterar desktop. Sem mudança no aplicativo, save, banco ou publicação; visual aguarda revisão do dono.
+- [Evidências, reprodução e limites](auditorias/carreira-travas-mobile-20261124.md).
+
+## 24/11 — TÉCNICOS E FORMAÇÕES PUBLICADOS PARA TODOS
+
+- Publicação autorizada por Diego e concluída no commit de produto `1c34e9776a04d95125aca70e8c60d3a03347dbd9`. [GitHub Pages: compilação e publicação concluídas com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45487765725). Catálogo225,120 técnicos acrescentados nos três lotes e repertórios2/3/4/5/6 por categoria; fichas/contratos existentes preservados.
+- Versão compilada da raiz abriu em390/1440, HTTP200 e nenhuma exceção de página. Catálogo, oito largadas, mercado tradicional,3-5-2 e compilação completa passaram. Nenhuma conta ou save real foi modificado e não houve migração.
+- Rotina do deploy preservou1005 arquivos antigos da raiz e1004 do link compatível; sem recarga automática. O domínio público continua bloqueado na rede do ambiente, portanto não se declarou teste ao vivo em conta real. Pesquisa de vínculos de todos os clubes ainda está aberta. [Fichas, fontes e limites](tecnicos-lotes-2-3-20261124.md).
+
+## 24/11 — PUBLICAÇÃO DOS TÉCNICOS AUTORIZADA
+
+- Diego autorizou publicar os três lotes e o aumento de formações:225 técnicos, categorias/repertórios prontos,2/3/4/5/6 opções e formação da casa, com fichas/contratos antigos preservados. Inclui o ajuste de herança da formação também para CPUs na largada do Brasil Oficial.
+- Base remota conferida em `a41bdb29`, sem alterações concorrentes. Testes de catálogo, oito largadas, mercado tradicional,3-5-2 e compilação completa passaram. Conferir também a entrada compilada da raiz antes de enviar à main e aguardar sucesso do GitHub Pages.
+- Sem migração, alteração de contas ou saves reais; publicação mantém os arquivos das versões anteriores e não força recarga. Pesquisa dos vínculos de todos os clubes ainda não foi concluída. [Escopo e fontes](tecnicos-lotes-2-3-20261124.md).
+
+## 24/11 — TÉCNICOS: LOTES2/3 E FICHAS COMPLETAS NA LARGADA
+
+- Diego mandou seguir os lotes e reforçou categoria e formações prontas para cada técnico. Mais80 pessoas reais em dois lotes de40; catálogo225, sem duplicação. Todos os120 acrescentados têm repertório explícito, na mesma régua2/3/4/5/6; oito treinadores ganharam esquemas específicos documentados em fontes.
+- Fichas dos145 anteriores preservadas por comparação integral. Fontes para101clubes do modo; isso ainda não conclui todos os clubes. Categorias novas são curadoria do jogo, passagens não significam emprego atual.
+- Controle de largada encontrou um bot com esquema fora do repertório; a formação da casa agora é guardada também para CPUs, sem mudar oXI inicial ou resultados passados. Oito largadas, regressões de mercado/3-5-2 e compilação completa TypeScript/Vite passaram. Sem publicação e sem conta/save/banco reais alterados. [Lista, esquemas e fontes](tecnicos-lotes-2-3-20261124.md).
+
+## 24/11 — TÉCNICOS: +1 FORMAÇÃO E PRIMEIRO LOTE COM VÍNCULOS REAIS
+
+- Diego autorizou aumentar para 2/3/4/5/6 formações por categoria e começar a pesquisar/acrescentar técnicos reais, associados aos clubes e sem repetir pessoas. Incluídos 40 nomes: catálogo agora com 145; notas e categorias dos 105 anteriores preservadas. Vínculos têm fonte e distinguem histórico, passagem e atual; estilo não comprovado fica neutro.
+- Brasil Oficial novo recebe comissão inicial com prioridade aos vínculos reais, inclusive o clube humano; contrato e valor de referência, sem cobrar contratação automática. Saves existentes não perdem seus técnicos. Acesso/queda no Oficial não demite nem duplica treinador; tradicional conserva a reciclagem por categoria.
+- Testes do lote, mercado tradicional, 3-5-2 e compilação completa TypeScript/Vite passaram. Sem publicação, sem conta/save/banco reais alterados. Primeiro lote: pesquisa de todos os clubes ainda não concluída. [Fontes, categorias, limites e retorno](tecnicos-brasil-20261124.md).
+
 ## 24/11 — SALVAMENTO SEGURO PUBLICADO PARA TODOS
 
 - Publicação autorizada por Diego e concluída no GitHub Pages: commit de produto `cb81895716f78ddde72d205635de04e32d7d98b6`, [execução concluída com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45460317049). Migração do banco aplicada às18:23 UTC, privilégios/RLS, RPC sem conta e carência conferidos. Não há recarga automática; arquivos antigos preservados.
@@ -15437,3 +15488,28 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   Agora `chancesDoRelato` (chances.ts) tira do relato oficial as defesas (encaixa/rebote) e a trave, e o gol do relato solta a bola pra rede
   (`golPalco`). Conferido na bancada: defendeu e gol animando.
 - Capa da Central (calendario-ui `.ll-calp .vs`): escudos centralizados em cima do nome nas duas pontas (prints 390 e 1280 em scripts/mockups/central-capa-*.png).
+
+## 24/11 — ⚔️ Táticas novas na Liga Draft (✅ aprovado e publicado em 24/11: *"Sim"*)
+- Pedido dele: *"essas táticas agora também tivessem disponíveis lá no modo draft… na área do elenco, onde faz a substituição… poderia também ter a parte das táticas"*.
+- Feito: a Liga Draft (`minhaLigaDraft`) entrou em `footballPlanRoom` (postura · caminho do ataque · marcação/pressão alta · ritmo, salvo pelo dono, vale do próximo jogo). A ordem AO VIVO (teste) continua fora (`footballTestRoom`).
+- Onde aparece: tela do jogo (o mesmo painel escuro das salas, via `OwnerTactics`) e aba Elenco, embaixo da formação (`TaticasLigaDraft` em `minha-escalacao.tsx`). Sem o visual escuro, vira caixa creme.
+- Prints: `scripts/mockups/taticas-liga-draft-*.png` · bancada `node scripts/teste-taticas-draft/print.mjs`.
+- Ao publicar: linha em `novidades.ts` (PT+EN). Reverter = voltar a linha de `footballPlanRoom` (o plano salvo some sozinho; jogo já jogado não muda).
+
+## 25/11 — Carreira compacta para todos, mapa móvel maior
+- Diego aprovou as oito telas e publicação geral, pedindo mapa maior e retirada de “Patrocinadores” sobreposto.
+- Implementação, regras preservadas, testes e reversão: [visual-carreira-publico-20261125.md](visual-carreira-publico-20261125.md).
+- Publicado para todos: `266fa995`, GitHub Pages [45522737957](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45522737957), build e deploy concluídos com sucesso.
+
+## 25/11 — 📜 Liga Draft: a lista de escolha parava nos 250 (✅ publicado em 25/11, "Pode")
+- Reclamação do Anesp (via Diego): *"chega uma hora que não desce mais"* + Diego: *"falta uma barrinha pra deixar claro que dá pra descer"*.
+- Causa: `LIMITE_LISTA = 250` em `liga-draft-tela.tsx` (2.631 jogadores no baralho; o resto só pela busca).
+- Feito: a lista vem de 250 em 250 sozinha conforme rola (IntersectionObserver + botão "⬇ Ver mais"), dentro de uma caixa com barra
+  de rolagem dourada sempre à vista (`liga-draft-lista.css`) e a linha "📜 N jogadores na lista · role a lista ⬇". Print:
+  `scripts/mockups/draft-lista-rolagem.png` · bancada `node scripts/teste-draft/print-lista.mjs`.
+
+## 25/11 — Fórmula 1: Partida Rápida somente para Diego
+- Pedido: implementar a referência anterior, dois pilotos e um carro histórico por escuderia; três compras, pneus, ritmo, boxes e corrida 2D.
+- Decisão, fontes, isolamento e testes: [formula1-rapida-privada-20261125.md](formula1-rapida-privada-20261125.md).
+- Acesso privado pela identidade principal verificada; não liberar para Futpoint, secundária ou público.
+- Publicado somente para a conta principal: `6edf7ecd`, [GitHub Pages 45531787439](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45531787439), build e deploy com sucesso.

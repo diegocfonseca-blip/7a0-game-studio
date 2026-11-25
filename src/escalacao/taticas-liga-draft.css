@@ -1,0 +1,43 @@
+/* ⚔️ Táticas novas na Liga Draft (24/11) — roupa clássica do jogo pro painel das salas. Tudo preso em .ld-taticas. */
+.ld-taticas{color:#0c0c0c}
+.ld-taticas-titulo,.ld-taticas-escuro .ld-taticas-titulo{display:block;font:900 13px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.ld-taticas .fp-advanced-tactics{display:block;background:none;border:0;box-shadow:none;padding:0;margin:0}
+.ld-taticas .fp-advanced-tactics>header{display:none}
+.ld-taticas .fp-order-group{margin-top:10px}
+.ld-taticas .fp-order-group:first-of-type{margin-top:0}
+.ld-taticas .fp-order-group>span{display:block;font:800 10px Oswald,sans-serif;letter-spacing:.08em;color:rgba(0,0,0,.55);margin-bottom:5px;text-transform:uppercase}
+.ld-taticas .fp-order-group>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0;background:none;border:0}
+.ld-taticas .fp-order-group>div:has(>button:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+.ld-taticas .fp-order-group button{min-width:0;min-height:42px;padding:6px 4px;border:3px solid #0c0c0c;border-radius:12px;background:#fff;color:#0c0c0c;font:900 12.5px Oswald,sans-serif;text-transform:uppercase;cursor:pointer;box-shadow:none}
+.ld-taticas .fp-order-group button[aria-pressed=true]{background:#FFC400;box-shadow:3px 3px 0 #0c0c0c}
+.ld-taticas .fp-order-group button:disabled{opacity:.6;cursor:default}
+.ld-taticas .fp-extra-orders{display:block;margin:0;padding:0;border:0;background:none}
+.ld-taticas .fp-extra-orders>small{display:block;font:700 10px Arial,sans-serif;color:rgba(0,0,0,.5);margin-top:4px}
+.ld-taticas .fp-plan-tradeoff{margin:10px 0 0;padding:7px 10px;background:#F4ECD6;border:2px solid #0c0c0c;border-radius:10px;font:700 11.5px/1.4 Arial,sans-serif;color:#0c0c0c}
+.ld-taticas .fp-send-order{display:none}
+.ld-taticas .fp-plan-status{margin:8px 0 0;font:700 10.5px/1.4 Arial,sans-serif;color:rgba(0,0,0,.6)}
+/* caixa escura (sala com o visual novo): o painel é o mesmo da tela do jogo */
+.ld-taticas-escuro{background:#0b120e;color:#f4ecd6;border:3px solid #0c0c0c;border-radius:14px;box-shadow:3px 3px 0 #0c0c0c;padding:12px 12px 4px}
+.ld-taticas-escuro .ld-taticas-titulo{color:#FFC400}
+.ld-taticas-escuro .fp-send-order{display:none!important}
+/* a mesma roupa do painel 'minimal' da tela do jogo (football-classic-presentation.css), sem depender do .ov3 em volta */
+.ld-taticas-escuro .ov3-tactics.fp-tactics-minimal{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:0 0 13px;margin:0;border:0;border-bottom:1px solid #a8b29b28;border-radius:0;background:transparent;box-shadow:none;color:#f4ecd6}
+.ld-taticas-escuro .fp-tactics-minimal>header{display:flex;align-items:center;gap:8px}
+.ld-taticas-escuro .fp-tactics-minimal>header>small{width:auto;font:700 9px Oswald,sans-serif;letter-spacing:1px;color:#bac4ac}
+.ld-taticas-escuro .fp-tactics-minimal>header>b{font:700 10px Oswald,sans-serif;color:#f4ecd6;background:#101811;border:1px solid #536046;padding:3px 6px;border-radius:5px}
+.ld-taticas-escuro .fp-tactics-minimal .fp-order-group{display:flex;align-items:center;gap:15px;width:100%;max-width:none;padding:0;margin:0;border:0;border-radius:0;background:transparent}
+.ld-taticas-escuro .fp-tactics-minimal .fp-order-group>span{flex:0 0 135px;margin:0;font:700 9px Oswald,sans-serif;letter-spacing:.7px;color:#bac4ac}
+.ld-taticas-escuro .fp-tactics-minimal .fp-order-group>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;width:350px;max-width:100%;padding:3px;background:#101811;border:1px solid #536046;border-radius:9px}
+.ld-taticas-escuro .fp-tactics-minimal .fp-order-group>div:has(>button:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+.ld-taticas-escuro .fp-tactics-minimal .fp-order-group button{min-width:0;min-height:44px;padding:8px 12px;border:0;border-radius:6px;background:transparent;color:#b7c1ac;box-shadow:none;font:700 12px Oswald,sans-serif;cursor:pointer}
+.ld-taticas-escuro .fp-tactics-minimal .fp-order-group button[aria-pressed=true]{background:#f4ecd6;color:#0c0c0c;box-shadow:none}
+.ld-taticas-escuro .fp-tactics-minimal .fp-extra-orders{display:contents;width:auto;max-width:none;margin:0;padding:0;border:0;background:none}
+.ld-taticas-escuro .fp-tactics-minimal .fp-plan-tradeoff,.ld-taticas-escuro .fp-tactics-minimal .fp-plan-status,.ld-taticas-escuro .fp-tactics-minimal>small,.ld-taticas-escuro .fp-tactics-minimal .fp-extra-orders>small{margin:0;padding:0;border:0;background:none;color:#b6c0a8;font:10px/1.45 Arial,sans-serif;max-width:none}
+.ld-taticas-escuro .fp-tactics-minimal .fp-send-order{align-self:flex-start;min-height:44px;padding:8px 12px;border:1px solid #536046;border-radius:8px;background:#101811;color:#f4ecd6;box-shadow:none;font:700 12px Oswald,sans-serif}
+.ld-taticas-escuro .fp-tactics-minimal .fp-send-order:disabled{background:#101811!important;color:#b6c0a8!important;box-shadow:none!important;opacity:.65}
+.ld-taticas-escuro .fp-tactics-minimal button:disabled{cursor:default}
+@media(max-width:760px){.ld-taticas-escuro .fp-tactics-minimal .fp-order-group{flex-direction:column;align-items:stretch;gap:4px}.ld-taticas-escuro .fp-tactics-minimal .fp-order-group>span{flex:auto;font-size:8px}.ld-taticas-escuro .fp-tactics-minimal .fp-order-group>div{width:100%}.ld-taticas-escuro .fp-tactics-minimal .fp-order-group button{padding:8px 5px}.ld-taticas-escuro .fp-tactics-minimal .fp-send-order{align-self:stretch}}
+/* creme: desfaz a roupa escura das salas (.ov3-tactics) que o painel traz */
+.ld-taticas .ov3-tactics{display:block;border:0;padding:0;color:#0c0c0c}
+.ld-taticas .ov3-tactics>div{display:block;width:auto;max-width:none;padding:0;background:none;border:0;border-radius:0}
+.ld-taticas .ov3-tactics button{color:#0c0c0c}

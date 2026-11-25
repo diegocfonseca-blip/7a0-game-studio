@@ -9,6 +9,8 @@ import { SquadTab, playerColors } from './pyramidseason'
 import { perkFromSelo } from './pyramidseason'
 import { xiPorOrdem } from './liga-draft'
 import type { WonCard } from './types'
+import { TaticasLigaDraft } from './taticas-liga-draft'
+import { footballPlanRoom } from './football-live-tactics'
 
 export function EscalacaoMinha() {
   const { state, dispatch } = useEsc()
@@ -39,6 +41,8 @@ export function EscalacaoMinha() {
   }
   return (
     <SquadTab mgr={you} col={col} coins={Math.max(0, Math.floor(you.money))} xiIds={xiIds} xi={xi as WonCard[]} goals={goals} assists={assists}
+      // ⚔️ 24/11: na Liga Draft a tática nova também fica aqui, embaixo da formação (*"na área do elenco… poderia também ter a parte das táticas"*)
+      tatica={state.minhaLigaDraft && footballPlanRoom(state) && state.screen === 'season' ? <TaticasLigaDraft titulo value={state.tactics[you.id] ?? 'equilibrio'} onChange={t => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })} /> : undefined}
       onSwap={onTap} selId={selId} seasonNo={state.seasonNo} overTodos={!!state.minhaLigaDraft}
       onSetFormation={(f, view) => dispatch({ type: 'MLD_FORMACAO', mgrId: you.id, formation: f, view, by: state.youUid })} />
   )

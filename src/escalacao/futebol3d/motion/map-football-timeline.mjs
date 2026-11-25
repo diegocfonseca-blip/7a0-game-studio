@@ -1,3 +1,4 @@
+import {identidadeAtleta3D} from '../../presidencia-futebol-identidade.ts';
 import {FutebolOficial3D} from '../../presidencia-futebol-oficial.ts';
 const RATE=60,MAX=120*RATE+1,angle=x=>Math.atan2(Math.sin(x),Math.cos(x));
 const releases=new Set(['passe','enfiada','lancamento','inversao','cruzamento','chute','chutao','cabeceio','cabeceio_gol','corte','cobranca']);
@@ -5,7 +6,13 @@ const releases=new Set(['passe','enfiada','lancamento','inversao','cruzamento','
  * canonical track replaces the old per-frame prediction with a stable clock;
  * it cannot emit events, persist a result or change a career. */
 export async function prepareMapTimeline(state,{traceGroundTouches=false}={}){
- const motor=new FutebolOficial3D(state.officialInput,{traceGroundTouches}),first=motor.sample(state,0,{replay:false,postMatchWalk:false}),keys=first.players.map(p=>p.key),slots=new Map(keys.map((k,i)=>[k,i])),count=keys.length;
+ const motor=new FutebolOficial3D(state.officialInput,{traceGroundTouches}),first=motor.sample(state,0,{replay:false,postMatchWalk:false});
+ // O replay começa com os titulares, mas precisa guardar também quem entra.
+ // Sem estas identidades, a animação de uma troca lia um atleta inexistente.
+ const input=state.officialInput,keys=[...new Set([...first.players.map(p=>p.key),
+  ...[['home',[...input.casa,...input.casa2??[]]],['away',[...input.fora,...input.fora2??[]]]].flatMap(([side,cards])=>cards.map(c=>identidadeAtleta3D(side,c.name,c.club,c.year))),
+  ...(input.aoVivo??[]).filter(x=>x.entra).map(x=>identidadeAtleta3D(x.lado===0?'home':'away',x.entra.name,x.entra.club,x.entra.year))])];
+ const slots=new Map(keys.map((k,i)=>[k,i])),count=keys.length;
  const referees=new Float32Array(MAX*4);
  const bodies=new Float32Array(MAX*count*5),balls=new Float32Array(MAX*6),curls=new Float32Array(MAX),owners=new Int16Array(MAX).fill(-1),held=new Int16Array(MAX).fill(-1),phases=new Uint8Array(MAX),placements=new Uint8Array(MAX),phaseNames=[],dives=new Map(),agenda=[],seen=new Set();
  let length=0,previous=null,official,ownerSince=0,started=performance.now();

@@ -1,0 +1,8 @@
+/* A Partida Rápida usa a apresentação aprovada também fora do estado de futebol. */
+.ll-quick-shell{background:#0b120e!important;color:#f4ecd6!important}
+.ll-quick-shell>.ll-shell-content{max-width:1320px;width:calc(100% - 60px);padding:0;margin:0 auto;min-width:0}
+@media(max-width:760px){.ll-quick-shell>.ll-shell-content{width:calc(100% - 32px);padding-top:14px}}
+
+.ll-sport-tabs-legacy .ll-seletor-esporte{position:static!important;display:flex;align-items:stretch;margin:12px auto 0;width:fit-content;max-width:100%;border:2.5px solid #0c0c0c;border-radius:999px;overflow:hidden;background:#fff;box-shadow:0 3px #0c0c0c}
+.ll-sport-tabs-legacy .ll-seletor-esporte button{flex:1;min-width:0;border:0;border-radius:0;background:#fff;color:#0c0c0c88;padding:7px 10px;font:700 11px Oswald,sans-serif;white-space:nowrap}
+.ll-sport-tabs-legacy .ll-seletor-esporte button+button{border-left:2px solid #0c0c0c}

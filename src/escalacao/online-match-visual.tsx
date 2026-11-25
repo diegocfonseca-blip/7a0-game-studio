@@ -176,7 +176,7 @@ export function OnlineMatchTabs({ value, onChange,cup=false }: { value: OnlineMa
 }
 
 export function CompetitionStage({ kind, title, phase, detail, status, children, patroKind }: {
-  kind: 'copa8' | 'liberta' | 'world' | 'euro' | 'america' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
+  kind: 'copa8' | 'liberta' | 'world' | 'euro' | 'america' | 'club-world' | 'league' | 'champions'; title: string; phase: ReactNode;
   detail: string; status?: string; children?: ReactNode
   patroKind?: Competicao | null // 💼 de quem é o "apresentada por" (padrão: o próprio kind; null = nenhum) — a carreira usa o dela
 }) {

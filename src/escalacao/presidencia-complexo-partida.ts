@@ -181,7 +181,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
   const benches=(['home','away'] as const).map(side=>reservasReais(side==='home'?current.context.homeBench:current.context.awayBench,new Set(lineup.filter(p=>p.side===side).map(p=>p.id))))
   // A dismissal hides/releases the existing slot; it must neither erase the
   // pitch nor rebuild every avatar while their replacement models load.
-  const signature=JSON.stringify([current.context.id,current.viewerClubId,current.officialInput?assinaturaSimulacaoM2(current.officialInput):snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
+  const signature=JSON.stringify([current.context.id,current.viewerClubId,current.officialInput?assinaturaSimulacaoM2(current.officialInput):null,snapshot.players.map(p=>[p.key,p.keeper]),benches.map(bench=>bench.map(p=>[p.id,p.pos]))])
   if(match?.signature!==signature){
    clearMatch()
    const root=new THREE.Scene();root.name='complexo-partida'

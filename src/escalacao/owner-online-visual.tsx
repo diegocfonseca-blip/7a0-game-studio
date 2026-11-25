@@ -16,6 +16,8 @@ import './owner-contrast.css'
 import { useFootballMatchPilot, useFootballMatchAdAccess, FootballMatchPilotView } from './football-match-pilot'
 import {useFootballMatchNavigation,setFootballChatDock} from './football-match-navigation'
 import {FootballTacticsPanel} from './football-tactics-panel'
+import {useEscTalvez} from './store'
+import {footballPlanRoom} from './football-live-tactics'
 
 /** Local presentation only. Never serialized into EscState or a room payload. */
 export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;screen?:string}){
@@ -140,14 +142,16 @@ function FootballPresentationSwitch({modal=false}:{modal?:boolean}){
  return pilot.pilotAvailable?<div className={`fp-match-switchback${modal?' fp-match-switchback-modal':''}`}><span>{pilot.pilot?tr('Visual das partidas','Match presentation'):tr('Visual anterior ativado','Previous presentation enabled')}</span><button type="button" onClick={pilot.togglePilot}>{pilot.pilot?tr('Voltar ao visual anterior','Use previous presentation'):tr('Ativar novo visual','Enable new presentation')}</button></div>:null
 }
 
-export function OwnerOnlineHeader({name,club,balance,onHome,onRooms,online}:{name:string;club?:string;balance?:ReactNode;onHome:()=>void;onRooms:()=>void;online:boolean}){
+export function OwnerOnlineHeader({name,club,balance,onHome,onRooms=()=>{},online,brand}:{brand?:{name:string;monogram:string;tagline:string};name:string;club?:string;balance?:ReactNode;onHome:()=>void;onRooms?:()=>void;online:boolean}){
  const perk=myApoioPerk()??APOIO_PERKS.bege
- return <><header className="ov3-brand"><button type="button" className="ov3-logo" onClick={onHome}>{ehBasquete()?<span className="ov3-sigla" aria-hidden="true">BL</span>:<img src={logo} alt="" width={34} height={34}/>}<span><b>{marcaNome()}</b><small>{marcaFraseLance()}</small></span></button><nav><button onClick={onHome}>{tr('Menu inicial','Main menu')}</button>{online&&<button onClick={onRooms}>{tr('Salas abertas','Open rooms')}</button>}</nav><span className="ov3-account" style={{background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{name||club||tr('Minha conta','My account')}</span>{balance!=null&&<div className="ov3-coins">{balance}</div>}</header><div className="ov3-roomline"><button onClick={onHome}>‹ {tr('Menu','Menu')}</button><span>{online?tr('Sala online','Online room'):tr('Partida Rápida','Quick Match')}{club?` · ${club}`:''}</span></div><FootballPresentationSwitch/></>
+ return <><header className="ov3-brand"><button type="button" className="ov3-logo" onClick={onHome}>{brand?<span className="ov3-sigla" aria-hidden="true">{brand.monogram}</span>:ehBasquete()?<span className="ov3-sigla" aria-hidden="true">BL</span>:<img src={logo} alt="" width={34} height={34}/>}<span><b>{brand?.name??marcaNome()}</b><small>{brand?.tagline??marcaFraseLance()}</small></span></button><nav><button onClick={onHome}>{tr('Menu inicial','Main menu')}</button>{online&&<button onClick={onRooms}>{tr('Salas abertas','Open rooms')}</button>}</nav><span className="ov3-account" style={{background:perk.grad,color:perk.tier==='roxo'||perk.tier==='verde'?'#fff':'#0c0c0c'}}>{name||club||tr('Minha conta','My account')}</span>{balance!=null&&<div className="ov3-coins">{balance}</div>}</header><div className="ov3-roomline"><button onClick={onHome}>‹ {tr('Menu','Menu')}</button><span>{online?tr('Sala online','Online room'):tr('Partida Rápida','Quick Match')}{club?` · ${club}`:''}</span></div>{!brand&&<FootballPresentationSwitch/>}</>
 }
 
 export function OwnerTactics({value,onChange,disabled=false,note,postureOnly=false}:{value:Tactic;onChange:(t:Tactic)=>void;disabled?:boolean;note?:string;postureOnly?:boolean}){
  const {pilot,pilotAvailable,state}=useContext(Context)
- if(pilotAvailable&&!postureOnly&&!state?.managers.some(m=>m.formation==='kings'))return <OwnerSlot name="tactic"><FootballTacticsPanel minimal={!pilot} value={value} onChange={onChange} disabled={disabled} note={note}/></OwnerSlot>
+ const full=useEscTalvez()?.state
+ const draftPlano=!!full?.minhaLigaDraft&&footballPlanRoom(full) // ⚔️ 24/11: a Liga Draft ganhou o plano novo (postura · ataque · pressão alta · ritmo) mesmo sem o visual novo das partidas
+ if((pilotAvailable||draftPlano)&&!postureOnly&&!state?.managers.some(m=>m.formation==='kings'))return <OwnerSlot name="tactic"><FootballTacticsPanel minimal={!pilot} value={value} onChange={onChange} disabled={disabled} note={note}/></OwnerSlot>
  return <OwnerSlot name="tactic"><section className={`ov3-tactics ${pilot?'fp-match-tactics':''}`} aria-label={tr('Tática do seu time','Your team tactics')}><span>{tr('TÁTICA DO SEU TIME','YOUR TEAM TACTICS')}</span>{pilot&&<h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>}<div role="group" aria-label={tr('Escolher tática','Choose tactics')}>{(['retranca','equilibrio','ataque'] as const).map(t=><button type="button" key={t} disabled={disabled} aria-pressed={value===t} onClick={()=>onChange(t)}>{t==='retranca'?tr('Retranca','Defensive'):t==='ataque'?tr('Ofensivo','Attacking'):(pilot?tr('Equilíbrio','Balanced'):tr('Equilibrado','Balanced'))}</button>)}</div>{note&&<small>{note}</small>}{pilot&&<p>{tr('Sua escolha vale para o próximo jogo.','Your choice applies to the next match.')}</p>}</section></OwnerSlot>
 }
 

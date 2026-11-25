@@ -591,7 +591,7 @@ const r = await p.evaluate(async (espelho) => {
     ok(/roomStream && !rapidoHolandes/.test(lob2), 'o seletor de tempo ainda aparece na sala de stream com o holandês ligado')
     ok(/roomStream && rapidoHolandes/.test(lob2), 'falta o aviso explicando por que não tem tempo pra escolher no holandês')
     // e o tempo não pode nem ser GRAVADO na sala quando o pregão é holandês
-    ok(/roomStream && !rapidoHolandes && auctionSecs/.test(lob2), 'a sala holandesa ainda grava um tempo de pregão')
+    ok(/roomStream && !rapidoHolandes && (?:!rapidoPregao && )?auctionSecs/.test(lob2), 'a sala holandesa ainda grava um tempo de pregão')
   }
   const respeitaTempo = false
 

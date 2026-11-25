@@ -3,6 +3,7 @@ import { APOIO_PERKS, myApoioPerk } from './apoio'
 import { useT } from './lang'
 import logo from './img/logo-ll.webp'
 import './career-visual-v2.css'
+import './career-compact.css'
 
 /** Presentation only. Room clocks, permissions and career rules remain with their existing owners. */
 export function careerVisualV2(state: { careerOnline?: boolean; onlineMode?: string; sport?: string; co2?: unknown; screen?: string }): boolean {

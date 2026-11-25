@@ -38,7 +38,7 @@ export function AuctionSlot({name,children,desktopOnly=false}:{name:Slot;childre
  if(desktopOnly&&!layout.enabled)return null
  return layout.enabled&&target?createPortal(children,target):<>{children}</>
 }
-export function AuctionDesktopLayout({enabled,children,bar,title,description,budget,slots,playersTitle}:{enabled:boolean;children:ReactNode;bar?:ReactNode;title?:string;description?:string;budget?:{balance:number;committed?:number;masked?:boolean};slots?:{position:string;open:number}[];playersTitle?:string}){
+export function AuctionDesktopLayout({enabled,children,bar,title,description,budget,slots,playersTitle,teamTitle,teamSummary}:{teamTitle?:string;teamSummary?:string;enabled:boolean;children:ReactNode;bar?:ReactNode;title?:string;description?:string;budget?:{balance:number;committed?:number;masked?:boolean};slots?:{position:string;open:number}[];playersTitle?:string}){
  const [summary,setSummary]=useState<HTMLDivElement|null>(null),[team,setTeam]=useState<HTMLDivElement|null>(null),[room,setRoom]=useState<HTMLDivElement|null>(null),[price,setPrice]=useState<HTMLDivElement|null>(null),[timer,setTimer]=useState<HTMLDivElement|null>(null),[intro,setIntro]=useState<HTMLDivElement|null>(null)
  const value=useMemo(()=>({enabled,targets:{summary,team,room,price,timer,intro}}),[enabled,summary,team,room,price,timer,intro])
  if(!enabled)return <>{children}</>
@@ -58,9 +58,9 @@ export function AuctionDesktopLayout({enabled,children,bar,title,description,bud
       {conta&&<p className="ll-budget-sub">{getLang()==='en'?<>You have <b>{budget.balance}</b> and already put <b>{pos}</b> in bids.</>:<>Você tem <b>{budget.balance}</b> e já pôs <b>{pos}</b> nos lances.</>}</p>}</div>})()}
     <div className="ll-auction-summary" ref={setSummary}/>
    </section>
-   <section className="ll-desktop-panel ll-auction-team"><h2>{tr('Seu time','Your team')}</h2>
+   <section className="ll-desktop-panel ll-auction-team"><h2>{teamTitle??tr('Seu time','Your team')}</h2>
     {slots&&<div className="ll-auction-open-slots"><p>{tr('Vagas por posição','Open positions')}</p>{slots.map(slot=><div key={slot.position}><span>{slot.position}</span><b>{slot.open} {slot.open===1?tr('vaga','slot'):tr('vagas','slots')}</b></div>)}</div>}
-    <details className="ll-auction-pitch-details" open={!slots}><summary>{ehBasquete()?tr('Ver quadra e elenco','View court and roster'):tr('Ver campinho e elenco','View pitch and squad')}</summary><div ref={setTeam}/></details>
+    <details className="ll-auction-pitch-details" open={!slots}><summary>{teamSummary??(ehBasquete()?tr('Ver quadra e elenco','View court and roster'):tr('Ver campinho e elenco','View pitch and squad'))}</summary><div ref={setTeam}/></details>
    </section>
    <section className="ll-desktop-panel ll-auction-room"><h2>{tr('Sala','Room')}</h2><details className="ll-auction-room-details"><summary>{tr('Ver equipes da sala','View room teams')}</summary><div ref={setRoom}/></details></section>
   </aside>
