@@ -18,6 +18,10 @@
   Keane × Haaland, Pepe × Casquero, mordidas do Suárez, Gattuso × Jordan…) · 🗳️ Virou político (Weah, Romário, Bebeto, Jardel,
   Danrlei, Pelé ministro, Zico secretário) · 🥅 Goleiro artilheiro (Ceni, Chilavert, Higuita, Jorge Campos) → 35 temas. 🚫 Xarás:
   Diego disse que NÃO quer (25/11) — não repropor.
+- 25/11 (4ª leva, *"virou técnico é bom… jogou por amor em 1 clube só"*): 🧑‍🏫 Virou técnico · ❤️ Jogou por amor a um clube só
+  (carreira profissional inteira num clube; Ceni FORA por ter passado pelo Sinop) → 37 temas. Ideias levadas e ainda não pedidas:
+  gol de mão famoso, pênalti que doeu, expulso em final de Copa, virou ator, saída polêmica, brasileiro por outra seleção, duas
+  seleções, jogou depois dos 40, brilhou guri, transferência recorde.
 - Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; Copa América e Rebaixado (pesquisar a lista oficial).
 
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS (decisões do mockup)

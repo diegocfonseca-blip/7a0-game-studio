@@ -175,6 +175,22 @@ const POLITICO: Record<string, Pessoa[]> = {
 }
 // 🥅 Goleiro artilheiro: goleiro que fez gol de verdade (Ceni, Chilavert, Higuita, e o Jorge Campos que jogou até de atacante)
 const GOLEIRO_GOL: Record<string, Pessoa[]> = { Brasil: ['Rogério Ceni'], Paraguai: ['José Luis Chilavert'], Colômbia: ['René Higuita'], México: ['Jorge Campos'] }
+// 🧑‍🏫 Virou técnico: carreira de treinador conhecida (clube grande ou seleção). O "Pochettino" do Fortaleza é outro (o Tomás).
+const VIROU_TECNICO: Record<string, Pessoa[]> = {
+  França: ['Zinedine Zidane', 'Deschamps', 'Patrick Vieira', 'Thierry Henry'],
+  Espanha: ['Pep Guardiola', 'Xabi Alonso', 'Mikel Arteta', 'Luis Enrique', 'Xavi'],
+  Itália: ['Carlo Ancelotti', 'Andrea Pirlo', 'Thiago Motta', 'Gennaro Gattuso', 'Antonio Conte', 'Roberto Mancini', 'Cesare Maldini'],
+  Argentina: ['Diego Simeone', 'Gallardo', 'Mauricio Pochettino', 'Ramón Díaz'],
+  Inglaterra: ['Frank Lampard', 'Steven Gerrard', 'Wayne Rooney'], Bélgica: ['Vincent Kompany'], Holanda: ['Seedorf', 'Clarence Seedorf'],
+  Portugal: ['Abel Ferreira'],
+  Brasil: ['Zico', 'Falcão', 'Dunga', 'Leonardo', 'Roger Machado', 'Vanderlei Luxemburgo', 'Filipe Luís'],
+}
+// ❤️ Jogou por amor a um clube só: a carreira profissional INTEIRA num clube (bandeira). Ceni ficou fora (passou pelo Sinop).
+const UM_CLUBE_SO: Record<string, Pessoa[]> = {
+  Itália: ['Francesco Totti', 'Paolo Maldini', 'Franco Baresi'], 'País de Gales': ['Ryan Giggs'], Espanha: ['Carles Puyol'],
+  Inglaterra: ['Jamie Carragher', 'Matt Le Tissier', 'Gary Neville', 'Paul Scholes', 'Tony Adams'], Brasil: ['Marcos'],
+  Alemanha: ['Sepp Maier', 'Uwe Seeler'],
+}
 // 🏴 o país da LIGA do clube da carta (Inglaterra = futebol inglês; o País de Gales do Swansea joga lá)
 const LIGA_INGLESA = new Set(['Liverpool', 'Man United', 'Manchester United', 'Arsenal', 'Chelsea', 'Man City', 'Tottenham', 'Newcastle', 'Everton', 'Aston Villa', 'West Ham', 'Leicester', 'Leicester City', 'Wolves', 'Nottingham Forest', 'Fulham', 'Leeds', 'Leeds United', 'Blackburn', 'Southampton', 'Crystal Palace', 'Brighton', 'Sunderland', 'Middlesbrough', 'Brentford', 'Swansea', 'Derby County', 'Bournemouth', 'Birmingham', 'Wigan', 'Watford', 'Sheffield Wednesday', 'Portsmouth', 'Burnley', 'Bolton'])
 const LIGA_ESPANHOLA = new Set(['Real Madrid', 'Barcelona', 'Atlético de Madrid', 'Sevilla', 'Valencia', 'Villarreal', 'Real Betis', 'Deportivo La Coruña', 'Real Sociedad', 'Athletic Bilbao', 'Espanyol', 'Celta', 'Celta de Vigo', 'Mallorca', 'Granada', 'Girona', 'Logroñés'])
@@ -211,6 +227,8 @@ export const TEMAS_CONQUISTA: TemaConquista[] = [
   { id: 'ouro-olimpico', emoji: '🏅', pt: 'Ouro olímpico', en: 'Olympic gold', grupo: 'meio' },
   { id: 'rodou', emoji: '🧳', pt: 'Rodou o mundo', en: 'Journeyman', grupo: 'meio' },
   { id: 'parentes', emoji: '👨‍👦', pt: 'Parente do craque', en: "Star's relative", grupo: 'comica' },
+  { id: 'virou-tecnico', emoji: '🧑‍🏫', pt: 'Virou técnico', en: 'Became a manager', grupo: 'mista' },
+  { id: 'um-clube', emoji: '❤️', pt: 'Jogou por amor a um clube só', en: 'One-club man', grupo: 'lenda' },
   { id: 'comentarista', emoji: '📺', pt: 'Virou comentarista', en: 'Became a pundit', grupo: 'meio' },
   { id: 'briga', emoji: '🥊', pt: 'Saiu no braço em campo', en: 'Threw hands on the pitch', grupo: 'comica' },
   { id: 'politico', emoji: '🗳️', pt: 'Virou político', en: 'Became a politician', grupo: 'comica' },
@@ -291,6 +309,8 @@ function noTema(id: string, it: Item): boolean {
     case 'eua': return EUA.has(c.club)
     case 'artilheiro-copa': return naLista(ARTILHEIRO_COPA, it)
     case 'comentarista': return naLista(COMENTARISTA, it)
+    case 'virou-tecnico': return naLista(VIROU_TECNICO, it)
+    case 'um-clube': return naLista(UM_CLUBE_SO, it)
     case 'briga': return naLista(BRIGA, it)
     case 'politico': return naLista(POLITICO, it)
     case 'goleiro-artilheiro': return naLista(GOLEIRO_GOL, it)
