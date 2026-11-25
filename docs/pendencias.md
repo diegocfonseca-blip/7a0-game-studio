@@ -1,3 +1,12 @@
+## 25/11 — BAHIA VOLTA PRA COPA DO NORDESTE (goleiro novo) ✅
+- O Bahia estava FORA da Copa do Nordeste das salas online desde 22/11: a carta do Marcelo Lomba Bahia 2012 saiu (mesma pessoa
+  do Lomba Inter no baralho BR) e o clube ficou sem goleiro — sem 11, o jogo tira o clube da copa. Diego: *"absurdo não ter"*.
+- Entrou **Ronaldo (Bahia) 1988**, goleiro titular do campeão brasileiro (fonte: escalação das finais na pt.wikipedia), no
+  baralho REGIONAL (só existe nas copas regionais). Nome com o clube porque "Ronaldo" puxaria a bio do Fenômeno.
+- Conferido: todos os 48 clubes das regionais e os 36 da Libertadores das salas fecham um time. Travas `regional`, `paises`,
+  `baralho-oficial` verdes. ⚠️ Lição: carta que SAI do baralho tem que conferir se o clube continua fechando 11 nas copas
+  (`clubeFechaTime`). Reverter = apagar a linha em `cartas-regionais.ts`.
+
 ## 24/11 — SALVAMENTO SEGURO PUBLICADO PARA TODOS
 
 - Publicação autorizada por Diego e concluída no GitHub Pages: commit de produto `cb81895716f78ddde72d205635de04e32d7d98b6`, [execução concluída com sucesso](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45460317049). Migração do banco aplicada às18:23 UTC, privilégios/RLS, RPC sem conta e carência conferidos. Não há recarga automática; arquivos antigos preservados.
