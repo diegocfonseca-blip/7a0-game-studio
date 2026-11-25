@@ -1,7 +1,7 @@
 // 🏅 Trava do Leilão de Conquistas (25/11): `npm run conquistas`
 // Confere: todo pacote tem o tamanho certo · nenhuma pessoa repete no pacote nem entre pacotes · mesma semente = mesmos pacotes ·
 // salas de 2 a 20 pessoas fecham pessoas+1 pacotes em toda posição (4-3-3 e 4-4-2) · tema de lista só com quem está na lista.
-import { pacotesConquistas, cartasDoTema, pessoaDe, TEMAS_CONQUISTA } from '../src/escalacao/conquistas'
+import { pacotesConquistas, cartasDoTema, pessoaDe, TEMAS_CONQUISTA, chaveCartaTema, type MemoriaConquistas } from '../src/escalacao/conquistas'
 import type { Sector } from '../src/escalacao/types'
 let falhas = 0
 const ok = (c: boolean, msg: string) => { if (!c) { falhas++; console.log('  ❌ ' + msg) } }
@@ -42,5 +42,33 @@ ok(cartasDoTema('copa-mundo', 'MEI').every(i => !(i.carta.name === 'Jorginho' &&
 ok(cartasDoTema('kings', 'LAT').length === 0, 'Kings não tem lateral')
 ok(cartasDoTema('kings', 'ATA').length > 10, 'Kings ATA sumiu')
 for (const t of TEMAS_CONQUISTA) ok(['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].some(p => cartasDoTema(t.id, p as Sector).length >= 2), `tema ${t.id} sem cartas em posição nenhuma`)
+// 🔁 revezamento (25/11): 10 leilões seguidos de 8 pessoas com a memória ligada — nenhum tema aparece em TODO leilão na mesma
+// posição, e de um leilão pro seguinte a maioria das cartas é outra
+{
+  const hist: { t: string[]; c: string[] }[] = []
+  const mem: MemoriaConquistas = {
+    notaTema: (id, pos) => hist.slice(-8).reduce((a, m, i, arr) => a + (m.t.includes(`${id}·${pos}`) ? (i + 1) / arr.length : 0), 0),
+    notaCarta: c => hist.slice(-8).reduce((a, m, i, arr) => a + (m.c.includes(chaveCartaTema(c)) ? (i + 1) / arr.length : 0), 0),
+  }
+  const conta = new Map<string, number>()
+  let repetidas = 0, total = 0
+  for (let k = 0; k < 10; k++) {
+    const rng = rngDe(1000 + k), usadas = new Set<object>(), nova = { t: [] as string[], c: [] as string[] }
+    for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as Sector[]) {
+      const need = VAGAS['4-3-3'][pos]
+      for (const p of pacotesConquistas(pos, 9, need + 1, need, rng, c => usadas.has(c), mem)) {
+        for (const c of p.cartas) { usadas.add(c); nova.c.push(chaveCartaTema(c)) }
+        const kk = `${p.tema.id}·${pos}`; if (!nova.t.includes(kk)) nova.t.push(kk)
+      }
+    }
+    for (const kk of nova.t) conta.set(kk, (conta.get(kk) ?? 0) + 1)
+    if (hist.length) { const ant = new Set(hist[hist.length - 1].c); repetidas += nova.c.filter(x => ant.has(x)).length; total += nova.c.length }
+    hist.push(nova)
+  }
+  const sempre = [...conta].filter(([, n]) => n >= 10).map(([k]) => k)
+  ok(sempre.length === 0, `tema aparece em TODO leilão na mesma posição: ${sempre.join(', ')}`)
+  ok(repetidas / total < 0.5, `cartas repetindo demais de um leilão pro outro: ${Math.round(100 * repetidas / total)}%`)
+  console.log(`  🔁 revezamento: ${Math.round(100 * repetidas / total)}% das cartas repetem do leilão anterior · Bola de Ouro no gol em ${conta.get('bola-ouro·GOL') ?? 0} de 10`)
+}
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '✅ Leilão de Conquistas: pacotes do tamanho certo, sem repetir pessoa, salas de 2 a 20 fecham')
 process.exit(falhas ? 1 : 0)

@@ -426,10 +426,19 @@ const CICLO: GrupoTema[] = ['lenda', 'mista', 'comica', 'meio', 'mista', 'comica
  * Os pacotes de UMA posição. `tamanho` = vagas + 1 (o mínimo aceito é `minimo` = as vagas), `alvo` = quantos pacotes.
  * `usada(carta)` diz se a carta já saiu em outro pacote nesta partida. Mesma semente = mesmos pacotes (sala inteira igual).
  */
-export function pacotesConquistas(pos: Sector, alvo: number, tamanho: number, minimo: number, rng: () => number, usada: (c: CartaTema) => boolean): PacoteConquista[] {
+/** 🔁 25/11 (Diego: *"deve revezar sempre… bola de ouro goleiro aparece uma vez, não deve aparecer toda hora… ou até mesmo jogadores"*):
+ *  memória dos últimos leilões. `notaTema(id, pos)` e `notaCarta(carta)` = quanto aquilo saiu há pouco (0 = não saiu). Menor vem antes:
+ *  tema que saiu ontem nesta posição vai pro fim da fila do grupo, e jogador que saiu há pouco só volta quando o tema não tem outro. */
+export type MemoriaConquistas = { notaTema: (id: string, pos: Sector) => number; notaCarta: (c: CartaTema) => number }
+export const chaveCartaTema = (c: CartaTema) => `${c.name}|${c.club}|${c.year}`
+export function pacotesConquistas(pos: Sector, alvo: number, tamanho: number, minimo: number, rng: () => number, usada: (c: CartaTema) => boolean, mem?: MemoriaConquistas): PacoteConquista[] {
   // o que ainda está livre de cada tema, já embaralhado
   const livres = new Map<string, Item[]>()
-  for (const t of TEMAS_CONQUISTA) livres.set(t.id, embaralha(cartasDoTema(t.id, pos).filter(it => !usada(it.carta)), rng))
+  for (const t of TEMAS_CONQUISTA) {
+    const l = embaralha(cartasDoTema(t.id, pos).filter(it => !usada(it.carta)), rng)
+    // quem saiu há pouco vai pro fim (a ordem do sorteio continua valendo entre os "iguais")
+    livres.set(t.id, mem ? l.map((it, i) => ({ it, i, n: mem.notaCarta(it.carta) })).sort((a, b) => a.n - b.n || a.i - b.i).map(x => x.it) : l)
+  }
   const pessoasUsadas = new Set<string>()
   const tira = (t: TemaConquista, n: number): CartaTema[] | null => {
     const l = livres.get(t.id)!
@@ -461,7 +470,12 @@ export function pacotesConquistas(pos: Sector, alvo: number, tamanho: number, mi
       const g = CICLO[(out.length + i) % CICLO.length]
       const candidatos = [...porGrupo(g), ...embaralha(TEMAS_CONQUISTA.filter(t => t.grupo !== g), rng)]
         .filter(t => repete || !usadosTema.has(t.id))
-        .sort((a, b) => (usadosTema.get(a.id) ?? 0) - (usadosTema.get(b.id) ?? 0))
+        .map((t, i) => ({ t, i, n: mem ? mem.notaTema(t.id, pos) : 0 }))
+        // 1º quem ainda não saiu NESTA partida · depois uma nota só: o que saiu nos últimos leilões + um peso pra quem não é do grupo
+        // da vez (lenda/meio/resenha). Assim o grupo manda, mas tema que saiu em todo leilão recente CEDE a vez (a lateral só tem 2
+        // temas de "lenda" que fecham pacote — sem isso, Campeão do Mundo saía em todo leilão)
+        .sort((a, b) => (usadosTema.get(a.t.id) ?? 0) - (usadosTema.get(b.t.id) ?? 0) || (a.n + (a.t.grupo === g ? 0 : 0.75)) - (b.n + (b.t.grupo === g ? 0 : 0.75)) || a.i - b.i)
+        .map(x => x.t)
       let feito = false
       for (const t of candidatos) {
         const cartas = tira(t, tamanho) ?? tira(t, minimo)

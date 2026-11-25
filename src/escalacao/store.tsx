@@ -1271,7 +1271,7 @@ import { pack, unpack, packCom, unpackCom } from './netpack'
 import { paisDaCarta } from './liga-draft' // 🏳️ leilão de Seleções (31/10)
 import { donoSaiDoBafo } from './bafo2-sair'
 import { calendarioBafo } from './bafo2'
-import { pacotesConquistas } from './conquistas' // 🏅 Leilão de Conquistas (25/11)
+import { pacotesConquistas, chaveCartaTema, type MemoriaConquistas } from './conquistas' // 🏅 Leilão de Conquistas (25/11)
 import { premioDaLiga, premiosCopaDraft, cartaPermitidaDraft, type RegrasDraft, ordemDoDraft, nomesOcupados, cartasLivres, acharCarta, chaveJogador, escolhaAutomatica, podemSair, DRAFT_ESCOLHA_MS, DRAFT_ESCOLHA_MINHA_MS, DRAFT_REVELA_MS, type DraftCarry, MLD_DRAFT_VALOR, MLD_ESCALA_MS, MLD_LEILAO_MS, MLD_IGUALAR_MS, podemSairMinha, reservaMaisBarata, podeIrProLeilao, martelo, xiPorOrdem, podeSondarCarta, botDaSobra, botPodeSoltar, ordenaBotPelaForca, podePassarDraft, type LoteDraft, setDraftBasquete, elencoMaxDraft, titularesDraft, baralhoDoDraft } from './liga-draft' // 📋 Liga Draft (19/10)
 
 export const START_MONEY = 100
@@ -2591,13 +2591,37 @@ export const pacoteOptsDe = (s: { leilaoSelecao?: boolean; leilaoDecada?: boolea
 /** 🏅 LEILÃO DE CONQUISTAS (25/11): o pacote é um TEMA ("Bola de Ouro", "Foi pra Arábia"…) com cartas SORTEADAS do tema.
  *  Mesmo tamanho do Clubes (vagas + 1), mesmo número de pacotes (pessoas + 1) e mesma convocação depois. Regras e fontes em
  *  `conquistas.ts`. fame NEUTRO (3) igual ao Clubes: a cor só aparece quando as cartas viram no martelo. */
+// 🔁 25/11: memória das últimas 8 partidas do Leilão de Conquistas (temas por posição + cartas), no aparelho de quem monta o
+// baralho (na sala, o dono). Mesmo jeito do Clubes: a partida mais recente pesa mais; tema/jogador que saiu há pouco vai pro fim.
+const CONQ_MEM_KEY = 'esc-conquistas-recentes-v1'
+const CONQ_MEM_MAX = 8
+type MemConq = { t: string[]; c: string[] }
+let RECENT_CONQ: MemConq[] = (() => {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(CONQ_MEM_KEY) : null
+    const arr = raw ? JSON.parse(raw) as MemConq[] : []
+    return Array.isArray(arr) ? arr.filter(m => m && Array.isArray(m.t) && Array.isArray(m.c)).slice(-CONQ_MEM_MAX) : []
+  } catch { return [] }
+})()
+function memoriaConquistas(): MemoriaConquistas {
+  const pesoT = new Map<string, number>(), pesoC = new Map<string, number>()
+  RECENT_CONQ.forEach((m, i) => {
+    const w = (i + 1) / RECENT_CONQ.length
+    for (const k of m.t) pesoT.set(k, (pesoT.get(k) ?? 0) + w)
+    for (const k of m.c) pesoC.set(k, (pesoC.get(k) ?? 0) + w)
+  })
+  return { notaTema: (id, pos) => pesoT.get(`${id}·${pos}`) ?? 0, notaCarta: c => pesoC.get(chaveCartaTema(c)) ?? 0 }
+}
 function buildDeckConquistas(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
   const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const alvo = Math.max(1, managers.length) + 1
+  const mem = memoriaConquistas()
+  const nova: MemConq = { t: [], c: [] }
   for (const pos of SECTORS) {
     const need = Math.max(1, ...managers.map(m => baseSlots(m.formation, pos)))
-    const pk = pacotesConquistas(pos, alvo, need + 1, need, rng, c => used.has(ident(c)))
+    const pk = pacotesConquistas(pos, alvo, need + 1, need, rng, c => used.has(ident(c)), mem)
+    for (const p of pk) { nova.t.push(`${p.tema.id}·${pos}`); for (const c of p.cartas) nova.c.push(chaveCartaTema(c)) }
     pk.forEach((p, i) => {
       for (const c of p.cartas) used.add(ident(c))
       const top = [...p.cartas].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi)).slice(0, need)
@@ -2608,6 +2632,8 @@ function buildDeckConquistas(managers: Manager[], rng: () => number, used: Set<s
     })
     deck[pos] = shuffle(deck[pos], rng)
   }
+  RECENT_CONQ.push(nova); while (RECENT_CONQ.length > CONQ_MEM_MAX) RECENT_CONQ.shift()
+  try { localStorage.setItem(CONQ_MEM_KEY, JSON.stringify(RECENT_CONQ)) } catch { /* sem espaço/privado: fica só na memória */ }
   return deck
 }
 export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>, opts: PacoteOpts = {}): Record<Sector, Card[]> {

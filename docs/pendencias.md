@@ -32,6 +32,11 @@
   Touré, Boateng, Sócrates/Raí, Ronaldinho/Assis, Pelé/Edinho, Mazinho/Thiago/Rafinha…) · Um clube só + Nílton Santos, Zito, Pepe
   (Santos), Facchetti, Sandro Mazzola · Comentarista + Ruggeri, Zabaleta, Tim Howard · Briga + Chilavert × Asprilla (1997) · temas
   novos do baralho: Jogou na França/Portugal/Holanda, Velha guarda (até 1969), Anos 2010, Anos 2020 → 43 temas.
+- 🔁 25/11 REVEZAMENTO (Diego: *"deve revezar sempre… bola de ouro goleiro aparece uma vez, não toda hora… ou até mesmo jogadores"*):
+  memória das últimas 8 partidas no aparelho de quem monta o baralho (`esc-conquistas-recentes-v1`, mesmo jeito do Clubes): tema que
+  saiu há pouco NAQUELA posição cede a vez (até pra outro grupo) e jogador que saiu há pouco vai pro fim da fila. Medido em 10 leilões
+  seguidos de 8 pessoas: 0% das cartas repetem do leilão anterior; Bola de Ouro no gol em 3 de 10 (era quase sempre). Trava no
+  `npm run conquistas`. Ainda SÓ no aparelho (o Clubes também manda pro servidor) — se ele reclamar entre donos diferentes, levar pro banco.
 - Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; Copa América e Rebaixado (pesquisar a lista oficial).
 
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS (decisões do mockup)
