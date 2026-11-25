@@ -28,3 +28,17 @@
 @media(max-width:800px){.f1-race-layout{display:block}.f1-race-side{margin-top:24px}.f1-app{max-width:600px}.f1-offers{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.f1-start-plans{display:block}.f1-catalogue>div{grid-template-columns:repeat(2,minmax(0,1fr))}.f1-brand strong{font-size:23px}.f1-private{font-size:9px}.f1-brand small{font-size:7px}.f1-panel{padding:15px}}
 @media(max-width:360px){.f1-game{padding:12px 10px 30px}.f1-brand{gap:7px}.f1-brand strong{font-size:20px}.f1-brand small{font-size:6px;letter-spacing:.1px}.f1-monogram{font-size:21px}.f1-private{font-size:8px}.f1-steps{gap:4px}.f1-steps li{font-size:10px;gap:4px}.f1-game h1{font-size:28px}.f1-panel{padding:11px}.f1-own-drivers button{padding:7px 5px}.f1-own-drivers span{font-size:10px}.f1-own-drivers small{font-size:8px}.f1-timing>button{gap:6px;padding:9px 7px}.f1-driver-name>b{font-size:11px}.f1-race-context{gap:6px}.f1-race-context>span:last-child{font-size:8px}.f1-catalogue>div{grid-template-columns:1fr}.f1-profiles meter{width:75px}}
 @media(prefers-reduced-motion:reduce){.f1-track-car{transition:none}}
+/* A navegação e os painéis vêm dos componentes comuns, sem a antiga mini-home. */
+.f1-shell>.ll-shell-content,.f1-race-shell>.ll-shell-content{max-width:1380px!important}
+.f1-shell .ll-auction-intro{color:#0c0c0c;background:#f4ecd6;border:3px solid #0c0c0c;border-radius:14px;padding:14px}
+.f1-shell .ll-auction-timer{color:#f4ecd6}.f1-shell .ll-auction-main>div{color:#0c0c0c}
+.f1-race-shell .f1-game{min-height:0;padding:0;background:transparent}.f1-race-shell .f1-app{max-width:none}
+.f1-race-shell .f1-panel{border:3px solid #0c0c0c!important;border-radius:18px!important;box-shadow:4px 4px #0c0c0c}
+.f1-race-shell .f1-track-panel,.f1-race-shell .f1-timing{border:3px solid #0c0c0c;box-shadow:4px 4px #0c0c0c;border-radius:18px}
+.f1-shell .ll-desktop-header,.f1-race-shell .ll-desktop-header{width:100%;margin:0 0 18px}
+@media(max-width:1099px){.f1-shell .ll-desktop-header,.f1-race-shell .ll-desktop-header{display:flex;align-items:center;gap:10px;background:#f4ecd6;border:3px solid #0c0c0c;border-radius:14px;padding:10px;color:#0c0c0c;font-family:Oswald,sans-serif}.f1-shell .ll-desktop-brand,.f1-race-shell .ll-desktop-brand{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:700}.f1-shell .ll-desktop-account,.f1-race-shell .ll-desktop-account{display:none}.f1-shell .ll-desktop-header nav,.f1-race-shell .ll-desktop-header nav{margin-left:auto;font-size:12px}.f1-shell .ll-desktop-header button,.f1-race-shell .ll-desktop-header button{padding:8px;border:2px solid #0c0c0c;border-radius:8px;background:#fff}.f1-shell>.ll-shell-content,.f1-race-shell>.ll-shell-content{max-width:600px!important}.f1-shell .ll-auction-list input{font-size:16px}}
+
+.f1-shell,.f1-race-shell{background-color:#0b120e!important;color:#f4ecd6!important}
+.f1-shell .ll-box{color:#0c0c0c}
+/* O fundo mantém o mesmo tratamento escuro do pregão, com piso de boxes em vez de estádio. */
+.f1-shell.ll-auction-shell{background-image:linear-gradient(130deg,#0b120ed9,#0c0c0cf5),repeating-linear-gradient(0deg,#343831 0 2px,transparent 2px 64px),repeating-linear-gradient(90deg,#282d27 0 2px,#171c18 2px 96px);background-size:auto}

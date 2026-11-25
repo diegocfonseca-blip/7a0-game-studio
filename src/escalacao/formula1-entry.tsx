@@ -13,5 +13,5 @@ export function closeFormula1(){selected=false;listeners.forEach(fn=>fn())}
 export function Formula1Tab(){
  const allowed=useOwnerPresentation(),active=useFormula1Selected(),t=useT()
  if(!allowed)return null
- return <button type="button" onClick={openFormula1} aria-pressed={active} style={{flex:1,minWidth:0,minHeight:44,padding:'8px 6px',border:'2px solid #0C0C0C',borderRadius:10,background:active?'#FFC400':'#F4ECD6',color:'#0C0C0C',font:'700 12px Oswald,sans-serif',cursor:'pointer'}}>🏁 {t('FÓRMULA 1','FORMULA 1')}</button>
+ return <button type="button" onClick={openFormula1} aria-pressed={active} style={active?{background:'#7C3AED',color:'#fff'}:undefined}>🏁 {t('FÓRMULA 1','FORMULA 1')}</button>
 }

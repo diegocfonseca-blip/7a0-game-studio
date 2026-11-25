@@ -1,3 +1,4 @@
+import {QuickMatchLayout,AuctionIdentity,AuctionPositions} from './shared-game-ui'
 import * as careerSaves from './salvamento/service'
 import { SaveHistory } from './salvamento/dialogs'
 import {MatchPresentationClockContext,useMatchPresentationClock,matchPresentationMinute,matchPresentationRemaining,type MatchPresentationClock} from './match-presentation-clock'
@@ -11,7 +12,7 @@ import {useFootballMatchPilotAccess} from './football-match-pilot'
 import {FootballTeamPanel,FootballRoundSummary,FootballRivalHistory,FootballSummaryPlacement,FootballCompetitionRivals,FootballDesktopLeaders,FootballRoundNotice,FootballOpponentBrowser,FootballNextOpponent} from './football-match-panels'
 import {useFootballChatDock} from './football-match-navigation'
 import {careerVisualV2,CareerVisualProvider,useCareerVisualV2} from './career-visual-v2'
-import { OnlineCreateLayout, OnlineCreateSection } from './online-create-layout' // 🧩 18/11: a Partida Rápida na moldura da criação de sala
+import { OnlineCreateSection } from './online-create-layout' // 🧩 18/11: a Partida Rápida na moldura da criação de sala
 import {CareerWelcome,CareerAuctionHint} from './career-start-guide'
 import { CompromissoCarreira } from './compromissos-carreira-ui'
 import { type CSSProperties, type ReactNode, Component, Fragment, createContext, useContext, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
@@ -134,7 +135,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import {Formula1Tab,useFormula1Selected} from './formula1-entry'
+import {Formula1Tab,useFormula1Selected,closeFormula1} from './formula1-entry'
 import { siteDoJogo, useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePokemonLiberado, usePregaoAberto, useEnvelopeUnicoLiberado, useAmigos, useViceCity, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
@@ -1068,7 +1069,7 @@ export function HoldButton({ onStep, disabled = false, className = '', style, ch
 
 const MobileAuctionHeaderContext = createContext(false)
 
-export function Shell({ children, bar, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock }: { presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
+export function Shell({ children, bar, presentationHeader, hideExit = false, className = '', wide = false, desk2 = false, auctionBudget, presentationClock }: { presentationHeader?:React.ReactNode; presentationClock?:MatchPresentationClock|null; children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; auctionBudget?:{committed?:number;masked?:boolean}; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean; /** 🖥️ o desenho de computador novo (23/10): coluna fixa à direita (`.ll-desk2`) */ desk2?: boolean }) {
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
@@ -1146,7 +1147,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
     <MatchPresentationClockContext.Provider value={presentationClock??null}><OwnerOnlineProvider enabled={ownerVisual} state={state} matchAd={<GiroDaRodada cinema doJogo/>}><CareerVisualProvider enabled={visualV2}><MobileAuctionHeaderContext.Provider value={auctionMobile}>
     <div className={`min-h-screen pb-16 palco ${ownerVisual?'ov3':''} ${auctionDesktop?'ll-auction-shell':''} ${matchDesktop?'ll-shell-desktop':''} ${className} ${(previewAccount || publicOnlineVisual(state)) && ['season', 'liberta', 'champions'].includes(state.screen) ? 'll25-shell' : ''} ${privateCareerShell ? 'll-career-private-shell' : ''} ${privateAuctionShell ? 'll-career-auction-private' : ''}${visualV2 ? ' cv2-root cv2-auction' : ''}${viceSala ? ' vice-sala' : ''}`} style={{ backgroundColor: CREAM, color: INK }}>
       {viceSala && <><style>{VICE_TEMA_CSS + VICE_SALA_CSS}</style><ViceSalaDecor /></>}
-      {ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
+      {presentationHeader ?? (ownerVisual&&<OwnerOnlineHeader name={stripEmoji(shellManager?.name??'')} club={shellManager?.teamName} balance={(auctionDesktop||auctionMobile)&&state.phase!=='pregao'&&shellManager?<CoinCounter value={shellManager.money+pendingSpend(state,shellManager)}/>:undefined} online={state.onlineMode==='online'} onHome={state.onlineMode==='online'?backToMenu:leave} onRooms={()=>onlineNavigation('open')}/>)}{!ownerVisual&&(auctionDesktop||matchDesktop)&&<DesktopHeader name={stripEmoji(state.managers[state.youIdx]?.name??'')} club={state.managers[state.youIdx]?.teamName} balance={auctionDesktop?<CoinCounter value={state.managers[state.youIdx].money+pendingSpend(state,state.managers[state.youIdx])}/>:undefined} links={state.onlineMode==='online'?[{label:tr('Salas abertas','Open rooms'),onClick:()=>onlineNavigation('open')},{label:tr('Criar sala','Create room'),onClick:()=>onlineNavigation('create')},{label:tr('Minhas ligas','My leagues'),onClick:()=>onlineNavigation('leagues')},{label:tr('Entrar','Join'),onClick:()=>onlineNavigation('join')}]:[]}/>}
       {bar && !auctionDesktop && (
         <div className={`ll-shell-bar sticky top-0 z-20 border-b-[3px] border-black px-4 py-2.5${auctionMobile ? ' ll-auction-mobile-bar' : ''}`} style={{ backgroundColor: isReserveAuction ? '#EFE6FE' : auctionMobile ? '#fffaf0' : '#fff', color: INK }}>
           {isReserveAuction && (
@@ -1590,7 +1591,9 @@ export function CardFace({ c, big = false, surprise = false, mudo = false, highl
       </div>
     )
   }
-  const pk = pokeDe(c.name) // ⚡ modo Pokémon: os TIPOS no lugar do selo da posição
+  const pk = pokeDe(c.name)
+  if (!pk && !c.presidente && !mudo && !surprise) return <AuctionIdentity badge={posTag(c.pos)} name={c.name} subtitle={`${c.club} · ${c.year}`} big={big} color={highlight ? PURPLE : claro ? '#fff' : INK} highlight={highlight} light={claro}/>
+  // ⚡ modo Pokémon: os TIPOS no lugar do selo da posição
   return (
     <div className="text-left">
       <div className="flex items-center gap-2">
@@ -2061,25 +2064,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
 // COR ATIVA: verde do futebol · telha/vermelho do basquete — ambas da paleta
 // oficial (nada de cor nova inventada).
 function SportTabs() {
-  const [sport, setSport] = useSport()
-  const t = useT()
-  const tab = (s: Sport, emoji: string, label: string, activeBg: string) => {
-    const active = sport === s
-    return (
-      <button onClick={() => setSport(s)} aria-pressed={active}
-        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border-[3px] border-black py-2.5 active:translate-y-0.5"
-        style={{ background: active ? activeBg : '#fff', color: active ? '#fff' : 'rgba(0,0,0,.4)', boxShadow: active ? `3px 3px 0 0 ${INK}` : 'none', fontWeight: 900, textTransform: 'uppercase', letterSpacing: .5, fontSize: 14, ...OSWALD }}>
-        <span style={{ fontSize: 19, lineHeight: 1 }}>{emoji}</span>{label}
-      </button>
-    )
-  }
-  return (
-    <div className="flex gap-2 pt-3">
-      {tab('futebol', '⚽', t('Futebol', 'Soccer'), GREEN)}
-      {tab('basquete', '🏀', t('Basquete', 'Basketball'), '#C2452F')}
-      <Formula1Tab/>
-    </div>
-  )
+  return <div className="ll-sport-tabs-legacy"><SeletorEsporte/></div>
 }
 
 // 🌐 BOTÃO BR/EN — canto direito do header do BidLegends (regra do Diego). Só
@@ -2118,16 +2103,17 @@ function LangToggle() {
 // ⚽🏀 SELETOR DE ESPORTE (20/10, Diego: "melhor visualmente o seletor de troca… que só eu vejo"): a MESMA pílula nas duas
 // homes, logo abaixo da marca — o esporte em que você está fica pintado (verde futebol · vermelho basquete, as cores das
 // abas aprovadas). Só aparece pra conta liberada no basquete; quem chama já confere isso.
-function SeletorEsporte() {
+export function SeletorEsporte() {
   const [sport, setSportSel] = useSport()
+  const formula1 = useFormula1Selected()
   const t = useT()
   const seg = (s: Sport, rotulo: string, cor: string) => (
-    <button aria-pressed={sport === s} onClick={() => setSportSel(s)} style={sport === s ? { background: cor, color: '#fff' } : undefined}>{rotulo}</button>
+    <button aria-pressed={!formula1 && sport === s} onClick={() => { closeFormula1(); setSportSel(s) }} style={!formula1 && sport === s ? { background: cor, color: '#fff' } : undefined}>{rotulo}</button>
   )
   return <div className="ll-seletor-esporte" role="group" aria-label={t('Escolher o jogo', 'Choose the game')}>{seg('futebol', t('⚽ FUTEBOL', '⚽ SOCCER'), GREEN)}{seg('basquete', t('🏀 BASQUETE', '🏀 BASKETBALL'), '#C2452F')}<Formula1Tab/></div>
 }
 
-function BidLegendsHome() {
+function BidLegendsHome({ racing = false, onQuick, resume, heroArt }: { racing?: boolean; onQuick?: () => void; resume?: React.ReactNode; heroArt?:React.ReactNode } = {}) {
   const t = useT()
   const { dispatch } = useEsc()
   const nbaSolo = useResumableNbaCareer() // 🏀 carreira do basquete salva (continuar)
@@ -2140,19 +2126,19 @@ function BidLegendsHome() {
   const [carreiras, setCarreiras] = useState<null | 'lista' | 'nova'>(null) // 🪜 Minhas Carreiras do basquete (lista ou já no passo do nome)
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   // 🏀 09/11: a MESMA home v03 do futebol (Diego: "tudo igual do futebol pro basquete"); só troca marca, arte e textos.
-  return <HomeV03 bb
+  return <HomeV03 bb={!racing} racing={racing} heroArt={heroArt}
     onCareer={() => setCarreiras(listaNbaCarreiras().length ? 'lista' : 'nova')}
     onCareers={() => setCarreiras('lista')}
-    onQuick={() => dispatch({ type: 'GO_SETUP' })}
+    onQuick={onQuick ?? (() => dispatch({ type: 'GO_SETUP' }))}
     onOnline={destination => { requestOnlineDestination(destination); dispatch({ type: 'GO_LOBBY_ONLINE' }) }}
-    onAccount={() => setContaAberta(true)} onAlbum={() => dispatch({ type: 'GO_ALBUM' })} onManual={() => setShowManual(true)}
+    onAccount={() => setContaAberta(true)} onAlbum={() => { if (racing) closeFormula1(); dispatch({ type: 'GO_ALBUM' }) }} onManual={() => setShowManual(true)}
     onFriends={amigosOn ? () => setVerAmigos(true) : undefined}
     onHall={() => { setVerSalao(true); window.scrollTo(0, 0) }}
     language={<LangToggle />}
     sportSwitcher={<SeletorEsporte />}
     notifications={amigosOn ? <SinoAmigos onAbrirAmigos={() => setVerAmigos(true)} /> : undefined}
-    title={<h1>{t('O SEU QUINTETO', 'YOUR FIVE')}<br /> {t('COMEÇA', 'STARTS')} <em>{t('NO LANCE.', 'WITH A BID.')}</em></h1>}
-    resume={(resumable || nbaSolo) ? <>
+    title={racing ? <h1>{t('SUA ESCUDERIA', 'YOUR TEAM')}<br /> {t('COMEÇA', 'STARTS')} <em>{t('NO LANCE.', 'WITH A BID.')}</em></h1> : <h1>{t('O SEU QUINTETO', 'YOUR FIVE')}<br /> {t('COMEÇA', 'STARTS')} <em>{t('NO LANCE.', 'WITH A BID.')}</em></h1>}
+    resume={racing ? resume : (resumable || nbaSolo) ? <>
       {resumable && <><button type="button" onClick={resumable.resume}>{t('CONTINUAR SALA', 'RESUME ROOM')} {resumable.code}</button><button type="button" onClick={resumable.leave}>{t('SAIR DA SALA', 'LEAVE ROOM')}</button></>}
       {nbaSolo && <><button type="button" onClick={nbaSolo.resume}>{t('CONTINUAR', 'CONTINUE')} · {nbaSolo.teamName} · T{nbaSolo.seasonNo}</button>
       <button type="button" onClick={() => setCarreiras('lista')}>{t('MINHAS CARREIRAS', 'MY CAREERS')}</button></>}
@@ -2162,11 +2148,15 @@ function BidLegendsHome() {
     overlays={<>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
       {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
-      {showManual && <ManualDoTecnico onClose={() => setShowManual(false)} limpo bb />}
+      {showManual && (racing ? <div className="fixed inset-0 z-[100010] bg-black/70 grid place-items-center p-4" role="dialog" aria-modal="true" aria-label={t('Como jogar Fórmula 1','How to play Formula 1')}><Box bg={CREAM} className="p-5 max-w-lg space-y-4"><h2 className="font-black text-2xl" style={OSWALD}>{t('LEILÃO, ESCUDERIA E PISTA','AUCTION, TEAM AND TRACK')}</h2><p>{t('100 moedas por escuderia. Compre dois pilotos e um modelo histórico de carro, que equipa a dupla. As categorias e notas só se revelam depois da compra.','100 coins per team. Buy two drivers and a historic car model for both. Ratings and tiers are revealed after purchase.')}</p><p>{t('Escolha pneus e ritmo para cada piloto. Na corrida seca, use dois compostos. Você pode chamar cada carro aos boxes durante a corrida.','Choose tyres and pace for each driver. Use two compounds in a dry race. Call each car into the pits during the race.')}</p><Btn onClick={() => setShowManual(false)}>{t('Entendi','Got it')}</Btn></Box></div> : <ManualDoTecnico onClose={() => setShowManual(false)} limpo bb />)}
       {carreiras && <NbaMinhasCarreiras comecaNova={carreiras === 'nova'} onClose={() => setCarreiras(null)} />}
     </>}
   />
 }
+export function Formula1Home({onQuick,resume,heroArt}:{onQuick:()=>void;resume?:React.ReactNode;heroArt?:React.ReactNode}) {
+  return <BidLegendsHome racing onQuick={onQuick} resume={resume} heroArt={heroArt}/>
+}
+
 // 🗑️ A TELA CHEIA DE LOGIN DA CARREIRA SAIU (Diego 16/08, plano-crescimento §1).
 // Ela ocupava a tela inteira e o botão de entrar disparava GO_LOBBY_ONLINE —
 // jogava a pessoa no lobby das salas online e, depois de criar a conta, NADA a
@@ -3742,38 +3732,16 @@ export function EscSetup() {
     const timeTxt = `${name.trim() || t('seu time', 'your team')} · ${bbSetup ? (nbaMundoQ ? t('NBA + Mundo', 'NBA + World') : t('baralho NBA', 'NBA deck')) : formation} · ${rivals} ${t('rivais', 'rivals')}`
     const resumos: Record<string, string> = { [t('O leilão', 'The auction')]: `${tipoTxt} · ${jeito}`, [t('O time', 'The team')]: timeTxt, [t('O campeonato', 'The championship')]: campTxt, [t('A partida', 'The match')]: t('Teste do 2D', '2D test') }
     const linhas: [string, string][] = [[t('Modo', 'Mode'), bbSetup ? (nbaMundoQ ? t('⚡ Partida Rápida · 🌍 NBA + Mundo', '⚡ Quick match · 🌍 NBA + World') : t('⚡ Partida Rápida · 🏀 NBA', '⚡ Quick match · 🏀 NBA')) : t('⚡ Partida Rápida', '⚡ Quick match')], [t('Leilão', 'Auction'), `${tipoTxt} · ${jeito}`], [t('Time', 'Team'), timeTxt], [t('Campeonato', 'Championship'), campTxt]]
-    return (
-      <Shell>
-        <style>{'.ll-qs .cs-claro{background:#F4ECD6;border:4px solid #0C0C0C;border-radius:24px;box-shadow:5px 5px 0 #0C0C0C;padding:12px;color:#0C0C0C}'}</style>
-        <button onClick={() => dispatch({ type: 'GO_LOBBY' })} className="flex items-center gap-1 font-black text-sm pt-4 -mb-2 active:opacity-60" style={{ ...OSWALD, color: '#c9c5b8' }}>
-          <span className="text-lg leading-none">🏠</span> {t('Voltar ao início', 'Back to start')}
-        </button>
-        <div className="pt-2">
-          <p className="text-[11px] font-black uppercase tracking-[.16em]" style={{ ...OSWALD, color: GOLD }}>{bbSetup ? t('⚡ Partida rápida · você contra a máquina', '⚡ Quick match · you vs the machine') : t('⚡ Partida rápida · você contra a máquina', '⚡ Quick match · you vs the machine')}</p>
-          <h1 className="font-black uppercase leading-[.95] mt-1" style={{ ...OSWALD, fontSize: 40, color: '#F4ECD6' }}>{t('Monte sua', 'Set up your')} <span style={{ color: GOLD }}>{t('partida.', 'match.')}</span></h1>
-          <p className="text-sm font-semibold mt-1" style={{ color: '#c9c5b8' }}>{bbSetup ? t('Leilão do seu quinteto, temporada da NBA e a briga pelo anel. Sem marcar horário.', 'Auction your five, play an NBA season and chase the ring. No schedule needed.') : t('Leilão, campeonato e a briga pelo título. Sem marcar horário.', 'Auction, league and the race for the title. No schedule needed.')}</p>
-        </div>
-        <div className="ll-qs">
-          <OnlineCreateLayout enabled rotulo={t('SUA PARTIDA', 'YOUR MATCH')} modes={<div className="space-y-3" style={{ background: CREAM, color: INK, border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}`, padding: 12 }}>
-            <div className="flex items-center gap-3">
-              <span className="grid place-items-center rounded-xl shrink-0" style={{ width: 44, height: 44, background: GOLD, border: `3px solid ${INK}`, fontSize: 22 }}>⚡</span>
-              <span><b className="block uppercase" style={{ ...OSWALD, fontSize: 18 }}>{t('Partida rápida', 'Quick match')}</b><span className="block text-[12px] font-semibold" style={{ color: '#6b6250' }}>{t('Uma temporada contra a máquina. Começa agora.', 'One season against the machine. Starts now.')}</span></span>
-            </div>
-            {pokeBtnRapido}
-          </div>} rows={linhas} summaries={resumos}
-            name={name.trim() || t('Seu time', 'Your team')}
-            button={<Btn onClick={start} className="w-full text-lg" bg={GREEN}><span className="text-white">{t('AVANÇAR 🔨', 'CONTINUE 🔨')}</span></Btn>}
-            responsibility={null} error={nameErr ? <p>{nameErr}</p> : null} errorKey={nameErr}
-            notice={t('Escolha como quer jogar.', 'Choose how you want to play.')}>
+    return <QuickMatchLayout onBack={() => dispatch({ type: 'GO_LOBBY' })}
+      description={bbSetup ? t('Leilão do seu quinteto, temporada da NBA e a briga pelo anel. Sem marcar horário.', 'Auction your five, play an NBA season and chase the ring. No schedule needed.') : t('Leilão, campeonato e a briga pelo título. Sem marcar horário.', 'Auction, league and the race for the title. No schedule needed.')}
+      rows={linhas} summaries={resumos} name={name.trim() || t('Seu time', 'Your team')}
+      button={<Btn onClick={start} className="w-full text-lg" bg={GREEN}><span className="text-white">{t('AVANÇAR 🔨', 'CONTINUE 🔨')}</span></Btn>}
+      error={nameErr ? <p>{nameErr}</p> : null} errorKey={nameErr} extraMode={pokeBtnRapido} footer={<CardAccountNote/>}>
             <OnlineCreateSection num={1} title={t('O leilão', 'The auction')} icon="🔨" sub={t('Como os jogadores vão ser comprados', 'How the players get bought')}>{blocoTipo}{blocoPregao}</OnlineCreateSection>
             <OnlineCreateSection num={2} title={t('O time', 'The team')} icon="🃏" sub={t('Nome, baralho e os rivais', 'Name, deck and rivals')}>{blocoNome}{blocoBaralho}{blocoTime}</OnlineCreateSection>
             <OnlineCreateSection num={3} title={t('O campeonato', 'The championship')} icon="🏆" sub={t('O que vem depois do leilão', 'What comes after the auction')}>{blocoNba}{blocoDepois}</OnlineCreateSection>
             {c2dSetup && !bbSetup && <OnlineCreateSection num={4} title={t('A partida', 'The match')} icon="📺">{blocoTeste2D}</OnlineCreateSection>}
-          </OnlineCreateLayout>
-        </div>
-        <CardAccountNote />
-      </Shell>
-    )
+    </QuickMatchLayout>
   }
 
   return (
@@ -4233,14 +4201,7 @@ export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean }
         </button>
       )}
       <div className="ll-auction-bar-row flex items-center justify-between max-w-xl mx-auto gap-2">
-        <div className="ll-auction-bar-positions flex gap-1.5">
-          {ordemSetores().map((p, i) => (
-            <span key={p} className="ll-auction-bar-position border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black"
-              style={{ backgroundColor: i < secBarra ? INK : i === secBarra ? GOLD : '#fff', color: i < secBarra ? '#fff' : INK }}>
-              {posTag(p)}
-            </span>
-          ))}
-        </div>
+        <AuctionPositions labels={ordemSetores().map(posTag)} current={secBarra}/>
         <div className="ll-auction-bar-extras flex items-center gap-1.5">
           {vagas != null && vagas > 0 && (
             <span className="ll-auction-bar-slots border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black whitespace-nowrap"

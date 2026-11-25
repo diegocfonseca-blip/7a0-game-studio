@@ -32,3 +32,13 @@
 .hv3-footer-language{display:none}@media(max-width:760px){.hv3-footer-language{display:flex;justify-content:center;margin-top:16px}}
 .home-v03.hv3-bb .hv3-hero:before{background-image:url('./img/home-bidlegends-v01.webp');background-position:center 58%}
 @media(max-width:760px){.home-v03.hv3-bb .hv3-hero:before{background-size:cover;background-position:center 62%}}
+/* Mesmo seletor nas três homes; o terceiro segmento não redefine suas medidas. */
+.home-v03 .ll-seletor-esporte{align-items:stretch;max-width:100%;flex-shrink:1!important}
+.home-v03 .ll-seletor-esporte>button{display:flex;align-items:center;justify-content:center;white-space:nowrap;flex:1;min-width:0}
+.home-v03 .hv3-mode button:disabled{opacity:.45;cursor:default}
+.home-v03.hv3-f1 .hv3-hero:before{background-image:linear-gradient(115deg,#14150f 12%,#0c2019 62%,#213a29);background-size:cover}
+.home-v03.hv3-f1 .hv3-hero>.hv3-wrap{position:relative;overflow:hidden}
+.f1-home-art{position:absolute;right:7%;top:10px;bottom:0;width:43%;display:flex;justify-content:space-evenly;align-items:center;transform:rotate(26deg);filter:drop-shadow(15px 18px 5px #0008)}
+.f1-home-art .f1-machine{transform:scale(1.75)}
+.home-v03.hv3-f1 .hv3-hero-copy{z-index:1}
+@media(max-width:760px){.home-v03 .ll-seletor-esporte>button{font-size:10.5px;padding:7px 7px;min-height:32px}.f1-home-art{right:-5%;top:0;width:50%;opacity:.5}.f1-home-art .f1-machine{transform:scale(.8)}.home-v03.hv3-f1 .hv3-hero h1{font-size:32px}}

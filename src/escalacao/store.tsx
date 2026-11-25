@@ -1,3 +1,4 @@
+import {resolveLots,fitEnvelope,rebidWinner,openMinimum,registerOpenBid,dutchStepMs,dutchLadder,OPEN_HAMMER_MS,OPEN_TICK_MS,OPEN_REVEAL_MS,DUTCH_HIGH_MS,DUTCH_MIDDLE_MS,DUTCH_LOW_MS,DUTCH_LAST_MS} from './auction-core'
 import * as careerSave from './salvamento/service'
 import {eventosFisicos} from './carreira-fisica'
 import { referenciaAtleta, salarioReferencia, faixaCampanha } from './carreira-economia'
@@ -3140,69 +3141,20 @@ export function mesmoDono(state: EscState, buyerId: number, sellerId: number | u
 // entra na fila de desempate (ties) com vencedor pendente — quem resolve é o
 // re-lance cego (ver resolveOneTiebreak). Sem empate, decide aqui mesmo.
 function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leilao' | 'repescagem', reforco = false, sameOwner: (buyerId: number, sellerId: number) => boolean = (b, sl) => b === sl, eligible: (m: Manager, c: Card) => boolean = () => true): { queue: ResolvedCard[]; unsold: Card[]; ties: TieBreak[] } {
-  const byPot = [...cards].sort((a, b) => {
-    const pa = (bidMap.get(a.id) ?? []).reduce((s, x) => s + x.amount, 0)
-    const pb = (bidMap.get(b.id) ?? []).reduce((s, x) => s + x.amount, 0)
-    return pa - pb
+  const result = resolveLots(cards, bidMap, {
+    floor: card => (card as {paid?:number}).paid ?? 0,
+    accepts: (card, bid) => {
+      const m = managers.find(x => x.id === bid.mgr)!
+      const exDono = card.semContrato ? card.seller : undefined
+      return eligible(m, card) && (openSlots(m, card.pos) > 0 || (!!bid.reforco && !m.isHuman)) && m.money >= bid.amount && !(exDono != null && sameOwner(m.id, exDono))
+    },
+    buy: (card, winner, amount) => {
+      const m = managers.find(x => x.id === winner)!
+      m.money = Math.max(0, m.money - amount)
+      m.squad.push({ ...card, paid: amount, buyPrice: amount, via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
+    },
   })
-  const queue: ResolvedCard[] = []
-  const unsold: Card[] = []
-  const ties: TieBreak[] = []
-  for (const card of byPot) {
-    // PISO: jogador listado no mercado (carreira online) vale no mínimo o que foi
-    // pago por ele (card.paid). Carta nova do baralho não tem piso (paid = 0).
-    const floor = (card as { paid?: number }).paid ?? 0
-    const sorted = (bidMap.get(card.id) ?? []).slice().sort((a, b) => b.amount - a.amount)
-    if (sorted.length === 0) {
-      unsold.push(card)
-      queue.push({ card, bids: [], winner: null, paid: 0, voided: [] })
-      continue
-    }
-    // pula do topo pra baixo os inelegíveis (setor cheio / sem dinheiro / abaixo
-    // do piso / ex-dono de contrato vencido): anulados
-    // 📝 ANTI-MALANDRAGEM (Diego 03/08): quem DEIXOU O CONTRATO VENCER não pode
-    // recomprar o próprio jogador neste leilão (senão "renovava" barato pelo
-    // pregão). Só volta a poder se OUTRO clube levar e ele reaparecer um dia.
-    const exDono = (card as { semContrato?: boolean }).semContrato ? (card as { seller?: number }).seller : undefined
-    const voided: number[] = []
-    let i = 0
-    for (; i < sorted.length; i++) {
-      const m = managers.find(x => x.id === sorted[i].mgr)!
-      // 🔁 lance de reforço de bot (elenco cheio) vale sem vaga aberta — o pior da posição vai a leilão depois (`marcaAVender`)
-      const temVaga = openSlots(m, card.pos) > 0 || (!!sorted[i].reforco && !m.isHuman)
-      if (!eligible(m, card) || !temVaga || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
-      break
-    }
-    if (i >= sorted.length) { // ninguém elegível
-      unsold.push(card)
-      queue.push({ card, bids: sorted, winner: null, paid: 0, voided })
-      continue
-    }
-    const top = sorted[i].amount
-    // entre os elegíveis, quem também está no valor do topo?
-    const tiedTop: number[] = []
-    for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
-      const m = managers.find(x => x.id === sorted[j].mgr)!
-      if (eligible(m, card) && (openSlots(m, card.pos) > 0 || (!!sorted[j].reforco && !m.isHuman)) && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
-    }
-    if (tiedTop.length >= 2) {
-      // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
-      ties.push({ cardId: card.id, card, amount: top, managers: tiedTop, submitted: [], winner: null, paid: 0, viaRoulette: false, via })
-      queue.push({ card, bids: sorted, winner: null, paid: 0, voided })
-      continue
-    }
-    // vencedor único: fecha na hora
-    const wid = tiedTop[0]
-    const m = managers.find(x => x.id === wid)!
-    // 🛟 piso: comprar no leilão NUNCA deixa a caixa negativa. O envelope já foi
-    // conferido antes, então isto é a segunda rede — se um dia entrar um caminho
-    // novo de lance, ele não consegue mais criar dívida do nada.
-    m.money = Math.max(0, m.money - top)
-    // 📝 clube novo = contrato novo: limpa selo/prazo — a próxima cerimônia sorteia 5-10
-    m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
-    queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
-  }
-  return { queue, unsold, ties }
+  return { ...result, ties: result.ties.map(tb => ({ ...tb, cardId: tb.card.id, submitted: [], winner: null, paid: 0, viaRoulette: false, via })) }
 }
 
 // resolve UMA disputa de desempate: junta os re-lances (humanos já enviados +
@@ -3221,11 +3173,9 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number, so
     v = Math.min(m.money, Math.max(tb.amount, Math.round(v))) // trava: ≥ piso e ≤ dinheiro
     amounts[id] = v
   }
-  const max = Math.max(...tb.managers.map(id => amounts[id]))
-  const top = tb.managers.filter(id => amounts[id] === max)
-  let winner: number
-  if (top.length === 1) { winner = top[0]; tb.viaRoulette = false }
-  else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
+  const decision = rebidWinner(tb.managers, amounts, rng)
+  const max = decision.amount, winner = decision.winner
+  tb.viaRoulette = decision.roulette
   const m = state.managers.find(x => x.id === winner)!
   m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
@@ -6803,28 +6753,7 @@ export function batchCount(total: number): number {
 // então não vale gastar o relógio lá) e MIÚDOS embaixo, que é onde a decisão
 // realmente acontece. Começa no bolso inicial da sala (100 no futebol, 50 no
 // basquete — ninguém tem 200, então abrir em 200 só desperdiçaria tempo).
-export function holEscada(start: number): number[] {
-  const out: number[] = []
-  let v = Math.max(1, Math.round(start))
-  while (v > 0) {
-    out.push(v)
-    // 🎚️ AFINA CONFORME DESCE (pedido dele, 20/09): *"qd começa a chegar
-    // próximo do 30 começar a cair os números cada vez mais próximo de um por
-    // um"*. Faz sentido — lá em cima o número é enfeite (ninguém paga 80 num
-    // lateral), e de 30 pra baixo é onde a carta realmente muda de mão: o preço
-    // médio de arremate medido é ~12 🪙. Então: pulo GORDO no enfeite, pulo
-    // MIÚDO onde dói, e de 14 pra baixo é de 1 em 1.
-    // 🎚️ AFINA A PARTIR DO 50 (2º pedido dele, 20/09): *"qd chegar no 50 na
-    // regressiva pode ter mais números próximos… não tem problema demorar um
-    // pouco mais o leilão não"*. Antes a faixa dos 50 pulava de 8 em 8 (52 → 44)
-    // e passava voando. Agora: acima de 60 continua pulo GORDO (ninguém paga
-    // isso), e de 60 pra baixo o pulo encolhe de degrau em degrau —
-    // 5 · 4 · 3 · 2 · 1 — até virar de 1 em 1 no fim.
-    v = Math.max(0, v - (v > 60 ? 10 : v > 50 ? 5 : v > 30 ? 4 : v > 20 ? 3 : v > 14 ? 2 : 1))
-  }
-  out.push(0) // 0 = ninguém quis → sobras (não dá pra levar de graça, senão nada sobraria)
-  return out
-}
+export const holEscada = dutchLadder
 // 🏷️ O NOME DO MODO — em UM lugar só, e é daqui que TODA tela puxa.
 //
 // **É 🐊 TOCAIA** — decisão dele em 20/09, com o emoji escolhido a dedo:
@@ -6890,10 +6819,10 @@ export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // anda 1 segundo pra frente. Se voltar a escapar, o próximo passo combinado é
 // CARIMBAR o degrau no toque (o aperto leva o número que estava na tela, e o host
 // aceita quem apertou enquanto ainda dava tempo). Não fazer isso sem ele pedir.
-export const HOL_MS_ALTO = 300
-export const HOL_MS_MEIO = 1400
-export const HOL_MS_BAIXO = 2000
-export const HOL_MS_ULTIMO = 3000 // o preço 1 — o único degrau sem segunda chance
+export const HOL_MS_ALTO = DUTCH_HIGH_MS
+export const HOL_MS_MEIO = DUTCH_MIDDLE_MS
+export const HOL_MS_BAIXO = DUTCH_LOW_MS
+export const HOL_MS_ULTIMO = DUTCH_LAST_MS // o preço 1 — o único degrau sem segunda chance
 // ⏱️ O RELÓGIO DO HOLANDÊS É UM SÓ, EM TODA SALA (ordem dele, 20/09): *"tem que
 // ser com base na regra que fizemos pro modo rápido"*. Eu tinha feito o tempo do
 // host (`auctionSecs`, da sala de stream) ESTICAR ou ENCOLHER a descida — ele
@@ -6901,13 +6830,7 @@ export const HOL_MS_ULTIMO = 3000 // o preço 1 — o único degrau sem segunda 
 // holandês da sala de stream sairia diferente do da Partida Rápida. Agora o
 // seletor de tempo nem aparece quando o host escolhe holandês (ver `lobby.tsx`),
 // e aqui o `auctionSecs` simplesmente não existe. Uma regra, um relógio.
-export const holPassoMs = (preco: number, start: number) => {
-  // 🕐 o 1 é o fim da linha (a escada é …3 · 2 · 1 · 0, e o 0 fecha o pregão):
-  //    quem chegar atrasado aqui não tem próximo preço, então este degrau respira.
-  if (preco <= 1) return HOL_MS_ULTIMO
-  const f = preco / Math.max(1, start)
-  return f > 0.55 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
-}
+export const holPassoMs = dutchStepMs
 
 function holPodeLevar(state: EscState, m: Manager, card: Card, preco: number, gastoNaLeva: number, vagasUsadas: number): boolean {
   if (m.dormindo) return false
@@ -7140,8 +7063,8 @@ function holResgate(state: EscState) {
 // `cpuEnvelope`, carta a carta, e vão cobrindo de 1 em 1 até o teto deles.
 // 👑 No online (quando for ligado): quem roda o relógio e o martelo é SÓ o dono da sala; o convidado roteia o lance.
 export const PA_FOLGA_ONLINE_MS = 400 // 🌐 17/10: folga do martelo na sala online (o lance do último instante ainda está viajando)
-export const PA_MARTELO_MS = 5_000 // 🔁 16/10: era 6s; ele pediu pra encurtar e cravou: "eu falei 5s p martelar"
-export const PA_TICK_MS = 500 // 🔁 16/10 (Diego: "muito lento"): o robô age a cada meio segundo, não a cada segundo
+export const PA_MARTELO_MS = OPEN_HAMMER_MS // 🔁 16/10: era 6s; ele pediu pra encurtar e cravou: "eu falei 5s p martelar"
+export const PA_TICK_MS = OPEN_TICK_MS // 🔁 16/10 (Diego: "muito lento"): o robô age a cada meio segundo, não a cada segundo
 /** 💰 A CARTA JÁ ABRE NO PREÇO DA CATEGORIA (16/10, números do Diego: "lenda já abrir em 10, craque em 5, promessa 4,
  * bom jogador 3, profissional 1"). Ninguém mais sobe de 1 em 1 desde o 1 — é o lance mínimo da carta na mesa. */
 export function paAbertura(c: { fame?: number; promessa?: boolean }): number {
@@ -7699,14 +7622,14 @@ function paProximaCarta(state: EscState, k = 0) {
 export function paMinimo(state: EscState, k = 0): number {
   const mv = paMesa(state, k)
   if (!mv) return 1
-  if (mv.M.lider !== null) return mv.M.preco + 1
+  if (mv.M.lider !== null) return openMinimum(mv.M.lider, mv.M.preco)
   // 🃏 CARTA COBERTA (16/10, Diego: "aparecer o jogador mas sem mostrar a categoria da carta"): toda carta abre em 1.
   // A abertura por categoria (`paAbertura`) entregava a categoria no preço; ela continua só como régua INTERNA do robô.
   return PA_ABRE
 }
 export const PA_ABRE = 1
 /** quanto tempo a carta vendida fica virada na mesa, mostrando categoria e rosto (ms) */
-export const PA_VIRA_MS = 2000
+export const PA_VIRA_MS = OPEN_REVEAL_MS
 /** a tela pergunta isto pra acender os botões — a MESMA régua que o motor usa pra aceitar o lance */
 export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?: string, k = 0): boolean {
   const mv = paMesa(state, k)
@@ -7729,9 +7652,7 @@ function paRegistraLance(state: EscState, mgrId: number, valor: number, k = 0) {
   const mv = paMesa(state, k)
   if (!mv) return
   const M = mv.M
-  M.preco = valor; M.lider = mgrId
-  M.lances.push({ mgr: mgrId, valor })
-  M.deadline = Date.now() + PA_MARTELO_MS // todo lance novo zera o relógio
+  registerOpenBid(M, mgrId, valor, Date.now()) // o mesmo martelo da Partida Rápida
 }
 /** meio segundo passou: em cada mesa, martelo se venceu; senão, no máximo UM robô cobre (pra parecer gente) */
 /** o que importa no pregão (tudo menos o contador de tiques): mudou isto, a tela muda e a sala recebe */
@@ -8353,15 +8274,7 @@ function envelopeQueCabe(s: EscState, mgrId: number, bids: { cardId: string; amo
   const m = s.managers.find(x => x.id === mgrId)
   if (!m) return []
   const caixa = Math.max(0, Math.floor(m.money))
-  const ok: { cardId: string; amount: number }[] = []
-  let gasto = 0, cortados = 0
-  for (const b of Array.isArray(bids) ? bids : []) {
-    const v = Math.floor(Number(b?.amount))
-    if (!Number.isFinite(v) || v < 0) { cortados++; continue }
-    if (gasto + v > caixa) { cortados++; continue }
-    gasto += v
-    ok.push({ cardId: b.cardId, amount: v })
-  }
+  const { accepted: ok, cut: cortados } = fitEnvelope(bids, caixa)
   if (cortados > 0 && m.isHuman) {
     ;(s.marketLog = s.marketLog ?? []).push(`⚠️ ${m.teamName}: ${cortados} lance(s) não couberam na caixa (${caixa} 🪙) e ficaram de fora.`)
   }

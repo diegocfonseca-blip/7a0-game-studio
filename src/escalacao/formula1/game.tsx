@@ -1,37 +1,36 @@
 import {useEffect,useState} from 'react'
-import {Box,Btn} from '../screens'
+import {Box,Btn,Shell,Formula1Home} from '../screens'
+import {OwnerOnlineHeader} from '../owner-online-visual'
+import {Formula1Setup} from './setup'
+import {Formula1Auction} from './auction-view'
+import {useT} from '../lang'
 import {useOwnerPresentation} from '../online-preview'
-import {closeFormula1} from '../formula1-entry'
-import {setSport,getSport,SPORT_BRAND,type Sport} from '../sport'
-import {CARS,DRIVERS,CATEGORIES,carById,driverById,type HistoricCar,type Driver} from './catalog'
-import {createAuction,submitBid,continueAuction,maxBid,type Auction} from './auction'
+import {getSport,SPORT_BRAND} from '../sport'
+import {CARS,carById,driverById,type HistoricCar} from './catalog'
+import {createAuction,type Auction} from './auction'
 import {createRace,advanceRace,command,grid,teamResults,LAPS,PIT_SECONDS,POINTS,TYRES,type Plan,type Race,type Tyre,type Pace,type Command} from './race'
 import {FormulaTrack} from './track'
 import './game.css'
 
-type Session={auction:Auction|null;race:Race|null;plans:Record<string,Plan>;mixed:boolean}
+type Session={view:'home'|'setup'|'play';auction:Auction|null;race:Race|null;plans:Record<string,Plan>;mixed:boolean}
 let retained:Session|null=null // Só memória desta página, sem tocar em fichas, nuvem, moedas ou salas.
-const blank=():Session=>({auction:null,race:null,plans:{},mixed:false})
+const blank=():Session=>({view:'home',auction:null,race:null,plans:{},mixed:false})
 const freshSeed=()=>{const n=new Uint32Array(1);crypto.getRandomValues(n);return n[0]}
 const tyreKeys:Tyre[]=['soft','medium','hard','inter']
 const paces:[Pace,string,string][]=[['save','Poupar','Menos desgaste, mas perde tempo por volta.'],['balanced','Equilibrado','Equilibra tempo de volta e desgaste.'],['attack','Atacar','Mais rápido; desgasta os pneus e aumenta o risco de erro.']]
-const cash=(n:number)=>`${n} 🪙`
 function Badge({tyre}:{tyre:Tyre}){return <span className="f1-tyre" style={{borderColor:TYRES[tyre].color}} title={TYRES[tyre].name}>{TYRES[tyre].letter}</span>}
 function Machine({car}:{car:HistoricCar}){return <div className="f1-machine" style={{'--f1-car':car.colors[0],'--f1-stripe':car.colors[1]}as React.CSSProperties} aria-label={`Miniatura esquemática do ${car.team} ${car.model}`}><i className="f1-wing-front"/><i className="f1-wing-back"/><i className="f1-wheel fl"/><i className="f1-wheel fr"/><i className="f1-wheel bl"/><i className="f1-wheel br"/><i className="f1-body"/><i className="f1-cockpit"/></div>}
-function DriverCard({driver}:{driver:Driver}){return <><div className="f1-helmet" style={{'--helmet':driver.color}as React.CSSProperties} aria-hidden="true"/><small>{driver.country} · {driver.year}</small><h3>{driver.name}</h3></>}
-function Profiles({values}:{values:[string,number][]}){return <dl className="f1-profiles">{values.map(([name,value])=><div key={name}><dt>{name}</dt><dd><meter min={0} max={100} value={value}/><b>{value}</b></dd></div>)}</dl>}
 function Tyres({value,onChange,disabled=false}:{value:Tyre;onChange:(t:Tyre)=>void;disabled?:boolean}){return <div className="f1-tyres" role="group" aria-label="Escolher pneus">{tyreKeys.map(t=><button key={t} type="button" disabled={disabled} aria-pressed={value===t} onClick={()=>onChange(t)}><Badge tyre={t}/>{TYRES[t].name==='Intermediário'?'Inter':TYRES[t].name}</button>)}</div>}
 function Paces({value,onChange,disabled=false}:{value:Pace;onChange:(p:Pace)=>void;disabled?:boolean}){return <><div className="f1-segments" role="group" aria-label="Ritmo na pista">{paces.map(([p,label])=><button type="button" key={p} disabled={disabled} aria-pressed={value===p} onClick={()=>onChange(p)}>{label}</button>)}</div><p className="f1-explain">{paces.find(([p])=>p===value)?.[2]}</p></>}
-function Catalogue(){return <details className="f1-catalogue"><summary>Conheça os pilotos e carros do baralho</summary><p>Uma versão histórica por piloto. Notas e categorias são avaliações do jogo, relativas à época.</p><h3>{DRIVERS.length} pilotos</h3><div>{DRIVERS.map(d=><span key={d.id}>{d.name} · {d.year}<small>{CATEGORIES[d.category].label} · OVR {d.overall}</small></span>)}</div><h3>{CARS.length} carros históricos</h3><div>{CARS.map(c=><span key={c.id}>{c.team} {c.model} · {c.year}<small>{c.category==='bom'?'Bom carro':CATEGORIES[c.category].label} · OVR {c.overall}</small></span>)}</div></details>}
 function Formula1Core(){
- const [session,setSession]=useState<Session>(()=>retained??blank()),[name,setName]=useState('Minha escuderia'),[chosenLot,setLot]=useState<string|null>(null),[bid,setBid]=useState('20'),[selected,setSelected]=useState(''),[paused,setPaused]=useState(true),[speed,setSpeed]=useState(1),[exit,setExit]=useState<Sport|null>(null),[reset,setReset]=useState(false)
+ const t=useT()
+ const [session,setSession]=useState<Session>(()=>retained??blank()),[selected,setSelected]=useState(''),[paused,setPaused]=useState(true),[speed,setSpeed]=useState(1),[reset,setReset]=useState(false)
  const auction=session.auction,race=session.race
- const lot=chosenLot&&auction?.offers.includes(chosenLot)?chosenLot:null
- const phase=!auction?'setup':!auction.complete?'auction':!race?'strategy':race.finished?'results':'race'
+ const phase=session.view!=='play'?session.view:!auction?'setup':!auction.complete?'auction':!race?'strategy':race.finished?'results':'race'
+
  useEffect(()=>{retained=session},[session])
  useEffect(()=>{document.title='Pista Legends · Fórmula 1';return()=>{document.title=SPORT_BRAND[getSport()].name}},[])
  useEffect(()=>{window.scrollTo(0,0)},[phase,auction?.round,!!auction?.report])
- useEffect(()=>{setLot(null);setBid(String(Math.min(20,auction?maxBid(auction):20)))},[auction?.round,auction?.attempt])
  useEffect(()=>{
   if(phase!=='race'||paused)return
   let last=performance.now(),carry=0
@@ -45,34 +44,15 @@ function Formula1Core(){
  const own=race?.cars.filter(c=>c.teamId===0)??[]
  const current=own.find(c=>c.id===selected)??own[0]
  const send=(order:Command)=>{if(current)setSession(s=>s.race?{...s,race:command(s.race,current.id,order)}:s)}
- const leave=(sport:Sport)=>{if(phase==='race'&&!paused){setPaused(true);setExit(sport)}else{setSport(sport);closeFormula1()}}
- const newGame=()=>{retained=null;setSession(blank());setPaused(true);setReset(false);setSelected('')}
- const stage=phase==='setup'?0:phase==='auction'?(auction?.round===2?1:0):phase==='strategy'?2:3
- return <main className="f1-game">
+ const home=()=>{setPaused(true);setSession(s=>({...s,view:'home'}))}
+ const newGame=()=>{retained=null;setSession({...blank(),view:'setup'});setPaused(true);setReset(false);setSelected('')}
+ if(phase==='home')return <Formula1Home onQuick={()=>setSession(s=>({...s,view:s.auction?'play':'setup'}))} resume={auction?<><button type="button" onClick={()=>setSession(s=>({...s,view:'play'}))}>{t('CONTINUAR','CONTINUE')} · {auction.teams[0].name}</button><button type="button" onClick={()=>{setReset(true)}}>{t('NOVA PARTIDA','NEW MATCH')}</button>{reset&&<div className="f1-modal-backdrop"><Box bg="#F4ECD6" className="p-5 space-y-4 max-w-md"><h2 className="font-black text-xl">{t('Recomeçar a partida?','Restart the match?')}</h2><p>{t('A escuderia e a corrida atuais serão descartadas.','Your current team and race will be discarded.')}</p><Btn onClick={newGame}>{t('Sim, nova partida','Yes, new match')}</Btn><Btn onClick={()=>setReset(false)} bg="#fff">{t('Continuar de onde parei','Keep my progress')}</Btn></Box></div>}</>:undefined} heroArt={<div className="f1-home-art" aria-hidden="true"><Machine car={CARS[0]}/><Machine car={CARS[1]}/><Machine car={CARS[3]}/></div>}/>
+ if(phase==='setup')return <Formula1Setup onBack={home} onStart={(name,options)=>{setSession({...blank(),view:'play',auction:createAuction(freshSeed(),name,options)});setPaused(true)}}/>
+ if(phase==='auction'&&auction)return <Formula1Auction auction={auction} onHome={home} onChange={update=>setSession(s=>s.auction?{...s,auction:update(s.auction)}:s)}/>
+
+ return <Shell hideExit className="f1-race-shell" presentationHeader={<OwnerOnlineHeader name={team?.name??''} brand={{name:'PISTA LEGENDS',monogram:'PL',tagline:t('SUA ESCUDERIA COMEÇA NO LANCE.','YOUR TEAM STARTS WITH A BID.')}} online={false} onHome={home}/>}><main className="f1-game">
   <div className="f1-app">
-   <header className="f1-brand"><span className="f1-monogram">PL</span><div><strong>PISTA LEGENDS</strong><small>MONTE SUA ESCUDERIA. CONQUISTE A PISTA.</small></div><span className="f1-private">PRÉVIA<br/>PARTIDA RÁPIDA</span></header>
-   <nav className="f1-sports" aria-label="Escolher o jogo"><button type="button" onClick={()=>leave('futebol')}>⚽ Futebol</button><button type="button" onClick={()=>leave('basquete')}>🏀 Basquete</button><button type="button" aria-pressed="true">🏁 Fórmula 1</button></nav>
-   <ol className="f1-steps" aria-label="Progresso da partida">{['Pilotos','Carro','Estratégia','Corrida'].map((s,i)=><li key={s} aria-current={stage===i?'step':undefined}><span>{i+1}</span>{s}</li>)}</ol>
-   {phase==='setup'&&<>
-    <div className="f1-title"><small>AS LENDAS SE ENCONTRAM NA PISTA</small><h1>SEU PRIMEIRO GRID</h1><p>Você contra três escuderias. Leilão às cegas, dois pilotos e um carro histórico para a dupla.</p></div>
-    <Box bg="#F4ECD6" className="f1-panel"><label className="f1-label" htmlFor="f1-team">NOME DA SUA ESCUDERIA</label><input id="f1-team" value={name} maxLength={24} onChange={e=>setName(e.target.value)}/><div className="f1-budget"><span>CAIXA IGUAL PARA TODOS</span><b>100 🪙</b></div><p>Três compras: <b>piloto 1 → piloto 2 → carro.</b> O modelo e o ano fazem parte da carta. Sua equipe recebe duas unidades da mesma máquina.</p><Btn onClick={()=>{setSession({...blank(),auction:createAuction(freshSeed(),name)});setPaused(true)}}>🔨 Começar o leilão</Btn></Box>
-    <div className="f1-setup-cars"><Machine car={CARS[0]}/><Machine car={CARS[1]}/><Machine car={CARS[3]}/></div>
-    <p className="f1-explain f1-on-dark">Corrida 2D em Interlagos · 24 voltas · cerca de 4 minutos na velocidade normal. Cada piloto tem seus próprios pneus, ritmo e parada.</p><Catalogue/>
-   </>}
-   {phase==='auction'&&auction&&team&&<>
-    <div className="f1-page-heading"><div><small>COMPRA {auction.round+1} DE 3</small><h1>{auction.round===2?'ESCOLHA A MÁQUINA':`PILOTO ${auction.round+1}`}</h1></div><div className="f1-wallet"><small>SEU CAIXA</small><b>{cash(team.coins)}</b></div></div>
-    <div className="f1-budget-note">{auction.round===2?'Um modelo histórico equipa seus dois carros.':`Reserve moedas para ${auction.round===0?'o segundo piloto e o carro':'o carro'}. Você pode gastar até ${maxBid(auction)} agora.`}</div>
-    {auction.report?<Box bg="#F4ECD6" className="f1-panel f1-reveal"><h2>{auction.report.won?'🔨 CARTA CONTRATADA!':'OUTRA ESCUDERIA LEVOU'}</h2><p>{auction.report.won?'Sua escolha entrou na garagem. Confira os envelopes abertos.':'Você conserva suas moedas. Escolha outra carta na próxima tentativa.'}</p><div>{auction.report.bids.map((b,i)=>{const winner=auction.report!.sales.some(s=>s.teamId===b.teamId&&s.lotId===b.lotId&&s.amount===b.amount);return <p key={`${b.teamId}:${i}`} className={b.teamId===0?'f1-own-bid':''}><span><b>{auction.teams[b.teamId].name}</b><small>{auction.round===2?`${carById(b.lotId).team} ${carById(b.lotId).model}`:driverById(b.lotId).name}</small></span><strong>{b.amount} 🪙 {winner?'✓':''}</strong></p>})}</div><Btn onClick={()=>setSession(s=>({...s,auction:continueAuction(s.auction!)}))}>{auction.report.won?'Continuar →':'Tentar outra carta →'}</Btn></Box>:<>
-    <div className="f1-offers" role="group" aria-label="Cartas disponíveis">{auction.offers.map(id=>{const c=auction.round===2?carById(id):driverById(id),category=CATEGORIES[c.category];return <button type="button" key={id} aria-pressed={lot===id} onClick={()=>setLot(id)} style={{'--tier':category.color}as React.CSSProperties}><span className="f1-card-top"><small>{c.category==='bom'&&auction.round===2?'Bom carro':category.label}</small><b>OVR {c.overall}</b></span>{auction.round===2?<><Machine car={c as HistoricCar}/><h3>{(c as HistoricCar).team}</h3><p>{(c as HistoricCar).model} · {c.year}</p></>:<DriverCard driver={c as Driver}/>}</button>})}</div>
-    {lot&&<Box bg="#F4ECD6" className="f1-panel f1-bid-panel"><h2>{auction.round===2?`${carById(lot).team} ${carById(lot).model} · ${carById(lot).year}`:driverById(lot).name}</h2>{auction.round===2?<><p>{carById(lot).note}</p><Profiles values={[["Velocidade",carById(lot).pace],["Curvas",carById(lot).corners],["Pneus",carById(lot).tyres],["Confiabilidade",carById(lot).reliability]]}/></>:<Profiles values={[["Ritmo",driverById(lot).pace],["Chuva",driverById(lot).rain],["Ultrapassagem",driverById(lot).craft],["Preservação",driverById(lot).care]]}/>}
-     <label className="f1-label" htmlFor="f1-bid">SEU ENVELOPE · MÁXIMO {maxBid(auction)} MOEDAS</label><div className="f1-bid-controls"><button type="button" aria-label="Diminuir lance" onClick={()=>setBid(String(Math.max(1,(Number(bid)||1)-1)))}>−</button><input id="f1-bid" type="number" min={1} max={maxBid(auction)} step={1} inputMode="numeric" value={bid} onChange={e=>setBid(e.target.value)}/><button type="button" aria-label="Aumentar lance" onClick={()=>setBid(String(Math.min(maxBid(auction),(Number(bid)||0)+1)))}>+</button></div><p className="f1-explain">Se ganhar, sobram {Math.max(0,team.coins-(Number(bid)||0))} moedas. Cada rival escolhe sem conhecer o seu lance. Empates têm desempate por sorteio.</p>
-     <Btn disabled={!Number.isSafeInteger(Number(bid))||Number(bid)<1||Number(bid)>maxBid(auction)} onClick={()=>setSession(s=>({...s,auction:submitBid(s.auction!,lot,Number(bid))}))}>Fechar envelope e revelar</Btn>
-    </Box>}
-    {!lot&&<p className="f1-hint" role="status">Toque em uma carta para ver os atributos e dar seu lance.</p>}
-    </>}
-    {auction.error&&<p className="f1-error" role="alert">{auction.error}</p>}
-    <details className="f1-garage" open><summary>Sua garagem · {cash(team.coins)} disponíveis</summary>{team.drivers.map(id=><p key={id}><b>{driverById(id).name}</b><span>{driverById(id).year} · {CATEGORIES[driverById(id).category].label}</span></p>)}{team.car&&<p><b>{carById(team.car).team} {carById(team.car).model}</b><span>{carById(team.car).year} · duas unidades</span></p>}{!team.drivers.length&&<p>A dupla começa na primeira compra.</p>}</details>
-   </>}
+   <button type="button" onClick={home} className="f1-reset">{t('🏠 Voltar ao início','🏠 Back to start')}</button>
    {phase==='strategy'&&auction&&team&&<>
     <div className="f1-title"><small>GP DO BRASIL · INTERLAGOS</small><h1>PREPARE A LARGADA</h1><p>{team.name} · {carById(team.car!).team} {carById(team.car!).model} · {carById(team.car!).year}</p></div>
     <Box bg="#F4ECD6" className="f1-panel"><h2>CLIMA DA CORRIDA</h2><div className="f1-segments"><button type="button" aria-pressed={!session.mixed} onClick={()=>setSession(s=>({...s,mixed:false}))}>☀️ Seco</button><button type="button" aria-pressed={session.mixed} onClick={()=>setSession(s=>({...s,mixed:true}))}>🌦️ Variável</button></div><p className="f1-explain">{session.mixed?'Previsão de chuva no meio da corrida. Prepare os intermediários.':'Na corrida seca, use pelo menos dois compostos diferentes. Faltar um gera +30s na chegada.'}</p></Box>
@@ -96,8 +76,8 @@ function Formula1Core(){
    </>}
    {auction&&<button type="button" className="f1-reset" onClick={()=>{setPaused(true);setReset(true)}}>Recomeçar partida rápida</button>}
    <footer className="f1-footer">2 PILOTOS · 1 MODELO DE CARRO · CADA DECISÃO CONTA<br/><a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noreferrer">Traçado: Tomislav Bacinger · MIT</a> · <a href={`${import.meta.env.BASE_URL}formula1/LICENSE-track.txt`} target="_blank" rel="noreferrer">Licença</a></footer>
-   {(exit||reset)&&<div className="f1-modal-backdrop"><Box bg="#F4ECD6" className="f1-panel f1-modal"><h2>{reset?'Recomeçar a partida?':'Voltar aos outros jogos?'}</h2><p>{reset?'O leilão e a corrida atuais serão descartados.':'Sua corrida ficará pausada e guardada enquanto esta página continuar aberta.'}</p><Btn onClick={()=>{if(reset)newGame();else if(exit){setSport(exit);closeFormula1();setExit(null)}}}>{reset?'Sim, novo leilão':'Voltar aos jogos'}</Btn><button type="button" onClick={()=>{setExit(null);setReset(false)}}>Continuar aqui</button></Box></div>}
+   {reset&&<div className="f1-modal-backdrop"><Box bg="#F4ECD6" className="f1-panel f1-modal"><h2>{t('Recomeçar a partida?','Restart the match?')}</h2><p>{t('O leilão e a corrida atuais serão descartados.','The current auction and race will be discarded.')}</p><Btn onClick={newGame}>{t('Sim, novo leilão','Yes, new auction')}</Btn><button type="button" onClick={()=>setReset(false)}>Continuar aqui</button></Box></div>}
   </div>
- </main>
+ </main></Shell>
 }
 export default function Formula1Game(){const allowed=useOwnerPresentation();return allowed?<Formula1Core/>:null}
