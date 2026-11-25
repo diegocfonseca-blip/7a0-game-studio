@@ -7,12 +7,14 @@
 //  · quando a espera acaba, a tela de quem chama some e o joguinho vai junto: nunca segura nem interrompe a sala.
 //  · 25/11 (Diego): a sequência NÃO zera ao sair — *"se fez 5 pts, outro dia que ele voltar continua com os 5"*; só zera se ERRAR.
 //    E guarda o 🏆 recorde (a maior sequência). Tudo no aparelho (2 chaves fixas, sem servidor).
+//  · 25/11: respondeu, a carta aparece com a CARA DE CARTA do jogo (`CollectibleCard`, a mesma da revelação do leilão), virando.
 import { useMemo, useState } from 'react'
 import { BARALHO_TODO, categoriaDe, type CartaBaralho } from './colecoes'
 import { paisDe } from './paises'
 import { flagOf } from './copa-mundo'
 import { fotoDoJogador } from './rostos'
 import { tr } from './lang'
+import { CollectibleCard } from './screens'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase' } as const
@@ -111,6 +113,14 @@ export function QuemEJogador() {
           )
         })}
       </div>
+      {respondeu && (
+        <div key={`${c.name}|${c.club}|${c.year}`} style={{ display: 'flex', justifyContent: 'center', marginTop: 12, perspective: 900 }}>
+          <div style={{ width: 'min(64vw, 230px)', animation: 'qej-vira .55s cubic-bezier(.2,1.3,.4,1) both' }}>
+            <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} big />
+          </div>
+          <style>{'@keyframes qej-vira{from{transform:rotateY(90deg) scale(.85);opacity:0}to{transform:none;opacity:1}}'}</style>
+        </div>
+      )}
       {respondeu
         ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 9 }}>
             <span style={{ fontSize: 12, fontWeight: 800 }}>{acertou ? (bateu ? tr('🎉 NOVO RECORDE!', '🎉 NEW RECORD!') : tr('Na mosca! 🎯', 'Spot on! 🎯')) : tr(`Era o ${c.name}! A sequência voltou pro zero.`, `It was ${c.name}! Your streak is back to zero.`)}</span>
