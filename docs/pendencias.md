@@ -15546,3 +15546,5 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   (`esc-quiz-recorde`) é a maior sequência; ao bater aparece "🎉 NOVO RECORDE!". 2 chaves fixas (não é por sala, não precisa limpeza).
 - Ranking de todo mundo ficou de fora (custaria servidor) — só se ele pedir.
 - Prints: `scripts/mockups/quiz-recorde*.png` · bancada `node scripts/teste-formacoes/print-quiz-recorde.mjs <pasta>`.
+- 🃏 25/11 (no branch, esperando OK): ao responder, a carta aparece com a CARA DE CARTA do jogo (`CollectibleCard big`, a da revelação
+  do leilão), girando, embaixo das opções. Diego: *"a carta quero c cara de carta igual as do jogo qd é revelado"*. Print `scripts/mockups/quiz-carta-revelada.png`.
