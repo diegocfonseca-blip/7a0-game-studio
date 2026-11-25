@@ -1,3 +1,17 @@
+## 25/11 — 🏅 LEILÃO DE CONQUISTAS (ideia em mockup, NADA programado ainda)
+- Novo TIPO de leilão ao lado de 🃏 Jogador e 🧱 Clubes (combina com Envelope/Tocaia/Pregão aberto). Mockups:
+  `scripts/mockups/leilao-conquistas.png` (v1) e `leilao-conquistas-v2.png` (v2, o que vale).
+- Decidido com o Diego (25/11):
+  · pacote = TEMA de conquista/resenha (Bola de Ouro, Libertadores, Jogou nos dois rivais, Rebaixado, Foi pra Arábia…),
+    temas de lenda, misturados, intermediários e cômicos — **sem cor e sem categoria no pregão** (*"é surpresa"*);
+  · os nomes são SORTEADOS a cada leilão dentro da lista do tema (nunca vêm todos);
+  · UM pacote por posição, do tamanho das vagas da formação + 1 (4-3-3 MEI = 4; 4-4-2 MEI = 5), igual ao Clubes;
+  · **no martelo as cartas aparecem pra TODOS**, como no envelope de jogador (*"eu gosto pq já mostra quais jogadores"*);
+  · depois, a convocação de SEMPRE (a do Clubes) e o que sobrar vira sobra dos times de fundo;
+  · **tudo nas telas que já existem** (pregão, revelação, convocação, campinho).
+- Falta: montar as listas REAIS de cada tema (com fonte, nada inventado) e medir quantos pacotes cada uma fecha por posição;
+  só depois programar. Tema pequeno só aparece onde fechar.
+
 ## 25/11 — BAHIA VOLTA PRA COPA DO NORDESTE (goleiro novo) ✅
 - O Bahia estava FORA da Copa do Nordeste das salas online desde 22/11: a carta do Marcelo Lomba Bahia 2012 saiu (mesma pessoa
   do Lomba Inter no baralho BR) e o clube ficou sem goleiro — sem 11, o jogo tira o clube da copa. Diego: *"absurdo não ter"*.
