@@ -59,6 +59,11 @@ export const CARTAS_REGIONAIS: Record<Sector, CartaRegional[]> = {
     { name: "Wellington", club: "ABC", year: 2010, fame: 1, lo: 56, hi: 79 },
     { name: "Gabriel", club: "América-RN", year: 1998, fame: 1, lo: 57, hi: 76 },
     { name: "Victor Souza", club: "CRB", year: 2020, fame: 1, lo: 55, hi: 76 },
+    // 🧤 25/11 (Diego: "absurdo não ter"): o Bahia ficou SEM goleiro desde 22/11 (a carta do Marcelo Lomba Bahia 2012 saiu por ser a
+    // mesma pessoa do Lomba Inter no baralho BR) e caiu fora da Copa do Nordeste. Volta com o titular do campeão brasileiro de
+    // 1988 (finais: "Ronaldo; Tarantini, João Marcelo, Claudir…", pt.wikipedia Brasileirão 1988). Leva o clube no nome: "Ronaldo"
+    // sozinho puxaria a bio do Fenômeno (BIOS por nome).
+    { name: "Ronaldo (Bahia)", club: "Bahia", year: 1988, fame: 2, lo: 66, hi: 81, bio: "Goleiro titular do Bahia campeão brasileiro de 1988 — fechou o gol nas duas finais contra o Inter." },
     { name: "Jordi", club: "CSA", year: 2019, fame: 2, lo: 64, hi: 80 },
     { name: "Rafael Santos", club: "Confiança", year: 2021, fame: 1, lo: 55, hi: 76 },
     { name: "Andrey", club: "Sampaio Corrêa", year: 2018, fame: 1, lo: 55, hi: 79 },
