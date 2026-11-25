@@ -7,7 +7,7 @@
 - Diego autorizou a publicação após receber as telas reais: “Publique então”. Entrega via `main` e workflow de GitHub Pages, preservando a opção de reversão por commit.
 
 
-## 25/11 — Partida Rápida: táticas novas + botão de avançar maior (NO BRANCH, esperando OK do Diego)
+## 25/11 — Partida Rápida: táticas novas + botão de avançar maior (PUBLICADO com OK do Diego)
 - Pedido: *"começar a temporada tá mt pouco visível… serve p qlqr local"* e *"na partida rápida não tá mostrando as táticas novas (pressão alta…)"*.
 - Botão "Começar a temporada / Próxima rodada" (`.ov3-next`, owner-online-visual.css): maior, borda 3px, sombra dura, ocupa a linha. Vale em toda tela com esse controle.
 - Partida Rápida OFFLINE ganhou o plano novo (postura · caminho do ataque · marcação · ritmo): `footballPlanQuick` em football-live-tactics.ts; nunca carreira. Ordem AO VIVO continua só online (teste).
