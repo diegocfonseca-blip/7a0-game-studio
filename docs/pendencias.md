@@ -22,6 +22,24 @@
   FORA, e por quê: **Xarás** (o jogo não sabe provar que dois "Danilo" são pessoas diferentes) e **Jogou nos dois rivais** (entre as
   pessoas conferidas em `MESMO_JOGADOR` ninguém tem carta nos dois lados de um clássico). ⚠️ `MESMO_JOGADOR` junta gente diferente
   em "Danilo" e "Júlio César" — fora de Rodou/Voltou (`PESSOA_DUVIDOSA`); vale corrigir a lista no `paises.ts` um dia.
+- 25/11 (3ª leva, ideia dele): 📺 Virou comentarista · 🥊 Saiu no braço em campo (só caso público: Cantona 1995, cabeçada 2006,
+  Keane × Haaland, Pepe × Casquero, mordidas do Suárez, Gattuso × Jordan…) · 🗳️ Virou político (Weah, Romário, Bebeto, Jardel,
+  Danrlei, Pelé ministro, Zico secretário) · 🥅 Goleiro artilheiro (Ceni, Chilavert, Higuita, Jorge Campos) → 35 temas. 🚫 Xarás:
+  Diego disse que NÃO quer (25/11) — não repropor.
+- 25/11 (4ª leva, *"virou técnico é bom… jogou por amor em 1 clube só"*): 🧑‍🏫 Virou técnico · ❤️ Jogou por amor a um clube só
+  (carreira profissional inteira num clube; Ceni FORA por ter passado pelo Sinop) → 37 temas. Ideias levadas e ainda não pedidas:
+  gol de mão famoso, pênalti que doeu, expulso em final de Copa, virou ator, saída polêmica, brasileiro por outra seleção, duas
+  seleções, jogou depois dos 40, brilhou guri, transferência recorde.
+- 25/11 (5ª leva, Diego: *"sua pesquisa tem que ser mais ampla… vai variar posições"*): todas as listas feitas à mão ampliadas e
+  cruzadas com o baralho — Virou técnico 14 → 140+ cartas (Gallardo, Pochettino, Crespo, Gago, Palermo, Klinsmann, Cruyff, Koeman,
+  Zagallo, Renato Gaúcho, Diniz…) · Comentarista ~25 → 65 · Saiu no braço 11 → 18 · Político 7 → 12 · Goleiro artilheiro 4 → 8 ·
+  Um clube só 13 → 16 · Campeão do Mundo +35 · Ouro olímpico +17 (Uruguai 24/28, Hungria 52, URSS 56, Polônia 72, Espanha 92,
+  México 2012). Regra pra próxima leva: pesquisar AMPLO desde o começo, cobrindo as 5 posições.
+- 25/11 (6ª leva, *"analise todas categorias e veja se pode ampliar mais"*): "Parente do craque" virou 👨‍👦 FAMÍLIA DE BOLEIRO (os dois
+  lados: Maldini ×3, Simeone, Thuram, Zidane, Cruyff, Charlton, Laudrup, De Boer, Neville, Schmeichel, Kluivert, Hagi, Chiesa, Milito,
+  Touré, Boateng, Sócrates/Raí, Ronaldinho/Assis, Pelé/Edinho, Mazinho/Thiago/Rafinha…) · Um clube só + Nílton Santos, Zito, Pepe
+  (Santos), Facchetti, Sandro Mazzola · Comentarista + Ruggeri, Zabaleta, Tim Howard · Briga + Chilavert × Asprilla (1997) · temas
+  novos do baralho: Jogou na França/Portugal/Holanda, Velha guarda (até 1969), Anos 2010, Anos 2020 → 43 temas.
 - Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; Copa América e Rebaixado (pesquisar a lista oficial).
 
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS (decisões do mockup)
@@ -15539,3 +15557,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Decisão, fontes, isolamento e testes: [formula1-rapida-privada-20261125.md](formula1-rapida-privada-20261125.md).
 - Acesso privado pela identidade principal verificada; não liberar para Futpoint, secundária ou público.
 - Publicado somente para a conta principal: `6edf7ecd`, [GitHub Pages 45531787439](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45531787439), build e deploy com sucesso.
+
+## 25/11 — 🃏 Quiz "Quem é esse jogador?": sequência guardada + 🏆 recorde (✅ publicado 25/11, "Pode")
+- Diego: *"se errar volta p estaca zero… mostra o recorde pessoal"* e *"N deveria zerar… se fez 5 pts, outro dia que voltar continua com os 5"*.
+- Feito em `quem-e-jogador.tsx`: a sequência fica guardada no aparelho (`esc-quiz-seguidos`) e só zera ao ERRAR; o 🏆 recorde
+  (`esc-quiz-recorde`) é a maior sequência; ao bater aparece "🎉 NOVO RECORDE!". 2 chaves fixas (não é por sala, não precisa limpeza).
+- Ranking de todo mundo ficou de fora (custaria servidor) — só se ele pedir.
+- Prints: `scripts/mockups/quiz-recorde*.png` · bancada `node scripts/teste-formacoes/print-quiz-recorde.mjs <pasta>`.
+- 🃏 25/11 (✅ publicado, "Pode"): ao responder, a carta aparece com a CARA DE CARTA do jogo (`CollectibleCard big`, a da revelação
+  do leilão), girando, embaixo das opções. Diego: *"a carta quero c cara de carta igual as do jogo qd é revelado"*. Print `scripts/mockups/quiz-carta-revelada.png`.
