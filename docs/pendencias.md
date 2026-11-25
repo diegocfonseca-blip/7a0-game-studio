@@ -15476,4 +15476,4 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 ## 25/11 — Carreira compacta para todos, mapa móvel maior
 - Diego aprovou as oito telas e publicação geral, pedindo mapa maior e retirada de “Patrocinadores” sobreposto.
 - Implementação, regras preservadas, testes e reversão: [visual-carreira-publico-20261125.md](visual-carreira-publico-20261125.md).
-- Publicação: aguarda confirmação da execução de produção.
+- Publicado para todos: `266fa995`, GitHub Pages [45522737957](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45522737957), build e deploy concluídos com sucesso.

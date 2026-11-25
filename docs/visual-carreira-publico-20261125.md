@@ -25,12 +25,12 @@ A entrega é de apresentação na carreira de futebol. Preserva permissões, lim
 Bancadas locais usam estado separado e bloqueiam serviços externos; não acessam nem modificam contas reais.
 
 - `scripts/teste-travas-carreira/ciclo-publicacao.mjs`: placar móvel, 2D móvel, última rodada desktop e 3D real com WebGL; pausa, retorno, três trocas, bloqueio da quarta, tática sem gastar troca, preservação do XI fixo, retomada do estado e apito final. Os quatro cenários passaram.
-- `scripts/teste-visual-carreira/verifica.mjs`: telas reais 390/1440, abas, painel em duas colunas, filtro sazonal e ausência de vazamento horizontal. `QA_GPU=1` confere mapa no celular, Locais e diferença entre visão inicial e cidade inteira. Brasil Oficial e tradicional passaram. No mapa de 390 px, a área útil aumentou de 322 para 350 px de largura, com 668 px de altura; a visão inicial ficou mais próxima e Ver cidade preservou o panorama completo. Evidências em `/workspace/shared/visual-carreira-publico-20261125/`.
+- `scripts/teste-visual-carreira/verifica.mjs`: telas reais 320/390/1440, abas, painel em duas colunas, filtro sazonal e ausência de vazamento horizontal. `QA_GPU=1` confere mapa no celular, Locais e diferença entre visão inicial e cidade inteira. Brasil Oficial e tradicional passaram. No mapa de 390 px, a área útil aumentou de 322 para 350 px de largura, com 668 px de altura; a visão inicial ficou mais próxima e Ver cidade preservou o panorama completo. Evidências em `/workspace/shared/visual-carreira-publico-20261125/`.
 - `DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npm run build`: TypeScript e produção concluídos sem erros.
 - `LL_SAVE_BASE=http://127.0.0.1:5344 LL_SAVE_LABEL=carreira-compacta node scripts/teste-salvamento/publicacao.mjs`: versão compilada retornou HTTP 200 em 390/1440, sem erros JavaScript.
 
 ## Publicação e reversão
 
-Publicação autorizada para todos, pelo fluxo normal do GitHub Pages, preservando os arquivos de versões anteriores e sem recarregar partidas à força. Registrar commit e execução após a conclusão.
+Publicação autorizada para todos, pelo fluxo normal do GitHub Pages, preservando os arquivos de versões anteriores e sem recarregar partidas à força. Confirmado: commit de produto `266fa99513a1f935d64704f7071a300fa2784166`. A execução [45522737957](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45522737957) concluiu `build` e `deploy` com sucesso em 25/11/2026.
 
 A reversão é feita revertendo o commit desta entrega. Não há migração de banco nem mudança no formato dos saves para desfazer.
