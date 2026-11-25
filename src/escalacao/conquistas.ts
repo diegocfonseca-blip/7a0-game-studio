@@ -44,6 +44,7 @@ const BOLA_DE_OURO: string[][] = [
 // nacionalidade nunca entrar (o Jorginho da Itália não é o do tetra; o Pedro do Flamengo não é o da Espanha).
 const CAMPEOES_DO_MUNDO: Record<string, string[][]> = {
   Brasil: [
+    ['De Sordi'], ['Orlando Peçanha'], ['Mengálvio'], ['Jair da Costa'], ['PC Caju'],
     // 1958 / 1962
     ['Pelé'], ['Garrincha'], ['Didi'], ['Vavá'], ['Zagallo'], ['Nílton Santos'], ['Djalma Santos'], ['Gilmar'], ['Hilderaldo Bellini'],
     ['Zito'], ['Amarildo'], ['Mazzola'], ['Pepe'], ['Coutinho'], ['Castilho'], ['Mauro Ramos'],
@@ -65,33 +66,35 @@ const CAMPEOES_DO_MUNDO: Record<string, string[][]> = {
     ['Lionel Messi'], ['Ángel Di María'], ['Julián Álvarez'], ['Emiliano “Dibu” Martínez'], ['Rodrigo De Paul'], ['Enzo Fernández'], // 2022
     ['Alexis Mac Allister'], ['Nicolás Otamendi'], ['Cristian Romero'], ['Nahuel Molina'], ['Nicolás Tagliafico'], ['Lautaro Martínez'],
     ['Leandro Paredes'], ['Marcos Acuña'], ['Gonzalo Montiel'], ['Paulo Dybala'], ['Lisandro Martínez'], ['Thiago Almada'],
-    ['Exequiel Palacios'], ['Franco Armani'],
+    ['Exequiel Palacios'], ['Franco Armani'], ['Daniel Bertoni'], ['Sergio Batista'], ['Pedro Pasculli'], ['Claudio Borghi'],
   ],
   França: [
     ['Zinedine Zidane'], ['Thierry Henry'], ['Lilian Thuram'], ['Deschamps'], ['Fabien Barthez'], ['Marcel Desailly'], ['Laurent Blanc'], // 1998
     ['Bixente Lizarazu'], ['Petit'], ['Youri Djorkaeff'], ['David Trezeguet'], ['Patrick Vieira'],
     ['Kylian Mbappé'], ['Antoine Griezmann'], ['Paul Pogba'], ["N'Golo Kanté"], ['Hugo Lloris'], ['Raphaël Varane'], ['Samuel Umtiti'], // 2018
-    ['Benjamin Pavard'], ['Olivier Giroud'], ['Ousmane Dembélé'],
+    ['Benjamin Pavard'], ['Olivier Giroud'], ['Ousmane Dembélé'], ['Vincent Candela'], ['Christian Karembeu'], ['Robert Pires'], ['Steve Mandanda'],
+    ['Presnel Kimpembe'], ['Djibril Sidibé'], ['Benjamin Mendy'], ['Blaise Matuidi'], ['Corentin Tolisso'], ['Nabil Fekir'],
   ],
   Alemanha: [
     ['Franz Beckenbauer'], ['Gerd Müller'], ['Sepp Maier'], ['Paul Breitner'], // 1974
     ['Lothar Matthäus'], ['Jürgen Klinsmann'], ['Rudi Völler'], ['Andreas Brehme'], ['Jürgen Kohler'], ['Pierre Littbarski'], // 1990
     ['Manuel Neuer'], ['Philipp Lahm'], ['Jérôme Boateng'], ['Mats Hummels'], ['Bastian Schweinsteiger'], ['Toni Kroos'], // 2014
     ['Thomas Müller'], ['Mesut Özil'], ['Miroslav Klose'], ['Mario Götze'], ['André Schürrle'], ['Per Mertesacker'], ['Sami Khedira'], ['Lukas Podolski'],
+    ['Thomas Häßler'], ['Karl-Heinz Riedle'], ['Andreas Möller'], ['Uli Hoeneß'], ['Günter Netzer'], ['Julian Draxler'], ['Matthias Ginter'], ['Benedikt Höwedes'], ['Roman Weidenfeller'],
   ],
   Itália: [
     ['Paolo Rossi'], ['Dino Zoff'], ['Claudio Gentile'], ['Gaetano Scirea'], ['Marco Tardelli'], ['Giancarlo Antognoni'], ['Antonio Cabrini'], // 1982
     ['Gianluigi Buffon'], ['Fabio Cannavaro'], ['Andrea Pirlo'], ['Francesco Totti'], ['Alessandro Del Piero'], ['Gennaro Gattuso'], // 2006
     ['Marco Materazzi'], ['Gianluca Zambrotta'], ['Alessandro Nesta'], ['Luca Toni'], ['Filippo Inzaghi'], ['Fábio Grosso'], ['De Rossi'],
-    ['Mauro Camoranesi'], ['Alberto Gilardino'],
+    ['Mauro Camoranesi'], ['Alberto Gilardino'], ['Angelo Peruzzi'], ['Barzagli'], ['Giuseppe Meazza'], ['Silvio Piola'],
   ],
   Espanha: [
     ['Iker Casillas'], ['Carles Puyol'], ['Gerard Piqué'], ['Sergio Ramos'], ['Capdevila'], ['Xavi'], ['Andrés Iniesta'], ['Sergio Busquets'], // 2010
     ['Xabi Alonso'], ['David Villa'], ['Fernando Torres'], ['Cesc Fàbregas'], ['David Silva'], ['Jesús Navas'], ['Fernando Llorente'],
-    ['Juan Mata'], ['Pepe Reina'], ['Albiol'], ['Arbeloa'],
+    ['Juan Mata'], ['Pepe Reina'], ['Albiol'], ['Arbeloa'], ['Víctor Valdés'],
   ],
-  Inglaterra: [['Bobby Charlton'], ['Bobby Moore'], ['Geoff Hurst'], ['Gordon Banks'], ['Jack Charlton']], // 1966
-  Uruguai: [['Juan Alberto Schiaffino'], ['Alcides Ghiggia'], ['Obdulio Varela']], // 1950
+  Inglaterra: [['Bobby Charlton'], ['Bobby Moore'], ['Geoff Hurst'], ['Gordon Banks'], ['Jack Charlton'], ['Nobby Stiles'], ['Martin Peters'], ['Roger Hunt'], ['Alan Ball'], ['Jimmy Greaves']], // 1966
+  Uruguai: [['Juan Alberto Schiaffino'], ['Alcides Ghiggia'], ['Obdulio Varela'], ['Roque Máspoli'], ['Héctor Scarone'], ['José Nasazzi']], // 1930 e 1950
 }
 // 🌎 Libertadores e ⭐ Champions: o clube da carta CAMPEÃO NO ANO DA CARTA (a carta é o jogador naquele clube naquele ano).
 // Fonte: listas de campeões da CONMEBOL e da UEFA. Ano = ano da final.
@@ -133,17 +136,24 @@ const BRASILEIRAO: Record<number, string> = {
 }
 /** pessoa de lista por país; `clubes` restringe quando o nome tem xará no mesmo país (o Paulinho do Corinthians não é o da Olimpíada) */
 type Pessoa = string | { n: string; clubes: string[] }
-// 🏅 Ouro olímpico (elencos campeões, pt.wikipedia): Brasil 2016 e 2020 · Argentina 2004 e 2008 · Nigéria 1996 · Camarões 2000
+// 🏅 Ouro olímpico (elencos campeões, pt.wikipedia): Brasil 2016/2020 · Argentina 2004/2008 · Nigéria 1996 · Camarões 2000 · Uruguai 1924/28 ·
+// Hungria 1952 · URSS 1956 · Polônia 1972 · Espanha 1992 · México 2012
 const OURO_OLIMPICO: Record<string, Pessoa[]> = {
   Brasil: ['Neymar', 'Gabriel Jesus', 'Gabigol', 'Marquinhos', 'Renato Augusto', 'Luan', 'Weverton', 'Rodrigo Caio', 'Douglas Santos', 'Zeca',
     'Thiago Maia', 'Felipe Anderson', 'Rafinha Alcântara', // 2016
     'Dani Alves', 'Richarlison', 'Matheus Cunha', 'Antony', 'Bruno Guimarães', 'Douglas Luiz', 'Claudinho', { n: 'Paulinho', clubes: ['Atlético-MG'] },
-    'Malcom', 'Diego Carlos', 'Nino', 'Guilherme Arana', 'Reinier'], // 2020
+    'Malcom', 'Diego Carlos', 'Nino', 'Guilherme Arana', 'Reinier', 'Bruno Fuchs', { n: 'William', clubes: ['Cruzeiro'] }], // 2020 (+ William de 2016)
   Argentina: ['Tevez', 'Mascherano', 'Javier Mascherano', 'Gabriel Heinze', 'Roberto Ayala', "D'Alessandro", 'Kily González', 'Lucho González', 'Fabricio Coloccini', // 2004
     'Lionel Messi', 'Juan Román Riquelme', 'Sergio Agüero', 'Ángel Di María', 'Ezequiel Lavezzi', 'Fernando Gago', 'Pablo Zabaleta', 'Ezequiel Garay',
-    'Sergio Romero', 'Ever Banega', 'Éver Banega'], // 2008
+    'Sergio Romero', 'Ever Banega', 'Éver Banega', 'Clemente Rodríguez'], // 2008
   Nigéria: ['Nwankwo Kanu', 'Jay-Jay Okocha', 'Taribo West'],
   Camarões: ["Samuel Eto'o", 'Patrick Mboma', 'Lauren', 'Geremi'],
+  Uruguai: ['Héctor Scarone', 'José Nasazzi'], // 1924 e 1928
+  Hungria: ['Ferenc Puskás', 'Nándor Hidegkuti', 'József Bozsik', 'Zoltán Czibor', 'Sándor Kocsis'], // 1952
+  Rússia: ['Lev Yashin'], // URSS 1956
+  Polônia: ['Grzegorz Lato', 'Kazimierz Deyna'], // 1972
+  México: ['Oribe Peralta', 'Giovani dos Santos'], // 2012
+  Espanha: ['Pep Guardiola', 'Luis Enrique'], // 1992
 }
 // 👟 Artilheiro de Copa do Mundo (o maior goleador de cada Copa, empates juntos — FIFA)
 const ARTILHEIRO_COPA: Record<string, Pessoa[]> = {
@@ -158,38 +168,67 @@ const PARENTES = new Set(['Enzo Zidane', 'Luca Zidane', 'Jordi Cruyff', 'Khéphr
 const PARENTE_NO_NOME = /\((irmão|irmã|filho|filha|primo|prima|pai|tio|sobrinho|neto) d[oa] / // minúsculo de propósito: "Euller (Filho do Vento)" é apelido, não parente
 // 📺 Virou comentarista de TV (trabalho público e conhecido: Globo/Band/SporTV no Brasil, BBC/Sky/TNT/CBS/beIN lá fora)
 const COMENTARISTA: Record<string, Pessoa[]> = {
-  Brasil: ['Casagrande', 'Denílson', 'Denílson Show', 'Júnior Maestro', 'Roger Flores', 'Edmundo', 'Caio Ribeiro', 'Grafite'],
-  Sérvia: ['Petkovic'], Inglaterra: ['Gary Lineker', 'Gary Neville', 'Jamie Carragher', 'Rio Ferdinand', 'Alan Shearer', 'Ian Wright', 'Peter Crouch'],
-  França: ['Thierry Henry'], Irlanda: ['Roy Keane'], Holanda: ['Seedorf', 'Clarence Seedorf'], Argentina: ['Jorge Valdano'], Escócia: ['Graeme Souness'],
+  Brasil: ['Casagrande', 'Denílson', 'Denílson Show', 'Júnior Maestro', 'Roger Flores', 'Edmundo', 'Caio Ribeiro', 'Grafite', { n: 'Neto', clubes: ['Corinthians'] },
+    'Juninho Pernambucano', 'Falcão', 'Tostão', 'Gérson Canhotinha de Ouro', 'Rivelino', 'Zico', 'Sócrates', 'Velloso', 'Ronaldo Giovanelli', 'Djalminha',
+    { n: 'Alex', clubes: ['Cruzeiro'] }, 'Zé Elias', 'Pedrinho', 'Paulo Nunes'],
+  Sérvia: ['Petkovic'],
+  Inglaterra: ['Gary Lineker', 'Gary Neville', 'Jamie Carragher', 'Rio Ferdinand', 'Alan Shearer', 'Ian Wright', 'Peter Crouch', 'Glenn Hoddle', 'Lee Dixon',
+    'Martin Keown', 'Chris Waddle', 'Matt Le Tissier', 'Michael Owen', 'Joe Cole'],
+  Escócia: ['Graeme Souness', 'Alan Hansen', 'Ally McCoist'], Irlanda: ['Roy Keane'], Dinamarca: ['Peter Schmeichel'],
+  França: ['Thierry Henry', 'Patrice Evra', 'Bixente Lizarazu', 'Petit', 'Marcel Desailly'],
+  Holanda: ['Seedorf', 'Clarence Seedorf', 'Ruud Gullit', 'Marco van Basten', 'Rafael van der Vaart', 'Pierre van Hooijdonk', 'Wesley Sneijder'],
+  Alemanha: ['Jürgen Klinsmann', 'Lothar Matthäus', 'Michael Ballack', 'Dietmar Hamann', 'Mehmet Scholl', 'Oliver Kahn'],
+  Itália: ['Alessandro Del Piero'], Espanha: ['Santiago Cañizares'], Argentina: ['Jorge Valdano', 'Juan Pablo Sorín'], Chile: ['Iván Zamorano'],
+  México: ['Jorge Campos', 'Hugo Sánchez'],
 }
 // 🥊 Saiu no braço: agressão/briga famosa em campo, registrada na imprensa (Cantona no torcedor em 1995, a cabeçada de 2006,
 // Keane × Haaland, Pepe × Casquero, as mordidas do Suárez, Gattuso × Joe Jordan…). Só caso público — nada de "parece briguento".
 const BRIGA: Record<string, Pessoa[]> = {
-  França: ['Éric Cantona', 'Zinedine Zidane'], Itália: ['Marco Materazzi', 'Gennaro Gattuso'], Brasil: ['Edmundo', 'Felipe Melo'],
-  Irlanda: ['Roy Keane'], Uruguai: ['Paolo Montero', 'Luis Suárez'], Portugal: ['Pepe'], Espanha: ['Diego Costa'],
+  França: ['Éric Cantona', 'Zinedine Zidane', 'Patrick Vieira'], Itália: ['Marco Materazzi', 'Gennaro Gattuso', 'Mauro Tassotti'],
+  Brasil: ['Edmundo', 'Felipe Melo', 'Leonardo', 'Edílson'], Irlanda: ['Roy Keane'], Uruguai: ['Paolo Montero', 'Luis Suárez'], Portugal: ['Pepe'],
+  Espanha: ['Diego Costa'], Holanda: ['Frank Rijkaard'], Suécia: ['Zlatan Ibrahimović'], Argentina: ['Diego Maradona'], Inglaterra: ['Kevin Keegan'],
 }
 // 🗳️ Virou político: presidente, senador, deputado ou ministro (Weah presidente da Libéria, Romário senador, Bebeto e Jardel
 // deputados estaduais, Danrlei deputado federal, Pelé ministro do Esporte, Zico secretário nacional de Esportes)
 const POLITICO: Record<string, Pessoa[]> = {
-  Libéria: ['George Weah'], Brasil: ['Romário', 'Bebeto', 'Danrlei', 'Jardel', 'Mário Jardel', 'Pelé', 'Zico'],
+  Libéria: ['George Weah'], Brasil: ['Romário', 'Bebeto', 'Danrlei', 'Jardel', 'Mário Jardel', 'Pelé', 'Zico', 'Roberto Dinamite'],
+  Ucrânia: ['Oleg Blokhin'], Geórgia: ['Kakha Kaladze'], Turquia: ['Hakan Şükür'], Itália: ['Gianni Rivera'],
 }
 // 🥅 Goleiro artilheiro: goleiro que fez gol de verdade (Ceni, Chilavert, Higuita, e o Jorge Campos que jogou até de atacante)
-const GOLEIRO_GOL: Record<string, Pessoa[]> = { Brasil: ['Rogério Ceni'], Paraguai: ['José Luis Chilavert'], Colômbia: ['René Higuita'], México: ['Jorge Campos'] }
-// 🧑‍🏫 Virou técnico: carreira de treinador conhecida (clube grande ou seleção). O "Pochettino" do Fortaleza é outro (o Tomás).
+const GOLEIRO_GOL: Record<string, Pessoa[]> = {
+  Brasil: ['Rogério Ceni', 'Alisson'], Paraguai: ['José Luis Chilavert'], Colômbia: ['René Higuita'], México: ['Jorge Campos'],
+  Alemanha: ['Hans-Jörg Butt'], Dinamarca: ['Peter Schmeichel'], EUA: ['Tim Howard'],
+}
+// 🧑‍🏫 Virou técnico: carreira de treinador conhecida (clube grande, seleção ou trabalho marcante). O "Pochettino" do Fortaleza é
+// outro (o Tomás), e o Alex que conta é o do Cruzeiro (o zagueiro do Chelsea é outro).
 const VIROU_TECNICO: Record<string, Pessoa[]> = {
-  França: ['Zinedine Zidane', 'Deschamps', 'Patrick Vieira', 'Thierry Henry'],
-  Espanha: ['Pep Guardiola', 'Xabi Alonso', 'Mikel Arteta', 'Luis Enrique', 'Xavi'],
-  Itália: ['Carlo Ancelotti', 'Andrea Pirlo', 'Thiago Motta', 'Gennaro Gattuso', 'Antonio Conte', 'Roberto Mancini', 'Cesare Maldini'],
-  Argentina: ['Diego Simeone', 'Gallardo', 'Mauricio Pochettino', 'Ramón Díaz'],
-  Inglaterra: ['Frank Lampard', 'Steven Gerrard', 'Wayne Rooney'], Bélgica: ['Vincent Kompany'], Holanda: ['Seedorf', 'Clarence Seedorf'],
-  Portugal: ['Abel Ferreira'],
-  Brasil: ['Zico', 'Falcão', 'Dunga', 'Leonardo', 'Roger Machado', 'Vanderlei Luxemburgo', 'Filipe Luís'],
+  França: ['Zinedine Zidane', 'Deschamps', 'Patrick Vieira', 'Thierry Henry', 'Laurent Blanc', 'Michel Platini', 'Jean-Pierre Papin'],
+  Espanha: ['Pep Guardiola', 'Xabi Alonso', 'Mikel Arteta', 'Luis Enrique', 'Xavi', 'Fernando Hierro', 'Raúl', 'Cesc Fàbregas'],
+  Itália: ['Carlo Ancelotti', 'Andrea Pirlo', 'Thiago Motta', 'Gennaro Gattuso', 'Antonio Conte', 'Roberto Mancini', 'Cesare Maldini', 'Fabio Cannavaro',
+    'Filippo Inzaghi', 'Alessandro Nesta', 'De Rossi', 'Dino Zoff', 'Giovanni Trapattoni', 'Roberto Donadoni', 'Marco Tardelli', 'Gianluca Vialli',
+    'Gianfranco Zola', 'Massimo Oddo', 'Marco Materazzi'],
+  Argentina: ['Diego Simeone', 'Gallardo', 'Mauricio Pochettino', 'Ramón Díaz', 'Gabriel Heinze', 'Martín Demichelis', 'Hernán Crespo', 'Matías Almeyda',
+    'Gerardo Martino', 'Daniel Passarella', 'Diego Maradona', 'Ricardo Gareca', 'Sebastián Battaglia', 'Guillermo Barros Schelotto', 'Martín Palermo',
+    'Javier Mascherano', 'Mascherano', 'Lionel Scaloni', 'Fernando Gago', 'Gabriel Milito', 'Jorge Burruchaga', 'Carlos Bianchi', 'Santiago Solari', 'Jorge Valdano'],
+  Uruguai: ['Diego Forlán', 'Paolo Montero', 'Sebastián Abreu'], Colômbia: ['Leonel Álvarez'], Paraguai: ['José Cardozo'], México: ['Hugo Sánchez', 'Rafael Márquez'],
+  Alemanha: ['Jürgen Klinsmann', 'Rudi Völler', 'Lothar Matthäus', 'Franz Beckenbauer', 'Miroslav Klose', 'Christian Ziege', 'Stefan Effenberg'],
+  Inglaterra: ['Frank Lampard', 'Steven Gerrard', 'Wayne Rooney', 'Kevin Keegan', 'Glenn Hoddle', 'Bryan Robson', 'Tony Adams', 'Stuart Pearce', 'Paul Ince',
+    'Gary Neville', 'Alan Shearer'],
+  Irlanda: ['Roy Keane'], Escócia: ['Graeme Souness', 'Kenny Dalglish'], Noruega: ['Ole Gunnar Solskjær'], Suécia: ['Henrik Larsson'], Bélgica: ['Vincent Kompany'],
+  Holanda: ['Seedorf', 'Clarence Seedorf', 'Ruud Gullit', 'Frank Rijkaard', 'Marco van Basten', 'Ronald Koeman', 'Phillip Cocu', 'Giovanni van Bronckhorst', 'Jaap Stam',
+    'Edgar Davids', 'Patrick Kluivert', 'Frank de Boer', 'Johan Cruyff', 'Arie Haan', 'Danny Blind', 'Ruud van Nistelrooy', 'Mark van Bommel'],
+  Portugal: ['Abel Ferreira'], Bulgária: ['Hristo Stoichkov'], Romênia: ['Gheorghe Hagi'], Dinamarca: ['Michael Laudrup'], Croácia: ['Slaven Bilić'],
+  Sérvia: ['Siniša Mihajlović', 'Dejan Stanković', 'Petkovic'], Ucrânia: ['Andriy Shevchenko', 'Oleg Blokhin'], 'Coreia do Sul': ['Hong Myung-bo', 'Cha Bum-kun'],
+  Senegal: ['Aliou Cissé'],
+  Brasil: ['Zico', 'Falcão', 'Dunga', 'Leonardo', 'Roger Machado', 'Vanderlei Luxemburgo', 'Filipe Luís', 'Renato Gaúcho', 'Andrade', 'Júnior Maestro',
+    'Carlos Alberto Torres', 'Zagallo', 'Didi', 'Paulo César Carpegiani', 'Emerson Leão', 'Abel Braga', 'Fernando Diniz', 'Rogério Ceni', 'Ricardo Gomes',
+    'Roberto Carlos', 'Jorginho', { n: 'Alex', clubes: ['Cruzeiro'] }],
 }
 // ❤️ Jogou por amor a um clube só: a carreira profissional INTEIRA num clube (bandeira). Ceni ficou fora (passou pelo Sinop).
 const UM_CLUBE_SO: Record<string, Pessoa[]> = {
   Itália: ['Francesco Totti', 'Paolo Maldini', 'Franco Baresi'], 'País de Gales': ['Ryan Giggs'], Espanha: ['Carles Puyol'],
-  Inglaterra: ['Jamie Carragher', 'Matt Le Tissier', 'Gary Neville', 'Paul Scholes', 'Tony Adams'], Brasil: ['Marcos'],
-  Alemanha: ['Sepp Maier', 'Uwe Seeler'],
+  Inglaterra: ['Jamie Carragher', 'Matt Le Tissier', 'Gary Neville', 'Paul Scholes', 'Tony Adams', 'Jack Charlton'], Brasil: ['Marcos'],
+  Alemanha: ['Sepp Maier', 'Uwe Seeler'], Argentina: ['Ricardo Bochini'], Rússia: ['Lev Yashin'],
 }
 // 🏴 o país da LIGA do clube da carta (Inglaterra = futebol inglês; o País de Gales do Swansea joga lá)
 const LIGA_INGLESA = new Set(['Liverpool', 'Man United', 'Manchester United', 'Arsenal', 'Chelsea', 'Man City', 'Tottenham', 'Newcastle', 'Everton', 'Aston Villa', 'West Ham', 'Leicester', 'Leicester City', 'Wolves', 'Nottingham Forest', 'Fulham', 'Leeds', 'Leeds United', 'Blackburn', 'Southampton', 'Crystal Palace', 'Brighton', 'Sunderland', 'Middlesbrough', 'Brentford', 'Swansea', 'Derby County', 'Bournemouth', 'Birmingham', 'Wigan', 'Watford', 'Sheffield Wednesday', 'Portsmouth', 'Burnley', 'Bolton'])
