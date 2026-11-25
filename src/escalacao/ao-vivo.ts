@@ -18,5 +18,5 @@ export function instanteDaTroca(roundKey: number, minuto: number): number {
 }
 /** as regras da troca ao vivo (a tela e o reducer leem as MESMAS) */
 export const MAX_TROCAS_AO_VIVO = 3
-export const assinaturaAoVivo = (x: { t: number; sai?: string; entra?: { name: string } | string; tatica?: number;formacao?:string }) =>
-  `${x.t.toFixed(4)}|${x.sai ?? ''}|${typeof x.entra === 'string' ? x.entra : x.entra?.name ?? ''}|${x.tatica ?? ''}${x.formacao?`|${x.formacao}`:''}`
+export const assinaturaAoVivo = (x: { t: number; sai?: string; entra?: { name: string } | string; tatica?: number;formacao?:string;lesao?:boolean;goleiroEmergencia?:string }) =>
+  `${x.t.toFixed(4)}|${x.sai ?? ''}|${typeof x.entra === 'string' ? x.entra : x.entra?.name ?? ''}|${x.tatica ?? ''}${x.formacao?`|${x.formacao}`:''}${x.lesao?`|lesao|${x.goleiroEmergencia??''}`:''}`

@@ -66,7 +66,16 @@ const PAVIO_CURTO = new Set([
 // pessoa em clubes/anos diferentes — Romário, Neymar, Ronaldinho, Vampeta,
 // Casagrande — e nesses o traço vale pras duas cartas mesmo. Só "Pepe" são duas
 // pessoas.)
+/** Ambiguous names must identify the actual historical card, not a modern namesake. */
+const IDENTIDADES_FOLCLORE:Record<string,ReadonlySet<string>>={
+ 'Romário':new Set(['Vasco|2000','Barcelona|1994']),
+ 'Adriano':new Set(['Flamengo|2009']),
+ 'Edmundo':new Set(['Vasco|1997','Fiorentina|1998']),
+ 'Renato Gaúcho':new Set(['Grêmio|1983']),
+}
+export function identidadeFolclore(nome:string,club?:string,year?:number){const entries=IDENTIDADES_FOLCLORE[nome];return !entries||!!club&&year!=null&&entries.has(`${club}|${year}`)}
 export function traitDe(nome: string, club?: string, year?: number): '🍾 baladeiro' | '🌡️ pavio curto' | null {
+  if(!identidadeFolclore(nome,club,year))return null
   if (club && year != null) {
     const cheia = `${nome}|${club}|${year}`
     if (BALADEIROS.has(cheia)) return '🍾 baladeiro'
@@ -304,7 +313,7 @@ export function sorteiaEvento(args: {
     const t = traitDe(c.name, c.club, c.year)
     if (t === '🍾 baladeiro') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'noitada' })
     if (t === '🌡️ pavio curto') for (let i = 0; i < 4; i++) pool.push({ c, tipo: 'expulsao' })
-    if (previaDiego() && t !== '🍾 baladeiro' && FUTEVOLEIROS.has(c.name)) pool.push({ c, tipo: 'noitada', fute: true }) // 🏐 Edmundo: peso 1, só o futevôlei
+    if (previaDiego() && t !== '🍾 baladeiro' && FUTEVOLEIROS.has(c.name)&&identidadeFolclore(c.name,c.club,c.year)) pool.push({ c, tipo: 'noitada', fute: true }) // 🏐 Edmundo: peso 1, só o futevôlei
     // 🥵 no limite = 2× lesão · 🚑 esgotado = 3× (a régua mora em condicao.ts)
     { const peso = gas ? pesoLesao(gas[c.id] ?? 100) : 1; for (let i = 0; i < peso; i++) pool.push({ c, tipo: 'lesao' }) }
   }
@@ -329,7 +338,7 @@ export function sorteiaEvento(args: {
   let historia = textos[Math.floor(rng() * textos.length)].replace('{n}', pick.c.name)
   // 🏐 o dado acima é gasto IGUAL; a troca pro futevôlei sai de um sorteio preso no nome+temporada (não muda nada do resto)
   const hf = hashTxt(`${seed}:${seasonNo}:${pick.c.name}:fute`)
-  const futevolei = previaDiego() && pick.tipo === 'noitada' && FUTEVOLEIROS.has(pick.c.name) && (pick.fute || (Math.imul(hf ^ (hf >>> 16), 0x45d9f3b) >>> 0) % 4 === 0)
+  const futevolei = previaDiego() && pick.tipo === 'noitada' && (FUTEVOLEIROS.has(pick.c.name)&&identidadeFolclore(pick.c.name,pick.c.club,pick.c.year)) && (pick.fute || (Math.imul(hf ^ (hf >>> 16), 0x45d9f3b) >>> 0) % 4 === 0)
   if (futevolei) { const lista = en ? HIST_FUTEVOLEI_EN : HIST_FUTEVOLEI; historia = lista[(hf >>> 3) % lista.length].replace('{n}', pick.c.name) }
   const xiIds = new Set(xi.map(c => c.id))
   // reserva = MESMA posição, fora do XI (cria e emprestado valem — estão no elenco e jogam)

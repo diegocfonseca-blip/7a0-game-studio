@@ -1,3 +1,9 @@
+import {fatosDoBairro} from './cenas-bairro-fatos'
+import {LesaoAoVivo} from './lesao-ao-vivo'
+import {faseDaLesao} from './lesao-partida'
+import {reservasDoEvento,escalaSemLesionado,escalaIntegraPreparo,historiaLesaoPreparo} from './evento-preparo'
+import {prepararRepeticaoCena} from './cenas-bairro-playback'
+import {pedidoCena,cenaPodeAparecer} from './cenas-bairro-model'
 import {dealDescription} from './career-transfer-history'
 import {formacoes15On} from './sport'
 import {CareerBudgetPlanner,CareerCoachFit} from './career-planning-ui'
@@ -103,7 +109,7 @@ import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D
 import { SELOS } from './selos-clubes'
 import type { EscState, Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey, AgCard, AgEvento, EventoAtivo } from './types'
 import { SECTORS, FORMATIONS, FORMACOES_JOGO, rotuloFormacao } from './types'
-import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
+import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modGas, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry, GAS_CANSADO, GAS_JOGO, GAS_BANCO } from './condicao'
@@ -1351,7 +1357,7 @@ export function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number
         const en = x.entra ? mp.get(x.entra) : undefined
         const entra = en ? comMods([en], cardMods[humanTid]?.[r])[0] : undefined
         if (entra) entraramAoVivo.push(entra)
-        return { t: x.t, lado, sai: x.sai ? mp.get(x.sai)?.name : undefined, entra: entra as never, tatica: x.tactic != null ? taticaM2(x.tactic) : undefined,formacao:x.formation }
+        return { t: x.t, lado, sai: x.sai ? mp.get(x.sai)?.name : undefined, entra: entra as never, tatica: x.tactic != null ? taticaM2(x.tactic) : undefined,formacao:x.formation,...(x.injury?{lesao:true}:{}),...(x.emergencyKeeper?{goleiroEmergencia:mp.get(x.emergencyKeeper)?.name}:{}) }
       })
       return out.length ? out : undefined
     })()
@@ -8042,8 +8048,8 @@ export function SquadTab({ tatica, mgr, col, coins, xiIds, xi, goals, assists, o
           {condicao && (
             <UnlockBanner k="condicao" tag={tr('😓 regra nova', '😓 new rule')} title={tr('Seus jogadores agora cansam', 'Your players get tired now')} ctaBg={GREEN} ctaColor="#fff">
               {getLang() === 'en'
-                ? <>Série C is professional football: from this round on, every match as a starter burns energy and every round on the bench gives some back — and <b>it carries over between seasons</b>, it doesn't reset. Around <b>54 matches</b> he is still fine; near the <b>55th</b> he gets <b>tired</b> (😓, −1 in the match), near the <b>60th</b> he is <b>running on empty</b> (🥵, −2 and double the injury risk), from the <b>65th</b> on he is <b>completely spent</b> (🚑, −3 and triple the risk). From 🥵 on he can also <b>break down</b> (5% per match; 10% when 🚑) and miss 1-3 rounds. Injuries come back <b>gradually</b> (60% → 80% → 100%). Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots don't get tired — rotate well and you won't feel a thing either.</>
-                : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (5% por jogo; 10% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
+                ? <>Série C is professional football: from this round on, every match as a starter burns energy and every round on the bench gives some back — and <b>it carries over between seasons</b>, it doesn't reset. Around <b>54 matches</b> he is still fine; near the <b>55th</b> he gets <b>tired</b> (😓, −1 in the match), near the <b>60th</b> he is <b>running on empty</b> (🥵, −2 and double the injury risk), from the <b>65th</b> on he is <b>completely spent</b> (🚑, −3 and triple the risk). From 🥵 on he can also <b>break down</b> (5% per match; 10% when 🚑) and miss 1-3 rounds. Injuries come back <b>gradually</b> (60% → 80% → 100%). Watch the <b>bar under each player</b> and use the bench: the fitness coach suggests the rotation, but <b>you</b> decide. Bots in your division also rotate and accumulate fatigue. Being tired is not an injury: fatigue injuries only become possible at the limit, and are never guaranteed.</>
+                : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (5% por jogo; 10% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots da sua divisão também têm rodízio e desgaste. Cansado não é lesionado: o risco por desgaste só começa no limite e nunca é certeza de lesão.</>}
             </UnlockBanner>
           )}
           <ElencoField navigationRequest={visualV2 ? navigationRequest : undefined} mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} overTodos={overTodos} condicao={condicao} estat={estat}
@@ -9203,16 +9209,18 @@ function CopaBracket({ copa, colors, youId, tables, ord, myDiv, reveal, scorers,
 // banco 1 jogo OU "escalar assim mesmo" (queda pequena só naquele jogo).
 // Expulsão/lesão (vermelho) obrigam a troca — só escolhe QUEM assume a vaga.
 // 🔬 exportado só pra bancada (`scripts/teste-evento/`)
-export function EventoBanner({ ev, reservas, onDecide }: {
+export function EventoBanner({ ev, reservas, onDecide, resolvido=false }: {
   ev: EventoAtivo
   reservas: WonCard[]
+  resolvido?:boolean
   onDecide: (escolha: 'troca' | 'campo', subId?: string) => void
 }) {
   const visualV2 = useCareerVisualV2()
   const [subId, setSubId] = useState(reservas[0]?.id ?? '')
+  const escolhido=reservas.some(c=>c.id===subId)?subId:reservas[0]?.id??''
   const noit = ev.tipo === 'noitada'
   const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
-  const trait = traitDe(ev.nome)
+  const trait = ev.tipo==='lesao'?null:traitDe(ev.nome,ev.club,ev.year)
   return (
     <div className={visualV2 ? "cv2-root cv2-injury-panel" : undefined} style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
@@ -9228,22 +9236,23 @@ export function EventoBanner({ ev, reservas, onDecide }: {
         <p style={{ fontSize: 13, fontWeight: 700, color: '#3a3527', lineHeight: 1.5, margin: '0 0 10px' }}>{ev.historia}</p>
         {noit && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', margin: '0 0 8px' }}>{tr('O que você faz, presidente?', 'What do you do, chairman?')}</p>}
         {/* quem assume a vaga (mesma posição = formação NUNCA quebra) */}
-        <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
+        {!resolvido&&<div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>{tr(`quem assume a vaga de ${ev.pos}?`, `who takes the ${ev.pos} spot?`)}</div>
           {reservas.map(c => (
-            <button key={c.id} onClick={() => setSubId(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: subId === c.id ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+            <button key={c.id} onClick={() => setSubId(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: escolhido === c.id ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
               ⚽ {c.name}
-              {subId === c.id && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>{tr('ENTRAR ✓', 'IN ✓')}</span>}
+              {escolhido === c.id && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>{tr('ENTRAR ✓', 'IN ✓')}</span>}
             </button>
           ))}
-        </div>
+        </div>}
+        {resolvido&&<p>{tr('Você já retirou o jogador da escalação. Confirme para continuar.','You already removed the player from the lineup. Confirm to continue.')}</p>}
         <div className={visualV2 ? "cv2-decision-footer" : undefined} style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => subId && onDecide('troca', subId)} disabled={!subId}
+          <button onClick={() => onDecide('troca', resolvido?undefined:escolhido)} disabled={!resolvido&&!escolhido}
             style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: '#EAF6EE', cursor: 'pointer', ...OSWALD }}>
-            {noit ? tr('😤 Banco por 1 jogo', '😤 Benched for 1 match') : tr('✅ Confirmar a troca', '✅ Confirm the swap')}
+            {resolvido?tr('✅ Confirmar escalação','✅ Confirm lineup'):noit ? tr('😤 Banco por 1 jogo', '😤 Benched for 1 match') : tr('✅ Confirmar a troca', '✅ Confirm the swap')}
             <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{noit ? tr('volta descansado na próxima', 'back rested next match') : tr(`volta em ${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`, `back in ${ev.rodadas} ${ev.rodadas === 1 ? 'round' : 'rounds'}`)}</small>
           </button>
-          {noit && (
+          {noit && !resolvido && (
             <button onClick={() => onDecide('campo')}
               style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: GOLD, cursor: 'pointer', ...OSWALD }}>
               {tr('🙏 Escalar assim mesmo', '🙏 Play him anyway')}
@@ -9265,9 +9274,10 @@ export function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
   onCampo?: () => void // só noitada — "escalar assim mesmo", sem chamar ninguém da base
 }) {
   const [nome, setNome] = useState(ev.criaOptions?.[0] ?? '')
+  const escolhido=(ev.criaOptions??[]).includes(nome)?nome:ev.criaOptions?.[0]??''
   const noit = ev.tipo === 'noitada'
   const headGrad = noit ? 'linear-gradient(150deg,#7C3AED,#4C1D95)' : 'linear-gradient(150deg,#C2452F,#7a2418)'
-  const trait = traitDe(ev.nome)
+  const trait = ev.tipo==='lesao'?null:traitDe(ev.nome,ev.club,ev.year)
   return (
     <div style={{ background: '#fff', color: INK, border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 12 }}>
       <div style={{ padding: '10px 13px', fontWeight: 900, fontSize: 16, color: '#fff', borderBottom: `3px solid ${INK}`, background: headGrad, ...OSWALD, textTransform: 'uppercase', letterSpacing: 0.5 }}>{eventoTituloBanner(ev.tipo, ev.rodadas, !!ev.desgaste)}</div>
@@ -9286,14 +9296,14 @@ export function EventoSemReservaBanner({ ev, onEscolher, onCampo }: {
         <div style={{ border: `2.5px solid ${INK}`, borderRadius: 11, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ background: INK, color: GOLD, fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, padding: '5px 10px' }}>{tr('quem sobe do Sub-20?', 'who comes up from the U-20s?')}</div>
           {(ev.criaOptions ?? []).map(n => (
-            <button key={n} onClick={() => setNome(n)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: nome === n ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
+            <button key={n} onClick={() => setNome(n)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', borderTop: `1.5px solid rgba(0,0,0,.12)`, borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: escolhido === n ? '#EAF6EE' : '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer', textAlign: 'left' }}>
               🌱 {n}
-              {nome === n && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>{tr('SOBE ✓', 'UP ✓')}</span>}
+              {escolhido === n && <span style={{ marginLeft: 'auto', fontFamily: OSWALD.fontFamily, fontWeight: 900, fontSize: 9.5, background: GREEN, color: '#fff', borderRadius: 6, padding: '2px 8px' }}>{tr('SOBE ✓', 'UP ✓')}</span>}
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => nome && onEscolher(nome)} disabled={!nome}
+          <button onClick={() => escolhido && onEscolher(escolhido)} disabled={!escolhido}
             style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 6px', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, lineHeight: 1.25, background: '#EAF6EE', cursor: 'pointer', ...OSWALD }}>
             {tr('✅ Confirmar', '✅ Confirm')}
             <small style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: 9.5, fontWeight: 700, textTransform: 'none', marginTop: 2, color: 'rgba(0,0,0,.6)' }}>{tr(`de graça, sem contrato · volta em ${ev.rodadas} ${ev.rodadas === 1 ? 'rodada' : 'rodadas'}`, `free, no contract · back in ${ev.rodadas} ${ev.rodadas === 1 ? 'round' : 'rounds'}`)}</small>
@@ -10236,7 +10246,9 @@ export function PyramidSeasonScreen() {
   // Copa) PARA no minuto em que estava e nenhuma rodada nova começa; voltando, segue do mesmo minuto. Na carreira online v2
   // quem manda no tempo é o dono da sala, então lá não pausa.
   const [subAberto, setSubAberto] = useState(false)
-  const pausaCentral = (tab === 'central'||subAberto) && !state.co2
+  const lesaoJogo=state.careerMatchInjury
+  const lesaoAguarda=!!lesaoJogo&&lesaoJogo.status==='programada'&&lesaoJogo.season===state.seasonNo&&lesaoJogo.round===state.round-1&&scoreClock.round===state.round&&scoreClock.minute>=lesaoJogo.minute
+  const pausaCentral = (tab === 'central'||subAberto||lesaoAguarda) && !state.co2
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
   const [rankScope,setRankScope]=useState<'mine'|'all'>('mine')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia' | 'veiculos' | 'arena' | 'museu' | 'estrutura' | 'negocios'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
@@ -10504,6 +10516,10 @@ export function PyramidSeasonScreen() {
   // (o efeito que controla o `revealed` mora mais abaixo, DEPOIS das definições de
   // intervalo/pênalti — ele precisa saber se a partida está PAUSADA esperando o
   // técnico, senão o relógio do reveal dispara com o jogo parado. Bug 14/08.)
+  useEffect(()=>{
+    const l=state.careerMatchInjury
+    if(l?.status==='resolvida'&&l.season===state.seasonNo&&l.round===round-1&&privateLeagueFinished)dispatch({type:'FINISH_MATCH_INJURY'})
+  },[privateLeagueFinished,state.careerMatchInjury,state.seasonNo,round,dispatch])
   // 🙈 ANTI-SPOILER: a artilharia, os gols por jogador (ex.: "Romário 3") e os
   // líderes de artilharia saem da rodada JÁ REVELADA — não da atual. Sem isto,
   // os gols da partida apareciam ANTES dela animar (a tabela já segurava, mas a
@@ -11572,9 +11588,11 @@ export function PyramidSeasonScreen() {
     return assinaGiroFeito(feito => { if (feito === giro) setGiroOk(giro) })
   }, [pend3d?.giro]) // eslint-disable-line react-hooks/exhaustive-deps
   const preparaCampo3D = (tipo: 'liga' | 'copa' | 'estreia', chave: string) => {
+    if(checarPreparo(tipo!=='copa'&&!chave.endsWith(':c')))return false
     const giro = `${state.seed}:${chave}:${++giroSeq.current}`
     setGiroOk(''); setPend3d({ tipo, chave, giro })
     pedeCameraDoMapa(mapa3dLiberado() ? 'abertura' : 'field2d', giro)
+    return true
   }
   // 🧭 21/11 (Diego: a Central pergunta em TODO jogo — a escolha vale pra UM jogo só): ida e volta são DOIS jogos. A volta ganha
   // chave própria (":v") e a fase PARA no apito da ida (copaPos === 90) até a nova escolha na Central — antes a volta começava
@@ -11774,24 +11792,32 @@ export function PyramidSeasonScreen() {
   const suspenso = evAtual && evAtual.season === state.seasonNo && evAtual.status === 'banco' && (evAtual.volta ?? 0) > round && evAtual.mgrId === youId ? evAtual : null
   // sorteia o causo da temporada ANTES de avançar a rodada (true = sorteou e trava;
   // o "1 por temporada" e a janela de rodadas moram no sorteio + na trava do store)
+  const abrirPreparoPendente=()=>{setPend3d(null);setEscolha2d('');setJogoOk('');escolheAba('elenco');requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelector('[data-evento-preparo]')?.scrollIntoView({block:'start',behavior:'auto'})))}
+  const registraEventoPreparo=(ev:EventoAtivo)=>{dispatch({type:'EVENTO_SET',evento:{...ev,momento:'preparacao'}});abrirPreparoPendente()}
   const maybeEvento = (): boolean => {
+    if(eventoPendente){abrirPreparoPendente();return true}
+    if(state.careerMatchInjury?.season===state.seasonNo&&state.careerMatchInjury.round===round&&state.careerMatchInjury.status==='programada')return false
     if (!eventosOn || (state.seasonNo ?? 1) < 2 || !mgrMe || seasonOver || copaPlaying) return false
     // 😓 LESÃO POR DESGASTE (12/09): fora o causo da temporada, todo jogo o 🥵/🚑
     // pode se machucar. Só quando NINGUÉM está fora/pendente/voltando (o jogo guarda
     // um causo por vez) e dentro da mesma janela de rodadas dos eventos.
-    const evAtivo = !!evAtual && evAtual.season === state.seasonNo && (evAtual.status === 'pendente' || (evAtual.status === 'banco' && round <= (evAtual.volta ?? 0) + 1))
+    const evAtivo = !!evAtual && evAtual.season === state.seasonNo && (evAtual.status === 'pendente' || (evAtual.status === 'banco' && round <= (evAtual.volta ?? 0) + 1) || (evAtual.status==='campo'&&round<=evAtual.round))
     if (condOn && condGas && condJogos && (!calendarioFisico || calendarioFisico[youId]?.includes(round)) && !evAtivo && round >= EVENTO_MIN_ROUND && round <= EVENTO_MAX_ROUND) {
       const d = sorteiaLesaoDesgaste({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI.filter(c => !c.fake), gas: condGas })
       if (d) {
-        const jogos = condJogos[d.card.id] ?? 0
-        const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: 'lesao', cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: historiaDesgaste(d.card.name, jogos + 1, state.seed ^ round), status: 'pendente', desgaste: true }
-        const reservas = mgrMe.squad.filter(c => c.pos === d.card.pos && !myXIids.has(c.id) && !c.fake)
+        const fase=faseDaLesao(state.seed,state.seasonNo??1,round)
+        if(privateLeagueClock&&state.motor2Desde!=null&&((state.seasonNo??1)>state.motor2Desde.season||round>=state.motor2Desde.round)&&fase.durante){
+          dispatch({type:'PLAN_MATCH_INJURY',injury:{season:state.seasonNo??1,round,mgrId:youId,cardId:d.card.id,minute:fase.minute,rodadas:d.rodadas,status:'programada'}})
+          return false
+        }
+        const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: 'lesao', cardId: d.card.id, club:d.card.club,year:d.card.year,nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: historiaLesaoPreparo(d.card.name,true,getLang()==='en'), status: 'pendente', desgaste: true }
+        const reservas = reservasDoEvento(base,myXI.map(c=>c.id),mgrMe.squad)
         if (!reservas.length) {
           const crRng = mulberry((state.seed ^ ((state.seasonNo ?? 1) * 104729) ^ (round * 7919) ^ 0xE1E27E) >>> 0)
-          dispatch({ type: 'EVENTO_SET', evento: { ...base, criaOptions: previewCriaNomes(state.criaNames ?? [], crRng, 3) } })
+          registraEventoPreparo({ ...base, criaOptions: previewCriaNomes(state.criaNames ?? [], crRng, 3) })
           return true
         }
-        dispatch({ type: 'EVENTO_SET', evento: base })
+        registraEventoPreparo(base)
         return true
       }
     }
@@ -11805,20 +11831,29 @@ export function PyramidSeasonScreen() {
     // própria mistura por temporada.
     const d = sorteiaEvento({ seed: state.seed, seasonNo: state.seasonNo ?? 1, round, xi: myXI as EventoCard[], squad: mgrMe.squad as EventoCard[], hist: state.eventoHist, avoidName: evAtual?.nome, gas: condGas ?? undefined })
     if (!d) return false
-    const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.historia, status: 'pendente', ...(d.variante ? { variante: d.variante } : {}) }
-    if (!d.reservas.length) {
+    const base: EventoAtivo = { season: state.seasonNo ?? 1, round, mgrId: youId, tipo: d.tipo, cardId: d.card.id, club:d.card.club,year:d.card.year,nome: d.card.name, pos: d.card.pos, rodadas: d.rodadas, historia: d.tipo==='lesao'?historiaLesaoPreparo(d.card.name,false,getLang()==='en'):d.historia, status: 'pendente', ...(d.variante ? { variante: d.variante } : {}) }
+    if (!reservasDoEvento(base,myXI.map(c=>c.id),mgrMe.squad).length) {
       // 🌱 SEM RESERVA na posição (Diego 13/08 — "malandrinho que joga só com 11" +
       // "era pra ter aparecido um banner, escolher 3 da base"): antes não travava
       // nada nenhum jogador; a 1ª correção subia um cria SOZINHO sem avisar. Agora
       // o banner abre normal (pendente) com 3 nomes gerados pro técnico escolher.
       const crRng = mulberry((state.seed ^ ((state.seasonNo ?? 1) * 104729) ^ 0xE1E27E) >>> 0)
       const opcoes = previewCriaNomes(state.criaNames ?? [], crRng, 3)
-      dispatch({ type: 'EVENTO_SET', evento: { ...base, criaOptions: opcoes } })
+      registraEventoPreparo({ ...base, criaOptions: opcoes })
       return true
     }
-    dispatch({ type: 'EVENTO_SET', evento: base })
+    registraEventoPreparo(base)
     return true
   }
+
+  const checarPreparo=(sortear=true)=>{if(eventoPendente){abrirPreparoPendente();return true}return sortear&&maybeEvento()}
+
+  useEffect(()=>{
+    if(!eventoPendente||eventoPendente.criaOptions?.length)return
+    const m=state.managers.find(m=>m.id===eventoPendente.mgrId);if(!m)return
+    const ids=lineupAt(careerLineup,m.id,round,m.squad,m.formation).map(c=>c.id)
+    if(ids.includes(eventoPendente.cardId)&&!reservasDoEvento(eventoPendente,ids,m.squad).length)dispatch({type:'EVENTO_PREPARAR_BASE',xi:ids})
+  },[eventoPendente,state.managers,careerLineup,round,dispatch])
 
   // ─── 🚨 CRISE FINANCEIRA (Diego 12/08, só carreira SOLO): quando o caixa
   // cruza uma barreira NOVA de -500 (-500, -1000, -1500...), o jogador de mais
@@ -12294,7 +12329,9 @@ export function PyramidSeasonScreen() {
   const minutoJogo=copaPlaying?cupMatchMinute(copaPos,cupLegIndex):(scoreClock.round===state.round?scoreClock.minute:-1)
   const liveInput=copaPlaying?cupLive?.initial:myMatch?.m2
   const liveEligible=copaPlaying?!!cupLive&&!cupLive.finished&&!!cupInput:!!myMatch?.m2&&!!myMatch.you&&privateLeagueClock&&!!stadiumMatch&&!done
-  const liveCanOpen=liveEligible&&!!liveInput&&!state.co2&&state.onlineMode!=='online'&&minutoJogo>0&&minutoJogo<89&&!(halftimeOpen&&halfMode)&&!(penaltyOpen&&penMode)
+  const retomarDecisoesAte=Math.max(0,...aoVivoMeu.map(x=>x.t))*93/90
+  const retomandoDecisoes=liveEligible&&minutoJogo>=0&&minutoJogo+.05<retomarDecisoesAte
+  const liveCanOpen=!retomandoDecisoes&&liveEligible&&!!liveInput&&!state.co2&&state.onlineMode!=='online'&&minutoJogo>0&&minutoJogo<89&&!(halftimeOpen&&halfMode)&&!(penaltyOpen&&penMode)
   const dadosSub=useMemo(()=>{
     if(!liveInput||!mgrMe)return null
     const base=liveInitialIds(liveInput,mgrMe),byId=new Map(mgrMe.squad.map(c=>[c.id,c])),ev=state.eventoTemporada
@@ -12306,6 +12343,14 @@ export function PyramidSeasonScreen() {
     return {emCampo:plan.ids.map(id=>byId.get(id)!),reservas:mgrMe.squad.filter(c=>!ids.has(c.id)&&!plan.left.has(c.id)&&!c.fake&&!blocked.has(c.id)),feitas,formation:plan.formation,formations,
       tatica:([...aoVivoMeu].reverse().find(x=>x.tactic)?.tactic??(copaPlaying?(liveInput.tatica[base.own]<0?'retranca':liveInput.tatica[base.own]>0?'ataque':'equilibrio'):tacAt(careerTactics,youId,curMatchIdx)))as Tac}
   },[liveInput,mgrMe,aoVivoMeu,minutoJogo>=45,state.eventoTemporada,state.careerTecnicos,state.careerFormacaoExtra,state.seasonNo,state.round,youId,careerTactics,curMatchIdx,copaPlaying])
+  const lesaoCarta=lesaoAguarda?mgrMe?.squad.find(c=>c.id===lesaoJogo?.cardId):undefined
+  const lesaoPlayers=useMemo(()=>{
+    if(!lesaoAguarda||!liveInput||!mgrMe)return null
+    const motor=novoMotor2(liveInput);motor.avancaAte(minutoJogo*90/93)
+    const nomes=new Set(motor.atl.filter(a=>a.lado===liveInitialIds(liveInput,mgrMe).own).map(a=>a.nome))
+    return mgrMe.squad.filter(c=>nomes.has(c.name))
+  },[lesaoAguarda,liveInput,mgrMe,minutoJogo])
+  useEffect(()=>{if(lesaoAguarda&&lesaoPlayers&&!lesaoPlayers.some(c=>c.id===lesaoJogo?.cardId))dispatch({type:'CANCEL_MATCH_INJURY'})},[lesaoAguarda,lesaoPlayers,lesaoJogo?.cardId,dispatch])
   const subPossivel=liveCanOpen&&!!dadosSub
   useEffect(()=>{if(subAberto&&!subPossivel)setSubAberto(false)},[subAberto,subPossivel])
   const gravaAoVivo=(extra:{sai?:string;entra?:string;tactic?:Tac;formation?:FormationKey})=>{
@@ -12710,6 +12755,9 @@ export function PyramidSeasonScreen() {
   // cena — uma vez por cena e por montagem do mapa (mesma regra da chegada do ônibus). Quem escreve a marca é o `renderCentral`.
   const [dealFocus,setDealFocus]=useState<string|undefined>()
   const [cenasLidas,setCenasLidas]=useState<string[]>(lerCenasLidas)
+  const [reverCena,setReverCena]=useState(false)
+  const cenaAtivaRef=useRef(''),cenaAtivaScopeRef=useRef('')
+  useEffect(()=>{if(tab!=='central'){if(cenaAtivaRef.current&&tab!=='estadio')pedeVistaDoMapa('original');cenaAtivaRef.current='';setReverCena(false)}},[tab])
   const sedeVistaRef = useRef(''), sedeVistaFeita = useRef('')
   useEffect(() => {
     const marca = sedeVistaRef.current
@@ -12719,7 +12767,7 @@ export function PyramidSeasonScreen() {
     if (sedeVistaFeita.current === feita) return
     sedeVistaFeita.current = feita
     const vista = marca.split('|')[1]
-    window.setTimeout(() => { if (sedeVistaRef.current === marca) pedeVistaDoMapa(`cena:${vista}`) }, 600) // (sem limpar na saída: o efeito roda a cada desenho e o pedido se confere sozinho)
+    window.setTimeout(() => { if (sedeVistaRef.current === marca) pedeVistaDoMapa(vista) }, 80) // (sem limpar na saída: o efeito roda a cada desenho e o pedido se confere sozinho)
   })
   useEffect(() => { if (!chegando || manual) return; const t = setTimeout(() => setChegadaFeita(chegadaKey), CAL_MS_POR_DIA); return () => clearTimeout(t) }, [chegando, manual, chegadaKey])
   // ⚽ o fim dos seus 2 últimos jogos (só no Jogos, com a semana passando — nunca durante a animação: anti-spoiler)
@@ -13350,10 +13398,10 @@ export function PyramidSeasonScreen() {
       rotulo={prox ? (copaNaSemana && meNaFaseCopa ? tr('Copa', 'Cup') : `${tr('Rodada', 'Round')} ${rProx}`) : ''} onPular={vaiProJogo} onProximo={proximoAdv} semPular={(naCentral && (!fluxoCentral || centralDireta)) || (copaMinhaNaSemana && calI >= CAL_QUARTA) || (calI >= calFim && !(copaPendente && calI < CAL_QUARTA))}
       irJogo={!fluxoCentral && diaDoJogoNaCentral ? () => { setJogoOk(chaveCentral); escolheAba('jogos') } : undefined}
       escolha={fluxoCentral && diaDoJogoNaCentral ? {
-        d2: () => { chegaNoAuto(); ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') },
-        rapido: () => { chegaNoAuto(); ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') }, // ⚡ 20/11: placar rápido (o placar cinema), na aba Jogos
+        d2: () => { if(checarPreparo(!chaveCentral.endsWith(':c')))return;chegaNoAuto(); ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') },
+        rapido: () => { if(checarPreparo(!chaveCentral.endsWith(':c')))return;chegaNoAuto(); ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCentral); escolheAba('jogos') }, // ⚡ 20/11: placar rápido (o placar cinema), na aba Jogos
         // 🏟️ 3D: apresenta o estádio antes do apito, sem depender da montagem da partida.
-        d3: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('liga', chaveCentral); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
+        d3: () => { if(checarPreparo(!chaveCentral.endsWith(':c')))return;ligaCampo2D(false); setDaCentral(true); if(!preparaCampo3D('liga', chaveCentral))return; setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) },
       } : null} /> : null
     // 📺 24-25/10 (Diego, duas vezes: *"a faixa fina não saiu do topo da Central"*): a Central NUNCA tem a faixa do calendário —
@@ -13381,9 +13429,10 @@ export function PyramidSeasonScreen() {
   // 🧭 19/11 (Diego: "faça tb"): no fluxo novo a ESTREIA da temporada também pergunta 📺 2D ou 🏟️ 3D (o resto dos jogos já pergunta na Central)
   const estreiaEscolhe = fluxoCentral && round === 0 && decisoesOk && !estadualPendente
   const comecaEstreia = (d3: boolean, rapido = false) => {
+    if(checarPreparo())return
     ligaCampo2D(!d3 && !rapido) // ⚡ 20/11: placar rápido = sem 2D, na aba Jogos
     if (!d3) { chegaNoAuto(); if (!maybeEvento()) { dispatch({ type: 'PLAY_ROUND' }); escolheAba('jogos') } return }
-    setDaCentral(true); preparaCampo3D('estreia', `${state.seasonNo ?? 1}:estreia`); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
+    setDaCentral(true); if(!preparaCampo3D('estreia', `${state.seasonNo ?? 1}:estreia`))return; setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
     setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
   }
   // 🛑 26/10 (3º print: *"continua aparecendo esse modal que eu disse que não quero"*): NADA de janela por cima. Chegou o dia, a
@@ -13747,12 +13796,13 @@ export function PyramidSeasonScreen() {
     }
     const preparo=passoPreparacao[passosVirada.passos[0]]
     const botao = (() => {
+      if(eventoPendente)return {label:tr('🩹 Resolver desfalque no Elenco →','🩹 Settle the absence in Squad →'),sub:tr('Escolha o substituto antes de entrar na partida.','Choose the replacement before entering the match.'),onClick:abrirPreparoPendente}
       if (criseTrava) return { label: tr('🚪 Escolher substituto →','🚪 Choose a replacement →'), sub: tr('O jogo aguarda uma decisão sobre o elenco. Abra Jogos para resolver quem entra.','The match awaits a squad decision. Open Matches to choose a replacement.'), onClick: vai('jogos') }
       if (halfMode && !halftimeDone && (halftimeOpen||roundReady)) return { label: tr('⏸️ Resolver intervalo →','⏸️ Resolve half-time →'), sub: tr('Confirme o time do segundo tempo para continuar a partida.','Confirm your second-half team to continue.'), onClick: avancarRodada }
       if (penMode && !penaltyDone && (penaltyOpen||roundReady)) return { label: tr('⚽ Cobrar pênalti →','⚽ Take penalty →'), sub: tr('A partida aguarda sua cobrança em Jogos.','The match awaits your penalty in Matches.'), onClick: avancarRodada }
       if (copaSegura) return { label: tr('📺 Jogar no Campo 2D', '📺 Play on the 2D pitch'), sub: tr(`${copaFaseName}${copaVolta ? ' · jogo de volta' : ''} · 2D e placar rápido abrem na aba Jogos · 3D abre no estádio do mapa`, `${copaFaseName}${copaVolta ? ' · second leg' : ''} · 2D and quick scoreboard open in Matches · 3D opens in the map stadium`), onClick: () => { chegaNoAuto(); ligaCampo2D(true); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') },
         alt2: { label: tr('⚡ Jogar no placar rápido', '⚡ Play on the quick scoreboard'), onClick: () => { chegaNoAuto(); ligaCampo2D(false); setJogo3d(false); setEscolha2d(chaveCopa); escolheAba('jogos') } },
-        alt: { label: tr('🏟️ Jogar no Campo 3D', '🏟️ Play on the 3D pitch'), onClick: () => { ligaCampo2D(false); setDaCentral(true); preparaCampo3D('copa', chaveCopa); setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
+        alt: { label: tr('🏟️ Jogar no Campo 3D', '🏟️ Play on the 3D pitch'), onClick: () => { ligaCampo2D(false); setDaCentral(true); if(!preparaCampo3D('copa', chaveCopa))return; setClubeSub('estadio'); escolheAba('estadio') /* 🏟️ 20/11: o giro do estádio JÁ na chegada; o jogo começa no ▶ */
           setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400) } } }
       if (copaPlaying) return { label: myCopaTie ? (copaPronta ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr(`🏆 Jogo da ${compNomeAgora[0]} rolando — assistir`, `🏆 ${compNomeAgora[1]} match live — watch`)) : tr(`🏆 Assistir a ${compNomeAgora[0]}`, `🏆 Watch the ${compNomeAgora[1]}`), sub: tr('o controle do jogo está em Jogos', 'the match controls are in Matches'), onClick: vai('jogos') }
       if (intlNoAr) return { label: compProximo ? tr('🌎 Jogar a noite internacional', '🌎 Play the international night') : tr('🌎 Abrir o futebol internacional', '🌎 Open international football'), sub: tr('em Jogos, no passo da competição', 'in Matches, at the competition step'), onClick: vai('jogos') }
@@ -13775,26 +13825,40 @@ export function PyramidSeasonScreen() {
     const evSede=evAtual&&evAtual.season===sn&&evAtual.mgrId===youId&&evAtual.tipo==='noitada'&&(evAtual.status==='banco'?(evAtual.volta??0)>round:evAtual.status==='campo'&&evAtual.round===round)?evAtual:null
     const ultimoSede=roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg,rival:(state.careerRivals??[]).some(r=>newestTeamName(r.team)===newestTeamName(myMatch.hId===youId?myMatch.a:myMatch.h))}:null
     const festaSede=carreataAtiva(state,youId)
-    const todasCenasSede=previa&&stadiumMapAvailable&&(!novaCentral||round>0||festaSede)?cenasDoBairro({
-      chave:`${state.seed}:${sn}:${round}`,temporada:sn,rodada:round,clube:euNome,t:tr,
+    const todasCenasSede=previa&&stadiumMapAvailable&&!chegadaGrande&&(!novaCentral||round>0||festaSede)?cenasDoBairro({
+      viagem:copaPlaying&&myCopaTie&&copaFase&&/final/i.test(copaFase.name)?{id:`${sn}:${copaRound}:${cupLiveKey}`,adversario:myCopaTie.a.teamId===youId?myCopaTie.b.name:myCopaTie.a.name,fase:copaFase.name}:undefined,fatos:mgrMe?fatosDoBairro(state,mgrMe,roundReady&&!!myMatch):[],chave:`${state.seed}:${sn}:${round}`,carreiraKey:`${state.seed}:${youId}`,tituloId:(()=>{const t=round===0?sn-1:sn,cr=state.careerCronica?.[`m${youId}`]?.find(x=>x.t===t),intl=(state.careerInternationalHistory??[]).filter(x=>x.season===t&&(x.userClubId===youId||x.userClubId===undefined&&x.userTeam===euNome));return `${t}:${cr?.campeao??0}:${cr?.copa??0}:${cr?.sup??0}:${intl.map(x=>`${x.libertadores}-${x.champions}-${x.mundial}`).join('-')}`})(),temporada:sn,rodada:round,clube:euNome,t:tr,
       imagens:{estadio:estadioNoite,clube:sedeClube,noite:sedeNoite,carreata:sedeCarreata,obra:sedeObra,festa:sedeBotecoFesta,triste:sedeBotecoTriste,feira:sedeFeira},
       estreia:novaCentral&&estreiaCasa&&chegando?{estadio:estadioDoClube(euNome).nome,adversario:estreiaCasa.adv}:undefined,
-      carreata:festaSede,evento:evSede,obras:obrasEmCanteiro(state.stadiums?.[youId],sn,round),ultimo:ultimoSede,
-      recorde:(()=>{const r=state.careerMemory?.[youId]?.biggest;return r&&r.season===sn&&myMatch?.m2?.partidaId===r.id&&r.gf-r.ga>=3?{gf:r.gf,ga:r.ga,adversario:r.opponent}:undefined})(),
+      carreata:festaSede,evento:evSede?{...evSede,club:mgrMe?.squad.find(c=>c.id===evSede.cardId)?.club,year:mgrMe?.squad.find(c=>c.id===evSede.cardId)?.year,origemRodada:evSede.round}:null,obras:obrasEmCanteiro(state.stadiums?.[youId],sn,round),ultimo:ultimoSede,
+      recorde:(()=>{const r=state.careerMemory?.[youId]?.biggest;return r&&r.season===sn&&myMatch?.m2?.partidaId===r.id&&r.gf-r.ga>=4?{id:r.id,gf:r.gf,ga:r.ga,adversario:r.opponent}:undefined})(),
       saida:(()=>{const d=[...(state.careerTransferHistory??[])].reverse().find(d=>d.from===euNome&&d.team!==euNome&&d.season===sn&&d.round===round);return d?{nome:d.name,destino:d.team,valor:d.paid}:undefined})(),
+      vendas:(()=>{const v=state.careerLoja?.[youId]?.balanco,prev=state.careerNeighborhood?.[youId]?.sales.filter(x=>v&&x.season<v.season).at(-1);return v?{season:v.season,camisas:v.camisas,anterior:prev?.count}:undefined})(),
       desfecho:done&&copaFinished?desfecho:null,feira:!novaCentral&&calBarra?.hoje!=null&&new Date(calBarra.hoje).getUTCDay()===6,
     }):[]
-    const cenasSede=todasCenasSede.filter(c=>!cenasLidas.includes(c.chave))
-    const sede=cenasSede[0]??null
-    const lerCena=(todas=false)=>setCenasLidas(prev=>guardarCenasLidas([...prev,...(todas?cenasSede:sede?[sede]:[]).map(c=>c.chave)]))
-    sedeVistaRef.current = tab === 'central' && sede?.vista && !chegadaGrande ? `${sede.chave}|${sede.vista}` : ''
+    const diario=state.careerNeighborhood?.[youId],scopeCena=`${state.seed}:${sn}:${round}`
+    if(cenaAtivaScopeRef.current!==scopeCena){cenaAtivaScopeRef.current=scopeCena;cenaAtivaRef.current=''}
+    const cenasSede=todasCenasSede.filter(c=>!cenasLidas.includes(c.chave)&&cenaPodeAparecer(c,diario,sn,round))
+    const sede=(reverCena?todasCenasSede[0]:todasCenasSede.find(c=>c.chave===cenaAtivaRef.current&&!cenasLidas.includes(c.chave))??cenasSede[0])??null
+    if(sede)cenaAtivaRef.current=sede.chave
+    const registrarCena=()=>{if(sede)dispatch({type:'MARK_NEIGHBORHOOD_SCENE',mgrId:youId,key:sede.chave,kind:sede.acao,group:sede.grupo})}
+    const lerCena=(_todas=false,noMapa=false)=>{
+      registrarCena();cenaAtivaRef.current=''
+      if(sede)setCenasLidas(prev=>guardarCenasLidas([...prev,sede.chave]))
+      setReverCena(false)
+      if(!noMapa)pedeVistaDoMapa('original')
+    }
+    sedeVistaRef.current = tab === 'central' && sede?.vista && !chegadaGrande ? `${sede.chave}|${pedidoCena(sede.vista,sede.chave,sede.acao,reverCena,false,sede.ator)}` : ''
     const sedeNoMapa = (vista?: string) => {
-      if (vista) pedeVistaDoMapa(`cena:${vista}`)
+      if (vista&&sede){lerCena(false,true);pedeVistaDoMapa(pedidoCena(vista,sede.chave,sede.acao,false,false,sede.ator))}
       if (fluxoCentral) setDaCentral(true) // 🧭 no mapa aparece o "← Voltar pra Central"
       setClubeSub('estadio'); escolheAba('estadio')
       setTimeout(() => (document.querySelector('[data-voltar-central]') ?? document.querySelector('[data-presidencia-complexo-carreira]'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
     }
-    return <CentralCarreira pendingDecision={criseTrava||(halfMode&&!halftimeDone&&(halftimeOpen||roundReady))||(penMode&&!penaltyDone&&(penaltyOpen||roundReady))||(round===0&&!decisoesOk&&!copaPlaying)} onSedeRever={todasCenasSede.some(c=>cenasLidas.includes(c.chave))?()=>{try{localStorage.removeItem('esc-sede-fechada')}catch{};setCenasLidas(prev=>guardarCenasLidas(prev.filter(k=>!todasCenasSede.some(c=>c.chave===k))))}:undefined} direta={centralDireta} avisos={avisosCentral.length ? avisosCentral[0] : undefined} sede={sede} sedeQuantidade={cenasSede.length} onSedeSeguir={()=>lerCena()} onSedePularTodos={()=>lerCena(true)} sedeJanela={sede?.vista && !chegadaGrande ? <VagaDoMapa /> : undefined} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} janelaNova={jnOn} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
+    return <CentralCarreira pendingDecision={!!eventoPendente||criseTrava||(halfMode&&!halftimeDone&&(halftimeOpen||roundReady))||(penMode&&!penaltyDone&&(penaltyOpen||roundReady))||(round===0&&!decisoesOk&&!copaPlaying)} onSedeRever={todasCenasSede.some(c=>cenasLidas.includes(c.chave)||diario?.seen.some(v=>v.id===c.chave))?()=>{
+      try{localStorage.removeItem('esc-sede-fechada')}catch{}
+      pedeVistaDoMapa('original');prepararRepeticaoCena(todasCenasSede[0].chave);setReverCena(true)
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{const el=Array.from(document.querySelectorAll('[data-neighborhood-preview]')).find(el=>el.getClientRects().length>0);el?.closest('.ll-c-sede')?.scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}))
+    }:undefined} sedeReverAtivo={reverCena} direta={centralDireta} avisos={avisosCentral.length ? avisosCentral[0] : undefined} sede={sede} sedeQuantidade={cenasSede.length} onSedeAssistiu={registrarCena} onSedeSeguir={()=>lerCena()} onSedePularTodos={()=>lerCena(true)} sedeJanela={sede?.vista && !chegadaGrande ? <VagaDoMapa /> : undefined} onSedeMapa={sedeNoMapa} onClubDestination={target=>{setTab('estadio');setClubeSub(target==='agencia'&&!agenciaOk?'escritorio':target)}} janela={round >= 33 && !state.co2 && !state.roomId && state.onlineMode !== 'online'} janelaNova={jnOn} coletiva={coletivaCentral} seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximoCentral)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       preTemporada={novaCentral && round === 0 && !seasonOver && !copaPlaying ? {
         master: masterOk ? (masterBrandAtual?.name ?? tr('assinado', 'signed')) : null,
         travado: !decisoesOk,
@@ -13821,6 +13885,13 @@ export function PyramidSeasonScreen() {
     context: { ...stadiumMatch, tituloDivisao: divFesta }, officialTeams: [myMatch.h, myMatch.a], minute: 93, period: 2, homeScore: myMatch.hg, awayScore: myMatch.ag, paused: true, finished: true,
     homeColor: myMatch.hId === youId ? myCol.solid : colors?.[myMatch.hId]?.solid ?? '#3A7CA5', awayColor: myMatch.aId === youId ? myCol.solid : colors?.[myMatch.aId]?.solid ?? '#C2452F' } : undefined
   const mapaDoClube = !presidentPending && stadiumMapAvailable ? <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje,...lotacaoHoje}}><><PresidenciaEstadioCamera onReady={api=>{clubeMapaApi.current=api;setMapaProntoN(n=>n+1);if(import.meta.env.DEV){const w=window as unknown as {__mapaApi?:unknown;__mapaReady?:number};w.__mapaApi=api;w.__mapaReady=(w.__mapaReady??0)+1}}} onOpenClub={mapaComoClube?abrirDestinoNoMapa:undefined} homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,cidade:{ultimoJogo:roundReady&&myMatch?{gf:myMatch.hId===youId?myMatch.hg:myMatch.ag,ga:myMatch.hId===youId?myMatch.ag:myMatch.hg}:null,cor:myCol.solid,cor2:myCol.light,...(calBarra?{dia:calBarra.hoje,...(calBarra.hora!==undefined?{hora:calBarra.hora}:{})}:{})},...(chegadaProx?{agenda:chegadaProx,arrivalTeams:(preJogoCidade??(chegadaGrande?preJogoAba:null))?.arrivalTeams,journeyPhase:'arrival' as const}:{}),replayMatch:(done||roundReady)&&myMatch?.m2&&stadiumMatch?{state:{context:{...stadiumMatch,home:myMatch.m2.casa.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake})),away:myMatch.m2.fora.map((c,i)=>({id:String(i),name:c.name,pos:c.pos??'',fake:c.fake}))},officialInput:myMatch.m2,officialTeams:[myMatch.h,myMatch.a],minute:0,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:myMatch.hId===youId?myCol.solid:colors?.[myMatch.hId]?.solid??'#3A7CA5',awayColor:myMatch.aId===youId?myCol.solid:colors?.[myMatch.aId]?.solid??'#C2452F'},goals:myMatch.goals,minuteMs:Math.max(400,roundMs*.82)/93}:undefined,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje,...lotacaoHoje},...(festaTitulo?{festaTitulo}:{})}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio> : undefined
+  const renderEventoPendente=()=>{
+    if(!eventoPendente)return null
+    const evMgr=state.managers.find(m=>m.id===eventoPendente.mgrId);if(!evMgr)return null
+    const ids=lineupAt(careerLineup,evMgr.id,round,evMgr.squad,evMgr.formation).map(c=>c.id)
+    const escalaOk=escalaIntegraPreparo(ids,evMgr.squad,evMgr.formation),resolvido=escalaSemLesionado(eventoPendente,ids,evMgr.squad,evMgr.formation),reservas=reservasDoEvento(eventoPendente,ids,evMgr.squad)
+    return <div data-evento-preparo style={{scrollMarginTop:90}}><p style={{...OSWALD,fontWeight:800,fontSize:12,background:INK,color:'#F4ECD6',padding:'7px 10px',borderRadius:10}}>{(eventoPendente.momento==='partida'?tr('Após a lesão · prepare o próximo jogo no Elenco','After the injury · prepare the next match in Squad'):tr('Antes da partida · resolva o desfalque no Elenco','Before kickoff · settle the absence in Squad'))} · {evMgr.teamName}</p>{!escalaOk?<p role="alert">{tr('Complete a escalação com 11 jogadores nas posições da formação antes de confirmar. Use Formação e Comissão e base aqui no Elenco.','Complete the lineup with 11 players in the formation’s positions before confirming. Use Formation and Staff and academy here in Squad.')}</p>:!reservas.length&&eventoPendente.criaOptions&&!resolvido?<EventoSemReservaBanner ev={eventoPendente} onEscolher={nome=>dispatch({type:'EVENTO_DECIDE_CRIA',nome,xi:ids})} onCampo={eventoPendente.tipo==='noitada'?()=>dispatch({type:'EVENTO_DECIDE',escolha:'campo',xi:ids}):undefined}/>:<EventoBanner ev={eventoPendente} resolvido={resolvido} reservas={reservas} onDecide={(escolha,subId)=>dispatch({type:'EVENTO_DECIDE',escolha,subId,xi:ids})}/>}</div>
+  }
   const renderEstruturaDoClube=(insidePanel=false,business=false)=> (
           <>
             {/* 🤝 Patrocínio por aposta (05/08): a ESCOLHA acontece no banner de início
@@ -14142,6 +14213,11 @@ export function PyramidSeasonScreen() {
     <RitmoCampoProvider enabled={presidentAvailable&&state.onlineMode!=='online'} speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}>
     <MapaGuardado mapa={mapaDoClube}>
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}${visualV2 ? ` cv2-root cv2-career cv2-view-${tab}${areaVista === 'tabela' ? ' cv2-focus-table' : ''}${subAberto&&subPossivel&&tab==='jogos'?' cv2-substitution-open':''}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+      {lesaoAguarda&&lesaoCarta&&lesaoPlayers?.some(c=>c.id===lesaoCarta.id)&&dadosSub&&<LesaoAoVivo key={`${lesaoJogo?.season}:${lesaoJogo?.round}`} card={lesaoCarta} minute={minutoJogo} used={dadosSub.feitas.length} players={lesaoPlayers} reservas={dadosSub.reservas.filter(c=>c.pos===lesaoCarta.pos)} onConfirm={(entra,keeper)=>{
+        if(!liveInput)return
+        dispatch({type:'SET_AO_VIVO',mgrId:youId,round:curMatchIdx,initial:liveInput,aoVivo:[...aoVivoMeu,{t:Math.max(lesaoJogo!.minute*90/93,instanteDaTroca(round,minutoJogo)),sai:lesaoCarta.id,entra,injury:true,emergencyKeeper:keeper}]})
+        setSubAberto(false)
+      }}/>}
       {visualV2 && <CareerBrand club={state.managers[state.youIdx]?.teamName ?? ''} />}
       <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
       <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
@@ -14233,7 +14309,7 @@ export function PyramidSeasonScreen() {
           const p3 = pend3d
           // 🧯 22/11: causo, lesão ou crise seguram a rodada? o toque NÃO gasta a escolha do 3D (antes o ▶ sumia e o jogo não começava):
           // leva pra aba Jogos, onde o aviso aparece pra resolver; depois é só escolher o 3D de novo na Central.
-          if (p3.tipo !== 'copa' && !p3.chave?.endsWith(':c') && (criseTrava || eventoPendente || maybeEvento())) { escolheAba('jogos'); return }
+          if (p3.tipo !== 'copa' && !p3.chave?.endsWith(':c') && (criseTrava || checarPreparo())) { if(criseTrava)escolheAba('jogos');return }
           setPend3d(null); setJogo3d(true)
           viu3d.current = true
           if (p3.tipo === 'estreia') { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } else if (p3.tipo === 'copa') setCopaOk(p3.chave); else { setJogoOk(p3.chave); if (!p3.chave.endsWith(':c')) avancarRodada(true) /* 🧭 21/11: a escolha do 3D vale pra ESTE jogo */ }
@@ -14460,6 +14536,7 @@ export function PyramidSeasonScreen() {
             <button type="button" aria-label={tr('Fechar', 'Close')} onClick={() => { fechaAviso(pm.chave); setPremiosFechados(v => [...v, pm.chave]) }} style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, fontWeight: 900, padding: '4px 9px', cursor: 'pointer' }}>✕</button>
           </div>
         ))}
+        {tab==='jogos'&&retomandoDecisoes&&<p data-live-replay-status role="status" style={{fontSize:13,padding:'8px 10px',borderRadius:10,background:'#F4ECD6',color:INK}}>{tr(`Retomando a partida salva. Você poderá mudar o time de novo aos ${Math.ceil(retomarDecisoesAte)}′.`,`Resuming your saved match. You can change the team again at ${Math.ceil(retomarDecisoesAte)}′.`)}</p>}
         {!done && !copaPlaying && !(calOn && calFase === 'dias') && myMatch && me && <AbaixoDosGolsCtx.Provider value={jogoTabela && tab === 'jogos' ? (subAberto && subPossivel ? painelSub('embaixo') : <><ManualChipPlacar /><div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 14, padding: '2px 10px 10px', margin: '8px 0' }}>{subPossivel ? <div className={visualV2?'cv2-match-actions':undefined}><BotaoSubstituir usadas={dadosSub?.feitas.length ?? 0} onClick={() => setSubAberto(true)} />{visualV2&&<button type="button" onClick={()=>setSubAberto(true)}>⚔️ {tr('Táticas','Tactics')}</button>}{!visualV2&&taticaBotoes}</div> : taticaBotoes}</div></>) : null}><PlacarQueEncolhe pausado={pausaCentral || subAberto} stadiumMatch={copaPlaying?undefined:stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} /></AbaixoDosGolsCtx.Provider>}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
@@ -14484,22 +14561,7 @@ export function PyramidSeasonScreen() {
           // escolha. Elenco/XI vêm do clube DO EVENTO (ev.mgrId): se o técnico
           // trocar de clube (multiclube) com o banner aberto, a decisão segue no
           // clube certo.
-          if (eventoPendente) fila.push({
-            key: 'evento', render: () => {
-              const evMgr = state.managers.find(m => m.id === eventoPendente.mgrId)
-              if (!evMgr) return null
-              const evXI = lineupAt(careerLineup, eventoPendente.mgrId, round, evMgr.squad, evMgr.formation)
-              const evXIids = new Set(evXI.map(c => c.id))
-              if (eventoPendente.criaOptions) {
-                return <EventoSemReservaBanner ev={eventoPendente}
-                  onEscolher={nome => dispatch({ type: 'EVENTO_DECIDE_CRIA', nome, xi: evXI.map(c => c.id) })}
-                  onCampo={eventoPendente.tipo === 'noitada' ? () => dispatch({ type: 'EVENTO_DECIDE', escolha: 'campo', xi: evXI.map(c => c.id) }) : undefined} />
-              }
-              return <EventoBanner ev={eventoPendente}
-                reservas={evMgr.squad.filter(c => c.pos === eventoPendente.pos && !evXIids.has(c.id))}
-                onDecide={(escolha, subId) => dispatch({ type: 'EVENTO_DECIDE', escolha, subId, xi: evXI.map(c => c.id) })} />
-            },
-          })
+          if(eventoPendente&&tab!=='elenco')fila.push({key:'evento',render:renderEventoPendente})
           // 🚨 CRISE FINANCEIRA: o melhor jogador do elenco avisa que vai embora
           // (caixa cruzou uma barreira nova de -500) — trava até o técnico
           // escolher quem entra no lugar, de graça.
@@ -15565,6 +15627,8 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'elenco' ? (
           <>
+            {renderEventoPendente()}
+            {!eventoPendente&&evAtual?.momento==='preparacao'&&evAtual.round===round&&<button type="button" onClick={()=>escolheAba('central')} style={{...OSWALD,padding:10,marginBottom:12,border:`2px solid ${INK}`,borderRadius:10,background:GOLD,color:INK}}>{tr('✓ Preparação resolvida · voltar à Central','✓ Preparation settled · back to the hub')}</button>}
             <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
                 fica AQUI no topo do elenco (era na aba Jogos). 25/10: na conta do Diego (Jogos + Tabela) ela entra no cartão

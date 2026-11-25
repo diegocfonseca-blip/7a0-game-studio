@@ -27,7 +27,7 @@ const modelURLs=Object.freeze({
  Fuller_Woman:new URL('./assets/Fuller_Woman.glb',import.meta.url).href,
 });
 const load=file=>{const url=modelURLs[file];if(!url)return Promise.reject(Error('Modelo civil indisponível: '+file));if(!cache.has(file))cache.set(file,loader.loadAsync(url).catch(e=>{cache.delete(file);throw e}));return cache.get(file)};
-export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor,deferUntilVisible=false,occupation}={}){
+export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor,deferUntilVisible=false,occupation,poseFPS=30}={}){
  const spec=CIVILIAN_VARIANTS.find(v=>v.id===variant)??CIVILIAN_VARIANTS[hash(id)%CIVILIAN_VARIANTS.length];
  const root=new T.Group();root.name='civilian-'+id;parent.add(root);const physical=new T.Group();physical.name='civilian-metres';root.add(physical);
  let disposed=false,source,failed=false,resolveReady,model,mixer,actions,footMeshes=[],height=0,last=null,poseUpdates=0,errors=[],lastPose=-Infinity;
@@ -62,6 +62,7 @@ export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor
  }
  const fail=error=>{failed=true;errors.push(String(error));resolveReady(false)};
  load(spec.file).then(gltf=>{if(disposed){resolveReady(false);return}source=gltf;if(!deferUntilVisible||(last&&last.visible!==false))try{instantiate(gltf)}catch(error){fail(error)}}).catch(fail);
+ const additions=[];
  function apply(frame,force=false){last={...frame};root.visible=frame.visible!==false;
   if(!model&&source&&root.visible&&!disposed&&!failed)try{instantiate(source)}catch(error){fail(error)}
   if(!model||!root.visible||disposed)return;
@@ -75,11 +76,28 @@ export function createCivilian(parent,{id='civilian',variant,onReady,outfitColor
   const weight=chosen&&!seatedBlend?(gesture==='Walk_Carry'?1:Math.min(T.MathUtils.smoothstep(gestureTime,0,.22),1-T.MathUtils.smoothstep(gestureTime,duration-.22,duration))):0;
   actions.Idle.weight*=1-weight;actions.Walk.weight*=1-weight;
   for(const name of ['Walk_Carry','PickUp','Victory'])if(actions[name]){actions[name].weight=name===gesture?weight:0;actions[name].time=name==='Walk_Carry'?moving?(((frame.distance??0)/(spec.height*.66))%1+1)%1*duration:0:Math.min(gestureTime,duration)}
-  if(force||seconds<lastPose||seconds-lastPose>=1/(frame.detail==='far'?6:frame.detail==='intermediate'?12:30)){
+  if(force||seconds<lastPose||seconds-lastPose>=1/Math.min(Math.max(6,Math.min(30,poseFPS)),frame.detail==='far'?6:frame.detail==='intermediate'?12:30)){
    actions.Idle.time=seconds%actions.Idle.getClip().duration;
    actions.Walk.time=(((frame.distance??0)/(spec.height*.66))%1+1)%1*actions.Walk.getClip().duration;
    actions.SitDown.time=actions.SitDown.getClip().duration*seated;actions.StandUp.time=actions.StandUp.getClip().duration*(1-seated);
-   mixer.update(0);physical.position.set(0,0,0);updateWorld();root.getWorldPosition(origin);
+   additions.forEach(([bone,q])=>bone.quaternion.copy(q));additions.length=0;
+   mixer.update(0);
+   const turn=(name,x=0,y=0,z=0)=>{const bone=model.getObjectByName(name);if(!bone)return;additions.push([bone,bone.quaternion.clone()]);bone.rotateX(x);bone.rotateY(y);bone.rotateZ(z)};
+   if(frame.activity==='dancing'){
+    const beat=seconds*5.3,sway=Math.sin(beat)*.14;
+    turn('Torso',0,Math.sin(beat*.5)*.16,sway);turn('Head',Math.sin(beat)*.08,Math.sin(beat*.5)*.16,0);
+    turn('UpperArm.L',-.55,0,-.45-Math.sin(beat)*.2);turn('UpperArm.R',-.55,0,.45+Math.sin(beat+.8)*.2);
+    turn('LowerArm.L',-.7-Math.sin(beat)*.25);turn('LowerArm.R',-.7+Math.sin(beat)*.25);
+    turn('UpperLeg.L',Math.max(0,Math.sin(beat))*.22);turn('UpperLeg.R',Math.max(0,-Math.sin(beat))*.22);
+   }else if(frame.activity==='footvolley'||frame.activity==='training'){
+    const hit=Math.max(0,Math.sin(Math.PI*Math.min(1,Math.max(0,frame.activityTime??0))));
+    turn('UpperLeg.R',-hit*1.15);turn('LowerLeg.R',hit*.25);turn('Torso',hit*.12);turn('UpperArm.L',0,0,-hit*.3);turn('UpperArm.R',0,0,hit*.35);
+   }else if(frame.activity==='recovering'){
+    turn('Torso',.08,Math.sin(seconds*1.1)*.1);turn('Head',.15);turn('UpperArm.L',-1.1,0,-.22);turn('UpperArm.R',-.8,0,.1);turn('LowerArm.L',-.9);turn('LowerArm.R',-.9);
+   }else if(frame.activity==='presenting'){
+    turn('UpperArm.L',-.9,0,-.3);turn('UpperArm.R',-.9,0,.3);turn('LowerArm.L',-.3);turn('LowerArm.R',-.3);
+   }
+   physical.position.set(0,0,0);updateWorld();root.getWorldPosition(origin);
    const hip=model.getObjectByName('Hips');if(hip){const local=root.worldToLocal(hip.getWorldPosition(new T.Vector3()));physical.position.x=-local.x;physical.position.z=-local.z;updateWorld()}
    let low=Infinity;for(const {mesh,indices}of footMeshes){mesh.skeleton.update();for(const index of indices)low=Math.min(low,mesh.getVertexPosition(index,point).applyMatrix4(mesh.matrixWorld).y)}
    if(Number.isFinite(low))physical.position.y=origin.y-low+.002;

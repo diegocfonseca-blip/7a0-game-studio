@@ -190,6 +190,10 @@ export interface EmpCard {
 // da rodada até o técnico decidir (regras completas no comentário do EscState).
 export type EventoTipo = 'noitada' | 'expulsao' | 'lesao'
 export interface EventoAtivo {
+  /** New events are settled in Squad before selecting a match presentation. */
+  momento?: 'preparacao' | 'partida'
+  club?:string
+  year?:number
   season: number   // temporada do evento (marca o "1 por temporada")
   round: number    // rodada (0-based) em que apareceu — o jogo que AINDA vai rolar
   mgrId: number    // clube do evento (o ativo na hora — multiclube não mistura)
@@ -933,6 +937,8 @@ export interface EscState {
   careerSubMode?: 'dinamico' | 'intervalo' // 🔁 SÓ CARREIRA OFFLINE (Diego 12/08): como o técnico faz troca. 'dinamico' (padrão) = como sempre foi (troca vale pro PRÓXIMO jogo, sem pausa). 'intervalo' = o jogo PARA aos 45' e abre o banner pra trocar SÓ pro 2º tempo. Preferência do técnico, NÃO zera entre temporadas.
   /** 🧯 22/11: quando o técnico LIGOU o "só no intervalo" (temporada + rodada). O modo vale do jogo SEGUINTE — ligar entre dois jogos fazia o jogo já apitado esperar um intervalo que nunca viria. */
   careerSubModeDesde?: { s: number; r: number }
+  careerMatchInjury?:import('./lesao-partida').LesaoPartida
+  careerNeighborhood?:Record<number,import('./cenas-bairro-model').DiarioBairro>
   careerMemory?:Record<number,import('./career-memory').ClubMemory>
   careerCupLive?: Record<string,import('./career-live-plan').CareerCupLive>
   careerCupActive?: string

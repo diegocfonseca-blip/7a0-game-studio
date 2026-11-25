@@ -1,3 +1,26 @@
+## 25/11 — melhorias nas duas carreiras
+
+Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
+
+## 25/11 — cenas de jogador e lesão ao vivo (publicação autorizada)
+
+Autorizado implementar futevôlei/balada e demais acontecimentos, junto da lesão durante a partida. Cenas usam arte nativa e fontes confirmadas, com identidade por carta, menos repetições e composição de recuperação corrigida. Liga M2 compartilha o risco de desgaste entre preparação/segundo tempo: pausa, retirada real, máximo três trocas, opção sem reserva e goleiro de emergência. Próxima escalação/base resolvida no Elenco após o apito. Publicação expressamente autorizada: “entao publique”. Testes, limites, capturas e vídeos: [auditoria](auditorias/cenas-jogadores-lesao-partida-20261125.md).
+
+## 25/11 — Lesões: preparação e decisão no Elenco, revisão local
+
+- Corrigida a checagem tardia depois da abertura 3D; placar/2D/3D verificam desfalques na preparação. Aviso no Elenco, sem duplicar, com troca real ou escolha explícita da base.
+- Lesionado não recebe mais liberação em campo se o reserva fica inválido. XI manual é respeitado; decisões de noitada e seleções dos banners não são sobrescritas indevidamente.
+- Probabilidades e desgaste preservados; amostra de 100 mil sorteios confirma aproximadamente 5% no limite e 10% esgotado, sem multiplicação por atleta.
+- Lesão durante a partida com time reduzido **ainda não ativada**: depende de retirada real e persistência no motor, não só um banner. Desenho e limites no [relatório](auditorias/preparo-lesoes-20261125.md).
+- Capturas reais de celular/desktop em `/workspace/shared/preparo-lesoes-20261125/`. Sem commit/publicação desta revisão visual.
+
+## 25/11 — Momentos do bairro: prévia local, aguardando revisão visual
+
+- Pedido do Diego: fazer para ver como fica. Branch `feat/cenas-bairro-preview-20261125`, **sem publicar ou commitar esta revisão visual**.
+- Sem filme obrigatório de boteco após resultado comum. Cenas relevantes e espaçadas, histórico por carreira no save e balanços anuais reais da loja.
+- Quatro avatares existentes em primeiro plano, ação de sete segundos, replay, Pular/Ver no mapa, redução de movimento e saída legível quando o modelo falha. Um só mapa guardado; sem avanço de partida, calendário ou dinheiro.
+- Capturas e vídeos reais: `/workspace/shared/cenas-bairro-preview-20261125/`. Escopo, critérios e limites: [cenas-bairro-preview-20261125.md](auditorias/cenas-bairro-preview-20261125.md).
+
 ## 25/11 — Evolução da carreira: publicação autorizada
 
 - Pedido: todos os itens da proposta **menos 4 e 8**. Guia, próximo passo, previsão de gastos, controles das copas M2, formação ao vivo, repertório do técnico, origem das transferências, memória do clube e cenas reais da cidade.

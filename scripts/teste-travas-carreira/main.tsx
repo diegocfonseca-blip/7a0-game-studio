@@ -1,8 +1,9 @@
+import {carreiraTradicionalBancada,reservasBancada,divisaoBancada} from '../teste-paridade-carreira/tradicional'
 import {useReducer} from 'react'
 import {createRoot} from 'react-dom/client'
 import {EscCtxBancada,reducer,INITIAL} from '../../src/escalacao/store'
 import '../../src/escalacao/screens'
-import {PyramidSeasonScreen} from '../../src/escalacao/pyramidseason'
+import {PyramidSeasonScreen,buildPyramid} from '../../src/escalacao/pyramidseason'
 import {_bancadaApoio} from '../../src/escalacao/apoio'
 import {_forcaBrasilOficialParaTeste} from '../../src/escalacao/sport'
 import {carregaBaralhoOficial} from '../../src/escalacao/baralho-oficial-carga'
@@ -20,13 +21,15 @@ W.qaVista3D=(on:boolean)=>on?registrarVistaCampo(vistaTeste):removerVistaCampo(v
 await carregaBaralhoOficial()
 const aleatorioOriginal=Math.random
 Math.random=()=>0.20261124
-let seed=reducer(structuredClone(INITIAL),{type:'START_CAREER_SOLO',teamName:'Flamengo',formation:'4-3-3',rivals:3,oficial:{clube:'Flamengo'}})
+const tradicional=new URLSearchParams(location.search).has('tradicional')
+let seed=tradicional?reservasBancada(carreiraTradicionalBancada()):reducer(structuredClone(INITIAL),{type:'START_CAREER_SOLO',teamName:'Flamengo',formation:'4-3-3',rivals:3,oficial:{clube:'Flamengo'}})
 Math.random=aleatorioOriginal
-if(!seed.oficial)throw new Error('Fixture oficial não foi criada')
+if(!tradicional&&!seed.oficial)throw new Error('Fixture oficial não foi criada')
 seed={...seed,seasonNo:6,calCopaSeason:6,tvBannerSeen:['A','B','C','D'],tvExtraVisto:true,screen:'season',oficialAbertura:undefined,seed:20261120,simSpeed:Number(new URLSearchParams(location.search).get('speed')??4),careerSubMode:'dinamico',careerEra:new URLSearchParams(location.search).get('semplano')?1:undefined} // 🔒 ?semplano=1 = carreira NOVA sem plano (Manual com cadeado)
 if(new URLSearchParams(location.search).has('continental'))seed={...seed,oficialCampeoes:[{temporada:1,serieA:'Flamengo',serieAVice:'Palmeiras',copa:'Flamengo',copaVice:'Palmeiras',serieATop:['Grêmio','Flamengo','Palmeiras','Cruzeiro','Fluminense','Botafogo','Corinthians','São Paulo','Bahia','Internacional','Santos','Fortaleza','Ceará','Vasco','Bragantino','Mirassol','Juventude','Vitória','Sport','Athletico-PR']}]};
 // Cenário de teste, sem alterar conta real: Flamengo na B após rebaixamento.
-if(new URLSearchParams(location.search).get('serie')!=='A')seed={...seed,careerDivision:'B',careerPlacements:{...seed.careerPlacements,m0:'B','Goiás':'A'}}
+if(tradicional)seed=divisaoBancada(seed,new URLSearchParams(location.search).get('serie')==='A'?'A':'B',buildPyramid)
+else if(new URLSearchParams(location.search).get('serie')!=='A')seed={...seed,careerDivision:'B',careerPlacements:{...seed.careerPlacements,m0:'B','Goiás':'A'}}
 seed=reducer(seed,{type:'SET_MASTER',brandId:'dsouza'})
 if(!new URLSearchParams(location.search).has('legado'))seed={...seed,motor2Desde:{season:1,round:1}}
 seed=reducer(seed,{type:'SIM_MANY',count:Number(new URLSearchParams(location.search).get('round')??10)})

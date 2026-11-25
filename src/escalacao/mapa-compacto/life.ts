@@ -1,3 +1,4 @@
+import {criarTrechoBairro} from './clip'
 import { criarPisoPasseio } from '../presidencia-passeio-geometria';
 import * as T from 'three';
 import { criarFigurantes, type Figurante } from '../presidencia-figurantes';
@@ -21,6 +22,7 @@ type Input = PopulationInput & {
 export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady: () => void) {
     const root = new T.Group();
     root.name = 'compacto-vida';
+    const clipFloor=criarPisoPasseio(scene),clip=criarTrechoBairro(root,onReady,(x,z)=>clipFloor(x,z,.19)??.19);
     scene.add(root);
     const floor = criarPisoPasseio(scene), ground = (x: number, z: number, y = .19) => floor(x, z, y) ?? y;
     const queue = criarFigurantes(root, 160, 'compacto-torcida-portoes'), club = criarFigurantes(root, 14, 'compacto-clube-lazer');
@@ -172,6 +174,7 @@ export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady
         props.root.visible = plan.vendors > 0;
         // The purchased recreation compound is quieter at night; its residents are decorative samples.
         club.set(input.period === 'night' ? [] : Array.from({ length: input.mobile ? 6 : 10 }, (_, i) => ({ x: i < 4 ? -177.85 + (i % 2 ? 5.2 : -5.2) : -144.05 + (i % 3 - 1) * 1.7, y: i < 4 ? .32 : .42, z: i < 4 ? 67 + (i < 2 ? -7.02 : 7.02) : 63.75 + (i % 2 ? .7 : -.7), heading: i % 2 ? Math.PI / 2 : -Math.PI / 2, camisa: uniform(i, 'home') })));
+        pub.mostrar(clip.view()!=='boteco-oswaldo');nightclub.mostrar(clip.view()!=='balada');club.mostrar(clip.view()!=='clube-lazer');paradeFans?.mostrar(!clip.active());
         const t = elapsed % 140, hold = (stop: number, speed: number, arrive: number, depart: number) => t < arrive ? stop - (arrive - t) * speed : t <= depart ? stop : stop + (t - depart) * speed;
         vehicle(bus, planta.vehiclePaths.bus, hold(1086.1818, 4.7, 16, 24), t >= 16 && t <= 24 ? 1 : 0);
         vehicle(bus2, planta.vehiclePaths.busEast, hold(732.8082, 4.2, 16, 24), t >= 16 && t <= 24 ? 1 : 0);
@@ -179,7 +182,7 @@ export function criarVidaCompacta(scene: T.Scene, state: EstadoComplexo, onReady
             vehicle(train, [[-288, 5.52, -113], [-24, 5.52, -113], [288, 5.52, -113]], hold(264, 5.8, 18, 28), t >= 18 && t <= 28 ? 1 : 0);
         cars.forEach((c, i) => { vehicle(c, planta.vehiclePaths[i % 2 ? 'south' : 'north'], elapsed * (7 + i * .3) + i * 98); c.root.visible &&= i < plan.cars; });
     }
-    return { root, configure, update, parade:()=>parade?.root.visible?parade.root.position:undefined, vehicles: () => [bus, bus2, ...cars, ...(train ? [train] : [])].filter(b => b.root.visible).map(b => ({ x: b.root.position.x, z: b.root.position.z })), active: () => input.enabled, actor: (side: 'home' | 'away') => { const r = rigs.find(r => r.side === side && r.active); if (!r)
-            return; r.body.root.userData.side = side; return { root: r.body.root }; }, inspect: () => ({ pub:pub.inspect(),nightclub:nightclub.inspect(),parade:!!parade,plan, phaseElapsed: elapsed - phaseAt, queue: queue.inspect(), walkers: rigs.filter(r => r.visible).map(r => ({ id: r.body.inspect().id, side: r.side, role: r.fan ? 'fan' : 'resident', fixture: r.fixture, returning: r.returning, distance: r.distance, position: r.body.root.position.toArray(), source: r.body.inspect() })), vendors: groups.filter(g => g.visible && props.root.visible).map(g => g.name), transport: { buses: [bus.root.position.toArray(), bus2.root.position.toArray()], train: train?.root.position.toArray(), time: seconds }, writes: 0 }), dispose() { if (disposed)
-            return; disposed = true; rigs.forEach(r => r.body.dispose()); queue.dispose(); club.dispose();pub.dispose();nightclub.dispose();paradeFans?.dispose();parade?.dispose(); flags.removeFromParent(); poles.removeFromParent(); flagGeometry.dispose(); poleGeometry.dispose(); flagMaterial.dispose(); poleMaterial.dispose(); props.dispose(); bus.dispose(); bus2.dispose(); train?.dispose(); cars.forEach(c => c.dispose()); root.removeFromParent(); } };
+    return { root, clip, clipUpdate:(now:number,reduced:boolean)=>clip.update(now,reduced,parade?.root), configure, update, parade:()=>parade?.root.visible?parade.root.position:undefined, vehicles: () => [bus, bus2, ...cars, ...(train ? [train] : [])].filter(b => b.root.visible).map(b => ({ x: b.root.position.x, z: b.root.position.z })), active: () => input.enabled, actor: (side: 'home' | 'away') => { const r = rigs.find(r => r.side === side && r.active); if (!r)
+            return; r.body.root.userData.side = side; return { root: r.body.root }; }, inspect: () => ({ clip:clip.inspect(),pub:pub.inspect(),nightclub:nightclub.inspect(),parade:!!parade,plan, phaseElapsed: elapsed - phaseAt, queue: queue.inspect(), walkers: rigs.filter(r => r.visible).map(r => ({ id: r.body.inspect().id, side: r.side, role: r.fan ? 'fan' : 'resident', fixture: r.fixture, returning: r.returning, distance: r.distance, position: r.body.root.position.toArray(), source: r.body.inspect() })), vendors: groups.filter(g => g.visible && props.root.visible).map(g => g.name), transport: { buses: [bus.root.position.toArray(), bus2.root.position.toArray()], train: train?.root.position.toArray(), time: seconds }, writes: 0 }), dispose() { if (disposed)
+            return; disposed = true; clip.dispose();rigs.forEach(r => r.body.dispose()); queue.dispose(); club.dispose();pub.dispose();nightclub.dispose();paradeFans?.dispose();parade?.dispose(); flags.removeFromParent(); poles.removeFromParent(); flagGeometry.dispose(); poleGeometry.dispose(); flagMaterial.dispose(); poleMaterial.dispose(); props.dispose(); bus.dispose(); bus2.dispose(); train?.dispose(); cars.forEach(c => c.dispose()); root.removeFromParent(); } };
 }
