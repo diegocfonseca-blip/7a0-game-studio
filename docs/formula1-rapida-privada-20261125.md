@@ -59,7 +59,7 @@ As notas são do jogo. Os exemplos históricos foram conferidos nas referências
 - `gate-root.mjs`: entrada real, visitante/segunda conta sem acesso e sem carregar a corrida; principal permitida; troca de esporte/logout. Capturas e relatórios: `/workspace/shared/formula1-padroes-20261125/`.
 - Regressões do envelope único, pregão aberto de futebol e NBA e Tocaia. O teste antigo da Tocaia foi atualizado para aceitar o guarda de pregão aberto que já existia na criação da sala; não houve mudança de regra nessa criação.
 - Build TypeScript e produção passaram. Regressão da carreira passou em 390 com pausa, três substituições, bloqueio da quarta, retomada e apito final. Os outros três pregões passaram também pela interface real.
-- Publicação da correção: em preparação. Manter o acesso privado e confirmar o deploy antes de anunciar como disponível.
+- Correção publicada em 25/11/2026: fonte `aa89ec66cd1828af71167716daf2dac718c9bc5b` (inclui `2ba77f0f`). [GitHub Pages 45538736664](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45538736664): build e deploy concluídos com sucesso. Acesso permanece somente na conta principal, apenas Partida Rápida. Smoke compilado 390/1440: HTTP 200 e nenhum erro JavaScript. A legenda de categoria de carro também foi ajustada.
 
 ## Verificação e publicação inicial (substituída visualmente pela correção)
 
@@ -69,4 +69,4 @@ As notas são do jogo. Os exemplos históricos foram conferidos nas referências
 - Capturas reais e relatórios em `/workspace/shared/formula1-privada-20261125/`.
 - Build de produção e smoke test compilado 390/1440: passaram, sem erros TypeScript/JavaScript. Regressão da carreira de futebol passou com pausa, três substituições, bloqueio da quarta, retomada e apito final. Fonte `6edf7ecdac41eaf2e89a819ef8d5c60705881b61`; [GitHub Pages 45531787439](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45531787439), build e deploy concluídos com sucesso em 25/11/2026. Acesso permanece somente pela conta principal.
 
-Reversão: reverter o commit desta entrega. Não exige migração, remoção de dados ou conversão de saves.
+Reversão da correção: reverter `aa89ec66` e `2ba77f0f`; para retirar também o protótipo inicial, reverter sua entrega separadamente. Não exige migração, remoção de dados ou conversão de saves.
