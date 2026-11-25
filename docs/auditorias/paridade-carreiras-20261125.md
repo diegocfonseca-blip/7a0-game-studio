@@ -42,3 +42,9 @@ Capturas e relatórios: `/workspace/shared/paridade-carreiras-20261125/`. As ima
 ## Integração com a versão mais recente
 
 Enquanto os testes rodavam, a principal avançou para `24d32d4921371e8d077f9d405a4b6117605baab1`, com alterações independentes do Leilão de Conquistas e peças de divulgação. Preparada cópia isolada em `/workspace/leilao-paridade-integracao-20261125`, aplicando o pacote anterior e esta revisão sem criar commit nem fazer push. Integração automática de `store.tsx`/pendências sem conflito; mudanças de Conquistas e peças preservadas. Nessa cópia, `npm run build` passou (Vite 13,08 s), a prova nativa de paridade passou para os dois modos, a regressão de Conquistas passou e o teste de proteção contra recarga automática passou. Pacote revisável em `pacote-integrado.patch` na pasta de evidências. Diego confirmou posteriormente “ok” à publicação do pacote completo em produção, encerrando a prévia local. Acompanhamento do deploy registrado nas evidências da entrega.
+
+### Atualização posterior da integração
+
+A principal avançou novamente para `1fbf339ae9eecf3ea9c14672cb8b68ac6fec8f2f`, com táticas da Partida Rápida e seu anúncio. Essa versão foi integrada sem conflitos e sem reescrever o commit original de produto `0881b0d2`. Repetidos sobre o resultado: `npm run build` completo (Vite 13,08 s), paridade nativa Brasil Oficial/tradicional, lesão em partida (incluindo 36 quadros 3D), 12 jogos com substituições ao vivo e proteção contra recarga automática; todos passaram. Não houve nova alteração visual própria nesta integração.
+
+Consulta somente de leitura ao GitHub confirmou `main.protected = false` e verificações obrigatórias desativadas. Isso corrige a descrição de “branch protegida” da rejeição anterior, mas não representa liberação da revisão automática do ambiente. Publicação só pode ser declarada após envio permitido e deploy concluído. Não habilitar mesclagem automática nem usar outro meio para contornar uma rejeição.
