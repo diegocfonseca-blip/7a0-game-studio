@@ -156,6 +156,25 @@ const ARTILHEIRO_COPA: Record<string, Pessoa[]> = {
 // 👨‍👦 parentes de craque: o próprio nome da carta já diz ("irmão do Kaká", "filho do Bebeto") + filhos famosos de lenda
 const PARENTES = new Set(['Enzo Zidane', 'Luca Zidane', 'Jordi Cruyff', 'Khéphren Thuram', 'Marcus Thuram', 'Timothy Weah'])
 const PARENTE_NO_NOME = /\((irmão|irmã|filho|filha|primo|prima|pai|tio|sobrinho|neto) d[oa] / // minúsculo de propósito: "Euller (Filho do Vento)" é apelido, não parente
+// 📺 Virou comentarista de TV (trabalho público e conhecido: Globo/Band/SporTV no Brasil, BBC/Sky/TNT/CBS/beIN lá fora)
+const COMENTARISTA: Record<string, Pessoa[]> = {
+  Brasil: ['Casagrande', 'Denílson', 'Denílson Show', 'Júnior Maestro', 'Roger Flores', 'Edmundo', 'Caio Ribeiro', 'Grafite'],
+  Sérvia: ['Petkovic'], Inglaterra: ['Gary Lineker', 'Gary Neville', 'Jamie Carragher', 'Rio Ferdinand', 'Alan Shearer', 'Ian Wright', 'Peter Crouch'],
+  França: ['Thierry Henry'], Irlanda: ['Roy Keane'], Holanda: ['Seedorf', 'Clarence Seedorf'], Argentina: ['Jorge Valdano'], Escócia: ['Graeme Souness'],
+}
+// 🥊 Saiu no braço: agressão/briga famosa em campo, registrada na imprensa (Cantona no torcedor em 1995, a cabeçada de 2006,
+// Keane × Haaland, Pepe × Casquero, as mordidas do Suárez, Gattuso × Joe Jordan…). Só caso público — nada de "parece briguento".
+const BRIGA: Record<string, Pessoa[]> = {
+  França: ['Éric Cantona', 'Zinedine Zidane'], Itália: ['Marco Materazzi', 'Gennaro Gattuso'], Brasil: ['Edmundo', 'Felipe Melo'],
+  Irlanda: ['Roy Keane'], Uruguai: ['Paolo Montero', 'Luis Suárez'], Portugal: ['Pepe'], Espanha: ['Diego Costa'],
+}
+// 🗳️ Virou político: presidente, senador, deputado ou ministro (Weah presidente da Libéria, Romário senador, Bebeto e Jardel
+// deputados estaduais, Danrlei deputado federal, Pelé ministro do Esporte, Zico secretário nacional de Esportes)
+const POLITICO: Record<string, Pessoa[]> = {
+  Libéria: ['George Weah'], Brasil: ['Romário', 'Bebeto', 'Danrlei', 'Jardel', 'Mário Jardel', 'Pelé', 'Zico'],
+}
+// 🥅 Goleiro artilheiro: goleiro que fez gol de verdade (Ceni, Chilavert, Higuita, e o Jorge Campos que jogou até de atacante)
+const GOLEIRO_GOL: Record<string, Pessoa[]> = { Brasil: ['Rogério Ceni'], Paraguai: ['José Luis Chilavert'], Colômbia: ['René Higuita'], México: ['Jorge Campos'] }
 // 🏴 o país da LIGA do clube da carta (Inglaterra = futebol inglês; o País de Gales do Swansea joga lá)
 const LIGA_INGLESA = new Set(['Liverpool', 'Man United', 'Manchester United', 'Arsenal', 'Chelsea', 'Man City', 'Tottenham', 'Newcastle', 'Everton', 'Aston Villa', 'West Ham', 'Leicester', 'Leicester City', 'Wolves', 'Nottingham Forest', 'Fulham', 'Leeds', 'Leeds United', 'Blackburn', 'Southampton', 'Crystal Palace', 'Brighton', 'Sunderland', 'Middlesbrough', 'Brentford', 'Swansea', 'Derby County', 'Bournemouth', 'Birmingham', 'Wigan', 'Watford', 'Sheffield Wednesday', 'Portsmouth', 'Burnley', 'Bolton'])
 const LIGA_ESPANHOLA = new Set(['Real Madrid', 'Barcelona', 'Atlético de Madrid', 'Sevilla', 'Valencia', 'Villarreal', 'Real Betis', 'Deportivo La Coruña', 'Real Sociedad', 'Athletic Bilbao', 'Espanyol', 'Celta', 'Celta de Vigo', 'Mallorca', 'Granada', 'Girona', 'Logroñés'])
@@ -192,6 +211,10 @@ export const TEMAS_CONQUISTA: TemaConquista[] = [
   { id: 'ouro-olimpico', emoji: '🏅', pt: 'Ouro olímpico', en: 'Olympic gold', grupo: 'meio' },
   { id: 'rodou', emoji: '🧳', pt: 'Rodou o mundo', en: 'Journeyman', grupo: 'meio' },
   { id: 'parentes', emoji: '👨‍👦', pt: 'Parente do craque', en: "Star's relative", grupo: 'comica' },
+  { id: 'comentarista', emoji: '📺', pt: 'Virou comentarista', en: 'Became a pundit', grupo: 'meio' },
+  { id: 'briga', emoji: '🥊', pt: 'Saiu no braço em campo', en: 'Threw hands on the pitch', grupo: 'comica' },
+  { id: 'politico', emoji: '🗳️', pt: 'Virou político', en: 'Became a politician', grupo: 'comica' },
+  { id: 'goleiro-artilheiro', emoji: '🥅', pt: 'Goleiro artilheiro', en: 'Goal-scoring keeper', grupo: 'comica' },
   { id: 'champions', emoji: '⭐', pt: 'Campeão da Champions', en: 'Champions League winner', grupo: 'mista' },
   { id: 'libertadores', emoji: '🌎', pt: 'Campeão da Libertadores', en: 'Libertadores winner', grupo: 'mista' },
   { id: 'brasileiro-europa', emoji: '✈️', pt: 'Brasileiro na Europa', en: 'Brazilian in Europe', grupo: 'mista' },
@@ -218,7 +241,7 @@ function todas(): Item[] {
 }
 /** pessoa por trás da carta: o mesmo nome só junta cartas quando o jogo JÁ conferiu que é a mesma pessoa (MESMO_JOGADOR) */
 const PESSOA_ALIAS = new Map<string, string>()
-for (const grupo of [...BOLA_DE_OURO, ...Object.values(CAMPEOES_DO_MUNDO).flat(), ['Mascherano', 'Javier Mascherano'], ['Ever Banega', 'Éver Banega']]) for (const n of grupo) PESSOA_ALIAS.set(n, grupo[0])
+for (const grupo of [...BOLA_DE_OURO, ...Object.values(CAMPEOES_DO_MUNDO).flat(), ['Mascherano', 'Javier Mascherano'], ['Ever Banega', 'Éver Banega'], ['Denílson', 'Denílson Show'], ['Seedorf', 'Clarence Seedorf'], ['Jardel', 'Mário Jardel']]) for (const n of grupo) PESSOA_ALIAS.set(n, grupo[0])
 export const pessoaDe = (it: { carta: CartaTema; pais: string }) => {
   const n = PESSOA_ALIAS.get(it.carta.name) ?? it.carta.name
   return MESMO_JOGADOR.has(n) || PESSOA_ALIAS.has(it.carta.name) ? `${n}|${it.pais}` : `${it.carta.name}|${it.carta.club}|${it.carta.year}`
@@ -267,6 +290,10 @@ function noTema(id: string, it: Item): boolean {
     case 'arabia': return ARABIA.has(c.club)
     case 'eua': return EUA.has(c.club)
     case 'artilheiro-copa': return naLista(ARTILHEIRO_COPA, it)
+    case 'comentarista': return naLista(COMENTARISTA, it)
+    case 'briga': return naLista(BRIGA, it)
+    case 'politico': return naLista(POLITICO, it)
+    case 'goleiro-artilheiro': return naLista(GOLEIRO_GOL, it)
     case 'ouro-olimpico': return naLista(OURO_OLIMPICO, it)
     case 'brasileirao': return clube(BRASILEIRAO[c.year] ?? '') === clube(c.club)
     case 'rodou': return !PESSOA_DUVIDOSA.has(c.name) && clubesDaPessoa(it).size >= 3

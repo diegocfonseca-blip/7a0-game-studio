@@ -14,6 +14,10 @@
   FORA, e por quê: **Xarás** (o jogo não sabe provar que dois "Danilo" são pessoas diferentes) e **Jogou nos dois rivais** (entre as
   pessoas conferidas em `MESMO_JOGADOR` ninguém tem carta nos dois lados de um clássico). ⚠️ `MESMO_JOGADOR` junta gente diferente
   em "Danilo" e "Júlio César" — fora de Rodou/Voltou (`PESSOA_DUVIDOSA`); vale corrigir a lista no `paises.ts` um dia.
+- 25/11 (3ª leva, ideia dele): 📺 Virou comentarista · 🥊 Saiu no braço em campo (só caso público: Cantona 1995, cabeçada 2006,
+  Keane × Haaland, Pepe × Casquero, mordidas do Suárez, Gattuso × Jordan…) · 🗳️ Virou político (Weah, Romário, Bebeto, Jardel,
+  Danrlei, Pelé ministro, Zico secretário) · 🥅 Goleiro artilheiro (Ceni, Chilavert, Higuita, Jorge Campos) → 35 temas. 🚫 Xarás:
+  Diego disse que NÃO quer (25/11) — não repropor.
 - Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; Copa América e Rebaixado (pesquisar a lista oficial).
 
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS (decisões do mockup)
