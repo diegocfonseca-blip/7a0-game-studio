@@ -5,6 +5,8 @@
 //  · faixa curta em cima: "Enquanto o tempo corre, joga essa!";
 //  · não vale moeda, não grava nada e não fala com a internet — é só pra passar o tempo;
 //  · quando a espera acaba, a tela de quem chama some e o joguinho vai junto: nunca segura nem interrompe a sala.
+//  · 25/11 (Diego): a sequência NÃO zera ao sair — *"se fez 5 pts, outro dia que ele voltar continua com os 5"*; só zera se ERRAR.
+//    E guarda o 🏆 recorde (a maior sequência). Tudo no aparelho (2 chaves fixas, sem servidor).
 import { useMemo, useState } from 'react'
 import { BARALHO_TODO, categoriaDe, type CartaBaralho } from './colecoes'
 import { paisDe } from './paises'
@@ -20,6 +22,9 @@ const CAT: Record<'lenda' | 'craque' | 'promessa', { emoji: string; pt: string; 
   craque: { emoji: '⭐', pt: 'Craque', en: 'Star', fundo: 'linear-gradient(160deg,#e9e3ff,#8b6fe0)' },
   promessa: { emoji: '🌱', pt: 'Promessa', en: 'Prospect', fundo: 'linear-gradient(160deg,#d7f5df,#3fae63)' },
 }
+const K_SEQ = 'esc-quiz-seguidos', K_REC = 'esc-quiz-recorde'
+const leNum = (k: string) => { try { const n = Number(localStorage.getItem(k)); return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0 } catch { return 0 } }
+const gravaNum = (k: string, n: number) => { try { localStorage.setItem(k, String(n)) } catch { /* aparelho sem espaço: segue só na tela */ } }
 const POOL: CartaBaralho[] = BARALHO_TODO.filter(c => { const k = categoriaDe(c); return k === 'lenda' || k === 'craque' || k === 'promessa' })
 
 type Pergunta = { carta: CartaBaralho; opcoes: string[] }
@@ -39,7 +44,9 @@ function sorteia(antes?: CartaBaralho): Pergunta | null {
 export function QuemEJogador() {
   const [p, setP] = useState<Pergunta | null>(() => sorteia())
   const [escolha, setEscolha] = useState<string | null>(null)
-  const [seguidos, setSeguidos] = useState(0)
+  const [seguidos, setSeguidos] = useState(() => leNum(K_SEQ))
+  const [recorde, setRecorde] = useState(() => Math.max(leNum(K_REC), leNum(K_SEQ)))
+  const [bateu, setBateu] = useState(false)
   const pais = useMemo(() => {
     if (!p) return ''
     const b = p.carta.baralho === 'MUNDO' ? 'WORLD' : (p.carta.baralho ?? 'BR')
@@ -51,9 +58,13 @@ export function QuemEJogador() {
   const respondeu = escolha !== null, acertou = escolha === c.name
   const escolhe = (n: string) => {
     if (respondeu) return
-    setEscolha(n); setSeguidos(s => (n === c.name ? s + 1 : 0))
+    const novo = n === c.name ? seguidos + 1 : 0
+    setEscolha(n); setSeguidos(novo); gravaNum(K_SEQ, novo)
+    const quebrou = novo > recorde
+    setBateu(quebrou)
+    if (quebrou) { setRecorde(novo); gravaNum(K_REC, novo) }
   }
-  const proxima = () => { setP(sorteia(c)); setEscolha(null) }
+  const proxima = () => { setP(sorteia(c)); setEscolha(null); setBateu(false) }
   const pista = (rot: string, val: string) => (
     <div style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 10px', textAlign: 'left' }}>
       <small style={{ display: 'block', ...OSW, fontWeight: 800, fontSize: 9, color: '#777', letterSpacing: '.05em' }}>{rot}</small>
@@ -67,7 +78,10 @@ export function QuemEJogador() {
       </span>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <b style={{ ...OSW, fontWeight: 900, fontSize: 17 }}>{tr('🃏 Quem é esse jogador?', '🃏 Who is this player?')}</b>
-        {seguidos > 0 && <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: 12, boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>🔥 {seguidos} {tr(seguidos === 1 ? 'seguido' : 'seguidos', 'in a row')}</span>}
+        <span style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+          <span style={{ background: seguidos > 0 ? GOLD : '#fff', border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 9px', ...OSW, fontWeight: 900, fontSize: 12, boxShadow: `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>🔥 {seguidos} {tr(seguidos === 1 ? 'seguido' : 'seguidos', 'in a row')}</span>
+          {recorde > 0 && <span style={{ background: INK, color: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '2px 9px', ...OSW, fontWeight: 900, fontSize: 12, whiteSpace: 'nowrap' }}>🏆 {tr('Recorde', 'Best')} {recorde}</span>}
+        </span>
       </div>
       <div style={{ display: 'flex', gap: 12, marginTop: 10, alignItems: 'stretch' }}>
         <div style={{ width: 112, flexShrink: 0, border: `3px solid ${INK}`, borderRadius: 13, background: cat.fundo, boxShadow: `3px 3px 0 ${INK}`, padding: 7, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -99,10 +113,10 @@ export function QuemEJogador() {
       </div>
       {respondeu
         ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 9 }}>
-            <span style={{ fontSize: 12, fontWeight: 800 }}>{acertou ? tr('Na mosca! 🎯', 'Spot on! 🎯') : tr(`Era o ${c.name}!`, `It was ${c.name}!`)}</span>
+            <span style={{ fontSize: 12, fontWeight: 800 }}>{acertou ? (bateu ? tr('🎉 NOVO RECORDE!', '🎉 NEW RECORD!') : tr('Na mosca! 🎯', 'Spot on! 🎯')) : tr(`Era o ${c.name}! A sequência voltou pro zero.`, `It was ${c.name}! Your streak is back to zero.`)}</span>
             <button type="button" onClick={proxima} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, background: GOLD, padding: '6px 12px', ...OSW, fontWeight: 900, fontSize: 12.5, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>{tr('Próxima ▶', 'Next ▶')}</button>
           </div>
-        : <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '8px 0 0', textAlign: 'center' }}>{tr('Só pra passar o tempo — não vale moeda. Acabou o tempo, some sozinho.', 'Just for fun — no coins. When time is up, it goes away by itself.')}</p>}
+        : <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '8px 0 0', textAlign: 'center' }}>{tr('Só pra passar o tempo — não vale moeda. Sua sequência fica guardada: errou, volta pro zero.', 'Just for fun — no coins. Your streak is saved: miss one and it goes back to zero.')}</p>}
     </div>
   )
 }
