@@ -17,6 +17,9 @@ import { EscLobby } from './lobby'
 import { EspectadorEspera } from './espectador-ui'
 import { EscConvocacaoClubes } from './convocacao-clubes' // 🧱 leilão de clubes (em teste)
 import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
+import {useOwnerPresentation} from './online-preview'
+import {useFormula1Selected} from './formula1-entry'
+const Formula1Lazy=lazy(pedaco(()=>import('./formula1/game')))
 import { hadLogin } from './apoio'
 import { testaEscrita, medeStorage, guardaStorage, type ProbeStorage } from '../storage-guard' // 🧹 sessão que cai por armazenamento cheio (21/09)
 import { AdminPanel } from './admin'
@@ -82,7 +85,9 @@ function EsperaBaralhoOficial() {
 
 function Router() {
   const { state, leaveRoom } = useEsc()
+  const formula1=useFormula1Selected(),formula1Allowed=useOwnerPresentation()
   useEffect(() => { window.scrollTo(0, 0) }, [state.screen, state.sectorIdx, state.phase])
+  if(state.screen==='intro'&&formula1&&formula1Allowed)return <Suspense fallback={<p className="p-6">Preparando o paddock…</p>}><Formula1Lazy/></Suspense>
   if (state.oficial && state.careerOnline && !baralhoOficial() && state.screen !== 'intro' && state.screen !== 'lobby' && state.screen !== 'setup') return <EsperaBaralhoOficial />
   // 👁️ FANTASMA entre um leilão e outro (o dono voltou pra sala de espera): fica na espera dele, nunca na home nem na lista
   if (state.espectador && state.onlineMode === 'online' && state.roomId && (state.screen === 'lobby' || state.screen === 'intro'))

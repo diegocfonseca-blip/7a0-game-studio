@@ -15484,3 +15484,9 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Feito: a lista vem de 250 em 250 sozinha conforme rola (IntersectionObserver + botão "⬇ Ver mais"), dentro de uma caixa com barra
   de rolagem dourada sempre à vista (`liga-draft-lista.css`) e a linha "📜 N jogadores na lista · role a lista ⬇". Print:
   `scripts/mockups/draft-lista-rolagem.png` · bancada `node scripts/teste-draft/print-lista.mjs`.
+
+## 25/11 — Fórmula 1: Partida Rápida somente para Diego
+- Pedido: implementar a referência anterior, dois pilotos e um carro histórico por escuderia; três compras, pneus, ritmo, boxes e corrida 2D.
+- Decisão, fontes, isolamento e testes: [formula1-rapida-privada-20261125.md](formula1-rapida-privada-20261125.md).
+- Acesso privado pela identidade principal verificada; não liberar para Futpoint, secundária ou público.
+- Publicado somente para a conta principal: `6edf7ecd`, [GitHub Pages 45531787439](https://github.com/diegocfonseca-blip/7a0-game-studio/actions/runs/45531787439), build e deploy com sucesso.
