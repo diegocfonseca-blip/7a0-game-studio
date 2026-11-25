@@ -15472,3 +15472,8 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Onde aparece: tela do jogo (o mesmo painel escuro das salas, via `OwnerTactics`) e aba Elenco, embaixo da formação (`TaticasLigaDraft` em `minha-escalacao.tsx`). Sem o visual escuro, vira caixa creme.
 - Prints: `scripts/mockups/taticas-liga-draft-*.png` · bancada `node scripts/teste-taticas-draft/print.mjs`.
 - Ao publicar: linha em `novidades.ts` (PT+EN). Reverter = voltar a linha de `footballPlanRoom` (o plano salvo some sozinho; jogo já jogado não muda).
+
+## 25/11 — Carreira compacta para todos, mapa móvel maior
+- Diego aprovou as oito telas e publicação geral, pedindo mapa maior e retirada de “Patrocinadores” sobreposto.
+- Implementação, regras preservadas, testes e reversão: [visual-carreira-publico-20261125.md](visual-carreira-publico-20261125.md).
+- Publicação: aguarda confirmação da execução de produção.

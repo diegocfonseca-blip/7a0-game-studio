@@ -789,7 +789,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
    const compactBounds=compactMap?.location(next)
    const planoCena=cena&&compactMap?planoCenaCompacta(cena,camera.aspect):undefined
    if(planoCena){controls.target.set(...planoCena.target);camera.position.set(...planoCena.camera)}
-   else if(compactBounds)enquadrarCompacto(compactBounds,(a,b,c,d,h)=>fit(a,b,c,d,h,[],['original','region'].includes(next)?new THREE.Vector3(.65,1.15,1.2):new THREE.Vector3(.25,.85,1.3)),next==='original'||next==='region'?37:next==='shopping'?30:next==='hotel'?25:16)
+   else if(compactBounds)enquadrarCompacto(compactBounds,(a,b,c,d,h)=>fit(a,b,c,d,h,[],['original','region'].includes(next)?(managementEnabled&&el.clientWidth<600?new THREE.Vector3(.25,2.1,1.2):new THREE.Vector3(.65,1.15,1.2)):new THREE.Vector3(.25,.85,1.3)),next==='original'||next==='region'?37:next==='shopping'?30:next==='hotel'?25:16)
    else if(next==='original'){if(managementEnabled)fit(-220,330,-290,350,37,[],new THREE.Vector3(.12,camera.aspect<.85?2:1.65,1.4));else fit(-220,330,-290,350,37,stationFrame)}
    else if(next==='passeio-carro'){const c=deliveries.commute();if(c){const p=c.position;controls.target.set(p[0],p[1]+1,p[2]);camera.position.set(p[0]-17,p[1]+20,p[2]+25)}}
    else if(next==='region'){camera.fov=camera.aspect<.85?60:38;camera.updateProjectionMatrix();fit(-500,580,-360,565,35,[],new THREE.Vector3(.01,3.1,1.1))}
@@ -947,6 +947,8 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
     }
    }
    else{const lot=PLANTA_COMPLEXO.lots[next];const door=lot.door;controls.target.set(door?.threshold.x??lot.x,2.4,door?.threshold.z??lot.z);const heading=door?.heading??lot.heading;camera.position.set(controls.target.x+Math.sin(heading)*24,12,controls.target.z+Math.cos(heading)*24)}
+   // No celular a visão inicial aproxima o bairro do estádio. "Ver cidade" mantém o panorama inteiro.
+   if(compactBounds&&next==='original'&&managementEnabled&&el.clientWidth<600){camera.position.sub(controls.target).multiplyScalar(.74).add(controls.target)}
    if(draw){navigation.constrain();if(!controls.update())wake.current()}
   }
   const openPlace=(next:VistaComplexo)=>{
@@ -1150,7 +1152,6 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
     {!loaded&&!error&&<MapaPreparando etapa={loadingStage}/>}
     {error&&<p className="pc3-error" role="alert">{error}</p>}
    </div>
-   {!passeando&&!isWindow&&!isOffice&&!placesOpen&&loaded&&['original','region'].includes(selectedView)&&<nav className="cr3-map-partners" aria-label={t('Parceiros do mapa','Map partners')}><button type="button" onClick={()=>go('patrocinadores')}>{t('Patrocinadores →','Sponsors →')}</button></nav>}
    {loaded&&selectedView==='gecg-futebol'&&<nav className="cr3-map-partners" aria-label="Grêmio Esportivo Campo Grande"><button type="button" onClick={()=>go('gecg')}>← Grêmio Campo Grande</button></nav>}
    {loaded&&fanZoneOk&&!isWindow&&!isOffice&&<FanZoneHud somenteEstadio={fieldOnly} fase={fzFase} cadeiras={fzCadeiras} escolhida={fzEscolhida} fan={fanRef.current}/>}
    {!isWindow&&loaded&&(presidentStatus==='loading'||presidentStatus==='error')&&<div className="pc3-avatar-status" role={presidentStatus==='error'?'alert':'status'}>

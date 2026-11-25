@@ -39,8 +39,20 @@ export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,cl
 /** Concluídas ficam disponíveis para consulta; compras usam os callbacks existentes. */
 /** 🧭 22/11 (Diego: *"N está claro q o usuário tem q fazer melhorias no estádio… os itens N sei se estão escondidos"*): atalhos logo embaixo
  *  do mapa, com bolinha vermelha onde tem coisa pra fazer, e a faixa das obras enquanto o estádio não fica pronto. Abrem os MESMOS painéis do prédio. */
-export function AtalhosDoClube({onSelect,obra,pronto,contratos,bb=false}:{onSelect:(id:DestinoClubeMapa)=>void;/** dá pra pagar alguma obra agora */obra:boolean;pronto:number;/** falta fechar o Patrocinador Master */contratos?:boolean;bb?:boolean}){
+export function AtalhosDoClube({onSelect,obra,pronto,contratos,bb=false,compact=false,museum=false}:{onSelect:(id:DestinoClubeMapa)=>void;/** dá pra pagar alguma obra agora */obra:boolean;pronto:number;/** falta fechar o Patrocinador Master */contratos?:boolean;bb?:boolean;compact?:boolean;museum?:boolean}){
  const t=useT()
+ if(compact&&!bb){
+  const cards:[DestinoClubeMapa,string,string,string,boolean][]=[
+   ['estrutura','🏟️',t('Estrutura','Facilities'),t('Estádio, obras e instalações','Stadium, works and facilities'),obra&&pronto<100],
+   ['financas','🪙',t('Finanças','Finances'),t('Caixa, salários e contratos','Balance, wages and contracts'),false],
+   ['patrocinio','🤝',t('Patrocínios','Sponsors'),t('Marcas e receitas do clube','Club brands and income'),!!contratos],
+   museum?['museu','🏆',t('Museu e coleção','Museum and collection'),t('Conquistas da sua carreira','Your career achievements'),false]:['loja','🛍️',t('Loja da torcida','Supporters’ store'),t('Camisas, produtos e vendas','Kits, products and sales'),false],
+  ]
+  return <div className="cv2-club-shortcuts"><nav aria-label={t('Atalhos do clube','Club shortcuts')}>{cards.map(([id,ic,label,detail,ponto])=><button type="button" key={id} onClick={()=>onSelect(id)}><b>{ic} {label}</b><small>{detail}</small>{ponto&&<i className="cv2-shortcut-dot" aria-label={t('Tem coisa pra fazer','Something to do')}/>}</button>)}</nav>
+   <details className="cv2-club-more"><summary>{t('Mais áreas do clube','More club areas')}</summary><nav>{museum&&<button type="button" onClick={()=>onSelect('loja')}>🛍️ {t('Loja da torcida','Supporters’ store')}</button>}<button type="button" onClick={()=>onSelect('agencia')}>🕴️ {t('Agência','Agency')}</button></nav></details>
+   {pronto<100&&<button type="button" className="clube-atalhos-obra" onClick={()=>onSelect('estrutura')}>🏗️ {t(`Seu estádio está ${pronto}% pronto · toque em ESTRUTURA pra melhorar ›`,`Your stadium is ${pronto}% done · tap FACILITIES to upgrade ›`)}</button>}
+  </div>
+ }
  const itens:[DestinoClubeMapa,string,string,boolean][]=[
   ['estrutura','🏗️',t('Obras','Works'),obra&&pronto<100],
   ['financas','💰',t('Dinheiro','Money'),false],
