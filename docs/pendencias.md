@@ -15558,3 +15558,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
 - Prints: `scripts/mockups/quiz-recorde*.png` · bancada `node scripts/teste-formacoes/print-quiz-recorde.mjs <pasta>`.
 - 🃏 25/11 (✅ publicado, "Pode"): ao responder, a carta aparece com a CARA DE CARTA do jogo (`CollectibleCard big`, a da revelação
   do leilão), girando, embaixo das opções. Diego: *"a carta quero c cara de carta igual as do jogo qd é revelado"*. Print `scripts/mockups/quiz-carta-revelada.png`.
+
+## 25/11 — 🔁 Batismo renomeado: Lavras FC → Eight8 FC (hugopereirabrito) — feito e publicado
+- Pedido do Diego: *"troque o nome do time dele por Eight8 FC e libere esse nome Lavras FC pra ser criado por qualquer outra pessoa"*.
+- Banco: `auth.users` display_name = Eight8 FC · `esc_socios.escudo_time` = Eight8 FC · `esc_nomes_batismo`: entrou Eight8 (+FC/EC pelo
+  gatilho) e SAÍRAM as 6 formas de Lavras/Lavrasfc. Conferido: `esc_nome_livre('Lavras FC')` = livre; `Eight8 FC` = reservado (batismo).
+- Código: escudo/mascote (`LOGOS_PRONTAS`/`CARIMBO_GOL`) agora nas formas do Eight8; as do Lavras SAÍRAM (quem criar Lavras FC não herda a arte).
+  Pirâmide: assento da Várzea vira Eight8 FC; `OLD_NAME` 'Eight8 FC' ← 'Galáticos do Bairro' (Lavras FC NÃO entra na corrente de propósito).
+  Saves que já tinham o bot "Lavras FC" seguem com esse nome velho na tabela (só cosmético).
+- ⏳ PENDENTE: a arte do escudo ainda tem escrito "LAVRAS FC E-SPORTS" — pedir arte nova ao dono se ele quiser.
