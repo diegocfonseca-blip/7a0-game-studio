@@ -27,6 +27,11 @@
   Zagallo, Renato Gaúcho, Diniz…) · Comentarista ~25 → 65 · Saiu no braço 11 → 18 · Político 7 → 12 · Goleiro artilheiro 4 → 8 ·
   Um clube só 13 → 16 · Campeão do Mundo +35 · Ouro olímpico +17 (Uruguai 24/28, Hungria 52, URSS 56, Polônia 72, Espanha 92,
   México 2012). Regra pra próxima leva: pesquisar AMPLO desde o começo, cobrindo as 5 posições.
+- 25/11 (6ª leva, *"analise todas categorias e veja se pode ampliar mais"*): "Parente do craque" virou 👨‍👦 FAMÍLIA DE BOLEIRO (os dois
+  lados: Maldini ×3, Simeone, Thuram, Zidane, Cruyff, Charlton, Laudrup, De Boer, Neville, Schmeichel, Kluivert, Hagi, Chiesa, Milito,
+  Touré, Boateng, Sócrates/Raí, Ronaldinho/Assis, Pelé/Edinho, Mazinho/Thiago/Rafinha…) · Um clube só + Nílton Santos, Zito, Pepe
+  (Santos), Facchetti, Sandro Mazzola · Comentarista + Ruggeri, Zabaleta, Tim Howard · Briga + Chilavert × Asprilla (1997) · temas
+  novos do baralho: Jogou na França/Portugal/Holanda, Velha guarda (até 1969), Anos 2010, Anos 2020 → 43 temas.
 - Falta: liberar geral (quando ele mandar) + linha em `novidades.ts`; Copa América e Rebaixado (pesquisar a lista oficial).
 
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS (decisões do mockup)

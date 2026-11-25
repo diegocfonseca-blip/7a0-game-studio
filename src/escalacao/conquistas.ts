@@ -164,7 +164,16 @@ const ARTILHEIRO_COPA: Record<string, Pessoa[]> = {
   Espanha: ['David Villa'], Colômbia: ['James Rodríguez'],
 }
 // 👨‍👦 parentes de craque: o próprio nome da carta já diz ("irmão do Kaká", "filho do Bebeto") + filhos famosos de lenda
-const PARENTES = new Set(['Enzo Zidane', 'Luca Zidane', 'Jordi Cruyff', 'Khéphren Thuram', 'Marcus Thuram', 'Timothy Weah'])
+// 25/11 virou FAMÍLIA DE BOLEIRO: entram os dois lados (pai, filho, irmão), todos com carta no jogo e parentesco público.
+const PARENTES = new Set([
+  'Cesare Maldini', 'Paolo Maldini', 'Daniel Maldini', 'Diego Simeone', 'Giuliano Simeone', 'Giovanni Simeone', 'Lilian Thuram', 'Marcus Thuram',
+  'Khéphren Thuram', 'George Weah', 'Timothy Weah', 'Zinedine Zidane', 'Enzo Zidane', 'Luca Zidane', 'Johan Cruyff', 'Jordi Cruyff', 'Bobby Charlton',
+  'Jack Charlton', 'Michael Laudrup', 'Brian Laudrup', 'Frank de Boer', 'Ronald de Boer', 'Gary Neville', 'Phil Neville', 'Peter Schmeichel',
+  'Kasper Schmeichel', 'Patrick Kluivert', 'Justin Kluivert', 'Gheorghe Hagi', 'Ianis Hagi', 'Giovani dos Santos', 'Jonathan dos Santos',
+  'Enrico Chiesa', 'Federico Chiesa', 'Diego Milito', 'Gabriel Milito', 'Yaya Touré', 'Kolo Touré', 'Jérôme Boateng', 'Kevin-Prince Boateng',
+  'Erling Haaland', 'Mazinho', 'Thiago Alcântara', 'Rafinha Alcântara', 'Sócrates', 'Raí', 'Ronaldinho Gaúcho', 'Assis', 'Kaká', 'Pelé', 'Edinho',
+  'Bebeto', 'Romário', 'Ronald Koeman', 'Ronald Koeman Jr', 'Djalminha', 'Xabi Alonso', 'Sergio Busquets', 'Lionel Messi',
+])
 const PARENTE_NO_NOME = /\((irmão|irmã|filho|filha|primo|prima|pai|tio|sobrinho|neto) d[oa] / // minúsculo de propósito: "Euller (Filho do Vento)" é apelido, não parente
 // 📺 Virou comentarista de TV (trabalho público e conhecido: Globo/Band/SporTV no Brasil, BBC/Sky/TNT/CBS/beIN lá fora)
 const COMENTARISTA: Record<string, Pessoa[]> = {
@@ -178,7 +187,8 @@ const COMENTARISTA: Record<string, Pessoa[]> = {
   França: ['Thierry Henry', 'Patrice Evra', 'Bixente Lizarazu', 'Petit', 'Marcel Desailly'],
   Holanda: ['Seedorf', 'Clarence Seedorf', 'Ruud Gullit', 'Marco van Basten', 'Rafael van der Vaart', 'Pierre van Hooijdonk', 'Wesley Sneijder'],
   Alemanha: ['Jürgen Klinsmann', 'Lothar Matthäus', 'Michael Ballack', 'Dietmar Hamann', 'Mehmet Scholl', 'Oliver Kahn'],
-  Itália: ['Alessandro Del Piero'], Espanha: ['Santiago Cañizares'], Argentina: ['Jorge Valdano', 'Juan Pablo Sorín'], Chile: ['Iván Zamorano'],
+  Itália: ['Alessandro Del Piero'], Espanha: ['Santiago Cañizares'], Argentina: ['Jorge Valdano', 'Juan Pablo Sorín', 'Oscar Ruggeri', 'Pablo Zabaleta'],
+  Chile: ['Iván Zamorano'], EUA: ['Tim Howard'],
   México: ['Jorge Campos', 'Hugo Sánchez'],
 }
 // 🥊 Saiu no braço: agressão/briga famosa em campo, registrada na imprensa (Cantona no torcedor em 1995, a cabeçada de 2006,
@@ -187,6 +197,7 @@ const BRIGA: Record<string, Pessoa[]> = {
   França: ['Éric Cantona', 'Zinedine Zidane', 'Patrick Vieira'], Itália: ['Marco Materazzi', 'Gennaro Gattuso', 'Mauro Tassotti'],
   Brasil: ['Edmundo', 'Felipe Melo', 'Leonardo', 'Edílson'], Irlanda: ['Roy Keane'], Uruguai: ['Paolo Montero', 'Luis Suárez'], Portugal: ['Pepe'],
   Espanha: ['Diego Costa'], Holanda: ['Frank Rijkaard'], Suécia: ['Zlatan Ibrahimović'], Argentina: ['Diego Maradona'], Inglaterra: ['Kevin Keegan'],
+  Paraguai: ['José Luis Chilavert'], Colômbia: ['Faustino Asprilla'], // Chilavert × Asprilla, os dois expulsos no braço em 1997
 }
 // 🗳️ Virou político: presidente, senador, deputado ou ministro (Weah presidente da Libéria, Romário senador, Bebeto e Jardel
 // deputados estaduais, Danrlei deputado federal, Pelé ministro do Esporte, Zico secretário nacional de Esportes)
@@ -226,8 +237,9 @@ const VIROU_TECNICO: Record<string, Pessoa[]> = {
 }
 // ❤️ Jogou por amor a um clube só: a carreira profissional INTEIRA num clube (bandeira). Ceni ficou fora (passou pelo Sinop).
 const UM_CLUBE_SO: Record<string, Pessoa[]> = {
-  Itália: ['Francesco Totti', 'Paolo Maldini', 'Franco Baresi'], 'País de Gales': ['Ryan Giggs'], Espanha: ['Carles Puyol'],
-  Inglaterra: ['Jamie Carragher', 'Matt Le Tissier', 'Gary Neville', 'Paul Scholes', 'Tony Adams', 'Jack Charlton'], Brasil: ['Marcos'],
+  Itália: ['Francesco Totti', 'Paolo Maldini', 'Franco Baresi', 'Giacinto Facchetti', 'Sandro Mazzola'], 'País de Gales': ['Ryan Giggs'], Espanha: ['Carles Puyol'],
+  Inglaterra: ['Jamie Carragher', 'Matt Le Tissier', 'Gary Neville', 'Paul Scholes', 'Tony Adams', 'Jack Charlton'],
+  Brasil: ['Marcos', 'Nílton Santos', 'Zito', { n: 'Pepe', clubes: ['Santos'] }],
   Alemanha: ['Sepp Maier', 'Uwe Seeler'], Argentina: ['Ricardo Bochini'], Rússia: ['Lev Yashin'],
 }
 // 🏴 o país da LIGA do clube da carta (Inglaterra = futebol inglês; o País de Gales do Swansea joga lá)
@@ -235,6 +247,9 @@ const LIGA_INGLESA = new Set(['Liverpool', 'Man United', 'Manchester United', 'A
 const LIGA_ESPANHOLA = new Set(['Real Madrid', 'Barcelona', 'Atlético de Madrid', 'Sevilla', 'Valencia', 'Villarreal', 'Real Betis', 'Deportivo La Coruña', 'Real Sociedad', 'Athletic Bilbao', 'Espanyol', 'Celta', 'Celta de Vigo', 'Mallorca', 'Granada', 'Girona', 'Logroñés'])
 const LIGA_ITALIANA = new Set(['Milan', 'Inter', 'Juventus', 'Roma', 'Napoli', 'Lazio', 'Fiorentina', 'Parma', 'Atalanta', 'Udinese', 'Torino', 'Sampdoria', 'Verona', 'Palermo', 'Padova', 'Perugia', 'Genoa', 'Como', 'Chievo', 'Cagliari', 'Bologna'])
 const LIGA_ALEMA = new Set(['Bayern', 'Dortmund', 'Leverkusen', 'Bayer Leverkusen', 'Schalke', 'RB Leipzig', 'Werder Bremen', 'Wolfsburg', 'Stuttgart', 'Mönchengladbach', 'Borussia Mönchengladbach', 'Köln', 'Colônia', 'Kaiserslautern', 'Hamburg', 'Freiburg', 'Eintracht Frankfurt', 'Hertha Berlin', 'Hannover', 'Augsburg', 'Rot-Weiss Essen'])
+const LIGA_FRANCESA = new Set(['PSG', 'Marseille', 'Lyon', 'Monaco', 'Lille', 'Nice', 'Rennes', 'Reims', 'Strasbourg', 'Montpellier', 'Lens', 'RC Lens', 'Auxerre', 'Angers', 'Laval'])
+const LIGA_PORTUGUESA = new Set(['Benfica', 'Porto', 'Sporting', 'Sporting Braga', 'Vitória de Setúbal', 'Académico de Viseu'])
+const LIGA_HOLANDESA = new Set(['Ajax', 'PSV', 'Feyenoord', 'AZ Alkmaar', 'Vitesse', 'FC Amsterdam'])
 const AFRICA = new Set(['Senegal', 'Camarões', 'Costa do Marfim', 'Gana', 'Marrocos', 'Argélia', 'Nigéria', 'Egito', 'Mali', 'África do Sul', 'Congo', 'RD Congo', 'Angola', 'Zimbábue', 'Togo', 'Libéria', 'Guiné', 'Gabão', 'Cabo Verde', 'Tunísia'])
 
 // o mesmo clube com outro nome no baralho
@@ -255,17 +270,23 @@ export const TEMAS_CONQUISTA: TemaConquista[] = [
   { id: 'espanha', emoji: '🇪🇸', pt: 'Jogou na Espanha', en: 'Played in Spain', grupo: 'mista' },
   { id: 'italia', emoji: '🇮🇹', pt: 'Jogou na Itália', en: 'Played in Italy', grupo: 'mista' },
   { id: 'alemanha', emoji: '🇩🇪', pt: 'Jogou na Alemanha', en: 'Played in Germany', grupo: 'mista' },
+  { id: 'franca', emoji: '🇫🇷', pt: 'Jogou na França', en: 'Played in France', grupo: 'mista' },
+  { id: 'portugal', emoji: '🇵🇹', pt: 'Jogou em Portugal', en: 'Played in Portugal', grupo: 'mista' },
+  { id: 'holanda', emoji: '🇳🇱', pt: 'Jogou na Holanda', en: 'Played in the Netherlands', grupo: 'mista' },
   { id: 'hermanos', emoji: '🇦🇷', pt: 'Hermanos', en: 'Argentines', grupo: 'mista' },
   { id: 'garra-uruguaia', emoji: '🇺🇾', pt: 'Garra uruguaia', en: 'Uruguayan grit', grupo: 'mista' },
-  { id: 'portugueses', emoji: '🇵🇹', pt: 'Portugueses', en: 'Portuguese', grupo: 'mista' },
+  { id: 'portugueses', emoji: '⛵', pt: 'Portugueses', en: 'Portuguese', grupo: 'mista' },
   { id: 'africanos', emoji: '🌍', pt: 'Africanos', en: 'Africans', grupo: 'mista' },
+  { id: 'velha-guarda', emoji: '🎞️', pt: 'Velha guarda (até 1969)', en: 'Old school (up to 1969)', grupo: 'mista' },
   { id: 'anos-70', emoji: '📻', pt: 'Anos 70', en: 'The 70s', grupo: 'mista' },
   { id: 'anos-80', emoji: '📼', pt: 'Anos 80', en: 'The 80s', grupo: 'mista' },
   { id: 'anos-90', emoji: '💿', pt: 'Anos 90', en: 'The 90s', grupo: 'mista' },
   { id: 'anos-2000', emoji: '📱', pt: 'Anos 2000', en: 'The 2000s', grupo: 'mista' },
+  { id: 'anos-2010', emoji: '🤳', pt: 'Anos 2010', en: 'The 2010s', grupo: 'mista' },
+  { id: 'anos-2020', emoji: '🎮', pt: 'Anos 2020', en: 'The 2020s', grupo: 'mista' },
   { id: 'ouro-olimpico', emoji: '🏅', pt: 'Ouro olímpico', en: 'Olympic gold', grupo: 'meio' },
   { id: 'rodou', emoji: '🧳', pt: 'Rodou o mundo', en: 'Journeyman', grupo: 'meio' },
-  { id: 'parentes', emoji: '👨‍👦', pt: 'Parente do craque', en: "Star's relative", grupo: 'comica' },
+  { id: 'parentes', emoji: '👨‍👦', pt: 'Família de boleiro', en: 'Football family', grupo: 'comica' },
   { id: 'virou-tecnico', emoji: '🧑‍🏫', pt: 'Virou técnico', en: 'Became a manager', grupo: 'mista' },
   { id: 'um-clube', emoji: '❤️', pt: 'Jogou por amor a um clube só', en: 'One-club man', grupo: 'lenda' },
   { id: 'comentarista', emoji: '📺', pt: 'Virou comentarista', en: 'Became a pundit', grupo: 'meio' },
@@ -365,6 +386,12 @@ function noTema(id: string, it: Item): boolean {
     case 'garra-uruguaia': return it.pais === 'Uruguai'
     case 'portugueses': return it.pais === 'Portugal'
     case 'africanos': return AFRICA.has(it.pais)
+    case 'franca': return LIGA_FRANCESA.has(c.club)
+    case 'portugal': return LIGA_PORTUGUESA.has(c.club)
+    case 'holanda': return LIGA_HOLANDESA.has(c.club)
+    case 'velha-guarda': return c.year < 1970
+    case 'anos-2010': return decada(c.year, 2010)
+    case 'anos-2020': return c.year >= 2020
     case 'anos-70': return decada(c.year, 1970)
     case 'anos-80': return decada(c.year, 1980)
     case 'anos-90': return decada(c.year, 1990)
