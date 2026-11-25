@@ -1,0 +1,103 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800;900&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;font-family:Inter,sans-serif;color:#0C0C0C;padding:28px;display:flex;gap:28px;align-items:flex-start}
+.tel{width:390px;background:#F4ECD6;border:4px solid #000;border-radius:28px;padding:18px 16px 22px;box-shadow:6px 6px 0 #000}
+.cap{font:800 13px Oswald;color:#fff;letter-spacing:.5px;margin:0 0 8px 4px;text-transform:uppercase}
+h1{font:900 26px Oswald;text-transform:uppercase;line-height:1}
+h2{font:800 15px Oswald;text-transform:uppercase;margin:14px 0 8px}
+.sub{font-size:12px;color:#555;margin-top:4px}
+.box{background:#fff;border:3px solid #000;border-radius:16px;box-shadow:3px 3px 0 #000;padding:10px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.op{border:3px solid #000;border-radius:14px;padding:10px 8px;text-align:center;background:#fff;box-shadow:3px 3px 0 #000;font:800 15px Oswald;text-transform:uppercase}
+.op small{display:block;font:600 10.5px Inter;text-transform:none;color:#555;margin-top:3px}
+.op.on{background:#FFC400}
+.op.full{grid-column:1/-1}
+.novo{display:inline-block;background:#1B7A3D;color:#fff;font:800 10px Inter;border:2px solid #000;border-radius:99px;padding:1px 7px;margin-left:4px;vertical-align:middle}
+.ex{font-size:11.5px;line-height:1.45;margin-top:8px}
+.ex b{font-family:Oswald;font-weight:800}
+.top{display:flex;justify-content:space-between;align-items:center}
+.moeda{background:#FFC400;border:3px solid #000;border-radius:99px;padding:3px 10px;font:900 16px Oswald;box-shadow:2px 2px 0 #000}
+.pos{display:flex;gap:5px;margin:10px 0}
+.pos span{flex:1;text-align:center;border:2px solid #000;border-radius:8px;font:800 12px Oswald;padding:3px 0;background:#fff}
+.pos span.on{background:#0C0C0C;color:#FFC400}
+.pac{border:3px solid #000;border-radius:16px;box-shadow:3px 3px 0 #000;padding:9px 10px;margin-bottom:9px;display:flex;gap:10px;align-items:center;position:relative;overflow:hidden}
+.ico{width:52px;height:52px;border:3px solid #000;border-radius:12px;background:rgba(255,255,255,.55);display:grid;place-items:center;font-size:28px;flex:none}
+.inf{flex:1;min-width:0}
+.tema{font:900 16px Oswald;text-transform:uppercase;line-height:1.05}
+.cat{font:800 10.5px Inter;margin-top:3px;opacity:.9}
+.qt{font:700 11px Inter;margin-top:3px}
+.lance{display:flex;align-items:center;gap:4px;flex:none}
+.lance b{width:40px;height:34px;border:3px solid #000;border-radius:10px;background:#fff;display:grid;place-items:center;font:900 17px Oswald;color:#0C0C0C}
+.lance i{width:30px;height:30px;border:3px solid #000;border-radius:9px;background:#FFC400;display:grid;place-items:center;font:900 18px Oswald;font-style:normal;color:#0C0C0C;box-shadow:2px 2px 0 #000}
+.lenda{background:linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)}
+.craque{background:linear-gradient(150deg,#F4F7FB,#CBD4DE 45%,#9BA7B5 78%,#EAEFF4)}
+.promessa{background:linear-gradient(150deg,#C9A9FF,#8B5CF6 52%,#5B2FB0);color:#fff}
+.bom{background:linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45);color:#fff}
+.pro{background:linear-gradient(150deg,#DBD1B5,#CBBF9E 60%,#B2A583)}
+.btn{margin-top:10px;background:#1B7A3D;color:#fff;border:3px solid #000;border-radius:14px;box-shadow:4px 4px 0 #000;text-align:center;font:900 18px Oswald;text-transform:uppercase;padding:11px}
+.dica{font-size:11px;color:#444;margin-top:6px;text-align:center}
+.rev{text-align:center}
+.martelo{font:900 30px Oswald;color:#C2452F;text-transform:uppercase;margin:6px 0 2px}
+.cards{display:flex;gap:10px;justify-content:center;margin:14px 0}
+.card{width:150px;border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;padding:8px;text-align:left}
+.card .ft{height:110px;border:2px solid #000;border-radius:10px;background:rgba(255,255,255,.4);display:grid;place-items:center;font-size:52px}
+.card .nm{font:900 17px Oswald;text-transform:uppercase;margin-top:6px;line-height:1}
+.card .cl{font:600 11px Inter;margin-top:2px}
+.card .tg{font:800 10px Inter;margin-top:5px}
+.quem{background:#fff;border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;padding:9px;font-size:13px}
+.quem b{font-family:Oswald;font-weight:800}
+.obs{font-size:10.5px;color:#666;margin-top:10px;text-align:center}
+</style></head><body>
+
+<div><div class="cap">1 · Criar sala — tipo do leilão</div>
+<div class="tel">
+ <h1>Criar sala</h1><div class="sub">O que vai a leilão?</div>
+ <h2>Tipo do leilão</h2>
+ <div class="seg">
+  <div class="op">🃏 Jogador<small>uma carta por lance</small></div>
+  <div class="op">🧱 Clubes<small>pacote de um clube</small></div>
+  <div class="op on full">🏅 Conquistas <span class="novo">NOVO</span><small>pacote de quem ganhou algo — Bola de Ouro, Copa, Olimpíada… e também os rebaixados 😅</small></div>
+ </div>
+ <div class="box ex">
+  <b>COMO FUNCIONA</b><br>
+  Cada pacote tem um <b>TEMA</b> e uma <b>CATEGORIA</b>. Você vê o tema e quantos vêm dentro — <b>os nomes só aparecem depois do martelo</b>.<br>
+  👑 Lenda · ⭐ Craque · 💎 Promessa · 🎯 Bom · 🪵 Profissional — na mesma proporção do leilão de sempre.
+ </div>
+ <h2>Jeito do lance</h2>
+ <div class="seg">
+  <div class="op on">✉️ Envelope</div><div class="op">🐊 Tocaia</div>
+  <div class="op full">🔨 Pregão aberto</div>
+ </div>
+ <div class="btn">Criar sala</div>
+</div></div>
+
+<div><div class="cap">2 · O pregão do ATA (envelope)</div>
+<div class="tel">
+ <div class="top"><h1>Pregão</h1><div class="moeda">💰 100</div></div>
+ <div class="pos"><span>GOL</span><span>LAT</span><span>ZAG</span><span>MEI</span><span class="on">ATA</span></div>
+ <div class="pac lenda"><div class="ico">🥇</div><div class="inf"><div class="tema">Bola de Ouro</div><div class="cat">👑 LENDA</div><div class="qt">🔒 2 atacantes dentro</div></div><div class="lance"><b>18</b><i>+</i></div></div>
+ <div class="pac lenda"><div class="ico">🏆</div><div class="inf"><div class="tema">Campeão do Mundo</div><div class="cat">👑 LENDA</div><div class="qt">🔒 2 atacantes dentro</div></div><div class="lance"><b>0</b><i>+</i></div></div>
+ <div class="pac craque"><div class="ico">🌎</div><div class="inf"><div class="tema">Campeão da Libertadores</div><div class="cat">⭐ CRAQUE</div><div class="qt">🔒 2 atacantes dentro</div></div><div class="lance"><b>0</b><i>+</i></div></div>
+ <div class="pac promessa"><div class="ico">🏅</div><div class="inf"><div class="tema">Ouro Olímpico</div><div class="cat">💎 PROMESSA</div><div class="qt">🔒 2 atacantes dentro</div></div><div class="lance"><b>6</b><i>+</i></div></div>
+ <div class="pac bom"><div class="ico">🇧🇷</div><div class="inf"><div class="tema">Campeão Brasileiro</div><div class="cat">🎯 BOM JOGADOR</div><div class="qt">🔒 2 atacantes dentro</div></div><div class="lance"><b>0</b><i>+</i></div></div>
+ <div class="pac pro"><div class="ico">📉</div><div class="inf"><div class="tema">Rebaixado com o clube</div><div class="cat">🪵 PROFISSIONAL</div><div class="qt">🔒 2 atacantes dentro</div></div><div class="lance"><b>1</b><i>+</i></div></div>
+ <div class="pac pro"><div class="ico">🐪</div><div class="inf"><div class="tema">Foi pra Arábia</div><div class="cat">🪵 PROFISSIONAL</div><div class="qt">🔒 2 atacantes dentro</div></div><div class="lance"><b>0</b><i>+</i></div></div>
+ <div class="btn">✉️ Fechar envelope</div>
+ <div class="dica">Leva o pacote inteiro quem der mais · empate = sorteio, igual sempre</div>
+</div></div>
+
+<div><div class="cap">3 · O martelo: o pacote abre</div>
+<div class="tel rev">
+ <div class="pac lenda" style="justify-content:center"><div class="ico">🥇</div><div class="inf" style="flex:none;text-align:left"><div class="tema">Bola de Ouro · ATA</div><div class="cat">👑 LENDA</div></div></div>
+ <div class="martelo">🔨 Vendido!</div>
+ <div class="sub">o pacote abre e as cartas viram</div>
+ <div class="cards">
+  <div class="card lenda"><div class="ft">⚽</div><div class="nm">Ronaldo</div><div class="cl">Inter · 1998</div><div class="tg">🥇 Bola de Ouro 1997 e 2002</div></div>
+  <div class="card lenda"><div class="ft">⚽</div><div class="nm">Shevchenko</div><div class="cl">Milan · 2004</div><div class="tg">🥇 Bola de Ouro 2004</div></div>
+ </div>
+ <div class="quem">🏆 <b>RENATIN FC</b> levou por <b>18</b> · 2º lance: 15</div>
+ <div class="obs">Exemplo de tela. As cartas de verdade saem do baralho do jogo; cada tema só entra com fato real e fonte.</div>
+</div></div>
+</body></html>
