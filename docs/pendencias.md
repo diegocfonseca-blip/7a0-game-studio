@@ -2,6 +2,13 @@
 
 Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
 
+
+## 26/11 — Leilão de Conquistas: +6 temas pedidos pelo Diego (NO BRANCH, esperando OK pra publicar)
+- 🌵 Jogou no Nordeste (clube da carta) · ❄️ Jogou na Rússia ou Ucrânia (Rússia sozinha tem só 11 cartas, não fecha pacote) · 🔁 Jogou nos dois rivais
+  (lista pública + quem o baralho mostra nos dois clubes de um clássico) · 🛂 Trocou de seleção (trocou ou nasceu num país e jogou por outro) ·
+  🟥 Rei do cartão vermelho (recordistas conhecidos; só ZAG/MEI fecham pacote) · 🌙 Fugiu do CT pra balada (só história pública; MEI/ATA).
+- "Jogou na Ásia" já existia. Trava `npm run conquistas` verde. Reverter: `git revert` do commit.
+
 ## 25/11 — cenas de jogador e lesão ao vivo (publicação autorizada)
 
 Autorizado implementar futevôlei/balada e demais acontecimentos, junto da lesão durante a partida. Cenas usam arte nativa e fontes confirmadas, com identidade por carta, menos repetições e composição de recuperação corrigida. Liga M2 compartilha o risco de desgaste entre preparação/segundo tempo: pausa, retirada real, máximo três trocas, opção sem reserva e goleiro de emergência. Próxima escalação/base resolvida no Elenco após o apito. Publicação expressamente autorizada: “entao publique”. Testes, limites, capturas e vídeos: [auditoria](auditorias/cenas-jogadores-lesao-partida-20261125.md).
