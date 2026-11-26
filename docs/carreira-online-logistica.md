@@ -1,0 +1,51 @@
+# 🌐 Carreira Online (Tradicional) — logística e plano (26/11)
+
+Pedido do Diego (26/11): *"organizar e fazer tudo que tiver que ser feito pra podermos fazer a carreira online… pensar como vai ser
+a logística… hoje a Liga Draft funciona muito bem… pessoas que entram e depois não jogam no dia seguinte… o host quer passar ou não
+passa… até quantos times, 20 seria o ideal?"*
+
+## Onde está (conferido em 26/11, depois da publicação do Codex na tradicional)
+- Motor da v2 OK: `npm run carreira-online` (20 aparelhos = mesmo placar/tabela/artilharia) e `npm run carreira-online-fluxo`
+  (3 clubes, leilão → 10 rodadas iguais) **passam** com a main de hoje. A publicação do Codex não quebrou a v2.
+- Desenho: cada aparelho roda a CARREIRA TRADICIONAL do próprio clube; os clubes dos amigos chegam pelas gavetas
+  (`carreira-online-v2.ts`); o leilão e o relógio rodam no aparelho de quem comanda a noite (`co2.ts`, canal `co2:<sala>`).
+- Banco: `esc_carr_sala` / `esc_carr_clube` (até **20 assentos**) / `esc_carr_privado`. Criar = só as contas do Diego.
+- Só 2 salas existem (as de teste), nenhuma passou da temporada 1.
+
+## Os buracos que impedem liberar (técnicos, não dependem de decisão)
+1. **A virada da temporada** trava com aviso (`if (s.co2) return s` no fim da temporada): falta leilão/mesmo time → sobe/cai → T2.
+2. **Quem faltou não "alcança" a sala**: o caixa, os salários, a Agência e o resto do clube só andam no aparelho do dono do clube.
+   Se ele faltou 15 rodadas, ao voltar o aparelho dele tem que JOGAR as rodadas perdidas em segundos (mesma gaveta congelada, mesmo
+   resultado que os outros viram) antes de deixar ele mexer em nada. Hoje isso não existe.
+3. **Entrar no meio**: o banco deixa entrar sempre que a sala está "em espera" — e entre uma noite e outra ela fica em espera. Quem
+   entrar no meio da temporada fica sem lugar na tabela. Tem que ser só na virada (igual Liga da Turma/Draft).
+4. **Tudo que a tradicional ganhou depois de 20/10** (Central direta, 3D, cenas, janela nova, SAF clássica, contratos novos…) está
+   desligado na v2 (`!s.co2`). Cada um entra em bloco, com print.
+
+## Proposta de funcionamento (espelhada na Liga Draft, que funciona)
+- **Tamanho**: até **20 clubes de gente** (= a Várzea inteira; todo mundo começa lá). Bom de jogar: 6 a 12.
+- **Noite**: o dono abre a noite, a sala joga rodada a rodada (prazo de PRONTO de ~60 s) e o dono encerra quando quiser. Meta:
+  **uma temporada por noite** (~38 rodadas).
+- **Quem não veio**: o clube NÃO sai — joga sozinho com a última escalação e o rodízio automático de cansaço (como o time de quem caiu
+  na Liga). Ao voltar, o aparelho dele alcança as rodadas em segundos e ele continua de onde a sala está.
+- **Quem não veio na virada**: fica com o MESMO time (não entra no pregão), contrato que vence renova sozinho se o caixa der, senão
+  sai; vaga vazia ganha jogador profissional/bom de graça (régua do pregão aberto). Nunca jogador fake.
+- **Quem sai de vez**: o clube vira bot com o elenco (regra da Liga Draft); só o dono da sala remove alguém.
+- **Gente nova**: só entra na virada da temporada, com aceite do dono, começando na Várzea.
+- **A coroa**: quem cria manda sempre (regra de 21/08). ⚠️ O código de 20/10 tem um **vice** escolhido pelo dono que pode ABRIR a noite
+  quando o dono não deu sinal há 2 min (nunca no meio da noite). Isso precisa do OK explícito do Diego — senão sai.
+- **Custo**: cada clube guarda o próprio save no banco (gaveta privada) — por isso criar sala com plano, como a Liga da Turma.
+
+## Decisões que só o Diego toma (perguntadas em 26/11)
+1. Até 20 clubes de gente? (recomendação: sim)
+2. Vice escolhido pelo dono pode abrir a noite quando o dono não vem? (o código tem; regra das salas é "não")
+3. Quem não veio na virada fica com o mesmo time? (recomendação: sim)
+4. Criar sala = quem tem plano (como a Liga da Turma); entrar = qualquer conta? (recomendação: sim)
+5. Uma temporada por noite como meta? (recomendação: sim)
+
+## Ordem de trabalho (depois das respostas)
+1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
+2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
+3. Entrada só na virada (banco) + sair/remover = vira bot.
+4. Teste com 2 contas de verdade (Diego + conta 2).
+5. Blocos da tradicional (`docs/carreira-online-checklist.md`), cada um com print.

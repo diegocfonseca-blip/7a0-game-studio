@@ -6,6 +6,11 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
 
 
 
+
+## 26/11 — 🌐 Carreira Online (tradicional): análise da logística feita, esperando 5 decisões do Diego
+- Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
+- Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
+
 ## 26/11 — 📊 Painel do Criador voltou a abrir (Diego: "Sim")
 - O histórico (700 mil partidas + 690 mil visitas) passou de 8 s e o banco cortava o painel inteiro, até o "quem está on".
 - Agora o `pg_cron` 'esc-admin-hist' roda `esc_admin_hist_calc(30,200)` a cada 5 min (~7,5 s, fora do limite da API) e o
