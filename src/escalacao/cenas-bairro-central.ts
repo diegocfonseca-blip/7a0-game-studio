@@ -18,7 +18,7 @@ export function cenasDoBairro(d:{
 }):Cena[]{
  const out:Cena[]=[],t=d.t,base={rotulo:t('Enquanto isso no bairro','Meanwhile in the neighbourhood')}
  const prefix=d.carreiraKey??d.chave.split(':').slice(0,-1).join(':'),group=`${prefix}:jogo:${d.temporada}:${d.rodada}`
- const add=(prioridade:number,id:string,scene:Omit<CentralSede,'chave'|'rotulo'>)=>out.push({...base,...scene,...(d.chegadaIlustrada&&scene.acao==='contratacao'?{apresentacaoCentral:true}:{}),chave:`${prefix}:${id}`,prioridade,grupo:scene.grupo??group,acao:scene.acao??'torcida'})
+ const add=(prioridade:number,id:string,scene:Omit<CentralSede,'chave'|'rotulo'>)=>out.push({...base,...scene,...(d.chegadaIlustrada&&scene.acao==='contratacao'?{apresentacaoCentral:true,clubeDestino:d.clube}:{}),chave:`${prefix}:${id}`,prioridade,grupo:scene.grupo??group,acao:scene.acao??'torcida'})
  if(d.carreata&&d.tituloId)add(100,`titulo:${d.tituloId}`,{acao:'titulo',grupo:`${prefix}:titulo:${d.tituloId}`,vista:'city-street',img:d.imagens.carreata,tom:'bom',chapeu:t('🏆 O bairro é campeão','🏆 A winning neighbourhood'),titulo:t('A taça saiu para as ruas','The trophy takes to the streets'),texto:t('O título já está confirmado. Acompanhe a carreata do clube no mapa.','The title is confirmed. Follow the club parade on the map.')})
  if(!d.carreata&&d.desfecho&&['acesso','queda'].includes(d.desfecho.tipo)){
   const sobe=d.desfecho.tipo==='acesso'

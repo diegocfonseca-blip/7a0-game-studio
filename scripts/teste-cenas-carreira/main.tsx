@@ -23,7 +23,7 @@ await carregaBaralhoOficial()
 const aleatorioOriginal=Math.random
 Math.random=()=>0.20261124
 const tradicional=new URLSearchParams(location.search).has('tradicional')
-let seed=tradicional?reservasBancada(carreiraTradicionalBancada()):reducer(structuredClone(INITIAL),{type:'START_CAREER_SOLO',teamName:'Flamengo',formation:'4-3-3',rivals:3,oficial:{clube:'Flamengo'}})
+let seed=tradicional?reservasBancada(carreiraTradicionalBancada(new URLSearchParams(location.search).get('destino')||'Flamengo')):reducer(structuredClone(INITIAL),{type:'START_CAREER_SOLO',teamName:'Flamengo',formation:'4-3-3',rivals:3,oficial:{clube:'Flamengo'}})
 Math.random=aleatorioOriginal
 if(!tradicional&&!seed.oficial)throw new Error('Fixture oficial não foi criada')
 seed={...seed,seasonNo:6,calCopaSeason:6,tvBannerSeen:['A','B','C','D'],tvExtraVisto:true,screen:'season',oficialAbertura:undefined,seed:20261120,simSpeed:Number(new URLSearchParams(location.search).get('speed')??4),careerSubMode:'dinamico',careerEra:new URLSearchParams(location.search).get('semplano')?1:undefined} // 🔒 ?semplano=1 = carreira NOVA sem plano (Manual com cadeado)

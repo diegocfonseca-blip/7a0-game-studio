@@ -12,6 +12,8 @@ assert.deepEqual(fatosDoBairro({...s,careerTransferHistory:[{...purchase,from:'C
 const base={chave:'seed:3:0',carreiraKey:'seed:0',temporada:3,rodada:0,clube:'Clube',t:(p:string)=>p,imagens:{estadio:'e',clube:'c',noite:'n',carreata:'t',obra:'o',festa:'f',triste:'x',feira:'y'}}
 const scenes=cenasDoBairro({...base,fatos:facts,mapaDisponivel:false,chegadaIlustrada:true,carreata:true,tituloId:'trophy'})
 assert.equal(scenes.length,1);assert.equal(scenes[0].acao,'contratacao');assert.equal(scenes[0].apresentacaoCentral,true)
+assert.equal(scenes[0].clubeDestino,'Clube','a camisa vem do comprador, não do clube histórico da carta')
+assert.equal(scenes[0].ator?.club,'Vasco','a identidade histórica da carta permanece intacta')
 assert.deepEqual(cenasDoBairro({...base,fatos:facts,mapaDisponivel:false}),[],'sem ativação explícita não altera outros esportes/modos')
 const seen={seen:[{id:scenes[0].chave,group:scenes[0].grupo,kind:scenes[0].acao,season:3,round:0}],sales:[]}
 assert.equal(cenasDoBairro({...base,fatos:facts,mapaDisponivel:false,chegadaIlustrada:true,diario:seen}).length,0)

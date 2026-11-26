@@ -96,7 +96,7 @@ function CartaoRaioX({ r }: { r: RaioX }) {
 /** 🎥 ENQUANTO ISSO NO BAIRRO (17/11, mockup aprovado pelo Diego): UMA cena do mapa do clube por vez, só do que já está
  *  acontecendo de verdade (noitada do baladeiro, obra comprada, boteco depois do jogo, carreata, feira). `chave` = o
  *  acontecimento; fechou, não volta (guarda só a ÚLTIMA chave fechada — uma entrada só no aparelho, nunca cresce). */
-export type CentralSede = { apresentacaoCentral?:boolean; ator?:import('./cenas-bairro-model').AtorCena; /** 📍 o lugar do mapa onde a cena acontece (o "Ver no mapa" voa pra lá) */ vista?: string; acao?:import('./cenas-bairro-model').AcaoBairro; grupo?:string; prioridade?:number; chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
+export type CentralSede = { apresentacaoCentral?:boolean; clubeDestino?:string; ator?:import('./cenas-bairro-model').AtorCena; /** 📍 o lugar do mapa onde a cena acontece (o "Ver no mapa" voa pra lá) */ vista?: string; acao?:import('./cenas-bairro-model').AcaoBairro; grupo?:string; prioridade?:number; chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
 const SEDE_FECHADA = 'esc-sede-fechada'
 /** 🛟 22/11: se o mapa ao vivo der erro, o cartão permite seguir sem derrubar a Central */
 class SemQuebrar extends Component<{ children: ReactNode;onError?:()=>void }, { erro: boolean }> {
@@ -131,7 +131,7 @@ export function CartaoSede({ s, onMapa, onElenco, cls, janela, seguir, aoPular, 
   return (
     <div ref={raiz} className={`ll-central-card ll-c-sede ${cls}`} style={{ background: CREME, color: INK, overflow: 'hidden', padding: 0 }}>
       <div style={{position:'relative',height:ilustrada?'auto':290,aspectRatio:ilustrada?'16 / 9':undefined,background:'#e8dfc8',overflow:'hidden'}} data-neighborhood-preview data-phase={unavailable?'unavailable':phase}>
-        {ilustrada&&naTela&&<div style={{position:'absolute',inset:0}}><SemQuebrar key={`${s.chave}:${centralFrame.revision}`} onError={()=>setVideoFailed(true)}><Suspense fallback={null}><CenaContratacaoCentral chave={s.chave} ator={s.ator!}/></Suspense></SemQuebrar></div>}
+        {ilustrada&&naTela&&<div style={{position:'absolute',inset:0}}><SemQuebrar key={`${s.chave}:${centralFrame.revision}`} onError={()=>setVideoFailed(true)}><Suspense fallback={null}><CenaContratacaoCentral chave={s.chave} ator={s.ator!} destino={s.clubeDestino??''}/></Suspense></SemQuebrar></div>}
         {!ilustrada&&janela&&naTela&&<>
           <style>{'.ll-sede-mapa *{visibility:hidden!important}.ll-sede-mapa canvas{visibility:visible!important;outline:0!important}.ll-sede-mapa .pc3-stage{height:290px!important;min-height:0!important;max-height:290px!important;border:0!important;border-radius:0!important}'}</style>
           <div className="ll-sede-mapa" data-sede-ao-vivo style={{position:'absolute',inset:0,pointerEvents:'none'}}><SemQuebrar onError={()=>setVideoFailed(true)}>{janela}</SemQuebrar></div>
@@ -139,9 +139,9 @@ export function CartaoSede({ s, onMapa, onElenco, cls, janela, seguir, aoPular, 
         {!ready&&<div role="status" style={{position:'absolute',inset:0,background:'#e8dfc8',display:'flex',alignItems:'center',justifyContent:'center',textAlign:'center',padding:24,color:INK,fontSize:14}}>
           <div>{unavailable?(ilustrada?t('A apresentação não abriu neste aparelho. Você pode seguir.','The presentation could not open on this device. You can continue.'):t('A prévia não abriu neste aparelho. Você pode seguir ou ver o local no mapa.','The preview could not open on this device. Continue or view the location on the map.')):phase==='paused'?t('Toque para assistir ao momento.','Tap to watch this moment.'):t('Preparando o momento…','Preparing the moment…')}{(phase==='paused'||unavailable)&&<button type="button" onClick={play} style={{...OSW,display:'block',margin:'12px auto',padding:'8px 16px',border:`2px solid ${INK}`,borderRadius:10,background:GOLD}}>{t('▶ Reproduzir','▶ Play')}</button>}</div>
         </div>}
-        {phase==='ended'&&<button type="button" onClick={play} style={{...OSW,position:'absolute',right:10,bottom:12,border:`2px solid ${INK}`,borderRadius:10,padding:'5px 9px',background:CREME,color:INK}}>{t('↻ Ver novamente','↻ Replay')}</button>}
+        {!ilustrada&&phase==='ended'&&<button type="button" onClick={play} style={{...OSW,position:'absolute',right:10,bottom:12,border:`2px solid ${INK}`,borderRadius:10,padding:'5px 9px',background:CREME,color:INK}}>{t('↻ Ver novamente','↻ Replay')}</button>}
         {ready&&<div aria-hidden="true" style={{position:'absolute',left:0,bottom:0,height:4,width:`${Math.min(100,frame.seconds/(frame.duration||DURACAO_CENA)*100)}%`,background:GOLD}}/>}
-        <span style={{ ...OSW, position: 'absolute', left: 10, top: 10, background: INK, color: GOLD, fontSize: 11, letterSpacing: '.12em', padding: '4px 8px', borderRadius: 8 }}>🎥 {s.rotulo}</span>
+        {!ilustrada&&<span style={{ ...OSW, position: 'absolute', left: 10, top: 10, background: INK, color: GOLD, fontSize: 11, letterSpacing: '.12em', padding: '4px 8px', borderRadius: 8 }}>🎥 {s.rotulo}</span>}
         {s.hora && <span style={{ ...OSW, position: 'absolute', right: 10, top: 10, background: RED, color: '#fff', fontSize: 11, letterSpacing: '.1em', padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}` }}>● {s.hora}</span>}
       </div>
       <div style={{ padding: '12px 14px 14px' }}>
@@ -151,6 +151,7 @@ export function CartaoSede({ s, onMapa, onElenco, cls, janela, seguir, aoPular, 
         <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600, color: '#3a3527' }}>{s.texto}</p>
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={ilustrada?()=>{if(onElenco){fecha();onElenco()}else play()}:onMapa} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: GOLD, color: INK, cursor: 'pointer' }}>{ilustrada?(onElenco?t('Ver elenco','View squad'):t('Rever','Replay')):<>📍 {t('Ver no mapa', 'See on the map')}</>}</button>
+          {ilustrada&&phase==='ended'&&<button type="button" onClick={play} data-central-replay style={{...OSW,flex:1,minWidth:0,border:`3px solid ${INK}`,borderRadius:12,boxShadow:`3px 3px 0 ${INK}`,fontSize:15,padding:8,background:CREME,color:INK,cursor:'pointer'}}>{t('Rever','Replay')}</button>}
           <button type="button" onClick={fecha} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: '#fff', color: INK, cursor: 'pointer' }}>{phase==='ended'?t('Seguir ›','Continue ›'):t('Pular ›','Skip ›')}</button>
         </div>
       </div>

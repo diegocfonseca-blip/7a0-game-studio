@@ -6,6 +6,8 @@ import {pintorChegada} from './cena-contratacao-pintor'
 import cenario from './img/central-chegada-cenario.webp'
 import sprites from './img/central-chegada-sprites.webp'
 import diretoria from './img/career-president-terno.webp'
+import corpo from './img/central-apresentacao-corpo.webp'
+import {camisaApresentada,corpoApresentacao} from './cena-contratacao-camisa'
 
 // Images are requested only after this lazy component becomes visible. A retry
 // discards a failed promise; a missing portrait keeps a neutral shirt, never another player.
@@ -16,7 +18,7 @@ function imagem(url:string){
  imagens.set(url,p);while(imagens.size>16)imagens.delete(imagens.keys().next().value!)
  return p
 }
-export default function CenaContratacaoCentral({chave,ator}:{chave:string;ator:AtorCena}){
+export default function CenaContratacaoCentral({chave,ator,destino}:{chave:string;ator:AtorCena;destino:string}){
  const canvas=useRef<HTMLCanvasElement>(null),frame=useCenaCentral(chave)
  const nome=ator.nome,club=ator.club,year=ator.year
  useEffect(()=>{
@@ -25,6 +27,7 @@ export default function CenaContratacaoCentral({chave,ator}:{chave:string;ator:A
   let draw:ReturnType<typeof pintorChegada>|undefined,resize:ResizeObserver|undefined
   const revision=frame.revision,reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const src=legendAvatar(nome,club,year)?.src
+  const camisa=camisaApresentada(destino)
   const report=(phase:Parameters<typeof publicarCenaCentral>[1])=>publicarCenaCentral(chave,phase,elapsed/1000,revision)
   const render=()=>{if(failed)return false;try{draw?.(elapsed);return true}catch{failed=true;report('unavailable');return false}}
   const tick=(now:number)=>{
@@ -43,16 +46,16 @@ export default function CenaContratacaoCentral({chave,ator}:{chave:string;ator:A
   const visibility=()=>{cancelAnimationFrame(raf);if(document.hidden){if(draw&&!failed&&elapsed<DURACAO_CHEGADA_CENTRAL*1000)report('paused')}else resume()}
   document.addEventListener('visibilitychange',visibility)
   const timeout=window.setTimeout(()=>{if(!draw&&!closed)report('unavailable')},14000)
-  Promise.all([imagem(cenario),imagem(sprites),imagem(diretoria),src?imagem(src).catch(()=>undefined):undefined]).then(([background,atlas,staff,portrait])=>{
+  Promise.all([imagem(cenario),imagem(sprites),imagem(diretoria),src?imagem(src).catch(()=>undefined):undefined,imagem(corpo),camisa.arte?imagem(camisa.arte).catch(()=>undefined):undefined,camisa.escudo?imagem(camisa.escudo).catch(()=>undefined):undefined]).then(([background,atlas,staff,portrait,body,shirt,crest])=>{
    if(closed)return
    clearTimeout(timeout)
-   draw=pintorChegada(el,{background,atlas,staff,portrait},{nome,club,year})
+   draw=pintorChegada(el,{background,atlas,staff,portrait,presentation:corpoApresentacao(body,camisa,shirt,crest)},{nome,club,year})
    const size=()=>{const w=Math.max(320,Math.min(960,Math.round(el.getBoundingClientRect().width*Math.min(1.5,window.devicePixelRatio||1))))
     el.width=w;el.height=Math.round(w*9/16);render()}
    resize=new ResizeObserver(size);resize.observe(el);size();resume()
   }).catch(()=>{if(!closed){clearTimeout(timeout);report('unavailable')}})
   return()=>{closed=true;cancelAnimationFrame(raf);clearTimeout(timeout);resize?.disconnect();document.removeEventListener('visibilitychange',visibility)
    if(draw&&elapsed<DURACAO_CHEGADA_CENTRAL*1000&&quadroCentral(chave).phase!=='unavailable')report('paused')}
- },[chave,nome,club,year,frame.revision])
- return <canvas ref={canvas} width={960} height={540} data-central-signing-canvas role="img" aria-label={nome} style={{display:'block',width:'100%',height:'100%'}}/>
+ },[chave,nome,club,year,destino,frame.revision])
+ return <canvas ref={canvas} width={960} height={540} data-central-signing-canvas data-destination-club={destino} role="img" aria-label={`${nome} — ${destino}`} style={{display:'block',width:'100%',height:'100%'}}/>
 }
