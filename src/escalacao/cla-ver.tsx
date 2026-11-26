@@ -11,6 +11,8 @@ import { abrePerfilSolto, contaValida } from './amigos'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
 import { SeloFake } from './apoio'
+import { TrofeuPerfil } from './trofeus-perfil'
+import type { CompId } from './competicoes-visual'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#E8503A', CLA_OURO = '#E9C46A'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -60,10 +62,11 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
           </div>
           {c.descricao && <p style={{ fontSize: 12.5, fontWeight: 700, fontStyle: 'italic', margin: '8px 2px 0', lineHeight: 1.35, overflowWrap: 'anywhere' }}>“{c.descricao}”</p>}
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-            {[[c.pos ? `${c.pos}º` : '—', tr('na semana', 'this week')], [`${c.titulos} 🏆`, tr('títulos do clã', 'clan titles')]].map(([a, b]) => (
+            {[[c.pos ? `${c.pos}º` : '—', tr('na semana', 'this week')], [`${c.titulos} 🏆`, tr('títulos da semana', 'titles this week')]].map(([a, b]) => (
               <div key={b} style={{ flex: 1, background: '#fff', border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: 5 }}><b style={{ ...OSW, fontSize: 17 }}>{a}</b><br /><span style={{ fontSize: 10.5, fontWeight: 700 }}>{b}</span></div>
             ))}
           </div>
+          <SalaTrofeusCla id={c.id} />
           <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px', marginTop: 8 }}>
             <p style={{ ...OSW, fontSize: 12, margin: '2px 0 4px' }}>👥 {tr('Membros', 'Members')} <span style={{ fontWeight: 600, textTransform: 'none', fontSize: 10.5, color: '#777' }}>· {tr('toque pra ver o perfil', 'tap to see the profile')}</span></p>
             {/* 🎭 02/11 (Diego: "somente o q tem email q deve ter os escudos"): conta grátis com nome de batismo/plano alheio = escudo genérico + 🎭 FAKE */}
@@ -98,5 +101,44 @@ export function ClaVer({ id, onClose }: { id: number; onClose: () => void }) {
       </div>
     </div>,
     document.body,
+  )
+}
+
+// 🏛️ SALA DE TROFÉUS DO CLÃ (26/11, mockup scripts/mockups/cla-sala-trofeus.png, Diego: "Sim"): soma as taças do online dos
+// membros ATUAIS (mesma régua do perfil: `esc_cla_tacas` = `esc_tacas_online` de cada um) + as semanas do clã no pódio dos clãs.
+// Cara própria (fundo escuro e dourado) pra não parecer o perfil de uma pessoa. Só leitura; sem resposta do banco, não aparece.
+type Tacas = { liga: number; copa: number; libertadores: number; champions: number; relampago: number; mundial: number; regional: number; membros: number; ouro: number; prata: number; bronze: number }
+function SalaTrofeusCla({ id }: { id: number }) {
+  const [t, setT] = useState<Tacas | null>(null)
+  useEffect(() => { setT(null); supabase.rpc('esc_cla_tacas', { p_cla: id }).then(({ data, error }) => setT(error || !data ? null : data as Tacas), () => setT(null)) }, [id])
+  if (!t) return null
+  const itens: [CompId, number, string][] = [
+    ['liga', t.liga, tr('Liga', 'League')], ['copa8', t.copa, tr('Copa dos 8', 'Cup of 8')], ['liberta', t.libertadores, 'Libertadores'],
+    ['champions', t.champions, 'Champions'], ['relampago', t.relampago, tr('Relâmpago', 'Lightning')], ['mundo', t.mundial, tr('Copa do Mundo', 'World Cup')],
+    ['riosp', t.regional, tr('Regionais', 'Regionals')],
+  ]
+  const total = itens.reduce((a, [, n]) => a + n, 0)
+  const OURO = '#E9C46A'
+  return (
+    <div style={{ marginTop: 10, background: 'radial-gradient(120% 80% at 50% 0%,#3b2f12 0%,#14110a 55%,#0c0c0c 100%)', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '10px 10px 12px', color: '#fff' }}>
+      <p style={{ ...OSW, fontSize: 16, color: OURO, margin: 0, letterSpacing: .4 }}>🏛️ {tr('Sala de Troféus do Clã', 'Clan Trophy Room')}</p>
+      <p style={{ fontSize: 11, color: '#cfc4a4', fontWeight: 700, margin: '2px 0 8px' }}>{tr(`Tudo que os ${t.membros} membros já ganharam no online`, `Everything the ${t.membros} members have won online`)}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
+        {itens.map(([comp, n, nome]) => (
+          <div key={comp} style={{ background: 'linear-gradient(180deg,#2a2416,#17140c)', border: `2px solid ${OURO}`, borderRadius: 12, textAlign: 'center', padding: '6px 2px', minWidth: 0 }}>
+            <div style={{ height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', filter: n > 0 ? 'drop-shadow(0 2px 4px rgba(255,196,0,.4))' : 'grayscale(1)', opacity: n > 0 ? 1 : .4 }}><TrofeuPerfil comp={comp} nome={nome} /></div>
+            <b style={{ ...OSW, fontSize: 20, color: '#FFC400', display: 'block', lineHeight: 1.1 }}>{n.toLocaleString('pt-BR')}</b>
+            <span style={{ fontSize: 10.5, color: '#eadfbd', fontWeight: 700 }}>{nome}</span>
+          </div>
+        ))}
+        <div style={{ ...OSW, gridColumn: 'span 2', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: '#FFC400', color: INK, border: `2px solid ${INK}`, borderRadius: 12, padding: 6, fontSize: 15, lineHeight: 1.1 }}>
+          🏆 {total.toLocaleString('pt-BR')} {tr('títulos no total', 'titles in total')}
+        </div>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 10, ...OSW, fontSize: 14 }}>
+        {([['🥇', t.ouro], ['🥈', t.prata], ['🥉', t.bronze]] as const).map(([m, n]) => <span key={m} style={{ background: '#1d1a12', border: '2px solid #5a4a1f', borderRadius: 999, padding: '3px 10px' }}>{m} {n}</span>)}
+      </div>
+      <p style={{ textAlign: 'center', fontSize: 10.5, color: '#bfb491', fontWeight: 700, margin: '4px 0 0' }}>{tr('semanas do clã no pódio do ranking de clãs', 'weeks the clan finished on the clan podium')}</p>
+    </div>
   )
 }

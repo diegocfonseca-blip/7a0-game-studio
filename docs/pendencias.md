@@ -4,6 +4,14 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
 
 
 
+
+## 26/11 — 🏛️ Sala de Troféus do Clã (mockup aprovado, "Sim") — NO BRANCH, esperando "pode" pra publicar
+- Na janela do clã (`cla-ver.tsx`, `SalaTrofeusCla`), entre os cartões e a lista de membros: taças do online somadas dos membros ATUAIS
+  (Liga · Copa dos 8 · Libertadores · Champions · Relâmpago · Copa do Mundo · Regionais, desde 01/09 como no perfil) + total + 🥇🥈🥉 das
+  semanas do clã no pódio. O cartão "títulos do clã" virou "títulos da semana" (era só a semana mesmo).
+- Banco: função só-leitura `esc_cla_tacas(p_cla)` (JÁ APLICADA; migration `20261126030000_esc_cla_tacas.sql`), ~0,2 s por abertura.
+- Bancada: `scripts/teste-cla/print.mjs`; print `scripts/mockups/cla-sala-trofeus-real-390.png`. Reverter: `git revert` (a função pode ficar).
+
 ## 26/11 — Batismo Lavras FC (lavrasfc.pro) — EXCEÇÃO do Diego: mesma arte do Eight8 FC (PUBLICADO)
 - Pedido: *"add esse time como batismo e deixe ele ter tb a msm arte q o time lavras fc tem… vai ser exceção"*. Escudo, Pantera, manto e camisa
   são os MESMOS do Eight8 FC (hugopereirabrito). Várzea, no assento do bot Canelada Real (`OLD_NAME`). Batismo sem nº de fundador.
