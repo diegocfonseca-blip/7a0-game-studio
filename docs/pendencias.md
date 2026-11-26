@@ -1,3 +1,13 @@
+## 26/11 — 🌍 SUPER MUNDIAL nas salas online (ideia do Diego) — PROPOSTA, esperando decisão
+Pedido: *"bolar o super mundial nas salas online… conforme foi o último"* (Mundial de Clubes FIFA 2025, EUA, 14/06–13/07; fonte pt.wikipedia).
+Formato real: 32 clubes · 8 grupos de 4 (3 rodadas) · passam 2 · oitavas, quartas, semi e final em JOGO ÚNICO · sem 3º lugar.
+É o MESMO formato da nossa Copa do Mundo de 32 (`formatoCopa`/`simulaCopaMundo`), então o motor já existe.
+Proposta: sala "🌍 Só Super Mundial" (igual à Só Champions: leilão de sempre, sem liga) → clubes de gente + os clubes REAIS de 2025 completando as 32 vagas.
+Cartas hoje: 23 dos 32 fecham time (Chelsea, PSG, Real, City, Bayern, Inter, Juventus, Atlético, Dortmund, Benfica, Porto, Palmeiras, Flamengo,
+Fluminense, Botafogo, River, Boca, Al-Hilal, Inter Miami…). Sem cartas suficientes: Salzburg, Urawa, Ulsan, Al Ain, Wydad, Espérance,
+Sundowns, Al Ahly (4), Seattle, Pachuca, Monterrey (2), LAFC (1), Auckland. Decisão pendente: fazer lote de cartas reais desses OU completar com batismos.
+Nada feito; mockup antes de codar.
+
 ## 25/11 — melhorias nas duas carreiras
 
 Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
