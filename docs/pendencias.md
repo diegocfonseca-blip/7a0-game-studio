@@ -1,3 +1,48 @@
+## 25/11 — melhorias nas duas carreiras
+
+Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
+
+
+
+
+## 26/11 — 🏛️ Sala de Troféus do Clã (mockup aprovado, "Sim") — PUBLICADO ("Pode sim")
+- Na janela do clã (`cla-ver.tsx`, `SalaTrofeusCla`), entre os cartões e a lista de membros: taças do online somadas dos membros ATUAIS
+  (Liga · Copa dos 8 · Libertadores · Champions · Relâmpago · Copa do Mundo · Regionais, desde 01/09 como no perfil) + total + 🥇🥈🥉 das
+  semanas do clã no pódio. O cartão "títulos do clã" virou "títulos da semana" (era só a semana mesmo).
+- Banco: função só-leitura `esc_cla_tacas(p_cla)` (JÁ APLICADA; migration `20261126030000_esc_cla_tacas.sql`), ~0,2 s por abertura.
+- Bancada: `scripts/teste-cla/print.mjs`; print `scripts/mockups/cla-sala-trofeus-real-390.png`. Reverter: `git revert` (a função pode ficar).
+
+## 26/11 — Batismo Lavras FC (lavrasfc.pro) — EXCEÇÃO do Diego: mesma arte do Eight8 FC (PUBLICADO)
+- Pedido: *"add esse time como batismo e deixe ele ter tb a msm arte q o time lavras fc tem… vai ser exceção"*. Escudo, Pantera, manto e camisa
+  são os MESMOS do Eight8 FC (hugopereirabrito). Várzea, no assento do bot Canelada Real (`OLD_NAME`). Batismo sem nº de fundador.
+- Banco: `esc_socios` nº 102 (escudo_time Lavras FC, mascote lavras_pantera), `esc_nomes_batismo` "Lavras" (+FC/EC pelo gatilho), `user_colors` ouro/manual.
+- Pendente: time do coração e nome do dono pro post (`scripts/mockups/batismo-lavras-fc-20261126.png` saiu com "—").
+
+## 26/11 — Leilão de Conquistas: +6 temas pedidos pelo Diego (PUBLICADO com OK dele)
+- 🌵 Jogou no Nordeste (clube da carta) · ❄️ Jogou na Rússia ou Ucrânia (Rússia sozinha tem só 11 cartas, não fecha pacote) · 🔁 Jogou nos dois rivais
+  (lista pública + quem o baralho mostra nos dois clubes de um clássico) · 🛂 Trocou de seleção (trocou ou nasceu num país e jogou por outro) ·
+  🟥 Rei do cartão vermelho (recordistas conhecidos; só ZAG/MEI fecham pacote) · 🌙 Fugiu do CT pra balada (só história pública; MEI/ATA).
+- "Jogou na Ásia" já existia. Trava `npm run conquistas` verde. Reverter: `git revert` do commit.
+
+## 25/11 — cenas de jogador e lesão ao vivo (publicação autorizada)
+
+Autorizado implementar futevôlei/balada e demais acontecimentos, junto da lesão durante a partida. Cenas usam arte nativa e fontes confirmadas, com identidade por carta, menos repetições e composição de recuperação corrigida. Liga M2 compartilha o risco de desgaste entre preparação/segundo tempo: pausa, retirada real, máximo três trocas, opção sem reserva e goleiro de emergência. Próxima escalação/base resolvida no Elenco após o apito. Publicação expressamente autorizada: “entao publique”. Testes, limites, capturas e vídeos: [auditoria](auditorias/cenas-jogadores-lesao-partida-20261125.md).
+
+## 25/11 — Lesões: preparação e decisão no Elenco, revisão local
+
+- Corrigida a checagem tardia depois da abertura 3D; placar/2D/3D verificam desfalques na preparação. Aviso no Elenco, sem duplicar, com troca real ou escolha explícita da base.
+- Lesionado não recebe mais liberação em campo se o reserva fica inválido. XI manual é respeitado; decisões de noitada e seleções dos banners não são sobrescritas indevidamente.
+- Probabilidades e desgaste preservados; amostra de 100 mil sorteios confirma aproximadamente 5% no limite e 10% esgotado, sem multiplicação por atleta.
+- Lesão durante a partida com time reduzido **ainda não ativada**: depende de retirada real e persistência no motor, não só um banner. Desenho e limites no [relatório](auditorias/preparo-lesoes-20261125.md).
+- Capturas reais de celular/desktop em `/workspace/shared/preparo-lesoes-20261125/`. Sem commit/publicação desta revisão visual.
+
+## 25/11 — Momentos do bairro: prévia local, aguardando revisão visual
+
+- Pedido do Diego: fazer para ver como fica. Branch `feat/cenas-bairro-preview-20261125`, **sem publicar ou commitar esta revisão visual**.
+- Sem filme obrigatório de boteco após resultado comum. Cenas relevantes e espaçadas, histórico por carreira no save e balanços anuais reais da loja.
+- Quatro avatares existentes em primeiro plano, ação de sete segundos, replay, Pular/Ver no mapa, redução de movimento e saída legível quando o modelo falha. Um só mapa guardado; sem avanço de partida, calendário ou dinheiro.
+- Capturas e vídeos reais: `/workspace/shared/cenas-bairro-preview-20261125/`. Escopo, critérios e limites: [cenas-bairro-preview-20261125.md](auditorias/cenas-bairro-preview-20261125.md).
+
 ## 25/11 — Evolução da carreira: publicação autorizada
 
 - Pedido: todos os itens da proposta **menos 4 e 8**. Guia, próximo passo, previsão de gastos, controles das copas M2, formação ao vivo, repertório do técnico, origem das transferências, memória do clube e cenas reais da cidade.
@@ -5,6 +50,14 @@
 - Testes de 3 substituições/intervalo/replay/placar/2D/3D, telas em 390/1440 px e 25 temporadas com retomada. Save de teste final: 1,38 MB bruto; memória adicional limitada e testada em 1.800 jogos.
 - Relatório e limites: [carreira-evolucao-20261125.md](auditorias/carreira-evolucao-20261125.md). Capturas reais em `/workspace/shared/carreira-evolucao-20261125/`.
 - Diego autorizou a publicação após receber as telas reais: “Publique então”. Entrega via `main` e workflow de GitHub Pages, preservando a opção de reversão por commit.
+
+
+## 25/11 — Partida Rápida: táticas novas + botão de avançar maior (PUBLICADO com OK do Diego)
+- Pedido: *"começar a temporada tá mt pouco visível… serve p qlqr local"* e *"na partida rápida não tá mostrando as táticas novas (pressão alta…)"*.
+- Botão "Começar a temporada / Próxima rodada" (`.ov3-next`, owner-online-visual.css): maior, borda 3px, sombra dura, ocupa a linha. Vale em toda tela com esse controle.
+- Partida Rápida OFFLINE ganhou o plano novo (postura · caminho do ataque · marcação · ritmo): `footballPlanQuick` em football-live-tactics.ts; nunca carreira. Ordem AO VIVO continua só online (teste).
+- Prints: `scripts/mockups/rapida-taticas-botao-{1280,390}.png`; bancada `scripts/teste-taticas-rapida/`.
+- Reverter: `git revert` do commit.
 
 ## 25/11 — 🏅 LEILÃO DE CONQUISTAS: FEITO, só pra Diego + Futpoint (`CONQUISTAS_GERAL = false` em sport.ts)
 - 4ª variante do Leilão de Clubes (Partida Rápida + salas Rápido/Liga da Turma, envelope · Tocaia · pregão aberto). Motor e
@@ -2514,17 +2567,17 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
-## 🏆 RANKING GLOBAL SEPARADO POR MODO (26/11, Diego: *"Tem q separar. Msm e C a msm regra do tradicional"*) — no branch, falta publicar
+## 🏆 RANKING GLOBAL SEPARADO POR MODO (26/11, Diego: *"Tem q separar. Msm e C a msm regra do tradicional"*) — ✅ PUBLICADO 26/11 (*"Sim"*)
 - Banco PARTE 1 ✅ aplicada (`20261126120000_ranking_por_modo.sql`): coluna `modo` na `esc_pyramid_rank_snap` (padrão 'tradicional'),
   115 fotos / 20 carreiras do Oficial já marcadas, e as funções `esc_pyramid_rank_modo` · `_career_rank_modo` · `_my_rank_modo`. Sem efeito
   pra ninguém ainda.
 - Jogo (branch): toda foto grava o `modo`; dentro de carreira do Brasil Oficial a aba Rank → Global mostra só o Oficial, com a MESMA regra
   (sua carreira de agora no lugar da melhor + a linha fininha da melhor). Linha nova embaixo do título: "🇧🇷 Só carreiras do Brasil Oficial"
   / "🛠️ Só carreiras da Tradicional".
-- ⏳ NA PUBLICAÇÃO: aplicar a PARTE 2 (`20261126120100_ranking_por_modo_filtro.sql`) — remarca as fotos do Oficial gravadas pelo jogo antigo e
+- ✅ PARTE 2 aplicada junto com a publicação (26/11): conferido — Tradicional 5.402 técnicos, Oficial 17. Era: aplicar a PARTE 2 (`20261126120100_ranking_por_modo_filtro.sql`) — remarca as fotos do Oficial gravadas pelo jogo antigo e
   faz as funções de sempre (v1, v2, perfil) lerem só a Tradicional. O "📊 Ranking da carreira" do perfil passa a ser só da Tradicional.
 - ⚠️ Carreira do Oficial de quem só salva no aparelho e ainda está no jogo antigo pode gravar foto como 'tradicional' por até 3 dias depois
-  da publicação: rodar o `update` da parte 2 de novo depois desse prazo.
+  da publicação: rodar o `update` da parte 2 de novo depois desse prazo (lembrete agendado pra 29/11).
 - Reverter: `update esc_pyramid_rank_snap set modo = 'tradicional'` volta pro ranking único.
 
 ## 🧭 3 CARREIRAS: POR QUE ALGUÉM JOGARIA A TRADICIONAL? — análise (26/11, esperando resposta do Diego)

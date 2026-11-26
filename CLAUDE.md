@@ -5,6 +5,10 @@ Jogo de leilão às cegas de lendas do futebol, em produção com jogadores REAI
 (BidLegends) vai morar NESTE mesmo repo/site. Dono: Diego (fala PT-BR,
 responde melhor a explicações simples, sem jargão).
 
+## Cenas e lesões da carreira — publicação autorizada em 25/11/2026
+
+Depois das capturas e vídeos reais da revisão local, Diego ordenou expressamente: **“entao publique”**. Essa ordem autoriza commitar e publicar o pacote de cenas do bairro, preparação de desfalques e retirada por lesão no jogo da liga M2. As notas de “prévia local/aguardar revisão” nas auditorias iniciais descrevem o estado anterior e não impedem esta publicação. Preservar as restrições de conta já existentes para as cenas, os modos online e as demais prévias privadas. Sem SQL, migração de banco, mudança de plano pago, OVR ou atualização automática dos clientes. Build completo e testes passaram. Escopo, limites e provas em `docs/auditorias/cenas-jogadores-lesao-partida-20261125.md`. Commit isolado para reversão.
+
 ## Carreira — evolução autorizada em 25/11/2026
 
 Diego pediu todos os itens da proposta **exceto 4 (recomendações/comparações no mercado) e 8 (análise automática após jogo)**. Implementação local documentada em `docs/auditorias/carreira-evolucao-20261125.md`: guia atual, pendências da Central, previsão de gastos, controles de copas M2, formações ao vivo com três trocas no total, opções do técnico, provas das transferências, memória por clube e cenas reais/revisitação. **Sem alterar OVR, economia ou a decisão de manter o modo histórico; sem nerf oculto.** Sem efeito sobre salas online, basquete e F1. Novos registros opcionais e limitados, sem inventar passado de saves antigos. Imagens de revisão em `/workspace/shared/carreira-evolucao-20261125/`. Publicação expressamente autorizada pelo Diego em 25/11: “Publique então”. Preservar itens 4 e 8 fora da entrega.

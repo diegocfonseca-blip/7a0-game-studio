@@ -5,6 +5,7 @@ import type { Evento, TipoEvento } from './tipos'
 
 type Frases = [string[], string[]]
 const F: Partial<Record<TipoEvento, Frases>> = {
+  lesao:[['{a} não pode continuar e deixa o campo.'],['{a} cannot continue and leaves the field.']],
   saida: [['Rola a bola!', 'Bola no meio, começa o jogo!', 'Apita o juiz, bola rolando!'], ['Kick-off!', 'Ball on the spot, we are under way!', 'The referee blows, we are off!']],
   enfiada: [['{a} enfia pro {b}!', '{a} acha o {b} nas costas da zaga!', 'Passe em profundidade de {a}, {b} na corrida!', '{a} rasga a defesa com um passe pro {b}!'],
     ['{a} slides it through for {b}!', '{a} finds {b} in behind!', 'A ball over the top from {a}, {b} is running!', '{a} splits the defence for {b}!']],
@@ -95,7 +96,7 @@ export class Narrador {
 }
 /** os eventos que merecem frase na faixa (passe comum não) e a força de cada um (frase forte não é atropelada) */
 export const PESO: Partial<Record<TipoEvento, number>> = {
-  gol: 9, vermelho: 8, trave: 7, espalma: 7, defesa: 7, encaixa: 6, isolou: 6, fora: 6, bloqueio: 6, chute: 5, cabeceio: 5, amarelo: 5, impedimento: 5,
+  lesao:9, gol: 9, vermelho: 8, trave: 7, espalma: 7, defesa: 7, encaixa: 6, isolou: 6, fora: 6, bloqueio: 6, chute: 5, cabeceio: 5, amarelo: 5, impedimento: 5,
   drible: 4, enfiada: 4, cruzamento: 4, desarme: 4, carrinho: 4, intercepta: 3, falta: 4, escanteio: 3, lancamento: 3, inversao: 3, arrancada: 3,
   corte: 3, saida_goleiro: 3, chutao: 2, lateral: 1, tiro_de_meta: 1, saida: 2, intervalo: 9, fim: 9, vantagem: 5, acrescimo: 5, rebote: 6, cara_a_cara: 5,
 }

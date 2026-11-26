@@ -1,3 +1,7 @@
+import {useQuadroCena} from './cenas-bairro-playback'
+import {repetirCenaCentral,useCenaCentral} from './cena-central-playback'
+import {pedidoCena,DURACAO_CENA} from './cenas-bairro-model'
+import {pedeVistaDoMapa} from './controle-partida-mapa'
 import {useCareerVisualV2} from './career-visual-v2'
 import { JanelaConta } from './conta'
 import {CareerCentralGuide} from './career-start-guide'
@@ -18,7 +22,7 @@ import {CareerCentralGuide} from './career-start-guide'
 //   📊 a TABELA resumida e a 🗓️ AGENDA das copas. Tocar leva pra aba certa.
 // Tudo que aparece aqui JÁ apareceu em outra aba — a Central não sabe de nada
 // que a tela não saiba. 🔒 Só a conta do Diego vê (`useCentralCarreira`).
-import { Component, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { Component, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { JanelaNuvemPlanos } from './nuvem-planos' // ☁️ 19/10: salvar sem plano → os planos
 import { CardColetiva, FotoLendas, type CardColetivaProps } from './coletiva-ui' // 🎙️ coletiva de imprensa (19/10)
 import { Escudo } from './escudos'
@@ -39,6 +43,7 @@ import './central.css'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', RED = '#E8503A'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 as const, textTransform: 'uppercase' as const }
+const CenaContratacaoCentral=lazy(()=>import('./cena-contratacao-central'))
 const G_OURO = 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)'
 
 export type CentralJogo = { h: string; a: string; hg: number; ag: number; hId: number; aId: number }
@@ -91,42 +96,52 @@ function CartaoRaioX({ r }: { r: RaioX }) {
 /** 🎥 ENQUANTO ISSO NO BAIRRO (17/11, mockup aprovado pelo Diego): UMA cena do mapa do clube por vez, só do que já está
  *  acontecendo de verdade (noitada do baladeiro, obra comprada, boteco depois do jogo, carreata, feira). `chave` = o
  *  acontecimento; fechou, não volta (guarda só a ÚLTIMA chave fechada — uma entrada só no aparelho, nunca cresce). */
-export type CentralSede = { /** 📍 o lugar do mapa onde a cena acontece (o "Ver no mapa" voa pra lá) */ vista?: string; chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
+export type CentralSede = { apresentacaoCentral?:boolean; clubeDestino?:string; ator?:import('./cenas-bairro-model').AtorCena; /** 📍 o lugar do mapa onde a cena acontece (o "Ver no mapa" voa pra lá) */ vista?: string; acao?:import('./cenas-bairro-model').AcaoBairro; grupo?:string; prioridade?:number; chave: string; img: string; rotulo: string; hora?: string; chapeu: string; titulo: string; texto: string; tom?: 'bom' | 'ruim' }
 const SEDE_FECHADA = 'esc-sede-fechada'
-/** 🛟 22/11: se o mapa ao vivo do quadro der erro, fica a foto da cena — a Central nunca cai por causa dele */
-class SemQuebrar extends Component<{ children: ReactNode }, { erro: boolean }> {
+/** 🛟 22/11: se o mapa ao vivo der erro, o cartão permite seguir sem derrubar a Central */
+class SemQuebrar extends Component<{ children: ReactNode;onError?:()=>void }, { erro: boolean }> {
   state = { erro: false }
   static getDerivedStateFromError() { return { erro: true } }
-  componentDidCatch(e: unknown) { try { console.warn('[central] mapa ao vivo da cena caiu; ficou a foto', e) } catch { /* nada */ } }
+  componentDidCatch(e: unknown) { this.props.onError?.();try { console.warn('[central] prévia do bairro indisponível', e) } catch { /* nada */ } }
   render() { return this.state.erro ? null : this.props.children }
 }
-export function CartaoSede({ s, onMapa, cls, janela, seguir, aoPular, pularTodos, quantidade=1 }: { quantidade?:number; aoPular?:()=>void;pularTodos?:()=>void; s: CentralSede; onMapa: () => void; cls: string; /** 🎥 22/11: o MAPA ao vivo no lugar da foto parada */ janela?: ReactNode; /** 🧭 22/11 (Central direta): o banner da semana vem ANTES do jogo; "Seguir" fecha e mostra o jogo */ seguir?: () => void }) {
+export function CartaoSede({ s, onMapa, onElenco, cls, janela, seguir, aoPular, aoAssistir, pularTodos, quantidade=1 }: { onElenco?:()=>void;quantidade?:number; aoAssistir?:()=>void;aoPular?:()=>void;pularTodos?:()=>void; s: CentralSede; onMapa: () => void; cls: string; /** 🎥 22/11: o MAPA ao vivo no lugar da foto parada */ janela?: ReactNode; /** 🧭 22/11 (Central direta): o banner da semana vem ANTES do jogo; "Seguir" fecha e mostra o jogo */ seguir?: () => void }) {
   const t = useT()
   // 🎥 22/11 (Diego: *"só deve aparecer com videozinhos… igual a chegada do ônibus"*): a cena passa AO VIVO no quadro (o mapa de
   // verdade, já apontado pro lugar). O cartão existe duas vezes (celular e computador, o CSS esconde um): o mapa é UM só, então
   // só o cartão que está na tela encaixa ele.
-  const raiz = useRef<HTMLDivElement>(null)
-  const [naTela, setNaTela] = useState(false)
-  // 🛟 22/11 (print de um jogador: "Ops, algo deu errado" · React #185, atualização sem fim): medir A CADA desenho fazia este cartão
-  // entrar na corrente de atualizações do mapa ao vivo e a página caía. Agora mede ao montar e quando a tela muda de tamanho.
-  useLayoutEffect(() => {
-    const mede = () => { const v = !!raiz.current && getComputedStyle(raiz.current).display !== 'none'; setNaTela(a => (a === v ? a : v)) }
-    mede(); window.addEventListener('resize', mede)
-    return () => window.removeEventListener('resize', mede)
-  }, [])
+  const raiz = useRef<HTMLDivElement>(null),mapFrame=useQuadroCena(),centralFrame=useCenaCentral(s.apresentacaoCentral?s.chave:'')
+  const ilustrada=!!s.apresentacaoCentral&&!!s.ator,frame=ilustrada?centralFrame:mapFrame
+  const [naTela,setNaTela]=useState(false),[videoFailed,setVideoFailed]=useState(false)
+  useLayoutEffect(()=>{
+    const el=raiz.current;if(!el)return
+    const observer=new IntersectionObserver(entries=>setNaTela(old=>{const next=entries[0]?.isIntersecting===true&&el.getClientRects().length>0;return old===next?old:next}))
+    observer.observe(el);return()=>observer.disconnect()
+  },[])
+  useEffect(()=>{setVideoFailed(false);if(!naTela)return;const timer=window.setTimeout(()=>setVideoFailed(true),14000);return()=>clearTimeout(timer)},[s.chave,naTela])
+  const phase=frame.key===s.chave?frame.phase:'loading'
+  const assistida=useRef('')
+  useEffect(()=>{if(naTela&&phase==='ended'&&assistida.current!==s.chave){assistida.current=s.chave;aoAssistir?.()}},[phase,s.chave,aoAssistir,naTela])
+  const ready=phase==='playing'||phase==='ended',unavailable=phase==='unavailable'||videoFailed&&!ready&&phase!=='paused'
+  const play=()=>{setVideoFailed(false);if(ilustrada)repetirCenaCentral(s.chave);else if(s.vista)pedeVistaDoMapa(pedidoCena(s.vista,s.chave,s.acao??'torcida',true,true,s.ator))}
   const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) === s.chave } catch { return false } })
   useEffect(() => { try { setFechada(localStorage.getItem(SEDE_FECHADA) === s.chave) } catch { setFechada(false) } }, [s.chave])
   if (fechada) return null
   const fecha = () => { try { localStorage.setItem(SEDE_FECHADA, s.chave) } catch { /* segue só nesta tela */ } setFechada(true); aoPular?.(); seguir?.() }
   return (
     <div ref={raiz} className={`ll-central-card ll-c-sede ${cls}`} style={{ background: CREME, color: INK, overflow: 'hidden', padding: 0 }}>
-      <div style={{ position: 'relative', height: janela ? 290 : 190, background: `#1f1a13 url(${s.img}) center / cover`, overflow: 'hidden' }}>
-        {janela && naTela && <>
-          {/* só a IMAGEM do mapa entra no quadro (botões e avisos dele somem), na altura do quadro — o mesmo jeito da chegada do ônibus */}
-          <style>{'.ll-sede-mapa *{visibility:hidden!important}.ll-sede-mapa canvas{visibility:visible!important}.ll-sede-mapa .pc3-stage{height:290px!important;min-height:0!important;max-height:290px!important}'}</style>
-          <div className="ll-sede-mapa" data-sede-ao-vivo style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><SemQuebrar>{janela}</SemQuebrar></div>
+      <div style={{position:'relative',height:ilustrada?'auto':290,aspectRatio:ilustrada?'16 / 9':undefined,background:'#e8dfc8',overflow:'hidden'}} data-neighborhood-preview data-phase={unavailable?'unavailable':phase}>
+        {ilustrada&&naTela&&<div style={{position:'absolute',inset:0}}><SemQuebrar key={`${s.chave}:${centralFrame.revision}`} onError={()=>setVideoFailed(true)}><Suspense fallback={null}><CenaContratacaoCentral chave={s.chave} ator={s.ator!} destino={s.clubeDestino??''}/></Suspense></SemQuebrar></div>}
+        {!ilustrada&&janela&&naTela&&<>
+          <style>{'.ll-sede-mapa *{visibility:hidden!important}.ll-sede-mapa canvas{visibility:visible!important;outline:0!important}.ll-sede-mapa .pc3-stage{height:290px!important;min-height:0!important;max-height:290px!important;border:0!important;border-radius:0!important}'}</style>
+          <div className="ll-sede-mapa" data-sede-ao-vivo style={{position:'absolute',inset:0,pointerEvents:'none'}}><SemQuebrar onError={()=>setVideoFailed(true)}>{janela}</SemQuebrar></div>
         </>}
-        <span style={{ ...OSW, position: 'absolute', left: 10, top: 10, background: INK, color: GOLD, fontSize: 11, letterSpacing: '.12em', padding: '4px 8px', borderRadius: 8 }}>🎥 {s.rotulo}</span>
+        {!ready&&<div role="status" style={{position:'absolute',inset:0,background:'#e8dfc8',display:'flex',alignItems:'center',justifyContent:'center',textAlign:'center',padding:24,color:INK,fontSize:14}}>
+          <div>{unavailable?(ilustrada?t('A apresentação não abriu neste aparelho. Você pode seguir.','The presentation could not open on this device. You can continue.'):t('A prévia não abriu neste aparelho. Você pode seguir ou ver o local no mapa.','The preview could not open on this device. Continue or view the location on the map.')):phase==='paused'?t('Toque para assistir ao momento.','Tap to watch this moment.'):t('Preparando o momento…','Preparing the moment…')}{(phase==='paused'||unavailable)&&<button type="button" onClick={play} style={{...OSW,display:'block',margin:'12px auto',padding:'8px 16px',border:`2px solid ${INK}`,borderRadius:10,background:GOLD}}>{t('▶ Reproduzir','▶ Play')}</button>}</div>
+        </div>}
+        {!ilustrada&&phase==='ended'&&<button type="button" onClick={play} style={{...OSW,position:'absolute',right:10,bottom:12,border:`2px solid ${INK}`,borderRadius:10,padding:'5px 9px',background:CREME,color:INK}}>{t('↻ Ver novamente','↻ Replay')}</button>}
+        {ready&&<div aria-hidden="true" style={{position:'absolute',left:0,bottom:0,height:4,width:`${Math.min(100,frame.seconds/(frame.duration||DURACAO_CENA)*100)}%`,background:GOLD}}/>}
+        {!ilustrada&&<span style={{ ...OSW, position: 'absolute', left: 10, top: 10, background: INK, color: GOLD, fontSize: 11, letterSpacing: '.12em', padding: '4px 8px', borderRadius: 8 }}>🎥 {s.rotulo}</span>}
         {s.hora && <span style={{ ...OSW, position: 'absolute', right: 10, top: 10, background: RED, color: '#fff', fontSize: 11, letterSpacing: '.1em', padding: '4px 8px', borderRadius: 8, border: `2px solid ${INK}` }}>● {s.hora}</span>}
       </div>
       <div style={{ padding: '12px 14px 14px' }}>
@@ -135,8 +150,9 @@ export function CartaoSede({ s, onMapa, cls, janela, seguir, aoPular, pularTodos
         <h3 style={{ ...OSW, fontSize: 22, lineHeight: 1.05, margin: '2px 0 4px' }}>{s.titulo}</h3>
         <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600, color: '#3a3527' }}>{s.texto}</p>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" onClick={onMapa} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: GOLD, color: INK, cursor: 'pointer' }}>📍 {t('Ver no mapa', 'See on the map')}</button>
-          <button type="button" onClick={fecha} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: '#fff', color: INK, cursor: 'pointer' }}>{quantidade>1?t('Próximo momento ›','Next moment ›'):seguir?t('Seguir ›','Continue ›'):janela?t('⏩ Pular','⏩ Skip'):t('Fechar','Close')}</button>
+          <button type="button" onClick={ilustrada?()=>{if(onElenco){fecha();onElenco()}else play()}:onMapa} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: GOLD, color: INK, cursor: 'pointer' }}>{ilustrada?(onElenco?t('Ver elenco','View squad'):t('Rever','Replay')):<>📍 {t('Ver no mapa', 'See on the map')}</>}</button>
+          {ilustrada&&phase==='ended'&&<button type="button" onClick={play} data-central-replay style={{...OSW,flex:1,minWidth:0,border:`3px solid ${INK}`,borderRadius:12,boxShadow:`3px 3px 0 ${INK}`,fontSize:15,padding:8,background:CREME,color:INK,cursor:'pointer'}}>{t('Rever','Replay')}</button>}
+          <button type="button" onClick={fecha} style={{ ...OSW, flex: 1, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontSize: 15, padding: 8, background: '#fff', color: INK, cursor: 'pointer' }}>{phase==='ended'?t('Seguir ›','Continue ›'):t('Pular ›','Skip ›')}</button>
         </div>
       </div>
     </div>
@@ -153,6 +169,8 @@ export type CentralProps = {
   /** 🎥 a cena do bairro (só quando o mapa do clube existe nesta carreira e algo está acontecendo nele) */
   sedeQuantidade?:number
   onSedeRever?:()=>void
+  sedeReverAtivo?:boolean
+  onSedeAssistiu?:()=>void
   onSedeSeguir?:()=>void
   onSedePularTodos?:()=>void
   sede?: CentralSede | null
@@ -302,7 +320,7 @@ export function CentralCarreira(p: CentralProps) {
   const visualV2=useCareerVisualV2()
   // 🧭 22/11 (Central direta): a cena da semana ainda não vista toma o lugar do cartão do jogo até a pessoa tocar em "Seguir"
   const [sedeVista, setSedeVista] = useState(() => { try { return localStorage.getItem(SEDE_FECHADA) ?? '' } catch { return '' } })
-  const sedeAntes = !!(!p.pendingDecision && p.direta && p.sede && p.semana && sedeVista !== p.sede.chave)
+  const sedeAntes = !!(!p.pendingDecision && p.direta && p.sede && (p.sedeReverAtivo || sedeVista !== p.sede.chave))
   const t = useT()
   const [mercadoTodo, setMercadoTodo] = useState(false) // 💸 mostra os 5 maiores; o resto abre no toque
   const posDe = (nome: string) => { const i = p.tabela.findIndex(x => x.name === nome); return i >= 0 ? i + 1 : null }
@@ -398,7 +416,7 @@ export function CentralCarreira(p: CentralProps) {
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
           {p.avisos && <div style={{ flex: '0 0 100%', minWidth: 0 }}>{p.avisos}</div>}
           {sedeAntes && p.sede ? <div className="ll-c-hero" style={{ flex: '0 0 100%', minWidth: 0 }}>
-            <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="" seguir={() => setSedeVista(p.sede!.chave)} onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />
+            <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoAssistir={p.onSedeAssistiu} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="" seguir={() => setSedeVista(p.sede!.chave)} onElenco={() => p.onTab('elenco')} onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />
             {p.proximo && <button type="button" onClick={() => setSedeVista(p.sede!.chave)} style={{ ...OSW, display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 10, background: '#1d1812', color: '#fff', border: `2px solid ${INK}`, borderRadius: 14, padding: '8px 12px', fontSize: 14, cursor: 'pointer' }}>
               <Escudo nome={p.proximo.casa} size={26} /><span style={{ opacity: .7 }}>×</span><Escudo nome={p.proximo.fora} size={26} />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.proximo.casa === p.euNome ? p.proximo.fora : p.proximo.casa}</span>
@@ -451,7 +469,7 @@ export function CentralCarreira(p: CentralProps) {
           </div>}
 
           {p.onSedeRever&&<button type="button" className="ll-central-link" onClick={p.onSedeRever}>{t('↻ Rever momentos desta semana','↻ Revisit this week’s moments')}</button>}
-          {p.sede && !p.direta && <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="ll-c-sede-cel" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
+          {p.sede && !p.direta && <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoAssistir={p.onSedeAssistiu} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="ll-c-sede-cel" onElenco={() => p.onTab('elenco')} onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {visualV2 && <div className="cv2-career-start-tools"><CareerCentralGuide onSquad={()=>p.onTab('elenco')} onMatches={()=>p.onTab('jogos')}/>
           {/* 🧭 21/11 (Diego: *"aparece uma aba de finanças e agência estranhamente na central"*): os atalhos saíram — Finanças e Agência moram na aba Clube */}
           {/* 💾 23/11 (Diego: "não quero que tenha esse botão de salvar… já que já tem lá embaixo"): a faixa de Salvar saiu do topo da Central nova */}</div>}
@@ -545,7 +563,7 @@ export function CentralCarreira(p: CentralProps) {
         </div>
 
         <div className="ll-central-dir">
-          {p.sede && !p.direta && <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="ll-c-sede-pc" onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
+          {p.sede && !p.direta && <CartaoSede s={p.sede} quantidade={p.sedeQuantidade} aoAssistir={p.onSedeAssistiu} aoPular={p.onSedeSeguir} pularTodos={p.onSedePularTodos} janela={p.sedeJanela} cls="ll-c-sede-pc" onElenco={() => p.onTab('elenco')} onMapa={() => p.onSedeMapa ? p.onSedeMapa(p.sede?.vista) : p.onTab('estadio')} />}
           {/* 📰 O MARTELO do meio da temporada */}
           <div className="ll-central-card ll-central-martelo ll-c-martelo" style={{ background: '#FBF5E4', borderRadius: 8 }}>
             <div style={{ padding: '10px 13px 6px', textAlign: 'center', borderBottom: `3px double ${INK}` }}>

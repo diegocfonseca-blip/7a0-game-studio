@@ -205,6 +205,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'faertes9@gmail.com': 'ouro', // ⚫⚓ batismo Tunaldo FC (Várzea, no assento do bot Espeto Corrido FC) (22/11). Sem nº de fundador (regra 14/10).
   'caiomooca2013@gmail.com': 'ouro', // 👑 batismo FUNDADOR Sport Clube Betasso (Várzea, no assento do bot Falta Técnica FC) + fundador nº106 + sócio nº101 (23/11). Antes: Lenda (10/11) → Batismo (18/11) → Fundador (23/11).
   'pedrosilveira0810@gmail.com': 'ouro', // 👑 batismo FUNDADOR Pirituba SF (Várzea, no assento do bot Doze Contra Onze) + fundador nº105 + sócio nº100 (23/11).
+  'lavrasfc.pro@gmail.com': 'ouro', // 🐆👑 batismo Lavras FC (Várzea, no assento do bot Canelada Real) (26/11). Exceção: mesma arte do Eight8 FC. Sem nº de fundador.
   'hugopereirabrito@gmail.com': 'ouro', // 🐆👑 batismo Lavras FC (Várzea, no assento do bot Galáticos do Bairro) (16/11). Sem nº de fundador (regra 14/10).
   'oluisantonio.contato@gmail.com': 'ouro', // 👑 batismo Vila Esporte Clube (Série D, no assento do bot Imperador SAF) + sócio nº78 (27/10). Batismo de 79,90 (pagou a subida pelo Pix): SEM número de fundador (regra 14/10).
   'sheeryarie772@gmail.com': 'ouro', // 👑 batismo FUNDADOR Neymar FC (Série D, no assento do bot Galáxia EC) + fundador nº97 + sócio nº77 (21/10; subiu de Batismo pra Fundador em 29/10).

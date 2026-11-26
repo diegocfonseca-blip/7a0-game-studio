@@ -9,19 +9,21 @@ export function ClubeOrganizacao({children,onSelect,store,museum,home,balance,cl
   *  Clube = o mapa grande em cima + o caixa + 6 cartões (sem 2º clube). `saf` = a linha da SAF; `safTrava` = o cadeado com o porquê. */
  oficial?:{saf:string;safTrava?:string};/** 🪙 18/11: o caixa já está na etiqueta do título — sem o bloco grande */semCaixa?:boolean;/** 🏀 18/11: o Clube do basquete (arena, 2º clube sem SAF, fundo creme) */bb?:boolean}){
  const t=useT()
- if(oficial){
+ // Futebol: a mesma organização visual nas duas carreiras; cada ação mantém sua regra nativa.
+ if(!bb){
   const cards:[DestinoClubeMapa,string,string,string][]=[
    ['financas','💰',t('Dinheiro','Money'),t('Extrato da temporada, salários e empréstimo','Season statement, wages and loans')],
    ['patrocinio','🤝',t('Contratos','Contracts'),t('Patrocínio Master, fornecedor de material e TV','Master sponsor, kit supplier and TV')],
    ['estrutura','🏗️',t('Estádio e obras','Stadium and works'),t('Setores, melhorias e museu','Sectors, upgrades and museum')],
    ['loja','🛍️',t('Loja da torcida','Supporters’ store'),store?t('Camisas e vendas','Kits and sales'):t('Conheça a loja e sua construção','Store and construction')],
    ['agencia','🕴️',t('Agência','Agency'),t('Seus jogadores agenciados','Your agency clients')],
-   ['negocios','🏢','SAF',oficial.saf],
+   ['negocios','🏢',oficial?'SAF':t('Negócios','Businesses'),oficial?.saf??t('Participações e segundo clube','Ownership and second club')],
   ]
   return <div className="clube-organizacao clube-organizacao--oficial"><div className="clube-organizacao-mapa">{children}</div><aside className="clube-oficial-lista">
    <div className="clube-oficial-caixa"><small>{t('Caixa do clube','Club balance')}</small><strong>{balance.toLocaleString('pt-BR')} 🪙</strong><span>{club}</span></div>
-   <nav aria-label={t('Gestão do clube','Club management')}>{cards.map(([id,ic,label,detail])=><button type="button" key={id} className={id==='negocios'&&oficial.safTrava?'trava':undefined} onClick={()=>onSelect(id)}>
-    <i aria-hidden="true">{ic}</i><span><b>{label}</b><small>{detail}</small>{id==='negocios'&&oficial.safTrava&&<em>🔒 {oficial.safTrava}</em>}</span><span aria-hidden="true" className="seta">›</span></button>)}</nav>
+   <nav aria-label={t('Gestão do clube','Club management')}>{cards.map(([id,ic,label,detail])=><button type="button" key={id} className={id==='negocios'&&oficial?.safTrava?'trava':undefined} onClick={()=>onSelect(id)}>
+    <i aria-hidden="true">{ic}</i><span><b>{label}</b><small>{detail}</small>{id==='negocios'&&oficial?.safTrava&&<em>🔒 {oficial?.safTrava}</em>}</span><span aria-hidden="true" className="seta">›</span></button>)}</nav>
+   {museum&&<button type="button" className="clube-oficial-casa" onClick={()=>onSelect('museu')}>🏆 {t('Museu e memória do clube','Museum and club memory')}</button>}
    {home&&<button type="button" className="clube-oficial-casa" onClick={()=>onSelect('presidencia')}>🏠 {t('Casa e garagem','Home and garage')}</button>}
   </aside></div>
  }

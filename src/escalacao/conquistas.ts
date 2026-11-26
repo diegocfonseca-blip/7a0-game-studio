@@ -242,6 +242,53 @@ const UM_CLUBE_SO: Record<string, Pessoa[]> = {
   Brasil: ['Marcos', 'Nílton Santos', 'Zito', { n: 'Pepe', clubes: ['Santos'] }],
   Alemanha: ['Sepp Maier', 'Uwe Seeler'], Argentina: ['Ricardo Bochini'], Rússia: ['Lev Yashin'],
 }
+// 🔁 Jogou nos dois rivais (26/11, pedido do Diego): passagem pelos dois lados de um clássico, carreira pública e conhecida.
+// Vale a LISTA abaixo (a pessoa, em qualquer carta dela) + quem o próprio baralho já mostra nos dois clubes (MESMO_JOGADOR).
+const DOIS_RIVAIS: Record<string, Pessoa[]> = {
+  Brasil: ['Romário', 'Edmundo', 'Bebeto', 'Ronaldo', 'Ronaldo Fenômeno', 'Ronaldinho Gaúcho', 'Rivaldo', { n: 'Neto', clubes: ['Corinthians'] }, 'Edílson', 'Luizão',
+    'Müller', 'Marcelinho Carioca', 'Gérson Canhotinha de Ouro', 'Didi', 'PC Caju', 'Garrincha', 'Ademir de Menezes', 'Leônidas da Silva', 'Cafu', 'Roberto Carlos'],
+  Sérvia: ['Petkovic', 'Siniša Mihajlović'], Portugal: ['Luís Figo'], Dinamarca: ['Michael Laudrup', 'Peter Schmeichel'], Espanha: ['Luis Enrique', 'Álvaro Morata'],
+  Romênia: ['Gheorghe Hagi'], Alemanha: ['Bernd Schuster', 'Mario Götze', 'Mats Hummels', 'Andreas Möller', 'Jens Lehmann'], Polônia: ['Robert Lewandowski'],
+  Itália: ['Roberto Baggio', 'Andrea Pirlo', 'Christian Vieri', 'Fabio Cannavaro'], Holanda: ['Seedorf', 'Clarence Seedorf', 'Edgar Davids'],
+  Suécia: ['Zlatan Ibrahimović'], Argentina: ['Hernán Crespo', 'Gabriel Batistuta', 'Claudio Caniggia', 'Oscar Ruggeri', 'Tevez'], Escócia: ['Denis Law'],
+  Inglaterra: ['Michael Owen', 'Paul Ince', 'Sol Campbell'], México: ['Hugo Sánchez'], Bélgica: ['Thibaut Courtois'], França: ['Patrick Vieira'], Chile: ['Arturo Vidal'],
+}
+// os clássicos (nome do clube como está no baralho) — pra achar no próprio baralho quem tem carta dos dois lados
+const CLASSICOS: [string, string][] = [
+  ['Flamengo', 'Fluminense'], ['Flamengo', 'Vasco'], ['Flamengo', 'Botafogo'], ['Fluminense', 'Vasco'], ['Fluminense', 'Botafogo'], ['Vasco', 'Botafogo'],
+  ['Corinthians', 'Palmeiras'], ['Corinthians', 'São Paulo'], ['Corinthians', 'Santos'], ['Palmeiras', 'São Paulo'], ['Palmeiras', 'Santos'], ['São Paulo', 'Santos'],
+  ['Grêmio', 'Internacional'], ['Cruzeiro', 'Atlético-MG'], ['Bahia', 'Vitória'], ['Ceará', 'Fortaleza'], ['Sport', 'Santa Cruz'], ['Sport', 'Náutico'],
+  ['Santa Cruz', 'Náutico'], ['Athletico-PR', 'Coritiba'], ['Real Madrid', 'Barcelona'], ['Real Madrid', 'Atlético de Madrid'], ['Sevilla', 'Real Betis'],
+  ['Milan', 'Inter'], ['Inter', 'Juventus'], ['Roma', 'Lazio'], ['Man United', 'Man City'], ['Man United', 'Liverpool'], ['Liverpool', 'Everton'],
+  ['Arsenal', 'Tottenham'], ['Celtic', 'Rangers'], ['Boca Juniors', 'River Plate'], ['Benfica', 'Porto'], ['Benfica', 'Sporting'], ['Porto', 'Sporting'],
+  ['Ajax', 'Feyenoord'], ['Ajax', 'PSV'], ['Dortmund', 'Schalke'], ['Bayern', 'Dortmund'], ['Galatasaray', 'Fenerbahçe'], ['Peñarol', 'Nacional-URU'],
+  ['Racing', 'Independiente'], ["Newell's Old Boys", 'Rosario Central'], ['PSG', 'Marseille'], ['Colo-Colo', 'U. de Chile'], ['Olimpia', 'Cerro Porteño'],
+]
+// 🛂 Trocou de seleção / nasceu num país e jogou por outro (26/11): Di Stéfano (Argentina → Espanha), Puskás (Hungria → Espanha), Mazzola
+// (Brasil 58 → Itália 62), Diego Costa e Brahim Díaz (trocaram mesmo), e os nascidos fora que defenderam outra seleção (Deco, Pepe e
+// Jorginho no Brasil; Klose e Podolski na Polônia; Higuaín, Mahrez e Aubameyang na França; Hakimi na Espanha; Rakitić na Suíça…).
+const TROCOU_SELECAO: Record<string, Pessoa[]> = {
+  Argentina: ['Alfredo Di Stéfano', 'Gonzalo Higuaín'], Hungria: ['Ferenc Puskás'], Brasil: [{ n: 'Mazzola', clubes: ['Palmeiras'] }],
+  Espanha: ['Diego Costa', 'Marcos Senna', 'Thiago Alcântara'], Portugal: ['Deco', 'Pepe'], Itália: ['Thiago Motta', 'Jorginho', 'Mauro Camoranesi'],
+  Croácia: ['Eduardo da Silva', 'Ivan Rakitić'], Alemanha: ['Cacau', 'Lukas Podolski', 'Miroslav Klose'], Suíça: ['Xherdan Shaqiri'],
+  França: ['Patrice Evra', 'Marcel Desailly', 'Claude Makélélé', 'Steve Mandanda', 'Patrick Vieira'], Inglaterra: ['Raheem Sterling', 'John Barnes', 'Declan Rice'],
+  'Costa do Marfim': ['Wilfried Zaha'], Senegal: ['Kalidou Koulibaly'], Argélia: ['Riyad Mahrez'], Gabão: ['Pierre-Emerick Aubameyang'],
+  Marrocos: ['Achraf Hakimi', 'Hakim Ziyech', 'Brahim Díaz'], Gana: ['Kevin-Prince Boateng'], Turquia: ['Hakan Çalhanoğlu'],
+}
+// 🟥 Rei do cartão vermelho (26/11): os recordistas e os mais expulsos conhecidos — Sergio Ramos (recorde da La Liga e do Real),
+// Montero (recorde da Série A), Vieira e Dunne (recorde da Premier League, 8 cada), Keane, Zidane (14 na carreira), Materazzi, Pepe, Felipe Melo.
+const CARTAO_VERMELHO: Record<string, Pessoa[]> = {
+  Espanha: ['Sergio Ramos'], Uruguai: ['Paolo Montero'], França: ['Patrick Vieira', 'Zinedine Zidane'], Irlanda: ['Richard Dunne', 'Roy Keane'],
+  Itália: ['Marco Materazzi'], Portugal: ['Pepe'], Brasil: ['Felipe Melo'],
+}
+// 🌙 Fugiu do CT pra balada — os boêmios (26/11): só história PÚBLICA e conhecida, contada pela imprensa ou pelo próprio jogador
+// (Renato e Leandro voltando de madrugada na concentração de 86, Romário e a noite, Adriano sumindo dos treinos, as festas do
+// Ronaldinho, Best, Gascoigne, Garrincha, Sócrates boêmio assumido, Balotelli, Vampeta). Nada de "parece baladeiro".
+const BOEMIOS: Record<string, Pessoa[]> = {
+  Brasil: ['Romário', 'Renato Gaúcho', { n: 'Leandro', clubes: ['Flamengo'] }, { n: 'Adriano', clubes: ['Flamengo'] }, 'Adriano Imperador', 'Ronaldinho Gaúcho',
+    'Garrincha', 'Sócrates', 'Vampeta'],
+  'Irlanda do Norte': ['George Best'], Inglaterra: ['Paul Gascoigne'], Argentina: ['Diego Maradona'], Itália: ['Mario Balotelli'],
+}
 // 🏴 o país da LIGA do clube da carta (Inglaterra = futebol inglês; o País de Gales do Swansea joga lá)
 const LIGA_INGLESA = new Set(['Liverpool', 'Man United', 'Manchester United', 'Arsenal', 'Chelsea', 'Man City', 'Tottenham', 'Newcastle', 'Everton', 'Aston Villa', 'West Ham', 'Leicester', 'Leicester City', 'Wolves', 'Nottingham Forest', 'Fulham', 'Leeds', 'Leeds United', 'Blackburn', 'Southampton', 'Crystal Palace', 'Brighton', 'Sunderland', 'Middlesbrough', 'Brentford', 'Swansea', 'Derby County', 'Bournemouth', 'Birmingham', 'Wigan', 'Watford', 'Sheffield Wednesday', 'Portsmouth', 'Burnley', 'Bolton'])
 const LIGA_ESPANHOLA = new Set(['Real Madrid', 'Barcelona', 'Atlético de Madrid', 'Sevilla', 'Valencia', 'Villarreal', 'Real Betis', 'Deportivo La Coruña', 'Real Sociedad', 'Athletic Bilbao', 'Espanyol', 'Celta', 'Celta de Vigo', 'Mallorca', 'Granada', 'Girona', 'Logroñés'])
@@ -259,6 +306,9 @@ const clube = (c: string) => CLUBE_ALIAS[c] ?? c
 // ── 2. O QUE O BARALHO JÁ DIZ ───────────────────────────────────────────────────────────────────────────────────────────
 const ARABIA = new Set(['Al-Hilal', 'Al-Nassr', 'Al-Ittihad', 'Al-Ahli', 'Al-Shabab']) // Saudi Pro League (o Al Ahly é do Egito: fora)
 const EUA = new Set(['New York Cosmos', 'Inter Miami', 'LA Galaxy', 'Orlando City', 'MetroStars', 'DC United', 'New York Red Bulls', 'New York City', 'Real Salt Lake', 'LAFC', 'Columbus Crew', 'Colorado Rapids'])
+const NORDESTE = new Set(['Bahia', 'Vitória', 'Fortaleza', 'Ceará', 'Sport', 'Santa Cruz', 'Náutico', 'Íbis', 'Sampaio Corrêa', 'Confiança', 'Retrô', 'Maranhão', 'CRB', 'CSA', 'ABC', 'América-RN', 'Botafogo-PB', 'Treze', 'Campinense', 'River-PI'])
+// Rússia sozinha tem 11 cartas no baralho (não fecha pacote): junta a Ucrânia (o Dynamo de Kiev jogava a liga soviética)
+const RUSSIA_UCRANIA = new Set(['CSKA Moscou', 'Spartak Moscou', 'Zenit', 'Dínamo de Moscou', 'Lokomotiv Moscou', 'Rubin Kazan', 'Krasnodar', 'Anzhi', 'Shakhtar Donetsk', 'Dynamo Kyiv', 'Dínamo Kyiv'])
 const ASIA = new Set(['Kashima Antlers', 'Vissel Kobe', 'Guangzhou', 'Pohang Steelers', 'Yokohama F. Marinos', 'Suwon', 'Júbilo Iwata', 'Gamba Osaka', 'Shanghai SIPG', 'Nagoya Grampus', 'Kashiwa Reysol', 'Jeonbuk', 'Chunnam Dragons'])
 
 export const TEMAS_CONQUISTA: TemaConquista[] = [
@@ -304,6 +354,12 @@ export const TEMAS_CONQUISTA: TemaConquista[] = [
   { id: 'folcloricos', emoji: '😂', pt: 'Folclóricos', en: 'Cult heroes', grupo: 'comica' },
   { id: 'arabia', emoji: '🐪', pt: 'Foi pra Arábia', en: 'Went to Saudi Arabia', grupo: 'comica' },
   { id: 'eua', emoji: '🇺🇸', pt: 'Foi jogar nos EUA', en: 'Went to the USA', grupo: 'comica' },
+  { id: 'nordeste', emoji: '🌵', pt: 'Jogou no Nordeste', en: 'Played in Brazil’s Northeast', grupo: 'meio' },
+  { id: 'russia', emoji: '❄️', pt: 'Jogou na Rússia ou Ucrânia', en: 'Played in Russia or Ukraine', grupo: 'meio' },
+  { id: 'dois-rivais', emoji: '🔁', pt: 'Jogou nos dois rivais', en: 'Played for both rivals', grupo: 'mista' },
+  { id: 'trocou-selecao', emoji: '🛂', pt: 'Trocou de seleção', en: 'Switched national teams', grupo: 'meio' },
+  { id: 'cartao-vermelho', emoji: '🟥', pt: 'Rei do cartão vermelho', en: 'Red card king', grupo: 'comica' },
+  { id: 'balada', emoji: '🌙', pt: 'Fugiu do CT pra balada', en: 'Skipped training to party', grupo: 'comica' },
 ]
 export const temaConquista = (id: string | undefined) => TEMAS_CONQUISTA.find(t => t.id === id)
 
@@ -319,7 +375,7 @@ function todas(): Item[] {
 }
 /** pessoa por trás da carta: o mesmo nome só junta cartas quando o jogo JÁ conferiu que é a mesma pessoa (MESMO_JOGADOR) */
 const PESSOA_ALIAS = new Map<string, string>()
-for (const grupo of [...BOLA_DE_OURO, ...Object.values(CAMPEOES_DO_MUNDO).flat(), ['Mascherano', 'Javier Mascherano'], ['Ever Banega', 'Éver Banega'], ['Denílson', 'Denílson Show'], ['Seedorf', 'Clarence Seedorf'], ['Jardel', 'Mário Jardel']]) for (const n of grupo) PESSOA_ALIAS.set(n, grupo[0])
+for (const grupo of [...BOLA_DE_OURO, ...Object.values(CAMPEOES_DO_MUNDO).flat(), ['Mascherano', 'Javier Mascherano'], ['Ever Banega', 'Éver Banega'], ['Denílson', 'Denílson Show'], ['Seedorf', 'Clarence Seedorf'], ['Jardel', 'Mário Jardel'], ['Adriano Imperador', 'Adriano']]) for (const n of grupo) PESSOA_ALIAS.set(n, grupo[0])
 export const pessoaDe = (it: { carta: CartaTema; pais: string }) => {
   const n = PESSOA_ALIAS.get(it.carta.name) ?? it.carta.name
   return MESMO_JOGADOR.has(n) || PESSOA_ALIAS.has(it.carta.name) ? `${n}|${it.pais}` : `${it.carta.name}|${it.carta.club}|${it.carta.year}`
@@ -367,6 +423,12 @@ function noTema(id: string, it: Item): boolean {
     case 'folcloricos': return !!c.folk
     case 'arabia': return ARABIA.has(c.club)
     case 'eua': return EUA.has(c.club)
+    case 'nordeste': return NORDESTE.has(c.club)
+    case 'russia': return RUSSIA_UCRANIA.has(c.club)
+    case 'dois-rivais': return naLista(DOIS_RIVAIS, it) || (!PESSOA_DUVIDOSA.has(c.name) && (cl => CLASSICOS.some(([a, b]) => cl.has(a) && cl.has(b)))(clubesDaPessoa(it)))
+    case 'trocou-selecao': return naLista(TROCOU_SELECAO, it)
+    case 'cartao-vermelho': return naLista(CARTAO_VERMELHO, it)
+    case 'balada': return naLista(BOEMIOS, it)
     case 'artilheiro-copa': return naLista(ARTILHEIRO_COPA, it)
     case 'comentarista': return naLista(COMENTARISTA, it)
     case 'virou-tecnico': return naLista(VIROU_TECNICO, it)

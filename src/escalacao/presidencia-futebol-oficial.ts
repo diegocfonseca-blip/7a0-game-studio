@@ -46,11 +46,11 @@ export class FutebolOficial3D {
  private ante=new Map<number,{x:number;y:number}>()
  private anteBola:{x:number;y:number}|undefined
  private avanca(minuto:number){
-  const g=this.game,t=g.t,ax=g.atl.map(a=>({x:a.ax??a.x,y:a.ay??a.y})),bx={x:g.bolaAnt.x??g.bola.x,y:g.bolaAnt.y??g.bola.y}
+  const g=this.game,t=g.t,ax=new Map(g.atl.map(a=>[a.id,{x:a.ax??a.x,y:a.ay??a.y}])),bx={x:g.bolaAnt.x??g.bola.x,y:g.bolaAnt.y??g.bola.y}
   const before=this.traceGroundTouches?this.groundStep():null
   g.avancaAte(minuto)
   if(this.traceGroundTouches&&g.t!==t){const after=this.groundStep();if(after.owner!==this.touchOwner){this.touchOwner=after.owner;this.touchOwnerSince=after.t;after.ownedFor=0}const touch=sourceGroundTouch(before,after);if(touch)this.groundContacts.push(touch)}
-  if(g.t!==t){g.atl.forEach((a,i)=>this.ante.set(a.id,ax[i]));this.anteBola=bx}
+  if(g.t!==t){g.atl.forEach(a=>this.ante.set(a.id,ax.get(a.id)??{x:a.x,y:a.y}));this.anteBola=bx}
  }
  constructor(input:EntradaM2,{traceGroundTouches=false}={}){this.input=structuredClone(input);this.game=novoMotor2(this.input);this.traceGroundTouches=traceGroundTouches;this.spin=new RotacaoBola3D(RAIO_BOLA_FUTEBOL_3D,this.spinPoint())}
  private observeDelivery(){

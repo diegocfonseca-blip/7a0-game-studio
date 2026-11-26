@@ -1,4 +1,5 @@
-import {planoCenaCompacta} from './mapa-compacto/cenas'
+import {lerPedidoCena,pedidoCena,type PedidoCena} from './cenas-bairro-model'
+import {planoCenaCompacta,planoTrecho} from './mapa-compacto/cenas'
 import {acabamentoCompacto} from './mapa-compacto/finish'
 import {criarCarrosCompactos} from './mapa-compacto/owned-cars'
 import {criarMapaCompacto,enquadrarCompacto,type MapaCompacto} from './mapa-compacto/environment'
@@ -461,7 +462,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
   const visitorKeys=new Map<ReturnType<typeof criarVisitaComplexo>,string>()
   const followedActor=(side:'home'|'away')=>compactMap?.life.actor(side)??transportActors?.actor(side)??visits.find(visit=>visitorSides.get(visit)===side)
   const selectedAccess=(side:'home'|'away')=>architecture.seatAccess.filter(access=>access.side===side&&access.seat.tier===populationRef.current.visitTier&&!crowdDeparture?.reserveSeatIds().includes(access.seatId)).sort((a,b)=>Math.abs(a.seat.row-populationRef.current.visitRow)-Math.abs(b.seat.row-populationRef.current.visitRow)||a.seat.row-b.seat.row)[0]
-  let cenaCentral:string|undefined
+  let cenaCentral:string|undefined, pedidoTrecho:PedidoCena|undefined
   let mode:VistaComplexo=isOffice?'room':isWindow?'office':'original',savedMapView:VistaComplexo=mode,fieldWatchPending=false,focusedSeat:string|undefined,raf=0,visible=true,rendering=false,seconds=6,last=0
   const rebuildPopulation=()=>{
    const population=populationRef.current,publico=crowd.inspect()
@@ -668,7 +669,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
    const currentTeams=tripRosters?.teams??(matchRef.current?.officialTeams?.map((name,i)=>({name,color:i?matchRef.current!.awayColor:matchRef.current!.homeColor}))??[])
    stadiumAccess.configure(currentTeams,sourceMatch?.viewerClubId!==undefined?sourceMatch.viewerClubId===sourceMatch.context.awayClubId?'away':'home':fora?'away':'home')
    matchday.configure({journey:dayJourney,teams:currentTeams,supporters:populationRef.current.attendance?.supporters??0,mobile:softwareGPU||el.clientWidth<600||mobileGraphics,lotacao:(populationRef.current.attendance?.attendance??50)/100},seconds)
-   if(compactMap){const bairro=vidaDoBairro(contextoBairroDoMapa(cidadeVivaRef.current,dayJourney,sourceMatch));compactMap.setFair(bairro.feira);compactMap.life.configure({humor:cidadeVivaRef.current?.humor,carreata:cidadeVivaRef.current?.carreata,feira:bairro.feira,pelada:bairro.pelada,enabled:circulation&&state.valid,journey:dayJourney,home:populationRef.current.attendance,away:populationRef.current.awayAttendance,mobile:mobileGraphics,awayMatch:foraRef.current,homeColor:currentTeams[0]?.color??populationRef.current.crowdPopulation.homeColor??cidadeVivaRef.current?.cor,awayColor:currentTeams[1]?.color??populationRef.current.crowdPopulation.awayColor,period:cenaCentral==='balada'?'night':cenaCentral==='clube-lazer'?'day':dayJourney?.period,night:cenaCentral==='balada'||cenaCentral!=='clube-lazer'&&dayJourney?.period==='night',rain:populationRef.current.attendance?.wet});if(updateCity)compactMap.life.update(seconds,camera,el.clientHeight);if(cenaCentral==='city-street'){const p=compactMap.life.parade();if(p){controls.target.set(p.x,p.y+3,p.z);camera.position.set(p.x+17,p.y+11,p.z+23)}}}
+   if(compactMap){const bairro=vidaDoBairro(contextoBairroDoMapa(cidadeVivaRef.current,dayJourney,sourceMatch));compactMap.setFair(bairro.feira);compactMap.life.configure({humor:cidadeVivaRef.current?.humor,carreata:cidadeVivaRef.current?.carreata,feira:bairro.feira,pelada:bairro.pelada,enabled:circulation&&state.valid,journey:dayJourney,home:populationRef.current.attendance,away:populationRef.current.awayAttendance,mobile:mobileGraphics,awayMatch:foraRef.current,homeColor:currentTeams[0]?.color??populationRef.current.crowdPopulation.homeColor??cidadeVivaRef.current?.cor,awayColor:currentTeams[1]?.color??populationRef.current.crowdPopulation.awayColor,period:cenaCentral==='balada'?'night':cenaCentral==='clube-lazer'?'day':dayJourney?.period,night:cenaCentral==='balada'||cenaCentral!=='clube-lazer'&&dayJourney?.period==='night',rain:populationRef.current.attendance?.wet});if(updateCity)compactMap.life.update(seconds,camera,el.clientHeight);if(updateCity)compactMap.life.clipUpdate(performance.now(),reduced.matches);if(cenaCentral==='city-street'){const p=compactMap.life.parade();if(p){controls.target.set(p.x,p.y+3,p.z);camera.position.set(p.x+(pedidoTrecho?9:17),p.y+(pedidoTrecho?7:11),p.z+(pedidoTrecho?15:23))}}}
    const logisticsKey=[dayJourney?.key,dayJourney?.phase,sourceMatch?.context.id].join('|')
    const updateLogistics=!focused||logisticsKey!==lastLogisticsKey||performance.now()-lastLogisticsAt>=500
    if(updateLogistics){lastLogisticsAt=performance.now();lastLogisticsKey=logisticsKey;logisticsUpdates++;matchday.update(seconds,camera,el.clientHeight)}
@@ -758,17 +759,22 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
   }
   let placeReturnCamera:{position:number[];target:number[];fov:number;mode:VistaComplexo;navigation:ModoNavegacaoComplexo;follow:boolean}|null=null
   let activePlace:VistaComplexo|null=null
-  const navigation=criarNavegacaoComplexo({camera,controls,floating:!!compactMap,bounds:compactMap?{minX:-288,maxX:348,minZ:-243,maxZ:289}:undefined,solidos:()=>surround.solids,onChange:()=>{interactionUntil=performance.now()+250;vivoAte=performance.now()+VIVO_MS;wake.current()},onExplore:()=>{if(cenaCentral){cenaCentral=undefined;cenaPedidaRef.current=null;luzCena.intensity=0;refreshJourney.current()}mapFlight.cancel();placeReturnCamera=null;activePlace=null;setBrowsingPlace(false);setSelectedView(mode);followDrive=false;toqueNoMapa();userExploring.current=true;fieldWatchPending=false;matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
+  const navigation=criarNavegacaoComplexo({camera,controls,floating:!!compactMap,bounds:compactMap?{minX:-288,maxX:348,minZ:-243,maxZ:289}:undefined,solidos:()=>surround.solids,onChange:()=>{interactionUntil=performance.now()+250;vivoAte=performance.now()+VIVO_MS;wake.current()},onExplore:()=>{if(cenaCentral){cenaCentral=undefined;pedidoTrecho=undefined;compactMap?.life.clip.start(undefined);cenaPedidaRef.current=null;luzCena.intensity=0;refreshJourney.current()}mapFlight.cancel();placeReturnCamera=null;activePlace=null;setBrowsingPlace(false);setSelectedView(mode);followDrive=false;toqueNoMapa();userExploring.current=true;fieldWatchPending=false;matchCameraController.explore();followSide=undefined;followedCenter=undefined;setFollowing(null)}})
   const fixedCameraZoom=criarZoomCameraFixa(renderer.domElement,()=>focoPartida()||['fixed','field2d'].includes(matchCameraController.inspect().mode),factor=>{if(matchCameraController.zoomFixed(factor))resume()})
   navigation.setMode(navigationModeRef.current)
   if(isWindow)controls.enabled=false
   const view=(next:VistaComplexo,draw=true)=>{
-   const cena=String(next).startsWith('cena:')?String(next).slice(5):undefined
+   const pedido=lerPedidoCena(String(next))
+   const cena=pedido?.view??(String(next).startsWith('cena:')?String(next).slice(5).split('?')[0]:undefined)
    if(cena)next=cena as VistaComplexo
    if(openingPending)return
    if(focoPartida()){setFootballCamera(matchCameraController.inspect().mode==='free'?'tv':matchCameraController.inspect().mode);return}
    mapFlight.cancel()
    cenaCentral=cena
+   pedidoTrecho=pedido
+   // A replay is a one-shot command. Resize/quality rebuilds retain progress.
+   cenaPedidaRef.current=pedido?pedidoCena(pedido.view,pedido.key,pedido.kind,!!pedido.manual,false,pedido.ator):cena?`cena:${cena}`:null
+   compactMap?.life.clip.start(pedido,cidadeVivaRef.current?.cor??populationRef.current.crowdPopulation.homeColor??'#1b7a3d',reduced.matches)
    luzCena.intensity=cena==='balada'?.8:0
    const periodoCena=cena==='balada'?'night':cena==='clube-lazer'?'day':journeyRef.current?.period??'day'
    lighting.setPeriod(periodoCena)
@@ -787,7 +793,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
    setSelectedView(next);setCartaoFechado(null);setShoppingOpen(false)
    mode=next;followDrive=next==='passeio-carro';focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
    const compactBounds=compactMap?.location(next)
-   const planoCena=cena&&compactMap?planoCenaCompacta(cena,camera.aspect):undefined
+   const planoCena=cena&&compactMap?(pedido?planoTrecho(cena,camera.aspect):planoCenaCompacta(cena,camera.aspect)):undefined
    if(planoCena){controls.target.set(...planoCena.target);camera.position.set(...planoCena.camera)}
    else if(compactBounds)enquadrarCompacto(compactBounds,(a,b,c,d,h)=>fit(a,b,c,d,h,[],['original','region'].includes(next)?(managementEnabled&&el.clientWidth<600?new THREE.Vector3(.25,2.1,1.2):new THREE.Vector3(.65,1.15,1.2)):new THREE.Vector3(.25,.85,1.3)),next==='original'||next==='region'?37:next==='shopping'?30:next==='hotel'?25:16)
    else if(next==='original'){if(managementEnabled)fit(-220,330,-290,350,37,[],new THREE.Vector3(.12,camera.aspect<.85?2:1.65,1.4));else fit(-220,330,-290,350,37,stationFrame)}
@@ -985,7 +991,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
    if(fan.ativo()){camera.aspect=width/height;camera.updateProjectionMatrix();render();resume();return}
    const footballCamera=matchCameraController.inspect()
    if(footballCamera.mode!=='free'||footballCamera.returning){camera.aspect=width/height;camera.updateProjectionMatrix();render();resume()}
-   else if(cenaCentral){camera.aspect=width/height;camera.updateProjectionMatrix();view(`cena:${cenaCentral}` as VistaComplexo,false);render();resume()}
+   else if(cenaCentral){camera.aspect=width/height;camera.updateProjectionMatrix();view((pedidoTrecho?`cena:${pedidoTrecho.view}?evento=${encodeURIComponent(pedidoTrecho.key)}&acao=${pedidoTrecho.kind}${pedidoTrecho.manual?'&manual=1':''}`:`cena:${cenaCentral}`) as VistaComplexo,false);render();resume()}
    else navigation.resize(width,height,()=>view(mode,false))
    if(isWindow){view('office',false);camera.lookAt(controls.target);render()}
   }
@@ -998,7 +1004,7 @@ export default function PresidenciaComplexo3D({focusSession,museumStage,cidadeVi
   const cumprimentos=()=>{const m=matchRef.current;if(!m||!m.finished){fimDesde=null;fimDe=null;return false}const id=m.context?.id??'';if(fimDe!==id){fimDe=id;fimDesde=performance.now()}return performance.now()-(fimDesde??0)<45000}
   const blockedByPanel=()=>document.body.classList.contains('clube-mapa-gestao-aberta')
   const driving=()=>!!deliveries.commute()?.moving&&!pausedRef.current&&!isOffice&&!isWindow
-  const running=()=>visible&&!document.hidden&&!blockedByPanel()&&(mapFlight.active||fan.ativo()||efeitosMapa.ativo()||matchCameraController.transitioning||walking()||driving()||cumprimentos()||finalDay.animating()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
+  const running=()=>visible&&!document.hidden&&!blockedByPanel()&&(compactMap?.life.clip.playing()||mapFlight.active||fan.ativo()||efeitosMapa.ativo()||matchCameraController.transitioning||walking()||driving()||cumprimentos()||finalDay.animating()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
   // 🎞️ 21/11: no jogo 3D (cidade fora da cena) o teto deixa de ser o do nível do mapa (30 no celular, 45 no PC): tenta 60 e, se o
   // aparelho não segura, trava em 30 até o fim da partida (`presidencia-partida-quadros.ts`). Pouca memória e placa simulada ficam como eram.
   const ritmoPartida=criaRitmoPartida(),ritmoVale=()=>!softwareGPU&&focoPartida()&&!!matchRef.current&&!matchRef.current.finished&&!fan.ativo()

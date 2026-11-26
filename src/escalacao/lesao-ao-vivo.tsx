@@ -1,0 +1,17 @@
+import {useState} from 'react'
+import type {Card} from './types'
+import {tr} from './lang'
+/** A medical interruption, not the regular substitution window. No academy creation here. */
+export function LesaoAoVivo(p:{card:Card;minute:number;reservas:Card[];players:Card[];used:number;onConfirm:(entra?:string,keeper?:string)=>void}){
+ const [choice,setChoice]=useState(p.used<3?p.reservas[0]?.id??'':''),[keeper,setKeeper]=useState('')
+ const reserves=p.used<3?p.reservas:[],selected=reserves.find(c=>c.id===choice),keepers=p.players.filter(c=>c.id!==p.card.id)
+ const needKeeper=p.card.pos==='GOL'&&!selected,chosenKeeper=keepers.find(c=>c.id===keeper)
+ return <div role="dialog" aria-modal="true" aria-labelledby="lesao-live-title" style={{position:'fixed',inset:0,zIndex:20000,background:'#000b',display:'grid',placeItems:'center',padding:14}}><div style={{background:'#F4ECD6',color:'#0C0C0C',border:'3px solid #0C0C0C',borderRadius:18,boxShadow:'4px 4px 0 #000',padding:18,maxWidth:520,width:'100%',maxHeight:'85dvh',overflowY:'auto'}}>
+ <h2 id="lesao-live-title" style={{fontFamily:'Oswald',margin:'0 0 8px'}}>🩹 {tr('LESÃO · JOGO PAUSADO','INJURY · MATCH PAUSED')}</h2>
+ <p>{Math.floor(p.minute)}′ · <strong>{p.card.name}</strong> {tr('não pode continuar.','cannot continue.')}</p>
+ {reserves.length?<><label htmlFor="lesao-reserve">{tr('Escolha um reserva ou siga com um a menos.','Choose a substitute or play short-handed.')}</label><select id="lesao-reserve" value={choice} onChange={e=>setChoice(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'10px 0',border:'2px solid #0C0C0C',borderRadius:10}}><option value="">{tr('Seguir com um a menos','Play short-handed')}</option>{reserves.map(c=><option key={c.id} value={c.id}>{c.name} · {c.pos}</option>)}</select><p>{tr(`${p.used}/3 trocas usadas. Entrar um reserva conta como uma troca.`,`${p.used}/3 substitutions used. Bringing on a reserve uses one substitution.`)}</p></>:<p role="alert">{p.used>=3?tr('As três substituições já foram usadas. O time seguirá com um a menos.','All three substitutions have been used. Your team will play short-handed.'):tr('Não há reserva disponível para esta posição. O time seguirá com um a menos.','No reserve is available for this position. Your team will play short-handed.')}</p>}
+ {needKeeper&&<><label htmlFor="lesao-keeper">{tr('Quem vai para o gol nesta partida?','Who goes in goal for this match?')}</label><select id="lesao-keeper" value={keeper} onChange={e=>setKeeper(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'10px 0'}}><option value="">{tr('Escolha alguém que está em campo','Choose an on-field player')}</option>{keepers.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></>}
+ <p style={{fontSize:13}}>{tr('Depois da partida, organize o próximo jogo no Elenco. Se precisar, você poderá escolher um jogador da base.','After the match, prepare your squad for the next game. You can choose an academy player there if needed.')}</p>
+ <button type="button" disabled={needKeeper&&!chosenKeeper} onClick={()=>p.onConfirm(selected?.id,needKeeper?chosenKeeper?.id:undefined)} style={{fontFamily:'Oswald',fontWeight:800,background:'#FFC400',color:'#0C0C0C',border:'3px solid #0C0C0C',borderRadius:12,padding:13,width:'100%'}}>{selected?tr(`Substituir por ${selected.name} e continuar`,`Bring on ${selected.name} and continue`):tr('Continuar com um a menos','Continue short-handed')}</button>
+ </div></div>
+}

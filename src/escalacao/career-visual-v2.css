@@ -258,3 +258,11 @@ html body #root .cv2-root.cv2-career .ll-cx.ll-cx-fim>:is(.ll-cx-lado,.ll-cx-aba
  .cv2-career.cv2-view-jogos .cv2-mobile-brand strong{font-size:16px}
  .cv2-career.cv2-view-jogos .ll25-scorers:not(:has(p)){min-height:0;padding-top:5px;padding-bottom:5px}
 }
+
+/* Nas abas laterais, sair/salvar pertencem à coluna esquerda. O antigo span
+   de duas colunas na linha 3 atravessava as ações do Mercado/Elenco. */
+@media(min-width:1100px){
+ html body #root .cv2-career:not(.cv2-view-jogos)>.ll-cx>.ll-cx-sair{
+  grid-column:1!important;grid-row:auto!important;min-width:0;max-width:100%;align-self:start;
+ }
+}

@@ -115,7 +115,7 @@ import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { EscalacaoMinha } from './minha-escalacao' // 📋🏆 Minha Liga Draft (01/11)
 import { TaticasLigaDraft } from './taticas-liga-draft' // ⚔️ 24/11
-import { footballPlanRoom } from './football-live-tactics'
+import { footballPlanRoom, footballPlanQuick } from './football-live-tactics'
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora, BbClubeOverlay } from './pyramidseason'
 import { useOnlinePreview,useOwnerPresentation as usePrivateOwnerPresentation } from './online-preview'
 import { useOnlineRoomPresentation as useOwnerPresentation } from './presentation-release'
@@ -9014,7 +9014,7 @@ export function EscSeason() {
               </span>
             )}
           </div>
-          {state.minhaLigaDraft && footballPlanRoom(state) ? <TaticasLigaDraft value={myTactic} onChange={t => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })} /> /* ⚔️ 24/11: Liga Draft com as táticas novas */ : <div className="grid grid-cols-3 gap-2">
+          {(state.minhaLigaDraft || footballPlanQuick(state)) && footballPlanRoom(state) && !state.managers.some(m => m.formation === 'kings') ? <TaticasLigaDraft value={myTactic} onChange={t => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })} /> /* ⚔️ 24/11: Liga Draft com as táticas novas */ : <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
                 className={(`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaPreview ? ' ll31-tactic' : ''}`)+" ov3-surface"}

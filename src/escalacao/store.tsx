@@ -1,3 +1,6 @@
+import {eventoDepoisDaLesao,type LesaoPartida} from './lesao-partida'
+import {reservasDoEvento,escalaSemLesionado,escalaIntegraPreparo} from './evento-preparo'
+import {marcarCena,registrarVendas,type AcaoBairro} from './cenas-bairro-model'
 import {rememberGame,type MemoryGame} from './career-memory'
 import {liveInitialIds,liveFormations,validateLivePlan,type CareerLiveDecision} from './career-live-plan'
 import {compactarEntrada,type EntradaM2} from './motor2/carreira'
@@ -7,7 +10,7 @@ import {eventosFisicos} from './carreira-fisica'
 import { referenciaAtleta, salarioReferencia, faixaCampanha } from './carreira-economia'
 import { mercadoAnualOficial, MERCADO_BOTS_OFICIAL_GLOBAL, TRANSFERENCIAS_OFICIAIS, reservaNegociavel, type ClubeMercado } from './mercado-bots-oficial'
 import {pedidoVeiculoLiberado} from './presidencia-veiculos-liberacao'
-import {FOOTBALL_LOCAL_ORDER,footballClockContext,quickFootballMatch,footballTestRoom,footballPlanHost,footballPlanActor,promoteFootballPlans,validFootballPlan,planFor,footballPlanModifiers,mergeFootballFuture,footballContributions,footballClock,type FootballPlan} from './football-live-tactics'
+import {FOOTBALL_LOCAL_ORDER,footballClockContext,quickFootballMatch,footballTestRoom,footballPlanHost,footballPlanActor,promoteFootballPlans,validFootballPlan,footballPlanQuick,planFor,footballPlanModifiers,mergeFootballFuture,footballContributions,footballClock,type FootballPlan} from './football-live-tactics'
 import {retornoDeSalaLocal,acaoDaSalaLocal,acaoRemotaDaSalaPermitida} from './online-acoes-locais'
 import {investirMuseu} from './museu-clube'
 import {organizarMoveisNaCasa} from './presidencia-carreira'
@@ -796,6 +799,7 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>, placeme
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + r.moedas }
       logFin(s, 'reward', `🛍️ Loja · ${r.camisas.toLocaleString('pt-BR')} camisas`, r.moedas, undefined, id, true)
     }
+    if(s.sport!=='basquete'&&s.onlineMode!=='online'&&!s.co2)s.careerNeighborhood={...s.careerNeighborhood,[id]:registrarVendas(s.careerNeighborhood?.[id],[lj.balanco,{season,camisas:r.camisas}])}
     s.careerLoja = { ...(s.careerLoja ?? {}), [id]: { ...lj,
       balanco: { season, camisas: r.camisas, moedas: r.moedas, pos, preco, torcida: r.torcida } } }
   }
@@ -6501,7 +6505,11 @@ type Action =
   | { type: 'SET_SUBMODE'; mode: 'dinamico' | 'intervalo' } // 🔁 carreira offline: liga/desliga "troca só no intervalo"
   | { type: 'SET_CONDICAO_AUTO'; on: boolean } // 🔁 carreira solo: liga/desliga o rodízio automático do preparador (preferência do técnico, não zera entre temporadas)
   | { type: 'SET_HALFTIME'; mgrId: number; round: number; xi2: string[]; formation?: FormationKey; tactic?: Tactic }
+  | {type:'PLAN_MATCH_INJURY';injury:LesaoPartida}
+  | {type:'CANCEL_MATCH_INJURY'}
+  | {type:'FINISH_MATCH_INJURY'}
   | { type: 'SET_AO_VIVO'; mgrId: number; round: number; initial?:EntradaM2; aoVivo:CareerLiveDecision[] }
+  | {type:'MARK_NEIGHBORHOOD_SCENE';mgrId:number;key:string;kind:AcaoBairro;group:string}
   | {type:'RECORD_CAREER_GAME';mgrId:number;game:MemoryGame}
   | {type:'REGISTER_CUP_LIVE';mgrId:number;initial:EntradaM2}
   | {type:'SET_CUP_LIVE';mgrId:number;partidaId:string;aoVivo:CareerLiveDecision[]}
@@ -6529,6 +6537,7 @@ type Action =
   | { type: 'EVENTO_SET'; evento: EventoAtivo; manchete?: EventoManchete } // 🎭 carreira SOLO: registra o evento sorteado na tela (pendente = banner trava a rodada; manchete = sem reserva, só zoeira)
   | { type: 'SUBIR_CRIA'; mgrId: number; pos: Sector; nome: string; historia?: number } // 🌱 (13/09) o técnico SOBE um Cria da Base por vontade própria pra uma VAGA do elenco, antes de precisar de lesão — de graça, sem contrato, invendável; some sozinho quando chegar reforço na posição
   | { type: 'EVENTO_DECIDE_CRIA'; nome: string; xi: string[] } // 🌱 evento sem reserva na posição: o técnico ESCOLHE 1 de 3 nomes de Cria da Base (ev.criaOptions) pra tapar o buraco — acaba o truque de jogar sempre só com 11, sem pular a decisão do técnico
+  | {type:'EVENTO_PREPARAR_BASE';xi:string[]}
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
   | { type: 'START_CAREER_CRISE'; mgrId: number; barrier: number; playerId: string; playerName: string; pos: Sector } // 🚨 caixa cruzou uma barreira NOVA (mais funda) de -500 — o jogador de mais fama do elenco anuncia que vai embora ("não jogo em time duro")
@@ -8809,7 +8818,7 @@ export const MARCAS_DE_MODO = ['footballPlans','footballNextPlans','pregaoAberto
  *  pagos por temporada (`copaPrizeDone`: a Copa do Mundo da T-mesma não pagava), marcas de temporada da economia dos bots etc.
  *  Campo NOVO de carreira = entra aqui. A trava (`npm run carreira-limpa`) reprova campo do EscState que não esteja zerado no
  *  começo da carreira, nas MARCAS_DE_MODO ou na lista do que é da CONTA/APARELHO (`FICA_NA_CARREIRA_NOVA`, no teste). */
-export const ZERA_NA_CARREIRA_NOVA = ['careerTransferHistory','careerMemory','careerCupLive','careerCupActive','careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
+export const ZERA_NA_CARREIRA_NOVA = ['careerMatchInjury','careerNeighborhood','careerTransferHistory','careerMemory','careerCupLive','careerCupActive','careerMuseums', 'careerCronica', 'careerTorcida', 'careerTorcidaHist', 'careerDebtBarrier', 'careerCrise', 'reserveListMesmo',
   'motor2Desde', 'motor2RecepcaoDesde', 'criteriosCarreiraDesde', 'criteriosCarreiraAte', 'm2Res', 'booksSeason', 'careerMercado', 'careerLedgers', 'careerEmpresario', 'careerEmpresarioClaims',
   'marketSellers', 'careerBolaOuroPiso', 'ligaRepeteTemporada', 'aliciarFundo', 'pagoAdiantado', 'careerFilials', 'filialTrimNotice',
   'multiClubeAtivo', 'copaXiSeason', 'calCopaSeason', 'copaXi', 'botFadigaDesde', 'econBotsSeason', 'econBotsRel', 'copaPrizeDone', 'copaRound',
@@ -9327,6 +9336,13 @@ function reducerBase(state: EscState, action: Action): EscState {
     const mesmasCadeiras = state.presence.length === action.indices.length && state.presence.every((idx, i) => idx === action.indices[i])
     const mesmosCrachas = uids === state.presenceUids || (uids !== undefined && state.presenceUids !== undefined && uids.length === state.presenceUids.length && uids.every((uid, i) => uid === state.presenceUids![i]))
     if (mesmasCadeiras && mesmosCrachas) return state
+  }
+  if(action.type==='MARK_NEIGHBORHOOD_SCENE'){
+    if(!state.careerOnline||state.onlineMode==='online'||state.co2||state.sport==='basquete')return state
+    const m=state.managers.find(m=>m.id===action.mgrId&&m.isHuman)
+    if(!m||action.key.length>500||!action.key.startsWith(`${state.seed}:${m.id}:`)||action.group.length>500)return state
+    const old=state.careerNeighborhood?.[m.id],next=marcarCena(old,{id:action.key,kind:action.kind,group:action.group,season:state.seasonNo??1,round:state.round??0})
+    return next===old?state:{...state,careerNeighborhood:{...state.careerNeighborhood,[m.id]:next}}
   }
   // Recording a revealed match must not clone the whole career or invalidate simulation inputs.
   if(action.type==='RECORD_CAREER_GAME'){
@@ -12343,9 +12359,10 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'FOOTBALL_SAVE_PLAN': {
       // Existing guest -> host route; a human's saved plan must match its UID/seat.
       // Match manager ID against its UID, never against the host's local youIdx.
-      if(!footballPlanHost(s)||!footballPlanActor(action.by)||ehKings(s)||!['season','liberta','champions'].includes(s.screen)||s.screen==='liberta'&&!s.liberta||s.screen==='champions'&&!s.champions||s.quickCopa?.phase==='done'||s.screen==='season'&&!s.quickCopa&&s.champion!=null||!validFootballPlan(action.plan)||action.plan.mark!==null)return s
+      const planoLocal=footballPlanQuick(s)&&s.managers[s.youIdx]?.id===action.mgrId // ⚔️ 25/11: Partida Rápida offline (só o próprio aparelho)
+      if(!footballPlanHost(s)||!planoLocal&&!footballPlanActor(action.by)||ehKings(s)||!['season','liberta','champions'].includes(s.screen)||s.screen==='liberta'&&!s.liberta||s.screen==='champions'&&!s.champions||s.quickCopa?.phase==='done'||s.screen==='season'&&!s.quickCopa&&s.champion!=null||!validFootballPlan(action.plan)||action.plan.mark!==null)return s
       const seat=s.managers.findIndex(m=>m.id===action.mgrId&&m.isHuman)
-      if(seat<0||!action.by||s.seatUids?.[seat]!==action.by)return s
+      if(seat<0||!planoLocal&&(!action.by||s.seatUids?.[seat]!==action.by))return s
       s.footballNextPlans={...s.footballNextPlans,[action.mgrId]:{...action.plan}}
       return s
     }
@@ -12556,6 +12573,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'SET_CUP_LIVE': {
       if(!s.careerOnline||s.onlineMode==='online'||s.co2||s.sport==='basquete')return s
       const record=s.careerCupLive?.[action.partidaId],m=s.managers.find(x=>x.id===action.mgrId&&x.isHuman)
+      if(action.aoVivo.some(x=>x.injury||x.emergencyKeeper))return state
       if(!record||!m||record.finished||record.managerId!==m.id||record.season!==s.seasonNo||s.careerCupActive!==action.partidaId)return s
       const base=liveInitialIds(record.initial,m),ev=s.eventoTemporada
       const blocked=new Set(ev?.status==='banco'&&ev.season===s.seasonNo&&(ev.volta??0)>s.round&&ev.mgrId===m.id?[ev.cardId]:[])
@@ -12572,6 +12590,23 @@ function reducerBase(state: EscState, action: Action): EscState {
       if(s.careerCupActive===action.partidaId)s.careerCupActive=undefined
       return s
     }
+    case 'PLAN_MATCH_INJURY': {
+      const l=action.injury,m=s.managers.find(m=>m.id===l.mgrId&&m.isHuman),old=s.careerMatchInjury
+      if(!s.careerOnline||s.onlineMode==='online'||s.co2||s.sport==='basquete'||!s.agenciaOn||!m||l.season!==s.seasonNo||l.round!==s.round||!m.squad.some(c=>c.id===l.cardId&&!c.fake)||!Number.isInteger(l.minute)||l.minute<55||l.minute>78||l.rodadas<1||l.rodadas>3||l.status!=='programada')return state
+      if(old&&old.season===l.season&&old.round===l.round)return state
+      s.careerMatchInjury={...l};return s
+    }
+    case 'CANCEL_MATCH_INJURY': {
+      const l=s.careerMatchInjury
+      if(!l||l.status!=='programada'||l.season!==s.seasonNo||l.round!==s.round-1||s.onlineMode==='online')return state
+      s.careerMatchInjury={...l,status:'encerrada',cancelada:true};return s
+    }
+    case 'FINISH_MATCH_INJURY': {
+      const l=s.careerMatchInjury,m=s.managers.find(m=>m.id===l?.mgrId),card=m?.squad.find(c=>c.id===l?.cardId)
+      if(!l||l.status!=='resolvida'||!card||l.season!==s.seasonNo||l.round!==s.round-1||s.onlineMode==='online')return state
+      s.careerMatchInjury={...l,status:'encerrada'}
+      s.eventoTemporada=eventoDepoisDaLesao(l,card,getLang()==='en');return s
+    }
     case 'SET_AO_VIVO': {
       // 🔁 23/11 (Diego): troca com o jogo PAUSADO, em qualquer minuto — no máximo 3 por jogo, mesma posição, vale SÓ naquele jogo
       // (depois do apito o time volta como estava; o XI fixo continua o da aba Elenco). Grava na ficha do jogo (a mesma do
@@ -12585,13 +12620,16 @@ function reducerBase(state: EscState, action: Action): EscState {
         const saved=Object.values(s.m2Res??{}).map(v=>v[5]).filter((v):v is EntradaM2=>!!v&&v.partidaId===action.initial!.partidaId).sort((a,b)=>(b.intervaloRevisao??0)-(a.intervaloRevisao??0))[0]??action.initial
         const base=liveInitialIds(saved,m),existing=s.careerHalftime?.[m.id]?.[action.round]?.aoVivo??[],ev=s.eventoTemporada
         const blocked=new Set(ev?.status==='banco'&&ev.season===s.seasonNo&&(ev.volta??0)>s.round&&ev.mgrId===m.id?[ev.cardId]:[])
+        const clinical=action.aoVivo.slice(existing.length).filter(x=>x.injury),injury=s.careerMatchInjury
+        if(clinical.length&&(!injury||clinical.length!==1||injury.status!=='programada'||injury.season!==s.seasonNo||injury.round!==action.round||injury.mgrId!==m.id||clinical[0].sai!==injury.cardId||clinical[0].t<injury.minute*90/93))return state
         const checked=validateLivePlan({squad:m.squad,initial:base.ids,formation:base.formation,halftime:base.halftime,commands:action.aoVivo,existing,allowed:liveFormations(s,m,m.formation,formacoes15On()).map(f=>f.motor),blocked})
         if(!checked||action.aoVivo.length===existing.length)return state
+        if(clinical.length&&injury)s.careerMatchInjury={...injury,status:'resolvida',subId:clinical[0].entra,emergencyKeeper:clinical[0].emergencyKeeper}
         const atual=s.careerHalftime?.[m.id]?.[action.round]
         s.careerHalftime={...s.careerHalftime,[m.id]:{...s.careerHalftime?.[m.id],[action.round]:{...(atual??{xi2:[]}),aoVivo:action.aoVivo.map(x=>({...x})),revisao:(atual?.revisao??0)+1}}}
         return s
       }
-      if(action.aoVivo.some(x=>x.formation))return s
+      if(action.aoVivo.some(x=>x.formation||x.injury||x.emergencyKeeper))return s
       const byId = new Map(m.squad.map(c => [c.id, c]))
       const lista = (action.aoVivo ?? []).filter(x => Number.isFinite(x.t) && x.t >= 0)
       const trocas = lista.filter(x => x.sai || x.entra)
@@ -12731,10 +12769,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ninguém na janela de volta gradual). O jogo guarda UM causo por vez.
       const cur = s.eventoTemporada
       if (cur && cur.season === s.seasonNo) {
-        const ativo = cur.status === 'pendente' || (cur.status === 'banco' && s.round <= (cur.volta ?? 0) + 1)
+        const ativo = cur.status === 'pendente' || (cur.status === 'banco' && s.round <= (cur.volta ?? 0) + 1) || (cur.status==='campo'&&s.round<=cur.round)
         if (!action.evento.desgaste || ativo) return s
       }
       if (action.evento.season !== s.seasonNo) return s
+      if(action.evento.momento==='preparacao'&&(action.evento.round!==s.round||!s.managers.some(m=>m.id===action.evento.mgrId&&m.isHuman&&m.squad.some(c=>c.id===action.evento.cardId))))return state
       s.eventoTemporada = action.evento
       // 🔁 anota QUEM aprontou e QUANDO — é isso que dá o descanso de 5 temporadas
       // (desgaste NÃO entra: não é folclore, é conta do técnico que não rodiziou)
@@ -12764,6 +12803,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!nome || (s.criaNames ?? []).includes(nome)) return s
       const rng = mulberry((s.seed ^ Math.imul((s.criaNames?.length ?? 0) + 1, 0x9E3779B1)) >>> 0)
       spawnCriaCore(s, m, action.pos, '', rng, nome, 'vaga', action.historia)
+      return s
+    }
+    case 'EVENTO_PREPARAR_BASE': {
+      const ev=s.eventoTemporada,m=s.managers.find(m=>m.id===ev?.mgrId&&m.isHuman)
+      if(!s.careerOnline||s.onlineMode==='online'||!ev||!m||ev.status!=='pendente'||ev.season!==s.seasonNo||ev.criaOptions?.length||!action.xi.includes(ev.cardId)||!escalaIntegraPreparo(action.xi,m.squad,m.formation)||reservasDoEvento(ev,action.xi,m.squad).length)return state
+      const rng=mulberry((s.seed^Math.imul(s.seasonNo??1,104729)^Math.imul(ev.round,7919)^0xE1E27E)>>>0)
+      s.eventoTemporada={...ev,criaOptions:previewCriaNomes(s.criaNames??[],rng,3)}
       return s
     }
     case 'EVENTO_DECIDE_CRIA': {
@@ -12816,12 +12862,18 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!ev || ev.status !== 'pendente' || ev.season !== s.seasonNo) return s
       const you = s.managers.find(m => m.id === ev.mgrId)
       if (!you) return s
+      if(!escalaIntegraPreparo(action.xi,you.squad,you.formation))return state
       if (action.escolha === 'campo') {
+        if(ev.tipo!=='noitada'||!action.xi.includes(ev.cardId))return state
         ev.status = 'campo'
       } else {
-        const sub = you.squad.find(c => c.id === action.subId && c.pos === ev.pos)
+        const sub = reservasDoEvento(ev,action.xi,you.squad).find(c=>c.id===action.subId)
         const idx = action.xi.indexOf(ev.cardId)
-        if (!sub || idx < 0) { ev.status = 'campo' } // 🛟 estado torto (reserva sumiu?) → não trava o jogo: segue em campo
+        if(idx<0){
+          if(!escalaSemLesionado(ev,action.xi,you.squad,you.formation))return state
+          // The manager already filled the spot. Respect that XI; do not restore the injured player.
+          ev.status='banco';ev.volta=ev.round+ev.rodadas;ev.subId=undefined;ev.subNome=undefined
+        }else if(!sub)return state
         else {
           const ids = action.xi.slice(); ids[idx] = sub.id
           const volta = ev.round + ev.rodadas
@@ -18129,7 +18181,7 @@ export function sanitize(state: EscState): EscState {
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
   // 🔨 PREGÃO ABERTO (17/10): mesma regra — os tetos dos robôs (das duas mesas) ficam só no aparelho do dono
   const pa = state.pa ? { ...state.pa, tetos: {}, ...(state.pa.m2 ? { m2: { ...state.pa.m2, tetos: {} } } : {}) } : state.pa
-  return { ...state, careerMuseums:undefined, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
+  return { ...state, ...(state.onlineMode==='online'?{careerMatchInjury:undefined,careerNeighborhood:undefined}:{}), careerMuseums:undefined, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
 // 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
 // Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.
@@ -18147,6 +18199,8 @@ export function sanitize(state: EscState): EscState {
 // carreira dele continua intacta em memória e no save dela. Carreira ONLINE não passa
 // por aqui (lá esses campos são o jogo). Trava: `npm run bagagem`.
 export const SEM_BAGAGEM_DE_CARREIRA: Partial<EscState> = {
+  careerMatchInjury:undefined,
+  careerNeighborhood: undefined,
   cpuSquads: undefined,
   careerScorersAll: undefined,
   careerAssistsAll: undefined,

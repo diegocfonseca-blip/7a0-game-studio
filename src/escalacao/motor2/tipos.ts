@@ -50,6 +50,7 @@ export type TipoLance = 'passe' | 'enfiada' | 'lancamento' | 'inversao' | 'cruza
 export interface Lance { tipo: TipoLance; de: Atleta; para: Atleta | null; t0: number; impedido: boolean; xg?: number; golpe?: string; saiuDe?: { x: number; y: number }; defendido?: boolean }
 
 export type TipoEvento =
+  | 'lesao'
   | 'saida' | 'passe' | 'enfiada' | 'lancamento' | 'inversao' | 'cruzamento' | 'chutao' | 'drible' | 'arrancada' | 'desarme' | 'intercepta'
   | 'carrinho' | 'falta' | 'amarelo' | 'vermelho' | 'impedimento' | 'chute' | 'defesa' | 'espalma' | 'encaixa' | 'trave' | 'fora' | 'isolou'
   | 'bloqueio' | 'gol' | 'escanteio' | 'lateral' | 'tiro_de_meta' | 'cobranca_falta' | 'penalti' | 'cabeceio' | 'corte' | 'saida_goleiro' | 'intervalo' | 'fim'

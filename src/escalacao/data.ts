@@ -4253,6 +4253,7 @@ export const OLD_NAME: Record<string, string> = {
   'História dos Gigantes': 'Real Domingueira', // 🧔⚽ batismo do will.a.n (16/11): assumiu o assento da Várzea que era do bot Real Domingueira — save antigo com Real Domingueira vira História dos Gigantes ao abrir.
   'Ceará SP Club': 'Barcelona da Vila', // 👑⚫ batismo do lucasnicodemosqq (19/11): assumiu o assento da Várzea que era do bot Barcelona da Vila — save antigo com Barcelona da Vila vira Ceará SP Club ao abrir.
   'Império FC': 'Juventude do Churrasco', // 👑🦡 batismo do leodicasttro (20/11): assumiu o assento da Várzea que era do bot Juventude do Churrasco — save antigo com Juventude do Churrasco vira Império FC ao abrir.
+  'Lavras FC': 'Canelada Real', // 🐆👑 26/11: batismo de lavrasfc.pro (exceção do Diego: mesma arte do Eight8 FC), no assento do bot Canelada Real
   'Eight8 FC': 'Galáticos do Bairro', // 🔁 25/11: era 'Lavras FC' (o dono renomeou; Lavras FC ficou livre e NÃO entra na corrente, senão quem criar um Lavras FC herdaria o escudo). 🐆👑 batismo do hugopereirabrito (16/11): assumiu o assento da Várzea que era do bot Galáticos do Bairro — save antigo com Galáticos do Bairro vira Lavras FC ao abrir.
   'Cabuloso JP': 'Descampado EC', // 🦊👑 batismo FUNDADOR do rafaelazevedo455 (21/11): assumiu o assento da Várzea que era do bot Descampado EC — save antigo com Descampado EC vira Cabuloso JP ao abrir.
   'Sport Clube Betasso': 'Falta Técnica FC', // 🎸👑 batismo FUNDADOR do caiomooca2013 (23/11): assumiu o assento da Várzea que era do bot Falta Técnica FC — save antigo com Falta Técnica FC vira Sport Clube Betasso ao abrir.
@@ -4361,7 +4362,7 @@ export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Mudinho', team: 'Society do Zé' },
   { name: 'Alemão', team: 'Campo de Terra SC' },
   { name: 'Peixe', team: 'Boleiros da Brisa' },
-  { name: 'Torto', team: 'Canelada Real' },
+  { name: 'Lavras', team: 'Lavras FC' }, // 🐆👑 clube BATIZADO por apoiador (lavrasfc.pro — Lavras FC, ex-Canelada Real, Várzea; batismo, 26/11). Exceção do Diego: mesma arte (escudo/Pantera/manto) do Eight8 FC.
   { name: 'Beto', team: 'Sport Clube Betasso' }, // 🎸👑 clube BATIZADO por apoiador (caiomooca2013 — Sport Clube Betasso, ex-Falta Técnica FC, Várzea; plano FUNDADOR nº106 + sócio nº101; coração CORINTHIANS / Juventus-SP; escudo grená com o Beto, a lata e o violão; mascote Apenas um Beto; grená #890329 + branco #F7F4F4)
   { name: 'Pedro', team: 'Pirituba SF' }, // 🐸👑 clube BATIZADO por apoiador (pedrosilveira0810 — Pirituba SF, ex-Doze Contra Onze, Várzea; plano FUNDADOR nº105 + sócio nº100; coração CORINTHIANS; escudo azul e rosa com coroa e o Pererecão de boné; mascote Pererecão; azul #0199F6 + rosa #FC22BC)
 ]

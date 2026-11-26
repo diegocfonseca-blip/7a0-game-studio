@@ -17,7 +17,7 @@ import { useFootballMatchPilot, useFootballMatchAdAccess, FootballMatchPilotView
 import {useFootballMatchNavigation,setFootballChatDock} from './football-match-navigation'
 import {FootballTacticsPanel} from './football-tactics-panel'
 import {useEscTalvez} from './store'
-import {footballPlanRoom} from './football-live-tactics'
+import {footballPlanRoom,footballPlanQuick} from './football-live-tactics'
 
 /** Local presentation only. Never serialized into EscState or a room payload. */
 export function ownerOnlineScope(state:{sport?:string;careerOnline?:boolean;careerIntent?:boolean;co2?:unknown;screen?:string}){
@@ -150,7 +150,7 @@ export function OwnerOnlineHeader({name,club,balance,onHome,onRooms=()=>{},onlin
 export function OwnerTactics({value,onChange,disabled=false,note,postureOnly=false}:{value:Tactic;onChange:(t:Tactic)=>void;disabled?:boolean;note?:string;postureOnly?:boolean}){
  const {pilot,pilotAvailable,state}=useContext(Context)
  const full=useEscTalvez()?.state
- const draftPlano=!!full?.minhaLigaDraft&&footballPlanRoom(full) // ⚔️ 24/11: a Liga Draft ganhou o plano novo (postura · ataque · pressão alta · ritmo) mesmo sem o visual novo das partidas
+ const draftPlano=!!full&&(!!full.minhaLigaDraft||footballPlanQuick(full))&&footballPlanRoom(full) // + 25/11: Partida Rápida offline // ⚔️ 24/11: a Liga Draft ganhou o plano novo (postura · ataque · pressão alta · ritmo) mesmo sem o visual novo das partidas
  if((pilotAvailable||draftPlano)&&!postureOnly&&!state?.managers.some(m=>m.formation==='kings'))return <OwnerSlot name="tactic"><FootballTacticsPanel minimal={!pilot} value={value} onChange={onChange} disabled={disabled} note={note}/></OwnerSlot>
  return <OwnerSlot name="tactic"><section className={`ov3-tactics ${pilot?'fp-match-tactics':''}`} aria-label={tr('Tática do seu time','Your team tactics')}><span>{tr('TÁTICA DO SEU TIME','YOUR TEAM TACTICS')}</span>{pilot&&<h3>{tr('MUDE O PLANO','CHANGE THE PLAN')}</h3>}<div role="group" aria-label={tr('Escolher tática','Choose tactics')}>{(['retranca','equilibrio','ataque'] as const).map(t=><button type="button" key={t} disabled={disabled} aria-pressed={value===t} onClick={()=>onChange(t)}>{t==='retranca'?tr('Retranca','Defensive'):t==='ataque'?tr('Ofensivo','Attacking'):(pilot?tr('Equilíbrio','Balanced'):tr('Equilibrado','Balanced'))}</button>)}</div>{note&&<small>{note}</small>}{pilot&&<p>{tr('Sua escolha vale para o próximo jogo.','Your choice applies to the next match.')}</p>}</section></OwnerSlot>
 }
