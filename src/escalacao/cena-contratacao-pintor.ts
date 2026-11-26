@@ -1,7 +1,7 @@
 import type {AtorCena} from './cenas-bairro-model'
 import {legendAvatarKey} from './legend-avatars'
 /** Illustrated presentation only. No career state, random draws, match clocks or map calls. */
-export function pintorChegada(canvas:HTMLCanvasElement,images:{background:HTMLImageElement;atlas:HTMLImageElement;staff:HTMLImageElement;portrait?:HTMLImageElement},ator:AtorCena){
+export function pintorChegada(canvas:HTMLCanvasElement,images:{background:HTMLImageElement;atlas:HTMLImageElement;staff:HTMLImageElement;portrait?:HTMLImageElement;presentation:{body:HTMLCanvasElement;garment:HTMLCanvasElement}},ator:AtorCena){
  const context=canvas.getContext('2d');if(!context)throw new Error('Canvas indisponível')
  const ctx:CanvasRenderingContext2D=context
  const {background:bg,atlas,staff:president,portrait}=images
@@ -57,12 +57,21 @@ export function pintorChegada(canvas:HTMLCanvasElement,images:{background:HTMLIm
       }
       const light=ctx.createLinearGradient(0,0,0,720);light.addColorStop(0,'#fff1bd22');light.addColorStop(.8,'#07160b00');light.addColorStop(1,'#07160b88');ctx.fillStyle=light;ctx.fillRect(0,0,1280,720);
       const breathing=Math.sin(t/560)*1.4;
-      if(romario)asset('shirt',520,866+breathing,710,1,Math.sin(t/1400)*.0025);
-      else if(portrait){const h=480,w=h*portrait.naturalWidth/portrait.naturalHeight;ctx.drawImage(portrait,520-w/2,650-h+breathing,w,h)}
-      else neutralShirt();
-      ctx.drawImage(president,0,0,president.naturalWidth,president.naturalHeight*.6,670,116+breathing*.45,600,600*president.naturalHeight*.6/president.naturalWidth);
+      ctx.save();ctx.translate(0,breathing)
+      if(portrait){
+        // Reuse only THIS card's native head and neck. The modular torso holds
+        // the BUYING club's shirt; no historic jersey is baked into the prop.
+        ctx.save();ctx.translate(400,34);ctx.scale(.8,.8)
+        ctx.beginPath();ctx.moveTo(150,0);ctx.lineTo(450,0);ctx.lineTo(450,175);ctx.lineTo(380,198);ctx.lineTo(340,254);ctx.lineTo(260,254);ctx.lineTo(220,198);ctx.lineTo(150,175);ctx.closePath();ctx.clip()
+        ctx.drawImage(portrait,0,0,600,400);ctx.restore()
+        ctx.drawImage(images.presentation.body,315,80,650,650)
+      }else{
+        // Missing avatar: show just the correct club garment, never another person.
+        ctx.drawImage(images.presentation.garment,315,20,650,650)
+      }
+      ctx.restore()
       ctx.fillStyle='#17211e';ctx.fillRect(0,648,1280,72);ctx.fillStyle='#d6ae46';ctx.fillRect(0,648,1280,4);
-      ([[279,'#ffc400'],[740,'#c2452f'],[1122,'#1b7a3d']] as const).forEach(([x,color])=>{ctx.strokeStyle='#242424';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,667);ctx.lineTo(x+12,591);ctx.stroke();ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x+13,582,19,13,-.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#0c0c0c';ctx.lineWidth=3;ctx.stroke()});
+      ([[425,'#ffc400'],[845,'#1b7a3d']] as const).forEach(([x,color])=>{ctx.strokeStyle='#242424';ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(x,667);ctx.lineTo(x+12,591);ctx.stroke();ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x+13,582,19,13,-.2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#0c0c0c';ctx.lineWidth=3;ctx.stroke()});
       flashes(t,[[75,510],[1205,480],[190,570]]);
     }
 
@@ -81,10 +90,6 @@ export function pintorChegada(canvas:HTMLCanvasElement,images:{background:HTMLIm
       ctx.drawImage(atlas,212*k,939*k,96*k,167*k,h*.23,-h*.33,h*.15,h*.26)
       const ph=h*.55,pw=ph*portrait.naturalWidth/portrait.naturalHeight
       ctx.drawImage(portrait,-pw/2,-h,pw,ph);ctx.restore()
-    }
-    function neutralShirt(){
-      ctx.save();ctx.translate(520,410);ctx.fillStyle='#f4ecd6';ctx.strokeStyle='#0c0c0c';ctx.lineWidth=6
-      ctx.beginPath();ctx.moveTo(-65,-130);ctx.lineTo(-120,-100);ctx.lineTo(-155,-30);ctx.lineTo(-100,0);ctx.lineTo(-85,-35);ctx.lineTo(-85,135);ctx.lineTo(85,135);ctx.lineTo(85,-35);ctx.lineTo(100,0);ctx.lineTo(155,-30);ctx.lineTo(120,-100);ctx.lineTo(65,-130);ctx.quadraticCurveTo(0,-80,-65,-130);ctx.fill();ctx.stroke();ctx.restore()
     }
     return (time:number)=>{
       ctx.setTransform(canvas.width/1280,0,0,canvas.height/720,0,0);ctx.clearRect(0,0,1280,720)
