@@ -14,7 +14,7 @@ let falhas = 0
 const ok = (c, m) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 
 const NOMES = ['Dono FC', 'Amigo Um', 'Amigo Dois']
-let host = reducer(structuredClone(INITIAL), { type: 'START_CAREER_SOLO', teamName: NOMES[0], formation: '4-3-3', rivals: 5, co2: { sala: 'sala-teste', nomes: NOMES, assento: 0 } })
+let host = reducer(structuredClone(INITIAL), { type: 'START_CAREER_SOLO', teamName: NOMES[0], formation: '4-3-3', rivals: Number(process.env.BOTS ?? 5), co2: { sala: 'sala-teste', nomes: NOMES, assento: 0 } })
 ok(host.co2?.comanda === true && host.managers.filter(m => m.isHuman).length === 3, 'o dono abre a carreira com 3 clubes de gente')
 ok(host.managers.slice(0, 3).every((m, i) => m.isHuman && m.id === i && m.teamName === NOMES[i]), 'os clubes de gente têm id = ordem dos assentos')
 function rodaLeilao(host, fora = [], tamanhos = []) {

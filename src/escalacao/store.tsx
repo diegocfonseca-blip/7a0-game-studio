@@ -12378,7 +12378,13 @@ function reducerBase(state: EscState, action: Action): EscState {
               // com o mundo inteiro varrido — só se ele não existir mesmo).
               const fraco = (arr: { lo: number; hi: number }[]) => [...arr].sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))[0]
               const livres = ACTIVE_CATALOG[pos].filter(c => !usados.has(idR(c)))
-              let pick = shuffle(livres.filter(c => !escDv || escadaAllows(escDv, c)), rngR)[0]
+              // 🌐🤖 26/11 carreira online (Diego: *"sempre C over parecido… N quero jogadores genéricos"*): o bot que perdeu
+              // jogador pra um clube de gente repõe com a carta REAL livre de over mais PERTO de quem saiu — e todo mundo fica sabendo.
+              const saiu = s.co2 ? s.managers.filter(h => h.isHuman).flatMap(h => h.squad as WonCard[]).find(c => c.seller === m.id && c.pos === pos && !usados.has(`repo-aviso|${c.id}`)) : undefined
+              const parecido = saiu ? [...livres].sort((a, b) => Math.abs((a.lo + a.hi) - (saiu.lo + saiu.hi)) - Math.abs((b.lo + b.hi) - (saiu.lo + saiu.hi)))[0] : undefined
+              if (saiu) usados.add(`repo-aviso|${saiu.id}`)
+              if (saiu && parecido) s.news = [`🤖 ${m.teamName} perdeu ${saiu.name} no leilão e repôs com ${parecido.name} (${parecido.club ?? ''}${parecido.year ? ' ' + parecido.year : ''}).`, ...(s.news ?? [])].slice(0, 20)
+              let pick = parecido ?? shuffle(livres.filter(c => !escDv || escadaAllows(escDv, c)), rngR)[0]
                 ?? shuffle(livres.filter(c => (c.fame ?? 1) <= 3 && !c.promessa), rngR)[0]
                 ?? (m.rival ? fraco(livres) : undefined)
               let doFundo: WonCard | null = null

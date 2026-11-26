@@ -85,6 +85,8 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
   const sn = useCo2()
   const [erro, setErro] = useState('')
   const [indo, setIndo] = useState(false)
+  // 🤖 26/11 (Diego: *"opção nas config do host p ele decidir se deixa nenhum bot ou deixa até 5 bots"*): quantos bots disputam o leilão
+  const [bots, setBots] = useState(3)
   useEffect(() => { void co2Abrir(salaId) }, [salaId])
   const sala = sn.sala
   const souDono = !!sala && sala.dono === sn.uid
@@ -119,8 +121,8 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
         const clubes = [...sn.clubes].sort((a, b) => a.assento - b.assento)
         const ordem = clubes.map(c => c.user_id)
         const eu = ordem.indexOf(sn.uid ?? '')
-        dispatch({ type: 'START_CAREER_SOLO', teamName: clubes[eu]?.nome ?? 'Meu Time', formation: '4-3-3', rivals: 5, co2: { sala: sala.id, nomes: clubes.map(c => c.nome), assento: eu } })
-        await co2Mundo('virada', 1, 0, { ordem, v: 1, modo })
+        dispatch({ type: 'START_CAREER_SOLO', teamName: clubes[eu]?.nome ?? 'Meu Time', formation: '4-3-3', rivals: bots, co2: { sala: sala.id, nomes: clubes.map(c => c.nome), assento: eu } })
+        await co2Mundo('virada', 1, 0, { ordem, v: 1, modo, bots })
         return
       }
       const sv = local ?? await lePrivado()
@@ -162,6 +164,15 @@ export function Co2Espera({ salaId, onSair }: { salaId: string; onSair: () => vo
           sala.temporada === 0 && clubes.length >= 2 ? (
             // 🔀 26/11 (Diego: "queria testar os dois"): o dono escolhe o jeito na largada; fica gravado no mundo da carreira
             <div style={{ display: 'grid', gap: 8 }}>
+              <div style={{ border: `3px solid ${INK}`, borderRadius: 14, padding: '8px 10px', background: '#fff' }}>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: '0 0 6px', textTransform: 'uppercase' }}>🤖 {tr('Bots no leilão', 'Bots in the auction')}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
+                  {[0, 1, 2, 3, 4, 5].map(n => (
+                    <button key={n} onClick={() => setBots(n)} style={{ border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 0', fontWeight: 900, fontSize: 15, background: bots === n ? GOLD : '#fff', color: INK, cursor: 'pointer', boxShadow: bots === n ? `2px 2px 0 ${INK}` : 'none', ...OSWALD }}>{n}</button>
+                  ))}
+                </div>
+                <p style={{ fontWeight: 700, fontSize: 11, margin: '6px 0 0', color: 'rgba(0,0,0,.6)' }}>{bots === 0 ? tr('Sem bots: o leilão é só entre vocês.', 'No bots: the auction is just between you.') : tr(`${bots} bot${bots > 1 ? 's' : ''} disputando as cartas com vocês. A liga tem os outros clubes de sempre.`, `${bots} bot${bots > 1 ? 's' : ''} bidding against you. The league has the usual other clubs.`)}{bots === 0 && clubes.length === 2 ? tr(' Com 2 técnicos, sobra muita carta pro Monte.', ' With 2 managers, lots of cards go to the pile.') : ''}</p>
+              </div>
               <button disabled={indo} onClick={() => void comecar('dinamica')} style={botao(GOLD)}>⚡ {tr('Começar · Dinâmica', 'Start · Dynamic')}</button>
               <p style={{ fontWeight: 800, fontSize: 11.5, margin: '-2px 0 2px', color: 'rgba(0,0,0,.6)' }}>{tr('As rodadas seguem direto. Só para quando começa uma competição nova (60 s pra mexer no time).', 'Rounds run back to back. Only pauses when a new competition starts (60 s to tweak the team).')}</p>
               <button disabled={indo} onClick={() => void comecar('livre')} style={botao('#fff')}>🧭 {tr('Começar · Livre', 'Start · Free')}</button>
