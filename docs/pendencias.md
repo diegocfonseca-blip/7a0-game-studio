@@ -15738,3 +15738,11 @@ sozinha. Faltava: (1) o removido ao tentar entrar vê "você foi removido" e pod
 com plano; (3) a vaga antiga fica anotada (`esc_liga_removidos.indice`) e o dono não consegue pôr ele de volta no time antigo (a lista
 esconde, o banco recusa com 'antigo', e a virada não usa esse time nem como reserva). SQL: `docs/sql/liga-removido-convite-20261126.sql`
 (APLICADO em 26/11; publicado no mesmo dia). Trava `npm run liga-volta` verde.
+
+## 🌐 26/11 — Carreira online: 1º pedaço da ⚡ Dinâmica (só na conta do Diego, no branch)
+- Feito: o dono escolhe **⚡ Dinâmica** ou **🧭 Livre** ao começar (grava em `mundo.modo`); **vice saiu da tela** (só o dono continua;
+  a função do banco `esc_carr_continuar` ainda aceita vice — tirar junto da próxima leva de SQL); na Dinâmica as rodadas seguem
+  direto (o dono começa a próxima 3 s depois do apito, sem PRONTO; Pausar segura pra todo mundo). Travas `carreira-online` e
+  `carreira-online-fluxo` verdes.
+- Falta: anúncio C (pausa de 60 s) quando começa competição nova + dia dos contratos — dependem das copas e da VIRADA, que ainda
+  travam na carreira online (próximo passo: a virada). Depois: alcance de quem faltou, entrada só com plano, crise de -500 no online.
