@@ -60,6 +60,9 @@ passa… até quantos times, 20 seria o ideal?"*
   ver os jogos de quem joga…).
 - O relógio é AVISO; quem manda seguir é o DONO (igual o draft): acabou o tempo, ele dá ok; antes do tempo, pede confirmação
   ("avançar mesmo sem o tempo acabar?"). Avançou = avança pra todo mundo.
+- 🎬 **Visual da pausa = OPÇÃO C, anúncio de cinema** (Diego, 26/11: *"C"*) — mockup `scripts/mockups/carreira-online-dinamica-opcoes-bc.png`:
+  troféu + nome da competição, escudos de TODOS os classificados (o seu em dourado), relógio grande, Escalação/Tática. Quem não está
+  nela vê o mesmo anúncio com "Assistir" e "Fechar". Dono: ▶️ Seguir (pergunta se for antes do tempo). Opções A e B ficaram de fora.
 **🧭 Livre** (a proposta anterior): o que é seu no seu tempo; jogo da rodada, leilão e virada juntos, com ✋ Pronto e o dono mandando seguir.
 Construir primeiro a ⚡ Dinâmica (mais perto do que já existe nas salas), depois a 🧭 Livre.
 
