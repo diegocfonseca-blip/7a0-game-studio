@@ -349,9 +349,11 @@ export function useCo2FimDaVirada() {
   // rodada 1 (antes de qualquer jogo da temporada). Carimbado uma vez, não muda mais.
   const m2Liberado = useMotor2Carreira() // ⚽🧠 motor novo em toda carreira (05/11)
   useEffect(() => {
-    if (!state.co2?.comanda || state.screen !== 'season' || sn.sala?.fase !== 'virada') return
+    // 🛡️ 26/11: só depois do leilão (temporada NOVA na rodada 0) — o apito da 38ª também põe a sala em 'virada', e sem esta trava
+    // o fim da temporada voltava pro preparo da rodada 0 da MESMA temporada
+    if (!state.co2?.comanda || state.screen !== 'season' || sn.sala?.fase !== 'virada' || (state.round ?? 0) !== 0) return
     const mm = co2Agora().mundo
     const carimbo = m2Liberado && mm && mm.m2 == null ? { ...mm, m2: state.seasonNo ?? 1 } : null
     void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, 90)
-  }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado])
+  }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado, state.round])
 }

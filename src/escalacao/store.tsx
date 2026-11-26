@@ -15542,7 +15542,8 @@ export function readCareerArchive(): CareerSlot[] { return careerSave.summaries(
 // 🌐 carreira online v2: UMA chave só (a sala aberta por último), sobrescrita — não acumula por sala no aparelho
 export const CO2_LOCAL_KEY = 'esc-co2-atual'
 // as ações que um convidado pode mandar pro leilão de quem comanda (o resto do jogo do dono ninguém de fora mexe)
-const CO2_ACOES_DE_FORA = new Set<string>(['SUBMIT_ENVELOPE', 'SUBMIT_TIEBREAK', 'MONTE_PICK', 'MONTE_PASS', 'HOLANDES_PEGAR', 'PREGAO_ABERTO_LANCE', 'CONFIRM_MESMO_TIME', 'CAST_SEASON_VOTE', 'TOGGLE_RESERVE_LIST', 'RENEW_CONTRACT', 'RELEASE_CONTRACT', 'FREEZE_COPA_XI'])
+// 👑 26/11: 'mesmo time'/voto da virada saíram — na carreira online só o DONO decide a virada (sem votação; leilão sempre)
+const CO2_ACOES_DE_FORA = new Set<string>(['SUBMIT_ENVELOPE', 'SUBMIT_TIEBREAK', 'MONTE_PICK', 'MONTE_PASS', 'HOLANDES_PEGAR', 'PREGAO_ABERTO_LANCE', 'TOGGLE_RESERVE_LIST', 'RENEW_CONTRACT', 'RELEASE_CONTRACT', 'FREEZE_COPA_XI'])
 // guarda com folga de 1,5s (o estado da carreira é grande: comprimir a cada toque travaria o celular)
 let co2GuardaTimer: ReturnType<typeof setTimeout> | null = null
 function co2GuardaLocal(st: EscState): void {
