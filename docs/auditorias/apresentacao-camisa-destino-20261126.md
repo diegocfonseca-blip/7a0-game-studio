@@ -8,6 +8,9 @@ Também rejeitou o enquadramento conjunto com o presidente.
 - A apresentação usa a cabeça do avatar da própria carta e um corpo modular
   neutro segurando a camisa. O presidente sai dessa tomada; o funcionário da
   chegada do ônibus permanece.
+- As mãos da pose neutra acompanham o tom do próprio avatar, por ajuste feito
+  apenas na montagem da cena. Conferido por pixels com Romário, Zico e Pelé em
+  `scripts/teste-cenas-carreira/camisa.cjs`; não processa a imagem a cada quadro.
 - Reutiliza a arte da camisa cadastrada na Loja quando disponível. Sem essa
   arte, usa as cores do clube, as receitas existentes de uniforme e o escudo
   que a carreira já exibe. Sem avatar, exibe apenas a camisa correta.

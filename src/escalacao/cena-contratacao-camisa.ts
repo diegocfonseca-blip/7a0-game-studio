@@ -26,10 +26,26 @@ function contorno(ctx:CanvasRenderingContext2D){
  ctx.quadraticCurveTo(620,1101,386,1087);ctx.lineTo(402,698);ctx.quadraticCurveTo(344,684,303,647)
  ctx.lineTo(350,536);ctx.lineTo(400,459);ctx.bezierCurveTo(432,466,451,438,458,417);ctx.quadraticCurveTo(485,404,490,365);ctx.closePath()
 }
-export function corpoApresentacao(body:HTMLImageElement,camisa:CamisaApresentada,art?:HTMLImageElement,crest?:HTMLImageElement){
+export function corpoApresentacao(body:HTMLImageElement,camisa:CamisaApresentada,art?:HTMLImageElement,crest?:HTMLImageElement,portrait?:HTMLImageElement){
  const canvas=document.createElement('canvas');canvas.width=canvas.height=768
  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas indisponível')
  ctx.scale(.6,.6);ctx.drawImage(body,0,0,1280,1280)
+ // Neutral puppet hands follow THIS avatar's complexion. Only warm skin pixels
+ // are tinted, before any club artwork is painted; hair/face/kit stay untouched.
+ if(portrait){
+  const sample=document.createElement('canvas');sample.width=sample.height=8
+  const sc=sample.getContext('2d');if(sc){
+   sc.drawImage(portrait,portrait.naturalWidth*.48,portrait.naturalHeight*.25,portrait.naturalWidth*.04,portrait.naturalHeight*.04,0,0,8,8)
+   const target=sc.getImageData(4,4,1,1).data,source=ctx.getImageData(264,234,1,1).data
+   if(target[3]>200&&target[0]>target[1]&&target[1]>target[2]&&source[3]>200){
+    const pixels=ctx.getImageData(0,0,768,768),p=pixels.data
+    for(let i=0;i<p.length;i+=4)if(p[i+3]>40&&p[i]>80&&p[i]>p[i+1]*1.15&&p[i+1]>p[i+2]*1.35){
+     for(let c=0;c<3;c++)p[i+c]=Math.min(255,p[i+c]*target[c]/Math.max(1,source[c]))
+    }
+    ctx.putImageData(pixels,0,0)
+   }
+  }
+ }
  ctx.save();contorno(ctx);ctx.clip()
  const k=camisa.uniforme
  ctx.globalCompositeOperation='multiply';ctx.fillStyle=k.corpo;ctx.fillRect(290,340,670,750)

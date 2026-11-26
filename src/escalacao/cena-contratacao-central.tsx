@@ -49,7 +49,7 @@ export default function CenaContratacaoCentral({chave,ator,destino}:{chave:strin
   Promise.all([imagem(cenario),imagem(sprites),imagem(diretoria),src?imagem(src).catch(()=>undefined):undefined,imagem(corpo),camisa.arte?imagem(camisa.arte).catch(()=>undefined):undefined,camisa.escudo?imagem(camisa.escudo).catch(()=>undefined):undefined]).then(([background,atlas,staff,portrait,body,shirt,crest])=>{
    if(closed)return
    clearTimeout(timeout)
-   draw=pintorChegada(el,{background,atlas,staff,portrait,presentation:corpoApresentacao(body,camisa,shirt,crest)},{nome,club,year})
+   draw=pintorChegada(el,{background,atlas,staff,portrait,presentation:corpoApresentacao(body,camisa,shirt,crest,portrait)},{nome,club,year})
    const size=()=>{const w=Math.max(320,Math.min(960,Math.round(el.getBoundingClientRect().width*Math.min(1.5,window.devicePixelRatio||1))))
     el.width=w;el.height=Math.round(w*9/16);render()}
    resize=new ResizeObserver(size);resize.observe(el);size();resume()
