@@ -7242,6 +7242,8 @@ export function MercadoAba({ mgr, ordem,dealFocus,onClearDeal }: { mgr: Manager;
       {painel==='sondar'&&<div className="ll-mk-panel" style={caixa}>
         {titulo(tr('🕵️ Sondar · 1 técnico + 1 jogador', '🕵️ Scout · 1 coach + 1 player'))}
         {sub(tr('Acompanhe 1 jogador e 1 técnico para a próxima janela. Você pode trocar os alvos até lá.','Follow 1 player and 1 coach for the next window. Targets can be changed until then.'))}
+        {/* 💡 26/11 (Diego: "deixe a msg… do reserva e jogador sem contrato juntos que podem ser sondados"): a regra inteira numa linha */}
+        {(state.oficial || gestaoAtiva(state)) && sub(tr('Pode ser sondado: 🆓 jogador sem contrato e 🪑 reserva de outro clube (esse ainda tem contrato: você paga a transferência). Titular nunca.', 'Can be scouted: 🆓 out-of-contract players and 🪑 another club\'s reserves (still under contract: you pay the transfer). Starters never.'))}
         <div className="ll-mk-targets" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           {vaga('🧢', tr('TÉCNICO', 'COACH'), deOlho.tec ?? null)}
           {vaga('⚽', tr('JOGADOR', 'PLAYER'), deOlho.jog ? deOlho.jog.nome : null)}

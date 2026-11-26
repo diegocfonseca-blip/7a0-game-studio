@@ -91,6 +91,16 @@ Nada de "o último que entrou manda / o outro só assiste".
 - ⚔️ Clássico da turma · 🏆 Galeria da turma (+ Sala de Troféus do clube) · 🥇 Prêmios da turma no fim (só zoeira, sem dinheiro).
 - 🤝 Troca/venda entre amigos: **DEPOIS** (*"deixa pra depois"*). Sem ranking global; vale a tabela da carreira.
 
+## 🕵️ Sondar e leilão na carreira online (Diego, 26/11: *"pode ser sim"*)
+- **Sondar de amigo** (regra aprovada): só RESERVA (titular protegido, igual bot) · gasta a sondagem de jogador daquele leilão · vai pro
+  leilão de todos com mínimo = valor dele · dinheiro vai pro DONO · ninguém deu lance = volta pro dono com o mesmo contrato · quem
+  sondou tem preferência de IGUALAR o maior lance no fim (igual à Liga Draft) · o dono não dá lance no próprio jogador.
+- **Bots no leilão = configuração do DONO** (*"ele escolhe o número… nenhum bot ou até 5"*): 0 a 5 bots dão lance; são rivais da(s)
+  divisão(ões) de quem está jogando e mudam quando a divisão muda. Motivo: com 2 amigos e 1 sem dar lance, o outro não leva tudo de
+  graça. Tela de CONFIGURAÇÕES do dono vai ganhar mais opções depois.
+- 💡 Feito no branch: linha no Sondar do Mercado (carreira normal e Oficial, com gestão nova) — "Pode ser sondado: 🆓 sem contrato e
+  🪑 reserva de outro clube (paga a transferência). Titular nunca."
+
 ## Ordem de trabalho
 1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
 2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
