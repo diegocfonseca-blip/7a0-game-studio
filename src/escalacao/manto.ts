@@ -191,6 +191,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐆👑 Lavras FC — PRETO e DOURADO, MEDIDOS na camisa que o dono mandou (16/11): preto do corpo (#0A0806) e o dourado das
   // faixas/gola (#F3AD03).
   'hugopereirabrito@gmail.com': ['#0A0806', '#F3AD03'],
+  'lavrasfc.pro@gmail.com': ['#0A0806', '#F3AD03'], // 🐆 Lavras FC (26/11) — mesmas cores do Eight8 FC
   // ⭐🦁 Vila Esporte Clube — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (27/10): preto das listras/mangas (58%, #0C0C0C)
   // e o branco das listras (32%, #DADADA).
   'oluisantonio.contato@gmail.com': ['#0C0C0C', '#DADADA'],

@@ -3,6 +3,13 @@
 Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
 
 
+
+## 26/11 — Batismo Lavras FC (lavrasfc.pro) — EXCEÇÃO do Diego: mesma arte do Eight8 FC (PUBLICADO)
+- Pedido: *"add esse time como batismo e deixe ele ter tb a msm arte q o time lavras fc tem… vai ser exceção"*. Escudo, Pantera, manto e camisa
+  são os MESMOS do Eight8 FC (hugopereirabrito). Várzea, no assento do bot Canelada Real (`OLD_NAME`). Batismo sem nº de fundador.
+- Banco: `esc_socios` nº 102 (escudo_time Lavras FC, mascote lavras_pantera), `esc_nomes_batismo` "Lavras" (+FC/EC pelo gatilho), `user_colors` ouro/manual.
+- Pendente: time do coração e nome do dono pro post (`scripts/mockups/batismo-lavras-fc-20261126.png` saiu com "—").
+
 ## 26/11 — Leilão de Conquistas: +6 temas pedidos pelo Diego (PUBLICADO com OK dele)
 - 🌵 Jogou no Nordeste (clube da carta) · ❄️ Jogou na Rússia ou Ucrânia (Rússia sozinha tem só 11 cartas, não fecha pacote) · 🔁 Jogou nos dois rivais
   (lista pública + quem o baralho mostra nos dois clubes de um clássico) · 🛂 Trocou de seleção (trocou ou nasceu num país e jogou por outro) ·

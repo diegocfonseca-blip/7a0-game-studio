@@ -513,7 +513,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 🐆👑 A PANTERA (mascote do Lavras FC — hugopereirabrito, 16/11): pantera negra de braços cruzados, uniforme preto e dourado
   // com coroa. Arte do próprio dono. 📏 219×440, 27 KB — altura 176 (sombra do chão tirada). mascote_key = "lavras_pantera".
   lavras_pantera: (
-    <img src={lavrasMascoteImg} height={176} width={Math.round(176 * 219 / 440)} alt="A Pantera — Eight8 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={lavrasMascoteImg} height={176} width={Math.round(176 * 219 / 440)} alt="A Pantera" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦁🇧🇷 O LEÃO DA TUF (mascote do Leões da Tuf EC — sergioricardocf16, 14/11): o leão de boné virado e moletom do clube, fazendo
   // o L, encostado no caixão. Arte do próprio dono. 📏 337×440, 43 KB — altura 176. mascote_key = "leoestuf_leao".
@@ -1502,6 +1502,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Eight8': 'lavras_pantera',
   'Eight8 EC': 'lavras_pantera',
   'Eight8 SC': 'lavras_pantera',
+  // 🐆 Lavras FC (lavrasfc.pro, 26/11) — exceção do Diego: a MESMA Pantera do Eight8 FC
+  'Lavras FC': 'lavras_pantera',
+  'Lavras': 'lavras_pantera',
+  'Lavras EC': 'lavras_pantera',
+  'Lavras SC': 'lavras_pantera',
   // 🦁 o Leão da Tuf carimba o gol do Leões da Tuf EC (sergioricardocf16, 14/11).
   'Leões da Tuf EC': 'leoestuf_leao',
   'Leões da Tuf': 'leoestuf_leao',

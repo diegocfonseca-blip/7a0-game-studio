@@ -93,6 +93,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Tunaldo FC": "tunaldo-camisa-v1.webp", // ⚫⚓ Tunaldo FC (faertes9, 22/11)
   "Sport Clube Betasso": "betasso-camisa-v1.webp", // 🎸👑 Sport Clube Betasso (caiomooca2013, 23/11)
   "Pirituba SF": "pirituba-camisa-v1.webp", // 🐸👑 Pirituba SF (pedrosilveira0810, 23/11)
+  "Lavras FC": "lavras-camisa-v1.webp", // 🐆 26/11: lavrasfc.pro (mesma camisa do Eight8 FC, exceção do Diego)
   "Eight8 FC": "lavras-camisa-v1.webp", // 🔁 25/11: ex-Lavras FC // 🐆👑 Lavras FC (hugopereirabrito, 16/11)
   "Cabuloso JP": "cabuloso-camisa-v1.webp", // 🦊👑 Cabuloso JP (rafaelazevedo455, 21/11)
   "Obelisko FC": "obelisko-camisa-v1.webp", // 👁️👑 Obelisko FC (felipefazzio, 18/11)
