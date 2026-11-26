@@ -2810,10 +2810,10 @@ export function EscLobby() {
   // 🙋 pedir vaga numa liga já começada (só quem tem plano; o banco confere de novo)
   async function pedirLiga(r: RoomInfo) {
     if (!user) return
-    if (direitosLiga != null && !canLiga) { setRoomError(tr('🔒 Pra entrar numa liga que já começou precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas ligas quiser.', '🔒 To join a league that already started you need a plan (from ⭐ Craque Salas up). With a plan you can join as many leagues as you want.')); return }
+    if (direitosLiga != null && !canLiga) { setRoomError(tr('🔒 Essa liga já começou: só quem tem plano pode pedir convite pra entrar (a partir do ⭐ Craque Salas). Antes de a liga começar, na sala de espera, entra todo mundo de graça.', '🔒 This league already started: only players with a plan can request an invite (from ⭐ Craque Salas up). Before a league starts, in the waiting room, anyone joins for free.')); return }
     const { data, error } = await supabase.rpc('esc_liga_pedir', { p_room: r.id, p_nome: nameOf() })
     const res = error ? 'erro' : String(data ?? 'erro')
-    if (res === 'plano') { setRoomError(tr('🔒 Pra entrar numa liga que já começou precisa de um plano (a partir do ⭐ Craque Salas).', '🔒 To join a league that already started you need a plan (from ⭐ Craque Salas up).')); return }
+    if (res === 'plano') { setRoomError(tr('🔒 Essa liga já começou: só quem tem plano pode pedir convite pra entrar (a partir do ⭐ Craque Salas).', '🔒 This league already started: only players with a plan can request an invite (from ⭐ Craque Salas up).')); return }
     if (res === 'ja') { setRoomError(tr('Você já é dessa liga — ela está em "🏆 Suas ligas".', 'You are already in that league — it is in "🏆 Your leagues".')); return }
     if (res === 'aceito') {
       // ✅ 06/11: o dono já aceitou — entra na FILA da sala (o banco deixa: pedido aceito) e o dono te põe no time escolhido na
@@ -2833,13 +2833,18 @@ export function EscLobby() {
     setAceitando({ room, ped, times: null, alvo: null })
     try {
       const { data } = await supabase.rpc('esc_liga_times', { p_room: room })
-      setAceitando(a => (a && a.ped.id === ped.id ? { ...a, times: (data ?? []) as TimeLiga[] } : a))
+      // 🚫 26/11 (Diego): removido que volta por convite entra num time NOVO — o que era dele some da lista (o banco também barra)
+      const rem = (await supabase.rpc('esc_liga_removidos_dono', { p_room: room }).then(r => r.data, () => null)) as Record<string, number> | null
+      const ant = rem?.[ped.user_id]
+      const times = ((data ?? []) as TimeLiga[]).filter(x => typeof ant !== 'number' || x.id !== ant)
+      setAceitando(a => (a && a.ped.id === ped.id ? { ...a, times } : a))
     } catch { setAceitando(a => (a ? { ...a, times: [] } : a)) }
   }
   async function respondePedido(ped: PedLiga, aceitar: boolean, alvo?: { bot?: number; uid?: string }) {
     const { data, error } = await supabase.rpc('esc_liga_responder', { p_id: ped.id, p_aceitar: aceitar, p_bot: alvo?.bot ?? null, p_uid: alvo?.uid ?? null })
     const res = error ? 'erro' : String(data ?? 'erro')
     if (res === 'plano') { setRoomError(tr('Essa pessoa não tem plano: ela não pode entrar numa liga que já começou.', 'This person has no plan: they cannot join a league that already started.')); return }
+    if (res === 'antigo') { setRoomError(tr('🚫 Esse era o time dele antes de ser removido — quem volta entra num time NOVO. Escolha outro.', '🚫 That was their team before being removed — whoever comes back joins a NEW team. Pick another.')); return }
     if (res !== 'ok') { setRoomError(tr('Não consegui salvar agora. Tenta de novo.', 'Couldn\'t save right now. Try again.')); return }
     setAceitando(null); setRoomError('')
     void fetchMyLigas()
@@ -3125,8 +3130,13 @@ export function EscLobby() {
       setLoading(false); return
     }
     if (!insOk && /LIGA_REMOVIDO/.test(lastErr)) { // 🚫 24/11: o dono removeu esta pessoa da liga — só volta com pedido novo aceito por ele
-      setRoomError(tr('🚫 Você foi removido desta liga pelo dono. Pra voltar, só se ele aceitar um pedido novo seu.', '🚫 You were removed from this league by the owner. You can only return if they accept a new request from you.'))
-      setLoading(false); return
+      // 🙋 26/11 (Diego): pode pedir convite "como qualquer outra pessoa" — liga começada = só com plano — e volta num time NOVO
+      setLoading(false)
+      if (direitosLiga != null && !canLiga) { setRoomError(tr('🚫 Você foi removido desta liga pelo dono. Pra voltar, só pedindo convite — e como a liga já começou, só quem tem plano pode pedir (a partir do ⭐ Craque Salas). Se o dono aceitar, você entra num time novo.', '🚫 You were removed from this league by the owner. To come back you must request an invite — and since the league already started, only players with a plan can ask (from ⭐ Craque Salas up). If the owner accepts, you join a new team.')); return }
+      if (!window.confirm(tr('🚫 Você foi removido desta liga pelo dono.\n\nQuer pedir um convite pra voltar? Se ele aceitar, você entra num time NOVO na próxima temporada (não volta pro seu time antigo).', '🚫 You were removed from this league by the owner.\n\nRequest an invite to come back? If they accept, you join a NEW team next season (not your old team).'))) {
+        setRoomError(tr('🚫 Você foi removido desta liga pelo dono.', '🚫 You were removed from this league by the owner.')); return
+      }
+      await pedirLiga(rd); return
     }
     if (!insOk && /LIGA_SO_PLANO/.test(lastErr)) { // 🔒 06/11: o banco barrou — liga que já jogou só recebe gente nova com plano
       setRoomError(tr('🔒 Essa liga já começou: pra entrar numa liga em andamento precisa de um plano (a partir do ⭐ Craque Salas). Com plano você entra em quantas quiser.', '🔒 This league already started: joining a league in progress needs a plan (from ⭐ Craque Salas up). With a plan you can join as many as you want.'))

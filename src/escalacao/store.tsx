@@ -6388,7 +6388,7 @@ type Action =
   | { type: 'RESUME_DINASTIA' }
   | { type: 'DRAFT_ABRIR' } // 📋 Liga Draft: o dono abre a noite do draft no fim da temporada
   | { type: 'LIGA_FORMATO'; tamanho: 10 | 20; turnoUnico: boolean } // 📏📅 06/11: o formato que o dono marcou pra PRÓXIMA temporada (vale na virada)
-  | { type: 'LIGA_ENTRADAS'; entradas: { uid: string; nome: string; bot?: number | null; alvoUid?: string | null }[] } // 🙋 06/11: na virada, quem o dono aceitou assume o time escolhido (com o nome dele)
+  | { type: 'LIGA_ENTRADAS'; entradas: { uid: string; nome: string; bot?: number | null; alvoUid?: string | null; evita?: number | null }[] } // 🙋 06/11: na virada, quem o dono aceitou assume o time escolhido (com o nome dele)
   | { type: 'DRAFT_ESCOLHER'; mgrId: number; carta: string; sai: string; by?: string } // 📋 a escolha da vez (chave nome|clube|ano + o id de quem sai)
   | { type: 'DRAFT_PASSAR'; mgrId: number; by?: string } // ⏭ 05/11: elenco cheio (22) = pode passar a vez sem pegar ninguém
   | { type: 'DRAFT_PRONTO'; mgrId: number; by?: string } // 📋🏆 Minha Liga Draft: quem está na vez aperta ✋ pronto e o relógio de 45 s começa
@@ -14873,11 +14873,12 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (!e.uid || s.seatUids.includes(e.uid)) continue
         let alvo: Manager | undefined
         if (e.alvoUid) { const seat = s.seatUids.indexOf(e.alvoUid); alvo = seat >= 0 ? s.managers.find(m => m.id === seat && m.isHuman) : undefined }
-        if (!alvo && e.bot != null) alvo = s.managers.find(m => m.id === e.bot && !m.isHuman)
+        const livre = (m: Manager) => !m.isHuman && m.id !== e.evita // 🚫 26/11: removido que volta nunca pega o time antigo
+        if (!alvo && e.bot != null) alvo = s.managers.find(m => m.id === e.bot && livre(m))
         if (!alvo) { // (o bot escolhido já virou gente: pega o pior bot da tabela)
           const ordem = sortedTable(s.league).map(x => x.id).reverse()
-          alvo = ordem.map(id => s.managers.find(m => m.id === id && !m.isHuman)).find(Boolean)
-            ?? [...s.managers].reverse().find(m => !m.isHuman) // (bot novo, que ainda não tem linha na tabela)
+          alvo = ordem.map(id => s.managers.find(m => m.id === id && livre(m))).find(Boolean)
+            ?? [...s.managers].reverse().find(m => livre(m)) // (bot novo, que ainda não tem linha na tabela)
         }
         if (!alvo) continue
         const nomeAntes = alvo.teamName
@@ -16652,7 +16653,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const { data } = await supabase.rpc('esc_liga_pedidos_dono2', { p_room: rid })
           const ac = ((data ?? []) as { user_id: string; nome: string; status: string; alvo_bot: number | null; alvo_uid: string | null }[]).filter(p => p.status === 'aceito')
           if (ac.length) {
-            rawDispatch({ type: 'LIGA_ENTRADAS', entradas: ac.map(p => ({ uid: p.user_id, nome: p.nome, bot: p.alvo_bot, alvoUid: p.alvo_uid })) })
+            // 🚫 26/11: quem o dono removeu e voltou por convite nunca cai no time que era dele (nem pelo "pior bot" de reserva)
+            const rem = (await supabase.rpc('esc_liga_removidos_dono', { p_room: rid }).then(r => r.data, () => null)) as Record<string, number> | null
+            rawDispatch({ type: 'LIGA_ENTRADAS', entradas: ac.map(p => ({ uid: p.user_id, nome: p.nome, bot: p.alvo_bot, alvoUid: p.alvo_uid, evita: typeof rem?.[p.user_id] === 'number' ? rem[p.user_id] : null })) })
             for (const p of ac) if (p.alvo_uid) void supabase.from('room_players').delete().eq('room_id', rid).eq('user_id', p.alvo_uid).then(() => {}, () => {})
           }
         } catch { /* sem pedidos: a virada segue normal */ }

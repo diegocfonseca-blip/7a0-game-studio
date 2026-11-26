@@ -15681,3 +15681,12 @@ Medido com `scripts/mapa3d/perfil-jogo.mjs` (bancada), `perfil-carreira.mjs` (ca
   Pirâmide: assento da Várzea vira Eight8 FC; `OLD_NAME` 'Eight8 FC' ← 'Galáticos do Bairro' (Lavras FC NÃO entra na corrente de propósito).
   Saves que já tinham o bot "Lavras FC" seguem com esse nome velho na tabela (só cosmético).
 - ⏳ PENDENTE: a arte do escudo ainda tem escrito "LAVRAS FC E-SPORTS" — pedir arte nova ao dono se ele quiser.
+
+## 🚫🙋 26/11 — Liga: removido volta só por convite, com plano, num time NOVO (pronto no branch, aguardando "pode")
+Diego: *"quem foi removido não pode estar dentro da liga… se quiser pedir convite, pode, como qualquer outra pessoa… só com plano…
+e entra como algo novo, nada de voltar pro time que era o dele"*. O que já existia (24/11): a remoção fica anotada e a pessoa não entra
+sozinha. Faltava: (1) o removido ao tentar entrar vê "você foi removido" e pode PEDIR CONVITE (sem plano: aviso + Ver os planos);
+(2) o banco não deixava mais pedir (ficava preso num "aceito" antigo) e liberava sem plano por "já foi membro" — agora removido só pede
+com plano; (3) a vaga antiga fica anotada (`esc_liga_removidos.indice`) e o dono não consegue pôr ele de volta no time antigo (a lista
+esconde, o banco recusa com 'antigo', e a virada não usa esse time nem como reserva). SQL: `docs/sql/liga-removido-convite-20261126.sql`
+(ainda NÃO aplicado). Trava `npm run liga-volta` verde.

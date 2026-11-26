@@ -18,6 +18,11 @@ const LEITURA_MS = 60_000
 
 type Ped = { id: string; user_id: string; nome: string | null; status: string; alvo_bot: number | null; alvo_uid: string | null; pago: boolean }
 type TimeLiga = { id: number; nome: string; humano: boolean; uid: string | null; pts: number }
+// 🚫 26/11 (Diego): quem o dono removeu e volta por convite entra num time NOVO — nunca no que era dele (o banco também barra)
+function semTimeAntigo(ts: TimeLiga[], removidos: Record<string, number> | null, uid: string): TimeLiga[] {
+  const ant = removidos?.[uid]
+  return typeof ant === 'number' ? ts.filter(x => x.id !== ant) : ts
+}
 type Alvo = { bot?: number; uid?: string }
 
 // o que já apareceu no aviso do topo (só nesta aba): recarregar mostra de novo UMA vez o que ainda está pendente — é lembrete, não aviso fechável
@@ -84,13 +89,15 @@ export function PainelDonoLiga({ roomId, roomCode, roomName, managers, presence,
     setAceitando({ ped, times: null, alvo: null })
     try {
       const { data } = await supabase.rpc('esc_liga_times', { p_room: roomId })
-      setAceitando(a => (a && a.ped.id === ped.id ? { ...a, times: (data ?? []) as TimeLiga[] } : a))
+      const times = semTimeAntigo((data ?? []) as TimeLiga[], (await supabase.rpc('esc_liga_removidos_dono', { p_room: roomId }).then(r => r.data, () => null)) as Record<string, number> | null, ped.user_id)
+      setAceitando(a => (a && a.ped.id === ped.id ? { ...a, times } : a))
     } catch { setAceitando(a => (a ? { ...a, times: [] } : a)) }
   }
   async function responde(ped: Ped, aceitar: boolean, alvo?: Alvo) {
     const { data, error } = await supabase.rpc('esc_liga_responder', { p_id: ped.id, p_aceitar: aceitar, p_bot: alvo?.bot ?? null, p_uid: alvo?.uid ?? null })
     const res = error ? 'erro' : String(data ?? 'erro')
     if (res === 'plano') { setMsg(t('Essa pessoa não tem plano: ela não pode entrar numa liga que já começou.', 'This person has no plan: they cannot join a league that already started.')); return }
+    if (res === 'antigo') { setMsg(t('🚫 Esse era o time dele antes de ser removido — quem volta entra num time NOVO. Escolha outro.', '🚫 That was their team before being removed — whoever comes back joins a NEW team. Pick another.')); return }
     if (res !== 'ok') { setMsg(t('Não consegui salvar agora. Tenta de novo.', 'Couldn\'t save right now. Try again.')); return }
     setAceitando(null)
     setMsg(aceitar ? t(`✅ ${ped.nome || 'Ele'} entra na virada da temporada, com o nome e a cor dele.`, `✅ ${ped.nome || 'They'} join at the turn of the season, with their own name and color.`) : '')
