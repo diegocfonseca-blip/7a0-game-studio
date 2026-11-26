@@ -2514,6 +2514,15 @@ ganha 2… Relâmpago também vale 1 ponto"* e *"com 10, se tiver 2 usuários en
   a 1ª sala com o Prime no registro). Ficam fora só os 39 de 09/11 em diante. Total dele: 45. A marca `solo_nao_vale` vale SÓ pro grupo oliveira30.
 - ⚠️ O furo segue aberto pra QUALQUER outra pessoa (sala que termina com 1 só conta título). Diego recusou a regra geral por enquanto.
 
+## 📨 PROPOSTA DE CLUBE NO BRASIL OFICIAL — IDEIA (25/11, Diego ainda em dúvida; NÃO fazer sem ele mandar)
+- Ideia dele: ao SUBIR de divisão, chega convite pra ASSUMIR outro clube (largando o seu pra sempre) ou seguir com o seu.
+  D→C: piores da B ou melhores da C · C→B: piores da A ou melhores da B · aleatório pelo momento.
+- Proposta minha: passo no roteiro do fim de temporada só quando houver convite; assume o clube COMO ESTÁ (elenco, caixa, divisão,
+  mapa); o antigo vira bot; vão junto presidente, cartinhas, Agência e currículo. Elenco incompleto não é problema: o Oficial já
+  completa todo clube com jogador real (`reparaMinimoOficial`).
+- 🤔 Dúvida aberta: o ESTÁDIO (só o clube do usuário tem estádio construído; `stadiums` por mgrId). Opções: clube novo chega com
+  estádio pronto no tamanho da série dele, ou começa do zero. Mockup só depois que ele decidir.
+
 ## 🕵️ VIGIA DE CONTA DUPLA — 25/11 (nada novo; não avisado)
 - Só as 4 já conhecidas, sem piorar: Duarte FC × Lenda Fc07 (6 temp., 4×0) · Fuxfux22 × Muralha FC (5×0) · Éden FC × Fluminense (5×0) ·
   bernardomatana × mixoliveira (5×0, perdedor 2 salas cheias). As fortes seguem esperando o OK do Diego pra ligar.
