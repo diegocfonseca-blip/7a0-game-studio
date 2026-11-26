@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ouro:#FFC400;--verde:#1B7A3D;--verm:#E8503A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1280px;height:800px;overflow:hidden;background:#0d1411;font-family:system-ui,Arial,sans-serif;color:#0C0C0C;position:relative}
+.top{height:50px;display:flex;align-items:center;padding:0 28px;border-bottom:1px solid #223;color:#F4ECD6;font-family:Oswald;font-weight:800;font-size:21px;gap:10px}
+.top i{display:inline-grid;place-items:center;width:28px;height:28px;background:#F4ECD6;color:#000;border-radius:7px;font-style:normal;font-size:13px}
+.strip{display:flex;align-items:center;gap:12px;margin:10px 28px 0;background:#151d19;border:2px solid #2a332e;border-radius:14px;padding:8px 14px}
+.strip h2{font-family:Oswald;color:#F4ECD6;font-size:21px;font-weight:900}
+.chip{font-family:Oswald;font-weight:800;font-size:12px;border:2px solid #000;border-radius:8px;padding:3px 8px;background:#fff}
+.chip.on{background:var(--ouro)}
+.meta{color:#b8c2bb;font-size:12px;font-weight:700}
+.cx{margin-left:auto;background:var(--ouro);border:3px solid #000;border-radius:10px;padding:3px 12px;box-shadow:3px 3px 0 #000;text-align:center}
+.cx b{font-family:Oswald;font-size:21px;display:block;line-height:1}.cx small{font-size:9px;font-weight:900}
+.grid{display:grid;grid-template-columns:1fr 310px;gap:16px;margin:12px 28px 0}
+.panel{background:#FBF6E9;border:3px solid #000;border-radius:16px;box-shadow:4px 4px 0 #000;overflow:hidden}
+.ph{font-family:Oswald;font-weight:800;font-size:16px;padding:8px 14px;border-bottom:3px solid #000;display:flex;justify-content:space-between;align-items:center}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.col{padding:12px 14px;position:relative}
+.col+.col{border-left:3px dashed #c9bd9c}
+.slot{width:180px;height:248px;margin:0 auto;position:relative;perspective:1200px}
+.in{position:absolute;inset:0;transform-style:preserve-3d}
+.f,.b{position:absolute;inset:0;backface-visibility:hidden}
+.b{transform:rotateY(180deg)}
+.b img{width:100%;height:100%;object-fit:contain}
+.carta{border:4px solid #000;border-radius:12px;box-shadow:4px 4px 0 #000;background:repeating-linear-gradient(135deg,#e9dfc4 0 12px,#e2d6b8 12px 24px);padding:10px;display:flex;flex-direction:column}
+.carta .pos{position:absolute;top:8px;left:8px;background:#000;color:#fff;font-family:Oswald;font-weight:800;padding:1px 7px;border-radius:5px;font-size:12px}
+.carta .cat{position:absolute;top:8px;right:8px;background:#fff;border:2px solid #000;border-radius:7px;font-size:10px;font-weight:800;padding:1px 6px}
+.carta .q{margin:36px auto 0;width:90px;height:90px;border-radius:50%;border:3px dashed #9a8f73;display:grid;place-items:center;font-family:Oswald;font-size:44px;color:#9a8f73;font-weight:900}
+.carta .nm{margin-top:auto;font-family:Oswald;font-weight:800;font-size:21px;line-height:1.05}.carta .cl{color:#6b6250;font-weight:800;font-size:12px}
+.stamp{position:absolute;left:50%;top:150px;transform:translateX(-50%) rotate(-6deg);background:#fff;border:4px solid #000;border-radius:12px;box-shadow:4px 4px 0 #000;padding:6px 12px;text-align:center;white-space:nowrap;opacity:0;z-index:5}
+.stamp .v{font-family:Oswald;font-weight:900;font-size:22px;color:var(--verm);display:block;line-height:1}
+.stamp b{font-family:Oswald;font-size:17px}.stamp .pr{background:var(--ouro);border:2px solid #000;border-radius:7px;font-family:Oswald;font-weight:900;padding:0 7px;margin-left:6px}
+.lance{margin-top:12px;border:3px solid #000;border-radius:12px;background:linear-gradient(90deg,#FFC400,#FFD84D);box-shadow:3px 3px 0 #000;padding:7px 10px;display:flex;align-items:center;gap:10px}
+.lance.red{background:linear-gradient(90deg,#E8503A,#f07a63);color:#fff}
+.lance.done{background:#e9e2cf;color:#777}
+.lance .v{font-family:Oswald;font-weight:900;font-size:34px;line-height:1}
+.lance .who small{font-size:9px;font-weight:900;letter-spacing:.5px;opacity:.75;display:block}
+.lance .who b{font-family:Oswald;font-size:16px}
+.rel{margin-left:auto;background:#fff;color:#000;border:2px solid #000;border-radius:9px;padding:3px 9px;text-align:center;min-width:62px}
+.rel b{font-family:Oswald;font-size:20px;display:block;line-height:1}.rel small{font-size:9px;font-weight:900}
+.lista{margin-top:8px;border:3px solid #000;border-radius:10px;background:#fff;overflow:hidden;height:62px}
+.lista div{display:flex;justify-content:space-between;align-items:center;padding:3px 10px;border-bottom:1px solid #ddd;font-weight:800;height:28px;font-size:13px}
+.lista div:first-child{background:#e6f3ea}
+.tag{font-family:Oswald;font-weight:700;font-size:11.5px;border:2px solid #000;border-radius:6px;padding:0 6px;background:#F4ECD6}
+.tag.eu{background:var(--ouro)}
+.bts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.bt{position:relative;border:3px solid #000;border-radius:10px;background:var(--ouro);box-shadow:3px 3px 0 #000;font-family:Oswald;font-weight:900;font-size:20px;text-align:center;padding:6px 0}
+.bt.press{transform:translate(3px,3px);box-shadow:0 0 0 #000;background:#ffdb4d}
+.bt.off{background:#e9e2cf;color:#999}
+.key{position:absolute;top:3px;right:5px;font-family:system-ui;font-size:9.5px;font-weight:900;background:#000;color:#fff;border-radius:4px;padding:0 4px}
+.dica{text-align:center;font-size:11.5px;font-weight:800;color:#555;padding:6px 0 10px;border-top:2px solid #e3dac4}
+.mart .r{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center;padding:6px 10px;border-bottom:1px solid #e3dac4;height:62px}
+.mini{width:40px;height:52px;border:3px solid #000;border-radius:6px;display:grid;place-items:center;font-family:Oswald;font-weight:900;font-size:9.5px;overflow:hidden}
+.mini img{width:100%;height:100%;object-fit:cover}
+.craque{background:linear-gradient(140deg,#7C3AED,#c4a6ff)}.bom{background:linear-gradient(140deg,#2b6cb0,#9cc6ef)}.pro{background:linear-gradient(140deg,#9a8f73,#e2d6b8)}
+.r b{font-family:Oswald;font-size:15px;display:block;line-height:1.1}.r small{font-size:10.5px;font-weight:800;color:#6b6250}
+.r .p{font-family:Oswald;font-weight:900;font-size:17px;text-align:right}.r .p small{display:block;font-family:system-ui;font-size:10px}
+.martbox{height:248px;overflow:hidden;position:relative}
+.prec{font-size:12.5px}
+.prec .pg{display:grid;grid-template-columns:1fr 54px 54px;padding:5px 12px;font-weight:800;border-bottom:1px solid #e3dac4;align-items:center}
+.prec .pg.h{font-family:Oswald;font-size:12px;background:#f1e9d4}
+.prec .pg span:not(:first-child){text-align:center}
+.prec .x{color:var(--verm)}
+.fly{position:absolute;width:180px;height:248px;z-index:7;opacity:0;pointer-events:none}
+.fly img{width:100%;height:100%;object-fit:contain}
+.leg{position:absolute;left:28px;bottom:12px;z-index:9;background:var(--ouro);border:3px solid #000;border-radius:10px;box-shadow:3px 3px 0 #000;font-family:Oswald;font-weight:800;font-size:17px;padding:5px 14px;opacity:0}
+.kbd{position:absolute;z-index:8;background:#000;color:#fff;font-family:Oswald;font-weight:900;font-size:22px;border:3px solid #fff;border-radius:10px;padding:4px 14px;opacity:0}
+.som{position:absolute;right:28px;bottom:12px;z-index:9;background:#151d19;color:#F4ECD6;border:2px solid #3b4a42;border-radius:10px;font-family:Oswald;font-weight:700;font-size:15px;padding:5px 12px;opacity:0}
+</style></head><body>
+<div class="top"><i>LL</i>LEILÃO LEGENDS</div>
+<div class="strip">
+  <span style="font-size:22px">🔨</span><h2>PREGÃO ABERTO</h2>
+  <span class="chip" id="cGOL">GOL</span><span class="chip">LAT</span><span class="chip" id="cZAG">ZAG</span><span class="chip" id="cMEI">MEI</span><span class="chip" id="cATA">ATA</span>
+  <span class="meta" id="nCarta">cartas 17 e 18 de 71 · DUAS na mesa, posições diferentes · 20 clubes</span>
+  <div class="cx"><b>100 🪙</b><small>SEU CAIXA</small></div>
+</div>
+<div class="grid">
+  <div class="panel">
+    <div class="ph">DUAS CARTAS NA MESA <span class="meta" style="color:#555">cada uma tem o seu relógio</span></div>
+    <div class="duo">
+      <div class="col" id="colL">
+        <div class="slot"><div class="in" id="inL"><div class="f carta"><span class="pos" id="pL">ATA</span><span class="cat">❓ categoria</span><div class="q">?</div><div class="nm" id="nL">Romário</div><div class="cl" id="clL">Vasco · 2000</div></div><div class="b"><img src="carta.png"></div></div>
+          <div class="stamp" id="stL"><span class="v">🔨 VENDIDO!</span><b>NEYMARZETTI</b><span class="pr">22 🪙</span></div></div>
+        <div class="lance" id="laL"><div class="v" id="vL">1 🪙</div><div class="who"><small>LANCE ATUAL</small><b id="wL">ABRE EM 1</b></div><div class="rel"><b id="rL">⏱ 5s</b><small id="sL">&nbsp;</small></div></div>
+        <div class="lista" id="liL"></div>
+        <div class="bts"><div class="bt" id="L1">+1<span class="key">1</span></div><div class="bt" id="L5">+5<span class="key">2</span></div><div class="bt" id="L10">+10<span class="key">3</span></div></div>
+      </div>
+      <div class="col" id="colR">
+        <div class="slot"><div class="in" id="inR"><div class="f carta"><span class="pos" id="pR">ZAG</span><span class="cat">❓ categoria</span><div class="q">?</div><div class="nm" id="nR">Thiago Silva</div><div class="cl" id="clR">Fluminense · 2008</div></div><div class="b"><img src="thiago.png"></div></div>
+          <div class="stamp" id="stR"><span class="v">🔨 VENDIDO!</span><b>LEITE DE VERDADE</b><span class="pr">9 🪙</span></div></div>
+        <div class="lance" id="laR"><div class="v" id="vR">1 🪙</div><div class="who"><small>LANCE ATUAL</small><b id="wR">ABRE EM 1</b></div><div class="rel"><b id="rR">⏱ 5s</b><small id="sR">&nbsp;</small></div></div>
+        <div class="lista" id="liR"></div>
+        <div class="bts"><div class="bt" id="R1">+1<span class="key">8</span></div><div class="bt" id="R5">+5<span class="key">9</span></div><div class="bt" id="R10">+10<span class="key">0</span></div></div>
+      </div>
+    </div>
+    <p class="dica">⌨️ Teclado: <b>1 · 2 · 3</b> dá lance na carta da esquerda · <b>8 · 9 · 0</b> na da direita</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="panel mart"><div class="ph">🔨 ÚLTIMAS MARTELADAS</div>
+      <div class="martbox"><div id="martIn" style="position:absolute;left:0;right:0;top:-124px">
+        <div class="r" id="rowL2"><div class="mini"><img src="carta.png"></div><div><b>Romário</b><small>ATA · Vasco 2000</small></div><div class="p">22 🪙<small>Neymarzetti</small></div></div>
+        <div class="r" id="rowR2"><div class="mini"><img src="thiago.png"></div><div><b>Thiago Silva</b><small>ZAG · Fluminense 2008</small></div><div class="p">9 🪙<small>Leite de Verdade</small></div></div>
+        <div class="r"><div class="mini craque">CRAQUE</div><div><b>Cafu</b><small>LAT · São Paulo 1993</small></div><div class="p">17 🪙<small>Meu Time</small></div></div>
+        <div class="r"><div class="mini pro">PROF.</div><div><b>Neto</b><small>MEI · Corinthians 1990</small></div><div class="p">20 🪙<small>Neymarzetti</small></div></div>
+        <div class="r"><div class="mini bom">BOM</div><div><b>Gamarra</b><small>ZAG · Corinthians 1998</small></div><div class="p">9 🪙<small>Labubu FC</small></div></div>
+      </div></div>
+    </div>
+    <div class="panel prec"><div class="ph" id="precT">⚽ QUEM AINDA PRECISA</div>
+      <div class="pg h"><span>CLUBE</span><span id="hA">ATA</span><span id="hB">ZAG</span></div>
+      <div class="pg"><span>Meu Time</span><span id="a1">3</span><span id="b1">2</span></div>
+      <div class="pg"><span>Neymarzetti</span><span id="a2">2</span><span id="b2">1</span></div>
+      <div class="pg"><span>Leite de Verdade</span><span id="a3">1</span><span id="b3">1</span></div>
+      <div class="pg"><span>Labubu FC</span><span id="a4">1</span><span id="b4" class="x">fechou</span></div>
+      <div class="pg" style="border:0;color:#777"><span>+ 16 clubes</span><span>…</span><span>…</span></div>
+    </div>
+  </div>
+</div>
+<div class="kbd" id="kbd">tecla 2</div>
+<div class="leg" id="leg"></div>
+<div class="som" id="som">🔊</div>
+<script>
+const $=id=>document.getElementById(id)
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)), lerp=(a,b,k)=>a+(b-a)*k
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2
+const back=k=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(k-1,3)+c1*Math.pow(k-1,2)}
+const seg=(t,a,b)=>cl((t-a)/(b-a),0,1)
+// lances [t, quem, valor, eu?, botão]
+const LL=[[0.7,'LABUBU FC',3],[1.7,'NEYMARZETTI',8],[2.8,'MEU TIME',13,1,'L5'],[3.8,'NEYMARZETTI',17],[4.6,'NEYMARZETTI',22]]
+const LR=[[1.0,'LEITE DE VERDADE',2],[2.1,'MEU TIME',3,1,'R1'],[3.0,'LABUBU FC',6],[4.0,'LEITE DE VERDADE',9]]
+const HL=LL[LL.length-1][0]+5, HR=LR[LR.length-1][0]+5   // martelos: 9.6 e 9.0
+const VIRA=2
+window.TOTAL=16
+const LEG=[[0,2.6,'Sala com 20 clubes: DUAS cartas na mesa, lado a lado'],[2.6,4.4,'Cada carta tem botões e teclas próprias (2 = +5 na da esquerda · 8 = +1 na da direita)'],[4.4,8.9,'Cada uma com o seu relógio: uma… duas… três…'],[8.9,12.4,'Martelaram quase juntas: cada uma vira NO LUGAR dela'],[12.4,14.4,'Entram nas Últimas marteladas, na ordem do martelo'],[14.4,16,'Próximas duas cartas na mesa']]
+// 🔊 sons (os MESMOS do jogo): tick = lance novo · coberto = cobriram o seu lance · doulhe = uma/duas/três · hammer = martelo · chime = sininho de lenda
+const S=[]
+for(const x of LL) S.push([x[0],'tick']); for(const x of LR) S.push([x[0],'tick'])
+S.push([3.0,'coberto']); S.push([3.8,'coberto']) // cobriram o Meu Time na direita e na esquerda
+for(const h of [HL,HR]) for(const n of [3,2,1]) S.push([h-n,'doulhe',n])
+S.push([HR,'hammer']); S.push([HL,'hammer']); S.push([HL+0.75,'chime'])
+window.SONS=S.sort((a,b)=>a[0]-b[0])
+const SOMLEG=[[HR,HR+0.5,'🔊 martelo (pra sala toda)'],[HL,HL+0.6,'🔊 martelo de novo'],[HL+0.7,HL+1.6,'🔔 sininho: virou LENDA']]
+function lado(t,L,H,P){
+  const nova=t>=H+VIRA+0.2
+  const feitos=L.filter(x=>t>=x[0]); const u=feitos[feitos.length-1]
+  if(nova){ $('v'+P).textContent='1 🪙'; $('w'+P).textContent='ABRE EM 1'; $('li'+P).innerHTML='<p style="text-align:center;padding-top:20px;font-weight:800;color:#888;font-size:12px">ninguém deu lance ainda</p>' }
+  else if(u){ $('v'+P).textContent=u[2]+' 🪙'; $('w'+P).textContent=u[1]; $('li'+P).innerHTML=feitos.slice(-2).reverse().map(x=>`<div><span class="tag${x[3]?' eu':''}">${x[1]}</span>${x[2]} 🪙</div>`).join('') }
+  else { $('v'+P).textContent='1 🪙'; $('w'+P).textContent='ABRE EM 1'; $('li'+P).innerHTML='' }
+  const base=nova?H+VIRA+0.2:(u?u[0]:0); let s=Math.max(0,5-(t-base)); const vend=!nova&&t>=H
+  $('r'+P).textContent=vend?'🔨':'⏱ '+Math.ceil(s)+'s'
+  $('s'+P).innerHTML=vend?'VENDIDO':(nova||s>3)?'&nbsp;':s>2?'UMA…':s>1?'DUAS…':'TRÊS…'
+  const la=$('la'+P); la.classList.toggle('red',!vend&&!nova&&s<=2&&t>5); la.classList.toggle('done',vend)
+  for(const b of ['1','5','10']){ $(P+b).classList.remove('press'); $(P+b).classList.toggle('off',vend) }
+  let kb=null; for(const x of L) if(x[4]&&t>=x[0]-.3&&t<x[0]+.25){ $(x[4]).classList.add('press'); kb=x[4] }
+  // virada no lugar
+  const inn=$('in'+P), k=seg(t,H+0.1,H+0.7)
+  const pop=t>=H&&!nova?1+0.12*Math.sin(Math.PI*seg(t,H+0.1,H+0.9)):1
+  inn.style.transform=nova?'':`rotateY(${180*ease(k)}deg) scale(${pop})`
+  const glow=P==='L'?'0 0 34px 10px rgba(255,196,0,.85)':'0 0 30px 8px rgba(180,190,210,.95)'
+  inn.querySelector('.b img').style.filter=(t>=H+0.4&&!nova)?`drop-shadow(${glow.replace(/ 10px| 8px/,'')})`:''
+  inn.parentElement.style.filter=''
+  const st=$('st'+P); const sa=seg(t,H+0.7,H+0.95); st.style.opacity=nova?0:sa*(1-seg(t,H+VIRA-0.15,H+VIRA))
+  st.style.transform=`translateX(-50%) rotate(-6deg) scale(${lerp(1.8,1,back(sa))})`
+  // carta sai do lugar (voa pra lista) e a próxima entra
+  inn.parentElement.style.opacity=(t>=H+VIRA&&t<H+VIRA+0.2)?0:1
+  if(nova){ inn.style.transform=`translateX(${lerp(-40,0,back(seg(t,H+VIRA+0.2,H+VIRA+0.6)))}px)`; inn.style.opacity=seg(t,H+VIRA+0.2,H+VIRA+0.45) } else inn.style.opacity=1
+  return kb
+}
+window.render=function(t){
+  const lg=LEG.find(x=>t>=x[0]&&t<x[1]); $('leg').textContent=lg?lg[2]:''; $('leg').style.opacity=lg?1:0
+  const sl=SOMLEG.find(x=>t>=x[0]&&t<x[1]); $('som').textContent=sl?sl[2]:''; $('som').style.opacity=sl?1:0
+  const kL=lado(t,LL,HL,'L'), kR=lado(t,LR,HR,'R')
+  const kb=$('kbd'); const k=kL||kR
+  if(k){ const el=$(k).getBoundingClientRect(); kb.style.left=(el.left+el.width/2-50)+'px'; kb.style.top=(el.top+60)+'px'; kb.textContent='tecla '+(k==='L5'?'2':'8'); kb.style.opacity=1 } else kb.style.opacity=0
+  // linhas nas marteladas: direita entra 1º (martelou antes), esquerda depois
+  const inR=ease(seg(t,HR+VIRA,HR+VIRA+0.4)), inL=ease(seg(t,HL+VIRA,HL+VIRA+0.4))
+  $('martIn').style.top=(-124+62*inR+62*inL)+'px'
+  // quem precisa: tira 1 de quem levou
+  const novaR=t>=HR+VIRA+0.2, novaL=t>=HL+VIRA+0.2
+  $('b3').textContent=t>=HR+VIRA?'fechou':'1'; $('b3').className=t>=HR+VIRA?'x':''
+  $('a2').textContent=t>=HL+VIRA?'1':'2'
+  // próximas cartas: esquerda vira MEI, direita vira GOL
+  if(novaL){ $('pL').textContent='MEI'; $('nL').textContent='Juninho'; $('clL').textContent='Vasco · 1998' } else { $('pL').textContent='ATA'; $('nL').textContent='Romário'; $('clL').textContent='Vasco · 2000' }
+  if(novaR){ $('pR').textContent='GOL'; $('nR').textContent='Dida'; $('clR').textContent='Cruzeiro · 1996' } else { $('pR').textContent='ZAG'; $('nR').textContent='Thiago Silva'; $('clR').textContent='Fluminense · 2008' }
+  $('hA').textContent=novaL?'MEI':'ATA'; $('hB').textContent=novaR?'GOL':'ZAG'
+  if(novaR){ $('b1').textContent='1';$('b2').textContent='1';$('b3').textContent='1';$('b3').className='';$('b4').textContent='1';$('b4').className='' } else { $('b1').textContent='2';$('b2').textContent='1';$('b4').textContent='fechou';$('b4').className='x' }
+  if(novaL){ $('a1').textContent='2';$('a2').textContent='3';$('a3').textContent='fechou';$('a3').className='x';$('a4').textContent='2' } else { $('a1').textContent='3';$('a3').textContent='1';$('a3').className='';$('a4').textContent='1' }
+  for(const c of ['GOL','ZAG','MEI','ATA']) $('c'+c).classList.remove('on')
+  $(novaL?'cMEI':'cATA').classList.add('on'); $(novaR?'cGOL':'cZAG').classList.add('on')
+  $('nCarta').textContent=(novaL&&novaR?'cartas 19 e 20':'cartas 17 e 18')+' de 71 · DUAS na mesa, posições diferentes · 20 clubes'
+}
+window.render(0)
+</script>
+</body></html>

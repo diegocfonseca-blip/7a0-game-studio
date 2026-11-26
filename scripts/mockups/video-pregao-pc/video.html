@@ -127,6 +127,7 @@ const L=[[1.0,'LABUBU FC',3],[1.7,'NEYMARZETTI',8],[2.5,'MEU TIME',10,1,'k2'],[3
 const LEG=[[0,4.9,'1 · Tudo numa tela só, carta grande na mesa'],[4.9,5.8,'2 · Lance pelo teclado (aqui: tecla 5 = +5)'],[5.8,10.4,'3 · Uma… duas… três…'],[10.4,15.2,'4 · Palco: a carta de verdade vira no meio da tela'],[15.2,18.4,'5 · Vai pras "Últimas marteladas" e atualiza quem ainda precisa'],[18.4,20,'6 · Próxima carta na mesa']]
 const H=800, CARD={x:49, y:233} // posição da carta da mesa
 window.TOTAL=20
+window.SONS=[...L.map(x=>[x[0],'tick']),[3.3,'coberto'],[5.6,'coberto'],[7.6,'doulhe',3],[8.6,'doulhe',2],[9.6,'doulhe',1],[10.6,'hammer'],[12.4,'chime']]
 window.render=function(t){
   // legenda
   const lg=LEG.find(x=>t>=x[0]&&t<x[1]); const leg=$('leg'); leg.textContent=lg?lg[2]:''; leg.style.opacity=lg?1:0
