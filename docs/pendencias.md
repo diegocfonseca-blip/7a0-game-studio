@@ -5,7 +5,7 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
 
 
 
-## 26/11 — 🏛️ Sala de Troféus do Clã (mockup aprovado, "Sim") — NO BRANCH, esperando "pode" pra publicar
+## 26/11 — 🏛️ Sala de Troféus do Clã (mockup aprovado, "Sim") — PUBLICADO ("Pode sim")
 - Na janela do clã (`cla-ver.tsx`, `SalaTrofeusCla`), entre os cartões e a lista de membros: taças do online somadas dos membros ATUAIS
   (Liga · Copa dos 8 · Libertadores · Champions · Relâmpago · Copa do Mundo · Regionais, desde 01/09 como no perfil) + total + 🥇🥈🥉 das
   semanas do clã no pódio. O cartão "títulos do clã" virou "títulos da semana" (era só a semana mesmo).
