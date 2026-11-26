@@ -43,7 +43,16 @@ passa… até quantos times, 20 seria o ideal?"*
 4. Criar sala = quem tem plano (como a Liga da Turma); entrar = qualquer conta? (recomendação: sim)
 5. Uma temporada por noite como meta? (recomendação: sim)
 
-## Ordem de trabalho (depois das respostas)
+## ✅ Decisões do Diego (26/11)
+1. **Até 20 clubes de gente.**
+2. **Vice: SAI.** Sem o dono a carreira espera (regra da coroa).
+3. **Criar = só quem tem plano.**
+4. **Entrar**: antes de começar, todo mundo de graça; depois que começou, **só com plano**, pedindo convite e com o aceite do dono
+   (igual à Liga Draft). Sem plano não entra nunca, nem na virada.
+5. **Quem não jogou não perde o clube**: o time joga sozinho; quando ele volta pra carreira, alcança onde todo mundo está. Na virada
+   (o leilão) é a mesma coisa: quem não está fica com o mesmo time (*"não é a mesma coisa de quem não jogou?"* — é).
+
+## Ordem de trabalho
 1. Alcance de quem faltou (`co2` + simulação das rodadas perdidas) — trava nova: aparelho que volta = mesmo estado do que ficou.
 2. A virada (leilão de todos no aparelho do comandante · ausente fica com o time · sobe/cai · T2) — trava: 3 clubes, 2 temporadas.
 3. Entrada só na virada (banco) + sair/remover = vira bot.
