@@ -3,7 +3,7 @@
 Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos os componentes compartilhados de Central, Mercado, Finanças, técnico, formações/trocas, memória, cenas, lesões e save. A tradicional passa a usar o painel organizado do Clube com mapa grande e ações claras. Corrigida sobreposição dos botões de saída sobre as áreas do Mercado no desktop, nos dois modos. Bancadas agora iniciam a tradicional pelo leilão nativo, com testes de save, cenas e lesões. Sem nova economia/OVR, migração de modo ou mudança em online/basquete/F1. Capturas apresentadas; Diego confirmou “ok” à publicação conjunta em produção, encerrando a fase de prévia local após o bloqueio anterior. Evidências e limites: [paridade](auditorias/paridade-carreiras-20261125.md).
 
 
-## 26/11 — Leilão de Conquistas: +6 temas pedidos pelo Diego (NO BRANCH, esperando OK pra publicar)
+## 26/11 — Leilão de Conquistas: +6 temas pedidos pelo Diego (PUBLICADO com OK dele)
 - 🌵 Jogou no Nordeste (clube da carta) · ❄️ Jogou na Rússia ou Ucrânia (Rússia sozinha tem só 11 cartas, não fecha pacote) · 🔁 Jogou nos dois rivais
   (lista pública + quem o baralho mostra nos dois clubes de um clássico) · 🛂 Trocou de seleção (trocou ou nasceu num país e jogou por outro) ·
   🟥 Rei do cartão vermelho (recordistas conhecidos; só ZAG/MEI fecham pacote) · 🌙 Fugiu do CT pra balada (só história pública; MEI/ATA).
