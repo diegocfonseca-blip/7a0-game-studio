@@ -49,7 +49,7 @@ import {RitmoCampoProvider} from './presidencia-velocidade'
 import { MENSAIS } from './planos-regras'
 import { assinarMensal } from './vendria-checkout'
 import { PixMP } from './pix-mp'
-import { Co2Temporada, useCo2FimDaVirada } from './co2-telas' // 🌐 carreira online v2 (19/10)
+import { Co2Temporada, useCo2FimDaVirada, Co2FecharTemporada, Co2ViradaEspera } from './co2-telas' // 🌐 carreira online v2 (19/10)
 import { useCo2, co2Agora, co2Mundo } from './co2'
 import { mesclaEntradas, congelaMeu, type EntradasMundo } from './carreira-online-v2' // 🌐 carreira online v2 (19/10)
 import {useAssistindoCampo} from './presidencia-campo-observacao'
@@ -16114,6 +16114,7 @@ export function ReserveListScreen() {
       </div>
     </div>
   )
+  if (state.co2 && state.co2.fechou === state.seasonNo) return <Co2ViradaEspera /> // 🔄 26/11: carreira online — já fechei, espero o dono abrir o leilão de todos
   const nListed = state.reserveListed?.[youId]?.length ?? 0
   const mostraPills = quinzeRL && state.onlineMode !== 'online' && !state.reserveListMesmo
   const nAliciados = (state.aliciarTecnicos?.length ?? 0) + (state.aliciarJogadores?.length ?? 0)
@@ -16273,7 +16274,9 @@ export function ReserveListScreen() {
             mesma área da aba Elenco, agora aqui na hora certa — marcou, ele
             ABRE o próximo leilão (que é este). */}
         {mostraPills && abaLeilao === 'aliciar' && <AliciarSection mgr={mgr} onPular={() => { setAbaLeilao('vender'); window.scrollTo({ top: 0 }) }} />}
-        {state.isHost ? (
+        {state.co2 ? (
+          <Co2FecharTemporada />
+        ) : state.isHost ? (
           <button onClick={() => dispatch({ type: state.reserveListMesmo ? 'CONFIRM_MESMO_TIME' : 'RESERVE_AUCTION_ONLINE' })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {state.reserveListMesmo ? tr('▶️ Continuar (mesmo time)', '▶️ Continue (same team)') : `${tr('▶️ Começar o leilão', '▶️ Start the auction')}${state.onlineMode === 'online' ? ` (${remaining}s)` : ''}`}

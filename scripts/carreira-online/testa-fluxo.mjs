@@ -7,7 +7,7 @@ const vite = await createServer({ server: { middlewareMode: true, hmr: false }, 
 const { reducer, INITIAL, sanitizeParaSala } = await vite.ssrLoadModule('/src/escalacao/store.tsx')
 const { pack, unpack } = await vite.ssrLoadModule('/src/escalacao/netpack.ts')
 const { buildPyramid, simulatePyramid, computePromotions } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
-const { minhaGaveta, mesclaEntradas, congelaMeu } = await vite.ssrLoadModule('/src/escalacao/carreira-online-v2.ts')
+const { minhaGaveta, mesclaEntradas, congelaMeu, co2Fechamento } = await vite.ssrLoadModule('/src/escalacao/carreira-online-v2.ts')
 const { computeCopaBrasil, computeSupercopa } = await vite.ssrLoadModule('/src/escalacao/copa-brasil.ts')
 const { lineupAt } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
 let falhas = 0
@@ -17,13 +17,13 @@ const NOMES = ['Dono FC', 'Amigo Um', 'Amigo Dois']
 let host = reducer(structuredClone(INITIAL), { type: 'START_CAREER_SOLO', teamName: NOMES[0], formation: '4-3-3', rivals: 5, co2: { sala: 'sala-teste', nomes: NOMES, assento: 0 } })
 ok(host.co2?.comanda === true && host.managers.filter(m => m.isHuman).length === 3, 'o dono abre a carreira com 3 clubes de gente')
 ok(host.managers.slice(0, 3).every((m, i) => m.isHuman && m.id === i && m.teamName === NOMES[i]), 'os clubes de gente têm id = ordem dos assentos')
-const tamanhos = []
+function rodaLeilao(host, fora = [], tamanhos = []) {
 for (let i = 0; i < 5000 && host.screen !== 'season'; i++) {
   if (i % 25 === 0) tamanhos.push(pack(sanitizeParaSala(host)).length)
   if (host.screen === 'auction') {
     if (host.phase === 'envelope' || host.phase === 'resq_envelope') {
       // cada clube de gente lança 1 moeda na 1ª carta do setor (o "convidado" manda pelo canal; aqui vai direto no motor)
-      for (const m of host.managers.filter(x => x.isHuman)) {
+      for (const m of host.managers.filter(x => x.isHuman && !fora.includes(x.id))) {
         if (host.submitted.includes(m.id)) continue
         // lança em 2 cartas do setor (valor que cabe no bolso), cada um em cartas diferentes
         const cartas = host.currentCards.filter((_, j) => j % 3 === m.id % 3).slice(0, 2)
@@ -45,7 +45,7 @@ for (let i = 0; i < 5000 && host.screen !== 'season'; i++) {
     // no Monte, quem é de gente escolhe na vez dele (o convidado manda pelo canal): pega a 1ª carta que cabe
     const vez = host.monteOrder[host.monteIdx]
     const m = host.managers.find(x => x.id === vez)
-    if (m?.isHuman) {
+    if (m?.isHuman && !fora.includes(m.id)) {
       const antes = host.monteIdx
       for (const c of host.monte) { host = reducer(host, { type: 'MONTE_PICK', mgrId: vez, cardId: c.id }); if (host.monteIdx !== antes || host.screen !== 'monte') break }
       if (host.screen === 'monte' && host.monteIdx === antes) host = reducer(host, { type: 'MONTE_PASS', mgrId: vez })
@@ -57,6 +57,10 @@ for (let i = 0; i < 5000 && host.screen !== 'season'; i++) {
   if (host.screen === 'cerimonia') { host = reducer(host, { type: 'FINISH_CEREMONY' }); continue }
   host = reducer(host, { type: 'FORCE_SEAL' })
 }
+return host
+}
+const tamanhos = []
+host = rodaLeilao(host, [], tamanhos)
 ok(host.screen === 'season', `o leilão de estreia chega na temporada (parou em ${host.screen}/${host.phase})`)
 const kbMax = Math.max(...tamanhos) / 1024
 ok(kbMax < 200, `o estado do leilão que vai pela sala cabe (maior pacote ${kbMax.toFixed(0)} KB comprimido)`)
@@ -130,6 +134,66 @@ const copaDe = (s) => {
 }
 const c0 = copaDe(aparelhos[0])
 ok(aparelhos.every(s => copaDe(s) === c0), `copa do fim (Copa do Brasil + Supercopa) IGUAL nos 3 aparelhos (campeão: ${JSON.parse(c0)[0]})`)
+
+// 🔄 VIRADA: o aparelho 0 (dono) e o 1 fecham a temporada; o 2 FALTOU. O dono abre o leilão de todos com os fechamentos.
+const argsFim = (s) => { const t = simDe(s).tables; return { placements: computePromotions(t), champions: {}, copaChampion: null } }
+const pl0 = JSON.stringify(argsFim(aparelhos[0]).placements)
+ok(aparelhos.every(s => JSON.stringify(argsFim(s).placements) === pl0), 'virada: as divisões da T2 saem iguais em todo aparelho')
+// marca de "estádio" do aparelho 1 (o que é do clube dele e o leilão não pode apagar)
+aparelhos[1] = { ...aparelhos[1], careerTorcida: { ...(aparelhos[1].careerTorcida ?? {}), marca1: 77 } }
+for (const k of [0, 1]) {
+  let s = reducer(aparelhos[k], { type: 'OPEN_RESERVE_LIST', ...argsFim(aparelhos[k]) })
+  ok(s.screen === 'reserveList' && s.seasonNo === 2, `aparelho ${k}: fecha as contas e abre a janela da T2 (${s.screen}, T${s.seasonNo})`)
+  s = reducer(s, { type: 'CO2_FECHA' })
+  ok(s.co2?.fechou === 2, `aparelho ${k}: fechou a temporada`)
+  aparelhos[k] = s
+}
+const caixa1 = aparelhos[1].careerCoins?.[1]
+const fech1 = JSON.parse(JSON.stringify(co2Fechamento(aparelhos[1])))
+ok(fech1 && fech1.temporada === 2 && fech1.squad.length >= 11, 'o fechamento do aparelho 1 leva elenco e caixa')
+// o 1 tenta abrir o leilão sozinho: nada acontece
+ok(reducer(aparelhos[1], { type: 'RESERVE_AUCTION_ONLINE' }) === aparelhos[1] || reducer(aparelhos[1], { type: 'RESERVE_AUCTION_ONLINE' }).screen === 'reserveList', 'quem não é dono não abre o leilão de todos')
+const expiradosAus = aparelhos[0].managers.find(m => m.id === 2).squad.filter(c => c.contratoAte != null && c.contratoAte < 2).length
+let h = reducer(aparelhos[0], { type: 'CO2_ABRE_VIRADA', fechamentos: { 1: fech1 } })
+ok(h.screen !== 'reserveList', `o dono abre o leilão de todos (${h.screen}/${h.phase})`)
+ok(JSON.stringify(h.co2?.fora) === '[2]', 'quem não fechou fica fora do leilão')
+ok(h.careerCoins?.[1] === caixa1, `caixa do 1 no leilão = o caixa que o aparelho dele fechou (${h.careerCoins?.[1]} = ${caixa1})`)
+// o aparelho 1 assiste (espelho) e o dono roda o leilão
+let a1 = reducer(aparelhos[1], { type: 'CO2_ESPELHO', newState: unpack(pack(sanitizeParaSala(h))), meuId: 1 })
+ok(a1.co2?.espelho === true && !!a1.co2?.base, 'o aparelho 1 passa a assistir o leilão e guarda o próprio clube')
+h = rodaLeilao(h, [2])
+ok(h.screen === 'season' && h.seasonNo === 2 && h.round === 0, `o leilão da virada termina na T2 (${h.screen})`)
+a1 = reducer(a1, { type: 'CO2_ASSUME', newState: unpack(pack(sanitizeParaSala(h))), meuId: 1 })
+ok(a1.screen === 'season' && a1.seasonNo === 2 && !a1.co2?.espelho && !a1.co2?.base, 'o aparelho 1 volta a tocar o próprio clube na T2')
+ok(a1.careerTorcida?.marca1 === 77, 'o que é do clube do 1 (fora do leilão) não se perde na virada')
+ok(a1.managers[a1.youIdx].id === 1 && JSON.stringify(a1.managers[a1.youIdx].squad.map(c => c.id)) === JSON.stringify(h.managers.find(m => m.id === 1).squad.map(c => c.id)), 'o elenco do 1 depois do leilão é o mesmo nos dois aparelhos')
+ok(a1.careerCoins?.[1] === h.careerCoins?.[1], `caixa do 1 bate (${a1.careerCoins?.[1]} = ${h.careerCoins?.[1]})`)
+const mov1 = (h.careerLedgers?.[1] ?? []).filter(e => e.season === 2).reduce((n, e) => n + e.amount, 0)
+ok(Math.abs(caixa1 + mov1 - a1.careerCoins?.[1]) < 0.01, `extrato do 1 fecha com o caixa depois da virada (${caixa1} ${mov1 >= 0 ? '+' : ''}${mov1} = ${a1.careerCoins?.[1]})`)
+const aus = h.managers.find(m => m.id === 2)
+ok(aus.squad.length >= 11 && !aus.squad.some(c => c.fake), 'o clube de quem faltou segue com time (sem jogador fake)')
+ok(!aus.squad.some(c => c.contratoAte != null && c.contratoAte < 2), `quem faltou: contrato vencido renovou sozinho (${expiradosAus} vencidos)`)
+ok(h.managers.every(m => !m.isHuman || !m.squad.some(c => c.fake)), 'nenhum clube de gente com jogador fake')
+// o 2 FALTOU: volta depois, fecha o clube dele e alcança pela FOTO da virada (a que o dono grava no banco)
+let a2 = { ...aparelhos[2], careerTorcida: { ...(aparelhos[2].careerTorcida ?? {}), marca2: 55 } }
+a2 = reducer(reducer(a2, { type: 'OPEN_RESERVE_LIST', ...argsFim(a2) }), { type: 'CO2_FECHA' })
+const caixa2 = a2.careerCoins?.[2]
+a2 = reducer(a2, { type: 'CO2_ALCANCA', newState: unpack(pack(sanitizeParaSala(h))), meuId: 2 })
+ok(a2.screen === 'season' && a2.seasonNo === 2 && a2.careerTorcida?.marca2 === 55, 'quem faltou alcança pela foto da virada sem perder o que é do clube dele')
+ok(JSON.stringify(a2.managers[a2.youIdx].squad.map(c => c.id)) === JSON.stringify(aus.squad.map(c => c.id)), 'quem faltou fica com o elenco que o leilão deixou (o mesmo time)')
+const mov2 = (h.careerLedgers?.[2] ?? []).filter(e => e.season === 2).reduce((n, e) => n + e.amount, 0)
+ok(a2.careerCoins?.[2] === caixa2 + mov2, `caixa de quem faltou = o dele + o que o leilão lançou (${caixa2} ${mov2 >= 0 ? '+' : ''}${mov2} = ${a2.careerCoins?.[2]})`)
+aparelhos[0] = h; aparelhos[1] = a1; aparelhos[2] = a2
+ok(aparelhos.every(s => JSON.stringify(s.careerPlacements) === JSON.stringify(h.careerPlacements)), 'T2: mesma pirâmide nos 3')
+ok(aparelhos.every(s => JSON.stringify(s.cpuSquads) === JSON.stringify(h.cpuSquads)), 'T2: mesmos elencos dos bots nos 3')
+// ⚽ 5 rodadas da T2 iguais
+for (let r = 0; r < 5; r++) {
+  for (let k = 0; k < 3; k++) { const s = aparelhos[k]; aparelhos[k] = reducer(s, { type: 'SET_TACTIC', mgrId: s.managers[s.youIdx].id, tactic: TACS[(r + k) % 3] }) }
+  const gavetas = aparelhos.map(s => JSON.parse(JSON.stringify(minhaGaveta(s.managers[s.youIdx], entradasDe(s)))))
+  for (let k = 0; k < 3; k++) aparelhos[k] = reducer(reducer(aparelhos[k], { type: 'CO2_GAVETAS', gavetas, ate: aparelhos[k].round }), { type: 'PLAY_ROUND' })
+}
+const t2 = resultado(aparelhos[0])
+ok(aparelhos.every(s => s.round === 5 && resultado(s) === t2), 'T2: depois de 5 rodadas, as tabelas são IGUAIS nos 3 aparelhos')
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ fluxo da carreira online v2 ok')
 await vite.close()
 process.exit(falhas ? 1 : 0)

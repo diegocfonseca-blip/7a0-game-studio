@@ -11,7 +11,7 @@ import {
   co2LeGavetas, co2Gaveta, co2Pronto, co2Comecar, co2Apito, co2Ritmo, co2EncerrarDia, co2SalvaPrivado, co2LePrivado, co2Agora,
   type Co2Sala,
 } from './co2'
-import { minhaGaveta, type EntradasMundo, type GavetaPublica } from './carreira-online-v2'
+import { minhaGaveta, co2Fechamento, type EntradasMundo, type GavetaPublica, type Fechamento } from './carreira-online-v2'
 import { useMotor2Carreira, copaBrasilLiberada } from './sport'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
@@ -281,8 +281,8 @@ export function Co2Temporada({ entradasLocais, round, roundReady, seasonOver, on
   if (!sala) return null
   if (seasonOver) return (
     <div style={{ ...caixa('#FFF3C4'), padding: 12, marginBottom: 10 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 4px', textTransform: 'uppercase' }}>🔧 {tr('Fim de temporada', 'End of season')}</p>
-      <p style={{ fontWeight: 800, fontSize: 12, margin: 0 }}>{tr('A virada da carreira online (leilão de todos, mesmo time, quem sobe e quem cai) é a próxima parte que está sendo construída. O seu clube está salvo — os botões de decidir a próxima temporada ainda não andam aqui.', 'The online career season turn (everyone\'s auction, same team, promotion and relegation) is the next part being built. Your club is saved — the next-season buttons don\'t work here yet.')}</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: '0 0 4px', textTransform: 'uppercase' }}>🏁 {tr('Fim de temporada', 'End of season')}</p>
+      <p style={{ fontWeight: 800, fontSize: 12, margin: 0 }}>{tr('Siga o fim de temporada aqui embaixo e aperte Leilão: você decide os contratos e fecha o seu clube. Quando todo mundo fechar, o dono abre o leilão de todos.', 'Follow the end of season below and press Auction: you sort your contracts and close your club. When everyone has closed, the owner opens everyone\'s auction.')}</p>
     </div>
   )
   const euPronto = !!sn.clubes.find(c => c.user_id === sn.uid && c.pronto_rodada === sala.rodada + 1)
@@ -358,4 +358,85 @@ export function useCo2FimDaVirada() {
     const carimbo = mm && (poeM2 || poeFim) ? { ...mm, ...(poeM2 ? { m2: state.seasonNo ?? 1 } : {}), ...(poeFim ? { fim: { copaBR: copaBrasilLiberada() } } : {}) } : null
     void co2Mundo('preparo', state.seasonNo ?? 1, 0, carimbo, 90)
   }, [state.co2?.comanda, state.screen, sn.sala?.fase, state.seasonNo, m2Liberado, state.round])
+}
+
+// ═══ VIRADA (26/11): cada um fecha o próprio clube; o dono abre o leilão de todos ═══════════════════════════════════
+/** O botão no fim da janela de contratos (no lugar do "Começar o leilão" da carreira solo). */
+export function Co2FecharTemporada() {
+  const { dispatch } = useEsc()
+  return (
+    <div>
+      <button onClick={() => dispatch({ type: 'CO2_FECHA' })} style={botao(GREEN, '#fff')}>✅ {tr('Fechar minha temporada', 'Close my season')}</button>
+      <p style={{ fontWeight: 700, fontSize: 11, margin: '6px 2px 0', color: 'rgba(0,0,0,.55)', textAlign: 'center', lineHeight: 1.4 }}>
+        {tr('Contrato vencido sem decisão renova sozinho por 5 anos. Depois de fechar, você espera o dono abrir o leilão de todos.', 'An expired contract with no decision renews by itself for 5 years. After closing, you wait for the owner to open everyone\'s auction.')}
+      </p>
+    </div>
+  )
+}
+
+const vazio: EntradasMundo = { tactics: {}, lineups: {}, halftime: {}, penalty: {}, mods: {}, cardMods: {} }
+
+/** Depois de fechar: sobe o fechamento na gaveta, mostra quem já fechou e (só pro dono) o botão de abrir o leilão de todos. */
+export function Co2ViradaEspera() {
+  const { state, dispatch } = useEsc()
+  const sn = useCo2()
+  const me = state.managers[state.youIdx]
+  const comanda = !!state.co2?.comanda
+  const temporada = state.seasonNo ?? 1
+  const [subiu, setSubiu] = useState<'indo' | 'ok' | 'erro'>('indo')
+  const [fechados, setFechados] = useState<Record<number, Fechamento | undefined>>({})
+  const sobe = async () => {
+    const f = co2Fechamento(state)
+    if (!me || !f) { setSubiu('erro'); return }
+    setSubiu('indo')
+    const r = await co2Gaveta({ ...minhaGaveta(me, vazio), fechamento: f } as unknown as Record<string, unknown>)
+    setSubiu(r === 'ok' ? 'ok' : 'erro')
+  }
+  useEffect(() => { void sobe() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const le = async (): Promise<Record<number, Fechamento | undefined>> => {
+    const rows = await co2LeGavetas()
+    const out: Record<number, Fechamento | undefined> = {}
+    for (const r of rows) { const g = r.publico as unknown as GavetaPublica | undefined; if (g && typeof g.mgrId === 'number' && g.fechamento?.temporada === temporada) out[g.mgrId] = g.fechamento }
+    setFechados(out)
+    return out
+  }
+  useEffect(() => { void le() }, [sn.clubes, subiu]) // eslint-disable-line react-hooks/exhaustive-deps
+  const ordem = sn.mundo?.ordem ?? []
+  const clubes = sn.clubes.map(c => ({ nome: c.nome, id: ordem.indexOf(c.user_id) })).filter(c => c.id >= 0)
+  const faltam = clubes.filter(c => !fechados[c.id])
+  const abrir = async () => {
+    const f = await le()
+    const fora = clubes.filter(c => !f[c.id]).map(c => c.nome)
+    if (fora.length && !window.confirm(tr(`${fora.join(', ')} ainda não fechou. Vai ficar fora do leilão e os contratos vencidos renovam sozinhos. Abrir mesmo assim?`, `${fora.join(', ')} hasn't closed yet. They'll sit out the auction and expired contracts renew by themselves. Open anyway?`))) return
+    dispatch({ type: 'CO2_ABRE_VIRADA', fechamentos: f })
+  }
+  return (
+    <div className="palco tela-cheia" style={{ background: CREAM, color: INK, padding: '20px 14px 48px' }}>
+      <div style={{ maxWidth: 520, margin: '0 auto', display: 'grid', gap: 12 }}>
+        <div style={{ ...caixa(INK), color: '#fff', padding: '12px 14px' }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, margin: 0, textTransform: 'uppercase' }}>🔨 {tr(`Leilão da temporada ${temporada}`, `Season ${temporada} auction`)}</p>
+          <p style={{ fontWeight: 700, fontSize: 12, margin: '4px 0 0', color: 'rgba(255,255,255,.8)' }}>{tr('Seu clube está fechado. O leilão é de todos e quem abre é o dono.', 'Your club is closed. The auction is for everyone and the owner opens it.')}</p>
+        </div>
+        <div style={{ ...caixa(), padding: 12 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: '0 0 6px', textTransform: 'uppercase' }}>{tr('Quem já fechou', 'Who has closed')} · {clubes.length - faltam.length}/{clubes.length}</p>
+          {clubes.map(c => (
+            <p key={c.id} style={{ fontWeight: 800, fontSize: 13, margin: '3px 0' }}>{fechados[c.id] ? '✅' : '⏳'} {c.nome}</p>
+          ))}
+          {subiu === 'erro' && <button onClick={() => void sobe()} style={{ ...botao('#FFE1DB'), fontSize: 13, marginTop: 8 }}>⚠️ {tr('Não subiu o seu fechamento — tentar de novo', 'Your closing didn\'t upload — try again')}</button>}
+        </div>
+        {comanda ? (
+          <div>
+            <button disabled={subiu !== 'ok'} onClick={() => void abrir()} style={botao(subiu === 'ok' ? GOLD : '#eee')}>🔨 {tr('Abrir o leilão de todos', 'Open everyone\'s auction')}</button>
+            <p style={{ fontWeight: 700, fontSize: 11, margin: '6px 2px 0', color: 'rgba(0,0,0,.55)', textAlign: 'center', lineHeight: 1.4 }}>
+              {faltam.length ? tr('Quem não fechou fica fora do leilão: não perde o clube, e contrato vencido renova sozinho.', 'Whoever hasn\'t closed sits out the auction: they keep the club, and expired contracts renew by themselves.') : tr('Todo mundo fechou.', 'Everyone has closed.')}
+            </p>
+          </div>
+        ) : (
+          <div style={{ ...caixa('#EAF3FF'), padding: 12, textAlign: 'center' }}>
+            <p style={{ fontWeight: 800, fontSize: 12.5, margin: 0, color: '#3a5a8a' }}>⏳ {tr('Esperando o dono abrir o leilão de todos. O leilão aparece aqui sozinho.', 'Waiting for the owner to open everyone\'s auction. It shows up here by itself.')}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }

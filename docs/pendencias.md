@@ -40,6 +40,13 @@ Diego pediu levar as melhorias do Brasil Oficial para a tradicional. Conferidos 
 
 
 ## 26/11 — 🌐 Carreira Online (tradicional): análise da logística feita, esperando 5 decisões do Diego
+- ✅ **(26/11 noite) VIRADA da temporada no branch** (só conta do Diego, não publicado): cada um fecha o próprio clube
+  (contas + contratos no aparelho dele) → o dono abre o leilão de todos (quem não fechou fica fora, contrato vencido renova
+  sozinho) → no fim cada aparelho junta elencos/bots do dono com o próprio clube (estádio, Agência, caixa não se perdem).
+  Quem faltou alcança pela foto da virada. Plano/estado: `docs/carreira-online-virada-plano.md`.
+- ⏳ **SQL `docs/sql/carreira-online-virada-20261126.sql` NÃO APLICADO** (tabela da foto da virada). Aplicar fora do pico.
+- 🐛 consertado no mesmo dia: os aparelhos dos amigos não liam o modo (Dinâmica/Livre) nem a escalação congelada da copa.
+- ⏳ falta: relógio de 60 s da Dinâmica na virada, alcançar rodadas perdidas, sondar de amigo, bots 0–5 no leilão, teste com 2 contas.
 - Tudo em `docs/carreira-online-logistica.md` (onde está, os 4 buracos, proposta espelhada na Liga Draft, decisões, ordem de trabalho).
 - Testes da v2 verdes depois da publicação do Codex (`npm run carreira-online` e `npm run carreira-online-fluxo`).
 

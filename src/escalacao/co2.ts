@@ -62,9 +62,11 @@ export async function co2RecarregaClubes(): Promise<void> {
 }
 export async function co2LeMundo(): Promise<Co2Mundo | null> {
   if (!canalSala) return null
-  const { data } = await supabase.from('esc_carr_sala').select('m:mundo->ordem, v:mundo->v, m2:mundo->m2').eq('id', canalSala).maybeSingle()
-  const d = data as { m?: string[] | null; v?: number | null; m2?: number | null } | null
-  const mundo = d?.m ? { ordem: d.m, v: d.v ?? undefined, m2: d.m2 ?? undefined } : null
+  // 🐛 26/11: antes lia só ordem/v/m2 — o modo (Dinâmica/Livre), a regra da copa (`fim`) e a escalação congelada da copa
+  // (`copaXi`) nunca chegavam nos aparelhos dos amigos. O mundo é pequeno (uids + 20×11 ids): lê inteiro.
+  const { data } = await supabase.from('esc_carr_sala').select('mundo').eq('id', canalSala).maybeSingle()
+  const d = (data as { mundo?: Co2Mundo | null } | null)?.mundo
+  const mundo = d && Array.isArray(d.ordem) ? d : null
   muda({ mundo })
   return mundo
 }
@@ -199,5 +201,16 @@ export async function co2LePrivado(): Promise<Record<string, unknown> | null> {
   return ((data as { dados?: Record<string, unknown> } | null)?.dados) ?? null
 }
 export const co2SalaAtual = (): string | null => canalSala
+/** 🔄 26/11: a FOTO da virada (estado do fim do leilão de todos), pra quem faltou alcançar. Só quem comanda grava. */
+export async function co2SalvaVirada(temporada: number, z: string): Promise<string> {
+  if (!canalSala) return 'erro'
+  const { data, error } = await supabase.rpc('esc_carr_virada_salva', { p_sala: canalSala, p_temporada: temporada, p_z: z })
+  return error ? 'erro' : String(data ?? 'erro')
+}
+export async function co2LeVirada(temporada: number): Promise<string | null> {
+  if (!canalSala) return null
+  const { data, error } = await supabase.rpc('esc_carr_virada_le', { p_sala: canalSala, p_temporada: temporada })
+  return error || typeof data !== 'string' ? null : data
+}
 /** 📸 bancada das fotos/testes (`scripts/foto-co2.mjs`): finge quem sou eu e quem está na sala. Não é usada pelo jogo. */
 export function _bancadaCo2(p: Partial<Snap>): void { muda(p) }

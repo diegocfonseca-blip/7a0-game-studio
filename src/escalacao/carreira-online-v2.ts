@@ -7,7 +7,7 @@
 // Este arquivo é a ponte: tira as entradas do MEU clube pra gaveta e mistura as dos OUTROS nas entradas do motor.
 // Puro (sem React, sem banco). Trava: `npm run carreira-online`.
 import type { RoundTactics, RoundLineups, RoundMods, RoundCardMods, RoundHalftime, RoundPenalty, SimTecnicos } from './pyramidseason'
-import type { Manager } from './types'
+import type { Manager, EscState, WonCard, LedgerEntry } from './types'
 
 /** Tudo que o motor precisa de UM clube de gente, rodada a rodada. Chaves = número da rodada (como na solo). */
 export type EntradasSim = {
@@ -28,6 +28,22 @@ export type GavetaPublica = {
   formationView?: string
   squad: Manager['squad']
   entradas: EntradasSim
+  /** 🔄 26/11: o clube FECHOU a temporada (contratos decididos, caixa do fim). Só existe na virada. */
+  fechamento?: Fechamento
+}
+
+/**
+ * 🔄 VIRADA (26/11): o que o aparelho de cada clube manda pro dono quando aperta "Fechar temporada". É o clube DEPOIS
+ * das contas do fim (prêmios, bilheteria, folha, patrocínio — tudo calculado no aparelho dele, que é quem tem estádio,
+ * Master, Agência) e das decisões da janela (renovar, deixar sair, pôr à venda). O dono põe isso no leilão de todos.
+ */
+export type Fechamento = {
+  temporada: number
+  caixa: number
+  squad: WonCard[]
+  listados: string[]
+  soltar: string[]
+  sondados: string[]
 }
 
 /** O que o aparelho já monta pra solo (os mesmos mapas que vão pro `simulatePyramid`). */
@@ -129,4 +145,93 @@ export function congelaMeu(base: EntradasMundo, minha: GavetaPublica | null | un
       return Object.keys(t).length ? t : undefined
     })(),
   }
+}
+
+/** 🔄 O fechamento do MEU clube (o aparelho manda junto com a gaveta). */
+export function co2Fechamento(s: EscState): Fechamento | null {
+  const me = s.managers[s.youIdx]
+  if (!me || !s.co2) return null
+  const minhas = new Set(me.squad.map(c => String(c.id)))
+  return {
+    temporada: s.seasonNo ?? 1,
+    caixa: s.careerCoins?.[me.id] ?? 0,
+    squad: me.squad as WonCard[],
+    listados: (s.reserveListed?.[me.id] ?? []).filter(id => minhas.has(String(id))),
+    soltar: (s.contratoRelease ?? []).filter(id => minhas.has(String(id))),
+    sondados: [...(s.aliciarJogadores ?? [])],
+  }
+}
+
+/**
+ * 🔄 O dono põe os fechamentos no estado dele ANTES de abrir o leilão de todos. Quem fechou entra com o elenco, o caixa,
+ * a lista de venda e o "deixar sair" do aparelho dele. Quem NÃO fechou fica `fora`: não dá lance, não vende nada, e o
+ * contrato vencido renova sozinho no leilão (regra do Diego: *"se não escolher, renova automático"*). Puro: devolve
+ * os campos novos, quem chama aplica.
+ */
+export function aplicaFechamentos(s: EscState, fechamentos: Record<number, Fechamento | undefined>): Pick<EscState, 'managers' | 'careerCoins' | 'reserveListed' | 'contratoRelease' | 'aliciarJogadores'> & { fora: number[] } {
+  const meuId = s.managers[s.youIdx]?.id
+  const temporada = s.seasonNo ?? 1
+  const coins = { ...(s.careerCoins ?? {}) }
+  const listed = { ...(s.reserveListed ?? {}) }
+  const soltar = new Set(s.contratoRelease ?? [])
+  const sondados = new Set(s.aliciarJogadores ?? [])
+  const fora: number[] = []
+  const managers = s.managers.map(m => {
+    if (!m.isHuman || m.id === meuId) return m
+    const f = fechamentos[m.id]
+    if (!f || f.temporada !== temporada || !Array.isArray(f.squad) || f.squad.length < 11) {
+      fora.push(m.id)
+      delete listed[m.id]
+      for (const c of m.squad) soltar.delete(c.id)
+      return m
+    }
+    const ids = new Set(f.squad.map(c => String(c.id)))
+    coins[m.id] = Number.isFinite(f.caixa) ? f.caixa : (coins[m.id] ?? 0)
+    listed[m.id] = (f.listados ?? []).filter(id => ids.has(String(id)))
+    for (const id of f.soltar ?? []) if (ids.has(String(id))) soltar.add(id)
+    for (const id of f.sondados ?? []) sondados.add(id)
+    return { ...m, squad: f.squad.map(c => ({ ...c })) }
+  })
+  return { managers, careerCoins: coins, reserveListed: listed, contratoRelease: [...soltar], aliciarJogadores: [...sondados], fora }
+}
+
+/**
+ * 🔄 Campos que são de TODOS e vêm do leilão do dono. Todo o resto do meu estado (estádio, Agência, Master, Loja,
+ * presidente, torcida, staff, cansaço, extrato, coleção…) fica como estava no MEU aparelho — o leilão não sabe nada
+ * disso. A régua é "na dúvida, fica o meu": perder o estádio de alguém é pior que uma tela atrasada.
+ */
+const DO_LEILAO = [
+  'cpuSquads', 'clubCash', 'marketValues', 'marketLog', 'marketSellers', 'careerMercado', 'careerTransferHistory', 'criaNews', 'criaNames',
+  'reserveListed', 'reserveAuction', 'reserveListMesmo', 'contratoRelease', 'aliciarJogadores', 'aliciarFundo', 'careerTecnicos', 'tecLote',
+  'screen', 'phase', 'deck', 'sectorIdx', 'surpriseId', 'mudoId', 'currentCards', 'revealQueue', 'resenha', 'revealIdx', 'stock', 'sectorCursor',
+  'sectorUnsoldAccum', 'roundIdx', 'monte', 'monteOrder', 'monteIdx', 'submitted', 'pendingEnvelopes', 'tiebreaks', 'tiebreakIdx', 'tiebreakPending',
+  'phaseDeadline', 'monteDeadline', 'cerimoniaDeadline', 'seasonNo', 'round', 'champion', 'simV',
+] as const satisfies readonly (keyof EscState)[]
+
+/**
+ * 🔄 Junta o MEU estado de antes do leilão (`base`) com o estado do dono no fim do leilão (`cmd`). Do dono: os elencos
+ * de todos, os bots, o mercado e a temporada. Do meu: tudo que é do meu clube. Caixa: o do dono pro meu clube (ele
+ * partiu do caixa que o MEU aparelho fechou, e só somou o que eu comprei/vendi); extrato: o meu + as linhas do leilão
+ * que o dono guardou pro meu clube.
+ */
+export function co2JuntaVirada(base: EscState, cmd: EscState, meuId: number, faltou = false): EscState {
+  const out: EscState = { ...base }
+  const o = out as unknown as Record<string, unknown>
+  const c = cmd as unknown as Record<string, unknown>
+  for (const k of DO_LEILAO) o[k] = c[k]
+  const meuBase = base.managers.find(m => m.id === meuId)
+  out.managers = cmd.managers.map(m => (m.id === meuId && meuBase ? { ...meuBase, squad: m.squad, money: m.money } : m))
+  out.youIdx = Math.max(0, out.managers.findIndex(m => m.id === meuId))
+  const linhas: LedgerEntry[] = cmd.careerLedgers?.[meuId] ?? []
+  // quem FALTOU: o dono não tinha o caixa de fim de temporada dele — vale o caixa do próprio aparelho + o que o leilão
+  // lançou pro clube (renovação automática). Quem fechou: o do dono, que já partiu do caixa que este aparelho mandou.
+  const doLeilao = linhas.filter(e => e.season === (cmd.seasonNo ?? 1)).reduce((n, e) => n + e.amount, 0)
+  const meuCaixa = faltou ? (base.careerCoins?.[meuId] ?? 0) + doLeilao : (cmd.careerCoins?.[meuId] ?? base.careerCoins?.[meuId] ?? 0)
+  out.careerCoins = { ...(base.careerCoins ?? {}), [meuId]: meuCaixa }
+  const ja = new Set((base.careerLedger ?? []).map(e => e.id))
+  out.careerLedger = [...(base.careerLedger ?? []), ...linhas.filter(e => !ja.has(e.id))].slice(-250)
+  out.careerLedgers = undefined
+  out.isHost = true
+  out.co2 = { ...(base.co2 ?? { sala: cmd.co2?.sala ?? '', gavetas: [] }), sala: cmd.co2?.sala ?? base.co2?.sala ?? '', assento: meuId, comanda: false, espelho: false, base: undefined, fora: undefined, gavetas: base.co2?.gavetas ?? [] }
+  return out
 }
